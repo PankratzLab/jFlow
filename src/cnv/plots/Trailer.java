@@ -3,8 +3,11 @@ package cnv.plots;
 import java.io.*;
 import java.util.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -82,7 +85,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private String[] samplesPresent;
 	private JTextField navigationField;
 //	private JTextField regionsField;
-	private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion, firstRegion, lastRegion;
+	private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion;//, firstRegion, lastRegion;
 	private Project proj;
 	private String sample;
 	private IndiPheno indiPheno;
@@ -110,6 +113,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private String[][] regions;
 	private int regionIndex;
 	private JPanel lrrPanel;
+	private JPanel bafPanel;
+	private JPanel cnvPanel;
 	private SingleClick leftClick;
 	private SingleClick rightClick;
 	private GeneTrack track;
@@ -242,12 +247,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		
 		cnvLabels = sampleData.getCnvClasses();
-//		System.err.println("Error - ");
-//		System.err.println("Error - there are "+cnvLabels.length+" cnvLabels: "+Array.toStr(cnvFilenames));
-//		System.err.println("Error - ");
-//		System.exit(1);
-//		loadCNVfiles(proj, cnvFilenames);
-
 //		regionsList = proj.getIndividualRegionLists();
 //		if (regionsList.length > 1) {
 //			JOptionPane.showMessageDialog(null, "Warning - only one list file is currently supported within Trailer", "Warning", JOptionPane.ERROR_MESSAGE);
@@ -550,7 +549,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		lrrPanel.addMouseWheelListener(this);
 		dataPanel.add(lrrPanel);
 
-		final JPanel cnvPanel = new JPanel() {
+		cnvPanel = new JPanel() {
 			public static final long serialVersionUID = 8L;
 			public void paintComponent(Graphics g) {
 				paintCNVGeneTrackPanel(g);
@@ -645,9 +644,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				
 				selectedCNV = null;
 				
-//				cnvPanel.revalidate();
-//				cnvPanel.repaint();
-//				Trailer.this.revalidate();
 				Trailer.this.repaint();
 			}
 		};
@@ -655,7 +651,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		cnvPanel.addMouseMotionListener(cnvAdapter);
 		dataPanel.add(cnvPanel);
 
-		JPanel panel = new JPanel() {
+		bafPanel = new JPanel() {
 			public static final long serialVersionUID = 7L;
 
 			public void paintComponent(Graphics g) {
@@ -681,7 +677,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 			}
 		};
-		dataPanel.add(panel);
+		dataPanel.add(bafPanel);
 
 		// getContentPane().setBackground(Color.WHITE);
 		getContentPane().add(dataPanel, BorderLayout.CENTER);
@@ -1150,7 +1146,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //		getContentPane().add(descrPanel, BorderLayout.NORTH);
 		getContentPane().add(overPanel, BorderLayout.NORTH);
 
-		InputMap inputMap = panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		InputMap inputMap = bafPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		// inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP,
 		// InputEvent.ALT_MASK), ALT_UP);
 		// inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,
@@ -1160,7 +1156,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK), PREVIOUS_CHR);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, InputEvent.CTRL_MASK), NEXT_CHR);
 
-		ActionMap actionMap = panel.getActionMap();
+		ActionMap actionMap = bafPanel.getActionMap();
 		actionMap.put(FIRST_CHR, new AbstractAction() {
 			public static final long serialVersionUID = 5L;
 			public void actionPerformed(ActionEvent e) {
@@ -1213,12 +1209,110 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				showRegion();
 			}
 		});
-		panel.setActionMap(actionMap);
+		bafPanel.setActionMap(actionMap);
 
 		// doesn't seem to get captured properly...
 		nextChr.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT_REGION);
 		nextChr.setActionMap(actionMap);
 		previousChr.setActionMap(actionMap);
+	}
+	
+	private class TransferableImage implements java.awt.datatransfer.Transferable {
+
+        Image i;
+
+        public TransferableImage( Image i ) {
+            this.i = i;
+        }
+
+        public Object getTransferData( java.awt.datatransfer.DataFlavor flavor )
+        throws java.awt.datatransfer.UnsupportedFlavorException, IOException {
+            if ( flavor.equals( java.awt.datatransfer.DataFlavor.imageFlavor ) && i != null ) {
+                return i;
+            }
+            else {
+                throw new java.awt.datatransfer.UnsupportedFlavorException( flavor );
+            }
+        }
+
+        public java.awt.datatransfer.DataFlavor[] getTransferDataFlavors() {
+            java.awt.datatransfer.DataFlavor[] flavors = new java.awt.datatransfer.DataFlavor[ 1 ];
+            flavors[ 0 ] = java.awt.datatransfer.DataFlavor.imageFlavor;
+            return flavors;
+        }
+
+        public boolean isDataFlavorSupported( java.awt.datatransfer.DataFlavor flavor ) {
+            java.awt.datatransfer.DataFlavor[] flavors = getTransferDataFlavors();
+            for ( int i = 0; i < flavors.length; i++ ) {
+                if ( flavor.equals( flavors[ i ] ) ) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+	
+	private void doScreenCapture(String filename) {
+	    BufferedImage cap = generateScreenshot();
+	    
+	    if (filename == null) {
+	        // copy to clipboard
+	        TransferableImage ti = new TransferableImage(cap);
+	        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+            c.setContents( ti, null );
+	        
+	    } else {
+	        try {
+	            ImageIO.write(cap, "png", new File(filename));
+	        } catch (IOException e) {
+	            // TODO Auto-generated catch block
+	            e.printStackTrace();
+	        }
+	        
+	    }
+	}
+	
+	
+	private BufferedImage generateScreenshot() {
+	    int lW = lrrPanel.getWidth();
+	    int bW = bafPanel.getWidth();
+	    int cW = cnvPanel.getWidth();
+	    int lH = lrrPanel.getHeight();
+	    int bH = bafPanel.getHeight();
+	    int cH = cnvPanel.getHeight();
+	    BufferedImage imageLrr = new BufferedImage(lW, lH, BufferedImage.TYPE_INT_RGB);
+	    BufferedImage imageBaf = new BufferedImage(bW, bH, BufferedImage.TYPE_INT_RGB);
+	    BufferedImage imageCnv = new BufferedImage(cW, cH, BufferedImage.TYPE_INT_RGB);
+	    
+	    Graphics g = imageLrr.getGraphics();
+        g.setColor(lrrPanel.getBackground());
+        g.fillRect(0, 0, imageLrr.getWidth(), imageLrr.getHeight());
+	    lrrPanel.paintAll(g);
+	    
+	    g = imageCnv.getGraphics();
+        g.setColor(cnvPanel.getBackground());
+        g.fillRect(0, 0, imageCnv.getWidth(), imageCnv.getHeight());
+	    cnvPanel.paintAll(g);
+	    
+	    g = imageBaf.getGraphics();
+        g.setColor(bafPanel.getBackground());
+        g.fillRect(0, 0, imageBaf.getWidth(), imageBaf.getHeight());
+	    bafPanel.paintAll(g);
+	    
+	    int w = Math.max(lW, Math.max(bW, cW));
+	    int h = lH + bH + cH + HEIGHT_BUFFER;
+	    BufferedImage finalImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+	    
+	    g = finalImage.getGraphics();
+	    g.setColor(lrrPanel.getBackground());
+	    g.fillRect(0, 0, finalImage.getWidth(), finalImage.getHeight());
+	    g.drawImage(imageLrr, 0, 0, null);
+	    g.drawImage(imageCnv, 0, lH + 5, null);
+	    g.drawImage(imageBaf, 0, lH + cH + 10, null);
+	    g.dispose();
+	    
+	    return finalImage;
 	}
 	
 	private JMenuBar createMenuBar() {
@@ -1311,7 +1405,38 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		loadRecentFileMenu = new JMenu("Load Recent...");
 		loadRecentFileMenu.setMnemonic(KeyEvent.VK_R);
 		fileMenu.add(loadRecentFileMenu);
-
+		
+		JMenuItem screencap1 = new JMenuItem();
+		screencap1.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+                jfc.setMultiSelectionEnabled(false);
+                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                jfc.setDialogTitle("Save Screen Capture...");
+                jfc.setDialogType(JFileChooser.SAVE_DIALOG);
+                int code = jfc.showSaveDialog(Trailer.this);
+                if (code == JFileChooser.APPROVE_OPTION) {
+                    String filename = jfc.getSelectedFile().getAbsolutePath();
+		            doScreenCapture(filename);
+                }
+            }
+        });
+		screencap1.setText("Screen Capture");
+		fileMenu.add(screencap1);
+		
+		JMenuItem screencap2 = new JMenuItem();
+		screencap2.setAction(new AbstractAction() {
+		    private static final long serialVersionUID = 1L;
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		        doScreenCapture(null);
+		    }
+		});
+		screencap2.setText("Screen Capture to Clipboard");
+		fileMenu.add(screencap2);
+		
 		menuBar.add(fileMenu);
 		
 		regionButtonGroup = new ButtonGroup();

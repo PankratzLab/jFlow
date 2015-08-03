@@ -3,6 +3,7 @@ package cnv.plots;
 
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -1137,86 +1138,87 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		return pcSliderPanel;
 	}
 
-	private JPanel nstageStdevSliderPanel() {
-		JPanel pcSliderPanel = new JPanel();
-//		pcSliderPanel.setLayout(new BoxLayout(pcSliderPanel, BoxLayout.Y_AXIS));
-		pcSliderPanel.setLayout(new GridLayout(2, 1));
-		pcSliderPanel.setBackground(BACKGROUND_COLOR);
+//	private JPanel nstageStdevSliderPanel() {
+//		JPanel pcSliderPanel = new JPanel();
+////		pcSliderPanel.setLayout(new BoxLayout(pcSliderPanel, BoxLayout.Y_AXIS));
+//		pcSliderPanel.setLayout(new GridLayout(2, 1));
+//		pcSliderPanel.setBackground(BACKGROUND_COLOR);
+//
+//		JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 100, DEFAULT_SIZE);
+//		// slider.setSize(new Dimension(150, 20));
+//		slider.setBackground(BACKGROUND_COLOR);
+//		slider = new JSlider(JSlider.HORIZONTAL, 0,  100, 0);
+//		slider.setValue(0);
+//		slider.setBackground(BACKGROUND_COLOR);
+//		nStageStDevLabel = new JLabel("Standard deviation filter "+stdevFilter, JLabel.CENTER);
+//		nStageStDevLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+//		// tabPanel.add(gcLabel, gbc);
+//		pcSliderPanel.add(nStageStDevLabel);
+//
+//		slider.addChangeListener(new ChangeListener() {
+//			public void stateChanged(ChangeEvent ce) {
+//				JSlider slider = (JSlider) ce.getSource();
+//				stdevFilter = (double)slider.getValue()/25;
+//				nStageStDevLabel.setText("Alt. Genotype StDev Filter: "+stdevFilter);
+////				seletedScatterPanel.setPointsGeneratable(true);
+////				seletedScatterPanel.setQcPanelUpdatable(true);
+////				seletedScatterPanel.paintAgain();
+//				for (int i = 0; i < scatterPanels.length; i++) {
+//					scatterPanels[i].setPointsGeneratable(true);
+//					scatterPanels[i].setQcPanelUpdatable(true);
+//					scatterPanels[i].paintAgain();
+//				}
+//				// qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");
+//			}
+//		});
+//		// tabPanel.add(slider, gbc);
+//		pcSliderPanel.add(slider);
+//
+//		return pcSliderPanel;
+//	}
 
-		JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 100, DEFAULT_SIZE);
-		// slider.setSize(new Dimension(150, 20));
-		slider.setBackground(BACKGROUND_COLOR);
-		slider = new JSlider(JSlider.HORIZONTAL, 0,  100, 0);
-		slider.setValue(0);
-		slider.setBackground(BACKGROUND_COLOR);
-		nStageStDevLabel = new JLabel("Standard deviation filter "+stdevFilter, JLabel.CENTER);
-		nStageStDevLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-		// tabPanel.add(gcLabel, gbc);
-		pcSliderPanel.add(nStageStDevLabel);
-
-		slider.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent ce) {
-				JSlider slider = (JSlider) ce.getSource();
-				stdevFilter = (double)slider.getValue()/25;
-				nStageStDevLabel.setText("Alt. Genotype StDev Filter: "+stdevFilter);
-//				seletedScatterPanel.setPointsGeneratable(true);
-//				seletedScatterPanel.setQcPanelUpdatable(true);
-//				seletedScatterPanel.paintAgain();
-				for (int i = 0; i < scatterPanels.length; i++) {
-					scatterPanels[i].setPointsGeneratable(true);
-					scatterPanels[i].setQcPanelUpdatable(true);
-					scatterPanels[i].paintAgain();
-				}
-				// qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");
-			}
-		});
-		// tabPanel.add(slider, gbc);
-		pcSliderPanel.add(slider);
-
-		return pcSliderPanel;
-}
-
-	private JPanel nstageCorrectionRatio() {
-		JPanel pcSliderPanel = new JPanel();
-//		pcSliderPanel.setLayout(new BoxLayout(pcSliderPanel, BoxLayout.Y_AXIS));
-		pcSliderPanel.setLayout(new GridLayout(2, 1));
-		pcSliderPanel.setBackground(BACKGROUND_COLOR);
-
-		JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 100, DEFAULT_SIZE);
-		// slider.setSize(new Dimension(150, 20));
-		slider.setBackground(BACKGROUND_COLOR);
-		slider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
-		slider.setValue(0);
-		slider.setBackground(BACKGROUND_COLOR);
-		correctionRatioLabel = new JLabel("Correction Ratio: " + correctionRatio, JLabel.CENTER);
-		correctionRatioLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-		String usage = "This limits the ratio of PCs to the number of samples in a cluster...";
-
-		correctionRatioLabel.setToolTipText(usage);
-		// tabPanel.add(gcLabel, gbc);
-		pcSliderPanel.add(correctionRatioLabel);
-
-		slider.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent ce) {
-				JSlider slider = (JSlider) ce.getSource();
-				correctionRatio = (double) slider.getValue() / 100;
-				correctionRatioLabel.setText("Correction Ratio " + correctionRatio);
-//				seletedScatterPanel.setPointsGeneratable(true);
-//				seletedScatterPanel.setQcPanelUpdatable(true);
-//				seletedScatterPanel.paintAgain();
-				for (int i = 0; i < scatterPanels.length; i++) {
-					scatterPanels[i].setPointsGeneratable(true);
-					scatterPanels[i].setQcPanelUpdatable(true);
-					scatterPanels[i].paintAgain();
-				}
-				// qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");
-			}
-		});
-		// tabPanel.add(slider, gbc);
-		pcSliderPanel.add(slider);
-
-		return pcSliderPanel;
-	}
+//	private JPanel nstageCorrectionRatio() {
+//		JPanel pcSliderPanel = new JPanel();
+////		pcSliderPanel.setLayout(new BoxLayout(pcSliderPanel, BoxLayout.Y_AXIS));
+//		pcSliderPanel.setLayout(new GridLayout(2, 1));
+//		pcSliderPanel.setBackground(BACKGROUND_COLOR);
+//
+//		JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, 100, DEFAULT_SIZE);
+//		// slider.setSize(new Dimension(150, 20));
+//		slider.setBackground(BACKGROUND_COLOR);
+//		slider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
+//		slider.setValue(0);
+//		slider.setBackground(BACKGROUND_COLOR);
+//		correctionRatioLabel = new JLabel("Correction Ratio: " + correctionRatio, JLabel.CENTER);
+//		correctionRatioLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+//		String usage = "This limits the ratio of PCs to the number of samples in a cluster...";
+//
+//		correctionRatioLabel.setToolTipText(usage);
+//		// tabPanel.add(gcLabel, gbc);
+//		pcSliderPanel.add(correctionRatioLabel);
+//
+//		slider.addChangeListener(new ChangeListener() {
+//			public void stateChanged(ChangeEvent ce) {
+//				JSlider slider = (JSlider) ce.getSource();
+//				correctionRatio = (double) slider.getValue() / 100;
+//				correctionRatioLabel.setText("Correction Ratio " + correctionRatio);
+////				seletedScatterPanel.setPointsGeneratable(true);
+////				seletedScatterPanel.setQcPanelUpdatable(true);
+////				seletedScatterPanel.paintAgain();
+//				for (int i = 0; i < scatterPanels.length; i++) {
+//					scatterPanels[i].setPointsGeneratable(true);
+//					scatterPanels[i].setQcPanelUpdatable(true);
+//					scatterPanels[i].paintAgain();
+//				}
+//				// qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");
+//			}
+//		});
+//		// tabPanel.add(slider, gbc);
+//		pcSliderPanel.add(slider);
+//
+//		return pcSliderPanel;
+//	}
+	
 	private JPanel clusterFilterPanel() {
 		JPanel clusterFilterPanel = new JPanel();
 		clusterFilterPanel.setBackground(BACKGROUND_COLOR);
@@ -2322,7 +2324,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		        loadMarkerFile(mkrFile);
 		    }
 		} else if (command.equals(LOAD_LIST_COMMAND)) {
-		    JFileChooser jfc = new JFileChooser();
+		    JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
 		    jfc.setMultiSelectionEnabled(false);
 		    jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		    jfc.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -2342,7 +2344,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		    }
 		} else if (command.equals(SAVE_LIST_COMMAND)) {
 		    
-		    JFileChooser jfc = new JFileChooser();
+		    JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
 		    jfc.setMultiSelectionEnabled(false);
 		    jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		    jfc.setDialogTitle("Save Marker List");
@@ -2355,13 +2357,26 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	        
 	        MarkerData md = getCurrentMarkerData();
 	        String[] seq = null;
-	        if (referenceGenome != null) {
-	            int start = md.getPosition() - proj.ARRAY_TYPE.getValue().getProbeLength();
+	        if (referenceGenome != null) { // TODO this isn't correct - talk to John re: actual reference segment location
+	            int start = md.getPosition() - proj.ARRAY_TYPE.getValue().getProbeLength() + 1;
 	            int stop = md.getPosition();
 	            seq = referenceGenome.getSequenceFor(new Segment(md.getChr(), start, stop));
 	        }
-//	        blastResults[markerIndex]
-//	        showBLAST(seq);
+	        
+	        ArrayList<BlastAnnotation> annotations = blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog());
+	        
+	        String[] cigars = CigarStringParser.parse(proj, annotations, seq, referenceGenome);
+	        
+//	        showBLAST(cigars);
+//	        JLabel[] blastLabels = new JLabel[cigars.length];
+	        JPanel panel = new JPanel(new MigLayout());
+	        for (int i = 0; i < cigars.length; i++) {
+	            JLabel blastLabel = new JLabel(cigars[i]);
+	            blastLabel.setFont(Font.getFont(Font.MONOSPACED));
+	            panel.add(blastLabel, "cell 0 " + i);
+	        }
+	        
+	        JOptionPane.showMessageDialog(ScatterPlot.this, panel, "BLAST Results", JOptionPane.INFORMATION_MESSAGE);
 	        
 	    } else {
 			log.reportError("Error - unknown command '"+command+"'");
@@ -2372,26 +2387,86 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //	    static final String CIGAR_REGEX = "\\*|([0-9]+[MIDNSHPX=])+"; // don't need this? 
 	    static final String MISSING_FASTA_DNA_CHAR = "X";
 	    static final String DELETION = "-";
-	    static final String INSERTION = "+";
-	    static final String MISMATCH = "-";
+	    static final String INSERTION = ">";
+	    static final String MISMATCH = "#";
+	    static final String SPACER = " ";
 	    
-	    static String parse(Project proj, ArrayList<BlastAnnotation> annotations, String seq) {
-//	        annotations = annot.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog());
+//	     
+	    
+	    static String[] parse(Project proj, ArrayList<BlastAnnotation> annotations, String[] seq, ReferenceGenome referenceGenome) {
 	        
 	        String rawRef = buildRef(proj, seq);
+	        
+	        ArrayList<Integer> padInds = getPadIndices(annotations);
+	        
 	        String[] rawLines = new String[annotations.size()];
 	        for (int i = 0; i < rawLines.length; i++) {
-	            rawLines[i] = buildCigar(proj, annotations.get(i), rawRef);
+	            String line = buildCigar(proj, annotations.get(i), referenceGenome);
+	            rawLines[i] = buildCigar(proj, annotations.get(i), rawRef, padInds);
             }
 	        
-	        {
-	            
-	        }
 	        
-	        return null;
+	        
+	        String[] allLines = process(rawRef, rawLines, padInds);
+	        
+            for (String line : allLines) {
+                System.out.println(line);
+            }
+	        
+	        return allLines;
 	    }
 	    
-	    private static String buildRef(Project proj, String seq) {
+	    
+	    
+	    
+	    
+	    
+	    
+	    private static ArrayList<Integer> getPadIndices(ArrayList<BlastAnnotation> annots) {
+	        ArrayList<Integer> indices = new ArrayList<Integer>();
+	        
+	        for (BlastAnnotation annot : annots) {
+	            int cnt = 0;
+	            for (CigarElement ce : annot.getCigar().getCigarElements()) {
+	                if (ce.getOperator() == CigarOperator.INSERTION) {
+	                    indices.add(cnt);
+	                    for (int i = cnt + 1; i < cnt + ce.getLength(); i++) {
+	                        indices.add(i); // TODO double check maths
+	                    }
+	                } else {
+	                    cnt += ce.getLength();
+	                }
+	            }
+	        }
+	        
+	        return indices;
+	    }
+	    
+	    private static String[] process(String rawRef, String[] rawLines, ArrayList<Integer> indices) {
+	        
+	        StringBuilder[] newLines = new StringBuilder[rawLines.length + 1];
+	        newLines[0] = new StringBuilder(rawRef);
+	        for (int i = 1; i < newLines.length; i++) {
+	            newLines[i] = new StringBuilder(rawLines[i - 1]);
+	        }
+	        for (int i = indices.size() - 1; i >= 0; i--) {
+                if (newLines[0].charAt(indices.get(i).intValue()) != INSERTION.charAt(0)) {
+                    newLines[0].insert(indices.get(i).intValue(), SPACER);
+                }
+	        }
+	        newLines[0].insert(0, "<html><code><font color=green>");
+	        newLines[0].append("</font></code></html>");
+	        
+	        
+	        String[] procLines = new String[rawLines.length + 1];
+	        for (int i = 0; i < newLines.length; i++) {
+	            procLines[i] = newLines[i].toString();
+	        }
+
+	        return procLines;
+	    }
+	    
+	    private static String buildRef(Project proj, String[] seq) {
 	        StringBuilder ref = new StringBuilder();
 	        if (seq == null) {
 	            for (int i = 0, len = proj.ARRAY_TYPE.getValue().getProbeLength(); i < len; i++) {
@@ -2399,34 +2474,67 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	            }
                 return ref.toString();
 	        }
-            if (seq.length() < proj.ARRAY_TYPE.getValue().getProbeLength()) {
+            if (seq.length < proj.ARRAY_TYPE.getValue().getProbeLength()) {
                 proj.getLog().report("Warning - given FASTA sequence is shorter than the probe length specified by the ARRAY_TYPE project property");
             }
-            return seq.toUpperCase();
+            for (String base : seq) {
+                ref.append(base);
+            }
+            return ref.toString().toUpperCase();
 	    }
 	    
-	    private static String buildCigar(Project proj, BlastAnnotation annot, String ref) {
-	        StringBuilder line = new StringBuilder();
+	    private static String buildCigar(Project proj, BlastAnnotation annot, ReferenceGenome referenceGenome) {
+	        String[] seq = referenceGenome.getSequenceFor(annot.getRefLoc());
+	        String ref = Array.toStr(seq, "");
+	        return ref;
+	    }
+	    
+	    private static String buildCigar(Project proj, BlastAnnotation annot, String ref, ArrayList<Integer> padIndices) {
+	        StringBuilder line = new StringBuilder("<html><code>");
 	        Cigar cig = annot.getCigar();
+	        int cigLen = 0;
+	        for (CigarElement el : cig.getCigarElements()) {
+	            if (el.getOperator().consumesReadBases()) {
+	                cigLen += el.getLength();
+	            }
+	        }
+	        if (cigLen > ref.length()) {
+	            proj.getLog().report("Error - Cigar string [] is longer than the reference sequence!");
+	            return "";
+	        }
 	        int charAt = 0;
 	        for (CigarElement el : cig.getCigarElements()) {
 	            switch (el.getOperator()) {
                     case D:
+                        line.append("<font color=red>");
                         for (int i = 0; i < el.getLength(); i++) {
+                            if (padIndices.contains(Integer.valueOf(charAt))) {
+                                line.append(SPACER);
+                            }
                             line.append(DELETION);
+                            charAt++; // consumes read bases
                         }
+                        line.append("</font>");
                         break;
                     case EQ:
-                        for (int i = 0; i < el.getLength(); i++) {
-                            line.append(ref == null ? MISSING_FASTA_DNA_CHAR : ref.charAt(charAt++));
+                        line.append("<font color=green>");
+                        for (int i = 0; i < el.getLength() && charAt < ref.length(); i++) {
+                            if (padIndices.contains(Integer.valueOf(charAt))) {
+                                line.append(SPACER);
+                            }
+                            line.append(ref == null ? MISSING_FASTA_DNA_CHAR : ref.charAt(charAt));
+                            charAt++;
                         }
+                        line.append("</font>");
                         break;
                     case H:
                         break;
                     case I:
+                        line.append("<font color=blue>");
                         for (int i = 0; i < el.getLength(); i++) {
                             line.append(INSERTION);
                         }
+                        line.append("</font>");
                         break;
                     case M:
                         break;
@@ -2437,16 +2545,23 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
                     case S:
                         break;
                     case X:
+                        line.append("<font color=red>");
                         for (int i = 0; i < el.getLength(); i++) {
+                            if (padIndices.contains(Integer.valueOf(charAt))) {
+                                line.append(SPACER);
+                            }
                             line.append(MISMATCH);
+                            charAt++;
                         }
+                        line.append("</font>");
                         break;
                     default:
                         break;
 	            }
+	            
 	        }
 	        
-	        return line.toString();
+	        return line.append("</code></html>").toString();
 	    }
 	    
 	}

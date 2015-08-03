@@ -317,7 +317,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		menuItemOpen = new JMenuItem("Open", KeyEvent.VK_O);
 		menuItemOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(proj.PROJECT_DIRECTORY.getValue());
+				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
 				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 		        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 		    		loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
@@ -329,7 +329,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		menuItemSave = new JMenuItem("Save Image", KeyEvent.VK_S);
 		menuItemSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser();
+				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
 				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
 		        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 		            File fileToOpen = fileChooser.getSelectedFile();
@@ -406,7 +406,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		found = false;
 		command = ae.getActionCommand();
 		if (command.equals(ADD_DATA_FILE)) {
-			fileChooser = new JFileChooser(proj.PROJECT_DIRECTORY.getValue());
+			fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
 	        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
         		for (int i=0; tree!=null && i<tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
         			if (ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/").equals(tree.getModel().getChild(tree.getModel().getRoot(),i).toString())) {
