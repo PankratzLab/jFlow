@@ -160,7 +160,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private JLabel gcLabel;
 	private JPanel qcPanel;
 	private JPanel blastPanel;
-	private JLabel pcLabel, nStageStDevLabel, correctionRatioLabel;
+	private JLabel pcLabel;//, nStageStDevLabel, correctionRatioLabel;
 	private JScrollPane annotationScrollPane;
 	private JPanel annotationPanel;
 	private JPanel annotationPanelLowerPart;
@@ -2390,8 +2390,6 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	    static final String INSERTION = ">";
 	    static final String MISMATCH = "#";
 	    static final String SPACER = " ";
-	    
-//	     
 	    
 	    static String[] parse(Project proj, ArrayList<BlastAnnotation> annotations, String[] seq, ReferenceGenome referenceGenome) {
 	        

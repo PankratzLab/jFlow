@@ -27,20 +27,20 @@ import javax.swing.JSeparator;
 import javax.swing.JButton;
 
 import common.Files;
+import common.Positions;
 
-public class NewMarkerListDialog extends JDialog implements ActionListener {
+public class NewRegionListDialog extends JDialog implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
     private JTextField textField;
     private JTextArea textArea;
-    private HashSet<String> markerSet;
     private JButton btnCreate;
     private JButton btnCancel;
-    private int returnCode = JOptionPane.DEFAULT_OPTION;
     private JButton button;
+    private int returnCode = JOptionPane.DEFAULT_OPTION;
+    private HashSet<String> idSet = null;
     
-
     /**
      * Launch the application.
      */
@@ -48,7 +48,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    NewMarkerListDialog frame = new NewMarkerListDialog(new String[0]);
+                    NewRegionListDialog frame = new NewRegionListDialog(new String[0]);
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -60,8 +60,8 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
     /**
      * Create the frame.
      */
-    public NewMarkerListDialog(String[] markers) {
-        setTitle("Create New Marker List");
+    public NewRegionListDialog(String[] sampleNames) {
+        setTitle("Create New UCSC Regions List");
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 450, 300);
         contentPane = new JPanel();
@@ -75,14 +75,15 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
         textArea = new JTextArea();
         scrollPane.setViewportView(textArea);
         
-        JLabel lblMarkerNamesone = new JLabel("Marker names (one per line, with tab-separated comments): ");
+        String label = sampleNames == null ? "UCSC regions (one per line, with tab-separated comments): " : "Sample IDs and UCSC regions (tab-separated, one set per line, with tab-separated comments): ";
+        JLabel lblMarkerNamesone = new JLabel(label);
         contentPane.add(lblMarkerNamesone, "cell 0 0,growx,aligny top");
         
         JLabel lblFileName = new JLabel("File name (full path):");
         contentPane.add(lblFileName, "cell 0 2");
         
         textField = new JTextField();
-        contentPane.add(textField, "flowx,cell 0 3,growx");
+        contentPane.add(textField, "cell 0 3,growx");
         textField.setColumns(10);
         
         JSeparator separator = new JSeparator();
@@ -109,7 +110,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
             public void actionPerformed(ActionEvent arg0) {
                 JFileChooser jfc = new JFileChooser();
                 jfc.setMultiSelectionEnabled(false);
-                int opt = jfc.showSaveDialog(NewMarkerListDialog.this);
+                int opt = jfc.showSaveDialog(NewRegionListDialog.this);
                 if (opt == JFileChooser.APPROVE_OPTION) {
                     textField.setText(jfc.getSelectedFile().getAbsolutePath());
                 }
@@ -119,9 +120,11 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
         button.setText("...");
         contentPane.add(button, "cell 0 3");
         
-        markerSet = new HashSet<String>();
-        for (String marker : markers) {
-            markerSet.add(marker);
+        if (sampleNames != null) {
+            idSet = new HashSet<String>();
+            for (String id : sampleNames) {
+                idSet.add(id);
+            }
         }
     }
     
@@ -133,30 +136,51 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
         return returnCode;
     }
     
-    public String[][] getMarkers() {
-        String[] mkrLines = textArea.getText().split("\n"); 
-        String[][] mkrsWithComments = new String[mkrLines.length][];
-        for (int i = 0; i < mkrLines.length; i++) {
-            mkrsWithComments[i] = mkrLines[i].trim().split("\t");
+    public String[][] getRegions() {
+        String[] rgnLines = textArea.getText().split("\n"); 
+        String[][] rgnsWithComments = new String[rgnLines.length][];
+        for (int i = 0; i < rgnLines.length; i++) {
+            rgnsWithComments[i] = rgnLines[i].trim().split("\t");
         }
-        return mkrsWithComments;
+        return rgnsWithComments;
     }
     
     private boolean doCreate() {
-        String[][] mkrsWithComments = getMarkers();
-        ArrayList<String> invalid = new ArrayList<String>();
-        for (String[] mkr : mkrsWithComments) {
-        	if (!markerSet.contains(mkr[0])) {
-        		invalid.add(mkr[0]);
+        int sampInd = idSet == null ? -1 : 0;
+        int rgnIndex = idSet == null ? 0 : 1;
+        
+        String[][] rgnsWithComments = getRegions();
+        ArrayList<String> invalidPositions = new ArrayList<String>();
+        ArrayList<String> invalidIDs = new ArrayList<String>();
+        for (String[] rgn : rgnsWithComments) {
+            int[] pos = Positions.parseUCSClocation(rgn[rgnIndex]);
+        	if (pos == null) {
+        		invalidPositions.add(rgn[rgnIndex]);
+        	}
+        	if (sampInd != -1) {
+        	    if (!idSet.contains(rgn[sampInd])) {
+        	        invalidIDs.add(rgn[sampInd]);
+        	    }
         	}
         }
-        if (invalid.size() > 0) {
+        if (invalidPositions.size() > 0) {
             String[] options = {"Ignore and Continue", "Return"};
-            StringBuilder msg = new StringBuilder("Warning - ").append(invalid.size()).append(" markers are not present in the current marker set:");
-            for (String inv : invalid) {
+            StringBuilder msg = new StringBuilder("Warning - ").append(invalidPositions.size()).append(" regions are not valid UCSC regions:");
+            for (String inv : invalidPositions) {
                 msg.append("\n").append(inv);
             }
-            int opt = JOptionPane.showOptionDialog(this, msg.toString(), "Warning - invalid markers!", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+            int opt = JOptionPane.showOptionDialog(this, msg.toString(), "Warning - invalid regions!", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+            if (opt != 0) {
+                return false;
+            }
+        }
+        if (invalidIDs.size() > 0) {
+            String[] options = {"Ignore and Continue", "Return"};
+            StringBuilder msg = new StringBuilder("Warning - ").append(invalidIDs.size()).append(" sample IDs are not valid:");
+            for (String inv : invalidIDs) {
+                msg.append("\n").append(inv);
+            }
+            int opt = JOptionPane.showOptionDialog(this, msg.toString(), "Warning - invalid sample IDs!", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
             if (opt != 0) {
                 return false;
             }
@@ -180,7 +204,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
             return false;
         }
         
-        Files.writeMatrix(mkrsWithComments, filepath, "\t");
+        Files.writeMatrix(rgnsWithComments, filepath, "\t");
         textField.setText(filepath);
         return true;
     }

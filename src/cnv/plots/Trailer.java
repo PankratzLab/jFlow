@@ -13,6 +13,7 @@ import javax.swing.border.EmptyBorder;
 
 import common.*;
 import cnv.filesys.*;
+import cnv.gui.NewRegionListDialog;
 import cnv.gui.SingleClick;
 import cnv.gui.ClickListener;
 import cnv.manage.Transforms;
@@ -77,7 +78,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String LAST_REGION = "Last region";
 	private static final String TO_SCATTER_PLOT = "To Scatter Plot";
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
-//	private static final String REGION_LIST_NEW_FILE = "Add New File(s)...";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
 
@@ -133,10 +133,113 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private String currentCentroid;
 	private static final String SEX_CENT = "Sex-Specific";
 	private JMenu loadRecentFileMenu;
-	private ButtonGroup regionButtonGroup;
-	private AbstractAction markerFileSelectAction;
 	private JMenuItem launchScatter;
+	private ButtonGroup regionButtonGroup;
+
+	private AbstractAction markerFileSelectAction = new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String shortName = ((JCheckBoxMenuItem)e.getSource()).getText();
+            if (!loadingFile 
+                    && !REGION_LIST_NEW_FILE.equals(shortName) 
+                    && !REGION_LIST_PLACEHOLDER.equals(shortName)
+                    && !REGION_LIST_USE_CNVS.equals(shortName)) {
+                String file = regionFileNameLoc.get(shortName);
+                if (file != null && file.equals(Trailer.this.regionFileName)) {
+                    return;
+                }
+                String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
+                if (!Files.exists(tempFile)) {
+                    proj.message("Error - region file '" + shortName + "' doesn't exist.");
+                    regionFileNameBtn.get(regionFileName).setSelected(true);
+                } else {
+                    Trailer.this.regionFileName = file;
+                    loadRegions();
+                    regionIndex = 0;
+                    showRegion();
+                }
+            } /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
+                // do nothing
+            } */else if (loadingFile || REGION_LIST_PLACEHOLDER.equals(shortName)) {
+                // leave as currently selected marker
+                if (Trailer.this.regionFileName != "" && Trailer.this.regionFileName != null) {
+                    String file = Trailer.this.regionFileName;
+                    if (!REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+                        file = ext.rootOf(Trailer.this.regionFileName);
+                    }
+//                  ((JComboBox<String>)e.getSource()).setSelectedItem(file);
+                    regionFileNameBtn.get(file).setSelected(true);
+                }
+                return;
+            } else if (REGION_LIST_USE_CNVS.equals(shortName)) {
+                if (!shortName.equals(Trailer.this.regionFileName)) {
+                    Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
+                    loadCNVsAsRegions();
+                    procCNVs(chr);
+                    updateGUI();
+                    regionIndex = 0;
+                    showRegion();
+                }
+            } /*else if (REGION_LIST_NEW_FILE.equals(shortName)) {
+                chooseNewFiles();
+                if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
+                    if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+                        ((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
+                    } else {
+                        ((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
+                    }
+                } else {
+                    ((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
+                }
+            }*/
+        }
+    };
 	
+    AbstractAction loadNewFileAction = new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            chooseNewFiles();
+            if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
+                if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+                    regionFileNameBtn.get(REGION_LIST_USE_CNVS).setSelected(true);
+//                  ((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
+                } else {
+                    regionFileNameBtn.get(ext.rootOf(Trailer.this.regionFileName)).setSelected(true);
+//                  ((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
+                }
+            }/* else {
+                ((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
+            }*/ 
+        }
+    };
+	
+    AbstractAction screencapAction = new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+            jfc.setMultiSelectionEnabled(false);
+            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            jfc.setDialogTitle("Save Screen Capture...");
+            jfc.setDialogType(JFileChooser.SAVE_DIALOG);
+            int code = jfc.showSaveDialog(Trailer.this);
+            if (code == JFileChooser.APPROVE_OPTION) {
+                String filename = jfc.getSelectedFile().getAbsolutePath();
+                doScreenCapture(filename);
+            }
+        }
+    };
+    
+    AbstractAction screencapClipboardAction = new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            doScreenCapture(null);
+        }
+    };
+    
 	// private Color[] colorScheme = {new Color(33, 31, 53), // dark dark
 	// new Color(23, 58, 172), // dark blue
 	// new Color(201, 30, 10), // deep red
@@ -169,6 +272,101 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private HashMap<String, JCheckBoxMenuItem> centButtonMap;
 
 	private JCheckBoxMenuItem autoSwitch;
+	
+	MouseAdapter cnvAdapter = new MouseAdapter() {
+        int defaultInitial = ToolTipManager.sharedInstance().getInitialDelay();
+        int defaultReshow = ToolTipManager.sharedInstance().getReshowDelay();
+//      Object defaultBG = UIManager.get("ToolTip.background");
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            super.mouseEntered(e);
+            ToolTipManager.sharedInstance().setReshowDelay(3);
+            ToolTipManager.sharedInstance().setInitialDelay(3);
+        }
+        @Override
+        public void mouseExited(MouseEvent e) {
+            super.mouseExited(e);
+            ToolTipManager.sharedInstance().setReshowDelay(defaultReshow);
+            ToolTipManager.sharedInstance().setInitialDelay(defaultInitial);
+        }
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            super.mouseMoved(e);
+            if (selectedCNV == null) return;
+            int x = e.getX();
+            int y = e.getY();
+            
+            if (cnvs.length <= selectedCNV[0] || cnvs[selectedCNV[0]].length <= selectedCNV[1]) {
+//              UIManager.put("ToolTip.background", defaultBG);
+                cnvPanel.setToolTipText(null);
+                return;
+            }
+            
+            CNVariant cnv = cnvs[selectedCNV[0]][selectedCNV[1]];
+            int cnvX1 = getX(cnv.getStart());
+            int cnvX2 = getX(cnv.getStop());
+            int cnvY1 = (selectedCNV[0] + 2) * 15;
+            int cnvY2 = cnvY1 + 10;
+            if (x >= cnvX1 && x <= cnvX2 && y > cnvY1 && y < cnvY2) {
+                if (cnvPanel.getToolTipText() != null) {
+//                  Point locationOnScreen = new Point(e.getXOnScreen(), e.getYOnScreen());
+//                  Point locationOnComponent = new Point(e.getX(), e.getY());
+//                  final MouseEvent me = new MouseEvent(cnvPanel, -1, System.currentTimeMillis(), 0, locationOnComponent.x, locationOnComponent.y, locationOnScreen.x, locationOnScreen.y, 0, false, 0);
+//                  SwingUtilities.invokeLater(new Runnable() {
+//                      @Override
+//                      public void run() {
+//                          ToolTipManager.sharedInstance().mouseMoved(me);
+//                      }
+//                  });
+                } else {
+                    StringBuilder txtBld = new StringBuilder();
+                    txtBld.append("<html>Start: ").append(ext.addCommas(cnv.getStart())).append("<br/>");
+                    txtBld.append(" Stop: ").append(ext.addCommas(cnv.getStop())).append("<br/>");
+                    txtBld.append(" Length: ").append((cnv.getStop() - cnv.getStart())).append("<br/>");
+                    txtBld.append("# Mkrs: ").append(cnv.getNumMarkers()).append("<br/>");
+                    txtBld.append("CN: ").append(cnv.getCN()).append("<br/>");
+                    txtBld.append("Score: ").append(cnv.getScore()).append("</html>");
+//                  UIManager.put("ToolTip.background", new javax.swing.plaf.ColorUIResource(colorScheme[selectedCNV[0]][cnv.getCN() < 2 ? 0 : 1]));
+//                  cnvPanel.createToolTip();
+                    cnvPanel.setToolTipText(txtBld.toString());
+                }
+            } else {
+//              UIManager.put("ToolTip.background", defaultBG);
+                cnvPanel.setToolTipText(null);
+            }
+        }
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            super.mouseClicked(e);
+            int x = e.getX();
+            int y = e.getY();
+            
+            for (int[] cnvInd : activeCNVs) {
+                int yMin = (cnvInd[0] + 2) * 15;
+                int yMax = yMin + 10;
+                int xBegin = getX(cnvs[cnvInd[0]][cnvInd[1]].getStart());
+                int xEnd = getX(cnvs[cnvInd[0]][cnvInd[1]].getStop());
+                
+                if (x >= xBegin && x <= xEnd && y > yMin && y < yMax) {
+                    selectedCNV = cnvInd;
+                    
+                    MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, y, 0, false);
+                    ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
+                    this.mouseMoved(phantom);
+                    Trailer.this.repaint();
+                    return;
+                }
+                
+            }
+            
+            selectedCNV = null;
+            Trailer.this.repaint();
+        }
+    };
+	
+	
+	
+	
 	
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location) {
 		this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -460,7 +658,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			public void paintComponent(Graphics g) {
 				paintLRRPanel(g);
 				
-
 				float min, max;
 
 				if (lrrValues != null) {
@@ -556,97 +753,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			}
 		};
 		cnvPanel.setMaximumSize(new Dimension(getWidth(), 20));
-		MouseAdapter cnvAdapter = new MouseAdapter() {
-			int defaultInitial = ToolTipManager.sharedInstance().getInitialDelay();
-			int defaultReshow = ToolTipManager.sharedInstance().getReshowDelay();
-//			Object defaultBG = UIManager.get("ToolTip.background");
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				super.mouseEntered(e);
-				ToolTipManager.sharedInstance().setReshowDelay(3);
-				ToolTipManager.sharedInstance().setInitialDelay(3);
-			}
-			@Override
-			public void mouseExited(MouseEvent e) {
-				super.mouseExited(e);
-				ToolTipManager.sharedInstance().setReshowDelay(defaultReshow);
-				ToolTipManager.sharedInstance().setInitialDelay(defaultInitial);
-			}
-			@Override
-			public void mouseMoved(MouseEvent e) {
-				super.mouseMoved(e);
-				if (selectedCNV == null) return;
-				int x = e.getX();
-				int y = e.getY();
-				
-				if (cnvs.length <= selectedCNV[0] || cnvs[selectedCNV[0]].length <= selectedCNV[1]) {
-//					UIManager.put("ToolTip.background", defaultBG);
-					cnvPanel.setToolTipText(null);
-					return;
-				}
-				
-				CNVariant cnv = cnvs[selectedCNV[0]][selectedCNV[1]];
-				int cnvX1 = getX(cnv.getStart());
-				int cnvX2 = getX(cnv.getStop());
-				int cnvY1 = (selectedCNV[0] + 2) * 15;
-				int cnvY2 = cnvY1 + 10;
-				if (x >= cnvX1 && x <= cnvX2 && y > cnvY1 && y < cnvY2) {
-					if (cnvPanel.getToolTipText() != null) {
-//						Point locationOnScreen = new Point(e.getXOnScreen(), e.getYOnScreen());
-//		                Point locationOnComponent = new Point(e.getX(), e.getY());
-//						final MouseEvent me = new MouseEvent(cnvPanel, -1, System.currentTimeMillis(), 0, locationOnComponent.x, locationOnComponent.y, locationOnScreen.x, locationOnScreen.y, 0, false, 0);
-//						SwingUtilities.invokeLater(new Runnable() {
-//							@Override
-//							public void run() {
-//								ToolTipManager.sharedInstance().mouseMoved(me);
-//							}
-//						});
-					} else {
-						StringBuilder txtBld = new StringBuilder();
-						txtBld.append("<html>Start: ").append(ext.addCommas(cnv.getStart())).append("<br/>");
-						txtBld.append(" Stop: ").append(ext.addCommas(cnv.getStop())).append("<br/>");
-						txtBld.append(" Length: ").append((cnv.getStop() - cnv.getStart())).append("<br/>");
-						txtBld.append("# Mkrs: ").append(cnv.getNumMarkers()).append("<br/>");
-						txtBld.append("CN: ").append(cnv.getCN()).append("<br/>");
-						txtBld.append("Score: ").append(cnv.getScore()).append("</html>");
-//						UIManager.put("ToolTip.background", new javax.swing.plaf.ColorUIResource(colorScheme[selectedCNV[0]][cnv.getCN() < 2 ? 0 : 1]));
-	//					cnvPanel.createToolTip();
-						cnvPanel.setToolTipText(txtBld.toString());
-					}
-				} else {
-//					UIManager.put("ToolTip.background", defaultBG);
-					cnvPanel.setToolTipText(null);
-				}
-			}
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				super.mouseClicked(e);
-				int x = e.getX();
-				int y = e.getY();
-				
-				for (int[] cnvInd : activeCNVs) {
-					int yMin = (cnvInd[0] + 2) * 15;
-					int yMax = yMin + 10;
-					int xBegin = getX(cnvs[cnvInd[0]][cnvInd[1]].getStart());
-					int xEnd = getX(cnvs[cnvInd[0]][cnvInd[1]].getStop());
-					
-					if (x >= xBegin && x <= xEnd && y > yMin && y < yMax) {
-						selectedCNV = cnvInd;
-						
-						MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, y, 0, false);
-						ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
-						this.mouseMoved(phantom);
-						Trailer.this.repaint();
-						return;
-					}
-					
-				}
-				
-				selectedCNV = null;
-				
-				Trailer.this.repaint();
-			}
-		};
 		cnvPanel.addMouseListener(cnvAdapter);
 		cnvPanel.addMouseMotionListener(cnvAdapter);
 		dataPanel.add(cnvPanel);
@@ -679,12 +785,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		};
 		dataPanel.add(bafPanel);
 
-		// getContentPane().setBackground(Color.WHITE);
 		getContentPane().add(dataPanel, BorderLayout.CENTER);
-		
-		// JLabel sampleName = new JLabel(sample, JLabel.CENTER);
-		// sampleName.setFont(new Font("Arial", 0, 20));
-		// descrPanel.add(sampleName);
 
 		JPanel sampPanel = new JPanel();
 		previousRegion = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
@@ -692,7 +793,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		previousRegion.addActionListener(this);
 		previousRegion.setActionCommand(PREVIOUS_REGION);
 		previousRegion.setPreferredSize(new Dimension(25, 25));
-//		sampPanel.add(previousRegion);
 
 		sampleList = new JComboBox<String>();
 		sampleList.setFont(new Font("Arial", 0, 20));
@@ -703,19 +803,20 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	    sampleList.setRenderer(dlcr);
 		sampleList.setBorder(BorderFactory.createEtchedBorder());
 		sampleList.setEditable(false);
-		sampleList.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				@SuppressWarnings("unchecked")
-				JComboBox<String> jcb = (JComboBox<String>)e.getSource();
-				int index = jcb.getSelectedIndex();
-//				System.out.println("Selected Index = "+index);
-				if (index == samplesPresent.length-1) {
-					createSampleList();
-				} else if (sample != samplesPresent[index]) {
-					updateSample(samplesPresent[index]);
-				}
-			}
-		});
+		sampleList.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                @SuppressWarnings("unchecked")
+                JComboBox<String> jcb = (JComboBox<String>)e.getSource();
+                int index = jcb.getSelectedIndex();
+                if (index == samplesPresent.length-1) {
+                    createSampleList();
+                } else if (sample != samplesPresent[index]) {
+                    updateSample(samplesPresent[index]);
+                }
+            }
+        });
 		sampPanel.add(sampleList);
 		
 		JPanel descrPanel = new JPanel();
@@ -726,114 +827,18 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		nextRegion.addActionListener(this);
 		nextRegion.setActionCommand(NEXT_REGION);
 		nextRegion.setPreferredSize(new Dimension(25, 25));
-//		sampPanel.add(nextRegion);
 		sampPanel.setPreferredSize(new Dimension(sampPanel.getPreferredSize().width, sampleList.getPreferredSize().height + 5));
 		descrPanel.add(sampPanel);
 		
-//		JPanel ctrlPanel = new JPanel(new GridLayout(1, 2, 5, 5));
-//		ctrlPanel.setMinimumSize(new Dimension(200, 10));
-//		ctrlPanel.setPreferredSize(new Dimension(355, 20));
-//		ctrlPanel.setMaximumSize(new Dimension(355, 40));
-		
-//		JButton clipBtn = new JButton();
-//		clipBtn.setFont(clipBtn.getFont().deriveFont(8f));
-//		clipBtn.setText("Copy to Clipboard");
-//		clipBtn.setMinimumSize(new Dimension(150, 10));
-//		clipBtn.setPreferredSize(new Dimension(150, 10));
-//		clipBtn.setMaximumSize(new Dimension(150, 10));
-//		JButton clipPlusBtn = new JButton();
-//		clipPlusBtn.setFont(clipPlusBtn.getFont().deriveFont(8f));
-//		clipPlusBtn.setText("Copy to Clipboard w/ Position");
-//		clipPlusBtn.setMinimumSize(new Dimension(150, 10));
-//		clipPlusBtn.setPreferredSize(new Dimension(150, 10));
-//		clipPlusBtn.setMaximumSize(new Dimension(150, 10));
-//
-//		ctrlPanel.add(clipBtn);
-//		ctrlPanel.add(clipPlusBtn);
-//		descrPanel.add(ctrlPanel);
-		descrPanel.add(Box.createVerticalGlue());
-		
-//		Vector<String> items = new Vector<String>();
-//		items.add(REGION_LIST_PLACEHOLDER);
-//		if (proj != null) {
-//			String[] files = proj.getIndividualRegionLists();
-//			String name;
-//			for (String file : files) {
-//				name = ext.rootOf(file);
-//				regionFileNameLoc.put(name, file);
-//				items.add(name);
-//			}
-//		}
-//		items.add(REGION_LIST_USE_CNVS);
-//		items.add(REGION_LIST_NEW_FILE);
-//		regionFileList = new JComboBox<String>(items);
-//		regionFileList.setFont(new Font("Arial", 0, 12));
-//		regionFileList.setMinimumSize(new Dimension(200, 20));
-//		regionFileList.setPreferredSize(new Dimension(200, 20));
-//		regionFileList.setMaximumSize(new Dimension(200, 20));
-//		AbstractAction markerFileSelectAction = new AbstractAction() {
-//			private static final long serialVersionUID = 1L;
-//	
-//			@SuppressWarnings("unchecked")
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				String shortName = (String) ((JComboBox<String>)e.getSource()).getSelectedItem();
-//				if (!loadingFile 
-//						&& !REGION_LIST_NEW_FILE.equals(shortName) 
-//						&& !REGION_LIST_PLACEHOLDER.equals(shortName)
-//						&& !REGION_LIST_USE_CNVS.equals(shortName)) {
-//					String file = regionFileNameLoc.get(shortName);
-//					if (file != null && file.equals(Trailer.this.regionFileName)) {
-//						return;
-//					}
-//					Trailer.this.regionFileName = file;
-//					loadRegions();
-//				} /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
-//					// do nothing
-//				} */else if (loadingFile || REGION_LIST_PLACEHOLDER.equals(shortName)) {
-//					// leave as currently selected marker
-//					if (Trailer.this.regionFileName != "" && Trailer.this.regionFileName != null) {
-//						String file = Trailer.this.regionFileName;
-//						if (!REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
-//							file = ext.rootOf(Trailer.this.regionFileName);
-//						}
-//						((JComboBox<String>)e.getSource()).setSelectedItem(file);
-//					}
-//					return;
-//				} else if (REGION_LIST_USE_CNVS.equals(shortName)) {
-//					if (!shortName.equals(Trailer.this.regionFileName)) {
-//						Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
-//						loadCNVsAsRegions();
-//						procCNVs(chr);
-//						updateGUI();
-//					}
-//				} else if (REGION_LIST_NEW_FILE.equals(shortName)) {
-//					chooseNewFiles();
-//					if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
-//						if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
-//							((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
-//						} else {
-//							((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
-//						}
-//					} else {
-//						((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
-//					}
-//				}
-//			}
-//		};
-//		regionFileList.addActionListener(markerFileSelectAction);
-		
 		JPanel compPanel = new JPanel(new GridLayout(2, 1, 5, 5));
-//		compPanel.setBorder(new LineBorder(Color.BLACK, 1));
 
 		JPanel regionPanel = new JPanel();
 		regionField = new JTextField("", 8);
 		regionField.setHorizontalAlignment(JTextField.CENTER);
 		regionField.setFont(new Font("Arial", 0, 14));
-		//navigationField.setEditable(false);
-//		regionField.setBackground(BACKGROUND_COLOR);
-		regionField.addActionListener(new ActionListener() {
-	        public void actionPerformed(ActionEvent e) {
+		regionField.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent e) {
 				try {
 					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().trim().split("[\\s]+")[0]).intValue()-1;
 					if (trav >=0 && trav < regions.length) {
@@ -850,14 +855,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		regionPanel.add(nextRegion);
 		compPanel.add(regionPanel);
 		
-//		launchScatterButton = new JButton();
-//		launchScatterButton.setFont(launchScatterButton.getFont().deriveFont(10f));
-//		launchScatterButton.setText(TO_SCATTER_PLOT);
-//		launchScatterButton.setActionCommand(TO_SCATTER_PLOT);
-//		launchScatterButton.addActionListener(this);
-//		compPanel.setMaximumSize(new Dimension(200, 20));
-//		compPanel.add(launchScatterButton);
-		
 		commentLabel = new JLabel(" ", JLabel.CENTER);
 		commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		commentLabel.setFont(new Font("Arial", 0, 14));
@@ -866,7 +863,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		descrPanel.add(compPanel);
 		compPanel.setPreferredSize(new Dimension(compPanel.getPreferredSize().width, 75));
-
 
 		JPanel navigateChrPanel = new JPanel();
 		firstChr = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
@@ -882,22 +878,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		navigationField = new JTextField("", 20);
 		navigationField.setHorizontalAlignment(JTextField.CENTER);
 		navigationField.setFont(new Font("Arial", 0, 14));
-		navigationField.addActionListener(new ActionListener() {
-	        public void actionPerformed(ActionEvent e) {
+		navigationField.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            public void actionPerformed(ActionEvent e) {
 	        	JTextField navField;
 	        	navField = (JTextField)e.getSource();
 	        	navField.setText(navField.getText().trim());
 				parseLocation(navField.getText());
 	        }
 		});
-
-//		navigationField.addFocusListener(new FocusListener() {
-//			public void focusGained(FocusEvent focusevent) {}
-//
-//			public void focusLost(FocusEvent fe) {
-//				parseLocation(((JTextField)fe.getSource()).getText());
-//			}
-//		});
 
 		nextChr = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
 		nextChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
@@ -915,223 +904,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		navigateChrPanel.add(nextChr);
 		navigateChrPanel.add(lastChr);
 		descrPanel.add(navigateChrPanel);
-
-//		JPanel dataOptionPanel = new JPanel(new GridLayout(2, 2, 5, 5));
-//		dataOptionPanel.setBorder(new EmptyBorder(0, 25, 0, 10));
-//		JPanel transformationPanel = new JPanel();
-//		transformationPanel.setLayout(new BoxLayout(transformationPanel, BoxLayout.PAGE_AXIS));
-//		JLabel label = new JLabel("Log R Ratio transformation: ");
-//		label.setFont(new Font("Arial", 0, 14));
-//		label.setAlignmentX(Component.LEFT_ALIGNMENT);
-//		label.setBorder(new EmptyBorder(0, 0, 5, 0));
-//		transformationPanel.add(label);
-//		transformationPanel.add(Box.createHorizontalGlue());
-//		
-//		ButtonGroup typeRadio = new ButtonGroup();
-//		final JRadioButton[] transformationRadioButtons = new JRadioButton[Transforms.TRANFORMATIONS.length];
-//		ItemListener typeListener = new ItemListener() {
-//			public void itemStateChanged(ItemEvent ie) {
-//				JRadioButton jrb = (JRadioButton) ie.getItem();
-//				if (jrb.isSelected()) {
-//					centroids = null;
-//					bafs = originalBAFs;
-//					for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
-//						if (jrb.getText().equals(Transforms.TRANFORMATIONS[i])) {
-//							transformation_type = i;
-//							lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
-//							updateGUI();
-//						}
-//					}
-//				}
-//			}
-//		};
-//		ItemListener centListener = new ItemListener() {
-//			@Override
-//			public void itemStateChanged(ItemEvent ie) {
-//				JRadioButton jrb = (JRadioButton) ie.getItem();
-//				if (jrb.isSelected()) {
-//					
-//					if (namePathMap == null || namePathMap.isEmpty()) {
-//						jrb.setSelected(false);
-//						if (transformationRadioButtons != null && transformationRadioButtons[0] != null) {
-//							transformationRadioButtons[0].setSelected(true);
-//						}
-//						return;
-//					}
-//					
-//					transformation_type = -1;
-//					setCentroid();
-//					loadValues();
-//					updateGUI();
-//					repaint();
-//				} else {
-//					currentCentroid = null;
-//					centroids = null;
-//					bafs = originalBAFs;
-//				}
-//			}
-//		};
-//		
-//		
-//		for (int i = 0; i<Transforms.TRANFORMATIONS.length; i++) {
-//			transformationRadioButtons[i] = new JRadioButton(Transforms.TRANFORMATIONS[i], false);
-//			transformationRadioButtons[i].setFont(new Font("Arial", 0, 14));
-//			typeRadio.add(transformationRadioButtons[i]);
-//			transformationRadioButtons[i].addItemListener(typeListener);
-//			transformationRadioButtons[i].setMargin(new Insets(0,0,0,0));
-////			transformationRadioButtons[i].setBackground(BACKGROUND_COLOR);
-//
-//			JPanel transOptPanel = new JPanel();
-//			transOptPanel.setLayout(new BoxLayout(transOptPanel, BoxLayout.LINE_AXIS));
-////			transformationPanel.add(transformationRadioButtons[i]);
-//			transOptPanel.add(Box.createRigidArea(new Dimension(25, 1)));
-//			transOptPanel.add(transformationRadioButtons[i]);
-//			transOptPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-//			transformationPanel.add(transOptPanel);
-//		}
-//		
-//		ItemListener gcListener = new ItemListener() {
-//			public void itemStateChanged(ItemEvent ie) {
-//				JCheckBox jrb = (JCheckBox) ie.getItem();
-//				lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, jrb.isSelected(), jrb.isSelected(), log);
-////				if (jrb.isSelected()) {
-////					// gc correct, and apply any transformation
-////					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, true, true, log);
-////				} else {
-////					// reset any transformation
-////					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, false, false, log);
-////				}
-//				updateGUI();
-//			}
-//		};
-
-//		gcCorrectButton = new JCheckBox(GcAdjustor.GC_ADJUSTOR_TITLE[0], false);// stays hidden if gcModel is not detected
-//		if (gcModel != null) {
-//			gcCorrectButton.setFont(new Font("Arial", 0, 14));
-//			gcCorrectButton.setToolTipText("GC correction will be applied prior to any transformation");
-//			gcCorrectButton.addItemListener(gcListener);
-////			transformationPanel.add(gcCorrectButton);
-//		}
-
-//		transformationRadioButtons[0].setSelected(true);
-//		dataOptionPanel.add(transformationPanel);
-		//descrPanel.add(transformationPanel);
-		
-
-//		JPanel centroidPanel = new JPanel();
-//		centroidPanel.setLayout(new BoxLayout(centroidPanel, BoxLayout.PAGE_AXIS));
-//		label = new JLabel("Derive from Centroids:");
-//		label.setFont(new Font("Arial", 0, 14));
-//		label.setAlignmentX(Component.LEFT_ALIGNMENT);
-//		label.setBorder(new EmptyBorder(0, 0, 5, 0));
-//		centroidPanel.add(label);
-//		JPanel centSubPanel = new JPanel();
-//		centSubPanel.setLayout(new BoxLayout(centSubPanel, BoxLayout.LINE_AXIS));
-//		centSubPanel.add(Box.createRigidArea(new Dimension(25, 1)));
-//		centSubPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-//		JRadioButton centTransformButton = new JRadioButton("", false);
-//		centTransformButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-//		centTransformButton.setMargin(new Insets(0,0,0,0));
-//		centTransformButton.addItemListener(centListener);
-//		typeRadio.add(centTransformButton);
-//		centSubPanel.add(centTransformButton);
-		
-//		namePathMap = new Hashtable<String, String>();
-//		Vector<String> centFiles = new Vector<String>();
-//		centFiles.add(proj.getFilename(Project.ORIGINAL_CENTROIDS_FILENAME));
-//		centFiles.add(proj.getFilename(Project.GENOTYPE_CENTROIDS_FILENAME));
-//		centFiles.add(proj.getFilename(Project.CUSTOM_CENTROIDS_FILENAME));
-//		centFiles.add(proj.getFilename(Project.CHIMERA_CENTROIDS_FILENAME));
-//		
-//		String[] tempFiles = proj.getFilenames(Project.SEX_CENTROIDS_FILENAMES);
-//		if (tempFiles != null && tempFiles.length > 0) {
-//			centFiles.add(SEX_CENT);
-//		}
-//		
-//		for (String file : centFiles) {
-//			if (SEX_CENT.equals(file)) {
-//				namePathMap.put(SEX_CENT + " - Male", tempFiles[0]);
-//				namePathMap.put(SEX_CENT + " - Female", tempFiles[1]);
-//			} else if (Files.exists(file)) {
-//				String name = file.substring(file.lastIndexOf("/") + 1);
-//				name = name.substring(0, name.lastIndexOf("."));
-//				namePathMap.put(name, file);
-//			}
-//		}
-//		
-//		centroidsSelection = new JComboBox<String>((String[]) namePathMap.keySet().toArray(new String[]{}));
-//		centroidsSelection.setMaximumSize(new Dimension(160, 25));
-//		centroidsSelection.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				if (!isSettingCentroid) {
-//					isSettingCentroid = true;
-//					if (transformation_type == -1) {
-//						setCentroid();
-//						loadValues();
-//						updateGUI();
-//						repaint();
-//					}
-//					isSettingCentroid = false;
-//				} else {
-//					setCentroid();
-//				}
-//			}
-//		});
-//		centSubPanel.add(centroidsSelection);
-//		centroidPanel.add(centSubPanel);
-//		dataOptionPanel.add(centroidPanel);
-		
-		
-//		JPanel scopePanel = new JPanel();
-//		scopePanel.setLayout(new BoxLayout(scopePanel, BoxLayout.PAGE_AXIS));
-//		label = new JLabel("Transform by: ");
-//		label.setFont(new Font("Arial", 0, 14));
-//		label.setAlignmentX(Component.LEFT_ALIGNMENT);
-//		label.setBorder(new EmptyBorder(0, 0, 5, 0));
-//		scopePanel.add(label);
-//		ButtonGroup scopeRadio = new ButtonGroup();
-//		JRadioButton[] scopeRadioButtons = new JRadioButton[Transforms.SCOPES.length];
-//		ItemListener scopeListener = new ItemListener() {
-//			public void itemStateChanged(ItemEvent ie) {
-//				JRadioButton jrb = (JRadioButton)ie.getItem();
-//				if (jrb.isSelected()) {
-//					transformSeparatelyByChromosome = jrb.getText().equals(Transforms.SCOPES[1]); 
-//					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
-//					updateGUI();
-//				}
-//			}
-//		};
-//		for (int i = 0; i<Transforms.SCOPES.length; i++) {
-//			scopeRadioButtons[i] = new JRadioButton(Transforms.SCOPES[i], false);
-//			scopeRadioButtons[i].setFont(new Font("Arial", 0, 14));
-//			scopeRadio.add(scopeRadioButtons[i]);
-//			scopeRadioButtons[i].addItemListener(scopeListener);
-//			scopeRadioButtons[i].setAlignmentX(Component.LEFT_ALIGNMENT);
-////			scopeRadioButtons[i].setBackground(BACKGROUND_COLOR);
-//			scopeRadioButtons[i].setMargin(new Insets(0,0,0,0));
-//
-//			JPanel scopeOptPanel = new JPanel();
-//			scopeOptPanel.setLayout(new BoxLayout(scopeOptPanel, BoxLayout.LINE_AXIS));
-//			scopeOptPanel.setBorder(null);
-////			transformationPanel.add(transformationRadioButtons[i]);
-//			scopeOptPanel.add(Box.createRigidArea(new Dimension(25, 1)));
-//			scopeOptPanel.add(scopeRadioButtons[i]);
-//			scopeOptPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-//			scopePanel.add(scopeOptPanel);
-//			
-//			
-////			scopePanel.add(scopeRadioButtons[i]);
-//		}
-//		scopeRadioButtons[0].setSelected(true);
-//		//descrPanel.add(scopePanel);
-//		dataOptionPanel.add(scopePanel);
-		
 		
 		JPanel overPanel = new JPanel();
-//		overPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 2));
 		overPanel.setLayout(new BoxLayout(overPanel, BoxLayout.LINE_AXIS));
-//		overPanel.setLayout(new GridLayout(3, 1, 5, 5));
 		
 		JSeparator sep = new JSeparator(SwingConstants.VERTICAL);
 		sep.setMaximumSize(new Dimension(1, 150));
@@ -1139,18 +914,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		overPanel.add(Box.createHorizontalGlue());
 		overPanel.add(descrPanel);
-//		overPanel.add(sep);
-//		overPanel.add(dataOptionPanel);
 		overPanel.add(Box.createHorizontalGlue());
 		
-//		getContentPane().add(descrPanel, BorderLayout.NORTH);
 		getContentPane().add(overPanel, BorderLayout.NORTH);
 
 		InputMap inputMap = bafPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		// inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP,
-		// InputEvent.ALT_MASK), ALT_UP);
-		// inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,
-		// InputEvent.ALT_MASK), ALT_DOWN);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), PREVIOUS_REGION);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), NEXT_REGION);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, InputEvent.CTRL_MASK), PREVIOUS_CHR);
@@ -1217,59 +985,22 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		previousChr.setActionMap(actionMap);
 	}
 	
-	private class TransferableImage implements java.awt.datatransfer.Transferable {
-
-        Image i;
-
-        public TransferableImage( Image i ) {
-            this.i = i;
-        }
-
-        public Object getTransferData( java.awt.datatransfer.DataFlavor flavor )
-        throws java.awt.datatransfer.UnsupportedFlavorException, IOException {
-            if ( flavor.equals( java.awt.datatransfer.DataFlavor.imageFlavor ) && i != null ) {
-                return i;
-            }
-            else {
-                throw new java.awt.datatransfer.UnsupportedFlavorException( flavor );
-            }
-        }
-
-        public java.awt.datatransfer.DataFlavor[] getTransferDataFlavors() {
-            java.awt.datatransfer.DataFlavor[] flavors = new java.awt.datatransfer.DataFlavor[ 1 ];
-            flavors[ 0 ] = java.awt.datatransfer.DataFlavor.imageFlavor;
-            return flavors;
-        }
-
-        public boolean isDataFlavorSupported( java.awt.datatransfer.DataFlavor flavor ) {
-            java.awt.datatransfer.DataFlavor[] flavors = getTransferDataFlavors();
-            for ( int i = 0; i < flavors.length; i++ ) {
-                if ( flavor.equals( flavors[ i ] ) ) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
-	
 	private void doScreenCapture(String filename) {
 	    BufferedImage cap = generateScreenshot();
 	    
 	    if (filename == null) {
-	        // copy to clipboard
 	        TransferableImage ti = new TransferableImage(cap);
 	        Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
             c.setContents( ti, null );
-	        
 	    } else {
 	        try {
 	            ImageIO.write(cap, "png", new File(filename));
 	        } catch (IOException e) {
-	            // TODO Auto-generated catch block
-	            e.printStackTrace();
+	            if (proj != null) {
+	                proj.getLog().reportException(e);
+	                proj.message("Error occured while writing screen capture to file.  Please check log for more details.");
+	            }
 	        }
-	        
 	    }
 	}
 	
@@ -1293,7 +1024,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	    g = imageCnv.getGraphics();
         g.setColor(cnvPanel.getBackground());
         g.fillRect(0, 0, imageCnv.getWidth(), imageCnv.getHeight());
-	    cnvPanel.paintAll(g);
+        cnvPanel.paintAll(g);
+        if (selectedCNV != null) {
+//            CNVariant cnv = cnvs[selectedCNV[0]][selectedCNV[1]];
+            //  TODO include CNV details in ScreenCapture?
+        }
 	    
 	    g = imageBaf.getGraphics();
         g.setColor(bafPanel.getBackground());
@@ -1320,120 +1055,43 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setMnemonic(KeyEvent.VK_F);
-		AbstractAction loadNewFileAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				chooseNewFiles();
-				if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
-					if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
-						regionFileNameBtn.get(REGION_LIST_USE_CNVS).setSelected(true);
-//						((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
-					} else {
-						regionFileNameBtn.get(ext.rootOf(Trailer.this.regionFileName)).setSelected(true);
-//						((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
-					}
-				}/* else {
-					((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
-				}*/	
-			}
-		};
-		markerFileSelectAction = new AbstractAction() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String shortName = ((JCheckBoxMenuItem)e.getSource()).getText();
-				if (!loadingFile 
-						&& !REGION_LIST_NEW_FILE.equals(shortName) 
-						&& !REGION_LIST_PLACEHOLDER.equals(shortName)
-						&& !REGION_LIST_USE_CNVS.equals(shortName)) {
-					String file = regionFileNameLoc.get(shortName);
-					if (file != null && file.equals(Trailer.this.regionFileName)) {
-						return;
-					}
-					String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
-					if (!Files.exists(tempFile)) {
-						proj.message("Error - region file '" + shortName + "' doesn't exist.");
-						regionFileNameBtn.get(regionFileName).setSelected(true);
-					} else {
-						Trailer.this.regionFileName = file;
-						loadRegions();
-						regionIndex = 0;
-						showRegion();
-					}
-				} /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
-					// do nothing
-				} */else if (loadingFile || REGION_LIST_PLACEHOLDER.equals(shortName)) {
-					// leave as currently selected marker
-					if (Trailer.this.regionFileName != "" && Trailer.this.regionFileName != null) {
-						String file = Trailer.this.regionFileName;
-						if (!REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
-							file = ext.rootOf(Trailer.this.regionFileName);
-						}
-//						((JComboBox<String>)e.getSource()).setSelectedItem(file);
-						regionFileNameBtn.get(file).setSelected(true);
-					}
-					return;
-				} else if (REGION_LIST_USE_CNVS.equals(shortName)) {
-					if (!shortName.equals(Trailer.this.regionFileName)) {
-						Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
-						loadCNVsAsRegions();
-						procCNVs(chr);
-						updateGUI();
-						regionIndex = 0;
-						showRegion();
-					}
-				} /*else if (REGION_LIST_NEW_FILE.equals(shortName)) {
-					chooseNewFiles();
-					if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
-						if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
-							((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
-						} else {
-							((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
-						}
-					} else {
-						((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
-					}
-				}*/
-			}
-		};
+		
+		JMenuItem newRegionFile = new JMenuItem();
+		newRegionFile.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+	            NewRegionListDialog newRgnList = new NewRegionListDialog(proj == null ? null : proj.getSamples());
+	            newRgnList.setModal(true);
+	            newRgnList.setVisible(true);
+	            if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
+	                String rgnFile = newRgnList.getFileName();
+	                addFileToList(rgnFile);
+	            }
+            }
+        });
+		newRegionFile.setText("New Region List File");
+		newRegionFile.setMnemonic(KeyEvent.VK_N);
+		fileMenu.add(newRegionFile);
+		
 		JMenuItem loadRegionFile = new JMenuItem();
 		loadRegionFile.setAction(loadNewFileAction);
-		loadRegionFile.setText("Load Region File");
+		loadRegionFile.setText(REGION_LIST_NEW_FILE);
 		loadRegionFile.setMnemonic(KeyEvent.VK_L);
 		fileMenu.add(loadRegionFile);
-		loadRecentFileMenu = new JMenu("Load Recent...");
+		loadRecentFileMenu = new JMenu("Load Recent Region List...");
 		loadRecentFileMenu.setMnemonic(KeyEvent.VK_R);
 		fileMenu.add(loadRecentFileMenu);
 		
 		JMenuItem screencap1 = new JMenuItem();
-		screencap1.setAction(new AbstractAction() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
-                jfc.setMultiSelectionEnabled(false);
-                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                jfc.setDialogTitle("Save Screen Capture...");
-                jfc.setDialogType(JFileChooser.SAVE_DIALOG);
-                int code = jfc.showSaveDialog(Trailer.this);
-                if (code == JFileChooser.APPROVE_OPTION) {
-                    String filename = jfc.getSelectedFile().getAbsolutePath();
-		            doScreenCapture(filename);
-                }
-            }
-        });
+		screencap1.setAction(screencapAction);
+		screencap1.setMnemonic(KeyEvent.VK_S);
 		screencap1.setText("Screen Capture");
 		fileMenu.add(screencap1);
 		
 		JMenuItem screencap2 = new JMenuItem();
-		screencap2.setAction(new AbstractAction() {
-		    private static final long serialVersionUID = 1L;
-		    @Override
-		    public void actionPerformed(ActionEvent e) {
-		        doScreenCapture(null);
-		    }
-		});
+		screencap2.setAction(screencapClipboardAction);
+		screencap2.setMnemonic(KeyEvent.VK_C);
 		screencap2.setText("Screen Capture to Clipboard");
 		fileMenu.add(screencap2);
 		
