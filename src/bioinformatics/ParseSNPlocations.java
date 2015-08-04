@@ -140,8 +140,26 @@ public class ParseSNPlocations {
 							}
 						}
 						writer.println(line[0]+"\t"+chr+"\t"+position);
+	        		} else if (line[0].startsWith("chr")) {
+	        		    String[] pts = line[0].split(":");
+	        		    int chrTemp = -2;
+	        		    int posTemp = -2;
+	        		    if (pts.length >= 2) {
+    	        		    try {
+    	        		        chrTemp = Integer.parseInt(pts[0].substring(3));
+    	        		    } catch (NumberFormatException e) {}
+    	        		    try {
+    	        		        posTemp = Integer.parseInt(pts[1]);
+    	        		    } catch (NumberFormatException e) {}
+	        		    }
+	        		    if (chrTemp == -2 || posTemp == -2) {
+	                        log.reportError("Error - can't look up a SNP without an rs number or chromosome/position name ("+line[0]+")");
+	                        writer.println(line[0]+"\t0\t0");
+	        		    } else {
+	                        writer.println(line[0]+"\t" + chrTemp + "\t" + posTemp);
+	        		    }
 					} else {
-						log.reportError("Error - can't look up a SNP without an rs number ("+line[0]+")");
+						log.reportError("Error - can't look up a SNP without an rs number or chromosome/position name ("+line[0]+")");
 						writer.println(line[0]+"\t0\t0");
 					}
 	        	}
