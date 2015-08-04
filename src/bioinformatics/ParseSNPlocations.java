@@ -140,13 +140,13 @@ public class ParseSNPlocations {
 							}
 						}
 						writer.println(line[0]+"\t"+chr+"\t"+position);
-	        		} else if (line[0].startsWith("chr")) {
+	        		} else if (line[0].startsWith("chr") || line[0].indexOf(":") != -1) {
 	        		    String[] pts = line[0].split(":");
 	        		    int chrTemp = -2;
 	        		    int posTemp = -2;
 	        		    if (pts.length >= 2) {
     	        		    try {
-    	        		        chrTemp = Integer.parseInt(pts[0].substring(3));
+    	        		        chrTemp = Integer.parseInt(pts[0].startsWith("chr") ? pts[0].substring(3) : pts[0]);
     	        		    } catch (NumberFormatException e) {}
     	        		    try {
     	        		        posTemp = Integer.parseInt(pts[1]);
