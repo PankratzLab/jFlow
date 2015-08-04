@@ -72,7 +72,7 @@ public class FAST {
     private static FilenameFilter resultsFileFilter = new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
-            return name.endsWith(".Linear.txt");
+            return name.endsWith(".Linear.txt") || name.endsWith(".Logistic.txt") ;
         }
     };
     
