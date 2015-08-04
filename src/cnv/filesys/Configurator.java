@@ -797,21 +797,25 @@ public class Configurator extends JFrame {
 	protected void doClose(boolean save, boolean promptChanges) {
 	    HashMap<String, String> changes = extract();
 	    if (changes.size() > 0) {
-	        StringBuilder message = new StringBuilder("The following properties have been changed.  Would you like to save your changes?");
-	        int cnt = 0;
-	        for (String key : changes.keySet()) {
-	            if (cnt == 10) {
-	                message.append("\n... and ").append(changes.size() - cnt).append(" additional changes...");
-	                break;
-	            }
-	            message.append("\n").append(key);
-	            cnt++;
-	        }
-	        String title = "Save changes?";
-	        int opt = JOptionPane.showConfirmDialog(Configurator.this, message, title, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-	        if (opt == JOptionPane.CLOSED_OPTION || opt == JOptionPane.CANCEL_OPTION) {
-	            return;
-	        } else if (opt == JOptionPane.YES_OPTION) {
+	        if (promptChanges) {
+    	        StringBuilder message = new StringBuilder("The following properties have been changed.  Would you like to save your changes?");
+    	        int cnt = 0;
+    	        for (String key : changes.keySet()) {
+    	            if (cnt == 10) {
+    	                message.append("\n... and ").append(changes.size() - cnt).append(" additional changes...");
+    	                break;
+    	            }
+    	            message.append("\n").append(key);
+    	            cnt++;
+    	        }
+    	        String title = "Save changes?";
+    	        int opt = JOptionPane.showConfirmDialog(Configurator.this, message, title, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+    	        if (opt == JOptionPane.CLOSED_OPTION || opt == JOptionPane.CANCEL_OPTION) {
+    	            return;
+    	        } else if (opt == JOptionPane.YES_OPTION) {
+    	            save(changes);
+    	        }
+	        } else {
 	            save(changes);
 	        }
 	    }
