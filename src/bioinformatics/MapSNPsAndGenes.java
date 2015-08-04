@@ -2,6 +2,8 @@
 package bioinformatics;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Vector;
 
 import common.*;
 
@@ -209,7 +211,57 @@ public class MapSNPsAndGenes {
 			log.reportException(e);
 		}
 	}
+	
+	public static void fromParameters(String filename, Logger log) {
+        Vector<String> params;
 
+        params = Files.parseControlFile(filename, 
+                                              "snps", 
+                                              new String[] { "file=list.snps",
+                                                             "dir=",
+                                                             "win=15000", 
+                                                             "build=37" }, 
+                                              log);
+        String usage = "\\n"+
+        "bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"+
+        "   (1) directory (i.e. dir= (default))\n"+
+        "   (2) filename (i.e. file=list.snps (default))\n"+
+        "   (3) # bp up and down stream to count as an associated gene (i.e. win=15000 (default))\n"+
+        "   (4) build # of the NCBI gene map file (i.e. build=37 (default))\n"+
+        "";
+        
+        if (params != null) {
+            String dir = null;
+            String file = null;
+            byte build = (byte) 37;
+            int win = 15000;
+            
+            int numArgs = params.size();
+            for (int i = 0; i<params.size(); i++) {
+                String param = params.get(i);
+                if (param.startsWith("dir=")) {
+                    dir = param.split("=")[1];
+                    numArgs--;
+                } else if (param.startsWith("file=")) {
+                    file = param.split("=")[1];
+                    numArgs--;
+                } else if (param.startsWith("win=")) {
+                    win = Integer.parseInt(param.split("=")[1]);
+                    numArgs--;
+                } else if (param.startsWith("build=")) {
+                    build = Byte.parseByte(param.split("=")[1]);
+                    numArgs--;
+                }
+            }
+            if (numArgs!=0) {
+                System.err.println(usage);
+                System.exit(1);
+            }
+            procSNPsToGenes(dir, file, win, build, log);
+        }
+    }
+	
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String dir = "";
