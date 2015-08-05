@@ -474,7 +474,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				parsers.add(gcAnnotations);
 				annotationLoader.fillAnnotations(masterMarkerList, parsers);
                 for (int i = 0; i < blastResults.length; i++) {
-					System.out.println(Array.toStr(blastResults[i].getAlignmentHistogram(proj)));
+                	
+					System.out.println(masterMarkerList[i]+"\t"+blastResults[i].getDesignSequence());
 				}
             } catch (Exception e) {
                 blastResults = null;

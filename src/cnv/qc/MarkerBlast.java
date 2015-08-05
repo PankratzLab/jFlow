@@ -1,8 +1,5 @@
 package cnv.qc;
 
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFFileReader;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -97,11 +94,16 @@ public class MarkerBlast {
 			// if (!Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
 			proj.getLog().reportTimeInfo("Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
 			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), tmps, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
+			if (proj.getArrayType() != ARRAY.ILLUMINA) {
+				proj.getLog().reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
+			}
+			blastAnnotationWriter.setMarkerFastaEntries(getMarkerFastaEntries(proj, fileSeq, type));
 			blastAnnotationWriter.summarizeResultFiles();
 			blastAnnotationWriter.close();
 			if (annotateGCContent) {
 				annotateGCContent(proj, fileSeq, type);
 			}
+
 			// }
 			return result;
 		}
@@ -203,37 +205,7 @@ public class MarkerBlast {
 
 	private static MarkerFastaEntry[] getMarkerFastaEntries(Project proj, String strandReportFile, FILE_SEQUENCE_TYPE type) {
 		MarkerFastaEntry[] fastaEntries = new MarkerFastaEntry[0];
-		ExtProjectDataParser.Builder builder = new ExtProjectDataParser.Builder();
-		switch (type) {
-		case MANIFEST_FILE:
-			if (proj.getArrayType() != ARRAY.ILLUMINA) {
-				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
-				return null;
-			}
-			builder.separator(",");
-			builder.dataKeyColumnName("Name");
-			builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq" });
-			builder.headerFlags(new String[] { "Name", "AlleleA_ProbeSeq" });
-			break;
-
-		case AFFY_ANNOT:
-			if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
-				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
-				return null;
-			}
-			builder.separator("\t");
-			builder.dataKeyColumnName("PROBESET_ID");
-			builder.stringDataTitles(new String[] { "PROBE_SEQUENCE" });
-			builder.concatMultipleStringEntries(true);
-
-		default:
-			break;
-
-		}
-		builder.sampleBased(false);
-		builder.treatAllNumeric(false);
-		builder.requireAll(false);
-		builder.verbose(false);
+		ExtProjectDataParser.Builder builder = formatParser(proj, type);
 		try {
 			int seqLength = proj.ARRAY_TYPE.getValue().getProbeLength();
 			ExtProjectDataParser parser = builder.build(proj, strandReportFile);
@@ -288,11 +260,46 @@ public class MarkerBlast {
 			proj.getLog().reportFileNotFound(strandReportFile);
 			e.printStackTrace();
 		}
-		proj.getLog().reportTimeInfo("Found " + fastaEntries.length + " marker sequences to blast");
+		proj.getLog().reportTimeInfo("Found " + fastaEntries.length + " marker sequences");
 		return fastaEntries;
 	}
 
-	private static class MarkerFastaEntry extends FastaEntry {
+	private static ExtProjectDataParser.Builder formatParser(Project proj, FILE_SEQUENCE_TYPE type) {
+		ExtProjectDataParser.Builder builder = new ExtProjectDataParser.Builder();
+		switch (type) {
+		case MANIFEST_FILE:
+			if (proj.getArrayType() != ARRAY.ILLUMINA) {
+				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.ILLUMINA);
+				builder = null;
+			}
+			builder.separator(",");
+			builder.dataKeyColumnName("Name");
+			builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq" });
+			builder.headerFlags(new String[] { "Name", "AlleleA_ProbeSeq" });
+			break;
+
+		case AFFY_ANNOT:
+			if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
+				proj.getLog().reportTimeError("Array type was set to " + proj.getArrayType() + " and this file is for " + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
+				builder = null;
+			}
+			builder.separator("\t");
+			builder.dataKeyColumnName("PROBESET_ID");
+			builder.stringDataTitles(new String[] { "PROBE_SEQUENCE" });
+			builder.concatMultipleStringEntries(true);
+
+		default:
+			break;
+
+		}
+		builder.sampleBased(false);
+		builder.treatAllNumeric(false);
+		builder.requireAll(false);
+		builder.verbose(false);
+		return builder;
+	}
+
+	public static class MarkerFastaEntry extends FastaEntry {
 		private int interrogationPosition;// Illumina = sequence length, affy = somewhere in the middle
 		private Segment markerSegment;
 
@@ -304,6 +311,10 @@ public class MarkerBlast {
 
 		public Segment getMarkerSegment() {
 			return markerSegment;
+		}
+
+		public int getInterrogationPosition() {
+			return interrogationPosition;
 		}
 
 		public double getGCMinusInterrogationPosition() {
