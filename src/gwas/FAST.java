@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import parse.GenParser;
 import common.Aliases;
+import common.Array;
 import common.CmdLine;
 import common.Files;
 import common.Logger;
@@ -121,8 +122,15 @@ public class FAST {
                                         String midOut = "concatenated.result";
                                         String finalOut = buildFinalFilename(studyName, popName, factorName, -1);
                                         String traitFile = ext.verifyDirFormat(popDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + ".trait";
-                                        concatResults(resultsDirPath, midOut, pvalThresh, true, true);
-                                        if (Files.exists(resultsDirPath + midOut) && Files.getSize(resultsDirPath + midOut, false) > 0) { 
+
+                                        File f = new File(resultsDirPath + midOut);
+                                        if (!f.exists() || f.length() <= 0) {
+                                            concatResults(resultsDirPath, midOut, pvalThresh, true, true);
+                                        }
+                                        File f2 = new File(resultsDirPath + midOut);
+                                        System.out.println("FILEPATH: " + f2.getAbsolutePath());
+                                        System.out.println("FILESIZE: " + f2.length());
+                                        if (f2.exists() && f2.length() > 0) {
                                             runParser(DEFAULT_FORMAT, resultsDirPath + midOut, resultsDirPath + "../" + finalOut, countValid(traitFile));
                                             factorLog.report(ext.getTime() + "]\tParsing complete.");
                                             parsed = true;
@@ -739,7 +747,11 @@ public class FAST {
 		}
 		System.out.println(ext.getTime() + "]\tConcatenation complete!");
 		if (runHitWindows) {
-		    if (Files.exists(resultsDir + resultsFile) && Files.getSize(resultsDir + resultsFile, false) > 0) {
+		    File f = new File(resultsDir + resultsFile);
+            System.out.println("FILEPATH: " + f.getAbsolutePath());
+            System.out.println("FILESIZE: " + f.length());
+            // TODO PROBLEMS WITH FILES.EXISTS and FILES.SIZE!!!!!!!
+		    if (f.exists() && f.length() > 0) {
     			System.out.println(ext.getTime() + "]\tRunning HitWindows analysis...");
     			String[][] results = HitWindows.determine(resultsDir + resultsFile, 0.00000005f, 500000, 0.000005f, new String[0]);
     			Files.writeMatrix(results, resultsDir + "hits.out", "\t");
