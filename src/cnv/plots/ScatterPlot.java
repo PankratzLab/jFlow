@@ -475,7 +475,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				annotationLoader.fillAnnotations(masterMarkerList, parsers);
                 for (int i = 0; i < blastResults.length; i++) {
                 	
-					System.out.println(masterMarkerList[i]+"\t"+blastResults[i].getDesignSequence());
+					System.out.println(masterMarkerList[i]+"\t"+blastResults[i].getMarkerSeqAnnotation().getStrand()+"\t"+blastResults[i].getMarkerSeqAnnotation().getSequence());
 				}
             } catch (Exception e) {
                 blastResults = null;

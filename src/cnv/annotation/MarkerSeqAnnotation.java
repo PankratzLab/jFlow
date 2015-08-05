@@ -3,6 +3,7 @@ package cnv.annotation;
 import java.util.List;
 
 import common.Logger;
+import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
@@ -11,6 +12,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 	private static final String DEFAULT_NAME = "PROBE_DESIGN";
 	private static final String DESCRIPTION = "The probe sequence and interrogation position by design";
 	private String sequence;
+	private Strand strand;
 	private int interrogationPosition;
 
 	public MarkerSeqAnnotation() {
@@ -21,10 +23,11 @@ public class MarkerSeqAnnotation extends AnnotationData {
 		return new MarkerSeqAnnotation();
 	}
 
-	public void setDesignData(String sequence, int interrogationPosition) {
+	public void setDesignData(String sequence, int interrogationPosition, Strand strand) {
 		this.sequence = sequence;
 		this.interrogationPosition = interrogationPosition;
-		setData(sequence + DEFUALT_DELIMITER + interrogationPosition);
+		this.strand = strand;
+		setData(sequence + DEFUALT_DELIMITER + interrogationPosition + DEFUALT_DELIMITER + strand);
 	}
 
 	@Override
@@ -40,11 +43,16 @@ public class MarkerSeqAnnotation extends AnnotationData {
 			} catch (NumberFormatException nfe) {
 
 			}
+			this.strand = Strand.valueOf(data.get(2));
 		}
 	}
 
 	public String getSequence() {
 		return sequence;
+	}
+
+	public Strand getStrand() {
+		return strand;
 	}
 
 	public int getInterrogationPosition() {
