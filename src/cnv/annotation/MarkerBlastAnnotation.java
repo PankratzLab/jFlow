@@ -19,6 +19,7 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 	private BLAST_ANNOTATION_TYPES[] bTypes;
 	private ArrayBlastAnnotationList[] annotationLists;
 	private MarkerBlastHistogramAnnotation blastAlignmentHistogram;
+	private MarkerSeqAnnotation markerSeqAnnotation;
 	private String markerName;
 	private boolean found;
 
@@ -30,8 +31,9 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 		for (int i = 0; i < annotationLists.length; i++) {
 			annotationLists[i] = new ArrayBlastAnnotationList(initialCapacity);
 		}
-		
 	}
+	
+	
 
 	public boolean hasPerfectMatch(Logger log) {
 		return getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, log).size() > 0;
@@ -69,11 +71,16 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 		}
 		return index;
 	}
-	public int[] getAlignmentHistogram(Project proj){
+
+	public int[] getAlignmentHistogram(Project proj) {
 		return blastAlignmentHistogram.formatCountsForProject(proj);
 	}
+
+	public String getDesignSequence() {
+		return markerSeqAnnotation.getSequence();
+	}
+
 	@Override
-	
 	public void parseAnnotation(VariantContext vc, Logger log) {
 		for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {// each annotation type has a separate key in the file
 			String info = vc.getCommonInfo().getAttributeAsString(BLAST_ANNOTATION_TYPES.values()[i].toString(), BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue());
@@ -87,6 +94,8 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 		}
 		this.blastAlignmentHistogram = new MarkerBlastHistogramAnnotation(MarkerBlastHistogramAnnotation.DEFAULT_NAME, MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION, null);
 		blastAlignmentHistogram.parseAnnotation(vc, log);
+		this.markerSeqAnnotation = new MarkerSeqAnnotation();
+		markerSeqAnnotation.parseAnnotation(vc, log);
 	}
 
 	@Override
