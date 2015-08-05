@@ -815,7 +815,7 @@ public class Configurator extends JFrame {
     	        } else if (opt == JOptionPane.YES_OPTION) {
     	            save(changes);
     	        }
-	        } else {
+	        } else if (save) {
 	            save(changes);
 	        }
 	    }
