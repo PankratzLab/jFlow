@@ -1653,6 +1653,7 @@ public class VCFOps {
 		boolean skipFiltered = false;
 		boolean standardFilters = false;
 		boolean gzip = true;
+		int numThreads = 1;
 		Logger log;
 
 		String usage = "\n" + "seq.analysis.VCFUtils requires 0-1 arguments\n";
@@ -1668,7 +1669,7 @@ public class VCFOps {
 		usage += "   (10) gzip the output when extracting (i.e. -gzip ( the default))\n" + "";
 		usage += "   (11) full path to a file of ids (i.e. idFile= (no default))\n" + "";
 		usage += "   (12) when removing filtered variants, apply our standard filters as well (i.e. -standardFilters (not the default, GQ >=" + VARIANT_FILTER_DOUBLE.GQ_LOOSE.getDFilter() + " and DP >=" + VARIANT_FILTER_DOUBLE.DP.getDFilter() + "))\n" + "";
-
+		usage += PSF.Ext.getNumThreadsCommand(13, numThreads);
 		usage += "   NOTE: available utilities are:\n";
 
 		for (int i = 0; i < UTILITY_TYPE.values().length; i++) {
@@ -1711,6 +1712,9 @@ public class VCFOps {
 			} else if (args[i].startsWith("-standardFilters")) {
 				standardFilters = true;
 				numArgs--;
+			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numThreads = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("-gzip")) {
 				gzip = true;
 				numArgs--;
@@ -1734,7 +1738,7 @@ public class VCFOps {
 				VcfPopulation.splitVcfByPopulation(vcf, populationFile, log);
 				break;
 			case EXTRACT_SEGMENTS:
-				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, 1, log);
+				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, numThreads, log);
 				break;
 			case REMOVE_FILTERED:
 				removeFilteredVariants(vcf, gzip, standardFilters, log);

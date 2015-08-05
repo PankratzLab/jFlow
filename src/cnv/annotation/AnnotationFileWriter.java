@@ -53,10 +53,12 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 	/**
 	 * @param locusAnnotation
 	 *            we convert this to a minimal {@link VariantContext} and write to the underlying {@link VariantContextWriter}
+	 * @param skipDefaultValue
+	 *            if true, annotations that are set to their default value will not be added to the {@link VariantContext}
 	 */
-	public void write(LocusAnnotation locusAnnotation) {
+	public void write(LocusAnnotation locusAnnotation, boolean skipDefaultValue) {
 		if (writer != null) {
-			VariantContext vcAnno = locusAnnotation.annotateLocus();
+			VariantContext vcAnno = locusAnnotation.annotateLocus(skipDefaultValue);
 			if (vcAnno.getStart() <= 0 || vcAnno.getEnd() <= 0) {
 				String error = "Entry " + vcAnno.toStringWithoutGenotypes() + " had postion less than or equal to zero. Most readers will skip";
 				proj.getLog().reportTimeError(error);

@@ -2,8 +2,8 @@ package cnv.annotation;
 
 import java.util.ArrayList;
 
+import common.Array;
 import common.Positions;
-
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
@@ -17,7 +17,12 @@ public class LocusAnnotation {
 
 	private AnnotationData[] annotations;
 
-	public VariantContext annotateLocus() {
+	/**
+	 * @param skipDefaultValue
+	 *            if true, annotations that are set to their default value will not be added to the {@link VariantContext}
+	 * @return
+	 */
+	public VariantContext annotateLocus(boolean skipDefaultValue) {
 		ArrayList<Allele> alleles = new ArrayList<Allele>();
 		Allele refA = Allele.create(ref, true);
 		alleles.add(refA);
@@ -40,7 +45,9 @@ public class LocusAnnotation {
 		vBuilder.alleles(alleles);
 		if (annotations != null) {
 			for (int i = 0; i < annotations.length; i++) {
-				annotations[i].addAnnotation(vBuilder);
+				if (!skipDefaultValue || !annotations[i].getDefaultValue().equals(annotations[i].getData())) {
+					annotations[i].addAnnotation(vBuilder);
+				}
 			}
 		}
 		return vBuilder.make();
@@ -61,6 +68,10 @@ public class LocusAnnotation {
 
 	public AnnotationData[] getAnnotations() {
 		return annotations;
+	}
+
+	public void addAnnotation(AnnotationData annotationData) {
+		annotations = Array.concatAll(annotations, new AnnotationData[] { annotationData });
 	}
 
 	public static class Builder {
