@@ -7,6 +7,7 @@ import htsjdk.samtools.CigarOperator;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import stats.Histogram.DynamicHistogram;
@@ -565,6 +566,19 @@ public class Blast {
 			log.reportTimeError(error);
 			throw new IllegalArgumentException(error);
 		}
+		if (cigar != null && blastResults.getSstart() > blastResults.getSstop()) {
+
+			// flip the strand of the cigar
+			List<CigarElement> cigarElementsStrandCurrent = cigar.getCigarElements();
+			ArrayList<CigarElement> cigarElementsStrandFlip = new ArrayList<CigarElement>();
+			for (int i = cigarElementsStrandCurrent.size() - 1; i >= 0; i--) {
+				cigarElementsStrandFlip.add(cigarElementsStrandCurrent.get(i));
+			}
+			//System.out.println(cigar.toString());
+			cigar = new Cigar(cigarElementsStrandFlip);
+			//System.out.println(cigar.toString());
+		}
+
 		// log.reportTimeInfo("BTOP -> " + blastResults.getBtop());
 		// log.reportTimeInfo(" : CIGAR " + cigar.toString());
 		return cigar;

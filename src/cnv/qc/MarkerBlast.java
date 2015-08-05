@@ -60,6 +60,7 @@ public class MarkerBlast {
 			String[] tmps = new String[numThreads];
 			for (int i = 0; i < numThreads; i++) {
 				tmps[i] = root + ".tmp" + i + ".gz";
+				proj.getLog().reportTimeInfo("REmember gz");
 			}
 
 			if (!Files.exists("", tmps)) {
@@ -93,6 +94,7 @@ public class MarkerBlast {
 			MarkerBlastResult result = new MarkerBlastResult(output, blastWordSize, reportWordSize, proj.getArrayType().getProbeLength());
 			result.setTmpFiles(tmps);
 
+			// if (!Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
 			proj.getLog().reportTimeInfo("Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
 			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), tmps, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
 			blastAnnotationWriter.summarizeResultFiles();
@@ -100,7 +102,7 @@ public class MarkerBlast {
 			if (annotateGCContent) {
 				annotateGCContent(proj, fileSeq, type);
 			}
-
+			// }
 			return result;
 		}
 	}
@@ -139,13 +141,13 @@ public class MarkerBlast {
 			builder.annotations(new AnnotationData[] { annotationData });
 			MarkerGCAnnotation markerGCAnnotation = new MarkerGCAnnotation(builder, marker, fastaEntries[i].getMarkerSegment());
 			gcAnnotations[index] = markerGCAnnotation;
-		}	
+		}
 		AnnotationFileWriter writer = new AnnotationFileWriter(proj, new AnnotationData[] { MarkerGCAnnotation.getGCAnnotationDatas() }, proj.BLAST_ANNOTATION_FILENAME.getValue(), false) {
 		};
 		for (int i = 0; i < gcAnnotations.length; i++) {
 			if (gcAnnotations[i] != null) {// currently some markers may not be represented, such as affy CN markers
-				writer.write(gcAnnotations[i]);
-				
+				writer.write(gcAnnotations[i], false);
+
 			} else {
 				double gcContent = Double.NaN;
 				Builder builder = new Builder();
@@ -153,7 +155,7 @@ public class MarkerBlast {
 				annotationData.setData(gcContent + "");
 				builder.annotations(new AnnotationData[] { annotationData });
 				MarkerGCAnnotation blank = new MarkerGCAnnotation(builder, markerNames[i], new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i], markerSet.getPositions()[i]));
-				writer.write(blank);
+				writer.write(blank, false);
 			}
 		}
 		writer.close();

@@ -9,10 +9,13 @@ import java.util.ArrayList;
 import cnv.annotation.Annotation;
 import cnv.annotation.AnnotationData;
 import cnv.annotation.AnnotationFileWriter;
+import cnv.annotation.AnnotationParser;
 import cnv.annotation.BlastAnnotationLoader;
 import cnv.annotation.BlastAnnotationTypes;
 import cnv.annotation.BlastAnnotationWriter;
 import cnv.annotation.LocusAnnotation;
+import cnv.annotation.MarkerAnnotationLoader;
+import cnv.annotation.MarkerBlastAnnotation;
 import cnv.annotation.BlastAnnotationLoader.MarkerBlastResult;
 import cnv.annotation.LocusAnnotation.Builder;
 import cnv.filesys.MarkerSet;
@@ -87,9 +90,34 @@ public class BlastAnnotationTesting {
 		};
 		LocusAnnotation[] testAdd = getTestAddition(proj);
 		for (int i = 0; i < testAdd.length; i++) {
-			test.write(testAdd[i]);
+			test.write(testAdd[i], true);
 		}
 		test.close();
+	}
+
+	public static void testHistogram(Project proj) {
+		ArrayList<String> t = getTestMarks(proj);
+
+		String[] markers = proj.getMarkerNames();
+		for (int i = 0; i < 100; i++) {
+			t.add(markers[i]);
+		}
+//		t.add(markers[20]);
+//		t.add(markers[200000]);
+//		t.add(markers[100000]);
+//		t.add(markers[50000]);
+//		t.add(markers[200001]);
+//		t.add(markers[2]);
+//		t.add(markers[200003]);
+
+		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(Array.toStringArray(t));
+		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getMarkerSet(), true);
+		ArrayList<AnnotationParser[]> toparse = new ArrayList<AnnotationParser[]>();
+		toparse.add(blastResults);
+		annotationLoader.fillAnnotations(Array.toStringArray(t), toparse);
+		for (int i = 0; i < blastResults.length; i++) {
+		//	System.out.println(Array.toStr(blastResults[i].getAlignmentHistogram(proj)));
+		}
 	}
 
 	/**
@@ -139,9 +167,11 @@ public class BlastAnnotationTesting {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties", false);
+		// Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties", false);
+		Project proj = new Project("/home/pankrat2/lanej/projects/gedi_gwas.properties", false);
 		String annoFile = proj.PROJECT_DIRECTORY.getValue() + "TestBlastLoad/blast.anno.vcf.gz";
-		test(proj, annoFile);
-		testLoad(proj, annoFile);
+		testHistogram(proj);
+		// test(proj, annoFile);
+		// testLoad(proj, annoFile);
 	}
 }
