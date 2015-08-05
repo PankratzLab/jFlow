@@ -167,7 +167,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 				int seqIndex = markerSeqIndices.get(anDatas[i].getLocusName());
 				MarkerFastaEntry markerFastaEntry = markerFastaEntries[seqIndex];
 				MarkerSeqAnnotation markerSeqAnnotation = new MarkerSeqAnnotation();
-				markerSeqAnnotation.setDesignData(markerFastaEntry.getSequence(), markerFastaEntry.getInterrogationPosition());
+				markerSeqAnnotation.setDesignData(markerFastaEntry.getSequence(), markerFastaEntry.getInterrogationPosition(),markerFastaEntry.getStrand());
 				anDatas[i].addAnnotation(markerSeqAnnotation);
 			}
 		}

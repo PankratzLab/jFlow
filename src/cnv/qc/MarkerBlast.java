@@ -1,5 +1,7 @@
 package cnv.qc;
 
+import htsjdk.tribble.annotation.Strand;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -222,11 +224,21 @@ public class MarkerBlast {
 					Segment markerSegment = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i], markerSet.getPositions()[i]);
 					if (type != FILE_SEQUENCE_TYPE.AFFY_ANNOT) {
 						seq = parser.getStringData()[0][i];
+						String ilmnStrand = parser.getStringData()[1][i];
+						Strand strand = null;
+						if (ilmnStrand.equals("TOP")||ilmnStrand.equals("PLUS")) {//PLUS seems to be for cnvi probes
+							strand = Strand.POSITIVE;
+						} else if (ilmnStrand.equals("BOT")) {
+							strand = Strand.NEGATIVE;
+						} else {
+							proj.getLog().reportTimeError("Invalid IlmnStrand " + ilmnStrand);
+							return null;
+						}
 						if (seq.length() != seqLength) {
 							proj.getLog().reportTimeError("Sequence " + seq + " did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength());
 							return null;
 						}
-						entries.add(new MarkerFastaEntry(markerName, seq, seqLength, markerSegment));
+						entries.add(new MarkerFastaEntry(markerName, seq, strand, seqLength, markerSegment));
 					} else {
 						String[] tmpSeq = Array.unique(parser.getStringData()[0][i].split("\t"));
 						if (tmpSeq.length != 2) {
@@ -248,9 +260,9 @@ public class MarkerBlast {
 									interrogationPosition = j;
 								}
 							}
-
-							entries.add(new MarkerFastaEntry(markerName + "_A", tmpSeq[0], interrogationPosition, markerSegment));
-							entries.add(new MarkerFastaEntry(markerName + "_B", tmpSeq[1], interrogationPosition, markerSegment));
+							proj.getLog().reportTimeWarning("Strand for affy warning, " + Strand.NONE);
+							entries.add(new MarkerFastaEntry(markerName + "_A", tmpSeq[0], Strand.NONE, interrogationPosition, markerSegment));
+							entries.add(new MarkerFastaEntry(markerName + "_B", tmpSeq[1], Strand.NONE, interrogationPosition, markerSegment));
 						}
 					}
 				}
@@ -274,7 +286,7 @@ public class MarkerBlast {
 			}
 			builder.separator(",");
 			builder.dataKeyColumnName("Name");
-			builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq" });
+			builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq", "IlmnStrand" });
 			builder.headerFlags(new String[] { "Name", "AlleleA_ProbeSeq" });
 			break;
 
@@ -300,16 +312,24 @@ public class MarkerBlast {
 	}
 
 	public static class MarkerFastaEntry extends FastaEntry {
+
 		private int interrogationPosition;// Illumina = sequence length, affy = somewhere in the middle
 		private Segment markerSegment;
+		private Strand strand;
 
-		public MarkerFastaEntry(String name, String sequence, int interrogationPosition, Segment markerSegment) {
+		// IlmnStrand
+		public MarkerFastaEntry(String name, String sequence, Strand strand, int interrogationPosition, Segment markerSegment) {
 			super(name, sequence);
+			this.strand = strand;
 			this.interrogationPosition = interrogationPosition;
 			this.markerSegment = markerSegment;
 		}
 
+		public Strand getStrand() {
+			return strand;
+		}
 		public Segment getMarkerSegment() {
+			
 			return markerSegment;
 		}
 

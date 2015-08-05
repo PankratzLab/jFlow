@@ -32,8 +32,6 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 			annotationLists[i] = new ArrayBlastAnnotationList(initialCapacity);
 		}
 	}
-	
-	
 
 	public boolean hasPerfectMatch(Logger log) {
 		return getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, log).size() > 0;
@@ -76,8 +74,8 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 		return blastAlignmentHistogram.formatCountsForProject(proj);
 	}
 
-	public String getDesignSequence() {
-		return markerSeqAnnotation.getSequence();
+	public MarkerSeqAnnotation getMarkerSeqAnnotation() {
+		return markerSeqAnnotation;
 	}
 
 	@Override
