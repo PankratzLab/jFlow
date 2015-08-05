@@ -561,11 +561,7 @@ public class Blast {
 				}
 			}
 		}
-		if (cigar != null && cigar.getReadLength() != initialSequencLength) {
-			String error = "Cigar length representation of " + cigar.getReadLength() + " did not equal the query length of " + initialSequencLength;
-			log.reportTimeError(error);
-			throw new IllegalArgumentException(error);
-		}
+
 		if (cigar != null && blastResults.getSstart() > blastResults.getSstop()) {
 
 			// flip the strand of the cigar
@@ -574,9 +570,14 @@ public class Blast {
 			for (int i = cigarElementsStrandCurrent.size() - 1; i >= 0; i--) {
 				cigarElementsStrandFlip.add(cigarElementsStrandCurrent.get(i));
 			}
-			//System.out.println(cigar.toString());
+			// System.out.println(cigar.toString());
 			cigar = new Cigar(cigarElementsStrandFlip);
-			//System.out.println(cigar.toString());
+			// System.out.println(cigar.toString());
+		}
+		if (cigar != null && cigar.getReadLength() != initialSequencLength) {
+			String error = "Cigar length representation of " + cigar.getReadLength() + " did not equal the query length of " + initialSequencLength;
+			log.reportTimeError(error);
+			throw new IllegalArgumentException(error);
 		}
 
 		// log.reportTimeInfo("BTOP -> " + blastResults.getBtop());
