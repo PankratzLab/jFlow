@@ -27,7 +27,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 		this.sequence = sequence;
 		this.interrogationPosition = interrogationPosition;
 		this.strand = strand;
-		setData(sequence + DEFUALT_DELIMITER + interrogationPosition + DEFUALT_DELIMITER + strand);
+		setData(sequence + DEFUALT_DELIMITER + interrogationPosition + DEFUALT_DELIMITER + strand.getEncoding());
 	}
 
 	@Override
@@ -43,7 +43,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 			} catch (NumberFormatException nfe) {
 
 			}
-			this.strand = Strand.valueOf(data.get(2));
+			this.strand = Strand.toStrand(data.get(2));
 		}
 	}
 

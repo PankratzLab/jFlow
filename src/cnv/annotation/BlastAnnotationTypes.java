@@ -2,6 +2,7 @@ package cnv.annotation;
 
 import filesys.Segment;
 import htsjdk.samtools.Cigar;
+import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
@@ -38,14 +39,14 @@ public class BlastAnnotationTypes {
 		// */
 		// OFF_T_ALIGNMENT_NO_MISMATCHES_NO_GAPS(VCFHeaderLineType.String, "OFF_T_ALIGNMENT_NO_MISMATCHES_NO_GAPS", "Off-target Alignments without gaps AND without mismatches (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
 
-		OFF_T_ALIGNMENTS(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "Off-target alignments sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
+		OFF_T_ALIGNMENTS(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "Off-target alignments (Cigar-positive orientation, Segment - positive orientation, Strand -original orientation) sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
 
-		ON_T_ALIGNMENTS_NON_PERFECT(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "On-target alignments (but not perfectly matched) sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
+		ON_T_ALIGNMENTS_NON_PERFECT(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "On-target alignments (but not perfectly matched)(Cigar-positive orientation, Segment - positive orientation, Strand -original orientation) sorted by continous reference alignment length (" + ANNO_DELIM + "-delimited)", ANNO_DELIM, DEFAULT_VALUE),
 
 		/**
 		 * 
 		 */
-		PERFECT_MATCH(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "Alignments that perfectly cover the region", ANNO_DELIM, DEFAULT_VALUE), /**
+		PERFECT_MATCH(VCFHeaderLineType.String, DEFAULT_COUNT, DEFAULT_NUMBER, "Alignments (Cigar-positive orientation, Segment - positive orientation, Strand -original orientation) that perfectly cover the region", ANNO_DELIM, DEFAULT_VALUE), /**
 		 * 
 		 */
 		// NON_PERFECT_MATCH_ON_TARGET(VCFHeaderLineType.String, "HAS_PERFECT_MATCH", "There is a perfect match Alignment", ANNO_DELIM, DEFAULT_VALUE_PM),
@@ -155,13 +156,15 @@ public class BlastAnnotationTypes {
 	 * @author lane0212 Stores the {@link Cigar} string for the blast hit, and the {@link Segment} on the reference genome
 	 */
 	public static class BlastAnnotation {
-		private Cigar cigar;
-		private Segment refLoc;
+		private Cigar cigar; // positive strand
+		private Segment refLoc;// positvie strand
+		private Strand strand;// original alignment strand
 
-		public BlastAnnotation(Cigar cigar, Segment refLoc) {
+		public BlastAnnotation(Cigar cigar, Segment refLoc, Strand strand) {
 			super();
 			this.cigar = cigar;
 			this.refLoc = refLoc;
+			this.strand = strand;
 		}
 
 		public Cigar getCigar() {
@@ -172,10 +175,14 @@ public class BlastAnnotationTypes {
 			return refLoc;
 		}
 
+		public Strand getStrand() {
+			return strand;
+		}
+
 		public static String[] toAnnotationString(BlastAnnotation[] blastAnnotations) {
 			String[] annotations = new String[blastAnnotations.length];
 			for (int i = 0; i < annotations.length; i++) {
-				annotations[i] = blastAnnotations[i].getCigar().toString() + "/" + blastAnnotations[i].getRefLoc().getUCSClocation();
+				annotations[i] = blastAnnotations[i].getCigar().toString() + "/" + blastAnnotations[i].getRefLoc().getUCSClocation() + "/" + blastAnnotations[i].getStrand().getEncoding();
 			}
 			return annotations;
 		}

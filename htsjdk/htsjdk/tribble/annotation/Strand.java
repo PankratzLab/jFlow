@@ -37,7 +37,11 @@ public enum Strand {
         encoding = str;
     }
 
-    /**
+	public String getEncoding() {
+		return encoding;
+	}
+
+	/**
      * provide a way to take an encoding string, and produce a Strand
      * @param encoding the encoding string
      * @return a Strand object, if an appropriate one cannot be located an IllegalArg exception
