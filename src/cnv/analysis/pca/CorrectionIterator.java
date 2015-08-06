@@ -105,6 +105,11 @@ class CorrectionIterator implements Serializable {
 		RANK_R2,
 
 		/**
+		 * PCS are ranked by the amount of variance explained within a stepwise regression
+		 */
+		STEPWISE_RANK_R2,
+
+		/**
 		 * PCS are ranked by spearman abs r
 		 */
 		// RANK_R,
@@ -210,7 +215,7 @@ class CorrectionIterator implements Serializable {
 				}
 				iterationResult.setValid(valid);
 				if (valid) {
-					sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, proj.getLog());
+					sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, oType == ORDER_TYPE.STEPWISE_RANK_R2, proj.getLog());
 					sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL, log);
 
 					switch (oType) {
@@ -218,6 +223,12 @@ class CorrectionIterator implements Serializable {
 						order = null;
 						break;
 					case RANK_R2:
+						order = new int[sTabRank.getOrder().length];
+						for (int i = 0; i < sTabRank.getOrder().length; i++) {
+							order[i] = sTabRank.getOrder()[i] + 1;// one based for pcs
+						}
+						break;
+					case STEPWISE_RANK_R2:
 						order = new int[sTabRank.getOrder().length];
 						for (int i = 0; i < sTabRank.getOrder().length; i++) {
 							order[i] = sTabRank.getOrder()[i] + 1;// one based for pcs
@@ -602,6 +613,7 @@ class CorrectionIterator implements Serializable {
 
 		}
 		String[] plotTitlesForSummary = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number", "SPEARMAN_CORREL_EVAL_DATA_Ratio.ND1", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs" };
+
 		String[] subsetDataHeritability = new String[] { "EVAL_DATA_Mt_DNA_relative_copy_number" };
 		IterSummaryProducer producer = new IterSummaryProducer(proj, cIterators, plotTitlesForSummary, pedFile);
 		if (pedFile != null) {
@@ -658,6 +670,7 @@ class CorrectionIterator implements Serializable {
 				public RScatter[] call() throws Exception {
 					IterationResult iterationResult = tmp.getIterationResult();
 					ArrayList<RScatter> scatters = new ArrayList<RScatter>();
+					// Add multiplots here
 					RScatter rScatterSummary = iterationResult.plotSummary(plotTitlesForSummary, proj.getLog());
 					scatters.add(rScatterSummary);
 					if (pedFile != null) {

@@ -89,7 +89,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 	public StatsCrossTabRank next() {
 		String currentQC = LrrSd.NUMERIC_COLUMNS[index];
 		proj.getLog().reportTimeInfo("Analyzing QC metric " + currentQC);
-		StatsCrossTabRank sRank = pResiduals.getStatRankFor(sampleQC.getDataFor(LrrSd.NUMERIC_COLUMNS[index]), null, null, currentQC, sType, VALUE_TYPE.STAT, proj.getLog());
+		StatsCrossTabRank sRank = pResiduals.getStatRankFor(sampleQC.getDataFor(LrrSd.NUMERIC_COLUMNS[index]), null, null, currentQC, sType, VALUE_TYPE.STAT, false, proj.getLog());
 		index++;
 		return sRank;
 	}
@@ -134,7 +134,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 			case EFFECTIVE_M_CORRECTED:
 				int numTests = selector.determineEffectiveNumberOfTests();
 				proj.getLog().reportTimeInfo("Controling type I error at " + filterValue + "; " + filterValue + "/" + numTests + " = " + ((double) filterValue / numTests));
-			//	String originalP = filterValue + "";
+				// String originalP = filterValue + "";
 				filterValue = (double) filterValue / numTests;
 				title += "p < " + ext.prettyP(filterValue) + " (" + numTests + " tests)";
 				proj.getLog().reportTimeInfo("Filter value : " + filterValue);
@@ -186,14 +186,14 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 					}
 				}
 			}
-			
+
 			int[] finalSelection = Array.toIntArray(sigPCs);
 			proj.getLog().reportTimeInfo("Found " + sigPCs.size() + " pcs passing threshold of " + filterValue);
-			
-			String dir = proj.PROJECT_DIRECTORY.getValue()+"PC_QC/";
+
+			String dir = proj.PROJECT_DIRECTORY.getValue() + "PC_QC/";
 			new File(dir).mkdirs();
 			String base = ext.removeDirectoryInfo(proj.INTENSITY_PC_FILENAME.getValue());
-			
+
 			String outputAll = dir + ext.addToRoot(base, ".QC_assoc.all");
 			String outputSelect = dir + ext.addToRoot(base, ".QC_assoc.selected");
 			String outputBoth = dir + ext.addToRoot(base, ".QC_assoc");
@@ -212,13 +212,13 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 		return rankResult;
 	}
 
-	private static RScatter plot(Project proj, STAT_TYPE sType, String title,int xmax, String output, String[] titles) {
+	private static RScatter plot(Project proj, STAT_TYPE sType, String title, int xmax, String output, String[] titles) {
 		RScatter rScatter = new RScatter(output, output + ".rscript", ext.rootOf(output), output + ".pdf", "PC", titles, SCATTER_TYPE.POINT, proj.getLog());
 		rScatter.setyLabel(sType.toString());
 		rScatter.setOverWriteExisting(true);
 		rScatter.setxLabel("PC");
 		rScatter.setTitle(title);
-		rScatter.setxRange(new double[] { 0, xmax  });
+		rScatter.setxRange(new double[] { 0, xmax });
 		return rScatter;
 	}
 
@@ -248,8 +248,6 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 		}
 		return titleSummary.toArray(new String[titleSummary.size()]);
 	}
-
-
 
 	public static class SelectionResult {
 		private int[] order;
@@ -304,7 +302,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 			System.exit(1);
 		}
 		Project proj = new Project(filename, false);
-		//select(proj, absStatMin, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.STAT);
+		// select(proj, absStatMin, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.STAT);
 		try {
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -313,90 +311,90 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 
 }
 
-//public static SelectionResult select(Project proj, double absStatMin, STAT_TYPE sType, SELECTION_TYPE selType) {
+// public static SelectionResult select(Project proj, double absStatMin, STAT_TYPE sType, SELECTION_TYPE selType) {
 //
-//	PCSelector selector = new PCSelector(proj, sType);
-//	ArrayList<Integer> sigPCs = new ArrayList<Integer>();
-//	SelectionResult rankResult = null;
-//	if (selector.isValid()) {
-//		double filterValue = Double.NaN;
+// PCSelector selector = new PCSelector(proj, sType);
+// ArrayList<Integer> sigPCs = new ArrayList<Integer>();
+// SelectionResult rankResult = null;
+// if (selector.isValid()) {
+// double filterValue = Double.NaN;
 //
-//		String output = ext.addToRoot(proj.INTENSITY_PC_FILENAME.getValue(), ".significantPCs");
-//		try {
-//			ArrayList<StatsCrossTabRank> ranks = new ArrayList<StatsCrossTabRank>();
-//			Hashtable<String, Integer> has = new Hashtable<String, Integer>();
-//			PrintWriter writer = new PrintWriter(new FileWriter(output));
+// String output = ext.addToRoot(proj.INTENSITY_PC_FILENAME.getValue(), ".significantPCs");
+// try {
+// ArrayList<StatsCrossTabRank> ranks = new ArrayList<StatsCrossTabRank>();
+// Hashtable<String, Integer> has = new Hashtable<String, Integer>();
+// PrintWriter writer = new PrintWriter(new FileWriter(output));
 //
-//			writer.println("TYPE\tQC_METRIC\t" + Array.toStr(selector.getpResiduals().getPcTitles()));
-//			while (selector.hasNext()) {
-//				StatsCrossTabRank sRank = selector.next();
-//				ranks.add(sRank);
-//				writer.println("SIG\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getSigs()));
-//				writer.println("STAT\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getStats()));
-//				double bonf = (double) absStatMin / LrrSd.NUMERIC_COLUMNS.length * selector.getpResiduals().getPcTitles().length;
+// writer.println("TYPE\tQC_METRIC\t" + Array.toStr(selector.getpResiduals().getPcTitles()));
+// while (selector.hasNext()) {
+// StatsCrossTabRank sRank = selector.next();
+// ranks.add(sRank);
+// writer.println("SIG\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getSigs()));
+// writer.println("STAT\t" + sRank.getRankedTo() + "\t" + Array.toStr(sRank.getStats()));
+// double bonf = (double) absStatMin / LrrSd.NUMERIC_COLUMNS.length * selector.getpResiduals().getPcTitles().length;
 //
-//				for (int j = 0; j < sRank.getStats().length; j++) {
-//					boolean add = false;
-//					if (!has.containsKey((j + 1) + "")) {
-//						switch (selType) {
-//						case EFFECTIVE_M_CORRECTED:
+// for (int j = 0; j < sRank.getStats().length; j++) {
+// boolean add = false;
+// if (!has.containsKey((j + 1) + "")) {
+// switch (selType) {
+// case EFFECTIVE_M_CORRECTED:
 //
-//							break;
-//						case P_VAL:
-//							break;
-//						case STAT:
-//							if (Math.abs(sRank.getStats()[j]) > absStatMin) {
-//								add = true;
+// break;
+// case P_VAL:
+// break;
+// case STAT:
+// if (Math.abs(sRank.getStats()[j]) > absStatMin) {
+// add = true;
 //
-//							}
-//							break;
-//						default:
-//							proj.getLog().reportTimeError("Invalid selection type " + selType);
-//							break;
-//						}
-//					}
-//					if (add) {
-//						sigPCs.add(j + 1);
-//						has.put((j + 1) + "", (j + 1));
-//					}
-//				}
-//			}
-//			writer.close();
-//			proj.getLog().reportTimeInfo("Found " + sigPCs.size() + " pcs passing threshold of " + absStatMin);
-//			String[] minMax = new String[] { "Min_" + sType, "Max_" + sType };
-//			String outputT = ext.addToRoot(output, ".transposedStat");
-//			writer = new PrintWriter(new FileWriter(outputT));
-//			writer.print("PCTitle\tPC\t" + Array.toStr(minMax));
-//			for (int i = 0; i < ranks.size(); i++) {
-//				writer.print("\t" + ranks.get(i).getRankedTo());
-//			}
-//			writer.println();
-//			String[] titles = selector.getpResiduals().getPcTitles();
-//			for (int i = 0; i < titles.length; i++) {
-//				writer.print(titles[i] + "\t" + (i + 1) + "\t" + (-1 * absStatMin) + "\t" + absStatMin);
-//				for (int j = 0; j < ranks.size(); j++) {
-//					writer.print("\t" + ranks.get(j).getStats()[i]);
-//				}
-//				writer.println();
-//			}
+// }
+// break;
+// default:
+// proj.getLog().reportTimeError("Invalid selection type " + selType);
+// break;
+// }
+// }
+// if (add) {
+// sigPCs.add(j + 1);
+// has.put((j + 1) + "", (j + 1));
+// }
+// }
+// }
+// writer.close();
+// proj.getLog().reportTimeInfo("Found " + sigPCs.size() + " pcs passing threshold of " + absStatMin);
+// String[] minMax = new String[] { "Min_" + sType, "Max_" + sType };
+// String outputT = ext.addToRoot(output, ".transposedStat");
+// writer = new PrintWriter(new FileWriter(outputT));
+// writer.print("PCTitle\tPC\t" + Array.toStr(minMax));
+// for (int i = 0; i < ranks.size(); i++) {
+// writer.print("\t" + ranks.get(i).getRankedTo());
+// }
+// writer.println();
+// String[] titles = selector.getpResiduals().getPcTitles();
+// for (int i = 0; i < titles.length; i++) {
+// writer.print(titles[i] + "\t" + (i + 1) + "\t" + (-1 * absStatMin) + "\t" + absStatMin);
+// for (int j = 0; j < ranks.size(); j++) {
+// writer.print("\t" + ranks.get(j).getStats()[i]);
+// }
+// writer.println();
+// }
 //
-//			writer.close();
-//			String title = "QC_Association: n=" + sigPCs.size() + " PCs at abs(r) > " + absStatMin;
-//			RScatter rScatter = new RScatter(outputT, outputT + ".rscript", ext.rootOf(outputT), outputT + ".pdf", "PC", Array.concatAll(minMax, LrrSd.NUMERIC_COLUMNS), SCATTER_TYPE.POINT, proj.getLog());
-//			rScatter.setyLabel(sType.toString());
-//			rScatter.setOverWriteExisting(true);
-//			rScatter.setxLabel("PC");
-//			rScatter.setTitle(title);
-//			rScatter.execute();
-//			//rankResult = new SelectionResult(Array.toIntArray(sigPCs), rScatter);
-//		} catch (Exception e) {
-//			proj.getLog().reportError("Error writing to " + output);
-//			proj.getLog().reportException(e);
-//		}
+// writer.close();
+// String title = "QC_Association: n=" + sigPCs.size() + " PCs at abs(r) > " + absStatMin;
+// RScatter rScatter = new RScatter(outputT, outputT + ".rscript", ext.rootOf(outputT), outputT + ".pdf", "PC", Array.concatAll(minMax, LrrSd.NUMERIC_COLUMNS), SCATTER_TYPE.POINT, proj.getLog());
+// rScatter.setyLabel(sType.toString());
+// rScatter.setOverWriteExisting(true);
+// rScatter.setxLabel("PC");
+// rScatter.setTitle(title);
+// rScatter.execute();
+// //rankResult = new SelectionResult(Array.toIntArray(sigPCs), rScatter);
+// } catch (Exception e) {
+// proj.getLog().reportError("Error writing to " + output);
+// proj.getLog().reportException(e);
+// }
 //
-//	} else {
-//		proj.getLog().reportTimeError("Could not select QC associated PCs...");
-//	}
-//	return rankResult;
+// } else {
+// proj.getLog().reportTimeError("Could not select QC associated PCs...");
+// }
+// return rankResult;
 //
-//}
+// }
