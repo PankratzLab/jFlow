@@ -16,6 +16,8 @@ public class Stepwise {
 	private boolean logistic;
 	private String[] varNames;
 	private int maxNameSize;
+	private ArrayList<Double> pvalSteps;//the pvalue at each step of the iteration;
+	private ArrayList<Double> rSquareSteps;
 	private Vector<IntVector> increments;
 	private RegressionModel finalModel;
 
@@ -108,6 +110,9 @@ public class Stepwise {
 		int bestModel;
 		boolean done;
 		double lowestP, highestRsq;
+	
+		this.pvalSteps = new ArrayList<Double>();
+		this.rSquareSteps = new ArrayList<Double>();
 
 		if (Xs.size()!=Ys.size()) {
 			System.err.println("Error using Vectors for stepwise regression; "+Ys.size()+" dependent elements and "+Xs.size()+" independent elements");
@@ -167,6 +172,8 @@ public class Stepwise {
 				out.add(in.popLast());
 			}
 			if (lowestP<ENTRY_PROB) {
+				pvalSteps.add(lowestP);
+				rSquareSteps.add(highestRsq);
 				in.add(out.popAt(bestModel));
 				increments.add(in.clone());
 				for (int i = in.size(); i>=1; i--) {
@@ -191,6 +198,14 @@ public class Stepwise {
 				finalModel = new LeastSquares(Ys, travXs(in));
 			}
 		}
+	}
+
+	public ArrayList<Double> getPvalSteps() {
+		return pvalSteps;
+	}
+
+	public ArrayList<Double> getrSquareSteps() {
+		return rSquareSteps;
 	}
 
 	public Vector<double[]> travXs(IntVector ins) {
