@@ -77,13 +77,13 @@ public class BlastAnnotationTesting {
 
 		// Writing:
 		BlastAnnotationWriter blastAnnotation = new BlastAnnotationWriter(proj, annoFile, blastResultFiles, minAlignmentLength, maxGaps, maxMismatches, 15);
-		blastAnnotation.summarizeResultFiles();
+		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
 
 		Annotation annotation = new Annotation(VCFHeaderLineType.String, null, 1, "test analysis ", "a test analysis addition", "DSDF") {
 		};
 		blastAnnotation = new BlastAnnotationWriter(proj, annoFile, blastResultFiles, minAlignmentLength, maxGaps, maxMismatches, 15);
-		blastAnnotation.summarizeResultFiles();
+		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
 		// (Project proj, Annotation[] annotations, String annotationFilename, boolean overWriteExisting
 		AnnotationFileWriter test = new AnnotationFileWriter(proj, new AnnotationData[] { new AnnotationData(VCFHeaderLineType.String, null, 1, "TestAdd", "TestAddidtion", "DSF", ".") }, annoFile, false) {

@@ -49,7 +49,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 		this.markerFastaEntries = markerFastaEntries;
 	}
 
-	public void summarizeResultFiles() {
+	public void summarizeResultFiles(boolean skipDefaultValue) {
 		proj.getLog().reportTimeInfo(" Free memory " + proj.getLog().memoryPercentFree());
 		proj.getLog().reportTimeInfo("Max number of alignments reported set to " + maxAlignmentsReported);
 		LocusAnnotation[] annotations = summarizeResultFile(proj, blastResultFiles, markerFastaEntries, minAlignmentLength, maxGaps, maxMismatches, maxAlignmentsReported);
@@ -60,7 +60,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 			}
 
-			write(annotations[i], false);
+			write(annotations[i], skipDefaultValue);
 		}
 	}
 

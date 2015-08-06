@@ -16,6 +16,7 @@ import common.ext;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.var.CNVariant;
+import cnv.var.SampleData;
 import cnv.var.CNVariant.CONSENSUS_TYPE;
 import cnv.var.CNVariant.MatchResults;
 import cnv.var.CNVariant.OVERLAP_TYPE;
@@ -33,26 +34,31 @@ public class ExomeDepthEvaluation {
 	private String exomeDepthCNVFile;
 	private String pennCNVFile;
 	private int probeCoverage;
+	private boolean removeExcludeArray;
 
-	public ExomeDepthEvaluation(Project proj, Logger log, String exomeDepthCNVFile, String pennCNVFile, int probeCoverage) {
+	public ExomeDepthEvaluation(Project proj, Logger log, String exomeDepthCNVFile, String pennCNVFile, int probeCoverage, boolean removeExcludeArray) {
 		super();
 		this.proj = proj;
 		this.log = log;
 		this.exomeDepthCNVFile = exomeDepthCNVFile;
 		this.pennCNVFile = pennCNVFile;
 		this.probeCoverage = probeCoverage;
+		this.removeExcludeArray = removeExcludeArray;
 	}
 
 	public void compare() {
 		MatchResults matchResults = null;
 		MarkerSet markerSet = proj.getMarkerSet();
 		int[][] indicesByChr = markerSet.getIndicesByChr();
+		SampleData sampleData = proj.getSampleData(0, false);
 		for (int i = 0; i < CNVariant.CONSENSUS_TYPE.values().length; i++) {
 			CONSENSUS_TYPE cType = CNVariant.CONSENSUS_TYPE.values()[i];
 			for (int j = 0; j < CNVariant.OVERLAP_TYPE.values().length; j++) {
 				OVERLAP_TYPE otype = CNVariant.OVERLAP_TYPE.values()[j];
 				String serFile = ext.parseDirectoryOfFile(exomeDepthCNVFile) + ext.rootOf(exomeDepthCNVFile) + "_v_" + ext.rootOf(pennCNVFile) + cType + "_" + otype + ".ser";
-
+				if (removeExcludeArray) {
+					serFile = ext.addToRoot(serFile, "._EX_");
+				}
 				if (!Files.exists(serFile)) {
 					matchResults = CNVariant.findSignificantConsensus(exomeDepthCNVFile, pennCNVFile, ext.rootOf(serFile, false) + ".consensus.cnv", cType, otype);
 					matchResults.writeSerial(serFile);
@@ -64,10 +70,14 @@ public class ExomeDepthEvaluation {
 				log.reportTimeInfo(matchResults.getUnmatched1().size() + " cnvs not matching");
 
 				for (CNVariant matchingExomeD : matchResults.getMatched1()) {
-					comparisons[0].addCNV(matchingExomeD, markerSet, indicesByChr, 0);
+					if (!removeExcludeArray || !sampleData.individualShouldBeExcluded(matchingExomeD.getFamilyID())) {
+						comparisons[0].addCNV(matchingExomeD, markerSet, indicesByChr, -1);
+					}
 				}
 				for (CNVariant notMatchingExomeD : matchResults.getUnmatched1()) {
-					comparisons[1].addCNV(notMatchingExomeD, markerSet, indicesByChr, probeCoverage);
+					if (!removeExcludeArray || !sampleData.individualShouldBeExcluded(notMatchingExomeD.getFamilyID())) {
+						comparisons[1].addCNV(notMatchingExomeD, markerSet, indicesByChr, probeCoverage);
+					}
 				}
 
 				DynamicHistogram[] exomeDHits = comparisons[0].getAll();
@@ -76,6 +86,15 @@ public class ExomeDepthEvaluation {
 				if (cType == CONSENSUS_TYPE.CN_AWARE && otype == OVERLAP_TYPE.OVERLAP_LOC_AND_INDIVIDUAL) {
 					String cnvHitsFile = ext.parseDirectoryOfFile(serFile) + cType + "_" + otype + "probeCoverage_" + probeCoverage + "_hits.cnv";
 					String cnvMissFile = ext.parseDirectoryOfFile(serFile) + cType + "_" + otype + "_probeCoverage_" + probeCoverage + "_miss.cnv";
+
+					if (removeExcludeArray) {
+						cnvHitsFile = ext.addToRoot(cnvHitsFile, "._EX_");
+						cnvMissFile = ext.addToRoot(cnvMissFile, "._EX_");
+					}
+
+					cnvHitsFile = ext.parseDirectoryOfFile(serFile) + "ExomeDepth_Hits.cnv";
+					cnvMissFile = ext.parseDirectoryOfFile(serFile) + "ExomeDepth_Miss.cnv";
+
 					LocusSet<CNVariant> hitSet = new LocusSet<CNVariant>(comparisons[0].getCnvsToStore(Sort.DESCENDING), false, log) {
 
 						/**
@@ -167,7 +186,6 @@ public class ExomeDepthEvaluation {
 				lengthHistogram.addDataPointToHistogram(Math.log(cnVariant.getSize()));
 				probeCoverageHistogram.addDataPointToHistogram(numprobes);
 				cnvsToStore.add(cnVariant);
-
 			}
 		}
 
@@ -182,8 +200,8 @@ public class ExomeDepthEvaluation {
 
 	}
 
-	public static void compareIt(Project proj, String exomeDepthCNVFile, String pennCNVFile, int probeCoverage) {
-		ExomeDepthEvaluation exomeDepthOsteo = new ExomeDepthEvaluation(proj, proj.getLog(), exomeDepthCNVFile, pennCNVFile, probeCoverage);
+	public static void compareIt(Project proj, String exomeDepthCNVFile, String pennCNVFile, int probeCoverage, boolean removeExcludeArray) {
+		ExomeDepthEvaluation exomeDepthOsteo = new ExomeDepthEvaluation(proj, proj.getLog(), exomeDepthCNVFile, pennCNVFile, probeCoverage, removeExcludeArray);
 		exomeDepthOsteo.compare();
 	}
 
@@ -193,6 +211,7 @@ public class ExomeDepthEvaluation {
 		String exomeDepthCNVFile = null;
 		String pennCNVFile = null;
 		int probeCoverage = -1;
+		boolean removeExcludeArray = false;
 		String usage = "\n" + "one.JL.ExomeDepthOsteo requires 0-1 arguments\n";
 		usage += "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
 
@@ -212,6 +231,9 @@ public class ExomeDepthEvaluation {
 			} else if (args[i].startsWith("probeCoverage=")) {
 				probeCoverage = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("-remove")) {
+				removeExcludeArray = true;
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -222,7 +244,7 @@ public class ExomeDepthEvaluation {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			compareIt(proj, exomeDepthCNVFile, pennCNVFile, probeCoverage);
+			compareIt(proj, exomeDepthCNVFile, pennCNVFile, probeCoverage, removeExcludeArray);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

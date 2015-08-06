@@ -100,7 +100,7 @@ public class MarkerBlast {
 				proj.getLog().reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
 			}
 			blastAnnotationWriter.setMarkerFastaEntries(getMarkerFastaEntries(proj, fileSeq, type));
-			blastAnnotationWriter.summarizeResultFiles();
+			blastAnnotationWriter.summarizeResultFiles(false);
 			blastAnnotationWriter.close();
 			if (annotateGCContent) {
 				annotateGCContent(proj, fileSeq, type);
@@ -228,7 +228,7 @@ public class MarkerBlast {
 						Strand strand = null;
 						if (ilmnStrand.equals("TOP")||ilmnStrand.equals("PLUS")) {//PLUS seems to be for cnvi probes
 							strand = Strand.POSITIVE;
-						} else if (ilmnStrand.equals("BOT")) {
+						} else if (ilmnStrand.equals("BOT")||ilmnStrand.equals("MINUS")) {//MINUS seems to be for cnvi probes
 							strand = Strand.NEGATIVE;
 						} else {
 							proj.getLog().reportTimeError("Invalid IlmnStrand " + ilmnStrand);
