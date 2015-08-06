@@ -3,6 +3,7 @@ package seq.analysis;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
+import htsjdk.tribble.annotation.Strand;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -265,6 +266,7 @@ public class Blast {
 		private double bitScore;
 		private String taxID;
 		private String btop;
+		private Logger log;
 
 		public BlastResults(String[] blastLine, Logger log) {
 			this(blastLine, false, log);
@@ -291,11 +293,23 @@ public class Blast {
 				this.taxID = "NA";
 				this.btop = "NA";
 			}
+			this.log = log;
 		}
 
 		public Segment getSegment() {
 			return new Segment(Positions.chromosomeNumber(subjectID, false, new Logger()), Math.min(sstart, sstop), Math.max(sstart, sstop));
 
+		}
+
+		public Strand determineStrand() {
+			if (sstart > sstop) {
+				return Strand.NEGATIVE;
+			} else if (sstop >= sstart) {
+				return Strand.POSITIVE;
+			} else {
+				log.reportTimeWarning("Could not determine strand for " + getResults());
+				return Strand.NONE;
+			}
 		}
 
 		public int getMismatches() {

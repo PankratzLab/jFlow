@@ -108,7 +108,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 							for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
 								if (BlastAnnotationTypes.shouldBeAnnotatedAs(proj, blastResults, BLAST_ANNOTATION_TYPES.values()[i], markerSeg, proj.getLog())) {
-									BlastAnnotation blastAnnotation = new BlastAnnotation(Blast.convertBtopToCigar(blastResults, seqLength, proj.getLog()), blastResults.getSegment());
+									BlastAnnotation blastAnnotation = new BlastAnnotation(Blast.convertBtopToCigar(blastResults, seqLength, proj.getLog()), blastResults.getSegment(),blastResults.determineStrand());
 									intLists[markerIndex][i].add(blastAnnotation);
 								}
 							}

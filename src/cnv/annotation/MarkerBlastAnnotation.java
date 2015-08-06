@@ -2,6 +2,7 @@ package cnv.annotation;
 
 import filesys.Segment;
 import htsjdk.samtools.TextCigarCodec;
+import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.VariantContext;
 
 import java.util.ArrayList;
@@ -85,8 +86,8 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 			if (!info.equals(BLAST_ANNOTATION_TYPES.values()[i].getDefaultValue())) {
 				List<String> groups = Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "").split("\\s*,\\s*"));
 				for (String group : groups) {
-					String[] segCigar = group.split("/");
-					annotationLists[i].add(new BlastAnnotation(TextCigarCodec.getSingleton().decode(segCigar[0]), new Segment(segCigar[1])));
+					String[] segCigarStrand = group.split("/");
+					annotationLists[i].add(new BlastAnnotation(TextCigarCodec.getSingleton().decode(segCigarStrand[0]), new Segment(segCigarStrand[1]), Strand.toStrand(segCigarStrand[2])));
 				}
 			}
 		}
