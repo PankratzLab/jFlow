@@ -36,7 +36,7 @@ class EvaluationResult implements Serializable {
 	private ArrayList<String> correlTitles;
 
 	private ArrayList<Integer> numIndsIcc;
-	private ArrayList<Integer> numIndsSpearmanCorrel;
+	private ArrayList<Integer> numIndsCorrel;
 	private ArrayList<Integer> numIndsPearsonCorrel;
 
 	public EvaluationResult(String title, double[] estimateData, double rSquared) {
@@ -51,7 +51,7 @@ class EvaluationResult implements Serializable {
 		this.correlTitles = new ArrayList<String>();
 		this.numIndsIcc = new ArrayList<Integer>();
 		this.numIndsPearsonCorrel = new ArrayList<Integer>();
-		this.numIndsSpearmanCorrel = new ArrayList<Integer>();
+		this.numIndsCorrel = new ArrayList<Integer>();
 	}
 
 	public void setOrType(ORDER_TYPE orType) {
@@ -141,6 +141,14 @@ class EvaluationResult implements Serializable {
 
 	public ArrayList<String> getCorrelTitles() {
 		return correlTitles;
+	}
+
+	public ArrayList<Integer> getNumIndsIcc() {
+		return numIndsIcc;
+	}
+
+	public ArrayList<Integer> getNumIndsCorrel() {
+		return numIndsCorrel;
 	}
 
 	public static void serialize(EvaluationResult[] results, String fileName) {

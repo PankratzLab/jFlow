@@ -89,7 +89,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 	public StatsCrossTabRank next() {
 		String currentQC = LrrSd.NUMERIC_COLUMNS[index];
 		proj.getLog().reportTimeInfo("Analyzing QC metric " + currentQC);
-		StatsCrossTabRank sRank = pResiduals.getStatRankFor(sampleQC.getDataFor(LrrSd.NUMERIC_COLUMNS[index]), null, null, currentQC, sType, VALUE_TYPE.STAT, false, proj.getLog());
+		StatsCrossTabRank sRank = pResiduals.getStatRankFor(sampleQC.getDataFor(LrrSd.NUMERIC_COLUMNS[index]), null, null, currentQC, sType, VALUE_TYPE.STAT, false,1, proj.getLog());
 		index++;
 		return sRank;
 	}
