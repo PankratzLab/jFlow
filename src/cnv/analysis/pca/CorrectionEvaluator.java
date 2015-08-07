@@ -161,22 +161,24 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 					ICC icc = new ICC(data, response, EVAL_MASKS[0], null, false, log);
 					icc.computeICC();
 					evaluationResult.getIccs().add(icc);
+					evaluationResult.getNumIndsIcc().add(Array.booleanArraySum(finalEval));
 					evaluationResult.getIccTitles().add(matchString[k] + "_" + stratTitles[j]);
 					log.reportTimeInfo("ICC: " + matchString[k] + "_" + stratTitles[j]+ " -> " + icc.getICC() + " NumComps = " + tmpResiduals.getNumComponents());
-					
 				}
 				for (int k = 0; k < matchDouble.length; k++) {
 					StatPrep result = prepData(estimate, parser.getNumericDataForTitle(matchDouble[k]), finalEval, matchDouble[k], true, log);
 					ICC icc = new ICC(result.getFinalData(), result.getFinalResponse(), null, null, false, log);
 					icc.computeICC();
 					evaluationResult.getIccs().add(icc);
-					evaluationResult.getIccTitles().add(matchString[k] + "_" + stratTitles[j]);
+					evaluationResult.getNumIndsIcc().add(Array.booleanArraySum(finalEval));
+					evaluationResult.getIccTitles().add(matchDouble[k] + "_" + stratTitles[j]);
 					double[][] correlData = new double[][] { result.getInternalEstimate(), result.getExternalEstimate() };
 					double[] pearson = Correlation.Pearson(correlData);
 					double[] spearman = Correlation.Spearman(correlData);
 					evaluationResult.getPearsonCorrels().add(pearson);
+					evaluationResult.getNumIndsCorrel().add(result.getInternalEstimate().length);
 					evaluationResult.getSpearmanCorrel().add(spearman);
-					evaluationResult.getCorrelTitles().add(matchString[k] + "_" + stratTitles[j]);
+					evaluationResult.getCorrelTitles().add(matchDouble[k] + "_" + stratTitles[j]);
 					log.reportTimeInfo("Spearman: " + matchDouble[k] + "_" + stratTitles[j] + " -> " + Array.toStr(spearman));
 				}
 			}

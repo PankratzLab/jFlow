@@ -26,6 +26,7 @@ import stats.StatsCrossTabs.STAT_TYPE;
 import stats.StatsCrossTabs.StatsCrossTabRank;
 import stats.StatsCrossTabs.VALUE_TYPE;
 import stats.Stepwise;
+import stats.Stepwise.StepWiseSummary;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
@@ -1105,12 +1106,12 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	public StatsCrossTabRank[] getStatRanksFor(double[][] data, double[][] extraIndeps, boolean[] samplesForRanking, String[] titles, STAT_TYPE statType, VALUE_TYPE rankType, boolean stepwise, Logger log) {
 		StatsCrossTabRank[] sRanks = new StatsCrossTabRank[data.length];
 		for (int i = 0; i < sRanks.length; i++) {
-			sRanks[i] = getStatRankFor(data[i], extraIndeps, samplesForRanking, titles[i], statType, rankType, stepwise, log);
+			sRanks[i] = getStatRankFor(data[i], extraIndeps, samplesForRanking, titles[i], statType, rankType, stepwise,1, log);
 		}
 		return sRanks;
 	}
 
-	public StatsCrossTabRank getStatRankFor(final double[] data, final double[][] extraIndeps, final boolean[] samplesForRanking, final String title, final STAT_TYPE statType, final VALUE_TYPE rankType, boolean stepwise, Logger log) {
+	public StatsCrossTabRank getStatRankFor(final double[] data, final double[][] extraIndeps, final boolean[] samplesForRanking, final String title, final STAT_TYPE statType, final VALUE_TYPE rankType, boolean stepwise, int numThreads,Logger log) {
 		String[] allTitles = Array.concatAll(new String[] { title }, pcTitles);
 		double[][] tmp = extraIndeps;
 		if (verifyDataSampleSize(data, log)) {
@@ -1125,15 +1126,15 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 				tmp = Array.subArray(extraIndeps, samplesForRanking);
 			}
 			if (stepwise) {
-				Stepwise stepwiseIt = new Stepwise(samplesForRanking == null ? data : Array.subArray(data, samplesForRanking), samplesForRanking == null ? basis : Array.subArray(basis, samplesForRanking));
-				stepwiseIt.setVarNames(getPcTitles());
-				stepwiseIt.run();
-				String[] varNames = stepwiseIt.getFinalNames().split("\t");	
-				int[] order = new int[varNames.length];
-				for (int i = 0; i < order.length; i++) {
-					order[i] =Integer.parseInt(varNames[i].replaceAll("PC", ""));
+				double[][] basisToStep = new double[basis.length ][];
+				for (int i = 0; i < basis.length; i++) {
+					basisToStep[i] = samplesForRanking == null ? basis[i] : Array.subArray(basis[i], samplesForRanking);
 				}
-				StatsCrossTabRank statsCrossTabRank = new StatsCrossTabRank(title, order, Array.toDoubleArray(stepwiseIt.getPvalSteps()), Array.toDoubleArray(stepwiseIt.getrSquareSteps()), varNames);
+				Stepwise stepwiseIt = new Stepwise(samplesForRanking == null ? data : Array.subArray(data, samplesForRanking), samplesForRanking == null ? basis : Array.subArray(getPreppedPCs(), samplesForRanking), NUM_PC_SVD_OVERIDE, numThreads);
+				stepwiseIt.setVarNames(getPcTitles());
+				StepWiseSummary stepWiseSummary  = stepwiseIt.getStepWiseSummary(NUM_PC_SVD_OVERIDE, numThreads);
+				
+				StatsCrossTabRank statsCrossTabRank = new StatsCrossTabRank(title, stepWiseSummary.getOrderOfOriginal(), stepWiseSummary.getSigs(), stepWiseSummary.getStats(),Array.subArray(getPcTitles(), stepWiseSummary.getOrderOfOriginal()));
 				return statsCrossTabRank;
 				
 			} else {

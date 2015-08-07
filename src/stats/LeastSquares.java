@@ -18,10 +18,20 @@ public class LeastSquares extends RegressionModel {
 	public LeastSquares(Vector vDeps, Vector vIndeps) { // deps = Vector of int/double as String, indeps = Vector of double[]
 		this(vDeps, vIndeps, false, true);
 	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public LeastSquares(Vector vDeps, Vector vIndeps, boolean svdRegression) { // deps = Vector of int/double as String, indeps = Vector of double[]
+		this(vDeps, vIndeps, false, false, svdRegression);
+	}
 	
 	@SuppressWarnings({ "rawtypes" })
 	public LeastSquares(Vector<String> vDeps, Vector vIndeps, boolean bypassDataCheck, boolean verbose) {
 		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose);
+	}
+	
+	@SuppressWarnings({ "rawtypes" })
+	public LeastSquares(Vector<String> vDeps, Vector vIndeps, boolean bypassDataCheck, boolean verbose,boolean svdRegression) {
+		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose, svdRegression);
 	}
 	
 	public LeastSquares(double[] new_deps, double[][] new_indeps) {
@@ -38,6 +48,10 @@ public class LeastSquares extends RegressionModel {
 
 	public LeastSquares(double[] new_deps, double[][] new_indeps, boolean bypassDataCheck, boolean verbose) {
 		this(new_deps, new_indeps, null, bypassDataCheck, verbose);
+	}
+	
+	public LeastSquares(double[] new_deps, double[][] new_indeps, boolean bypassDataCheck, boolean verbose, boolean svdRegression) {
+		this(new_deps, new_indeps, null, bypassDataCheck, verbose, svdRegression);
 	}
 	
 	public LeastSquares(double[] new_deps, double[][] new_indeps, String[] indepVariableNames, boolean bypassDataCheck, boolean verbose) {

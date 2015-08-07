@@ -97,6 +97,11 @@ class CorrectionIterator implements Serializable {
 
 	public enum ORDER_TYPE {
 		/**
+		 * PCS are ranked by the amount of variance explained within a stepwise regression
+		 */
+		STEPWISE_RANK_R2,
+
+		/**
 		 * PCs are regressed by their natural ordering (PC1,2,3)
 		 */
 		NATURAL, /**
@@ -105,18 +110,13 @@ class CorrectionIterator implements Serializable {
 		RANK_R2,
 
 		/**
-		 * PCS are ranked by the amount of variance explained within a stepwise regression
-		 */
-		STEPWISE_RANK_R2,
-
-		/**
 		 * PCS are ranked by spearman abs r
 		 */
 		// RANK_R,
 		/**
 		 * PCs are filtered for an association with known QC metrics from {@link LrrSd}
 		 */
-		QC_ASSOCIATION;
+		//QC_ASSOCIATION;
 
 	}
 
@@ -154,7 +154,8 @@ class CorrectionIterator implements Serializable {
 			pcResiduals.computeAssessmentDataMedians();
 			boolean[] samplesForModels = null;
 			boolean valid = true;
-			if (!Files.exists(iterationResult.getBasePrep()) || oType == ORDER_TYPE.QC_ASSOCIATION) {
+			if (!Files.exists(iterationResult.getBasePrep())) {
+				 //|| oType == ORDER_TYPE.QC_ASSOCIATION
 				switch (bType) {
 				case WITHOUT_BUILDERS:
 					samplesForModels = proj.getSamplesToInclude(null, true, true);
@@ -215,9 +216,8 @@ class CorrectionIterator implements Serializable {
 				}
 				iterationResult.setValid(valid);
 				if (valid) {
-					sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, oType == ORDER_TYPE.STEPWISE_RANK_R2, proj.getLog());
-					sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL, log);
-
+					sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, oType == ORDER_TYPE.STEPWISE_RANK_R2, numthreads, proj.getLog());
+					sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL&&oType !=ORDER_TYPE.STEPWISE_RANK_R2, log);
 					switch (oType) {
 					case NATURAL:
 						order = null;
@@ -233,22 +233,23 @@ class CorrectionIterator implements Serializable {
 						for (int i = 0; i < sTabRank.getOrder().length; i++) {
 							order[i] = sTabRank.getOrder()[i] + 1;// one based for pcs
 						}
+						// log.reportTimeInfo("PC steArray.toStr(order));
 						break;
-					case QC_ASSOCIATION:
-
-						SelectionResult result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
-						order = result.getOrder();
-						if (result == null || order.length < 1) {
-							log.reportTimeError("Could not select PCs from QC metrics, trying again");
-							Files.copyFile(proj.SAMPLE_QC_FILENAME.getValue(), proj.SAMPLE_QC_FILENAME.getValue() + ext.getTimestampForFilename());
-							new File(proj.SAMPLE_QC_FILENAME.getValue()).delete();
-							LrrSd.init(proj, null, null, numthreads);
-							result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
-							order = result.getOrder();
-							if (order.length < 1) {
-								return null;
-							}
-						}
+//					case QC_ASSOCIATION:
+//
+//						SelectionResult result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
+//						order = result.getOrder();
+//						if (result == null || order.length < 1) {
+//							log.reportTimeError("Could not select PCs from QC metrics, trying again");
+//							Files.copyFile(proj.SAMPLE_QC_FILENAME.getValue(), proj.SAMPLE_QC_FILENAME.getValue() + ext.getTimestampForFilename());
+//							new File(proj.SAMPLE_QC_FILENAME.getValue()).delete();
+//							LrrSd.init(proj, null, null, numthreads);
+//							result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
+//							order = result.getOrder();
+//							if (order.length < 1) {
+//								return null;
+//							}
+//						}
 					default:
 						break;
 					}
@@ -404,8 +405,8 @@ class CorrectionIterator implements Serializable {
 			return rScatter;
 		}
 
-		public RScatter plotSummary(String[] dataColumns, Logger log) {
-			RScatter rScatter = new RScatter(outputSummary, evalRscript, ext.rootOf(outputSummary), evalPlot, "Evaluated", dataColumns, SCATTER_TYPE.POINT, log);
+		public RScatter plotSummary(String[] dataColumns,int index, Logger log) {
+			RScatter rScatter = new RScatter(outputSummary, evalRscript, ext.rootOf(outputSummary)+"_"+index, evalPlot, "Evaluated", dataColumns, SCATTER_TYPE.POINT, log);
 			rScatter.setyRange(new double[] { -1, 1 });
 			rScatter.setxLabel("PC (" + oType + " - sorted)");
 			rScatter.setTitle(iType + " " + bType);
@@ -597,6 +598,9 @@ class CorrectionIterator implements Serializable {
 			proj.getLog().reportTimeWarning("Did not see " + proj.MARKER_DATA_DIRECTORY.getValue() + "markers.0.mdRAF, attempting to transpose now");
 			TransposeData.transposeData(proj, 2000000000, false);
 		}
+//		if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+//			LrrSd.init(proj, null, null, null, null, numthreads);
+//		}
 		CorrectionIterator[] cIterators = getIterations(proj, markesToEvaluate, samplesToBuildModels, outputDir, svd, numthreads);
 		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 
@@ -612,8 +616,16 @@ class CorrectionIterator implements Serializable {
 			// }
 
 		}
-		String[] plotTitlesForSummary = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number", "SPEARMAN_CORREL_EVAL_DATA_Ratio.ND1", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs" };
+		String[] plotTitlesForMain = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number", "SPEARMAN_CORREL_EVAL_DATA_Ratio.ND1", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs" };
+		String[] plotTitlesForMito = new String[] { "Rsquare_correction", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_NO_STRAT", "ICC_EVAL_CLASS_FC_NO_STRAT","SPEARMAN_CORREL_AGE_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_SEX_NO_STRAT" };
+		String[] plotTitlesForMitoFC = new String[] { "Rsquare_correction","ICC_EVAL_CLASS_FC_NO_STRAT" ,
+				"SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_NO_STRAT",
+				"SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_PT",
+				"SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_BU",
+				"SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_NY",
+				"SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_DK" };
 
+		String[][] plotTitlesForSummary = new String[][] { plotTitlesForMain,plotTitlesForMito,plotTitlesForMitoFC };
 		String[] subsetDataHeritability = new String[] { "EVAL_DATA_Mt_DNA_relative_copy_number" };
 		IterSummaryProducer producer = new IterSummaryProducer(proj, cIterators, plotTitlesForSummary, pedFile);
 		if (pedFile != null) {
@@ -637,12 +649,12 @@ class CorrectionIterator implements Serializable {
 	public static class IterSummaryProducer implements Producer<RScatter[]> {
 		private Project proj;
 		private CorrectionIterator[] cIterators;
-		private String[] plotTitlesForSummary;
+		private String[][] plotTitlesForSummary;
 		private String[] subsetDataHeritability;
 		private String pedFile;
 		private int index;
 
-		public IterSummaryProducer(Project proj, CorrectionIterator[] cIterators, String[] plotTitlesForSummary, String pedFile) {
+		public IterSummaryProducer(Project proj, CorrectionIterator[] cIterators, String[][] plotTitlesForSummary, String pedFile) {
 			super();
 			this.proj = proj;
 			this.cIterators = cIterators;
@@ -671,8 +683,10 @@ class CorrectionIterator implements Serializable {
 					IterationResult iterationResult = tmp.getIterationResult();
 					ArrayList<RScatter> scatters = new ArrayList<RScatter>();
 					// Add multiplots here
-					RScatter rScatterSummary = iterationResult.plotSummary(plotTitlesForSummary, proj.getLog());
-					scatters.add(rScatterSummary);
+					for (int i = 0; i < plotTitlesForSummary.length; i++) {
+						RScatter rScatterSummary = iterationResult.plotSummary(plotTitlesForSummary[i], i,proj.getLog());
+						scatters.add(rScatterSummary);
+					}
 					if (pedFile != null) {
 
 						if (subsetDataHeritability == null) {

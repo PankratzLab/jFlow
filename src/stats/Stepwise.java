@@ -2,8 +2,12 @@ package stats;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import common.IntVector;
+import common.Logger;
+import common.WorkerTrain;
+import common.WorkerTrain.Producer;
 import common.ext;
 
 public class Stepwise {
@@ -16,18 +20,16 @@ public class Stepwise {
 	private boolean logistic;
 	private String[] varNames;
 	private int maxNameSize;
-	private ArrayList<Double> pvalSteps;//the pvalue at each step of the iteration;
-	private ArrayList<Double> rSquareSteps;
 	private Vector<IntVector> increments;
 	private RegressionModel finalModel;
 
 	public Stepwise(Vector<String> deps, Vector<double[]> indeps) {
 		Xs = indeps;
 		Ys = deps;
-		run();
+		run(Integer.MAX_VALUE, 1);
 	}
 
-	public Stepwise(double[] new_deps, double[][] new_indeps) {
+	public Stepwise(double[] new_deps, double[][] new_indeps,int svdRegressionSwitch,int numThreads) {
 		Xs = new Vector<double[]>();
 		Ys = new Vector<String>();
 
@@ -36,7 +38,7 @@ public class Stepwise {
 			Ys.add(new_deps[i]+"");
 		}
 
-		run();
+		run(svdRegressionSwitch, numThreads);
 	}
 
 	public Stepwise(int[] new_deps, int[][] new_indeps) {
@@ -53,7 +55,7 @@ public class Stepwise {
 			Ys.add(new_deps[i]+"");
 		}
 
-		run();
+		run(Integer.MAX_VALUE,1);
 	}
 
 	public static RegVectors procFile(String filename) {
@@ -101,7 +103,12 @@ public class Stepwise {
 		return (names?new RegVectors(deps, indeps, indNames):new RegVectors(deps, indeps));
 	}
 
-	public void run() {
+	/**
+	 * @param svdRegressionSwitch
+	 *            when the number of indeps in the model is greater than this number, svd regression will be used
+	 * @param numThreads
+	 */
+	public void run(int svdRegressionSwitch, int numThreads) {
 		RegressionModel model;
 		IntVector in = new IntVector();
 		IntVector out = new IntVector();
@@ -110,9 +117,7 @@ public class Stepwise {
 		int bestModel;
 		boolean done;
 		double lowestP, highestRsq;
-	
-		this.pvalSteps = new ArrayList<Double>();
-		this.rSquareSteps = new ArrayList<Double>();
+
 
 		if (Xs.size()!=Ys.size()) {
 			System.err.println("Error using Vectors for stepwise regression; "+Ys.size()+" dependent elements and "+Xs.size()+" independent elements");
@@ -152,29 +157,55 @@ public class Stepwise {
 			bestModel = -1;
 			highestRsq = 0;
 			lowestP = 1;
-			for (int i = 0; i<out.size(); i++) {
-				in.add(out.popFirst());
-				if (logistic) {
-					model = new LogisticRegression(Ys, travXs(in));
-				} else {
-					model = new LeastSquares(Ys, travXs(in));
-				}
-				if (!model.analysisFailed()&&model.getSigs().length==in.size()+1) {
-					pvals[i] = model.getSigs();
-					if (pvals[i][pvals[i].length-1]<lowestP) {
-						lowestP = pvals[i][pvals[i].length-1];
+			if(numThreads>1){
+				RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N, svdRegressionSwitch);
+				WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer, numThreads, 2, new Logger());
+				int index = 0;
+				int currentSize = in.size()+1;
+
+				while (train.hasNext()) {
+					RegressionModel model2 = train.next();
+					if (!model2.analysisFailed() && model2.getSigs().length == currentSize + 1) {
+						pvals[index] = model2.getSigs();
+
+						if (pvals[index][pvals[index].length - 1] < lowestP) {
+							lowestP = pvals[index][pvals[index].length - 1];
+						}
+						if (model2.getRsquare() > highestRsq) {
+							highestRsq = model2.getRsquare();
+							bestModel = index;
+						}
 					}
-					if (model.getRsquare()>highestRsq) {
-						highestRsq = model.getRsquare();
-						bestModel = i;
-					}
+					index++;
 				}
-				out.add(in.popLast());
+
+			} else {
+			
+				for (int i = 0; i < out.size(); i++) {
+					in.add(out.popFirst());
+					if (logistic) {
+						model = new LogisticRegression(Ys, travXs(N, Xs, in));
+					} else {
+						model = new LeastSquares(Ys, travXs(N, Xs, in));
+					}
+					if (!model.analysisFailed() && model.getSigs().length == in.size() + 1) {
+						pvals[i] = model.getSigs();
+						if (pvals[i][pvals[i].length - 1] < lowestP) {
+							lowestP = pvals[i][pvals[i].length - 1];
+						}
+						if (model.getRsquare() > highestRsq) {
+							highestRsq = model.getRsquare();
+							bestModel = i;
+						}
+					}
+					out.add(in.popLast());
+				}
 			}
 			if (lowestP<ENTRY_PROB) {
-				pvalSteps.add(lowestP);
-				rSquareSteps.add(highestRsq);
 				in.add(out.popAt(bestModel));
+//				System.out.println(in.size() + " independant variables added to the model, lowest p-value = "+lowestP);
+//				System.out.println(in.size() + " independant variables added to the model, highest Rsquare = "+highestRsq);
+
 				increments.add(in.clone());
 				for (int i = in.size(); i>=1; i--) {
 					if (pvals[bestModel][i]>REMOVAL_PROB) {
@@ -186,6 +217,7 @@ public class Stepwise {
 						done = false;
 					}
 				}
+
 			} else {
 				done = true;
 			}
@@ -193,22 +225,86 @@ public class Stepwise {
 
 		if (increments.size()>0) {
 			if (logistic) {
-				finalModel = new LogisticRegression(Ys, travXs(in));
+				finalModel = new LogisticRegression(Ys, travXs(N,Xs,in));
 			} else {
-				finalModel = new LeastSquares(Ys, travXs(in));
+				Vector<double[]> currentXs = travXs(N, Xs, in);
+				finalModel = new LeastSquares(Ys, currentXs, false, currentXs.size() > svdRegressionSwitch);
 			}
+			
 		}
 	}
+	private static class RegressionProducer implements Producer<RegressionModel>{
+		private IntVector in ;
+		private IntVector out;
+		private boolean logistic;
+		private Vector<String> Ys;
+		private Vector<double[]> Xs;
+		private int N;
+		private int svdRegressionSwitch;
 
-	public ArrayList<Double> getPvalSteps() {
-		return pvalSteps;
+		private int index;
+
+		public RegressionProducer(IntVector in, IntVector out, boolean logistic, Vector<String> ys, Vector<double[]> xs, int n, int svdRegressionSwitch) {
+			super();
+			this.in = in;
+			this.out = out;
+			this.logistic = logistic;
+			this.Ys = ys;
+			this.Xs = xs;
+			this.N = n;
+			this.index =0;
+			this.svdRegressionSwitch = svdRegressionSwitch;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < out.size();
+		}
+
+		@Override
+		public Callable<RegressionModel> next() {
+			in.add(out.popFirst());
+			Vector<double[]> currentXs = travXs(N, Xs, in);
+			RegressionWorker worker = new RegressionWorker(Ys, currentXs, logistic, svdRegressionSwitch);
+			out.add(in.popLast());
+			index++;
+			return worker;
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+	
+	private static class RegressionWorker implements Callable<RegressionModel>{
+		private Vector<double[]> currentXs;
+		private  Vector<String> Ys;
+		private boolean logistic;
+		private int svdRegressionSwitch;
+		
+		public RegressionWorker(Vector<String> ys,Vector<double[]> currentXs,  boolean logistic,int svdRegressionSwitch) {
+			super();
+			this.currentXs = currentXs;
+			this.Ys = ys;
+			this.logistic = logistic;
+			this.svdRegressionSwitch = svdRegressionSwitch;
+		}
+
+		@Override
+		public RegressionModel call() throws Exception {
+			if (logistic) {
+				return new LogisticRegression(Ys, currentXs);
+			} else {
+				return new LeastSquares(Ys, currentXs, false, currentXs.size() > svdRegressionSwitch);
+			}
+		}
+
 	}
 
-	public ArrayList<Double> getrSquareSteps() {
-		return rSquareSteps;
-	}
 
-	public Vector<double[]> travXs(IntVector ins) {
+	public static Vector<double[]> travXs(int N, Vector<double[]> Xs, IntVector ins) {
 		Vector<double[]> v = new Vector<double[]>();
 		double[] data, newdata;
 
@@ -260,9 +356,9 @@ public class Stepwise {
 				travNames[j] = varNames[ins.elementAt(j)];
 			}
 			if (logistic) {
-				model = new LogisticRegression(Ys, travXs(ins));
+				model = new LogisticRegression(Ys, travXs(N, Xs, ins));
 			} else {
-				model = new LeastSquares(Ys, travXs(ins));
+				model = new LeastSquares(Ys, travXs(N, Xs, ins));
 			}
 			model.setVarNames(travNames, maxNameSize);
 			Rsum += ext.formStr(i+1+"", 4)+"\t"+(Double.isInfinite(model.getOverall())?"    .":ext.formStr(ext.formDeci(model.getOverall(), 1, true), 7))+"\t  "+ext.formDeci(model.getOverallSig(), 3, true)+"\t  "+ext.formDeci(model.getRsquare(), 3, true)+"\n";
@@ -284,6 +380,55 @@ public class Stepwise {
 		return increments.size()==0?new double[N]:finalModel.getResiduals();
 	}
 
+	public static class StepWiseSummary {
+		private double[] sigs;
+		private double[] stats;
+		private int[] orderOfOriginal;
+
+		public StepWiseSummary(double[] sigs, double[] stats, int[] orderOfOriginal) {
+			super();
+			this.sigs = sigs;
+			this.stats = stats;
+			this.orderOfOriginal = orderOfOriginal;
+		}
+
+		public double[] getSigs() {
+			return sigs;
+		}
+
+		public double[] getStats() {
+			return stats;
+		}
+
+		public int[] getOrderOfOriginal() {
+			return orderOfOriginal;
+		}
+
+	}
+	
+	public StepWiseSummary getStepWiseSummary(int svdRegressionSwitch,int numThreads){
+		
+		IntVector in = new IntVector();
+		IntVector out = increments.lastElement();
+
+		double[] sigs = new double[out.size()];
+		double[] stats = new double[out.size()];
+		int[] orderOfOriginal = out.toArray();
+
+		RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N, svdRegressionSwitch);
+		WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer, numThreads, 2, new Logger());
+		int index = 0;
+
+		while (train.hasNext()) {
+			RegressionModel model = train.next();
+			double[] modelSigs = model.getSigs();
+			sigs[index] = modelSigs[modelSigs.length - 1];
+			stats[index] = model.getRsquare();
+			index++;
+		}
+		return new StepWiseSummary(sigs, stats, orderOfOriginal);
+	}
+	
 	public String getFinalNames() {
 		IntVector ins;
 		String finalNames = "";
