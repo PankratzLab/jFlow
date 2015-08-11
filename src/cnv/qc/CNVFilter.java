@@ -61,7 +61,7 @@ public class CNVFilter {
 	public static final String COMMAND_CNV_FILTER_DESCRIPTION = "filter a file of cnvs";
 
 	/**
-	 * Thes parameters should result in no filtering
+	 * These parameters should result in no filtering
 	 */
 	public static final int NO_FILTER_CN = -1;
 	public static final int NO_FILTER_MIN_NUM_MARKERS = -1;

@@ -12,7 +12,6 @@ import cnv.filesys.SampleList;
 import cnv.manage.ExtProjectDataParser.Builder;
 
 public class DemoProject extends Project {
-	private static final long serialVersionUID = 1L;
 	private Project proj;
 
 	public static enum DEMO_TYPE {

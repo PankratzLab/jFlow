@@ -58,6 +58,7 @@ public class AnalysisFormats implements Runnable {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void penncnv(final Project proj, final String[] samples, final HashSet<String> markersToWrite, String subDir, int threadCount) {
 		final String[] markerNames = proj.getMarkerNames();
 		final boolean jar;
@@ -160,6 +161,7 @@ public class AnalysisFormats implements Runnable {
 
 	}
 	
+	@SuppressWarnings("unchecked")
 	private static Centroids[] computeCentroids(final Project proj, final boolean[] includeList, String[] pfbFiles, String[] centFiles, final boolean shiftPFBForSex, int threadCount) {
 		PrintWriter writerM, writerF;
 		MarkerSet markerSet;
@@ -425,10 +427,11 @@ public class AnalysisFormats implements Runnable {
 		return centroids;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static String[] pennCNVSexHackMultiThreaded(Project proj, String gcModelFile, boolean useExcluded, int threadCount) {
 		String sampleDataFile;
 		final String sampleDir;
-		String sexDir, pennDir, pennData;
+		String sexDir, pennData;
 		final String maleDir;
 		final String femaleDir;
 		String malePFBFile, femalePFBFile, newGCFile, centFilePathM, centFilePathF;
@@ -447,7 +450,6 @@ public class AnalysisFormats implements Runnable {
 		
 		final Logger log = proj.getLog();
 		
-		pennDir = proj.getProperty(proj.PENNCNV_RESULTS_DIRECTORY);
 		pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
 		sexDir = pennData + "sexSpecific/";
 		
