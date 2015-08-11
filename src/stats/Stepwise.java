@@ -203,8 +203,8 @@ public class Stepwise {
 			}
 			if (lowestP<ENTRY_PROB) {
 				in.add(out.popAt(bestModel));
-//				System.out.println(in.size() + " independant variables added to the model, lowest p-value = "+lowestP);
-//				System.out.println(in.size() + " independant variables added to the model, highest Rsquare = "+highestRsq);
+				System.out.println(in.size() + " independant variables added to the model, lowest p-value = "+lowestP);
+				System.out.println(in.size() + " independant variables added to the model, highest Rsquare = "+highestRsq);
 
 				increments.add(in.clone());
 				for (int i = in.size(); i>=1; i--) {
@@ -220,7 +220,7 @@ public class Stepwise {
 
 			} else {
 				done = true;
-			}
+			}	
 		}
 
 		if (increments.size()>0) {

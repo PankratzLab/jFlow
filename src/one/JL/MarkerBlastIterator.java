@@ -10,6 +10,7 @@ import java.util.Hashtable;
 
 import seq.analysis.Blast;
 import seq.analysis.Blast.BlastResults;
+import seq.manage.ReferenceGenome;
 import stats.Histogram.DynamicAveragingHistogram;
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.PLOT_DEVICE;
@@ -42,7 +43,7 @@ public class MarkerBlastIterator {
 	private static final String[] QC_TITLES = new String[] { "CallRate", "MeanClusterTheta", "DiffTheta", "SDClusterTheta", "MeanClusterR", "LRR_SD" };
 
 	private enum BLAST_METRICS {
-		CROSS_HYBE_PERCENT_MATCH(0, 1, 2), CROSS_HYBE_EVAL(0, 1, 2), CROSS_HYBE_LENGTH(10, 50, 0);
+		CROSS_HYBE_PERCENT_MATCH(0, 1, 2), CROSS_HYBE_EVAL(0, 1, 2), CROSS_HYBE_LENGTH(10, 50, 0), GC_CONTENT(0, 1, 2);
 
 		private double minVal;
 		private double maxVal;
@@ -109,6 +110,7 @@ public class MarkerBlastIterator {
 				index++;
 			}
 		}
+		ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
 
 		for (int i = 0; i < results.length; i++) {
 			Hashtable<String, Integer> trackResults = new Hashtable<String, Integer>();
@@ -126,8 +128,8 @@ public class MarkerBlastIterator {
 							numEntries++;
 							if (numEntries % 100000 == 0) {
 								proj.getLog().reportTimeInfo("Processed " + numEntries + " blast results");
-								// reader.close();
-								// break;
+//								reader.close();
+//								break;
 							}
 							BlastResults blastResults = new BlastResults(line, log);
 							String marker = blastResults.getQueryID();
@@ -146,7 +148,9 @@ public class MarkerBlastIterator {
 							} else {
 								summaryindex = summaries.size();
 								trackResults.put(marker, summaryindex);
-								summaries.add(new MarkerIterationSummary(marker));
+								int markerIndex = indices.get(marker);
+								Segment markerSeq = new Segment(chrs[markerIndex], pos[markerIndex] - 50, pos[markerIndex] + 50);
+								summaries.add(new MarkerIterationSummary(marker, referenceGenome.getGCContentFor(markerSeq)));
 							}
 
 							Segment blastSeg = blastResults.getSegment();
@@ -209,6 +213,8 @@ public class MarkerBlastIterator {
 					break;
 				case CROSS_HYBE_PERCENT_MATCH:
 					break;
+				case GC_CONTENT:
+					break;
 				default:
 					proj.getLog().reportTimeError("Invalid Metric " + metric);
 					break;
@@ -251,6 +257,11 @@ public class MarkerBlastIterator {
 										break;
 									case CROSS_HYBE_PERCENT_MATCH:
 										dHistograms[m][l].addDataPair((double) Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())) / proj.getArrayType().getProbeLength(), parser.getNumericData()[l][markerIndex]);
+										break;
+									case GC_CONTENT:
+										if (!Double.isNaN(summaries.get(k).getGcContent())) {
+											dHistograms[m][l].addDataPair((double) summaries.get(k).getGcContent(), parser.getNumericData()[l][markerIndex]);
+										}
 										break;
 									default:
 										proj.getLog().reportTimeError("Invalid Metric " + metric);
@@ -426,7 +437,6 @@ public class MarkerBlastIterator {
 			proj.getLog().reportTimeInfo("Creating file " + proj.MARKER_METRICS_FILENAME.getValue());
 			MarkerMetrics.fullQC(proj, null, null, numThreads);
 		}
-
 		MarkerBlastResult[] results = new MarkerBlastResult[blastWordSizes.length * reportWordSizes.length];
 		int index = 0;
 		for (int i = 0; i < blastWordSizes.length; i++) {
@@ -439,6 +449,7 @@ public class MarkerBlastIterator {
 		int[] pos = proj.getMarkerSet().getPositions();
 
 		Hashtable<String, Integer> indices = proj.getMarkerIndices();
+		ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
 
 		for (int i = 0; i < results.length; i++) {
 			String catResults = ext.addToRoot(results[i].getOutput(), ".all.blasts");
@@ -476,7 +487,9 @@ public class MarkerBlastIterator {
 						} else {
 							summaryindex = summaries.size();
 							trackResults.put(marker, summaryindex);
-							summaries.add(new MarkerIterationSummary(marker));
+							int markerIndex = indices.get(marker);
+							Segment markerSeq = new Segment(chrs[markerIndex], pos[markerIndex] - proj.getArrayType().getProbeLength(), pos[markerIndex] + proj.getArrayType().getProbeLength());
+							summaries.add(new MarkerIterationSummary(marker, referenceGenome.getGCContentFor(markerSeq)));
 						}
 
 						Segment blastSeg = blastResults.getSegment();
@@ -627,16 +640,22 @@ public class MarkerBlastIterator {
 		private double percentAppropriateMatch;
 		private double evalueAppropriateMatch;
 		private ArrayList<Double> crossHybPercentMatch, crossHybEvalue, crossHybLength;
+		private double gcContent;
 
-		private MarkerIterationSummary(String markerName) {
+		private MarkerIterationSummary(String markerName, double gcContent) {
 			super();
 			this.markerName = markerName;
+			this.gcContent = gcContent;
 			this.hasAppropriateMatch = false;
 			this.percentAppropriateMatch = Double.NaN;
 			this.evalueAppropriateMatch = Double.NaN;
 			this.crossHybPercentMatch = new ArrayList<Double>();
 			this.crossHybEvalue = new ArrayList<Double>();
 			this.crossHybLength = new ArrayList<Double>();
+		}
+
+		public double getGcContent() {
+			return gcContent;
 		}
 
 		public String getSummary() {

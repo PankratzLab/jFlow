@@ -10,7 +10,7 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 public class MarkerSeqAnnotation extends AnnotationData {
 
 	private static final String DEFAULT_NAME = "PROBE_DESIGN";
-	private static final String DESCRIPTION = "The probe sequence and interrogation position by design";
+	private static final String DESCRIPTION = "The probe sequence, interrogation position, and strand by design";
 	private String sequence;
 	private Strand strand;
 	private int interrogationPosition;
