@@ -58,8 +58,11 @@ public class MarkerBlast {
 
 			String[] tmps = new String[numThreads];
 			for (int i = 0; i < numThreads; i++) {
-				tmps[i] = root + ".tmp" + i + ".gz";
-				proj.getLog().reportTimeInfo("REmember gz");
+				tmps[i] = root + ".tmp" + i;
+				if (!Files.exists(tmps[i])) {
+					tmps[i] = tmps[i] + ".gz";
+				}
+				// proj.getLog().reportTimeInfo("REmember gz");
 			}
 
 			if (!Files.exists("", tmps)) {
@@ -93,20 +96,22 @@ public class MarkerBlast {
 			MarkerBlastResult result = new MarkerBlastResult(output, blastWordSize, reportWordSize, proj.getArrayType().getProbeLength());
 			result.setTmpFiles(tmps);
 
-			// if (!Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
-			proj.getLog().reportTimeInfo("Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
-			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), tmps, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
-			if (proj.getArrayType() != ARRAY.ILLUMINA) {
-				proj.getLog().reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
-			}
-			blastAnnotationWriter.setMarkerFastaEntries(getMarkerFastaEntries(proj, fileSeq, type));
-			blastAnnotationWriter.summarizeResultFiles(false);
-			blastAnnotationWriter.close();
-			if (annotateGCContent) {
-				annotateGCContent(proj, fileSeq, type);
-			}
+			if (!Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
+				proj.getLog().reportTimeInfo("Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
+				BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), tmps, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
+				if (proj.getArrayType() != ARRAY.ILLUMINA) {
+					proj.getLog().reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
+				}
+				blastAnnotationWriter.setMarkerFastaEntries(getMarkerFastaEntries(proj, fileSeq, type));
+				blastAnnotationWriter.summarizeResultFiles(false);
+				blastAnnotationWriter.close();
+				if (annotateGCContent) {
+					annotateGCContent(proj, fileSeq, type);
+				}
 
-			// }
+			} else {
+				proj.getLog().reportFileExists(proj.BLAST_ANNOTATION_FILENAME.getValue());
+			}
 			return result;
 		}
 	}
@@ -226,9 +231,9 @@ public class MarkerBlast {
 						seq = parser.getStringData()[0][i];
 						String ilmnStrand = parser.getStringData()[1][i];
 						Strand strand = null;
-						if (ilmnStrand.equals("TOP")||ilmnStrand.equals("PLUS")) {//PLUS seems to be for cnvi probes
+						if (ilmnStrand.equals("TOP") || ilmnStrand.equals("PLUS")) {// PLUS seems to be for cnvi probes
 							strand = Strand.POSITIVE;
-						} else if (ilmnStrand.equals("BOT")||ilmnStrand.equals("MINUS")) {//MINUS seems to be for cnvi probes
+						} else if (ilmnStrand.equals("BOT") || ilmnStrand.equals("MINUS")) {// MINUS seems to be for cnvi probes
 							strand = Strand.NEGATIVE;
 						} else {
 							proj.getLog().reportTimeError("Invalid IlmnStrand " + ilmnStrand);
@@ -260,9 +265,24 @@ public class MarkerBlast {
 									interrogationPosition = j;
 								}
 							}
-							proj.getLog().reportTimeWarning("Strand for affy warning, " + Strand.NONE);
-							entries.add(new MarkerFastaEntry(markerName + "_A", tmpSeq[0], Strand.NONE, interrogationPosition, markerSegment));
-							entries.add(new MarkerFastaEntry(markerName + "_B", tmpSeq[1], Strand.NONE, interrogationPosition, markerSegment));
+							String[] affyStrandtmp = parser.getStringData()[1][i].split("\t");
+							if (Array.unique(affyStrandtmp).length != 1) {
+								proj.getLog().reportTimeError("Multiple strands detected " + Array.toStr(affyStrandtmp));
+								return null;
+							}
+							String affyStrand = affyStrandtmp[0];
+							Strand strand = null;
+							if (affyStrand.equals("f")) {// PLUS seems to be for cnvi probes
+								strand = Strand.POSITIVE;
+							} else if (affyStrand.equals("r")) {// MINUS seems to be for cnvi probes
+								strand = Strand.NEGATIVE;
+							} else {
+								proj.getLog().reportTimeError("Invalid AffyStrand " + affyStrand);
+								return null;
+							}
+							// proj.getLog().reportTimeWarning("Strand for affy warning, " + Strand.NONE);
+							entries.add(new MarkerFastaEntry(markerName + "_A", tmpSeq[0], strand, interrogationPosition, markerSegment));
+							entries.add(new MarkerFastaEntry(markerName + "_B", tmpSeq[1], strand, interrogationPosition, markerSegment));
 						}
 					}
 				}
@@ -297,7 +317,7 @@ public class MarkerBlast {
 			}
 			builder.separator("\t");
 			builder.dataKeyColumnName("PROBESET_ID");
-			builder.stringDataTitles(new String[] { "PROBE_SEQUENCE" });
+			builder.stringDataTitles(new String[] { "PROBE_SEQUENCE", "TARGET_STRANDEDNESS" });
 			builder.concatMultipleStringEntries(true);
 
 		default:
@@ -328,8 +348,9 @@ public class MarkerBlast {
 		public Strand getStrand() {
 			return strand;
 		}
+
 		public Segment getMarkerSegment() {
-			
+
 			return markerSegment;
 		}
 

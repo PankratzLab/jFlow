@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import cnv.annotation.Annotation;
 import cnv.annotation.AnnotationData;
+import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
 import cnv.annotation.AnnotationFileWriter;
 import cnv.annotation.AnnotationParser;
 import cnv.annotation.BlastAnnotationLoader;
@@ -102,21 +103,21 @@ public class BlastAnnotationTesting {
 		for (int i = 0; i < 100; i++) {
 			t.add(markers[i]);
 		}
-//		t.add(markers[20]);
-//		t.add(markers[200000]);
-//		t.add(markers[100000]);
-//		t.add(markers[50000]);
-//		t.add(markers[200001]);
-//		t.add(markers[2]);
-//		t.add(markers[200003]);
+		// t.add(markers[20]);
+		// t.add(markers[200000]);
+		// t.add(markers[100000]);
+		// t.add(markers[50000]);
+		// t.add(markers[200001]);
+		// t.add(markers[2]);
+		// t.add(markers[200003]);
 
 		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(Array.toStringArray(t));
 		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getMarkerSet(), true);
 		ArrayList<AnnotationParser[]> toparse = new ArrayList<AnnotationParser[]>();
 		toparse.add(blastResults);
-		annotationLoader.fillAnnotations(Array.toStringArray(t), toparse);
+		annotationLoader.fillAnnotations(Array.toStringArray(t), toparse, QUERY_ORDER.NO_ORDER);
 		for (int i = 0; i < blastResults.length; i++) {
-		//	System.out.println(Array.toStr(blastResults[i].getAlignmentHistogram(proj)));
+			// System.out.println(Array.toStr(blastResults[i].getAlignmentHistogram(proj)));
 		}
 	}
 

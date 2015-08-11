@@ -25,6 +25,7 @@ public class Histogram implements Serializable {
 	private int extrastep;
 	private int window;
 	private float peakThreshold;
+	private String title;
 	
 	public Histogram(double[] array) {
 		this.window = DEFAULT_WINDOW;
@@ -47,6 +48,14 @@ public class Histogram implements Serializable {
 		System.out.println("optimal step is "+sigfigs+" + "+EXTRA_STEPS[extrastep]+" = "+(sigfigs+EXTRA_STEPS[extrastep])+ " log10 transformed = "+determineStep());
 		
 		computeCounts(array);
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public Histogram(double[] array, double min, double max, int sigfigs, int extrastep) {

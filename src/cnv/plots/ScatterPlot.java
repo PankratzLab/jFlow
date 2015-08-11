@@ -80,6 +80,7 @@ import stats.ContingencyTable;
 import stats.ProbDist;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
+import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
 import cnv.annotation.AnnotationParser;
 import cnv.annotation.MarkerAnnotationLoader;
 import cnv.annotation.MarkerBlastAnnotation;
@@ -472,7 +473,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
 				parsers.add(blastResults);
 				parsers.add(gcAnnotations);
-				annotationLoader.fillAnnotations(masterMarkerList, parsers);
+				annotationLoader.fillAnnotations(masterMarkerList, parsers, QUERY_ORDER.NO_ORDER);
                 for (int i = 0; i < blastResults.length; i++) {
                 	
 					System.out.println(masterMarkerList[i]+"\t"+blastResults[i].getMarkerSeqAnnotation().getStrand()+"\t"+blastResults[i].getMarkerSeqAnnotation().getSequence());

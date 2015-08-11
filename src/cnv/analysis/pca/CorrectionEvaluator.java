@@ -128,6 +128,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 		String baseTitle = "" + tmpResiduals.getNumComponents();
 		double[] estimate = null;
 		CrossValidation cValidation = null;
+		//tmpResiduals.crossValidate(kFolds, numComponentsIter, numThreads, svdRegression, tmpOutput, val_pcs)
 		if (tmpResiduals.getNumComponents() > 0 || extraIndeps != null) {
 
 			cValidation = tmpResiduals.getCorrectedDataAt(tmpResiduals.getMedians(), extraIndeps, samplesToInclude[0], tmpResiduals.getNumComponents(), svd, "HFDS", true);

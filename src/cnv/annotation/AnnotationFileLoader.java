@@ -20,8 +20,9 @@ import cnv.filesys.ReadingFilePrep;
  * @author lane0212 Does tabix-based loading for annotations
  */
 public abstract class AnnotationFileLoader extends AnnotationFile implements ReadingFilePrep {
-	boolean indexRequired;
-	boolean valid;
+	private boolean indexRequired;
+	private boolean valid;
+	private int reportEvery;
 
 	/**
 	 * @param proj
@@ -37,7 +38,22 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 		setAnnotations(annotations);
 		this.indexRequired = indexRequired;
 		this.valid = validate();
+		this.reportEvery = -1;
 
+	}
+
+	public void setReportEvery(int reportEvery) {
+		this.reportEvery = reportEvery;
+	}
+
+	public enum QUERY_ORDER {
+		/**
+		 * It is assumed that the {@link AnnotationParser} will be found exactly once and in order of the file
+		 */
+		ONE_PER_IN_ORDER, /**
+		 * No assumptions are made for order or whether the {@link AnnotationParser} will be found
+		 */
+		NO_ORDER;
 	}
 
 	/**
@@ -45,19 +61,84 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 	 * @param parsersQueries
 	 *            checks and annotates these queries
 	 */
-	public void query(Segment[] segs, List<AnnotationParser[]> parsersQueries) {
+	public void query(Segment[] segs, List<AnnotationParser[]> parsersQueries, QUERY_ORDER queryType) {
+		int[][] search = getSearchSpace(parsersQueries, queryType);
+
 		AnnotationQuery annotationQuery = getAnnotationQuery(segs);
+		int index = 0;
 		while (annotationQuery.hasNext()) {
 			VariantContext vc = annotationQuery.next();
+			index++;
+			if (reportEvery > 0 && index % reportEvery == 0) {
+				proj.getLog().reportTimeInfo(index + " -loaded");
+			}
+			int searchIndex = 0;
 			for (AnnotationParser[] parsers : parsersQueries) {
-				for (int i = 0; i < parsers.length; i++) {
+				for (int i = search[searchIndex][0]; i < Math.min(search[searchIndex][1], parsers.length); i++) {
 					if (parsers[i].shouldAnnotateWith(vc, proj.getLog())) {
 						parsers[i].parseAnnotation(vc, proj.getLog());
 						parsers[i].setFound(true);
+						search[searchIndex][0] = search[searchIndex][0] + 1;
+						search[searchIndex][1] = search[searchIndex][1] + 1;
+					} else {
+
 					}
 				}
+				searchIndex++;
 			}
 		}
+		validateSearch(parsersQueries, queryType);
+	}
+
+	/**
+	 * Make sure that every {@link AnnotationParser } was found
+	 */
+	private void validateSearch(List<AnnotationParser[]> parsersQueries, QUERY_ORDER queryType) {
+		switch (queryType) {
+		case NO_ORDER:
+			break;
+		case ONE_PER_IN_ORDER:
+			boolean allFound = true;
+			for (int i = 0; i < parsersQueries.size(); i++) {
+				for (int j = 0; j < parsersQueries.get(i).length; j++) {
+					if (!parsersQueries.get(i)[j].isFound()) {
+						allFound = false;
+					}
+				}
+
+			}
+			if (!allFound) {
+				String error = "Did not find all queries for type " + queryType + " , missing annotations or internal bug";
+				proj.getLog().reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	private int[][] getSearchSpace(List<AnnotationParser[]> parsersQueries, QUERY_ORDER queryType) {
+		int[][] search = new int[parsersQueries.size()][];
+		for (int i = 0; i < parsersQueries.size(); i++) {
+			search[i] = new int[2];
+			switch (queryType) {
+			case NO_ORDER:
+				search[i][0] = 0;
+				search[i][1] = parsersQueries.get(i).length;
+
+				break;
+			case ONE_PER_IN_ORDER:
+				search[i][0] = 0;
+				search[i][1] = 2;
+
+				break;
+			default:
+				break;
+
+			}
+		}
+		return search;
 	}
 
 	public AnnotationQuery getAnnotationQuery() {

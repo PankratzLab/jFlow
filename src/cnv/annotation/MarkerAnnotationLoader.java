@@ -50,9 +50,14 @@ public class MarkerAnnotationLoader extends AnnotationFileLoader {
 	 * @param parsersQueries
 	 *            typically each entry in the {@link AnnotationParser} array represents a single marker
 	 */
-	public void fillAnnotations(final String[] markers, List<AnnotationParser[]> parsersQueries) {
-		Segment[] markerSegments = getSegmentsForMarkers(markers);
-		query(markerSegments, parsersQueries);
+	public void fillAnnotations(final String[] markers, List<AnnotationParser[]> parsersQueries, QUERY_ORDER qOrder) {
+		Segment[] markerSegments = null;
+		if (markers == null) {
+			proj.getLog().reportTimeWarning("No marker names were provided, searching entire annotation file");
+		} else {
+			markerSegments = getSegmentsForMarkers(markers);
+		}
+		query(markerSegments, parsersQueries, qOrder);
 	}
 
 	private Segment[] getSegmentsForMarkers(final String[] markers) {

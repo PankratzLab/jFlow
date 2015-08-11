@@ -88,7 +88,7 @@ public class ReferenceGenome {
 			return requestedSeq;
 
 		} else {
-			// log.reportTimeError("Requested contig " + requestedContig + " was not in the sequence dictionary for " + referenceFasta);
+			//log.reportTimeError("Requested contig " + requestedContig + " was not in the sequence dictionary for " + referenceFasta);
 			return null;
 		}
 
@@ -148,10 +148,15 @@ public class ReferenceGenome {
 
 	public double getGCContentFor(Segment seg) {
 		String[] seq = getSequenceFor(seg);
-		int gs = Array.countIf(seq, "G");
-		int cs = Array.countIf(seq, "C");
-		int gsCs = gs + cs;
-		return (double) gsCs / seq.length;
+		if (seq != null) {
+			int gs = Array.countIf(seq, "G");
+			int cs = Array.countIf(seq, "C");
+			int gsCs = gs + cs;
+			return (double) gsCs / seq.length;
+
+		} else {
+			return Double.NaN;
+		}
 	}
 
 	public double getGCContentFor(VariantContext vc) {

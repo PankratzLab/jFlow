@@ -19,6 +19,7 @@ import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.annotation.LocusAnnotation.Builder;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
 import cnv.qc.MarkerBlast.MarkerFastaEntry;
 import filesys.Segment;
 
@@ -98,7 +99,16 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 						if (blastResults.getAlignmentLength() >= minAlignmentLength && blastResults.getGapOpens() <= maxGaps && blastResults.getMismatches() <= maxMismatches) {
 							String marker = blastResults.getQueryID();
+							if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
+								if (marker.endsWith("_A") || marker.endsWith("_B")) {
+									marker = marker.substring(0, marker.length() - 2);
+								} else {
+									proj.getLog().reportTimeError("Query id did not end with _A or _B which is required for an AFFY array");
+								}
+
+							}
 							int markerIndex = markerIndices.get(marker);
+							
 							Segment markerSeg = anDatas[markerIndex].getSeg().getBufferedSegment(1);
 							if (mHistogramAnnotations[markerIndex] == null) {
 								DynamicHistogram histogram = new DynamicHistogram(minAlignmentLength, proj.getArrayType().getProbeLength(), 0);
