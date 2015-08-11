@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -271,7 +270,6 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		String[] line;
 		float xAxisValue, yAxisValue;
 		CountVector uniqueValueCounts;
-		byte type;
 		
 		includeColorKeyValue = true;
 		currentData = tdp.getDataSelected(includeColorKeyValue);
@@ -322,19 +320,16 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			if (missing) {
 				xAxisValue = Float.NaN;
 				yAxisValue = Float.NaN;
-				type = PlotPoint.MISSING;
 				uniqueValueCounts.add("0");
 			} else {
 				xAxisValue = Float.parseFloat(line[1]);
 				yAxisValue = Float.parseFloat(line[2]);
 				if (Float.isNaN(xAxisValue) || Float.isNaN(xAxisValue)) {
-					type = PlotPoint.NOT_A_NUMBER;
 					uniqueValueCounts.add("0");
 	//			} else if (alleleCounts[i]==-1) {
 	//				type = PlotPoint.MISSING;
 	//				uniqueValueCounts.add("0");
 				} else {
-					type = PlotPoint.FILLED_CIRCLE;
 					uniqueValueCounts.add(line[3]);
 				}
 			}

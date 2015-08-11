@@ -122,7 +122,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 	 * @author lane0212 Class that returns each {@link VariantContext} by the {@link Segment} query
 	 */
 	public static class AnnotationQuery implements Iterator<VariantContext> {
-		private VCFFileReader vcfFileReader;;
+		private VCFFileReader vcfFileReader;
 		private int currentIndex;
 		private QueryInterval[] queryIntervals;
 		private VCFHeader vcfHeader;
@@ -133,7 +133,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 		 *            the file to load from
 		 * @param segs
 		 *            can be null, if not null, only these regions will be returned. Otherwise the iterator will traverse the entire file
-		 * @param requireIndex
+		 * @param requireIndex	
 		 *            should always be true
 		 * @param log
 		 */

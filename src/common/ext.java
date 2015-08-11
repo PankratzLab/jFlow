@@ -1541,35 +1541,6 @@ public class ext {
 	    final long shifted = Math.round(num*magnitude);
 	    return shifted/magnitude;
 	}
-
-	public static void main(String[] args) {
-		String temp;
-		Logger log;
-		
-		log = new Logger();
-		try {
-			System.out.println("1\t2\t3\t4\t5\t6\t7");
-			temp = "try,this,out";
-			System.out.println(temp);
-			System.out.println(Array.toStr(splitCommasIntelligently(temp, false, log)));
-			System.out.println();
-			temp = "\"is this, harder\",o,r,\"not so ,much\"";
-			System.out.println(temp);
-			System.out.println("1\t2\t3\t4\t5\t6\t7");
-			System.out.println(Array.toStr(splitCommasIntelligently(temp, false, log)));
-			System.out.println(Array.toStr(splitCommasIntelligently(temp, true, log)));
-			System.out.println();
-			temp = "\"perhaps this is \"hard,est\" of all\",or,\"\"\"maybe not\"\"\"";
-			temp = "\"perhaps this is \"\"hard,est\"\" of all\",or,\"\"\"maybe not\"\"\"";			
-			System.out.println(temp);
-			System.out.println("1\t2\t3\t4\t5\t6\t7");
-			System.out.println(Array.toStr(splitCommasIntelligently(temp, false, log)));
-			System.out.println(Array.toStr(splitCommasIntelligently(temp, true, log)));
-			System.out.println();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 	
 	/**
 	 * @param toAddTo
@@ -1591,5 +1562,45 @@ public class ext {
 		}
 		return toAddTo;
 	}
-	
+
+	/**
+	 * Computes the Levenshtein distance score between two Strings
+	 * (Copied from http://rosettacode.org/wiki/Levenshtein_distance#Java)
+	 * 
+	 * @param a
+	 * 			First String
+	 * @param b
+	 * 			Second String
+	 * @return
+	 * 			Levenshtein difference score
+	 */
+	public static int distanceLevenshtein(String a, String b) {
+		a = a.toLowerCase();
+		b = b.toLowerCase();
+
+		// i == 0
+		int [] costs = new int [b.length() + 1];
+		for (int j = 0; j < costs.length; j++) {
+			costs[j] = j;
+		}
+
+		for (int i = 1; i <= a.length(); i++) {
+			// j == 0; nw = lev(i - 1, j)
+			costs[0] = i;
+			int nw = i - 1;
+			for (int j = 1; j <= b.length(); j++) {
+				int cj = Math.min(1 + Math.min(costs[j], costs[j - 1]), a.charAt(i - 1) == b.charAt(j - 1) ? nw : nw + 1);
+				nw = costs[j];
+				costs[j] = cj;
+			}
+		}
+		return costs[b.length()];
+	}
+
+	public static void main(String[] args) {
+		String [] data = { "kitten", "sitting", "saturday", "sunday", "rosettacode", "raisethysword" };
+        for (int i = 0; i < data.length; i += 2)
+            System.out.println("distance(" + data[i] + ", " + data[i+1] + ") = " + distanceLevenshtein(data[i], data[i+1]));
+		System.exit(1);
+	}
 }

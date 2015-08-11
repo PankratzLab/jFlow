@@ -2,7 +2,6 @@
 package bioinformatics;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Vector;
 
 import common.*;

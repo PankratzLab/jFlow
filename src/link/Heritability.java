@@ -6,8 +6,15 @@ import java.util.concurrent.Callable;
 
 import parse.GenParser;
 import stats.RegressionModel;
-import common.*;
+import common.Array;
+import common.CmdLine;
+import common.CountHash;
+import common.HashVec;
+import common.Logger;
+import common.Matrix;
 import common.WorkerTrain.Producer;
+import common.Files;
+import common.ext;
 import filesys.FamilyStructure;
 
 public class Heritability {
