@@ -34,7 +34,7 @@ import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import seq.qc.FilterNGS.VariantContextFilter;
 
 public class RegNovo {
-	private static final String[] HEADER = new String[] { "Sample", "ID", "CHR", "Start", "Stop", "PassesPop", "RefDepth", "AltDepth", "GQ", "Pop_AAC", "AllParents_AAC", "AllOffspring_AAC", "P1RefDepth", "P1AltDepth", "P1GQ", "P1Filter", "P1_AAC", "P2RefDepth", "P2AltDepth", "P2GQ", "P2Filter", "P2_AAC", "GATK_FILTER" };
+	private static final String[] HEADER = new String[] { "Sample", "ID", "REF", "ALT", "CHR", "Start", "Stop", "PassesPop", "RefDepth", "AltDepth", "GQ", "Pop_AAC", "AllParents_AAC", "AllOffspring_AAC", "P1RefDepth", "P1AltDepth", "P1GQ", "P1Filter", "P1_AAC", "P2RefDepth", "P2AltDepth", "P2GQ", "P2Filter", "P2_AAC", "GATK_FILTER" };
 	private static final String[] TO_REPORT = new String[] { "SNPEFF_GENE_NAME", "SNPEFF_EFFECT", "SNPEFF_IMPACT", "AAChange.refGene", "SNPEFF_EXON_ID", "esp6500si_all", "g10002014oct_all", "culprit", "snp138" };
 	public static final String OFFSPRING = "OFFSPRING";
 	public static final String REG_NOVO = "REG_NOVO";
@@ -188,7 +188,7 @@ public class RegNovo {
 									sum += "\t" + VCOps.getAAC(VCOps.getAltAlleleContext(vc, readDepths, filterControl, ALT_ALLELE_CONTEXT_TYPE.ALL, log), all);
 									sum += "\t" + VCOps.getAAC(VCOps.getAltAlleleContext(vc, readDepths, filterControl, ALT_ALLELE_CONTEXT_TYPE.ALL, log), controls);
 									sum += "\t" + VCOps.getAAC(VCOps.getAltAlleleContext(vc, readDepths, filterControl, ALT_ALLELE_CONTEXT_TYPE.ALL, log), offspring);
-									summaryWriter.println(off + "\t" + vcOffAlt.getID() + "\t" + vc.getChr() + "\t" + vc.getStart() + "\t" + vc.getEnd() + "\t" + passesAllControls + sum + pString + "\t" + vc.getFilters().toString() + "\t" + Array.toStr(anno) + "\t" + hasExclude + "\t" + regNovo);
+									summaryWriter.println(off + "\t" + vcOffAlt.getID() + "\t" + vcOffAlt.getReference() + "\t" + vcOffAlt.getAlternateAlleles().toString() + "\t" + vc.getChr() + "\t" + vc.getStart() + "\t" + vc.getEnd() + "\t" + passesAllControls + sum + pString + "\t" + vc.getFilters().toString() + "\t" + Array.toStr(anno) + "\t" + hasExclude + "\t" + regNovo);
 									summaryWriter.flush();
 								}
 							}
@@ -349,8 +349,8 @@ public class RegNovo {
 		out += vcSeg.getChr();
 		out += "\t" + vcSeg.getStart();
 		out += "\t" + vcSeg.getStop();
-		out += "\t" +vc.getReference().getDisplayString();
-		out += "\t" +vc.getAlternateAlleles().toString();
+		out += "\t" + vc.getReference().getDisplayString();
+		out += "\t" + vc.getAlternateAlleles().toString();
 		out += "\t" + vc.getID();
 		out += "\t" + VCOps.getAltAlleleContext(vcOff, null, log).getSampleNames().size();
 		out += "\t" + VCOps.getAAC(vcOff, null);
@@ -391,8 +391,8 @@ public class RegNovo {
 		FilterNGS readDepths = new FilterNGS(0, 0, null);
 		readDepths.setAltAlleleDepthFilter(new int[] { 5 });
 		RegNovo regNovo = new RegNovo(vcf, bams, vpop, getQualityFilter(log), getQualityFilter(log), readDepths, ext.parseDirectoryOfFile(vpopFile), log);
-		//Segment[] segs = new Segment[] { new Segment("chr9:14079842-14400982"), new Segment("chr17:7571520-7590968"), new Segment("chr8:119933796-119966383") };
-		Segment[] segs = new Segment[] {  new Segment("chr17:7571520-7590968") };
+		// Segment[] segs = new Segment[] { new Segment("chr9:14079842-14400982"), new Segment("chr17:7571520-7590968"), new Segment("chr8:119933796-119966383") };
+		Segment[] segs = new Segment[] { new Segment("chr17:7571520-7590968") };
 
 		regNovo.scanAndReportSelection(segs, readDepths, getQualityFilter(log), "TP53_NFIB_TNFRSF11B");
 		regNovo.scanForDenovo();

@@ -50,7 +50,7 @@ public class ConvertChargeToVCF {
 				VCFInfoHeaderLine vHeaderLine = new VCFInfoHeaderLine(CHARGE_HEADER[i], 1, i <= 4 ? VCFHeaderLineType.String : VCFHeaderLineType.Float, CHARGE_HEADER[i] + " from Charge");
 				vcfHeader.addMetaDataLine(vHeaderLine);
 			}
-
+			
 			int countSkipped = 0;
 			String outputVCF = fullPathToFile + ".vcf";
 			ArrayList<Segment> segs = new ArrayList<Segment>(12000000);
