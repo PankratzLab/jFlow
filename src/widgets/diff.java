@@ -53,7 +53,7 @@ public class diff {
     		    		Thread.sleep(300);
     		    	} catch(InterruptedException ie) {}
     		    	deleteAll();
-    				System.exit(1);
+    				return;
     			}
 	    	} else {
 	    		if (i == 3) {
@@ -61,7 +61,6 @@ public class diff {
 	    		}
 	    		if (i == 14) {
 	    			System.err.println("Error - second file never opened, highlight 2 (ctrl+left click) and try again");
-					ext.waitForResponse();
 	    		}
 	    	}
 	    }
@@ -219,7 +218,8 @@ public class diff {
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
                 System.err.println(usage);
-                System.exit(1);
+        		ext.waitForResponse();
+        		return;
             }
         }
 
@@ -230,10 +230,10 @@ public class diff {
                 runDiff(args[0], args[1]);
             } else {
                 System.err.println(usage);
-                System.exit(2);
             }
         } catch(Exception e) {
             e.printStackTrace();
         }
-    }
+		ext.waitForResponse();
+   }
 }

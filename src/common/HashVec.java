@@ -394,7 +394,7 @@ public class HashVec {
 			}
 			while (reader.ready()) {
 				temp = reader.readLine();
-				if (commaDelimitedFile) {
+				if (filename.endsWith(".csv") || commaDelimitedFile) {
 //					line = temp.split(",", -1);
 					line = ext.splitCommasIntelligently(temp, true, new Logger());
 				} else if (temp.indexOf("\t")==-1) {
