@@ -2882,6 +2882,9 @@ public class Files {
 		if (toSearch.length > header.length) {
 			has = false;
 		} else if (Array.countIf(ext.indexFactors(toSearch, header, true, log, verbose, false), -1) > 0) {
+			if(verbose){
+				log.reportTimeError("Searched header "+Array.toStr(header));
+			}
 			has = false;
 		}
 		return has;
