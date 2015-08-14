@@ -781,6 +781,7 @@ public class Files {
 	}
 	
 	public static BufferedReader getAppropriateReader(String filename) throws FileNotFoundException {
+		InputStream is = null;
 		InputStreamReader isReader = null;
 
 		if (!exists(filename, false) && !exists(filename, true)) {
@@ -793,24 +794,35 @@ public class Files {
 
 		if (filename.endsWith(".gz")) {
 			try {
-				isReader = new InputStreamReader(new GZIPInputStream(new FileInputStream(filename)));
+				is = new GZIPInputStream(new FileInputStream(filename));
 			} catch (IOException e) {
 				System.err.println("Error accessing '"+filename+"'");
 				e.printStackTrace();
 			}
 		} else if (filename.endsWith(".zip")) {
 			try {
-				isReader = new InputStreamReader(new ZipInputStream(new FileInputStream(filename)));
+				is = new ZipInputStream(new FileInputStream(filename));
 			} catch (IOException e) {
 				System.err.println("Error accessing '"+filename+"'");
 				e.printStackTrace();
 			}
 		} else {
-			isReader = new FileReader(filename);
+			is = new FileInputStream(filename);
 		}
-		if (isReader == null) {
+		if (is == null) {
 			return null;
 		}
+
+		if (filename.contains(".utf8.")) {
+			try {
+				isReader = new InputStreamReader(is, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		} else {
+			isReader = new InputStreamReader(is);
+		}		
+		
 		BufferedReader reader = new BufferedReader(isReader);
 		try {
 			if (!reader.ready()) {
