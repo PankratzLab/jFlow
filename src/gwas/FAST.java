@@ -362,6 +362,9 @@ public class FAST {
 		// TODO ensure 1-1 keymapping between traits and data maps
 		// TODO ensure 1-1 keymapping between study.pop in both maps
 		
+		traitDir = ext.verifyDirFormat(traitDir);
+		runDir = ext.verifyDirFormat(runDir);
+		
 		/*
 		 mkdir STUDY
 		 for each FACTOR:
