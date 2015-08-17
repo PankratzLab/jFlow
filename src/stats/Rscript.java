@@ -436,6 +436,10 @@ public class Rscript {
 			this.gTexts = gTexts;
 		}
 
+		public String getDataFile() {
+			return dataFile;
+		}
+
 		public void setHeight(int height) {
 			this.height = height;
 		}

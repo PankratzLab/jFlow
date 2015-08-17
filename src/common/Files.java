@@ -2409,6 +2409,65 @@ public class Files {
 		}
 	}
 	
+	/**
+	 * Sort of like the linux paste function, files must be the same length, and in the same order
+	 */
+	public static String[][] paste(String[] orginalFiles, String finalFile, int[] columns, int keyColumn, String[] newColumnNameTags, Logger log) {
+		if (newColumnNameTags.length != orginalFiles.length) {
+			log.reportTimeError("Name tags must be the same length as files");
+			return null;
+		}
+		try {
+			PrintWriter writer = Files.getAppropriateWriter(finalFile);
+			BufferedReader[] readers = new BufferedReader[orginalFiles.length];
+			String[][] newColumns = new String[orginalFiles.length][columns.length];
+			for (int i = 0; i < orginalFiles.length; i++) {
+				readers[i] = Files.getAppropriateReader(orginalFiles[i]);
+				String[] curHeader = Files.getHeaderOfFile(orginalFiles[i], log);
+				for (int j = 0; j < columns.length; j++) {
+					String newColumn = curHeader[columns[j]] + "_" + newColumnNameTags[i];
+					writer.print((i == 0 ? "" : "\t") + newColumn);
+					newColumns[i][j] = newColumn;
+				}
+			}
+			writer.println();
+
+			while (readers[0].ready()) {
+				String[] line = readers[0].readLine().trim().split("\t");
+				String key = line[keyColumn];
+				writer.print(Array.subArray(line, columns));
+				for (int i = 1; i < readers.length; i++) {
+					String[] oLine = readers[i].readLine().trim().split("\t");
+					if (!key.equals(oLine[keyColumn])) {
+						String error = "Files must be in the same order as defined by the key column";
+						log.reportTimeError(error);
+						throw new IllegalStateException(error);
+					} else {
+						writer.print("\t" + Array.subArray(oLine, columns));
+					}
+				}
+				writer.println();
+			}
+			for (int i = 0; i < readers.length; i++) {
+				if (readers[i].ready()) {
+					String error = orginalFiles[i] + " still has more lines";
+
+					log.reportTimeError(error);
+					throw new IllegalStateException(error);
+
+				} else {
+					readers[i].close();
+				}
+			}
+			writer.close();
+			return newColumns;
+		} catch (Exception e) {
+			log.reportError("Error writing to " + finalFile);
+			log.reportException(e);
+		}
+		return null;
+	}
+	
 	// can pass skips as null if there are no skips to be made
 	// can pass skips as an empty array (new int[0]) if the first file should pass a header but the rest should be skipped
 	public static void cat(String[] originalFiles, String finalFile, int[] skips, Logger log) {

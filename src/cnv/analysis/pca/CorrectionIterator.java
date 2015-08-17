@@ -25,6 +25,7 @@ import stats.StatsCrossTabs.VALUE_TYPE;
 import common.Array;
 import common.Array.BooleanClassifier;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.PSF;
 import common.WorkerTrain;
@@ -675,6 +676,8 @@ class CorrectionIterator implements Serializable {
 			return null;
 		}
 
+		// sprivate
+
 		public void setValid(boolean valid) {
 			this.valid = valid;
 		}
@@ -882,8 +885,8 @@ class CorrectionIterator implements Serializable {
 						if (classifiers != null) {
 							String originalSer = iterationResult.getOutputSer();
 							for (int classifyIndex = 0; classifyIndex < classifiers.length; classifyIndex++) {
-								for (int titleIndex = 0; titleIndex < classifiers[titleIndex].getTitles().length; titleIndex++) {
-									System.exit(1);
+								ArrayList<String> currentClass = new ArrayList<String>();
+								for (int titleIndex = 0; titleIndex < classifiers[classifyIndex].getTitles().length; titleIndex++) {
 									IterationResult tmpR = tmp.getIterationResult();
 
 									String newSer = ext.addToRoot(originalSer, "." + classifiers[classifyIndex].getTitles()[titleIndex] + ".summary");
@@ -901,8 +904,21 @@ class CorrectionIterator implements Serializable {
 									}
 									RScatter tmpherit = tmpR.plotHeritability(proj, pedFile, currentModel, log);
 									tmpherit.setTitle(classifiers[classifyIndex].getTitles()[titleIndex] + " - matched samples n=" + Array.booleanArraySum(currentModel));
+									tmpherit.execute();
 									scatters.add(tmpR.plotHeritability(proj, pedFile, currentModel, log));
+									currentClass.add(tmpherit.getDataFile());
 								}
+
+								String stratCatHerit = stratCats[classifyIndex];
+								String comboHerit = ext.rootOf(originalSer, false) + stratCatHerit + ".heritability.summary";
+								System.out.println(comboHerit);
+								String[] heritColumns = new String[currentClass.size()];
+								String[][] columns = Files.paste(Array.toStringArray(currentClass), comboHerit, new int[] { 0, 1 }, 0, classifiers[classifyIndex].getTitles(), log);
+								for (int j = 0; j < columns.length; j++) {
+									heritColumns[j] = columns[j][1];
+								}
+								System.exit(1);
+
 							}
 
 						}

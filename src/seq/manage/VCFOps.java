@@ -19,7 +19,6 @@ import java.util.concurrent.Callable;
 
 import cnv.var.LocusSet;
 import seq.analysis.PlinkSeq;
-import seq.analysis.PlinkSeqMegs;
 import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import seq.analysis.PlinkSeq.LOAD_TYPES;
 import seq.analysis.PlinkSeq.PlinkSeqWorker;
@@ -36,7 +35,6 @@ import gwas.MatchSamples;
 import gwas.MatchesVisualized;
 import gwas.MergeDatasets;
 import htsjdk.samtools.QueryInterval;
-import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.util.CloseableIterator;
@@ -53,7 +51,6 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import common.Array;
 import common.CmdLine;
@@ -379,29 +376,29 @@ public class VCFOps {
 		return outFiles;
 	}
 
-	private static void fixMdsFile(Logger log, String dir, Hashtable<String, String> newIDS, String mdsFile) {
-		if (newIDS.size() > 0 && Files.exists(mdsFile)) {
-			String[] header = Files.getHeaderOfFile(mdsFile, log);
-			int[] indices = new int[header.length];
-			for (int i = 0; i < indices.length; i++) {
-				indices[i] = i;
-			}
-			String[][] mds = HashVec.loadFileToStringMatrix(mdsFile, false, new int[] { 0, 1, 2, 3, 4, 5 }, false);
-			String[][] newMds = new String[mds.length][mds[0].length];
-			for (int i = 0; i < mds.length; i++) {
-				for (int j = 0; j < mds[i].length; j++) {
-					if (j == 0 && j != 1 && newIDS.containsKey(mds[i][0])) {
-						newMds[i][0] = newIDS.get(mds[i][0]);
-						newMds[i][1] = newIDS.get(mds[i][0]);
-					} else {
-						newMds[i][j] = mds[i][j];
-					}
-				}
-			}
-			Files.writeMatrix(newMds, ext.addToRoot(mdsFile, ".fixed"), "\t");
-
-		}
-	}
+//	private static void fixMdsFile(Logger log, String dir, Hashtable<String, String> newIDS, String mdsFile) {
+//		if (newIDS.size() > 0 && Files.exists(mdsFile)) {
+//			String[] header = Files.getHeaderOfFile(mdsFile, log);
+//			int[] indices = new int[header.length];
+//			for (int i = 0; i < indices.length; i++) {
+//				indices[i] = i;
+//			}
+//			String[][] mds = HashVec.loadFileToStringMatrix(mdsFile, false, new int[] { 0, 1, 2, 3, 4, 5 }, false);
+//			String[][] newMds = new String[mds.length][mds[0].length];
+//			for (int i = 0; i < mds.length; i++) {
+//				for (int j = 0; j < mds[i].length; j++) {
+//					if (j == 0 && j != 1 && newIDS.containsKey(mds[i][0])) {
+//						newMds[i][0] = newIDS.get(mds[i][0]);
+//						newMds[i][1] = newIDS.get(mds[i][0]);
+//					} else {
+//						newMds[i][j] = mds[i][j];
+//					}
+//				}
+//			}
+//			Files.writeMatrix(newMds, ext.addToRoot(mdsFile, ".fixed"), "\t");
+//
+//		}
+//	}
 
 	private static Hashtable<String, String> fixFamFile(Logger log, String famFile) {
 		Hashtable<String, String> changedIds = new Hashtable<String, String>();
@@ -862,7 +859,7 @@ public class VCFOps {
 						if (!Files.exists(callRateFiltered)) {
 							reportCallRateHWEFiltered(splits[j], callRateFiltered, callRate, hwe, log);
 						}
-						LocusSet<Segment> segs = LocusSet.loadSegmentSetFromFile(ext.addToRoot(callRateFiltered, ".segment"), 0, 1, 2, 0, true, true, 0, log);
+						//LocusSet<Segment> segs = LocusSet.loadSegmentSetFromFile(ext.addToRoot(callRateFiltered, ".segment"), 0, 1, 2, 0, true, true, 0, log);
 						// toRemoveSeg = Array.concatAll(toRemoveSeg, segs.getLoci());
 						String[] callRateRemove = HashVec.loadFileToStringArray(callRateFiltered, false, new int[] { 0 }, true);
 						for (int k = 0; k < callRateRemove.length; k++) {
@@ -1111,17 +1108,19 @@ public class VCFOps {
 		return outputVCF;
 	}
 
-	public static String[] getAnnotationKeys(String vcf, Logger log) {
+	public static String[][] getAnnotationKeys(String vcf, Logger log) {
 		VCFFileReader reader = new VCFFileReader(vcf, false);
 		String[] annotationKeys = new String[reader.getFileHeader().getInfoHeaderLines().size()];
+		String[] descriptions = new String[reader.getFileHeader().getInfoHeaderLines().size()];
 		int index = 0;
 		for (VCFInfoHeaderLine vcfHeaderLine : reader.getFileHeader().getInfoHeaderLines()) {
 			annotationKeys[index] = vcfHeaderLine.getID();
+			descriptions[index] = vcfHeaderLine.getDescription();
 			index++;
 		}
 		Arrays.sort(annotationKeys);
 		reader.close();
-		return annotationKeys;
+		return new String[][] { annotationKeys, descriptions };
 
 	}
 
@@ -1161,25 +1160,31 @@ public class VCFOps {
 		}
 		String output = dir + root + "." + ext.rootOf(segmentFile) + ".vcf" + (gzipOutput ? ".gz" : "");
 		String annoFile = dir + root + "." + ext.rootOf(segmentFile) + ".anno.txt";
-
 		if (!Files.exists(output)) {
 			Segment[] segsToSearch = null;
 			if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
 				segsToSearch = Segment.loadRegions(segmentFile, 0, 3, 3, false);
 			} else {
 				segsToSearch = Segment.loadRegions(segmentFile, 0, 1, 2, 0, true, true, true, bpBuffer);
+				log.reportTimeInfo("Loaded " + segsToSearch.length + " segments to search");
+				segsToSearch = Segment.unique(segsToSearch);
+				log.reportTimeInfo(segsToSearch.length + " were unique");
+				segsToSearch = Segment.mergeOverlapsAndSortAllChromosomes(segsToSearch, 1);
+				log.reportTimeInfo(segsToSearch.length + " after merging");
+
 			}
-			log.reportTimeInfo("Loaded " + segsToSearch.length + " segments to search");
+
 			VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
 			copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
 			int progress = 0;
 			int found = 0;
 
 			PrintWriter annoWriter = null;
-			String[] annotations = getAnnotationKeys(vcf, log);
+			String[][] annotations = getAnnotationKeys(vcf, log);
 			if (createAnnotationFile) {
 				annoWriter = Files.getAppropriateWriter(annoFile);
-				annoWriter.println(Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations));
+				annoWriter.println("##" + Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[1]));
+				annoWriter.println(Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[0]));
 
 			}
 			for (VariantContext vc : reader) {
@@ -1194,10 +1199,8 @@ public class VCFOps {
 					if (bamSample != null) {
 						bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getEnd()));
 					}
-					// private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT" };
-
 					if (createAnnotationFile) {
-						annoWriter.println(vc.getChr() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" +Array.toStr(VCOps.getAnnotationsFor(annotations, vc, ".")));
+						annoWriter.println(vc.getChr() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
 					}
 					found++;
 				}
