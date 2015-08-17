@@ -1,12 +1,15 @@
 package stats;
 
 //import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 import common.*;
 
 public class Rscript {
-	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-"));
+	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-","="));
 	public static final String R_REPLACEMENT = ".";
 	public static final String[] RSCRIPT_EXECS = {
 			// "/soft/R/3.0.1/bin/Rscript", // MSI
@@ -142,7 +145,7 @@ public class Rscript {
 	}
 
 	public enum SCATTER_TYPE {
-		LINE("geom_line"), POINT("geom_point");
+		LINE("geom_line"), POINT("geom_point"), BOX("geom_boxplot");
 
 		private String call;
 
@@ -263,7 +266,7 @@ public class Rscript {
 		@Override
 		public boolean execute() {
 			String[] rScript = developScript();
-			//log.report(Array.toStr(rScript, "\n"));
+			// log.report(Array.toStr(rScript, "\n"));
 			Files.writeList(rScript, rScriptFile);
 			boolean ran = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", rScriptFile }, "", new String[] { rScriptFile }, new String[] { mergeOutput }, true, true, false, log);
 			return ran;
@@ -296,6 +299,84 @@ public class Rscript {
 
 	}
 
+	
+	
+	public static class GeomText {
+		private static final String[] HEADER = new String[] { "X", "Y", "ANGLE", "LABEL","FONTSIZE" };
+		private double x;
+		private double y;
+		private double angle;
+		private String label;
+		private int fontSize;
+
+		public GeomText(double x, double y,double angle, String label, int fontSize) {
+			super();
+			this.x = x;
+			this.y = y;
+			this.angle = angle;
+			this.label = label;
+			this.fontSize = fontSize;
+		}
+
+		public double getY() {
+			return y;
+		}
+
+		public void setY(double y) {
+			this.y = y;
+		}
+
+		public String getCommand() {
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append(" geom_text(data = NULL,x =");
+			stringBuilder.append(x + ", y = ");
+			stringBuilder.append(y + ", label=");
+			stringBuilder.append("\"" + label + "\",angle=" + angle + ",size=" + fontSize + ")");
+			return stringBuilder.toString();
+		}
+
+		public static GeomText[] fromFile(String file, Logger log) {
+			if (!Files.exists(file)) {
+				log.reportFileNotFound(file);
+				return null;
+			} else if (!Files.headerOfFileContainsAll(file, HEADER, log)) {
+				log.reportTimeError("Geom text "+file+"  must have header " + Array.toStr(HEADER));
+				return null;
+			} else {
+				ArrayList<GeomText> geomTexts = new ArrayList<GeomText>();
+				try {
+					int[] indices  = ext.indexFactors(HEADER, Files.getHeaderOfFile(file, log), true, false);
+					BufferedReader reader = Files.getAppropriateReader(file);
+					reader.readLine();
+					while (reader.ready()) {
+						String[] line = reader.readLine().trim().split("\t");
+						double x = Double.parseDouble(line[indices[0]]);
+						double y = Double.parseDouble(line[indices[1]]);
+						double angle = Double.parseDouble(line[indices[2]]);
+						String label = line[indices[3]];
+						int fontSize = Integer.parseInt(line[indices[4]]);
+						geomTexts.add(new GeomText(x, y, angle, label, fontSize));
+
+					}
+					reader.close();
+				} catch (FileNotFoundException fnfe) {
+					log.reportError("Error: file \"" + file + "\" not found in current directory");
+					return null;
+				} catch (IOException ioe) {
+					log.reportError("Error reading file \"" + file + "\"");
+					return null;
+				}
+				return geomTexts.toArray(new GeomText[geomTexts.size()]);
+			}
+
+		}
+		
+	}
+
+	// public static class RBoxPlot implements RCommand{
+	//
+	// }
+
 	/**
 	 * @author lane0212 For plotting that mimics Excel's scatter plots using ggplot2
 	 */
@@ -325,6 +406,9 @@ public class Rscript {
 		private boolean logTransformX;
 		private boolean logTransformY;
 		private boolean overWriteExisting;
+		private int height;
+		private int width;
+		private GeomText[] gTexts;
 
 		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
 			super();
@@ -344,6 +428,20 @@ public class Rscript {
 			this.logTransformY = false;
 			this.overWriteExisting = false;
 			this.yMin = Double.NaN;
+			this.height = 6;
+			this.width = 11;
+		}
+
+		public void setgTexts(GeomText[] gTexts) {
+			this.gTexts = gTexts;
+		}
+
+		public void setHeight(int height) {
+			this.height = height;
+		}
+
+		public void setWidth(int width) {
+			this.width = width;
 		}
 
 		public void setOverWriteExisting(boolean overWriteExisting) {
@@ -397,7 +495,7 @@ public class Rscript {
 		@Override
 		public boolean execute() {
 			String[] rScript = developScript();
-			//log.report(Array.toStr(rScript, "\n"));
+			// log.report(Array.toStr(rScript, "\n"));
 			Files.writeList(rScript, rScriptFile);
 			boolean ran = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", rScriptFile }, "", new String[] { rScriptFile }, new String[] { output }, true, overWriteExisting, false, log);
 			return ran;
@@ -428,8 +526,14 @@ public class Rscript {
 				String melt = dataTableMelt + "<-  melt(" + dataTableExtract + ",id.vars =\"" + rSafeXColumn + "\")";
 				rCmd.add(melt);
 				dataTable = dataTableMelt;
-				plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=" + rSafeXColumn + ", y=value, group=variable)) ";
-				plot += " + " + sType.getCall() + "(aes(colour =variable)" + (gPoint_SIZE == null ? "" : "," + gPoint_SIZE.getCall()) + ")";
+				if (sType == SCATTER_TYPE.BOX) {
+					plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=variable, y=value)) ";
+					plot += " + " + sType.getCall() + "(aes(fill=" + rSafeXColumn + "))";
+
+				} else {
+					plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=" + rSafeXColumn + ", y=value, group=variable)) ";
+					plot += " + " + sType.getCall() + "(aes(colour =variable)" + (gPoint_SIZE == null ? "" : "," + gPoint_SIZE.getCall()) + ")";
+				}
 
 				// } else {
 				// plot += plotVar + " <- ggplot(" + dataTable + ", aes(x = " + dataTable + "$" + rSafeXColumn + ")) ";
@@ -473,9 +577,21 @@ public class Rscript {
 				plot += "legend.text=element_text(size=" + fontsize + "),";
 				plot += "panel.background = element_blank())";
 				plot += title == null ? "" : "+ labs(title = \"" + title + "\")";
+				if (gTexts != null) {
+					for (int i = 0; i < gTexts.length; i++) {
+						plot += " + " + gTexts[i].getCommand();
+					}
+				}
 				rCmd.add(plot);
-				rCmd.add("ggsave(file=\"" + output + "\", width= 11, height = 6)");
 
+				rCmd.add("ggsave(file=\"" + output + "\", width= " + width + ", height = " + height + ",limitsize=FALSE)");
+				// System.out.println(output);
+				// System.out.println(Array.toStr(Array.toStringArray(rCmd),"\n"));
+				//
+				//
+				// System.out.println(plot);
+				// System.exit(1);
+				// System.exit(1);
 				return rCmd.toArray(new String[rCmd.size()]);
 
 			}

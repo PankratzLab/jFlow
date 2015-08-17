@@ -19,6 +19,7 @@ import common.ext;
 import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
 import cnv.annotation.AnnotationParser;
 import cnv.annotation.MarkerAnnotationLoader;
+import cnv.annotation.MarkerBlastAnnotation;
 import cnv.annotation.MarkerGCAnnotation;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -28,13 +29,31 @@ import cnv.qc.MarkerMetrics;
 import filesys.Segment;
 
 public class GcLook {
-	private static final int[] CHRS = new int[] { -1, 26, 23, 24 };
+	private static final int[] CHRS = new int[] { -1, 26 };
+	// private static final int[] CHRS = new int[] { -1, 26, 23, 24 };
 	private static final int[][] QC_GROUPINGS = new int[][] { { 1 }, { 2, 3, 4 }, { 5, 6 }, { 7, 8, 9 }, { 10, 11, 12 }, { 23 } };
 	private static final String[] QC_TITLES = new String[] { "CallRate", "MeanClusterTheta", "DiffTheta", "SDClusterTheta", "MeanClusterR", "LRR_SD" };
 	private static final String GC_CONTENT = "GC_Content";
 
+	public enum CROSS_HYBE_FILTER {
+		ALL(-1), ALIGN_25(25), ALIGN_30(30), ALIGN_35(35), ALIGN_45(45);
+
+		private int minTally;
+
+		private CROSS_HYBE_FILTER(int buffer) {
+			this.minTally = buffer;
+
+		}
+
+		public int getMinTally() {
+			return minTally;
+		}
+
+	}
+
 	public enum KB_BUFFER {
-		DESIGN(-1), BP_50(50), BP_100(100), BP_250(250), BP_500(500), BP_1000(1000);
+		DESIGN(-1);
+		// , BP_50(50), BP_100(100), BP_250(250), BP_500(500), BP_1000(1000), BP_10000(10000);
 
 		private int buffer;
 
@@ -92,13 +111,19 @@ public class GcLook {
 				MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getMarkerSet(), true);
 				markerAnnotationLoader.setReportEvery(500000);
 				MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, markerNames, markerAnnotationLoader.getMarkerSet(), markerAnnotationLoader.getIndices());
+				MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
+
 				ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
 				parsers.add(gcAnnotations);
+				parsers.add(blastResults);
+
 				markerAnnotationLoader.fillAnnotations(null, parsers, QUERY_ORDER.ONE_PER_IN_ORDER);
 
 				try {
 
 					PrintWriter writer = new PrintWriter(new FileWriter(out));
+					PrintWriter writerSeparate = new PrintWriter(new FileWriter(out));
+					
 					writer.print(GC_CONTENT);
 					for (int qcMetric = 0; qcMetric < parser.getNumericData().length; qcMetric++) {
 						for (int chrIndex = 0; chrIndex < CHRS.length; chrIndex++) {
@@ -110,14 +135,13 @@ public class GcLook {
 
 					writer.println();
 					for (int i = 0; i < markerNames.length; i++) {
-						if (i % 1000000 == 0) {
+						if (i % 10000 == 0) {
 							proj.getLog().reportTimeInfo("parsed " + i);
-							break;
 						}
 						for (int bufferIndex = 0; bufferIndex < KB_BUFFER.values().length; bufferIndex++) {
 							double gc = Double.NaN;
-							Segment markerSegment = new Segment(chrs[i], pos[i], pos[i]);
 							if (KB_BUFFER.values()[bufferIndex] != KB_BUFFER.DESIGN) {
+								Segment markerSegment = new Segment(chrs[i], pos[i], pos[i]);
 								markerSegment = markerSegment.getBufferedSegment(KB_BUFFER.values()[bufferIndex].getBuffer());
 								gc = referenceGenome.getGCContentFor(markerSegment);
 							} else {
@@ -186,67 +210,18 @@ public class GcLook {
 						rScatters.add(rScatterGroupAvg);
 					}
 				}
-
-				//
-				// for (int l = 0; l < QC_GROUPINGS.length; l++) {
-				// String groupPlot = ext.rootOf(allPlotFiles[j], false) + "_" + QC_TITLES[l];
-				// String title = "n=" + Array.sum(dHistograms[j][0].getCounts());
-				// ArrayList<String> ys = new ArrayList<String>();
-				// for (int k = 0; k < QC_GROUPINGS[l].length; k++) {
-				// ys.add(titles[3 * QC_GROUPINGS[l][k] + 2]);
-				// }
-				// String[] yColumns = ys.toArray(new String[ys.size()]);
-				// RScatter rScatterGroupAvg = new RScatter(allPlotFiles[j], groupPlot + ".rscript", ext.removeDirectoryInfo(groupPlot), groupPlot + ".pdf", titles[0], yColumns, SCATTER_TYPE.POINT, proj.getLog());
-				// rScatterGroupAvg.setxLabel(BLAST_METRICS.values()[j].toString());
-				// rScatterGroupAvg.setyLabel(QC_TITLES[l]);
-				// rScatterGroupAvg.setOverWriteExisting(false);
-				// rScatterGroupAvg.setFontsize(plotFontSize);
-				// rScatterGroupAvg.setTitle(title);
-				// rScatterGroupAvg.setyMin(yMin);
-				// rScatterGroupAvg.execute();
-				// rScatters.add(rScatterGroupAvg);
-				//
-				// groupPlot = ext.rootOf(allPlotFiles[j], false) + "_" + QC_TITLES[l] + "_counts";
-				// ys = new ArrayList<String>();
-				// for (int k = 0; k < QC_GROUPINGS[l].length; k++) {
-				// ys.add(titles[3 * QC_GROUPINGS[l][k] + 1]);
-				// }
-				// yColumns = ys.toArray(new String[ys.size()]);
-				// RScatter rScatterGroupCounts = new RScatter(allPlotFiles[j], groupPlot + ".rscript", ext.removeDirectoryInfo(groupPlot), groupPlot + ".pdf", titles[0], yColumns, SCATTER_TYPE.POINT, proj.getLog());
-				// rScatterGroupCounts.setxLabel(BLAST_METRICS.values()[j].toString());
-				// rScatterGroupCounts.setyMin(yMin);
-				// rScatterGroupCounts.setyLabel("COUNTS");
-				// rScatterGroupCounts.setLogTransformY(true);
-				// rScatterGroupCounts.setOverWriteExisting(false);
-				// rScatterGroupCounts.setFontsize(plotFontSize);
-				// rScatterGroupCounts.setTitle(title);
-				// rScatterGroupCounts.execute();
-				// rScatters.add(rScatterGroupCounts);
-				//
-				// }
-
 				RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), out + ".rscript", out + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
 
 				rScattersAll.execute();
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	// public static void main(String[] args) {
-	// String projFile = "/home/pankrat2/lanej/projects/LLFS_GWAS.properties";
-	//
-	// Project proj = new Project(projFile, false);
-	// gcQCSummary(proj);
-	// }
-
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
-		String logfile = null;
-
 		String usage = "\n" + "one.JL.GcLook requires 0-1 arguments\n" + "   (1) project filename (i.e. proj=" + filename + " (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {

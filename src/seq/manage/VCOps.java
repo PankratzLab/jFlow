@@ -337,6 +337,9 @@ public class VCOps {
 			log.reportTimeWarning("JOHN REMEMBER THE BIALLELIC ISSUE!");
 		}
 		Arrays.fill(AD, 0);
+		if (g.isNoCall()) {
+			return AD;
+		}
 		List<Allele> gAlleles = g.getAlleles();
 
 		List<Allele> varAlleles = vc.getAlleles();
@@ -347,8 +350,6 @@ public class VCOps {
 		} else if (gAlleles.size() == 0 || !g.hasAD()) {
 			throw new IllegalStateException("Invalid Allele retrieval");
 
-		} else if (varAlleles.size() < gAlleles.size()) {
-			throw new IllegalStateException("Variant does not capture genotyped alleles");
 		} else {
 			int[] gAD = g.getAD();
 			if (gAlleles.size() == 1) {
@@ -378,6 +379,9 @@ public class VCOps {
 					if (!have) {
 						uniqs.add(gAlleles.get(i));
 					}
+				}
+				if (varAlleles.size() < uniqs.size()) {
+					throw new IllegalStateException("Variant does not capture genotyped alleles\t" + varAlleles.toString() + "\t" + uniqs.toString());
 				}
 				ArrayList<Integer> gAlleleIndices = new ArrayList<Integer>();
 				int index = 0;

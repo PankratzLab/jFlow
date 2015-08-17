@@ -35,10 +35,10 @@ import common.ext;
 public class MitoPipeline {
 	public static final String[] PED_INPUT = { "DNA", "FID", "IID", "FA", "MO", "SEX", "AFF" };
 	public static final String[] SAMPLEMAP_INPUT = { "Index", "Name", "ID", "Gender", "Plate", "Well", "Group", "Parent1", "Parent2", "Replicate", "SentrixPosition" };
-	public static final String[] QC_COLUMNS = { "Sample", "LRR_SD", "AB_callrate" };
-	public static final String[] SAMPLE_QC_SUMMARY = { "DNA", "LRR_SD", "AB_callrate", "Included in PC?" };
+	public static final String[] QC_COLUMNS = { "Sample", "LRR_SD", "Genotype_callrate" };
+	public static final String[] SAMPLE_QC_SUMMARY = { "DNA", "LRR_SD", "Genotype_callrate", "Included in PC?" };
 	public static final String[] SEX = { "female", "male" };
-	public static final String[] SAMPLE_DATA_ADDITION_HEADERS = { "LRR_SD", "AB_callrate", "CLASS=Exclude" };
+	public static final String[] SAMPLE_DATA_ADDITION_HEADERS = { "LRR_SD", "Genotype_callrate", "CLASS=Exclude" };
 
 	private static final String DNA_LINKER = "DNA";
 	private static final String MARKERS_TO_QC_FILE = "markers_to_QC.txt";

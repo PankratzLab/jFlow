@@ -224,7 +224,8 @@ public class PlinkSeqMegs {
 		String fileOfVcfs = null;
 		boolean batch = false;
 		String vpopFile = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt";
-		String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
+		//String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
+		String resourceDirectory = "/home/spectorl/public/bin/pseqRef/hg19/";
 		Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");
 		String geneTrackFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/RefSeq_hg19.gtrack";
 		String keggPathwayFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/kegg.ser";

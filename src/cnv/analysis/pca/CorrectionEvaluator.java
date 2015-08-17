@@ -24,7 +24,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 	private static final long serialVersionUID = 1L;
 	private static final String[] STRING_DATA = new String[] { "CENTER" };// CLASS Sex
 	private static final String[][] EVAL_MASKS = new String[][] { { "0", "-1", "NaN" }, { "0", "-1" } };
-	private static final String[] DOUBLE_DATA = new String[] { "AGE" };
+	public static final String[] DOUBLE_DATA = new String[] { "AGE" };
 	private static final String[] DOUBLE_DATA_PATTERN = new String[] { "EVAL_DATA", "AGE" };// For Correlation(Spearman by ICC)
 	private static final String[] STRING_DATA_PATTERN = new String[] { "EVAL_CLASS", "AGE" };// For ICC
 	public static final String[] INDEPS = new String[] { "CLASS=SEX", "AGE" };

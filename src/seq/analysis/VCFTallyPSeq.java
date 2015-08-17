@@ -294,8 +294,8 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 	public static void test(String vcf, String[] vpopFiles) {
 
 		for (int i = 0; i < vpopFiles.length; i++) {
-			String fullpathToChargeVCF = "/panfs/roc/groups/14/tsaim/shared/bin/CHARGE/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
-			String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
+			String fullpathToChargeVCF = "/home/spectorl/lanej0/OS_seq/vcf/tally/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
+			String resourceDirectory = "/home/spectorl/public/bin/pseqRef/hg19/";
 			Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");
 			String geneTrackFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/RefSeq_hg19.gtrack";
 			String keggPathwayFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/kegg.ser";

@@ -83,12 +83,21 @@ public class ReferenceGenome {
 	public String[] getSequenceFor(Segment segment) {
 		String requestedContig = Positions.getChromosomeUCSC(segment.getChr(), true, true);
 		if (hasContig(requestedContig)) {
-			ReferenceSequence referenceSequence = indexedFastaSequenceFile.getSubsequenceAt(requestedContig, segment.getStart() - defaultBuffer, segment.getStop() + defaultBuffer);
+			int seqLength = indexedFastaSequenceFile.getSequenceDictionary().getSequence(requestedContig).getSequenceLength();
+			int start = segment.getStart() - defaultBuffer;
+			if (start < 0) {
+				start = 0;
+			}
+			int stop = segment.getStop() + defaultBuffer;
+			if (stop > seqLength) {
+				stop = seqLength;
+			}
+			ReferenceSequence referenceSequence = indexedFastaSequenceFile.getSubsequenceAt(requestedContig, start, stop);
 			String[] requestedSeq = Array.decodeByteArray(referenceSequence.getBases(), BYTE_DECODE_FORMAT.UPPER_CASE, log);
 			return requestedSeq;
 
 		} else {
-			//log.reportTimeError("Requested contig " + requestedContig + " was not in the sequence dictionary for " + referenceFasta);
+			// log.reportTimeError("Requested contig " + requestedContig + " was not in the sequence dictionary for " + referenceFasta);
 			return null;
 		}
 
