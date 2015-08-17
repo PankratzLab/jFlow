@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -52,6 +53,8 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import common.Array;
 import common.CmdLine;
 import common.Files;
@@ -71,6 +74,8 @@ import common.WorkerTrain.Producer;
 public class VCFOps {
 	public static final Set<String> BLANK_SAMPLE = new TreeSet<String>();
 	public static final Options[] DEFUALT_WRITER_OPTIONS = new Options[] { Options.INDEX_ON_THE_FLY };
+
+	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT" };
 
 	public enum VCF_EXTENSIONS {
 		GZIP_VCF(".vcf.gz"), REG_VCF(".vcf"), BCF(".bcf");
@@ -99,6 +104,11 @@ public class VCFOps {
 		 * Extracts var
 		 */
 		EXTRACT_SEGMENTS,
+
+		/**
+		 * Extract segments and make annotation file
+		 */
+		EXTRACT_SEGMENTS_ANNOTATION,
 		/**
 		 * Extract rsids from a vcf
 		 */
@@ -1101,7 +1111,25 @@ public class VCFOps {
 		return outputVCF;
 	}
 
+	public static String[] getAnnotationKeys(String vcf, Logger log) {
+		VCFFileReader reader = new VCFFileReader(vcf, false);
+		String[] annotationKeys = new String[reader.getFileHeader().getInfoHeaderLines().size()];
+		int index = 0;
+		for (VCFInfoHeaderLine vcfHeaderLine : reader.getFileHeader().getInfoHeaderLines()) {
+			annotationKeys[index] = vcfHeaderLine.getID();
+			index++;
+		}
+		Arrays.sort(annotationKeys);
+		reader.close();
+		return annotationKeys;
+
+	}
+
 	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, int numThreads, Logger log) {
+		return extractSegments(vcf, segmentFile, bpBuffer, bams, outputDir, skipFiltered, gzipOutput, false, numThreads, log);
+	}
+
+	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, boolean createAnnotationFile, int numThreads, Logger log) {
 		BamExtractor.BamSample bamSample = null;
 
 		if (vcf == null || !Files.exists(vcf)) {
@@ -1132,6 +1160,8 @@ public class VCFOps {
 			bamSample.verify(getSamplesInFile(reader));
 		}
 		String output = dir + root + "." + ext.rootOf(segmentFile) + ".vcf" + (gzipOutput ? ".gz" : "");
+		String annoFile = dir + root + "." + ext.rootOf(segmentFile) + ".anno.txt";
+
 		if (!Files.exists(output)) {
 			Segment[] segsToSearch = null;
 			if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
@@ -1145,6 +1175,13 @@ public class VCFOps {
 			int progress = 0;
 			int found = 0;
 
+			PrintWriter annoWriter = null;
+			String[] annotations = getAnnotationKeys(vcf, log);
+			if (createAnnotationFile) {
+				annoWriter = Files.getAppropriateWriter(annoFile);
+				annoWriter.println(Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations));
+
+			}
 			for (VariantContext vc : reader) {
 				progress++;
 				if (progress % 100000 == 0) {
@@ -1157,9 +1194,15 @@ public class VCFOps {
 					if (bamSample != null) {
 						bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getEnd()));
 					}
+					// private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT" };
+
+					if (createAnnotationFile) {
+						annoWriter.println(vc.getChr() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" +Array.toStr(VCOps.getAnnotationsFor(annotations, vc, ".")));
+					}
 					found++;
 				}
 			}
+
 			if (bamSample != null) {
 				BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, numThreads, log);
 				bamSample = new BamExtractor.BamSample(Files.listFullPaths(dir, ".bam", false), log, true);
@@ -1167,6 +1210,9 @@ public class VCFOps {
 				bamSample.dumpToIGVMap(output);
 			}
 			writer.close();
+			if (createAnnotationFile) {
+				annoWriter.close();
+			}
 		} else {
 			log.reportTimeWarning("The file " + output + " already exists, skipping extraction step");
 		}
@@ -1178,6 +1224,7 @@ public class VCFOps {
 		VCFFileReader vcfFileReader = new VCFFileReader(vcf, true);
 		int numVar = 0;
 		for (VariantContext vc : vcfFileReader) {
+			vc.getID();
 			numVar++;
 		}
 		vcfFileReader.close();
@@ -1738,7 +1785,10 @@ public class VCFOps {
 				VcfPopulation.splitVcfByPopulation(vcf, populationFile, log);
 				break;
 			case EXTRACT_SEGMENTS:
-				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, numThreads, log);
+				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, false, numThreads, log);
+				break;
+			case EXTRACT_SEGMENTS_ANNOTATION:
+				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, true, numThreads, log);
 				break;
 			case REMOVE_FILTERED:
 				removeFilteredVariants(vcf, gzip, standardFilters, log);
