@@ -258,6 +258,25 @@ public class Segment implements Serializable {
 		return true;
 	}
 	
+	
+	public static Segment[] mergeOverlapsAndSortAllChromosomes(Segment[] segments,int buffer) {
+		Hashtable<String, Vector<Segment>> splits = new Hashtable<String, Vector<Segment>>();
+		for (int i = 0; i < segments.length; i++) {
+			if (!splits.containsKey(segments[i].getChr() + "")) {
+				splits.put(segments[i].getChr() + "", new Vector<Segment>());
+			}
+			splits.get(segments[i].getChr() + "").add(buffer > 0 ? segments[i].getBufferedSegment(buffer) : segments[i]);
+		}
+		ArrayList<Segment> merged = new ArrayList<Segment>();
+		for (String chr : splits.keySet()) {
+			Vector<Segment> tmp = splits.get(chr);
+			mergeOverlapsAndSort(tmp);
+			merged.addAll(tmp);
+		}
+		
+		return sortSegments(merged.toArray(new Segment[merged.size()]));
+	}
+
 	// this method must be run separately for each chromosome
 	public static void mergeOverlapsAndSort(Vector<Segment> segments) {
 		byte chr;
@@ -556,7 +575,20 @@ public class Segment implements Serializable {
 		return Segment.toArray(v);
 	}
 
-	
+	/**
+	 * Removes duplicates based on {@link Segment#getUCSClocation()};
+	 */
+	public static Segment[] unique(Segment[] segments) {
+		Hashtable<String, String> track = new Hashtable<String, String>();
+		ArrayList<Segment> unique = new ArrayList<Segment>();
+		for (int i = 0; i < segments.length; i++) {
+			if (!track.containsKey(segments[i].getUCSClocation())) {
+				track.put(segments[i].getUCSClocation(), segments[i].getUCSClocation());
+				unique.add(segments[i]);
+			}
+		}
+		return unique.toArray(new Segment[unique.size()]);
+	}
 	
 	public static Segment[] loadRegions(String filename, int chrCol, int startCol, int stopCol, boolean ignoreFirstLine) {
 		return loadRegions(filename, chrCol, startCol, stopCol, ignoreFirstLine ? 1 : 0, true, true, 0);

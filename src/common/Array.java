@@ -2294,6 +2294,13 @@ public class Array {
 	 */
 	public static BooleanClassifier classifyStringsToBoolean(String[] toClassify, String[] masks) {
 		String[] uniqs = unique(toClassify);
+		ArrayList<String> uniqNoMask = new ArrayList<String>();
+		for (int i = 0; i < uniqs.length; i++) {
+			if (ext.indexOfStr(uniqs[i], masks) < 0) {
+				uniqNoMask.add(uniqs[i]);
+			}
+		}
+		uniqs = Array.toStringArray(uniqNoMask);
 		boolean[][] classified = new boolean[uniqs.length][];
 		for (int i = 0; i < classified.length; i++) {
 			classified[i] = booleanArray(toClassify.length, false);
