@@ -159,7 +159,7 @@ class EvaluationResult implements Serializable {
 		return (EvaluationResult[]) Files.readSerial(fileName, false, log, false, true);
 	}
 
-	public static EvalHeritabilityResult prepareHeritability(Project proj, String ped, boolean[] samplesToEvaluate, String serFile) {
+	public static EvalHeritabilityResult prepareHeritability(Project proj, String ped, boolean[] samplesToEvaluate, String serFile,double[] otherData, String otherDataTitle) {
 		Logger log = proj.getLog();
 		EvaluationResult[] evaluationResults = readSerial(serFile, log);
 		log.reportTimeInfo("Loaded " + evaluationResults.length + " evaluation results");
@@ -169,7 +169,7 @@ class EvaluationResult implements Serializable {
 		// System.out.println(crf);
 		// System.out.println(ext.rootOf(crf, false)+"_summary.xln");
 		// System.exit(1);
-		generateHeritabilityDb(proj, evaluationResults, samplesToEvaluate, db, ped, crf, log);
+		generateHeritabilityDb(proj, evaluationResults, otherData, otherDataTitle, samplesToEvaluate, db, ped, crf, log);
 		Heritability.fromParameters(crf, log);
 		EvalHeritabilityResult evalHeritabilityResult = new EvalHeritabilityResult(ped, db, crf);
 		return evalHeritabilityResult;
@@ -200,7 +200,7 @@ class EvaluationResult implements Serializable {
 		}
 	}
 
-	private static void generateHeritabilityDb(Project proj, EvaluationResult[] results, boolean[] samplesToEvaluate, String output, String ped, String crf, Logger log) {
+	private static void generateHeritabilityDb(Project proj, EvaluationResult[] results, double[] otherData, String otherDataTitle, boolean[] samplesToEvaluate, String output, String ped, String crf, Logger log) {
 		log.reportTimeWarning("Assuming stored estimate results are in project order to create heritability db " + output);
 		log.reportTimeWarning("Assuming ped file has DNA listed in the last column of  " + output);
 		if (samplesToEvaluate != null) {
@@ -212,9 +212,15 @@ class EvaluationResult implements Serializable {
 			String[] titles = new String[results.length];
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
 			writer.print("IID\tFID");
-			for (int i = 0; i < results.length; i++) {
-				writer.print("\t" + i);
-				titles[i] = i + "";
+			if (otherData == null) {
+				for (int i = 0; i < results.length; i++) {
+					writer.print("\t" + i);
+					titles[i] = i + "";
+				}
+			} else {
+				titles = new String[1];
+				titles[0]=otherDataTitle;
+				writer.print("\t" + otherDataTitle);
 			}
 			writer.println();
 
@@ -224,8 +230,12 @@ class EvaluationResult implements Serializable {
 					if (pedHash.containsKey(samples[i])) {
 						String[] fidIid = Array.subArray(pedHash.get(samples[i]).split("\t"), 0, 2);
 						writer.print(fidIid[1] + "\t" + fidIid[0]);
-						for (int j = 0; j < results.length; j++) {
-							writer.print("\t" + results[j].getEstimateData()[i]);
+						if (otherData == null) {
+							for (int j = 0; j < results.length; j++) {
+								writer.print("\t" + results[j].getEstimateData()[i]);
+							}
+						} else {
+							writer.print("\t" + otherData[i]);
 						}
 						writer.println();
 
