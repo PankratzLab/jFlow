@@ -78,7 +78,7 @@ public class FAST {
     };
     
     private static final Object OUT_LOCK = new Object();
-	public static void processAndPrepareMETAL(final String studyDir) {
+	public static void processAndPrepareMETAL(final String studyDir, final boolean gcMetal) {
 	    String tempName = ext.verifyDirFormat(studyDir);
 	    final String studyName = ext.rootOf(tempName.substring(0, tempName.length() - 1), true);
 	    
@@ -101,7 +101,7 @@ public class FAST {
                     factorLog.report(ext.getTime() + "]\tBegin processing for factor " + factorName);
                     File[] popDirs = factorDir.listFiles(dirFilter);
                     factorLog.report(ext.getTime() + "]\tFound " + popDirs.length + " populations");
-                    StringBuilder metalFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh));
+                    StringBuilder metalFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
                     int foundCount = 0;
                     for (File popDir : popDirs) {
                         String popName = ext.rootOf(popDir.getName(), true);
@@ -161,7 +161,7 @@ public class FAST {
                         File femaleDir = new File(popDir, "female/");
                         File maleDir = new File(popDir, "male/");
         
-                        StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName, pvalThresh));
+                        StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
                         if (femaleDir.exists() && femaleDir.isDirectory() && maleDir.exists() && maleDir.isDirectory()) {
                             String[] dataFilesF = femaleDir.list(dataFileFilter);
                             String[] dataFilesM = maleDir.list(dataFileFilter);
@@ -297,7 +297,7 @@ public class FAST {
 	}
 	
 	
-	private static void prepareMETAL(String studyDir) {
+	private static void prepareMETAL(String studyDir, boolean gcMetal) {
 	    File[] factorDirs = (new File(studyDir)).listFiles(dirFilter);
 	    
 	    StringBuilder runMetal = new StringBuilder();
@@ -306,7 +306,7 @@ public class FAST {
 	    
 	    for (File factorDir : factorDirs) {
 	        String factorName = ext.rootOf(factorDir.getName(), true);
-	        StringBuilder metaFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh));
+	        StringBuilder metaFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
 	        int foundCount = 0;
 	        File[] popDirs = factorDir.listFiles(dirFilter);
 	        for (File popDir : popDirs) {
@@ -319,7 +319,7 @@ public class FAST {
 	            File femDir = new File(popDir, "female");
 	            File malDir = new File(popDir, "male");
 	            if (femDir.exists() && femDir.isDirectory() && malDir.exists() && malDir.isDirectory()) {
-	                StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName, pvalThresh));
+	                StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
 	                String[] dataFilesF = femDir.list(dataFileFilter);
 	                String[] dataFilesM = malDir.list(dataFileFilter);
 	                for (String dataF : dataFilesF) {
@@ -348,10 +348,10 @@ public class FAST {
         Files.qsub(ext.verifyDirFormat(studyDir) + "master_runMETAL.qsub", runMetal.toString(), METAL_QSUB_RAM_MB, METAL_QSUB_TIME_HRS, METAL_QSUB_THREADS);
 	}
 	
-	private static String writeMetalCRF(String factor, double pvalThresh) {
+	private static String writeMetalCRF(String factor, double pvalThresh, boolean gc) {
 	    StringBuilder metalCRF = new StringBuilder("metal\n")
                                 	    .append(factor).append("\n")
-                                	    .append("build=37\ngenomic_control=TRUE\nhits_p<="+pvalThresh+"\n");
+                                	    .append("build=37\ngenomic_control=" + (gc ? "TRUE" : "FALSE") + "\nhits_p<="+pvalThresh+"\n");
 	    return metalCRF.toString();
 	}
 
@@ -797,6 +797,7 @@ public class FAST {
 		String results = "~/FAST/output/";
 		String out = "finalResults.txt";
 		boolean concat = false;
+		boolean gc = true;
 		
 		int format = 0;
 		boolean convert = false;
@@ -914,6 +915,9 @@ public class FAST {
 			} else if (args[i].startsWith("pval=")) {
 				pval = Double.parseDouble(args[i].split("=")[1]);
 				numArgs--;
+			} else if (args[i].startsWith("gcMetal=")) {
+			    gc = ext.parseBooleanArg(args[i]);
+			    numArgs--;
 			} else if (args[i].startsWith("-concat")) {
 				concat = true;
 				numArgs--;
@@ -951,11 +955,11 @@ public class FAST {
 		}
 		try {
 		    if (metal) {
-		        prepareMETAL(data);
+		        prepareMETAL(data, gc);
 		    } else if (prep) {
 		        prepareFAST(trait, data, run, linear, runFAST);
 		    } else if (process) {
-		        processAndPrepareMETAL(data);
+		        processAndPrepareMETAL(data, gc);
 		    } else if (concat && convert) {
 				String midOut = "concatenated.result";
 				concatResults(results, midOut, pval, printPVals, runHitWindows);
