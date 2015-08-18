@@ -436,6 +436,18 @@ public class Rscript {
 			this.gTexts = gTexts;
 		}
 
+		public String getTitle() {
+			return title;
+		}
+
+		public String getxLabel() {
+			return xLabel;
+		}
+
+		public String getyLabel() {
+			return yLabel;
+		}
+
 		public String getDataFile() {
 			return dataFile;
 		}

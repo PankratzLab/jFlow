@@ -2423,10 +2423,11 @@ public class Files {
 			String[][] newColumns = new String[orginalFiles.length][columns.length];
 			for (int i = 0; i < orginalFiles.length; i++) {
 				readers[i] = Files.getAppropriateReader(orginalFiles[i]);
+				readers[i].readLine();
 				String[] curHeader = Files.getHeaderOfFile(orginalFiles[i], log);
 				for (int j = 0; j < columns.length; j++) {
 					String newColumn = curHeader[columns[j]] + "_" + newColumnNameTags[i];
-					writer.print((i == 0 ? "" : "\t") + newColumn);
+					writer.print((i == 0 && j == 0 ? "" : "\t") + newColumn);
 					newColumns[i][j] = newColumn;
 				}
 			}
@@ -2435,7 +2436,7 @@ public class Files {
 			while (readers[0].ready()) {
 				String[] line = readers[0].readLine().trim().split("\t");
 				String key = line[keyColumn];
-				writer.print(Array.subArray(line, columns));
+				writer.print(Array.toStr(Array.subArray(line, columns)));
 				for (int i = 1; i < readers.length; i++) {
 					String[] oLine = readers[i].readLine().trim().split("\t");
 					if (!key.equals(oLine[keyColumn])) {
@@ -2443,7 +2444,7 @@ public class Files {
 						log.reportTimeError(error);
 						throw new IllegalStateException(error);
 					} else {
-						writer.print("\t" + Array.subArray(oLine, columns));
+						writer.print("\t" + Array.toStr(Array.subArray(oLine, columns)));
 					}
 				}
 				writer.println();
