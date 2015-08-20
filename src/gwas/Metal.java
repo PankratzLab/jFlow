@@ -283,10 +283,10 @@ public class Metal {
 	}
 	
 	public static void metaAnalyze(String dir, String[] filenames, String outputFile, boolean se, Logger log) {
-		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null, true, log);
+		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null, Array.doubleArray(filenames.length, -9), log);
 	}
 	
-	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnlaysis, String outputFile, int anlaysisType, double[] defaultWeights, boolean gcControlOn, Logger log) {
+	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnalysis, String outputFile, int analysisType, double[] defaultWeights, double[] gcValues/*boolean gcControlOn*/, Logger log) {
 		PrintWriter writer;
 		Vector<String> mappings;
 		String[] header, travAlleles, prevAlleles, travReqs, prevReqs, travFreq, prevFreq;
@@ -303,17 +303,20 @@ public class Metal {
 			writer = new PrintWriter(new FileWriter(dir+filename));
 			prevMarker = "";
 			prevAlleles = new String[] {"", ""};
-			prevReqs = Array.stringArray(REQS[anlaysisType].length, "");
+			prevReqs = Array.stringArray(REQS[analysisType].length, "");
 			prevCommaDelimited = false;
 			travFreq = prevFreq = new String[] {"none"};
-
-			writer.println("GENOMICCONTROL "+(gcControlOn?"ON":"OFF"));
-			if (anlaysisType == SE_ANALYSIS || anlaysisType == WEIGHTED_SE_ANALYSIS) {
+			
+			if (gcValues == null || gcValues.length == 0) {
+			   writer.println("GENOMICCONTROL OFF");
+//			   writer.println("GENOMICCONTROL "+(gcControlOn?"ON":"OFF"));
+			}
+			if (analysisType == SE_ANALYSIS || analysisType == WEIGHTED_SE_ANALYSIS) {
 				writer.println("SCHEME STDERR");
 				if (defaultWeights != null) {
 					log.reportError("Warning - included weights will be ignored, since the scheme was set to StdErr");
 				}
-			} else if (anlaysisType == PVAL_ANALYSIS) {
+			} else if (analysisType == PVAL_ANALYSIS) {
 				writer.println("SCHEME SAMPLESIZE");
 				if (defaultWeights != null && defaultWeights.length != filenames.length) {
 					log.reportError("Error - the number of weights included ("+defaultWeights.length+") did not match the number of filenames included ("+filenames.length+")");
@@ -337,7 +340,7 @@ public class Metal {
 				travCommaDelimited = filenames[i].endsWith(".csv");
 				header = Files.getHeaderOfFile(dir+filenames[i], log);
 
-				indices = ext.indexFactors(new String[][] {unitOfAnlaysis}, header, false, true, true, log, false);
+				indices = ext.indexFactors(new String[][] {unitOfAnalysis}, header, false, true, true, log, false);
 				if (indices[0] == -1) {
 					log.reportError("Error parsing '"+dir+filenames[i]+"'");
 					writer.close();
@@ -359,8 +362,8 @@ public class Metal {
 					mappings.add("ALLELE "+travAlleles[0]+" "+travAlleles[1]);
 				}
 				
-				indices = ext.indexFactors(REQS[anlaysisType], header, false, true, true, log, false);
-				if (anlaysisType == PVAL_ANALYSIS && defaultWeights != null) {
+				indices = ext.indexFactors(REQS[analysisType], header, false, true, true, log, false);
+				if (analysisType == PVAL_ANALYSIS && defaultWeights != null) {
 					indices[2] = 0;
 				}
 				if (Array.min(indices) == -1) {
@@ -369,14 +372,14 @@ public class Metal {
 					return;
 				}
 				travReqs = Array.subArray(header, indices);
-				if (anlaysisType == SE_ANALYSIS || anlaysisType == WEIGHTED_SE_ANALYSIS) {
+				if (analysisType == SE_ANALYSIS || analysisType == WEIGHTED_SE_ANALYSIS) {
 					if (!travReqs[0].equals(prevReqs[0])) {
 						mappings.add("EFFECT "+travReqs[0]);
 					}
 					if (!travReqs[1].equals(prevReqs[1])) {
 						mappings.add("STDERR "+travReqs[1]);
 					}
-				} else if (anlaysisType == PVAL_ANALYSIS) {
+				} else if (analysisType == PVAL_ANALYSIS) {
 					if (!travReqs[0].equals(prevReqs[0])) {
 						mappings.add("EFFECT "+travReqs[0]);
 					}
@@ -417,6 +420,16 @@ public class Metal {
 					writer.println();
 				}
 				
+				if (gcValues[i] == -1) {
+				    writer.println("GENOMICCONTROL OFF");
+				    log.report("Setting GENOMICCONTROL to {OFF} for file {" + filenames[i] + "}");
+				} else if (gcValues[i] == -9) {
+				    writer.println("GENOMICCONTROL ON");
+				    log.report("Setting GENOMICCONTROL to {ON} for file {" + filenames[i] + "}");
+				} else {
+				    writer.println("GENOMICCONTROL " + gcValues[i]);
+				    log.report("Setting GENOMICCONTROL to {" + gcValues[i] + "} for file {" + filenames[i] + "}");
+				}
 				writer.println("PROCESS "+filenames[i]);
 				prevMarker = travMarker;				
 				prevAlleles = travAlleles;				
@@ -617,7 +630,7 @@ public class Metal {
 	
 	public static void fromParameters(String filename, Logger log) {
 		Vector<String> params;
-		String[] inputFiles;
+		String[] inputFiles, tempFiles;
 		String outputFile;
 		Hits hits;
 		String[] fileParameters;
@@ -637,14 +650,15 @@ public class Metal {
 		int[] chrPosition, trav;
 		String[] hitList;
 		int countMissing;
-		boolean gcControlOn;
+//		boolean gcControlOn;
 		double thresholdForHits;
+		double[] gcValues;
 		int countMismatches;
 		
-		params = Files.parseControlFile(filename, "metal", new String[] {"outfile_root", "build=37", "genomic_control=TRUE", "hits_p<=0.001", "file1.metal", "file2.txt", "file3.assoc.logistic"}, log);
+		params = Files.parseControlFile(filename, "metal", new String[] {"outfile_root", "build=37",/* "genomic_control=TRUE",*/ "hits_p<=0.001", "file1.metal", "file2.txt", "file3.assoc.logistic"}, log);
 
 		thresholdForHits = 0.001;
-		gcControlOn = true;
+//		gcControlOn = true;
 		build = -1;
 		if (params != null) {
 			outputFile = params.remove(0);
@@ -653,10 +667,10 @@ public class Metal {
 					build = ext.parseByteArg(params.elementAt(i));
 					params.remove(i);
 				}
-				if (params.elementAt(i).startsWith("genomic_control=")) {
-					gcControlOn = ext.parseBooleanArg(params.elementAt(i));
-					params.remove(i);
-				}
+//				if (params.elementAt(i).startsWith("genomic_control=")) {
+//					gcControlOn = ext.parseBooleanArg(params.elementAt(i));
+//					params.remove(i);
+//				}
 				if (params.elementAt(i).startsWith("hits_p<=")) {
 					thresholdForHits = ext.parseDoubleArg(params.elementAt(i));
 					params.remove(i);
@@ -666,7 +680,16 @@ public class Metal {
 				log.reportError("Warning - build was not specified, assuming build 37 (aka hg19)");
 				build = 37;
 			}
-			inputFiles = Array.toStringArray(params);
+			tempFiles = Array.toStringArray(params);
+			gcValues = Array.doubleArray(tempFiles.length, -9); // default to ON
+			inputFiles = new String[tempFiles.length];//Array.toStringArray(params);
+			for (int i = 0; i < tempFiles.length; i++) {
+			    String[] parts = tempFiles[i].split("\t");
+			    if (parts.length == 2) {
+			        gcValues[i] = Double.parseDouble(parts[1]);
+			    }
+			    inputFiles[i] = parts[0];
+			}
 			
 //			backupDir = "./backup";
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
@@ -675,14 +698,14 @@ public class Metal {
 //            String dir = ext.verifyDirFormat((new File("./")).getAbsolutePath());
 			if (!Files.exists(outputFile+"_InvVar1.out")) {
 	            log.report("Running inverse variance weighted meta-analysis...");
-			    metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcControlOn, log);
+			    metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcValues, log);
 			} else {
 			    log.report("Found inverse variance weighted meta-analysis results - skipping.");
 			}
 //			metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcControlOn, log);
 			if (!Files.exists(outputFile+"_NWeighted1.out")) {
     			log.report("Running sample size weighted meta-analysis...");
-    			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, gcControlOn, log);
+    			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, gcValues, log);
 			} else {
 			    log.report("Found sample size weighted meta-analysis results - skipping.");
 			}
@@ -1527,7 +1550,8 @@ public class Metal {
 		String compResults = null;
 		String countMissing = null;
 		String[] unitOfAnalyses = Aliases.MARKER_NAMES;
-		boolean gcControlOn = true;
+//		boolean gcControlOn = true;
+		double[] gcControl = null;
 		
 //		strandFile = "C:/Documents and Settings/npankrat/My Documents/UMN/Folson/VTE_meta_analysis/finalAnalysis/16 assessing strand/snplist1_described3.xln";
 //		fileToSort = "C:/Documents and Settings/npankrat/My Documents/UMN/Folson/VTE_meta_analysis/finalAnalysis/16 assessing strand/all_consensus.xln";
@@ -1580,7 +1604,8 @@ public class Metal {
 		"   (2) unit of anlaysis (i.e. unit=gene (default=snp))\n"+
 		"   (3) name of output root (i.e. out="+output+" (default))\n"+
 		"   (4) stderr scheme instead of sample-size weighting (i.e. se="+se+" (default))\n"+
-		"   (5) use genomic control (i.e. gcControlOn="+gcControlOn+" (default))\n"+
+//		"   (5) use genomic control (i.e. gcControlOn="+gcControlOn+" (default))\n"+
+		"   (5) use genomic control (i.e. gcControl=-9,-9,-9 (default, one value per file, -1 for OFF, -9 for ON, other values used as given))\n"+
 		" OR\n"+
 		"   (1) compare two sets of meta-analysis results (i.e. compResults=fileA1.tbl,fileB1.tbl (not the default))\n"+
 		" OR\n"+
@@ -1660,6 +1685,13 @@ public class Metal {
 			} else if (args[i].startsWith("analyze=")) {
 				analyze = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("gcControl=")) {
+			    String[] ctrl = ext.parseStringArg(args[i], null).split(",");
+			    gcControl = new double[ctrl.length];
+			    for (int j = 0; j < ctrl.length; j++) {
+			        gcControl[j] = Double.parseDouble(ctrl[j]);
+			    }
+			    numArgs--;
 			} else if (args[i].startsWith("unit=")) {
 				unitOfAnalyses = ext.parseStringArg(args[i], null).equalsIgnoreCase("gene")?Aliases.GENE_UNITS:Aliases.MARKER_NAMES;
 				numArgs--;
@@ -1695,7 +1727,14 @@ public class Metal {
 			} else if (!compFreq.equals("")) {
 				compareAlleleFrequencies(compFreq, diffThreshold);
 			} else if (analyze != null) {
-				metaAnalyze("./", analyze.split(","), unitOfAnalyses, output, SE_ANALYSIS, null, gcControlOn, new Logger());
+			    String[] files = analyze.split(",");
+			    if (gcControl == null) {
+			        gcControl = Array.doubleArray(files.length, -9);
+			    } else if (files.length != gcControl.length) {
+			        System.err.println("ERROR - list of GC correction values must equal the length of the files list.  Values are {-1=OFF, -9=ON, other values used as given}");
+			        System.exit(1);
+			    }
+				metaAnalyze("./", files, unitOfAnalyses, output, SE_ANALYSIS, null, gcControl, new Logger());
 			} else if (compResults != null) {
 				compareResults(compResults.split(","), new Logger("compareMetalResults.log"));
 			} else if (countMissing != null) {

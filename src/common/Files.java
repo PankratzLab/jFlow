@@ -3402,7 +3402,24 @@ public class Files {
 		return remoteVcfs.toArray(new String[remoteVcfs.size()]);
 	}
 
-	public static void main(String[] args) {
+	public static boolean programExists(String programName) {
+        String cmd = "";
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            cmd = "where " + programName;
+        } else {
+            cmd = "which " + programName;
+        }
+        boolean exists = false;
+        try {
+            if (Runtime.getRuntime().exec(cmd).waitFor() == 0) {
+                exists = true;
+            }
+        } catch (InterruptedException e1) {
+        } catch (IOException e1) {}
+        return exists;
+    }
+
+    public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
 		int start = 1;
@@ -3541,22 +3558,5 @@ public class Files {
 			e.printStackTrace();
 		}
 	}
-
-    public static boolean programExists(String programName) {
-        String cmd = "";
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            cmd = "where " + programName;
-        } else {
-            cmd = "which " + programName;
-        }
-        boolean exists = false;
-        try {
-            if (Runtime.getRuntime().exec(cmd).waitFor() == 0) {
-                exists = true;
-            }
-        } catch (InterruptedException e1) {
-        } catch (IOException e1) {}
-        return exists;
-    }
     
 }

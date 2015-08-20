@@ -100,8 +100,11 @@ public class ConditionalAnalysisPipeline {
         private static String extractGenoAndInfoDataForRegion(final Region region, final DataDefinitions dataDefs, String[] dataFiles, String tempDir, boolean baseline) {
             // TODO currently only partially reuses data files.  This increases space used, but we have problems reading from shared files in a multi-threaded environment
             String tempDataDir = tempDir + region.label + "/" /*+ (baseline ? "baseline" : region.indexSNP) + "/"*/ + dataDefs.study + "_" + dataDefs.popcode + "/";
-            if (!new File(tempDataDir).mkdirs()) {
-                throw new RuntimeException("ERROR - failed to create temporary data directory {" + tempDataDir + "}");
+            File dirFile = new File(tempDataDir); 
+            if (!dirFile.exists()) {
+                if (!new File(tempDataDir).mkdirs()) {
+                    throw new RuntimeException("ERROR - failed to create temporary data directory {" + tempDataDir + "}");
+                }
             }
             
             String infoHeader = "snp_id rs_id position exp_freq_a1 info certainty type info_type0 concord_type0 r2_type0";
@@ -437,7 +440,7 @@ public class ConditionalAnalysisPipeline {
                         continue;
                     }
                     
-                    FAST.processAndPrepareMETAL(studyDir, false);
+                    FAST.processAndPrepareMETAL(studyDir, dataDefs);
                     
                     HashMap<String, DataDefinitions> popDefs = dataDefs.get(study);
                     
@@ -707,7 +710,7 @@ public class ConditionalAnalysisPipeline {
         }
         HashMap<String, HashMap<String, DataDefinitions>> dataDefsTemp = null;
         try {
-            dataDefsTemp = FAST.parseFile(dataFile);
+            dataDefsTemp = FAST.parseDataDefinitionsFile(dataFile);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -733,7 +736,7 @@ public class ConditionalAnalysisPipeline {
         log("Parsing data file..."); // TODO divorce from FAST?
         HashMap<String, HashMap<String, DataDefinitions>> dataDefsTemp = null;
         try {
-            dataDefsTemp = FAST.parseFile(dataFile);
+            dataDefsTemp = FAST.parseDataDefinitionsFile(dataFile);
         } catch (IOException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
