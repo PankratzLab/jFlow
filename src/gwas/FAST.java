@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 
 import parse.GenParser;
 import common.Aliases;
-import common.Array;
 import common.CmdLine;
 import common.Files;
 import common.Logger;
@@ -77,18 +76,25 @@ public class FAST {
         }
     };
     
-    private static final Object OUT_LOCK = new Object();
-	public static void processAndPrepareMETAL(final String studyDir, final boolean gcMetal) {
+    public static void processAndPrepareMETAL(final String studyDir, final String dataDefFile) {
+        HashMap<String, HashMap<String, DataDefinitions>> dataDefs;
+        try {
+            dataDefs = parseDataDefinitionsFile(dataDefFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e); // pass along
+        }
+        processAndPrepareMETAL(studyDir, dataDefs);
+    }
+    
+	public static void processAndPrepareMETAL(final String studyDir, final HashMap<String, HashMap<String, DataDefinitions>> dataDefs/*, final boolean gcMetal*/) {
 	    String tempName = ext.verifyDirFormat(studyDir);
 	    final String studyName = ext.rootOf(tempName.substring(0, tempName.length() - 1), true);
-	    
+	    final HashMap<String, DataDefinitions> popDefs = dataDefs.get(studyName);
 	    File[] factorDirs = (new File(studyDir)).listFiles(dirFilter);
 	    System.out.println(ext.getTime() + "]\tProcessing study " + studyName + " with " + factorDirs.length + " threads");
 	    
 	    ExecutorService executor = Executors.newFixedThreadPool(factorDirs.length); 
-	    
-        
-//	    double pvalThresh = 0.0001;
+
 	    final double pvalThresh = 0.001;
 	    
 	    for (final File factorDir : factorDirs) {
@@ -101,7 +107,7 @@ public class FAST {
                     factorLog.report(ext.getTime() + "]\tBegin processing for factor " + factorName);
                     File[] popDirs = factorDir.listFiles(dirFilter);
                     factorLog.report(ext.getTime() + "]\tFound " + popDirs.length + " populations");
-                    StringBuilder metalFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
+                    StringBuilder metalFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh/*, gcMetal*/));
                     int foundCount = 0;
                     for (File popDir : popDirs) {
                         String popName = ext.rootOf(popDir.getName(), true);
@@ -153,7 +159,7 @@ public class FAST {
                             } else {
                                 foundCount += names.length;
                                 for (String name : names) {
-                                    metalFileContents.append(popName).append("/").append(name).append("\n");
+                                    metalFileContents.append(popName).append("/").append(name).append("\t").append(popDefs.get(popName).gc).append("\n");
                                 }
                             }
                         }
@@ -161,7 +167,7 @@ public class FAST {
                         File femaleDir = new File(popDir, "female/");
                         File maleDir = new File(popDir, "male/");
         
-                        StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
+                        StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName, pvalThresh/*, gcMetal*/));
                         if (femaleDir.exists() && femaleDir.isDirectory() && maleDir.exists() && maleDir.isDirectory()) {
                             String[] dataFilesF = femaleDir.list(dataFileFilter);
                             String[] dataFilesM = maleDir.list(dataFileFilter);
@@ -197,7 +203,7 @@ public class FAST {
                                 // uh-oh; parsing failed!
                             } else {
                                 for (String dataF : dataFilesF) {
-                                    metaSex.append("female/").append(dataF).append("\n");
+                                    metaSex.append("female/").append(dataF).append("\t").append(popDefs.get(popName).gc).append("\n");
                                 }
                             }
                             if (dataFilesM.length == 0) {
@@ -230,7 +236,7 @@ public class FAST {
                                 // uh-oh; parsing failed!
                             } else {
                                 for (String dataM : dataFilesM) {
-                                    metaSex.append("male/").append(dataM).append("\n");
+                                    metaSex.append("male/").append(dataM).append("\t").append(popDefs.get(popName).gc).append("\n");
                                 }
                             }
                             if (dataFilesF.length >= 1 && dataFilesM.length >= 1) {
@@ -297,7 +303,17 @@ public class FAST {
 	}
 	
 	
-	private static void prepareMETAL(String studyDir, boolean gcMetal) {
+	private static void prepareMETAL(String studyDir, String dataFile/*, boolean gcMetal*/) {
+	    HashMap<String, HashMap<String, DataDefinitions>> dataDefs = null;
+	    try {
+            dataDefs = parseDataDefinitionsFile(dataFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        final String studyName = ext.rootOf(ext.verifyDirFormat(studyDir).substring(0, ext.verifyDirFormat(studyDir).length() - 1), true);
+        final HashMap<String, DataDefinitions> popDefs = dataDefs.get(studyName);
+        
 	    File[] factorDirs = (new File(studyDir)).listFiles(dirFilter);
 	    
 	    StringBuilder runMetal = new StringBuilder();
@@ -306,20 +322,20 @@ public class FAST {
 	    
 	    for (File factorDir : factorDirs) {
 	        String factorName = ext.rootOf(factorDir.getName(), true);
-	        StringBuilder metaFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
+	        StringBuilder metaFileContents = new StringBuilder(writeMetalCRF(factorName, pvalThresh/*, gcMetal*/));
 	        int foundCount = 0;
 	        File[] popDirs = factorDir.listFiles(dirFilter);
 	        for (File popDir : popDirs) {
 	            String popName = ext.rootOf(popDir.getName(), true);
 	            String[] names = popDir.list(dataFileFilter);
 	            for (String name : names) {
-	                metaFileContents.append(popName).append("/").append(name).append("\n");
+	                metaFileContents.append(popName).append("/").append(name).append("\t").append(popDefs.get(popName).gc).append("\n");
 	                foundCount++;
 	            }
 	            File femDir = new File(popDir, "female");
 	            File malDir = new File(popDir, "male");
 	            if (femDir.exists() && femDir.isDirectory() && malDir.exists() && malDir.isDirectory()) {
-	                StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName, pvalThresh, gcMetal));
+	                StringBuilder metaSex = new StringBuilder(writeMetalCRF(factorName, pvalThresh/*, gcMetal*/));
 	                String[] dataFilesF = femDir.list(dataFileFilter);
 	                String[] dataFilesM = malDir.list(dataFileFilter);
 	                for (String dataF : dataFilesF) {
@@ -348,16 +364,17 @@ public class FAST {
         Files.qsub(ext.verifyDirFormat(studyDir) + "master_runMETAL.qsub", runMetal.toString(), METAL_QSUB_RAM_MB, METAL_QSUB_TIME_HRS, METAL_QSUB_THREADS);
 	}
 	
-	private static String writeMetalCRF(String factor, double pvalThresh, boolean gc) {
+	private static String writeMetalCRF(String factor, double pvalThresh/*, boolean gc*/) {
 	    StringBuilder metalCRF = new StringBuilder("metal\n")
                                 	    .append(factor).append("\n")
-                                	    .append("build=37\ngenomic_control=" + (gc ? "TRUE" : "FALSE") + "\nhits_p<="+pvalThresh+"\n");
+//                                	    .append("build=37\ngenomic_control=" + (gc ? "TRUE" : "FALSE") + "\nhits_p<="+pvalThresh+"\n");
+                                	    .append("build=37\nhits_p<="+pvalThresh+"\n");
 	    return metalCRF.toString();
 	}
 
     public static String[] prepareFAST(String traitDir, String dataFile, String runDir, boolean isLinear, boolean run) throws IOException {
 		HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
-		HashMap<String, HashMap<String, DataDefinitions>> data = parseFile(dataFile);
+		HashMap<String, HashMap<String, DataDefinitions>> data = parseDataDefinitionsFile(dataFile);
 		ArrayList<String> dirs = new ArrayList<String>();
 		// TODO ensure 1-1 keymapping between traits and data maps
 		// TODO ensure 1-1 keymapping between study.pop in both maps
@@ -595,7 +612,7 @@ public class FAST {
     	return studyToFactorToPopToFile;
     }
 
-    public static HashMap<String, HashMap<String, DataDefinitions>> parseFile(String file) throws IOException {
+    public static HashMap<String, HashMap<String, DataDefinitions>> parseDataDefinitionsFile(String file) throws IOException {
     	HashMap<String, HashMap<String, DataDefinitions>> defs = new HashMap<String, HashMap<String, DataDefinitions>>();
     	
     	BufferedReader reader = Files.getAppropriateReader(file);
@@ -610,10 +627,20 @@ public class FAST {
     		dd.dataSuffix = parts[3];
     		if (parts.length == 5) {
     		    dd.indivFile = parts[4];
-    		} else {
+    		} else if (parts.length == 6) {
+    		    dd.indivFile = parts[4];
+    		    dd.gc = Float.parseFloat(parts[5]);
+    		} else if (parts.length == 7) {
     		    dd.sexDir = parts[4];
     		    dd.sexSuffix = parts[5];
     		    dd.indivFile = parts[6];
+    		} else if (parts.length == 8) {
+                dd.sexDir = parts[4];
+                dd.sexSuffix = parts[5];
+                dd.indivFile = parts[6];
+    		    dd.gc = Float.parseFloat(parts[7]);
+    		} else {
+    		    throw new RuntimeException("ERROR - malformed data.txt file!  Valid columns are: | STUDY | POP-CODE | DATA DIRECTORY | DATAFILE SUFFIX | [SEX DATAFILE DIRECTORY | SEX DATAFILE SUFFIX] | INDIV FILE | [GC VALUE] |");
     		}
     		
     		HashMap<String, DataDefinitions> defsMap = defs.get(dd.study);
@@ -627,10 +654,10 @@ public class FAST {
     }
 
     private static int countCovars(String traitFile) {
-    //		#Fam_ID	Ind_ID	Dad_ID	Mom_ID	Sex	Phenotype	Age	PC1	PC2	Sex
-    		String[] hdr = Files.getHeaderOfFile(traitFile, null);
-    		return hdr.length - 6;
-    	}
+//		#Fam_ID	Ind_ID	Dad_ID	Mom_ID	Sex	Phenotype	Age	PC1	PC2	Sex
+		String[] hdr = Files.getHeaderOfFile(traitFile, null);
+		return hdr.length - 6;
+	}
 
     private static String sexCopyTraitFile(String destDir, String traitFile, boolean male) throws IOException {
         (new File(destDir)).mkdirs();
@@ -670,6 +697,7 @@ public class FAST {
     	public String sexDir;
     	public String sexSuffix;
     	public String indivFile;
+    	public double gc = -1; // -1=OFF, -9=ON, other values used as given
     }
 
     private static void runParser(String FORMAT, String concattedResultsFile, String outFileName, int count) {
@@ -797,7 +825,7 @@ public class FAST {
 		String results = "~/FAST/output/";
 		String out = "finalResults.txt";
 		boolean concat = false;
-		boolean gc = true;
+//		boolean gc = true;
 		
 		int format = 0;
 		boolean convert = false;
@@ -820,17 +848,21 @@ public class FAST {
 		                "             FACTOR\n" + 
 		                "             DATA FOLDER\n" + 
 		                "             DATA FILE SUFFIX\n" +
-		                "             (Optional:)" + 
+		                "             (Optional:)\n" + 
 		                "                 SEX DATA FOLDER\n" +
 		                "                 SEX DATA FILE SUFFIX\n" +
 		                "             PATH TO .indiv FILE \n" + 
+		                "             (Optional:)\n" + 
+		                "                 GC CORRECTION VALUE (-1=OFF, -9=ON, other values used as given)\n" + 
 		                "   (2) Path to folder containing .trait files (i.e. trait=~/traits/ (not the default))\n" + 
 		                "   (3) Full-path to the directory in which you want to run these scripts (must include a folder named 'output') (i.e. rundir=" + run + " (default))\n" +
 		                "   (4) -prep flag\n" +
 	                    "   (5) OPTIONAL: -run flag to run FAST analyses after preparing FAST scripts\n" + 
 		                " OR: \n" +
+//		                "   (1) Path to population folder containing sub-folders for FAST analyses (i.e. data=~/FAST/ARIC/ (not the default))\n" +
 		                "   (1) Path to population folder containing sub-folders for FAST analyses (i.e. data=~/FAST/ARIC/ (not the default))\n" +
-		                "   (2) -process flag\n" + 
+		                "   (2) Data file defining input files, in tab-delimited format (i.e. data=data.txt (not the default))\n" +
+		                "   (3) -process flag\n" + 
 		                "\n" +
 		                "  These two options (-prep and -process) are, given no errors, the only commands needed to run multiple FAST analyses from start to finish.\n" + 
 		                "  However, FAST includes other options for partial processing:\n" + 
@@ -871,8 +903,9 @@ public class FAST {
 					   "   (7) P-Value threshold (i.e. pval=" + pval + "\n" + 
 					   "   (8) -hitWindows \n" + 
 					   " OR \n" +
-					   "   (1) Path to study directory with fully-parsed results files (i.e. data=" + data + " (default))\n" +
-					   "   (2) -metal flag to create meta-analysis scripts to run METAL program\n " +
+					   "   (1) Path to study directory with fully-parsed results files (i.e. rundir=" + data + " (default))\n" +
+                       "   (2) Data file defining input files, in tab-delimited format (i.e. data=data.txt (not the default))\n" +
+					   "   (3) -metal flag to create meta-analysis scripts to run METAL program\n " +
 					   "";
 
 		for (int i = 0; i < args.length; i++) {
@@ -915,9 +948,9 @@ public class FAST {
 			} else if (args[i].startsWith("pval=")) {
 				pval = Double.parseDouble(args[i].split("=")[1]);
 				numArgs--;
-			} else if (args[i].startsWith("gcMetal=")) {
-			    gc = ext.parseBooleanArg(args[i]);
-			    numArgs--;
+//			} else if (args[i].startsWith("gcMetal=")) {
+//			    gc = ext.parseBooleanArg(args[i]);
+//			    numArgs--;
 			} else if (args[i].startsWith("-concat")) {
 				concat = true;
 				numArgs--;
@@ -955,11 +988,11 @@ public class FAST {
 		}
 		try {
 		    if (metal) {
-		        prepareMETAL(data, gc);
+		        prepareMETAL(run, data);
 		    } else if (prep) {
 		        prepareFAST(trait, data, run, linear, runFAST);
 		    } else if (process) {
-		        processAndPrepareMETAL(data, gc);
+		        processAndPrepareMETAL(run, data);
 		    } else if (concat && convert) {
 				String midOut = "concatenated.result";
 				concatResults(results, midOut, pval, printPVals, runHitWindows);

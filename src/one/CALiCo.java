@@ -987,14 +987,14 @@ public class CALiCo {
 			log.report(root+"_InvVar1.out already exists in "+dir);
 		} else {
 			log.report("Running inverse variance weighted meta-analysis...");
-			Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root+"_InvVar", Metal.SE_ANALYSIS, null, true, log);
+			Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root+"_InvVar", Metal.SE_ANALYSIS, null, Array.doubleArray(inputFiles.length, -9), log);
 		}
 		qqFiles.add(root+"_InvVar1.out"+",5="+ext.rootOf(root+"_InvVar"));
 		if (Files.exists(dir+root+"_NWeighted1.out")) {
 			log.report(root+"_NWeighted1.out already exists in "+dir);
 		} else {
 			log.report("Running sample size weighted meta-analysis...");
-			Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root+"_NWeighted", Metal.PVAL_ANALYSIS, null, true, log);
+			Metal.metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, root+"_NWeighted", Metal.PVAL_ANALYSIS, null, Array.doubleArray(inputFiles.length, -9), log);
 		}
 		qqFiles.add(root+"_NWeighted1.out"+",7="+ext.rootOf(root+"_NWeighted"));
 		
