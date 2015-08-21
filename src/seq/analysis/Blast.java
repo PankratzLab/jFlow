@@ -549,6 +549,8 @@ public class Blast {
 
 							if (btopBroken[i].startsWith("-")) {// query has deletion compared to ref
 								cigarElements.add(new CigarElement(1, CigarOperator.D));
+								// Insertion consumes read bases, subject = ref query= probe
+
 							} else if (btopBroken[i].endsWith("-")) {// query has insertion compared to ref
 								cigarElements.add(new CigarElement(1, CigarOperator.I));
 							} else {

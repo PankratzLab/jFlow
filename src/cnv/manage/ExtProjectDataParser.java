@@ -91,7 +91,13 @@ public class ExtProjectDataParser {
 						dataPresent[dataIndex] = true;
 						if (typedFileLine.hasNumericData() && numericData != null) {
 							for (int i = 0; i < numericData.length; i++) {
-								numericData[i][dataIndex] = typedFileLine.getNumericData()[0][i];
+								try {
+									numericData[i][dataIndex] = typedFileLine.getNumericData()[0][i];
+								} catch (Exception e) {
+									proj.getLog().reportTimeError("failed to load " + numericDataTitles[i]);
+									proj.getLog().reportException(e);
+									return;
+								}
 							}
 
 						}

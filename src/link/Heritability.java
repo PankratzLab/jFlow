@@ -19,7 +19,7 @@ import filesys.FamilyStructure;
 
 public class Heritability {
 	public static final String DEFAULT_MERLIN_EXEC = "merlin";
-	public static final String DEFAULT_SOLAR_EXEC = "solar";
+	public static final String DEFAULT_SOLAR_EXEC = "/home/pankrat2/public/bin/solarEclipse/solar";
 
 	private static String computeWithMerlin(String dir, String pedfile, String pheno, String covars, String prefix, String merlinExec, Logger log) {
 		BufferedReader reader;
@@ -128,7 +128,7 @@ public class Heritability {
 		return estimate;
 	}
 
-	private static void computeWithSolar(String dir, String pedfile, String pheno, String covars, String prefix, String solarExec, Logger log) {
+	private static String[] computeWithSolar(String dir, String pedfile, String pheno, String covars, String prefix, String solarExec, Logger log) {
 		BufferedReader reader;
 		String temp;
 		String[] ids, params, line, covarsHeader;
@@ -136,15 +136,15 @@ public class Heritability {
 
 		dir = ext.verifyDirFormat(dir);
 		
-		GenParser.parse(new String[] {dir+pedfile, "out="+dir+"/"+prefix+"_fam.csv", "0=FAMID", "1=ID", "2=FA", "3=MO", "4=SEX"}, log);
-		ids = HashVec.loadFileToStringArray(dir+pedfile, false, new int[] {1}, false);
+		GenParser.parse(new String[] {pedfile, "out="+dir+"/"+prefix+"_fam.csv", "0=FAMID", "1=ID", "2=FA", "3=MO", "4=SEX"}, log);
+		ids = HashVec.loadFileToStringArray(pedfile, false, new int[] {1}, false);
 		if (Array.unique(ids).length != ids.length) {
 			System.err.println("Error - lookup for solar heritabilty screen currently requires unique IDs (found "+(ids.length-Array.unique(ids).length)+" that were not unique); aborting solar run");
-			return;
+			return null;
 		}
 		
 		params = new String[covars==null?2:3];
-		params[0] = dir+pedfile+" 1 0=FAMID 1=ID skip=0";
+		params[0] =pedfile+" 1 0=FAMID 1=ID skip=0";
 		params[1] = dir+pheno+" 1 2";
 		trait = Files.getHeaderOfFile(dir+pheno, log)[2];
 		if (covars != null) {
@@ -160,27 +160,72 @@ public class Heritability {
 
 //		Files.write("echo -e \"load ped "+prefix+"_fam.csv\\nautomodel "+prefix+"_ptypes.csv "+trait+"\\npolygenic -screen\\nquit\\n\" | "+solarExec+" > "+prefix+"_solar.log", dir+"/batch");
 		Files.write("echo -e \"load ped "+prefix+"_fam.csv\\nload phenotype "+prefix+"_ptypes.csv\\ntrait "+trait+"\\n"+(covarsHeader != null?"covariates "+Array.toStr(Array.subArray(covarsHeader, 2), " ")+"\\n":"")+"polygenic -screen\\nquit\\n\" | "+solarExec+" > "+prefix+"_solar.log", dir+"/batch");
+		System.out.println(dir);
 		if (!System.getProperty("os.name").startsWith("Windows")) {
 			CmdLine.run("chmod +x batch", dir);
 			CmdLine.run("./batch", dir);
 		}
-		
+		String[] solarEstimate = new String[] { "NaN", "NaN", "NaN", "NaN", "NaN" };
 		try {
 			reader = new BufferedReader(new FileReader(dir+trait+"/polygenic.out"));
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (temp.contains("H2r is ")) {
-					log.report("Solar  estimate: "+temp.substring(temp.indexOf("H2r is ")+7));
-					
+					String estString = temp.substring(temp.indexOf("H2r is ") + 7);
+					log.report("Solar  estimate: " + estString);
+					String[] toParse = estString.trim().split("[\\s]+");
+					try {
+						double h2 = Double.parseDouble(toParse[0]);
+						solarEstimate[0] = h2 + "";
+						double pval = Double.parseDouble(toParse[3]);
+						solarEstimate[1] = pval + "";
+					} catch (NumberFormatException nfe) {
+						log.reportTimeError("Could not parse " + estString);
+						reader.close();
+						return null;
+					}
+
 					temp = reader.readLine();
 					while (!temp.contains("Loglikelihoods")) {
 						log.report(temp);
+						if (temp.contains("H2r Std. Error:")) {
+							String[] tmpString = temp.trim().split("[\\s]+");
+							try {
+								double stError = Double.parseDouble(tmpString[3]);
+								solarEstimate[2] = stError + "";
+							} catch (NumberFormatException nfe) {
+								log.reportTimeError("Could not parse " + temp);
+								reader.close();
+								return null;
+							}
+						}
 						temp = reader.readLine();
 					}
-					
+
 					while (reader.ready()) {
 						temp = reader.readLine();
 						if (temp.contains("Kurtosis")) {
+							if (temp.contains("Residual Kurtosis is")) {
+								String kurtString = temp.replaceAll(".*Residual Kurtosis is ", "");
+								kurtString = kurtString.replaceAll(" .*", "");
+								kurtString = kurtString.replaceAll(",.*", "");
+								try {
+									double kurt = Double.parseDouble(kurtString);
+									solarEstimate[3]=kurt+"";
+									
+								} catch (NumberFormatException nfe) {
+									log.reportTimeError("Could not parse " + temp);
+									reader.close();
+									return null;
+								}
+								if(temp.contains("high")){
+									solarEstimate[4] = "HIGH";
+								} else if (temp.contains("normal")) {
+									solarEstimate[4] = "NORMAL";
+								} else {
+									log.reportTimeError("Could not kurtosis type for " + temp);
+								}
+							}
 							log.report(temp);
 						}
 					}
@@ -192,6 +237,7 @@ public class Heritability {
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + trait+"/polygenic.out\"; solar probably ran into trouble");
 		}
+		return solarEstimate;
 	}
 
 	public static void getHeritabilitiesOfAllPhenosInADir(String dir, String pedigreeFile, String covars, Logger log) {
@@ -283,7 +329,7 @@ public class Heritability {
 
     		try {
 				summary = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_summary.xln"));
-				summary.println("Model\tMerlin_est.\tSolar_est.\tSolar_p\tn_Samples\tn_Families\tn_Families_size>1\tAverage_size_families_siez>1\tn_Families_size=1");
+				summary.println("Model\tMerlin_est.\tSolar_est.\tSolar_p\tSolar_StdError\tSolar_Kurt\tSolar_KurtWarning\tn_Samples\tn_Families\tn_Families_size>1\tAverage_size_families_siez>1\tn_Families_size=1");
 	    		for (int i = 0; i < models.size(); i++) {
 	    			line = models.elementAt(i);
 	    			if (line.length < 2) {
@@ -361,13 +407,16 @@ public class Heritability {
 						log.report("Heritability for "+root);
 						log.report(line[1]+" ~ "+Array.toStr(Array.subArray(line, 2), " "));
 						merlinEstimate = computeWithMerlin(dir+root, pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, merlinExec, log);
-//						solarEstimate = computeWithSolar(dir+root, pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, solarExec, log);
+         		        solarEstimate = computeWithSolar(dir+root, pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, solarExec, log);
+						if (solarEstimate == null) {
+							solarEstimate = new String[] { "NaN", "NaN", "NaN" ,"NaN","NaN"};
+						}
 						numOfAllSamples = counter.getTotalCount();
 						numOfFamiliesSizedOne = counter.getSizeOfCountEquals(1);
 						numOfFamiliesSizedTwoOrAbove = counter.getSizeOfCountGreaterThan(2);
 						log.report("Number of samples: " + numOfAllSamples + "\nNumber of families: " + counter.getSize() + "\nNumber of families of size>=2: " + numOfFamiliesSizedTwoOrAbove + "\nAverage size of families of size>=2: " + ext.formDeci((numOfAllSamples - numOfFamiliesSizedOne) / (float) numOfFamiliesSizedTwoOrAbove, 3) + "\nNumber of families of size=1: " + numOfFamiliesSizedOne);
 //						summary.println(root + "\t" + merlinEstimate + "\t" + solarEstimate[0] + "\t" + solarEstimate[1] + "\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + String.format("%.3", ((float) (numOfAllSamples - numOfFamiliesSizedOne)) / numOfFamiliesSizedTwoOrAbove) + "\t" + numOfFamiliesSizedOne);
-						summary.println(root + "\t" + merlinEstimate + "\t\t\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + ext.formDeci((float) (numOfAllSamples - numOfFamiliesSizedOne) / numOfFamiliesSizedTwoOrAbove, 3) + "\t" + numOfFamiliesSizedOne);
+						summary.println(root + "\t" + merlinEstimate + "\t" + Array.toStr(solarEstimate) + "\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + ext.formDeci((float) (numOfAllSamples - numOfFamiliesSizedOne) / numOfFamiliesSizedTwoOrAbove, 3) + "\t" + numOfFamiliesSizedOne);
 						summary.flush();
 						log.report("");
 	    			}
