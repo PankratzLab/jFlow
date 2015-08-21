@@ -24,7 +24,7 @@ public class TypedFileParser extends FileParser {
 					for (int i = 0; i < numericColumns.length; i++) {
 						numericData[i] = Array.toDoubleArray(Array.subArray(line, numericColumns[i]));
 					}
-				} catch (NumberFormatException e) {
+				} catch (Exception e) {
 					log.reportTimeError("Found invalid number on line " + Array.toStr(line));
 					validLine = false;
 				}

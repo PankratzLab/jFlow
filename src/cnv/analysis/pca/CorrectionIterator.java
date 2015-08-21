@@ -20,6 +20,7 @@ import stats.Rscript.PLOT_DEVICE;
 import stats.Rscript.RScatter;
 import stats.Rscript.RScatters;
 import stats.Rscript.SCATTER_TYPE;
+import stats.Rscript.SeriesLabeler;
 import stats.StatsCrossTabs.STAT_TYPE;
 import stats.StatsCrossTabs.StatsCrossTabRank;
 import stats.StatsCrossTabs.VALUE_TYPE;
@@ -219,8 +220,12 @@ class CorrectionIterator implements Serializable {
 				}
 				iterationResult.setValid(valid);
 				if (valid) {
+					// sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, false, numthreads, proj.getLog());
+					// sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL , log);
 					sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, oType == ORDER_TYPE.STEPWISE_RANK_R2, numthreads, proj.getLog());
+
 					sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL && oType != ORDER_TYPE.STEPWISE_RANK_R2, log);
+
 					switch (oType) {
 					case NATURAL:
 						order = null;
@@ -350,7 +355,7 @@ class CorrectionIterator implements Serializable {
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
-		private static final String[] MERLIN_ADDITIONS = new String[] { "NUM_PC", "PERCENT_HERITABLITY" };
+		private static final String[] HERIT_ADDITIONS = new String[] { "NUM_PC", "MERLIN_PERCENT_HERITABLITY", "SOLAR_PERCENT_HERITABLITY", "SOLAR_PVAL", "SOLAR_ST_ERROR" };
 		private String outputRoot;
 		private String outputSer;
 		private String outputRank;
@@ -548,7 +553,7 @@ class CorrectionIterator implements Serializable {
 			String finalBoxPlot = dir + ext.removeDirectoryInfo(outputRoot) + "finalBoxPlot";
 			RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), finalBoxPlot + ".rscript", finalBoxPlot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
 			scatters.addAll(rScatters);
-			//rScattersAll.execute();
+			// rScattersAll.execute();
 			return classifiers;
 			// RScatter
 		}
@@ -608,12 +613,14 @@ class CorrectionIterator implements Serializable {
 			rScatter.setxLabel("PC (" + oType + " - sorted)");
 			rScatter.setTitle(iType + " " + bType);
 			// rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
+			rScatter.setSeriesLabeler(new SeriesLabeler(true, true, "PC", "stat"));
 			rScatter.execute();
 			rScatter.setOutput(ext.addToRoot(evalPlot, ".trim"));
 			rScatter.setxRange(new double[] { 0, 50 });
 			rScatter.execute();
 			rScatter.setOutput(evalPlot);
 			rScatter.setxRange(null);
+
 			return rScatter;
 		}
 
@@ -635,20 +642,24 @@ class CorrectionIterator implements Serializable {
 					}
 					try {
 						BufferedReader reader = Files.getAppropriateReader(tmpHerit);
-						int merlinIndex = ext.indexOfStr("Merlin_est.", Files.getHeaderOfFile(tmpHerit, log));
-
-						if (merlinIndex < 0) {
-							log.reportTimeError("Could not find Merlin_est. in " + tmpHerit);
+						String[] toExtract = new String[] { "Merlin_est." };
+						int[] indices = ext.indexFactors(toExtract, Files.getHeaderOfFile(tmpHerit, log), true, false);
+						if (Array.countIf(indices, -1) > 0) {
+							log.reportTimeError("Could not find " + Array.toStr(toExtract) + " in " + tmpHerit);
 							return null;
 						}
 						PrintWriter writer = new PrintWriter(new FileWriter(heritSummary));
-						writer.println(Array.toStr(MERLIN_ADDITIONS) + "\t" + reader.readLine().trim());
+						writer.println(Array.toStr(HERIT_ADDITIONS) + "\t" + reader.readLine().trim());
 						int index = 0;
 						while (reader.ready()) {
 							String[] line = reader.readLine().trim().split("\t");
 							try {
-								double est = Double.parseDouble(line[merlinIndex].replaceAll("%", ""));
-								writer.println(index + "\t" + est + "\t" + Array.toStr(line));
+								double merlinEst = Double.parseDouble(line[indices[0]].replaceAll("%", ""));
+								double solareEst = Double.parseDouble(line[indices[1]]) * 100;
+								double solareP = Double.parseDouble(line[indices[2]]);
+								double solareStError = Double.parseDouble(line[indices[3]]);
+
+								writer.println(index + "\t" + merlinEst + "\t" + solareEst + "\t" + solareP + "\t" + solareStError + "\t" + Array.toStr(line));
 							} catch (NumberFormatException nfe) {
 								log.reportTimeWarning("Skipping line " + Array.toStr(line) + " , invalid estimate");
 							}
@@ -676,6 +687,7 @@ class CorrectionIterator implements Serializable {
 				double[] estimates = new double[] { -1 };
 
 				System.out.println(tmpHerit);
+				System.exit(1);
 				try {
 					String[] line = Files.getHeaderOfFile(tmpHerit, "\t", new String[] { "Model" }, log);
 					numFam = Integer.parseInt(line[numFamIndex]);
@@ -687,7 +699,7 @@ class CorrectionIterator implements Serializable {
 				} catch (Exception e) {
 					log.reportException(e);
 				}
-				RScatter rScatter = new RScatter(heritSummary, heritRscript, ext.rootOf(heritSummary), heritPlot, MERLIN_ADDITIONS[0], new String[] { MERLIN_ADDITIONS[1] }, SCATTER_TYPE.POINT, log);
+				RScatter rScatter = new RScatter(heritSummary, heritRscript, ext.rootOf(heritSummary), heritPlot, HERIT_ADDITIONS[0], new String[] { HERIT_ADDITIONS[1] }, SCATTER_TYPE.POINT, log);
 				rScatter.setyRange(new double[] { 0, 100 });
 				rScatter.setxLabel("PC (" + oType + " - sorted)");
 				rScatter.setTitle(iType + " " + bType + "; nInd=" + numSamps + ", nFam=" + numFam);
@@ -885,8 +897,78 @@ class CorrectionIterator implements Serializable {
 
 		String outputRoot = outputDir + "finalSummary";
 		RScatters finalScatters = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), outputRoot + ".rscript", outputRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_2, PLOT_DEVICE.PDF, proj.getLog());
-		//finalScatters.execute();
+
+		Logger log = proj.getLog();
+		String finalCompFile = outputRoot + ".finalComp.txt";
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(finalCompFile));
+			ArrayList<String> header = new ArrayList<String>();
+			header.add("MODEL_BUILDER_TYPE");
+			header.add("ORDER_TYPE");
+			header.add("ITERATION_TYPE");
+			header.add("STAT");
+			header.add("EVALUATED");
+			header.add("MIN_STAT_PC");
+			header.add("MIN_STAT");
+			header.add("MAX_STAT_PC");
+			header.add("MAX_STAT");
+			header.add("MIN_PVAL_PC");
+			header.add("MIN_PVAL");
+			header.add("MAX_PVAL_PC");
+			header.add("MAX_PVAL");
+			header.add("AVERAGE_STAT");
+			header.add("MEDIAN_STAT");
+			header.add("STD_STAT");
+
+			writer.println(Array.toStr(Array.toStringArray(header)));
+			for (int correctionIndex = 0; correctionIndex < cIterators.length; correctionIndex++) {
+				CorrectionIterator correctionIterator = cIterators[correctionIndex];
+				EvaluationResult[] evaluationResults = EvaluationResult.readSerial(correctionIterator.getIterationResult().getOutputSer(), log);
+				MODEL_BUILDER_TYPE mBuilder_TYPE = correctionIterator.getIterationResult().getbType();
+				ORDER_TYPE oType = correctionIterator.getIterationResult().getoType();
+				ITERATION_TYPE iType = correctionIterator.getIterationResult().getiType();
+
+				ArrayList<double[]> statsSpear = evaluationResults[0].getSpearmanCorrel();
+				printStatSummary(writer, "SPEARMAN", evaluationResults, mBuilder_TYPE, oType, iType, statsSpear);
+				ArrayList<double[]> statsPear = evaluationResults[0].getPearsonCorrels();
+				printStatSummary(writer, "PEARSON", evaluationResults, mBuilder_TYPE, oType, iType, statsPear);
+
+			}
+
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + finalCompFile);
+			log.reportException(e);
+		}
+
+		// finalScatters.execute();
 		return cIterators;
+	}
+
+	private static void printStatSummary(PrintWriter writer, String type, EvaluationResult[] evaluationResults, MODEL_BUILDER_TYPE mBuilder_TYPE, ORDER_TYPE oType, ITERATION_TYPE iType, ArrayList<double[]> statsAL) {
+		for (int i = 0; i < statsAL.size(); i++) {
+			double[] stats = new double[evaluationResults.length];
+			double[] pval = new double[evaluationResults.length];
+			for (int j = 0; j < evaluationResults.length; j++) {
+				stats[j] = statsAL.get(i)[0];
+				pval[j] = statsAL.get(i)[1];
+			}
+
+			double maxStat = Array.max(stats);
+			double minStat = Array.min(stats);
+			int maxStatPC = Array.maxIndex(stats);
+			int minStatPC = Array.minIndex(stats);
+
+			double maxPval = Array.max(pval);
+			double minPval = Array.min(pval);
+			int maxPvalPC = Array.maxIndex(pval);
+			int minPvalPC = Array.minIndex(pval);
+
+			double avgStat = Array.mean(stats);
+			double medianStat = Array.mean(stats);
+			double stdvStat = Array.stdev(stats);
+			writer.println(mBuilder_TYPE + "\t" + oType + "\t" + iType + "\t" + type + "\t" + minStatPC + "\t" + minStat + "\t" + maxStatPC + "\t" + maxStat + "\t" + minPvalPC + "\t" + minPval + "\t" + maxPvalPC + "\t" + maxPval + "\t" + avgStat + "\t" + medianStat + "\t" + stdvStat);
+		}
 	}
 
 	private static class IterSummary {
@@ -966,13 +1048,36 @@ class CorrectionIterator implements Serializable {
 
 					ArrayList<RScatter> scatters = new ArrayList<RScatter>();
 					if (stratCats != null) {
-						classifiers = iterationResult.estimateBoxPlots(proj, stratCats, numericStratCats,scatters, proj.getLog());
+						try {
+							classifiers = iterationResult.estimateBoxPlots(proj, stratCats, numericStratCats, scatters, proj.getLog());
+						} catch (Exception e) {
+
+						}
 
 					}
 					// Add multiplots here
+					double font = .5;
 					for (int i = 0; i < plotTitlesForSummary.length; i++) {
 						RScatter rScatterSummary = iterationResult.plotSummary(plotTitlesForSummary[i], i, proj.getLog());
+						rScatterSummary.setSeriesLabeler(null);
+
+						RScatter rScatterSummaryMax = iterationResult.plotSummary(plotTitlesForSummary[i], i, proj.getLog());
+						rScatterSummaryMax.setDirectLableGtexts(true);
+						rScatterSummaryMax.setOnlyMaxMin(true);
+						rScatterSummaryMax.setPlotVar(rScatterSummary.getPlotVar() + "max");
+						rScatterSummaryMax.setFontsize(font);
+						rScatterSummaryMax.getSeriesLabeler().setLabelMin(false);
+
+						RScatter rScatterSummaryMin = iterationResult.plotSummary(plotTitlesForSummary[i], i, proj.getLog());
+						rScatterSummaryMin.setDirectLableGtexts(true);
+						rScatterSummaryMin.setOnlyMaxMin(true);
+						rScatterSummaryMin.setPlotVar(rScatterSummary.getPlotVar() + "min");
+						rScatterSummaryMin.setFontsize(font);
+						rScatterSummaryMin.getSeriesLabeler().setLabelMax(false);
+
 						scatters.add(rScatterSummary);
+						scatters.add(rScatterSummaryMax);
+						scatters.add(rScatterSummaryMin);
 					}
 					if (pedFile != null) {
 						classifyHerit(tmp, log, iterationResult, classifiers, scatters, null, null, null);
@@ -1029,11 +1134,39 @@ class CorrectionIterator implements Serializable {
 					} else {
 						scatters.add(iterationResult.plotRank(log));
 					}
+
 					String typedOut = ext.parseDirectoryOfFile(originalSer) + "typed/";
 					new File(typedOut).mkdirs();
-					String outputRoot = typedOut + iterationResult.getbType() + "_" + iterationResult.getoType() + "_" +  iterationResult.getiType() + "_finalSummary";
+					String outputRoot = typedOut + iterationResult.getbType() + "_" + iterationResult.getoType() + "_" + iterationResult.getiType() + "_finalSummary";
 					RScatters finalScattersTyped = new RScatters(scatters.toArray(new RScatter[scatters.size()]), outputRoot + ".rscript", outputRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_2, PLOT_DEVICE.PDF, proj.getLog());
+
 					finalScattersTyped.execute();
+					EvaluationResult[] evaluationResults = EvaluationResult.readSerial(iterationResult.getOutputSer(), log);
+					String outAllEstimates = outputRoot + ".estimates.txt.gz";
+
+					System.out.println(outAllEstimates);
+					System.out.println(evaluationResults.length);
+
+					String[] samples = proj.getSamples();
+					try {
+						PrintWriter writer = Files.getAppropriateWriter(outAllEstimates);
+						writer.print("DNA");
+						for (int j = 0; j < evaluationResults.length; j++) {
+							writer.print("\tPC" + j);
+						}
+						writer.println();
+						for (int j = 0; j < samples.length; j++) {
+							writer.print(samples[j]);
+							for (int k = 0; k < evaluationResults.length; k++) {
+								writer.print("\t" + evaluationResults[k].getEstimateData()[j]);
+							}
+							writer.println();
+						}
+						writer.close();
+					} catch (Exception e) {
+						log.reportError("Error writing to " + outAllEstimates);
+						log.reportException(e);
+					}
 					return new IterSummary(scatters.toArray(new RScatter[scatters.size()]), iterationResult.getbType(), iterationResult.getiType(), iterationResult.getoType());
 				}
 

@@ -26,10 +26,10 @@ public class Stepwise {
 	public Stepwise(Vector<String> deps, Vector<double[]> indeps) {
 		Xs = indeps;
 		Ys = deps;
-		run(Integer.MAX_VALUE, 1);
+		run(Integer.MAX_VALUE,false, 1);
 	}
 
-	public Stepwise(double[] new_deps, double[][] new_indeps,int svdRegressionSwitch,int numThreads) {
+	public Stepwise(double[] new_deps, double[][] new_indeps, int svdRegressionSwitch, boolean bonferroniEntry, int numThreads) {
 		Xs = new Vector<double[]>();
 		Ys = new Vector<String>();
 
@@ -38,7 +38,7 @@ public class Stepwise {
 			Ys.add(new_deps[i]+"");
 		}
 
-		run(svdRegressionSwitch, numThreads);
+		run(svdRegressionSwitch, bonferroniEntry, numThreads);
 	}
 
 	public Stepwise(int[] new_deps, int[][] new_indeps) {
@@ -55,7 +55,7 @@ public class Stepwise {
 			Ys.add(new_deps[i]+"");
 		}
 
-		run(Integer.MAX_VALUE,1);
+		run(Integer.MAX_VALUE, false, 1);
 	}
 
 	public static RegVectors procFile(String filename) {
@@ -108,7 +108,7 @@ public class Stepwise {
 	 *            when the number of indeps in the model is greater than this number, svd regression will be used
 	 * @param numThreads
 	 */
-	public void run(int svdRegressionSwitch, int numThreads) {
+	public void run(int svdRegressionSwitch, boolean bonferroniEntry, int numThreads) {
 		RegressionModel model;
 		IntVector in = new IntVector();
 		IntVector out = new IntVector();
@@ -201,11 +201,13 @@ public class Stepwise {
 					out.add(in.popLast());
 				}
 			}
-			if (lowestP<ENTRY_PROB) {
+			if (lowestP < (bonferroniEntry ? ENTRY_PROB / M : ENTRY_PROB)) {
 				in.add(out.popAt(bestModel));
-				System.out.println(in.size() + " independant variables added to the model, lowest p-value = "+lowestP);
-				System.out.println(in.size() + " independant variables added to the model, highest Rsquare = "+highestRsq);
-
+				System.out.println(ext.getTime() + "\t" + in.size() + " independant variables added to the model, lowest p-value = " + lowestP);
+				System.out.println(ext.getTime() + "\t" + in.size() + " independant variables added to the model, highest Rsquare = " + highestRsq);
+				if (bonferroniEntry) {
+					System.out.println(ext.getTime() + "bonf=" + (ENTRY_PROB / M));
+				}
 				increments.add(in.clone());
 				for (int i = in.size(); i>=1; i--) {
 					if (pvals[bestModel][i]>REMOVAL_PROB) {
