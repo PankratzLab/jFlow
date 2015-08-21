@@ -27,6 +27,8 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 	public static final String[] DOUBLE_DATA = new String[] { "AGE" };
 	private static final String[] DOUBLE_DATA_PATTERN = new String[] { "EVAL_DATA", "AGE" };// For Correlation(Spearman by ICC)
 	private static final String[] STRING_DATA_PATTERN = new String[] { "EVAL_CLASS", "AGE" };// For ICC
+	private static final String[] STRAT_STRING_PATTERN = new String[] { "STRAT_CLASS" };// For ICC
+
 	public static final String[] INDEPS = new String[] { "CLASS=SEX", "AGE" };
 	public static final String[] INDEPS_CATS = new String[] { "CENTER" };
 	private static final String NO_STRAT = "NO_STRAT";
@@ -48,7 +50,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 		this.log = proj.getLog();
 		this.matchDouble = gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), DOUBLE_DATA_PATTERN, log);
 		this.matchString = gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), STRING_DATA_PATTERN, log);
-		this.stratString = gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), INDEPS_CATS, log);
+		this.stratString = gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), Array.concatAll(STRAT_STRING_PATTERN, INDEPS_CATS), log);
 		loadSampleData();
 		this.extraIndeps = extraIndeps;
 		this.iterator = new PrincipalComponentsIterator(pcResiduals, order);

@@ -313,7 +313,39 @@ public class Rscript {
 	}
 
 	
-	
+	/**
+	 * plot error bars on data points
+	 *
+	 */
+	public static class ErrorBars {
+		
+		private String[] rSafeDataColumns;
+		private String[] rSafeErrorColumns;
+
+		public ErrorBars(String[] dataColumns, String[] stdErrorColumns) {
+			super();
+			this.rSafeDataColumns = makeRSafe(dataColumns);
+			this.rSafeErrorColumns = makeRSafe(stdErrorColumns);
+		}
+
+		public String[] getErrorBarCalls(String dataFrame,String xColumn) {
+			String[] errorBars = new String[rSafeDataColumns.length];
+			for (int i = 0; i < errorBars.length; i++) {
+				StringBuilder builder = new StringBuilder();
+				builder.append("geom_errorbar(data=" + dataFrame + ",");
+				builder.append("aes(x="+xColumn+", ymin =" + rSafeDataColumns[i] + "-" + rSafeErrorColumns[i] + ",");
+				builder.append("ymax=" + rSafeDataColumns[i] + "+" + rSafeErrorColumns[i] + ",colour=\"" + rSafeDataColumns[i] + "\"))");
+				errorBars[i] = builder.toString();
+			}
+			return errorBars;
+
+		}
+
+		public String[] getrSafeErrorColumns() {
+			return rSafeErrorColumns;
+		}
+
+	}
 	public static class GeomText {
 		private static final String[] HEADER = new String[] { "X", "Y", "ANGLE", "LABEL","FONTSIZE" };
 		private double x;
@@ -360,10 +392,11 @@ public class Rscript {
 
 		public String getCommand() {
 			StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.append(" geom_text(data = NULL,x =");
+			stringBuilder.append(" geom_text(data = NULL,aes(x =");
 			stringBuilder.append(x + ", y = ");
 			stringBuilder.append(y + ", label=");
-			stringBuilder.append("\"" + label + "\",angle=" + angle + ",size=" + fontSize  + " )");
+			stringBuilder.append("\"" + label + "\",angle=" + angle + " ))");
+			//,size=" + fontSize  + "
 			//+ (color == null ? "" : ",color=\"" + color + "\"")
 			return stringBuilder.toString();
 		}
@@ -512,7 +545,9 @@ public class Rscript {
 		private int width;
 		private GeomText[] gTexts;
 		private SeriesLabeler seriesLabeler;
-		private boolean directLableGtexts, onlyMaxMin;		
+		private boolean directLableGtexts, onlyMaxMin;	
+		private ErrorBars errorBars;
+		private String legendName;
 
 		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
 			super();
@@ -536,6 +571,19 @@ public class Rscript {
 			this.width = 11;
 			this.directLableGtexts =false;
 			this.onlyMaxMin = false;
+			this.legendName = "variable";
+		}
+
+		public ErrorBars getErrorBars() {
+			return errorBars;
+		}
+
+		public void setErrorBars(ErrorBars errorBars) {
+			this.errorBars = errorBars;
+		}
+
+		public GeomText[] getgTexts() {
+			return gTexts;
 		}
 
 		public void setOnlyMaxMin(boolean onlyMaxMin) {
@@ -687,6 +735,7 @@ public class Rscript {
 			return null;
 		}
 		
+		
 		private String[] directLabelFrame(String currentPlot,String factorTitel,String xTitle,String meltYTitle){
 			String[] directDataFrame= new String[2];
 			String[] types = new String[gTexts.length];
@@ -726,6 +775,7 @@ public class Rscript {
 				rCmd.add("library(scales)");
 				rCmd.add("library(ggplot2)");
 				rCmd.add("require(reshape2)");
+				rCmd.add("library(RColorBrewer)");
 				if (directLableGtexts) {
 					rCmd.add(" library(directlabels)");
 				}
@@ -740,11 +790,22 @@ public class Rscript {
 				// if (dataYvalueColumns.length > 1) {
 
 				String[] toExtract = Array.concatAll(new String[] { rSafeXColumn }, rSafeYColumns);
+				if (errorBars != null) {
+					toExtract = Array.concatAll(toExtract, errorBars.getrSafeErrorColumns());
+				}
 				String extract = dataTableExtract + " <- " + dataTable + "[," + generateRVector(toExtract, true) + "]";
 				rCmd.add(extract);
 				String melt = dataTableMelt + "<-  melt(" + dataTableExtract + ",id.vars =\"" + rSafeXColumn + "\")";
 				rCmd.add(melt);
-			
+				int numColors = rSafeYColumns.length;
+				StringBuilder pallete = new StringBuilder();
+				pallete.append("myColors <- brewer.pal(" + numColors + ",\"Set1\")\n");
+				pallete.append("names(myColors)  <- levels(" + dataTableMelt + "$variable)\n");
+				pallete.append("colScale <- scale_colour_manual(name = \"grp\",values = myColors)\n");
+				String colScale =pallete.toString();
+				rCmd.add(colScale);
+				// names(myColors)  <- levels(dataTableMeltcorrectionEval_WITHOUT_INDEPS_STEPWISE_RANK_R2_WITH_BUILDERS.summary.DK.summary.heritability_summary.parsed$variable)
+				///colScale <- scale_colour_manual(name = "grp",values = myColors)
 				dataTable = dataTableMelt;
 				if (sType == SCATTER_TYPE.BOX) {
 					plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=variable, y=value)) ";
@@ -762,11 +823,19 @@ public class Rscript {
 					}
 					// , col=variable
 					if (!onlyMaxMin) {
-						plot += " + " + sType.getCall() + "(data=" + dataTable + " , aes(colour =variable,x=" + rSafeXColumn + ", y=value, group=variable)" + (gPoint_SIZE == null ? "" : "," + gPoint_SIZE.getCall()) + ")";
+						//data=subset(dataTableMeltcorrectionEval_WITHOUT_INDEPS_STEPWISE_RANK_R2_WITH_BUILDERS.summary.DK.summary.heritability_summary.parsed,variable==c("SOLAR_PERCENT_HERITABLITY","MERLIN_PERCENT_HERITABLITY")
+						plot += " + " + sType.getCall() + "(data=subset(" + dataTable + ",variable==" + generateRVector(rSafeYColumns, true) + ") , aes(colour =variable,x=" + rSafeXColumn + ", y=value, group=variable)" + (gPoint_SIZE == null ? "" : "," + gPoint_SIZE.getCall()) + ")";
 					}
 					System.out.println(plot);
 				}
 
+				if (errorBars != null) {
+					String[] errors = errorBars.getErrorBarCalls(dataTableExtract, rSafeXColumn);
+					for (int i = 0; i < errors.length; i++) {
+						plot += " + " + errors[i];
+					}
+				}
+				
 				// } else {
 				// plot += plotVar + " <- ggplot(" + dataTable + ", aes(x = " + dataTable + "$" + rSafeXColumn + ")) ";
 				// plot += " + " + sType.getCall() + "(aes(y = " + dataTable + "$" + rSafeYColumns[0] + "))";
@@ -799,6 +868,7 @@ public class Rscript {
 				if (logTransformY) {
 					plot += "+ scale_y_log10()";
 				}
+				plot += " + colScale";
 				plot += " + theme(axis.line = element_line(colour = \"black\"), ";
 				plot += "panel.grid.major = element_blank(), ";
 				plot += "panel.grid.minor = element_blank(),";
