@@ -14,6 +14,7 @@ import java.util.concurrent.Callable;
 import stats.CategoricalPredictor;
 import stats.CategoricalPredictor.DummyCoding;
 import stats.Rscript.COLUMNS_MULTIPLOT;
+import stats.Rscript.ErrorBars;
 import stats.Rscript.GEOM_POINT_SIZE;
 import stats.Rscript.GeomText;
 import stats.Rscript.PLOT_DEVICE;
@@ -355,7 +356,7 @@ class CorrectionIterator implements Serializable {
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
-		private static final String[] HERIT_ADDITIONS = new String[] { "NUM_PC", "MERLIN_PERCENT_HERITABLITY", "SOLAR_PERCENT_HERITABLITY", "SOLAR_PVAL", "SOLAR_ST_ERROR" };
+		private static final String[] HERIT_ADDITIONS = new String[] { "NUM_PC", "MERLIN_PROPORTION_HERITABLITY", "SOLAR_PROPORTION_HERITABLITY", "SOLAR_PVAL", "SOLAR_ST_ERROR", "SOLAR_KURT", "SOLAR_KURT_WARNING" };
 		private String outputRoot;
 		private String outputSer;
 		private String outputRank;
@@ -642,7 +643,10 @@ class CorrectionIterator implements Serializable {
 					}
 					try {
 						BufferedReader reader = Files.getAppropriateReader(tmpHerit);
-						String[] toExtract = new String[] { "Merlin_est." };
+						String[] toExtract = new String[] { "Merlin_est.", "Solar_est.", "Solar_p", "Solar_StdError", "Solar_Kurt", "Solar_KurtWarning" };
+
+						// summary.println("Model\tMerlin_est.\tSolar_est.\tSolar_p\tSolar_StdError\tSolar_Kurt\tSolar_KurtWarning\tn_Samples\tn_Families\tn_Families_size>1\tAverage_size_families_siez>1\tn_Families_size=1");
+						System.out.println(tmpHerit);
 						int[] indices = ext.indexFactors(toExtract, Files.getHeaderOfFile(tmpHerit, log), true, false);
 						if (Array.countIf(indices, -1) > 0) {
 							log.reportTimeError("Could not find " + Array.toStr(toExtract) + " in " + tmpHerit);
@@ -654,12 +658,14 @@ class CorrectionIterator implements Serializable {
 						while (reader.ready()) {
 							String[] line = reader.readLine().trim().split("\t");
 							try {
-								double merlinEst = Double.parseDouble(line[indices[0]].replaceAll("%", ""));
-								double solareEst = Double.parseDouble(line[indices[1]]) * 100;
+
+								double merlinEst = Double.parseDouble(line[indices[0]].replaceAll("%", "")) / 100;
+								double solareEst = Double.parseDouble(line[indices[1]]);
 								double solareP = Double.parseDouble(line[indices[2]]);
 								double solareStError = Double.parseDouble(line[indices[3]]);
-
-								writer.println(index + "\t" + merlinEst + "\t" + solareEst + "\t" + solareP + "\t" + solareStError + "\t" + Array.toStr(line));
+								double solarKurt = Double.parseDouble(line[indices[4]]);
+								String kurtWarning = line[indices[5]];
+								writer.println(index + "\t" + merlinEst + "\t" + solareEst + "\t" + solareP + "\t" + solareStError + "\t" + solarKurt + "\t" + kurtWarning + "\t" + Array.toStr(line));
 							} catch (NumberFormatException nfe) {
 								log.reportTimeWarning("Skipping line " + Array.toStr(line) + " , invalid estimate");
 							}
@@ -686,8 +692,6 @@ class CorrectionIterator implements Serializable {
 				int numSamps = 0;
 				double[] estimates = new double[] { -1 };
 
-				System.out.println(tmpHerit);
-				System.exit(1);
 				try {
 					String[] line = Files.getHeaderOfFile(tmpHerit, "\t", new String[] { "Model" }, log);
 					numFam = Integer.parseInt(line[numFamIndex]);
@@ -699,13 +703,33 @@ class CorrectionIterator implements Serializable {
 				} catch (Exception e) {
 					log.reportException(e);
 				}
-				RScatter rScatter = new RScatter(heritSummary, heritRscript, ext.rootOf(heritSummary), heritPlot, HERIT_ADDITIONS[0], new String[] { HERIT_ADDITIONS[1] }, SCATTER_TYPE.POINT, log);
-				rScatter.setyRange(new double[] { 0, 100 });
+				double[] pvals = Array.toDoubleArray(HashVec.loadFileToStringArray(heritSummary, true, new int[] { 3 }, false));
+				double[] solarHerit = Array.toDoubleArray(HashVec.loadFileToStringArray(heritSummary, true, new int[] { 2 }, false));
+				double[] solarStError = Array.toDoubleArray(HashVec.loadFileToStringArray(heritSummary, true, new int[] { 4 }, false));
+				String[] solarWarnKurt = HashVec.loadFileToStringArray(heritSummary, true, new int[] { 6 }, false);
+
+				ArrayList<GeomText> sigGTexts = new ArrayList<GeomText>();
+				for (int i = 0; i < pvals.length; i++) {
+					if (pvals[i] < 0.05) {
+						GeomText geomText = new GeomText(i, solarHerit[i] + solarStError[i], 0, "*", 12);
+						sigGTexts.add(geomText);
+					}
+					if (solarWarnKurt[i].equals("NORMAL")) {
+						GeomText geomText = new GeomText(i, solarHerit[i] - solarStError[i], 0, "N", 12);
+						sigGTexts.add(geomText);
+					}
+				}
+
+				RScatter rScatter = new RScatter(heritSummary, heritRscript, ext.rootOf(heritSummary), heritPlot, HERIT_ADDITIONS[0], new String[] { HERIT_ADDITIONS[1], HERIT_ADDITIONS[2] }, SCATTER_TYPE.POINT, log);
+				ErrorBars errorBars = new ErrorBars(new String[] { HERIT_ADDITIONS[2] }, new String[] { HERIT_ADDITIONS[4] });
+				rScatter.setErrorBars(errorBars);
+				rScatter.setyRange(new double[] { 0, 1 });
 				rScatter.setxLabel("PC (" + oType + " - sorted)");
 				rScatter.setTitle(iType + " " + bType + "; nInd=" + numSamps + ", nFam=" + numFam);
-				rScatter.setyLabel("Percent Heritability");
+				rScatter.setyLabel("Proportion Heritability");
 				rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
 				rScatter.setOverWriteExisting(true);
+				rScatter.setgTexts(sigGTexts.toArray(new GeomText[sigGTexts.size()]));
 				rScatter.execute();
 				return new HeritPlot(rScatter, numSamps, numFam, estimates);
 			}
@@ -1207,6 +1231,10 @@ class CorrectionIterator implements Serializable {
 									RScatter tmpherit = heritPlot.getrScatter();
 									tmpherit.setTitle(classifiers[classifyIndex].getTitles()[titleIndex] + " - matched samples n=" + Array.booleanArraySum(currentModel));
 									tmpherit.execute();
+									GeomText[] gTexts = tmpherit.getgTexts();
+									for (int i = 0; i < gTexts.length; i++) {
+										otherDataGeomTexts.add(gTexts[i]);
+									}
 									// scatters.add(tmpR.plotHeritability(proj, pedFile, currentModel, log));
 									hPlots.add(heritPlot);
 									currentClass.add(tmpherit.getDataFile());
@@ -1264,15 +1292,19 @@ class CorrectionIterator implements Serializable {
 									adds[i] = add;
 								}
 								String[] heritColumns = new String[currentClass.size()];
-								String[][] columns = Files.paste(Array.toStringArray(currentClass), comboHerit, new int[] { 0, 1 }, 0, adds, log);
+								String[] errorColumns = new String[currentClass.size()];
+								String[][] columns = Files.paste(Array.toStringArray(currentClass), comboHerit, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 0, adds, log);
 								for (int j = 0; j < columns.length; j++) {
-									heritColumns[j] = columns[j][1];
+									heritColumns[j] = columns[j][2];
+									errorColumns[j] = columns[j][4];
+
 								}
+								ErrorBars errorBars = new ErrorBars(heritColumns, errorColumns);
 								RScatter classHerit = new RScatter(comboHerit, comboHerit + ".rscript", ext.removeDirectoryInfo(comboHerit), comboHerit + ".pdf", columns[0][0], heritColumns, SCATTER_TYPE.POINT, log);
 								classHerit.setTitle(all.getrScatter().getTitle() + " \nHeritability by " + stratCats[classifyIndex] + (subsetDataHeritability == null ? "" : " and " + subsetDataHeritability));
 								classHerit.setxLabel(all.getrScatter().getxLabel());
 								classHerit.setyLabel(all.getrScatter().getyLabel());
-
+								classHerit.setErrorBars(errorBars);
 								classHerit.setOverWriteExisting(true);
 								classHerit.setgTexts(otherDataGeomTexts.toArray(new GeomText[otherDataGeomTexts.size()]));
 								classHerit.execute();
