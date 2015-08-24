@@ -3548,7 +3548,7 @@ public class Files {
 			} else if (filename != null) {
 				makeQsub(filename, multiple, start, stop, separate, patterns, cwd);
 			} else if (transpose != null) {
-				transpose(transpose, commaDelimitedIn?",":"\t", outfile, commaDelimitedOut?",":"\t", new Logger());
+				transpose(transpose, commaDelimitedIn?",":"[\\s]+", outfile, commaDelimitedOut?",":"[\\s]+", new Logger());
 			} else if (dir != null) {
 				summarizeAllFilesInDirectory(dir);
 			} else {

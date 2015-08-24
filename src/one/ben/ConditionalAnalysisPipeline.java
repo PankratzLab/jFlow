@@ -164,8 +164,8 @@ public class ConditionalAnalysisPipeline {
 //                                break; // don't break anymore - we have to load data for each index SNP we've tracked
 //                            }
                         } else if (region.prevSNPs.contains(dataDefs.study + "\t" + dataDefs.popcode + "\t" + infoParts[1])) {
-                            region.prevSNPdata.put(dataDefs.study + "\t" + dataDefs.popcode + infoParts[1], genoLine.split("[\\s]+"));
-                            region.prevSNPinfo.put(dataDefs.study + "\t" + dataDefs.popcode + infoParts[1], infoLine.split("[\\s]+"));
+                            region.prevSNPdata.put(dataDefs.study + "\t" + dataDefs.popcode + "\t" + infoParts[1], genoLine.split("[\\s]+"));
+                            region.prevSNPinfo.put(dataDefs.study + "\t" + dataDefs.popcode + "\t" + infoParts[1], infoLine.split("[\\s]+"));
                         }
                         int mkrPos = Integer.parseInt(infoParts[2]);
                         if (mkrPos < region.start || mkrPos > region.stop) {
@@ -292,6 +292,8 @@ public class ConditionalAnalysisPipeline {
                             // TODO include each previous SNP?  Comment out to remove
                             for (String snp : region.prevSNPs) {
                                 if (snp.contains(study) && snp.contains(pop)) {
+//                                    log("Including data for: {" + snp + "}");
+//                                    log("Keys: {" + region.prevSNPdata.keySet() + "}");
                                     geno2 = Double.parseDouble(region.prevSNPdata.get(snp)[offset + (3 * iidInd) + 1]);
                                     geno3 = Double.parseDouble(region.prevSNPdata.get(snp)[offset + (3 * iidInd) + 2]);
                                     geno = (geno2 + (2 * geno3));
@@ -469,6 +471,10 @@ public class ConditionalAnalysisPipeline {
                                 dumpRegion(region, false); // dump data
                                 dumpRegion(region, true); // dump info
                                 
+                                for (DataDefinitions dd : popDefs.values()) {
+                                    dumpDosages(region, dd);
+                                }
+                                
                                 log("Couldn't find a candidate SNP for iterative analysis; recursive analysis for region [" + region.label + "] complete.");
                             } else {
                                 log("Iterating analysis with most-significant SNP [" + newSNP + "]");
@@ -504,6 +510,65 @@ public class ConditionalAnalysisPipeline {
             }
         }
         
+        private static void dumpDosages(Region region, DataDefinitions dd) {
+            PrintWriter writer;
+            
+            HashMap<String, String[]> pullFrom;
+            HashMap<String, String[]> prevFrom;
+            String[] dosageData, iids, prevData;
+            
+            StringBuilder sb;
+            ArrayList<String> prevDataKeyList;
+            int offset = 5; // column index offset to start of geno data
+            double geno, geno2, geno3;
+            
+            pullFrom = region.genoData;
+            prevFrom = region.prevSNPdata;
+            dosageData = pullFrom.get(dd.study + "\t" + dd.popcode);
+            
+            iids = HashVec.loadFileToStringArray(dd.indivFile, false, new int[]{0}, false);
+            writer = Files.getAppropriateWriter(region.analysisRootDir + region.label + "_" + dd.study + "_" + dd.popcode + "_snpDosages.txt");
+            
+            sb = new StringBuilder();
+            
+            prevDataKeyList = new ArrayList<String>();
+            sb.append("IID");
+            sb.append("\t").append(dd.study).append("_").append(dd.popcode).append("_").append(region.indexSNP);
+            for (String key : prevFrom.keySet()) {
+                if (key.startsWith(dd.study + "\t" + dd.popcode)) {
+                    sb.append("\t").append(key.replaceAll("\t", "_"));
+                    prevDataKeyList.add(key);
+                }
+            }
+            writer.println(sb.toString());
+            
+            for (int i = 0; i < iids.length; i++) {
+                sb = new StringBuilder();
+                
+                sb.append(iids[i]).append("\t");
+                
+                geno2 = Double.parseDouble(dosageData[offset + (3 * i) + 1]);
+                geno3 = Double.parseDouble(dosageData[offset + (3 * i) + 2]);
+                geno = (geno2 + (2 * geno3));
+                
+                sb.append(geno);
+                
+                for (String key : prevDataKeyList) {
+                    prevData = prevFrom.get(key);
+
+                    geno2 = Double.parseDouble(prevData[offset + (3 * i) + 1]);
+                    geno3 = Double.parseDouble(prevData[offset + (3 * i) + 2]);
+                    geno = (geno2 + (2 * geno3));
+                    
+                    sb.append("\t").append(geno);
+                }
+                
+                writer.println(sb.toString());
+            }
+            
+            writer.flush();
+            writer.close();
+        }
         
         private static void dumpRegion(Region region, boolean dumpInfo) {
             PrintWriter writer = Files.getAppropriateWriter(region.analysisRootDir + region.label + (dumpInfo ? "_snpInfo.txt" : "_snpData.txt"));
@@ -514,10 +579,15 @@ public class ConditionalAnalysisPipeline {
             HashMap<String, String[]> pullFrom = dumpInfo ? region.infoData : region.genoData;
             HashMap<String, String[]> prevFrom = dumpInfo ? region.prevSNPinfo : region.prevSNPdata;
             
+            int cnt = 0;
             for (Entry<String, String[]> studyPop : pullFrom.entrySet()) {
                 sb.append(studyPop.getKey().replace("\t", "_") + "_" + region.indexSNP);
                 studyPopOrder.add(studyPop.getKey());
                 maxLength = Math.max(maxLength, studyPop.getValue().length);
+                if (cnt < pullFrom.size() - 1) {
+                    sb.append("\t");
+                }
+                cnt++;
             }
             ArrayList<String> keyListOrder = new ArrayList<String>();
             for (String key : prevFrom.keySet()) {
@@ -533,12 +603,13 @@ public class ConditionalAnalysisPipeline {
                 int keyCnt = 0;
                 for (String key : studyPopOrder) {
                     String[] line = pullFrom.get(key);
-                    if (line.length < currentCount) {
+                    if (currentCount < line.length) {
                         sb.append(line[currentCount]);
                     }
                     if (keyCnt < studyPopOrder.size() - 1) {
                         sb.append("\t");
                     }
+                    keyCnt++;
                 }
                 for (String key : keyListOrder) {
                     sb.append("\t");
