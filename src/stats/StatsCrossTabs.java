@@ -2,6 +2,7 @@ package stats;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -247,7 +248,11 @@ public class StatsCrossTabs {
 	/**
 	 * @author lane0212 Stores the results of the ranking procedure
 	 */
-	public static class StatsCrossTabRank {
+	public static class StatsCrossTabRank implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		public static final String[] HEADER = new String[] { "Title", "OriginalOrder", "Stat", "Sig" };
 		private String rankedTo;
 		private int[] order;
