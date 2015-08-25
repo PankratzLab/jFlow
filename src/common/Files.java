@@ -2972,10 +2972,10 @@ public class Files {
 	 * @param log
 	 * @return
 	 */
-	public static String[] getHeaderOfFile(String filename, String delimiter,String[] patternsToSkip, Logger log) {
+	public static String[] getHeaderOfFile(String filename, String delimiter,String[] patternsThatIfPresentAtTheStartOfTheLineWillSkipLine, Logger log) {
 		String[] lines;
 
-		lines = getFirstNLinesOfFile(filename, 1,patternsToSkip, log);
+		lines = getFirstNLinesOfFile(filename, 1,patternsThatIfPresentAtTheStartOfTheLineWillSkipLine, log);
 		if (lines == null) {
 			return null;
 		}

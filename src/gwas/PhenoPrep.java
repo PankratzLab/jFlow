@@ -91,6 +91,13 @@ public class PhenoPrep {
 			covars = covarList.split(",");
 		}
 
+		String[] header = Files.getHeaderOfFile(dir+filename, log);
+		if (ext.indexOfStr(pheno, header) == -1 && pheno.endsWith(header[1])) {
+			log.reportError("Warning - did not find specified phenotype '"+pheno+"', but did find '"+header[1]+"', so using that instead");
+			pheno = header[1];
+		}
+		
+
 		prep = new PhenoPrep(dir+filename, idFile==null? null : dir+idFile, idColName, pheno, covars, log);
 		
 		if (prep.failed()) {
@@ -143,41 +150,31 @@ public class PhenoPrep {
 		prep.summarizeCentralMoments(idFile);
 		
 		if (histogram) {
-		    String header;
-            try {
-                BufferedReader reader = Files.getAppropriateReader(dir + filename);
-                header = reader.readLine();
-                String delim = ext.determineDelimiter(header);
-    		    String[] parts = header.split(delim);
-    		    int idIndex = ext.indexOfStr(idColName, parts);
-    		    int dataIndex = ext.indexOfStr(pheno, parts);
-    		    
-    		    String[] dataStrs = HashVec.loadFileToStringArray(dir + filename, true, new int[]{dataIndex}, false);
-    		    String[] valid = Array.removeMissingValues(dataStrs);
-    		    int missing = dataStrs.length - valid.length;
-    		    log.report("Warning - " + missing + " missing values were found");
-    		    double[] data = Array.toDoubleArray(valid);
-    		    Histogram hist = new Histogram(data);
-    		    String file = dir + ext.rootOf(filename, false) + "_hist.txt";
-    		    int cnt = 1;
-    		    while (Files.exists(file)) {
-    		        file = dir + ext.rootOf(filename, false) + "_hist_" + cnt++ + ".txt";
-    		    }
-    		    
-    		    hist.dump(file);
-    		    TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false);
-    		    ArrayList<ScreenToCapture> screens = new ArrayList<ScreenToCapture>();
-    		    float minx = (float) hist.getMin(), maxx = (float) hist.getMax(), miny = 0, maxy = Array.max(hist.getCounts());
-    		    screens.add(new ScreenToCapture(new String[]{file, file, null}, new int[]{0, 1, 0}, new int[]{0, 0, 0}, new float[]{minx, maxx, miny, maxy}, false, false, false, true));
-    		    tdp.createScreenshots(dir, screens);
-    		    tdp.windowClosing(null);
-            } catch (FileNotFoundException fnfe) {
-                log.reportError("Error: file \"" + filename + "\" not found in current directory");
-                log.reportException(fnfe);
-            } catch (IOException ioe) {
-                log.reportError("Error reading file \"" + filename + "\"");
-                log.reportException(ioe);
-            }
+        	// TODO this should be loading the outFilem not the filename
+        	// TODO make a subdirectory called histograms, and put all related files in there
+		    String[] parts = Files.getHeaderOfFile(dir+filename, log);
+//		    int idIndex = ext.indexOfStr(idColName, parts);
+		    int dataIndex = ext.indexOfStr(pheno, parts);
+		    
+		    String[] dataStrs = HashVec.loadFileToStringArray(dir + filename, true, new int[]{dataIndex}, false);
+		    String[] valid = Array.removeMissingValues(dataStrs);
+		    int missing = dataStrs.length - valid.length;
+		    log.report("Warning - " + missing + " missing values were found");
+		    double[] data = Array.toDoubleArray(valid);
+		    Histogram hist = new Histogram(data);
+		    String file = dir + ext.rootOf(filename, false) + "_hist.txt";
+		    int cnt = 1;
+		    while (Files.exists(file)) {
+		        file = dir + ext.rootOf(filename, false) + "_hist_" + cnt++ + ".txt";
+		    }
+		    
+		    hist.dump(file);
+		    TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false);
+		    ArrayList<ScreenToCapture> screens = new ArrayList<ScreenToCapture>();
+		    float minx = (float) hist.getMin(), maxx = (float) hist.getMax(), miny = 0, maxy = Array.max(hist.getCounts());
+		    screens.add(new ScreenToCapture(new String[]{file, file, null}, new int[]{0, 1, 0}, new int[]{0, 0, 0}, new float[]{minx, maxx, miny, maxy}, false, false, false, true));
+		    tdp.createScreenshots(dir, screens);
+		    tdp.windowClosing(null);
 		}
 		
 	}
@@ -261,7 +258,14 @@ public class PhenoPrep {
 				reader.close();
 				return;
 			}
-			indices = ext.indexFactors(Array.insertStringAt(pheno, covars, 0), header, false, log, true, true);
+
+			indices = ext.indexFactors(Array.insertStringAt(pheno, covars, 0), header, false, log, true, false);
+			if (Array.min(indices) == -1) {
+				log.reportError("Header looks like this: ");
+				log.reportError(Array.toStr(header, " / "));
+				reader.close();
+				return;
+			}
 			finalHeader = Array.subArray(header, indices);
 			while (reader.ready()) {
 				temp = reader.readLine();
@@ -709,17 +713,27 @@ public class PhenoPrep {
 	
 	public static void summarizeFromParameters(String filename, Logger log) {
 		Vector<String> params;
+		String[] files, vars;
+		
+		files = Files.list("./", ".csv", false);
+		vars = Files.getHeaderOfFile(files[0], ",", null, log);
+		
+		for (int i = 0; i < files.length; i++) {
+			files[i] = files[i].substring(0, files[i].length()-4);
+		}
 
 		params = Files.parseControlFile(filename, "bestTransformation", new String[] {
 				"dir=",
 				"# column name of the ID in the input file",
-				"id=IID",
+				"id="+vars[0],
 				"# phenotype names (requires a [phenoName].csv file as can be created by PhenoPrep)",
-				"pheno=pheno1,pheno2,pheno3",
+				"pheno="+Array.toStr(files, ","),
 				"# covariate column names separated by a comma",
-				"covar=Age,Sex,Site1,Site2",
+				"covar="+Array.toStr(Array.subArray(vars, 2), ","),
 				"# normalization of the final phenotype (0=none; 1=also normalization; 2=also normalization using sign-specific standard deviations)",
-				"normalization=2",
+				"normalization=1",
+				"# creates a histogram for each trait file",
+				"histogram=FALSE",
 			}, log);
 
 		if (params != null) {
@@ -741,6 +755,7 @@ public class PhenoPrep {
 		boolean normalize, normSigned;
 		
 		log = new Logger(dir+"summarizeAll.log");
+		log.report("id col name is "+idColName);
 		try {
 			writer = new PrintWriter(new FileWriter(dir+"phenoSummary.xln"));
 			writer.println("Trait\tshorthand\ttransform\twinsorize\tremoveOutliers\tmakeResiduals\tafterMakingResidualsDealWithOutliers\tnormalization\tN\tmean\tstdev\tskewness\tkurtosis\t'=SUM(ABS(SKEW)+ABS(KURT))");
