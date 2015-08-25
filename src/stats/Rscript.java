@@ -798,11 +798,15 @@ public class Rscript {
 				String melt = dataTableMelt + "<-  melt(" + dataTableExtract + ",id.vars =\"" + rSafeXColumn + "\")";
 				rCmd.add(melt);
 				int numColors = rSafeYColumns.length;
+				if(errorBars!=null){
+					numColors += errorBars.getrSafeErrorColumns().length;
+				}
 				StringBuilder pallete = new StringBuilder();
-				pallete.append("myColors <- brewer.pal(" + numColors + ",\"Set1\")\n");
+				pallete.append("getPalette = colorRampPalette(brewer.pal(9, \"Set1\"))\n");
+				pallete.append("myColors <- getPalette(" + numColors + ")\n");
 				pallete.append("names(myColors)  <- levels(" + dataTableMelt + "$variable)\n");
 				pallete.append("colScale <- scale_colour_manual(name = \"grp\",values = myColors)\n");
-				String colScale =pallete.toString();
+				String colScale = pallete.toString();
 				rCmd.add(colScale);
 				// names(myColors)  <- levels(dataTableMeltcorrectionEval_WITHOUT_INDEPS_STEPWISE_RANK_R2_WITH_BUILDERS.summary.DK.summary.heritability_summary.parsed$variable)
 				///colScale <- scale_colour_manual(name = "grp",values = myColors)
@@ -823,8 +827,15 @@ public class Rscript {
 					}
 					// , col=variable
 					if (!onlyMaxMin) {
-						//data=subset(dataTableMeltcorrectionEval_WITHOUT_INDEPS_STEPWISE_RANK_R2_WITH_BUILDERS.summary.DK.summary.heritability_summary.parsed,variable==c("SOLAR_PERCENT_HERITABLITY","MERLIN_PERCENT_HERITABLITY")
-						plot += " + " + sType.getCall() + "(data=subset(" + dataTable + ",variable==" + generateRVector(rSafeYColumns, true) + ") , aes(colour =variable,x=" + rSafeXColumn + ", y=value, group=variable)" + (gPoint_SIZE == null ? "" : "," + gPoint_SIZE.getCall()) + ")";
+						// data=subset(dataTableMeltcorrectionEval_WITHOUT_INDEPS_STEPWISE_RANK_R2_WITH_BUILDERS.summary.DK.summary.heritability_summary.parsed,variable==c("SOLAR_PERCENT_HERITABLITY","MERLIN_PERCENT_HERITABLITY")
+						String data = "";
+						if (errorBars != null) {
+							data = "subset(" + dataTable + ",variable==" + generateRVector(rSafeYColumns, true) + ")";
+						} else {
+							data = dataTable;
+						}
+						plot += " + " + sType.getCall() + "(data=" + data + " , aes(colour =variable,x=" + rSafeXColumn + ", y=value, group=variable)" + (gPoint_SIZE == null ? "" : "," + gPoint_SIZE.getCall()) + ")";
+
 					}
 					System.out.println(plot);
 				}

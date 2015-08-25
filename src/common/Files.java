@@ -543,6 +543,10 @@ public class Files {
 		return chmod(filename, true);
 	}
 
+	public static boolean copyFileUsingFileChannels(String source, String dest, Logger log) {
+		return copyFileUsingFileChannels(new File(source), new File(dest), log);
+	}
+
 	/**
 	 * Method should handle gzip and other binary /compressed formats like .ser
 	 * 
