@@ -15,14 +15,18 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import parse.GenParser;
+import sun.security.action.PutAllAction;
 import common.Aliases;
 import common.CmdLine;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.ext;
 
@@ -810,6 +814,157 @@ public class FAST {
 	    return count;
 	}
 	
+	private static void extract(String data, String[] snpList, String outfileBase) {
+	    HashMap<String, HashMap<String, DataDefinitions>> defs;
+	    try {
+            defs = parseDataDefinitionsFile(data);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return;
+        }
+	    
+	    HashMap<String, String[]> studyPopIDs = new HashMap<String, String[]>();
+	    HashMap<String, HashMap<String, String[]>> studyPopDataPerSNP = new HashMap<String, HashMap<String, String[]>>();
+	    HashMap<String, HashMap<String, String>> studyPopInfoPerSNP = new HashMap<String, HashMap<String, String>>();
+	    HashSet<String> snpSet = new HashSet<String>();
+	    for (String snp : snpList) {
+	        snpSet.add(snp);
+	    }
+	    
+	    for (Entry<String, HashMap<String, DataDefinitions>> studyEntry : defs.entrySet()) {
+	        String study = studyEntry.getKey();
+	        
+	        for (Entry<String, DataDefinitions> popEntry : studyEntry.getValue().entrySet()) {
+	            String pop = popEntry.getKey();
+	            final DataDefinitions dataDefs = popEntry.getValue();
+	            
+	            String[] iids = HashVec.loadFileToStringArray(dataDefs.indivFile, false, new int[]{0}, false);
+	            studyPopIDs.put(study + "\t" + pop, iids);
+	            
+    	        String[] chrDataFiles = (new File(dataDefs.dataDir)).list(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        // TODO assuming datafile names start with "chr#."
+                        return name.startsWith("chr") && name.endsWith(dataDefs.dataSuffix);
+                    }
+                });
+                
+    	        HashMap<String, String> dataFilesPerSNP = new HashMap<String, String>();
+    	        HashMap<String, Integer> dataLinePerSNP = new HashMap<String, Integer>();
+                HashSet<String> tempSnps = new HashSet<String>(snpSet);
+                try {
+                
+                    search : for (String dFile : chrDataFiles) {
+                        String infoFile = ext.verifyDirFormat(dataDefs.dataDir) + dFile.substring(0, dFile.length() - 3) + "_info";
+                        
+                        BufferedReader reader = Files.getAppropriateReader(infoFile);
+                        int cnt = 0;
+                        String line = null;
+                        reader.readLine(); // header
+                        while ((line = reader.readLine()) != null) {    
+                            String mkr = line.split("[\\s]+")[1];
+                            if (tempSnps.contains(mkr)) {
+                                dataFilesPerSNP.put(mkr, ext.verifyDirFormat(dataDefs.dataDir) + dFile);
+                                dataLinePerSNP.put(mkr, cnt);
+                                HashMap<String, String> snpInfoMap = studyPopInfoPerSNP.get(study + "\t" + pop);
+                                if (snpInfoMap == null) {
+                                    snpInfoMap = new HashMap<String, String>();
+                                    studyPopInfoPerSNP.put(study + "\t" + pop, snpInfoMap);
+                                }
+                                snpInfoMap.put(mkr, line);
+                                tempSnps.remove(mkr);
+                                if (tempSnps.isEmpty()) {
+                                    reader.close();
+                                    break search;
+                                }
+                            }
+                            cnt++;
+                        }
+                        reader.close();
+                    }
+                    
+                    if (!tempSnps.isEmpty()) {
+                        System.err.println("Error - couldn't find the following markers: {" + tempSnps.toString() + "} for " + study + "_" + pop);
+                    }
+                    
+                    for (String snp : snpSet) {
+                        BufferedReader reader = Files.getAppropriateReader(dataFilesPerSNP.get(snp));
+                        String line = reader.readLine();
+                        int lineCnt = dataLinePerSNP.get(snp).intValue();
+                        for (int i = 0; line != null && i < lineCnt; i++) {
+                            line = reader.readLine();
+                        }
+                        reader.close();
+                        HashMap<String, String[]> snpDataMap = studyPopDataPerSNP.get(study + "\t" + pop);
+                        if (snpDataMap== null) {
+                            snpDataMap = new HashMap<String, String[]>();
+                            studyPopDataPerSNP.put(study + "\t" + pop, snpDataMap);
+                        }
+                        snpDataMap.put(snp, line.split("[\\s]+"));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+	        }
+	    }
+	    
+	    int offset = 5;
+	    for (Entry<String, HashMap<String, String[]>> dataEntry : studyPopDataPerSNP.entrySet()) {
+	        String studyPop = dataEntry.getKey();
+	        HashMap<String, String[]> line = dataEntry.getValue();
+	        String[] ids = studyPopIDs.get(studyPop);
+	        
+	        ArrayList<String> snpOrder = new ArrayList<String>(line.keySet());
+	        PrintWriter writer = Files.getAppropriateWriter(outfileBase + "_" + studyPop.replaceAll("\t", "_") + ".data");
+	        
+	        StringBuilder sb = new StringBuilder();
+            sb.append("IID");
+            for (String snp : snpOrder) {
+                sb.append("\t").append(snp);
+            }
+            writer.println(sb.toString());
+            sb = new StringBuilder();
+            for (String snp : snpOrder) {
+                for (int i = 0; i < offset; i++) {
+                    sb.append(line.get(snp)[i]);
+                }
+            }
+            System.out.println(sb.toString());
+	        for (int i = 0; i < ids.length; i++) {
+	            sb = new StringBuilder();
+	            sb.append(ids[i]);
+	            for (String snp : snpOrder) {
+	                double geno2 = Double.parseDouble(line.get(snp)[offset + (3 * i) + 1]);
+	                double geno3 = Double.parseDouble(line.get(snp)[offset + (3 * i) + 2]);
+	                double geno = (geno2 + (2 * geno3));
+	                
+	                sb.append("\t").append(geno);
+	            }
+	            
+	            writer.println(sb.toString());
+	        }
+	        writer.flush();
+	        writer.close();
+	    }
+	    
+        String infoHeader = "snp_id rs_id position exp_freq_a1 info certainty type info_type0 concord_type0 r2_type0";
+	    for (Entry<String, HashMap<String, String>> infoEntry : studyPopInfoPerSNP.entrySet()) {
+	        String studyPop = infoEntry.getKey();
+	        HashMap<String, String> line = infoEntry.getValue();
+	        
+	        PrintWriter writer = Files.getAppropriateWriter(outfileBase + "_" + studyPop.replaceAll("\t", "_") + ".info");
+	        writer.println(infoHeader);
+	        for (String info : line.values()) {
+	            writer.println(info);
+	        }
+	        writer.flush();
+	        writer.close();
+	    }
+	    
+	    
+	}
+	
 	public static void main(String[] args) {
 //	    results="F:/FAST analysis/FVIII/output/" out=finalResults.txt -concat
 //	    trait="F:/FAST analysis/construct test/" data="F:/FAST analysis/construct test/data.txt" -prep
@@ -821,6 +976,7 @@ public class FAST {
 		String trait = "~/trait.txt";
 		String suffix = ".impute2.gz";
 		String run = ext.verifyDirFormat(System.getProperty("user.dir"));
+		String snps = null;
 		int covars = 0;
 		String results = "~/FAST/output/";
 		String out = "finalResults.txt";
@@ -859,7 +1015,6 @@ public class FAST {
 		                "   (4) -prep flag\n" +
 	                    "   (5) OPTIONAL: -run flag to run FAST analyses after preparing FAST scripts\n" + 
 		                " OR: \n" +
-//		                "   (1) Path to population folder containing sub-folders for FAST analyses (i.e. data=~/FAST/ARIC/ (not the default))\n" +
 		                "   (1) Path to population folder containing sub-folders for FAST analyses (i.e. data=~/FAST/ARIC/ (not the default))\n" +
 		                "   (2) Data file defining input files, in tab-delimited format (i.e. data=data.txt (not the default))\n" +
 		                "   (3) -process flag\n" + 
@@ -906,8 +1061,13 @@ public class FAST {
 					   "   (1) Path to study directory with fully-parsed results files (i.e. rundir=" + data + " (default))\n" +
                        "   (2) Data file defining input files, in tab-delimited format (i.e. data=data.txt (not the default))\n" +
 					   "   (3) -metal flag to create meta-analysis scripts to run METAL program\n " +
-					   "";
-
+					   "\n" +
+					   " FAST also provides a function to extract SNP-specific genotype probabilities and info data from data files:\n" + 
+                       "   (1) Data file defining input files, in tab-delimited format (i.e. data=data.txt (not the default))\n" +
+                       "   (2) List of SNPs (i.e. snps=rs1000001,rs10000002,rs10000004 (not the default))\n" +
+                       "   (3) Desired name of processed result file (i.e. out=" + out + " (default))\n";
+		
+		
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
@@ -918,6 +1078,9 @@ public class FAST {
 			} else if (args[i].startsWith("data=")) {
 				data = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("snps=")) {
+			    snps = args[i].split("=")[1];
+			    numArgs--;
 			} else if (args[i].startsWith("indiv=")) {
 				indiv = args[i].split("=")[1];
 				numArgs--;
@@ -1001,6 +1164,8 @@ public class FAST {
 				concatResults(results, out, pval, printPVals, runHitWindows);
 			} else if (convert) {
 				runParser(FORMATS[format], results, out, count == -1 ? countValid(trait) : count);
+			} else if (snps != null) {
+			    extract(data, snps.split(","), out);
 			} else {
 				new FAST(fast, data, indiv, trait, suffix, run, covars, linear).run();
 			}
@@ -1008,7 +1173,7 @@ public class FAST {
 			e.printStackTrace();
 		}
 	}
-	
+
 }
 	
 
