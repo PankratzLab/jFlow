@@ -524,7 +524,7 @@ public class Rscript {
 		private static final String PLOT_VAR = "p";
 
 		private String dataFile, output, rScriptFile;
-		private String[] dataYvalueColumns, rSafeYColumns;
+		private String[] dataYvalueColumns, rSafeYColumns,rSafeAltYColumnNames;
 		private String dataXvalueColumn, rSafeXColumn;
 		private double[] xRange, yRange;
 		private double yMin;
@@ -580,6 +580,14 @@ public class Rscript {
 
 		public void setErrorBars(ErrorBars errorBars) {
 			this.errorBars = errorBars;
+		}
+
+		public String[] getrSafeAltYColumnNames() {
+			return rSafeAltYColumnNames;
+		}
+
+		public void setrSafeAltYColumnNames(String[] rSafeAltYColumnNames) {
+			this.rSafeAltYColumnNames = rSafeAltYColumnNames;
 		}
 
 		public GeomText[] getgTexts() {
@@ -931,6 +939,7 @@ public class Rscript {
 					}
 					dataYvalueColumns = Array.subArray(dataYvalueColumns, extract);
 					rSafeYColumns = makeRSafe(dataYvalueColumns);
+					
 					log.reportTimeWarning("Using available columns\t\t\n" + Array.toStr(dataYvalueColumns, "\n"));
 					if (dataYvalueColumns.length < 1) {
 						log.reportTimeError("Could not find any Y value columns, invalid plotting");
