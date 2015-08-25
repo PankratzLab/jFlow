@@ -636,6 +636,19 @@ class CorrectionIterator implements Serializable {
 			rScatter.setxRange(null);
 			rScatter.setOverWriteExisting(true);
 			rScatter.execute();
+
+			RScatter rScatterTrim = new RScatter(outputSummary, evalRscript, ext.rootOf(outputSummary) + "_" + index + "_" + index, ext.rootOf(ext.addToRoot(evalPlot, index + "" + "_" + index), false) + ".jpeg", "Evaluated", dataColumns, SCATTER_TYPE.POINT, log);
+			rScatterTrim.setyRange(new double[] { -.5, 1 });
+			rScatterTrim.setxLabel("PC (" + oType + " - sorted)");
+			rScatterTrim.setTitle(iType + " " + bType);
+			// rScatter.setgPoint_SIZE(GEOM_POINT_SIZE.GEOM_POINT);
+			// rScatter.setSeriesLabeler(new SeriesLabeler(true, true, "PC", "stat"));
+			// rScatter.setOutput(ext.addToRoot(evalPlot, ".trim"));
+			// rScatter.setxRange(new double[] { 0, 50 });
+			// rScatter.setOutput(evalPlot);
+			rScatterTrim.setxRange(null);
+			rScatterTrim.setOverWriteExisting(true);
+			rScatterTrim.execute();
 			// System.out.println(rScatter.getOutput());
 
 			return rScatter;
@@ -942,7 +955,7 @@ class CorrectionIterator implements Serializable {
 		RScatters finalScatters = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), outputRoot + ".rscript", outputRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_2, PLOT_DEVICE.PDF, proj.getLog());
 
 		Logger log = proj.getLog();
-		String finalCompFile = outputRoot + ".finalComp.txt";
+		String finalCompFile = outputDir + "/typed/" + "evals.finalComp.txt";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(finalCompFile));
 			ArrayList<String> header = new ArrayList<String>();
@@ -970,11 +983,11 @@ class CorrectionIterator implements Serializable {
 				MODEL_BUILDER_TYPE mBuilder_TYPE = correctionIterator.getIterationResult().getbType();
 				ORDER_TYPE oType = correctionIterator.getIterationResult().getoType();
 				ITERATION_TYPE iType = correctionIterator.getIterationResult().getiType();
-
+				ArrayList<String> names = evaluationResults[0].getCorrelTitles();
 				ArrayList<double[]> statsSpear = evaluationResults[0].getSpearmanCorrel();
-				printStatSummary(writer, "SPEARMAN", evaluationResults, mBuilder_TYPE, oType, iType, statsSpear);
+				printStatSummary(writer, "SPEARMAN", evaluationResults, mBuilder_TYPE, oType, iType, statsSpear, names);
 				ArrayList<double[]> statsPear = evaluationResults[0].getPearsonCorrels();
-				printStatSummary(writer, "PEARSON", evaluationResults, mBuilder_TYPE, oType, iType, statsPear);
+				printStatSummary(writer, "PEARSON", evaluationResults, mBuilder_TYPE, oType, iType, statsPear, names);
 
 			}
 
@@ -988,15 +1001,17 @@ class CorrectionIterator implements Serializable {
 		return cIterators;
 	}
 
-	private static void printStatSummary(PrintWriter writer, String type, EvaluationResult[] evaluationResults, MODEL_BUILDER_TYPE mBuilder_TYPE, ORDER_TYPE oType, ITERATION_TYPE iType, ArrayList<double[]> statsAL) {
+	private static void printStatSummary(PrintWriter writer, String type, EvaluationResult[] evaluationResults, MODEL_BUILDER_TYPE mBuilder_TYPE, ORDER_TYPE oType, ITERATION_TYPE iType, ArrayList<double[]> statsAL, ArrayList<String> name) {
 		for (int i = 0; i < statsAL.size(); i++) {
 			double[] stats = new double[evaluationResults.length];
 			double[] pval = new double[evaluationResults.length];
+
 			for (int j = 0; j < evaluationResults.length; j++) {
 				stats[j] = statsAL.get(i)[0];
 				pval[j] = statsAL.get(i)[1];
 			}
 
+			String evalName = name.get(i);
 			double maxStat = Array.max(stats);
 			double minStat = Array.min(stats);
 			int maxStatPC = Array.maxIndex(stats);
@@ -1010,7 +1025,7 @@ class CorrectionIterator implements Serializable {
 			double avgStat = Array.mean(stats);
 			double medianStat = Array.mean(stats);
 			double stdvStat = Array.stdev(stats);
-			writer.println(mBuilder_TYPE + "\t" + oType + "\t" + iType + "\t" + type + "\t" + minStatPC + "\t" + minStat + "\t" + maxStatPC + "\t" + maxStat + "\t" + minPvalPC + "\t" + minPval + "\t" + maxPvalPC + "\t" + maxPval + "\t" + avgStat + "\t" + medianStat + "\t" + stdvStat);
+			writer.println(mBuilder_TYPE + "\t" + oType + "\t" + iType + "\t" + type + "\t" + evalName + "\t" + minStatPC + "\t" + minStat + "\t" + maxStatPC + "\t" + maxStat + "\t" + minPvalPC + "\t" + minPval + "\t" + maxPvalPC + "\t" + maxPval + "\t" + avgStat + "\t" + medianStat + "\t" + stdvStat);
 		}
 	}
 
