@@ -4,59 +4,61 @@ import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
-
-import common.Files;
-import common.ext;
+import common.*;
 
 public class peakAt {
 	public static final int DEFAULT_NUM_LINES = 1000;
 
-	public static void peak(String filename) {
-		BufferedReader reader = null;
-		PrintWriter writer = null;
+	public static void peak(String filename) throws Elision {
 		String temp;
 		int numLines;
-		boolean transpose = false;
-		String[] line;
-		LinkedList<String> ll;
+		boolean columnsNotLines = false;
 		boolean tail, counting;
-		int count;
-		long time;
 		String outputFilename;
-		InputStreamReader isReader;
 		
-		outputFilename = "PeakAt_"+ext.rootOf(filename, true);
-
 		temp = filename.substring(0, filename.length()-(".peakAt").length());
 		tail = filename.indexOf(".tail.") > 0;
+		temp = ext.replaceAllWith(temp, ".tail", "");
 		counting = filename.indexOf(".count.") > 0 || filename.indexOf(".wc.") > 0;
 		
 		if (temp.indexOf(".")>0) {
 			try {
-				if (temp.substring(temp.lastIndexOf(".")+1).startsWith("trans")) {
-					transpose = true;
+				if (temp.substring(temp.lastIndexOf(".")+1).startsWith("cols")) {
+					columnsNotLines = true;
 					temp = temp.substring(0, temp.lastIndexOf("."));
 				} else {
-					transpose = false;
+					columnsNotLines = false;
 				}
 			} catch (Exception e) {
-				transpose = false;
+				columnsNotLines = false;
 			}
 
 			try {
 				numLines = Integer.parseInt(temp.substring(temp.lastIndexOf(".")+1));
-				outputFilename = "PeakAt_"+(tail?"last":"first")+numLines+"_"+ext.rootOf(ext.rootOf(filename, true), true);
+				temp = temp.substring(0, temp.lastIndexOf("."));
 			} catch (NumberFormatException nfe) {
 				numLines = DEFAULT_NUM_LINES;
-				outputFilename = "PeakAt_"+(tail?"last":"first")+numLines+"_"+ext.rootOf(filename, true);
 			}
-
 		} else {
 			numLines = DEFAULT_NUM_LINES;
 		}
 
+		outputFilename = "PeakAt_"+(tail?"last":"first")+numLines+(columnsNotLines?"column":"line")+(numLines==1?"":"s")+"_"+ext.removeDirectoryInfo(temp);
+		
+		actualPeak(filename, outputFilename, numLines, tail, counting, columnsNotLines);
+	}
+	
+	public static void actualPeak(String filename, String outputFilename, int numLines, boolean tail, boolean counting, boolean columnsNotLines) throws Elision {
+		BufferedReader reader = null;
+		PrintWriter writer = null;
+		String[] line;
+		LinkedList<String> ll;
+		int count;
+		long time;
+		InputStreamReader isReader;
+		
 		try {
-			writer = new PrintWriter(new FileWriter(ext.parseDirectoryOfFile(filename)+outputFilename));
+			writer = Files.getAppropriateWriter(ext.parseDirectoryOfFile(filename)+(outputFilename.endsWith(".gz")?outputFilename.substring(0, outputFilename.length()-3):outputFilename));
 			if (counting) {
 				System.out.println("Counting the number of rows.");
 	            time = new Date().getTime();
@@ -73,9 +75,8 @@ public class peakAt {
 					isReader = new FileReader(filename);
 				}
 
-//				reader = new BufferedReader(new FileReader(filename));
 				reader = new BufferedReader(isReader);
-				if (transpose) {
+				if (columnsNotLines) {
 					System.out.println("Taking the first "+numLines+" columns of all rows.");
 					while (reader.ready()) {
 						line = reader.readLine().trim().split("[\\s]+");
@@ -106,15 +107,49 @@ public class peakAt {
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+filename+"\" not found in current directory");
-			System.exit(1);
+			throw new Elision();
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+filename+"\"");
-			System.exit(2);
-		}
+			throw new Elision();
+		}		
+		
+	}
+	
+	public static void fromParameters(String filename, Logger log) throws Elision {
+		Vector<String> params;
+		String trav;
+		String inputFilename = "very_large_file.txt";
+		String outputFilename = "fraction_of_large_file.txt";
+		int numLines = 10000;
+		boolean tail = false;
+		boolean counting = false;
+		boolean columnsNotLines = false;
 
+		params = Files.parseControlFile(filename, "peakat", new String[] { "input="+inputFilename, "output="+outputFilename, "numLines="+numLines, "tailNotHead="+tail, "countLines="+counting, "columnsNotLines="+columnsNotLines}, log);
+
+		if (params != null) {
+			for (int i = 0; i < params.size(); i++) {
+				trav = params.elementAt(i);
+				if (trav.startsWith("input=")) {
+					inputFilename = ext.parseStringArg(trav, null);
+				} else if (trav.startsWith("output=")) {
+					outputFilename = ext.parseStringArg(trav, null);
+				} else if (trav.startsWith("numLines=")) {
+					numLines = ext.parseIntArg(trav);
+				} else if (trav.startsWith("tailNotHead=")) {
+					tail = ext.parseBooleanArg(trav);
+				} else if (trav.startsWith("countLines=")) {
+					counting = ext.parseBooleanArg(trav);
+				} else if (trav.startsWith("columnsNotLines=")) {
+					columnsNotLines = ext.parseBooleanArg(trav);
+				}
+			}
+			
+			actualPeak(inputFilename, outputFilename, numLines, tail, counting, columnsNotLines);
+		}
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "peakAt.dat";
 
@@ -123,23 +158,25 @@ public class peakAt {
 		"   (1) filename (i.e. file="+filename+" (default))\n"+
 		"";
 
-		for (int i = 0; i<args.length; i++) {
-			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else {
-				filename = args[i];
-				numArgs--;
-			}
-		}
-		if (numArgs!=0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
 		try {
+			for (int i = 0; i<args.length; i++) {
+				if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
+					System.err.println(usage);
+					throw new Elision();
+				} else {
+					filename = args[i];
+					numArgs--;
+				}
+			}
+			if (numArgs!=0) {
+				System.err.println(usage);
+				throw new Elision();
+			}
+			
 			peak(filename);
 		} catch (Exception e) {
 			e.printStackTrace();
+			ext.waitForResponse();
 		}
 	}
 }

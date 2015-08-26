@@ -856,10 +856,10 @@ public class Files {
 			}			
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+filename+"\" could not be written to (it's probably open)");
-			System.exit(1);
+			return null;
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+filename+"\"");
-			System.exit(2);
+			return null;
 		}
 
 		return writer;
