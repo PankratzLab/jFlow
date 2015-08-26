@@ -99,6 +99,7 @@ public class Quantiles {
 		int keysQuant[] = Sort.quicksort(quantiles);
 		int currentQuantileIndex = 0;
 		for (int i = 0; i < data.length; i++) {
+			//System.out.println(data[keysData[i]]+"\t"+i);
 			if (Double.isNaN(data[keysData[i]])) {
 				quantileMembership[keysData[i]] = NAN_MEMBERSHIP;
 			} else {
@@ -107,7 +108,12 @@ public class Quantiles {
 				} else {
 					if (data[keysData[i]] > quantiles[keysQuant[currentQuantileIndex]]) {
 						while (data[keysData[i]] > quantiles[keysQuant[currentQuantileIndex]]) {
-							currentQuantileIndex++;
+							//System.out.println(data[keysData[i]] + "\t" + quantiles[keysQuant[currentQuantileIndex]] + "\t" + currentQuantileIndex);
+							if (currentQuantileIndex == quantiles.length - 1) {
+								break;
+							} else {
+								currentQuantileIndex++;
+							}
 						}
 					}
 					quantileMembership[keysData[i]] = qs[keysQuant[currentQuantileIndex]];
@@ -135,7 +141,7 @@ public class Quantiles {
 
 	public static Quantiles[] qetQuantilesFor(int numQ, double[][] variableDominantMatrix, String[] variableTitles, Logger log) {
 		if (variableTitles != null && variableTitles.length != variableDominantMatrix.length) {
-			log.reportTimeError("titles must be the same length as the data matrix");
+			log.reportTimeError("titles must be the same length as the data matrix, titles=" + variableTitles.length + " vs " + variableDominantMatrix.length);
 			return null;
 		}
 
