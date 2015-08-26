@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
 import stats.CategoricalPredictor;
+import stats.Quantiles;
 import stats.CategoricalPredictor.DummyCoding;
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.ErrorBars;
@@ -432,8 +433,11 @@ class CorrectionIterator implements Serializable {
 		}
 
 		public BooleanClassifier[] estimateBoxPlots(Project proj, String[] sampleDataStratCats, String[] numericStratCats, ArrayList<RScatter> scatters, Logger log) {
-			String dir = ext.parseDirectoryOfFile(boxPlot) + "boxPlots/";
-			new File(dir).mkdirs();
+			String boxDir = ext.parseDirectoryOfFile(boxPlot) + "boxPlots/";
+			String quantDir = ext.parseDirectoryOfFile(boxPlot) + "quants/";
+			new File(boxDir).mkdirs();
+			new File(quantDir).mkdirs();
+
 			ExtProjectDataParser.Builder builder = new ExtProjectDataParser.Builder();
 			builder.sampleBased(true);
 			builder.treatAllNumeric(false);
@@ -498,15 +502,22 @@ class CorrectionIterator implements Serializable {
 						// rScatterEvery.execute();
 						// rScatters.add(rScatterEvery);
 
-						plotFirst(sampleDataStratCats, log, dir, rScatters, i, evaluationResults, outputBox, pcYs);
-						plotSkips(sampleDataStratCats, log, dir, rScatters, i, evaluationResults, outputBox, pcYs);
-						RScatter rScatterFirstLast = plotFirstLast(sampleDataStratCats, log, dir, i, outputBox, pcYs);
+						plotFirst(sampleDataStratCats, log, boxDir, rScatters, i, evaluationResults, outputBox, pcYs);
+						plotSkips(sampleDataStratCats, log, boxDir, rScatters, i, evaluationResults, outputBox, pcYs);
+						RScatter rScatterFirstLast = plotFirstLast(sampleDataStratCats, log, boxDir, i, outputBox, pcYs);
 						rScatters.add(rScatterFirstLast);
 
 						if (numericStratCats != null) {
+
 							for (int j = 0; j < numericStratCats.length; j++) {
-								String outputBoxSub = ext.addToRoot(boxPlot, sampleDataStratCats[i] + "_" + numericStratCats[j]);
+
+								String outputBoxSub = ext.addToRoot(outputBox, sampleDataStratCats[i] + "_" + numericStratCats[j]);
+								String outputQuantSub = quantDir + ext.addToRoot(ext.removeDirectoryInfo(boxPlot), sampleDataStratCats[i] + "_" + numericStratCats[j] + ".quant");
 								double[] data = parser.getNumericDataForTitle(numericStratCats[j]);
+
+								plotQuants(evaluationResults, outputQuantSub, data, 5, numericStratCats[j], proj.getLog());
+								System.out.println("DSFSDF\t" + Array.toStr(numericStratCats));
+								System.exit(1);
 								PrintWriter writerSub = new PrintWriter(new FileWriter(outputBoxSub));
 								writerSub.print(sampleDataStratCats[i] + "\t" + numericStratCats[j]);
 								ArrayList<String> pcYsub = new ArrayList<String>();
@@ -537,13 +548,14 @@ class CorrectionIterator implements Serializable {
 									}
 								}
 								writerSub.close();
-								RScatter rScatterNumeric = new RScatter(outputBoxSub, ext.addToRoot(outputBoxSub, "sub.rscript"), ext.removeDirectoryInfo(outputBoxSub) + "sub", dir + ext.removeDirectoryInfo(outputBoxSub) + "sub.pdf", sampleDataStratCats[i], new String[] { numericStratCats[j], pcYsub.get(0), pcYsub.get(pcYsub.size() - 1) }, SCATTER_TYPE.BOX, log);
-								rScatterNumeric.setOverWriteExisting(false);
+								RScatter rScatterNumeric = new RScatter(outputBoxSub, ext.addToRoot(outputBoxSub, "sub.rscript"), ext.removeDirectoryInfo(outputBoxSub) + "sub", boxDir + ext.removeDirectoryInfo(outputBoxSub) + "sub.pdf", sampleDataStratCats[i], new String[] { numericStratCats[j], pcYsub.get(0), pcYsub.get(pcYsub.size() - 1) }, SCATTER_TYPE.BOX, log);
+								rScatterNumeric.setOverWriteExisting(true);
 
 								rScatterNumeric.setxLabel("PC (" + oType + " - sorted)");
 								rScatterNumeric.setTitle(iType + " " + bType);
 								rScatterNumeric.execute();
 								rScatters.add(rScatterNumeric);
+
 							}
 						}
 
@@ -566,12 +578,81 @@ class CorrectionIterator implements Serializable {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
-			String finalBoxPlot = dir + ext.removeDirectoryInfo(outputRoot) + "finalBoxPlot";
+			String finalBoxPlot = boxDir + ext.removeDirectoryInfo(outputRoot) + "finalBoxPlot";
 			RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), finalBoxPlot + ".rscript", finalBoxPlot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
 			scatters.addAll(rScatters);
 			// rScattersAll.execute();
 			return classifiers;
 			// RScatter
+		}
+
+		private void plotQuants(EvaluationResult[] evaluationResults, String outputQuant, double[] data, int numq, String sampleDataStratCats, Logger log) throws IOException {
+			String realOut = ext.addToRoot(outputQuant, ".numQ_" + numq);
+			PrintWriter writerQuant = new PrintWriter(new FileWriter(realOut));
+			ArrayList<String> pcYsubQ = new ArrayList<String>();
+			String dataTitle = sampleDataStratCats + ".quant_" + numq;
+			pcYsubQ.add(dataTitle);
+			writerQuant.print(dataTitle);
+			System.out.println(realOut);
+
+			for (int PC = 0; PC < evaluationResults.length; PC++) {
+
+				String title = "PC" + PC;
+				String part = title + "quant.matched.dist_" + numq;
+				String full = title + "quant.full.dist_" + numq;
+				writerQuant.print("\t" + part + "\t" + full);
+				pcYsubQ.add(full);
+				pcYsubQ.add(part);
+			}
+			// Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, variableDomMatrix, titles, proj.getLog());
+
+			double[][] toQuant = new double[evaluationResults.length * 2 + 1][data.length];
+			toQuant[0] = data;
+			int index = 1;
+			for (int pcIndex = 0; pcIndex < evaluationResults.length; pcIndex++) {
+				double[] estimateMatched = new double[getBasicPrep().getSamplesToEvaluate().length];
+				double[] estimateFull = new double[getBasicPrep().getSamplesToEvaluate().length];
+				for (int k = 0; k < getBasicPrep().getSamplesToEvaluate().length; k++) {
+					estimateMatched[k] = Double.NaN;
+					estimateFull[k] = Double.NaN;
+					if (getBasicPrep().getSamplesToEvaluate()[k]) {
+						estimateFull[k] = evaluationResults[pcIndex].getEstimateData()[k];
+						if (!Double.isNaN(data[k])) {
+							estimateMatched[k] = evaluationResults[pcIndex].getEstimateData()[k];
+						}
+					}
+				}
+				toQuant[index] = estimateMatched;
+				index++;
+				toQuant[index] = estimateFull;
+				index++;
+			}
+			Quantiles[] quantiles = null;
+			try {
+				quantiles = Quantiles.qetQuantilesFor(numq, toQuant, Array.toStringArray(pcYsubQ), log);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
+			// System.out.println(quantiles.length);
+
+			for (int sampleQuantileIndex = 0; sampleQuantileIndex < quantiles[0].getQuantileMembership().length; sampleQuantileIndex++) {
+				if (quantiles[0].getQuantileMembership()[sampleQuantileIndex] > 0) {
+					for (int i = 0; i < quantiles.length; i++) {
+
+						if (i > 0) {
+							writerQuant.print("\t");
+						}
+						writerQuant.print(quantiles[i].getQuantileMembership()[sampleQuantileIndex]);
+					}
+					writerQuant.println();
+				}
+			}
+
+			writerQuant.close();
+			System.out.println("DSF");
+			System.exit(1);
+			System.out.println("DSFsdf");
 		}
 
 		private void plotFirst(String[] sampleDataStratCats, Logger log, String dir, ArrayList<RScatter> rScatters, int i, EvaluationResult[] evaluationResults, String outputBox, ArrayList<String> pcYs) {
@@ -1120,6 +1201,9 @@ class CorrectionIterator implements Serializable {
 						rScatterSummary.setSeriesLabeler(null);
 						rScatterSummary.setgTexts(null);
 						rScatterSummary.execute();
+
+						// TODO alt column names, ICC center for affy
+
 						//
 						// RScatter rScatterSummaryMax = iterationResult.plotSummary(plotTitlesForSummary[i], i, proj.getLog());
 						// rScatterSummaryMax.setDirectLableGtexts(true);
