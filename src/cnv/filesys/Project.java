@@ -1210,7 +1210,49 @@ public class Project {
 		}
 		return tmp.toArray(new String[tmp.size()]);
 	}
+
 	
+	
+	
+	/**
+	 * For copying an existing project to a new project that will have the same essential data
+	 */
+	public void copyBasicFiles(Project projectToCopyTo, boolean overwrite) {
+		HashSet<FileProperty> propsToCop = new HashSet<FileProperty>();
+		propsToCop.add(MARKERSET_FILENAME);
+		propsToCop.add(MARKER_POSITION_FILENAME);
+		propsToCop.add(SAMPLE_DATA_FILENAME);
+		propsToCop.add(SAMPLELIST_FILENAME);
+		propsToCop.add(GC_MODEL_FILENAME);
+		propsToCop.add(PEDIGREE_FILENAME);
+		propsToCop.add(TARGET_MARKERS_FILENAME);
+		for (FileProperty fileProperty : propsToCop) {
+			copyToNewProject(this, projectToCopyTo, fileProperty.getName(), overwrite);
+		}
+	}
+
+	/**
+	 * @param projOriginal
+	 * @param projectToCopyTo
+	 * @param fileProperty
+	 *            the file property to copy
+	 * @param overwrite
+	 *            whether to overwrite this file if it exists in the new destination
+	 * @return whether the file was copied
+	 */
+	private static boolean copyToNewProject(Project projOriginal, Project projectToCopyTo, String fileProperty, boolean overwrite) {
+		String fileOriginal = (String) projOriginal.getProperty(fileProperty).getValue();
+		String fileToCopyTo = (String) projectToCopyTo.getProperty(fileProperty).getValue();
+
+		if (Files.exists(fileOriginal) && (!Files.exists(fileToCopyTo) || overwrite)) {
+			String dir = ext.parseDirectoryOfFile(fileToCopyTo);
+			new File(dir).mkdirs();
+			return Files.copyFileUsingFileChannels(fileOriginal, fileToCopyTo, projOriginal.getLog());
+		} else {
+			return false;
+		}
+	}
+
 	public enum SOURCE_FILE_DELIMITERS {
 	    COMMA(","),
 	    TAB("\t"),

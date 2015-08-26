@@ -587,6 +587,12 @@ public class Rscript {
 		}
 
 		public void setrSafeAltYColumnNames(String[] rSafeAltYColumnNames) {
+			if (rSafeAltYColumnNames.length != rSafeYColumns.length) {
+				valid = false;
+				log.reportTimeError("alternate y -column names must be the same length as available data");
+				rSafeYColumns = null;
+
+			}
 			this.rSafeAltYColumnNames = rSafeAltYColumnNames;
 		}
 
