@@ -2348,7 +2348,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		    displayMendelianErrors[selectedPanelIndex] = mendelianErrorBox.isSelected();
 		    updateGUI();
 		} else if (command.equals(NEW_LIST_COMMAND)) {
-		    NewMarkerListDialog newMkrList = new NewMarkerListDialog(proj.getMarkerNames());
+		    NewMarkerListDialog newMkrList = new NewMarkerListDialog(proj.getMarkerNames(), proj.getProperty(proj.PROJECT_DIRECTORY));
 		    newMkrList.setModal(true);
 		    newMkrList.setVisible(true);
 		    if (newMkrList.getReturnCode() == JOptionPane.YES_OPTION) {

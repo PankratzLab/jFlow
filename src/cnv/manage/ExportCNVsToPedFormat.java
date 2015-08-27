@@ -305,7 +305,7 @@ public class ExportCNVsToPedFormat {
 		String cnvFilename = "penncnv.cnv";
 		String pedFilename = "pedigree.dat";
 		String outputFilename = "cnv_matrix";
-		JFileChooser fileChooser = new JFileChooser();
+		JFileChooser fileChooser = new JFileChooser(); // TODO Should this be open up in any particular directory?
 		File input;
 		String output;
 		boolean includeDele = true;

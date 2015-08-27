@@ -288,7 +288,7 @@ public class ClusterFilterCollection implements Serializable {
 		}
 		
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename)+"_dump.xln"));
+			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_dump.xln"));
 			writer.println("MarkerIndex\tMarkerName\tFilterIndex\tPlotType\tGenotype\tminX\tminY\tmaxX\tmaxY");
 			collection = load(filename, false);
 			markerNames = collection.getMarkerNames();
@@ -360,7 +360,7 @@ public class ClusterFilterCollection implements Serializable {
 			System.err.println(usage);
 			System.exit(1);
 		}
-//		filenames = new String[] {"clusterFilters_part1.ser", "clusterFilters_part2.ser"};
+
 		try {
 			if (filenames != null) {
 				merge(filenames, out);
