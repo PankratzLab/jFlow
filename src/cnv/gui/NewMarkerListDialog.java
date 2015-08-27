@@ -48,7 +48,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    NewMarkerListDialog frame = new NewMarkerListDialog(new String[0]);
+                    NewMarkerListDialog frame = new NewMarkerListDialog(new String[0], null);
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -60,7 +60,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
     /**
      * Create the frame.
      */
-    public NewMarkerListDialog(String[] markers) {
+    public NewMarkerListDialog(String[] markers, final String dir) {
         setTitle("Create New Marker List");
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 450, 300);
@@ -107,7 +107,7 @@ public class NewMarkerListDialog extends JDialog implements ActionListener {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                JFileChooser jfc = new JFileChooser();
+                JFileChooser jfc = new JFileChooser(dir);
                 jfc.setMultiSelectionEnabled(false);
                 int opt = jfc.showSaveDialog(NewMarkerListDialog.this);
                 if (opt == JFileChooser.APPROVE_OPTION) {

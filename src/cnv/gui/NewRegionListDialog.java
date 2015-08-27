@@ -48,7 +48,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    NewRegionListDialog frame = new NewRegionListDialog(new String[0]);
+                    NewRegionListDialog frame = new NewRegionListDialog(new String[0], null);
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -60,7 +60,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
     /**
      * Create the frame.
      */
-    public NewRegionListDialog(String[] sampleNames) {
+    public NewRegionListDialog(String[] sampleNames, final String dir) {
         setTitle("Create New UCSC Regions List");
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 450, 300);
@@ -75,7 +75,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
         textArea = new JTextArea();
         scrollPane.setViewportView(textArea);
         
-        String label = sampleNames == null ? "UCSC regions (one per line, with tab-separated comments): " : "Sample IDs and UCSC regions (tab-separated, one set per line, with tab-separated comments): ";
+        String label = sampleNames == null ? "UCSC regions (one per line, with optional tab-separated comments): " : "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
         JLabel lblMarkerNamesone = new JLabel(label);
         contentPane.add(lblMarkerNamesone, "cell 0 0,growx,aligny top");
         
@@ -108,7 +108,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                JFileChooser jfc = new JFileChooser();
+                JFileChooser jfc = new JFileChooser(dir);
                 jfc.setMultiSelectionEnabled(false);
                 int opt = jfc.showSaveDialog(NewRegionListDialog.this);
                 if (opt == JFileChooser.APPROVE_OPTION) {

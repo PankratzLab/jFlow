@@ -1061,7 +1061,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-	            NewRegionListDialog newRgnList = new NewRegionListDialog(proj == null ? null : proj.getSamples());
+	            NewRegionListDialog newRgnList = new NewRegionListDialog(proj == null ? null : proj.getSamples(), proj == null ? null : proj.getProperty(proj.PROJECT_DIRECTORY));
 	            newRgnList.setModal(true);
 	            newRgnList.setVisible(true);
 	            if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
