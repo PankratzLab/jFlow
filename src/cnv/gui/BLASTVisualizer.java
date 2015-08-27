@@ -5,14 +5,25 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.tribble.annotation.Strand;
 
+import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.util.ArrayList;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
 
 import common.Array;
 import seq.manage.ReferenceGenome;
+import sun.swing.SwingUtilities2;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.annotation.MarkerSeqAnnotation;
 import cnv.filesys.Project;
@@ -31,17 +42,141 @@ public class BLASTVisualizer {
         this.annotations = annots;
         this.referenceGenome = refGen;
     }
+
+//  chr17:74,783,145-74,785,655
+//  chr17:74,784,671-74,787,181
     
-//    chr17:74,783,145-74,785,655
     public void run() {
         
         System.out.println();
         String direc = referenceAnnotation.getStrand() == Strand.NEGATIVE ? "-" : "+";
         System.out.println(referenceAnnotation.getSequence() + "\t]" + direc + "[\t");
         
+        JFrame frame = new JFrame();
+        JPanel blastPanel = new JPanel(new GridLayout(0, 1));
+        JScrollPane jsp = new JScrollPane(blastPanel);
+        
+        ArrayList<BlastLabel> bLabels = new ArrayList<BlastLabel>();
         for (BlastAnnotation annot : annotations) {
-            BlastAnnotationVisualizer.processAnnotation(referenceAnnotation, annot, referenceGenome);
+            BlastLabel lbl = BlastAnnotationVisualizer.processAnnotation(referenceAnnotation, annot, referenceGenome);
+//            if (lbl.strandFlipped) continue;
+            bLabels.add(lbl);
         }
+        
+//        JLabel indexLabel = new JLabel() {
+//            @Override
+//            protected void paintComponent(Graphics g) {
+//                FontMetrics fm = this.getFontMetrics(this.getFont()); 
+//                int h = fm.getAscent();
+//                g.setColor(Color.BLACK);
+//                int baseX = 0;
+//                
+//                String txt = this.getText();
+//                int charInd = 0;
+//                for (int c = 0; c < txt.length(); c++) {
+//                    if (BlastLabel.expanded && BlastLabel.spaces.contains(charInd)) {
+//                        g.drawString("-", baseX, h);
+//                        baseX += BlastLabel.CHAR_PADDING; // char padding
+//                        baseX += fm.charWidth('-');
+//                        charInd++;
+//                        c--;
+//                        continue;
+//                    }
+//                    g.drawString("" + (c + 1), baseX, h);
+//                    baseX += BlastLabel.CHAR_PADDING; // char padding
+//                    baseX += fm.charWidth(txt.charAt(c));
+//                    charInd++;
+//                }
+//                
+//            }
+//        };
+        JLabel refLabel = new JLabel() {
+            boolean printed = false;
+            @Override
+            protected void paintComponent(Graphics g) {
+//                if (!printed && BlastLabel.spaces.size() > 0) {
+//                    System.out.println(BlastLabel.spaces.toString());
+//                    printed = true;
+//                }
+                FontMetrics fm = this.getFontMetrics(this.getFont()); 
+                int h = fm.getAscent();
+                g.setColor(Color.BLACK);
+                int baseX = 0;
+                
+                String txt = this.getText();
+                int charInd = 0;
+                int added = 0;
+                for (int c = 0; c < txt.length(); c++) {
+                    
+                    if (BlastLabel.expanded) {
+                        
+                        if (BlastLabel.spaceSets.containsKey(charInd) && added == 0) {
+                            int len = BlastLabel.spaceSets.get(charInd);
+                            System.out.println(len);
+                            for (int i = 0; i < len; i++) {
+                                g.drawString("-", baseX, h);
+                                baseX += BlastLabel.CHAR_PADDING; // char padding
+                                baseX += fm.charWidth('-');
+                                charInd++;
+                            }
+                            added += len;
+                            c--;
+                            continue;
+                        }
+                        
+                        g.drawString(txt.substring(c, c+1), baseX, h);
+                        baseX += BlastLabel.CHAR_PADDING; // char padding
+                        baseX += fm.charWidth(txt.charAt(c));
+                        if (added > 0) {
+                            added--;
+                        } else {
+                            charInd++;
+                        }
+                        
+                    }
+                    
+                    
+//                    if (BlastLabel.expanded && BlastLabel.spacescontains(charInd)) {
+//                        g.drawString("-", baseX, h);
+//                        baseX += BlastLabel.CHAR_PADDING; // char padding
+//                        baseX += fm.charWidth('-');
+//                        charInd++;
+//                        c--;
+//                        continue;
+//                    }
+//                    
+//                    
+//                    g.drawString(txt.substring(c, c+1), baseX, h);
+//                    baseX += BlastLabel.CHAR_PADDING; // char padding
+//                    baseX += fm.charWidth(txt.charAt(c));
+//                    charInd++;
+                    
+                }
+                
+                
+            }
+        };
+//        indexLabel.setFont(BlastLabel.LBL_FONT);
+//        indexLabel.setText(referenceAnnotation.getSequence());
+        refLabel.setFont(BlastLabel.LBL_FONT);
+        BlastLabel.setRefLabel(refLabel);
+        refLabel.setText(referenceAnnotation.getSequence());
+//        JPanel panel = new JPanel(new GridLayout(2, 1));
+//        panel.add(indexLabel);
+//        panel.add(refLabel);
+//        jsp.setColumnHeaderView(panel);
+        jsp.setColumnHeaderView(refLabel);
+        
+        for (BlastLabel lbl : bLabels) {
+            if (lbl.strandFlipped) {
+                blastPanel.add(lbl);
+            }
+        }
+        jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        jsp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        frame.add(jsp);
+        frame.pack();
+        frame.setVisible(true);
         
         
     }
@@ -49,8 +184,8 @@ public class BLASTVisualizer {
 }
 
 class BlastAnnotationVisualizer {
-    static int count = 5;
-    public static void processAnnotation(MarkerSeqAnnotation ref, BlastAnnotation annotation, ReferenceGenome refGen) {
+    
+    public static BlastLabel processAnnotation(MarkerSeqAnnotation ref, BlastAnnotation annotation, ReferenceGenome refGen) {
         
         if (refGen != null) {
             Segment seg = getSegmentForAnnotation(ref, annotation);
@@ -61,17 +196,14 @@ class BlastAnnotationVisualizer {
                     seq = (new StringBuilder(seq)).reverse().toString();
                 }
                 String direc = annotation.getStrand() == Strand.NEGATIVE ? "-" : "+";
-                System.out.println(seq  + "\t]" + direc + "[\t" + annotation.getCigar().toString() + "\t" + seg.getUCSClocation());
+//                if (annotation.getStrand() == ref.getStrand()) {
+//                    System.out.println(seq  + "\t]" + direc + "[\t" + annotation.getCigar().toString() + "\t" + seg.getUCSClocation());
+//                }
             }
         }
         
-        if (count-- > 0) {
-            JFrame frame = new JFrame();
-            BlastLabel label = new BlastLabel(ref, annotation, refGen);
-            frame.add(label);
-            frame.pack();
-            frame.setVisible(true);
-        }
+        BlastLabel label = new BlastLabel(ref, annotation, refGen);
+        return label;
     }
     
     protected static Segment getSegmentForAnnotation(MarkerSeqAnnotation ref, BlastAnnotation annot) {
@@ -94,14 +226,37 @@ class BlastAnnotationVisualizer {
     
 }
 
+
+
 class BlastLabel extends JLabel {
+    
+    public static void setFontSize(int size) {
+        LBL_FONT = Font.decode(Font.MONOSPACED).deriveFont((float) size);
+        if (refLbl != null) {
+            refLbl.setFont(LBL_FONT);
+        }
+    }
+    
+    public static void setRefLabel(JLabel lbl) {
+        refLbl = lbl;
+    }
+    
+    public static Font LBL_FONT = Font.decode(Font.MONOSPACED).deriveFont(17f);
+    public static final int CHAR_PADDING = 2;
+    private static JLabel refLbl = null;
+    static boolean expanded = true; // static to affect all
+    static TreeSet<Integer> spaces = new TreeSet<Integer>();
+    static TreeMap<Integer, Integer> spaceSets = new TreeMap<Integer, Integer>();
     
     private BlastAnnotation myAnnotation;
     private MarkerSeqAnnotation refSeq;
     private Segment fullSegment;
     private String seq;
+    private TreeSet<Integer> mySpaces = new TreeSet<Integer>();
+    private TreeMap<Integer, Integer> mySpaceSets = new TreeMap<Integer, Integer>();
     boolean strandFlipped = false;
     ArrayList<CigarSeq> seqParts = new ArrayList<CigarSeq>();
+    
     
     public BlastLabel(MarkerSeqAnnotation ref, BlastAnnotation annot, ReferenceGenome refGen) {
         super();
@@ -119,7 +274,7 @@ class BlastLabel extends JLabel {
         } else {
             // set to probe seq, with alterations
         }
-        this.setFont(Font.decode(Font.MONOSPACED));
+        this.setFont(LBL_FONT);
         parse();
         setText(getSeqPartsAsString());
     }
@@ -135,32 +290,148 @@ class BlastLabel extends JLabel {
     private void parse() {
         Cigar cig = myAnnotation.getCigar();
         int index = 0;
+        int strandInd = 0;
         for (CigarElement ciggie : cig.getCigarElements()) {
             if (ciggie.getOperator().consumesReferenceBases()) {
+                if (strandFlipped && !ciggie.getOperator().consumesReadBases()) {
+                    Integer key = strandFlipped ? refSeq.getSequence().length() - strandInd + 1 : strandInd;
+                    if (spaceSets.containsKey(key)) {
+                        spaceSets.put(key, Math.max(spaceSets.get(key), ciggie.getLength()));
+                    } else {
+                        spaceSets.put(key, ciggie.getLength());
+                    }
+                    mySpaceSets.put(key, ciggie.getLength());
+                    for (int i = strandInd; i < strandInd + ciggie.getLength(); i++) {
+                        int ind = strandFlipped ? refSeq.getSequence().length() - i + 1 : i;
+                        spaces.add(ind);
+                        mySpaces.add(ind);
+//                        System.out.println(ind + " :: " + cig.toString());
+                    }
+                }
                 int stop = index + ciggie.getLength();
                 String cigSeq = seq.substring(index, stop);
-                seqParts.add(new CigarSeq(ciggie, cigSeq));
+                seqParts.add(new CigarSeq(ciggie, cigSeq, index));
                 index = stop;
             } else {
-                seqParts.add(new CigarSeq(ciggie, Array.toStr(Array.stringArray(ciggie.getLength(), "."), "")));
+                seqParts.add(new CigarSeq(ciggie, Array.toStr(Array.stringArray(ciggie.getLength(), "."), ""), index));
             }
+            strandInd += ciggie.getLength();
         }
     }
     
+//    chr17:74,783,145-74,785,655
+//    chr17:74,784,671-74,787,181
     
+    @Override
+    protected void paintComponent(Graphics g) {
+        FontMetrics fm = this.getFontMetrics(this.getFont()); 
+        int h = fm.getAscent();
+        g.setColor(Color.BLACK);
+        int baseX = 0;
+        int charInd = 0;
+        int mySpacesCnt = 0;
+        int addedSpaces = 0;
+        
+        for (int i = strandFlipped ? seqParts.size() - 1 : 0; strandFlipped ? i >= 0 : i < seqParts.size(); i += strandFlipped ? -1 : 1) {
+            CigarSeq cs = seqParts.get(i);
+            boolean diff = cs.elem.getOperator() != CigarOperator.EQ;
+            boolean read = cs.elem.getOperator().consumesReadBases();
+            boolean ref = cs.elem.getOperator().consumesReferenceBases();
+            if (diff) {
+                if (read && ref) {
+                    g.setColor(Color.RED.darker());
+                } else if (read) {
+                    g.setColor(Color.GRAY);
+                } else if (ref) {
+                    g.setColor(Color.BLUE.darker());
+                }
+            } else {
+                g.setColor(Color.GREEN.darker());
+            }
+            boolean collapsed = !expanded && diff && !read && ref;
+            if (collapsed) {
+                g.drawString("]", baseX - (3 * CHAR_PADDING), h);
+                g.drawString("[", baseX - (3 * CHAR_PADDING), h);
+            } else {
+                boolean strike = diff && read && !ref;
+                int tempX = baseX;
+                for (int c = strandFlipped ? cs.elemSeq.length() - 1 : 0; strandFlipped ? c >= 0 : c < cs.elemSeq.length(); c += strandFlipped ? -1 : 1) {
+//                    if (expanded && !mySpaces.contains(charInd - addedSpaces) && (spaces.contains(charInd - mySpacesCnt) && !mySpaces.contains(charInd - mySpacesCnt))) {
+//                        Color col = g.getColor();
+//                        g.setColor(Color.BLACK);
+//                        
+//                        g.drawString("-", baseX, h);
+//                        baseX += CHAR_PADDING;
+//                        baseX += fm.charWidth('-');
+//                        tempX = baseX;
+//                        
+//                        charInd++;
+//                        addedSpaces++;
+//                        c += strandFlipped ? 1 : -1;
+//                        
+//                        g.setColor(col);
+//                        continue;
+//                    } else if (expanded && mySpaces.contains(charInd - addedSpaces)) {
+//                        mySpacesCnt++;
+//                    }
+                    
+//                    if (expanded) {
+//                        
+//                        if (spaceSets.containsKey(Integer.valueOf(charInd - addedSpaces)) && !mySpaceSets.containsKey(Integer.valueOf(charInd - addedSpaces))) {
+//                            Color col = g.getColor();
+//                            g.setColor(Color.BLACK);
+//                            int cnt = spaceSets.get(Integer.valueOf(charInd - addedSpaces));
+//                            for (int k = 0; k < cnt; k++) {
+//                                g.drawString("-", baseX, h);
+//                                baseX += CHAR_PADDING;
+//                                baseX += fm.charWidth('-');
+//                                tempX = baseX;
+//    
+////                                charInd++;
+//                                addedSpaces++;
+////                                c += strandFlipped ? 1 : -1;
+//                            }
+//                            g.setColor(col);
+//                            charInd += cnt;
+//                        } else if (mySpaceSets.containsKey(Integer.valueOf(charInd - addedSpaces))) {
+//                            mySpacesCnt += mySpaceSets.get(Integer.valueOf(charInd - addedSpaces));
+//                        }
+//                    }
+//                    
+                    
+                    
+                    g.drawString(cs.elemSeq.substring(c, c+1), baseX, h);
+                    baseX += CHAR_PADDING; // char padding
+                    baseX += fm.charWidth(cs.elemSeq.charAt(c));
+
+                    charInd++;
+                }
+                if (strike) {
+                    g.setColor(Color.GRAY.darker());
+                    g.drawLine(tempX, 2 * (h / 3), baseX - CHAR_PADDING, 2 * (h / 3));
+                }
+            }
+        }
+        
+    }
     
 }
 
 class CigarSeq {
+    int elemInd;
     CigarElement elem;
     String elemSeq;
 
-    public CigarSeq(CigarElement elem, String seq) {
+    public CigarSeq(CigarElement elem, String seq, int index) {
         if (elem.getLength() != seq.length()) {
             throw new RuntimeException("ERROR - Sequence {" + seq + "} does not match the length of the given CigarElement {" + elem.getLength() + elem.getOperator() + "}");
         }
         this.elem = elem;
         this.elemSeq = seq;
+    }
+    
+    public String getDisplayString() {
+        return "";
     }
     
 }

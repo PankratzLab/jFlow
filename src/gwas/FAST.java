@@ -22,7 +22,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import parse.GenParser;
-import sun.security.action.PutAllAction;
 import common.Aliases;
 import common.CmdLine;
 import common.Files;
@@ -930,7 +929,6 @@ public class FAST {
                     sb.append(line.get(snp)[i]);
                 }
             }
-            System.out.println(sb.toString());
 	        for (int i = 0; i < ids.length; i++) {
 	            sb = new StringBuilder();
 	            sb.append(ids[i]);
