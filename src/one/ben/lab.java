@@ -52,6 +52,45 @@ import filesys.SnpMarkerSet;
 
 public class lab {
 	
+    private static void split() {
+        
+        String dir = "/scratch.global/cole0482/CARDIA_CHS/";
+        String[] fileRoots = new String[]{
+            "chr1_P1_V3",  
+            "chr2_P1_V3",
+            "chr3_P1_V3",
+            "chr4_P1_V3",
+            "chr5_P1_V3",
+            "chr6_P1_V3",
+            "chr7_P1_V3",
+            "chr8_P1_V3",
+            "chr9_P1_V3",
+            "chr10_P1_V3",
+            "chr11_P1_V3",
+            "chr12_P1_V3",
+            "chr13_P1_V3",
+            "chr14_P1_V3",
+            "chr15_P1_V3",
+            "chr16_P1_V3",
+            "chr17_P1_V3",
+            "chr18_P1_V3",
+            "chr19_P1_V3",  
+            "chr20_P1_V3",
+            "chr21_P1_V3",
+            "chr22_P1_V3",
+            "chr23_FEMALE_no.auto.P1_V3",  
+            "chr23_MALE_no.auto.P1_V3"    
+        };
+        
+        for (String file : fileRoots) {
+            String dataFile = dir + file + ".dose";
+            String infoFile = dir + file + ".info";
+            
+        }
+        
+    }
+    
+    
     private static void countCNVsForIndividuals(String indivFile, String cnvFile, String outFile) throws IOException {
 		Hashtable<String, String> sampleKeyHash = new Hashtable<String, String>();
 		BufferedReader reader = new BufferedReader(new FileReader(indivFile));

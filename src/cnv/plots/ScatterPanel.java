@@ -344,7 +344,6 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			// create grid
 		}
 		//callRate=(samples.length-callRate)*100/samples.length;
-		
 		if (getUpdateQcPanel()) {
 			sp.updateQcPanel(chr, genotype, sex, otherClass, panelIndex);
 			setQcPanelUpdatable(false);
