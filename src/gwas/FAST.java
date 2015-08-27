@@ -813,7 +813,7 @@ public class FAST {
 	    return count;
 	}
 	
-	private static void extract(String data, String[] snpList, String outfileBase) {
+	private static void extract(String data, String snpList, String outfileBase) {
 	    HashMap<String, HashMap<String, DataDefinitions>> defs;
 	    try {
             defs = parseDataDefinitionsFile(data);
@@ -827,7 +827,15 @@ public class FAST {
 	    HashMap<String, HashMap<String, String[]>> studyPopDataPerSNP = new HashMap<String, HashMap<String, String[]>>();
 	    HashMap<String, HashMap<String, String>> studyPopInfoPerSNP = new HashMap<String, HashMap<String, String>>();
 	    HashSet<String> snpSet = new HashSet<String>();
-	    for (String snp : snpList) {
+	    
+	    String[] snps = null;
+	    if (new File(snpList).exists()) {
+	        snps = HashVec.loadFileToStringArray(snpList, false, new int[]{0}, false);
+	    } else {
+	        snps = snpList.split(",");
+	    }
+	    
+	    for (String snp : snps) {
 	        snpSet.add(snp);
 	    }
 	    
@@ -1163,7 +1171,7 @@ public class FAST {
 			} else if (convert) {
 				runParser(FORMATS[format], results, out, count == -1 ? countValid(trait) : count);
 			} else if (snps != null) {
-			    extract(data, snps.split(","), out);
+			    extract(data, snps, out);
 			} else {
 				new FAST(fast, data, indiv, trait, suffix, run, covars, linear).run();
 			}
