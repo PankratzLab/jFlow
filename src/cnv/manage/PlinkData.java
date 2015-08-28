@@ -670,7 +670,7 @@ public class PlinkData {
 		
 		proj.progressMonitor.beginTask(PROG_KEY, "Creating .bed file");
 		if (isSnpMajor) {
-			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot);
+			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot, log);
 //			abLookup = createBedFileSnpMajorAllInMemory(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, bedFilenameRoot, gcThreshold, bedFilenameRoot);
 		} else {
 			abLookup = createBedFileIndividualMajor(proj, targetSamples, targetMarkers, indicesOfTargetMarkersInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot);
@@ -1082,7 +1082,7 @@ public class PlinkData {
 	 * @param log
 	 * @return
 	 */
-	public static char[][] createBedFileSnpMajor10KperCycle(Project proj, String[] targetMarkers, int[] indicesOfTargetMarkersInProj, String[] targetSamples, int[] indicesOfTargetSamplesInProj, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot) {
+	public static char[][] createBedFileSnpMajor10KperCycle(Project proj, String[] targetMarkers, int[] indicesOfTargetMarkersInProj, String[] targetSamples, int[] indicesOfTargetSamplesInProj, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot, Logger log) {
 		RandomAccessFile out;
 		byte[] outStream;
 		byte[] genotypes;
@@ -1131,7 +1131,9 @@ public class PlinkData {
 		sampleFingerPrint = proj.getSampleList().getFingerprint();
 		allSamplesInProj = proj.getSamples();
 		dir = proj.MARKER_DATA_DIRECTORY.getValue(false, true);
+		subTime = new Date().getTime();
 		markerDataLoader = new MarkerDataLoader(proj, targetMarkers, 0);
+		log.report("MarkerDataLoader initialized in "+ext.getTimeElapsed(subTime));
 		outliersHash = MarkerDataLoader.loadOutliers(proj);
 		batches = markerDataLoader.getBatches();
 		filenames = HashVec.getKeys(batches);
