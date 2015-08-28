@@ -632,14 +632,15 @@ public class PlinkData {
 		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot);
 		proj.progressMonitor.endTask(PROG_KEY);
 		
-		proj.progressMonitor.beginTask(PROG_KEY, "Loading sample and marker data");
 		allSamplesInProj = proj.getSamples();
 		if (targetSamples != null) {
+		    proj.progressMonitor.beginTask(PROG_KEY, "Loading sample data");
 			indicesOfTargetSamplesInProj = getSortedIndicesOfTargetSamplesInProj(allSamplesInProj, targetSamples, log);
 			targetSamples = new String[indicesOfTargetSamplesInProj.length];
 			for (int i = 0; i < indicesOfTargetSamplesInProj.length; i++) {
 				targetSamples[i] = allSamplesInProj[ indicesOfTargetSamplesInProj[i] ];
 			}
+	        proj.progressMonitor.endTask(PROG_KEY);
 		} else {
 			indicesOfTargetSamplesInProj = null;
 			targetSamples = allSamplesInProj;
@@ -648,11 +649,13 @@ public class PlinkData {
 //		allMarkersInProj = proj.getMarkerNames();
 		targetMarkers = proj.getTargetMarkers();
 		if (targetMarkers != null) {
+            proj.progressMonitor.beginTask(PROG_KEY, "Loading marker data", false, targetMarkers.length);
 			indicesOfTargetMarkersInProj = new int[targetMarkers.length];
 			chrsOfTargetMarkers = new byte[targetMarkers.length];
 			posOfTargetMarkers = new int[targetMarkers.length];
 			getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj, chrsOfTargetMarkers, posOfTargetMarkers);
-
+			
+            proj.progressMonitor.endTask(PROG_KEY);
 		} else {
 			indicesOfTargetMarkersInProj = null;
 			targetMarkers = proj.getMarkerNames();
@@ -664,7 +667,6 @@ public class PlinkData {
 //			gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
 			gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 		}
-		proj.progressMonitor.endTask(PROG_KEY);
 		
 		proj.progressMonitor.beginTask(PROG_KEY, "Creating .bed file");
 		if (isSnpMajor) {
@@ -746,18 +748,28 @@ public class PlinkData {
 			chrs = markerSet.getChrs();
 			positions = markerSet.getPositions();
 			found = new boolean[inputTargetMarkers.length];
+			log.report("Loading " + inputTargetMarkers.length + " target markers");
+			HashMap<String, Integer> markerPositions = new HashMap<String, Integer>();
+			for (int j = 0; j < allMarkersInProj.length; j++) {
+			    markerPositions.put(allMarkersInProj[j], j);
+			}
 			for (int i = 0; i < inputTargetMarkers.length; i++) {
 //				if (hash.containsKey(inputTargetMarkers[i])) {
 //					System.err.println("Warning - duplicate marker name: " + inputTargetMarkers[i] + " in targetMarkers.txt");
 //				}
-				for (int j = 0; j < allMarkersInProj.length; j++) {
-					if (inputTargetMarkers[i].equals(allMarkersInProj[j])) {
-						outputIndicesOfTargetMarkers[i] = j;
-						found[i] = true;
-						break;
-					}
-				}
+//				for (int j = 0; j < allMarkersInProj.length; j++) {
+				    if (markerPositions.containsKey(inputTargetMarkers[i])) {
+				        outputIndicesOfTargetMarkers[i] = markerPositions.get(inputTargetMarkers[i]);
+				        found[i] = true;
+				    }
+//					if (inputTargetMarkers[i].equals(allMarkersInProj[j])) {
+//						outputIndicesOfTargetMarkers[i] = j;
+//						found[i] = true;
+//						break;
+//					}
+//				}
 //				hash.put(allMarkersInProj[i], i+"");
+				proj.progressMonitor.updateTask("PLINKBINARYEXPORT");
 			}
 			Arrays.sort(outputIndicesOfTargetMarkers);
 			for (int i = 0; i < found.length; i++) {
