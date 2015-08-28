@@ -531,6 +531,7 @@ public class MarkerDataLoader implements Runnable {
 //							xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
 						    Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\tx"); 
 						    if (f == null) {
+						        log.reportError("Error - value for X is an outlier for the marker that is at index "+i+" in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "+j+"; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
 						        log.reportError("Error - value for X is an outlier [Marker: " + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: " + allSampsInProj[j] + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
 						        return null; // TODO better return value than null?
 						    }
@@ -555,6 +556,7 @@ public class MarkerDataLoader implements Runnable {
 //							ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
 						    Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j] + "\ty"); 
                             if (f == null) {
+						        log.reportError("Error - value for Y is an outlier for the marker that is at index "+i+" in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "+j+"; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
                                 log.reportError("Error - value for Y is an outlier [Marker: " + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: " + allSampsInProj[j] + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
                                 return null; // TODO better return value than null?
                             }
