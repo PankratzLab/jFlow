@@ -600,7 +600,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
             if (masterCommentList == null) {
                 masterCommentList = Array.stringArray(masterMarkerList.length, "");
             }
+            proj.progressMonitor.beginTask("SCATTERPLOT", "Loading ScatterPlot Marker List...", false, 10);
             resetAfterLoad();
+            proj.progressMonitor.endTask("SCATTERPLOT");
             ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
             ScatterPlot.this.revalidate();
             finishProcessing();

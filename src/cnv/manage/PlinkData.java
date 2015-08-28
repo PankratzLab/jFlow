@@ -771,7 +771,7 @@ public class PlinkData {
 //				hash.put(allMarkersInProj[i], i+"");
 				proj.progressMonitor.updateTask("PLINKBINARYEXPORT");
 			}
-			Arrays.sort(outputIndicesOfTargetMarkers);
+			Arrays.sort(outputIndicesOfTargetMarkers); 
 			for (int i = 0; i < found.length; i++) {
 				if (! found[i]) {
 					log.reportError("Warning - the following marker from target marker list is not found in whole project's marker list: " + inputTargetMarkers[i]);
@@ -1104,6 +1104,7 @@ public class PlinkData {
 		String dir;
 		long startTime, subTime;
 		Hashtable<String,Integer> hash;
+		HashMap<String, Integer> projHash;
 		int targetIndex;
 
 		startTime = new Date().getTime();
@@ -1126,6 +1127,14 @@ public class PlinkData {
 				System.err.println("Warning - duplicate marker name: "+targetMarkers[i]);
 			}
 			hash.put(targetMarkers[i], i);
+		}
+		
+		projHash = new HashMap<String, Integer>();
+		for (int i = 0; i < indicesOfTargetMarkersInProj.length; i++) {
+		    if (projHash.containsKey(targetMarkers[i])) {
+                System.err.println("Warning - duplicate marker name: "+targetMarkers[i]);
+            }
+		    projHash.put(targetMarkers[i], indicesOfTargetMarkersInProj[i]);
 		}
 
 		sampleFingerPrint = proj.getSampleList().getFingerprint();
@@ -1151,7 +1160,7 @@ public class PlinkData {
 			out.write(outStream);
 
 			subTime = new Date().getTime();
-//			for (int i = 0; i < targetMarkers.length; i++) {
+
 			for (int i = 0; i < filenames.length; i++) {
 				
 				v = batches.get(filenames[i]);
@@ -1163,13 +1172,13 @@ public class PlinkData {
 					temp = v.elementAt(j).split("\t");
 					markersOfThisFile[j] = temp[0];
 					indicesOfMarkersInFileForCurrentFile[j] = Integer.parseInt(temp[1]);
-					indicesOfMarkersInProjForCurrentFile[j] = hash.get(temp[0]);
+					indicesOfMarkersInProjForCurrentFile[j] = projHash.get(temp[0]);
 				}
 				System.out.println("done prepping in "+ext.getTimeElapsed(subTime));
 				
 				subTime = new Date().getTime();
 				System.out.println("Starting batch "+(i+1)+" of "+filenames.length);
-				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filenames[i], indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash, proj.getLog());
+				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filenames[i], /*indicesOfTargetMarkersInProj*/indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash, proj.getLog());
 				System.out.println("Done loading in "+ext.getTimeElapsed(subTime));
 
 				subTime = new Date().getTime();
