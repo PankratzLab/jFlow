@@ -145,7 +145,10 @@ public class Rscript {
 	}
 
 	public enum SCATTER_TYPE {
-		LINE("geom_line"), POINT("geom_point"), BOX("geom_boxplot");
+		LINE("geom_line"), POINT("geom_point"), BOX("geom_boxplot"), /**
+		 * basic x v y 
+		 */
+		BASIC_POINT("geom_point");
 
 		private String call;
 
@@ -343,6 +346,10 @@ public class Rscript {
 
 		public String[] getrSafeErrorColumns() {
 			return rSafeErrorColumns;
+		}
+
+		public void setrSafeDataColumns(String[] rSafeDataColumns) {
+			this.rSafeDataColumns = rSafeDataColumns;
 		}
 
 	}
@@ -578,6 +585,10 @@ public class Rscript {
 			return errorBars;
 		}
 
+		public String[] getrSafeYColumns() {
+			return rSafeYColumns;
+		}
+
 		public void setErrorBars(ErrorBars errorBars) {
 			this.errorBars = errorBars;
 		}
@@ -770,8 +781,17 @@ public class Rscript {
 			directDataFrame[1] = dfGenerate;
 			return directDataFrame;
 		}
-		
-		
+
+		private static String getRename(String[] original, String[] alts, String dataframe) {
+			String[] toVec = new String[original.length];
+			for (int i = 0; i < toVec.length; i++) {
+				toVec[i] = "\"" + original[i] + "\"=\"" + alts[i] + "\"";
+			}
+
+			String rename = dataframe + " <- rename(" + dataframe + "," + generateRVector(toVec, false) + ")";
+			return rename;
+		}
+
 		@Override
 		public String[] developScript() {
 
@@ -802,13 +822,26 @@ public class Rscript {
 
 				String plot = "";
 				// if (dataYvalueColumns.length > 1) {
-
-				String[] toExtract = Array.concatAll(new String[] { rSafeXColumn }, rSafeYColumns);
+				if (rSafeAltYColumnNames != null && !Array.equals(rSafeYColumns, rSafeAltYColumnNames, true)) {
+					String[] currentNames = rSafeYColumns;
+					String[] altNames = rSafeAltYColumnNames;
+					if (errorBars != null) {
+						currentNames = Array.concatAll(currentNames, errorBars.getrSafeErrorColumns());
+						altNames = Array.concatAll(altNames, errorBars.getrSafeErrorColumns());
+					}
+					String rename = getRename(currentNames, altNames, dataTable);
+					rCmd.add(rename);
+				}else{
+					rSafeAltYColumnNames = rSafeYColumns;
+				}
+				
+				String[] toExtract = Array.concatAll(new String[] { rSafeXColumn }, rSafeAltYColumnNames);
 				if (errorBars != null) {
 					toExtract = Array.concatAll(toExtract, errorBars.getrSafeErrorColumns());
 				}
 				String extract = dataTableExtract + " <- " + dataTable + "[," + generateRVector(toExtract, true) + "]";
 				rCmd.add(extract);
+				
 				String melt = dataTableMelt + "<-  melt(" + dataTableExtract + ",id.vars =\"" + rSafeXColumn + "\")";
 				rCmd.add(melt);
 				int numColors = rSafeYColumns.length;
@@ -818,8 +851,12 @@ public class Rscript {
 				StringBuilder pallete = new StringBuilder();
 				pallete.append("getPalette = colorRampPalette(brewer.pal(9, \"Set1\"))\n");
 				pallete.append("myColors <- getPalette(" + numColors + ")\n");
-				pallete.append("names(myColors)  <- levels(" + dataTableMelt + "$variable)\n");
-				pallete.append("colScale <- scale_colour_manual(name = \"grp\",values = myColors)\n");
+				if (sType == SCATTER_TYPE.BASIC_POINT) {
+					pallete.append("names(myColors)  <- levels(" + dataTableExtract + ")\n");
+				} else {
+					pallete.append("names(myColors)  <- levels(" + dataTableMelt + "$variable)\n");
+				}
+				pallete.append("colScale <- scale_colour_manual(name = \"Var\",values = myColors)\n");
 				String colScale = pallete.toString();
 				rCmd.add(colScale);
 				// names(myColors)  <- levels(dataTableMeltcorrectionEval_WITHOUT_INDEPS_STEPWISE_RANK_R2_WITH_BUILDERS.summary.DK.summary.heritability_summary.parsed$variable)
@@ -829,6 +866,13 @@ public class Rscript {
 					plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=variable, y=value)) ";
 					plot += " + " + sType.getCall() + "(aes(fill=" + rSafeXColumn + "))";
 
+				} else if (sType == SCATTER_TYPE.BASIC_POINT) {
+					if (rSafeYColumns.length > 1) {
+						log.reportTimeError(SCATTER_TYPE.BASIC_POINT + " demands a single x and single y value");
+						return null;
+					}
+					plot += plotVar + " <- ggplot(" + dataTableExtract + ",aes(x=" + rSafeXColumn + ", y=" + rSafeYColumns[0] + ")) ";
+					plot += " + " + sType.getCall() + "(aes(fill=" + rSafeXColumn + "))";
 				} else {
 					if (directLableGtexts && gTexts != null) {
 						String[] directFrame = directLabelFrame(plotVar, "variable", rSafeXColumn, "value");
@@ -844,7 +888,8 @@ public class Rscript {
 						// data=subset(dataTableMeltcorrectionEval_WITHOUT_INDEPS_STEPWISE_RANK_R2_WITH_BUILDERS.summary.DK.summary.heritability_summary.parsed,variable==c("SOLAR_PERCENT_HERITABLITY","MERLIN_PERCENT_HERITABLITY")
 						String data = "";
 						if (errorBars != null) {
-							data = "subset(" + dataTable + ",variable==" + generateRVector(rSafeYColumns, true) + ")";
+							data =dataTable+"["+dataTable+"$variable %in% "+generateRVector(rSafeAltYColumnNames, true)+",]";
+							//data = "subset(" + dataTable + ",variable==" +  + ")";
 						} else {
 							data = dataTable;
 						}
@@ -893,7 +938,9 @@ public class Rscript {
 				if (logTransformY) {
 					plot += "+ scale_y_log10()";
 				}
-				plot += " + colScale";
+				if (sType != SCATTER_TYPE.BOX) {
+					plot += " + colScale";
+				}
 				plot += " + theme(axis.line = element_line(colour = \"black\"), ";
 				plot += "panel.grid.major = element_blank(), ";
 				plot += "panel.grid.minor = element_blank(),";
@@ -933,7 +980,7 @@ public class Rscript {
 				log.reportFileNotFound(dataFile);
 			} else {
 
-				if (!Files.headerOfFileContainsAll(dataFile, dataYvalueColumns, log)) {
+				if (!Files.headerOfFileContainsAll(dataFile, dataYvalueColumns, false, log)) {
 
 					log.reportTimeError("Could not find all Y value columns in " + dataFile);
 					int[] indices = ext.indexFactors(dataYvalueColumns, Files.getHeaderOfFile(dataFile, log), true, false);

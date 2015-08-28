@@ -2416,7 +2416,7 @@ public class Files {
 	/**
 	 * Sort of like the linux paste function, files must be the same length, and in the same order
 	 */
-	public static String[][] paste(String[] orginalFiles, String finalFile, int[] columns, int keyColumn, String[] newColumnNameTags, Logger log) {
+	public static String[][] paste(String[] orginalFiles, String finalFile, int[] columns, int keyColumn, String[] newColumnNameTags, String[] skipKeys, Logger log) {
 		if (newColumnNameTags.length != orginalFiles.length) {
 			log.reportTimeError("Name tags must be the same length as files");
 			return null;
@@ -2440,18 +2440,24 @@ public class Files {
 			while (readers[0].ready()) {
 				String[] line = readers[0].readLine().trim().split("\t");
 				String key = line[keyColumn];
-				writer.print(Array.toStr(Array.subArray(line, columns)));
-				for (int i = 1; i < readers.length; i++) {
-					String[] oLine = readers[i].readLine().trim().split("\t");
-					if (!key.equals(oLine[keyColumn])) {
-						String error = "Files must be in the same order as defined by the key column";
-						log.reportTimeError(error);
-						throw new IllegalStateException(error);
-					} else {
-						writer.print("\t" + Array.toStr(Array.subArray(oLine, columns)));
+				if (skipKeys == null || ext.indexOfStr(key, skipKeys) < 0) {
+					writer.print(Array.toStr(Array.subArray(line, columns)));
+					for (int i = 1; i < readers.length; i++) {
+						String[] oLine = readers[i].readLine().trim().split("\t");
+						if (!key.equals(oLine[keyColumn])) {
+							String error = "Files must be in the same order as defined by the key column";
+							log.reportTimeError(error);
+							throw new IllegalStateException(error);
+						} else {
+							writer.print("\t" + Array.toStr(Array.subArray(oLine, columns)));
+						}
+					}
+					writer.println();
+				} else {
+					for (int i = 1; i < readers.length; i++) {
+						readers[i].readLine();
 					}
 				}
-				writer.println();
 			}
 			for (int i = 0; i < readers.length; i++) {
 				if (readers[i].ready()) {

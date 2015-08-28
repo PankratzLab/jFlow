@@ -108,7 +108,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 							}
 							int markerIndex = markerIndices.get(marker);
-							
+
 							Segment markerSeg = anDatas[markerIndex].getSeg().getBufferedSegment(1);
 							if (mHistogramAnnotations[markerIndex] == null) {
 								DynamicHistogram histogram = new DynamicHistogram(minAlignmentLength, proj.getArrayType().getProbeLength(), 0);
@@ -118,7 +118,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 							for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
 								if (BlastAnnotationTypes.shouldBeAnnotatedAs(proj, blastResults, BLAST_ANNOTATION_TYPES.values()[i], markerSeg, proj.getLog())) {
-									BlastAnnotation blastAnnotation = new BlastAnnotation(Blast.convertBtopToCigar(blastResults, seqLength, proj.getLog()), blastResults.getSegment(),blastResults.determineStrand());
+									BlastAnnotation blastAnnotation = new BlastAnnotation(CigarOps.convertBtopToCigar(blastResults, seqLength, proj.getLog()), blastResults.getSegment(), blastResults.determineStrand());
 									intLists[markerIndex][i].add(blastAnnotation);
 								}
 							}
@@ -177,7 +177,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 				int seqIndex = markerSeqIndices.get(anDatas[i].getLocusName());
 				MarkerFastaEntry markerFastaEntry = markerFastaEntries[seqIndex];
 				MarkerSeqAnnotation markerSeqAnnotation = new MarkerSeqAnnotation();
-				markerSeqAnnotation.setDesignData(markerFastaEntry.getSequence(), markerFastaEntry.getInterrogationPosition(),markerFastaEntry.getStrand());
+				markerSeqAnnotation.setDesignData(markerFastaEntry.getSequence(), markerFastaEntry.getInterrogationPosition(), markerFastaEntry.getStrand());
 				anDatas[i].addAnnotation(markerSeqAnnotation);
 			}
 		}
