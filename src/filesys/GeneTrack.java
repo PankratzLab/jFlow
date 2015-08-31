@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import cnv.var.LocusSet;
 import common.Array;
 import common.Files;
 import common.HashVec;
+import common.Logger;
 import common.Positions;
 import common.Sort;
 
@@ -167,10 +169,29 @@ public class GeneTrack implements Serializable {
 		}
 		return tmp.toArray(new GeneData[tmp.size()]);
 	}
-	
+
+	public LocusSet<GeneData> convertToLocusSet(Logger log) {
+		ArrayList<GeneData> geneDatas = new ArrayList<GeneData>();
+		for (int i = 0; i < genes.length; i++) {
+			for (int j = 0; j < genes[i].length; j++) {
+				geneDatas.add(genes[i][j]);
+			}
+		}
+		LocusSet<GeneData> gLocusSet = new LocusSet<GeneData>(geneDatas.toArray(new GeneData[geneDatas.size()]), true, log) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+		};
+		return gLocusSet;
+	}
+
     public static GeneTrack load(String filename, boolean jar) {
         return (GeneTrack) Files.readSerial(filename, jar, false);
     }
+    
+    
 
     // public static void main(String[] args) {
     // int numArgs = args.length;
