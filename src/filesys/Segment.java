@@ -84,6 +84,12 @@ public class Segment implements Serializable {
 		this.stop = Integer.parseInt(stop);
 	}
 
+	public Segment(String chr, int start, int stop) {
+		this.chr = Positions.chromosomeNumber(chr);
+		this.start = start;
+		this.stop = stop;
+	}
+
 	public byte getChr() {
 		return chr;
 	}

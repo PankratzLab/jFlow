@@ -41,6 +41,8 @@ import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.Tribble;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
+import htsjdk.tribble.index.tabix.TabixFormat;
+import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.tribble.util.TabixUtils;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -376,29 +378,29 @@ public class VCFOps {
 		return outFiles;
 	}
 
-//	private static void fixMdsFile(Logger log, String dir, Hashtable<String, String> newIDS, String mdsFile) {
-//		if (newIDS.size() > 0 && Files.exists(mdsFile)) {
-//			String[] header = Files.getHeaderOfFile(mdsFile, log);
-//			int[] indices = new int[header.length];
-//			for (int i = 0; i < indices.length; i++) {
-//				indices[i] = i;
-//			}
-//			String[][] mds = HashVec.loadFileToStringMatrix(mdsFile, false, new int[] { 0, 1, 2, 3, 4, 5 }, false);
-//			String[][] newMds = new String[mds.length][mds[0].length];
-//			for (int i = 0; i < mds.length; i++) {
-//				for (int j = 0; j < mds[i].length; j++) {
-//					if (j == 0 && j != 1 && newIDS.containsKey(mds[i][0])) {
-//						newMds[i][0] = newIDS.get(mds[i][0]);
-//						newMds[i][1] = newIDS.get(mds[i][0]);
-//					} else {
-//						newMds[i][j] = mds[i][j];
-//					}
-//				}
-//			}
-//			Files.writeMatrix(newMds, ext.addToRoot(mdsFile, ".fixed"), "\t");
-//
-//		}
-//	}
+	// private static void fixMdsFile(Logger log, String dir, Hashtable<String, String> newIDS, String mdsFile) {
+	// if (newIDS.size() > 0 && Files.exists(mdsFile)) {
+	// String[] header = Files.getHeaderOfFile(mdsFile, log);
+	// int[] indices = new int[header.length];
+	// for (int i = 0; i < indices.length; i++) {
+	// indices[i] = i;
+	// }
+	// String[][] mds = HashVec.loadFileToStringMatrix(mdsFile, false, new int[] { 0, 1, 2, 3, 4, 5 }, false);
+	// String[][] newMds = new String[mds.length][mds[0].length];
+	// for (int i = 0; i < mds.length; i++) {
+	// for (int j = 0; j < mds[i].length; j++) {
+	// if (j == 0 && j != 1 && newIDS.containsKey(mds[i][0])) {
+	// newMds[i][0] = newIDS.get(mds[i][0]);
+	// newMds[i][1] = newIDS.get(mds[i][0]);
+	// } else {
+	// newMds[i][j] = mds[i][j];
+	// }
+	// }
+	// }
+	// Files.writeMatrix(newMds, ext.addToRoot(mdsFile, ".fixed"), "\t");
+	//
+	// }
+	// }
 
 	private static Hashtable<String, String> fixFamFile(Logger log, String famFile) {
 		Hashtable<String, String> changedIds = new Hashtable<String, String>();
@@ -859,7 +861,7 @@ public class VCFOps {
 						if (!Files.exists(callRateFiltered)) {
 							reportCallRateHWEFiltered(splits[j], callRateFiltered, callRate, hwe, log);
 						}
-						//LocusSet<Segment> segs = LocusSet.loadSegmentSetFromFile(ext.addToRoot(callRateFiltered, ".segment"), 0, 1, 2, 0, true, true, 0, log);
+						// LocusSet<Segment> segs = LocusSet.loadSegmentSetFromFile(ext.addToRoot(callRateFiltered, ".segment"), 0, 1, 2, 0, true, true, 0, log);
 						// toRemoveSeg = Array.concatAll(toRemoveSeg, segs.getLoci());
 						String[] callRateRemove = HashVec.loadFileToStringArray(callRateFiltered, false, new int[] { 0 }, true);
 						for (int k = 0; k < callRateRemove.length; k++) {
@@ -1474,8 +1476,13 @@ public class VCFOps {
 				if (Files.exists(indexFile)) {
 					created = true;
 				} else {
+					log.reportTimeWarning("Indexing not quite implemented yet for " + VCF_EXTENSIONS.GZIP_VCF.getLiteral() + ", exiting");
+					System.exit(1);
+					VCFFileReader readerVcfGz = new VCFFileReader(vcfFile, false);
+					TabixIndex index = IndexFactory.createTabixIndex(new File(vcfFile), new VCFCodec(), TabixFormat.VCF, readerVcfGz.getFileHeader().getSequenceDictionary());
+
 					created = false;
-					log.reportTimeWarning("Indexing not quite implemented yet for " + VCF_EXTENSIONS.GZIP_VCF.getLiteral());
+					readerVcfGz.close();
 
 				}
 				// // TabixIndexCreator idxCreator = new TabixIndexCreator( getSequenceDictionary(vcfFile), TabixFormat.VCF);
