@@ -70,7 +70,6 @@ public class Pedigree {
 					try {
 						if (sex != null) {
 							sampleSex = Integer.parseInt(sex[pedigreeEntries[i].getiDNAIndex()]);
-
 						}
 					} catch (NumberFormatException nfe) {
 
