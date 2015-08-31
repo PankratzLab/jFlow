@@ -175,7 +175,7 @@ public class CigarOps {
 	}
 
 	/**
-	 * @param cigar
+	 * @param cigar 
 	 * @return a new cigar with any identical {@link CigarElement} in a row combined
 	 */
 	private static Cigar uniquify(Cigar cigar) {

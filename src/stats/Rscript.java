@@ -285,12 +285,17 @@ public class Rscript {
 				allPlots.add(plotDevice);
 				for (int i = 0; i < rScatters.length; i++) {
 					String[] tmpScript = rScatters[i].developScript();
-					for (int j = 0; j < tmpScript.length; j++) {
-						allPlots.add(tmpScript[j]);
+					if (tmpScript != null) {
+						for (int j = 0; j < tmpScript.length; j++) {
+							allPlots.add(tmpScript[j]);
+						}
 					}
+
 				}
 				for (int i = 0; i < rScatters.length; i++) {
+
 					allPlots.add(rScatters[i].getPlotVar());
+
 				}
 				allPlots.add("dev.off()");
 				return allPlots.toArray(new String[allPlots.size()]);
@@ -710,10 +715,14 @@ public class Rscript {
 		@Override
 		public boolean execute() {
 			String[] rScript = developScript();
-			// log.report(Array.toStr(rScript, "\n"));
-			Files.writeList(rScript, rScriptFile);
-			boolean ran = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", rScriptFile }, "", new String[] { rScriptFile }, new String[] { output }, true, overWriteExisting, false, log);
-			return ran;
+			if (rScript != null) {
+				// log.report(Array.toStr(rScript, "\n"));
+				Files.writeList(rScript, rScriptFile);
+				boolean ran = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", rScriptFile }, "", new String[] { rScriptFile }, new String[] { output }, true, overWriteExisting, false, log);
+				return ran;
+			} else {
+				return false;
+			}
 		}
 
 		private GeomText[] getLabelers(){
