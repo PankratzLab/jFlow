@@ -650,6 +650,21 @@ public class CNVariant extends Segment {
 		return PLINK_CNV_HEADER;
 	}
 
+	public static LocusSet<CNVariant> loadLocSet(String cnvFile, Logger log) {
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+		LocusSet<CNVariant> cLocusSet = new LocusSet<CNVariant>(cnvs, true, log) {
+
+			/**
+		 * 
+		 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		return cLocusSet;
+
+	}
+	
+
 	
 
 }
