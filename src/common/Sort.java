@@ -747,6 +747,10 @@ public class Sort {
 		return orderTwoLayers(Array.toByteArray(Matrix.extractColumn(matrix, 0)), Matrix.extractColumn(matrix, 1), log);
 	}
 
+	public static int[] orderTwoLayers(byte[] first, int[] second, Logger log) {
+		return orderTwoLayers(first, second, false, log);
+	}
+
 	/**
 	 * Sorts by the first array first and then by the second; returns the order
 	 * 
@@ -756,7 +760,7 @@ public class Sort {
 	 *            second order array
 	 * @return array of sorted indices
 	 */
-	public static int[] orderTwoLayers(byte[] first, int[] second, Logger log) {
+	public static int[] orderTwoLayers(byte[] first, int[] second, boolean verbose, Logger log) {
 		String[] primaryKeys, secondaryKeys;
 		int count;
 		int[] values, finalIndices, primaryIndices, secondaryIndices;
@@ -777,7 +781,9 @@ public class Sort {
 			}
 		}
 		if (inOrder) {
-			log.report("Markers were already in order", true, true, 10);
+			if (verbose) {
+				log.report("Markers were already in order", true, true, 10);
+			}
 			return Array.intArray(second.length);
 		}
 
