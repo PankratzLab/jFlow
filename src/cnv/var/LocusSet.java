@@ -31,10 +31,10 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 	}
 
 	public void sort() {
-		loci = putInOrder(loci, Segment.quicksort(loci));
+		loci = putInOrder(loci, Segment.quicksort(loci, false));
 		sorted = true;
 	}
-	
+
 	/**
 	 * @return simply the sum of the segments length, should be a merged set if you want the unique coverage
 	 */

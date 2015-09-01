@@ -247,7 +247,7 @@ public class Segment implements Serializable {
 	}
 
 	public String toAnalysisString() {
-		return chr + "\t" + start + "\t" + stop + "\t";
+		return Positions.getChromosomeUCSC(chr, true) + "\t" + start + "\t" + stop + "\t";
 	}
 	
 	public String[] getHeader() {
@@ -369,6 +369,10 @@ public class Segment implements Serializable {
 	}
 	
 	public static int[] quicksort(Segment[] array) {
+		return quicksort(array, true);
+	}
+
+	public static int[] quicksort(Segment[] array, boolean verbose) {
 		byte[] chrs;
 		int[] positions;
 
@@ -379,7 +383,7 @@ public class Segment implements Serializable {
 			positions[i] = array[i].start;
 		}
 
-		return Sort.orderTwoLayers(chrs, positions, new Logger());
+		return Sort.orderTwoLayers(chrs, positions, verbose, new Logger());
 	}
 
 	public static Segment[] putInOrder(Segment[] array, int[] order) {
