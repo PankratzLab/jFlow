@@ -19,7 +19,7 @@ import db.FilterDB;
 public class MarkerMetrics {
 	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z", "LRR_SD", "LRR_num_NaNs", "MendelianErrors"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR", "MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
-	private static final String MENDEL_HEADER = "MarkerName\tChr\tPosition\tFID\tIID\tFA_DNA\tMO_DNA\tAB\tFA_AB\tMO_AB";
+	private static final String[] MENDEL_HEADER = {"MarkerName", "Chr", "Position", "FID", "IID", "DNA", "FA_DNA", "MO_DNA", "AB", "FA_AB", "MO_AB"};
 	
 	
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
@@ -110,7 +110,7 @@ public class MarkerMetrics {
 			
 			if (pedigree != null) {
     			mendelWriter = new PrintWriter(new FileWriter(ext.rootOf(fullPathToOutput, false) + "_mendel.error"));
-    			mendelWriter.println(MENDEL_HEADER);
+    			mendelWriter.println(Array.toStr(MENDEL_HEADER));
 			}
 		
 			//markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
@@ -211,6 +211,7 @@ public class MarkerMetrics {
 		                                + "\t" + markerData.getPosition()
 		                                + "\t" + pedigree.getPedigreeEntries()[i].getFID()
 		                                + "\t" + pedigree.getPedigreeEntries()[i].getIID()
+		                                + "\t" + pedigree.getPedigreeEntries()[i].getiDNA()
 		                                + "\t" + (faDNAIndex >= 0 ? samples[faDNAIndex] : ".")
 		                                + "\t" + (moDNAIndex >= 0 ? samples[moDNAIndex] : ".")
 		                                + "\t" + indGeno 
