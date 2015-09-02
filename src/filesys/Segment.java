@@ -716,6 +716,7 @@ public class Segment implements Serializable {
 		private double maximumOverlapScore, scoreThreshold;
 		private Segment maxScoreSegment;
 		private int numOverlapingPastThreshold;
+		private double avgOverlapScore;
 
 		/**
 		 * 
@@ -735,6 +736,7 @@ public class Segment implements Serializable {
 			this.maximumOverlapScore = 0;
 			this.numOverlapingPastThreshold = 0;
 			this.maxScoreSegment = new Segment((byte) 0, 0, 0);
+			this.avgOverlapScore=0;
 			// this.log = log;
 		}
 
@@ -747,8 +749,14 @@ public class Segment implements Serializable {
 				}
 				if (score > scoreThreshold) {
 					numOverlapingPastThreshold++;
+					avgOverlapScore += score;
 				}
 			}
+			avgOverlapScore = (double) avgOverlapScore / numOverlapingPastThreshold;
+		}
+
+		public double getAvgOverlapScore() {
+			return avgOverlapScore;
 		}
 
 		public Segment getMaxScoreSegment() {

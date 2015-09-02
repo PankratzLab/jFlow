@@ -60,6 +60,22 @@ public class Mappability<SEGMENT extends Segment> {
 		}
 	}
 
+	public Hashtable<String, Integer> generateInternalGeneCounts() {
+		Hashtable<String, Integer> geneCounts = new Hashtable<String, Integer>();
+		for (int i = 0; i < mappabilityResults.size(); i++) {
+			MappabilityResult<SEGMENT> cnMapp = mappabilityResults.get(i);
+			for (int j = 0; j < cnMapp.getSubsetNames().length; j++) {
+				String geneName = cnMapp.getSubsetNames()[j];
+				if (!geneCounts.containsKey(geneName)) {
+					geneCounts.put(geneName, 0);
+				}
+				geneCounts.put(geneName, geneCounts.get(geneName) + 1);
+			}
+
+		}
+		return geneCounts;
+	}
+
 	private Hashtable<String, Integer> generateGeneCounts(LocusSet<GeneData> gLocusSet) {
 		Hashtable<String, Integer> geneCounts = new Hashtable<String, Integer>();
 		for (int i = 0; i < mappabilityResults.size(); i++) {

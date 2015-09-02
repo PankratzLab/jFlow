@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Vector;
 
 import common.Array;
+import common.Files;
 import common.Logger;
 import filesys.Segment;
 
@@ -184,6 +185,15 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 
 		};
 		return lSet;
+	}
+	
+	public void writeSerial(String fileName) {
+		Files.writeSerial(this, fileName, true);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static LocusSet<CNVariant> readSerialCnvSet(String filename, Logger log) {
+		return ((LocusSet<CNVariant>) Files.readSerial(filename, false, log, false, true));
 	}
 
 }
