@@ -84,25 +84,29 @@ public class Pedigree {
 		}
 		return mendelErrorChecks;
 	}
-
+	
 	public static Pedigree loadPedigree(Project proj, String ped) {
 		Pedigree pedigree = null;
-		SampleData sampleData = proj.getSampleData(0, false);
-		String[] samples = proj.getSamples();
+		SampleData sampleData = proj == null ? null : proj.getSampleData(0, false);
+		String[] samples = proj == null ? null : proj.getSamples();
 		int numAdded = 0;
 		int numTrio = 0;
 		int numChildOffspring = 0;
 
 		try {
 			BufferedReader reader = Files.getAppropriateReader(ped);
-			String delim = ext.determineDelimiter(Files.getFirstNLinesOfFile(ped, 1, proj.getLog())[0]);
+			String delim = ext.determineDelimiter(Files.getFirstNLinesOfFile(ped, 1, proj == null ? null : proj.getLog())[0]);
 			int lineNum = 0;
-			PedigreeEntry[] pedigreeEntries = new PedigreeEntry[samples.length];
+			PedigreeEntry[] pedigreeEntries = new PedigreeEntry[proj == null ? Files.countLines(ped, 1) : samples.length];
 			while (reader.ready()) {
 				lineNum++;
 				String[] line = reader.readLine().trim().split(delim);
 				if (line.length < 7) {
-					proj.getLog().reportTimeError("Detected that pedigree file " + ped + " exists, but starting at line " + (lineNum) + (line.length < 3 ? "" : " (individual " + line[0] + "-" + line[1] + ")") + " there are only " + line.length + " columns in pedigree file '" + proj.PEDIGREE_FILENAME.getValue() + "'.\n" + "  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA\n" + "  where DNA is the sample name associated with the genotypic data (see the " + proj.SAMPLE_DIRECTORY.getValue(false, true) + " directory for examples)");
+					if (proj != null) {
+					    proj.getLog().reportTimeError("Detected that pedigree file " + ped + " exists, but starting at line " + (lineNum) + (line.length < 3 ? "" : " (individual " + line[0] + "-" + line[1] + ")") + " there are only " + line.length + " columns in pedigree file '" + proj.PEDIGREE_FILENAME.getValue() + "'.\n" + "  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA\n" + "  where DNA is the sample name associated with the genotypic data (see the " + proj.SAMPLE_DIRECTORY.getValue(false, true) + " directory for examples)");
+					} else {
+					    System.err.println(ext.getTime() + "]\tDetected that pedigree file " + ped + " exists, but starting at line " + (lineNum) + (line.length < 3 ? "" : " (individual " + line[0] + "-" + line[1] + ")") + " there are only " + line.length + " columns in pedigree file '" + ped + "'.\n" + "  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA\n" + "  where DNA is the sample name associated with the genotypic data (see the " + (proj == null ? "sample data " : proj.SAMPLE_DIRECTORY.getValue(false, true)) + " directory for examples)");
+					}
 					reader.close();
 					return pedigree;
 				} else {
@@ -112,12 +116,12 @@ public class Pedigree {
 					String moFidIid = FID + "\t" + line[3];
 
 					String DNA = line[6];
-					int iDNAIndex = getSampleIndex(DNA, sampleData, samples);
-					int faDNAIndex = getSampleIndex(faFidIid, sampleData, samples);
-					int moDNAIndex = getSampleIndex(moFidIid, sampleData, samples);
+					int iDNAIndex = proj == null ? -1 : getSampleIndex(DNA, sampleData, samples);
+					int faDNAIndex = proj == null ? -1 : getSampleIndex(faFidIid, sampleData, samples);
+					int moDNAIndex = proj == null ? -1 : getSampleIndex(moFidIid, sampleData, samples);
 
 					PedigreeEntry pedigreeEntry = new PedigreeEntry(FID, line[1], line[2], line[3], line[4], line[5], DNA, iDNAIndex, faDNAIndex, moDNAIndex);
-					if (iDNAIndex >= 0) {
+					if (proj != null && iDNAIndex >= 0) {
 						if (faDNAIndex >= 0) {
 							numChildOffspring++;
 						}
@@ -129,18 +133,32 @@ public class Pedigree {
 						}
 						pedigreeEntries[iDNAIndex] = pedigreeEntry;
 						numAdded++;
+					} else if (proj == null) {
+					    pedigreeEntries[lineNum - 1] = pedigreeEntry;
+					    numAdded++;
 					}
 				}
 			}
-			pedigree = new Pedigree(proj, pedigreeEntries, true, proj.getLog());
+			pedigree = new Pedigree(proj, pedigreeEntries, true, proj == null ? null : proj.getLog());
 		} catch (FileNotFoundException e) {
-			proj.getLog().reportFileNotFound(ped);
-
+			if (proj == null) {
+			    e.printStackTrace();
+			} else {
+			    proj.getLog().reportFileNotFound(ped);
+			}
 		} catch (IOException e) {
-			proj.getLog().reportException(e);
-			e.printStackTrace();
+		    if (proj == null) {
+		        e.printStackTrace();
+		    } else {
+		        proj.getLog().reportException(e);
+		        e.printStackTrace();
+		    }
 		}
-		proj.getLog().reportTimeInfo("loaded " + numAdded + " pedigree entries; Parent Offspring pairs: " + numChildOffspring + "; Trios: " + numTrio);
+		if (proj != null) {
+		    proj.getLog().reportTimeInfo("loaded " + numAdded + " pedigree entries; Parent Offspring pairs: " + numChildOffspring + "; Trios: " + numTrio);
+		} else {
+		    System.out.println(ext.getTime() + "]\tloaded " + numAdded + " pedigree entries; Parent Offspring pairs: " + numChildOffspring + "; Trios: " + numTrio);
+		}
 		return pedigree;
 	}
 

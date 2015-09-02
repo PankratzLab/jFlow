@@ -139,7 +139,8 @@ public class Configurator extends JFrame {
                 "MARKER_METRICS_FILENAME",
                 "MARKER_EXCLUSION_CRITERIA_FILENAME",
                 "MARKER_REVIEW_CRITERIA_FILENAME",
-                "MARKER_COMBINED_CRITERIA_FILENAME"
+                "MARKER_COMBINED_CRITERIA_FILENAME",
+                "GENOME_CLUSTER_FILENAME"
             },
             {
                 "CNV Files",
