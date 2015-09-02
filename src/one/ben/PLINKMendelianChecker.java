@@ -46,10 +46,13 @@ public class PLINKMendelianChecker {
     
     static class GenomeLoader {
         
-        HashMap<String, HashMap<String, String>> pairData = new HashMap<String, HashMap<String, String>>();
+        HashMap<String, HashMap<String, String>> pairData;
+        ArrayList<String> unrelLines;
+        
         
         private GenomeLoader() {
             pairData = new HashMap<String, HashMap<String,String>>();
+            unrelLines = new ArrayList<String>();
         }
         
         // TODO only goes one direction?  
@@ -94,20 +97,24 @@ public class PLINKMendelianChecker {
                 reader = Files.getAppropriateReader(genomeFile);
                 line = reader.readLine(); // read header
                 String fid1, iid1, fid2, iid2;
-                while ((line = reader.readLine().trim()) != null) {
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
 //                  String[] temp = line.split("[\\s]+"); // slow for 32mil lines
-                    int breakInd = line.indexOf("\t");
+                    int breakInd = line.indexOf(" ");
                     fid1 = line.substring(0, breakInd);
                     if (!famSet.contains(fid1)) continue; // comment out for bi-directional
-                    int break2Ind = line.indexOf("\t", breakInd);
+                    while(line.charAt(breakInd) == ' ') { breakInd++; }
+                    int break2Ind = line.indexOf(" ", breakInd);
                     iid1 = line.substring(breakInd, break2Ind);
                     if (!pairSets.containsKey(fid1 + "\t" + iid1)) continue; // comment out for bi-directional
+                    while(line.charAt(break2Ind) == ' ') { break2Ind++; }
                     breakInd = break2Ind;
-                    break2Ind = line.indexOf("\t", breakInd);
+                    break2Ind = line.indexOf(" ", breakInd);
                     fid2 = line.substring(breakInd, break2Ind);
 //                    if (!famSet.contains(fid1) && !famSet.contains(fid2)) continue; // uncomment for bi-directional
+                    while(line.charAt(break2Ind) == ' ') { break2Ind++; }
                     breakInd = break2Ind;
-                    break2Ind = line.indexOf("\t", breakInd);
+                    break2Ind = line.indexOf(" ", breakInd);
                     iid2 = line.substring(breakInd, break2Ind);
 //                    if (!pairSets.containsKey(fid1 + "\t" + iid1) && !pairSets.containsKey(fid2 + "\t" + iid2)) continue; // uncomment for bi-directional
 
@@ -118,6 +125,34 @@ public class PLINKMendelianChecker {
                             gl.pairData.put(fid1 + "\t" + iid1, indiMap);
                         }
                         indiMap.put(fid2 + "\t" + iid2, line);
+                    } else {
+                        while(line.charAt(break2Ind) == ' ') { break2Ind++; }
+                        breakInd = break2Ind;
+                        break2Ind = line.indexOf(" ", breakInd);
+                        // RT
+                        while(line.charAt(break2Ind) == ' ') { break2Ind++; }
+                        breakInd = break2Ind;
+                        break2Ind = line.indexOf(" ", breakInd);
+                        // EZ
+                        while(line.charAt(break2Ind) == ' ') { break2Ind++; }
+                        breakInd = break2Ind;
+                        break2Ind = line.indexOf(" ", breakInd);
+                        // Z0
+                        while(line.charAt(break2Ind) == ' ') { break2Ind++; }
+                        breakInd = break2Ind;
+                        break2Ind = line.indexOf(" ", breakInd);
+                        // Z1
+                        while(line.charAt(break2Ind) == ' ') { break2Ind++; }
+                        breakInd = break2Ind;
+                        break2Ind = line.indexOf(" ", breakInd);
+                        // Z2
+                        while(line.charAt(break2Ind) == ' ') { break2Ind++; }
+                        breakInd = break2Ind;
+                        break2Ind = line.indexOf(" ", breakInd);
+                        String piHatStr = line.substring(breakInd, break2Ind);
+                        if (Double.parseDouble(piHatStr) > 0.2) {
+                            gl.unrelLines.add(line);
+                        }
                     }
                     // not set up for bi-directional
                 }
@@ -236,7 +271,6 @@ public class PLINKMendelianChecker {
         
         ped = Pedigree.loadPedigree(this.project, this.pedFile);
         if (ped == null) {
-            // TODO Error
             return;
         }
         
@@ -386,6 +420,8 @@ public class PLINKMendelianChecker {
         
         System.out.println(ext.getTime() + "]\tWriting result data...");
         
+        int missingCount = 0;
+        
         String outputHeader = sb.toString();
         writer = Files.getAppropriateWriter(outDir + "trios.xln");
         writer.println(outputHeader);
@@ -430,7 +466,8 @@ public class PLINKMendelianChecker {
                 
                 HashMap<String, String> genoLines = gl.pairData.get(pe.getiDNA() + "\t" + pe.getiDNA());
                 if (genoLines == null) {
-                    System.out.println("No genomic data for " + pe.getiDNA());
+//                    System.out.println("No genomic data for " + pe.getiDNA());
+                    missingCount++;
                 }
                 if (genoLines == null || ".".equals(faDNA) || genoLines.get(faDNA + "\t" + faDNA) == null) {
                     sb.append(".").append("\t")
@@ -439,10 +476,10 @@ public class PLINKMendelianChecker {
                         .append(".").append("\t");   
                 } else {
                     String[] tmpGL = genoLines.get(faDNA + "\t" + faDNA).split("[\\s]+");
-                    sb.append(tmpGL[7]).append("\t")
+                    sb.append(tmpGL[6]).append("\t")
+                        .append(tmpGL[7]).append("\t")
                         .append(tmpGL[8]).append("\t")
-                        .append(tmpGL[9]).append("\t")
-                        .append(tmpGL[10]).append("\t");
+                        .append(tmpGL[9]).append("\t");
                 }
                 if (genoLines == null || ".".equals(moDNA) || genoLines.get(moDNA + "\t" + moDNA) == null) {
                     sb.append(".").append("\t")
@@ -451,10 +488,10 @@ public class PLINKMendelianChecker {
                         .append(".").append("\t");   
                 } else {
                     String[] tmpGL = genoLines.get(moDNA + "\t" + moDNA).split("[\\s]+");
-                    sb.append(tmpGL[7]).append("\t")
+                    sb.append(tmpGL[6]).append("\t")
+                        .append(tmpGL[7]).append("\t")
                         .append(tmpGL[8]).append("\t")
-                        .append(tmpGL[9]).append("\t")
-                        .append(tmpGL[10]).append("\t");
+                        .append(tmpGL[9]).append("\t");
                 }
             }
             
@@ -537,7 +574,9 @@ public class PLINKMendelianChecker {
             
             boolean excluded = false;
             if (sampleData != null) {
-                sb.append(sampleData.individualShouldBeExcluded(pe.getiDNA()) ? "1" : "0").append("\t");
+                boolean ex1 = sampleData.individualShouldBeExcluded(pe.getiDNA());
+                if (ex1) { excluded = true; }
+                sb.append(ex1 ? "1" : "0").append("\t");
                 if (pe.getFaDNAIndex() == -1 || samples == null) {
                     if (dnaLookup.get(pe.getFID() + "\t" + pe.getFA()) != null) {
                         boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(pe.getFID() + "\t" + pe.getFA()));
@@ -573,6 +612,8 @@ public class PLINKMendelianChecker {
         
         writer.flush();
         writer.close();
+        
+        System.out.println(ext.getTime() + "]\tMissing genome pair data for " + missingCount + " individuals");
         
         writeFamily(gl, pedToFAMO, childrenMap, dnaLookup, outDir);
     }
@@ -612,10 +653,10 @@ public class PLINKMendelianChecker {
                             String genoDataLine = genoData.get(dna2 + "\t" + dna2);
                             if (genoDataLine != null) {
                                 String[] tmpGL = genoDataLine.split("[\\s]+");
-                                sb.append(tmpGL[7]).append("\t")
+                                sb.append(tmpGL[6]).append("\t")
+                                    .append(tmpGL[7]).append("\t")
                                     .append(tmpGL[8]).append("\t")
-                                    .append(tmpGL[9]).append("\t")
-                                    .append(tmpGL[10]).append("\t");
+                                    .append(tmpGL[9]).append("\t");
                             } else {
                                 sb.append(".\t.\t.\t.\t");
                             }
@@ -657,10 +698,10 @@ public class PLINKMendelianChecker {
                                 String genoDataLine = genoData.get(dna2 + "\t" + dna2);
                                 if (genoDataLine != null) {
                                     String[] tmpGL = genoDataLine.split("[\\s]+");
-                                    sb.append(tmpGL[7]).append("\t")
+                                    sb.append(tmpGL[6]).append("\t")
+                                        .append(tmpGL[7]).append("\t")
                                         .append(tmpGL[8]).append("\t")
-                                        .append(tmpGL[9]).append("\t")
-                                        .append(tmpGL[10]).append("\t");
+                                        .append(tmpGL[9]).append("\t");
                                 } else {
                                     sb.append(".\t.\t.\t.\t");
                                 }
@@ -688,10 +729,10 @@ public class PLINKMendelianChecker {
                                 String genoDataLine = genoData.get(dna2 + "\t" + dna2);
                                 if (genoDataLine != null) {
                                     String[] tmpGL = genoDataLine.split("[\\s]+");
-                                    sb.append(tmpGL[7]).append("\t")
+                                    sb.append(tmpGL[6]).append("\t")
+                                        .append(tmpGL[7]).append("\t")
                                         .append(tmpGL[8]).append("\t")
-                                        .append(tmpGL[9]).append("\t")
-                                        .append(tmpGL[10]).append("\t");
+                                        .append(tmpGL[9]).append("\t");
                                 } else {
                                     sb.append(".\t.\t.\t.\t");
                                 }
@@ -706,6 +747,24 @@ public class PLINKMendelianChecker {
             }
             
         }
+        
+        if (gl != null) {
+            for (String unrelLine : gl.unrelLines) {
+                sb = new StringBuilder();
+                String[] parts = unrelLine.split("[\\s]+");
+                sb.append(parts[0]).append("\t")
+                            .append(parts[1]).append("\t")
+                            .append(parts[2]).append("\t")
+                            .append(parts[3]).append("\t")
+                            .append("UN").append("\t")
+                            .append(parts[6]).append("\t")
+                            .append(parts[7]).append("\t")
+                            .append(parts[8]).append("\t")
+                            .append(parts[9]).append("\t");
+                writer.println(sb.toString());             
+            }
+        }
+        
         writer.flush();
         writer.close();
         
