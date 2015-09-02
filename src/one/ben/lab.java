@@ -802,20 +802,33 @@ public class lab {
 		
 		boolean test = true;
 		if (test) {
+		    
+		    try {
+		    String checkfile = "D:/data/gedi_gwas/data/cluster.genome.gz";
+		    BufferedReader reader = Files.getAppropriateReader(checkfile);
+		    String line = reader.readLine();
+		    int cnt = 1;
+		    while ((line = reader.readLine()) != null) {
+		        cnt++;
+		    }
+		    reader.close();
+		    System.out.println("Read " + cnt + " lines");
+		    
+		    
+		    
 //		    String s = "10000000000";
 //		    long l = Long.parseLong(s);
 //		    System.out.println(l > Integer.MAX_VALUE);
 //		    int d = Integer.parseInt(s);
 		    
 //		    
-//		    try {
 //                Process p = Runtime.getRuntime().exec("where notepad.exe");
 //                int waitCode = p.waitFor();
 //                int outCode = p.exitValue();
 //                System.out.println("wait: " + waitCode + "| out: " + outCode);
 //		        processData();
 //		        concatData();
-		        ConditionalAnalysisPipeline.processOnly(args[0], args[1], args[2]);
+//		        ConditionalAnalysisPipeline.processOnly(args[0], args[1], args[2]);
 //            } catch (IOException e) {
 //                // TODO Auto-generated catch block
 //                e.printStackTrace();
@@ -836,10 +849,10 @@ public class lab {
 //            for (String file2 : files) {
 //                try {
 //                    processSNPPositions(dir + file2, dir + ext.rootOf(file2) + ".proc.xln");
-//                } catch (IOException e) {
-//                    // TODO Auto-generated catch block
-//                    e.printStackTrace();
-//                }
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
 //            }
 		    
 		    return;

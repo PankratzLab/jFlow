@@ -25,6 +25,7 @@ public class MarkerMetrics {
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
 	public static final String DEFAULT_EXCLUSION_CRITERIA = "cnv/qc/default_exclusion.criteria";
 	public static final String DEFAULT_COMBINED_CRITERIA = "cnv/qc/default_combined.criteria";
+	public static final String DEFAULT_MENDEL_FILE_SUFFIX = ".mendel";
 	
 	/**
 	 * @param proj
@@ -109,7 +110,7 @@ public class MarkerMetrics {
 			writer.println(Array.toStr(FULL_QC_HEADER));
 			
 			if (pedigree != null) {
-    			mendelWriter = new PrintWriter(new FileWriter(ext.rootOf(fullPathToOutput, false) + "_mendel.error"));
+    			mendelWriter = new PrintWriter(new FileWriter(ext.rootOf(fullPathToOutput, false) + DEFAULT_MENDEL_FILE_SUFFIX));
     			mendelWriter.println(Array.toStr(MENDEL_HEADER));
 			}
 		
