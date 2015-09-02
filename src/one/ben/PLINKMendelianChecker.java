@@ -21,96 +21,105 @@ import cnv.var.SampleData;
 
 public class PLINKMendelianChecker {
     
+    static class Pair {
+
+        String fid1;
+        String fid2;
+        String iid1;
+        String iid2;
+        
+        public Pair(String fid1, String iid1, String fid2, String iid2) {
+            this.fid1 = fid1;
+            this.iid1 = iid1;
+            this.fid2 = fid2;
+            this.iid2 = iid2;
+        }
+        
+        public Pair(String fid, String iid1, String iid2) {
+            this.fid1 = fid;
+            this.iid1 = iid1;
+            this.fid2 = fid;
+            this.iid2 = iid2;
+        }
+        
+    }
+    
     static class GenomeLoader {
         
-        HashMap<String, HashMap<String, String>> pairData = new HashMap<String, HashMap<String,String>>();
+        HashMap<String, HashMap<String, String>> pairData = new HashMap<String, HashMap<String, String>>();
         
         private GenomeLoader() {
             pairData = new HashMap<String, HashMap<String,String>>();
         }
         
-        static GenomeLoader run(String genomeFile/*, HashMap<String, String[]> pedToFAMO*/, ArrayList<String[]> pairs, HashMap<String, String> dnaLookup) {
+        // TODO only goes one direction?  
+        static GenomeLoader run(String genomeFile, ArrayList<Pair> pairs) {
             BufferedReader reader;
             String line;
-            String[] temp;
             
             GenomeLoader gl = new GenomeLoader();
             
-//            boolean[] found = Array.booleanArray(pairs.size(), false);
-//            int foundCount = 0;
+            HashSet<String> famSet = new HashSet<String>();
             
-            HashSet<String> dnas = new HashSet<String>();
-            for (int i = 0; i < pairs.size(); i++) {
-                String[] pair = pairs.get(i);
-                String dna1 = dnaLookup.get(pair[0]);
-                String dna2 = dnaLookup.get(pair[1]);
-                dnas.add(dna1);
-                dnas.add(dna2);
+            HashMap<String, HashSet<String>> pairSets = new HashMap<String, HashSet<String>>();
+            
+            for (Pair p : pairs) {
+                famSet.add(p.fid1);
+//                famSet.add(p.fid2); // uncomment for bi-directional
+                HashSet<String> indiPairs = pairSets.get(p.fid1 + "\t" + p.iid1);
+                if (indiPairs == null) {
+                    indiPairs = new HashSet<String>();
+                    pairSets.put(p.fid1 + "\t" + p.iid1, indiPairs);
+                }
+                indiPairs.add(p.fid2 + "\t" + p.iid2);
+                // not set up for bi-directional
             }
+            
+//          temp[1] // FID1
+//          temp[2] // IID1
+//          temp[3] // FID2
+//          temp[4] // IID2
+//          temp[5] // RT    
+//          temp[6] // EZ      
+//          temp[7] // Z0      
+//          temp[8] // Z1      
+//          temp[9] // Z2  
+//          temp[10] // PI_HAT 
+//          temp[11] // PHE       
+//          temp[12] // DST     
+//          temp[13] // PPC   
+//          temp[14] // RATIO
             
             try {
                 reader = Files.getAppropriateReader(genomeFile);
-                line = reader.readLine().trim(); // read header
-                temp = null;
-                while ((line = reader.readLine()) != null) {
-                    temp = line.split("[\\s]+");
-//                temp[1] // FID1
-//                temp[2] // IID1
-//                temp[3] // FID2
-//                temp[4] // IID2
-//                temp[5] // RT    
-//                temp[6] // EZ      
-//                temp[7] // Z0      
-//                temp[8] // Z1      
-//                temp[9] // Z2  
-//                temp[10] // PI_HAT 
-//                temp[11] // PHE       
-//                temp[12] // DST     
-//                temp[13] // PPC   
-//                temp[14] // RATIO
-                    int FID1Index = 1;
-                    int FID2Index = 3;
-                    
-                    if (dnas.contains(temp[FID1Index]) && dnas.contains(temp[FID2Index])) {
-                        HashMap<String, String> data = gl.pairData.get(temp[FID1Index]);
-                        if (data == null) {
-                            data = new HashMap<String, String>();
-                            gl.pairData.put(temp[FID1Index], data);
+                line = reader.readLine(); // read header
+                String fid1, iid1, fid2, iid2;
+                while ((line = reader.readLine().trim()) != null) {
+//                  String[] temp = line.split("[\\s]+"); // slow for 32mil lines
+                    int breakInd = line.indexOf("\t");
+                    fid1 = line.substring(0, breakInd);
+                    if (!famSet.contains(fid1)) continue; // comment out for bi-directional
+                    int break2Ind = line.indexOf("\t", breakInd);
+                    iid1 = line.substring(breakInd, break2Ind);
+                    if (!pairSets.containsKey(fid1 + "\t" + iid1)) continue; // comment out for bi-directional
+                    breakInd = break2Ind;
+                    break2Ind = line.indexOf("\t", breakInd);
+                    fid2 = line.substring(breakInd, break2Ind);
+//                    if (!famSet.contains(fid1) && !famSet.contains(fid2)) continue; // uncomment for bi-directional
+                    breakInd = break2Ind;
+                    break2Ind = line.indexOf("\t", breakInd);
+                    iid2 = line.substring(breakInd, break2Ind);
+//                    if (!pairSets.containsKey(fid1 + "\t" + iid1) && !pairSets.containsKey(fid2 + "\t" + iid2)) continue; // uncomment for bi-directional
+
+                    if (pairSets.get(fid1 + "\t" + iid1).contains(fid2 + "\t" + iid2)) {
+                        HashMap<String, String> indiMap = gl.pairData.get(fid1 + "\t" + iid1);
+                        if (indiMap == null) {
+                            indiMap = new HashMap<String, String>();
+                            gl.pairData.put(fid1 + "\t" + iid1, indiMap);
                         }
-                        data.put(temp[FID2Index], line);
-                        
-                        HashMap<String, String> data2 = gl.pairData.get(temp[FID2Index]);
-                        if (data2 == null) {
-                            data2 = new HashMap<String, String>();
-                            gl.pairData.put(temp[FID2Index], data2);
-                        }
-                        data2.put(temp[FID1Index], line);
-                        
-//                        for (int i = 0; i < pairs.size(); i++) {
-//                            if (found[i]) continue;
-//                            String[] pair = pairs.get(i);
-//                            String dna1 = dnaLookup.get(pair[0]);
-//                            String dna2 = dnaLookup.get(pair[1]);
-//                            
-//                            if ((temp[FID1Index].equals(dna1) && temp[FID2Index].equals(dna2)) || (temp[FID1Index].equals(dna2) && temp[FID2Index].equals(dna1))) {
-//                                HashMap<String, String> data = gl.pairData.get(temp[FID1Index]);
-//                                if (data == null) {
-//                                    data = new HashMap<String, String>();
-//                                    gl.pairData.put(temp[FID1Index], data);
-//                                }
-//                                data.put(temp[FID2Index], line);
-//                                found[i] = true;
-//                                foundCount++;
-//                                if (pairs.size() < 100 || (pairs.size() > 100 && pairs.size() < 1000 && foundCount % 100 == 0) || (pairs.size() > 2000 && foundCount % 500 == 0)) {
-//                                    System.out.println(ext.getTime() + "]\t Found " + foundCount + " of " + pairs.size() + " data sets");
-//                                }
-//                                break;
-//                            }
-//                        }
-//                        if (Array.booleanArraySum(found) == found.length) {
-//                            break;
-//                        }
+                        indiMap.put(fid2 + "\t" + iid2, line);
                     }
+                    // not set up for bi-directional
                 }
                 reader.close();
                 reader = null;
@@ -139,7 +148,7 @@ public class PLINKMendelianChecker {
             try {
                 reader = Files.getAppropriateReader(mendelFile);
                 line = reader.readLine();
-                while ((line = reader.readLine()) != null) {
+                while ((line = reader.readLine().trim()) != null) {
                     temp = line.split("[\\s]+");
                     
                     MendelErrorCheck mec = new MendelErrors((byte)(Integer.parseInt(temp[1])), 
@@ -207,7 +216,7 @@ public class PLINKMendelianChecker {
         this.pedFile = pedFile;
         this.mendelFile = mendelFile;
         this.genomeFile = genomeFile;
-        this.outDir = outDir;
+        this.outDir = ext.verifyDirFormat(outDir);
     }
     
     
@@ -263,15 +272,22 @@ public class PLINKMendelianChecker {
             }
         }
         
-        ArrayList<String[]> pairs = new ArrayList<String[]>();
+        ArrayList<Pair> pairs = new ArrayList<Pair>();
         for (java.util.Map.Entry<String, ArrayList<String>> childrenList : childrenMap.entrySet()) {
             String fidiid = childrenList.getKey();
             
             for (String childFIDIID : childrenList.getValue()) {
-                pairs.add(new String[]{fidiid, childFIDIID});
-                pairs.add(new String[]{childFIDIID, fidiid});
+//                String[] spl1 = childFIDIID.split("\t");
+//                String[] spl2 = fidiid.split("\t");
+                String childDNA = dnaLookup.get(childFIDIID); // shouldn't be null?
+                String parentDNA = dnaLookup.get(fidiid); 
+                pairs.add(new Pair(childDNA, childDNA, parentDNA, parentDNA)); // for DNA/DNA genome file
+                pairs.add(new Pair(parentDNA, parentDNA, childDNA, childDNA)); // either bi-directional here or in genome loader
+                
+//                pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // for fid/iid genome file
+//                pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // either bi-directional here or in genomeloader
 
-                String[] famo = pedToFAMO.get(dnaLookup.get(childFIDIID));
+                String[] famo = pedToFAMO.get(childDNA);
                 ArrayList<String> spouseChildren = null;
                 if (famo[0].equals(fidiid) && !".".equals(famo[1])) {
                     spouseChildren = childrenMap.get(famo[1]);
@@ -282,21 +298,31 @@ public class PLINKMendelianChecker {
                 HashSet<String> sameParentSibs = new HashSet<String>(childrenList.getValue());
                 for (String otherChild : spouseChildren) {
                     if (otherChild.equals(childFIDIID)) continue;
+//                    spl2 = otherChild.split("\t");
                     if (sameParentSibs.contains(otherChild)) {
                         sameParentSibs.remove(otherChild);
                     }
-                    pairs.add(new String[]{childFIDIID, otherChild});
+                    String otherChildDNA = dnaLookup.get(otherChild);
+                    pairs.add(new Pair(childDNA, childDNA, otherChildDNA, otherChildDNA)); // sib1 -> sib2
+                    pairs.add(new Pair(otherChildDNA, otherChildDNA, childDNA, childDNA)); // sib2 -> sib1
+//                    pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // sib1 -> sib2
+//                    pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // sib2 -> sib1
                 }
                 for (String halfSib : sameParentSibs) {
                     if (halfSib.equals(childFIDIID)) continue;
-                    pairs.add(new String[]{childFIDIID, halfSib});
+                    String halfSibDNA = dnaLookup.get(halfSib);
+                    pairs.add(new Pair(childDNA, childDNA, halfSibDNA, halfSibDNA));
+                    pairs.add(new Pair(halfSibDNA, halfSibDNA, childDNA, childDNA));
+//                    spl2 = halfSib.split("\t");
+//                    pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // sib1 -> sib2
+//                    pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // sib2 -> sib1
                 }
             }
         }
         
         if (genomeFile != null && (new File(genomeFile)).exists()) {
             System.out.println(ext.getTime() + "]\tLoading GenomicCluster data...");
-            gl = GenomeLoader.run(genomeFile/*, pedToFAMO*/, pairs, dnaLookup);
+            gl = GenomeLoader.run(genomeFile, pairs);
         }
         if (mendelFile != null && (new File(mendelFile)).exists()) {
             System.out.println(ext.getTime() + "]\tLoading MendelianError data...");
@@ -356,6 +382,8 @@ public class PLINKMendelianChecker {
                 .append("EXCLUDE_MOTHER").append("\t");
         }
         
+        sb.append("COMPLETE_TRIO").append("\t");
+        
         System.out.println(ext.getTime() + "]\tWriting result data...");
         
         String outputHeader = sb.toString();
@@ -372,9 +400,11 @@ public class PLINKMendelianChecker {
                 .append(pe.getSEX()).append("\t")
                 .append(pe.getiDNA()).append("\t");
             
+            boolean missingDNA = false;
             String faDNA;
             if (pe.getFaDNAIndex() == -1 || samples == null) {
                 if ("0".equals(pe.getFA()) || dnaLookup.get(pe.getFID() + "\t" + pe.getFA()) == null) {
+                    missingDNA = true;
                     faDNA = ".";
                 } else {
                     faDNA = dnaLookup.get(pe.getFID() + "\t" + pe.getFA());
@@ -386,6 +416,7 @@ public class PLINKMendelianChecker {
             String moDNA;
             if (pe.getMoDNAIndex() == -1 || samples == null) {
                 if ("0".equals(pe.getMO()) || dnaLookup.get(pe.getFID() + "\t" + pe.getMO()) == null) {
+                    missingDNA = true;
                     moDNA = ".";
                 } else {
                     moDNA = dnaLookup.get(pe.getFID() + "\t" + pe.getMO());
@@ -397,29 +428,29 @@ public class PLINKMendelianChecker {
             
             if (gl != null) {
                 
-                HashMap<String, String> genoLines = gl.pairData.get(pe.getiDNA());
+                HashMap<String, String> genoLines = gl.pairData.get(pe.getiDNA() + "\t" + pe.getiDNA());
                 if (genoLines == null) {
                     System.out.println("No genomic data for " + pe.getiDNA());
                 }
-                if (genoLines == null || ".".equals(faDNA) || genoLines.get(faDNA) == null) {
+                if (genoLines == null || ".".equals(faDNA) || genoLines.get(faDNA + "\t" + faDNA) == null) {
                     sb.append(".").append("\t")
                         .append(".").append("\t")
                         .append(".").append("\t")
                         .append(".").append("\t");   
                 } else {
-                    String[] tmpGL = genoLines.get(faDNA).split("[\\s]+");
+                    String[] tmpGL = genoLines.get(faDNA + "\t" + faDNA).split("[\\s]+");
                     sb.append(tmpGL[7]).append("\t")
                         .append(tmpGL[8]).append("\t")
                         .append(tmpGL[9]).append("\t")
                         .append(tmpGL[10]).append("\t");
                 }
-                if (genoLines == null || ".".equals(moDNA) || genoLines.get(moDNA) == null) {
+                if (genoLines == null || ".".equals(moDNA) || genoLines.get(moDNA + "\t" + moDNA) == null) {
                     sb.append(".").append("\t")
                         .append(".").append("\t")
                         .append(".").append("\t")
                         .append(".").append("\t");   
                 } else {
-                    String[] tmpGL = genoLines.get(moDNA).split("[\\s]+");
+                    String[] tmpGL = genoLines.get(moDNA + "\t" + moDNA).split("[\\s]+");
                     sb.append(tmpGL[7]).append("\t")
                         .append(tmpGL[8]).append("\t")
                         .append(tmpGL[9]).append("\t")
@@ -432,6 +463,8 @@ public class PLINKMendelianChecker {
                     .append(ml.errorMarkersMapMother.get(pe.getiDNA()).size()).append("\t");
             }
             
+            boolean highLRRSD = false;
+            boolean lowCallrate = false;
             if (sampQC != null) {
                 double[] data = sampQC.getDataFor("LRR_SD");
                 Integer indexInt = qcIndexMap.get(pe.getiDNA());
@@ -454,58 +487,87 @@ public class PLINKMendelianChecker {
                 if (indexInt == null) {
                     sb.append(".").append("\t");
                 } else {
+                    if (data[indexInt.intValue()] > 0.5) {
+                        highLRRSD = true;
+                    }
                     sb.append(data[indexInt.intValue()]).append("\t");
                 }
                 if (faIndex == null) {
                     sb.append(".").append("\t");
                 } else {
+                    if (data[indexInt.intValue()] > 0.5) {
+                        highLRRSD = true;
+                    }
                     sb.append(data[faIndex.intValue()]).append("\t");
                 }
                 if (moIndex == null) {
                     sb.append(".").append("\t");
                 } else {
+                    if (data[indexInt.intValue()] > 0.5) {
+                        highLRRSD = true;
+                    }
                     sb.append(data[moIndex.intValue()]).append("\t");
                 }
                 data = sampQC.getDataFor("Genotype_callrate");
                 if (indexInt == null) {
                     sb.append(".").append("\t");
                 } else {
+                    if (data[indexInt.intValue()] < 0.95) {
+                        lowCallrate = true;
+                    }
                     sb.append(data[indexInt.intValue()]).append("\t");
                 }
                 if (faIndex == null) {
                     sb.append(".").append("\t");
                 } else {
+                    if (data[indexInt.intValue()] < 0.95) {
+                        lowCallrate = true;
+                    }
                     sb.append(data[faIndex.intValue()]).append("\t");
                 }
                 if (moIndex == null) {
                     sb.append(".").append("\t");
                 } else {
+                    if (data[indexInt.intValue()] < 0.95) {
+                        lowCallrate = true;
+                    }
                     sb.append(data[moIndex.intValue()]).append("\t");
                 }
             }
             
+            boolean excluded = false;
             if (sampleData != null) {
                 sb.append(sampleData.individualShouldBeExcluded(pe.getiDNA()) ? "1" : "0").append("\t");
                 if (pe.getFaDNAIndex() == -1 || samples == null) {
                     if (dnaLookup.get(pe.getFID() + "\t" + pe.getFA()) != null) {
-                        sb.append(sampleData.individualShouldBeExcluded(dnaLookup.get(pe.getFID() + "\t" + pe.getFA())) ? "1" : "0").append("\t");
+                        boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(pe.getFID() + "\t" + pe.getFA()));
+                        if (ex) { excluded = true; }
+                        sb.append(ex ? "1" : "0").append("\t");
                     } else {
                         sb.append(".").append("\t");
                     }
                 } else {
-                    sb.append(sampleData.individualShouldBeExcluded(samples[pe.getFaDNAIndex()]) ? "1" : "0").append("\t");
+                    boolean ex = sampleData.individualShouldBeExcluded(samples[pe.getFaDNAIndex()]);
+                    if (ex) { excluded = true; }
+                    sb.append(ex ? "1" : "0").append("\t");
                 }
                 if (pe.getMoDNAIndex() == -1 || samples == null) {
                     if (dnaLookup.get(pe.getFID() + "\t" + pe.getMO()) != null) {
-                        sb.append(sampleData.individualShouldBeExcluded(dnaLookup.get(pe.getFID() + "\t" + pe.getMO())) ? "1" : "0").append("\t");
+                        boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(pe.getFID() + "\t" + pe.getMO()));
+                        if (ex) { excluded = true; }
+                        sb.append(ex ? "1" : "0").append("\t");
                     } else {
                         sb.append(".").append("\t");
                     }
                 } else {
-                    sb.append(sampleData.individualShouldBeExcluded(samples[pe.getMoDNAIndex()]) ? "1" : "0").append("\t");
+                    boolean ex = sampleData.individualShouldBeExcluded(samples[pe.getMoDNAIndex()]);
+                    if (ex) { excluded = true; }
+                    sb.append(ex ? "1" : "0").append("\t");
                 }
             }
             
+            sb.append((missingDNA || highLRRSD || lowCallrate || excluded) ? "0" : "1"); 
+                
             writer.println(sb.toString());
         }
         
@@ -519,7 +581,7 @@ public class PLINKMendelianChecker {
         PrintWriter writer;
         StringBuilder sb;
         
-        writer = Files.getAppropriateWriter(outDir + "family.xln");
+        writer = Files.getAppropriateWriter(outDir + "relationshipChecks.xln");
         
         String header = "FID1\tIID1\tFID2\tIID2\tPUTATIVE_REL\t";
         if (gl != null) {
@@ -544,10 +606,10 @@ public class PLINKMendelianChecker {
                     if (dna == null) {
                         sb.append(".\t.\t.\t.\t");
                     } else {
-                        HashMap<String, String> genoData = gl.pairData.get(dna);
+                        HashMap<String, String> genoData = gl.pairData.get(dna + "\t" + dna);
                         String dna2 = dnaLookup.get(childFIDIID);
                         if (genoData != null && dna2 != null) {
-                            String genoDataLine = genoData.get(dna2);
+                            String genoDataLine = genoData.get(dna2 + "\t" + dna2);
                             if (genoDataLine != null) {
                                 String[] tmpGL = genoDataLine.split("[\\s]+");
                                 sb.append(tmpGL[7]).append("\t")
@@ -589,10 +651,10 @@ public class PLINKMendelianChecker {
                         if (dna == null) {
                             sb.append(".\t.\t.\t.\t");
                         } else {
-                            HashMap<String, String> genoData = gl.pairData.get(dna);
+                            HashMap<String, String> genoData = gl.pairData.get(dna + "\t" + dna);
                             String dna2 = dnaLookup.get(childFIDIID);
                             if (genoData != null && dna2 != null) {
-                                String genoDataLine = genoData.get(dna2);
+                                String genoDataLine = genoData.get(dna2 + "\t" + dna2);
                                 if (genoDataLine != null) {
                                     String[] tmpGL = genoDataLine.split("[\\s]+");
                                     sb.append(tmpGL[7]).append("\t")
@@ -607,6 +669,7 @@ public class PLINKMendelianChecker {
                             }
                         }
                     }
+                    writer.println(sb.toString());
                 }
                 for (String halfSib : sameParentSibs) {
                     if (halfSib.equals(childFIDIID)) continue;
@@ -619,10 +682,10 @@ public class PLINKMendelianChecker {
                         if (dna == null) {
                             sb.append(".\t.\t.\t.\t");
                         } else {
-                            HashMap<String, String> genoData = gl.pairData.get(dna);
+                            HashMap<String, String> genoData = gl.pairData.get(dna + "\t" + dna);
                             String dna2 = dnaLookup.get(childFIDIID);
                             if (genoData != null && dna2 != null) {
-                                String genoDataLine = genoData.get(dna2);
+                                String genoDataLine = genoData.get(dna2 + "\t" + dna2);
                                 if (genoDataLine != null) {
                                     String[] tmpGL = genoDataLine.split("[\\s]+");
                                     sb.append(tmpGL[7]).append("\t")
@@ -637,6 +700,7 @@ public class PLINKMendelianChecker {
                             }
                         }
                     }
+                    writer.println(sb.toString());
                 }
                 
             }
