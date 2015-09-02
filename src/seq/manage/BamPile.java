@@ -52,6 +52,10 @@ public class BamPile {
 
 	}
 
+	public int[] getCounts() {
+		return counts;
+	}
+
 	public int getTotalDepth(boolean includeIndels, boolean includeNs) {
 		boolean[] indelmask = new boolean[7];
 		Arrays.fill(indelmask, true);

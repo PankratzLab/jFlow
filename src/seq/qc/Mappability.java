@@ -3,6 +3,7 @@ package seq.qc;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import cnv.var.CNVariant;
@@ -13,6 +14,7 @@ import filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.bed.BEDFeature;
 import seq.manage.BEDFileReader;
+import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.manage.BedOps;
 import stats.Histogram.DynamicAveragingHistogram;
 import stats.Rscript.RScatter;
@@ -245,6 +247,7 @@ public class Mappability<SEGMENT extends Segment> {
 		private int numBases;
 		private int calledOnCount = 0;
 		private double averageMapScore;
+		private String[] subsetNames;
 		private SEGMENT t;
 
 		public double getAverageMapScore() {
@@ -255,6 +258,7 @@ public class Mappability<SEGMENT extends Segment> {
 			super();
 			this.t = t;
 			this.log = log;
+			this.subsetNames = null;
 			computeMappability(mapReader, callSubsetReader);
 		}
 
@@ -262,13 +266,18 @@ public class Mappability<SEGMENT extends Segment> {
 			return t;
 		}
 
+		public String[] getSubsetNames() {
+			return subsetNames;
+		}
+
 		private void computeMappability(BEDFileReader reader, BEDFileReader callSubsetReader) {
 			CloseableIterator<BEDFeature> iterator = reader.query(Positions.getChromosomeUCSC(t.getChr(), true), t.getStart(), t.getStop());
 			// LocusSet<Segment> callSegs =LocusSet.loadSegmentSetFromFile("C:/bin/ExomeDepth/exons.hg19.sort.bed", 0, 1, 2, 0, true, true, 0, log);
 			// callSegs.writeRegions(ext.addToRoot("C:/bin/ExomeDepth/exons.hg19.sort.bed", ".chr"), TO_STRING_TYPE.REGULAR, false, log);
-			LocusSet<Segment> callSegs = callSubsetReader.loadSegsFor(t, log);
-			//
+			LocusSet<BEDFeatureSeg> callSegs = callSubsetReader.loadSegsFor(t, log);
 
+			//
+			HashSet<String> subsetNamesAl = new HashSet<String>();
 			this.numBases = 0;
 			double currentScore = -1;
 			int calledOnCount = 0;
@@ -291,9 +300,16 @@ public class Mappability<SEGMENT extends Segment> {
 				}
 				Segment union = bedSeg.getUnion(t, log);
 
-				Segment[] called = callSegs.getOverLappingLoci(union);
+				BEDFeatureSeg[] called = callSegs.getOverLappingLoci(union);
 				if (called != null) {
 					for (int i = 0; i < called.length; i++) {
+						if (called[i].getBedFeature().getName() == null || called[i].getBedFeature().getName() == "") {
+							String error = "The call subset file is expected to have the gene name in the fourth column";
+							log.reportTimeError(error);
+							throw new IllegalArgumentException(error);
+						}
+						subsetNamesAl.add(called[i].getBedFeature().getName().split("_")[0]);
+
 						double tmpMap = mapScore;
 						Segment calledUnion = union.getUnion(called[i], log);
 						numBases += calledUnion.getSize();
@@ -311,9 +327,12 @@ public class Mappability<SEGMENT extends Segment> {
 			this.calledOnCount = calledOnCount;
 			this.cumulativeMapScore = currentScore;
 			this.averageMapScore = (double) cumulativeMapScore / numBases;
+			this.subsetNames = subsetNamesAl.toArray(new String[subsetNamesAl.size()]);
 			if (averageMapScore > 1) {
 				System.out.println(averageMapScore + "\t" + cumulativeMapScore + "\t" + numBases);
-				System.exit(1);
+				String error = "Detected an average mapping score greater than 1";
+				log.reportTimeError(error);
+				throw new IllegalArgumentException(error);
 			}
 		}
 	}
