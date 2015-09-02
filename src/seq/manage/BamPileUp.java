@@ -52,8 +52,9 @@ public class BamPileUp implements Iterator<BamPile> {
 	private BamPileUpSummary bamPileUpSummary;
 	private QueryInterval[] queryIntervals;
 	private WorkerTrain<TmpBamPile> train;
+	private boolean optimize;
 
-	public BamPileUp(String bam, ReferenceGenome referenceGenome, int refBinSize, FilterNGS filterNGS, Segment[] intervals, PILE_TYPE type, SAM_FILTER_TYPE filterType, Logger log) {
+	public BamPileUp(String bam, ReferenceGenome referenceGenome, int refBinSize, FilterNGS filterNGS, Segment[] intervals, PILE_TYPE type, SAM_FILTER_TYPE filterType, boolean optimize,Logger log) {
 		super();
 		this.bam = bam;
 		this.binSize = refBinSize;
@@ -63,13 +64,14 @@ public class BamPileUp implements Iterator<BamPile> {
 		this.referenceGenome = referenceGenome;
 		this.pileType = type;
 		this.filterType = filterType;
+		this.optimize = optimize;
 		init();
 	}
 
 	private void init() {
 		this.reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
 		log.reportTimeInfo("Optimizing " + intervals.length + " queries for pile up");
-		this.queryIntervals = BamOps.convertSegsToQI(intervals, reader.getFileHeader(), 0, true, log);
+		this.queryIntervals = BamOps.convertSegsToQI(intervals, reader.getFileHeader(), 0, optimize, log);
 		log.reportTimeInfo("Finished Optimizing " + intervals.length + " queries to " + queryIntervals.length + " intervals for pile up");
 
 		this.sIterator = queryIntervals == null ? reader.iterator() : reader.query(queryIntervals, false);
@@ -130,7 +132,7 @@ public class BamPileUp implements Iterator<BamPile> {
 						BamPile bamPile = tmpBamPile.getBamPile();
 						bamPile.setReference(referenceGenome);
 						if (filterNGS.getReadDepthFilter() == null || bamPile.getTotalDepth(false, false) > filterNGS.getReadDepthFilter()[0]) {
-							int altAlleleDepth = filterNGS.getReadDepthFilter().length > 1 ? filterNGS.getReadDepthFilter()[1] : -1;
+							int altAlleleDepth = filterNGS.getReadDepthFilter() != null && filterNGS.getReadDepthFilter().length > 1 ? filterNGS.getReadDepthFilter()[1] : -1;
 							if (pileType == PILE_TYPE.REGULAR || (bamPile.hasAltAllele(log) && bamPile.hasOnlyOneAlt(log) && bamPile.getNumAlt(log) > altAlleleDepth && bamPile.getNumRef(log) > altAlleleDepth)) {
 								bamPileUpSummary.setPositionsPiled(bamPileUpSummary.getPositionsPiled() + 1);
 								bamPileUpSummary.addToHistogram(bamPile.getPropRef(log));
@@ -333,7 +335,7 @@ public class BamPileUp implements Iterator<BamPile> {
 
 		@Override
 		public DynamicHistogram call() throws Exception {
-			BamPileUp pileUp = new BamPileUp(bamFile, referenceGenome, binSize, filterNGS, q, type, filterType, log);
+			BamPileUp pileUp = new BamPileUp(bamFile, referenceGenome, binSize, filterNGS, q, type, filterType,true, log);
 			String output = ext.rootOf(bamFile, false) + ".bamPile.txt";
 			PrintWriter writer = Files.getAppropriateWriter(output);
 			writer.println(BamPile.getHeader());

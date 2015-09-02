@@ -42,14 +42,15 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
 		return query(Positions.getChromosomeUCSC(seg.getChr(), true), seg.getStart(), seg.getStop());
 	}
 
-	public LocusSet<Segment> loadSegsFor(Segment segment, Logger log) {
+	public LocusSet<BEDFeatureSeg> loadSegsFor(Segment segment, Logger log) {
 		CloseableIterator<BEDFeature> iterator = query(segment);
-		ArrayList<Segment> bedSegs = new ArrayList<Segment>();
+		ArrayList<BEDFeatureSeg> bedSegs = new ArrayList<BEDFeatureSeg>();
 		while (iterator.hasNext()) {
-			bedSegs.add(BedOps.getSegment(iterator.next(), log));
-		}
+			BEDFeature bedFeature = iterator.next();
+			bedSegs.add(new BEDFeatureSeg(bedFeature, log));
 
-		LocusSet<Segment> segSet = new LocusSet<Segment>(bedSegs.toArray(new Segment[bedSegs.size()]), true, log) {
+		}
+		LocusSet<BEDFeatureSeg> segSet = new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]), true, log) {
 
 			/**
 			 * 
@@ -59,6 +60,34 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
 		};
 
 		return segSet;
+	}
+
+	public static class BEDFeatureSeg extends Segment {
+		private BEDFeature bedFeature;
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public BEDFeatureSeg(BEDFeature bedFeature, Logger log) {
+			super(bedFeature.getChr(), bedFeature.getStart(), bedFeature.getEnd());
+			this.bedFeature = bedFeature;
+		}
+
+		public BEDFeature getBedFeature() {
+			return bedFeature;
+		}
+
+	}
+
+	public BEDFeature[] loadBEDFeaturesFor(Segment segment, Logger log) {
+		CloseableIterator<BEDFeature> iterator = query(segment);
+		ArrayList<BEDFeature> bedSegs = new ArrayList<BEDFeature>();
+		while (iterator.hasNext()) {
+			bedSegs.add(iterator.next());
+		}
+
+		return bedSegs.toArray(new BEDFeature[bedSegs.size()]);
 	}
 
 	public void close() {
