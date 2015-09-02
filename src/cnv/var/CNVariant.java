@@ -665,16 +665,19 @@ public class CNVariant extends Segment {
 	}
 
 	public static HashSet<String> getUniqueInds(String cnvFile, Logger log) {
-		HashSet<String> uniqueInds = new HashSet<String>();
 		LocusSet<CNVariant> cLocusSet = CNVariant.loadLocSet(cnvFile, log);
+
+		return getUniqueInds(cLocusSet, log);
+	}
+
+	public static HashSet<String> getUniqueInds(LocusSet<CNVariant> cLocusSet, Logger log) {
+		HashSet<String> uniqueInds = new HashSet<String>();
 		for (int i = 0; i < cLocusSet.getLoci().length; i++) {
 			CNVariant tmp = cLocusSet.getLoci()[i];
 			uniqueInds.add(tmp.getFamilyID() + "\t" + tmp.getIndividualID());
 		}
-
 		return uniqueInds;
 	}
-	
 
 	
 

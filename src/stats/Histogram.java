@@ -58,6 +58,10 @@ public class Histogram implements Serializable {
 		this.title = title;
 	}
 
+	public int getExtrastep() {
+		return extrastep;
+	}
+
 	public Histogram(double[] array, double min, double max, int sigfigs, int extrastep) {
 		this.min = min;
 		this.max = max;
@@ -491,9 +495,37 @@ public class Histogram implements Serializable {
 			}
 		}
 
+		/**
+		 * @param filename to dump to 
+		 * @param titles
+		 *            alternate labels for Bin, Counts, Average in that order
+		 * @param countsGtZero
+		 *            only dump counts greater than 0
+		 */
+		public void dump(String filename, String[] titles, boolean countsGtZero) {
+
+			try {
+				double[] bins = getBins();
+
+				PrintWriter writer = new PrintWriter(new FileWriter(filename));
+				if (titles != null) {
+					writer.println(Array.toStr(titles));
+				} else {
+					writer.println("Bin\tCounts\tAverage");
+				}
+				for (int i = 0; i < bins.length; i++) {
+					if (!countsGtZero || getCounts()[i] > 0)
+						writer.println(getBins()[i] + "\t" + getCounts()[i] + "\t" + averages[i]);
+				}
+				writer.close();
+			} catch (Exception e) {
+				System.err.println("Error writing to " + filename);
+				e.printStackTrace();
+			}
+		}
+
 	}
-	
-	
+
 	public static class DumpResult {
 		private double maxCount;
 		private double minCount;
