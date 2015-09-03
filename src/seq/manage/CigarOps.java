@@ -152,15 +152,19 @@ public class CigarOps {
 			// System.out.println(cigar.toString());
 		}
 
-		int currentLength = cigar.getCigarElements().size();
+		int currentReadLength = cigar.getReadLength();
+		int currentRefLength= cigar.getPaddedReferenceLength();
+		//System.out.println(btop + "\t" + "HI1" + cigar);
+
 		Cigar original = cigar;
 		cigar = uniquify(cigar);
 
-		if (currentLength != cigar.getCigarElements().size()) {
-			System.out.println(currentLength + "\t" + cigar.getCigarElements().size() + "\t" + cigar.toString());
-			System.out.println(currentLength + "\t" + cigar.getCigarElements().size() + "\t" + original.toString());
-
-			System.exit(1);
+		if (currentReadLength != cigar.getReadLength() || cigar.getPaddedReferenceLength() != currentRefLength) {
+			String error = "Could not properly uniqify " + original.toString() + ", came out as " + cigar.toString();
+			System.out.println(currentReadLength + "\t" + cigar.getCigarElements().size() + "\t" + cigar.toString());
+			System.out.println(currentReadLength + "\t" + cigar.getCigarElements().size() + "\t" + original.toString());
+			log.reportTimeError(error);
+			throw new IllegalStateException(error);
 		}
 
 		if (cigar != null && cigar.getReadLength() != initialSequencLength) {
@@ -175,18 +179,23 @@ public class CigarOps {
 	}
 
 	/**
-	 * @param cigar 
+	 * @param cigar
 	 * @return a new cigar with any identical {@link CigarElement} in a row combined
 	 */
 	private static Cigar uniquify(Cigar cigar) {
 		ArrayList<CigarElement> unique = new ArrayList<CigarElement>();
 		if (cigar.getCigarElements().size() == 1) {
+			// System.out.println("HI2\t" + cigar);
 			return cigar;
 		} else {
+			// System.out.println("HI3\t" + cigar);
+
 			int i = 1;
 			CigarElement tmp = cigar.getCigarElements().get(0);
 			while (i < cigar.getCigarElements().size()) {
 				CigarElement current = cigar.getCigarElements().get(i);
+				//System.out.println(current.getLength() + "\t" + current.getOperator());
+				i++;
 				if (tmp.getOperator() == current.getOperator()) {
 					tmp = new CigarElement(tmp.getLength() + current.getLength(), tmp.getOperator());
 				} else {
@@ -194,6 +203,7 @@ public class CigarOps {
 					tmp = current;
 				}
 			}
+			unique.add(tmp);
 			return new Cigar(unique);
 		}
 	}

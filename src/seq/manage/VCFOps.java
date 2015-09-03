@@ -724,7 +724,7 @@ public class VCFOps {
 
 		}
 
-		public static String[] splitVcfByPopulation(String vcf, String fullPathToPopFile, Logger log) {
+		public static String[] splitVcfByPopulation(String vcf, String fullPathToPopFile, boolean removeMonoMorphic, boolean keepIds, Logger log) {
 			if (vcf != null && !Files.exists(vcf)) {
 				log.reportFileNotFound(vcf);
 				return null;
@@ -733,25 +733,27 @@ public class VCFOps {
 				log.reportFileNotFound(fullPathToPopFile);
 				return null;
 			}
-
-			log.reportTimeWarning("Variant context ids that are set to \".\" will be updated");
+			if (!keepIds) {
+				log.reportTimeWarning("Variant context ids that are set to \".\" will be updated");
+			}
 			VcfPopulation vpop = VcfPopulation.load(fullPathToPopFile, POPULATION_TYPE.ANY, log);
 			vpop.report();
 			VCFFileReader reader = new VCFFileReader(vcf, true);
 
-			String dir = ext.parseDirectoryOfFile(vcf);
+			String dir = ext.parseDirectoryOfFile(fullPathToPopFile);
 			String root = getAppropriateRoot(vcf, true);
 
 			VariantContextWriter[] writers = vpop.getWritersForPop(dir + root, reader, log);
 			if (writers != null) {
 
 				int progress = 0;
+				int monoMorphic = 0;
 				for (VariantContext vc : reader) {
 					progress++;
 					if (progress % 100000 == 0) {
 						log.reportTimeInfo(progress + " variants read...");
 					}
-					if (vc.getID().equals(".")) {
+					if (!keepIds && vc.getID().equals(".")) {
 						VariantContextBuilder builder = new VariantContextBuilder(vc);
 						builder.id(new VCOps.LocusID(vc).getId());
 						vc = builder.make();
@@ -759,18 +761,21 @@ public class VCFOps {
 					for (int i = 0; i < writers.length; i++) {
 						if (writers[i] != null) {
 							VariantContext vcSub = VCOps.getSubset(vc, vpop.getSuperPop().get(vpop.getUniqSuperPop().get(i)));
-
-							// if (vcSub.getHomVarCount() > 0 || vcSub.getHetCount() > 0) {
-							writers[i].add(vcSub);
+							if (!removeMonoMorphic || !vcSub.isMonomorphicInSamples()) {
+								writers[i].add(vcSub);
+							} else {
+								monoMorphic++;
+							}
 						}
-						// System.out.println(vpop.getFileNamesForPop(dir + root, log)[i]);
-						// }
 					}
 				}
 				for (int i = 0; i < writers.length; i++) {
 					if (writers[i] != null) {
 						writers[i].close();
 					}
+				}
+				if (monoMorphic > 0) {
+					log.reportTimeInfo("Removed " + monoMorphic + " monomorphic variants ");
 				}
 			}
 			return vpop.getFileNamesForPop(dir + root, log);
@@ -849,7 +854,7 @@ public class VCFOps {
 			log.reportTimeInfo("Found " + samples.length + " samples for the final analysis");
 			for (int i = 0; i < fullPathToPopFiles.length; i++) {
 				String fullPathToPopFile = fullPathToPopFiles[i];
-				String[] splits = VcfPopulation.splitVcfByPopulation(vcf, fullPathToPopFile, log);
+				String[] splits = VcfPopulation.splitVcfByPopulation(vcf, fullPathToPopFile, false, false, log);
 				String[] dirs = new String[splits.length];
 				String dir = ext.parseDirectoryOfFile(vcf) + ext.rootOf(fullPathToPopFile) + "/";
 				for (int j = 0; j < splits.length; j++) {
@@ -1710,6 +1715,8 @@ public class VCFOps {
 		boolean skipFiltered = false;
 		boolean standardFilters = false;
 		boolean gzip = true;
+		boolean removeMonoMorphic = false;
+		boolean keepIds = false;
 		int numThreads = 1;
 		Logger log;
 
@@ -1726,7 +1733,10 @@ public class VCFOps {
 		usage += "   (10) gzip the output when extracting (i.e. -gzip ( the default))\n" + "";
 		usage += "   (11) full path to a file of ids (i.e. idFile= (no default))\n" + "";
 		usage += "   (12) when removing filtered variants, apply our standard filters as well (i.e. -standardFilters (not the default, GQ >=" + VARIANT_FILTER_DOUBLE.GQ_LOOSE.getDFilter() + " and DP >=" + VARIANT_FILTER_DOUBLE.DP.getDFilter() + "))\n" + "";
-		usage += PSF.Ext.getNumThreadsCommand(13, numThreads);
+		usage += "   (13) when subsetting by samples, remove monomorphic variants (i.e. -removeMonoMorphic (not the default))\n" + "";
+		usage += "   (14) when subsetting, keep variant ids if set to \".\" (i.e. -keepIds (not the default))\n" + "";
+
+		usage += PSF.Ext.getNumThreadsCommand(14, numThreads);
 		usage += "   NOTE: available utilities are:\n";
 
 		for (int i = 0; i < UTILITY_TYPE.values().length; i++) {
@@ -1769,6 +1779,12 @@ public class VCFOps {
 			} else if (args[i].startsWith("-standardFilters")) {
 				standardFilters = true;
 				numArgs--;
+			} else if (args[i].startsWith("-removeMonoMorphic")) {
+				removeMonoMorphic = true;
+				numArgs--;
+			} else if (args[i].startsWith("-keepIds")) {
+				keepIds = true;
+				numArgs--;
 			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(args[i]);
 				numArgs--;
@@ -1792,7 +1808,7 @@ public class VCFOps {
 				convertToPlinkSet(null, vcf, "plink", PLINK_SET_MODE.GWAS_QC, log);
 				break;
 			case SUBSET_SUPER:
-				VcfPopulation.splitVcfByPopulation(vcf, populationFile, log);
+				VcfPopulation.splitVcfByPopulation(vcf, populationFile, removeMonoMorphic, keepIds, log);
 				break;
 			case EXTRACT_SEGMENTS:
 				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, false, numThreads, log);

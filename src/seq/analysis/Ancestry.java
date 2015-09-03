@@ -22,7 +22,7 @@ public class Ancestry {
 		curVCF = VCFOps.extractIDs(curVCF, hapMapRsIds, outputDirectory, true, true, null, null, false, true, log);
 		log.reportTimeInfo("Current VCF: " + curVCF);
 
-		String[] filenames = VcfPopulation.splitVcfByPopulation(curVCF, vpopFile, log);
+		String[] filenames = VcfPopulation.splitVcfByPopulation(curVCF, vpopFile, false, false, log);
 		for (int i = 0; i < filenames.length; i++) {
 			if (filenames[i].endsWith(".USE.vcf.gz")) {
 				curVCF = filenames[i];
