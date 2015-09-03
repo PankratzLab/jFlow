@@ -162,6 +162,7 @@ public class CNVFilter {
 			}
 		}
 		if (indHash != NO_FILTER_INDIVIDUAL_HASH && !indHash.contains(cnv.getFamilyID() + "\t" + cnv.getIndividualID())) {
+		
 			filterPass.setFailed(cnv.getFamilyID() + "\t" + cnv.getIndividualID() + " was not in the individual filter list", ";");
 			filterPass.setIndIsExcluded(true);// this is useful if you are computing concordance, and do not want excluded individuals counted against
 		}
@@ -312,6 +313,9 @@ public class CNVFilter {
 			} else if (args[i].startsWith(COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA)) {
 				if (filter.getIndHash() == NO_FILTER_INDIVIDUAL_HASH && ext.parseBooleanArg(args[i])) {
 					filter.setIndividualsToKeepFromSampleData(proj);
+				} else if (!ext.parseBooleanArg(args[i])) {
+					proj.getLog().reportTimeWarning("Over-riding sample data exclusion");
+					filter.setIndHash(NO_FILTER_INDIVIDUAL_HASH);
 				}
 				filter.addCommandLineFilter(args[i], COMMAND_EXCLUDE_INDIVIDUALS_FROM_SAMPLE_DATA);
 			} else if (args[i].startsWith(COMMAND_BREAK_UP_CENTROMERES)) {
@@ -852,6 +856,7 @@ public class CNVFilter {
 		}
 		
 		try {
+			proj.getLog().reportTimeInfo("Writing cnvs to "+proj.PROJECT_DIRECTORY.getValue() + out);
 			PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + out));
 			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
 			for (int i = 0; i < cnvs.length; i++) {
