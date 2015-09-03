@@ -185,14 +185,15 @@ public class PLINKMendelianChecker {
             try {
                 reader = Files.getAppropriateReader(mendelFile);
                 line = reader.readLine();
-                while ((line = reader.readLine().trim()) != null) {
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
                     temp = line.split("[\\s]+");
                     
                     MendelErrorCheck mec = new MendelErrors((byte)(Integer.parseInt(temp[1])), 
                                                                     -1, 
+                                                                    (byte)(Integer.parseInt(temp[7])), 
                                                                     (byte)(Integer.parseInt(temp[8])), 
-                                                                    (byte)(Integer.parseInt(temp[9])), 
-                                                                    (byte)(Integer.parseInt(temp[10]))).checkMendelError();
+                                                                    (byte)(Integer.parseInt(temp[9]))).checkMendelError();
 //                    MarkerName  
 //                    Chr 
 //                    Position    
@@ -276,6 +277,19 @@ public class PLINKMendelianChecker {
             return;
         }
         
+        if (project != null) {
+            System.out.println(ext.getTime() + "]\tLoading Project data...");
+            samples = project.getSamples();
+            sampleData = project.getSampleData(0, false);
+            sampQC = SampleQC.loadSampleQC(project);
+            qcIndexMap = new HashMap<String, Integer>();
+            if (sampQC != null) {
+                for (int i = 0; i < sampQC.getSamples().length; i++) {
+                    qcIndexMap.put(sampQC.getSamples()[i], i);
+                }
+            }
+        }
+        
         pedDNA = new HashSet<String>();
         pedToFAMO = new HashMap<String, String[]>();
         childrenMap = new HashMap<String, ArrayList<String>>();
@@ -286,10 +300,18 @@ public class PLINKMendelianChecker {
             if (pe == null) {
                 continue;
             }
+            if (ext.isMissingValue(pe.getiDNA())) {
+                continue; 
+            }
+            if (sampleData != null) {
+                if (sampleData.individualShouldBeExcluded(pe.getiDNA())) {
+                    continue;
+                }
+            }
             dnaLookup.put(pe.getFID() + "\t" + pe.getIID(), pe.getiDNA());
             idLookup.put(pe.getiDNA(), pe.getFID() + "\t" + pe.getIID());
             pedDNA.add(pe.getiDNA());
-            pedToFAMO.put(pe.getiDNA(), new String[]{"0".equals(pe.getFA()) ? "." : pe.getFID() + "\t" + pe.getFA(), "0".equals(pe.getMO()) ? "." : pe.getFID() + "\t" + pe.getMO()});
+            pedToFAMO.put(pe.getFID() + "\t" + pe.getIID(), new String[]{"0".equals(pe.getFA()) ? "." : pe.getFID() + "\t" + pe.getFA(), "0".equals(pe.getMO()) ? "." : pe.getFID() + "\t" + pe.getMO()});
             if (!"0".equals(pe.getFA())) {
                 ArrayList<String> children = childrenMap.get(pe.getFID() + "\t" + pe.getFA());
                 if (children == null) {
@@ -315,15 +337,18 @@ public class PLINKMendelianChecker {
             for (String childFIDIID : childrenList.getValue()) {
 //                String[] spl1 = childFIDIID.split("\t");
 //                String[] spl2 = fidiid.split("\t");
-                String childDNA = dnaLookup.get(childFIDIID); // shouldn't be null?
+                String childDNA = dnaLookup.get(childFIDIID); // shouldn't be nul, unless child DNA value was missing
                 String parentDNA = dnaLookup.get(fidiid); 
+                if (childDNA == null || parentDNA == null) {
+                    continue;
+                }
                 pairs.add(new Pair(childDNA, childDNA, parentDNA, parentDNA)); // for DNA/DNA genome file
                 pairs.add(new Pair(parentDNA, parentDNA, childDNA, childDNA)); // either bi-directional here or in genome loader
                 
 //                pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // for fid/iid genome file
 //                pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // either bi-directional here or in genomeloader
 
-                String[] famo = pedToFAMO.get(childDNA);
+                String[] famo = pedToFAMO.get(childFIDIID);
                 ArrayList<String> spouseChildren = null;
                 if (famo[0].equals(fidiid) && !".".equals(famo[1])) {
                     spouseChildren = childrenMap.get(famo[1]);
@@ -363,19 +388,6 @@ public class PLINKMendelianChecker {
         if (mendelFile != null && (new File(mendelFile)).exists()) {
             System.out.println(ext.getTime() + "]\tLoading MendelianError data...");
             ml = MendelLoader.run(mendelFile);
-        }
-        
-        if (project != null) {
-            System.out.println(ext.getTime() + "]\tLoading Project data...");
-            samples = project.getSamples();
-            sampleData = project.getSampleData(0, false);
-            sampQC = SampleQC.loadSampleQC(project);
-            qcIndexMap = new HashMap<String, Integer>();
-            if (sampQC != null) {
-                for (int i = 0; i < sampQC.getSamples().length; i++) {
-                    qcIndexMap.put(sampQC.getSamples()[i], i);
-                }
-            }
         }
         
         StringBuilder sb;
@@ -438,7 +450,7 @@ public class PLINKMendelianChecker {
                 .append(pe.getSEX()).append("\t")
                 .append(pe.getiDNA()).append("\t");
             
-            boolean missingDNA = false;
+            boolean missingDNA = ext.isMissingValue(pe.getiDNA());
             String faDNA;
             if (pe.getFaDNAIndex() == -1 || samples == null) {
                 if ("0".equals(pe.getFA()) || dnaLookup.get(pe.getFID() + "\t" + pe.getFA()) == null) {
@@ -512,8 +524,18 @@ public class PLINKMendelianChecker {
             }
             
             if (ml != null) {
-                sb.append(ml.errorMarkersMapFather.get(pe.getiDNA()).size()).append("\t")
-                    .append(ml.errorMarkersMapMother.get(pe.getiDNA()).size()).append("\t");
+                ArrayList<String> errors = ml.errorMarkersMapFather.get(pe.getiDNA());
+                if (errors == null) {
+                    sb.append(0).append("\t");
+                } else {
+                    sb.append(errors.size()).append("\t");
+                }
+                errors = ml.errorMarkersMapMother.get(pe.getiDNA());
+                if (errors == null) {
+                    sb.append(0).append("\t");
+                } else {
+                    sb.append(errors.size()).append("\t");
+                }
             }
             
             boolean highLRRSD = false;
@@ -631,10 +653,10 @@ public class PLINKMendelianChecker {
         
         System.out.println(ext.getTime() + "]\tMissing genome pair data for " + missingCount + " individuals");
         
-        writeFamily(gl, pedToFAMO, childrenMap, dnaLookup, outDir);
+        writeFamily(gl, pedToFAMO, childrenMap, dnaLookup, idLookup, outDir);
     }
     
-    private void writeFamily(GenomeLoader gl, HashMap<String, String[]> pedToFAMO, HashMap<String, ArrayList<String>> childrenMap, HashMap<String, String> dnaLookup, String outDir2) {
+    private void writeFamily(GenomeLoader gl, HashMap<String, String[]> pedToFAMO, HashMap<String, ArrayList<String>> childrenMap, HashMap<String, String> dnaLookup, HashMap<String, String> idLookup, String outDir2) {
         PrintWriter writer;
         StringBuilder sb;
         
@@ -663,7 +685,7 @@ public class PLINKMendelianChecker {
                 
                 String childDNA = dnaLookup.get(childFIDIID);
                 
-                String[] famo = pedToFAMO.get(dnaLookup.get(childFIDIID));
+                String[] famo = pedToFAMO.get(childFIDIID);
                 ArrayList<String> spouseChildren = null;
                 if (famo[0].equals(fidiid) && !".".equals(famo[1])) {
                     spouseChildren = childrenMap.get(famo[1]);
@@ -819,15 +841,28 @@ public class PLINKMendelianChecker {
             for (String unrelLine : gl.unrelLines) {
                 sb = new StringBuilder();
                 String[] parts = unrelLine.split("[\\s]+");
-                sb.append(parts[0]).append("\t")
-                            .append(parts[1]).append("\t")
-                            .append(parts[2]).append("\t")
-                            .append(parts[3]).append("\t")
-                            .append("UN").append("\t")
-                            .append(parts[6]).append("\t")
-                            .append(parts[7]).append("\t")
-                            .append(parts[8]).append("\t")
-                            .append(parts[9]).append("\t");
+                
+                String fidiid1 = idLookup.get(parts[0]);
+                String fidiid2 = idLookup.get(parts[2]);
+                
+                if (fidiid1 != null) {
+                    sb.append(fidiid1).append("\t");
+                } else {
+                    sb.append(parts[0]).append("\t")
+                        .append(parts[1]).append("\t");
+                }
+                if (fidiid2 != null) {
+                    sb.append(fidiid2).append("\t");
+                } else {
+                    sb.append(parts[2]).append("\t")
+                        .append(parts[3]).append("\t");
+                }
+                
+                sb.append("UN").append("\t")
+                    .append(parts[6]).append("\t")
+                    .append(parts[7]).append("\t")
+                    .append(parts[8]).append("\t")
+                    .append(parts[9]).append("\t");
                 String rel = deriveRelationship(parts[6], parts[7], parts[8], parts[9]);
                 sb.append(rel).append("\t");
                 if (!rel.equals("UN")) {
