@@ -201,7 +201,7 @@ public class PLINK2GenomePackager {
         Files.chmod(dir + "masterProcess.sh");
     }
     
-    void process(String dir, String pmAllFile, String N) {
+    void process(String phenoDir, String pmAllFile, String N) {
         if (N == null || "".equals(N) || !ext.isValidInteger(N)) {
             System.err.println(ext.getTime() + "]\tError - specified value of N {" + N + "} is invalid.");
             return; // continue without N?
@@ -212,14 +212,22 @@ public class PLINK2GenomePackager {
             return;
         }
         
-        String file = dir + "plink.assoc.dosage.gz";
+        String file = phenoDir + "plink.assoc.dosage.gz";
         String newHeader = "SNP\tCHR\tPOS\tA1\tA2\tN\tFRQ\tINFO\tBETA\tSE\tP";
         
-        Hashtable<String, String> pmAll = HashVec.loadFileToHashString(pmAllFile, 1, new int[]{0, 3}, "\t", false, false);
         
+        System.out.println(ext.getTime() + "]\tLoading PM_ALL file...");
+        Hashtable<String, String> pmAll = HashVec.loadFileToHashString(pmAllFile, 1, new int[]{0, 3}, "\t", false, false);
+        System.out.println(ext.getTime() + "]\tPM_ALL file successfully loaded.");
+        
+        System.out.println(ext.getTime() + "]\tProcessing results file...");
         try {
             BufferedReader reader = Files.getAppropriateReader(file);
-            PrintWriter writer = Files.getAppropriateWriter(dir + ext.rootOf(dir) + ".plink.assoc.dosage.gz");
+            String temp = phenoDir.substring(0, phenoDir.length() - 1);
+            temp = temp.substring(temp.lastIndexOf("/") + 1, temp.length());
+            String outFile = phenoDir + temp + ".plink.assoc.dosage.gz";
+            System.out.println(ext.getTime() + "]\tWriting results to {" + outFile + "}...");
+            PrintWriter writer = Files.getAppropriateWriter(outFile);
             writer.println(newHeader);
             String line = null;
             reader.readLine();
@@ -229,14 +237,15 @@ public class PLINK2GenomePackager {
                 String mkrChrPos = pmAll.get(parts[0]);
                 
                 StringBuilder sb = new StringBuilder();
-                sb.append(parts[0]).append("\t")
-                    .append(parts[1]).append("\t")
-                    .append(parts[2]).append("\t");
+                sb.append(parts[0]).append("\t");
                 if (mkrChrPos != null) {
-                    sb.append(mkrChrPos);
+                    sb.append(mkrChrPos).append("\t");
                 } else {
-                    sb.append(".\t.");
+                    sb.append(".\t.\t");
                 }
+                sb.append(parts[1]).append("\t")
+                    .append(parts[2]).append("\t");
+                sb.append(N);
                 for (int i = 3; i < parts.length; i++) {
                     sb.append("\t").append(parts[i]);
                 }
@@ -249,7 +258,8 @@ public class PLINK2GenomePackager {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        
+
+        System.out.println(ext.getTime() + "]\tProcessing Complete!");
     }
     
     
