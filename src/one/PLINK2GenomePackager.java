@@ -76,7 +76,7 @@ public class PLINK2GenomePackager {
         
         String famFile = famList[0];
         
-        ArrayList<String> plinkRuns = new ArrayList<String>();
+        HashMap<String, String> plinkRuns = new HashMap<String, String>();
         
         for (String pheno : phenos) {
             String[] parts = pheno.split("_");
@@ -85,7 +85,12 @@ public class PLINK2GenomePackager {
                 continue;
             } else if (parts.length == 2) {
                 if (covarPrefices.containsKey(parts[0])) {
-                    plinkRuns.add(createScript(fileList, famFile, covarPrefices.get(parts[0]), pheno));
+                    if (setupForScript(dir, fileList, famFile, covarPrefices.get(parts[0]), pheno)) {
+                        String script = createScript(fileList, famFile, covarPrefices.get(parts[0]), pheno); 
+                        String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
+                        String phenoDir = dir + phenoPrefix + "/";
+                        plinkRuns.put(phenoDir, script);
+                    }
                 } else {
                     System.err.println(ext.getTime() + "]\tError - no covariate file found for phenotype file {" + pheno + "}.");
                     continue;
@@ -93,9 +98,19 @@ public class PLINK2GenomePackager {
             } else if (parts.length > 2) {
                 String phenoCovarCheck = pheno.substring(0, pheno.length() - "_pheno.dat".length());
                 if (covarPrefices.containsKey(phenoCovarCheck)) {
-                    plinkRuns.add(createScript(fileList, famFile, covarPrefices.get(phenoCovarCheck), pheno));
+                    if (setupForScript(dir, fileList, famFile, covarPrefices.get(phenoCovarCheck), pheno)) {
+                        String script = createScript(fileList, famFile, covarPrefices.get(phenoCovarCheck), pheno);
+                        String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
+                        String phenoDir = dir + phenoPrefix + "/";
+                        plinkRuns.put(phenoDir, script);
+                    }
                 } else if (covarPrefices.containsKey(parts[0])) {
-                    plinkRuns.add(createScript(fileList, famFile, covarPrefices.get(parts[0]), pheno));
+                    if (setupForScript(dir, fileList, famFile, covarPrefices.get(parts[0]), pheno)) {
+                        String script = createScript(fileList, famFile, covarPrefices.get(parts[0]), pheno);
+                        String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
+                        String phenoDir = dir + phenoPrefix + "/";
+                        plinkRuns.put(phenoDir, script);
+                    }
                 } else {
                     System.err.println(ext.getTime() + "]\tError - no covariate file found for phenotype file {" + pheno + "}.");
                     continue;
@@ -108,7 +123,18 @@ public class PLINK2GenomePackager {
             return;
         }
         
+        for (java.util.Map.Entry<String, String> plinkRun : plinkRuns.entrySet()) {
+            Files.qsub(plinkRun.getKey() + "runPlink2.qsub", plinkRun.getValue(), 5000, 4, 1);
+        }
         
+        StringBuilder sb = new StringBuilder("cd ").append(dir).append("\n");
+        for (String plinkDir : plinkRuns.keySet()) {
+            sb.append("cd ").append(plinkDir).append("\n")
+                .append("qsub runPlink2.qsub").append("\n")
+                .append("cd ..").append("\n");
+        }
+        Files.write(sb.toString(), dir + "masterRun.sh");
+        Files.chmod(dir + "masterRun.sh");
     }
     
     boolean setupForScript(String dir, String fileList, String famFile, String covarFile, String phenoFile) {
@@ -121,25 +147,19 @@ public class PLINK2GenomePackager {
             return false;
         }
         boolean createdPhenoDir;
-        try {
-            createdPhenoDir = phenoDirFile.createNewFile();
-            if (!createdPhenoDir) {
-                System.err.println(ext.getTime() + "]\tError - couldn't create directory {" + phenoDir + "}.");
-                return false;
-            }
-            boolean fileCopy = Files.copyFile(dir + covarFile, phenoDir + covarFile);
-            if (!fileCopy) {
-                System.err.println(ext.getTime() + "]\tError - couldn't copy covariate file into phenotype subdirectory {" + phenoDir + "}.");
-                return false;
-            }
-            fileCopy = Files.copyFile(dir + phenoFile, phenoDir + phenoFile);
-            if (!fileCopy) {
-                System.err.println(ext.getTime() + "]\tError - couldn't copy phenotype file into phenotype subdirectory {" + phenoDir + "}.");
-                return false;
-            }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        createdPhenoDir = phenoDirFile.mkdir();
+        if (!createdPhenoDir) {
+            System.err.println(ext.getTime() + "]\tError - couldn't create directory {" + phenoDir + "}.");
+            return false;
+        }
+        boolean fileCopy = Files.copyFile(dir + covarFile, phenoDir + covarFile);
+        if (!fileCopy) {
+            System.err.println(ext.getTime() + "]\tError - couldn't copy covariate file into phenotype subdirectory {" + phenoDir + "}.");
+            return false;
+        }
+        fileCopy = Files.copyFile(dir + phenoFile, phenoDir + phenoFile);
+        if (!fileCopy) {
+            System.err.println(ext.getTime() + "]\tError - couldn't copy phenotype file into phenotype subdirectory {" + phenoDir + "}.");
             return false;
         }
         
@@ -157,7 +177,7 @@ public class PLINK2GenomePackager {
         String fileList = "fullList.txt";
 
         String usage = "\n"
-                        + "one.PLINK2GenomePackager requires 0-1 arguments\n"
+                        + "one.PLINK2GenomePackager requires 2 arguments\n"
                         + "   (1) directory (i.e. dir=" + dir + " (default))\n"
                         + "   (2) file list of source data files, indexed (i.e. file=" + fileList + " (default))\n"
                         + "";
