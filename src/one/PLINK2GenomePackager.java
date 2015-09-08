@@ -191,7 +191,7 @@ public class PLINK2GenomePackager {
             .append(plinkDir)
             .append(" pmFile=")
             .append(pmAllFile)
-            .append(" N=`grep -o -E '[0-9]+ people pass filters and QC' *.o | sed 's/[^0-9]*//g'`")
+            .append(" N=`grep -o -E '[0-9]+ people pass filters and QC' *.o | sed 's/*+://g' | sed 's/[^0-9]*//g'`")
             .append("\n");
             Files.qsub(plinkDir + "process.qsub", procCmd.toString(), 5000, 3, 1);
             masterProc.append("cd ").append(plinkDir).append("\n");
