@@ -156,11 +156,14 @@ public class CnvBamQC {
 
 		@Override
 		public BamPile[] call() throws Exception {
-			BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, new ReferenceGenome(referenceGenomeFasta, log), new Segment[] { callSplit.getSegsToSearch()[0] }, log);
+			BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, new ReferenceGenome(referenceGenomeFasta, log), callSplit.getSegsToSearch(), log);
 			ArrayList<BamPile> bamPiles = new ArrayList<BamPile>();
+			int num = 0;
 			while (bamSegPileUp.hasNext()) {
+
 				BamPile bamPile = bamSegPileUp.next();
-				System.out.println(bamPile.getBin().getUCSClocation() + Array.toStr(bamPile.getCounts()));
+				System.out.println(num + "\tShouldBe: " + callSplit.getSegsToSearch()[num].getUCSClocation() + "\t" + bamPile.getBin().getUCSClocation() + Array.toStr(bamPile.getCounts()));
+				num++;
 			}
 			System.exit(1);
 			return bamPiles.toArray(new BamPile[bamPiles.size()]);
