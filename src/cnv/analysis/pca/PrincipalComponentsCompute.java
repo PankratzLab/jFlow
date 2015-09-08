@@ -381,7 +381,9 @@ public class PrincipalComponentsCompute {
 	private static boolean[] getSamplesFromFile(Project proj, String useFile) {
 		SampleData sampleData = proj.getSampleData(0, false);
 		Logger log = proj.getLog();
-		String[] samplesToUseFromFile = HashVec.loadFileToStringArray(useFile, false, new int[] { 0 }, true);
+		String[] samplesToUseFromFile = HashVec.loadFileToStringArray(useFile, false, false, new int[] { 0 }, true, true, "\t");
+		//previous method causes issues with spaces in sample names
+		// HashVec.loadFileToStringArray(useFile, false, new int[] { 0 }, true);
 		String[] projSamples = proj.getSampleList().getSamples();
 		boolean[] samplesToUse = new boolean[projSamples.length];
 		Hashtable<String, Boolean> track = new Hashtable<String, Boolean>();
