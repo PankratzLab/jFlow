@@ -5,17 +5,24 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
 import common.Array;
+import common.Files;
 import common.Logger;
 
 /**
  * Stores the pileUp of a bam file for each position found (by bin)
  *
  */
-public class BamPile {
+public class BamPile implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static final String[] BASE_HEADER = new String[] { "UCSC", "REF", "NUM_REF", "NUM_ALT", "PROP_REF", "PROP_ALT" };
 	private static final String[] COUNT_HEADER = new String[] { "NUMA", "NUMG", "NUMC", "NUMT", "NUMN", "NUMDEL", "NUMINS" };
 	private static final String[] EXT_HEADER = new String[] { "MAPQ", "PHRED" };
@@ -26,6 +33,8 @@ public class BamPile {
 
 	private double[] avgMapQ;
 	private double[] avgPhread;
+	private double overallAvgMapQ;
+	private double overallAvgDepth;
 
 	public static String getHeader() {
 		String header = Array.toStr(BASE_HEADER);
@@ -48,8 +57,14 @@ public class BamPile {
 		this.counts = new int[7];// A,G,C,T,N,Del,Ins
 		this.avgMapQ = new double[7];
 		this.avgPhread = new double[7];
+		this.overallAvgMapQ = 0;
+		this.overallAvgDepth = 0;
 		this.refAllele = "NA";
 
+	}
+
+	public double[] getAvgMapQ() {
+		return avgMapQ;
 	}
 
 	public int[] getCounts() {
@@ -182,12 +197,32 @@ public class BamPile {
 	}
 
 	public void summarize() {
+
+		int totalDepth = 0;
+		double mapQ = 0;
+		for (int i = 0; i < counts.length - 2; i++) {
+			totalDepth += counts[i];
+			mapQ += avgMapQ[i];
+		}
+		this.overallAvgDepth = (double) totalDepth / bin.getSize();
+		if (mapQ > 0) {
+			this.overallAvgMapQ = (double) mapQ / totalDepth;
+		}
 		for (int i = 0; i < counts.length; i++) {
 			if (counts[i] > 0) {
 				avgMapQ[i] = (double) avgMapQ[i] / counts[i];
 				avgPhread[i] = (double) avgPhread[i] / counts[i];
 			}
 		}
+	}
+
+	
+	public double getOverallAvgMapQ() {
+		return overallAvgMapQ;
+	}
+
+	public double getOverallAvgDepth() {
+		return overallAvgDepth;
 	}
 
 	public Segment getBin() {
@@ -290,6 +325,14 @@ public class BamPile {
 			log.reportTimeError(error);
 			throw new IllegalArgumentException(error);
 		}
+	}
+
+	public static void writeSerial(BamPile[] bamPiles, String filename) {
+		Files.writeSerial(bamPiles, filename, true);
+	}
+
+	public static BamPile[] readSerial(String filename, Logger log) {
+		return (BamPile[]) Files.readSerial(filename, false, log, false, true);
 	}
 
 }

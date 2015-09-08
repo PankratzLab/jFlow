@@ -1,5 +1,8 @@
 package seq.cnv;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
@@ -8,13 +11,10 @@ import cnv.var.LocusSet;
 import seq.manage.BEDFileReader;
 import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.manage.BamPile;
-import seq.manage.BamPileUp;
 import seq.manage.BamSegPileUp;
 import seq.manage.BedOps;
 import seq.manage.ReferenceGenome;
-import seq.manage.BamPileUp.PILE_TYPE;
 import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.SAM_FILTER_TYPE;
 import seq.qc.Mappability;
 import common.Array;
 import common.Files;
@@ -32,9 +32,90 @@ import filesys.Segment;
  *
  */
 public class CnvBamQC {
+	private static final String[] QC_HEADER = new String[] { "Ref_Map_score", "Samp_MapQ", "Population_MapQ", "Samp_Depth", "Population_Depth", "Diff_Depth" };
+	private String[] bams;
+	private CallSplit callSplit;
+	private BamPile[][] bamPiles;
+	private Mappability<CNVariant> mappability;
+	private Logger log;
 
-	public static void qcCNVs(String bams, String cnvFile, String mappabilityFile, String callSubsetBed, String referenceGenomeFasta, int numThreads, Logger log) {
-		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
+	public CnvBamQC(String[] bams, CallSplit callSplit, BamPile[][] bamPiles, Mappability<CNVariant> mappability, Logger log) {
+		super();
+		this.bams = bams;
+		this.callSplit = callSplit;
+		this.bamPiles = bamPiles;
+		this.mappability = mappability;
+		this.log = log;
+	}
+
+	public void summarize(String output) {
+		// mappability.computeMappability();
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + Array.toStr(QC_HEADER));
+			LocusSet<CNVariant> cnLocusSet = callSplit.getCnLocusSet();
+			for (int i = 0; i < cnLocusSet.getLoci().length; i++) {
+				CNVariant currentCnVariant = cnLocusSet.getLoci()[i];
+				writer.print(currentCnVariant.toPlinkFormat());
+
+				// writer.print(mappability.getMappabilityResults().get(i).getAverageMapScore());
+
+				writer.println();
+
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + output);
+			log.reportException(e);
+		}
+	}
+
+	private PopQcResult getPopQcResult(CNVariant currentCnVariant, int index) {
+		int sampleIndex = getIndex(currentCnVariant, bams, log);
+		double sampMapQ = Double.NaN;
+		double sampDepth = Double.NaN;
+		double popAvgMapQ = Double.NaN;
+		double popAvgDepth = Double.NaN;
+		
+		int[] matchedIndices = Array.toIntArray(callSplit.getMatched()[index]);
+		for (int i = 0; i < matchedIndices.length; i++) {
+
+		}
+		return null;
+	}
+
+	private static class PopQcResult {
+		private double sampMapQ;
+		private double sampDepth;
+		private double popAvgMapQ;
+		private double popAvgDepth;
+
+	}
+
+	private static int getIndex(CNVariant cnVariant, String[] bams, Logger log) {
+		int index = -1;
+		for (int i = 0; i < bams.length; i++) {
+			if (ext.rootOf(bams[i]).contains(cnVariant.getIndividualID())) {
+				if (index > 0) {
+					String error = "Multiple bam files found for " + cnVariant.getIndividualID();
+					log.reportTimeError(error);
+					throw new IllegalStateException(error);
+
+				} else {
+					index = i;
+				}
+			}
+		}
+		if (index < 0) {
+			String error = "Could not find corresponding bam file for sample " + cnVariant.getIndividualID();
+			log.reportTimeError(error);
+			throw new IllegalStateException(error);
+		}
+		return index;
+	}
+
+	public static void qcCNVs(String bams, String cnvFile, String serDir, String mappabilityFile, String callSubsetBed, String referenceGenomeFasta, int numThreads, Logger log) {
+		// ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
 
 		LocusSet<CNVariant> cnLocusSet = CNVariant.loadLocSet(cnvFile, log);
 		Mappability<CNVariant> mappability = new Mappability<CNVariant>(cnLocusSet, mappabilityFile, callSubsetBed, log);
@@ -47,11 +128,21 @@ public class CnvBamQC {
 		log.reportTimeInfo("Found " + bamFiles.length + " bam files to search");
 		CallSplit callSplit = new CallSplit(cnLocusSet, callSubsetBed, log);
 		callSplit.matchAndSplit();
-		PileupProducer producer = new PileupProducer(bamFiles, referenceGenomeFasta, log, callSplit);
+
+		String serToReport = serDir + ext.rootOf(cnvFile) + "_QC/";
+		PileupProducer producer = new PileupProducer(bamFiles, serToReport, referenceGenomeFasta, log, callSplit);
 		WorkerTrain<BamPile[]> train = new WorkerTrain<BamPile[]>(producer, numThreads, 2, log);
+		BamPile[][] bamPiles = new BamPile[bamFiles.length][];
+		int index = 0;
 		while (train.hasNext()) {
-			train.next();
+			BamPile[] bPilesTmp = train.next();
+			bamPiles[index] = bPilesTmp;
+			index++;
 		}
+		CnvBamQC cnvBamQC = new CnvBamQC(bamFiles, callSplit, bamPiles, mappability, log);
+		String summary = serToReport + "qc_summary.txt";
+		cnvBamQC.summarize(summary);
+
 	}
 
 	private static class CallSplit {
@@ -72,6 +163,14 @@ public class CnvBamQC {
 			this.hadProblem = Array.booleanArray(cnLocusSet.getLoci().length, false);
 			this.log = log;
 			this.matched = new ArrayIntList[cnLocusSet.getLoci().length];
+		}
+
+		public LocusSet<CNVariant> getCnLocusSet() {
+			return cnLocusSet;
+		}
+
+		public ArrayIntList[] getMatched() {
+			return matched;
 		}
 
 		private void matchAndSplit() {
@@ -109,15 +208,18 @@ public class CnvBamQC {
 		private int index;
 		private String[] bamFiles;
 		private String referenceGenomeFasta;
+		private String serDir;
 		private Logger log;
 		private CallSplit callSplit;
 
-		public PileupProducer(String[] bamFiles, String referenceGenomeFasta, Logger log, CallSplit callSplit) {
+		public PileupProducer(String[] bamFiles, String serDir, String referenceGenomeFasta, Logger log, CallSplit callSplit) {
 			super();
 			this.bamFiles = bamFiles;
+			this.serDir = serDir;
 			this.referenceGenomeFasta = referenceGenomeFasta;
 			this.log = log;
 			this.callSplit = callSplit;
+			new File(serDir).mkdirs();
 		}
 
 		@Override
@@ -127,7 +229,7 @@ public class CnvBamQC {
 
 		@Override
 		public Callable<BamPile[]> next() {
-			PileUpWorker worker = new PileUpWorker(bamFiles[index], referenceGenomeFasta, log, callSplit);
+			PileUpWorker worker = new PileUpWorker(bamFiles[index], serDir, referenceGenomeFasta, log, callSplit);
 			index++;
 			return worker;
 		}
@@ -143,12 +245,14 @@ public class CnvBamQC {
 	private static class PileUpWorker implements Callable<BamPile[]> {
 		private String bamFile;
 		private String referenceGenomeFasta;
+		private String serDir;
 		private Logger log;
 		private CallSplit callSplit;
 
-		public PileUpWorker(String bamFile, String referenceGenomeFasta, Logger log, CallSplit callSplit) {
+		public PileUpWorker(String bamFile, String serDir, String referenceGenomeFasta, Logger log, CallSplit callSplit) {
 			super();
 			this.bamFile = bamFile;
+			this.serDir = serDir;
 			this.referenceGenomeFasta = referenceGenomeFasta;
 			this.log = log;
 			this.callSplit = callSplit;
@@ -156,29 +260,39 @@ public class CnvBamQC {
 
 		@Override
 		public BamPile[] call() throws Exception {
-			BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, new ReferenceGenome(referenceGenomeFasta, log), callSplit.getSegsToSearch(), log);
-			ArrayList<BamPile> bamPiles = new ArrayList<BamPile>();
-			int num = 0;
-			while (bamSegPileUp.hasNext()) {
+			String ser = serDir + ext.rootOf(bamFile) + ".ser";
+			if (!Files.exists(ser)) {
+				BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, new ReferenceGenome(referenceGenomeFasta, log), callSplit.getSegsToSearch(), log);
+				ArrayList<BamPile> bamPiles = new ArrayList<BamPile>();
+				int num = 0;
+				while (bamSegPileUp.hasNext()) {
 
-				BamPile bamPile = bamSegPileUp.next();
-				System.out.println(num + "\tShouldBe: " + callSplit.getSegsToSearch()[num].getUCSClocation() + "\t" + bamPile.getBin().getUCSClocation() + Array.toStr(bamPile.getCounts()));
-				num++;
+					BamPile bamPile = bamSegPileUp.next();
+					bamPile.summarize();
+					// System.out.println(num + "\tShouldBe: " + callSplit.getSegsToSearch()[num].getUCSClocation() + "\t" + bamPile.getBin().getUCSClocation() + Array.toStr(bamPile.getCounts()));
+					// System.out.println(bamPile.getOverallAvgDepth()+"\t"+bamPile.getOverallAvgMapQ());
+					num++;
+				}
+				BamPile[] bamPilesFinal = bamPiles.toArray(new BamPile[bamPiles.size()]);
+				BamPile.writeSerial(bamPilesFinal, ser);
+				return bamPilesFinal;
+
+			} else {
+				return BamPile.readSerial(ser, log);
 			}
-			System.exit(1);
-			return bamPiles.toArray(new BamPile[bamPiles.size()]);
 		}
 	}
 
 	public static void main(String[] args) {
 		String referenceGenomeFasta = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
 		String mappabilityFile = "/home/pankrat2/public/bin/ref/mapability/hg19/wgEncodeCrgMapabilityAlign100mer.bedGraph";
-		String cnvFile = "/home/tsaim/shared/Project_Tsai_Project_021/ExomeDepth/results/ExomeDepth.all.cnvs";
+		String cnvFile = "/home/tsaim/shared/Project_Tsai_Project_021/ExomeDepth/results/ExomeDepth.100.cnvs";
 		String callSubsetBed = "/panfs/roc/groups/5/pankrat2/public/bin/ExomeDepth/exons.hg19.sort.chr.bed";
 		String bams = "/home/tsaim/shared/Project_Tsai_Project_021/bam/";
+		String serDir = "/home/tsaim/shared/Project_Tsai_Project_021/ExomeDepth/QC/";
 		Logger log = new Logger(ext.rootOf(cnvFile, false) + ".qc.log");
-		int numThreads = 1;
-		qcCNVs(bams, cnvFile, mappabilityFile, callSubsetBed, referenceGenomeFasta, numThreads, log);
+		int numThreads = 24;
+		qcCNVs(bams, cnvFile, serDir, mappabilityFile, callSubsetBed, referenceGenomeFasta, numThreads, log);
 	}
 
 	public static void maina(String[] args) {
