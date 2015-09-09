@@ -442,6 +442,7 @@ public class PLINKMendelianChecker {
         for (int i = 0; i < ped.getPedigreeEntries().length; i++) {
             PedigreeEntry pe = ped.getPedigreeEntries()[i];
             if (pe == null) continue;
+            if (null == pe.getMO() || "0".equals(pe.getMO()) || null == pe.getFA() || "0".equals(pe.getFA())) continue;
             sb = new StringBuilder();
             sb.append(pe.getFID()).append("\t")
                 .append(pe.getIID()).append("\t")
@@ -662,7 +663,7 @@ public class PLINKMendelianChecker {
         
         writer = Files.getAppropriateWriter(outDir + "relationshipChecks.xln");
         
-        String header = "FID1\tIID1\tFID2\tIID2\tPUTATIVE_REL\t";
+        String header = "FID1\tIID1\tDNA1\tFID2\tIID2\tDNA2\tPUTATIVE_REL\t";
         if (gl != null) {
             header += "IBD0" + "\t"
                       + "IBD1" + "\t"
@@ -679,11 +680,23 @@ public class PLINKMendelianChecker {
             
             for (String childFIDIID : childrenList.getValue()) {
                 sb = new StringBuilder();
-                sb.append(fidiid).append("\t")
-                    .append(childFIDIID).append("\t")
-                    .append("PO").append("\t");
-                
+                sb.append(fidiid).append("\t");
+                if (parentDNA != null) {
+                    sb.append(parentDNA).append("\t");
+                } else {
+                    sb.append(".\t");
+                }
+                sb.append(childFIDIID).append("\t");
                 String childDNA = dnaLookup.get(childFIDIID);
+
+                if (childDNA != null) {
+                    sb.append(childDNA).append("\t");
+                } else {
+                    sb.append(".\t");
+                }
+                
+                sb.append("PO").append("\t");
+                
                 
                 String[] famo = pedToFAMO.get(childFIDIID);
                 ArrayList<String> spouseChildren = null;
@@ -738,8 +751,23 @@ public class PLINKMendelianChecker {
                     String otherChildDNA = dnaLookup.get(otherChild);
                     
                     sb = new StringBuilder();
-                    sb.append(childFIDIID).append("\t")
-                        .append(otherChild).append("\t");
+                    sb.append(childFIDIID).append("\t");
+
+                    if (childDNA != null) {
+                        sb.append(childDNA).append("\t");
+                    } else {
+                        sb.append(".\t");
+                    }
+                    
+                    sb.append(otherChild).append("\t");
+                    
+
+                    if (otherChildDNA != null) {
+                        sb.append(otherChildDNA).append("\t");
+                    } else {
+                        sb.append(".\t");
+                    }
+                    
                     String expRel;
                     if (sameParentSibs.contains(otherChild)) {
                         sameParentSibs.remove(otherChild);
@@ -790,11 +818,22 @@ public class PLINKMendelianChecker {
                 for (String halfSib : sameParentSibs) {
                     if (halfSib.equals(childFIDIID)) continue;
                     sb = new StringBuilder();
-                    sb.append(childFIDIID).append("\t")
-                        .append(halfSib).append("\t")
-                        .append("HALFSIB").append("\t");
-
+                    sb.append(childFIDIID).append("\t");
+                    if (childDNA != null) {
+                        sb.append(childDNA).append("\t");
+                    } else {
+                        sb.append(".\t");
+                    }
+                    sb.append(halfSib).append("\t");
                     String halfSibDNA = dnaLookup.get(halfSib);
+                    if (halfSibDNA != null) {
+                        sb.append(halfSibDNA).append("\t");
+                    } else {
+                        sb.append(".\t");
+                    }
+                    
+                    sb.append("HALFSIB").append("\t");
+
                     if (gl != null) {
                         if (childDNA == null || halfSibDNA == null) {
                             sb.append(".\t.\t.\t.\t.\t.\t");
@@ -851,13 +890,14 @@ public class PLINKMendelianChecker {
                     sb.append(parts[0]).append("\t")
                         .append(parts[1]).append("\t");
                 }
+                sb.append(".\t");
                 if (fidiid2 != null) {
                     sb.append(fidiid2).append("\t");
                 } else {
                     sb.append(parts[2]).append("\t")
                         .append(parts[3]).append("\t");
                 }
-                
+                sb.append(".\t");
                 sb.append("UN").append("\t")
                     .append(parts[6]).append("\t")
                     .append(parts[7]).append("\t")
