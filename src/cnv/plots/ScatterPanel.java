@@ -589,7 +589,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		int numberToInclude, currentClass;
 		byte newClusterFilter, chr;
 
-		if (event.getButton() == MouseEvent.BUTTON1) {
+		if (event.getButton() == MouseEvent.BUTTON3) {
 			window = sp.getProject().WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER.getValue();
 			mData = sp.getCurrentMarkerData();
 			markerPosition = "chr"+mData.getChr()+":"+(mData.getPosition()-window)+"-"+(mData.getPosition()+window);
@@ -617,7 +617,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				menu.show(this, event.getX(), event.getY());
 			}
 
-		} else if (event.getButton() == MouseEvent.BUTTON3) {
+		} else if (event.getButton() == MouseEvent.BUTTON1) {
 			newClusterFilter = lookupNearbyRectangles(event.getX(), event.getY());
 			if (newClusterFilter >= 0) {
 				ClusterFilterCollection clusterFilterCollection;
