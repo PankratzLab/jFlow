@@ -72,7 +72,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 						if (overlaps) {
 							bamPiles[i].addRecord(samRecord, 0, log);
 						} else {
-							
+
 							if (i == numReturned && samRecordSegment.getStart() > bamPiles[i].getBin().getStop() || !sIterator.hasNext()) {
 
 								addingMask[i] = false;
@@ -112,6 +112,10 @@ public class BamSegPileUp implements Iterator<BamPile> {
 			}
 		} else {
 			numReturned++;
+		}
+		if (numReturned % 100 == 0) {
+			log.reportTimeInfo(numReturned + " queries found for " + bam);
+			log.memoryPercentFree();
 		}
 		return hasNext;
 	}

@@ -4221,8 +4221,30 @@ public class Array {
 		return result;
 	}
 	
-	
-	
+	/**
+	 * @param array
+	 * @param front
+	 *            tag on to the front of each entry
+	 * @param back
+	 *            tag on to the back of each entry
+	 * @return
+	 */
+	public static String[] tagOn(String[] array, String front, String back) {
+		String[] arrayTagged = new String[array.length];
+		for (int i = 0; i < array.length; i++) {
+			String tmp = array[i];
+			if (front != null) {
+				tmp = front + tmp;
+			}
+			if (back != null) {
+				tmp = tmp + back;
+			}
+			arrayTagged[i] = tmp;
+
+		}
+		return arrayTagged;
+	}
+
 	/**
 	 * Function to concat n number of Arrays.
 	 *

@@ -410,7 +410,7 @@ public class Histogram implements Serializable {
 		 *            must be the same length
 		 */
 		public static DumpResult dumpToSameFile(DynamicHistogram[] histograms, String[] titles, String output,boolean proportion, Logger log) {
-			double max=Double.MIN_VALUE;
+			double max = -1 * Double.MAX_VALUE;
 			double min = Double.MAX_VALUE;
 			if (histograms.length != titles.length) {
 				log.reportTimeError("Titles and histogram array must be the same length");
@@ -446,6 +446,8 @@ public class Histogram implements Serializable {
 		}
 	}
 
+
+	
 	/**
 	 * @author lane0212<br>
 	 *         A histogram that also tracks the average of a separate paired metric...sort of like an "averageIf" in excel
@@ -455,7 +457,9 @@ public class Histogram implements Serializable {
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
-
+		public static final String DUMP_COUNT = "_Count";
+		public static final String DUMP_PROP = "_Proportion";
+		public static final String DUMP_AVG = "_Average";
 		private double[] averages;
 
 		public DynamicAveragingHistogram(double min, double max, int sigfigs) {
@@ -524,6 +528,65 @@ public class Histogram implements Serializable {
 			}
 		}
 
+		/**
+		 * @param histograms
+		 *            must be the same length
+		 */
+		public static void dumpToSameFile(DynamicAveragingHistogram[] histograms, String[] titles, String output, Logger log) {
+
+			if (histograms.length != titles.length) {
+				log.reportTimeError("Titles and histogram array must be the same length");
+				return;
+			}
+			try {
+				String[] finalTitles = Array.concatAll(Array.tagOn(titles, null, DUMP_COUNT), Array.tagOn(titles, null, DUMP_PROP), Array.tagOn(titles, null, DUMP_AVG));
+				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				writer.println("Bin\t" + Array.toStr(finalTitles));
+				double[] totals = new double[histograms.length];
+				for (int i = 0; i < totals.length; i++) {
+					totals[i] = Array.sum(histograms[i].getCounts());
+				}
+				for (int i = 0; i < histograms[0].getBins().length; i++) {
+					double currentBin = histograms[0].getBins()[i];
+					writer.print(currentBin);
+					for (int j = 0; j < histograms.length; j++) {
+						if (histograms[j].getBins()[i] != currentBin) {
+							String error = "mismatched bins between histograms";
+							log.reportTimeError(error);
+							writer.close();
+							throw new IllegalStateException(error);
+						}
+						double val = histograms[j].getCounts()[i];
+						writer.print("\t" + val);
+					}
+					for (int j = 0; j < histograms.length; j++) {
+						if (histograms[j].getBins()[i] != currentBin) {
+							String error = "mismatched bins between histograms";
+							log.reportTimeError(error);
+							writer.close();
+							throw new IllegalStateException(error);
+						}
+						double val = (double) histograms[j].getCounts()[i] / totals[j];
+						writer.print("\t" + val);
+					}
+					for (int j = 0; j < histograms.length; j++) {
+						if (histograms[j].getBins()[i] != currentBin) {
+							String error = "mismatched bins between histograms";
+							log.reportTimeError(error);
+							writer.close();
+							throw new IllegalStateException(error);
+						}
+						double val = histograms[j].getAverages()[i];
+						writer.print("\t" + val);
+					}
+					writer.println();
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + output);
+				log.reportException(e);
+			}
+		}
 	}
 
 	public static class DumpResult {

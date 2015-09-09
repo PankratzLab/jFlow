@@ -842,7 +842,30 @@ public class Files {
 	public static PrintWriter getWriter(String filename) {
 		return getAppropriateWriter(filename);
 	}
-	
+
+	/**
+	 * @param filenames
+	 *            initialize writers for these filenames using {@link Files#getAppropriateWriter(String)}
+	 * @return
+	 */
+	public static PrintWriter[] getAppropriateWriters(String[] filenames) {
+		PrintWriter[] writers = new PrintWriter[filenames.length];
+		for (int i = 0; i < writers.length; i++) {
+			writers[i] = getAppropriateWriter(filenames[i]);
+		}
+		return writers;
+	}
+
+	/**
+	 * @param writers
+	 *            close all of em
+	 */
+	public static void closeAllWriters(PrintWriter[] writers) {
+		for (int i = 0; i < writers.length; i++) {
+			writers[i].close();
+		}
+	}
+
 	public static PrintWriter getAppropriateWriter(String filename) {
 		PrintWriter writer = null;
 
