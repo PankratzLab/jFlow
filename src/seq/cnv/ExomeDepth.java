@@ -392,7 +392,7 @@ public class ExomeDepth {
 							try {
 								int cn = -99;
 								if (line[indices[0]].equals("deletion")) {
-									cn = -1;
+									cn = 1;
 								} else if (line[indices[0]].equals("duplication")) {
 									cn = 3;
 								} else {

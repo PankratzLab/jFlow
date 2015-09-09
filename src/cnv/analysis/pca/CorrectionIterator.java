@@ -567,7 +567,7 @@ class CorrectionIterator implements Serializable {
 								}
 							}
 						}
-						//System.exit(1);
+						// System.exit(1);
 
 						// writer.println("PC\tGROUP\tVALUE");
 						// for (int PC = 0; PC < evaluationResults.length; PC++) {
@@ -1056,14 +1056,14 @@ class CorrectionIterator implements Serializable {
 		String[] plotTitlesForMito = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_FC_NO_STRAT", "SPEARMAN_CORREL_AGE_NO_STRATs", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_SEX_NO_STRATs" };
 
 		String[] plotTitlesForMitoFC = new String[] { "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_PT", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_BU", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_NY", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_DK" };
-		String[] exomeMito = new String[] {  "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs_M", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs_W", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs_F" };
+		String[] exomeMito = new String[] { "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs_M", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs_W", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs_F" };
 		plotTitlesForMitoFC = Array.concatAll(plotTitlesForMitoFC, exomeMito);
 
-		String[] plotTitlesForMitoAge = new String[] {  "SPEARMAN_CORREL_AGE_NO_STRAT", "SPEARMAN_CORREL_AGE_PT", "SPEARMAN_CORREL_AGE_BU", "SPEARMAN_CORREL_AGE_NY", "SPEARMAN_CORREL_AGE_DK", "SPEARMAN_CORREL_AGE_M", "SPEARMAN_CORREL_AGE_W", "SPEARMAN_CORREL_AGE_F", "SPEARMAN_CORREL_AGE_J" };
-		String[] plotTitlesForMitoSex = new String[] {  "SPEARMAN_CORREL_EVAL_DATA_SEX_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_SEX_PT", "SPEARMAN_CORREL_EVAL_DATA_SEX_BU", "SPEARMAN_CORREL_EVAL_DATA_SEX_NY", "SPEARMAN_CORREL_EVAL_DATA_SEX_DK", "SPEARMAN_CORREL_EVAL_DATA_SEX_M", "SPEARMAN_CORREL_EVAL_DATA_SEX_W", "SPEARMAN_CORREL_EVAL_DATA_SEX_F", "SPEARMAN_CORREL_EVAL_DATA_SEX_J" };
+		String[] plotTitlesForMitoAge = new String[] { "SPEARMAN_CORREL_AGE_NO_STRAT", "SPEARMAN_CORREL_AGE_PT", "SPEARMAN_CORREL_AGE_BU", "SPEARMAN_CORREL_AGE_NY", "SPEARMAN_CORREL_AGE_DK", "SPEARMAN_CORREL_AGE_M", "SPEARMAN_CORREL_AGE_W", "SPEARMAN_CORREL_AGE_F", "SPEARMAN_CORREL_AGE_J" };
+		String[] plotTitlesForMitoSex = new String[] { "SPEARMAN_CORREL_EVAL_DATA_SEX_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_SEX_PT", "SPEARMAN_CORREL_EVAL_DATA_SEX_BU", "SPEARMAN_CORREL_EVAL_DATA_SEX_NY", "SPEARMAN_CORREL_EVAL_DATA_SEX_DK", "SPEARMAN_CORREL_EVAL_DATA_SEX_M", "SPEARMAN_CORREL_EVAL_DATA_SEX_W", "SPEARMAN_CORREL_EVAL_DATA_SEX_F", "SPEARMAN_CORREL_EVAL_DATA_SEX_J" };
 		String[] quickTitles = new String[] { "SPEARMAN_CORREL_AGE_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_SEX_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_NO_STRAT" };
-		
-		String[][] plotTitlesForSummary = new String[][] { plotTitlesForMain, plotTitlesForMito, plotTitlesForMitoFC, plotTitlesForMitoAge, plotTitlesForMitoSex,quickTitles };
+
+		String[][] plotTitlesForSummary = new String[][] { plotTitlesForMain, plotTitlesForMito, plotTitlesForMitoFC, plotTitlesForMitoAge, plotTitlesForMitoSex, quickTitles };
 		String[] subsetDataHeritability = new String[] { "EVAL_DATA_Mt_DNA_relative_copy_number" };
 
 		String[] numericStratCats = new String[] { "EVAL_DATA_Mt_DNA_relative_copy_number", "EVAL_DATA_qpcr.qnorm.exprs" };
@@ -1074,15 +1074,16 @@ class CorrectionIterator implements Serializable {
 		if (pedFile != null) {
 			producer.setSubsetDataHeritability(subsetDataHeritability);
 		}
+		proj.getLog().reportTimeWarning("Skipping plots");
 
-		WorkerTrain<IterSummary> summaryTrain = new WorkerTrain<IterSummary>(producer, numthreads, numthreads, proj.getLog());
-		while (summaryTrain.hasNext()) {
-			IterSummary iterSummary = summaryTrain.next();
-			RScatter[] rScattersTmp = iterSummary.getrScatters();
-			for (int i = 0; i < rScattersTmp.length; i++) {
-				rScatters.add(rScattersTmp[i]);
-			}
-		}
+		// WorkerTrain<IterSummary> summaryTrain = new WorkerTrain<IterSummary>(producer, numthreads, numthreads, proj.getLog());
+		// while (summaryTrain.hasNext()) {
+		// IterSummary iterSummary = summaryTrain.next();
+		// RScatter[] rScattersTmp = iterSummary.getrScatters();
+		// for (int i = 0; i < rScattersTmp.length; i++) {
+		// rScatters.add(rScattersTmp[i]);
+		// }
+		// }
 
 		String outputRoot = outputDir + "finalSummary";
 		RScatters finalScatters = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), outputRoot + ".rscript", outputRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_2, PLOT_DEVICE.PDF, proj.getLog());
@@ -1095,6 +1096,10 @@ class CorrectionIterator implements Serializable {
 			header.add("MODEL_BUILDER_TYPE");
 			header.add("ORDER_TYPE");
 			header.add("ITERATION_TYPE");
+			header.add("NUM_SAMPLES_MODEL");
+			header.add("NUM_SAMPLES_EVALUATED");
+			header.add("NUM_TOTAL_PCS");
+
 			header.add("STAT");
 			header.add("EVALUATED");
 			header.add("MIN_STAT_PC");
@@ -1108,19 +1113,23 @@ class CorrectionIterator implements Serializable {
 			header.add("AVERAGE_STAT");
 			header.add("MEDIAN_STAT");
 			header.add("STD_STAT");
-
+			header.add("PC_15_STAT");
+			header.add("PC_15_PVAL");
+			header.add("PC_MAX_STAT");
+			header.add("PC_MAX_PVAL");
 			writer.println(Array.toStr(Array.toStringArray(header)));
 			for (int correctionIndex = 0; correctionIndex < cIterators.length; correctionIndex++) {
 				CorrectionIterator correctionIterator = cIterators[correctionIndex];
+
 				EvaluationResult[] evaluationResults = EvaluationResult.readSerial(correctionIterator.getIterationResult().getOutputSer(), log);
 				MODEL_BUILDER_TYPE mBuilder_TYPE = correctionIterator.getIterationResult().getbType();
 				ORDER_TYPE oType = correctionIterator.getIterationResult().getoType();
 				ITERATION_TYPE iType = correctionIterator.getIterationResult().getiType();
 				ArrayList<String> names = evaluationResults[0].getCorrelTitles();
 				ArrayList<double[]> statsSpear = evaluationResults[0].getSpearmanCorrel();
-				printStatSummary(writer, "SPEARMAN", evaluationResults, mBuilder_TYPE, oType, iType, statsSpear, names);
+				printStatSummary(writer, correctionIterator, "SPEARMAN", evaluationResults, mBuilder_TYPE, oType, iType, statsSpear, names);
 				ArrayList<double[]> statsPear = evaluationResults[0].getPearsonCorrels();
-				printStatSummary(writer, "PEARSON", evaluationResults, mBuilder_TYPE, oType, iType, statsPear, names);
+				printStatSummary(writer, correctionIterator, "PEARSON", evaluationResults, mBuilder_TYPE, oType, iType, statsPear, names);
 
 			}
 
@@ -1134,31 +1143,93 @@ class CorrectionIterator implements Serializable {
 		return cIterators;
 	}
 
-	private static void printStatSummary(PrintWriter writer, String type, EvaluationResult[] evaluationResults, MODEL_BUILDER_TYPE mBuilder_TYPE, ORDER_TYPE oType, ITERATION_TYPE iType, ArrayList<double[]> statsAL, ArrayList<String> name) {
+	private static void printStatSummary(PrintWriter writer, CorrectionIterator correctionIterator, String type, EvaluationResult[] evaluationResults, MODEL_BUILDER_TYPE mBuilder_TYPE, ORDER_TYPE oType, ITERATION_TYPE iType, ArrayList<double[]> statsAL, ArrayList<String> name) {
+
 		for (int i = 0; i < statsAL.size(); i++) {
 			double[] stats = new double[evaluationResults.length];
 			double[] pval = new double[evaluationResults.length];
+			int numSamps = evaluationResults[0].getNumIndsCorrel().get(i);
+			double stat15 = Double.NaN;
+			double pval15 = Double.NaN;
+			double statMax = Double.NaN;
+			double pvalMax = Double.NaN;
 
 			for (int j = 0; j < evaluationResults.length; j++) {
-				stats[j] = statsAL.get(i)[0];
-				pval[j] = statsAL.get(i)[1];
+				if (type.equals("SPEARMAN")) {
+					stats[j] = evaluationResults[j].getSpearmanCorrel().get(i)[0];
+					pval[j] = evaluationResults[j].getSpearmanCorrel().get(i)[1];
+					if (j == 15) {
+						stat15 = stats[j];
+						pval15 = pval[j];
+					}
+					if (j == evaluationResults.length - 1) {
+						statMax = stats[j];
+						pvalMax = pval[j];
+					}
+				} else if (type.equals("PEARSON")) {
+					stats[j] = evaluationResults[j].getPearsonCorrels().get(i)[0];
+					pval[j] = evaluationResults[j].getPearsonCorrels().get(i)[1];
+					if (j == 15) {
+						stat15 = stats[j];
+						pval15 = pval[j];
+					}
+					if (j == evaluationResults.length - 1) {
+						statMax = stats[j];
+						pvalMax = pval[j];
+					}
+				}
+				if (evaluationResults[j].getNumIndsCorrel().get(i) != numSamps) {
+					System.err.println("Error mismatched number of samples");
+					System.exit(1);
+				}
 			}
 
 			String evalName = name.get(i);
-			double maxStat = Array.max(stats);
-			double minStat = Array.min(stats);
-			int maxStatPC = Array.maxIndex(stats);
-			int minStatPC = Array.minIndex(stats);
+			if (evalName.contains("qpcr.qnorm.exprs") && oType != ORDER_TYPE.RANK_R2) {
+				double maxStat = Array.max(stats);
+				double minStat = Array.min(stats);
+				int maxStatPC = Array.maxIndex(stats);
+				int minStatPC = Array.minIndex(stats);
 
-			double maxPval = Array.max(pval);
-			double minPval = Array.min(pval);
-			int maxPvalPC = Array.maxIndex(pval);
-			int minPvalPC = Array.minIndex(pval);
+				double maxPval = Array.max(pval);
+				double minPval = Array.min(pval);
+				int maxPvalPC = Array.maxIndex(pval);
+				int minPvalPC = Array.minIndex(pval);
 
-			double avgStat = Array.mean(stats);
-			double medianStat = Array.mean(stats);
-			double stdvStat = Array.stdev(stats);
-			writer.println(mBuilder_TYPE + "\t" + oType + "\t" + iType + "\t" + type + "\t" + evalName + "\t" + minStatPC + "\t" + minStat + "\t" + maxStatPC + "\t" + maxStat + "\t" + minPvalPC + "\t" + minPval + "\t" + maxPvalPC + "\t" + maxPval + "\t" + avgStat + "\t" + medianStat + "\t" + stdvStat);
+				double avgStat = Array.mean(stats);
+				double medianStat = Array.mean(stats);
+				double stdvStat = Array.stdev(stats);
+
+				int numSamplesModel = Array.booleanArraySum(correctionIterator.getIterationResult().getBasicPrep().getSamplesForModels());
+				//int numSamplesEval = Array.booleanArraySum(correctionIterator.getIterationResult().getBasicPrep().getSamplesToEvaluate());
+				ArrayList<String> result = new ArrayList<String>();
+				result.add(mBuilder_TYPE.toString());
+				result.add(oType.toString());
+				result.add(iType.toString());
+				result.add(numSamplesModel + "");
+				result.add(numSamps + "");
+				result.add(evaluationResults.length - 1 + "");
+				result.add(type);
+
+				result.add(evalName);
+				result.add(minStatPC + "");
+				result.add(minStat + "");
+				result.add(maxStatPC + "");
+				result.add(maxStat + "");
+				result.add(minPvalPC + "");
+				result.add(minPval + "");
+				result.add(maxPvalPC + "");
+				result.add(maxPval + "");
+				result.add(avgStat + "");
+				result.add(medianStat + "");
+				result.add(stdvStat + "");
+				result.add(stat15 + "");
+				result.add(pval15 + "");
+				result.add(statMax + "");
+				result.add(pvalMax + "");
+
+				writer.println(Array.toStr(Array.toStringArray(result)));
+			}
 		}
 	}
 
@@ -1477,11 +1548,11 @@ class CorrectionIterator implements Serializable {
 								classHerit.setTitle(all.getrScatter().getTitle() + " \nHeritability by " + stratCats[classifyIndex] + (subsetDataHeritability == null ? "" : " and " + subsetDataHeritability));
 								classHerit.setxLabel(all.getrScatter().getxLabel());
 								classHerit.setyLabel(all.getrScatter().getyLabel());
-								
+
 								classHerit.setErrorBars(errorBars);
 								classHerit.setFontsize(12);
 								String[] availY = classHerit.getrSafeYColumns();
-								String[] alt  = new String[availY.length];
+								String[] alt = new String[availY.length];
 								for (int i = 0; i < alt.length; i++) {
 									alt[i] = availY[i].replaceAll("SOLAR_PROPORTION_HERITABLITY_", "");
 								}
