@@ -1,8 +1,10 @@
 package stats;
 
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -87,6 +89,20 @@ public class ICC implements Serializable {
 	public ResponseEffect[] getRowEffects() {
 		return rowEffects;
 	}
+	
+	public int getNumEffects(int minGroupSize) {
+		int num = 0;
+		for (int i = 0; i < rowEffects.length; i++) {
+			if (rowEffects[i].getN() > minGroupSize) {
+				num++;
+			}
+		}
+		return num;
+	}
+
+	public int getNumEffects() {
+		return rowEffects.length;
+	}
 
 	public double getICC() {
 		return ICC;
@@ -140,6 +156,44 @@ public class ICC implements Serializable {
 		MSBetween /= (rowEffects.length - 1);
 	}
 
+	public double getBetweenRowsSS() {
+		return MSBetween;
+	}
+
+	public double getBetweenRowsMS() {
+		return MSBetween;
+	}
+
+	public double getWithinRowsSS() {
+		return MSWithin;
+	}
+
+	public double getWithinRowsMS() {
+		return MSWithin;
+	}
+
+	public int getnTotal() {
+		return nTotal;
+	}
+
+	public void dump(String file){
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(file));
+			writer.println("Group\tResponse");
+			for (int i = 0; i < rowEffects.length; i++) {
+				for (int j = 0; j < rowEffects[i].getData().length; j++) {
+					if (rowEffects[i].getN() > 1) {
+						writer.println("GROUP_" + i + "\t" + rowEffects[i].getData()[j]);
+					}
+				}
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + file);
+			log.reportException(e);
+		}
+	}
+	
 	private void computeMSWithin() {
 		this.MSWithin = 0;
 		for (int i = 0; i < rowEffects.length; i++) {
@@ -357,26 +411,25 @@ public class ICC implements Serializable {
 	public static void test() {
 		try {
 			BufferedReader in = new BufferedReader(new InputStreamReader(new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat").openStream()));
-			in.readLine();
 			int lines = 0;
 			while (in.ready()) {
 				lines++;
 				in.readLine();
 			}
+			System.out.println(lines);
 			in.close();
 			String[] response = new String[lines * 2];
 			double[] data = new double[lines * 2];
-
 			in = new BufferedReader(new InputStreamReader(new URL("http://www.uvm.edu/~dhowell/StatPages/More_Stuff/icc/PartnerCorr.dat").openStream()));
-			in.readLine();
 			int index = 0;
 			int count = 1;
 			while (in.ready()) {
+
 				String[] line = in.readLine().trim().split("[\\s]+");
-				data[index] = Double.parseDouble(line[1]);
+				data[index] = Double.parseDouble(line[0]);
 				response[index] = count + "";
 				index++;
-				data[index] = Double.parseDouble(line[2]);
+				data[index] = Double.parseDouble(line[1]);
 				response[index] = count + "";
 				index++;
 				count++;
