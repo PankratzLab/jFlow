@@ -97,7 +97,7 @@ public class Pedigree {
 			BufferedReader reader = Files.getAppropriateReader(ped);
 			String delim = ext.determineDelimiter(Files.getFirstNLinesOfFile(ped, 1, proj == null ? null : proj.getLog())[0]);
 			int lineNum = 0;
-			PedigreeEntry[] pedigreeEntries = new PedigreeEntry[proj == null ? Files.countLines(ped, 1) : samples.length];
+			PedigreeEntry[] pedigreeEntries = new PedigreeEntry[proj == null ? Files.countLines(ped, 0) : samples.length];
 			while (reader.ready()) {
 				lineNum++;
 				String[] line = reader.readLine().trim().split(delim);
