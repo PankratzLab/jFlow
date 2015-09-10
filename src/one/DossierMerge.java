@@ -14,12 +14,13 @@ public class DossierMerge {
 		String pmid, citation, journal, timesCited, impactFactor, role;
 		Logger log;
 		boolean jointFirstAuthor;
+		int count;
 		
 		writer = new RealTextFormatWriter(dir+"formattedDossier"+(rtfOutput?".rtf":".out"), rtfOutput);
 		log = new Logger(dir+"formattedDossier.log");
 		
 //		citationHash = HashVec.loadFileToHashString(dir+"pubmed_result.utf8.csv", new int[] {9}, new int[] {2, 0, 3}, true, "\t", true, false, false);
-		citationHash = HashVec.loadFileToHashString(dir+"personal bibliography.txt", new int[] {0}, new int[] {1, 2, 3}, false, "\t", true, false, false);
+		citationHash = HashVec.loadFileToHashString(dir+"personal bibliography from Endnote.utf8.txt", new int[] {0}, new int[] {1, 2, 3}, false, "\t", true, false, false);
 		abbreviationsHash = HashVec.loadFileToHashString(dir+"Abbreviations.txt", new int[] {0}, new int[] {1}, false, null, false, false, false);
 		
 		impactHash = HashVec.loadFileToHashString(dir+"impactFactors.dat", new int[] {0}, new int[] {2,1}, false, " in ", false, false, false);
@@ -32,6 +33,8 @@ public class DossierMerge {
 
 		new File(dir+"journalsInDatabase.xln").delete();
 		
+		
+		count = 0;
 		keys = HashVec.getKeys(citationHash, true, true);
 		for (int i = 0; i < keys.length; i++) {
 			pmid = keys[keys.length-i-1];
@@ -42,6 +45,8 @@ public class DossierMerge {
 			jointFirstAuthor = jointFirstAuthorsHash.contains(pmid);
 			
 			if (role == null || !role.equals("None")) {
+				count++;
+				System.out.println(pmid);
 				bits = citation.split("\t", -1);
 				
 				line = bits[0].substring(0, bits[0].length()-1) .split(",");
@@ -71,7 +76,7 @@ public class DossierMerge {
 				}
 				bits[2] = "<u>"+journal+"</>"+bits[2].substring(bits[2].indexOf("."));
 				
-				writer.println((i+1)+"."+(rtfOutput?"\\tab ":"\t")+Array.toStr(bits, " "));
+				writer.println(count+"."+(rtfOutput?"\\tab ":"\t")+Array.toStr(bits, " "));
 			
 				if (jointFirstAuthor) {
 					writer.println((rtfOutput?"\\bullet \\tab ":"\t")+"<super>†</>Joint first author");

@@ -1109,7 +1109,12 @@ public class PlinkData {
 
 		startTime = new Date().getTime();
 
-        clusterFilterCollection = proj.getClusterFilterCollection();
+		if (clusterFilterFileName == null) {
+	        clusterFilterCollection = null;
+		} else {
+			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName, proj.JAR_STATUS.getValue());
+		}
+
 		if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
 //			abLookup = new ABLookup(targetMarkers, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
 			abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog()).getLookup();
