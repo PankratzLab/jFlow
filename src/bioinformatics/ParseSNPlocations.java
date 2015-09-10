@@ -433,6 +433,7 @@ public class ParseSNPlocations {
 		String dir = Files.firstDirectoryThatExists(Aliases.REFERENCE_FOLDERS, false, false, new Logger());
 		String db = DEFAULT_B37_DB_FILENAME;
 		String merge = DEFAULT_MERGE_FILENAME;
+		String vcf = null;
 
 		// uncomment one of these to compile
 //		source = DEFAULT_B37_SOURCE;
@@ -471,6 +472,9 @@ public class ParseSNPlocations {
 			} else if (args[i].startsWith("db=")) {
 				db = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("vcf=")) {
+			    vcf = args[i].split("=")[1];
+			    numArgs--;
 			} else if (args[i].startsWith("merge=")) {
 				merge = args[i].split("=")[1];
 				numArgs--;
@@ -487,7 +491,12 @@ public class ParseSNPlocations {
 				createMergeDBfromSource(dir+mergeSource, dir+merge);
 			} else {
 				SnpMarkerSet map = new SnpMarkerSet(dir+filename, plinkFormat?SnpMarkerSet.PLINK_MAP_FORMAT:SnpMarkerSet.NAMES_ONLY, true, new Logger());
-				map.parseSNPlocations(db, merge, new Logger());
+				if (vcf != null) {
+				    map.parseSNPlocations(vcf, new Logger());
+				} else {
+				    map.parseSNPlocations(db, merge, new Logger());
+				}
+				
 				map.writeToFile(dir+ext.rootOf(filename)+"_newPositions.out", SnpMarkerSet.GENERIC_FORMAT);
 			}
 		} catch (Exception e) {

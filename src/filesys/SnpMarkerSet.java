@@ -2,6 +2,10 @@
 // added in centiMoragns to the 4th column, make sure that's not causing any trouble for you 
 package filesys;
 
+import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
+
 import java.io.*;
 import java.util.*;
 
@@ -585,6 +589,59 @@ public class SnpMarkerSet implements Serializable {
 		}
 	}
 	
+	public void parseSNPlocations(String vcfFile, Logger log) {
+        String[] markerNames;
+        boolean annotateMerges;
+        VCFFileReader reader;
+        
+        markerNames = getMarkerNames();
+        
+        reader = new VCFFileReader(vcfFile, true);
+
+        annotateMerges = false;
+        if (annotation == null) {
+            annotateMerges = true;
+            annotation = new String[markerNames.length][1];
+        }
+        
+        chrs = new byte[markerNames.length];
+        positions = new int[markerNames.length];
+
+        for (int i = 0; i<markerNames.length; i++) {
+            if (markerNames[i].startsWith("rs")) {
+                
+                int rsNumber = Integer.parseInt(markerNames[i].substring(2));
+                CloseableIterator<VariantContext> vcIter = reader.query("1", rsNumber - 1, rsNumber + 1);
+                VariantContext markerVC = null;
+                while (vcIter.hasNext()) {
+                    VariantContext vc = vcIter.next();
+                    if (vc.getID().equals(markerNames[i])) {
+                        markerVC = vc;
+                        break;
+                    }
+                }
+                if (markerVC == null) {
+                    // TODO error, not found
+                } else {
+                    Map<String, Object> attrs = markerVC.getAttributes();
+                    Object attr = markerVC.getAttribute("CHRPOS");
+                }
+                
+            } else {
+                log.reportError("Error - can't look up a SNP without an rs number ("+markerNames[i]+")");
+                chrs[i] = (byte)0;
+                positions[i] = 0;
+                if (annotateMerges) {
+                    annotation[i][0] = ".";
+                }
+            }
+            
+        }
+        
+        reader.close();
+        
+	}
+	
 	public void parseSNPlocations(String db, String mergeDB, Logger log) {
 		SnpMarkerSet dbMarkerSet;
 		int[] dbRSnumbers, dbPositions;
@@ -607,11 +664,11 @@ public class SnpMarkerSet implements Serializable {
 
 		log.report("Searching database...");
 
-		annotateMerges = false;
-		if (annotation == null) {
-			annotateMerges = true;
-			annotation = new String[markerNames.length][1];
-		}
+        annotateMerges = false;
+        if (annotation == null) {
+            annotateMerges = true;
+            annotation = new String[markerNames.length][1];
+        }
 		
 		mergeHash = null;
 		chrs = new byte[markerNames.length];

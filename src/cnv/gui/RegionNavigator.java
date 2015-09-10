@@ -275,7 +275,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 				System.out.println("No regions file defined, using default of " + DEFAULT_LOCATION);
 			} else {
 				// Read each file line by line, format is:
-				// chromosome:start-end/tlabel
+				// chromosome:start-end \t label
 				for (int i = 0; i < regionsList.length; i++) {
 					// System.out.println("Parsing file " + regionsList[i]);
 					// TODO Regex to ensure the line is formatted correctly

@@ -168,7 +168,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     if (!REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
                         file = ext.rootOf(Trailer.this.regionFileName);
                     }
-//                  ((JComboBox<String>)e.getSource()).setSelectedItem(file);
                     regionFileNameBtn.get(file).setSelected(true);
                 }
                 return;
@@ -181,18 +180,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     regionIndex = 0;
                     showRegion();
                 }
-            } /*else if (REGION_LIST_NEW_FILE.equals(shortName)) {
-                chooseNewFiles();
-                if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
-                    if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
-                        ((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
-                    } else {
-                        ((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
-                    }
-                } else {
-                    ((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
-                }
-            }*/
+            } 
         }
     };
 	
@@ -1099,7 +1087,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		regionButtonGroup = new ButtonGroup();
 		if (proj != null) {
-			String[] files = proj.getIndividualRegionLists();
+			String[] files = proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue();
 			String name;
 			for (String file : files) {
 				name = ext.rootOf(file);
