@@ -947,6 +947,7 @@ public class PLINKMendelianChecker {
                        "   (1) Project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
                        "  OR \n" + 
                        "   (1) File with pedigree data (i.e. pedigree=pedigree.dat (not the default))\n" + 
+                       "  OPTIONAL (if pedigree file specified):\n" +
                        "   (2) File with Mendelian Error data (i.e. mendel=markerQualityChecks.mendel (not the default))\n" + 
                        "   (2) File with genomic cluster data (i.e. genomic=cluster.genome.gz (not the default))\n" + 
                        "   (3) Directory of output (i.e. out=/path/to/dir/ (not the default))\n"+
@@ -982,7 +983,10 @@ public class PLINKMendelianChecker {
         try {
             if (projFile != null) {
                 (new PLINKMendelianChecker(new Project(projFile, false))).run();
-            } else if (ped != null && mendel != null && genomic != null && out != null) {
+            } else if (ped != null) {
+                if (out == null) {
+                    out = ext.parseDirectoryOfFile(ped);
+                }
                 (new PLINKMendelianChecker(ped, mendel, genomic, out)).run();
             } else {
                 System.err.println(usage);
