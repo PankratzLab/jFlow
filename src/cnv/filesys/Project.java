@@ -739,16 +739,6 @@ public class Project {
 	public String getNameOfProject() {
 		return getProperty(this.PROJECT_NAME);
 	}
-
-	public String[] getIndividualRegionLists() {
-		return INDIVIDUAL_CNV_LIST_FILENAMES.getValue();
-//		return INDIVIDUAL_CNV_LIST_FILENAMES.getValue(false);
-	}
-	
-	public String[] getRegionLists() {
-		return REGION_LIST_FILENAMES.getValue();
-//		return REGION_LIST_FILENAMES.getValue(false);
-	}
 	
 	public String[] getPropertyKeys() {
 		ArrayList<String> propList = new ArrayList<String>();
