@@ -284,7 +284,7 @@ public class Mega_Analyses {
 				GenParser.parse(new String[] {DIR+"files/"+STUDIES[i][1], "out="+DIR+"filtered/"+STUDIES[i][1], ".-000=>.000", "'MarkerName'=MarkerName", "'Effect_allele'=Allele1", "'Reference_allele'=Allele2", "'BETA'=Effect", "'SE'=StdErr", "'P'=Pval", "!'Information'>=0.30", "!'SE'!NA", "!'SE'!.", "!'SE'!0", "!'BETA'>=-5", "!'BETA'<=5", "!'EAF'>=0.001", "!'EAF'<=0.999", "'EAF'=MAF", "'Information'=Rsq"}, log);
 //	pval only	GenParser.parse(new String[] {DIR+"files/"+STUDIES[i][1], "out="+DIR+"filtered/"+STUDIES[i][1], ".-000=>.000", "0=MarkerName", "11="+STUDIES[i][0], "!8>0.30", "!10!NA", "!10!.", "!10!0", "!6>-5", "!6<5", "!4!NA"}, log);
 				writer.println("PROCESS "+STUDIES[i][1]);
-				log.report(STUDIES[i][0]+"\t"+Files.countLines(DIR+"filtered/"+STUDIES[i][1], true)+"\t"+STUDIES[i][1]);
+				log.report(STUDIES[i][0]+"\t"+Files.countLines(DIR+"filtered/"+STUDIES[i][1], 1)+"\t"+STUDIES[i][1]);
 			}
 			writer.println("");
 			writer.println("");
@@ -332,7 +332,7 @@ public class Mega_Analyses {
 			for (int i = 0; i < STUDIES.length; i++) {
 				FilterByLists.process(DIR+"filtered/"+STUDIES[i][1], new int[] {0}, DIR+"filtered/"+subDir+STUDIES[i][1], threeOrMoreAndRef, null, true, false, false, false, log);
 				writer.println("PROCESS "+STUDIES[i][1]);
-				log.report(STUDIES[i][0]+"\t"+Files.countLines(DIR+"filtered/"+subDir+STUDIES[i][1], true)+"\t"+STUDIES[i][1]);
+				log.report(STUDIES[i][0]+"\t"+Files.countLines(DIR+"filtered/"+subDir+STUDIES[i][1], 1)+"\t"+STUDIES[i][1]);
 				Zip.gzip(DIR+"filtered/"+subDir+STUDIES[i][1]);
 			}
 			writer.println("");
@@ -388,9 +388,9 @@ public class Mega_Analyses {
 			try {
 				log.report(STUDIES[i][0], false, true);
 				FilterByLists.process(DIR+"files/"+STUDIES[i][1], new int[] {0}, DIR+"non1000G_markers/"+STUDIES[i][0]+"_extras.txt", null, in1000G, true, false, false, false, log);
-				log.report("\t"+Files.countLines(DIR+"non1000G_markers/"+STUDIES[i][0]+"_extras.txt", true), false, true);
+				log.report("\t"+Files.countLines(DIR+"non1000G_markers/"+STUDIES[i][0]+"_extras.txt", 1), false, true);
 				FilterByLists.process(DIR+"filtered/"+STUDIES[i][1], new int[] {0}, DIR+"non1000G_markers/filtered/"+STUDIES[i][0]+"_extras.txt", null, in1000G, true, false, false, false, log);
-				log.report("\t"+Files.countLines(DIR+"non1000G_markers/filtered/"+STUDIES[i][0]+"_extras.txt", true), true, true);
+				log.report("\t"+Files.countLines(DIR+"non1000G_markers/filtered/"+STUDIES[i][0]+"_extras.txt", 1), true, true);
 				allFiles[i] = DIR+"non1000G_markers/"+STUDIES[i][0]+"_extras.txt";
 				allFilteredFiles[i] = DIR+"non1000G_markers/filtered/"+STUDIES[i][0]+"_extras.txt";
 			} catch (Exception e) {
@@ -531,7 +531,7 @@ public class Mega_Analyses {
 		log = new Logger(dir+"counts.log");
 		files = Files.list(dir, ".txt", false);
 		for (int i = 0; i < files.length; i++) {
-			log.report(files[i]+"\t"+Files.countLines(dir+files[i], false));
+			log.report(files[i]+"\t"+Files.countLines(dir+files[i], 0));
 		}
 	}
 	

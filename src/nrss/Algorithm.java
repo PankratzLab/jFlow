@@ -243,7 +243,7 @@ public class Algorithm {
 			System.exit(2);
 		}
 		
-		countMissing = Files.countLines(dir+"NOT_PRESENT_IN_LD_SOURCE.txt", false);
+		countMissing = Files.countLines(dir+"NOT_PRESENT_IN_LD_SOURCE.txt", 0);
 		if (countMissing > 0) {
 			System.out.println("\nFYI - there were "+countMissing+" marker(s) exclused from inclusion in NRS scores due to lack of LD information in source files");
 		}

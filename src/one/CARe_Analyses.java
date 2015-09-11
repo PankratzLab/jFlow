@@ -117,7 +117,7 @@ public class CARe_Analyses {
 				dir = DRIVE_ROOT+"CARe_imputed_all_llange_24mar2010/"+STUDIES[i]+"/IBC/"+RACES[j][0]+"/";
 				root = dir+"leslie_lange."+STUDIES[i]+".IBC."+RACES[j][1]+".chr1";
 				if (new File(root+".pfam").exists()) {
-					count = Files.countLines(root+".pfam", false);
+					count = Files.countLines(root+".pfam", 0);
 					counts[j] += count;
 					log.report(STUDIES[i]+"\t"+RACES[j][0]+"\t"+count);
 				}
@@ -139,7 +139,7 @@ public class CARe_Analyses {
 				if (new File(root+"1.mlinfo").exists()) {
 					count = 0;
 					for (int chr = 1; chr <= 22; chr++) {
-						count += Files.countLines(root+chr+".mlinfo", false);
+						count += Files.countLines(root+chr+".mlinfo", 0);
 					}
 					log.report(STUDIES[i]+"\t"+RACES[j][0]+"\t"+count);
 				}
@@ -1097,7 +1097,7 @@ public class CARe_Analyses {
 					skips = Array.intArray(22, 1);
 					skips[0] = 0;
 					Files.cat(Array.stringArraySequence(22, dir+root+".chr", ".mlinfo"), dir+root+".mlinfo", skips, log);
-					n = Files.countLines(dir+root+".chr1.pfam", true);
+					n = Files.countLines(dir+root+".chr1.pfam", 0);
 					files.add(dir+root+".mlinfo 0 1="+studies[i]+"_"+RACES[j][0]+"_A1 2="+studies[i]+"_"+RACES[j][0]+"_A2 3="+studies[i]+"_"+RACES[j][0]+"_freq $#"+n+"="+studies[i]+"_"+RACES[j][0]+"_N 6="+studies[i]+"_"+RACES[j][0]+"_Rsq");
 
 

@@ -1969,7 +1969,7 @@ public class PlinkData {
 	 * @return
 	 */
 	public static int[] parseSampleIndicesAll(String plinkFileRoot, Logger log) {
-		return Array.intArray(Files.countLines(plinkFileRoot+"fam", false));
+		return Array.intArray(Files.countLines(plinkFileRoot+"fam", 0));
 	}
 
 	/**

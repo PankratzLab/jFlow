@@ -125,7 +125,7 @@ public class SnpMarkerSet implements Serializable {
 		String temp;
 		
 		try {
-			count = Files.countLines(filename, false);
+			count = Files.countLines(filename, 0);
 
 			if (indices == null) {
 				temp = Files.getFirstNLinesOfFile(filename, 1, log)[0];

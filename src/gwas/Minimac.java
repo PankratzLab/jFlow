@@ -257,7 +257,7 @@ public class Minimac {
 		}
 		max = Array.max(indices);
 		try {
-			count = Files.countLines(hapFile, false);
+			count = Files.countLines(hapFile, 0);
 			System.out.println("Found "+count+" indiviudals to parse");
 			reader = new BufferedReader(new FileReader(hapFile));
 			alleles = new String[count][markers.length][2];

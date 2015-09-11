@@ -63,7 +63,7 @@ public class Beagle {
 	
 	public static void prepFiles(String list, int step) {
 		new File("lists/").mkdirs();
-    	Files.splitFile(list, (int)Math.ceil((double)Files.countLines(list, true)/(double)step), 0, step, "lists/", ".list", true);
+    	Files.splitFile(list, (int)Math.ceil((double)Files.countLines(list, 1)/(double)step), 0, step, "lists/", ".list", true);
 		writeScript(list);
 	}
 
@@ -552,7 +552,7 @@ public class Beagle {
         iv = new IntVector();
         rep = 1;
         while (new File("lists/"+rep+".list").exists()) {
-        	iv.add(Files.countLines("lists/"+rep+".list", false));
+        	iv.add(Files.countLines("lists/"+rep+".list", 0));
         	rep++;
         }
         n = Array.sum(iv.toArray());

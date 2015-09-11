@@ -993,7 +993,7 @@ public class Conditional {
 				writer.print(markerNames[i]+"\t"+exp+"\t");
 				filename = markerNames[i]+"/"+markers[i]+"_add.out.txt";
 				if (Files.exists(filename, false)) {
-					obs = Files.countLines(filename, true);
+					obs = Files.countLines(filename, 1);
 					writer.println(obs);
 					if (exp != obs) {
 						System.err.println("Error - mismatch for "+markerNames[i]+" expecting "+exp+", found "+obs);

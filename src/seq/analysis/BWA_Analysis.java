@@ -248,7 +248,7 @@ public class BWA_Analysis {
 	private void gatherInputFilesFromFile(String fileOfSamplePairs) {
 
 		try {
-			int numSamples = Files.countLines(fileOfSamplePairs, false);
+			int numSamples = Files.countLines(fileOfSamplePairs, 0);
 			this.bwAnalysisIndividuals = new BWA_AnalysisIndividual[numSamples];// this a per lane way of doing it
 
 			BufferedReader reader = Files.getAppropriateReader(fileOfSamplePairs);

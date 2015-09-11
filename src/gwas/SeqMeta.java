@@ -2017,7 +2017,7 @@ public class SeqMeta {
 				filename = phenotypes[i][0]+"/"+methods[m][0]+"/meta_panEthnic_pvals_mac"+macThresholdTotal+".dat";
 				index = ext.indexOfStr(methods[m][1], groups);
 				if (Files.exists(dir+filename)) {
-					ns[index] = Math.max(ns[index], Files.countLines(filename, true));
+					ns[index] = Math.max(ns[index], Files.countLines(filename, 1));
 				}
 			}
 			for (int g = 0; g < groups.length; g++) {
@@ -2781,7 +2781,7 @@ public class SeqMeta {
 						reader = Files.getAppropriateReader(dir+root+"/"+root+"_wo_"+study+"1.out");
 						log.report("Processing "+root+"_wo_"+study+"1.out");
 						reader.readLine();
-						data = new double[2][3][Files.countLines(dir+root+"/"+root+"_wo_"+study+"1.out", true)];
+						data = new double[2][3][Files.countLines(dir+root+"/"+root+"_wo_"+study+"1.out", 1)];
 						count = 0;
 						while (reader.ready()) {
 							line = reader.readLine().trim().split("[\\s]+");

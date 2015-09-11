@@ -649,7 +649,7 @@ public class Mach {
     		}
     		
     		log.report("Parsing indices for chr"+chr);
-        	indices = new int[Files.countLines(markerInfoFile, true)];
+        	indices = new int[Files.countLines(markerInfoFile, 1)];
     		try {
 	            reader = Files.getAppropriateReader(markerInfoFile);
 	            line = reader.readLine().trim().split("[\\s]+");

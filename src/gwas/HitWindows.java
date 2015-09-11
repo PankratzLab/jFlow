@@ -36,7 +36,7 @@ public class HitWindows {
 		}
 		
 		log = new Logger();
-		count = Files.countLines(filename, true);
+		count = Files.countLines(filename, 1);
 //		log.report("Parsing "+count+" lines");
 		markerNames = new String[count];
 		chrs = new byte[count];

@@ -268,7 +268,7 @@ public class CreateDatabaseFromPlink {
 
         	varIndices = new int[v.size()];
 	        weights = new double[v.size()];
-	        numInds = Files.countLines(dbfile, true);
+	        numInds = Files.countLines(dbfile, 1);
 	        try {
                 reader = new BufferedReader(new FileReader(dbfile));
                 header = reader.readLine().trim().split("[\\s]+");

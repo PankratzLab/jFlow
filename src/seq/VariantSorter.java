@@ -315,7 +315,7 @@ public class VariantSorter {
         System.out.println("Loading gene/exon boundary information...");
 //        geneInfo = Collapsed.loadFileToHashString(dir+"knownGene.xln", 0, new int[] {1,3,4,7,8,9,12}, "\t", false);
         
-        count = Files.countLines(dir+"known_2q.xln", true);
+        count = Files.countLines(dir+"known_2q.xln", 1);
         geneLocs = new int[count][][];
         geneNames = new String[count];
         count = 0;

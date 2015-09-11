@@ -811,7 +811,7 @@ public class GeneScorePipeline {
 				String crossFilterFile = study.studyDir + dataFile + "\\" + constraintEntry.getKey() + "\\bimData.xln";
 				if ((new File(crossFilterFile).exists())) {
 					System.out.println(ext.getTime()+"]\tCross-filtered data file already exists! [ --> '" + crossFilterFile + "']");
-					study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, Files.countLines(crossFilterFile, true));
+					study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, Files.countLines(crossFilterFile, 1));
 					continue;
 				}
 				System.out.println(ext.getTime()+"]\tCross-filtering data and .BIM files [ --> '" + crossFilterFile + "']");
@@ -889,7 +889,7 @@ public class GeneScorePipeline {
 				String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
 				if ((new File(hitsFile)).exists()) {
 					System.out.println(ext.getTime()+"]\tHit window analysis file already exists! [ --> '" + hitsFile + "']");
-					study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, Files.countLines(hitsFile, true));
+					study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, Files.countLines(hitsFile, 1));
 					continue;
 				}
 				System.out.println(ext.getTime()+"]\tRunning hit window analysis [ --> '" + hitsFile + "']");
