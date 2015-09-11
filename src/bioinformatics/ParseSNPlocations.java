@@ -146,6 +146,7 @@ public class ParseSNPlocations {
 	        		    int posTemp = -2;
 	        		    if (pts.length >= 2) {
     	        		    try {
+    	        		    	pts[0] = ext.replaceAllWith(pts[0], new String[][] {{"X", "23"}, {"Y", "24"}, {"XY", "25"}, {"M", "26"}});
     	        		        chrTemp = Integer.parseInt(pts[0].startsWith("chr") ? pts[0].substring(3) : pts[0]);
     	        		    } catch (NumberFormatException e) {}
     	        		    try {
