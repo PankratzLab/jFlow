@@ -640,11 +640,11 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		if (isAffyIntensityOnly(markerData)) {
 			// centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, true, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
 			centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, false, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
-			setFakeAB(markerData, centroid, clusterFilterCollection, .1f);
+			CentroidCompute.setFakeAB(markerData, centroid, clusterFilterCollection, .1f);
 		} else {
 			centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, false, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
 			if (markerData.getMarkerName().startsWith(ILLUMINA_INTENSITY_ONLY_FLAG[0])) {
-				setFakeAB(markerData, centroid, clusterFilterCollection, 0);
+				CentroidCompute.setFakeAB(markerData, centroid, clusterFilterCollection, 0);
 			}
 		}
 		centroid.computeCentroid();
@@ -655,27 +655,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		return markerData.getMarkerName().startsWith(AFFY_INTENSITY_ONLY_FLAG[0]);
 	}
 
-	/**
-	 * We use this in the case of intensity only probesets...We assign all genotypes to be the same
-	 * 
-	 */
-	private static void setFakeAB(MarkerData markerData, CentroidCompute centroid, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
-		byte[] fakeAB = new byte[centroid.getClustGenotypes().length];
-		byte[] clustAB = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), gcThreshold);
-		int[] counts = new int[4];
-		for (int i = 0; i < clustAB.length; i++) {
-			counts[clustAB[i] + 1]++;
-		}
-		if (counts[0] == clustAB.length) {
-			byte tmpCluster = Array.mean(markerData.getXs()) > Array.mean(markerData.getYs()) ? (byte) 0 : (byte) 1;
-			Arrays.fill(fakeAB, (byte) tmpCluster);
-			centroid.setAlternateGenotypes(fakeAB);
-
-		} else {
-			centroid.setAlternateGenotypes(clustAB);
-		}
-		// assign all to this cluster
-	}
+	
 
 	private static class WorkerRegression implements Callable<CrossValidation> {
 		private PrincipalComponentsResiduals principalComponentsResiduals;

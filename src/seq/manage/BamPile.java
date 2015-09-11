@@ -30,6 +30,8 @@ public class BamPile implements Serializable {
 	private Segment bin;
 	private int[] counts;
 	private String refAllele;
+	private int numReadsOverlap;
+	private int numReadsWithMismatch;
 
 	private double[] avgMapQ;
 	private double[] avgPhread;
@@ -60,6 +62,8 @@ public class BamPile implements Serializable {
 		this.overallAvgMapQ = 0;
 		this.overallAvgDepth = 0;
 		this.refAllele = "NA";
+		this.numReadsOverlap = 0;
+		this.numReadsWithMismatch = 0;
 
 	}
 
@@ -69,6 +73,14 @@ public class BamPile implements Serializable {
 
 	public int[] getCounts() {
 		return counts;
+	}
+
+	public int getNumReadsOverlap() {
+		return numReadsOverlap;
+	}
+
+	public int getNumReadsWithMismatch() {
+		return numReadsWithMismatch;
 	}
 
 	public int getTotalDepth(boolean includeIndels, boolean includeNs) {
@@ -200,12 +212,13 @@ public class BamPile implements Serializable {
 
 		int totalDepth = 0;
 		double mapQ = 0;
+		// TODO count deletions and insertions here?
 		for (int i = 0; i < counts.length - 2; i++) {
 			totalDepth += counts[i];
 			mapQ += avgMapQ[i];
 		}
 		this.overallAvgDepth = (double) totalDepth / bin.getSize();
-		if (mapQ > 0) {
+		if (totalDepth > 0) {
 			this.overallAvgMapQ = (double) mapQ / totalDepth;
 		}
 		for (int i = 0; i < counts.length; i++) {
@@ -216,7 +229,6 @@ public class BamPile implements Serializable {
 		}
 	}
 
-	
 	public double getOverallAvgMapQ() {
 		return overallAvgMapQ;
 	}
@@ -229,8 +241,9 @@ public class BamPile implements Serializable {
 		return bin;
 	}
 
-	public void addRecord(SAMRecord samRecord, double phredFilter, Logger log) {
+	public void addRecord(SAMRecord samRecord,String[] refMatchedSegment, double phredFilter, Logger log) {
 		Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
+		String[] ref = refMatchedSegment;
 		Segment toPile = bin.getUnion(samRecordSegment, log);
 		int mapQ = samRecord.getMappingQuality();
 		if (mapQ == 255) {
@@ -238,7 +251,7 @@ public class BamPile implements Serializable {
 			log.reportTimeError(error);
 			throw new IllegalArgumentException(error);
 		} else {
-
+			numReadsOverlap++;
 			// System.out.println(toPile.getSize());
 			String r = samRecord.getReadString();
 			double[] p = SamRecordOps.getReadPhred(samRecord);
@@ -247,12 +260,13 @@ public class BamPile implements Serializable {
 			int curRefBase = samRecord.getAlignmentStart();
 			int curReadBase = 0;
 			List<CigarElement> cigarEls = samRecord.getCigar().getCigarElements();
+			boolean hasMismatch = false;
 			for (CigarElement cigarEl : cigarEls) {
 				if (curRefBase > toPile.getStop()) {
 					break;
 
 				}
-				CigarOperator op = cigarEl.getOperator();
+				CigarOperator op = cigarEl.getOperator();				
 				for (int i = 0; i < cigarEl.getLength(); i++) {
 					String base = null;
 					if (curRefBase > toPile.getStop()) {
@@ -268,6 +282,10 @@ public class BamPile implements Serializable {
 					if (op.consumesReadBases() && op.consumesReferenceBases()) {
 						if (base != null) {
 							addRegBase(base, mapQ, p[curReadBase], log);
+							if (ref != null && !base.equals(ref[curRefBase - samRecord.getAlignmentStart()])) {
+								hasMismatch = true;
+
+							}
 						}
 						curRefBase++;
 						curReadBase++;
@@ -283,6 +301,14 @@ public class BamPile implements Serializable {
 						curRefBase++;
 					}
 				}
+			}
+			if (hasMismatch) {
+				numReadsWithMismatch++;
+			}
+			if (numReadsWithMismatch > numReadsOverlap) {
+				String error = "Internal Error: Found more reads with mismatching bases than total reads";
+				log.reportTimeError(error);
+				throw new IllegalStateException(error);
 			}
 		}
 	}

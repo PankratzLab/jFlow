@@ -14,7 +14,6 @@ import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
-import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
 /**
@@ -60,6 +59,34 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
 		};
 
 		return segSet;
+	}
+
+	public LocusSet<BEDFeatureSeg> loadAll(Logger log) {
+		ArrayList<BEDFeatureSeg> bedSegs = new ArrayList<BEDFeatureSeg>();
+		CloseableIterator<BEDFeature> iterator;
+		try {
+			iterator = reader.iterator();
+			while (iterator.hasNext()) {
+				BEDFeature bedFeature = iterator.next();
+				bedSegs.add(new BEDFeatureSeg(bedFeature, log));
+			}
+		} catch (IOException e) {
+			log.reportException(e);
+			e.printStackTrace();
+			return null;
+		}
+
+		LocusSet<BEDFeatureSeg> segSet = new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]), true, log) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+
+		return segSet;
+
 	}
 
 	public static class BEDFeatureSeg extends Segment {

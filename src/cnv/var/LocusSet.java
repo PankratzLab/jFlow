@@ -51,6 +51,22 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		return loci;
 	}
 
+	public boolean hasNoOverlap() {
+		boolean hasOverlap = false;
+		out:for (int i = 0; i < loci.length; i++) {
+			T[] overlaps = getOverLappingLoci(loci[i]);
+			if (overlaps != null && overlaps.length > 0) {
+				for (int j = 0; j < overlaps.length; j++) {
+					if (!overlaps[j].equals(loci[i])) {
+						hasOverlap = true;
+						break out;
+					}
+				}
+			}
+		}
+		return hasOverlap;
+	}
+
 	public LocusSet<Segment> mergeOverlapping() {
 
 		if (!sorted) {
@@ -82,7 +98,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 				}
 				tmp.clear();
 			}
-			log.reportTimeInfo("Merged "+originalSize +" segments to "+merged.size());
+			log.reportTimeInfo("Merged " + originalSize + " segments to " + merged.size());
 			LocusSet<Segment> mergedSet = new LocusSet<Segment>(merged.toArray(new Segment[merged.size()]), true, log) {
 
 				/**
@@ -93,6 +109,14 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 			};
 			return mergedSet;
 		}
+	}
+
+	public Segment[] getStrictSegments() {
+		Segment[] segs = new Segment[loci.length];
+		for (int i = 0; i < loci.length; i++) {
+			segs[i] = new Segment(loci[i].getChr(), loci[i].getStart(), loci[i].getStop());
+		}
+		return segs;
 	}
 
 	public int[] getOverlappingIndices(final Segment seg) {
@@ -186,7 +210,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		};
 		return lSet;
 	}
-	
+
 	public void writeSerial(String fileName) {
 		Files.writeSerial(this, fileName, true);
 	}

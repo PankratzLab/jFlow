@@ -7,7 +7,20 @@ import java.util.ArrayList;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 
 public class ArraySpecialList {
+	public static class ArrayStringList extends ArrayList<String> {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
+		public ArrayStringList(int capacity) {
+			super(capacity);
+		}
+
+	}
+	
+	
+	
 	public static class ArrayIntList extends ArrayList<Integer> {
 		/**
 		 * 

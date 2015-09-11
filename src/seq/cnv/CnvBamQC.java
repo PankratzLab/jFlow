@@ -14,9 +14,8 @@ import cnv.var.LocusSet;
 import seq.manage.BEDFileReader;
 import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.manage.BamPile;
-import seq.manage.BamSegPileUp;
+import seq.manage.BamSegPileUp.PileupProducer;
 import seq.manage.BedOps;
-import seq.manage.ReferenceGenome;
 import seq.qc.Mappability;
 import stats.Histogram.DynamicAveragingHistogram;
 import stats.Rscript.COLUMNS_MULTIPLOT;
@@ -208,6 +207,7 @@ public class CnvBamQC {
 					sampMapQ += bamPiles[j][matchedIndices[i]].getOverallAvgMapQ();
 					sampDepth += bamPiles[j][matchedIndices[i]].getOverallAvgDepth();
 				} else {
+					// TODO exclude any other overlapping
 					// System.out.println(bamPiles[j].length + "\t" + bamPiles.length + "\t" + j + "\t" + matchedIndices.length + "\t" + matchedIndices[i]);
 					popAvgMapQ += bamPiles[j][matchedIndices[i]].getOverallAvgMapQ();
 					popAvgDepth += bamPiles[j][matchedIndices[i]].getOverallAvgDepth();
@@ -367,7 +367,7 @@ public class CnvBamQC {
 		callSplit.matchAndSplit();
 
 		String serToReport = serDir + ext.rootOf(cnvFile) + "_QC/";
-		PileupProducer producer = new PileupProducer(bamFiles, serToReport, referenceGenomeFasta, log, callSplit);
+		PileupProducer producer = new PileupProducer(bamFiles, serToReport, referenceGenomeFasta, null, callSplit.getSegsToSearch(), log);
 		WorkerTrain<BamPile[]> train = new WorkerTrain<BamPile[]>(producer, numThreads, 2, log);
 		BamPile[][] bamPiles = new BamPile[bamFiles.length][];
 		int index = 0;
@@ -439,87 +439,6 @@ public class CnvBamQC {
 			return segsToSearch;
 		}
 
-	}
-
-	private static class PileupProducer implements Producer<BamPile[]> {
-		private int index;
-		private String[] bamFiles;
-		private String referenceGenomeFasta;
-		private String serDir;
-		private Logger log;
-		private CallSplit callSplit;
-
-		public PileupProducer(String[] bamFiles, String serDir, String referenceGenomeFasta, Logger log, CallSplit callSplit) {
-			super();
-			this.bamFiles = bamFiles;
-			this.serDir = serDir;
-			this.referenceGenomeFasta = referenceGenomeFasta;
-			this.log = log;
-			this.callSplit = callSplit;
-			new File(serDir).mkdirs();
-		}
-
-		@Override
-		public boolean hasNext() {
-			return index < bamFiles.length;
-		}
-
-		@Override
-		public Callable<BamPile[]> next() {
-			PileUpWorker worker = new PileUpWorker(bamFiles[index], serDir, referenceGenomeFasta, log, callSplit);
-			index++;
-			return worker;
-		}
-
-		@Override
-		public void shutdown() {
-			// TODO Auto-generated method stub
-
-		}
-
-	}
-
-	private static class PileUpWorker implements Callable<BamPile[]> {
-		private String bamFile;
-		private String referenceGenomeFasta;
-		private String serDir;
-		private Logger log;
-		private CallSplit callSplit;
-
-		public PileUpWorker(String bamFile, String serDir, String referenceGenomeFasta, Logger log, CallSplit callSplit) {
-			super();
-			this.bamFile = bamFile;
-			this.serDir = serDir;
-			this.referenceGenomeFasta = referenceGenomeFasta;
-			this.log = log;
-			this.callSplit = callSplit;
-		}
-
-		@Override
-		public BamPile[] call() throws Exception {
-			String ser = serDir + ext.rootOf(bamFile) + ".ser";
-			if (!Files.exists(ser)) {
-				BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, new ReferenceGenome(referenceGenomeFasta, log), callSplit.getSegsToSearch(), log);
-				ArrayList<BamPile> bamPiles = new ArrayList<BamPile>();
-				// int num = 0;
-				while (bamSegPileUp.hasNext()) {
-
-					BamPile bamPile = bamSegPileUp.next();
-					bamPile.summarize();
-					bamPiles.add(bamPile);
-					// System.out.println(num + "\tShouldBe: " + callSplit.getSegsToSearch()[num].getUCSClocation() + "\t" + bamPile.getBin().getUCSClocation() + Array.toStr(bamPile.getCounts()));
-					// System.out.println(bamPile.getOverallAvgDepth()+"\t"+bamPile.getOverallAvgMapQ());
-					// num++;
-				}
-				// System.out.println(bamPiles.size());
-				BamPile[] bamPilesFinal = bamPiles.toArray(new BamPile[bamPiles.size()]);
-				BamPile.writeSerial(bamPilesFinal, ser);
-				return bamPilesFinal;
-
-			} else {
-				return BamPile.readSerial(ser, log);
-			}
-		}
 	}
 
 	public static void main(String[] args) {
