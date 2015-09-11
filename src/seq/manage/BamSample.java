@@ -2,6 +2,8 @@ package seq.manage;
 
 import java.util.Hashtable;
 
+import cnv.analysis.BeastScore;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import common.Array;
@@ -27,6 +29,7 @@ public class BamSample {
 	}
 
 	private void init() {
+		MarkerSet markerSet = proj.getMarkerSet();
 		this.rawDepth = new double[bamPiles.length];
 		this.mapQs = new double[bamPiles.length];
 		this.percentWithMismatch = new double[bamPiles.length];
@@ -38,18 +41,25 @@ public class BamSample {
 			percentWithMismatch[i] = percentMiss;
 
 		}
-		this.normDepth = new double[rawDepth.length];
-		double maxNorm = Array.max(rawDepth);
-		double minNorm = Array.min(rawDepth);
+		BeastScore beastScore = new BeastScore(Array.toFloatArray(rawDepth), markerSet.getIndicesByChr(), null, proj.getLog());
+		this.normDepth = Array.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD());
+
+//		if(Array.min(normDepth)<0){
+//			System.err.println("less dan 0");
+//			System.exit(1);
+//		}
+		double maxNorm = Array.max(normDepth);
+		double minNorm = Array.min(normDepth);
 		for (int i = 0; i < normDepth.length; i++) {
-			normDepth[i] = (rawDepth[i] - minNorm) / (maxNorm - minNorm);
+			normDepth[i] = (normDepth[i] - minNorm) / (maxNorm - minNorm);
 			normDepth[i] += 1;
+			normDepth[i] *= 10;
 		}
 	}
 
 	public Hashtable<String, Float> writeSample(long fingerprint) {
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
-		byte[] genos = Array.byteArray(bamPiles.length, (byte) 0);
+		byte[] genos = Array.byteArray(bamPiles.length, (byte) 1);
 		float[] blankLRRs = Array.floatArray(bamPiles.length, 0);
 		String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION;
 		Sample sample = new Sample(sampleFile, fingerprint, Array.toFloatArray(mapQs), Array.toFloatArray(normDepth), Array.toFloatArray(normDepth), Array.toFloatArray(percentWithMismatch), blankLRRs, genos, genos, false);

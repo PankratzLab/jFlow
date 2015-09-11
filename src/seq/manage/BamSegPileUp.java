@@ -38,6 +38,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 	private SAMRecordIterator sIterator;
 	private boolean[] addingMask;
 	private AggregateFilter filter;
+	private  FilterNGS filterNGS;
 
 	public BamSegPileUp(String bam, String referenceGenomeFasta, Segment[] intervals, FilterNGS filterNGS, Logger log) {
 		super();
@@ -53,12 +54,12 @@ public class BamSegPileUp implements Iterator<BamPile> {
 		this.addingMask = new boolean[intervals.length];
 		this.bamPiles = new BamPile[intervals.length];
 		this.bamPilesToReturn = new ArrayList<BamPile>();
+		this.filterNGS =filterNGS;
 		this.filter = FilterNGS.initializeFilters(filterNGS, SAM_FILTER_TYPE.COPY_NUMBER, log);
 		for (int i = 0; i < intervals.length; i++) {
 			bamPiles[i] = new BamPile(intervals[i]);
 			addingMask[i] = true;
 		}
-		log.reportTimeError("Phread set to 20");
 	}
 
 	@Override
@@ -75,7 +76,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 						boolean overlaps = samRecordSegment.overlaps(bamPiles[i].getBin());
 
 						if (overlaps) {
-							bamPiles[i].addRecord(samRecord, refSeq, 20, log);
+							bamPiles[i].addRecord(samRecord, refSeq, filterNGS.getPhreadScoreFilter(), log);
 						} else {
 
 							if (i == numReturned && samRecordSegment.getStart() > bamPiles[i].getBin().getStop() || !sIterator.hasNext()) {
@@ -145,6 +146,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 			this.serDir = serDir;
 			this.referenceGenomeFasta = referenceGenomeFasta;
 			this.pileSegs = pileSegs;
+			this.filterNGS =filterNGS;
 			this.log = log;
 
 		}
