@@ -1190,14 +1190,14 @@ public class MarkerMetrics {
 		public Boolean call() throws Exception {
 			
 			fullQC(proj, samplesToExclude, markerNames, fullPathToOutput);
-			if (Files.exists(fullPathToOutput) && Files.countLines(fullPathToOutput, true) == markerNames.length) {
+			if (Files.exists(fullPathToOutput) && Files.countLines(fullPathToOutput, 1) == markerNames.length) {
 				return true;
 			} else {
 				if (!Files.exists(fullPathToOutput)) {
 					proj.getLog().reportTimeError("Could not compute marker metrics on " + Thread.currentThread().toString());
 					proj.getLog().reportFileNotFound(fullPathToOutput);
 				} else {
-					proj.getLog().reportTimeError("Found " + Files.countLines(fullPathToOutput, true) + " markers in " + fullPathToOutput + " but should have found " + markerNames.length);
+					proj.getLog().reportTimeError("Found " + Files.countLines(fullPathToOutput, 1) + " markers in " + fullPathToOutput + " but should have found " + markerNames.length);
 				}
 				return false;
 			}

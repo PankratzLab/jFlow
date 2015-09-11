@@ -563,7 +563,7 @@ public class MitoPipeline {
 		log = proj.getLog();
 		markerMetricsFilename = proj.MARKER_METRICS_FILENAME.getValue(true, false);
 		// skip if marker qc file exists
-		if (Files.exists(markerMetricsFilename) && new File(markerMetricsFilename).length() > 0 && Files.exists(proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE) && Files.countLines(markerMetricsFilename, true) >= Files.countLines(proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE, false)) {
+		if (Files.exists(markerMetricsFilename) && new File(markerMetricsFilename).length() > 0 && Files.exists(proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE) && Files.countLines(markerMetricsFilename, 1) >= Files.countLines(proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE, 0)) {
 			log.report("Marker QC file " + proj.MARKER_METRICS_FILENAME.getValue(true, false) + " exists");
 			log.report("Skipping Marker QC computation for the analysis, filtering on existing file");
 		} else {

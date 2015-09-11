@@ -319,9 +319,9 @@ public class ChromatinAccessibility {
 					if (j < 2) {
 						double[] pvals;
 						
-						double numIn = Files.countLines(file_dir+ext.rootOf(filename)+"/"+ext.addToRoot(filename, (i==files.length?"_allMerged_":"_"+ext.rootOf(files[i])+"_")+CLASSES[j]+"_in"), false);
+						double numIn = Files.countLines(file_dir+ext.rootOf(filename)+"/"+ext.addToRoot(filename, (i==files.length?"_allMerged_":"_"+ext.rootOf(files[i])+"_")+CLASSES[j]+"_in"), 0);
 //						System.out.print("\t"+numIn);
-						double numOut = Files.countLines(file_dir+ext.rootOf(filename)+"/"+ext.addToRoot(filename, (i==files.length?"_allMerged_":"_"+ext.rootOf(files[i])+"_")+CLASSES[j]+"_out"), false);
+						double numOut = Files.countLines(file_dir+ext.rootOf(filename)+"/"+ext.addToRoot(filename, (i==files.length?"_allMerged_":"_"+ext.rootOf(files[i])+"_")+CLASSES[j]+"_out"), 0);
 //						System.out.print("\t"+numOut+"\t"+ext.formPercent(numIn/(numIn+numOut), 2));
 						System.out.print("\t"+ext.formPercent(numIn/(numIn+numOut), 2));
 

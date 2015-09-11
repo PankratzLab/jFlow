@@ -465,7 +465,7 @@ public class MergeDatasets {
 	        }
 	        writer.close();
 	        System.out.println("Found results for "+count+" markers in "+ext.getTimeElapsed(time));
-	        System.out.println("There were "+Files.countLines(dir+"FisherOrChiSquareDrops.dat", false)+" markers that had a minimum p-value less than "+HOMOGENEITY_THRESHOLD);
+	        System.out.println("There were "+Files.countLines(dir+"FisherOrChiSquareDrops.dat", 0)+" markers that had a minimum p-value less than "+HOMOGENEITY_THRESHOLD);
         } catch (Exception e) {
 	        System.err.println("Error writing to "+dir+"FisherResults.xln");
 	        e.printStackTrace();

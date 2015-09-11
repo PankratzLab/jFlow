@@ -62,7 +62,7 @@ public class peakAt {
 			if (counting) {
 				System.out.println("Counting the number of rows.");
 	            time = new Date().getTime();
-				count = Files.countLines(filename, true);
+				count = Files.countLines(filename, 0);
 				writer.println(count);
 				writer.println("Counted "+count+" rows in "+ext.getTimeElapsed(time));
 			} else {

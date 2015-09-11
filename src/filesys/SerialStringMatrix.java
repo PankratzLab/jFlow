@@ -23,7 +23,7 @@ public class SerialStringMatrix implements Serializable {
         int count;
         
         try {
-        	count = Files.countLines(filename, false);
+        	count = Files.countLines(filename, 0);
         	matrix = new String[count][];
 	        reader = new BufferedReader(new FileReader(filename));
 	        count = 0;

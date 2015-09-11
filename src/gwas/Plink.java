@@ -651,7 +651,7 @@ public class Plink {
 			filename = ext.insertNumbers(pattern, rep);
 			if (new File(filename).exists()) {
 				if (rep == 1) {
-					markerNames = new String[Files.countLines(filename, true)];
+					markerNames = new String[Files.countLines(filename, 1)];
 					counts = new int[markerNames.length][2]; 
 				}
 				numReps = numRepsEach;

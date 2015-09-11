@@ -876,7 +876,7 @@ public class CALiCo {
 			modelLine = modelList.get(model);
 			resultsSnp = SkatMeta.loadFile(resultFilesDir + filename + ".out", null, new String[] {"MarkerName", "Chr", "Position"}, new String[] {"Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"}, new String[] {"Chr ==" + modelLine[1], "Position >= " + modelLine[2], "Position <= " + modelLine[3]}, log);
 			resultsIndex = SkatMeta.loadFile(resultFilesDir + filename + "_cov.out", null, new String[] {"MarkerName", "Chr", "Position"}, new String[] {"Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"}, new String[] {"Chr ==" + modelLine[1], "Position >= " + modelLine[2], "Position <= " + modelLine[3]}, log);
-			numSamples = Files.countLines(resultFilesDir + filename + "/" + model1[0] + "_pheno.dat", true);
+			numSamples = Files.countLines(resultFilesDir + filename + "/" + model1[0] + "_pheno.dat", 1);
 			snps = resultsSnp.keys();
 			while (snps.hasMoreElements()) {
 				snp = snps.nextElement();

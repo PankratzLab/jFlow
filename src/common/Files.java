@@ -1619,7 +1619,7 @@ public class Files {
 		time = new Date().getTime();
 		try {
 			log.report("Counting lines in "+filein);
-			lineCount = Files.countLines(filein, false);
+			lineCount = Files.countLines(filein, 0);
 			log.report("Line count = "+lineCount);
 			log.report("Loading "+filein+" into memory");
 			reader = new BufferedReader(new FileReader(filein));
@@ -1684,7 +1684,7 @@ public class Files {
 		int lineCount;
 		
 		log.report("Counting lines in "+filename);
-		lineCount = Files.countLines(filename, false);
+		lineCount = Files.countLines(filename, 0);
 		matrix = new String[lineCount][];
 		try {
 			writer = new PrintWriter(new FileWriter(fileout));
@@ -2562,7 +2562,8 @@ public class Files {
 	}
 	
 	// this is much faster than any c=in.read() method would be (~3.7 times faster for a large .mldose file)
-	public static int countLines(String filename, boolean dontCountFirstLine) {
+	// however it is almost twice as slow as the LineNumberReader below
+	public static int countLinesSlow(String filename, boolean dontCountFirstLine) {
 		BufferedReader reader;
         int count;
         
@@ -2580,13 +2581,13 @@ public class Files {
         return -1;
 	}
 	
-	public static int countLines(String filename, int discard) {
+	public static int countLines(String filename, int numberOfLinesNotToCount) {
 		try {
 			LineNumberReader lnr = new LineNumberReader(new java.io.FileReader(filename));
 			lnr.skip(Long.MAX_VALUE);
 			int lines = lnr.getLineNumber();
 			lnr.close();
-			return lines - discard;
+			return lines - numberOfLinesNotToCount;
 	    } catch (FileNotFoundException fnfe) {
 	        System.err.println("Error: file \""+filename+"\" not found in current directory");
 	    } catch (IOException ioe) {
@@ -3470,6 +3471,7 @@ public class Files {
 		String outfile = null;
 		boolean multiple = false;
 		boolean cwd = false;
+		boolean wc = false;
 		
 		String usage = "\n" + 
 		"common.Files requires 0-1 arguments\n" + 
@@ -3494,6 +3496,9 @@ public class Files {
 		"   (1) move files already successfully (i.e. currently hard coded (not the default))\n" +
 		"  OR\n" +
 		"   (1) list all files in directory and all its subdirectories (i.e. dir=./ (not the default))\n" +
+		"  OR\n" +
+		"   (1) count the number of lines in the file (i.e. wc (not the default))\n" + 
+		"   (2) filename to count (i.e. file=large_file.txt (not the default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -3523,6 +3528,9 @@ public class Files {
 				numArgs--;
 			} else if (args[i].startsWith("-nextRep")) {
 				findNextRep = true;
+				numArgs--;
+			} else if (args[i].startsWith("wc")) {
+				wc = true;
 				numArgs--;
 			} else if (args[i].startsWith("lastRep=")) {
 				lastKnownRep = ext.parseIntArg(args[i]);
@@ -3576,7 +3584,10 @@ public class Files {
 //			moveFilesMoved(filesMoved, directory);
 //			System.exit(1);
 			
-			if (findNextRep && patterns !=null) {
+			if (wc) {
+				long time = new java.util.Date().getTime();
+				System.out.println("Counted "+countLines(args[0], 0)+ " lines in "+ext.getTimeElapsed(time));
+			} else if (findNextRep && patterns !=null) {
 				System.out.println(findNextRepSafely(patterns, numDigits, lastKnownRep, patienceInMilliseconds));
 			} else if (filename != null) {
 				makeQsub(filename, multiple, start, stop, separate, patterns, cwd);

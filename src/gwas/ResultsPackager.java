@@ -433,7 +433,7 @@ public class ResultsPackager {
 				tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, EMIM_OUTPUT_FORMAT_SEGMENT5_TDT, null, null);
 			}
 
-			hweThreshold = 0.05 / (double) Files.countLines(childResultsFile, true);
+			hweThreshold = 0.05 / (double) Files.countLines(childResultsFile, 1);
 			log.report("");
 			reader1 = Files.getAppropriateReader(childResultsFile);
 			reader3 = Files.getAppropriateReader(childMomResultsFile);

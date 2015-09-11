@@ -791,8 +791,8 @@ class CorrectionIterator implements Serializable {
 
 			if (pedFile != null) {
 
-				if (!Files.exists(heritSummary) || Files.countLines(heritSummary, false) != Files.countLines(outputSummary, false)) {
-					if (!Files.exists(tmpHerit) || Files.countLines(tmpHerit, false) != Files.countLines(outputSummary, false)) {
+				if (!Files.exists(heritSummary) || Files.countLines(heritSummary, 0) != Files.countLines(outputSummary, 0)) {
+					if (!Files.exists(tmpHerit) || Files.countLines(tmpHerit, 0) != Files.countLines(outputSummary, 0)) {
 						// System.out.println(Files.exists(tmpHerit) + "\t" + tmpHerit);
 						// System.out.println(outputSer);
 						// System.out.println(outputRoot);

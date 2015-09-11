@@ -147,7 +147,7 @@ public class PlinkMarkerLoader implements Runnable {
 	    BufferedReader reader;
 	    String[] line;
 	    
-	    famIDList = new String[Files.countLines(fileRoot + ".fam", false)];
+	    famIDList = new String[Files.countLines(fileRoot + ".fam", 0)];
 	    
 	    try {
     	    reader = new BufferedReader(new FileReader(fileRoot + ".fam"));
