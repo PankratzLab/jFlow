@@ -93,6 +93,12 @@ public class BamOps {
 		return sampleNames;
 	}
 
+	public static String getSampleNsdame(String bamFile) {
+		
+		return null;
+	}
+
+	
 	public static String getSampleName(String bamFile) {
 		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
 		String sample = reader.getFileHeader().getReadGroups().get(0).getSample();

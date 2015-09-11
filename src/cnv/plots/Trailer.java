@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import mining.Transformations;
 import common.*;
 import cnv.filesys.*;
 import cnv.gui.NewRegionListDialog;
@@ -2015,6 +2016,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		if (correctGC && !correctGCFirst) {
 			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj, tmpLrrs, gcModel, false, false, false, true).getCorrectedIntensities());
+		}
+		if (Transforms.TRANSFORMATION_TYPES[transformation_type] == Transformations.MAD_SCALED) {
+			for (int i = 0; i < tmpLrrs.length; i++) {
+				tmpLrrs[i] *= 2;// for now
+			}
 		}
 		return tmpLrrs;
 	}

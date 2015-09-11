@@ -6,6 +6,8 @@ import java.util.Hashtable;
 
 import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.manage.BamSegPileUp.PileupProducer;
+import seq.qc.FilterNGS;
+import common.Array;
 import common.Files;
 import common.Logger;
 import common.WorkerTrain;
@@ -17,6 +19,7 @@ import cnv.filesys.Centroids;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.Markers;
+import cnv.manage.MitoPipeline;
 import cnv.manage.TransposeData;
 import cnv.var.LocusSet;
 
@@ -38,7 +41,8 @@ public class BamImport {
 
 					log.reportTimeInfo(bLocusSet.getLoci().length + " segments to pile");
 					reader.close();
-					PileupProducer producer = new PileupProducer(bamsToImport, serDir, proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), null, bLocusSet.getStrictSegments(), log);
+					FilterNGS filterNGS = new FilterNGS(20, 20, null);
+					PileupProducer producer = new PileupProducer(bamsToImport, serDir, proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), filterNGS, bLocusSet.getStrictSegments(), log);
 					WorkerTrain<BamPile[]> train = new WorkerTrain<BamPile[]>(producer, numthreads, 2, log);
 					int index = 0;
 					Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
@@ -56,7 +60,10 @@ public class BamImport {
 					CentroidCompute.computeAndDumpCentroids(proj, null, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new Builder(), numthreads, 2);
 					Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true);
 					TransposeData.transposeData(proj, 2000000000, false);
-
+					
+					
+					generatePCFile(proj, numthreads);
+				
 				} else {
 					log.reportTimeError("The bed file " + binBed + " had overlapping segments, currently non -overlapping segments are required");
 				}
@@ -64,6 +71,14 @@ public class BamImport {
 		} else {
 			proj.getLog().reportTimeError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS);
 		}
+	}
+
+	private static void generatePCFile(Project proj, int numthreads) {
+		Files.writeList(proj.getMarkerNames(), proj.TARGET_MARKERS_FILENAME.getValue());
+		String mediaMarks = ext.addToRoot(proj.TARGET_MARKERS_FILENAME.getValue(), ".median");
+		Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 10), mediaMarks);
+		String base = ext.rootOf(proj.INTENSITY_PC_FILENAME.getValue());
+		MitoPipeline.catAndCaboodle(proj, numthreads, "0", mediaMarks, proj.getSamples().length - 1, base, false, false, 0, null, null, null, false, false, false, true);
 	}
 
 	private static void generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet) {

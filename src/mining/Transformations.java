@@ -2,6 +2,8 @@ package mining;
 
 import java.io.*;
 import java.util.*;
+
+import cnv.analysis.BeastScore;
 import common.*;
 
 public class Transformations {
@@ -23,6 +25,7 @@ public class Transformations {
 	public static final int INVERSE_TDIST_5DF = 13;
 	public static final int NEGATIVE_LOG10 = 14;
 	public static final int LOG10 = 15;
+	public static final int MAD_SCALED = 16;
 	
 	public static double[] transform(double[] array, int type) {
 		return transform(array, type, new Logger());
@@ -62,6 +65,9 @@ public class Transformations {
 			return new BoxCox(array, log).getTransform_MaxLL();
 		case BOXCOX_KURT:
 			return new BoxCox(array, log).getTransform_MinKurt();
+		case MAD_SCALED:
+			BeastScore beastScore = new BeastScore(Array.toFloatArray(array), null, null, log);
+			return Array.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD());
 		default:
 			log.reportError("Error - '"+type+"' does not map to an implemented method; using NORMALIZE");
 			return Array.normalize(array);

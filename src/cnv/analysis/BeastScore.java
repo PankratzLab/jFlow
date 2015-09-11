@@ -33,20 +33,20 @@ public class BeastScore {
 	 * @param inputData
 	 *            Most often LRR values for a single sample
 	 * @param indicesToChunk
-	 *            Most often the indices of chromosomes
+	 *            Most often the indices of chromosomes, if null, all indices will be used as a group
 	 * @param indicesForScores
-	 *            Most often the indices of markers in cnvs for a particular sample
+	 *            Most often the indices of markers in cnvs for a particular sample, if null each indice will be scored
 	 * @param log
 	 *            You know, a log
 	 */
 	public BeastScore(float[] inputData, int[][] indicesToChunk, int[][] indicesForScores, Logger log) {
 		super();
 		this.inputData = inputData;
-		this.indicesToChunk = indicesToChunk;
-		this.indicesForScores = indicesForScores;
-		this.beastHeights = new float[indicesForScores.length];
-		this.beastScores = new float[indicesForScores.length];
-		this.beastLengths = new int[indicesForScores.length];
+		this.indicesToChunk = indicesToChunk == null ? new int[][] { Array.intArray(inputData.length) } : indicesToChunk;
+		this.indicesForScores = indicesForScores == null ? new int[][] { Array.intArray(inputData.length) } : indicesForScores;
+		this.beastHeights = new float[this.indicesForScores.length];
+		this.beastScores = new float[this.indicesForScores.length];
+		this.beastLengths = new int[this.indicesForScores.length];
 		this.log = log;
 	}
 
