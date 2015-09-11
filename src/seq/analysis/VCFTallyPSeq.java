@@ -53,7 +53,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 		this.locFile = plinkSeqResourceDirectory + ext.rootOf(geneTrack.getGeneTrack().getGeneSetFilename()) + "_Gen.reg";
 		PlinkSeqUtils.generatePlinkSeqLoc(geneTrack, locFile, log);
 		this.plinkSeq = new PlinkSeq(false, true, log);
-		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, ext.parseDirectoryOfFile(vpop.getFileName()), vcf, vpop, plinkSeqResourceDirectory, true, true, log);
+		this.pseqProject = PlinkSeq.initialize(plinkSeq, plinkSeqProjName, ext.parseDirectoryOfFile(vpop.getFileName()), vcf, vpop, plinkSeqResourceDirectory, false, false, log);
 		this.varList = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName(), true) + ".varList";
 	}
 
@@ -143,7 +143,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 	}
 
 	public void summarize() {
-		String fullPathToOutput = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName()) + "_" + type + ".hit.summary4";
+		String fullPathToOutput = pseqProject.getProjectDirectory() + ext.rootOf(vpop.getFileName()) + "_" + type + ".hit.summary5_snpEffGeneProper";
 		try {
 			if (!Files.exists(fullPathToOutput)) {
 				PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutput));
@@ -294,8 +294,8 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 	public static void test(String vcf, String[] vpopFiles) {
 
 		for (int i = 0; i < vpopFiles.length; i++) {
-			String fullpathToChargeVCF = "/home/spectorl/lanej0/OS_seq/vcf/tally/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
-			String resourceDirectory = "/home/spectorl/public/bin/pseqRef/hg19/";
+			String fullpathToChargeVCF = "/panfs/roc/groups/14/tsaim/shared/bin/CHARGE/charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.vcf";
+			String resourceDirectory = "/home/tsaim/public/bin/pseqRef/hg19/";
 			Logger log = new Logger(ext.rootOf(vcf, false) + "tally.log");
 			String geneTrackFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/RefSeq_hg19.gtrack";
 			String keggPathwayFile = "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/kegg.ser";

@@ -333,10 +333,20 @@ public class Centroids implements Serializable {
 	}
 	
 	public static void recompute(Project proj, String centroidsFile) {
+		recompute(proj, centroidsFile, false);
+	}
+
+	/**
+	 * @param proj
+	 * @param centroidsFile
+	 * @param preserveBafs
+	 *            bafs will not be recomputed from the centroids, useful if an atypical baf value is used
+	 */
+	public static void recompute(Project proj, String centroidsFile, boolean preserveBafs) {
 		MarkerSet markerSet;
 		Centroids centroids;
-        Sample original, sample;
-        String[] samples;
+		Sample original, sample;
+		String[] samples;
         float[][][] cents;
         
 		markerSet = proj.getMarkerSet();
@@ -350,7 +360,7 @@ public class Centroids implements Serializable {
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		for (int i = 0; i < samples.length; i++) {
 			original = proj.getFullSampleFromRandomAccessFile(samples[i]);
-			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
+			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), preserveBafs ? original.getBAFs() : original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
 			sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, sample.getSampleName());
 		}
 		if (outliers.size() > 0) {

@@ -7,17 +7,22 @@ import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.filter.AggregateFilter;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.Callable;
 
 import seq.qc.FilterNGS;
 import seq.qc.FilterNGS.SAM_FILTER_TYPE;
 import common.Array;
+import common.Files;
 import common.Logger;
+import common.ext;
+import common.WorkerTrain.Producer;
 import filesys.Segment;
 
 /**
- * @author lane0212 New version of the pileup
+ * @author lane0212 New version of the pileup, geared toward segments
  */
 public class BamSegPileUp implements Iterator<BamPile> {
 
@@ -34,11 +39,11 @@ public class BamSegPileUp implements Iterator<BamPile> {
 	private boolean[] addingMask;
 	private AggregateFilter filter;
 
-	public BamSegPileUp(String bam, ReferenceGenome referenceGenome, Segment[] intervals, Logger log) {
+	public BamSegPileUp(String bam, String referenceGenomeFasta, Segment[] intervals, FilterNGS filterNGS, Logger log) {
 		super();
 		this.bam = bam;
 		this.numReturned = 0;
-		this.referenceGenome = referenceGenome;
+		this.referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
 		this.intervals = intervals;
 		this.reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
 		this.log = log;
@@ -48,12 +53,12 @@ public class BamSegPileUp implements Iterator<BamPile> {
 		this.addingMask = new boolean[intervals.length];
 		this.bamPiles = new BamPile[intervals.length];
 		this.bamPilesToReturn = new ArrayList<BamPile>();
-		this.filter = new AggregateFilter(new FilterNGS().getStandardSAMRecordFilters(SAM_FILTER_TYPE.COPY_NUMBER, log));
+		this.filter = FilterNGS.initializeFilters(filterNGS, SAM_FILTER_TYPE.COPY_NUMBER, log);
 		for (int i = 0; i < intervals.length; i++) {
 			bamPiles[i] = new BamPile(intervals[i]);
 			addingMask[i] = true;
 		}
-
+		log.reportTimeError("Phread set to 20");
 	}
 
 	@Override
@@ -62,7 +67,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 			SAMRecord samRecord = sIterator.next();
 			if (!filter.filterOut(samRecord)) {
 				Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
-
+				String[] refSeq = referenceGenome.getSequenceFor(samRecordSegment);
 				for (int i = 0; i < addingMask.length; i++) {
 
 					if (addingMask[i]) {
@@ -70,7 +75,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 						boolean overlaps = samRecordSegment.overlaps(bamPiles[i].getBin());
 
 						if (overlaps) {
-							bamPiles[i].addRecord(samRecord, 0, log);
+							bamPiles[i].addRecord(samRecord, refSeq, 20, log);
 						} else {
 
 							if (i == numReturned && samRecordSegment.getStart() > bamPiles[i].getBin().getStop() || !sIterator.hasNext()) {
@@ -124,6 +129,84 @@ public class BamSegPileUp implements Iterator<BamPile> {
 	public BamPile next() {
 		// TODO Auto-generated method stub
 		return bamPilesToReturn.remove(0);
+	}
+
+	public static class PileUpWorker implements Callable<BamPile[]> {
+		private String bamFile;
+		private String referenceGenomeFasta;
+		private String serDir;
+		private Logger log;
+		private Segment[] pileSegs;
+		private FilterNGS filterNGS;
+
+		public PileUpWorker(String bamFile, String serDir, String referenceGenomeFasta, Segment[] pileSegs, FilterNGS filterNGS, Logger log) {
+			super();
+			this.bamFile = bamFile;
+			this.serDir = serDir;
+			this.referenceGenomeFasta = referenceGenomeFasta;
+			this.pileSegs = pileSegs;
+			this.log = log;
+
+		}
+
+		@Override
+		public BamPile[] call() throws Exception {
+			String ser = serDir + ext.rootOf(bamFile) + ".ser";
+			if (!Files.exists(ser)) {
+				BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs, filterNGS, log);
+				ArrayList<BamPile> bamPiles = new ArrayList<BamPile>();
+				while (bamSegPileUp.hasNext()) {
+					BamPile bamPile = bamSegPileUp.next();
+					bamPile.summarize();
+					bamPiles.add(bamPile);
+				}
+				BamPile[] bamPilesFinal = bamPiles.toArray(new BamPile[bamPiles.size()]);
+				BamPile.writeSerial(bamPilesFinal, ser);
+				return bamPilesFinal;
+			} else {
+				return BamPile.readSerial(ser, log);
+			}
+		}
+	}
+
+	public static class PileupProducer implements Producer<BamPile[]> {
+		private int index;
+		private String[] bamFiles;
+		private String referenceGenomeFasta;
+		private String serDir;
+		private Logger log;
+		private Segment[] pileSegs;
+		private FilterNGS filterNGS;
+
+		public PileupProducer(String[] bamFiles, String serDir, String referenceGenomeFasta, FilterNGS filterNGS, Segment[] pileSegs, Logger log) {
+			super();
+			this.bamFiles = bamFiles;
+			this.serDir = serDir;
+			this.referenceGenomeFasta = referenceGenomeFasta;
+			this.log = log;
+			this.pileSegs = pileSegs;
+			this.filterNGS = filterNGS;
+			new File(serDir).mkdirs();
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < bamFiles.length;
+		}
+
+		@Override
+		public Callable<BamPile[]> next() {
+			PileUpWorker worker = new PileUpWorker(bamFiles[index], serDir, referenceGenomeFasta, pileSegs, filterNGS, log);
+			index++;
+			return worker;
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 }

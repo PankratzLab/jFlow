@@ -1,6 +1,7 @@
 package seq.qc;
 
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.filter.AggregateFilter;
 import htsjdk.samtools.filter.AlignedFilter;
 import htsjdk.samtools.filter.DuplicateReadFilter;
 import htsjdk.samtools.filter.SamRecordFilter;
@@ -543,9 +544,9 @@ public class FilterNGS implements Serializable {
 					throw new IllegalArgumentException("Alt allele depth filter can only be applied on single sample variant contexts");
 				} else {
 					double apad = 0;
-					try{
+					try {
 						apad = (double) VCOps.getAppropriateAlleleDepths(vc, vc.getGenotype(0), true, new Logger())[1];
-					}catch(IllegalStateException illegalStateException){
+					} catch (IllegalStateException illegalStateException) {
 						illegalStateException.printStackTrace();
 					}
 					return apad;
@@ -817,6 +818,16 @@ public class FilterNGS implements Serializable {
 			}
 			return new VariantContextFilterPass(true, "ALL");
 		}
+	}
+
+	public static AggregateFilter initializeFilters(FilterNGS filterNGS, SAM_FILTER_TYPE filterType, Logger log) {
+		if (filterNGS == null) {
+			filterNGS = new FilterNGS();
+		}
+		ArrayList<SamRecordFilter> filters = filterNGS.getStandardSAMRecordFilters(filterType, log);
+		filters.add(filterNGS.getSamRecordMapQFilter(filterNGS.getMappingQualityFilter()));
+		AggregateFilter filter = new AggregateFilter(filters);
+		return filter;
 	}
 
 	public static class VariantContextFilterPass {

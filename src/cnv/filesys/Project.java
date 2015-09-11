@@ -1277,7 +1277,12 @@ public class Project {
 		/**
 		 * Supports CHP and CNCHP formated input
 		 */
-		AFFY_GW6_CN(new String[] { "CN_" }, 25);
+		AFFY_GW6_CN(new String[] { "CN_" }, 25),
+
+		/**
+		 * For bamFiles
+		 */
+		NGS(new String[] { "*" }, 100);
 
 		/**
 		 * Used for copy number only probe-set identification
@@ -1315,12 +1320,16 @@ public class Project {
 		 * @return whether the marker trips the {@link ARRAY#cnFlags} flags
 		 */
 		public boolean isCNOnly(String markerName) {
-			for (int i = 0; i < cnFlags.length; i++) {
-				if (ext.indexOfStartsWith(cnFlags[i], new String[] { markerName }, false) >= 0) {
-					return true;
+			if (this == NGS) {
+				return false;
+			} else {
+				for (int i = 0; i < cnFlags.length; i++) {
+					if (ext.indexOfStartsWith(cnFlags[i], new String[] { markerName }, false) >= 0) {
+						return true;
+					}
 				}
+				return false;
 			}
-			return false;
 		}
 
 	}

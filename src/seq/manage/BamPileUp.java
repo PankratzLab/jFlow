@@ -294,7 +294,7 @@ public class BamPileUp implements Iterator<BamPile> {
 		public TmpBamPile call() throws Exception {
 			this.overlaps = samRecordSegment.overlaps(bamPile.getBin());
 			if (overlaps) {
-				bamPile.addRecord(samRecord, filterNGS.getPhreadScoreFilter(), log);
+				bamPile.addRecord(samRecord, null, filterNGS.getPhreadScoreFilter(), log);
 			} else {
 				bamPile.summarize();
 			}

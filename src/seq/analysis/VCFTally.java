@@ -102,7 +102,7 @@ public class VCFTally implements Serializable {
 					if (VCOps.isMinorAlleleAlternate(vcPop, null) && VCOps.getAAC(vcPop, null) > 0) {// minor allele is alt
 
 						VariantContext vcCase = VCOps.getSubset(vc, cases, VC_SUBSET_TYPE.SUBSET_STRICT, false);
-						VariantContext vcControl =  VCOps.getSubset(vc, controls, VC_SUBSET_TYPE.SUBSET_STRICT, false);
+						VariantContext vcControl = VCOps.getSubset(vc, controls, VC_SUBSET_TYPE.SUBSET_STRICT, false);
 
 						if ((type == CASE_CONTROL_TYPE.BOTH_PASS && totalQuality.filter(vcCase).passed() && totalQuality.filter(vcControl).passed()) || (type == CASE_CONTROL_TYPE.ONE_PASS && (totalQuality.filter(vcCase).passed() || totalQuality.filter(vcControl).passed()))) {
 
@@ -113,6 +113,7 @@ public class VCFTally implements Serializable {
 
 							if ((type == CASE_CONTROL_TYPE.BOTH_PASS && (!hasCaseAlt || totalQuality.filter(vcAltCase).passed()) && (!hasAltControl || totalQuality.filter(vcAltControl).passed())) || (type == CASE_CONTROL_TYPE.ONE_PASS && (totalQuality.filter(vcAltCase).passed() || totalQuality.filter(vcAltControl).passed()))) {
 								GeneData[] genesThatOverlap = VCOps.getGenesThatOverlap(vc, genomeRegions.getGeneTrack(), log);
+
 								for (int i = 0; i < trackersCase.length; i++) {
 									int caseAdded = trackersCase[i].addIfPasses(vcCase, genesThatOverlap, filterNGS);
 									int controlAdded = trackersControl[i].addIfPasses(vcControl, genesThatOverlap, filterNGS);
@@ -411,30 +412,48 @@ public class VCFTally implements Serializable {
 				mac = vc.getCommonInfo().getAttributeAsDouble("MAF_whites", 0.0) + vc.getCommonInfo().getAttributeAsDouble("MAF_blacks", 0.0);
 			}
 
+			String snpEffGeneName = vc.getCommonInfo().getAttributeAsString("SNPEFF_GENE_NAME", ".");
 			if (mac > 0) {
 				if (geneDatas.length > 0) {
+					boolean foundMatch = false;
 					for (int i = 0; i < geneDatas.length; i++) {
-						Pathway[] ways = gRegions.getPathways().getPathwaysFor(geneDatas[i]);
-						if (!charge) {
-							passingLocs.add(new GenePass(VCOps.getSegment(vc), geneDatas[i].getGeneName()));
-							addTally(geneDatas[i].getGeneName(), 1, (float) mac);
-							// TODO alt allele context
-							Set<String> samplesWithAlts = VCOps.getAltAlleleContext(vc, filterNGS, log).getSampleNames();
-							uniqs.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
-							all.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
-							for (int j = 0; j < ways.length; j++) {
-								uniqs.get(ways[j].getPathwayName()).addAll(samplesWithAlts);
-								all.get(ways[j].getPathwayName()).addAll(samplesWithAlts);
-								addTally(ways[j].getPathwayName(), 1, (float) mac);
+						if (geneDatas[i].getGeneName().equals(snpEffGeneName)) {
+							foundMatch = true;
+							Pathway[] ways = gRegions.getPathways().getPathwaysFor(geneDatas[i]);
+							if (!charge) {
+								passingLocs.add(new GenePass(VCOps.getSegment(vc), geneDatas[i].getGeneName()));
+
+								addTally(geneDatas[i].getGeneName(), 1, (float) mac);
+								// TODO alt allele context
+								Set<String> samplesWithAlts = VCOps.getAltAlleleContext(vc, filterNGS, log).getSampleNames();
+								uniqs.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
+								all.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
+								for (int j = 0; j < ways.length; j++) {
+									uniqs.get(ways[j].getPathwayName()).addAll(samplesWithAlts);
+									all.get(ways[j].getPathwayName()).addAll(samplesWithAlts);
+									addTally(ways[j].getPathwayName(), 1, (float) mac);
+								}
+							} else {
+								addTally(geneDatas[i].getGeneName(), 1, (float) mac);
+								for (int j = 0; j < ways.length; j++) {
+									addTally(ways[j].getPathwayName(), 1, (float) mac);
+								}
 							}
-						} else {
-							addTally(geneDatas[i].getGeneName(), 1, (float) mac);
-							for (int j = 0; j < ways.length; j++) {
-								addTally(ways[j].getPathwayName(), 1, (float) mac);
-							}
+							numAdded++;
 						}
-						numAdded++;
 					}
+					if (!foundMatch&&!tallyName.contains("NO_SNPEFF")&&!tallyName.contains("SNPEFF_HIGH_MODERATE_LOW_MODIFIER")) {
+						log.reportTimeError("Error - could not find matching SNPEFF gene for " + vc.toStringWithoutGenotypes());
+						log.reportTimeError("Available overlapping genes are");
+						for (int i = 0; i < geneDatas.length; i++) {
+							log.reportTimeError(geneDatas[i].getGeneName());
+						}
+						System.exit(1);
+					}
+				} else if (!snpEffGeneName.equals(".") && !tallyName.contains("NO_SNPEFF") && !tallyName.contains("SNPEFF_HIGH_MODERATE_LOW_MODIFIER")) {
+
+					log.reportTimeError("Error - could not find matching GENVISIS gene for " + vc.toStringWithoutGenotypes());
+					System.exit(1);
 				}
 			}
 			return numAdded;

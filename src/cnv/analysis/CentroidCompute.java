@@ -1,6 +1,7 @@
 package cnv.analysis;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 import stats.Maths;
@@ -14,6 +15,7 @@ import cnv.filesys.Centroids;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
 import cnv.manage.MDL;
 import cnv.manage.MarkerDataLoader;
 
@@ -87,8 +89,16 @@ public class CentroidCompute {
 		hasCentroid = true;
 	}
 
+	public ClusterFilterCollection getClusterFilterCollection() {
+		return clusterFilterCollection;
+	}
+
 	public float[][] getCentroid() {
 		return centroid;
+	}
+
+	public double getGcThreshold() {
+		return gcThreshold;
 	}
 
 	public MarkerData getMarkerData() {
@@ -179,6 +189,7 @@ public class CentroidCompute {
 		computeCenters(forceAuto);
 		if (!failed) {
 			if (intensityOnly) {
+
 				assignIntensityCentroid();
 			} else {
 				assignGenotypeCentroid();
@@ -309,7 +320,9 @@ public class CentroidCompute {
 	private void computeCenters(boolean forceAuto) {
 		if (!failed) {
 			if (intensityOnly) {
+
 				computeIntensityCenters(forceAuto);
+
 			} else {
 				computeGenotypeCenters(forceAuto);
 			}
@@ -747,7 +760,15 @@ public class CentroidCompute {
 				@Override
 				public CentroidCompute call() throws Exception {
 					CentroidCompute centroidCompute = builder.build(markerData, proj.getLog());
-					// proj.getLog().reportTimeInfo("Computing on "+Thread.currentThread().getName());
+					ARRAY array = proj.getArrayType();
+					if (array == ARRAY.ILLUMINA && array.isCNOnly(markerData.getMarkerName())) {
+						setFakeAB(markerData, centroidCompute, centroidCompute.getClusterFilterCollection(), 0);
+					} else if (array.isCNOnly(markerData.getMarkerName())) {
+						if (array != ARRAY.AFFY_GW6_CN && array != ARRAY.AFFY_GW6) {
+							proj.getLog().reportTimeError("Intenstity only centroid designed for Affymetrix only");
+							return null;
+						}
+					}
 					centroidCompute.computeCentroid();
 					return centroidCompute;
 				}
@@ -777,6 +798,29 @@ public class CentroidCompute {
 		}
 		train.shutdown();
 		proj.getLog().reportTimeInfo("Took" + ext.getTimeElapsed(time));
+	}
+
+	/**
+	 * We use this in the case of intensity only probesets...We assign all genotypes to be the same
+	 * 
+	 */
+	public static void setFakeAB(MarkerData markerData, CentroidCompute centroid, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
+
+		byte[] fakeAB = new byte[centroid.getClustGenotypes().length];
+		byte[] clustAB = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), gcThreshold);
+		int[] counts = new int[4];
+		for (int i = 0; i < clustAB.length; i++) {
+			counts[clustAB[i] + 1]++;
+		}
+		if (counts[0] == clustAB.length) {
+			byte tmpCluster = Array.mean(markerData.getXs()) > Array.mean(markerData.getYs()) ? (byte) 0 : (byte) 1;
+			Arrays.fill(fakeAB, (byte) tmpCluster);
+			centroid.setAlternateGenotypes(fakeAB);
+
+		} else {
+			centroid.setAlternateGenotypes(clustAB);
+		}
+		// assign all to this cluster
 	}
 }
 
