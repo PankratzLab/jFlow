@@ -55,6 +55,7 @@ public class lab {
     private static void split() {
         
         String dir = "/scratch.global/cole0482/CARDIA_CHS/";
+        String dir2 = "/scratch.global/cole0482/CARDIA_CHS/noAlleles/";
         String[] fileRoots = new String[]{
             "chr1_P1_V3",  
             "chr2_P1_V3",
@@ -83,8 +84,40 @@ public class lab {
         };
         
         for (String file : fileRoots) {
-            String dataFile = dir + file + ".dose";
+            System.out.println("Processing file : " + file);
+//            String dataFile = dir + file + ".dose";
             String infoFile = dir + file + ".info";
+            String newInfoFile = dir2 + file + ".info";
+            
+            try {
+                BufferedReader reader = Files.getAppropriateReader(infoFile);
+                PrintWriter writer = Files.getAppropriateWriter(newInfoFile);
+                
+                writer.println(reader.readLine()); // header
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    
+                    String[] parts = line.split("[\\s+]");
+                    String[] snpParts = parts[0].split(":");
+                    if (snpParts.length == 3) {
+                        StringBuilder newLine = new StringBuilder();
+                        newLine.append(snpParts[0]).append(":").append(snpParts[1]);
+                        for (int i = 1; i < parts.length; i++) {
+                            newLine.append(" ").append(parts[i]);
+                        }
+                        writer.println(newLine.toString());
+                    } else {
+                        writer.println(line);
+                    }
+                    
+                }
+                writer.flush();
+                writer.close();
+                reader.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             
         }
         
@@ -803,16 +836,16 @@ public class lab {
 		boolean test = true;
 		if (test) {
 		    
-		    try {
-		    String checkfile = "D:/data/gedi_gwas/data/cluster.genome.gz";
-		    BufferedReader reader = Files.getAppropriateReader(checkfile);
-		    String line = reader.readLine();
-		    int cnt = 1;
-		    while ((line = reader.readLine()) != null) {
-		        cnt++;
-		    }
-		    reader.close();
-		    System.out.println("Read " + cnt + " lines");
+//		    try {
+//    		    String checkfile = "D:/data/gedi_gwas/data/cluster.genome.gz";
+//    		    BufferedReader reader = Files.getAppropriateReader(checkfile);
+//    		    String line = reader.readLine();
+//    		    int cnt = 1;
+//    		    while ((line = reader.readLine()) != null) {
+//    		        cnt++;
+//    		    }
+//    		    reader.close();
+//    		    System.out.println("Read " + cnt + " lines");
 		    
 		    
 		    
@@ -849,11 +882,13 @@ public class lab {
 //            for (String file2 : files) {
 //                try {
 //                    processSNPPositions(dir + file2, dir + ext.rootOf(file2) + ".proc.xln");
-                } catch (IOException e) {
+//                } catch (IOException e) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+//                    e.printStackTrace();
+//                }
 //            }
+
+		    split();
 		    
 		    return;
 		}
