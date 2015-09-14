@@ -41,6 +41,11 @@ public class SNPVCFTesting {
     static String numberedVCFFile = "D:/All_20150605_noRS.vcf.gz";
     static String trimmedVCFFile2 = "D:/All_20150605_trimmed_rerun.vcf.gz";
     static String numberedVCFFile2 = "D:/All_20150605_noRS_rerun.vcf.gz";
+
+    
+    static String UNIX_unzippedVCFFile = "/scratch.global/coleb/DBSNP/All_20150605.vcf";
+    static String UNIX_numberedVCFFile = "/scratch.global/coleb/DBSNP/All_20150605_noRS.vcf.gz";
+    static String UNIX_numberedVCFFile2 = "/scratch.global/coleb/DBSNP/All_20150605_noRS_rerun.vcf.gz";
 //    static String tbiFile = "D:/All_20150605.vcf.gz.tbi";
     
     static String[] header = new String[]{
@@ -222,10 +227,10 @@ public class SNPVCFTesting {
     
     static void writeByRSNumber() throws IOException {
         System.out.println(ext.getTime() + "]\tCounting lines...");
-        int lines = Files.countLines(unzippedVCFFile, 0);
+        int lines = Files.countLines(UNIX_unzippedVCFFile, 0);
         System.out.println(ext.getTime() + "]\t" + lines + " lines in VCF file.");
         System.out.println(ext.getTime() + "]\tReading header...");
-        BufferedReader reader = Files.getAppropriateReader(unzippedVCFFile);
+        BufferedReader reader = Files.getAppropriateReader(UNIX_unzippedVCFFile);
         boolean afterHeader = false;
         String line = null;
         int headerLineCount = 0;
@@ -241,11 +246,15 @@ public class SNPVCFTesting {
             }
         }
         System.out.println(ext.getTime() + "]\t" + headerLineCount + " header lines in VCF file.");
+        
+        int MAX_CONTIG_LEN = 512 * 1024 * 1024;
+        
         int[] rsNumbers = new int[lines - headerLineCount];
         HashMap<Integer, String> rsNumberLineMap = new HashMap<Integer, String>();
         
         System.out.println(ext.getTime() + "]\tReading data...");
         int cnt = 0;
+        HashSet<Integer> contigs = new HashSet<Integer>();
         while((line = reader.readLine()) != null) {
             line = line.trim();
             String[] lineParts = line.split("\t");
@@ -255,7 +264,11 @@ public class SNPVCFTesting {
             cnt++;
             StringBuilder newLineNonRS = new StringBuilder();
             String chrPos = "CHRPOS=" + lineParts[0] + ":" + lineParts[1];
-            newLineNonRS.append("1\t");
+            int contig = (rsNumber / MAX_CONTIG_LEN) + 1;
+            if (!contigs.contains(contig)) {
+                contigs.add(contig);
+            }
+            newLineNonRS.append(contig).append("\t");
             newLineNonRS.append(rsNumber).append("\t");
             for (int i = 2; i < lineParts.length - 1; i++) {
                 newLineNonRS.append(lineParts[i]).append("\t");
@@ -271,12 +284,13 @@ public class SNPVCFTesting {
         }
         System.out.println("Count: " + cnt);
         System.out.println("Length: " + rsNumbers.length);
+        System.out.println("Contigs: " + contigs);
         
         System.out.println(ext.getTime() + "]\tSorting RS numbers...");
         Arrays.sort(rsNumbers);
         
         System.out.println(ext.getTime() + "]\tWriting new file...");
-        PrintWriter writerNonRS = Files.getAppropriateWriter(numberedVCFFile);
+        PrintWriter writerNonRS = Files.getAppropriateWriter(UNIX_numberedVCFFile);
         
         for (int i = 0; i < header.length; i++) {
             if (i == header.length - 1) {
@@ -340,72 +354,16 @@ public class SNPVCFTesting {
 //        maLoader.fillAnnotations(testMarkers, toParse, QUERY_ORDER.NO_ORDER);
 //        
 //    }
-    
-    static void run() throws IOException {
-//        File file1 = new File(trimmedVCFFile);
-//        File file2 = new File(numberedVCFFile);
-//        TabixIndex tbiFileTrimmed = new TabixIndex(file1);
-//        TabixIndex tbiFileNonRS = new TabixIndex(file2);
-//        tbiFileTrimmed.writeBasedOnFeatureFile(file1);
-//        tbiFileNonRS.writeBasedOnFeatureFile(file2);
-//        BufferedReader reader = Files.getAppropriateReader(trimmedVCFFile);
-//        for (int i = 0; i < 100; i++) {
-//            System.out.println(reader.readLine());
-//        }
-//        reader.close();
-//        VCFFileReader vcfReader = new VCFFileReader(new File(trimmedVCFFile));
-//        int i = 0; 
-//        for (VariantContext vc : vcfReader) {
-//            i++;
-//            System.out.println(vc.toString());
-//            if (i == 100) {
-//                break;
-//            }
-//        }
-//        VCFOps.verifyIndex(trimmedVCFFile, new Logger());
-//        System.out.println("one");
-//        VCFOps.verifyIndex(numberedVCFFile, new Logger());
-//        System.out.println("done");
-    }
-    
-    
-    class DBSnpAnnotationParser implements AnnotationParser {
-        boolean found;
-        
-        @Override
-        public void parseAnnotation(VariantContext vc, Logger log) {
-            // TODO Auto-generated method stub
-            
-        }
 
-        @Override
-        public boolean shouldAnnotateWith(VariantContext vc, Logger log) {
-            // TODO Auto-generated method stub
-            return false;
-        }
-
-        @Override
-        public void setFound(boolean found) {
-            this.found = found;
-        }
-
-        @Override
-        public boolean isFound() {
-            return found;
-        }
-        
-    }
     
     public static void main(String[] args) {
-//        try {
-            
-//            run();
-            test();
+        try {
+//            test();
 //            trimFileOnce();
-//            writeByRSNumber();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+            writeByRSNumber();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
 }
