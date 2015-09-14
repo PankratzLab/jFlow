@@ -884,6 +884,42 @@ public class Array {
 	}
 
 	/**
+	 * @param array
+	 * @param factor
+	 *            multiply every value in the array by this number
+	 * @return
+	 */
+	public static double[] multiply(final double[] array, final double factor) {
+		double[] mult = new double[array.length];
+		for (int i = 0; i < mult.length; i++) {
+			mult[i] = array[i] * factor;
+		}
+		return mult;
+	}
+
+	public static double[] scale(double[] array) {
+		return scale(array, 0);
+	}
+
+	/**
+	 * @param array
+	 *            scale the values of this array between minForce and minForce +1
+	 * @param minForce
+	 *            the minimum value (max will be this plus 1)
+	 * @return
+	 */
+	public static double[] scale(final double[] array, final double minForce) {
+		double max = Array.max(array);
+		double min = Array.min(array);
+		double[] scaled = new double[array.length];
+		for (int i = 0; i < array.length; i++) {
+			scaled[i] = (array[i] - min) / (max - min);
+			scaled[i] += minForce;
+		}
+		return scaled;
+	}
+
+	/**
 	 * Calculates the mean of an array
 	 * 
 	 * @param array

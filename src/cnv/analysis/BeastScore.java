@@ -164,7 +164,7 @@ public class BeastScore {
 					inverseTransformedDataScaleMAD[indicesToScale[i][j]] = (float) (inverseTransformedData[indicesToScale[i][j]] / (scaleMAD[i]));
 				}
 			} else if (i < 24) {
-				log.reportError("Warning - the index " + i + " was missing data");
+				//log.reportError("Warning - the index " + i + " was missing data");
 			}
 		}
 		return inverseTransformedDataScaleMAD;

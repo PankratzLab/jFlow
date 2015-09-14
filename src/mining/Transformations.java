@@ -26,6 +26,8 @@ public class Transformations {
 	public static final int NEGATIVE_LOG10 = 14;
 	public static final int LOG10 = 15;
 	public static final int MAD_SCALED = 16;
+	public static final int X3 = 17;
+	public static final int X5 = 18;
 	
 	public static double[] transform(double[] array, int type) {
 		return transform(array, type, new Logger());
@@ -68,6 +70,11 @@ public class Transformations {
 		case MAD_SCALED:
 			BeastScore beastScore = new BeastScore(Array.toFloatArray(array), null, null, log);
 			return Array.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD());
+		case X3:
+			return Array.multiply(array, 3);
+		case X5:
+			return Array.multiply(array, 5);
+
 		default:
 			log.reportError("Error - '"+type+"' does not map to an implemented method; using NORMALIZE");
 			return Array.normalize(array);
