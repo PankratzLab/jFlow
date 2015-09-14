@@ -30,15 +30,7 @@ import htsjdk.samtools.util.FormatUtil;
 import htsjdk.samtools.util.Histogram;
 import htsjdk.samtools.util.StringUtil;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +47,7 @@ import java.util.TreeSet;
  *
  * @author Tim Fennell
  */
-public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> {
+public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> implements Serializable {
     public static final String MAJOR_HEADER_PREFIX = "## ";
     public static final String MINOR_HEADER_PREFIX = "# ";
     public static final String SEPARATOR = "\t";
@@ -75,6 +67,11 @@ public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> {
 
     /** Adds a bean to the collection of metrics. */
     public void addMetric(final BEAN bean) { this.metrics.add(bean); }
+
+    /** Add multiple metric beans at once. */
+    public void addAllMetrics(final Iterable<BEAN> beanz) {
+        for (final BEAN bean : beanz) { this.addMetric(bean); }
+    }
 
     /** Returns the list of headers. */
     public List<BEAN> getMetrics() { return Collections.unmodifiableList(this.metrics); }
@@ -201,6 +198,7 @@ public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> {
         final Field[] fields = getBeanType().getFields();
         final int fieldCount = fields.length;
 
+        // Write out the column headers
         for (int i=0; i<fieldCount; ++i) {
             out.append(fields[i].getName());
             if (i < fieldCount - 1) {
@@ -463,7 +461,8 @@ public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> {
                 "picard.metrics",
                 "picard.illumina",
                 "picard.analysis",
-                "picard.analysis.directed"
+                "picard.analysis.directed",
+                "picard.vcf"
         };
 
         try { return Class.forName(className); }
@@ -541,6 +540,52 @@ public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> {
             final MetricsFile<MetricBase, Comparable<?>> metricsFile = new MetricsFile<MetricBase, Comparable<?>>();
             metricsFile.read(new FileReader(file));
             return metricsFile.getMetrics();
+        } catch (FileNotFoundException e) {
+            throw new SAMException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Method to read the header from a metrics file.
+     */
+    public static List<Header> readHeaders(final File file) {
+        try {
+            final MetricsFile<MetricBase, Comparable<?>> metricsFile = new MetricsFile<MetricBase, Comparable<?>>();
+            metricsFile.read(new FileReader(file));
+            return metricsFile.getHeaders();
+        } catch (FileNotFoundException e) {
+            throw new SAMException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Compare the metrics in two files, ignoring headers and histograms.
+     */
+    public static boolean areMetricsEqual(final File file1, final File file2) {
+        try {
+            final MetricsFile<MetricBase, Comparable<?>> mf1 = new MetricsFile<MetricBase, Comparable<?>>();
+            final MetricsFile<MetricBase, Comparable<?>> mf2 = new MetricsFile<MetricBase, Comparable<?>>();
+            mf1.read(new FileReader(file1));
+            mf2.read(new FileReader(file2));
+            return mf1.areMetricsEqual(mf2);
+        } catch (FileNotFoundException e) {
+            throw new SAMException(e.getMessage(), e);
+        }
+
+    }
+
+    /**
+     * Compare the metrics and histograms in two files, ignoring headers.
+     */
+    public static boolean areMetricsAndHistogramsEqual(final File file1, final File file2) {
+        try {
+            final MetricsFile<MetricBase, Comparable<?>> mf1 = new MetricsFile<MetricBase, Comparable<?>>();
+            final MetricsFile<MetricBase, Comparable<?>> mf2 = new MetricsFile<MetricBase, Comparable<?>>();
+            mf1.read(new FileReader(file1));
+            mf2.read(new FileReader(file2));
+
+            return mf1.areMetricsEqual(mf2) && mf1.areHistogramsEqual(mf2);
+
         } catch (FileNotFoundException e) {
             throw new SAMException(e.getMessage(), e);
         }

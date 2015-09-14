@@ -56,6 +56,7 @@ public class SampleData {
 	private boolean containsDNA;
 	private boolean containsFID;
 	private boolean containsIID;
+//	private volatile boolean loadingCNVs = false;
 
 	public Hashtable<String, Integer> getLinkKeyIndex() {
 		return linkKeyIndex;
@@ -65,7 +66,7 @@ public class SampleData {
 		this.linkKeyIndex = linkKeyIndex;
 	}
 
-	public SampleData(Project proj, int numberOfBasicClassesToUse, String[] cnvFilenames) {
+	public SampleData(final Project proj, int numberOfBasicClassesToUse, final String[] cnvFilenamesVar) {
 		BufferedReader reader;
 		String[] line, header;
 		IntVector filterIs = new IntVector();
@@ -86,8 +87,11 @@ public class SampleData {
 		log = proj.getLog();
 
 		failedToLoad = true;
-		if (cnvFilenames == null) {
+		final String[] cnvFilenames;
+		if (cnvFilenamesVar == null) {
 			cnvFilenames = new String[0];
+		} else {
+		    cnvFilenames = cnvFilenamesVar;
 		}
 		
 		containsDNA = containsFID = containsIID = true;
@@ -242,7 +246,17 @@ public class SampleData {
 		}
 		
 		if (cnvFilenames.length > 0) {
-			loadCNVs(cnvFilenames, proj.JAR_STATUS.getValue());
+		    Runnable cnvLoadingRunnable = new Runnable() {
+		        @Override
+		        public void run() {
+		            loadCNVs(cnvFilenames, proj.JAR_STATUS.getValue());
+		            IndiPheno.setCNVsLoaded();
+		        }
+		    };
+		    Thread cnvLoadingThread = new Thread(cnvLoadingRunnable);
+		    cnvLoadingThread.setName("CNVLoadingThread");
+		    cnvLoadingThread.setDaemon(true);
+		    cnvLoadingThread.start();
 		} else {
 			cnvClasses = new String[0];
 		}

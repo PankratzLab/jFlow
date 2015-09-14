@@ -83,11 +83,19 @@ public class IntervalList implements Iterable<Interval> {
     public Iterator<Interval> iterator() { return this.intervals.iterator(); }
 
     /** Adds an interval to the list of intervals. */
-    public void add(final Interval interval) { this.intervals.add(interval); }
+    public void add(final Interval interval) {
+        if (header.getSequence(interval.getContig()) == null) {
+            throw new IllegalArgumentException(String.format("Cannot add interval %s, contig not in header", interval.toString()));
+        }
+        this.intervals.add(interval);
+    }
 
     /** Adds a Collection of intervals to the list of intervals. */
     public void addall(final Collection<Interval> intervals) {
-        this.intervals.addAll(intervals);
+        //use this instead of addAll so that the contig checking happens.
+        for (Interval interval : intervals) {
+            add(interval);
+        }
     }
 
     /** Sorts the internal collection of intervals by coordinate. */
@@ -96,6 +104,26 @@ public class IntervalList implements Iterable<Interval> {
     public void sort() {
         Collections.sort(this.intervals, new IntervalCoordinateComparator(this.header));
         this.header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
+    }
+
+    /** Returns a new IntervalList where each interval is padded by the specified amount of bases. */
+    public IntervalList padded(final int before, final int after) {
+        if (before < 0 || after < 0) throw new IllegalArgumentException("Padding values must be >= 0.");
+        final IntervalList padded = new IntervalList(this.getHeader().clone());
+        final SAMSequenceDictionary dict = padded.getHeader().getSequenceDictionary();
+        for (final Interval i : this) {
+            final SAMSequenceRecord seq = dict.getSequence(i.getContig());
+            final int start = Math.max(1, i.getStart() - before);
+            final int end   = Math.min(seq.getSequenceLength(), i.getEnd() + after);
+            padded.add(new Interval(i.getContig(), start, end, i.isNegativeStrand(), i.getName()));
+        }
+
+        return padded;
+    }
+
+    /** Returns a new IntervalList where each interval is padded by 'padding' bases on each side. */
+    public IntervalList padded(final int padding) {
+        return padded(padding, padding);
     }
 
     /** returns an independent sorted IntervalList*/
@@ -199,7 +227,7 @@ public class IntervalList implements Iterable<Interval> {
             else if (current.intersects(next) || current.abuts(next)) {
                 if (enforceSameStrands && current.isNegativeStrand() != next.isNegativeStrand()) throw new SAMException("Strands were not equal for: " + current.toString() + " and " + next.toString());
                 toBeMerged.add(next);
-                current = new Interval(current.getSequence(), current.getStart(), Math.max(current.getEnd(), next.getEnd()), current.isNegativeStrand(), null);
+                current = new Interval(current.getContig(), current.getStart(), Math.max(current.getEnd(), next.getEnd()), current.isNegativeStrand(), null);
             }
             else {
                 // Emit merged/unique interval
@@ -233,9 +261,69 @@ public class IntervalList implements Iterable<Interval> {
         return getUniqueIntervals(this, concatenateNames);
     }
 
+    /**
+     * Given a list of Intervals and a band multiple, this method will return a list of Intervals such that all of the intervals
+     * do not straddle integer multiples of that band.
+     *
+     * ex: if there is an interval (7200-9300) and the bandMultiple is 1000, the interval will be split into:
+     * (7200-7999, 8000-8999, 9000-9300)
+     * @param intervals A list of Interval
+     * @param bandMultiple integer value (> 0) to break up intervals in the list at integer multiples of
+     * @return list of intervals that are broken up
+     */
+    public static List<Interval> breakIntervalsAtBandMultiples(final List<Interval> intervals, final int bandMultiple) {
+        final List<Interval> brokenUpIntervals = new ArrayList<Interval>();
+        for (final Interval interval : intervals) {
+            if (interval.getEnd() >= interval.getStart()) {       // Normal, non-empty intervals
+                final int startIndex = interval.getStart() / bandMultiple;
+                final int endIndex = interval.getEnd() / bandMultiple;
+                if (startIndex == endIndex) {
+                    brokenUpIntervals.add(interval);
+                } else {
+                    brokenUpIntervals.addAll(breakIntervalAtBandMultiples(interval, bandMultiple));
+                }
+            }
+            else {                                  // Special case - empty intervals ex: (100-99)
+                brokenUpIntervals.add(interval);
+            }
+        }
+        return brokenUpIntervals;
+    }
+
+    /**
+     * Given an Interval and a band multiple, this method will return a list of Intervals such that all of the intervals
+     * do not straddle integer multiples of that band.
+     *
+     * ex: if the interval is (7200-9300) and the bandMultiple is 1000, the interval will be split into:
+     * (7200-7999, 8000-8999, 9000-9300)
+     * @param interval an Interval
+     * @param bandMultiple integer value (> 0) to break up intervals in the list at integer multiples of
+     * @return list of intervals that are broken up
+     */
+    private static List<Interval> breakIntervalAtBandMultiples(final Interval interval, final int bandMultiple) {
+        final List<Interval> brokenUpIntervals = new ArrayList<Interval>();
+
+        int startPos = interval.getStart();
+        final int startOfIntervalIndex = startPos / bandMultiple;
+        int startIndex = startOfIntervalIndex;
+        final int endIndex = interval.getEnd() / bandMultiple;
+        while (startIndex <= endIndex) {
+            int endPos = (startIndex + 1) * bandMultiple -1;
+            if (endPos > interval.getEnd()) {
+                endPos = interval.getEnd();
+            }
+            // add start/end to list of broken up intervals to return (and uniquely name it).
+            brokenUpIntervals.add(new Interval(interval.getContig(), startPos, endPos, interval.isNegativeStrand(), interval.getName() + "." + (startIndex - startOfIntervalIndex + 1)));
+            startIndex++;
+            startPos = startIndex * bandMultiple;
+        }
+        return brokenUpIntervals;
+    }
+
+
     /** Merges a sorted collection of intervals and optionally concatenates unique names or takes the first name. */
     static Interval merge(final SortedSet<Interval> intervals, final boolean concatenateNames) {
-        final String chrom = intervals.first().getSequence();
+        final String chrom = intervals.first().getContig();
         int start = intervals.first().getStart();
         int end   = intervals.last().getEnd();
         final boolean neg  = intervals.first().isNegativeStrand();
@@ -365,7 +453,7 @@ public class IntervalList implements Iterable<Interval> {
                 final String[] fields = line.split("\t");
                 if (fields.length != 5) {
                     throw new SAMException("Invalid interval record contains " +
-                                              fields.length + " fields: " + line);
+                            fields.length + " fields: " + line);
                 }
 
                 // Then parse them out
@@ -417,7 +505,7 @@ public class IntervalList implements Iterable<Interval> {
 
             // Write out the intervals
             for (final Interval interval : this) {
-                out.write(interval.getSequence());
+                out.write(interval.getContig());
                 out.write('\t');
                 out.write(format.format(interval.getStart()));
                 out.write('\t');
@@ -554,7 +642,7 @@ public class IntervalList implements Iterable<Interval> {
 
         //add all the intervals (uniqued and therefore also sorted) to a ListMap from sequenceIndex to a list of Intervals
         for(final Interval i : list.uniqued().getIntervals()){
-            map.add(list.getHeader().getSequenceIndex(i.getSequence()),i);
+            map.add(list.getHeader().getSequenceIndex(i.getContig()),i);
         }
 
         // a counter to supply newly-created intervals with a name
@@ -654,8 +742,8 @@ class IntervalCoordinateComparator implements Comparator<Interval> {
     }
 
     public int compare(final Interval lhs, final Interval rhs) {
-        final int lhsIndex = this.header.getSequenceIndex(lhs.getSequence());
-        final int rhsIndex = this.header.getSequenceIndex(rhs.getSequence());
+        final int lhsIndex = this.header.getSequenceIndex(lhs.getContig());
+        final int rhsIndex = this.header.getSequenceIndex(rhs.getContig());
         int retval = lhsIndex - rhsIndex;
 
         if (retval == 0) retval = lhs.getStart() - rhs.getStart();

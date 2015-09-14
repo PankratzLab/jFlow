@@ -25,6 +25,7 @@ package htsjdk.tribble;
 
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
+import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.index.Block;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
@@ -314,8 +315,8 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
             try {
                 readNextRecord();
             } catch (IOException e) {
-                throw new RuntimeException("Unable to read the next record, the last record was at " +
-                        ret.getChr() + ":" + ret.getStart() + "-" + ret.getEnd(), e);
+                throw new RuntimeIOException("Unable to read the next record, the last record was at " +
+                        ret.getContig() + ":" + ret.getStart() + "-" + ret.getEnd(), e);
             }
             return ret;
         }
@@ -390,7 +391,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
 
             // The feature chromosome might not be the query chromosome, due to alias definitions.  We assume
             // the chromosome of the first record is correct and record it here.  This is not pretty.
-            chrAlias = (currentRecord == null ? chr : currentRecord.getChr());
+            chrAlias = (currentRecord == null ? chr : currentRecord.getContig());
 
         }
 
@@ -404,8 +405,8 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
             try {
                 readNextRecord();
             } catch (IOException e) {
-                throw new RuntimeException("Unable to read the next record, the last record was at " +
-                        ret.getChr() + ":" + ret.getStart() + "-" + ret.getEnd(), e);
+                throw new RuntimeIOException("Unable to read the next record, the last record was at " +
+                        ret.getContig() + ":" + ret.getStart() + "-" + ret.getEnd(), e);
             }
             return ret;
         }
@@ -450,7 +451,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
                         if (f == null) {
                             continue;   // Skip
                         }
-                        if ((chrAlias != null && !f.getChr().equals(chrAlias)) || f.getStart() > end) {
+                        if ((chrAlias != null && !f.getContig().equals(chrAlias)) || f.getStart() > end) {
                             if (blockIterator.hasNext()) {
                                 advanceBlock();
                                 continue;

@@ -8,7 +8,8 @@ public class IndiPheno {
 	private double[] covars;
 	private int[] classes;
 	private Vector<Hashtable<String,CNVariant[]>> cnvClasses;
-
+	private static volatile boolean cnvsLoaded = false;
+	
 	public IndiPheno() {}
 
 	public void setFilters(double[] filters) {
@@ -40,8 +41,28 @@ public class IndiPheno {
 	}
 
 	public CNVariant[] getCNVs(int cnvClass, int chr) {
-		Hashtable<String,CNVariant[]> hash;
-		
+	    return getCNVs(cnvClass, chr, true);
+	}
+	
+	public CNVariant[] getCNVs(int cnvClass, int chr, boolean waitIfLoading) {
+	    if (!cnvsLoaded) {
+	        System.out.println("CNVs Not Loaded Yet!");
+	        if (!waitIfLoading) {
+	            return null;
+	        } else {
+	            System.out.println("Waiting for CNVs to be Loaded...");
+	            while (!cnvsLoaded) {
+	                try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+	            }
+	        }
+	    }
+	    
+        Hashtable<String,CNVariant[]> hash;
+	
 		if (cnvClass > cnvClasses.size()) {
 			System.err.println("Error - specified cnvClass was greater than total number of cnvClasses");
 			return null;
@@ -53,4 +74,8 @@ public class IndiPheno {
 			return null;
 		}
 	}
+
+    public static void setCNVsLoaded() {
+        cnvsLoaded = true;
+    }
 }

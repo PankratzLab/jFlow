@@ -47,6 +47,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -58,6 +59,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
 import java.util.regex.Pattern;
+import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -84,6 +86,23 @@ public class IOUtil {
     public static final String SAM_FILE_EXTENSION = ".sam";
 
     public static final String DICT_FILE_EXTENSION = ".dict";
+
+    private static int compressionLevel = Defaults.COMPRESSION_LEVEL;
+
+    /**
+     * Sets the GZip compression level for subsequent GZIPOutputStream object creation.
+     * @param compressionLevel 0 <= compressionLevel <= 9
+     */
+    public static void setCompressionLevel(final int compressionLevel) {
+        if (compressionLevel < Deflater.NO_COMPRESSION || compressionLevel > Deflater.BEST_COMPRESSION) {
+            throw new IllegalArgumentException("Invalid compression level: " + compressionLevel);
+        }
+        IOUtil.compressionLevel = compressionLevel;
+    }
+
+    public static int getCompressionLevel() {
+        return compressionLevel;
+    }
 
     /**
      * Wrap the given stream in a BufferedInputStream, if it isn't already wrapper
@@ -264,6 +283,35 @@ public class IOUtil {
             return full;
         }
     }
+    
+    /**
+     * Checks that an input is  is non-null, a URL or a file, exists, 
+     * and if its a file then it is not a directory and is readable.  If any
+     * condition is false then a runtime exception is thrown.
+     *
+     * @param input the input to check for validity
+     */
+    public static void assertInputIsValid(final String input) {
+      if (input == null) {
+        throw new IllegalArgumentException("Cannot check validity of null input.");
+      }
+      if (!isUrl(input)) {
+        assertFileIsReadable(new File(input));
+      }
+    }
+    
+    /** 
+     * Returns true iff the string is a url. 
+     * Helps distinguish url inputs form file path inputs.
+     */
+    public static boolean isUrl(final String input) {
+      try {
+        new URL(input);
+        return true;
+      } catch (MalformedURLException e) {
+        return false;
+      }
+    }
 
     /**
      * Checks that a file is non-null, exists, is not a directory and is readable.  If any
@@ -293,6 +341,17 @@ public class IOUtil {
      */
     public static void assertFilesAreReadable(final List<File> files) {
         for (final File file : files) assertFileIsReadable(file);
+    }
+    
+    /**
+     * Checks that each string is non-null, exists or is a URL, 
+     * and if it is a file then not a directory and is readable.  If any
+     * condition is false then a runtime exception is thrown.
+     *
+     * @param files the list of files to check for readability
+     */
+    public static void assertInputsAreValid(final List<String> inputs) {
+        for (final String input : inputs) assertInputIsValid(input);
     }
 
     /**
@@ -538,9 +597,9 @@ public class IOUtil {
             if (Defaults.BUFFER_SIZE > 0) {
             return new CustomGzipOutputStream(new FileOutputStream(file, append),
                                               Defaults.BUFFER_SIZE,
-                                              Defaults.COMPRESSION_LEVEL);
+                                              compressionLevel);
             } else {
-                return new CustomGzipOutputStream(new FileOutputStream(file, append), Defaults.COMPRESSION_LEVEL);
+                return new CustomGzipOutputStream(new FileOutputStream(file, append), compressionLevel);
             }
         }
         catch (IOException ioe) {
@@ -711,7 +770,7 @@ public class IOUtil {
             }
             return canonicalPath;
         } catch (final IOException ioe) {
-            throw new RuntimeException("Error getting full canonical path for " +
+            throw new RuntimeIOException("Error getting full canonical path for " +
                     file + ": " + ioe.getMessage(), ioe);
         }
    }

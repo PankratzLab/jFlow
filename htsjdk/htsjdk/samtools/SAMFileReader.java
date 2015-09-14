@@ -33,13 +33,6 @@ import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.CloserUtil;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.RuntimeIOException;
-import htsjdk.samtools.util.BlockCompressedInputStream;
-import htsjdk.samtools.util.BlockCompressedStreamConstants;
-import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.samtools.util.CloserUtil;
-import htsjdk.samtools.util.CoordMath;
-import htsjdk.samtools.util.IOUtil;
-import htsjdk.samtools.util.RuntimeIOException;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -48,13 +41,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -120,24 +108,6 @@ public class SAMFileReader implements SamReader, SamReader.Indexing {
         public void close() {
             //no-op
         }
-    }
-
-    /**
-     * Internal interface for SAM/BAM file reader implementations.
-     * Implemented as an abstract class to enforce better access control.
-     */
-    public static abstract class ReaderImplementation implements PrimitiveSamReader {
-        abstract void enableFileSource(final SamReader reader, final boolean enabled);
-
-        abstract void enableIndexCaching(final boolean enabled);
-
-        abstract void enableIndexMemoryMapping(final boolean enabled);
-
-        abstract void enableCrcChecking(final boolean enabled);
-
-        abstract void setSAMRecordFactory(final SAMRecordFactory factory);
-
-        abstract void setValidationStringency(final ValidationStringency validationStringency);
     }
 
 
@@ -353,6 +323,11 @@ public class SAMFileReader implements SamReader, SamReader.Indexing {
         return mReader.type();
     }
 
+    @Override
+    public String getResourceDescription() {
+        return this.toString();
+    }
+
     /**
      * Control validation of SAMRecords as they are read from file.
      * In order to control validation stringency for SAM Header, call SAMFileReader.setDefaultValidationStringency
@@ -484,8 +459,7 @@ public class SAMFileReader implements SamReader, SamReader.Indexing {
      * is in the query region.
      *
      * @param intervals Intervals to be queried.  The intervals must be optimized, i.e. in order, with overlapping
-     *                  and abutting intervals merged.  This can be done with
-     *                  htsjdk.samtools.SAMFileReader.QueryInterval#optimizeIntervals(htsjdk.samtools.SAMFileReader.QueryInterval[])
+     *                  and abutting intervals merged.  This can be done with {@link htsjdk.samtools.QueryInterval#optimizeIntervals}
      * @param contained If true, each SAMRecord returned is will have its alignment completely contained in one of the
      *                  intervals of interest.  If false, the alignment of the returned SAMRecords need only overlap one of
      *                  the intervals of interest.
@@ -511,8 +485,7 @@ public class SAMFileReader implements SamReader, SamReader.Indexing {
      * is in the query region.
      *
      * @param intervals Intervals to be queried.  The intervals must be optimized, i.e. in order, with overlapping
-     *                  and abutting intervals merged.  This can be done with
-     *                  htsjdk.samtools.SAMFileReader.QueryInterval#optimizeIntervals(htsjdk.samtools.SAMFileReader.QueryInterval[])
+     *                  and abutting intervals merged.  This can be done with {@link htsjdk.samtools.QueryInterval#optimizeIntervals}
      * @return Iterator over the SAMRecords overlapping any of the intervals.
      */
     public SAMRecordIterator queryOverlapping(final QueryInterval[] intervals) {
@@ -535,8 +508,7 @@ public class SAMFileReader implements SamReader, SamReader.Indexing {
      * is in the query region.
      *
      * @param intervals Intervals to be queried.  The intervals must be optimized, i.e. in order, with overlapping
-     *                  and abutting intervals merged.  This can be done with
-     *                  htsjdk.samtools.SAMFileReader.QueryInterval#optimizeIntervals(htsjdk.samtools.SAMFileReader.QueryInterval[])
+     *                  and abutting intervals merged.  This can be done with {@link htsjdk.samtools.QueryInterval#optimizeIntervals}
      * @return Iterator over the SAMRecords contained in any of the intervals.
      */
     public SAMRecordIterator queryContained(final QueryInterval[] intervals) {
@@ -669,12 +641,13 @@ public class SAMFileReader implements SamReader, SamReader.Indexing {
         return source.endsWith(".bam") || source.contains(".bam?") || source.contains(".bam&") || source.contains(".bam%26");
     }
 
-    private void init(final InputStream stream, final File file, final File indexFile, final boolean eagerDecode, final ValidationStringency validationStringency) {
+    private void init(final InputStream stream, File file, final File indexFile, final boolean eagerDecode,
+                      final ValidationStringency validationStringency) {
         if (stream != null && file != null) throw new IllegalArgumentException("stream and file are mutually exclusive");
         this.samFile = file;
 
         try {
-            final BufferedInputStream bufferedStream;
+            BufferedInputStream bufferedStream;
             // Buffering is required because mark() and reset() are called on the input stream.
             final int bufferSize = Math.max(Defaults.BUFFER_SIZE, BlockCompressedStreamConstants.MAX_COMPRESSED_BLOCK_SIZE);
             if (file != null) bufferedStream = new BufferedInputStream(new FileInputStream(file), bufferSize);
@@ -694,6 +667,14 @@ public class SAMFileReader implements SamReader, SamReader.Indexing {
             } else if (isGzippedSAMFile(bufferedStream)) {
                 mIsBinary = false;
                 mReader = new SAMTextReader(new GZIPInputStream(bufferedStream), validationStringency, this.samRecordFactory);
+            } else if (SamStreams.isCRAMFile(bufferedStream)) {
+                if (file == null || !file.isFile()) {
+                    file = null;
+                } else {
+                    bufferedStream.close();
+                    bufferedStream = null;
+                }
+                mReader = new CRAMFileReader(file, bufferedStream);
             } else if (isSAMFile(bufferedStream)) {
                 if (indexFile != null) {
                     bufferedStream.close();

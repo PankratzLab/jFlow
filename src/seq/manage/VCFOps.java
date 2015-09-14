@@ -43,6 +43,7 @@ import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.index.tabix.TabixIndex;
+import htsjdk.tribble.index.tabix.TabixIndexCreator;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.tribble.util.TabixUtils;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -1482,10 +1483,14 @@ public class VCFOps {
 					created = true;
 				} else {
 					log.reportTimeWarning("Indexing not quite implemented yet for " + VCF_EXTENSIONS.GZIP_VCF.getLiteral() + ", exiting");
-					System.exit(1);
+//					System.exit(1);
 					VCFFileReader readerVcfGz = new VCFFileReader(vcfFile, false);
 					TabixIndex index = IndexFactory.createTabixIndex(new File(vcfFile), new VCFCodec(), TabixFormat.VCF, readerVcfGz.getFileHeader().getSequenceDictionary());
-
+					try {
+                        index.writeBasedOnFeatureFile(new File(vcfFile));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 					created = false;
 					readerVcfGz.close();
 

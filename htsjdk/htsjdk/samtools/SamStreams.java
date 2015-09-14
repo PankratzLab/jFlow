@@ -1,5 +1,6 @@
 package htsjdk.samtools;
 
+import htsjdk.samtools.cram.structure.CramHeader;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedStreamConstants;
@@ -29,6 +30,15 @@ public class SamStreams {
         return bytesRead;
     }
 
+    public static boolean isCRAMFile(final InputStream stream) throws IOException {
+        stream.mark(4);
+        final int buffSize = CramHeader.MAGIC.length;
+        final byte[] buffer = new byte[buffSize];
+        readBytes(stream, buffer, 0, buffSize);
+        stream.reset();
+
+        return Arrays.equals(buffer, CramHeader.MAGIC);
+    }
     /**
      * @param stream stream.markSupported() must be true
      * @return true if this looks like a BAM file.
