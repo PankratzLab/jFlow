@@ -417,22 +417,29 @@ public class VariantContext implements Feature, Serializable {
     //
     // ---------------------------------------------------------------------------------------------------------
 
-    /**
-     * This method subsets down to a set of samples.
-     *
-     * At the same time returns the alleles to just those in use by the samples,
-     * if rederiveAllelesFromGenotypes is true, otherwise the full set of alleles
-     * in this VC is returned as the set of alleles in the subContext, even if
-     * some of those alleles aren't in the samples
-     *
-     * WARNING: BE CAREFUL WITH rederiveAllelesFromGenotypes UNLESS YOU KNOW WHAT YOU ARE DOING
-     *
-     * @param sampleNames    the sample names
-     * @param rederiveAllelesFromGenotypes if true, returns the alleles to just those in use by the samples, true should be default
-     * @return new VariantContext subsetting to just the given samples
-     */
-    public VariantContext subContextFromSamples(Set<String> sampleNames, final boolean rederiveAllelesFromGenotypes ) {
-        if ( sampleNames.containsAll(getSampleNames()) && ! rederiveAllelesFromGenotypes ) {
+   
+	public VariantContext subContextFromSamples(Set<String> sampleNames, final boolean rederiveAllelesFromGenotypes) {
+		return subContextFromSamples(sampleNames, rederiveAllelesFromGenotypes, false);
+	}
+
+	/**
+	 * This method subsets down to a set of samples.
+	 *
+	 * At the same time returns the alleles to just those in use by the samples, if rederiveAllelesFromGenotypes is true, otherwise the full set of alleles in this VC is returned as the set of alleles in the subContext, even if some of those alleles aren't in the samples
+	 *
+	 * WARNING: BE CAREFUL WITH rederiveAllelesFromGenotypes UNLESS YOU KNOW WHAT YOU ARE DOING
+	 *
+	 * @param sampleNames
+	 *            the sample names
+	 * @param rederiveAllelesFromGenotypes
+	 *            if true, returns the alleles to just those in use by the samples, true should be default
+	 * @param skipFastPass
+	 *            skip the fast pass all sample check
+	 * @return new VariantContext subsetting to just the given samples
+	 */
+
+	public VariantContext subContextFromSamples(Set<String> sampleNames, final boolean rederiveAllelesFromGenotypes, boolean skipFastPass) {
+		if (!skipFastPass && sampleNames.containsAll(getSampleNames()) && !rederiveAllelesFromGenotypes) {
             return this; // fast path when you don't have any work to do
         } else {
             VariantContextBuilder builder = new VariantContextBuilder(this);

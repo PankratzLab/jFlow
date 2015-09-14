@@ -73,6 +73,11 @@ public class VCFFileReader implements Closeable, Iterable<VariantContext> {
                       requireIndex);
     }
 
+    
+	/** Custom constructor allowing remote file access....Not in original htsjdk distribution */
+	public VCFFileReader(final String file, final boolean requireIndex) {
+		this.reader = AbstractFeatureReader.getFeatureReader(file, file.endsWith(".bcf") ? (FeatureCodec) new BCF2Codec() : new VCFCodec(), requireIndex);
+	}
     /**
      * Parse a VCF file and convert to an IntervalList The name field of the IntervalList is taken from the ID field of the variant, if it exists. if not,
      * creates a name of the format interval-n where n is a running number that increments only on un-named intervals
