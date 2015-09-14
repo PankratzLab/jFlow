@@ -287,7 +287,7 @@ public class BamPile implements Serializable {
 						if (base != null) {
 							addRegBase(base, mapQ, p[curReadBase], log);
 							numBasesOverlap++;// we only count aligned bases
-							if (ref != null && !base.equals(ref[curRefBase - samRecord.getAlignmentStart()])) {
+							if (ref != null && !base.equals(ref[curRefBase - bin.getStart()])) {
 								numBasesWithMismatch++;
 							}
 						}

@@ -32,17 +32,36 @@ public class BamImport {
 			String[] bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(), proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
 			log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
 			if (BedOps.verifyBedIndex(binBed, log)) {
-				BamSample[] bamSamples = new BamSample[bamsToImport.length];
 				BEDFileReader reader = new BEDFileReader(binBed, true);
 				LocusSet<BEDFeatureSeg> bLocusSet = reader.loadAll(log);
+				reader.close();
 				if (!bLocusSet.hasNoOverlap()) {
 					generateMarkerPositions(proj, bLocusSet);
+					ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), log);
+					String projectSeqSer = proj.PROJECT_DIRECTORY.getValue() + ext.removeDirectoryInfo(binBed) + "seq.ser";
+					String[][] refForIntervals = null;
+					if (!Files.exists(projectSeqSer)) {
+						refForIntervals = referenceGenome.getSequencesFor(bLocusSet.getLoci(), 1000);
+						Files.writeSerial(refForIntervals, projectSeqSer, true);
+						log.reportTimeInfo("Writing serialized bin sequences to " + projectSeqSer);
+
+					} else {
+						log.reportTimeInfo("Loading bin sequences from " + projectSeqSer);
+						refForIntervals = (String[][]) Files.readSerial(projectSeqSer, false, log, false, true);
+					}
+					if (refForIntervals.length != bLocusSet.getLoci().length) {
+						String error = "Have " + refForIntervals.length + " sequence intervals for " + bLocusSet.getLoci().length + " bins";
+						log.reportTimeError(error);
+						return;
+					}
+
 					long fingerPrint = proj.getMarkerSet().getFingerprint();
 
 					log.reportTimeInfo(bLocusSet.getLoci().length + " segments to pile");
 					reader.close();
 					FilterNGS filterNGS = new FilterNGS(20, 20, null);
-					PileupProducer producer = new PileupProducer(bamsToImport, serDir, proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), filterNGS, bLocusSet.getStrictSegments(), log);
+
+					PileupProducer producer = new PileupProducer(bamsToImport, serDir, refForIntervals, filterNGS, bLocusSet.getStrictSegments(), log);
 					WorkerTrain<BamPile[]> train = new WorkerTrain<BamPile[]>(producer, numthreads, 2, log);
 					int index = 0;
 					Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
@@ -60,10 +79,9 @@ public class BamImport {
 					CentroidCompute.computeAndDumpCentroids(proj, null, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new Builder(), numthreads, 2);
 					Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true);
 					TransposeData.transposeData(proj, 2000000000, false);
-					
-					
-				//	generatePCFile(proj, numthreads);
-				
+
+					generatePCFile(proj, numthreads);
+
 				} else {
 					log.reportTimeError("The bed file " + binBed + " had overlapping segments, currently non -overlapping segments are required");
 				}

@@ -367,7 +367,7 @@ public class CnvBamQC {
 		callSplit.matchAndSplit();
 
 		String serToReport = serDir + ext.rootOf(cnvFile) + "_QC/";
-		PileupProducer producer = new PileupProducer(bamFiles, serToReport, referenceGenomeFasta, null, callSplit.getSegsToSearch(), log);
+		PileupProducer producer = new PileupProducer(bamFiles, serToReport, null, null, callSplit.getSegsToSearch(), log);
 		WorkerTrain<BamPile[]> train = new WorkerTrain<BamPile[]>(producer, numThreads, 2, log);
 		BamPile[][] bamPiles = new BamPile[bamFiles.length][];
 		int index = 0;
