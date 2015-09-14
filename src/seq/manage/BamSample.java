@@ -46,11 +46,22 @@ public class BamSample {
 		this.rawDepth = new double[bamPiles.length];
 		this.mapQs = new double[bamPiles.length];
 		this.percentWithMismatch = new double[bamPiles.length];
+		byte currentChr = 0;
+		int currentPos=0;
 		for (int i = 0; i < bamPiles.length; i++) {
-			//rawDepth[i] = bamPiles[i].getOverallAvgDepth();
-		//	System.out.println(bamPiles[i].getNumOverlappingReads());
-			rawDepth[i] = 10 + computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
-			rawDepth[i] = Maths.log2(rawDepth[i]);
+			if (currentChr > bamPiles[i].getBin().getChr() || currentPos > bamPiles[i].getBin().getStart()) {
+				String error = "BUG, segments are unsorted";
+				proj.getLog().reportTimeError(error);
+				throw new IllegalStateException(error);
+			} else {
+				currentChr = bamPiles[i].getBin().getChr();
+				currentPos = bamPiles[i].getBin().getStart();
+			}
+			// rawDepth[i] = bamPiles[i].getOverallAvgDepth();
+			// System.out.println(bamPiles[i].getNumOverlappingReads());
+			//rawDepth[i] = 10 + computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
+			rawDepth[i] =computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
+			//rawDepth[i] = Maths.log2(rawDepth[i]);
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
 			int currentSize = bamPiles[i].getBin().getSize();
 			double normBasesOverlap = (double) bamPiles[i].getNumBasesOverlap() / currentSize;
@@ -64,13 +75,14 @@ public class BamSample {
 		System.out.println(Array.mean(rawDepth));
 		//System.exit(1);
 
-		BeastScore beastScore = new BeastScore(Array.toFloatArray(rawDepth), markerSet.getIndicesByChr(), null, proj.getLog());
-		this.normDepth = Array.scale(Array.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD()), 1);
+		// this.normDepth =Array.scale(rawDepth);
+		BeastScore bseastScore = new BeastScore(Array.toFloatArray(rawDepth), markerSet.getIndicesByChr(), null, proj.getLog());
+	//	this.normDepth = Array.scale(Array.toDoubleArray(beastScore.getScaleMadRawData()), 1);
 		percentWithMismatch = Array.scale(percentWithMismatch);
 		System.out.println(Array.min(percentWithMismatch));
 
 		//
-////		// if(Array.min(normDepth)<0){
+		// // // if(Array.min(normDepth)<0){
 //		// // System.err.println("less dan 0");
 //		// // System.exit(1);
 //		// // }

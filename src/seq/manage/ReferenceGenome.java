@@ -59,14 +59,21 @@ public class ReferenceGenome {
 		this.defaultBuffer = defaultBuffer;
 	}
 
+	public String[][] getSequencesFor(Segment[] segs) {
+		return getSequencesFor(segs, -1);
+	}
+
 	/**
 	 * @param segs
 	 *            these should be sorted in chromosomal order if speed is desired
 	 * @return
 	 */
-	public String[][] getSequencesFor(Segment[] segs) {
+	public String[][] getSequencesFor(Segment[] segs, int reportEvery) {
 		String[][] seqs = new String[segs.length][];
 		for (int i = 0; i < seqs.length; i++) {
+			if (reportEvery > 0 && i % reportEvery == 0) {
+				log.reportTimeInfo((i + 1) + " segments queried of " + segs.length + " total from " + referenceFasta);
+			}
 			seqs[i] = getSequenceFor(segs[i]);
 		}
 		return seqs;

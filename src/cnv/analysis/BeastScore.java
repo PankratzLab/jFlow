@@ -105,8 +105,14 @@ public class BeastScore {
 		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inverseTransformedData, log);
 		float[] inverseTransformedDataScaleMAD = getscaleMADData(inverseTransformedData, indicesToChunk, indicesMADScaled, log);
 		return inverseTransformedDataScaleMAD;
-	}
+	}// JOHN hijack this
 
+	public float[] getScaleMadRawData(){
+		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inputData, log);
+		float[] madScale = getscaleMADData(inputData, indicesToChunk, indicesMADScaled, log);
+		return madScale;
+	}
+	
 	/**
 	 * 
 	 * @param inputData
