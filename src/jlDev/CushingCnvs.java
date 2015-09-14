@@ -146,8 +146,6 @@ public class CushingCnvs {
 		commandArray.add("--cnv-count");
 		commandArray.add(PLINKGENELIST);
 		commandArray.add("--cnv-enrichment-test");
-
-		System.exit(1);
 	}
 
 	public static void filter(Project proj, String mappabilityFile, String cnvFile, final String[] cnvRemoveFilesstart, String geneTrackFile, String callSubsetBed, Logger log) {

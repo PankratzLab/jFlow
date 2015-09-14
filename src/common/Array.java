@@ -900,6 +900,22 @@ public class Array {
 	public static double[] scale(double[] array) {
 		return scale(array, 0);
 	}
+	
+	
+	/**
+	 * @param array
+	 * @param minForce
+	 *            the minimum of the returned array, values scaled to have this value as min
+	 * @return
+	 */
+	public static double[] scaleMinTo(double[] array, final double minForce) {
+		double min = Array.min(array) + minForce;
+		double[] scaled = new double[array.length];
+		for (int i = 0; i < array.length; i++) {
+			scaled[i] = array[i] + min;
+		}
+		return scaled;
+	}
 
 	/**
 	 * @param array

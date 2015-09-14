@@ -150,6 +150,7 @@ public class VCFOps {
 		if (options != null) {
 			for (int i = 0; i < options.length; i++) {
 				builder.setOption(options[i]);
+				
 			}
 		}
 		if (sequenceDictionary != null) {

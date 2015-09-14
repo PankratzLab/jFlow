@@ -66,6 +66,7 @@ public class BamImport {
 					int index = 0;
 					Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 					proj.SAMPLE_DIRECTORY.getValue(true, false);
+					proj.XY_SCALE_FACTOR.setValue((double) 10);
 					while (train.hasNext()) {
 						BamSample bamSample = new BamSample(proj, bamsToImport[index], train.next());
 						Hashtable<String, Float> outliers = bamSample.writeSample(fingerPrint);
