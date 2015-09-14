@@ -95,13 +95,14 @@ public class BamImport {
 	private static void generatePCFile(Project proj, int numthreads) {
 		Files.writeList(proj.getMarkerNames(), proj.TARGET_MARKERS_FILENAME.getValue());
 		String mediaMarks = ext.addToRoot(proj.TARGET_MARKERS_FILENAME.getValue(), ".median");
-		Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 10), mediaMarks);
+		Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
 		String base = ext.rootOf(proj.INTENSITY_PC_FILENAME.getValue());
 		MitoPipeline.catAndCaboodle(proj, numthreads, "0", mediaMarks, proj.getSamples().length - 1, base, false, false, 0, null, null, null, false, false, false, true);
 	}
 
 	private static void generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet) {
 		String positions = proj.MARKER_POSITION_FILENAME.getValue();
+		proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
 		String[] markerNames = new String[bLocusSet.getLoci().length];
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(positions));
@@ -114,7 +115,10 @@ public class BamImport {
 					markerName += "|" + name;
 				}
 				markerNames[i] = markerName;
-				writer.println(markerName + "\t" + bFeatureSeg.getChr() + "\t" + bFeatureSeg.getStart());
+				int diff = bFeatureSeg.getStop() - bFeatureSeg.getStart();
+				int mid = Math.round((float) diff / 2);
+				int pos = bFeatureSeg.getStart() + mid;
+				writer.println(markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos);
 			}
 			writer.close();
 		} catch (Exception e) {

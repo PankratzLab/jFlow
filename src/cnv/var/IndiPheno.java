@@ -52,11 +52,15 @@ public class IndiPheno {
 	        } else {
 	            System.out.println("Waiting for CNVs to be Loaded...");
 	            while (!cnvsLoaded) {
-	                try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+	                //try {
+	                	try {
+							Thread.sleep(100);// was getting  java.lang.IllegalMonitorStateException with wait()
+						} catch (InterruptedException ie) {
+						}
+                     //   wait();
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
 	            }
 	        }
 	    }
