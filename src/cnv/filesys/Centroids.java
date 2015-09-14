@@ -367,8 +367,8 @@ public class Centroids implements Serializable {
 			if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {
 				Files.copyFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser", ext.addToRoot(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser", ext.getTimestampForFilename()));
 			}
-			Files.writeSerial(outliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 		}
+		Files.writeSerial(outliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
         
 	}
 
