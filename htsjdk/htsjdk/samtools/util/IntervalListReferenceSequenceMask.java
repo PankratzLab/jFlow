@@ -47,15 +47,15 @@ public class IntervalListReferenceSequenceMask implements ReferenceSequenceMask 
     public IntervalListReferenceSequenceMask(final IntervalList intervalList) {
         this.header = intervalList.getHeader();
         if (intervalList.getHeader().getSortOrder() != SAMFileHeader.SortOrder.coordinate) {
-            intervalList.sort();
+            intervalList.sorted();
         }
-        final List<Interval> uniqueIntervals = intervalList.getUniqueIntervals();
+        final List<Interval> uniqueIntervals = intervalList.uniqued().getIntervals();
         if (uniqueIntervals.isEmpty()) {
             lastSequenceIndex = -1;
             lastPosition = 0;
         } else {
             final Interval lastInterval = uniqueIntervals.get(uniqueIntervals.size() - 1);
-            lastSequenceIndex = header.getSequenceIndex((lastInterval.getSequence()));
+            lastSequenceIndex = header.getSequenceIndex((lastInterval.getContig()));
             lastPosition = lastInterval.getEnd();
         }
         intervalIterator = new PeekableIterator<Interval>(uniqueIntervals.iterator());
@@ -63,6 +63,7 @@ public class IntervalListReferenceSequenceMask implements ReferenceSequenceMask 
 
     /**
      * It is required that sequenceIndex is >= any previous sequenceIndex passed to this class.
+     *
      * @return true if the mask is set for the given sequence and position
      */
     public boolean get(final int sequenceIndex, final int position) {
@@ -72,12 +73,13 @@ public class IntervalListReferenceSequenceMask implements ReferenceSequenceMask 
 
     /**
      * It is required that sequenceIndex is >= any previous sequenceIndex passed to this class.
+     *
      * @return the next pos on the given sequence >= position that is set, or -1 if there are no more set positions
      */
     public int nextPosition(final int sequenceIndex, final int position) {
         ensureSequenceLoaded(sequenceIndex);
-		// nextSetBit returns the first set bit on or after the starting index, therefore position+1
-        return currentBitSet.nextSetBit(position+1);
+        // nextSetBit returns the first set bit on or after the starting index, therefore position+1
+        return currentBitSet.nextSetBit(position + 1);
     }
 
     private void ensureSequenceLoaded(final int sequenceIndex) {
@@ -89,7 +91,7 @@ public class IntervalListReferenceSequenceMask implements ReferenceSequenceMask 
             currentBitSet.clear();
             while (intervalIterator.hasNext()) {
                 final Interval interval = intervalIterator.peek();
-                final int nextSequenceIndex = header.getSequenceIndex(interval.getSequence());
+                final int nextSequenceIndex = header.getSequenceIndex(interval.getContig());
                 if (nextSequenceIndex < sequenceIndex) {
                     intervalIterator.next();
                 } else if (nextSequenceIndex == sequenceIndex) {

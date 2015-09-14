@@ -1,5 +1,6 @@
 package htsjdk.variant.vcf;
 
+import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.samtools.util.SortingCollection;
 import htsjdk.variant.variantcontext.VariantContext;
 
@@ -27,8 +28,8 @@ public class VCFRecordCodec implements SortingCollection.Codec<VariantContext> {
 	public VCFRecordCodec(final VCFHeader header) {
 		this.vcfEncoder = new VCFEncoder(header, false, false);
 		// Explicitly set the version because it's not available in the header itself.
-		this.vcfDecoder.setVCFHeader(header, VCFHeaderVersion.VCF4_1);
-	}
+		this.vcfDecoder.setVCFHeader(header, VCFHeaderVersion.VCF4_2);
+    }
 
 	@Override
 	public void setOutputStream(final OutputStream stream) {
@@ -51,7 +52,7 @@ public class VCFRecordCodec implements SortingCollection.Codec<VariantContext> {
 			final String line;
 			return ((line = inputReader.readLine()) != null) ? this.vcfDecoder.decode(line) : null;
 		} catch (final IOException ioe) {
-			throw new RuntimeException("Could not decode/read a VCF record for a sorting collection: " + ioe.getMessage(), ioe);
+			throw new RuntimeIOException("Could not decode/read a VCF record for a sorting collection: " + ioe.getMessage(), ioe);
 		}
 	}
 

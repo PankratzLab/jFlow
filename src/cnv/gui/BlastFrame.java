@@ -3,25 +3,23 @@ package cnv.gui;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeListener;
 import javax.swing.AbstractAction;
-import javax.swing.JScrollPane;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JSpinner;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeListener;
 
 import net.miginfocom.swing.MigLayout;
-
-import javax.swing.JLabel;
-import javax.swing.JButton;
 
 public class BlastFrame extends JFrame {
 

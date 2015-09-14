@@ -8,6 +8,10 @@ import java.text.MessageFormat;
 /**
  * Describes functionality for objects that produce {@link SAMRecord}s and associated information.
  *
+ * Currently, only deprecated readers implement this directly; actual readers implement this
+ * via {@link ReaderImplementation} and {@link PrimitiveSamReader}, which {@link SamReaderFactory}
+ * converts into full readers by using {@link PrimitiveSamReaderToSamReaderAdapter}.
+ *
  * @author mccowan
  */
 public interface SamReader extends Iterable<SAMRecord>, Closeable {
@@ -18,7 +22,7 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
         abstract String name();
 
         /** The recommended file extension for SAMs of this type, without a period. */
-        abstract String fileExtension();
+        public abstract String fileExtension();
 
         /** The recommended file extension for SAM indexes of this type, without a period, or null if this type is not associated with indexes. */
         abstract String indexExtension();
@@ -38,7 +42,7 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
             }
 
             @Override
-            String fileExtension() {
+            public String fileExtension() {
                 return fileExtension;
             }
 
@@ -53,6 +57,7 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
             }
         }
 
+        public static Type CRAM_TYPE = new TypeImpl("CRAM", "cram", "crai");
         public static Type BAM_TYPE = new TypeImpl("BAM", "bam", "bai");
         public static Type SAM_TYPE = new TypeImpl("SAM", "sam", null);
     }
@@ -105,9 +110,14 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
     public SAMFileHeader getFileHeader();
 
     /**
-     * @return Answers {@code true} if this is a BAM reader.
+     * @return the {@link htsjdk.samtools.SamReader.Type} of this {@link htsjdk.samtools.SamReader}
      */
     public Type type();
+
+    /**
+     * @return a human readable description of the resource backing this sam reader
+     */
+    public String getResourceDescription();
 
     /**
      * @return true if ths is a BAM file, and has an index
@@ -147,7 +157,7 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
      * @param sequence  Reference sequence of interest.
      * @param start     1-based, inclusive start of interval of interest. Zero implies start of the reference sequence.
      * @param end       1-based, inclusive end of interval of interest. Zero implies end of the reference sequence.
-     * @param contained If true, each SAMRecord returned is will have its alignment completely contained in the
+     * @param contained If true, each SAMRecord returned will have its alignment completely contained in the
      *                  interval of interest.  If false, the alignment of the returned SAMRecords need only overlap the interval of interest.
      * @return Iterator over the SAMRecords matching the interval.
      */
@@ -208,8 +218,7 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
      * is in the query region.
      *
      * @param intervals Intervals to be queried.  The intervals must be optimized, i.e. in order, with overlapping
-     *                  and abutting intervals merged.  This can be done with
-     *                  htsjdk.samtools.SAMFileReader.QueryInterval#optimizeIntervals(htsjdk.samtools.SAMFileReader.QueryInterval[])
+     *                  and abutting intervals merged.  This can be done with {@link htsjdk.samtools.QueryInterval#optimizeIntervals}
      * @param contained If true, each SAMRecord returned is will have its alignment completely contained in one of the
      *                  intervals of interest.  If false, the alignment of the returned SAMRecords need only overlap one of
      *                  the intervals of interest.
@@ -233,9 +242,7 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
      * is in the query region.
      *
      * @param intervals Intervals to be queried.  The intervals must be optimized, i.e. in order, with overlapping
-     *                  and abutting intervals merged.  This can be done with
-     *                  htsjdk.samtools.SAMFileReader.QueryInterval#optimizeIntervals(htsjdk.samtools.SAMFileReader.QueryInterval[])
-     * @return Iterator over the SAMRecords overlapping any of the intervals.
+     *                  and abutting intervals merged.  This can be done with {@link htsjdk.samtools.QueryInterval#optimizeIntervals}
      */
     public SAMRecordIterator queryOverlapping(final QueryInterval[] intervals);
 
@@ -255,8 +262,7 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
      * is in the query region.
      *
      * @param intervals Intervals to be queried.  The intervals must be optimized, i.e. in order, with overlapping
-     *                  and abutting intervals merged.  This can be done with
-     *                  htsjdk.samtools.SAMFileReader.QueryInterval#optimizeIntervals(htsjdk.samtools.SAMFileReader.QueryInterval[])
+     *                  and abutting intervals merged.  This can be done with {@link htsjdk.samtools.QueryInterval#optimizeIntervals}
      * @return Iterator over the SAMRecords contained in any of the intervals.
      */
     public SAMRecordIterator queryContained(final QueryInterval[] intervals);
@@ -298,10 +304,14 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
      */
     public SAMRecord queryMate(final SAMRecord rec);
 
-
     /**
-     * The minimal subset of functionality to implement to conform with the requirements of
-     * {@link SamReader.PrimitiveSamReaderToSamReaderAdapter}.
+     * The minimal subset of functionality needed for a {@link SAMRecord} data source.
+     * {@link SamReader} itself is somewhat large and bulky, but the core functionality can be captured in
+     * relatively few methods, which are included here. For documentation, see the corresponding methods
+     * in {@link SamReader}.
+     *
+     * See also: {@link PrimitiveSamReaderToSamReaderAdapter}, {@link ReaderImplementation}
+     *
      */
     public interface PrimitiveSamReader {
         Type type();
@@ -329,12 +339,21 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
         ValidationStringency getValidationStringency();
     }
 
-    /** Decorator for a {@link SamReader.PrimitiveSamReader} that expands its functionality into a {@link SamReader}. */
+    /**
+     * Decorator for a {@link SamReader.PrimitiveSamReader} that expands its functionality into a {@link SamReader},
+     * given the backing {@link SamInputResource}.
+     *
+     * Wraps the {@link Indexing} interface as well, which was originally separate from {@link SamReader} but in practice
+     * the two are always implemented by the same class.
+     *
+     */
     class PrimitiveSamReaderToSamReaderAdapter implements SamReader, Indexing {
         final PrimitiveSamReader p;
+        final SamInputResource resource;
 
-        public PrimitiveSamReaderToSamReaderAdapter(final PrimitiveSamReader p) {
+        public PrimitiveSamReaderToSamReaderAdapter(final PrimitiveSamReader p, final SamInputResource resource) {
             this.p = p;
+            this.resource = resource;
         }
 
         PrimitiveSamReader underlyingReader() {
@@ -361,6 +380,12 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
             return query(intervals, true);
         }
 
+        /**
+         * Wraps the boilerplate code for querying a record's mate, which is common across many implementations.
+         *
+         * @param rec Record for which mate is sought.  Must be a paired read.
+         * @return
+         */
         @Override
         public SAMRecord queryMate(final SAMRecord rec) {
             if (!rec.getReadPairedFlag()) {
@@ -446,6 +471,11 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
         @Override
         public Type type() {
             return p.type();
+        }
+
+        @Override
+        public String getResourceDescription() {
+            return this.resource.toString();
         }
 
         @Override
@@ -537,5 +567,30 @@ public interface SamReader extends Iterable<SAMRecord>, Closeable {
         public boolean hasNext() { return wrappedIterator.hasNext(); }
 
         public void remove() { wrappedIterator.remove(); }
+    }
+
+    /**
+     * Internal interface for SAM/BAM/CRAM file reader implementations,
+     * as distinct from non-file-based readers.
+     *
+     * Implemented as an abstract class to enforce better access control.
+     *
+     * TODO -- Many of these methods only apply for a subset of implementations,
+     * TODO -- and either no-op or throw an exception for the others.
+     * TODO -- We should consider refactoring things to avoid this;
+     * TODO -- perhaps we can get away with not having this class at all.
+     */
+    abstract class ReaderImplementation implements PrimitiveSamReader {
+        abstract void enableFileSource(final SamReader reader, final boolean enabled);
+
+        abstract void enableIndexCaching(final boolean enabled);
+
+        abstract void enableIndexMemoryMapping(final boolean enabled);
+
+        abstract void enableCrcChecking(final boolean enabled);
+
+        abstract void setSAMRecordFactory(final SAMRecordFactory factory);
+
+        abstract void setValidationStringency(final ValidationStringency validationStringency);
     }
 }

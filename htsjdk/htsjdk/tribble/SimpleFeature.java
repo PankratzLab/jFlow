@@ -25,23 +25,27 @@ package htsjdk.tribble;
  */
 
 /**
- * Trivial feature -- all it holds is the key information.
- *
- * @author Mark DePristo
- * @since 5/3/12
+ * A simple concrete Feature.
  */
-public class BasicFeature implements Feature {
-    private final String chr;
-    private final int start, stop;
+public class SimpleFeature implements Feature {
 
-    public BasicFeature(final String chr, final int start, final int stop) {
-        this.chr = chr;
+    private final String contig;
+    private final int start;
+    private final int end;
+
+    public SimpleFeature(final String contig, final int start, final int end) {
+        this.contig = contig;
         this.start = start;
-        this.stop = stop;
+        this.end = end;
     }
 
+    @Deprecated
     public String getChr() {
-        return chr;
+        return contig;
+    }
+
+    public String getContig() {
+        return contig;
     }
 
     public int getStart() {
@@ -49,6 +53,6 @@ public class BasicFeature implements Feature {
     }
 
     public int getEnd() {
-        return stop;
+        return end;
     }
 }

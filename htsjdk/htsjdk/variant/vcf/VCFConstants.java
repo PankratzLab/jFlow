@@ -33,26 +33,21 @@ public final class VCFConstants {
     // reserved INFO/FORMAT field keys
     public static final String ANCESTRAL_ALLELE_KEY = "AA";
     public static final String ALLELE_COUNT_KEY = "AC";
-    public static final String MLE_ALLELE_COUNT_KEY = "MLEAC";
     public static final String ALLELE_FREQUENCY_KEY = "AF";
-    public static final String MLE_ALLELE_FREQUENCY_KEY = "MLEAF";
-    public static final String MLE_PER_SAMPLE_ALLELE_COUNT_KEY = "MLPSAC";
-    public static final String MLE_PER_SAMPLE_ALLELE_FRACTION_KEY = "MLPSAF";
     public static final String ALLELE_NUMBER_KEY = "AN";
     public static final String RMS_BASE_QUALITY_KEY = "BQ";
     public static final String CIGAR_KEY = "CIGAR";
     public static final String DBSNP_KEY = "DB";
     public static final String DEPTH_KEY = "DP";
-    public static final String DOWNSAMPLED_KEY = "DS";
-    public static final String EXPECTED_ALLELE_COUNT_KEY = "EC";
     public static final String END_KEY = "END";
 
     public static final String GENOTYPE_FILTER_KEY = "FT";
     public static final String GENOTYPE_KEY = "GT";
     public static final String GENOTYPE_POSTERIORS_KEY = "GP";
     public static final String GENOTYPE_QUALITY_KEY = "GQ";
-    public static final String GENOTYPE_ALLELE_DEPTHS = "AD";
+    public static final String GENOTYPE_ALLELE_DEPTHS = "AD"; //AD isn't reserved, but is specifically handled by VariantContext
     public static final String GENOTYPE_PL_KEY = "PL";   // phred-scaled genotype likelihoods
+    public static final String EXPECTED_ALLELE_COUNT_KEY = "EC";
     @Deprecated public static final String GENOTYPE_LIKELIHOODS_KEY = "GL";         // log10 scaled genotype likelihoods
 
     public static final String HAPMAP2_KEY = "H2";
@@ -68,6 +63,7 @@ public final class VCFConstants {
     public static final String SOMATIC_KEY = "SOMATIC";
     public static final String VALIDATED_KEY = "VALIDATED";
     public static final String THOUSAND_GENOMES_KEY = "1000G";
+
 
     // separators
     public static final String FORMAT_FIELD_SEPARATOR = ":";
@@ -93,11 +89,16 @@ public final class VCFConstants {
     public static final String ALT_HEADER_START = "##ALT";
     public static final String CONTIG_HEADER_KEY = "contig";
     public static final String CONTIG_HEADER_START = "##" + CONTIG_HEADER_KEY;
-    public static final String GATK_COMMAND_START = "##GATKCommandLine";
 
     // old indel alleles
     public static final char DELETION_ALLELE_v3 = 'D';
     public static final char INSERTION_ALLELE_v3 = 'I';
+
+    // special alleles
+    public static final char SPANNING_DELETION_ALLELE = '*';
+    public static final char NO_CALL_ALLELE = '.';
+    public static final char NULL_ALLELE = '-';
+
 
     // missing/default values
     public static final String UNFILTERED = ".";
@@ -123,5 +124,4 @@ public final class VCFConstants {
     public static final int MAX_GENOTYPE_QUAL = 99;
 
     public static final Double VCF_ENCODING_EPSILON = 0.00005; // when we consider fields equal(), used in the Qual compare
-    public static final String REFSAMPLE_DEPTH_KEY = "REFDEPTH";
 }

@@ -23,6 +23,7 @@ import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -148,7 +149,7 @@ public abstract class AbstractIndex implements MutableIndex {
     public AbstractIndex() {
         this.version = VERSION; // <= is overriden when file is read
         this.properties = new LinkedHashMap<String, String>();
-        chrIndices = new LinkedHashMap();
+        chrIndices = new LinkedHashMap<String, ChrIndex>();
     }
 
     /**
@@ -345,7 +346,7 @@ public abstract class AbstractIndex implements MutableIndex {
     public void writeBasedOnFeatureFile(final File featureFile) throws IOException {
         if (!featureFile.isFile()) return;
         final LittleEndianOutputStream idxStream =
-                new LittleEndianOutputStream(new FileOutputStream(Tribble.indexFile(featureFile)));
+                new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(Tribble.indexFile(featureFile))));
         write(idxStream);
         idxStream.close();
 

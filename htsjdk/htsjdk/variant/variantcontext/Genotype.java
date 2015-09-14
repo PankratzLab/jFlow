@@ -29,6 +29,7 @@ package htsjdk.variant.variantcontext;
 import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.variant.vcf.VCFConstants;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,7 +43,9 @@ import java.util.TreeSet;
  *
  * @author Mark DePristo
  */
-public abstract class Genotype implements Comparable<Genotype> {
+public abstract class Genotype implements Comparable<Genotype>, Serializable {
+    public static final long serialVersionUID = 1L;
+
     /**
      * A list of genotype field keys corresponding to values we
      * manage inline in the Genotype object.  They must not appear in the
@@ -77,7 +80,7 @@ public abstract class Genotype implements Comparable<Genotype> {
      * Returns how many times allele appears in this genotype object?
      *
      * @param allele
-     * @return a value >= 0 indicating how many times the allele occurred in this sample's genotype
+     * @return a value &gt;= 0 indicating how many times the allele occurred in this sample's genotype
      */
     public int countAllele(final Allele allele) {
         int c = 0;
@@ -91,7 +94,7 @@ public abstract class Genotype implements Comparable<Genotype> {
     /**
      * Get the ith allele in this genotype
      *
-     * @param i the ith allele, must be < the ploidy, starting with 0
+     * @param i the ith allele, must be &lt; the ploidy, starting with 0
      * @return the allele at position i, which cannot be null
      */
     public abstract Allele getAllele(int i);
@@ -300,9 +303,9 @@ public abstract class Genotype implements Comparable<Genotype> {
     /**
      * Are all likelihoods for this sample non-informative?
      *
-     * Returns true if all PLs are 0 => 0,0,0 => true
-     * 0,0,0,0,0,0 => true
-     * 0,10,100 => false
+     * Returns true if all PLs are 0 =&gt; 0,0,0 =&gt; true
+     * 0,0,0,0,0,0 =&gt; true
+     * 0,10,100 =&gt; false
      *
      * @return true if all samples PLs are equal and == 0
      */
@@ -356,10 +359,14 @@ public abstract class Genotype implements Comparable<Genotype> {
 
         // Notes:
         // 1. Make sure to use the appropriate separator depending on whether the genotype is phased
+        final String separator = isPhased() ? PHASED_ALLELE_SEPARATOR : UNPHASED_ALLELE_SEPARATOR;
         // 2. If ignoreRefState is true, then we want just the bases of the Alleles (ignoring the '*' indicating a ref Allele)
+        if (ignoreRefState) {
+          return ParsingUtils.join(separator, getAlleleStrings());
+        }
         // 3. So that everything is deterministic with regards to integration tests, we sort Alleles (when the genotype isn't phased, of course)
-        return ParsingUtils.join(isPhased() ? PHASED_ALLELE_SEPARATOR : UNPHASED_ALLELE_SEPARATOR,
-                ignoreRefState ? (Collection) getAlleleStrings() : (isPhased() ? getAlleles() : ParsingUtils.sortList(getAlleles())));
+        List<Allele> alleles = isPhased() ? getAlleles() : ParsingUtils.sortList(getAlleles());
+        return ParsingUtils.join(separator, alleles);
     }
 
     /**
@@ -397,7 +404,7 @@ public abstract class Genotype implements Comparable<Genotype> {
     // ---------------------------------------------------------------------------------------------------------
 
     /**
-     * comparable genotypes -> compareTo on the sample names
+     * comparable genotypes -&gt; compareTo on the sample names
      * @param genotype
      * @return
      */
@@ -523,7 +530,7 @@ public abstract class Genotype implements Comparable<Genotype> {
     /**
      * A totally generic getter, that allows you to specific keys that correspond
      * to even inline values (GQ, for example).  Can be very expensive.  Additionally,
-     * all int[] are converted inline into List<Integer> for convenience.
+     * all <code>int[]</code> are converted inline into <code>List&lt;Integer&gt;</code> for convenience.
      *
      * @param key
      * @return
@@ -534,9 +541,19 @@ public abstract class Genotype implements Comparable<Genotype> {
         } else if (key.equals(VCFConstants.GENOTYPE_QUALITY_KEY)) {
             return getGQ();
         } else if (key.equals(VCFConstants.GENOTYPE_ALLELE_DEPTHS)) {
-            return Arrays.asList(getAD());
+            if (hasAD()) {
+                final List<Integer> intList = new ArrayList<Integer>(getAD().length);
+                for(int i : getAD()) intList.add(i);
+                return intList;
+            }
+            return Collections.EMPTY_LIST;
         } else if (key.equals(VCFConstants.GENOTYPE_PL_KEY)) {
-            return Arrays.asList(getPL());
+            if (hasPL()) {
+                final List<Integer> intList = new ArrayList<Integer>(getPL().length);
+                for(int i : getPL()) intList.add(i);
+                return intList;
+            }
+            return Collections.EMPTY_LIST;
         } else if (key.equals(VCFConstants.DEPTH_KEY)) {
             return getDP();
         } else {

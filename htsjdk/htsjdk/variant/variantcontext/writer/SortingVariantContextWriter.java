@@ -30,7 +30,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 /**
  * this class writes VCF files, allowing records to be passed in unsorted (up to a certain genomic distance away)
  */
-class SortingVariantContextWriter extends SortingVariantContextWriterBase {
+public class SortingVariantContextWriter extends SortingVariantContextWriterBase {
 
     // the maximum START distance between records that we'll cache
     private int maxCachingStartDistance;
@@ -57,5 +57,10 @@ class SortingVariantContextWriter extends SortingVariantContextWriterBase {
         // then, update mostUpstreamWritableLoc:
         int mostUpstreamWritableIndex = vc.getStart() - maxCachingStartDistance;
         this.mostUpstreamWritableLoc = Math.max(BEFORE_MOST_UPSTREAM_LOC, mostUpstreamWritableIndex);
+    }
+    
+    @Override
+    public boolean checkError() {
+        return false;
     }
 }

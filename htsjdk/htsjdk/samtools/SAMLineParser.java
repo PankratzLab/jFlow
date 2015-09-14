@@ -81,6 +81,7 @@ public class SAMLineParser {
 
     /**
      * Public constructor. Use the default SAMRecordFactory and stringency.
+     *
      * @param samFileHeader SAM file header
      */
     public SAMLineParser(final SAMFileHeader samFileHeader) {
@@ -92,12 +93,13 @@ public class SAMLineParser {
 
     /**
      * Public constructor. Use the default SAMRecordFactory and stringency.
+     *
      * @param samFileHeader SAM file header
      * @param samFileReader SAM file reader For passing to SAMRecord.setFileSource, may be null.
-     * @param samFile SAM file being read (for error message only, may be null)
+     * @param samFile       SAM file being read (for error message only, may be null)
      */
     public SAMLineParser(final SAMFileHeader samFileHeader,
-                         final SAMFileReader samFileReader, final File samFile) {
+                         final SamReader samFileReader, final File samFile) {
 
         this(new DefaultSAMRecordFactory(),
                 ValidationStringency.DEFAULT_STRINGENCY, samFileHeader,
@@ -106,11 +108,12 @@ public class SAMLineParser {
 
     /**
      * Public constructor.
-     * @param samRecordFactory SamRecord Factory
+     *
+     * @param samRecordFactory     SamRecord Factory
      * @param validationStringency validation stringency
-     * @param samFileHeader SAM file header
-     * @param samFileReader SAM file reader For passing to SAMRecord.setFileSource, may be null.
-     * @param samFile SAM file being read (for error message only, may be null)
+     * @param samFileHeader        SAM file header
+     * @param samFileReader        SAM file reader For passing to SAMRecord.setFileSource, may be null.
+     * @param samFile              SAM file being read (for error message only, may be null)
      */
     public SAMLineParser(final SAMRecordFactory samRecordFactory,
                          final ValidationStringency validationStringency,
@@ -139,6 +142,7 @@ public class SAMLineParser {
 
     /**
      * Get the File header.
+     *
      * @return the SAM file header
      */
     public SAMFileHeader getFileHeader() {
@@ -148,6 +152,7 @@ public class SAMLineParser {
 
     /**
      * Get validation stringency.
+     *
      * @return validation stringency
      */
     public ValidationStringency getValidationStringency() {
@@ -184,6 +189,7 @@ public class SAMLineParser {
 
     /**
      * Parse a SAM line.
+     *
      * @param line line to parse
      * @return a new SAMRecord object
      */
@@ -194,9 +200,10 @@ public class SAMLineParser {
 
     /**
      * Parse a SAM line.
-     * @param line line to parse
+     *
+     * @param line       line to parse
      * @param lineNumber line number in the file. If the line number is not known
-     *          can be <=0.
+     *                   can be <=0.
      * @return a new SAMRecord object
      */
     public SAMRecord parseLine(final String line, final int lineNumber) {
@@ -325,12 +332,17 @@ public class SAMLineParser {
             parseTag(samRecord, mFields[i]);
         }
 
-        final List<SAMValidationError> validationErrors = samRecord.isValid();
-        if (validationErrors != null) {
-            for (final SAMValidationError errorMessage : validationErrors) {
-                reportErrorParsingLine(errorMessage.getMessage());
+        // Only call samRecord.isValid() if errors would be reported since the validation
+        // is quite expensive in and of itself.
+        if (this.validationStringency != ValidationStringency.SILENT) {
+            final List<SAMValidationError> validationErrors = samRecord.isValid();
+            if (validationErrors != null) {
+                for (final SAMValidationError errorMessage : validationErrors) {
+                    reportErrorParsingLine(errorMessage.getMessage());
+                }
             }
         }
+
         return samRecord;
     }
 
