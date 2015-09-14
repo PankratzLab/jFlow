@@ -3,7 +3,6 @@ package seq.manage;
 import java.util.Hashtable;
 
 import seq.manage.BamOps.BamIndexStats;
-import stats.Maths;
 import cnv.analysis.BeastScore;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -11,6 +10,9 @@ import cnv.filesys.Sample;
 import common.Array;
 import filesys.Segment;
 
+/**
+ * @author lane0212 Handles the data storage and normalization prior to conversion to {@link Sample}
+ */
 public class BamSample {
 	private static final double MAX_MAPQ = 60;
 	private static final double SCALE_FACTOR_NUM_READS = 1000000;
@@ -32,6 +34,15 @@ public class BamSample {
 		init();
 	}
 
+	/**
+	 * 
+	 * See http://www.partek.com/Tutorials/microarray/User_Guides/UnderstandingReads.pdf , page 3
+	 * 
+	 * @param numMappedReads
+	 * @param bin
+	 * @param numTotalMappedReads
+	 * @return
+	 */
 	private static double computeRPKM(int numMappedReads, Segment bin, int numTotalMappedReads) {
 		double data = (double) numMappedReads / bin.getSize();
 		double scale = numTotalMappedReads > 0 ? (double) SCALE_FACTOR_NUM_READS / numTotalMappedReads : 0;
@@ -41,8 +52,6 @@ public class BamSample {
 	private void init() {
 		MarkerSet markerSet = proj.getMarkerSet();
 		BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
-		System.out.println(bamIndexStats.getAlignedRecordCount());
-		// double scaleFactor = (double) bamIndexStats.getAlignedRecordCount()
 		this.rawDepth = new double[bamPiles.length];
 		this.mapQs = new double[bamPiles.length];
 		this.percentWithMismatch = new double[bamPiles.length];
@@ -60,11 +69,7 @@ public class BamSample {
 				currentChr = bamPiles[i].getBin().getChr();
 				currentPos = bamPiles[i].getBin().getStart();
 			}
-			// rawDepth[i] = bamPiles[i].getOverallAvgDepth();
-			// System.out.println(bamPiles[i].getNumOverlappingReads());
-			// rawDepth[i] = 10 + computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
 			rawDepth[i] = computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
-			// rawDepth[i] = Maths.log2(rawDepth[i]);
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
 			int currentSize = bamPiles[i].getBin().getSize();
 			double normBasesOverlap = (double) bamPiles[i].getNumBasesOverlap() / currentSize;
@@ -82,7 +87,7 @@ public class BamSample {
 		for (int i = 0; i < chrIndices.length; i++) {
 			boolean error = false;
 			for (int j = 0; j < chrIndices[i].length; j++) {
-				if (Double.isNaN(scaleMAD[chrIndices[i][j]]) && rawDepth[chrIndices[i][j]] == 0) {// should only happen if the MAD is NaN
+				if ((Double.isNaN(scaleMAD[chrIndices[i][j]]) || Double.isInfinite(scaleMAD[chrIndices[i][j]])) && rawDepth[chrIndices[i][j]] == 0) {// should only happen if the MAD is NaN
 					if (!error) {
 						String warning = "Found invalid scale MAD depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[chrIndices[i][j]];
 						warning += "Setting all of chr" + i + " to 0";
@@ -98,38 +103,10 @@ public class BamSample {
 
 			}
 		}
-
-		for (int j = 0; j < scaleMAD.length; j++) {
-			if (Double.isNaN(scaleMAD[j])) {
-				String error = "Found invalid scale MAD depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[j];
-				proj.getLog().reportTimeError(error);
-				// throw new IllegalStateException(error);
-			}
-		}
-
 		this.normDepth = Array.scaleMinTo(Array.toDoubleArray(scaleMAD), 1);
 		double scale = proj.XY_SCALE_FACTOR.getValue();
 		normDepth = Array.multiply(normDepth, (double) 1 / scale);
-		
-		
 		percentWithMismatch = Array.scale(percentWithMismatch);
-		System.out.println(Array.min(percentWithMismatch));
-
-		//
-		// // // if(Array.min(normDepth)<0){
-		// // // System.err.println("less dan 0");
-		// // // System.exit(1);
-		// // // }
-		// double maxNorm = Array.max(normDepth);
-		// double minNorm = Array.min(normDepth);
-		// for (int i = 0; i < normDepth.length; i++) {
-		// normDepth[i] = (normDepth[i] - minNorm) / (maxNorm - minNorm);
-		// normDepth[i] += 1;
-		// // normDepth[i] *= 10;
-		// }
-//		System.out.println(Array.mean(normDepth));
-//		System.out.println(Array.min(normDepth));
-//		System.out.println(Array.max(normDepth));
 		for (int j = 0; j < normDepth.length; j++) {
 			if (Double.isNaN(normDepth[j])) {
 				String error = "Found invalid normalized depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[j];
@@ -137,7 +114,6 @@ public class BamSample {
 				throw new IllegalStateException(error);
 			}
 		}
-
 	}
 
 	public Hashtable<String, Float> writeSample(long fingerprint) {
@@ -150,3 +126,19 @@ public class BamSample {
 		return outliers;
 	}
 }
+
+//
+// // // if(Array.min(normDepth)<0){
+// // // System.err.println("less dan 0");
+// // // System.exit(1);
+// // // }
+// double maxNorm = Array.max(normDepth);
+// double minNorm = Array.min(normDepth);
+// for (int i = 0; i < normDepth.length; i++) {
+// normDepth[i] = (normDepth[i] - minNorm) / (maxNorm - minNorm);
+// normDepth[i] += 1;
+// // normDepth[i] *= 10;
+// }
+// System.out.println(Array.mean(normDepth));
+// System.out.println(Array.min(normDepth));
+// System.out.println(Array.max(normDepth))
