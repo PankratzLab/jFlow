@@ -62,7 +62,7 @@ public class BamImport {
 					TransposeData.transposeData(proj, 2000000000, false);
 					
 					
-					generatePCFile(proj, numthreads);
+				//	generatePCFile(proj, numthreads);
 				
 				} else {
 					log.reportTimeError("The bed file " + binBed + " had overlapping segments, currently non -overlapping segments are required");

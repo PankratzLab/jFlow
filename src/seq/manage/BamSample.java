@@ -2,14 +2,18 @@ package seq.manage;
 
 import java.util.Hashtable;
 
+import seq.manage.BamOps.BamIndexStats;
+import stats.Maths;
 import cnv.analysis.BeastScore;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import common.Array;
+import filesys.Segment;
 
 public class BamSample {
 	private static final double MAX_MAPQ = 60;
+	private static final double SCALE_FACTOR_NUM_READS = 1000000;
 	private String bamFile;
 	private String sampleName;
 	private BamPile[] bamPiles;
@@ -28,33 +32,59 @@ public class BamSample {
 		init();
 	}
 
+	private static double computeRPKM(int numMappedReads, Segment bin, int numTotalMappedReads) {
+		double data = (double) numMappedReads / bin.getSize();
+		double scale = (double) SCALE_FACTOR_NUM_READS / numTotalMappedReads;
+		return data * scale;
+	}
+
 	private void init() {
 		MarkerSet markerSet = proj.getMarkerSet();
+		BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
+		System.out.println(bamIndexStats.getAlignedRecordCount());
+		//double scaleFactor = (double) bamIndexStats.getAlignedRecordCount()
 		this.rawDepth = new double[bamPiles.length];
 		this.mapQs = new double[bamPiles.length];
 		this.percentWithMismatch = new double[bamPiles.length];
 		for (int i = 0; i < bamPiles.length; i++) {
-			rawDepth[i] = bamPiles[i].getOverallAvgDepth();
+			//rawDepth[i] = bamPiles[i].getOverallAvgDepth();
+		//	System.out.println(bamPiles[i].getNumOverlappingReads());
+			rawDepth[i] = 10 + computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
+			rawDepth[i] = Maths.log2(rawDepth[i]);
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
-			double percentMiss = bamPiles[i].getNumReadsOverlap() <= 0 ? 0 : (double) bamPiles[i].getNumReadsWithMismatch() / bamPiles[i].getNumReadsOverlap();
-
+			int currentSize = bamPiles[i].getBin().getSize();
+			double normBasesOverlap = (double) bamPiles[i].getNumBasesOverlap() / currentSize;
+			double normBasesMiss = (double) bamPiles[i].getNumBasesWithMismatch() / currentSize;
+			double percentMiss = 0;
+			if (normBasesOverlap > 0) {
+				percentMiss = normBasesMiss / normBasesOverlap;
+			}
 			percentWithMismatch[i] = percentMiss;
-
 		}
+		System.out.println(Array.mean(rawDepth));
+		//System.exit(1);
+
 		BeastScore beastScore = new BeastScore(Array.toFloatArray(rawDepth), markerSet.getIndicesByChr(), null, proj.getLog());
-		this.normDepth = Array.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD());
+		this.normDepth = Array.scale(Array.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD()), 1);
+		percentWithMismatch = Array.scale(percentWithMismatch);
+		System.out.println(Array.min(percentWithMismatch));
 
-//		if(Array.min(normDepth)<0){
-//			System.err.println("less dan 0");
-//			System.exit(1);
+		//
+////		// if(Array.min(normDepth)<0){
+//		// // System.err.println("less dan 0");
+//		// // System.exit(1);
+//		// // }
+//		double maxNorm = Array.max(normDepth);
+//		double minNorm = Array.min(normDepth);
+//		for (int i = 0; i < normDepth.length; i++) {
+//			normDepth[i] = (normDepth[i]  - minNorm) / (maxNorm - minNorm);
+//			normDepth[i] += 1;
+//			// normDepth[i] *= 10;
 //		}
-		double maxNorm = Array.max(normDepth);
-		double minNorm = Array.min(normDepth);
-		for (int i = 0; i < normDepth.length; i++) {
-			normDepth[i] = (normDepth[i] - minNorm) / (maxNorm - minNorm);
-			normDepth[i] += 1;
-			normDepth[i] *= 10;
-		}
+		System.out.println(Array.mean(normDepth));
+		System.out.println(Array.min(normDepth));
+
+
 	}
 
 	public Hashtable<String, Float> writeSample(long fingerprint) {

@@ -20,6 +20,7 @@ import cnv.filesys.*;
 import cnv.manage.*;
 import cnv.plots.*;
 import cnv.qc.MarkerMetrics;
+import cnv.qc.SampleQC;
 
 public class Launch extends JFrame implements ActionListener, WindowListener, ItemListener {
 	public static final long serialVersionUID = 1L;
@@ -71,6 +72,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String CYTO_WORKBENCH = "Parse workbench files";
 	public static final String PRINCIPAL_COMPONENTS = "Principal Components";
 	public static final String GENERATE_DEMO_PACKAGE = "Generate a demo package";
+	public static final String ADD_QC_TO_SAMPLE_DATA = "Add sample qc metrics to sample data";
 
 
 	public static final String TEST = "Test new program";
@@ -79,7 +81,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
-			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,GENERATE_DEMO_PACKAGE, TEST},
+			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST},
 			{"Help", "Contents", "Search", "About"}};
 
 	
@@ -634,7 +636,17 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 						DemoPackage.guiAccess(proj);
 					}
 				});
-			} else {
+
+			} else if (command.equals(ADD_QC_TO_SAMPLE_DATA)) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						SampleQC.parseAndAddToSampleData(proj, 10, -1, true);
+					}
+				});
+
+			}
+			else {
 				log.reportError("Error - unknown command: " + command);
 			}
 		}

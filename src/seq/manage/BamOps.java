@@ -2,13 +2,21 @@ package seq.manage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import common.Logger;
 import common.Positions;
 import filesys.Segment;
+import htsjdk.samtools.AbstractBAMFileIndex;
+import htsjdk.samtools.BAMIndex;
+import htsjdk.samtools.BAMIndexMetaData;
+import htsjdk.samtools.DefaultSAMRecordFactory;
 import htsjdk.samtools.QueryInterval;
+import htsjdk.samtools.SAMException;
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReader.Indexing;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
 
@@ -84,8 +92,8 @@ public class BamOps {
 		return samFileHeader;
 
 	}
-	
-	public static String[] getSampleNames(String[] bamFiles){
+
+	public static String[] getSampleNames(String[] bamFiles) {
 		String[] sampleNames = new String[bamFiles.length];
 		for (int i = 0; i < sampleNames.length; i++) {
 			sampleNames[i] = getSampleName(bamFiles[i]);
@@ -93,12 +101,82 @@ public class BamOps {
 		return sampleNames;
 	}
 
-	public static String getSampleNsdame(String bamFile) {
-		
-		return null;
+	/**
+	 * @author lane0212 Stores some simple counts that can be quickly retrieved from the index file
+	 */
+	public static class BamIndexStats {
+		private int alignedRecordCount;
+		private int unalignedRecordCount;
+
+		public BamIndexStats(int alignedRecordCount, int unalignedRecordCount) {
+			super();
+			this.alignedRecordCount = alignedRecordCount;
+			this.unalignedRecordCount = unalignedRecordCount;
+		}
+
+		public int getAlignedRecordCount() {
+			return alignedRecordCount;
+		}
+
+		public int getUnalignedRecordCount() {
+			return unalignedRecordCount;
+		}
 	}
 
-	
+	public static BamIndexStats getBamIndexStats(String bamFile) {
+		SamReader reader = BamOps.getDefaultReader(bamFile, ValidationStringency.STRICT);
+		return getBamIndexStats(reader);
+	}
+
+	public static BamIndexStats getBamIndexStats(SamReader reader) {
+		BAMIndexMetaData[] result = getIndexMetaData(reader);
+		int alignedRecordCount = 0;
+		int unalignedRecordCount = 0;
+		for (int i = 0; i < result.length; i++) {
+			alignedRecordCount += result[i].getAlignedRecordCount();
+			unalignedRecordCount += result[i].getUnalignedRecordCount();
+		}
+
+		return new BamIndexStats(alignedRecordCount, unalignedRecordCount);
+
+	}
+
+	public static BAMIndexMetaData[] getIndexMetaData(SamReader reader) {
+		Indexing index = reader.indexing();
+		BAMIndex bamIndex = index.getIndex();
+		List<SAMSequenceRecord> records = reader.getFileHeader().getSequenceDictionary().getSequences();
+		BAMIndexMetaData[] result = new BAMIndexMetaData[records.size()];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = bamIndex.getMetaData(i);
+		}
+		return result;
+
+		// bamIndex.g
+		//
+		// bamIndex.getMetaData(0).
+
+		// int nRefs = bamIndex.getNumberOfReferences();
+		//
+		//
+		// AbstractBAMFileIndex index = (AbstractBAMFileIndex) bam.getIndex();
+		// // read through all the bins of every reference.
+		// BAMIndexMetaData[] result = new BAMIndexMetaData[nRefs == 0 ? 1 : nRefs];
+		// for (int i = 0; i < nRefs; i++) {
+		// result[i] = index.getMetaData(i);
+		// }
+		//
+		// if (result[0] == null){
+		// result[0] = new BAMIndexMetaData();
+		// }
+		// final Long noCoordCount = index.getNoCoordinateCount();
+		// if (noCoordCount != null) // null in old index files without metadata
+		// result[0].setNoCoordinateRecordCount(noCoordCount);
+		//
+		// return result;
+		// }
+		//
+	}
+
 	public static String getSampleName(String bamFile) {
 		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
 		String sample = reader.getFileHeader().getReadGroups().get(0).getSample();

@@ -9,8 +9,8 @@ import cnv.filesys.MarkerSet;
 public class Transforms {
 //	public static final String[] TRANFORMATIONS = {"Raw Values", "Quantile", "Inverse normalized", "Inverse T-distribution with 5 df"};
 //	public static final int[] TRANSFORMATION_TYPES = {Transformations.IDENTITY, Transformations.QUANTILE, Transformations.INVERSE_NORMALIZE, Transformations.INVERSE_TDIST_5DF};
-	public static final String[] TRANFORMATIONS = {"Raw Values", "Inverse normalized", "Inverse T-distribution with 5 df","BEAST vision"};
-	public static final int[] TRANSFORMATION_TYPES = { Transformations.IDENTITY, Transformations.INVERSE_NORMALIZE, Transformations.INVERSE_TDIST_5DF, Transformations.MAD_SCALED };
+	public static final String[] TRANFORMATIONS = { "Raw Values", "Inverse normalized", "Inverse T-distribution with 5 df", "BEAST vision", "5X multiply" };
+	public static final int[] TRANSFORMATION_TYPES = { Transformations.IDENTITY, Transformations.INVERSE_NORMALIZE, Transformations.INVERSE_TDIST_5DF, Transformations.MAD_SCALED, Transformations.X5 };
 	public static final String[] SCOPES = {"Chromosome", "Genome"};
 
 	public static float[] transform(float[] input, int transformation_type, boolean transformSeparatelyByChromosome, MarkerSet markerSet) {
