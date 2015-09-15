@@ -1,7 +1,10 @@
 package jlDev;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -23,22 +26,104 @@ import common.CmdLine;
 import common.Files;
 import common.Logger;
 import common.ext;
+import filesys.Segment;
 import filesys.Segment.SegmentCompare;
 
 public class CushingCnvs {
 	private static final String[] BASE_HEADER = new String[] { "MAPPABILITY_SCORE", "CALLED_GENE(s)" };
 	private static final String PLINK = "C:/bin/plink/plink-1.07-dos/plink-1.07-dos/plink.exe";
-	private static final String PLINKGENELIST = "C:/bin/plink/glist-hg19.txt";
+
+	// private static final String PLINKGENELIST = "C:/bin/plink/glist-hg19.txt";
 
 	public static void filter(Project proj, String mappabilityFile, String[] cnvFiles, String[] cnvRemoveFiles, String geneTrackFile, String callSubsetBed, Logger log) {
 		for (int i = 0; i < cnvFiles.length; i++) {
 
 			filter(proj, mappabilityFile, cnvFiles[i], cnvRemoveFiles, geneTrackFile, callSubsetBed, log);
+			System.exit(1);
 		}
 
 	}
 
-	public static void generatePed(Project proj, String cnvFile1, String cnvFile2) {
+	private static class PlinkEmpSeg extends Segment {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private double emp1;
+		private double emp2;
+		private String inputFile;
+		private static final String[] EMP_HEADER = new String[] { "CHR", "SNP", "EMP1", "EMP2" };
+		private static final String[] REPORT_HEADER = new String[] { "CHR", "POS", "EMP1", "EMP2" };
+
+		private PlinkEmpSeg(byte chr, int pos, double emp1, double emp2, String inputFile) {
+			super(chr, pos, pos);
+			this.emp1 = emp1;
+			this.emp2 = emp2;
+			this.inputFile = inputFile;
+		}
+
+		public double getEmp1() {
+			return emp1;
+		}
+
+		public double getEmp2() {
+			return emp2;
+		}
+
+		private String[] getPlinkHeader() {
+			String root = ext.rootOf(inputFile);
+			String[] header = Array.concatAll(Array.tagOn(REPORT_HEADER, root + "_MIN_EMP1_", null), Array.tagOn(REPORT_HEADER, root + "_MIN_EMP2_", null));
+			return header;
+		}
+
+		private String[] getData() {
+			ArrayList<String> data = new ArrayList<String>();
+			data.add(getChr() + "");
+			data.add(getStart() + "");
+			data.add(emp1 + "");
+			data.add(emp2 + "");
+			return Array.toStringArray(data);
+
+		}
+
+		private static LocusSet<PlinkEmpSeg> loadPlLocusSet(String filname, Logger log) {
+			ArrayList<PlinkEmpSeg> tmp = new ArrayList<PlinkEmpSeg>();
+			try {
+				BufferedReader reader = Files.getAppropriateReader(filname);
+				String[] header = reader.readLine().trim().split("[\\s]+");
+				int[] indices = ext.indexFactors(header, EMP_HEADER, true, false);
+
+				while (reader.ready()) {
+					String[] line = reader.readLine().trim().split("[\\s]+");
+					byte chr = Byte.parseByte(line[indices[0]]);
+					String tmpLoc = line[indices[1]];
+					tmpLoc = tmpLoc.replaceAll(".*-", "");
+					int pos = Integer.parseInt(tmpLoc);
+					double emp1 = Double.parseDouble(line[indices[2]]);
+					double emp2 = Double.parseDouble(line[indices[3]]);
+					tmp.add(new PlinkEmpSeg(chr, pos, emp1, emp2, filname));
+				}
+				reader.close();
+			} catch (FileNotFoundException fnfe) {
+				log.reportError("Error: file \"" + filname + "\" not found in current directory");
+				return null;
+			} catch (IOException ioe) {
+				log.reportError("Error reading file \"" + filname + "\"");
+				return null;
+			}
+			return new LocusSet<PlinkEmpSeg>(tmp.toArray(new PlinkEmpSeg[tmp.size()]), true, log) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+		}
+
+	}
+
+	public static LocusSet<PlinkEmpSeg> generatePed(Project proj, String cnvFile1, String cnvFile2) {
 		Logger log = new Logger(ext.parseDirectoryOfFile(cnvFile1) + "generatePed.log");
 		LocusSet<CNVariant> cnSet1 = CNVariant.loadLocSet(cnvFile1, log);
 		LocusSet<CNVariant> cnSet2 = CNVariant.loadLocSet(cnvFile2, log);
@@ -85,7 +170,6 @@ public class CushingCnvs {
 			}
 			for (String controlInd : fidIid2) {
 				String controlDNA = sampleData.lookup(controlInd)[0];
-
 				if (!sampleData.individualShouldBeExcluded(controlDNA)) {
 					writer.println(controlInd + "\t0\t0\t" + sampleData.getSexForIndividual(controlDNA) + "\t1");
 				}
@@ -97,55 +181,56 @@ public class CushingCnvs {
 			log.reportException(e);
 		}
 
-		ArrayList<String> commandArray = new ArrayList<String>();
-		commandArray.add(PLINK);
-		commandArray.add("--cnv-list");
-		commandArray.add(outCNV);
-		commandArray.add("--cnv-make-map");
-		commandArray.add("--out");
-		commandArray.add(outCNVRoot);
-		commandArray.add("--allow-no-sex");
+		String mperm = outCNVRoot + ".cnv.summary.mperm";
+		System.out.println(mperm);
+		if (!Files.exists(mperm)) {
+			ArrayList<String> commandArray = new ArrayList<String>();
+			commandArray.add(PLINK);
+			commandArray.add("--cnv-list");
+			commandArray.add(outCNV);
+			commandArray.add("--cnv-make-map");
+			commandArray.add("--out");
+			commandArray.add(outCNVRoot);
+			commandArray.add("--allow-no-sex");
 
-		CmdLine.runCommandWithFileChecks(Array.toStringArray(commandArray), dir, null, null, true, true, false, log);
+			CmdLine.runCommandWithFileChecks(Array.toStringArray(commandArray), dir, null, null, true, true, false, log);
 
-		commandArray = new ArrayList<String>();
-		commandArray.add(PLINK);
-		commandArray.add("--cfile");
-		commandArray.add(outCNVRoot);
-		commandArray.add("--out");
-		commandArray.add(outCNVRoot);
-		commandArray.add("--allow-no-sex");
-		commandArray.add("--mperm");
-		commandArray.add("100000");
-		
-		CmdLine.runCommandWithFileChecks(Array.toStringArray(commandArray), dir, null, null, true, true, true, log);
+			commandArray = new ArrayList<String>();
+			commandArray.add(PLINK);
+			commandArray.add("--cfile");
+			commandArray.add(outCNVRoot);
+			commandArray.add("--out");
+			commandArray.add(outCNVRoot);
+			commandArray.add("--allow-no-sex");
+			commandArray.add("--mperm");
+			commandArray.add("100000");
 
-		
-		
-		
-//		
-//		commandArray = new ArrayList<String>();
-//		commandArray.add(PLINK);
-//		commandArray.add("--cfile");
-//		commandArray.add(outCNVRoot);
-//		commandArray.add("--out");
-//		commandArray.add(outCNVRoot);
-//		commandArray.add("--allow-no-sex");
-//		commandArray.add("--cnv-indiv-perm");
-//		commandArray.add("--mperm");
-//		commandArray.add("100");
+			CmdLine.runCommandWithFileChecks(Array.toStringArray(commandArray), dir, null, null, true, true, true, log);
 
+			//
+			// commandArray = new ArrayList<String>();
+			// commandArray.add(PLINK);
+			// commandArray.add("--cfile");
+			// commandArray.add(outCNVRoot);
+			// commandArray.add("--out");
+			// commandArray.add(outCNVRoot);
+			// commandArray.add("--allow-no-sex");
+			// commandArray.add("--cnv-indiv-perm");
+			// commandArray.add("--mperm");
+			// commandArray.add("100");
 
-		//CmdLine.runCommandWithFileChecks(Array.toStringArray(commandArray), dir, null, null, true, true, false, log);
-		commandArray = new ArrayList<String>();
-		commandArray.add(PLINK);
-		commandArray.add("--cfile");
-		commandArray.add(outCNVRoot);
-		commandArray.add("--out");
-		commandArray.add(outCNVRoot);
-		commandArray.add("--cnv-count");
-		commandArray.add(PLINKGENELIST);
-		commandArray.add("--cnv-enrichment-test");
+			// CmdLine.runCommandWithFileChecks(Array.toStringArray(commandArray), dir, null, null, true, true, false, log);
+			// commandArray = new ArrayList<String>();
+			// commandArray.add(PLINK);
+			// commandArray.add("--cfile");
+			// commandArray.add(outCNVRoot);
+			// commandArray.add("--out");
+			// commandArray.add(outCNVRoot);
+			// commandArray.add("--cnv-count");
+			// commandArray.add(PLINKGENELIST);
+			// commandArray.add("--cnv-enrichment-test");
+		}
+		return PlinkEmpSeg.loadPlLocusSet(mperm, log);
 	}
 
 	public static void filter(Project proj, String mappabilityFile, String cnvFile, final String[] cnvRemoveFilesstart, String geneTrackFile, String callSubsetBed, Logger log) {
@@ -156,7 +241,7 @@ public class CushingCnvs {
 		int numIndss = CNVariant.getUniqueInds(cLocusSet, log).size();
 		System.out.println(cnvFile);
 		System.out.println(numIndss);
-
+		ArrayList<LocusSet<PlinkEmpSeg>> plinkResults = new ArrayList<LocusSet<PlinkEmpSeg>>();
 		for (int i = 0; i < cnvRemoveFilesstart.length; i++) {
 			if (Files.isDirectory(cnvRemoveFilesstart[i])) {
 				String[] tmpsCnvs = Files.list(cnvRemoveFilesstart[i], null, ".cnv", true, false, true);
@@ -169,15 +254,15 @@ public class CushingCnvs {
 		}
 		cnvFreqFiles.add(cnvFile);
 		String[] cnvRemoveFiles = Array.toStringArray(cnvFreqFiles);
+
 		if (proj != null) {
 			for (int i = 0; i < cnvRemoveFiles.length; i++) {
 				if (cnvRemoveFiles[i].contains("OSTEO")) {
-					generatePed(proj, cnvFile, cnvRemoveFiles[i]);
+					LocusSet<PlinkEmpSeg> tmpSet = generatePed(proj, cnvFile, cnvRemoveFiles[i]);
+					plinkResults.add(tmpSet);
 				}
 
 			}
-			return;
-
 		}
 
 		log.reportTimeInfo("found " + cnvRemoveFiles.length + " files to check");
@@ -239,13 +324,40 @@ public class CushingCnvs {
 		String output = ext.rootOf(cnvFile, false) + ".qc.summary.txt";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
-			writer.println(Array.toStr(Array.concatAll(CNVariant.PLINK_CNV_HEADER, summaryCNVs[0].getHeader(), BASE_HEADER)));
+			writer.print("UCSC_LOC\tUCSC_LINK\t" + Array.toStr(Array.concatAll(CNVariant.PLINK_CNV_HEADER, summaryCNVs[0].getHeader(), BASE_HEADER)));
+			for (int j = 0; j < plinkResults.size(); j++) {
+				writer.print("\t" + Array.toStr(plinkResults.get(j).getLoci()[0].getPlinkHeader()));
+			}
+			writer.println();
 			for (int i = 0; i < summaryCNVs.length; i++) {
 				CNVariant currentCNV = cLocusSet.getLoci()[i];
-
-				writer.print(currentCNV.toPlinkFormat());
+				writer.print(currentCNV.getUCSClocation() + "\t" + currentCNV.getUCSCLink("hg19") + "\t" + currentCNV.toPlinkFormat());
 				writer.print("\t" + Array.toStr(summaryCNVs[i].getData()));
 				writer.print("\t" + cnMappability.getMappabilityResults().get(i).getAverageMapScore() + "\t" + Array.toStr(cnMappability.getMappabilityResults().get(i).getSubsetNames(), "/"));
+				for (int j = 0; j < plinkResults.size(); j++) {
+					PlinkEmpSeg[] overLaps = plinkResults.get(j).getOverLappingLoci(currentCNV);
+					if (overLaps == null || overLaps.length == 0) {
+						log.reportTimeError("Could not find overlapping plink results for " + currentCNV.toPlinkFormat());
+					} else {
+						int minEmp1Index = -1;
+						int minEmp2Index = -1;
+						double minEmp1 = Double.MAX_VALUE;
+						double minEmp2 = Double.MAX_VALUE;
+						for (int k = 0; k < overLaps.length; k++) {
+							if (overLaps[k].getEmp1() < minEmp1) {
+								minEmp1 = overLaps[k].getEmp1();
+								minEmp1Index = k;
+							}
+							if (overLaps[k].getEmp2() < minEmp2) {
+								minEmp2 = overLaps[k].getEmp1();
+								minEmp2Index = k;
+							}
+
+						}
+						writer.print("\t" + Array.toStr(plinkResults.get(j).getLoci()[minEmp1Index].getData()) + "\t" + Array.toStr(plinkResults.get(j).getLoci()[minEmp2Index].getData()));
+					}
+				}
+
 				writer.println();
 			}
 			writer.close();
