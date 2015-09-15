@@ -91,7 +91,7 @@ public class BeastScore {
 	 * 
 	 */
 	public void computeBeastScores(float alpha) {
-		float[] inverseTransformedDataScaleMAD = getinverseTransformedDataScaleMAD();
+		float[] inverseTransformedDataScaleMAD = getinverseTransformedDataScaleMAD(true);
 		this.beastHeights = getBeastHeights(inverseTransformedDataScaleMAD, indicesForScores, log);
 		this.beastLengths = getBeastLengths(inverseTransformedDataScaleMAD, indicesForScores, log);
 		this.beastScores = getBeastScores(beastHeights, beastLengths, alpha, log);
@@ -100,19 +100,19 @@ public class BeastScore {
 	/**
 	 * Consolidates the data transformations, just in case you want to operate on the transformed data
 	 */
-	public float[] getinverseTransformedDataScaleMAD() {
+	public float[] getinverseTransformedDataScaleMAD(boolean useScaleFactorMAD) {
 		float[] inverseTransformedData = transformData(inputData, indicesToChunk, log);
-		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inverseTransformedData, log);
+		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inverseTransformedData, useScaleFactorMAD, log);
 		float[] inverseTransformedDataScaleMAD = getscaleMADData(inverseTransformedData, indicesToChunk, indicesMADScaled, log);
 		return inverseTransformedDataScaleMAD;
 	}// JOHN hijack this
 
-	public float[] getScaleMadRawData(){
-		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inputData, log);
+	public float[] getScaleMadRawData(boolean useScaleFactorMAD) {
+		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inputData, useScaleFactorMAD, log);
 		float[] madScale = getscaleMADData(inputData, indicesToChunk, indicesMADScaled, log);
 		return madScale;
 	}
-	
+
 	/**
 	 * 
 	 * @param inputData
@@ -129,10 +129,12 @@ public class BeastScore {
 	 * 
 	 * @param indicesToScale
 	 * @param inverseTransformedData
+	 * @param useScaleFactorMAD
+	 *            using {@link BeastScore#SCALE_FACTOR_MAD} mimics the computation performed by beast
 	 * @param log
 	 * @return
 	 */
-	public static float[] getscaleMADIndices(int[][] indicesToScale, float[] inverseTransformedData, Logger log) {
+	public static float[] getscaleMADIndices(int[][] indicesToScale, float[] inverseTransformedData, boolean useScaleFactorMAD, Logger log) {
 		float[] indicesMADScaled = new float[indicesToScale.length];
 		for (int i = 0; i < indicesToScale.length; i++) {
 			if (indicesToScale[i] != null && indicesToScale[i].length > 0) {
@@ -142,7 +144,11 @@ public class BeastScore {
 						medianIndices.add(Math.abs(inverseTransformedData[j]));
 					}
 				}
-				indicesMADScaled[i] = (float) (Array.median(Array.toDoubleArray(Array.toFloatArray(medianIndices))) / SCALE_FACTOR_MAD);
+				if (useScaleFactorMAD) {
+					indicesMADScaled[i] = (float) (Array.median(Array.toDoubleArray(Array.toFloatArray(medianIndices))) / SCALE_FACTOR_MAD);
+				} else {
+					indicesMADScaled[i] = (float) Array.median(Array.toDoubleArray(Array.toFloatArray(medianIndices)));
+				}
 			}
 		}
 		return indicesMADScaled;
@@ -170,7 +176,7 @@ public class BeastScore {
 					inverseTransformedDataScaleMAD[indicesToScale[i][j]] = (float) (inverseTransformedData[indicesToScale[i][j]] / (scaleMAD[i]));
 				}
 			} else if (i < 24) {
-				//log.reportError("Warning - the index " + i + " was missing data");
+				// log.reportError("Warning - the index " + i + " was missing data");
 			}
 		}
 		return inverseTransformedDataScaleMAD;
