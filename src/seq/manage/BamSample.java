@@ -34,6 +34,11 @@ public class BamSample {
 		init();
 	}
 
+
+	public String getSampleName() {
+		return sampleName;
+	}
+
 	/**
 	 * 
 	 * See http://www.partek.com/Tutorials/microarray/User_Guides/UnderstandingReads.pdf , page 3
@@ -104,6 +109,7 @@ public class BamSample {
 			}
 		}
 		this.normDepth = Array.scaleMinTo(Array.toDoubleArray(scaleMAD), 1);
+		//this.normDepth = Array.scaleMinTo(rawDepth,1);
 		double scale = proj.XY_SCALE_FACTOR.getValue();
 		normDepth = Array.multiply(normDepth, (double) 1 / scale);
 		percentWithMismatch = Array.scale(percentWithMismatch);

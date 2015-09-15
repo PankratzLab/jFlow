@@ -344,17 +344,21 @@ public class CushingCnvs {
 						double minEmp1 = Double.MAX_VALUE;
 						double minEmp2 = Double.MAX_VALUE;
 						for (int k = 0; k < overLaps.length; k++) {
-							if (overLaps[k].getEmp1() < minEmp1) {
-								minEmp1 = overLaps[k].getEmp1();
-								minEmp1Index = k;
-							}
-							if (overLaps[k].getEmp2() < minEmp2) {
-								minEmp2 = overLaps[k].getEmp1();
-								minEmp2Index = k;
+							if (overLaps[k].getStart() == currentCNV.getStart() || overLaps[k].getStop() == currentCNV.getStop()) {
+								if (overLaps[k].getEmp1() < minEmp1) {
+
+									minEmp1 = overLaps[k].getEmp1();
+									minEmp1Index = k;
+								}
+								if (overLaps[k].getEmp2() < minEmp2) {
+									minEmp2 = overLaps[k].getEmp1();
+									minEmp2Index = k;
+								}
 							}
 
 						}
-						writer.print("\t" + Array.toStr(plinkResults.get(j).getLoci()[minEmp1Index].getData()) + "\t" + Array.toStr(plinkResults.get(j).getLoci()[minEmp2Index].getData()));
+						System.out.println(output);
+						writer.print("\t" + Array.toStr(overLaps[minEmp1Index].getData()) + "\t" + Array.toStr(overLaps[minEmp2Index].getData()));
 					}
 				}
 
