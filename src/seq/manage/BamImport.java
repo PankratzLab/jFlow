@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import seq.manage.BEDFileReader.BEDFeatureSeg;
+import seq.manage.BamOps.BamIndexStats;
 import seq.manage.BamSegPileUp.PileupProducer;
 import seq.qc.FilterNGS;
 import common.Array;
@@ -15,6 +16,7 @@ import common.ext;
 import common.PSF.Ext;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.Builder;
+import cnv.analysis.PennCNVPrep;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -29,6 +31,7 @@ public class BamImport {
 	public static void importTheWholeBamProject(Project proj, String binBed, int numthreads) {
 		if (proj.getArrayType() == ARRAY.NGS) {
 			Logger log = proj.getLog();
+
 			String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
 			String[] bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(), proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
 			log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
@@ -69,8 +72,16 @@ public class BamImport {
 					Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 					proj.SAMPLE_DIRECTORY.getValue(true, false);
 					proj.XY_SCALE_FACTOR.setValue((double) 10);
+					String[] mappedReadCounts = new String[bamsToImport.length + 1];
+					mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
 					while (train.hasNext()) {
 						BamSample bamSample = new BamSample(proj, bamsToImport[index], train.next());
+						String sample = bamSample.getSampleName();
+						BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamsToImport[index]);
+						int numAligned = bamIndexStats.getAlignedRecordCount();
+						int numNotAligned = bamIndexStats.getUnalignedRecordCount();
+						mappedReadCounts[index + 1] = sample + "\t" + numAligned + "\t" + numNotAligned;
+
 						Hashtable<String, Float> outliers = bamSample.writeSample(fingerPrint);
 						if (outliers.size() > 0) {
 							allOutliers.putAll(allOutliers);
@@ -78,13 +89,36 @@ public class BamImport {
 						index++;
 					}
 					Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+
+					String readCountFile = proj.PROJECT_DIRECTORY.getValue() + "sample.readCounts.txt";
+					Files.writeList(mappedReadCounts, readCountFile);
+
 					TransposeData.transposeData(proj, 2000000000, false);
 					CentroidCompute.computeAndDumpCentroids(proj, null, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new Builder(), numthreads, 2);
 					Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true);
 					TransposeData.transposeData(proj, 2000000000, false);
 
 					generatePCFile(proj, numthreads);
+					proj.INTENSITY_PC_NUM_COMPONENTS.setValue(5);
+					proj.saveProperties();
+					String PCCorrected = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected");
+					String newName = proj.PROJECT_NAME.getValue() + "_" + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected";
+					Files.copyFileUsingFileChannels(proj.getPropertyFilename(), PCCorrected, log);
+					Project pcCorrected = new Project(PCCorrected, false);
+					pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
+					pcCorrected.PROJECT_NAME.setValue(newName);
+					proj.copyBasicFiles(pcCorrected, true);
 
+					log.reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
+					PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, false, false, -1, true);
+					PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, true, false, -1, true);
+					pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue() + "shadowSamples3/");
+					pcCorrected.saveProperties();
+					TransposeData.transposeData(pcCorrected, 2000000000, false);
+
+					// MDL
+
+					// Project proj =
 				} else {
 					log.reportTimeError("The bed file " + binBed + " had overlapping segments, currently non -overlapping segments are required");
 				}
@@ -118,7 +152,7 @@ public class BamImport {
 		Files.writeList(proj.getMarkerNames(), proj.TARGET_MARKERS_FILENAME.getValue());
 		String mediaMarks = ext.addToRoot(proj.TARGET_MARKERS_FILENAME.getValue(), ".median");
 		Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
-		String base = ext.rootOf(proj.INTENSITY_PC_FILENAME.getValue());
+		String base = "BAM_PCS";
 		MitoPipeline.catAndCaboodle(proj, numthreads, "0", mediaMarks, proj.getSamples().length - 1, base, false, false, 0, null, null, null, false, false, false, true);
 	}
 
