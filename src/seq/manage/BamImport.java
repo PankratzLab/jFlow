@@ -16,6 +16,7 @@ import common.PSF.Ext;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.Builder;
 import cnv.filesys.Centroids;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.Markers;
@@ -49,6 +50,7 @@ public class BamImport {
 						log.reportTimeInfo("Loading bin sequences from " + projectSeqSer);
 						refForIntervals = (String[][]) Files.readSerial(projectSeqSer, false, log, false, true);
 					}
+					generateGCModel(proj, refForIntervals);
 					if (refForIntervals.length != bLocusSet.getLoci().length) {
 						String error = "Have " + refForIntervals.length + " sequence intervals for " + bLocusSet.getLoci().length + " bins";
 						log.reportTimeError(error);
@@ -89,6 +91,26 @@ public class BamImport {
 			}
 		} else {
 			proj.getLog().reportTimeError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS);
+		}
+	}
+
+	private static void generateGCModel(Project proj, String[][] sequence) {
+		String gcFile = proj.GC_MODEL_FILENAME.getValue();
+		MarkerSet markerSet = proj.getMarkerSet();
+		String[] markerNames = markerSet.getMarkerNames();
+
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(gcFile));
+			String[] header = new String[] { "Name", "Chr", "Position", "GC" };
+			writer.println(Array.toStr(header));
+			for (int i = 0; i < markerNames.length; i++) {
+
+				writer.println(markerNames[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + ReferenceGenome.getPercent(sequence[i]));
+			}
+			writer.close();
+		} catch (Exception e) {
+			proj.getLog().reportError("Error writing to " + gcFile);
+			proj.getLog().reportException(e);
 		}
 	}
 
