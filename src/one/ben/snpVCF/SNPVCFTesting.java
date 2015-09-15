@@ -96,7 +96,7 @@ public class SNPVCFTesting {
         }
     };
             
-    static void test() {
+    static void createTBI() {
         String refGenome = "D:/hg19_canonical.fa";
         SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(refGenome, new Logger()).getIndexedFastaSequenceFile().getSequenceDictionary();
         
@@ -128,7 +128,8 @@ public class SNPVCFTesting {
 //        System.out.println("one");
         
         samSequenceDictionary = (new SAMSequenceDictionary());
-        samSequenceDictionary.addSequence(new SAMSequenceRecord("chr1", Integer.MAX_VALUE));
+        samSequenceDictionary.addSequence(new SAMSequenceRecord("chr1", (512 * 1024 * 1024)));
+        samSequenceDictionary.addSequence(new SAMSequenceRecord("chr2", (512 * 1024 * 1024)));
         
         VCFFileReader fileReader2 = new VCFFileReader(new File(numberedVCFFile), false);
         VariantContextWriter vcw2 = VCFOps.initWriter(numberedVCFFile2, VCFOps.DEFUALT_WRITER_OPTIONS, samSequenceDictionary);
@@ -136,19 +137,10 @@ public class SNPVCFTesting {
         VCFHeader hdr = fileReader2.getFileHeader();
         hdr.setSequenceDictionary(samSequenceDictionary);
         vcw2.writeHeader(hdr);
-        VariantContext vcBase = fileReader2.iterator().next();
-        ArrayList<Allele> als = new ArrayList<Allele>();
-     
-        Allele a = Allele.create("A", true);
-        Allele b = Allele.create("C",false);
-        als.add( a);
-        als.add(b );
-        for (int i = 0; i < 536903700; i++) {
-//        for (VariantContext vc : fileReader2) {
+        for (VariantContext vc : fileReader2) {
             
-            VariantContextBuilder vcB = new VariantContextBuilder().chr("1").alleles(als).stop(i+1).start(i+1);
-            VariantContext vc =vcB.make();
-            String chr = vc.getChr();
+            VariantContextBuilder vcB = new VariantContextBuilder(vc);
+            String chr = vc.getContig();
             if (ext.isValidInteger(chr)) {
                 chr = Positions.getChromosomeUCSC(Integer.parseInt(chr), true);
             } else {
@@ -162,14 +154,10 @@ public class SNPVCFTesting {
             VariantContext vc2 = vcB.make();
             try {
                 vcw2.add(vc2);
-                if(i%1000000==0){
-                    System.out.println("dssfa "+i);
-
-                }
             } catch (Exception e) {
-                System.out.println(vc2.toString());
-                System.out.println("DFSDFSDF "+i);
-
+                e.printStackTrace();
+                fileReader2.close();
+                return;
             }
         }
         vcw2.close();
@@ -269,7 +257,7 @@ public class SNPVCFTesting {
                 contigs.add(contig);
             }
             newLineNonRS.append(contig).append("\t");
-            newLineNonRS.append(rsNumber).append("\t");
+            newLineNonRS.append(rsNumber % MAX_CONTIG_LEN).append("\t");
             for (int i = 2; i < lineParts.length - 1; i++) {
                 newLineNonRS.append(lineParts[i]).append("\t");
             }
@@ -357,13 +345,13 @@ public class SNPVCFTesting {
 
     
     public static void main(String[] args) {
-        try {
-//            test();
+//        try {
+//            createTBI();
 //            trimFileOnce();
-            writeByRSNumber();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//            writeByRSNumber();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
     
 }
