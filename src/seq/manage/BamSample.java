@@ -87,7 +87,7 @@ public class BamSample {
 		}
 
 		BeastScore beastScore = new BeastScore(Array.toFloatArray(rawDepth), markerSet.getIndicesByChr(), null, proj.getLog());
-		float[] scaleMAD = beastScore.getScaleMadRawData();
+		float[] scaleMAD = beastScore.getScaleMadRawData(false);
 		int[][] chrIndices = markerSet.getIndicesByChr();
 		for (int i = 0; i < chrIndices.length; i++) {
 			boolean error = false;
