@@ -15,8 +15,10 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.concurrent.Callable;
 
+import cnv.qc.CNVTrioFilter;
 import cnv.var.LocusSet;
 import seq.analysis.PlinkSeq;
 import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
@@ -46,6 +48,10 @@ import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.tribble.index.tabix.TabixIndexCreator;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.tribble.util.TabixUtils;
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeType;
+import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.Options;
@@ -75,7 +81,7 @@ public class VCFOps {
 	public static final Set<String> BLANK_SAMPLE = new TreeSet<String>();
 	public static final Options[] DEFUALT_WRITER_OPTIONS = new Options[] { Options.INDEX_ON_THE_FLY };
 
-	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT" };
+	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT","NUM_HOM_VAR","NUM_HET","NUM_HOM_ALT" };
 
 	public enum VCF_EXTENSIONS {
 		GZIP_VCF(".vcf.gz"), REG_VCF(".vcf"), BCF(".bcf");
@@ -91,7 +97,7 @@ public class VCFOps {
 		}
 	}
 
-	private enum UTILITY_TYPE {
+	public enum UTILITY_TYPE {
 		/**
 		 * Convert a vcf to plink and run gwas QC
 		 */
@@ -150,7 +156,7 @@ public class VCFOps {
 		if (options != null) {
 			for (int i = 0; i < options.length; i++) {
 				builder.setOption(options[i]);
-				
+
 			}
 		}
 		if (sequenceDictionary != null) {
@@ -1192,9 +1198,8 @@ public class VCFOps {
 			String[][] annotations = getAnnotationKeys(vcf, log);
 			if (createAnnotationFile) {
 				annoWriter = Files.getAppropriateWriter(annoFile);
-				annoWriter.println("##" + Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[1]));
-				annoWriter.println(Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[0]));
-
+				annoWriter.println("##" + Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[1]) + "\t" + Array.toStr(VCFOps.getSamplesInFile(vcf)));
+				annoWriter.println(Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[0]) + "\t" + Array.toStr(VCFOps.getSamplesInFile(vcf)));
 			}
 			for (VariantContext vc : reader) {
 				progress++;
@@ -1206,15 +1211,20 @@ public class VCFOps {
 				if ((!skipFiltered || !vc.isFiltered()) && VCOps.isInTheseSegments(vc, segsToSearch)) {
 					writer.add(vc);
 					if (bamSample != null) {
-						bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getEnd()));
+						bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getContig()), vc.getStart(), vc.getEnd()));
 					}
 					if (createAnnotationFile) {
-						annoWriter.println(vc.getChr() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
+						annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t"+vc.getHomRefCount()+"\t"+vc.getHetCount()+"\t"+vc.getHomVarCount()+"\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
+						GenotypesContext gc = vc.getGenotypes();
+						
+						for (Genotype g : gc) {
+							annoWriter.print("\t"+g.getGenotypeString());
+						}
+						annoWriter.println();
 					}
 					found++;
 				}
 			}
-
 			if (bamSample != null) {
 				BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, numThreads, log);
 				bamSample = new BamExtractor.BamSample(Files.listFullPaths(dir, ".bam", false), log, true);
@@ -1484,14 +1494,14 @@ public class VCFOps {
 					created = true;
 				} else {
 					log.reportTimeWarning("Indexing not quite implemented yet for " + VCF_EXTENSIONS.GZIP_VCF.getLiteral() + ", exiting");
-//					System.exit(1);
+					// System.exit(1);
 					VCFFileReader readerVcfGz = new VCFFileReader(vcfFile, false);
 					TabixIndex index = IndexFactory.createTabixIndex(new File(vcfFile), new VCFCodec(), TabixFormat.VCF, readerVcfGz.getFileHeader().getSequenceDictionary());
 					try {
-                        index.writeBasedOnFeatureFile(new File(vcfFile));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+						index.writeBasedOnFeatureFile(new File(vcfFile));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 					created = false;
 					readerVcfGz.close();
 
@@ -1707,6 +1717,75 @@ public class VCFOps {
 		return qIntervals;
 	}
 
+	private static String[] getExtractAnnotationCommand(UTILITY_TYPE type, Logger log) {
+		ArrayList<String> params = new ArrayList<String>();
+		params.add("#Full path to a vcf (preferably indexed");
+		params.add(VCF_COMMAND);
+		params.add("#Full path to a .bed file to extract");
+		params.add(SEGMENT_FILE_COMMAND);
+		params.add("#Full path to a either a file listing .bams, or a directory of .bam files");
+		params.add("#" + BAM_COMMAND);
+		System.out.println(Array.toStr(Array.toStringArray(params)));
+		return Array.toStringArray(params);
+	}
+
+	public static void fromParameters(String filename, UTILITY_TYPE type, Logger log) {
+		Vector<String> params = new Vector<String>();
+		switch (type) {
+		case CONVERT_PLINK:
+			log.reportTimeInfo("Invalid op type " + type);
+			break;
+		case DUMP_SAMPLES:
+			log.reportTimeInfo("Invalid op type " + type);
+
+			break;
+		case EXTRACT_IDS:
+			log.reportTimeInfo("Invalid op type " + type);
+
+			break;
+		case EXTRACT_SEGMENTS:
+			log.reportTimeInfo("Invalid op type " + type);
+
+			break;
+		case EXTRACT_SEGMENTS_ANNOTATION:
+			params = Files.parseControlFile(filename, COMMAND_VCF_OPS_EXTRACT, getExtractAnnotationCommand(type, log), log);
+
+			break;
+		case GZIP:
+			log.reportTimeInfo("Invalid op type " + type);
+
+			break;
+		case HOMOGENEITY:
+			log.reportTimeInfo("Invalid op type " + type);
+
+			break;
+		case QC:
+			break;
+		case REMOVE_FILTERED:
+			log.reportTimeInfo("Invalid op type " + type);
+
+			break;
+		case SUBSET_SUPER:
+			log.reportTimeInfo("Invalid op type " + type);
+
+			break;
+		default:
+			break;
+		}
+		if (params != null) {
+			params.add(UTILITY_COMMAND + type);
+
+			main(Array.toStringArray(params));
+		}
+	}
+
+	private static final String VCF_COMMAND = "vcf=";
+	private static final String UTILITY_COMMAND = "utility=";
+	private static final String SEGMENT_FILE_COMMAND = "segs=";
+	private static final String BAM_COMMAND = "bams=";
+	public static final String COMMAND_VCF_OPS_EXTRACT = "vcfExtract";
+	public static final String COMMAND_VCF_EXTRACT_DESCRIPTION = "extract a file of segments from a vcf and bam files";
+
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String vcf = "Avcf.vcf";
@@ -1727,13 +1806,13 @@ public class VCFOps {
 		Logger log;
 
 		String usage = "\n" + "seq.analysis.VCFUtils requires 0-1 arguments\n";
-		usage += "   (1) full path to a vcf file (i.e. vcf=" + vcf + " (default))\n" + "";
-		usage += "   (2) utility type (i.e. utility=" + type + " (default))\n" + "";
+		usage += "   (1) full path to a vcf file (i.e. " + VCF_COMMAND + vcf + " (default))\n" + "";
+		usage += "   (2) utility type (i.e. " + UTILITY_COMMAND + type + " (default))\n" + "";
 		usage += "   (3) full path to a file (can be comma delimited for homogeneity utility) defining a population for the vcf (i.e. pop= (no default))\n" + "";
 		usage += "   (4) the type of vcf extension (i.e. pop= (no default))\n" + "";
 		usage += "   (5) full path to a file name with chr,start,stop or *.bim to extract (i.e. segs= (no default))\n" + "";
 		usage += "   (6) bp buffer for segments to extract (i.e. bp=" + bpBuffer + "(default))\n" + "";
-		usage += "   (7) a bam directory to extract associtated reads (i.e. bams=" + bams + "( no default))\n" + "";
+		usage += "   (7) a bam directory to extract associtated reads (i.e. " + BAM_COMMAND + bams + "( no default))\n" + "";
 		usage += "   (8) an output directory for extracted vcfs/minibams (i.e. outDir=" + outDir + "( no default))\n" + "";
 		usage += "   (9) skip filtered variants when extracting (i.e. -skipFiltered (not the default))\n" + "";
 		usage += "   (10) gzip the output when extracting (i.e. -gzip ( the default))\n" + "";
@@ -1741,6 +1820,7 @@ public class VCFOps {
 		usage += "   (12) when removing filtered variants, apply our standard filters as well (i.e. -standardFilters (not the default, GQ >=" + VARIANT_FILTER_DOUBLE.GQ_LOOSE.getDFilter() + " and DP >=" + VARIANT_FILTER_DOUBLE.DP.getDFilter() + "))\n" + "";
 		usage += "   (13) when subsetting by samples, remove monomorphic variants (i.e. -removeMonoMorphic (not the default))\n" + "";
 		usage += "   (14) when subsetting, keep variant ids if set to \".\" (i.e. -keepIds (not the default))\n" + "";
+		usage += "   (15) full path to a segment file  (i.e. " + SEGMENT_FILE_COMMAND + "( no default)\n" + "";
 
 		usage += PSF.Ext.getNumThreadsCommand(14, numThreads);
 		usage += "   NOTE: available utilities are:\n";
@@ -1752,10 +1832,10 @@ public class VCFOps {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("vcf=")) {
+			} else if (args[i].startsWith(VCF_COMMAND)) {
 				vcf = ext.parseStringArg(args[i], "");
 				numArgs--;
-			} else if (args[i].startsWith("utility=")) {
+			} else if (args[i].startsWith(UTILITY_COMMAND)) {
 				type = UTILITY_TYPE.valueOf(ext.parseStringArg(args[i], ""));
 				numArgs--;
 			} else if (args[i].startsWith("vpopFile=")) {
@@ -1767,7 +1847,7 @@ public class VCFOps {
 			} else if (args[i].startsWith("idFile=")) {
 				idFile = ext.parseStringArg(args[i], "");
 				numArgs--;
-			} else if (args[i].startsWith("bams=")) {
+			} else if (args[i].startsWith(BAM_COMMAND)) {
 				bams = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith("outDir=")) {
