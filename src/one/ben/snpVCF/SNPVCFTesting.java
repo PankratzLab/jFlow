@@ -2,6 +2,7 @@ package one.ben.snpVCF;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -327,24 +328,29 @@ public class SNPVCFTesting {
         "rs6020624",
     };
     
-//    static void run() {
-//        
-//        Project gediProj = new Project("D:/projects/gedi_gwas.properties", false);
-//        
-//        MarkerAnnotationLoader maLoader = new MarkerAnnotationLoader(gediProj, vcfFile, null, true);
-//
-//        ArrayList<AnnotationParser[]> toParse = new ArrayList<AnnotationParser[]>();
-//        
-//        VCFFileReader reader = new VCFFileReader(vcfFile, true);
-//        
-////        reader.query(chrom, start, end);
-//        
-//        maLoader.fillAnnotations(testMarkers, toParse, QUERY_ORDER.NO_ORDER);
-//        
-//    }
+    static void run() {
+        VCFFileReader reader = new VCFFileReader(numberedVCFFile2, true);
+        
+        for (String marker : testMarkers) {
+            // skip check for RS
+            int number = Integer.parseInt(marker.substring(2));
+            
+            int chrom = number / (512 * 1024 * 1024) + 1;
+            System.out.println(marker);
+            CloseableIterator<VariantContext> vcIter = reader.query("chr" + chrom, number, number);
+            while(vcIter.hasNext()) {
+                VariantContext vc = vcIter.next();
+                Object val = vc.getAttribute("CHRPOS");
+                System.out.println("\t" + vc.getID());
+            }
+            
+        }
+        
+    }
 
     
     public static void main(String[] args) {
+        run();
 //        try {
 //            createTBI();
 //            trimFileOnce();
