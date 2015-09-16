@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 
 import parse.GenParser;
-
 import stats.ProbDist;
 import common.*;
 import filesys.SnpMarkerSet;
@@ -209,7 +208,16 @@ public class Probabel {
         	        		countErr++;
         	        	}
         	        	
-        		        writer.println(Array.toStr(line)+"\t"+(line[10].equals("nan")?"nan":ProbDist.NormDist(Double.parseDouble(line[10])/Double.parseDouble(line[11])))+"\t"+(line[12].equals("nan")||line[12].equals("-inf")?"nan":ProbDist.ChiDist(Double.parseDouble(line[12]), 1)));
+//        		        writer.println(Array.toStr(line)+"\t"+(line[10].equals("nan")?"nan":ProbDist.NormDist(Double.parseDouble(line[10])/Double.parseDouble(line[11])))+"\t"+(line[12].equals("nan")||line[12].equals("-inf")?"nan":ProbDist.ChiDist(Double.parseDouble(line[12]), 1)));
+        		        writer.println(Array.toStr(line) + 
+        		                        "\t" + 
+        		                        (line[10].equals("nan") ? 
+    		                                    "nan" : 
+		                                        ProbDist.NormDist(Double.parseDouble(line[10])/Double.parseDouble(line[11]))) + 
+                                        "\t" + 
+                                        (line[12].equals("nan") || line[12].equals("-inf") ? 
+                                                "nan" : 
+                                                ProbDist.ChiDist(Double.parseDouble(line[12]), 1)));
         		        count++;
         		        if (!reader.ready() && count < markerNames.length && quan > 0) {
         		        	quan++;
@@ -550,6 +558,156 @@ public class Probabel {
             System.out.println("still need to run db parse_"+datasets[k]+".crf");
 		}
 	}
+	
+	private static String[] getFileRoots(String sourceDir) {
+        File dir = new File(sourceDir);
+        if (!dir.exists()) {
+            System.err.println(ext.getTime() + "Error - source directory {" + sourceDir + "} doesn't exist");
+            return null;
+        }
+        
+        String[] files = dir.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                String root = ext.rootOf(name, true);
+                return (new File(dir + root + ".dose")).exists() && (new File(dir + root + ".info")).exists();
+            }
+        });
+        HashSet<String> fileRoots = new HashSet<String>();
+        for (String f : files) {
+            fileRoots.add(ext.rootOf(f, true));
+        }
+        return fileRoots.toArray(new String[fileRoots.size()]);
+    }
+	
+	private static String[] getFileRoots(String sourceDoseDir, String sourceInfoDir) {
+	    File doseDir = new File(sourceDoseDir);
+	    File infoDir = new File(sourceInfoDir);
+	    
+	    if (!doseDir.exists()) {
+	        System.err.println(ext.getTime() + "Error - dosage source directory {" + sourceDoseDir + "} doesn't exist");
+	        return null;
+	    }
+	    if (!infoDir.exists()) {
+	        System.err.println(ext.getTime() + "Error - info source directory {" + sourceDoseDir + "} doesn't exist");
+	        return null;
+	    }
+	    
+	    HashSet<String> dosageRoots = new HashSet<String>();
+	    HashSet<String> infoRoots = new HashSet<String>();
+	    HashSet<String> roots = new HashSet<String>();
+	    
+	    for (String f : doseDir.list()) {
+	        if (f.endsWith(".dose")) {
+	            dosageRoots.add(ext.rootOf(f, true));
+	        }
+	    }
+	    for (String f : infoDir.list()) {
+	        if (f.endsWith(".info")) {
+	            infoRoots.add(ext.rootOf(f, true));
+	        }
+	    }
+	    
+	    roots.addAll(dosageRoots);
+	    roots.retainAll(infoRoots);
+	    
+	    return roots.toArray(new String[roots.size()]);
+	}
+	
+	public static void chunkFiles(String fileDir, String chunkDir, boolean overwrite) {
+	    String[] roots = getFileRoots(fileDir);
+	    splitInfoFiles(fileDir, chunkDir, roots, overwrite);
+	    splitDoseFiles(fileDir, chunkDir, roots, overwrite);
+	}
+	
+	public static void chunkFiles(String dosageFileDir, String infoFileDir, String chunkDir, boolean overwrite) {
+	    String[] roots = getFileRoots(dosageFileDir, infoFileDir);
+        splitInfoFiles(infoFileDir, chunkDir, roots, overwrite);
+        splitDoseFiles(dosageFileDir, chunkDir, roots, overwrite);
+	}
+	
+	private static void splitDoseFiles(String fileDir, String outDir, String[] fileRoots, boolean overwrite) {
+	    for (String fileRoot : fileRoots) {
+            System.out.println(ext.getTime() + "]\tChunking .dose file " + fileRoot);
+            try {
+                BufferedReader reader = Files.getAppropriateReader(fileDir + fileRoot + ".dose");
+                ArrayList<PrintWriter> dosageWriters = new ArrayList<PrintWriter>();
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split("[\\s]+");
+                    
+                    int chunks = (parts.length - 2) / 500000 + 1;
+                    if (dosageWriters.size() == 0) {
+                        for (int i = 0; i < chunks; i++) {
+                            String file = outDir + fileRoot + "_" + (i * 500000) + ".dose";
+                            if (overwrite || !Files.exists(file)) {
+                                dosageWriters.add(Files.getAppropriateWriter(outDir + fileRoot + "_" + (i * 500000) + ".dose"));
+                            } else {
+                                System.out.println(ext.getTime() + "]\tSkipping file " + file);
+                                dosageWriters.add(null);
+                            }
+                        }
+                        System.out.println(ext.getTime() + "]\tWriting " + chunks + " chunks...");
+                    }
+                    
+                    String prepend = parts[0] + "\t" + parts[1]; // id and DOSE
+                    
+                    for (int i = 0; i < chunks; i++) {
+                        if (dosageWriters.get(i) == null) {
+                            continue;
+                        }
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(prepend);
+                        for (int j = i * 500000; j < (i+1) * 500000 && j < (parts.length - 2); j++) {
+                            sb.append("\t").append(parts[j + 2]);
+                        }
+                        dosageWriters.get(i).println(sb.toString());
+                    }
+                    
+                }
+                for (PrintWriter writer : dosageWriters) {
+                    if (writer == null) continue;
+                    writer.flush();
+                    writer.close();
+                }
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+	}
+	
+	private static void splitInfoFiles(String dir, String outDir, String[] fileRoots, boolean overwrite) {
+        for (String fileRoot : fileRoots) {
+            System.out.println(ext.getTime() + "]\tProcessing .info file {" + fileRoot + "}");
+            int lines = Files.countLines(dir + fileRoot + ".info", 1);
+            try {
+                BufferedReader fileReader = Files.getAppropriateReader(dir + fileRoot + ".info");
+                String header = fileReader.readLine();
+                for (int i = 0; i < lines; i += 500000) {
+                    String file = outDir + fileRoot + "_" + i + ".info";
+                    if (overwrite || !Files.exists(file)) {
+                        System.out.println(ext.getTime() + "]\tWriting lines " + i + " up to " + (i + 500000));
+                        PrintWriter writer = Files.getAppropriateWriter(file);
+                        writer.println(header);
+                        String line = null;
+                        for (int j = 0; j < 500000 && (line = fileReader.readLine()) != null; j++) {
+                            writer.println(line);
+                        }
+                        writer.flush();
+                        writer.close();
+                    } else {
+                        System.out.println(ext.getTime() + "]\tSkipping file " + fileRoot);
+                    }
+                }
+                fileReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }            
+        }
+        System.out.println(ext.getTime() + "]\t.info file processing complete.");
+	}
+	
 	
 	public static void main(String[] args) {
 	    int numArgs = args.length;

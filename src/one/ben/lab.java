@@ -76,8 +76,8 @@ public class lab {
             "chr18_P1_V3",
             "chr19_P1_V3",  
             "chr20_P1_V3",
-//            "chr21_P1_V3",
-//            "chr22_P1_V3",
+            "chr21_P1_V3",
+            "chr22_P1_V3",
             "chr23_FEMALE_no.auto.P1_V3",  
             "chr23_MALE_no.auto.P1_V3"    
         };
@@ -91,10 +91,16 @@ public class lab {
                 while ((line = reader.readLine()) != null) {
                     String[] parts = line.split("[\\s]+"); // gonna be BIG
                     
-                    int chunks = (parts.length - 2) / 500000;
+                    int chunks = (parts.length - 2) / 500000 + 1;
                     if (dosageWriters.size() == 0) {
                         for (int i = 0; i < chunks; i++) {
-                            dosageWriters.add(Files.getAppropriateWriter(dir2 + fileRoot + "_" + (i * 500000) + ".dose"));
+                            String file = dir2 + fileRoot + "_" + (i * 500000) + ".dose";
+                            if (Files.exists(file)) {
+                                System.out.println("Skipping file " + file);
+                                dosageWriters.add(null);
+                            } else {
+                                dosageWriters.add(Files.getAppropriateWriter(dir2 + fileRoot + "_" + (i * 500000) + ".dose"));
+                            }
                         }
                         System.out.println("Writing " + chunks + " chunks...");
                     }
@@ -102,6 +108,9 @@ public class lab {
                     String prepend = parts[0] + "\t" + parts[1]; // id and DOSE
                     
                     for (int i = 0; i < chunks; i++) {
+                        if (dosageWriters.get(i) == null) {
+                            continue;
+                        }
                         StringBuilder sb = new StringBuilder();
                         sb.append(prepend);
                         for (int j = i * 500000; j < (i+1) * 500000 && j < (parts.length - 2); j++) {
@@ -112,6 +121,7 @@ public class lab {
                     
                 }
                 for (PrintWriter writer : dosageWriters) {
+                    if (writer == null) continue;
                     writer.flush();
                     writer.close();
                 }
@@ -121,9 +131,6 @@ public class lab {
                 e.printStackTrace();
             }
         }
-        
-        
-        
         
     }
     
@@ -151,24 +158,19 @@ public class lab {
             "chr18_P1_V3",
             "chr19_P1_V3",  
             "chr20_P1_V3",
-//            "chr21_P1_V3",
-//            "chr22_P1_V3",
+            "chr21_P1_V3",
+            "chr22_P1_V3",
             "chr23_FEMALE_no.auto.P1_V3",  
             "chr23_MALE_no.auto.P1_V3"    
         };
         
-        PrintWriter splitsFileWriter = Files.getAppropriateWriter(dir2 + "splits.txt");
-        
         for (String fileRoot : fileRoots) {
-            
             int lines = Files.countLines(dir + fileRoot + ".info", 1);
-
             try {
                 BufferedReader fileReader = Files.getAppropriateReader(dir + fileRoot + ".info");
                 String header = fileReader.readLine();
                 for (int i = 0; i < lines; i += 500000) {
                     System.out.println("Writing lines " + i + " to " + (i + 500000));
-                    splitsFileWriter.println(fileRoot.substring(3, fileRoot.indexOf('_')) + "\t" + i);
                     
                     PrintWriter writer = Files.getAppropriateWriter(dir2 + fileRoot + "_" + i + ".info");
                     writer.println(header);
@@ -182,16 +184,11 @@ public class lab {
                 fileReader.close();
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-            
+            }            
         }
-        
-        splitsFileWriter.flush();
-        splitsFileWriter.close();
-        
     }
     
-    private static void split() {
+    private static void trimAlleles() {
         
         String dir = "/scratch.global/cole0482/CARDIA_CHS/";
         String dir2 = "/scratch.global/cole0482/CARDIA_CHS/oneAllele/";

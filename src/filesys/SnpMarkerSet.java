@@ -611,7 +611,9 @@ public class SnpMarkerSet implements Serializable {
             if (markerNames[i].startsWith("rs")) {
                 
                 int rsNumber = Integer.parseInt(markerNames[i].substring(2));
-                CloseableIterator<VariantContext> vcIter = reader.query("1", rsNumber - 1, rsNumber + 1);
+                int chrom = rsNumber / (512 * 1024 * 1024) + 1;
+                // ignoring X,Y,M chroms as we currently only have 1/2
+                CloseableIterator<VariantContext> vcIter = reader.query("chr" + chrom, rsNumber, rsNumber);
                 VariantContext markerVC = null;
                 while (vcIter.hasNext()) {
                     VariantContext vc = vcIter.next();
@@ -621,12 +623,13 @@ public class SnpMarkerSet implements Serializable {
                     }
                 }
                 if (markerVC == null) {
-                    // TODO error, not found
+                    // TODO error, not found, check in merged/unmapped
                 } else {
-                    Map<String, Object> attrs = markerVC.getAttributes();
-                    Object attr = markerVC.getAttribute("CHRPOS");
+                    String attr = (String) markerVC.getAttribute("CHRPOS");
+                    String[] pts = attr.split(":");
+                    chrs[i] = (byte) Integer.parseInt(pts[0]);
+                    positions[i] = Integer.parseInt(pts[1]);
                 }
-                
             } else {
                 log.reportError("Error - can't look up a SNP without an rs number ("+markerNames[i]+")");
                 chrs[i] = (byte)0;
