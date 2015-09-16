@@ -74,7 +74,23 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 			}
 			int searchIndex = 0;
 			for (AnnotationParser[] parsers : parsersQueries) {
-				for (int i = search[searchIndex][0]; i < Math.min(search[searchIndex][1], parsers.length); i++) {
+				int stopSearch = parsers.length;
+				int startSearch = 0;
+				switch (queryType) {
+				case NO_ORDER:
+					break;
+				case ONE_PER_IN_ORDER:
+					proj.getLog().reportTimeWarning("Was changed on 9/16/15, may want to validate the start and stop searches again");
+					stopSearch = Math.min(search[searchIndex][1], parsers.length);
+					startSearch = search[searchIndex][0];
+					break;
+				default:
+					String error = "Invalid query " + queryType;
+					proj.getLog().reportTimeInfo(error);
+					throw new IllegalArgumentException(error);
+				}
+				for (int i = startSearch; i < stopSearch; i++) {
+
 					if (parsers[i].shouldAnnotateWith(vc, proj.getLog())) {
 						parsers[i].parseAnnotation(vc, proj.getLog());
 						parsers[i].setFound(true);
@@ -84,7 +100,17 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 
 					}
 				}
-				searchIndex++;
+				switch (queryType) {
+				case NO_ORDER:
+					break;
+				case ONE_PER_IN_ORDER:
+					searchIndex++;
+					break;
+				default:
+					String error = "Invalid query " + queryType;
+					proj.getLog().reportTimeInfo(error);
+					throw new IllegalArgumentException(error);
+				}
 			}
 		}
 		validateSearch(parsersQueries, queryType);
@@ -214,7 +240,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 		 *            the file to load from
 		 * @param segs
 		 *            can be null, if not null, only these regions will be returned. Otherwise the iterator will traverse the entire file
-		 * @param requireIndex	
+		 * @param requireIndex
 		 *            should always be true
 		 * @param log
 		 */
@@ -234,6 +260,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 				hasNext = true;
 			} else if (queryIntervals != null) {// try the next interval if they exist
 				while (!currentIterator.hasNext()) {
+					currentIterator.close();
 					currentIndex++;
 					if (currentIndex >= queryIntervals.length) {
 						break;

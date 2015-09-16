@@ -69,7 +69,7 @@ public class Transformations {
 			return new BoxCox(array, log).getTransform_MinKurt();
 		case MAD_SCALED:
 			BeastScore beastScore = new BeastScore(Array.toFloatArray(array), null, null, log);
-			return Array.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD(true));
+			return Array.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD(BeastScore.SCALE_FACTOR_MAD));
 		case X3:
 			return Array.multiply(array, 3);
 		case X5:
