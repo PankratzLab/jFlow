@@ -87,7 +87,7 @@ public class BamSample {
 		}
 
 		BeastScore beastScore = new BeastScore(Array.toFloatArray(rawDepth), markerSet.getIndicesByChr(), null, proj.getLog());
-		float[] scaleMAD = beastScore.getScaleMadRawData(false);
+		float[] scaleMAD = beastScore.getScaleMadRawData(1.4826);// http://www.genomebiology.com/2014/15/12/550
 		int[][] chrIndices = markerSet.getIndicesByChr();
 		for (int i = 0; i < chrIndices.length; i++) {
 			boolean error = false;
@@ -125,7 +125,7 @@ public class BamSample {
 	public Hashtable<String, Float> writeSample(long fingerprint) {
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		byte[] genos = Array.byteArray(bamPiles.length, (byte) 1);
-		float[] blankLRRs = Array.floatArray(bamPiles.length, 0);
+		float[] blankLRRs = Array.floatArray(bamPiles.length, 1);
 		String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION;
 		Sample sample = new Sample(sampleFile, fingerprint, Array.toFloatArray(mapQs), Array.toFloatArray(normDepth), Array.toFloatArray(normDepth), Array.toFloatArray(percentWithMismatch), blankLRRs, genos, genos, false);
 		sample.saveToRandomAccessFile(sampleFile, outliers, sampleFile);
