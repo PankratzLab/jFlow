@@ -806,6 +806,11 @@ public class Probabel {
 	    "   (2) stratify sample by class (i.e. strat=Ashk (not the default))\n"+
 	    "   (3) compare based on classes (i.e. comp=Ashk|British (not the default))\n"+
 	    "   (4) (optional) lookup file in same order as phenotype file with FID and IID incase IIDs are not unique (i.e. lookup="+lookupFile+" (default))\n"+
+	    "  OR\n" +
+	    "   (1) append p-values to result files (i.e. -process (not the default))\n" +
+	    "   (2) Result file directory (i.e. pheno= )\n" + 
+	    "   (3) Result file pattern to match, either a prefix or a suffix (i.e. lookup= )\n" + 
+	    "   (4) If the file pattern is a prefix (defaults to suffix) (i.e. -prefix (not the default))\n" + 
 	    "";
 
 	    for (int i = 0; i<args.length; i++) {
