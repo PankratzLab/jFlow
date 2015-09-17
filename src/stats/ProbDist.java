@@ -79,13 +79,13 @@ public class ProbDist {
 		}
 		return 1-a+c;
 	}
-
+	
 	public static double ChiDist(double x, int n) {
 		if (Double.isNaN(x)) {
 			return Double.NaN;
 		}
 		
-		if (x>1000|n>1000) {
+		if (x>1000|n>1000) { // bitwise OR - prevent short-circuiting and can be faster
 			double q = NormDist((Math.pow(x/n, 1.0/3.0)+2.0/(9.0*n)-1)/Math.sqrt(2.0/(9.0*n)))/2.0;
 			if (x>n) {
 				return q;

@@ -614,12 +614,27 @@ public class Probabel {
 	    return roots.toArray(new String[roots.size()]);
 	}
 	
+	/**
+	 * Given a source file directory containing .dose and .info files, split files into chunks of 500,000 SNP dosage values
+	 * 
+	 * @param fileDir
+	 * @param chunkDir
+	 * @param overwrite
+	 */
 	public static void chunkFiles(String fileDir, String chunkDir, boolean overwrite) {
 	    String[] roots = getFileRoots(fileDir);
 	    splitInfoFiles(fileDir, chunkDir, roots, overwrite);
 	    splitDoseFiles(fileDir, chunkDir, roots, overwrite);
 	}
 	
+	/**
+     * Given two source directories, one containing .dose and the other .info files, split files into chunks of 500,000 SNP dosage values
+     * 
+	 * @param dosageFileDir
+	 * @param infoFileDir
+	 * @param chunkDir
+	 * @param overwrite
+	 */
 	public static void chunkFiles(String dosageFileDir, String infoFileDir, String chunkDir, boolean overwrite) {
 	    String[] roots = getFileRoots(dosageFileDir, infoFileDir);
         splitInfoFiles(infoFileDir, chunkDir, roots, overwrite);
@@ -708,6 +723,54 @@ public class Probabel {
         System.out.println(ext.getTime() + "]\t.info file processing complete.");
 	}
 	
+	public static void appendPValsToResults(final String dir1, final String filePattern, final boolean suffixTruePrefixFalse) {
+	    String dir = ext.verifyDirFormat(dir1);
+	    String[] resultFiles = new File(dir).list(new FilenameFilter() {
+	        @Override
+	        public boolean accept(File dir, String name) {
+	            return (suffixTruePrefixFalse ? name.endsWith(filePattern) : name.startsWith(filePattern));
+	        }
+        });
+	    
+	    for (String file : resultFiles) {
+	        System.out.println(ext.getTime() + "]\tProcessing file " + file);
+	        String root = ext.rootOf(dir + file, false);
+	        String out = root + "_processed.out";
+	        
+	        try {
+	            BufferedReader reader = Files.getAppropriateReader(file);
+	            PrintWriter writer = Files.getAppropriateWriter(out);
+	            
+	            String hdr = reader.readLine();
+	            String delim = ext.determineDelimiter(hdr);
+	            writer.println(hdr + delim + "zScore_Pval" + delim + "chi2_pval");
+	            String line = null;
+                while ((line = reader.readLine()) != null) {
+                    
+                    String[] parts = line.trim().split("[\\s]+");
+                    writer.println(Array.toStr(parts) + 
+                            "\t" + 
+                            (parts[9].equals("nan") ? 
+                                    "nan" : 
+                                    ProbDist.NormDist(Double.parseDouble(parts[9])/Double.parseDouble(parts[10]))) + 
+                            "\t" + 
+                            (parts[11].equals("nan") || parts[11].equals("-inf") ? 
+                                    "nan" : 
+                                    ProbDist.ChiDist(Double.parseDouble(parts[11]), 1)));
+                    
+                }
+                writer.flush();
+                writer.close();
+                reader.close();
+            } catch (NumberFormatException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+	    }
+	}
 	
 	public static void main(String[] args) {
 	    int numArgs = args.length;
@@ -717,6 +780,8 @@ public class Probabel {
 	    boolean qsub = false;
 	    boolean minimac = false;
 	    boolean parse = false;
+	    boolean process = false;
+	    boolean suffix = true;
 	    int type = 3;
 	    int numBatches = -1;
 	    String classFile = "EuropeanClasses.txt";
@@ -768,6 +833,12 @@ public class Probabel {
 		    } else if (args[i].startsWith("-parse")) {
 			    parse = true;
 			    numArgs--;
+		    } else if (args[i].startsWith("-process")) {
+		        process = true;
+		        numArgs--;
+		    } else if (args[i].startsWith("-prefix")) {
+		        suffix = false;
+		        numArgs--;
 		    } else if (args[i].startsWith("strat=")) {
 			    stratClass = args[i].split("=")[1];
 			    numArgs--;
@@ -809,6 +880,8 @@ public class Probabel {
 	    		createBatchFiles(pheno, type, numBatches);
 	    	} else if (parse) {
 	    		parsePvalues(pheno, minimac);
+	    	} else if (process) {
+	    	    appendPValsToResults(pheno, lookupFile, suffix);
 	    	} else {
 	    		System.out.println("Warning - not enough flags to inititate a subroutine");
 	    	}
