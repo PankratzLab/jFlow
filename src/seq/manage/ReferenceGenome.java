@@ -2,6 +2,7 @@ package seq.manage;
 
 import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -9,7 +10,9 @@ import htsjdk.variant.variantcontext.VariantContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
+import cnv.var.LocusSet;
 import common.Array;
 import common.Array.BYTE_DECODE_FORMAT;
 import common.Logger;
@@ -37,6 +40,57 @@ public class ReferenceGenome {
 			log.reportFileNotFound(referenceFasta);
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * @param bpBinSize the bin size (non-sliding) to break the reference genome into;
+	 * @return
+	 */
+	public LocusSet<Segment> getBins(int bpBinSize) {
+		ArrayList<Segment> bins = new ArrayList<Segment>();
+		SAMSequenceDictionary samSequenceDictionary = indexedFastaSequenceFile.getSequenceDictionary();
+		System.out.println(samSequenceDictionary.getSequences().size() + " contigs detected");
+		for (SAMSequenceRecord samSequenceRecord : samSequenceDictionary.getSequences()) {
+			int length = samSequenceRecord.getSequenceLength();
+			byte chr = Positions.chromosomeNumber(samSequenceRecord.getSequenceName());
+			int currentStart = 1;
+			int currentStop = Math.min(length, bpBinSize);
+			int binsAdded = 0;
+			while (currentStop < length) {
+				Segment seg = new Segment(chr, currentStart, currentStop);
+				currentStart += bpBinSize + 1;
+				currentStop += bpBinSize + 1;
+				currentStop = Math.min(length, currentStop);
+				if (seg.getSize() != bpBinSize) {
+					log.reportTimeWarning("bin " + seg.getUCSClocation() + " size (" + seg.getSize() + ") does not equal the bin size of " + bpBinSize);
+				}
+				bins.add(seg);
+				binsAdded++;
+			}
+			if (currentStop == length) {
+				Segment seg = new Segment(chr, currentStart, currentStop);
+				bins.add(seg);
+				if (seg.getSize() != bpBinSize) {
+					log.reportTimeWarning("bin " + seg.getUCSClocation() + " size (" + seg.getSize() + ") does not equal the bin size of " + bpBinSize);
+				}
+			} else {
+				String error = "BUG: End of bin for " + samSequenceRecord.getSequenceName() + " did not end at " + length;
+				log.reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+			log.reportTimeInfo(samSequenceRecord.getSequenceName() + " -> " + length + "bp; " + (binsAdded + 1) + " " + bpBinSize + "bp bins");
+		}
+
+		LocusSet<Segment> binsToReturn = new LocusSet<Segment>(bins.toArray(new Segment[bins.size()]), true, log) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		log.reportTimeInfo(referenceFasta + " broken up to " + bins.size() + " bins ");
+		return binsToReturn;
 	}
 
 	public IndexedFastaSequenceFile getIndexedFastaSequenceFile() {

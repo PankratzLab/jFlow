@@ -314,7 +314,7 @@ public class Mappability<SEGMENT extends Segment> {
 					log.reportTimeError(error);
 					throw new IllegalArgumentException(error);
 				}
-				Segment union = bedSeg.getUnion(t, log);
+				Segment union = bedSeg.getIntersection(t, log);
 
 				BEDFeatureSeg[] called = callSegs.getOverLappingLoci(union);
 				if (called != null) {
@@ -327,7 +327,7 @@ public class Mappability<SEGMENT extends Segment> {
 						subsetNamesAl.add(called[i].getBedFeature().getName().split("_")[0]);
 
 						double tmpMap = mapScore;
-						Segment calledUnion = union.getUnion(called[i], log);
+						Segment calledUnion = union.getIntersection(called[i], log);
 						numBases += calledUnion.getSize();
 						tmpMap *= calledUnion.getSize();
 						calledOnCount++;

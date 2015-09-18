@@ -55,7 +55,7 @@ public class GeneQC {
 					Vector<Segment> mergedUtrs = Segment.toVector(utrsOlap);
 					Segment.mergeOverlapsAndSort(mergedUtrs);
 					for (int k = 0; k < mergedUtrs.size(); k++) {
-						mrnaNoUtrs -= exon.getUnion(mergedUtrs.get(k), log).getSize();
+						mrnaNoUtrs -= exon.getIntersection(mergedUtrs.get(k), log).getSize();
 					}
 				}
 			}
@@ -87,14 +87,14 @@ public class GeneQC {
 						for (int j = 0; j < genes.getLoci()[gIndices[i]].getExonBoundaries().length; j++) {
 							Segment curExon = new Segment(genes.getLoci()[gIndices[i]].getChr(), genes.getLoci()[gIndices[i]].getExonBoundaries()[j][0], genes.getLoci()[gIndices[i]].getExonBoundaries()[j][1]);
 							if (seqSeg.overlaps(curExon)) {
-								mrna += seqSeg.getUnion(curExon, log).getSize();
-								mrnaNonUtr += seqSeg.getUnion(curExon, log).getSize();
-								Segment[] utrsOlap = utrs.getOverLappingLoci(seqSeg.getUnion(curExon, log));
+								mrna += seqSeg.getIntersection(curExon, log).getSize();
+								mrnaNonUtr += seqSeg.getIntersection(curExon, log).getSize();
+								Segment[] utrsOlap = utrs.getOverLappingLoci(seqSeg.getIntersection(curExon, log));
 								if (utrsOlap != null) {
 									Vector<Segment> mergedUtrs = Segment.toVector(utrsOlap);
 									Segment.mergeOverlapsAndSort(mergedUtrs);
 									for (int k = 0; k < mergedUtrs.size(); k++) {
-										mrnaNonUtr -= seqSeg.getUnion(mergedUtrs.get(k), log).getSize();
+										mrnaNonUtr -= seqSeg.getIntersection(mergedUtrs.get(k), log).getSize();
 									}
 								}
 							}

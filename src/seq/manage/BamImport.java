@@ -25,23 +25,34 @@ import cnv.manage.Markers;
 import cnv.manage.MitoPipeline;
 import cnv.manage.TransposeData;
 import cnv.var.LocusSet;
+import filesys.Segment;
 
 public class BamImport {
 
-	public static void importTheWholeBamProject(Project proj, String binBed, int numthreads) {
+	public static void importTheWholeBamProject(Project proj, String binBed, String captureBed, int numthreads) {
 		if (proj.getArrayType() == ARRAY.NGS) {
 			Logger log = proj.getLog();
-
+			
 			String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
 			String[] bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(), proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
 			log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
 			if (BedOps.verifyBedIndex(binBed, log)) {
-				BEDFileReader reader = new BEDFileReader(binBed, true);
-				LocusSet<BEDFeatureSeg> bLocusSet = reader.loadAll(log);
-				reader.close();
+				BEDFileReader readerBin = new BEDFileReader(binBed, false);
+				LocusSet<BEDFeatureSeg> bLocusSet = readerBin.loadAll(log);
+				readerBin.close();
+				BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
+				LocusSet<Segment> antiOffTarget = LocusSet.combine(bLocusSet,  readerCapture.loadAll(log), true, log).mergeOverlapping(true);
+				readerCapture.close();
+
 				if (!bLocusSet.hasNoOverlap()) {
-					generateMarkerPositions(proj, bLocusSet);
 					ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), log);
+					LocusSet<Segment> genomeBins = referenceGenome.getBins(20000);
+					log.reportTimeInfo(genomeBins.getBpCovered() + " bp covered by reference bins, removing " + antiOffTarget.getBpCovered() + " bp in either target or capture regions");
+					LocusSet<Segment> genomeBinsMinusBinsCaputure = genomeBins.removeThese(antiOffTarget, 400);
+
+					System.exit(1);
+					generateMarkerPositions(proj, bLocusSet);
+				
 					String projectSeqSer = proj.PROJECT_DIRECTORY.getValue() + ext.removeDirectoryInfo(binBed) + "seq.ser";
 					String[][] refForIntervals = null;
 					if (!Files.exists(projectSeqSer)) {
@@ -63,7 +74,6 @@ public class BamImport {
 					long fingerPrint = proj.getMarkerSet().getFingerprint();
 
 					log.reportTimeInfo(bLocusSet.getLoci().length + " segments to pile");
-					reader.close();
 					FilterNGS filterNGS = new FilterNGS(20, 20, null);
 
 					PileupProducer producer = new PileupProducer(bamsToImport, serDir, refForIntervals, filterNGS, bLocusSet.getStrictSegments(), log);
@@ -189,6 +199,7 @@ public class BamImport {
 		int numArgs = args.length;
 		String filename = null;
 		String binBed = "binsToImport.bed";
+		String captureBed = "AgilentCaptureRegions.txt";
 		int numthreads = 24;
 		// String referenceGenomeFasta = "hg19_canonical.fa";
 		String logfile = null;
@@ -196,8 +207,10 @@ public class BamImport {
 
 		String usage = "\n" + "seq.manage.BamImport requires 0-1 arguments\n";
 		usage += "(1) filename (i.e. proj= ( nodefault))\n" + "";
-		usage += "(2) bed file to import  (i.e. bed=" + binBed + " ( no default))\n" + "";
+		usage += "(2) bed file to import  (i.e. importBed=" + binBed + " ( no default))\n" + "";
 		usage += Ext.getNumThreadsCommand(3, numthreads);
+		usage += "(4) bed file to import  (i.e. captureBed=" + captureBed + " ( no default))\n" + "";
+
 		// usage += "(3) reference genome  (i.e. ref=" + referenceGenomeFasta + " ( default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
@@ -207,15 +220,13 @@ public class BamImport {
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("bed=")) {
+			} else if (args[i].startsWith("importBed=")) {
 				binBed = args[i].split("=")[1];
 				numArgs--;
-			}
-			// else if (args[i].startsWith("ref=")) {
-			// referenceGenomeFasta = args[i].split("=")[1];
-			// numArgs--;
-			// }
-			else if (args[i].startsWith(Ext.NUM_THREADS_COMMAND)) {
+			} else if (args[i].startsWith("captureBed=")) {
+				captureBed = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith(Ext.NUM_THREADS_COMMAND)) {
 				numthreads = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
@@ -232,7 +243,7 @@ public class BamImport {
 		try {
 			log = new Logger(logfile);
 			Project proj = new Project(filename, false);
-			importTheWholeBamProject(proj, binBed, numthreads);
+			importTheWholeBamProject(proj, binBed, captureBed, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

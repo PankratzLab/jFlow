@@ -14,6 +14,9 @@ import java.util.Vector;
 
 
 
+
+
+import cnv.var.LocusSet;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -195,11 +198,12 @@ public class Segment implements Serializable {
 	}
 	
 	/**
-	 * @param seg another segment that must overlap
+	 * @param seg
+	 *            another segment that must overlap
 	 * @param log
-	 * @return the union of the two segments
+	 * @return the intersection of the two segments
 	 */
-	public Segment getUnion(Segment seg, Logger log) {
+	public Segment getIntersection(Segment seg, Logger log) {
 		if (chr != seg.chr) {
 			String error = "merging segments on different chromosomes";
 			log.reportTimeError(error);
@@ -214,38 +218,144 @@ public class Segment implements Serializable {
 	}
 
 	/**
+	 * @param segsToRemove
+	 *            remove all of these segments from the current
+	 * @param log
+	 * @return the list of remaining dust
+	 * 
+	 *         NOTE: In the interest of speed, only pass segments that actually overlap
+	 */
+	public LocusSet<Segment> removeAll(Segment[] segsToRemove, Logger log) {
+		if (segsToRemove == null || segsToRemove.length == 0) {
+			LocusSet<Segment> original = new LocusSet<Segment>(new Segment[] { this }, true, log) {
+				private static final long serialVersionUID = 1L;
+			};
+			return original;
+		} else {
+
+			LocusSet<Segment> removers = new LocusSet<Segment>(segsToRemove, true, log) {
+				private static final long serialVersionUID = 1L;
+			};
+
+			Segment[] finalRemovers = removers.mergeOverlapping().getLoci();// deal with overlapping removal segments
+
+			ArrayList<Segment> currentSegs = new ArrayList<Segment>();
+
+			Segment[] removed = remove(finalRemovers[0], log);//seed removal
+			if (removed != null) {
+				for (int i = 0; i < removed.length; i++) {
+					currentSegs.add(removed[i]);
+				}
+			}
+
+			int totalBasePairsToRemove = 0;
+			for (int i = 0; i < finalRemovers.length; i++) {
+				totalBasePairsToRemove += Math.max(amountOfOverlapInBasepairs(finalRemovers[i]), 0);
+			}
+
+			int currentIndex = 1;
+			while (currentIndex < finalRemovers.length) {// branch removal
+				ArrayList<Segment> tmp = new ArrayList<Segment>();
+
+				for (int i = 0; i < currentSegs.size(); i++) {
+					Segment[] removedMore = currentSegs.get(i).remove(finalRemovers[currentIndex], log);
+					if (removedMore != null) {
+						for (int j = 0; j < removedMore.length; j++) {
+							tmp.add(removedMore[j]);
+						}
+					}
+				}
+				currentSegs = new ArrayList<Segment>();
+				currentSegs.addAll(tmp);
+				currentIndex++;
+			}
+
+			LocusSet<Segment> finalSet = new LocusSet<Segment>(currentSegs.toArray(new Segment[currentSegs.size()]), true, log) {
+				/**
+			 * 
+			 */
+				private static final long serialVersionUID = 1L;
+
+			};
+			int totalBpRemaining = 0;
+			LocusSet<Segment> finalMergedSet = finalSet.mergeOverlapping();
+
+			for (int i = 0; i < finalMergedSet.getLoci().length; i++) {
+				totalBpRemaining += finalMergedSet.getLoci()[i].getSize();
+			}
+			if (getSize() - totalBasePairsToRemove != totalBpRemaining) {
+
+				String error = "BUG: did not remove segments properly";
+				log.reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+
+			for (int i = 0; i < segsToRemove.length; i++) {
+				if (finalMergedSet.getOverLappingLoci(segsToRemove[i]) != null) {
+					String error = "BUG: not all segments were properly removed";
+					log.reportTimeError(error);
+					throw new IllegalStateException(error);
+				}
+			}
+
+			return finalMergedSet;
+		}
+	}
+
+	/**
 	 * **Warning, not really tested
+	 * 
 	 * @param seg
 	 * @param log
 	 * @return
 	 */
 	public Segment[] remove(Segment seg, Logger log) {
-		Segment[] removed =null;
+		Segment[] cleaned = null;
 		if (!overlaps(seg)) {
-			removed = new Segment[] { this };
+			cleaned = new Segment[] { this };
 		} else {
-			Segment union = getUnion(seg, log);
-			if (equals(union)) {
-				removed = null;// removed all
-			} else if (union.getStart() > getStart() && union.getStop() < getStop()) {//split
-				Segment first = new Segment(getChr(), getStart(), union.getStart() - 1);
-				Segment second = new Segment(getChr(), union.getStop() + 1, getStop());
-				removed = new Segment[] { first, second };
-			} else if (union.getStart() > getStart() && union.getStop() >= getStop()) {
-				Segment head = new Segment(getChr(), getStart(), union.getStart() - 1);
-				removed = new Segment[] { head };
-			} else if (union.getStart() <= getStart() && union.getStop() < getStop()) {
-				Segment tail = new Segment(getChr(), union.getStart() + 1, getStop());
-				removed = new Segment[] { tail };
+			Segment intersection = getIntersection(seg, log);
+			if (equals(intersection)) {
+				cleaned = null;// removed all
+			} else if (intersection.getStart() > getStart() && intersection.getStop() < getStop()) {// split
+				Segment first = new Segment(getChr(), getStart(), intersection.getStart() - 1);
+				Segment second = new Segment(getChr(), intersection.getStop() + 1, getStop());
+				cleaned = new Segment[] { first, second };
+			} else if (intersection.getStart() > getStart() && intersection.getStop() >= getStop()) {
+				Segment head = new Segment(getChr(), getStart(), intersection.getStart() - 1);
+				cleaned = new Segment[] { head };
+			} else if (intersection.getStart() <= getStart() && intersection.getStop() < getStop()) {
+				Segment tail = new Segment(getChr(), intersection.getStop() + 1, getStop());
+				cleaned = new Segment[] { tail };
 			} else {
 				String error = "Un accounted for remove" + getUCSClocation() + " trying to remove " + seg.getUCSClocation();
 				log.reportTimeError(error);
 				throw new IllegalStateException(error);
 			}
 		}
-		return removed;
-	}
 
+		int numBpRemaining = 0;
+		int bpShouldHaveBeenRemoved = Math.max(amountOfOverlapInBasepairs(seg), 0);
+		if (cleaned != null) {
+			for (int i = 0; i < cleaned.length; i++) {
+				numBpRemaining += cleaned[i].getSize();
+			}
+		}
+		int numBpRemoved = getSize() - numBpRemaining;
+
+		if (numBpRemoved != bpShouldHaveBeenRemoved) {
+			String error = "BUG: " + numBpRemoved + " base pairs were removed, but " + bpShouldHaveBeenRemoved + " should have been removed";
+			error += "\nOriginal: " + getUCSClocation() + " Removed: " + seg.getUCSClocation();
+			if (cleaned != null) {
+				for (int i = 0; i < cleaned.length; i++) {
+					error += "\n New: " + cleaned[i].getUCSClocation();
+				}
+			}
+			log.reportTimeError(error);
+			throw new IllegalStateException(error);
+		}
+		return cleaned;
+	}
 	public String toAnalysisString() {
 		return Positions.getChromosomeUCSC(chr, true) + "\t" + start + "\t" + stop + "\t";
 	}

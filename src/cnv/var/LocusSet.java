@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 import common.Array;
@@ -20,6 +21,27 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 	private T[] loci;
 	private boolean sorted;
 	private Logger log;
+
+	public LocusSet(final List<T> lociAl, boolean sort, final Logger log) {
+		super();
+		if (lociAl == null || lociAl.size() < 1) {
+			String error = "BUG: constructor call with 0 size or null in set contruction";
+			log.reportTimeError(error);
+			throw new IllegalArgumentException(error);
+		}
+
+		@SuppressWarnings("unchecked")
+		T[] loci = (T[]) java.lang.reflect.Array.newInstance(lociAl.get(0).getClass(), lociAl.size());
+		for (int i = 0; i < loci.length; i++) {
+			loci[i] = lociAl.get(i);
+		}
+		this.loci = loci;
+		this.sorted = false;
+		this.log = log;
+		if (sort) {
+			sort();
+		}
+	}
 
 	public LocusSet(final T[] loci, boolean sort, final Logger log) {
 		super();
@@ -51,9 +73,69 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		return loci;
 	}
 
+	/**
+	 * @param setToRemove
+	 *            remove the bases represented by this set from the current loci
+	 * @param bpBuffer
+	 *            the buffer to extend on either side of the removing set's loci
+	 * @return
+	 * 
+	 * 
+	 */
+	public <E extends Segment> LocusSet<Segment> removeThese(final LocusSet<E> setToRemove, int bpBuffer) {
+		ArrayList<Segment> newLoci = new ArrayList<Segment>();
+		LocusSet<Segment> operateSet = setToRemove.getStrictSegmentSet();
+		if (bpBuffer > 0) {
+			operateSet = setToRemove.getBufferedSegmentSet(bpBuffer);
+		}
+		for (int i = 0; i < loci.length; i++) {
+			Segment[] overlaps = operateSet.getOverLappingLoci(loci[i]);// exons in the bin
+			if (overlaps == null || overlaps.length == 0) {
+				newLoci.add(loci[i]);
+			} else {
+				LocusSet<Segment> overlapsRemoved = loci[i].removeAll(overlaps, log);
+				for (int j = 0; j < overlapsRemoved.getLoci().length; j++) {
+					newLoci.add(overlapsRemoved.getLoci()[j]);
+				}
+			}
+		}
+		LocusSet<Segment> toReturn = new LocusSet<Segment>(newLoci.toArray(new Segment[newLoci.size()]), true, log) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		for (int i = 0; i < operateSet.getLoci().length; i++) {
+			if (toReturn.getOverLappingLoci(operateSet.getLoci()[i]) != null) {
+				String error = "BUG: found overlapping loci from the removed set in the set to be returned";
+				log.reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+		}
+		return toReturn.mergeOverlapping();
+	}
+
+	public LocusSet<Segment> getBufferedSegmentSet(int bpBuffer) {
+		ArrayList<Segment> buffered = new ArrayList<Segment>();
+		for (int i = 0; i < loci.length; i++) {
+			buffered.add(loci[i].getBufferedSegment(bpBuffer));
+		}
+
+		LocusSet<Segment> bufSet = new LocusSet<Segment>(buffered.toArray(new Segment[buffered.size()]), true, log) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		return bufSet;
+	}
+
 	public boolean hasNoOverlap() {
 		boolean hasOverlap = false;
-		out:for (int i = 0; i < loci.length; i++) {
+		out: for (int i = 0; i < loci.length; i++) {
 			T[] overlaps = getOverLappingLoci(loci[i]);
 			if (overlaps != null && overlaps.length > 0) {
 				for (int j = 0; j < overlaps.length; j++) {
@@ -68,6 +150,10 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 	}
 
 	public LocusSet<Segment> mergeOverlapping() {
+		return mergeOverlapping(false);
+	}
+
+	public LocusSet<Segment> mergeOverlapping(boolean verbose) {// TODO, use clone and set positions instead to get same type returned
 
 		if (!sorted) {
 			log.reportTimeError("Internal error: must sort internal segment array prior to merge");
@@ -98,7 +184,9 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 				}
 				tmp.clear();
 			}
-			log.reportTimeInfo("Merged " + originalSize + " segments to " + merged.size());
+			if (verbose) {
+				log.reportTimeInfo("Merged " + originalSize + " segments to " + merged.size());
+			}
 			LocusSet<Segment> mergedSet = new LocusSet<Segment>(merged.toArray(new Segment[merged.size()]), true, log) {
 
 				/**
@@ -109,6 +197,18 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 			};
 			return mergedSet;
 		}
+	}
+
+	public LocusSet<Segment> getStrictSegmentSet() {
+		LocusSet<Segment> segSet = new LocusSet<Segment>(getStrictSegments(), true, log) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		return segSet;
 	}
 
 	public Segment[] getStrictSegments() {
@@ -149,10 +249,26 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		REGULAR;
 	}
 
+	@SuppressWarnings("unchecked")
+	public static <T extends Segment> LocusSet<T> combine(LocusSet<T> one, LocusSet<T> two, boolean sort, Logger log) {
+		T[] combinedLoci = Array.concatAll(one.getLoci(), two.getLoci());
+		LocusSet<T> combined = new LocusSet<T>(combinedLoci, sort, log) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		return combined;
+	}
+
 	/**
 	 * @param array
 	 *            writes according to the to string method of the class
 	 * @param filename
+	 * @param type
+	 *            see {@link TO_STRING_TYPE}
 	 * @param log
 	 * @return
 	 */

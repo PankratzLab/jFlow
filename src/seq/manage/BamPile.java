@@ -250,7 +250,7 @@ public class BamPile implements Serializable {
 	public void addRecord(SAMRecord samRecord, String[] refMatchedSegment, double phredFilter, Logger log) {
 		Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
 		String[] ref = refMatchedSegment;
-		Segment toPile = bin.getUnion(samRecordSegment, log);
+		Segment toPile = bin.getIntersection(samRecordSegment, log);
 		int mapQ = samRecord.getMappingQuality();
 		if (mapQ == 255) {
 			String error = "Detected invalid mapping quality (255)";
