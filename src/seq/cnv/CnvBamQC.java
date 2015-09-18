@@ -419,7 +419,7 @@ public class CnvBamQC {
 				LocusSet<BEDFeatureSeg> segs = callSubsetBedReader.loadSegsFor(cnLocusSet.getLoci()[i], log);
 				Segment[] overlaps = segs.getOverLappingLoci(cnLocusSet.getLoci()[i]);
 				for (int j = 0; j < overlaps.length; j++) {
-					tmpSplit.add(overlaps[j].getUnion(cnLocusSet.getLoci()[i], log));
+					tmpSplit.add(overlaps[j].getIntersection(cnLocusSet.getLoci()[i], log));
 					matched[i].add(currentIndex);
 					currentIndex++;
 				}

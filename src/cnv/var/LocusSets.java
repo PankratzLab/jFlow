@@ -57,7 +57,7 @@ public class LocusSets<T extends Segment> {
 				}
 			}
 			for (int j = 0; j < finalOverLap.size(); j++) {
-				union.add(tmp.getUnion(finalOverLap.get(j), log));
+				union.add(tmp.getIntersection(finalOverLap.get(j), log));
 			}
 		}
 		LocusSet<Segment> finalUnion = new LocusSet<Segment>(union.toArray(new Segment[union.size()]), true, log) {

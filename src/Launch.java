@@ -7,7 +7,6 @@ import cnv.analysis.cnvTrio;
 import cnv.qc.CNVConcordance;
 import cnv.qc.CNVFilter;
 import cnv.qc.CNVTrioFilter;
-import cnv.var.LocusSets.UTILITY_TYPE;
 import link.Heritability;
 import link.TrimFam;
 import mining.Transformations;
@@ -17,7 +16,6 @@ import parse.*;
 import seq.Vcf;
 import seq.manage.VCF;
 import seq.manage.VCFOps;
-import seq.manage.VCOps;
 import gwas.*;
 import db.*;
 
