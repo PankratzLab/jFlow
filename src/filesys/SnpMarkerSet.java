@@ -589,62 +589,6 @@ public class SnpMarkerSet implements Serializable {
 		}
 	}
 	
-	public void parseSNPlocations(String vcfFile, Logger log) {
-        String[] markerNames;
-        boolean annotateMerges;
-        VCFFileReader reader;
-        
-        markerNames = getMarkerNames();
-        
-        reader = new VCFFileReader(vcfFile, true);
-
-        annotateMerges = false;
-        if (annotation == null) {
-            annotateMerges = true;
-            annotation = new String[markerNames.length][1];
-        }
-        
-        chrs = new byte[markerNames.length];
-        positions = new int[markerNames.length];
-
-        for (int i = 0; i<markerNames.length; i++) {
-            if (markerNames[i].startsWith("rs")) {
-                
-                int rsNumber = Integer.parseInt(markerNames[i].substring(2));
-                int chrom = rsNumber / (512 * 1024 * 1024) + 1;
-                // ignoring X,Y,M chroms as we currently only have 1/2
-                CloseableIterator<VariantContext> vcIter = reader.query("chr" + chrom, rsNumber, rsNumber);
-                VariantContext markerVC = null;
-                while (vcIter.hasNext()) {
-                    VariantContext vc = vcIter.next();
-                    if (vc.getID().equals(markerNames[i])) {
-                        markerVC = vc;
-                        break;
-                    }
-                }
-                if (markerVC == null) {
-                    // TODO error, not found, check in merged/unmapped
-                } else {
-                    String attr = (String) markerVC.getAttribute("CHRPOS");
-                    String[] pts = attr.split(":");
-                    chrs[i] = (byte) Integer.parseInt(pts[0]);
-                    positions[i] = Integer.parseInt(pts[1]);
-                }
-            } else {
-                log.reportError("Error - can't look up a SNP without an rs number ("+markerNames[i]+")");
-                chrs[i] = (byte)0;
-                positions[i] = 0;
-                if (annotateMerges) {
-                    annotation[i][0] = ".";
-                }
-            }
-            
-        }
-        
-        reader.close();
-        
-	}
-	
 	public void parseSNPlocations(String db, String mergeDB, Logger log) {
 		SnpMarkerSet dbMarkerSet;
 		int[] dbRSnumbers, dbPositions;

@@ -3,7 +3,15 @@
 // found b132 in ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/database/organism_data/
 package bioinformatics;
 
+import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
+
 import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import common.*;
@@ -29,7 +37,159 @@ public class ParseSNPlocations {
 //	public static void lowMemParse(String snpListFile, boolean useExistingPositions, Logger log) {
 //		lowMemParse(snpListFile, ParseSNPlocations.DEFAULT_B37_DB, ParseSNPlocations.DEFAULT_MERGE, useExistingPositions, log);
 //	}
-//	
+
+	private static String[] TAG_SET = {"NSF","NSM","NSN","SYN","U3","U5","ASS","DSS","INT","R3","R5","PM","MUT"};
+	
+	public static void parseSNPlocations(String snpListFile, String vcfFile, String unmappedVCF, String mergedVCF, Logger log) {
+        VCFFileReader vcfReader, unmappedVCFReader, mergedVCFReader;
+        BufferedReader reader;
+        PrintWriter writer;
+        
+        String[] parts;
+        String line = null;
+        ArrayList<String> nonRS = new ArrayList<String>();
+        ArrayList<String> rsNotFound = new ArrayList<String>();
+        HashMap<String, Integer> indexMap = new HashMap<String, Integer>(); 
+        int index = 0;
+        
+        vcfReader = new VCFFileReader(vcfFile, true);
+        unmappedVCFReader = unmappedVCF == null ? null : new VCFFileReader(unmappedVCF, true);
+        mergedVCFReader = mergedVCF == null ? null : new VCFFileReader(mergedVCF, true);
+        try {
+            reader = Files.getAppropriateReader(snpListFile);
+            writer = Files.getAppropriateWriter(ext.rootOf(snpListFile, false)+"_positions.xln");
+            writer.println("index\tSNP\tChr\tPosition\tRef\tAlt\tFunc");
+
+            while ((line = reader.readLine()) != null) {
+                parts = line.trim().split("[\\s]+");
+                if (parts[0].equalsIgnoreCase("snp") || parts[0].toLowerCase().startsWith("marker")) {
+                    continue;
+                }
+                index++;
+                if (!parts[0].startsWith("rs")) {
+                    nonRS.add(parts[0]);
+                    indexMap.put(parts[0], index);
+                    // parse chr:pos:alleles markers later
+                } else {
+                    int rsNumber = Integer.parseInt(parts[0].substring(2));
+                    int chrom = rsNumber / (512 * 1024 * 1024) + 1;
+                    
+                    CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
+                    VariantContext markerVC = null;
+                    while (vcIter.hasNext()) {
+                        VariantContext vc = vcIter.next();
+                        if (vc.getID().equals(parts[0])) {
+                            markerVC = vc;
+                            break;
+                        }
+                    }
+                    vcIter.close();
+                    vcIter = null;
+                    if (markerVC == null) {
+                        System.err.println("Error - couldn't find {" + parts[0] + "} in the regular database.  Checking merged and unmapped marker databases...");
+                        if (unmappedVCFReader != null) {
+                            CloseableIterator<VariantContext> vcIterUn = unmappedVCFReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
+                            while (vcIterUn.hasNext()) {
+                                VariantContext vc = vcIterUn.next();
+                                if (vc.getID().equals(parts[0])) {
+                                    markerVC = vc;
+                                    break;
+                                }
+                            }
+                            vcIterUn.close();
+                            vcIterUn = null;
+                            if (markerVC == null) {
+                                System.err.println("Error - couldn't find {" + parts[0] + "} in the unmapped database.  Checking merged database now...");
+                            }
+                        }
+                        if (markerVC == null && mergedVCFReader != null) {
+                            String curr = null;
+                            String next = parts[0];
+                            HashSet<String> found = new HashSet<String>();
+                            found.add(parts[0]);
+                            do {
+                                curr = next;
+                                next = null;
+                                int rsCurr = Integer.parseInt(curr.startsWith("rs") ? curr.substring(2) : curr);
+                                int chromCurr = rsCurr / (512 * 1024 * 1024) + 1;
+                                CloseableIterator<VariantContext> vcIterUn = mergedVCFReader.query("chr" + chromCurr, rsCurr-2, rsCurr+2);
+                                while (vcIterUn.hasNext()) {
+                                    VariantContext vc = vcIterUn.next();
+                                    if (vc.getID().equals(curr)) {
+                                        if (!found.contains("rs" + vc.getAttribute("RSMRG").toString())) {
+                                            next = "rs" + vc.getAttribute("RSMRG").toString();
+                                            found.add("rs" + vc.getAttribute("RSMRG").toString());
+                                        }
+                                        break;
+                                    }
+                                }
+                                vcIterUn.close();
+                                vcIterUn = null;
+                            } while (next != null);
+                            
+                            if (!curr.equals(parts[0])) {
+                                vcIter = vcfReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
+                                markerVC = null;
+                                while (vcIter.hasNext()) {
+                                    VariantContext vc = vcIter.next();
+                                    if (vc.getID().equals(parts[0])) {
+                                        markerVC = vc;
+                                        break;
+                                    }
+                                }
+                                vcIter.close();
+                                vcIter = null;
+                            } else {
+                                System.err.println("Error - couldn't find {" + parts[0] + "} in the merged database.");
+                            }
+                        }
+                    } 
+                    if (markerVC != null) {
+                        String attr = (String) markerVC.getAttribute("CHRPOS");
+                        String[] pts = attr.split(":");
+                        StringBuilder newLine = new StringBuilder();
+                        newLine.append(index).append("\t")
+                                .append(parts[0]).append("\t")
+                                .append(pts[0]).append("\t")
+                                .append(pts[1]).append("\t")
+                                .append(markerVC.getReference()).append("\t")
+                                .append(markerVC.getAltAlleleWithHighestAlleleCount()).append("\t");
+                        boolean found = false;
+                        for (String funcKey : TAG_SET) {
+                            if (markerVC.getAttributes().keySet().contains(funcKey)) {
+                                if (found) {
+                                    newLine.append(";");
+                                } else {
+                                    found = true;
+                                }
+                                newLine.append(funcKey);
+                            }
+                        }
+                        if (!found) {
+                            newLine.append(".");
+                        }
+                        writer.println(newLine.toString());
+                    } else {
+                        rsNotFound.add(parts[0]);
+                        indexMap.put(parts[0], index);
+                    }
+                }
+            }
+            writer.flush();
+            writer.close();
+            reader.close();
+        } catch (NumberFormatException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        vcfReader.close();
+        
+    }
+	
 	public static void lowMemParse(String snpListFile, String db, String mergeDB, boolean useExistingPositions, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
@@ -426,7 +586,9 @@ public class ParseSNPlocations {
 			oome.printStackTrace();
 		}
 	}	
-
+	
+	
+	
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		String source = "";
@@ -435,6 +597,8 @@ public class ParseSNPlocations {
 		String db = DEFAULT_B37_DB_FILENAME;
 		String merge = DEFAULT_MERGE_FILENAME;
 		String vcf = null;
+		String mergedvcf = null;
+		String unmappedvcf = null;
 
 		// uncomment one of these to compile
 //		source = DEFAULT_B37_SOURCE;
@@ -476,6 +640,12 @@ public class ParseSNPlocations {
 			} else if (args[i].startsWith("vcf=")) {
 			    vcf = args[i].split("=")[1];
 			    numArgs--;
+			} else if (args[i].startsWith("mergedvcf=")) {
+			    mergedvcf = args[i].split("=")[1];
+			    numArgs--;
+			} else if (args[i].startsWith("unmappedvcf=")) {
+			    unmappedvcf = args[i].split("=")[1];
+			    numArgs--;
 			} else if (args[i].startsWith("merge=")) {
 				merge = args[i].split("=")[1];
 				numArgs--;
@@ -491,14 +661,14 @@ public class ParseSNPlocations {
 			} else if (!mergeSource.equals("")) {
 				createMergeDBfromSource(dir+mergeSource, dir+merge);
 			} else {
-				SnpMarkerSet map = new SnpMarkerSet(dir+filename, plinkFormat?SnpMarkerSet.PLINK_MAP_FORMAT:SnpMarkerSet.NAMES_ONLY, true, new Logger());
 				if (vcf != null) {
-				    map.parseSNPlocations(vcf, new Logger());
+				    parseSNPlocations(dir+filename, vcf, unmappedvcf, mergedvcf, new Logger());
 				} else {
+				    SnpMarkerSet map = new SnpMarkerSet(dir+filename, plinkFormat?SnpMarkerSet.PLINK_MAP_FORMAT:SnpMarkerSet.NAMES_ONLY, true, new Logger());
 				    map.parseSNPlocations(db, merge, new Logger());
+				    map.writeToFile(dir+ext.rootOf(filename)+"_newPositions.out", SnpMarkerSet.GENERIC_FORMAT);
 				}
 				
-				map.writeToFile(dir+ext.rootOf(filename)+"_newPositions.out", SnpMarkerSet.GENERIC_FORMAT);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

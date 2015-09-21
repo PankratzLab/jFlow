@@ -1,5 +1,6 @@
 package one.ben.snpVCF;
 
+import filesys.SerialHash;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.util.CloseableIterator;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 
 import seq.manage.ReferenceGenome;
 import seq.manage.VCFOps;
@@ -43,11 +45,18 @@ public class SNPVCFTesting {
     static String trimmedVCFFile2 = "D:/All_20150605_trimmed_rerun.vcf.gz";
     static String numberedVCFFile2 = "D:/All_20150605_noRS_rerun.vcf.gz";
 
+    static String mergedFile = "D:/RsMerge.ser";
+    static String mergedOut = "D:/RsMerge.vcf.gz";
+    static String mergedOut2 = "D:/RsMerge_rerun.vcf.gz";
     
     static String UNIX_unzippedVCFFile = "/scratch.global/coleb/DBSNP/All_20150605.vcf";
     static String UNIX_numberedVCFFile = "/scratch.global/coleb/DBSNP/All_20150605_noRS.vcf.gz";
     static String UNIX_numberedVCFFile2 = "/scratch.global/coleb/DBSNP/All_20150605_noRS_rerun.vcf.gz";
 //    static String tbiFile = "D:/All_20150605.vcf.gz.tbi";
+    
+    static String papu = "D:/All_20150605_papu.vcf";
+    static String papu_out = "D:/All_20150605_papu_trimmedNoRS.vcf.gz";
+    static String papu_out2 = "D:/All_20150605_papu_trimmedNoRS_rerun.vcf.gz";
     
     static String[] header = new String[]{
         "##fileformat=VCFv4.0",
@@ -74,7 +83,7 @@ public class SNPVCFTesting {
         "##INFO=<ID=CAF,Number=.,Type=String,Description=\"An ordered, comma delimited list of allele frequencies based on 1000Genomes, starting with the reference allele followed by alternate alleles as ordered in the ALT column. Where a 1000Genomes alternate allele is not in the dbSNPs alternate allele set, the allele is added to the ALT column.  The minor allele is the second largest value in the list, and was previuosly reported in VCF as the GMAF.  This is the GMAF reported on the RefSNP and EntrezSNP pages and VariationReporter\">",
         "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO"
     };
-
+    
     static String chrPosInfo = "##INFO=<ID=CHRPOS,Number=1,Type=String,Description=\"Chromosome and Position, separated by a colon (:)\">";
     
     static HashSet<String> validTags = new HashSet<String>(){{
@@ -130,12 +139,12 @@ public class SNPVCFTesting {
         
         samSequenceDictionary = (new SAMSequenceDictionary());
         samSequenceDictionary.addSequence(new SAMSequenceRecord("chr1", (512 * 1024 * 1024)));
-        samSequenceDictionary.addSequence(new SAMSequenceRecord("chr2", (512 * 1024 * 1024)));
-        
-        VCFFileReader fileReader2 = new VCFFileReader(new File(numberedVCFFile), false);
-        VariantContextWriter vcw2 = VCFOps.initWriter(numberedVCFFile2, VCFOps.DEFUALT_WRITER_OPTIONS, samSequenceDictionary);
-        
+//        samSequenceDictionary.addSequence(new SAMSequenceRecord("chr2", (512 * 1024 * 1024)));
+
+        VCFFileReader fileReader2 = new VCFFileReader(new File(mergedOut), false);
+        VariantContextWriter vcw2 = VCFOps.initWriter(mergedOut2, VCFOps.DEFUALT_WRITER_OPTIONS, samSequenceDictionary);
         VCFHeader hdr = fileReader2.getFileHeader();
+        
         hdr.setSequenceDictionary(samSequenceDictionary);
         vcw2.writeHeader(hdr);
         for (VariantContext vc : fileReader2) {
@@ -216,10 +225,10 @@ public class SNPVCFTesting {
     
     static void writeByRSNumber() throws IOException {
         System.out.println(ext.getTime() + "]\tCounting lines...");
-        int lines = Files.countLines(UNIX_unzippedVCFFile, 0);
+        int lines = Files.countLines(papu, 0);
         System.out.println(ext.getTime() + "]\t" + lines + " lines in VCF file.");
         System.out.println(ext.getTime() + "]\tReading header...");
-        BufferedReader reader = Files.getAppropriateReader(UNIX_unzippedVCFFile);
+        BufferedReader reader = Files.getAppropriateReader(papu);
         boolean afterHeader = false;
         String line = null;
         int headerLineCount = 0;
@@ -248,7 +257,17 @@ public class SNPVCFTesting {
             line = line.trim();
             String[] lineParts = line.split("\t");
             String[] infoParts = lineParts[lineParts.length - 1].split(";");
-            int rsNumber = Integer.parseInt(lineParts[2].substring(2));
+            String rsStr = null;
+            for (String k : infoParts) {
+                if (k.startsWith("RS=")) {
+                    rsStr = k.split("=")[1];
+                }
+            }
+            if (rsStr == null) {
+                System.err.println("Error - not found");
+                continue;
+            }
+            int rsNumber = Integer.parseInt(rsStr);
             rsNumbers[cnt] = rsNumber;
             cnt++;
             StringBuilder newLineNonRS = new StringBuilder();
@@ -259,7 +278,8 @@ public class SNPVCFTesting {
             }
             newLineNonRS.append(contig).append("\t");
             newLineNonRS.append(rsNumber % MAX_CONTIG_LEN).append("\t");
-            for (int i = 2; i < lineParts.length - 1; i++) {
+            newLineNonRS.append("rs" + rsNumber).append("\t");
+            for (int i = 3; i < lineParts.length - 1; i++) {
                 newLineNonRS.append(lineParts[i]).append("\t");
             }
 
@@ -279,7 +299,7 @@ public class SNPVCFTesting {
         Arrays.sort(rsNumbers);
         
         System.out.println(ext.getTime() + "]\tWriting new file...");
-        PrintWriter writerNonRS = Files.getAppropriateWriter(UNIX_numberedVCFFile);
+        PrintWriter writerNonRS = Files.getAppropriateWriter(papu_out);
         
         for (int i = 0; i < header.length; i++) {
             if (i == header.length - 1) {
@@ -296,8 +316,55 @@ public class SNPVCFTesting {
         
         System.out.println(ext.getTime() + "]\tComplete!"); 
     }
+   
+    static String hdr0 = "##fileformat=VCFv4.2";
+    static String hdr1 = "##INFO=<ID=RSMRG,Number=1,Type=String,Description=\"RS number merged with this one\">";
+    static String hdr2 = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
     
-    
+    static void processMerged() {
+        Hashtable<Integer,Integer> mergeHash = SerialHash.loadSerializedIntHash(mergedFile);
+
+        int MAX_CONTIG_LEN = 512 * 1024 * 1024;
+        HashMap<Integer, String> rsNumberLineMap = new HashMap<Integer, String>();
+        HashSet<Integer> contigs = new HashSet<Integer>();
+        int[] rsNumbers = new int[mergeHash.size()];
+        int index = 0;
+        for (java.util.Map.Entry<Integer, Integer> mergeEntry : mergeHash.entrySet()) {
+            Integer intKey = mergeEntry.getKey();
+            rsNumbers[index++] = intKey;
+            StringBuilder newLineNonRS = new StringBuilder();
+            int contig = (intKey / MAX_CONTIG_LEN) + 1;
+            if (!contigs.contains(contig)) {
+                contigs.add(contig);
+            }
+            newLineNonRS.append(contig).append("\t");
+            newLineNonRS.append(intKey % MAX_CONTIG_LEN).append("\t");
+            newLineNonRS.append("rs" + intKey).append("\t");
+            newLineNonRS.append("A\tG\t");
+            newLineNonRS.append(".\t.\t");
+            newLineNonRS.append("RSMRG=").append(mergeEntry.getValue());
+            rsNumberLineMap.put(intKey, newLineNonRS.toString());
+        }
+        System.out.println("Length: " + rsNumbers.length);
+        System.out.println("Contigs: " + contigs);
+        
+        Arrays.sort(rsNumbers);
+        
+        System.out.println(ext.getTime() + "]\tWriting new file...");
+        PrintWriter writerNonRS = Files.getAppropriateWriter(mergedOut);
+        
+        writerNonRS.println(hdr0);
+        writerNonRS.println(hdr1);
+        writerNonRS.println(hdr2);
+        for (int number : rsNumbers) {
+            Integer key = Integer.valueOf(number);
+            writerNonRS.println(rsNumberLineMap.get(key));
+        }
+        writerNonRS.flush();
+        writerNonRS.close();
+        
+        System.out.println(ext.getTime() + "]\tComplete!"); 
+    }
     
     
     static String[] testMarkers = new String[]{
@@ -350,11 +417,12 @@ public class SNPVCFTesting {
 
     
     public static void main(String[] args) {
-        run();
+        processMerged();
+//        run();
 //        try {
-//            createTBI();
-//            trimFileOnce();
 //            writeByRSNumber();
+            createTBI();
+//            trimFileOnce();
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }

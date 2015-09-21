@@ -743,7 +743,7 @@ public class Probabel {
 	            
 	            String hdr = reader.readLine();
 	            String delim = ext.determineDelimiter(hdr);
-	            writer.println(hdr + delim + "zScore_Pval" + delim + "chi2_pval");
+	            writer.println(hdr.replaceAll(delim, "\t") + "\tzScore_Pval\tchi2_pval");
 	            String line = null;
                 while ((line = reader.readLine()) != null) {
                     
