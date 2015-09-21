@@ -56,30 +56,30 @@ public class lab {
         String dir = "/scratch.global/cole0482/CARDIA_CHS/";
         String dir2 = "/scratch.global/cole0482/CARDIA_CHS/chunked/";
         String[] fileRoots = new String[]{
-            "chr1_P1_V3",  
-            "chr2_P1_V3",
-            "chr3_P1_V3",
-            "chr4_P1_V3",
-            "chr5_P1_V3",
-            "chr6_P1_V3",
-            "chr7_P1_V3",
-            "chr8_P1_V3",
-            "chr9_P1_V3",
+//            "chr1_P1_V3",  
+//            "chr2_P1_V3",
+//            "chr3_P1_V3",
+//            "chr4_P1_V3",
+//            "chr5_P1_V3",
+//            "chr6_P1_V3",
+//            "chr7_P1_V3",
+//            "chr8_P1_V3",
+//            "chr9_P1_V3",
             "chr10_P1_V3",
-            "chr11_P1_V3",
-            "chr12_P1_V3",
-            "chr13_P1_V3",
-            "chr14_P1_V3",
-            "chr15_P1_V3",
-            "chr16_P1_V3",
-            "chr17_P1_V3",
-            "chr18_P1_V3",
-            "chr19_P1_V3",  
-            "chr20_P1_V3",
-            "chr21_P1_V3",
-            "chr22_P1_V3",
-            "chr23_FEMALE_no.auto.P1_V3",  
-            "chr23_MALE_no.auto.P1_V3"    
+//            "chr11_P1_V3",
+//            "chr12_P1_V3",
+//            "chr13_P1_V3",
+//            "chr14_P1_V3",
+//            "chr15_P1_V3",
+//            "chr16_P1_V3",
+//            "chr17_P1_V3",
+//            "chr18_P1_V3",
+//            "chr19_P1_V3",  
+//            "chr20_P1_V3",
+//            "chr21_P1_V3",
+//            "chr22_P1_V3",
+//            "chr23_FEMALE_no.auto.P1_V3",  
+//            "chr23_MALE_no.auto.P1_V3"    
         };
         
         for (String fileRoot : fileRoots) {
@@ -89,8 +89,8 @@ public class lab {
                 ArrayList<PrintWriter> dosageWriters = new ArrayList<PrintWriter>();
                 String line = null;
                 while ((line = reader.readLine()) != null) {
-                    String[] parts = line.split("[\\s]+"); // gonna be BIG
-                    
+                    String[] parts = line.trim().split("[\\s]+"); // gonna be BIG
+                    if (parts[0].equals("4049390->4049390")) continue;
                     int chunks = (parts.length - 2) / 500000 + 1;
                     if (dosageWriters.size() == 0) {
                         for (int i = 0; i < chunks; i++) {
@@ -138,30 +138,30 @@ public class lab {
         String dir = "/scratch.global/cole0482/CARDIA_CHS/noAlleles/";
         String dir2 = "/scratch.global/cole0482/CARDIA_CHS/chunked/";
         String[] fileRoots = new String[]{
-            "chr1_P1_V3",  
-            "chr2_P1_V3",
-            "chr3_P1_V3",
-            "chr4_P1_V3",
-            "chr5_P1_V3",
-            "chr6_P1_V3",
-            "chr7_P1_V3",
-            "chr8_P1_V3",
-            "chr9_P1_V3",
+//            "chr1_P1_V3",  
+//            "chr2_P1_V3",
+//            "chr3_P1_V3",
+//            "chr4_P1_V3",
+//            "chr5_P1_V3",
+//            "chr6_P1_V3",
+//            "chr7_P1_V3",
+//            "chr8_P1_V3",
+//            "chr9_P1_V3",
             "chr10_P1_V3",
-            "chr11_P1_V3",
-            "chr12_P1_V3",
-            "chr13_P1_V3",
-            "chr14_P1_V3",
-            "chr15_P1_V3",
-            "chr16_P1_V3",
-            "chr17_P1_V3",
-            "chr18_P1_V3",
-            "chr19_P1_V3",  
-            "chr20_P1_V3",
-            "chr21_P1_V3",
-            "chr22_P1_V3",
-            "chr23_FEMALE_no.auto.P1_V3",  
-            "chr23_MALE_no.auto.P1_V3"    
+//            "chr11_P1_V3",
+//            "chr12_P1_V3",
+//            "chr13_P1_V3",
+//            "chr14_P1_V3",
+//            "chr15_P1_V3",
+//            "chr16_P1_V3",
+//            "chr17_P1_V3",
+//            "chr18_P1_V3",
+//            "chr19_P1_V3",  
+//            "chr20_P1_V3",
+//            "chr21_P1_V3",
+//            "chr22_P1_V3",
+//            "chr23_FEMALE_no.auto.P1_V3",  
+//            "chr23_MALE_no.auto.P1_V3"    
         };
         
         for (String fileRoot : fileRoots) {
