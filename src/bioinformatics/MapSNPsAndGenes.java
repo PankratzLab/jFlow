@@ -34,6 +34,29 @@ public class MapSNPsAndGenes {
 		return Aliases.getPathToFileInReferenceDirectory(geneDB, true, log);
 	}
 	
+	public static String getSNPVCF(int build, Logger log) {
+	    String snpVCF = null;
+        boolean satisfied;
+        
+        satisfied = false;
+        while (!satisfied) {
+            switch (build) {
+            case 36:
+                throw new IllegalArgumentException("Error - VCF unavailable for build 36.");
+            case 37:
+                snpVCF = ParseSNPlocations.DEFAULT_B37_VCF_FILENAME;
+                satisfied = true;
+                break;
+            default:
+                log.reportError("Error - unknown build '"+build+"'; using the default instead (build "+ParseSNPlocations.DEFAULT_BUILD+")");
+                build = ParseSNPlocations.DEFAULT_BUILD;
+                break;
+            }
+        }
+        
+        return Aliases.getPathToFileInReferenceDirectory(snpVCF, true, log);
+	}
+	
 	public static String getSNPDB(int build, Logger log) {
 		String snpDB = null;
 		boolean satisfied;
@@ -57,6 +80,14 @@ public class MapSNPsAndGenes {
 		}
 		
 		return Aliases.getPathToFileInReferenceDirectory(snpDB, true, log);
+	}
+	
+	public static String getUnmappedVCF(Logger log) {
+	    return Aliases.getPathToFileInReferenceDirectory(ParseSNPlocations.DEFAULT_UNMAPPED_VCF_FILENAME, true, log);
+	}
+	
+	public static String getMergeVCF(Logger log) {
+	    return Aliases.getPathToFileInReferenceDirectory(ParseSNPlocations.DEFAULT_MERGE_VCF_FILENAME, true, log);
 	}
 	
 	public static String getMergeDB(Logger log) {
@@ -173,14 +204,19 @@ public class MapSNPsAndGenes {
 	}
 
 
-	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, int build, Logger log) {
+	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, int build, Logger log, boolean useVCF) {
 		PrintWriter writer;
 		String[] line;
 		String[] data, markers;
 		String[][] genes;
 		int[][] markerPositions;
 
-		ParseSNPlocations.lowMemParse(dir+snps, getSNPDB(build, log), getMergeDB(log), true, log);
+		if (useVCF) {
+		    System.out.println("Processing with VCF files...");
+		    ParseSNPlocations.parseSNPlocations(dir+snps, getSNPVCF(build, log), getUnmappedVCF(log), getMergeVCF(log), log);
+		} else {
+		    ParseSNPlocations.lowMemParse(dir+snps, getSNPDB(build, log), getMergeDB(log), true, log);
+		}
 		
 		data = Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir+snps, false)+"_positions.xln", false, false, false));
 
@@ -219,7 +255,8 @@ public class MapSNPsAndGenes {
                                               new String[] { "file=list.snps",
                                                              "dir=",
                                                              "win=15000", 
-                                                             "build=37" }, 
+                                                             "build=37",
+                                                             "vcf=true"}, 
                                               log);
         String usage = "\\n"+
         "bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"+
@@ -227,6 +264,7 @@ public class MapSNPsAndGenes {
         "   (2) filename (i.e. file=list.snps (default))\n"+
         "   (3) # bp up and down stream to count as an associated gene (i.e. win=15000 (default))\n"+
         "   (4) build # of the NCBI gene map file (i.e. build=37 (default))\n"+
+        "   (5) should use vcf files instead of serialized database files (i.e. vcf=true (default))\n"  +
         "";
         
         if (params != null) {
@@ -234,6 +272,7 @@ public class MapSNPsAndGenes {
             String file = null;
             byte build = (byte) 37;
             int win = 15000;
+            boolean vcf = true;
             
             int numArgs = params.size();
             for (int i = 0; i<params.size(); i++) {
@@ -250,13 +289,16 @@ public class MapSNPsAndGenes {
                 } else if (param.startsWith("build=")) {
                     build = Byte.parseByte(param.split("=")[1]);
                     numArgs--;
+                } else if (param.startsWith("vcf=")) {
+                    vcf = ext.parseBooleanArg(param);
+                    numArgs--;
                 }
             }
             if (numArgs!=0) {
                 System.err.println(usage);
                 System.exit(1);
             }
-            procSNPsToGenes(dir, file, win, build, log);
+            procSNPsToGenes(dir, file, win, build, log, vcf);
         }
     }
 	
@@ -269,6 +311,7 @@ public class MapSNPsAndGenes {
 		String temp;
 		byte build = 37;
 		Logger log;
+		boolean vcf = true;
 
 		String usage = "\\n"+
 		"bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"+
@@ -276,6 +319,7 @@ public class MapSNPsAndGenes {
 		"   (2) filename (i.e. file="+filename+" (default))\n"+
 		"   (3) # bp up and down stream to count as an associated gene (i.e. win="+wiggleRoom+" (default))\n"+
 		"   (4) build # of the NCBI gene map file (i.e. build="+build+" (default))\n"+
+        "   (5) should use vcf files instead of serialized database files (i.e. vcf=true (default))\n"  +
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -294,7 +338,10 @@ public class MapSNPsAndGenes {
 			} else if (args[i].startsWith("build=")) {
 				build = Byte.parseByte(args[i].split("=")[1]);
 				numArgs--;
-			}
+            } else if (args[i].startsWith("vcf=")) {
+                vcf = ext.parseBooleanArg(args[i]);
+                numArgs--;
+            }
 		}
 		if (numArgs!=0) {
 			System.err.println(usage);
@@ -320,11 +367,9 @@ public class MapSNPsAndGenes {
 						wiggleRoom = DEFAULT_WIGGLE_ROOM;
 					}
 				}				
-//				procSNPsToGenes("", filename, wiggleRoom, build, new Logger(filename+".log"));
-				procSNPsToGenes("", filename, wiggleRoom, build, log);
+				procSNPsToGenes("", filename, wiggleRoom, build, log, vcf);
 			} else {
-//				procSNPsToGenes(dir, filename, wiggleRoom, build, new Logger());
-				procSNPsToGenes(dir, filename, wiggleRoom, build, new Logger());
+				procSNPsToGenes(dir, filename, wiggleRoom, build, new Logger(), vcf);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
