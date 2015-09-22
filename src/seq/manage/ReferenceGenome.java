@@ -127,6 +127,8 @@ public class ReferenceGenome {
 		for (int i = 0; i < seqs.length; i++) {
 			if (reportEvery > 0 && i % reportEvery == 0) {
 				log.reportTimeInfo((i + 1) + " segments queried of " + segs.length + " total from " + referenceFasta);
+				log.memoryFree();
+				log.memoryTotal();
 			}
 			seqs[i] = getSequenceFor(segs[i]);
 		}

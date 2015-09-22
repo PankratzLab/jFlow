@@ -1,8 +1,6 @@
 package seq.manage;
 
-import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.filter.AggregateFilter;
@@ -35,15 +33,15 @@ public class BamSegPileUp implements Iterator<BamPile> {
 	private AggregateFilter filter;
 	private FilterNGS filterNGS;
 	private int queryIndex;
-	private String[][] referenceSequenceForIntervals;
+	private ReferenceGenome referenceGenome;
 
-	public BamSegPileUp(String bam, String[][] referenceSequenceForIntervals, Segment[] intervals, FilterNGS filterNGS, Logger log) {
+	public BamSegPileUp(String bam, String referenceGenomeFasta, Segment[] intervals, FilterNGS filterNGS, Logger log) {
 		super();
 		this.bam = bam;
 		this.numReturned = 0;
 		this.reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
 		this.log = log;
-		this.referenceSequenceForIntervals = referenceSequenceForIntervals;
+		this.referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
 		this.bamPiles = new BamPile[intervals.length];
 		this.filterNGS = filterNGS;
 		this.filter = FilterNGS.initializeFilters(filterNGS, SAM_FILTER_TYPE.COPY_NUMBER, log);
@@ -62,8 +60,8 @@ public class BamSegPileUp implements Iterator<BamPile> {
 	public BamPile next() {
 		BamPile currentPile = bamPiles[queryIndex];
 		String[] currentRef = null;
-		if (referenceSequenceForIntervals != null) {
-			currentRef = referenceSequenceForIntervals[queryIndex];
+		if (referenceGenome != null) {
+			currentRef = referenceGenome.getSequenceFor(currentPile.getBin());
 		}
 
 		Segment cs = currentPile.getBin();
@@ -172,13 +170,13 @@ public class BamSegPileUp implements Iterator<BamPile> {
 		private Logger log;
 		private Segment[] pileSegs;
 		private FilterNGS filterNGS;
-		private String[][] referenceSequenceForIntervals;
+		private String referenceGenomeFasta;
 
-		public PileUpWorker(String bamFile, String serDir, String[][] referenceSequenceForIntervals, Segment[] pileSegs, FilterNGS filterNGS, Logger log) {
+		public PileUpWorker(String bamFile, String serDir, String referenceGenomeFasta, Segment[] pileSegs, FilterNGS filterNGS, Logger log) {
 			super();
 			this.bamFile = bamFile;
 			this.serDir = serDir;
-			this.referenceSequenceForIntervals = referenceSequenceForIntervals;
+			this.referenceGenomeFasta = referenceGenomeFasta;
 			this.pileSegs = pileSegs;
 			this.filterNGS = filterNGS;
 			this.log = log;
@@ -189,7 +187,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 		public BamPile[] call() throws Exception {
 			String ser = serDir + ext.rootOf(bamFile) + ".ser";
 			if (!Files.exists(ser)) {
-				BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceSequenceForIntervals, pileSegs, filterNGS, log);
+				BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs, filterNGS, log);
 				ArrayList<BamPile> bamPiles = new ArrayList<BamPile>();
 				while (bamSegPileUp.hasNext()) {
 					BamPile bamPile = bamSegPileUp.next();
@@ -212,13 +210,13 @@ public class BamSegPileUp implements Iterator<BamPile> {
 		private Logger log;
 		private Segment[] pileSegs;
 		private FilterNGS filterNGS;
-		private String[][] referenceSequenceForIntervals;
+		private String referenceGenomeFasta;
 
-		public PileupProducer(String[] bamFiles, String serDir, String[][] referenceSequenceForIntervals, FilterNGS filterNGS, Segment[] pileSegs, Logger log) {
+		public PileupProducer(String[] bamFiles, String serDir, String referenceGenomeFasta, FilterNGS filterNGS, Segment[] pileSegs, Logger log) {
 			super();
 			this.bamFiles = bamFiles;
 			this.serDir = serDir;
-			this.referenceSequenceForIntervals = referenceSequenceForIntervals;
+			this.referenceGenomeFasta = referenceGenomeFasta;
 			this.log = log;
 			this.pileSegs = pileSegs;
 			this.filterNGS = filterNGS;
@@ -232,7 +230,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 
 		@Override
 		public Callable<BamPile[]> next() {
-			PileUpWorker worker = new PileUpWorker(bamFiles[index], serDir, referenceSequenceForIntervals, pileSegs, filterNGS, log);
+			PileUpWorker worker = new PileUpWorker(bamFiles[index], serDir, referenceGenomeFasta, pileSegs, filterNGS, log);
 			index++;
 			return worker;
 		}
