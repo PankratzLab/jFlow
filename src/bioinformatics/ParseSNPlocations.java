@@ -52,7 +52,8 @@ public class ParseSNPlocations {
 //		lowMemParse(snpListFile, ParseSNPlocations.DEFAULT_B37_DB, ParseSNPlocations.DEFAULT_MERGE, useExistingPositions, log);
 //	}
 
-	private static String[] TAG_SET = {"NSF","NSM","NSN","SYN","U3","U5","ASS","DSS","INT","R3","R5","PM","MUT"};
+	private static String[] TAG_SET = {"NSF","NSM","NSN","SYN","U3","U5","ASS","DSS","INT","R3","R5"};
+	private static String[] TAG_SET_2 = {"PM","MUT"};
 	
 	public static void parseSNPlocations(String snpListFile, String vcfFile, String unmappedVCF, String mergedVCF, Logger log) {
         VCFFileReader vcfReader, unmappedVCFReader, mergedVCFReader;
@@ -73,7 +74,7 @@ public class ParseSNPlocations {
             reader = Files.getAppropriateReader(snpListFile);
             writer = Files.getAppropriateWriter(ext.rootOf(snpListFile, false)+"_positions.xln");
 //            writer.println("index\tSNP\tChr\tPosition\tRef\tAlt\tFunc");
-            writer.println("SNP\tChr\tPosition\tRef\tAlt\tFunc");
+            writer.println("SNP\tChr\tPosition\tRef\tAlt\tFunc\tPM/MUT\tGENENAME\tCAF");
 
             while ((line = reader.readLine()) != null) {
                 parts = line.trim().split("[\\s]+");
@@ -163,11 +164,14 @@ public class ParseSNPlocations {
                         String attr = (String) markerVC.getAttribute("CHRPOS");
                         String[] pts = attr.split(":");
                         StringBuilder newLine = new StringBuilder();
-                        newLine//.append(index).append("\t")
-                                .append(parts[0]).append("\t")
+                        newLine.append(parts[0]).append("\t")
                                 .append(pts[0]).append("\t")
-                                .append(pts[1]).append("\t")
-                                .append(markerVC.getReference()).append("\t")
+                                .append(pts[1]).append("\t");
+                        String ref = markerVC.getReference().toString();
+                        if (ref.endsWith("*")) {
+                            ref = ref.substring(0, ref.length() - 1);
+                        }
+                        newLine.append(ref).append("\t") 
                                 .append(markerVC.getAltAlleleWithHighestAlleleCount()).append("\t");
                         boolean found = false;
                         for (String funcKey : TAG_SET) {
@@ -182,6 +186,39 @@ public class ParseSNPlocations {
                         }
                         if (!found) {
                             newLine.append(".");
+                        }
+                        newLine.append("\t");
+                        found = false;
+                        for (String funcKey : TAG_SET_2) {
+                            if (markerVC.getAttributes().keySet().contains(funcKey)) {
+                                if (found) {
+                                    newLine.append(";");
+                                } else {
+                                    found = true;
+                                }
+                                newLine.append(funcKey);
+                            }
+                        }
+                        if (!found) {
+                            newLine.append(".");
+                        }
+                        newLine.append("\t");
+                        java.util.Map<String, Object> attrs = markerVC.getAttributes();
+                        if (attrs.containsKey("GENEINFO")) {
+                            newLine.append(attrs.get("GENEINFO")).append("\t");
+                        } else {
+                            newLine.append(".\t");
+                        }
+                        ArrayList<?> caf = (ArrayList<?>) attrs.get("CAF");
+                        if (caf == null) {
+                            newLine.append(".");
+                        } else {
+                            for (int i = 0; i < caf.size(); i++) {
+                                newLine.append(caf.get(i));
+                                if (i < caf.size() - 1) {
+                                    newLine.append(";");
+                                }
+                            }
                         }
                         writer.println(newLine.toString());
                     } else {
@@ -202,6 +239,7 @@ public class ParseSNPlocations {
         }
         
         vcfReader.close();
+        Files.writeArrayList(rsNotFound, ext.rootOf(snpListFile, false)+"_missing.txt");
         
     }
 	
@@ -622,7 +660,9 @@ public class ParseSNPlocations {
 //		source = DEFAULT_B36_SOURCE;
 //		db = DEFAULT_B36_DB;
 		
-//		mergeSource = DEFAULT_MERGE_SOURCE;
+//		dir = "";
+//		mergeSource = "C:/Users/cole0482/Downloads/RsMergeArch.bcp.gz";
+//		db = "D:/RSMerge.ser";
 
 		String filename = "list.txt";
 		boolean plinkFormat = false;
