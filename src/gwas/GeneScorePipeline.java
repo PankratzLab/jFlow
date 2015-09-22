@@ -313,7 +313,7 @@ public class GeneScorePipeline {
 						// No chromosomes/positions
 						snps = HashVec.loadFileToStringArray(filename, false, true, new int[]{indices[0]}, false);//fileData.keySet().toArray(new String[fileData.size()]);
 						Files.writeList(snps, ext.rootOf(filename, false) + ".snps");
-						MapSNPsAndGenes.procSNPsToGenes(ext.parseDirectoryOfFile(filename), ext.rootOf(filename, true) + ".snps", MapSNPsAndGenes.DEFAULT_WIGGLE_ROOM, (byte) 37, log);
+						MapSNPsAndGenes.procSNPsToGenes(ext.parseDirectoryOfFile(filename), ext.rootOf(filename, true) + ".snps", MapSNPsAndGenes.DEFAULT_WIGGLE_ROOM, (byte) 37, log, true);
 						data = Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(filename, false)+"_positions.xln", true, false, false));
 						for (int i = 0; i < data.length; i++) {
 							line = data[i].trim().split("[\\s]+");

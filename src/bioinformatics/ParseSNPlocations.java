@@ -3,20 +3,30 @@
 // found b132 in ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606/database/organism_data/
 package bioinformatics;
 
+import filesys.SerialHash;
+import filesys.SnpMarkerSet;
 import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import common.*;
-import filesys.SerialHash;
-import filesys.SnpMarkerSet;
+import common.Aliases;
+import common.Array;
+import common.Files;
+import common.Logger;
+import common.Positions;
+import common.ext;
 
 public class ParseSNPlocations {
 	public static final String DEFAULT_B36_SOURCE_FILENAME = "b130_SNPChrPosOnRef_36_3.bcp.gz";
@@ -27,6 +37,10 @@ public class ParseSNPlocations {
 
 	public static final String DEFAULT_MERGE_SOURCE_FILENAME = "RsMergeArch.bcp.gz";
 	public static final String DEFAULT_MERGE_FILENAME = "RsMerge.ser";
+	
+	public static final String DEFAULT_B37_VCF_FILENAME = "All_20150605_rsDominant.vcf.gz";
+	public static final String DEFAULT_MERGE_VCF_FILENAME = "RsMerge.vcf.gz";
+	public static final String DEFAULT_UNMAPPED_VCF_FILENAME = "All_20150605_papu_rsDominant.vcf.gz";
 	
 	public static final int DEFAULT_BUILD = 37;
 	
@@ -58,7 +72,8 @@ public class ParseSNPlocations {
         try {
             reader = Files.getAppropriateReader(snpListFile);
             writer = Files.getAppropriateWriter(ext.rootOf(snpListFile, false)+"_positions.xln");
-            writer.println("index\tSNP\tChr\tPosition\tRef\tAlt\tFunc");
+//            writer.println("index\tSNP\tChr\tPosition\tRef\tAlt\tFunc");
+            writer.println("SNP\tChr\tPosition\tRef\tAlt\tFunc");
 
             while ((line = reader.readLine()) != null) {
                 parts = line.trim().split("[\\s]+");
@@ -148,7 +163,7 @@ public class ParseSNPlocations {
                         String attr = (String) markerVC.getAttribute("CHRPOS");
                         String[] pts = attr.split(":");
                         StringBuilder newLine = new StringBuilder();
-                        newLine.append(index).append("\t")
+                        newLine//.append(index).append("\t")
                                 .append(parts[0]).append("\t")
                                 .append(pts[0]).append("\t")
                                 .append(pts[1]).append("\t")
