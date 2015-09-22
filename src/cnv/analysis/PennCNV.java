@@ -731,7 +731,7 @@ public class PennCNV {
 
 		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")||!Files.exists(filename, proj.JAR_STATUS.getValue())) {
 			sampleList = proj.getSampleList().getSamples();
-			output = proj.PROJECT_DIRECTORY.getValue()+"custom.pfb";
+			output = proj.CUSTOM_PFB_FILENAME.getValue();
 		} else if (Files.exists(filename, proj.JAR_STATUS.getValue())) {
 			log.report("filename: "+filename);
 			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
@@ -1230,7 +1230,7 @@ public class PennCNV {
 				populationBAF(proj);
 			}
 			if (gc5base != null) {
-				gcModel(proj, gc5base, proj.PROJECT_DIRECTORY.getValue()+"custom.gcmodel", 100);
+				gcModel(proj, gc5base, proj.GC_MODEL_FILENAME.getValue(), 100);
 			}
 			if (numChunks > 0) {
 				doBatch(proj, auto, chrx, sexCent, transformData, numChunks, separateQsubs, pfbFile, gcmodelFile, hmmFile, separateQsubs ? submit : false, recode, excludes, numThreads);

@@ -61,8 +61,8 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 	/**
 	 * @return simply the sum of the segments length, should be a merged set if you want the unique coverage
 	 */
-	public int getBpCovered() {
-		int sum = 0;
+	public long getBpCovered() {
+		long sum = 0;
 		for (int i = 0; i < loci.length; i++) {
 			sum += loci[i].getSize();
 		}

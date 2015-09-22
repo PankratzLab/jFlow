@@ -28,11 +28,12 @@ import cnv.var.LocusSet;
 import filesys.Segment;
 
 public class BamImport {
+	public static final String OFF_TARGET_FLAG = "OFF_TARGET";
 
-	public static void importTheWholeBamProject(Project proj, String binBed, String captureBed, int numthreads) {
+	public static void importTheWholeBamProject(Project proj, String binBed, String captureBed, int captureBuffer, int numthreads) {
 		if (proj.getArrayType() == ARRAY.NGS) {
 			Logger log = proj.getLog();
-			
+
 			String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
 			String[] bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(), proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
 			log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
@@ -41,42 +42,23 @@ public class BamImport {
 				LocusSet<BEDFeatureSeg> bLocusSet = readerBin.loadAll(log);
 				readerBin.close();
 				BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
-				LocusSet<Segment> antiOffTarget = LocusSet.combine(bLocusSet,  readerCapture.loadAll(log), true, log).mergeOverlapping(true);
 				readerCapture.close();
-
 				if (!bLocusSet.hasNoOverlap()) {
 					ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), log);
-					LocusSet<Segment> genomeBins = referenceGenome.getBins(20000);
-					log.reportTimeInfo(genomeBins.getBpCovered() + " bp covered by reference bins, removing " + antiOffTarget.getBpCovered() + " bp in either target or capture regions");
-					LocusSet<Segment> genomeBinsMinusBinsCaputure = genomeBins.removeThese(antiOffTarget, 400);
-
-					System.exit(1);
-					generateMarkerPositions(proj, bLocusSet);
-				
-					String projectSeqSer = proj.PROJECT_DIRECTORY.getValue() + ext.removeDirectoryInfo(binBed) + "seq.ser";
-					String[][] refForIntervals = null;
-					if (!Files.exists(projectSeqSer)) {
-						refForIntervals = referenceGenome.getSequencesFor(bLocusSet.getLoci(), 1000);
-						Files.writeSerial(refForIntervals, projectSeqSer, true);
-						log.reportTimeInfo("Writing serialized bin sequences to " + projectSeqSer);
-
-					} else {
-						log.reportTimeInfo("Loading bin sequences from " + projectSeqSer);
-						refForIntervals = (String[][]) Files.readSerial(projectSeqSer, false, log, false, true);
-					}
-					generateGCModel(proj, refForIntervals);
-					if (refForIntervals.length != bLocusSet.getLoci().length) {
-						String error = "Have " + refForIntervals.length + " sequence intervals for " + bLocusSet.getLoci().length + " bins";
-						log.reportTimeError(error);
-						return;
-					}
-
+					log.memoryFree();
+					LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(LocusSet.combine(bLocusSet, readerCapture.loadAll(log), true, log).mergeOverlapping(true), 400);
+					log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bins int the anti-on-target regions");
+					log.memoryFree();
+					generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure);
+					log.memoryFree();
+					LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure, true, log);
+					log.memoryFree();
+					generateGCModel(proj, analysisSet, referenceGenome);
 					long fingerPrint = proj.getMarkerSet().getFingerprint();
 
-					log.reportTimeInfo(bLocusSet.getLoci().length + " segments to pile");
+					log.reportTimeInfo(analysisSet.getLoci().length + " segments to pile");
 					FilterNGS filterNGS = new FilterNGS(20, 20, null);
-
-					PileupProducer producer = new PileupProducer(bamsToImport, serDir, refForIntervals, filterNGS, bLocusSet.getStrictSegments(), log);
+					PileupProducer producer = new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(), filterNGS, analysisSet.getStrictSegments(), log);
 					WorkerTrain<BamPile[]> train = new WorkerTrain<BamPile[]>(producer, numthreads, 2, log);
 					int index = 0;
 					Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
@@ -138,23 +120,29 @@ public class BamImport {
 		}
 	}
 
-	private static void generateGCModel(Project proj, String[][] sequence) {
+	private static void generateGCModel(Project proj, LocusSet<Segment> analysisSet, ReferenceGenome referenceGenome) {
 		String gcFile = proj.GC_MODEL_FILENAME.getValue();
-		MarkerSet markerSet = proj.getMarkerSet();
-		String[] markerNames = markerSet.getMarkerNames();
+		if (!Files.exists(gcFile)) {
+			MarkerSet markerSet = proj.getMarkerSet();
+			String[] markerNames = markerSet.getMarkerNames();
 
-		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(gcFile));
-			String[] header = new String[] { "Name", "Chr", "Position", "GC" };
-			writer.println(Array.toStr(header));
-			for (int i = 0; i < markerNames.length; i++) {
-
-				writer.println(markerNames[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + ReferenceGenome.getPercent(sequence[i]));
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(gcFile));
+				String[] header = new String[] { "Name", "Chr", "Position", "GC" };
+				writer.println(Array.toStr(header));
+				for (int i = 0; i < markerNames.length; i++) {
+					if (i % 1000 == 0) {
+						proj.getLog().reportTimeInfo("Loaded gc content for " + (i + 1) + " bins");
+					}
+					writer.println(markerNames[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + ReferenceGenome.getPercent(referenceGenome.getSequenceFor(analysisSet.getLoci()[i])));
+				}
+				writer.close();
+			} catch (Exception e) {
+				proj.getLog().reportError("Error writing to " + gcFile);
+				proj.getLog().reportException(e);
 			}
-			writer.close();
-		} catch (Exception e) {
-			proj.getLog().reportError("Error writing to " + gcFile);
-			proj.getLog().reportException(e);
+		} else {
+			proj.getLog().reportFileExists(gcFile);
 		}
 	}
 
@@ -166,12 +154,13 @@ public class BamImport {
 		MitoPipeline.catAndCaboodle(proj, numthreads, "0", mediaMarks, proj.getSamples().length - 1, base, false, false, 0, null, null, null, false, false, false, true);
 	}
 
-	private static void generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet) {
+	private static void generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet, LocusSet<Segment> genomeBinsMinusBinsCaputure) {
 		String positions = proj.MARKER_POSITION_FILENAME.getValue();
 		proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
-		String[] markerNames = new String[bLocusSet.getLoci().length];
+		String[] markerNames = new String[bLocusSet.getLoci().length + genomeBinsMinusBinsCaputure.getLoci().length];
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(positions));
+			int markerIndex = 0;
 			writer.println("BinName\tChr\tPosition");
 			for (int i = 0; i < bLocusSet.getLoci().length; i++) {
 				BEDFeatureSeg bFeatureSeg = bLocusSet.getLoci()[i];
@@ -180,12 +169,25 @@ public class BamImport {
 				if (name != null) {
 					markerName += "|" + name;
 				}
-				markerNames[i] = markerName;
+				markerNames[markerIndex] = markerName;
 				int diff = bFeatureSeg.getStop() - bFeatureSeg.getStart();
 				int mid = Math.round((float) diff / 2);
 				int pos = bFeatureSeg.getStart() + mid;
 				writer.println(markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos);
+				markerIndex++;
 			}
+			for (int i = 0; i < genomeBinsMinusBinsCaputure.getLoci().length; i++) {
+				Segment binnedSeg = genomeBinsMinusBinsCaputure.getLoci()[i];
+				String markerName = binnedSeg.getUCSClocation() + "|" + OFF_TARGET_FLAG;
+
+				markerNames[markerIndex] = markerName;
+				int diff = binnedSeg.getStop() - binnedSeg.getStart();
+				int mid = Math.round((float) diff / 2);
+				int pos = binnedSeg.getStart() + mid;
+				writer.println(markerName + "\t" + binnedSeg.getChr() + "\t" + pos);
+				markerIndex++;
+			}
+
 			writer.close();
 		} catch (Exception e) {
 			proj.getLog().reportError("Error writing to " + positions);
@@ -201,6 +203,7 @@ public class BamImport {
 		String binBed = "binsToImport.bed";
 		String captureBed = "AgilentCaptureRegions.txt";
 		int numthreads = 24;
+		int captureBuffer = 400;
 		// String referenceGenomeFasta = "hg19_canonical.fa";
 		String logfile = null;
 		Logger log;
@@ -243,7 +246,7 @@ public class BamImport {
 		try {
 			log = new Logger(logfile);
 			Project proj = new Project(filename, false);
-			importTheWholeBamProject(proj, binBed, captureBed, numthreads);
+			importTheWholeBamProject(proj, binBed, captureBed, captureBuffer, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

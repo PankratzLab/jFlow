@@ -382,6 +382,7 @@ public class Project {
 	public      FileProperty        SEX_CENTROIDS_FEMALE_FILENAME = new       FileProperty(this,        "SEX_CENTROIDS_FEMALE_FILENAME", "", "", false);
 	public      FileProperty      REFERENCE_GENOME_FASTA_FILENAME = new       FileProperty(this,      "REFERENCE_GENOME_FASTA_FILENAME", "", "hg19_canonical.fa", false);
 	public      FileProperty              GENOME_CLUSTER_FILENAME = new       FileProperty(this,              "GENOME_CLUSTER_FILENAME", "", "cluster.genome.gz", false); 
+	public      FileProperty                  CUSTOM_PFB_FILENAME = new       FileProperty(this,                  "CUSTOM_PFB_FILENAME", "", "data/custom.pfb", false);
 
 	public StringListProperty           DISPLAY_MARKERS_FILENAMES = new StringListProperty(this,            "DISPLAY_MARKERS_FILENAMES", "", "data/test.txt", true, false);
 	public StringListProperty               TWOD_LOADED_FILENAMES = new StringListProperty(this,                "TWOD_LOADED_FILENAMES", "", "", true, false);
