@@ -5,9 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import cnv.analysis.PennCNV;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
+import cnv.filesys.Sample;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
+import cnv.var.CNVariant;
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 import common.Array;
@@ -58,8 +62,11 @@ import common.Logger;
 // 0.010000
 
 public class PennHmm {
+	private static final double NOT_ZERO_PI = 0.000000001; // 1e-9
+	private static final double STATE_CHANGE = 100000.0;
+	private static final double VITHUGE = 100000000000.0;
 	private int M;
-	private int N;
+	private int N;// number of states
 	private double[] pi;
 	private double[][] a;
 	private BStatus B1;// for LRR measure from SNP markers
@@ -89,6 +96,54 @@ public class PennHmm {
 		this.B2 = pennHmm.B2;
 		this.B3 = pennHmm.B3;
 		this.log = pennHmm.log;
+	}
+
+	public int getN() {
+		return N;
+	}
+
+	public double[][] getA() {
+		return a;
+	}
+
+	public void setA(double[][] a) {
+		this.a = a;
+	}
+
+	public Logger getLog() {
+		return log;
+	}
+
+	public BStatus getB1() {
+		return B1;
+	}
+
+	public double[] getPi() {
+		return pi;
+	}
+
+	public BStatus getB2() {
+		return B2;
+	}
+
+	public BStatus getB3() {
+		return B3;
+	}
+
+	/**
+	 * take log of pi values<br>
+	 * WARNING : modifies internal pi array;
+	 */
+	private void logPi() {
+		double[] loggedPi = new double[pi.length];
+		for (int i = 0; i < loggedPi.length; i++) {
+			double pt = pi[i];
+			if (pt == 0) {/* eliminate problems with zero probability */
+				pt = NOT_ZERO_PI;
+			}
+			loggedPi[i] = Math.log(pt);
+		}
+		this.pi = loggedPi;
 	}
 
 	/**
@@ -138,7 +193,7 @@ public class PennHmm {
 		// }
 		// }
 		ObservationReal o = new ObservationReal(b);
-		if (state == 1) {
+		if (state == 0) {
 			OpdfGaussian opdfGaussian = bStatus.getGaussians()[4];
 
 			if (b == 0) {
@@ -149,7 +204,7 @@ public class PennHmm {
 				p += (1 - uf) * opdfGaussian.probability(o);
 			}
 
-		} else if (state == 2) {
+		} else if (state == 1) {
 			if (b == 0) {
 				p += (1 - uf) * (1 - pfb) / 2;
 			} else if (b == 1) {
@@ -161,7 +216,7 @@ public class PennHmm {
 				p += (1 - uf) * (1 - pfb) * opdfGaussian.probability(o);
 				p += (1 - uf) * pfb * opdfGaussianMinus.probability(o);
 			}
-		} else if (state == 3) {
+		} else if (state == 2) {
 			if (b == 0) {
 				p += (1 - uf) * (1 - pfb) * (1 - pfb) / 2;
 			} else if (b == 1) {
@@ -175,7 +230,7 @@ public class PennHmm {
 				p += (1 - uf) * 2 * pfb * (1 - pfb) * opdfGaussian5.probability(o);
 				p += (1 - uf) * pfb * pfb * opdfGaussianMinus.probability(o);
 			}
-		} else if (state == 4) {
+		} else if (state == 3) {
 			if (b == 0) {
 				p += (1 - uf) * (1 - pfb) / 2;
 			} else if (b == 1) {
@@ -186,7 +241,7 @@ public class PennHmm {
 				p += (1 - uf) * (1 - pfb) * opdfGaussian.probability(o);
 				p += (1 - uf) * pfb * opdfGaussian.probability(o);
 			}
-		} else if (state == 5) {
+		} else if (state == 4) {
 			if (b == 0) {
 				p += (1 - uf) * (1 - pfb) * (1 - pfb) * (1 - pfb) / 2;
 			} else if (b == 1) {
@@ -202,7 +257,7 @@ public class PennHmm {
 				p += (1 - uf) * 3 * (1 - pfb) * pfb * pfb * opdfGaussianMinus33.probability(o);
 				p += (1 - uf) * pfb * pfb * pfb * opdfGaussianMinus.probability(o);
 			}
-		} else if (state == 6) {
+		} else if (state == 5) {
 			if (b == 0) {
 				p += (1 - uf) * (1 - pfb) * (1 - pfb) * (1 - pfb) * (1 - pfb) / 2;
 			} else if (b == 1) {
@@ -283,7 +338,99 @@ public class PennHmm {
 		}
 	}
 
-	public static void ViterbiLogNP_CHMM(PennHmm pennHmm, int T, double[] o1, double[] o2, double[] pfb, int[] snpdist, double[][] delta, int[][] psi, int[] q, double[] pprob) {
+	public static ViterbiResult ViterbiLogNP_CHMM(PennHmm pennHmm, double[] o1, double[] o2, double[] pfb, int[] snpdist, boolean[] copyNumberOnlyDef) {
+		if (o1.length != o2.length || o1.length != pfb.length || o1.length != snpdist.length || o1.length != copyNumberOnlyDef.length) {
+			String error = "BUG: mismatched array lengths";
+			pennHmm.getLog().reportTimeError(error);
+			throw new IllegalArgumentException(error);
+		}
+
+		double[][] biot = new double[pennHmm.getN()][o1.length];
+		int[] q = new int[o1.length];
+		double[][] delta = new double[o1.length][pennHmm.getN()];
+		int[][] psi = new int[o1.length][pennHmm.getN()];
+		PennHmm pennHmmLog = new PennHmm(pennHmm);
+		/* 0. Preprocessing */
+		pennHmmLog.logPi();
+		int cnCount = 0;
+		int snpCount = 0;
+		for (int i = 0; i < pennHmmLog.getN(); i++) {
+			for (int t = 0; t < o1.length; t++) {
+				if (copyNumberOnlyDef[t]) {
+					biot[i][t] = b1iot(i, pennHmmLog.getB3(), o1[t]);
+					cnCount++;
+				} else {
+					double bioTmp = b1iot(i, pennHmmLog.getB1(), o1[t]);
+					bioTmp += b2iot(i, pennHmmLog.getB2(), pfb[t], o2[t]);
+					biot[i][t] = bioTmp;
+					snpCount++;
+				}
+			}
+		}
+
+		pennHmm.getLog().reportTimeInfo("Encountered " + snpCount + " snp probes and " + cnCount + " cn probes");
+
+		for (int i = 0; i < pennHmmLog.getN(); i++) {
+			delta[0][i] = pennHmmLog.getPi()[i] + biot[i][0];
+		}
+		for (int t = 1; t < o1.length; t++) {
+			PennHmm converted = convertHMMTransition(pennHmmLog, snpdist[t - 1]);
+			for (int j = 0; j < converted.getN(); j++) {
+				double maxval = -1 * VITHUGE;
+				int maxvalind = 0;
+				for (int i = 0; i < converted.getN(); i++) {
+					double val = delta[t - 1][i] + Math.log(converted.getA()[i][j]);
+					if (val > maxval) {
+						maxval = val;
+						maxvalind = i;
+					}
+				}
+				delta[t][j] = maxval + biot[j][t];
+				psi[t][j] = maxvalind;
+			}
+		}
+
+		double pprob = -1 * VITHUGE;
+		q[o1.length - 1] = 1;
+		for (int i = 0; i < pennHmmLog.getN(); i++) {
+			if (delta[o1.length - 1][i] > pprob) {
+				pprob = delta[o1.length - 1][i];
+				q[o1.length - 1] = i;
+			}
+		}
+		for (int t = o1.length - 1; t >= 0; t--) {
+			q[t] = psi[t][q[t]];
+		}
+		return new ViterbiResult(q);
+	}
+
+	private static class ViterbiResult{
+		private int[] q;
+
+		public ViterbiResult(int[] q) {
+			super();
+			this.q = q;
+		}
+	
+	}
+
+
+	private static int[][] getSNPDist(Project proj) {
+		MarkerSet markerSet = proj.getMarkerSet();
+		int[][] chrPos = markerSet.getPositionsByChr();
+		int[][] snpDists = new int[chrPos.length][];
+		for (int i = 0; i < chrPos.length; i++) {
+			int[] distsTmp = new int[chrPos[i].length];
+			if (distsTmp.length > 0) {
+				distsTmp[0] = chrPos[i][0];
+				for (int j = 1; j < distsTmp.length - 1; j++) {
+					int dist = chrPos[i][j + 1] - chrPos[i][j];
+					distsTmp[j] = dist > 0 ? dist : 1;
+				}
+			}
+			snpDists[i] = distsTmp;
+		}
+		return snpDists;
 
 	}
 
@@ -366,13 +513,82 @@ public class PennHmm {
 
 	}
 
+	public static PennHmm convertHMMTransition(PennHmm pennHmm, int dist)
+	/* this subroutine convert HMM transition probabilities using the P=Pref*(1-exp(-d/D)) formula for off-diagonal cells in the matrix */
+	{
+		PennHmm converted = new PennHmm(pennHmm);
+		int i, j;
+		double D = STATE_CHANGE;
+		double offdiagonal_sum = 0;
+		double[][] tmpA = new double[pennHmm.getA().length][pennHmm.getA()[0].length];
+		for (i = 0; i < converted.getN(); i++) {
+			offdiagonal_sum = 0;
+			for (j = 0; j < converted.getN(); j++) {
+				if (i != j) {
+					if (i == 3) {
+						tmpA[i][j] = pennHmm.getA()[i][j] * (1 - Math.exp(-dist / D / 1000)) / (1 - Math.exp(-5000 / D / 1000));
+					} else {
+						tmpA[i][j] = pennHmm.getA()[i][j] * (1 - Math.exp(-dist / D)) / (1 - Math.exp(-5000 / D));
+					}
+					if (tmpA[i][j] > 1) {
+						pennHmm.getLog().reportTimeWarning("WARNING: Off-diagonal cell A[%i][%i] (%f to %f by %i) in transition matrix is over boundary of 1 (HMM model is not optimized). Assign 0.999 as the value instead.\n" + i + "\t" + j + "\t" + pennHmm.getA()[i][j] + "\t" + tmpA[i][j] + "\t" + dist);
+						tmpA[i][j] = 0.999; /* maximum possible off-diagonal value (since state3 frequency is 0.999) */
+					}
+					offdiagonal_sum += tmpA[i][j];
+				}
+			}
+			if (offdiagonal_sum >= 1) {
+				for (j = 0; j < converted.getN(); j++) {
+					tmpA[i][j] /= (offdiagonal_sum / 0.999);
+				}
+				offdiagonal_sum = 0.999;
+			}
+			tmpA[i][i] = 1 - offdiagonal_sum;
+		}
+		converted.setA(tmpA);
+		return converted;
+	}
+
+	private static boolean[] determineCNOnly(Project proj, String[] markers) {
+		boolean[] copyNumberOnlyDef = new boolean[markers.length];
+		ARRAY array = proj.getArrayType();
+		for (int i = 0; i < markers.length; i++) {
+			copyNumberOnlyDef[i] = array.isCNOnly(markers[i]);
+		}
+		return copyNumberOnlyDef;
+	}
+
 	public static void test(Project proj, String hmmFile) {
 		PennHmm pennHmm = loadPennHmm(hmmFile, new Logger());
 		if (!Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
 			PennCNV.populationBAF(proj);
 		}
 		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
-		GcModel gcModel = gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
+		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
+		Sample sample = proj.getFullSampleFromRandomAccessFile(proj.getSamples()[0]);
+		GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, sample, gcModel, true, true, true, false);
+		double[] lrrs = gcAdjustor.getCorrectedIntensities();
+		double[] bafs = Array.toDoubleArray(sample.getBAFs());
+
+		MarkerSet markerSet = proj.getMarkerSet();
+		int[][] chrIndices = markerSet.getIndicesByChr();
+		int[][] snpdists = getSNPDist(proj);
+		for (int i = 0; i < chrIndices.length; i++) {
+			if (chrIndices[i].length > 10) {
+				double[] lrrChr = Array.subArray(lrrs, chrIndices[i]);
+				double[] bafsChr = Array.subArray(bafs, chrIndices[i]);
+				double[] pfbsChr = Array.subArray(pfb.getPfbs(), chrIndices[i]);
+				String[] markersChr = Array.subArray(markerSet.getMarkerNames(), chrIndices[i]);
+				boolean[] cnDef = determineCNOnly(proj, markersChr);
+				System.out.println(Array.booleanArraySum(cnDef));
+				System.out.println(pfbsChr[0]);
+				System.out.println(bafsChr[0]);
+				System.out.println(lrrChr[0]);
+				System.out.println(snpdists[i][0]);
+
+				ViterbiLogNP_CHMM(pennHmm, lrrChr, bafsChr, pfbsChr, snpdists[i], cnDef);
+			}
+		}
 
 	}
 

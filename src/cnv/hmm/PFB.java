@@ -23,13 +23,15 @@ public class PFB {
 			throw new IllegalArgumentException(error);
 		}
 	}
-	
-	
+
+	public double[] getPfbs() {
+		return pfbs;
+	}
 
 	public static PFB loadPFB(Project proj) {
 		return loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
 	}
-	
+
 	public static PFB loadPFB(Project proj, String fullPathToPfb) {
 
 		Builder builder = new Builder();
