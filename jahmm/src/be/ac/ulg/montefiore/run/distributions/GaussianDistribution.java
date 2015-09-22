@@ -98,7 +98,16 @@ implements RandomDistribution {
 		return Math.pow(2. * Math.PI * variance, -.5) *
 		Math.exp(expArg);
 	}
-	
+
+	/**
+	 * 
+	 * @param n
+	 * @return the cdf of this value using taylor aproximation, custom genvisis code.
+	 */
+	public double cdf(double n) {
+
+		return -1;
+	}
 	
 	private static final long serialVersionUID = 9127329839769283975L;
 }

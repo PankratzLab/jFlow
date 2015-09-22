@@ -87,6 +87,14 @@ implements Opdf<ObservationReal>
 	{	
 		return distribution.probability(o.value);
 	}
+
+	/**
+	 * @param o 
+	 * @return the cdf of this value
+	 */
+	public double cdf(ObservationReal o) {
+		return distribution.cdf(o.value);
+	}
 	
 	
 	public ObservationReal generate()
