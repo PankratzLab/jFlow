@@ -92,22 +92,41 @@ implements RandomDistribution {
 	}
 	
 	
-	public double probability(double n)
-	{
+	public double probability(double n) {
 		double expArg = -.5 * (n - mean) * (n - mean) / variance;
-		return Math.pow(2. * Math.PI * variance, -.5) *
-		Math.exp(expArg);
+		return Math.pow(2. * Math.PI * variance, -.5) * Math.exp(expArg);
 	}
 
 	/**
 	 * 
 	 * @param n
 	 * @return the cdf of this value using taylor aproximation, custom genvisis code.
+	 * 
+	 * Nabbed from http://introcs.cs.princeton.edu/java/22library/Gaussian.java.html
 	 */
 	public double cdf(double n) {
-
-		return -1;
+		double z = (n - mean) / Math.sqrt(variance);
+		if (z < -8.0)
+			return 0.0;
+		if (z > 8.0)
+			return 1.0;
+		double sum = 0.0, term = z;
+		for (int i = 3; sum + term != sum; i += 2) {
+			sum = sum + term;
+			term = term * z * z / i;
+		}
+		return 0.5 + sum * probability(n);
 	}
 	
 	private static final long serialVersionUID = 9127329839769283975L;
+	
+	public static void main(String[] args) {
+		// can use http://www.solvemymath.com/online_math_calculator/statistics/cdf_calculator.php to compare
+		GaussianDistribution distribution = new GaussianDistribution(2, 20);
+		System.out.println(distribution.probability(.5));
+		System.out.println(distribution.cdf(.5));
+		System.out.println(distribution.probability(0));
+		System.out.println(distribution.cdf(0));
+
+	}
 }
