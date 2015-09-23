@@ -164,7 +164,7 @@ public class MendelErrors {
 				MDL mdl = new MDL(proj, proj.getMarkerNames(), 2, 100);
 				while (mdl.hasNext()) {
 					MarkerData markerData = mdl.next();
-					MendelErrorCheck[] mendelErrorChecks = pedigree.checkMendelErrors(markerData, samplesToCheck, null, null, 0);
+					MendelErrorCheck[] mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, samplesToCheck, null, null, 0);
 					int num = 0;
 					for (int i = 0; i < mendelErrorChecks.length; i++) {
 						if (mendelErrorChecks[i].getErrorCode() > 0) {

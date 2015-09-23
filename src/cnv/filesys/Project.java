@@ -1134,7 +1134,7 @@ public class Project {
 		if (!Files.exists(ped)) {
 			log.reportTimeWarning("Did not find pedigree file " + ped);
 		} else {
-			pedigree = Pedigree.loadPedigree(this, ped);
+			pedigree = new Pedigree(this); // will load from project
 		}
 		return pedigree;
 	}

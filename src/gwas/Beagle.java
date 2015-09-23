@@ -360,7 +360,7 @@ public class Beagle {
         if (new File(dir+"plink.fam").exists() || new File(dir+"plink.ped").exists()) {
         	pedfile = new Pedfile(new File(dir+"plink.fam").exists()?dir+"plink.fam":dir+"plink.ped");
         	famStruct = pedfile.getFamilyStructure();
-        	pedIDs = famStruct.getIds();
+        	pedIDs = famStruct.getIDs();
         	affs = famStruct.getAffections();
         	famids = new Hashtable<String,String>();
         	for (int i = 0; i<pedIDs.length; i++) {
@@ -751,7 +751,7 @@ public class Beagle {
         if (new File("plink.fam").exists() || new File("plink.ped").exists()) {
         	pedfile = new Pedfile(new File("plink.fam").exists()?"plink.fam":"plink.ped");
         	famStruct = pedfile.getFamilyStructure();
-        	pedIDs = famStruct.getIds();
+        	pedIDs = famStruct.getIDs();
         	affs = famStruct.getAffections();
         	hash = new Hashtable<String,String>();
         	for (int i = 0; i<pedIDs.length; i++) {

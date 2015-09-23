@@ -14,7 +14,6 @@ import common.Files;
 import common.ext;
 import cnv.filesys.Pedigree;
 import cnv.filesys.Project;
-import cnv.filesys.Pedigree.PedigreeEntry;
 import cnv.qc.MarkerMetrics;
 import cnv.qc.MendelErrors;
 import cnv.qc.MendelErrors.MendelErrorCheck;
@@ -272,10 +271,7 @@ public class PLINKMendelianChecker {
         GenomeLoader gl = null;
         MendelLoader ml = null;
         
-        ped = Pedigree.loadPedigree(this.project, this.pedFile);
-        if (ped == null) {
-            return;
-        }
+        ped = new Pedigree(this.project, this.pedFile, false);
         
         if (project != null) {
             System.out.println(ext.getTime() + "]\tLoading Project data...");
@@ -296,37 +292,37 @@ public class PLINKMendelianChecker {
         dnaLookup = new HashMap<String, String>();
         idLookup = new HashMap<String, String>();
         
-        for (PedigreeEntry pe : ped.getPedigreeEntries()) {
-            if (pe == null) {
-                continue;
-            }
-            if (ext.isMissingValue(pe.getiDNA())) {
+        for (int i = 0; i < ped.getIDs().length; i++) {
+//            if (pe == null) {
+//                continue;
+//            }
+            if (ext.isMissingValue(ped.getDnas()[i])) {
                 continue; 
             }
             if (sampleData != null) {
-                if (sampleData.individualShouldBeExcluded(pe.getiDNA())) {
+                if (sampleData.individualShouldBeExcluded(ped.getDnas()[i])) {
                     continue;
                 }
             }
-            dnaLookup.put(pe.getFID() + "\t" + pe.getIID(), pe.getiDNA());
-            idLookup.put(pe.getiDNA(), pe.getFID() + "\t" + pe.getIID());
-            pedDNA.add(pe.getiDNA());
-            pedToFAMO.put(pe.getFID() + "\t" + pe.getIID(), new String[]{"0".equals(pe.getFA()) ? "." : pe.getFID() + "\t" + pe.getFA(), "0".equals(pe.getMO()) ? "." : pe.getFID() + "\t" + pe.getMO()});
-            if (!"0".equals(pe.getFA())) {
-                ArrayList<String> children = childrenMap.get(pe.getFID() + "\t" + pe.getFA());
+            dnaLookup.put(ped.getFID(i) + "\t" + ped.getIID(i), ped.getDnas()[i]);
+            idLookup.put(ped.getDnas()[i], ped.getFID(i) + "\t" + ped.getIID(i));
+            pedDNA.add(ped.getDnas()[i]);
+            pedToFAMO.put(ped.getFID(i) + "\t" + ped.getIID(i), new String[]{"0".equals(ped.getFA(i)) ? "." : ped.getFID(i) + "\t" + ped.getFA(i), "0".equals(ped.getMO(i)) ? "." : ped.getFID(i) + "\t" + ped.getMO(i)});
+            if (!"0".equals(ped.getFA(i))) {
+                ArrayList<String> children = childrenMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
                 if (children == null) {
                     children = new ArrayList<String>();
-                    childrenMap.put(pe.getFID() + "\t" + pe.getFA(), children);
+                    childrenMap.put(ped.getFID(i) + "\t" + ped.getFA(i), children);
                 }
-                children.add(pe.getFID() + "\t" + pe.getIID());
+                children.add(ped.getFID(i) + "\t" + ped.getIID(i));
             }
-            if (!"0".equals(pe.getMO())) {
-                ArrayList<String> children = childrenMap.get(pe.getFID() + "\t" + pe.getMO());
+            if (!"0".equals(ped.getMO(i))) {
+                ArrayList<String> children = childrenMap.get(ped.getFID(i) + "\t" + ped.getMO(i));
                 if (children == null) {
                     children = new ArrayList<String>();
-                    childrenMap.put(pe.getFID() + "\t" + pe.getMO(), children);
+                    childrenMap.put(ped.getFID(i) + "\t" + ped.getMO(i), children);
                 }
-                children.add(pe.getFID() + "\t" + pe.getIID());
+                children.add(ped.getFID(i) + "\t" + ped.getIID(i));
             }
         }
         
@@ -445,43 +441,43 @@ public class PLINKMendelianChecker {
         String outputHeader = sb.toString();
         writer = Files.getAppropriateWriter(outDir + "trios.xln");
         writer.println(outputHeader);
-        for (int i = 0; i < ped.getPedigreeEntries().length; i++) {
-            PedigreeEntry pe = ped.getPedigreeEntries()[i];
-            if (pe == null) continue;
-//            if (null == pe.getMO() || "0".equals(pe.getMO()) || null == pe.getFA() || "0".equals(pe.getFA())) continue;
+        for (int i = 0; i < ped.getIDs().length; i++) {
+//            PedigreeEntry pe = ped.getPedigreeEntries()[i];
+//            if (pe == null) continue;
+//            if (null == ped.getMO() || "0".equals(ped.getMO()) || null == ped.getFA() || "0".equals(ped.getFA())) continue;
             sb = new StringBuilder();
-            sb.append(pe.getFID()).append("\t")
-                .append(pe.getIID()).append("\t")
-                .append(pe.getFA()).append("\t")
-                .append(pe.getMO()).append("\t")
-                .append(pe.getSEX()).append("\t")
-                .append(pe.getiDNA()).append("\t");
+            sb.append(ped.getFID(i)).append("\t")
+                .append(ped.getIID(i)).append("\t")
+                .append(ped.getFA(i)).append("\t")
+                .append(ped.getMO(i)).append("\t")
+                .append(ped.getGender(i)).append("\t")
+                .append(ped.getiDNA(i)).append("\t");
             
-            boolean missingChildDNA = ext.isMissingValue(pe.getiDNA());
+            boolean missingChildDNA = ext.isMissingValue(ped.getiDNA(i));
             boolean missingFADNA = false;
             boolean missingMODNA = false;
             String faDNA;
-            if (pe.getFaDNAIndex() == -1 || samples == null) {
-                if ("0".equals(pe.getFA()) || dnaLookup.get(pe.getFID() + "\t" + pe.getFA()) == null) {
+            if (ped.getFaDNAIndex(i) == Pedigree.MISSING_DNA_INDEX || samples == null) {
+                if ("0".equals(ped.getFA(i)) || dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)) == null) {
                     missingFADNA = true;
                     faDNA = ".";
                 } else {
-                    faDNA = dnaLookup.get(pe.getFID() + "\t" + pe.getFA());
+                    faDNA = dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i));
                 }
             } else {
-                faDNA = samples[pe.getFaDNAIndex()];
+                faDNA = samples[ped.getFaDNAIndex(i)];
             }
             sb.append(faDNA).append("\t");
             String moDNA;
-            if (pe.getMoDNAIndex() == -1 || samples == null) {
-                if ("0".equals(pe.getMO()) || dnaLookup.get(pe.getFID() + "\t" + pe.getMO()) == null) {
+            if (ped.getMoDNAIndex(i) == -1 || samples == null) {
+                if ("0".equals(ped.getMO(i)) || dnaLookup.get(ped.getFID(i) + "\t" + ped.getMO(i)) == null) {
                     missingMODNA = true;
                     moDNA = ".";
                 } else {
-                    moDNA = dnaLookup.get(pe.getFID() + "\t" + pe.getMO());
+                    moDNA = dnaLookup.get(ped.getFID(i) + "\t" + ped.getMO(i));
                 }
             } else {
-                moDNA = samples[pe.getMoDNAIndex()];
+                moDNA = samples[ped.getMoDNAIndex(i)];
             }
             sb.append(moDNA).append("\t");
             if (missingFADNA && missingMODNA) {
@@ -492,12 +488,12 @@ public class PLINKMendelianChecker {
             
             if (gl != null) {
                 
-                HashMap<String, String> genoLines = gl.pairData.get(pe.getiDNA() + "\t" + pe.getiDNA());
+                HashMap<String, String> genoLines = gl.pairData.get(ped.getiDNA(i) + "\t" + ped.getiDNA(i));
 
                 String key = faDNA + "\t" + faDNA;
                 if (genoLines == null || (!".".equals(faDNA) && !genoLines.containsKey(key))) {                    
                     genoLines = gl.pairData.get(key);
-                    key = pe.getiDNA() + "\t" + pe.getiDNA();
+                    key = ped.getiDNA(i) + "\t" + ped.getiDNA(i);
                 }
                 
                 if (genoLines == null || ".".equals(faDNA) || !genoLines.containsKey(key)) {
@@ -514,12 +510,12 @@ public class PLINKMendelianChecker {
                         .append(tmpGL[9]).append("\t");
                 }
 
-                genoLines = gl.pairData.get(pe.getiDNA() + "\t" + pe.getiDNA());
+                genoLines = gl.pairData.get(ped.getiDNA(i) + "\t" + ped.getiDNA(i));
 
                 key = moDNA + "\t" + moDNA;
                 if (genoLines == null || (!".".equals(moDNA) && !genoLines.containsKey(key))) {                    
                     genoLines = gl.pairData.get(key);
-                    key = pe.getiDNA() + "\t" + pe.getiDNA();
+                    key = ped.getiDNA(i) + "\t" + ped.getiDNA(i);
                 }
                 
                 if (genoLines == null || ".".equals(moDNA) || !genoLines.containsKey(key)) {
@@ -538,13 +534,13 @@ public class PLINKMendelianChecker {
             }
             
             if (ml != null) {
-                ArrayList<String> errors = ml.errorMarkersMapFather.get(pe.getiDNA());
+                ArrayList<String> errors = ml.errorMarkersMapFather.get(ped.getiDNA(i));
                 if (errors == null) {
                     sb.append(0).append("\t");
                 } else {
                     sb.append(errors.size()).append("\t");
                 }
-                errors = ml.errorMarkersMapMother.get(pe.getiDNA());
+                errors = ml.errorMarkersMapMother.get(ped.getiDNA(i));
                 if (errors == null) {
                     sb.append(0).append("\t");
                 } else {
@@ -556,22 +552,22 @@ public class PLINKMendelianChecker {
             boolean lowCallrate = false;
             if (sampQC != null) {
                 double[] data = sampQC.getDataFor("LRR_SD");
-                Integer indexInt = qcIndexMap.get(pe.getiDNA());
+                Integer indexInt = qcIndexMap.get(ped.getiDNA(i));
                 Integer faIndex = null;
-                if (pe.getFaDNAIndex() == -1) {
-                    if (dnaLookup.get(pe.getFID() + "\t" + pe.getFA()) != null) {
-                        faIndex = qcIndexMap.get(dnaLookup.get(pe.getFID() + "\t" + pe.getFA()));
+                if (ped.getFaDNAIndex(i) == -1) {
+                    if (dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)) != null) {
+                        faIndex = qcIndexMap.get(dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)));
                     }
                 } else {
-                    faIndex = qcIndexMap.get(pe.getFaDNAIndex());
+                    faIndex = qcIndexMap.get(ped.getFaDNAIndex(i));
                 }
                 Integer moIndex = null;
-                if (pe.getMoDNAIndex() == -1) {
-                    if (dnaLookup.get(pe.getFID() + "\t" + pe.getMO()) != null) {
-                        moIndex = qcIndexMap.get(dnaLookup.get(pe.getFID() + "\t" + pe.getMO()));
+                if (ped.getMoDNAIndex(i) == -1) {
+                    if (dnaLookup.get(ped.getFID(i) + "\t" + ped.getMO(i)) != null) {
+                        moIndex = qcIndexMap.get(dnaLookup.get(ped.getFID(i) + "\t" + ped.getMO(i)));
                     }
                 } else {
-                    moIndex = qcIndexMap.get(pe.getMoDNAIndex());
+                    moIndex = qcIndexMap.get(ped.getMoDNAIndex(i));
                 }
                 if (indexInt == null) {
                     sb.append(".").append("\t");
@@ -626,32 +622,32 @@ public class PLINKMendelianChecker {
             
             boolean excluded = false;
             if (sampleData != null) {
-                boolean ex1 = sampleData.individualShouldBeExcluded(pe.getiDNA());
+                boolean ex1 = sampleData.individualShouldBeExcluded(ped.getiDNA(i));
                 if (ex1) { excluded = true; }
                 sb.append(ex1 ? "1" : "0").append("\t");
-                if (pe.getFaDNAIndex() == -1 || samples == null) {
-                    if (dnaLookup.get(pe.getFID() + "\t" + pe.getFA()) != null) {
-                        boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(pe.getFID() + "\t" + pe.getFA()));
+                if (ped.getFaDNAIndex(i) == -1 || samples == null) {
+                    if (dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)) != null) {
+                        boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(ped.getFID(i) + "\t" + ped.getFA(i)));
                         if (ex) { excluded = true; }
                         sb.append(ex ? "1" : "0").append("\t");
                     } else {
                         sb.append(".").append("\t");
                     }
                 } else {
-                    boolean ex = sampleData.individualShouldBeExcluded(samples[pe.getFaDNAIndex()]);
+                    boolean ex = sampleData.individualShouldBeExcluded(samples[ped.getFaDNAIndex(i)]);
                     if (ex) { excluded = true; }
                     sb.append(ex ? "1" : "0").append("\t");
                 }
-                if (pe.getMoDNAIndex() == -1 || samples == null) {
-                    if (dnaLookup.get(pe.getFID() + "\t" + pe.getMO()) != null) {
-                        boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(pe.getFID() + "\t" + pe.getMO()));
+                if (ped.getMoDNAIndex(i) == -1 || samples == null) {
+                    if (dnaLookup.get(ped.getFID(i) + "\t" + ped.getMO(i)) != null) {
+                        boolean ex = sampleData.individualShouldBeExcluded(dnaLookup.get(ped.getFID(i) + "\t" + ped.getMO(i)));
                         if (ex) { excluded = true; }
                         sb.append(ex ? "1" : "0").append("\t");
                     } else {
                         sb.append(".").append("\t");
                     }
                 } else {
-                    boolean ex = sampleData.individualShouldBeExcluded(samples[pe.getMoDNAIndex()]);
+                    boolean ex = sampleData.individualShouldBeExcluded(samples[ped.getMoDNAIndex(i)]);
                     if (ex) { excluded = true; }
                     sb.append(ex ? "1" : "0").append("\t");
                 }

@@ -341,7 +341,7 @@ public class Eigenstrat {
         
         dir = ext.parseDirectoryOfFile(filename);        
         struct = new FamilyStructure(dir+ext.rootOf(ext.rootOf(filename))+".fam");
-        ids = struct.getIds();
+        ids = struct.getIDs();
         try {
 	        reader = new BufferedReader(new FileReader(filename));
 	        writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+".mds"));

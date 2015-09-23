@@ -181,13 +181,21 @@ public class ext {
 
 		if (indices.length == 0) {
 			if (verbose) {
-				log.reportError("Error - '"+target+"' was not found in array");
+			    if (log == null) {
+			        System.err.println("Error - '"+target+"' was not found in array");
+			    } else {
+			        log.reportError("Error - '"+target+"' was not found in array");
+			    }
 			}
 			return -1;
 		}
 		
 		if (indices.length > 1 && verbose) {
-			log.reportError("Warning - '"+target+"' was found more than once in the array");
+		    if (log == null) {
+		        System.err.println("Warning - '"+target+"' was found more than once in the array");
+		    } else {
+		        log.reportError("Warning - '"+target+"' was found more than once in the array");
+		    }
 		}
 		
 		return indices[0];

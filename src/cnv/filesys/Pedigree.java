@@ -1,242 +1,296 @@
 package cnv.filesys;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import cnv.qc.MendelErrors;
 import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.var.SampleData;
-import common.Files;
 import common.Logger;
 import common.ext;
+import filesys.FamilyStructure;
 
-public class Pedigree {
 
-	/**
-	 * Typically corresponding to each DNA in the project and null if not represented;
-	 */
-	private Project proj;
-	private PedigreeEntry[] pedigreeEntries;
-	private boolean projectOrder;
 
-	private Pedigree(Project proj, PedigreeEntry[] pedigreeEntries, boolean projOrder, Logger log) {
-		super();
-		this.proj = proj;
-		this.pedigreeEntries = pedigreeEntries;
-		this.projectOrder = projOrder;
-	}
-
-	public PedigreeEntry[] getPedigreeEntries() {
-		return pedigreeEntries;
-	}
-
-	/**
-	 * @param markerData
-	 *            evaluate mendel errors against this marker
-	 * @param samplesToCheck
-	 *            can be null, if not null -> only these samples will be used in the error checks
-	 * @param sex
-	 *            can be null, but used for chr23 checks on male samples
-	 * @param clusterFilters
-	 *            can be null
-	 * @param gcThreshold
-	 * @return
-	 */
-	public MendelErrorCheck[] checkMendelErrors(MarkerData markerData, boolean[] samplesToCheck, String[] sex, ClusterFilterCollection clusterFilters, float gcThreshold) {
-		MendelErrorCheck[] mendelErrorChecks = new MendelErrorCheck[proj.getSamples().length];
-		byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(), gcThreshold);
-
-		if (!projectOrder) {
-			proj.getLog().reportTimeError("Pedigree file must be in project order, internal error");
-			return null;
-		} else {
-
-			for (int i = 0; i < pedigreeEntries.length; i++) {
-				if (pedigreeEntries[i] != null && (samplesToCheck == null || samplesToCheck[i]) && pedigreeEntries[i].getiDNAIndex() >= 0) {
-					int sampleIndex = pedigreeEntries[i].getiDNAIndex();
-					int faDNAIndex = pedigreeEntries[i].getFaDNAIndex();
-					int moDNAIndex = pedigreeEntries[i].getMoDNAIndex();
-
-					byte faGenotype = -1;
-					if (faDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[faDNAIndex])) {
-						faGenotype = genotypes[faDNAIndex];
-					}
-					byte moGenotype = -1;
-					if (moDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[moDNAIndex])) {
-						moGenotype = genotypes[moDNAIndex];
-					}
-					int sampleSex = -1;
-					try {
-						if (sex != null) {
-							sampleSex = Integer.parseInt(sex[pedigreeEntries[i].getiDNAIndex()]);
-						}
-					} catch (NumberFormatException nfe) {
-
-					}
-					// System.out.println(faGenotype+"\t"+moGenotype);
-					MendelErrors mendelErrors = new MendelErrors(markerData.getChr(), sampleSex, genotypes[sampleIndex], faGenotype, moGenotype);
-					mendelErrorChecks[i] = mendelErrors.checkMendelError();
-				} else {
-					mendelErrorChecks[i] = new MendelErrors(markerData.getChr(), -1, (byte) -1, (byte) -1, (byte) -1).checkMendelError();
-				}
-			}
-		}
-		return mendelErrorChecks;
-	}
-	
-	public static Pedigree loadPedigree(Project proj, String ped) {
-		Pedigree pedigree = null;
-		SampleData sampleData = proj == null ? null : proj.getSampleData(0, false);
-		String[] samples = proj == null ? null : proj.getSamples();
-		int numAdded = 0;
-		int numTrio = 0;
-		int numChildOffspring = 0;
-
-		try {
-			BufferedReader reader = Files.getAppropriateReader(ped);
-			String delim = ext.determineDelimiter(Files.getFirstNLinesOfFile(ped, 1, proj == null ? null : proj.getLog())[0]);
-			int lineNum = 0;
-			PedigreeEntry[] pedigreeEntries = new PedigreeEntry[proj == null ? Files.countLines(ped, 0) : samples.length];
-			while (reader.ready()) {
-				lineNum++;
-				String[] line = reader.readLine().trim().split(delim);
-				if (line.length < 7) {
-					if (proj != null) {
-					    proj.getLog().reportTimeError("Detected that pedigree file " + ped + " exists, but starting at line " + (lineNum) + (line.length < 3 ? "" : " (individual " + line[0] + "-" + line[1] + ")") + " there are only " + line.length + " columns in pedigree file '" + proj.PEDIGREE_FILENAME.getValue() + "'.\n" + "  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA\n" + "  where DNA is the sample name associated with the genotypic data (see the " + proj.SAMPLE_DIRECTORY.getValue(false, true) + " directory for examples)");
-					} else {
-					    System.err.println(ext.getTime() + "]\tDetected that pedigree file " + ped + " exists, but starting at line " + (lineNum) + (line.length < 3 ? "" : " (individual " + line[0] + "-" + line[1] + ")") + " there are only " + line.length + " columns in pedigree file '" + ped + "'.\n" + "  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA\n" + "  where DNA is the sample name associated with the genotypic data (see the " + (proj == null ? "sample data " : proj.SAMPLE_DIRECTORY.getValue(false, true)) + " directory for examples)");
-					}
-					reader.close();
-					return pedigree;
-				} else {
-					String FID = line[0];
-
-					String faFidIid = FID + "\t" + line[2];
-					String moFidIid = FID + "\t" + line[3];
-
-					String DNA = line[6];
-					int iDNAIndex = proj == null ? -1 : getSampleIndex(DNA, sampleData, samples);
-					int faDNAIndex = proj == null ? -1 : getSampleIndex(faFidIid, sampleData, samples);
-					int moDNAIndex = proj == null ? -1 : getSampleIndex(moFidIid, sampleData, samples);
-
-					PedigreeEntry pedigreeEntry = new PedigreeEntry(FID, line[1], line[2], line[3], line[4], line[5], DNA, iDNAIndex, faDNAIndex, moDNAIndex);
-					if (proj != null && iDNAIndex >= 0) {
-						if (faDNAIndex >= 0) {
-							numChildOffspring++;
-						}
-						if (moDNAIndex >= 0) {
-							numChildOffspring++;
-						}
-						if (moDNAIndex >= 0 && faDNAIndex >= 0) {
-							numTrio++;
-						}
-						pedigreeEntries[iDNAIndex] = pedigreeEntry;
-						numAdded++;
-					} else if (proj == null) {
-					    pedigreeEntries[lineNum - 1] = pedigreeEntry;
-					    numAdded++;
-					}
-				}
-			}
-			pedigree = new Pedigree(proj, pedigreeEntries, true, proj == null ? null : proj.getLog());
-		} catch (FileNotFoundException e) {
-			if (proj == null) {
-			    e.printStackTrace();
-			} else {
-			    proj.getLog().reportFileNotFound(ped);
-			}
-		} catch (IOException e) {
-		    if (proj == null) {
-		        e.printStackTrace();
-		    } else {
-		        proj.getLog().reportException(e);
-		        e.printStackTrace();
-		    }
-		}
-		if (proj != null) {
-		    proj.getLog().reportTimeInfo("loaded " + numAdded + " pedigree entries; Parent Offspring pairs: " + numChildOffspring + "; Trios: " + numTrio);
-		} else {
-		    System.out.println(ext.getTime() + "]\tloaded " + numAdded + " pedigree entries; Parent Offspring pairs: " + numChildOffspring + "; Trios: " + numTrio);
-		}
-		return pedigree;
-	}
-
-	private static int getSampleIndex(String sample, SampleData sampleData, String[] projectSamples) {
-		int sampleIndex = -1;
-		if (sampleData.lookup(sample) != null) {
-			sampleIndex = ext.indexOfStr(sampleData.lookup(sample)[0], projectSamples);
-		}
-		return sampleIndex;
-	}
-
-	public static class PedigreeEntry {
-		private String FID;
-		private String IID;
-		private String FA;
-		private String MO;
-		private String SEX;
-		private String PHENO;
-		private String iDNA;
-		private int iDNAIndex;
-		private int faDNAIndex;
-		private int moDNAIndex;
-
-		public PedigreeEntry(String fID, String iID, String fA, String mO, String sEX, String pHENO, String iDNA, int iDNAIndex, int faDNAIndex, int moDNAIndex) {
-			super();
-			this.FID = fID;
-			this.IID = iID;
-			this.FA = fA;
-			this.MO = mO;
-			this.SEX = sEX;
-			this.PHENO = pHENO;
-			this.iDNA = iDNA;
-			this.iDNAIndex = iDNAIndex;
-			this.faDNAIndex = faDNAIndex;
-			this.moDNAIndex = moDNAIndex;
-
-		}
-
-		public String getFID() {
-			return FID;
-		}
-
-		public String getIID() {
-			return IID;
-		}
-
-		public String getFA() {
-			return FA;
-		}
-
-		public String getMO() {
-			return MO;
-		}
-
-		public String getSEX() {
-			return SEX;
-		}
-
-		public String getPHENO() {
-			return PHENO;
-		}
-
-		public String getiDNA() {
-			return iDNA;
-		}
-
-		public int getiDNAIndex() {
-			return iDNAIndex;
-		}
-
-		public int getFaDNAIndex() {
-			return faDNAIndex;
-		}
-
-		public int getMoDNAIndex() {
-			return moDNAIndex;
-		}
-
-	}
-
+public class Pedigree extends FamilyStructure {
+    
+    private ArrayList<String[]> cached_poPairsIDs = null;
+    private ArrayList<int[]> cached_poPairsCompleteOnly = null;
+    private HashMap<String, ArrayList<String>> cached_parentToChildrenMap = null;
+    private boolean cached_parentMapIsCompleteOnly = false;
+    public ArrayList<String[]> cached_all_trios = null;
+    public ArrayList<int[]> cached_complete_trios = null;
+    public HashMap<String, String> cached_sib_pairs = null;
+    
+    public static class PedigreeUtils {
+        
+        public static void clearCache(Pedigree ped) {
+            ped.cached_poPairsIDs = null;
+            ped.cached_poPairsCompleteOnly = null;
+            ped.cached_parentToChildrenMap = null;
+            ped.cached_parentMapIsCompleteOnly = false;
+            ped.cached_all_trios = null;
+            ped.cached_complete_trios = null;
+            ped.cached_sib_pairs  = null;
+        }
+        
+        public static HashMap<String, String> loadSibs(Pedigree ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, boolean cache) {
+            if (ped.cached_all_trios == null) {
+                loadCompleteTrios(ped, excludedFIDIIDs, true); // will also create all_trios
+            }
+            if (ped.cached_all_trios == null) {
+                // ERROR
+            }
+            if (ped.cached_sib_pairs != null) {
+                return ped.cached_sib_pairs;
+            }
+            HashMap<String, ArrayList<String>> parentToChildren = loadParentToChildrenMap(ped, completeOnly, excludedFIDIIDs, cache);
+            
+            // at this point, only non-excluded IDs are present in all_trios and parentToChildren
+            
+            HashMap<String, String> sibPairs = new HashMap<String, String>();
+            for (String[] trio : ped.cached_all_trios) { 
+                ArrayList<String> faChildren = parentToChildren.get(trio[1]);
+                if (faChildren == null) {
+                    // Error!
+                } else if (faChildren.size() == 1 && !trio[0].equals(faChildren.get(0))) {
+                    // Error!
+                }
+                ArrayList<String> moChildren = parentToChildren.get(trio[2]);
+                if (moChildren == null) {
+                    // Error!
+                } else if (moChildren.size() == 1 && !trio[0].equals(faChildren.get(0))) {
+                    // Error!
+                }
+                HashSet<String> unionSet = new HashSet<String>();
+                unionSet.addAll(faChildren);
+                unionSet.retainAll(moChildren);
+                if (unionSet.size() == 0) {
+                    continue; // no sibs
+                } else {
+                    for (String sib : unionSet) {
+                        sibPairs.put(sib, trio[0]);
+                        sibPairs.put(trio[0], sib);
+                    }
+                }
+            }
+            if (cache) {
+                ped.cached_sib_pairs = sibPairs;
+            }
+            return sibPairs;
+        }
+        
+        public static HashMap<String, ArrayList<String>> loadParentToChildrenMap(Pedigree ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, boolean cache) {
+            if (ped.cached_parentToChildrenMap != null) {
+                return ped.cached_parentToChildrenMap;
+            }
+            HashMap<String, ArrayList<String>> parentMap = new HashMap<String, ArrayList<String>>();
+            
+            for (int i = 0; i < ped.getIDs().length; i++) {
+                if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
+                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i)))
+                        && (!completeOnly || (/*faInd = */ped.getIndexOfFaInIDs(i)) >= 0)) {
+                    ArrayList<String> children = parentMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
+                    if (children == null) {
+                        children = new ArrayList<String>();
+                        parentMap.put(ped.getFID(i) + "\t" + ped.getFA(i), children);
+                    }
+                    children.add(ped.getFID(i) + "\t" + ped.getIID(i));
+                }
+                if (!FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i))
+                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i)))
+                        && (!completeOnly || (/*moInd = */ped.getIndexOfMoInIDs(i)) >= 0)) {
+                    ArrayList<String> children = parentMap.get(ped.getFID(i) + "\t" + ped.getMO(i));
+                    if (children == null) {
+                        children = new ArrayList<String>();
+                        parentMap.put(ped.getFID(i) + "\t" + ped.getMO(i), children);
+                    }
+                    children.add(ped.getFID(i) + "\t" + ped.getIID(i));
+                }
+            }
+            if (cache) {
+                ped.cached_parentToChildrenMap = parentMap;
+                ped.cached_parentMapIsCompleteOnly = completeOnly;
+            }
+            return parentMap;
+        }
+        
+        public static ArrayList<String[]> loadPOPairs(Pedigree ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, boolean cache) {
+            if (ped.cached_poPairsIDs != null) {
+                return ped.cached_poPairsIDs;
+            }
+            ArrayList<String[]> pairs = new ArrayList<String[]>();
+            ArrayList<int[]> completePairs = new ArrayList<int[]>();
+            for (int i = 0; i < ped.getIDs().length; i++) {
+                int faInd = -1;
+                int moInd = -1;
+                if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
+                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i)))
+                        && (!completeOnly || (faInd = ped.getIndexOfFaInIDs(i)) >= 0)) {
+                    pairs.add(new String[]{ped.getFID(i) + "\t" + ped.getFA(i), ped.getFID(i) + "\t" + ped.getIID(i)});
+                    if (completeOnly) {
+                        completePairs.add(new int[]{faInd, i});
+                    }
+                }
+                if (!FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i))
+                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i)))
+                        && (!completeOnly || (moInd = ped.getIndexOfMoInIDs(i)) >= 0)) {
+                    pairs.add(new String[]{ped.getFID(i) + "\t" + ped.getMO(i), ped.getFID(i) + "\t" + ped.getIID(i)});
+                    if (completeOnly) {
+                        completePairs.add(new int[]{moInd, i});
+                    }
+                }
+            }
+            if (cache) {
+                ped.cached_poPairsIDs = pairs;
+                if (completeOnly) {
+                    ped.cached_poPairsCompleteOnly = completePairs;
+                }
+            }
+            return pairs;
+        }
+        
+        public static ArrayList<int[]> loadCompleteTrios(Pedigree ped, HashSet<String> excludedFIDIIDs, boolean cache) {
+            if (ped.cached_complete_trios != null) {
+                return ped.cached_complete_trios;
+            }
+            ArrayList<String[]> allTrios = new ArrayList<String[]>();
+            ArrayList<int[]> trios = new ArrayList<int[]>();
+            for (int i = 0; i < ped.getIDs().length; i++) {
+                int faInd = -1;
+                int moInd = -1;
+                if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i)) && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i)))
+                        && !FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i)) && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i)))) {
+                    if (cache) {
+                        allTrios.add(new String[]{ped.getFID(i) + "\t" + ped.getIID(i), ped.getFID(i) + "\t" + ped.getFA(i), ped.getFID(i) + "\t" + ped.getMO(i)}); 
+                    }
+                    if ((faInd = ped.getIndexOfFaInIDs(i)) >= 0 && (moInd = ped.getIndexOfMoInIDs(i)) >= 0) {
+                        trios.add(new int[]{i, faInd, moInd});
+                    }
+                }
+            }
+            if (cache) {
+                ped.cached_complete_trios  = trios;
+                ped.cached_all_trios = allTrios;
+            }
+            return trios;
+        }
+        
+        public static MendelErrorCheck[] checkMendelErrors(Pedigree pedigree, MarkerData markerData, boolean[] samplesToCheck, String[] sex, ClusterFilterCollection clusterFilters, float gcThreshold) {
+            if (pedigree.getProject() == null) {
+                System.err.println(ext.getTime() + "]\t Error - cannot run checkMendelErrors without a Project");
+                return null;
+            }
+            MendelErrorCheck[] mendelErrorChecks = new MendelErrorCheck[pedigree.getProject().getSamples().length];
+            byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(), gcThreshold);
+            Logger log = pedigree.getProject().getLog();
+            if (!pedigree.isProjectOrder()) {
+                log.reportTimeError("Pedigree file must be in project order, internal error");
+                return null;
+            } else {
+                for (int i = 0; i < pedigree.getIDs().length; i++) {
+                    if (/*this check isn't valid*//*pedigreeEntries[i] != null && */(samplesToCheck == null || samplesToCheck[i]) && pedigree.getIDNAIndex(i) >= 0) {
+                        int sampleIndex = pedigree.getIDNAIndex(i);
+                        int faDNAIndex = pedigree.getFaDNAIndex(i);
+                        int moDNAIndex = pedigree.getMoDNAIndex(i);
+                        
+                        byte faGenotype = -1;
+                        if (faDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[faDNAIndex])) {
+                            faGenotype = genotypes[faDNAIndex];
+                        }
+                        byte moGenotype = -1;
+                        if (moDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[moDNAIndex])) {
+                            moGenotype = genotypes[moDNAIndex];
+                        }
+                        int sampleSex = -1;
+                        try {
+                            if (sex != null) {
+                                sampleSex = Integer.parseInt(sex[pedigree.getIDNAIndex(i)]);
+                            }
+                        } catch (NumberFormatException nfe) {
+                            
+                        }
+                        // System.out.println(faGenotype+"\t"+moGenotype);
+                        MendelErrors mendelErrors = new MendelErrors(markerData.getChr(), sampleSex, genotypes[sampleIndex], faGenotype, moGenotype);
+                        mendelErrorChecks[i] = mendelErrors.checkMendelError();
+                    } else {
+                        mendelErrorChecks[i] = new MendelErrors(markerData.getChr(), -1, (byte) -1, (byte) -1, (byte) -1).checkMendelError();
+                    }
+                }
+            }
+            return mendelErrorChecks;
+        }
+        
+        
+    }
+    
+    private Project project;
+    private boolean nullProject;
+    private int[][] dnaIndicesInProject;
+    public static final int MISSING_DNA_INDEX = -1;
+    boolean projectOrder;
+    
+    public Pedigree(Project proj) {
+        this(proj, proj.PEDIGREE_FILENAME.getValue(), true);
+    }
+    
+    /**
+     * 
+     * @param proj
+     * @param projectOrder (Used for ProjectUtils.checkMendelErrors()) Indicates if the order of entries in the project's pedigree file (from the PEDIGREE_FILENAME property) matches the internal order of the project samples.
+     */
+    public Pedigree(Project proj, boolean projectOrder) {
+        this(proj, proj.PEDIGREE_FILENAME.getValue(), projectOrder);
+    }
+    
+    /**
+     * 
+     * @param proj
+     * @param pedigreeFile
+     * @param projectOrder (Used for ProjectUtils.checkMendelErrors()) Indicates if the order of entries in the given pedigree file matches the internal order of the project samples.
+     */
+    public Pedigree(Project proj, String pedigreeFile, boolean projectOrder) {
+        super(pedigreeFile, true, proj == null ? new Logger() : proj.getLog());
+        this.project = proj;
+        this.nullProject = proj == null;
+        this.dnaIndicesInProject = new int[this.ids.length][];
+        this.projectOrder = projectOrder;
+        SampleData sampleData = nullProject ? null : proj.getSampleData(0, false);
+        String[] samples = nullProject ? null : proj.getSamples();
+        for (int i = 0; i < this.ids.length; i++) {
+            int iDNAIndex = proj == null ? MISSING_DNA_INDEX : getSampleIndex(this.dnas[i], sampleData, samples);
+            int faDNAIndex = proj == null ? MISSING_DNA_INDEX : getSampleIndex(this.ids[i][FamilyStructure.FA_INDEX], sampleData, samples);
+            int moDNAIndex = proj == null ? MISSING_DNA_INDEX : getSampleIndex(this.ids[i][FamilyStructure.MO_INDEX], sampleData, samples);
+            this.dnaIndicesInProject[i] = new int[]{iDNAIndex, faDNAIndex, moDNAIndex};
+        }
+        
+    }
+    
+    private static int getSampleIndex(String sample, SampleData sampleData, String[] projectSamples) {
+        int sampleIndex = MISSING_DNA_INDEX;
+        if (!sample.equals(FamilyStructure.MISSING_ID_STR) && sampleData != null && projectSamples != null && sampleData.lookup(sample) != null) {
+            sampleIndex = ext.indexOfStr(sampleData.lookup(sample)[0], projectSamples);
+        }
+        return sampleIndex;
+    }
+    
+    public boolean isProjectOrder() {
+        return this.projectOrder;
+    }
+    
+    public Project getProject() {
+        return this.project;
+    }
+    
+    public int getIDNAIndex(int index) {
+        return this.dnaIndicesInProject[index][0];
+    }
+    public int getFaDNAIndex(int index) {
+        return this.dnaIndicesInProject[index][1];
+    }
+    public int getMoDNAIndex(int index) {
+        return this.dnaIndicesInProject[index][2];
+    }
+    
 }
