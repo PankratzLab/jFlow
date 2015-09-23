@@ -31,12 +31,11 @@ public class LaunchAction extends AbstractAction {
 	private String[] loc;
 	private int type;
 	private boolean jar;
-	private int plotStartX;//zx
-	private int[] plotStartY;//zx
-	private int plotWidth;//zx
-	private int plotHeight;//zx
+	private int plotStartX;
+	private int[] plotStartY;
+	private int plotWidth;
+	private int plotHeight;
 
-	//added by Zack.
 	public LaunchAction(Project proj, String sample, String[] loc, Color color) {
 		super(sample+" "+Array.toStr(loc, " / "));
 		this.type = LAUNCH_TRAILER;
@@ -44,12 +43,12 @@ public class LaunchAction extends AbstractAction {
 		this.jar = proj.JAR_STATUS.getValue();
 		this.sample = sample;
 		this.loc = loc;
-		this.plotStartX = Trailer.DEFAULT_STARTX; //zx
-		this.plotStartY = new int[loc.length]; //zx
+		this.plotStartX = Trailer.DEFAULT_STARTX;
+		this.plotStartY = new int[loc.length];
 		this.plotWidth = Toolkit.getDefaultToolkit().getScreenSize().width - 30 - Trailer.DEFAULT_STARTX;
-		this.plotHeight = (Toolkit.getDefaultToolkit().getScreenSize().height-50)/loc.length; //zx
+		this.plotHeight = (Toolkit.getDefaultToolkit().getScreenSize().height-50)/loc.length;
 		for (int i=0; i<loc.length; i++) {
-			this.plotStartY[i] = 1 + i*(Toolkit.getDefaultToolkit().getScreenSize().height-50)/loc.length; //zx
+			this.plotStartY[i] = 1 + i*(Toolkit.getDefaultToolkit().getScreenSize().height-50)/loc.length;
 		}
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
@@ -62,9 +61,9 @@ public class LaunchAction extends AbstractAction {
 		this.sample = sample;
 		this.loc = new String[] {loc};
 		this.plotStartX = Trailer.DEFAULT_STARTX;
-		this.plotStartY = new int[] {Trailer.DEFAULT_STARTY};//zx
+		this.plotStartY = new int[] {Trailer.DEFAULT_STARTY};
 		this.plotWidth = Toolkit.getDefaultToolkit().getScreenSize().width - 30 - Trailer.DEFAULT_STARTX;
-		this.plotHeight = Trailer.DEFAULT_HEIGHT;//zx
+		this.plotHeight = Trailer.DEFAULT_HEIGHT;
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
 	

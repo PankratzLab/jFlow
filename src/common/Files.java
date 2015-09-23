@@ -3452,6 +3452,19 @@ public class Files {
         } catch (IOException e1) {}
         return exists;
     }
+	
+	public static void appendStringToFile(String filename, String str) {
+		PrintWriter writer;
+		
+		try {
+			writer = new PrintWriter(new FileWriter(filename, true));
+			writer.println(str);
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + filename);
+			System.err.println(e);
+		}
+	}
 
     public static void main(String[] args) {
 		int numArgs = args.length;
