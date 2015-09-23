@@ -21,7 +21,7 @@ public class Pedigree extends FamilyStructure {
     private boolean cached_parentMapIsCompleteOnly = false;
     public ArrayList<String[]> cached_all_trios = null;
     public ArrayList<int[]> cached_complete_trios = null;
-    public HashMap<String, String> cached_sib_pairs = null;
+    public ArrayList<String[]> cached_sib_pairs = null;
     
     public static class PedigreeUtils {
         
@@ -35,7 +35,7 @@ public class Pedigree extends FamilyStructure {
             ped.cached_sib_pairs  = null;
         }
         
-        public static HashMap<String, String> loadSibs(Pedigree ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, boolean cache) {
+        public static ArrayList<String[]> loadSibs(Pedigree ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, boolean cache) {
             if (ped.cached_all_trios == null) {
                 loadCompleteTrios(ped, excludedFIDIIDs, true); // will also create all_trios
             }
@@ -48,8 +48,7 @@ public class Pedigree extends FamilyStructure {
             HashMap<String, ArrayList<String>> parentToChildren = loadParentToChildrenMap(ped, completeOnly, excludedFIDIIDs, cache);
             
             // at this point, only non-excluded IDs are present in all_trios and parentToChildren
-            
-            HashMap<String, String> sibPairs = new HashMap<String, String>();
+            ArrayList<String[]> sibPairs = new ArrayList<String[]>();
             for (String[] trio : ped.cached_all_trios) { 
                 ArrayList<String> faChildren = parentToChildren.get(trio[1]);
                 if (faChildren == null) {
@@ -70,8 +69,8 @@ public class Pedigree extends FamilyStructure {
                     continue; // no sibs
                 } else {
                     for (String sib : unionSet) {
-                        sibPairs.put(sib, trio[0]);
-                        sibPairs.put(trio[0], sib);
+                        sibPairs.add(new String[]{sib, trio[0]});
+                        sibPairs.add(new String[]{trio[0], sib});
                     }
                 }
             }

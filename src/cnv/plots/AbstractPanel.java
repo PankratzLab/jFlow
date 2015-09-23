@@ -33,6 +33,7 @@ import javax.swing.Timer;
 
 import mining.Distance;
 import stats.Maths;
+
 import common.Array;
 import common.Grafik;
 import common.HashVec;
@@ -114,7 +115,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected int chartType;
 
 	private boolean inDrag;
-	private int startX, startY;
+	private volatile int startX, startY;
 //	private int titleX, titleY;
 	private int titleLocation;
 	private int plotPointSetSize;
@@ -124,16 +125,16 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private int currentIndexInPlotPointSet;
 	private int lookupResolution;
 	private boolean flow;			//A control variable. If resizing is not yet done, don't start generatePoints() or drawAll();
-	private int imageStatus;		//A control variable. If drawAll() is not yet done, don't start paintComponent();
+	private volatile int imageStatus;		//A control variable. If drawAll() is not yet done, don't start paintComponent();
 	private byte[] layersInBase;
 	private byte[] extraLayersVisible;
 	private boolean pointsGeneratable;
-	private Timer waitingTimer;		//A control variable to reduce the repaint() operations during component resizing;
+	protected Timer waitingTimer;		//A control variable to reduce the repaint() operations during component resizing;
 	private String nullMessage;
 	private boolean randomTest;
 	private int numberOfNaNSamples;
 	private boolean antiAlias = true;
-	private boolean beEfficient;
+	private volatile boolean beEfficient;
 	private HashSet<String> pointsPlotted;
 	
 	public AbstractPanel() {
@@ -166,7 +167,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 		image = null;
 		locLookup = new Hashtable<String,IntVector>();
-		setImageStatus(IMAGE_NULL);
+		imageStatus = IMAGE_NULL;
 		flow=true;
 		pointsGeneratable = true;
 		beEfficient = true;
@@ -184,6 +185,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 	
 	public void setImageStatus(int status) {
+	    if (DEBUGGING) {
+	        System.out.println("Set image status to " + status);
+	    }
 		imageStatus = status;
 	}
 
@@ -218,6 +222,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public void paintAgain() {
 		image = null;
+		setImageStatus(IMAGE_NULL);
 		repaint();
 	}
 
@@ -273,8 +278,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //			}
 //		}
 		
-		// original code, this has worked for years but double renders
-		if (imageIsFinal() && image==null) { // if you remove "imageIsFinal() &&" then intermediate screen is black instead of gray and sometimes half of the points aren't rendered until you zoom out
+		if (image == null) { 
 			if (DEBUGGING) {
 				System.out.println("createImage() being called from paintComponent()");
 			}
@@ -1467,9 +1471,12 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	
 	public void createImage() {
 		if (getWidth() > 350 && getHeight() > 0 ) {
+		    setImageStatus(IMAGE_STARTED);
 			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 			flow = true;
-			
+			if (DEBUGGING) {
+			    System.out.println("Drawing base image");
+			}
 			drawAll(image.createGraphics(), true);
 			
 //			repaint();
