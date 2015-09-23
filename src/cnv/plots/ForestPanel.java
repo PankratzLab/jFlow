@@ -646,10 +646,6 @@ public class ForestPanel extends AbstractPanel {
 		}
 		
 		setFinalImage(true);
-
-//		if (base && prog != null) {
-//			prog.close();// zxu
-//		}
 		refreshOtherComponents();
 	}
 

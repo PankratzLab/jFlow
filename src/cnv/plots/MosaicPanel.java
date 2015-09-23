@@ -164,7 +164,6 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 			//iv = locLookup.get(pos);
 			iv = lookupNearbyPoints(x, y, pos);
 			prox = new IntVector();
-			//System.out.println("pos: "+pos+"\t iv.size():"+(iv==null?"null":iv.size()));//zx test point
 			g.setColor(Color.RED);
 			for (int i = 0; iv!=null&&i<iv.size(); i++) {
 				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(data[iv.elementAt(i)][0]), getYPixel(data[iv.elementAt(i)][1])})<HIGHLIGHT_DISTANCE) {

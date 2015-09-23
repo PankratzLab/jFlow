@@ -132,7 +132,7 @@ public class MarkerDataLoader implements Runnable {
 					}
 				}
 			} else {
-				missingMarkers.add(markerNames[0]);
+				missingMarkers.add(markerNames[i]);
 			}
 		}
 		if (missingMarkers.size() > 0) {
