@@ -11,10 +11,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 
 import cnv.filesys.ClusterFilter;
 import cnv.filesys.ClusterFilterCollection;
@@ -523,7 +525,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	}
 
     public void mousePressed(MouseEvent e) {
-        if (e.getButton() == MouseEvent.BUTTON3) {
+        if (SwingUtilities.isLeftMouseButton(e)) {
         	mouseStartX = e.getX();
         	mouseStartY = e.getY();
         } else {
@@ -535,7 +537,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     	mouseEndX = e.getX();
     	mouseEndY = e.getY();
     	highlightRectangle = null;
-    	if (e.getButton() == MouseEvent.BUTTON3) {
+    	if (SwingUtilities.isLeftMouseButton(e)) {
         	if (Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2) || Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2)) {
     	    	// Automatically predict the new genotype and assigns to the last filter.
     	    	sp.getClusterFilterCollection().addClusterFilter(sp.getMarkerName(),
@@ -562,12 +564,12 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     }
 
     public void mouseDragged(MouseEvent e) {
-        if (e.getButton() == MouseEvent.BUTTON3) {
+        if (SwingUtilities.isLeftMouseButton(e)) {
         	ClusterFilter clusterFilter;
         	mouseEndX = e.getX();
         	mouseEndY = e.getY();
         	highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(mouseStartX), (float)getYValueFromYPixel(mouseStartY), (float)getXValueFromXPixel(mouseEndX), (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99);
-    
+        	
         	clusterFilter = new ClusterFilter((byte)sp.getPlotType(panelIndex),
         			(float)Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
         			(float)Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
@@ -576,7 +578,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
         			(byte)0);
         	highlightPoints(sp.getCurrentMarkerData().getHighlightStatus(clusterFilter));
         	setExtraLayersVisible(new byte[] {99});
-        	repaint();
+            repaint();
         } else {
             super.mouseDragged(e);
         }
@@ -590,7 +592,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		int numberToInclude, currentClass;
 		byte newClusterFilter, chr;
 
-		if (event.getButton() == MouseEvent.BUTTON3) {
+		if (SwingUtilities.isRightMouseButton(event)) {
 			window = sp.getProject().WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER.getValue();
 			mData = sp.getCurrentMarkerData();
 			markerPosition = "chr"+mData.getChr()+":"+(mData.getPosition()-window)+"-"+(mData.getPosition()+window);
@@ -618,7 +620,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				menu.show(this, event.getX(), event.getY());
 			}
 
-		} else if (event.getButton() == MouseEvent.BUTTON1) {
+		} else if (SwingUtilities.isLeftMouseButton(event)) {
 			newClusterFilter = lookupNearbyRectangles(event.getX(), event.getY());
 			if (newClusterFilter >= 0) {
 				ClusterFilterCollection clusterFilterCollection;
@@ -645,7 +647,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	}
 
 	public void generateRectangles() {
-    	rectangles = sp.getClusterFilterCollection().getRectangles(sp.getMarkerName(), (byte) sp.getPlotType(panelIndex), (byte)1, false, false, (byte)7, (byte)99);
+	    rectangles = sp.getClusterFilterCollection().getRectangles(sp.getMarkerName(), (byte) sp.getPlotType(panelIndex), (byte)1, false, false, (byte)7, (byte)99);
 	}
 
 	public GenericRectangle[] getRectangles() {
