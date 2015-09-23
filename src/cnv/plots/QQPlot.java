@@ -40,7 +40,6 @@ public class QQPlot extends JFrame implements ActionListener {
 
 		};
 	
-
 	public QQPlot(String plotLabel, String[] labels, double[][] pvals, boolean log10, boolean rotated, boolean symmetric, float maxValue, Logger log) {
 		super(plotLabel);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -50,7 +49,7 @@ public class QQPlot extends JFrame implements ActionListener {
 //		JPanel plotsPanel = new JPanel();
 //		plotsPanel.setLayout(new GridLayout(1, 2));
 
-		QQPanel panelA = new QQPanel(pvals, log10, rotated, maxValue);
+		final QQPanel panelA = new QQPanel(pvals, log10, rotated, maxValue);
 		panelA.setSymmetricAxes(symmetric);
 		panelA.setColorScheme(COLOR_SCHEME);
 		if (!log10) {
@@ -84,15 +83,19 @@ public class QQPlot extends JFrame implements ActionListener {
 
 		descrPanel.setBackground(Color.WHITE);
 		getContentPane().add(descrPanel, BorderLayout.NORTH);
-
-		repaint();
-
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
+		panelA.setTrackedSize((int)panelA.getSize().getWidth(), (int)panelA.getSize().getHeight());
 //		I thought this createImage() led to an unnecessary double rendering, but then didn't get anything to view
 //		However it is double rendering (at least in QQPlot) and removing createImage() removes both renderings
-		panelA.createImage();
-		panelA.updateUI(); // this adds the additional rendering, but if this isn't here then a partial image or no image is shown until the pane is moused over
+//		SwingUtilities.invokeLater(new Runnable() {
+//		    public void run() {
+//		        panelA.createImage();
+//		        panelA.repaint();
+//		panelA.paintComponent(panelA.getGraphics());
+//		        panelA.updateUI(); // this adds the additional rendering, but if this isn't here then a partial image or no image is shown until the pane is moused over
+//		    }
+//		});
 //		panelB.createImage();
 //		panelB.updateUI();
 	}
