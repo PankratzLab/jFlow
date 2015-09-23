@@ -33,7 +33,7 @@ public class WeightedSumStatistic {
 	public WeightedSumStatistic(String plinkRoot) {
 		pedfile = new Pedfile(plinkRoot+".ped");
 		map = new SnpMarkerSet(plinkRoot+".map");
-		ids = pedfile.getFamilyStructure().getIds();
+		ids = pedfile.getFamilyStructure().getIDs();
 		markerNames = map.getMarkerNames();
 		freqs = pedfile.getFrequencies();
 		alleles = pedfile.getAlleles();

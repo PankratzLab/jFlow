@@ -15,6 +15,7 @@ import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.var.SampleData;
 import common.*;
 import db.FilterDB;
+import filesys.FamilyStructure;
 
 public class MarkerMetrics {
 	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z", "LRR_SD", "LRR_num_NaNs", "MendelianErrors"};
@@ -187,15 +188,15 @@ public class MarkerMetrics {
 				String mecCnt = ".";
 				if (pedigree != null) {
 				    toInclude = samplesToExclude == null ? Array.booleanArray(samples.length, true) : Array.booleanNegative(samplesToExclude); 
-		            mecArr = pedigree.checkMendelErrors(markerData, toInclude, null, clusterFilterCollection, gcThreshold);
+		            mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, toInclude, null, clusterFilterCollection, gcThreshold);
 		            count = 0;
 		            for (int i = 0; i < mecArr.length; i++) {
 		                if (!toInclude[i]) continue;
 		                if (mecArr[i].getErrorCode() != -1) {
 		                    count++;
-		                    sampleIndex = pedigree.getPedigreeEntries()[i].getiDNAIndex();
-		                    faDNAIndex = pedigree.getPedigreeEntries()[i].getFaDNAIndex();
-		                    moDNAIndex = pedigree.getPedigreeEntries()[i].getMoDNAIndex();
+		                    sampleIndex = pedigree.getIDNAIndex(i);
+		                    faDNAIndex = pedigree.getFaDNAIndex(i);
+		                    moDNAIndex = pedigree.getMoDNAIndex(i);
 
 		                    faGenotype = -1;
 		                    if (faDNAIndex >= 0 && toInclude[faDNAIndex]) {
@@ -210,9 +211,9 @@ public class MarkerMetrics {
 		                    mendelLine = markerName
 		                                + "\t" + markerData.getChr()
 		                                + "\t" + markerData.getPosition()
-		                                + "\t" + pedigree.getPedigreeEntries()[i].getFID()
-		                                + "\t" + pedigree.getPedigreeEntries()[i].getIID()
-		                                + "\t" + pedigree.getPedigreeEntries()[i].getiDNA()
+		                                + "\t" + pedigree.getIDs()[FamilyStructure.FID_INDEX]
+		                                + "\t" + pedigree.getIDs()[FamilyStructure.IID_INDEX]
+		                                + "\t" + pedigree.getDnas()[i]
 		                                + "\t" + (faDNAIndex >= 0 ? samples[faDNAIndex] : ".")
 		                                + "\t" + (moDNAIndex >= 0 ? samples[moDNAIndex] : ".")
 		                                + "\t" + indGeno 

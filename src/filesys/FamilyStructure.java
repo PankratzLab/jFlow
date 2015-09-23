@@ -5,22 +5,41 @@ import java.io.*;
 import common.*;
 
 public class FamilyStructure {
-	public static final String[][] TYPICAL_HEADERS = {{"FID", "famid"}, {"IID", "id"}, {"fa"}, {"mo"}, {"sex"}}; 
-	
-	private String[][] ids;
-	private byte[] genders;
-	private byte[] affections;
-	private String[] dnas;
+	public static final String[][] TYPICAL_HEADERS = {{"FID", "famid"}, {"IID", "id"}, {"fa"}, {"mo"}, {"sex"}};
 
+    private static final byte MISSING_VALUE_BYTE = (byte) -9;
+    
+    public static final int FID_INDEX = 0; 
+    public static final int IID_INDEX = 1; 
+    public static final int FA_INDEX = 2; 
+    public static final int MO_INDEX = 3;
+
+    public static final Object MISSING_ID_STR = "0"; 
+	
+	protected String[][] ids;
+	protected String[] iids;
+	protected String[] fids;
+	protected String[] fas;
+	protected String[] mos;
+	protected byte[] genders;
+	protected byte[] affections;
+	protected String[] dnas;
+	protected Logger log;
+	
 	public FamilyStructure(String[][] ids, byte[] genders, byte[] affections) {
 		this(ids, genders, affections, null);
 	}
 	
 	public FamilyStructure(String[][] ids, byte[] genders, byte[] affections, String[] dnas) {
+	    this(ids, genders, affections, dnas, new Logger());
+	}
+	
+	public FamilyStructure(String[][] ids, byte[] genders, byte[] affections, String[] dnas, Logger log) {
 		this.ids = ids;
 		this.genders = genders;
 		this.affections = affections;
 		this.dnas = dnas;
+		this.log = log;
 	}
 	
 	public FamilyStructure(String filename) {
@@ -28,49 +47,84 @@ public class FamilyStructure {
 	}
 	
 	public FamilyStructure(String filename, boolean loadDNAs) {
+	    this(filename, loadDNAs, new Logger());
+	}
+
+	public FamilyStructure(String filename, boolean loadDNAs, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		int count;
 
 		try {
-			reader = new BufferedReader(new FileReader(filename));
-			count = 0;
-			while (reader.ready()) {
-				reader.readLine();
-				count++;
-			}
-			reader.close();
-
-			reader = new BufferedReader(new FileReader(filename));
+			count = Files.countLines(filename, 0);
+			reader = Files.getAppropriateReader(filename);
 			ids = new String[count][];
+			iids = new String[count];
+			fids = new String[count];
+			fas = new String[count];
+			mos = new String[count];
 			genders = new byte[count];
 			affections = new byte[count];
-			dnas = loadDNAs?new String[count]:null;
-			for (int i = 0; i<count; i++) {
+			dnas = loadDNAs ? new String[count] : null;
+			for (int i = 0; i < count; i++) {
 				line = reader.readLine().trim().split("[\\s]+");
 				ids[i] = new String[] {line[0], line[1], line[2], line[3]};
-				genders[i] = Byte.parseByte(line[4]);
-				affections[i] = Byte.parseByte(line[5]);
+				fids[i] = line[0];
+				iids[i] = line[1];
+				fas[i] = line[2];
+				mos[i] = line[3];
+				genders[i] = ext.isMissingValue(line[4]) ? FamilyStructure.MISSING_VALUE_BYTE : Byte.parseByte(line[4]);  
+				affections[i] = ext.isMissingValue(line[5]) ? FamilyStructure.MISSING_VALUE_BYTE : Byte.parseByte(line[5]); 
 				if (loadDNAs) {
-					dnas[i] = line[6];
+					dnas[i] = line[6]; 
 				}
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+filename+"\" not found in current directory");
-			System.exit(1);
+		    this.log.reportFileNotFound(filename);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+filename+"\"");
-			System.exit(2);
+		    this.log.reportIOException(filename);
 		}
 	}
 	
-	public String[][] getIds() {
+	public String[][] getIDs() {
 		return ids;
 	}
-
+	
+    public String getiDNA(int i) {
+        return this.dnas[i];
+    }
+	
+	public String getFID(int index) {
+	    return this.ids[index][FID_INDEX];
+	}
+	
+	public String getIID(int index) {
+	    return this.ids[index][IID_INDEX];
+	}
+	
+	public String getFA(int index) {
+	    return this.ids[index][FA_INDEX];
+	}
+	
+	public int getIndexOfFaInIDs(int indivIndex) {
+	    return MISSING_ID_STR.equals(this.fas[indivIndex]) ? -1 : ext.indexOfStr(this.fas[indivIndex], this.iids, true, true, null, false);
+	}
+	
+	public int getIndexOfMoInIDs(int indivIndex) {
+	    return MISSING_ID_STR.equals(this.mos[indivIndex]) ? -1 : ext.indexOfStr(this.mos[indivIndex], this.iids, true, true, null, false);
+	}
+	
+	public String getMO(int index) {
+	    return this.ids[index][MO_INDEX];
+	}
+	
 	public byte[] getGenders() {
 		return genders;
+	}
+	
+	public byte getGender(int index) {
+	    return genders[index];
 	}
 
 	public byte[] getAffections() {
@@ -86,7 +140,7 @@ public class FamilyStructure {
 	}
 	
 	public String getIndividualHeader(int index, boolean displayDNA) {
-		return Array.toStr(ids[index])+"\t"+genders[index]+"\t"+affections[index]+(displayDNA&&dnas == null?"\t"+dnas[index]:"");
+		return Array.toStr(ids[index]) + "\t" + genders[index] + "\t" + affections[index] + (displayDNA && dnas != null ? "\t" + dnas[index] : "");
 	}
 
 	public void writeToFile(String filename, boolean displayDNA) {
@@ -95,12 +149,11 @@ public class FamilyStructure {
         try {
 	        writer = new PrintWriter(new FileWriter(filename));
 			for (int i = 0; i<ids.length; i++) {
-				writer.println(Array.toStr(ids[i])+"\t"+genders[i]+"\t"+affections[i]+(displayDNA&&dnas == null?"\t"+dnas[i]:""));
+				writer.println(getIndividualHeader(i, displayDNA));
 	        }
 	        writer.close();
         } catch (Exception e) {
-	        System.err.println("Error writing to "+filename);
-	        e.printStackTrace();
+            this.log.reportException(e);
         }
 	}
 	

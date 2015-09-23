@@ -19,6 +19,7 @@ import javax.swing.JPopupMenu;
 import cnv.filesys.ClusterFilter;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
+import cnv.filesys.Pedigree;
 import cnv.gui.LaunchAction;
 import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.var.SampleData;
@@ -385,16 +386,16 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		boolean swapAxes = false;
 		
 		if (sp.getPedigree() != null) {
-			MendelErrorCheck[] mendelErrorChecks = sp.getPedigree().checkMendelErrors(sp.getCurrentMarkerData(), sp.hideExcludedSamples(panelIndex) ? sp.getProject().getSamplesToInclude(null,false) : null, sex, sp.getClusterFilterCollection(), sp.getGCthreshold());
+			MendelErrorCheck[] mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(sp.getPedigree(), sp.getCurrentMarkerData(), sp.hideExcludedSamples(panelIndex) ? sp.getProject().getSamplesToInclude(null,false) : null, sex, sp.getClusterFilterCollection(), sp.getGCthreshold());
 			for (int i = 0; i < samples.length; i++) {
 				PlotPoint indiPoint = points[centroidOffset + i];
 				if (mendelErrorChecks[i].hasMoMendelError()) {
-					PlotPoint momPoint = points[centroidOffset + sp.getPedigree().getPedigreeEntries()[i].getMoDNAIndex()];
+					PlotPoint momPoint = points[centroidOffset + sp.getPedigree().getMoDNAIndex(i)];
 					GenericLine gl = new GenericLine(momPoint, indiPoint, size, momColor, layer, swapAxes, 1);
 					linesList.add(gl);
 				}
 				if (mendelErrorChecks[i].hasFaMendelError()) {
-					PlotPoint dadPoint = points[centroidOffset + sp.getPedigree().getPedigreeEntries()[i].getFaDNAIndex()];
+					PlotPoint dadPoint = points[centroidOffset + sp.getPedigree().getFaDNAIndex(i)];
 					GenericLine gl = new GenericLine(dadPoint, indiPoint, size, dadColor, layer, swapAxes, 1);
 					linesList.add(gl);
 				}

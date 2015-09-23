@@ -1433,7 +1433,7 @@ public class Mach {
         int[] order;
         
         struct = new FamilyStructure("plink.fam");
-        ids = struct.getIds();
+        ids = struct.getIDs();
         genders = struct.getGenders();
         affections = struct.getAffections();
         
