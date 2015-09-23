@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -43,6 +44,8 @@ import common.ext;
 public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
 
+	public static final boolean DEBUGGING = true;
+
 	public static final int HEAD_BUFFER = 25;
 	public static final int HEIGHT_X_AXIS = 105;
 	public static final int WIDTH_Y_AXIS = 140;
@@ -63,6 +66,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final int HEAT_MAP_TYPE = 2;
 
 	public static final int DEFAULT_TYPE = SCATTER_PLOT_TYPE;
+
+	public static final int IMAGE_NULL = 0;
+	public static final int IMAGE_STARTED = 1;
+	public static final int IMAGE_COMPLETE = 2;
 	
 	protected Color[] colorScheme;
 	protected int canvasSectionMinimumX;
@@ -117,7 +124,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private int currentIndexInPlotPointSet;
 	private int lookupResolution;
 	private boolean flow;			//A control variable. If resizing is not yet done, don't start generatePoints() or drawAll();
-	private boolean finalImage;		//A control variable. If drawAll() is not yet done, don't start paintComponent();
+	private int imageStatus;		//A control variable. If drawAll() is not yet done, don't start paintComponent();
 	private byte[] layersInBase;
 	private byte[] extraLayersVisible;
 	private boolean pointsGeneratable;
@@ -126,6 +133,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private boolean randomTest;
 	private int numberOfNaNSamples;
 	private boolean antiAlias = true;
+	private boolean beEfficient;
+	private HashSet<String> pointsPlotted;
 	
 	public AbstractPanel() {
 		canvasSectionMinimumX = 0;
@@ -157,9 +166,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 		image = null;
 		locLookup = new Hashtable<String,IntVector>();
-		finalImage=false; // if true then double renders
+		setImageStatus(IMAGE_NULL);
 		flow=true;
 		pointsGeneratable = true;
+		beEfficient = true;
 		
 		colorScheme = new Color[] {Color.BLACK, Color.GRAY};
 		addMouseListener(this);
@@ -168,6 +178,19 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		addComponentListener(this);
 	}
 	
+	
+	public void createLookup(boolean value) {
+		this.createLookup = value;
+	}
+	
+	public void setImageStatus(int status) {
+		imageStatus = status;
+	}
+
+	protected boolean imageIsFinal() {
+		return imageStatus == IMAGE_COMPLETE;
+	}
+
 	public void resetCurrentIndexInPlotPointSet() {
 		currentIndexInPlotPointSet = -1;
 	}
@@ -187,6 +210,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void setZoomable(boolean zoomable, boolean truncate) {
 		this.zoomable = zoomable;
 		this.truncate = truncate;
+	}
+
+	public void beEfficient(boolean value) {
+		this.beEfficient = value;
 	}
 
 	public void paintAgain() {
@@ -235,21 +262,28 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 
 	public void paintComponent(final Graphics g) {
-		if (getFinalImage() && image==null) {
-			createImage();
-			// TODO extra paint appears to be unnecessary
-//			repaint();
+		// this either doesn't affect anything or gets caught in an infinite loop while the lookup is being created
+//		while (imageStatus == IMAGE_STARTED) {
+//			if (DEBUGGING) {
+//				System.out.println("Additional call to paint before the first was completed; sleeping 100ms");
+//			}
+//			try {
+//				Thread.sleep(100);
+//			} catch (InterruptedException ie) {
+//			}
+//		}
+		
+		// original code, this has worked for years but double renders
+		if (imageIsFinal() && image==null) { // if you remove "imageIsFinal() &&" then intermediate screen is black instead of gray and sometimes half of the points aren't rendered until you zoom out
+			if (DEBUGGING) {
+				System.out.println("createImage() being called from paintComponent()");
+			}
+			createImage(); // if you remove this, you get a blank screen and at least QQPlot ends up with a double title panel 
 		}
-        g.drawImage(image, 0, 0, AbstractPanel.this);
+		g.drawImage(image, 0, 0, AbstractPanel.this);
 		if (extraLayersVisible != null && extraLayersVisible.length > 0) {
 			drawAll(g, false);
 		}
-//		g.setColor(Color.WHITE);
-//		g.fillRect(0, 0, getWidth(), getHeight());
-//		if (finalImage&&image!=null) {
-//			g.drawImage(image, 0, 0, this);
-//		}
-
 	}
 	
 	public void screenCapture(String filename) {
@@ -328,11 +362,17 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		int[] order;
 		int step;
 		long time;
-		ProgressBarDialog prog;//zx
+		ProgressBarDialog prog;
     	int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
+
+		setImageStatus(IMAGE_STARTED);
+    	
 //    	int index;
     	
-//    	long t1 = System.currentTimeMillis();
+    	long fullTime = System.currentTimeMillis();
+    	
+    	pointsPlotted = new HashSet<String>();
+//    	Files.appendStringToFile("listOfPoints.out", "drawAllWasCalled");
     	
     	if (g instanceof Graphics2D) {
     		((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -340,7 +380,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     	}
     	
 		// Set control variables; Generate data for the plot;  set Lookup Resolution; Prepare AxisLabels.
-		setFinalImage(false);
 		if (randomTest) {
 			points = new PlotPoint[1000000];
 			for (int i = 0; i < points.length; i++) {
@@ -362,7 +401,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				g.drawString(nullMessage, getWidth()/2-g.getFontMetrics(g.getFont()).stringWidth(nullMessage)/2, getHeight()/2);
 			}
 //			System.err.println("Error: no data. The cnv.plots.AbstractPanel.points is null.");
-			setFinalImage(true);
+			setImageStatus(IMAGE_COMPLETE);
 			return;
 		}
 
@@ -677,7 +716,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //		// Draw progress bar
 //		if (base) {
 //			time = new Date().getTime();
-//			prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);//zx
+//			prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);
 ////			System.out.println("points.length: "+(points.length)+"\3*points.length: "+3*(points.length));
 //		} else {
 //			prog = null;
@@ -690,6 +729,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		step = Math.max((points.length)/100, 1);
 		layers = new Hashtable<String,Vector<PlotPoint>>();
 
+//		if (DEBUGGING) {
+//			System.out.println("Start block");
+//		}
+//		long blockTime = new Date().getTime();
+
 		if (chartType == HEAT_MAP_TYPE) {
 			drawHeatMap(g, null);
 		} else if (chartType == SCATTER_PLOT_TYPE) {
@@ -697,7 +741,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				if (base && i%step==0){
 					if (new Date().getTime() - time > 1000) {
 						if (prog == null) {
-							prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);//zx
+							prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);
 						}
 						prog.setProgress(i);
 					}
@@ -719,7 +763,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 							if (layers.containsKey(trav)) {
 								layer = layers.get(trav);
 							} else {
-								layers.put(trav, layer = new Vector<PlotPoint>());
+								layers.put(trav, layer = new Vector<PlotPoint>(points.length));
 							}
 							layer.add(points[i]);
 						}
@@ -741,6 +785,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				}
 			}
 			
+//			if (DEBUGGING) {
+//			System.out.println("Took " + ext.getTimeElapsed(blockTime)+" to finish this block");
+//			}			
+			
 			// Draw those points with layer>0.
 			keys = HashVec.getKeys(layers);
 			order = Sort.quicksort(Array.toIntArray(keys));
@@ -757,7 +805,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		} else {
 			System.err.println("Error - invalid chart type: "+chartType);
 		}
-
+//		System.out.println("Sampled from "+getNumPointsPlottedEfficiently()+" points");
 
 		if (numberOfNaNSamples > 0) {
 			g.drawString(PlotPoint.NAN_STR+" (n="+numberOfNaNSamples+")", getXPixel(0)-nanWidth/2, getYPixel(0)+60+points[0].getSize()/2);
@@ -799,8 +847,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
             g.setColor(currColor);
 		}
 		
-		setFinalImage(true);
-		
+		setImageStatus(IMAGE_COMPLETE);
+
 		if (base && prog != null) {
 			prog.close();
 		}
@@ -825,6 +873,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		
 		refreshOtherComponents();
 
+		if (DEBUGGING) {
+			System.out.println("Took " + ext.getTimeElapsed(fullTime)+" to draw "+(createLookup?"(and create lookup for) ":"")+points.length+" points");
+		}
 	}
 	
 	/**
@@ -952,7 +1003,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		int x, y, dataPointIndex;
 		byte size;
 
-		if (getFinalImage()) {
+		if (imageIsFinal()) {
 			x = event.getX();
 			y = event.getY();
 
@@ -1083,7 +1134,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			this.waitingTimer = null;
 			/* Resize */
 			setFlow(true);
-//			System.err.println("Action performed");
+			if (DEBUGGING) {
+				System.err.println("Action performed in AbstractPanel");
+			}
 			createImage();
 			repaint();
 		}
@@ -1159,48 +1212,72 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 	}
 	
+	public String getNumPointsPlottedEfficiently() {
+		if (beEfficient) {
+			return pointsPlotted.size()+"";
+		} else {
+			return "[not set to be efficient]";
+		}
+	}
+	
 	public void drawPoint(Graphics g, PlotPoint point) {
-		if (point.getSize() == (byte) 0) {
+		int x, y, size, color;
+		
+		x = getXPixel(point.getRawX());
+		y = getYPixel(point.getRawY());
+		size = point.getSize();
+		color = point.getColor();
+		
+		g.setColor(colorScheme[color]);
+
+		if (size == 0) {
 			return;
 		}
-		g.setColor(colorScheme[point.getColor()]);
+		if (beEfficient) {
+			if (pointsPlotted.contains(x+":"+y+":"+size+":"+color)) {
+				return;
+			} else {
+				pointsPlotted.add(x+":"+y+":"+size+":"+color);
+			}
+//	    	Files.appendStringToFile("listOfPoints.out", x+":"+y+":"+size+":"+color);
+		}
 		
 		switch (point.getType()) {
 			case PlotPoint.FILLED_CIRCLE:
-				g.fillOval(getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
+				g.fillOval(x-size/2, y-size/2, size, size);
 				break;
 			case PlotPoint.OPEN_CIRCLE:
-				g.drawOval(getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, point.getSize(), point.getSize());
+				g.drawOval(x-size/2, y-size/2, size, size);
 				break;
 			case PlotPoint.FILLED_SQUARE:
-				g.fillPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2},
-							  new int[] {getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2},
+				g.fillPolygon(new int[] {x-size/2, x-size/2, x+size/2, x+size/2},
+							  new int[] {y-size/2, y+size/2, y+size/2, y-size/2},
 							  4);
 				break;
 			case PlotPoint.OPEN_SQUARE:
-				g.drawPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2, getXPixel(point.getRawX())+point.getSize()/2},
-							  new int[] {getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2},
+				g.drawPolygon(new int[] {x-size/2, x-size/2, x+size/2, x+size/2},
+							  new int[] {y-size/2, y+size/2, y+size/2, y-size/2},
 							  4);
 				break;
 			case PlotPoint.FILLED_TRIANGLE:
-				Grafik.drawTriangle(g, getXPixel(point.getRawX()), getYPixel(point.getRawY()), point.getSize(), true);
-	//			g.drawPolygon(new int[] {getXPixel(point.getRawX())-point.getSize()/2, getXPixel(point.getRawX()), getXPixel(point.getRawX())+point.getSize()/2},
-	//						  new int[] {getYPixel(point.getRawY())+point.getSize()/2, getYPixel(point.getRawY())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2},
+				Grafik.drawTriangle(g, x, y, size, true);
+	//			g.drawPolygon(new int[] {x-size/2, x, +size/2},
+	//						  new int[] {y+size/2, y-size/2, y+size/2},
 	//						  3);
 				break;
 			case PlotPoint.MISSING:
-				//g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+point.getSize()/2);
+				//g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+size/2);
 				if (PlotPoint.MISSING_STR.equals("X") || PlotPoint.MISSING_STR.equals("x")){
-					g.drawLine(getXPixel(point.getRawX())-point.getSize()/4, getYPixel(point.getRawY())-point.getSize()/4, getXPixel(point.getRawX())+point.getSize()/4, getYPixel(point.getRawY())+point.getSize()/4);//zx
-					g.drawLine(getXPixel(point.getRawX())-point.getSize()/4, getYPixel(point.getRawY())+point.getSize()/4, getXPixel(point.getRawX())+point.getSize()/4, getYPixel(point.getRawY())-point.getSize()/4);//zx
+					g.drawLine(-size/4, y-size/4, +size/4, y+size/4);
+					g.drawLine(-size/4, y+size/4, +size/4, y-size/4);
 				} else {
-					g.setFont(new Font("Arial", 0, point.getSize()));//zx
-					g.drawString(PlotPoint.MISSING_STR, getXPixel(point.getRawX())-point.getSize()/2, getYPixel(point.getRawY())+point.getSize()/2);//zx
-					g.setFont(new Font("Arial", 0, axisFontSize));//zx
+					g.setFont(new Font("Arial", 0, size));
+					g.drawString(PlotPoint.MISSING_STR, -size/2, y+size/2);
+					g.setFont(new Font("Arial", 0, axisFontSize));
 				}
 				break;
 			case PlotPoint.NOT_A_NUMBER:
-	//			g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2, getY(point.getRawY())-30+point.getSize()/2);
+	//			g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2, getY(point.getRawY())-30+size/2);
 				break;
 			default:
 				System.err.println("Error - invalid PlotPoint type");
@@ -1397,7 +1474,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			
 //			repaint();
 //			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-		}			
+		}
 	}
 	
 	public void setLookupResolution(int lookupResolution) {
@@ -1495,14 +1572,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 
 		return indicesRectangle;
-	}
-
-	public void setFinalImage(boolean finalImage) {
-		this.finalImage = finalImage;
-	}
-
-	public boolean getFinalImage() {
-		return finalImage;
 	}
 
 	public void setFlow(boolean flow) {

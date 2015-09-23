@@ -19,6 +19,8 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 		this.log10 = log10;
 		this.rotated = rotated;
 		this.maxValue = maxValue;
+		
+		createLookup(false);
 
 		// taken care of in AbstractPanel constructor
 		addComponentListener(this);

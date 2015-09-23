@@ -152,7 +152,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		String pos;
 		int x, y;
 
-		if (getFinalImage()) {
+		if (imageIsFinal()) {
 			x = event.getX();
 			y = event.getY();
 
