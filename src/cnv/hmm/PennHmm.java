@@ -440,22 +440,22 @@ public class PennHmm {
 			} else {
 				boolean foundSignal = false;
 				int currentFind = 2;
-			//	boolean recording = false;
+				// boolean recording = false;
 				for (int i = 0; i < q.length; i++) {
 					int currentCN = q[i];
-//					if (positions[i] == 599924) {
-//						System.out.println(q[i]);
-//						recording = true;
-//
-//					}
+					// if (positions[i] == 599924) {
+					// System.out.println(q[i]);
+					// recording = true;
+					//
+					// }
 
 					if (currentCN != normalState && currentCN != 3) {// CN 3 denotes LOH.
 						if (currentCN > 3) {
 							currentCN--;
 						}
-//						if (recording) {
-//							System.out.println(builder.build().toPlinkFormat() + "\t" + tmp.size());
-//						}
+						// if (recording) {
+						// System.out.println(builder.build().toPlinkFormat() + "\t" + tmp.size());
+						// }
 						if (foundSignal && currentCN != currentFind) {// new, adjacent cnv
 							builder.stop(positions[i - 1]);
 							tmp.add(builder.build());
@@ -717,6 +717,35 @@ public class PennHmm {
 		return adjusted;
 	}
 
+	
+	public double getLocScore(PennHmm pennHmm, double[] o1, double[] o2, double[] pfb, boolean[] copyNumberOnlyDef, int actualStateIndex) {
+		int[] tests = new int[] { 0, 1, 2, 4, 5 };
+		double confState = Double.NaN;
+		double maxOther = -1 * Double.MAX_VALUE;
+		for (int i = 0; i < tests.length; i++) {
+			double tmp = GetStateProb_CHMM(pennHmm, o1, o2, pfb, copyNumberOnlyDef, tests[i]);
+			if (tests[i] == actualStateIndex) {
+				confState = tmp;
+			} else if (tmp > maxOther) {
+				maxOther = tmp;
+			}
+		}
+		return confState - maxOther;
+	}
+
+	private static double GetStateProb_CHMM(PennHmm pennHmm, double[] o1, double[] o2, double[] pfb, boolean[] copyNumberOnlyDef, int state) {
+		double logProb = Double.NaN;
+		for (int i = 0; i < o1.length; i++) {
+			if (copyNumberOnlyDef[i]) {
+				logProb = b1iot(state, pennHmm.getB1(), o1[i]);
+			} else {
+				logProb = b1iot(state, pennHmm.getB1(), o1[i]);
+				logProb += b2iot(state, pennHmm.getB2(), pfb[i], o2[i]);
+			}
+		}
+		return logProb;
+	}
+
 	public static void test(Project proj, String hmmFile) {
 		long time = System.currentTimeMillis();
 
@@ -742,7 +771,7 @@ public class PennHmm {
 		Hashtable<String, ArrayList<Integer>> newIndices = new Hashtable<String, ArrayList<Integer>>();
 		ArrayList<Byte> uniques = new ArrayList<Byte>();
 		byte[] chrs = markerSet.getChrs();
-		int countNAN=0;
+		int countNAN = 0;
 		for (int i = 0; i < autosomalMarkers.length; i++) {
 			if (Double.isNaN(lrrs[i]) || Double.isNaN(bafs[i])) {
 				lrrs[i] = 0;
@@ -756,8 +785,8 @@ public class PennHmm {
 			}
 			newIndices.get(chr).add(i);
 		}
-		if(countNAN>0){
-			proj.getLog().reportTimeWarning(countNAN+" markers were removed with NaN lrr or baf values");
+		if (countNAN > 0) {
+			proj.getLog().reportTimeWarning(countNAN + " markers were removed with NaN lrr or baf values");
 		}
 
 		int[][] snpdists = getSNPDist(proj);
