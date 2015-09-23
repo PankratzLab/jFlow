@@ -4,7 +4,9 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 
+import cnv.filesys.Pedigree;
 import parse.GenParser;
+import stats.Correlation;
 import stats.RegressionModel;
 import common.Array;
 import common.CmdLine;
@@ -354,6 +356,11 @@ public class Heritability {
 	    				
 	    				numNotInPed = 0;
 						counter = new CountHash();
+						HashSet<String> validIDs = new HashSet<String>();
+						Vector<String> deps = new Vector<String>();
+						Vector<double[]> indeps = new Vector<double[]>();
+						int count = 0;
+						HashMap<String, Integer> subIndexMap = new HashMap<String, Integer>();
 						try {
 							System.out.println(dir + root + "/pheno.dat");
 							writer = new PrintWriter(new FileWriter(dir + root + "/pheno.dat"));
@@ -361,8 +368,12 @@ public class Heritability {
 							for (int j = 0; j < use.length; j++) {
 								if (use[j]) {
 									if (famIdHash.containsKey(data[j][0])) {
-										writer.println(famIdHash.get(data[j][0])+"\t"+data[j][0]+"\t"+data[j][1]);
+									    String fidiid = famIdHash.get(data[j][0]) + "\t" + data[j][0];
+										writer.println(fidiid + "\t" + data[j][1]);
 										counter.add(famIdHash.get(data[j][0]));
+										validIDs.add(fidiid);
+										deps.add(data[j][1]);
+										subIndexMap.put(fidiid, count++);
 									} else {
 										if (numNotInPed == 0) {
 											log.reportError("Warning - the following samples were not found in the pedigree file:");
@@ -391,6 +402,7 @@ public class Heritability {
 								for (int j = 0; j < use.length; j++) {
 									if (use[j]) {
 										writer.println(famIdHash.get(data[j][0])+"\t"+data[j][0]+"\t"+Array.toStr(Array.subArray(data[j], 2)));
+										indeps.add(Array.toDoubleArray(Array.subArray(data[j], 2)));
 									}
 								}
 								writer.close();
@@ -404,6 +416,56 @@ public class Heritability {
 							}
 	    				}
 						
+	    				FamilyStructure ped = new FamilyStructure(pedigreeFile, false);
+	    				ArrayList<String[]> sibList = Pedigree.PedigreeUtils.loadSibs(ped, true, null, validIDs, true); // double actual due to bidirectionality
+	    				ArrayList<String[]> poPairs = Pedigree.PedigreeUtils.loadPOPairs(ped, true, null, validIDs, true);
+	    				ArrayList<int[]> trios = Pedigree.PedigreeUtils.loadCompleteTrios(ped, null, validIDs, true);
+	    				
+	    				RegressionModel model = RegressionModel.determineAppropriate(RegressionModel.processDeps(deps), RegressionModel.processIndeps(indeps), false, true);
+	    				double[] resids = model.getResiduals();
+	    				
+	    				// calc ICC
+	    				// calc ICC
+	    				// calc ICC
+	    				
+	    				double[] sibCorrel;
+	    				double[] poCorrel;
+	    				double[] trioCorrel;
+	    				double[][] correlationData;
+	    				sibs : {
+	    				    correlationData = new double[2][sibList.size() / 2]; // sibs are doubled
+	    				    HashSet<String> used = new HashSet<String>();
+	    				    int cnt = 0;
+	    				    for (int k = 0; k < sibList.size(); k++) {
+	    				        if (used.contains(sibList.get(k)[0] + "\t" + sibList.get(k)[1]) || used.contains(sibList.get(k)[0] + "\t" + sibList.get(k)[1])) {
+	    				            // already found
+	    				            continue;
+	    				        }
+    				            used.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
+    				            correlationData[0][cnt] = resids[subIndexMap.get(sibList.get(k)[0])];
+    				            correlationData[1][cnt++] = resids[subIndexMap.get(sibList.get(k)[1])];
+	    				    }
+                            sibCorrel = Correlation.Pearson(correlationData);
+	    				}
+	    				po : {
+	    				    correlationData = new double[2][poPairs.size()];
+	    				    for (int k = 0; k < poPairs.size(); k++) {
+	    				        correlationData[0][k] = resids[subIndexMap.get(poPairs.get(k)[0])];
+	    				        correlationData[1][k] = resids[subIndexMap.get(poPairs.get(k)[1])];
+	    				    }
+	    				    poCorrel = Correlation.Pearson(correlationData);
+	    				}
+	    				trios : {
+	    				    correlationData = new double[2][trios.size()];
+                            for (int k = 0; k < trios.size(); k++) {
+                                correlationData[0][k] = resids[subIndexMap.get(trios.get(k)[0])];
+                                double p1 = resids[subIndexMap.get(trios.get(k)[1])];
+                                double p2 = resids[subIndexMap.get(trios.get(k)[2])];
+                                correlationData[1][k] = (p1 + p2) / 2;
+                            }
+                            trioCorrel = Correlation.Pearson(correlationData);
+	    				}
+	    				
 						log.report("Heritability for "+root);
 						log.report(line[1]+" ~ "+Array.toStr(Array.subArray(line, 2), " "));
 						merlinEstimate = computeWithMerlin(dir+root, pedigreeFile, "pheno.dat", line.length > 2?"covars.dat":null, root, merlinExec, log);
@@ -416,7 +478,23 @@ public class Heritability {
 						numOfFamiliesSizedTwoOrAbove = counter.getSizeOfCountGreaterThan(2);
 						log.report("Number of samples: " + numOfAllSamples + "\nNumber of families: " + counter.getSize() + "\nNumber of families of size>=2: " + numOfFamiliesSizedTwoOrAbove + "\nAverage size of families of size>=2: " + ext.formDeci((numOfAllSamples - numOfFamiliesSizedOne) / (float) numOfFamiliesSizedTwoOrAbove, 3) + "\nNumber of families of size=1: " + numOfFamiliesSizedOne);
 //						summary.println(root + "\t" + merlinEstimate + "\t" + solarEstimate[0] + "\t" + solarEstimate[1] + "\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + String.format("%.3", ((float) (numOfAllSamples - numOfFamiliesSizedOne)) / numOfFamiliesSizedTwoOrAbove) + "\t" + numOfFamiliesSizedOne);
-						summary.println(root + "\t" + merlinEstimate + "\t" + Array.toStr(solarEstimate) + "\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + ext.formDeci((float) (numOfAllSamples - numOfFamiliesSizedOne) / numOfFamiliesSizedTwoOrAbove, 3) + "\t" + numOfFamiliesSizedOne);
+						summary.println(root + "\t" + 
+						                merlinEstimate + "\t" + 
+						                Array.toStr(solarEstimate) + "\t" + 
+						                numOfAllSamples + "\t" + 
+						                counter.getSize() + "\t" + 
+						                numOfFamiliesSizedTwoOrAbove + "\t" + 
+						                ext.formDeci((float) (numOfAllSamples - numOfFamiliesSizedOne) / numOfFamiliesSizedTwoOrAbove, 3) + "\t" + 
+						                numOfFamiliesSizedOne);
+						// add SiblingCorrelation
+						// add POCorrelation
+						// add TrioCorrelation
+						// add SiblingICC
+						// add POICC
+						// add TrioICC
+						// (sibList.size() / 2) + "\t" +  
+						// poPairs.size() + "\t" + 
+						// trios.size() + "\t"
 						summary.flush();
 						log.report("");
 	    			}
