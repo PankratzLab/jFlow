@@ -3,6 +3,8 @@ package cnv.hmm;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Hashtable;
 
 import cnv.analysis.PennCNV;
 import cnv.filesys.MarkerSet;
@@ -12,18 +14,28 @@ import cnv.filesys.Sample;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
+import cnv.var.LocusSet;
+import cnv.var.CNVariant.Builder;
+import cnv.var.LocusSet.TO_STRING_TYPE;
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 import common.Array;
 import common.Files;
 import common.Logger;
+import common.Positions;
 
+/*	This file was adapted from several subroutines from the UMDHMM package by Tapas Kanungo (Date: 15 December 1997)
+ The original UMDHMM package was downloaded from http://www.kanungo.com/software/software.html. The citation for the UMDHMM program is "UMDHMM: Hidden Markov Model Toolkit," in "Extended Finite State Models of Language," A. Kornai (editor), Cambridge University Press, 1999."
+ The basic framework (including variable name, subroutine name) is highly similar to the original UMDHMM package, but the actual implementation is completely different as no "discrete symbol emission" is used in PennCNV.
+ */
 /**
  * @author lane0212 <br>
  *         Mimics the hmm functionality used in in PennCNV (http://penncnv.openbioinformatics.org/)<br>
- *         Really, we mimic the kext C package <br>
+ *         Really, we mimic the kext C package here <br>
  *         See below for an example .hmm file
+ * 
  */
+
 // M=6
 // N=6
 // A:
@@ -236,10 +248,11 @@ public class PennHmm {
 			} else if (b == 1) {
 				p += (1 - uf) * pfb / 2;
 			} else {
-				OpdfGaussian opdfGaussian = bStatus.getGaussians()[1 - 1];
+				OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
+				OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0], Math.pow(bStatus.getB_sd()[0], 2));
 
 				p += (1 - uf) * (1 - pfb) * opdfGaussian.probability(o);
-				p += (1 - uf) * pfb * opdfGaussian.probability(o);
+				p += (1 - uf) * pfb * opdfGaussianMinus.probability(o);
 			}
 		} else if (state == 4) {
 			if (b == 0) {
@@ -326,7 +339,9 @@ public class PennHmm {
 				BStatus B2 = loadBstatus("B2", reader, log);
 				BStatus B3 = loadBstatus("B3", reader, log);
 				reader.close();
-
+				System.out.println("B1\t" + Array.toStr(B1.getB_mean()));
+				System.out.println("B2\t" + Array.toStr(B2.getB_mean()));
+				System.out.println("B3\t" + Array.toStr(B3.getB_mean()));
 				return new PennHmm(m, n, pi, a, B1, B2, B3, log);
 			} catch (FileNotFoundException fnfe) {
 				log.reportError("Error: file \"" + hmmFile + "\" not found in current directory");
@@ -368,13 +383,13 @@ public class PennHmm {
 			}
 		}
 
-		pennHmm.getLog().reportTimeInfo("Encountered " + snpCount + " snp probes and " + cnCount + " cn probes");
+		// pennHmm.getLog().reportTimeInfo("Encountered " + snpCount + " snp probes and " + cnCount + " cn probes");
 
 		for (int i = 0; i < pennHmmLog.getN(); i++) {
 			delta[0][i] = pennHmmLog.getPi()[i] + biot[i][0];
 		}
 		for (int t = 1; t < o1.length; t++) {
-			PennHmm converted = convertHMMTransition(pennHmmLog, snpdist[t - 1]);
+			PennHmm converted = convertHMMTransition(pennHmmLog, snpdist[t - 1]);// account for physical distance between markers
 			for (int j = 0; j < converted.getN(); j++) {
 				double maxval = -1 * VITHUGE;
 				int maxvalind = 0;
@@ -398,22 +413,118 @@ public class PennHmm {
 				q[o1.length - 1] = i;
 			}
 		}
-		for (int t = o1.length - 1; t >= 0; t--) {
-			q[t] = psi[t][q[t]];
+		for (int t = o1.length - 2; t >= 0; t--) {
+			q[t] = psi[t + 1][q[t + 1]];
 		}
 		return new ViterbiResult(q);
 	}
 
-	private static class ViterbiResult{
+	private static class ViterbiResult {
 		private int[] q;
 
 		public ViterbiResult(int[] q) {
 			super();
 			this.q = q;
 		}
-	
-	}
 
+		public LocusSet<CNVariant> analyzeStateSequence(Project proj, String fid, String iid, byte currentChr, int[] positions, int normalState) {
+			CNVariant.Builder builder = new Builder();
+			builder.familyID(fid);
+			builder.individualID(iid);
+
+			ArrayList<CNVariant> tmp = new ArrayList<CNVariant>();
+			if (positions.length != q.length) {
+				String error = "Have " + q.length + " state sequences, but " + positions.length + " positions";
+				proj.getLog().reportTimeError(error);
+				throw new IllegalArgumentException(error);
+			} else {
+				boolean foundSignal = false;
+				int currentFind = 2;
+			//	boolean recording = false;
+				for (int i = 0; i < q.length; i++) {
+					int currentCN = q[i];
+//					if (positions[i] == 599924) {
+//						System.out.println(q[i]);
+//						recording = true;
+//
+//					}
+
+					if (currentCN != normalState && currentCN != 3) {// CN 3 denotes LOH.
+						if (currentCN > 3) {
+							currentCN--;
+						}
+//						if (recording) {
+//							System.out.println(builder.build().toPlinkFormat() + "\t" + tmp.size());
+//						}
+						if (foundSignal && currentCN != currentFind) {// new, adjacent cnv
+							builder.stop(positions[i - 1]);
+							tmp.add(builder.build());
+							builder = new Builder();
+							builder.familyID(fid);
+							builder.individualID(iid);
+							builder.chr(currentChr);
+							builder.start(positions[i]);
+							builder.numMarkers(1);
+							builder.cn(currentCN);
+							currentFind = currentCN;
+						} else if (foundSignal) {// continue with previous cnv
+							builder.numMarkers(builder.getNumMarkers() + 1);
+						} else {// new cnv
+							builder = new Builder();
+							builder.familyID(fid);
+							builder.individualID(iid);
+							builder.chr(currentChr);
+							builder.start(positions[i]);
+							builder.numMarkers(1);
+							builder.cn(currentCN);
+							foundSignal = true;
+							currentFind = currentCN;
+						}
+					} else if (foundSignal) {
+						builder.stop(positions[i - 1]);
+						tmp.add(builder.build());
+						builder = new Builder();
+						builder.familyID(fid);
+						builder.individualID(iid);
+						foundSignal = false;
+					} else {
+						currentFind = normalState;
+						builder = new Builder();
+						builder.familyID(fid);
+						builder.individualID(iid);
+						foundSignal = false;
+					}
+				}
+			}
+			LocusSet<CNVariant> cnvs = new LocusSet<CNVariant>(tmp.toArray(new CNVariant[tmp.size()]), true, proj.getLog()) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+
+			int numTotalMarkers = 0;
+			for (int i = 0; i < cnvs.getLoci().length; i++) {
+				numTotalMarkers += cnvs.getLoci()[i].getNumMarkers();
+			}
+			int numNonNormalStates = 0;
+			for (int i = 0; i < q.length; i++) {
+				if (q[i] != normalState) {
+					numNonNormalStates++;
+				}
+			}
+			if (numNonNormalStates != numTotalMarkers) {
+				String error = "BUG: detected " + numNonNormalStates + " non-normal cn states, but collapsed to " + numTotalMarkers + " markers";
+				proj.getLog().reportTimeError(error);
+				throw new IllegalStateException(error);
+			} else {
+				proj.getLog().reportTimeInfo("Found " + cnvs.getLoci().length + " cnvs over " + numTotalMarkers + " total markers covering " + cnvs.getBpCovered() + " bp on chromosome " + currentChr);
+			}
+			return cnvs;
+		}
+	}
 
 	private static int[][] getSNPDist(Project proj) {
 		MarkerSet markerSet = proj.getMarkerSet();
@@ -422,8 +533,7 @@ public class PennHmm {
 		for (int i = 0; i < chrPos.length; i++) {
 			int[] distsTmp = new int[chrPos[i].length];
 			if (distsTmp.length > 0) {
-				distsTmp[0] = chrPos[i][0];
-				for (int j = 1; j < distsTmp.length - 1; j++) {
+				for (int j = 0; j < distsTmp.length - 1; j++) {
 					int dist = chrPos[i][j + 1] - chrPos[i][j];
 					distsTmp[j] = dist > 0 ? dist : 1;
 				}
@@ -511,6 +621,10 @@ public class PennHmm {
 			return b_uf;
 		}
 
+		public void setB_sd(double[] b_sd) {
+			this.b_sd = b_sd;
+		}
+
 	}
 
 	public static PennHmm convertHMMTransition(PennHmm pennHmm, int dist)
@@ -558,7 +672,54 @@ public class PennHmm {
 		return copyNumberOnlyDef;
 	}
 
+	private static double[] getValuesBetween(double[] array, double min, double max) {
+		ArrayList<Double> tmp = new ArrayList<Double>();
+		for (int i = 0; i < array.length; i++) {
+			if (!Double.isNaN(array[i]) && array[i] > min && array[i] < max) {
+				tmp.add(array[i]);
+			}
+		}
+		return Array.toDoubleArray(tmp);
+
+	}
+
+	private static double[] adjustLrr(double[] lrrs, double minLrr, double maxLrr, Logger log) {
+		double[] adjusted = new double[lrrs.length];
+
+		double median = Array.median(getValuesBetween(lrrs, minLrr, maxLrr));
+		log.reportTimeInfo("Median adjusting lrr values by " + median + "\t" + Array.median(Array.removeNaN(lrrs)));
+
+		for (int i = 0; i < adjusted.length; i++) {
+			adjusted[i] = lrrs[i] - median;
+		}
+		return adjusted;
+	}
+
+	private static double[] adjustBaf(double[] bafs, double minBaf, double maxBaf, Logger log) {
+		double[] adjusted = new double[bafs.length];
+		ArrayList<Double> bafsToMedian = new ArrayList<Double>();
+		for (int i = 0; i < bafs.length; i++) {
+			if (!Double.isNaN(bafs[i]) && bafs[i] > minBaf && bafs[i] < maxBaf) {
+				bafsToMedian.add(bafs[i]);
+			}
+		}
+		double median = Array.median(Array.toDoubleArray(bafsToMedian));
+		double factor = median - 0.5;
+		log.reportTimeInfo("Median adjusting baf measures by " + factor);
+		for (int i = 0; i < adjusted.length; i++) {
+			if (!Double.isNaN(bafs[i]) && bafs[i] > minBaf && bafs[i] < maxBaf) {
+				adjusted[i] = bafs[i] - factor;
+			} else {
+				adjusted[i] = bafs[i];
+			}
+
+		}
+		return adjusted;
+	}
+
 	public static void test(Project proj, String hmmFile) {
+		long time = System.currentTimeMillis();
+
 		PennHmm pennHmm = loadPennHmm(hmmFile, new Logger());
 		if (!Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
 			PennCNV.populationBAF(proj);
@@ -566,31 +727,101 @@ public class PennHmm {
 		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
 		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
 		Sample sample = proj.getFullSampleFromRandomAccessFile(proj.getSamples()[0]);
+		proj.getLog().reportTimeInfo(proj.getSamples()[0]);
 		GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, sample, gcModel, true, true, true, false);
-		double[] lrrs = gcAdjustor.getCorrectedIntensities();
-		double[] bafs = Array.toDoubleArray(sample.getBAFs());
+		// Check good vals
+		int[] autosomalMarkers = proj.getAutosomalMarkerIndices();
+		double[] lrrs = adjustLrr(Array.subArray(gcAdjustor.getCorrectedIntensities(), autosomalMarkers), -2, 2, proj.getLog());
+		double[] bafs = adjustBaf(Array.subArray(Array.toDoubleArray(sample.getBAFs()), autosomalMarkers), .25, .75, proj.getLog());
+		pennHmm = adjustBSD(pennHmm, Array.stdev(getValuesBetween(lrrs, -2, 2)), proj.getLog());
+		// Check good vals
 
 		MarkerSet markerSet = proj.getMarkerSet();
-		int[][] chrIndices = markerSet.getIndicesByChr();
-		int[][] snpdists = getSNPDist(proj);
-		for (int i = 0; i < chrIndices.length; i++) {
-			if (chrIndices[i].length > 10) {
-				double[] lrrChr = Array.subArray(lrrs, chrIndices[i]);
-				double[] bafsChr = Array.subArray(bafs, chrIndices[i]);
-				double[] pfbsChr = Array.subArray(pfb.getPfbs(), chrIndices[i]);
-				String[] markersChr = Array.subArray(markerSet.getMarkerNames(), chrIndices[i]);
-				boolean[] cnDef = determineCNOnly(proj, markersChr);
-				System.out.println(Array.booleanArraySum(cnDef));
-				System.out.println(pfbsChr[0]);
-				System.out.println(bafsChr[0]);
-				System.out.println(lrrChr[0]);
-				System.out.println(snpdists[i][0]);
-
-				ViterbiLogNP_CHMM(pennHmm, lrrChr, bafsChr, pfbsChr, snpdists[i], cnDef);
+		int[] autosomalPositions = Array.subArray(markerSet.getPositions(), autosomalMarkers);
+		double[] autosomalPFB = Array.subArray(pfb.getPfbs(), autosomalMarkers);
+		Hashtable<String, ArrayList<Integer>> newIndices = new Hashtable<String, ArrayList<Integer>>();
+		ArrayList<Byte> uniques = new ArrayList<Byte>();
+		byte[] chrs = markerSet.getChrs();
+		int countNAN=0;
+		for (int i = 0; i < autosomalMarkers.length; i++) {
+			if (Double.isNaN(lrrs[i]) || Double.isNaN(bafs[i])) {
+				lrrs[i] = 0;
+				bafs[i] = 0;
+				countNAN++;
 			}
+			String chr = Positions.getChromosomeUCSC(chrs[autosomalMarkers[i]], true);
+			if (!newIndices.containsKey(chr)) {
+				newIndices.put(chr, new ArrayList<Integer>());
+				uniques.add(chrs[autosomalMarkers[i]]);
+			}
+			newIndices.get(chr).add(i);
+		}
+		if(countNAN>0){
+			proj.getLog().reportTimeWarning(countNAN+" markers were removed with NaN lrr or baf values");
 		}
 
+		int[][] snpdists = getSNPDist(proj);
+		ArrayList<CNVariant> allCNVsAL = new ArrayList<CNVariant>();
+		for (int i = 0; i < uniques.size(); i++) {
+			byte currentChr = uniques.get(i);
+			String key = Positions.getChromosomeUCSC(currentChr, true);
+			if (currentChr > 0 && newIndices.get(key).size() > 10 && currentChr < 23) {
+				int[] indices = Array.toIntArray(newIndices.get(key));
+				int[] positions = Array.subArray(autosomalPositions, indices);
+				double[] lrrChr = Array.subArray(lrrs, indices);
+				double[] bafsChr = Array.subArray(bafs, indices);
+				double[] pfbsChr = Array.subArray(autosomalPFB, indices);
+				String[] markersChr = Array.subArray(markerSet.getMarkerNames(), indices);
+				boolean[] cnDef = determineCNOnly(proj, markersChr);
+				ViterbiResult viterbiResult = ViterbiLogNP_CHMM(pennHmm, lrrChr, bafsChr, pfbsChr, snpdists[currentChr], cnDef);
+				LocusSet<CNVariant> chrCnvs = viterbiResult.analyzeStateSequence(proj, sample.getSampleName(), sample.getSampleName(), currentChr, positions, 2);
+				for (int j = 0; j < chrCnvs.getLoci().length; j++) {
+					allCNVsAL.add(chrCnvs.getLoci()[j]);
+				}
+			}
+		}
+		LocusSet<CNVariant> allCNVs = new LocusSet<CNVariant>(allCNVsAL, true, proj.getLog()) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		allCNVs.writeRegions(proj.PROJECT_DIRECTORY.getValue() + "gennCNV.cnv", TO_STRING_TYPE.REGULAR, true, proj.getLog());
+
+		proj.getLog().reportTimeElapsed(time);
 	}
+
+	/**
+	 * Parameterize the {@link PennHmm} by an empirical sd measure
+	 */
+	private static PennHmm adjustBSD(PennHmm pennHmm, double sdo, Logger log)
+	/* adjust the CHMM model so that the standard deviation of B1 and B2 and B3 match the observed data (by an empirical method) */
+	{
+		PennHmm pennAdjusted = new PennHmm(pennHmm);
+		log.reportTimeInfo("Adjusting hmm sd measures by " + sdo);
+		double[] b1AdjustedSd = new double[pennHmm.getB1().getB_sd().length];
+		double[] b2AdjustedSd = new double[pennHmm.getB2().getB_sd().length];
+		double[] b3AdjustedSd = new double[pennHmm.getB3().getB_sd().length];
+
+		int i;
+		double ratio = sdo / pennHmm.getB1().getB_sd()[2];
+		for (i = 0; i < pennHmm.getN(); i++) {
+
+			b1AdjustedSd[i] = pennHmm.getB1().getB_sd()[i] * ratio;
+		}
+		for (i = 0; i < 5; i++) {
+			b2AdjustedSd[i] = pennHmm.getB2().getB_sd()[i] * ratio;
+		}
+		for (i = 0; i < 5; i++) {
+			b3AdjustedSd[i] = pennHmm.getB3().getB_sd()[i] * ratio;
+		}
+
+		return pennAdjusted;
+	}
+
+	// private static CNVariant[] analyzeStateSequence
 
 	public static void main(String[] args) {
 		int numArgs = args.length;

@@ -679,6 +679,96 @@ public class CNVariant extends Segment {
 		return uniqueInds;
 	}
 
+	/**
+	 * Useful when the terms of the cnv are not completely known, such as in CNVCalling
+	 *
+	 */
+	public static class Builder {
+		private byte chr = -1;
+		private int start = -1;
+		private int stop = -1;
+		private String familyID = null;
+		private String individualID = null;
+		private int cn = -22;
+		private double score = -22;
+		private int numMarkers = -1;
+		private int source = -1;
+
+		public Builder familyID(String familyID) {
+			this.familyID = familyID;
+			return this;
+		}
+
+		public Builder individualID(String individualID) {
+			this.individualID = individualID;
+			return this;
+		}
+
+		public Builder start(int start) {
+			this.start = start;
+			return this;
+		}
+
+		public Builder stop(int stop) {
+			this.stop = stop;
+			return this;
+		}
+
+		public Builder chr(byte chr) {
+			this.chr = chr;
+			return this;
+		}
+
+		public Builder cn(int cn) {
+			this.cn = cn;
+			return this;
+		}
+
+		public Builder score(double score) {
+			this.score = score;
+			return this;
+		}
+
+		public Builder numMarkers(int numMarkers) {
+			this.numMarkers = numMarkers;
+			return this;
+		}
+
+		public Builder source(int source) {
+			this.source = source;
+			return this;
+		}
+
+		public int getStart() {
+			return start;
+		}
+
+		public int getStop() {
+			return stop;
+		}
+
+		public int getCn() {
+			return cn;
+		}
+
+		public int getNumMarkers() {
+			return numMarkers;
+		}
+
+		public CNVariant build() {
+			return new CNVariant(this);
+		}
+	}
+
+	private CNVariant(Builder builder) {
+		super(builder.chr, builder.start, builder.stop);
+		this.familyID = builder.familyID;
+		this.individualID = builder.individualID;
+		this.cn = builder.cn;
+		this.score = builder.score;
+		this.numMarkers = builder.numMarkers;
+		this.source = builder.source;
+	}
 	
 
 }
