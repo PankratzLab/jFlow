@@ -1196,11 +1196,17 @@ public class Project {
 		byte[] chrs = markerSet.getChrs();
 		ArrayList<String> tmp = new ArrayList<String>();
 		for (int i = 0; i < chrs.length; i++) {
-			if (chrs[i] < 23) {
+			if (chrs[i] < 23 & chrs[i] > 0) {
 				tmp.add(markerSet.getMarkerNames()[i]);
 			}
 		}
 		return tmp.toArray(new String[tmp.size()]);
+	}
+	
+	public int[] getAutosomalMarkerIndices() {
+		String[] autosomalMarkers = getAutosomalMarkers();
+		int[] indices = ext.indexLargeFactors(autosomalMarkers, getMarkerNames(), true, log, true, false);
+		return indices;
 	}
 
 	
