@@ -15,29 +15,12 @@ import filesys.FamilyStructure;
 
 public class Pedigree extends FamilyStructure {
     
-    private ArrayList<String[]> cached_poPairsIDs = null;
-    private ArrayList<int[]> cached_poPairsCompleteOnly = null;
-    private HashMap<String, ArrayList<String>> cached_parentToChildrenMap = null;
-    private boolean cached_parentMapIsCompleteOnly = false;
-    public ArrayList<String[]> cached_all_trios = null;
-    public ArrayList<int[]> cached_complete_trios = null;
-    public ArrayList<String[]> cached_sib_pairs = null;
-    
     public static class PedigreeUtils {
         
-        public static void clearCache(Pedigree ped) {
-            ped.cached_poPairsIDs = null;
-            ped.cached_poPairsCompleteOnly = null;
-            ped.cached_parentToChildrenMap = null;
-            ped.cached_parentMapIsCompleteOnly = false;
-            ped.cached_all_trios = null;
-            ped.cached_complete_trios = null;
-            ped.cached_sib_pairs  = null;
-        }
-        
-        public static ArrayList<String[]> loadSibs(Pedigree ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, boolean cache) {
+        // also loads trios and p-o hash
+        public static ArrayList<String[]> loadSibs(FamilyStructure ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, HashSet<String> includedFIDIIDs, boolean cache) {
             if (ped.cached_all_trios == null) {
-                loadCompleteTrios(ped, excludedFIDIIDs, true); // will also create all_trios
+                loadCompleteTrios(ped, excludedFIDIIDs, includedFIDIIDs, true); // will also create all_trios
             }
             if (ped.cached_all_trios == null) {
                 // ERROR
@@ -45,7 +28,7 @@ public class Pedigree extends FamilyStructure {
             if (ped.cached_sib_pairs != null) {
                 return ped.cached_sib_pairs;
             }
-            HashMap<String, ArrayList<String>> parentToChildren = loadParentToChildrenMap(ped, completeOnly, excludedFIDIIDs, cache);
+            HashMap<String, ArrayList<String>> parentToChildren = loadParentToChildrenMap(ped, completeOnly, excludedFIDIIDs, includedFIDIIDs, cache);
             
             // at this point, only non-excluded IDs are present in all_trios and parentToChildren
             ArrayList<String[]> sibPairs = new ArrayList<String[]>();
@@ -69,8 +52,10 @@ public class Pedigree extends FamilyStructure {
                     continue; // no sibs
                 } else {
                     for (String sib : unionSet) {
-                        sibPairs.add(new String[]{sib, trio[0]});
-                        sibPairs.add(new String[]{trio[0], sib});
+                        if (!sib.equals(trio[0])) {
+                            sibPairs.add(new String[]{sib, trio[0]});
+                            sibPairs.add(new String[]{trio[0], sib});
+                        }
                     }
                 }
             }
@@ -80,7 +65,7 @@ public class Pedigree extends FamilyStructure {
             return sibPairs;
         }
         
-        public static HashMap<String, ArrayList<String>> loadParentToChildrenMap(Pedigree ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, boolean cache) {
+        public static HashMap<String, ArrayList<String>> loadParentToChildrenMap(FamilyStructure ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, HashSet<String> includedFIDIIDs, boolean cache) {
             if (ped.cached_parentToChildrenMap != null) {
                 return ped.cached_parentToChildrenMap;
             }
@@ -88,7 +73,8 @@ public class Pedigree extends FamilyStructure {
             
             for (int i = 0; i < ped.getIDs().length; i++) {
                 if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
-                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i)))
+                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))
+                        && (includedFIDIIDs == null || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
                         && (!completeOnly || (/*faInd = */ped.getIndexOfFaInIDs(i)) >= 0)) {
                     ArrayList<String> children = parentMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
                     if (children == null) {
@@ -98,7 +84,8 @@ public class Pedigree extends FamilyStructure {
                     children.add(ped.getFID(i) + "\t" + ped.getIID(i));
                 }
                 if (!FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i))
-                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i)))
+                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))
+                        && (includedFIDIIDs == null || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))
                         && (!completeOnly || (/*moInd = */ped.getIndexOfMoInIDs(i)) >= 0)) {
                     ArrayList<String> children = parentMap.get(ped.getFID(i) + "\t" + ped.getMO(i));
                     if (children == null) {
@@ -115,7 +102,7 @@ public class Pedigree extends FamilyStructure {
             return parentMap;
         }
         
-        public static ArrayList<String[]> loadPOPairs(Pedigree ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, boolean cache) {
+        public static ArrayList<String[]> loadPOPairs(FamilyStructure ped, boolean completeOnly, HashSet<String> excludedFIDIIDs, HashSet<String> includedFIDIIDs, boolean cache) {
             if (ped.cached_poPairsIDs != null) {
                 return ped.cached_poPairsIDs;
             }
@@ -125,7 +112,8 @@ public class Pedigree extends FamilyStructure {
                 int faInd = -1;
                 int moInd = -1;
                 if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
-                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i)))
+                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))
+                        && (includedFIDIIDs == null || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
                         && (!completeOnly || (faInd = ped.getIndexOfFaInIDs(i)) >= 0)) {
                     pairs.add(new String[]{ped.getFID(i) + "\t" + ped.getFA(i), ped.getFID(i) + "\t" + ped.getIID(i)});
                     if (completeOnly) {
@@ -133,7 +121,8 @@ public class Pedigree extends FamilyStructure {
                     }
                 }
                 if (!FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i))
-                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i)))
+                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))
+                        && (includedFIDIIDs == null || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))
                         && (!completeOnly || (moInd = ped.getIndexOfMoInIDs(i)) >= 0)) {
                     pairs.add(new String[]{ped.getFID(i) + "\t" + ped.getMO(i), ped.getFID(i) + "\t" + ped.getIID(i)});
                     if (completeOnly) {
@@ -150,7 +139,7 @@ public class Pedigree extends FamilyStructure {
             return pairs;
         }
         
-        public static ArrayList<int[]> loadCompleteTrios(Pedigree ped, HashSet<String> excludedFIDIIDs, boolean cache) {
+        public static ArrayList<int[]> loadCompleteTrios(FamilyStructure ped, HashSet<String> excludedFIDIIDs, HashSet<String> includedFIDIIDs, boolean cache) {
             if (ped.cached_complete_trios != null) {
                 return ped.cached_complete_trios;
             }
@@ -159,8 +148,12 @@ public class Pedigree extends FamilyStructure {
             for (int i = 0; i < ped.getIDs().length; i++) {
                 int faInd = -1;
                 int moInd = -1;
-                if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i)) && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i)))
-                        && !FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i)) && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i)))) {
+                if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i)) 
+                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))
+                        && (includedFIDIIDs == null || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
+                        && !FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i)) 
+                        && (excludedFIDIIDs == null || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))
+                        && (includedFIDIIDs == null || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))) {
                     if (cache) {
                         allTrios.add(new String[]{ped.getFID(i) + "\t" + ped.getIID(i), ped.getFID(i) + "\t" + ped.getFA(i), ped.getFID(i) + "\t" + ped.getMO(i)}); 
                     }

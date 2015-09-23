@@ -1,6 +1,8 @@
 package filesys;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import common.*;
 
@@ -16,6 +18,24 @@ public class FamilyStructure {
 
     public static final Object MISSING_ID_STR = "0"; 
 	
+    public ArrayList<String[]> cached_poPairsIDs = null;
+    public ArrayList<int[]> cached_poPairsCompleteOnly = null;
+    public HashMap<String, ArrayList<String>> cached_parentToChildrenMap = null;
+    public boolean cached_parentMapIsCompleteOnly = false;
+    public ArrayList<String[]> cached_all_trios = null;
+    public ArrayList<int[]> cached_complete_trios = null;
+    public ArrayList<String[]> cached_sib_pairs = null;
+    
+    public void clearCache() {
+        cached_poPairsIDs = null;
+        cached_poPairsCompleteOnly = null;
+        cached_parentToChildrenMap = null;
+        cached_parentMapIsCompleteOnly = false;
+        cached_all_trios = null;
+        cached_complete_trios = null;
+        cached_sib_pairs  = null;
+    }
+    
 	protected String[][] ids;
 	protected String[] iids;
 	protected String[] fids;
