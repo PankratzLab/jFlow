@@ -175,7 +175,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 		String pos;
 		int x, y;
 
-		if (getFinalImage()) {
+		if (imageIsFinal()) {
 			x = event.getX();
 			y = event.getY();
 

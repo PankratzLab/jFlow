@@ -294,7 +294,7 @@ public class ForestPanel extends AbstractPanel {
     		((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
     	}
 		
-		setFinalImage(false);
+		setImageStatus(IMAGE_STARTED);
 //		if (isRandomTest()) {
 //			points = new PlotPoint[1000000];
 //			for (int i = 0; i < points.length; i++) {
@@ -373,7 +373,7 @@ public class ForestPanel extends AbstractPanel {
 				}
 			}
 			
-			setFinalImage(true);
+			setImageStatus(IMAGE_COMPLETE);
 			return;
 		}
 
@@ -645,7 +645,7 @@ public class ForestPanel extends AbstractPanel {
 			}
 		}
 		
-		setFinalImage(true);
+		setImageStatus(IMAGE_COMPLETE);
 		refreshOtherComponents();
 	}
 

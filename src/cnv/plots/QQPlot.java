@@ -2,12 +2,11 @@
 package cnv.plots;
 
 import java.io.*;
-import common.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
+import common.*;
 import filesys.SerialFloatArray;
 
 public class QQPlot extends JFrame implements ActionListener {
@@ -42,11 +41,11 @@ public class QQPlot extends JFrame implements ActionListener {
 		};
 	
 
-	public QQPlot(String plotLabel, String[] labels, double[][] pvals, boolean log10, boolean rotated, boolean symmetric, float maxValue) {
+	public QQPlot(String plotLabel, String[] labels, double[][] pvals, boolean log10, boolean rotated, boolean symmetric, float maxValue, Logger log) {
 		super(plotLabel);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
-		System.out.println("Loading data for "+ext.listWithCommas(labels));
+		log.report("Loading data for "+ext.listWithCommas(labels));
 
 //		JPanel plotsPanel = new JPanel();
 //		plotsPanel.setLayout(new GridLayout(1, 2));
@@ -90,9 +89,10 @@ public class QQPlot extends JFrame implements ActionListener {
 
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
-//		I thought this lead to an unnecessary double rendering, but then didn't get anything to view
+//		I thought this createImage() led to an unnecessary double rendering, but then didn't get anything to view
+//		However it is double rendering (at least in QQPlot) and removing createImage() removes both renderings
 		panelA.createImage();
-		panelA.updateUI();
+		panelA.updateUI(); // this adds the additional rendering, but if this isn't here then a partial image or no image is shown until the pane is moused over
 //		panelB.createImage();
 //		panelB.updateUI();
 	}
@@ -159,9 +159,10 @@ public class QQPlot extends JFrame implements ActionListener {
 				try {
 					cols[i] = Integer.parseInt(filenames[i].substring(filenames[i].lastIndexOf(",")+1));
 					filenames[i] = filenames[i].substring(0, filenames[i].lastIndexOf(","));
+					labels[i] += " '"+Files.getHeaderOfFile(filenames[i], log)[cols[i]]+"'";
 				} catch (Exception e) {}
 			}
-			System.out.println("Loading "+labels[i]);
+			log.report("Loading "+labels[i]);
 			if (!Files.exists(filenames[i])) {
 				JOptionPane.showMessageDialog(null, "Error - file "+filenames[i]+" does not exist", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
@@ -178,9 +179,9 @@ public class QQPlot extends JFrame implements ActionListener {
 						trav = temp.trim().split(delimiter, -1)[cols[i]];
 					}
 				} catch (Exception e) {
-					System.err.println("Error - could not parse "+filenames[i]+" completely:");
-					System.err.println(temp);
-					e.printStackTrace();
+					log.reportError("Error - could not parse "+filenames[i]+" completely:");
+					log.reportError(temp);
+					log.reportException(e);
 					return;
 				}
 				invalids = 0;
@@ -251,10 +252,10 @@ public class QQPlot extends JFrame implements ActionListener {
 				
 				pvals[i] = Sort.putInOrder(pvals[i]);
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error - missing file: \""+filenames[i]+"\"");
+				log.reportError("Error - missing file: \""+filenames[i]+"\"");
 				error = false;
 			} catch (IOException ioe) {
-				System.err.println("Error reading file \""+filenames[i]+"\"");
+				log.reportError("Error reading file \""+filenames[i]+"\"");
 				error = false;
 			}
         }
@@ -264,17 +265,17 @@ public class QQPlot extends JFrame implements ActionListener {
 		}
 		
 		if (displayQuantiles) {
-			new QQPlot(plotLabel, labels, pvals, false, false, false, maxValue);
+			new QQPlot(plotLabel, labels, pvals, false, false, false, maxValue, log);
 		}
 		if (displayStandardQQ) {
-			new QQPlot(plotLabel, labels, pvals, true, false, symmetric, maxValue);
+			new QQPlot(plotLabel, labels, pvals, true, false, symmetric, maxValue, log);
 		}
 		if (displayRotatedQQ) {
-			new QQPlot(plotLabel, labels, pvals, true, true, false, maxValue);
+			new QQPlot(plotLabel, labels, pvals, true, true, false, maxValue, log);
 		}
 	}
 
-	public static void computeCI(String dir, String prefix, int max) {
+	public static void computeCI(String dir, String prefix, int max, Logger log) {
 		PrintWriter writer;
 		int count, length;
 		float[] array;
@@ -289,12 +290,12 @@ public class QQPlot extends JFrame implements ActionListener {
 			count++;
 		}
 		count--;
-		System.out.println("Found "+(count == 0?"no":count+"")+" replicates to process");
+		log.report("Found "+(count == 0?"no":count+"")+" replicates to process");
 		dists = new float[0][0];
 		length = -1;
 		for (int i = 1; i <= count; i++) {
 			if (i%10 == 0) {
-				System.out.println(i);
+				log.report(i+"");
 			}
 			array = SerialFloatArray.load(dir+prefix+"."+i+".results", false).getArray();
 			order = Sort.quicksort(array);
@@ -302,12 +303,12 @@ public class QQPlot extends JFrame implements ActionListener {
 				length = array.length;
 				dists = new float[length][count];
 			} else if (array.length != length) {
-				System.err.println("Error - mismatched number of p-values at rep "+i);
+				log.reportError("Error - mismatched number of p-values at rep "+i);
 			}
 			for (int j = 0; j < array.length; j++) {
 				dists[j][i-1] = array[order[j]];
 				if (j == array.length-1 && (dists[j][i-1]+"").equalsIgnoreCase("NaN")) {
-					System.err.println("Error - rep "+i+" has NaNs");
+					log.reportError("Error - rep "+i+" has NaNs");
 				}
 			}
 		}
@@ -320,12 +321,15 @@ public class QQPlot extends JFrame implements ActionListener {
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to " + "CIs.xln");
-			e.printStackTrace();
+			log.reportError("Error writing to " + "CIs.xln");
+			log.reportException(e);
 		}
 	}
 	
 	public static void main(String[] args) {
+//		args = new String[] {"files=perfectPolymorphs.xln,5;perfectPolymorphs.xln,6;perfectPolymorphs.xln,12;perfectPolymorphs.xln,13;perfectPolymorphs.xln,19;perfectPolymorphs.xln,20;perfectPolymorphs.xln,26;perfectPolymorphs.xln,27"};
+		args = new String[] {"files=perfectPolymorphs.xln,5;perfectPolymorphs.xln,6;perfectPolymorphs.xln,12"};
+
 		int numArgs = args.length;
 		String[] filenames = DEFAULT_FILES;
 		String computeDir = "";
@@ -333,7 +337,7 @@ public class QQPlot extends JFrame implements ActionListener {
 		int max = -1;
 		boolean displayQuantiles = false;
 		boolean displayStandardQQ = true;
-		boolean displayRotatedQQ = true;
+		boolean displayRotatedQQ = false;
 		double maxToPlot = -1;
 		boolean symmetric = false;
 		String plotLabel = "Q-Q Plot";
@@ -388,7 +392,6 @@ public class QQPlot extends JFrame implements ActionListener {
 				logfile = ext.parseStringArg(args[i], null);
 				numArgs--;
 			}
-			
 		}
 		if (numArgs!=0) {
 			System.err.println(usage);
@@ -399,7 +402,7 @@ public class QQPlot extends JFrame implements ActionListener {
 		
 		try {
 			if (computePrefix != null) {
-				computeCI(computeDir, computePrefix, max);
+				computeCI(computeDir, computePrefix, max, new Logger(logfile));
 			} else {
 				loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ, displayRotatedQQ, maxToPlot, symmetric, maxValue, new Logger(logfile));
 			}
