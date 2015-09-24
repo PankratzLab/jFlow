@@ -193,6 +193,10 @@ public class GcAdjustor {
 	public String getQCString() {
 		return wfPrior + "\t" + wfPost + "\t" + gcwfPrior + "\t" + gcwfPost;
 	}
+	
+	public String getAnnotatedQCString() {
+		return "WF_PRIOR: " + wfPrior + "\tWF_POST: " + wfPost + "\tGCWF_PRIOR" + gcwfPrior + "\tGCWF_POST" + gcwfPost;
+	}
 
 	public double[] getCorrectedIntensities() {
 		if (fail) {
