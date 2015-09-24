@@ -21,6 +21,8 @@ public class PFB {
 			String error = "Found " + pfbs.length + " pfb entries, but the project has" + pfbs.length + " markers";
 			proj.getLog().reportTimeError(error);
 			throw new IllegalArgumentException(error);
+		} else {
+			this.proj.getLog().reportTimeInfo("Loaded " + pfbs.length + " pfb entries");
 		}
 	}
 
@@ -48,7 +50,6 @@ public class PFB {
 			double[] pfbs = extProjectDataParser.getNumericDataForTitle("PFB");
 			return new PFB(proj, pfbs);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			proj.getLog().reportFileNotFound(fullPathToPfb);
 			return null;
