@@ -2896,6 +2896,28 @@ public class Array {
 		}
 		return subarray;
 	}
+	
+	/**
+	 * Creates a new array using only the boolean values at indices defined by the Integer array
+	 * 
+	 * @param array
+	 *            an array of double
+	 * @param use
+	 *            indices to use
+	 * @return the subset of the original array
+	 */
+	public static boolean[] subArray(boolean[] array, int[] use) {
+		boolean[] subarray = new boolean[use.length];
+		try {
+			for (int i = 0; i < use.length; i++) {
+				subarray[i] = array[use[i]];
+			}
+		} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
+			System.err.println("Error - out of bounds index for subset");
+			return null;
+		}
+		return subarray;
+	}
 
 	/**
 	 * Creates a new array using only the indices between start and stop
