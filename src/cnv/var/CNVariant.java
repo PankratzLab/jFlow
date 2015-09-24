@@ -694,6 +694,21 @@ public class CNVariant extends Segment {
 		private int numMarkers = -1;
 		private int source = -1;
 
+		public Builder() {
+
+		}
+		public Builder(CNVariant cnVariant) {
+			this.chr = cnVariant.chr;
+			this.start = cnVariant.start;
+			this.stop = cnVariant.stop;
+			this.familyID = cnVariant.familyID;
+			this.individualID = cnVariant.individualID;
+			this.cn = cnVariant.cn;
+			this.score = cnVariant.score;
+			this.numMarkers = cnVariant.numMarkers;
+			this.source = cnVariant.source;
+		}
+		
 		public Builder familyID(String familyID) {
 			this.familyID = familyID;
 			return this;
