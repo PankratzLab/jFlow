@@ -865,6 +865,11 @@ public class PennHmm {
 				test[1][i] = 0;
 			}
 		}
+		GcAdjustor gcAdjustor = new GcAdjustor(proj, gcModel, test[0], null, true, true);
+		gcAdjustor.correctIntensities();
+		gcAdjustor.computeQCMetrics(true, true);
+		test[0] = gcAdjustor.getCorrectedIntensities();
+		proj.getLog().reportTimeInfo(gcAdjustor.getAnnotatedQCString());
 		double[] lrrs = adjustLrr(Array.subArray(test[0], autosomalMarkers), -2, 2, proj.getLog());
 		double[] bafs = adjustBaf(Array.subArray(test[1], autosomalMarkers), .25, .75, proj.getLog());
 		PennHmm pennHmmAdjusted = adjustBSD(pennHmmOriginal, Array.stdev(getValuesBetween(lrrs, -2, 2)), proj.getLog());
@@ -896,12 +901,13 @@ public class PennHmm {
 
 		int[][] snpdists = getSNPDist(proj);
 		ArrayList<CNVariant> allCNVsAL = new ArrayList<CNVariant>();
+		proj.getLog().reportTimeElapsed(time);
 		for (int i = 0; i < uniques.size(); i++) {
 			byte currentChr = uniques.get(i);
 			String key = Positions.getChromosomeUCSC(currentChr, true);
 			if (currentChr > 0 && newIndices.get(key).size() > 10 && currentChr < 23) {
 				int[] indices = Array.toIntArray(newIndices.get(key));
-				System.out.println("Current CHR " + key + " probe count " + indices.length);
+				//System.out.println("Current CHR " + key + " probe count " + indices.length);
 				double[] bafsChr = Array.subArray(bafs, indices);
 				if (currentChr == 11) {
 					for (int j = 0; j < snpdists[currentChr].length; j++) {
@@ -911,7 +917,7 @@ public class PennHmm {
 						if (j > 11) {
 							// System.exit(1);
 						}
-						System.out.println(j + "\t" + snpdists[currentChr][j]);
+					//	System.out.println(j + "\t" + snpdists[currentChr][j]);
 					}
 					// System.exit(1);
 				}
