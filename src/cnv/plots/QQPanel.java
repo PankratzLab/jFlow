@@ -104,14 +104,18 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 	public void componentResized(ComponentEvent e) {
 	    int w = (int) e.getComponent().getSize().getWidth();
 	    int h = (int) e.getComponent().getSize().getHeight();
+	    if (trackedW == -1 || trackedH == -1) {
+	        setTrackedSize(w, h);
+	        return;
+	    }
 	    if (w != trackedW || h != trackedH) {
 	        setTrackedSize(w, h);
 	        super.componentResized(e);
 	    }
 	}
 	
-	private volatile int trackedW;
-	private volatile int trackedH;	
+	private volatile int trackedW = -1;
+	private volatile int trackedH = -1;	
 	public void setTrackedSize(int w, int h) {
 	    this.trackedW = w;
 	    this.trackedH = h;

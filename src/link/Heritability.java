@@ -7,6 +7,7 @@ import java.util.concurrent.Callable;
 import cnv.filesys.Pedigree;
 import parse.GenParser;
 import stats.Correlation;
+import stats.ICC;
 import stats.RegressionModel;
 import common.Array;
 import common.CmdLine;
@@ -331,7 +332,7 @@ public class Heritability {
 
     		try {
 				summary = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_summary.xln"));
-				summary.println("Model\tMerlin_est.\tSolar_est.\tSolar_p\tSolar_StdError\tSolar_Kurt\tSolar_KurtWarning\tn_Samples\tn_Families\tn_Families_size>1\tAverage_size_families_siez>1\tn_Families_size=1");
+				summary.println("Model\tMerlin_est.\tSolar_est.\tSolar_p\tSolar_StdError\tSolar_Kurt\tSolar_KurtWarning\tn_Samples\tn_Families\tn_Families_size>1\tAverage_size_families_siez>1\tn_Families_size=1\tPearson_Correl_Z_Siblings\tPearson_Correl_Z_ParentOffspringPairs\tPearson_Correl_Z_Trios\tPearson_Correl_Pval_Siblings\tPearson_Correl_Pval_ParentOffspringPairs\tPearson_Correl_Pval_Trios\tICC_Siblings\tICC_ParentOffspringPairs\tICC_Trios");
 	    		for (int i = 0; i < models.size(); i++) {
 	    			line = models.elementAt(i);
 	    			if (line.length < 2) {
@@ -424,46 +425,101 @@ public class Heritability {
 	    				RegressionModel model = RegressionModel.determineAppropriate(RegressionModel.processDeps(deps), RegressionModel.processIndeps(indeps), false, true);
 	    				double[] resids = model.getResiduals();
 	    				
-	    				// calc ICC
-	    				// calc ICC
-	    				// calc ICC
-	    				
+	    				double sibICC;
+	    				double poICC;
+	    				double trioICC;
 	    				double[] sibCorrel;
 	    				double[] poCorrel;
 	    				double[] trioCorrel;
-	    				double[][] correlationData;
-	    				sibs : {
-	    				    correlationData = new double[2][sibList.size() / 2]; // sibs are doubled
+	    				/*sibs : */{
+	    				    double[][] correlationData;
+	    				    ArrayList<Double> sibICCData = new ArrayList<Double>();
+	    				    ArrayList<String> sibICCResponseIDs = new ArrayList<String>();
+	    				    ArrayList<Double> correl1 = new ArrayList<Double>();
+	    				    ArrayList<Double> correl2 = new ArrayList<Double>();
 	    				    HashSet<String> used = new HashSet<String>();
-	    				    int cnt = 0;
 	    				    for (int k = 0; k < sibList.size(); k++) {
 	    				        if (used.contains(sibList.get(k)[0] + "\t" + sibList.get(k)[1]) || used.contains(sibList.get(k)[0] + "\t" + sibList.get(k)[1])) {
 	    				            // already found
 	    				            continue;
 	    				        }
+	    				        Integer resid1 = subIndexMap.get(sibList.get(k)[0]);
+	    				        Integer resid2 = subIndexMap.get(sibList.get(k)[1]);
+	    				        if (resid1 == null || resid2 == null) {
+	    				            continue; // skip
+	    				        }
     				            used.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
-    				            correlationData[0][cnt] = resids[subIndexMap.get(sibList.get(k)[0])];
-    				            correlationData[1][cnt++] = resids[subIndexMap.get(sibList.get(k)[1])];
+    				            correl1.add(resids[resid1.intValue()]);
+    				            correl2.add(resids[resid2.intValue()]);
+    				            sibICCData.add(resids[resid1]);
+    				            sibICCData.add(resids[resid2]);
+    				            sibICCResponseIDs.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
+    				            sibICCResponseIDs.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
 	    				    }
+	    				    correlationData = new double[][]{Array.toDoubleArray(correl1), Array.toDoubleArray(correl2)};
                             sibCorrel = Correlation.Pearson(correlationData);
+                            ICC sibICCAnalysis = new ICC(Array.toDoubleArray(sibICCData), Array.toStringArray(sibICCResponseIDs), null, null, true, log);
+                            sibICCAnalysis.computeICC();
+                            sibICC = sibICCAnalysis.getICC();
 	    				}
-	    				po : {
-	    				    correlationData = new double[2][poPairs.size()];
+	    				/*po : */{
+	    				    double[][] correlationData;
+	    				    ArrayList<Double> poICCData = new ArrayList<Double>();
+	    				    ArrayList<String> poICCResponseIDs = new ArrayList<String>();
+                            ArrayList<Double> correl1 = new ArrayList<Double>();
+                            ArrayList<Double> correl2 = new ArrayList<Double>();
 	    				    for (int k = 0; k < poPairs.size(); k++) {
-	    				        correlationData[0][k] = resids[subIndexMap.get(poPairs.get(k)[0])];
-	    				        correlationData[1][k] = resids[subIndexMap.get(poPairs.get(k)[1])];
+                                Integer resid1 = subIndexMap.get(poPairs.get(k)[0]);
+                                Integer resid2 = subIndexMap.get(poPairs.get(k)[1]);
+                                if (resid1 == null || resid2 == null) {
+                                    continue; //skip
+                                }
+                                correl1.add(resids[resid1.intValue()]);
+                                correl2.add(resids[resid2.intValue()]);
+	    				        poICCData.add(resids[resid1.intValue()]);
+	    				        poICCData.add(resids[resid2.intValue()]);
+	    				        poICCResponseIDs.add(poPairs.get(k)[0] + "\t" + poPairs.get(k)[1]);
+	    				        poICCResponseIDs.add(poPairs.get(k)[0] + "\t" + poPairs.get(k)[1]);
 	    				    }
+                            correlationData = new double[][]{Array.toDoubleArray(correl1), Array.toDoubleArray(correl2)};
 	    				    poCorrel = Correlation.Pearson(correlationData);
+                            ICC poICCAnalysis = new ICC(Array.toDoubleArray(poICCData), Array.toStringArray(poICCResponseIDs), null, null, true, log);
+                            poICCAnalysis.computeICC();
+                            poICC = poICCAnalysis.getICC();
 	    				}
-	    				trios : {
-	    				    correlationData = new double[2][trios.size()];
+	    				/*trios : */{
+                            double[][] correlationData;
+	    				    ArrayList<Double> trioICCData = new ArrayList<Double>();
+	    				    ArrayList<String> trioICCResponseIDs = new ArrayList<String>();
+                            ArrayList<Double> correl1 = new ArrayList<Double>();
+                            ArrayList<Double> correl2 = new ArrayList<Double>();
                             for (int k = 0; k < trios.size(); k++) {
-                                correlationData[0][k] = resids[subIndexMap.get(trios.get(k)[0])];
-                                double p1 = resids[subIndexMap.get(trios.get(k)[1])];
-                                double p2 = resids[subIndexMap.get(trios.get(k)[2])];
-                                correlationData[1][k] = (p1 + p2) / 2;
+                                int iidInd = trios.get(k)[0];
+                                int faInd = trios.get(k)[1];
+                                int moInd = trios.get(k)[2];
+                                String fidiid = famIdHash.get(ped.getIID(iidInd)) + "\t" + ped.getIID(iidInd);
+                                String fidiid2 = famIdHash.get(ped.getIID(faInd)) + "\t" + ped.getIID(faInd);
+                                String fidiid3 = famIdHash.get(ped.getIID(moInd)) + "\t" + ped.getIID(moInd);
+                                Integer resid1 = subIndexMap.get(fidiid);
+                                Integer resid2 = subIndexMap.get(fidiid2);
+                                Integer resid3 = subIndexMap.get(fidiid3);
+                                if (resid1 == null || resid2 == null || resid3 == null) {
+                                    continue; //skip
+                                }
+                                correl1.add(resids[resid1]);
+                                double p1 = resids[resid2];
+                                double p2 = resids[resid3];
+                                correl2.add((p1 + p2) / 2);
+                                trioICCData.add(resids[resid1]);
+                                trioICCData.add((p1 + p2) / 2);
+                                trioICCResponseIDs.add(trios.get(k)[0] + "\t" + trios.get(k)[1] + "\t" + trios.get(k)[2]);
+                                trioICCResponseIDs.add(trios.get(k)[0] + "\t" + trios.get(k)[1] + "\t" + trios.get(k)[2]);
                             }
+                            correlationData = new double[][]{Array.toDoubleArray(correl1), Array.toDoubleArray(correl2)};
                             trioCorrel = Correlation.Pearson(correlationData);
+                            ICC trioICCAnalysis = new ICC(Array.toDoubleArray(trioICCData), Array.toStringArray(trioICCResponseIDs), null, null, true, log);
+                            trioICCAnalysis.computeICC();
+                            trioICC = trioICCAnalysis.getICC();
 	    				}
 	    				
 						log.report("Heritability for "+root);
@@ -479,22 +535,25 @@ public class Heritability {
 						log.report("Number of samples: " + numOfAllSamples + "\nNumber of families: " + counter.getSize() + "\nNumber of families of size>=2: " + numOfFamiliesSizedTwoOrAbove + "\nAverage size of families of size>=2: " + ext.formDeci((numOfAllSamples - numOfFamiliesSizedOne) / (float) numOfFamiliesSizedTwoOrAbove, 3) + "\nNumber of families of size=1: " + numOfFamiliesSizedOne);
 //						summary.println(root + "\t" + merlinEstimate + "\t" + solarEstimate[0] + "\t" + solarEstimate[1] + "\t" + numOfAllSamples + "\t" + counter.getSize() + "\t" + numOfFamiliesSizedTwoOrAbove + "\t" + String.format("%.3", ((float) (numOfAllSamples - numOfFamiliesSizedOne)) / numOfFamiliesSizedTwoOrAbove) + "\t" + numOfFamiliesSizedOne);
 						summary.println(root + "\t" + 
-						                merlinEstimate + "\t" + 
-						                Array.toStr(solarEstimate) + "\t" + 
-						                numOfAllSamples + "\t" + 
-						                counter.getSize() + "\t" + 
-						                numOfFamiliesSizedTwoOrAbove + "\t" + 
-						                ext.formDeci((float) (numOfAllSamples - numOfFamiliesSizedOne) / numOfFamiliesSizedTwoOrAbove, 3) + "\t" + 
-						                numOfFamiliesSizedOne);
-						// add SiblingCorrelation
-						// add POCorrelation
-						// add TrioCorrelation
-						// add SiblingICC
-						// add POICC
-						// add TrioICC
-						// (sibList.size() / 2) + "\t" +  
-						// poPairs.size() + "\t" + 
-						// trios.size() + "\t"
+                                        merlinEstimate + "\t" + 
+                                        Array.toStr(solarEstimate) + "\t" + 
+                                        numOfAllSamples + "\t" + 
+                                        counter.getSize() + "\t" + 
+                                        numOfFamiliesSizedTwoOrAbove + "\t" + 
+                                        ext.formDeci((float) (numOfAllSamples - numOfFamiliesSizedOne) / numOfFamiliesSizedTwoOrAbove, 3) + "\t" + 
+                                        numOfFamiliesSizedOne + "\t" + 
+                                        sibCorrel[0] + "\t" + 
+                                        poCorrel[0] + "\t" + 
+                                        trioCorrel[0] + "\t" + 
+                                        sibCorrel[1] + "\t" + 
+                                        poCorrel[1] + "\t" + 
+                                        trioCorrel[1] + "\t" + 
+                                        sibICC + "\t" + 
+                                        poICC + "\t" + 
+                                        trioICC + "\t" + 
+                                        (sibList.size() / 2) + "\t" +  
+                                        poPairs.size() + "\t" + 
+                                        trios.size());
 						summary.flush();
 						log.report("");
 	    			}
