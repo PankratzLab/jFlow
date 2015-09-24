@@ -32,7 +32,18 @@ import common.Positions;
  * @author lane0212 <br>
  *         Mimics the hmm functionality used in in PennCNV (http://penncnv.openbioinformatics.org/)<br>
  *         Really, we mimic the kext C package here <br>
- *         See below for an example .hmm file
+ *         See below for an example .hmm file <br>
+ *         NOTE<br>
+ *         the model has 6 states;<br>
+ *         Index 0: CN 0<br>
+ *         Index 1: CN 1<br>
+ *         Index 2: CN 2<br>
+ *         Index 3: LOH!<br>
+ *         Index 4: CN 3<br>
+ *         Index 5: CN 4<br>
+ * 
+ * 
+ * 
  * 
  */
 
@@ -160,7 +171,7 @@ public class PennHmm {
 
 	/**
 	 * @param state
-	 *            copynumber state
+	 *            hmm state
 	 * @param bStatus
 	 *            B1, B2...
 	 * @param o
@@ -179,11 +190,20 @@ public class PennHmm {
 		return Math.log(p);
 	}
 
+	/**
+	 * @param state
+	 *            hmm state
+	 * @param bStatus
+	 * @param pfb
+	 * @param b
+	 *            baf value to test
+	 * @return log odds, I think, for the current data and state
+	 */
 	private static double b2iot(int state, BStatus bStatus, double pfb, double b) {
-		double p = 0;
 
 		double uf = bStatus.getB_uf();
-		p = uf;
+		double p = uf;
+		// from kext....
 		// double mean0 = bStatus.getB_mean()[1];//note the index starts at 1
 		// double mean25 = bStatus.getB_mean()[2];
 		// double mean33 = bStatus.getB_mean()[3];
@@ -294,6 +314,9 @@ public class PennHmm {
 		return Math.log(p);
 	}
 
+	/**
+	 * Load the hmm file, must be in exact PennCNV/Kext format
+	 */
 	public static PennHmm loadPennHmm(String hmmFile, Logger log) {
 		if (!Files.exists(hmmFile)) {
 			log.reportFileNotFound(hmmFile);
@@ -305,7 +328,8 @@ public class PennHmm {
 				int m = -1;
 				int n = -1;
 				double[][] a = null;
-				double[][] b = null;
+				 double[][] b = null;
+				// TODO what about the B:?
 
 				if (!M.startsWith("M=")) {
 					log.reportTimeError("cannot read M annotation from HMM file");
@@ -339,9 +363,6 @@ public class PennHmm {
 				BStatus B2 = loadBstatus("B2", reader, log);
 				BStatus B3 = loadBstatus("B3", reader, log);
 				reader.close();
-				System.out.println("B1\t" + Array.toStr(B1.getB_mean()));
-				System.out.println("B2\t" + Array.toStr(B2.getB_mean()));
-				System.out.println("B3\t" + Array.toStr(B3.getB_mean()));
 				return new PennHmm(m, n, pi, a, B1, B2, B3, log);
 			} catch (FileNotFoundException fnfe) {
 				log.reportError("Error: file \"" + hmmFile + "\" not found in current directory");
@@ -364,33 +385,26 @@ public class PennHmm {
 		int[] q = new int[o1.length];
 		double[][] delta = new double[o1.length][pennHmm.getN()];
 		int[][] psi = new int[o1.length][pennHmm.getN()];
+
 		PennHmm pennHmmLog = new PennHmm(pennHmm);
-		/* 0. Preprocessing */
 		pennHmmLog.logPi();
-		int cnCount = 0;
-		int snpCount = 0;
 		for (int i = 0; i < pennHmmLog.getN(); i++) {
 			for (int t = 0; t < o1.length; t++) {
 				if (copyNumberOnlyDef[t]) {
 					biot[i][t] = b1iot(i, pennHmmLog.getB3(), o1[t]);
-					cnCount++;
 				} else {
 					double bioTmp = b1iot(i, pennHmmLog.getB1(), o1[t]);
 					bioTmp += b2iot(i, pennHmmLog.getB2(), pfb[t], o2[t]);
-					// System.out.println("BIOTMP" + bioTmp);
 					biot[i][t] = bioTmp;
-					snpCount++;
 				}
 			}
 		}
-
-		// pennHmm.getLog().reportTimeInfo("Encountered " + snpCount + " snp probes and " + cnCount + " cn probes");
 
 		for (int i = 0; i < pennHmmLog.getN(); i++) {
 			delta[0][i] = pennHmmLog.getPi()[i] + biot[i][0];
 		}
 		for (int t = 1; t < o1.length; t++) {
-			PennHmm converted = convertHMMTransition(pennHmmLog, snpdist[t-1]);// account for physical distance between markers
+			PennHmm converted = convertHMMTransition(pennHmmLog, snpdist[t - 1]);// account for physical distance between markers
 			for (int j = 0; j < converted.getN(); j++) {
 				double maxval = -1 * VITHUGE;
 				int maxvalind = 0;
@@ -428,6 +442,20 @@ public class PennHmm {
 			this.q = q;
 		}
 
+		/**
+		 * @param proj
+		 * @param fid
+		 *            assign all cnvs consolidated from the state sequence to this family id
+		 * @param iid
+		 *            assign all cnvs consolidated from the state sequence to this individual id
+		 * @param currentChr
+		 *            assign all cnvs consolidated from the state sequence to this chromosome
+		 * @param positions
+		 *            physical postions corresponding to the states
+		 * @param normalState
+		 *            Copy number normal
+		 * @return
+		 */
 		public LocusSet<CNVariant> analyzeStateSequence(Project proj, String fid, String iid, byte currentChr, int[] positions, int normalState) {
 			CNVariant.Builder builder = new Builder();
 			builder.familyID(fid);
@@ -441,22 +469,12 @@ public class PennHmm {
 			} else {
 				boolean foundSignal = false;
 				int currentFind = 2;
-				// boolean recording = false;
 				for (int i = 0; i < q.length; i++) {
 					int currentCN = q[i];
-					// if (positions[i] == 599924) {
-					// System.out.println(q[i]);
-					// recording = true;
-					//
-					// }
-
 					if (currentCN != normalState && currentCN != 3) {// CN 3 denotes LOH.
 						if (currentCN > 3) {
 							currentCN--;
 						}
-						// if (recording) {
-						// System.out.println(builder.build().toPlinkFormat() + "\t" + tmp.size());
-						// }
 						if (foundSignal && currentCN != currentFind) {// new, adjacent cnv
 							builder.stop(positions[i - 1]);
 							tmp.add(builder.build());
@@ -527,6 +545,10 @@ public class PennHmm {
 		}
 	}
 
+	/**
+	 * @param proj
+	 * @return the plus one index physical distance of each marker
+	 */
 	private static int[][] getSNPDist(Project proj) {
 		MarkerSet markerSet = proj.getMarkerSet();
 		int[][] chrPos = markerSet.getPositionsByChr();
@@ -596,7 +618,7 @@ public class PennHmm {
 		private OpdfGaussian[] gaussians;
 		private double b_uf;
 
-		public BStatus(double[] b_mean, double[] b_sd, double b_uf) {
+		private BStatus(double[] b_mean, double[] b_sd, double b_uf) {
 			super();
 			this.b_mean = b_mean;
 			this.b_sd = b_sd;
@@ -607,23 +629,26 @@ public class PennHmm {
 			}
 		}
 
-		public OpdfGaussian[] getGaussians() {
+		private OpdfGaussian[] getGaussians() {
 			return gaussians;
 		}
 
-		public double[] getB_mean() {
+		private double[] getB_mean() {
 			return b_mean;
 		}
 
-		public double[] getB_sd() {
+		private double[] getB_sd() {
 			return b_sd;
 		}
 
-		public double getB_uf() {
+		private double getB_uf() {
 			return b_uf;
 		}
 
-		public void setB_sd(double[] b_sd) {
+		/**
+		 * and create new distributions from the new sds
+		 */
+		private void setB_sd(double[] b_sd) {
 			this.b_sd = b_sd;
 			for (int i = 0; i < b_mean.length; i++) {
 				gaussians[i] = new OpdfGaussian(b_mean[i], Math.pow(b_sd[i], 2));
@@ -632,9 +657,7 @@ public class PennHmm {
 
 	}
 
-	public static PennHmm convertHMMTransition(PennHmm pennHmm, int dist)
-	/* this subroutine convert HMM transition probabilities using the P=Pref*(1-exp(-d/D)) formula for off-diagonal cells in the matrix */
-	{
+	private static PennHmm convertHMMTransition(PennHmm pennHmm, int dist) {
 		PennHmm converted = new PennHmm(pennHmm);
 		int i, j;
 		double D = STATE_CHANGE;
@@ -650,7 +673,7 @@ public class PennHmm {
 						tmpA[i][j] = pennHmm.getA()[i][j] * (1 - Math.exp(-dist / D)) / (1 - Math.exp(-5000 / D));
 					}
 					if (tmpA[i][j] > 1) {
-						pennHmm.getLog().reportTimeWarning("WARNING: Off-diagonal cell A[%i][%i] (%f to %f by %i) in transition matrix is over boundary of 1 (HMM model is not optimized). Assign 0.999 as the value instead.\n" + i + "\t" + j + "\t" + pennHmm.getA()[i][j] + "\t" + tmpA[i][j] + "\t" + dist);
+						pennHmm.getLog().reportTimeWarning("Off-diagonal cell A[%i][%i] (%f to %f by %i) in transition matrix is over boundary of 1 (HMM model is not optimized). Assign 0.999 as the value instead.\n" + i + "\t" + j + "\t" + pennHmm.getA()[i][j] + "\t" + tmpA[i][j] + "\t" + dist);
 						tmpA[i][j] = 0.999; /* maximum possible off-diagonal value (since state3 frequency is 0.999) */
 					}
 					offdiagonal_sum += tmpA[i][j];
@@ -690,10 +713,8 @@ public class PennHmm {
 
 	private static double[] adjustLrr(double[] lrrs, double minLrr, double maxLrr, Logger log) {
 		double[] adjusted = new double[lrrs.length];
-
 		double median = Array.median(getValuesBetween(lrrs, minLrr, maxLrr));
 		log.reportTimeInfo("Median adjusting lrr values by " + median + "\t" + Array.median(Array.removeNaN(lrrs)));
-
 		for (int i = 0; i < adjusted.length; i++) {
 			adjusted[i] = lrrs[i] - median;
 		}
@@ -792,7 +813,7 @@ public class PennHmm {
 		return logProb;
 	}
 
-	public static double[][] loadFromTest(Project proj, String testFile, Logger log) {
+	private static double[][] loadFromTest(Project proj, String testFile, Logger log) {
 		double[][] lrrBafs = new double[2][proj.getMarkerNames().length];
 		try {
 			BufferedReader reader = Files.getAppropriateReader(testFile);
@@ -884,15 +905,15 @@ public class PennHmm {
 				double[] bafsChr = Array.subArray(bafs, indices);
 				if (currentChr == 11) {
 					for (int j = 0; j < snpdists[currentChr].length; j++) {
-						if(bafsChr[j]==0||bafsChr[j]==1){
-							//System.exit(1);
+						if (bafsChr[j] == 0 || bafsChr[j] == 1) {
+							// System.exit(1);
 						}
-						if(j>11){
-							//System.exit(1);
+						if (j > 11) {
+							// System.exit(1);
 						}
-						System.out.println(j  + "\t" + snpdists[currentChr][j]);
-					}      
-					//System.exit(1);
+						System.out.println(j + "\t" + snpdists[currentChr][j]);
+					}
+					// System.exit(1);
 				}
 				int[] positions = Array.subArray(autosomalPositions, indices);
 				double[] lrrChr = Array.subArray(lrrs, indices);
@@ -935,23 +956,18 @@ public class PennHmm {
 		double[] b3AdjustedSd = new double[pennHmm.getB3().getB_sd().length];
 
 		double ratio = sdo / pennHmm.getB1().getB_sd()[2];
-		log.reportTimeInfo("Adjusting hmm sd measures by " + sdo +" and ratio "+ratio);
+		log.reportTimeInfo("Adjusting hmm sd measures by " + sdo + " and ratio " + ratio);
 
 		for (int i = 0; i < pennHmm.getN(); i++) {
 
 			b1AdjustedSd[i] = pennHmm.getB1().getB_sd()[i] * ratio;
 		}
-		for (int i = 0; i <  pennHmm.getN()-1; i++) {
+		for (int i = 0; i < pennHmm.getN() - 1; i++) {
 			b2AdjustedSd[i] = pennHmm.getB2().getB_sd()[i] * ratio;
 		}
-		for (int i = 0; i <  pennHmm.getN()	; i++) {
+		for (int i = 0; i < pennHmm.getN(); i++) {
 			b3AdjustedSd[i] = pennHmm.getB3().getB_sd()[i] * ratio;
 		}
-		System.out.println(Array.toStr(b1AdjustedSd));
-		System.out.println(Array.toStr(b2AdjustedSd));
-		System.out.println(Array.toStr(b3AdjustedSd));
-		System.out.println(Array.toStr(pennHmm.getB3().getB_sd()));
-
 		pennAdjusted.getB1().setB_sd(b1AdjustedSd);
 		pennAdjusted.getB2().setB_sd(b2AdjustedSd);
 		pennAdjusted.getB3().setB_sd(b3AdjustedSd);
