@@ -210,7 +210,7 @@ public class ClusterFilterCollection implements Serializable {
 	public static String getGenotypeLookupTableSelection(Project proj) {
 		String result;
 		result = (String)JOptionPane.showInputDialog(null,
-													"Please select a AB genotyp lookup table:",
+													"Please select a AB genotype lookup table:",
 													"Select AB Genotype Lookup Table",
 													JOptionPane.QUESTION_MESSAGE,
 													null,

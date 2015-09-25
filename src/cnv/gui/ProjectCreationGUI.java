@@ -1,9 +1,11 @@
 package cnv.gui;
 
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Insets;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
 import javax.swing.AbstractAction;
@@ -20,6 +22,8 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 
 import common.Array;
 import common.Files;
@@ -66,9 +70,14 @@ public class ProjectCreationGUI extends JDialog {
                 jfc.setMultiSelectionEnabled(false);
                 fld = txtFldProjDir;
             } else if (e.getActionCommand().equals("SOURCE")) {
-                String txt = txtFldProjDir.getText().trim();
+                String txt = txtFldSrcDir.getText().trim();
                 if (!txt.equals("") && !txt.equals("./")) {
                     curr = txt;
+                } else {
+                    txt = txtFldProjDir.getText().trim();
+                    if (!txt.equals("") && !txt.equals("./")) {
+                        curr = txt;
+                    }
                 }
                 jfc.setCurrentDirectory(new File(curr));
                 jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -106,6 +115,7 @@ public class ProjectCreationGUI extends JDialog {
     };
     private JComboBox<Project.ARRAY> comboBoxArrayType;
 //    private JComboBox<String> comboBoxArrayType;
+    private JLabel lblSrcFileStatus;
 
     /**
      * Launch the application.
@@ -130,7 +140,7 @@ public class ProjectCreationGUI extends JDialog {
         Project proj = new Project();
         
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 544, 400);
+        setBounds(100, 100, 550, 500);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -160,7 +170,16 @@ public class ProjectCreationGUI extends JDialog {
         JLabel lblSourceFileDirectory = new JLabel("Source File Directory:");
         contentPane.add(lblSourceFileDirectory, "cell 0 6,alignx trailing");
         
+        CaretListener checkSource = new CaretListener() {
+            @Override
+            public void caretUpdate(CaretEvent e) {
+                updateSourceFileNotice();
+            }
+        };
+        
+        
         txtFldSrcDir = new JTextField(proj.SOURCE_DIRECTORY.getDefaultValueString());
+        txtFldSrcDir.addCaretListener(checkSource);
         contentPane.add(txtFldSrcDir, "flowx,cell 2 6,growx");
         txtFldSrcDir.setColumns(10);
         
@@ -168,6 +187,7 @@ public class ProjectCreationGUI extends JDialog {
         contentPane.add(lblSourceFileExtension, "cell 0 7,alignx trailing");
         
         txtFldSrcExt = new JTextField(proj.SOURCE_FILENAME_EXTENSION.getDefaultValueString());
+        txtFldSrcExt.addCaretListener(checkSource);
         contentPane.add(txtFldSrcExt, "cell 2 7,growx");
         txtFldSrcExt.setColumns(10);
         
@@ -175,6 +195,7 @@ public class ProjectCreationGUI extends JDialog {
         contentPane.add(lblIdHeader, "cell 0 8,alignx trailing");
         
         txtFldIDHdr = new JTextField(proj.ID_HEADER.getDefaultValueString());
+        txtFldIDHdr.addCaretListener(checkSource);
         contentPane.add(txtFldIDHdr, "cell 2 8,growx");
         txtFldIDHdr.setColumns(10);
         
@@ -185,6 +206,9 @@ public class ProjectCreationGUI extends JDialog {
 //        comboBoxArrayType = new JComboBox<String>();
         comboBoxArrayType.setFont(comboBoxArrayType.getFont().deriveFont(Font.PLAIN));
         contentPane.add(comboBoxArrayType, "cell 2 9,growx");
+        
+        lblSrcFileStatus = new JLabel("");
+        contentPane.add(lblSrcFileStatus, "cell 2 10,alignx right,aligny top");
         
         JLabel lblLogrRatioStddev = new JLabel("Log-R Ratio Std.Dev. Cut-off Threshold:");
         contentPane.add(lblLogrRatioStddev, "cell 0 11,alignx trailing");
@@ -245,6 +269,8 @@ public class ProjectCreationGUI extends JDialog {
             }
         });
         panel.add(btnCancel, "cell 1 0");
+        
+        updateSourceFileNotice();
     }
     
     
@@ -297,6 +323,42 @@ public class ProjectCreationGUI extends JDialog {
         }
         return true;
         
+    }
+    
+    private void updateSourceFileNotice() {
+        int cnt = getValidSourceFileCount();
+        if (cnt <= 0) {
+            lblSrcFileStatus.setText("No valid source files found");
+            lblSrcFileStatus.setForeground(Color.RED);
+        } else {
+            lblSrcFileStatus.setText(cnt + " valid source files found");
+            lblSrcFileStatus.setForeground(Color.GREEN.darker());
+        }
+        lblSrcFileStatus.setVisible(true);
+    }
+    
+    private int getValidSourceFileCount() {
+        String srcDir = txtFldSrcDir.getText().trim();
+        final String srcExt = txtFldSrcExt.getText().trim();
+
+        boolean validSrcDir = false;
+        try {
+            File f = (new File(srcDir));
+            f.getCanonicalPath();
+            validSrcDir = f.exists();
+        } catch (IOException e) {}
+        if (!validSrcDir || "".equals(srcExt)) return -1;
+        
+        String[] files = (new File(srcDir)).list(new FilenameFilter() {
+            @Override
+            public boolean accept(File arg0, String arg1) {
+                return arg1.endsWith(srcExt);
+            }
+        });
+        
+        return files.length;
+        // TODO check if files are valid, check if file headers are valid, check if file headers contain ID field
+        // TODO use FinalReport header class (to be constructed)
     }
     
     private String getErrorFor(int index) {

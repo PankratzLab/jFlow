@@ -642,8 +642,12 @@ public class PlinkData {
 			}
 	        proj.progressMonitor.endTask(PROG_KEY);
 		} else {
-			indicesOfTargetSamplesInProj = null;
 			targetSamples = allSamplesInProj;
+//			indicesOfTargetSamplesInProj = null;
+			indicesOfTargetSamplesInProj = new int[allSamplesInProj.length];
+			for (int i = 0; i < allSamplesInProj.length; i++) {
+			    indicesOfTargetSamplesInProj[i] = i;
+			}
 		}
 
 //		allMarkersInProj = proj.getMarkerNames();
@@ -1287,7 +1291,7 @@ public class PlinkData {
 //			filename = proj.getFilename(proj.PEDIGREE_FILENAME);
 			filename = proj.PEDIGREE_FILENAME.getValue();
 			if (!new File(filename).exists()) {
-				log.reportError("Error - pedigree file ('"+filename+"') is not found. Program aborted.");
+				log.reportError("Error - pedigree file ('"+filename+"') is not found.  Cannot create .fam file.");
 				return null;
 			}
 //			reader = new BufferedReader(new FileReader(proj.getFilename(proj.PEDIGREE_FILENAME)));
@@ -1326,10 +1330,10 @@ public class PlinkData {
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \"" + famDirAndFilenameRoot+".fam" + "\" not found in current directory");
-			System.exit(1);
+			return null;
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \"" + famDirAndFilenameRoot+".fam" + "\"");
-			System.exit(2);
+			return null;
 		}
 
 		return Array.toStringArray(dna);
