@@ -14,6 +14,7 @@ import cnv.analysis.Mosaicism;
 import cnv.analysis.pca.PrincipalComponentsCrossTabs;
 import cnv.analysis.pca.PrincipalComponentsManhattan;
 import cnv.filesys.*;
+import cnv.gui.PlinkExportOptions;
 //import cnv.gui.KitAndKaboodleGUI;
 //import cnv.gui.GuiManager;
 //import cnv.gui.PropertyEditor;
@@ -494,19 +495,23 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				}
 
 			} else if (command.equals(GENERATE_PLINK_BINARY_FILES)) {
-				String filename;
-
-				filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
-				System.out.println("file='"+filename+"'");
-				if (filename == null) {
-					log.report("No ClusterFilterCollection will be used");
-				} else {
-					log.report("The ClusterFilterCollection in '"+proj.getProperty(proj.DATA_DIRECTORY)+filename+"' will be used");
-				}
-
-				if (PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkBinary", proj.getProperty(proj.DATA_DIRECTORY)+filename, -1, true)) {
-					log.report("Success!");
-				}
+                PlinkExportOptions peo = new PlinkExportOptions(proj);
+                peo.setModal(true);
+                peo.setVisible(true);
+                if (peo.getCancelled()) {
+                    return;
+                }
+                String plinkFileroot = peo.getPlinkRoot();
+                if (plinkFileroot == null) {
+                    return;
+                }
+                String clusterFile = proj.DATA_DIRECTORY.getValue() + peo.getClusterFilterSelection();
+                
+                if (PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot, clusterFile, -1, true)) {
+                    log.report("Success!");
+                    proj.PLINK_DIR_FILEROOTS.setValue(Array.addStrToArray(plinkFileroot, proj.PLINK_DIR_FILEROOTS.getValue()));
+                    // TODO save properties to persist PLINK fileroot
+                }
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
 				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null, null, proj.NUM_THREADS.getValue());
 			} else if (command.equals(PARSE_RAW_PENNCNV_RESULTS)) {
