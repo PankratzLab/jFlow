@@ -169,8 +169,7 @@ public class DemoProject extends Project {
 
 	private static String[] loadMarkers(Project proj, String markersFile, DEMO_TYPE dType) {
 		String[] markersToUse = proj.getMarkerNames();
-//		String targetMarkerFile = proj.getFilename(proj.TARGET_MARKERS_FILENAME);
-		String targetMarkerFile = proj.TARGET_MARKERS_FILENAME.getValue();
+		String targetMarkerFile = proj.TARGET_MARKERS_FILENAMES.getDefaultValueString();
 		if (markersFile != null) {
 			markersToUse = getParserFor(proj, markersFile, false).getStringDataAt(0, true);
 		} else if (Files.exists(targetMarkerFile) && dType == DEMO_TYPE.MARKER_FOCUS) {

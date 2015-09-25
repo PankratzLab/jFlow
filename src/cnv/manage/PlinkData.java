@@ -602,7 +602,7 @@ public class PlinkData {
 	 * @param clusterFilterFileName
 	 * @param gcThreshold
 	 */
-	public static boolean saveGenvisisToPlinkBedSet(Project proj, String plinkPrefix, String clusterFilterFileName, float gcThreshold, boolean isSnpMajor) {
+	public static boolean saveGenvisisToPlinkBedSet(Project proj, String plinkPrefix, String clusterFilterFileName, String targetMarkersFileName, float gcThreshold, boolean isSnpMajor) {
 		String[] targetMarkers;
 		int[] indicesOfTargetSamplesInProj;
 		int[] indicesOfTargetMarkersInProj;
@@ -651,7 +651,7 @@ public class PlinkData {
 		}
 
 //		allMarkersInProj = proj.getMarkerNames();
-		targetMarkers = proj.getTargetMarkers();
+		targetMarkers = proj.getTargetMarkers(targetMarkersFileName);
 		if (targetMarkers != null) {
             proj.progressMonitor.beginTask(PROG_KEY, "Loading marker data", false, targetMarkers.length);
 			indicesOfTargetMarkersInProj = new int[targetMarkers.length];
@@ -2224,13 +2224,13 @@ public class PlinkData {
 			proj = new Project(projPropertyFileFullPath, false);
 			log = proj.getLog();
 			log.report(ext.getTime()+"\tConverting Genvisis to Plink text (.ped) data set.");
-			PlinkFormat.createPlink(proj, "gwas", proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME);
+			PlinkFormat.createPlink(proj, "gwas", proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, null);
 
 		} else if (conversionToRun.equals("genvisistobed")) {
 			proj = new Project(projPropertyFileFullPath, false);
 			log = proj.getLog();
 			log.report(ext.getTime()+"\tConverting from Genvisis to Plink binary (.bed) data set.");
-			saveGenvisisToPlinkBedSet(proj, "plinkZack", proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, gcThreshold, true);
+			saveGenvisisToPlinkBedSet(proj, "plinkZack", proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, proj.TARGET_MARKERS_FILENAMES.getValue()[0], gcThreshold, true);
 			
 		} else if  (conversionToRun.equals("pedtobed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");

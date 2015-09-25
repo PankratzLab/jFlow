@@ -6,13 +6,17 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
@@ -57,11 +61,15 @@ public class PlinkExportOptions extends JDialog {
             e.printStackTrace();
         }
     }
-
+    
+    private static final String NO_CLUSTER_FILTERS = "(--Do not apply any cluster filter--)";
+    private static final String ALL_MARKERS = "(--Export all markers--)";
+    private static final String NEW_MARKERS_LIST = "(--Create new targetMarkers file--)";
+    
     /**
      * Create the dialog.
      */
-    public PlinkExportOptions(Project proj) {
+    public PlinkExportOptions(final Project proj) {
         this.proj = proj;
         setTitle("PLINK Export Options");
         setBounds(100, 100, 300, 250);
@@ -76,7 +84,7 @@ public class PlinkExportOptions extends JDialog {
         {
             comboBoxClusterFilters = new JComboBox<String>(getClusterFiltersOptions());
             comboBoxClusterFilters.setFont(comboBoxClusterFilters.getFont().deriveFont(Font.PLAIN));
-            comboBoxClusterFilters.setSelectedItem(getClusterFiltersDefaultValue());
+            comboBoxClusterFilters.setSelectedItem(NO_CLUSTER_FILTERS);
             contentPanel.add(comboBoxClusterFilters, "cell 0 1 2 1,growx");
         }
         {
@@ -85,8 +93,31 @@ public class PlinkExportOptions extends JDialog {
         }
         {
             comboBoxTargetMarkers = new JComboBox<String>(getTargetMarkersOptions());
+            comboBoxTargetMarkers.addItemListener(new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent arg0) {
+                    if (arg0.getStateChange() == ItemEvent.SELECTED) {
+                        String val = (String) comboBoxTargetMarkers.getSelectedItem();
+                        if (NEW_MARKERS_LIST.equals(val)) {
+                            NewMarkerListDialog nmld = new NewMarkerListDialog(proj.getMarkerNames(), proj.PROJECT_DIRECTORY.getValue());
+                            nmld.setModal(true);
+                            nmld.setVisible(true);
+                            if (nmld.getReturnCode() == JOptionPane.YES_OPTION) {
+                                String mkrFile = nmld.getFileName();
+                                String[] mkrFiles = proj.TARGET_MARKERS_FILENAMES.getValue();
+                                mkrFiles = Array.addStrToArray(mkrFile, mkrFiles, 0);
+                                proj.TARGET_MARKERS_FILENAMES.setValue(mkrFiles);
+                                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<String>(mkrFiles));
+                                comboBoxTargetMarkers.setSelectedItem(mkrFile);
+                            } else {
+                                comboBoxTargetMarkers.setSelectedItem(ALL_MARKERS);
+                            }
+                        }
+                    }
+                }
+            });
             comboBoxTargetMarkers.setFont(comboBoxTargetMarkers.getFont().deriveFont(Font.PLAIN));
-            comboBoxTargetMarkers.setSelectedItem(getTargetMarkersDefaultValue());
+            comboBoxTargetMarkers.setSelectedItem(ALL_MARKERS);
             contentPanel.add(comboBoxTargetMarkers, "cell 0 3 2 1,growx");
         }
         {
@@ -187,25 +218,24 @@ public class PlinkExportOptions extends JDialog {
         return true;
     }
     
-    private Object getClusterFiltersDefaultValue() {
-        return proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME);
-    }
-
     private String[] getClusterFiltersOptions() {
-        return Array.addStrToArray("(--Do not apply any cluster filter--)", Files.list(proj.DATA_DIRECTORY.getValue(false, true), null, ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)), false, proj.JAR_STATUS.getValue()));
-    }
-    
-    private Object getTargetMarkersDefaultValue() {
-        return proj.TARGET_MARKERS_FILENAME.getValue();
+        return Array.addStrToArray(NO_CLUSTER_FILTERS, Files.list(proj.DATA_DIRECTORY.getValue(false, true), null, ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)), false, proj.JAR_STATUS.getValue()));
     }
     
     private String[] getTargetMarkersOptions() {
-        return new String[]{proj.TARGET_MARKERS_FILENAME.getValue()};
+        String[] values = proj.TARGET_MARKERS_FILENAMES.getValue();
+        String[] retVals = new String[values.length + 2];
+        for (int i = 0; i < values.length; i++) {
+            retVals[i] = values[i];
+        }
+        retVals[retVals.length - 1] = NEW_MARKERS_LIST;
+        retVals[retVals.length - 2] = ALL_MARKERS;
+        return retVals;
     }
     
     public String getClusterFilterSelection() {
         String value = (String) comboBoxClusterFilters.getSelectedItem();
-        if ("(--Do not apply any cluster filter--)".equals(value)) {
+        if (NO_CLUSTER_FILTERS.equals(value)) {
             return null;
         } 
         return value;
@@ -221,6 +251,17 @@ public class PlinkExportOptions extends JDialog {
 
     public boolean getCancelled() {
         return cancelled;
+    }
+
+    public String getTargetMarkersFile() {
+        String val = (String) comboBoxTargetMarkers.getSelectedItem();
+        if (ALL_MARKERS.equals(val)) {
+            return null;
+        } else if (NEW_MARKERS_LIST.equals(val)) {
+            return null;
+        } else {
+            return val;
+        }
     }
     
 }

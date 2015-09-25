@@ -359,7 +359,6 @@ public class Project {
 	public      FileProperty                    PEDIGREE_FILENAME = new       FileProperty(this,                    "PEDIGREE_FILENAME", "", "pedigree.dat", false);
 	public      FileProperty          MOSAIC_COLOR_CODES_FILENAME = new       FileProperty(this,          "MOSAIC_COLOR_CODES_FILENAME", "", "data/mosaic_colors.txt", false);
 	public      FileProperty              MOSAIC_RESULTS_FILENAME = new       FileProperty(this,              "MOSAIC_RESULTS_FILENAME", "", "results/Mosaicism.xln", false);
-	public      FileProperty              TARGET_MARKERS_FILENAME = new       FileProperty(this,              "TARGET_MARKERS_FILENAME", "", "targetMarkers.txt", false);
 	public      FileProperty                 MOSAIC_ARMS_FILENAME = new       FileProperty(this,                 "MOSAIC_ARMS_FILENAME", "", "MosaicArms.txt", false);
 	public      FileProperty   CLUSTER_FILTER_COLLECTION_FILENAME = new       FileProperty(this,   "CLUSTER_FILTER_COLLECTION_FILENAME", "", "data/clusterFilters.ser", false);
 	public      FileProperty            SEXCHECK_RESULTS_FILENAME = new       FileProperty(this,            "SEXCHECK_RESULTS_FILENAME", "", "results/sexCheck.xln", false);
@@ -385,6 +384,8 @@ public class Project {
 	public      FileProperty                  CUSTOM_PFB_FILENAME = new       FileProperty(this,                  "CUSTOM_PFB_FILENAME", "", "data/custom.pfb", false);
 	public      FileProperty                         HMM_FILENAME = new       FileProperty(this,                         "HMM_FILENAME", "", "data/hhall.hmm", false);
 
+//	public      FileProperty              TARGET_MARKERS_FILENAME = new       FileProperty(this,              "TARGET_MARKERS_FILENAME", "", "targetMarkers.txt", false);
+	public StringListProperty            TARGET_MARKERS_FILENAMES = new StringListProperty(this,             "TARGET_MARKERS_FILENAMES", "", "targetMarkers.txt", true, false);
 	public StringListProperty           DISPLAY_MARKERS_FILENAMES = new StringListProperty(this,            "DISPLAY_MARKERS_FILENAMES", "", "data/test.txt", true, false);
 	public StringListProperty               TWOD_LOADED_FILENAMES = new StringListProperty(this,                "TWOD_LOADED_FILENAMES", "", "", true, false);
 	public StringListProperty               FOREST_PLOT_FILENAMES = new StringListProperty(this,                "FOREST_PLOT_FILENAMES", "", "", true, false);
@@ -1036,12 +1037,16 @@ public class Project {
 //        	Files.writeList(Array.toStringArray(props), outfile);
 //        }
 //	}
-
+	
 	public String[] getTargetMarkers() {
+	    return getTargetMarkers(this.TARGET_MARKERS_FILENAMES.getValue()[0]);
+	}
+	
+	public String[] getTargetMarkers(String targetMarkerFile) {
 		String targetMarkers;
 		String[] targets;
 
-		targetMarkers = this.TARGET_MARKERS_FILENAME.getValue(false, false);
+		targetMarkers = targetMarkerFile;
 		if (new File(targetMarkers).exists()) {
 			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, true);
 		} else {
@@ -1224,10 +1229,10 @@ public class Project {
 		propsToCop.add(SAMPLELIST_FILENAME);
 		propsToCop.add(GC_MODEL_FILENAME);
 		propsToCop.add(PEDIGREE_FILENAME);
-		propsToCop.add(TARGET_MARKERS_FILENAME);
 		for (FileProperty fileProperty : propsToCop) {
 			copyToNewProject(this, projectToCopyTo, fileProperty.getName(), overwrite);
 		}
+		// TODO copy targetMarkers files?  All?  Just default file if exists?
 	}
 
 	/**

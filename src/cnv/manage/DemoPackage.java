@@ -285,7 +285,7 @@ public class DemoPackage {
 //		String samplesFile = !Files.exists(proj.getFilename(proj.SAMPLE_SUBSET_FILENAME)) ? null : proj.getFilename(proj.SAMPLE_SUBSET_FILENAME);
 //		String markersFile = !Files.exists(proj.getFilename(proj.TARGET_MARKERS_FILENAME)) ? null : proj.getFilename(proj.TARGET_MARKERS_FILENAME);
 		String samplesFile = !Files.exists(proj.SAMPLE_SUBSET_FILENAME.getValue()) ? null : proj.SAMPLE_SUBSET_FILENAME.getValue();
-		String markersFile = !Files.exists(proj.TARGET_MARKERS_FILENAME.getValue()) ? null : proj.TARGET_MARKERS_FILENAME.getValue();
+		String markersFile = !Files.exists(proj.TARGET_MARKERS_FILENAMES.getDefaultValueString()) ? null : proj.TARGET_MARKERS_FILENAMES.getDefaultValueString();
 		JLabel sampleExists = new JLabel(samplesFile == null ? fileDoesNotExist : fileExists);
 		JLabel markerExists = new JLabel(markersFile == null ? fileDoesNotExist : fileExists);
 
@@ -340,7 +340,7 @@ public class DemoPackage {
 		JTextField sampFileText = new JTextField(proj.SAMPLE_SUBSET_FILENAME.getValue().replaceAll("\"", ""));
 		sampFileText.setSize(width, 30);
 //		JTextField markFileText = new JTextField(proj.getFilename(proj.TARGET_MARKERS_FILENAME).replaceAll("\"", ""));
-		JTextField markFileText = new JTextField(proj.TARGET_MARKERS_FILENAME.getValue().replaceAll("\"", ""));
+		JTextField markFileText = new JTextField(proj.TARGET_MARKERS_FILENAMES.getDefaultValueString().replaceAll("\"", ""));
 		filePanel.add(markFileText, BorderLayout.NORTH);
 		filePanel.add(sampFileText, BorderLayout.SOUTH);
 

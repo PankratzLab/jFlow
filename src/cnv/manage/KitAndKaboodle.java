@@ -388,7 +388,7 @@ public class KitAndKaboodle {
             
             proj.getLog().report("Running PLINK");
             
-            boolean create = cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
+            boolean create = cnv.manage.PlinkFormat.createPlink(proj, "gwas", null, null);
             if (create) {
                 CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
                 create = new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
@@ -598,7 +598,7 @@ public class KitAndKaboodle {
             String mkrPosFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
             String setSampList = proj.SAMPLELIST_FILENAME.getValue(false, false);
             String sampList = ((JTextField)variableFields.get(this).get(2)).getText().trim();
-            String setTgtFile = proj.TARGET_MARKERS_FILENAME.getValue(false, false);
+            String setTgtFile = proj.TARGET_MARKERS_FILENAMES.getValue()[0];
             String tgtFile = ((JTextField)variableFields.get(this).get(3)).getText().trim();
             if (!mkrPosProj.equals(mkrPosFile)) {
                 proj.MARKERSET_FILENAME.setValue(mkrPosFile);
@@ -607,7 +607,9 @@ public class KitAndKaboodle {
                 proj.SAMPLELIST_FILENAME.setValue(sampList);
             }
             if (!setTgtFile.equals(tgtFile)) {
-            	proj.TARGET_MARKERS_FILENAME.setValue(tgtFile);
+                String[] arr = proj.TARGET_MARKERS_FILENAMES.getValue();
+                arr[0] = tgtFile;
+            	proj.TARGET_MARKERS_FILENAMES.setValue(arr);
             }
         	int numThreads = proj.NUM_THREADS.getValue();
         	try {
@@ -622,7 +624,7 @@ public class KitAndKaboodle {
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{0.98, proj.MARKERSET_FILENAME.getValue(), proj.SAMPLELIST_FILENAME.getValue(), proj.TARGET_MARKERS_FILENAME.getValue(), proj.NUM_THREADS.getValue()};
+            return new Object[]{0.98, proj.MARKERSET_FILENAME.getValue(), proj.SAMPLELIST_FILENAME.getValue(), proj.TARGET_MARKERS_FILENAMES.getValue()[0], proj.NUM_THREADS.getValue()};
         }
         
         @Override
@@ -680,7 +682,7 @@ public class KitAndKaboodle {
             String mkrPosFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
             String setSampList = proj.SAMPLELIST_FILENAME.getValue(false, false);
             String sampList = ((JTextField)variableFields.get(this).get(2)).getText().trim();
-            String setTgtFile = proj.TARGET_MARKERS_FILENAME.getValue(false, false);
+            String setTgtFile = proj.TARGET_MARKERS_FILENAMES.getValue()[0];
             String tgtFile = ((JTextField)variableFields.get(this).get(3)).getText().trim();
             if (!mkrPosProj.equals(mkrPosFile)) {
                 proj.MARKERSET_FILENAME.setValue(mkrPosFile);
@@ -689,7 +691,9 @@ public class KitAndKaboodle {
                 proj.SAMPLELIST_FILENAME.setValue(sampList);
             }
             if (!setTgtFile.equals(tgtFile)) {
-                proj.TARGET_MARKERS_FILENAME.setValue(tgtFile);
+                String[] arr = proj.TARGET_MARKERS_FILENAMES.getValue();
+                arr[0] = tgtFile;
+                proj.TARGET_MARKERS_FILENAMES.setValue(arr);
             }
             int numThreads = proj.NUM_THREADS.getValue();
             try {
@@ -704,7 +708,7 @@ public class KitAndKaboodle {
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{0.98, proj.MARKERSET_FILENAME.getValue(), proj.SAMPLELIST_FILENAME.getValue(), proj.TARGET_MARKERS_FILENAME.getValue(), proj.NUM_THREADS.getValue()};
+            return new Object[]{0.98, proj.MARKERSET_FILENAME.getValue(), proj.SAMPLELIST_FILENAME.getValue(), proj.TARGET_MARKERS_FILENAMES.getValue()[0], proj.NUM_THREADS.getValue()};
         }
         
         @Override
