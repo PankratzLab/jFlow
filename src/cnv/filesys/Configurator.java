@@ -1216,6 +1216,11 @@ public class Configurator extends JFrame {
 				            	if (Files.exists(value.toString())) {
 				            	    fileChooser.setSelectedFile((File) value);
 				            	}
+                                if (((File) value).isDirectory()) {
+                                    fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                                } else {
+                                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                                }
 				            	if (fileChooser.showOpenDialog(buttonReplace) == JFileChooser.APPROVE_OPTION) {
 				                    setValue(fileChooser.getSelectedFile());
 				                } else {
@@ -1233,10 +1238,12 @@ public class Configurator extends JFrame {
     			};
 	    	} else if (value instanceof File[]) {
 	    	    isMulti = true;
+	    	    boolean isDirsTemp = false;
 	    		File[] files = (File[]) value;
 	    		if (files.length > 0) {
 	    			for (int i = 0; i < files.length; i++) {
 	    				if (files[i].isDirectory()) {
+	    				    isDirsTemp = true;
 	    				    String pathStr = ext.verifyDirFormat(files[i].getPath());
 	    				    if (pathStr.startsWith(defaultLocation)) {
                                 pathStr = pathStr.substring(defaultLocation.length());
@@ -1258,7 +1265,7 @@ public class Configurator extends JFrame {
 	    				}
 		    		}
 	    		}
-
+	    		final boolean isDirs = isDirsTemp;
     			listener = new ActionListener() {
     				@Override
     				public void actionPerformed(ActionEvent e) {
@@ -1266,6 +1273,11 @@ public class Configurator extends JFrame {
 			    		SwingUtilities.invokeLater(new Runnable() {
 				            public void run() {
 				            	fileChooser.setMultiSelectionEnabled(true);
+                                if (isDirs) {
+                                    fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                                } else {
+                                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                                }
 				            	Object newValue = value;
 				            	if (fileChooser.showOpenDialog(sourceButton) == JFileChooser.APPROVE_OPTION) {
 //				            	    FileChooserCellEditor.this.setValue(fileChooser.getSelectedFiles());
