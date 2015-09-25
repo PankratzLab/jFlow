@@ -10,15 +10,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
+import seq.manage.ReferenceGenome;
 import stats.CrossValidation;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
+import cnv.var.LocusSet;
 import common.Array;
 import common.Files;
 import common.Logger;
 import common.Positions;
 import common.ext;
+import filesys.Segment;
 
 /**
  * Class for correcting intensity using gc content, see http://nar.oxfordjournals.org/content/36/19/e126.full.pdf
@@ -41,6 +44,9 @@ import common.ext;
 public class GcAdjustor {
 
 	public static final String[] GC_ADJUSTOR_TITLE = { "Adjust by GC content" };
+	private static final int DEFUALT_GC_MODEL_WINDOW_SNP = 100*5120;
+	private static final int DEFUALT_GC_MODEL_WINDOW_GC = 5120;
+
 	/**
 	 * These defaults are also used by PennCNV - detect_cnv.pl, but might be worth adjusting sometime, somewhere, in a galaxy called msi
 	 */
@@ -193,7 +199,7 @@ public class GcAdjustor {
 	public String getQCString() {
 		return wfPrior + "\t" + wfPost + "\t" + gcwfPrior + "\t" + gcwfPost;
 	}
-	
+
 	public String getAnnotatedQCString() {
 		return "WF_PRIOR: " + wfPrior + "\tWF_POST: " + wfPost + "\tGCWF_PRIOR" + gcwfPrior + "\tGCWF_POST" + gcwfPost;
 	}
@@ -313,8 +319,10 @@ public class GcAdjustor {
 									if (positions[indicesByChr[i][j]] - currentRegressDistance > regressionDistance) {
 										if (useMarker(markerIntensities[indicesByChr[i][j]], gc, minimumAutosomalGC, maximimumAutosomalGC, minIntensity, maxIntensity)) {
 											// The gc and intensity will be used for the correction
+											// if(!PennCNVGCWF||chrs[indicesByChr[i][j]] == 11){
 											tmpRegressGcs.add(gc);
 											tmpRegressIntensity.add(markerIntensities[indicesByChr[i][j]]);
+											// }
 										}
 										currentRegressDistance = positions[indicesByChr[i][j]];
 									}
@@ -515,6 +523,95 @@ public class GcAdjustor {
 
 		public static GcModel loadSerial(String fullPathToGcSer) {
 			return (GcModel) Files.readSerial(fullPathToGcSer);
+		}
+
+		/**
+		 * uses {@link GcModel#generateFromReferenceGenome(Project, String, String, int)} but with the default gc model window size of 100*5120
+		 */
+		public static boolean generateFromReferenceGenome(Project proj, String fullPathToReferenceGenome, String fullPathToOutputModel) {
+			return generateFromReferenceGenome(proj, fullPathToReferenceGenome, fullPathToOutputModel, DEFUALT_GC_MODEL_WINDOW_SNP, DEFUALT_GC_MODEL_WINDOW_GC);
+		}
+
+		/**
+		 * @param proj
+		 * @param fullPathToReferenceGenome
+		 *            reference fasta
+		 * @param fullPathToOutputModel
+		 *            the output gc model file
+		 * @param windowPerSNP
+		 *            bp window around each marker to compute gc content in
+		 * @return
+		 */
+		public static boolean generateFromReferenceGenome(Project proj, String fullPathToReferenceGenome, String fullPathToOutputModel, int windowPerSNP, int windowPerGC) {
+			if (!Files.exists(fullPathToReferenceGenome)) {
+				proj.getLog().reportFileNotFound(fullPathToReferenceGenome);
+				return false;
+			} else if (Files.exists(fullPathToOutputModel)) {
+				proj.getLog().reportTimeWarning(fullPathToOutputModel + " exists, will not create again...");
+				return false;
+			} else {
+				proj.getLog().reportTimeInfo("Generating gc model file at " + fullPathToOutputModel);
+				ReferenceGenome referenceGenome = new ReferenceGenome(fullPathToReferenceGenome, proj.getLog());
+				LocusSet<Segment> bins = referenceGenome.getBins(windowPerGC);
+				proj.getLog().reportTimeInfo("Computing gc content for " + bins.getLoci().length + " bins of " + windowPerGC + " bp");
+				double[] gcContents = new double[bins.getLoci().length];
+				for (int i = 0; i < bins.getLoci().length; i++) {
+					if (i % 1000 == 0) {
+						proj.getLog().reportTimeInfo("Queried " + (i + 1) + " bins for gc content");
+					}
+					gcContents[i] = referenceGenome.getGCContentFor(bins.getLoci()[i]);
+				}
+
+				MarkerSet markerSet = proj.getMarkerSet();
+				String[] markerNames = markerSet.getMarkerNames();
+				int[] positions = markerSet.getPositions();
+				byte[] chrs = markerSet.getChrs();
+				try {
+					PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutputModel));
+					writer.println("Name\tChr\tPosition\tGC");
+					for (int i = 0; i < markerNames.length; i++) {
+						Segment bufferedMarkerSeg = new Segment(chrs[i], positions[i], positions[i]).getBufferedSegment(windowPerSNP);
+						String chr = chrs[i] + "";
+						if (chrs[i] == 23) {
+							chr = "X";
+						} else if (chrs[i] == 24) {
+							chr = "Y";
+						} else if (chrs[i] == 25) {
+							chr = "XY";
+						} else if (chrs[i] == 26) {
+							chr = "Un";
+						}
+						double gcContent = Double.NaN;
+						int[] overlapping = bins.getOverlappingIndices(bufferedMarkerSeg);
+
+						if (overlapping != null && overlapping.length > 0) {
+							Segment[] binOverlap = Array.subArray(bins.getLoci(), overlapping);
+							double gcs = 0;
+							int bps = 0;
+							for (int j = 0; j < overlapping.length; j++) {
+								bps += binOverlap[j].getSize();
+								gcs += gcContents[overlapping[j]] * binOverlap[j].getSize();
+							}
+							gcContent = (double) gcs / bps;
+						} else if (chrs[i] > 0) {
+							String error = "BUG: Did not find any overlapping bins for marker " + markerNames[i] + " for window search " + bufferedMarkerSeg.getUCSClocation();
+							proj.getLog().reportTimeError(error);
+							writer.close();
+							throw new IllegalStateException(error);
+						}
+
+						writer.println(markerNames[i] + "\t" + chr + "\t" + positions[i] + "\t" + gcContent);
+					}
+					writer.close();
+					return true;
+
+				} catch (Exception e) {
+					proj.getLog().reportError("Error writing to " + fullPathToOutputModel);
+					proj.getLog().reportException(e);
+					return false;
+				}
+
+			}
 		}
 
 		public static GcModel populateFromFile(String fullPathToGcModel, boolean verbose, Logger log) {

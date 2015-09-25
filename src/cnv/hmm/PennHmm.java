@@ -328,7 +328,7 @@ public class PennHmm {
 				int m = -1;
 				int n = -1;
 				double[][] a = null;
-				 double[][] b = null;
+				double[][] b = null;
 				// TODO what about the B:?
 
 				if (!M.startsWith("M=")) {
@@ -434,7 +434,7 @@ public class PennHmm {
 		return new ViterbiResult(q);
 	}
 
-	private static class ViterbiResult {
+	public static class ViterbiResult {
 		private int[] q;
 
 		public ViterbiResult(int[] q) {
@@ -545,28 +545,6 @@ public class PennHmm {
 		}
 	}
 
-	/**
-	 * @param proj
-	 * @return the plus one index physical distance of each marker
-	 */
-	private static int[][] getSNPDist(Project proj) {
-		MarkerSet markerSet = proj.getMarkerSet();
-		int[][] chrPos = markerSet.getPositionsByChr();
-		int[][] snpDists = new int[chrPos.length][];
-		for (int i = 0; i < chrPos.length; i++) {
-			int[] distsTmp = new int[chrPos[i].length];
-			if (distsTmp.length > 0) {
-				distsTmp[chrPos[i].length - 1] = chrPos[i][chrPos[i].length - 1];
-				for (int j = 0; j < distsTmp.length - 1; j++) {
-					int dist = chrPos[i][j + 1] - chrPos[i][j];
-					distsTmp[j] = dist > 0 ? dist : 1;
-				}
-			}
-			snpDists[i] = distsTmp;
-		}
-		return snpDists;
-
-	}
 
 	private static BStatus loadBstatus(String bTag, BufferedReader reader, Logger log) throws IOException {
 		double[] bmean = loadTwoLineDoubleArray(bTag + "_mean:", reader, log);
@@ -708,7 +686,6 @@ public class PennHmm {
 			}
 		}
 		return Array.toDoubleArray(tmp);
-
 	}
 
 	private static double[] adjustLrr(double[] lrrs, double minLrr, double maxLrr, Logger log) {
@@ -743,21 +720,18 @@ public class PennHmm {
 		return adjusted;
 	}
 
-	private static LocusSet<CNVariant> scoreCNVsSameChr(PennHmm pennHmm, LocusSet<CNVariant> cLocusSet, int[] posChr, double[] lrrChr, double[] bafsChr, double[] pfbsChr, boolean[] copyNumberOnlyDef, Logger log) {
+	public static LocusSet<CNVariant> scoreCNVsSameChr(PennHmm pennHmm, LocusSet<CNVariant> cLocusSet, int[] posChr, double[] lrrChr, double[] bafsChr, double[] pfbsChr, boolean[] copyNumberOnlyDef, Logger log) {
 		ArrayList<CNVariant> scored = new ArrayList<CNVariant>();
 
 		for (int i = 0; i < cLocusSet.getLoci().length; i++) {
-
 			CNVariant current = cLocusSet.getLoci()[i];
 			ArrayList<Integer> indicestmp = new ArrayList<Integer>();
 			for (int j = 0; j < posChr.length; j++) {
 				int pos = posChr[j];
-				// System.out.println(pos);
 				if (pos >= current.getStart() && pos <= current.getStop()) {
 					indicestmp.add(j);
 				}
 			}
-			// System.out.println(current.toPlinkFormat()+"\t"+indicestmp.size());
 			int hmmState = current.getCN();
 			if (hmmState > 2) {
 				hmmState++;// LOH stored as state 3
@@ -838,6 +812,29 @@ public class PennHmm {
 		return lrrBafs;
 	}
 
+
+	/**
+	 * @param proj
+	 * @return the plus one index physical distance of each marker
+	 */
+	private static int[][] getSNPDist(Project proj) {
+		MarkerSet markerSet = proj.getMarkerSet();
+		int[][] chrPos = markerSet.getPositionsByChr();
+		int[][] snpDists = new int[chrPos.length][];
+		for (int i = 0; i < chrPos.length; i++) {
+			int[] distsTmp = new int[chrPos[i].length];
+			if (distsTmp.length > 0) {
+				distsTmp[chrPos[i].length - 1] = chrPos[i][chrPos[i].length - 1];
+				for (int j = 0; j < distsTmp.length - 1; j++) {
+					int dist = chrPos[i][j + 1] - chrPos[i][j];
+					distsTmp[j] = dist > 0 ? dist : 1;
+				}
+			}
+			snpDists[i] = distsTmp;
+		}
+		return snpDists;
+
+	}
 	public static void test(Project proj, String hmmFile) {
 		long time = System.currentTimeMillis();
 		String testFile = "/home/pankrat2/shared/logan/OSv2_hg19/penn_dataDNA/7139072086_R01C01.gz";
@@ -845,6 +842,8 @@ public class PennHmm {
 		if (!Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
 			PennCNV.populationBAF(proj);
 		}
+		GcModel.generateFromReferenceGenome(proj, proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.GC_MODEL_FILENAME.getValue() + "testRef");
+		System.exit(1);
 		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
 		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
 		Sample sample = proj.getFullSampleFromRandomAccessFile(proj.getSamples()[0]);
@@ -907,7 +906,7 @@ public class PennHmm {
 			String key = Positions.getChromosomeUCSC(currentChr, true);
 			if (currentChr > 0 && newIndices.get(key).size() > 10 && currentChr < 23) {
 				int[] indices = Array.toIntArray(newIndices.get(key));
-				//System.out.println("Current CHR " + key + " probe count " + indices.length);
+				// System.out.println("Current CHR " + key + " probe count " + indices.length);
 				double[] bafsChr = Array.subArray(bafs, indices);
 				if (currentChr == 11) {
 					for (int j = 0; j < snpdists[currentChr].length; j++) {
@@ -917,7 +916,7 @@ public class PennHmm {
 						if (j > 11) {
 							// System.exit(1);
 						}
-					//	System.out.println(j + "\t" + snpdists[currentChr][j]);
+						// System.out.println(j + "\t" + snpdists[currentChr][j]);
 					}
 					// System.exit(1);
 				}
@@ -953,7 +952,7 @@ public class PennHmm {
 	/**
 	 * Parameterize the {@link PennHmm} by an empirical sd measure
 	 */
-	private static PennHmm adjustBSD(PennHmm pennHmm, double sdo, Logger log)
+	public static PennHmm adjustBSD(PennHmm pennHmm, double sdo, Logger log)
 	/* adjust the CHMM model so that the standard deviation of B1 and B2 and B3 match the observed data (by an empirical method) */
 	{
 		PennHmm pennAdjusted = new PennHmm(pennHmm);
@@ -969,7 +968,7 @@ public class PennHmm {
 			b1AdjustedSd[i] = pennHmm.getB1().getB_sd()[i] * ratio;
 		}
 		for (int i = 0; i < pennHmm.getN() - 1; i++) {
-			b2AdjustedSd[i] = pennHmm.getB2().getB_sd()[i] * ratio;
+			b2AdjustedSd[i] = pennHmm.getB2().getB_sd()[i] * ratio;// fewer states for baf
 		}
 		for (int i = 0; i < pennHmm.getN(); i++) {
 			b3AdjustedSd[i] = pennHmm.getB3().getB_sd()[i] * ratio;
