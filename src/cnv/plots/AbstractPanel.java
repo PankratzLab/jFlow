@@ -1272,8 +1272,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			case PlotPoint.MISSING:
 				//g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2, getY(point.getRawY())+size/2);
 				if (PlotPoint.MISSING_STR.equals("X") || PlotPoint.MISSING_STR.equals("x")){
-					g.drawLine(-size/4, y-size/4, +size/4, y+size/4);
-					g.drawLine(-size/4, y+size/4, +size/4, y-size/4);
+					g.drawLine(x-size/4, y-size/4, x+size/4, y+size/4);
+					g.drawLine(x-size/4, y+size/4, x+size/4, y-size/4);
 				} else {
 					g.setFont(new Font("Arial", 0, size));
 					g.drawString(PlotPoint.MISSING_STR, -size/2, y+size/2);
