@@ -220,7 +220,7 @@ public class ProjectCreationGUI extends JDialog {
         JLabel lblTargetMarkersFile = new JLabel("[Optional] Target Markers File:");
         contentPane.add(lblTargetMarkersFile, "cell 0 12,alignx trailing");
         
-        txtFldTgtMkrs = new JTextField(proj.TARGET_MARKERS_FILENAME.getDefaultValueString());
+        txtFldTgtMkrs = new JTextField(proj.TARGET_MARKERS_FILENAMES.getDefaultValueString());
         contentPane.add(txtFldTgtMkrs, "flowx,cell 2 12,growx");
         txtFldTgtMkrs.setColumns(10);
         
@@ -418,7 +418,7 @@ public class ProjectCreationGUI extends JDialog {
         actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);
         actualProj.ID_HEADER.setValue(idHdr);
         actualProj.LRRSD_CUTOFF.setValue(lrrSd);
-        actualProj.TARGET_MARKERS_FILENAME.setValue(ext.removeDirectoryInfo(tgtMkrs));
+        actualProj.TARGET_MARKERS_FILENAMES.setValue(new String[]{ext.removeDirectoryInfo(tgtMkrs)});
         actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());
         // if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
         // proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));

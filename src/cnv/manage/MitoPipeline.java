@@ -238,7 +238,7 @@ public class MitoPipeline {
 		proj.setProperty(proj.ID_HEADER, idHeader);
 //		proj.setProperty(proj.LRRSD_CUTOFF, defaultLRRSdFilter);
 		proj.setProperty(proj.LRRSD_CUTOFF, Double.valueOf(defaultLRRSdFilter));
-		proj.setProperty(proj.TARGET_MARKERS_FILENAME, ext.removeDirectoryInfo(targetMarkers));
+		proj.setProperty(proj.TARGET_MARKERS_FILENAMES, new String[]{ext.removeDirectoryInfo(targetMarkers)});
 		if (markerPositions != null) {
 			proj.setProperty(proj.MARKER_POSITION_FILENAME, ext.removeDirectoryInfo(markerPositions));
 		}
@@ -370,7 +370,7 @@ public class MitoPipeline {
 					String markersForEverythingElse = null;
 					// check that all target markers are available
 //					if (verifyAuxMarkers(proj, proj.getFilename(proj.TARGET_MARKERS_FILENAME), PC_MARKER_COMMAND)) {
-					if (verifyAuxMarkers(proj, proj.TARGET_MARKERS_FILENAME.getValue(), PC_MARKER_COMMAND)) {
+					if (verifyAuxMarkers(proj, proj.TARGET_MARKERS_FILENAMES.getValue()[0], PC_MARKER_COMMAND)) {
 						// if marker QC is not flagged, sample qc is based on all target markers by default
 						if (markerQC) {
 							qcMarkers(proj, markerCallRateFilter, numThreads);
@@ -568,7 +568,7 @@ public class MitoPipeline {
 			log.report("Skipping Marker QC computation for the analysis, filtering on existing file");
 		} else {
 //			log.report("Computing marker QC for markers in " + proj.getFilename(proj.TARGET_MARKERS_FILENAME));
-			log.report("Computing marker QC for markers in " + proj.TARGET_MARKERS_FILENAME.getValue());
+			log.report("Computing marker QC for markers in " + proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 			writeMarkersToQC(proj);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);
@@ -582,7 +582,7 @@ public class MitoPipeline {
 	 */
 	private static void writeMarkersToQC(Project proj) {
 //		String[] markersToQC = { proj.getFilename(proj.TARGET_MARKERS_FILENAME, true, false) };
-		String[] markersToQC = { proj.TARGET_MARKERS_FILENAME.getValue(true, false) };
+		String[] markersToQC = { proj.TARGET_MARKERS_FILENAMES.getValue()[0] };
 		Files.writeList(setMarkersToQC(proj, markersToQC), proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE);
 	}
 

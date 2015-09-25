@@ -12,7 +12,7 @@ import cnv.filesys.Project;
 import common.*;
 
 public class PlinkFormat {
-	public static boolean createPlink(Project proj, String filenameRoot, String clusterFilterFilename) {
+	public static boolean createPlink(Project proj, String filenameRoot, String clusterFilterFilename, String targetMarkersFileName) {
 		BufferedReader reader;
 		PrintWriter writer;
 		Hashtable<String,String> hash;
@@ -52,8 +52,8 @@ public class PlinkFormat {
 			hash.put(markerNames[i], i+"");
 		}
 		
-		targetMarkers = proj.TARGET_MARKERS_FILENAME.getValue(false, false);
-		if (new File(targetMarkers).exists()) {
+		targetMarkers = targetMarkersFileName;
+		if (targetMarkers != null && new File(targetMarkers).exists()) {
 			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, false);
 			indices = new int[targets.length];
 			prob = false;
@@ -322,7 +322,8 @@ public class PlinkFormat {
 			if (!pick.equals("")) {
 				pickTargets(pick);
 			} else {
-				createPlink(new Project(filename, false), plinkPrefix, filters);
+			    Project newProject = new Project(filename, false);
+				createPlink(newProject, plinkPrefix, filters, null);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

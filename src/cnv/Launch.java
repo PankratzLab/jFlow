@@ -470,7 +470,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //							
 //						}
 					//success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
-					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename);
+					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename, proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 					if (success) {
 					    String PROG_KEY = "RUNPLINKEXPORT";
 				        proj.progressMonitor.beginTask(PROG_KEY, "Running PLINK conversion");
@@ -506,8 +506,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
                     return;
                 }
                 String clusterFile = proj.DATA_DIRECTORY.getValue() + peo.getClusterFilterSelection();
-                
-                if (PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot, clusterFile, -1, true)) {
+                String tgtMkrsFile = peo.getTargetMarkersFile();
+                if (peo.getCancelled()) { // getTargetMarkersFile(), if set to CREATE_NEW, can potentially be cancelled
+                    return;
+                }
+                if (PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot, clusterFile, tgtMkrsFile, -1, true)) {
                     log.report("Success!");
                     proj.PLINK_DIR_FILEROOTS.setValue(Array.addStrToArray(plinkFileroot, proj.PLINK_DIR_FILEROOTS.getValue()));
                     // TODO save properties to persist PLINK fileroot
@@ -591,7 +594,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
 				Mosaicism.findOutliers(proj);
 
-				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null);
+				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null, proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 				CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
 				new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
 				CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
