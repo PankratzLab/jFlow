@@ -67,6 +67,8 @@ public class ParseSNPlocations {
         HashMap<String, Integer> indexMap = new HashMap<String, Integer>(); 
         int index = 0;
         
+        System.out.println("Processing " + Files.countLines(snpListFile, 0) + " SNPs");
+        
         vcfReader = new VCFFileReader(vcfFile, true);
         unmappedVCFReader = unmappedVCF == null ? null : new VCFFileReader(unmappedVCF, true);
         mergedVCFReader = mergedVCF == null ? null : new VCFFileReader(mergedVCF, true);
@@ -102,7 +104,7 @@ public class ParseSNPlocations {
                     vcIter.close();
                     vcIter = null;
                     if (markerVC == null) {
-                        System.err.println("Error - couldn't find {" + parts[0] + "} in the regular database.  Checking merged and unmapped marker databases...");
+//                        System.err.println("Error - couldn't find {" + parts[0] + "} in the regular database.  Checking merged and unmapped marker databases...");
                         if (unmappedVCFReader != null) {
                             CloseableIterator<VariantContext> vcIterUn = unmappedVCFReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
                             while (vcIterUn.hasNext()) {
@@ -115,7 +117,7 @@ public class ParseSNPlocations {
                             vcIterUn.close();
                             vcIterUn = null;
                             if (markerVC == null) {
-                                System.err.println("Error - couldn't find {" + parts[0] + "} in the unmapped database.  Checking merged database now...");
+//                                System.err.println("Error - couldn't find {" + parts[0] + "} in the unmapped database.  Checking merged database now...");
                             }
                         }
                         if (markerVC == null && mergedVCFReader != null) {
@@ -156,7 +158,7 @@ public class ParseSNPlocations {
                                 vcIter.close();
                                 vcIter = null;
                             } else {
-                                System.err.println("Error - couldn't find {" + parts[0] + "} in the merged database.");
+//                                System.err.println("Error - couldn't find {" + parts[0] + "} in the merged database.");
                             }
                         }
                     } 
@@ -646,9 +648,10 @@ public class ParseSNPlocations {
 		int numArgs = args.length;
 		String source = "";
 		String mergeSource = "";
-		String dir = Files.firstDirectoryThatExists(Aliases.REFERENCE_FOLDERS, false, false, new Logger());
-		String db = DEFAULT_B37_DB_FILENAME;
-		String merge = DEFAULT_MERGE_FILENAME;
+		Logger log = new Logger();
+		String dir = Files.firstDirectoryThatExists(Aliases.REFERENCE_FOLDERS, false, false, log);
+		String db = Aliases.getPathToFileInReferenceDirectory(DEFAULT_B37_DB_FILENAME, false, log);
+		String merge = Aliases.getPathToFileInReferenceDirectory(DEFAULT_MERGE_FILENAME, false, log);
 		String vcf = null;
 		String mergedvcf = null;
 		String unmappedvcf = null;
@@ -663,7 +666,8 @@ public class ParseSNPlocations {
 //		dir = "";
 //		mergeSource = "C:/Users/cole0482/Downloads/RsMergeArch.bcp.gz";
 //		db = "D:/RSMerge.ser";
-
+//		 vcf=N:/statgen/NCBI/All_20150605_rsDominant.vcf.gz unmappedvcf=N:/statgen/NCBI/All_20150605_papu_rsDominant.vcf.gz mergedvcf=N:/statgen/NCBI/RsMerge.vcf.gz
+		
 		String filename = "list.txt";
 		boolean plinkFormat = false;
 
@@ -717,11 +721,15 @@ public class ParseSNPlocations {
 				createMergeDBfromSource(dir+mergeSource, dir+merge);
 			} else {
 				if (vcf != null) {
+				    long t = System.currentTimeMillis();
 				    parseSNPlocations(dir+filename, vcf, unmappedvcf, mergedvcf, new Logger());
+				    System.out.println("Took " + ext.getTimeElapsed(t));
 				} else {
+				    long t = System.currentTimeMillis();
 				    SnpMarkerSet map = new SnpMarkerSet(dir+filename, plinkFormat?SnpMarkerSet.PLINK_MAP_FORMAT:SnpMarkerSet.NAMES_ONLY, true, new Logger());
 				    map.parseSNPlocations(db, merge, new Logger());
 				    map.writeToFile(dir+ext.rootOf(filename)+"_newPositions.out", SnpMarkerSet.GENERIC_FORMAT);
+				    System.out.println("Took " + ext.getTimeElapsed(t));
 				}
 				
 			}

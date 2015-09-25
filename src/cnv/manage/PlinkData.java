@@ -616,10 +616,10 @@ public class PlinkData {
 		
 		log = proj.getLog();
 		outFileDirAndFilenameRoot = proj.PROJECT_DIRECTORY.getValue() + plinkPrefix;
-		if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot + ".fam").exists()) {
-			log.reportError("System abort. Plink binary file set \"" + outFileDirAndFilenameRoot + "\" .bed/.bim/.fam already exist. Please remove the file(s).");
-			return false;
-		}
+//		if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot + ".fam").exists()) {
+//			log.reportError("System abort. Plink binary file set \"" + outFileDirAndFilenameRoot + "\" .bed/.bim/.fam already exist. Please remove the file(s).");
+//			return false;
+//		}
 //		if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot + ".fam").exists()) {
 //			log.report("Found existing Plink .ped file set in out file directory. Deleting these files.");
 //			new File(outFileDirAndFilenameRoot + ".bed").delete();
@@ -2231,7 +2231,7 @@ public class PlinkData {
 			log = proj.getLog();
 			log.report(ext.getTime()+"\tConverting from Genvisis to Plink binary (.bed) data set.");
 			saveGenvisisToPlinkBedSet(proj, "plinkZack", proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, gcThreshold, true);
-
+			
 		} else if  (conversionToRun.equals("pedtobed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 			log.report(ext.getTime()+"\tConverting from Plink text (.ped) data set to Plink binary (.bed) data set.");

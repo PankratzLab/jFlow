@@ -242,7 +242,7 @@ public class ProgressMonitor {
                 double rawPct = 100d * ((double)task.getUpdateCount()) / ((double) task.getExpectedUpdateCount());
                 String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 0) + "%)");
                 String msg = ext.getTime() + "]\tTask " + task.getName() + " with status " + task.getLabel() + " is [" + pct + "] complete";
-                if (task.getExpectedUpdateCount() > 100) {
+                if (task.getExpectedUpdateCount() > 100 && task.getUpdateCount() > 0) {
                     if (task.getExpectedUpdateCount() % task.getUpdateCount() == 0) {
                         System.out.println(msg);
                     }

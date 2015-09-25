@@ -45,7 +45,7 @@ import common.ext;
 public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
 
-	public static final boolean DEBUGGING = true;
+	public static final boolean DEBUGGING = false;
 
 	public static final int HEAD_BUFFER = 25;
 	public static final int HEIGHT_X_AXIS = 105;

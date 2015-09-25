@@ -1,10 +1,6 @@
 // replace all exits with a proper disposal of all resources
 package cnv.plots;
 
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -82,11 +78,11 @@ import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
 import cnv.annotation.AnnotationParser;
+import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.annotation.MarkerAnnotationLoader;
 import cnv.annotation.MarkerBlastAnnotation;
 import cnv.annotation.MarkerGCAnnotation;
-import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.filesys.AnnotationCollection;
 import cnv.filesys.Centroids;
 import cnv.filesys.ClusterFilter;
@@ -106,6 +102,7 @@ import cnv.gui.NewMarkerListDialog;
 import cnv.manage.MarkerDataLoader;
 import cnv.manage.PlinkMarkerLoader;
 import cnv.var.SampleData;
+
 import common.AlleleFreq;
 import common.Array;
 import common.Files;
@@ -114,7 +111,6 @@ import common.Logger;
 import common.Matrix;
 import common.Sort;
 import common.ext;
-import filesys.Segment;
 
 public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, WindowListener {
 	public static final long serialVersionUID = 1L;
@@ -2391,15 +2387,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		        Files.writeList(markerList, jfc.getSelectedFile().getAbsolutePath());
 		    }
 	    } else if (command.equals(BLAST_DETAILS_COMMAND)) {
-	        
-	        MarkerData md = getCurrentMarkerData();
-	        
-	        String seq = blastResults[markerIndex].getMarkerSeqAnnotation().getSequence();
 	        ArrayList<BlastAnnotation> annotations = blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog());
-	        
 	        BLASTVisualizer bv = new BLASTVisualizer(proj, blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
 	        bv.run();
-	        
 	    } else {
 			log.reportError("Error - unknown command '"+command+"'");
 		}

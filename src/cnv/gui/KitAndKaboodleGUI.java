@@ -569,7 +569,7 @@ public class KitAndKaboodleGUI extends JDialog {
         createGUI.setModal(true);
         createGUI.setVisible(true);
         
-        if (createGUI.cancelled) {
+        if (createGUI.wasCancelled()) {
             return null;
         } else {
             return createGUI.getCreatedProject();
