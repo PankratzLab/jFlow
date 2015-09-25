@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -24,13 +23,14 @@ import cnv.filesys.MarkerData;
 import cnv.filesys.Pedigree;
 import cnv.gui.LaunchAction;
 import cnv.qc.MendelErrors.MendelErrorCheck;
-import cnv.var.SampleData;
 import cnv.var.IndiPheno;
+import cnv.var.SampleData;
+
+import common.Array;
 import common.CountVector;
 import common.HashVec;
 import common.IntVector;
 import common.Sort;
-import common.Array;
 
 // TODO Needs some cleanup, especially MouseMoved, MouseClicked, and generatePoints
 public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
@@ -525,7 +525,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	}
 
     public void mousePressed(MouseEvent e) {
-        if (SwingUtilities.isLeftMouseButton(e)) {
+        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
         	mouseStartX = e.getX();
         	mouseStartY = e.getY();
         } else {
@@ -537,7 +537,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     	mouseEndX = e.getX();
     	mouseEndY = e.getY();
     	highlightRectangle = null;
-    	if (SwingUtilities.isLeftMouseButton(e)) {
+    	if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
         	if (Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2) || Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2)) {
     	    	// Automatically predict the new genotype and assigns to the last filter.
     	    	sp.getClusterFilterCollection().addClusterFilter(sp.getMarkerName(),
@@ -564,7 +564,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     }
 
     public void mouseDragged(MouseEvent e) {
-        if (SwingUtilities.isLeftMouseButton(e)) {
+        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
         	ClusterFilter clusterFilter;
         	mouseEndX = e.getX();
         	mouseEndY = e.getY();

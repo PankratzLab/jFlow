@@ -2088,6 +2088,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent e) {
+			    boolean hasFocus = true;
+			    if (markerName.hasFocus() ||
+			            commentLabel.hasFocus() ||
+			            addAnnotationField.hasFocus() ||
+			            navigationField.hasFocus()) {
+			        hasFocus = false;
+			    }
+			    if (!hasFocus) return;
 				try {
 					int i = Integer.valueOf(e.getActionCommand()) - 1;
 					doPanelSelection(i, true);
