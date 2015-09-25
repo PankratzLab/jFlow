@@ -50,7 +50,7 @@ public class ProjectCreationGUI extends JDialog {
     private JTextField txtFldTgtMkrs;
     private JSpinner spinnerLrrSd;
     private Project proj;
-    volatile boolean cancelled = false;
+    private volatile boolean cancelled = false;
     private Action fileSelectAction = new AbstractAction() {
         private static final long serialVersionUID = 1L;
 
@@ -433,9 +433,12 @@ public class ProjectCreationGUI extends JDialog {
     }
     
     private void doClose(boolean cancel) {
-        //
-        cancelled = cancel;
+        this.cancelled = cancel;
         setVisible(false);
+    }
+
+    public boolean wasCancelled() {
+        return cancelled;
     }
 
 }

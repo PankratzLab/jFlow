@@ -1,5 +1,6 @@
 package seq.analysis;
 
+import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
 import common.Array;
 import common.CmdLine;
 import common.Files;
@@ -109,7 +110,7 @@ public class SNPEFF {
 		snpEffResult.setFail(!progress);
 		return snpEffResult;
 	}
-
+	
 	private boolean runSnpEFF(SnpEffResult snpEffResult, String build) {
 		boolean progress = true;
 		String[] inputFiles = new String[] { snpEffResult.getInputVCF() };
@@ -123,7 +124,7 @@ public class SNPEFF {
 		return progress;
 
 	}
-
+	
 	public static class SnpEffResult {
 		public static final String OUT_EFF = ".eff";
 		public static final String OUT_GATK = ".gatk";

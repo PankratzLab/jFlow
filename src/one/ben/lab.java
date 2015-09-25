@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Random;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -52,140 +53,24 @@ import filesys.SnpMarkerSet;
 
 public class lab {
 	
-    private static void splitDose() {
-        String dir = "/scratch.global/cole0482/CARDIA_CHS/";
-        String dir2 = "/scratch.global/cole0482/CARDIA_CHS/chunked/";
-        String[] fileRoots = new String[]{
-//            "chr1_P1_V3",  
-//            "chr2_P1_V3",
-//            "chr3_P1_V3",
-//            "chr4_P1_V3",
-//            "chr5_P1_V3",
-//            "chr6_P1_V3",
-//            "chr7_P1_V3",
-//            "chr8_P1_V3",
-//            "chr9_P1_V3",
-            "chr10_P1_V3",
-//            "chr11_P1_V3",
-//            "chr12_P1_V3",
-//            "chr13_P1_V3",
-//            "chr14_P1_V3",
-//            "chr15_P1_V3",
-//            "chr16_P1_V3",
-//            "chr17_P1_V3",
-//            "chr18_P1_V3",
-//            "chr19_P1_V3",  
-//            "chr20_P1_V3",
-//            "chr21_P1_V3",
-//            "chr22_P1_V3",
-//            "chr23_FEMALE_no.auto.P1_V3",  
-//            "chr23_MALE_no.auto.P1_V3"    
-        };
-        
-        for (String fileRoot : fileRoots) {
-            System.out.println(ext.getTime() + "]\tChunking file " + fileRoot);
-            try {
-                BufferedReader reader = Files.getAppropriateReader(dir + fileRoot + ".dose");
-                ArrayList<PrintWriter> dosageWriters = new ArrayList<PrintWriter>();
-                String line = null;
-                while ((line = reader.readLine()) != null) {
-                    String[] parts = line.trim().split("[\\s]+"); // gonna be BIG
-                    if (parts[0].equals("4049390->4049390")) continue;
-                    int chunks = (parts.length - 2) / 500000 + 1;
-                    if (dosageWriters.size() == 0) {
-                        for (int i = 0; i < chunks; i++) {
-                            String file = dir2 + fileRoot + "_" + (i * 500000) + ".dose";
-                            if (Files.exists(file)) {
-                                System.out.println("Skipping file " + file);
-                                dosageWriters.add(null);
-                            } else {
-                                dosageWriters.add(Files.getAppropriateWriter(dir2 + fileRoot + "_" + (i * 500000) + ".dose"));
-                            }
-                        }
-                        System.out.println("Writing " + chunks + " chunks...");
-                    }
-                    
-                    String prepend = parts[0] + "\t" + parts[1]; // id and DOSE
-                    
-                    for (int i = 0; i < chunks; i++) {
-                        if (dosageWriters.get(i) == null) {
-                            continue;
-                        }
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(prepend);
-                        for (int j = i * 500000; j < (i+1) * 500000 && j < (parts.length - 2); j++) {
-                            sb.append("\t").append(parts[j + 2]);
-                        }
-                        dosageWriters.get(i).println(sb.toString());
-                    }
-                    
-                }
-                for (PrintWriter writer : dosageWriters) {
-                    if (writer == null) continue;
-                    writer.flush();
-                    writer.close();
-                }
-                reader.close();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-        
-    }
     
-    private static void splitInfo() {
-        String dir = "/scratch.global/cole0482/CARDIA_CHS/noAlleles/";
-        String dir2 = "/scratch.global/cole0482/CARDIA_CHS/chunked/";
-        String[] fileRoots = new String[]{
-//            "chr1_P1_V3",  
-//            "chr2_P1_V3",
-//            "chr3_P1_V3",
-//            "chr4_P1_V3",
-//            "chr5_P1_V3",
-//            "chr6_P1_V3",
-//            "chr7_P1_V3",
-//            "chr8_P1_V3",
-//            "chr9_P1_V3",
-            "chr10_P1_V3",
-//            "chr11_P1_V3",
-//            "chr12_P1_V3",
-//            "chr13_P1_V3",
-//            "chr14_P1_V3",
-//            "chr15_P1_V3",
-//            "chr16_P1_V3",
-//            "chr17_P1_V3",
-//            "chr18_P1_V3",
-//            "chr19_P1_V3",  
-//            "chr20_P1_V3",
-//            "chr21_P1_V3",
-//            "chr22_P1_V3",
-//            "chr23_FEMALE_no.auto.P1_V3",  
-//            "chr23_MALE_no.auto.P1_V3"    
-        };
+    private static void createRandomSelectionFile() {
+        String sourceFile = "F:/testing/all.txt";
+        int[] sizes = {1000, 10000, 50000, 100000, 500000, 1000000};
+        String[] data = HashVec.loadFileToStringArray(sourceFile, false, new int[]{0}, false);
         
-        for (String fileRoot : fileRoots) {
-            int lines = Files.countLines(dir + fileRoot + ".info", 1);
-            try {
-                BufferedReader fileReader = Files.getAppropriateReader(dir + fileRoot + ".info");
-                String header = fileReader.readLine();
-                for (int i = 0; i < lines; i += 500000) {
-                    System.out.println("Writing lines " + i + " to " + (i + 500000));
-                    
-                    PrintWriter writer = Files.getAppropriateWriter(dir2 + fileRoot + "_" + i + ".info");
-                    writer.println(header);
-                    String line = null;
-                    for (int j = 0; j < 500000 && (line = fileReader.readLine()) != null; j++) {
-                        writer.println(line);
-                    }
-                    writer.flush();
-                    writer.close();
-                }
-                fileReader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }            
+        for (int size : sizes) {
+            System.out.println("Printing " + size);
+            String outFile = ext.rootOf(sourceFile, false) + "test_" + size + ".txt";
+            PrintWriter writer = Files.getAppropriateWriter(outFile);
+            Random rand = new Random();
+            for (int i = 0; i < size; i++) {
+                writer.println(data[rand.nextInt(data.length)]);
+            }
+            writer.flush();
+            writer.close();
         }
+        
     }
     
     private static void trimAlleles() {
@@ -972,6 +857,8 @@ public class lab {
 		boolean test = true;
 		if (test) {
 		    
+		    createRandomSelectionFile();
+		    
 //		    try {
 //    		    String checkfile = "D:/data/gedi_gwas/data/cluster.genome.gz";
 //    		    BufferedReader reader = Files.getAppropriateReader(checkfile);
@@ -1024,8 +911,6 @@ public class lab {
 //                }
 //            }
 
-//		    splitInfo();
-		    splitDose();
 		    
 		    return;
 		}

@@ -1,4 +1,4 @@
-package one.ben.snpVCF;
+package one.ben;
 
 import filesys.SerialHash;
 import htsjdk.samtools.SAMSequenceDictionary;

@@ -37,12 +37,10 @@ import cnv.var.CNVRectangles;
 import cnv.var.CNVariant;
 import cnv.var.CNVariantHash;
 import cnv.var.Region;
-
 import common.Array;
 import common.Files;
 import common.Positions;
 import common.ext;
-
 import filesys.GeneSet;
 import filesys.GeneTrack;
 
