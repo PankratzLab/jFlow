@@ -592,7 +592,40 @@ public class PlinkData {
 //			e.printStackTrace();
 //		}
 //	}
-
+	
+	
+	public static boolean saveGenvisisToPlinkPedSet(Project proj, String clusterFilename, String targetMarkersFilename, String filenameRoot) {
+	    Logger log = proj.getLog();
+	    boolean success = cnv.manage.PlinkFormat.createPlink(proj, filenameRoot, clusterFilename, targetMarkersFilename);
+        if (success) {
+            String PROG_KEY = "RUNPLINKEXPORT";
+            proj.progressMonitor.beginTask(PROG_KEY, "Running PLINK conversion");
+            try {
+                log.report("Converting ped/map files to binary PLINK files...", false, true);
+                if (success = CmdLine.run("plink --file " + filenameRoot + " --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue())) {
+                    log.report("complete!");
+                } else {
+                    log.report("PLINK conversion failed");
+                }
+                proj.progressMonitor.endTask(PROG_KEY);
+                if (!success) return success;
+                proj.progressMonitor.beginTask(PROG_KEY, "Running PLINK analysis");                         
+                success = new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
+                if (!success) {
+                    proj.progressMonitor.endTask(PROG_KEY);
+                    return success;
+                }
+                success = CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
+                if (!success) {
+                    proj.progressMonitor.endTask(PROG_KEY);
+                    return success;
+                }
+                success = CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
+            } catch (Exception e) {}
+            proj.progressMonitor.endTask(PROG_KEY);
+        }
+        return success;
+	}
 
 	/**
 	 * Convert Genvisis data into a Plink .bed data set.
@@ -1297,13 +1330,11 @@ public class PlinkData {
 		dna = new Vector<String>();
 
 		try {
-//			filename = proj.getFilename(proj.PEDIGREE_FILENAME);
 			filename = proj.PEDIGREE_FILENAME.getValue();
 			if (!new File(filename).exists()) {
 				log.reportError("Error - pedigree file ('"+filename+"') is not found.  Cannot create .fam file.");
 				return null;
 			}
-//			reader = new BufferedReader(new FileReader(proj.getFilename(proj.PEDIGREE_FILENAME)));
 			reader = new BufferedReader(new FileReader(proj.PEDIGREE_FILENAME.getValue()));
 			writer = new PrintWriter(new FileWriter(famDirAndFilenameRoot+".fam"));
 			count = 1;
@@ -1314,7 +1345,6 @@ public class PlinkData {
 				if (temp.equals("")) {
 					// then do nothing
 				} else if (line.length < 7) {
-//					log.reportError("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.getFilename(proj.PEDIGREE_FILENAME)+"'.");
 					log.reportError("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.PEDIGREE_FILENAME.getValue()+"'.");
 					log.reportError("  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA");
 					log.reportError("  where DNA is the sample name associated with the genotypic data (see the "+proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory for examples)");
@@ -1324,7 +1354,6 @@ public class PlinkData {
 				} else if (ext.isMissingValue(line[6])) {
 //					dna.add(null);
 				} else if (ext.indexOfStr(line[6], allSamples) == -1) {
-//					log.reportError("Warning - sample '" + line[6] + "' from '" + proj.getFilename(proj.PEDIGREE_FILENAME) + "' is not found in the project's list of samples, and is ignored.");
 					log.reportError("Warning - sample '" + line[6] + "' from '" + proj.PEDIGREE_FILENAME.getValue() + "' is not found in the project's list of samples, and is ignored.");
 					if (line.length != 7) {
 						log.reportError("      check to make sure that there are no spaces in your IDs; as this will be parsed as a new column; for example there are "+line.length+" columns here, and we only want 7");
