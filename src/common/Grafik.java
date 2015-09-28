@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.UIManager;
 
 public class Grafik {
@@ -250,4 +251,12 @@ public class Grafik {
 		
 		return color;
 	}
+
+
+    public static JLabel getToolTipIconLabel(String tooltip) {
+        JLabel tooltipLbl = new JLabel("");
+        tooltipLbl.setIcon(Grafik.getImageIcon("images/question-mark.png", true));
+        tooltipLbl.setToolTipText(tooltip);
+        return tooltipLbl;
+    }
 }

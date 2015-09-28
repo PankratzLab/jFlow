@@ -454,47 +454,19 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				}
 				
 				ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false);
-			} else if (command.equals(GENERATE_PLINK_FILES)) {
+			} else if (command.equals(GENERATE_PLINK_FILES)/*) {
 				String filename;
-				boolean success;
 
 				filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
-//				System.out.println("using "+filename);
 				if (filename == null) {
 					log.report("No ClusterFilterCollection will be used");
 				} else {
 					log.report("The ClusterFilterCollection in '"+proj.getProperty(proj.DATA_DIRECTORY)+"/"+filename+"' will be used");
 				}
 				if ( filename==null || (!filename.equals("cancel")) ) {
-//						if () {
-//							
-//						}
-					//success = PlinkData.saveGenvisisToPlinkBedSet(proj, "plinkZack", filename, -1, true, log);
-					success = cnv.manage.PlinkFormat.createPlink(proj, "gwas", filename, proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
-					if (success) {
-					    String PROG_KEY = "RUNPLINKEXPORT";
-				        proj.progressMonitor.beginTask(PROG_KEY, "Running PLINK conversion");
-						try {
-							log.report("Converting ped/map files to binary PLINK files...", false, true);
-							if (CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue())) {
-								log.report("complete!");
-							} else {
-								log.report("PLINK conversion failed");
-							}
-							proj.progressMonitor.endTask(PROG_KEY);
-							proj.progressMonitor.beginTask(PROG_KEY, "Running PLINK analysis");							
-//							CmdLine.run("plink --bfile plink --recode --out gwas_plink_reverse", proj.getProjectDir());
-							new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
-							CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
-							CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
-//							CmdLine.run("plink --bfile plink --mind 0.1 --geno 0.9 --make-bed --out plinkSlim", proj.getProjectDir());
-						} catch (Exception e) {}
-						proj.progressMonitor.endTask(PROG_KEY);
-					}
-		//			vis cnv.manage.PlinkFormat root=../plink genome=6
+				    boolean success = PlinkData.saveGenvisisToPlinkPedSet(proj, filename);
 				}
-
-			} else if (command.equals(GENERATE_PLINK_BINARY_FILES)) {
+			} else if (*/ || command.equals(GENERATE_PLINK_BINARY_FILES)) {
                 PlinkExportOptions peo = new PlinkExportOptions(proj);
                 peo.setModal(true);
                 peo.setVisible(true);
@@ -505,16 +477,28 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
                 if (plinkFileroot == null) {
                     return;
                 }
+                String pedFile = peo.getPedigree();// will change the value of PEDIGREE_FILENAME, so the return value here isn't necessary
+                if (!new File(pedFile).exists()) {
+                    log.reportFileNotFound(pedFile);
+                    return;
+                }
                 String clusterFile = proj.DATA_DIRECTORY.getValue() + peo.getClusterFilterSelection();
                 String tgtMkrsFile = peo.getTargetMarkersFile();
                 if (peo.getCancelled()) { // getTargetMarkersFile(), if set to CREATE_NEW, can potentially be cancelled
                     return;
                 }
-                if (PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot, clusterFile, tgtMkrsFile, -1, true)) {
+                proj.saveProperties();
+                boolean success = false;
+                if (peo.exportAsBinary()) {
+                    success = PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot, clusterFile, tgtMkrsFile, -1, true);
+                } else {
+                    success = PlinkData.saveGenvisisToPlinkPedSet(proj, clusterFile, tgtMkrsFile, plinkFileroot);
+                }
+                if (success) {
                     log.report("Success!");
                     proj.PLINK_DIR_FILEROOTS.setValue(Array.addStrToArray(plinkFileroot, proj.PLINK_DIR_FILEROOTS.getValue()));
-                    // TODO save properties to persist PLINK fileroot
-                }
+        			proj.saveProperties();
+		        }
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
 				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null, null, proj.NUM_THREADS.getValue());
 			} else if (command.equals(PARSE_RAW_PENNCNV_RESULTS)) {
