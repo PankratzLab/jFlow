@@ -12,10 +12,13 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -55,6 +58,7 @@ public class CompPlot extends JFrame {
 	// public static final String DEFAULT_LOCATION = "chr17:15,609,472-40,824,368"; // USP32
 	// public static final String DEFAULT_LOCATION = "chr6:161,590,461-163,364,497"; // PARK2
 	public static final String DEFAULT_LOCATION = "chr6:161,624,000-163,776,000"; // PARK2 region
+    private static final String REGION_LIST_NEW_FILE = "Load Region File";
 
 	public static Color[] colorScheme = { Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA, Color.CYAN, Color.ORANGE, Color.YELLOW };
 
@@ -92,6 +96,11 @@ public class CompPlot extends JFrame {
 	int[][] chrBoundaries;
 
 	ArrayList<CNVariantHash> hashes;
+    private JMenu delRegionFileMenu;
+    private JMenu loadRecentFileMenu;
+    private ButtonGroup regionButtonGroup;
+    private HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<String, JCheckBoxMenuItem>();
+    private HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
 
 	public CompPlot(Project proj) {
 		super("Genvisis - CompPlot - " + proj.getNameOfProject());
@@ -263,6 +272,7 @@ public class CompPlot extends JFrame {
                     remove.setText(rgnFile);
                     delRegionFileMenu.add(remove);
                     CompPlot.this.regionNavigator.loadRegions();
+                    CompPlot.this.regionNavigator.setRegionFile(rgnFile);
                     CompPlot.this.regionNavigator.setRegion(0);
                     CompPlot.this.setRegion(CompPlot.this.regionNavigator.getRegion());
                 }
@@ -285,33 +295,33 @@ public class CompPlot extends JFrame {
         }
 
         fileMenu.add(delRegionFileMenu);
-        
-        // JMenuItem loadRegionFile = new JMenuItem();
-        // loadRegionFile.setAction(loadNewFileAction);
-        // loadRegionFile.setText(REGION_LIST_NEW_FILE);
-        // loadRegionFile.setMnemonic(KeyEvent.VK_L);
-        // fileMenu.add(loadRegionFile);
-        // loadRecentFileMenu = new JMenu("Load Recent Region List...");
-        // loadRecentFileMenu.setMnemonic(KeyEvent.VK_R);
-        // fileMenu.add(loadRecentFileMenu);
+
+        JMenuItem loadRegionFile = new JMenuItem();
+        loadRegionFile.setAction(loadNewFileAction);
+        loadRegionFile.setText(REGION_LIST_NEW_FILE);
+        loadRegionFile.setMnemonic(KeyEvent.VK_L);
+        fileMenu.add(loadRegionFile);
+        loadRecentFileMenu = new JMenu("Load Recent Region List...");
+        loadRecentFileMenu.setMnemonic(KeyEvent.VK_R);
+        fileMenu.add(loadRecentFileMenu);
 
         menuBar.add(fileMenu);
 
-        // regionButtonGroup = new ButtonGroup();
-        // if (proj != null) {
-        // String[] files = proj.REGION_LIST_FILENAMES.getValue();
-        // String name;
-        // for (String file : files) {
-        // name = ext.rootOf(file);
-        // regionFileNameLoc.put(name, file);
-        // JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
-        // menuItem.setAction(markerFileSelectAction);
-        // menuItem.setText(name);
-        // regionFileNameBtn.put(name, menuItem);
-        // regionButtonGroup.add(menuItem);
-        // loadRecentFileMenu.add(menuItem);
-        // }
-        // }
+        regionButtonGroup = new ButtonGroup();
+        if (proj != null) {
+            String[] files = proj.REGION_LIST_FILENAMES.getValue();
+            String name;
+            for (String file : files) {
+                name = ext.rootOf(file);
+                regionFileNameLoc.put(name, file);
+                JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
+                menuItem.setAction(markerFileSelectAction);
+                menuItem.setText(name);
+                regionFileNameBtn.put(name, menuItem);
+                regionButtonGroup.add(menuItem);
+                loadRecentFileMenu.add(menuItem);
+            }
+        }
 
         JMenu act = new JMenu("Actions");
         act.setMnemonic(KeyEvent.VK_A);
@@ -337,7 +347,7 @@ public class CompPlot extends JFrame {
                 case JOptionPane.NO_OPTION:
                     break;
             }
-            removeFileFromList(e.getActionCommand());
+            proj.REGION_LIST_FILENAMES.removeValue(e.getActionCommand());
             CompPlot.this.regionNavigator.loadRegions();
             CompPlot.this.regionNavigator.setRegion(0);
             CompPlot.this.setRegion(CompPlot.this.regionNavigator.getRegion());
@@ -345,86 +355,76 @@ public class CompPlot extends JFrame {
         }
     };
     
-    private void removeFileFromList(String file) {
-        String[] values = proj.REGION_LIST_FILENAMES.getValue();
-        String[] newValues = new String[values.length - 1];
-        int index = 0;
-        for (String val : values) {
-            if (ext.verifyDirFormat(val).equals(ext.verifyDirFormat(file))) { 
-                continue;
-            }
-            newValues[index++] = val;
-        }
-        proj.REGION_LIST_FILENAMES.setValue(newValues);
-    }
-	 
     private void addFileToList(String rawfile) {
         String file = ext.verifyDirFormat(rawfile);
         file = file.substring(0, file.length() - 1);
-//        String name = ext.rootOf(file);
-//        regionFileNameLoc.put(name, file);
-//        
-//        JCheckBoxMenuItem item = new JCheckBoxMenuItem();
-//        item.setAction(markerFileSelectAction);
-//        item.setText(name);
-//
-//        regionFileNameBtn.put(name, item);
-//        regionButtonGroup.add(item);
-//        loadRecentFileMenu.add(item);
+        String name = ext.rootOf(file);
+        regionFileNameLoc.put(name, file);
         
-        proj.REGION_LIST_FILENAMES.setValue(Array.addStrToArray(file, proj.REGION_LIST_FILENAMES.getValue(), 0));
+        JCheckBoxMenuItem item = new JCheckBoxMenuItem();
+        item.setAction(markerFileSelectAction);
+        item.setText(name);
+
+        regionFileNameBtn.put(name, item);
+        regionButtonGroup.add(item);
+        loadRecentFileMenu.add(item);
+        
+        proj.REGION_LIST_FILENAMES.addValue(file);
     }
     
-//
-//    private AbstractAction markerFileSelectAction = new AbstractAction() {
-//        private static final long serialVersionUID = 1L;
-//        @Override
-//        public void actionPerformed(ActionEvent e) {
-//            String shortName = ((JCheckBoxMenuItem)e.getSource()).getText();
+
+    private AbstractAction markerFileSelectAction = new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String shortName = ((JCheckBoxMenuItem)e.getSource()).getText();
 //            if (!loadingFile) {
-//                String file = regionFileNameLoc.get(shortName);
-//                if (file != null && file.equals(CompPlot.this.regionFileName)) {
-//                    return;
-//                }
-//                String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
-//                if (!Files.exists(tempFile)) {
-//                    proj.message("Error - region file '" + shortName + "' doesn't exist.");
-//                    regionFileNameBtn.get(regionFileName).setSelected(true);
-//                } else {
-////                    proj.REGION_LIST_FILENAMES.setValue(Array.insertStringAt(file, proj.REGION_LIST_FILENAMES.getValue(), 0));
-//                    CompPlot.this.regionFileName = file;
+                String file = regionFileNameLoc.get(shortName);
+                if (file != null && file.equals(CompPlot.this.regionNavigator.getRegionFile())) {
+                    return;
+                }
+                String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
+                if (!Files.exists(tempFile)) {
+                    proj.message("Error - region file '" + shortName + "' doesn't exist.");
+                    regionFileNameBtn.get(shortName).setSelected(true);
+                } else {
+//                    proj.REGION_LIST_FILENAMES.setValue(Array.insertStringAt(file, proj.REGION_LIST_FILENAMES.getValue(), 0));
 //                    CompPlot.this.regionNavigator.loadRegions();
-//                    CompPlot.this.regionNavigator.setRegion(0);
-////                    regionIndex = 0;
-////                    showRegion();
-//                }
-//            } else if (loadingFile) {
-//                // leave as currently selected marker
-//                if (CompPlot.this.regionFileName != "" && CompPlot.this.regionFileName != null) {
-//                    String file = ext.rootOf(CompPlot.this.regionFileName);
-//                    regionFileNameBtn.get(file).setSelected(true);
-//                }
-//                return;
-//            } 
-//        }
-//    };
+                    CompPlot.this.regionNavigator.setRegionFile(file);
+                    CompPlot.this.regionNavigator.setRegion(0);
+                    CompPlot.this.setRegion(CompPlot.this.regionNavigator.getRegion());
+//                    regionIndex = 0;
+//                    showRegion();
+                }
+            /*} else if (loadingFile) {
+                // leave as currently selected marker
+                if (CompPlot.this.regionNavigator.getRegionFile() != "" && CompPlot.this.regionNavigator.getRegionFile() != null) {
+                    String file = ext.rootOf(CompPlot.this.regionNavigator.getRegionFile());
+                    regionFileNameBtn.get(file).setSelected(true);
+                }
+                return;
+            } */
+        }
+    };
     
     AbstractAction loadNewFileAction = new AbstractAction() {
         private static final long serialVersionUID = 1L;
         @Override
         public void actionPerformed(ActionEvent e) {
-            chooseNewFiles();
-            CompPlot.this.regionNavigator.loadRegions();
-            CompPlot.this.regionNavigator.setRegion(0);
+            String newFile = chooseNewFiles();
+            if (newFile != null) {
+                CompPlot.this.regionNavigator.loadRegions();
+                CompPlot.this.regionNavigator.setRegionFile(newFile);
+                CompPlot.this.regionNavigator.setRegion(0);
+            }
 //            if (CompPlot.this.regionFileName != null && !"".equals(CompPlot.this.regionFileName)) {
 //                regionFileNameBtn.get(ext.rootOf(CompPlot.this.regionFileName)).setSelected(true);
 //            } 
         }
     };
 
-    private JMenu delRegionFileMenu;
    
-    private void chooseNewFiles() {
+    private String chooseNewFiles() {
         JFileChooser jfc = new JFileChooser((proj != null /*|| regionFileName == null */? proj.PROJECT_DIRECTORY.getValue() : null /* ext.parseDirectoryOfFile(regionFileName)*/));
         jfc.setMultiSelectionEnabled(true);
         if (jfc.showOpenDialog(CompPlot.this) == JFileChooser.APPROVE_OPTION) {
@@ -452,6 +452,7 @@ public class CompPlot extends JFrame {
                 for (File kept : keptFiles) {
                     addFileToList(kept.getAbsolutePath());
                 }
+                return keptFiles[0].getAbsolutePath();
             } else {
                 File file = jfc.getSelectedFile();
                 boolean keep = true;
@@ -466,11 +467,13 @@ public class CompPlot extends JFrame {
                     JOptionPane.showMessageDialog(CompPlot.this, msg.toString()); 
                 } else {
                     addFileToList(file.getAbsolutePath());
+                    return file.getAbsolutePath();
                 }
                 
             }
             
         }
+        return null;
     }
 	    
 	public void loadCNVs(int[] location) {

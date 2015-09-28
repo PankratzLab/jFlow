@@ -122,7 +122,7 @@ public class Configurator extends JFrame {
                 "PEDIGREE_FILENAME",
                 "FILTERED_MARKERS_FILENAME",
                 "SAMPLE_SUBSET_FILENAME",
-                "TARGET_MARKERS_FILENAME",
+                "TARGET_MARKERS_FILENAMES",
                 "GC_THRESHOLD",
             },
             {
