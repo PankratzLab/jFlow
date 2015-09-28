@@ -1139,11 +1139,20 @@ public class PlinkData {
 		}
 		
 		projHash = new HashMap<String, Integer>();
-		for (int i = 0; i < indicesOfTargetMarkersInProj.length; i++) {
-		    if (projHash.containsKey(targetMarkers[i])) {
-                System.err.println("Warning - duplicate marker name: "+targetMarkers[i]);
-            }
-		    projHash.put(targetMarkers[i], indicesOfTargetMarkersInProj[i]);
+		if (indicesOfTargetMarkersInProj != null) {
+    		for (int i = 0; i < indicesOfTargetMarkersInProj.length; i++) {
+    		    if (projHash.containsKey(targetMarkers[i])) {
+                    System.err.println("Warning - duplicate marker name: "+targetMarkers[i]);
+                }
+    		    projHash.put(targetMarkers[i], indicesOfTargetMarkersInProj[i]);
+    		}
+		} else {
+		    for (int i = 0; i < targetMarkers.length; i++) {
+		        if (projHash.containsKey(targetMarkers[i])) {
+		            System.err.println("Warning - duplicate marker name: "+targetMarkers[i]);
+		        }
+		        projHash.put(targetMarkers[i], i);
+		    }
 		}
 
 		sampleFingerPrint = proj.getSampleList().getFingerprint();

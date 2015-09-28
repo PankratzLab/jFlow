@@ -124,11 +124,11 @@ public class Project {
 		    super.setValue(values);
 		}
 		public void removeValue(String value) {
-		    String[] newValues = new String[this.getValue().length];
+		    String[] newValues = new String[this.getValue().length - 1];
 		    String[] values = this.getValue();
 		    int index = 0;
 		    for (int i = 0; i < values.length; i++) {
-		        boolean skip = true;
+		        boolean skip = false;
 		        if ((isFile || isDir) && (ext.verifyDirFormat(values[i]).equals(ext.verifyDirFormat(value)))) { 
 		            skip = true;
 		        } else if (values[i].equals(value)) {
@@ -139,6 +139,7 @@ public class Project {
 		        }
 		        newValues[index++] = values[i];
 		    }
+		    this.setValue(newValues);
 		}
 		public void addValue(String value) {
 		    this.setValue(Array.addStrToArray(value, getValue(), 0));
