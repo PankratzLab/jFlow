@@ -323,9 +323,9 @@ public class CompPlot extends JFrame {
             }
         }
 
-        JMenu act = new JMenu("Actions");
-        act.setMnemonic(KeyEvent.VK_A);
-        menuBar.add(act);
+//        JMenu act = new JMenu("Actions");
+//        act.setMnemonic(KeyEvent.VK_A);
+//        menuBar.add(act);
 
         return menuBar;
     }

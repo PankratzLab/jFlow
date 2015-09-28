@@ -542,8 +542,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     	    	// Automatically predict the new genotype and assigns to the last filter.
     	    	sp.getClusterFilterCollection().addClusterFilter(sp.getMarkerName(),
     	    											  new ClusterFilter((byte)sp.getPlotType(panelIndex),
-    																		(float)Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
-    																		(float)Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
+    																		(float)Math.max(0, Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX))),
+    																		(float)Math.max(0, Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY))),
     																		(float)Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),
     																		(float)Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY)),
     																		sp.getCurrentMarkerData()));
