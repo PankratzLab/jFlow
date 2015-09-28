@@ -8,11 +8,16 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import javax.swing.AbstractAction;
@@ -101,7 +106,8 @@ public class CompPlot extends JFrame {
     private ButtonGroup regionButtonGroup;
     private HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<String, JCheckBoxMenuItem>();
     private HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
-
+    private String[] originalRegionFiles = null;
+    
 	public CompPlot(Project proj) {
 		super("Genvisis - CompPlot - " + proj.getNameOfProject());
 		this.proj = proj;
@@ -132,6 +138,27 @@ public class CompPlot extends JFrame {
             chrBoundaries[0][1] = markerNames.length-1;
 		}
 		init();
+		
+		addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                String[] curr = CompPlot.this.proj.REGION_LIST_FILENAMES.getValue();
+                HashSet<String> currSet = new HashSet<String>();
+                for (String s : curr) {
+                    currSet.add(s);
+                }
+                for (String s : originalRegionFiles) {
+                    currSet.remove(s);
+                }
+                if (currSet.size() > 0) {
+                    String message = currSet.size() + " files have been added.  ";
+                    int choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time CompPlot is loaded?", "Preserve CompPlot workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+                    if (choice == 0) {
+                        CompPlot.this.proj.saveProperties();
+                    }
+                }
+            }
+		});
 	}
 
 	private void init() {
@@ -150,6 +177,8 @@ public class CompPlot extends JFrame {
 			String filename = file.getName();
 			allFiles.add(filename);
 		}
+		
+		originalRegionFiles = proj.REGION_LIST_FILENAMES.getValue();
 
 		// Get the GeneTrack
 		String geneTrackFile = proj.GENETRACK_FILENAME.getValue(false, false);
@@ -189,7 +218,8 @@ public class CompPlot extends JFrame {
 		setDisplayMode(compConfig.getDisplayMode());
 
 		setRegion(regionNavigator.getRegion());
-
+		
+        regionFileNameBtn.get(ext.rootOf(CompPlot.this.regionNavigator.getRegionFile())).setSelected(true);
 	}
 
 	private void setupGUI() {
@@ -348,10 +378,13 @@ public class CompPlot extends JFrame {
                     break;
             }
             proj.REGION_LIST_FILENAMES.removeValue(e.getActionCommand());
-            CompPlot.this.regionNavigator.loadRegions();
+//            CompPlot.this.regionNavigator.loadRegions();
+            String[] val = proj.REGION_LIST_FILENAMES.getValue();
+            CompPlot.this.regionNavigator.setRegionFile(val.length > 0 ? val[0] : "");
             CompPlot.this.regionNavigator.setRegion(0);
             CompPlot.this.setRegion(CompPlot.this.regionNavigator.getRegion());
             delRegionFileMenu.remove((JMenuItem) e.getSource());
+            loadRecentFileMenu.remove(regionFileNameBtn.remove(ext.rootOf(e.getActionCommand())));
         }
     };
     
@@ -368,6 +401,12 @@ public class CompPlot extends JFrame {
         regionFileNameBtn.put(name, item);
         regionButtonGroup.add(item);
         loadRecentFileMenu.add(item);
+        
+        final JMenuItem remove = new JMenuItem();
+        remove.setActionCommand(file);
+        remove.setAction(deleteFileAction);
+        remove.setText(file);
+        delRegionFileMenu.add(remove);
         
         proj.REGION_LIST_FILENAMES.addValue(file);
     }
@@ -416,10 +455,9 @@ public class CompPlot extends JFrame {
                 CompPlot.this.regionNavigator.loadRegions();
                 CompPlot.this.regionNavigator.setRegionFile(newFile);
                 CompPlot.this.regionNavigator.setRegion(0);
+                regionFileNameBtn.get(ext.rootOf(CompPlot.this.regionNavigator.getRegionFile())).setSelected(true);
+                CompPlot.this.setRegion(CompPlot.this.regionNavigator.getRegion());
             }
-//            if (CompPlot.this.regionFileName != null && !"".equals(CompPlot.this.regionFileName)) {
-//                regionFileNameBtn.get(ext.rootOf(CompPlot.this.regionFileName)).setSelected(true);
-//            } 
         }
     };
 
@@ -450,7 +488,11 @@ public class CompPlot extends JFrame {
                 }
                 
                 for (File kept : keptFiles) {
-                    addFileToList(kept.getAbsolutePath());
+                    if (verifyValidFile(kept.getAbsolutePath())) {
+                        addFileToList(kept.getAbsolutePath());
+                    } else {
+                        proj.getLog().reportError("Error - contents of file {" + kept.getAbsolutePath() + "} are not valid UCSC regions");
+                    }
                 }
                 return keptFiles[0].getAbsolutePath();
             } else {
@@ -466,8 +508,13 @@ public class CompPlot extends JFrame {
                     StringBuilder msg = new StringBuilder("The following data file is already present:\n").append(file.getName());
                     JOptionPane.showMessageDialog(CompPlot.this, msg.toString()); 
                 } else {
-                    addFileToList(file.getAbsolutePath());
-                    return file.getAbsolutePath();
+                    if (verifyValidFile(file.getAbsolutePath())) {
+                        addFileToList(file.getAbsolutePath());
+                        return file.getAbsolutePath();
+                    } else {
+                        proj.getLog().reportError("Error - contents of file {" + file.getAbsolutePath() + "} are not valid UCSC regions");
+                        return null;
+                    }
                 }
                 
             }
@@ -476,7 +523,27 @@ public class CompPlot extends JFrame {
         return null;
     }
 	    
-	public void loadCNVs(int[] location) {
+	private boolean verifyValidFile(String file) {
+	    File f = new File(file);
+	    if (!f.exists()) return false;
+	    try {
+	        BufferedReader reader = Files.getAppropriateReader(file);
+	        String line = null;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\t");
+                int[] pos = Positions.parseUCSClocation(parts[0]);
+                if (pos == null || pos[0] == -1 || pos[1] == -1 || pos[2] == -1) {
+                    return false;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+	    return true;
+    }
+
+    public void loadCNVs(int[] location) {
 		// long startTime = Calendar.getInstance().getTimeInMillis();
 
 		cnvRects = new CNVRectangles(hashes, allFiles, filterFiles, location, probes, minSize, qualityScore);

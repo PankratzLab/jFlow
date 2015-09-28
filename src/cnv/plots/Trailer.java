@@ -153,7 +153,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                 String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
                 if (!Files.exists(tempFile)) {
                     proj.message("Error - region file '" + shortName + "' doesn't exist.");
-                    regionFileNameBtn.get(regionFileName).setSelected(true);
+                    regionFileNameBtn.get(shortName).setSelected(true);
                 } else {
                     Trailer.this.regionFileName = file;
                     loadRegions();
@@ -189,18 +189,22 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         private static final long serialVersionUID = 1L;
         @Override
         public void actionPerformed(ActionEvent e) {
-            chooseNewFiles();
-            if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
-                if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
-                    regionFileNameBtn.get(REGION_LIST_USE_CNVS).setSelected(true);
-//                  ((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_USE_CNVS);
-                } else {
-                    regionFileNameBtn.get(ext.rootOf(Trailer.this.regionFileName)).setSelected(true);
-//                  ((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(Trailer.this.regionFileName));
+            String newFile = chooseNewFiles();
+            if (newFile == null) {
+                if (Trailer.this.regionFileName != null && !"".equals(Trailer.this.regionFileName)) {
+                    if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+                        regionFileNameBtn.get(REGION_LIST_USE_CNVS).setSelected(true);
+                    } else {
+                        regionFileNameBtn.get(ext.rootOf(Trailer.this.regionFileName)).setSelected(true);
+                    }
                 }
-            }/* else {
-                ((JComboBox<String>)e.getSource()).setSelectedItem(REGION_LIST_PLACEHOLDER);
-            }*/ 
+            } else {
+                String file = ext.verifyDirFormat(newFile);
+                file = file.substring(0, file.length() - 1);
+                String name = ext.rootOf(file);
+                regionFileNameBtn.get(name).setSelected(true);
+                regionFileNameBtn.get(name).doClick();
+            }
         }
     };
 	
@@ -573,7 +577,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		return (int)((double)(pos-start)/(double)(stop-start)*(double)(getWidth()-2*WIDTH_BUFFER))+WIDTH_BUFFER;
 	}
 	
-	private void chooseNewFiles() {
+	private String chooseNewFiles() {
 		JFileChooser jfc = new JFileChooser((proj != null || regionFileName == null ? proj.PROJECT_DIRECTORY.getValue() : ext.parseDirectoryOfFile(regionFileName)));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(Trailer.this) == JFileChooser.APPROVE_OPTION) {
@@ -601,6 +605,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				for (File kept : keptFiles) {
 					addFileToList(kept.getAbsolutePath());
 				}
+				return keptFiles[0].getAbsolutePath();
 			} else {
 				File file = jfc.getSelectedFile();
 				boolean keep = true;
@@ -613,13 +618,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				if (!keep) {
 					StringBuilder msg = new StringBuilder("The following data file is already present:\n").append(file.getName());
 					JOptionPane.showMessageDialog(Trailer.this, msg.toString()); 
+					return null;
 				} else {
 					addFileToList(file.getAbsolutePath());
+					return file.getAbsolutePath();
 				}
 				
 			}
 			
 		}
+		return null;
 	}
 	
 	private void addFileToList(String rawfile) {
@@ -1779,27 +1787,27 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	public void loadRegions() {
 		BufferedReader reader;
         Vector<String[]> v;
-        String[] line;
+        String line;
+        String[] parts;
         int ignoredLines, countMissingRegions, invalidSamples;
 		
 		try {
-//			reader = Files.getReader(regionsList[regionsListIndex], jar, false, false);
 			String file = regionFileName.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + regionFileName : regionFileName;
-			reader = Files.getReader(file, jar, false, false);
-//			System.out.print("Loading regions from "+regionsList[regionsListIndex]+"...");
+			reader = Files.getAppropriateReader(file);//Files.getReader(file, jar, false, false);
 			System.out.print("Loading regions from " + regionFileName + "...");
 	        v = new Vector<String[]>();
 	        ignoredLines = countMissingRegions = invalidSamples = 0;
-            while (reader.ready()) {
-            	line = reader.readLine().trim().split("\t");
-            	if (sampleData.lookup(line[0]) == null) {
-            		log.reportError("Error - '"+line[0]+"' is not a valid sample id");
+	        line = null;
+            while ((line = reader.readLine()) != null) {
+            	parts = line.trim().split("\t");
+            	if (sampleData.lookup(parts[0]) == null) {
+            		log.reportError("Error - '"+parts[0]+"' is not a valid sample id");
             		invalidSamples++;
-            	} else if (line.length == 1) {
-            		v.add(new String[] {line[0], "chr1"});
+            	} else if (parts.length == 1) {
+            		v.add(new String[] {parts[0], "chr1"});
             		countMissingRegions++;
-            	} else if (line.length > 1 && line[1].startsWith("chr")) {
-            		v.add(line);
+            	} else if (parts.length > 1 && parts[1].startsWith("chr")) {
+            		v.add(parts);
             	} else {
             		ignoredLines++;
             	}
@@ -1820,10 +1828,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             
         } catch (FileNotFoundException fnfe) {
             System.err.println("Error: file \""+regionFileName+"\" not found in data directory");
-            System.exit(1);
         } catch (IOException ioe) {
             System.err.println("Error reading file \""+regionFileName+"\"");
-            System.exit(2);
         }
 	}
 	

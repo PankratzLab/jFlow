@@ -147,10 +147,10 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		getTextField().setText(regions.get(currentFile).get(regionIndex).getRegion());
 
 		// Update the region indicator
-		location.setText("Region " + (regionIndex + 1) + " of " + regions.size());
+		location.setText("Region " + (regionIndex + 1) + " of " + regions.get(currentFile).size());
 
 		// Pass along the property change
-		firePropertyChange("location", regions.get(lastRegionIndex), regions.get(regionIndex));
+		firePropertyChange("location", null/*regions.get(currentFile).get(lastRegionIndex)*/, regions.get(currentFile).get(regionIndex));
 
 		// Set the tooltip text on the buttons to match the region label if any
 		firstButton.setToolTipText(regions.get(currentFile).get(0).getLabel());
@@ -159,12 +159,12 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		} else {
 			leftButton.setToolTipText(regions.get(currentFile).get(0).getLabel());
 		}
-		if (index < (regions.size() - 1)) {
+		if (index < (regions.get(currentFile).size() - 1)) {
 			rightButton.setToolTipText(regions.get(currentFile).get(regionIndex + 1).getLabel());
 		} else {
-			rightButton.setToolTipText(regions.get(currentFile).get(regions.size() - 1).getLabel());
+			rightButton.setToolTipText(regions.get(currentFile).get(regions.get(currentFile).size() - 1).getLabel());
 		}
-		lastButton.setToolTipText(regions.get(currentFile).get(regions.size() - 1).getLabel());
+		lastButton.setToolTipText(regions.get(currentFile).get(regions.get(currentFile).size() - 1).getLabel());
 	}
 
 	public void setLocation(int[] location) {
@@ -175,11 +175,17 @@ public class RegionNavigator extends JPanel implements ActionListener {
 	    if (file == null && currentFile.equals(file)) {
 	        return;// log?
 	    }
-	    if (!regions.containsKey(file) && !regions.containsKey(ext.verifyDirFormat(file))) {
-	        proj.getLog().reportError("Error - file {" + file + "} is not a valid regions file");
-	        return;
+	    if (!"".equals(file)) {
+    	    String temp = ext.verifyDirFormat(file);
+    	    temp = temp.substring(0, temp.length() - 1);
+    	    if (!regions.containsKey(file) && !regions.containsKey(temp)) {
+    	        proj.getLog().reportError("Error - file {" + file + "} is not a valid regions file");
+    	        return;
+    	    }
+    	    currentFile = temp;
+	    } else {
+	        currentFile = file;
 	    }
-	    currentFile = file;
 	}
 	
 	public String getRegionFile() {
@@ -201,11 +207,11 @@ public class RegionNavigator extends JPanel implements ActionListener {
 				regionIndex--;
 			}
 		} else if (source.equals(rightButton)) {
-			if (regionIndex < (regions.size() - 1)) {
+			if (regionIndex < (regions.get(currentFile).size() - 1)) {
 				regionIndex++;
 			}
 		} else if (source.equals(lastButton)) {
-			regionIndex = regions.size() - 1;
+			regionIndex = regions.get(currentFile).size() - 1;
 		} else if (source.equals(UCSCButton)) {
 			Desktop desktop = Desktop.getDesktop();
 			String URL = Positions.getUCSClink(Positions.parseUCSClocation(getTextField().getText()));
@@ -271,7 +277,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 				setLocation(newLocation);
 
 				// Pass along the property change
-				firePropertyChange("location", regions.get(lastRegionIndex), new Region(newLocation));
+				firePropertyChange("location", regions.get(currentFile).get(lastRegionIndex), new Region(newLocation));
 //			}
 		} else if (source.equals(LRRButton)) {
 			new Thread(new LRRComp(proj, getTextField().getText())).start();
@@ -315,12 +321,14 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		} catch (Exception ex) {
 			System.out.println(ex.getStackTrace());
 		}
-
+		
+		ArrayList<Region> empty = new ArrayList<Region>();
+		empty.add(new Region(DEFAULT_LOCATION));
+		regions.put("", empty);
 		if (regions.size() == 0) {
 			// The file was invalid or didn't contain regions, create a default region
 			// System.out.println("Setting default location");
 		    setRegionFile("");
-		    regions.get(currentFile).add(new Region(DEFAULT_LOCATION));
 		} else {
 		    setRegionFile(regionsList[0]);
 		}
