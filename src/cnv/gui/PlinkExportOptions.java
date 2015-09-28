@@ -104,10 +104,8 @@ public class PlinkExportOptions extends JDialog {
                             nmld.setVisible(true);
                             if (nmld.getReturnCode() == JOptionPane.YES_OPTION) {
                                 String mkrFile = nmld.getFileName();
-                                String[] mkrFiles = proj.TARGET_MARKERS_FILENAMES.getValue();
-                                mkrFiles = Array.addStrToArray(mkrFile, mkrFiles, 0);
-                                proj.TARGET_MARKERS_FILENAMES.setValue(mkrFiles);
-                                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<String>(mkrFiles));
+                                proj.TARGET_MARKERS_FILENAMES.addValue(mkrFile);
+                                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<String>(proj.TARGET_MARKERS_FILENAMES.getValue()));
                                 comboBoxTargetMarkers.setSelectedItem(mkrFile);
                             } else {
                                 comboBoxTargetMarkers.setSelectedItem(ALL_MARKERS);

@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Vector;
+import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -23,9 +23,9 @@ import cnv.filesys.Project;
 import cnv.manage.UCSCtrack;
 import cnv.plots.CompPlot;
 import cnv.var.Region;
-
 import common.Grafik;
 import common.Positions;
+import common.ext;
 
 public class RegionNavigator extends JPanel implements ActionListener {
 	/**
@@ -41,7 +41,8 @@ public class RegionNavigator extends JPanel implements ActionListener {
 	String[] regionsList; // List of the region files
 	Project proj;
 	CompPlot plot;
-	Vector<Region> regions = new Vector<Region>();
+	HashMap<String, ArrayList<Region>> regions = new HashMap<String, ArrayList<Region>>();
+	String currentFile = "";
 	int regionIndex = 0;
 	int lastRegionIndex = 0;
 
@@ -64,6 +65,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		// }
 
 		// Set region to the first region in the list
+		setRegionFile(regionsList[0]);
 		setRegion(regionIndex);
 	}
 
@@ -129,7 +131,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 	 * @return A Region object representing the current region
 	 */
 	public Region getRegion() {
-		return regions.get(regionIndex);
+		return regions.get(currentFile).get(regionIndex);
 	}
 
 	/**
@@ -142,7 +144,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		regionIndex = index;
 
 		// Update the text field
-		getTextField().setText(regions.get(regionIndex).getRegion());
+		getTextField().setText(regions.get(currentFile).get(regionIndex).getRegion());
 
 		// Update the region indicator
 		location.setText("Region " + (regionIndex + 1) + " of " + regions.size());
@@ -151,24 +153,39 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		firePropertyChange("location", regions.get(lastRegionIndex), regions.get(regionIndex));
 
 		// Set the tooltip text on the buttons to match the region label if any
-		firstButton.setToolTipText(regions.get(0).getLabel());
+		firstButton.setToolTipText(regions.get(currentFile).get(0).getLabel());
 		if (regionIndex >= 1) {
-			leftButton.setToolTipText(regions.get(regionIndex - 1).getLabel());
+			leftButton.setToolTipText(regions.get(currentFile).get(regionIndex - 1).getLabel());
 		} else {
-			leftButton.setToolTipText(regions.get(0).getLabel());
+			leftButton.setToolTipText(regions.get(currentFile).get(0).getLabel());
 		}
 		if (index < (regions.size() - 1)) {
-			rightButton.setToolTipText(regions.get(regionIndex + 1).getLabel());
+			rightButton.setToolTipText(regions.get(currentFile).get(regionIndex + 1).getLabel());
 		} else {
-			rightButton.setToolTipText(regions.get(regions.size() - 1).getLabel());
+			rightButton.setToolTipText(regions.get(currentFile).get(regions.size() - 1).getLabel());
 		}
-		lastButton.setToolTipText(regions.get(regions.size() - 1).getLabel());
+		lastButton.setToolTipText(regions.get(currentFile).get(regions.size() - 1).getLabel());
 	}
 
 	public void setLocation(int[] location) {
 		getTextField().setText(Positions.getUCSCformat(location));
 	}
 
+	public void setRegionFile(String file) {
+	    if (file == null && currentFile.equals(file)) {
+	        return;// log?
+	    }
+	    if (!regions.containsKey(file) && !regions.containsKey(ext.verifyDirFormat(file))) {
+	        proj.getLog().reportError("Error - file {" + file + "} is not a valid regions file");
+	        return;
+	    }
+	    currentFile = file;
+	}
+	
+	public String getRegionFile() {
+	    return currentFile;
+	}
+	
 	@Override
 	/**
 	 * Set the region based on which buttons are pressed
@@ -268,7 +285,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		BufferedReader reader;
 		// Get a list of the regions
 		regionsList = proj.REGION_LIST_FILENAMES.getValue();
-		regions = new Vector<Region>();
+		regions = new HashMap<String, ArrayList<Region>>();
 
 		try {
 			if (regionsList.length == 0) {
@@ -282,9 +299,15 @@ public class RegionNavigator extends JPanel implements ActionListener {
 					reader = new BufferedReader(new FileReader(regionsList[i]));
 					String line = null;
 					while ((line = reader.readLine()) != null) {
+					    line = line.trim();
 						if (line != "") {
 							Region myRegion = new Region(line);
-							regions.add(myRegion);
+							ArrayList<Region> list = regions.get(regionsList[i]);
+							if (list == null) {
+							    list = new ArrayList<Region>();
+							    regions.put(regionsList[i], list);
+							}
+							list.add(myRegion);
 						}
 					}
 				}
@@ -296,7 +319,10 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		if (regions.size() == 0) {
 			// The file was invalid or didn't contain regions, create a default region
 			// System.out.println("Setting default location");
-			regions.add(new Region(DEFAULT_LOCATION));
+		    setRegionFile("");
+		    regions.get(currentFile).add(new Region(DEFAULT_LOCATION));
+		} else {
+		    setRegionFile(regionsList[0]);
 		}
 	}
 

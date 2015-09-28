@@ -123,6 +123,36 @@ public class Project {
             }
 		    super.setValue(values);
 		}
+		public void removeValue(String value) {
+		    String[] newValues = new String[this.getValue().length];
+		    String[] values = this.getValue();
+		    int index = 0;
+		    for (int i = 0; i < values.length; i++) {
+		        boolean skip = true;
+		        if ((isFile || isDir) && (ext.verifyDirFormat(values[i]).equals(ext.verifyDirFormat(value)))) { 
+		            skip = true;
+		        } else if (values[i].equals(value)) {
+		            skip = true;
+		        }
+		        if (skip) {
+		            continue;
+		        }
+		        newValues[index++] = values[i];
+		    }
+		}
+		public void addValue(String value) {
+		    this.setValue(Array.addStrToArray(value, getValue(), 0));
+		}
+		public void addValue(String valu, int index) {
+            String value = valu;
+            if (isDir) {
+                value = ext.verifyDirFormat(value);
+            } else if (isFile) {
+                value = ext.verifyDirFormat(value);
+                value = value.substring(0, value.length() - 1);
+            }
+		    this.setValue(Array.addStrToArray(value, getValue(), index));
+		}
 	}
 	
 	public static class BooleanProperty extends Property<Boolean> {

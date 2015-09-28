@@ -792,27 +792,27 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
             public void actionPerformed(ActionEvent e) {
                 String toDelete = e.getActionCommand();
                 int opt = JOptionPane.showConfirmDialog(ScatterPlot.this, "Delete file on disk?", "Delete Marker List File?", JOptionPane.YES_NO_CANCEL_OPTION);
-                boolean delete = false;
+                boolean deleteFile = false;
                 if (opt == JOptionPane.YES_OPTION) {
-                    delete = true;
+                    deleteFile = true;
                 } else if (opt == JOptionPane.NO_OPTION) {
-                    delete = false;
+                    deleteFile = false;
                 } else {
                     return; // cancelled
                 }
-                String[] vals = proj.DISPLAY_MARKERS_FILENAMES.getValue();
-                String[] newVals = new String[vals.length - 1];
-                int cnt = 0;
-                for (String val : vals) {
-                    if (!toDelete.equals(val)) {
-                        newVals[cnt] = val;
-                        cnt++;
-                    }
-                }
-                if (delete) {
+//                String[] vals = proj.DISPLAY_MARKERS_FILENAMES.getValue();
+//                String[] newVals = new String[vals.length - 1];
+//                int cnt = 0;
+//                for (String val : vals) {
+//                    if (!toDelete.equals(val)) {
+//                        newVals[cnt] = val;
+//                        cnt++;
+//                    }
+//                }
+                if (deleteFile) {
                     (new File(toDelete)).delete();
                 }
-                proj.DISPLAY_MARKERS_FILENAMES.setValue(newVals);
+                proj.DISPLAY_MARKERS_FILENAMES.removeValue(toDelete);
                 ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
                 ScatterPlot.this.revalidate();
                 ScatterPlot.this.repaint();
@@ -2359,9 +2359,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		    newMkrList.setVisible(true);
 		    if (newMkrList.getReturnCode() == JOptionPane.YES_OPTION) {
 		        String mkrFile = newMkrList.getFileName();
-		        String[] mkrFiles = proj.DISPLAY_MARKERS_FILENAMES.getValue();
-		        mkrFiles = Array.addStrToArray(mkrFile, mkrFiles, 0);
-		        proj.DISPLAY_MARKERS_FILENAMES.setValue(mkrFiles);
+		        proj.DISPLAY_MARKERS_FILENAMES.addValue(mkrFile);
 		        loadMarkerFile(mkrFile);
 		    }
 		} else if (command.equals(LOAD_LIST_COMMAND)) {
@@ -2375,9 +2373,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		        try {
                     String file = jfc.getSelectedFile().getCanonicalPath();
                     file = ext.replaceAllWith(file, "\\", "/");
-                    String[] mkrFiles = proj.DISPLAY_MARKERS_FILENAMES.getValue();
-                    mkrFiles = Array.addStrToArray(file, mkrFiles, 0);
-                    proj.DISPLAY_MARKERS_FILENAMES.setValue(mkrFiles);
+                    proj.DISPLAY_MARKERS_FILENAMES.addValue(file);
                     loadMarkerFile(file);
                 } catch (IOException e) {
                     proj.message("Error - invalid file selected");
