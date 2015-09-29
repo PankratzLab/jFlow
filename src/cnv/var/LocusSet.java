@@ -73,6 +73,12 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		return loci;
 	}
 
+	public void addAll(ArrayList<T> toAdd) {
+		for (int i = 0; i < loci.length; i++) {
+			toAdd.add(loci[i]);
+		}
+	}
+
 	/**
 	 * @param setToRemove
 	 *            remove the bases represented by this set from the current loci

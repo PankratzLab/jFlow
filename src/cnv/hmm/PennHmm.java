@@ -85,9 +85,11 @@ import common.Positions;
 // 0.010000
 
 public class PennHmm {
+	public static final int LOH_FLAG = 704;
 	private static final double NOT_ZERO_PI = 0.000000001; // 1e-9
 	private static final double STATE_CHANGE = 100000.0;
 	private static final double VITHUGE = 100000000000.0;
+	
 	private int M;
 	private int N;// number of states
 	private double[] pi;
@@ -456,7 +458,7 @@ public class PennHmm {
 		 *            Copy number normal
 		 * @return
 		 */
-		public LocusSet<CNVariant> analyzeStateSequence(Project proj, String fid, String iid, byte currentChr, int[] positions, int normalState) {
+		public LocusSet<CNVariant> analyzeStateSequence(Project proj, String fid, String iid, byte currentChr, int[] positions, int normalState,boolean verbose) {
 			CNVariant.Builder builder = new Builder();
 			builder.familyID(fid);
 			builder.individualID(iid);
@@ -500,6 +502,7 @@ public class PennHmm {
 							currentFind = currentCN;
 						}
 					} else if (foundSignal) {
+						currentFind = normalState;
 						builder.stop(positions[i - 1]);
 						tmp.add(builder.build());
 						builder = new Builder();
@@ -514,7 +517,13 @@ public class PennHmm {
 						foundSignal = false;
 					}
 				}
+				if(foundSignal){
+					builder.stop(positions[positions.length-1]);
+					tmp.add(builder.build());
+				}
 			}
+			
+			
 			LocusSet<CNVariant> cnvs = new LocusSet<CNVariant>(tmp.toArray(new CNVariant[tmp.size()]), true, proj.getLog()) {
 
 				/**
@@ -530,13 +539,18 @@ public class PennHmm {
 			}
 			int numNonNormalStates = 0;
 			for (int i = 0; i < q.length; i++) {
-				if (q[i] != normalState) {
+				if (q[i] != normalState && q[i] != 3) {
 					numNonNormalStates++;
 				}
 			}
 			if (numNonNormalStates != numTotalMarkers) {
-				String error = "BUG: detected " + numNonNormalStates + " non-normal cn states, but collapsed to " + numTotalMarkers + " markers";
+				String error = "BUG: detected " + numNonNormalStates + " non-normal and non-LOH cn states, but collapsed to " + numTotalMarkers + " markers";
+				error += "\nSample: " + fid + "\t" + fid;
 				proj.getLog().reportTimeError(error);
+				for (int i = 0; i < tmp.size(); i++) {
+					proj.getLog().reportTimeError(tmp.get(i).toPlinkFormat());
+
+				}
 				throw new IllegalStateException(error);
 			} else {
 				proj.getLog().reportTimeInfo("Found " + cnvs.getLoci().length + " cnvs over " + numTotalMarkers + " total markers covering " + cnvs.getBpCovered() + " bp on chromosome " + currentChr);
@@ -842,8 +856,7 @@ public class PennHmm {
 		if (!Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
 			PennCNV.populationBAF(proj);
 		}
-		GcModel.generateFromReferenceGenome(proj, proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.GC_MODEL_FILENAME.getValue() + "testRef");
-		System.exit(1);
+	//	GcModel.generateFromReferenceGenome(proj, proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.GC_MODEL_FILENAME.getValue() + "testRef");
 		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
 		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
 		Sample sample = proj.getFullSampleFromRandomAccessFile(proj.getSamples()[0]);
@@ -926,7 +939,7 @@ public class PennHmm {
 				String[] markersChr = Array.subArray(markerSet.getMarkerNames(), indices);
 				boolean[] cnDef = determineCNOnly(proj, markersChr);
 				ViterbiResult viterbiResult = ViterbiLogNP_CHMM(pennHmmAdjusted, lrrChr, bafsChr, pfbsChr, snpdists[currentChr], cnDef);
-				LocusSet<CNVariant> chrCnvs = viterbiResult.analyzeStateSequence(proj, sample.getSampleName(), sample.getSampleName(), currentChr, positions, 2);
+				LocusSet<CNVariant> chrCnvs = viterbiResult.analyzeStateSequence(proj, sample.getSampleName(), sample.getSampleName(), currentChr, positions, 2,true);
 				if (chrCnvs.getLoci().length > 0) {
 					chrCnvs = scoreCNVsSameChr(pennHmmAdjusted, chrCnvs, positions, lrrChr, bafsChr, pfbsChr, cnDef, proj.getLog());
 				}

@@ -1233,7 +1233,7 @@ public class Project {
 		byte[] chrs = markerSet.getChrs();
 		ArrayList<String> tmp = new ArrayList<String>();
 		for (int i = 0; i < chrs.length; i++) {
-			if (chrs[i] < 23 & chrs[i] > 0) {
+			if (chrs[i] < 23 && chrs[i] > 0) {
 				tmp.add(markerSet.getMarkerNames()[i]);
 			}
 		}
