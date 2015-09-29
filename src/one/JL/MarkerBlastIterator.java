@@ -289,9 +289,9 @@ public class MarkerBlastIterator {
 			dumpMiss(log, oneHitWonderDef, notAppropriateMatchOut, noAppropriateMatch, noAppropriateMatchMaxCrossHybe);
 
 			String oneHitWonders = ext.addToRoot(results[i].getOutput(), ".oneHitWonders_" + oneHitWonderDef);
-			String oneHitTargets = ext.addToRoot(proj.TARGET_MARKERS_FILENAME.getValue(), ".oneHitWonders_" + oneHitWonderDef);
+			String oneHitTargets = ext.addToRoot(proj.TARGET_MARKERS_FILENAMES.getValue()[0], ".oneHitWonders_" + oneHitWonderDef);
 			Files.writeArrayList(oneHitters, oneHitWonders);
-			extractOneHitWondersFrom(proj.TARGET_MARKERS_FILENAME.getValue(), Array.toStringArray(oneHitters), oneHitTargets, log);
+			extractOneHitWondersFrom(proj.TARGET_MARKERS_FILENAMES.getValue()[0], Array.toStringArray(oneHitters), oneHitTargets, log);
 			if (otherMarkersToExtract != null) {
 				for (int j = 0; j < otherMarkersToExtract.length; j++) {
 					extractOneHitWondersFrom(otherMarkersToExtract[j], Array.toStringArray(oneHitters), ext.addToRoot(otherMarkersToExtract[j], ".oneHitWonders_" + oneHitWonderDef), log);

@@ -39,6 +39,10 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	/**
 	 * 
 	 */
+	private static final long serialVersionUID = 1L;
+	/**
+	 * 
+	 */
 	public static final String PRINCIPAL_MANHATTAN_MI = "Generate manhattan plots";
 	private static final String[] HEADER = { "Index", "SNP", "CHR", "BP", "P", "T_STAT_ABS" };
 	private static final String EXT = ".hat.linear";
@@ -304,7 +308,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		String[] targetMarkers = proj.getTargetMarkers();
 		if (targetMarkers == null) {
 //			JOptionPane.showMessageDialog(parentComponent, "Failed to load target markers '" + proj.getFilename(proj.TARGET_MARKERS_FILENAME) + "'; this is the designated marker in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
-			JOptionPane.showMessageDialog(parentComponent, "Failed to load target markers '" + proj.TARGET_MARKERS_FILENAME.getValue() + "'; this is the designated marker in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parentComponent, "Failed to load target markers '" + proj.TARGET_MARKERS_FILENAMES.getValue()[0] + "'; this is the designated marker in the project properties file", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		int numMarkers = targetMarkers.length;
@@ -332,8 +336,8 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	public static void createManhattans(Project proj, String outputBase, String altDataFile, int numPCs, int numThreads, boolean verbose, boolean svdRegression) {
 //		proj.getLog().reportTimeInfo("Loading markers from " + proj.getFilename(proj.TARGET_MARKERS_FILENAME));
 //		String[] markers = HashVec.loadFileToStringArray(proj.getFilename(proj.TARGET_MARKERS_FILENAME), false, new int[] { 0 }, true);
-		proj.getLog().reportTimeInfo("Loading markers from " + proj.TARGET_MARKERS_FILENAME.getValue());
-		String[] markers = HashVec.loadFileToStringArray(proj.TARGET_MARKERS_FILENAME.getValue(), false, new int[] { 0 }, true);
+		proj.getLog().reportTimeInfo("Loading markers from " + proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
+		String[] markers = HashVec.loadFileToStringArray(proj.TARGET_MARKERS_FILENAMES.getValue()[0], false, new int[] { 0 }, true);
 		PrincipalComponentsManhattan principalComponentsManhattan = new PrincipalComponentsManhattan(proj, markers, altDataFile == null ? null : proj.PROJECT_DIRECTORY.getValue() + altDataFile, numPCs);
 		principalComponentsManhattan.populateResults(numThreads, verbose, svdRegression);
 		outputBase = proj.PROJECT_DIRECTORY.getValue() + outputBase;

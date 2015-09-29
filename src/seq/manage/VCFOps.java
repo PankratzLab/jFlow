@@ -81,7 +81,7 @@ public class VCFOps {
 	public static final Set<String> BLANK_SAMPLE = new TreeSet<String>();
 	public static final Options[] DEFUALT_WRITER_OPTIONS = new Options[] { Options.INDEX_ON_THE_FLY };
 
-	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT","NUM_HOM_VAR","NUM_HET","NUM_HOM_ALT" };
+	public static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT", "NUM_HOM_VAR", "NUM_HET", "NUM_HOM_ALT" };
 
 	public enum VCF_EXTENSIONS {
 		GZIP_VCF(".vcf.gz"), REG_VCF(".vcf"), BCF(".bcf");
@@ -1214,11 +1214,11 @@ public class VCFOps {
 						bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getContig()), vc.getStart(), vc.getEnd()));
 					}
 					if (createAnnotationFile) {
-						annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t"+vc.getHomRefCount()+"\t"+vc.getHetCount()+"\t"+vc.getHomVarCount()+"\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
+						annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.getHomRefCount() + "\t" + vc.getHetCount() + "\t" + vc.getHomVarCount() + "\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
 						GenotypesContext gc = vc.getGenotypes();
-						
+
 						for (Genotype g : gc) {
-							annoWriter.print("\t"+g.getGenotypeString());
+							annoWriter.print("\t" + g.getGenotypeString());
 						}
 						annoWriter.println();
 					}
@@ -1267,14 +1267,19 @@ public class VCFOps {
 	}
 
 	public static ChrSplitResults[] splitByChrs(String vcf, int numthreads, boolean onlyWithVariants, Logger log) {
+		return splitByChrs(vcf, null, numthreads, onlyWithVariants, log);
+	}
+
+	public static ChrSplitResults[] splitByChrs(String vcf,String newDir, int numthreads, boolean onlyWithVariants, Logger log) {
 		String[] toSplit = getAllContigs(vcf, log);
 		log.reportTimeInfo("Detected " + toSplit.length + " chrs to split");
 		log.reportTimeInfo(Array.toStr(toSplit, "\n"));
-		VCFSplitProducer producer = new VCFSplitProducer(vcf, toSplit, log);
+		VCFSplitProducer producer = new VCFSplitProducer(vcf, newDir, toSplit, log);
 		WorkerTrain<ChrSplitResults> train = new WorkerTrain<VCFOps.ChrSplitResults>(producer, numthreads, numthreads, log);
 		ArrayList<ChrSplitResults> chrSplitResults = new ArrayList<ChrSplitResults>();
 		while (train.hasNext()) {
 			ChrSplitResults tmp = train.next();
+			System.out.println(tmp.getChr()+"HJ");
 			if (onlyWithVariants) {
 				if (tmp.hasVariants()) {
 					chrSplitResults.add(tmp);
@@ -1293,12 +1298,14 @@ public class VCFOps {
 		private String[] toSplit;
 		private Logger log;
 		private int index;
+		private String newDir;
 
-		private VCFSplitProducer(String vcfFile, String[] toSplit, Logger log) {
+		private VCFSplitProducer(String vcfFile, String newDir, String[] toSplit, Logger log) {
 			super();
 			this.vcfFile = vcfFile;
 			this.toSplit = toSplit;
 			this.log = log;
+			this.newDir = newDir;
 			this.index = 0;
 		}
 
@@ -1312,7 +1319,7 @@ public class VCFOps {
 			final String chr = toSplit[index];
 			String dir = ext.parseDirectoryOfFile(vcfFile) + chr + "/";
 			new File(dir).mkdirs();
-			final String output = dir + getAppropriateRoot(vcfFile, true) + "." + chr + VCF_EXTENSIONS.GZIP_VCF.getLiteral();
+			final String output = (newDir == null ? dir : newDir) + getAppropriateRoot(vcfFile, true) + "." + chr + VCF_EXTENSIONS.GZIP_VCF.getLiteral();
 			Callable<ChrSplitResults> callable = new Callable<VCFOps.ChrSplitResults>() {
 
 				@Override
@@ -1402,6 +1409,8 @@ public class VCFOps {
 			chrSplitResults = new ChrSplitResults(chr, vcfFile, outputVCF, numChr);
 		} else {
 			log.reportFileExists(outputVCF);
+			log.reportFileExists(chr);
+
 			chrSplitResults = new ChrSplitResults(chr, vcfFile, outputVCF, numChr);
 			chrSplitResults.setHasVariants(hasSomeVariants(outputVCF, log));
 			chrSplitResults.setSkippedExists(true);
@@ -1419,6 +1428,7 @@ public class VCFOps {
 
 		public ChrSplitResults(String chr, String inputVCF, String outputVCF, int numChr) {
 			super();
+			this.chr =chr;
 			this.inputVCF = inputVCF;
 			this.outputVCF = outputVCF;
 			this.numChr = numChr;

@@ -382,8 +382,8 @@ public class VCFImporter {
 		Files.copyFile(proj.MARKER_POSITION_FILENAME.getValue(), projNorm.MARKER_POSITION_FILENAME.getValue());
 
 		processExt(projNorm, gc5Base);
-		projNorm.TARGET_MARKERS_FILENAME.setValue(ext.rootOf(vcf) + ".targetMarkers");
-		Files.writeList(projNorm.getAutosomalMarkers(), projNorm.TARGET_MARKERS_FILENAME.getValue());
+		projNorm.TARGET_MARKERS_FILENAMES.setValue(new String[] { ext.rootOf(vcf) + ".targetMarkers" });
+		Files.writeList(projNorm.getAutosomalMarkers(), projNorm.TARGET_MARKERS_FILENAMES.getValue()[0]);
 		processCentroids(projNorm, vcf, numThreads);
 		projNorm.LRRSD_CUTOFF.setValue(2.2);
 		projNorm.getLog().reportTimeError("Remember that the LRR_SD cutoff is set to 2.2");
