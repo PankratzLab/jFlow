@@ -420,25 +420,7 @@ public class VCFTally implements Serializable {
 						if (geneDatas[i].getGeneName().equals(snpEffGeneName)) {
 							foundMatch = true;
 							Pathway[] ways = gRegions.getPathways().getPathwaysFor(geneDatas[i]);
-							if (!charge) {
-								passingLocs.add(new GenePass(VCOps.getSegment(vc), geneDatas[i].getGeneName()));
-
-								addTally(geneDatas[i].getGeneName(), 1, (float) mac);
-								// TODO alt allele context
-								Set<String> samplesWithAlts = VCOps.getAltAlleleContext(vc, filterNGS, log).getSampleNames();
-								uniqs.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
-								all.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
-								for (int j = 0; j < ways.length; j++) {
-									uniqs.get(ways[j].getPathwayName()).addAll(samplesWithAlts);
-									all.get(ways[j].getPathwayName()).addAll(samplesWithAlts);
-									addTally(ways[j].getPathwayName(), 1, (float) mac);
-								}
-							} else {
-								addTally(geneDatas[i].getGeneName(), 1, (float) mac);
-								for (int j = 0; j < ways.length; j++) {
-									addTally(ways[j].getPathwayName(), 1, (float) mac);
-								}
-							}
+							addVC(vc, geneDatas, filterNGS, mac, i, ways);
 							numAdded++;
 						}
 					}
@@ -457,6 +439,28 @@ public class VCFTally implements Serializable {
 				}
 			}
 			return numAdded;
+		}
+
+		private void addVC(VariantContext vc, GeneData[] geneDatas, FilterNGS filterNGS, double mac, int i, Pathway[] ways) {
+			if (!charge) {
+				passingLocs.add(new GenePass(VCOps.getSegment(vc), geneDatas[i].getGeneName()));
+
+				addTally(geneDatas[i].getGeneName(), 1, (float) mac);
+				// TODO alt allele context
+				Set<String> samplesWithAlts = VCOps.getAltAlleleContext(vc, filterNGS, log).getSampleNames();
+				uniqs.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
+				all.get(geneDatas[i].getGeneName()).addAll(samplesWithAlts);
+				for (int j = 0; j < ways.length; j++) {
+					uniqs.get(ways[j].getPathwayName()).addAll(samplesWithAlts);
+					all.get(ways[j].getPathwayName()).addAll(samplesWithAlts);
+					addTally(ways[j].getPathwayName(), 1, (float) mac);
+				}
+			} else {
+				addTally(geneDatas[i].getGeneName(), 1, (float) mac);
+				for (int j = 0; j < ways.length; j++) {
+					addTally(ways[j].getPathwayName(), 1, (float) mac);
+				}
+			}
 		}
 
 		public String[] getBed() {

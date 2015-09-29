@@ -117,7 +117,7 @@ public class VCOps {
 	 * get the alternate allele count for a variant context
 	 */
 	public static double getAAC(VariantContext vc, Set<String> sampleNames) {
-		VariantContext vcSub = getSubset(vc, sampleNames);
+		VariantContext vcSub = sampleNames==null?vc:getSubset(vc, sampleNames);
 		int[] alleleCounts = getAlleleCounts(vcSub);
 		return (alleleCounts[2] * 2 + alleleCounts[1]);
 

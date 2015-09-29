@@ -194,7 +194,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 						int totalCasesWithAlt = trackersCase[i].getAll().get(set).size();
 						int totalControlsWithAlt = trackersControl[i].getAll().get(set).size();
 						log.reportTimeInfo("4" + ext.getTimeElapsed(time));
-
+ 
 						Hashtable<String, Float> caseMac = trackersCase[i].getTallyMAC();
 						Hashtable<String, Float> controlMac = trackersControl[i].getTallyMAC();
 						Hashtable<String, Float> chargeMac = trackersCharge[i].getTallyMAC();

@@ -147,8 +147,8 @@ public class BamImport {
 	}
 
 	private static void generatePCFile(Project proj, int numthreads) {
-		Files.writeList(proj.getMarkerNames(), proj.TARGET_MARKERS_FILENAME.getValue());
-		String mediaMarks = ext.addToRoot(proj.TARGET_MARKERS_FILENAME.getValue(), ".median");
+		Files.writeList(proj.getMarkerNames(), proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
+		String mediaMarks = ext.addToRoot(proj.TARGET_MARKERS_FILENAMES.getValue()[0], ".median");
 		Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
 		String base = "BAM_PCS";
 		MitoPipeline.catAndCaboodle(proj, numthreads, "0", mediaMarks, proj.getSamples().length - 1, base, false, false, 0, null, null, null, false, false, false, true);
