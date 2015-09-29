@@ -479,6 +479,14 @@ public class GcAdjustor {
 		private Hashtable<String, Integer> index = new Hashtable<String, Integer>();
 		private Logger log;
 
+		public GcModel(GcModel gcmodel) {
+			this.markers = gcmodel.markers;
+			this.chrs = gcmodel.chrs;
+			this.positions = gcmodel.positions;
+			this.gcs = gcmodel.gcs;
+			this.index = gcmodel.index;
+			this.log = gcmodel.log;
+		}
 		public GcModel(String[] markers, byte[] chrs, int[] positions, double[] gcs, Hashtable<String, Integer> index, Logger log) {
 			super();
 			this.markers = markers;

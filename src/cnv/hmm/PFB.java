@@ -13,6 +13,11 @@ public class PFB {
 	private Project proj;
 	private double[] pfbs;
 
+	public PFB(PFB pfb) {
+		this.proj = pfb.proj;
+		this.pfbs = pfb.pfbs;
+	}
+
 	private PFB(Project proj, double[] pfbs) {
 		super();
 		this.proj = proj;

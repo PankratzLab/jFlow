@@ -8,14 +8,19 @@ import common.Array;
 import common.Logger;
 import common.Positions;
 import common.WorkerHive;
+import common.WorkerTrain;
+import common.ext;
+import common.WorkerTrain.Producer;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Sample;
 import cnv.hmm.PennHmm.ViterbiResult;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
 import cnv.var.LocusSet;
+import cnv.var.LocusSet.TO_STRING_TYPE;
 
 /**
  * @author lane0212
@@ -61,6 +66,9 @@ public class CNVCaller {
 			proj.getLog().reportTimeError(error);
 			throw new IllegalArgumentException(error);
 		}
+		if (debugMode) {
+			proj.getLog().reportTimeInfo("Sample: " + dna);
+		}
 	}
 
 	/**
@@ -89,6 +97,10 @@ public class CNVCaller {
 								dataToCorrect[analysisProjectIndices[j]] = analysisLrrs[j];
 							}
 						}
+//						boolean[] markerMask = new boolean[markerSet.getMarkerNames().length];
+//						for (int j = 0; j < markerMask.length; j++) {
+//							markerMask[j] = markerSet.getChrs()[i] == 11;
+//						}
 						GcAdjustor gcAdjustor = new GcAdjustor(proj, gcModel, dataToCorrect, null, true, debugMode);
 						gcAdjustor.correctIntensities();
 						gcAdjustor.computeQCMetrics(true, true);
@@ -110,10 +122,15 @@ public class CNVCaller {
 					}
 					break;
 				case MEDIAN_ADJUST:
+					System.out.println(type+"\tLRR: "+analysisLrrs.length);
+					System.out.println(type+"\tBAF: "+analysisBafs.length);
+
 					analysisLrrs = adjustLrr(analysisLrrs, MIN_LRR_MEDIAN_ADJUST, MAX_LRR_MEDIAN_ADJUST, proj.getLog());
 					analysisBafs = adjustBaf(analysisBafs, MIN_BAF_MEDIAN_ADJUST, MAX_BAF_MEDIAN_ADJUST, proj.getLog());
 					break;
 				case SUBSET_TO_ANALYSIS_MARKERS:
+					System.out.println(type+"\tLRR: "+analysisLrrs.length);
+					System.out.println(type+"\tBAF: "+analysisBafs.length);
 
 					if (markersToUse != null) {
 						boolean[] tmpExclude = markersToUse;
@@ -156,6 +173,7 @@ public class CNVCaller {
 		int[][] snpDists = getSNPDist(proj, finalAnalysisSet);
 		for (int i = 0; i < snpDists.length; i++) {
 			String chr = Positions.getChromosomeUCSC(i, true);
+
 			if (snpDists[i].length > MIN_MARKERS_PER_CHROMOSOME && chrIndices.containsKey(chr)) {
 				int[] currentChrIndices = Array.toIntArray(chrIndices.get(chr));
 				int[] currentChrPositions = Array.subArray(analysisPositions, currentChrIndices);
@@ -163,8 +181,12 @@ public class CNVCaller {
 				double[] currentChrBaf = Array.subArray(analysisBafs, currentChrIndices);
 				double[] currentChrPfbs = Array.subArray(analysisPfbs, currentChrIndices);
 				boolean[] currentChrCnDef = Array.subArray(copyNumberDef, currentChrIndices);
-				CNVCallerWorker worker = new CNVCallerWorker(proj, dna, (byte) i, currentChrPositions, pennHmm, currentChrLrr, currentChrBaf, currentChrPfbs, snpDists[i], currentChrCnDef);
+				CNVCallerWorker worker = new CNVCallerWorker(proj, dna, (byte) i, currentChrPositions, pennHmm, currentChrLrr, currentChrBaf, currentChrPfbs, snpDists[i], currentChrCnDef, debugMode);
 				hive.addCallable(worker);
+			} else {
+				if (debugMode) {
+					proj.getLog().reportTimeWarning("There were fewer than " + MIN_MARKERS_PER_CHROMOSOME + " analysis markers on chromosome " + chr + " in the final call set, skipping");
+				}
 			}
 		}
 		hive.execute(true);
@@ -202,8 +224,9 @@ public class CNVCaller {
 		private double[] pfbs;
 		private int[] snipDists;
 		private boolean[] cnDef;
+		private boolean verbose;
 
-		private CNVCallerWorker(Project proj, String dna, byte currentChr, int[] positions, PennHmm pennHmm, double[] lrrs, double[] bafs, double[] pfbs, int[] snipDists, boolean[] cnDef) {
+		private CNVCallerWorker(Project proj, String dna, byte currentChr, int[] positions, PennHmm pennHmm, double[] lrrs, double[] bafs, double[] pfbs, int[] snipDists, boolean[] cnDef, boolean verbose) {
 			super();
 			this.proj = proj;
 			this.dna = dna;
@@ -215,12 +238,13 @@ public class CNVCaller {
 			this.pfbs = pfbs;
 			this.snipDists = snipDists;
 			this.cnDef = cnDef;
+			this.verbose = verbose;
 		}
 
 		@Override
 		public LocusSet<CNVariant> call() throws Exception {
 			ViterbiResult viterbiResult = PennHmm.ViterbiLogNP_CHMM(pennHmm, lrrs, bafs, pfbs, snipDists, cnDef);
-			LocusSet<CNVariant> chrCnvs = viterbiResult.analyzeStateSequence(proj, dna, dna, currentChr, positions, 2);
+			LocusSet<CNVariant> chrCnvs = viterbiResult.analyzeStateSequence(proj, dna, dna, currentChr, positions, 2, verbose);
 			if (chrCnvs.getLoci().length > 0) {
 				chrCnvs = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs, cnDef, proj.getLog());
 			}
@@ -269,8 +293,8 @@ public class CNVCaller {
 			for (int j = 0; j < chrPos[i].length; j++) {
 				if (projectIndicesToUse[projectIndex]) {
 					updated.add(chrPos[i][j]);
-					projectIndex++;
 				}
+				projectIndex++;
 			}
 			chrPos[i] = Array.toIntArray(updated);
 		}
@@ -339,9 +363,9 @@ public class CNVCaller {
 	}
 
 	/**
-	 * @return the {@link DATA_ADJUSTMENTS} enums in the order that should replicate PennCNV
+	 * @return the {@link DATA_ADJUSTMENTS} enums in the order that should replicate PennCNV with gcCorrection
 	 */
-	private static DATA_ADJUSTMENTS[] getPennCNVProcessingOrder() {
+	private static DATA_ADJUSTMENTS[] getPennCNVGCProcessingOrder() {
 		ArrayList<DATA_ADJUSTMENTS> da = new ArrayList<CNVCaller.DATA_ADJUSTMENTS>();
 		da.add(DATA_ADJUSTMENTS.HANDLE_NAN);
 		da.add(DATA_ADJUSTMENTS.GC_ADJUST);
@@ -352,11 +376,188 @@ public class CNVCaller {
 		return da.toArray(new DATA_ADJUSTMENTS[da.size()]);
 	}
 
+	/**
+	 * @return the {@link DATA_ADJUSTMENTS} enums in the order that should replicate PennCNV without gcCorrection
+	 */
+	private static DATA_ADJUSTMENTS[] getPennCNVProcessingOrder() {
+		ArrayList<DATA_ADJUSTMENTS> da = new ArrayList<CNVCaller.DATA_ADJUSTMENTS>();
+		da.add(DATA_ADJUSTMENTS.HANDLE_NAN);
+		da.add(DATA_ADJUSTMENTS.SUBSET_TO_ANALYSIS_MARKERS);
+		da.add(DATA_ADJUSTMENTS.MEDIAN_ADJUST);
+		da.add(DATA_ADJUSTMENTS.ADJUST_HMM_SD);
+
+		return da.toArray(new DATA_ADJUSTMENTS[da.size()]);
+	}
+
 	// public CNVCaller(Project proj, String dna, PennHmm pennHmm, GcModel gcModel, PFB pfb, DATA_ADJUSTMENTS[] dataAdjustments, MarkerSet markerSet, boolean[] markersToUse, boolean[] copyNumberDef, double[] lrrs, double[] bafs, boolean debugMode) {
 
-	public static LocusSet<CNVariant> callCNVsFor(Project proj, PennHmm pennHmm, String sampleName, double[] sampLrrs, double sampBafs, GcModel gcModel, PFB pfb, MarkerSet markerSet, boolean[] markersToUse, boolean[] copyNumberDef, boolean debugMode) {
-	//	CNVCaller caller = new CNVCaller(proj, sampleName, pennHmm, gcModel, pfb, getPennCNVProcessingOrder(), markerSet, markersToUse, copyNumberDef, sampLrrs, sampBafs, debugMode);
-		return null;
+	private static LocusSet<CNVariant> callCNVsFor(Project proj, PennHmm pennHmm, String sampleName, double[] sampLrrs, double[] sampBafs, GcModel gcModel, PFB pfb, MarkerSet markerSet, boolean[] markersToUse, boolean[] copyNumberDef, int numThreads, boolean debugMode) {
+		DATA_ADJUSTMENTS[] dAdjustments = null;
+		if (gcModel == null) {
+			dAdjustments = getPennCNVProcessingOrder();
+			proj.getLog().reportTimeWarning("No gc model was provided, calling on cnvs on raw data");
+
+		} else {
+			dAdjustments = getPennCNVGCProcessingOrder();
+		}
+
+		CNVCaller caller = new CNVCaller(proj, sampleName, pennHmm, gcModel, pfb, dAdjustments, markerSet, markersToUse, copyNumberDef, sampLrrs, sampBafs, debugMode);
+		caller.adjustData();
+		LocusSet<CNVariant> cnvs = caller.callCNVS(numThreads);
+		return cnvs;
+	}
+
+	/**
+	 * @param proj
+	 * @param pennHmm
+	 *            required {@link PennHmm}
+	 * @param sample
+	 *            sample to call cnvs on
+	 * @param gcModel
+	 *            optional {@link GcModel}
+	 * @param pfb
+	 *            required {@link PFB}
+	 * @param markerSet
+	 * @param numThreads
+	 *            analysis is split up by chromosome
+	 * @param debugMode
+	 *            report more values and warnings to compare with regular penncnv calls
+	 * @return
+	 */
+	public static LocusSet<CNVariant> callCNVsFor(Project proj, final PennHmm pennHmm, final Sample sample, final GcModel gcModel, final PFB pfb, final MarkerSet markerSet, int numThreads, boolean debugMode) {
+		double[] lrrs = Array.toDoubleArray(sample.getLRRs());
+		double[] bafs = Array.toDoubleArray(sample.getBAFs());
+		String[] markerNames = markerSet.getMarkerNames();
+		boolean[] copyNumberDef = Array.booleanArray(markerNames.length, false);
+		ARRAY array = proj.getArrayType();
+		if (debugMode) {
+			proj.getLog().reportTimeInfo("Assigning copy number probes according to " + array.toString() + " using the following " + Array.toStr(array.getCnFlags(), ","));
+			proj.getLog().reportTimeInfo("BAF values greater than 1 will also be set to copy number only");
+
+		}
+		for (int i = 0; i < copyNumberDef.length; i++) {
+			copyNumberDef[i] = array.isCNOnly(markerNames[i]) || bafs[i] > 1;
+		}
+		if (debugMode) {
+			proj.getLog().reportTimeInfo("Found " + Array.booleanArraySum(copyNumberDef) + " copy number only markers");
+		}
+		int[] autosomalMarkers = proj.getAutosomalMarkerIndices();
+		boolean[] markersToUse = Array.booleanArray(markerNames.length, false);
+		for (int i = 0; i < autosomalMarkers.length; i++) {
+			markersToUse[autosomalMarkers[i]] = true;
+		}
+		LocusSet<CNVariant> cnvs = callCNVsFor(proj, pennHmm, sample.getSampleName(), lrrs, bafs, gcModel, pfb, markerSet, markersToUse, copyNumberDef, numThreads, debugMode);
+		return cnvs;
+	}
+
+	/**
+	 * @author lane0212 Useful when calling cnvs across many samples
+	 */
+	private static class CNVProducer implements Producer<LocusSet<CNVariant>> {
+		private Project proj;
+		private PennHmm pennHmm;
+		private GcModel gcModel;
+		private PFB pfb;
+		private String[] samples;
+		private int numSampleThreads, index;
+		private boolean debugMode;
+
+		/**
+		 * @param proj
+		 * @param pennHmm
+		 * @param gcModel
+		 * @param pfb
+		 * @param samples
+		 *            call cnvs on these samples
+		 * @param numSampleThreads
+		 * @param debugMode
+		 */
+		private CNVProducer(Project proj, PennHmm pennHmm, GcModel gcModel, PFB pfb, String[] samples, int numSampleThreads, boolean debugMode) {
+			super();
+			this.proj = proj;
+			this.pennHmm = pennHmm;
+			this.gcModel = gcModel;
+			this.pfb = pfb;
+			this.samples = samples;
+			this.numSampleThreads = numSampleThreads;
+			this.index = 0;
+			this.debugMode = debugMode;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < samples.length;
+		}
+
+		@Override
+		public Callable<LocusSet<CNVariant>> next() {
+			final String sample = samples[index];
+			final PennHmm pennHmmTmp = new PennHmm(pennHmm);
+			final GcModel gcModelTmp = new GcModel(gcModel);
+			final PFB pfbTmp = new PFB(pfb);
+			final MarkerSet markerSet = proj.getMarkerSet();
+			Callable<LocusSet<CNVariant>> callable = new Callable<LocusSet<CNVariant>>() {
+
+				@Override
+				public LocusSet<CNVariant> call() throws Exception {
+					Sample curSample = proj.getFullSampleFromRandomAccessFile(sample);
+					LocusSet<CNVariant> cnvs = callCNVsFor(proj, pennHmmTmp, curSample, gcModelTmp, pfbTmp, markerSet, numSampleThreads, debugMode);
+					return cnvs;
+				}
+
+			};
+			index++;
+			return callable;
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+	}
+
+	public static void test() {
+		String filename = "/home/pankrat2/public/bin/lib/hhall.hmm";
+		Project proj = new Project("/home/pankrat2/lanej/projects/OSv2_hg19.properties", false);
+		PennHmm pennHmmOriginal = PennHmm.loadPennHmm(filename, new Logger());
+		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
+		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
+		int numThreads = 24;
+		long trailerTime = System.currentTimeMillis();
+		String[] samples = proj.getSamples();
+		ArrayList<CNVariant> allCNVs = new ArrayList<CNVariant>();
+		String[] sampTmp= new String[] { samples[ext.indexOfStr("7165764002_R06C02", samples)] };
+		//String[] sampTmp= samples;
+		CNVProducer producer = new CNVProducer(proj, pennHmmOriginal, gcModel, pfb, sampTmp, 1, true);
+		WorkerTrain<LocusSet<CNVariant>> train = new WorkerTrain<LocusSet<CNVariant>>(producer, numThreads, 2, proj.getLog());
+		int index = 0;
+		while (train.hasNext()) {
+			index++;
+			try {
+				train.next().addAll(allCNVs);
+			} catch (Exception e) {
+				System.out.println("Error for sample " + index + "\t" + samples[index]);
+				System.exit(1);
+			}
+			proj.getLog().reportTimeInfo("Called CNVs for" + index + " samples");
+
+		}
+		LocusSet<CNVariant> finalSet = new LocusSet<CNVariant>(allCNVs, true, proj.getLog()) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		finalSet.writeRegions(proj.PROJECT_DIRECTORY.getValue() + "cnvCaller.cnvs", TO_STRING_TYPE.REGULAR, true, proj.getLog());
+
+		proj.getLog().reportTimeElapsed(trailerTime);
+	}
+
+	public static void main(String[] args) {
+		test();
 	}
 
 }

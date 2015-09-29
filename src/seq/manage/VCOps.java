@@ -29,6 +29,8 @@ import htsjdk.variant.variantcontext.VariantContextUtils;
  *
  */
 public class VCOps {
+	private static final String SNPEFF_GENE_NAME = "SNPEFF_GENE_NAME";
+	private static final String SNPEFF_IMPACT = "SNPEFF_IMPACT";
 
 	public enum GENOTYPE_INFO {
 		GQ("GQ"), AD_REF("AD"), AD_ALT("AD"), DP("DP");
@@ -90,6 +92,16 @@ public class VCOps {
 			annos[i] = vc.getCommonInfo().getAttributeAsString(annosToGet[i], defaultValue);
 		}
 		return annos;
+	}
+
+	public static String getSNP_EFFGeneName(VariantContext vc) {
+		String geneName = ".";
+		return getAnnotationsFor(new String[] { SNPEFF_GENE_NAME }, vc, geneName)[0];
+	}
+
+	public static String getSNP_EFFImpact(VariantContext vc) {
+		String impact = ".";
+		return getAnnotationsFor(new String[] { SNPEFF_IMPACT }, vc, impact)[0];
 	}
 
 	public static double getMAF(VariantContext vc, Set<String> sampleNames) {

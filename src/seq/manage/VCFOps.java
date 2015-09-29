@@ -81,7 +81,7 @@ public class VCFOps {
 	public static final Set<String> BLANK_SAMPLE = new TreeSet<String>();
 	public static final Options[] DEFUALT_WRITER_OPTIONS = new Options[] { Options.INDEX_ON_THE_FLY };
 
-	public static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT", "NUM_HOM_VAR", "NUM_HET", "NUM_HOM_ALT" };
+	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT", "NUM_HOM_VAR", "NUM_HET", "NUM_HOM_ALT" };
 
 	public enum VCF_EXTENSIONS {
 		GZIP_VCF(".vcf.gz"), REG_VCF(".vcf"), BCF(".bcf");
@@ -1270,7 +1270,7 @@ public class VCFOps {
 		return splitByChrs(vcf, null, numthreads, onlyWithVariants, log);
 	}
 
-	public static ChrSplitResults[] splitByChrs(String vcf,String newDir, int numthreads, boolean onlyWithVariants, Logger log) {
+	public static ChrSplitResults[] splitByChrs(String vcf, String newDir, int numthreads, boolean onlyWithVariants, Logger log) {
 		String[] toSplit = getAllContigs(vcf, log);
 		log.reportTimeInfo("Detected " + toSplit.length + " chrs to split");
 		log.reportTimeInfo(Array.toStr(toSplit, "\n"));
@@ -1279,7 +1279,7 @@ public class VCFOps {
 		ArrayList<ChrSplitResults> chrSplitResults = new ArrayList<ChrSplitResults>();
 		while (train.hasNext()) {
 			ChrSplitResults tmp = train.next();
-			System.out.println(tmp.getChr()+"HJ");
+			System.out.println(tmp.getChr() + "HJ");
 			if (onlyWithVariants) {
 				if (tmp.hasVariants()) {
 					chrSplitResults.add(tmp);
@@ -1428,7 +1428,7 @@ public class VCFOps {
 
 		public ChrSplitResults(String chr, String inputVCF, String outputVCF, int numChr) {
 			super();
-			this.chr =chr;
+			this.chr = chr;
 			this.inputVCF = inputVCF;
 			this.outputVCF = outputVCF;
 			this.numChr = numChr;
