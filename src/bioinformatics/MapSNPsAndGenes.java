@@ -204,7 +204,7 @@ public class MapSNPsAndGenes {
 	}
 
 
-	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, int build, Logger log, boolean useVCF) {
+	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, int build, Logger log, boolean useVCF, boolean snpEff) {
 		PrintWriter writer;
 		String[] line;
 		String[] data, markers;
@@ -216,6 +216,10 @@ public class MapSNPsAndGenes {
 		    ParseSNPlocations.parseSNPlocations(dir+snps, getSNPVCF(build, log), getUnmappedVCF(log), getMergeVCF(log), log);
 		} else {
 		    ParseSNPlocations.lowMemParse(dir+snps, getSNPDB(build, log), getMergeDB(log), true, log);
+		}
+		
+		if (snpEff) {
+		    SNPEffAnnotation.pipeline(ext.rootOf(dir+snps, false)+"_positions.xln", SNPEffAnnotation.getDefaultConfigFile(), log);
 		}
 		
 		data = Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir+snps, false)+"_positions.xln", false, false, false));
@@ -256,7 +260,8 @@ public class MapSNPsAndGenes {
                                                              "dir=",
                                                              "win=15000", 
                                                              "build=37",
-                                                             "vcf=true"}, 
+                                                             "vcf=true",
+                                                             "snpeff=false"}, 
                                               log);
         String usage = "\\n"+
         "bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"+
@@ -265,6 +270,7 @@ public class MapSNPsAndGenes {
         "   (3) # bp up and down stream to count as an associated gene (i.e. win=15000 (default))\n"+
         "   (4) build # of the NCBI gene map file (i.e. build=37 (default))\n"+
         "   (5) should use vcf files instead of serialized database files (i.e. vcf=true (default))\n"  +
+        "   (6) create additional output file with annotations from SNPEFF (i.e. snpeff=true (not the default))\n" + 
         "";
         
         if (params != null) {
@@ -273,6 +279,7 @@ public class MapSNPsAndGenes {
             byte build = (byte) 37;
             int win = 15000;
             boolean vcf = true;
+            boolean snpeff = false;
             
             int numArgs = params.size();
             for (int i = 0; i<params.size(); i++) {
@@ -292,13 +299,16 @@ public class MapSNPsAndGenes {
                 } else if (param.startsWith("vcf=")) {
                     vcf = ext.parseBooleanArg(param);
                     numArgs--;
+                } else if (param.startsWith("snpeff=")) {
+                    snpeff = ext.parseBooleanArg(param);
+                    numArgs--;
                 }
             }
             if (numArgs!=0) {
                 System.err.println(usage);
                 System.exit(1);
             }
-            procSNPsToGenes(dir, file, win, build, log, vcf);
+            procSNPsToGenes(dir, file, win, build, log, vcf, snpeff);
         }
     }
 	
@@ -312,6 +322,7 @@ public class MapSNPsAndGenes {
 		byte build = 37;
 		Logger log;
 		boolean vcf = true;
+		boolean snpeff = false;
 
 		String usage = "\\n"+
 		"bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"+
@@ -320,6 +331,7 @@ public class MapSNPsAndGenes {
 		"   (3) # bp up and down stream to count as an associated gene (i.e. win="+wiggleRoom+" (default))\n"+
 		"   (4) build # of the NCBI gene map file (i.e. build="+build+" (default))\n"+
         "   (5) should use vcf files instead of serialized database files (i.e. vcf=true (default))\n"  +
+        "   (6) create additional output file with annotations from SNPEFF (i.e. snpeff=true (not the default))\n" + 
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -340,6 +352,9 @@ public class MapSNPsAndGenes {
 				numArgs--;
             } else if (args[i].startsWith("vcf=")) {
                 vcf = ext.parseBooleanArg(args[i]);
+                numArgs--;
+            } else if (args[i].startsWith("snpeff=")) {
+                snpeff = ext.parseBooleanArg(args[i]);
                 numArgs--;
             }
 		}
@@ -367,9 +382,9 @@ public class MapSNPsAndGenes {
 						wiggleRoom = DEFAULT_WIGGLE_ROOM;
 					}
 				}				
-				procSNPsToGenes("", filename, wiggleRoom, build, log, vcf);
+				procSNPsToGenes("", filename, wiggleRoom, build, log, vcf, snpeff);
 			} else {
-				procSNPsToGenes(dir, filename, wiggleRoom, build, new Logger(), vcf);
+				procSNPsToGenes(dir, filename, wiggleRoom, build, new Logger(), vcf, snpeff);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

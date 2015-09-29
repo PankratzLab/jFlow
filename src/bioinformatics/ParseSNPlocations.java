@@ -75,7 +75,6 @@ public class ParseSNPlocations {
         try {
             reader = Files.getAppropriateReader(snpListFile);
             writer = Files.getAppropriateWriter(ext.rootOf(snpListFile, false)+"_positions.xln");
-//            writer.println("index\tSNP\tChr\tPosition\tRef\tAlt\tFunc");
             writer.println("SNP\tChr\tPosition\tRef\tAlt\tFunc\tPM/MUT\tGENENAME\tCAF");
 
             while ((line = reader.readLine()) != null) {
@@ -384,10 +383,10 @@ public class ParseSNPlocations {
 	        writer.close();
         } catch (FileNotFoundException fnfe) {
         	log.reportError("Error: file \""+snpListFile+"\" not found in current directory");
-	        System.exit(1);
+//	        System.exit(1);
         } catch (IOException ioe) {
         	log.reportError("Error reading file \""+snpListFile+"\"");
-	        System.exit(2);
+//	        System.exit(2);
         }
 
 		log.report("Done with the positions! "+ext.getTime());
@@ -507,10 +506,10 @@ public class ParseSNPlocations {
 	        writer.close();
         } catch (FileNotFoundException fnfe) {
         	log.reportError("Error: file \""+snpListFile+"\" not found in current directory");
-	        System.exit(1);
+//	        System.exit(1);
         } catch (IOException ioe) {
         	log.reportError("Error reading file \""+snpListFile+"\"");
-	        System.exit(2);
+//	        System.exit(2);
         }
 
 		log.report("Done with the positions! "+ext.getTime());
@@ -592,10 +591,10 @@ public class ParseSNPlocations {
 			new SnpMarkerSet(rsNumbers, chrs, positions, null, null, false, true).serialize(db);
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+source+"\" not found in current directory");
-			System.exit(1);
+//			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+source+"\"");
-			System.exit(2);
+//			System.exit(2);
 		}
 	}
 
@@ -632,10 +631,10 @@ public class ParseSNPlocations {
 			System.out.println(ext.getTime()+"\tDone!");
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+source+"\" not found in current directory");
-			System.exit(1);
+//			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+source+"\"");
-			System.exit(2);
+//			System.exit(2);
 		} catch (OutOfMemoryError oome) {
 			System.err.println("Error - Ran out of memory at line "+(count+1));
 			oome.printStackTrace();
