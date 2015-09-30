@@ -1076,6 +1076,10 @@ public class Project {
 	public String[] getTargetMarkers(String targetMarkerFile) {
 		String targetMarkers;
 		String[] targets;
+		
+		if (targetMarkerFile == null) {
+			return getMarkerNames();
+		}
 
 		targetMarkers = targetMarkerFile;
 		if (new File(targetMarkers).exists()) {

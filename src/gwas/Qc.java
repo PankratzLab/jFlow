@@ -82,7 +82,7 @@ public class Qc {
 		
 		new File(dir+"ldPruning/").mkdirs();
 		if (!Files.exists(dir+"ldPruning/plink.bed")) {
-			log.report(ext.getTime() + "]\tRunning --exclude miss_drops.dat");
+			log.report(ext.getTime() + "]\tRunning --mind 0.05 (removes samples with callrate <95% for the markers that did pass QC)");
 			CmdLine.run("plink --bfile ../sampleQC/plink --mind 0.05 --make-bed --noweb", dir+"ldPruning/");
 		}
 		if (!Files.exists(dir+"ldPruning/plink.prune.in")) {

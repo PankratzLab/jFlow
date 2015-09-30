@@ -322,7 +322,7 @@ public class ExportCNVsToPedFormat {
 		String usage = "\n" +
 				"cnv.analysis.CnvBySample requires the following arguments\n" +
 				"   (1) cnv filename (i.e. cnv=" + cnvFilename + " (default))\n" +
-				"   (2) pedegree filename (i.e. ped=" + pedFilename + " (default))\n" +
+				"   (2) pedigree filename (i.e. ped=" + pedFilename + " (default))\n" +
 				"   (3) output filename (i.e. out=" + outputFilename + " (default))\n" +
 				"   (4) to include Deletion or not (i.e. del=" + includeDele + " (default))\n" +
 				"   (5) to include Duplication or not (i.e. dup=" + includeDupl + " (default))\n" +

@@ -43,9 +43,9 @@ public class PlinkData {
 		}
 
 		if (new File(plinkDirAndFilenameRoot + ".bed").exists() || new File(plinkDirAndFilenameRoot + ".bim").exists() || new File(plinkDirAndFilenameRoot + ".fam").exists()) {
-			log.reportError("System abort. Plink binary file set \"" + plinkDirAndFilenameRoot + "\" .bed/.bim/.map already exist. Please remove the file(s).");
+			log.reportError("System abort. PLINK binary file set \"" + plinkDirAndFilenameRoot + "\" .bed/.bim/.map already exist. Please remove the file(s).");
 			return;
-//			log.report("Found existing Plink .bed file set in out file directory. Deleting these files.");
+//			log.report("Found existing PLINK .bed file set in out file directory. Deleting these files.");
 //			new File(plinkDirAndFilenameRoot + ".bed").delete();
 //			new File(plinkDirAndFilenameRoot + ".fam").delete();
 //			new File(plinkDirAndFilenameRoot + ".bim").delete();
@@ -143,8 +143,8 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert a Plink .bed data set to Plink .ped data set.
-	 * Note: This is the same feature as the Plink command "plink --bfile mydata --recode --out mynewdata"
+	 * Convert a PLINK .bed data set to PLINK .ped data set.
+	 * Note: This is the same feature as the PLINK command "plink --bfile mydata --recode --out mynewdata"
 	 * 
 	 * @param plinkDirAndFilenameRoot
 	 * @param log
@@ -155,9 +155,9 @@ public class PlinkData {
 		}
 
 		if (new File(plinkDirAndFilenameRoot + ".ped").exists() || new File(plinkDirAndFilenameRoot + ".map").exists()) {
-			log.reportError("System abort. Plink binary file set \"" + plinkDirAndFilenameRoot + "\" .ped/.map already exist. Please remove the file(s).");
+			log.reportError("System abort. PLINK binary file set \"" + plinkDirAndFilenameRoot + "\" .ped/.map already exist. Please remove the file(s).");
 			return;
-//			log.report("Found existing Plink .ped file set in out file directory. Deleting these files.");
+//			log.report("Found existing PLINK .ped file set in out file directory. Deleting these files.");
 //			new File(plinkDirAndFilenameRoot + ".ped").delete();
 //			new File(plinkDirAndFilenameRoot + ".map").delete();
 		}
@@ -166,7 +166,7 @@ public class PlinkData {
 	}
 	
 	/**
-	 * Load a Plink .bim file and return the list of alleles.
+	 * Load a PLINK .bim file and return the list of alleles.
 	 * @param plinkDirAndFilenameRoot
 	 * @return
 	 */
@@ -198,7 +198,7 @@ public class PlinkData {
 	}
 	
 	/**
-	 * Convert a Plink .bim file to Plink .map file and return the list of alleles.
+	 * Convert a PLINK .bim file to PLINK .map file and return the list of alleles.
 	 * This is normally used as part of PlinkData.convertBedToPed(...)
 	 * @param plinkDirAndFilenameRoot
 	 * @return
@@ -237,7 +237,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert Plink .fam and .bed file to Plink .ped file.
+	 * Convert PLINK .fam and .bed file to PLINK .ped file.
 	 * This is normally used as part of PlinkData.convertBedSetToPedSet().
 	 * @param plinkDirAndFilenameRoot
 	 * @param alleles
@@ -363,7 +363,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Load a Plink .fam or .bim file into a String vector
+	 * Load a PLINK .fam or .bim file into a String vector
 	 * @param famOrBimFileFullPath full path of the .fam or .bim file
 	 * @param indexOfStartSampleOrMarker index of the start sample, if this is a .fam file, or index of the start marker to load, if this is a .bim file
 	 * @param numberOfSamplesOrMarkersToLoad number of samples to load, if this is a .fam file, or number of markers to load, if this is a .bim file.
@@ -407,7 +407,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Load a Plink .fam file into a String array.
+	 * Load a PLINK .fam file into a String array.
 	 * @param famFileFullPath
 	 * @param indexOfStartSample
 	 * @param numberOfSamplesToLoad
@@ -429,7 +429,7 @@ public class PlinkData {
 
 
 	/**
-	 * Load a Plink .bim file into a String vector
+	 * Load a PLINK .bim file into a String vector
 	 * @param famFileFullPath
 	 * @param indexOfStartSample
 	 * @param numberOfSamplesToLoad
@@ -593,42 +593,235 @@ public class PlinkData {
 //		}
 //	}
 	
-	
-	public static boolean saveGenvisisToPlinkPedSet(Project proj, String clusterFilename, String targetMarkersFilename, String filenameRoot) {
-	    Logger log = proj.getLog();
-	    boolean success = cnv.manage.PlinkFormat.createPlink(proj, filenameRoot, clusterFilename, targetMarkersFilename);
-        if (success) {
-            String PROG_KEY = "RUNPLINKEXPORT";
-            proj.progressMonitor.beginTask(PROG_KEY, "Running PLINK conversion");
-            try {
-                log.report("Converting ped/map files to binary PLINK files...", false, true);
-                if (success = CmdLine.run("plink --file " + filenameRoot + " --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue())) {
-                    log.report("complete!");
-                } else {
-                    log.report("PLINK conversion failed");
-                }
-                proj.progressMonitor.endTask(PROG_KEY);
-                if (!success) return success;
-                proj.progressMonitor.beginTask(PROG_KEY, "Running PLINK analysis");                         
-                success = new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
-                if (!success) {
-                    proj.progressMonitor.endTask(PROG_KEY);
-                    return success;
-                }
-                success = CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
-                if (!success) {
-                    proj.progressMonitor.endTask(PROG_KEY);
-                    return success;
-                }
-                success = CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
-            } catch (Exception e) {}
+	public static boolean saveGenvisisToPlinkPedSet(Project proj, String filenameRoot, String clusterFiltersFilename, String targetMarkersFilename) {
+		BufferedReader reader;
+		PrintWriter writer;
+		Hashtable<String,String> hash;
+		String[] line;
+		int[] indices;
+		String[] markerNames, targets;
+		byte[] chrs;
+		int[] positions;
+		boolean prob;
+		MarkerSet markerSet;
+		Sample fsamp;
+		byte[] genotypes;
+		byte genIndex;
+		String genotype;
+		int count;
+		float gcThreshold;
+		String targetMarkers;
+		ClusterFilterCollection clusterFilterCollection;
+		char[][] abLookup;
+		String temp;
+		Hashtable<Integer,Integer> invalidAbLookups;
+		Logger log;
+
+		log = proj.getLog();
+		log.report(ext.getTime());
+		hash = new Hashtable<String,String>();
+		markerSet = proj.getMarkerSet();
+		markerNames = markerSet.getMarkerNames();
+		
+		String PROG_KEY = "PLINKEXPORT";
+		proj.progressMonitor.beginTask(PROG_KEY, "Exporting marker data for PLINK analysis");
+		
+		for (int i = 0; i<markerNames.length; i++) {
+			if (hash.containsKey(markerNames[i])) {
+				proj.message("Warning - duplicate marker name: "+markerNames[i]);
+			}
+			hash.put(markerNames[i], i+"");
+		}
+		
+		targetMarkers = targetMarkersFilename;
+		if (targetMarkers != null && new File(targetMarkers).exists()) {
+			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, false);
+			indices = new int[targets.length];
+			prob = false;
+			for (int i = 0; i<targets.length; i++) {
+				if (hash.containsKey(targets[i])) {
+					indices[i] = Integer.parseInt(hash.get(targets[i]));
+				} else {
+					proj.message("Error - target marker '"+targets[i]+"' was not found in the MarkerSet");
+					prob = true;
+				}
+			}
+			if (prob) {
+				return false;
+			}
+		} else {
+			if (!targetMarkers.equals("")) {
+				proj.message("FYI, since target markers file '"+targetMarkers+"' was not found, all markers will be exported to PLINK");
+			}
+
+			indices = Array.intArray(markerNames.length);
+		}
+		
+		proj.progressMonitor.updateTask(PROG_KEY);
+		proj.progressMonitor.beginTask(PROG_KEY + "_MAPEXPORT", "Exporting marker data to .map file", false, indices.length);
+		
+		chrs = markerSet.getChrs();
+		positions = markerSet.getPositions();
+		try {
+		    log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".map");
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filenameRoot+".map"));
+			for (int i = 0; i<indices.length; i++) {
+				writer.println(chrs[indices[i]]+" "+markerNames[indices[i]]+" 0 "+positions[indices[i]]);
+				proj.progressMonitor.updateTask(PROG_KEY + "_MAPEXPORT");
+			}
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			proj.message("Error: failed to write to "+filenameRoot+".map (in use?)");
+			proj.progressMonitor.endTask(PROG_KEY + "_MAPEXPORT");
+			proj.progressMonitor.endTask(PROG_KEY);
+			return false;
+		} catch (IOException ioe) {
+			proj.message("Error writing to "+filenameRoot+".map");
+			proj.progressMonitor.endTask(PROG_KEY + "_MAPEXPORT");
+			proj.progressMonitor.endTask(PROG_KEY);
+			return false;
+		}
+		proj.progressMonitor.endTask(PROG_KEY + "_MAPEXPORT");
+		
+		proj.progressMonitor.updateTask(PROG_KEY);
+
+		gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
+		if (gcThreshold < 0) {
+			proj.message("Error - GC_THRESHOLD must be greater than zero (not "+gcThreshold+")");
+		}
+		if (gcThreshold > 1) {
+			proj.message("Error - GC_THRESHOLD must be less than one (not "+gcThreshold+")");
+		}
+		log.report("Using a GC threshold of "+gcThreshold+" (less than or equal to will be set to missing, greater than is kept)");
+		
+		clusterFilterCollection = null;
+		if (clusterFiltersFilename != null) {
+			clusterFiltersFilename = proj.getProperty(proj.PROJECT_DIRECTORY)+proj.getProperty(proj.DATA_DIRECTORY)+clusterFiltersFilename;
+			if (Files.exists(clusterFiltersFilename, proj.JAR_STATUS.getValue())) {
+				clusterFilterCollection = ClusterFilterCollection.load(clusterFiltersFilename, proj.JAR_STATUS.getValue());
+			} else {
+				proj.message("Error - cluster filter collection is not found at '"+clusterFiltersFilename+"'");
+	            proj.progressMonitor.endTask(PROG_KEY);
+				return false;
+			}
+			abLookup = new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog()).getLookup();
+			log.report("Using "+clusterFiltersFilename+" and "+proj.getProperty(proj.AB_LOOKUP_FILENAME)+" to call genotypes");
+		} else {
+			abLookup = null;
+		}
+		
+		int exp = Files.countLines(proj.PEDIGREE_FILENAME.getValue(), 0);
+		proj.progressMonitor.beginTask(PROG_KEY + "_PEDEXPORT", "Exporting sample data to .ped file", false, exp);
+		
+		try {
+			reader = new BufferedReader(new FileReader(proj.PEDIGREE_FILENAME.getValue()));
+			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filenameRoot+".ped"));
+			log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".ped");
+			count = 1;
+			invalidAbLookups = new Hashtable<Integer, Integer>();
+			while (reader.ready()) {
+				count++;
+//				if (count % 100 == 0) {
+//					System.out.println(count);
+//				}
+				
+				temp = reader.readLine();
+				line = temp.split(ext.determineDelimiter(temp));
+				if (line.length < 7) {
+					proj.message("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.PEDIGREE_FILENAME.getValue()+"'.\n"+
+								"  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA\n"+
+								"  where DNA is the sample name associated with the genotypic data (see the "+proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory for examples)");
+					reader.close();
+					writer.close();
+		            proj.progressMonitor.endTask(PROG_KEY + "_PEDEXPORT");
+		            proj.progressMonitor.endTask(PROG_KEY);
+					return false;
+				}
+				writer.print(line[0]+" "+line[1]+" "+line[2]+" "+line[3]+" "+line[4]+" "+line[5]);
+				if (line[6].equals(".")) {
+					for (int i = 0; i<indices.length; i++) {
+						writer.print(" 0 0");
+					}
+				} else {
+					fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
+					if (fsamp==null) {
+						log.reportError("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+Sample.SAMPLE_DATA_FILE_EXTENSION+" was not found in directory: "+proj.SAMPLE_DIRECTORY.getValue(false, true));
+						for (int i = 0; i<indices.length; i++) {
+							writer.print(" 0 0");
+						}
+					} else {
+						if (clusterFiltersFilename == null) {
+							genotypes = fsamp.getForwardGenotypes(gcThreshold);
+						} else {
+							genotypes = MarkerSet.translateABtoForwardGenotypes(fsamp.getAB_GenotypesAfterFilters(markerNames, clusterFilterCollection, gcThreshold), abLookup);
+						}
+						for (int i = 0; i<indices.length; i++) {
+							genIndex = genotypes[indices[i]];
+							if (genIndex==0) {
+								writer.print(" 0 0");
+							} else {
+								if (genIndex < 0) {
+									if (!invalidAbLookups.containsKey(indices[i])) {
+										log.reportError("Error - marker '"+markerNames[indices[i]]+"' was manually reclustered and requires a previously undefined AB lookup code ("+abLookup[indices[i]][0]+"/"+abLookup[indices[i]][1]+"); alleles will be set to missing for anyone with an invalid allele");
+										invalidAbLookups.put(indices[i], invalidAbLookups.size());
+									}
+									writer.print(" 0 0");
+								} else {
+									genotype = Sample.ALLELE_PAIRS[genIndex];
+									writer.print(" "+genotype.charAt(0)+" "+genotype.charAt(1));
+								}
+							}
+						}
+					}
+				}
+				writer.println();
+				writer.flush();
+				
+	            proj.progressMonitor.updateTask(PROG_KEY + "_PEDEXPORT");
+			}
+			reader.close();
+			writer.close();
+
+			proj.progressMonitor.endTask(PROG_KEY + "_PEDEXPORT");
+			
+			if (invalidAbLookups.size() > 0) {
+				proj.message("There "+(invalidAbLookups.size()==1?" was one marker ":"were "+invalidAbLookups.size()+" markers")+" with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -cp Genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "+proj.getProperty(proj.DATA_DIRECTORY)+"invalid_AB_codes.out for a list of variants that this affects.");
+				try {
+					writer = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true)+"invalid_AB_codes.out"));
+					writer.println("MarkerNames\tA\tB");
+					indices = Array.toIntArray(invalidAbLookups);
+					for (int i = 0; i < indices.length; i++) {
+						writer.println(markerNames[indices[i]]+"\t"+abLookup[indices[i]][0]+"\t"+abLookup[indices[i]][1]);
+					}
+					writer.close();
+				} catch (Exception e) {
+					proj.message("Error writing to " + proj.DATA_DIRECTORY.getValue(false, true)+"invalid_AB_codes.out");
+					log.reportException(e);
+				}
+			}
+
+            
+		} catch (FileNotFoundException fnfe) {
+			proj.message("Error: file \""+proj.PEDIGREE_FILENAME.getValue()+"\" not found");
+            proj.progressMonitor.endTask(PROG_KEY + "_PEDEXPORT");
             proj.progressMonitor.endTask(PROG_KEY);
-        }
-        return success;
+            return false;
+		} catch (IOException ioe) {
+			proj.message("Error reading file \""+proj.PEDIGREE_FILENAME.getValue()+"\"");
+			proj.progressMonitor.endTask(PROG_KEY + "_PEDEXPORT");
+            proj.progressMonitor.endTask(PROG_KEY);
+			return false;
+		}
+
+		log.report(ext.getTime());
+        proj.progressMonitor.endTask(PROG_KEY);
+        
+		return true;
 	}
+	
 
 	/**
-	 * Convert Genvisis data into a Plink .bed data set.
+	 * Convert Genvisis data into a PLINK .bed data set.
 	 * 
 	 * @param proj
 	 * @param markerList
@@ -650,11 +843,11 @@ public class PlinkData {
 		log = proj.getLog();
 		outFileDirAndFilenameRoot = proj.PROJECT_DIRECTORY.getValue() + plinkPrefix;
 //		if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot + ".fam").exists()) {
-//			log.reportError("System abort. Plink binary file set \"" + outFileDirAndFilenameRoot + "\" .bed/.bim/.fam already exist. Please remove the file(s).");
+//			log.reportError("System abort. PLINK binary file set \"" + outFileDirAndFilenameRoot + "\" .bed/.bim/.fam already exist. Please remove the file(s).");
 //			return false;
 //		}
 //		if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot + ".fam").exists()) {
-//			log.report("Found existing Plink .ped file set in out file directory. Deleting these files.");
+//			log.report("Found existing PLINK .ped file set in out file directory. Deleting these files.");
 //			new File(outFileDirAndFilenameRoot + ".bed").delete();
 //			new File(outFileDirAndFilenameRoot + ".bim").delete();
 //			new File(outFileDirAndFilenameRoot + ".fam").delete();
@@ -715,7 +908,7 @@ public class PlinkData {
 		proj.progressMonitor.endTask(PROG_KEY);
 		
 		if (abLookup == null) {
-			log.reportError("Error - failed to create Plink files due to lack of an AB lookup file");
+			log.reportError("Error - failed to create PLINK files due to lack of an AB lookup file");
 			new File(outFileDirAndFilenameRoot+".fam").delete();
 			return false;
 		}
@@ -867,7 +1060,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert Genvisis data into binary Plink .bed format (Individual Major, or in our term - organized by samples).
+	 * Convert Genvisis data into binary PLINK .bed format (Individual Major, or in our term - organized by samples).
 	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
 	 * @param proj
 	 * @param targetSamples samples selected to convert 
@@ -930,7 +1123,7 @@ public class PlinkData {
 						genotypes = fsamp.getAB_GenotypesAfterFilters(targetMarkers, indicesOfTargetMarkers, clusterFilterCollection, gcThreshold);
 //						genotypes = proj.getMarkerSet().translateABtoForwardGenotypes(genotypes, abLookup);
 					}
-					out.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypes));
+					out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypes));
 
 //					genotypesOfTargetMarkers = new byte[indicesOfTargetMarkers.length];
 //					for (int j = 0; j < indicesOfTargetMarkers.length; j++) {
@@ -975,7 +1168,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert Genvisis data to Plink .bed format (SNP Major, or in our term - organized by markers)
+	 * Convert Genvisis data to PLINK .bed format (SNP Major, or in our term - organized by markers)
 	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
 	 * @param proj
 	 * @param targetMarkers markers selected to convert
@@ -1017,7 +1210,6 @@ public class PlinkData {
 			if (clusterFilterCollection == null) {
 				abLookup = null;
 			} else {
-//				abLookup = new ABLookup(targetMarkers, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
 				abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog()).getLookup();
 			}
 			
@@ -1070,7 +1262,7 @@ public class PlinkData {
 					for (int k = 0; k < indicesOfTargetSamplesInProj.length; k++) {
 						genotypesOfTargetSamples[k] = genotypes[indicesOfTargetSamplesInProj[k]];
 					}
-					out1.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypesOfTargetSamples));
+					out1.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
 				}
 
 				//TODO Something does not make sense here. alleles[j] seems to be wrong here.
@@ -1106,7 +1298,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert Genvisis data to Plink .bed format (SNP Major, or in our term - organized by markers)
+	 * Convert Genvisis data to PLINK .bed format (SNP Major, or in our term - organized by markers)
 	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
 	 * @param proj
 	 * @param targetMarkers markers selected to convert
@@ -1153,13 +1345,11 @@ public class PlinkData {
 		}
 
 		if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
-//			abLookup = new ABLookup(targetMarkers, proj.getFilename(proj.AB_LOOKUP_FILENAME), true, true, proj.getLog()).getLookup();
 			abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog()).getLookup();
 		} else if (clusterFilterCollection == null) {
 			abLookup = new char[targetMarkers.length][];
 		} else {
-//			proj.message("Error - could not find AB lookup file '"+proj.getFilename(proj.AB_LOOKUP_FILENAME)+"'; this file needs to be created, as it is not otherwise possible to export to Plink when there are cluster filters.");
-			proj.message("Error - could not find AB lookup file '"+proj.AB_LOOKUP_FILENAME.getValue()+"'; this file needs to be created, as it is not otherwise possible to export to Plink when there are cluster filters.");
+			proj.message("Error - could not find AB lookup file '"+proj.AB_LOOKUP_FILENAME.getValue()+"'; this file needs to be created, as it is not otherwise possible to export to PLINK when there are cluster filters.");
 			return null;
 		}
 		
@@ -1250,7 +1440,7 @@ public class PlinkData {
 //						}
 					}
 					
-					out.write(encodePlinkBedBytesForASingleMarkOrSamp(genotypesOfTargetSamples));
+					out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
 				}
 				System.out.println("Done writing in "+ext.getTimeElapsed(subTime));
 				proj.progressMonitor.updateTask(PROG_KEY);
@@ -1270,7 +1460,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert Genvisis data to Plink .bim format (SNP Major, or in our term - organized by markers)
+	 * Convert Genvisis data to PLINK .bim format (SNP Major, or in our term - organized by markers)
 	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
 	 * @param targetMarkers
 	 * @param chrsOfTargetMarkers
@@ -1307,7 +1497,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert Genvisis data to Plink .fam format (SNP Major, or in our term - organized by markers)
+	 * Convert Genvisis data to PLINK .fam format (SNP Major, or in our term - organized by markers)
 	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
 	 * @param proj
 	 * @param famDirAndFilenameRoot
@@ -1378,23 +1568,23 @@ public class PlinkData {
 	}
 
 	/**
-	 * Transpose an array of byte steam read in from a plink .bed file from individual-major format to SNP-major format.
+	 * Transpose an array of byte steam read in from a PLINK .bed file from individual-major format to SNP-major format.
 	 * 
 	 * Note: This method does not address the memory management issue. The caller of this method is supposed to implement
 	 * the optimization of memory usage.
 	 * 
-	 * This method is part of the process to convert a Plink .bed format data from individual-major (Sample lead, or
+	 * This method is part of the process to convert a PLINK .bed format data from individual-major (Sample lead, or
 	 * organized by sample) to SNP-major (Marker lead, or organized by marker). This method is normally used together
-	 * with another method reading in and writing to Plink .bed files.
+	 * with another method reading in and writing to PLINK .bed files.
 	 * 
-	 * This method can also reversely convert Plink .bed format data from SNP-major (Marker lead, or organized by marker)
+	 * This method can also reversely convert PLINK .bed format data from SNP-major (Marker lead, or organized by marker)
 	 * to individual-major (Sample lead, or organized by sample). Just treat all the variables labeled with Mark as if
 	 * they were labeled with Samp, and also Samp with Mark.
 	 *  
 	 * The index parameters are all inclusive, meaning samples identified by indexOfStartSamp and indesOfEndSamp are all
 	 * going to be included in the output, and so do the markers.
 	 * 
-	 * @param inputSampBytes array of a plink .bed stream, the input of this method
+	 * @param inputSampBytes array of a PLINK .bed stream, the input of this method
 	 * @param indexOfStartSamp index basing on all the samples in the input array, starting from 0. Please not to confuse
 	 * with index of the input array, because 1 single element of the array contains up to 4 samples.
 	 * @param indexOfEndSamp index basing on all the samples in the .bed file, starting from. 0 Please not to confuse with
@@ -1403,9 +1593,9 @@ public class PlinkData {
 	 * with index of the output array, because 1 single element of the array contains up to 4 markers.
 	 * @param indexOfEndMark index basing on all the markers in the .bed file, starting from 0. Please not to confuse
 	 * with index of the output array, because 1 single element of the array contains up to 4 markers.
-	 * @param outputMarkBytes array of a plink .bed stream, the output of this method
-	 * @param numberOfTotalMarkersInProj totoal number of markers in the Plink .bed file
-	 * @param numberOfTotalSamplesInProj totoal number of samples in the Plink .bed file
+	 * @param outputMarkBytes array of a PLINK .bed stream, the output of this method
+	 * @param numberOfTotalMarkersInProj totoal number of markers in the PLINK .bed file
+	 * @param numberOfTotalSamplesInProj totoal number of samples in the PLINK .bed file
 	 */
 	public static void transposeBedBytes(byte[] inputSampBytes, int indexOfStartSamp, int indexOfEndSamp, int indexOfStartMark, int indexOfEndMark, byte[] outputMarkBytes, int numberOfTotalMarkersInProj, int numberOfTotalSamplesInProj) {
 //		int iSamp;
@@ -1463,14 +1653,14 @@ public class PlinkData {
 	}
 
 	/**
-	 * Transpose one byte of data read in from a plink .bed file from individual-major format to SNP-major format.
+	 * Transpose one byte of data read in from a PLINK .bed file from individual-major format to SNP-major format.
 	 *  
-	 * This method is part of the process to convert a Plink .bed format data from individual-major (Sample lead, or organized
+	 * This method is part of the process to convert a PLINK .bed format data from individual-major (Sample lead, or organized
 	 * by sample) to SNP-major (Marker lead, or organized by marker). This method is normally used together with another
-	 * method to read in a Plink .bed file and write to another one, and looping over the byte stream loaded from the
-	 * Plink .bed file.
+	 * method to read in a PLINK .bed file and write to another one, and looping over the byte stream loaded from the
+	 * PLINK .bed file.
 	 * 
-	 * This method can also reversely convert Plink .bed format data from SNP-major (Marker lead, or organized by marker) to
+	 * This method can also reversely convert PLINK .bed format data from SNP-major (Marker lead, or organized by marker) to
 	 * individual-major (Sample lead, or organized by sample). Just treat all the variables labeled with Mark as if they were
 	 * labeled with Samp, and also Samp with Mark.
 	 *  
@@ -1504,7 +1694,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Translate Genvisis genotype genotype to Plink genotype. This is specifically for markers on chromosome X of males.
+	 * Translate Genvisis genotype genotype to PLINK genotype. This is specifically for markers on chromosome X of males.
 	 *  
 	 * @param genvisisGenotype
 	 * @param chromosome
@@ -1524,7 +1714,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Translate Plink genotype genotype to Genvisis genotype. This is specifically for markers on chromosome X of males.
+	 * Translate PLINK genotype genotype to Genvisis genotype. This is specifically for markers on chromosome X of males.
 	 *  
 	 * @param genvisisGenotype
 	 * @param chromosome
@@ -1543,7 +1733,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Translate Genvisis genotype genotype to Plink genotype. This is specifically for markers on chromosome X of males.
+	 * Translate Genvisis genotype genotype to PLINK genotype. This is specifically for markers on chromosome X of males.
 	 *  
 	 * @param genvisisGenotype
 	 * @param chromosome
@@ -1562,12 +1752,12 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert the array of genotypes into an array of Plink .bed byte stream.
+	 * Convert the array of genotypes into an array of PLINK .bed byte stream.
 	 * 
 	 * @param genotype
 	 * @return
 	 */
-	public static byte[] encodePlinkBedBytesForASingleMarkOrSamp (byte[] genotype) {
+	public static byte[] encodePlinkBedBytesForASingleMarkerOrSample (byte[] genotype) {
 		int iBytes;
 		byte[] result;
 		int nBytes;
@@ -1578,7 +1768,7 @@ public class PlinkData {
 		result = new byte[nBytes];
 
 //		for (int i = 0; i < result.length; i++) {
-//			result[i] = (byte) 0xAA;	//initilize the array to be 0b10101010, the null genotype defined by plink bed data.
+//			result[i] = (byte) 0xAA;	//initilize the array to be 0b10101010, the null genotype defined by PLINK bed data.
 //		}
 
 		try {
@@ -1627,7 +1817,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert an array of byte stream from a Plink .bed file into an array of genotypes with each element corresponding to one single sample
+	 * Convert an array of byte stream from a PLINK .bed file into an array of genotypes with each element corresponding to one single sample
 	 * @param bedBytes
 	 * @param startIndex
 	 * @param indicesOfSamplesOrMarkers
@@ -1653,7 +1843,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert an array of byte stream from a Plink .bed file to an array of genotypes with each element corresponding to one single sample
+	 * Convert an array of byte stream from a PLINK .bed file to an array of genotypes with each element corresponding to one single sample
 	 * @param bedBytes
 	 * @param startIndex
 	 * @param nSamplesOrMarkers
@@ -1680,7 +1870,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert a single byte from a Plink .bed file to the genotype of up to 4 samples and put them into the output array. 
+	 * Convert a single byte from a PLINK .bed file to the genotype of up to 4 samples and put them into the output array. 
 	 * @param inputOneByteFromBed
 	 * @param outputGenotypes
 	 * @param startIndexOfOutput
@@ -1694,7 +1884,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Convert a type from a Plink .bed file to an array of genotypes with each element corresponding to a single sample.
+	 * Convert a type from a PLINK .bed file to an array of genotypes with each element corresponding to a single sample.
 	 * @param bedByte
 	 * @return
 	 * @throws Elision
@@ -1741,7 +1931,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * A utility to show the bit maps of several bytes read in from a Plink .bed file.
+	 * A utility to show the bit maps of several bytes read in from a PLINK .bed file.
 	 * @param bedSetDirAndFilenameRoot
 	 * @param nSamplesToLoad
 	 */
@@ -1821,7 +2011,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * A utility to show the bit maps of several bytes read in from a Plink .bed file.
+	 * A utility to show the bit maps of several bytes read in from a PLINK .bed file.
 	 * 
 	 * @param bedFileName
 	 * @param startByte with 0 meaning the 1st byte, 1 the 2nd, and etc. 
@@ -1924,7 +2114,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Generate MarkerLookup file from Plink data sets. This is part of the process to convert Plink data sets to Genvisis data.
+	 * Generate MarkerLookup file from PLINK data sets. This is part of the process to convert PLINK data sets to Genvisis data.
 	 * @param plinkFileRoot
 	 * @return
 	 */
@@ -1956,7 +2146,7 @@ public class PlinkData {
 	}
 
 	/**
-	 * Match samples in a Plink data set with samples in a Genvisis project. This is part of the process to convert Plink data sets to Genvisis data.
+	 * Match samples in a PLINK data set with samples in a Genvisis project. This is part of the process to convert PLINK data sets to Genvisis data.
 	 * @param proj
 	 * @param plinkFileRoot
 	 * @param log
@@ -1983,7 +2173,7 @@ public class PlinkData {
 				famIndID = line[0]+"\t"+line[1];
 				allIDs = sampleData.lookup(famIndID);
 				if (allIDs == null) {
-					proj.getLog().report("Warning - sample in plink file "+plinkFileRoot+".fam that is not in the project's sampleData file: "+famIndID);
+					proj.getLog().report("Warning - sample in PLINK file "+plinkFileRoot+".fam that is not in the project's sampleData file: "+famIndID);
 				} else {
 					sampleID = allIDs[0];
 					sampleIndices[ext.indexOfStr(sampleID, finalSampleIDs)] = count;
@@ -2003,8 +2193,8 @@ public class PlinkData {
 	}
 
 	/**
-	 * Generate the list of sample indices for a Plink data set.
-	 * This is part of the process to convert Plink data to Genvisis data.
+	 * Generate the list of sample indices for a PLINK data set.
+	 * This is part of the process to convert PLINK data to Genvisis data.
 	 * 
 	 * @param plinkFileRoot
 	 * @param log
@@ -2015,9 +2205,9 @@ public class PlinkData {
 	}
 
 	/**
-	 * (This method is dropped, because of a conceptual error - Plink data do not have intensity x and y)
+	 * (This method is dropped, because of a conceptual error - PLINK data do not have intensity x and y)
 	 * 
-	 * This is a method to load data from a Plink data set into MarkerData[]. This is part of the process to conver Plink data into Genvisis data.
+	 * This is a method to load data from a PLINK data set into MarkerData[]. This is part of the process to conver PLINK data into Genvisis data.
 	 * 
 	 * @param allMarkersInProj
 	 * @param allChrsInProj
@@ -2045,7 +2235,7 @@ public class PlinkData {
 		try {
 			in = new RandomAccessFile(bedFileName, "r");
 
-			//Test the plink file header && Marker Dominant or Sample Dominant?
+			//Test the PLINK file header && Marker Dominant or Sample Dominant?
 			byte[] isSnpMajor = new byte[3];
 			in.read(isSnpMajor);
 			if (isSnpMajor[2] == 0) {
@@ -2100,7 +2290,7 @@ public class PlinkData {
 //
 //		try {
 //			in = new RandomAccessFile(bedFileName, "r");
-//			//Test the plink file header && Marker Dominant or Sample Dominant?
+//			//Test the PLINK file header && Marker Dominant or Sample Dominant?
 //
 //			// Sort the markerList for sequential loading
 //
@@ -2136,98 +2326,87 @@ public class PlinkData {
 //	}
 
 	public static void main (String[] args) {
-		String conversionToRun;
-		String projPropertyFileFullPath;
+		String conversionToRun = null;
+		String projPropertyFileFullPath = null;
 		Project proj;
-		String plinkDataDirAndFilenameRoot;
-		boolean isSnpMajor;
-		int startByte;
-		int nBytes;
-		float gcThreshold;
-		int indexOfStartMarker;
-		int nMarkers;
-		int indexOfStartSample;
-		int nSamples;
+		String plinkDataDirAndFilenameRoot = "plink";
+		boolean isSnpMajor = true;
+		int startByte = 100;
+		int nBytes = -1;
+		float gcThreshold = 0.15f;
+		int indexOfStartMarker = 0;
+		int nMarkers = -1;
+		int indexOfStartSample = 0;
+		int nSamples = -1;
 		Logger log;
-
-		projPropertyFileFullPath = "/home/pankrat2/zxu/projects/gedi_gwas.properties";
-		plinkDataDirAndFilenameRoot = "/home/pankrat2/shared/gedi_gwas/plink";
-		isSnpMajor = true;
-		startByte = 100;
-		nBytes = -1;
-		indexOfStartMarker = 0;
-		nMarkers = -1;
-		indexOfStartSample = 0;
-		nSamples = -1;
-		gcThreshold = 0.15f;
 
 		String usage = "\n"+
 				"cnv.manage.PlinkData provides methods to do the following:\n" +
-				"   (1) Conversion from Genvisis data to Plink text (.ped) data set;\n" +
-				"   (2) Conversion from Genvisis data to Plink binary (.bed) data set with SNP major;\n" +
-				"   (3) Conversion from Genvisis data to Plink binary (.bed) data set with individual major;\n" +
-				"   (4) Conversion from Plink text (.ped) data set to Plink binary (.bed) data set with SNP major;\n" +
-				"   (5) Conversion from Plink text (.ped) data set to Plink binary (.bed) data set with individual major;\n" +
-				"   (6) Conversion from Plink binary (.bed) data set with SNP major to Plink text (.ped) data set;\n" +
-				"   (7) Show the bit map of a Plink binary (.bed) data set;\n" +
-				"   (8) Read in genotype from Plink text (.ped) data set (not available in command line mode);\n" +
-				"   (9) Read in genotype from Plink binary (.bed) data set (not available in command line mode);\n" +
+				"   (1) Conversion from Genvisis data to PLINK text (.ped) data set;\n" +
+				"   (2) Conversion from Genvisis data to PLINK binary (.bed) data set with SNP major;\n" +
+				"   (3) Conversion from Genvisis data to PLINK binary (.bed) data set with individual major;\n" +
+				"   (4) Conversion from PLINK text (.ped) data set to PLINK binary (.bed) data set with SNP major;\n" +
+				"   (5) Conversion from PLINK text (.ped) data set to PLINK binary (.bed) data set with individual major;\n" +
+				"   (6) Conversion from PLINK binary (.bed) data set with SNP major to PLINK text (.ped) data set;\n" +
+				"   (7) Show the bit map of a PLINK binary (.bed) data set;\n" +
+				"   (8) Read in genotype from PLINK text (.ped) data set (not available in command line mode);\n" +
+				"   (9) Read in genotype from PLINK binary (.bed) data set (not available in command line mode);\n" +
 				"\n" +
-				"To convert Genvisis to Plink text (.ped) data set, the following arguments are required:\n" +
-				"   (1) the command (i.e. genvisistoped (not the default));\n" +
-				"   (2) the Genvisis project's property file location (i.e. proj=" + projPropertyFileFullPath + " (not the default));\n" +
+				"To export from Genvisis to PLINK text (.ped) data set, the following arguments are required:\n" +
+				"   (1) the command (i.e. -genvisisToPed (not the default));\n" +
+				"   (2) the Genvisis project's property file location (i.e. proj=~/projects/default.properties (not the default));\n" +
 				"   (3) the GC threshold (i.e. gcthreshold=" + gcThreshold + " (default));\n" +
+				"   (4) the directory and filename root for the final PLINK data set (i.e. plinkdata=" + plinkDataDirAndFilenameRoot + " (default));\n" +
 				"\n" +
-				"To convert Genvisis to Plink binary (.bed) data set, the following arguments are required:\n" +
-				"   (1) the command (i.e. genvisistobed (not the default));\n" +
-				"   (2) the Genvisis project's property file location (i.e. proj=" + projPropertyFileFullPath + " (not the default));\n" +
+				"To export from Genvisis to PLINK binary (.bed) data set, the following arguments are required:\n" +
+				"   (1) the command (i.e. -genvisisToBed (not the default));\n" +
+				"   (2) the Genvisis project's property file location (i.e. proj=" + projPropertyFileFullPath + " (default));\n" +
 				"   (3) the GC threshold (i.e. gcthreshold=" + gcThreshold + " (default));\n" +
 				"   (4) is the .bed file going to be SNP Major (i.e. issnpmajor=" + isSnpMajor + " (default));\n" +
+				"   (5) the directory and filename root for the final PLINK data set (i.e. plinkdata=" + plinkDataDirAndFilenameRoot + " (default));\n" +
 				"Note: the following specified by the project's property file are also required:" +
-				"   (5) the text file \"TARGET_MARKERS_FILENAME\";\n" +
-				"   (6) the text file 'pedegree.dat';\n" +
+				"   (6) the text file \"TARGET_MARKERS_FILENAME\";\n" +
+				"   (7) the text file \"PEDIGREE_FILENAME\";\n" +
 				"\n" +
-				"To convert Plink text (.ped) data set to Plink binary (.bed) data set, the following arguments are required:\n" +
-				"   (1) the command (i.e. pedtobed (not the default));\n" +
-				"   (2) the Plink data's directory and file name root for both the text set and binary set (i.e. plinkdata=" + plinkDataDirAndFilenameRoot + " (not the default));\n" +
+				"To convert PLINK text (.ped) data to PLINK binary (.bed) data, the following arguments are required:\n" +
+				"   (1) the command (i.e. -pedToBed (not the default));\n" +
+				"   (2) the directory and filename root for the PLINK data, which will be the same for both input/output (i.e. plinkdata=" + plinkDataDirAndFilenameRoot + " (default));\n" +
 				"   (3) is the .bed file going to be SNP Major (i.e. issnpmajor=" + isSnpMajor + " (default));\n" +
 				"\n" +
-				"To convert Plink binary (.bed) data set to Plink text (.ped) data set, the following arguments are required:\n" +
-				"   (1) the command (i.e. bedtoped (not the default));\n" +
-				"   (2) the Plink data's directory and file name root for both the text set and binary set (i.e. plinkdata=" + plinkDataDirAndFilenameRoot + " (not the default));\n" +
+				"To convert PLINK binary (.bed) data to PLINK text (.ped) data, the following arguments are required:\n" +
+				"   (1) the command (i.e. -bedToPed (not the default));\n" +
+				"   (2) the directory and filename root for the PLINK data, which will be the same for both input/output (i.e. plinkdata=" + plinkDataDirAndFilenameRoot + " (default));\n" +
 				"\n" +
-				"To show bitmap of Plink binary (.bed) data, the following arguments are required:\n" +
-				"   (1) the command (i.e. bitmap (not the default));\n" +
-				"   (2) the Plink binary (.bed) data set's directory and file name root (i.e. plinkdata=" + plinkDataDirAndFilenameRoot + " (not the default));\n" +
-				"   (3) the starting byte in .bed file to show (i.e. startbyte=" + startByte + " (default));\n" +
-				"   (4) the number of bytes in .bed file to show (i.e. nbytes=" + nBytes + " (default, with a negative number meaning all));\n" +
-				"\n" +
-				"To show bitmap of Plink binary (.bed) data in a layout similiar to .ped file, the following arguments are required:\n" +
-				"   (1) the command (i.e. bitmapinpedlayout (not the default));\n" +
-				"   (2) the Plink data's directory and file name root for both the text set and binary set (i.e. plinkdata=" + plinkDataDirAndFilenameRoot + " (not the default));\n" +
-				"   (3) the index of the starting marker in the Plink binary (.bed) data set to show (i.e. startmarker=" + indexOfStartMarker + " (default));\n" +
-				"   (4) the number of markers in the Plink binrary (.bed) data set to show (i.e. nmarkers=" + nMarkers + " (default, with a negative number meaning all));\n" +
-				"   (5) the index of the starting sample in the Plink binary (.bed) data set to show (i.e. startsample=" + indexOfStartSample + " (default));\n" +
-				"   (6) the number of samples in the Plink binary (.bed) data set to show (i.e. nsamples=" + nSamples + " (default, with a negative number meaning all));\n";
+//				"To show bitmap of PLINK binary (.bed) data, the following arguments are required:\n" +
+//				"   (1) the command (i.e. -bitmap (not the default));\n" +
+//				"   (2) the PLINK binary (.bed) data set's directory and filename root (i.e. plinkdata=" + plinkDataDirAndFilenameRoot + " (default));\n" +
+//				"   (3) the starting byte in .bed file to show (i.e. startbyte=" + startByte + " (default));\n" +
+//				"   (4) the number of bytes in .bed file to show (i.e. nbytes=" + nBytes + " (default, with a negative number meaning all));\n" +
+//				"\n" +
+//				"To show bitmap of PLINK binary (.bed) data in a layout similiar to .ped file, the following arguments are required:\n" +
+//				"   (1) the command (i.e. -bitmapInPedLayout (not the default));\n" +
+//				"   (2) the PLINK data's directory and filename root for both the text set and binary set (i.e. plinkdata=" + plinkDataDirAndFilenameRoot + " (default));\n" +
+//				"   (3) the index of the starting marker in the PLINK binary (.bed) data set to show (i.e. startmarker=" + indexOfStartMarker + " (default));\n" +
+//				"   (4) the number of markers in the PLINK binary (.bed) data set to show (i.e. nmarkers=" + nMarkers + " (default, with a negative number meaning all));\n" +
+//				"   (5) the index of the starting sample in the PLINK binary (.bed) data set to show (i.e. startsample=" + indexOfStartSample + " (default));\n" +
+//				"   (6) the number of samples in the PLINK binary (.bed) data set to show (i.e. nsamples=" + nSamples + " (default, with a negative number meaning all));"+
+				"\n";
 
-		projPropertyFileFullPath = null;
-		plinkDataDirAndFilenameRoot = null;
-		conversionToRun = null;
 		for (int i = 0; i<args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].equalsIgnoreCase("genvisistoped")) {
+			} else if (args[i].equalsIgnoreCase("-genvisisToPed")) {
 				conversionToRun = args[i];
-			} else if (args[i].equalsIgnoreCase("genvisistobed")) {
+			} else if (args[i].equalsIgnoreCase("-genvisisToBed")) {
 				conversionToRun = args[i];
-			} else if (args[i].equalsIgnoreCase("pedtobed")) {
+			} else if (args[i].equalsIgnoreCase("-pedToBed")) {
 				conversionToRun = args[i];
-			} else if (args[i].equalsIgnoreCase("bedtoped")) {
+			} else if (args[i].equalsIgnoreCase("-bedToPed")) {
 				conversionToRun = args[i];
-			} else if (args[i].startsWith("bitmap")) {
+			} else if (args[i].startsWith("-bitmap")) {
 				conversionToRun = args[i];
-			} else if (args[i].startsWith("bitmapinpedlayout")) {
+			} else if (args[i].startsWith("-bitmapInPedLayout")) {
 				conversionToRun = args[i];
 			} else if (args[i].startsWith("proj=")) {
 				projPropertyFileFullPath = args[i].split("=")[1];
@@ -2258,34 +2437,34 @@ public class PlinkData {
 			log = new Logger();
 			log.report(usage);
 
-		} else if  (conversionToRun.equals("genvisistoped")) {
+		} else if (conversionToRun.equals("-genvisisToPed")) {
 			proj = new Project(projPropertyFileFullPath, false);
 			log = proj.getLog();
-			log.report(ext.getTime()+"\tConverting Genvisis to Plink text (.ped) data set.");
-			PlinkFormat.createPlink(proj, "gwas", proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, null);
+			log.report(ext.getTime()+"\tConverting Genvisis to PLINK text (.ped) data set.");
+			PlinkData.saveGenvisisToPlinkPedSet(proj, plinkDataDirAndFilenameRoot, proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, null);
 
-		} else if (conversionToRun.equals("genvisistobed")) {
+		} else if (conversionToRun.equals("-genvisisToBed")) {
 			proj = new Project(projPropertyFileFullPath, false);
 			log = proj.getLog();
-			log.report(ext.getTime()+"\tConverting from Genvisis to Plink binary (.bed) data set.");
-			saveGenvisisToPlinkBedSet(proj, "plinkZack", proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, proj.TARGET_MARKERS_FILENAMES.getValue()[0], gcThreshold, true);
+			log.report(ext.getTime()+"\tConverting from Genvisis to PLINK binary (.bed) data set.");
+			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, proj.TARGET_MARKERS_FILENAMES.getValue()[0], gcThreshold, true);
 			
-		} else if  (conversionToRun.equals("pedtobed")) {
+		} else if (conversionToRun.equals("-pedToBed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
-			log.report(ext.getTime()+"\tConverting from Plink text (.ped) data set to Plink binary (.bed) data set.");
+			log.report(ext.getTime()+"\tConverting from PLINK text (.ped) data set to PLINK binary (.bed) data set.");
 			convertPedSetToBedSet(plinkDataDirAndFilenameRoot, isSnpMajor, log);
 
-		} else if  (conversionToRun.equals("bedtoped")) {
+		} else if (conversionToRun.equals("-bedToPed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
-			log.report(ext.getTime()+"\tConverting from Plink binary (.bed) data set to Plink text (.ped) data set.");
+			log.report(ext.getTime()+"\tConverting from PLINK binary (.bed) data set to PLINK text (.ped) data set.");
 			convertBedSetToPedSet(plinkDataDirAndFilenameRoot, log);
 
-		} else if  (conversionToRun.equals("bitmap")) {
+		} else if (conversionToRun.equals("-bitmap")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 			log.report(ext.getTime()+"\tShowing bitmap.");
 			showBitMapOfBedFile(plinkDataDirAndFilenameRoot + ".bed", startByte, nBytes, log);
 
-		} else if  (conversionToRun.equals("bitmapinpedlayout")) {
+		} else if (conversionToRun.equals("-bitmapInPedLayout")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 			log.report(ext.getTime()+"\tShowing bitmap.");
 			showBitMapOfBedFileWithPedLayout(plinkDataDirAndFilenameRoot, indexOfStartMarker, nMarkers, indexOfStartSample, nSamples, log);
