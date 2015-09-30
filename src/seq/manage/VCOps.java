@@ -295,7 +295,14 @@ public class VCOps {
 			if (use) {
 				int[] AD = new int[] { 0, 0 };
 				try {
-					AD = getAppropriateAlleleDepths(vc, geno, verbose, log);
+					if (geno.hasAD()) {
+						AD = getAppropriateAlleleDepths(vc, geno, verbose, log);
+					} else {
+						AD = new int[] { altAlleleDepth + 1, altAlleleDepth + 1 };
+						if (verbose) {
+							log.reportTimeWarning(geno.toString() + " did not have allele depths, setting depths to " + Array.toStr(AD));
+						}
+					}
 				} catch (IllegalStateException ise) {
 					if (verbose) {
 						// TODO, report?
@@ -360,7 +367,10 @@ public class VCOps {
 			log.reportTimeError("Number of alleles must equal 2");
 			return null;
 		} else if (gAlleles.size() == 0 || !g.hasAD()) {
-			throw new IllegalStateException("Invalid Allele retrieval");
+			String error = "Invalid Allele retrieval";
+			error +=g.toString();
+			error+= vc.toStringWithoutGenotypes();
+			throw new IllegalStateException(error);
 
 		} else {
 			int[] gAD = g.getAD();

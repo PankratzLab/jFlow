@@ -42,10 +42,21 @@ public class VCFSimpleTally {
 	private static final String AND = "&&";
 	private static final String SNPEFF_IMPACTS = "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')";
 	private static final String SNPEFF_NAMES = "G1000_esp_charge_aricFreq_SNPEFF_HIGH_MODERATE_LOW";
-	private static final String CHARGE_B_FILTER = "(MAF_blacks=='.'||MAF_blacks <= 0.01)";
-	private static final String CHARGE_W_FILTER = "(MAF_whites=='.'||MAF_whites <= 0.01)";
+	// private static final String CHARGE_B_FILTER = "(charge.MAF_blacks=='.'||charge.MAF_blacks <= 0.01||charge.MAF_blacks=='null'||!vc.hasAttribute('charge.MAF_blacks'))";
+	// private static final String CHARGE_W_FILTER = "(charge.MAF_whites=='.'||charge.MAF_whites <= 0.01||charge.MAF_whites=='null'||!vc.hasAttribute('charge.MAF_whites'))";
 	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT" };
 	private static final String[] ANNO_ADD = new String[] { "_NUM_WITH_CALLS", "_NUM_WITH_ALT", "_AAC", "_HQ_NUM_WITH_ALT", "_HQ_AAC", };
+
+	private static boolean filterCHARGE(VariantContext vc, double maf) {
+		boolean pass = true;
+		if (vc.hasAttribute("charge.MAF_whites")) {
+			pass = vc.getCommonInfo().getAttributeAsDouble("charge.MAF_whites", 0) < maf;
+		}
+		if (pass && vc.hasAttribute("charge.MAF_blacks")) {
+			pass = vc.getCommonInfo().getAttributeAsDouble("charge.MAF_blacks", 0) < maf;
+		}
+		return pass;
+	}
 
 	private static void filter(String vcf, String output, String casePop, VcfPopulation vpop, double controlFreq, Logger log) {
 		if (!Files.exists(output)) {
@@ -70,12 +81,20 @@ public class VCFSimpleTally {
 				if (numScanned % 10000 == 0) {
 					log.reportTimeInfo(numScanned + " variants scanned, " + numPass + " variants passed");
 				}
+
+				// System.out.println(Array.toStr(VCOps.getAnnotationsFor(new String[] { "charge.MAF_whites", "charge.MAF_blacks" }, vc, ".")));
+
 				if (!vc.isFiltered() && vc.isBiallelic()) {// no tranche
 					VariantContext vcCase = VCOps.getSubset(vc, cases, VC_SUBSET_TYPE.SUBSET_STRICT, false);
 					if (vcCase.getSampleNames().size() != cases.size()) {
 						throw new IllegalArgumentException("could not find all cases for " + casePop);
 					}
-					if (vcCase.getHomRefCount() != cases.size() && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed()) {// as alts in rare esp/1000g
+					if (vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all"))) {
+						String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
+						error +="\n"+vc.toStringWithoutGenotypes();
+						throw new IllegalStateException(error);
+					}
+					if (vcCase.getHomRefCount() != cases.size() && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed() && filterCHARGE(vcCase, 0.01)) {// as alts in rare esp/1000g
 						boolean controlPass = true;
 						for (String controlPop : controls.keySet()) {
 							VariantContext vcControl = VCOps.getSubset(vc, controls.get(controlPop), VC_SUBSET_TYPE.SUBSET_STRICT, false);
@@ -103,12 +122,13 @@ public class VCFSimpleTally {
 	}
 
 	private static VariantContextFilter getFreqFilter(Logger log) {
-		VariantContextFilter vContextFilter = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {}, new String[] { "RARE_" + SNPEFF_NAMES }, new String[] { ESP_FILTER + AND + G1000_FILTER + AND + SNPEFF_IMPACTS + AND + CHARGE_B_FILTER + AND + CHARGE_W_FILTER }, log);
+		// CHARGE_B_FILTER + AND + CHARGE_W_FILTER
+		VariantContextFilter vContextFilter = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {}, new String[] { "RARE_" + SNPEFF_NAMES }, new String[] { ESP_FILTER + AND + G1000_FILTER + AND + SNPEFF_IMPACTS }, log);
 		return vContextFilter;
 	}
 
 	public static void test() {
-		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf";
+		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf.gz";
 		String popDir = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/Freq/";
 		String[] vpops = new String[] { popDir + "ANIRDIA.vpop", popDir + "ANOTIA.vpop", popDir + "CUSHING.vpop" };
 
@@ -150,21 +170,22 @@ public class VCFSimpleTally {
 		PrintWriter annoWriter = Files.getAppropriateWriter(finalAnnot);
 		annoWriter.print(Array.toStr(ANNO_BASE));
 		Set<String> cases = vpopAc.getSuperPop().get(caseDef);
-		annoWriter.print("\t" + Array.tagOn(ANNO_ADD, caseDef, null));
+		annoWriter.print("\t" + Array.toStr(Array.tagOn(ANNO_ADD, caseDef, null)));
 		Hashtable<String, Set<String>> controls = vpopAc.getSuperPop();
 		controls.remove(caseDef);
 		controls.remove(VcfPopulation.EXCLUDE);
 		ArrayList<String> controlsOrdered = new ArrayList<String>();
 		controlsOrdered.addAll(controls.keySet());
 		for (int i = 0; i < controlsOrdered.size(); i++) {
-			annoWriter.print("\t" + Array.tagOn(ANNO_ADD, controlsOrdered.get(i), null));
+			annoWriter.print("\t" + Array.toStr(Array.tagOn(ANNO_ADD, controlsOrdered.get(i), null)));
 		}
 		String[][] annotations = VCFOps.getAnnotationKeys(vcf, log);
 		annoWriter.print("\t" + Array.toStr(annotations[0]));
-
+		annoWriter.println();
 		VariantContextFilter qual = getQualityFilterwkggseq(log);
 		Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<String, ArrayList<GeneSummary[]>>();
 		for (int i = 0; i < filtVcfs.size(); i++) {
+			log.reportTimeInfo("Summarizing " + filtVcfs.get(i));
 			VCFFileReader result = new VCFFileReader(filtVcfs.get(i), true);
 			for (VariantContext vc : result) {
 				writer.add(vc);
@@ -177,15 +198,17 @@ public class VCFSimpleTally {
 				for (int j = 0; j < geneSummaries.get(geneName).get(0).length; j++) {
 					geneSummaries.get(geneName).get(0)[j].add(vcCaseGroup);
 				}
-				annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
+				annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t"+vc.getID()+"\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
 				annoWriter.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 				for (int j = 0; j < controlsOrdered.size(); j++) {
-					VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(i), controls.get(controlsOrdered.get(i)), vc, qual, log);
+					VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(j), controls.get(controlsOrdered.get(j)), vc, qual, log);
 					for (int k = 0; k < geneSummaries.get(geneName).get(0).length; k++) {
-						geneSummaries.get(geneName).get(0)[k].add(vcControlGroup);
+						geneSummaries.get(geneName).get(j+1)[k].add(vcControlGroup);
 					}
 					annoWriter.print("\t" + Array.toStr(vcControlGroup.getSummary()));
 				}
+				annoWriter.print("\t"+Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
+				annoWriter.println();
 			}
 			result.close();
 		}
@@ -205,6 +228,7 @@ public class VCFSimpleTally {
 			for (int k = 0; k < controlGeneSummaries.length; k++) {
 				controlGeneSummaries[k] = new GeneSummary(geneName, controlsOrdered.get(j), EFF_DEFS[k]);
 			}
+			geneSummaries.get(geneName).add(controlGeneSummaries);
 		}
 	}
 
@@ -224,13 +248,16 @@ public class VCFSimpleTally {
 			this.geneName = geneName;
 			this.numVar = 0;
 			this.hqNumVar = 0;
+			this.effects =effects;
 			this.uniqueHqIndsWithVar = new HashSet<String>();
 			this.uniqueIndsWithVar = new HashSet<String>();
 		}
 
 		private void add(VcGroupSummary vcGroupSummary) {
 			if (!vcGroupSummary.getGroupName().equals(group)) {
-				throw new IllegalArgumentException("Mismatched group names");
+				
+				throw new IllegalArgumentException("Mismatched group names: should be " + group + " but actually " + vcGroupSummary.getGroupName());
+				
 			}
 			if (!VCOps.getSNP_EFFGeneName(vcGroupSummary.getVcOriginal()).equals(geneName)) {
 				throw new IllegalArgumentException("Mismatched gene names");
@@ -295,12 +322,12 @@ public class VCFSimpleTally {
 
 		private void summarize() {
 			VariantContext vcSub = VCOps.getSubset(vcOriginal, group, VC_SUBSET_TYPE.SUBSET_STRICT, false);
-			this.vcAlt = VCOps.getAltAlleleContext(vcOriginal, null, filter, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+			this.vcAlt = VCOps.getAltAlleleContext(vcSub, null, filter, ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
 			this.aac = (int) VCOps.getAAC(vcSub, null);
 			this.indsWithAlt = vcAlt.getSampleNames();
 			this.numIndsAlt = indsWithAlt.size();
 			this.numWithCalls = vcSub.getSampleNames().size() - vcSub.getNoCallCount();
-			this.vcAltHq = VCOps.getAltAlleleContext(vcOriginal, null, filter, ALT_ALLELE_CONTEXT_TYPE.ALL, log);
+			this.vcAltHq = VCOps.getAltAlleleContext(vcSub, null, filter, ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);
 			this.hqAac = (int) VCOps.getAAC(vcAltHq, null);
 			this.hqIndsWithAlt = vcAltHq.getSampleNames();
 			this.numHqIndsAlt = hqIndsWithAlt.size();
