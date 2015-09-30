@@ -15,7 +15,7 @@ import common.ext;
 
 public class DeNovoGear {
 
-	public static void generateScripts(String pedegreeFileFullPath, String bamFilesDir, String bcfFilesDir, String denovogearResultDir, String scriptFileDir, String qsubLogsDir, String bamFilePrefix, String bamFileSuffix, Logger log) {
+	public static void generateScripts(String pedigreeFileFullPath, String bamFilesDir, String bcfFilesDir, String denovogearResultDir, String scriptFileDir, String qsubLogsDir, String bamFilePrefix, String bamFileSuffix, Logger log) {
 		Scanner reader;
 		PrintWriter writer;
 		String[] line;
@@ -31,7 +31,7 @@ public class DeNovoGear {
 //		iterationsVec = new Vector<String[]>();
 		qsubFilesVec = new Vector<String>();
 		try {
-			reader = new Scanner(new File(pedegreeFileFullPath));
+			reader = new Scanner(new File(pedigreeFileFullPath));
 			while (reader.hasNext()) {
 				line = reader.nextLine().split("\t");
 				if (!	(  new File(bamFilesDir + bamFilePrefix + line[1] + ".bam").exists()
@@ -86,18 +86,18 @@ public class DeNovoGear {
 	}
 
 	public static void main(String[] args) {
-		String pedegreeFileFullPath, bamFilesDir, bcfFilesDir, denovogearResultDir, scriptFileDir, qsubLogsDir, bamFilePrefix, bamFileSuffix;
+		String pedigreeFileFullPath, bamFilesDir, bcfFilesDir, denovogearResultDir, scriptFileDir, qsubLogsDir, bamFilePrefix, bamFileSuffix;
 		String[] commands;
 		Logger log;
 
-//		pedegreeFileFullPath = "/home/pankrat2/shared/logan/denovogear/all.ped";
+//		pedigreeFileFullPath = "/home/pankrat2/shared/logan/denovogear/all.ped";
 //		bamFilesDir = "/home/pankrat2/shared/logan/denovogear/data_source_bam/";
 //		bcfFilesDir = "/home/pankrat2/shared/logan/denovogear/data_converted_bcf/";
 //		denovogearResultDir = "/home/pankrat2/shared/logan/denovogear/results/";
 //		scriptFileDir = "/home/pankrat2/shared/logan/denovogear/scripts/";
 //		qsubLogsDir = "/home/pankrat2/shared/logan/denovogear/logs/";
 //		bamFilePrefix = "dedup_";
-		pedegreeFileFullPath = "/home/spectorl/xuz2/denovo/allTrios.ped";
+		pedigreeFileFullPath = "/home/spectorl/xuz2/denovo/allTrios.ped";
 		bamFilesDir = "/home/spectorl/shared/exome_processing/bam/";
 		bcfFilesDir = "/scratch/bcfs/";
 		denovogearResultDir = "/home/spectorl/xuz2/denovo/results/";
@@ -107,10 +107,10 @@ public class DeNovoGear {
 		bamFileSuffix = "_L00?";
 
 		commands = new String[] {"ped=", "bamdir=", "bcfdir=", "out=", "scriptdir=", "qsublogsdir=", "bamprefix=", "bamsuffiex="};
-//		commandVariables = new String[] {pedegreeFileFullPath, bamFilesDir, bcfFilesDir, denovogearResultDir};
+//		commandVariables = new String[] {pedigreeFileFullPath, bamFilesDir, bcfFilesDir, denovogearResultDir};
 		String usage = "\n"+
 				"cnv.analysis.DeNovoCNV analysis normally contains the following steps, split into several rounds, within each of which all the steps will be finished by just calling the program once.\n" +
-				"   (1) full path of the pedegree file (i.e. " + commands[0] + pedegreeFileFullPath + " (the default));\n" +
+				"   (1) full path of the pedigree file (i.e. " + commands[0] + pedigreeFileFullPath + " (the default));\n" +
 				"   (2) directory of the source data bam files (i.e. " + commands[1] + bamFilesDir + " (the default));\n" +
 				"   (3) directory to place the interim data bcf files (i.e. " + commands[2] + bcfFilesDir + " (the default));\n" +
 				"   (4) directory to place the results of DeNovoGear (i.e. " + commands[3] + denovogearResultDir + " (the default));\n" +
@@ -122,7 +122,7 @@ public class DeNovoGear {
 
 		for (int i = 0; i<args.length; i++) {
 			if (args[i].startsWith(commands[0])) {
-				pedegreeFileFullPath = args[i].split("=")[1];
+				pedigreeFileFullPath = args[i].split("=")[1];
 			} else if (args[i].startsWith(commands[1])) {
 				bamFilesDir = args[i].split("=")[1];
 			} else if (args[i].startsWith(commands[2])) {
@@ -144,10 +144,10 @@ public class DeNovoGear {
 			}
 		}
 
-		log = new Logger(ext.parseDirectoryOfFile(pedegreeFileFullPath) + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
+		log = new Logger(ext.parseDirectoryOfFile(pedigreeFileFullPath) + "Genvisis_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
 		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": starting generating qsub files for DeNovoGear.java");
 
-		generateScripts(pedegreeFileFullPath, bamFilesDir, bcfFilesDir, denovogearResultDir, scriptFileDir, qsubLogsDir, bamFilePrefix, bamFileSuffix, log);
+		generateScripts(pedigreeFileFullPath, bamFilesDir, bcfFilesDir, denovogearResultDir, scriptFileDir, qsubLogsDir, bamFilePrefix, bamFileSuffix, log);
 
 		log.report(new SimpleDateFormat("MMM dd HH:mm:ss").format(new Date()) + ": completed generating qsub files for DeNovoGear.java.");
 	}

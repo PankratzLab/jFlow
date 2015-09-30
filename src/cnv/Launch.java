@@ -62,8 +62,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String FOREST_PLOT = "Forest Plot";
 
 	public static final String GENERATE_ABLOOKUP = "Generate AB Lookup";
-	public static final String GENERATE_PLINK_FILES = "Generate PLINK files";
-	public static final String GENERATE_PLINK_BINARY_FILES = "Generate PLINK binary files";
+	public static final String EXPORT_TO_PLINK = "Export to PLINK format";
 	public static final String GENERATE_PENNCNV_FILES = "Generate PennCNV files";
 	public static final String PARSE_RAW_PENNCNV_RESULTS = "Parse raw PennCNV results files";
 	public static final String POPULATIONBAF = "Compute Population BAF file";
@@ -82,7 +81,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
-			{"Tools", GENERATE_ABLOOKUP, GENERATE_PLINK_FILES, GENERATE_PLINK_BINARY_FILES, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST},
+			{"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST},
 			{"Help", "Contents", "Search", "About"}};
 
 	
@@ -454,19 +453,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				}
 				
 				ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false);
-			} else if (command.equals(GENERATE_PLINK_FILES)/*) {
-				String filename;
-
-				filename = ClusterFilterCollection.getClusterFilterFilenameSelection(proj);
-				if (filename == null) {
-					log.report("No ClusterFilterCollection will be used");
-				} else {
-					log.report("The ClusterFilterCollection in '"+proj.getProperty(proj.DATA_DIRECTORY)+"/"+filename+"' will be used");
-				}
-				if ( filename==null || (!filename.equals("cancel")) ) {
-				    boolean success = PlinkData.saveGenvisisToPlinkPedSet(proj, filename);
-				}
-			} else if (*/ || command.equals(GENERATE_PLINK_BINARY_FILES)) {
+			} else if (command.equals(EXPORT_TO_PLINK)) {
                 PlinkExportOptions peo = new PlinkExportOptions(proj);
                 peo.setModal(true);
                 peo.setVisible(true);
@@ -482,22 +469,23 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
                     log.reportFileNotFound(pedFile);
                     return;
                 }
-                String clusterFile = proj.DATA_DIRECTORY.getValue() + peo.getClusterFilterSelection();
-                String tgtMkrsFile = peo.getTargetMarkersFile();
+                String clusterFiltersFilename = peo.getClusterFilterSelection();
+                if (clusterFiltersFilename != null) {
+                    clusterFiltersFilename = proj.DATA_DIRECTORY.getValue() + clusterFiltersFilename;
+                }
+                String targetMarkersFilename = peo.getTargetMarkersFile();
                 if (peo.getCancelled()) { // getTargetMarkersFile(), if set to CREATE_NEW, can potentially be cancelled
                     return;
                 }
                 proj.saveProperties();
                 boolean success = false;
                 if (peo.exportAsBinary()) {
-                    success = PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot, clusterFile, tgtMkrsFile, -1, true);
+                    success = PlinkData.saveGenvisisToPlinkBedSet(proj, plinkFileroot, clusterFiltersFilename, targetMarkersFilename, -1, true);
                 } else {
-                    success = PlinkData.saveGenvisisToPlinkPedSet(proj, clusterFile, tgtMkrsFile, plinkFileroot);
+            	    success = PlinkData.saveGenvisisToPlinkPedSet(proj, plinkFileroot, clusterFiltersFilename, targetMarkersFilename);
                 }
                 if (success) {
                     log.report("Success!");
-                    proj.PLINK_DIR_FILEROOTS.setValue(Array.addStrToArray(plinkFileroot, proj.PLINK_DIR_FILEROOTS.getValue()));
-        			proj.saveProperties();
 		        }
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
 				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null, null, proj.NUM_THREADS.getValue());
@@ -578,7 +566,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
 				Mosaicism.findOutliers(proj);
 
-				cnv.manage.PlinkFormat.createPlink(proj, "gwas", null, proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
+				PlinkData.saveGenvisisToPlinkPedSet(proj, "gwas", null, proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 				CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
 				new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
 				CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");

@@ -132,6 +132,8 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 		sampleData = sp.getSampleData();
 		sampleList = HashVec.getKeys(hash);
 		
+		createLookup = false;
+		
 		setNullMessage("Select two factors to plot");
 		
 		// taken care of in AbstractPanel constructor

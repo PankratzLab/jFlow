@@ -388,7 +388,7 @@ public class KitAndKaboodle {
             
             proj.getLog().report("Running PLINK");
             
-            boolean create = cnv.manage.PlinkFormat.createPlink(proj, "gwas", null, null);
+            boolean create = PlinkData.saveGenvisisToPlinkPedSet(proj, "gwas", null, null);
             if (create) {
                 CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
                 create = new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
