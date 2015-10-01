@@ -565,24 +565,30 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			plotYmax = plotMinMaxStep[1];
 			if (displayYaxis) {
 				sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
+				float minSize = g.getFont().getSize2D();
+				Font prevFont = g.getFont();
 				for (double y = plotMinMaxStep[3]; y<=plotYmax; y += plotMinMaxStep[2]) {
 					if (y >= plotYmin || !truncate) {
-						Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
 						str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
-						Font prevFont = g.getFont();
 						if (str.length() == 5) {
-							g.setFont(prevFont.deriveFont(prevFont.getSize2D() - 5));
-							g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - str.length() * 15 + 17, getYPixel(y) + 8);
-							g.setFont(prevFont);
+							minSize = Math.min(minSize, prevFont.getSize2D() - 5);
 						} else if (str.length() >= 6) {
-							g.setFont(prevFont.deriveFont(prevFont.getSize2D() - 10));
-							g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - str.length() * 15 + 35, getYPixel(y) + 6);
-							g.setFont(prevFont);
-						} else {
-							g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - str.length() * 15 + 5, getYPixel(y) + 9);
+						    minSize = Math.min(minSize, prevFont.getSize2D() - 10);
 						}
 					}
 				}
+			    Font minFont = prevFont.deriveFont(minSize);
+			    g.setFont(minFont);
+			    fontMetrics = g.getFontMetrics();
+				for (double y = plotMinMaxStep[3]; y<=plotYmax; y += plotMinMaxStep[2]) {
+				    if (y >= plotYmin || !truncate) {
+				        Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
+				        str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
+				        g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 5 - fontMetrics.stringWidth(str), getYPixel(y) + fontMetrics.getHeight() / 2);
+				    }
+				}
+				g.setFont(prevFont);
+				fontMetrics = g.getFontMetrics();
 				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax)-(int)Math.ceil((double)TICK_THICKNESS/2.0), AXIS_THICKNESS, Color.BLACK);
 				int strWidth = fontMetrics.stringWidth(yAxisLabel);
 				if (strWidth > 0) {

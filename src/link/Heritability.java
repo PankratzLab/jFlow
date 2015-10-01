@@ -332,7 +332,7 @@ public class Heritability {
 
     		try {
 				summary = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_summary.xln"));
-				summary.println("Model\tMerlin_est.\tSolar_est.\tSolar_p\tSolar_StdError\tSolar_Kurt\tSolar_KurtWarning\tn_Samples\tn_Families\tn_Families_size>1\tAverage_size_families_siez>1\tn_Families_size=1\tPearson_Correl_Z_Siblings\tPearson_Correl_Z_ParentOffspringPairs\tPearson_Correl_Z_Trios\tPearson_Correl_Pval_Siblings\tPearson_Correl_Pval_ParentOffspringPairs\tPearson_Correl_Pval_Trios\tICC_Siblings\tICC_ParentOffspringPairs\tICC_Trios");
+				summary.println("Model\tMerlin_est.\tSolar_est.\tSolar_p\tSolar_StdError\tSolar_Kurt\tSolar_KurtWarning\tn_Samples\tn_Families\tn_Families_size>1\tAverage_size_families_siez>1\tn_Families_size=1\tPearson_Correl_Z_Siblings\tPearson_Correl_Z_ParentOffspringPairs\tPearson_Correl_Z_Trios\tPearson_Correl_Pval_Siblings\tPearson_Correl_Pval_ParentOffspringPairs\tPearson_Correl_Pval_Trios\tICC_Siblings\tICC_ParentOffspringPairs\tICC_Trios\tN_Siblings\tN_ParentOffspringPairs\tN_Trios");
 	    		for (int i = 0; i < models.size(); i++) {
 	    			line = models.elementAt(i);
 	    			if (line.length < 2) {
@@ -431,6 +431,9 @@ public class Heritability {
 	    				double[] sibCorrel;
 	    				double[] poCorrel;
 	    				double[] trioCorrel;
+	    				int cntSib = 0;
+	    				int cntPO = 0;
+	    				int cntTrio = 0;
 	    				/*sibs : */{
 	    				    double[][] correlationData;
 	    				    ArrayList<Double> sibICCData = new ArrayList<Double>();
@@ -448,6 +451,7 @@ public class Heritability {
 	    				        if (resid1 == null || resid2 == null) {
 	    				            continue; // skip
 	    				        }
+	    				        cntSib++;
     				            used.add(sibList.get(k)[0] + "\t" + sibList.get(k)[1]);
     				            correl1.add(resids[resid1.intValue()]);
     				            correl2.add(resids[resid2.intValue()]);
@@ -474,6 +478,7 @@ public class Heritability {
                                 if (resid1 == null || resid2 == null) {
                                     continue; //skip
                                 }
+                                cntPO++;
                                 correl1.add(resids[resid1.intValue()]);
                                 correl2.add(resids[resid2.intValue()]);
 	    				        poICCData.add(resids[resid1.intValue()]);
@@ -506,6 +511,7 @@ public class Heritability {
                                 if (resid1 == null || resid2 == null || resid3 == null) {
                                     continue; //skip
                                 }
+                                cntTrio++;
                                 correl1.add(resids[resid1]);
                                 double p1 = resids[resid2];
                                 double p2 = resids[resid3];
@@ -551,9 +557,9 @@ public class Heritability {
                                         sibICC + "\t" + 
                                         poICC + "\t" + 
                                         trioICC + "\t" + 
-                                        (sibList.size() / 2) + "\t" +  
-                                        poPairs.size() + "\t" + 
-                                        trios.size());
+                                        cntSib + "\t" +  
+                                        cntPO + "\t" + 
+                                        cntTrio);
 						summary.flush();
 						log.report("");
 	    			}
