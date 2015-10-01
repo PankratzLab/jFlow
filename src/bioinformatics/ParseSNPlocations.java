@@ -26,6 +26,7 @@ import common.Array;
 import common.Files;
 import common.Logger;
 import common.Positions;
+import common.ProgressMonitor;
 import common.ext;
 
 public class ParseSNPlocations {
@@ -55,7 +56,7 @@ public class ParseSNPlocations {
 	private static String[] TAG_SET = {"NSF","NSM","NSN","SYN","U3","U5","ASS","DSS","INT","R3","R5"};
 	private static String[] TAG_SET_2 = {"PM","MUT"};
 	
-	public static void parseSNPlocations(String snpListFile, String vcfFile, String unmappedVCF, String mergedVCF, Logger log) {
+	public static void parseSNPlocations(String snpListFile, String vcfFile, String unmappedVCF, String mergedVCF, Logger log, ProgressMonitor monitor) {
         VCFFileReader vcfReader, unmappedVCFReader, mergedVCFReader;
         BufferedReader reader;
         PrintWriter writer;
@@ -67,7 +68,13 @@ public class ParseSNPlocations {
         HashMap<String, Integer> indexMap = new HashMap<String, Integer>(); 
         int index = 0;
         
-        System.out.println("Processing " + Files.countLines(snpListFile, 0) + " SNPs");
+        String PROG_KEY = "PARSESNPS";
+        int lineCnt = Files.countLines(snpListFile, 0);
+        if (monitor != null) {
+            monitor.beginTask(PROG_KEY, "Processing " + lineCnt + " SNPs", false, lineCnt);
+        } else {
+            System.out.println("Processing " + lineCnt + " SNPs");
+        }
         
         vcfReader = new VCFFileReader(vcfFile, true);
         unmappedVCFReader = unmappedVCF == null ? null : new VCFFileReader(unmappedVCF, true);
@@ -231,6 +238,9 @@ public class ParseSNPlocations {
                         indexMap.put(rs, index);
                     }
                 }
+                if (monitor != null) {
+                    monitor.updateTask(PROG_KEY);
+                }
             }
             writer.flush();
             writer.close();
@@ -245,7 +255,7 @@ public class ParseSNPlocations {
         
         vcfReader.close();
         Files.writeArrayList(rsNotFound, ext.rootOf(snpListFile, false)+"_missing.txt");
-        
+        monitor.endTask(PROG_KEY);
     }
 	
 	public static void lowMemParse(String snpListFile, String db, String mergeDB, boolean useExistingPositions, Logger log) {
@@ -729,7 +739,8 @@ public class ParseSNPlocations {
 			} else {
 				if (vcf != null) {
 				    long t = System.currentTimeMillis();
-				    parseSNPlocations(dir+filename, vcf, unmappedvcf, mergedvcf, new Logger());
+				    log = new Logger();
+				    parseSNPlocations(dir+filename, vcf, unmappedvcf, mergedvcf, log, new ProgressMonitor(null, log));
 				    System.out.println("Took " + ext.getTimeElapsed(t));
 				} else {
 				    long t = System.currentTimeMillis();
