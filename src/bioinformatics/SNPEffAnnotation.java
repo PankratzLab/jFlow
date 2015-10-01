@@ -99,19 +99,49 @@ public class SNPEffAnnotation {
         writer.flush();
         writer.close();
     }
-    
-    public static void main(String[] args1) {
-//        String file = "D:\\All_20150605.vcf.gz";
-        String file = "D:\\snpeff\\test.txt";
-//        String[] args = {"ann", "-v", "-c", config, "hg19", file};
-//        SnpEff snpEff = new SnpEff(args);
-//        snpEff.run();
-        SNPEffAnnotation.pipeline(file, getDefaultConfigFile(), new Logger());
-    }
 
     public static String getDefaultConfigFile() {
-        return "./snpEff.config"; // TODO fix location
+        return "./snpEff.config"; // TODO put snpEff.config file into valid jar location [test current location]
     }
     
+
+    public static void main(String[] args) {
+        int numArgs = args.length;
+        String filename = null;
+        String config = SNPEffAnnotation.getDefaultConfigFile();
+        String logFile = null;
+        
+        String usage = "\\n"+
+        "bioinformatics.SNPEffAnnotation requires 1-3 arguments\n"+
+        "   (1) name of file containing 1 (rsIDs), 3 (rsIDs, pos, chr), or 5 (rsIDs, pos, chr, ref, alt) data columns (i.e. file="+filename+" (default))\n"+
+        "   (2) SNPEFF config file (i.e. config="+config+" (default))\n"+
+        "   (3) log file (i.e. log=null (default))\n"+
+        "";
+
+        for (int i = 0; i<args.length; i++) {
+            if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
+                System.err.println(usage);
+                System.exit(1);
+            } else if (args[i].startsWith("file=")) {
+                filename = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("config=")) {
+                config = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("log=")) {
+                logFile = args[i].split("=")[1];
+                numArgs--;
+            }
+        }
+        if (numArgs != 0 || filename == null) {
+            System.err.println(usage);
+            System.exit(1);
+        }
+        try {
+            SNPEffAnnotation.pipeline(filename, config, logFile == null ? new Logger() : new Logger(logFile));
+        } catch (Exception e) {
+            e.printStackTrace();      
+        }
+    }
     
 }
