@@ -291,7 +291,7 @@ public class CompPlot extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                NewRegionListDialog newRgnList = new NewRegionListDialog(null, proj == null ? null : proj.getProperty(proj.PROJECT_DIRECTORY));
+                NewRegionListDialog newRgnList = new NewRegionListDialog(null, proj == null ? null : proj.getProperty(proj.PROJECT_DIRECTORY), false);
                 newRgnList.setModal(true);
                 newRgnList.setVisible(true);
                 if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {

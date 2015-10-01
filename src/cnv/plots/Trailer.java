@@ -185,7 +185,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         }
     };
 	
-    AbstractAction loadNewFileAction = new AbstractAction() {
+    AbstractAction loadRegionFileAction = new AbstractAction() {
         private static final long serialVersionUID = 1L;
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -1058,7 +1058,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-	            NewRegionListDialog newRgnList = new NewRegionListDialog(proj == null ? null : proj.getSamples(), proj == null ? null : proj.getProperty(proj.PROJECT_DIRECTORY));
+	            NewRegionListDialog newRgnList = new NewRegionListDialog(proj == null ? null : proj.getSamples(), proj == null ? null : proj.getProperty(proj.PROJECT_DIRECTORY), true);
 	            newRgnList.setModal(true);
 	            newRgnList.setVisible(true);
 	            if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
@@ -1072,7 +1072,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		fileMenu.add(newRegionFile);
 		
 		JMenuItem loadRegionFile = new JMenuItem();
-		loadRegionFile.setAction(loadNewFileAction);
+		loadRegionFile.setAction(loadRegionFileAction);
 		loadRegionFile.setText(REGION_LIST_NEW_FILE);
 		loadRegionFile.setMnemonic(KeyEvent.VK_L);
 		fileMenu.add(loadRegionFile);
