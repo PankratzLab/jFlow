@@ -88,14 +88,18 @@ public class ParseSNPlocations {
                     indexMap.put(parts[0], index);
                     // parse chr:pos:alleles markers later
                 } else {
-                    int rsNumber = Integer.parseInt(parts[0].substring(2));
+                    String rs = parts[0];
+                    if (rs.indexOf(":") != -1) {
+                        rs = rs.substring(0, rs.indexOf(":")); // remove alleles if they exist
+                    }
+                    int rsNumber = Integer.parseInt(rs.substring(2));// error checking on RS w/ allele
                     int chrom = rsNumber / (512 * 1024 * 1024) + 1;
                     
                     CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
                     VariantContext markerVC = null;
                     while (vcIter.hasNext()) {
                         VariantContext vc = vcIter.next();
-                        if (vc.getID().equals(parts[0])) {
+                        if (vc.getID().equals(rs)) {
                             markerVC = vc;
                             break;
                         }
@@ -103,12 +107,12 @@ public class ParseSNPlocations {
                     vcIter.close();
                     vcIter = null;
                     if (markerVC == null) {
-//                        System.err.println("Error - couldn't find {" + parts[0] + "} in the regular database.  Checking merged and unmapped marker databases...");
+//                        System.err.println("Error - couldn't find {" + rs + "} in the regular database.  Checking merged and unmapped marker databases...");
                         if (unmappedVCFReader != null) {
                             CloseableIterator<VariantContext> vcIterUn = unmappedVCFReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
                             while (vcIterUn.hasNext()) {
                                 VariantContext vc = vcIterUn.next();
-                                if (vc.getID().equals(parts[0])) {
+                                if (vc.getID().equals(rs)) {
                                     markerVC = vc;
                                     break;
                                 }
@@ -121,9 +125,9 @@ public class ParseSNPlocations {
                         }
                         if (markerVC == null && mergedVCFReader != null) {
                             String curr = null;
-                            String next = parts[0];
+                            String next = rs;
                             HashSet<String> found = new HashSet<String>();
-                            found.add(parts[0]);
+                            found.add(rs);
                             do {
                                 curr = next;
                                 next = null;
@@ -144,12 +148,12 @@ public class ParseSNPlocations {
                                 vcIterUn = null;
                             } while (next != null);
                             
-                            if (!curr.equals(parts[0])) {
+                            if (!curr.equals(rs)) {
                                 vcIter = vcfReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
                                 markerVC = null;
                                 while (vcIter.hasNext()) {
                                     VariantContext vc = vcIter.next();
-                                    if (vc.getID().equals(parts[0])) {
+                                    if (vc.getID().equals(rs)) {
                                         markerVC = vc;
                                         break;
                                     }
@@ -157,7 +161,7 @@ public class ParseSNPlocations {
                                 vcIter.close();
                                 vcIter = null;
                             } else {
-//                                System.err.println("Error - couldn't find {" + parts[0] + "} in the merged database.");
+//                                System.err.println("Error - couldn't find {" + rs + "} in the merged database.");
                             }
                         }
                     } 
@@ -165,7 +169,7 @@ public class ParseSNPlocations {
                         String attr = (String) markerVC.getAttribute("CHRPOS");
                         String[] pts = attr.split(":");
                         StringBuilder newLine = new StringBuilder();
-                        newLine.append(parts[0]).append("\t")
+                        newLine.append(rs).append("\t")
                                 .append(pts[0]).append("\t")
                                 .append(pts[1]).append("\t");
                         String ref = markerVC.getReference().toString();
@@ -223,8 +227,8 @@ public class ParseSNPlocations {
                         }
                         writer.println(newLine.toString());
                     } else {
-                        rsNotFound.add(parts[0]);
-                        indexMap.put(parts[0], index);
+                        rsNotFound.add(rs);
+                        indexMap.put(rs, index);
                     }
                 }
             }
@@ -296,7 +300,11 @@ public class ParseSNPlocations {
 	        			
 	        		}
 	        		if (line[0].startsWith("rs")) {
-						index = Array.binarySearch(dbRSnumbers, Integer.parseInt(line[0].substring(2)), true);
+	        		    String rs = line[0];
+	        		    if (rs.indexOf(":") != -1) {
+	        		        rs = rs.substring(0, rs.indexOf(":")); // remove alleles if they exist
+	        		    }
+						index = Array.binarySearch(dbRSnumbers, Integer.parseInt(rs.substring(2)), true); // TODO parse RS w/ alleles
 						if (index == -1) {
 							if (mergeDB != null) {
 								if (mergeHash == null) {
@@ -309,16 +317,16 @@ public class ParseSNPlocations {
 										mergeHash = new Hashtable<Integer,Integer>();
 									}
 								}
-								trav = Integer.parseInt(line[0].substring(2));
+								trav = Integer.parseInt(rs.substring(2));
 								next = trav;
 								while (next != null) {
 									trav = next;
 									next = mergeHash.get(trav);
 								}
-								if (line[0].equals("rs"+trav)) {
-									log.reportError("\n\n****ERROR**** failed to find "+line[0]+" in any NCBI database ****ERROR****\n\n");
+								if (rs.equals("rs"+trav)) {
+									log.reportError("\n\n****ERROR**** failed to find "+rs+" in any NCBI database ****ERROR****\n\n");
 								} else if (trav != null) {
-									log.reportError("FYI - "+line[0]+" has merged with rs"+trav);
+									log.reportError("FYI - "+rs+" has merged with rs"+trav);
 									index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
 									
 									if (index == -1) {
@@ -331,21 +339,21 @@ public class ParseSNPlocations {
 										index = Array.binarySearch(dbRSnumbers, trav.intValue(), true);
 									}
 								} else {
-									log.reportError("Error - tried and failed to find a merge record for "+line[0]);
+									log.reportError("Error - tried and failed to find a merge record for "+rs);
 								}
 							}
 							if (index == -1) {
-								log.reportError("Error - could not find "+line[0]+" in "+db);
+								log.reportError("Error - could not find "+rs+" in "+db);
 								chr = (byte)0;
 								position = 0;
 							}
 						} else {
 							if (dbChrs[index] == ParseSNPlocations.UNMAPPED) {
-								log.reportError("Error - marker "+line[0]+" is not mapped to a chromosome");
+								log.reportError("Error - marker "+rs+" is not mapped to a chromosome");
 								chr = 0;
 								position = -1;
 							} else if (dbPositions[index] == ParseSNPlocations.MULTIPLE_POSITIONS) {
-								log.reportError("Warning - marker "+line[0]+" likely has multiple positions on chromosome "+dbChrs[index]);
+								log.reportError("Warning - marker "+rs+" likely has multiple positions on chromosome "+dbChrs[index]);
 								chr = dbChrs[index];
 								position = -1;
 							} else {
@@ -353,7 +361,7 @@ public class ParseSNPlocations {
 								position = dbPositions[index]+ParseSNPlocations.OFFSET;
 							}
 						}
-						writer.println(line[0]+"\t"+chr+"\t"+position);
+						writer.println(rs+"\t"+chr+"\t"+position);
 	        		} else if (line[0].startsWith("chr") || line[0].indexOf(":") != -1) {
 	        		    String[] pts = line[0].split(":");
 	        		    int chrTemp = -2;
