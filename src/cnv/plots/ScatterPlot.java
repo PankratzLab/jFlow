@@ -3644,16 +3644,26 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 
 	public void windowOpened(WindowEvent e) {}
 
-    public static void createAndShowGUI(Project proj, String[] markerList, String[] commentList, boolean exitOnClose) {
-    	ScatterPlot scatterPlot;
-    	scatterPlot = new ScatterPlot(proj, markerList, commentList, exitOnClose);
-    	if (!scatterPlot.failed()) {
-            scatterPlot.pack();
-            scatterPlot.setSize(1200, 870);
-            scatterPlot.setVisible(true);
-    	} else {
-    		proj.getLog().reportError("Error - ScatterPlot failed to initialize.");
-    	}
+    public static void createAndShowGUI(final Project proj, final String[] markerList, final String[] commentList, final boolean exitOnClose) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final ScatterPlot scatterPlot;
+                scatterPlot = new ScatterPlot(proj, markerList, commentList, exitOnClose);
+                if (!scatterPlot.failed()) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            scatterPlot.pack();
+                            scatterPlot.setSize(1200, 870);
+                            scatterPlot.setVisible(true);
+                        }
+                    });
+                } else {
+                    proj.getLog().reportError("Error - ScatterPlot failed to initialize.");
+                }
+            }
+        }).start();
     }
 
     public static void main(String[] args) {
