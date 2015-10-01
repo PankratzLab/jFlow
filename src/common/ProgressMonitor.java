@@ -78,9 +78,11 @@ public class ProgressMonitor {
     };
     
     private JProgressBar internalProgBar;
+    private Logger internalLogger;
     
-    public ProgressMonitor(JProgressBar progBar) {
+    public ProgressMonitor(JProgressBar progBar, Logger log) {
         this.internalProgBar = progBar;
+        this.internalLogger = log;
         Timer timer = new Timer("TaskMonitorTimer", true);
         timer.schedule(monitorTask, 60 * 1000, 60 * 1000); // wait a minute to begin monitoring, and wait a minute between each check
     }
@@ -229,31 +231,44 @@ public class ProgressMonitor {
                     internalProgBar.setValue(task.getUpdateCount());
                     internalProgBar.setIndeterminate(task.getIndeterminate());
                     internalProgBar.repaint();
+                    
                 }
             });
-        } else {
-            if (task.getIndeterminate()) {
-                int elapsed = (int) ((task.getLastUpdate() - task.getCreationTime()) / (60 * 1000000000));
-                if (elapsed % INDET_ELAPSED_LOG_MINUTES == 0) {
-                    String msg = ext.getTime() + "]\tTask " + task.getName() + " with status " + task.getLabel() + " has been updated";
-                    System.out.println(msg);
-                }
-            } else {
-                double rawPct = 100d * ((double)task.getUpdateCount()) / ((double) task.getExpectedUpdateCount());
-                String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 0) + "%)");
-                String msg = ext.getTime() + "]\tTask " + task.getName() + " with status " + task.getLabel() + " is [" + pct + "] complete";
-                if (task.getExpectedUpdateCount() > 100 && task.getUpdateCount() > 0) {
-                    if (task.getExpectedUpdateCount() % task.getUpdateCount() == 0) {
-                        System.out.println(msg);
-                    }
+        }
+        if (task.getIndeterminate()) {
+            int elapsed = (int) ((task.getLastUpdate() - task.getCreationTime()) / (60 * 1000000000));
+            if (elapsed % INDET_ELAPSED_LOG_MINUTES == 0) {
+                String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' has been updated";
+                if (this.internalLogger != null) {
+                    this.internalLogger.report(msg);
                 } else {
                     System.out.println(msg);
                 }
             }
-            // TODO console logging
-            // TODO time elapsed logging for indeterminate tasks ("Task [] progress updated")
-            // TODO tasks with large exp updates only update when cnt % (10 * sigdig) == 0 OR when some amount of time elapses 
+        } else {
+            double rawPct = 100d * ((double)task.getUpdateCount()) / ((double) task.getExpectedUpdateCount());
+            String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 0) + "%)");
+            String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' is [" + pct + "] complete";
+            if (task.getExpectedUpdateCount() > 100 && task.getUpdateCount() > 0) {
+                if (task.getExpectedUpdateCount() % task.getUpdateCount() == 0) {
+                    if (this.internalLogger != null) {
+                        this.internalLogger.report(msg);
+                    } else {
+                        System.out.println(msg);
+                    }
+                }
+            } else {
+                if (this.internalLogger != null) {
+                    this.internalLogger.report(msg);
+                } else {
+                    System.out.println(msg);
+                }
+            }
         }
+        // TODO console logging
+        // TODO time elapsed logging for indeterminate tasks ("Task [] progress updated")
+        // TODO tasks with large exp updates only update when cnt % (10 * sigdig) == 0 OR when some amount of time elapses 
+        
     }
     
     TimerTask monitorTask = new TimerTask() {

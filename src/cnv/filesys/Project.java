@@ -1117,7 +1117,7 @@ public class Project {
 	}
 	
 	public void initializeProgressMonitor(JProgressBar progBar) {
-	    this.progressMonitor = new ProgressMonitor(progBar);
+	    this.progressMonitor = new ProgressMonitor(progBar, this.log);
 	}
 	
 	public void message(String str, String windowTitle, int messageIcon) {

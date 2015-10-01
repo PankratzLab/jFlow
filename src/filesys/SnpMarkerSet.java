@@ -2,17 +2,34 @@
 // added in centiMoragns to the 4th column, make sure that's not causing any trouble for you 
 package filesys;
 
-import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFFileReader;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Vector;
 
-import java.io.*;
-import java.util.*;
-
-import common.*;
 import link.LinkageMap;
 import bioinformatics.MapSNPsAndGenes;
 import bioinformatics.ParseSNPlocations;
+
+import common.Aliases;
+import common.Array;
+import common.Files;
+import common.HashVec;
+import common.IntVector;
+import common.Logger;
+import common.Matrix;
+import common.Positions;
+import common.Sort;
+import common.Unique;
+import common.ext;
 
 public class SnpMarkerSet implements Serializable {
 	public static final long serialVersionUID = 1L;
