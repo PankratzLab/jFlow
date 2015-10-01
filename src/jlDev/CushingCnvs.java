@@ -17,7 +17,10 @@ import stats.Histogram.DynamicAveragingHistogram;
 import stats.Rscript.GeomText;
 import stats.Rscript.RScatter;
 import stats.Rscript.SCATTER_TYPE;
+import cnv.analysis.FilterCalls;
 import cnv.filesys.Project;
+import cnv.qc.CNVFilter;
+import cnv.qc.CNVFilter.FreqFilter;
 import cnv.var.CNVariant;
 import cnv.var.LocusSet;
 import cnv.var.SampleData;
@@ -123,7 +126,21 @@ public class CushingCnvs {
 
 	}
 
-	public static LocusSet<PlinkEmpSeg> generatePed(Project proj, String cnvFile1, String cnvFile2) {
+	private static boolean use(CNVariant cnVariant, LocusSet<CNVariant> setToRemove, Logger log) {
+		boolean use = true;
+		CNVariant[] overlap = setToRemove.getOverLappingLoci(cnVariant);
+		if (overlap != null && overlap.length > 0) {
+			for (int i = 0; i < overlap.length; i++) {
+				if (overlap[i].significantOverlap(cnVariant, true)) {
+					use = false;
+					break;
+				}
+			}
+		}
+		return use;
+	}
+
+	public static LocusSet<PlinkEmpSeg> generatePed(Project proj, String cnvFile1, String cnvFile2, double controlFreqFilter) {
 		Logger log = new Logger(ext.parseDirectoryOfFile(cnvFile1) + "generatePed.log");
 		LocusSet<CNVariant> cnSet1 = CNVariant.loadLocSet(cnvFile1, log);
 		LocusSet<CNVariant> cnSet2 = CNVariant.loadLocSet(cnvFile2, log);
@@ -131,20 +148,44 @@ public class CushingCnvs {
 		HashSet<String> fidIid2 = CNVariant.getUniqueInds(cnSet2, log);
 		String dir = ext.parseDirectoryOfFile(cnvFile1) + "plink/";
 		new File(dir).mkdirs();
-		String outCNVRoot = dir + ext.rootOf(cnvFile1) + "_" + ext.rootOf(cnvFile2);
+		String outCNVRoot = dir + ext.rootOf(cnvFile1) + "_" + ext.rootOf(cnvFile2) + "maxControlFreq" + controlFreqFilter;
 		String outped = outCNVRoot + ".fam";
 		String outCNV = outCNVRoot + ".cnv";
+		String outFilt = outCNVRoot + ".freqFilteredCnvs";
+		int numControls = CNVariant.getUniqueInds(cnSet2, proj.getLog()).size();
+		int totalLimitedTo = Math.round((float) controlFreqFilter * numControls);
+		// public FreqFilter(int totalRequired, int delRequired, int dupRequired, int totalLimitedTo, int delLimitedTo, int dupLimitedTo, double proportionOfProbesThatNeedToPassForFinalInclusion) {
+
+		FreqFilter freqFilter = new FreqFilter(totalLimitedTo, 0, 0, numControls, numControls, numControls, 0);
+		CNVFilter cnvFilter = new CNVFilter(proj.getLog());
+		LocusSet<CNVariant> setToRemove = null;
+		if (!Files.exists(outFilt)) {
+			setToRemove = CNVFilter.filterCNVFile(proj, cnSet2.getLoci(), outFilt, null, true, true, freqFilter, true, true);
+		} else {
+			setToRemove = CNVariant.loadLocSet(outFilt, log);
+		}
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outCNV));
 			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+			int caseRemoved = 0;
+			int controlRemoved = 0;
 			for (int i = 0; i < cnSet1.getLoci().length; i++) {
-				writer.println(cnSet1.getLoci()[i].toPlinkFormat());
+				if (use(cnSet1.getLoci()[i], setToRemove, log)) {
+					writer.println(cnSet1.getLoci()[i].toPlinkFormat());
+				} else {
+					caseRemoved++;
+				}
 			}
 			for (int i = 0; i < cnSet2.getLoci().length; i++) {
-				writer.println(cnSet2.getLoci()[i].toPlinkFormat());
+				if (use(cnSet2.getLoci()[i], setToRemove, log)) {
+					writer.println(cnSet2.getLoci()[i].toPlinkFormat());
+				} else {
+					controlRemoved++;
+				}
 			}
 			writer.close();
+			log.reportTimeInfo("Removed " + caseRemoved + " cnvs of " + cnSet1.getLoci().length + " from cases and " + controlRemoved + " cnvs of " + cnSet2.getLoci().length + " from controls for freq " + controlFreqFilter);
 		} catch (Exception e) {
 			log.reportError("Error writing to " + outCNV);
 			log.reportException(e);
@@ -254,14 +295,15 @@ public class CushingCnvs {
 		}
 		cnvFreqFiles.add(cnvFile);
 		String[] cnvRemoveFiles = Array.toStringArray(cnvFreqFiles);
-
+		double[] controlFreqFilter = new double[] { 0.01, 0.05, 1.1 };
 		if (proj != null) {
 			for (int i = 0; i < cnvRemoveFiles.length; i++) {
 				if (cnvRemoveFiles[i].contains("OSTEO")) {
-					LocusSet<PlinkEmpSeg> tmpSet = generatePed(proj, cnvFile, cnvRemoveFiles[i]);
-					plinkResults.add(tmpSet);
+					for (int j = 0; j < controlFreqFilter.length; j++) {
+						LocusSet<PlinkEmpSeg> tmpSet = generatePed(proj, cnvFile, cnvRemoveFiles[i], controlFreqFilter[j]);
+						plinkResults.add(tmpSet);
+					}
 				}
-
 			}
 		}
 
@@ -337,14 +379,17 @@ public class CushingCnvs {
 				for (int j = 0; j < plinkResults.size(); j++) {
 					PlinkEmpSeg[] overLaps = plinkResults.get(j).getOverLappingLoci(currentCNV);
 					if (overLaps == null || overLaps.length == 0) {
+						writer.print("\t" + Array.toStr(Array.doubleArray(plinkResults.get(j).getLoci()[0].getData().length, Double.NaN)) + "\t" + Array.toStr(Array.doubleArray(plinkResults.get(j).getLoci()[0].getData().length, Double.NaN)));
 						log.reportTimeError("Could not find overlapping plink results for " + currentCNV.toPlinkFormat());
 					} else {
 						int minEmp1Index = -1;
 						int minEmp2Index = -1;
 						double minEmp1 = Double.MAX_VALUE;
 						double minEmp2 = Double.MAX_VALUE;
+						boolean exactMatch = false;
 						for (int k = 0; k < overLaps.length; k++) {
 							if (overLaps[k].getStart() == currentCNV.getStart() || overLaps[k].getStop() == currentCNV.getStop()) {
+								exactMatch = true;
 								if (overLaps[k].getEmp1() < minEmp1) {
 
 									minEmp1 = overLaps[k].getEmp1();
@@ -358,7 +403,12 @@ public class CushingCnvs {
 
 						}
 						System.out.println(output);
-						writer.print("\t" + Array.toStr(overLaps[minEmp1Index].getData()) + "\t" + Array.toStr(overLaps[minEmp2Index].getData()));
+						if (exactMatch) {
+							writer.print("\t" + Array.toStr(overLaps[minEmp1Index].getData()) + "\t" + Array.toStr(overLaps[minEmp2Index].getData()));
+						} else {
+							writer.print("\t" + Array.toStr(Array.doubleArray(overLaps[0].getData().length, Double.NaN)) + "\t" + Array.toStr(Array.doubleArray(overLaps[0].getData().length, Double.NaN)));
+
+						}
 					}
 				}
 
