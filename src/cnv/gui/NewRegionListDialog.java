@@ -32,6 +32,7 @@ import common.Positions;
 public class NewRegionListDialog extends JDialog implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
+    private static final String DEFAULT_MISSING_UCSC_LOCATION = "chr1";
 	private JPanel contentPane;
     private JTextField textField;
     private JTextArea textArea;
@@ -40,6 +41,8 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
     private JButton button;
     private int returnCode = JOptionPane.DEFAULT_OPTION;
     private HashSet<String> idSet = null;
+    private String missingValue = DEFAULT_MISSING_UCSC_LOCATION;
+    private boolean allowMissing = true;
     
     /**
      * Launch the application.
@@ -48,7 +51,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    NewRegionListDialog frame = new NewRegionListDialog(new String[0], null);
+                    NewRegionListDialog frame = new NewRegionListDialog(new String[0], null, true, DEFAULT_MISSING_UCSC_LOCATION);
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -56,11 +59,17 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
             }
         });
     }
-
+    
+    public NewRegionListDialog(String[] sampleNames, final String dir, boolean allowMissing) {
+        this(sampleNames, dir, allowMissing, DEFAULT_MISSING_UCSC_LOCATION);
+    }
+    
     /**
      * Create the frame.
      */
-    public NewRegionListDialog(String[] sampleNames, final String dir) {
+    public NewRegionListDialog(String[] sampleNames, final String dir, boolean allowMissing, String missingValue) {
+        this.allowMissing = allowMissing;
+        this.missingValue = allowMissing && missingValue == null ? DEFAULT_MISSING_UCSC_LOCATION : missingValue;
         setTitle("Create New UCSC Regions List");
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 550, 300);
@@ -153,7 +162,12 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
         ArrayList<String> invalidPositions = new ArrayList<String>();
         ArrayList<String> invalidIDs = new ArrayList<String>();
         for (String[] rgn : rgnsWithComments) {
-            int[] pos = Positions.parseUCSClocation(rgn[rgnIndex]);
+            int[] pos;
+            if (rgn.length == 1 && sampInd != -1 && allowMissing) {
+                pos = Positions.parseUCSClocation(missingValue);
+            } else {
+                pos = Positions.parseUCSClocation(rgn[rgnIndex]);
+            }
         	if (pos == null) {
         		invalidPositions.add(rgn[rgnIndex]);
         	}

@@ -1408,20 +1408,28 @@ public class PlinkData {
 				markersOfThisFile = new String[v.size()];
 				indicesOfMarkersInFileForCurrentFile = new int[markersOfThisFile.length];
 				indicesOfMarkersInProjForCurrentFile = new int[markersOfThisFile.length];
-				System.out.println("Prepping batch "+(i+1)+" of "+filenames.length+" which has "+v.size()+" elements");
+//				System.out.println("Prepping batch "+(i+1)+" of "+filenames.length+" which has "+v.size()+" elements");
+//				proj.progressMonitor.beginTask(PROG_KEY + filenames[i], "Exporting " + v.size() + " elements from file " + filenames[i], false, v.size());
+				proj.progressMonitor.beginTask(PROG_KEY + filenames[i] + "_prep", "Preparing export for file ... " + filenames[i]);
 				for (int j = 0; j < v.size(); j++) {
 					temp = v.elementAt(j).split("\t");
 					markersOfThisFile[j] = temp[0];
 					indicesOfMarkersInFileForCurrentFile[j] = Integer.parseInt(temp[1]);
 					indicesOfMarkersInProjForCurrentFile[j] = projHash.get(temp[0]);
 				}
+				proj.progressMonitor.endTask(PROG_KEY + filenames[i] + "_prep");
 				System.out.println("done prepping in "+ext.getTimeElapsed(subTime));
 				
 				subTime = new Date().getTime();
-				System.out.println("Starting batch "+(i+1)+" of "+filenames.length);
+//				System.out.println("Starting batch "+(i+1)+" of "+filenames.length);
+				proj.progressMonitor.beginTask(PROG_KEY + filenames[i] + "_load", "Loading marker data from file ... " + filenames[i]);
 				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filenames[i], /*indicesOfTargetMarkersInProj*/indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash, proj.getLog());
-				System.out.println("Done loading in "+ext.getTimeElapsed(subTime));
-
+//				System.out.println("Done loading in "+ext.getTimeElapsed(subTime));
+				proj.progressMonitor.endTask(PROG_KEY + filenames[i] + "_load");
+				
+				int mod = markerData.length > 9999 ? 1000 : 100;
+				int updates = markerData.length / mod + 1;
+				proj.progressMonitor.beginTask(PROG_KEY + filenames[i] + "_export", "Exporting marker data for " + markerData.length + " markers from file " + filenames[i], false, updates);
 				subTime = new Date().getTime();
 				for (int j = 0; j < markerData.length; j++) {
 					targetIndex = hash.get(markersOfThisFile[j]);
@@ -1441,7 +1449,11 @@ public class PlinkData {
 					}
 					
 					out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
+					if (j > 0 && j % mod == 0) {
+					    proj.progressMonitor.changeTaskLabelWithUpdate(PROG_KEY + filenames[i] + "_export", "Esported " + j + " of " + markerData.length + " markers from file " + filenames[i]);
+					}
 				}
+				proj.progressMonitor.endTask(PROG_KEY + filenames[i] + "_export");
 				System.out.println("Done writing in "+ext.getTimeElapsed(subTime));
 				proj.progressMonitor.updateTask(PROG_KEY);
 			}
