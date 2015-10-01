@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
@@ -331,6 +332,32 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 
 		};
 		return lSet;
+	}
+
+	/**
+	 * @return a sorted int[][] of all the starts and stops of these loci
+	 */
+	public int[][] getStartsAndStopsByChromosome() {
+		Hashtable<Byte, ArrayList<Integer>> tracks = new Hashtable<Byte, ArrayList<Integer>>();
+		ArrayList<Byte> uniqueChrs = new ArrayList<Byte>();
+		for (int i = 0; i < loci.length; i++) {
+			if (!tracks.containsKey(loci[i].getChr())) {
+				tracks.put(loci[i].getChr(), new ArrayList<Integer>());
+				uniqueChrs.add(loci[i].getChr());
+			}
+			tracks.get(loci[i].getChr()).add(loci[i].getStart());
+			tracks.get(loci[i].getChr()).add(loci[i].getStop());
+		}
+		byte[] sortedChr = Array.toByteArray(uniqueChrs);
+		Arrays.sort(sortedChr);
+		int[][] startsStopsByChr = new int[27][0];
+
+		for (int i = 0; i < sortedChr.length; i++) {
+			int[] tmp = Array.toIntArray(tracks.get(sortedChr[i]));
+			Arrays.sort(tmp);
+			startsStopsByChr[sortedChr[i]] = tmp;
+		}
+		return startsStopsByChr;
 	}
 
 	public void writeSerial(String fileName) {

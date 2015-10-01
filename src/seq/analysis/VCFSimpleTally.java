@@ -43,10 +43,12 @@ public class VCFSimpleTally {
 	private static final String AND = "&&";
 	private static final String SNPEFF_IMPACTS = "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')";
 	private static final String SNPEFF_NAMES = "G1000_esp_charge_aricFreq_SNPEFF_HIGH_MODERATE_LOW";
-//	private static final String CHARGE_B_FILTER = "(charge.MAF_blacks=='.'||charge.MAF_blacks <= 0.01)";
-//	private static final String CHARGE_W_FILTER = "(charge.MAF_whites=='.'||charge.MAF_whites <= 0.01)";
+	// private static final String CHARGE_B_FILTER = "(charge.MAF_blacks=='.'||charge.MAF_blacks <= 0.01)";
+	// private static final String CHARGE_W_FILTER = "(charge.MAF_whites=='.'||charge.MAF_whites <= 0.01)";
 	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT" };
 	private static final String[] ANNO_ADD = new String[] { "_AVG_GQ", "_AVG_DP", "_NUM_WITH_CALLS", "_NUM_WITH_ALT", "_AAC", "_HQ_NUM_WITH_ALT", "_HQ_AAC", };
+	private static final String[] GENE_BASE = new String[] { "GENE", "FUNCTIONAL_TYPE" };
+	private static final String[] GENE_ADD = new String[] { "numVar", "uniqInds", "hqNumVar", "hqUniqInds" };
 
 	private static boolean filterCHARGE(VariantContext vc, double maf) {
 		boolean pass = true;
@@ -93,9 +95,8 @@ public class VCFSimpleTally {
 					if (vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all"))) {
 						String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
 						error += "\n" + vc.toStringWithoutGenotypes();
-						throw new IllegalStateException(error);
-					}
-					if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size() && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed() && filterCHARGE(vcCase, 0.01)) {// as alts in rare esp/1000g
+						//throw new IllegalStateException(error);
+					} else if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size() && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed() && filterCHARGE(vcCase, 0.01)) {// as alts in rare esp/1000g
 						boolean controlPass = true;
 						for (String controlPop : controls.keySet()) {
 							VariantContext vcControl = VCOps.getSubset(vc, controls.get(controlPop), VC_SUBSET_TYPE.SUBSET_STRICT, false);
@@ -131,15 +132,21 @@ public class VCFSimpleTally {
 	public static void test() {
 		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf.gz";
 		String popDir = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/Freq/";
-		String[] vpops = new String[] { popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop", popDir + "EPP.vpop" };
-
+		String[] vpopsCase = new String[] { popDir + "EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		double maf = 0.01;
 		int numThreads = 24;
-		for (int i = 0; i < vpops.length; i++) {
-			String outDir = ext.parseDirectoryOfFile(vpops[i]);
+		for (int i = 0; i < vpopsCase.length; i++) {
+			String outDir = ext.parseDirectoryOfFile(vpopsCase[i]);
 			new File(outDir).mkdirs();
-			Logger log = new Logger(ext.rootOf(vpops[i], false) + ".log");
-			runSimpleTally(vcf, vpops[i], maf, numThreads, outDir, log);
+			Logger log = new Logger(ext.rootOf(vpopsCase[i], false) + ".log");
+			runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, log);
+		}
+		String[] vpopsControl = new String[] { popDir + "EPP.vpop", popDir + "ALL_CONTROL_EPP.vpop", popDir + "ALL_CONTROL_ANIRIDIA.vpop", popDir + "ALL_CONTROL_ANOTIA.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
+		for (int i = 0; i < vpopsControl.length; i++) {
+			String outDir = ext.parseDirectoryOfFile(vpopsControl[i]);
+			new File(outDir).mkdirs();
+			Logger log = new Logger(ext.rootOf(vpopsControl[i], false) + ".log");
+			runSimpleTally(vcf, vpopsControl[i], maf, numThreads, outDir, log);
 		}
 	}
 
@@ -162,8 +169,6 @@ public class VCFSimpleTally {
 		String finalOut = outDir + ext.rootOf(vpop) + ".final";
 		String finalOutVCF = finalOut + VCFOps.VCF_EXTENSIONS.GZIP_VCF.getLiteral();
 		String finalAnnot = finalOut + ".summary";
-		String[] geneBase = new String[] { "GENE", "FUNCTIONAL_TYPE" };
-		String[] geneAdd = new String[] { "numVar", "uniqInds", "hqNumVar", "hqUniqInds" };
 
 		String finalAnnotGene = finalOut + ".gene";
 		VCFFileReader tmp = new VCFFileReader(filtVcfs.get(0), true);
@@ -172,12 +177,12 @@ public class VCFSimpleTally {
 		VCFOps.copyHeader(tmp, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 		tmp.close();
 		PrintWriter annoGeneWriter = Files.getAppropriateWriter(finalAnnotGene);
-		annoGeneWriter.print(Array.toStr(geneBase));
+		annoGeneWriter.print(Array.toStr(GENE_BASE));
 		PrintWriter annoWriter = Files.getAppropriateWriter(finalAnnot);
 		annoWriter.print(Array.toStr(ANNO_BASE));
 		Set<String> cases = vpopAc.getSuperPop().get(caseDef);
 		annoWriter.print("\t" + Array.toStr(Array.tagOn(ANNO_ADD, caseDef + "_N_" + cases.size(), null)));
-		annoGeneWriter.print("\t" + Array.toStr(Array.tagOn(geneAdd, caseDef + "_N_" + cases.size(), null)));
+		annoGeneWriter.print("\t" + Array.toStr(Array.tagOn(GENE_ADD, caseDef + "_N_" + cases.size(), null)));
 		Hashtable<String, Set<String>> controls = vpopAc.getSuperPop();
 		controls.remove(caseDef);
 		controls.remove(VcfPopulation.EXCLUDE);
@@ -187,7 +192,7 @@ public class VCFSimpleTally {
 		controlsOrdered.addAll(controls.keySet());
 		for (int i = 0; i < controlsOrdered.size(); i++) {
 			annoWriter.print("\t" + Array.toStr(Array.tagOn(ANNO_ADD, controlsOrdered.get(i) + "_N_" + controls.get(controlsOrdered.get(i)).size(), null)));
-			annoGeneWriter.print("\t" + Array.toStr(Array.tagOn(geneAdd, controlsOrdered.get(i) + "_N_" + controls.get(controlsOrdered.get(i)).size(), null)));
+			annoGeneWriter.print("\t" + Array.toStr(Array.tagOn(GENE_ADD, controlsOrdered.get(i) + "_N_" + controls.get(controlsOrdered.get(i)).size(), null)));
 		}
 		annoGeneWriter.println();
 		String[][] annotations = VCFOps.getAnnotationKeys(vcf, log);
@@ -213,7 +218,7 @@ public class VCFSimpleTally {
 				annoWriter.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 				for (int j = 0; j < controlsOrdered.size(); j++) {
 					VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(j), controls.get(controlsOrdered.get(j)), vc, qual, log);
-					
+
 					for (int k = 0; k < geneSummaries.get(geneName).get(0).length; k++) {
 						geneSummaries.get(geneName).get(j + 1)[k].add(vcControlGroup);
 					}
@@ -239,6 +244,7 @@ public class VCFSimpleTally {
 			}
 		}
 		annoGeneWriter.close();
+		VCFOps.VcfPopulation.splitVcfByPopulation(finalOutVCF, vpop, true, true, log);
 	}
 
 	private static void summarizeAnalysisParams(String sumFile, String caseDef, Set<String> cases, Hashtable<String, Set<String>> controls, double maf, Logger log) {
@@ -309,6 +315,7 @@ public class VCFSimpleTally {
 			this.uniqueHqIndsWithVar = new HashSet<String>();
 			this.uniqueIndsWithVar = new HashSet<String>();
 		}
+
 		public String[] getEffects() {
 			return effects;
 		}
@@ -321,7 +328,6 @@ public class VCFSimpleTally {
 			summary.add(uniqueHqIndsWithVar.size() + "");
 			return Array.toStringArray(summary);
 		}
-		
 
 		private void add(VcGroupSummary vcGroupSummary) {
 			if (!vcGroupSummary.getGroupName().equals(group)) {
@@ -445,14 +451,18 @@ public class VCFSimpleTally {
 
 	}
 
+	/**
+	 * @param log
+	 * @return the {@link htsjdk.variant.variantcontext.filter.VariantContextFilter} used for genotype qc
+	 */
 	private static VariantContextFilter getQualityFilterwkggseq(Logger log) {
 		VARIANT_FILTER_DOUBLE callRate = VARIANT_FILTER_DOUBLE.CALL_RATE;
 		VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ_LOOSE;
-		gq.setDFilter(20);
+		gq.setDFilter(50);
 		VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
-		dp.setDFilter(4);
+		dp.setDFilter(10);
 		VARIANT_FILTER_DOUBLE altD = VARIANT_FILTER_DOUBLE.ALT_ALLELE_DEPTH;
-		altD.setDFilter(1);
+		altD.setDFilter(3);
 
 		// VARIANT_FILTER_DOUBLE vqslod = VARIANT_FILTER_DOUBLE.VQSLOD_LOOSE;
 		// VARIANT_FILTER_BOOLEAN biallelic = VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER;

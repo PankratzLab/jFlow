@@ -19,6 +19,7 @@ import cnv.manage.UCSCtrack;
 import cnv.qc.CNVFilter;
 import cnv.qc.CNVFilter.CNVFilterPass;
 import cnv.var.CNVariant;
+import cnv.var.LocusSet;
 import cnv.var.SampleData;
 
 public class FilterCalls {
@@ -337,7 +338,7 @@ public class FilterCalls {
 		
 	}
 	
-	public static CNVariant[] mergeCNVsInMemory(Project proj, CNVariant[] inCNVs, double distanceQuotient) {
+	public static CNVariant[] mergeCNVsInMemory(Project proj, CNVariant[] inCNVs, double distanceQuotient, boolean cnvsAsPositions) {
 	    Logger log = proj.getLog();
         int initialCount = inCNVs.length;
         ArrayList<CNVariant> mergedCNVs = new ArrayList<CNVariant>();
@@ -358,9 +359,23 @@ public class FilterCalls {
             }
             cnvList.add(cnv);
         }
-        
-        MarkerSet markerSet = proj.getMarkerSet();
-        int[][] positions = markerSet.getPositionsByChr();
+
+		MarkerSet markerSet = proj.getMarkerSet();
+		int[][] positions = null;
+		if (cnvsAsPositions) {
+			LocusSet<CNVariant> tmp = new LocusSet<CNVariant>(inCNVs, true, proj.getLog()) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+			positions = tmp.getStartsAndStopsByChromosome();
+		} else {
+
+			positions = markerSet.getPositionsByChr();
+		}
         Hashtable<String, String> droppedMarkerNames = proj.getFilteredHash();
         String[] markerNames = markerSet.getMarkerNames();
         SampleData sampleData = proj.getSampleData(0, false);
@@ -1575,8 +1590,13 @@ public class FilterCalls {
 			return;
         }	
 	}	
-	
-	public static CNVariant[] filterBasedOnNumberOfCNVsAtLocusInMemory(Project proj, CNVariant[] cnvs, int totalRequired, int delRequired, int dupRequired, int totalLimitedTo, int delLimitedTo, int dupLimitedTo, double proportionOfProbesThatNeedToPassForFinalInclusion) {
+
+	/**
+	 * 
+	 * @param cnvsAsPositions
+	 *            get the start and stop positions from the {@link CNVariant}s themselves so that a {@link MarkerSet} is not needed
+	 */
+	public static CNVariant[] filterBasedOnNumberOfCNVsAtLocusInMemory(Project proj, CNVariant[] cnvs, int totalRequired, int delRequired, int dupRequired, int totalLimitedTo, int delLimitedTo, int dupLimitedTo, double proportionOfProbesThatNeedToPassForFinalInclusion, boolean cnvsAsPositions) {
 	    MarkerSet markerSet;
         int[][] positions;
         int[][][] counts;
@@ -1591,9 +1611,21 @@ public class FilterCalls {
         
         time = new Date().getTime();
         
-        markerSet = proj.getMarkerSet();
-        positions = markerSet.getPositionsByChr();
-        counts = new int[positions.length][][];
+		markerSet = proj.getMarkerSet();
+		if (cnvsAsPositions) {
+			LocusSet<CNVariant> tmp = new LocusSet<CNVariant>(cnvs, true, proj.getLog()) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+			positions = tmp.getStartsAndStopsByChromosome();
+		} else {
+			positions = markerSet.getPositionsByChr();
+		}
+		counts = new int[positions.length][][];
         acceptableSNPs = new boolean[positions.length][];
         for (int i = 0; i<positions.length; i++) {
             counts[i] = new int[positions[i].length][2];
