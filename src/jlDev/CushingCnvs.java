@@ -75,7 +75,7 @@ public class CushingCnvs {
 
 		private String[] getPlinkHeader() {
 			String root = ext.rootOf(inputFile);
-			String[] header = Array.concatAll(Array.tagOn(REPORT_HEADER, root + "_MIN_EMP1_", null), Array.tagOn(REPORT_HEADER, root + "_MIN_EMP2_", null));
+			String[] header = Array.concatAll(Array.tagOn(REPORT_HEADER, root + "_MIN_EMP", null));
 			return header;
 		}
 
@@ -156,13 +156,14 @@ public class CushingCnvs {
 		int totalLimitedTo = Math.round((float) controlFreqFilter * numControls);
 		// public FreqFilter(int totalRequired, int delRequired, int dupRequired, int totalLimitedTo, int delLimitedTo, int dupLimitedTo, double proportionOfProbesThatNeedToPassForFinalInclusion) {
 
-		FreqFilter freqFilter = new FreqFilter(totalLimitedTo, 0, 0, numControls, numControls, numControls, 0);
+		FreqFilter freqFilter = new FreqFilter(totalLimitedTo, 0, 0, numControls, numControls, numControls, 1);
 		CNVFilter cnvFilter = new CNVFilter(proj.getLog());
 		LocusSet<CNVariant> setToRemove = null;
+		setToRemove = CNVariant.loadLocSet(outFilt, log);
+
 		if (!Files.exists(outFilt)) {
-			setToRemove = CNVFilter.filterCNVFile(proj, cnSet2.getLoci(), outFilt, null, true, true, freqFilter, true, true);
+			setToRemove = CNVFilter.filterCNVFile(proj, cnSet2.getLoci(), outFilt, null, false, true, freqFilter, false, true);
 		} else {
-			setToRemove = CNVariant.loadLocSet(outFilt, log);
 		}
 
 		try {
@@ -172,6 +173,11 @@ public class CushingCnvs {
 			int controlRemoved = 0;
 			for (int i = 0; i < cnSet1.getLoci().length; i++) {
 				if (use(cnSet1.getLoci()[i], setToRemove, log)) {
+
+					if(controlFreqFilter<.5&&cnSet1.getLoci()[i].getStart()==1569278){
+						
+						System.exit(1);
+					}
 					writer.println(cnSet1.getLoci()[i].toPlinkFormat());
 				} else {
 					caseRemoved++;
@@ -223,6 +229,9 @@ public class CushingCnvs {
 		}
 
 		String mperm = outCNVRoot + ".cnv.summary.mperm";
+		String map = outCNVRoot+".cnv.map";
+		new File(map).delete();
+		new File(mperm).delete();
 		System.out.println(mperm);
 		if (!Files.exists(mperm)) {
 			ArrayList<String> commandArray = new ArrayList<String>();
@@ -298,7 +307,7 @@ public class CushingCnvs {
 		double[] controlFreqFilter = new double[] { 0.01, 0.05, 1.1 };
 		if (proj != null) {
 			for (int i = 0; i < cnvRemoveFiles.length; i++) {
-				if (cnvRemoveFiles[i].contains("OSTEO")) {
+				if (cnvRemoveFiles[i].contains("OSTEO_PARENTS")) {
 					for (int j = 0; j < controlFreqFilter.length; j++) {
 						LocusSet<PlinkEmpSeg> tmpSet = generatePed(proj, cnvFile, cnvRemoveFiles[i], controlFreqFilter[j]);
 						plinkResults.add(tmpSet);
@@ -378,18 +387,23 @@ public class CushingCnvs {
 				writer.print("\t" + cnMappability.getMappabilityResults().get(i).getAverageMapScore() + "\t" + Array.toStr(cnMappability.getMappabilityResults().get(i).getSubsetNames(), "/"));
 				for (int j = 0; j < plinkResults.size(); j++) {
 					PlinkEmpSeg[] overLaps = plinkResults.get(j).getOverLappingLoci(currentCNV);
-					if (overLaps == null || overLaps.length == 0) {
-						writer.print("\t" + Array.toStr(Array.doubleArray(plinkResults.get(j).getLoci()[0].getData().length, Double.NaN)) + "\t" + Array.toStr(Array.doubleArray(plinkResults.get(j).getLoci()[0].getData().length, Double.NaN)));
+					if (overLaps == null || overLaps.length == 0||overLaps.length <2) {//need to find both start and stop positions
+						writer.print("\t" + Array.toStr(Array.doubleArray(plinkResults.get(j).getLoci()[0].getData().length, Double.NaN)));
 						log.reportTimeError("Could not find overlapping plink results for " + currentCNV.toPlinkFormat());
 					} else {
 						int minEmp1Index = -1;
 						int minEmp2Index = -1;
 						double minEmp1 = Double.MAX_VALUE;
 						double minEmp2 = Double.MAX_VALUE;
-						boolean exactMatch = false;
+						boolean exactMatchStart = false;
+						boolean exactMatchStop =false;
 						for (int k = 0; k < overLaps.length; k++) {
 							if (overLaps[k].getStart() == currentCNV.getStart() || overLaps[k].getStop() == currentCNV.getStop()) {
-								exactMatch = true;
+								if(overLaps[k].getStart() == currentCNV.getStart()){
+								exactMatchStart = true;
+								}if(overLaps[k].getStart() == currentCNV.getStop()){
+									exactMatchStop =true;
+								}
 								if (overLaps[k].getEmp1() < minEmp1) {
 
 									minEmp1 = overLaps[k].getEmp1();
@@ -403,10 +417,10 @@ public class CushingCnvs {
 
 						}
 						System.out.println(output);
-						if (exactMatch) {
-							writer.print("\t" + Array.toStr(overLaps[minEmp1Index].getData()) + "\t" + Array.toStr(overLaps[minEmp2Index].getData()));
+						if (exactMatchStart && exactMatchStop) {
+							writer.print("\t" + Array.toStr(overLaps[minEmp2Index].getData()));
 						} else {
-							writer.print("\t" + Array.toStr(Array.doubleArray(overLaps[0].getData().length, Double.NaN)) + "\t" + Array.toStr(Array.doubleArray(overLaps[0].getData().length, Double.NaN)));
+							writer.print("\t" + Array.toStr(Array.doubleArray(overLaps[0].getData().length, Double.NaN)));
 
 						}
 					}
