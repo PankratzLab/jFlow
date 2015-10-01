@@ -211,9 +211,10 @@ public class MapSNPsAndGenes {
 		String[][] genes;
 		int[][] markerPositions;
 
+		ProgressMonitor monitor = new ProgressMonitor(null, log);
 		if (useVCF) {
 		    System.out.println("Processing with VCF files...");
-		    ParseSNPlocations.parseSNPlocations(dir+snps, getSNPVCF(build, log), getUnmappedVCF(log), getMergeVCF(log), log);
+		    ParseSNPlocations.parseSNPlocations(dir+snps, getSNPVCF(build, log), getUnmappedVCF(log), getMergeVCF(log), log, monitor);
 		} else {
 		    ParseSNPlocations.lowMemParse(dir+snps, getSNPDB(build, log), getMergeDB(log), true, log);
 		}
