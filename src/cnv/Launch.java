@@ -195,9 +195,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     	System.setProperty("awt.useSystemAAFontSettings","on");
     	System.setProperty("swing.aatext", "true");
     	
-    	ToolTipManager.sharedInstance().setInitialDelay(1);
+    	ToolTipManager.sharedInstance().setInitialDelay(0);
     	ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE - 1);
-    	ToolTipManager.sharedInstance().setReshowDelay(1);
+    	ToolTipManager.sharedInstance().setReshowDelay(0);
 
 		//Create and set up the content pane.
     	launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;

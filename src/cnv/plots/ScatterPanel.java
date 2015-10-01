@@ -542,14 +542,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     	    	// Automatically predict the new genotype and assigns to the last filter.
     	    	sp.getClusterFilterCollection().addClusterFilter(sp.getMarkerName(),
     	    											  new ClusterFilter((byte)sp.getPlotType(panelIndex),
-    																		(float)Math.max(0, Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX))),
-    																		(float)Math.max(0, Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY))),
-//    																		(float)Math.max(getXValueFromXPixel(0), Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX))),
-//    																		(float)Math.max(getYValueFromYPixel(0), Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY))),
-    																		(float)Math.min(this.getWidth(), Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX))),
-    																		(float)Math.min(this.getHeight(), Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY))),
-//    																		(float)Math.min(getXValueFromXPixel(this.getWidth()), Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX))),
-//    																		(float)Math.min(getYValueFromYPixel(this.getHeight()), Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY))),
+    																		(float)Math.max(plotXmin, Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX))),
+    																		(float)Math.max(plotYmin, Math.min(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY))),
+    																		(float)Math.min(plotXmax, Math.max(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX))),
+    																		(float)Math.min(plotYmax, Math.max(getYValueFromYPixel(mouseStartY), getYValueFromYPixel(mouseEndY))),
     																		sp.getCurrentMarkerData()));
     //	    	sp.startAutoSaveToTempFile();
     	    	sp.setClusterFilterUpdated(true);

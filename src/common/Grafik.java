@@ -5,6 +5,8 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
@@ -12,6 +14,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
 public class Grafik {
@@ -257,6 +260,13 @@ public class Grafik {
         JLabel tooltipLbl = new JLabel("");
         tooltipLbl.setIcon(Grafik.getImageIcon("images/question-mark.png", true));
         tooltipLbl.setToolTipText(tooltip);
+        tooltipLbl.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                ToolTipManager.sharedInstance().mouseMoved(e);
+            }
+        });
         return tooltipLbl;
     }
 }
