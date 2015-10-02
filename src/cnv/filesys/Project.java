@@ -355,6 +355,7 @@ public class Project {
 	public   BooleanProperty                   PENNCNV_GZIP_YESNO = new    BooleanProperty(this,                   "PENNCNV_GZIP_YESNO", "", Boolean.TRUE);
 	public   BooleanProperty                          LONG_FORMAT = new    BooleanProperty(this,                          "LONG_FORMAT", "", Boolean.FALSE);
 	public   BooleanProperty           SHIFT_SEX_CHR_COLORS_YESNO = new    BooleanProperty(this,           "SHIFT_SEX_CHR_COLORS_YESNO", "", Boolean.TRUE);
+	public    DoubleProperty        BLAST_PROPORTION_MATCH_FILTER = new     DoubleProperty(this,        "BLAST_PROPORTION_MATCH_FILTER", "", 0.0, 1.0, 0.80);
 	public    DoubleProperty                         GC_THRESHOLD = new     DoubleProperty(this,                         "GC_THRESHOLD", "", 0.0, 1.0, 0.15);
 	public    DoubleProperty                      XY_SCALE_FACTOR = new     DoubleProperty(this,                         "XY_SCALE_FACTOR", "", 0.001, Double.MAX_VALUE, 1);
 	public    DoubleProperty                         LRRSD_CUTOFF = new     DoubleProperty(this,                         "LRRSD_CUTOFF", "", 0.0, 3.0, 0.32);

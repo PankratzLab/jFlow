@@ -65,7 +65,8 @@ class Task {
 public class ProgressMonitor { 
     
     public static final int DEFAULT_TIMEOUT_MINS = 10;
-    private static final int INDET_ELAPSED_LOG_MINUTES = 3;
+    private static final int INDET_ELAPSED_LOG_SECONDS = 180; // 3 minutes between indeterminite task updates
+    private static final int DET_ELAPSED_LOG_SECONDS = 10; // seconds between determinite task updates
     
     HashMap<String, Task> taskMap = new HashMap<String, Task>();
     // subclass for no-duplicates behavior ("HashStack")
@@ -240,9 +241,8 @@ public class ProgressMonitor {
             elapsedLong /= 60;
             elapsedLong /= 1000;
             elapsedLong /= 1000;
-            elapsedLong /= 1000;
             int elapsed = (int) elapsedLong;
-            if (elapsed > 0 && elapsed % INDET_ELAPSED_LOG_MINUTES == 0) {
+            if (elapsed > 0 && elapsed % INDET_ELAPSED_LOG_SECONDS == 0) {
                 String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' has been updated";
                 if (this.internalLogger != null) {
                     this.internalLogger.report(msg);
@@ -251,28 +251,36 @@ public class ProgressMonitor {
                 }
             }
         } else {
-            double rawPct = 100d * ((double)task.getUpdateCount()) / ((double) task.getExpectedUpdateCount());
-            String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 2) + "%)");
-            String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' is " + pct + " complete";
-            if (task.getExpectedUpdateCount() > 100 && task.getUpdateCount() > 0) {
-                int mod = 10;
-                String exp = "" + task.getExpectedUpdateCount();
-                for (int i = 0; i < exp.length() - 4; i++) {
-                    mod *= 10;
-                }
-                mod = task.getExpectedUpdateCount() / mod;
-                if (task.getUpdateCount() % mod == 0) {
+            long elapsedLong = task.getLastUpdate() - task.getCreationTime();
+            elapsedLong /= 1000;
+            elapsedLong /= 1000;
+            elapsedLong /= 1000;
+//            System.out.println(elapsedLong / DET_ELAPSED_LOG_SECONDS);
+            int elapsed = (int) elapsedLong;
+            if (elapsed % DET_ELAPSED_LOG_SECONDS == 0) {
+                double rawPct = 100d * ((double)task.getUpdateCount()) / ((double) task.getExpectedUpdateCount());
+                String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 2) + "%)");
+                String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' is " + pct + " complete";
+                if (task.getExpectedUpdateCount() > 100 && task.getUpdateCount() > 0) {
+                    int mod = 10;
+                    String exp = "" + task.getExpectedUpdateCount();
+                    for (int i = 0; i < exp.length() - 4; i++) {
+                        mod *= 10;
+                    }
+                    mod = task.getExpectedUpdateCount() / mod;
+                    if (task.getUpdateCount() % mod == 0) {
+                        if (this.internalLogger != null) {
+                            this.internalLogger.report(msg);
+                        } else {
+                            System.out.println(msg);
+                        }
+                    }
+                } else {
                     if (this.internalLogger != null) {
                         this.internalLogger.report(msg);
                     } else {
                         System.out.println(msg);
                     }
-                }
-            } else {
-                if (this.internalLogger != null) {
-                    this.internalLogger.report(msg);
-                } else {
-                    System.out.println(msg);
                 }
             }
         }
