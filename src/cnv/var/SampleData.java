@@ -238,11 +238,11 @@ public class SampleData {
 		} catch (FileNotFoundException fnfe) {
 //			System.err.println("Error: file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\" not found in current directory");
 			System.err.println("Error: file \""+proj.SAMPLE_DATA_FILENAME.getValue()+"\" not found in current directory");
-			System.exit(1);
+//			System.exit(1);
 		} catch (IOException ioe) {
 //			System.err.println("Error reading file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\"");
 			System.err.println("Error reading file \""+proj.SAMPLE_DATA_FILENAME.getValue()+"\"");
-			System.exit(2);
+//			System.exit(2);
 		}
 		
 		if (cnvFilenames.length > 0) {
