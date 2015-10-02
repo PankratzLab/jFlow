@@ -378,6 +378,7 @@ class BlastLabel extends JLabel {
         int charInd = 0;
         int mySpacesCnt = 0;
         int addedSpaces = 0;
+        int buildup = 0;
         
         for (int i = strandFlipped ? seqParts.size() - 1 : 0; strandFlipped ? i >= 0 : i < seqParts.size(); i += strandFlipped ? -1 : 1) {
             CigarSeq cs = seqParts.get(i);
@@ -403,6 +404,46 @@ class BlastLabel extends JLabel {
                 boolean strike = diff && read && !ref;
                 int tempX = baseX;
                 for (int c = strandFlipped ? cs.elemSeq.length() - 1 : 0; strandFlipped ? c >= 0 : c < cs.elemSeq.length(); c += strandFlipped ? -1 : 1) {
+                    if (expanded) {
+                        if (mySpaces.contains(charInd - addedSpaces)) {
+                            mySpacesCnt++;
+                        } else {
+                            if (spaces.contains(charInd - mySpacesCnt) && !mySpaces.contains(charInd - mySpacesCnt)) {
+                                Color col = g.getColor();
+                                g.setColor(Color.BLACK);
+
+                                g.drawString("-", baseX, h);
+                                baseX += CHAR_PADDING;
+                                baseX += fm.charWidth('-');
+                                tempX = baseX;
+
+                                charInd++;
+                                addedSpaces++;
+                                buildup++;
+                                c += strandFlipped ? 1 : -1;
+
+                                g.setColor(col);
+                                continue;
+                            }
+                            if (buildup > 0) {
+                                for (int j = 0; j < buildup; j++) {
+
+                                    g.drawString(cs.elemSeq.substring(c, c+1), baseX, h);
+                                    baseX += CHAR_PADDING; // char padding
+                                    baseX += fm.charWidth(cs.elemSeq.charAt(c));
+
+                                    charInd++;
+                                }
+                            }
+                        }
+                    }
+                    
+                    g.drawString(cs.elemSeq.substring(c, c+1), baseX, h);
+                    baseX += CHAR_PADDING; // char padding
+                    baseX += fm.charWidth(cs.elemSeq.charAt(c));
+
+                    charInd++;
+                    
 //                    if (expanded && !mySpaces.contains(charInd - addedSpaces) && (spaces.contains(charInd - mySpacesCnt) && !mySpaces.contains(charInd - mySpacesCnt))) {
 //                        Color col = g.getColor();
 //                        g.setColor(Color.BLACK);
@@ -421,7 +462,7 @@ class BlastLabel extends JLabel {
 //                    } else if (expanded && mySpaces.contains(charInd - addedSpaces)) {
 //                        mySpacesCnt++;
 //                    }
-                    
+//                    
 //                    if (expanded) {
 //                        
 //                        if (spaceSets.containsKey(Integer.valueOf(charInd - addedSpaces)) && !mySpaceSets.containsKey(Integer.valueOf(charInd - addedSpaces))) {
@@ -446,12 +487,6 @@ class BlastLabel extends JLabel {
 //                    }
 //                    
                     
-                    
-                    g.drawString(cs.elemSeq.substring(c, c+1), baseX, h);
-                    baseX += CHAR_PADDING; // char padding
-                    baseX += fm.charWidth(cs.elemSeq.charAt(c));
-
-                    charInd++;
                 }
                 if (strike) {
                     g.setColor(Color.GRAY.darker());
