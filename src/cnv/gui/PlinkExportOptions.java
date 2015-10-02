@@ -18,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -27,7 +28,6 @@ import javax.swing.border.EmptyBorder;
 
 import net.miginfocom.swing.MigLayout;
 import cnv.filesys.Project;
-
 import common.Array;
 import common.Files;
 import common.Grafik;
@@ -75,11 +75,11 @@ public class PlinkExportOptions extends JDialog {
     public PlinkExportOptions(final Project proj) {
         this.proj = proj;
         setTitle("PLINK Export Options");
-        setBounds(100, 100, 300, 250);
+        setBounds(100, 100, 400, 450);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
-        contentPanel.setLayout(new MigLayout("", "[grow][grow]", "[][][][][][][][][][][][][]"));
+        contentPanel.setLayout(new MigLayout("", "[grow][grow]", "[][][][][][][][][][][][][][][][]"));
         {
             lblPedigreeFile = new JLabel("Pedigree File:");
             contentPanel.add(lblPedigreeFile, "flowx,cell 0 0");
@@ -90,17 +90,67 @@ public class PlinkExportOptions extends JDialog {
                 @Override
                 public void keyReleased(KeyEvent e) {
                     super.keyReleased(e);
-                    refreshPedigreeStatus();
+                    refreshStatus(textFieldPedigreeFile);
                 }
-                
             });
-            contentPanel.add(textFieldPedigreeFile, "cell 0 1 2 1,growx");
+            contentPanel.add(textFieldPedigreeFile, "flowx,cell 0 1 2 1,growx");
             textFieldPedigreeFile.setColumns(10);
-            refreshPedigreeStatus();
+            refreshStatus(textFieldPedigreeFile);
+        }
+        {
+            btnPedFile = new JButton();
+            btnPedFile.addActionListener(buttonListener);
+            btnPedFile.setActionCommand("ped");
+            btnPedFile.setText("...");
+            contentPanel.add(btnPedFile, "cell 0 1 2 1");
+        }
+        {
+            lblAbLookupFile = new JLabel("AB Lookup File:");
+            contentPanel.add(lblAbLookupFile, "cell 0 6");
+        }
+        {
+            textFieldABLookup = new JTextField(proj.AB_LOOKUP_FILENAME.getValue());
+            textFieldABLookup.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    super.keyReleased(e);
+                    refreshStatus(textFieldABLookup);
+                }
+            });
+            contentPanel.add(textFieldABLookup, "flowx,cell 0 7 2 1,growx");
+            textFieldABLookup.setColumns(10);
+            textFieldABLookup.setEnabled(false);
+            refreshStatus(textFieldABLookup);
+        }
+        {
+            chckbxGenerateAbLookup = new JCheckBox("Generate AB Lookup");
+            chckbxGenerateAbLookup.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    boolean selected = chckbxGenerateAbLookup.isSelected();
+                    if (selected) {
+                        textFieldABLookup.setEnabled(false);
+                        btnABFile.setEnabled(false);
+                    } else {
+                        textFieldABLookup.setEnabled(true);
+                        btnABFile.setEnabled(true);
+                    }
+                }
+            });
+            chckbxGenerateAbLookup.setEnabled(false);
+            contentPanel.add(chckbxGenerateAbLookup, "cell 0 8 2 1,alignx right");
+        }
+        {
+            btnABFile = new JButton();
+            btnABFile.addActionListener(buttonListener);
+            btnABFile.setActionCommand("ab");
+            btnABFile.setText("...");
+            btnABFile.setEnabled(false);
+            contentPanel.add(btnABFile, "cell 0 7");
         }
         {
             lblExportFiletype = new JLabel("Export Filetype:");
-            contentPanel.add(lblExportFiletype, "flowx,cell 0 6");
+            contentPanel.add(lblExportFiletype, "flowx,cell 0 9");
         }
         {
             exportTypeGroup = new ButtonGroup();
@@ -108,7 +158,7 @@ public class PlinkExportOptions extends JDialog {
         {
             rdbtnText = new JRadioButton("Text");
             exportTypeGroup.add(rdbtnText);
-            contentPanel.add(rdbtnText, "flowx,cell 0 7 2 1,alignx center");
+            contentPanel.add(rdbtnText, "flowx,cell 0 10 2 1,alignx center");
         }
         {
             JLabel lblClusterFilterCollection = new JLabel("Cluster Filter File:");
@@ -118,6 +168,23 @@ public class PlinkExportOptions extends JDialog {
             comboBoxClusterFilters = new JComboBox<String>(getClusterFiltersOptions());
             comboBoxClusterFilters.setFont(comboBoxClusterFilters.getFont().deriveFont(Font.PLAIN));
             comboBoxClusterFilters.setSelectedItem(NO_CLUSTER_FILTERS);
+            comboBoxClusterFilters.addItemListener(new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent e) {
+                    if (e.getStateChange() == ItemEvent.SELECTED) {
+                        String val = (String) comboBoxClusterFilters.getSelectedItem();
+                        if (NO_CLUSTER_FILTERS.equals(val)) {
+                            chckbxGenerateAbLookup.setEnabled(false);
+                            textFieldABLookup.setEnabled(false);
+                            btnABFile.setEnabled(false);
+                        } else {
+                            chckbxGenerateAbLookup.setEnabled(true);
+                            textFieldABLookup.setEnabled(!chckbxGenerateAbLookup.isSelected());
+                            btnABFile.setEnabled(!chckbxGenerateAbLookup.isSelected());
+                        }
+                    }
+                }
+            });
             contentPanel.add(comboBoxClusterFilters, "cell 0 5 2 1,growx");
         }
         {
@@ -153,7 +220,7 @@ public class PlinkExportOptions extends JDialog {
         }
         {
             JLabel lblPlinkOutputFileroot = new JLabel("PLINK Output Fileroot:");
-            contentPanel.add(lblPlinkOutputFileroot, "flowx,cell 0 8");
+            contentPanel.add(lblPlinkOutputFileroot, "flowx,cell 0 11");
         }
         {
             textFieldPlinkFileroot = new JTextField();
@@ -166,13 +233,13 @@ public class PlinkExportOptions extends JDialog {
                     updatePlinkStatus();
                 }
             });
-            contentPanel.add(textFieldPlinkFileroot, "cell 0 9 2 1,growx");
+            contentPanel.add(textFieldPlinkFileroot, "cell 0 12 2 1,growx");
         }
         {
             lblNameConflict = new JLabel("Error - files already exist!");
             lblNameConflict.setForeground(Color.RED.darker());
             lblNameConflict.setVisible(false);
-            contentPanel.add(lblNameConflict, "flowx,cell 0 11 2 1,alignx right");
+            contentPanel.add(lblNameConflict, "flowx,cell 0 14 2 1,alignx right");
         }
         {
             chckbxOverwrite = new JCheckBox();
@@ -180,13 +247,13 @@ public class PlinkExportOptions extends JDialog {
             chckbxOverwrite.addActionListener(buttonListener);
             chckbxOverwrite.setText("Overwrite");
             chckbxOverwrite.setEnabled(false);
-            contentPanel.add(chckbxOverwrite, "cell 0 11 2 1,alignx right");
+            contentPanel.add(chckbxOverwrite, "cell 0 14 2 1,alignx right");
         }
         {
             rdbtnBinary = new JRadioButton("Binary");
             exportTypeGroup.add(rdbtnBinary);
             rdbtnBinary.setSelected(true);
-            contentPanel.add(rdbtnBinary, "cell 0 7 2 1");
+            contentPanel.add(rdbtnBinary, "cell 0 10 2 1");
         }
         {
             tooltipPedigree = Grafik.getToolTipIconLabel("The pedigree file has the standard 6 columns (Family ID, Individual ID, Father's ID, Mother's ID, Sex, Affection/Phenotype) as well as a 7th column with the DNA/Sample ID from the raw data to match it up to. There is no header row. See manual for more detail.");
@@ -201,12 +268,16 @@ public class PlinkExportOptions extends JDialog {
             contentPanel.add(tooltipClusterFilters, "cell 0 4");
         }
         {
-            tooltipExportType = Grafik.getToolTipIconLabel("PLINK format can either be compressed in a binary format or in full text. See the PLINK website for more detail.");
+            tooltipExportType = Grafik.getToolTipIconLabel("AB Lookup Tooltip."); // TODO ab lookup tooltip
             contentPanel.add(tooltipExportType, "cell 0 6");
         }
         {
+            tooltipExportType = Grafik.getToolTipIconLabel("PLINK format can either be compressed in a binary format or in full text. See the PLINK website for more detail.");
+            contentPanel.add(tooltipExportType, "cell 0 9");
+        }
+        {
             tooltipFileroot = Grafik.getToolTipIconLabel("The root of the filenames to be generated. If these already exist, you must click the checkbox to overwrite them.");
-            contentPanel.add(tooltipFileroot, "cell 0 8");
+            contentPanel.add(tooltipFileroot, "cell 0 11");
         }
         {
             JPanel buttonPane = new JPanel();
@@ -229,16 +300,15 @@ public class PlinkExportOptions extends JDialog {
             }
         }
         
-        pack();
         updatePlinkStatus();
     }
     
-    private void refreshPedigreeStatus() {
-        String text = textFieldPedigreeFile.getText();
+    private void refreshStatus(JTextField fileField) {
+        String text = fileField.getText();
         if (new File(text).exists()) {
-            textFieldPedigreeFile.setForeground(Color.GREEN.darker());
+            fileField.setForeground(Color.GREEN.darker());
         } else {
-            textFieldPedigreeFile.setForeground(Color.RED.darker());
+            fileField.setForeground(Color.RED.darker());
         }
     }
 
@@ -251,15 +321,39 @@ public class PlinkExportOptions extends JDialog {
                 if (!isValidPlinkRoot()) {
                     okButton.setEnabled(chckbxOverwrite.isSelected());
                 }
-            } else {
+            } else if (arg0.getActionCommand().equals("OK")){
                 if (checkPedigree()) {
                     close(false);
                 } else {
                     JOptionPane.showMessageDialog(PlinkExportOptions.this, "Error - Pedigree file doesn't exist.", "Missing Pedigree File", JOptionPane.ERROR_MESSAGE, null);
                 }
+            } else if (arg0.getActionCommand().equals("ped")) {
+                selectFile(textFieldPedigreeFile);
+            } else if (arg0.getActionCommand().equals("ab")) {
+                selectFile(textFieldABLookup);
             }
         }
     };
+    
+    private void selectFile(JTextField field) {
+        String value = field.getText();
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setMultiSelectionEnabled(false);
+        if (value != null && !"".equals(value)) {
+            if (Files.exists(value)) {
+                fileChooser.setSelectedFile(new File(value));
+            } else if (Files.exists(ext.parseDirectoryOfFile(value))) {
+                fileChooser.setSelectedFile(new File(ext.parseDirectoryOfFile(value)));
+            }
+        }
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            field.setText(fileChooser.getSelectedFile().getAbsolutePath());
+        }
+    }
+    
+    
+    
     private JLabel lblExportFiletype;
     private JRadioButton rdbtnText;
     private JRadioButton rdbtnBinary;
@@ -270,6 +364,11 @@ public class PlinkExportOptions extends JDialog {
     private JLabel tooltipClusterFilters;
     private JLabel tooltipExportType;
     private JLabel tooltipFileroot;
+    private JLabel lblAbLookupFile;
+    private JTextField textFieldABLookup;
+    private JButton btnPedFile;
+    private JButton btnABFile;
+    private JCheckBox chckbxGenerateAbLookup;
 
     
     private void close(boolean cancelled) {
@@ -374,6 +473,10 @@ public class PlinkExportOptions extends JDialog {
         } else {
             return val;
         }
+    }
+    
+    public String getABFilename() {
+        return chckbxGenerateAbLookup.isEnabled() && chckbxGenerateAbLookup.isSelected() ? null : textFieldABLookup.getText().trim();
     }
     
 }

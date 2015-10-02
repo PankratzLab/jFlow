@@ -1343,11 +1343,11 @@ public class PlinkData {
 		} else {
 			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName, proj.JAR_STATUS.getValue());
 		}
-
-		if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
-			abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog()).getLookup();
-		} else if (clusterFilterCollection == null) {
+		
+        if (clusterFilterCollection == null) {
 			abLookup = new char[targetMarkers.length][];
+		} else if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
+			abLookup = new ABLookup(targetMarkers, proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog()).getLookup();
 		} else {
 			proj.message("Error - could not find AB lookup file '"+proj.AB_LOOKUP_FILENAME.getValue()+"'; this file needs to be created, as it is not otherwise possible to export to PLINK when there are cluster filters.");
 			return null;

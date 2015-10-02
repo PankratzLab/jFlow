@@ -475,11 +475,31 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
                 String clusterFiltersFilename = peo.getClusterFilterSelection();
                 if (clusterFiltersFilename != null) {
                     clusterFiltersFilename = proj.DATA_DIRECTORY.getValue() + clusterFiltersFilename;
+                    // only care about ab lookup if cluster filters are applied
+                    String abFile = peo.getABFilename();
+                    if (abFile == null) {
+                        ABLookup abLookup;
+                        String filename;
+                        filename = proj.PROJECT_DIRECTORY.getValue()+ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+                        if (!Files.exists(filename)) {
+                            abLookup = new ABLookup();
+                            abLookup.parseFromOriginalGenotypes(proj);
+                            abLookup.writeToFile(filename, proj.getLog());
+                        }
+                        ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false);
+                        proj.AB_LOOKUP_FILENAME.setValue(filename);
+                    } else if (!new File(abFile).exists()) {
+                        log.reportFileNotFound(abFile);
+                        return;
+                    } else {
+                        proj.AB_LOOKUP_FILENAME.setValue(abFile);
+                    }
                 }
                 String targetMarkersFilename = peo.getTargetMarkersFile();
                 if (peo.getCancelled()) { // getTargetMarkersFile(), if set to CREATE_NEW, can potentially be cancelled
                     return;
                 }
+                
                 proj.saveProperties();
                 boolean success = false;
                 if (peo.exportAsBinary()) {
