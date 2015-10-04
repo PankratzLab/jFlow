@@ -46,7 +46,7 @@ public class LrrSd extends Parallelizable {
 		String PROG_KEY = "LRRSTDEV_" + threadNumber;
 		String progDesc = "Compute Log-R Ratio Std.Dev. in Thread " + threadNumber;
 		
-		proj.progressMonitor.beginTask(PROG_KEY, progDesc, false, samples.length + 1);
+		proj.progressMonitor.beginDeterminateTask(PROG_KEY, progDesc, samples.length + 1, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		
 		log = proj.getLog();
 		try {

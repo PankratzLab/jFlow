@@ -71,7 +71,7 @@ public class ParseSNPlocations {
         String PROG_KEY = "PARSESNPS";
         int lineCnt = Files.countLines(snpListFile, 0);
         if (monitor != null) {
-            monitor.beginTask(PROG_KEY, "Processing " + lineCnt + " SNPs", false, lineCnt);
+            monitor.beginDeterminateTask(PROG_KEY, "Processing " + lineCnt + " SNPs", lineCnt, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
         } else {
             System.out.println("Processing " + lineCnt + " SNPs");
         }

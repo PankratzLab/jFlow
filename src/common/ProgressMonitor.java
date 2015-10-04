@@ -10,12 +10,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
+import common.ProgressMonitor.DISPLAY_MODE;
+
 class Task {
     
     public Task(String name) {
         this.name = name;
         this.creationTime = System.nanoTime();
         this.lastUpdate = System.nanoTime();
+        this.lastDisplay = System.nanoTime();
     }
     
     private final long creationTime;
@@ -36,21 +39,34 @@ class Task {
     public void setExpectedUpdateCount(int cnt) { this.numExp = cnt; }
     public int getExpectedUpdateCount() { return this.numExp; }
 
-    private int updateCount;
+    private volatile int updateCount;
     public int getUpdateCount() { return this.updateCount; }
 
     private int timeoutMins = ProgressMonitor.DEFAULT_TIMEOUT_MINS;
     public void setTimeout(int timeout) { this.timeoutMins = timeout; }
     public int getTimeout() { return this.timeoutMins; }
     
-    private long lastUpdate;
+    private volatile long lastUpdate;
     protected void updateTime() { this.lastUpdate = System.nanoTime(); }
     public long getLastUpdate() { return this.lastUpdate; }
+
+    private volatile long lastDisplay;
+    protected synchronized void updateDisplayTime() { this.lastDisplay = System.nanoTime(); }
+    public long getLastDisplayUpdateTime() { return this.lastDisplay; }
     
-    private boolean hasWarned = false;
+    private volatile boolean hasWarned = false;
     public void warned() { this.hasWarned = true; }
     public boolean alreadyWarned() { return hasWarned; }
     
+    private volatile DISPLAY_MODE displayMode;
+    public void setDisplayMode(DISPLAY_MODE mode) { this.displayMode = mode; }
+    public DISPLAY_MODE getDisplayMode() { return displayMode; }
+    
+//    private final Object CANCEL_LOCK = new Object();
+//    private volatile boolean cancelRequested = false;
+//    public void requestCancel() { synchronized(CANCEL_LOCK) { cancelRequested = true; }} 
+//    public boolean cancelRequested() { synchronized(CANCEL_LOCK) { return cancelRequested; }}
+
     protected void updateOnce() {
         updateCount++;
         if (updateCount > numExp) {
@@ -59,10 +75,15 @@ class Task {
         updateTime();
     }
     
-    
 }
 
 public class ProgressMonitor { 
+    
+    public static enum DISPLAY_MODE {
+        GUI_AND_CONSOLE,
+        GUI_ONLY,
+        CONSOLE_ONY;
+    }
     
     public static final int DEFAULT_TIMEOUT_MINS = 10;
     private static final int INDET_ELAPSED_LOG_SECONDS = 180; // 3 minutes between indeterminite task updates
@@ -93,8 +114,8 @@ public class ProgressMonitor {
      * @param taskName Unique String ID for task
      * @param label Initial display label for task (can be changed later)
      */
-    public synchronized void beginTask(String taskName, String label) {
-        beginTask(taskName, label, true, 0, DEFAULT_TIMEOUT_MINS);
+    public synchronized void beginIndeterminateTask(String taskName, String label, DISPLAY_MODE mode) {
+        beginTask(taskName, label, true, 0, DEFAULT_TIMEOUT_MINS, mode);
     }
     
     /**
@@ -104,8 +125,8 @@ public class ProgressMonitor {
      * @param indeterminate Is the task indeterminate or not?
      * @param expectedUpdateCount Number of expected update calls (used to display progress and calculate percentage complete)
      */
-    public synchronized void beginTask(String taskName, String label, boolean indeterminate, int expectedUpdateCount) {
-        beginTask(taskName, label, indeterminate, expectedUpdateCount, DEFAULT_TIMEOUT_MINS);
+    public synchronized void beginDeterminateTask(String taskName, String label, int expectedUpdateCount, DISPLAY_MODE mode) {
+        beginTask(taskName, label, false, expectedUpdateCount, DEFAULT_TIMEOUT_MINS, mode);
     }
     
     /**
@@ -117,7 +138,7 @@ public class ProgressMonitor {
      * @param expectedUpdateCount Number of expected update calls (used to display progress and calculate percentage complete)
      * @param timeout Time (in minutes) before a notice is displayed to the user
      */
-    public synchronized void beginTask(String taskName, String label, boolean indeterminate, int expectedUpdateCount, int timeout) {
+    private synchronized void beginTask(String taskName, String label, boolean indeterminate, int expectedUpdateCount, int timeout, DISPLAY_MODE mode) {
         if (taskMap.containsKey(taskName)) {
             // likely programmer error, or trying to run a task twice at the same time
             throw new IllegalArgumentException("Error - task with key [" + taskName + "] already exists!"); 
@@ -128,6 +149,7 @@ public class ProgressMonitor {
         newTask.setIndeterminate(indeterminate);
         newTask.setExpectedUpdateCount(expectedUpdateCount);
         newTask.setTimeout(timeout);
+        newTask.setDisplayMode(mode);
         this.taskMap.put(taskName, newTask);
         
         updateDisplay(newTask);
@@ -172,6 +194,18 @@ public class ProgressMonitor {
         updateDisplay(myTask);
     }
     
+    public synchronized String getCurrentTaskName() {
+        return taskUpdateStack.peek();
+    }
+    
+//    public synchronized void cancelTask(String taskName) {
+//        Task myTask = taskMap.get(taskName);
+//        if (myTask == null) {
+//            throw new IllegalArgumentException("No available task named [" + taskName + "]");
+//        }
+//        myTask.requestCancel();
+//    }
+    
     public synchronized void changeTaskLabelNoUpdate(String taskName, String newLabel) {
         Task myTask = taskMap.get(taskName);
         if (myTask == null) {
@@ -215,7 +249,7 @@ public class ProgressMonitor {
 
     private void updateDisplay(final Task task) {
         taskUpdateStack.push(task.getName());
-        if (internalProgBar != null) {
+        if (internalProgBar != null && (task.getDisplayMode() == DISPLAY_MODE.GUI_AND_CONSOLE || task.getDisplayMode() == DISPLAY_MODE.GUI_ONLY)) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
@@ -233,61 +267,62 @@ public class ProgressMonitor {
                     internalProgBar.setIndeterminate(task.getIndeterminate());
                     internalProgBar.repaint();
                     
+                    task.updateDisplayTime();
                 }
             });
         }
-        if (task.getIndeterminate()) {
-            long elapsedLong = task.getLastUpdate() - task.getCreationTime();
-            elapsedLong /= 60;
-            elapsedLong /= 1000;
-            elapsedLong /= 1000;
-            int elapsed = (int) elapsedLong;
-            if (elapsed > 0 && elapsed % INDET_ELAPSED_LOG_SECONDS == 0) {
-                String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' has been updated";
-                if (this.internalLogger != null) {
-                    this.internalLogger.report(msg);
-                } else {
-                    System.out.println(msg);
-                }
-            }
-        } else {
-            long elapsedLong = task.getLastUpdate() - task.getCreationTime();
-            elapsedLong /= 1000;
-            elapsedLong /= 1000;
-            elapsedLong /= 1000;
-//            System.out.println(elapsedLong / DET_ELAPSED_LOG_SECONDS);
-            int elapsed = (int) elapsedLong;
-            if (elapsed % DET_ELAPSED_LOG_SECONDS == 0) {
-                double rawPct = 100d * ((double)task.getUpdateCount()) / ((double) task.getExpectedUpdateCount());
-                String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 2) + "%)");
-                String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' is " + pct + " complete";
-                if (task.getExpectedUpdateCount() > 100 && task.getUpdateCount() > 0) {
-                    int mod = 10;
-                    String exp = "" + task.getExpectedUpdateCount();
-                    for (int i = 0; i < exp.length() - 4; i++) {
-                        mod *= 10;
-                    }
-                    mod = task.getExpectedUpdateCount() / mod;
-                    if (task.getUpdateCount() % mod == 0) {
-                        if (this.internalLogger != null) {
-                            this.internalLogger.report(msg);
-                        } else {
-                            System.out.println(msg);
-                        }
-                    }
-                } else {
+        if (task.getDisplayMode() == DISPLAY_MODE.GUI_AND_CONSOLE || task.getDisplayMode() == DISPLAY_MODE.CONSOLE_ONY) {
+            if (task.getIndeterminate()) {
+                long elapsedLong = task.getLastDisplayUpdateTime() - task.getCreationTime();
+                elapsedLong /= 60;
+                elapsedLong /= 1000;
+                elapsedLong /= 1000;
+                int elapsed = (int) elapsedLong;
+                if (elapsed > 0 && elapsed % INDET_ELAPSED_LOG_SECONDS == 0) {
+                    String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' has been updated";
                     if (this.internalLogger != null) {
                         this.internalLogger.report(msg);
                     } else {
                         System.out.println(msg);
                     }
                 }
+            } else {
+                long elapsedLong = task.getLastDisplayUpdateTime() - task.getCreationTime();
+                elapsedLong /= 1000;
+                elapsedLong /= 1000;
+                elapsedLong /= 1000;
+    //            System.out.println(elapsedLong / DET_ELAPSED_LOG_SECONDS);
+                int elapsed = (int) elapsedLong;
+                if (elapsed % DET_ELAPSED_LOG_SECONDS == 0) {
+                    double rawPct = 100d * ((double)task.getUpdateCount()) / ((double) task.getExpectedUpdateCount());
+                    String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 2) + "%)");
+                    String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' is " + pct + " complete";
+                    if (task.getExpectedUpdateCount() > 100 && task.getUpdateCount() > 0) {
+    //                    int mod = 10;
+    //                    String exp = "" + task.getExpectedUpdateCount();
+    //                    for (int i = 0; i < exp.length() - 4; i++) {
+    //                        mod *= 10;
+    //                    }
+    //                    mod = task.getExpectedUpdateCount() / mod;
+    //                    if (task.getUpdateCount() % mod == 0) {
+                            if (this.internalLogger != null) {
+                                this.internalLogger.report(msg);
+                            } else {
+                                System.out.println(msg);
+                            }
+    //                    }
+                    } else {
+                        if (this.internalLogger != null) {
+                            this.internalLogger.report(msg);
+                        } else {
+                            System.out.println(msg);
+                        }
+                    }
+                }
             }
+            
+            task.updateDisplayTime();
         }
-        // TODO console logging
-        // TODO time elapsed logging for indeterminate tasks ("Task [] progress updated")
-        // TODO tasks with large exp updates only update when cnt % (10 * sigdig) == 0 OR when some amount of time elapses 
-        
     }
     
     TimerTask monitorTask = new TimerTask() {

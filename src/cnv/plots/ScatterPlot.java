@@ -102,13 +102,13 @@ import cnv.gui.NewMarkerListDialog;
 import cnv.manage.MarkerDataLoader;
 import cnv.manage.PlinkMarkerLoader;
 import cnv.var.SampleData;
-
 import common.AlleleFreq;
 import common.Array;
 import common.Files;
 import common.Grafik;
 import common.Logger;
 import common.Matrix;
+import common.ProgressMonitor;
 import common.Sort;
 import common.ext;
 
@@ -247,7 +247,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		super("Genvisis - ScatterPlot - " + project.getNameOfProject());
 		
 		String PROG_KEY = "SCATTERPLOT";
-		project.progressMonitor.beginTask(PROG_KEY, "Displaying ScatterPlot...", false, 10);
+		project.progressMonitor.beginDeterminateTask(PROG_KEY, "Displaying ScatterPlot...", 10, ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
 		
 		JPanel scatterPlotPanel = new JPanel();
 		
@@ -596,7 +596,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
             if (masterCommentList == null) {
                 masterCommentList = Array.stringArray(masterMarkerList.length, "");
             }
-            proj.progressMonitor.beginTask("SCATTERPLOT", "Loading ScatterPlot Marker List...", false, 10);
+            proj.progressMonitor.beginDeterminateTask("SCATTERPLOT", "Loading ScatterPlot Marker List...", 10, ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
             resetAfterLoad();
             proj.progressMonitor.endTask("SCATTERPLOT");
             ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
