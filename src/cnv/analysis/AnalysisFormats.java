@@ -19,6 +19,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.Matrix;
+import common.ProgressMonitor;
 import common.ext;
 import filesys.Segment;
 
@@ -104,7 +105,7 @@ public class AnalysisFormats implements Runnable {
 					Sample mySample;
             		int skippedExports = 0;
             		
-                    proj.progressMonitor.beginTask(MY_PROG_KEY, "Generate PennCNV Files in Thread " + (myIndex + 1), false, sampleIndexQueues[myIndex].size());
+                    proj.progressMonitor.beginDeterminateTask(MY_PROG_KEY, "Generate PennCNV Files in Thread " + (myIndex + 1), sampleIndexQueues[myIndex].size(), ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
                     
 					while(!sampleIndexQueues[myIndex].isEmpty()) {
 						int sampleIndex = sampleIndexQueues[myIndex].poll();
