@@ -198,7 +198,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     	ToolTipManager.sharedInstance().setInitialDelay(0);
     	ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE - 1);
     	ToolTipManager.sharedInstance().setReshowDelay(0);
-
+    	
+    	UIManager.put("ToolTip.background", Color.decode("#F5F5DC"));
+    	
 		//Create and set up the content pane.
     	launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
 		initLaunchProperties(launchPropertiesFile, false, false);
