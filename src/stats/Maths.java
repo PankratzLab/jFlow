@@ -24,6 +24,11 @@ public class Maths {
 		return Integer.parseInt(fact(n).divide(fact(r).multiply(fact(n-r))).toString());
 	}
 
+	public static double roundDouble(double d, int numPlaces) {
+		double rounder = Math.pow(10, numPlaces);
+		return (double) Math.round(d * rounder) / rounder;
+	}
+
 	public static int[][] getIndicesForAllCombinations(int n, int r) {
 		int[][] indices;
 		int total, j, k;
