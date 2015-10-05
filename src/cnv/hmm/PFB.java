@@ -18,16 +18,26 @@ public class PFB {
 		this.pfbs = pfb.pfbs;
 	}
 
-	private PFB(Project proj, double[] pfbs) {
+	private PFB(Project proj, double[] pfbst) {
 		super();
 		this.proj = proj;
-		this.pfbs = pfbs;
+		this.pfbs = pfbst;
 		if (pfbs.length != proj.getMarkerNames().length) {
 			String error = "Found " + pfbs.length + " pfb entries, but the project has" + pfbs.length + " markers";
 			proj.getLog().reportTimeError(error);
 			throw new IllegalArgumentException(error);
 		} else {
-			this.proj.getLog().reportTimeInfo("Loaded " + pfbs.length + " pfb entries");
+			this.proj.getLog().reportTimeInfo("Loaded " + pfbst.length + " pfb entries");
+		}
+		for (int i = 0; i < pfbs.length; i++) { // what PennCNV does
+			if (!Double.isNaN(pfbs[i]) && pfbs[i] >= 0 && pfbs[i] <= 1) {
+				if (pfbs[i] < 0.01) {
+					pfbs[i] = 0.01;
+				}
+				if (pfbs[i] > .99) {
+					pfbs[i] = .99;
+				}
+			}
 		}
 	}
 

@@ -3483,6 +3483,20 @@ public class Array {
 		
 		return true;
 	}
+
+	/**
+	 * @param array
+	 * @param sigFigs
+	 *            all entries in the array will be rounded the this many sig figs
+	 * @return the rounded array
+	 */
+	public static double[] round(double[] array, int sigFigs) {
+		double[] rounded = new double[array.length];
+		for (int i = 0; i < rounded.length; i++) {
+			rounded[i] = Maths.roundDouble(array[i], sigFigs);
+		}
+		return rounded;
+	}
 	
 	/**
 	 * Removes NaN values from the array
