@@ -471,7 +471,11 @@ public class SampleData {
 	public String[] getCnvClasses() {
 		return cnvClasses;
 	}
-	
+
+	public void setCnvClasses(String[] cnvClasses) {
+		this.cnvClasses = cnvClasses;
+	}
+
 	public String[] getPlinkClasses() {
 	    return plinkClasses;
 	}
@@ -483,7 +487,11 @@ public class SampleData {
 	public IndiPheno getIndiFromSampleHash(String sampleID) {
 		return sampleHash.get(sampleID.toLowerCase());
 	}
-	
+
+	public Hashtable<String, IndiPheno> getSampleHash() {
+		return sampleHash;
+	}
+
 	public String[] getListOfSamples() {
 		return HashVec.getKeys(sampleHash);
 	}
