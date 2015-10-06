@@ -56,8 +56,12 @@ public class SampleData {
 	private boolean containsDNA;
 	private boolean containsFID;
 	private boolean containsIID;
-//	private volatile boolean loadingCNVs = false;
-
+	private volatile boolean loadedCNVs = false;
+	
+	public boolean getCNVsLoaded() {
+	    return loadedCNVs;
+	}
+	
 	public Hashtable<String, Integer> getLinkKeyIndex() {
 		return linkKeyIndex;
 	}
@@ -244,13 +248,16 @@ public class SampleData {
 			System.err.println("Error reading file \""+proj.SAMPLE_DATA_FILENAME.getValue()+"\"");
 //			System.exit(2);
 		}
-		
+
+        cnvClasses = new String[0];
 		if (cnvFilenames.length > 0) {
+		    loadedCNVs = false;
 		    Runnable cnvLoadingRunnable = new Runnable() {
 		        @Override
 		        public void run() {
 		            loadCNVs(cnvFilenames, proj.JAR_STATUS.getValue());
 		            IndiPheno.setCNVsLoaded();
+		            loadedCNVs = true;
 		        }
 		    };
 		    Thread cnvLoadingThread = new Thread(cnvLoadingRunnable);
@@ -258,7 +265,7 @@ public class SampleData {
 		    cnvLoadingThread.setDaemon(true);
 		    cnvLoadingThread.start();
 		} else {
-			cnvClasses = new String[0];
+		    loadedCNVs = true;
 		}
 		
 		String[] plinkFilenames = proj.PLINK_DIR_FILEROOTS.getValue();

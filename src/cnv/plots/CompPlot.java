@@ -219,7 +219,10 @@ public class CompPlot extends JFrame {
 
 		setRegion(regionNavigator.getRegion());
 		
-        regionFileNameBtn.get(ext.rootOf(CompPlot.this.regionNavigator.getRegionFile())).setSelected(true);
+        JCheckBoxMenuItem jcbmi = regionFileNameBtn.get(ext.rootOf(CompPlot.this.regionNavigator.getRegionFile()));
+        if (jcbmi != null) {
+            jcbmi.setSelected(true);
+        }
 	}
 
 	private void setupGUI() {

@@ -444,40 +444,46 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			return;
 		}
 		
-		cnvLabels = sampleData.getCnvClasses();
-		//cnvLabels = Array.concatAll(cnvLabels, INTERNAL_CNV_LABELS);
-
-//		regionsList = proj.getIndividualRegionLists();
-//		if (regionsList.length > 1) {
-//			JOptionPane.showMessageDialog(null, "Warning - only one list file is currently supported within Trailer", "Warning", JOptionPane.ERROR_MESSAGE);
-//		}
-//		regionsListIndex = 0;
-//		if (regionsList.length > 0) {
-//			if (Files.exists(regionsList[regionsListIndex], jar)) {
-//				loadRegions();
-//			} else {
-//				System.err.println("Error - couldn't find '"+regionsList[regionsListIndex]+"' in data directory; populating with CNVs of current subject");
-//			}
-//		} else {
-//			System.err.println("Warning - no region list was provided; populating regions with CNVs of current subject, if any exist");
-//		}
-//		regionIndex = -1;
-
         time = new Date().getTime();
         
         trackFilename = proj.getGeneTrackFilename(false);
         if (trackFilename != null) {
-        	log.report("Loading track from "+trackFilename);	
-        	track = GeneTrack.load(trackFilename, jar);
+            log.report("Loading track from "+trackFilename);    
+            track = GeneTrack.load(trackFilename, jar);
             log.report("Loaded track in "+ext.getTimeElapsed(time));
         }
-		
-		updateSample(sample);
-		
+        
+		if (!sampleData.getCNVsLoaded()) {
+		    new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (!sampleData.getCNVsLoaded()) {
+                        try {
+                            Thread.sleep(30);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    cnvLabels = sampleData.getCnvClasses();
+                    procCNVs(chr);
+                    if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
+                        loadCNVsAsRegions();
+                    }
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateGUI();
+                        }
+                    });
+                }
+            }).start();
+		} else {
+		    cnvLabels = sampleData.getCnvClasses();
+		}
+
+        updateSample(sample);
 		System.out.println("All in "+ext.getTimeElapsed(time));
 
 		parseLocation(location);
-//		setBounds(20, 20, 1000, 720);
 		setBounds(startX, startY, width, height);
 		setVisible(true);
 		
@@ -2046,13 +2052,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	
 	public void procCNVs(byte chr) {
 		cnvs = new CNVariant[cnvLabels.length][];
-		for (int i = 0; i<cnvLabels.length; i++) {
-			cnvs[i] = indiPheno.getCNVs(i, chr);
-			if (cnvs[i] == null) {
-				cnvs[i] = new CNVariant[0];
-			}
-			System.out.println("Proccessed "+cnvs[i].length+" "+cnvLabels[i]+" CNVs for chr"+chr);
-        }
+		if (indiPheno != null) {
+    		for (int i = 0; i<cnvLabels.length; i++) {
+    			cnvs[i] = indiPheno.getCNVs(i, chr);
+    			if (cnvs[i] == null) {
+    				cnvs[i] = new CNVariant[0];
+    			}
+    			System.out.println("Proccessed "+cnvs[i].length+" "+cnvLabels[i]+" CNVs for chr"+chr);
+            }
+		}
 	}
 	
 	/**
