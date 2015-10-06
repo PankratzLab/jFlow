@@ -1809,12 +1809,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					JOptionPane.showMessageDialog(this, "Sample '"+sample+"' was not present in the SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 				return;
+			} else {
+    			if (proj.CNV_FILENAMES.getValue() == null || proj.CNV_FILENAMES.getValue().length == 0 || indiPheno.getCnvClasses().size() <= proj.CNV_FILENAMES.getValue().length) {
+    			    indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+    			    indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+    			}
 			}
 			loadValues();
-			if (indiPheno.getCnvClasses().size() <= proj.CNV_FILENAMES.getValue().length) {
-				indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
-				indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
-			}
 //			if (regionsList.length == 0 || !Files.exists(regionsList[regionsListIndex], jar)) {
 //				loadCNVsAsRegions();
 //			}

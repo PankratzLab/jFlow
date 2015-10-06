@@ -109,7 +109,6 @@ public class Configurator extends JFrame {
             },
             {
                 "Centroids",
-//                "SEX_CENTROIDS_FILENAMES",
                 "SEX_CENTROIDS_MALE_FILENAME",
                 "SEX_CENTROIDS_FEMALE_FILENAME",
                 "ORIGINAL_CENTROIDS_FILENAME",
@@ -144,7 +143,9 @@ public class Configurator extends JFrame {
             },
             {
                 "CNV Files",
-                "CNV_FILENAMES"
+                "CNV_FILENAMES",
+                "HMM_FILENAME",
+                "CUSTOM_PFB_FILENAME",
             },
             {
                 "CompPlot",
@@ -159,7 +160,8 @@ public class Configurator extends JFrame {
                 "ScatterPlot",
                 "DISPLAY_MARKERS_FILENAMES",
                 "SHIFT_SEX_CHR_COLORS_YESNO",
-                "BLAST_ANNOTATION_FILENAME"
+                "BLAST_ANNOTATION_FILENAME",
+                "BLAST_PROPORTION_MATCH_FILTER",
             },
             {
                 "TwoDPlot",
@@ -183,7 +185,7 @@ public class Configurator extends JFrame {
                 "PENNCNV_EXECUTABLE_DIRECTORY",
                 "PENNCNV_DATA_DIRECTORY",
                 "PENNCNV_RESULTS_DIRECTORY",
-                "PENNCNV_GZIP_YESNO"
+                "PENNCNV_GZIP_YESNO",
             }, 
             {
                 "CytoSpecific",

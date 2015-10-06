@@ -416,7 +416,6 @@ public class Project {
 	public      FileProperty                  CUSTOM_PFB_FILENAME = new       FileProperty(this,                  "CUSTOM_PFB_FILENAME", "", "data/custom.pfb", false);
 	public      FileProperty                         HMM_FILENAME = new       FileProperty(this,                         "HMM_FILENAME", "", "data/hhall.hmm", false);
 
-//	public      FileProperty              TARGET_MARKERS_FILENAME = new       FileProperty(this,              "TARGET_MARKERS_FILENAME", "", "targetMarkers.txt", false);
 	public StringListProperty            TARGET_MARKERS_FILENAMES = new StringListProperty(this,             "TARGET_MARKERS_FILENAMES", "", "targetMarkers.txt", true, false);
 	public StringListProperty           DISPLAY_MARKERS_FILENAMES = new StringListProperty(this,            "DISPLAY_MARKERS_FILENAMES", "", "data/test.txt", true, false);
 	public StringListProperty               TWOD_LOADED_FILENAMES = new StringListProperty(this,                "TWOD_LOADED_FILENAMES", "", "", true, false);
