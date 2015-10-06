@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -31,7 +32,35 @@ import cnv.annotation.MarkerSeqAnnotation;
 import cnv.filesys.Project;
 import filesys.Segment;
 
+
 public class BLASTVisualizer {
+    
+    public static class BlastUtils {
+        
+        public static ArrayList<BlastAnnotation> filterAnnotations(Project proj, List<BlastAnnotation> annotations) {
+            double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
+            int probe = proj.ARRAY_TYPE.getValue().getProbeLength();
+            int alignFilter = (int) (filter * probe);
+            ArrayList<BlastAnnotation> filteredList = new ArrayList<BlastAnnotation>();
+            for (BlastAnnotation annot : annotations) {
+                if (countAlignment(annot) > alignFilter) {
+                    filteredList.add(annot);
+                }
+            }
+            return filteredList;
+        }
+        
+        public static int countAlignment(BlastAnnotation annotation) {
+            int align = 0;
+            for (CigarElement ce : annotation.getCigar().getCigarElements()) {
+                if (ce.getOperator() == CigarOperator.EQ) {
+                    align += ce.getLength();
+                }
+            }
+            return align;
+        }
+        
+    }
     
     private Project proj;
     private MarkerSeqAnnotation referenceAnnotation;
