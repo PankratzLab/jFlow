@@ -95,7 +95,7 @@ public class VCFSimpleTally {
 					if (vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all"))) {
 						String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
 						error += "\n" + vc.toStringWithoutGenotypes();
-						//throw new IllegalStateException(error);
+						// throw new IllegalStateException(error);
 					} else if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size() && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed() && filterCHARGE(vcCase, 0.01)) {// as alts in rare esp/1000g
 						boolean controlPass = true;
 						for (String controlPop : controls.keySet()) {
@@ -132,7 +132,8 @@ public class VCFSimpleTally {
 	public static void test() {
 		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf.gz";
 		String popDir = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/Freq/";
-		String[] vpopsCase = new String[] { popDir + "EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
+		String[] vpopsCase = new String[] { popDir + "ALL_CONTROL_EPP.vpop" };
+		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		double maf = 0.01;
 		int numThreads = 24;
 		for (int i = 0; i < vpopsCase.length; i++) {
@@ -141,13 +142,13 @@ public class VCFSimpleTally {
 			Logger log = new Logger(ext.rootOf(vpopsCase[i], false) + ".log");
 			runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, log);
 		}
-		String[] vpopsControl = new String[] { popDir + "EPP.vpop", popDir + "ALL_CONTROL_EPP.vpop", popDir + "ALL_CONTROL_ANIRIDIA.vpop", popDir + "ALL_CONTROL_ANOTIA.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
-		for (int i = 0; i < vpopsControl.length; i++) {
-			String outDir = ext.parseDirectoryOfFile(vpopsControl[i]);
-			new File(outDir).mkdirs();
-			Logger log = new Logger(ext.rootOf(vpopsControl[i], false) + ".log");
-			runSimpleTally(vcf, vpopsControl[i], maf, numThreads, outDir, log);
-		}
+		// String[] vpopsControl = new String[] { popDir + "EPP.vpop", popDir + "ALL_CONTROL_EPP.vpop", popDir + "ALL_CONTROL_ANIRIDIA.vpop", popDir + "ALL_CONTROL_ANOTIA.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
+		// for (int i = 0; i < vpopsControl.length; i++) {
+		// String outDir = ext.parseDirectoryOfFile(vpopsControl[i]);
+		// new File(outDir).mkdirs();
+		// Logger log = new Logger(ext.rootOf(vpopsControl[i], false) + ".log");
+		// runSimpleTally(vcf, vpopsControl[i], maf, numThreads, outDir, log);
+		// }
 	}
 
 	private static void runSimpleTally(String vcf, String vpop, double maf, int numThreads, String outDir, Logger log) {

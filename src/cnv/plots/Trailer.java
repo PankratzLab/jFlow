@@ -17,6 +17,9 @@ import cnv.filesys.*;
 import cnv.gui.NewRegionListDialog;
 import cnv.gui.SingleClick;
 import cnv.gui.ClickListener;
+import cnv.hmm.CNVCaller;
+import cnv.hmm.PFB;
+import cnv.hmm.PennHmm;
 import cnv.manage.Transforms;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
@@ -83,7 +86,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
-
+	private static final String[] INTERNAL_CNV_LABELS = new String[] { "CNVCaller" };
 	private JComboBox<String> sampleList;
 	private String[] samplesPresent;
 	private JTextField navigationField;
@@ -126,7 +129,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private int transformation_type;
 	private boolean transformSeparatelyByChromosome;
 	private GcModel gcModel;
+	private PennHmm pennHmm;
+	private PFB pfb;
 	private JCheckBoxMenuItem gcCorrectButton;
+	private JCheckBoxMenuItem callCnvsButton;
+
 	private Hashtable<String, String> namePathMap;
 //	private JComboBox<String> centroidsSelection;
 	private Logger log;
@@ -430,6 +437,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		} else {
 			gcModel = null;
 		}
+		
 		generateComponents();
 		this.setJMenuBar(createMenuBar());
 			
@@ -441,7 +449,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		
 		cnvLabels = sampleData.getCnvClasses();
-//		regionsList = proj.getIndividualRegionLists();
+		//cnvLabels = Array.concatAll(cnvLabels, INTERNAL_CNV_LABELS);
+		//		regionsList = proj.getIndividualRegionLists();
 //		if (regionsList.length > 1) {
 //			JOptionPane.showMessageDialog(null, "Warning - only one list file is currently supported within Trailer", "Warning", JOptionPane.ERROR_MESSAGE);
 //		}
@@ -1238,6 +1247,45 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		autoSwitch.setText("Auto-Select Sex Centroid by Sample Sex");
 		autoSwitch.setMnemonic(KeyEvent.VK_A);
 		act.add(autoSwitch);
+		
+		//act.addSeparator();
+		
+//		ItemListener cnvListener = new ItemListener() {
+//			public void itemStateChanged(ItemEvent ie) {
+//				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+//				if (pennHmm == null) {
+//					if (Files.exists(proj.HMM_FILENAME.getValue())) {
+//						pennHmm = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), proj.getLog());
+//
+//					} else {
+//						pennHmm = null;
+//					}
+//				}
+//				if (pfb == null) {
+//					if (Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
+//						pfb = PFB.loadPFB(proj);
+//
+//					} else {
+//						pfb = null;
+//					}
+//				}
+//				if (pfb == null || pennHmm == null) {
+//					if (pennHmm == null) {
+//						proj.getLog().reportTimeError("Could not load " + proj.HMM_FILENAME.getName() + " defined by " + proj.HMM_FILENAME.getValue());
+//					} else if (pfb == null) {
+//						proj.getLog().reportTimeError("Could not load " + proj.CUSTOM_PFB_FILENAME.getName() + " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
+//					}
+//				} else {
+//					CNVCaller.callCNVsFor(proj, pennHmm, proj.getFullSampleFromRandomAccessFile(sample), gcModel, pfb, markerSet, new int[] { chr }, proj.NUM_THREADS.getValue(), true);
+//				}
+//				updateGUI();
+//			}
+//		};
+//		callCnvsButton = new JCheckBoxMenuItem("Call Cnvs", false);// stays hidden if gcModel is not detected
+//		callCnvsButton.addItemListener(cnvListener);
+		//act.add(callCnvsButton);
+		//act.addSeparator();
+
 		
 		ItemListener centListener = new ItemListener() {
 			@Override

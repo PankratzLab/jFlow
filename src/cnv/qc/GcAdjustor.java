@@ -308,12 +308,12 @@ public class GcAdjustor {
 									tmpCurrentBin = new ArrayList<Integer>(1000);
 									tmpCurrentBinChr11 = new ArrayList<Integer>(1000);
 									// TODO, take this out if we start getting too far from PennCNV, should be more accurate though
-									if (!Double.isNaN(gc) && !Double.isNaN(markerIntensities[indicesByChr[i][j]])) {// Note, PennCNV will not use this marker, they skip instead. We'll take it
-										tmpCurrentBin.add(qcIndex);
-										if (chrs[indicesByChr[i][j]] == 11) {
-											tmpCurrentBinChr11.add(qcIndex);
-										}
-									}
+//									if (!Double.isNaN(gc) && !Double.isNaN(markerIntensities[indicesByChr[i][j]])) {// Note, PennCNV will not use this marker, they skip instead. We'll take it
+//										tmpCurrentBin.add(qcIndex);
+//										if (chrs[indicesByChr[i][j]] == 11) {
+//											tmpCurrentBinChr11.add(qcIndex);
+//										}
+//									}
 								}
 								if (!Double.isNaN(gc) && !Double.isNaN(markerIntensities[indicesByChr[i][j]])) {// for populating regression model
 									if (positions[indicesByChr[i][j]] - currentRegressDistance > regressionDistance) {
@@ -479,7 +479,7 @@ public class GcAdjustor {
 		private Hashtable<String, Integer> index = new Hashtable<String, Integer>();
 		private Logger log;
 
-		public GcModel(GcModel gcmodel) {
+		public GcModel(GcModel gcmodel){
 			this.markers = gcmodel.markers;
 			this.chrs = gcmodel.chrs;
 			this.positions = gcmodel.positions;
