@@ -449,7 +449,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		
 		time = new Date().getTime();
-        time = new Date().getTime();
         
         trackFilename = proj.getGeneTrackFilename(false);
         if (trackFilename != null) {
