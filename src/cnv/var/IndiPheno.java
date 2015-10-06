@@ -28,6 +28,10 @@ public class IndiPheno {
 		this.cnvClasses = cnvClasses;
 	}
 
+	public Vector<Hashtable<String, CNVariant[]>> getCnvClasses() {
+		return cnvClasses;
+	}
+
 	public double[] getFilters() {
 		return filters;
 	}

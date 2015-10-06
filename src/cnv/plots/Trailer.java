@@ -25,6 +25,7 @@ import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
+import cnv.var.LocusSet;
 import cnv.var.Region;
 import cnv.var.SampleData;
 import filesys.*;
@@ -86,7 +87,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
-	private static final String[] INTERNAL_CNV_LABELS = new String[] { "CNVCaller" };
+	private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller" };
 
 	private JComboBox<String> sampleList;
 	private String[] samplesPresent;
@@ -95,8 +96,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JButton firstChr, previousChr, nextChr, lastChr, previousRegion, nextRegion;//, firstRegion, lastRegion;
 	private Project proj;
 	private String sample;
-	private IndiPheno indiPheno;
 	private boolean jar;
+	private IndiPheno indiPheno;
 	private String[] markerNames;
 	private MarkerSet markerSet;
 	private long fingerprint;
@@ -130,7 +131,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private int transformation_type;
 	private boolean transformSeparatelyByChromosome;
 	private GcModel gcModel;
+	private PennHmm pennHmm;
+	private PFB pfb;
 	private JCheckBoxMenuItem gcCorrectButton;
+	private JCheckBoxMenuItem callCnvsButton;
 	private Hashtable<String, String> namePathMap;
 //	private JComboBox<String> centroidsSelection;
 	private Logger log;
@@ -444,6 +448,27 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			return;
 		}
 		
+<<<<<<< Upstream, based on origin/master
+=======
+		cnvLabels = sampleData.getCnvClasses();
+
+//		regionsList = proj.getIndividualRegionLists();
+//		if (regionsList.length > 1) {
+//			JOptionPane.showMessageDialog(null, "Warning - only one list file is currently supported within Trailer", "Warning", JOptionPane.ERROR_MESSAGE);
+//		}
+//		regionsListIndex = 0;
+//		if (regionsList.length > 0) {
+//			if (Files.exists(regionsList[regionsListIndex], jar)) {
+//				loadRegions();
+//			} else {
+//				System.err.println("Error - couldn't find '"+regionsList[regionsListIndex]+"' in data directory; populating with CNVs of current subject");
+//			}
+//		} else {
+//			System.err.println("Warning - no region list was provided; populating regions with CNVs of current subject, if any exist");
+//		}
+//		regionIndex = -1;
+
+>>>>>>> 10c5427 Trailer: calls and displays cnvs IndiPheno: allow cnvClasses to be changed SampleData:  allow cnvClasses to be changed
         time = new Date().getTime();
         
         trackFilename = proj.getGeneTrackFilename(false);
@@ -1252,44 +1277,56 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		act.add(autoSwitch);
 		
 		
-		//act.addSeparator();
-		
-//		ItemListener cnvListener = new ItemListener() {
-//			public void itemStateChanged(ItemEvent ie) {
-//				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-//				if (pennHmm == null) {
-//					if (Files.exists(proj.HMM_FILENAME.getValue())) {
-//						pennHmm = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), proj.getLog());
-//
-//					} else {
-//						pennHmm = null;
-//					}
-//				}
-//				if (pfb == null) {
-//					if (Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
-//						pfb = PFB.loadPFB(proj);
-//
-//					} else {
-//						pfb = null;
-//					}
-//				}
-//				if (pfb == null || pennHmm == null) {
-//					if (pennHmm == null) {
-//						proj.getLog().reportTimeError("Could not load " + proj.HMM_FILENAME.getName() + " defined by " + proj.HMM_FILENAME.getValue());
-//					} else if (pfb == null) {
-//						proj.getLog().reportTimeError("Could not load " + proj.CUSTOM_PFB_FILENAME.getName() + " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
-//					}
-//				} else {
-//					CNVCaller.callCNVsFor(proj, pennHmm, proj.getFullSampleFromRandomAccessFile(sample), gcModel, pfb, markerSet, new int[] { chr }, proj.NUM_THREADS.getValue(), true);
-//				}
-//				updateGUI();
-//			}
-//		};
-//		callCnvsButton = new JCheckBoxMenuItem("Call Cnvs", false);// stays hidden if gcModel is not detected
-//		callCnvsButton.addItemListener(cnvListener);
-		//act.add(callCnvsButton);
-		//act.addSeparator();
+		act.addSeparator();
 
+		ItemListener cnvListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+				if (pennHmm == null) {
+					if (Files.exists(proj.HMM_FILENAME.getValue())) {
+						pennHmm = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), proj.getLog());
+
+					} else {
+						pennHmm = null;
+					}
+				}
+				if (pfb == null) {
+					if (Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
+						pfb = PFB.loadPFB(proj);
+
+					} else {
+						pfb = null;
+					}
+				}
+				if (pfb == null || pennHmm == null) {
+					if (pennHmm == null) {
+						proj.getLog().reportTimeError("Could not load " + proj.HMM_FILENAME.getName() + " defined by " + proj.HMM_FILENAME.getValue());
+					} else if (pfb == null) {
+						proj.getLog().reportTimeError("Could not load " + proj.CUSTOM_PFB_FILENAME.getName() + " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
+					}
+				} else {
+					LocusSet<CNVariant> internalCNVs = CNVCaller.callCNVsFor(proj, pennHmm, proj.getFullSampleFromRandomAccessFile(sample), gcModel, pfb, markerSet, new int[] { chr }, proj.NUM_THREADS.getValue(), true);
+					int externalCNVs = proj.CNV_FILENAMES.getValue().length;
+					if (sampleData.getCnvClasses().length <= externalCNVs) {
+						sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
+						cnvLabels = Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES);
+					}
+					if(indiPheno.getCnvClasses().size()<=externalCNVs){
+						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+					}
+					indiPheno.getCnvClasses().get(externalCNVs).put(chr + "", internalCNVs.getLoci());
+					sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+					procCNVs(chr);
+				}
+				jrb.setSelected(false);
+				updateGUI();
+			}
+		};
+		callCnvsButton = new JCheckBoxMenuItem("Call Cnvs", false);// stays hidden if gcModel is not detected
+		callCnvsButton.addItemListener(cnvListener);
+		act.add(callCnvsButton);
+		act.addSeparator();
 		
 		
 		
@@ -1786,6 +1823,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			time = new Date().getTime();
 			System.out.print("Found "+sample+"...");
 			indiPheno = sampleData.getIndiPheno(sample.toLowerCase());
+			
 			if (indiPheno == null) {
 //				if (!sample.equals(proj.get(Project.SAMPLE_DIRECTORY)+" directory is empty")) {
 				if (!sample.equals(proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory is empty")) {
@@ -1794,6 +1832,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				return;
 			}
 			loadValues();
+			if (indiPheno.getCnvClasses().size() <= proj.CNV_FILENAMES.getValue().length) {
+				indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+				indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+			}
 //			if (regionsList.length == 0 || !Files.exists(regionsList[regionsListIndex], jar)) {
 //				loadCNVsAsRegions();
 //			}
