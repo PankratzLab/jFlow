@@ -2391,7 +2391,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		        Files.writeList(markerList, jfc.getSelectedFile().getAbsolutePath());
 		    }
 	    } else if (command.equals(BLAST_DETAILS_COMMAND)) {
-	        ArrayList<BlastAnnotation> annotations = blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog());
+	        ArrayList<BlastAnnotation> annotations = BLASTVisualizer.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
 	        BLASTVisualizer bv = new BLASTVisualizer(proj, blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
 	        bv.run();
 	    } else {
@@ -3194,7 +3194,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         typeLabel = new JLabel("# Off-Target Alignments: ", JLabel.LEFT);
         typeLabel.setFont(new Font("Arial", 0, 14));
         blastPanel.add(typeLabel, "cell 0 1");
-        typeLabel = new JLabel(" " + blastResult.getNumOffTarget(log), JLabel.LEFT);
+//        typeLabel = new JLabel(" " + blastResult.getNumOffTarget(log), JLabel.LEFT);
+        typeLabel = new JLabel(" " + BLASTVisualizer.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log)));
         typeLabel.setFont(new Font("Arial", 0, 14));
         blastPanel.add(typeLabel, "cell 1 1");
 	    

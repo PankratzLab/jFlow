@@ -22,6 +22,7 @@ import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
+import cnv.var.Region;
 import cnv.var.SampleData;
 import filesys.*;
 
@@ -78,6 +79,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String NEXT_REGION = "Next region";
 	private static final String LAST_REGION = "Last region";
 	private static final String TO_SCATTER_PLOT = "To Scatter Plot";
+	private static final String TO_COMP_PLOT = "To Comp Plot";
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
@@ -135,6 +137,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String SEX_CENT = "Sex-Specific";
 	private JMenu loadRecentFileMenu;
 	private JMenuItem launchScatter;
+	private JMenuItem launchComp;
 	private ButtonGroup regionButtonGroup;
 
 	private AbstractAction markerFileSelectAction = new AbstractAction() {
@@ -1124,21 +1127,19 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         act.setMnemonic(KeyEvent.VK_A);
 		menuBar.add(act);
 		
-		launchScatter = new JMenuItem();
-		launchScatter.setText(TO_SCATTER_PLOT);
+		JMenuItem launchScatter = new JMenuItem();
+        launchScatter.setText(TO_SCATTER_PLOT);
 		launchScatter.setMnemonic(KeyEvent.VK_S);
 		launchScatter.setFont(new Font("Arial", 0, 12));
 		launchScatter.addActionListener(this);
 		act.add(launchScatter);
+		JMenuItem launchComp = new JMenuItem();
+        launchComp.setText(TO_COMP_PLOT);
+		launchComp.setMnemonic(KeyEvent.VK_C);
+		launchComp.setFont(new Font("Arial", 0, 12));
+		launchComp.addActionListener(this);
+		act.add(launchComp);
 		act.addSeparator();
-		
-//		launchScatterButton = new JButton();
-//		launchScatterButton.setFont(launchScatterButton.getFont().deriveFont(10f));
-//		launchScatterButton.setText(TO_SCATTER_PLOT);
-//		launchScatterButton.setActionCommand(TO_SCATTER_PLOT);
-//		launchScatterButton.addActionListener(this);
-//		compPanel.setMaximumSize(new Dimension(200, 20));
-//		compPanel.add(launchScatterButton);
 		
 		ButtonGroup lrrBtnGrp = new ButtonGroup();
 		ButtonGroup transBtnGrp = new ButtonGroup();
@@ -1368,6 +1369,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			regionIndex = regions.length-1;
 			showRegion();
 		} else if (command.equals(TO_SCATTER_PLOT)) {
+		    if (proj == null) {
+		        JOptionPane.showConfirmDialog(this, "Error - a Project is required to open ScatterPlot", "Error - no Project", JOptionPane.CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+		        return;
+		    } 
 			String[] listOfMarkers;
 			
 			listOfMarkers = new String[stopMarker-startMarker];
@@ -1379,6 +1384,19 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 				ScatterPlot.createAndShowGUI(proj, listOfMarkers, null, false);
 			}
+		} else if (command.equals(TO_COMP_PLOT)) {
+		    if (proj == null) {
+		        JOptionPane.showConfirmDialog(this, "Error - a Project is required to open CompPlot", "Error - no Project", JOptionPane.CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
+		        return;
+		    } 
+		    final Region toRegion = new Region(new int[]{chr, start, stop});
+		    SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    CompPlot cp = new CompPlot(proj);
+                    cp.setRegion(toRegion);
+                }
+            });
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
 		}
