@@ -412,31 +412,32 @@ public class VCFTally implements Serializable {
 				mac = vc.getCommonInfo().getAttributeAsDouble("MAF_whites", 0.0) + vc.getCommonInfo().getAttributeAsDouble("MAF_blacks", 0.0);
 			}
 
-			String snpEffGeneName = vc.getCommonInfo().getAttributeAsString("SNPEFF_GENE_NAME", ".");
+			//String snpEffGeneName = vc.getCommonInfo().getAttributeAsString("SNPEFF_GENE_NAME", ".");
 			if (mac > 0) {
 				if (geneDatas.length > 0) {
 					boolean foundMatch = false;
 					for (int i = 0; i < geneDatas.length; i++) {
-						if (geneDatas[i].getGeneName().equals(snpEffGeneName)) {
-							foundMatch = true;
-							Pathway[] ways = gRegions.getPathways().getPathwaysFor(geneDatas[i]);
-							addVC(vc, geneDatas, filterNGS, mac, i, ways);
-							numAdded++;
-						}
+						//if (geneDatas[i].getGeneName().equals(snpEffGeneName)) {
+						foundMatch = true;
+						Pathway[] ways = gRegions.getPathways().getPathwaysFor(geneDatas[i]);
+						addVC(vc, geneDatas, filterNGS, mac, i, ways);
+						numAdded++;
+						// }
 					}
-					if (!foundMatch&&!tallyName.contains("NO_SNPEFF")&&!tallyName.contains("SNPEFF_HIGH_MODERATE_LOW_MODIFIER")) {
-						log.reportTimeError("Error - could not find matching SNPEFF gene for " + vc.toStringWithoutGenotypes());
-						log.reportTimeError("Available overlapping genes are");
-						for (int i = 0; i < geneDatas.length; i++) {
-							log.reportTimeError(geneDatas[i].getGeneName());
-						}
-						System.exit(1);
-					}
-				} else if (!snpEffGeneName.equals(".") && !tallyName.contains("NO_SNPEFF") && !tallyName.contains("SNPEFF_HIGH_MODERATE_LOW_MODIFIER")) {
-
-					log.reportTimeError("Error - could not find matching GENVISIS gene for " + vc.toStringWithoutGenotypes());
-					System.exit(1);
 				}
+				// if (!foundMatch&&!tallyName.contains("NO_SNPEFF")&&!tallyName.contains("SNPEFF_HIGH_MODERATE_LOW_MODIFIER")) {
+				// log.reportTimeError("Error - could not find matching SNPEFF gene for " + vc.toStringWithoutGenotypes());
+				// log.reportTimeError("Available overlapping genes are");
+				// for (int i = 0; i < geneDatas.length; i++) {
+				// log.reportTimeError(geneDatas[i].getGeneName());
+				// }
+				// System.exit(1);
+				// }
+				// } else if (!snpEffGeneName.equals(".") && !tallyName.contains("NO_SNPEFF") && !tallyName.contains("SNPEFF_HIGH_MODERATE_LOW_MODIFIER")) {
+				//
+				// log.reportTimeError("Error - could not find matching GENVISIS gene for " + vc.toStringWithoutGenotypes());
+				// System.exit(1);
+				// }
 			}
 			return numAdded;
 		}
