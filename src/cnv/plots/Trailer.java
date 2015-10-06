@@ -448,28 +448,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			return;
 		}
 		
-<<<<<<< Upstream, based on origin/master
-=======
-		cnvLabels = sampleData.getCnvClasses();
-
-//		regionsList = proj.getIndividualRegionLists();
-//		if (regionsList.length > 1) {
-//			JOptionPane.showMessageDialog(null, "Warning - only one list file is currently supported within Trailer", "Warning", JOptionPane.ERROR_MESSAGE);
-//		}
-//		regionsListIndex = 0;
-//		if (regionsList.length > 0) {
-//			if (Files.exists(regionsList[regionsListIndex], jar)) {
-//				loadRegions();
-//			} else {
-//				System.err.println("Error - couldn't find '"+regionsList[regionsListIndex]+"' in data directory; populating with CNVs of current subject");
-//			}
-//		} else {
-//			System.err.println("Warning - no region list was provided; populating regions with CNVs of current subject, if any exist");
-//		}
-//		regionIndex = -1;
-
->>>>>>> 10c5427 Trailer: calls and displays cnvs IndiPheno: allow cnvClasses to be changed SampleData:  allow cnvClasses to be changed
-        time = new Date().getTime();
+		time = new Date().getTime();
         
         trackFilename = proj.getGeneTrackFilename(false);
         if (trackFilename != null) {
