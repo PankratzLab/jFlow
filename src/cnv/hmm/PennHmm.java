@@ -33,6 +33,8 @@ import common.Logger;
  *         Index 4: CN 3<br>
  *         Index 5: CN 4<br>
  * 
+ *         NOTE: <br>
+ *         kext starts at index 1
  * 
  * 
  * 
@@ -302,8 +304,15 @@ public class PennHmm {
 				p += (1 - uf) * pfb * pfb * pfb * pfb * opdfGaussianMinus.probability(o);
 			}
 		}
-		if (p == 0)
-			p = Float.MIN_VALUE;
+		if (!Double.isFinite(p)) {
+			String error = "Non-finite p, " + p;
+			throw new IllegalStateException(error);
+
+		}
+		if (p == 0) {
+			p = FLOAT_MINIMUM;
+		}
+
 		return Math.log(p);
 	}
 
@@ -373,7 +382,6 @@ public class PennHmm {
 			pennHmm.getLog().reportTimeError(error);
 			throw new IllegalArgumentException(error);
 		}
-		
 
 		double[][] biot = new double[pennHmm.getN()][o1.length];
 		int[] q = new int[o1.length];
@@ -384,7 +392,7 @@ public class PennHmm {
 		pennHmmLog.logPi();
 		for (int i = 0; i < pennHmmLog.getN(); i++) {
 			for (int t = 0; t < o1.length; t++) {
-				if (copyNumberOnlyDef[t]) {
+				if (copyNumberOnlyDef[t] || o2[t] > 1) {
 					biot[i][t] = b1iot(i, pennHmmLog.getB3(), o1[t]);
 				} else {
 					double bioTmp = b1iot(i, pennHmmLog.getB1(), o1[t]);
@@ -412,7 +420,6 @@ public class PennHmm {
 				}
 				delta[t][j] = maxval + biot[j][t];
 				psi[t][j] = maxvalind;
-
 			}
 		}
 
@@ -438,6 +445,10 @@ public class PennHmm {
 			super();
 			this.q = q;
 			this.delta = delta;
+		}
+
+		public double[][] getDelta() {
+			return delta;
 		}
 
 		/**
@@ -468,14 +479,15 @@ public class PennHmm {
 				boolean foundSignal = false;
 				int currentFind = 2;
 				for (int i = 0; i < q.length; i++) {
-					// System.out.println(q[i] + "\t" + names[i] + "\t" + Array.toStr(delta[i]));
-					// if (names[i].equals("rs2232230")) {
-					// System.exit(1);
-					// }
+
 					int currentCN = q[i];
 					if (currentCN == 3) {
 						currentCN = 100;
 					}
+					// if (names[i].equals("rs2232230") || (positions[i] >= 69058613 && positions[i] <= 69147340)) {
+					// System.out.println(q.length+"\t"+q[i] + "\t"+positions[i]+"\t" + currentCN + "\t" + names[i] + "\t" + Array.toStr(delta[i]));
+					//
+					// }
 					if (currentCN != normalState) {// CN 3 denotes LOH.
 						if (currentCN > 3) {
 							currentCN--;
@@ -688,18 +700,18 @@ public class PennHmm {
 
 		for (int i = 0; i < cLocusSet.getLoci().length; i++) {
 			CNVariant current = cLocusSet.getLoci()[i];
-			Builder builde1r = new Builder(current);
-			if (current.getStart() == 69143032) {
-				System.out.println("FOUND IT");
-				System.exit(1);
-			}
-			if (current.getChr() == 16) {
-				builde1r.cn(0);
-				builde1r.start(69143032);
-				builde1r.stop(69147340);
-				builde1r.numMarkers(5);
-			}
-			current = builde1r.build();
+			// Builder builde1r = new Builder(current);
+			// if (current.getStart() == 69143032) {
+			// System.out.println("FOUND IT");
+			// System.exit(1);
+			// }
+			// if (current.getChr() == 16) {
+			// builde1r.cn(0);
+			// builde1r.start(69143032);
+			// builde1r.stop(69147340);
+			// builde1r.numMarkers(5);
+			// }
+			// current = builde1r.build();
 			ArrayList<Integer> indicestmp = new ArrayList<Integer>();
 			for (int j = 0; j < posChr.length; j++) {
 				int pos = posChr[j];
@@ -723,14 +735,12 @@ public class PennHmm {
 			Builder builder = new Builder(current);
 			builder.score(score);
 			scored.add(builder.build());
-			if (current.getChr() == 16) {
-				for (int j = 0; j < indices.length; j++) {
-					System.out.println(indices[j] + "\t" + lrrChr[indices[j]] + "\t" + bafsChr[indices[j]] + "\t" + pfbsChr[indices[j]] + "\t");
-				}
-				System.out.println(builder.build().toPlinkFormat());
-
-				System.exit(1);
-			}
+			// if (current.getChr() == 16) {
+			// for (int j = 0; j < indices.length; j++) {
+			// System.out.println(indices[j] + "\t" + lrrChr[indices[j]] + "\t" + bafsChr[indices[j]] + "\t" + pfbsChr[indices[j]] + "\t");
+			// }
+			// System.out.println(builder.build().toPlinkFormat());
+			// }
 		}
 		LocusSet<CNVariant> locusSetScored = new LocusSet<CNVariant>(scored, true, log) {
 
