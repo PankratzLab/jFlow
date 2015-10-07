@@ -1303,7 +1303,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						proj.getLog().reportTimeError("Could not load " + proj.CUSTOM_PFB_FILENAME.getName() + " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
 					}
 				} else {
-					CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, proj.getFullSampleFromRandomAccessFile(sample), gcModel, pfb, markerSet, new int[] { chr }, true, proj.NUM_THREADS.getValue(), true);
+					CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample, Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs), gcModel, pfb, markerSet, new int[] { chr }, true, proj.NUM_THREADS.getValue(), true);
 					int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
 					if (sampleData.getCnvClasses().length <= externalCNVs) {
 						sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
