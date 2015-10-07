@@ -18,6 +18,7 @@ import cnv.gui.NewRegionListDialog;
 import cnv.gui.SingleClick;
 import cnv.gui.ClickListener;
 import cnv.hmm.CNVCaller;
+import cnv.hmm.CNVCaller.CNVCallResult;
 import cnv.hmm.PFB;
 import cnv.hmm.PennHmm;
 import cnv.manage.Transforms;
@@ -25,7 +26,6 @@ import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
-import cnv.var.LocusSet;
 import cnv.var.Region;
 import cnv.var.SampleData;
 import filesys.*;
@@ -87,7 +87,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
-	private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller" };
+	private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller", "RevCNVCaller", "Consensus" };
 
 	private JComboBox<String> sampleList;
 	private String[] samplesPresent;
@@ -255,13 +255,24 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	// new Color(189, 243, 61), // light green
 	// };
 
-	private Color[][] colorScheme = {
-			{new Color(23, 58, 172), new Color(55, 129, 252)}, // dark/light blue
-			{new Color(140, 20, 180), new Color(94, 88, 214)}, // deep/light purple
-			{new Color(33, 87, 0), new Color(189, 243, 61)}, // dark green
-			{new Color(201, 30, 10), new Color(217, 109, 194)}, // deep red/pink
-			{new Color(33, 31, 53), new Color(255, 255, 255)} // dark dark/ light light
-	};
+	private static ArrayList<Color[]> getColor() {
+		ArrayList<Color[]> colors = new ArrayList<Color[]>();
+		colors.add(new Color[] { new Color(23, 58, 172), new Color(55, 129, 252) });
+		colors.add(new Color[] { new Color(140, 20, 180), new Color(94, 88, 214) }); // deep/light purple
+		colors.add(new Color[] { new Color(33, 87, 0), new Color(189, 243, 61) }); // dark green
+		colors.add(new Color[] { new Color(201, 30, 10), new Color(217, 109, 194) }); // deep red/pink
+		colors.add(new Color[] { new Color(33, 31, 53), new Color(255, 255, 255) });
+		return colors;
+	}
+
+	private ArrayList<Color[]> colorScheme = getColor();
+	//	private Color[][] colorScheme = {
+//			{new Color(23, 58, 172), new Color(55, 129, 252)}, // dark/light blue
+//			{new Color(140, 20, 180), new Color(94, 88, 214)}, // deep/light purple
+//			{new Color(33, 87, 0), new Color(189, 243, 61)}, // dark green
+//			{new Color(201, 30, 10), new Color(217, 109, 194)}, // deep red/pink
+//			{new Color(33, 31, 53), new Color(255, 255, 255)} // dark dark/ light light
+//	};
 
 	final ArrayList<int[]> activeCNVs = new ArrayList<int[]>();
 	volatile int[] selectedCNV = null;
@@ -577,7 +588,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						firstBegin = begin;
 					}
 					end = getX(cnvs[i][j].getStop());
-					g.setColor(colorScheme[source][cnvs[i][j].getCN()<2?0:1]);
+					Color[] colors = getAColor(source);
+					g.setColor(colors[cnvs[i][j].getCN() < 2 ? 0 : 1]);
 					g.fillRoundRect(begin, (source+2)*15, end-begin+1, 10, 2, 2);
 					g.setColor(Color.BLACK);
 					if (selectedCNV != null && selectedCNV[0] == i && selectedCNV[1] == j) {
@@ -592,6 +604,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 	}
 	
+	private Color[] getAColor(int index) {
+		while (index >= colorScheme.size()) {
+			colorScheme.add(ColorExt.generatePastelShades());
+		}
+		return colorScheme.get(index);
+	}
+
 	private int getX(int pos) {
 		return (int)((double)(pos-start)/(double)(stop-start)*(double)(getWidth()-2*WIDTH_BUFFER))+WIDTH_BUFFER;
 	}
@@ -1284,17 +1303,20 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						proj.getLog().reportTimeError("Could not load " + proj.CUSTOM_PFB_FILENAME.getName() + " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
 					}
 				} else {
-					LocusSet<CNVariant> internalCNVs = CNVCaller.callCNVsFor(proj, pennHmm, proj.getFullSampleFromRandomAccessFile(sample), gcModel, pfb, markerSet, new int[] { chr }, proj.NUM_THREADS.getValue(), true);
-					int externalCNVs = proj.CNV_FILENAMES.getValue().length;
+					CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, proj.getFullSampleFromRandomAccessFile(sample), gcModel, pfb, markerSet, new int[] { chr }, true, proj.NUM_THREADS.getValue(), true);
+					int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
 					if (sampleData.getCnvClasses().length <= externalCNVs) {
 						sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
-						cnvLabels = Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES);
+						cnvLabels = Array.concatAll(sampleData.getCnvClasses());
 					}
 					if(indiPheno.getCnvClasses().size()<=externalCNVs){
-						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
-						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+						for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
+							indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+						}
 					}
-					indiPheno.getCnvClasses().get(externalCNVs).put(chr + "", internalCNVs.getLoci());
+					indiPheno.getCnvClasses().get(externalCNVs).put(chr + "", callResult.getChrCNVs().getLoci());
+					indiPheno.getCnvClasses().get(externalCNVs + 1).put(chr + "", callResult.getChrCNVsReverse().getLoci());
+					indiPheno.getCnvClasses().get(externalCNVs + 2).put(chr + "", callResult.getChrCNVsReverseConsensus().getLoci());
 					sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
 					procCNVs(chr);
 				}
@@ -1810,13 +1832,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 				return;
 			} else {
-    			if (proj.CNV_FILENAMES.getValue() == null || proj.CNV_FILENAMES.getValue().length == 0 || indiPheno.getCnvClasses().size() <= proj.CNV_FILENAMES.getValue().length) {
-    			    indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
-    			    indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
-    			}
+				if (proj.CNV_FILENAMES.getValue() == null || proj.CNV_FILENAMES.getValue().length == 0 || indiPheno.getCnvClasses().size() <= proj.CNV_FILENAMES.getValue().length) {
+					for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
+						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+					}
+
+				}
 			}
 			loadValues();
-//			if (regionsList.length == 0 || !Files.exists(regionsList[regionsListIndex], jar)) {
+			// if (regionsList.length == 0 || !Files.exists(regionsList[regionsListIndex], jar)) {
 //				loadCNVsAsRegions();
 //			}
 			if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {

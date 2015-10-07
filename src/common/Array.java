@@ -3553,7 +3553,80 @@ public class Array {
 
 		return subArray(array, use);
 	}
+
+	public static double[] getValuesBetween(double[] array, double min, double max) {
+		ArrayList<Double> tmp = new ArrayList<Double>();
+		for (int i = 0; i < array.length; i++) {
+			if (!Double.isNaN(array[i]) && array[i] > min && array[i] < max) {
+				tmp.add(array[i]);
+			}
+		}
+		return Array.toDoubleArray(tmp);
+	}
+
+	public static int[] getValuesBetween(int[] array, int min, int max, boolean gteLte) {
+		ArrayList<Integer> tmp = new ArrayList<Integer>();
+		for (int i = 0; i < array.length; i++) {
+			if ((array[i] > min && array[i] < max) || (gteLte && array[i] >= min && array[i] <= max)) {
+				tmp.add(array[i]);
+			}
+		}
+		return Array.toIntArray(tmp);
+	}
+
+	/**
+	 * Reverses the entries of the array, first becomes last, etc
+	 */
+	public static String[] reverse(String[] forward) {
+		String[] reverse = new String[forward.length];
+		int index = forward.length - 1;
+		for (int i = 0; i < reverse.length; i++) {
+			reverse[i] = forward[index];
+			index--;
+		}
+		return reverse;
+	}
+
+	/**
+	 * Reverses the entries of the array, first becomes last, etc
+	 */
+	public static int[] reverse(int[] forward) {
+		int[] reverse = new int[forward.length];
+		int index = forward.length - 1;
+		for (int i = 0; i < reverse.length; i++) {
+			reverse[i] = forward[index];
+			index--;
+		}
+		return reverse;
+	}
 	
+	/**
+	 * Reverses the entries of the array, first becomes last, etc
+	 */
+	public static boolean[] reverse(boolean[] forward) {
+		boolean[] reverse = new boolean[forward.length];
+		int index = forward.length - 1;
+		for (int i = 0; i < reverse.length; i++) {
+			reverse[i] = forward[index];
+			index--;
+		}
+		return reverse;
+	}
+
+	/**
+	 * Reverses the entries of the array, first becomes last, etc
+	 */
+	public static double[] reverse(double[] forward) {
+		double[] reverse = new double[forward.length];
+		int index = forward.length - 1;
+		for (int i = 0; i < reverse.length; i++) {
+			reverse[i] = forward[index];
+			index--;
+		}
+		return reverse;
+	}
+	
+
 	/**
 	 * Copies an array exactly
 	 * 
