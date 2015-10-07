@@ -31,6 +31,7 @@ import seq.manage.ReferenceGenome;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.annotation.MarkerSeqAnnotation;
 import cnv.filesys.Project;
+import cnv.gui.BLASTVisualizer.BlastUtils;
 import filesys.Segment;
 
 
@@ -59,6 +60,24 @@ public class BLASTVisualizer {
                 }
             }
             return align;
+        }
+        
+        public static Segment getSegmentForAnnotation(MarkerSeqAnnotation ref, BlastAnnotation annot) {
+            Segment origSeg = annot.getRefLoc();
+            Cigar cig = annot.getCigar();
+            CigarElement cigStart = cig.getCigarElement(0);
+            CigarElement cigStop = cig.getCigarElement(cig.numCigarElements() - 1);
+            
+            int start = origSeg.getStart();
+            if (cigStart.getOperator() == CigarOperator.X) {
+                start -= cigStart.getLength();
+            }
+            int stop = origSeg.getStop();
+            if (cigStop.getOperator() == CigarOperator.X) {
+                stop += cigStop.getLength();
+            }
+            
+            return new Segment(origSeg.getChr(), start, stop);
         }
         
     }
@@ -147,6 +166,14 @@ public class BLASTVisualizer {
                 frame.repaint();
             }
         });
+        frame.setDisplayAlignmentCheckBoxAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.refreshStrandLabels();
+                strandLbl.setText("]" + BLASTVisualizer.this.referenceAnnotation.getStrand().getEncoding() + (frame.shouldDisplayAlignment() ? " | " + proj.ARRAY_TYPE.getValue().getProbeLength() : "") + "[");
+            }
+        });
 
         frame.getScrollPane().setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         frame.getScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -161,6 +188,9 @@ public class BLASTVisualizer {
         this.annotations = annotations;
         this.referenceGenome = refGen;
         
+
+        BlastLabel.spaces = new TreeSet<Integer>();
+        BlastLabel.spaceSets = new TreeMap<Integer, Integer>();
         bLabels = new ArrayList<BlastLabel>();
         sorted = new ArrayList<BlastLabel>();
         for (BlastAnnotation annot : this.annotations) {
@@ -189,36 +219,16 @@ public class BLASTVisualizer {
                     frame.addBlastLabel(lbl);
                 }
                 refLabel.setText(BLASTVisualizer.this.referenceAnnotation.getSequence());
-                strandLbl.setText("]" + BLASTVisualizer.this.referenceAnnotation.getStrand().getEncoding() + "[");
+                strandLbl.setText("]" + BLASTVisualizer.this.referenceAnnotation.getStrand().getEncoding() + (frame.shouldDisplayAlignment() ? " | " + proj.ARRAY_TYPE.getValue().getProbeLength() : "") + "[");
                 locationLbl.setText("<reference location>");
+                frame.revalidate();
+                frame.repaint();
             }
         });
     }
 
     public boolean isVisible() {
         return frame.isVisible();
-    }
-    
-}
-
-class BlastAnnotationVisualizer {
-    
-    protected static Segment getSegmentForAnnotation(MarkerSeqAnnotation ref, BlastAnnotation annot) {
-        Segment origSeg = annot.getRefLoc();
-        Cigar cig = annot.getCigar();
-        CigarElement cigStart = cig.getCigarElement(0);
-        CigarElement cigStop = cig.getCigarElement(cig.numCigarElements() - 1);
-        
-        int start = origSeg.getStart();
-        if (cigStart.getOperator() == CigarOperator.X) {
-            start -= cigStart.getLength();
-        }
-        int stop = origSeg.getStop();
-        if (cigStop.getOperator() == CigarOperator.X) {
-            stop += cigStop.getLength();
-        }
-        
-        return new Segment(origSeg.getChr(), start, stop);
     }
     
 }
@@ -323,6 +333,11 @@ class BlastLabel extends JLabel {
     private TreeMap<Integer, Integer> mySpaceSets = new TreeMap<Integer, Integer>();
     boolean strandFlipped = false;
     ArrayList<CigarSeq> seqParts = new ArrayList<CigarSeq>();
+    private int alignmentCount;
+    
+    int getAlignment() {
+        return alignmentCount;
+    }
     
     Strand getStrand() {
         return myAnnotation.getStrand();
@@ -333,7 +348,8 @@ class BlastLabel extends JLabel {
         this.refSeq = ref;
         this.myAnnotation = annot;
         this.strandFlipped = ref.getStrand() != annot.getStrand();
-        this.fullSegment = BlastAnnotationVisualizer.getSegmentForAnnotation(ref, annot);
+        this.fullSegment = BlastUtils.getSegmentForAnnotation(ref, annot);
+        this.alignmentCount = BlastUtils.countAlignment(annot);
         if (refGen != null) {
             String[] seqArr = refGen.getSequenceFor(this.fullSegment);
             if (seqArr != null) {
@@ -431,38 +447,58 @@ class BlastLabel extends JLabel {
                 boolean strike = diff && read && !ref;
                 int tempX = baseX;
                 for (int c = strandFlipped ? cs.elemSeq.length() - 1 : 0; strandFlipped ? c >= 0 : c < cs.elemSeq.length(); c += strandFlipped ? -1 : 1) {
-                    if (expanded) {
-                        if (mySpaces.contains(charInd - addedSpaces)) {
-                            mySpacesCnt++;
-                        } else {
-                            if (spaces.contains(charInd - mySpacesCnt) && !mySpaces.contains(charInd - mySpacesCnt)) {
-                                Color col = g.getColor();
-                                g.setColor(Color.BLACK);
-
-                                g.drawString("-", baseX, h);
-                                baseX += CHAR_PADDING;
-                                baseX += fm.charWidth('-');
-                                tempX = baseX;
-
-                                charInd++;
-                                addedSpaces++;
-                                buildup++;
-                                c += strandFlipped ? 1 : -1;
-
-                                g.setColor(col);
-                                continue;
-                            }
-                            if (buildup > 0) {
-                                for (int j = 0; j < buildup; j++) {
-
-                                    g.drawString(cs.elemSeq.substring(c, c+1), baseX, h);
-                                    baseX += CHAR_PADDING; // char padding
-                                    baseX += fm.charWidth(cs.elemSeq.charAt(c));
-
-                                    charInd++;
-                                }
-                            }
-                        }
+//                    if (expanded) {
+//                        if (mySpaces.contains(charInd - addedSpaces)) {
+//                            mySpacesCnt++;
+//                        } else {
+//                            if (spaces.contains(charInd - mySpacesCnt) && !mySpaces.contains(charInd - mySpacesCnt)) {
+//                                Color col = g.getColor();
+//                                g.setColor(Color.BLACK);
+//
+//                                g.drawString("-", baseX, h);
+//                                baseX += CHAR_PADDING;
+//                                baseX += fm.charWidth('-');
+//                                tempX = baseX;
+//
+//                                charInd++;
+//                                addedSpaces++;
+//                                buildup++;
+//                                c += strandFlipped ? 1 : -1;
+//
+//                                g.setColor(col);
+//                                continue;
+//                            }
+//                            if (buildup > 0) {
+//                                for (int j = 0; j < buildup; j++) {
+//
+//                                    g.drawString(cs.elemSeq.substring(c, c+1), baseX, h);
+//                                    baseX += CHAR_PADDING; // char padding
+//                                    baseX += fm.charWidth(cs.elemSeq.charAt(c));
+//
+//                                    charInd++;
+//                                }
+//                            }
+//                        }
+//                    }
+                    
+                    
+                    if (expanded && !mySpaces.contains(charInd - addedSpaces) && (spaces.contains(charInd - mySpacesCnt) && !mySpaces.contains(charInd - mySpacesCnt))) {
+                        Color col = g.getColor();
+                        g.setColor(Color.BLACK);
+                        
+                        g.drawString("-", baseX, h);
+                        baseX += CHAR_PADDING;
+                        baseX += fm.charWidth('-');
+                        tempX = baseX;
+                        
+                        charInd++;
+                        addedSpaces++;
+                        c += strandFlipped ? 1 : -1;
+                        
+                        g.setColor(col);
+                        continue;
+                    } else if (expanded && mySpaces.contains(charInd - addedSpaces)) {
+                        mySpacesCnt++;
                     }
                     
                     g.drawString(cs.elemSeq.substring(c, c+1), baseX, h);
@@ -470,26 +506,6 @@ class BlastLabel extends JLabel {
                     baseX += fm.charWidth(cs.elemSeq.charAt(c));
 
                     charInd++;
-                    
-//                    if (expanded && !mySpaces.contains(charInd - addedSpaces) && (spaces.contains(charInd - mySpacesCnt) && !mySpaces.contains(charInd - mySpacesCnt))) {
-//                        Color col = g.getColor();
-//                        g.setColor(Color.BLACK);
-//                        
-//                        g.drawString("-", baseX, h);
-//                        baseX += CHAR_PADDING;
-//                        baseX += fm.charWidth('-');
-//                        tempX = baseX;
-//                        
-//                        charInd++;
-//                        addedSpaces++;
-//                        c += strandFlipped ? 1 : -1;
-//                        
-//                        g.setColor(col);
-//                        continue;
-//                    } else if (expanded && mySpaces.contains(charInd - addedSpaces)) {
-//                        mySpacesCnt++;
-//                    }
-//                    
 //                    if (expanded) {
 //                        
 //                        if (spaceSets.containsKey(Integer.valueOf(charInd - addedSpaces)) && !mySpaceSets.containsKey(Integer.valueOf(charInd - addedSpaces))) {
