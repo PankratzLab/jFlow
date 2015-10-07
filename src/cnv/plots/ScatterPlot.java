@@ -3208,7 +3208,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         typeLabel.setFont(new Font("Arial", 0, 14));
         blastPanel.add(typeLabel, "cell 0 1");
 //        typeLabel = new JLabel(" " + blastResult.getNumOffTarget(log), JLabel.LEFT);
-        typeLabel = new JLabel(" " + BLASTVisualizer.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log)));
+        typeLabel = new JLabel(" " + BLASTVisualizer.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log)).size());
         typeLabel.setFont(new Font("Arial", 0, 14));
         blastPanel.add(typeLabel, "cell 1 1");
 	    

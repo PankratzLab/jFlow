@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
+import java.util.HashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -36,6 +37,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     private JCheckBox chckbxSortByLocation;
     private JSeparator separator_1;
     private JCheckBox chckbxPinToFront;
+    HashMap<BlastLabel, JLabel> alignCntLblMap = new HashMap<BlastLabel, JLabel>();
+    private JCheckBox chckbxDisplayAlignmentMatch;
     
     public void addBlastLabel(BlastLabel lbl) {
         JLabel locLbl = new JLabel();
@@ -46,9 +49,16 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         JLabel strandLbl = new JLabel();
         strandLbl.setText("]" + lbl.getStrand().getEncoding() + "[");
         strandLbl.setFont(lblFont);
+        alignCntLblMap.put(lbl, strandLbl);
         this.blastPanel.add(strandLbl, "cell 1 " + rowCnt);
         this.blastPanel.add(lbl, "grow, cell 2 " + rowCnt);
         rowCnt++;
+    }
+    void refreshStrandLabels() {
+        boolean showMatch = chckbxDisplayAlignmentMatch.isSelected();
+        for (java.util.Map.Entry<BlastLabel, JLabel> strandEntry : alignCntLblMap.entrySet()) {
+            strandEntry.getValue().setText("]" + strandEntry.getKey().getStrand().getEncoding() + (showMatch ? " | " + strandEntry.getKey().getAlignment() : "") + "[");
+        }
     }
     public void clearLabels() {
         this.blastPanel.removeAll();
@@ -56,7 +66,9 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     public JScrollPane getScrollPane() {
         return scrollPane;
     }
-    
+    public boolean shouldDisplayAlignment() {
+        return chckbxDisplayAlignmentMatch.isSelected();
+    }
     public JSpinner getSpinner() {
         return spnFontSize;
     }
@@ -73,18 +85,20 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         this.chckbxSortByLocation.setAction(act);
         this.chckbxSortByLocation.setText(text);
     }
+    public void setDisplayAlignmentCheckBoxAction(AbstractAction act) {
+        String text = this.chckbxDisplayAlignmentMatch.getText();
+        this.chckbxDisplayAlignmentMatch.setAction(act);
+        this.chckbxDisplayAlignmentMatch.setText(text);
+    }
     
-    public void windowGainedFocus(WindowEvent e){}
-    public void windowLostFocus(WindowEvent e)
-    {
-        if(e.getNewState() != WindowEvent.WINDOW_CLOSED && chckbxPinToFront != null && chckbxPinToFront.isSelected()){
-            // TODO experiment:
-//            toFront();
-//            requestFocus();
-//            setAlwaysOnTop(false);
-//            setAlwaysOnTop(true);
-//            requestFocusInWindow();
-//            System.out.println("focus lost");
+    public void windowGainedFocus(WindowEvent e) {}
+    public void windowLostFocus(WindowEvent e) {
+        if(e.getNewState() != WindowEvent.WINDOW_CLOSED) {
+            if (chckbxPinToFront != null && chckbxPinToFront.isSelected()){
+                setAlwaysOnTop(true);
+            } else {
+                setAlwaysOnTop(false);
+            }
         }
 
     }
@@ -109,7 +123,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         JPanel panel = new JPanel();
         panel.setBorder(null);
         contentPane.add(panel, BorderLayout.SOUTH);
-        panel.setLayout(new MigLayout("", "[133px][][][2px][29px][grow][][]", "[23px]"));
+        panel.setLayout(new MigLayout("", "[133px][][][][2px][29px][grow][][]", "[23px]"));
         
         chckbxExpandBlastResults = new JCheckBox("Expand BLAST Results", checked);
         chckbxExpandBlastResults.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -123,18 +137,21 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         chckbxSortByLocation.setVerticalAlignment(SwingConstants.BOTTOM);
         panel.add(chckbxSortByLocation, "cell 2 0");
         
+        chckbxDisplayAlignmentMatch = new JCheckBox("Display Alignment Match Counts");
+        panel.add(chckbxDisplayAlignmentMatch, "cell 3 0");
+        
         JSeparator separator = new JSeparator();
         separator.setOrientation(SwingConstants.VERTICAL);
-        panel.add(separator, "cell 3 0,alignx left,growy");
+        panel.add(separator, "cell 4 0,alignx left,growy");
         
         spnFontSize = new JSpinner(new SpinnerNumberModel(17, 5, 25, 1));
-        panel.add(spnFontSize, "flowx,cell 4 0,alignx left,aligny center");
+        panel.add(spnFontSize, "flowx,cell 5 0,alignx left,aligny center");
         
         JLabel lblFontSize = new JLabel("Font Size");
-        panel.add(lblFontSize, "cell 4 0");
+        panel.add(lblFontSize, "cell 5 0");
         
         chckbxPinToFront = new JCheckBox("Pin to Front");
-        panel.add(chckbxPinToFront, "cell 6 0");
+        panel.add(chckbxPinToFront, "cell 7 0");
         
         btnClose = new JButton();
         btnClose.setAction(new AbstractAction() {
@@ -146,7 +163,9 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
             }
         });
         btnClose.setText("Close");
-        panel.add(btnClose, "cell 7 0");
+        panel.add(btnClose, "cell 8 0");
+        
+        addWindowFocusListener(this);
     }
     /**
      * Launch the application.
