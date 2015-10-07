@@ -144,9 +144,6 @@ public class CNVCaller {
 					// lrrSd = Array.stdev(getValuesBetween(analysisLrrs, MIN_LRR_MEDIAN_ADJUST, MAX_LRR_MEDIAN_ADJUST)); PennCNV does not update lrr sd here so we wont either
 					break;
 				case SUBSET_TO_ANALYSIS_MARKERS:
-					System.out.println(type + "\tLRR: " + analysisLrrs.length);
-					System.out.println(type + "\tBAF: " + analysisBafs.length);
-
 					if (markersToUse != null) {
 						boolean[] tmpExclude = markersToUse;
 						if (analysisProjectIndices.length != markerSet.getMarkerNames().length) {
@@ -314,7 +311,14 @@ public class CNVCaller {
 				chrCnvsReverse = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs, cnDef, proj.getLog());
 				chrCNVsReverseConsensus = developConsensus(chrCnvs, chrCnvsReverse, positions, proj.getLog());
 				chrCNVsReverseConsensus = PennHmm.scoreCNVsSameChr(pennHmm, chrCNVsReverseConsensus, positions, lrrs, bafs, pfbs, cnDef, proj.getLog());
-
+				// for (int i = 0; i < viterbiResultReverse.getDelta().length; i++) {
+				// System.out.println("FORWARD\t" + Array.toStr(viterbiResult.getDelta()[i]));
+				// System.out.println("BACKWARMathc\t" + Array.toStr(viterbiResultReverse.getDelta()[i]));
+				//
+				// System.out.println("BACKWAR\t" + Array.toStr(viterbiResultReverse.getDelta()[viterbiResultReverse.getDelta().length - 1 - i]));
+				//
+				// }
+				// System.exit(1);
 			}
 			CNVCallResult callResult = new CNVCallResult(chrCnvs, chrCnvsReverse, chrCNVsReverseConsensus);
 			return callResult;
@@ -556,9 +560,7 @@ public class CNVCaller {
 	 *            report more values and warnings to compare with regular penncnv calls
 	 * @return
 	 */
-	public static CNVCallResult callCNVsFor(Project proj, final PennHmm pennHmm, final Sample sample, final GcModel gcModel, final PFB pfb, final MarkerSet markerSet, int[] chrsToCall, boolean callReverse, int numThreads, boolean debugMode) {
-		double[] lrrs = Array.toDoubleArray(sample.getLRRs());
-		double[] bafs = Array.toDoubleArray(sample.getBAFs());
+	public static CNVCallResult callCNVsFor(Project proj, final PennHmm pennHmm, String sample, double[] lrrs, double[] bafs, final GcModel gcModel, final PFB pfb, final MarkerSet markerSet, int[] chrsToCall, boolean callReverse, int numThreads, boolean debugMode) {
 		String[] markerNames = markerSet.getMarkerNames();
 		boolean[] copyNumberDef = Array.booleanArray(markerNames.length, false);
 		ARRAY array = proj.getArrayType();
@@ -578,7 +580,7 @@ public class CNVCaller {
 		for (int i = 0; i < autosomalMarkers.length; i++) {
 			markersToUse[autosomalMarkers[i]] = true;
 		}
-		CNVCallResult cnvs = callCNVsFor(proj, pennHmm, sample.getSampleName(), lrrs, bafs, gcModel, pfb, markerSet, markersToUse, copyNumberDef, chrsToCall, callReverse, numThreads, debugMode);
+		CNVCallResult cnvs = callCNVsFor(proj, pennHmm, sample, lrrs, bafs, gcModel, pfb, markerSet, markersToUse, copyNumberDef, chrsToCall, callReverse, numThreads, debugMode);
 		return cnvs;
 	}
 
@@ -636,7 +638,7 @@ public class CNVCaller {
 				@Override
 				public CNVCallResult call() throws Exception {
 					Sample curSample = proj.getFullSampleFromRandomAccessFile(sample);
-					CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample, gcModelTmp, pfbTmp, markerSet, chrsToCall, callReverse, numSampleThreads, debugMode);
+					CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(), Array.toDoubleArray(curSample.getLRRs()),  Array.toDoubleArray(curSample.getBAFs()), gcModelTmp, pfbTmp, markerSet, chrsToCall, callReverse, numSampleThreads, debugMode);
 					return cnvs;
 				}
 
