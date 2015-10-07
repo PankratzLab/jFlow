@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -21,8 +23,9 @@ import javax.swing.event.ChangeListener;
 
 import net.miginfocom.swing.MigLayout;
 
-public class BlastFrame extends JFrame {
-
+public class BlastFrame extends JFrame implements WindowFocusListener {
+    
+    private static final long serialVersionUID = 1L;
     private JPanel contentPane;
     private JCheckBox chckbxExpandBlastResults;
     private JButton btnClose;
@@ -32,6 +35,7 @@ public class BlastFrame extends JFrame {
     private int rowCnt = 0;
     private JCheckBox chckbxSortByLocation;
     private JSeparator separator_1;
+    private JCheckBox chckbxPinToFront;
     
     public void addBlastLabel(BlastLabel lbl) {
         JLabel locLbl = new JLabel();
@@ -70,13 +74,28 @@ public class BlastFrame extends JFrame {
         this.chckbxSortByLocation.setText(text);
     }
     
+    public void windowGainedFocus(WindowEvent e){}
+    public void windowLostFocus(WindowEvent e)
+    {
+        if(e.getNewState() != WindowEvent.WINDOW_CLOSED && chckbxPinToFront != null && chckbxPinToFront.isSelected()){
+            // TODO experiment:
+//            toFront();
+//            requestFocus();
+//            setAlwaysOnTop(false);
+//            setAlwaysOnTop(true);
+//            requestFocusInWindow();
+//            System.out.println("focus lost");
+        }
+
+    }
+
     
     /**
      * Create the frame.
      */
     public BlastFrame(boolean checked) {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 450, 300);
+        setBounds(100, 100, 900, 800);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(new BorderLayout(0, 0));
@@ -90,7 +109,7 @@ public class BlastFrame extends JFrame {
         JPanel panel = new JPanel();
         panel.setBorder(null);
         contentPane.add(panel, BorderLayout.SOUTH);
-        panel.setLayout(new MigLayout("", "[133px][][][2px][29px][grow][]", "[23px]"));
+        panel.setLayout(new MigLayout("", "[133px][][][2px][29px][grow][][]", "[23px]"));
         
         chckbxExpandBlastResults = new JCheckBox("Expand BLAST Results", checked);
         chckbxExpandBlastResults.setVerticalAlignment(SwingConstants.BOTTOM);
@@ -114,16 +133,20 @@ public class BlastFrame extends JFrame {
         JLabel lblFontSize = new JLabel("Font Size");
         panel.add(lblFontSize, "cell 4 0");
         
+        chckbxPinToFront = new JCheckBox("Pin to Front");
+        panel.add(chckbxPinToFront, "cell 6 0");
+        
         btnClose = new JButton();
         btnClose.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
                 BlastFrame.this.setVisible(false);
-                BlastFrame.this.dispose();
+//                BlastFrame.this.dispose(); // removed for state
             }
         });
         btnClose.setText("Close");
-        panel.add(btnClose, "cell 6 0");
+        panel.add(btnClose, "cell 7 0");
     }
     /**
      * Launch the application.

@@ -21,6 +21,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -69,138 +70,46 @@ public class BLASTVisualizer {
     private JLabel refLabel;
     private ArrayList<BlastLabel> bLabels;
     private ArrayList<BlastLabel> sorted;
+    private BlastFrame frame;
+    private JLabel strandLbl;
+    private JLabel locationLbl;
     
-    public BLASTVisualizer(Project proj, MarkerSeqAnnotation seq, ArrayList<BlastAnnotation> annots, ReferenceGenome refGen) {
+    public BLASTVisualizer(Project proj) {
         this.proj = proj;
-        this.referenceAnnotation = seq;
-        this.annotations = annots;
-        this.referenceGenome = refGen;
+        this.createGUI();
     }
 
 //  chr17:74,783,145-74,785,655
 //  chr17:74,784,671-74,787,181
     
-    public void run() {
-        
-        System.out.println();
-        String direc = referenceAnnotation.getStrand() == Strand.NEGATIVE ? "-" : "+";
-        System.out.println(referenceAnnotation.getSequence() + "\t]" + direc + "[\t");
-        
-        final BlastFrame frame = new BlastFrame(BlastLabel.expanded);
-        
-        bLabels = new ArrayList<BlastLabel>();
-        sorted = new ArrayList<BlastLabel>();
-        for (BlastAnnotation annot : annotations) {
-            BlastLabel lbl = BlastAnnotationVisualizer.processAnnotation(referenceAnnotation, annot, referenceGenome);
-//            if (lbl.strandFlipped) continue;
-            bLabels.add(lbl);
-            sorted.add(lbl);
+    public void setVisible(boolean visible) {
+        if (frame != null) {
+            this.frame.setVisible(visible);
         }
-        Collections.sort(sorted, new Comparator<BlastLabel>() {
-            @Override
-            public int compare(BlastLabel arg0, BlastLabel arg1) {
-                int res1 = (new Byte(arg0.fullSegment.getChr())).compareTo(new Byte(arg1.fullSegment.getChr()));
-                if (res1 != 0) return res1;
-                res1 = (new Integer(arg0.fullSegment.getStart())).compareTo(new Integer(arg1.fullSegment.getStart()));
-                if (res1 != 0) return res1;
-                res1 = (new Integer(arg0.fullSegment.getStop())).compareTo(new Integer(arg1.fullSegment.getStop()));
-                return res1;
-            }
-        });
+    }
+    
+    public void createGUI() {
+        frame = new BlastFrame(BlastLabel.expanded);
         
-        refLabel = new JLabel() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                FontMetrics fm = this.getFontMetrics(this.getFont());
-                int h = fm.getAscent();
-                g.setColor(Color.BLACK);
-                int baseX = 0;
-
-                String txt = this.getText();
-                int charInd = 0;
-                int added = 0;
-                for (int c = 0; c < txt.length(); c++) {
-
-                    if (BlastLabel.expanded) {
-
-                        if (BlastLabel.spaceSets.containsKey(charInd) && added == 0) {
-                            int len = BlastLabel.spaceSets.get(charInd);
-//                            System.out.println(len);
-                            for (int i = 0; i < len; i++) {
-                                g.drawString("-", baseX, h);
-                                baseX += BlastLabel.CHAR_PADDING; // char padding
-                                baseX += fm.charWidth('-');
-                                charInd++;
-                            }
-                            added += len;
-                            c--;
-                            continue;
-                        }
-
-                        g.drawString(txt.substring(c, c + 1), baseX, h);
-                        baseX += BlastLabel.CHAR_PADDING; // char padding
-                        baseX += fm.charWidth(txt.charAt(c));
-                        if (added > 0) {
-                            added--;
-                        } else {
-                            charInd++;
-                        }
-
-                    } else {
-                        g.drawString(txt.substring(c, c + 1), baseX, h);
-                        baseX += BlastLabel.CHAR_PADDING; // char padding
-                        baseX += fm.charWidth(txt.charAt(c));
-                    }
-
-                    // if (BlastLabel.expanded && BlastLabel.spacescontains(charInd)) {
-                    // g.drawString("-", baseX, h);
-                    // baseX += BlastLabel.CHAR_PADDING; // char padding
-                    // baseX += fm.charWidth('-');
-                    // charInd++;
-                    // c--;
-                    // continue;
-                    // }
-                    //
-                    //
-                    // g.drawString(txt.substring(c, c+1), baseX, h);
-                    // baseX += BlastLabel.CHAR_PADDING; // char padding
-                    // baseX += fm.charWidth(txt.charAt(c));
-                    // charInd++;
-
-                }
-
-            }
-        };
+        refLabel = new ReferenceLabel();
 //        indexLabel.setFont(BlastLabel.LBL_FONT);
 //        indexLabel.setText(referenceAnnotation.getSequence());
-        refLabel.setFont(BlastLabel.LBL_FONT);
         BlastLabel.setRefLabel(refLabel);
-        refLabel.setText(referenceAnnotation.getSequence());
 //        JPanel panel = new JPanel(new GridLayout(2, 1));
 //        panel.add(indexLabel);
 //        panel.add(refLabel);
 //        jsp.setColumnHeaderView(panel);
         JPanel hdrPanel = new JPanel(new MigLayout("", "[200px][20px][grow]", ""));
         hdrPanel.setBorder(null);
-        JLabel locLbl = new JLabel();
-        locLbl.setText("<reference location>");
+        locationLbl = new JLabel();
         Font lblFont = Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
-        locLbl.setFont(lblFont);
-        hdrPanel.add(locLbl, "cell 0 0");
-        JLabel strandLbl = new JLabel();
-        strandLbl.setText("]" + referenceAnnotation.getStrand().getEncoding() + "[");
+        locationLbl.setFont(lblFont);
+        hdrPanel.add(locationLbl, "cell 0 0");
+        strandLbl = new JLabel();
         strandLbl.setFont(lblFont);
         hdrPanel.add(strandLbl, "cell 1 0");
         hdrPanel.add(refLabel, "grow, cell 2 0");
         frame.getScrollPane().setColumnHeaderView(hdrPanel);
-        
-        for (BlastLabel lbl : bLabels) {
-//            if (lbl.strandFlipped) {
-                frame.addBlastLabel(lbl);
-//            }
-        }
         
         frame.setSpinnerAction(new ChangeListener() {
             @Override
@@ -238,40 +147,61 @@ public class BLASTVisualizer {
                 frame.repaint();
             }
         });
-        
+
         frame.getScrollPane().setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         frame.getScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-//        frame.add(jsp);
-        frame.pack();
+//        frame.pack();
         frame.setBounds(100, 100, 900, 800);
-        frame.setVisible(true);
+//        frame.setVisible(true);
         
+    }
+
+    public void setAnnotations(MarkerSeqAnnotation referenceAnnotation, ArrayList<BlastAnnotation> annotations, ReferenceGenome refGen) {
+        this.referenceAnnotation = referenceAnnotation;
+        this.annotations = annotations;
+        this.referenceGenome = refGen;
+        
+        bLabels = new ArrayList<BlastLabel>();
+        sorted = new ArrayList<BlastLabel>();
+        for (BlastAnnotation annot : this.annotations) {
+            BlastLabel lbl = new BlastLabel(referenceAnnotation, annot, referenceGenome);
+    //            if (lbl.strandFlipped) continue;
+            bLabels.add(lbl);
+            sorted.add(lbl);
+        }
+        Collections.sort(sorted, new Comparator<BlastLabel>() {
+            @Override
+            public int compare(BlastLabel arg0, BlastLabel arg1) {
+                int res1 = (new Byte(arg0.fullSegment.getChr())).compareTo(new Byte(arg1.fullSegment.getChr()));
+                if (res1 != 0) return res1;
+                res1 = (new Integer(arg0.fullSegment.getStart())).compareTo(new Integer(arg1.fullSegment.getStart()));
+                if (res1 != 0) return res1;
+                res1 = (new Integer(arg0.fullSegment.getStop())).compareTo(new Integer(arg1.fullSegment.getStop()));
+                return res1;
+            }
+        });
+        
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                frame.clearLabels();
+                for (BlastLabel lbl : bLabels) {
+                    frame.addBlastLabel(lbl);
+                }
+                refLabel.setText(BLASTVisualizer.this.referenceAnnotation.getSequence());
+                strandLbl.setText("]" + BLASTVisualizer.this.referenceAnnotation.getStrand().getEncoding() + "[");
+                locationLbl.setText("<reference location>");
+            }
+        });
+    }
+
+    public boolean isVisible() {
+        return frame.isVisible();
     }
     
 }
 
 class BlastAnnotationVisualizer {
-    
-    public static BlastLabel processAnnotation(MarkerSeqAnnotation ref, BlastAnnotation annotation, ReferenceGenome refGen) {
-        
-        if (refGen != null) {
-            Segment seg = getSegmentForAnnotation(ref, annotation);
-            String[] seqArr = refGen.getSequenceFor(seg);
-            if (seqArr != null) {
-                String seq = Array.toStr(seqArr, "");
-                if (ref.getStrand() != annotation.getStrand()) { 
-                    seq = (new StringBuilder(seq)).reverse().toString();
-                }
-                String direc = annotation.getStrand() == Strand.NEGATIVE ? "-" : "+";
-//                if (annotation.getStrand() == ref.getStrand()) {
-//                    System.out.println(seq  + "\t]" + direc + "[\t" + annotation.getCigar().toString() + "\t" + seg.getUCSClocation());
-//                }
-            }
-        }
-        
-        BlastLabel label = new BlastLabel(ref, annotation, refGen);
-        return label;
-    }
     
     protected static Segment getSegmentForAnnotation(MarkerSeqAnnotation ref, BlastAnnotation annot) {
         Segment origSeg = annot.getRefLoc();
@@ -293,7 +223,75 @@ class BlastAnnotationVisualizer {
     
 }
 
+class ReferenceLabel extends JLabel {
+    
+    private static final long serialVersionUID = 1L;
+    
+    public ReferenceLabel() {
+        setFont(BlastLabel.LBL_FONT);
+    }
+    
+    @Override
+    protected void paintComponent(Graphics g) {
+        FontMetrics fm = this.getFontMetrics(this.getFont());
+        int h = fm.getAscent();
+        g.setColor(Color.BLACK);
+        int baseX = 0;
 
+        String txt = this.getText();
+        int charInd = 0;
+        int added = 0;
+        for (int c = 0; c < txt.length(); c++) {
+
+            if (BlastLabel.expanded) {
+
+                if (BlastLabel.spaceSets.containsKey(charInd) && added == 0) {
+                    int len = BlastLabel.spaceSets.get(charInd);
+                    for (int i = 0; i < len; i++) {
+                        g.drawString("-", baseX, h);
+                        baseX += BlastLabel.CHAR_PADDING; // char padding
+                        baseX += fm.charWidth('-');
+                        charInd++;
+                    }
+                    added += len;
+                    c--;
+                    continue;
+                }
+
+                g.drawString(txt.substring(c, c + 1), baseX, h);
+                baseX += BlastLabel.CHAR_PADDING; // char padding
+                baseX += fm.charWidth(txt.charAt(c));
+                if (added > 0) {
+                    added--;
+                } else {
+                    charInd++;
+                }
+
+            } else {
+                g.drawString(txt.substring(c, c + 1), baseX, h);
+                baseX += BlastLabel.CHAR_PADDING; // char padding
+                baseX += fm.charWidth(txt.charAt(c));
+            }
+
+            // if (BlastLabel.expanded && BlastLabel.spacescontains(charInd)) {
+            // g.drawString("-", baseX, h);
+            // baseX += BlastLabel.CHAR_PADDING; // char padding
+            // baseX += fm.charWidth('-');
+            // charInd++;
+            // c--;
+            // continue;
+            // }
+            //
+            //
+            // g.drawString(txt.substring(c, c+1), baseX, h);
+            // baseX += BlastLabel.CHAR_PADDING; // char padding
+            // baseX += fm.charWidth(txt.charAt(c));
+            // charInd++;
+
+        }
+
+    }
+}
 
 class BlastLabel extends JLabel {
     

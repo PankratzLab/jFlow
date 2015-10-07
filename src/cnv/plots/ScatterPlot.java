@@ -242,6 +242,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private ReferenceGenome referenceGenome = null;
 	
 	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
+    private BLASTVisualizer blastViz;
 
     public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList, boolean exitOnClose) {
 		super("Genvisis - ScatterPlot - " + project.getNameOfProject());
@@ -2243,6 +2244,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		setCurrentClusterFilter();
 		updateBLASTPanel();
 		updateGUI();
+		if (blastViz != null && blastViz.isVisible()) {
+		    ArrayList<BlastAnnotation> annotations = BLASTVisualizer.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
+		    blastViz.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
+		}
 		displayClusterFilterIndex();
 //		long t3 = System.currentTimeMillis();
 //		System.out.println("Updated: ");
@@ -2392,8 +2397,16 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		    }
 	    } else if (command.equals(BLAST_DETAILS_COMMAND)) {
 	        ArrayList<BlastAnnotation> annotations = BLASTVisualizer.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
-	        BLASTVisualizer bv = new BLASTVisualizer(proj, blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
-	        bv.run();
+	        if (blastViz == null) {
+	            blastViz = new BLASTVisualizer(proj);
+	        }
+	        blastViz.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
+	        SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    blastViz.setVisible(true);
+                }
+            });
 	    } else {
 			log.reportError("Error - unknown command '"+command+"'");
 		}
