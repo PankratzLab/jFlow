@@ -71,7 +71,7 @@ public class IndiPheno {
 	    
         Hashtable<String,CNVariant[]> hash;
 	
-		if (cnvClass > cnvClasses.size()) {
+		if (cnvClass >= cnvClasses.size()) {
 			System.err.println("Error - specified cnvClass was greater than total number of cnvClasses");
 			return null;
 		}

@@ -465,7 +465,7 @@ public class PennHmm {
 		 *            Copy number normal
 		 * @return
 		 */
-		public LocusSet<CNVariant> analyzeStateSequence(Project proj, String fid, String iid, byte currentChr, int[] positions, String[] names, int normalState, boolean verbose) {
+		public LocusSet<CNVariant> analyzeStateSequence(Project proj, String fid, String iid, byte currentChr, int[] positions, String[] names, int normalState,boolean reverse, boolean verbose) {
 			CNVariant.Builder builder = new Builder();
 			builder.familyID(fid);
 			builder.individualID(iid);
@@ -478,9 +478,13 @@ public class PennHmm {
 			} else {
 				boolean foundSignal = false;
 				int currentFind = 2;
-				for (int i = 0; i < q.length; i++) {
+				int[] states = q;
+				if(reverse){
+					states=Array.reverse(states);
+				}
+				for (int i = 0; i < states.length; i++) {
 
-					int currentCN = q[i];
+					int currentCN = states[i];
 					if (currentCN == 3) {
 						currentCN = 100;
 					}
@@ -742,7 +746,7 @@ public class PennHmm {
 			// System.out.println(builder.build().toPlinkFormat());
 			// }
 		}
-		LocusSet<CNVariant> locusSetScored = new LocusSet<CNVariant>(scored, true, log) {
+		LocusSet<CNVariant> locusSetScored = new LocusSet<CNVariant>(scored.toArray(new CNVariant[scored.size()]), true, log) {
 
 			/**
 			 * 
