@@ -28,6 +28,7 @@ import javax.swing.event.CaretListener;
 import common.Array;
 import common.Files;
 import common.ext;
+import cnv.filesys.FinalReportHeaderData;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.MitoPipeline;
@@ -46,7 +47,6 @@ public class ProjectCreationGUI extends JDialog {
     private JTextField txtFldProjDir;
     private JTextField txtFldSrcDir;
     private JTextField txtFldSrcExt;
-    private JTextField txtFldIDHdr;
     private JTextField txtFldTgtMkrs;
     private JSpinner spinnerLrrSd;
     private Project proj;
@@ -113,9 +113,11 @@ public class ProjectCreationGUI extends JDialog {
             
         }
     };
+    
     private JComboBox<Project.ARRAY> comboBoxArrayType;
 //    private JComboBox<String> comboBoxArrayType;
     private JLabel lblSrcFileStatus;
+//    private JButton btnValidateSourceFiles;
 
     /**
      * Launch the application.
@@ -191,21 +193,20 @@ public class ProjectCreationGUI extends JDialog {
         contentPane.add(txtFldSrcExt, "cell 2 7,growx");
         txtFldSrcExt.setColumns(10);
         
-        JLabel lblIdHeader = new JLabel("ID Header:");
-        contentPane.add(lblIdHeader, "cell 0 8,alignx trailing");
-        
-        txtFldIDHdr = new JTextField(proj.ID_HEADER.getDefaultValueString());
-        txtFldIDHdr.addCaretListener(checkSource);
-        contentPane.add(txtFldIDHdr, "cell 2 8,growx");
-        txtFldIDHdr.setColumns(10);
-        
         JLabel lblArrayType = new JLabel("Array Type:");
-        contentPane.add(lblArrayType, "cell 0 9,alignx trailing");
+        contentPane.add(lblArrayType, "cell 0 8,alignx trailing");
         
         comboBoxArrayType = new JComboBox<Project.ARRAY>(Project.ARRAY.values());
 //        comboBoxArrayType = new JComboBox<String>();
         comboBoxArrayType.setFont(comboBoxArrayType.getFont().deriveFont(Font.PLAIN));
-        contentPane.add(comboBoxArrayType, "cell 2 9,growx");
+        contentPane.add(comboBoxArrayType, "cell 2 8,growx");
+        
+//        btnValidateSourceFiles = new JButton("Validate Source Files");
+//        btnValidateSourceFiles.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent arg0) {
+//            }
+//        });
+//        contentPane.add(btnValidateSourceFiles, "cell 2 9,alignx right");
         
         lblSrcFileStatus = new JLabel("");
         contentPane.add(lblSrcFileStatus, "cell 2 10,alignx right,aligny top");
@@ -250,7 +251,7 @@ public class ProjectCreationGUI extends JDialog {
         contentPane.add(panel, "south");
         panel.setLayout(new MigLayout("", "[grow][]", "[]"));
         
-        JButton btnCreate = new JButton("Create");
+        JButton btnCreate = new JButton("Validate and Create");
         btnCreate.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (checkValues()) {
@@ -279,7 +280,7 @@ public class ProjectCreationGUI extends JDialog {
         String projDir = txtFldProjDir.getText().trim();
         String srcDir = txtFldSrcDir.getText().trim();
         String srcExt = txtFldSrcExt.getText().trim();
-        String idHdr = txtFldIDHdr.getText().trim();
+//        String idHdr = txtFldIDHdr.getText().trim();
 //        double lrrSd = ((Double)spinnerLrrSd.getValue()).doubleValue();
         String tgtMkrs = txtFldTgtMkrs.getText().trim();
 
@@ -307,7 +308,7 @@ public class ProjectCreationGUI extends JDialog {
                 validProjDir,
                 validSrcDir,
                 !srcExt.equals(""),
-                !idHdr.equals("") ,
+//                !idHdr.equals("") ,
                 validTgtMkrs};//Files.exists(tgtMkrs)};
         
         if (Array.booleanArraySum(checks) < checks.length) {
@@ -328,10 +329,10 @@ public class ProjectCreationGUI extends JDialog {
     private void updateSourceFileNotice() {
         int cnt = getValidSourceFileCount();
         if (cnt <= 0) {
-            lblSrcFileStatus.setText("No valid source files found");
+            lblSrcFileStatus.setText("No source files found");
             lblSrcFileStatus.setForeground(Color.RED);
         } else {
-            lblSrcFileStatus.setText(cnt + " valid source files found");
+            lblSrcFileStatus.setText(cnt + " source file(s) found");
             lblSrcFileStatus.setForeground(Color.GREEN.darker());
         }
         lblSrcFileStatus.setVisible(true);
@@ -385,10 +386,16 @@ public class ProjectCreationGUI extends JDialog {
         String projDir = txtFldProjDir.getText().trim();
         String srcDir = txtFldSrcDir.getText().trim();
         String srcExt = txtFldSrcExt.getText().trim();
-        String idHdr = txtFldIDHdr.getText().trim();
+//        String idHdr = txtFldIDHdr.getText().trim();
         double lrrSd = ((Double)spinnerLrrSd.getValue()).doubleValue();
         String tgtMkrs = txtFldTgtMkrs.getText().trim();
-
+        
+        FinalReportHeaderData exemplarHeaderData = FinalReportHeaderData.validate(srcDir, srcExt, true);
+        if (exemplarHeaderData == null) {
+            // errors found in headers - check output and retry?
+            return false;
+        }
+        
         String path = MitoPipeline.initGenvisisProject();
         File file = new File(projDir);
         
@@ -416,7 +423,7 @@ public class ProjectCreationGUI extends JDialog {
         actualProj.PROJECT_DIRECTORY.setValue(projDir);
         actualProj.SOURCE_DIRECTORY.setValue(srcDir);
         actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);
-        actualProj.ID_HEADER.setValue(idHdr);
+//        actualProj.ID_HEADER.setValue(idHdr);
         actualProj.LRRSD_CUTOFF.setValue(lrrSd);
         actualProj.TARGET_MARKERS_FILENAMES.setValue(new String[]{ext.removeDirectoryInfo(tgtMkrs)});
         actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());
