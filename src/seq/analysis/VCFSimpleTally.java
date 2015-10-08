@@ -92,7 +92,7 @@ public class VCFSimpleTally {
 					if (vcCase.getSampleNames().size() != cases.size()) {
 						throw new IllegalArgumentException("could not find all cases for " + casePop);
 					}
-					if (vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all"))) {
+					if (!vcCase.isMonomorphicInSamples() && vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all"))) {
 						String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
 						error += "\n" + vc.toStringWithoutGenotypes();
 						// throw new IllegalStateException(error);
@@ -132,11 +132,15 @@ public class VCFSimpleTally {
 	public static void test() {
 		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf.gz";
 		String popDir = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/Freq/";
-		String[] vpopsCase = new String[] { popDir + "ALL_CONTROL_EPP.vpop" };
+		String[] vpopsCase = new String[] { popDir + "OSTEO_OFF.vpop" };
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
-		double maf = 0.01;
 		int numThreads = 24;
 		for (int i = 0; i < vpopsCase.length; i++) {
+			double maf = 0.01;
+
+			if (vpopsCase[i].endsWith("OSTEO_OFF.vpop")) {
+				maf = 0.001;
+			}
 			String outDir = ext.parseDirectoryOfFile(vpopsCase[i]);
 			new File(outDir).mkdirs();
 			Logger log = new Logger(ext.rootOf(vpopsCase[i], false) + ".log");

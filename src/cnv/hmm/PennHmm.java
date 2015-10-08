@@ -488,10 +488,6 @@ public class PennHmm {
 					if (currentCN == 3) {
 						currentCN = 100;
 					}
-					// if (names[i].equals("rs2232230") || (positions[i] >= 69058613 && positions[i] <= 69147340)) {
-					// System.out.println(q.length+"\t"+q[i] + "\t"+positions[i]+"\t" + currentCN + "\t" + names[i] + "\t" + Array.toStr(delta[i]));
-					//
-					// }
 					if (currentCN != normalState) {// CN 3 denotes LOH.
 						if (currentCN > 3) {
 							currentCN--;
@@ -704,18 +700,6 @@ public class PennHmm {
 
 		for (int i = 0; i < cLocusSet.getLoci().length; i++) {
 			CNVariant current = cLocusSet.getLoci()[i];
-			// Builder builde1r = new Builder(current);
-			// if (current.getStart() == 69143032) {
-			// System.out.println("FOUND IT");
-			// System.exit(1);
-			// }
-			// if (current.getChr() == 16) {
-			// builde1r.cn(0);
-			// builde1r.start(69143032);
-			// builde1r.stop(69147340);
-			// builde1r.numMarkers(5);
-			// }
-			// current = builde1r.build();
 			ArrayList<Integer> indicestmp = new ArrayList<Integer>();
 			for (int j = 0; j < posChr.length; j++) {
 				int pos = posChr[j];
@@ -739,12 +723,6 @@ public class PennHmm {
 			Builder builder = new Builder(current);
 			builder.score(score);
 			scored.add(builder.build());
-			// if (current.getChr() == 16) {
-			// for (int j = 0; j < indices.length; j++) {
-			// System.out.println(indices[j] + "\t" + lrrChr[indices[j]] + "\t" + bafsChr[indices[j]] + "\t" + pfbsChr[indices[j]] + "\t");
-			// }
-			// System.out.println(builder.build().toPlinkFormat());
-			// }
 		}
 		LocusSet<CNVariant> locusSetScored = new LocusSet<CNVariant>(scored.toArray(new CNVariant[scored.size()]), true, log) {
 
