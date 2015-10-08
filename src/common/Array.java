@@ -1643,12 +1643,25 @@ public class Array {
 	 * @return mad of the array
 	 */
 	public static double mad(double[] array) {
+		return mad(array, 1);
+	}
+
+	
+	
+	/**
+	 * Determines the median absolute difference of an array of double
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return mad of the array
+	 */
+	public static double mad(double[] array, double constant ) {
 		double median = (quant(array, 0.50));
 		double[] tmp = new double[array.length];
 		for (int i = 0; i < array.length; i++) {
 			tmp[i] = Math.abs(array[i] - median);
 		}
-		return (quant(tmp, 0.50));
+		return (quant(tmp, 0.50)) * constant;
 	}
 	
 	/**
@@ -1671,6 +1684,72 @@ public class Array {
 	 */
 	public static String toStr(String[] array) {
 		return toStr(array, null, "\t", null);
+	}
+
+	/**
+	 * Computes x[i + lag] - x[i]
+	 */
+	public static double[] Diff(double[] x, int lag)// , uint differences = 1)
+	{
+		double[] diff = new double[x.length - lag];
+		for (int i = lag, j = 0; i < x.length; i++, j++) {
+			diff[j] = x[i] - x[j];
+		}
+		return diff;
+	}
+
+	public static double PartialSumOfPowers(double[] x, double pow, int start, int size) {
+		double sp = 0.0;
+		for (int i = start; i < start + size; i++) {
+			sp += Math.pow(x[i], pow);
+		}
+		return sp;
+	}
+
+	public static int[] CumulativeSum(int[] x) {
+		if (x == null || x.length <= 0) {
+			return null;
+		}
+		int[] cumSum = new int[x.length];
+		cumSum[0] = x[0];
+		for (int i = 1; i < x.length; i++) {
+			cumSum[i] = cumSum[i - 1] + x[i];
+		}
+		return cumSum;
+	}
+	
+	/**
+	 * Computes x[i + lag] - x[i]
+	 */
+	public static int[] Diff(int[] x, int lag)// , uint differences = 1)
+	{
+		int[] diff = new int[x.length - lag];
+		for (int i = lag, j = 0; i < x.length; i++, j++) {
+			diff[j] = x[i] - x[j];
+		}
+		return diff;
+	}
+
+	public static double[] InplaceSub(double[] x, double y) {
+		for (int i = 0; i < x.length; i++) {
+			x[i] -= y;
+		}
+		return x;
+	}
+
+	public static double[] InplaceAbs(double[] x) {
+		for (int i = 0; i < x.length; i++) {
+			x[i] = Math.abs(x[i]);
+		}
+		return x;
+	}
+	public static double WeightedSumOfSquares(double[] x, double[] w) {
+		double wss = 0.0;
+		for (int i = 0; i < x.length; i++) {
+			double wi = (w == null) ? 1.0 : w[i];
+			wss += wi * x[i] * x[i];
+		}
+		return wss;
 	}
 	
 	/**
