@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 
 import common.Array;
 import common.Logger;
+import common.PSF;
 import common.Positions;
 import common.WorkerHive;
 import common.WorkerTrain;
@@ -311,14 +312,6 @@ public class CNVCaller {
 				chrCnvsReverse = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs, cnDef, proj.getLog());
 				chrCNVsReverseConsensus = developConsensus(chrCnvs, chrCnvsReverse, positions, proj.getLog());
 				chrCNVsReverseConsensus = PennHmm.scoreCNVsSameChr(pennHmm, chrCNVsReverseConsensus, positions, lrrs, bafs, pfbs, cnDef, proj.getLog());
-				// for (int i = 0; i < viterbiResultReverse.getDelta().length; i++) {
-				// System.out.println("FORWARD\t" + Array.toStr(viterbiResult.getDelta()[i]));
-				// System.out.println("BACKWARMathc\t" + Array.toStr(viterbiResultReverse.getDelta()[i]));
-				//
-				// System.out.println("BACKWAR\t" + Array.toStr(viterbiResultReverse.getDelta()[viterbiResultReverse.getDelta().length - 1 - i]));
-				//
-				// }
-				// System.exit(1);
 			}
 			CNVCallResult callResult = new CNVCallResult(chrCnvs, chrCnvsReverse, chrCNVsReverseConsensus);
 			return callResult;
@@ -500,7 +493,6 @@ public class CNVCaller {
 	private static DATA_ADJUSTMENTS[] getPennCNVGCProcessingOrder() {
 		ArrayList<DATA_ADJUSTMENTS> da = new ArrayList<CNVCaller.DATA_ADJUSTMENTS>();
 		da.add(DATA_ADJUSTMENTS.HANDLE_NAN);
-		// da.add(DATA_ADJUSTMENTS.ROUND_TO_PENNCNV_SIG_FIGS);
 		da.add(DATA_ADJUSTMENTS.GC_ADJUST);
 		da.add(DATA_ADJUSTMENTS.SUBSET_TO_ANALYSIS_MARKERS);
 		da.add(DATA_ADJUSTMENTS.MEDIAN_ADJUST);
@@ -515,17 +507,12 @@ public class CNVCaller {
 	private static DATA_ADJUSTMENTS[] getPennCNVProcessingOrder() {
 		ArrayList<DATA_ADJUSTMENTS> da = new ArrayList<CNVCaller.DATA_ADJUSTMENTS>();
 		da.add(DATA_ADJUSTMENTS.HANDLE_NAN);
-		// da.add(DATA_ADJUSTMENTS.ROUND_TO_PENNCNV_SIG_FIGS);
 		da.add(DATA_ADJUSTMENTS.SUBSET_TO_ANALYSIS_MARKERS);
 		da.add(DATA_ADJUSTMENTS.MEDIAN_ADJUST);
-		// da.add(DATA_ADJUSTMENTS.ROUND_TO_PENNCNV_SIG_FIGS);
 		da.add(DATA_ADJUSTMENTS.ADJUST_HMM_SD);
-		// da.add(DATA_ADJUSTMENTS.ROUND_TO_PENNCNV_SIG_FIGS);
 
 		return da.toArray(new DATA_ADJUSTMENTS[da.size()]);
 	}
-
-	// public CNVCaller(Project proj, String dna, PennHmm pennHmm, GcModel gcModel, PFB pfb, DATA_ADJUSTMENTS[] dataAdjustments, MarkerSet markerSet, boolean[] markersToUse, boolean[] copyNumberDef, double[] lrrs, double[] bafs, boolean debugMode) {
 
 	private static CNVCallResult callCNVsFor(Project proj, PennHmm pennHmm, String sampleName, double[] sampLrrs, double[] sampBafs, GcModel gcModel, PFB pfb, MarkerSet markerSet, boolean[] markersToUse, boolean[] copyNumberDef, int[] chrsToCall, boolean callReverse, int numThreads, boolean debugMode) {
 		DATA_ADJUSTMENTS[] dAdjustments = null;
@@ -638,7 +625,7 @@ public class CNVCaller {
 				@Override
 				public CNVCallResult call() throws Exception {
 					Sample curSample = proj.getFullSampleFromRandomAccessFile(sample);
-					CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(), Array.toDoubleArray(curSample.getLRRs()),  Array.toDoubleArray(curSample.getBAFs()), gcModelTmp, pfbTmp, markerSet, chrsToCall, callReverse, numSampleThreads, debugMode);
+					CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(), Array.toDoubleArray(curSample.getLRRs()), Array.toDoubleArray(curSample.getBAFs()), gcModelTmp, pfbTmp, markerSet, chrsToCall, callReverse, numSampleThreads, debugMode);
 					return cnvs;
 				}
 
@@ -649,15 +636,62 @@ public class CNVCaller {
 
 		@Override
 		public void shutdown() {
-			// TODO Auto-generated method stub
 
 		}
 	}
 
+	/**
+	 * @param proj
+	 * @param output
+	 * @param numSampleThreads
+	 *            number of samples analyzed at once.
+	 * @param numChrThreads
+	 *            number of chromosomes in each sample analyzed at once
+	 * 
+	 *            NOTE: total thread usage is numSampleThreads*numChrThreads
+	 */
+	public static void callCNVs(Project proj, String output, int numSampleThreads, int numChrThreads) {
+		output = proj.PROJECT_DIRECTORY.getValue() + output;
+		proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
+		PennHmm pennHmmOriginal = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), new Logger());
+		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
+		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
+		if (gcModel == null) {
+			proj.getLog().reportTimeWarning("Calling cnvs without gc correction");
+		}
+		String[] samples = proj.getSamples();
+		CNVProducer producer = new CNVProducer(proj, pennHmmOriginal, gcModel, pfb, samples, null, numChrThreads, false, true);
+		WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numSampleThreads, 2, proj.getLog());
+		ArrayList<CNVariant> allCNVs = new ArrayList<CNVariant>();
+
+		int index = 0;
+		while (train.hasNext()) {
+			index++;
+			try {
+				train.next().getChrCNVs().addAll(allCNVs);
+			} catch (Exception e) {
+				proj.getLog().reportTimeError("encountered problems calling cnvs for sample " + index + "\t" + samples[index]);
+			}
+			proj.getLog().reportTimeInfo("Called CNVs for" + index + " samples");
+
+		}
+		LocusSet<CNVariant> finalSet = new LocusSet<CNVariant>(allCNVs.toArray(new CNVariant[allCNVs.size()]), true, proj.getLog()) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+
+		finalSet.writeRegions(proj.PROJECT_DIRECTORY.getValue() + output, TO_STRING_TYPE.REGULAR, true, proj.getLog());
+
+	}
+
 	public static void test() {
-		String filename = "/home/pankrat2/public/bin/lib/hhall.hmm";
 		Project proj = new Project("/home/pankrat2/lanej/projects/OSv2_hg19.properties", false);
-		PennHmm pennHmmOriginal = PennHmm.loadPennHmm(filename, new Logger());
+		String hmm = proj.HMM_FILENAME.getValue();
+		PennHmm pennHmmOriginal = PennHmm.loadPennHmm(hmm, new Logger());
 		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
 		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
 		int numThreads = 1;
@@ -694,7 +728,44 @@ public class CNVCaller {
 	}
 
 	public static void main(String[] args) {
-		test();
+		int numArgs = args.length;
+		String filename = null;
+		String output = "genvisis.cnvs";
+		int numThreads = 24;
+
+		String usage = "\n" + "cnv.hmm.CNVCaller requires 0-1 arguments\n";
+		usage += "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
+		usage += "   (2) output file (relative to project directory) (i.e. out=" + filename + " (default))\n" + "";
+		usage += PSF.Ext.getNumThreadsCommand(3, numThreads);
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("proj=")) {
+				filename = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("out=")) {
+				output = ext.parseStringArg(args[i], "");
+
+				numArgs--;
+			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numThreads = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			Project proj = new Project(filename, false);
+			callCNVs(proj, output, numThreads, 1);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }
