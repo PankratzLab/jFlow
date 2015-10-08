@@ -4,42 +4,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.HashMap;
 
 import common.Elision;
 import common.Files;
 import common.ext;
 
-public class FinalReportHeader {
-    
-    public static void validate(final String dir, final String ext) {
-        String[] possibleFiles = (new File(dir)).list(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith(ext);
-            }
-        });
-        
-        boolean valid = false;
-        try {
-            for (String possFile : possibleFiles) {
-                FinalReportHeaderData.parseHeader(possFile);
-            }
-            valid = true;
-        } catch (Elision e) {
-            // TODO error, final report file malformed!
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO error reading file report file
-            e.printStackTrace();
-        }
-        
-    }
-    
-    
-    
-}
-
-class FinalReportHeaderData {
+public class FinalReportHeaderData {
     String gsgtVersion = null;
     String processingDate = null;
     String content = null;
@@ -79,7 +50,7 @@ class FinalReportHeaderData {
             throw new Elision(file);
         }
         String line = null;
-        int lineCnt = 0;
+        int lineCnt = 1;
         FinalReportHeaderData frhd = new FinalReportHeaderData();
         while ((line = reader.readLine()) != null && !"[Data]".equals(line) && !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP"))) {
             String[] parts = line.trim().split(",");
@@ -94,6 +65,7 @@ class FinalReportHeaderData {
         reader.close(); // done
         parseColumnsBestGuess(columnHeaders.split("[\\s]*,[\\s]*"), frhd); // TODO double check regex for consuming whitespace padding
         frhd.headerString = columnHeaders;
+        frhd.headerLineIndex = lineCnt + 1;
         return frhd;
     }
 
@@ -210,4 +182,85 @@ class FinalReportHeaderData {
         }
     }
     
+    public static FinalReportHeaderData validate(final String dir, final String ext, boolean fullValidation) {
+        String[] possibleFiles = (new File(dir)).list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(ext);
+            }
+        });
+        
+        boolean valid = false;
+        FinalReportHeaderData returnValue = null;
+        try {
+            HashMap<String, FinalReportHeaderData> headers = null;
+            if (fullValidation) {
+                headers = new HashMap<String, FinalReportHeaderData>();
+            }
+            for (String possFile : possibleFiles) {
+                FinalReportHeaderData frhd = FinalReportHeaderData.parseHeader(dir + possFile);
+                if (returnValue == null) {
+                    returnValue = frhd;
+                }
+                if (fullValidation) {
+                    headers.put(possFile, frhd);
+                }
+            }
+            if (fullValidation) {
+                doFullValidation(headers);
+            }
+            valid = true;
+        } catch (Elision e) {
+            // TODO error, final report file malformed!
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO error reading file report file
+            e.printStackTrace();
+        }
+        
+        return valid ? returnValue : null;
+    }
+    
+    private static void doFullValidation(HashMap<String, FinalReportHeaderData> headers) {
+        int cnt = headers.size();
+        for (java.util.Map.Entry<String, FinalReportHeaderData> entry : headers.entrySet()) {
+            
+        }
+        // TODO verify all headers are the same - #s are all equal, etc
+    }
+    
+    public static void main(String[] args) {
+        int numArgs = args.length;
+        String dir = "D:/data/ny_registry/gedi_gwas/00src/";//null;
+        String ext = ".csv.gz";
+
+        String usage = "\n" + 
+                       "cnv.filesys.FinalReportHeaderData requires 2 argument\n" + 
+                       "   (1) Directory of FinalReport files (i.e. dir=" + dir + " (default))\n" + 
+                       "   (2) Extension of FinalReport files (i.e. ext=" + ext + " (default))\n";
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+                System.err.println(usage);
+                System.exit(1);
+            } else if (args[i].startsWith("dir=")) {
+                dir = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("ext=")) {
+                ext = args[i].split("=")[1];
+                numArgs--;
+            } else {
+                System.err.println("Error - invalid argument: " + args[i]);
+            }
+        }
+        if (numArgs != 0 || dir == null) {
+            System.err.println(usage);
+            System.exit(1);
+        }
+        try {
+            validate(dir, ext, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
