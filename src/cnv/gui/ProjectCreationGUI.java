@@ -7,6 +7,7 @@ import java.awt.Insets;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -274,7 +275,6 @@ public class ProjectCreationGUI extends JDialog {
         updateSourceFileNotice();
     }
     
-    
     private boolean checkValues() {
         String name = txtFldProjName.getText().trim();
         String projDir = txtFldProjDir.getText().trim();
@@ -302,7 +302,6 @@ public class ProjectCreationGUI extends JDialog {
             f.getCanonicalPath();
             validTgtMkrs = true;
         } catch (IOException e) {}
-        
         
         boolean[] checks = {!name.equals("") && !name.equals((new Project()).PROJECT_NAME.getDefaultValueString()), 
                 validProjDir,
@@ -390,10 +389,41 @@ public class ProjectCreationGUI extends JDialog {
         double lrrSd = ((Double)spinnerLrrSd.getValue()).doubleValue();
         String tgtMkrs = txtFldTgtMkrs.getText().trim();
         
-        FinalReportHeaderData exemplarHeaderData = FinalReportHeaderData.validate(srcDir, srcExt, true);
-        if (exemplarHeaderData == null) {
+        HashMap<String, FinalReportHeaderData> headers = FinalReportHeaderData.validate(srcDir, srcExt, true, new common.Logger());
+        if (headers == null) {
             // errors found in headers - check output and retry?
             return false;
+        }
+        FinalReportHeaderData reportHdr = null;
+        for (FinalReportHeaderData d : headers.values()) {
+            if (reportHdr == null) {
+                reportHdr = d;
+                break;
+            }
+        }
+        // TODO do column assignment
+        FinalReportHeaderGUI gui = new FinalReportHeaderGUI(reportHdr);
+        gui.setModal(true);
+        gui.setVisible(true);
+        if (gui.wasCancelled()) {
+            return false;
+        }
+        for (FinalReportHeaderData d : headers.values()) {
+            d.col_snpIndex = gui.getSNPIndex();
+            d.col_sampleID = gui.getSampleID();
+            d.col_geno_1 = gui.getGeno1();
+            d.col_geno_2 = gui.getGeno2();
+            d.col_genoAB_1 = gui.getAB1();
+            d.col_genoAB_2 = gui.getAB2();
+            d.col_BAF = gui.getBAF();
+            d.col_LRR = gui.getLRR();
+            d.col_gc = gui.getGC();
+            d.col_r = gui.getR();
+            d.col_theta = gui.getTheta();
+            d.col_x = gui.getX();
+            d.col_y = gui.getY();
+            d.col_xRaw = gui.getXRaw();
+            d.col_yRaw = gui.getYRaw();
         }
         
         String path = MitoPipeline.initGenvisisProject();
