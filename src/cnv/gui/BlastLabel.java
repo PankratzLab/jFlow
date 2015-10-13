@@ -9,229 +9,19 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.swing.AbstractAction;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-import net.miginfocom.swing.MigLayout;
-import common.Array;
 import seq.manage.ReferenceGenome;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.annotation.MarkerSeqAnnotation;
-import cnv.filesys.Project;
-import cnv.gui.BLASTVisualizer.BlastUtils;
+
+import common.Array;
+
 import filesys.Segment;
-
-
-public class BLASTVisualizer {
-    
-    public static class BlastUtils {
-        
-        public static ArrayList<BlastAnnotation> filterAnnotations(Project proj, List<BlastAnnotation> annotations) {
-            double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
-            int probe = proj.ARRAY_TYPE.getValue().getProbeLength();
-            int alignFilter = (int) (filter * probe);
-            ArrayList<BlastAnnotation> filteredList = new ArrayList<BlastAnnotation>();
-            for (BlastAnnotation annot : annotations) {
-                if (countAlignment(annot) > alignFilter) {
-                    filteredList.add(annot);
-                }
-            }
-            return filteredList;
-        }
-        
-        public static int countAlignment(BlastAnnotation annotation) {
-            int align = 0;
-            for (CigarElement ce : annotation.getCigar().getCigarElements()) {
-                if (ce.getOperator() == CigarOperator.EQ) {
-                    align += ce.getLength();
-                }
-            }
-            return align;
-        }
-        
-        public static Segment getSegmentForAnnotation(MarkerSeqAnnotation ref, BlastAnnotation annot) {
-            Segment origSeg = annot.getRefLoc();
-            Cigar cig = annot.getCigar();
-            CigarElement cigStart = cig.getCigarElement(0);
-            CigarElement cigStop = cig.getCigarElement(cig.numCigarElements() - 1);
-            
-            int start = origSeg.getStart();
-            if (cigStart.getOperator() == CigarOperator.X) {
-                start -= cigStart.getLength();
-            }
-            int stop = origSeg.getStop();
-            if (cigStop.getOperator() == CigarOperator.X) {
-                stop += cigStop.getLength();
-            }
-            
-            return new Segment(origSeg.getChr(), start, stop);
-        }
-        
-    }
-    
-    private Project proj;
-    private MarkerSeqAnnotation referenceAnnotation;
-    private ArrayList<BlastAnnotation> annotations;
-    private ReferenceGenome referenceGenome;
-    private JLabel refLabel;
-    private ArrayList<BlastLabel> bLabels;
-    private ArrayList<BlastLabel> sorted;
-    private BlastFrame frame;
-    private JLabel strandLbl;
-    private JLabel locationLbl;
-    
-    public BLASTVisualizer(Project proj) {
-        this.proj = proj;
-        this.createGUI();
-    }
-
-//  chr17:74,783,145-74,785,655
-//  chr17:74,784,671-74,787,181
-    
-    public void setVisible(boolean visible) {
-        if (frame != null) {
-            this.frame.setVisible(visible);
-        }
-    }
-    
-    public void createGUI() {
-        frame = new BlastFrame(BlastLabel.expanded);
-        
-        refLabel = new ReferenceLabel();
-//        indexLabel.setFont(BlastLabel.LBL_FONT);
-//        indexLabel.setText(referenceAnnotation.getSequence());
-        BlastLabel.setRefLabel(refLabel);
-//        JPanel panel = new JPanel(new GridLayout(2, 1));
-//        panel.add(indexLabel);
-//        panel.add(refLabel);
-//        jsp.setColumnHeaderView(panel);
-        JPanel hdrPanel = new JPanel(new MigLayout("", "[200px][20px][grow]", ""));
-        hdrPanel.setBorder(null);
-        locationLbl = new JLabel();
-        Font lblFont = Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
-        locationLbl.setFont(lblFont);
-        hdrPanel.add(locationLbl, "cell 0 0");
-        strandLbl = new JLabel();
-        strandLbl.setFont(lblFont);
-        hdrPanel.add(strandLbl, "cell 1 0");
-        hdrPanel.add(refLabel, "grow, cell 2 0");
-        frame.getScrollPane().setColumnHeaderView(hdrPanel);
-        
-        frame.setSpinnerAction(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                BlastLabel.setFontSize((Integer) frame.getSpinner().getModel().getValue());
-                for (BlastLabel lbl : bLabels) {
-                    lbl.updateFont();
-                }
-                frame.repaint();
-            }
-        });
-        frame.setExpansionCheckBoxAction(new AbstractAction() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                BlastLabel.expanded = !BlastLabel.expanded;
-                frame.repaint();
-            }
-        });
-        frame.setSortCheckBoxAction(new AbstractAction() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                frame.clearLabels();
-                if (((javax.swing.JCheckBox)e.getSource()).isSelected()) {
-                    for (BlastLabel bl : sorted) {
-                        frame.addBlastLabel(bl);
-                    }
-                } else {
-                    for (BlastLabel bl : bLabels) {
-                        frame.addBlastLabel(bl);
-                    }
-                }
-                frame.revalidate();
-                frame.repaint();
-            }
-        });
-        frame.setDisplayAlignmentCheckBoxAction(new AbstractAction() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                frame.refreshStrandLabels();
-                strandLbl.setText("]" + BLASTVisualizer.this.referenceAnnotation.getStrand().getEncoding() + (frame.shouldDisplayAlignment() ? " | " + proj.ARRAY_TYPE.getValue().getProbeLength() : "") + "[");
-            }
-        });
-
-        frame.getScrollPane().setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        frame.getScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-//        frame.pack();
-        frame.setBounds(100, 100, 900, 800);
-//        frame.setVisible(true);
-        
-    }
-
-    public void setAnnotations(MarkerSeqAnnotation referenceAnnotation, ArrayList<BlastAnnotation> annotations, ReferenceGenome refGen) {
-        this.referenceAnnotation = referenceAnnotation;
-        this.annotations = annotations;
-        this.referenceGenome = refGen;
-        
-
-        BlastLabel.spaces = new TreeSet<Integer>();
-        BlastLabel.spaceSets = new TreeMap<Integer, Integer>();
-        bLabels = new ArrayList<BlastLabel>();
-        sorted = new ArrayList<BlastLabel>();
-        for (BlastAnnotation annot : this.annotations) {
-            BlastLabel lbl = new BlastLabel(referenceAnnotation, annot, referenceGenome);
-    //            if (lbl.strandFlipped) continue;
-            bLabels.add(lbl);
-            sorted.add(lbl);
-        }
-        Collections.sort(sorted, new Comparator<BlastLabel>() {
-            @Override
-            public int compare(BlastLabel arg0, BlastLabel arg1) {
-                int res1 = (new Byte(arg0.fullSegment.getChr())).compareTo(new Byte(arg1.fullSegment.getChr()));
-                if (res1 != 0) return res1;
-                res1 = (new Integer(arg0.fullSegment.getStart())).compareTo(new Integer(arg1.fullSegment.getStart()));
-                if (res1 != 0) return res1;
-                res1 = (new Integer(arg0.fullSegment.getStop())).compareTo(new Integer(arg1.fullSegment.getStop()));
-                return res1;
-            }
-        });
-        
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                frame.clearLabels();
-                for (BlastLabel lbl : bLabels) {
-                    frame.addBlastLabel(lbl);
-                }
-                refLabel.setText(BLASTVisualizer.this.referenceAnnotation.getSequence());
-                strandLbl.setText("]" + BLASTVisualizer.this.referenceAnnotation.getStrand().getEncoding() + (frame.shouldDisplayAlignment() ? " | " + proj.ARRAY_TYPE.getValue().getProbeLength() : "") + "[");
-                locationLbl.setText("<reference location>");
-                frame.revalidate();
-                frame.repaint();
-            }
-        });
-    }
-
-    public boolean isVisible() {
-        return frame.isVisible();
-    }
-    
-}
 
 class ReferenceLabel extends JLabel {
     
@@ -303,8 +93,8 @@ class ReferenceLabel extends JLabel {
     }
 }
 
-class BlastLabel extends JLabel {
-    
+public class BlastLabel extends JLabel {
+
     private static final long serialVersionUID = 1L;
 
     public static void setFontSize(int size) {
@@ -348,8 +138,8 @@ class BlastLabel extends JLabel {
         this.refSeq = ref;
         this.myAnnotation = annot;
         this.strandFlipped = ref.getStrand() != annot.getStrand();
-        this.fullSegment = BlastUtils.getSegmentForAnnotation(ref, annot);
-        this.alignmentCount = BlastUtils.countAlignment(annot);
+        this.fullSegment = BlastFrame.BlastUtils.getSegmentForAnnotation(ref, annot);
+        this.alignmentCount = BlastFrame.BlastUtils.countAlignment(annot);
         if (refGen != null) {
             String[] seqArr = refGen.getSequenceFor(this.fullSegment);
             if (seqArr != null) {

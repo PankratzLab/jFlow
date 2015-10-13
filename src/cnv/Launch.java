@@ -708,10 +708,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //    			}
 //			} else {
                 log.report("Launching project properties editor...");
-    			Configurator configurator = new Configurator(proj);
+    			final Configurator configurator = new Configurator(proj);
     			configurator.addWindowListener(new WindowAdapter() {
     				public void windowClosed(WindowEvent e) {
     					Launch.this.requestFocus();
+    					configurator.dispose();
     				};
     			});
     			configurator.setVisible(true);

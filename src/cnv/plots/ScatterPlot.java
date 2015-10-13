@@ -95,7 +95,7 @@ import cnv.filesys.Project;
 import cnv.filesys.SampleList;
 import cnv.gui.AnnotationAction;
 import cnv.gui.AutoSaveForScatterPlot;
-import cnv.gui.BLASTVisualizer;
+import cnv.gui.BlastFrame;
 import cnv.gui.ColorKeyPanel;
 import cnv.gui.CycleRadio;
 import cnv.gui.NewMarkerListDialog;
@@ -242,7 +242,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private ReferenceGenome referenceGenome = null;
 	
 	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
-    private BLASTVisualizer blastViz;
+    private BlastFrame blastFrame;
 
     public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList, boolean exitOnClose) {
 		super("Genvisis - ScatterPlot - " + project.getNameOfProject());
@@ -2244,9 +2244,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		setCurrentClusterFilter();
 		updateBLASTPanel();
 		updateGUI();
-		if (blastViz != null && blastViz.isVisible()) {
-		    ArrayList<BlastAnnotation> annotations = BLASTVisualizer.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
-		    blastViz.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
+		if (blastFrame != null && blastFrame.isVisible()) {
+		    ArrayList<BlastAnnotation> annotations = BlastFrame.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
+		    blastFrame.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
 		}
 		displayClusterFilterIndex();
 //		long t3 = System.currentTimeMillis();
@@ -2396,15 +2396,15 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		        Files.writeList(markerList, jfc.getSelectedFile().getAbsolutePath());
 		    }
 	    } else if (command.equals(BLAST_DETAILS_COMMAND)) {
-	        ArrayList<BlastAnnotation> annotations = BLASTVisualizer.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
-	        if (blastViz == null) {
-	            blastViz = new BLASTVisualizer(proj);
+	        ArrayList<BlastAnnotation> annotations = BlastFrame.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
+	        if (blastFrame == null) {
+	            blastFrame = new BlastFrame(proj);
 	        }
-	        blastViz.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
+	        blastFrame.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
 	        SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    blastViz.setVisible(true);
+                    blastFrame.setVisible(true);
                 }
             });
 	    } else {
@@ -3208,7 +3208,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         typeLabel.setFont(new Font("Arial", 0, 14));
         blastPanel.add(typeLabel, "cell 0 1");
 //        typeLabel = new JLabel(" " + blastResult.getNumOffTarget(log), JLabel.LEFT);
-        typeLabel = new JLabel(" " + BLASTVisualizer.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log)).size());
+        typeLabel = new JLabel(" " + BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log)).size());
         typeLabel.setFont(new Font("Arial", 0, 14));
         blastPanel.add(typeLabel, "cell 1 1");
 	    
@@ -3606,7 +3606,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		int count;
 		
 		if (!saveClusterFilterAndAnnotationCollection()) {
-			return;
+	        return;
 		}
 
 		//TODO notify all threads (e.g., MarkerDataLoader) that they need to close
@@ -3646,6 +3646,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		if (exitOnClose) {
 			System.exit(1); // keep this exit, of course
 		} else {
+		    if (blastFrame != null) {
+		        blastFrame.setVisible(false);
+		        blastFrame.dispose();
+		    }
 			((JFrame)(this)).dispose();
 		}
 	}

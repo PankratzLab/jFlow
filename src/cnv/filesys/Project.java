@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -433,6 +434,7 @@ public class Project {
 	private SampleList sampleList;
 	private SampleData sampleData;
 	private HashSet<String> cnvFilesLoadedInSampleData;
+	private HashMap<String, SourceFileHeaderData> sourceFileHeaders;
 	private MarkerLookup markerLookup;
 	private Logger log;
 	private boolean gui;
@@ -1388,5 +1390,13 @@ public class Project {
 	public void verifyAndGenerateOutliers(boolean verbose) {
 		Sample.verifyAndGenerateOutliers(this, NUM_THREADS.getValue(), false);
 	}
+
+    public HashMap<String, SourceFileHeaderData> getSourceFileHeaders() {
+        return sourceFileHeaders;
+    }
+
+    public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
+        this.sourceFileHeaders = sourceFileHeaders;
+    }
 		
 }
