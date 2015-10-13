@@ -70,6 +70,7 @@ public class SNPEffAnnotation {
         String fileToUse = file;
         int[] indicesToUse = factorIndices;
         if (factorIndices == null) {
+//            ParseSNPlocations.parseSNPlocations(snpListFile, vcfFile, unmappedVCF, mergedVCF, log, monitor);
             ParseSNPlocations.lowMemParse(file, MapSNPsAndGenes.getSNPDB(DEFAULT_BUILD, log), MapSNPsAndGenes.getMergeDB(log), true, log); // TODO using hash parse, not VCF
             fileToUse = ext.rootOf(file, false)+"_positions.xln";
             indicesToUse = ext.indexFactors(FACTORS, Files.getHeaderOfFile(fileToUse, log), false, true, true, false);
@@ -79,7 +80,7 @@ public class SNPEffAnnotation {
         while (new File(newFile).exists()) {
             newFile = ext.rootOf(file, false)+"_snpEffLookup_" + cnt++ + ".txt";
         }
-        int[] colsToLoad = factorIndices.length == 3 ? new int[]{indicesToUse[1], indicesToUse[2], indicesToUse[0]} : new int[]{indicesToUse[1], indicesToUse[2], indicesToUse[0], indicesToUse[3], indicesToUse[4]};
+        int[] colsToLoad = indicesToUse.length == 3 ? new int[]{indicesToUse[1], indicesToUse[2], indicesToUse[0]} : new int[]{indicesToUse[1], indicesToUse[2], indicesToUse[0], indicesToUse[3], indicesToUse[4]};
         String[] rschrpos = HashVec.loadFileToStringArray(fileToUse, false, true, colsToLoad, false);
         Files.writeList(rschrpos, newFile);
         return newFile;

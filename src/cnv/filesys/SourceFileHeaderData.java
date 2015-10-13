@@ -62,7 +62,7 @@ public class SourceFileHeaderData {
         if ("[Data]".equals(line)) {
             line = reader.readLine();
             lineCnt++;
-            if (!(line.startsWith("rs") && !line.toUpperCase().startsWith("SNP"))) { // TODO should require SNP ident as first column?
+            if (!(line.startsWith("rs") || line.toUpperCase().startsWith("SNP"))) { // TODO should require SNP ident as first column?
                 log.reportError("Error - malformed or missing header.  Header must start with 'rs' or 'SNP'.");
                 throw new Elision(file);
             }
