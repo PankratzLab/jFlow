@@ -5,11 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Callable;
 
+import mining.Calcfc;
 import stats.Rscript.RScatter;
 import stats.Rscript.SCATTER_TYPE;
 import common.Array;
@@ -25,14 +24,47 @@ import cnv.manage.ExtProjectDataParser;
 import cnv.manage.ExtProjectDataParser.Builder;
 import cnv.qc.LrrSd;
 import cnv.qc.SampleQC;
+import filesys.Segment;
 
 /**
  * @author lane0212 Class to quantify mosiacism at a particular locus, based on procedure from http://www.ncbi.nlm.nih.gov/pubmed/22277120
  */
-public class MosiacismQuant {
+public class MosiacismQuant implements Calcfc{
 	private static final double MIN_BAF = 0.15;
 	private static final double MAX_BAF = 0.85;
+	private Project proj;
+	private SampleMosiac sampleMosiac;
+	private Segment evalSegment;
+	private MarkerSet markerSet;
+	private int[] indicesByChr;
+	
+	
+	
+	public MosiacismQuant(Project proj, SampleMosiac sampleMosiac, Segment evalSegment, MarkerSet markerSet, int[] indicesByChr) {
+		super();
+		this.proj = proj;
+		this.sampleMosiac =  new SampleMosiac(sampleMosiac);
+		this.evalSegment = evalSegment;
+		this.markerSet = markerSet;
+		this.indicesByChr = indicesByChr;
+	}
 
+	public void prepareMosiacQuant(int numThreads, double minBaf, double maxBaf) {
+		sampleMosiac.load(numThreads);
+
+	}
+	
+	
+
+	@Override
+	public double Compute(int n, int m, double[] x, double[] con) {
+		
+		
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	
+	
 	private static SampleMosiac prep(Project proj, String sampleName, String qcMetric, int numControls) {
 		SampleMosiacBase[] controls = new SampleMosiacBase[numControls];
 		int sampleIndex = ext.indexOfStr(sampleName, proj.getSamples());
@@ -56,21 +88,25 @@ public class MosiacismQuant {
 		int[] minDists = Sort.quicksort(distanceToSample);
 		for (int i = 0; i < controls.length; i++) {
 			int index = minDists[i];
-			SampleMosiacBase control = new SampleMosiacBase(proj, controlDataNames.get(index), qcMetric, controlData.get(index), distanceToSample[index]);
+			SampleMosiacBase control = new SampleMosiacBase(proj, controlDataNames.get(index), qcMetric, controlData.get(index), distanceToSample[index], true);
 			controls[i] = control;
 		}
 		return new SampleMosiac(proj, sampleName, qcMetric, sampData, controls);
 	}
 
 	private static class SampleMosiac extends SampleMosiacBase {
-		private Project proj;
-		private String sampleName;
 
 		private SampleMosiacBase[] controls;
+		private CDF smoothedControl;
 
+		public SampleMosiac(SampleMosiac sampleMosiac) {
+			super(sampleMosiac);
+			this.controls = sampleMosiac.controls;
+			this.smoothedControl = sampleMosiac.smoothedControl;
+		}
+		
 		public SampleMosiac(Project proj, String sampleName, String qcMetric, double qcValue, SampleMosiacBase[] controls) {
-			super(proj, sampleName, qcMetric, qcValue, qcValue);
-
+			super(proj, sampleName, qcMetric, qcValue, qcValue, false);
 			this.controls = controls;
 		}
 
@@ -79,54 +115,194 @@ public class MosiacismQuant {
 		}
 
 		public void load(int numThreads) {
-			this.samp = proj.getFullSampleFromRandomAccessFile(sampleName);
-			WorkerHive<SampleMosiacBase> hive = new WorkerHive<MosiacismQuant.SampleMosiacBase>(numThreads, 10, proj.getLog());
+			load();
+			WorkerHive<SampleMosiacBase> hive = new WorkerHive<MosiacismQuant.SampleMosiacBase>(numThreads, 10, getProj().getLog());
 			for (int i = 0; i < controls.length; i++) {
 				hive.addCallable(controls[i]);
 			}
 			hive.execute(true);
 			ArrayList<SampleMosiacBase> results = hive.getResults();
 			this.controls = results.toArray(new SampleMosiacBase[results.size()]);
+			for (int i = 0; i < controls.length; i++) {
+			}
 		}
 
+		public void developCDFs(MarkerSet markerSet, int[][] indicesByChr, Segment seg, double minBaf, double maxBaf) {
+
+			developCDF(markerSet, indicesByChr, seg, minBaf, maxBaf, -1);
+
+			double[] smoothed = new double[getCdf().getVals().length];
+			for (int i = 0; i < controls.length; i++) {
+				controls[i].developCDF(markerSet, indicesByChr, seg, minBaf, maxBaf, getCdf().getVals().length);
+				if (i > 0) {// smoothed random
+					CDF tmp = controls[i].getCdf();
+					for (int j = 0; j < smoothed.length; j++) {
+						smoothed[j] += tmp.getVals()[tmp.getOrder()[j]];
+					}
+				}
+			}
+			CDF tmpRandomControl = controls[0].getCdf();
+			for (int i = 0; i < smoothed.length; i++) {
+				double tmp = smoothed[i] + tmpRandomControl.getVals()[tmpRandomControl.getOrder()[i]];
+				smoothed[i] = tmp / controls.length;
+			}
+			smoothed = CNVCaller.adjustBaf(smoothed, minBaf, maxBaf, proj.getLog());
+			this.smoothedControl = new CDF(smoothed);
+		}
+
+		private void plotCDFs(String output) {
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				writer.println("CDF\tSample\tSmoothedControl");
+				for (int i = 0; i < smoothedControl.getVals().length; i++) {
+					double cdf = (double) i / smoothedControl.getVals().length;
+					writer.println(cdf + "\t" + getCdf().getVals()[getCdf().getOrder()[i]] + "\t" + smoothedControl.getVals()[smoothedControl.getOrder()[i]]);
+				}
+				writer.close();
+				RScatter rScatter = new RScatter(output, output + ".rscript", ext.removeDirectoryInfo(output), output + ".jpeg", "CDF", new String[] { "Sample", "SmoothedControl" }, SCATTER_TYPE.POINT, proj.getLog());
+				rScatter.setOverWriteExisting(true);
+				rScatter.execute();
+			} catch (Exception e) {
+				proj.getLog().reportError("Error writing to " + output);
+				proj.getLog().reportException(e);
+			}
+		}
 	}
 
 	private static class SampleMosiacBase implements Callable<SampleMosiacBase> {
-		private Project proj;
+		protected Project proj;
 		protected Sample samp;
-
+		protected CDF cdf;
 		protected String sampleName;
 		private String qcMetric;
 		private double qcValue;
 		private double qcDistance;
+		private boolean control;
 
-		public SampleMosiacBase(Project proj, String sampleName, String qcMetric, double qcValue, double qcDistance) {
+		public SampleMosiacBase(SampleMosiacBase s) {
+			this.proj = s.proj;
+			this.samp = s.samp;
+			this.cdf = s.cdf;
+			this.sampleName = s.sampleName;
+			this.qcMetric = s.qcMetric;
+			this.qcValue = s.qcValue;
+			this.qcDistance = s.qcDistance;
+			this.control = s.control;
+		}
+		
+		public SampleMosiacBase(Project proj, String sampleName, String qcMetric, double qcValue, double qcDistance, boolean control) {
 			super();
 			this.proj = proj;
 			this.sampleName = sampleName;
 			this.qcMetric = qcMetric;
 			this.qcValue = qcValue;
 			this.qcDistance = qcDistance;
+			this.control = control;
 		}
 
-		public String getSampleName() {
+		protected String getSampleName() {
 			return sampleName;
 		}
 
-		public String getQcMetric() {
+		protected Project getProj() {
+			return proj;
+		}
+
+		protected CDF getCdf() {
+			return cdf;
+		}
+
+		protected String getQcMetric() {
 			return qcMetric;
 		}
 
-		public double getQcValue() {
+		protected double getQcValue() {
 			return qcValue;
 		}
 
-		public double getQcDistance() {
+		protected double getQcDistance() {
 			return qcDistance;
 		}
 
-		private void load() {
+		protected void load() {
 			this.samp = proj.getFullSampleFromRandomAccessFile(sampleName);
+		}
+
+		protected void developCDF(MarkerSet markerSet, int[][] indicesByChr, Segment seg, double minBaf, double maxBaf, int numControlForce) {
+			double[] bafs = selectBafs(markerSet, indicesByChr, seg, minBaf, maxBaf, numControlForce);
+			bafs = CNVCaller.adjustBaf(bafs, minBaf, maxBaf, proj.getLog());
+			this.cdf = new CDF(bafs);
+		}
+
+		private double[] selectBafs(MarkerSet markerSet, int[][] indicesByChr, Segment seg, double minBaf, double maxBaf, int numControlForce) {
+			String[] markersInSeg = markerSet.getMarkersIn(seg, indicesByChr);
+			int[] indicesInSeg = ext.indexLargeFactors(markersInSeg, markerSet.getMarkerNames(), true, proj.getLog(), true, false);
+			double[] bafs = Array.toDoubleArray(samp.getBAFs());
+			ArrayList<Integer> bafIndicesToUse = new ArrayList<Integer>();
+
+			for (int i = 0; i < indicesInSeg.length; i++) {
+				int index = indicesInSeg[i];
+				if (useBaf(minBaf, maxBaf, bafs[index])) {
+					bafIndicesToUse.add(index);
+				}
+			}
+			if (!control) {
+				return Array.subArray(bafs, Array.toIntArray(bafIndicesToUse));
+			} else {
+				if (bafIndicesToUse.size() > numControlForce) {
+					Collections.shuffle(bafIndicesToUse);
+					ArrayList<Integer> bafIndicesToUseTmp = new ArrayList<Integer>();
+					for (int i = 0; i < numControlForce; i++) {
+						bafIndicesToUseTmp.add(bafIndicesToUse.get(i));
+					}
+					return Array.subArray(bafs, Array.toIntArray(bafIndicesToUseTmp));
+				} else {
+					boolean forward = true;
+					boolean canGoForward = true;
+					boolean canGoBackward = true;
+					int nextIndexForward = bafIndicesToUse.size() - 1;
+					int nextIndexBackward = bafIndicesToUse.get(0);
+
+					while (bafIndicesToUse.size() < numControlForce && (canGoBackward || canGoForward)) {
+						if (forward) {
+							if (nextIndexForward < markerSet.getMarkerNames().length && useBaf(minBaf, maxBaf, bafs[nextIndexForward])) {
+								bafIndicesToUse.add(nextIndexForward);
+							} else {
+								canGoForward = false;
+							}
+							nextIndexForward++;
+							forward = false;
+						} else {
+							if (nextIndexBackward >= 0 && useBaf(minBaf, maxBaf, bafs[nextIndexBackward])) {
+								bafIndicesToUse.add(nextIndexBackward);
+							} else {
+								canGoBackward = false;
+							}
+							nextIndexBackward--;
+							forward = true;
+						}
+					}
+					if (bafIndicesToUse.size() != numControlForce) {
+						proj.getLog().reportTimeWarning("Not enough baf values between " + minBaf + " and " + maxBaf + " for sample " + sampleName + ", imputting with random re-sampling");
+						Collections.shuffle(bafIndicesToUse);
+						ArrayList<Integer> bafIndicesToUseTmp = new ArrayList<Integer>();
+						bafIndicesToUseTmp.addAll(bafIndicesToUse);
+						int add = 0;
+						while (bafIndicesToUseTmp.size() < numControlForce) {
+							bafIndicesToUseTmp.add(bafIndicesToUse.get(add));
+							add++;
+						}
+						return Array.subArray(bafs, Array.toIntArray(bafIndicesToUseTmp));
+					} else {
+						return Array.subArray(bafs, Array.toIntArray(bafIndicesToUse));
+					}
+
+				}
+			}
+		}
+
+		private boolean useBaf(double minBaf, double maxBaf, double baf) {
+			return Double.isFinite(baf) && baf > minBaf && baf < maxBaf;
 		}
 
 		@Override
@@ -136,16 +312,37 @@ public class MosiacismQuant {
 		}
 	}
 
-	// select case marker/indices
-	// select controls
-	// select control markers
-	// adjust case bafs
-	// adjust control bafs
-	// create case cdf
-	// create control cdf
+	private static class CDF {
+		private double[] vals;
+		private int[] order;
+
+		public CDF(double[] vals) {
+			super();
+			this.vals = vals;
+			this.order = Sort.quicksort(vals);
+
+		}
+
+		public double[] getVals() {
+			return vals;
+		}
+
+		public int[] getOrder() {
+			return order;
+		}
+
+	}
+
+	// select case marker/indices check
+	// select controls check
+	// select control markers check
+	// adjust case bafs check
+	// adjust control bafs check
+	// create case cdf check
+	// create control cdf check
+	// Non-linear fitting
 
 	public static void test(Project proj) {
-		SampleQC sampleQC = SampleQC.loadSampleQC(proj, true);
 
 		Sample samp = proj.getFullSampleFromRandomAccessFile(proj.getSamples()[ext.indexOfStr("7355066051_R03C01", proj.getSamples())]);
 		SampleMosiac sampleMosiac = prep(proj, samp.getSampleName(), "BAF1585_SD", 5);
@@ -153,12 +350,18 @@ public class MosiacismQuant {
 			System.out.println(sampleMosiac.getSampleName() + "\t" + sampleMosiac.getQcValue() + "\t" + sampleMosiac.getControls()[i].getSampleName() + "\t" + sampleMosiac.getControls()[i].getQcValue());
 		}
 		sampleMosiac.load(5);
-
-		System.exit(1);
 		MarkerSet markerSet = proj.getMarkerSet();
 		int[][] indices = markerSet.getIndicesByChr();
+
+		Segment segTest = new Segment((byte) 17, 0, Integer.MAX_VALUE);
+		sampleMosiac.developCDFs(markerSet, indices, segTest, MIN_BAF, MAX_BAF);
 		String testDir = proj.PROJECT_DIRECTORY.getValue() + "TestMosaic/";
 		new File(testDir).mkdirs();
+		String out = testDir + ext.replaceWithLinuxSafeCharacters(segTest.getUCSClocation(), true);
+		sampleMosiac.plotCDFs(out);
+	
+		System.exit(1);
+
 		PFB pfb = PFB.loadPFB(proj);
 		// double[] pfbCDF = Array.getValuesBetween(Array.removeNaN(pfb.getPfbs()), MIN_BAF, MAX_BAF);
 		// ArrayList<Double> pArrayList = new ArrayList<Double>();
@@ -172,7 +375,6 @@ public class MosiacismQuant {
 			// Collections.shuffle(pArrayListChr);
 			// ArrayList<Double> pArrayListChrSuf = new ArrayList<Double>();
 
-			String out = testDir + "chr" + i + "out.txt";
 			double[] bafChr = Array.subArray(Array.toDoubleArray(samp.getBAFs()), indices[i]);
 			double[] bafsPopChr = Array.subArray(bafsPop, indices[i]);
 
@@ -280,5 +482,6 @@ public class MosiacismQuant {
 			e.printStackTrace();
 		}
 	}
+
 
 }
