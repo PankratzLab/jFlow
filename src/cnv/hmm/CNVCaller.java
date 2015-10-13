@@ -465,7 +465,7 @@ public class CNVCaller {
 	/**
 	 * Median adjust these baf values like PennCNV
 	 */
-	private static double[] adjustBaf(double[] bafs, double minBaf, double maxBaf, Logger log) {
+	public static double[] adjustBaf(double[] bafs, double minBaf, double maxBaf, Logger log) {
 		double[] adjusted = new double[bafs.length];
 		ArrayList<Double> bafsToMedian = new ArrayList<Double>();
 		for (int i = 0; i < bafs.length; i++) {

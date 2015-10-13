@@ -162,17 +162,40 @@ public class SampleQC {
 	}
 
 	public static SampleQC loadSampleQC(Project proj) {
-		return loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS);
+		return loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, false);
 	}
 
-	public static SampleQC loadSampleQC(Project proj, String sampleColumnName, String[] qcTitlesToLoad) {
-//		String lrrSdToLoad = proj.getFilename(proj.SAMPLE_QC_FILENAME);
+	public static SampleQC loadSampleQC(Project proj, boolean generate) {
+		return loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, generate);
+	}
+
+	/**
+	 * @param proj
+	 * @param sampleColumnName
+	 *            header of the column containing sample names
+	 * @param qcTitlesToLoad
+	 *            qc titles to load from the sample QC file
+	 * @param generate
+	 *            generate sampleQC if missing
+	 * @return
+	 */
+	public static SampleQC loadSampleQC(Project proj, String sampleColumnName, String[] qcTitlesToLoad, boolean generate) {
+		// String lrrSdToLoad = proj.getFilename(proj.SAMPLE_QC_FILENAME);
 		String lrrSdToLoad = proj.SAMPLE_QC_FILENAME.getValue();
 		SampleQC sampleQC = null;
-		if (!Files.exists(lrrSdToLoad)) {
+		if (!Files.exists(lrrSdToLoad) && !generate) {
 			proj.getLog().reportTimeError("Could not find sample QC file " + lrrSdToLoad);
 
-		} else {
+		}
+
+		else {
+			if (!Files.exists(lrrSdToLoad) && !generate) {
+				proj.getLog().reportTimeInfo("Attempting to generate QC file " + lrrSdToLoad);
+				LrrSd.init(proj, null, null, proj.NUM_THREADS.getValue());
+				if (!Files.exists(lrrSdToLoad)) {
+					proj.getLog().reportTimeError("Could not find generate QC file " + lrrSdToLoad);
+				}
+			}
 			proj.getLog().reportTimeInfo("Loading qc data from " + lrrSdToLoad);
 			try {
 				BufferedReader reader = Files.getAppropriateReader(lrrSdToLoad);
@@ -223,7 +246,7 @@ public class SampleQC {
 	}
 
 	public static void parseAndAddToSampleData(Project proj, int numQ, int numPCs, boolean justClasses) {
-		SampleQC sampleQC = loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS);
+		SampleQC sampleQC = loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, false);
 		sampleQC.addQCsToSampleData(numQ, justClasses);
 		if (numPCs > 0) {
 			sampleQC.addPCsToSampleData(numQ, numPCs, justClasses);
