@@ -13,7 +13,7 @@ import common.Files;
 import common.Logger;
 import common.ext;
 
-public class FinalReportHeaderData {
+public class SourceFileHeaderData {
     String gsgtVersion = null;
     String processingDate = null;
     String content = null;
@@ -21,54 +21,58 @@ public class FinalReportHeaderData {
     int totalSnps = -1;
     int numSamples = -1;
     int totalSamples = -1;
-    int numFiles = 1;
-    int currFile = 1;
-    int headerLineIndex = -1;
+    int numFiles = -1;
+    int currFile = -1;
+    int columnHeaderLineIndex = -1;
     
-    public int col_sampleID = -1;
-//    int col_sampleIndex = -1;
-//    int col_snpName = -1;
-    public int col_snpIndex = -1;
-    public int col_genoAB_1 = -1;
-    public int col_genoAB_2 = -1;
-    public int col_geno_1 = -1;
-    public int col_geno_2 = -1;
-    public int col_x = -1;
-    public int col_y = -1;
-    public int col_theta = -1;
-    public int col_r = -1;
-    public int col_xRaw = -1;
-    public int col_yRaw = -1;
-    public int col_BAF = -1;
-    public int col_LRR = -1;
-    public int col_gc = -1;
-    private String headerString = "";
+    public int colSampleIdent = -1;
+    public int colSnpIdent = -1;
+    public int colGenoAB1 = -1;
+    public int colGenoAB2 = -1;
+    public int colGeno1 = -1;
+    public int colGeno2 = -1;
+    public int colX = -1;
+    public int colY = -1;
+    public int colTheta = -1;
+    public int colR = -1;
+    public int colXRaw = -1;
+    public int colYRaw = -1;
+    public int colBAF = -1;
+    public int colLRR = -1;
+    public int colGC = -1;
+    public String headerString = "";
+    public String[] cols = new String[0];
     
-    public FinalReportHeaderData() {}
+    public SourceFileHeaderData() {}
     
-    public static FinalReportHeaderData parseHeader(String file) throws Elision, IOException {
+    public static SourceFileHeaderData parseHeader(String file, Logger log) throws Elision, IOException {
         BufferedReader reader = Files.getAppropriateReader(file);
-//        if (!"[Header]".equals(reader.readLine())) {
-//            // TODO error, malformed header
-//            throw new Elision(file);
-//        }
         String line = null;
-        int lineCnt = 1;
-        FinalReportHeaderData frhd = new FinalReportHeaderData();
+        int lineCnt = 0;
+        SourceFileHeaderData frhd = new SourceFileHeaderData();
         while ((line = reader.readLine()) != null && !"[Data]".equals(line) && !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP"))) {
             String[] parts = line.trim().split(",");
             processLine(parts, frhd);
             lineCnt++;
         }
-        if (!"[Data]".equals(line)) {
-            // TODO error, malformed header
+        if (!"[Data]".equals(line) && !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP"))) {
+            log.reportError("Error - malformed or missing header.");
             throw new Elision(file);
         }
-        String columnHeaders = reader.readLine();
+        if ("[Data]".equals(line)) {
+            line = reader.readLine();
+            lineCnt++;
+            if (!(line.startsWith("rs") && !line.toUpperCase().startsWith("SNP"))) { // TODO should require SNP ident as first column?
+                log.reportError("Error - malformed or missing header.  Header must start with 'rs' or 'SNP'.");
+                throw new Elision(file);
+            }
+        }
         reader.close(); // done
+        reader = null; // release
+        String columnHeaders = line;
         parseColumnsBestGuess(columnHeaders.split("[\\s]*,[\\s]*"), frhd); // TODO double check regex for consuming whitespace padding
         frhd.setHeaderString(columnHeaders);
-        frhd.headerLineIndex = lineCnt + 1;
+        frhd.columnHeaderLineIndex = lineCnt;
         return frhd;
     }
 
@@ -107,30 +111,32 @@ public class FinalReportHeaderData {
 /*14*/  GENOTYPE_FIELDS_A2_AB,
     };
     
-    private static void parseColumnsBestGuess(String[] parts, FinalReportHeaderData frhd) throws Elision {
+    private static void parseColumnsBestGuess(String[] parts, SourceFileHeaderData frhd) throws Elision {
         int[] indices = ext.indexFactors(LOOKUP, parts, false, true, false, false);
         if (indices[0] == -1) {
             throw new Elision("Error - missing SNP ID column");
         }
-        frhd.col_snpIndex = indices[0];
-        frhd.col_sampleID = indices[1];
+        frhd.cols = parts;
+        frhd.colSnpIdent = indices[0];
+        frhd.colSampleIdent = indices[1];
 //        frhd.col_sampleIndex = indices[2];
-        frhd.col_gc = indices[2];
-        frhd.col_xRaw = indices[3];
-        frhd.col_yRaw = indices[4];
-        frhd.col_x = indices[5];
-        frhd.col_y = indices[6];
-        frhd.col_theta = indices[7];
-        frhd.col_r = indices[8];
-        frhd.col_BAF = indices[9];
-        frhd.col_LRR = indices[10];
-        frhd.col_geno_1 = indices[11];
-        frhd.col_geno_2 = indices[12];
-        frhd.col_genoAB_1 = indices[13];
-        frhd.col_genoAB_2 = indices[14];
+        frhd.colGC = indices[2];
+        frhd.colXRaw = indices[3];
+        frhd.colYRaw = indices[4];
+        frhd.colX = indices[5];
+        frhd.colY = indices[6];
+        frhd.colTheta = indices[7];
+        frhd.colR = indices[8];
+        frhd.colBAF = indices[9];
+        frhd.colLRR = indices[10];
+        frhd.colGeno1 = indices[11];
+        frhd.colGeno2 = indices[12];
+        frhd.colGenoAB1 = indices[13];
+        frhd.colGenoAB2 = indices[14];
     }
     
-    private static void processLine(String[] parts, FinalReportHeaderData frhd) {
+    private static void processLine(String[] parts, SourceFileHeaderData frhd) {
+        if ("[Header]".equals(parts[0])) return;
         if ("File".equals(parts[0])) {
             String[] fileParts = parts[parts.length - 1].split(" of ");
             if (ext.isValidInteger(fileParts[0])) {
@@ -183,7 +189,7 @@ public class FinalReportHeaderData {
         }
     }
     
-    public static HashMap<String, FinalReportHeaderData> validate(final String dir, final String ext, boolean fullValidation, Logger log) {
+    public static HashMap<String, SourceFileHeaderData> validate(final String dir, final String ext, boolean fullValidation, Logger log) {
         String[] possibleFiles = (new File(dir)).list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -192,13 +198,13 @@ public class FinalReportHeaderData {
         });
         
         boolean valid = false;
-        HashMap<String, FinalReportHeaderData> headers = null;
+        HashMap<String, SourceFileHeaderData> headers = null;
         try {
             if (fullValidation) {
-                headers = new HashMap<String, FinalReportHeaderData>();
+                headers = new HashMap<String, SourceFileHeaderData>();
             }
             for (String possFile : possibleFiles) {
-                FinalReportHeaderData frhd = FinalReportHeaderData.parseHeader(dir + possFile);
+                SourceFileHeaderData frhd = SourceFileHeaderData.parseHeader(dir + possFile, log);
                 if (fullValidation) {
                     headers.put(possFile, frhd);
                 }
@@ -219,7 +225,7 @@ public class FinalReportHeaderData {
         return valid ? headers : null;
     }
     
-    public static String doFullValidation(HashMap<String, FinalReportHeaderData> headers, Logger log) {
+    public static String doFullValidation(HashMap<String, SourceFileHeaderData> headers, Logger log) {
         int cnt = headers.size();
         HashMap<Integer, ArrayList<String>> numSnpsSet = new HashMap<Integer, ArrayList<String>>();
         HashMap<Integer, ArrayList<String>> totSnpsSet = new HashMap<Integer, ArrayList<String>>();
@@ -241,44 +247,47 @@ public class FinalReportHeaderData {
         HashMap<Integer, ArrayList<String>> BAF = new HashMap<Integer, ArrayList<String>>();
         HashMap<Integer, ArrayList<String>> LRR = new HashMap<Integer, ArrayList<String>>();
         HashMap<Integer, ArrayList<String>> gc = new HashMap<Integer, ArrayList<String>>();
-        for (java.util.Map.Entry<String, FinalReportHeaderData> entry : headers.entrySet()) {
-            if (entry.getValue().numFiles != cnt) {
+        for (java.util.Map.Entry<String, SourceFileHeaderData> entry : headers.entrySet()) {
+            SourceFileHeaderData headerData = entry.getValue();
+            if (headerData.numFiles == -1) {
+                headerData.numFiles = cnt;
+            } else if (headerData.numFiles != cnt) {
                 return "Number of Files listed in Source File {" + entry.getKey() + "} does not equal the number of headers needing validation.  Please check source directory and extension and try again.";
             }
-            ArrayList<String> files = numSnpsSet.get(entry.getValue().numSnps);
+            ArrayList<String> files = numSnpsSet.get(headerData.numSnps);
             if (files == null) {
                 files = new ArrayList<String>();
-                numSnpsSet.put(entry.getValue().numSnps, files);
+                numSnpsSet.put(headerData.numSnps, files);
             }
             files.add(entry.getKey());
-            files = totSnpsSet.get(entry.getValue().totalSnps);
+            files = totSnpsSet.get(headerData.totalSnps);
             if (files == null) {
                 files = new ArrayList<String>();
-                totSnpsSet.put(entry.getValue().totalSnps, files);
+                totSnpsSet.put(headerData.totalSnps, files);
             }
             files.add(entry.getKey());
-            files = numSamplesSet.get(entry.getValue().numSamples);
+            files = numSamplesSet.get(headerData.numSamples);
             if (files == null) {
                 files = new ArrayList<String>();
-                numSamplesSet.put(entry.getValue().numSamples, files);
+                numSamplesSet.put(headerData.numSamples, files);
             }
             files.add(entry.getKey());
-            files = totSamplesSet.get(entry.getValue().totalSamples);
+            files = totSamplesSet.get(headerData.totalSamples);
             if (files == null) {
                 files = new ArrayList<String>();
-                totSamplesSet.put(entry.getValue().totalSamples, files);
+                totSamplesSet.put(headerData.totalSamples, files);
             }
             files.add(entry.getKey());
-            files = headerLineIndex.get(entry.getValue().headerLineIndex);
+            files = headerLineIndex.get(headerData.columnHeaderLineIndex);
             if (files == null) {
                 files = new ArrayList<String>();
-                headerLineIndex.put(entry.getValue().headerLineIndex, files);
+                headerLineIndex.put(headerData.columnHeaderLineIndex, files);
             }
             files.add(entry.getKey());
-            files = sampleID.get(entry.getValue().col_sampleID);
+            files = sampleID.get(headerData.colSampleIdent);
             if (files == null) {
                 files = new ArrayList<String>();
-                sampleID.put(entry.getValue().col_sampleID, files);
+                sampleID.put(headerData.colSampleIdent, files);
             }
             files.add(entry.getKey());
 //            files = sampleIndex.get(entry.getValue().col_sampleIndex);
@@ -287,88 +296,88 @@ public class FinalReportHeaderData {
 //                sampleIndex.put(entry.getValue().col_sampleIndex, files);
 //            }
             files.add(entry.getKey());
-            files = snpIndex.get(entry.getValue().col_snpIndex);
+            files = snpIndex.get(headerData.colSnpIdent);
             if (files == null) {
                 files = new ArrayList<String>();
-                snpIndex.put(entry.getValue().col_snpIndex, files);
+                snpIndex.put(headerData.colSnpIdent, files);
             }
             files.add(entry.getKey());
-            files = genoAB_1.get(entry.getValue().col_genoAB_1);
+            files = genoAB_1.get(headerData.colGenoAB1);
             if (files == null) {
                 files = new ArrayList<String>();
-                genoAB_1.put(entry.getValue().col_genoAB_1, files);
+                genoAB_1.put(headerData.colGenoAB1, files);
             }
             files.add(entry.getKey());
-            files = genoAB_2.get(entry.getValue().col_genoAB_2);
+            files = genoAB_2.get(headerData.colGenoAB2);
             if (files == null) {
                 files = new ArrayList<String>();
-                genoAB_2.put(entry.getValue().col_genoAB_2, files);
+                genoAB_2.put(headerData.colGenoAB2, files);
             }
             files.add(entry.getKey());
-            files = genoForward_1.get(entry.getValue().col_geno_1);
+            files = genoForward_1.get(headerData.colGeno1);
             if (files == null) {
                 files = new ArrayList<String>();
-                genoForward_1.put(entry.getValue().col_geno_1, files);
+                genoForward_1.put(headerData.colGeno1, files);
             }
             files.add(entry.getKey());
-            files = genoForward_2.get(entry.getValue().col_geno_2);
+            files = genoForward_2.get(headerData.colGeno2);
             if (files == null) {
                 files = new ArrayList<String>();
-                genoForward_2.put(entry.getValue().col_geno_2, files);
+                genoForward_2.put(headerData.colGeno2, files);
             }
             files.add(entry.getKey());
-            files = x.get(entry.getValue().col_x);
+            files = x.get(headerData.colX);
             if (files == null) {
                 files = new ArrayList<String>();
-                x.put(entry.getValue().col_x, files);
+                x.put(headerData.colX, files);
             }
             files.add(entry.getKey());
-            files = y.get(entry.getValue().col_y);
+            files = y.get(headerData.colY);
             if (files == null) {
                 files = new ArrayList<String>();
-                y.put(entry.getValue().col_y, files);
+                y.put(headerData.colY, files);
             }
             files.add(entry.getKey());
-            files = theta.get(entry.getValue().col_theta);
+            files = theta.get(headerData.colTheta);
             if (files == null) {
                 files = new ArrayList<String>();
-                theta.put(entry.getValue().col_theta, files);
+                theta.put(headerData.colTheta, files);
             }
             files.add(entry.getKey());
-            files = r.get(entry.getValue().col_r);
+            files = r.get(headerData.colR);
             if (files == null) {
                 files = new ArrayList<String>();
-                r.put(entry.getValue().col_r, files);
+                r.put(headerData.colR, files);
             }
             files.add(entry.getKey());
-            files = xRaw.get(entry.getValue().col_xRaw);
+            files = xRaw.get(headerData.colXRaw);
             if (files == null) {
                 files = new ArrayList<String>();
-                xRaw.put(entry.getValue().col_xRaw, files);
+                xRaw.put(headerData.colXRaw, files);
             }
             files.add(entry.getKey());
-            files = yRaw.get(entry.getValue().col_yRaw);
+            files = yRaw.get(headerData.colYRaw);
             if (files == null) {
                 files = new ArrayList<String>();
-                yRaw.put(entry.getValue().col_yRaw, files);
+                yRaw.put(headerData.colYRaw, files);
             }
             files.add(entry.getKey());
-            files = BAF.get(entry.getValue().col_BAF);
+            files = BAF.get(headerData.colBAF);
             if (files == null) {
                 files = new ArrayList<String>();
-                BAF.put(entry.getValue().col_BAF, files);
+                BAF.put(headerData.colBAF, files);
             }
             files.add(entry.getKey());
-            files = LRR.get(entry.getValue().col_LRR);
+            files = LRR.get(headerData.colLRR);
             if (files == null) {
                 files = new ArrayList<String>();
-                LRR.put(entry.getValue().col_LRR, files);
+                LRR.put(headerData.colLRR, files);
             }
             files.add(entry.getKey());
-            files = gc.get(entry.getValue().col_gc);
+            files = gc.get(headerData.colGC);
             if (files == null) {
                 files = new ArrayList<String>();
-                gc.put(entry.getValue().col_gc, files);
+                gc.put(headerData.colGC, files);
             }
             files.add(entry.getKey());
         }

@@ -29,7 +29,7 @@ import javax.swing.event.CaretListener;
 import common.Array;
 import common.Files;
 import common.ext;
-import cnv.filesys.FinalReportHeaderData;
+import cnv.filesys.SourceFileHeaderData;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.MitoPipeline;
@@ -389,41 +389,41 @@ public class ProjectCreationGUI extends JDialog {
         double lrrSd = ((Double)spinnerLrrSd.getValue()).doubleValue();
         String tgtMkrs = txtFldTgtMkrs.getText().trim();
         
-        HashMap<String, FinalReportHeaderData> headers = FinalReportHeaderData.validate(srcDir, srcExt, true, new common.Logger());
+        HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt, true, new common.Logger());
         if (headers == null) {
             // errors found in headers - check output and retry?
             return false;
         }
-        FinalReportHeaderData reportHdr = null;
-        for (FinalReportHeaderData d : headers.values()) {
+        SourceFileHeaderData reportHdr = null;
+        for (SourceFileHeaderData d : headers.values()) {
             if (reportHdr == null) {
                 reportHdr = d;
                 break;
             }
         }
         // TODO do column assignment
-        FinalReportHeaderGUI gui = new FinalReportHeaderGUI(reportHdr);
+        SourceFileHeaderGUI gui = new SourceFileHeaderGUI(reportHdr);
         gui.setModal(true);
         gui.setVisible(true);
         if (gui.wasCancelled()) {
             return false;
         }
-        for (FinalReportHeaderData d : headers.values()) {
-            d.col_snpIndex = gui.getSNPIndex();
-            d.col_sampleID = gui.getSampleID();
-            d.col_geno_1 = gui.getGeno1();
-            d.col_geno_2 = gui.getGeno2();
-            d.col_genoAB_1 = gui.getAB1();
-            d.col_genoAB_2 = gui.getAB2();
-            d.col_BAF = gui.getBAF();
-            d.col_LRR = gui.getLRR();
-            d.col_gc = gui.getGC();
-            d.col_r = gui.getR();
-            d.col_theta = gui.getTheta();
-            d.col_x = gui.getX();
-            d.col_y = gui.getY();
-            d.col_xRaw = gui.getXRaw();
-            d.col_yRaw = gui.getYRaw();
+        for (SourceFileHeaderData d : headers.values()) {
+            d.colSnpIdent = gui.getSelectedSNPIndex();
+            d.colSampleIdent = gui.getSelectedSampleID();
+            d.colGeno1 = gui.getSelectedGeno1();
+            d.colGeno2 = gui.getSelectedGeno2();
+            d.colGenoAB1 = gui.getSelectedAB1();
+            d.colGenoAB2 = gui.getSelectedAB2();
+            d.colBAF = gui.getSelectedBAF();
+            d.colLRR = gui.getSelectedLRR();
+            d.colGC = gui.getSelectedGC();
+            d.colR = gui.getSelectedR();
+            d.colTheta = gui.getSelectedTheta();
+            d.colX = gui.getSelectedX();
+            d.colY = gui.getSelectedY();
+            d.colXRaw = gui.getSelectedXRaw();
+            d.colYRaw = gui.getSelectedYRaw();
         }
         
         String path = MitoPipeline.initGenvisisProject();
@@ -461,6 +461,7 @@ public class ProjectCreationGUI extends JDialog {
         // proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
         // }
         actualProj.saveProperties();
+        actualProj.setSourceFileHeaders(headers);
         this.proj = actualProj;
         return true;
     }
