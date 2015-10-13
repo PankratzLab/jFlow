@@ -159,13 +159,13 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     public BlastFrame(Project proj) {
         this.proj = proj;
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        setBounds(100, 100, 900, 800);
+        setBounds(100, 100, 1000, 800);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
 
-        blastPanel = new JPanel(new MigLayout("", "[200px][20px][grow]", ""));
+        blastPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow]", ""));
         scrollPane = new JScrollPane(blastPanel);
         
         contentPane.add(scrollPane, BorderLayout.CENTER);
@@ -173,7 +173,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         JPanel panel = new JPanel();
         panel.setBorder(null);
         contentPane.add(panel, BorderLayout.SOUTH);
-        panel.setLayout(new MigLayout("", "[133px][][][][2px][29px][grow][][]", "[23px]"));
+        panel.setLayout(new MigLayout("", "[133px][][][][20px][20px][grow][][]", "[23px]"));
         
         chckbxExpandBlastResults = new JCheckBox(new AbstractAction() {
             private static final long serialVersionUID = 1L;
@@ -333,13 +333,13 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     }
 
     private JPanel getHeaderPanel() {
-        JPanel hdrPanel = new JPanel(new MigLayout("", "[200px][10px][10px][grow]", "")); // TODO
+        JPanel hdrPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow]", "")); // TODO
         hdrPanel.setBorder(null);
         locationLbl = new JLabel();
         Font lblFont = Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
         locationLbl.setFont(lblFont);
         hdrPanel.add(locationLbl, "cell 0 0");
-        strandLbl = new JLabel(referenceAnnotation.getStrand().getEncoding());
+        strandLbl = new JLabel(referenceAnnotation == null ? "" : referenceAnnotation.getStrand().getEncoding());
         strandLbl.setFont(lblFont);
         hdrPanel.add(strandLbl, "cell 1 0");
         probeLengthLbl = new JLabel(proj.ARRAY_TYPE.getValue().getProbeLength() + "");

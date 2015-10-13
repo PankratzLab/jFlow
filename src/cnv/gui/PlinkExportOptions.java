@@ -68,6 +68,7 @@ public class PlinkExportOptions extends JDialog {
     private static final String NO_CLUSTER_FILTERS = "(--Do not apply any cluster filter--)";
     private static final String ALL_MARKERS = "(--Export all markers--)";
     private static final String NEW_MARKERS_LIST = "(--Create new targetMarkers file--)";
+    private static final String LOAD_MARKERS_LIST = "(--Load new targetMarkers file--)";
     
     /**
      * Create the dialog.
@@ -205,8 +206,27 @@ public class PlinkExportOptions extends JDialog {
                             if (nmld.getReturnCode() == JOptionPane.YES_OPTION) {
                                 String mkrFile = nmld.getFileName();
                                 proj.TARGET_MARKERS_FILENAMES.addValue(mkrFile);
-                                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<String>(proj.TARGET_MARKERS_FILENAMES.getValue()));
+                                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<String>(getTargetMarkersOptions()));
                                 comboBoxTargetMarkers.setSelectedItem(mkrFile);
+                                proj.saveProperties();
+                            } else {
+                                comboBoxTargetMarkers.setSelectedItem(ALL_MARKERS);
+                            }
+                        } else if (LOAD_MARKERS_LIST.equals(val)) {
+                            JFileChooser jfc = new JFileChooser(proj.PROJECT_DIRECTORY.getValue());
+                            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                            jfc.setMultiSelectionEnabled(true);
+                            jfc.setDialogTitle("Import targetMarkers File");
+                            
+                            int selVal = jfc.showDialog(PlinkExportOptions.this, "Select");
+                            if (selVal == JFileChooser.APPROVE_OPTION) {
+                                File[] newFiles = jfc.getSelectedFiles();
+                                for (File newFile : newFiles) {
+                                    proj.TARGET_MARKERS_FILENAMES.addValue(newFile.getAbsolutePath());
+                                }
+                                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<String>(getTargetMarkersOptions()));
+                                comboBoxTargetMarkers.setSelectedItem(newFiles[0].getAbsolutePath());
+                                proj.saveProperties();
                             } else {
                                 comboBoxTargetMarkers.setSelectedItem(ALL_MARKERS);
                             }
@@ -414,12 +434,13 @@ public class PlinkExportOptions extends JDialog {
     
     private String[] getTargetMarkersOptions() {
         String[] values = proj.TARGET_MARKERS_FILENAMES.getValue();
-        String[] retVals = new String[values.length + 2];
-        for (int i = 0; i < values.length; i++) {
-            retVals[i] = values[i];
+        String[] retVals = new String[values.length + 3];
+        for (int i = 1; i <= values.length; i++) {
+            retVals[i] = values[i - 1];
         }
-        retVals[retVals.length - 1] = NEW_MARKERS_LIST;
-        retVals[retVals.length - 2] = ALL_MARKERS;
+        retVals[0] = ALL_MARKERS;
+        retVals[retVals.length - 1] = LOAD_MARKERS_LIST;
+        retVals[retVals.length - 2] = NEW_MARKERS_LIST;
         return retVals;
     }
     
@@ -469,6 +490,8 @@ public class PlinkExportOptions extends JDialog {
         if (ALL_MARKERS.equals(val)) {
             return null;
         } else if (NEW_MARKERS_LIST.equals(val)) {
+            return null;
+        } else if (LOAD_MARKERS_LIST.equals(val)) {
             return null;
         } else {
             return val;
