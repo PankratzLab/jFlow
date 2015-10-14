@@ -32,7 +32,7 @@ import filesys.Segment;
 /**
  * @author lane0212 Class to quantify mosiacism at a particular locus, based on procedure from http://www.ncbi.nlm.nih.gov/pubmed/22277120
  */
-public class MosaicismQuant implements Calcfc  {
+public class MosaicismQuant implements Calcfc {
 	private static final double MIN_BAF = 0.15;
 	private static final double MAX_BAF = 0.85;
 	private Project proj;
@@ -52,6 +52,7 @@ public class MosaicismQuant implements Calcfc  {
 		this.indicesByChr = indicesByChr;
 		this.type = type;
 		this.computeParams = computeParams;
+		this.proj.getLog().reportTimeInfo("MOSAIC TYPE: " + type);
 	}
 
 	private enum MOSAIC_TYPE {
@@ -90,8 +91,8 @@ public class MosaicismQuant implements Calcfc  {
 		// f = 0.229963195;
 		double delta = getDelta(f, type);
 
-		double nullD = x[2];
-		double nullDHalf = getHalfNull(nullD);
+		// double nullD = x[2];
+		// double nullDHalf = getHalfNull(nullD);
 		int count = sampleMosiac.getCdf().getVals().length;
 		int halfCount = getHalfCount(count);
 		double halfSigma = getHalfSigma(halfCount, shift);
@@ -154,9 +155,9 @@ public class MosaicismQuant implements Calcfc  {
 		return shift;
 	}
 
-	private static double getHalfDelta(double f) {
-		return 1 * (0.5 - (1 / (2 - f)));
-	}
+	// private static double getHalfDelta(double f) {
+	// return 1 * (0.5 - (1 / (2 - f)));
+	// }
 
 	private static double getHalfSigma(int halfCount, double shift) {
 		return (double) halfCount - shift;
@@ -166,9 +167,9 @@ public class MosaicismQuant implements Calcfc  {
 		return (int) (count + 0.5) / 2;
 	}
 
-	private static int getHalfNull(double nullD) {
-		return (int) (nullD + 0.5) / 2;
-	}
+	// private static int getHalfNull(double nullD) {
+	// return (int) (nullD + 0.5) / 2;
+	// }
 
 	private static double getDelta(double f, MOSAIC_TYPE type) {
 		double delta = Double.NaN;
@@ -239,9 +240,9 @@ public class MosaicismQuant implements Calcfc  {
 			this.controls = controls;
 		}
 
-		public SampleMosiacBase[] getControls() {
-			return controls;
-		}
+		// public SampleMosiacBase[] getControls() {
+		// return controls;
+		// }
 
 		public void load(int numThreads) {
 			load();
@@ -329,9 +330,10 @@ public class MosaicismQuant implements Calcfc  {
 			this.control = control;
 		}
 
-		protected String getSampleName() {
-			return sampleName;
-		}
+		//
+		// protected String getSampleName() {
+		// return sampleName;
+		// }
 
 		protected Project getProj() {
 			return proj;
@@ -341,17 +343,17 @@ public class MosaicismQuant implements Calcfc  {
 			return cdf;
 		}
 
-		protected String getQcMetric() {
-			return qcMetric;
-		}
-
-		protected double getQcValue() {
-			return qcValue;
-		}
-
-		protected double getQcDistance() {
-			return qcDistance;
-		}
+		// protected String getQcMetric() {
+		// return qcMetric;
+		// }
+		//
+		// protected double getQcValue() {
+		// return qcValue;
+		// }
+		//
+		// protected double getQcDistance() {
+		// return qcDistance;
+		// }
 
 		protected void load() {
 			this.samp = proj.getFullSampleFromRandomAccessFile(sampleName);
@@ -496,23 +498,21 @@ public class MosaicismQuant implements Calcfc  {
 		mosiacismQuant.getSampleMosiac().plotCDFs(out);
 
 		System.out.println(mosiacismQuant.Compute(1, 1, params.getX(), params.getCon()));
-		
 		CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, params.getX(), 100, .00000001, 3, 5000);
 		System.out.println(cobylaExitStatus);
 		System.exit(1);
-
 	}
 
 	public static class ComputeParams {
 
-		private double f ;
-		private double minF ;
-		private double maxF ;
+		private double f;
+		private double minF;
+		private double maxF;
 		private double shift;
-		private double minShift ;
-		private double maxShift ;
-		private double nullD ;
-		private double minNullD ;
+		private double minShift;
+		private double maxShift;
+		private double nullD;
+		private double minNullD;
 		private double maxNullD;
 
 		private double[] getX() {
@@ -553,7 +553,7 @@ public class MosaicismQuant implements Calcfc  {
 			private double maxF = 1;
 			private double shift = 0;
 			private double minShift = 0;
-			private double maxShift =1;
+			private double maxShift = 1;
 			private double nullD = 0;
 			private double minNullD = 0;
 			private double maxNullD = 100;
@@ -625,7 +625,6 @@ public class MosaicismQuant implements Calcfc  {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "CircDuCnv.dat";
-		String logfile = null;
 
 		String usage = "\n" + "cnv.hmm.CircDuCnv requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
@@ -635,9 +634,6 @@ public class MosaicismQuant implements Calcfc  {
 				System.exit(1);
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
