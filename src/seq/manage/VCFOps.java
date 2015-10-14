@@ -1133,7 +1133,6 @@ public class VCFOps {
 			descriptions[index] = vcfHeaderLine.getDescription();
 			index++;
 		}
-		Arrays.sort(annotationKeys);
 		reader.close();
 		return new String[][] { annotationKeys, descriptions };
 
