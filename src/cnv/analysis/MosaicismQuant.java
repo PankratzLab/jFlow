@@ -1,27 +1,30 @@
 package cnv.analysis;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.math3.optim.nonlinear.scalar.gradient.NonLinearConjugateGradientOptimizer;
+import org.apache.commons.math3.optim.nonlinear.scalar.gradient.NonLinearConjugateGradientOptimizer.Formula;
+
 import mining.Calcfc;
+import mining.Cobyla;
+import mining.CobylaExitStatus;
 import stats.Rscript.RScatter;
 import stats.Rscript.SCATTER_TYPE;
 import common.Array;
 import common.Sort;
 import common.WorkerHive;
 import common.ext;
+import cnv.analysis.MosaicismQuant.ComputeParams.Builder;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.hmm.CNVCaller;
-import cnv.hmm.PFB;
-import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.Builder;
 import cnv.qc.LrrSd;
 import cnv.qc.SampleQC;
 import filesys.Segment;
@@ -29,42 +32,164 @@ import filesys.Segment;
 /**
  * @author lane0212 Class to quantify mosiacism at a particular locus, based on procedure from http://www.ncbi.nlm.nih.gov/pubmed/22277120
  */
-public class MosiacismQuant implements Calcfc{
+public class MosaicismQuant implements Calcfc  {
 	private static final double MIN_BAF = 0.15;
 	private static final double MAX_BAF = 0.85;
 	private Project proj;
 	private SampleMosiac sampleMosiac;
 	private Segment evalSegment;
 	private MarkerSet markerSet;
-	private int[] indicesByChr;
-	
-	
-	
-	public MosiacismQuant(Project proj, SampleMosiac sampleMosiac, Segment evalSegment, MarkerSet markerSet, int[] indicesByChr) {
+	private int[][] indicesByChr;
+	private MOSAIC_TYPE type;
+	private ComputeParams computeParams;
+
+	public MosaicismQuant(Project proj, SampleMosiac sampleMosiac, MOSAIC_TYPE type, ComputeParams computeParams, Segment evalSegment, MarkerSet markerSet, int[][] indicesByChr) {
 		super();
 		this.proj = proj;
-		this.sampleMosiac =  new SampleMosiac(sampleMosiac);
+		this.sampleMosiac = new SampleMosiac(sampleMosiac);
 		this.evalSegment = evalSegment;
 		this.markerSet = markerSet;
 		this.indicesByChr = indicesByChr;
+		this.type = type;
+		this.computeParams = computeParams;
+	}
+
+	private enum MOSAIC_TYPE {
+		MONOSOMY_DISOMY, TRISOMY_DISOMY;
+	}
+
+	@Override
+	public double Compute(int n, int m, double[] x, double[] con) {
+		System.out.println(Array.toStr(con));
+		if (x[0] - computeParams.getMinF() < 0) {
+			con[0] = -100000;
+		}
+		if (computeParams.getMaxF() - x[0] < 0) {
+			con[1] = -100000;
+		}
+		if (x[1] - computeParams.getMinShift() < 0) {
+			con[2] = -100000;
+		}
+		if (computeParams.getMaxShift() - x[1] < 0) {
+			con[3] = -100000;
+		}
+		if (x[2] - computeParams.getMinNullD() < 0) {
+			con[4] = 0;
+		}
+		if (computeParams.getMaxNullD() - x[2] < 0) {
+			con[5] = 0;
+
+		}
+		return getValue(x);
+	}
+
+	private double getValue(double[] x) {
+		double f = x[0];
+		double shift = x[1];
+		// shift = -96.3918991185974;
+		// f = 0.229963195;
+		double delta = getDelta(f, type);
+
+		double nullD = x[2];
+		double nullDHalf = getHalfNull(nullD);
+		int count = sampleMosiac.getCdf().getVals().length;
+		int halfCount = getHalfCount(count);
+		double halfSigma = getHalfSigma(halfCount, shift);
+		System.out.println(halfCount);
+		System.out.println(halfSigma);
+		System.out.println(count);
+		System.out.println(shift);
+		System.out.println(shift);
+		double[] currentCase = sampleMosiac.getCdf().getValsInOrder();
+		double[] currentControl = sampleMosiac.getSmoothedControl().getValsInOrder();
+		double diffAverage = Array.mean(currentCase) - Array.mean(currentControl);
+		System.out.println(Array.mean(currentControl) + "AV\t" + Array.stdev(currentControl));
+
+		double[] shiftControl = getShift(currentControl, diffAverage, delta, halfSigma);
+		System.out.println(Array.mean(shiftControl) + "AV\t" + Array.stdev(shiftControl));
+
+		int[] shiftControlRank = Sort.quicksort(shiftControl);
+		double[] resids = getResid(shiftControl, shiftControlRank, currentCase);
+		System.out.println(diffAverage);
+		System.out.println(getSumResids(resids));
+		System.out.println(Array.toStr(x));
+		// System.exit(1);
+		return getSumResids(resids);
 	}
 
 	public void prepareMosiacQuant(int numThreads, double minBaf, double maxBaf) {
 		sampleMosiac.load(numThreads);
+		sampleMosiac.developCDFs(markerSet, indicesByChr, evalSegment, minBaf, maxBaf);
 
 	}
-	
-	
 
-	@Override
-	public double Compute(int n, int m, double[] x, double[] con) {
-		
-		
-		// TODO Auto-generated method stub
-		return 0;
+	private static double getSumResids(double[] resids) {
+		double sum = 0;
+		for (int i = 0; i < resids.length; i++) {
+			sum += Math.sqrt(Math.pow(resids[i], 2));
+		}
+		return sum;
+
 	}
-	
-	
+
+	private static double[] getResid(double[] shiftControl, int[] shiftControlRank, double[] currentCase) {
+		double[] resid = new double[shiftControl.length];
+		for (int i = 0; i < resid.length; i++) {
+			resid[i] = currentCase[i] - shiftControl[shiftControlRank[i]];
+		}
+		return resid;
+	}
+
+	private static double[] getShift(double[] currentControl, double diffAverage, double delta, double halfSigma) {
+		double[] shift = new double[currentControl.length];
+		for (int i = 0; i < currentControl.length; i++) {
+			double val = diffAverage + currentControl[i];
+			if (i - halfSigma > 0) {
+				val += delta * -1;
+			} else {
+				val += delta;
+			}
+			shift[i] = val;
+		}
+		return shift;
+	}
+
+	private static double getHalfDelta(double f) {
+		return 1 * (0.5 - (1 / (2 - f)));
+	}
+
+	private static double getHalfSigma(int halfCount, double shift) {
+		return (double) halfCount - shift;
+	}
+
+	private static int getHalfCount(int count) {
+		return (int) (count + 0.5) / 2;
+	}
+
+	private static int getHalfNull(double nullD) {
+		return (int) (nullD + 0.5) / 2;
+	}
+
+	private static double getDelta(double f, MOSAIC_TYPE type) {
+		double delta = Double.NaN;
+		switch (type) {
+		case MONOSOMY_DISOMY:
+			delta = -1 * (0.5 - (1 / (2 - f)));
+			break;
+		case TRISOMY_DISOMY:
+			delta = 0.5 - (1 / (2 + f));
+			break;
+		default:
+			break;
+
+		}
+		return delta;
+	}
+
+	public SampleMosiac getSampleMosiac() {
+		return sampleMosiac;
+	}
+
 	private static SampleMosiac prep(Project proj, String sampleName, String qcMetric, int numControls) {
 		SampleMosiacBase[] controls = new SampleMosiacBase[numControls];
 		int sampleIndex = ext.indexOfStr(sampleName, proj.getSamples());
@@ -104,7 +229,11 @@ public class MosiacismQuant implements Calcfc{
 			this.controls = sampleMosiac.controls;
 			this.smoothedControl = sampleMosiac.smoothedControl;
 		}
-		
+
+		public CDF getSmoothedControl() {
+			return smoothedControl;
+		}
+
 		public SampleMosiac(Project proj, String sampleName, String qcMetric, double qcValue, SampleMosiacBase[] controls) {
 			super(proj, sampleName, qcMetric, qcValue, qcValue, false);
 			this.controls = controls;
@@ -116,7 +245,7 @@ public class MosiacismQuant implements Calcfc{
 
 		public void load(int numThreads) {
 			load();
-			WorkerHive<SampleMosiacBase> hive = new WorkerHive<MosiacismQuant.SampleMosiacBase>(numThreads, 10, getProj().getLog());
+			WorkerHive<SampleMosiacBase> hive = new WorkerHive<MosaicismQuant.SampleMosiacBase>(numThreads, 10, getProj().getLog());
 			for (int i = 0; i < controls.length; i++) {
 				hive.addCallable(controls[i]);
 			}
@@ -189,7 +318,7 @@ public class MosiacismQuant implements Calcfc{
 			this.qcDistance = s.qcDistance;
 			this.control = s.control;
 		}
-		
+
 		public SampleMosiacBase(Project proj, String sampleName, String qcMetric, double qcValue, double qcDistance, boolean control) {
 			super();
 			this.proj = proj;
@@ -320,7 +449,14 @@ public class MosiacismQuant implements Calcfc{
 			super();
 			this.vals = vals;
 			this.order = Sort.quicksort(vals);
+		}
 
+		public double[] getValsInOrder() {
+			double[] orderedVals = new double[vals.length];
+			for (int i = 0; i < orderedVals.length; i++) {
+				orderedVals[i] = vals[order[i]];
+			}
+			return orderedVals;
 		}
 
 		public double[] getVals() {
@@ -344,110 +480,146 @@ public class MosiacismQuant implements Calcfc{
 
 	public static void test(Project proj) {
 
-		Sample samp = proj.getFullSampleFromRandomAccessFile(proj.getSamples()[ext.indexOfStr("7355066051_R03C01", proj.getSamples())]);
-		SampleMosiac sampleMosiac = prep(proj, samp.getSampleName(), "BAF1585_SD", 5);
-		for (int i = 0; i < sampleMosiac.getControls().length; i++) {
-			System.out.println(sampleMosiac.getSampleName() + "\t" + sampleMosiac.getQcValue() + "\t" + sampleMosiac.getControls()[i].getSampleName() + "\t" + sampleMosiac.getControls()[i].getQcValue());
-		}
-		sampleMosiac.load(5);
+		SampleMosiac sampleMosiac = prep(proj, "7355066051_R03C01", "BAF1585_SD", 5);
 		MarkerSet markerSet = proj.getMarkerSet();
 		int[][] indices = markerSet.getIndicesByChr();
 
-		Segment segTest = new Segment((byte) 17, 0, Integer.MAX_VALUE);
-		sampleMosiac.developCDFs(markerSet, indices, segTest, MIN_BAF, MAX_BAF);
+		Segment segTest = new Segment("chr17:42,963,198-78,940,173");
+		Builder builder = new Builder();
+		ComputeParams params = builder.build();
+		MosaicismQuant mosiacismQuant = new MosaicismQuant(proj, sampleMosiac, MOSAIC_TYPE.MONOSOMY_DISOMY, params, segTest, markerSet, indices);
+		mosiacismQuant.prepareMosiacQuant(5, MIN_BAF, MAX_BAF);
+
 		String testDir = proj.PROJECT_DIRECTORY.getValue() + "TestMosaic/";
 		new File(testDir).mkdirs();
 		String out = testDir + ext.replaceWithLinuxSafeCharacters(segTest.getUCSClocation(), true);
-		sampleMosiac.plotCDFs(out);
-	
+		mosiacismQuant.getSampleMosiac().plotCDFs(out);
+
+		System.out.println(mosiacismQuant.Compute(1, 1, params.getX(), params.getCon()));
+		
+		CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, params.getX(), 100, .00000001, 3, 5000);
+		System.out.println(cobylaExitStatus);
 		System.exit(1);
-
-		PFB pfb = PFB.loadPFB(proj);
-		// double[] pfbCDF = Array.getValuesBetween(Array.removeNaN(pfb.getPfbs()), MIN_BAF, MAX_BAF);
-		// ArrayList<Double> pArrayList = new ArrayList<Double>();
-		double[] bafsPop = loadBaf1585Mean(proj);
-		for (int i = 0; i < indices.length; i++) {
-			// for (int j = 0; j < pfbCDF.length; j++) {
-			// pArrayList.add(pfbCDF[i]);
-			// }
-			// ArrayList<Double> pArrayListChr = new ArrayList<Double>();
-			// pArrayListChr.addAll(pArrayList);
-			// Collections.shuffle(pArrayListChr);
-			// ArrayList<Double> pArrayListChrSuf = new ArrayList<Double>();
-
-			double[] bafChr = Array.subArray(Array.toDoubleArray(samp.getBAFs()), indices[i]);
-			double[] bafsPopChr = Array.subArray(bafsPop, indices[i]);
-
-			// List<Double> shf = pArrayListChr.subList(0, bafs.length);
-			// pArrayListChrSuf.addAll(shf);
-			// double[] pArrayListChrA = Array.subArray(Array.toDoubleArray(pArrayListChrSuf), 0, bafs.length);
-
-			// int[] popIndex = Sort.quicksort(pArrayListChrA);
-
-			double[] bafsAdjust = CNVCaller.adjustBaf(bafChr, MIN_BAF, MAX_BAF, proj.getLog());
-			double[] bafsAdjustRanged = Array.getValuesBetween(bafsAdjust, MIN_BAF, MAX_BAF);
-
-			double[] bafsPopChrAdjust = CNVCaller.adjustBaf(Array.removeNaN(bafsPopChr), MIN_BAF, MAX_BAF, proj.getLog());
-			int[] popSortAdjust = Sort.quicksort(bafsPopChrAdjust);
-			ArrayList<Double> pArrayList = new ArrayList<Double>();
-			boolean low = true;
-			int index = 0;
-			while (pArrayList.size() < bafsAdjustRanged.length) {
-				try {
-					if (low) {
-						pArrayList.add(bafsPopChrAdjust[popSortAdjust[index]]);
-						low = false;
-					} else {
-						pArrayList.add(bafsPopChrAdjust[popSortAdjust[popSortAdjust.length - 1 - index]]);
-						low = true;
-						index++;
-					}
-				} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
-					index = 0;
-				}
-			}
-			double[] pArrayListChrA = Array.toDoubleArray(pArrayList);
-			int[] popSort = Sort.quicksort(pArrayListChrA);
-			int[] sortIndex = Sort.quicksort(bafsAdjustRanged);
-			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(out));
-				writer.println("Index\tCDF\tValSamp\tValPop\tResid");
-				for (int j = 0; j < sortIndex.length; j++) {
-					double cdf = (double) j / bafsAdjustRanged.length;
-					writer.println(j + "\t" + cdf + "\t" + bafsAdjustRanged[sortIndex[j]] + "\t" + pArrayListChrA[popSort[j]] + "\t" + (bafsAdjustRanged[sortIndex[j]] - pArrayListChrA[popSort[j]]));
-				}
-				writer.close();
-				RScatter rScatter = new RScatter(out, out + ".rscript", ext.removeDirectoryInfo(out), out + ".jpeg", "CDF", new String[] { "ValSamp", "ValPop", "Resid" }, SCATTER_TYPE.POINT, proj.getLog());
-				rScatter.setOverWriteExisting(true);
-				rScatter.execute();
-			} catch (Exception e) {
-				proj.getLog().reportError("Error writing to " + out);
-				proj.getLog().reportException(e);
-			}
-		}
 
 	}
 
-	private static double[] loadBaf1585Mean(Project proj) {
+	public static class ComputeParams {
 
-		Builder builder = new Builder();
-		builder.dataKeyColumnName("MarkerName");
-		builder.numericDataTitles(new String[] { "BAF_15_85_MEAN" });
-		builder.sampleBased(false);
-		builder.requireAll(true);
-		builder.treatAllNumeric(false);
+		private double f ;
+		private double minF ;
+		private double maxF ;
+		private double shift;
+		private double minShift ;
+		private double maxShift ;
+		private double nullD ;
+		private double minNullD ;
+		private double maxNullD;
 
-		try {
-			ExtProjectDataParser extProjectDataParser = builder.build(proj, proj.MARKER_METRICS_FILENAME.getValue());
-			extProjectDataParser.determineIndicesFromTitles();
-			extProjectDataParser.loadData();
-			double[] baf1585s = extProjectDataParser.getNumericDataForTitle("BAF_15_85_MEAN");
-			return baf1585s;
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			proj.getLog().reportFileNotFound(proj.MARKER_METRICS_FILENAME.getValue());
-			return null;
+		private double[] getX() {
+			return new double[] { f == 0 ? f + .1 : f, shift, nullD };
 		}
+
+		private double[] getCon() {
+			return new double[] { minF, maxF, minShift, maxShift, minNullD, maxNullD };
+		}
+
+		public double getMinF() {
+			return minF;
+		}
+
+		public double getMaxF() {
+			return maxF;
+		}
+
+		public double getMinShift() {
+			return minShift;
+		}
+
+		public double getMaxShift() {
+			return maxShift;
+		}
+
+		public double getMinNullD() {
+			return minNullD;
+		}
+
+		public double getMaxNullD() {
+			return maxNullD;
+		}
+
+		public static class Builder {
+			private double f = 0;
+			private double minF = 0;
+			private double maxF = 1;
+			private double shift = 0;
+			private double minShift = 0;
+			private double maxShift =1;
+			private double nullD = 0;
+			private double minNullD = 0;
+			private double maxNullD = 100;
+
+			public Builder f(double f) {
+				this.f = f;
+				return this;
+			}
+
+			public Builder minF(double minF) {
+				this.minF = minF;
+				return this;
+			}
+
+			public Builder maxF(double maxF) {
+				this.maxF = maxF;
+				return this;
+			}
+
+			public Builder shift(double shift) {
+				this.shift = shift;
+				return this;
+			}
+
+			public Builder minShift(double minShift) {
+				this.minShift = minShift;
+				return this;
+			}
+
+			public Builder maxShift(double maxShift) {
+				this.maxShift = maxShift;
+				return this;
+			}
+
+			public Builder nullD(double nullD) {
+				this.nullD = nullD;
+				return this;
+			}
+
+			public Builder minNullD(double minNullD) {
+				this.minNullD = minNullD;
+				return this;
+			}
+
+			public Builder maxNullD(double maxNullD) {
+				this.maxNullD = maxNullD;
+				return this;
+			}
+
+			public ComputeParams build() {
+				return new ComputeParams(this);
+			}
+		}
+
+		private ComputeParams(Builder builder) {
+			this.f = builder.f;
+			this.minF = builder.minF;
+			this.maxF = builder.maxF;
+			this.shift = builder.shift;
+			this.minShift = builder.minShift;
+			this.maxShift = builder.maxShift;
+			this.nullD = builder.nullD;
+			this.minNullD = builder.minNullD;
+			this.maxNullD = builder.maxNullD;
+		}
+
 	}
 
 	public static void main(String[] args) {
@@ -482,6 +654,5 @@ public class MosiacismQuant implements Calcfc{
 			e.printStackTrace();
 		}
 	}
-
 
 }
