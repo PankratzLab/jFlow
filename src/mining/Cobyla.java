@@ -24,7 +24,6 @@
  */
 package mining;
 
-import common.Array;
 
 /**
  * Constrained Optimization BY Linear Approximation in Java.
@@ -43,8 +42,10 @@ import common.Array;
  * @author Anders Gustafsson, Cureos AB.
  */
 public class Cobyla
-{    
-    /**
+{   
+	
+	
+	/**
      * Minimizes the objective function F with respect to a set of inequality constraints CON,
      * and returns the optimal variable array. F and CON may be non-linear, and should preferably be smooth.
      * 
@@ -60,7 +61,18 @@ public class Cobyla
      * @param maxfun Maximum number of function evaluations before terminating.
      * @return Exit status of the COBYLA2 optimization.
      */
-    public static CobylaExitStatus FindMinimum(final Calcfc calcfc, int n, int m, double[] x, double rhobeg, double rhoend, int iprint, int maxfun)
+	public static CobylaExitStatus FindMinimum(final Calcfc calcfc, int n, int m, double[] x, double rhobeg, double rhoend, int iprint, int maxfun) {
+		return FindMinimum(calcfc, n, m, x, null, rhobeg, rhoend, iprint, maxfun);
+	}
+	
+	 
+	 
+	    
+	/**
+	 * @param x_bounds
+	 *            explicitly limit the bounds on x at each step
+	 */
+    public static CobylaExitStatus FindMinimum(final Calcfc calcfc, int n, int m, double[] x,double[][] x_bounds, double rhobeg, double rhoend, int iprint, int maxfun)
     {
         //     This subroutine minimizes an objective function F(X) subject to M
         //     inequality constraints on X, where X is a vector of variables that has
@@ -112,12 +124,60 @@ public class Cobyla
         //     ...,CON(M).  Note that we are trying to adjust X so that F(X) is as
         //     small as possible subject to the constraint functions being nonnegative.
 
+    	
+		//TODO, custom genvisis code
+
+		if (x_bounds != null) {
+			if (x_bounds.length != x.length) {
+				String error = "If explicit x bounds are set, each x must have bounds, have " + x_bounds.length + " bounds and should have " + x.length;
+				throw new IllegalArgumentException(error);
+			}
+			for (int i = 0; i < x_bounds.length; i++) {
+				if (x_bounds[i] != null) {
+					if (x_bounds[i].length != 2) {
+						String error = "If explicit x bounds are set, each x must have an upper and lower bound";
+						throw new IllegalArgumentException(error);
+					}
+					if (x_bounds[i][0] >= x_bounds[i][1]) {
+						String error = "lower bound must be strictly less than upper bound";
+						throw new IllegalArgumentException(error);
+					}
+				}
+			}
+//			/https://github.com/stevengj/nlopt/blob/master/cobyla/cobyla.c#L561
+			//TODO, custom genvisis code
+
+			for (int j = 0; j < n; ++j) {
+				if (x_bounds[j] != null) {
+					double ub = x_bounds[j][1];
+					double lb = x_bounds[j][0];
+					if (x[j] < lb)
+						x[j] = lb;
+					else if (x[j] > ub)
+						x[j] = ub;
+					else
+						x[j] = x[j];
+				}
+			}
+		}
+
         // Local variables
         int mpp = m + 2;
 
         // Internal base-1 X array
-        double[] iox = new double[n + 1];
-        System.arraycopy(x, 0, iox, 1, n);
+		double[] iox = new double[n + 1];
+		System.arraycopy(x, 0, iox, 1, n);
+		//TODO, custom genvisis code
+
+		if (x_bounds != null) {
+			 // Internal base-1 x_bounds array
+			double[][] x_boundsTmp = new double[x_bounds.length + 1][];
+			x_boundsTmp[0] = new double[1];
+			for (int i = 0; i < x_bounds.length; i++) {
+				x_boundsTmp[i + 1] = x_bounds[i];
+			}
+			x_bounds = x_boundsTmp;
+		}
 
         // Internal representation of the objective and constraints calculation method, 
         // accounting for that X and CON arrays in the cobylb method are base-1 arrays.
@@ -143,13 +203,13 @@ public class Cobyla
             }
         };                
 
-        CobylaExitStatus status = cobylb(fcalcfc, n, m, mpp, iox, rhobeg, rhoend, iprint, maxfun);
+        CobylaExitStatus status = cobylb(fcalcfc, n, m, mpp, iox,x_bounds, rhobeg, rhoend, iprint, maxfun);
         System.arraycopy(iox, 1, x, 0, n);
 
         return status;
     }
     
-    private static CobylaExitStatus cobylb(Calcfc calcfc, int n, int m, int mpp, double[] x,
+    private static CobylaExitStatus cobylb(Calcfc calcfc, int n, int m, int mpp, double[] x,double[][] x_bounds,
         double rhobeg, double rhoend, int iprint, int maxfun)
     {
         // N.B. Arguments CON, SIM, SIMI, DATMAT, A, VSIG, VETA, SIGBAR, DX, W & IACT
@@ -203,10 +263,30 @@ public class Cobyla
 
         for (int i = 1; i <= n; ++i)
         {
-            sim[i][np] = x[i];
-            sim[i][i] = rho;
-            simi[i][i] = temp;
-        }
+			sim[i][np] = x[i];
+			
+			// Custom genvisis code;
+			double rhocur = rho;
+
+			if (x_bounds != null && x_bounds[i] != null) {
+				//https://github.com/stevengj/nlopt/blob/master/cobyla/cobyla.c#L561
+				double ub = x_bounds[i][1];
+				double lb = x_bounds[i][0];
+				if (x[i] + rhocur > ub) {
+
+					if (x[i] - rhocur >= lb)
+						rhocur = -rhocur;
+					else if (ub - x[i] > x[i] - lb)
+						rhocur = 0.5 * (ub - x[i]);
+					else
+						rhocur = 0.5 * (x[i] - lb);
+				}
+			}
+			// End genvisis code;
+
+			sim[i][i] = rhocur;
+			simi[i][i] = 1.0 / rhocur;
+		}
 
         int jdrop = np;
         boolean ibrnch = false;
@@ -445,7 +525,30 @@ public class Cobyla
                             temp = 0.0;
                             for (int i = 1; i <= n; ++i)
                             {
-                                dx[i] = dxsign * dx[i];
+                            	
+                            	//TODO,Custom genvisis code
+								dx[i] = dxsign * dx[i];
+								if (x_bounds != null && x_bounds[i] != null) {
+									double xi = sim[i][np];
+									double ub = x_bounds[i][1];
+									double lb = x_bounds[i][0];
+									boolean fixing = true;
+									while (fixing) {
+										fixing = false;
+										if (xi + dx[i] > ub) {
+											dx[i] = -dx[i];
+										}
+										if (xi + dx[i] < lb) {
+											if (xi - dx[i] <= ub) {
+												dx[i] = -dx[i];
+											} else { /* try again with halved step */
+												dx[i] = dx[i]*0.5;
+												fixing = true;
+											}
+										}
+									}
+									
+								}
                                 sim[i][jdrop] = dx[i];
                                 temp += simi[jdrop][i] * dx[i];
                             }
@@ -466,7 +569,26 @@ public class Cobyla
                         //     Calculate DX = x(*)-x(0).
                         //     Branch if the length of DX is less than 0.5*RHO.
 
-                        ifull = trstlp(n, m, a, con, rho, dx);
+						ifull = trstlp(n, m, a, con, rho, dx);
+						//TODO, custom genvisis code
+						if (x_bounds != null) {
+							for (int i = 1; i <= n; ++i) {
+								if (x_bounds[i] != null && x_bounds[i] != null) {
+									double ub = x_bounds[i][1];
+									double lb = x_bounds[i][0];
+									double xi = sim[i][np];
+									if (xi + dx[i] > ub) {
+										dx[i] = ub - xi;
+									}
+									if (xi + dx[i] < lb) {
+
+										dx[i] = xi - lb;
+									}
+
+								}
+							}
+						}
+                        
                         if (!ifull)
                         {
                             temp = 0.0; for (int k = 1; k <= n; ++k) temp += dx[k] * dx[k];

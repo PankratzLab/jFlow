@@ -57,31 +57,29 @@ public class MosaicismQuant implements Calcfc {
 
 	@Override
 	public double Compute(int n, int m, double[] x, double[] con) {
-		System.out.println(Array.toStr(con));
-		if (x[0] - computeParams.getMinF() < 0) {
-			con[0] = -100000;
-		}
-		if (computeParams.getMaxF() - x[0] < 0) {
-			con[1] = -100000;
-		}
-		if (x[1] - computeParams.getMinShift() < 0) {
-			con[2] = -100000;
-		}
-		if (computeParams.getMaxShift() - x[1] < 0) {
-			con[3] = -100000;
-		}
-		if (x[2] - computeParams.getMinNullD() < 0) {
-			con[4] = 0;
-		}
-		if (computeParams.getMaxNullD() - x[2] < 0) {
-			con[5] = 0;
-
-		}
+//		if (x[0] - computeParams.getMinF() < 0) {
+//			con[0] = -100000;
+//		}
+//		if (computeParams.getMaxF() - x[0] < 0) {
+//			con[1] = -100000;
+//		}
+//		if (x[1] - computeParams.getMinShift() < 0) {
+//			con[2] = -100000;
+//		}
+//		if (computeParams.getMaxShift() - x[1] < 0) {
+//			con[3] = -100000;
+//		}
+//		if (x[2] - computeParams.getMinNullD() < 0) {
+//			con[4] = 0;
+//		}
+//		if (computeParams.getMaxNullD() - x[2] < 0) {
+//			con[5] = 0;
+//		}
 		return getValue(x);
 	}
 
 	private double getValue(double[] x) {
-		double f = x[0];
+		double f = x[0]/100;
 		double shift = x[1];
 		// shift = -96.3918991185974;
 		// f = 0.229963195;
@@ -92,25 +90,12 @@ public class MosaicismQuant implements Calcfc {
 		int count = sampleMosiac.getCdf().getVals().length;
 		int halfCount = getHalfCount(count);
 		double halfSigma = getHalfSigma(halfCount, shift);
-		System.out.println(halfCount);
-		System.out.println(halfSigma);
-		System.out.println(count);
-		System.out.println(shift);
-		System.out.println(shift);
 		double[] currentCase = sampleMosiac.getCdf().getValsInOrder();
 		double[] currentControl = sampleMosiac.getSmoothedControl().getValsInOrder();
 		double diffAverage = Array.mean(currentCase) - Array.mean(currentControl);
-		System.out.println(Array.mean(currentControl) + "AV\t" + Array.stdev(currentControl));
-
 		double[] shiftControl = getShift(currentControl, diffAverage, delta, halfSigma);
-		System.out.println(Array.mean(shiftControl) + "AV\t" + Array.stdev(shiftControl));
-
 		int[] shiftControlRank = Sort.quicksort(shiftControl);
 		double[] resids = getResid(shiftControl, shiftControlRank, currentCase);
-		System.out.println(diffAverage);
-		System.out.println(getSumResids(resids));
-		System.out.println(Array.toStr(x));
-		// System.exit(1);
 		return getSumResids(resids);
 	}
 
@@ -482,7 +467,10 @@ public class MosaicismQuant implements Calcfc {
 		MarkerSet markerSet = proj.getMarkerSet();
 		int[][] indices = markerSet.getIndicesByChr();
 
-		Segment segTest = new Segment("chr17:42,963,198-78,940,173");
+		//Segment segTest = new Segment("chr17:42,963,198-78,940,173");
+//		Segment segTest = new Segment("chr17:42,963,198-78,940,173");
+		Segment segTest = new Segment((byte)17,0,Integer.MAX_VALUE);
+
 		Builder builder = new Builder();
 		ComputeParams params = builder.build();
 		MosaicismQuant mosiacismQuant = new MosaicismQuant(proj, sampleMosiac, MOSAIC_TYPE.MONOSOMY_DISOMY, params, segTest, markerSet, indices);
@@ -494,10 +482,22 @@ public class MosaicismQuant implements Calcfc {
 		mosiacismQuant.getSampleMosiac().plotCDFs(out);
 
 		System.out.println(mosiacismQuant.Compute(1, 1, params.getX(), params.getCon()));
-		CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, params.getX(), 100, .00000001, 3, 5000);
+		double[] x  =params.getX();
+		CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, x, params.getX_Bounds(), 1, .0001, 3, 50000);
+		System.out.println(Array.toStr(x));
 		System.out.println(cobylaExitStatus);
 		System.exit(1);
 	}
+
+	private static class BruteForce {
+		private MosaicismQuant mosiacismQuant;
+		private ComputeParams computeParams;
+
+	}
+	
+//	private static BruteForceResult{
+//		
+//	}
 
 	public static class ComputeParams {
 
@@ -510,10 +510,20 @@ public class MosaicismQuant implements Calcfc {
 		private double nullD;
 		private double minNullD;
 		private double maxNullD;
+		
 
 		private double[] getX() {
 			return new double[] { f == 0 ? f + .1 : f, shift, nullD };
 		}
+
+		private double[][] getX_Bounds() {
+			double[][] xbounds = new double[3][];
+			xbounds[0] = new double[] { minF, maxF };
+			xbounds[1] = new double[] { minShift, maxShift };
+			xbounds[2] = new double[] { minNullD, maxNullD };
+			return xbounds;
+		}
+		
 
 		private double[] getCon() {
 			return new double[] { minF, maxF, minShift, maxShift, minNullD, maxNullD };
@@ -544,12 +554,12 @@ public class MosaicismQuant implements Calcfc {
 		}
 
 		public static class Builder {
-			private double f = 0;
+			private double f = 50;
 			private double minF = 0;
-			private double maxF = 1;
+			private double maxF = 100;
 			private double shift = 0;
-			private double minShift = 0;
-			private double maxShift = 1;
+			private double minShift = -100;
+			private double maxShift = 300;
 			private double nullD = 0;
 			private double minNullD = 0;
 			private double maxNullD = 100;
