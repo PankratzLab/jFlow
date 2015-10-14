@@ -23,7 +23,7 @@ public class SourceFileHeaderData {
     int totalSamples = -1;
     int numFiles = -1;
     int currFile = -1;
-    int columnHeaderLineIndex = -1;
+    public int columnHeaderLineIndex = -1;
     
     public int colSampleIdent = -1;
     public int colSnpIdent = -1;
@@ -42,6 +42,17 @@ public class SourceFileHeaderData {
     public int colGC = -1;
     public String headerString = "";
     public String[] cols = new String[0];
+    
+//    Order from ParseIllumina
+//  0    GC
+//  1    XRAW
+//  2    YRAW
+//  3    X
+//  4    Y
+//  5    Theta
+//  6    R
+//  7    B Allele Freq
+//  8    Log R Ratio
     
     public SourceFileHeaderData() {}
     
