@@ -74,8 +74,10 @@ public class QQPlot extends JFrame implements ActionListener {
 //		label.setFont(new Font("Arial", 0, 20));
 //		descrPanel.add(label);
 		
+		log.report("File\tTrait\tLambda");
 		for (int i = 0; i<pvals.length; i++) {
 			label = new JLabel("lambda = "+ext.formDeci(Array.lambda(pvals[i]), 4)+" ("+labels[i]+")", JLabel.CENTER);
+			log.report(Array.toStr(ext.replaceAllWith(labels[i], "'", "").split("[\\s]+"))+"\t"+ext.formDeci(Array.lambda(pvals[i]), 4));
 			label.setForeground(pvals.length==1?COLOR_SCHEME[0]:COLOR_SCHEME[i+2]);
 			label.setFont(new Font("Arial", 0, 20));
 			descrPanel.add(label);
@@ -330,9 +332,6 @@ public class QQPlot extends JFrame implements ActionListener {
 	}
 	
 	public static void main(String[] args) {
-//		args = new String[] {"files=perfectPolymorphs.xln,5;perfectPolymorphs.xln,6;perfectPolymorphs.xln,12;perfectPolymorphs.xln,13;perfectPolymorphs.xln,19;perfectPolymorphs.xln,20;perfectPolymorphs.xln,26;perfectPolymorphs.xln,27"};
-		args = new String[] {"files=perfectPolymorphs.xln,5;perfectPolymorphs.xln,6;perfectPolymorphs.xln,12"};
-
 		int numArgs = args.length;
 		String[] filenames = DEFAULT_FILES;
 		String computeDir = "";
