@@ -1,5 +1,6 @@
 import java.io.*;
 import java.sql.Date;
+import java.util.HashSet;
 
 import common.*;
 import parse.GenParser;
@@ -338,14 +339,57 @@ public class temp {
 			} else {
 				System.out.println("Could not find a directory named "+geneNames[i]+"/ within "+dir);
 			}
-			
 		}
-
+	}
+	
+	public static void parseAnnotationFile(String filename, String markersToKeep) {
+		BufferedReader reader;
+		PrintWriter writer;
+		String[] line;
+		String temp, trav;
+		HashSet<String> hash;
+		int count;
+		long time;
+		Logger log = new Logger();
+		
+		hash = HashVec.loadFileToHashSet(markersToKeep, false);
+		
+		try {
+			reader = Files.getAppropriateReader(filename);
+			writer = Files.getAppropriateWriter(ext.addToRoot(filename, "_data"));
+			writer.println("Lookup\t"+reader.readLine());
+			while (reader.ready()) {
+				temp = reader.readLine();
+				line = temp.trim().split("[\\s]+");
+				trav = line[0]+":"+line[1];
+				if (hash.contains(trav)) {
+					writer.println(trav+"\t"+temp);
+				}
+				trav = line[0]+":"+line[1]+":"+line[2]+":"+line[3];
+				if (hash.contains(trav)) {
+					writer.println(trav+"\t"+temp);
+				}
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + filename + "\" not found in current directory");
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + filename + "\"");
+			return;
+		}
+		
+		
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "source.txt";
+		
+		parseAnnotationFile("D:/LITE/CHARGE-S/freeze5/combined_snplist.snp.var.annotation.gz", "D:/LITE/CHARGE-S/freeze5/all_exonics.dat");
+		
+		System.exit(1);
 
 		reviewInIGV("D:/Logan/DeNovos/mini_bam_scripts/", 1000);
 		
