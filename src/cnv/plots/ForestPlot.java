@@ -72,8 +72,8 @@ class MetaStudy {
 		nameMap = new HashMap<String, StudyData>();
 		this.metaBeta = metaBeta;
 		this.metaStderr = metaStderr;
-		this.getMetaConf()[0] = (float) (metaBeta - 1.96 * metaStderr);
-		this.getMetaConf()[1] = (float) (metaBeta + 1.96 * metaStderr);
+		this.metaConf[0] = (float) (metaBeta - 1.96 * metaStderr);
+		this.metaConf[1] = (float) (metaBeta + 1.96 * metaStderr);
 	}
 	
 	public void addStudy(StudyData studyData) {
@@ -157,24 +157,24 @@ class MetaStudy {
 	    return this.shouldSort ? this.sortOrder == null || this.sortOrder.isEmpty() ? getSorted() : getSorted(this.sortOrder) : this.studies;
 	}
 
-	public float[] getMetaConf() {
-		return metaConf;
+	public float[] getMetaConf(boolean odds) {
+		return odds ? new float[]{(float) Math.exp(metaConf[0]), (float) Math.exp(metaConf[1])} : metaConf;
 	}
 
-	public float getMetaBeta() {
-		return metaBeta;
-	}
-
-	public float getMetaStderr() {
-	    return metaStderr;
-	}
-//	public float getMetaBeta(boolean odds) {
-//	    return (float) (odds ? Math.exp(metaBeta) : metaBeta);
+//	public float getMetaBeta() {
+//		return metaBeta;
 //	}
-//	
-//	public float getMetaStderr(boolean odds) {
-//	    return (float) (odds ? Math.exp(metaStderr) : metaStderr);
+//
+//	public float getMetaStderr() {
+//	    return metaStderr;
 //	}
+	public float getMetaBeta(boolean odds) {
+	    return (float) (odds ? Math.exp(metaBeta) : metaBeta);
+	}
+	
+	public float getMetaStderr(boolean odds) {
+	    return (float) (odds ? Math.exp(metaStderr) : metaStderr);
+	}
 
     public void setSort(boolean sortedDisplay, ArrayList<String> sortOrder) {
         this.shouldSort = sortedDisplay;

@@ -517,7 +517,7 @@ public class ForestPanel extends AbstractPanel {
 				}
 				g.drawString(META_LABEL, WIDTH_BUFFER + leftsize - fontMetrics.stringWidth(META_LABEL) - 15, getHeight() - axisXHeight/*HEIGHT_X_AXIS*/ - fontMetrics.getHeight() - 10);
 				
-				g.drawString(prepareRightMarkers(forestPlot.getCurrentMetaStudy().getMetaBeta(), forestPlot.getCurrentMetaStudy().getMetaConf()[0], forestPlot.getCurrentMetaStudy().getMetaConf()[1]), getWidth() - rightsize + 15, getHeight() - /*HEIGHT_X_AXIS*/axisXHeight - fontMetrics.getHeight() - 10);
+				g.drawString(prepareRightMarkers(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay), forestPlot.getCurrentMetaStudy().getMetaConf(oddsDisplay)[0], forestPlot.getCurrentMetaStudy().getMetaConf(oddsDisplay)[1]), getWidth() - rightsize + 15, getHeight() - /*HEIGHT_X_AXIS*/axisXHeight - fontMetrics.getHeight() - 10);
 //				Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax) - (int) Math.ceil((double) TICK_THICKNESS / 2.0), AXIS_THICKNESS, Color.BLACK);
 //				g.setFont(new Font("Arial", 0, AXIS_FONT_SIZE));
 //				yLabel = new BufferedImage(fontMetrics.stringWidth(yAxisLabel), 36, BufferedImage.TYPE_INT_RGB);
@@ -599,13 +599,13 @@ public class ForestPanel extends AbstractPanel {
 		
 		if(base) {
 			g.setColor(Color.BLACK);
-			double val = forestPlot.getCurrentMetaStudy().getMetaBeta() - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr();
+			double val = forestPlot.getCurrentMetaStudy().getMetaBeta(false) - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay);
 			if (oddsDisplay) { val = Math.exp(val); }
 			int xL = getXPixel(val);
-			val = forestPlot.getCurrentMetaStudy().getMetaBeta();
+			val = forestPlot.getCurrentMetaStudy().getMetaBeta(false);
 			if (oddsDisplay) { val = Math.exp(val); }
 			int xM = getXPixel(val);
-			val = forestPlot.getCurrentMetaStudy().getMetaBeta() + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr();
+			val = forestPlot.getCurrentMetaStudy().getMetaBeta(false) + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay);
 			if (oddsDisplay) { val = Math.exp(val); }
 			int xR = getXPixel(val);
 //			int xL = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay) - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay));

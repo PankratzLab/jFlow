@@ -9,7 +9,7 @@ import java.util.Hashtable;
 
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-import cnv.manage.ParseIllumina;
+import cnv.manage.NewParseIllumina.ParseConstants;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -24,7 +24,7 @@ public class CytoAgilentParse {
 	public static final String[] SYSTEMATIC_NAME = { "SystematicName" };
 	public static final String[] MARKER_POSITION_HEADER = { "Marker", "Chr", "Position" };
 	public static final String[] DATA_TO_GRAB = { "ProbeName", "gProcessedSignal", "rProcessedSignal", "LogRatio", "gMedianSignal", "rMedianSignal" };
-	public static final String[] CONVERT_TO = { ParseIllumina.SNP_HEADER_OPTIONS[0][0], Sample.DATA_FIELDS[7][0], Sample.DATA_FIELDS[8][0], Sample.DATA_FIELDS[3][0], Sample.DATA_FIELDS[4][0], Sample.GENOTYPE_FIELDS[0][0], Sample.GENOTYPE_FIELDS[1][0], Sample.GENOTYPE_FIELDS[2][0], Sample.GENOTYPE_FIELDS[3][0] };
+	public static final String[] CONVERT_TO = { "SNP Name", Sample.DATA_FIELDS[7][0], Sample.DATA_FIELDS[8][0], Sample.DATA_FIELDS[3][0], Sample.DATA_FIELDS[4][0], Sample.GENOTYPE_FIELDS[0][0], Sample.GENOTYPE_FIELDS[1][0], Sample.GENOTYPE_FIELDS[2][0], Sample.GENOTYPE_FIELDS[3][0] };
 
 	private static final String[] SPLITS = { "\t" };
 	private static final String CHR = "chr";
@@ -92,7 +92,7 @@ public class CytoAgilentParse {
 		}
 
 		proj.setProperty(proj.SOURCE_FILENAME_EXTENSION, GENVISIS_EXT);
-		proj.setProperty(proj.ID_HEADER, ParseIllumina.FILENAME_AS_ID_OPTION);
+		proj.setProperty(proj.ID_HEADER, ParseConstants.FILENAME_AS_ID_OPTION);
 //		proj.setProperty(proj.PARSE_AT_AT_SYMBOL, "FALSE");
 		proj.setProperty(proj.PARSE_AT_AT_SYMBOL, Boolean.FALSE);
 		proj.setProperty(proj.SOURCE_FILE_DELIMITER, Project.SOURCE_FILE_DELIMITERS.TAB);//"TAB");
