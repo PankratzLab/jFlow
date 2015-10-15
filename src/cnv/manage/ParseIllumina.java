@@ -16,9 +16,6 @@ import cnv.manage.NewParseIllumina.ParseConstants;
 import common.*;
 
 public class ParseIllumina implements Runnable {
-	public static final int EXP_NUM_MARKERS = 650000;
-	public static final String[][] SNP_TABLE_FIELDS = {{"Name"}, {"Chr", "Chromosome"}, {"Position"}};
-
 	private Project proj;
 	private String[] files;
 	private String[] markerNames;
@@ -329,19 +326,21 @@ public class ParseIllumina implements Runnable {
 		Vector<Vector<String>> fileCabinet;
 		String trav;
 		int count;
+        int lineCount;
 		boolean abLookupRequired;
 		char[][] lookup;
         Hashtable<String,String> fixes;
         String idHeader, delimiter;
         String temp;
+        String testline;
         int[][] delimiterCounts;
+        boolean complete;
         long timeBegan;
         boolean parseAtAt;
         int sampIndex;
         String sampleName;
 		String[] overwriteOptions;
 		int response;
-		boolean complete;
 		Hashtable<String, Float> allOutliers;
 		Vector<String> v;
 		Logger log;
@@ -393,24 +392,24 @@ public class ParseIllumina implements Runnable {
 		}
 		ARRAY array = proj.getArrayType();
 		switch (array) {
-		case AFFY_GW6:
-			log.reportTimeWarning("Affymetrix confidence scores will be imported as (1-conf)");
-			break;
-		case AFFY_GW6_CN:
-			log.reportTimeWarning("Affymetrix confidence scores will be imported as (1-conf)");
-			log.reportTimeInfo("Initializing parser for array type " + array);
-			affyProcess = new AffyProcess(proj, Files.toFullPaths(files, proj.SOURCE_DIRECTORY.getValue(false, true)), delimiter, log);
-			affyProcess.matchCn();
-			affyProcess.combineFirst();
-			for (int i = 0; i < files.length; i++) {
-				files[i] = ext.removeDirectoryInfo(affyProcess.getCombinedOutputFiles()[i]);
-			}
-			break;
-		case ILLUMINA:
-			break;
-		default:
-			log.reportTimeError("Invalid array type " + array);
-			break;
+    		case AFFY_GW6:
+    			log.reportTimeWarning("Affymetrix confidence scores will be imported as (1-conf)");
+    			break;
+    		case AFFY_GW6_CN:
+    			log.reportTimeWarning("Affymetrix confidence scores will be imported as (1-conf)");
+    			log.reportTimeInfo("Initializing parser for array type " + array);
+    			affyProcess = new AffyProcess(proj, Files.toFullPaths(files, proj.SOURCE_DIRECTORY.getValue(false, true)), delimiter, log);
+    			affyProcess.matchCn();
+    			affyProcess.combineFirst();
+    			for (int i = 0; i < files.length; i++) {
+    				files[i] = ext.removeDirectoryInfo(affyProcess.getCombinedOutputFiles()[i]);
+    			}
+    			break;
+    		case ILLUMINA:
+    			break;
+    		default:
+    			log.reportTimeError("Invalid array type " + array);
+    			break;
 		}
 
 		try {
@@ -795,7 +794,6 @@ public class ParseIllumina implements Runnable {
 		log = proj.getLog();
         log.report("Parsing files using the Long Format algorithm");
         
-		//Markers.orderMarkers(null, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
         // creates and serializes the markers.bim, the returned keys are not used here as the markerIndices fill that purpose
         markerSet = proj.getMarkerSet();
         markerNames = markerSet.getMarkerNames();
@@ -808,7 +806,6 @@ public class ParseIllumina implements Runnable {
 			markerIndices.put(markerNames[i], new Integer(i));
 		}
 		
-//		log.report("There were "+markerNames.length+" markers present in '"+proj.getFilename(proj.MARKERSET_FILENAME, true, true)+"' that will be processed from the source files (fingerprint: "+fingerprint+")");
 		log.report("There were "+markerNames.length+" markers present in '"+proj.MARKERSET_FILENAME.getValue(true, true)+"' that will be processed from the source files (fingerprint: "+fingerprint+")");
 		
 		int snpIndex, sampIndex, key;

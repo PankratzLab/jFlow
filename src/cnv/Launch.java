@@ -440,7 +440,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 				cnv.manage.Markers.generateMarkerPositions(proj, proj.getLocationOfSNP_Map(true));
 			} else if (command.equals(PARSE_FILES_CSV)) {
-//				cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
 				cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
 			} else if (command.equals(CHECK_SEX)) {
 				cnv.qc.SexChecks.sexCheck(proj);

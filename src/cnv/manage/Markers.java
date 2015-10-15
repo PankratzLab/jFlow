@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.*;
 
 import cnv.filesys.*;
+import cnv.manage.NewParseIllumina.ParseConstants;
 import common.*;
 
 public class Markers {
@@ -226,7 +227,7 @@ public class Markers {
 			}
 			reader = Files.getAppropriateReader(snpTable);
 			writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(false, false)));
-			indices = ext.indexFactors(ParseIllumina.SNP_TABLE_FIELDS, reader.readLine().trim().split(delimiter), false, true, true, true);
+			indices = ext.indexFactors(ParseConstants.SNP_TABLE_FIELDS, reader.readLine().trim().split(delimiter), false, true, true, true);
 			writer.println("Marker\tChr\tPosition");
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);

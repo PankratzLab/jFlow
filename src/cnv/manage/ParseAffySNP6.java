@@ -13,11 +13,9 @@ import cnv.manage.NewParseIllumina.ParseConstants;
 import common.*;
 
 public class ParseAffySNP6 implements Runnable {
-	public static final int EXP_NUM_MARKERS = 909622;
-	public static final String[][] SNP_TABLE_FIELDS = { { "Name", "SNP Name" }, { "Chr", "Chromosome" }, { "Position" } };
-	public static final String[][] DATA_FIELDS = { { "GC Score", "GCscore", "Confidence" }, { "X Raw" }, { "Y Raw" }, { "X", "Xvalue", "Log Ratio", "intensity_1", "Signal A" }, { "Y", "Yvalue", "Strength", "intensity_2", "Signal B" }, { "Theta" }, { "R" }, { "B Allele Freq" }, { "Log R Ratio" } };
+	// differs from Sample.GENOTYPE fields 
 	public static final String[][] GENOTYPE_FIELDS = { { "Allele1 - Forward", "Allele1", "genotype1", "Call" }, { "Allele2 - Forward", "Allele2", "genotype2", "Forced Call" }, { "Allele1 - AB" }, { "Allele2 - AB" }, { "Forward Strand Base Calls" }, { "Call Codes" } };
-
+	
 	private Project proj;
 	private String[] files;
 	private String[] markerNames;
@@ -94,7 +92,7 @@ public class ParseAffySNP6 implements Runnable {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready() && (ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
 
-					dataIndices = ext.indexFactors(DATA_FIELDS, line, false, true, false, false);
+					dataIndices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false);
 					genotypeIndices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, false, false);
 					if (idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION)) {
 						sampIndex = -7;
@@ -104,7 +102,7 @@ public class ParseAffySNP6 implements Runnable {
 					snpIndex = ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
 
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
-						System.err.println("Error - File format not consistent! At the very least the files need to contain " + Array.toStr(DATA_FIELDS[3], "/") + " and " + Array.toStr(DATA_FIELDS[4], "/"));
+						System.err.println("Error - File format not consistent! At the very least the files need to contain " + Array.toStr(Sample.DATA_FIELDS[3], "/") + " and " + Array.toStr(Sample.DATA_FIELDS[4], "/"));
 						return;
 					}
 					if (genotypeIndices[4] == -1 && (genotypeIndices[0] == -1 || genotypeIndices[1] == -1)) {
@@ -118,7 +116,7 @@ public class ParseAffySNP6 implements Runnable {
 					}
 
 					sampleName = "";
-					data = new float[DATA_FIELDS.length][];
+					data = new float[Sample.DATA_FIELDS.length][];
 					for (int j = 0; j < data.length; j++) {
 						if (dataIndices[j] != -1) {
 							data[j] = new float[markerNames.length];
@@ -167,7 +165,7 @@ public class ParseAffySNP6 implements Runnable {
 						}
 						key = keysKeys[count];
 						// System.out.println(count+"\t"+markerNames[count]+"\t"+key);
-						for (int j = 0; j < DATA_FIELDS.length; j++) {
+						for (int j = 0; j < Sample.DATA_FIELDS.length; j++) {
 							try {
 								if (dataIndices[j] != -1) {
 									// divide X,Ys by 2000, take 1- gc
@@ -182,7 +180,7 @@ public class ParseAffySNP6 implements Runnable {
 									}
 								}
 							} catch (NumberFormatException nfe) {
-								System.err.println("Error - failed to parse '" + line[dataIndices[j]] + "' into a valid " + Array.toStr(DATA_FIELDS[j], "/"));
+								System.err.println("Error - failed to parse '" + line[dataIndices[j]] + "' into a valid " + Array.toStr(Sample.DATA_FIELDS[j], "/"));
 								return;
 							}
 						}
@@ -320,7 +318,6 @@ public class ParseAffySNP6 implements Runnable {
 		String trav;
 		int count;
 		int lineCount;
-		// Hashtable<String, Integer> markerNameHash;
 		boolean abLookupRequired;
 		char[][] lookup;
 		Hashtable<String, String> fixes;
@@ -432,9 +429,9 @@ public class ParseAffySNP6 implements Runnable {
 			}
 
 			// check immediately to make sure these fields are valid
-			indices = ext.indexFactors(DATA_FIELDS, line, false, true, true, false); // dataIndices
+			indices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, true, false); // dataIndices
 			if (indices[3] == -1 || indices[4] == -1) {
-				System.err.println("Error - at the very least the files need to contain " + Array.toStr(DATA_FIELDS[3], "/") + " and " + Array.toStr(DATA_FIELDS[4], "/"));
+				System.err.println("Error - at the very least the files need to contain " + Array.toStr(Sample.DATA_FIELDS[3], "/") + " and " + Array.toStr(Sample.DATA_FIELDS[4], "/"));
 				System.err.println("      - failed to see that in " + files[0]);
 				System.err.println(Array.toStr(line));
 
@@ -609,10 +606,12 @@ public class ParseAffySNP6 implements Runnable {
 		char[][] abLookup;
 		String filename;
 		Hashtable<String, Float> allOutliers;
+        Hashtable<String, String> renamedIDsHash;
+        Logger log;
 
+        log = proj.getLog();
 		System.out.println("Parsing files using the Long Format algorithm");
 
-//		Markers.orderMarkers(null, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
 		Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
@@ -625,7 +624,6 @@ public class ParseAffySNP6 implements Runnable {
 			markerIndices.put(markerNames[i], new Integer(i));
 		}
 
-//		System.out.println("There were " + markerNames.length + " markers present in '" + proj.getFilename(proj.MARKERSET_FILENAME, true, true) + "' that will be processed from the source files (fingerprint: " + fingerprint + ")");
 		System.out.println("There were " + markerNames.length + " markers present in '" + proj.MARKERSET_FILENAME.getValue(true, true) + "' that will be processed from the source files (fingerprint: " + fingerprint + ")");
 
 		int snpIndex, sampIndex, key;
@@ -657,13 +655,13 @@ public class ParseAffySNP6 implements Runnable {
 					} while (reader.ready() && (ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || ext.indexOfStr(idHeader, line) == -1));
 
 					System.err.println("Searching: " + Array.toStr(line));
-					dataIndices = ext.indexFactors(DATA_FIELDS, line, false, true, false, false);
+					dataIndices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false);
 					genotypeIndices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, false, false);
 					sampIndex = ext.indexFactors(new String[] { idHeader }, line, false, true)[0];
 					snpIndex = ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
 
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
-						System.err.println("Error - File format not consistent! At the very least the files need to contain " + Array.toStr(DATA_FIELDS[3], "/") + " and " + Array.toStr(DATA_FIELDS[4], "/"));
+						System.err.println("Error - File format not consistent! At the very least the files need to contain " + Array.toStr(Sample.DATA_FIELDS[3], "/") + " and " + Array.toStr(Sample.DATA_FIELDS[4], "/"));
 						return;
 					}
 					if (genotypeIndices[4] == -1 && (genotypeIndices[0] == -1 || genotypeIndices[1] == -1)) {
@@ -714,7 +712,7 @@ public class ParseAffySNP6 implements Runnable {
 								data = samp.getAllData();
 								genotypes = samp.getAllGenotypes();
 							} else {
-								data = new float[DATA_FIELDS.length][];
+								data = new float[Sample.DATA_FIELDS.length][];
 								for (int j = 0; j < data.length; j++) {
 									if (dataIndices[j] != -1) {
 										data[j] = Array.floatArray(markerNames.length, Float.POSITIVE_INFINITY);
@@ -734,7 +732,7 @@ public class ParseAffySNP6 implements Runnable {
 							if (markerIndices.containsKey(line[snpIndex])) {
 								key = markerIndices.get(line[snpIndex]);
 
-								for (int j = 0; j < DATA_FIELDS.length; j++) {
+								for (int j = 0; j < Sample.DATA_FIELDS.length; j++) {
 									try {
 										if (dataIndices[j] != -1) {
 											if (!(data[j][key] + "").equals("Infinity")) {
@@ -744,7 +742,7 @@ public class ParseAffySNP6 implements Runnable {
 											data[j][key] = Float.parseFloat(line[dataIndices[j]]);
 										}
 									} catch (NumberFormatException nfe) {
-										System.err.println("Error - failed to parse" + line[dataIndices[j]] + " into a valid " + DATA_FIELDS[j]);
+										System.err.println("Error - failed to parse" + line[dataIndices[j]] + " into a valid " + Sample.DATA_FIELDS[j]);
 										return;
 									}
 								}

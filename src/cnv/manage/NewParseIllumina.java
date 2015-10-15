@@ -21,8 +21,9 @@ import common.*;
 public class NewParseIllumina implements Runnable {
 
     public static class ParseConstants {
-        public static final String[][] SNP_HEADER_OPTIONS = {{ "SNP Name", "rsID","Probe Set ID","ProbeSet","SNP","ProbeSetName"}}; // TODO any problems with mixing all idents together?
-
+        public static final String[][] SNP_HEADER_OPTIONS = {{ "SNP Name", "rsID", "Probe Set ID", "ProbeSet", "SNP", "ProbeSetName", "Name", "Marker"}}; // TODO any problems with mixing all idents together?
+        public static final String[][] SNP_TABLE_FIELDS = { SNP_HEADER_OPTIONS[0], { "Chr", "Chromosome" }, { "Position" } };
+        
         public static final String[] DELIMITERS = {",", "\t", " "};
         public static final String[] DELIMITER_DESCRIPTIONS = {"COMMA", "TAB", "SPACE"};
         
@@ -369,7 +370,7 @@ public class NewParseIllumina implements Runnable {
 //                        line = reader.readLine().split(delimiter);
 //                        writer.println(files[i]+"\t"+line[sampIndex]+"\t"+(line[sampIndex].indexOf("@") >= 0?line[sampIndex].split("@")[0]:line[sampIndex]));
 //                        reader.close();
-                        
+//                        
 //                  ParseIllumina ::>
                         done = false;
                         prev = null;
@@ -404,14 +405,6 @@ public class NewParseIllumina implements Runnable {
     }
     
 	public static final int EXP_NUM_MARKERS = 650000;
-	public static final String[][] SNP_TABLE_FIELDS = {{"Name"}, {"Chr", "Chromosome"}, {"Position"}};
-	public static final String[] DELIMITERS = {",", "\t", " "};
-	public static final String[] DELIMITER_DESCRIPTIONS = {"COMMA", "TAB", "SPACE"};
-    public static final String OVERWRITE_OPTION_FILE = ".overwrite_option";
-    public static final String CANCEL_OPTION_FILE = ".cancel_option";
-    public static final String HOLD_OPTION_FILE = ".hold_option";
-
-    public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";	
 	private Project proj;
 	private String[] files;
 	private String[] markerNames;
@@ -471,7 +464,7 @@ public class NewParseIllumina implements Runnable {
 		headers = proj.getSourceFileHeaders();
         try {
 			for (int i = 0; i<files.length; i++) {
-				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+CANCEL_OPTION_FILE).exists()) {
+				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.CANCEL_OPTION_FILE).exists()) {
 					return;
 				}
 				if (!headers.containsKey(files[i])) {
@@ -767,9 +760,9 @@ public class NewParseIllumina implements Runnable {
 		
 		log = proj.getLog();
         timeBegan = new Date().getTime();
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+OVERWRITE_OPTION_FILE).delete();
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+HOLD_OPTION_FILE).delete();
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+CANCEL_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.OVERWRITE_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.HOLD_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.CANCEL_OPTION_FILE).delete();
 
 		if (!proj.SOURCE_DIRECTORY.getValue(false, true).equals("")&&!new File(proj.SOURCE_DIRECTORY.getValue(false, true)).exists()) {
 			log.reportError("Error - the Project source location is invalid: "+proj.SOURCE_DIRECTORY.getValue(false, true));
@@ -845,7 +838,7 @@ public class NewParseIllumina implements Runnable {
 				if (ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] != -1) {
 					foundSNPon = count;
 				}
-				if (idHeader.equals(FILENAME_AS_ID_OPTION) ||ext.indexOfStr(idHeader, line) != -1) {
+				if (idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION) ||ext.indexOfStr(idHeader, line) != -1) {
 					foundIDon = count;
 				} 
 				
@@ -868,20 +861,20 @@ public class NewParseIllumina implements Runnable {
 
 				reader.close();
 				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
-				delimiterCounts = new int[DELIMITERS.length][count];
+				delimiterCounts = new int[ParseConstants.DELIMITERS.length][count];
 				for (int i = 0; i < count; i++) {
 					temp = reader.readLine();
-					for (int j = 0; j < DELIMITERS.length; j++) {
-						delimiterCounts[j][i] = ext.countInstancesOf(temp, DELIMITERS[j]);
+					for (int j = 0; j < ParseConstants.DELIMITERS.length; j++) {
+						delimiterCounts[j][i] = ext.countInstancesOf(temp, ParseConstants.DELIMITERS[j]);
 					}
 				}
 				delimiter = null;
-				for (int j = 0; j < DELIMITERS.length; j++) {
+				for (int j = 0; j < ParseConstants.DELIMITERS.length; j++) {
 					if (Array.quantWithExtremeForTie(delimiterCounts[j], 0.5) > 4 && Array.quantWithExtremeForTie(delimiterCounts[j], 0.9) - Array.quantWithExtremeForTie(delimiterCounts[j], 0.1) == 0) {
 						if (delimiter == null) {
-							delimiter = DELIMITERS[j];
+							delimiter = ParseConstants.DELIMITERS[j];
 						} else {
-							proj.message("Could not auto-detect the delimiter used in the Final Reports file: could be '"+delimiter+"' or '"+DELIMITERS[j]+"'");
+							proj.message("Could not auto-detect the delimiter used in the Final Reports file: could be '"+delimiter+"' or '"+ParseConstants.DELIMITERS[j]+"'");
 							return 0;
 						}
 					}
@@ -893,13 +886,13 @@ public class NewParseIllumina implements Runnable {
 					return 0;
 				}
 				
-				log.reportError("      - determined delimiter to be "+DELIMITER_DESCRIPTIONS[ext.indexOfStr(delimiter, DELIMITERS)]);
+				log.reportError("      - determined delimiter to be "+ParseConstants.DELIMITER_DESCRIPTIONS[ext.indexOfStr(delimiter, ParseConstants.DELIMITERS)]);
 
 				// Tries again to determine the header fields and column names
 				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
-				} while (reader.ready() && (ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
+				} while (reader.ready() && (ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
 			}
 
 			// check immediately to make sure these fields are valid
@@ -921,7 +914,7 @@ public class NewParseIllumina implements Runnable {
 				abLookupRequired = true;
 			}
 
-			if (!idHeader.equals(FILENAME_AS_ID_OPTION)) {
+			if (!idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION)) {
 				ext.indexFactors(new String[] { idHeader }, line, false, true); // sampIndex
 			}
 			snpIndex = ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, true, true)[0];
@@ -930,7 +923,7 @@ public class NewParseIllumina implements Runnable {
 			reader.mark(1000);
 
 
-			if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
+			if (idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION)) {
 				sampleName = files[0].substring(0, files[0].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
 				sampIndex = -7;
 				parseAtAt = false;
@@ -1038,12 +1031,12 @@ public class NewParseIllumina implements Runnable {
 						log.reportError("The same marker ('" + trav + "') was seen twice...");
 					}
 					
-					if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
+					if (idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION)) {
 //						if (!Boolean.parseBoolean(proj.getProperty(proj.LONG_FORMAT))){
 						if (!proj.getProperty(proj.LONG_FORMAT)){
-							log.report("... this could mean that the file contains multiple samples. This should not happen when " + proj.ID_HEADER + " is set to " + FILENAME_AS_ID_OPTION);
+							log.report("... this could mean that the file contains multiple samples. This should not happen when " + proj.ID_HEADER + " is set to " + ParseConstants.FILENAME_AS_ID_OPTION);
 						}else{
-							log.reportError("Error - "+proj.ID_HEADER + " was set to " + FILENAME_AS_ID_OPTION + ", which is invalid for Long Format files");
+							log.reportError("Error - "+proj.ID_HEADER + " was set to " + ParseConstants.FILENAME_AS_ID_OPTION + ", which is invalid for Long Format files");
 						}
 						return 0;
 					} else if (!(parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex]).equals(sampleName)) {
@@ -1474,9 +1467,9 @@ public class NewParseIllumina implements Runnable {
 			log.reportException(e);
 		}
 
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+OVERWRITE_OPTION_FILE).delete();
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+HOLD_OPTION_FILE).delete();
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+CANCEL_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.OVERWRITE_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.HOLD_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.CANCEL_OPTION_FILE).delete();
        
 		if (abLookupRequired && !Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
 			return 6;

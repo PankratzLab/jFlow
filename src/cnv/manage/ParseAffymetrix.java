@@ -14,9 +14,6 @@ import cnv.manage.NewParseIllumina.ParseConstants;
 import common.*;
 
 public class ParseAffymetrix implements Runnable {
-	public static final int EXP_NUM_MARKERS = 650000;
-	public static final String[][] SNP_TABLE_FIELDS = {{"Name"}, {"Chr", "Chromosome"}, {"Position"}};
-
 	private Project proj;
 	private String[] files;
 	private String[] markerNames;
@@ -257,12 +254,12 @@ public class ParseAffymetrix implements Runnable {
 		String trav;
 		int count;
         int lineCount;
-//		Hashtable<String, Integer> markerNameHash;
 		boolean abLookupRequired;
 		char[][] lookup;
-		Hashtable<String,String> fixes;
+		Hashtable<String, String> fixes;
 		String idHeader, delimiter;
 		String temp;
+        String testline;
 		int[][] delimiterCounts;
 		boolean done;
 		long timeBegan;
@@ -546,10 +543,12 @@ public class ParseAffymetrix implements Runnable {
 		char[][] abLookup;
 		String filename;
 		Hashtable<String, Float> allOutliers;
+        Hashtable<String, String> renamedIDsHash;
+        Logger log;
 
+        log = proj.getLog();
 		System.out.println("Parsing files using the Long Format algorithm");
      
-//		Markers.orderMarkers(null, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
 		Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
@@ -562,7 +561,6 @@ public class ParseAffymetrix implements Runnable {
 			markerIndices.put(markerNames[i], new Integer(i));
 		}
 		
-//		System.out.println("There were "+markerNames.length+" markers present in '"+proj.getFilename(proj.MARKERSET_FILENAME, true, true)+"' that will be processed from the source files (fingerprint: "+fingerprint+")");
 		System.out.println("There were "+markerNames.length+" markers present in '"+proj.MARKERSET_FILENAME.getValue(true, true)+"' that will be processed from the source files (fingerprint: "+fingerprint+")");
 		
 		int snpIndex, sampIndex, key;
