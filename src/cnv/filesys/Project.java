@@ -1320,19 +1320,22 @@ public class Project {
 		/**
 		 * Your friendly Illumina arrays
 		 */
-		ILLUMINA(new String[] { "cnvi" }, 50), /**
+		ILLUMINA(new String[] { "cnvi" }, 50/*, 650000*/), /**
 		 * Supports CHP format
 		 */
-		AFFY_GW6(new String[] { "CN_" }, 25),
+		AFFY_GW6(new String[] { "CN_" }, 25/*, 650000*/),
 		/**
 		 * Supports CHP and CNCHP formated input
 		 */
-		AFFY_GW6_CN(new String[] { "CN_" }, 25),
+		AFFY_GW6_CN(new String[] { "CN_" }, 25/*, 909622*/),
 
 		/**
 		 * For bamFiles
 		 */
-		NGS(new String[] { "*" }, 100);
+		NGS(new String[] { "*" }, 100/*, 0*/),
+		
+//		DBGAP(new String[] {}, 0, 909622)
+		;
 
 		/**
 		 * Used for copy number only probe-set identification

@@ -16,14 +16,6 @@ import common.*;
 //code is taken from parseAffymetrix, with exception of the genotypes[][] population from ParseIllumina
 public class ParseDbgap implements Runnable {
 
-	public static final int EXP_NUM_MARKERS = 909622;
-
-	// from SNP table
-	// public static final String[][] SNP_TABLE_FIELDS = {{"Name","SNP Name"}, {"Chr", "Chromosome"}, {"Position"}};
-	// public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "confidence"}, {"X Raw"}, {"Y Raw"}, {"X", "Xvalue", "Log Ratio","intensity_1"}, {"Y", "Yvalue", "Strength","intensity_2"}, {"Theta"}, {"R"}, {"B Allele Freq"}, {"Log R Ratio"}};
-	// public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Allele1","genotype1"}, {"Allele2 - Forward", "Allele2","genotype2"}, {"Allele1 - AB"}, {"Allele2 - AB"}, {"Forward Strand Base Calls"}, {"Call Codes"}};
-	// line = reader.readLine().trim().replace("#Column header: ", "").split(delimiter, -1);
-
 	private Project proj;
 	private String[] files;
 	private String[] markerNames;
@@ -303,12 +295,12 @@ public class ParseDbgap implements Runnable {
 		String trav;
 		int count;
         int lineCount;
-		// Hashtable<String, Integer> markerNameHash;
 		boolean abLookupRequired;
 		char[][] lookup;
 		Hashtable<String, String> fixes;
 		String idHeader, delimiter;
 		String temp;
+        String testline;
 		int[][] delimiterCounts;
 		boolean done;
 		long timeBegan;
@@ -584,10 +576,12 @@ public class ParseDbgap implements Runnable {
 		char[][] abLookup;
 		String filename;
 		Hashtable<String, Float> allOutliers;
+        Hashtable<String, String> renamedIDsHash;
+        Logger log;
 
+        log = proj.getLog();
 		System.out.println("Parsing files using the Long Format algorithm");
 
-//		Markers.orderMarkers(null, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
 		Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
@@ -600,7 +594,6 @@ public class ParseDbgap implements Runnable {
 			markerIndices.put(markerNames[i], new Integer(i));
 		}
 
-//		System.out.println("There were " + markerNames.length + " markers present in '" + proj.getFilename(proj.MARKERSET_FILENAME, true, true) + "' that will be processed from the source files (fingerprint: " + fingerprint + ")");
 		System.out.println("There were " + markerNames.length + " markers present in '" + proj.MARKERSET_FILENAME.getValue(true, true) + "' that will be processed from the source files (fingerprint: " + fingerprint + ")");
 
 		int snpIndex, sampIndex, key;
@@ -617,6 +610,10 @@ public class ParseDbgap implements Runnable {
 		boolean done;
 		byte[] genos;
 
+        if (Files.exists(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt")) {
+            Files.backup("FYI_IDS_WERE_CHANGED.txt", proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue(), true);
+        }
+        
 		count = 0;
 		countHash = new CountHash();
 		dupHash = new CountHash();
