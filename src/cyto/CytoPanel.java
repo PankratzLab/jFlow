@@ -22,6 +22,7 @@ import cnv.filesys.Project;
 import cnv.gui.FileChooser;
 import cnv.manage.ParseIllumina;
 import cnv.manage.TransposeData;
+import cnv.manage.NewParseIllumina.ParseConstants;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import common.Array;
@@ -283,7 +284,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 	 */
 	private void parseAndImport() {
 		if (checkFiles(importFiles, SAMPLES, true)) {
-			Files.write("", proj.SAMPLE_DIRECTORY.getValue(true, true) + ParseIllumina.OVERWRITE_OPTION_FILE);
+			Files.write("", proj.SAMPLE_DIRECTORY.getValue(true, true) + ParseConstants.OVERWRITE_OPTION_FILE);
 			ParseIllumina.deleteAllFilesInSampleDirectory(proj);
 			ParseIllumina.deleteAllFilesInMarkerDataDirectory(proj);
 
@@ -294,7 +295,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 			deleteSampleList();
 			TransposeData.transposeData(proj, 2000000000, false);
 
-			new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + ParseIllumina.OVERWRITE_OPTION_FILE).delete();
+			new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + ParseConstants.OVERWRITE_OPTION_FILE).delete();
 		}
 	}
 
