@@ -599,13 +599,13 @@ public class ForestPanel extends AbstractPanel {
 		
 		if(base) {
 			g.setColor(Color.BLACK);
-			double val = forestPlot.getCurrentMetaStudy().getMetaBeta(false) - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay);
+			double val = forestPlot.getCurrentMetaStudy().getMetaBeta(false) - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(false);
 			if (oddsDisplay) { val = Math.exp(val); }
 			int xL = getXPixel(val);
 			val = forestPlot.getCurrentMetaStudy().getMetaBeta(false);
 			if (oddsDisplay) { val = Math.exp(val); }
 			int xM = getXPixel(val);
-			val = forestPlot.getCurrentMetaStudy().getMetaBeta(false) + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay);
+			val = forestPlot.getCurrentMetaStudy().getMetaBeta(false) + 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(false);
 			if (oddsDisplay) { val = Math.exp(val); }
 			int xR = getXPixel(val);
 //			int xL = getXPixel(forestPlot.getCurrentMetaStudy().getMetaBeta(oddsDisplay) - 1.96 * forestPlot.getCurrentMetaStudy().getMetaStderr(oddsDisplay));
