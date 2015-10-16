@@ -2405,14 +2405,14 @@ public class Files {
 		
 		// get all files in the directory, excluding the crf itself and its corresponding log
 		files = Files.list("./", ":"+ext.rootOf(filename), ":.crf", false, false);
-		params = parseControlFile(filename, "rename", files, log);
+		params = parseControlFile(filename, "rename", Array.toStringArray(Matrix.transpose(new String[][] {files, files}), "\t"), log);
 		if (params != null) {
     		matchingFilenames = new String[params.size()][2];
     		problem = false;
     		for (int i = 0; i < matchingFilenames.length; i++) {
-    			line = params.elementAt(i).trim().split("[\\s]+");
+    			line = params.elementAt(i).trim().split("\t", -1);
     			if (line.length != 2) {
-    				log.reportError("Error - skipping this line, invalid number of arguments: "+Array.toStr(line, "/"));
+    				log.reportError("Error - skipping this line, invalid number of arguments (needs to be tab delimited): "+Array.toStr(line, "/"));
     				problem = true;
     			} else {
         			matchingFilenames[i] = line;
@@ -3465,7 +3465,84 @@ public class Files {
 			System.err.println(e);
 		}
 	}
+	
+	public static void replaceAll(String filename, String outfile, String replacements, Logger log) {
+		BufferedReader reader;
+		String[] line;
+		String temp;
+		Vector<String[]> list = new Vector<String[]>();
+		boolean problem = false;
+		
+		try {
+			reader = Files.getAppropriateReader(replacements);
+			while (reader.ready()) {
+				temp = reader.readLine();
+				if (!temp.startsWith("#") && !temp.trim().equals("")) {
+					line = temp.split("\t", -1);
+					if (line.length == 1) {
+						log.report("Will delete all instances of \""+line[0]+"\"");
+					} else if (line[1].indexOf(line[0]) != -1) {
+						log.reportError("Error - the replacement cannot be an extension of itself otherwise it will result in an infinite loop");
+						log.reportError("\""+line+"\" to \""+line[1]+"\"");
+						problem = true;
+					}
+					if (line.length > 2) {
+						log.reportError("Warning - the following line has more than two TABs in it, only the first and second will be used");
+						log.reportError(temp);
+					}
 
+					if (!line[0].equals("")) {
+						list.add(line.length>1?new String[] {line[0], line[1]}:new String[] {line[0], ""});
+					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + replacements + "\" not found in current directory");
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + replacements + "\"");
+			return;
+		}
+		
+		if (!problem) {
+			replaceAll(filename, outfile, Matrix.toStringArrays(list), log);
+		}
+	}
+
+	public static void replaceAll(String filename, String outfile, String[][] replacements, Logger log) {
+		BufferedReader reader;
+		PrintWriter writer;
+		
+		try {
+			reader = Files.getAppropriateReader(filename);
+			writer = Files.getAppropriateWriter(outfile);
+			while (reader.ready()) {
+				writer.println(ext.replaceAllWith(reader.readLine(), replacements));
+			}
+			reader.close();
+			writer.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + filename + "\" not found in current directory");
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + filename + "\"");
+			log.reportException(ioe);
+			return;
+		}
+	}
+	
+	public static void replaceAllFromParameters(String filename, Logger log) {
+		Vector<String> params;
+
+		params = Files.parseControlFile(filename, "replaceAll", new String[] { "file=input.txt.gz", "out=outputFile.txt.gz", "# the swap/replacement file is two tab delimited columns of what to search for (first col) and what to replace it with (second col)", "swap=replacements.txt" }, log);
+
+		if (params != null) {
+			params.add("log=" + log.getFilename());
+			main(Array.toStringArray(params));
+		}
+	}
+	
     public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
@@ -3485,6 +3562,9 @@ public class Files {
 		boolean multiple = false;
 		boolean cwd = false;
 		boolean wc = false;
+		String replacements = null;
+		Logger log;
+		String logfile = null;
 		
 		String usage = "\n" + 
 		"common.Files requires 0-1 arguments\n" + 
@@ -3512,6 +3592,11 @@ public class Files {
 		"  OR\n" +
 		"   (1) count the number of lines in the file (i.e. wc (not the default))\n" + 
 		"   (2) filename to count (i.e. file=large_file.txt (not the default))\n" + 
+		"  OR\n" +
+		"   (1) Replace all instances of a set of Strings in a file (i.e. swap=replacements.txt (not the default))\n" + 
+		"       [requires two tab delimited columns of what to search for (first col) and what to replace it with (second col)]\n" + 
+		"   (2) name of input file (i.e. file=input.txt (not the default))\n" + 
+		"   (3) name of output file (i.e. out=output.txt (not the default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -3566,13 +3651,19 @@ public class Files {
 			} else if (args[i].startsWith("dir=")) {
 				dir = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("swap=")) {
+				replacements = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("log=")) {
+				logfile = args[i].split("=")[1];
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
 		if (numArgs != 0) {
 			System.err.println(usage);
-			System.exit(1);
+			return;
 		}
 		try {
 //			String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\imputation\\MACH comparison\\Mach_chr21\\";
@@ -3597,23 +3688,26 @@ public class Files {
 //			moveFilesMoved(filesMoved, directory);
 //			System.exit(1);
 			
+			log = new Logger(logfile);
+			
 			if (wc) {
 				long time = new java.util.Date().getTime();
-				System.out.println("Counted "+countLines(args[0], 0)+ " lines in "+ext.getTimeElapsed(time));
+				log.report("Counted "+countLines(args[0], 0)+ " lines in "+ext.getTimeElapsed(time));
 			} else if (findNextRep && patterns !=null) {
 				System.out.println(findNextRepSafely(patterns, numDigits, lastKnownRep, patienceInMilliseconds));
+			} else if (transpose != null) {
+				transpose(transpose, commaDelimitedIn?",":"[\\s]+", outfile, commaDelimitedOut?",":"[\\s]+", log);
+			} else if (replacements != null) {
+				replaceAll(filename, outfile, replacements, log);
 			} else if (filename != null) {
 				makeQsub(filename, multiple, start, stop, separate, patterns, cwd);
-			} else if (transpose != null) {
-				transpose(transpose, commaDelimitedIn?",":"[\\s]+", outfile, commaDelimitedOut?",":"[\\s]+", new Logger());
 			} else if (dir != null) {
 				summarizeAllFilesInDirectory(dir);
 			} else {
-				System.err.println(usage);
+				log.reportError(usage);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-    
 }

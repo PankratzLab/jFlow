@@ -20,7 +20,59 @@ import gwas.*;
 import db.*;
 
 public class Launch {
-	public static final String[] LAUNCH_TYPES = { "lookup - using a list of keys, pull data from multiple files", "dummy", "counts", "miss", "indep", "genes", "filterSNPs - filters SNP positions based on a set of regions with start and end positions", "filterByLists - filter unique IDs via a keeps file and a removes file", "plink", "simpleM", "score", "parse", "ucsc", "split", "cat - concatenate the specified files", "rename - rename the specified files", "db", "merge", "mergeSNPs", "trimFam", "freq - computes weighted allele frequency", "uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", "metal", "transform", "forest", "unique", "dir", "copy", "meta", "gwaf", "sas - merge results from a series of dumped sas.xln files in different folders", "results - merge map and frequency information into a final results file", "vcf - lookup chr pos ref alt and return allele counts and frequencies", "FilterDB - filter based on column names, thresholds and error messages", "filterCNVs - calls FilterCalls to apply size/score/span limits", "MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file", "gwas.Qc - runs full QC protocol using PLINK", "descriptive - summarize a phenotype file", "phenoPrep - transform trait, reorder ids, and deal with outliers", "bestTransformation", "peakat - takes the first or last N lines of a file, or counts the lines", "grep - filters a file line by line depending on the presence/absence of inclusion/exclusion criteria", CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION, VCF.VCF_INIT, VCF.VCF_COMMAND, CNVFilter.COMMAND_CNV_FILTER_CRF, CNVFilter.COMMAND_CNV_FILTER_DESCRIPTION, CNVConcordance.COMMAND_CNV_CONCORDANCE, CNVConcordance.COMMAND_CNV_CONCORDANCE_DESCRIPTION, VCFOps.COMMAND_VCF_OPS_EXTRACT,VCFOps.COMMAND_VCF_EXTRACT_DESCRIPTION };
+	public static final String[] LAUNCH_TYPES = { "lookup - using a list of keys, pull data from multiple files", 
+		"dummy - create a dummy dataset with N instances of each pattern", 
+		"counts", 
+		"miss", 
+		"indep", 
+		"genes", 
+		"filterSNPs - filters SNP positions based on a set of regions with start and end positions", 
+		"filterByLists - filter unique IDs via a keeps file and a removes file", 
+		"plink - convert a PLINK text data set (plink.ped/plink.map) into a tab-delimited spreadsheet", 
+		"simpleM - generate a simpleM script to estimate the number of effective tests", 
+		"score", 
+		"parse - use GenParser to edit a text file", 
+		"ucsc", 
+		"split", 
+		"cat - concatenate the specified files", 
+		"rename - rename the specified files", 
+		"db", 
+		"merge", 
+		"mergeSNPs", 
+		"trimFam - use the TrimFam algorithm to reduce the complexity of a set of pedigrees down to critical individuals and those needed to connect them", 
+		"freq - computes weighted allele frequency", 
+		"uniform - creates a hits control file where each file listed has the same column names, only with a different prefix", 
+		"metal - perform a meta-analysis using METAL", 
+		"transform", 
+		"forest", 
+		"unique", 
+		"dir", 
+		"copy", 
+		"meta", 
+		"gwaf", 
+		"sas - merge results from a series of dumped sas.xln files in different folders", 
+		"results - merge map and frequency information into a final results file", 
+		"vcf - lookup chr pos ref alt and return allele counts and frequencies", 
+		"FilterDB - filter based on column names, thresholds and error messages", 
+		"filterCNVs - calls FilterCalls to apply size/score/span limits", 
+		"MeanLRR - compute mean LRRs for specific regions, then analyze or export to a text file", 
+		"gwas.Qc - runs full QC protocol using PLINK", 
+		"descriptive - summarize a phenotype file", 
+		"phenoPrep - transform trait, reorder ids, and deal with outliers", 
+		"bestTransformation - determine transformations that improve normality (i.e., minimzes skewness and kurtosis)", 
+		"peakat - takes the first or last N lines of a file, or counts the lines", 
+		"grep - filters a file line by line depending on the presence/absence of inclusion/exclusion criteria", 
+		CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION, 
+		VCF.VCF_INIT, 
+		VCF.VCF_COMMAND, 
+		CNVFilter.COMMAND_CNV_FILTER_CRF, 
+		CNVFilter.COMMAND_CNV_FILTER_DESCRIPTION, 
+		CNVConcordance.COMMAND_CNV_CONCORDANCE, 
+		CNVConcordance.COMMAND_CNV_CONCORDANCE_DESCRIPTION, 
+		VCFOps.COMMAND_VCF_OPS_EXTRACT,
+		VCFOps.COMMAND_VCF_EXTRACT_DESCRIPTION, 
+		"replaceAll - replace Strings in a file using a list of replacements",
+		};
 
 	public static void run(String filename, Logger log) throws Elision {
 		String temp;
@@ -147,6 +199,8 @@ public class Launch {
 				widgets.peakAt.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("grep")) {
 				widgets.grep.fromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("replaceAll")) {
+				Files.replaceAllFromParameters(filename, log);
 			} else {
 				log.reportError("Error - '"+temp+"' is an invalid launch type, options include:");
 				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));
