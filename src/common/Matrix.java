@@ -25,6 +25,25 @@ public class Matrix {
 	}
 
 	/**
+     * Transposes an array of Strings
+     * 
+     * @param a
+     *            original matrix of Strings
+     * @return transposed array
+     */
+	public static String[][] transpose(String[][] a) {
+		String m[][] = new String[a[0].length][a.length];
+
+		for (int i = 0; i<a.length; i++) {
+			for (int j = 0; j<a[i].length; j++) {
+				m[j][i] = a[i][j];
+			}
+		}
+
+		return m;
+	}
+
+	/**
      * Creates an array of double arrays of given size and initializes each
      * element with the given value
      * 

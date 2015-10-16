@@ -1158,7 +1158,7 @@ public class VCFOps {
 		new File(dir).mkdirs();
 		String root = getAppropriateRoot(vcf, true);
 
-		VCFFileReader reader = new VCFFileReader(vcf, true);
+		VCFFileReader reader = new VCFFileReader(vcf, Files.exists(vcf+".idx"));
 		if (bams == null) {
 			log.reportTimeInfo("A bam directory was not provided, skipping bam extraction");
 		} else {

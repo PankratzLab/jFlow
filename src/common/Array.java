@@ -2088,6 +2088,7 @@ public class Array {
 		}
 		return splits;
 	}
+
 	/**
 	 * Creates an array of Strings and copies the contents of a Vector into it
 	 * 
@@ -2097,6 +2098,25 @@ public class Array {
 	 */
 	public static String[] toStringArray(Vector<String> v) {
 		return v.toArray(new String[v.size()]);
+	}
+
+	/**
+	 * Creates an array of Strings and copies the contents of a String[][] into it
+	 * 
+	 * @param matrix
+	 * 				matrix of String
+	 * @param delimiter
+	 * 				delimiter to use in the concatenated result 
+	 * @return an array of Strings from the matrix
+	 */
+	public static String[] toStringArray(String[][] matrix, String delimiter) {
+		String[] array = new String[matrix.length];
+
+		for (int i = 0; i < array.length; i++) {
+			array[i] = Array.toStr(matrix[i], delimiter);
+		}
+
+		return array;
 	}
 
 	/**
