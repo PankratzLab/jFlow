@@ -1,22 +1,46 @@
 // "AB_lookup.dat" is necessary if the files do not contain {"Allele1 - AB"}/{"Allele2 - AB}
 package cnv.manage;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
+import cnv.filesys.ABLookup;
 import cnv.filesys.MarkerData;
-import cnv.filesys.Project.ARRAY;
-import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
+import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
-import cnv.manage.NewParseIllumina.ParseConstants;
-import common.*;
 
-public class ParseIllumina implements Runnable {
-	private Project proj;
+import common.Array;
+import common.CountHash;
+import common.Files;
+import common.HashVec;
+import common.Logger;
+import common.Sort;
+import common.ext;
+
+public class SourceFileParser implements Runnable {
+
+    public static final String[][] SNP_HEADER_OPTIONS = {{ "SNP Name", "rsID", "Probe Set ID", "ProbeSet", "SNP", "ProbeSetName", "Name", "Marker"}}; // TODO any problems with mixing all idents together?
+    public static final String[][] SNP_TABLE_FIELDS = { SNP_HEADER_OPTIONS[0], { "Chr", "Chromosome" }, { "Position" } };
+    public static final String[] DELIMITERS = {",", "\t", " "};
+    public static final String[] DELIMITER_DESCRIPTIONS = {"COMMA", "TAB", "SPACE"};
+    public static final String OVERWRITE_OPTION_FILE = ".overwrite_option";
+    public static final String CANCEL_OPTION_FILE = ".cancel_option";
+    public static final String HOLD_OPTION_FILE = ".hold_option";
+    public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";
+	
+    private Project proj;
 	private String[] files;
 	private String[] markerNames;
 	private int[] keysKeys;
@@ -28,11 +52,11 @@ public class ParseIllumina implements Runnable {
 	private String delimiter;
 	private boolean splitAB;
 
-	public ParseIllumina(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, String delimiter, long fingerprint, Hashtable<String,String> fixes, long timeBegan) {
+	public SourceFileParser(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, String delimiter, long fingerprint, Hashtable<String,String> fixes, long timeBegan) {
 		this(proj, files, markerNames, keysKeys, abLookup, delimiter, fingerprint, fixes, timeBegan, -1);
 	}
 
-	public ParseIllumina(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, String delimiter, long fingerprint, Hashtable<String,String> fixes, long timeBegan, int threadId) {
+	public SourceFileParser(Project proj, String[] files, String[] markerNames, int[] keysKeys, char[][] abLookup, String delimiter, long fingerprint, Hashtable<String,String> fixes, long timeBegan, int threadId) {
 		this.proj = proj;
 		this.files = files;
 		this.markerNames = markerNames;
@@ -73,7 +97,7 @@ public class ParseIllumina implements Runnable {
 		allOutliers = new Hashtable<String, Float>();
         try {
 			for (int i = 0; i<files.length; i++) {
-				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.CANCEL_OPTION_FILE).exists()) {
+				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.CANCEL_OPTION_FILE).exists()) {
 					return;
 				}
 				try {
@@ -81,16 +105,16 @@ public class ParseIllumina implements Runnable {
 					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[i]);
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
-					} while (reader.ready() && (ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
+					} while (reader.ready() && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
 					
 					dataIndices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false);
 					genotypeIndices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false);
-					if (idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION)) {
+					if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
 						sampIndex = -7;
 					} else {
 						sampIndex = ext.indexFactors(new String[] { idHeader }, line, false, true)[0];
 					}
-					snpIndex = ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
+					snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
 					
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
 						log.reportError("Error - File format not consistent! At the very least the files need to contain "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
@@ -124,11 +148,10 @@ public class ParseIllumina implements Runnable {
 					}
 					
 					count = 0;
-//					parseAtAt = Boolean.parseBoolean(proj.getProperty(proj.PARSE_AT_AT_SYMBOL));
 					parseAtAt = proj.getProperty(proj.PARSE_AT_AT_SYMBOL);
 					while (reader.ready()) {
 						line = reader.readLine().split(delimiter);
-						if (idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION)) {
+						if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
 							trav = files[i].substring(0, files[i].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
 						} else {
 							if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
@@ -155,12 +178,15 @@ public class ParseIllumina implements Runnable {
 								if (dataIndices[j] != -1) {
 									if (ext.isMissingValue(line[dataIndices[j]])) {
 										data[j][key] = Float.NaN;
+									} else if (j == 0 && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN/* || proj.ARRAY_TYPE.getValue() == ARRAY.DBGAP*/)) {
+									    data[j][key] = Float.parseFloat(line[dataIndices[j]]);
+									    data[j][key] = 1 - data[j][key]; // try to make affy conf scores similar to illumina gc
+//									} else if ((j == 3 || j == 4) && proj.ARRAY_TYPE.getValue() == ARRAY.DBGAP) {
+//									    data[j][key] = Float.parseFloat(line[dataIndices[j]]);
+//									    data[j][key] = data[j][key] / 2000f;
 									} else if ((j == 3 || j == 4) && proj.XY_SCALE_FACTOR.getValue() != 1) {
 										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
 										data[j][key] = (float) (data[j][key] / proj.XY_SCALE_FACTOR.getValue());
-									} else if (j == 0 && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
-										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
-										data[j][key] = 1 - data[j][key]; // try to make affy conf scores similar to illumina gc
 									} else {
 										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
 									}
@@ -187,10 +213,10 @@ public class ParseIllumina implements Runnable {
 								line[genotypeIndices[1]] = tmp1;
 								if (!ignoreAB) {
 									try{
-									String tmp2 = line[genotypeIndices[2]].substring(0, 1);
-									String tmp3 = line[genotypeIndices[2]].substring(1, 2);
-									line[genotypeIndices[2]] = tmp2;
-									line[genotypeIndices[3]] = tmp3;
+    									String tmp2 = line[genotypeIndices[2]].substring(0, 1);
+    									String tmp3 = line[genotypeIndices[2]].substring(1, 2);
+    									line[genotypeIndices[2]] = tmp2;
+    									line[genotypeIndices[3]] = tmp3;
 									}catch (Exception e){
 										log.reportTimeError("Could not parse genotypes on line "+Array.toStr(line));
 										log.reportException(e);
@@ -272,14 +298,13 @@ public class ParseIllumina implements Runnable {
 					}
 
 					
-					filename = ParseConstants.determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan, log);
+					filename = SourceFileParser.determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan, log);
 					if (filename == null) {
 						return;
 					}
 
 					samp = new Sample(sampleName, fingerprint, data, genotypes, false);
 //					samp.serialize(proj.getDir(proj.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION);
-//					samp.saveToRandomAccessFile(filename);
 					samp.saveToRandomAccessFile(filename, allOutliers, sampleName); //TODO sampleIndex
 				} catch (FileNotFoundException fnfe) {
 					log.reportError("Error: file \""+files[i]+"\" not found in current directory");
@@ -312,9 +337,381 @@ public class ParseIllumina implements Runnable {
 		} catch (Exception e) {
 			log.reportException(e);
 		}
+        
+        // request release of resources
+        log.report(ext.getTime()+"\tCleaning up...");
+        System.gc();
 	}
 
-	@SuppressWarnings("unchecked")
+	public static void writeToLookupFile(Project proj, Hashtable<String,String[]> hash, int fileNumber) {
+        PrintWriter writer;
+        String filename;
+        String[] keys;
+        Logger log;
+    
+        log = proj.getLog();
+        filename = proj.PROJECT_DIRECTORY.getValue()+"alleleLookup"+(fileNumber>0?"_atFile"+fileNumber:"")+".xln";
+        log.report("Writing to file {" + filename + "}...", false, true);
+        try {
+            writer = new PrintWriter(new FileWriter(filename));
+            keys = HashVec.getKeys(hash, false, false);
+            writer.println("SNP\t"+Array.toStr(Sample.ALL_STANDARD_GENOTYPE_FIELDS));
+            for (int k = 0; k < keys.length; k++) {
+                writer.println(keys[k]+"\t"+Array.toStr(hash.get(keys[k])));
+            }
+            writer.close();
+        } catch (Exception e) {
+            log.reportError("Error writing to " + filename);
+            log.reportException(e);
+        }
+        log.report("done.");
+        
+    }
+
+    public static char[][] getABLookup(boolean abLookupRequired, String[] markerNames, Project proj) {
+        ABLookup abLookup; 
+        char[][] lookup;
+        Logger log;
+        
+        log = proj.getLog();
+        if (abLookupRequired && Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+            abLookup = new ABLookup(markerNames, proj.AB_LOOKUP_FILENAME.getValue(), true, false, proj.getLog());
+            lookup = abLookup.getLookup();
+            if (lookup == null) {
+                log.report("Warning - failed to provide columns \"" + 
+                                Sample.GENOTYPE_FIELDS[2][0] + "\" / \"" +
+                                Sample.GENOTYPE_FIELDS[3][0] + "\" and the specificed AB_lookup file '" + 
+                                proj.getProperty(proj.AB_LOOKUP_FILENAME) + 
+                                "' does not exist; you'll need reconstruct the B allele for analysis");
+            } else {
+                abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue()+"checkAB.xln", proj.getLog());
+            }
+        } else {
+            lookup = null;
+        }
+        
+        return lookup;
+    }
+
+    public static String determineFilename(String dir, String sampleName, long timeBegan, Logger log) {
+        String filename, trav;
+        int version, versionToOverwrite;
+        String[] overwriteOptions;
+        int response;
+        
+        version = 0;
+        versionToOverwrite = -1;
+        do {
+            trav = sampleName + (version == 0 ? "" : "." + version);
+            version++;
+            filename = dir + trav + Sample.SAMPLE_DATA_FILE_EXTENSION;
+            if (new File(filename).exists() && new File(filename).lastModified() < timeBegan && versionToOverwrite == -1) {
+                versionToOverwrite = version - 1;
+            }
+        } while (new File(filename).exists());
+    
+    
+        filename = sampleName + (versionToOverwrite == 0 ? "" : "." + versionToOverwrite) + Sample.SAMPLE_DATA_FILE_EXTENSION;
+        overwriteOptions = new String[] {
+                "Rename new file " + trav + Sample.SAMPLE_DATA_FILE_EXTENSION, 
+                "Overwrite existing file " + filename, 
+                "Overwrite this and all future files", 
+                "Cancel parser"
+        };
+        
+        if (versionToOverwrite != -1) {
+            while (new File(dir + SourceFileParser.HOLD_OPTION_FILE).exists()) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ie) {}
+            }
+            if (new File(dir + SourceFileParser.CANCEL_OPTION_FILE).exists()) {
+                return null;
+            }
+            
+            Files.write("", dir + SourceFileParser.HOLD_OPTION_FILE);
+            if (new File(dir + SourceFileParser.OVERWRITE_OPTION_FILE).exists()) {
+                response = 1;
+            } else {
+                
+                if (!System.getProperty("os.name").startsWith("Windows")) {
+                    log.reportError("Error - the same sample name '"+sampleName+"' is being parsed again and the previous file existed before the current command began. "
+                            + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted. "
+                            + "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory. "
+                            + "To automatically overwrite when there is conflict like this, then create an empty file with the following name: "
+                            + dir + SourceFileParser.OVERWRITE_OPTION_FILE
+                    );
+                    return null;
+                }
+                
+                do {
+                    response = JOptionPane.showOptionDialog(null, 
+                            "Error - the same sample name '"+sampleName+"' is being parsed again and the previous file existed before the current command began.\n"+
+                            "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"+
+                            "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory.\n"+
+                            "What would you like to do?"
+                        , "What to do?", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, overwriteOptions, overwriteOptions[0]);
+                } while (response == -1);
+            }
+            new File(dir + SourceFileParser.HOLD_OPTION_FILE).delete();
+            switch (response) {
+            case 0:
+                return dir + trav + Sample.SAMPLE_DATA_FILE_EXTENSION;
+            case 2:
+                Files.write("", dir + SourceFileParser.OVERWRITE_OPTION_FILE);
+            case 1:
+                return dir + filename;
+            case 3:
+                Files.write("", dir + SourceFileParser.CANCEL_OPTION_FILE);
+                return null;
+            default:
+                JOptionPane.showMessageDialog(null, "Should be impossible to obtain this message ("+response+")", "Error", JOptionPane.ERROR_MESSAGE);
+                break;
+            }
+        }
+    
+        return dir+trav+Sample.SAMPLE_DATA_FILE_EXTENSION;
+    }
+
+    public static void parseAlleleLookupFromFinalReports(Project proj) {
+        BufferedReader reader;
+        String[] line;
+        Hashtable<String, String[]> hash;
+        String[] files;
+        int[] indices;
+        int snpIndex;
+        String delimiter, idHeader;
+        String[] alleles;
+        int expIndex;
+        Logger log;
+    
+        log = proj.getLog();
+        files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+        if (files.length == 0) {
+            log.reportError("Error - no files to parse");
+            return;
+        }
+        log.report("\t\tFound "+files.length+" file"+(files.length==1?"":"s")+" to parse");
+    
+        idHeader = proj.getProperty(proj.ID_HEADER);
+        delimiter = proj.getSourceFileDelimiter();
+        hash = new Hashtable<String, String[]>();
+        for (int i = 0; i<files.length; i++) {
+            if (new File("report").exists()) {
+                SourceFileParser.writeToLookupFile(proj, hash, i+1);
+                new File("report").delete();
+            }
+            try {
+                log.report(ext.getTime()+"\t"+(i+1)+" of "+files.length);
+                reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[i]);
+                do {
+                    line = reader.readLine().trim().split(delimiter, -1);
+                } while (reader.ready()&&(ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line)==-1)));
+    
+                snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
+                indices = ext.indexFactors(Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, proj.getLog(), false, false);
+                
+                while (reader.ready()) {
+                    line = reader.readLine().split(delimiter);
+                    if (hash.containsKey(line[snpIndex])) {
+                        alleles = hash.get(line[snpIndex]);
+                    } else {
+                        if (i!=0) {
+                            log.reportError("Error - snp '"+line[snpIndex]+"' first seen in file #"+i+" ("+files[i]+") and not earlier");
+                        }
+                        hash.put(line[snpIndex], alleles = new String[Sample.ALL_STANDARD_GENOTYPE_FIELDS.length]);
+                    }
+                    for (int j = 0; j < 2; j++) {
+                        if (ext.indexOfStr(line[indices[j]], Sample.ALT_NULL) == -1) {
+                            if (alleles[0] == null) {
+                                alleles[0] = line[indices[j]];
+                                expIndex = -1;
+                            } else if (line[indices[j]].equals(alleles[0])) {
+                                expIndex = 0;
+                            } else if (alleles[1] == null) {
+                                alleles[1] = line[indices[j]];
+                                expIndex = -2;
+                            } else if (line[indices[j]].equals(alleles[1])) {
+                                expIndex = 1;
+                            } else {
+                                log.reportError("Error - snp '"+line[snpIndex]+"' has a new allele in file #"+i+" ("+files[i]+"): "+line[indices[j]]+" (previously "+alleles[0]+"/"+alleles[1]+")");
+                                expIndex = -9;
+                            }
+                            
+                            for (int k = 1; k < alleles.length/2; k++) {
+                                switch (expIndex) {
+                                case -1:
+                                    if (alleles[k*2+0] != null) {
+                                        log.reportError("Error - how can this be? -1");
+                                    }
+                                    alleles[k*2+0] = line[indices[k*2+j]];
+                                    break;
+                                case 0:
+                                    if (!line[indices[k*2+j]].equals(alleles[k*2+0])) {
+                                        log.reportError("Error - how can this be? 0");
+                                    }                                   
+                                    break;
+                                case -2:
+                                    if (alleles[k*2+1] != null) {
+                                        log.reportError("Error - how can this be? -2");
+                                    }
+                                    alleles[k*2+1] = line[indices[k*2+j]];
+                                    break;
+                                case 1:
+                                    if (!line[indices[k*2+j]].equals(alleles[k*2+1])) {
+                                        log.reportError("Error - how can this be? 1");
+                                    }                                   
+                                    break;
+                                case -9:
+                                    break;
+                                }
+                            }                           
+                        }
+                    }
+                }
+            } catch (FileNotFoundException fnfe) {
+                log.reportError("Error: file \""+files[i]+"\" not found in current directory");
+                return;
+            } catch (IOException ioe) {
+                log.reportError("Error reading file \""+files[i]+"\"");
+                return;
+            }
+        }
+        SourceFileParser.writeToLookupFile(proj, hash, 0);
+    }
+
+    public static byte[] parseGenotypes(String[] line, int[] genotypeIndices, boolean ignoreAB, char[][] abLookup, int count, String sampleName, String markerName, String filename) {
+        String genotype;
+        byte genoForward, genoAB;
+    
+        if (genotypeIndices[4] >= 0) {
+            genotype = line[genotypeIndices[4]];
+        } else {
+            genotype = line[genotypeIndices[0]] + line[genotypeIndices[1]];
+        }
+        genoForward = (byte) ext.indexOfStr(genotype, Sample.ALLELE_PAIRS);
+        if (genoForward == -1) {
+            if (ext.indexOfStr(genotype, Sample.ALT_NULLS) == -1) {
+                // System.err.println("Error - failed to lookup "+genotype+" for marker "+markerName+" of sample "+filename);
+                genoForward = -9;
+            } else {
+                genoForward = 0;
+            }
+        }
+        if (ignoreAB) {
+            genoAB = -1;
+            // do nothing, will need to use these files to determine AB lookup table
+        } else if (abLookup == null) {
+            if (genotypeIndices[5] >= 0) {
+                genotype = line[genotypeIndices[5]];
+            } else {
+                genotype = line[genotypeIndices[2]] + line[genotypeIndices[3]];
+            }
+            genoAB = (byte) ext.indexOfStr(genotype, Sample.AB_PAIRS);
+            if (genoAB == -1) {
+                if (ext.indexOfStr(genotype, Sample.ALT_NULLS) == -1) {
+                    System.err.println("Error - failed to lookup " + genotype + " for marker " + markerName + " of sample " + filename);
+                }
+            }
+        } else {
+            if (genoForward == 0) {
+                genoAB = -1;
+            } else {
+                genoAB = 0;
+                if (genotypeIndices[4] >= 0) {
+                    genotype = line[genotypeIndices[4]];
+                } else {
+                    genotype = line[genotypeIndices[0]] + line[genotypeIndices[1]];
+                }
+                for (int j = 0; j < 2; j++) {
+                    if (genotype.charAt(j) == abLookup[count][1]) {
+                        genoAB++;
+                    } else if (genotype.charAt(j) != abLookup[count][0]) {
+                        System.err.println("Error - alleles for individual '" + sampleName + "' (" + genotype + ") do not match up with the defined AB lookup alleles (" + abLookup[count][0] + "/" + abLookup[count][1] + ") for marker " + markerName);
+                    }
+                }
+            }
+        }
+    
+        return new byte[] { genoForward == -9 ? 1 : genoForward, genoAB };
+    }
+
+    public static void mapFilenamesToSamples(Project proj, String filename) {
+                BufferedReader reader;
+                PrintWriter writer;
+                String[] line;
+                int sampIndex;
+                String[] files;
+                String idHeader, delimiter;
+                boolean longFormat, done;
+                String prev;
+                Logger log;
+    
+                log = proj.getLog();
+                if (!Files.exists(proj.SOURCE_DIRECTORY.getValue(false, false))) {
+                    proj.message("Source directory does not exist; change SOURCE_DIRECTORY= to point to the proper files");
+                    return;
+                }
+                
+                delimiter = proj.getSourceFileDelimiter();
+                longFormat = proj.LONG_FORMAT.getValue();
+                idHeader = proj.getProperty(proj.ID_HEADER);
+                log.report(ext.getTime()+"\tSearching for "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" files in: "+proj.SOURCE_DIRECTORY.getValue(false, true));
+                files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+                log.report("\t\tFound "+files.length+" file"+(files.length==1?"":"s")+" to parse");
+    
+                try {
+                    writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filename));
+                    for (int i = 0; i<files.length; i++) {
+                        try {
+                            reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[i]);
+                            do {
+                                line = reader.readLine().trim().split(delimiter);
+                            } while (reader.ready()&&(line.length<3 || ext.indexOfStr(idHeader, line)==-1));
+    
+                            if (!reader.ready()) {
+                                log.reportError("Error - went through enitre file without finding a line containing the user-defined ID header: "+idHeader);
+                                return;
+                            }
+                            sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
+    
+    //                  ParseAffymetrix, ParseAffySNP6, and ParseDbgap ::>
+    //                        line = reader.readLine().split(delimiter);
+    //                        writer.println(files[i]+"\t"+line[sampIndex]+"\t"+(line[sampIndex].indexOf("@") >= 0?line[sampIndex].split("@")[0]:line[sampIndex]));
+    //                        reader.close();
+    //                        
+    //                  ParseIllumina ::>
+                            done = false;
+                            prev = null;
+                            while (!done) {
+                                line = reader.readLine().split(delimiter);
+                                if (!line[sampIndex].equals(prev)) {
+                                    writer.println(files[i]+"\t"+line[sampIndex]+(line[sampIndex].indexOf("@") >= 0?"\t"+line[sampIndex].split("@")[0]:""));
+                                }
+                                if (!longFormat || !reader.ready()) {
+                                    done = true;
+                                }
+                                prev = line[sampIndex];
+                            }
+                            reader.close();
+                        } catch (FileNotFoundException fnfe) {
+                            log.reportError("Error: file \""+files[i]+"\" not found in "+proj.SOURCE_DIRECTORY.getValue(false, true));
+                            writer.close();
+                            return;
+                        } catch (IOException ioe) {
+                            log.reportError("Error reading file \""+files[i]+"\"");
+                            writer.close();
+                            return;
+                        }
+                    }
+                    log.report(ext.getTime());
+                    writer.close();
+                } catch (Exception e) {
+                    log.reportException(e);
+                }
+            }
+
+    @SuppressWarnings("unchecked")
 	public static int createFiles(Project proj, int numThreads) {
 		BufferedReader reader;
 		String[] line, markerNames, files;
@@ -326,13 +723,11 @@ public class ParseIllumina implements Runnable {
 		Vector<Vector<String>> fileCabinet;
 		String trav;
 		int count;
-        int lineCount;
 		boolean abLookupRequired;
 		char[][] lookup;
         Hashtable<String,String> fixes;
         String idHeader, delimiter;
         String temp;
-        String testline;
         int[][] delimiterCounts;
         boolean complete;
         long timeBegan;
@@ -349,9 +744,9 @@ public class ParseIllumina implements Runnable {
 		
 		log = proj.getLog();
         timeBegan = new Date().getTime();
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.OVERWRITE_OPTION_FILE).delete();
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.HOLD_OPTION_FILE).delete();
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.CANCEL_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.OVERWRITE_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.HOLD_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.CANCEL_OPTION_FILE).delete();
 
 		if (!proj.SOURCE_DIRECTORY.getValue(false, true).equals("")&&!new File(proj.SOURCE_DIRECTORY.getValue(false, true)).exists()) {
 			log.reportError("Error - the Project source location is invalid: "+proj.SOURCE_DIRECTORY.getValue(false, true));
@@ -407,6 +802,8 @@ public class ParseIllumina implements Runnable {
     			break;
     		case ILLUMINA:
     			break;
+//    		case NGS:
+//    		    break;
     		default:
     			log.reportTimeError("Invalid array type " + array);
     			break;
@@ -419,15 +816,15 @@ public class ParseIllumina implements Runnable {
 			foundSNPon = -1;
 			foundIDon = -2;
 			do {
-				line = /*proj.ARRAY_TYPE.getValue() != ARRAY.DBGAP ? */reader.readLine().trim().split(delimiter, -1)/* : reader.readLine().trim().replace("#Column header: ", "").split(delimiter, -1)*/;
+				line = reader.readLine().trim().replace("#Column header: ", "").split(delimiter, -1);
 				count++;
 				if (count < 20) {
 					log.report(Array.toStr(line), true, true, 11);
 				}
-				if (ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] != -1) {
+				if (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] != -1) {
 					foundSNPon = count;
 				}
-				if (idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION) ||ext.indexOfStr(idHeader, line) != -1) {
+				if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION) ||ext.indexOfStr(idHeader, line) != -1) {
 					foundIDon = count;
 				} 
 				
@@ -438,7 +835,7 @@ public class ParseIllumina implements Runnable {
 			// The following code checks all of the common delimiters (tab, comma, space) and determines which one to use when it tries for a second time
 			if (!reader.ready() || count == 1000) {
 				if (foundSNPon == -1) {
-					log.reportError("Could not find a header with the following tokens: "+Array.toStr(ParseConstants.SNP_HEADER_OPTIONS[0], " / "));
+					log.reportError("Could not find a header with the following tokens: "+Array.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0], " / "));
 				}
 				if (foundIDon == -2) {
 					log.reportError("Could not find a header with the selected id type: "+idHeader);
@@ -450,20 +847,20 @@ public class ParseIllumina implements Runnable {
 
 				reader.close();
 				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
-				delimiterCounts = new int[ParseConstants.DELIMITERS.length][count];
+				delimiterCounts = new int[SourceFileParser.DELIMITERS.length][count];
 				for (int i = 0; i < count; i++) {
 					temp = reader.readLine();
-					for (int j = 0; j < ParseConstants.DELIMITERS.length; j++) {
-						delimiterCounts[j][i] = ext.countInstancesOf(temp, ParseConstants.DELIMITERS[j]);
+					for (int j = 0; j < SourceFileParser.DELIMITERS.length; j++) {
+						delimiterCounts[j][i] = ext.countInstancesOf(temp, SourceFileParser.DELIMITERS[j]);
 					}
 				}
 				delimiter = null;
-				for (int j = 0; j < ParseConstants.DELIMITERS.length; j++) {
+				for (int j = 0; j < SourceFileParser.DELIMITERS.length; j++) {
 					if (Array.quantWithExtremeForTie(delimiterCounts[j], 0.5) > 4 && Array.quantWithExtremeForTie(delimiterCounts[j], 0.9) - Array.quantWithExtremeForTie(delimiterCounts[j], 0.1) == 0) {
 						if (delimiter == null) {
-							delimiter = ParseConstants.DELIMITERS[j];
+							delimiter = SourceFileParser.DELIMITERS[j];
 						} else {
-							proj.message("Could not auto-detect the delimiter used in the Final Reports file: could be '"+delimiter+"' or '"+ParseConstants.DELIMITERS[j]+"'");
+							proj.message("Could not auto-detect the delimiter used in the Final Reports file: could be '"+delimiter+"' or '"+SourceFileParser.DELIMITERS[j]+"'");
 							return 0;
 						}
 					}
@@ -475,13 +872,13 @@ public class ParseIllumina implements Runnable {
 					return 0;
 				}
 				
-				log.reportError("      - determined delimiter to be "+ParseConstants.DELIMITER_DESCRIPTIONS[ext.indexOfStr(delimiter, ParseConstants.DELIMITERS)]);
+				log.reportError("      - determined delimiter to be "+SourceFileParser.DELIMITER_DESCRIPTIONS[ext.indexOfStr(delimiter, SourceFileParser.DELIMITERS)]);
 
 				// Tries again to determine the header fields and column names
 				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
-				} while (reader.ready() && (ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
+				} while (reader.ready() && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1 || (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION) && ext.indexOfStr(idHeader, line) == -1)));
 			}
 
 			// check immediately to make sure these fields are valid
@@ -503,23 +900,22 @@ public class ParseIllumina implements Runnable {
 				abLookupRequired = true;
 			}
 
-			if (!idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION)) {
+			if (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
 				ext.indexFactors(new String[] { idHeader }, line, false, true); // sampIndex
 			}
-			snpIndex = ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, true, true)[0];
+			snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, true, true)[0];
 
 			idHeader = proj.getProperty(proj.ID_HEADER);
 			reader.mark(1000);
 
 
-			if (idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION)) {
+			if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
 				sampleName = files[0].substring(0, files[0].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
 				sampIndex = -7;
 				parseAtAt = false;
 			} else {
 				sampIndex = ext.indexFactors(new String[] { idHeader }, line, false, true)[0];
 				line = reader.readLine().split(delimiter);
-//				parseAtAt = Boolean.parseBoolean(proj.getProperty(proj.PARSE_AT_AT_SYMBOL));
 				parseAtAt = proj.getProperty(proj.PARSE_AT_AT_SYMBOL);
 				if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
 					log.reportError("Error - " + idHeader + " '" + line[sampIndex] + "' did not contain an @ sample; if your ID's do not naturally contain at symbols, then set " + proj.PARSE_AT_AT_SYMBOL + " in the project properties file to FALSE");
@@ -599,12 +995,6 @@ public class ParseIllumina implements Runnable {
 
 			reader.reset();	
 			
-//			if (Boolean.parseBoolean(proj.getProperty(proj.LONG_FORMAT))) {
-//				reader.close();
-//				createFilesFromLongFormat(proj, files, idHeader, fixes, delimiter, abLookupRequired, timeBegan);
-//				return 0;
-//			}
-
 			markerNameHash = new Hashtable<String, Integer>(500000);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(delimiter);
@@ -615,31 +1005,26 @@ public class ParseIllumina implements Runnable {
 				}
 				if (markerNameHash.containsKey(trav)) {
 					
-//					if (!Boolean.parseBoolean(proj.getProperty(proj.LONG_FORMAT))) {
 					if (!proj.getProperty(proj.LONG_FORMAT)) {
 						log.reportError("The same marker ('" + trav + "') was seen twice...");
 					}
 					
-					if (idHeader.equals(ParseConstants.FILENAME_AS_ID_OPTION)) {
-//						if (!Boolean.parseBoolean(proj.getProperty(proj.LONG_FORMAT))){
+					if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
 						if (!proj.getProperty(proj.LONG_FORMAT)){
-							log.report("... this could mean that the file contains multiple samples. This should not happen when " + proj.ID_HEADER + " is set to " + ParseConstants.FILENAME_AS_ID_OPTION);
+							log.report("... this could mean that the file contains multiple samples. This should not happen when " + proj.ID_HEADER + " is set to " + SourceFileParser.FILENAME_AS_ID_OPTION);
 						}else{
-							log.reportError("Error - "+proj.ID_HEADER + " was set to " + ParseConstants.FILENAME_AS_ID_OPTION + ", which is invalid for Long Format files");
+							log.reportError("Error - "+proj.ID_HEADER + " was set to " + SourceFileParser.FILENAME_AS_ID_OPTION + ", which is invalid for Long Format files");
 						}
 						return 0;
 					} else if (!(parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex]).equals(sampleName)) {
-//						if (!Boolean.parseBoolean(proj.getProperty(proj.LONG_FORMAT))) {
 						if (!proj.getProperty(proj.LONG_FORMAT)) {
 							log.reportError("... and the sample name changed from " + sampleName + " to " + (parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex]) + ", so this must be a Long Format file. The property file will be updated to reflect this, and an attempt will be made to launch the Long Format file processor now.");
-//							proj.setProperty(proj.LONG_FORMAT, "TRUE");
 							proj.setProperty(proj.LONG_FORMAT, Boolean.TRUE);
 							proj.saveProperties();
 						}
 						reader.close();
 						//we should have all markers now...
 						markerNames = Array.toStringArray(markerNameHash);
-//						keys = Markers.orderMarkers(markerNames, proj.getFilename(proj.MARKER_POSITION_FILENAME), proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
 						keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 						if (keys == null) {
 							return checkForSNP_Map(proj, log);
@@ -676,7 +1061,7 @@ public class ParseIllumina implements Runnable {
 		if (proj.XY_SCALE_FACTOR.getValue() != 1) {
 			log.report("The XY_SCALE_FACTOR was set to " + proj.XY_SCALE_FACTOR.getValue() + ", scaling X and Y values...");
 		}
-		lookup = ParseConstants.getABLookup(abLookupRequired, markerNames, proj);
+		lookup = SourceFileParser.getABLookup(abLookupRequired, markerNames, proj);
 
 		if (affyProcess != null) {
 			affyProcess.combineAll(numThreads);
@@ -690,7 +1075,7 @@ public class ParseIllumina implements Runnable {
 		}
 		threads = new Thread[numThreads];
 		for (int i = 0; i<numThreads; i++) {
-			threads[i] = new Thread(new ParseIllumina(proj, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), markerNames, keysKeys, lookup, delimiter, fingerprint, fixes, timeBegan, i));
+			threads[i] = new Thread(new SourceFileParser(proj, fileCabinet.elementAt(i).toArray(new String[fileCabinet.elementAt(i).size()]), markerNames, keysKeys, lookup, delimiter, fingerprint, fixes, timeBegan, i));
 			threads[i].start();
 			try {
 				Thread.sleep(100L);
@@ -712,13 +1097,15 @@ public class ParseIllumina implements Runnable {
 			}
 		}
 		
+		log.report(ext.getTime() + "]\tWriting sample list...");
 		SampleList.generateSampleList(proj).writeToTextFile(proj.PROJECT_DIRECTORY.getValue()+"ListOfSamples.txt");
 
 		allOutliers = new Hashtable<String, Float>();
 
 
 		v = new Vector<String>();
-		
+
+        log.report(ext.getTime() + "]\tWriting outliers list(s)...");
 		for (int i = 0; i<numThreads; i++) {
 			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").exists()) {
 				allOutliers.putAll((Hashtable<String, Float>) Files.readSerial(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser"));
@@ -735,10 +1122,9 @@ public class ParseIllumina implements Runnable {
 			}
 		}
 		
-//		if (allOutliers.size()>0) {
 		// changed 6-26-15 to always write an outliers.ser, even if no outliers exist
 		Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
-//		}
+		log.report(ext.getTime() + "]\tSource File Parsing Complete.");
 		if (abLookupRequired && !Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
 			return 6;
 		} else {
@@ -799,7 +1185,7 @@ public class ParseIllumina implements Runnable {
         markerNames = markerSet.getMarkerNames();
 		fingerprint = proj.getMarkerSet().getFingerprint();
 		
-		abLookup = ParseConstants.getABLookup(abLookupRequired, markerNames, proj);
+		abLookup = SourceFileParser.getABLookup(abLookupRequired, markerNames, proj);
 		
 		markerIndices = new Hashtable<String, Integer>();
 		for (int i = 0; i < markerNames.length; i++) {
@@ -837,14 +1223,14 @@ public class ParseIllumina implements Runnable {
 					log.report(ext.getTime()+"\t"+(i+1)+" of "+files.length+" ("+files[i]+")");
 					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[i]);
 					do {
-						line = reader.readLine().trim().split(delimiter, -1);
-					} while (reader.ready()&&(ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
+						line = reader.readLine().trim().replace("#Column header: ", "").split(delimiter, -1);
+					} while (reader.ready()&&(ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, false)[0]==-1 || ext.indexOfStr(idHeader, line)==-1));
 
 					log.report("Searching: "+Array.toStr(line));
 					dataIndices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false);
 					genotypeIndices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false);
 					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
-					snpIndex = ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
+					snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
 					
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
 						log.reportError("Error - File format not consistent! At the very least the files need to contain "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
@@ -864,7 +1250,6 @@ public class ParseIllumina implements Runnable {
 					sampleName = "just starting";
 					data = null;
 					genotypes = null;
-//					parseAtAt = Boolean.parseBoolean(proj.getProperty(proj.PARSE_AT_AT_SYMBOL));
 					parseAtAt = proj.getProperty(proj.PARSE_AT_AT_SYMBOL);
 					numCols = -1;
 					while (!done) {
@@ -913,7 +1298,7 @@ public class ParseIllumina implements Runnable {
 									sampleName = fixes.get(sampleName);
 								}
 								
-								filename = ParseConstants.determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan, log);
+								filename = SourceFileParser.determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan, log);
 								if (filename == null) {
 									return 0;
 								}
@@ -1054,9 +1439,9 @@ public class ParseIllumina implements Runnable {
 			log.reportException(e);
 		}
 
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.OVERWRITE_OPTION_FILE).delete();
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.HOLD_OPTION_FILE).delete();
-        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+ParseConstants.CANCEL_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.OVERWRITE_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.HOLD_OPTION_FILE).delete();
+        new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.CANCEL_OPTION_FILE).delete();
        
 		if (abLookupRequired && !Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
 			return 6;
@@ -1111,9 +1496,9 @@ public class ParseIllumina implements Runnable {
 		try {
 			proj = new Project(filename, false);
 			if (map) {
-			    ParseConstants.mapFilenamesToSamples(proj, mapOutput);
+			    SourceFileParser.mapFilenamesToSamples(proj, mapOutput);
 			} else if (parseAlleleLookupFromFinalReports) {
-			    ParseConstants.parseAlleleLookupFromFinalReports(proj);
+			    SourceFileParser.parseAlleleLookupFromFinalReports(proj);
 			} else {
 				createFiles(proj, numThreads);
 			}

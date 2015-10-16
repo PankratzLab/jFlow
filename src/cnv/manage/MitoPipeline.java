@@ -319,7 +319,7 @@ public class MitoPipeline {
 //			log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.getFilename(proj.SAMPLELIST_FILENAME) + " and " + proj.getDir(proj.SAMPLE_DIRECTORY));
 			log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.SAMPLELIST_FILENAME.getValue() + " and " + proj.SAMPLE_DIRECTORY.getValue(false, true));
 		} else {
-			result = cnv.manage.ParseIllumina.createFiles(proj, numThreads);
+			result = cnv.manage.SourceFileParser.createFiles(proj, numThreads);
 			if (result == 0) {
 				return 0;
 			} else if (result == 7) {

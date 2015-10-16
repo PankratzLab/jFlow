@@ -1306,6 +1306,14 @@ public class Project {
 	    public String getDelimiter() {
 	        return this.delim;
 	    }
+	    public static SOURCE_FILE_DELIMITERS getDelimiter(String value) {
+	        for (SOURCE_FILE_DELIMITERS delim : SOURCE_FILE_DELIMITERS.values()) {
+	            if (delim.getDelimiter() == value) {
+	                return delim;
+	            }
+	        }
+	        return null;
+	    }
 	}
 	
 	public ARRAY getArrayType() {
