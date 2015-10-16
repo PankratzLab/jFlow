@@ -9,7 +9,7 @@ import java.util.Hashtable;
 
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-import cnv.manage.NewParseIllumina.ParseConstants;
+import cnv.manage.SourceFileParser;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -92,7 +92,7 @@ public class CytoAgilentParse {
 		}
 
 		proj.setProperty(proj.SOURCE_FILENAME_EXTENSION, GENVISIS_EXT);
-		proj.setProperty(proj.ID_HEADER, ParseConstants.FILENAME_AS_ID_OPTION);
+		proj.setProperty(proj.ID_HEADER, SourceFileParser.FILENAME_AS_ID_OPTION);
 //		proj.setProperty(proj.PARSE_AT_AT_SYMBOL, "FALSE");
 		proj.setProperty(proj.PARSE_AT_AT_SYMBOL, Boolean.FALSE);
 		proj.setProperty(proj.SOURCE_FILE_DELIMITER, Project.SOURCE_FILE_DELIMITERS.TAB);//"TAB");

@@ -23,6 +23,9 @@ import cnv.plots.*;
 import cnv.qc.MarkerMetrics;
 import cnv.qc.SampleQC;
 
+//-XX:+UseConcMarkSweepGC
+//-XX:+UseParNewGC
+
 public class Launch extends JFrame implements ActionListener, WindowListener, ItemListener {
 	public static final long serialVersionUID = 1L;
 	
@@ -436,11 +439,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			 * CAUTION/NOTE/TODO: ALL SWING CALLS OR COMPONENT CREATION SHOULD BE WRAPPED IN SwingUtilities.invokeLater();
 			 */
 			if (command.equals(MAP_FILES)) {
-				cnv.manage.NewParseIllumina.ParseConstants.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
+				cnv.manage.SourceFileParser.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
 				cnv.manage.Markers.generateMarkerPositions(proj, proj.getLocationOfSNP_Map(true));
 			} else if (command.equals(PARSE_FILES_CSV)) {
-				cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
+				cnv.manage.SourceFileParser.createFiles(proj, proj.NUM_THREADS.getValue());
 			} else if (command.equals(CHECK_SEX)) {
 				cnv.qc.SexChecks.sexCheck(proj);
 			} else if (command.equals(TRANSPOSE_DATA)) {

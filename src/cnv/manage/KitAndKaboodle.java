@@ -89,7 +89,7 @@ public class KitAndKaboodle {
             if (numThreads != proj.NUM_THREADS.getValue()) {
             	proj.NUM_THREADS.setValue(numThreads);
             }
-            int retCode = cnv.manage.ParseIllumina.createFiles(proj, numThreads);
+            int retCode = cnv.manage.SourceFileParser.createFiles(proj, numThreads);
             switch (retCode) {
             case 0:
                 this.setFailed();
@@ -153,7 +153,7 @@ public class KitAndKaboodle {
             if (numThreads != proj.NUM_THREADS.getValue()) {
                 proj.NUM_THREADS.setValue(numThreads);
             }
-            int retCode = cnv.manage.ParseIllumina.createFiles(proj, numThreads);
+            int retCode = cnv.manage.SourceFileParser.createFiles(proj, numThreads);
             switch (retCode) {
             case 0:
                 this.setFailed();

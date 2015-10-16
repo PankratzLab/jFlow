@@ -161,6 +161,7 @@ public class KitAndKaboodleGUI extends JDialog {
         }
         refreshLabels();
         setBounds(100, 100, 660, 850);
+        setTitle(TOP_LABEL);
         addWindowFocusListener(new WindowFocusListener() {
             @Override
             public void windowLostFocus(WindowEvent e) {}

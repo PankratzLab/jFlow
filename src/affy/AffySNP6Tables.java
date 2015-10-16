@@ -13,7 +13,7 @@ import common.Array;
 import common.Files;
 import common.ext;
 import cnv.filesys.Project;
-import cnv.manage.ParseAffySNP6;
+import cnv.manage.SourceFileParser;
 
 public class AffySNP6Tables {
 	public static final String[][] SNP_HEADER_OPTIONS = { { "SNP Name", "rsID", "Probe Set ID", "probeset_id" } };
@@ -173,7 +173,7 @@ public class AffySNP6Tables {
 		int chunkCount = 0;
 		int lineCount = 0;
 		String delimiter = "\t";
-		int totalLines = 0;
+//		int totalLines = 0;
 
 		try {
 			callReader = Files.getAppropriateReader(callFile);
@@ -195,7 +195,7 @@ public class AffySNP6Tables {
 				sigBLine = sigReader.readLine().trim().split(delimiter, -1);
 
 				while (callReader.ready()) {
-					totalLines++;
+//					totalLines++;
 					if (callLine[0].equals(confLine[0]) && sigALine[0].equals(callLine[0] + "-A") && sigBLine[0].equals(callLine[0] + "-B")) {
 						parseSNPLine(callLine, confLine, sigALine, sigBLine);
 						lineCount++;
@@ -357,10 +357,10 @@ public class AffySNP6Tables {
 
 			}
 			if (create && !comboMergeCreate) {
-				ParseAffySNP6.createFiles(proj, numThreads);
+				SourceFileParser.createFiles(proj, numThreads);
 			} else if (comboMergeCreate) {
 				MergeChp.combineChpFiles(affyResultsDir, numThreads, commonSubFolderPattern, inputFileNameExt, output);
-				ParseAffySNP6.createFiles(proj, numThreads);
+				SourceFileParser.createFiles(proj, numThreads);
 			}
 
 		} catch (Exception e) {

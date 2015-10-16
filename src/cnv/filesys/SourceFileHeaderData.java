@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import cnv.manage.SourceFileParser;
+import common.Array;
 import common.Elision;
 import common.Files;
 import common.Logger;
@@ -41,6 +43,7 @@ public class SourceFileHeaderData {
     public int colLRR = -1;
     public int colGC = -1;
     public String headerString = "";
+    public String delimiter = "";
     public String[] cols = new String[0];
     
 //    Order from ParseIllumina
@@ -61,33 +64,45 @@ public class SourceFileHeaderData {
         String line = null;
         int lineCnt = 0;
         SourceFileHeaderData frhd = new SourceFileHeaderData();
-        while ((line = reader.readLine()) != null && !"[Data]".equals(line) && !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP"))) {
+        String delim = ",";
+        while ((line = reader.readLine()) != null) {
+            delim = ext.determineDelimiter(line);
+            if (",".equals(delim)) {
+                delim = "[\\s]*,[\\s]*"; // ext.indexFactors doesn't call trim()
+            }
+            if("[Data]".equals(line) || line.startsWith("rs") || line.toUpperCase().startsWith("SNP") || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true, false, false)[0] != -1) {
+                break;
+            }
             String[] parts = line.trim().split(",");
             processLine(parts, frhd);
             lineCnt++;
         }
-        if (!"[Data]".equals(line) && !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP"))) {
+        if (!"[Data]".equals(line) && !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP") || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true, false, false)[0] != -1)) {
             log.reportError("Error - malformed or missing header.");
             throw new Elision(file);
         }
         if ("[Data]".equals(line)) {
             line = reader.readLine();
             lineCnt++;
-            if (!(line.startsWith("rs") || line.toUpperCase().startsWith("SNP"))) { // TODO should require SNP ident as first column?
-                log.reportError("Error - malformed or missing header.  Header must start with 'rs' or 'SNP'.");
+            if (!(line.startsWith("rs") || line.toUpperCase().startsWith("SNP") || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true, false, false)[0] != -1)) {
+                log.reportError("Error - malformed or missing header.  Header must start with 'rs' or 'SNP' or contain one of the following: " + Array.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0]) + ".");
                 throw new Elision(file);
             }
         }
         reader.close(); // done
         reader = null; // release
         String columnHeaders = line;
-        parseColumnsBestGuess(columnHeaders.split("[\\s]*,[\\s]*"), frhd); // TODO double check regex for consuming whitespace padding
+        delim = ext.determineDelimiter(columnHeaders);
+        if (",".equals(delim)) {
+            delim = "[\\s]*,[\\s]*";
+        }
+        parseColumnsBestGuess(columnHeaders.split(delim), frhd);
+        frhd.setSourceFileDelimiter(delim);
         frhd.setHeaderString(columnHeaders);
         frhd.columnHeaderLineIndex = lineCnt;
         return frhd;
     }
 
-    private static final String[] SNP_HEADER_OPTIONS = { "SNP Name", "rsID", "Probe Set ID", "ProbeSet" };
     private static final String[] SAMPLE_FIELD_ID = { "Sample ID", "Sample Name" };
     
     private static final String[] DATA_FIELDS_GC = {"GC Score", "GCscore", "confidence", "confidenceScore"}; 
@@ -105,7 +120,7 @@ public class SourceFileHeaderData {
     private static final String[] GENOTYPE_FIELDS_A2_AB = {"Allele2 - AB", "Call Codes", "Call"};
     
     private static final String[][] LOOKUP = {
-/*0*/   SNP_HEADER_OPTIONS,
+/*0*/   SourceFileParser.SNP_HEADER_OPTIONS[0],
 /*1*/   SAMPLE_FIELD_ID,
 /*2*/   DATA_FIELDS_GC,
 /*3*/   DATA_FIELDS_XRAW,
@@ -662,5 +677,13 @@ public class SourceFileHeaderData {
 
     public void setHeaderString(String headerString) {
         this.headerString = headerString;
+    }
+    
+    private void setSourceFileDelimiter(String delim) {
+        this.delimiter = delim;
+    }
+    
+    public String getSourceFileDelimiter() {
+        return this.delimiter;
     }
 }

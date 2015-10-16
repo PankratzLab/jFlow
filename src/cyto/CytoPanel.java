@@ -20,9 +20,8 @@ import javax.swing.JTextField;
 
 import cnv.filesys.Project;
 import cnv.gui.FileChooser;
-import cnv.manage.ParseIllumina;
+import cnv.manage.SourceFileParser;
 import cnv.manage.TransposeData;
-import cnv.manage.NewParseIllumina.ParseConstants;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import common.Array;
@@ -284,18 +283,18 @@ public class CytoPanel extends JPanel implements ActionListener {
 	 */
 	private void parseAndImport() {
 		if (checkFiles(importFiles, SAMPLES, true)) {
-			Files.write("", proj.SAMPLE_DIRECTORY.getValue(true, true) + ParseConstants.OVERWRITE_OPTION_FILE);
-			ParseIllumina.deleteAllFilesInSampleDirectory(proj);
-			ParseIllumina.deleteAllFilesInMarkerDataDirectory(proj);
+			Files.write("", proj.SAMPLE_DIRECTORY.getValue(true, true) + SourceFileParser.OVERWRITE_OPTION_FILE);
+			SourceFileParser.deleteAllFilesInSampleDirectory(proj);
+			SourceFileParser.deleteAllFilesInMarkerDataDirectory(proj);
 
 			log.report(ext.getTime() + " Info - found " + importFiles.length + " files");
 			CytoAgilentParse.parseCytoToGenvisis(proj, importFiles, log);
 //			cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
-			cnv.manage.ParseIllumina.createFiles(proj, proj.NUM_THREADS.getValue());
+			cnv.manage.SourceFileParser.createFiles(proj, proj.NUM_THREADS.getValue());
 			deleteSampleList();
 			TransposeData.transposeData(proj, 2000000000, false);
 
-			new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + ParseConstants.OVERWRITE_OPTION_FILE).delete();
+			new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + SourceFileParser.OVERWRITE_OPTION_FILE).delete();
 		}
 	}
 

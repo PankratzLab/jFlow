@@ -15,7 +15,6 @@ import common.WorkerTrain.Producer;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Sample;
-import cnv.manage.NewParseIllumina.ParseConstants;
 
 /**
  * @author lane0212
@@ -187,7 +186,7 @@ public class AffyProcess {
 				String[] line;
 				do {
 					line = reader.readLine().trim().split("\t", -1);
-				} while (reader.ready() && ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1);
+				} while (reader.ready() && ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1);
 
 				writer.println(Array.toStr(AFFY_CHP_HEADER));
 				int[] indices = ext.indexFactors(AFFY_CHP_HEADER, line, true, false);
@@ -202,7 +201,7 @@ public class AffyProcess {
 				reader = Files.getAppropriateReader(cnC5Chp);
 				do {
 					line = reader.readLine().trim().split("\t", -1);
-				} while (reader.ready() && ext.indexFactors(ParseConstants.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1);
+				} while (reader.ready() && ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1);
 
 				indices = ext.indexFactors(AFFY_CN_CHP_HEADER, line, true, false);
 				int numCN = 0;

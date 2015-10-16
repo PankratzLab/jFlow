@@ -32,7 +32,9 @@ import common.ext;
 import cnv.filesys.SourceFileHeaderData;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
+import cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import cnv.manage.MitoPipeline;
+import cnv.manage.SourceFileParser;
 import net.miginfocom.swing.MigLayout;
 
 import java.awt.event.ActionListener;
@@ -408,9 +410,21 @@ public class ProjectCreationGUI extends JDialog {
         if (gui.wasCancelled()) {
             return false;
         }
+        String sourceDelim = null;
+        int sampCol = -100;
+        String[] cols = null;
         for (SourceFileHeaderData d : headers.values()) {
+            if (sourceDelim == null) {
+                sourceDelim = d.getSourceFileDelimiter();
+            }
+            if (cols == null) {
+                cols = d.cols;
+            }
             d.colSnpIdent = gui.getSelectedSNPIndex();
             d.colSampleIdent = gui.getSelectedSampleID();
+            if (sampCol == -100) {
+                sampCol = d.colSampleIdent;
+            }
             d.colGeno1 = gui.getSelectedGeno1();
             d.colGeno2 = gui.getSelectedGeno2();
             d.colGenoAB1 = gui.getSelectedAB1();
@@ -453,13 +467,14 @@ public class ProjectCreationGUI extends JDialog {
         actualProj.PROJECT_DIRECTORY.setValue(projDir);
         actualProj.SOURCE_DIRECTORY.setValue(srcDir);
         actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);
-//        actualProj.ID_HEADER.setValue(idHdr);
         actualProj.LRRSD_CUTOFF.setValue(lrrSd);
         actualProj.TARGET_MARKERS_FILENAMES.setValue(new String[]{ext.removeDirectoryInfo(tgtMkrs)});
         actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());
         // if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
         // proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
         // }
+        actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION : cols[sampCol]);
+        actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
         actualProj.saveProperties();
         actualProj.setSourceFileHeaders(headers);
         this.proj = actualProj;
