@@ -53,7 +53,7 @@ public class Cobyla
      * @param n Number of variables.
      * @param m Number of constraints.
      * @param x On input initial values of the variables (zero-based array). On output
-     * optimal values of the variables obtained in the COBYLA minimization.
+     * optimal values of the variables obtained in the COBYLA minimization. 
      * @param rhobeg Initial size of the simplex.
      * @param rhoend Final value of the simplex.
      * @param iprint Print level, 0 &lt;= iprint &lt;= 3, where 0 provides no output and
@@ -70,7 +70,7 @@ public class Cobyla
 	    
 	/**
 	 * @param x_bounds
-	 *            explicitly limit the bounds on x at each step
+	 *            explicitly limit the bounds on x at each step THESE SHOULD BE WITHIN AN ORDER OF MAGNITUDE
 	 */
     public static CobylaExitStatus FindMinimum(final Calcfc calcfc, int n, int m, double[] x,double[][] x_bounds, double rhobeg, double rhoend, int iprint, int maxfun)
     {
