@@ -140,7 +140,7 @@ public class CNVCaller {
 					break;
 				case MEDIAN_ADJUST:
 					analysisLrrs = adjustLrr(analysisLrrs, MIN_LRR_MEDIAN_ADJUST, MAX_LRR_MEDIAN_ADJUST, proj.getLog());
-					analysisBafs = adjustBaf(analysisBafs, MIN_BAF_MEDIAN_ADJUST, MAX_BAF_MEDIAN_ADJUST, proj.getLog());
+					analysisBafs = adjustBaf(analysisBafs, MIN_BAF_MEDIAN_ADJUST, MAX_BAF_MEDIAN_ADJUST,debugMode, proj.getLog());
 					// TODO, update lrrSd later?
 					// lrrSd = Array.stdev(getValuesBetween(analysisLrrs, MIN_LRR_MEDIAN_ADJUST, MAX_LRR_MEDIAN_ADJUST)); PennCNV does not update lrr sd here so we wont either
 					break;
@@ -465,7 +465,7 @@ public class CNVCaller {
 	/**
 	 * Median adjust these baf values like PennCNV
 	 */
-	public static double[] adjustBaf(double[] bafs, double minBaf, double maxBaf, Logger log) {
+	public static double[] adjustBaf(double[] bafs, double minBaf, double maxBaf, boolean debugMode, Logger log) {
 		double[] adjusted = new double[bafs.length];
 		ArrayList<Double> bafsToMedian = new ArrayList<Double>();
 		for (int i = 0; i < bafs.length; i++) {
@@ -475,7 +475,9 @@ public class CNVCaller {
 		}
 		double median = Array.median(Array.toDoubleArray(bafsToMedian));
 		double factor = median - 0.5;
-		log.reportTimeInfo("Median adjusting baf measures by " + factor);
+		if (debugMode) {
+			log.reportTimeInfo("Median adjusting baf measures by " + factor);
+		}
 		for (int i = 0; i < adjusted.length; i++) {
 			if (!Double.isNaN(bafs[i]) && bafs[i] > minBaf && bafs[i] < maxBaf) {
 				adjusted[i] = bafs[i] - factor;
@@ -526,6 +528,7 @@ public class CNVCaller {
 
 		CNVCaller caller = new CNVCaller(proj, sampleName, pennHmm, gcModel, pfb, dAdjustments, markerSet, markersToUse, copyNumberDef, sampLrrs, sampBafs, debugMode);
 		caller.adjustData();
+
 		CNVCallResult cnvs = caller.callCNVS(chrsToCall, callReverse, numThreads);
 		return cnvs;
 	}

@@ -34,7 +34,7 @@ public interface Calcfc {
      * The objective and constraints function evaluation method used in COBYLA2 minimization.
      * @param n Number of variables.
      * @param m Number of constraints.
-     * @param x Variable values to be employed in function and constraints calculation.
+     * @param x Variable values to be employed in function and constraints calculation. THESE SHOULD BE WITHIN AN ORDER OF MAGNITUDE
      * @param con Calculated function values of the constraints.
      * @return Calculated objective function value.
      */
