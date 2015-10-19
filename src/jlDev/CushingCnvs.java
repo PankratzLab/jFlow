@@ -348,14 +348,14 @@ public class CushingCnvs {
 
 		if (proj != null) {
 			for (int i = 0; i < cnvRemoveFiles.length; i++) {
-				//if (cnvRemoveFiles[i].contains("OSTEO_PARENTS")) {
+				if (cnvRemoveFiles[i].contains("control")) {
 					for (int j = 0; j < controlFreqFilter.length; j++) {
 						for (int j2 = 0; j2 < confs.length; j2++) {
 							PlinkWorker worker = new PlinkWorker(proj, cnvFile, cnvRemoveFiles[i], controlFreqFilter[j], confs[j2]);
 							hive.addCallable(worker);
 						}
 					}
-				//}
+				}
 			}
 			hive.execute(true);
 			plinkResults.addAll(hive.getResults());
