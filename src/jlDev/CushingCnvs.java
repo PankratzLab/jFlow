@@ -24,6 +24,7 @@ import cnv.qc.CNVFilter;
 import cnv.qc.CNVFilter.FreqFilter;
 import cnv.var.CNVariant;
 import cnv.var.LocusSet;
+import cnv.var.LocusSet.TO_STRING_TYPE;
 import cnv.var.SampleData;
 import common.Array;
 import common.CmdLine;
@@ -36,7 +37,8 @@ import filesys.Segment.SegmentCompare;
 
 public class CushingCnvs {
 	private static final String[] BASE_HEADER = new String[] { "MAPPABILITY_SCORE", "CALLED_GENE(s)" };
-	private static final String PLINK = "C:/bin/plink/plink-1.07-dos/plink-1.07-dos/plink.exe";
+	//private static final String PLINK = "C:/bin/plink/plink-1.07-dos/plink-1.07-dos/plink.exe";
+	private static final String PLINK = "plink";
 
 	// private static final String PLINKGENELIST = "C:/bin/plink/glist-hg19.txt";
 
@@ -196,10 +198,10 @@ public class CushingCnvs {
 		CNVFilter cnvFilter = new CNVFilter(proj.getLog());
 		LocusSet<CNVariant> setToRemove = null;
 		setToRemove = CNVFilter.filterCNVFile(proj, cnSet2.getLoci(), outFilt, null, false, true, freqFilter, false, true);
+		setToRemove.writeRegions(outFilt, TO_STRING_TYPE.REGULAR, true, proj.getLog());
 
 		if (!Files.exists(outFilt)) {
 		} else {
-
 		}
 
 		try {
@@ -274,6 +276,8 @@ public class CushingCnvs {
 			commandArray.add("--out");
 			commandArray.add(outCNVRoot);
 			commandArray.add("--allow-no-sex");
+			commandArray.add("--noweb");
+
 
 			CmdLine.runCommandWithFileChecks(Array.toStringArray(commandArray), dir, null, null, true, true, false, log);
 
@@ -285,7 +289,9 @@ public class CushingCnvs {
 			commandArray.add(outCNVRoot);
 			commandArray.add("--allow-no-sex");
 			commandArray.add("--mperm");
-			commandArray.add("100000");
+			commandArray.add("10000");
+			commandArray.add("--noweb");
+
 
 			CmdLine.runCommandWithFileChecks(Array.toStringArray(commandArray), dir, null, null, true, true, true, log);
 
@@ -342,14 +348,14 @@ public class CushingCnvs {
 
 		if (proj != null) {
 			for (int i = 0; i < cnvRemoveFiles.length; i++) {
-				if (cnvRemoveFiles[i].contains("OSTEO_PARENTS")) {
+				//if (cnvRemoveFiles[i].contains("OSTEO_PARENTS")) {
 					for (int j = 0; j < controlFreqFilter.length; j++) {
 						for (int j2 = 0; j2 < confs.length; j2++) {
 							PlinkWorker worker = new PlinkWorker(proj, cnvFile, cnvRemoveFiles[i], controlFreqFilter[j], confs[j2]);
 							hive.addCallable(worker);
 						}
 					}
-				}
+				//}
 			}
 			hive.execute(true);
 			plinkResults.addAll(hive.getResults());
