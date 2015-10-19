@@ -120,7 +120,7 @@ public class SNPEFF {
 		Files.write(Array.toStr(command, " "), batFile);
 		Files.chmod(batFile);
 
-		progress = CmdLine.runCommandWithFileChecks(new String[] { batFile }, "", inputFiles, outputFiles, verbose, overWriteExistingOutput, false, log);
+		progress = CmdLine.runCommandWithFileChecks(new String[] { "./" + batFile }, "", inputFiles, outputFiles, verbose, overWriteExistingOutput, false, log);
 		return progress;
 
 	}

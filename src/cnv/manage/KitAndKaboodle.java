@@ -912,6 +912,9 @@ public class KitAndKaboodle {
         public abstract void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields);
         public abstract boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields);
         public boolean hasRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            if (checkBoxes.get(this) == null || variableFields.get(this) == null) {
+                return false;
+            }
             int sum = 0;
             boolean[][] reqs = checkRequirements(proj, checkBoxes, variableFields);
             for (boolean[] req : reqs) {

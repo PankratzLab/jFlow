@@ -387,13 +387,27 @@ public class GATK_Genotyper {
 	}
 
 	public static void annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild, boolean verbose, boolean overwriteExisting, Logger log) {
+        String snpSiftLoc = snpSiftLocation;
+	    if (snpSiftLoc.equals(PSF.Ext.BLANK)) {
+            snpSiftLoc= snpEffLocation;
+        }
 		GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose, overwriteExisting, log);
 		SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
-		SNPSIFT snpsift = new SNPSIFT(snpSiftLocation, verbose, overwriteExisting, log);
+		SNPSIFT snpsift = new SNPSIFT(snpSiftLoc, verbose, overwriteExisting, log);
 		ANNOVAR annovar = new ANNOVAR(annovarLocation, verbose, overwriteExisting, log);
 		GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, 1, verbose, log);
 		genotyper.annotateVCF(vcf, annoBuild);
 
+	}
+
+	public static void annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta, String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild, boolean verbose, boolean overwriteExisting, Logger log) {
+	    GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose, overwriteExisting, log);
+	    SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
+	    SNPSIFT snpsift = new SNPSIFT(snpSiftLocation, verbose, overwriteExisting, log);
+	    ANNOVAR annovar = new ANNOVAR(annovarLocation, verbose, overwriteExisting, log);
+	    GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, 1, verbose, log);
+	    genotyper.annotateVCF(vcf, annoBuild);
+	    
 	}
 
 	public static final String NUM_THREADS = "numThreads=";
@@ -441,7 +455,7 @@ public class GATK_Genotyper {
 		usage += "   (2) root output directory (i.e. " + GATK_LanePrep.ROOT_OUTPUT_COMMAND + rootOutputDir + " (no default))\n" + "";
 		usage += "   (3) tab-delimited file with no header of (i.e. " + FILE_OF_GVCFS + fileOfGVCFs + " (optional, no default))\n" + "";
 		usage += "   (4) the full path to a  reference genome in fasta format (i.e." + GATK_LanePrep.REFERENCE_GENOME_COMMAND + referenceGenomeFasta + " (no default))\n" + "";
-		usage += "   (5) the full path to the GATK executable (i.e. " + GATK.GATK_LOCATION_COMMAND + gATKLocation + " (defualts to systems path))\n" + "";
+		usage += "   (5) the full path to the GATK executable (i.e. " + GATK.GATK_LOCATION_COMMAND + gATKLocation + " (defaults to systems path))\n" + "";
 
 		usage += "   (6) run in quiet mode (i.e. " + GATK_LanePrep.QUIET_COMMAND + " (not tbe default))\n" + "";
 		usage += "   (7) number of  threads for analysis(i.e." + NUM_THREADS + numThreads + " (default))\n" + "";
@@ -554,10 +568,10 @@ public class GATK_Genotyper {
 			new File(rootOutputDir).mkdirs();
 		}
 		Logger log = new Logger(rootOutputDir + logFile);
-		if (snpSiftLocation.equals(PSF.Ext.BLANK)) {
-			snpSiftLocation = snpEffLocation;
-		}
-		if (vcfToAnnotate != null) {
+        if (snpSiftLocation.equals(PSF.Ext.BLANK)) {
+            snpSiftLocation = snpEffLocation;
+        }
+        if (vcfToAnnotate != null) {
 			log.reportTimeInfo("Attempting to annotate " + vcfToAnnotate);
 			annotateOnly(vcfToAnnotate, gATKLocation, referenceGenomeFasta, fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild, verbose, overwriteExisting, log);
 		} else {

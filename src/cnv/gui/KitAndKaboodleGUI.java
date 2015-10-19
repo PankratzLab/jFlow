@@ -32,6 +32,8 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 
 import net.miginfocom.swing.MigLayout;
 import cnv.Launch;
@@ -344,10 +346,16 @@ public class KitAndKaboodleGUI extends JDialog {
                     } else if (inputTypes[i][j] != RequirementInputType.NONE) {
                         JTextField textField = new JTextField();
 //                        textField.setHorizontalAlignment(JTextField.RIGHT);
-                        textField.addKeyListener(new KeyAdapter() {
+//                        textField.addKeyListener(new KeyAdapter() {
+//                            @Override
+//                            public void keyTyped(KeyEvent e) {
+//                                super.keyTyped(e);
+//                                refreshLabels();
+//                            }
+//                        });
+                        textField.addCaretListener(new CaretListener() {
                             @Override
-                            public void keyTyped(KeyEvent e) {
-                                super.keyTyped(e);
+                            public void caretUpdate(CaretEvent e) {
                                 refreshLabels();
                             }
                         });
@@ -413,6 +421,9 @@ public class KitAndKaboodleGUI extends JDialog {
         Color greenDark = Color.GREEN.darker();
         Color dark = Color.GRAY;
         for (STEP step : this.steps) {
+            if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
+                continue;
+            }
             if (!step.checkIfOutputExists(proj, varFields) || checkBoxes.get(step).isSelected()) {
                 if (step.hasRequirements(proj, checkBoxes, varFields)) {
                     descLabels.get(step).setForeground(greenDark);
