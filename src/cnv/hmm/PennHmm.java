@@ -465,7 +465,7 @@ public class PennHmm {
 		 *            Copy number normal
 		 * @return
 		 */
-		public LocusSet<CNVariant> analyzeStateSequence(Project proj, String fid, String iid, byte currentChr, int[] positions, String[] names, int normalState,boolean reverse, boolean verbose) {
+		public LocusSet<CNVariant> analyzeStateSequence(Project proj, String fid, String iid, byte currentChr, int[] positions, String[] names, int normalState, boolean reverse, boolean verbose) {
 			CNVariant.Builder builder = new Builder();
 			builder.familyID(fid);
 			builder.individualID(iid);
@@ -479,8 +479,8 @@ public class PennHmm {
 				boolean foundSignal = false;
 				int currentFind = 2;
 				int[] states = q;
-				if(reverse){
-					states=Array.reverse(states);
+				if (reverse) {
+					states = Array.reverse(states);
 				}
 				for (int i = 0; i < states.length; i++) {
 
