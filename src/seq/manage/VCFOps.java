@@ -20,6 +20,7 @@ import java.util.concurrent.Callable;
 
 import cnv.qc.CNVTrioFilter;
 import cnv.var.LocusSet;
+import cnv.var.LocusSet.TO_STRING_TYPE;
 import seq.analysis.PlinkSeq;
 import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import seq.analysis.PlinkSeq.LOAD_TYPES;
@@ -1156,7 +1157,7 @@ public class VCFOps {
 			log.reportFileNotFound(vcf);
 			return null;
 		}
-		if (segmentFile == null || !Files.exists(segmentFile)) {
+		if (segmentFile != null && !Files.exists(segmentFile)) {
 			log.reportFileNotFound(segmentFile);
 			return null;
 		}
@@ -1734,26 +1735,32 @@ public class VCFOps {
 	}
 
 	public static void annoWithBed(String vcfFile, String bedFile) {
+		System.out.println(bedFile);
 
 		BEDFileReader bedReader = new BEDFileReader(bedFile, false);
-		LocusSet<BEDFeatureSeg> bLocusSet = bedReader.loadAll(new Logger());
-		bedReader.close();
-
+		//LocusSet<BEDFeatureSeg> bLocusSet = bedReader.loadAll(new Logger());
+		System.out.println(bedFile);
 		String key = ext.rootOf(bedFile);
 		String description = "Custom annotation provide by genvisis from " + ext.removeDirectoryInfo(bedFile) + " on " + ext.getTimestampForFilename();
 		VCFFileReader reader = new VCFFileReader(vcfFile, false);
-		VariantContextWriter writer = VCFOps.initWriter(VCFOps.getAppropriateRoot(vcfFile, false) + "_" + ext.rootOf(bedFile) + VCFOps.VCF_EXTENSIONS.GZIP_VCF.getLiteral(), DEFUALT_WRITER_OPTIONS, null);
+		String outputVcf = VCFOps.getAppropriateRoot(vcfFile, false) + "_" + ext.rootOf(bedFile) + VCFOps.VCF_EXTENSIONS.GZIP_VCF.getLiteral();
+		VariantContextWriter writer = VCFOps.initWriter(outputVcf, DEFUALT_WRITER_OPTIONS, null);
 		VCFHeader vcfHeader = reader.getFileHeader();
 		VCFInfoHeaderLine vHeaderLine = new VCFInfoHeaderLine(key, 1, VCFHeaderLineType.String, description);
 		vcfHeader.addMetaDataLine(vHeaderLine);
 		writer.writeHeader(vcfHeader);
+		ArrayList<Segment> segs = new ArrayList<Segment>();
+		
 		for (VariantContext vc : reader) {
+			LocusSet<BEDFeatureSeg> bLocusSet = bedReader.loadSegsFor(VCOps.getSegment(vc), new Logger());
 			BEDFeatureSeg[] olaps = bLocusSet.getOverLappingLoci(VCOps.getSegment(vc));
+			segs.add(VCOps.getSegment(vc));
 			VariantContextBuilder builder = new VariantContextBuilder(vc);
 			builder.attribute(key, ".");
 			if (olaps != null && olaps.length > 0) {
 				if (olaps.length > 1) {
 					reader.close();
+					bedReader.close();
 					throw new IllegalStateException("Bed file contained multiple overlapping segments for " + vc.toStringWithoutGenotypes());
 				} else {
 					builder.attribute(key, olaps[0].getBedFeature().getName());
@@ -1763,6 +1770,17 @@ public class VCFOps {
 		}
 		reader.close();
 		writer.close();
+		LocusSet<Segment> segSet = new LocusSet<Segment>(segs.toArray(new Segment[segs.size()]), true, new Logger()) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		String outSegs = VCFOps.getAppropriateRoot(vcfFile, false) + "_" + ext.rootOf(bedFile) + ".segs";
+		segSet.writeRegions(outSegs, TO_STRING_TYPE.REGULAR, false, new Logger());
+		extractSegments(outputVcf, outSegs, 0, null, ext.parseDirectoryOfFile(outSegs), false, true, true, 1, new Logger());
 	}
 
 	private static String[] getExtractAnnotationCommand(UTILITY_TYPE type, Logger log) {
@@ -1975,6 +1993,7 @@ public class VCFOps {
 				break;
 			case BED_ANNOTATE:
 				annoWithBed(vcf, bedFile);
+				break;
 			default:
 				System.err.println("Invalid utility type: Available are ->");
 				for (int i = 0; i < UTILITY_TYPE.values().length; i++) {
