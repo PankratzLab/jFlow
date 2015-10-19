@@ -897,6 +897,29 @@ public class Array {
 		return mult;
 	}
 
+	/**
+	 * @param n
+	 *            number of points for the moving average
+	 * @param array
+	 * @return an array of moving averages with moving average of n sequential points
+	 */
+	public static double[] movingAverageForward(int n, double[] array) {
+		double[] ma = new double[array.length];
+		double[] a = new double[n];
+		double sum = 0.0;
+		for (int i = 0; i < array.length; i++) {
+			sum -= a[i % n];
+			a[i % n] = array[i];
+			sum += a[i % n];
+			if (i >= n) {
+				ma[i] = (double) sum / n;
+			} else {
+				ma[i] = Double.NaN;
+			}
+		}
+		return ma;
+	}
+	
 	public static double[] scale(double[] array) {
 		return scale(array, 0);
 	}

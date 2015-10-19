@@ -25,6 +25,7 @@ import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import seq.analysis.PlinkSeq.LOAD_TYPES;
 import seq.analysis.PlinkSeq.PlinkSeqWorker;
 import seq.analysis.PlinkSeqUtils.PseqProject;
+import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCOps.VC_SUBSET_TYPE;
 import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
@@ -60,6 +61,7 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import common.Array;
 import common.CmdLine;
@@ -135,6 +137,11 @@ public class VCFOps {
 		 * Use plinkSeq to qc a vcf
 		 */
 		QC,
+
+		/**
+		 * Annotate a vcf using a bed file
+		 */
+		BED_ANNOTATE,
 		/**
 		 * Determine Homogeneity for populations in a vcf
 		 */
@@ -1726,6 +1733,38 @@ public class VCFOps {
 		return qIntervals;
 	}
 
+	public static void annoWithBed(String vcfFile, String bedFile) {
+
+		BEDFileReader bedReader = new BEDFileReader(bedFile, false);
+		LocusSet<BEDFeatureSeg> bLocusSet = bedReader.loadAll(new Logger());
+		bedReader.close();
+
+		String key = ext.rootOf(bedFile);
+		String description = "Custom annotation provide by genvisis from " + ext.removeDirectoryInfo(bedFile) + " on " + ext.getTimestampForFilename();
+		VCFFileReader reader = new VCFFileReader(vcfFile, false);
+		VariantContextWriter writer = VCFOps.initWriter(VCFOps.getAppropriateRoot(vcfFile, false) + "_" + ext.rootOf(bedFile) + VCFOps.VCF_EXTENSIONS.GZIP_VCF.getLiteral(), DEFUALT_WRITER_OPTIONS, null);
+		VCFHeader vcfHeader = reader.getFileHeader();
+		VCFInfoHeaderLine vHeaderLine = new VCFInfoHeaderLine(key, 1, VCFHeaderLineType.String, description);
+		vcfHeader.addMetaDataLine(vHeaderLine);
+		writer.writeHeader(vcfHeader);
+		for (VariantContext vc : reader) {
+			BEDFeatureSeg[] olaps = bLocusSet.getOverLappingLoci(VCOps.getSegment(vc));
+			VariantContextBuilder builder = new VariantContextBuilder(vc);
+			builder.attribute(key, ".");
+			if (olaps != null && olaps.length > 0) {
+				if (olaps.length > 1) {
+					reader.close();
+					throw new IllegalStateException("Bed file contained multiple overlapping segments for " + vc.toStringWithoutGenotypes());
+				} else {
+					builder.attribute(key, olaps[0].getBedFeature().getName());
+				}
+			}
+			writer.add(builder.make());
+		}
+		reader.close();
+		writer.close();
+	}
+
 	private static String[] getExtractAnnotationCommand(UTILITY_TYPE type, Logger log) {
 		ArrayList<String> params = new ArrayList<String>();
 		params.add("#Full path to a vcf (preferably indexed");
@@ -1806,6 +1845,7 @@ public class VCFOps {
 		String idFile = null;
 		String bams = null;
 		String outDir = null;
+		String bedFile =null;
 		boolean skipFiltered = false;
 		boolean standardFilters = false;
 		boolean gzip = true;
@@ -1830,6 +1870,7 @@ public class VCFOps {
 		usage += "   (13) when subsetting by samples, remove monomorphic variants (i.e. -removeMonoMorphic (not the default))\n" + "";
 		usage += "   (14) when subsetting, keep variant ids if set to \".\" (i.e. -keepIds (not the default))\n" + "";
 		usage += "   (15) full path to a segment file  (i.e. " + SEGMENT_FILE_COMMAND + "( no default)\n" + "";
+		usage += "   (16) full path to a bed file for annotating  (i.e. bed= (no default)\n" + "";
 
 		usage += PSF.Ext.getNumThreadsCommand(14, numThreads);
 		usage += "   NOTE: available utilities are:\n";
@@ -1868,7 +1909,10 @@ public class VCFOps {
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("-skipFiltered")) {
+			} else if (args[i].startsWith("bed=")) {
+				bedFile = args[i].split("=")[1];
+				numArgs--;
+			}else if (args[i].startsWith("-skipFiltered")) {
 				skipFiltered = true;
 				numArgs--;
 			} else if (args[i].startsWith("-standardFilters")) {
@@ -1929,6 +1973,8 @@ public class VCFOps {
 			case HOMOGENEITY:
 				runHomoGeneity(vcf, populationFile.split(","), log);
 				break;
+			case BED_ANNOTATE:
+				annoWithBed(vcf, bedFile);
 			default:
 				System.err.println("Invalid utility type: Available are ->");
 				for (int i = 0; i < UTILITY_TYPE.values().length; i++) {
