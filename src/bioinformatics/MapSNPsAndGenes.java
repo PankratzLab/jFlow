@@ -4,6 +4,8 @@ package bioinformatics;
 import java.io.*;
 import java.util.Vector;
 
+import seq.analysis.GATK_Genotyper;
+import seq.analysis.SNPEFF;
 import common.*;
 
 public class MapSNPsAndGenes {
@@ -204,7 +206,7 @@ public class MapSNPsAndGenes {
 	}
 
 
-	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, int build, Logger log, boolean useVCF, boolean snpEff) {
+	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, int build, Logger log, boolean useVCF, boolean snpEff, boolean gatk, String snpEffLoc, String annovarLoc) {
 		PrintWriter writer;
 		String[] line;
 		String[] data, markers;
@@ -219,7 +221,13 @@ public class MapSNPsAndGenes {
 		    ParseSNPlocations.lowMemParse(dir+snps, getSNPDB(build, log), getMergeDB(log), true, log);
 		}
 		
-		if (snpEff) {
+		if (gatk) {
+		    String input = prepInput(dir + snps);
+		    if (input == null) {
+		        // TODO error occurred!
+		    }
+		    GATK_Genotyper.annotateOnly(input, "", "", snpEffLoc, snpEffLoc, annovarLoc, SNPEFF.BUILDS[0], true, false, log);
+		} else if (snpEff) {
 		    SNPEffAnnotation.pipeline(ext.rootOf(dir+snps, false)+"_positions.xln", SNPEffAnnotation.getDefaultConfigFile(), log);
 		}
 		
@@ -252,7 +260,36 @@ public class MapSNPsAndGenes {
 		}
 	}
 	
-	public static void fromParameters(String filename, Logger log) {
+	private static String prepInput(String origFile) {
+	    BufferedReader reader;
+	    PrintWriter writer;
+	    
+	    String input = ext.rootOf(origFile, false)+"_positions.xln";
+	    String output = ext.rootOf(origFile, false)+"_gatk.vcf";
+	    
+	    boolean complete = false;
+	    try {
+	        reader = Files.getAppropriateReader(input);
+	        writer = Files.getAppropriateWriter(output);
+	        
+	        reader.readLine();
+	        writer.println("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
+	        String line = null;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\t");
+                writer.println(parts[1] + "\t" + parts[2] + "\t" + parts[0] + "\t" + (parts.length >= 5 ? parts[3] : ".") + "\t" + (parts.length >= 5 ? parts[4] : ".") + "\t.\t.\t.");
+            }
+            writer.flush();
+            writer.close();
+            reader.close();
+            complete = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+	    return !complete ? null : output;
+    }
+
+    public static void fromParameters(String filename, Logger log) {
         Vector<String> params;
 
         params = Files.parseControlFile(filename, 
@@ -277,10 +314,14 @@ public class MapSNPsAndGenes {
         if (params != null) {
             String dir = null;
             String file = null;
+            String gatkLoc = null;
+            String snpEffLoc = null;
+            String annovarLoc = null;
+            boolean snpeff = false;
+            boolean gatk = false;
             byte build = (byte) 37;
             int win = 15000;
             boolean vcf = true;
-            boolean snpeff = false;
             
             int numArgs = params.size();
             for (int i = 0; i<params.size(); i++) {
@@ -303,13 +344,25 @@ public class MapSNPsAndGenes {
                 } else if (param.startsWith("snpeff=")) {
                     snpeff = ext.parseBooleanArg(param);
                     numArgs--;
+                } else if (param.startsWith("gatk=")) {
+                    gatk = ext.parseBooleanArg(param);
+                    numArgs--;
+                } else if (param.startsWith("gatkLoc=")) {
+                    gatkLoc = param.split("=")[1];
+                    numArgs--;
+                } else if (param.startsWith("snpEffLoc=")) {
+                    snpEffLoc = param.split("=")[1];
+                    numArgs--;
+                } else if (param.startsWith("annovarLoc=")) {
+                    annovarLoc = param.split("=")[1];
+                    numArgs--;
                 }
             }
             if (numArgs!=0) {
                 System.err.println(usage);
                 System.exit(1);
             }
-            procSNPsToGenes(dir, file, win, build, log, vcf, snpeff);
+            procSNPsToGenes(dir, file, win, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc);
         }
     }
 	
@@ -323,7 +376,11 @@ public class MapSNPsAndGenes {
 		byte build = 37;
 		Logger log;
 		boolean vcf = true;
-		boolean snpeff = false;
+        String gatkLoc = null;
+        String snpEffLoc = null;
+        String annovarLoc = null;
+        boolean snpeff = false;
+        boolean gatk = false;
 
 		String usage = "\\n"+
 		"bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"+
@@ -357,6 +414,18 @@ public class MapSNPsAndGenes {
             } else if (args[i].startsWith("snpeff=")) {
                 snpeff = ext.parseBooleanArg(args[i]);
                 numArgs--;
+            } else if (args[i].startsWith("gatk=")) {
+                gatk = ext.parseBooleanArg(args[i]);
+                numArgs--;
+            } else if (args[i].startsWith("gatkLoc=")) {
+                gatkLoc = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("snpEffLoc=")) {
+                snpEffLoc = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("annovarLoc=")) {
+                annovarLoc = args[i].split("=")[1];
+                numArgs--;
             }
 		}
 		if (numArgs!=0) {
@@ -383,9 +452,9 @@ public class MapSNPsAndGenes {
 						wiggleRoom = DEFAULT_WIGGLE_ROOM;
 					}
 				}				
-				procSNPsToGenes("", filename, wiggleRoom, build, log, vcf, snpeff);
+				procSNPsToGenes("", filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc);
 			} else {
-				procSNPsToGenes(dir, filename, wiggleRoom, build, new Logger(), vcf, snpeff);
+				procSNPsToGenes(dir, filename, wiggleRoom, build, new Logger(), vcf, snpeff, gatk, snpEffLoc, annovarLoc);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
