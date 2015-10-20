@@ -48,7 +48,7 @@ public class VCFSimpleTally {
 	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT" };
 	private static final String[] ANNO_ADD = new String[] { "_AVG_GQ", "_AVG_DP", "_NUM_WITH_CALLS", "_NUM_WITH_ALT", "_AAC", "_HQ_NUM_WITH_ALT", "_HQ_AAC", };
 	private static final String[] GENE_BASE = new String[] { "GENE", "FUNCTIONAL_TYPE" };
-	private static final String[] GENE_ADD = new String[] { "numVar", "uniqInds", "hqNumVar", "hqUniqInds" };
+	private static final String[] GENE_ADD = new String[] { "numVar", "uniqInds", "numCompoundHets", "hqNumVar", "hqUniqInds", "numHQCompoundHets" };
 
 	private static boolean filterCHARGE(VariantContext vc, double maf) {
 		boolean pass = true;
@@ -132,19 +132,20 @@ public class VCFSimpleTally {
 	public static void test() {
 		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf.gz";
 		String popDir = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/Freq/";
-		String[] vpopsCase = new String[] { popDir + "OSTEO_OFF.vpop" };
+		String[] vpopsCase = new String[] { popDir + "CUSHING_FREQ.vpop" };
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		int numThreads = 24;
 		for (int i = 0; i < vpopsCase.length; i++) {
 			double maf = 0.01;
-
 			if (vpopsCase[i].endsWith("OSTEO_OFF.vpop")) {
 				maf = 0.001;
 			}
 			String outDir = ext.parseDirectoryOfFile(vpopsCase[i]);
 			new File(outDir).mkdirs();
 			Logger log = new Logger(ext.rootOf(vpopsCase[i], false) + ".log");
-			runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, log);
+			VcfPopulation controls = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, log);
+			String controlFile = ext.parseDirectoryOfFile(vpopsCase[i] + controls.getUniqSuperPop().get(0) + ".vpop");
+			runSimpleTally(vcf, controlFile, maf, numThreads, outDir, log);
 		}
 		// String[] vpopsControl = new String[] { popDir + "EPP.vpop", popDir + "ALL_CONTROL_EPP.vpop", popDir + "ALL_CONTROL_ANIRIDIA.vpop", popDir + "ALL_CONTROL_ANOTIA.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		// for (int i = 0; i < vpopsControl.length; i++) {
@@ -155,7 +156,7 @@ public class VCFSimpleTally {
 		// }
 	}
 
-	private static void runSimpleTally(String vcf, String vpop, double maf, int numThreads, String outDir, Logger log) {
+	private static VcfPopulation runSimpleTally(String vcf, String vpop, double maf, int numThreads, String outDir, Logger log) {
 		VcfPopulation vpopAc = VcfPopulation.load(vpop, POPULATION_TYPE.ANY, log);
 		vpopAc.report();
 		String caseDef = ext.rootOf(vpop);
@@ -192,6 +193,15 @@ public class VCFSimpleTally {
 		controls.remove(caseDef);
 		controls.remove(VcfPopulation.EXCLUDE);
 
+		Set<String> tmpSet = new HashSet<String>();
+		Hashtable<String, Set<String>> controlPop = new Hashtable<String, Set<String>>();
+		controlPop.put(caseDef + "_" + VcfPopulation.CONTROL, tmpSet);
+
+		for (String acontrolPop : controls.keySet()) {
+			controlPop.get(caseDef + "_" + VcfPopulation.CONTROL).addAll(controls.get(acontrolPop));
+		}
+
+		VcfPopulation controlVcfPopulation = new VcfPopulation(controlPop, controlPop, POPULATION_TYPE.CASE_CONTROL, new Logger());
 		summarizeAnalysisParams(finalOut + ".sampSummary.txt", caseDef, cases, controls, maf, log);
 		ArrayList<String> controlsOrdered = new ArrayList<String>();
 		controlsOrdered.addAll(controls.keySet());
@@ -250,6 +260,7 @@ public class VCFSimpleTally {
 		}
 		annoGeneWriter.close();
 		VCFOps.VcfPopulation.splitVcfByPopulation(finalOutVCF, vpop, true, true, log);
+		return controlVcfPopulation;
 	}
 
 	private static void summarizeAnalysisParams(String sumFile, String caseDef, Set<String> cases, Hashtable<String, Set<String>> controls, double maf, Logger log) {
@@ -309,6 +320,8 @@ public class VCFSimpleTally {
 		private HashSet<String> uniqueIndsWithVar;
 		private int hqNumVar;
 		private HashSet<String> uniqueHqIndsWithVar;
+		private Hashtable<String, Integer> numVarsPerInd;
+		private Hashtable<String, Integer> numHQVarsPerInd;
 
 		private GeneSummary(String geneName, String group, String[] effects) {
 			super();
@@ -319,19 +332,47 @@ public class VCFSimpleTally {
 			this.effects = effects;
 			this.uniqueHqIndsWithVar = new HashSet<String>();
 			this.uniqueIndsWithVar = new HashSet<String>();
+			this.numVarsPerInd = new Hashtable<String, Integer>();
+			this.numHQVarsPerInd = new Hashtable<String, Integer>();
+
 		}
 
 		public String[] getEffects() {
 			return effects;
 		}
 
+		private static int numGreaterThan(Hashtable<String, Integer> numHash, int numReq) {
+			int num = 0;
+			for (String key : numHash.keySet()) {
+				if (numHash.get(key) >= numReq) {
+					num++;
+				}
+			}
+			return num;
+		}
+
 		private String[] getSummary() {
 			ArrayList<String> summary = new ArrayList<String>();
 			summary.add(numVar + "");
 			summary.add(uniqueIndsWithVar.size() + "");
+			summary.add(numGreaterThan(numVarsPerInd, 2) + "");
+
 			summary.add(hqNumVar + "");
 			summary.add(uniqueHqIndsWithVar.size() + "");
+			summary.add(numGreaterThan(numHQVarsPerInd, 2) + "");
+
 			return Array.toStringArray(summary);
+		}
+
+		private static void addHash(Hashtable<String, Integer> toAdd, HashSet<String> from) {
+			for (String key : from) {
+				if (!toAdd.containsKey(key)) {
+					toAdd.put(key, 1);
+				} else {
+					int num = toAdd.get(key) + 1;
+					toAdd.put(key, num);
+				}
+			}
 		}
 
 		private void add(VcGroupSummary vcGroupSummary) {
@@ -348,9 +389,11 @@ public class VCFSimpleTally {
 					if (vcGroupSummary.getIndsWithAlt().size() > 0) {
 						numVar++;
 						uniqueIndsWithVar.addAll(vcGroupSummary.getIndsWithAlt());
+						addHash(numVarsPerInd, uniqueIndsWithVar);
 						if (vcGroupSummary.getHqIndsWithAlt().size() > 0) {
 							hqNumVar++;
 							uniqueHqIndsWithVar.addAll(vcGroupSummary.getHqIndsWithAlt());
+							addHash(numHQVarsPerInd, uniqueHqIndsWithVar);
 						}
 					}
 				}

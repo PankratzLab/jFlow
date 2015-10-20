@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -18,7 +17,6 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
-import cnv.qc.CNVTrioFilter;
 import cnv.var.LocusSet;
 import cnv.var.LocusSet.TO_STRING_TYPE;
 import seq.analysis.PlinkSeq;
@@ -47,12 +45,9 @@ import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.index.tabix.TabixIndex;
-import htsjdk.tribble.index.tabix.TabixIndexCreator;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.tribble.util.TabixUtils;
-import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.GenotypeType;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
@@ -365,8 +360,8 @@ public class VCFOps {
 			log.reportTimeWarning("Detected that the following files already exist " + Array.toStr(outFiles));
 		}
 		if (Files.exists("", outFiles)) {
-			Hashtable<String, String> newIDS = new Hashtable<String, String>();
-			newIDS = fixFamFile(log, outFiles[2]);
+			//Hashtable<String, String> newIDS = new Hashtable<String, String>();
+			 fixFamFile(log, outFiles[2]);
 			log.reportTimeInfo("MODE=" + mode);
 			if (mode == PLINK_SET_MODE.GWAS_QC) {
 
@@ -543,6 +538,19 @@ public class VCFOps {
 			SUPER, SUB;
 		}
 
+		public VcfPopulation(Hashtable<String, Set<String>> subPop, Hashtable<String, Set<String>> superPop, POPULATION_TYPE type, Logger log) {
+			super();
+			this.subPop = subPop;
+			this.superPop = superPop;
+			this.type = type;
+			this.uniqSubPop = new ArrayList<String>();
+			uniqSubPop.addAll(subPop.keySet());
+			this.uniqSuperPop = new ArrayList<String>();
+			uniqSuperPop.addAll(superPop.keySet());
+			this.fileName = "inMemoryPop";
+			this.log = log;
+		}
+
 		public VcfPopulation(POPULATION_TYPE type, Logger log) {
 			this.subPop = new Hashtable<String, Set<String>>();
 			this.superPop = new Hashtable<String, Set<String>>();
@@ -583,6 +591,32 @@ public class VCFOps {
 
 			}
 			return tmp.toArray(new String[tmp.size()]);
+		}
+
+		private HashSet<String> getAllInds() {
+			HashSet<String> allInds = new HashSet<String>();
+			for (String key : superPop.keySet()) {
+				allInds.addAll(superPop.get(key));
+			}
+			for (String key : subPop.keySet()) {
+				allInds.addAll(subPop.get(key));
+			}
+			return allInds;
+		}
+
+		public void dump(String file) {
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(file));
+				writer.println(Array.toStr(HEADER));
+				HashSet<String> inds = getAllInds();
+				for (String ind : inds) {
+					writer.println(ind + "\t" + getPopulationForInd(ind, RETRIEVE_TYPE.SUB) + "\t" + getPopulationForInd(ind, RETRIEVE_TYPE.SUPER));
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + file);
+				log.reportException(e);
+			}
 		}
 
 		public boolean generatePlinkSeqPheno(String output) {
@@ -1166,7 +1200,7 @@ public class VCFOps {
 		new File(dir).mkdirs();
 		String root = getAppropriateRoot(vcf, true);
 
-		VCFFileReader reader = new VCFFileReader(vcf, Files.exists(vcf+".idx"));
+		VCFFileReader reader = new VCFFileReader(vcf, Files.exists(vcf + ".idx"));
 		if (bams == null) {
 			log.reportTimeInfo("A bam directory was not provided, skipping bam extraction");
 		} else {
@@ -1372,7 +1406,7 @@ public class VCFOps {
 
 		int count = 0;
 		for (VariantContext vc : reader) {
-			vc.getChr();
+			vc.getContig();
 			count++;
 			if (count > 0) {
 				reader.close();
@@ -1402,7 +1436,7 @@ public class VCFOps {
 				if (numTotal % 100000 == 0) {
 					log.reportTimeInfo("Scanned " + numTotal + " variants from " + vcfFile + " (" + numChr + " matching " + chr + ")");
 				}
-				if (vc.getChr().equals(chr)) {
+				if (vc.getContig().equals(chr)) {
 					writer.add(vc);
 					numChr++;
 				} else {
@@ -1738,7 +1772,7 @@ public class VCFOps {
 		System.out.println(bedFile);
 
 		BEDFileReader bedReader = new BEDFileReader(bedFile, false);
-		//LocusSet<BEDFeatureSeg> bLocusSet = bedReader.loadAll(new Logger());
+		// LocusSet<BEDFeatureSeg> bLocusSet = bedReader.loadAll(new Logger());
 		System.out.println(bedFile);
 		String key = ext.rootOf(bedFile);
 		String description = "Custom annotation provide by genvisis from " + ext.removeDirectoryInfo(bedFile) + " on " + ext.getTimestampForFilename();
@@ -1750,7 +1784,7 @@ public class VCFOps {
 		vcfHeader.addMetaDataLine(vHeaderLine);
 		writer.writeHeader(vcfHeader);
 		ArrayList<Segment> segs = new ArrayList<Segment>();
-		
+
 		for (VariantContext vc : reader) {
 			LocusSet<BEDFeatureSeg> bLocusSet = bedReader.loadSegsFor(VCOps.getSegment(vc), new Logger());
 			BEDFeatureSeg[] olaps = bLocusSet.getOverLappingLoci(VCOps.getSegment(vc));
@@ -1768,6 +1802,7 @@ public class VCFOps {
 			}
 			writer.add(builder.make());
 		}
+		bedReader.close();
 		reader.close();
 		writer.close();
 		LocusSet<Segment> segSet = new LocusSet<Segment>(segs.toArray(new Segment[segs.size()]), true, new Logger()) {
@@ -1863,7 +1898,7 @@ public class VCFOps {
 		String idFile = null;
 		String bams = null;
 		String outDir = null;
-		String bedFile =null;
+		String bedFile = null;
 		boolean skipFiltered = false;
 		boolean standardFilters = false;
 		boolean gzip = true;
@@ -1930,7 +1965,7 @@ public class VCFOps {
 			} else if (args[i].startsWith("bed=")) {
 				bedFile = args[i].split("=")[1];
 				numArgs--;
-			}else if (args[i].startsWith("-skipFiltered")) {
+			} else if (args[i].startsWith("-skipFiltered")) {
 				skipFiltered = true;
 				numArgs--;
 			} else if (args[i].startsWith("-standardFilters")) {
