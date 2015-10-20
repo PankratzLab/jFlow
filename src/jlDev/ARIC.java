@@ -17,7 +17,7 @@ public class ARIC {
 		String phenoDef = "/home/pankrat2/shared/aric_gw6/shadow_ARICGenvisis_CEL_FULL/vte/vte.txt";
 		String cnvs = "/home/pankrat2/shared/aric_gw6/shadow_ARICGenvisis_CEL_FULL/vte/penncnv.cnv";
 		String mapFile = "/panfs/roc/groups/5/pankrat2/public/bin/ref/mapability/hg18/wgEncodeCrgMapabilityAlign100mer.bedgraph";
-		String geneTrackFile = "/home/pankrat2/public/bin/NCBI/RefSeq_hg19.gtrack";
+		String geneTrackFile = "/home/pankrat2/public/bin/NCBI/RefSeq_hg18.gtrack";
 
 		String[] vte = HashVec.loadFileToStringArray(phenoDef, false, new int[] { 0 }, true);
 
