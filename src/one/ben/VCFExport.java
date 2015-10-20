@@ -72,6 +72,9 @@ public class VCFExport {
                     .append(vcfParts[4]).append("\t") // alt
                     .append(vcfParts[5]).append("\t") // qual
                     .append(vcfParts[6]); // filt
+            if (vcfParts[7].startsWith(".;")) {
+                vcfParts[7] = vcfParts[7].substring(2);
+            }
             infoParts = vcfParts[7].split(";");
             for (String infoTag : infoParts) {
                 String[] infoTagParts = infoTag.split("=");
@@ -80,7 +83,20 @@ public class VCFExport {
                 } else if (multiTags.containsKey(infoTagParts[0])) {
                     String[] tagParts = infoTagParts[1].split("[\\(\\|]"); 
                     for (String tagPart : tagParts) {
-                        outLine.append("\t").append("".equals(tagPart) ? "." : tagPart);
+                        
+                        if ("".equals(tagPart)) {
+                            tagPart = ".";
+                        } else if (tagPart.contains("(") && !tagPart.contains(")")) {
+                            tagPart = tagPart.replaceAll("\\(", "");
+                        } else if (tagPart.contains(")") && !tagPart.contains("(")) {
+                            tagPart = tagPart.replaceAll("\\)", "");
+                        } else if (tagPart.contains("[") && !tagPart.contains("[")) {
+                            tagPart = tagPart.replaceAll("\\[", "");
+                        } else if (tagPart.contains("]") && !tagPart.contains("]")) {
+                            tagPart = tagPart.replaceAll("\\]", "");
+                        }
+                        
+                        outLine.append("\t").append(tagPart);
                     }
                 } else {
                     outLine.append("\t").append(infoTagParts[1]);
@@ -93,6 +109,36 @@ public class VCFExport {
         writer.flush();
         writer.close();
         reader.close();
+    }
+    
+    public static void main(String[] args) {
+        int numArgs = args.length;
+        String filename = "F:/variants.vcf";//"VCFExport.dat";
+
+        String usage = "\n" + 
+                        "one.ben.VCFExport requires 0-1 arguments\n" + 
+                        "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+                System.err.println(usage);
+                System.exit(1);
+            } else if (args[i].startsWith("file=")) {
+                filename = args[i].split("=")[1];
+                numArgs--;
+            } else {
+                System.err.println("Error - invalid argument: " + args[i]);
+            }
+        }
+        if (numArgs != 0) {
+            System.err.println(usage);
+            System.exit(1);
+        }
+        try {
+            exportToXLN(filename);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
