@@ -4,6 +4,7 @@ package bioinformatics;
 import java.io.*;
 import java.util.Vector;
 
+import one.ben.VCFExport;
 import seq.analysis.GATK_Genotyper;
 import seq.analysis.SNPEFF;
 import common.*;
@@ -206,7 +207,7 @@ public class MapSNPsAndGenes {
 	}
 
 
-	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, int build, Logger log, boolean useVCF, boolean snpEff, boolean gatk, String snpEffLoc, String annovarLoc) {
+	public static void procSNPsToGenes(String dir, String snps, int wiggleRoom, int build, Logger log, boolean useVCF, boolean snpEff, boolean gatk, String snpEffLoc, String annovarLoc, String swapFile, boolean exportToXLN) {
 		PrintWriter writer;
 		String[] line;
 		String[] data, markers;
@@ -221,14 +222,29 @@ public class MapSNPsAndGenes {
 		    ParseSNPlocations.lowMemParse(dir+snps, getSNPDB(build, log), getMergeDB(log), true, log);
 		}
 		
+		String output = null;
 		if (gatk) {
 		    String input = prepInput(dir + snps);
 		    if (input == null) {
 		        // TODO error occurred!
 		    }
-		    GATK_Genotyper.annotateOnly(input, "", "", snpEffLoc, snpEffLoc, annovarLoc, SNPEFF.BUILDS[0], true, false, log);
+		    output = GATK_Genotyper.annotateOnly(input, "", "", snpEffLoc, snpEffLoc, annovarLoc, SNPEFF.BUILDS[0], true, false, log);
 		} else if (snpEff) {
-		    SNPEffAnnotation.pipeline(ext.rootOf(dir+snps, false)+"_positions.xln", SNPEffAnnotation.getDefaultConfigFile(), log);
+		    output = SNPEffAnnotation.pipeline(ext.rootOf(dir+snps, false)+"_positions.xln", SNPEffAnnotation.getDefaultConfigFile(), log);
+		}
+		if (output != null) {
+		    if (swapFile != null && !"".equals(swapFile) && Files.exists(swapFile)) {
+		        Files.replaceAll(output, ext.rootOf(output) + "_converted.vcf", swapFile, log);
+		        output = ext.rootOf(output) + "_converted.vcf";
+		    }
+		    if (exportToXLN) {
+		        try {
+                    VCFExport.exportToXLN(output);
+                } catch (IOException e) {
+                    log.reportIOException(output);
+                    log.reportException(e);
+                }
+		    }
 		}
 		
 		data = Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir+snps, false)+"_positions.xln", false, false, false));
@@ -299,7 +315,11 @@ public class MapSNPsAndGenes {
                                                              "win=15000", 
                                                              "build=37",
                                                              "vcf=true",
-                                                             "snpeff=false"}, 
+                                                             "snpeff=false",
+                                                             "gatk=false",
+                                                             "snpeffLoc=",
+                                                             "annovarLoc=",
+                                                }, 
                                               log);
         String usage = "\\n"+
         "bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"+
@@ -308,13 +328,15 @@ public class MapSNPsAndGenes {
         "   (3) # bp up and down stream to count as an associated gene (i.e. win=15000 (default))\n"+
         "   (4) build # of the NCBI gene map file (i.e. build=37 (default))\n"+
         "   (5) should use vcf files instead of serialized database files (i.e. vcf=true (default))\n"  +
-        "   (6) create additional output file with annotations from SNPEFF (i.e. snpeff=true (not the default))\n" + 
+        "   (6) create additional output file with annotations from SNPEFF (i.e. snpeff=true (not the default; mutually-exclusive with 'gatk' option))\n" + 
+        "   (7) create additional output file with annotations from GATK, SNPEFF, and ANNOVAR (i.e. gatk=true (not the default; mutually-exclusive with 'snpeff' option))\n" + 
+        "   (8) Location of SNPEFF program in filesystem; used if 'gatk' option set to TRUE (i.e. snpeffLoc= (no default))\n" + 
+        "   (9) Location of ANNOVAR program in filesystem; used if 'gatk' option set to TRUE (i.e. annovarLoc= (no default))\n" + 
         "";
         
         if (params != null) {
             String dir = null;
             String file = null;
-            String gatkLoc = null;
             String snpEffLoc = null;
             String annovarLoc = null;
             boolean snpeff = false;
@@ -322,21 +344,23 @@ public class MapSNPsAndGenes {
             byte build = (byte) 37;
             int win = 15000;
             boolean vcf = true;
+            String swap = null;
+            boolean xln = false;
             
             int numArgs = params.size();
             for (int i = 0; i<params.size(); i++) {
                 String param = params.get(i);
                 if (param.startsWith("dir=")) {
-                    dir = param.split("=")[1];
+                    dir = param.split("=")[1].trim();
                     numArgs--;
                 } else if (param.startsWith("file=")) {
-                    file = param.split("=")[1];
+                    file = param.split("=")[1].trim();
                     numArgs--;
                 } else if (param.startsWith("win=")) {
-                    win = Integer.parseInt(param.split("=")[1]);
+                    win = Integer.parseInt(param.split("=")[1].trim());
                     numArgs--;
                 } else if (param.startsWith("build=")) {
-                    build = Byte.parseByte(param.split("=")[1]);
+                    build = Byte.parseByte(param.split("=")[1].trim());
                     numArgs--;
                 } else if (param.startsWith("vcf=")) {
                     vcf = ext.parseBooleanArg(param);
@@ -347,14 +371,17 @@ public class MapSNPsAndGenes {
                 } else if (param.startsWith("gatk=")) {
                     gatk = ext.parseBooleanArg(param);
                     numArgs--;
-                } else if (param.startsWith("gatkLoc=")) {
-                    gatkLoc = param.split("=")[1];
-                    numArgs--;
                 } else if (param.startsWith("snpEffLoc=")) {
-                    snpEffLoc = param.split("=")[1];
+                    snpEffLoc = param.split("=")[1].trim();
                     numArgs--;
                 } else if (param.startsWith("annovarLoc=")) {
-                    annovarLoc = param.split("=")[1];
+                    annovarLoc = param.split("=")[1].trim();
+                    numArgs--;
+                } else if (param.startsWith("swap=")) {
+                    swap = param.split("=")[1].trim();
+                    numArgs--;
+                } else if (param.startsWith("xln=")) {
+                    xln = ext.parseBooleanArg(param);
                     numArgs--;
                 }
             }
@@ -362,7 +389,7 @@ public class MapSNPsAndGenes {
                 System.err.println(usage);
                 System.exit(1);
             }
-            procSNPsToGenes(dir, file, win, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc);
+            procSNPsToGenes(dir == null ? "" : dir, file, win, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc, swap, xln);
         }
     }
 	
@@ -376,11 +403,12 @@ public class MapSNPsAndGenes {
 		byte build = 37;
 		Logger log;
 		boolean vcf = true;
-        String gatkLoc = null;
         String snpEffLoc = null;
         String annovarLoc = null;
         boolean snpeff = false;
         boolean gatk = false;
+        String swap = null;
+        boolean xln = false;
 
 		String usage = "\\n"+
 		"bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"+
@@ -389,7 +417,10 @@ public class MapSNPsAndGenes {
 		"   (3) # bp up and down stream to count as an associated gene (i.e. win="+wiggleRoom+" (default))\n"+
 		"   (4) build # of the NCBI gene map file (i.e. build="+build+" (default))\n"+
         "   (5) should use vcf files instead of serialized database files (i.e. vcf=true (default))\n"  +
-        "   (6) create additional output file with annotations from SNPEFF (i.e. snpeff=true (not the default))\n" + 
+        "   (6) create additional output file with annotations from SNPEFF (i.e. snpeff=true (not the default; mutually-exclusive with 'gatk' option))\n" + 
+        "   (7) create additional output file with annotations from GATK, SNPEFF, and ANNOVAR (i.e. gatk=true (not the default; mutually-exclusive with 'snpeff' option))\n" + 
+        "   (8) Location of SNPEFF program in filesystem; used if 'gatk' option set to TRUE (i.e. snpeffLoc= (no default))\n" + 
+        "   (9) Location of ANNOVAR program in filesystem; used if 'gatk' option set to TRUE (i.e. annovarLoc= (no default))\n" + 
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -417,14 +448,17 @@ public class MapSNPsAndGenes {
             } else if (args[i].startsWith("gatk=")) {
                 gatk = ext.parseBooleanArg(args[i]);
                 numArgs--;
-            } else if (args[i].startsWith("gatkLoc=")) {
-                gatkLoc = args[i].split("=")[1];
-                numArgs--;
             } else if (args[i].startsWith("snpEffLoc=")) {
                 snpEffLoc = args[i].split("=")[1];
                 numArgs--;
             } else if (args[i].startsWith("annovarLoc=")) {
                 annovarLoc = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("swap=")) {
+                swap = args[i].split("=")[1].trim();
+                numArgs--;
+            } else if (args[i].startsWith("xln=")) {
+                xln = ext.parseBooleanArg(args[i]);
                 numArgs--;
             }
 		}
@@ -452,9 +486,9 @@ public class MapSNPsAndGenes {
 						wiggleRoom = DEFAULT_WIGGLE_ROOM;
 					}
 				}				
-				procSNPsToGenes("", filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc);
+				procSNPsToGenes("", filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc, swap, xln);
 			} else {
-				procSNPsToGenes(dir, filename, wiggleRoom, build, new Logger(), vcf, snpeff, gatk, snpEffLoc, annovarLoc);
+				procSNPsToGenes(dir, filename, wiggleRoom, build, new Logger(), vcf, snpeff, gatk, snpEffLoc, annovarLoc, swap, xln);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

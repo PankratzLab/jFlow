@@ -1270,12 +1270,12 @@ public class ext {
 	}
 	
 	public static boolean parseBooleanArg(String arg, Logger log) {
-		if (arg.split("=")[1].equalsIgnoreCase("true")) {
+		if (arg.split("=")[1].trim().equalsIgnoreCase("true")) {
 			return true;
-		} else if (arg.split("=")[1].equalsIgnoreCase("false")) {
+		} else if (arg.split("=")[1].trim().equalsIgnoreCase("false")) {
 			return false;
 		} else {
-			log.reportError("Error - invalid "+arg.split("=")[0]+"= argument (expecting true/false): "+arg.split("=")[1]);
+			log.reportError("Error - invalid "+arg.split("=")[0]+"= argument (expecting true/false): "+arg.split("=")[1].trim());
 			System.exit(1);
 			return false;
 		}
@@ -1284,18 +1284,18 @@ public class ext {
 	public static String parseStringArg(String arg, String blankValue) {
 		if (arg.split("=").length == 1) {
 			return blankValue;
-		} else if (arg.split("=")[1].equalsIgnoreCase("null")){
+		} else if (arg.split("=")[1].trim().equalsIgnoreCase("null")){
 			return null;
 		} else {
-			return arg.substring(arg.indexOf("=")+1);
+			return arg.substring(arg.indexOf("=")+1).trim();
 		}
 	}
 
 	public static int parseIntArg(String arg) {
 		try {
-			return Integer.parseInt(arg.split("=")[1]);
+			return Integer.parseInt(arg.split("=")[1].trim());
 		} catch (NumberFormatException nfe) {
-			System.err.println("Error - invalid "+arg.split("=")[0]+"= argument: "+arg.split("=")[1]);
+			System.err.println("Error - invalid "+arg.split("=")[0]+"= argument: "+arg.split("=")[1].trim());
 			System.exit(1);
 			return Integer.MIN_VALUE;
 		}
@@ -1303,7 +1303,7 @@ public class ext {
 
 	public static byte parseByteArg(String arg) {
 		try {
-			return Byte.parseByte(arg.split("=")[1]);
+			return Byte.parseByte(arg.split("=")[1].trim());
 		} catch (NumberFormatException nfe) {
 			System.err.println("Error - invalid "+arg.split("=")[0]+"= argument: "+arg.split("=")[1]);
 			System.exit(1);
@@ -1313,7 +1313,7 @@ public class ext {
 
 	public static double parseDoubleArg(String arg) {
 		try {
-			return Double.parseDouble(arg.split("=")[1]);
+			return Double.parseDouble(arg.split("=")[1].trim());
 		} catch (NumberFormatException nfe) {
 			System.err.println("Error - invalid "+arg.split("=")[0]+"= argument: "+arg.split("=")[1]);
 			System.exit(1);
@@ -1323,7 +1323,7 @@ public class ext {
 	
 	public static boolean isMissingValue(String str) {
 		for (int i = 0; i < MISSING_VALUES.length; i++) {
-			if (str.equalsIgnoreCase(MISSING_VALUES[i])) {
+			if (str.trim().equalsIgnoreCase(MISSING_VALUES[i])) {
 				return true;
 			}
 		}
@@ -1336,7 +1336,7 @@ public class ext {
 		}
 		
 		try {
-			Double.parseDouble(str);
+			Double.parseDouble(str.trim());
 		} catch (NumberFormatException nfe) {
 			return false;
 		}
@@ -1350,7 +1350,7 @@ public class ext {
 		}
 		
 		try {
-			Integer.parseInt(str);
+			Integer.parseInt(str.trim());
 		} catch (NumberFormatException nfe) {
 			return false;
 		}
@@ -1360,7 +1360,7 @@ public class ext {
 	
 	public static float parseFloatArg(String arg) {
 		try {
-			return Float.parseFloat(arg.split("=")[1]);
+			return Float.parseFloat(arg.split("=")[1].trim());
 		} catch (NumberFormatException nfe) {
 			System.err.println("Error - invalid "+arg.split("=")[0]+"= argument: "+arg.split("=")[1]);
 			System.exit(1);

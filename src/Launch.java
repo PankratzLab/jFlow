@@ -59,7 +59,7 @@ public class Launch {
 		"gwas.Qc - runs full QC protocol using PLINK", 
 		"descriptive - summarize a phenotype file", 
 		"phenoPrep - transform trait, reorder ids, and deal with outliers", 
-		"bestTransformation - determine transformations that improve normality (i.e., minimzes skewness and kurtosis)", 
+		"bestTransformation - determine transformations that improve normality (i.e., minimizes skewness and kurtosis)", 
 		"peakat - takes the first or last N lines of a file, or counts the lines", 
 		"grep - filters a file line by line depending on the presence/absence of inclusion/exclusion criteria", 
 		CNVTrioFilter.COMMAND_CNV_TRIO_CRF + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION, 
@@ -72,6 +72,7 @@ public class Launch {
 		VCFOps.COMMAND_VCF_OPS_EXTRACT,
 		VCFOps.COMMAND_VCF_EXTRACT_DESCRIPTION, 
 		"replaceAll - replace Strings in a file using a list of replacements",
+		"snps - takes a list of marker names (rs IDs) and adds chr/pos info, and possibly additional information depending on options specified",
 		};
 
 	public static void run(String filename, Logger log) throws Elision {
@@ -201,6 +202,8 @@ public class Launch {
 				widgets.grep.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("replaceAll")) {
 				Files.replaceAllFromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("snps")) {
+			    MapSNPsAndGenes.fromParameters(filename, log);
 			} else {
 				log.reportError("Error - '"+temp+"' is an invalid launch type, options include:");
 				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));
