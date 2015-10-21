@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 
 import seq.analysis.ANNOVAR.AnnovarResults;
 import seq.analysis.SNPEFF.SnpEffResult;
+import seq.analysis.SNPSIFT.SnpSiftResult;
 import seq.manage.VCFOps;
 import common.Array;
 import common.Files;
@@ -79,15 +80,19 @@ public class GATK_Genotyper {
 		return progress;
 	}
 
-	public void annotateVCF(String inputVCF, String build) {
+	public String annotateVCF(String inputVCF, String build) {
 		if (!fail && !snpeff.isFail() && !annovar.isFail()) {
 			AnnovarResults annovarResults = annovar.AnnovarAVCF(inputVCF, build, log);
 			SnpEffResult snpEffResult = snpeff.annotateAVCF(annovarResults.getOutputVCF(), build);
 			gatk.annotateAVcfWithSnpEFF(snpEffResult, false);
+			String result = snpEffResult.getOutputSnpEffVCF();
 			if (!snpEffResult.isFail()) {
-				snpsift.annotateDbnsfp(snpEffResult.getOutputGatkSnpEffVCF(), log);
+				SnpSiftResult ssr = snpsift.annotateDbnsfp(snpEffResult.getOutputGatkSnpEffVCF(), log);
+				result = ssr.getOutputVCF();
 			}
+			return result;
 		}
+		return null;
 	}
 
 	public boolean determineTsTV(String inputVCF) {
@@ -400,14 +405,13 @@ public class GATK_Genotyper {
 
 	}
 
-	public static void annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta, String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild, boolean verbose, boolean overwriteExisting, Logger log) {
+	public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta, String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild, boolean verbose, boolean overwriteExisting, Logger log) {
 	    GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose, overwriteExisting, log);
 	    SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
 	    SNPSIFT snpsift = new SNPSIFT(snpSiftLocation, verbose, overwriteExisting, log);
 	    ANNOVAR annovar = new ANNOVAR(annovarLocation, verbose, overwriteExisting, log);
 	    GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, 1, verbose, log);
-	    genotyper.annotateVCF(vcf, annoBuild);
-	    
+	    return genotyper.annotateVCF(vcf, annoBuild);
 	}
 
 	public static final String NUM_THREADS = "numThreads=";

@@ -86,19 +86,21 @@ public class SNPEffAnnotation {
         return newFile;
     }
     
-    public static void pipeline(String inputFile, String snpEffConfigFile, Logger log) {
+    public static String pipeline(String inputFile, String snpEffConfigFile, Logger log) {
         String snpEffInputFile = processInput(inputFile, log);
         String[] args = {"ann", "-v", "-c", snpEffConfigFile, DEFAULT_BUILD_STR, snpEffInputFile};
         // use -t [multithreading, implies -noStats]
         SnpEff snpEff = new SnpEff(args);
         SnpEffCmdEff snpEffCmd = (SnpEffCmdEff) snpEff.snpEffCmd(); // instance of SnpEffCmdEff
         List<VcfEntry> vcfList = snpEffCmd.run(true);
-        PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(inputFile, false) + "_snpEff.out.vcf");
+        String output = ext.rootOf(inputFile, false) + "_snpEff.out.vcf";
+        PrintWriter writer = Files.getAppropriateWriter(output);
         for (VcfEntry vc : vcfList) {
             writer.println(vc.toString());
         }
         writer.flush();
         writer.close();
+        return output;
     }
 
     public static String getDefaultConfigFile() {
