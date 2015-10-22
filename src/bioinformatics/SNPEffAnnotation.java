@@ -21,6 +21,8 @@ public class SNPEffAnnotation {
     private static final int DEFAULT_BUILD = 37;
     private static final String DEFAULT_BUILD_STR = "hg19";
     
+    private static final String VCF_ANN_HEADER = "##INFO=<ID=ANN,Number=.,Type=String,Description=\"Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' \">";
+    
     public static String processInput(String infile, Logger log) {
         File f = new File(infile);
         if (!f.exists()) {
@@ -95,6 +97,8 @@ public class SNPEffAnnotation {
         List<VcfEntry> vcfList = snpEffCmd.run(true);
         String output = ext.rootOf(inputFile, false) + "_snpEff.out.vcf";
         PrintWriter writer = Files.getAppropriateWriter(output);
+        writer.println(VCF_ANN_HEADER);
+        writer.println("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
         for (VcfEntry vc : vcfList) {
             writer.println(vc.toString());
         }

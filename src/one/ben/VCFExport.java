@@ -12,6 +12,8 @@ import common.ext;
 
 public class VCFExport {
     
+    private static final String TAG_SPLIT_SET = "[\\(\\|]";
+
     private VCFExport() {}
     
     public static void exportToXLN(String vcfFile) throws IOException {
@@ -44,10 +46,10 @@ public class VCFExport {
                 String description = line.substring(ind1, ind2);
                 if (description.contains("|")) {
                     infoTags.remove(id);
-                    String[] desc = description.substring(description.indexOf("'") + 1).split("[\\s]*[\\(\\|][\\s]*"); 
+                    String[] desc = description.substring(description.indexOf("'") + 1).split("[\\s]*" + TAG_SPLIT_SET + "[\\s]*"); 
                     multiTags.put(id, desc);
                     for (String descTag : desc) {
-                        infoTags.add(descTag); 
+                        infoTags.add(id + "_" + descTag); 
                     }
                 }
             }
@@ -81,9 +83,9 @@ public class VCFExport {
                 if (infoTagParts.length == 1) {
                     outLine.append("\t").append(infoTagParts[0]);
                 } else if (multiTags.containsKey(infoTagParts[0])) {
-                    String[] tagParts = infoTagParts[1].split("[\\(\\|]"); 
+                    String[] tagParts = infoTagParts[1].split(TAG_SPLIT_SET, -1); 
                     for (String tagPart : tagParts) {
-                        
+                        tagPart = tagPart.trim();
                         if ("".equals(tagPart)) {
                             tagPart = ".";
                         } else if (tagPart.contains("(") && !tagPart.contains(")")) {
