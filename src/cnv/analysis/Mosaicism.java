@@ -3,14 +3,18 @@ package cnv.analysis;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import javax.swing.JOptionPane;
 
+import link.init.maleHets;
 import cnv.filesys.*;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
+import cnv.var.LocusSet;
 import cnv.var.SampleData;
 import common.*;
+import common.WorkerTrain.Producer;
 import filesys.Segment;
 
 public class Mosaicism {
@@ -21,19 +25,13 @@ public class Mosaicism {
 	public static void findOutliers(Project proj) {
 		PrintWriter writer;
 		String[] samples;
-		Sample samp;
-
 		int chr;
-		long time;
 		Hashtable<String,String> hash = new Hashtable<String,String>();
 		String[] markerNames;
 		byte[] chrs;
 		int[] positions;
 		boolean[] snpDropped;
 		int[][] chrBoundaries;
-		float baf;
-		FloatVector lrrVec, bafVec;
-		float[] lrrs, bafs;
 		MarkerSet markerSet;
 
 		hash = proj.getFilteredHash();
@@ -43,12 +41,12 @@ public class Mosaicism {
 		for (int i = 0; i<chrBoundaries.length; i++) {
 			chrBoundaries[i][0] = chrBoundaries[i][1] = chrBoundaries[i][2] = -1;
 		}
-		time = new Date().getTime();
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
 		snpDropped = new boolean[markerNames.length];
+		int[][] indicesByChr= markerSet.getIndicesByChr();
 		System.out.println("Mosacism will be estimated using "+markerNames.length+" markers");
 		chr = 0;
 		for (int i = 0; i<markerNames.length; i++) {
@@ -77,44 +75,140 @@ public class Mosaicism {
 		samples = proj.getSamples();
 		try {
 			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, true)+"Mosaicism.xln"));
-			writer.println("Sample\tBand\tLRR N\tmean LRR\tBAF N\tSD of BAF (0.15-0.85)\tIQR of BAF (0.15-0.85)\t%Homo");
-			for (int i = 0; i<samples.length; i++) {
-				System.out.println((i+1)+" of "+samples.length+" in "+ext.getTimeElapsed(time));
-				time = new Date().getTime();
-				samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
-				if (samp.getFingerprint()!=markerSet.getFingerprint()) {
-					System.err.println("Error - cannot estimate mosaics if MarkerSet and Sample ("+samples[i]+") don't use the same markers");
-					writer.close();
-					return;
-				}
-				lrrs = samp.getLRRs();
-				bafs = samp.getBAFs();
-				for (int j = 1; j<=23; j++) {
-					for (int arm = 0; arm<2; arm++) {
-						lrrVec = new FloatVector();
-						bafVec = new FloatVector();
-						for (int k = (arm==0?chrBoundaries[j][0]:chrBoundaries[j][1]); k<(arm==0?chrBoundaries[j][1]:chrBoundaries[j][2]+1); k++) {
-							if (!snpDropped[k]) {
-								if (!Float.isNaN(lrrs[k])) {
-									lrrVec.add(lrrs[k]);
-								}
-								baf = bafs[k];
-								if (baf>LOWER_BOUND&&baf<UPPER_BOUND) {
-									bafVec.add(baf);
-								}
-							}
-						}
-						if (lrrVec.size()>100) {
-							writer.println(samples[i]+"\t"+"chr"+j+(arm==0?"p":"q")+"\t"+lrrVec.size()+"\t"+ext.formDeci(Array.mean(lrrVec.toArray()), 5)+"\t"+bafVec.size()+(bafVec.size()>10?"\t"+ext.formDeci(Array.stdev(bafVec.toArray(), true), 5)+"\t"+ext.formDeci(Array.iqr(bafVec.toArray()), 5):"\t.\t.")+"\t"+ext.formDeci((double)(lrrVec.size()-bafVec.size())/(double)lrrVec.size(), 5));
-						}
+			writer.println("Sample\tBand\tLRR N\tmean LRR\tBAF N\tSD of BAF (0.15-0.85)\tIQR of BAF (0.15-0.85)\t%Homo\tMosaicMetric");
+			
+			MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped, chrBoundaries, markerSet, indicesByChr);
+			WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer, proj.NUM_THREADS.getValue(), 2, proj.getLog());			
+			int index =0;
+			long timePer = System.currentTimeMillis();
+			long time = System.currentTimeMillis();
+
+			while (train.hasNext()) {
+				try {
+					String[] results = train.next();
+					index++;
+					if (index % proj.NUM_THREADS.getValue() == 0) {
+						proj.getLog().reportTimeInfo((index + 1) + " of " + samples.length + " in " + ext.getTimeElapsed(timePer) + ", total time at " + ext.getTimeElapsed(time));
+						timePer = System.currentTimeMillis();
 					}
+
+					for (int i = 0; i < results.length; i++) {
+						writer.println(results[i]);
+					}
+				} catch (Exception e) {
+					proj.getLog().reportException(e);
+					producer.shutdown();
 				}
-				writer.flush();
+
 			}
 			writer.close();
 		} catch (Exception e) {
 			System.err.println("Error writing to summary file");
 			e.printStackTrace();
+		}
+	}
+	
+	private static class MosaicResultProducer implements Producer<String[]>{
+		private Project proj;
+		private String[] samples;
+		private boolean[]snpDropped;
+		private int[][] chrBoundaries;
+		private MarkerSet markerSet;
+		private int[][] indicesByChr;
+		private int index;
+		
+		public MosaicResultProducer(Project proj, String[] samples, boolean[] snpDropped, int[][] chrBoundaries, MarkerSet markerSet, int[][] indicesByChr) {
+			super();
+			this.proj = proj;
+			this.samples = samples;
+			this.snpDropped = snpDropped;
+			this.chrBoundaries = chrBoundaries;
+			this.markerSet = markerSet;
+			this.indicesByChr = indicesByChr;
+			this.index=0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < samples.length;
+		}
+
+		@Override
+		public Callable<String[]> next() {
+			final String currentSample =samples[index];
+			Callable<String[]> callable = new Callable<String[]>() {
+				@Override
+				public String[] call() throws Exception {
+
+					return getMosaicResults(proj, currentSample,  snpDropped, chrBoundaries, markerSet, indicesByChr);
+				}
+			};
+			index++;
+			return callable;
+		}
+
+		@Override
+		public void shutdown() {
+			index = samples.length;
+		}
+		
+		
+	}
+
+	private static String[] getMosaicResults(Project proj, String sample, boolean[] snpDropped, int[][] chrBoundaries, MarkerSet markerSet, int[][] indicesByChr) {
+		Sample samp;
+		float baf;
+		FloatVector lrrVec;
+		FloatVector bafVec;
+		float[] lrrs;
+		float[] bafs;
+		samp = proj.getPartialSampleFromRandomAccessFile(sample);
+		ArrayList<String> results = new ArrayList<String>();
+		if (samp.getFingerprint() != markerSet.getFingerprint()) {
+			String error = "Error - cannot estimate mosaics if MarkerSet and Sample (" + sample + ") don't use the same markers";
+			throw new IllegalArgumentException(error);
+		}
+		lrrs = samp.getLRRs();
+		bafs = samp.getBAFs();
+		for (int j = 1; j<=23; j++) {
+			for (int arm = 0; arm<2; arm++) {
+				lrrVec = new FloatVector();
+				bafVec = new FloatVector();
+				for (int k = (arm==0?chrBoundaries[j][0]:chrBoundaries[j][1]); k<(arm==0?chrBoundaries[j][1]:chrBoundaries[j][2]+1); k++) {
+					if (!snpDropped[k]) {
+						if (!Float.isNaN(lrrs[k])) {
+							lrrVec.add(lrrs[k]);
+						}
+						baf = bafs[k];
+						if (baf>LOWER_BOUND&&baf<UPPER_BOUND) {
+							bafVec.add(baf);
+						}
+					}
+				}
+				if (lrrVec.size()>100) {
+					double mosaicMetric = getMosiacMetric(proj, markerSet, indicesByChr, 25, 2, sample, (byte) j, (arm == 0 ? chrBoundaries[j][0] : chrBoundaries[j][1]), (arm == 0 ? chrBoundaries[j][1] : chrBoundaries[j][2] + 1), Array.toDoubleArray(bafs));
+					String result =sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrVec.size() + "\t" + ext.formDeci(Array.mean(lrrVec.toArray()), 5) + "\t" + bafVec.size() + (bafVec.size() > 10 ? "\t" + ext.formDeci(Array.stdev(bafVec.toArray(), true), 5) + "\t" + ext.formDeci(Array.iqr(bafVec.toArray()), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrVec.size() - bafVec.size()) / (double) lrrVec.size(), 5) + "\t" + mosaicMetric;
+					results.add(result);
+				}
+			}
+		}
+		return Array.toStringArray(results);
+	}
+
+	private static double getMosiacMetric(Project proj, MarkerSet markerSet, int[][] indicesByChr, int movingFactor, double nullSigma, String sample, byte chr, int startPos, int stopPos, double[] bafs) {
+		MosaicismDetect md = new MosaicismDetect(proj, sample, indicesByChr, bafs, markerSet, movingFactor, nullSigma, false);
+		LocusSet<CNVariant> tmp = md.callMosaic(new Segment(chr, startPos, stopPos));
+		if (tmp.getLoci().length < 1) {
+			return 0;
+		} else {
+			double metric = 0;
+			for (int i = 0; i < tmp.getLoci().length; i++) {
+				if (tmp.getLoci()[i].getNumMarkers() > movingFactor) {
+					metric += tmp.getLoci()[i].getScore();
+				}
+			}
+			return (double) metric / tmp.getLoci().length;
+
 		}
 	}
 

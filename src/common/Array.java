@@ -916,7 +916,7 @@ public class Array {
 					ma[i] = mean(toDoubleArray(tmp), true);
 					tmp.remove(0);
 				} else {
-					ma[i] = Double.NaN;
+					ma[i] = mean(toDoubleArray(tmp), true);
 				}
 			} else {
 				ma[i] = Double.NaN;
