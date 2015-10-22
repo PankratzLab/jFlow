@@ -49,6 +49,10 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 		prep();
 	}
 
+	public int getMovingFactor() {
+		return movingFactor;
+	}
+
 	public <T extends Segment> LocusSet<CNVariant> callMosaic(T seg) {
 		int[] segIndices = markerSet.getIndicesOfMarkersIn(seg, indicesByChr, proj.getLog());
 		ArrayList<Integer> evalIndicestmp = new ArrayList<Integer>();
