@@ -1330,7 +1330,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		};
 		callCnvsButton = new JCheckBoxMenuItem("Call Cnvs", false);// stays hidden if gcModel is not detected
 		callCnvsButton.addItemListener(cnvListener);
-		
+		act.add(callCnvsButton);
 		act.addSeparator();
 
 		ItemListener mosaicListener = new ItemListener() {
@@ -2231,9 +2231,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	
 	
 	public static void main(String[] args) {
-		Project proj;
-		
-		proj = new Project(cnv.Launch.getDefaultDebugProjectFile(true), false);
+//		Project proj;
+//		
+//		proj = new Project(cnv.Launch.getDefaultDebugProjectFile(true), false);
+		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+
 		new Trailer(proj, DEFAULT_SAMPLE, proj.CNV_FILENAMES.getValue(), DEFAULT_LOCATION);
 	}
 }
