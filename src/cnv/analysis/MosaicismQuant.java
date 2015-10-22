@@ -5,10 +5,12 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
-import be.ac.ulg.montefiore.run.distributions.GaussianDistribution;
+
+import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
 import mining.Calcfc;
 import mining.Cobyla;
 import mining.CobylaExitStatus;
@@ -169,6 +171,15 @@ public class MosaicismQuant implements Calcfc {
 	// private static int getHalfNull(double nullD) {
 	// return (int) (nullD + 0.5) / 2;
 	// }
+
+	public static double getDisomyF(double delta) {
+		if(delta==.5){
+			return 1;
+		}
+		double f = (4*delta);
+		double div = 2*delta+1;
+		return f/div;
+	}
 
 	private static double getDelta(double f, MOSAIC_TYPE type) {
 		double delta = Double.NaN;
@@ -776,39 +787,96 @@ public class MosaicismQuant implements Calcfc {
 		// Segment segTest = new Segment("chr17:42,963,198-78,940,173");
 		// Segment segTest = new Segment("chr17:42,963,198-78,940,173");
 		Segment segTest = new Segment((byte) 11, 0, Integer.MAX_VALUE);
+		int[] currentIndices = ext.indexLargeFactors(markerSet.getMarkersIn(segTest, indices), markerSet.getMarkerNames(), true, proj.getLog(), true, false);
 		Builder builder = new Builder();
 		ComputeParams params = builder.build();
 		MosaicismQuant mosiacismQuant = new MosaicismQuant(proj, sampleMosiac, MOSAIC_TYPE.TRISOMY_DISOMY, params, segTest, markerSet, indices);
 		mosiacismQuant.prepareMosiacQuant(5, MIN_BAF, MAX_BAF);
-		BafSelection bafSelection = mosiacismQuant.getSampleMosiac().getCdf().getBafSelection();
 
 		String testDir = proj.PROJECT_DIRECTORY.getValue() + "TestMosaic/";
 		new File(testDir).mkdirs();
 		String out = testDir + ext.replaceWithLinuxSafeCharacters(segTest.getUCSClocation(), true) + ".txt";
-		double[] allVals = Array.getValuesBetween(Array.toDoubleArray(mosiacismQuant.getSampleMosiac().getSamp().getBAFs()), MIN_BAF, MAX_BAF);
-		double sd = Array.stdev(allVals);
-		double mean = Array.mean(allVals);
-		GaussianDistribution gd = new GaussianDistribution(mean, Math.pow(sd, 2));
+		int[] autosomal = proj.getAutosomalMarkerIndices();
+		double[] val0_33 = Array.getValuesBetween(Array.toDoubleArray(Array.subArray(mosiacismQuant.getSampleMosiac().getSamp().getBAFs(), autosomal)), 0, .33);
+		double[] val33_66 = Array.getValuesBetween(Array.toDoubleArray(Array.subArray(mosiacismQuant.getSampleMosiac().getSamp().getBAFs(), autosomal)), .33, .66);
+		double[] val66_33 = Array.getValuesBetween(Array.toDoubleArray(Array.subArray(mosiacismQuant.getSampleMosiac().getSamp().getBAFs(), autosomal)), .66, 1);
+		double[] vars = new double[3];
+		double[] means = new double[3];
+		vars[0] = Math.pow(Array.stdev(val0_33), 2);
+		vars[1] = Math.pow(Array.stdev(val33_66), 2);
+		vars[2] = Math.pow(Array.stdev(val66_33), 2);
+		means[0] = Array.mean(val0_33);
+		means[1] = Array.mean(val33_66);
+		means[2] = Array.mean(val66_33);
+		int[] totals = new int[] { val0_33.length, val33_66.length, val66_33.length };
+		double[] blanks = new double[3];
+		Arrays.fill(blanks, 1);
+		double[] props = new double[3];
+		for (int i = 0; i < props.length; i++) {
+			props[i] = (double) 1 / 3;
+		}
+		GaussianMixtureDistribution gd = new GaussianMixtureDistribution(means, vars, props);
+
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
 
-			int[] mas = new int[] { 10, 20, 50, 100, 250, 500 };
+			int[] mas = new int[] { 10, 20, 50, 100, 250, 500, 1000 };
 			String[] MAtitles = Array.tagOn(Array.toStringArray(mas), "MA", null);
-			writer.println("Position\tBaf\tRandBaf\tPval\t" + Array.toStr(MAtitles));
-			double[] pvals = new double[bafSelection.getBafs().length];
-			double[] rand = new double[bafSelection.getBafs().length];
-			for (int i = 0; i < bafSelection.getBafs().length; i++) {
-				pvals[i] = gd.probability(bafSelection.getBafs()[i]) / 10;
+			writer.println("Position\tBaf\tRandBaf\tPval\tBaseLinePval\tDistMember\t" + Array.toStr(MAtitles));
+			double[] pvals = new double[currentIndices.length];
+			double[] rand = new double[currentIndices.length];
+			double baseLine = 0;
+			int[] distMember = new int[currentIndices.length];
+			for (int j = 0; j < gd.distributions().length; j++) {
+				baseLine += (double) gd.distributions()[j].probability(means[j] + 2 * Math.sqrt(vars[j])) * Math.sqrt(vars[j]);
+			}
+
+			for (int i = 0; i < currentIndices.length; i++) {
+				double baf = mosiacismQuant.getSampleMosiac().getSamp().getBAFs()[currentIndices[i]];
+				pvals[i] = 0;
+				for (int j = 0; j < gd.distributions().length; j++) {
+					if (j == 0 || j == 2) {
+						if (j == 0 && Math.abs(baf - means[j]) < 2 * Math.sqrt(vars[j])) {
+							pvals[i] = Double.NaN;
+							System.out.println("0" + "\t" + baf + "\t" + (baf - means[j]) + "\t" + (means[j] + Math.sqrt(vars[j])));
+
+						} else if (Math.abs(baf - means[j]) < 2 * Math.sqrt(vars[j])) {
+							pvals[i] = Double.NaN;
+
+							System.out.println("2" + "\t" + baf + "\t" + (baf - means[j]) + "\t" + (means[j] + Math.sqrt(vars[j])));
+
+						}
+
+					}
+					double test = Double.isFinite(baf) ? (double) (baf) : 0;
+					System.out.println(test);
+					double tmp = (double) gd.distributions()[j].probability(test) * Math.sqrt(vars[j]);
+
+					if (tmp > pvals[i] && !Double.isNaN(pvals[i])) {
+						pvals[i] = tmp;
+						distMember[i] = j;
+					}
+				}
+
+				System.out.println(pvals[i]);
 				rand[i] = gd.generate();
+				if (rand[i] < 0) {
+					rand[i] = 0;
+				}
+				if (rand[i] > 1) {
+					rand[i] = 1;
+				}
 			}
 
 			double[][] madatas = new double[mas.length][];
 			for (int i = 0; i < madatas.length; i++) {
-				madatas[i] = movingAverage(mas[i], pvals);
+				madatas[i] = Array.movingAverageForward(mas[i], pvals, true);
 			}
 
-			for (int i = 0; i < bafSelection.getBafs().length; i++) {
-				writer.print(markerSet.getPositions()[bafSelection.getProjectIndices()[i]] + "\t" + bafSelection.getBafs()[i] + "\t" + rand[i] + "\t" + pvals[i]);
+			for (int i = 0; i < currentIndices.length; i++) {
+				double baf = mosiacismQuant.getSampleMosiac().getSamp().getBAFs()[currentIndices[i]];
+
+				writer.print(markerSet.getPositions()[currentIndices[i]] + "\t" + (Double.isFinite(baf) ? baf : 0) + "\t" + rand[i] + "\t" + pvals[i] + "\t" + baseLine + "\t" + distMember[i]);
 				for (int j = 0; j < madatas.length; j++) {
 					writer.print("\t" + madatas[j][i]);
 				}
@@ -817,18 +885,18 @@ public class MosaicismQuant implements Calcfc {
 			writer.close();
 			String outBase = out + ".base";
 			ArrayList<RScatter> rd = new ArrayList<RScatter>();
-			RScatter rsScatter = new RScatter(out, outBase + ".rscript", ext.removeDirectoryInfo(outBase), outBase + ".jpeg", "Position", new String[] { "Baf", "Pval" }, SCATTER_TYPE.POINT, proj.getLog());
+			RScatter rsScatter = new RScatter(out, outBase + ".rscript", ext.removeDirectoryInfo(outBase), outBase + ".jpeg", "Position", new String[] { "Baf", "Pval", "BaseLinePval" }, SCATTER_TYPE.POINT, proj.getLog());
 			rsScatter.setOverWriteExisting(true);
 			rsScatter.execute();
 			rd.add(rsScatter);
 			String outMA = out + ".ma";
-			RScatter rsScatterMa = new RScatter(out, outMA + ".rscript", ext.removeDirectoryInfo(outMA), outMA + ".jpeg", "Position", Array.concatAll(new String[] { "Baf" }, MAtitles), SCATTER_TYPE.POINT, proj.getLog());
+			RScatter rsScatterMa = new RScatter(out, outMA + ".rscript", ext.removeDirectoryInfo(outMA), outMA + ".jpeg", "Position", Array.concatAll(new String[] { "Baf", "BaseLinePval" }, MAtitles), SCATTER_TYPE.POINT, proj.getLog());
 			rsScatterMa.setOverWriteExisting(true);
 			rsScatterMa.execute();
 			rd.add(rsScatterMa);
 			String outMA50 = out + ".ma50";
 
-			RScatter rsScatter50 = new RScatter(out, outMA50 + ".rscript", ext.removeDirectoryInfo(outMA50), outMA50 + ".jpeg", "Position", new String[] { "Baf", "Pval", "MA50" }, SCATTER_TYPE.POINT, proj.getLog());
+			RScatter rsScatter50 = new RScatter(out, outMA50 + ".rscript", ext.removeDirectoryInfo(outMA50), outMA50 + ".jpeg", "Position", new String[] { "Baf", "Pval", "MA50", "BaseLinePval" }, SCATTER_TYPE.POINT, proj.getLog());
 			rsScatter50.setOverWriteExisting(true);
 			rsScatter50.execute();
 			rd.add(rsScatter50);
@@ -836,7 +904,7 @@ public class MosaicismQuant implements Calcfc {
 
 			RScatter rsScatterRand = new RScatter(out, outRand + ".rscript", ext.removeDirectoryInfo(outRand), outRand + ".jpeg", "Position", new String[] { "Baf", "RandBaf" }, SCATTER_TYPE.POINT, proj.getLog());
 			rsScatterRand.setOverWriteExisting(true);
-			rsScatterRand.setTitle("Sample SD=" + sd + ", mean=" + mean);
+			// rsScatterRand.setTitle("Sample SD=" + sd + ", mean=" + mean);
 			rsScatterRand.execute();
 			rd.add(rsScatterRand);
 
@@ -1160,7 +1228,7 @@ public class MosaicismQuant implements Calcfc {
 		try {
 			Project proj = new Project(filename, false);
 			test(proj);
-			quantMosaic(proj, bpWindow, numControls, numThreads);
+			// quantMosaic(proj, bpWindow, numControls, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

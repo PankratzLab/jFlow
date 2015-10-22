@@ -610,7 +610,7 @@ public class VCFOps {
 				writer.println(Array.toStr(HEADER));
 				HashSet<String> inds = getAllInds();
 				for (String ind : inds) {
-					writer.println(ind + "\t" + getPopulationForInd(ind, RETRIEVE_TYPE.SUB) + "\t" + getPopulationForInd(ind, RETRIEVE_TYPE.SUPER));
+					writer.println(ind + "\t" + getPopulationForInd(ind, RETRIEVE_TYPE.SUB)[0] + "\t" + getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0]);
 				}
 				writer.close();
 			} catch (Exception e) {

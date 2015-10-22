@@ -156,6 +156,11 @@ public class MarkerSet implements Serializable {
 		return sum;
 	}
 
+	public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
+		return ext.indexLargeFactors(getMarkersIn(seg, indicesByChr), markerNames, true, log, true, false);
+	}
+	
+	
 	public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
 		int index = seg.getChr();
 		ArrayList<String> markersIn = new ArrayList<String>();
