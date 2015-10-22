@@ -1936,6 +1936,7 @@ public class Files {
 	}
 	
 	public static boolean exists(String filename, boolean jar) {
+	    if (filename == null) return false;
 		if (jar) {
 			try {
 				ClassLoader.getSystemResourceAsStream(filename).close();

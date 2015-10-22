@@ -232,7 +232,7 @@ public class MapSNPsAndGenes {
 		} else if (snpEff) {
 		    output = SNPEffAnnotation.pipeline(ext.rootOf(dir+snps, false)+"_positions.xln", SNPEffAnnotation.getDefaultConfigFile(), log);
 		}
-		if (output != null) {
+		if (output != null && !"".equals(output) && Files.exists(output)) {
 		    if (swapFile != null && !"".equals(swapFile) && Files.exists(swapFile)) {
 		        Files.replaceAll(output, ext.rootOf(output) + "_converted.vcf", swapFile, log);
 		        output = ext.rootOf(output) + "_converted.vcf";
@@ -337,8 +337,8 @@ public class MapSNPsAndGenes {
         if (params != null) {
             String dir = null;
             String file = null;
-            String snpEffLoc = null;
-            String annovarLoc = null;
+            String snpEffLoc = "";
+            String annovarLoc = "";
             boolean snpeff = false;
             boolean gatk = false;
             byte build = (byte) 37;
@@ -403,8 +403,8 @@ public class MapSNPsAndGenes {
 		byte build = 37;
 		Logger log;
 		boolean vcf = true;
-        String snpEffLoc = null;
-        String annovarLoc = null;
+        String snpEffLoc = "";
+        String annovarLoc = "";
         boolean snpeff = false;
         boolean gatk = false;
         String swap = null;

@@ -85,11 +85,11 @@ public class SNPSIFT {
 		boolean verify = true;
 		if (!Files.exists(snpSiftLocation)) {
 			verify = false;
-			log.reportError("Warning - could not find SNP EFF location " + snpSiftLocation);
+			log.reportError("Warning - could not find SNP SIFT location " + snpSiftLocation);
 		}
 		if (!Files.exists(snpSiftLocation + SNP_SIFT_JAR)) {
 			verify = false;
-			log.reportError("Warning - could not find the SNP EFF jar file " + snpSiftLocation + SNP_SIFT_JAR);
+			log.reportError("Warning - could not find the SNP SIFT jar file " + snpSiftLocation + SNP_SIFT_JAR);
 		}
 		return verify;
 	}

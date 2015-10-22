@@ -81,16 +81,24 @@ public class GATK_Genotyper {
 	}
 
 	public String annotateVCF(String inputVCF, String build) {
-		if (!fail && !snpeff.isFail() && !annovar.isFail()) {
-			AnnovarResults annovarResults = annovar.AnnovarAVCF(inputVCF, build, log);
-			SnpEffResult snpEffResult = snpeff.annotateAVCF(annovarResults.getOutputVCF(), build);
-			gatk.annotateAVcfWithSnpEFF(snpEffResult, false);
-			String result = snpEffResult.getOutputSnpEffVCF();
-			if (!snpEffResult.isFail()) {
-				SnpSiftResult ssr = snpsift.annotateDbnsfp(snpEffResult.getOutputGatkSnpEffVCF(), log);
-				result = ssr.getOutputVCF();
+		if (!fail) {
+		    String in = inputVCF;
+		    String out = "";
+		    if (!annovar.isFail()) {
+		        AnnovarResults annovarResults = annovar.AnnovarAVCF(in, build, log);
+		        in = annovarResults.getOutputVCF();
+		        out = annovarResults.getOutputVCF();
+		    }
+			if (!snpeff.isFail()) {
+			    SnpEffResult snpEffResult = snpeff.annotateAVCF(in, build);
+			    gatk.annotateAVcfWithSnpEFF(snpEffResult, false);
+			    out = snpEffResult.getOutputSnpEffVCF();
+			    if (!snpEffResult.isFail()) {
+			        SnpSiftResult ssr = snpsift.annotateDbnsfp(snpEffResult.getOutputGatkSnpEffVCF(), log);
+			        out = ssr.getOutputVCF();
+			    }
 			}
-			return result;
+			return out;
 		}
 		return null;
 	}
@@ -391,27 +399,21 @@ public class GATK_Genotyper {
 		}
 	}
 
-	public static void annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild, boolean verbose, boolean overwriteExisting, Logger log) {
+	public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild, boolean verbose, boolean overwriteExisting, Logger log) {
         String snpSiftLoc = snpSiftLocation;
 	    if (snpSiftLoc.equals(PSF.Ext.BLANK)) {
-            snpSiftLoc= snpEffLocation;
+            snpSiftLoc = snpEffLocation;
         }
 		GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose, overwriteExisting, log);
 		SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
 		SNPSIFT snpsift = new SNPSIFT(snpSiftLoc, verbose, overwriteExisting, log);
 		ANNOVAR annovar = new ANNOVAR(annovarLocation, verbose, overwriteExisting, log);
 		GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, 1, verbose, log);
-		genotyper.annotateVCF(vcf, annoBuild);
-
+		return genotyper.annotateVCF(vcf, annoBuild);
 	}
 
 	public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta, String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild, boolean verbose, boolean overwriteExisting, Logger log) {
-	    GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose, overwriteExisting, log);
-	    SNPEFF snpeff = new SNPEFF(snpEffLocation, verbose, overwriteExisting, log);
-	    SNPSIFT snpsift = new SNPSIFT(snpSiftLocation, verbose, overwriteExisting, log);
-	    ANNOVAR annovar = new ANNOVAR(annovarLocation, verbose, overwriteExisting, log);
-	    GATK_Genotyper genotyper = new GATK_Genotyper(gatk, snpeff, snpsift, annovar, 0, 1, verbose, log);
-	    return genotyper.annotateVCF(vcf, annoBuild);
+	    return annotateOnly(vcf, gATKLocation, referenceGenomeFasta, null, null, null, null, null, null, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild, verbose, overwriteExisting, log); 
 	}
 
 	public static final String NUM_THREADS = "numThreads=";
