@@ -266,6 +266,8 @@ public class SampleData {
 		    cnvLoadingThread.start();
 		} else {
 		    loadedCNVs = true;
+            IndiPheno.setCNVsLoaded();
+
 		}
 		
 		String[] plinkFilenames = proj.PLINK_DIR_FILEROOTS.getValue();

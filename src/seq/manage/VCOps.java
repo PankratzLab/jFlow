@@ -141,7 +141,8 @@ public class VCOps {
 	public static boolean isMinorAlleleAlternate(VariantContext vc, Set<String> sampleNames) {
 		VariantContext vcSub = sampleNames == null ? vc : getSubset(vc, sampleNames);
 		double mac = getMAC(vcSub, null);
-		return getAAC(vcSub, null) == mac;
+		double aac = getAAC(vcSub, null);
+		return aac == mac;
 	}
 
 	/**

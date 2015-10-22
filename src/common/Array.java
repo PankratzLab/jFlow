@@ -897,22 +897,50 @@ public class Array {
 		return mult;
 	}
 
+
+	/**
+	 * @param n
+	 *            number of points for the moving average
+	 * @param array
+	 * @param skipNaN
+	 *            If true, every moving average will be composed of n points, or NaN; defaults to removing Nan for the average
+	 * @return an array of moving averages with moving average of n sequential points
+	 */
+	public static double[] movingAverageForward(int n, double[] array, boolean skipNaN) {
+		double[] ma = new double[array.length];
+		ArrayList<Double> tmp = new ArrayList<Double>();
+		for (int i = 0; i < array.length; i++) {
+			if (!skipNaN || !Double.isNaN(array[i])) {
+				tmp.add(array[i]);
+				if (tmp.size() >= n) {
+					ma[i] = mean(toDoubleArray(tmp), true);
+					tmp.remove(0);
+				} else {
+					ma[i] = Double.NaN;
+				}
+			} else {
+				ma[i] = Double.NaN;
+
+			}
+		}
+		return ma;
+	}
+
 	/**
 	 * @param n
 	 *            number of points for the moving average
 	 * @param array
 	 * @return an array of moving averages with moving average of n sequential points
 	 */
-	public static double[] movingAverageForward(int n, double[] array) {
+	public static double[] movingMedianForward(int n, double[] array) {
 		double[] ma = new double[array.length];
 		double[] a = new double[n];
-		double sum = 0.0;
+		ArrayList<Double> tmp = new ArrayList<Double>();
 		for (int i = 0; i < array.length; i++) {
-			sum -= a[i % n];
-			a[i % n] = array[i];
-			sum += a[i % n];
+			tmp.add(array[i]);
 			if (i >= n) {
-				ma[i] = (double) sum / n;
+				ma[i] = (double) median(toDoubleArray(tmp));
+				tmp.remove(0);
 			} else {
 				ma[i] = Double.NaN;
 			}
@@ -3677,9 +3705,13 @@ public class Array {
 	}
 
 	public static double[] getValuesBetween(double[] array, double min, double max) {
+		return getValuesBetween(array, min, max, false);
+	}
+
+	public static double[] getValuesBetween(double[] array, double min, double max, boolean gteLte) {
 		ArrayList<Double> tmp = new ArrayList<Double>();
 		for (int i = 0; i < array.length; i++) {
-			if (!Double.isNaN(array[i]) && array[i] > min && array[i] < max) {
+			if (!Double.isNaN(array[i]) && (array[i] > min && array[i] < max || (gteLte && array[i] >= min && array[i] <= max))) {
 				tmp.add(array[i]);
 			}
 		}

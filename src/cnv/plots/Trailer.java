@@ -13,6 +13,7 @@ import javax.swing.border.EmptyBorder;
 
 import mining.Transformations;
 import common.*;
+import cnv.analysis.MosaicismDetect;
 import cnv.filesys.*;
 import cnv.gui.NewRegionListDialog;
 import cnv.gui.SingleClick;
@@ -26,6 +27,7 @@ import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
+import cnv.var.LocusSet;
 import cnv.var.Region;
 import cnv.var.SampleData;
 import filesys.*;
@@ -87,7 +89,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
-	private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller", "RevCNVCaller", "Consensus" };
+	private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller", "RevCNVCaller", "Consensus","MosaicCaller" };
 
 	private JComboBox<String> sampleList;
 	private String[] samplesPresent;
@@ -135,6 +137,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private PFB pfb;
 	private JCheckBoxMenuItem gcCorrectButton;
 	private JCheckBoxMenuItem callCnvsButton;
+	private JCheckBoxMenuItem mosaicCallButton;
+
 	private Hashtable<String, String> namePathMap;
 //	private JComboBox<String> centroidsSelection;
 	private Logger log;
@@ -1326,10 +1330,37 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		};
 		callCnvsButton = new JCheckBoxMenuItem("Call Cnvs", false);// stays hidden if gcModel is not detected
 		callCnvsButton.addItemListener(cnvListener);
-		act.add(callCnvsButton);
+		
 		act.addSeparator();
-		
-		
+
+		ItemListener mosaicListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+				MosaicismDetect md = new MosaicismDetect(proj, sample, Array.toDoubleArray(bafs), markerSet, 50, 2, true);
+				Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
+				LocusSet<CNVariant> mosSet = md.callMosaic(seg);
+				int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
+				if (sampleData.getCnvClasses().length <= externalCNVs) {
+					sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
+					cnvLabels = Array.concatAll(sampleData.getCnvClasses());
+				}
+				if (indiPheno.getCnvClasses().size() <= externalCNVs) {
+					for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
+						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+					}
+				}
+				indiPheno.getCnvClasses().get(externalCNVs + 3).put(chr + "", mosSet.getLoci());
+				sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+				procCNVs(chr);
+
+				jrb.setSelected(false);
+				updateGUI();
+			}
+		};
+		mosaicCallButton = new JCheckBoxMenuItem("Call Mosaicism (extra beta)", false);
+		mosaicCallButton.addItemListener(mosaicListener);
+		act.add(mosaicCallButton);
+		act.addSeparator();
 		
 		ItemListener centListener = new ItemListener() {
 			@Override
