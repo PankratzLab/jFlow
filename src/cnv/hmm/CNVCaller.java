@@ -20,7 +20,7 @@ import cnv.hmm.PennHmm.ViterbiResult;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
-import cnv.var.CNVariant.Builder;
+import cnv.var.CNVariant.CNVBuilder;
 import cnv.var.LocusSet;
 import cnv.var.LocusSet.TO_STRING_TYPE;
 import filesys.Segment;
@@ -332,7 +332,7 @@ public class CNVCaller {
 							if (intersect.getSize() != tmp.getSize()) {
 								System.err.println("CONSENSUS FLAG");
 							}
-							Builder builder = new Builder(tmp);
+							CNVBuilder builder = new CNVBuilder(tmp);
 							builder.start(intersect.getStart());
 							builder.stop(intersect.getStop());
 							builder.numMarkers(Array.getValuesBetween(positions, intersect.getStart(), intersect.getStop(), true).length);

@@ -6,17 +6,16 @@ import java.util.Iterator;
 
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
 import common.Array;
-import common.ext;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-import cnv.hmm.PennHmm;
 import cnv.hmm.PennHmm.ViterbiResult;
 import cnv.var.CNVariant;
 import cnv.var.LocusSet;
 import cnv.var.LocusSet.TO_STRING_TYPE;
 import cnv.var.MosaicRegion;
 import filesys.Segment;
+import cnv.var.CNVariant.CNVBuilder;
 
 public class MosaicismDetect implements Iterator<MosaicRegion> {
 
@@ -33,12 +32,12 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 	private double[] means;
 	private double[] variances;
 
-	public MosaicismDetect(Project proj, String sample, double[] bafs, MarkerSet markerSet, int movingFactor, double nullSigma, boolean verbose) {
+	public MosaicismDetect(Project proj, String sample,int[][] indicesByChr, double[] bafs, MarkerSet markerSet, int movingFactor, double nullSigma, boolean verbose) {
 		super();
 		this.proj = proj;
 		this.sample = sample;
 		this.markerSet = markerSet;
-		this.indicesByChr = markerSet.getIndicesByChr();
+		this.indicesByChr =indicesByChr==null? markerSet.getIndicesByChr():indicesByChr;
 		this.sample = sample;
 		this.bafs = bafs;
 		this.movingFactor = movingFactor;
@@ -52,6 +51,15 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 
 	public <T extends Segment> LocusSet<CNVariant> callMosaic(T seg) {
 		int[] segIndices = markerSet.getIndicesOfMarkersIn(seg, indicesByChr, proj.getLog());
+		ArrayList<Integer> evalIndicestmp = new ArrayList<Integer>();
+		LocusSet<CNVariant> dud = new LocusSet<CNVariant>(new CNVariant[0], true, proj.getLog()) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
 		double[] p_density = new double[segIndices.length];
 		for (int i = 0; i < segIndices.length; i++) {
 			double baf = bafs[segIndices[i]];
@@ -73,34 +81,62 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 					p_density[i] = tmp;
 				}
 			}
+			if (!Double.isNaN(p_density[i])) {
+				evalIndicestmp.add(i);
+			}
 
 		}
-		double[] p_densityMA = Array.movingAverageForward(movingFactor, p_density, true);
-		double[] p_densityMAReverse = Array.movingAverageForward(movingFactor, Array.reverse(p_density), true);
-		int[] states = new int[p_densityMA.length];
+		int[] evalIndices = Array.toIntArray(evalIndicestmp);
+		segIndices = Array.subArray(segIndices, evalIndices);
+		if (segIndices.length > 0) {
 
-		ArrayList<Integer> mosIndicesTmp = new ArrayList<Integer>();
-		for (int i = 0; i < p_densityMA.length; i++) {
-			double[] tD = Array.removeNaN(new double[] { p_densityMA[i], p_densityMAReverse[i] });
-		//	double d = tD.length > 0 ? Array.max(tD) : Double.NaN;
-			double d =p_densityMA[i];
-			if (Double.isFinite(d)) {
-				if (d <= baseLine) {
-					states[i] = 0;
-					mosIndicesTmp.add(i);
+			p_density = Array.subArray(p_density, evalIndices);
+			double[] p_densityMA = Array.movingAverageForward(movingFactor, p_density, true);
+			double[] p_densityMAReverse = Array.reverse(Array.movingAverageForward(movingFactor, Array.reverse(p_density), true));
+			int[] states = new int[p_densityMA.length];
+			ArrayList<Double> p_densityScored = new ArrayList<Double>();
+			ArrayList<Integer> mosIndicesTmp = new ArrayList<Integer>();
+			for (int i = 0; i < p_densityMA.length; i++) {
+				double[] tD = Array.removeNaN(new double[] { p_densityMA[i], p_densityMAReverse[i] });
+				double d = tD.length > 0 ? Array.mean(tD) : Double.NaN;
+				p_densityScored.add(d);
+				if (Double.isFinite(d)) {
+					if (d <= baseLine) {
+						states[i] = 0;
+						mosIndicesTmp.add(i);
+					} else {
+						states[i] = 2;
+						mosIndicesTmp.add(i);
+
+					}
 				} else {
 					states[i] = 2;
-					mosIndicesTmp.add(i);
 				}
-			} else {
-				states[i] = 2;
 			}
+			int[] mosIndices = Array.toIntArray(mosIndicesTmp);
+			int[] positions = Array.subArray(Array.subArray(markerSet.getPositions(), segIndices), mosIndices);
+			String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices), mosIndices);
+			ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
+			dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false, verbose);
+			CNVariant[] tmp = new CNVariant[dud.getLoci().length];
+			double[] finalPDensit = Array.toDoubleArray(p_densityScored);
+			for (int i = 0; i < dud.getLoci().length; i++) {
+				CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
+				int[] scoreStopStart = vtr.getIndexStateChange().get(i);
+				double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
+				builder.score(baseLine - Array.mean(scored));
+				tmp[i] = builder.build();
+			}
+			dud = new LocusSet<CNVariant>(tmp, true, proj.getLog()) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+ 
 		}
-		int[] mosIndices = Array.toIntArray(mosIndicesTmp);
-		int[] positions = Array.subArray(Array.subArray(markerSet.getPositions(), segIndices), mosIndices);
-		String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices), mosIndices);
-		ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
-		LocusSet<CNVariant> dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false, verbose);
 		return dud;
 	}
 
@@ -178,7 +214,7 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 			String sample = samples[i];
 			Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
 			MarkerSet markerSet = proj.getMarkerSet();
-			MosaicismDetect md = new MosaicismDetect(proj, sample, Array.toDoubleArray(samp.getBAFs()), markerSet, movingFactor, 2, true);
+			MosaicismDetect md = new MosaicismDetect(proj, sample,null, Array.toDoubleArray(samp.getBAFs()), markerSet, movingFactor, 2, true);
 			int[][] te = markerSet.getIndicesByChr();
 			for (int j = 0; j < te.length; j++) {
 				if (te[j].length > 0 && j < 23) {

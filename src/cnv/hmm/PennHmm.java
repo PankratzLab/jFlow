@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import cnv.filesys.Project;
 import cnv.var.CNVariant;
 import cnv.var.LocusSet;
-import cnv.var.CNVariant.Builder;
+import cnv.var.CNVariant.CNVBuilder;
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 import common.Array;
@@ -440,6 +440,7 @@ public class PennHmm {
 	public static class ViterbiResult {
 		private int[] q;
 		private double[][] delta;
+		private ArrayList<int[]> indexStateChange;
 
 		public ViterbiResult(int[] q, double[][] delta) {
 			super();
@@ -449,6 +450,10 @@ public class PennHmm {
 
 		public double[][] getDelta() {
 			return delta;
+		}
+
+		public ArrayList<int[]> getIndexStateChange() {
+			return indexStateChange;
 		}
 
 		/**
@@ -466,10 +471,10 @@ public class PennHmm {
 		 * @return
 		 */
 		public LocusSet<CNVariant> analyzeStateSequence(Project proj, String fid, String iid, byte currentChr, int[] positions, String[] names, int normalState, boolean reverse, boolean verbose) {
-			CNVariant.Builder builder = new Builder();
+			CNVariant.CNVBuilder builder = new CNVBuilder();
 			builder.familyID(fid);
 			builder.individualID(iid);
-
+			this.indexStateChange = new ArrayList<int[]>();
 			ArrayList<CNVariant> tmp = new ArrayList<CNVariant>();
 			if (positions.length != q.length) {
 				String error = "Have " + q.length + " state sequences, but " + positions.length + " positions";
@@ -494,23 +499,27 @@ public class PennHmm {
 						}
 						if (foundSignal && currentCN != currentFind) {// new, adjacent cnv
 							builder.stop(positions[i - 1]);
+							indexStateChange.add(new int[] { builder.getStartIndex(), i - 1 });
 							tmp.add(builder.build());
-							builder = new Builder();
+							builder = new CNVBuilder();
 							builder.familyID(fid);
 							builder.individualID(iid);
 							builder.chr(currentChr);
 							builder.start(positions[i]);
+							builder.startIndex(i);
 							builder.numMarkers(1);
 							builder.cn(currentCN);
 							currentFind = currentCN;
 						} else if (foundSignal) {// continue with previous cnv
 							builder.numMarkers(builder.getNumMarkers() + 1);
 						} else {// new cnv
-							builder = new Builder();
+							builder = new CNVBuilder();
 							builder.familyID(fid);
 							builder.individualID(iid);
 							builder.chr(currentChr);
 							builder.start(positions[i]);
+							builder.startIndex(i);
+
 							builder.numMarkers(1);
 							builder.cn(currentCN);
 							foundSignal = true;
@@ -519,14 +528,15 @@ public class PennHmm {
 					} else if (foundSignal) {
 						currentFind = normalState;
 						builder.stop(positions[i - 1]);
+						indexStateChange.add(new int[] { builder.getStartIndex(), i - 1 });
 						tmp.add(builder.build());
-						builder = new Builder();
+						builder = new CNVBuilder();
 						builder.familyID(fid);
 						builder.individualID(iid);
 						foundSignal = false;
 					} else {
 						currentFind = normalState;
-						builder = new Builder();
+						builder = new CNVBuilder();
 						builder.familyID(fid);
 						builder.individualID(iid);
 						foundSignal = false;
@@ -534,6 +544,7 @@ public class PennHmm {
 				}
 				if (foundSignal) {
 					builder.stop(positions[positions.length - 1]);
+					indexStateChange.add(new int[] { builder.getStartIndex(), q.length - 1 });
 					tmp.add(builder.build());
 				}
 			}
@@ -566,7 +577,7 @@ public class PennHmm {
 
 				}
 				throw new IllegalStateException(error);
-			} else {
+			} else if (verbose) {
 				proj.getLog().reportTimeInfo("Found " + cnvs.getLoci().length + " cnvs over " + numTotalMarkers + " total markers covering " + cnvs.getBpCovered() + " bp on chromosome " + currentChr);
 			}
 			return cnvs;
@@ -720,7 +731,7 @@ public class PennHmm {
 			}
 
 			double score = getLocScore(pennHmm, Array.subArray(lrrChr, indices), Array.subArray(bafsChr, indices), Array.subArray(pfbsChr, indices), Array.subArray(copyNumberOnlyDef, indices), hmmState);
-			Builder builder = new Builder(current);
+			CNVBuilder builder = new CNVBuilder(current);
 			builder.score(score);
 			scored.add(builder.build());
 		}

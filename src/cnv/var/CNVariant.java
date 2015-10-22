@@ -683,7 +683,7 @@ public class CNVariant extends Segment {
 	 * Useful when the terms of the cnv are not completely known, such as in CNVCalling
 	 *
 	 */
-	public static class Builder {
+	public static class CNVBuilder {
 		private byte chr = -1;
 		private int start = -1;
 		private int stop = -1;
@@ -693,11 +693,13 @@ public class CNVariant extends Segment {
 		private double score = -22;
 		private int numMarkers = -1;
 		private int source = -1;
+		private int startIndex = -1;// for tracking external indices, such as positions in project
+		private int stopIndex = -1;// for tracking external indices, such as positions in project
 
-		public Builder() {
+		public CNVBuilder() {
 
 		}
-		public Builder(CNVariant cnVariant) {
+		public CNVBuilder(CNVariant cnVariant) {
 			this.chr = cnVariant.chr;
 			this.start = cnVariant.start;
 			this.stop = cnVariant.stop;
@@ -709,47 +711,60 @@ public class CNVariant extends Segment {
 			this.source = cnVariant.source;
 		}
 		
-		public Builder familyID(String familyID) {
+		public CNVBuilder familyID(String familyID) {
 			this.familyID = familyID;
 			return this;
 		}
 
-		public Builder individualID(String individualID) {
+		public CNVBuilder individualID(String individualID) {
 			this.individualID = individualID;
 			return this;
 		}
 
-		public Builder start(int start) {
+		public CNVBuilder start(int start) {
 			this.start = start;
 			return this;
 		}
 
-		public Builder stop(int stop) {
+		public CNVBuilder stop(int stop) {
 			this.stop = stop;
 			return this;
 		}
 
-		public Builder chr(byte chr) {
+		public CNVBuilder startIndex(int startIndex) {
+			this.startIndex = startIndex;
+			return this;
+		}
+
+		public int getStartIndex() {
+			return startIndex;
+		}
+		public CNVBuilder stopIndex(int stopIndex) {
+			this.stopIndex = stopIndex;
+			return this;
+		}
+
+		public CNVBuilder chr(byte chr) {
 			this.chr = chr;
 			return this;
 		}
 
-		public Builder cn(int cn) {
+		public CNVBuilder cn(int cn) {
 			this.cn = cn;
 			return this;
 		}
 
-		public Builder score(double score) {
+		public CNVBuilder score(double score) {
 			this.score = score;
 			return this;
 		}
 
-		public Builder numMarkers(int numMarkers) {
+		public CNVBuilder numMarkers(int numMarkers) {
 			this.numMarkers = numMarkers;
 			return this;
 		}
 
-		public Builder source(int source) {
+		public CNVBuilder source(int source) {
 			this.source = source;
 			return this;
 		}
@@ -775,7 +790,7 @@ public class CNVariant extends Segment {
 		}
 	}
 
-	private CNVariant(Builder builder) {
+	private CNVariant(CNVBuilder builder) {
 		super(builder.chr, builder.start, builder.stop);
 		this.familyID = builder.familyID;
 		this.individualID = builder.individualID;
