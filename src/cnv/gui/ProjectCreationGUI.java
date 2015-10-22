@@ -120,7 +120,7 @@ public class ProjectCreationGUI extends JDialog {
     private JComboBox<Project.ARRAY> comboBoxArrayType;
 //    private JComboBox<String> comboBoxArrayType;
     private JLabel lblSrcFileStatus;
-//    private JButton btnValidateSourceFiles;
+    private JSpinner spinnerXY;
 
     /**
      * Launch the application.
@@ -149,7 +149,7 @@ public class ProjectCreationGUI extends JDialog {
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
-        contentPane.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow][grow]", "[grow][][grow][][][grow][][][][][grow][][][grow][]"));
+        contentPane.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow][grow]", "[grow][][grow][][][grow][][][][][grow][][][][grow][]"));
         
         JLabel lblGenvisisProjectCreation = new JLabel("Genvisis Project Creation");
         lblGenvisisProjectCreation.setFont(new Font("Arial", Font.BOLD, 16));
@@ -204,28 +204,28 @@ public class ProjectCreationGUI extends JDialog {
         comboBoxArrayType.setFont(comboBoxArrayType.getFont().deriveFont(Font.PLAIN));
         contentPane.add(comboBoxArrayType, "cell 2 8,growx");
         
-//        btnValidateSourceFiles = new JButton("Validate Source Files");
-//        btnValidateSourceFiles.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent arg0) {
-//            }
-//        });
-//        contentPane.add(btnValidateSourceFiles, "cell 2 9,alignx right");
-        
         lblSrcFileStatus = new JLabel("");
         contentPane.add(lblSrcFileStatus, "cell 2 10,alignx right,aligny top");
         
+        JLabel lblXyCorrectionRatio = new JLabel("X/Y Correction Ratio:");
+        contentPane.add(lblXyCorrectionRatio, "cell 0 11,alignx right");
+        
+        spinnerXY = new JSpinner();
+        spinnerXY.setModel(new SpinnerNumberModel(proj.XY_SCALE_FACTOR.getDefaultValue().doubleValue(), 0.001, 10000000000d, 1.0));
+        contentPane.add(spinnerXY, "cell 2 11,growx");
+        
         JLabel lblLogrRatioStddev = new JLabel("Log-R Ratio Std.Dev. Cut-off Threshold:");
-        contentPane.add(lblLogrRatioStddev, "cell 0 11,alignx trailing");
+        contentPane.add(lblLogrRatioStddev, "cell 0 12,alignx trailing");
         
         spinnerLrrSd = new JSpinner();
-        spinnerLrrSd.setModel(new SpinnerNumberModel(proj.LRRSD_CUTOFF.getDefaultValue().doubleValue(), 0.0, 3.0, 0.0));
-        contentPane.add(spinnerLrrSd, "cell 2 11,growx");
+        spinnerLrrSd.setModel(new SpinnerNumberModel(proj.LRRSD_CUTOFF.getDefaultValue().doubleValue(), 0.0, 3.0, 0.1));
+        contentPane.add(spinnerLrrSd, "cell 2 12,growx");
         
         JLabel lblTargetMarkersFile = new JLabel("[Optional] Target Markers File:");
-        contentPane.add(lblTargetMarkersFile, "cell 0 12,alignx trailing");
+        contentPane.add(lblTargetMarkersFile, "cell 0 13,alignx trailing");
         
         txtFldTgtMkrs = new JTextField(proj.TARGET_MARKERS_FILENAMES.getDefaultValueString());
-        contentPane.add(txtFldTgtMkrs, "flowx,cell 2 12,growx");
+        contentPane.add(txtFldTgtMkrs, "flowx,cell 2 13,growx");
         txtFldTgtMkrs.setColumns(10);
         
         Insets fileBtnInsets = new Insets(0, 3, 0, 3);
@@ -245,10 +245,10 @@ public class ProjectCreationGUI extends JDialog {
         btnTgtMkrs.setMargin(fileBtnInsets);
         btnTgtMkrs.setText("...");
         btnTgtMkrs.setActionCommand("TARGET");
-        contentPane.add(btnTgtMkrs, "cell 2 12");
+        contentPane.add(btnTgtMkrs, "cell 2 13");
         
         JSeparator separator_1 = new JSeparator();
-        contentPane.add(separator_1, "cell 0 14 4 1,growx");
+        contentPane.add(separator_1, "cell 0 15 4 1,growx");
         
         JPanel panel = new JPanel();
         contentPane.add(panel, "south");
@@ -284,6 +284,7 @@ public class ProjectCreationGUI extends JDialog {
         String srcExt = txtFldSrcExt.getText().trim();
 //        String idHdr = txtFldIDHdr.getText().trim();
 //        double lrrSd = ((Double)spinnerLrrSd.getValue()).doubleValue();
+//        double xy = ((Double)spinnerXY.getValue()).doubleValue();
         String tgtMkrs = txtFldTgtMkrs.getText().trim();
 
         boolean validProjDir = false;
@@ -389,6 +390,7 @@ public class ProjectCreationGUI extends JDialog {
         String srcExt = txtFldSrcExt.getText().trim();
 //        String idHdr = txtFldIDHdr.getText().trim();
         double lrrSd = ((Double)spinnerLrrSd.getValue()).doubleValue();
+        double xy = ((Double)spinnerXY.getValue()).doubleValue();
         String tgtMkrs = txtFldTgtMkrs.getText().trim();
         
         HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt, true, new common.Logger());
@@ -468,6 +470,7 @@ public class ProjectCreationGUI extends JDialog {
         actualProj.SOURCE_DIRECTORY.setValue(srcDir);
         actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);
         actualProj.LRRSD_CUTOFF.setValue(lrrSd);
+        actualProj.XY_SCALE_FACTOR.setValue(xy);
         actualProj.TARGET_MARKERS_FILENAMES.setValue(new String[]{ext.removeDirectoryInfo(tgtMkrs)});
         actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());
         // if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
