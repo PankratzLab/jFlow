@@ -170,6 +170,8 @@ public class Mosaicism {
 		}
 		lrrs = samp.getLRRs();
 		bafs = samp.getBAFs();
+		MosaicismDetect md = new MosaicismDetect(proj, sample, indicesByChr,  Array.toDoubleArray(bafs), markerSet, 25, 2, false);
+
 		for (int j = 1; j<=23; j++) {
 			for (int arm = 0; arm<2; arm++) {
 				lrrVec = new FloatVector();
@@ -186,7 +188,9 @@ public class Mosaicism {
 					}
 				}
 				if (lrrVec.size()>100) {
-					double mosaicMetric = getMosiacMetric(proj, markerSet, indicesByChr, 25, 2, sample, (byte) j, (arm == 0 ? chrBoundaries[j][0] : chrBoundaries[j][1]), (arm == 0 ? chrBoundaries[j][1] : chrBoundaries[j][2] + 1), Array.toDoubleArray(bafs));
+					//long time = System.currentTimeMillis();
+					double mosaicMetric = getMosiacMetric(md, new Segment((byte) j, (arm == 0 ? chrBoundaries[j][0] : chrBoundaries[j][1]), (arm == 0 ? chrBoundaries[j][1] : chrBoundaries[j][2] + 1)));
+					//proj.getLog().reportTimeElapsed(time);
 					String result =sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrVec.size() + "\t" + ext.formDeci(Array.mean(lrrVec.toArray()), 5) + "\t" + bafVec.size() + (bafVec.size() > 10 ? "\t" + ext.formDeci(Array.stdev(bafVec.toArray(), true), 5) + "\t" + ext.formDeci(Array.iqr(bafVec.toArray()), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrVec.size() - bafVec.size()) / (double) lrrVec.size(), 5) + "\t" + mosaicMetric;
 					results.add(result);
 				}
@@ -195,15 +199,14 @@ public class Mosaicism {
 		return Array.toStringArray(results);
 	}
 
-	private static double getMosiacMetric(Project proj, MarkerSet markerSet, int[][] indicesByChr, int movingFactor, double nullSigma, String sample, byte chr, int startPos, int stopPos, double[] bafs) {
-		MosaicismDetect md = new MosaicismDetect(proj, sample, indicesByChr, bafs, markerSet, movingFactor, nullSigma, false);
-		LocusSet<CNVariant> tmp = md.callMosaic(new Segment(chr, startPos, stopPos));
+	private static double getMosiacMetric(MosaicismDetect md, Segment seg) {
+		LocusSet<CNVariant> tmp = md.callMosaic(seg);
 		if (tmp.getLoci().length < 1) {
 			return 0;
 		} else {
 			double metric = 0;
 			for (int i = 0; i < tmp.getLoci().length; i++) {
-				if (tmp.getLoci()[i].getNumMarkers() > movingFactor) {
+				if (tmp.getLoci()[i].getNumMarkers() > md.getMovingFactor()) {
 					metric += tmp.getLoci()[i].getScore();
 				}
 			}
