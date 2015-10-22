@@ -4,10 +4,14 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -93,8 +97,8 @@ public class VCFSimpleTally {
 						throw new IllegalArgumentException("could not find all cases for " + casePop);
 					}
 					if (!vcCase.isMonomorphicInSamples() && vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all"))) {
-						String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
-						error += "\n" + vc.toStringWithoutGenotypes();
+						// String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
+						// error += "\n" + vc.toStringWithoutGenotypes();
 						// throw new IllegalStateException(error);
 					} else if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size() && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed() && filterCHARGE(vcCase, 0.01)) {// as alts in rare esp/1000g
 						boolean controlPass = true;
@@ -129,6 +133,29 @@ public class VCFSimpleTally {
 		return vContextFilter;
 	}
 
+	private static Hashtable<String, String[]> loadToGeneFuncHash(String geneFile, Logger log) {
+		Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+		try {
+			BufferedReader reader = Files.getAppropriateReader(geneFile);
+			while (reader.ready()) {
+				String[] line = reader.readLine().trim().split("\t");
+				String gene = line[0];
+				String func = line[1];
+				String[] rest = Array.subArray(line, 2);
+				hash.put(gene + "_" + func, rest);
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + geneFile + "\" not found in current directory");
+			return null;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + geneFile + "\"");
+			return null;
+		}
+		return hash;
+
+	}
+
 	public static void test() {
 		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf.gz";
 		String popDir = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/Freq/";
@@ -143,10 +170,45 @@ public class VCFSimpleTally {
 			String outDir = ext.parseDirectoryOfFile(vpopsCase[i]);
 			new File(outDir).mkdirs();
 			Logger log = new Logger(ext.rootOf(vpopsCase[i], false) + ".log");
-			VcfPopulation controls = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, log);
-			String controlFile = ext.parseDirectoryOfFile(vpopsCase[i] + controls.getUniqSuperPop().get(0) + ".vpop");
-			runSimpleTally(vcf, controlFile, maf, numThreads, outDir, log);
+			SimpleTallyResult caseResult = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, log);
+			VcfPopulation controls = caseResult.getControls();
+			String controlFile = ext.parseDirectoryOfFile(vpopsCase[i]) + controls.getUniqSuperPop().get(0) + ".vpop";
+			controls.report();
+			controls.dump(controlFile);
+			SimpleTallyResult controlResult = runSimpleTally(vcf, controlFile, maf, numThreads, outDir, log);
+			String geneFileCase = caseResult.getFinalAnnotGene();
+			String geneFileControl = controlResult.getFinalAnnotGene();
+			String caseWithControls = ext.addToRoot(geneFileCase, "_" + ext.rootOf(controlFile));
+
+			Hashtable<String, String[]> controlsFuncHash = loadToGeneFuncHash(geneFileControl, log);
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(caseWithControls));
+
+				BufferedReader reader = Files.getAppropriateReader(geneFileCase);
+				String[] blanks = new String[GENE_ADD.length];
+				Arrays.fill(blanks, "0");
+				while (reader.ready()) {
+					String[] caseLine = reader.readLine().trim().split("\t");
+					String key = caseLine[0] + "_" + caseLine[1];
+					if (controlsFuncHash.containsKey(key)) {
+						writer.println(Array.toStr(caseLine) + "\t" + Array.toStr(controlsFuncHash.get(key)));
+					} else {
+						writer.println(Array.toStr(caseLine) + "\t" + Array.toStr(blanks));
+					}
+				}
+				reader.close();
+				writer.close();
+
+			} catch (FileNotFoundException fnfe) {
+				log.reportError("Error: file \"" + geneFileCase + "\" not found in current directory");
+				return;
+			} catch (IOException ioe) {
+				log.reportError("Error reading file \"" + geneFileCase + "\"");
+				return;
+			}
+
 		}
+
 		// String[] vpopsControl = new String[] { popDir + "EPP.vpop", popDir + "ALL_CONTROL_EPP.vpop", popDir + "ALL_CONTROL_ANIRIDIA.vpop", popDir + "ALL_CONTROL_ANOTIA.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		// for (int i = 0; i < vpopsControl.length; i++) {
 		// String outDir = ext.parseDirectoryOfFile(vpopsControl[i]);
@@ -156,7 +218,34 @@ public class VCFSimpleTally {
 		// }
 	}
 
-	private static VcfPopulation runSimpleTally(String vcf, String vpop, double maf, int numThreads, String outDir, Logger log) {
+	private static class SimpleTallyResult {
+		private VcfPopulation controls;
+		private String finalOut;
+		private String finalOutVCF;
+		private String finalAnnot;
+
+		private String finalAnnotGene;
+
+		public SimpleTallyResult(VcfPopulation controls, String finalOut, String finalOutVCF, String finalAnnot, String finalAnnotGene) {
+			super();
+			this.controls = controls;
+			this.finalOut = finalOut;
+			this.finalOutVCF = finalOutVCF;
+			this.finalAnnot = finalAnnot;
+			this.finalAnnotGene = finalAnnotGene;
+		}
+
+		public VcfPopulation getControls() {
+			return controls;
+		}
+
+		public String getFinalAnnotGene() {
+			return finalAnnotGene;
+		}
+
+	}
+
+	private static SimpleTallyResult runSimpleTally(String vcf, String vpop, double maf, int numThreads, String outDir, Logger log) {
 		VcfPopulation vpopAc = VcfPopulation.load(vpop, POPULATION_TYPE.ANY, log);
 		vpopAc.report();
 		String caseDef = ext.rootOf(vpop);
@@ -177,18 +266,8 @@ public class VCFSimpleTally {
 		String finalAnnot = finalOut + ".summary";
 
 		String finalAnnotGene = finalOut + ".gene";
-		VCFFileReader tmp = new VCFFileReader(filtVcfs.get(0), true);
-
-		VariantContextWriter writer = VCFOps.initWriter(finalOutVCF, VCFOps.DEFUALT_WRITER_OPTIONS, VCFOps.getSequenceDictionary(tmp));
-		VCFOps.copyHeader(tmp, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
-		tmp.close();
-		PrintWriter annoGeneWriter = Files.getAppropriateWriter(finalAnnotGene);
-		annoGeneWriter.print(Array.toStr(GENE_BASE));
-		PrintWriter annoWriter = Files.getAppropriateWriter(finalAnnot);
-		annoWriter.print(Array.toStr(ANNO_BASE));
 		Set<String> cases = vpopAc.getSuperPop().get(caseDef);
-		annoWriter.print("\t" + Array.toStr(Array.tagOn(ANNO_ADD, caseDef + "_N_" + cases.size(), null)));
-		annoGeneWriter.print("\t" + Array.toStr(Array.tagOn(GENE_ADD, caseDef + "_N_" + cases.size(), null)));
+		vpopAc.report();
 		Hashtable<String, Set<String>> controls = vpopAc.getSuperPop();
 		controls.remove(caseDef);
 		controls.remove(VcfPopulation.EXCLUDE);
@@ -200,67 +279,85 @@ public class VCFSimpleTally {
 		for (String acontrolPop : controls.keySet()) {
 			controlPop.get(caseDef + "_" + VcfPopulation.CONTROL).addAll(controls.get(acontrolPop));
 		}
-
 		VcfPopulation controlVcfPopulation = new VcfPopulation(controlPop, controlPop, POPULATION_TYPE.CASE_CONTROL, new Logger());
-		summarizeAnalysisParams(finalOut + ".sampSummary.txt", caseDef, cases, controls, maf, log);
-		ArrayList<String> controlsOrdered = new ArrayList<String>();
-		controlsOrdered.addAll(controls.keySet());
-		for (int i = 0; i < controlsOrdered.size(); i++) {
-			annoWriter.print("\t" + Array.toStr(Array.tagOn(ANNO_ADD, controlsOrdered.get(i) + "_N_" + controls.get(controlsOrdered.get(i)).size(), null)));
-			annoGeneWriter.print("\t" + Array.toStr(Array.tagOn(GENE_ADD, controlsOrdered.get(i) + "_N_" + controls.get(controlsOrdered.get(i)).size(), null)));
-		}
-		annoGeneWriter.println();
-		String[][] annotations = VCFOps.getAnnotationKeys(vcf, log);
-		annoWriter.print("\t" + Array.toStr(annotations[0]));
-		annoWriter.println();
-		VariantContextFilter qual = getQualityFilterwkggseq(log);
-		Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<String, ArrayList<GeneSummary[]>>();
-		for (int i = 0; i < filtVcfs.size(); i++) {
-			log.reportTimeInfo("Summarizing " + filtVcfs.get(i));
-			VCFFileReader result = new VCFFileReader(filtVcfs.get(i), true);
-			for (VariantContext vc : result) {
-				writer.add(vc);
-				String geneName = VCOps.getSNP_EFFGeneName(vc);
-				if (!geneSummaries.containsKey(geneName)) {
-					addEntries(caseDef, controlsOrdered, geneSummaries, geneName);
-				}
+		SimpleTallyResult simpleTallyResult = new SimpleTallyResult(controlVcfPopulation, finalOut, finalOutVCF, finalAnnot, finalAnnotGene);
+		if (!Files.exists(finalAnnotGene)) {
+			VCFFileReader tmp = new VCFFileReader(filtVcfs.get(0), true);
 
-				VcGroupSummary vcCaseGroup = new VcGroupSummary(caseDef, cases, vc, qual, log);
-				for (int j = 0; j < geneSummaries.get(geneName).get(0).length; j++) {
-					geneSummaries.get(geneName).get(0)[j].add(vcCaseGroup);
-				}
-				annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
-				annoWriter.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
-				for (int j = 0; j < controlsOrdered.size(); j++) {
-					VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(j), controls.get(controlsOrdered.get(j)), vc, qual, log);
+			VariantContextWriter writer = VCFOps.initWriter(finalOutVCF, VCFOps.DEFUALT_WRITER_OPTIONS, VCFOps.getSequenceDictionary(tmp));
+			VCFOps.copyHeader(tmp, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
+			tmp.close();
 
-					for (int k = 0; k < geneSummaries.get(geneName).get(0).length; k++) {
-						geneSummaries.get(geneName).get(j + 1)[k].add(vcControlGroup);
+			PrintWriter annoGeneWriter = Files.getAppropriateWriter(finalAnnotGene);
+			annoGeneWriter.print(Array.toStr(GENE_BASE));
+			PrintWriter annoWriter = Files.getAppropriateWriter(finalAnnot);
+			annoWriter.print(Array.toStr(ANNO_BASE));
+
+			annoWriter.print("\t" + Array.toStr(Array.tagOn(ANNO_ADD, caseDef + "_N_" + cases.size(), null)));
+			annoGeneWriter.print("\t" + Array.toStr(Array.tagOn(GENE_ADD, caseDef + "_N_" + cases.size(), null)));
+
+			summarizeAnalysisParams(finalOut + ".sampSummary.txt", caseDef, cases, controls, maf, log);
+			ArrayList<String> controlsOrdered = new ArrayList<String>();
+			controlsOrdered.addAll(controls.keySet());
+			for (int i = 0; i < controlsOrdered.size(); i++) {
+				annoWriter.print("\t" + Array.toStr(Array.tagOn(ANNO_ADD, controlsOrdered.get(i) + "_N_" + controls.get(controlsOrdered.get(i)).size(), null)));
+				annoGeneWriter.print("\t" + Array.toStr(Array.tagOn(GENE_ADD, controlsOrdered.get(i) + "_N_" + controls.get(controlsOrdered.get(i)).size(), null)));
+			}
+			annoGeneWriter.println();
+			String[][] annotations = VCFOps.getAnnotationKeys(vcf, log);
+			annoWriter.print("\t" + Array.toStr(annotations[0]));
+			annoWriter.println();
+			VariantContextFilter qual = getQualityFilterwkggseq(log);
+			Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<String, ArrayList<GeneSummary[]>>();
+			for (int i = 0; i < filtVcfs.size(); i++) {
+				log.reportTimeInfo("Summarizing " + filtVcfs.get(i));
+				VCFFileReader result = new VCFFileReader(filtVcfs.get(i), true);
+				for (VariantContext vc : result) {
+					writer.add(vc);
+					String geneName = VCOps.getSNP_EFFGeneName(vc);
+					if (!geneSummaries.containsKey(geneName)) {
+						addEntries(caseDef, controlsOrdered, geneSummaries, geneName);
 					}
-					annoWriter.print("\t" + Array.toStr(vcControlGroup.getSummary()));
-				}
-				annoWriter.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
-				annoWriter.println();
-			}
-			result.close();
-		}
 
-		annoWriter.close();
-		writer.close();
+					VcGroupSummary vcCaseGroup = new VcGroupSummary(caseDef, cases, vc, qual, log);
+					for (int j = 0; j < geneSummaries.get(geneName).get(0).length; j++) {
+						geneSummaries.get(geneName).get(0)[j].add(vcCaseGroup);
+					}
+					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
+					annoWriter.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
+					for (int j = 0; j < controlsOrdered.size(); j++) {
+						VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(j), controls.get(controlsOrdered.get(j)), vc, qual, log);
 
-		for (String gene : geneSummaries.keySet()) {
-			ArrayList<GeneSummary[]> geneSummariesCurrent = geneSummaries.get(gene);
-			for (int i = 0; i < geneSummariesCurrent.get(0).length; i++) {
-				annoGeneWriter.print(gene + "\t" + Array.toStr(geneSummariesCurrent.get(0)[i].getEffects(), "||"));
-				for (int j = 0; j < geneSummariesCurrent.size(); j++) {
-					annoGeneWriter.print("\t" + Array.toStr(geneSummariesCurrent.get(j)[i].getSummary()));
+						for (int k = 0; k < geneSummaries.get(geneName).get(0).length; k++) {
+							geneSummaries.get(geneName).get(j + 1)[k].add(vcControlGroup);
+						}
+						annoWriter.print("\t" + Array.toStr(vcControlGroup.getSummary()));
+					}
+					annoWriter.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
+					annoWriter.println();
 				}
-				annoGeneWriter.println();
+				result.close();
 			}
+
+			annoWriter.close();
+			writer.close();
+
+			for (String gene : geneSummaries.keySet()) {
+				ArrayList<GeneSummary[]> geneSummariesCurrent = geneSummaries.get(gene);
+				for (int i = 0; i < geneSummariesCurrent.get(0).length; i++) {
+					annoGeneWriter.print(gene + "\t" + Array.toStr(geneSummariesCurrent.get(0)[i].getEffects(), "||"));
+					for (int j = 0; j < geneSummariesCurrent.size(); j++) {
+						annoGeneWriter.print("\t" + Array.toStr(geneSummariesCurrent.get(j)[i].getSummary()));
+					}
+					annoGeneWriter.println();
+				}
+			}
+			annoGeneWriter.close();
+			VCFOps.VcfPopulation.splitVcfByPopulation(finalOutVCF, vpop, true, true, log);
+		} else {
+			log.reportTimeWarning(finalAnnotGene + " exists so skipping summarize");
 		}
-		annoGeneWriter.close();
-		VCFOps.VcfPopulation.splitVcfByPopulation(finalOutVCF, vpop, true, true, log);
-		return controlVcfPopulation;
+		return simpleTallyResult;
 	}
 
 	private static void summarizeAnalysisParams(String sumFile, String caseDef, Set<String> cases, Hashtable<String, Set<String>> controls, double maf, Logger log) {
