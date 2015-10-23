@@ -2,7 +2,6 @@ package cnv.analysis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
 import common.Array;
@@ -13,11 +12,10 @@ import cnv.hmm.PennHmm.ViterbiResult;
 import cnv.var.CNVariant;
 import cnv.var.LocusSet;
 import cnv.var.LocusSet.TO_STRING_TYPE;
-import cnv.var.MosaicRegion;
 import filesys.Segment;
 import cnv.var.CNVariant.CNVBuilder;
 
-public class MosaicismDetect implements Iterator<MosaicRegion> {
+public class MosaicismDetect {
 
 	private Project proj;
 	private String sample;
@@ -31,25 +29,10 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 	private double baseLine;
 	private double[] means;
 	private double[] variances;
-
-	public MosaicismDetect(Project proj, String sample,int[][] indicesByChr, double[] bafs, MarkerSet markerSet, int movingFactor, double nullSigma, boolean verbose) {
-		super();
-		this.proj = proj;
-		this.sample = sample;
-		this.markerSet = markerSet;
-		this.indicesByChr =indicesByChr==null? markerSet.getIndicesByChr():indicesByChr;
-		this.sample = sample;
-		this.bafs = bafs;
-		this.movingFactor = movingFactor;
-		this.nullSigma = nullSigma;
-		this.verbose = verbose;
-		if (bafs.length != markerSet.getMarkerNames().length) {
-			throw new IllegalArgumentException("Internal error, bafs must be present for entire array, fill with NaN if neccesary");
-		}
-		prep();
-	}
+	private double minPercentStates;
 
 	public int getMovingFactor() {
+
 		return movingFactor;
 	}
 
@@ -79,7 +62,6 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 					}
 				}
 				double test = Double.isFinite(baf) ? (double) (baf) : 0;
-				// System.out.println(test);
 				double tmp = (double) gd.distributions()[j].probability(test) * Math.sqrt(variances[j]);
 				if (tmp > p_density[i] && !Double.isNaN(p_density[i])) {
 					p_density[i] = tmp;
@@ -118,28 +100,31 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 				}
 			}
 			int[] mosIndices = Array.toIntArray(mosIndicesTmp);
-			int[] positions = Array.subArray(Array.subArray(markerSet.getPositions(), segIndices), mosIndices);
-			String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices), mosIndices);
-			ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
-			dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false, verbose);
-			CNVariant[] tmp = new CNVariant[dud.getLoci().length];
-			double[] finalPDensit = Array.toDoubleArray(p_densityScored);
-			for (int i = 0; i < dud.getLoci().length; i++) {
-				CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
-				int[] scoreStopStart = vtr.getIndexStateChange().get(i);
-				double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
-				builder.score(baseLine - Array.mean(scored));
-				tmp[i] = builder.build();
+			double percentState = (double) states.length / segIndices.length;
+			if (percentState > minPercentStates) {
+				int[] positions = Array.subArray(Array.subArray(markerSet.getPositions(), segIndices), mosIndices);
+				String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices), mosIndices);
+				ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
+				dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false, verbose);
+				CNVariant[] tmp = new CNVariant[dud.getLoci().length];
+				double[] finalPDensit = Array.toDoubleArray(p_densityScored);
+				for (int i = 0; i < dud.getLoci().length; i++) {
+					CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
+					int[] scoreStopStart = vtr.getIndexStateChange().get(i);
+					double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
+					builder.score(baseLine - Array.mean(scored));
+					tmp[i] = builder.build();
+				}
+				dud = new LocusSet<CNVariant>(tmp, true, proj.getLog()) {
+
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 1L;
+
+				};
 			}
-			dud = new LocusSet<CNVariant>(tmp, true, proj.getLog()) {
 
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = 1L;
-
-			};
- 
 		}
 		return dud;
 	}
@@ -167,17 +152,20 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 	}
 
 	private GaussianMixtureDistribution prepareGaussMixture(double[] autosomalBafs, double r1, double r2) {
-		this.means = new double[3];
-		this.variances = new double[3];
-		double[] zero_tsMeanVar = getMeanVar(autosomalBafs, 0, r1);
-		double[] t_tsMeanVar = getMeanVar(autosomalBafs, r1, r2);
-		double[] t_sMeanVar = getMeanVar(autosomalBafs, r2, 1);
-		means[0] = zero_tsMeanVar[0];
-		variances[0] = zero_tsMeanVar[1];
-		means[1] = t_tsMeanVar[0];
-		variances[1] = t_tsMeanVar[1];
-		means[2] = t_sMeanVar[0];
-		variances[2] = t_sMeanVar[1];
+		if (means != null) {
+
+			this.means = new double[3];
+			this.variances = new double[3];
+			double[] zero_tsMeanVar = getMeanVar(autosomalBafs, 0, r1);
+			double[] t_tsMeanVar = getMeanVar(autosomalBafs, r1, r2);
+			double[] t_sMeanVar = getMeanVar(autosomalBafs, r2, 1);
+			means[0] = zero_tsMeanVar[0];
+			variances[0] = zero_tsMeanVar[1];
+			means[1] = t_tsMeanVar[0];
+			variances[1] = t_tsMeanVar[1];
+			means[2] = t_sMeanVar[0];
+			variances[2] = t_sMeanVar[1];
+		}
 
 		double[] props = new double[3];
 		Arrays.fill(props, (double) 1 / 3);
@@ -193,18 +181,6 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 		return meanVar;
 	}
 
-	@Override
-	public boolean hasNext() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public MosaicRegion next() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	private static void test() {
 		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 
@@ -218,7 +194,9 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 			String sample = samples[i];
 			Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
 			MarkerSet markerSet = proj.getMarkerSet();
-			MosaicismDetect md = new MosaicismDetect(proj, sample,null, Array.toDoubleArray(samp.getBAFs()), markerSet, movingFactor, 2, true);
+			MosaicBuilder mosBuilder = new MosaicBuilder();
+
+			MosaicismDetect md = mosBuilder.build(proj, sample, markerSet, Array.toDoubleArray(samp.getBAFs()));
 			int[][] te = markerSet.getIndicesByChr();
 			for (int j = 0; j < te.length; j++) {
 				if (te[j].length > 0 && j < 23) {
@@ -263,4 +241,130 @@ public class MosaicismDetect implements Iterator<MosaicRegion> {
 		test();
 	}
 
+	public static class MosaicBuilder {
+		// default params...
+		private int movingFactor = 25;
+		private double nullSigma = 2;
+		private boolean verbose = false;
+		private int[][] indicesByChr = null;
+		private double baseLine = -1;
+		private double[] means = null;
+		private double[] variances = null;
+		private double minPercentStates = 0.05;
+
+		/**
+		 * @param movingFactor
+		 *            set the moving average length for the smoothing step
+		 * @return
+		 */
+		public MosaicBuilder movingFactor(int movingFactor) {
+			this.movingFactor = movingFactor;
+			if (movingFactor <= 0) {
+				throw new IllegalArgumentException("movingFactor must be positive");
+			}
+			return this;
+		}
+
+		/**
+		 * @param nullSigma
+		 *            points within this many standard deviations of either of the three distributions will not be counted
+		 * @return
+		 */
+		public MosaicBuilder nullSigma(double nullSigma) {
+			this.nullSigma = nullSigma;
+			if (nullSigma <= 0) {
+				throw new IllegalArgumentException("nullSigma must be positive");
+			}
+			return this;
+		}
+
+		/**
+		 * @param verbose
+		 *            verbose output
+		 * @return
+		 */
+		public MosaicBuilder verbose(boolean verbose) {
+			this.verbose = verbose;
+			return this;
+		}
+
+		/**
+		 * @param indicesByChr
+		 *            project marker indices by chromosome
+		 * @return
+		 */
+		public MosaicBuilder indicesByChr(int[][] indicesByChr) {
+			this.indicesByChr = indicesByChr;
+			return this;
+		}
+
+		/**
+		 * @param baseLine
+		 *            threshold for calling mosiac regions
+		 * @return
+		 */
+		public MosaicBuilder baseLine(double baseLine) {
+			this.baseLine = baseLine;
+			if (baseLine <= 0) {
+				throw new IllegalArgumentException("Baseline must be positive");
+			}
+			return this;
+		}
+
+		/**
+		 * @param means
+		 *            means of the 3 distributions
+		 * @param variances
+		 *            variances of the 3 distributions;
+		 * @return
+		 */
+		public MosaicBuilder meansAndVariances(double[] means, double[] variances) {
+			this.means = means;
+			this.variances = variances;
+
+			if (means == null || means.length != 3) {
+				throw new IllegalArgumentException("Internal error, means must be length 3");
+			}
+			if (variances == null || variances.length != 3) {
+				throw new IllegalArgumentException("Internal error, variances must be length 3");
+			}
+			return this;
+		}
+
+		/**
+		 * @param minPercentStates
+		 *            this percent of all markers in a region of interst must be outside of nullsigma
+		 * @return
+		 */
+		public MosaicBuilder minPercentStates(double minPercentStates) {
+			this.minPercentStates = minPercentStates;
+			if (minPercentStates <= 0) {
+				throw new IllegalArgumentException("minPercentStates must be positive");
+			}
+			return this;
+		}
+
+		public MosaicismDetect build(Project proj, String sample, MarkerSet markerSet, double[] bafs) {
+			return new MosaicismDetect(this, proj, sample, markerSet, bafs);
+		}
+	}
+
+	private MosaicismDetect(MosaicBuilder builder, Project proj, String sample, MarkerSet markerSet, double[] bafs) {
+		this.proj = proj;
+		this.sample = sample;
+		this.markerSet = markerSet;
+		this.bafs = bafs;
+		this.movingFactor = builder.movingFactor;
+		this.nullSigma = builder.nullSigma;
+		this.verbose = builder.verbose;
+		this.indicesByChr = builder.indicesByChr == null ? markerSet.getIndicesByChr() : builder.indicesByChr;
+		this.baseLine = builder.baseLine;
+		this.means = builder.means;
+		this.variances = builder.variances;
+		this.minPercentStates = builder.minPercentStates;
+		if (bafs.length != markerSet.getMarkerNames().length) {
+			throw new IllegalArgumentException("Internal error, bafs must be present for entire array, fill with NaN if neccesary");
+		}
+		prep();
+	}
 }
