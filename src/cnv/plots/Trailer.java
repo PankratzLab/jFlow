@@ -1112,27 +1112,32 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         });
 		newRegionFile.setText("New Region List File");
 		newRegionFile.setMnemonic(KeyEvent.VK_N);
+		newRegionFile.setFont(new Font("Arial", 0, 12));
 		fileMenu.add(newRegionFile);
 		
 		JMenuItem loadRegionFile = new JMenuItem();
 		loadRegionFile.setAction(loadRegionFileAction);
 		loadRegionFile.setText(REGION_LIST_NEW_FILE);
 		loadRegionFile.setMnemonic(KeyEvent.VK_L);
+		loadRegionFile.setFont(new Font("Arial", 0, 12));
 		fileMenu.add(loadRegionFile);
 		loadRecentFileMenu = new JMenu("Load Recent Region List...");
 		loadRecentFileMenu.setMnemonic(KeyEvent.VK_R);
+		loadRecentFileMenu.setFont(new Font("Arial", 0, 12));
 		fileMenu.add(loadRecentFileMenu);
 		
 		JMenuItem screencap1 = new JMenuItem();
 		screencap1.setAction(screencapAction);
 		screencap1.setMnemonic(KeyEvent.VK_S);
 		screencap1.setText("Screen Capture");
+		screencap1.setFont(new Font("Arial", 0, 12));
 		fileMenu.add(screencap1);
 		
 		JMenuItem screencap2 = new JMenuItem();
 		screencap2.setAction(screencapClipboardAction);
 		screencap2.setMnemonic(KeyEvent.VK_C);
 		screencap2.setText("Screen Capture to Clipboard");
+		screencap2.setFont(new Font("Arial", 0, 12));
 		fileMenu.add(screencap2);
 		
 		menuBar.add(fileMenu);
@@ -1146,6 +1151,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				regionFileNameLoc.put(name, file);
 				JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
 				menuItem.setAction(markerFileSelectAction);
+				menuItem.setFont(new Font("Arial", 0, 12));
 				menuItem.setText(name);
 				regionFileNameBtn.put(name, menuItem);
 				regionButtonGroup.add(menuItem);
@@ -1156,292 +1162,314 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		JCheckBoxMenuItem item1 = new JCheckBoxMenuItem();
 		item1.setAction(markerFileSelectAction);
 		item1.setText(REGION_LIST_USE_CNVS);
+		item1.setFont(new Font("Arial", 0, 12));
 		regionFileNameBtn.put(REGION_LIST_USE_CNVS, item1);
 		regionButtonGroup.add(item1);
 		loadRecentFileMenu.add(item1);
 		item1.setSelected(true);
 		
-		gcCorrectButton = new JCheckBoxMenuItem(GcAdjustor.GC_ADJUSTOR_TITLE[0], false);// stays hidden if gcModel is not detected
-		
-		JMenu act = new JMenu("Actions");
-        act.setMnemonic(KeyEvent.VK_A);
-		menuBar.add(act);
-		
-		JMenuItem launchScatter = new JMenuItem();
-        launchScatter.setText(TO_SCATTER_PLOT);
-		launchScatter.setMnemonic(KeyEvent.VK_S);
-		launchScatter.setFont(new Font("Arial", 0, 12));
-		launchScatter.addActionListener(this);
-		act.add(launchScatter);
-		JMenuItem launchComp = new JMenuItem();
-        launchComp.setText(TO_COMP_PLOT);
-		launchComp.setMnemonic(KeyEvent.VK_C);
-		launchComp.setFont(new Font("Arial", 0, 12));
-		launchComp.addActionListener(this);
-		act.add(launchComp);
-		act.addSeparator();
-		
-		ButtonGroup lrrBtnGrp = new ButtonGroup();
-		ButtonGroup transBtnGrp = new ButtonGroup();
-		
-		JMenuItem lbl1 = act.add("LRR Transforms:");
-		lbl1.setEnabled(false);
-		lbl1.setFont(new Font("Arial", 0, 12));
-		
 		final JRadioButtonMenuItem[] transformBtns = new JRadioButtonMenuItem[Transforms.TRANFORMATIONS.length];
-		ItemListener typeListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JRadioButtonMenuItem jrb = (JRadioButtonMenuItem) ie.getItem();
-				if (jrb.isSelected()) {
-					centroids = null;
-					bafs = originalBAFs;
-					for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
-						if (jrb.getText().equals(Transforms.TRANFORMATIONS[i])) {
-							transformation_type = i;
-							lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
-							updateGUI();
-						}
-					}
-				}
-			}
-		};
-		HashSet<String> mnems = new HashSet<String>();
-		for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
-			transformBtns[i] = new JRadioButtonMenuItem(Transforms.TRANFORMATIONS[i]);
-			transformBtns[i].addItemListener(typeListener);
-			transformBtns[i].setFont(new Font("Arial", 0, 12));
-			String[] wds = Transforms.TRANFORMATIONS[i].split("[\\s]+");
-			int ind = 0;
-			String mnem = wds[ind].substring(0, 1);
-			while(mnems.contains(mnem)) {
-				mnem = wds[++ind].substring(0, 1);
-			}
-			mnems.add(mnem);
-			transformBtns[i].setMnemonic(mnem.charAt(0));
-			lrrBtnGrp.add(transformBtns[i]);
-			act.add(transformBtns[i]);
-		}
-		transformBtns[0].setSelected(true);
-		
-		act.addSeparator();
-		JMenuItem lbl2 = act.add("Transform By:");
-		lbl2.setEnabled(false);
-		lbl2.setFont(new Font("Arial", 0, 12));
-		
-		JRadioButtonMenuItem[] scopeBtns = new JRadioButtonMenuItem[Transforms.SCOPES.length];
-		ItemListener scopeListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JRadioButtonMenuItem jrb = (JRadioButtonMenuItem)ie.getItem();
-				if (jrb.isSelected()) {
-					transformSeparatelyByChromosome = jrb.getText().equals(Transforms.SCOPES[1]); 
-					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
-					updateGUI();
-				}
-			}
-		};
-		mnems = new HashSet<String>();
-		for (int i = 0; i<Transforms.SCOPES.length; i++) {
-			scopeBtns[i] = new JRadioButtonMenuItem(Transforms.SCOPES[i]);
-			scopeBtns[i].addItemListener(scopeListener);
-			scopeBtns[i].setFont(new Font("Arial", 0, 12));
-			
-			String[] wds = Transforms.SCOPES[i].split("[\\s]+");
-			int ind = 0;
-			String mnem = wds[ind].substring(0, 1);
-			while(mnems.contains(mnem)) {
-				mnem = wds[++ind].substring(0, 1);
-			}
-			mnems.add(mnem);
-			scopeBtns[i].setMnemonic(mnem.charAt(0));
-			transBtnGrp.add(scopeBtns[i]);
-			act.add(scopeBtns[i]);
-		}
-		scopeBtns[0].setSelected(true);
-		
-		ItemListener gcListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-				lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, jrb.isSelected(), jrb.isSelected(), log);
-				updateGUI();
-			}
-		};
-		
-		gcCorrectButton.setToolTipText("GC correction will be applied prior to any transformation");
-		gcCorrectButton.addItemListener(gcListener);
-		gcCorrectButton.setFont(new Font("Arial", 0, 12));
-		act.addSeparator();
-		act.add(gcCorrectButton).setEnabled(gcModel != null);
-		
-		act.addSeparator();
+        gcCorrectButton = new JCheckBoxMenuItem(GcAdjustor.GC_ADJUSTOR_TITLE[0], false);// stays hidden if gcModel is not detected
+        
+		{
+    		JMenu transMenu = new JMenu("Transformation");
+    		
+    		JMenuItem lbl1 = transMenu.add("LRR Transforms:");
+    		lbl1.setEnabled(false);
+    		lbl1.setFont(new Font("Arial", 0, 12));
+    		
+    		ButtonGroup lrrBtnGrp = new ButtonGroup();
+    		ButtonGroup transBtnGrp = new ButtonGroup();
+    		ItemListener typeListener = new ItemListener() {
+    			public void itemStateChanged(ItemEvent ie) {
+    				JRadioButtonMenuItem jrb = (JRadioButtonMenuItem) ie.getItem();
+    				if (jrb.isSelected()) {
+    					centroids = null;
+    					bafs = originalBAFs;
+    					for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
+    						if (jrb.getText().equals(Transforms.TRANFORMATIONS[i])) {
+    							transformation_type = i;
+    							lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
+    							updateGUI();
+    						}
+    					}
+    				}
+    			}
+    		};
+    		HashSet<String> mnems = new HashSet<String>();
+    		for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
+    			transformBtns[i] = new JRadioButtonMenuItem(Transforms.TRANFORMATIONS[i]);
+    			transformBtns[i].addItemListener(typeListener);
+    			transformBtns[i].setFont(new Font("Arial", 0, 12));
+    			String[] wds = Transforms.TRANFORMATIONS[i].split("[\\s]+");
+    			int ind = 0;
+    			String mnem = wds[ind].substring(0, 1);
+    			while(mnems.contains(mnem)) {
+    				mnem = wds[++ind].substring(0, 1);
+    			}
+    			mnems.add(mnem);
+    			transformBtns[i].setMnemonic(mnem.charAt(0));
+    			lrrBtnGrp.add(transformBtns[i]);
+    			transMenu.add(transformBtns[i]);
+    		}
+    		transformBtns[0].setSelected(true);
+    		
+    		transMenu.addSeparator();
+    		JMenuItem lbl2 = transMenu.add("Transform By:");
+    		lbl2.setEnabled(false);
+    		lbl2.setFont(new Font("Arial", 0, 12));
+    		
+    		JRadioButtonMenuItem[] scopeBtns = new JRadioButtonMenuItem[Transforms.SCOPES.length];
+    		ItemListener scopeListener = new ItemListener() {
+    			public void itemStateChanged(ItemEvent ie) {
+    				JRadioButtonMenuItem jrb = (JRadioButtonMenuItem)ie.getItem();
+    				if (jrb.isSelected()) {
+    					transformSeparatelyByChromosome = jrb.getText().equals(Transforms.SCOPES[1]); 
+    					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, gcCorrectButton.isSelected(), true, log);
+    					updateGUI();
+    				}
+    			}
+    		};
+    		mnems = new HashSet<String>();
+    		for (int i = 0; i<Transforms.SCOPES.length; i++) {
+    			scopeBtns[i] = new JRadioButtonMenuItem(Transforms.SCOPES[i]);
+    			scopeBtns[i].addItemListener(scopeListener);
+    			scopeBtns[i].setFont(new Font("Arial", 0, 12));
+    			
+    			String[] wds = Transforms.SCOPES[i].split("[\\s]+");
+    			int ind = 0;
+    			String mnem = wds[ind].substring(0, 1);
+    			while(mnems.contains(mnem)) {
+    				mnem = wds[++ind].substring(0, 1);
+    			}
+    			mnems.add(mnem);
+    			scopeBtns[i].setMnemonic(mnem.charAt(0));
+    			transBtnGrp.add(scopeBtns[i]);
+    			transMenu.add(scopeBtns[i]);
+    		}
+    		scopeBtns[0].setSelected(true);
+    		
+    		menuBar.add(transMenu);
+	    }  
+		{
+    		JMenu adjMenu = new JMenu("Adjustments");
+    		
+    		ItemListener gcListener = new ItemListener() {
+    			public void itemStateChanged(ItemEvent ie) {
+    				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+    				lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, jrb.isSelected(), jrb.isSelected(), log);
+    				updateGUI();
+    			}
+    		};
 
-		autoSwitch = new JCheckBoxMenuItem();
-		autoSwitch.setText("Auto-Select Sex Centroid by Sample Sex");
-		autoSwitch.setMnemonic(KeyEvent.VK_A);
-		act.add(autoSwitch);
-		
-		
-		act.addSeparator();
-
-		ItemListener cnvListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-				if (pennHmm == null) {
-					if (Files.exists(proj.HMM_FILENAME.getValue())) {
-						pennHmm = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), proj.getLog());
-
-					} else {
-						pennHmm = null;
-					}
-				}
-				if (pfb == null) {
-					if (Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
-						pfb = PFB.loadPFB(proj);
-
-					} else {
-						pfb = null;
-					}
-				}
-				if (pfb == null || pennHmm == null) {
-					if (pennHmm == null) {
-						proj.getLog().reportTimeError("Could not load " + proj.HMM_FILENAME.getName() + " defined by " + proj.HMM_FILENAME.getValue());
-					} else if (pfb == null) {
-						proj.getLog().reportTimeError("Could not load " + proj.CUSTOM_PFB_FILENAME.getName() + " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
-					}
-				} else {
-					CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample, Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs), gcModel, pfb, markerSet, new int[] { chr }, true, proj.NUM_THREADS.getValue(), true);
-					int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
-					if (sampleData.getCnvClasses().length <= externalCNVs) {
-						sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
-						cnvLabels = Array.concatAll(sampleData.getCnvClasses());
-					}
-					if(indiPheno.getCnvClasses().size()<=externalCNVs){
-						for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
-							indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
-						}
-					}
-					indiPheno.getCnvClasses().get(externalCNVs).put(chr + "", callResult.getChrCNVs().getLoci());
-					indiPheno.getCnvClasses().get(externalCNVs + 1).put(chr + "", callResult.getChrCNVsReverse().getLoci());
-					indiPheno.getCnvClasses().get(externalCNVs + 2).put(chr + "", callResult.getChrCNVsReverseConsensus().getLoci());
-					sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-					procCNVs(chr);
-				}
-				jrb.setSelected(false);
-				updateGUI();
-			}
-		};
-		callCnvsButton = new JCheckBoxMenuItem("Call Cnvs", false);// stays hidden if gcModel is not detected
-		callCnvsButton.addItemListener(cnvListener);
-		act.add(callCnvsButton);
-		act.addSeparator();
-
-		ItemListener mosaicListener = new ItemListener() {
-			public void itemStateChanged(ItemEvent ie) {
-				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-				MosaicBuilder builder = new MosaicBuilder();
-				MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
-				Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
-				LocusSet<CNVariant> mosSet = md.callMosaic(seg);
-				int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
-				if (sampleData.getCnvClasses().length <= externalCNVs) {
-					sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
-					cnvLabels = Array.concatAll(sampleData.getCnvClasses());
-				}
-				if (indiPheno.getCnvClasses().size() <= externalCNVs) {
-					for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
-						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
-					}
-				}
-				indiPheno.getCnvClasses().get(externalCNVs + 3).put(chr + "", mosSet.getLoci());
-				sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-				procCNVs(chr);
-
-				jrb.setSelected(false);
-				updateGUI();
-			}
-		};
-		mosaicCallButton = new JCheckBoxMenuItem("Call Mosaicism (extra beta)", false);
-		mosaicCallButton.addItemListener(mosaicListener);
-		act.add(mosaicCallButton);
-		act.addSeparator();
-		
-		ItemListener centListener = new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent ie) {
-				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-				if (jrb.isSelected() && !"None".equals(jrb.getText())) {
-					if (namePathMap == null || namePathMap.isEmpty()) {
-						jrb.setSelected(false);
-						if (transformBtns != null && transformBtns[0] != null) {
-							transformBtns[0].setSelected(true);
-						}
-						return;
-					}
-					if (!isSettingCentroid) {
-						isSettingCentroid = true;
-						transformation_type = -1;
-						setCentroid(jrb.getText());
-						loadValues();
-						updateGUI();
-						repaint();
-						isSettingCentroid = false;
-					} else {
-						setCentroid(jrb.getText());
-					}
-				} else {
-					currentCentroid = null;
-					centroids = null;
-					bafs = originalBAFs;
-					loadValues();
-					updateGUI();
-					repaint();
-				}
-			}
-		};
-		namePathMap = new Hashtable<String, String>();
-		Vector<String> centFiles = new Vector<String>();
-		centFiles.add(proj.ORIGINAL_CENTROIDS_FILENAME.getValue());
-		centFiles.add(proj.GENOTYPE_CENTROIDS_FILENAME.getValue());
-		centFiles.add(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
-		centFiles.add(proj.CHIMERA_CENTROIDS_FILENAME.getValue());
-		
-		String tempFileMale = proj.SEX_CENTROIDS_MALE_FILENAME.getValue();
-		String tempFileFemale = proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue();
-		if (tempFileMale != null && tempFileFemale != null && !"".equals(tempFileMale) && !"".equals(tempFileFemale)) {
-			centFiles.add(SEX_CENT);
+    		gcCorrectButton.setToolTipText("GC correction will be applied prior to any transformation");
+    		gcCorrectButton.addItemListener(gcListener);
+    		gcCorrectButton.setFont(new Font("Arial", 0, 12));
+    //		act.addSeparator();
+    		adjMenu.add(gcCorrectButton).setEnabled(gcModel != null);
+    //		adjMenu.addSeparator();
+    		
+    		menuBar.add(adjMenu);
 		}
 		
-		for (String file : centFiles) {
-			if (SEX_CENT.equals(file)) {
-				namePathMap.put(SEX_CENT + " - Male", tempFileMale);
-				namePathMap.put(SEX_CENT + " - Female", tempFileFemale);
-			} else if (Files.exists(file)) {
-				String name = file.substring(file.lastIndexOf("/") + 1);
-				name = name.substring(0, name.lastIndexOf("."));
-				namePathMap.put(name, file);
-			}
+		{
+    		JMenu centMenu = new JMenu("Centroids");
+    		autoSwitch = new JCheckBoxMenuItem();
+    		autoSwitch.setText("Auto-Select Sex Centroid by Sample Sex");
+    		autoSwitch.setMnemonic(KeyEvent.VK_A);
+    		autoSwitch.setFont(new Font("Arial", 0, 12));
+    		centMenu.add(autoSwitch);
+
+            ItemListener centListener = new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent ie) {
+                    JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+                    if (jrb.isSelected() && !"None".equals(jrb.getText())) {
+                        if (namePathMap == null || namePathMap.isEmpty()) {
+                            jrb.setSelected(false);
+                            if (transformBtns != null && transformBtns[0] != null) {
+                                transformBtns[0].setSelected(true);
+                            }
+                            return;
+                        }
+                        if (!isSettingCentroid) {
+                            isSettingCentroid = true;
+                            transformation_type = -1;
+                            setCentroid(jrb.getText());
+                            loadValues();
+                            updateGUI();
+                            repaint();
+                            isSettingCentroid = false;
+                        } else {
+                            setCentroid(jrb.getText());
+                        }
+                    } else {
+                        currentCentroid = null;
+                        centroids = null;
+                        bafs = originalBAFs;
+                        loadValues();
+                        updateGUI();
+                        repaint();
+                    }
+                }
+            };
+            namePathMap = new Hashtable<String, String>();
+            Vector<String> centFiles = new Vector<String>();
+            centFiles.add(proj.ORIGINAL_CENTROIDS_FILENAME.getValue());
+            centFiles.add(proj.GENOTYPE_CENTROIDS_FILENAME.getValue());
+            centFiles.add(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
+            centFiles.add(proj.CHIMERA_CENTROIDS_FILENAME.getValue());
+            
+            String tempFileMale = proj.SEX_CENTROIDS_MALE_FILENAME.getValue();
+            String tempFileFemale = proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue();
+            if (tempFileMale != null && tempFileFemale != null && !"".equals(tempFileMale) && !"".equals(tempFileFemale)) {
+                centFiles.add(SEX_CENT);
+            }
+            
+            for (String file : centFiles) {
+                if (SEX_CENT.equals(file)) {
+                    namePathMap.put(SEX_CENT + " - Male", tempFileMale);
+                    namePathMap.put(SEX_CENT + " - Female", tempFileFemale);
+                } else if (Files.exists(file)) {
+                    String name = file.substring(file.lastIndexOf("/") + 1);
+                    name = name.substring(0, name.lastIndexOf("."));
+                    namePathMap.put(name, file);
+                }
+            }
+            
+            centButtonMap = new HashMap<String, JCheckBoxMenuItem>();
+            ButtonGroup centButtons = new ButtonGroup();
+            JCheckBoxMenuItem centBox = new JCheckBoxMenuItem("None");
+            centBox.addItemListener(centListener);
+            centBox.setFont(new Font("Arial", 0, 12));
+            centBox.setSelected(true);
+            centButtons.add(centBox);
+            
+            JMenu lbl3 = new JMenu("Derive from Centroids");
+            lbl3.setMnemonic(KeyEvent.VK_D);
+            lbl3.setFont(new Font("Arial", 0, 12));
+            centMenu.add(lbl3);
+            lbl3.add(centBox);
+            String[] centKeys = (String[]) namePathMap.keySet().toArray(new String[]{});
+            for (String key : centKeys) {
+                centBox = new JCheckBoxMenuItem(key);
+                centBox.addItemListener(centListener);
+                centBox.setFont(new Font("Arial", 0, 12));
+                centButtons.add(centBox);
+                lbl3.add(centBox);
+                centButtonMap.put(key, centBox);
+            }
+            
+            menuBar.add(centMenu);
 		}
 		
-		centButtonMap = new HashMap<String, JCheckBoxMenuItem>();
-		ButtonGroup centButtons = new ButtonGroup();
-		JCheckBoxMenuItem centBox = new JCheckBoxMenuItem("None");
-		centBox.addItemListener(centListener);
-		centBox.setFont(new Font("Arial", 0, 12));
-		centBox.setSelected(true);
-		centButtons.add(centBox);
-		
-		JMenu lbl3 = new JMenu("Derive from Centroids");
-		lbl3.setMnemonic(KeyEvent.VK_D);
-		act.add(lbl3);
-		lbl3.add(centBox);
-		String[] centKeys = (String[]) namePathMap.keySet().toArray(new String[]{});
-		for (String key : centKeys) {
-			centBox = new JCheckBoxMenuItem(key);
-			centBox.addItemListener(centListener);
-			centBox.setFont(new Font("Arial", 0, 12));
-			centButtons.add(centBox);
-			lbl3.add(centBox);
-			centButtonMap.put(key, centBox);
+		{
+    //		act.addSeparator();
+    		JMenu cnvMenu = new JMenu("CNV Calls");
+    
+    		ItemListener cnvListener = new ItemListener() {
+    			public void itemStateChanged(ItemEvent ie) {
+    				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+    				if (pennHmm == null) {
+    					if (Files.exists(proj.HMM_FILENAME.getValue())) {
+    						pennHmm = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), proj.getLog());
+    
+    					} else {
+    						pennHmm = null;
+    					}
+    				}
+    				if (pfb == null) {
+    					if (Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
+    						pfb = PFB.loadPFB(proj);
+    
+    					} else {
+    						pfb = null;
+    					}
+    				}
+    				if (pfb == null || pennHmm == null) {
+    					if (pennHmm == null) {
+    						proj.getLog().reportTimeError("Could not load " + proj.HMM_FILENAME.getName() + " defined by " + proj.HMM_FILENAME.getValue());
+    					} else if (pfb == null) {
+    						proj.getLog().reportTimeError("Could not load " + proj.CUSTOM_PFB_FILENAME.getName() + " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
+    					}
+    				} else {
+    					CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample, Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs), gcModel, pfb, markerSet, new int[] { chr }, true, proj.NUM_THREADS.getValue(), true);
+    					int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
+    					if (sampleData.getCnvClasses().length <= externalCNVs) {
+    						sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
+    						cnvLabels = Array.concatAll(sampleData.getCnvClasses());
+    					}
+    					if(indiPheno.getCnvClasses().size()<=externalCNVs){
+    						for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
+    							indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+    						}
+    					}
+    					indiPheno.getCnvClasses().get(externalCNVs).put(chr + "", callResult.getChrCNVs().getLoci());
+    					indiPheno.getCnvClasses().get(externalCNVs + 1).put(chr + "", callResult.getChrCNVsReverse().getLoci());
+    					indiPheno.getCnvClasses().get(externalCNVs + 2).put(chr + "", callResult.getChrCNVsReverseConsensus().getLoci());
+    					sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+    					procCNVs(chr);
+    				}
+    				jrb.setSelected(false);
+    				updateGUI();
+    			}
+    		};
+    		callCnvsButton = new JCheckBoxMenuItem("Call CNVs", false);// stays hidden if gcModel is not detected
+    		callCnvsButton.addItemListener(cnvListener);
+    		callCnvsButton.setFont(new Font("Arial", 0, 12));
+    		cnvMenu.add(callCnvsButton);
+//    		cnvMenu.addSeparator();
+    
+    		ItemListener mosaicListener = new ItemListener() {
+    			public void itemStateChanged(ItemEvent ie) {
+    				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+    				MosaicBuilder builder = new MosaicBuilder();
+    				MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
+    				Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
+    				LocusSet<CNVariant> mosSet = md.callMosaic(seg);
+    				int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
+    				if (sampleData.getCnvClasses().length <= externalCNVs) {
+    					sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
+    					cnvLabels = Array.concatAll(sampleData.getCnvClasses());
+    				}
+    				if (indiPheno.getCnvClasses().size() <= externalCNVs) {
+    					for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
+    						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+    					}
+    				}
+    				indiPheno.getCnvClasses().get(externalCNVs + 3).put(chr + "", mosSet.getLoci());
+    				sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+    				procCNVs(chr);
+    
+    				jrb.setSelected(false);
+    				updateGUI();
+    			}
+    		};
+    		mosaicCallButton = new JCheckBoxMenuItem("Call Mosaicism (extra beta)", false);
+    		mosaicCallButton.addItemListener(mosaicListener);
+    		mosaicCallButton.setFont(new Font("Arial", 0, 12));
+    		cnvMenu.add(mosaicCallButton);
+//    		cnvMenu.addSeparator();
+            menuBar.add(cnvMenu);
 		}
+		
+        JMenu act = new JMenu("Actions");
+        act.setMnemonic(KeyEvent.VK_A);
+        menuBar.add(act);
+
+        JMenuItem launchScatter = new JMenuItem();
+        launchScatter.setText(TO_SCATTER_PLOT);
+        launchScatter.setMnemonic(KeyEvent.VK_S);
+        launchScatter.setFont(new Font("Arial", 0, 12));
+        launchScatter.addActionListener(this);
+        act.add(launchScatter);
+        JMenuItem launchComp = new JMenuItem();
+        launchComp.setText(TO_COMP_PLOT);
+        launchComp.setMnemonic(KeyEvent.VK_C);
+        launchComp.setFont(new Font("Arial", 0, 12));
+        launchComp.addActionListener(this);
+        act.add(launchComp);
+        // act.addSeparator();
 		
 		return menuBar;
 	}
