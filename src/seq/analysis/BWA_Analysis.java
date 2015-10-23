@@ -253,6 +253,7 @@ public class BWA_Analysis {
 
 			BufferedReader reader = Files.getAppropriateReader(fileOfSamplePairs);
 			int index = 0;
+			Hashtable<String, Integer> track = new Hashtable<String, Integer>();
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("[\\s]+");
 				if (line.length != 2) {
@@ -274,6 +275,14 @@ public class BWA_Analysis {
 							bwAnalysisIndividuals[index] = getAnalysisIndFromFileParser(fileNameParser1);
 							bwAnalysisIndividuals[index].assignFile(line[0]);
 							bwAnalysisIndividuals[index].assignFile(line[1]);
+							
+							if (track.containsKey(bwAnalysisIndividuals[index].getOutput())) {
+								int num = track.get(bwAnalysisIndividuals[index].getOutput());
+								bwAnalysisIndividuals[index].setOutput(ext.addToRoot(bwAnalysisIndividuals[index].getOutput(), "_rep" + num));
+								track.put(bwAnalysisIndividuals[index].getOutput(), (num + 1));
+							} else {
+								track.put(bwAnalysisIndividuals[index].getOutput(), 1);
+							}
 							index++;
 						}
 					} else {

@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 import javax.swing.JOptionPane;
 
 import link.init.maleHets;
+import cnv.analysis.MosaicismDetect.MosaicBuilder;
 import cnv.filesys.*;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
@@ -76,7 +77,7 @@ public class Mosaicism {
 		try {
 			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, true)+"Mosaicism.xln"));
 			writer.println("Sample\tBand\tLRR N\tmean LRR\tBAF N\tSD of BAF (0.15-0.85)\tIQR of BAF (0.15-0.85)\t%Homo\tMosaicMetric");
-			
+			//samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
 			MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped, chrBoundaries, markerSet, indicesByChr);
 			WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer, proj.NUM_THREADS.getValue(), 2, proj.getLog());			
 			int index =0;
@@ -170,8 +171,10 @@ public class Mosaicism {
 		}
 		lrrs = samp.getLRRs();
 		bafs = samp.getBAFs();
-		MosaicismDetect md = new MosaicismDetect(proj, sample, indicesByChr,  Array.toDoubleArray(bafs), markerSet, 25, 2, false);
-
+		MosaicBuilder builder = new MosaicBuilder();
+		builder.indicesByChr(indicesByChr);
+		MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
+		int[] positions = markerSet.getPositions();
 		for (int j = 1; j<=23; j++) {
 			for (int arm = 0; arm<2; arm++) {
 				lrrVec = new FloatVector();
@@ -189,7 +192,7 @@ public class Mosaicism {
 				}
 				if (lrrVec.size()>100) {
 					//long time = System.currentTimeMillis();
-					double mosaicMetric = getMosiacMetric(md, new Segment((byte) j, (arm == 0 ? chrBoundaries[j][0] : chrBoundaries[j][1]), (arm == 0 ? chrBoundaries[j][1] : chrBoundaries[j][2] + 1)));
+					double mosaicMetric = getMosiacMetric(md, new Segment((byte) j, positions[(arm == 0 ? chrBoundaries[j][0] : chrBoundaries[j][1])], positions[(arm == 0 ? chrBoundaries[j][1] : chrBoundaries[j][2] + 1)]));
 					//proj.getLog().reportTimeElapsed(time);
 					String result =sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrVec.size() + "\t" + ext.formDeci(Array.mean(lrrVec.toArray()), 5) + "\t" + bafVec.size() + (bafVec.size() > 10 ? "\t" + ext.formDeci(Array.stdev(bafVec.toArray(), true), 5) + "\t" + ext.formDeci(Array.iqr(bafVec.toArray()), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrVec.size() - bafVec.size()) / (double) lrrVec.size(), 5) + "\t" + mosaicMetric;
 					results.add(result);

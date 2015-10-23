@@ -14,6 +14,7 @@ import javax.swing.border.EmptyBorder;
 import mining.Transformations;
 import common.*;
 import cnv.analysis.MosaicismDetect;
+import cnv.analysis.MosaicismDetect.MosaicBuilder;
 import cnv.filesys.*;
 import cnv.gui.NewRegionListDialog;
 import cnv.gui.SingleClick;
@@ -1336,7 +1337,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		ItemListener mosaicListener = new ItemListener() {
 			public void itemStateChanged(ItemEvent ie) {
 				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-				MosaicismDetect md = new MosaicismDetect(proj, sample, null, Array.toDoubleArray(bafs), markerSet, 25, 2, true);
+				MosaicBuilder builder = new MosaicBuilder();
+				MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
 				Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
 				LocusSet<CNVariant> mosSet = md.callMosaic(seg);
 				int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
