@@ -10,6 +10,7 @@ import javax.swing.JOptionPane;
 import link.init.maleHets;
 import cnv.analysis.MosaicismDetect.MosaicBuilder;
 import cnv.filesys.*;
+import cnv.plots.MosaicPlot;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
 import cnv.var.LocusSet;
@@ -76,7 +77,7 @@ public class Mosaicism {
 		samples = proj.getSamples();
 		try {
 			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, true)+"Mosaicism.xln"));
-			writer.println("Sample\tBand\tLRR N\tmean LRR\tBAF N\tSD of BAF (0.15-0.85)\tIQR of BAF (0.15-0.85)\t%Homo\tMosaicMetric");
+			writer.println(Array.toStr(MosaicPlot.MOSAICISM_HEADER));
 			//samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
 			MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped, chrBoundaries, markerSet, indicesByChr);
 			WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer, proj.NUM_THREADS.getValue(), 2, proj.getLog());			
@@ -204,7 +205,7 @@ public class Mosaicism {
 
 	private static double getMosiacMetric(MosaicismDetect md, Segment seg) {
 		LocusSet<CNVariant> tmp = md.callMosaic(seg);
-		if (tmp.getLoci().length < 1) {
+		if (tmp.getLoci().length < 1 || seg.getChr() >= 23) {
 			return 0;
 		} else {
 			double metric = 0;

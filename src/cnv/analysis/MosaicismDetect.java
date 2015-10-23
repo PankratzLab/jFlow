@@ -1,5 +1,8 @@
 package cnv.analysis;
 
+
+
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -48,6 +51,7 @@ public class MosaicismDetect {
 
 	public <T extends Segment> LocusSet<CNVariant> callMosaic(T seg) {
 		int[] segIndices = markerSet.getIndicesOfMarkersIn(seg, indicesByChr, proj.getLog());
+		int totalIndices =segIndices.length;
 		ArrayList<Integer> evalIndicestmp = new ArrayList<Integer>();
 		LocusSet<CNVariant> dud = new LocusSet<CNVariant>(new CNVariant[0], true, proj.getLog()) {
 
@@ -63,10 +67,10 @@ public class MosaicismDetect {
 			p_density[i] = 0;
 			for (int j = 0; j < gd.distributions().length; j++) {
 				if (j == 0 || j == 2) {
-					if (j == 0 && Math.abs(baf - means[j]) < 2 * Math.sqrt(variances[j])) {
+					if (j == 0 && Math.abs(baf - means[j]) < nullSigma * Math.sqrt(variances[j])) {
 						p_density[i] = Double.NaN;
 
-					} else if (Math.abs(baf - means[j]) < 2 * Math.sqrt(variances[j])) {
+					} else if (Math.abs(baf - means[j]) < nullSigma * Math.sqrt(variances[j])) {
 						p_density[i] = Double.NaN;
 
 					}
@@ -110,7 +114,9 @@ public class MosaicismDetect {
 				}
 			}
 			int[] mosIndices = Array.toIntArray(mosIndicesTmp);
-			double percentState = (double) states.length / segIndices.length;
+			double percentState = (double) evalIndices.length / totalIndices;
+			//System.out.println(percentState+"\t"+evalIndices.length+"\t"+totalIndices);
+
 			if (percentState > minPercentStates) {
 				int[] positions = Array.subArray(Array.subArray(markerSet.getPositions(), segIndices), mosIndices);
 				String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices), mosIndices);
@@ -122,9 +128,18 @@ public class MosaicismDetect {
 					CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
 					int[] scoreStopStart = vtr.getIndexStateChange().get(i);
 					double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
-					builder.score(baseLine - Array.mean(scored));
+					double score = baseLine - Array.mean(scored);
+					double factor = (double) dud.getLoci()[i].getSize() / seg.getSize();
+					//factor = factor * (double) dud.getLoci()[i].getNumMarkers() / states.length;
+					//System.out.println(score+"\t"+percentState);
+					score = score / (Math.max((double) (1 - factor) * (1 / nullSigma), .01));
+					//System.out.println(score);
+					//System.out.println((Math.max((double) (1 - factor) * (1 / nullSigma), .01)));
+
+					builder.score(score);
 					tmp[i] = builder.build();
 				}
+
 				dud = new LocusSet<CNVariant>(tmp, true, proj.getLog()) {
 
 					/**
@@ -164,7 +179,7 @@ public class MosaicismDetect {
 	}
 
 	private GaussianMixtureDistribution prepareGaussMixture(double[] autosomalBafs, double r1, double r2) {
-		if (means != null) {
+		if (means == null) {
 
 			this.means = new double[3];
 			this.variances = new double[3];
