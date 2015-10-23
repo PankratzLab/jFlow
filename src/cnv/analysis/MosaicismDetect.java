@@ -1,8 +1,5 @@
 package cnv.analysis;
 
-
-
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -50,9 +47,12 @@ public class MosaicismDetect {
 	}
 
 	public <T extends Segment> LocusSet<CNVariant> callMosaic(T seg) {
+		if (seg.getStop() < seg.getStart()) {
+			throw new IllegalArgumentException("Segment must have stop that is gte to start");
+		}
 		int[] segIndices = markerSet.getIndicesOfMarkersIn(seg, indicesByChr, proj.getLog());
-		int totalIndices =segIndices.length;
-		ArrayList<Integer> evalIndicestmp = new ArrayList<Integer>();
+		int totalIndices = segIndices.length;
+		ArrayList<Integer> evalIndicestmp = new ArrayList<Integer>(totalIndices / 2);
 		LocusSet<CNVariant> dud = new LocusSet<CNVariant>(new CNVariant[0], true, proj.getLog()) {
 
 			/**
@@ -94,8 +94,8 @@ public class MosaicismDetect {
 			double[] p_densityMA = Array.movingAverageForward(movingFactor, p_density, true);
 			double[] p_densityMAReverse = Array.reverse(Array.movingAverageForward(movingFactor, Array.reverse(p_density), true));
 			int[] states = new int[p_densityMA.length];
-			ArrayList<Double> p_densityScored = new ArrayList<Double>();
-			ArrayList<Integer> mosIndicesTmp = new ArrayList<Integer>();
+			ArrayList<Double> p_densityScored = new ArrayList<Double>(p_densityMA.length);
+			ArrayList<Integer> mosIndicesTmp = new ArrayList<Integer>(p_densityMA.length);
 			for (int i = 0; i < p_densityMA.length; i++) {
 				double[] tD = Array.removeNaN(new double[] { p_densityMA[i], p_densityMAReverse[i] });
 				double d = tD.length > 0 ? Array.mean(tD) : Double.NaN;
@@ -115,40 +115,35 @@ public class MosaicismDetect {
 			}
 			int[] mosIndices = Array.toIntArray(mosIndicesTmp);
 			double percentState = (double) evalIndices.length / totalIndices;
-			//System.out.println(percentState+"\t"+evalIndices.length+"\t"+totalIndices);
+			// System.out.println(percentState+"\t"+evalIndices.length+"\t"+totalIndices);
 
-			if (percentState > minPercentStates) {
-				int[] positions = Array.subArray(Array.subArray(markerSet.getPositions(), segIndices), mosIndices);
-				String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices), mosIndices);
-				ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
-				dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false, verbose);
-				CNVariant[] tmp = new CNVariant[dud.getLoci().length];
-				double[] finalPDensit = Array.toDoubleArray(p_densityScored);
-				for (int i = 0; i < dud.getLoci().length; i++) {
-					CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
-					int[] scoreStopStart = vtr.getIndexStateChange().get(i);
-					double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
-					double score = baseLine - Array.mean(scored);
-					double factor = (double) dud.getLoci()[i].getSize() / seg.getSize();
-					//factor = factor * (double) dud.getLoci()[i].getNumMarkers() / states.length;
-					//System.out.println(score+"\t"+percentState);
-					score = score / (Math.max((double) (1 - factor) * (1 / nullSigma), .01));
-					//System.out.println(score);
-					//System.out.println((Math.max((double) (1 - factor) * (1 / nullSigma), .01)));
+			// if (percentState > minPercentStates) {
+			int[] positions = Array.subArray(Array.subArray(markerSet.getPositions(), segIndices), mosIndices);
+			String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices), mosIndices);
+			ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
+			dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false, verbose);
+			CNVariant[] tmp = new CNVariant[dud.getLoci().length];
+			double[] finalPDensit = Array.toDoubleArray(p_densityScored);
+			for (int i = 0; i < dud.getLoci().length; i++) {
+				CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
+				int[] scoreStopStart = vtr.getIndexStateChange().get(i);
+				double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
+				double score = baseLine - Array.mean(scored);
+				double factor = (double) dud.getLoci()[i].getSize(); // factor = factor * (double) dud.getLoci()[i].getNumMarkers() / states.length;
+				score = Math.log10(score * factor);
+				builder.score(score);
+				tmp[i] = builder.build();
+			}
 
-					builder.score(score);
-					tmp[i] = builder.build();
-				}
+			dud = new LocusSet<CNVariant>(tmp, true, proj.getLog()) {
 
-				dud = new LocusSet<CNVariant>(tmp, true, proj.getLog()) {
-
-					/**
+				/**
 					 * 
 					 */
-					private static final long serialVersionUID = 1L;
+				private static final long serialVersionUID = 1L;
 
-				};
-			}
+			};
+			// }
 
 		}
 		return dud;

@@ -78,9 +78,11 @@ public class Mosaicism {
 		try {
 			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, true)+"Mosaicism.xln"));
 			writer.println(Array.toStr(MosaicPlot.MOSAICISM_HEADER));
-			//samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
+			samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
+			samples = new String[] { "7355066051_R03C01" };
+
 			MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped, chrBoundaries, markerSet, indicesByChr);
-			WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer, proj.NUM_THREADS.getValue(), 2, proj.getLog());			
+			WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer,1, 2, proj.getLog());			
 			int index =0;
 			long timePer = System.currentTimeMillis();
 			long time = System.currentTimeMillis();
@@ -90,7 +92,7 @@ public class Mosaicism {
 					String[] results = train.next();
 					index++;
 					if (index % proj.NUM_THREADS.getValue() == 0) {
-						proj.getLog().reportTimeInfo((index + 1) + " of " + samples.length + " in " + ext.getTimeElapsed(timePer) + ", total time at " + ext.getTimeElapsed(time));
+						proj.getLog().reportTimeInfo((index) + " of " + samples.length + " in " + ext.getTimeElapsed(timePer) + ", total time at " + ext.getTimeElapsed(time));
 						timePer = System.currentTimeMillis();
 					}
 
@@ -160,8 +162,6 @@ public class Mosaicism {
 	private static String[] getMosaicResults(Project proj, String sample, boolean[] snpDropped, int[][] chrBoundaries, MarkerSet markerSet, int[][] indicesByChr) {
 		Sample samp;
 		float baf;
-		FloatVector lrrVec;
-		FloatVector bafVec;
 		float[] lrrs;
 		float[] bafs;
 		samp = proj.getPartialSampleFromRandomAccessFile(sample);
@@ -176,26 +176,39 @@ public class Mosaicism {
 		builder.indicesByChr(indicesByChr);
 		MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
 		int[] positions = markerSet.getPositions();
+		byte[]chrs = markerSet.getChrs();
 		for (int j = 1; j<=23; j++) {
 			for (int arm = 0; arm<2; arm++) {
-				lrrVec = new FloatVector();
-				bafVec = new FloatVector();
-				for (int k = (arm==0?chrBoundaries[j][0]:chrBoundaries[j][1]); k<(arm==0?chrBoundaries[j][1]:chrBoundaries[j][2]+1); k++) {
+				int startIndex =  (arm==0?chrBoundaries[j][0]:chrBoundaries[j][1]);
+				int stopIndex = (arm == 0 ? chrBoundaries[j][1] : chrBoundaries[j][2] + 1);
+				
+
+				ArrayList<Float> lrrAl = new ArrayList<Float>(stopIndex+10-startIndex);
+				ArrayList<Float> bafAl = new ArrayList<Float>(stopIndex+10-startIndex);
+				for (int k = startIndex; k < stopIndex; k++) {
 					if (!snpDropped[k]) {
 						if (!Float.isNaN(lrrs[k])) {
-							lrrVec.add(lrrs[k]);
+							lrrAl.add(lrrs[k]);
 						}
 						baf = bafs[k];
 						if (baf>LOWER_BOUND&&baf<UPPER_BOUND) {
-							bafVec.add(baf);
+							bafAl.add(baf);
 						}
 					}
 				}
-				if (lrrVec.size()>100) {
-					//long time = System.currentTimeMillis();
-					double mosaicMetric = getMosiacMetric(md, new Segment((byte) j, positions[(arm == 0 ? chrBoundaries[j][0] : chrBoundaries[j][1])], positions[(arm == 0 ? chrBoundaries[j][1] : chrBoundaries[j][2] + 1)]));
-					//proj.getLog().reportTimeElapsed(time);
-					String result =sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrVec.size() + "\t" + ext.formDeci(Array.mean(lrrVec.toArray()), 5) + "\t" + bafVec.size() + (bafVec.size() > 10 ? "\t" + ext.formDeci(Array.stdev(bafVec.toArray(), true), 5) + "\t" + ext.formDeci(Array.iqr(bafVec.toArray()), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrVec.size() - bafVec.size()) / (double) lrrVec.size(), 5) + "\t" + mosaicMetric;
+				if (lrrAl.size()>100) {
+					if (chrs[startIndex] != (byte) j || chrs[stopIndex - 1] != (byte) j) {
+
+						throw new IllegalStateException("Internal Error, mismatched chromosome indices, start =" + chrs[startIndex] + "\tstop = " + chrs[stopIndex] + "\tarm = " + arm);
+					}
+					// long time = System.currentTimeMillis();
+					double mosaicMetric = getMosiacMetric(md, new Segment((byte) j, positions[startIndex], positions[stopIndex - 1]));
+					// proj.getLog().reportTimeElapsed(time);
+					int bafSize = bafAl.size();
+					int lrrSize = lrrAl.size();
+					float[] bafTmp = Array.toFloatArray(bafAl);
+					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5) + "\t" + mosaicMetric;
+					// proj.getLog().reportTimeElapsed(time);
 					results.add(result);
 				}
 			}
@@ -205,14 +218,15 @@ public class Mosaicism {
 
 	private static double getMosiacMetric(MosaicismDetect md, Segment seg) {
 		LocusSet<CNVariant> tmp = md.callMosaic(seg);
+		System.out.println(seg.getUCSClocation());
 		if (tmp.getLoci().length < 1 || seg.getChr() >= 23) {
 			return 0;
 		} else {
 			double metric = 0;
 			for (int i = 0; i < tmp.getLoci().length; i++) {
-				if (tmp.getLoci()[i].getNumMarkers() > md.getMovingFactor()) {
-					metric += tmp.getLoci()[i].getScore();
-				}
+				System.out.println(tmp.getLoci()[i].toPlinkFormat());
+				metric += tmp.getLoci()[i].getScore();
+
 			}
 			return (double) metric / tmp.getLoci().length;
 
@@ -391,7 +405,7 @@ public class Mosaicism {
 		}
 		
 		try {
-			proj = new Project(filename, false);
+			 proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 			if (check) {
 				checkForOverlap(proj);
 			} else {
