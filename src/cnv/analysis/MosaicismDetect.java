@@ -15,7 +15,17 @@ import cnv.var.LocusSet.TO_STRING_TYPE;
 import filesys.Segment;
 import cnv.var.CNVariant.CNVBuilder;
 
+/**
+ * @author lane0212
+ *
+ *         Class that attempts to detect and determine mosiac break points...currently models bafs as gaussian mixture (n=3) to determine likely candidates
+ */
 public class MosaicismDetect {
+
+	private static final int DEFAULT_MOVING_FACTOR = 25;
+	private static final double DEFAULT_NULL_SIGMA = 2;
+	private static final double DEFAULT_BASELINE = -1;
+	private static final double DEFAULT_MIN_PERCENT_STATES = 0.05;
 
 	private Project proj;
 	private String sample;
@@ -133,9 +143,11 @@ public class MosaicismDetect {
 		int[] autosomalIndices = proj.getAutosomalMarkerIndices();
 		double[] autosomalBafs = Array.subArray(bafs, autosomalIndices);
 		this.gd = prepareGaussMixture(autosomalBafs, .33, .66);
-		this.baseLine = 0;
-		for (int j = 0; j < gd.distributions().length; j++) {
-			baseLine += (double) gd.distributions()[j].probability(means[j] + nullSigma * Math.sqrt(variances[j])) * Math.sqrt(variances[j]);
+		if (baseLine < 0) {
+			this.baseLine = 0;
+			for (int j = 0; j < gd.distributions().length; j++) {
+				baseLine += (double) gd.distributions()[j].probability(means[j] + nullSigma * Math.sqrt(variances[j])) * Math.sqrt(variances[j]);
+			}
 		}
 		reportDynRange();
 	}
@@ -173,7 +185,7 @@ public class MosaicismDetect {
 		return gd;
 	}
 
-	private double[] getMeanVar(double[] autosomalBafs, double r1, double r2) {
+	private static double[] getMeanVar(double[] autosomalBafs, double r1, double r2) {
 		double[] sub = Array.getValuesBetween(autosomalBafs, r1, r2, true);
 		double[] meanVar = new double[2];
 		meanVar[0] = Array.mean(sub);
@@ -242,15 +254,15 @@ public class MosaicismDetect {
 	}
 
 	public static class MosaicBuilder {
-		// default params...
-		private int movingFactor = 25;
-		private double nullSigma = 2;
+		// init to default params...
+		private int movingFactor = DEFAULT_MOVING_FACTOR;
+		private double nullSigma = DEFAULT_NULL_SIGMA;
 		private boolean verbose = false;
 		private int[][] indicesByChr = null;
-		private double baseLine = -1;
+		private double baseLine = DEFAULT_BASELINE;
 		private double[] means = null;
 		private double[] variances = null;
-		private double minPercentStates = 0.05;
+		private double minPercentStates = DEFAULT_MIN_PERCENT_STATES;
 
 		/**
 		 * @param movingFactor
