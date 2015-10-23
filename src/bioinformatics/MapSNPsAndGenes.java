@@ -321,75 +321,10 @@ public class MapSNPsAndGenes {
                                                              "annovarLoc=",
                                                 }, 
                                               log);
-        String usage = "\\n"+
-        "bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"+
-        "   (1) directory (i.e. dir= (default))\n"+
-        "   (2) filename (i.e. file=list.snps (default))\n"+
-        "   (3) # bp up and down stream to count as an associated gene (i.e. win=15000 (default))\n"+
-        "   (4) build # of the NCBI gene map file (i.e. build=37 (default))\n"+
-        "   (5) should use vcf files instead of serialized database files (i.e. vcf=true (default))\n"  +
-        "   (6) create additional output file with annotations from SNPEFF (i.e. snpeff=true (not the default; mutually-exclusive with 'gatk' option))\n" + 
-        "   (7) create additional output file with annotations from GATK, SNPEFF, and ANNOVAR (i.e. gatk=true (not the default; mutually-exclusive with 'snpeff' option))\n" + 
-        "   (8) Location of SNPEFF program in filesystem; used if 'gatk' option set to TRUE (i.e. snpeffLoc= (no default))\n" + 
-        "   (9) Location of ANNOVAR program in filesystem; used if 'gatk' option set to TRUE (i.e. annovarLoc= (no default))\n" + 
-        "";
         
         if (params != null) {
-            String dir = null;
-            String file = null;
-            String snpEffLoc = "";
-            String annovarLoc = "";
-            boolean snpeff = false;
-            boolean gatk = false;
-            byte build = (byte) 37;
-            int win = 15000;
-            boolean vcf = true;
-            String swap = null;
-            boolean xln = false;
-            
-            int numArgs = params.size();
-            for (int i = 0; i<params.size(); i++) {
-                String param = params.get(i);
-                if (param.startsWith("dir=")) {
-                    dir = param.split("=")[1].trim();
-                    numArgs--;
-                } else if (param.startsWith("file=")) {
-                    file = param.split("=")[1].trim();
-                    numArgs--;
-                } else if (param.startsWith("win=")) {
-                    win = Integer.parseInt(param.split("=")[1].trim());
-                    numArgs--;
-                } else if (param.startsWith("build=")) {
-                    build = Byte.parseByte(param.split("=")[1].trim());
-                    numArgs--;
-                } else if (param.startsWith("vcf=")) {
-                    vcf = ext.parseBooleanArg(param);
-                    numArgs--;
-                } else if (param.startsWith("snpeff=")) {
-                    snpeff = ext.parseBooleanArg(param);
-                    numArgs--;
-                } else if (param.startsWith("gatk=")) {
-                    gatk = ext.parseBooleanArg(param);
-                    numArgs--;
-                } else if (param.startsWith("snpEffLoc=")) {
-                    snpEffLoc = param.split("=")[1].trim();
-                    numArgs--;
-                } else if (param.startsWith("annovarLoc=")) {
-                    annovarLoc = param.split("=")[1].trim();
-                    numArgs--;
-                } else if (param.startsWith("swap=")) {
-                    swap = param.split("=")[1].trim();
-                    numArgs--;
-                } else if (param.startsWith("xln=")) {
-                    xln = ext.parseBooleanArg(param);
-                    numArgs--;
-                }
-            }
-            if (numArgs!=0) {
-                System.err.println(usage);
-                System.exit(1);
-            }
-            procSNPsToGenes(dir == null ? "" : dir, file, win, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc, swap, xln);
+			params.add("log=" + log.getFilename());
+        	main(Array.toStringArray(params));
         }
     }
 	
@@ -409,8 +344,9 @@ public class MapSNPsAndGenes {
         boolean gatk = false;
         String swap = null;
         boolean xln = false;
+        String logfile = null;
 
-		String usage = "\\n"+
+		String usage = "\n"+
 		"bioinformatics.MapSNPsAndGenes requires 0-1 arguments\n"+
 		"   (1) directory (i.e. dir="+dir+" (default))\n"+
 		"   (2) filename (i.e. file="+filename+" (default))\n"+
@@ -428,16 +364,16 @@ public class MapSNPsAndGenes {
 				System.err.println(usage);
 				System.exit(1);
 			} else if (args[i].startsWith("dir=")) {
-				dir = args[i].split("=")[1];
+				dir = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith("file=")) {
-				filename = args[i].split("=")[1];
+				filename = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("win=")) {
-				wiggleRoom = Integer.parseInt(args[i].split("=")[1]);
+				wiggleRoom = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("build=")) {
-				build = Byte.parseByte(args[i].split("=")[1]);
+				build = ext.parseByteArg(args[i]);
 				numArgs--;
             } else if (args[i].startsWith("vcf=")) {
                 vcf = ext.parseBooleanArg(args[i]);
@@ -448,23 +384,28 @@ public class MapSNPsAndGenes {
             } else if (args[i].startsWith("gatk=")) {
                 gatk = ext.parseBooleanArg(args[i]);
                 numArgs--;
-            } else if (args[i].startsWith("snpEffLoc=")) {
-                snpEffLoc = args[i].split("=")[1];
+            } else if (args[i].startsWith("snpeffLoc=")) {
+                snpEffLoc = ext.parseStringArg(args[i], null);
                 numArgs--;
             } else if (args[i].startsWith("annovarLoc=")) {
-                annovarLoc = args[i].split("=")[1];
+                annovarLoc = ext.parseStringArg(args[i], null);
                 numArgs--;
             } else if (args[i].startsWith("swap=")) {
-                swap = args[i].split("=")[1].trim();
+                swap = ext.parseStringArg(args[i], null);
                 numArgs--;
             } else if (args[i].startsWith("xln=")) {
                 xln = ext.parseBooleanArg(args[i]);
                 numArgs--;
+            } else if (args[i].startsWith("log=")) {
+                logfile = ext.parseStringArg(args[i], null);
+                numArgs--;
+            } else {
+            	System.err.println("Error - don't know what to do with argument '"+args[i]+"'");
             }
 		}
 		if (numArgs!=0) {
 			System.err.println(usage);
-			System.exit(1);
+			return;
 		}
 
 		try {
@@ -488,7 +429,8 @@ public class MapSNPsAndGenes {
 				}				
 				procSNPsToGenes("", filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc, swap, xln);
 			} else {
-				procSNPsToGenes(dir, filename, wiggleRoom, build, new Logger(), vcf, snpeff, gatk, snpEffLoc, annovarLoc, swap, xln);
+				log = new Logger(logfile);
+				procSNPsToGenes(dir, filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc, swap, xln);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
