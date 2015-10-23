@@ -15,7 +15,7 @@ import cnv.var.SampleData;
 
 public class MosaicPlot extends JFrame implements ActionListener {
 	public static final long serialVersionUID = 1L;
-	public static final String[] MOSAICISM_HEADER = {"Sample", "Band", "LRR N", "mean LRR", "BAF N", "SD of BAF (0.15-0.85)", "IQR of BAF (0.15-0.85)", "%Homo"};
+	public static final String[] MOSAICISM_HEADER = { "Sample", "Band", "LRR N", "mean LRR", "BAF N", "SD of BAF (0.15-0.85)", "IQR of BAF (0.15-0.85)", "%Homo", "MosaicMetric" };
 
 	public MosaicPlot(Project proj, String[][] samples, double[][] data) {
 		super("Genvisis - Mosaicism Plot - " + proj.getNameOfProject());
