@@ -279,6 +279,7 @@ public class BWA_Analysis {
 							if (track.containsKey(bwAnalysisIndividuals[index].getOutput())) {
 								int num = track.get(bwAnalysisIndividuals[index].getOutput());
 								bwAnalysisIndividuals[index].setOutput(ext.addToRoot(bwAnalysisIndividuals[index].getOutput(), "_rep" + num));
+								bwAnalysisIndividuals[index].setLibrary("_rep" + num);
 								track.put(bwAnalysisIndividuals[index].getOutput(), (num + 1));
 							} else {
 								track.put(bwAnalysisIndividuals[index].getOutput(), 1);
@@ -348,6 +349,10 @@ public class BWA_Analysis {
 			this.log = log;
 			this.output = outputDir + ID + OUTPUT_SEP + barcode + OUTPUT_SEP + Lane + OUTPUT_SEP + library + SAM_EXT;
 			this.success = false;
+		}
+
+		public void setLibrary(String library) {
+			this.library = library;
 		}
 
 		public boolean analyze(int numMemThreads, Logger altLog) {
