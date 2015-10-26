@@ -1425,6 +1425,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     			public void itemStateChanged(ItemEvent ie) {
     				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
     				MosaicBuilder builder = new MosaicBuilder();
+    				builder.verbose(true);
     				MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
     				Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
     				LocusSet<MosaicRegion> mosSet = md.callMosaic(seg);

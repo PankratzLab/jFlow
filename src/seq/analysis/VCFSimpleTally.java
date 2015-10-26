@@ -18,6 +18,8 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import bioinformatics.OMIM;
+import bioinformatics.OMIM.OMIMGene;
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import seq.manage.VCFOps.ChrSplitResults;
@@ -161,6 +163,7 @@ public class VCFSimpleTally {
 		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf.gz";
 		String popDir = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/Freq/";
 		String[] vpopsCase = new String[] { popDir + "CUSHING_FREQ.vpop" };
+		String omimDir = "/home/pankrat2/public/bin/ref/OMIM/";
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		int numThreads = 24;
 		for (int i = 0; i < vpopsCase.length; i++) {
@@ -171,6 +174,8 @@ public class VCFSimpleTally {
 			String outDir = ext.parseDirectoryOfFile(vpopsCase[i]);
 			new File(outDir).mkdirs();
 			Logger log = new Logger(ext.rootOf(vpopsCase[i], false) + ".log");
+			OMIM omim = new OMIM(omimDir, log);
+
 			SimpleTallyResult caseResult = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, log);
 			VcfPopulation controls = caseResult.getControls();
 			String controlFile = ext.parseDirectoryOfFile(vpopsCase[i]) + controls.getUniqSuperPop().get(0) + ".vpop";
@@ -188,14 +193,26 @@ public class VCFSimpleTally {
 				BufferedReader reader = Files.getAppropriateReader(geneFileCase);
 				String[] blanks = new String[GENE_ADD.length];
 				Arrays.fill(blanks, "0");
+				int line = 0;
 				while (reader.ready()) {
+					line++;
 					String[] caseLine = reader.readLine().trim().split("\t");
 					String key = caseLine[0] + "_" + caseLine[1];
+					ArrayList<OMIMGene> oGene = omim.getOmimGene(caseLine[0]);
 					if (controlsFuncHash.containsKey(key)) {
-						writer.println(Array.toStr(caseLine) + "\t" + Array.toStr(controlsFuncHash.get(key)));
+						writer.print(Array.toStr(caseLine) + "\t" + Array.toStr(controlsFuncHash.get(key)));
 					} else {
-						writer.println(Array.toStr(caseLine) + "\t" + Array.toStr(blanks));
+						writer.print(Array.toStr(caseLine) + "\t" + Array.toStr(blanks));
 					}
+					if (line == 1) {
+						writer.print("\tOMIM_DISORDER(S)\tOMIM_GENE_STATUS\tOMIM_GENE_Symbol(s)\tOMIM_GENE_TITLE(s)");
+					} else {
+						writer.print("\t");
+						for (int j = 0; j < oGene.size(); j++) {
+							writer.print((j == 0 ? "" : "|") + oGene.get(j).getDisorders() + "\t" + oGene.get(j).getStatus() + "\t" + Array.toStr(oGene.get(j).getGeneSymbols(), "/")+"\t"+oGene.get(j).getTitle());
+						}
+					}
+					writer.println();
 				}
 				reader.close();
 				writer.close();
@@ -319,9 +336,9 @@ public class VCFSimpleTally {
 				for (VariantContext vc : result) {
 					writer.add(vc);
 					Segment seg = VCOps.getSegment(vc);
-					
+
 					String geneName = VCOps.getSNP_EFFGeneName(vc);
-					String func =VCOps.getSNP_EFFImpact(vc);
+					String func = VCOps.getSNP_EFFImpact(vc);
 					annoGeneBedWriter.println(seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop() + "\t" + geneName + ":" + func);
 					if (!geneSummaries.containsKey(geneName)) {
 						addEntries(caseDef, controlsOrdered, geneSummaries, geneName);
