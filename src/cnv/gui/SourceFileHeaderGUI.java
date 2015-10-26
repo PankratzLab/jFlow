@@ -20,6 +20,7 @@ import javax.swing.JButton;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
 import javax.swing.JSeparator;
 
@@ -232,6 +233,7 @@ public class SourceFileHeaderGUI extends JDialog {
                 doClose(false);
             }
         });
+        btnOk.setMnemonic(KeyEvent.VK_O);
         panel_1.add(btnOk);
         
         JButton btnCancel = new JButton("Cancel");
@@ -240,6 +242,7 @@ public class SourceFileHeaderGUI extends JDialog {
                 doClose(true);
             }
         });
+        btnCancel.setMnemonic(KeyEvent.VK_C);
         panel_1.add(btnCancel);
     }
 

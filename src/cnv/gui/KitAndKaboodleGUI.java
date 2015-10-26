@@ -6,6 +6,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
@@ -178,10 +179,12 @@ public class KitAndKaboodleGUI extends JDialog {
             buttonPane.add(btnNone, "cell 5 0");
             JButton okButton = new JButton("OK");
             okButton.setActionCommand("OK");
+            okButton.setMnemonic(KeyEvent.VK_O);
             buttonPane.add(okButton, "cell 7 0,alignx left,aligny top");
             getRootPane().setDefaultButton(okButton);
             JButton cancelButton = new JButton("Close");
             cancelButton.setActionCommand("Close");
+            cancelButton.setMnemonic(KeyEvent.VK_C);
             buttonPane.add(cancelButton, "cell 8 0,alignx left,aligny top");
             
             AbstractAction listener = new AbstractAction() {
