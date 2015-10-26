@@ -18,11 +18,6 @@ public class VCFExport {
     
     public static void exportToXLN(String vcfFile) throws IOException {
         
-        // read file up til '#CHROM'
-        //    collect all ##INFO lines, parse out into set, split pipes [prefix with orig. ##INFO id?]
-        // write header
-        // read lines
-        
         BufferedReader reader;
         PrintWriter writer;
         ArrayList<String> infoTags;

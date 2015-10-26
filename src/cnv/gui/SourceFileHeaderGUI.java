@@ -248,12 +248,11 @@ public class SourceFileHeaderGUI extends JDialog {
     }
 
     public int getSelectedSampleID() {
-        return cbSnpInd.getSelectedIndex() == 0 ? FILENAME_IND : cbSnpInd.getSelectedIndex() - 1;
+        return cbSampInd.getSelectedIndex() == 0 ? FILENAME_IND : cbSampInd.getSelectedIndex() - 1;
     }
     
     private int getValue(JComboBox<String> cb) {
         return MISSING_STR.equals(cb.getSelectedItem()) ? MISSING_IND : cb.getSelectedIndex() - 1;
-//        return cb.getSelectedIndex() - 1;
     }
     
     public int getSelectedGeno1() { return getValue(cbA1Geno); }

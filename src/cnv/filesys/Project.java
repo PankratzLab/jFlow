@@ -438,7 +438,10 @@ public class Project {
 	private MarkerLookup markerLookup;
 	private Logger log;
 	private boolean gui;
-	public ProgressMonitor progressMonitor;
+	private ProgressMonitor progressMonitor;
+	public ProgressMonitor getProgressMonitor() {
+	    return progressMonitor;
+	}
 
 	public Project() {
 		sampleList = null;
@@ -1295,8 +1298,8 @@ public class Project {
 	}
 
 	public enum SOURCE_FILE_DELIMITERS {
-	    COMMA(","),
-	    TAB("\t"),
+	    COMMA("[\\s]*,[\\s]*"),
+	    TAB("[\\s]*\t[\\s]*"),
 	    SPACE(" ");
 	    
 	    String delim;
@@ -1308,7 +1311,7 @@ public class Project {
 	    }
 	    public static SOURCE_FILE_DELIMITERS getDelimiter(String value) {
 	        for (SOURCE_FILE_DELIMITERS delim : SOURCE_FILE_DELIMITERS.values()) {
-	            if (delim.getDelimiter() == value) {
+	            if (delim.getDelimiter().equals(value) || delim.getDelimiter() == value) {
 	                return delim;
 	            }
 	        }

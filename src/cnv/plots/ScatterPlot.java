@@ -248,7 +248,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		super("Genvisis - ScatterPlot - " + project.getNameOfProject());
 		
 		String PROG_KEY = "SCATTERPLOT";
-		project.progressMonitor.beginDeterminateTask(PROG_KEY, "Displaying ScatterPlot...", 10, ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
+		project.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Displaying ScatterPlot...", 10, ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
 		
 		JPanel scatterPlotPanel = new JPanel();
 		
@@ -274,29 +274,29 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, true), proj.JAR_STATUS.getValue())) {
 			JOptionPane.showMessageDialog(null, "Directory "+proj.getProperty(proj.MARKER_DATA_DIRECTORY)+" does not exist; the raw data needs to be parsed and transposed before it can be visualized", "Error", JOptionPane.ERROR_MESSAGE);
 			fail = true;
-			proj.progressMonitor.endTask(PROG_KEY);
+			proj.getProgressMonitor().endTask(PROG_KEY);
 			return;
 		}
 		
-		proj.progressMonitor.updateTask(PROG_KEY);
+		proj.getProgressMonitor().updateTask(PROG_KEY);
 
 		if (Files.list(proj.MARKER_DATA_DIRECTORY.getValue(false, true), "marker", MarkerData.MARKER_DATA_FILE_EXTENSION, false, proj.JAR_STATUS.getValue()).length==0) {
 			JOptionPane.showMessageDialog(null, "There is no data in directory "+proj.getProperty(proj.MARKER_DATA_DIRECTORY)+"; the raw data needs to be parsed and transposed before it can be visualized", "Error", JOptionPane.ERROR_MESSAGE);
 			fail = true;
-            proj.progressMonitor.endTask(PROG_KEY);
+            proj.getProgressMonitor().endTask(PROG_KEY);
 			return;
 		}
 		
-		proj.progressMonitor.updateTask(PROG_KEY);
+		proj.getProgressMonitor().updateTask(PROG_KEY);
 
 		markerLookup = proj.getMarkerLookup();
 		if (markerLookup == null) {
 			fail = true;
-            proj.progressMonitor.endTask(PROG_KEY);
+            proj.getProgressMonitor().endTask(PROG_KEY);
 			return;
 		}
 		
-		proj.progressMonitor.updateTask(PROG_KEY);
+		proj.getProgressMonitor().updateTask(PROG_KEY);
 		
 		sampleList = proj.getSampleList();
 		samples = sampleList.getSamples();
@@ -304,17 +304,17 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		sampleData = proj.getSampleData(3, true);
 		convertSamples();
 		
-		proj.progressMonitor.updateTask(PROG_KEY);
+		proj.getProgressMonitor().updateTask(PROG_KEY);
 		
 		fail = sampleData.failedToLoad();
 		if (fail) {
 			proj.getLog().reportError("Without a SampleData file, ScatterPlot will not start");
 			JOptionPane.showMessageDialog(null, "Without a SampleData file, ScatterPlot will not start", "Error", JOptionPane.ERROR_MESSAGE);
-            proj.progressMonitor.endTask(PROG_KEY);
+            proj.getProgressMonitor().endTask(PROG_KEY);
 			return;
 		}
 
-        proj.progressMonitor.updateTask(PROG_KEY);
+        proj.getProgressMonitor().updateTask(PROG_KEY);
         
 		String annoFile = proj.BLAST_ANNOTATION_FILENAME.getValue();
 		if (Files.exists(annoFile)) {
@@ -337,7 +337,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				loadMarkerListFromFile(filename);
 				if (masterMarkerList == null) {
 					fail = true;
-		            proj.progressMonitor.endTask(PROG_KEY);
+		            proj.getProgressMonitor().endTask(PROG_KEY);
 					return;
 				} else {
 					JOptionPane.showMessageDialog(null, "Generated a temporary display file at '" + filename + "'", "Created marker list", JOptionPane.INFORMATION_MESSAGE);
@@ -346,7 +346,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			if (masterMarkerList.length == 0) {
 				JOptionPane.showMessageDialog(null, "Error - file '" + filename + "' was devoid of any valid markers", "Error", JOptionPane.ERROR_MESSAGE);
 				fail = true;
-	            proj.progressMonitor.endTask(PROG_KEY);
+	            proj.getProgressMonitor().endTask(PROG_KEY);
 				return;
 			}
 		}
@@ -355,11 +355,11 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		}
 		
 
-        proj.progressMonitor.updateTask(PROG_KEY);
+        proj.getProgressMonitor().updateTask(PROG_KEY);
 		
 		resetAfterLoad();
 
-        proj.progressMonitor.updateTask(PROG_KEY);
+        proj.getProgressMonitor().updateTask(PROG_KEY);
         
 		// Java initializes boolean arrays as false
 		maskMissing = new boolean[4];
@@ -379,7 +379,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		
 		setJMenuBar(createJMenuBar());
 
-        proj.progressMonitor.updateTask(PROG_KEY);
+        proj.getProgressMonitor().updateTask(PROG_KEY);
 		
 		scatterOverview = new JPanel(new GridLayout(0, 2));
 		indivPanels = new JPanel[4];
@@ -412,7 +412,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			scatterPanels[i].setSymmetricAxes(true);
 			scatterOverview.add(indivPanels[i]);
 
-	        proj.progressMonitor.updateTask(PROG_KEY);
+	        proj.getProgressMonitor().updateTask(PROG_KEY);
 		}
 		
 		colorKeyPanel = new ColorKeyPanel(sampleData, scatterPanels[0], scatterPanels[0].colorScheme, classListener, 2);
@@ -465,7 +465,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		updateBLASTPanel();
 		updateGUI();
 		
-        proj.progressMonitor.endTask(PROG_KEY);
+        proj.getProgressMonitor().endTask(PROG_KEY);
 	}
 	
 	private void resetAfterLoad() {
@@ -477,19 +477,19 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         isInitilizing = true;
         indexOfAnnotationUsedAsMarkerList = -1;
         
-        proj.progressMonitor.updateTask("SCATTERPLOT");
+        proj.getProgressMonitor().updateTask("SCATTERPLOT");
         
         loadMarkerDataFromList(0);
         
-        proj.progressMonitor.updateTask("SCATTERPLOT");
+        proj.getProgressMonitor().updateTask("SCATTERPLOT");
         
         pcResids = loadPcResids();// returns null if not found, marker data should return original x/y if null
         numComponents = 0;// initialize to 0 PCs
         pedigree = proj.loadPedigree();// returns null if not found
         
-        proj.progressMonitor.updateTask("SCATTERPLOT");
+        proj.getProgressMonitor().updateTask("SCATTERPLOT");
         loadCentroids();
-        proj.progressMonitor.updateTask("SCATTERPLOT");
+        proj.getProgressMonitor().updateTask("SCATTERPLOT");
         
         sessionID = (new Date().getTime()+"").substring(5);
         isClusterFilterUpdated = false;
@@ -597,9 +597,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
             if (masterCommentList == null) {
                 masterCommentList = Array.stringArray(masterMarkerList.length, "");
             }
-            proj.progressMonitor.beginDeterminateTask("SCATTERPLOT", "Loading ScatterPlot Marker List...", 10, ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
+            proj.getProgressMonitor().beginDeterminateTask("SCATTERPLOT", "Loading ScatterPlot Marker List...", 10, ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
             resetAfterLoad();
-            proj.progressMonitor.endTask("SCATTERPLOT");
+            proj.getProgressMonitor().endTask("SCATTERPLOT");
             ScatterPlot.this.setJMenuBar(ScatterPlot.this.createJMenuBar());
             ScatterPlot.this.revalidate();
             finishProcessing();

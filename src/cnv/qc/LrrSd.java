@@ -46,7 +46,9 @@ public class LrrSd extends Parallelizable {
 		String PROG_KEY = "LRRSTDEV_" + threadNumber;
 		String progDesc = "Compute Log-R Ratio Std.Dev. in Thread " + threadNumber;
 		
-		proj.progressMonitor.beginDeterminateTask(PROG_KEY, progDesc, samples.length + 1, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+		ProgressMonitor progMon = proj.getProgressMonitor();
+		System.out.println(progMon);
+		progMon.beginDeterminateTask(PROG_KEY, progDesc, samples.length + 1, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		
 		log = proj.getLog();
 		try {
@@ -56,7 +58,7 @@ public class LrrSd extends Parallelizable {
 				cents = Centroids.load(centroidsFile, false).getCentroids(); 
 			}
 			
-			proj.progressMonitor.updateTask(PROG_KEY);
+			proj.getProgressMonitor().updateTask(PROG_KEY);
 			
 			chrs = proj.getMarkerSet().getChrs();
 			subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23, chrs.length if all are less, -1 if none are less, 0 if all are greater!
@@ -188,14 +190,14 @@ public class LrrSd extends Parallelizable {
 					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + Array.stdev(bafs, true) + (abCallRate>0?"\t" + abCallRate + "\t" + abHetRate:"\t" + forwardCallRate + "\t" + forwardHetRate) + "\t" + wfPrior + "\t" + gcwfPrior + "\t" + wfPost + "\t" + gcwfPost + "\t" + lrrsdPost + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
 					writer.flush();
 				}
-				proj.progressMonitor.updateTask(PROG_KEY);
+				proj.getProgressMonitor().updateTask(PROG_KEY);
 			}
 			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		proj.progressMonitor.endTask(PROG_KEY);
+		proj.getProgressMonitor().endTask(PROG_KEY);
 	}
 	
 	public void finalAction() {

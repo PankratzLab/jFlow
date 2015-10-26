@@ -857,7 +857,9 @@ public class lab {
 		boolean test = true;
 		if (test) {
 		    
-		    createRandomSelectionFile();
+		    System.out.println(Files.countLines("F:/testProjectSrc/AffyMatrix/00src/ABEAM_p_ARIC_reex2_002_affy_GenomeWideSNP_6_B05_220652.CEL.IND.txt", 0));
+		    
+//		    createRandomSelectionFile();
 		    
 //		    try {
 //    		    String checkfile = "D:/data/gedi_gwas/data/cluster.genome.gz";
