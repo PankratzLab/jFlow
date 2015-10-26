@@ -531,8 +531,7 @@ public class KitAndKaboodle {
     static final STEP S9A_GENERATE_ABLOOKUP = new STEP("Generate AB Lookup File", "", 
             new String[][]{{"A MarkerSet file must already exist."}, 
                             {"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}},
-            new RequirementInputType[][]{{RequirementInputType.FILE}, 
-                                            {RequirementInputType.NONE, RequirementInputType.DIR}}) {
+            new RequirementInputType[][]{{RequirementInputType.FILE}, {RequirementInputType.NONE, RequirementInputType.DIR}}) {
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {

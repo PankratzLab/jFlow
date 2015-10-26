@@ -125,7 +125,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	}
 	
 
-	public void loadProject() {
+	public Project loadProject() {
 		proj = new Project(launchProperties.getDirectory() + projects[indexOfCurrentProj], jar);
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
@@ -145,6 +145,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	    progBar.setStringPainted(false);
 	    
 	    proj.initializeProgressMonitor(progBar);
+	    
+	    return proj;
 	}
 
 	public void setIndexOfCurrentProject(String projPropertiesFileName) {
@@ -723,7 +725,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	        loadProjects();
 			log.report("Refreshed list of projects");
 		} else if (command.equals(PIPELINE)) {
-
+		    
             final KitAndKaboodle kAndK = new KitAndKaboodle(proj, Launch.this);
             kAndK.showDialogAndRun();
             

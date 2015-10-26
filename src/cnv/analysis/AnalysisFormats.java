@@ -105,7 +105,7 @@ public class AnalysisFormats implements Runnable {
 					Sample mySample;
             		int skippedExports = 0;
             		
-                    proj.progressMonitor.beginDeterminateTask(MY_PROG_KEY, "Generate PennCNV Files in Thread " + (myIndex + 1), sampleIndexQueues[myIndex].size(), ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+                    proj.getProgressMonitor().beginDeterminateTask(MY_PROG_KEY, "Generate PennCNV Files in Thread " + (myIndex + 1), sampleIndexQueues[myIndex].size(), ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
                     
 					while(!sampleIndexQueues[myIndex].isEmpty()) {
 						int sampleIndex = sampleIndexQueues[myIndex].poll();
@@ -117,7 +117,7 @@ public class AnalysisFormats implements Runnable {
 								mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
 							} else {
 								log.reportError("Error - the " + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
-								proj.progressMonitor.endTask(MY_PROG_KEY);
+								proj.getProgressMonitor().endTask(MY_PROG_KEY);
 								return;
 							}
 							lrrs = mySample.getLRRs();
@@ -141,11 +141,11 @@ public class AnalysisFormats implements Runnable {
                     		skippedExports++;
                         }
 						
-						proj.progressMonitor.updateTask(MY_PROG_KEY);
+						proj.getProgressMonitor().updateTask(MY_PROG_KEY);
 						mySampleCount++;
 					}
 
-					proj.progressMonitor.endTask(MY_PROG_KEY);
+					proj.getProgressMonitor().endTask(MY_PROG_KEY);
 					log.report("Thread " + myIndex + " processed " + mySampleCount + " samples in " + ext.getTimeElapsed(myStartTime)+(skippedExports>0?"; skipped "+skippedExports+" samples that had been exported previously":""));
 					
 				}

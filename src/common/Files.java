@@ -2585,7 +2585,10 @@ public class Files {
 	public static int countLines(String filename, int numberOfLinesNotToCount) {
 		try {
 			LineNumberReader lnr = new LineNumberReader(new java.io.FileReader(filename));
-			lnr.skip(Long.MAX_VALUE);
+			long num = -1;
+			while (num != 0) {
+			    num = lnr.skip(8192);
+			}
 			int lines = lnr.getLineNumber();
 			lnr.close();
 			return lines - numberOfLinesNotToCount;

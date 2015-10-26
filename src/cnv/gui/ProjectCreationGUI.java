@@ -28,6 +28,7 @@ import javax.swing.event.CaretListener;
 
 import common.Array;
 import common.Files;
+import common.Grafik;
 import common.ext;
 import cnv.filesys.SourceFileHeaderData;
 import cnv.filesys.Project;
@@ -45,6 +46,7 @@ import javax.swing.JComboBox;
 public class ProjectCreationGUI extends JDialog {
 
     private static final long serialVersionUID = 1L;
+    private static final String XY_TOOLTIP = "<html>Suggested values for X/Y correction:<br />Illumina: use the default of 1.<br />Affymetrix: use 100.<br />DBGAP: use 2000.</html>";
     private JPanel contentPane;
     private JTextField txtFldProjName;
     private JTextField txtFldProjDir;
@@ -208,7 +210,8 @@ public class ProjectCreationGUI extends JDialog {
         contentPane.add(lblSrcFileStatus, "cell 2 10,alignx right,aligny top");
         
         JLabel lblXyCorrectionRatio = new JLabel("X/Y Correction Ratio:");
-        contentPane.add(lblXyCorrectionRatio, "cell 0 11,alignx right");
+        contentPane.add(lblXyCorrectionRatio, "cell 0 11,split 2, alignx right");
+        contentPane.add(Grafik.getToolTipIconLabel(XY_TOOLTIP), "cell 0 11, alignx right");
         
         spinnerXY = new JSpinner();
         spinnerXY.setModel(new SpinnerNumberModel(proj.XY_SCALE_FACTOR.getDefaultValue().doubleValue(), 0.001, 10000000000d, 1.0));

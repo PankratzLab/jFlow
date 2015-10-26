@@ -6,8 +6,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
@@ -41,6 +39,7 @@ import cnv.filesys.Project;
 import cnv.manage.KitAndKaboodle;
 import cnv.manage.KitAndKaboodle.RequirementInputType;
 import cnv.manage.KitAndKaboodle.STEP;
+
 import common.Array;
 import common.Grafik;
 import common.ext;
@@ -82,8 +81,12 @@ public class KitAndKaboodleGUI extends JDialog {
             doClose();
             return;
         } else {
-            launch.setIndexOfCurrentProject(this.proj.getNameOfProject());
+            launch.loadProjects();
+            launch.setIndexOfCurrentProject(ext.removeDirectoryInfo(this.proj.getPropertyFilename()));
+            this.proj = launch.loadProject();
         }
+        System.out.println(this.proj.getProgressMonitor());
+        this.proj.getLog().report("Launching Genvisis Project Pipeline");
         this.steps = KitAndKaboodle.getStepsForProject(this.proj);
         selected = Array.booleanArray(this.steps.length, true);
         getContentPane().setLayout(new BorderLayout());

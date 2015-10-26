@@ -66,7 +66,7 @@ public class SourceFileHeaderData {
         SourceFileHeaderData frhd = new SourceFileHeaderData();
         String delim = ",";
         while ((line = reader.readLine()) != null) {
-            delim = ext.determineDelimiter(line);
+            delim = ext.determineDelimiter(line); // TODO if file ends with .csv [or contains .csv?], can assume that delim is ','.  Sim., if ends with .xln, can assume delim is '\t'
             if (",".equals(delim)) {
                 delim = "[\\s]*,[\\s]*"; // ext.indexFactors doesn't call trim()
             }
@@ -83,6 +83,7 @@ public class SourceFileHeaderData {
         }
         if ("[Data]".equals(line)) {
             line = reader.readLine();
+            delim = file.contains(".csv") ? "[\\s]*,[\\s]*" : file.contains(".xln") ? "[\\s]*\t[\\s]*" : ext.determineDelimiter(line);
             lineCnt++;
             if (!(line.startsWith("rs") || line.toUpperCase().startsWith("SNP") || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true, false, false)[0] != -1)) {
                 log.reportError("Error - malformed or missing header.  Header must start with 'rs' or 'SNP' or contain one of the following: " + Array.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0]) + ".");
@@ -92,7 +93,7 @@ public class SourceFileHeaderData {
         reader.close(); // done
         reader = null; // release
         String columnHeaders = line;
-        delim = ext.determineDelimiter(columnHeaders);
+        delim = file.contains(".csv") ? "[\\s]*,[\\s]*" : file.contains(".xln") ? "[\\s]*\t[\\s]*" : ext.determineDelimiter(columnHeaders);
         if (",".equals(delim)) {
             delim = "[\\s]*,[\\s]*";
         }
@@ -215,7 +216,8 @@ public class SourceFileHeaderData {
         }
     }
     
-    public static HashMap<String, SourceFileHeaderData> validate(final String dir, final String ext, boolean fullValidation, Logger log) {
+    public static HashMap<String, SourceFileHeaderData> validate(final String rawDir, final String ext, boolean fullValidation, Logger log) {
+        String dir = rawDir.endsWith("/") || rawDir.endsWith("\\") ? rawDir : common.ext.verifyDirFormat(rawDir);
         String[] possibleFiles = (new File(dir)).list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
