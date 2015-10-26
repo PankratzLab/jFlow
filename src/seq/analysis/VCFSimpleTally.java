@@ -1,5 +1,6 @@
 package seq.analysis;
 
+import filesys.Segment;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -266,6 +267,7 @@ public class VCFSimpleTally {
 		String finalAnnot = finalOut + ".summary";
 
 		String finalAnnotGene = finalOut + ".gene";
+		String finalAnnotGeneBed = finalOut + ".gene.bed";
 		Set<String> cases = vpopAc.getSuperPop().get(caseDef);
 		vpopAc.report();
 		Hashtable<String, Set<String>> controls = vpopAc.getSuperPop();
@@ -281,7 +283,7 @@ public class VCFSimpleTally {
 		}
 		VcfPopulation controlVcfPopulation = new VcfPopulation(controlPop, controlPop, POPULATION_TYPE.CASE_CONTROL, new Logger());
 		SimpleTallyResult simpleTallyResult = new SimpleTallyResult(controlVcfPopulation, finalOut, finalOutVCF, finalAnnot, finalAnnotGene);
-		if (!Files.exists(finalAnnotGene)) {
+		if (!Files.exists(finalAnnotGene) || !Files.exists(finalAnnotGeneBed)) {
 			VCFFileReader tmp = new VCFFileReader(filtVcfs.get(0), true);
 
 			VariantContextWriter writer = VCFOps.initWriter(finalOutVCF, VCFOps.DEFUALT_WRITER_OPTIONS, VCFOps.getSequenceDictionary(tmp));
@@ -289,6 +291,8 @@ public class VCFSimpleTally {
 			tmp.close();
 
 			PrintWriter annoGeneWriter = Files.getAppropriateWriter(finalAnnotGene);
+			PrintWriter annoGeneBedWriter = Files.getAppropriateWriter(finalAnnotGeneBed);
+			annoGeneBedWriter.println("CHR\tSTART\tSTOP\tGENENAME_FUNCTION");
 			annoGeneWriter.print(Array.toStr(GENE_BASE));
 			PrintWriter annoWriter = Files.getAppropriateWriter(finalAnnot);
 			annoWriter.print(Array.toStr(ANNO_BASE));
@@ -314,7 +318,11 @@ public class VCFSimpleTally {
 				VCFFileReader result = new VCFFileReader(filtVcfs.get(i), true);
 				for (VariantContext vc : result) {
 					writer.add(vc);
+					Segment seg = VCOps.getSegment(vc);
+					
 					String geneName = VCOps.getSNP_EFFGeneName(vc);
+					String func =VCOps.getSNP_EFFImpact(vc);
+					annoGeneBedWriter.println(seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop() + "\t" + geneName + ":" + func);
 					if (!geneSummaries.containsKey(geneName)) {
 						addEntries(caseDef, controlsOrdered, geneSummaries, geneName);
 					}
@@ -338,7 +346,7 @@ public class VCFSimpleTally {
 				}
 				result.close();
 			}
-
+			annoGeneBedWriter.close();
 			annoWriter.close();
 			writer.close();
 
@@ -461,7 +469,7 @@ public class VCFSimpleTally {
 			return Array.toStringArray(summary);
 		}
 
-		private static void addHash(Hashtable<String, Integer> toAdd, HashSet<String> from) {
+		private static void addHash(Hashtable<String, Integer> toAdd, Set<String> from) {
 			for (String key : from) {
 				if (!toAdd.containsKey(key)) {
 					toAdd.put(key, 1);
@@ -486,11 +494,11 @@ public class VCFSimpleTally {
 					if (vcGroupSummary.getIndsWithAlt().size() > 0) {
 						numVar++;
 						uniqueIndsWithVar.addAll(vcGroupSummary.getIndsWithAlt());
-						addHash(numVarsPerInd, uniqueIndsWithVar);
+						addHash(numVarsPerInd, vcGroupSummary.getIndsWithAlt());
 						if (vcGroupSummary.getHqIndsWithAlt().size() > 0) {
 							hqNumVar++;
 							uniqueHqIndsWithVar.addAll(vcGroupSummary.getHqIndsWithAlt());
-							addHash(numHQVarsPerInd, uniqueHqIndsWithVar);
+							addHash(numHQVarsPerInd, vcGroupSummary.getHqIndsWithAlt());
 						}
 					}
 				}

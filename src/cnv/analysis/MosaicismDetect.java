@@ -12,6 +12,7 @@ import cnv.hmm.PennHmm.ViterbiResult;
 import cnv.var.CNVariant;
 import cnv.var.LocusSet;
 import cnv.var.LocusSet.TO_STRING_TYPE;
+import cnv.var.MosaicRegion;
 import filesys.Segment;
 import cnv.var.CNVariant.CNVBuilder;
 
@@ -46,7 +47,7 @@ public class MosaicismDetect {
 		return movingFactor;
 	}
 
-	public <T extends Segment> LocusSet<CNVariant> callMosaic(T seg) {
+	public <T extends Segment> LocusSet<MosaicRegion> callMosaic(T seg) {
 		if (seg.getStop() < seg.getStart()) {
 			throw new IllegalArgumentException("Segment must have stop that is gte to start");
 		}
@@ -61,7 +62,16 @@ public class MosaicismDetect {
 			private static final long serialVersionUID = 1L;
 
 		};
+		LocusSet<MosaicRegion> mSet = new LocusSet<MosaicRegion>(new MosaicRegion[0], true, proj.getLog()) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
 		double[] p_density = new double[segIndices.length];
+		double[] nearestN = new double[segIndices.length];
 		for (int i = 0; i < segIndices.length; i++) {
 			double baf = bafs[segIndices[i]];
 			p_density[i] = 0;
@@ -69,16 +79,21 @@ public class MosaicismDetect {
 				if (j == 0 || j == 2) {
 					if (j == 0 && Math.abs(baf - means[j]) < nullSigma * Math.sqrt(variances[j])) {
 						p_density[i] = Double.NaN;
-
+						nearestN[i] = -1;
 					} else if (Math.abs(baf - means[j]) < nullSigma * Math.sqrt(variances[j])) {
 						p_density[i] = Double.NaN;
-
+						nearestN[i] = -1;
 					}
 				}
 				double test = Double.isFinite(baf) ? (double) (baf) : 0;
 				double tmp = (double) gd.distributions()[j].probability(test) * Math.sqrt(variances[j]);
 				if (tmp > p_density[i] && !Double.isNaN(p_density[i])) {
 					p_density[i] = tmp;
+					if (j == 0 || j == 2) {
+						nearestN[i] = 1;
+					} else {
+						nearestN[i] = .5;
+					}
 				}
 			}
 			if (!Double.isNaN(p_density[i])) {
@@ -91,6 +106,7 @@ public class MosaicismDetect {
 		if (segIndices.length > 0) {
 
 			p_density = Array.subArray(p_density, evalIndices);
+			nearestN = Array.subArray(nearestN, evalIndices);
 			double[] p_densityMA = Array.movingAverageForward(movingFactor, p_density, true);
 			double[] p_densityMAReverse = Array.reverse(Array.movingAverageForward(movingFactor, Array.reverse(p_density), true));
 			int[] states = new int[p_densityMA.length];
@@ -110,7 +126,7 @@ public class MosaicismDetect {
 
 					}
 				} else {
-					states[i] = 2;
+					throw new IllegalStateException("Currently NaNs should have been removed");
 				}
 			}
 			int[] mosIndices = Array.toIntArray(mosIndicesTmp);
@@ -122,7 +138,7 @@ public class MosaicismDetect {
 			String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices), mosIndices);
 			ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
 			dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false, verbose);
-			CNVariant[] tmp = new CNVariant[dud.getLoci().length];
+			MosaicRegion[] tmp = new MosaicRegion[dud.getLoci().length];
 			double[] finalPDensit = Array.toDoubleArray(p_densityScored);
 			for (int i = 0; i < dud.getLoci().length; i++) {
 				CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
@@ -132,10 +148,11 @@ public class MosaicismDetect {
 				double factor = (double) dud.getLoci()[i].getSize(); // factor = factor * (double) dud.getLoci()[i].getNumMarkers() / states.length;
 				score = Math.log10(score * factor);
 				builder.score(score);
-				tmp[i] = builder.build();
+				double nearestStateScore = Array.mean(Array.subArray(nearestN, scoreStopStart[0], scoreStopStart[1] + 1));
+				tmp[i] = new MosaicRegion(builder.build(), nearestStateScore);
 			}
 
-			dud = new LocusSet<CNVariant>(tmp, true, proj.getLog()) {
+			mSet = new LocusSet<MosaicRegion>(tmp, true, proj.getLog()) {
 
 				/**
 					 * 
@@ -146,7 +163,7 @@ public class MosaicismDetect {
 			// }
 
 		}
-		return dud;
+		return mSet;
 	}
 
 	private void prep() {
@@ -206,7 +223,7 @@ public class MosaicismDetect {
 	private static void test() {
 		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 
-		ArrayList<CNVariant> all = new ArrayList<CNVariant>();
+		ArrayList<MosaicRegion> all = new ArrayList<MosaicRegion>();
 		int movingFactor = 50;
 		// String[] samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
 		String[] samples = new String[] { "7355066051_R03C01" };
@@ -223,21 +240,19 @@ public class MosaicismDetect {
 			for (int j = 0; j < te.length; j++) {
 				if (te[j].length > 0 && j < 23) {
 					proj.getLog().reportTimeInfo("Calling chr " + j + " for sample " + i);
-					LocusSet<CNVariant> hi = md.callMosaic(new Segment((byte) j, 0, markerSet.getPositions()[te[j][te[j].length - 1]] + 10));
+					LocusSet<MosaicRegion> hi = md.callMosaic(new Segment((byte) j, 0, markerSet.getPositions()[te[j][te[j].length - 1]] + 10));
 					for (int k = 0; k < hi.getLoci().length; k++) {
 						System.out.println(hi.getLoci()[k].toPlinkFormat());
 					}
 					hi.addAll(all);
-					ArrayList<CNVariant> tmp = new ArrayList<CNVariant>();
+					ArrayList<MosaicRegion> tmp = new ArrayList<MosaicRegion>();
 					for (int k = 0; k < all.size(); k++) {
 						if (all.get(k).getNumMarkers() > movingFactor) {
 							tmp.add(all.get(k));
 						}
 					}
 					all = tmp;
-
 				}
-
 			}
 			// }
 		}

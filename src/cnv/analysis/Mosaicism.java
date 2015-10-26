@@ -14,6 +14,7 @@ import cnv.plots.MosaicPlot;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
 import cnv.var.LocusSet;
+import cnv.var.MosaicRegion;
 import cnv.var.SampleData;
 import common.*;
 import common.WorkerTrain.Producer;
@@ -78,11 +79,11 @@ public class Mosaicism {
 		try {
 			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, true)+"Mosaicism.xln"));
 			writer.println(Array.toStr(MosaicPlot.MOSAICISM_HEADER));
-			samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
-			samples = new String[] { "7355066051_R03C01" };
+//			samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
+//			samples = new String[] { "7355066051_R03C01" };
 
 			MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped, chrBoundaries, markerSet, indicesByChr);
-			WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer,1, 2, proj.getLog());			
+			WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer, proj.NUM_THREADS.getValue(), 2, proj.getLog());
 			int index =0;
 			long timePer = System.currentTimeMillis();
 			long time = System.currentTimeMillis();
@@ -202,12 +203,12 @@ public class Mosaicism {
 						throw new IllegalStateException("Internal Error, mismatched chromosome indices, start =" + chrs[startIndex] + "\tstop = " + chrs[stopIndex] + "\tarm = " + arm);
 					}
 					// long time = System.currentTimeMillis();
-					double mosaicMetric = getMosiacMetric(md, new Segment((byte) j, positions[startIndex], positions[stopIndex - 1]));
+					double[] mosaicMetrics = getMosiacMetric(md, new Segment((byte) j, positions[startIndex], positions[stopIndex - 1]));
 					// proj.getLog().reportTimeElapsed(time);
 					int bafSize = bafAl.size();
 					int lrrSize = lrrAl.size();
 					float[] bafTmp = Array.toFloatArray(bafAl);
-					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5) + "\t" + mosaicMetric;
+					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5) + "\t" + mosaicMetrics[0]+"\t"+mosaicMetrics[1];
 					// proj.getLog().reportTimeElapsed(time);
 					results.add(result);
 				}
@@ -216,20 +217,21 @@ public class Mosaicism {
 		return Array.toStringArray(results);
 	}
 
-	private static double getMosiacMetric(MosaicismDetect md, Segment seg) {
-		LocusSet<CNVariant> tmp = md.callMosaic(seg);
-		System.out.println(seg.getUCSClocation());
+	private static double[] getMosiacMetric(MosaicismDetect md, Segment seg) {
+		LocusSet<MosaicRegion> tmp = md.callMosaic(seg);
 		if (tmp.getLoci().length < 1 || seg.getChr() >= 23) {
-			return 0;
+			return new double[] { 0, 0 };
 		} else {
-			double metric = 0;
+			double[] metrics = new double[] { 0, 0 };
 			for (int i = 0; i < tmp.getLoci().length; i++) {
-				System.out.println(tmp.getLoci()[i].toPlinkFormat());
-				metric += tmp.getLoci()[i].getScore();
-
+				if (tmp.getLoci()[i].getNumMarkers() > md.getMovingFactor()) {
+					metrics[0] += tmp.getLoci()[i].getScore();
+					metrics[1] += tmp.getLoci()[i].getNearestStateScore();
+				}
 			}
-			return (double) metric / tmp.getLoci().length;
-
+			metrics[0] = (double) metrics[0] / tmp.getLoci().length;
+			metrics[1] = (double) metrics[1] / tmp.getLoci().length;
+			return metrics;
 		}
 	}
 
