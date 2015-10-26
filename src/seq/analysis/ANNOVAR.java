@@ -12,7 +12,7 @@ import common.ext;
  */
 public class ANNOVAR {
 	public static final String ANNOVAR_COMMAND = "annovar=";
-	private static final String TABLE_ANNOVAR = "table_annovar.pl";
+	public static final String TABLE_ANNOVAR = "table_annovar.pl";
 	private static final String PROTOCOL = "-protocol";
 	private static final String DEFAULT_PROTOCOLS = "refGene,cytoBand,genomicSuperDups,esp6500si_all,1000g2014oct_all,snp138,ljb23_all";
 	private static final String OPERATION = "-operation";

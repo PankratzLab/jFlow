@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.Vector;
 
 import one.ben.VCFExport;
+import seq.analysis.ANNOVAR;
 import seq.analysis.GATK_Genotyper;
 import seq.analysis.SNPEFF;
 import common.*;
@@ -308,6 +309,11 @@ public class MapSNPsAndGenes {
     public static void fromParameters(String filename, Logger log) {
         Vector<String> params;
 
+        String snpEffLoc = Aliases.getPathToFileInReferenceDirectory(SNPEFF.SNP_EFF, false, new Logger());
+        if (snpEffLoc == null) { snpEffLoc = ""; }
+        String annovarLoc = Aliases.getPathToFileInReferenceDirectory(ANNOVAR.TABLE_ANNOVAR, false, new Logger());
+        if (annovarLoc == null) { annovarLoc = ""; }
+        
         params = Files.parseControlFile(filename, 
                                               "snps", 
                                               new String[] { "file=list.snps",
@@ -316,9 +322,9 @@ public class MapSNPsAndGenes {
                                                              "build=37",
                                                              "vcf=true",
                                                              "snpeff=false",
-                                                             "gatk=false",
-                                                             "snpeffLoc=",
-                                                             "annovarLoc=",
+                                                             "annotate=false",
+                                                             "snpeffLoc=" + snpEffLoc,
+                                                             "annovarLoc=" + annovarLoc,
                                                 }, 
                                               log);
         
@@ -338,8 +344,10 @@ public class MapSNPsAndGenes {
 		byte build = 37;
 		Logger log;
 		boolean vcf = true;
-        String snpEffLoc = "";
-        String annovarLoc = "";
+        String snpEffLoc = Aliases.getPathToFileInReferenceDirectory(SNPEFF.SNP_EFF, false, new Logger());
+        if (snpEffLoc == null) { snpEffLoc = ""; }
+        String annovarLoc = Aliases.getPathToFileInReferenceDirectory(ANNOVAR.TABLE_ANNOVAR, false, new Logger());
+        if (annovarLoc == null) { annovarLoc = ""; }
         boolean snpeff = false;
         boolean gatk = false;
         String swap = null;
@@ -353,10 +361,10 @@ public class MapSNPsAndGenes {
 		"   (3) # bp up and down stream to count as an associated gene (i.e. win="+wiggleRoom+" (default))\n"+
 		"   (4) build # of the NCBI gene map file (i.e. build="+build+" (default))\n"+
         "   (5) should use vcf files instead of serialized database files (i.e. vcf=true (default))\n"  +
-        "   (6) create additional output file with annotations from SNPEFF (i.e. snpeff=true (not the default; mutually-exclusive with 'gatk' option))\n" + 
-        "   (7) create additional output file with annotations from GATK, SNPEFF, and ANNOVAR (i.e. gatk=true (not the default; mutually-exclusive with 'snpeff' option))\n" + 
-        "   (8) Location of SNPEFF program in filesystem; used if 'gatk' option set to TRUE (i.e. snpeffLoc= (no default))\n" + 
-        "   (9) Location of ANNOVAR program in filesystem; used if 'gatk' option set to TRUE (i.e. annovarLoc= (no default))\n" + 
+//        "   (6) create additional output file with annotations from SNPEFF (i.e. snpeff=true (not the default; mutually-exclusive with 'gatk' option))\n" + 
+        "   (6) create additional output file with annotations from GATK, SNPEFF, and ANNOVAR (i.e. annotate=true (not the default; mutually-exclusive with 'snpeff' option))\n" + 
+        "   (7) Location of SNPEFF program in filesystem; used if 'gatk' option set to TRUE (i.e. snpeffLoc=" + snpEffLoc + " (default))\n" + 
+        "   (8) Location of ANNOVAR program in filesystem; used if 'gatk' option set to TRUE (i.e. annovarLoc=" + annovarLoc + " (default))\n" + 
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -381,7 +389,7 @@ public class MapSNPsAndGenes {
             } else if (args[i].startsWith("snpeff=")) {
                 snpeff = ext.parseBooleanArg(args[i]);
                 numArgs--;
-            } else if (args[i].startsWith("gatk=")) {
+            } else if (args[i].startsWith("annotate=")) {
                 gatk = ext.parseBooleanArg(args[i]);
                 numArgs--;
             } else if (args[i].startsWith("snpeffLoc=")) {

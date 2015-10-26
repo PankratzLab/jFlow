@@ -40,6 +40,7 @@ import net.miginfocom.swing.MigLayout;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.JComboBox;
 
@@ -267,6 +268,7 @@ public class ProjectCreationGUI extends JDialog {
                 }
             }
         });
+        btnCreate.setMnemonic(KeyEvent.VK_V);
         panel.add(btnCreate, "flowx,cell 1 0");
         
         JButton btnCancel = new JButton("Cancel");
@@ -275,6 +277,7 @@ public class ProjectCreationGUI extends JDialog {
                 doClose(true);
             }
         });
+        btnCancel.setMnemonic(KeyEvent.VK_C);
         panel.add(btnCancel, "cell 1 0");
         
         updateSourceFileNotice();
