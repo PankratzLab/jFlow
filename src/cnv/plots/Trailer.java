@@ -29,6 +29,7 @@ import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
 import cnv.var.LocusSet;
+import cnv.var.MosaicRegion;
 import cnv.var.Region;
 import cnv.var.SampleData;
 import filesys.*;
@@ -1426,7 +1427,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     				MosaicBuilder builder = new MosaicBuilder();
     				MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
     				Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
-    				LocusSet<CNVariant> mosSet = md.callMosaic(seg);
+    				LocusSet<MosaicRegion> mosSet = md.callMosaic(seg);
     				int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
     				if (sampleData.getCnvClasses().length <= externalCNVs) {
     					sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));

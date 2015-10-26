@@ -106,6 +106,18 @@ public class CNVariant extends Segment {
 		this.numMarkers = numMarkers;
 		this.source = source;
 	}
+	
+	public CNVariant(CNVariant cnv) {
+		this.familyID = cnv.familyID;
+		this.individualID = cnv.individualID;
+		this.chr = cnv.chr;
+		this.start = cnv.start;
+		this.stop = cnv.stop;
+		this.cn = cnv.cn;
+		this.score = cnv.score;
+		this.numMarkers = cnv.numMarkers;
+		this.source = cnv.source;
+	}
 
 	public CNVariant(String ucscLocation) {
 		int[] loc = Positions.parseUCSClocation(ucscLocation);
