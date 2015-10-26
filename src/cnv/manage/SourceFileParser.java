@@ -132,28 +132,21 @@ public class SourceFileParser implements Runnable {
 //					GENO_2  {"Allele1 - AB","Call Codes","Call"}, 
 //					GENO_3  {"Allele2 - AB","Call Codes","Call"}}; 
 					
-//					dataIndices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false);
-//					genotypeIndices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false);
 					if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
 						sampIndex = -7;
 					} else {
 						sampIndex = headerData.colSampleIdent;
-//						sampIndex = ext.indexFactors(new String[] { idHeader }, line, false, true)[0];
 					}
-//					snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
 					snpIndex = headerData.colSnpIdent;
 					
-//					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
 					if (headerData.colX == -1 || headerData.colY == -1) {
 						log.reportError("Error - File format not consistent! At the very least the files need to contain "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
 						return;
 					}
-//                    if (genotypeIndices[0] == -1 || genotypeIndices[1] == -1) {
 					if (headerData.colGeno1 == -1 || headerData.colGeno2 == -1) {
 						log.reportError("Error - File format not consistent! The files need to contain "+Array.toStr(Sample.GENOTYPE_FIELDS[0], "/")+" and "+Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
 						return;
 					}
-//					if ((genotypeIndices[2] == -1 || genotypeIndices[3] == -1) && abLookup == null) {
 					if ((headerData.colGenoAB1 == -1 || headerData.colGenoAB2 == -1) && abLookup == null) {
 						ignoreAB = true;
 					} else {
@@ -172,21 +165,6 @@ public class SourceFileParser implements Runnable {
                             headerData.colBAF == -1 ? null : new float[markerNames.length],
                             headerData.colLRR == -1 ? null : new float[markerNames.length],
 					};
-//					data = new float[Sample.DATA_FIELDS.length][];
-//					for (int j = 0; j < data.length; j++) {
-//						if (dataIndices[j] != -1) {
-//							data[j] = new float[markerNames.length];
-//						}
-//                    }
-//					genotypes = new byte[2][]; // two sets of genotypes, the "forward" alleles and the AB alleles
-//					
-//					// this is the for the forward alleles
-//					genotypes[0] = Array.byteArray(markerNames.length, (byte)0);	// used to be initialized to Byte.MIN_VALUE when AB genotypes && abLookup were both absent
-//					
-//					// this is for the AB alleles
-//					if (!ignoreAB) {
-//						genotypes[1] = Array.byteArray(markerNames.length, (byte)-1);	// used to be initialized to Byte.MIN_VALUE when AB genotypes && abLookup were both absent
-//					}
 					genotypes = new byte[][] {
 					        Array.byteArray(markerNames.length, (byte) 0),
 					        ignoreAB ? null : Array.byteArray(markerNames.length, (byte) -1),
@@ -264,34 +242,6 @@ public class SourceFileParser implements Runnable {
                             data[4][key] = data[4][key] / proj.XY_SCALE_FACTOR.getValue().floatValue(); 
                         }
                         
-//						for (int j = 0; j < Sample.DATA_FIELDS.length; j++) {
-//							try {
-//								if (dataIndices[j] != -1) {
-//									if (ext.isMissingValue(line[dataIndices[j]])) {
-//										data[j][key] = Float.NaN;
-//									} else if (j == 0 && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN/* || proj.ARRAY_TYPE.getValue() == ARRAY.DBGAP*/)) {
-//									    data[j][key] = Float.parseFloat(line[dataIndices[j]]);
-//									    data[j][key] = 1 - data[j][key]; // try to make affy conf scores similar to illumina gc
-////									} else if ((j == 3 || j == 4) && proj.ARRAY_TYPE.getValue() == ARRAY.DBGAP) {
-////									    data[j][key] = Float.parseFloat(line[dataIndices[j]]);
-////									    data[j][key] = data[j][key] / 2000f;
-//									} else if ((j == 3 || j == 4) && proj.XY_SCALE_FACTOR.getValue() != 1) {
-//										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
-//										data[j][key] = (float) (data[j][key] / proj.XY_SCALE_FACTOR.getValue());
-//									} else {
-//										data[j][key] = Float.parseFloat(line[dataIndices[j]]);
-//									}
-//								}
-//							} catch (NumberFormatException nfe) {
-//								log.reportError("Error - failed to parse '"+line[dataIndices[j]]+"' into a valid "+Array.toStr(Sample.DATA_FIELDS[j], "/"));
-//								return;
-//							} catch (Exception e) {
-//								log.reportError("Some other exception");
-//								log.reportException(e);
-//								return;
-//							}
-//						}
-
 						if (line[headerData.colGeno1].length() > 1) {
 							if (i == 0 && !splitAB) {
 								log.reportTimeInfo("Detected genotype calls for each allele are in the same column (Such as in Affymetrix .chp format) ");
@@ -308,7 +258,7 @@ public class SourceFileParser implements Runnable {
     									String tmp3 = line[headerData.colGenoAB1].substring(1, 2);
     									line[headerData.colGenoAB1] = tmp2;
     									line[headerData.colGenoAB2] = tmp3;
-									}catch (Exception e){
+									} catch (Exception e) {
 										log.reportTimeError("Could not parse genotypes on line "+Array.toStr(line));
 										log.reportException(e);
 										return;
@@ -347,13 +297,6 @@ public class SourceFileParser implements Runnable {
 								genotypes[1][key] = -1;
 							} else {
 								genotypes[1][key] = 0;
-//								for (int j = 0; j < 2; j++) {
-//									if (line[genotypeIndices[j]].charAt(0) == abLookup[count][1]) {
-//										genotypes[1][key]++;
-//									} else if (line[genotypeIndices[j]].charAt(0) != abLookup[count][0]) {
-//										log.reportError("Error - alleles for individual '" + (sampIndex < 0 ? trav : line[sampIndex]) + "' (" + line[headerData.colGeno1] + "/" + line[headerData.colGeno2] + ") do not match up with the defined AB lookup alleles (" + abLookup[count][0] + "/" + abLookup[count][1] + ") for marker " + markerNames[count]);
-//									}
-//                                }
                                 if (line[headerData.colGeno1].charAt(0) == abLookup[count][1]) {
                                     genotypes[1][key]++;
                                 } else if (line[headerData.colGeno1].charAt(0) != abLookup[count][0]) {
@@ -405,7 +348,6 @@ public class SourceFileParser implements Runnable {
 					}
 
 					samp = new Sample(sampleName, fingerprint, data, genotypes, false);
-//					samp.serialize(proj.getDir(proj.SAMPLE_DIRECTORY, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION);
 					samp.saveToRandomAccessFile(filename, allOutliers, sampleName); //TODO sampleIndex
 				} catch (FileNotFoundException fnfe) {
 					log.reportError("Error: file \""+files[i]+"\" not found in current directory");
