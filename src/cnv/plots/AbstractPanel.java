@@ -1498,7 +1498,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		IntVector iv = locLookup.get(pos);
 		IntVector indicesOfDataPoints = new IntVector();
 
-		for (int i = 0; iv!=null && i<iv.size(); i++) {
+		for (int i = 0; iv != null && i < iv.size(); i++) {
 			if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(points[iv.elementAt(i)].getRawX()), getYPixel(points[iv.elementAt(i)].getRawY())})<HIGHLIGHT_DISTANCE) {
 				indicesOfDataPoints.add(iv.elementAt(i));
 			}
