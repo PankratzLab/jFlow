@@ -9,7 +9,7 @@ import common.Files;
 import common.Logger;
 
 /**
- * @author lane0212 Class for annotating a vcf using a local version of oncator -http://www.broadinstitute.org/oncotator/
+ * @author lane0212 Class for annotating a vcf using a local version of oncotator -http://www.broadinstitute.org/oncotator/
  */
 public class Oncotator {
 	private static final String ONCOTATOR = "oncotator";
@@ -114,11 +114,9 @@ public class Oncotator {
 			ver = Files.exists(oncoDBLoc);
 			if (!ver) {
 				log.reportTimeError(ONCOTATOR + " db directory " + oncoDBLoc + " did not exist, cannot run ");
-
 			}
 		}
 		return ver;
-
 	}
 
 }
