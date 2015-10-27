@@ -91,6 +91,7 @@ public class ParseSNPlocations {
                 }
                 index++;
                 if (!parts[0].startsWith("rs")) {
+                    writer.println(parts[0] + "\t" + (parts.length > 1 ? parts[1] : ".") + "\t" + (parts.length > 2 ? parts[2] : ".") + "\t" + (parts.length > 3 ? parts[3] : ".") + "\t" + (parts.length > 4 ? parts[4] : ".") + "\t" + "." + "\t" + "." + "\t" + "." + "\t" + ".");
                     nonRS.add(parts[0]);
                     indexMap.put(parts[0], index);
                     // parse chr:pos:alleles markers later
@@ -171,14 +172,14 @@ public class ParseSNPlocations {
 //                                System.err.println("Error - couldn't find {" + rs + "} in the merged database.");
                             }
                         }
-                    } 
+                    }
                     if (markerVC != null) {
                         String attr = (String) markerVC.getAttribute("CHRPOS");
                         String[] pts = attr.split(":");
                         StringBuilder newLine = new StringBuilder();
                         newLine.append(rs).append("\t")
-                                .append(pts[0]).append("\t")
-                                .append(pts[1]).append("\t");
+                                .append(parts.length > 1 ? parts[1] : pts[0]).append("\t")
+                                .append(parts.length > 2 ? parts[2] : pts[1]).append("\t");
                         String ref = markerVC.getReference().toString();
                         if (ref.endsWith("*")) {
                             ref = ref.substring(0, ref.length() - 1);
@@ -234,6 +235,7 @@ public class ParseSNPlocations {
                         }
                         writer.println(newLine.toString());
                     } else {
+                        writer.println(rs + "\t" + (parts.length > 1 ? parts[1] : ".") + "\t" + (parts.length > 2 ? parts[2] : ".") + "\t" + (parts.length > 3 ? parts[3] : ".") + "\t" + (parts.length > 4 ? parts[4] : ".") + "\t" + "." + "\t" + "." + "\t" + "." + "\t" + ".");
                         rsNotFound.add(rs);
                         indexMap.put(rs, index);
                     }
