@@ -67,7 +67,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	private MarkerLookup markerLookup;
 	private SampleData sampleData;
 	private Project proj;
-	private String[][] setOfKeys;
+	private String[][] linkerData;
 
 	public TwoDPanel(TwoDPlot twoDPlot) {
 		super();
@@ -78,7 +78,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 //		this.markerData = twoDPlot.getMarkerData();
 //		this.sampleData = twoDPlot.getSampleData();
 		locLookup = new Hashtable<String,IntVector>();//??? zx
-		setOfKeys = new String[0][0];
+		linkerData = new String[0][0];
 //		this.updateQcPanel = true;//zx
 		this.setAxisFontSize(24);
 //		setColorScheme(DEFAULT_COLORS);
@@ -124,8 +124,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
 	public void assignAxisLabels() {
 		displayXaxis = displayYaxis = true;
-		xAxisLabel = swapAxes? tdp.getNamesSelected()[1]:tdp.getNamesSelected()[0];
-		yAxisLabel = swapAxes? tdp.getNamesSelected()[0]:tdp.getNamesSelected()[1];
+		xAxisLabel = swapAxes? tdp.getNamesSelected()[1] : tdp.getNamesSelected()[0];
+		yAxisLabel = swapAxes? tdp.getNamesSelected()[0] : tdp.getNamesSelected()[1];
 	}
 	
 	public boolean invertX() {
@@ -146,7 +146,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		defaultSize = tdp.getPointSize();
 		for (int i = 0; i < points.length; i++) {
 			if (points[i].isHighlighted()) {
-				points[i].setSize((byte)(defaultSize*1.5));
+				points[i].setSize((byte)(defaultSize * 1.5));
 			} else {
 				points[i].setSize((byte)(defaultSize));
 			}
@@ -203,7 +203,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		
 		if (tdp.isHistPlot) {
 			zoomable = false;
-			tdp.size = 0;
+			tdp.setPointSize((byte) 0);
 			points = new PlotPoint[0];//currentData.size()];
 			for (int i = 0; i < points.length; i++) {
 				points[i] = new PlotPoint("" + Float.parseFloat(currentData.get(i)[1]), PlotPoint.FILLED_SQUARE, Float.parseFloat(currentData.get(i)[1]), Float.parseFloat(currentData.get(i)[2]), (byte) 0, (byte) 0, (byte) 0);
@@ -212,14 +212,16 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			return;
 		} else {
 			zoomable = true;
-			tdp.size = 8;
+			tdp.setPointSize((byte) 8);
 			rectangles = new GenericRectangle[0];
+            forcePlotXmax = Float.NaN;
+            forcePlotXmin = Float.NaN;
 		}
 		
 		points = new PlotPoint[currentData.size()];
 		index = (byte) (includeColorKeyValue? 4 : 3);
 		if (currentData.size()>0) {
-			setOfKeys = new String[currentData.size()][currentData.elementAt(0).length - index];
+			linkerData = new String[currentData.size()][currentData.elementAt(0).length - index];
 		}
 		for (int i = 0; i < points.length; i++) {
 			line = currentData.elementAt(i);
@@ -255,8 +257,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				points[i] = new PlotPoint(line[0], type, xAxisValue, yAxisValue, (byte)5, Byte.parseByte(line[3]), (byte)0);
 			}
 
-			for (int j = 0; j < setOfKeys[i].length; j ++) {
-				setOfKeys[i][j] = line[j + index];
+			for (int j = 0; j < linkerData[i].length; j ++) {
+				linkerData[i][j] = line[j + index];
 			}
 		}
 
@@ -266,7 +268,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	private void generateRectangles() {
 		Vector<String[]> currentData;
 		boolean includeColorKeyValue;
-		byte index;
+		int index;
 		String[] line;
 		float xAxisValue, yAxisValue;
 		CountVector uniqueValueCounts;
@@ -274,87 +276,147 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		includeColorKeyValue = true;
 		currentData = tdp.getDataSelected(includeColorKeyValue);
 		uniqueValueCounts = new CountVector();
-		index = (byte) (includeColorKeyValue? 4 : 3);
-		if (currentData.size()>0) {
-			setOfKeys = new String[currentData.size()][currentData.elementAt(0).length - index];
+		index = includeColorKeyValue? 4 : 3;
+		if (currentData.size() > 0) {
+			linkerData = new String[currentData.size()][currentData.elementAt(0).length - index];
 		} else {
 		    rectangles = new GenericRectangle[0];
 		    return;
 		}
 		
-		double minDiff = 9999.0;
-		double val1 = Double.parseDouble(currentData.get(0)[1]); // TODO could be missing
-		double min = val1;
-		double max = val1;
-		for (int i = 1; i < currentData.size(); i++) {
-		    double val2 = Double.parseDouble(currentData.get(i)[1]);
-		    if (Math.abs(val1 - val2) < minDiff) {
-		        minDiff = Math.abs(val1 - val2);
-		    }
-            min = Math.min(min, Math.min(val1, val2));
-            max = Math.max(max, Math.max(val1, val2));
+		double[] dataArray = new double[currentData.size()];
+		for (int i = 0; i < dataArray.length; i++) {
+		    dataArray[i] = ext.isMissingValue(currentData.get(i)[1]) ? Double.NaN : Double.parseDouble(currentData.get(i)[1]);
 		}
+		stats.Histogram hist = new stats.Histogram(dataArray);
+
+		double min = hist.getMin();
+		double max = hist.getMax();
+		double minDiff = hist.determineStep();
+		int sig = hist.getSigfigs();
 		
-		int sig = ext.getNumSigFig(minDiff);
-		if (sig > 0) { 
-		    minDiff = ext.roundToSignificantFigures(minDiff, sig);
-		}
-		float binHalf = (float) (currentData.size() > 1 ? ext.roundToSignificantFigures(minDiff / 2.0, sig + 1) : DEFAULT_HALF_BIN_SIZE);
+		float binHalf = (float) (hist.getBins().length > 1 ? ext.roundToSignificantFigures(minDiff / 2.0, sig + 1) : DEFAULT_HALF_BIN_SIZE);
 		
-//		forcePlotXmax = (float) (max + (minDiff / 2.0));
-//		forcePlotXmin = (float) (min - (minDiff / 2.0));
 		forcePlotXmax = (float) (max + minDiff);
 		forcePlotXmin = (float) (min - minDiff);
 		
-		rectangles = new GenericRectangle[currentData.size()];
+		rectangles = new GenericRectangle[hist.getBins().length];
 		for (int i = 0; i < rectangles.length; i++) {
-			line = currentData.get(i);
-			boolean missing = false;
-			
-			for (String miss : TwoDPlot.MISSING_VALUES) {
-				if (miss.equals(line[1]) || miss.equals(line[2])) {
-					missing = true;
-					break;
-				}	
-			}
-			if (missing) {
-				xAxisValue = Float.NaN;
-				yAxisValue = Float.NaN;
-				uniqueValueCounts.add("0");
-			} else {
-				xAxisValue = Float.parseFloat(line[1]);
-				yAxisValue = Float.parseFloat(line[2]);
-				if (Float.isNaN(xAxisValue) || Float.isNaN(xAxisValue)) {
-					uniqueValueCounts.add("0");
-	//			} else if (alleleCounts[i]==-1) {
-	//				type = PlotPoint.MISSING;
-	//				uniqueValueCounts.add("0");
-				} else {
-					uniqueValueCounts.add(line[3]);
-				}
-			}
+		
 			float startX, startY, stopX, stopY;
 			if (swapAxes) {
 				startX = 0f;
-				startY = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue - binHalf), sig) : (float)(xAxisValue - binHalf);
-				stopX = yAxisValue;
-				stopY = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue + binHalf), sig) : (float)(xAxisValue + binHalf);
+				startY = sig > 0 ? (float) ext.roundToSignificantFigures((float)(hist.getBins()[i] - binHalf), sig) : (float)(hist.getBins()[i] - binHalf);
+				stopX = hist.getCounts()[i];
+				stopY = sig > 0 ? (float) ext.roundToSignificantFigures((float)(hist.getBins()[i] + binHalf), sig) : (float)(hist.getBins()[i] + binHalf);
 			} else {
-				startX = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue - binHalf), sig) : (float)(xAxisValue - binHalf);
+				startX = sig > 0 ? (float) ext.roundToSignificantFigures((float)(hist.getBins()[i] - binHalf), sig) : (float)(hist.getBins()[i] - binHalf);
 				startY = 0f; 
-				stopX = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue + binHalf), sig) : (float)(xAxisValue + binHalf);
-				stopY = yAxisValue;
+				stopX = sig > 0 ? (float) ext.roundToSignificantFigures((float)(hist.getBins()[i] + binHalf), sig) : (float)(hist.getBins()[i] + binHalf);
+				stopY = hist.getCounts()[i];
 			}
-			rectangles[i] = new GenericRectangle(startX, startY, stopX, stopY, (byte) 5, true, false, Byte.parseByte(line[3]), (byte) 2, (byte) 0);
+			rectangles[i] = new GenericRectangle(startX, startY, stopX, stopY, (byte) 5, true, false, (byte) 0, (byte) 2, (byte) 0);
 
-			for (int j = 0; j < setOfKeys[i].length; j ++) {
-				setOfKeys[i][j] = line[j + index];
-			}
+//			for (int j = 0; j < linkerData[i].length; j ++) {
+//				linkerData[i][j] = line[j + index];
+//			}
 			
 		}
 		
-		
 	}
+	
+//	private void generateRectangles() {
+//	    Vector<String[]> currentData;
+//	    boolean includeColorKeyValue;
+//	    int index;
+//	    String[] line;
+//	    float xAxisValue, yAxisValue;
+//	    CountVector uniqueValueCounts;
+//	    
+//	    includeColorKeyValue = true;
+//	    currentData = tdp.getDataSelected(includeColorKeyValue);
+//	    uniqueValueCounts = new CountVector();
+//	    index = includeColorKeyValue? 4 : 3;
+//	    if (currentData.size() > 0) {
+//	        linkerData = new String[currentData.size()][currentData.elementAt(0).length - index];
+//	    } else {
+//	        rectangles = new GenericRectangle[0];
+//	        return;
+//	    }
+//	    
+//	    double minDiff = 9999.0;
+//	    double val1 = Double.parseDouble(currentData.get(0)[1]); // TODO could be missing
+//	    double min = val1;
+//	    double max = val1;
+//	    for (int i = 1; i < currentData.size(); i++) {
+//	        double val2 = Double.parseDouble(currentData.get(i)[1]);
+//	        if (Math.abs(val1 - val2) < minDiff) {
+//	            minDiff = Math.abs(val1 - val2);
+//	        }
+//	        min = Math.min(min, Math.min(val1, val2));
+//	        max = Math.max(max, Math.max(val1, val2));
+//	    }
+//	    
+//	    int sig = ext.getNumSigFig(minDiff);
+//	    if (sig > 0) { 
+//	        minDiff = ext.roundToSignificantFigures(minDiff, sig);
+//	    }
+//	    float binHalf = (float) (currentData.size() > 1 ? ext.roundToSignificantFigures(minDiff / 2.0, sig + 1) : DEFAULT_HALF_BIN_SIZE);
+//	    
+////		forcePlotXmax = (float) (max + (minDiff / 2.0));
+////		forcePlotXmin = (float) (min - (minDiff / 2.0));
+//	    forcePlotXmax = (float) (max + minDiff);
+//	    forcePlotXmin = (float) (min - minDiff);
+//	    
+//	    rectangles = new GenericRectangle[currentData.size()];
+//	    for (int i = 0; i < rectangles.length; i++) {
+//	        line = currentData.get(i);
+//	        boolean missing = false;
+//	        
+//	        for (String miss : TwoDPlot.MISSING_VALUES) {
+//	            if (miss.equals(line[1]) || miss.equals(line[2])) {
+//	                missing = true;
+//	                break;
+//	            }	
+//	        }
+//	        if (missing) {
+//	            xAxisValue = Float.NaN;
+//	            yAxisValue = Float.NaN;
+//	            uniqueValueCounts.add("0");
+//	        } else {
+//	            xAxisValue = Float.parseFloat(line[1]);
+//	            yAxisValue = Float.parseFloat(line[2]);
+//	            if (Float.isNaN(xAxisValue) || Float.isNaN(xAxisValue)) {
+//	                uniqueValueCounts.add("0");
+//	                //			} else if (alleleCounts[i]==-1) {
+//	                //				type = PlotPoint.MISSING;
+//	                //				uniqueValueCounts.add("0");
+//	            } else {
+//	                uniqueValueCounts.add(line[3]);
+//	            }
+//	        }
+//	        float startX, startY, stopX, stopY;
+//	        if (swapAxes) {
+//	            startX = 0f;
+//	            startY = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue - binHalf), sig) : (float)(xAxisValue - binHalf);
+//	            stopX = yAxisValue;
+//	            stopY = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue + binHalf), sig) : (float)(xAxisValue + binHalf);
+//	        } else {
+//	            startX = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue - binHalf), sig) : (float)(xAxisValue - binHalf);
+//	            startY = 0f; 
+//	            stopX = sig > 0 ? (float) ext.roundToSignificantFigures((float)(xAxisValue + binHalf), sig) : (float)(xAxisValue + binHalf);
+//	            stopY = yAxisValue;
+//	        }
+//	        rectangles[i] = new GenericRectangle(startX, startY, stopX, stopY, (byte) 5, true, false, Byte.parseByte(line[3]), (byte) 2, (byte) 0);
+//	        
+//	        for (int j = 0; j < linkerData[i].length; j ++) {
+//	            linkerData[i][j] = line[j + index];
+//	        }
+//	        
+//	    }
+//	    
+//	    
+//	}
 
 
 
@@ -548,13 +610,10 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			menu = new JPopupMenu();
 			maxNumPoints = (byte) Math.min(20, prox.size());
 			for (int i = 0; i < maxNumPoints; i++) {
-				String[] keys = setOfKeys[prox.elementAt(i)];
+				String[] linkerDataElem = linkerData[prox.elementAt(i)];
 				
-//				menu.add(new LaunchAction(linkKeyValues[prox.elementAt(i)][0] + "\t" + points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
-//				menu.add(new LaunchAction(points[prox.elementAt(i)].getId() + "\t" + points[prox.elementAt(i)].getRawX() + "\t" + points[prox.elementAt(i)].getRawY(), true));
-
-				if (linkKeyIndicies[3] >= 0) {
-					markerName = keys[3];
+				if (linkKeyIndicies[TwoDPlot.MARKER_INDEX_IN_LINKERS] >= 0) {
+					markerName = linkerDataElem[TwoDPlot.MARKER_INDEX_IN_LINKERS];
 					if (markerLookup.get(markerName) != null) {
 						menu.add(new LaunchAction(proj, markerName, Color.CYAN));
 					}
@@ -562,16 +621,16 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				
 				sample = null;
 				// TODO this check will ALWAYS fail!
-				if (linkKeyIndicies[2] >= 0 && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
-					sample = keys[2];
+				if (linkKeyIndicies[TwoDPlot.DNA_INDEX_IN_LINKERS] >= 0 && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
+					sample = linkerDataElem[TwoDPlot.DNA_INDEX_IN_LINKERS];
 				}
 				if (sample == null && sampleData != null) { // if Sample not already identified and if a sample lookup exists
 					ids = null;
-					if (linkKeyIndicies[1] >= 0) { // if FID present
-						ids = sampleData.lookup(keys[1] + "\t" + keys[0]);
+					if (linkKeyIndicies[TwoDPlot.FID_INDEX_IN_LINKERS] >= 0) { // if FID present
+						ids = sampleData.lookup(linkerDataElem[TwoDPlot.FID_INDEX_IN_LINKERS] + "\t" + linkerDataElem[TwoDPlot.IID_INDEX_IN_LINKERS]);
 					}
 					if (ids == null) {
-						ids = sampleData.lookup(keys[0]);
+						ids = sampleData.lookup(linkerDataElem[TwoDPlot.IID_INDEX_IN_LINKERS]);
 					}
 					if (ids != null && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
 						sample = ids[0];
@@ -581,46 +640,43 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				positions = new int[] {-1,-1,-1};
 				region = null;
 				region2 = null;
-				if (linkKeyIndicies[4] >= 0) {
-					region = keys[4];
-				} else if (linkKeyIndicies[5] >= 0) {
-					positions[0] = Positions.chromosomeNumber(keys[5]);
-					if (positions[0] != -1) {
-						if (linkKeyIndicies[6] >= 0) {
-							try {
-								positions[1] = Integer.parseInt(keys[6]);
-							} catch (NumberFormatException nfe) {
-							}
-						}
-						if (linkKeyIndicies[7] >= 0) {
-							try {
-								positions[2] = Integer.parseInt(keys[7]);
-							} catch (NumberFormatException nfe) {
-							}
-						}
-						region = Positions.getUCSCformat(positions);
-					}
-				} else {
-					String[][] metaData = tdp.getCurrentColumnMetaData();
-					if (metaData != null) {
-						if (metaData[0] != null) {
-							int[] tempPositions = new int[3];
-							tempPositions[0] = Positions.chromosomeNumber(metaData[0][0]);
-							tempPositions[1] = Integer.parseInt(metaData[0][2]);
-							tempPositions[2] = Integer.parseInt(metaData[0][3]);
-							region = Positions.getUCSCformat(tempPositions);
+				String[][] metaData = tdp.getCurrentColumnMetaData();
+				if (metaData != null && metaData.length > 0) {
+				    if (metaData[0] != null) {
+				        int[] tempPositions = new int[3];
+				        tempPositions[0] = Positions.chromosomeNumber(metaData[0][0]);
+				        tempPositions[1] = Integer.parseInt(metaData[0][2]);
+				        tempPositions[2] = Integer.parseInt(metaData[0][3]);
+				        region = Positions.getUCSCformat(tempPositions);
 //							if (sample != null && tempRegion != null) {
 //								menu.add(new LaunchAction(proj, sample, tempRegion, Color.GRAY));
 //							}
-						}
-						if (metaData[1] != null) {
-							positions[0] = Positions.chromosomeNumber(metaData[1][0]);
-							positions[1] = Integer.parseInt(metaData[1][2]);
-							positions[2] = Integer.parseInt(metaData[1][3]);
-							region2 = Positions.getUCSCformat(positions);
-						}
-					}
-					
+				    }
+				    if (metaData.length > 1 && metaData[1] != null) {
+				        positions[0] = Positions.chromosomeNumber(metaData[1][0]);
+				        positions[1] = Integer.parseInt(metaData[1][2]);
+				        positions[2] = Integer.parseInt(metaData[1][3]);
+				        region2 = Positions.getUCSCformat(positions);
+				    }
+				} else {
+    				if (linkKeyIndicies[TwoDPlot.REGION_INDEX_IN_LINKERS] >= 0) {
+    					region = linkerDataElem[TwoDPlot.REGION_INDEX_IN_LINKERS];
+    				} else if (linkKeyIndicies[TwoDPlot.CHR_INDEX_IN_LINKERS] >= 0) {
+    					positions[0] = Positions.chromosomeNumber(linkerDataElem[TwoDPlot.CHR_INDEX_IN_LINKERS]);
+    					if (positions[0] != -1) {
+    						if (linkKeyIndicies[TwoDPlot.POS_INDEX_IN_LINKERS] >= 0) {
+    							try {
+    								positions[1] = Integer.parseInt(linkerDataElem[TwoDPlot.POS_INDEX_IN_LINKERS]);
+    							} catch (NumberFormatException nfe) {}
+    						}
+    						if (linkKeyIndicies[TwoDPlot.STOP_POS_INDEX_IN_LINKERS] >= 0) {
+    							try {
+    								positions[2] = Integer.parseInt(linkerDataElem[TwoDPlot.STOP_POS_INDEX_IN_LINKERS]);
+    							} catch (NumberFormatException nfe) {}
+    						}
+    						region = Positions.getUCSCformat(positions);
+    					}
+    				}
 				}
 				
 				Color sampColor = null;
