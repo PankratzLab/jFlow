@@ -83,13 +83,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private volatile boolean flipStatus, xInvStatus, yInvStatus, hideExcludes;
 	volatile boolean isHistPlot;
 	private CheckBoxTree tree;
-	private Vector<String> treeFilenameLookup;
+	private Vector<String> dataFileNames;
 //	Hashtable<String, String[][]> dataHash;
 	Hashtable<String, Vector<String[]>> dataHash;
 //	Hashtable<String, Hashtable<String, String[]>> dataHash;
-	Hashtable<String, String[]> namesHash;
+	Hashtable<String, String[]> headerHash;
 	Hashtable<String, boolean[]> numericHash;
-	Hashtable<Integer, String[]> columnMetaData;
+	HashMap<String, HashMap<Integer, String[]>> columnMetaData;
 	String[][] treeFileVariableNameLookup;
 	Hashtable<String, int[]> keyIndices;
 //	Vector<String> colorKeyVariables;
@@ -116,12 +116,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			sampleData = null;
 		}
 
-		treeFilenameLookup = new Vector<String>();
+		dataFileNames = new Vector<String>();
 		dataHash = new Hashtable<String, Vector<String[]>>();
-		namesHash = new Hashtable<String, String[]>();
+		headerHash = new Hashtable<String, String[]>();
 		numericHash = new Hashtable<String, boolean[]>();
 		keyIndices = new Hashtable<String, int[]>();
-		columnMetaData = new Hashtable<Integer, String[]>();
+		columnMetaData = new HashMap<String, HashMap<Integer,String[]>>();
 
 		previouslyLoadedFiles = proj.TWOD_LOADED_FILENAMES.getValue();
 		for (String previouslyLoadedFile : previouslyLoadedFiles) {
@@ -174,7 +174,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 		treePanel.add(buttonPanel, BorderLayout.NORTH);
 
-		initializeTree();
+        tree = new CheckBoxTree(new String[0], new String[0], new String[0][], new boolean[0], 2);
 		updateTree();
 
 		treePanel.add(new JScrollPane(tree), BorderLayout.CENTER);
@@ -427,10 +427,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				keys = HashVec.getKeys(dataHash); // it is better for keys to be a local variable rather than a global variable, otherwise it needs to be updated every time something is added or deleted
 				tree.deleteSelectedNode();
 				dataHash.remove(keys[numberOfSelectedNodes]);//TODO tree.getSelectionValues()[0][0] is not the branch to delete.
-				namesHash.remove(keys[numberOfSelectedNodes]);
+				headerHash.remove(keys[numberOfSelectedNodes]);
 				keyIndices.remove(keys[numberOfSelectedNodes]);
 				numericHash.remove(keys[numberOfSelectedNodes]);
-				treeFilenameLookup.remove(keys[numberOfSelectedNodes]);
+				dataFileNames.remove(keys[numberOfSelectedNodes]);
 			}
 //			System.out.println(dataHash.size()+"\t"+namesHash.size()+"\t"+numericHash.size()+"\t"+treeFilenameLookup.size());
 //			System.out.println("\n==== End =====\n");
@@ -449,7 +449,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				Vector<String> params = parseControlFile(selFile.getAbsolutePath(), log);
 //				final String projFile = params.get(0).split("=")[1];
 				final String baseDir = params.get(1).split("=")[1];
-				final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()));
+				final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()), true);
 				createScreenshots(baseDir, screens);
 			}
 		} else {
@@ -722,32 +722,43 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public byte getPointSize() {
 		return size;
 	}
-
+	
 	public String[] getNamesSelected() {
-		String[] result = new String[2];
-		String[][] selectionValues = tree.getSelectionValues();
-		
-		if (selectionValues[0][0] == null || selectionValues[1][0] == null) {
-			result[0] = "";
-			result[1] = "";
-		} else {
-			result[0] = namesHash.get(selectionValues[0][0])[Integer.parseInt(selectionValues[0][1])];
-			result[1] = namesHash.get(selectionValues[1][0])[Integer.parseInt(selectionValues[1][1])];
-			
-			Matcher m = headerPattern.matcher(result[0]);
-			if (m.matches()) {
-				result[0] = m.group(1) + " chr" + m.group(2) + ":" + m.group(3);
-			}
-			m = headerPattern.matcher(result[1]);
-			if (m.matches()) {
-				result[1] = m.group(1) + " chr" + m.group(2) + ":" + m.group(3);
-			}
-			
-//			result[0] = ext.removeDirectoryInfo(selectionValues[0][0]) + " _ " + namesHash.get(selectionValues[0][0])[Integer.parseInt(selectionValues[0][1])];
-//			result[1] = ext.removeDirectoryInfo(selectionValues[1][0]) + " _ " + namesHash.get(selectionValues[1][0])[Integer.parseInt(selectionValues[1][1])];
-		}
-		return result;
+	    String[] result = new String[2];
+	    
+	    String[][] metaData = getCurrentColumnMetaData();
+	    
+	    result[0] = metaData[0] == null ? "" : metaData[0][4] + " chr" + metaData[0][0] + ":" + metaData[0][1];
+	    result[1] = metaData[1] == null ? "" : metaData[1][4] + " chr" + metaData[1][0] + ":" + metaData[1][1];
+	    
+	    return result;
 	}
+
+//	public String[] getNamesSelected() {
+//		String[] result = new String[2];
+//		String[][] selectionValues = tree.getSelectionValues();
+//		
+//		if (selectionValues[0][0] == null || selectionValues[1][0] == null) {
+//			result[0] = "";
+//			result[1] = "";
+//		} else {
+//			result[0] = headerHash.get(selectionValues[0][0])[Integer.parseInt(selectionValues[0][1])];
+//			result[1] = headerHash.get(selectionValues[1][0])[Integer.parseInt(selectionValues[1][1])];
+//			
+//			Matcher m = headerPattern.matcher(result[0]);
+//			if (m.matches()) {
+//				result[0] = m.group(1) + " chr" + m.group(2) + ":" + m.group(3);
+//			}
+//			m = headerPattern.matcher(result[1]);
+//			if (m.matches()) {
+//				result[1] = m.group(1) + " chr" + m.group(2) + ":" + m.group(3);
+//			}
+//			
+////			result[0] = ext.removeDirectoryInfo(selectionValues[0][0]) + " _ " + namesHash.get(selectionValues[0][0])[Integer.parseInt(selectionValues[0][1])];
+////			result[1] = ext.removeDirectoryInfo(selectionValues[1][0]) + " _ " + namesHash.get(selectionValues[1][0])[Integer.parseInt(selectionValues[1][1])];
+//		}
+//		return result;
+//	}
 	
 	
 	
@@ -1270,17 +1281,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 		if(colForX != Integer.MIN_VALUE){
 			// select the x axis
-			tree.performCheckBoxAction(namesHash.get(filename)[colForX], ItemEvent.SELECTED);
+			tree.performCheckBoxAction(headerHash.get(filename)[colForX], ItemEvent.SELECTED);
 		}
 
 		if(colForY != Integer.MIN_VALUE){
 			// select the x axis
-			tree.performCheckBoxAction(namesHash.get(filename)[colForY], ItemEvent.SELECTED);
+			tree.performCheckBoxAction(headerHash.get(filename)[colForY], ItemEvent.SELECTED);
 		}
 
 		updateTree();
 		updateGUI();
-		tree.expandRow(treeFilenameLookup.indexOf(filename));
+		tree.expandRow(dataFileNames.indexOf(filename));
 		twoDPanel.paintAgain();
 
 	}
@@ -1298,7 +1309,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		int choice;
 		String filenames, selections = "", message;
 
-		filenames = Array.toStr(Array.toStringArray(treeFilenameLookup), ";");
+		filenames = Array.toStr(Array.toStringArray(dataFileNames), ";");
 
 		// find the selected nodes in the plot and create a string from them delimited by ;
 		String[][] selectedNodes = tree.getSelectionValues();
@@ -1339,7 +1350,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time 2D Plot is loaded?", "Preserve 2D Plot workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 //				proj.setProperty(Project.TWOD_LOADED_FILENAMES, filenames);
-				proj.setProperty(proj.TWOD_LOADED_FILENAMES, Array.toStringArray(treeFilenameLookup));
+				proj.setProperty(proj.TWOD_LOADED_FILENAMES, Array.toStringArray(dataFileNames));
 				proj.setProperty(proj.TWOD_LOADED_VARIABLES, selections);
 				proj.saveProperties();
 				GuiManager.disposeOfParentFrame(this);
@@ -1414,7 +1425,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return params;
 	}
 
-	private static ArrayList<ScreenToCapture> condenseCtrlFile(java.util.List<String> ctrlLines) {
+	private static ArrayList<ScreenToCapture> condenseCtrlFile(java.util.List<String> ctrlLines, boolean fail) {
 		HashSet<String> tagSet = new HashSet<String>();
 		tagSet.add("fileX");
 		tagSet.add("fileY");
@@ -1445,10 +1456,16 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				String tagValue = lineTag.split("=").length > 1 ? lineTag.split("=")[1] : "-1";
 				
 				if (!tagSet.contains(tagKey)) {
-					// TODO unknown keyword!
+				    System.err.println("Error - argument \"" + tagKey + "\" is not valid.");
+				    if (fail) {
+				        throw new IllegalArgumentException("Error - argument \"" + tagKey + "\" is not valid.");
+				    }
 				} else {
 					if (lineTagEntries.contains(tagKey)) {
-						// TODO duplicate keyword!
+					    System.err.println("Error - duplicate argument \"" + tagKey + "\" detected.");
+					    if (fail) {
+					        throw new IllegalArgumentException("Error - duplicate argument \"" + tagKey + "\" detected.");
+					    }
 					} else {
 						lineTagEntries.add(tagKey);
 						tagValues.get(tagKey).add(tagValue);
@@ -1461,7 +1478,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				if (!lineTagEntries.contains(tag)) {
 					ArrayList<String> values = tagValues.get(tag);
 					if (values.isEmpty()) {
-						// TODO empty list of values for missing tag!
+                        System.err.println("Error - missing argument \"" + tag + "\" detected.");
+                        if (fail) {
+                            throw new IllegalArgumentException("Error - missing argument \"" + tag + "\" detected.");
+                        }
 					} else {
 						values.add(values.get(values.size() - 1));
 					}
@@ -1544,11 +1564,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 			
 			if (screencap.dataXFile != null) {
-			    tree.performCheckBoxAction(screencap.dataXFile, namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
+			    tree.performCheckBoxAction(screencap.dataXFile, headerHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex], ItemEvent.SELECTED);
 			}
 			if (screencap.dataYFile != null) {
 			    // 07/23/15 BRC -- this was screencap.dataXFile, which doesn't make sense (changed it to dataYFile).  If it breaks, put it back.
-			    tree.performCheckBoxAction(screencap.dataYFile, namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);
+			    tree.performCheckBoxAction(screencap.dataYFile, headerHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex], ItemEvent.SELECTED);
 			}
 
 			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
@@ -1561,7 +1581,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			if (screencap.dataXFile != null) {
 			    basename += ext.rootOf(screencap.dataXFile, true);
 			    basename += "_";
-			    basename += namesHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex];
+			    basename += headerHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex];
 			}
 			if (screencap.dataYFile != null) {
 			    if (!basename.equals("")) {
@@ -1569,7 +1589,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			    }
 			    basename += ext.rootOf(screencap.dataYFile, true);
 			    basename += "_";
-			    basename += namesHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex];
+			    basename += headerHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex];
 			}
 			String screenname = basename;
 			while((new File(baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true) + ".png")).exists()) {
@@ -1649,48 +1669,51 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		String readBuffer;
 		int[] linkKeyIndices;
 
-		if (treeFilenameLookup.contains(filename)) {
+		if (dataFileNames.contains(filename)) {
 			return;
 		}
 		try {
 //	        reader = Files.getReader(new FileReader(filename), proj.getJarStatus(), true, false);
 			reader = new BufferedReader(new FileReader(filename));
-			treeFilenameLookup.add(filename);
+			dataFileNames.add(filename);
 //			filename = ext.removeDirectoryInfo(filename); // Strip "/" from filename
 
 			readBuffer = reader.readLine();
 			String delim = ext.determineDelimiter(readBuffer);
 			header = readBuffer.trim().split(delim);
-			namesHash.put(filename, header);
+			headerHash.put(filename, header);
 			
 			linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log, false);
 			
-			if (linkKeyIndices[0] == -1) {
+			if (linkKeyIndices[IID_INDEX_IN_LINKERS] == -1) {
 				log.report("ID linker not automatically identified for file '" + filename + "'; assuming the first column.");
-				linkKeyIndices[0] = 0;
+				linkKeyIndices[IID_INDEX_IN_LINKERS] = 0;
 			}
 			
-			String region, chr, start, stop;
+			columnMetaData.put(filename, new HashMap<Integer, String[]>());
+			
+			String region, chr, start, stop, lbl;
 			String[] regSplit;
 			// REGION
-			if (linkKeyIndices[4] == -1 || linkKeyIndices[5] == -1 || linkKeyIndices[6] == -1 || linkKeyIndices[7] == -1) {
+			if (linkKeyIndices[REGION_INDEX_IN_LINKERS] == -1 || linkKeyIndices[CHR_INDEX_IN_LINKERS] == -1 || linkKeyIndices[POS_INDEX_IN_LINKERS] == -1 || linkKeyIndices[STOP_POS_INDEX_IN_LINKERS] == -1) {
 				//columnMetaData
 				for (int i = 0; i < header.length; i++) {
 					Matcher matcher = headerPattern.matcher(header[i]);
 					if (matcher.matches()) {
+					    lbl = matcher.group(1);
 						chr = matcher.group(2);
 						region = matcher.group(3);
 						regSplit = region.split("-");
 						start = regSplit[0];
 						stop = regSplit[1];
-						columnMetaData.put(i, new String[]{chr, region, start, stop});
+						columnMetaData.get(filename).put(i, new String[]{lbl, chr, region, start, stop});
 					}
 				}
 			}
 			
 			keyIndices.put(filename, linkKeyIndices);
 			
-			numericHash.put(filename, new boolean[namesHash.get(filename).length]);
+			numericHash.put(filename, new boolean[headerHash.get(filename).length]);
         	for (int i=0; i<numericHash.get(filename).length; i++) {
         		numericHash.get(filename)[i] = true;
         	}
@@ -1727,43 +1750,31 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         }
 	}
 
-	private void initializeTree() {
-		tree = new CheckBoxTree(new String[0], new String[0], new String[0][], new boolean[0], 2);
-	}
-	
 	private void updateTree() {
 		String[] namesOfBranches;
 		String[] branchHandles;
 		String[][] namesOfNodes;
 
-		
-//        TreePath[] prev;
-//        
-//    	prev = tree.getSelectionPaths();
-//
-        treeFileVariableNameLookup = new String[treeFilenameLookup.size()][];
-        for (int i=0; i<treeFilenameLookup.size(); i++) {
-    		treeFileVariableNameLookup[i] = namesHash.get(treeFilenameLookup.elementAt(i));
-        	if (tree==null) {
+        treeFileVariableNameLookup = new String[dataFileNames.size()][];
+        for (int i = 0; i < dataFileNames.size(); i++) {
+    		treeFileVariableNameLookup[i] = headerHash.get(dataFileNames.elementAt(i));
+        	if (tree == null) {
         		namesOfBranches = new String[1];
         		branchHandles = new String[1];
         		namesOfNodes = new String[1][];
-        		namesOfBranches[0]=ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i));
-        		branchHandles[0]=treeFilenameLookup.elementAt(i);
+        		namesOfBranches[0] = ext.removeDirectoryInfo(dataFileNames.elementAt(i));
+        		branchHandles[0] = dataFileNames.elementAt(i);
         		namesOfNodes[0] = treeFileVariableNameLookup[i];
-        		tree = new CheckBoxTree(namesOfBranches, branchHandles, namesOfNodes, numericHash.get(treeFilenameLookup.elementAt(0)), 2);
+        		tree = new CheckBoxTree(namesOfBranches, branchHandles, namesOfNodes, numericHash.get(dataFileNames.elementAt(0)), 2);
         	} else {
-//        		if(i>=tree.getModel().getChildCount(tree.getModel().getRoot())) {
-//        			tree.addNode(treeFilenameLookup.elementAt(i), i, treeFileVariableNameLookup[i]);
-//        		}
         		boolean found = false;
         		for (int j=0; j<tree.getModel().getChildCount(tree.getModel().getRoot()); j++) {
-        			if (tree.getModel().getChild(tree.getModel().getRoot(), j).toString().equals(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)))) {
+        			if (tree.getModel().getChild(tree.getModel().getRoot(), j).toString().equals(ext.removeDirectoryInfo(dataFileNames.elementAt(i)))) {
         				found = true;
         			}
         		}
         		if (!found) {
-        			tree.addNode(ext.removeDirectoryInfo(treeFilenameLookup.elementAt(i)), treeFilenameLookup.elementAt(i), treeFileVariableNameLookup[i], numericHash.get(treeFilenameLookup.elementAt(i)), checkBoxMouseListener);
+        			tree.addNode(ext.removeDirectoryInfo(dataFileNames.elementAt(i)), dataFileNames.elementAt(i), treeFileVariableNameLookup[i], numericHash.get(dataFileNames.elementAt(i)), checkBoxMouseListener);
         		}
         	}
        }
@@ -1794,7 +1805,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return twoDPlot;
     }
 
-	// CHR, REGION, START, STOP
+	// CHR, REGION, START, STOP, LABEL
 	public String[][] getCurrentColumnMetaData() {
 		String[] result1, result2;
 		String[][] selectionValues = tree.getSelectionValues();
@@ -1802,20 +1813,20 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			result1 = null;
 			result2 = null;
 		} else {
-			String col1Name = namesHash.get(selectionValues[0][0])[Integer.parseInt(selectionValues[0][1])];
-			String col2Name = namesHash.get(selectionValues[1][0])[Integer.parseInt(selectionValues[1][1])];
+			String col1Name = headerHash.get(selectionValues[0][0])[Integer.parseInt(selectionValues[0][1])];
+			String col2Name = headerHash.get(selectionValues[1][0])[Integer.parseInt(selectionValues[1][1])];
 			
 			Matcher m1 = headerPattern.matcher(col1Name);
 			Matcher m2 = headerPattern.matcher(col2Name);
 			
 			if (m1.matches()) {
-				result1 = new String[]{m1.group(2), m1.group(3), m1.group(3).split("-")[0], m1.group(3).split("-")[1]};
+				result1 = new String[]{m1.group(2), m1.group(3), m1.group(3).split("-")[0], m1.group(3).split("-")[1], m1.group(1)};
 			} else {
 				result1 = null;
 			}
 			
 			if (m2.matches()) {
-				result2 = new String[]{m2.group(2), m2.group(3), m2.group(3).split("-")[0], m2.group(3).split("-")[1]};
+				result2 = new String[]{m2.group(2), m2.group(3), m2.group(3).split("-")[0], m2.group(3).split("-")[1], m1.group(1)};
 			} else {
 				result2 = null;
 			}
@@ -1832,8 +1843,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return new String[][]{result1, result2};
 	}
 	
-	public String[] getColumnMetaData(int index) {
-		return columnMetaData.get(index);
+	public String[] getColumnMetaData(String filename, int index) {
+		return columnMetaData.get(filename).get(index);
 	}
 	
 	public static void fromParameters(String filename, Logger log) {
@@ -1842,7 +1853,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		if (params != null) {
 			final String projFile = params.get(0).split("=")[1];
 			final String baseDir = params.get(1).split("=")[1];
-			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()));
+			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()), true);
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 	            public void run() {
 	                TwoDPlot tdp = createGUI(new Project(projFile, false), false);
