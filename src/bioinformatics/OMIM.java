@@ -82,13 +82,13 @@ public class OMIM {
 		return gHashtable;
 	}
 
-	private static class OMIMDisorder {
-		private String name;
-		private String[] genes;
-		private String[] geneMims;
-		private String cytoLoc;
-
-	}
+	// private static class OMIMDisorder {
+	// private String name;
+	// private String[] genes;
+	// private String[] geneMims;
+	// private String cytoLoc;
+	//
+	// }
 
 	public static class OMIMGene {
 		private String[] geneSymbols;
@@ -114,6 +114,22 @@ public class OMIM {
 			this.disorders = disorders;
 			this.references = references;
 			this.status = diseaseEvidence;
+		}
+
+		public String getCytogeneticLocation() {
+			return CytogeneticLocation;
+		}
+
+		public String getGeneStatus() {
+			return geneStatus;
+		}
+
+		public String getMethod() {
+			return method;
+		}
+
+		public String getReferences() {
+			return references;
 		}
 
 		public String getStatus() {
