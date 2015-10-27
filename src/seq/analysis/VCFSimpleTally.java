@@ -166,7 +166,7 @@ public class VCFSimpleTally {
 	public static void test() {
 		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf.gz";
 		String popDir = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/Freq/";
-		String[] vpopsCase = new String[] { popDir + "CUSHING_FREQ.vpop" };
+		String[] vpopsCase = new String[] { popDir + "CUSHING_FREQ.vpop", popDir + "EPP.vpop" };
 		String omimDir = "/home/pankrat2/public/bin/ref/OMIM/";
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		int numThreads = 24;
@@ -390,6 +390,7 @@ public class VCFSimpleTally {
 				}
 				result.close();
 			}
+			annoWriterSample.close();
 			annoGeneBedWriter.close();
 			annoWriter.close();
 			writer.close();
