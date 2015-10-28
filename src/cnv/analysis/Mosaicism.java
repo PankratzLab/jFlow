@@ -224,17 +224,22 @@ public class Mosaicism {
 		} else {
 			double[] metrics = new double[] { 0, 0 };
 			double maxBpMetric = -1 * Double.MAX_VALUE;
+			int numCounted =0;
 			for (int i = 0; i < tmp.getLoci().length; i++) {
 				if (tmp.getLoci()[i].getNumMarkers() > md.getMovingFactor()) {
-					if (tmp.getLoci()[i].getBpWeightedScore() > maxBpMetric) {
-						maxBpMetric = tmp.getLoci()[i].getBpWeightedScore();
-						metrics[0] = tmp.getLoci()[i].getBpWeightedScore();
-						metrics[1] = tmp.getLoci()[i].getNearestStateScore();
-					}
+					numCounted++;
+					// if (tmp.getLoci()[i].getBpWeightedScore() > maxBpMetric) {
+					maxBpMetric = tmp.getLoci()[i].getBpWeightedScore();
+					metrics[0] = tmp.getLoci()[i].getBpWeightedScore();
+					metrics[1] = tmp.getLoci()[i].getNearestStateScore();
+					// }
 				}
 			}
-			// metrics[0] = (double) metrics[0] / tmp.getLoci().length;
-			// metrics[1] = (double) metrics[1] / tmp.getLoci().length;
+			double percentCovered = (double) tmp.getBpCovered() / seg.getSize();
+			metrics[0] = (double) metrics[0] * percentCovered;
+			if (numCounted > 0) {
+				metrics[1] = (double) metrics[1] / numCounted;
+			}
 			return metrics;
 		}
 	}
