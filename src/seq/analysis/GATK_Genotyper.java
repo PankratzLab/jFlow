@@ -401,7 +401,7 @@ public class GATK_Genotyper {
 
 	public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild, boolean verbose, boolean overwriteExisting, Logger log) {
         String snpSiftLoc = snpSiftLocation;
-	    if (snpSiftLoc.equals(PSF.Ext.BLANK)) {
+	    if (snpSiftLoc == null || snpSiftLoc.equals(PSF.Ext.BLANK)) {
             snpSiftLoc = snpEffLocation;
         }
 		GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, null, null, null, verbose, overwriteExisting, log);

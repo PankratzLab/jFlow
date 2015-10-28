@@ -377,7 +377,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				isHistPlot = menuItemHist.isSelected();
-
+				
+				tree.setMaxSelections(isHistPlot ? 1 : 2);
+				
 //				tree = new CheckBoxTree(new String[0], new String[0], new String[0][], new boolean[0], /*isHistPlot ? 1 : */2);
 //                updateTree();
 //                
@@ -931,7 +933,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		// file/collection name and column number of selected data collection
 		selectedNodes = tree.getSelectionValues();
 		v = new Vector<String[]>();
-		if (selectedNodes[0][0] != null && selectedNodes[1][0] != null && linkerIndices.get(selectedNodes[0][0]) != null && linkerIndices.get(selectedNodes[1][0]) != null) {
+        xHash = new Hashtable<String, String[]>();
+        yHash = new Hashtable<String, String>();
+		if (selectedNodes[0][0] != null && linkerIndices.get(selectedNodes[0][0]) != null) {
 			selectedColumn = Integer.parseInt(selectedNodes[0][1]);
 			selectedFile = selectedNodes[0][0];
 			dataOfSelectedFile = dataHash.get(selectedFile);
@@ -944,7 +948,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			
 			linkKeyColumnIndices = linkerIndices.get(selectedFile);
 			index = (byte) (includeColorKeyValue? 4 : 3);
-			xHash = new Hashtable<String, String[]>();
 			outer : for (int i = 0; i < dataOfSelectedFile.size(); i++) {
 				inLine = dataOfSelectedFile.elementAt(i);
 				
@@ -978,41 +981,44 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				}
 				xHash.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], outLine);
 			}
-
-			selectedColumn = Integer.parseInt(selectedNodes[1][1]);
-			selectedFile = selectedNodes[1][0];
-			dataOfSelectedFile = dataHash.get(selectedFile);
-			yHash = new Hashtable<String, String>();
-			for (int i = 0; i < dataOfSelectedFile.size(); i++) {
-				inLine = dataOfSelectedFile.elementAt(i);
-				yHash.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], inLine[selectedColumn]);
-			}
-
+    		if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null && linkerIndices.get(selectedNodes[1][0]) != null) {
+    			selectedColumn = Integer.parseInt(selectedNodes[1][1]);
+    			selectedFile = selectedNodes[1][0];
+    			dataOfSelectedFile = dataHash.get(selectedFile);
+    			for (int i = 0; i < dataOfSelectedFile.size(); i++) {
+    				inLine = dataOfSelectedFile.elementAt(i);
+    				yHash.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], inLine[selectedColumn]);
+    			}
+    		}
 			keys = HashVec.getKeys(xHash, false, false);
 			v = new Vector<String[]>();
 			for (String key : keys) {
+			    inLine = xHash.get(key);
+			    boolean hasY = false;
 				if (yHash.containsKey(key)) {
-					inLine = xHash.get(key);
 					inLine[2] = yHash.get(key);
-					if (includeColorKeyValue) {
-						if (sampleData != null) {
-							ids = sampleData.lookup(key);
-							if (ids == null) {
-								colorCode = 0;
-							} else if (generatingScreenshots) {
-								colorCode = getColorForScreenshot(ids[0]);
-							} else {
-								colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) 0, 0);
-							}
-						} else {
-							colorCode = 0;
-						}
-						inLine[3] = colorCode + "";
-					}
-//					if (!inLine[3].equals("0"))
-						v.add(inLine);
+					hasY = true;
 				}
-			}
+				if (hasY || isHistPlot) {
+    				if (includeColorKeyValue) {
+    				    if (sampleData != null) {
+    				        ids = sampleData.lookup(key);
+    				        if (ids == null) {
+    				            colorCode = 0;
+    				        } else if (generatingScreenshots) {
+    				            colorCode = getColorForScreenshot(ids[0]);
+    				        } else {
+    				            colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) 0, 0);
+    				        }
+    				    } else {
+    				        colorCode = 0;
+    				    }
+    				    inLine[3] = colorCode + "";
+    				}
+    //					if (!inLine[3].equals("0"))
+    				v.add(inLine);
+				}
+    		}
 		}
 		return v;
 	}
