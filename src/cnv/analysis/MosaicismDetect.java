@@ -148,7 +148,7 @@ public class MosaicismDetect {
 				double factor = (double) dud.getLoci()[i].getSize(); // factor = factor * (double) dud.getLoci()[i].getNumMarkers() / states.length;
 				builder.score(score);
 				double nearestStateScore = Array.mean(Array.subArray(nearestN, scoreStopStart[0], scoreStopStart[1] + 1));
-				tmp[i] = new MosaicRegion(builder.build(), Math.log10(score * factor), nearestStateScore);
+				tmp[i] = new MosaicRegion(builder.build(), Math.log10(score * Math.pow(factor, 2)), nearestStateScore);
 			}
 
 			mSet = new LocusSet<MosaicRegion>(tmp, true, proj.getLog()) {
