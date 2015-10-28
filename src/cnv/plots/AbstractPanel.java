@@ -128,7 +128,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private volatile int imageStatus;		//A control variable. If drawAll() is not yet done, don't start paintComponent();
 	private byte[] layersInBase;
 	private byte[] extraLayersVisible;
-	private boolean pointsGeneratable;
+//	private boolean pointsGeneratable;
 	protected Timer waitingTimer;		//A control variable to reduce the repaint() operations during component resizing;
 	private String nullMessage;
 	private boolean randomTest;
@@ -169,7 +169,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		locLookup = new Hashtable<String,IntVector>();
 		imageStatus = IMAGE_NULL;
 		flow=true;
-		pointsGeneratable = true;
+//		pointsGeneratable = true;
 		beEfficient = true;
 		
 		colorScheme = new Color[] {Color.BLACK, Color.GRAY};
@@ -389,7 +389,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			for (int i = 0; i < points.length; i++) {
 				points[i] = new PlotPoint("", (byte)1, (float)Math.random(), (float)Math.random(), (byte)5, (byte)0, (byte)0);
 			}
-		} else if (pointsGeneratable) {
+		} else/* if (pointsGeneratable)*/ {
 			generatePoints();
 //			pointsGeneratable = false;
 		}
@@ -711,7 +711,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
         }
 		
 		g.setClip(null);
-		
+//		}
 		// Draw the rectangle outlined by dragging the mouse
 		if (highlightRectangle != null) {
 			rectangleXPixel = Math.min(getXPixel(highlightRectangle.getStartXValue()), getXPixel(highlightRectangle.getStopXValue()));
@@ -1596,11 +1596,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 	
 	public void setPointsGeneratable(boolean pointsGeneratable) {
-		this.pointsGeneratable = pointsGeneratable;
+//		this.pointsGeneratable = pointsGeneratable;
 	}
 
 	public boolean isPointsGeneratable() {
-		return pointsGeneratable;
+		return true /*pointsGeneratable*/;
 	}
 	
 	public void setSwapable(boolean swapable) {

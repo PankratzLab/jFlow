@@ -295,40 +295,9 @@ public class ForestPanel extends AbstractPanel {
     	}
 		
 		setImageStatus(IMAGE_STARTED);
-//		if (isRandomTest()) {
-//			points = new PlotPoint[1000000];
-//			for (int i = 0; i < points.length; i++) {
-//				points[i] = new PlotPoint("", (byte) 1, (float) Math.random(), (float) Math.random(), (byte) 5, (byte) 0, (byte) 0);
-//			}
-//		} else 
-		if (isPointsGeneratable()) {
-			generatePoints();
-//			if (isPointsGeneratable()) {
-//				TreeMap<Float, Integer> scoreIndexMap = new TreeMap<Float, Integer>();
-//				TreeSet<Integer> zeros = new TreeSet<Integer>();
-//				ArrayList<StudyData> currentStudies = forestPlot.getCurrentMetaStudy().getStudies(); 
-//				for (int i = 0; i < currentStudies.size(); i++) {
-//					if (currentStudies.get(i).getZScore() != 0.0) {
-//						scoreIndexMap.put((currentStudies.get(i).getZScore() / forestPlot.getSumZScore()) * 100, i);
-//					} else {
-//						zeros.add(i);
-//					}
-//				}
-//				order = new int[currentStudies.size()];
-//				int ind = scoreIndexMap.size() - 1;
-//				for (java.util.Map.Entry<Float, Integer> entry : scoreIndexMap.entrySet()) {
-//					order[ind] = entry.getValue().intValue();
-//					ind--;
-//				}
-//				Iterator<Integer> iter = zeros.iterator();
-//				for (int i = scoreIndexMap.size(); i < order.length; i++) {
-//					order[i] = iter.next().intValue();
-//				}
-//			}
-		}
-//		highlightPoints();
+		generatePoints();
 
-		if (!isPointsGeneratable() || points.length == 0) {
+		if (/*!isPointsGeneratable() || */points.length == 0) {
 			g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			if (getNullMessage() != null) {

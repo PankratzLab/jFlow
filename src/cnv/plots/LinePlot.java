@@ -805,7 +805,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		for (int i = 0; i < treeFilenameLookup.size(); i++) {
 			treeFileVariableNameLookup[i] = namesHash.get(treeFilenameLookup.elementAt(i));
 			maxSelectable += treeFileVariableNameLookup[i].length;
-			tree.updateSelections(maxSelectable);
+			tree.setMaxSelections(maxSelectable);
 
 			if (tree == null) {
 				namesOfBranches = new String[1];

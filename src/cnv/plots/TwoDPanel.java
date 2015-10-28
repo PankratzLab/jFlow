@@ -124,8 +124,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
 	public void assignAxisLabels() {
 		displayXaxis = displayYaxis = true;
-		xAxisLabel = swapAxes? tdp.getNamesSelected()[1] : tdp.getNamesSelected()[0];
-		yAxisLabel = swapAxes? tdp.getNamesSelected()[0] : tdp.getNamesSelected()[1];
+		xAxisLabel = tdp.isHistPlot ? tdp.getNamesSelected()[0] : swapAxes ? tdp.getNamesSelected()[1] : tdp.getNamesSelected()[0];
+		yAxisLabel = tdp.isHistPlot ? "" : swapAxes ? tdp.getNamesSelected()[0] : tdp.getNamesSelected()[1];
 	}
 	
 	public boolean invertX() {

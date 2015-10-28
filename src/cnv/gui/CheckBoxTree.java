@@ -45,7 +45,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 	 * @param maxSelectable
 	 *            the new maximum number of selectable checkboxes
 	 */
-	public void updateSelections(int maxSelectable) {
+	public void setMaxSelections(int maxSelectable) {
 		// get new selection with specified size
 		selections = Arrays.copyOf(selections, maxSelectable);
 	}
