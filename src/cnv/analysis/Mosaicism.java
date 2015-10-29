@@ -225,18 +225,25 @@ public class Mosaicism {
 			double[] metrics = new double[] { 0, 0 };
 			double maxBpMetric = -1 * Double.MAX_VALUE;
 			int numCounted =0;
+			int numTotalMarkers = 0;
 			for (int i = 0; i < tmp.getLoci().length; i++) {
-				if (tmp.getLoci()[i].getNumMarkers() > md.getMovingFactor()) {
+				if (tmp.getLoci()[i].getNumMarkers() > 4 * md.getMovingFactor()) {
 					numCounted++;
-					// if (tmp.getLoci()[i].getBpWeightedScore() > maxBpMetric) {
+					numTotalMarkers += tmp.getLoci()[i].getNumMarkers();
 					maxBpMetric = tmp.getLoci()[i].getBpWeightedScore();
-					metrics[0] = tmp.getLoci()[i].getBpWeightedScore();
-					metrics[1] = tmp.getLoci()[i].getNearestStateScore();
-					// }
+					metrics[0] += tmp.getLoci()[i].getBpWeightedScore();
+					metrics[1] += tmp.getLoci()[i].getNearestStateScore();
 				}
 			}
-			double percentCovered = (double) tmp.getBpCovered() / seg.getSize();
+			int bpCovered = (int) tmp.getBpCovered();
+			double percentCovered = (double) bpCovered / seg.getSize();
+			double density = 0;
+			if (numTotalMarkers > 0) {
+				density = (double) numTotalMarkers / bpCovered;
+				density = density * 1000;
+			}
 			metrics[0] = (double) metrics[0] * percentCovered;
+					//* density;
 			if (numCounted > 0) {
 				metrics[1] = (double) metrics[1] / numCounted;
 			}
@@ -416,7 +423,7 @@ public class Mosaicism {
 		}
 		
 		try {
-			 proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+			proj = new Project(filename, false);
 			if (check) {
 				checkForOverlap(proj);
 			} else {

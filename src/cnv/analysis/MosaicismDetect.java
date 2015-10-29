@@ -40,7 +40,8 @@ public class MosaicismDetect {
 	private double baseLine;
 	private double[] means;
 	private double[] variances;
-	//private double minPercentStates;
+
+	// private double minPercentStates;
 
 	public int getMovingFactor() {
 
@@ -76,7 +77,7 @@ public class MosaicismDetect {
 			double baf = bafs[segIndices[i]];
 			p_density[i] = 0;
 			for (int j = 0; j < gd.distributions().length; j++) {
-				if (j == 0 || j == 2) {
+				if (j == 0 || j == 2 || Double.isNaN(baf)) {
 					if (j == 0 && Math.abs(baf - means[j]) < nullSigma * Math.sqrt(variances[j])) {
 						p_density[i] = Double.NaN;
 						nearestN[i] = -1;
@@ -89,10 +90,14 @@ public class MosaicismDetect {
 				double tmp = (double) gd.distributions()[j].probability(test) * Math.sqrt(variances[j]);
 				if (tmp > p_density[i] && !Double.isNaN(p_density[i])) {
 					p_density[i] = tmp;
-					if (j == 0 || j == 2) {
-						nearestN[i] = 1;
+					if (Double.isFinite(baf)) {
+						if (j == 0 || j == 2) {
+							nearestN[i] = baf < gd.distributions()[1].mean() ? Math.max(baf - gd.distributions()[j].mean(), 0) : gd.distributions()[j].mean() - baf;
+						} else {
+							nearestN[i] = baf < gd.distributions()[1].mean() ? gd.distributions()[1].mean() - baf : baf - gd.distributions()[1].mean();
+						}
 					} else {
-						nearestN[i] = .5;
+						nearestN[i] = -1;
 					}
 				}
 			}
@@ -130,7 +135,7 @@ public class MosaicismDetect {
 				}
 			}
 			int[] mosIndices = Array.toIntArray(mosIndicesTmp);
-			//double percentState = (double) evalIndices.length / totalIndices;
+			// double percentState = (double) evalIndices.length / totalIndices;
 			// System.out.println(percentState+"\t"+evalIndices.length+"\t"+totalIndices);
 
 			// if (percentState > minPercentStates) {
@@ -148,7 +153,7 @@ public class MosaicismDetect {
 				double factor = (double) dud.getLoci()[i].getSize(); // factor = factor * (double) dud.getLoci()[i].getNumMarkers() / states.length;
 				builder.score(score);
 				double nearestStateScore = Array.mean(Array.subArray(nearestN, scoreStopStart[0], scoreStopStart[1] + 1));
-				tmp[i] = new MosaicRegion(builder.build(), Math.log10(score * Math.pow(factor, 2)), nearestStateScore);
+				tmp[i] = new MosaicRegion(builder.build(), Math.log10(Math.pow(factor, 2)), nearestStateScore);
 			}
 
 			mSet = new LocusSet<MosaicRegion>(tmp, true, proj.getLog()) {
@@ -286,7 +291,8 @@ public class MosaicismDetect {
 		private double baseLine = DEFAULT_BASELINE;
 		private double[] means = null;
 		private double[] variances = null;
-		//private double minPercentStates = DEFAULT_MIN_PERCENT_STATES;
+
+		// private double minPercentStates = DEFAULT_MIN_PERCENT_STATES;
 
 		/**
 		 * @param movingFactor
@@ -367,18 +373,18 @@ public class MosaicismDetect {
 			return this;
 		}
 
-//		/**
-//		 * @param minPercentStates
-//		 *            this percent of all markers in a region of interst must be outside of nullsigma
-//		 * @return
-//		 */
-//		public MosaicBuilder minPercentStates(double minPercentStates) {
-//			this.minPercentStates = minPercentStates;
-//			if (minPercentStates <= 0) {
-//				throw new IllegalArgumentException("minPercentStates must be positive");
-//			}
-//			return this;
-//		}
+		// /**
+		// * @param minPercentStates
+		// * this percent of all markers in a region of interst must be outside of nullsigma
+		// * @return
+		// */
+		// public MosaicBuilder minPercentStates(double minPercentStates) {
+		// this.minPercentStates = minPercentStates;
+		// if (minPercentStates <= 0) {
+		// throw new IllegalArgumentException("minPercentStates must be positive");
+		// }
+		// return this;
+		// }
 
 		public MosaicismDetect build(Project proj, String sample, MarkerSet markerSet, double[] bafs) {
 			return new MosaicismDetect(this, proj, sample, markerSet, bafs);
@@ -397,7 +403,7 @@ public class MosaicismDetect {
 		this.baseLine = builder.baseLine;
 		this.means = builder.means;
 		this.variances = builder.variances;
-		//this.minPercentStates = builder.minPercentStates;
+		// this.minPercentStates = builder.minPercentStates;
 		if (bafs.length != markerSet.getMarkerNames().length) {
 			throw new IllegalArgumentException("Internal error, bafs must be present for entire array, fill with NaN if neccesary");
 		}
