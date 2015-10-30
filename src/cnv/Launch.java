@@ -9,6 +9,7 @@ import javax.swing.*;
 
 import common.*;
 import cyto.CytoGUI;
+import cnv.analysis.CentroidCompute;
 import cnv.analysis.DeNovoCNV;
 import cnv.analysis.Mosaicism;
 import cnv.analysis.pca.PrincipalComponentsCrossTabs;
@@ -70,6 +71,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String PARSE_RAW_PENNCNV_RESULTS = "Parse raw PennCNV results files";
 	public static final String POPULATIONBAF = "Compute Population BAF file";
 	public static final String GCMODEL = "Compute GC model file";
+	public static final String CUSTOM_CENTROIDS = "Compute custom centroids file";
+
 	public static final String DENOVO_CNV = "De Novo CNV";
 	public static final String EXPORT_CNVS = "Export CNVs to Pedfile format";
 	public static final String CYTO_WORKBENCH = "Parse workbench files";
@@ -84,7 +87,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
-			{"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST},
+			{"Tools", GENERATE_ABLOOKUP, EXPORT_TO_PLINK, GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST},
 			{"Help", "Contents", "Search", "About"}};
 
 	
@@ -577,6 +580,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				});
 			} else if (command.equals(POPULATIONBAF)) {
 				cnv.analysis.PennCNV.populationBAF(proj);
+			} else if (command.equals(CUSTOM_CENTROIDS)) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						CentroidCompute.computeAndDumpCentroids(proj);
+					}
+				});
 			} else if (command.equals(EXPORT_CNVS)) {
 				cnv.manage.ExportCNVsToPedFormat.main(null);
 			} else if (command.equals(CYTO_WORKBENCH)) {

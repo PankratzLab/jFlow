@@ -1351,6 +1351,25 @@ public class Array {
 	}
 	
 	/**
+	 * Standardizes (calculates z-scores) for an array of numbers
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return array of z-scores
+	 */
+	public static float[] normalize(float[] array) {
+		float[] newData = new float[array.length];
+		float mean = Array.mean(array, true);
+		float stdev = Array.stdev(array, false);
+
+		for (int i = 0; i < newData.length; i++) {
+			newData[i] = (array[i] - mean) / stdev;
+		}
+
+		return newData;
+	}
+	
+	/**
 	 * Normalizes (calculates z-scores) for an array of numbers using separate standard deviations for positive and negative numbers
 	 * 
 	 * @param array

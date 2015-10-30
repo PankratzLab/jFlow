@@ -365,6 +365,42 @@ public class Sort {
 	}
 
 	/**
+	 * For sorting doubles and keeping the index,
+	 * taken from http://stackoverflow.com/questions/14186529/java-array-of-sorted-indexes
+	 */
+	private static class ScoreDoubleIndex implements Comparable<ScoreDoubleIndex> {
+		final double score;
+		final int index;
+
+		ScoreDoubleIndex(double score, int index) {
+			this.score = score;
+			this.index = index;
+		}
+
+		@Override
+		public int compareTo(ScoreDoubleIndex o) {
+			int cmp = Double.compare(score, o.score);
+			return cmp == 0 ? Integer.compare(index, o.index) : cmp;
+		}
+	}
+
+	/**
+	 * uses {@link ScoreDoubleIndex} to sort the double array and get indices
+	 * @param results 
+	 * @return
+	 */
+	public static int[] trickSort(double[] results) {
+		List<ScoreDoubleIndex> list = new ArrayList<ScoreDoubleIndex>(results.length);
+		for (int i = 0; i < results.length; i++)
+			list.add(new ScoreDoubleIndex(results[i], i));
+		Collections.sort(list);
+		int[] indexes = new int[results.length];
+		for (int i = 0; i < list.size(); i++)
+			indexes[i] = list.get(i).index;
+		return indexes;
+	}
+
+	/**
 	 * Performs a quicksort on the data.
 	 * 
 	 * @param arr
