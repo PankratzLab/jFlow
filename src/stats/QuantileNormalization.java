@@ -1,11 +1,8 @@
 package stats;
 
-import java.util.Arrays;
-
 import common.Array;
 import common.Logger;
 import common.Sort;
-import common.ext;
 
 public class QuantileNormalization {
 	private double thresholdFactor;
@@ -74,8 +71,10 @@ public class QuantileNormalization {
 		int[][] ranks = new int[dataToNorm.length][];
 		for (int i = 0; i < ranks.length; i++) {
 			ranks[i] = Sort.trickSort(dataToNorm[i]);
+			// TODO, sorted vs rank
 		}
 		double[] rankMean = new double[dataToNorm[0].length];
+
 		for (int i = 0; i < dataToNorm[0].length; i++) {
 			double[] tmp = new double[dataToNorm.length];
 			for (int j = 0; j < tmp.length; j++) {
@@ -83,13 +82,13 @@ public class QuantileNormalization {
 				tmp[j] = dataToNorm[j][nextRank];
 			}
 			rankMean[i] = Array.mean(tmp, true);
+
 		}
 
 		this.normData = new double[dataToNorm.length][dataToNorm[0].length];
 		for (int i = 0; i < dataToNorm.length; i++) {
 			for (int j = 0; j < dataToNorm[0].length; j++) {
-
-				normData[i][j] = rankMean[ranks[i][j]];
+				normData[i][ranks[i][j]] = rankMean[j];
 				if (!Double.isNaN(thresholdFactor)) {
 					if (Double.isNaN(dataToNorm[i][j])) {
 						normData[i][j] = Double.NaN;
@@ -99,25 +98,30 @@ public class QuantileNormalization {
 				}
 			}
 		}
+		for (int i = 0; i < dataToNorm.length; i++) {
+			log.reportTimeInfo("MEAN Original" + i + " : " + Array.mean(dataToNorm[i], true) + " -> " + Array.mean(normData[i], true));
+			log.reportTimeInfo("SD Original" + i + " : " + Array.stdev(dataToNorm[i], true) + " -> " + Array.stdev(normData[i], true));
+
+		}
 	}
 }
 
 //
-//long time = System.currentTimeMillis();
-//Sort.quicksort(dataToNorm[i]);
-//log.reportTimeInfo(ext.getTimeElapsed(time) + " for q sort ");
-//time = System.currentTimeMillis();
-//double[] tmp = Array.removeNaN(dataToNorm[i]);
+// long time = System.currentTimeMillis();
+// Sort.quicksort(dataToNorm[i]);
+// log.reportTimeInfo(ext.getTimeElapsed(time) + " for q sort ");
+// time = System.currentTimeMillis();
+// double[] tmp = Array.removeNaN(dataToNorm[i]);
 //
-//int[] t = Sort.quicksort(tmp);
+// int[] t = Sort.quicksort(tmp);
 //
 //
-//log.reportTimeInfo(ext.getTimeElapsed(time) + " for q no NaN ");
+// log.reportTimeInfo(ext.getTimeElapsed(time) + " for q no NaN ");
 //
-//int[] t2 = Sort.trickSort(tmp);
-//for (int j = 0; j < t2.length; j++) {
-//	if (tmp[t[j]] != tmp[t2[j]]) {
-//		System.exit(1);
-//	}
-//}
-//time = System.currentTimeMillis();
+// int[] t2 = Sort.trickSort(tmp);
+// for (int j = 0; j < t2.length; j++) {
+// if (tmp[t[j]] != tmp[t2[j]]) {
+// System.exit(1);
+// }
+// }
+// time = System.currentTimeMillis();
