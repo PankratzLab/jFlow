@@ -3676,15 +3676,15 @@ public class Array {
 	 */
 	public static double[] removeNaN(double[] array) {
 		boolean[] use;
-		
+
 		use = new boolean[array.length];
-		for (int i = 0; i<use.length; i++) {
-			use[i] = !(array[i]+"").equals("NaN");
-        }
+		for (int i = 0; i < use.length; i++) {
+			use[i] = !Double.isNaN(array[i]);
+		}
 
 		return subArray(array, use);
 	}
-	
+
 	/**
 	 * Removes NaN values from the array
 	 * 
@@ -3694,11 +3694,11 @@ public class Array {
 	 */
 	public static float[] removeNaN(float[] array) {
 		boolean[] use;
-		
+
 		use = new boolean[array.length];
-		for (int i = 0; i<use.length; i++) {
-			use[i] = !(array[i]+"").equals("NaN");
-        }
+		for (int i = 0; i < use.length; i++) {
+			use[i] = !Float.isNaN(array[i]);
+		}
 
 		return subArray(array, use);
 	}

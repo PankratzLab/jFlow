@@ -101,3 +101,23 @@ public class QuantileNormalization {
 		}
 	}
 }
+
+//
+//long time = System.currentTimeMillis();
+//Sort.quicksort(dataToNorm[i]);
+//log.reportTimeInfo(ext.getTimeElapsed(time) + " for q sort ");
+//time = System.currentTimeMillis();
+//double[] tmp = Array.removeNaN(dataToNorm[i]);
+//
+//int[] t = Sort.quicksort(tmp);
+//
+//
+//log.reportTimeInfo(ext.getTimeElapsed(time) + " for q no NaN ");
+//
+//int[] t2 = Sort.trickSort(tmp);
+//for (int j = 0; j < t2.length; j++) {
+//	if (tmp[t[j]] != tmp[t2[j]]) {
+//		System.exit(1);
+//	}
+//}
+//time = System.currentTimeMillis();

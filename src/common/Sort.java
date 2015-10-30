@@ -365,8 +365,7 @@ public class Sort {
 	}
 
 	/**
-	 * For sorting doubles and keeping the index,
-	 * taken from http://stackoverflow.com/questions/14186529/java-array-of-sorted-indexes
+	 * For sorting doubles and keeping the index, taken from http://stackoverflow.com/questions/14186529/java-array-of-sorted-indexes
 	 */
 	private static class ScoreDoubleIndex implements Comparable<ScoreDoubleIndex> {
 		final double score;
@@ -377,6 +376,14 @@ public class Sort {
 			this.index = index;
 		}
 
+		public double getScore() {
+			return score;
+		}
+
+		public int getIndex() {
+			return index;
+		}
+
 		@Override
 		public int compareTo(ScoreDoubleIndex o) {
 			int cmp = Double.compare(score, o.score);
@@ -384,19 +391,31 @@ public class Sort {
 		}
 	}
 
+	private static class ScoreComp implements Comparator<ScoreDoubleIndex> {
+
+		@Override
+		public int compare(ScoreDoubleIndex o1, ScoreDoubleIndex o2) {
+			int cmp = Double.compare(o1.getScore(), o2.getScore());
+			return cmp == 0 ? Integer.compare(o1.getIndex(), o2.getIndex()) : cmp;
+		}
+
+	}
+
 	/**
 	 * uses {@link ScoreDoubleIndex} to sort the double array and get indices
-	 * @param results 
+	 * 
+	 * @param results
 	 * @return
 	 */
 	public static int[] trickSort(double[] results) {
-		List<ScoreDoubleIndex> list = new ArrayList<ScoreDoubleIndex>(results.length);
-		for (int i = 0; i < results.length; i++)
-			list.add(new ScoreDoubleIndex(results[i], i));
-		Collections.sort(list);
+		ScoreDoubleIndex[] sIndexs = new ScoreDoubleIndex[results.length];
+		for (int i = 0; i < results.length; i++) {
+			sIndexs[i] = new ScoreDoubleIndex(results[i], i);
+		}
+		Arrays.sort(sIndexs, new ScoreComp());
 		int[] indexes = new int[results.length];
-		for (int i = 0; i < list.size(); i++)
-			indexes[i] = list.get(i).index;
+		for (int i = 0; i < sIndexs.length; i++)
+			indexes[i] = sIndexs[i].getIndex();
 		return indexes;
 	}
 
