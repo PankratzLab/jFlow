@@ -73,7 +73,6 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 	private Hashtable<String,IntVector> sampLookup;
 	private IntVector prox;
 	private Hashtable<String,String> colorHash;
-	private Hashtable<String,String> failedHash;
 	private SampleData sampleData;
 
 	public SexPanel(Project proj, String[][] samples, double[][] data, byte[] sexes, byte[] estimatedSexes) {
@@ -89,7 +88,6 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 	public SexPanel(Project proj, String[][] samples, double[][] data) {
 		BufferedReader reader;
 		String[] line;
-		int[] indices;
 
 		this.proj = proj;
 		this.samples = samples;
@@ -112,30 +110,11 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 			System.exit(2);
 		}
 
-		failedHash = new Hashtable<String,String>();
-		try {
-//			reader = Files.getReader(proj.getFilename(proj.SAMPLE_DATA_FILENAME), proj.getJarStatus(), true, false);
-			reader = Files.getReader(proj.SAMPLE_DATA_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
-			if (reader!=null) {
-				indices = ext.indexFactors(new String[] {"Sample Name", "CLASS=Suitable for CNV"}, reader.readLine().trim().split("\t", -1), false, false);
-				if (Array.min(indices)>=0) {
-					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
-						failedHash.put(line[indices[0]], line[indices[1]]);
-					}
-				}
-				reader.close();
-			}
-		} catch (IOException ioe) {
-//			System.err.println("Error reading file \""+proj.getFilename(proj.SAMPLE_DATA_FILENAME)+"\"");
-			System.err.println("Error reading file \""+proj.SAMPLE_DATA_FILENAME.getValue()+"\"");
-		}
-
 		image = null;
 		locLookup = new Hashtable<String,IntVector>();
 		sampLookup = new Hashtable<String,IntVector>();
 		
-		sampleData = proj.getSampleData(0, true);
+		sampleData = proj.getSampleData(0, false);
 		
 		// linkSamples = true;
 
@@ -193,7 +172,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(data[iv.elementAt(i)][0]), getYPixel(data[iv.elementAt(i)][1])})<HIGHLIGHT_DISTANCE) {
 					g.setColor(Color.RED);
 					prox.add(iv.elementAt(i));
-					if (failedHash.containsKey(samples[iv.elementAt(i)][0])&&failedHash.get(samples[iv.elementAt(i)][0]).equals("0")) {
+					if (sampleData.individualShouldBeExcluded(samples[iv.elementAt(i)][0])) {
 						g.fillOval(getXPixel(data[iv.elementAt(i)][0])-SIZE_FAILED/2, getYPixel(data[iv.elementAt(i)][1])-SIZE_FAILED/2, SIZE_FAILED, SIZE_FAILED);
 					} else {
 						g.fillOval(getXPixel(data[iv.elementAt(i)][0])-SIZE/2, getYPixel(data[iv.elementAt(i)][1])-SIZE/2, SIZE, SIZE);
@@ -211,7 +190,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 					iv = sampLookup.get(samples[prox.elementAt(i)][0]);
 					g.setColor(Color.YELLOW);
 					for (int j = 0; j<Math.min(iv.size(), 10); j++) {
-						if (failedHash.containsKey(samples[iv.elementAt(j)][0])&&failedHash.get(samples[iv.elementAt(j)][0]).equals("0")) {
+						if (sampleData.individualShouldBeExcluded(samples[iv.elementAt(i)][0])) {
 							g.fillOval(getXPixel(data[iv.elementAt(j)][0])-SIZE_FAILED/2, getYPixel(data[iv.elementAt(j)][1])-SIZE_FAILED/2, SIZE_FAILED, SIZE_FAILED);
 						} else {
 							g.fillOval(getXPixel(data[iv.elementAt(j)][0])-SIZE/2, getYPixel(data[iv.elementAt(j)][1])-SIZE/2, SIZE, SIZE);
