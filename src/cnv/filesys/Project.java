@@ -1431,6 +1431,30 @@ public class Project {
 
     public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
         this.sourceFileHeaders = sourceFileHeaders;
-    }
+	}
+
+	/**
+	 * 
+	 * Mainly for development of methods involving changes to sample/transposed files
+	 * 
+	 * @param projOriginal
+	 * @param tag
+	 *            this tag will serve as the new directory under the original project directory
+	 * @return
+	 */
+	public static Project prepareNewProject(Project projOriginal, String tag) {
+		String newProjectFile = ext.addToRoot(projOriginal.PROJECT_PROPERTIES_FILENAME.getValue(), "." + tag);
+		Files.copyFileUsingFileChannels(projOriginal.PROJECT_PROPERTIES_FILENAME.getValue(), newProjectFile, projOriginal.getLog());
+		Project projCorrected = new Project(newProjectFile, false);
+		String newDir = projOriginal.PROJECT_DIRECTORY.getValue() + tag + "/";
+		projOriginal.getLog().reportTimeInfo("Preparing project " + newProjectFile + " in " + newDir);
+		new File(newDir).mkdirs();
+		projCorrected.PROJECT_DIRECTORY.setValue(newDir);
+		projCorrected.PROJECT_NAME.setValue(projOriginal.PROJECT_NAME.getValue() + tag);
+		projCorrected.saveProperties();
+		projOriginal.copyBasicFiles(projCorrected, false);
+		return projCorrected;
+	}
+    
 		
 }

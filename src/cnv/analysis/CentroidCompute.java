@@ -689,6 +689,12 @@ public class CentroidCompute {
 	private CentroidCompute(Builder builder, MarkerData markerData, Logger log) {
 		this(markerData, builder.sampleSex, builder.samplesToUse, builder.intensityOnly, builder.missingnessThreshold, builder.gcThreshold, builder.clusterFilterCollection, builder.medianCenter, log);
 	}
+	
+	
+	public static void computeAndDumpCentroids(Project proj) {
+		Builder builder = new Builder();
+		CentroidCompute.computeAndDumpCentroids(proj, null, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), builder, proj.NUM_THREADS.getValue(), 1);
+	}
 
 	/**
 	 * @param proj

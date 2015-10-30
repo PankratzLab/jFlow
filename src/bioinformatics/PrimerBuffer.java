@@ -162,7 +162,6 @@ public class PrimerBuffer {
 		}
 		try {
 			Logger log = new Logger(ext.rootOf(queryFile) + ".log");
-
 			extractBuffer(queryFile, referenceGenome, bpBuffer, log);
 		} catch (Exception e) {
 			e.printStackTrace();
