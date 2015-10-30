@@ -81,7 +81,9 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		try {
 //			reader = Files.getReader(proj.getFilename(proj.MOSAIC_RESULTS_FILENAME), proj.getJarStatus(), true, true);
 			reader = Files.getReader(proj.MOSAIC_RESULTS_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, true);
-			ext.checkHeader(reader.readLine().trim().split("\t"), MOSAICISM_HEADER, true);
+			if (!ext.checkHeader(reader.readLine().trim().split("\t"), MOSAICISM_HEADER, false)) {
+				proj.message("Different Mosaicism header than expected (see log); this could blow up");
+			}
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t", -1);
 				if (!line[5].equals(".")&&!line[6].equals(".")&&Integer.parseInt(line[1].substring(3, line[1].length()-1))<23) {

@@ -1113,10 +1113,6 @@ public class Project {
 		return null;
 	}
 
-	public void message(String str) {
-		message(str, "Error", JOptionPane.ERROR_MESSAGE);
-	}
-	
 	public void setGuiState(boolean state) {
 		gui = state;
 	}
@@ -1124,7 +1120,20 @@ public class Project {
 	public void initializeProgressMonitor(JProgressBar progBar) {
 	    this.progressMonitor = new ProgressMonitor(progBar, this.log);
 	}
+
 	
+	/**
+	 *	Reports message to the log and if and only if a GUI is being used, it also creates a message dialog as well
+	 * 
+	 * @param str			The message to display
+	 * @param windowTitle	Title of the message
+	 * @param messageIcon	Icon to use can be any of the following:
+	 * 									JOptionPane.ERROR_MESSAGE
+	 * 									JOptionPane.INFORMATION_MESSAGE 
+	 * 									JOptionPane.WARNING_MESSAGE
+	 * 									JOptionPane.QUESTION_MESSAGE
+	 * 									JOptionPane.PLAIN_MESSAGE
+	 */
 	public void message(String str, String windowTitle, int messageIcon) {
 		log.reportError(str);
 		if (gui) {
@@ -1132,6 +1141,17 @@ public class Project {
 		}
 	}
 	
+	/**
+	 *	Reports message to the log and if and only if a GUI is being used, it also creates a message dialog as well
+	 *	This simplified method assumes this is an error and says as much in the window title it creates  
+	 * 
+	 * @param str			The message to display
+	 * 
+	*/
+	public void message(String str) {
+		message(str, "Error", JOptionPane.ERROR_MESSAGE);
+	}
+
 	public String getLocationOfSNP_Map(boolean verbose) {
 		String filename;
 		
