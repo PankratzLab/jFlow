@@ -158,7 +158,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
      */
     public BlastFrame(Project proj) {
         this.proj = proj;
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 1000, 800);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));

@@ -18,9 +18,8 @@ import javax.swing.JLabel;
 import seq.manage.ReferenceGenome;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.annotation.MarkerSeqAnnotation;
-
 import common.Array;
-
+import common.Fonts;
 import filesys.Segment;
 
 class ReferenceLabel extends JLabel {
@@ -96,9 +95,10 @@ class ReferenceLabel extends JLabel {
 public class BlastLabel extends JLabel {
 
     private static final long serialVersionUID = 1L;
-
+    private static final Font BASE_FONT = (Fonts.SOURCE_CODE_PRO_LIGHT == null ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_LIGHT);
+    
     public static void setFontSize(int size) {
-        LBL_FONT = Font.decode(Font.MONOSPACED).deriveFont((float) size);
+        LBL_FONT = BASE_FONT.deriveFont((float) size);
         if (refLbl != null) {
             refLbl.setFont(LBL_FONT);
         }
@@ -108,7 +108,7 @@ public class BlastLabel extends JLabel {
         refLbl = lbl;
     }
     
-    public static Font LBL_FONT = Font.decode(Font.MONOSPACED).deriveFont(17f);
+    public static Font LBL_FONT = BASE_FONT.deriveFont(17f);
     public static final int CHAR_PADDING = 2;
     private static JLabel refLbl = null;
     static boolean expanded = true; // static to affect all
@@ -145,10 +145,10 @@ public class BlastLabel extends JLabel {
             if (seqArr != null) {
                 this.seq = Array.toStr(seqArr, "");
             } else {
-                // set to probe seq, with alterations
+                // TODO set to probe seq, with alterations, otherwise causes NPE
             }
         } else {
-            // set to probe seq, with alterations
+            // TODO set to probe seq, with alterations, otherwise causes NPE
         }
         this.setFont(LBL_FONT);
         parse();

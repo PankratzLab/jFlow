@@ -2,6 +2,7 @@
 package bioinformatics;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import one.ben.VCFExport;
@@ -250,15 +251,18 @@ public class MapSNPsAndGenes {
 		
 		data = Array.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir+snps, false)+"_positions.xln", false, false, false));
 
-		markers = new String[data.length-1];
-		markerPositions = new int[markers.length][2];
-		for (int i = 0; i<markers.length; i++) {
-			line = data[i+1].trim().split("[\\s]+");
-			markers[i] = line[0];
-			markerPositions[i][0] = Positions.chromosomeNumber(line[1]);
-			markerPositions[i][1] = Integer.parseInt(line[2]);
+		ArrayList<String> mkrList = new ArrayList<String>();
+		ArrayList<int[]> posList = new ArrayList<int[]>();
+		for (int i = 0; i < data.length - 1; i++) {
+			line = data[i + 1].trim().split("[\\s]+");
+			if (!ext.isMissingValue(line[1]) && !ext.isMissingValue(line[2])) {
+    			mkrList.add(line[0]);
+    			posList.add(new int[]{Positions.chromosomeNumber(line[1]), Integer.parseInt(line[2])});
+			}
 		}
-
+		markers = mkrList.toArray(new String[0]);
+		markerPositions = posList.toArray(new int[0][]);
+		
 		genes = mapSNPsToGenes(markerPositions, getGeneDB(build, log), wiggleRoom, log);
 
 		try {
