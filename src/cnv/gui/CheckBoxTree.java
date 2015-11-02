@@ -369,7 +369,20 @@ public class CheckBoxTree extends JTree implements ItemListener {
 //		}
 //	}
 //	
-
+	
+	public void deleteAllNodes() {
+        DefaultMutableTreeNode root;    //, branch;
+        DefaultTreeModel model;
+        model = (DefaultTreeModel) getModel();      
+        root = (DefaultMutableTreeNode) model.getRoot();
+//        int cnt = root.getChildCount();
+//        for (int i = cnt - 1; i >= 0; i--) {
+//            root.remove(i);
+//        }
+        root.removeAllChildren();
+        model.reload();
+	}
+	
 	// TODO if node to be deleted has selected values, then it may fail down stream in the parent appication (e.g., TwoDPlot), tried to make a work around below (currently commented out), but it does not work 
 	public void deleteSelectedNode() {
 		DefaultMutableTreeNode selectedNode;
@@ -385,8 +398,8 @@ public class CheckBoxTree extends JTree implements ItemListener {
 			return;
 		}
 		index = getSelectedPathComponent();
-		model = (DefaultTreeModel)getModel();		
-		root = (DefaultMutableTreeNode)model.getRoot();
+		model = (DefaultTreeModel) getModel();		
+		root = (DefaultMutableTreeNode) model.getRoot();
 		
 //		travSelections = new JCheckBox[selections.length];
 //		for (int i = selections.length-1; i >= 0 ; i--) {

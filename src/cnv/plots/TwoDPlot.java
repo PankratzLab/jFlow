@@ -40,11 +40,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
 	public static final String ADD_DATA_FILE = "Add Data File";
 	public static final String REMOVE_DATA_FILE = "Remove Data";
+	public static final String REMOVE_ALL = "Clear Data";
 	public static final String CREATE_SCREENS = "Create Screenshots";
 //	public static final String SET_AS_COLORKEY = "Set as Color Key";
 //	public static final String SET_AS_LINKKEY = "Set as Link Key";
 //	private static final String NO_VALUE_FOUND = ".";
-	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, CREATE_SCREENS};
+	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, REMOVE_ALL, CREATE_SCREENS};
 	public static final String[][] LINKERS = {
 			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
 		{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID"},
@@ -95,11 +96,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	Logger log;
 	Pattern headerPattern = Pattern.compile(DATA_TITLE_REGEX);
 	
-	public TwoDPlot() {
+	private TwoDPlot() {
 		this(new Project());
 	}
 
-	public TwoDPlot(Project proj) {
+	private TwoDPlot(Project proj) {
 		String[] previouslyLoadedFiles;
 		
 		this.proj = proj;
@@ -406,11 +407,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 	
 	public void actionPerformed(ActionEvent ae) {
-		byte numberOfSelectedNodes;
+//		byte numberOfSelectedNodes;
 		JFileChooser fileChooser;
 		String command;
 		boolean found;
-		String[] keys;
+//		String[] keys;
 		
 		found = false;
 		command = ae.getActionCommand();
@@ -431,16 +432,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	        	}
 	        }
 		} else if (command.equals(REMOVE_DATA_FILE)) {
-			numberOfSelectedNodes = (byte) tree.getSelectedPathComponent();
-			if (numberOfSelectedNodes != -1) {
-				keys = HashVec.getKeys(dataHash); // it is better for keys to be a local variable rather than a global variable, otherwise it needs to be updated every time something is added or deleted
-				tree.deleteSelectedNode();
-				dataHash.remove(keys[numberOfSelectedNodes]);//TODO tree.getSelectionValues()[0][0] is not the branch to delete.
-				dataColumnsHash.remove(keys[numberOfSelectedNodes]);
-				linkerIndices.remove(keys[numberOfSelectedNodes]);
-				validColumnsHash.remove(keys[numberOfSelectedNodes]);
-				dataKeys.remove(keys[numberOfSelectedNodes]);
-			}
+		    removeSelectedData();
 //			System.out.println(dataHash.size()+"\t"+namesHash.size()+"\t"+numericHash.size()+"\t"+treeFilenameLookup.size());
 //			System.out.println("\n==== End =====\n");
 //		} else if (command.equals(SET_AS_COLORKEY)) {
@@ -450,6 +442,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //			setColorKey(tree.getSelectionRows());
 //		} else if (command.equals(SET_AS_LINKKEY)) {
 //			setLinkKeyHandler(tree.getSelectionRows());
+		} else if (command.equals(REMOVE_ALL)) {
+		    removeAllData();
 		} else if (command.equals(CREATE_SCREENS)) {
 			JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : (new File(".")).toString());
 			jfc.setMultiSelectionEnabled(true);
@@ -465,7 +459,33 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			System.err.println("Error - unknown command '"+command+"'");
 		}
 	}
-
+	
+	public void removeAllData() {
+        dataKeys.clear();
+        dataHash.clear();
+        dataColumnsHash.clear();
+        validColumnsHash.clear();
+        linkerIndices.clear();
+        columnMetaData.clear();
+        tree.deleteAllNodes();
+        updateGUI();
+	}
+	
+	public void removeSelectedData() {
+        byte numberOfSelectedNodes;
+        String[] keys;
+        numberOfSelectedNodes = (byte) tree.getSelectedPathComponent();
+        if (numberOfSelectedNodes != -1) {
+            keys = HashVec.getKeys(dataHash); // it is better for keys to be a local variable rather than a global variable, otherwise it needs to be updated every time something is added or deleted
+            tree.deleteSelectedNode();
+            dataHash.remove(keys[numberOfSelectedNodes]);//TODO tree.getSelectionValues()[0][0] is not the branch to delete.
+            dataColumnsHash.remove(keys[numberOfSelectedNodes]);
+            linkerIndices.remove(keys[numberOfSelectedNodes]);
+            validColumnsHash.remove(keys[numberOfSelectedNodes]);
+            dataKeys.remove(keys[numberOfSelectedNodes]);
+        }
+	}
+	
 //	public void setColorKeyHandler(int[] selectedColorKey){
 //		String[][] selectedNodes;
 //
@@ -1571,7 +1591,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return (byte) (this.colorData.get(id) == null ? 0 : this.colorData.get(id).intValue());
 	}
 
-	private void addDataSource(String dataName, String[][] data, String[] columns) {
+	public void addDataSource(String dataName, String[][] data, String[] columns) {
 	    if (dataKeys.contains(dataName)) {
 	        return;
 	    }
@@ -1594,9 +1614,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             validColumnsHash.put(dataName, validate(line));
         }
 	    
+        updateTreeForNewData();
 	}
 	
-	private void loadFile(String filename) {
+	public void loadFile(String filename) {
 		BufferedReader reader;
 		String[] header, line;
 		String readBuffer;
