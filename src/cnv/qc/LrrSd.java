@@ -50,8 +50,10 @@ public class LrrSd extends Parallelizable {
 		String progDesc = "Compute Log-R Ratio Std.Dev. in Thread " + threadNumber;
 		
 		ProgressMonitor progMon = proj.getProgressMonitor();
-		System.out.println(progMon);
-		progMon.beginDeterminateTask(PROG_KEY, progDesc, samples.length + 1, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+		if (progMon != null) {
+			System.out.println(progMon);
+			progMon.beginDeterminateTask(PROG_KEY, progDesc, samples.length + 1, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+		}
 		
 		log = proj.getLog();
 		try {
@@ -61,7 +63,9 @@ public class LrrSd extends Parallelizable {
 				cents = Centroids.load(centroidsFile, false).getCentroids(); 
 			}
 			
-			proj.getProgressMonitor().updateTask(PROG_KEY);
+			if (progMon != null) {
+				proj.getProgressMonitor().updateTask(PROG_KEY);
+			}
 			
 			chrs = proj.getMarkerSet().getChrs();
 			subIndex = Array.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23, chrs.length if all are less, -1 if none are less, 0 if all are greater!
@@ -113,7 +117,7 @@ public class LrrSd extends Parallelizable {
 					log.reportError("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
 				} else {
 					lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
-					bafs = fsamp.getBAFs();
+					bafs = cents == null ? fsamp.getBAFs() : fsamp.getBAFs(cents);
 					bafsWide = bafs;
 
 					if (markersForEverythingElse != null) {
@@ -184,29 +188,35 @@ public class LrrSd extends Parallelizable {
 							gcwfPost = gcAdjustor.getGcwfPost();
 							if (markersForEverythingElse == null) {
 								lrrsdPost = Array.stdev(gcAdjustor.getCorrectedIntensities(), true);
-								lrrsdPostBound = Array.stdev(CNVCaller.adjustLrr(gcAdjustor.getCorrectedIntensities(), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log), true);
+								double[] tmp = CNVCaller.adjustLrr(gcAdjustor.getCorrectedIntensities(), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
+								lrrsdPostBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
 
 							} else {
 								double[] subLrr = Array.subArray(gcAdjustor.getCorrectedIntensities(), markersForEverythingElse);
 								lrrsdPost = Array.stdev(subLrr, true);
-								lrrsdPostBound = Array.stdev(CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST,false, proj.getLog()), true);
+								double[] tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
+								lrrsdPostBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
 							}
 						}
 					}
 					
 					multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-					lrrsdBound = Array.stdev(CNVCaller.adjustLrr(Array.toDoubleArray(lrrs), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog()), true);
+					double[] tmp = CNVCaller.adjustLrr(Array.toDoubleArray(lrrs), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
+					lrrsdBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
 					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + lrrsdBound + "\t" + Array.stdev(bafs, true) + (abCallRate > 0 ? "\t" + abCallRate + "\t" + abHetRate : "\t" + forwardCallRate + "\t" + forwardHetRate) + "\t" + wfPrior + "\t" + gcwfPrior + "\t" + wfPost + "\t" + gcwfPost + "\t" + lrrsdPost + "\t" + lrrsdPostBound + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
 					writer.flush();
 				}
-				proj.getProgressMonitor().updateTask(PROG_KEY);
+				if (progMon != null) {
+					proj.getProgressMonitor().updateTask(PROG_KEY);
+				}
 			}
 			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		proj.getProgressMonitor().endTask(PROG_KEY);
+		if (progMon != null) {
+			proj.getProgressMonitor().endTask(PROG_KEY);
+		}
 	}
 	
 	public void finalAction() {
