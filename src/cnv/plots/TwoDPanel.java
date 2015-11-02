@@ -4,8 +4,9 @@ import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Vector;
 
 import javax.swing.JPopupMenu;
 
@@ -189,7 +190,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 //	}
 
 	public void generatePoints() {
-		Vector<String[]> currentData;
+	    ArrayList<String[]> currentData;
 		CountVector uniqueValueCounts;
 		boolean includeColorKeyValue;
 		byte type;
@@ -221,10 +222,10 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		points = new PlotPoint[currentData.size()];
 		index = (byte) (includeColorKeyValue? 4 : 3);
 		if (currentData.size()>0) {
-			linkerData = new String[currentData.size()][currentData.elementAt(0).length - index];
+			linkerData = new String[currentData.size()][currentData.get(0).length - index];
 		}
 		for (int i = 0; i < points.length; i++) {
-			line = currentData.elementAt(i);
+			line = currentData.get(i);
 			boolean missing = false;
 			for (String miss : TwoDPlot.MISSING_VALUES) {
 				if (miss.equals(line[1]) || miss.equals(line[2])) {
@@ -266,19 +267,15 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	}
 
 	private void generateRectangles() {
-		Vector<String[]> currentData;
+	    ArrayList<String[]> currentData;
 		boolean includeColorKeyValue;
 		int index;
-		String[] line;
-		float xAxisValue, yAxisValue;
-		CountVector uniqueValueCounts;
 		
 		includeColorKeyValue = true;
 		currentData = tdp.getDataSelected(includeColorKeyValue);
-		uniqueValueCounts = new CountVector();
 		index = includeColorKeyValue? 4 : 3;
 		if (currentData.size() > 0) {
-			linkerData = new String[currentData.size()][currentData.elementAt(0).length - index];
+			linkerData = new String[currentData.size()][currentData.get(0).length - index];
 		} else {
 		    rectangles = new GenericRectangle[0];
 		    return;
@@ -600,7 +597,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 //		} else if (e.getButton()==MouseEvent.BUTTON3) { // right click
 //		}
 
-		linkKeyIndicies = tdp.getCurrentLinkKeyColumnLabels();
+		linkKeyIndicies = tdp.getCurrentLinkKeyColumnIndices();
 //		linkKeyValues = tdp.getCurrentLinkKeyValues();
 //		if (linkKeyValues == null) {
 //			return;
