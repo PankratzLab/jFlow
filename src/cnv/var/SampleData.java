@@ -27,8 +27,8 @@ public class SampleData {
 			{"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
 			{"Stop Position", "Stop", "End"} // secondary link to Trailer
 	};
-	Hashtable<String, Integer> linkKeyIndex;
-	Hashtable<String, ArrayList<Integer>> colorKeyIndex;
+//	Hashtable<String, Integer> linkKeyIndex;
+//	Hashtable<String, ArrayList<Integer>> colorKeyIndex;
 	public static final int IID_INDEX_IN_LINKERS = 0;
 	public static final int FID_INDEX_IN_LINKERS = 1;
 	public static final int DNA_INDEX_IN_LINKERS = 2;
@@ -62,13 +62,13 @@ public class SampleData {
 	    return loadedCNVs;
 	}
 	
-	public Hashtable<String, Integer> getLinkKeyIndex() {
-		return linkKeyIndex;
-	}
-
-	public void setLinkKeyIndex(Hashtable<String, Integer> linkKeyIndex) {
-		this.linkKeyIndex = linkKeyIndex;
-	}
+//	public Hashtable<String, Integer> getLinkKeyIndex() {
+//		return linkKeyIndex;
+//	}
+//
+//	public void setLinkKeyIndex(Hashtable<String, Integer> linkKeyIndex) {
+//		this.linkKeyIndex = linkKeyIndex;
+//	}
 
 	public SampleData(final Project proj, int numberOfBasicClassesToUse, final String[] cnvFilenamesVar) {
 		BufferedReader reader;
@@ -99,8 +99,8 @@ public class SampleData {
 		}
 		
 		containsDNA = containsFID = containsIID = true;
-		linkKeyIndex = new Hashtable<String, Integer>();
-		colorKeyIndex = new Hashtable<String, ArrayList<Integer>>();
+//		linkKeyIndex = new Hashtable<String, Integer>();
+//		colorKeyIndex = new Hashtable<String, ArrayList<Integer>>();
 		
 		if (numberOfBasicClassesToUse > BASIC_CLASSES.length) {
 			log.reportError("Error - selected number of basic classes to use exceeds the number defined");
@@ -651,44 +651,44 @@ public class SampleData {
 		return linkKeyIndices;
 	}
 
-	public void initLinkKey(String filename) {
-		int[] linkKeyColumnLabels = determineKeyIndices(filename);
-		if (linkKeyColumnLabels[DNA_INDEX_IN_LINKERS] >= 0) {
-			// {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"} exists
-			linkKeyIndex.put(filename, DNA_INDEX_IN_LINKERS);
-			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
-			System.out.println("Link key set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]));
-		} else if (linkKeyColumnLabels[FID_INDEX_IN_LINKERS] >= 0) {
-			linkKeyIndex.put(filename, FID_INDEX_IN_LINKERS);
-			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
-			System.out.println("Link key set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]));
-		} else if (linkKeyColumnLabels[IID_INDEX_IN_LINKERS] >= 0) {
-			linkKeyIndex.put(filename, IID_INDEX_IN_LINKERS);
-			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
-			System.out.println("Link key set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]));
-		} else {
-			// JOptionPane.showMessageDialog(null, "Unable to initialize the link key. Please select a link key manually.", "Error", JOptionPane.ERROR_MESSAGE);
-			System.out.println("Unable to initialize the link key.");
-		}
-	}
+//	public void initLinkKey(String filename) {
+//		int[] linkKeyColumnLabels = determineKeyIndices(filename);
+//		if (linkKeyColumnLabels[DNA_INDEX_IN_LINKERS] >= 0) {
+//			// {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"} exists
+//			linkKeyIndex.put(filename, DNA_INDEX_IN_LINKERS);
+//			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+//			System.out.println("Link key set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]));
+//		} else if (linkKeyColumnLabels[FID_INDEX_IN_LINKERS] >= 0) {
+//			linkKeyIndex.put(filename, FID_INDEX_IN_LINKERS);
+//			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+//			System.out.println("Link key set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]));
+//		} else if (linkKeyColumnLabels[IID_INDEX_IN_LINKERS] >= 0) {
+//			linkKeyIndex.put(filename, IID_INDEX_IN_LINKERS);
+//			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+//			System.out.println("Link key set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]));
+//		} else {
+//			// JOptionPane.showMessageDialog(null, "Unable to initialize the link key. Please select a link key manually.", "Error", JOptionPane.ERROR_MESSAGE);
+//			System.out.println("Unable to initialize the link key.");
+//		}
+//	}
 
-	public void setLinkKey(String filename, int selectedLinkKey) {
-		int[] linkKeyColumnLabels;
-
-		linkKeyColumnLabels = determineKeyIndices(filename);
-
-		for (int i = 0; i < linkKeyColumnLabels.length; i++) {
-			if ((linkKeyColumnLabels[i] + 1) == selectedLinkKey) {
-				linkKeyIndex.put(filename, i);
-				System.out.println("Link Key set to: " + Arrays.toString(LINKERS[i]));
-				// createLinkKeyToDataHash(selectedNodes[0][0], linkKeyColumnLabels);
-				// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
-				System.err.println("Link is set to:" + Arrays.toString(LINKERS[i]));
-				return;
-			}
-		}
-		proj.message("Unable to set link key. Please make sure you are selecting a valid key");
-	}
+//	public void setLinkKey(String filename, int selectedLinkKey) {
+//		int[] linkKeyColumnLabels;
+//
+//		linkKeyColumnLabels = determineKeyIndices(filename);
+//
+//		for (int i = 0; i < linkKeyColumnLabels.length; i++) {
+//			if ((linkKeyColumnLabels[i] + 1) == selectedLinkKey) {
+//				linkKeyIndex.put(filename, i);
+//				System.out.println("Link Key set to: " + Arrays.toString(LINKERS[i]));
+//				// createLinkKeyToDataHash(selectedNodes[0][0], linkKeyColumnLabels);
+//				// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
+//				System.err.println("Link is set to:" + Arrays.toString(LINKERS[i]));
+//				return;
+//			}
+//		}
+//		proj.message("Unable to set link key. Please make sure you are selecting a valid key");
+//	}
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
@@ -722,59 +722,59 @@ public class SampleData {
 		}
 	}
 
-	public void setColorKey(String dataFile, int selectedColorKey) {
-		ArrayList<Integer> colorKeys;
+//	public void setColorKey(String dataFile, int selectedColorKey) {
+//		ArrayList<Integer> colorKeys;
+//
+//		if (colorKeyIndex.containsKey(dataFile)) {
+//			colorKeys = colorKeyIndex.get(dataFile);
+//		} else {
+//			colorKeyIndex.put(dataFile, colorKeys = new ArrayList<Integer>());
+//		}
+//		for (Integer colorKey : colorKeys) {
+//			if (colorKey == selectedColorKey) {
+//				System.out.println("Error: Already set as color key");
+//				// TODO: Make these thing to display
+//				// JOptionPane.showMessageDialog(null, "Error: Already sey as color key", "Error",
+//				// JOptionPane.ERROR_MESSAGE);
+//				System.err.println("Error: Already set as color key");
+//				return;
+//			}
+//		}
+//		colorKeys.add(selectedColorKey); // add to colorKeys
+//		setColorKeyHandler(dataFile, selectedColorKey);
+//	}
 
-		if (colorKeyIndex.containsKey(dataFile)) {
-			colorKeys = colorKeyIndex.get(dataFile);
-		} else {
-			colorKeyIndex.put(dataFile, colorKeys = new ArrayList<Integer>());
-		}
-		for (Integer colorKey : colorKeys) {
-			if (colorKey == selectedColorKey) {
-				System.out.println("Error: Already set as color key");
-				// TODO: Make these thing to display
-				// JOptionPane.showMessageDialog(null, "Error: Already sey as color key", "Error",
-				// JOptionPane.ERROR_MESSAGE);
-				System.err.println("Error: Already set as color key");
-				return;
-			}
-		}
-		colorKeys.add(selectedColorKey); // add to colorKeys
-		setColorKeyHandler(dataFile, selectedColorKey);
-	}
-
-	public void setColorKeyHandler(String filename, int selectedColorKey) {
-		Hashtable<String, String> colorKeyValue;
-		int[] linkKeyColumnLabels;
-
-		linkKeyColumnLabels = determineKeyIndices(filename);
-		colorKeyValue = new Hashtable<String, String>();
-		if (linkKeyIndex.containsKey(filename)) {
-			switch (linkKeyIndex.get(filename)) {
-			case DNA_INDEX_IN_LINKERS:
-				colorKeyValue = HashVec.loadFileToHashString(filename, new int[] { linkKeyColumnLabels[linkKeyIndex.get(filename)] }, new int[] { selectedColorKey - 1 }, false, "", true, false, false);
-				break;
-			case FID_INDEX_IN_LINKERS:
-				colorKeyValue = HashVec.loadFileToHashString(filename, new int[] { linkKeyColumnLabels[linkKeyIndex.get(filename)], linkKeyColumnLabels[IID_INDEX_IN_LINKERS] }, new int[] { selectedColorKey - 1 }, false, "", true, false, false);
-				colorKeyValue = createHashWithSampleID(colorKeyValue); // colorkey value hash with key as sampleID
-				break;
-			case IID_INDEX_IN_LINKERS:
-				colorKeyValue = HashVec.loadFileToHashString(filename, new int[] { linkKeyColumnLabels[linkKeyIndex.get(filename)] }, new int[] { selectedColorKey - 1 }, false, "", true, false, false);
-				colorKeyValue = createHashWithSampleID(colorKeyValue); // colorkey value hash with key as sampleID
-				break;
-			default:
-				System.out.println("Error: Unable to read color key values. Invalid link key.");
-				// TODO: display this
-				// JOptionPane.showMessageDialog(null, "Error: Unable to read color key values. Invalid link key.", "Error", JOptionPane.ERROR_MESSAGE);
-				System.err.println("Error: Unable to read color key values. Invalid link key.");
-				break;
-			}
-			addToSampleData(colorKeyValue, filename, selectedColorKey);
-		} else {
-			System.err.println("Error: Unable to find link key index for file: " + filename + "\n Failed to set the color key. Please make sure link key is set before setting color key");
-		}
-	}
+//	public void setColorKeyHandler(String filename, int selectedColorKey) {
+//		Hashtable<String, String> colorKeyValue;
+//		int[] linkKeyColumnLabels;
+//
+//		linkKeyColumnLabels = determineKeyIndices(filename);
+//		colorKeyValue = new Hashtable<String, String>();
+//		if (linkKeyIndex.containsKey(filename)) {
+//			switch (linkKeyIndex.get(filename)) {
+//			case DNA_INDEX_IN_LINKERS:
+//				colorKeyValue = HashVec.loadFileToHashString(filename, new int[] { linkKeyColumnLabels[linkKeyIndex.get(filename)] }, new int[] { selectedColorKey - 1 }, false, "", true, false, false);
+//				break;
+//			case FID_INDEX_IN_LINKERS:
+//				colorKeyValue = HashVec.loadFileToHashString(filename, new int[] { linkKeyColumnLabels[linkKeyIndex.get(filename)], linkKeyColumnLabels[IID_INDEX_IN_LINKERS] }, new int[] { selectedColorKey - 1 }, false, "", true, false, false);
+//				colorKeyValue = createHashWithSampleID(colorKeyValue); // colorkey value hash with key as sampleID
+//				break;
+//			case IID_INDEX_IN_LINKERS:
+//				colorKeyValue = HashVec.loadFileToHashString(filename, new int[] { linkKeyColumnLabels[linkKeyIndex.get(filename)] }, new int[] { selectedColorKey - 1 }, false, "", true, false, false);
+//				colorKeyValue = createHashWithSampleID(colorKeyValue); // colorkey value hash with key as sampleID
+//				break;
+//			default:
+//				System.out.println("Error: Unable to read color key values. Invalid link key.");
+//				// TODO: display this
+//				// JOptionPane.showMessageDialog(null, "Error: Unable to read color key values. Invalid link key.", "Error", JOptionPane.ERROR_MESSAGE);
+//				System.err.println("Error: Unable to read color key values. Invalid link key.");
+//				break;
+//			}
+//			addToSampleData(colorKeyValue, filename, selectedColorKey);
+//		} else {
+//			System.err.println("Error: Unable to find link key index for file: " + filename + "\n Failed to set the color key. Please make sure link key is set before setting color key");
+//		}
+//	}
 
 	public Hashtable<String, String> createHashWithSampleID(Hashtable<String, String> colorKeyValue) {
 		Hashtable<String, String> colorKeyValueHash;

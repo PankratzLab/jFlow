@@ -37,7 +37,12 @@ public class HashVec {
 			vector.add(array[i]);
 		}
 	}
-
+	
+	@SuppressWarnings("rawtypes")
+    public static String[] getKeys(HashMap hash) {
+	    return getKeys(hash, true, false);
+	}
+	
 	@SuppressWarnings({ "rawtypes" })
 	public static String[] getKeys(Hashtable hash) {
 		return getKeys(hash, true, false);
@@ -63,6 +68,29 @@ public class HashVec {
 		} else {
 			return array;
 		}
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static String[] getKeys(HashMap hash, boolean sort, boolean treatAsNumbers) {
+	    String[] array = new String[hash.size()];
+	    Set<String> enumer = hash.keySet();
+	    int count = 0;
+	    Iterator<String> keyIter = enumer.iterator();
+	    
+	    try {
+	        while (keyIter.hasNext()) {
+	            array[count++] = keyIter.next();
+	        }
+	    } catch (Exception e) {
+	        System.err.println("Error - hash keys were not Strings");
+	        e.printStackTrace();
+	    }
+	    
+	    if (sort) {
+	        return Sort.putInOrder(array, treatAsNumbers);
+	    } else {
+	        return array;
+	    }
 	}
 	
 	public static String[] getKeys(HashSet<String> hash) {
