@@ -32,7 +32,7 @@ import common.WorkerHive;
 import common.WorkerTrain;
 import common.ext;
 import common.WorkerTrain.Producer;
-import cnv.analysis.MosaicismQuant.ComputeParams.Builder;
+import cnv.analysis.MosaicismQuant.ComputeParams.MosaicParamsBuilder;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
@@ -201,7 +201,7 @@ public class MosaicismQuant implements Calcfc {
 		return sampleMosiac;
 	}
 
-	private static SampleMosiac prep(Project proj, String sampleName, String qcMetric, int numControls) {
+	public static SampleMosiac prep(Project proj, String sampleName, String qcMetric, int numControls) {
 		SampleMosiacBase[] controls = new SampleMosiacBase[numControls];
 		int sampleIndex = ext.indexOfStr(sampleName, proj.getSamples());
 		SampleQC sampleQC = SampleQC.loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, new String[] { qcMetric }, true);
@@ -230,7 +230,7 @@ public class MosaicismQuant implements Calcfc {
 		return new SampleMosiac(proj, sampleName, qcMetric, sampData, controls);
 	}
 
-	private static class SampleMosiac extends SampleMosiacBase {
+	public static class SampleMosiac extends SampleMosiacBase {
 
 		private SampleMosiacBase[] controls;
 		private CDF smoothedControl;
@@ -543,14 +543,16 @@ public class MosaicismQuant implements Calcfc {
 		private double[] shifts;
 		private int[] numMarkers;
 		private int numErrors;
+		private MOSAIC_TYPE type;
 
-		public MosaicQuantResults(String sample, double[] fs, double[] shifts, int[] numMarkers, int numErrors) {
+		public MosaicQuantResults(String sample, double[] fs, double[] shifts, int[] numMarkers, int numErrors, MOSAIC_TYPE type) {
 			super();
 			this.sample = sample;
 			this.fs = fs;
 			this.shifts = shifts;
 			this.numMarkers = numMarkers;
 			this.numErrors = numErrors;
+			this.type = type;
 		}
 
 		public String getSample() {
@@ -575,90 +577,113 @@ public class MosaicismQuant implements Calcfc {
 
 	}
 
-	private static class MosaicQuantWorker implements Callable<MosaicQuantResults> {
+	public static class MosaicQuantWorker implements Callable<MosaicQuantResults[]> {
 		private LocusSet<Segment> bins;
 		private Project proj;
 		private String sample;
 		private int numControls;
-		private MOSAIC_TYPE type;
+		private MOSAIC_TYPE[] types;
 
-		public MosaicQuantWorker(LocusSet<Segment> bins, Project proj, String sample, MOSAIC_TYPE type, int numControls) {
+		public MosaicQuantWorker(Segment[] bins, Project proj, String sample, MOSAIC_TYPE[] types, int numControls) {
+			super();
+			this.bins = new LocusSet<Segment>(bins, true, proj.getLog()) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+			this.proj = proj;
+			this.sample = sample;
+			this.numControls = numControls;
+			this.types = types;
+		}
+
+		public MosaicQuantWorker(LocusSet<Segment> bins, Project proj, String sample, MOSAIC_TYPE[] types, int numControls) {
 			super();
 			this.bins = bins;
 			this.proj = proj;
 			this.sample = sample;
 			this.numControls = numControls;
-			this.type = type;
+			this.types = types;
 		}
 
 		@Override
-		public MosaicQuantResults call() throws Exception {
+		public MosaicQuantResults[] call() throws Exception {
 			SampleMosiac sampleMosiac = prep(proj, sample, "BAF1585_SD", numControls);
 			sampleMosiac.load();
-
-			double[] fs = new double[bins.getLoci().length];
-			double[] shifts = new double[bins.getLoci().length];
-			int[] numMarkers = new int[bins.getLoci().length];
+			System.out.println(bins.getLoci()[0].getUCSClocation());
+			double[][] fs = new double[types.length][bins.getLoci().length];
+			double[][] shifts = new double[types.length][bins.getLoci().length];
+			int[][] numMarkers = new int[types.length][bins.getLoci().length];
 
 			int numErrors = 0;
-			Builder builder = new Builder();
+			MosaicParamsBuilder builder = new MosaicParamsBuilder();
 			ComputeParams params = builder.build();
 			MarkerSet markerSet = proj.getMarkerSet();
 			int[][] indices = markerSet.getIndicesByChr();
+			MosaicQuantResults[] results = new MosaicQuantResults[types.length];
 			for (int i = 0; i < bins.getLoci().length; i++) {
-				if ((i + 1) % 10 == 0) {
+				if ((i + 1) % 10 == 0||bins.getLoci().length<100) {
 					proj.getLog().reportTimeInfo("Currently on " + bins.getLoci()[i].getUCSClocation() + " for sample " + sample);
 				}
-				MosaicismQuant mosiacismQuant = new MosaicismQuant(proj, sampleMosiac, type, params, bins.getLoci()[i], markerSet, indices);
-				mosiacismQuant.prepareMosiacQuant(1, MIN_BAF, MAX_BAF);
-				numMarkers[i] = mosiacismQuant.getSampleMosiac().getCdf().getVals().length;
-				if (numMarkers[i] > 0) {
-					double[] x = params.getX();
-					CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, x, params.getX_Bounds(), 1, .001, 0, 50000);
-					switch (cobylaExitStatus) {
-					case DivergingRoundingErrors:
-						fs[i] = Double.NaN;
-						shifts[i] = Double.NaN;
-						numErrors++;
-						break;
-					case MaxIterationsReached:
-						fs[i] = Double.NaN;
-						shifts[i] = Double.NaN;
-						numErrors++;
-						break;
-					case Normal:
-						fs[i] = x[0];
-						shifts[i] = x[1];
-						break;
-					default:
-						break;
+				for (int j = 0; j < types.length; j++) {
+					MosaicismQuant mosiacismQuant = new MosaicismQuant(proj, sampleMosiac, types[j], params, bins.getLoci()[i], markerSet, indices);
+					mosiacismQuant.prepareMosiacQuant(1, MIN_BAF, MAX_BAF);
+					numMarkers[j][i] = mosiacismQuant.getSampleMosiac().getCdf().getVals().length;
+					if (numMarkers[j][i] > 0) {
+						double[] x = params.getX();
+						CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, x, params.getX_Bounds(), 100, .001, 0, 50000);
+						switch (cobylaExitStatus) {
+						case DivergingRoundingErrors:
+							fs[j][i] = Double.NaN;
+							shifts[j][i] = Double.NaN;
+							numErrors++;
+							break;
+						case MaxIterationsReached:
+							fs[j][i] = Double.NaN;
+							shifts[j][i] = Double.NaN;
+							numErrors++;
+							break;
+						case Normal:
+							fs[j][i] = x[0];
+							shifts[j][i] = x[1];
+							break;
+						default:
+							break;
 
+						}
+					} else {
+						fs[j][i] = Double.NaN;
+						shifts[j][i] = Double.NaN;
 					}
-				} else {
-					fs[i] = Double.NaN;
-					shifts[i] = Double.NaN;
 				}
+
 			}
-			return new MosaicQuantResults(sample, fs, shifts, numMarkers, numErrors);
+			for (int i = 0; i < results.length; i++) {
+				results[i] = new MosaicQuantResults(sample, fs[i], shifts[i], numMarkers[i], numErrors, types[i]);
+			}
+			return results;
 		}
 	}
 
-	public static class MosaicQuantProducer implements Producer<MosaicQuantResults> {
+	public static class MosaicQuantProducer implements Producer<MosaicQuantResults[]> {
 
 		private Project proj;
 		private String[] samples;
 		private LocusSet<Segment> bins;
 		private int index;
 		private int numControls;
-		private MOSAIC_TYPE type;
+		private MOSAIC_TYPE[] types;
 
-		public MosaicQuantProducer(Project proj, String[] samples, LocusSet<Segment> bins, MOSAIC_TYPE type, int numControls) {
+		public MosaicQuantProducer(Project proj, String[] samples, LocusSet<Segment> bins, MOSAIC_TYPE[] types, int numControls) {
 			super();
 			this.proj = proj;
 			this.samples = samples;
 			this.bins = bins;
 			this.numControls = numControls;
-			this.type = type;
+			this.types = types;
 		}
 
 		@Override
@@ -667,8 +692,8 @@ public class MosaicismQuant implements Calcfc {
 		}
 
 		@Override
-		public Callable<MosaicQuantResults> next() {
-			MosaicQuantWorker worker = new MosaicQuantWorker(bins, proj, samples[index], type, numControls);
+		public Callable<MosaicQuantResults[]> next() {
+			MosaicQuantWorker worker = new MosaicQuantWorker(bins, proj, samples[index], types, numControls);
 			index++;
 			return worker;
 		}
@@ -704,6 +729,8 @@ public class MosaicismQuant implements Calcfc {
 	}
 
 	public static FullMosiacResults quantMosaic(Project proj, int bpWindow, int numControls, int numThreads) {
+		System.out.println("Sorry, reformat for multitype");
+		System.exit(1);
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + "MosaicResults/";
 		FullMosiacResults fullMosiacResults = null;
 		new File(outDir).mkdirs();
@@ -714,8 +741,8 @@ public class MosaicismQuant implements Calcfc {
 			ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
 
 			LocusSet<Segment> set = referenceGenome.getBins(bpWindow);
-			MosaicQuantProducer mProducer = new MosaicQuantProducer(proj, proj.getSamples(), set, MOSAIC_TYPE.MONOSOMY_DISOMY, numControls);
-			WorkerTrain<MosaicQuantResults> train = new WorkerTrain<MosaicismQuant.MosaicQuantResults>(mProducer, numThreads, 1, proj.getLog());
+			MosaicQuantProducer mProducer = new MosaicQuantProducer(proj, proj.getSamples(), set, MOSAIC_TYPE.values(), numControls);
+			WorkerTrain<MosaicQuantResults[]> train = new WorkerTrain<MosaicismQuant.MosaicQuantResults[]>(mProducer, numThreads, 1, proj.getLog());
 
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(out));
@@ -728,9 +755,13 @@ public class MosaicismQuant implements Calcfc {
 				int index = 0;
 				while (train.hasNext()) {
 
-					MosaicQuantResults results = train.next();
-					sampleMosaicQuantResults[index] = results;
-					writer.println(results.getSample() + "\t" + Array.toStr(results.getFs()));
+					MosaicQuantResults[] results = train.next();
+					for (int i = 0; i < results.length; i++) {
+						sampleMosaicQuantResults[index] = results[i];
+
+						//writer.println(results.getSample() + "\t" + Array.toStr(results.getFs()));
+
+					}
 					index++;
 				}
 
@@ -788,7 +819,7 @@ public class MosaicismQuant implements Calcfc {
 		// Segment segTest = new Segment("chr17:42,963,198-78,940,173");
 		Segment segTest = new Segment((byte) 11, 0, Integer.MAX_VALUE);
 		int[] currentIndices = ext.indexLargeFactors(markerSet.getMarkersIn(segTest, indices), markerSet.getMarkerNames(), true, proj.getLog(), true, false);
-		Builder builder = new Builder();
+		MosaicParamsBuilder builder = new MosaicParamsBuilder();
 		ComputeParams params = builder.build();
 		MosaicismQuant mosiacismQuant = new MosaicismQuant(proj, sampleMosiac, MOSAIC_TYPE.TRISOMY_DISOMY, params, segTest, markerSet, indices);
 		mosiacismQuant.prepareMosiacQuant(5, MIN_BAF, MAX_BAF);
@@ -1113,7 +1144,7 @@ public class MosaicismQuant implements Calcfc {
 			return maxNullD;
 		}
 
-		public static class Builder {
+		public static class MosaicParamsBuilder {
 			private double f = .5;
 			private double minF = 0;
 			private double maxF = 100;
@@ -1124,47 +1155,47 @@ public class MosaicismQuant implements Calcfc {
 			private double minNullD = 0;
 			private double maxNullD = 100;
 
-			public Builder f(double f) {
+			public MosaicParamsBuilder f(double f) {
 				this.f = f;
 				return this;
 			}
 
-			public Builder minF(double minF) {
+			public MosaicParamsBuilder minF(double minF) {
 				this.minF = minF;
 				return this;
 			}
 
-			public Builder maxF(double maxF) {
+			public MosaicParamsBuilder maxF(double maxF) {
 				this.maxF = maxF;
 				return this;
 			}
 
-			public Builder shift(double shift) {
+			public MosaicParamsBuilder shift(double shift) {
 				this.shift = shift;
 				return this;
 			}
 
-			public Builder minShift(double minShift) {
+			public MosaicParamsBuilder minShift(double minShift) {
 				this.minShift = minShift;
 				return this;
 			}
 
-			public Builder maxShift(double maxShift) {
+			public MosaicParamsBuilder maxShift(double maxShift) {
 				this.maxShift = maxShift;
 				return this;
 			}
 
-			public Builder nullD(double nullD) {
+			public MosaicParamsBuilder nullD(double nullD) {
 				this.nullD = nullD;
 				return this;
 			}
 
-			public Builder minNullD(double minNullD) {
+			public MosaicParamsBuilder minNullD(double minNullD) {
 				this.minNullD = minNullD;
 				return this;
 			}
 
-			public Builder maxNullD(double maxNullD) {
+			public MosaicParamsBuilder maxNullD(double maxNullD) {
 				this.maxNullD = maxNullD;
 				return this;
 			}
@@ -1174,7 +1205,7 @@ public class MosaicismQuant implements Calcfc {
 			}
 		}
 
-		private ComputeParams(Builder builder) {
+		private ComputeParams(MosaicParamsBuilder builder) {
 			this.f = builder.f;
 			this.minF = builder.minF;
 			this.maxF = builder.maxF;
@@ -1227,8 +1258,8 @@ public class MosaicismQuant implements Calcfc {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			test(proj);
-			// quantMosaic(proj, bpWindow, numControls, numThreads);
+			//test(proj);
+		   quantMosaic(proj, bpWindow, numControls, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

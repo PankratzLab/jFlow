@@ -14,7 +14,11 @@ import javax.swing.border.EmptyBorder;
 import mining.Transformations;
 import common.*;
 import cnv.analysis.MosaicismDetect;
+import cnv.analysis.MosaicismQuant;
 import cnv.analysis.MosaicismDetect.MosaicBuilder;
+import cnv.analysis.MosaicismQuant.MOSAIC_TYPE;
+import cnv.analysis.MosaicismQuant.MosaicQuantResults;
+import cnv.analysis.MosaicismQuant.MosaicQuantWorker;
 import cnv.filesys.*;
 import cnv.gui.NewRegionListDialog;
 import cnv.gui.SingleClick;
@@ -27,6 +31,7 @@ import cnv.manage.Transforms;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
+import cnv.var.CNVariant.CNVBuilder;
 import cnv.var.IndiPheno;
 import cnv.var.LocusSet;
 import cnv.var.MosaicRegion;
@@ -91,7 +96,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
-	private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller", "RevCNVCaller", "Consensus","MosaicCaller" };
+	private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller", "RevCNVCaller", "Consensus", "MosaicCaller", "MONOSOMY_DISOMYF", "TRISOMY_DISOMY" };
 
 	private JComboBox<String> sampleList;
 	private String[] samplesPresent;
@@ -140,6 +145,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JCheckBoxMenuItem gcCorrectButton;
 	private JCheckBoxMenuItem callCnvsButton;
 	private JCheckBoxMenuItem mosaicCallButton;
+	private JCheckBoxMenuItem mosaicFButton;
 
 	private Hashtable<String, String> namePathMap;
 //	private JComboBox<String> centroidsSelection;
@@ -1451,6 +1457,59 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     		mosaicCallButton.addItemListener(mosaicListener);
     		mosaicCallButton.setFont(new Font("Arial", 0, 12));
     		cnvMenu.add(mosaicCallButton);
+
+    		ItemListener mosaicFListener = new ItemListener() {
+    			public void itemStateChanged(ItemEvent ie) {
+					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+					MosaicQuantWorker worker = new MosaicQuantWorker(new Segment[] { new Segment(chr, start, stop) }, proj, sample, MOSAIC_TYPE.values(), 5);
+					CNVBuilder builder = new CNVBuilder();
+					builder.chr(chr);
+					builder.start(start);
+					builder.stop(stop);
+					builder.cn(2);
+					builder.familyID(sample);
+					builder.individualID(sample);
+					builder.numMarkers(stopMarker - startMarker);
+					builder.score(Double.NaN);
+					CNVariant[] tmp = new CNVariant[MOSAIC_TYPE.values().length];
+					WorkerHive<MosaicQuantResults[]> hive =new WorkerHive<MosaicismQuant.MosaicQuantResults[]>(1, 10, proj.getLog());
+					hive.addCallable(worker);
+					hive.execute(true);
+					for (int i = 0; i < tmp.length; i++) {
+						tmp[i] = builder.build();
+					}
+					ArrayList<MosaicQuantResults[]> mqrs = hive.getResults();
+					MosaicQuantResults[] mqr = mqrs.get(0);
+					for (int i = 0; i < mqr.length; i++) {
+						builder.score(mqr[i].getFs()[0]);
+						tmp[i] = builder.build();
+					}
+
+    				int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
+    				if (sampleData.getCnvClasses().length <= externalCNVs) {
+    					sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
+    					cnvLabels = Array.concatAll(sampleData.getCnvClasses());
+    				}
+    				if (indiPheno.getCnvClasses().size() <= externalCNVs) {
+    					for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
+    						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+						}
+					}
+
+					indiPheno.getCnvClasses().get(externalCNVs + 4).put(chr + "", new CNVariant[] { tmp[0] });
+					indiPheno.getCnvClasses().get(externalCNVs + 5).put(chr + "", new CNVariant[] { tmp[1] });
+					sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+					procCNVs(chr);
+
+    				jrb.setSelected(false);
+    				updateGUI();
+				}
+			};
+			mosaicFButton = new JCheckBoxMenuItem("Quantify Mosaicism (extra extra beta)", false);
+			mosaicFButton.addItemListener(mosaicFListener);
+			mosaicFButton.setFont(new Font("Arial", 0, 12));
+			cnvMenu.add(mosaicFButton);
+
 //    		cnvMenu.addSeparator();
             menuBar.add(cnvMenu);
 		}
