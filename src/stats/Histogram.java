@@ -423,12 +423,23 @@ public class Histogram implements Serializable {
 					totals[i] = proportion ? Array.sum(histograms[i].getCounts()) : 1;
 				}
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				writer.println("Bin\t" + Array.toStr(titles));
+				String[] cumulative = Array.tagOn(titles, "Cumulative_", null);
+				String[] allTitles = new String[titles.length * 2];
+				int index = 0;
+				for (int i = 0; i < titles.length; i++) {
+					allTitles[index] = titles[i];
+					index++;
+					allTitles[index] = cumulative[i];
+					index++;
+				}
+				int[] cuCounts = new int[histograms.length];
+				writer.println("Bin\t" + Array.toStr(allTitles));
 				for (int i = 0; i < histograms[0].getBins().length; i++) {
 					writer.print(histograms[0].getBins()[i]);
 					for (int j = 0; j < histograms.length; j++) {
 						double val =  (proportion ? histograms[j].getCounts()[i] / totals[j] : histograms[j].getCounts()[i]);
-						writer.print("\t" +val);
+						cuCounts[j] += val;
+						writer.print("\t" + val + "\t" + cuCounts[j]);
 						if(val>max){
 							max=val;
 						}else if(val<min){
