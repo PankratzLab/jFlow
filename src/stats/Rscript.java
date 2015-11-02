@@ -524,6 +524,18 @@ public class Rscript {
 
 	}
 
+	public static class VertLine {
+		private double xIntercept;
+		public VertLine(double xIntercept) {
+			super();
+			this.xIntercept = xIntercept;
+		}
+
+		public String getCall() {
+			return "geom_vline(xintercept =" + xIntercept + ")";
+		}
+	}
+	
 	/**
 	 * @author lane0212 For plotting that mimics Excel's scatter plots using ggplot2
 	 */
@@ -534,7 +546,8 @@ public class Rscript {
 		private static final String DATA_TABLE_EXTRACT = "extract";
 
 		private static final String PLOT_VAR = "p";
-
+		
+		private VertLine[] vertLines;
 		private String dataFile, output, rScriptFile;
 		private String[] dataYvalueColumns, rSafeYColumns,rSafeAltYColumnNames;
 		private String dataXvalueColumn, rSafeXColumn;
@@ -560,6 +573,7 @@ public class Rscript {
 		private boolean directLableGtexts, onlyMaxMin;	
 		private ErrorBars errorBars;
 		private String legendName;
+		private boolean regLines;
 
 		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
 			super();
@@ -584,10 +598,19 @@ public class Rscript {
 			this.directLableGtexts =false;
 			this.onlyMaxMin = false;
 			this.legendName = "variable";
+			this.regLines = false;
 		}
 
 		public ErrorBars getErrorBars() {
 			return errorBars;
+		}
+
+		public void setVertLines(VertLine[] vertLines) {
+			this.vertLines = vertLines;
+		}
+
+		public void setRegLines(boolean regLines) {
+			this.regLines = regLines;
 		}
 
 		public String[] getrSafeYColumns() {
@@ -963,6 +986,14 @@ public class Rscript {
 				if (gTexts != null&&!directLableGtexts) {
 					for (int i = 0; i < gTexts.length; i++) {
 						plot += " + " + gTexts[i].getCommand();
+					}
+				}
+				if (regLines) {
+					plot += " + geom_smooth(method=lm,  se=FALSE)";
+				}
+				if (vertLines != null) {
+					for (int i = 0; i < vertLines.length; i++) {
+						plot += " + " + vertLines[i].getCall();
 					}
 				}
 				rCmd.add(plot);

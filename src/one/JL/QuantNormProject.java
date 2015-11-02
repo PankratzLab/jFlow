@@ -10,12 +10,14 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import stats.Histogram.DynamicHistogram;
 import stats.QuantileNormalization;
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.PLOT_DEVICE;
 import stats.Rscript.RScatter;
 import stats.Rscript.RScatters;
 import stats.Rscript.SCATTER_TYPE;
+import stats.Rscript.VertLine;
 import common.Array;
 import common.Files;
 import common.WorkerTrain;
@@ -64,20 +66,39 @@ public class QuantNormProject {
 	}
 
 	private static void summarizeMetrics(Project projOriginal, Project projCorrected, int numThreads) {
-		projOriginal.SAMPLE_QC_FILENAME.setValue(ext.addToRoot(projCorrected.SAMPLE_QC_FILENAME.getValue(), ".priorToCorrection"));
+		String prior = ext.addToRoot(projCorrected.SAMPLE_QC_FILENAME.getValue(), ".priorToCorrection");
+		projOriginal.SAMPLE_QC_FILENAME.setValue(prior);
 		if (!Files.exists(projCorrected.SAMPLE_QC_FILENAME.getValue())) {
 			LrrSd.init(projCorrected, null, null, null, null, numThreads);
 		}
 		if (!Files.exists(projOriginal.SAMPLE_QC_FILENAME.getValue())) {
 			LrrSd.init(projOriginal, null, null, null, null, numThreads);
 		}
+		String priorNewCent = ext.addToRoot(projCorrected.SAMPLE_QC_FILENAME.getValue(), ".newCents");
+		if (!Files.exists(priorNewCent)) {
+			projOriginal.SAMPLE_QC_FILENAME.setValue(priorNewCent);
+			String cent = ext.addToRoot(projOriginal.CUSTOM_CENTROIDS_FILENAME.getValue(), "newCent");
+			projOriginal.CUSTOM_CENTROIDS_FILENAME.setValue(cent);
+			CentroidCompute.computeAndDumpCentroids(projOriginal);
+			LrrSd.init(projOriginal, null, null, null, cent, numThreads);
+		}
 
 		String comboQC = ext.addToRoot(projCorrected.SAMPLE_QC_FILENAME.getValue(), ".combinedQC");
-		String[] orginalFiles = new String[] { projOriginal.SAMPLE_QC_FILENAME.getValue(), projCorrected.SAMPLE_QC_FILENAME.getValue() };
-		String[] titles = new String[] { "UN_CORRECTED", "QuantNorm" };
+		String[] orginalFiles = new String[] { prior, priorNewCent, projCorrected.SAMPLE_QC_FILENAME.getValue() };
+		String[] titles = new String[] { "ORIGINAL", "ORIGINAL_NEW_CENT", "QuantNorm" };
 		String[] fullHeader = Array.concatAll(new String[] { LrrSd.SAMPLE_COLUMN }, LrrSd.NUMERIC_COLUMNS);
 		int[] indices = ext.indexFactors(fullHeader, Files.getHeaderOfFile(orginalFiles[0], projOriginal.getLog()), true, false);
 		String[][] newColums = Files.paste(orginalFiles, comboQC, indices, 0, titles, new String[] { LrrSd.SAMPLE_COLUMN }, projOriginal.getLog());
+		ArrayList<Integer> lrrIndices = new ArrayList<Integer>();
+		for (int i = 0; i < LrrSd.NUMERIC_COLUMNS.length; i++) {
+			if (LrrSd.NUMERIC_COLUMNS[i].startsWith("LRR_SD")) {
+				lrrIndices.add(i);
+			}
+		}
+		DynamicHistogram[][] histograms = new DynamicHistogram[orginalFiles.length][lrrIndices.size()];
+		for (int i = 0; i < histograms.length; i++) {
+			histograms[i] = DynamicHistogram.initHistograms(histograms[i].length, 0, 1, 2);
+		}
 
 		String status = "STATUS";
 		String comboBox = comboQC + ".box";
@@ -90,8 +111,12 @@ public class QuantNormProject {
 				reader.readLine();
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("[\\s]+");
-					if (!line[indices[0]].equals(LrrSd.SAMPLE_COLUMN)) {
-						writer.println(titles[i] + "\t" + Array.toStr(Array.subArray(line, indices)));
+						String[] data = Array.subArray(line, indices);
+						if (!line[indices[0]].equals(LrrSd.SAMPLE_COLUMN)) {
+						writer.println(titles[i] + "\t" + Array.toStr(data));
+						for (int j = 0; j < lrrIndices.size(); j++) {
+							histograms[i][j].addDataPointToHistogram(Double.parseDouble(data[lrrIndices.get(j)+1]));
+						}
 					}
 				}
 				reader.close();
@@ -109,23 +134,69 @@ public class QuantNormProject {
 			projOriginal.getLog().reportError("Error writing to " + comboBox);
 			projOriginal.getLog().reportException(e);
 		}
-
-		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 		String gcLookDir = projCorrected.PROJECT_DIRECTORY.getValue() + "gc_analysis/";
 		new File(gcLookDir).mkdirs();
+		ArrayList<RScatter> rscatterHist = new ArrayList<RScatter>();
+		ArrayList<DynamicHistogram> all = new ArrayList<DynamicHistogram>();
+		ArrayList<String> allTitles = new ArrayList<String>();
+
+		for (int i = 0; i < histograms[0].length; i++) {
+			ArrayList<DynamicHistogram> tmps = new ArrayList<DynamicHistogram>();
+			String out = gcLookDir + "gc_" + LrrSd.NUMERIC_COLUMNS[lrrIndices.get(i)] + ".hist";
+			String curQc = LrrSd.NUMERIC_COLUMNS[lrrIndices.get(i)];
+			String[] titleTmp = Array.tagOn(titles, curQc, null);
+			for (int j = 0; j < titleTmp.length; j++) {
+				allTitles.add(titleTmp[j]);
+			}
+			for (int j = 0; j < histograms.length; j++) {
+				tmps.add(histograms[j][i]);
+				all.add(histograms[j][i]);
+			}
+			DynamicHistogram.dumpToSameFile(tmps.toArray(new DynamicHistogram[tmps.size()]), titleTmp, out, false, projCorrected.getLog());
+			RScatter rtmp = new RScatter(out, out + ".rscript", ext.removeDirectoryInfo(out), out + ".jpeg", "Bin", titleTmp, SCATTER_TYPE.POINT, projCorrected.getLog());
+			rtmp.setyLabel("Count " + curQc);
+			rtmp.setxLabel("Bin " + curQc);
+			rtmp.setTitle("Original V News " + curQc);
+
+
+			RScatter rtmpCumulative = new RScatter(out, out + "cu.rscript", ext.removeDirectoryInfo(out) + "cu", out + "cu.jpeg", "Bin", Array.tagOn(titleTmp, "Cumulative_", null), SCATTER_TYPE.POINT, projCorrected.getLog());
+			rtmpCumulative.setyLabel("Cumulative Count " + curQc);
+			rtmpCumulative.setxLabel("Bin " + curQc);
+			rtmpCumulative.setTitle("Original V News " + curQc);
+			rscatterHist.add(rtmp);
+			rscatterHist.add(rtmpCumulative);
+
+		}
+		String allHist = gcLookDir + "Gc_summaryHistAll.txt";
+		DynamicHistogram.dumpToSameFile(all.toArray(new DynamicHistogram[all.size()]), Array.toStringArray(allTitles), allHist, false, projCorrected.getLog());
+		VertLine[] vertLines = new VertLine[]{new VertLine(0.30)};
+		RScatter rtmpCumulativeAll = new RScatter(allHist, allHist + "cu.rscript", ext.removeDirectoryInfo(allHist) + "cu", allHist + "cu.jpeg", "Bin", Array.tagOn(Array.toStringArray(allTitles), "Cumulative_", null), SCATTER_TYPE.POINT, projCorrected.getLog());
+		rtmpCumulativeAll.setyLabel("Cumulative Count All");
+		rtmpCumulativeAll.setxLabel("Bin ");
+		rtmpCumulativeAll.setTitle("Original V News ");
+		rtmpCumulativeAll.setVertLines(vertLines);
+		rscatterHist.add(rtmpCumulativeAll);
+		
+		String finalHistRoot = gcLookDir + "Gc_summaryHist";
+
+		RScatters rScattersHists = new RScatters(rscatterHist.toArray(new RScatter[rscatterHist.size()]), finalHistRoot + ".rscript", finalHistRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, projCorrected.getLog());
+		rScattersHists.execute();
+
+		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 
 		for (int i = 1; i < newColums[0].length; i++) {
 
 			String curFile = gcLookDir + "gc_" + LrrSd.NUMERIC_COLUMNS[i - 1];
-			RScatter rScatter = new RScatter(comboQC, curFile + ".rscript", ext.removeDirectoryInfo(curFile), curFile + ".pdf", newColums[1][i], new String[] { newColums[0][i] }, SCATTER_TYPE.POINT, projCorrected.getLog());
-			rScatter.setTitle("Original V Corrected " + LrrSd.NUMERIC_COLUMNS[i - 1]);
-			rScatter.setxLabel("Corrected " + LrrSd.NUMERIC_COLUMNS[i - 1]);
-			rScatter.setyLabel("Original " + LrrSd.NUMERIC_COLUMNS[i - 1]);
+			RScatter rScatter = new RScatter(comboQC, curFile + ".rscript", ext.removeDirectoryInfo(curFile), curFile + ".pdf", newColums[0][i], new String[] { newColums[1][i], newColums[2][i] }, SCATTER_TYPE.POINT, projCorrected.getLog());
+			rScatter.setTitle("Original V News " + LrrSd.NUMERIC_COLUMNS[i - 1]);
+			rScatter.setxLabel("Original " + LrrSd.NUMERIC_COLUMNS[i - 1]);
+			rScatter.setyLabel("News " + LrrSd.NUMERIC_COLUMNS[i - 1]);
+			rScatter.setRegLines(true);
 			rScatters.add(rScatter);
 
 			String curFileBox = gcLookDir + "gc_" + LrrSd.NUMERIC_COLUMNS[i - 1] + "_box";
 			RScatter rScatterBox = new RScatter(comboBox, curFileBox + ".rscript", ext.removeDirectoryInfo(curFileBox), curFileBox + ".pdf", status, new String[] { LrrSd.NUMERIC_COLUMNS[i - 1] }, SCATTER_TYPE.BOX, projCorrected.getLog());
-			rScatterBox.setTitle("Original V Corrected " + LrrSd.NUMERIC_COLUMNS[i - 1]);
+			rScatterBox.setTitle("Original V News " + LrrSd.NUMERIC_COLUMNS[i - 1]);
 			rScatterBox.setyLabel(LrrSd.NUMERIC_COLUMNS[i - 1]);
 			rScatters.add(rScatterBox);
 		}

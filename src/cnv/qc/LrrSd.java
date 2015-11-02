@@ -180,7 +180,7 @@ public class LrrSd extends Parallelizable {
 					lrrsdPost = Double.NaN;
 					lrrsdPostBound = Double.NaN;
 					if (gcModel != null) {
-						GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, fsamp, gcModel, false, true, true, false);
+						GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, lrrs, gcModel, false, true, true, false);
 						if (!gcAdjustor.isFail()) {
 							wfPrior = gcAdjustor.getWfPrior();
 							gcwfPrior = gcAdjustor.getGcwfPrior();
