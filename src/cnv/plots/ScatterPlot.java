@@ -243,6 +243,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	
 	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
     private BlastFrame blastFrame;
+    private TwoDPlot histFrame;
 
     public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList, boolean exitOnClose) {
 		super("Genvisis - ScatterPlot - " + project.getNameOfProject());
@@ -2248,6 +2249,18 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		    ArrayList<BlastAnnotation> annotations = BlastFrame.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
 		    blastFrame.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
 		}
+		if (histFrame != null && histFrame.isVisible()) {
+		    histFrame.removeAllData();
+	        int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
+	        String[][] data = new String[histogram.length][];
+	        for (int i = 0; i < histogram.length; i++) {
+	            data[i] = new String[2];
+	            data[i][0] = "" + i;
+	            data[i][1] = "" + histogram[i];
+	        }
+	        histFrame.addDataSource("BLAST_Histogram", data, new String[]{"Bin", "Counts"});
+	        histFrame.showSpecificFile(getProject(), "BLAST_Histogram", 0, 1);
+		}
 		displayClusterFilterIndex();
 //		long t3 = System.currentTimeMillis();
 //		System.out.println("Updated: ");
@@ -2396,20 +2409,38 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		        Files.writeList(markerList, jfc.getSelectedFile().getAbsolutePath());
 		    }
 	    } else if (command.equals(BLAST_DETAILS_COMMAND)) {
-	        ArrayList<BlastAnnotation> annotations = BlastFrame.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
-	        if (blastFrame == null) {
-	            blastFrame = new BlastFrame(proj);
-	        }
-	        blastFrame.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
-	        SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    blastFrame.setVisible(true);
-                }
-            });
+	        displayBlast();
 	    } else {
 			log.reportError("Error - unknown command '"+command+"'");
 		}
+	}
+	
+	private void displayBlast() {
+	    ArrayList<BlastAnnotation> annotations = BlastFrame.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
+        if (blastFrame == null) {
+            blastFrame = new BlastFrame(proj);
+        }
+        blastFrame.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
+        int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
+        if (histFrame == null) {
+            histFrame = TwoDPlot.createGUI(getProject(), true);
+        }
+        histFrame.removeAllData();
+        String[][] data = new String[histogram.length][];
+        for (int i = 0; i < histogram.length; i++) {
+            data[i] = new String[2];
+            data[i][0] = "" + i;
+            data[i][1] = "" + histogram[i];
+        }
+        histFrame.addDataSource("BLAST_Histogram", data, new String[]{"Bin", "Counts"});
+        histFrame.showSpecificFile(getProject(), "BLAST_Histogram", 0, 1);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                histFrame.setVisible(true);
+                blastFrame.setVisible(true);
+            }
+        });
 	}
 	
 	private ItemListener classListener = new ItemListener() {
