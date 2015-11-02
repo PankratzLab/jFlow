@@ -31,8 +31,8 @@ import filesys.Segment;
  *         Handles the data preparation and finalizations for calling cnvs via the PennCNV methods
  */
 public class CNVCaller {
-	private static final double MIN_LRR_MEDIAN_ADJUST = -2;
-	private static final double MAX_LRR_MEDIAN_ADJUST = 2;
+	public static final double MIN_LRR_MEDIAN_ADJUST = -2;
+	public static final double MAX_LRR_MEDIAN_ADJUST = 2;
 	private static final double MIN_BAF_MEDIAN_ADJUST = .25;
 	private static final double MAX_BAF_MEDIAN_ADJUST = .75;
 	private static final int PENN_CNV_SIG_FIGS = 4;
@@ -139,7 +139,7 @@ public class CNVCaller {
 
 					break;
 				case MEDIAN_ADJUST:
-					analysisLrrs = adjustLrr(analysisLrrs, MIN_LRR_MEDIAN_ADJUST, MAX_LRR_MEDIAN_ADJUST, proj.getLog());
+					analysisLrrs = adjustLrr(analysisLrrs, MIN_LRR_MEDIAN_ADJUST, MAX_LRR_MEDIAN_ADJUST, debugMode, proj.getLog());
 					analysisBafs = adjustBaf(analysisBafs, MIN_BAF_MEDIAN_ADJUST, MAX_BAF_MEDIAN_ADJUST,debugMode, proj.getLog());
 					// TODO, update lrrSd later?
 					// lrrSd = Array.stdev(getValuesBetween(analysisLrrs, MIN_LRR_MEDIAN_ADJUST, MAX_LRR_MEDIAN_ADJUST)); PennCNV does not update lrr sd here so we wont either
@@ -452,10 +452,12 @@ public class CNVCaller {
 	/**
 	 * Median adjust these lrr values like PennCNV
 	 */
-	private static double[] adjustLrr(double[] lrrs, double minLrr, double maxLrr, Logger log) {
+	public static double[] adjustLrr(double[] lrrs, double minLrr, double maxLrr, boolean verbose, Logger log) {
 		double[] adjusted = new double[lrrs.length];
 		double median = Array.median(Array.getValuesBetween(lrrs, minLrr, maxLrr));
-		log.reportTimeInfo("Median adjusting lrr values by " + median + "\t" + Array.median(lrrs));
+		if (verbose) {
+			log.reportTimeInfo("Median adjusting lrr values by " + median + "\t" + Array.median(lrrs));
+		}
 		for (int i = 0; i < adjusted.length; i++) {
 			adjusted[i] = lrrs[i] - median;
 		}

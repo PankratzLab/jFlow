@@ -3737,6 +3737,16 @@ public class Array {
 		return Array.toDoubleArray(tmp);
 	}
 
+	public static float[] getValuesBetween(float[] array, double min, double max, boolean gteLte) {
+		ArrayList<Float> tmp = new ArrayList<Float>();
+		for (int i = 0; i < array.length; i++) {
+			if (!Double.isNaN(array[i]) && (array[i] > min && array[i] < max || (gteLte && array[i] >= min && array[i] <= max))) {
+				tmp.add(array[i]);
+			}
+		}
+		return Array.toFloatArray(tmp);
+	}
+
 	public static int[] getValuesBetween(int[] array, int min, int max, boolean gteLte) {
 		ArrayList<Integer> tmp = new ArrayList<Integer>();
 		for (int i = 0; i < array.length; i++) {

@@ -57,6 +57,7 @@ public class PFB {
 		builder.sampleBased(false);
 		builder.requireAll(true);
 		builder.treatAllNumeric(false);
+		builder.verbose(false);
 
 		try {
 			ExtProjectDataParser extProjectDataParser = builder.build(proj, fullPathToPfb);
