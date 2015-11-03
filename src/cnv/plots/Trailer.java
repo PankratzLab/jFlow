@@ -96,7 +96,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
-	private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller", "RevCNVCaller", "Consensus", "MosaicCaller", "MONOSOMY_DISOMYF", "TRISOMY_DISOMY" };
+	private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller", "RevCNVCaller", "Consensus", "MosaicCaller", "MONOSOMY_DISOMYF", "CUSTOMF" };
+	private static final int[] INTERNAL_CNV_CLASSES_INDICES = new int[] { 0, 1, 2, 3, 4, 5 };
 
 	private JComboBox<String> sampleList;
 	private String[] samplesPresent;
@@ -300,6 +301,45 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	private JCheckBoxMenuItem autoSwitch;
 	
+	class CustomCallPopUp extends JPopupMenu {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		JMenuItem anItem;
+		JButton button;
+		public CustomCallPopUp() {
+			
+			class QuantButton extends JButton  {
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+				private Segment toQuant;
+
+				public QuantButton(final Segment toQuant,final CustomCallPopUp callPopUp) {
+					super("Quantify Mosaicism for " + toQuant.getUCSClocation());
+					this.toQuant = toQuant;
+					addActionListener(new ActionListener() {
+
+						public void actionPerformed(ActionEvent e) {
+							quantHere(toQuant);
+							
+					
+						}
+					});
+				}
+
+			}
+			if (selectedCNV != null) {
+				Segment toQuant = cnvs[selectedCNV[0]][selectedCNV[1]];
+				QuantButton qb = new QuantButton(toQuant, this);
+				qb.setFont(new Font("Arial", 0, 14));
+				add(qb);
+			}
+		}
+	}
+
 	MouseAdapter cnvAdapter = new MouseAdapter() {
         int defaultInitial = ToolTipManager.sharedInstance().getInitialDelay();
         int defaultReshow = ToolTipManager.sharedInstance().getReshowDelay();
@@ -361,7 +401,29 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //              UIManager.put("ToolTip.background", defaultBG);
                 cnvPanel.setToolTipText(null);
             }
-        }
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			if (e.isPopupTrigger())
+				if (selectedCNV != null) {
+					doPop(e);
+				}
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			if (e.isPopupTrigger())
+				if (selectedCNV != null) {
+					doPop(e);
+				}
+		}
+
+		private void doPop(MouseEvent e) {
+			CustomCallPopUp menu = new CustomCallPopUp();
+			menu.show(e.getComponent(), e.getX(), e.getY());
+			
+		}
         @Override
         public void mouseClicked(MouseEvent e) {
             super.mouseClicked(e);
@@ -1399,24 +1461,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     					} else if (pfb == null) {
     						proj.getLog().reportTimeError("Could not load " + proj.CUSTOM_PFB_FILENAME.getName() + " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
     					}
-    				} else {
-    					CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample, Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs), gcModel, pfb, markerSet, new int[] { chr }, true, proj.NUM_THREADS.getValue(), true);
-    					int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
-    					if (sampleData.getCnvClasses().length <= externalCNVs) {
-    						sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
-    						cnvLabels = Array.concatAll(sampleData.getCnvClasses());
-    					}
-    					if(indiPheno.getCnvClasses().size()<=externalCNVs){
-    						for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
-    							indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
-    						}
-    					}
-    					indiPheno.getCnvClasses().get(externalCNVs).put(chr + "", callResult.getChrCNVs().getLoci());
-    					indiPheno.getCnvClasses().get(externalCNVs + 1).put(chr + "", callResult.getChrCNVsReverse().getLoci());
-    					indiPheno.getCnvClasses().get(externalCNVs + 2).put(chr + "", callResult.getChrCNVsReverseConsensus().getLoci());
-    					sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-    					procCNVs(chr);
-    				}
+					} else {
+						CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample, Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs), gcModel, pfb, markerSet, new int[] { chr }, true, proj.NUM_THREADS.getValue(), true);
+						int externalCNVs = prepInternalClasses();
+						addCnvsToPheno(callResult.getChrCNVs().getLoci(), externalCNVs, INTERNAL_CNV_CLASSES_INDICES[0]);
+						addCnvsToPheno(callResult.getChrCNVsReverse().getLoci(), externalCNVs, INTERNAL_CNV_CLASSES_INDICES[1]);
+						addCnvsToPheno(callResult.getChrCNVsReverseConsensus().getLoci(), externalCNVs, INTERNAL_CNV_CLASSES_INDICES[2]);
+						sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+						procCNVs(chr);
+					}
     				jrb.setSelected(false);
     				updateGUI();
     			}
@@ -1434,21 +1487,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     				builder.verbose(true);
     				MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
     				Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
-    				LocusSet<MosaicRegion> mosSet = md.callMosaic(seg);
-    				int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
-    				if (sampleData.getCnvClasses().length <= externalCNVs) {
-    					sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
-    					cnvLabels = Array.concatAll(sampleData.getCnvClasses());
-    				}
-    				if (indiPheno.getCnvClasses().size() <= externalCNVs) {
-    					for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
-    						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
-    					}
-    				}
-    				indiPheno.getCnvClasses().get(externalCNVs + 3).put(chr + "", mosSet.getLoci());
-    				sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-    				procCNVs(chr);
-    
+    				LocusSet<MosaicRegion> mosSet = md.callMosaic(seg,false);
+					int externalCNVs = prepInternalClasses();
+					addCnvsToPheno(mosSet.getLoci(), externalCNVs, INTERNAL_CNV_CLASSES_INDICES[3]);
+					sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+					procCNVs(chr);
+
     				jrb.setSelected(false);
     				updateGUI();
     			}
@@ -1461,49 +1505,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     		ItemListener mosaicFListener = new ItemListener() {
     			public void itemStateChanged(ItemEvent ie) {
 					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-					MosaicQuantWorker worker = new MosaicQuantWorker(new Segment[] { new Segment(chr, start, stop) }, proj, sample, MOSAIC_TYPE.values(), 5);
-					CNVBuilder builder = new CNVBuilder();
-					builder.chr(chr);
-					builder.start(start);
-					builder.stop(stop);
-					builder.cn(2);
-					builder.familyID(sample);
-					builder.individualID(sample);
-					builder.numMarkers(stopMarker - startMarker);
-					builder.score(Double.NaN);
-					CNVariant[] tmp = new CNVariant[MOSAIC_TYPE.values().length];
-					WorkerHive<MosaicQuantResults[]> hive =new WorkerHive<MosaicismQuant.MosaicQuantResults[]>(1, 10, proj.getLog());
-					hive.addCallable(worker);
-					hive.execute(true);
-					for (int i = 0; i < tmp.length; i++) {
-						tmp[i] = builder.build();
-					}
-					ArrayList<MosaicQuantResults[]> mqrs = hive.getResults();
-					MosaicQuantResults[] mqr = mqrs.get(0);
-					for (int i = 0; i < mqr.length; i++) {
-						builder.score(mqr[i].getFs()[0]);
-						tmp[i] = builder.build();
-					}
-
-    				int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
-    				if (sampleData.getCnvClasses().length <= externalCNVs) {
-    					sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
-    					cnvLabels = Array.concatAll(sampleData.getCnvClasses());
-    				}
-    				if (indiPheno.getCnvClasses().size() <= externalCNVs) {
-    					for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
-    						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
-						}
-					}
-
-					indiPheno.getCnvClasses().get(externalCNVs + 4).put(chr + "", new CNVariant[] { tmp[0] });
-					indiPheno.getCnvClasses().get(externalCNVs + 5).put(chr + "", new CNVariant[] { tmp[1] });
-					sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-					procCNVs(chr);
-
+					Segment quantSeg = new Segment(chr, positions[startMarker], positions[stopMarker]);
+					quantHere(quantSeg);
     				jrb.setSelected(false);
-    				updateGUI();
 				}
+
+
+
 			};
 			mosaicFButton = new JCheckBoxMenuItem("Quantify Mosaicism (extra extra beta)", false);
 			mosaicFButton.addItemListener(mosaicFListener);
@@ -2283,6 +2291,100 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 	}
 	
+	private int prepInternalClasses() {
+		int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
+		if (sampleData.getCnvClasses().length <= externalCNVs) {
+			sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
+			cnvLabels = Array.concatAll(sampleData.getCnvClasses());
+		}
+		if (indiPheno.getCnvClasses().size() <= externalCNVs) {
+			for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
+				indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
+			}
+		}
+		return externalCNVs;
+	}
+
+
+	private void quantHere(Segment quantSeg) {
+		MosaicQuantWorker worker = new MosaicQuantWorker(new Segment[] { quantSeg }, proj, sample, MOSAIC_TYPE.values(), 5);
+		CNVBuilder builder = new CNVBuilder();
+		builder.chr(quantSeg.getChr());
+		builder.start(quantSeg.getStart());
+		builder.stop(quantSeg.getStop());
+		builder.cn(2);
+		builder.familyID(sample);
+		builder.individualID(sample);
+		builder.numMarkers(stopMarker - startMarker);
+		builder.score(Double.NaN);
+		CNVariant[] tmp = new CNVariant[MOSAIC_TYPE.values().length];
+		WorkerHive<MosaicQuantResults[]> hive =new WorkerHive<MosaicismQuant.MosaicQuantResults[]>(1, 10, proj.getLog());
+		hive.addCallable(worker);
+		hive.execute(true);
+		for (int i = 0; i < tmp.length; i++) {
+			tmp[i] = builder.build();
+		}
+		ArrayList<MosaicQuantResults[]> mqrs = hive.getResults();
+		MosaicQuantResults[] mqr = mqrs.get(0);
+		for (int i = 0; i < mqr.length; i++) {
+			builder.score(mqr[i].getFs()[0]);
+			builder.numMarkers(mqr[i].getNumMarkers()[0]);
+			tmp[i] = builder.build();
+		}
+		int externalCNVs = prepInternalClasses();
+		addCnvsToPheno(tmp, externalCNVs, 4);
+		if (selectedCNV == null || selectedCNV[0] != externalCNVs + INTERNAL_CNV_CLASSES_INDICES[3]) {
+			MosaicBuilder builderMosaic = new MosaicBuilder();
+			builderMosaic.verbose(true);
+			MosaicismDetect md = builderMosaic.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
+			LocusSet<MosaicRegion> mosSet = md.callMosaic(quantSeg, true);
+
+			if (mosSet.getLoci().length != 1) {
+				proj.getLog().reportTimeError("Mosaic caller not in force call mode");
+				mosSet = null;
+			}
+			addCnvsToPheno(new CNVariant[] { mosSet.getLoci()[0] }, externalCNVs, INTERNAL_CNV_CLASSES_INDICES[5]);
+		}
+		sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+		procCNVs(chr);
+		updateGUI();
+	}
+	/**
+	 * @param tmp
+	 * @param externalCNVs
+	 *            the number of external (file based) cnv classes
+	 * @param internalIndex
+	 *            the index of the internal index
+	 */
+	private void addCnvsToPheno(CNVariant[] tmp, int externalCNVs, int internalIndex) {
+		int key = externalCNVs + INTERNAL_CNV_CLASSES_INDICES[internalIndex];
+		CNVariant[] tmpCurrent = indiPheno.getCnvClasses().get(key).get(chr + "");
+		
+		if (tmpCurrent != null && tmpCurrent.length > 0) {
+			boolean[] use = Array.booleanArray(tmp.length, true);
+			for (int i = 0; i < tmpCurrent.length; i++) {
+				for (int j = 0; j < tmp.length; j++) {
+					if (use[j]) {
+						if (tmpCurrent[i].equals(tmp[j])) {
+							use[j] = false;
+						}
+					}
+				}
+			}
+			ArrayList<CNVariant> uniqAdd = new ArrayList<CNVariant>();
+			for (int i = 0; i < use.length; i++) {
+				if (use[i]) {
+					uniqAdd.add(tmp[i]);
+				}
+			}
+			CNVariant[] uniq = uniqAdd.toArray(new CNVariant[uniqAdd.size()]);
+			tmpCurrent = Array.concatAll(uniq, tmpCurrent);
+		} else {
+			tmpCurrent = tmp;
+		}
+
+		indiPheno.getCnvClasses().get(key).put(chr + "", tmpCurrent);
+	}
 //	public static CNVariant[] loadCNVfiles(Project proj, String[] filenames) {
 //		BufferedReader reader;
 //		Vector<CNVariant> v = null;
