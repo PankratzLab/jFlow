@@ -111,7 +111,7 @@ public class BlastLabel extends JLabel {
     public static Font LBL_FONT = BASE_FONT.deriveFont(17f);
     public static final int CHAR_PADDING = 2;
     private static JLabel refLbl = null;
-    static boolean expanded = true; // static to affect all
+    static boolean expanded = false; // static to affect all
     static TreeSet<Integer> spaces = new TreeSet<Integer>();
     static TreeMap<Integer, Integer> spaceSets = new TreeMap<Integer, Integer>();
     

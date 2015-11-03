@@ -2231,8 +2231,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		updateBLASTPanel();
 		updateGUI();
 		if (blastFrame != null && blastFrame.isVisible()) {
-		    ArrayList<BlastAnnotation> annotations = BlastFrame.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
-		    blastFrame.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
+		    blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
 		}
 		if (histFrame != null && histFrame.isVisible()) {
 		    histFrame.removeAllData();
@@ -2401,11 +2400,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	}
 	
 	private void displayBlast() {
-	    ArrayList<BlastAnnotation> annotations = BlastFrame.BlastUtils.filterAnnotations(proj, blastResults[markerIndex].getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()));
         if (blastFrame == null) {
             blastFrame = new BlastFrame(proj);
         }
-        blastFrame.setAnnotations(blastResults[markerIndex].getMarkerSeqAnnotation(), annotations, referenceGenome);
+        blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
         int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
         if (histFrame == null) {
             histFrame = TwoDPlot.createGUI(getProject(), true);
@@ -3225,7 +3223,11 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         typeLabel.setFont(lblFont);
         blastPanel.add(typeLabel, "cell 0 1");
 //        typeLabel = new JLabel(" " + blastResult.getNumOffTarget(log), JLabel.LEFT);
-        typeLabel = new JLabel("" + BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log)).size(), JLabel.LEFT);
+        
+        double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
+        int probe = proj.ARRAY_TYPE.getValue().getProbeLength();
+        int alignFilter = (int) (filter * probe);
+        typeLabel = new JLabel("" + BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log), alignFilter).size(), JLabel.LEFT);
         typeLabel.setFont(lblFont);
         blastPanel.add(typeLabel, "cell 1 1, alignx right");
 	    
