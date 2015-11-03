@@ -1,7 +1,9 @@
 package stats;
 
+//import one.JL.QuantileMathCommonsNormalization;
 import common.Array;
 import common.Logger;
+import common.Matrix;
 import common.Sort;
 
 public class QuantileNormalization {
@@ -68,36 +70,47 @@ public class QuantileNormalization {
 	}
 
 	public void normalize() {
-		int[][] ranks = new int[dataToNorm.length][];
-		for (int i = 0; i < ranks.length; i++) {
-			ranks[i] = Sort.trickSort(dataToNorm[i]);
-			// TODO, sorted vs rank
-		}
-		double[] rankMean = new double[dataToNorm[0].length];
+		double[][] tmp = Matrix.transpose(dataToNorm);
 
-		for (int i = 0; i < dataToNorm[0].length; i++) {
-			double[] tmp = new double[dataToNorm.length];
+		//QuantileMathCommonsNormalization.QuantileNormAdressingNaValuesBeforeQN(tmp, true, true);
+		this.normData = Matrix.transpose(tmp);
+
+		for (int i = 0; i < normData.length; i++) {
 			for (int j = 0; j < tmp.length; j++) {
-				int nextRank = ranks[j][i];
-				tmp[j] = dataToNorm[j][nextRank];
+				normData[i][j] = Math.min(dataToNorm[i][j] * thresholdFactor, normData[i][j]);
 			}
-			rankMean[i] = Array.mean(tmp, true);
 
 		}
-
-		this.normData = new double[dataToNorm.length][dataToNorm[0].length];
-		for (int i = 0; i < dataToNorm.length; i++) {
-			for (int j = 0; j < dataToNorm[0].length; j++) {
-				normData[i][ranks[i][j]] = rankMean[j];
-				if (!Double.isNaN(thresholdFactor)) {
-					if (Double.isNaN(dataToNorm[i][j])) {
-						normData[i][j] = Double.NaN;
-					} else if (dataToNorm[i][j] * thresholdFactor < normData[i][j]) {
-						normData[i][j] = thresholdFactor * dataToNorm[i][j];
-					}
-				}
-			}
-		}
+		// int[][] ranks = new int[dataToNorm.length][];
+		// for (int i = 0; i < ranks.length; i++) {
+		// ranks[i] = Sort.trickSort(dataToNorm[i]);
+		// // TODO, sorted vs rank
+		// }
+		// double[] rankMean = new double[dataToNorm[0].length];
+		//
+		// for (int i = 0; i < dataToNorm[0].length; i++) {
+		// double[] tmp = new double[dataToNorm.length];
+		// for (int j = 0; j < tmp.length; j++) {
+		// int nextRank = ranks[j][i];
+		// tmp[j] = dataToNorm[j][nextRank];
+		// }
+		// rankMean[i] = Array.mean(tmp, true);
+		//
+		// }
+		//
+		// this.normData = new double[dataToNorm.length][dataToNorm[0].length];
+		// for (int i = 0; i < dataToNorm.length; i++) {
+		// for (int j = 0; j < dataToNorm[0].length; j++) {
+		// normData[i][ranks[i][j]] = rankMean[j];
+		// if (!Double.isNaN(thresholdFactor)) {
+		// if (Double.isNaN(dataToNorm[i][j])) {
+		// normData[i][j] = Double.NaN;
+		// } else if (dataToNorm[i][j] * thresholdFactor < normData[i][j]) {
+		// normData[i][j] = thresholdFactor * dataToNorm[i][j];
+		// }
+		// }
+		// }
+		// }
 		for (int i = 0; i < dataToNorm.length; i++) {
 			log.reportTimeInfo("MEAN Original" + i + " : " + Array.mean(dataToNorm[i], true) + " -> " + Array.mean(normData[i], true));
 			log.reportTimeInfo("SD Original" + i + " : " + Array.stdev(dataToNorm[i], true) + " -> " + Array.stdev(normData[i], true));
