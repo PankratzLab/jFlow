@@ -48,7 +48,7 @@ public class MosaicismDetect {
 		return movingFactor;
 	}
 
-	public <T extends Segment> LocusSet<MosaicRegion> callMosaic(T seg) {
+	public <T extends Segment> LocusSet<MosaicRegion> callMosaic(T seg, boolean force) {
 		if (seg.getStop() < seg.getStart()) {
 			throw new IllegalArgumentException("Segment must have stop that is gte to start");
 		}
@@ -122,7 +122,7 @@ public class MosaicismDetect {
 				double d = tD.length > 0 ? Array.mean(tD) : Double.NaN;
 				p_densityScored.add(d);
 				if (Double.isFinite(d)) {
-					if (d <= baseLine) {
+					if (d <= baseLine || force) {
 						states[i] = 0;
 						mosIndicesTmp.add(i);
 					} else {
@@ -135,25 +135,28 @@ public class MosaicismDetect {
 				}
 			}
 			int[] mosIndices = Array.toIntArray(mosIndicesTmp);
-			// double percentState = (double) evalIndices.length / totalIndices;
-			// System.out.println(percentState+"\t"+evalIndices.length+"\t"+totalIndices);
-
-			// if (percentState > minPercentStates) {
 			int[] positions = Array.subArray(Array.subArray(markerSet.getPositions(), segIndices), mosIndices);
 			String[] names = Array.subArray(Array.subArray(markerSet.getMarkerNames(), segIndices), mosIndices);
+			double[] bafsSub = Array.subArray(Array.subArray(bafs, segIndices), mosIndices);
 			ViterbiResult vtr = new ViterbiResult(Array.subArray(states, mosIndices), null);
 			dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false, verbose);
 			MosaicRegion[] tmp = new MosaicRegion[dud.getLoci().length];
 			double[] finalPDensit = Array.toDoubleArray(p_densityScored);
 			for (int i = 0; i < dud.getLoci().length; i++) {
 				CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
+				if (force) {
+					builder.chr(seg.getChr());
+					builder.start(seg.getStart());
+					builder.stop(seg.getStop());
+				}
 				int[] scoreStopStart = vtr.getIndexStateChange().get(i);
 				double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
-				double score = baseLine - Array.mean(scored);
+				double pdfScore = baseLine - Array.mean(scored);// TODO,
+				double score = Array.median(Array.removeNaN(Array.distFrom(Array.subArray(bafsSub, scoreStopStart[0], scoreStopStart[1] + 1), gd.distributions()[1].mean())));
 				double factor = (double) dud.getLoci()[i].getSize(); // factor = factor * (double) dud.getLoci()[i].getNumMarkers() / states.length;
-				builder.score(score);
+				builder.score(MosaicismQuant.getDisomyF(score));
 				double nearestStateScore = Array.mean(Array.subArray(nearestN, scoreStopStart[0], scoreStopStart[1] + 1));
-				tmp[i] = new MosaicRegion(builder.build(), Math.log10(Math.pow(factor, 2)), nearestStateScore);
+				tmp[i] = new MosaicRegion(builder.build(), Math.log10(Math.pow(factor, 2)), nearestStateScore, pdfScore);
 			}
 
 			mSet = new LocusSet<MosaicRegion>(tmp, true, proj.getLog()) {
@@ -244,7 +247,7 @@ public class MosaicismDetect {
 			for (int j = 0; j < te.length; j++) {
 				if (te[j].length > 0 && j < 23) {
 					proj.getLog().reportTimeInfo("Calling chr " + j + " for sample " + i);
-					LocusSet<MosaicRegion> hi = md.callMosaic(new Segment((byte) j, 0, markerSet.getPositions()[te[j][te[j].length - 1]] + 10));
+					LocusSet<MosaicRegion> hi = md.callMosaic(new Segment((byte) j, 0, markerSet.getPositions()[te[j][te[j].length - 1]] + 10), false);
 					for (int k = 0; k < hi.getLoci().length; k++) {
 						System.out.println(hi.getLoci()[k].toPlinkFormat());
 					}

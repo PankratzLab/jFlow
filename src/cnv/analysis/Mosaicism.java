@@ -218,7 +218,7 @@ public class Mosaicism {
 	}
 
 	private static double[] getMosiacMetric(MosaicismDetect md, Segment seg) {
-		LocusSet<MosaicRegion> tmp = md.callMosaic(seg);
+		LocusSet<MosaicRegion> tmp = md.callMosaic(seg, false);
 		if (tmp.getLoci().length < 1 || seg.getChr() >= 23) {
 			return new double[] { 0, 0 };
 		} else {

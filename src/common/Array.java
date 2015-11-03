@@ -1756,6 +1756,42 @@ public class Array {
 		return toStr(array, null, "\t", null);
 	}
 
+	
+	/**
+	 * @param a
+	 * @param b
+	 *            return the distance array from this value
+	 * @return
+	 */
+	public static double[] distFrom(double[] a, double b) {
+		return abs(minus(a, b));
+	}
+
+	/**
+	 * @param a
+	 * @param minus
+	 *            subtract this value from every entry in the array
+	 * @return
+	 */
+	public static double[] minus(double[] a, double minus) {
+		double[] minusA = new double[a.length];
+		for (int i = 0; i < minusA.length; i++) {
+			minusA[i] = a[i] - minus;
+		}
+		return minusA;
+	}
+	
+	/**
+	 * @param a
+	 * @return absolute value array
+	 */
+	public static double[] abs(double[] a) {
+		double[] abs = new double[a.length];
+		for (int i = 0; i < abs.length; i++) {
+			abs[i] = Math.abs(a[i]);
+		}
+		return abs;
+	}
 	/**
 	 * Computes x[i + lag] - x[i]
 	 */

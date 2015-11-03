@@ -9,11 +9,17 @@ public class MosaicRegion extends CNVariant {
 
 	private double nearestStateScore;
 	private double bpWeightedScore;
+	private double pdfScore;
 
-	public MosaicRegion(CNVariant cnv, double bpWeightedScore, double nearestStateScore) {
+	public MosaicRegion(CNVariant cnv, double bpWeightedScore, double nearestStateScore, double pdfScore) {
 		super(cnv);
 		this.bpWeightedScore = bpWeightedScore;
 		this.nearestStateScore = nearestStateScore;
+		this.pdfScore = pdfScore;
+	}
+
+	public double getPdfScore() {
+		return pdfScore;
 	}
 
 	public double getNearestStateScore() {
