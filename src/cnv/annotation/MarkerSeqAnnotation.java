@@ -2,7 +2,9 @@ package cnv.annotation;
 
 import java.util.List;
 
+import seq.manage.VCOps;
 import common.Logger;
+import filesys.Segment;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeaderLineType;
@@ -14,6 +16,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 	private String sequence;
 	private Strand strand;
 	private int interrogationPosition;
+	private Segment seg;
 
 	public MarkerSeqAnnotation() {
 		super(VCFHeaderLineType.String, null, 1, DEFAULT_NAME, DESCRIPTION, DEFUALT_VALUE, DEFUALT_VALUE);
@@ -27,6 +30,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 		this.sequence = sequence;
 		this.interrogationPosition = interrogationPosition;
 		this.strand = strand;
+		//this.seg=seg; populate on load only
 		setData(sequence + DEFUALT_DELIMITER + interrogationPosition + DEFUALT_DELIMITER + strand.getEncoding());
 	}
 
@@ -44,6 +48,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 
 			}
 			this.strand = Strand.toStrand(data.get(2));
+			this.seg = VCOps.getSegment(vc);
 		}
 	}
 
@@ -57,6 +62,10 @@ public class MarkerSeqAnnotation extends AnnotationData {
 
 	public int getInterrogationPosition() {
 		return interrogationPosition;
+	}
+
+	public Segment getSeg() {
+		return seg;
 	}
 
 }
