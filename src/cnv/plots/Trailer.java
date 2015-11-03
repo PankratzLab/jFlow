@@ -323,8 +323,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					addActionListener(new ActionListener() {
 
 						public void actionPerformed(ActionEvent e) {
-							quantHere(toQuant);
-							
+							quantHere(toQuant, true);							
 					
 						}
 					});
@@ -356,6 +355,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             ToolTipManager.sharedInstance().setReshowDelay(defaultReshow);
             ToolTipManager.sharedInstance().setInitialDelay(defaultInitial);
         }
+    
         @Override
         public void mouseMoved(MouseEvent e) {
             super.mouseMoved(e);
@@ -1506,7 +1506,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     			public void itemStateChanged(ItemEvent ie) {
 					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
 					Segment quantSeg = new Segment(chr, positions[startMarker], positions[stopMarker]);
-					quantHere(quantSeg);
+					quantHere(quantSeg,false);
     				jrb.setSelected(false);
 				}
 
@@ -2306,7 +2306,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	}
 
 
-	private void quantHere(Segment quantSeg) {
+	private void quantHere(Segment quantSeg, boolean checkAlreadyCalled) {
 		MosaicQuantWorker worker = new MosaicQuantWorker(new Segment[] { quantSeg }, proj, sample, MOSAIC_TYPE.values(), 5);
 		CNVBuilder builder = new CNVBuilder();
 		builder.chr(quantSeg.getChr());
@@ -2333,7 +2333,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		int externalCNVs = prepInternalClasses();
 		addCnvsToPheno(tmp, externalCNVs, 4);
-		if (selectedCNV == null || selectedCNV[0] != externalCNVs + INTERNAL_CNV_CLASSES_INDICES[3]) {
+		if (!checkAlreadyCalled || selectedCNV == null || selectedCNV[0] != externalCNVs + INTERNAL_CNV_CLASSES_INDICES[3]) {
 			MosaicBuilder builderMosaic = new MosaicBuilder();
 			builderMosaic.verbose(true);
 			MosaicismDetect md = builderMosaic.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
