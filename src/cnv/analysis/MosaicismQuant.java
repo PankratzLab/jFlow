@@ -633,7 +633,7 @@ public class MosaicismQuant implements Calcfc {
 					MosaicismQuant mosiacismQuant = new MosaicismQuant(proj, sampleMosiac, types[j], params, bins.getLoci()[i], markerSet, indices);
 					mosiacismQuant.prepareMosiacQuant(1, MIN_BAF, MAX_BAF);
 					numMarkers[j][i] = mosiacismQuant.getSampleMosiac().getCdf().getVals().length;
-					System.out.println("Num Markers\t" + numMarkers[j][i]);
+					//System.out.println("Num Markers\t" + numMarkers[j][i]);
 					if (numMarkers[j][i] > 0) {
 						double[] x = params.getX();
 						CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, x, params.getX_Bounds(), 100, .001, 0, 50000);

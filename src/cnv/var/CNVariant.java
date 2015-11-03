@@ -691,6 +691,33 @@ public class CNVariant extends Segment {
 		return uniqueInds;
 	}
 
+	public static Hashtable<String, LocusSet<CNVariant>> breakIntoInds(LocusSet<CNVariant> set, Logger log) {
+		Hashtable<String, ArrayList<CNVariant>> cnvSplits = new Hashtable<String, ArrayList<CNVariant>>();
+		for (int i = 0; i < set.getLoci().length; i++) {
+			CNVariant tmp = set.getLoci()[i];
+			String key = tmp.getFamilyID() + "\t" + tmp.getIndividualID();
+			if (!cnvSplits.containsKey(key)) {
+				cnvSplits.put(key, new ArrayList<CNVariant>());
+			}
+			cnvSplits.get(key).add(tmp);
+		}
+		 Hashtable<String, LocusSet<CNVariant>> setSplit = new Hashtable<String, LocusSet<CNVariant>>();
+
+		for (String fidIid : cnvSplits.keySet()) {
+			ArrayList<CNVariant> indCNVs = cnvSplits.get(fidIid);
+			LocusSet<CNVariant> indSet = new LocusSet<CNVariant>(indCNVs.toArray(new CNVariant[indCNVs.size()]), true, log) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+			setSplit.put(fidIid, indSet);
+		}
+		return setSplit;
+
+	}
 	/**
 	 * Useful when the terms of the cnv are not completely known, such as in CNVCalling
 	 *

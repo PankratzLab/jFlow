@@ -152,11 +152,12 @@ public class MosaicismDetect {
 				int[] scoreStopStart = vtr.getIndexStateChange().get(i);
 				double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
 				double pdfScore = baseLine - Array.mean(scored);// TODO,
-				double score = Array.median(Array.removeNaN(Array.distFrom(Array.subArray(bafsSub, scoreStopStart[0], scoreStopStart[1] + 1), gd.distributions()[1].mean())));
+				double delta = Array.median(Array.removeNaN(Array.distFrom(Array.subArray(bafsSub, scoreStopStart[0], scoreStopStart[1] + 1), gd.distributions()[1].mean())));
 				double factor = (double) dud.getLoci()[i].getSize(); // factor = factor * (double) dud.getLoci()[i].getNumMarkers() / states.length;
-				builder.score(MosaicismQuant.getDisomyF(score));
+				double customF = MosaicismQuant.getDisomyF(delta);
+				builder.score(customF);
 				double nearestStateScore = Array.mean(Array.subArray(nearestN, scoreStopStart[0], scoreStopStart[1] + 1));
-				tmp[i] = new MosaicRegion(builder.build(), Math.log10(Math.pow(factor, 2)), nearestStateScore, pdfScore);
+				tmp[i] = new MosaicRegion(builder.build(), Math.log10(Math.pow(factor, 2)), nearestStateScore, pdfScore, delta, Double.NaN, customF);
 			}
 
 			mSet = new LocusSet<MosaicRegion>(tmp, true, proj.getLog()) {
