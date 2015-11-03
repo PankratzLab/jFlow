@@ -201,6 +201,7 @@ public class BlastLabel extends JLabel {
     
 //    chr17:74,783,145-74,785,655
 //    chr17:74,784,671-74,787,181
+//    chr17:4,914,805-5,526,347 -- #37 of 4656
     
     @Override
     protected void paintComponent(Graphics g) {
