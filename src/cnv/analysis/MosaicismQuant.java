@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
-
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
 import mining.Calcfc;
 import mining.Cobyla;
@@ -54,7 +53,8 @@ public class MosaicismQuant implements Calcfc {
 	private MarkerSet markerSet;
 	private int[][] indicesByChr;
 	private MOSAIC_TYPE type;
-	private ComputeParams computeParams;
+
+	// private ComputeParams computeParams;
 
 	public MosaicismQuant(Project proj, SampleMosiac sampleMosiac, MOSAIC_TYPE type, ComputeParams computeParams, Segment evalSegment, MarkerSet markerSet, int[][] indicesByChr) {
 		super();
@@ -64,7 +64,7 @@ public class MosaicismQuant implements Calcfc {
 		this.markerSet = markerSet;
 		this.indicesByChr = indicesByChr;
 		this.type = type;
-		this.computeParams = computeParams;
+		// this.computeParams = computeParams;
 		// this.proj.getLog().reportTimeInfo("MOSAIC TYPE: " + type);
 	}
 
@@ -173,12 +173,12 @@ public class MosaicismQuant implements Calcfc {
 	// }
 
 	public static double getDisomyF(double delta) {
-		if(delta==.5){
+		if (delta == .5) {
 			return 1;
 		}
-		double f = (4*delta);
-		double div = 2*delta+1;
-		return f/div;
+		double f = (4 * delta);
+		double div = 2 * delta + 1;
+		return f / div;
 	}
 
 	private static double getDelta(double f, MOSAIC_TYPE type) {
@@ -295,23 +295,23 @@ public class MosaicismQuant implements Calcfc {
 			this.smoothedControl = new CDF(new BafSelection(smoothed, null));// many different indices for controls
 		}
 
-		private void plotCDFs(String output) {
-			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
-				writer.println("CDF\tSample\tSmoothedControl");
-				for (int i = 0; i < smoothedControl.getVals().length; i++) {
-					double cdf = (double) i / smoothedControl.getVals().length;
-					writer.println(cdf + "\t" + getCdf().getVals()[getCdf().getOrder()[i]] + "\t" + smoothedControl.getVals()[smoothedControl.getOrder()[i]]);
-				}
-				writer.close();
-				RScatter rScatter = new RScatter(output, output + ".rscript", ext.removeDirectoryInfo(output), output + ".jpeg", "CDF", new String[] { "Sample", "SmoothedControl" }, SCATTER_TYPE.POINT, proj.getLog());
-				rScatter.setOverWriteExisting(true);
-				rScatter.execute();
-			} catch (Exception e) {
-				proj.getLog().reportError("Error writing to " + output);
-				proj.getLog().reportException(e);
-			}
-		}
+		// private void plotCDFs(String output) {
+		// try {
+		// PrintWriter writer = new PrintWriter(new FileWriter(output));
+		// writer.println("CDF\tSample\tSmoothedControl");
+		// for (int i = 0; i < smoothedControl.getVals().length; i++) {
+		// double cdf = (double) i / smoothedControl.getVals().length;
+		// writer.println(cdf + "\t" + getCdf().getVals()[getCdf().getOrder()[i]] + "\t" + smoothedControl.getVals()[smoothedControl.getOrder()[i]]);
+		// }
+		// writer.close();
+		// RScatter rScatter = new RScatter(output, output + ".rscript", ext.removeDirectoryInfo(output), output + ".jpeg", "CDF", new String[] { "Sample", "SmoothedControl" }, SCATTER_TYPE.POINT, proj.getLog());
+		// rScatter.setOverWriteExisting(true);
+		// rScatter.execute();
+		// } catch (Exception e) {
+		// proj.getLog().reportError("Error writing to " + output);
+		// proj.getLog().reportException(e);
+		// }
+		// }
 	}
 
 	private static class BafSelection {
@@ -511,9 +511,9 @@ public class MosaicismQuant implements Calcfc {
 			this.order = Sort.quicksort(bafSelection.getBafs());
 		}
 
-		public BafSelection getBafSelection() {
-			return bafSelection;
-		}
+		// public BafSelection getBafSelection() {
+		// return bafSelection;
+		// }
 
 		public double[] getValsInOrder() {
 			double[] orderedVals = new double[bafSelection.getBafs().length];
@@ -543,7 +543,8 @@ public class MosaicismQuant implements Calcfc {
 		private double[] shifts;
 		private int[] numMarkers;
 		private int numErrors;
-		private MOSAIC_TYPE type;
+
+		// private MOSAIC_TYPE type;
 
 		public MosaicQuantResults(String sample, double[] fs, double[] shifts, int[] numMarkers, int numErrors, MOSAIC_TYPE type) {
 			super();
@@ -552,7 +553,7 @@ public class MosaicismQuant implements Calcfc {
 			this.shifts = shifts;
 			this.numMarkers = numMarkers;
 			this.numErrors = numErrors;
-			this.type = type;
+			// this.type = type;
 		}
 
 		public String getSample() {
@@ -625,23 +626,26 @@ public class MosaicismQuant implements Calcfc {
 			int[][] indices = markerSet.getIndicesByChr();
 			MosaicQuantResults[] results = new MosaicQuantResults[types.length];
 			for (int i = 0; i < bins.getLoci().length; i++) {
-				if ((i + 1) % 10 == 0||bins.getLoci().length<100) {
+				if ((i + 1) % 10 == 0 || bins.getLoci().length < 100) {
 					proj.getLog().reportTimeInfo("Currently on " + bins.getLoci()[i].getUCSClocation() + " for sample " + sample);
 				}
 				for (int j = 0; j < types.length; j++) {
 					MosaicismQuant mosiacismQuant = new MosaicismQuant(proj, sampleMosiac, types[j], params, bins.getLoci()[i], markerSet, indices);
 					mosiacismQuant.prepareMosiacQuant(1, MIN_BAF, MAX_BAF);
 					numMarkers[j][i] = mosiacismQuant.getSampleMosiac().getCdf().getVals().length;
+					System.out.println("Num Markers\t" + numMarkers[j][i]);
 					if (numMarkers[j][i] > 0) {
 						double[] x = params.getX();
 						CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, x, params.getX_Bounds(), 100, .001, 0, 50000);
 						switch (cobylaExitStatus) {
 						case DivergingRoundingErrors:
+							proj.getLog().reportTimeWarning("Could not Estimate " + bins.getLoci()[i].getUCSClocation() + " due to " + cobylaExitStatus);
 							fs[j][i] = Double.NaN;
 							shifts[j][i] = Double.NaN;
 							numErrors++;
 							break;
 						case MaxIterationsReached:
+							proj.getLog().reportTimeWarning("Could not Estimate " + bins.getLoci()[i].getUCSClocation() + " due to " + cobylaExitStatus);
 							fs[j][i] = Double.NaN;
 							shifts[j][i] = Double.NaN;
 							numErrors++;
@@ -718,6 +722,14 @@ public class MosaicismQuant implements Calcfc {
 			this.set = set;
 		}
 
+		public MosaicQuantResults[] getSampleMosaicQuantResults() {
+			return sampleMosaicQuantResults;
+		}
+
+		public LocusSet<Segment> getSet() {
+			return set;
+		}
+
 		private void writeSerial(String fileName) {
 			Files.writeSerial(this, fileName, true);
 		}
@@ -759,7 +771,7 @@ public class MosaicismQuant implements Calcfc {
 					for (int i = 0; i < results.length; i++) {
 						sampleMosaicQuantResults[index] = results[i];
 
-						//writer.println(results.getSample() + "\t" + Array.toStr(results.getFs()));
+						// writer.println(results.getSample() + "\t" + Array.toStr(results.getFs()));
 
 					}
 					index++;
@@ -788,23 +800,6 @@ public class MosaicismQuant implements Calcfc {
 	// create case cdf check
 	// create control cdf check
 	// Non-linear fitting
-
-	private static double[] movingAverage(int n, double[] array) {
-		double[] ma = new double[array.length];
-		double[] a = new double[n];
-		double sum = 0.0;
-		for (int i = 0; i < array.length; i++) {
-			sum -= a[i % n];
-			a[i % n] = array[i];
-			sum += a[i % n];
-			if (i >= n) {
-				ma[i] = (double) sum / n;
-			} else {
-				ma[i] = Double.NaN;
-			}
-		}
-		return ma;
-	}
 
 	public static void test(Project proj) {
 
@@ -839,7 +834,7 @@ public class MosaicismQuant implements Calcfc {
 		means[0] = Array.mean(val0_33);
 		means[1] = Array.mean(val33_66);
 		means[2] = Array.mean(val66_33);
-		int[] totals = new int[] { val0_33.length, val33_66.length, val66_33.length };
+		// int[] totals = new int[] { val0_33.length, val33_66.length, val66_33.length };
 		double[] blanks = new double[3];
 		Arrays.fill(blanks, 1);
 		double[] props = new double[3];
@@ -1005,8 +1000,8 @@ public class MosaicismQuant implements Calcfc {
 		// new File(testDir).mkdirs();
 		// String out = testDir + ext.replaceWithLinuxSafeCharacters(segTest.getUCSClocation(), true);
 		// mosiacismQuant.getSampleMosiac().plotCDFs(out);
-		double[] x = params.getX();
-		CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, x, params.getX_Bounds(), 1, .001, 0, 50000);
+		// double[] x = params.getX();
+		// CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, x, params.getX_Bounds(), 1, .001, 0, 50000);
 
 		// for (int i = 0; i < set.getLoci().length; i++) {
 		//
@@ -1048,45 +1043,45 @@ public class MosaicismQuant implements Calcfc {
 		System.exit(1);
 	}
 
-	private static class BruteForce {
-		private MosaicismQuant mosiacismQuant;
-		private ComputeParams computeParams;
-
-		public BruteForce(MosaicismQuant mosiacismQuant, ComputeParams computeParams) {
-			super();
-			this.mosiacismQuant = mosiacismQuant;
-			this.computeParams = computeParams;
-		}
-
-		public double[][] force() {
-			double f = computeParams.getMinF();
-			double shift = computeParams.getMinShift();
-			ArrayList<Double> fs = new ArrayList<Double>();
-			ArrayList<Double> shifts = new ArrayList<Double>();
-
-			while (f < computeParams.getMaxF()) {
-				f = f + .1;
-				fs.add(f);
-			}
-			while (shift < computeParams.getMaxShift()) {
-				shift = shift + 20;
-				shifts.add(shift);
-			}
-			double[][] results = new double[shifts.size() * fs.size()][3];
-			int index = 0;
-			for (int i = 0; i < fs.size(); i++) {
-				for (int j = 0; j < shifts.size(); j++) {
-					double[] params = new double[] { fs.get(i), shifts.get(j), 0 };
-					double result = mosiacismQuant.Compute(1, 1, params, null);
-					double[] tmp = new double[] { fs.get(i), shifts.get(j), result };
-					results[index] = tmp;
-					index++;
-				}
-			}
-			return results;
-		}
-
-	}
+	// private static class BruteForce {
+	// private MosaicismQuant mosiacismQuant;
+	// private ComputeParams computeParams;
+	//
+	// public BruteForce(MosaicismQuant mosiacismQuant, ComputeParams computeParams) {
+	// super();
+	// this.mosiacismQuant = mosiacismQuant;
+	// this.computeParams = computeParams;
+	// }
+	//
+	// public double[][] force() {
+	// double f = computeParams.getMinF();
+	// double shift = computeParams.getMinShift();
+	// ArrayList<Double> fs = new ArrayList<Double>();
+	// ArrayList<Double> shifts = new ArrayList<Double>();
+	//
+	// while (f < computeParams.getMaxF()) {
+	// f = f + .1;
+	// fs.add(f);
+	// }
+	// while (shift < computeParams.getMaxShift()) {
+	// shift = shift + 20;
+	// shifts.add(shift);
+	// }
+	// double[][] results = new double[shifts.size() * fs.size()][3];
+	// int index = 0;
+	// for (int i = 0; i < fs.size(); i++) {
+	// for (int j = 0; j < shifts.size(); j++) {
+	// double[] params = new double[] { fs.get(i), shifts.get(j), 0 };
+	// double result = mosiacismQuant.Compute(1, 1, params, null);
+	// double[] tmp = new double[] { fs.get(i), shifts.get(j), result };
+	// results[index] = tmp;
+	// index++;
+	// }
+	// }
+	// return results;
+	// }
+	//
+	// }
 
 	// private static BruteForceResult{
 	//
@@ -1258,8 +1253,8 @@ public class MosaicismQuant implements Calcfc {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			//test(proj);
-		   quantMosaic(proj, bpWindow, numControls, numThreads);
+			// test(proj);
+			quantMosaic(proj, bpWindow, numControls, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
