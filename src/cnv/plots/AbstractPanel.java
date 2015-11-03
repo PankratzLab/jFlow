@@ -437,7 +437,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
         }
 
 		for (int i = 0; lines != null && i<lines.length && flow; i++) {
-			if (lines[i] != null) {
+			if (lines[i] != null && lines[i].getLayer() == 0) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, lines[i].getStartX());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, lines[i].getStartX());
 				minimumObservedRawY = Maths.min(minimumObservedRawY, lines[i].getStartY());
@@ -450,7 +450,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
         }
 		for (int i = 0; rectangles != null && i < rectangles.length && flow; i++) {
-		    if (rectangles[i] != null) {
+		    if (rectangles[i] != null && rectangles[i].getLayer() == 0) {
 		        minimumObservedRawX = Maths.min(minimumObservedRawX, rectangles[i].getStartXValue());
 		        maximumObservedRawX = Maths.max(maximumObservedRawX, rectangles[i].getStartXValue());
 		        minimumObservedRawY = Maths.min(minimumObservedRawY, rectangles[i].getStartYValue());
@@ -463,10 +463,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		    }
 		}
 		
-		minimumObservedRawX = minimumObservedRawX==Float.MAX_VALUE?0:minimumObservedRawX;
-		maximumObservedRawX = maximumObservedRawX==Float.MIN_VALUE?1:maximumObservedRawX;
-		minimumObservedRawY = minimumObservedRawY==Float.MAX_VALUE?0:minimumObservedRawY;
-		maximumObservedRawY = maximumObservedRawY==Float.MIN_VALUE?1:maximumObservedRawY;
+		minimumObservedRawX = minimumObservedRawX == Float.MAX_VALUE ? 0 : minimumObservedRawX;
+		maximumObservedRawX = maximumObservedRawX == Float.MIN_VALUE ? 1 : maximumObservedRawX;
+		minimumObservedRawY = minimumObservedRawY == Float.MAX_VALUE ? 0 : minimumObservedRawY;
+		maximumObservedRawY = maximumObservedRawY == Float.MIN_VALUE ? 1 : maximumObservedRawY;
 
 //		otherwise step is off
 		minimumObservedRawX = minimumObservedRawX > 0 ? 0 : minimumObservedRawX;
@@ -646,7 +646,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
 		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
         
-        g.setClip((int)canvasSectionMinimumX, HEAD_BUFFER, (int)(canvasSectionMaximumX - canvasSectionMinimumX), (int)(getHeight() - axisXHeight - 24));
+        g.setClip((int)canvasSectionMinimumX, HEAD_BUFFER, (int)(canvasSectionMaximumX - canvasSectionMinimumX) + 1, (int)(getHeight() - axisXHeight - 24));
         
 		// Draw the lines
         for (int i = 0; lines!=null && i<lines.length && flow; i++) {

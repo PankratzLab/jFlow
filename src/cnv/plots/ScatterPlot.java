@@ -429,7 +429,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 
 		for (int i = 0; i < scatterPanels.length; i++) {
 			scatterPanels[i].setPointsGeneratable(true);
-			scatterPanels[i].setQcPanelUpdatable(true);
+			scatterPanels[i].setUpdateQCPanel(true);
 			scatterPanels[i].setExtraLayersVisible(new byte[] {99});
 		}
 		displayIndex(navigationField);
@@ -919,28 +919,13 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	        public void actionPerformed(ActionEvent e) {
 				try {
 					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
-					if (trav >=0 && trav < markerList.length) {
+					if (trav >= 0 && trav < markerList.length) {
 						markerIndex = trav;
-						updateMarkerIndexHistory();
 					}
 				} catch (NumberFormatException nfe) {}
-				displayIndex((JTextField)e.getSource());
-				
-				if (showingAll) {
-					for (int i = 0; i < scatterPanels.length; i++) {
-						scatterPanels[i].setPointsGeneratable(true);
-						scatterPanels[i].setQcPanelUpdatable(true);
-					}
-				} else {
-					scatterPanels[selectedPanelIndex].setPointsGeneratable(true);
-					scatterPanels[selectedPanelIndex].setQcPanelUpdatable(true);
-				}
-				setCurrentClusterFilter();
-				updateGUI();
-				displayClusterFilterIndex();
+				finishProcessing();
 	        }
 		});
-		
 		
 		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
 		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
@@ -997,7 +982,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		JTabbedPane blastTabbedPanel = new JTabbedPane();
 		blastTabbedPanel.setBackground(BACKGROUND_COLOR);
 		blastPanel = new JPanel();
-		blastPanel.setLayout(new MigLayout("hidemode 0", "", ""));
+		blastPanel.setLayout(new MigLayout("hidemode 0", "[][grow]", ""));
 		blastPanel.setBackground(BACKGROUND_COLOR);
 		blastTabbedPanel.addTab("BLAST Metrics", null, blastPanel, "Basic Local Alignment Search Tool Metrics");
 		eastPanel.add(blastTabbedPanel, "cell 0 2, grow");
@@ -1035,7 +1020,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //							seletedScatterPanel.setQcPanelUpdatable(true);
 							for (int k = 0; k < scatterPanels.length; k++) {
 								scatterPanels[k].setPointsGeneratable(true);
-								scatterPanels[k].setQcPanelUpdatable(true);
+								scatterPanels[k].setUpdateQCPanel(true);
 							}
 							updateGUI();
 						}
@@ -1089,7 +1074,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //				seletedScatterPanel.paintAgain();
 				for (int i = 0; i < scatterPanels.length; i++) {
 					scatterPanels[i].setPointsGeneratable(true);
-					scatterPanels[i].setQcPanelUpdatable(false);
+					scatterPanels[i].setUpdateQCPanel(false);
 					scatterPanels[i].paintAgain();
 				}
 			}
@@ -1126,7 +1111,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //				seletedScatterPanel.paintAgain();
 				for (int i = 0; i < scatterPanels.length; i++) {
 					scatterPanels[i].setPointsGeneratable(true);
-					scatterPanels[i].setQcPanelUpdatable(true);
+					scatterPanels[i].setUpdateQCPanel(true);
 					scatterPanels[i].paintAgain();
 				}
 				//qcCallRateLabel.setText("Call Rate: "+ScatterPanel.getCallRate()+"%");
@@ -1169,7 +1154,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //				seletedScatterPanel.paintAgain();
 				for (int i = 0; i < scatterPanels.length; i++) {
 					scatterPanels[i].setPointsGeneratable(true);
-					scatterPanels[i].setQcPanelUpdatable(true);
+					scatterPanels[i].setUpdateQCPanel(true);
 					scatterPanels[i].paintAgain();
 				}
 			}
@@ -1299,7 +1284,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //				seletedScatterPanel.setQcPanelUpdatable(true);
 				for (int i = 0; i < scatterPanels.length; i++) {
 					scatterPanels[i].setPointsGeneratable(true);
-					scatterPanels[i].setQcPanelUpdatable(true);
+					scatterPanels[i].setUpdateQCPanel(true);
 				}
 //				scatPanel.generateRectangles();
 				updateGUI();
@@ -2235,11 +2220,11 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		if (showingAll) {
 			for (int i = 0; i < scatterPanels.length; i++) {
 				scatterPanels[i].setPointsGeneratable(true);
-				scatterPanels[i].setQcPanelUpdatable(true);
+				scatterPanels[i].setUpdateQCPanel(true);
 			}
 		} else {
 			scatterPanels[selectedPanelIndex].setPointsGeneratable(true);
-			scatterPanels[selectedPanelIndex].setQcPanelUpdatable(true);
+			scatterPanels[selectedPanelIndex].setUpdateQCPanel(true);
 		}
 //		long t2 = System.currentTimeMillis();
 		setCurrentClusterFilter();
@@ -2332,7 +2317,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //				seletedScatterPanel.generateRectangles();
 				for (int i = 0; i < scatterPanels.length; i++) {
 					scatterPanels[i].setPointsGeneratable(true);
-					scatterPanels[i].setQcPanelUpdatable(true);
+					scatterPanels[i].setUpdateQCPanel(true);
 					scatterPanels[i].generateRectangles();
 				}
 //				if (clusterFilterCollection.getSize(getMarkerName())>0) {
@@ -2351,21 +2336,21 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //			seletedScatterPanel.setQcPanelUpdatable(true);
 			for (int i = 0; i < scatterPanels.length; i++) {
 				scatterPanels[i].setPointsGeneratable(true);
-				scatterPanels[i].setQcPanelUpdatable(true);
+				scatterPanels[i].setUpdateQCPanel(true);
 			}
 			updateGUI();
 		} else if (command.equals(SYMMETRY)) {
 			symmetry[selectedPanelIndex] = !symmetry[selectedPanelIndex];
 			for (int i = 0; i < scatterPanels.length; i++) {
 				scatterPanels[i].setPointsGeneratable(true);
-				scatterPanels[i].setQcPanelUpdatable(true);
+				scatterPanels[i].setUpdateQCPanel(true);
 			}
 			updateGUI();
 		} else if (command.equals(CORRECTION)) {
 			correction[selectedPanelIndex] = !correction[selectedPanelIndex];
 			for (int i = 0; i < scatterPanels.length; i++) {
 				scatterPanels[i].setPointsGeneratable(true);
-				scatterPanels[i].setQcPanelUpdatable(true);
+				scatterPanels[i].setUpdateQCPanel(true);
 			}
 			updateGUI();
 		} else if (command.equals(MENDELIAN_ERROR)) {
@@ -3214,9 +3199,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	    blastPanel.removeAll();
 	    blastPanel.repaint();
 
-	    if (!hasAnnotationFile || blastResults == null || blastResults.length == 0 || markerIndex >= blastResults.length || !blastResults[markerIndex].isFound()) {
+	    Font lblFont = new Font("Arial", 0, 14);
+        if (!hasAnnotationFile || blastResults == null || blastResults.length == 0 || markerIndex >= blastResults.length || !blastResults[markerIndex].isFound()) {
 	        JLabel blastLabel = new JLabel("BLAST Metrics Unavailable", SwingConstants.CENTER);
-	        blastLabel.setFont(new Font("Arial", 0, 14));
+	        blastLabel.setFont(lblFont);
 	        blastPanel.add(blastLabel, "dock center, grow");
 	        blastPanel.revalidate();
 	        blastPanel.repaint();
@@ -3226,31 +3212,31 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		MarkerBlastAnnotation blastResult = blastResults[markerIndex];
         
         JLabel typeLabel = new JLabel("Has Perfect Match? ", JLabel.LEFT);
-        typeLabel.setFont(new Font("Arial", 0, 14));
+        typeLabel.setFont(lblFont);
         blastPanel.add(typeLabel, "cell 0 0");
         boolean has = blastResult.hasPerfectMatch(log);
         String result = has ? "YES" : "NO";
         typeLabel = new JLabel(result, JLabel.LEFT);
-        typeLabel.setFont(new Font("Arial", 0, 14));
+        typeLabel.setFont(lblFont);
         typeLabel.setForeground(has ? Color.GREEN : Color.RED);
-        blastPanel.add(typeLabel, "cell 1 0");
+        blastPanel.add(typeLabel, "cell 1 0, alignx right");
 	    
-        typeLabel = new JLabel("# Off-Target Alignments: ", JLabel.LEFT);
-        typeLabel.setFont(new Font("Arial", 0, 14));
+        typeLabel = new JLabel("# Off-Target Alignments (>" + proj.BLAST_PROPORTION_MATCH_FILTER.getValue() + "% match): ", JLabel.LEFT);
+        typeLabel.setFont(lblFont);
         blastPanel.add(typeLabel, "cell 0 1");
 //        typeLabel = new JLabel(" " + blastResult.getNumOffTarget(log), JLabel.LEFT);
-        typeLabel = new JLabel(" " + BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log)).size());
-        typeLabel.setFont(new Font("Arial", 0, 14));
-        blastPanel.add(typeLabel, "cell 1 1");
+        typeLabel = new JLabel("" + BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log)).size(), JLabel.LEFT);
+        typeLabel.setFont(lblFont);
+        blastPanel.add(typeLabel, "cell 1 1, alignx right");
 	    
         typeLabel = new JLabel("# On-Target (mismatched) Alignments: ", JLabel.LEFT);
-        typeLabel.setFont(new Font("Arial", 0, 14));
+        typeLabel.setFont(lblFont);
         blastPanel.add(typeLabel, "cell 0 2");
         ArrayList<BlastAnnotation> onTaligns = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, log);
         String lbl = onTaligns == null ? " 0" : " " + onTaligns.size();
-        typeLabel = new JLabel(lbl,  JLabel.LEFT);
-        typeLabel.setFont(new Font("Arial", 0, 14));
-        blastPanel.add(typeLabel, "cell 1 2");
+        typeLabel = new JLabel(lbl);
+        typeLabel.setFont(lblFont);
+        blastPanel.add(typeLabel, "cell 1 2, alignx right");
         
         JButton blastButton = new JButton();
         blastButton.setActionCommand(BLAST_DETAILS_COMMAND);
@@ -3268,7 +3254,46 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         blastPanel.repaint();
 	}
 	
+//	private byte qc_prevChr;
+//	private int[] qc_prevGeno;
+//	private String[] qc_prevSex;
+//	private String[] qc_prevOthCls;
+//	private int qc_prevIndex;
+	
 	public void updateQcPanel(byte chr, int[] genotype, String[] sex, String[] otherClass, int index) {
+//	    if (qc_prevGeno == null || 
+//	        qc_prevSex == null || 
+//	        qc_prevOthCls == null) {
+//	        qc_prevChr = chr;
+//	        qc_prevGeno = genotype;
+//	        qc_prevSex = sex;
+//	        qc_prevOthCls = otherClass;
+//	        qc_prevIndex = index;
+//	    } else {
+//	        boolean update = false;
+//	        if (chr != qc_prevChr) {
+//	            update = true;
+//	        } else if (index != qc_prevIndex) {
+//	            update = true;
+//	        } else if (!Array.equals(genotype, qc_prevGeno)) {
+//	            update = true;
+//	        } else if (!Array.equals(sex, qc_prevSex, false)) {
+//	            update = true;
+//	        } else if (!Array.equals(otherClass, qc_prevOthCls, false)) {
+//	            update = true;
+//	        }
+//	        if (!update) {
+//	            System.out.println("Not Updating QC Panel");
+//	            return;
+//	        }
+//            qc_prevChr = chr;
+//            qc_prevGeno = genotype;
+//            qc_prevSex = sex;
+//            qc_prevOthCls = otherClass;
+//            qc_prevIndex = index;
+//	    }
+	    
+	    
 		int numCalledGenotypes;
 		double callrate;
 		JLabel qcPanelLabel;
@@ -3483,7 +3508,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		seletedScatterPanel.paintAgain();
 		for (int i = 0; i < scatterPanels.length; i++) {
 			scatterPanels[i].setPointsGeneratable(true);
-			scatterPanels[i].setQcPanelUpdatable(true);
+			scatterPanels[i].setUpdateQCPanel(true);
 			scatterPanels[i].paintAgain();
 		}
 		if (updateGenotypeComboBox) {

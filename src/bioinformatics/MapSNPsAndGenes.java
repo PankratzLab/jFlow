@@ -348,9 +348,9 @@ public class MapSNPsAndGenes {
 		byte build = 37;
 		Logger log;
 		boolean vcf = true;
-        String snpEffLoc = Aliases.getPathToFileInReferenceDirectory(SNPEFF.SNP_EFF, false, new Logger());
+        String snpEffLoc = Aliases.getPathToFileInReferenceDirectory("snpEff/" + SNPEFF.SNP_EFF, false, new Logger());
         if (snpEffLoc == null) { snpEffLoc = ""; }
-        String annovarLoc = Aliases.getPathToFileInReferenceDirectory(ANNOVAR.TABLE_ANNOVAR, false, new Logger());
+        String annovarLoc = Aliases.getPathToFileInReferenceDirectory("ANNOVAR/annovar/" + ANNOVAR.TABLE_ANNOVAR, false, new Logger());
         if (annovarLoc == null) { annovarLoc = ""; }
         boolean snpeff = false;
         boolean gatk = false;

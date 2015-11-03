@@ -22,7 +22,7 @@ public class Aliases {
 	
 	public static final String[] IMPUTATION_EFFICIENCY = {"imp_info", "rsq"};
 	
-	public static final String[] REFERENCE_FOLDERS = {"C:/bin/NCBI/", "N:/statgen/NCBI/", "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/", "/home/npankrat/NCBI/", ""};
+	public static final String[] REFERENCE_FOLDERS = {"C:/bin/NCBI/", "N:/statgen/NCBI/", "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/", "/home/npankrat/NCBI/", "/panfs/roc/groups/5/pankrat2/public/bin/"};
 	
 	public static final String[] INDIVIDUAL_ID = {"ID","IID", "I_ID", "IndID", "Ind_ID"};
 	

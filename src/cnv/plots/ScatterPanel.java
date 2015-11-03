@@ -349,7 +349,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		//callRate=(samples.length-callRate)*100/samples.length;
 		if (getUpdateQcPanel()) {
 			sp.updateQcPanel(chr, genotype, sex, otherClass, panelIndex);
-			setQcPanelUpdatable(false);
+			setUpdateQCPanel(false);
 		}
 		sp.updateColorKey(uniqueValueCounts.convertToHash(), panelIndex);
 		
@@ -389,20 +389,22 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		
 		if (sp.getPedigree() != null) {
 			MendelErrorCheck[] mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(sp.getPedigree(), sp.getCurrentMarkerData(), sp.hideExcludedSamples(panelIndex) ? sp.getProject().getSamplesToInclude(null,false) : null, sex, sp.getClusterFilterCollection(), sp.getGCthreshold());
-			for (int i = 0; i < samples.length; i++) {
-				PlotPoint indiPoint = points[centroidOffset + i];
-				if (mendelErrorChecks[i].hasMoMendelError()) {
-					PlotPoint momPoint = points[centroidOffset + sp.getPedigree().getMoDNAIndex(i)];
-					GenericLine gl = new GenericLine(momPoint, indiPoint, size, momColor, layer, swapAxes, 1);
-					linesList.add(gl);
-				}
-				if (mendelErrorChecks[i].hasFaMendelError()) {
-					PlotPoint dadPoint = points[centroidOffset + sp.getPedigree().getFaDNAIndex(i)];
-					GenericLine gl = new GenericLine(dadPoint, indiPoint, size, dadColor, layer, swapAxes, 1);
-					linesList.add(gl);
-				}
-
-		    }
+			if (mendelErrorChecks != null) {
+    			for (int i = 0; i < samples.length; i++) {
+    				PlotPoint indiPoint = points[centroidOffset + i];
+    				if (mendelErrorChecks[i].hasMoMendelError()) {
+    					PlotPoint momPoint = points[centroidOffset + sp.getPedigree().getMoDNAIndex(i)];
+    					GenericLine gl = new GenericLine(momPoint, indiPoint, size, momColor, layer, swapAxes, 1);
+    					linesList.add(gl);
+    				}
+    				if (mendelErrorChecks[i].hasFaMendelError()) {
+    					PlotPoint dadPoint = points[centroidOffset + sp.getPedigree().getFaDNAIndex(i)];
+    					GenericLine gl = new GenericLine(dadPoint, indiPoint, size, dadColor, layer, swapAxes, 1);
+    					linesList.add(gl);
+    				}
+    
+    		    }
+			}
 		}
 	    
 	    lines = linesList.toArray(new GenericLine[linesList.size()]);
@@ -550,7 +552,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     //	    	sp.startAutoSaveToTempFile();
     	    	sp.setClusterFilterUpdated(true);
     			setPointsGeneratable(true);
-    			setQcPanelUpdatable(true);
+    			setUpdateQCPanel(true);
     	    	generateRectangles();
     			sp.setCurrentClusterFilter((byte)(sp.getClusterFilterCollection().getSize(sp.getMarkerName())-1));
     			sp.displayClusterFilterIndex();
@@ -630,7 +632,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		    	sp.setClusterFilterUpdated(true);
 				sp.displayClusterFilterIndex();
 				setPointsGeneratable(true);
-				setQcPanelUpdatable(true);
+				setUpdateQCPanel(true);
 				generateRectangles();
 				sp.updateGUI();
 			}
@@ -638,7 +640,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		}
 	}
 
-	public void setQcPanelUpdatable(boolean updateQcPanel) {
+	public void setUpdateQCPanel(boolean updateQcPanel) {
 		this.updateQcPanel = updateQcPanel;
 	}
 
