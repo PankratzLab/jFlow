@@ -1339,20 +1339,24 @@ public class Project {
 	}
 
 	public enum SOURCE_FILE_DELIMITERS {
-	    COMMA("[\\s]*,[\\s]*"),
-	    TAB("[\\s]*\t[\\s]*"),
-	    SPACE(" ");
+	    COMMA("[\\s]*,[\\s]*", ","),
+	    TAB("[\\s]*\t[\\s]*", "\t"),
+	    SPACE(" ", "[\\s]+");
 	    
 	    String delim;
-	    private SOURCE_FILE_DELIMITERS(String delimValue) {
-	        this.delim = delimValue;
+	    HashSet<String> alts = new HashSet<String>();
+	    private SOURCE_FILE_DELIMITERS(String... delimValues) {
+	        this.delim = delimValues[0];
+	        for (String d : delimValues) {
+	            alts.add(d);
+	        }
         }
 	    public String getDelimiter() {
 	        return this.delim;
 	    }
 	    public static SOURCE_FILE_DELIMITERS getDelimiter(String value) {
 	        for (SOURCE_FILE_DELIMITERS delim : SOURCE_FILE_DELIMITERS.values()) {
-	            if (delim.getDelimiter().equals(value) || delim.getDelimiter() == value) {
+	            if (delim.getDelimiter().equals(value) || delim.getDelimiter() == value || delim.alts.contains(value)) {
 	                return delim;
 	            }
 	        }

@@ -57,7 +57,7 @@ public class SourceFileHeaderData {
 //  7    B Allele Freq
 //  8    Log R Ratio
     
-    public SourceFileHeaderData() {}
+    private SourceFileHeaderData() {}
     
     public static SourceFileHeaderData parseHeader(String file, Logger log) throws Elision, IOException {
         BufferedReader reader = Files.getAppropriateReader(file);

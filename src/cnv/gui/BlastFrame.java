@@ -357,18 +357,37 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                     BlastFrame.this.addBlastLabel(lbl);
                 }
                 boolean posStrand = BlastFrame.this.referenceAnnotation.getStrand() == Strand.POSITIVE;
-                refLabel.setText(!posStrand ? new StringBuilder(BlastFrame.this.referenceAnnotation.getSequence()).reverse().toString() : BlastFrame.this.referenceAnnotation.getSequence());
+//                refLabel.setText(!posStrand ? new StringBuilder(BlastFrame.this.referenceAnnotation.getSequence()).reverse().toString() : BlastFrame.this.referenceAnnotation.getSequence());
+                refLabel.setText(BlastFrame.this.referenceAnnotation.getSequence());
                 strandLbl.setText(BlastFrame.this.referenceAnnotation.getStrand().getEncoding());
                 int len = proj.ARRAY_TYPE.getValue().getProbeLength();
                 probeLengthLbl.setText(len + "");
                 Segment seg = BlastFrame.this.referenceAnnotation.getSeg();
-                int start = (posStrand ? seg.getStart() - len : seg.getStart());
-                int stop = (posStrand ?  seg.getStart() : seg.getStart() + len);
+//                int start = (posStrand ? seg.getStart() - len : seg.getStart());
+//                int stop = (posStrand ?  seg.getStart() : seg.getStart() + len);
+                int start1 = seg.getStart() - len;
+                int stop1 = seg.getStart();
+                int start2 = seg.getStart();
+                int stop2 = seg.getStart() + len;
+                String[] gen1 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start1, stop1));
+                String[] gen2 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start2, stop2));
+                String[] gen3 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start1, stop2));
+                System.out.println(referenceAnnotation.getInterrogationPosition());
+                System.out.println(refLabel.getText());
+                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen1, "")) : Array.toStr(gen1, ""));
+                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen2, "")) : Array.toStr(gen2, ""));
+                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen3, "")) : Array.toStr(gen3, ""));
+                int start = posStrand ? start1 : start2;
+                int stop = posStrand ? stop1 : stop2;
                 locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
                 String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
                 String[] act = Array.subArray(gen, posStrand ? 0 : 1, posStrand ? gen.length - 1 : gen.length);
                 nextBase = posStrand ? gen[gen.length - 1] : gen[0];
-                probeLbl.setText(Array.toStr(act, ""));
+                String seq = Array.toStr(act, "");
+                if (!posStrand) {
+                    seq = new StringBuilder(seq).reverse().toString();
+                }
+                probeLbl.setText(!posStrand ? BlastLabel.flipBases(seq) : seq);
                 BlastFrame.this.revalidate();
                 BlastFrame.this.repaint();
             }
