@@ -109,7 +109,7 @@ public class SourceFileParser implements Runnable {
 					
 					reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[i]);
 					temp = null;
-					for (int k = 0; k < headerData.columnHeaderLineIndex; k++) {
+					for (int k = 0; k < headerData.columnHeaderLineIndex + 1; k++) {
 					    // iterate
 					    temp = reader.readLine();
 					}
@@ -200,33 +200,33 @@ public class SourceFileParser implements Runnable {
 						int ind = 0;
 						int col = headerData.colGC;
 						try {
-						    data[0][key] = headerData.colGC == -1 ? null : ext.isMissingValue(line[headerData.colGC]) ? Float.NaN : Float.parseFloat(line[headerData.colGC]);
+						    data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
                             ind = 1;
                             col = headerData.colXRaw;
-						    data[1][key] = headerData.colXRaw == -1 ? null : ext.isMissingValue(line[headerData.colXRaw]) ? Float.NaN : Float.parseFloat(line[headerData.colXRaw]);
+						    data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
 						    ind = 2;
 						    col = headerData.colYRaw;
-                            data[2][key] = headerData.colYRaw == -1 ? null : ext.isMissingValue(line[headerData.colYRaw]) ? Float.NaN : Float.parseFloat(line[headerData.colYRaw]);
+                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
                             ind = 3;
                             col = headerData.colX;
-                            data[3][key] = headerData.colX == -1 ? null : ext.isMissingValue(line[headerData.colX]) ? Float.NaN : Float.parseFloat(line[headerData.colX]);
+                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
                             ind = 4;
                             col = headerData.colY;
-                            data[4][key] = headerData.colY == -1 ? null : ext.isMissingValue(line[headerData.colY]) ? Float.NaN : Float.parseFloat(line[headerData.colY]);
+                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
                             ind = 5;
                             col = headerData.colTheta;
-                            data[5][key] = headerData.colTheta == -1 ? null : ext.isMissingValue(line[headerData.colTheta]) ? Float.NaN : Float.parseFloat(line[headerData.colTheta]);
+                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
                             ind = 6;
                             col = headerData.colR;
-                            data[6][key] = headerData.colR == -1 ? null : ext.isMissingValue(line[headerData.colR]) ? Float.NaN : Float.parseFloat(line[headerData.colR]);
+                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
                             ind = 7;
                             col = headerData.colBAF;
-                            data[7][key] = headerData.colBAF == -1 ? null : ext.isMissingValue(line[headerData.colBAF]) ? Float.NaN : Float.parseFloat(line[headerData.colBAF]);
+                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
                             ind = 8;
                             col = headerData.colLRR;
-                            data[8][key] = headerData.colLRR == -1 ? null : ext.isMissingValue(line[headerData.colLRR]) ? Float.NaN : Float.parseFloat(line[headerData.colLRR]);
+                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
                         } catch (NumberFormatException nfe) {
-                            log.reportError("Error - failed to parse '" + line[col] + "' into a valid " + Array.toStr(Sample.DATA_FIELDS[ind], "/"));
+                            log.reportError("Error - failed at line " + key + " to parse '" + line[col] + "' into a valid " + Array.toStr(Sample.DATA_FIELDS[ind], "/"));
                             return;
                         } catch (Exception e) {
                             log.reportError("Some other exception");
@@ -842,6 +842,7 @@ public class SourceFileParser implements Runnable {
     			for (int i = 0; i < files.length; i++) {
     				files[i] = ext.removeDirectoryInfo(affyProcess.getCombinedOutputFiles()[i]);
     			}
+    			proj.setSourceFileHeaders(SourceFileHeaderData.validate(ext.parseDirectoryOfFile(affyProcess.getCombinedOutputFiles()[0]), "." + proj.getArrayType() + ".tmp.gz", true, proj.getLog()));
     			break;
     		case ILLUMINA:
     			break;

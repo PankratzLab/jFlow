@@ -1232,7 +1232,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			GuiManager.disposeOfParentFrame(this);
 			return;
 		}
-		if (!promptOnClose) {
+		if (!promptOnClose) { // TODO add flag for dispose or hide on close
+		    GuiManager.hideParentFrame(this);
 		    return;
 		}
 		

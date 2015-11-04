@@ -152,11 +152,28 @@ public class BlastLabel extends JLabel {
         }
         this.setFont(LBL_FONT);
         parse();
-        setText(getSeqPartsAsString());
+        String seq = getSeqPartsAsString(); 
+        setText(strandFlipped ? flipBases(seq) : seq);
     }
     
     void updateFont() {
         this.setFont(LBL_FONT);
+    }
+    
+    public static String flipBases(String seq) {
+        StringBuilder sb = new StringBuilder(seq);
+        for (int i = 0; i < sb.length(); i++) {
+            if (sb.charAt(i) == 'A') {
+                sb.setCharAt(i, 'T');
+            } else if (sb.charAt(i) == 'T') {
+                sb.setCharAt(i, 'A');
+            } else if (sb.charAt(i) == 'C') {
+                sb.setCharAt(i, 'G');
+            } else if (sb.charAt(i) == 'G') {
+                sb.setCharAt(i, 'C');
+            }
+        }
+        return sb.toString();
     }
     
     private String getSeqPartsAsString() {

@@ -62,7 +62,7 @@ public class SourceFileHeaderGUI extends JDialog {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    SourceFileHeaderGUI frame = new SourceFileHeaderGUI(new SourceFileHeaderData());
+                    SourceFileHeaderGUI frame = new SourceFileHeaderGUI(null);
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();

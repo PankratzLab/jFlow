@@ -11,7 +11,7 @@ import java.awt.datatransfer.*;
 public class ext {
 	public static final String[][] VALID_CHARS = { {" ", "_"}, {"?", "_"}, {"'", "_"}, {"/", "_"}, {"\\", "_"}, {"<", "_"}, {">", "_"}, {"|", "_"}, {":", "_"}, {"*", "_"}, {"\"", "_"} };
 	public static final String[][] TO_BE_EXTRA_SAFE_CHARS = { {"(", "_"}, {")", "_"}, {"&", "_"} };
-	public static final String[] MISSING_VALUES = {"", ".", "NA", "NaN", "x", "#N/A"};
+	public static final String[] MISSING_VALUES = {"", ".", "NA", "NaN", "x", "#N/A", "--", "-"};
 	public static final String[][] META_REPLACEMENTS = { {"{Tab}", "\t"}, {"{Space}", " "}, {"{!}", "!"}, {"{#}", "#"}, {"{+}", "+"}};
 	public static final String[] COMMON_IDS = {"id", "IID", "IndID", "gwas_id"};
 	
