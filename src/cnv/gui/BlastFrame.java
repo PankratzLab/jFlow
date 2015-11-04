@@ -119,7 +119,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     private JLabel lblAlignmentLength;
     private JSeparator separator_2;
     private MarkerBlastAnnotation blastResult;
-    private int currentAlignFilter;
+    public int currentAlignFilter;
+    private String nextBase;
     
     public void addBlastLabel(BlastLabel lbl) {
         JLabel locLbl = new JLabel();
@@ -366,7 +367,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                 locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
                 String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
                 String[] act = Array.subArray(gen, posStrand ? 0 : 1, posStrand ? gen.length - 1 : gen.length);
-                String nextBase = posStrand ? gen[gen.length - 1] : gen[0];
+                nextBase = posStrand ? gen[gen.length - 1] : gen[0];
                 probeLbl.setText(Array.toStr(act, ""));
                 BlastFrame.this.revalidate();
                 BlastFrame.this.repaint();

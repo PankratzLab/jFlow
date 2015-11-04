@@ -863,99 +863,120 @@ public class Project {
 		saveProperties(getPropertyFilename());
 	}
 	
-	public void saveProperties(String outfile) {
-		BufferedReader reader;
+	public void saveProperties(String outfile, String[] propsToSave) {
+        BufferedReader reader;
         String trav;
         boolean changed;
+        HashSet<String> propKeysOfInterest;
         Vector<String> loaded, props, changes;
         String key;
         int index;
         
+        propKeysOfInterest = new HashSet<String>();
+        for (String prop : propsToSave) {
+            propKeysOfInterest.add(prop);
+        }
         props = new Vector<String>();
         changes = new Vector<String>();
-//        loaded = Array.toStringVector(HashVec.getKeys(this, false, false));
-        loaded = Array.toStringVector(getPropertyKeys());
+        loaded = Array.toStringVector(propsToSave);
         loaded.remove(PROJECT_PROPERTIES_FILENAME);
         try {
-	        reader = new BufferedReader(new FileReader(projectPropertiesFilename));
-	        while (reader.ready()) {
-	        	trav = reader.readLine();
-	        	index = trav.trim().indexOf("=");
-	        	if (trav.startsWith("#") || trav.startsWith("??_") || trav.equals("")) {
-	        		props.add(trav);
-	        	} else if (index > 0) {
-	        		key = trav.trim().substring(0, index);
-//	        		if (getProperty(key) == null) {
-        			if (!containsKey(key)) {
-	        			log.reportError("Unknown property '"+trav+"' not caught at startup");
-        			} else {
-        			    String valueString = getProperty(key).getValueString();
-        			    if (!key.equals(PROJECT_DIRECTORY.getName()) && !key.equals(SOURCE_DIRECTORY.getName())) {
-        			        valueString = valueString.replace(PROJECT_DIRECTORY.getValue(), "");
-        			    }
-        				props.add(key+"="+valueString);
-	        			loaded.remove(key);
-	        			if (!valueString.equals(trav.trim().substring(index+1))) {
-	        				changes.add(key+"="+valueString);
-	    					System.out.println("Was '"+trav.trim().substring(index+1)+"' now '"+valueString+"'");
-	        			}
-//	        			props.add(key+"="+getProperty(key).getValueString());
+            reader = new BufferedReader(new FileReader(projectPropertiesFilename));
+            while (reader.ready()) {
+                trav = reader.readLine();
+                index = trav.trim().indexOf("=");
+                if (trav.startsWith("#") || trav.startsWith("??_") || trav.equals("")) {
+                    props.add(trav);
+                } else if (index > 0) {
+                    key = trav.trim().substring(0, index);
+//                  if (getProperty(key) == null) {
+                    if (!containsKey(key)) {
+                        log.reportError("Unknown property '"+trav+"' not caught at startup");
+                    } else if (propKeysOfInterest.contains(key)) {
+                        String valueString = getProperty(key).getValueString();
+                        if (!key.equals(PROJECT_DIRECTORY.getName()) && !key.equals(SOURCE_DIRECTORY.getName())) {
+                            valueString = valueString.replace(PROJECT_DIRECTORY.getValue(), "");
+                        }
+                        props.add(key+"="+valueString);
+                        loaded.remove(key);
+                        if (!valueString.equals(trav.trim().substring(index+1))) {
+                            changes.add(key+"="+valueString);
+                            System.out.println("Was '"+trav.trim().substring(index+1)+"' now '"+valueString+"'");
+                        }
+//                      props.add(key+"="+getProperty(key).getValueString());
 //                        loaded.remove(key);
 //                        if (!getProperty(key).getValueString().equals(trav.trim().substring(index+1))) {
 //                            changes.add(key+"="+getProperty(key).getValueString());
 //                            System.out.println("Was '"+trav.trim().substring(index+1)+"' now '"+getProperty(key).getValueString()+"'");
 //                        }
-	        		}
-	        	}
-	        }
-	        reader.close();
+                    }
+                }
+            }
+            reader.close();
         } catch (FileNotFoundException fnfe) {
-	        System.err.println("Error: file \""+projectPropertiesFilename+"\" not found in current directory");
-	        System.exit(1);
+            System.err.println("Error: file \""+projectPropertiesFilename+"\" not found in current directory");
+            System.exit(1);
         } catch (IOException ioe) {
-	        System.err.println("Error reading file \""+projectPropertiesFilename+"\"");
-	        System.exit(2);
+            System.err.println("Error reading file \""+projectPropertiesFilename+"\"");
+            System.exit(2);
         }
         
         changed = false;
         if (loaded.size() > 0) {
-//        	System.out.println("Default properties were unchanged - no properties file will be written");
-//        	defaultProps = new Properties();
-//    		Files.loadProperties(defaultProps, DEFAULT_PROPERTIES, true, true, false);
-    		for (int i = 0; i < loaded.size(); i++) {
-    			key = loaded.elementAt(i);
-    			
-    			String valueString = getProperty(key).getValueString();
-    			String defaultValueString = getProperty(key).getDefaultValueString();
+//          System.out.println("Default properties were unchanged - no properties file will be written");
+//          defaultProps = new Properties();
+//          Files.loadProperties(defaultProps, DEFAULT_PROPERTIES, true, true, false);
+            for (int i = 0; i < loaded.size(); i++) {
+                key = loaded.elementAt(i);
+                
+                String valueString = getProperty(key).getValueString();
+                String defaultValueString = getProperty(key).getDefaultValueString();
                 if (!key.equals(PROJECT_DIRECTORY.getName()) && !key.equals(SOURCE_DIRECTORY.getName())) {
                     valueString = valueString.replace(PROJECT_DIRECTORY.getValue(), "");
                     defaultValueString = defaultValueString.replace(PROJECT_DIRECTORY.getValue(), "");
                 }
-    			
-    			if (!defaultValueString.equals(valueString)) {
-    				if (!changed) {
-    	            	props.add("");
-    	            	props.add("# Properties where the values now differ from the defaults:");
-    					changed = true;
-    				}
-    				props.add(key+"="+valueString);
-    				changes.add(key+"="+valueString);
-    				System.out.println("Default is '"+defaultValueString+"' now '"+valueString+"'");
-    			}
-			}
+                
+                if (!defaultValueString.equals(valueString)) {
+                    if (!changed) {
+                        props.add("");
+                        props.add("# Properties where the values now differ from the defaults:");
+                        changed = true;
+                    }
+                    props.add(key+"="+valueString);
+                    changes.add(key+"="+valueString);
+                    System.out.println("Default is '"+defaultValueString+"' now '"+valueString+"'");
+                }
+            }
         }
 
         if (changes.size() > 0) {
-        	log.report("Changes were made to the following propert"+(changes.size()==1?"y":"ies")+" in "+projectPropertiesFilename+":");
+            log.report("Changes were made to the following propert"+(changes.size()==1?"y":"ies")+" in "+projectPropertiesFilename+":");
             for (int i = 0; i < changes.size(); i++) {
-            	log.report("        "+changes.elementAt(i));
-    		}
+                log.report("        "+changes.elementAt(i));
+            }
 
             Files.backup(ext.removeDirectoryInfo(projectPropertiesFilename), ext.parseDirectoryOfFile(projectPropertiesFilename), ext.parseDirectoryOfFile(projectPropertiesFilename)+"backup/", outfile.equals(projectPropertiesFilename));
-        	Files.writeList(Array.toStringArray(props), outfile);
+            Files.writeList(Array.toStringArray(props), outfile);
         }
+	    
 	}
 	
+	@SuppressWarnings("rawtypes")
+    public <T extends Property> void saveProperties(T[] propsToSave) {
+	    String[] propNames = new String[propsToSave.length];
+	    for (int i = 0; i < propsToSave.length; i++) {
+	        propNames[i] = propsToSave[i].getName();
+	    }
+	    saveProperties(getPropertyFilename(), propNames);
+	}
+	
+	public void saveProperties(String[] propNamesToSave) {
+	    saveProperties(getPropertyFilename(), propNamesToSave);
+	}
+
+	public void saveProperties(String outfile) {
+	    saveProperties(outfile, getPropertyKeys());
+	}
 
 	public void loadProperties(String filename, boolean jar) {
 		InputStream is;
