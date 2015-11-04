@@ -554,7 +554,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						TwoDPlot.createGUI(proj, true);
+						TwoDPlot.createGUI(proj, true, true);
 					}
 				});
 			} else if (command.equals(LINE_PLOT)) {

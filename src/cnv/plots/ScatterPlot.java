@@ -2406,7 +2406,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
         int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
         if (histFrame == null) {
-            histFrame = TwoDPlot.createGUI(getProject(), true);
+            histFrame = TwoDPlot.createGUI(getProject(), true, false);
         }
         histFrame.removeAllData();
         String[][] data = new String[histogram.length][];
@@ -3667,6 +3667,15 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	        return;
 		}
 
+		// check blast marker filter change
+		if (blastFrame != null) {
+		    double ratio = ((double) blastFrame.currentAlignFilter) / ((double) proj.ARRAY_TYPE.getValue().getProbeLength());
+		    if (ratio != proj.BLAST_PROPORTION_MATCH_FILTER.getValue().doubleValue()) {
+		        proj.BLAST_PROPORTION_MATCH_FILTER.setValue(ratio);
+		        proj.saveProperties(new Project.Property[]{proj.BLAST_PROPORTION_MATCH_FILTER});
+		    }
+		}
+		
 		//TODO notify all threads (e.g., MarkerDataLoader) that they need to close
 
 		if (autoSave != null) {
@@ -3702,7 +3711,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		}
 		
 		if (exitOnClose) {
-			System.exit(1); // keep this exit, of course
+			System.exit(1); 
 		} else {
 		    if (blastFrame != null) {
 		        blastFrame.setVisible(false);

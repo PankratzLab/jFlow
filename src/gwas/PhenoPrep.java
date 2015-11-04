@@ -169,7 +169,7 @@ public class PhenoPrep {
 		    }
 		    
 		    hist.dump(file);
-		    TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false);
+		    TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false, false);
 		    ArrayList<ScreenToCapture> screens = new ArrayList<ScreenToCapture>();
 		    float minx = (float) hist.getMin(), maxx = (float) hist.getMax(), miny = 0, maxy = Array.max(hist.getCounts());
 		    screens.add(new ScreenToCapture(new String[]{file, file, null}, new int[]{0, 1, 0}, new int[]{0, 0, 0}, new float[]{minx, maxx, miny, maxy}, false, false, false, true));

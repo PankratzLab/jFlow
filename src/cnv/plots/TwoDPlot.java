@@ -95,12 +95,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	HashMap<String, int[]> linkerIndices;
 	Logger log;
 	Pattern headerPattern = Pattern.compile(DATA_TITLE_REGEX);
+	private final boolean promptOnClose;
 	
 	private TwoDPlot() {
-		this(new Project());
+		this(new Project(), true);
 	}
 
-	private TwoDPlot(Project proj) {
+	private TwoDPlot(Project proj, boolean promptOnClose) {
+	    this.promptOnClose = promptOnClose;
 		String[] previouslyLoadedFiles;
 		
 		this.proj = proj;
@@ -1230,7 +1232,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			GuiManager.disposeOfParentFrame(this);
 			return;
 		}
-		String[] options;
+		if (!promptOnClose) {
+		    return;
+		}
+		
+	    String[] options;
 		int choice;
 		String filenames, selections = "", message;
 
@@ -1746,12 +1752,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
      * this method should be invoked from the
      * event-dispatching thread.
      */
-	public static TwoDPlot createGUI(Project proj, boolean show) {
+	public static TwoDPlot createGUI(Project proj, boolean show, boolean promptOnClose) {
 		JFrame frame = new JFrame("Genvisis - 2D Plot - " + proj.getNameOfProject());
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         //Create and set up the content pane.
-        TwoDPlot twoDPlot = new TwoDPlot(proj);
+        TwoDPlot twoDPlot = new TwoDPlot(proj, promptOnClose);
         frame.setJMenuBar(twoDPlot.menuBar());
         twoDPlot.setOpaque(true); //content panes must be opaque
         frame.setContentPane(twoDPlot);
@@ -1820,7 +1826,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()), true);
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 	            public void run() {
-	                TwoDPlot tdp = createGUI(new Project(projFile, false), false);
+	                TwoDPlot tdp = createGUI(new Project(projFile, false), false, false);
 	                tdp.createScreenshots(baseDir, screens);
 	                tdp.windowClosing(null);
 	            }
