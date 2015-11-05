@@ -4817,6 +4817,14 @@ public class Array {
 	    return valid.toArray(new String[valid.size()]);
 	}
 	
+    public static String[] combine(String[] array1, String[] array2) {
+        String[] newArray = Arrays.copyOf(array1, array1.length + array2.length);
+        for (int i = array1.length; i < array1.length + array2.length; i++) {
+            newArray[i] = array2[i - array1.length];
+        }
+        return newArray;
+    }
+    
 	public static void main(String[] args) {
 	    double alleleFreq = 0.2;
 	    double stdev = 0.12;
@@ -4833,4 +4841,5 @@ public class Array {
 	    Files.writeList(Array.toStringArray(array), "oi.xln");
 
     }
+
 }

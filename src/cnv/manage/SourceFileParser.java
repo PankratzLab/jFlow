@@ -22,6 +22,7 @@ import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
 import cnv.filesys.SourceFileHeaderData;
+import common.Aliases;
 import common.Array;
 import common.CountHash;
 import common.Files;
@@ -32,8 +33,10 @@ import common.ext;
 
 public class SourceFileParser implements Runnable {
 
-    public static final String[][] SNP_HEADER_OPTIONS = {{ "SNP Name", "rsID", "Probe Set ID", "ProbeSet", "SNP", "ProbeSetName", "Name", "Marker"}}; // TODO any problems with mixing all idents together?
-    public static final String[][] SNP_TABLE_FIELDS = { SNP_HEADER_OPTIONS[0], { "Chr", "Chromosome" }, { "Position" } };
+//    public static final String[][] SNP_HEADER_OPTIONS = {{ "SNP Name", "rsID", "Probe Set ID", "ProbeSet", "SNP", "ProbeSetName", "Name", "Marker"}}; // TODO any problems with mixing all idents together?
+    public static final String[][] SNP_HEADER_OPTIONS = { Aliases.MARKER_NAMES };
+//    public static final String[][] SNP_TABLE_FIELDS = { SNP_HEADER_OPTIONS[0], { "Chr", "Chromosome" }, { "Position" } };
+    public static final String[][] SNP_TABLE_FIELDS = { SNP_HEADER_OPTIONS[0], Aliases.CHRS, Aliases.POSITIONS };
     public static final String[] DELIMITERS = {",", "\t", " "};
     public static final String[] DELIMITER_DESCRIPTIONS = {"COMMA", "TAB", "SPACE"};
     public static final String OVERWRITE_OPTION_FILE = ".overwrite_option";

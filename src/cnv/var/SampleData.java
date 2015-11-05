@@ -16,17 +16,27 @@ public class SampleData {
 	public static final String[] EXCLUDE_ALIASES = {"Exclude"};
 	public static final String[][][] KEYS_FOR_BASIC_CLASSES = {{{"0", "All"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}, {{"1", "A/A"}, {"2", "A/B"}, {"3", "B/B"}}};
 
-	public static final String[][] LINKERS = {
-			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
-			{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID"},
-			{"Family ID", "FamID", "FID"},
-			{"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
-			{"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
-			{"Region", "UCSC", "Band", "Arm"},	// will link to Trailer
-			{"Chromosome", "Chr"},	// secondary link to Trailer
-			{"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
-			{"Stop Position", "Stop", "End"} // secondary link to Trailer
-	};
+//	public static final String[][] LINKERS = {
+//			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
+//			{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID"},
+//			{"Family ID", "FamID", "FID"},
+//			{"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"},
+//			{"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
+//			{"Region", "UCSC", "Band", "Arm"},	// will link to Trailer
+//			{"Chromosome", "Chr"},	// secondary link to Trailer
+//			{"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
+//			{"Stop Position", "Stop", "End"} // secondary link to Trailer
+//	};
+    public static final String[][] LINKERS = { 
+        Aliases.INDIVIDUAL_ID, 
+        Aliases.FAMILY_ID, 
+        Aliases.DNA, 
+        Aliases.MARKER_NAMES, 
+        Aliases.REGION,
+        Aliases.CHRS, 
+        Array.combine(Aliases.POSITIONS, Aliases.POSITIONS_START), 
+        Aliases.POSITIONS_STOP 
+    };
 //	Hashtable<String, Integer> linkKeyIndex;
 //	Hashtable<String, ArrayList<Integer>> colorKeyIndex;
 	public static final int IID_INDEX_IN_LINKERS = 0;

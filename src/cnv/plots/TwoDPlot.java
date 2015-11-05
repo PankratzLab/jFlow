@@ -19,6 +19,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 import cnv.filesys.*;
+import cnv.filesys.Project.StringListProperty;
 import cnv.gui.CheckBoxTree;
 import cnv.gui.ColorKeyPanel;
 import cnv.gui.GuiManager;
@@ -45,17 +46,27 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //	public static final String SET_AS_COLORKEY = "Set as Color Key";
 //	public static final String SET_AS_LINKKEY = "Set as Link Key";
 //	private static final String NO_VALUE_FOUND = ".";
-	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, REMOVE_ALL, CREATE_SCREENS};
+//	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, REMOVE_ALL, CREATE_SCREENS};
+//	public static final String[][] LINKERS = {
+//			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
+//		{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID"},
+//		{"Family ID", "FamID", "FID"}, 
+//		{"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"}, 
+//		{"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
+//		{"Region", "UCSC", "Band", "Arm"},	// will link to Trailer
+//		{"Chromosome", "Chr"},	// secondary link to Trailer
+//		{"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
+//		{"Stop Position", "Stop", "End"} // secondary link to Trailer
+//	};
 	public static final String[][] LINKERS = {
-			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
-		{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID"},
-		{"Family ID", "FamID", "FID"}, 
-		{"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"}, 
-		{"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
-		{"Region", "UCSC", "Band", "Arm"},	// will link to Trailer
-		{"Chromosome", "Chr"},	// secondary link to Trailer
-		{"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
-		{"Stop Position", "Stop", "End"} // secondary link to Trailer
+	    Aliases.INDIVIDUAL_ID,
+	    Aliases.FAMILY_ID,
+	    Aliases.DNA,
+	    Aliases.MARKER_NAMES,
+	    Aliases.REGION,
+	    Aliases.CHRS,
+	    Array.combine(Aliases.POSITIONS, Aliases.POSITIONS_START),
+	    Aliases.POSITIONS_STOP
 	};
 	public static final int IID_INDEX_IN_LINKERS = 0;
 	public static final int FID_INDEX_IN_LINKERS = 1;
@@ -89,6 +100,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	HashMap<String, ArrayList<String[]>> dataHash;
 	HashMap<String, String[]> dataColumnsHash;
 	HashMap<String, boolean[]> validColumnsHash;
+	HashSet<String> validExts;
 //	lbl, chr, region, start, stop
 	HashMap<String, HashMap<Integer, String[]>> columnMetaData;
 	String[][] treeFileVariableNameLookup;
@@ -96,12 +108,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	Logger log;
 	Pattern headerPattern = Pattern.compile(DATA_TITLE_REGEX);
 	private final boolean promptOnClose;
+    private StringListProperty filesProperty;
 	
 	private TwoDPlot() {
-		this(new Project(), true);
+		this(new Project(), true, null, null);
 	}
 
-	private TwoDPlot(Project proj, boolean promptOnClose) {
+	private TwoDPlot(Project proj, boolean promptOnClose, String[] fileExts, StringListProperty filenames) {
 	    this.promptOnClose = promptOnClose;
 		String[] previouslyLoadedFiles;
 		
@@ -114,34 +127,39 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		} else {
 			sampleData = null;
 		}
-
+		validExts = new HashSet<String>();
 		dataKeys = new ArrayList<String>();
 		dataHash = new HashMap<String, ArrayList<String[]>>();
 		dataColumnsHash = new HashMap<String, String[]>();
 		validColumnsHash = new HashMap<String, boolean[]>();
 		linkerIndices = new HashMap<String, int[]>();
 		columnMetaData = new HashMap<String, HashMap<Integer,String[]>>();
-
-		previouslyLoadedFiles = proj.TWOD_LOADED_FILENAMES.getValue();
+		
+		if (fileExts != null) {
+    		for (String ext : fileExts) {
+    		    validExts.add(ext);
+    		}
+		}
+		
+		this.filesProperty = filenames;
+		previouslyLoadedFiles = filenames == null ? new String[0] : filenames.getValue();
 		for (String previouslyLoadedFile : previouslyLoadedFiles) {
 			loadFile(previouslyLoadedFile);
 		}
-		
 		setLayout(new BorderLayout());
 		
-//		SpringLayout layout = new SpringLayout();
-//        setLayout(layout);
-
 		twoDPanel = new TwoDPanel(this);
-//		twoDPanel.setBounds(0,0,1000,600);
-//		twoDPanel.setPreferredSize(new Dimension(1000, 600));
 
 //		UIManager.put("PopupMenuUI", "CustomPopupMenuUI");
 
-		layeredPane = new JLayeredPane();
+		layeredPane = new JLayeredPane() {
+            private static final long serialVersionUID = 1L;
+            @Override
+		    public boolean isOptimizedDrawingEnabled() {
+		        return false; // override to force proper z-ordered painting
+		    }
+		};
 		layeredPane.setLayout(new BorderLayout());
-//		SpringLayout layout = new SpringLayout();
-//		layeredPane.setLayout(layout);
 		
 		generateFlipButton();
 		layeredPane.add(flipButton);
@@ -150,28 +168,18 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		generateInvYButton();
 		layeredPane.add(invYButton);
 		
+		layeredPane.setComponentZOrder(flipButton, 0);
+		layeredPane.setComponentZOrder(invXButton, 0);
+		layeredPane.setComponentZOrder(invYButton, 0);
+		
 		layeredPane.add(twoDPanel);
+		layeredPane.setComponentZOrder(twoDPanel, 3);
 		layeredPane.setPreferredSize(new Dimension(1000, 600));
 
 		treePanel = new JPanel();
 		treePanel.setBackground(BACKGROUND_COLOR);
 		treePanel.setLayout(new BorderLayout());
 		
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.setBackground(BACKGROUND_COLOR);
-		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-		
-		JButton button;
-		for (String BUTTON : BUTTONS) {
-			button = new JButton(BUTTON);
-			button.setMinimumSize(new Dimension(200, 20));
-			button.setMaximumSize(new Dimension(200, 20));
-			button.setAlignmentX(Component.CENTER_ALIGNMENT);
-			button.addActionListener(this);
-			buttonPanel.add(button);
-		}
-		treePanel.add(buttonPanel, BorderLayout.NORTH);
-
         tree = new CheckBoxTree(new String[0], new String[0], new String[0][], new boolean[0], 2);
 		updateTreeForNewData();
 		
@@ -188,12 +196,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		add(splitPane, BorderLayout.CENTER);
 
-
-//		add(twoDPanel, BorderLayout.CENTER);
-//		add(layeredPane, BorderLayout.CENTER);
-		
 		colorKeyPanel = new ColorKeyPanel(sampleData, twoDPanel, TwoDPanel.DEFAULT_COLORS);
-		add(colorKeyPanel, BorderLayout.SOUTH);
+		layeredPane.add(colorKeyPanel, BorderLayout.SOUTH);
+		layeredPane.setComponentZOrder(colorKeyPanel, 3);
 
 		inputMapAndActionMap();
 
@@ -206,13 +211,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		layeredPane.addComponentListener(new ComponentListener() {
 			public void componentShown(ComponentEvent e) {}
 			public void componentResized(ComponentEvent e) {
-//				layeredPane.setSize(new Dimension(getWidth()-20, getHeight()-50));	//???zx
-				flipButton.setBounds(70,layeredPane.getHeight()-75,38,38);
-				invXButton.setBounds(70,layeredPane.getHeight()-35,38,13);
-				invYButton.setBounds(55,layeredPane.getHeight()-75,13,38);
-//				layeredPane.repaint();
-//				twoDPanel.paintAgain();
-				
+				flipButton.setBounds(70, layeredPane.getHeight() - 75, 38, 38);
+				invXButton.setBounds(70, layeredPane.getHeight() - 35, 38, 13);
+				invYButton.setBounds(55, layeredPane.getHeight() - 75, 13, 38);
 			}
 			public void componentMoved(ComponentEvent e) {}
 			public void componentHidden(ComponentEvent e) {}
@@ -223,16 +224,28 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 	
 	public void refreshOtherButtons() {
-//		twoDPanel.repaint();
 		flipButton.repaint();
 		invXButton.repaint();
 		invYButton.repaint();
 	}
-
+	
+	private final ImageIcon flip1_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", true);
+	private final ImageIcon flip1_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg", true);
+	private final ImageIcon flip2_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv.jpg", true);
+	private final ImageIcon flip2_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv_blue_3.jpg", true);
+	private final ImageIcon flipX1_1 = Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true);
+	private final ImageIcon flipX1_2 = Grafik.getImageIcon("images/flip_and_invert/right_10_blue.jpg", true);
+	private final ImageIcon flipX2_1 = Grafik.getImageIcon("images/flip_and_invert/left_10.gif", true);
+	private final ImageIcon flipX2_2 = Grafik.getImageIcon("images/flip_and_invert/left_10_blue.jpg", true);
+	private final ImageIcon flipY1_1 = Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true);
+	private final ImageIcon flipY1_2 = Grafik.getImageIcon("images/flip_and_invert/up_10_blue.jpg", true);
+	private final ImageIcon flipY2_1 = Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true);
+	private final ImageIcon flipY2_2 = Grafik.getImageIcon("images/flip_and_invert/down_10_blue.jpg", true);
+	
 	private void generateFlipButton() {
-		flipButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", false));
-		flipButton.setRolloverIcon(Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue.jpg", false));
-		flipButton.setToolTipText("Inverts axes");
+		flipButton = new JButton(flip1_1);
+		flipButton.setRolloverIcon(flip1_2);
+		flipButton.setToolTipText("Inverts X & Y Axes");
 		flipButton.setBorder(null);
 		flipButton.setVisible(true);
 		flipStatus = true;
@@ -243,18 +256,25 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				twoDPanel.paintAgain();
 				if (flipStatus) {
 					flipStatus = false;
+					flipButton.setIcon(flip2_1);
+			        flipButton.setRolloverIcon(flip2_2);
 				} else {
 					flipStatus = true;
+                    flipButton.setIcon(flip1_1);
+                    flipButton.setRolloverIcon(flip1_2);
 				}
 			}
 		});
 		flipButton.setDoubleBuffered(true);
+		flipButton.setContentAreaFilled(false);
 	}
 
 	private void generateInvXButton() {
-		invXButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true));
+		invXButton = new JButton(flipX1_1);
+        invXButton.setRolloverIcon(flipX1_2);
 		invXButton.setBorder(null);
 		invXButton.setVisible(true);
+		invXButton.setToolTipText("Inverts X Axis");
 		xInvStatus = true;
 		invXButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -262,20 +282,25 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				twoDPanel.setXinversion(xInvStatus);
 				twoDPanel.paintAgain();
 				if (xInvStatus) {
-					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/left_10.gif", true));
+					invXButton.setIcon(flipX2_1);
+					invXButton.setRolloverIcon(flipX2_2);
 				} else {
-					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true));
+					invXButton.setIcon(flipX1_1);
+			        invXButton.setRolloverIcon(flipX1_2);
 				}
 				xInvStatus = !xInvStatus;
 			}
 		});
 		invXButton.setDoubleBuffered(true);
+		invXButton.setContentAreaFilled(false);
 	}
 
 	private void generateInvYButton() {
-		invYButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true));
+		invYButton = new JButton(flipY1_1);
+		invYButton.setRolloverIcon(flipY1_2);
 		invYButton.setBorder(null);
 		invYButton.setVisible(true);
+        invYButton.setToolTipText("Inverts Y Axis");
 		yInvStatus = true;
 		invYButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -283,14 +308,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				twoDPanel.setYinversion(yInvStatus);
 				twoDPanel.paintAgain();
 				if (yInvStatus) {
-					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true));
+					invYButton.setIcon(flipY2_1);
+			        invYButton.setRolloverIcon(flipY2_2);
 				} else {
-					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true));
+					invYButton.setIcon(flipY1_1);
+			        invYButton.setRolloverIcon(flipY1_2);
 				}
 				yInvStatus = !yInvStatus;
 			}
 		});
 		invYButton.setDoubleBuffered(true);
+		invYButton.setContentAreaFilled(false);
 	}
 
 	private void inputMapAndActionMap() {
@@ -306,37 +334,53 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
-		JMenuItem menuItemExit, menuItemOpen, menuItemSave;
+		JMenuItem menuItemExit, menuItemOpen, menuItemRemove, menuItemRemoveAll, menuItemScreens, menuItemSave;
 		final JCheckBoxMenuItem menuItemExclude, menuItemHist;
 		
 		menuBar = new JMenuBar();
 		menu = new JMenu("File");
         menu.setMnemonic(KeyEvent.VK_F);
 		menuBar.add(menu);
-		menuItemOpen = new JMenuItem("Open", KeyEvent.VK_O);
+		menuItemOpen = new JMenuItem("Open File", KeyEvent.VK_O);
 		menuItemOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
-				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
-		        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
-		    		loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
-		    		updateTreeForNewData();
-		        }
+			    addFile();
 			}
 		});
 		menu.add(menuItemOpen);
-		menuItemSave = new JMenuItem("Save Image", KeyEvent.VK_S);
+        menuItemRemove = new JMenuItem("Remove Selected Data", KeyEvent.VK_O);
+        menuItemRemove.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                removeSelectedData();
+            }
+        });
+        menu.add(menuItemRemove);
+        menuItemRemoveAll = new JMenuItem("Remove All Data", KeyEvent.VK_O);
+        menuItemRemoveAll.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                removeAllData();
+            }
+        });
+        menu.add(menuItemRemoveAll);
+		menuItemSave = new JMenuItem("Save Current Image", KeyEvent.VK_S);
 		menuItemSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
-				int fileOpenActionSelected = fileChooser.showOpenDialog(null);
+				int fileOpenActionSelected = fileChooser.showSaveDialog(TwoDPlot.this);
 		        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 		            File fileToOpen = fileChooser.getSelectedFile();
-		            twoDPanel.screenCapture(fileToOpen.toString()+".png");	//??? zx: How to avoid twoDPanel being static?
+		            twoDPanel.screenCapture(fileToOpen.toString()+".png");
 		        }
 			}
 		});
 		menu.add(menuItemSave);
+		menuItemScreens = new JMenuItem("Create Screenshots from File", KeyEvent.VK_S);
+		menuItemScreens.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		        createScreenshotsFromFile();
+		    }
+		});
+		menu.add(menuItemScreens);
 		menuItemExit = new JMenuItem("Close", KeyEvent.VK_C);
 		menuItemExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -344,11 +388,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					@Override
 					public void run() {
 						setVisible(false);
-						Component c = TwoDPlot.this.getParent();
-						while (!(c instanceof JFrame)) {
-							c = c.getParent();
-						}
-						((JFrame)c).dispose();
+						Component parent = getParentComponent();
+						parent.dispatchEvent(new WindowEvent((JFrame) parent, WindowEvent.WINDOW_CLOSING));
 					}
 				});
 			}
@@ -408,31 +449,23 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return menuBar;
 	}
 	
+
+    private Component getParentComponent() {
+        Component c = TwoDPlot.this.getParent();
+        while (!(c instanceof JFrame)) {
+            c = c.getParent();
+        }
+        return c;
+    }
+	
 	public void actionPerformed(ActionEvent ae) {
 //		byte numberOfSelectedNodes;
-		JFileChooser fileChooser;
 		String command;
-		boolean found;
 //		String[] keys;
 		
-		found = false;
 		command = ae.getActionCommand();
 		if (command.equals(ADD_DATA_FILE)) {
-			fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
-	        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-        		for (int i=0; tree!=null && i<tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
-        			if (ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/").equals(tree.getModel().getChild(tree.getModel().getRoot(),i).toString())) {
-        				found = true;
-        				break;
-        			}
-        		}
-	        	if (found) {
-	        		JOptionPane.showMessageDialog(null,"The data file has already been opened.");
-	        	} else {
-	        		loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
-	        		updateTreeForNewData();
-	        	}
-	        }
+			addFile();
 		} else if (command.equals(REMOVE_DATA_FILE)) {
 		    removeSelectedData();
 //			System.out.println(dataHash.size()+"\t"+namesHash.size()+"\t"+numericHash.size()+"\t"+treeFilenameLookup.size());
@@ -447,19 +480,43 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		} else if (command.equals(REMOVE_ALL)) {
 		    removeAllData();
 		} else if (command.equals(CREATE_SCREENS)) {
-			JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : (new File(".")).toString());
-			jfc.setMultiSelectionEnabled(true);
-			if (jfc.showOpenDialog(TwoDPlot.this) == JFileChooser.APPROVE_OPTION) {
-				File selFile = jfc.getSelectedFile();
-				Vector<String> params = parseControlFile(selFile.getAbsolutePath(), log);
-//				final String projFile = params.get(0).split("=")[1];
-				final String baseDir = params.get(1).split("=")[1];
-				final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()), true);
-				createScreenshots(baseDir, screens);
-			}
+		    createScreenshotsFromFile();
 		} else {
 			System.err.println("Error - unknown command '"+command+"'");
 		}
+	}
+	
+	private void createScreenshotsFromFile() {
+        JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : (new File(".")).toString());
+        jfc.setMultiSelectionEnabled(true);
+        if (jfc.showOpenDialog(TwoDPlot.this) == JFileChooser.APPROVE_OPTION) {
+            File selFile = jfc.getSelectedFile();
+            Vector<String> params = parseControlFile(selFile.getAbsolutePath(), log);
+//          final String projFile = params.get(0).split("=")[1];
+            final String baseDir = params.get(1).split("=")[1];
+            final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()), true);
+            createScreenshots(baseDir, screens);
+        }
+    }
+
+    private void addFile() {
+        JFileChooser fileChooser;
+        boolean found = false;
+	    fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            for (int i=0; tree!=null && i<tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
+                if (ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/").equals(tree.getModel().getChild(tree.getModel().getRoot(),i).toString())) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                JOptionPane.showMessageDialog(null,"The data file has already been opened.");
+            } else {
+                loadFile(ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/"));
+                updateTreeForNewData();
+            }
+        }
 	}
 	
 	public void removeAllData() {
@@ -1201,7 +1258,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	public void showSpecificFile(Project proj, String filename, int colForX, int colForY) {
-		String[] prevFiles = proj.getProperty(proj.TWOD_LOADED_FILENAMES);
+		String[] prevFiles = filesProperty.getValue();
 		if(Arrays.binarySearch(prevFiles, filename) < 0) {
 			// the supplied file was not found so load it
 			loadFile(filename);	// load the file
@@ -1256,7 +1313,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		options = new String[] {"Yes", "No", "Cancel"};
 		message = "";
 		
-		if (!Array.toStr(proj.getProperty(proj.TWOD_LOADED_FILENAMES)).equals(filenames)) {
+		if (!Array.toStr(filesProperty.getValue()).equals(filenames)) {
 			if (filenames.equals("")) {
 				message = "All files have been unloaded from 2D Plot.";
 			} else {
@@ -1264,7 +1321,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 		}
 		
-		if (!proj.getProperty(proj.TWOD_LOADED_VARIABLES).equals(selections)) {
+		if (!filesProperty.getValue().equals(selections)) {
 			if (!message.equals("")) {
 				if(!selections.equals(""))
 					message = message.substring(0, message.length()-1)+", and new variables have been selected.";
@@ -1284,9 +1341,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			System.out.println("message: '"+message+"'");
 			choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time 2D Plot is loaded?", "Preserve 2D Plot workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
-//				proj.setProperty(Project.TWOD_LOADED_FILENAMES, filenames);
-				proj.setProperty(proj.TWOD_LOADED_FILENAMES, Array.toStringArray(dataKeys));
-				proj.setProperty(proj.TWOD_LOADED_VARIABLES, selections);
+			    filesProperty.setValue(Array.toStringArray(dataKeys));
+				proj.setProperty(proj.TWOD_LOADED_VARIABLES, selections); // TODO add vars property field
 				proj.saveProperties();
 				GuiManager.disposeOfParentFrame(this);
 			} else if (choice == 1) {
@@ -1632,6 +1688,19 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		if (dataKeys.contains(filename)) {
 			return;
 		}
+		if (!validExts.isEmpty()) {
+    		boolean found = false;
+    		for (String s : validExts) {
+    		    if (filename.endsWith(s)) {
+    		        found = true;
+    		        break;
+    		    }
+    		}
+    		if (!found) {
+    		    System.err.println("Error - extension of file {" + filename + "} is invalid.  Valid extensions are: {" + validExts.toString() + "}");
+    		    return;
+    		}
+		}
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			dataKeys.add(filename);
@@ -1748,17 +1817,22 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
        }
 	}
 
-    /**
+	/**
      * Create the GUI and show it.  For thread safety,
      * this method should be invoked from the
      * event-dispatching thread.
-     */
-	public static TwoDPlot createGUI(Project proj, boolean show, boolean promptOnClose) {
+	 * @param proj Project
+	 * @param show setVisible
+	 * @param promptOnClose prompt to save files/vars on close
+	 * @param fileExts allowed file extensions for files (null for all files)
+	 * @return
+	 */
+	public static TwoDPlot createGUI(Project proj, boolean show, boolean promptOnClose, StringListProperty filenamesProperty, String... fileExts) {
 		JFrame frame = new JFrame("Genvisis - 2D Plot - " + proj.getNameOfProject());
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         //Create and set up the content pane.
-        TwoDPlot twoDPlot = new TwoDPlot(proj, promptOnClose);
+        TwoDPlot twoDPlot = new TwoDPlot(proj, promptOnClose, fileExts, filenamesProperty);
         frame.setJMenuBar(twoDPlot.menuBar());
         twoDPlot.setOpaque(true); //content panes must be opaque
         frame.setContentPane(twoDPlot);
@@ -1827,7 +1901,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()), true);
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 	            public void run() {
-	                TwoDPlot tdp = createGUI(new Project(projFile, false), false, false);
+	                Project proj = new Project(projFile, false);
+	                TwoDPlot tdp = createGUI(proj, false, false, proj.TWOD_LOADED_FILENAMES);
 	                tdp.createScreenshots(baseDir, screens);
 	                tdp.windowClosing(null);
 	            }

@@ -1,11 +1,14 @@
 package common;
 
 public class Aliases {
-	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "SNP Name", "SNPID", "SNP.id", "rs_id", "Variant", "AnalysisUnit", "Variant_ID", "SingleVariant", "BurdenTests", "RSID", "BinName" };
+	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "SNP Name", "SNPID", "SNP.id", "rs_id", "rsID", "Probe Set ID", "ProbeSetName", "ProbeSet", "Variant", "VariantName", "AnalysisUnit", "Variant_ID", "SingleVariant", "BurdenTests", "RSID", "BinName" };
 	public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
 	
+	public static final String[] REGION = {"Region", "UCSC", "Band", "Arm"};
 	public static final String[] CHRS = {"Chr", "Chromosome", "CHROM"};
-	public static final String[] POSITIONS = {"Position", "position", "pos", "BP", "MapInfo", "PositionOfFirstMarkerInGene"};
+	public static final String[] POSITIONS = {"Position", "position", "pos", "Pos", "POS", "BP", "MapInfo", "PositionOfFirstMarkerInGene"};
+	public static final String[] POSITIONS_START = {"Start", "Begin"};
+	public static final String[] POSITIONS_STOP = {"Stop", "End", "Stop Position"};
 	public static final String[] CENTIMORGANS = {"centiMorgans", "cM"};
 
 	public static final String[][] ALLELES = {
@@ -25,6 +28,8 @@ public class Aliases {
 	public static final String[] REFERENCE_FOLDERS = {"C:/bin/NCBI/", "N:/statgen/NCBI/", "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/", "/home/npankrat/NCBI/", "/panfs/roc/groups/5/pankrat2/public/bin/"};
 	
 	public static final String[] INDIVIDUAL_ID = {"ID","IID", "I_ID", "IndID", "Ind_ID"};
+	public static final String[] FAMILY_ID = {"Family ID", "FamID", "FID", "F_ID"};
+	public static final String[] DNA = {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"};
 	
 	/**
 	 * Searches all of the reference directories to see if it contains the specified file
