@@ -283,7 +283,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				System.out.println("createImage() being called from paintComponent()");
 			}
 			createImage(); // if you remove this, you get a blank screen and at least QQPlot ends up with a double title panel 
-		}
+		} else if (DEBUGGING) {
+	        System.out.println("Skipping image creation");
+	    }
+		
 		g.drawImage(image, 0, 0, AbstractPanel.this);
 		if (extraLayersVisible != null && extraLayersVisible.length > 0) {
 			drawAll(g, false);
@@ -523,6 +526,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		
 		numberOfNaNSamples = 0;
 		if (base) {
+		    if (DEBUGGING) {
+		        System.out.println("Drawing base image.");
+		    }
+		    
 			//g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			g.setFont(new Font("Arial", 0, axisFontSize));
@@ -915,8 +922,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	
 	public String getTitle() { return this.title; }
 	
-	public void refreshOtherComponents() {
-	}
+	public void refreshOtherComponents() {}
 
 	public void drawHeatMap(Graphics g, byte[] clusters) {
 		int nRows, nColumns;

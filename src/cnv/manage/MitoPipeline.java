@@ -921,7 +921,6 @@ public class MitoPipeline {
 	/**
 	 * This function will attempt to generate an AB lookup for the project. It should only be called if it is required
 	 */
-
 	static int generateABLookup(Project proj, Logger log) {
 		ABLookup abLookup;
 		String snpMapFile;

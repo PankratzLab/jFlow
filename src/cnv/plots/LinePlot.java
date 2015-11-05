@@ -54,7 +54,11 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	public static final String SET_AS_COLORKEY = "Set as Color Key";
 	public static final String SET_AS_LINKKEY = "Set as Link Key";
 	public static final String[] BUTTONS = { ADD_DATA_FILE, REMOVE_DATA_FILE, SET_AS_COLORKEY, SET_AS_LINKKEY };
-	public static final String[][] LINKERS = { { "IndividualID", "ID", "IID", "UID", "UniqueID", "IndID", "Sample" }, { "Family ID", "FamID", "FID" }, { "DNA/Sample", "DNA", "DNA#", "Sample", "LabID" }, { "MarkerName", "Marker", "SNP", "Variant", "VariantName" }, // will link to Scatter Plot
+	public static final String[][] LINKERS = { 
+	{ "IndividualID", "ID", "IID", "UID", "UniqueID", "IndID", "Sample" }, 
+	{ "Family ID", "FamID", "FID" }, 
+	{ "DNA/Sample", "DNA", "DNA#", "Sample", "LabID" }, 
+	{ "MarkerName", "Marker", "SNP", "Variant", "VariantName" }, // will link to Scatter Plot
 	{ "Region", "UCSC", "Band", "Arm" }, // will link to Trailer
 	{ "Chromosome", "Chr" }, // secondary link to Trailer
 	{ "Position", "Pos", "Start", "Begin" }, // secondary link to Trailer
@@ -203,8 +207,8 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	private void generateFlipButton() {
-		flipButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", false));
-		flipButton.setRolloverIcon(Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue.jpg", false));
+		flipButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", true));
+		flipButton.setRolloverIcon(Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue.jpg", true));
 		flipButton.setToolTipText("Inverts axes");
 		flipButton.setBorder(null);
 		flipButton.setVisible(true);

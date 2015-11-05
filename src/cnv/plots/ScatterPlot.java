@@ -2406,7 +2406,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
         int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
         if (histFrame == null) {
-            histFrame = TwoDPlot.createGUI(getProject(), true, false);
+            histFrame = TwoDPlot.createGUI(getProject(), true, false, null);
         }
         histFrame.removeAllData();
         String[][] data = new String[histogram.length][];
