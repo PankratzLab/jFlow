@@ -729,13 +729,13 @@ public class PennCNV {
 		log = proj.getLog();
 		filename = proj.SAMPLE_SUBSET_FILENAME.getValue(true, false);
 
-		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")||!Files.exists(filename, proj.JAR_STATUS.getValue())) {
+		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("") || !Files.exists(filename, proj.JAR_STATUS.getValue())) {
 			sampleList = proj.getSampleList().getSamples();
 			output = proj.CUSTOM_PFB_FILENAME.getValue();
 		} else if (Files.exists(filename, proj.JAR_STATUS.getValue())) {
 			log.report("filename: "+filename);
 			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
-			output = proj.PROJECT_DIRECTORY.getValue()+ext.rootOf(filename)+".pfb";
+			output = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(filename) + ".pfb";
 		} else {
 			proj.message("Failed to load \""+filename+"\"");
 			return;

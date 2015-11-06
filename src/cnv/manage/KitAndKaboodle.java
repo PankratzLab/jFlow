@@ -19,6 +19,7 @@ import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.gui.KitAndKaboodleGUI;
+import common.Aliases;
 import common.Array;
 import common.CmdLine;
 import common.Files;
@@ -633,7 +634,7 @@ public class KitAndKaboodle {
                 mkr = Double.parseDouble(((JTextField)variableFields.get(this).get(0)).getText().trim());
             } catch (NumberFormatException e) {}
             String mkrPosFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
-            String sampDir = ((JTextField)variableFields.get(this).get(2)).getText().trim();
+            String sampList = ((JTextField)variableFields.get(this).get(2)).getText().trim();
             String tgtFile = ((JTextField)variableFields.get(this).get(3)).getText().trim();
         	int numThreads = -1;
         	try {
@@ -642,7 +643,7 @@ public class KitAndKaboodle {
             boolean step11 = checkBoxes.get(S1I_CREATE_MKR_POS).isSelected() && S1I_CREATE_MKR_POS.hasRequirements(proj, checkBoxes, variableFields);
             boolean step12 = Files.exists(mkrPosFile);
             boolean step21 = checkBoxes.get(S2I_PARSE_SAMPLES).isSelected() && S2I_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields);
-            boolean step22 = (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0);
+            boolean step22 = Files.exists(sampList);
             boolean step3 = Files.exists(tgtFile);
             return new boolean[][]{{mkr != -1}, {step11, step12}, {step21, step22}, {step3}, {numThreads != -1 && numThreads > 0}};
         }
@@ -717,7 +718,7 @@ public class KitAndKaboodle {
                 mkr = Double.parseDouble(((JTextField)variableFields.get(this).get(0)).getText().trim());
             } catch (NumberFormatException e) {}
             String mkrPosFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
-            String sampDir = ((JTextField)variableFields.get(this).get(2)).getText().trim();
+            String sampList = ((JTextField)variableFields.get(this).get(2)).getText().trim();
             String tgtFile = ((JTextField)variableFields.get(this).get(3)).getText().trim();
             int numThreads = -1;
             try {
@@ -726,7 +727,7 @@ public class KitAndKaboodle {
 //            boolean step11 = checkBoxes.get(S1I_CREATE_MKR_POS).isSelected() && S1I_CREATE_MKR_POS.hasRequirements(proj, checkBoxes, variableFields);
             boolean step12 = Files.exists(mkrPosFile);
             boolean step21 = checkBoxes.get(S2A_PARSE_SAMPLES).isSelected() && S2A_PARSE_SAMPLES.hasRequirements(proj, checkBoxes, variableFields);
-            boolean step22 = (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0);
+            boolean step22 = Files.exists(sampList);
             boolean step3 = Files.exists(tgtFile);
             return new boolean[][]{{mkr != -1}, {step12}, {step21, step22}, {step3}, {numThreads != -1 && numThreads > 0}};
         }
@@ -822,7 +823,102 @@ public class KitAndKaboodle {
         
     };
     
-    static final STEP S12_CREATE_MT_CN_EST = new STEP("Create Mitochondrial Copy-Number Estimates File", 
+    static final STEP S12_COMPUTE_PFB = new STEP("Compute Population BAF files", "", new String[][]{
+            {"[Parse Sample Files] step must be selected and valid (will create a SampleList file)", "A SampleList file must already exist.", "A Sample subset file must exist."}, 
+            {"PFB (population BAF) output file must be specified."}},
+            new RequirementInputType[][]{
+                    {RequirementInputType.NONE, RequirementInputType.FILE, RequirementInputType.FILE},
+                    {RequirementInputType.FILE}}
+            ) {
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String setSampList = proj.SAMPLELIST_FILENAME.getValue();
+            String sampListFile = ((JTextField)variableFields.get(this).get(0)).getText().trim();
+            String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
+            String subSampFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
+            String pfbOutputFile = ((JTextField)variableFields.get(this).get(2)).getText().trim();
+            
+            if (!ext.verifyDirFormat(setSampList).equals(sampListFile)) {
+                proj.SAMPLELIST_FILENAME.setValue(sampListFile);
+            }
+            if (!ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
+                proj.SAMPLE_SUBSET_FILENAME.setValue(sampListFile);
+            }
+            if (!ext.verifyDirFormat(setPFBFile).equals(pfbOutputFile)) {
+                proj.CUSTOM_PFB_FILENAME.setValue(sampListFile);
+            }
+            cnv.analysis.PennCNV.populationBAF(proj);
+        }
+        
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            return new Object[]{proj.SAMPLELIST_FILENAME.getValue(), proj.SAMPLE_SUBSET_FILENAME.getValue(), Files.exists(proj.SAMPLE_SUBSET_FILENAME.getValue()) ? ext.rootOf(proj.SAMPLE_SUBSET_FILENAME.getValue()) + ".pfb" : proj.CUSTOM_PFB_FILENAME.getValue()};
+        }
+        
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String sampListFile = ((JTextField)variableFields.get(this).get(0)).getText().trim();
+            String subSampFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            String pfbOutputFile = ((JTextField)variableFields.get(this).get(2)).getText().trim();
+            
+            STEP parseStep = checkBoxes.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
+            boolean checkStepParseSamples = checkBoxes.get(parseStep).isSelected() && parseStep.hasRequirements(proj, checkBoxes, variableFields);
+            boolean step12 = Files.exists(sampListFile);
+            boolean step13 = Files.exists(subSampFile);
+            boolean step21 = !Files.exists(pfbOutputFile);
+            
+            return new boolean[][]{{checkStepParseSamples, step12, step13}, {step21}};
+        }
+        
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String subSampFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            String pfbOutputFile = ((JTextField)variableFields.get(this).get(2)).getText().trim();
+            boolean pfbExists = Files.exists(pfbOutputFile) || Files.exists(ext.rootOf(subSampFile) + ".pfb");
+            return pfbExists;
+        }
+    };
+    
+    static final STEP S13_COMPUTE_BAF_GCMODEL = new STEP("Compute GCMODEL File", 
+                    "", 
+                    new String[][]{
+                                {"A GC Base file must exist."}, 
+                                {"GCModel output file must be specified."}},
+                    new RequirementInputType[][]{
+                            {RequirementInputType.FILE}, 
+                            {RequirementInputType.FILE}
+                }) {
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String gcBaseFile = ((JTextField)variableFields.get(this).get(0)).getText().trim();
+            String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
+            String gcOutputFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+
+            if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
+                proj.GC_MODEL_FILENAME.setValue(gcOutputFile);
+            }
+            
+            cnv.analysis.PennCNV.gcModel(proj, gcBaseFile, gcOutputFile, 100);
+        }
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String gcBaseFile = ((JTextField)variableFields.get(this).get(0)).getText().trim();
+            String gcOutputFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            return new boolean[][]{{Files.exists(gcBaseFile)},{!Files.exists(gcOutputFile)}};
+        }
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            return new Object[]{Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS, "gc5Base.txt", true, false, proj.getLog()), proj.GC_MODEL_FILENAME.getValue()};
+        }
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String gcOutputFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
+            boolean gcExists = Files.exists(gcOutputFile);
+            return gcExists;
+        }
+    };
+    static final STEP S14_CREATE_MT_CN_EST = new STEP("Create Mitochondrial Copy-Number Estimates File", 
                         "", 
                         new String[][]{},
                         new RequirementInputType[][]{}) {
@@ -847,32 +943,7 @@ public class KitAndKaboodle {
         }
     };
     
-    static final STEP S13_PENNCNV = new STEP("Export PennCNV Files", 
-                "", 
-                new String[][]{},
-                new RequirementInputType[][]{}) {
-        @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
-            // TODO Auto-generated method stub
-        }
-        @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
-            // TODO Auto-generated method stub
-            return new boolean[][]{};
-        }
-        @Override
-        public Object[] getRequirementDefaults(Project proj) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-        @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
-            // TODO Auto-generated method stub
-            return false;
-        }
-    };
-    
-    static final STEP S14_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
+    static final STEP S15_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
                        "", 
                        new String[][]{},
                        new RequirementInputType[][]{}) {
@@ -984,9 +1055,10 @@ public class KitAndKaboodle {
         S9I_GENERATE_ABLOOKUP,
         S10I_MARKER_QC,
         S11_CREATE_PCS,
-        S12_CREATE_MT_CN_EST,
-        S13_PENNCNV,
-        S14_SHADOW_SAMPLES
+        S12_COMPUTE_PFB,
+        S13_COMPUTE_BAF_GCMODEL,
+        S14_CREATE_MT_CN_EST,
+        S15_SHADOW_SAMPLES
     };
     private static STEP[] AFFY_STEPS = {
         S2A_PARSE_SAMPLES,
@@ -999,9 +1071,10 @@ public class KitAndKaboodle {
         S9A_GENERATE_ABLOOKUP,
         S10A_MARKER_QC,
         S11_CREATE_PCS,
-        S12_CREATE_MT_CN_EST,
-        S13_PENNCNV,
-        S14_SHADOW_SAMPLES
+        S12_COMPUTE_PFB,
+        S13_COMPUTE_BAF_GCMODEL,
+        S14_CREATE_MT_CN_EST,
+        S15_SHADOW_SAMPLES
     };
     
     public static STEP[] getStepsForProject(Project proj) {
