@@ -438,7 +438,6 @@ public class Project {
 	private MarkerLookup markerLookup;
 	private Logger log;
 	private boolean gui;
-	private boolean headersLoaded = false;
 	private ProgressMonitor progressMonitor;
 	public ProgressMonitor getProgressMonitor() {
 	    return progressMonitor;
@@ -1354,7 +1353,7 @@ public class Project {
 	public enum SOURCE_FILE_DELIMITERS {
 	    COMMA("[\\s]*,[\\s]*", ","),
 	    TAB("[ ]*\t[ ]*", "\t"),
-	    SPACE(" ", "[\\s]+");
+	    SPACE("[\\s]+", " ");
 	    
 	    String delim;
 	    HashSet<String> alts = new HashSet<String>();
