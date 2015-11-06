@@ -875,7 +875,7 @@ public class Sort {
 			if (biisSorted[i].getI() > tmpSecond) {
 				tmpSecond = biisSorted[i].getB();
 			}
-			order[biisSorted[i].getIndex()] = i;
+			order[i] = biisSorted[i].getIndex();
 		}
 		return order;
 	}
