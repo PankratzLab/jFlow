@@ -118,7 +118,7 @@ public class CNVMosaic {
 		String mosaicOut = proj.PROJECT_DIRECTORY.getValue() + "mosaicCalls.mos";
 		callMosaic(proj, mosaicOut, proj.NUM_THREADS.getValue());
 		int[] cns = new int[] { 0 };
-		Restrictions[] restrictions = new Restrictions[] { new Restrictions(new String[] { "SITES", }, new double[] { 25 }, new String[] { ">", }, null) };
+		Restrictions[] restrictions = new Restrictions[] { new Restrictions(new String[] { "SITES", }, new double[] { 75  }, new String[] { ">", }, null) };
 		plot(proj, mosaicOut, cns, restrictions, true);
 		// plot(proj, mosaicOut);
 		String[] cnvFiles = proj.CNV_FILENAMES.getValue();
