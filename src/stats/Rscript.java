@@ -146,9 +146,9 @@ public class Rscript {
 
 	public enum SCATTER_TYPE {
 		LINE("geom_line"), POINT("geom_point"), BOX("geom_boxplot"), /**
-		 * basic x v y 
+		 * basic x v y
 		 */
-		BASIC_POINT("geom_point");
+		BASIC_POINT("geom_point"), NO_MELT_POINT("geom_point"), BOX_NO_MELT("geom_boxplot");
 
 		private String call;
 
@@ -535,7 +535,31 @@ public class Rscript {
 			return "geom_vline(xintercept =" + xIntercept + ")";
 		}
 	}
-	
+
+	public static class Restrictions {
+		private String[] cols;
+		private double[] vals;
+		private String[] ops;
+		private String cond;
+
+		public Restrictions(String cols[], double[] vals, String[] ops, String cond) {
+			super();
+			this.cols = cols;
+			this.vals = vals;
+			this.ops = ops;
+			this.cond = cond;
+		}
+
+		private String getRestriction(String dataFrame) {
+			String minStr = "";
+			for (int i = 0; i < ops.length; i++) {
+				minStr += (i > 0 ? cond : "") + dataFrame + "$" + cols[i] + ops[i] + vals[i];
+			}
+			String sub = "subset(" + dataFrame + "," + minStr + ")";
+			return sub;
+		}
+	}
+
 	/**
 	 * @author lane0212 For plotting that mimics Excel's scatter plots using ggplot2
 	 */
@@ -550,7 +574,7 @@ public class Rscript {
 		private VertLine[] vertLines;
 		private String dataFile, output, rScriptFile;
 		private String[] dataYvalueColumns, rSafeYColumns,rSafeAltYColumnNames;
-		private String dataXvalueColumn, rSafeXColumn;
+		private String dataXvalueColumn, rSafeXColumn, colorColumn, rSafeColorColumn;
 		private double[] xRange, yRange;
 		private double yMin;
 		private String xLabel;
@@ -574,8 +598,16 @@ public class Rscript {
 		private ErrorBars errorBars;
 		private String legendName;
 		private boolean regLines;
+		private boolean scaleDensity;
+		private double midScaleDensity;
+		private Restrictions[] restrictions;
 
 		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
+			this(dataFile, rSriptFile, plotVar, output, dataXvalueColumn, dataYvalueColumns, null, sType, log);
+		}
+
+		
+		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, String colorColumn, SCATTER_TYPE sType, Logger log) {
 			super();
 			this.dataFile = dataFile;
 			this.rScriptFile = rSriptFile;
@@ -586,6 +618,10 @@ public class Rscript {
 			this.sType = sType;
 			this.rSafeXColumn = makeRSafe(dataXvalueColumn);
 			this.rSafeYColumns = makeRSafe(dataYvalueColumns);
+			this.colorColumn = colorColumn;
+			if (colorColumn != null) {
+				this.rSafeColorColumn = makeRSafe(colorColumn);
+			}
 			this.valid = validate();
 			this.fontsize = 4;
 			this.plotVar = (plotVar == null ? PLOT_VAR : makeRSafe(plotVar));
@@ -599,6 +635,7 @@ public class Rscript {
 			this.onlyMaxMin = false;
 			this.legendName = "variable";
 			this.regLines = false;
+			this.midScaleDensity=.5;
 		}
 
 		public ErrorBars getErrorBars() {
@@ -607,6 +644,19 @@ public class Rscript {
 
 		public void setVertLines(VertLine[] vertLines) {
 			this.vertLines = vertLines;
+		}
+
+		public void setMidScaleDensity(double midScaleDensity) {
+			this.midScaleDensity = midScaleDensity;
+		}
+
+
+		public void setScaleDensity(boolean scaleDensity) {
+			this.scaleDensity = scaleDensity;
+		}
+
+		public void setRestrictions(Restrictions[] restrictions) {
+			this.restrictions = restrictions;
 		}
 
 		public void setRegLines(boolean regLines) {
@@ -851,7 +901,11 @@ public class Rscript {
 				String dataTableMelt = DATA_TABLE_MELT_VAR + plotVar;
 
 				rCmd.add(dataTable + "=read.table(\"" + dataFile + "\", header=T, sep=\"\\t\")");
-
+				if (restrictions != null) {
+					for (int i = 0; i < restrictions.length; i++) {
+						rCmd.add(dataTable + " <- " + restrictions[i].getRestriction(dataTable));
+					}
+				}
 				String plot = "";
 				// if (dataYvalueColumns.length > 1) {
 				if (rSafeAltYColumnNames != null && !Array.equals(rSafeYColumns, rSafeAltYColumnNames, true)) {
@@ -871,14 +925,21 @@ public class Rscript {
 				if (errorBars != null) {
 					toExtract = Array.concatAll(toExtract, errorBars.getrSafeErrorColumns());
 				}
+				if (colorColumn != null) {
+					toExtract = Array.concatAll(toExtract, new String[] { rSafeColorColumn });
+				}
 				String extract = dataTableExtract + " <- " + dataTable + "[," + generateRVector(toExtract, true) + "]";
+
 				rCmd.add(extract);
-				
+			
 				String melt = dataTableMelt + "<-  melt(" + dataTableExtract + ",id.vars =\"" + rSafeXColumn + "\")";
 				rCmd.add(melt);
 				int numColors = rSafeYColumns.length;
-				if(errorBars!=null){
+				if (errorBars != null) {
 					numColors += errorBars.getrSafeErrorColumns().length;
+				}
+				if (colorColumn != null) {
+					numColors++;
 				}
 				StringBuilder pallete = new StringBuilder();
 				pallete.append("getPalette = colorRampPalette(brewer.pal(9, \"Set1\"))\n");
@@ -890,13 +951,49 @@ public class Rscript {
 				}
 				pallete.append("colScale <- scale_colour_manual(name = \"Var\",values = myColors)\n");
 				String colScale = pallete.toString();
-				rCmd.add(colScale);
-				// names(myColors)  <- levels(dataTableMeltcorrectionEval_WITHOUT_INDEPS_STEPWISE_RANK_R2_WITH_BUILDERS.summary.DK.summary.heritability_summary.parsed$variable)
-				///colScale <- scale_colour_manual(name = "grp",values = myColors)
+				if (rSafeColorColumn == null) {
+					rCmd.add(colScale);
+				}
+				// names(myColors) <- levels(dataTableMeltcorrectionEval_WITHOUT_INDEPS_STEPWISE_RANK_R2_WITH_BUILDERS.summary.DK.summary.heritability_summary.parsed$variable)
+				// /colScale <- scale_colour_manual(name = "grp",values = myColors)
 				dataTable = dataTableMelt;
-				if (sType == SCATTER_TYPE.BOX) {
+				if (rSafeColorColumn != null || sType == SCATTER_TYPE.NO_MELT_POINT) {
+					plot += plotVar + " <- ggplot(" + dataTableExtract + ",aes(x=" + rSafeXColumn + (scaleDensity ? ",color=" + rSafeColorColumn : "") + "))";
+					for (int i = 0; i < rSafeYColumns.length; i++) {
+						System.out.println(plot);
+						if (!scaleDensity) {
+							plot += " + " + sType.getCall() + "(aes(y=" + rSafeYColumns[i] + ", color=factor(" + rSafeColorColumn + ")))";
+						} else {
+							plot += " + " + sType.getCall() + "(aes(y=" + rSafeYColumns[i] + "))";
+						}
+						if (scaleDensity) {
+							System.out.println("DFSSDF");
+							System.out.println();
+							plot += "+ scale_colour_gradient2(low=\"blue\", high=\"red\",mid=\"yellow\" , midpoint=" + midScaleDensity + ", " + "\"" + rSafeColorColumn + "\"" + ")";
+						}
+					}
+				}
+				else if (sType == SCATTER_TYPE.BOX) {
+					
+					//String labs = " xlabs <- paste(factor(levels(" + dataTableExtract + "$" + rSafeXColumn + "))," + "\"\\n(N=\",table(" + dataTableExtract + "$" + rSafeXColumn + "),\")\",sep=\"\")";
+					//rCmd.add(labs);
+					String addN =  dataTable + " <- ddply(" + dataTable + ",.(" + rSafeXColumn + ",variable),transform,N=length(" + rSafeXColumn + "))";
+					rCmd.add(addN);
+					String label = dataTable + "$label <- paste0(" + dataTable + "$" + rSafeXColumn + ",\"\\n\",\"(n=\"," + dataTable + "$N,\")\")";
+					rCmd.add(label);
+					String order = dataTable + " <- " + dataTable + "[ order(" + dataTable + "$" + rSafeXColumn + "), ]";
+					// String sort = dataTableMelt + "$label <- ";
+					// System.out.println(sort);
+					rCmd.add(order);
 					plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=variable, y=value)) ";
-					plot += " + " + sType.getCall() + "(aes(fill=" + rSafeXColumn + "))";
+					plot += " + " + sType.getCall() + "(aes(fill=factor(" + rSafeXColumn + ")))";
+					
+				//	plot += " + scale_x_discrete(limits=" + dataTable + "$label)";
+			//	factor(" + dataTableMelt + "$label, levels = " + dataTableMelt + "$label[order(as.numeric(" + dataTableMelt + "$variable))]))+facet_grid(.~variable)";
+
+				} else if (sType == SCATTER_TYPE.BOX_NO_MELT) {
+					plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=variable, y=value)) ";
+					plot += " + " + sType.getCall() + "(aes(fill=factor(" + rSafeXColumn + ")))";
 
 				} else if (sType == SCATTER_TYPE.BASIC_POINT) {
 					if (rSafeYColumns.length > 1) {
@@ -970,7 +1067,7 @@ public class Rscript {
 				if (logTransformY) {
 					plot += "+ scale_y_log10()";
 				}
-				if (sType != SCATTER_TYPE.BOX) {
+				if (sType != SCATTER_TYPE.BOX && rSafeColorColumn == null) {
 					plot += " + colScale";
 				}
 				plot += " + theme(axis.line = element_line(colour = \"black\"), ";
@@ -995,6 +1092,9 @@ public class Rscript {
 					for (int i = 0; i < vertLines.length; i++) {
 						plot += " + " + vertLines[i].getCall();
 					}
+				}
+				if (sType == SCATTER_TYPE.BOX) {
+				
 				}
 				rCmd.add(plot);
 
@@ -1052,6 +1152,10 @@ public class Rscript {
 							log.reportTimeError("y range must be length 2");
 						}
 					}
+				}
+				if (colorColumn != null && !Files.headerOfFileContainsAll(dataFile, new String[] { colorColumn }, log)) {
+					log.reportTimeError("Could not find color column in " + dataFile);
+					valid = false;
 				}
 
 			}

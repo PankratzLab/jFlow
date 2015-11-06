@@ -399,4 +399,9 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		return ((LocusSet<CNVariant>) Files.readSerial(filename, false, log, false, true));
 	}
 
+	@SuppressWarnings("unchecked")
+	public static LocusSet<MosaicRegion> readSerialMRSet(String filename, Logger log) {
+		return ((LocusSet<MosaicRegion>) Files.readSerial(filename, false, log, false, true));
+	}
+
 }

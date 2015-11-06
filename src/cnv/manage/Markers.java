@@ -38,7 +38,7 @@ public class Markers {
 					snpPositions.remove(Aliases.MARKER_NAMES[i]);
 				}
 			}
-			markerNames = HashVec.getKeys(snpPositions);
+			markerNames = HashVec.getKeys(snpPositions, false, false);
 		}
 
 		v = new Vector<String>();

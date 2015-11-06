@@ -173,6 +173,9 @@ public class MosaicismQuant implements Calcfc {
 	// }
 
 	public static double getDisomyF(double delta) {
+		if (Double.isNaN(delta)) {
+			return 0;
+		}
 		if (delta == .5) {
 			return 1;
 		}
