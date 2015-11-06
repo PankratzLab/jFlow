@@ -2,9 +2,11 @@ package cnv.analysis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
 import common.Array;
+import common.WorkerTrain.Producer;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
@@ -13,6 +15,7 @@ import cnv.var.CNVariant;
 import cnv.var.LocusSet;
 import cnv.var.LocusSet.TO_STRING_TYPE;
 import cnv.var.MosaicRegion;
+import cnv.var.SampleData;
 import filesys.Segment;
 import cnv.var.CNVariant.CNVBuilder;
 
@@ -46,6 +49,14 @@ public class MosaicismDetect {
 	public int getMovingFactor() {
 
 		return movingFactor;
+	}
+
+	public int[][] getIndicesByChr() {
+		return indicesByChr;
+	}
+
+	public MarkerSet getMarkerSet() {
+		return markerSet;
 	}
 
 	public <T extends Segment> LocusSet<MosaicRegion> callMosaic(T seg, boolean force) {
@@ -144,11 +155,14 @@ public class MosaicismDetect {
 			double[] finalPDensit = Array.toDoubleArray(p_densityScored);
 			for (int i = 0; i < dud.getLoci().length; i++) {
 				CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
+				int numFMarkers = dud.getLoci()[i].getNumMarkers();
+				builder.numMarkers(markerSet.getIndicesOfMarkersIn(dud.getLoci()[i], indicesByChr, proj.getLog()).length);
 				if (force) {
 					builder.chr(seg.getChr());
 					builder.start(seg.getStart());
 					builder.stop(seg.getStop());
 				}
+				
 				int[] scoreStopStart = vtr.getIndexStateChange().get(i);
 				double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
 				double pdfScore = baseLine - Array.mean(scored);// TODO,
@@ -158,6 +172,7 @@ public class MosaicismDetect {
 				builder.score(customF);
 				double nearestStateScore = Array.mean(Array.subArray(nearestN, scoreStopStart[0], scoreStopStart[1] + 1));
 				tmp[i] = new MosaicRegion(builder.build(), Math.log10(Math.pow(factor, 2)), nearestStateScore, pdfScore, delta, Double.NaN, customF);
+				tmp[i].setNumFMarkers(numFMarkers);
 			}
 
 			mSet = new LocusSet<MosaicRegion>(tmp, true, proj.getLog()) {
@@ -393,6 +408,99 @@ public class MosaicismDetect {
 		public MosaicismDetect build(Project proj, String sample, MarkerSet markerSet, double[] bafs) {
 			return new MosaicismDetect(this, proj, sample, markerSet, bafs);
 		}
+	}
+
+	private static class MosaicWorker implements Callable<LocusSet<MosaicRegion>> {
+		private Project proj;
+		private MosaicBuilder builder;
+		private MarkerSet markerSet;
+		private LocusSet<Segment> segs;
+		private String sample;
+		private double[] bafs;
+		private double[] lrrs;
+		private int[][] indicesByChr;
+
+		public MosaicWorker(Project proj, MosaicBuilder builder, LocusSet<Segment> segs, MarkerSet markerSet, String sample) {
+			super();
+			this.proj = proj;
+			this.builder = builder;
+			this.markerSet = markerSet;
+			this.segs = segs;
+			this.sample = sample;
+			this.indicesByChr = markerSet.getIndicesByChr();
+
+		}
+
+		@Override
+		public LocusSet<MosaicRegion> call() throws Exception {
+			Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
+			this.bafs = Array.toDoubleArray(samp.getBAFs());
+			this.lrrs = Array.toDoubleArray(samp.getLRRs());
+			builder.indicesByChr(indicesByChr);
+			MosaicismDetect md = builder.build(proj, sample, markerSet, bafs);
+			ArrayList<MosaicRegion> all = new ArrayList<MosaicRegion>();
+			for (int i = 0; i < segs.getLoci().length; i++) {
+				LocusSet<MosaicRegion> tmp = md.callMosaic(segs.getLoci()[i], false);
+				tmp.addAll(all);
+			}
+			LocusSet<MosaicRegion> allCalls = new LocusSet<MosaicRegion>(all.toArray(new MosaicRegion[all.size()]), true, proj.getLog()) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+		//	System.out.println(allCalls);
+			BeastScore beastScore = BeastScore.beastInd(proj, null, Array.toFloatArray(lrrs), allCalls.getLoci(), md.getMarkerSet().getChrs(), md.getMarkerSet().getPositions(), md.getIndicesByChr());
+			//beastScore.computeBeastScores();
+			for (int i = 0; i < allCalls.getLoci().length; i++) {
+				allCalls.getLoci()[i].setBeastScore(beastScore.getBeastScores()[i]);
+				allCalls.getLoci()[i].setBeastHeight(beastScore.getBeastHeights()[i]);
+				allCalls.getLoci()[i].setBeastLength(beastScore.getBeastLengths()[i]);
+			}
+
+			return allCalls;
+		}
+	}
+
+	public static class MosaicProducer implements Producer<LocusSet<MosaicRegion>> {
+		private Project proj;
+		private String[] samples;
+		private MosaicBuilder builder;
+		private LocusSet<Segment> segs;
+		private MarkerSet markerSet;
+		private int index;
+
+		public MosaicProducer(Project proj, MosaicBuilder builder, String[] samples, MarkerSet markerSet, LocusSet<Segment> segs) {
+			super();
+			this.proj = proj;
+			this.samples = samples;
+			this.markerSet = markerSet;
+			this.builder = builder;
+			this.segs = segs;
+			this.index = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < samples.length;
+		}
+
+		@Override
+		public Callable<LocusSet<MosaicRegion>> next() {
+			final String sample = samples[index];
+			MosaicWorker worker = new MosaicWorker(proj, builder, segs, markerSet, sample);
+			index++;
+			return worker;
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 	private MosaicismDetect(MosaicBuilder builder, Project proj, String sample, MarkerSet markerSet, double[] bafs) {

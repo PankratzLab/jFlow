@@ -305,26 +305,32 @@ public class BeastScore {
 		return beastScores;
 	}
 
+	public static BeastScore beastInd(Project proj, SampleData sampleData, CNVariant[] cNVariantInd, byte[] chr, int[] positions, int[][] indicesByChr) {
+		return beastInd(proj, sampleData, null, cNVariantInd, chr, positions, indicesByChr);
+	}
+	
+	
 	/**
 	 * Helper function to compute beast scores for CNVariant[] representing a single individual
 	 * 
 	 * @return BeastScore (for all the individual's cnvs)
 	 */
-	public static BeastScore beastInd(Project proj, SampleData sampleData, CNVariant[] cNVariantInd, byte[] chr, int[] positions, int[][] indicesByChr) {
+	public static BeastScore beastInd(Project proj, SampleData sampleData, float[] lrrs, CNVariant[] cNVariantInd, byte[] chr, int[] positions, int[][] indicesByChr) {
 		BeastScore score = null;
 		int[][] indices = new int[cNVariantInd.length][];
-		String ind;
-		float[] lrrs = null;
+		String ind = null;
 		Logger log = proj.getLog();
 
 		if (cNVariantInd.length > 0) {
 			String key = cNVariantInd[0].getFamilyID() + "\t" + cNVariantInd[0].getIndividualID();
-			try {
-				ind = sampleData.lookup(key)[0];
-			} catch (NullPointerException npe) {
-				log.reportError("Error - could not look up the sample " + key + " in the sample data file " + proj.SAMPLE_DATA_FILENAME.getValue() + ", cannot load sample to compute beast score");
-				log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID=" + cNVariantInd[0].getFamilyID() + " and IID=" + cNVariantInd[0].getIndividualID());
-				return score;
+			if (lrrs == null) {
+				try {
+					ind = sampleData.lookup(key)[0];
+				} catch (NullPointerException npe) {
+					log.reportError("Error - could not look up the sample " + key + " in the sample data file " + proj.SAMPLE_DATA_FILENAME.getValue() + ", cannot load sample to compute beast score");
+					log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID=" + cNVariantInd[0].getFamilyID() + " and IID=" + cNVariantInd[0].getIndividualID());
+					return score;
+				}
 			}
 			for (int i = 0; i < cNVariantInd.length; i++) {
 				if (!key.equals(cNVariantInd[i].getFamilyID() + "\t" + cNVariantInd[i].getIndividualID())) {
@@ -334,12 +340,14 @@ public class BeastScore {
 					indices[i] = getCNVMarkerIndices(chr, positions, cNVariantInd[i], log);
 				}
 			}
-			try {
-				lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
-			} catch (NullPointerException npe) {
-				log.reportError("Error - could not load data for the sample " + ind + "\t" + key + ", please ensure samples have been parsed prior to computing beast score");
-				log.report("Skipping beast score for sample " + ind + "\t" + key);
-				return score;
+			if (lrrs == null) {
+				try {
+					lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
+				} catch (NullPointerException npe) {
+					log.reportError("Error - could not load data for the sample " + ind + "\t" + key + ", please ensure samples have been parsed prior to computing beast score");
+					log.report("Skipping beast score for sample " + ind + "\t" + key);
+					return score;
+				}
 			}
 			score = new BeastScore(lrrs, indicesByChr, indices, log);
 			score.computeBeastScores();

@@ -2,7 +2,6 @@ package common;
 
 import java.util.*;
 import java.text.RuleBasedCollator;
-
 import java.text.ParseException;
 
 public class Sort {
@@ -806,6 +805,96 @@ public class Sort {
 		return orderTwoLayers(first, second, false, log);
 	}
 
+	
+	
+	/**
+	 * @author lane0212 {@link Comparator} for {@link BII}
+	 *
+	 */
+	private static class BIIComp implements Comparator<BII> {
+
+		@Override
+		public int compare(BII o1, BII o2) {
+			int value1 = Byte.compare(o1.getB(), o2.getB());
+			if (value1 == 0) {
+				value1 = Integer.compare(o1.getI(), o2.getI());
+			}
+			return value1 == 0 ? Integer.compare(o1.getIndex(), o2.getIndex()) : value1;
+		}
+	}
+
+	/**
+	 * @author lane0212 Store a byte, Integer, Integer(Index)
+	 */
+	private static class BII {
+		final byte b;
+		final int i;
+		final int index;
+
+		public BII(byte b, int i, int index) {
+			super();
+			this.b = b;
+			this.i = i;
+			this.index = index;
+		}
+
+		public byte getB() {
+			return b;
+		}
+
+		public int getI() {
+			return i;
+		}
+
+		public int getIndex() {
+			return index;
+		}
+
+	}
+
+	private static int[] trickSortOrderTwoLayers(byte[] first, int[] second, boolean verbose, Logger log) {
+		BII[] biisSorted = trickSortTwoLayers(first, second, verbose, log);
+		int[] order = new int[biisSorted.length];
+		byte tmpFirst = biisSorted[0].getB();
+		int tmpSecond = biisSorted[0].getI();
+		for (int i = 0; i < order.length; i++) {
+			// TODO, these checks are because I am not positive of the Comparator implementation
+			if (biisSorted[i].getB() < tmpFirst) {
+				String error = "Invalid sorting of two layers";
+				log.reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+			if (biisSorted[i].getB() > tmpFirst) {
+				tmpFirst = biisSorted[i].getB();
+			}
+			if (biisSorted[i].getI() < tmpSecond) {
+				String error = "Invalid sorting of two layers";
+				log.reportTimeError(error);
+				throw new IllegalStateException(error);
+			}
+			if (biisSorted[i].getI() > tmpSecond) {
+				tmpSecond = biisSorted[i].getB();
+			}
+			order[biisSorted[i].getIndex()] = i;
+		}
+		return order;
+	}
+
+	private static BII[] trickSortTwoLayers(byte[] first, int[] second, boolean verbose, Logger log) {
+		if (first.length != second.length) {
+			String error = "Error - Can't sort arrays if the number of entries do not match up";
+			log.reportError(error);
+			throw new IllegalArgumentException(error);
+		} else {
+			BII[] biis = new BII[first.length];
+			for (int i = 0; i < biis.length; i++) {
+				biis[i] = new BII(first[i], second[i], i);
+			}
+			Arrays.sort(biis, new BIIComp());
+			return biis;
+		}
+	}
+
 	/**
 	 * Sorts by the first array first and then by the second; returns the order
 	 * 
@@ -813,84 +902,105 @@ public class Sort {
 	 *            first order array
 	 * @param second
 	 *            second order array
+	 *  
 	 * @return array of sorted indices
 	 */
 	public static int[] orderTwoLayers(byte[] first, int[] second, boolean verbose, Logger log) {
-		String[] primaryKeys, secondaryKeys;
-		int count;
-		int[] values, finalIndices, primaryIndices, secondaryIndices;
-		Hashtable<String,Hashtable<String,String>> mapFirstToSecond;
-		Hashtable<String,String> hash, finalKeyHash;
-		boolean inOrder;
+		return orderTwoLayers(first, second, verbose, true, log);
 
-		if (first.length!=second.length) {
-			log.reportError("Error - Can't sort markers if the number of chromosome numbers and positions don't match up");
-			System.exit(1);
-		}
-		
-		inOrder = true;
-		for (int i = 1; i < first.length; i++) {
-			if (first[i] < first[i-1] || (second[i] < second[i-1] && first[i] == first[i-1])) {
-//				log.report("chr"+first[i]+":"+second[i]+" < chr"+first[i-1]+":"+second[i-1]);
-				inOrder = false;
+	}
+
+	/**
+	 * Sorts by the first array first and then by the second; returns the order
+	 * 
+	 * @param first
+	 *            first order array
+	 * @param second
+	 *            second order array
+	 * @param trickSort
+	 * 		use built in java sorting
+	 * @return array of sorted indices
+	 */
+	public static int[] orderTwoLayers(byte[] first, int[] second, boolean verbose,boolean trickSort, Logger log) {
+		if (trickSort) {
+			return trickSortOrderTwoLayers(first, second, verbose, log);
+		} else {
+			String[] primaryKeys, secondaryKeys;
+			int count;
+			int[] values, finalIndices, primaryIndices, secondaryIndices;
+			Hashtable<String, Hashtable<String, String>> mapFirstToSecond;
+			Hashtable<String, String> hash, finalKeyHash;
+			boolean inOrder;
+
+			if (first.length != second.length) {
+				log.reportError("Error - Can't sort markers if the number of chromosome numbers and positions don't match up");
+				System.exit(1);
 			}
-		}
-		if (inOrder) {
-			if (verbose) {
-				log.report("Markers were already in order", true, true, 10);
-			}
-			return Array.intArray(second.length);
-		}
 
-		mapFirstToSecond = new Hashtable<String,Hashtable<String,String>>();
-		for (int i = 0; i<first.length; i++) {
-			HashVec.addToHashHash(mapFirstToSecond, first[i]+"", i+"", second[i]+"");
-		}
-
-//		if (mapFirstToSecond.size() == 1) {
-//			inOrder = true;
-//			count = 1;
-//			while (inOrder && count < second.length) {
-//				if (second[count-1] > second[count]) {
-//					inOrder = false;
-//				}
-//				count++;
-//			}
-//			if (inOrder) {
-//				return Array.intArray(second.length);
-//			}
-//		}
-		
-		count = 0;
-		finalKeyHash = new Hashtable<String,String>();
-		values = new int[mapFirstToSecond.size()];
-		primaryKeys = HashVec.getKeys(mapFirstToSecond);
-		for (int i = 0; i<primaryKeys.length; i++) {
-			values[i] = Integer.parseInt(primaryKeys[i]);
-		}
-		primaryIndices = quicksort(values);
-		for (int i = 0; i<primaryKeys.length; i++) {
-			hash = mapFirstToSecond.get(primaryKeys[primaryIndices[i]]);
-			if (hash!=null) {
-				values = new int[hash.size()];
-				secondaryKeys = HashVec.getKeys(hash);
-				for (int j = 0; j<secondaryKeys.length; j++) {
-					values[j] = Integer.parseInt(hash.get(secondaryKeys[j]));
-				}
-				secondaryIndices = quicksort(values);
-				for (int j = 0; j<secondaryIndices.length; j++) {
-					finalKeyHash.put(secondaryKeys[secondaryIndices[j]], count+"");
-					count++;
+			inOrder = true;
+			for (int i = 1; i < first.length; i++) {
+				if (first[i] < first[i - 1] || (second[i] < second[i - 1] && first[i] == first[i - 1])) {
+					// log.report("chr"+first[i]+":"+second[i]+" < chr"+first[i-1]+":"+second[i-1]);
+					inOrder = false;
 				}
 			}
-		}
+			if (inOrder) {
+				if (verbose) {
+					log.report("Markers were already in order", true, true, 10);
+				}
+				return Array.intArray(second.length);
+			}
 
-		finalIndices = new int[first.length];
-		for (int i = 0; i<first.length; i++) {
-			finalIndices[Integer.parseInt(finalKeyHash.get(i+""))] = i;
-		}
+			mapFirstToSecond = new Hashtable<String, Hashtable<String, String>>();
+			for (int i = 0; i < first.length; i++) {
+				HashVec.addToHashHash(mapFirstToSecond, first[i] + "", i + "", second[i] + "");
+			}
 
-		return finalIndices;
+			// if (mapFirstToSecond.size() == 1) {
+			// inOrder = true;
+			// count = 1;
+			// while (inOrder && count < second.length) {
+			// if (second[count-1] > second[count]) {
+			// inOrder = false;
+			// }
+			// count++;
+			// }
+			// if (inOrder) {
+			// return Array.intArray(second.length);
+			// }
+			// }
+
+			count = 0;
+			finalKeyHash = new Hashtable<String, String>();
+			values = new int[mapFirstToSecond.size()];
+			primaryKeys = HashVec.getKeys(mapFirstToSecond);
+			for (int i = 0; i < primaryKeys.length; i++) {
+				values[i] = Integer.parseInt(primaryKeys[i]);
+			}
+			primaryIndices = quicksort(values);
+			for (int i = 0; i < primaryKeys.length; i++) {
+				hash = mapFirstToSecond.get(primaryKeys[primaryIndices[i]]);
+				if (hash != null) {
+					values = new int[hash.size()];
+					secondaryKeys = HashVec.getKeys(hash);
+					for (int j = 0; j < secondaryKeys.length; j++) {
+						values[j] = Integer.parseInt(hash.get(secondaryKeys[j]));
+					}
+					secondaryIndices = quicksort(values);
+					for (int j = 0; j < secondaryIndices.length; j++) {
+						finalKeyHash.put(secondaryKeys[secondaryIndices[j]], count + "");
+						count++;
+					}
+				}
+			}
+
+			finalIndices = new int[first.length];
+			for (int i = 0; i < first.length; i++) {
+				finalIndices[Integer.parseInt(finalKeyHash.get(i + ""))] = i;
+			}
+
+			return finalIndices;
+		}
 	}
 
 	/**
