@@ -271,7 +271,7 @@ public class LrrSd extends Parallelizable {
 			subsamples = HashVec.loadFileToStringArray(customSampleFileList, false, new int[] {0}, false);
 			for (int i = 0; i < subsamples.length; i++) {
 				if (ext.indexOfStr(subsamples[i], samples) == -1) {
-					log.reportError("Error - subsample '"+subsamples[i]+"' was not found in the list of samples of project '"+proj.getNameOfProject()+"'");
+					log.reportError("Error - subsample '"+subsamples[i]+"' was not found in the list of samples of project '"+proj.PROJECT_NAME.getValue()+"'");
 					error = true;
 				}
 			}

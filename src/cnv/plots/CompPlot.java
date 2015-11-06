@@ -109,7 +109,7 @@ public class CompPlot extends JFrame {
     private String[] originalRegionFiles = null;
     
 	public CompPlot(Project proj) {
-		super("Genvisis - CompPlot - " + proj.getNameOfProject());
+		super("Genvisis - CompPlot - " + proj.PROJECT_NAME.getValue());
 		this.proj = proj;
 		this.markerSet = this.proj.getMarkerSet();
 		if (markerSet != null) {

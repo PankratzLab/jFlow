@@ -134,7 +134,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
 		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue(), proj.JAR_STATUS.getValue())) {
-			JOptionPane.showMessageDialog(null, "Error - the directory ('"+proj.PROJECT_DIRECTORY.getValue()+"') for project '"+proj.getNameOfProject()+"' did not exist; creating now. If this was in error, please edit the property file.", "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Error - the directory ('"+proj.PROJECT_DIRECTORY.getValue()+"') for project '"+proj.PROJECT_NAME.getValue()+"' did not exist; creating now. If this was in error, please edit the property file.", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 		
 		log = proj.getLog();

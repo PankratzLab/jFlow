@@ -4,10 +4,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import cnv.manage.SourceFileParser;
 import common.Array;
 import common.Elision;
@@ -15,7 +17,12 @@ import common.Files;
 import common.Logger;
 import common.ext;
 
-public class SourceFileHeaderData {
+public class SourceFileHeaderData implements Serializable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -6906302109843776908L;
+    
     String gsgtVersion = null;
     String processingDate = null;
     String content = null;
@@ -93,10 +100,10 @@ public class SourceFileHeaderData {
         reader.close(); // done
         reader = null; // release
         String columnHeaders = line;
-        delim = file.contains(".csv") ? "[\\s]*,[\\s]*" : file.contains(".xln") ? "[\\s]*\t[\\s]*" : ext.determineDelimiter(columnHeaders);
-        if (",".equals(delim)) {
-            delim = "[\\s]*,[\\s]*";
-        }
+        delim = file.contains(".csv") ? SOURCE_FILE_DELIMITERS.SPACE.getDelimiter() : file.contains(".xln") ? SOURCE_FILE_DELIMITERS.TAB.getDelimiter() : SOURCE_FILE_DELIMITERS.getDelimiter(ext.determineDelimiter(columnHeaders)).getDelimiter();
+//        if (",".equals(delim)) {
+//            delim = "[\\s]*,[\\s]*";
+//        }
         parseColumnsBestGuess(columnHeaders.split(delim), frhd);
         frhd.setSourceFileDelimiter(delim);
         frhd.setHeaderString(columnHeaders);

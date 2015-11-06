@@ -38,6 +38,7 @@ import javax.swing.event.CaretListener;
 import net.miginfocom.swing.MigLayout;
 import cnv.Launch;
 import cnv.filesys.Project;
+import cnv.filesys.SourceFileHeaderData;
 import cnv.manage.KitAndKaboodle;
 import cnv.manage.KitAndKaboodle.RequirementInputType;
 import cnv.manage.KitAndKaboodle.STEP;
@@ -90,7 +91,6 @@ public class KitAndKaboodleGUI extends JDialog {
             launch.setIndexOfCurrentProject(ext.removeDirectoryInfo(this.proj.getPropertyFilename()));
             this.proj = launch.loadProject();
         }
-        System.out.println(this.proj.getProgressMonitor());
         this.proj.getLog().report("Launching Genvisis Project Pipeline");
         this.steps = KitAndKaboodle.getStepsForProject(this.proj);
         selected = Array.booleanArray(this.steps.length, true);
@@ -125,7 +125,7 @@ public class KitAndKaboodleGUI extends JDialog {
             JLabel lblSelect = new JLabel("Select:");
             buttonPane.add(lblSelect, "flowx,cell 0 0");
             
-            JButton btnSelectAll = new JButton("All");
+            btnSelectAll = new JButton("All");
             btnSelectAll.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
                     for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
@@ -138,7 +138,7 @@ public class KitAndKaboodleGUI extends JDialog {
             });
             buttonPane.add(btnSelectAll, "cell 0 0");
             
-            JButton btnDeselectAll = new JButton("None");
+            btnDeselectAll = new JButton("None");
             btnDeselectAll.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
@@ -539,6 +539,10 @@ public class KitAndKaboodleGUI extends JDialog {
     }
     
     private volatile boolean running = false;
+
+    private JButton btnSelectAll;
+
+    private JButton btnDeselectAll;
     
     private void lockup(final boolean lock) {
         try {
@@ -558,6 +562,8 @@ public class KitAndKaboodleGUI extends JDialog {
                             btn.setEnabled(!lock);
                         }
                     }
+                    btnSelectAll.setEnabled(!lock);
+                    btnDeselectAll.setEnabled(!lock);
                 }
             });
         } catch (InvocationTargetException e) {

@@ -361,7 +361,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 	};
 	
 	public ForestPlot(Project proj) {
-		super("Genvisis - Forest Plot - " + proj.getNameOfProject());
+		super("Genvisis - Forest Plot - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		this.proj = proj;
 		this.log = proj.getLog();

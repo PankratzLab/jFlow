@@ -463,7 +463,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 	// TODO Trailer should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location, int startX, int startY, int width, int height) {
-		super("Genvisis - Trailer - " + proj.getNameOfProject());
+		super("Genvisis - Trailer - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -1808,7 +1808,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		markerSet = proj.getMarkerSet();
 		if (markerSet == null) {
 			JOptionPane.showMessageDialog(null, "Error - Failed to load the MarkerSet file; make sure the raw data is parsed", "Error", JOptionPane.ERROR_MESSAGE);
-			log.reportError("Error - failed to load MarkerSet for project "+proj.getNameOfProject()+"; make sure the raw data is parsed");
+			log.reportError("Error - failed to load MarkerSet for project "+proj.PROJECT_NAME.getValue()+"; make sure the raw data is parsed");
 			return false;
 		}
 		fingerprint = markerSet.getFingerprint();
