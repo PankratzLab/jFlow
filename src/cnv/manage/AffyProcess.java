@@ -92,6 +92,7 @@ public class AffyProcess {
 					String match = null;
 					String tmpExt = "." + proj.getArrayType() + ".tmp.gz";
 					proj.SOURCE_FILENAME_EXTENSION.setValue(tmpExt);
+					proj.saveProperties(new Project.Property[]{proj.SOURCE_FILENAME_EXTENSION});
 					for (int j = 0; j < allFiles.length; j++) {
 						if (allFiles[j].startsWith(toMatch) && allFiles[j].contains(CN_C5_PATTERN) && !allFiles[j].endsWith(tmpExt)) {
 							match = allFiles[j];

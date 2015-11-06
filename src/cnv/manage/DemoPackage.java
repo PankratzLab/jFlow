@@ -162,9 +162,9 @@ public class DemoPackage {
 		if (Files.isRelativePath(projectsDir)) {
 			projectsDir = ext.parseDirectoryOfFile(newLaunchProperties.getFilename()) + projectsDir;
 		}
-		demoProject.setProperty(demoProject.PROJECT_NAME, proj.getNameOfProject() + "_" + demoProject.getdType());
-		String newProjectFile = projectsDir + demoProject.getNameOfProject() + ".properties";
-		demoProject.setProperty(demoProject.PROJECT_DIRECTORY, demoProject.getNameOfProject() + "/");
+		demoProject.setProperty(demoProject.PROJECT_NAME, proj.PROJECT_NAME.getValue() + "_" + demoProject.getdType());
+		String newProjectFile = projectsDir + demoProject.PROJECT_NAME.getValue() + ".properties";
+		demoProject.setProperty(demoProject.PROJECT_DIRECTORY, demoProject.PROJECT_NAME.getValue() + "/");
 		if (!demoProject.isFail()) {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(newProjectFile));
@@ -177,7 +177,7 @@ public class DemoPackage {
 			}
 		}
 		if (setToDefault) {
-			newLaunchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED, demoProject.getNameOfProject() + ".properties");
+			newLaunchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED, demoProject.PROJECT_NAME.getValue() + ".properties");
 			newLaunchProperties.save();
 		}
 	}

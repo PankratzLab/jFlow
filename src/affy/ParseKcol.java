@@ -98,7 +98,7 @@ public class ParseKcol implements Runnable {
 
 		idHeader = proj.getProperty(proj.ID_HEADER);
 		// sourceExtension = proj.getProperty(proj.SOURCE_FILENAME_EXTENSION);
-		delimiter = proj.getSourceFileDelimiter();
+		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		allOutliers = new Hashtable<String, Float>();
 		try {
 			for (int i = 0; i < files.length; i++) {
@@ -479,7 +479,7 @@ public class ParseKcol implements Runnable {
 			return;
 		}
 
-		delimiter = proj.getSourceFileDelimiter();
+		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		idHeader = proj.getProperty(proj.ID_HEADER);
 		System.out.println(ext.getTime() + "\tSearching for " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: " + proj.SOURCE_DIRECTORY.getValue(false, true));
 		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), "gw6_split", "", false, false);
@@ -964,7 +964,7 @@ public class ParseKcol implements Runnable {
 		String[] files;
 		String idHeader, delimiter;
 
-		delimiter = proj.getSourceFileDelimiter();
+		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		idHeader = proj.getProperty(proj.ID_HEADER);
 		System.out.println(ext.getTime() + "\tSearching for " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: " + proj.SOURCE_DIRECTORY.getValue(false, true));
 		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
@@ -1011,7 +1011,7 @@ public class ParseKcol implements Runnable {
 		PrintWriter writer;
 		String idHeader, delimiter;
 		idHeader = proj.getProperty(proj.ID_HEADER);
-		delimiter = proj.getSourceFileDelimiter();
+		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		String[] line;
 		// common folder output by apt-genotype, present in each subdirectory of Source
 		String commonSubFolder = "/cc-chp";
@@ -1133,7 +1133,7 @@ public class ParseKcol implements Runnable {
 		System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s") + " to parse");
 
 		idHeader = proj.getProperty(proj.ID_HEADER);
-		delimiter = proj.getSourceFileDelimiter();
+		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		hash = new Hashtable<String, String[]>();
 		for (int i = 0; i < files.length; i++) {
 			if (new File("report").exists()) {

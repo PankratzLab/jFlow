@@ -319,7 +319,7 @@ public class Configurator extends JFrame {
 	 * Create the frame.
 	 */
 	public Configurator(Project project) {
-		setTitle("Genvisis - " + project.getNameOfProject() + " - Project Configuration");
+		setTitle("Genvisis - " + project.PROJECT_NAME.getValue() + " - Project Configuration");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setBounds(100, 100, 700, 800);
 		contentPane = new JPanel();

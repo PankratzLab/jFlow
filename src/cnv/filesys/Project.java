@@ -438,6 +438,7 @@ public class Project {
 	private MarkerLookup markerLookup;
 	private Logger log;
 	private boolean gui;
+	private boolean headersLoaded = false;
 	private ProgressMonitor progressMonitor;
 	public ProgressMonitor getProgressMonitor() {
 	    return progressMonitor;
@@ -474,6 +475,7 @@ public class Project {
 //        setProperty(PROJECT_PROPERTIES_FILENAME, filename);
 //		  setProperty(SAMPLE_DIRECTORY, ext.verifyDirFormat(getProperty(SAMPLE_DIRECTORY)));
         
+		
         this.JAR_STATUS.setValue(jar);
         
 		int logLevel;
@@ -492,11 +494,44 @@ public class Project {
 			log = new Logger(logfile, false, Math.abs(logLevel));
 		}
 		
+		HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
+		setSourceFileHeaders(headers);
+		
 	    log.report("Genvisis, v"+cnv.Launch.VERSION+"\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
 		log.report("\nCurrent project: " + getProperty(PROJECT_NAME) + "\n");
 		log.report("Log level (verbosity) is set to " + getProperty(LOG_LEVEL) + "\n");
 	}
-
+	
+	@SuppressWarnings("unchecked")
+    private HashMap<String, SourceFileHeaderData> readHeadersFile(boolean waitIfMissing) {
+	    String file = PROJECT_DIRECTORY.getValue() + "source.headers";
+	    System.out.println((new File(file)).getAbsolutePath());
+	    if (Files.exists(file)) {
+	        return (HashMap<String, SourceFileHeaderData>) Files.readSerial(file);
+	    } else {
+	        if (!waitIfMissing) {
+    	        new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        log.report("Parsing source file headers in background thread.");
+                        setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log));
+                        log.report("Source file header parsing complete.");
+                    }
+                }).start();
+    	        return null;
+	        } else {
+                log.report("Parsing source file headers in active thread.");
+                setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log));
+                log.report("Source file header parsing complete.");
+                return getSourceFileHeaders();
+	        }
+	    }
+	}
+	
+	private void writeHeadersFile() {
+	    Files.writeSerial(sourceFileHeaders, PROJECT_DIRECTORY.getValue() + "source.headers");
+	}
+	
 	public Logger getLog() {
 		return log;
 	}
@@ -733,24 +768,6 @@ public class Project {
 		return v;
 	}
 	
-	public String getSourceFileDelimiter() {
-		String str;
-		
-		str = getProperty(SOURCE_FILE_DELIMITER).getDelimiter();
-		return str;
-//		
-//		if (str.toUpperCase().equals("COMMA")) {
-//			return ",";
-//		} else if (str.toUpperCase().equals("TAB")) {
-//			return "\t";
-//		} else if (str.toUpperCase().equals("SPACE")) {
-//			return "[\\s]+";
-//		} else {
-//			System.err.println("Error - invalid delimiter specified: '"+str+"'");
-//			return ",";
-//		} 
-	}
-	
 	public ClusterFilterCollection getClusterFilterCollection() {
 		String filename;
 		
@@ -773,10 +790,6 @@ public class Project {
         } else {
         	return null;
         }
-	}
-	
-	public String getNameOfProject() {
-		return getProperty(this.PROJECT_NAME);
 	}
 	
 	public String[] getPropertyKeys() {
@@ -1340,7 +1353,7 @@ public class Project {
 
 	public enum SOURCE_FILE_DELIMITERS {
 	    COMMA("[\\s]*,[\\s]*", ","),
-	    TAB("[\\s]*\t[\\s]*", "\t"),
+	    TAB("[ ]*\t[ ]*", "\t"),
 	    SPACE(" ", "[\\s]+");
 	    
 	    String delim;
@@ -1451,11 +1464,12 @@ public class Project {
 	}
 
     public HashMap<String, SourceFileHeaderData> getSourceFileHeaders() {
-        return sourceFileHeaders;
+        return sourceFileHeaders == null ? readHeadersFile(true) : sourceFileHeaders;
     }
 
     public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
         this.sourceFileHeaders = sourceFileHeaders;
+        writeHeadersFile();
 	}
 
 	/**

@@ -246,7 +246,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
     private TwoDPlot histFrame;
 
     public ScatterPlot(Project project, String[] initMarkerList, String[] initCommentList, boolean exitOnClose) {
-		super("Genvisis - ScatterPlot - " + project.getNameOfProject());
+		super("Genvisis - ScatterPlot - " + project.PROJECT_NAME.getValue());
 		
 		String PROG_KEY = "SCATTERPLOT";
 		project.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Displaying ScatterPlot...", 10, ProgressMonitor.DISPLAY_MODE.GUI_ONLY);

@@ -176,7 +176,7 @@ public class SourceFileParser implements Runnable {
 					count = 0;
 					parseAtAt = proj.getProperty(proj.PARSE_AT_AT_SYMBOL);
 					while (reader.ready()) {
-						line = reader.readLine().split(delimiter);
+						line = reader.readLine().split(delimiter, -1);
 						if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
 							trav = files[i].substring(0, files[i].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
 						} else {
@@ -540,7 +540,7 @@ public class SourceFileParser implements Runnable {
         log.report("\t\tFound "+files.length+" file"+(files.length==1?"":"s")+" to parse");
     
         idHeader = proj.getProperty(proj.ID_HEADER);
-        delimiter = proj.getSourceFileDelimiter();
+        delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
         hash = new Hashtable<String, String[]>();
         for (int i = 0; i<files.length; i++) {
             if (new File("report").exists()) {
@@ -699,7 +699,7 @@ public class SourceFileParser implements Runnable {
                     return;
                 }
                 
-                delimiter = proj.getSourceFileDelimiter();
+                delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
                 longFormat = proj.LONG_FORMAT.getValue();
                 idHeader = proj.getProperty(proj.ID_HEADER);
                 log.report(ext.getTime()+"\tSearching for "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" files in: "+proj.SOURCE_DIRECTORY.getValue(false, true));
@@ -804,7 +804,7 @@ public class SourceFileParser implements Runnable {
 			return 0;
 		}
 
-		delimiter = proj.getSourceFileDelimiter();
+		delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
 		idHeader = proj.getProperty(proj.ID_HEADER);
 		log.report(ext.getTime()+"\tSearching for "+proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)+" files in: "+proj.SOURCE_DIRECTORY.getValue(false, true));
 		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);

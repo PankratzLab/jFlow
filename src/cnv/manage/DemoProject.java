@@ -44,7 +44,7 @@ public class DemoProject extends Project {
 	}
 
 	private void init() {
-		String demoProjectDirectory = demoDirectory + proj.getNameOfProject() + "_" + dType + "/";
+		String demoProjectDirectory = demoDirectory + proj.PROJECT_NAME.getValue() + "_" + dType + "/";
 		setProperty(proj.PROJECT_DIRECTORY, demoProjectDirectory);
 		if (!Files.exists(PROJECT_DIRECTORY.getValue()) || overwriteExisting) {
 			new File(PROJECT_DIRECTORY.getValue()).mkdirs();
