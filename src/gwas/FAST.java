@@ -43,10 +43,10 @@ public class FAST {
 	public static final String DATA_BUILD_1000G = "APR12";
 	public static final String PROCESSED_RESULT_FILE_EXT = ".csv";
 	
-	public static final int METAL_QSUB_RAM_MB = 10000;
-	public static final int METAL_QSUB_TIME_HRS = 8;
-	public static final int METAL_QSUB_THREADS = 24;
-	
+	public static final int QSUB_RAM_MB = 10000;
+	public static final int QSUB_TIME_HRS = 8;
+	public static final int QSUB_THREADS = 24;
+
 	String FAST_LOC = "FAST";
 	String dir = "/home/pankarne/chandap/ARIC.whites.impute2/";
 	String indivFile = "~/ordered9489.indiv";
@@ -364,7 +364,7 @@ public class FAST {
 	    }
 
 //        Files.write(runMetal.toString(), ext.verifyDirFormat(studyDir) + "runMETALAnalyses.sh");
-        Files.qsub(ext.verifyDirFormat(studyDir) + "master_runMETAL.qsub", runMetal.toString(), METAL_QSUB_RAM_MB, METAL_QSUB_TIME_HRS, METAL_QSUB_THREADS);
+        Files.qsub(ext.verifyDirFormat(studyDir) + "master_runMETAL.qsub", runMetal.toString(), QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
 	}
 	
 	private static String writeMetalCRF(String factor, double pvalThresh/*, boolean gc*/) {
@@ -375,7 +375,7 @@ public class FAST {
 	    return metalCRF.toString();
 	}
 
-    public static String[] prepareFAST(String traitDir, String dataFile, String runDir, boolean isLinear, boolean run) throws IOException {
+    public static String[] prepareFAST(String traitDir, String dataFile, String runDir, boolean isLinear, boolean run, String qsubQueue) throws IOException {
 		HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
 		HashMap<String, HashMap<String, DataDefinitions>> data = parseDataDefinitionsFile(dataFile);
 		ArrayList<String> dirs = new ArrayList<String>();
@@ -445,44 +445,74 @@ public class FAST {
 					dirs.add(dir);
 					
 					masterRunScript.append("cd ").append(dir).append("\n");
-					masterRunScript.append("qsub ").append(RUN_SCRIPT_NAME).append("\n");
+					masterRunScript.append("qsub ");
+					if (qsubQueue != null) {
+					    masterRunScript.append("-q ").append(qsubQueue).append(" ");
+					}
+					masterRunScript.append(RUN_SCRIPT_NAME).append("\n");
 					masterProcessScript.append("cd ").append(dir).append("\n");
-					masterProcessScript.append("qsub ").append(PROCESS_SCRIPT_NAME).append("\n");
+					masterProcessScript.append("qsub ");
+                    if (qsubQueue != null) {
+                        masterProcessScript.append("-q ").append(qsubQueue).append(" ");
+                    }
+					masterProcessScript.append(PROCESS_SCRIPT_NAME).append("\n");
 					
 					if (dataDef.sexDir != null) {
 					    String maleTraitFile = sexCopyTraitFile(dir + "male/", traitDir + traitFile, true);
 					    String femaleTraitFile = sexCopyTraitFile(dir + "female/", traitDir + traitFile, false);
-	                    FAST fastRunMale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+maleTraitFile, dataDef.sexSuffix, dir + "male/", covars, isLinear);
+	                    FAST fastRunMale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, maleTraitFile, dataDef.sexSuffix, dir + "male/", covars, isLinear);
 	                    fastRun.study = study;
 	                    fastRun.factor = factor;
 	                    fastRun.pop = pop;
 	                    fastRun.sex = 1;
 	                    fastRunMale.run();
-	                    FAST fastRunFemale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, runDir+femaleTraitFile, dataDef.sexSuffix, dir + "female/", covars, isLinear);
+	                    FAST fastRunFemale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, femaleTraitFile, dataDef.sexSuffix, dir + "female/", covars, isLinear);
 	                    fastRun.study = study;
 	                    fastRun.factor = factor;
 	                    fastRun.pop = pop;
 	                    fastRun.sex = 0;
 	                    fastRunFemale.run();
 	                    masterRunScript.append("cd ").append(dir).append("male/\n");
-	                    masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
+	                    masterRunScript.append("qsub ");
+	                    if (qsubQueue != null) {
+	                        masterRunScript.append("-q ").append(qsubQueue).append(" ");
+	                    }
+	                    masterRunScript.append(RUN_SCRIPT_NAME + "\n");
 	                    masterRunScript.append("cd ").append(dir).append("female/\n");
-	                    masterRunScript.append("qsub " + RUN_SCRIPT_NAME + "\n");
+	                    masterRunScript.append("qsub ");
+	                    if (qsubQueue != null) {
+	                        masterRunScript.append("-q ").append(qsubQueue).append(" ");
+	                    }
+	                    masterRunScript.append(RUN_SCRIPT_NAME + "\n");
 	                    masterProcessScript.append("cd ").append(dir).append("male/\n");
-	                    masterProcessScript.append("qsub " + PROCESS_SCRIPT_NAME + "\n");
+	                    masterProcessScript.append("qsub ");
+	                    if (qsubQueue != null) {
+	                        masterProcessScript.append("-q ").append(qsubQueue).append(" ");
+	                    }
+	                    masterProcessScript.append(PROCESS_SCRIPT_NAME + "\n");
 	                    masterProcessScript.append("cd ").append(dir).append("female/\n");
-	                    masterProcessScript.append("qsub " + PROCESS_SCRIPT_NAME + "\n");
+	                    masterProcessScript.append("qsub ");
+	                    if (qsubQueue != null) {
+	                        masterProcessScript.append("-q ").append(qsubQueue).append(" ");
+	                    }
+	                    masterProcessScript.append(PROCESS_SCRIPT_NAME + "\n");
 					}
 				}
 			}
+			String metalCmd = "java -cp ~/park.jar gwas.FAST rundir=" + runDir + study + " data=" + dataFile + (qsubQueue == null ? "" : " qsub=" + qsubQueue) + " -process";
+			Files.qsub(runDir + "step4_" + study + "_metaAnalyzeFAST.qsub", metalCmd, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
+			Files.write("qsub" + (qsubQueue == null ? "" : " -q " + qsubQueue) + " step4_" + study + "_metaAnalyzeFAST.qsub", runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
+			Files.chmod(runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
 		}
 		
-		Files.write(masterRunScript.toString(), runDir+"runFAST.sh");
-        Files.write(masterProcessScript.toString(), runDir+"processFAST.sh");
-		Files.chmod(runDir+"runFAST.sh");
-		Files.chmod(runDir+"processFAST.sh");
+		Files.write(masterRunScript.toString(), runDir+"step2_runFAST.sh");
+        Files.write(masterProcessScript.toString(), runDir+"step3_processFAST.sh");
+		Files.chmod(runDir+"step2_runFAST.sh");
+		Files.chmod(runDir+"step3_processFAST.sh");
+		
+		
 		if (run) {
-		    CmdLine.run("./runFAST.sh", runDir);
+		    CmdLine.run("./step2_runFAST.sh", runDir);
 		}
 		
 		return dirs.toArray(new String[dirs.size()]);
@@ -547,12 +577,11 @@ public class FAST {
 		scriptInputWriter.flush();
 		scriptInputWriter.close();
 		
-		int threads = 24;
-		String command = "java -cp ~/park.jar one.ScriptExecutor file=\""+runDir+"input.txt\" token=took threads="+threads;
+		String command = "java -cp ~/park.jar one.ScriptExecutor file=\""+runDir+"input.txt\" token=took threads="+QSUB_THREADS;
 		String procFileOut = buildFinalFilename();
 		String processCommand = "cd \"" + runDir + "\"\njava -cp ~/park.jar gwas.FAST -convert -concat -writePVals -hitWindows out=\"" + procFileOut + "\" results=\""+runDir+"output/\" trait=\""+traitFile + "\"";
-		Files.qsub(runDir + RUN_SCRIPT_NAME, command, 10000, 8, threads);
-		Files.qsub(runDir + PROCESS_SCRIPT_NAME, processCommand, 10000, 8, threads);
+		Files.qsub(runDir + RUN_SCRIPT_NAME, command, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
+		Files.qsub(runDir + PROCESS_SCRIPT_NAME, processCommand, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
 		(new File(runDir + "output/")).mkdirs();
 	}
 	
@@ -988,6 +1017,7 @@ public class FAST {
 		String out = "finalResults.txt";
 		boolean concat = false;
 //		boolean gc = true;
+		String qsub = null;
 		
 		int format = 0;
 		boolean convert = false;
@@ -1021,7 +1051,7 @@ public class FAST {
 		                "   (4) -prep flag\n" +
 	                    "   (5) OPTIONAL: -run flag to run FAST analyses after preparing FAST scripts\n" + 
 		                " OR: \n" +
-		                "   (1) Path to population folder containing sub-folders for FAST analyses (i.e. data=~/FAST/ARIC/ (not the default))\n" +
+		                "   (1) Path to population folder containing sub-folders for FAST analyses (i.e. rundir=~/FAST/ARIC/ (not the default))\n" +
 		                "   (2) Data file defining input files, in tab-delimited format (i.e. data=data.txt (not the default))\n" +
 		                "   (3) -process flag\n" + 
 		                "\n" +
@@ -1117,6 +1147,9 @@ public class FAST {
 			} else if (args[i].startsWith("pval=")) {
 				pval = Double.parseDouble(args[i].split("=")[1]);
 				numArgs--;
+			} else if (args[i].startsWith("qsub=")) {
+			    qsub = args[i].split("=")[1];
+			    numArgs--;
 //			} else if (args[i].startsWith("gcMetal=")) {
 //			    gc = ext.parseBooleanArg(args[i]);
 //			    numArgs--;
@@ -1159,7 +1192,7 @@ public class FAST {
 		    if (metal) {
 		        prepareMETAL(run, data);
 		    } else if (prep) {
-		        prepareFAST(trait, data, run, linear, runFAST);
+		        prepareFAST(trait, data, run, linear, runFAST, qsub);
 		    } else if (process) {
 		        processAndPrepareMETAL(run, data);
 		    } else if (concat && convert) {
