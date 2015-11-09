@@ -2227,12 +2227,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //	}
 	
 	public void procCNVs(byte chr) {
-		// TODO if this is still null (i.e., still being loaded in a different thread; especially a problem if a Dialog comes up to say that a file doesn't exist), 
-		// then nothing is ever shown until next/previous is selected, probably want to have a thread watching this to wait until completion,
-		// or have the CNV loading thread alert Trailer when it is done
-		cnvs = new CNVariant[cnvLabels == null?0:cnvLabels.length][];  
+		cnvs = new CNVariant[cnvLabels.length][];  
 		if (indiPheno != null) {
-    		for (int i = 0; i<(cnvLabels == null?0:cnvLabels.length); i++) {
+    		for (int i = 0; i<cnvLabels.length; i++) {
     			cnvs[i] = indiPheno.getCNVs(i, chr);
     			if (cnvs[i] == null) {
     				cnvs[i] = new CNVariant[0];
