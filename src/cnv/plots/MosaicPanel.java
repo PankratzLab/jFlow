@@ -62,12 +62,14 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 	private BufferedImage image;
 	private Hashtable<String,IntVector> sampLookup;
 	private IntVector prox;
-	private Hashtable<String,String> colorHash;
+	private Hashtable<String,Byte> colorHash;
 	private SampleData sampleData;
 
 	public MosaicPanel(Project proj, String[][] samples, double[][] data) {
 		BufferedReader reader;
+		HashSet<String> invalidBytes;
 		String[] line;
+		int count;
 
 		this.proj = proj;
 		this.samples = samples;
@@ -75,21 +77,32 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		
 		sampleData = proj.getSampleData(0, false);
 
-		colorHash = new Hashtable<String,String>();
+		count = 0;
+		invalidBytes = new HashSet<String>();
+		colorHash = new Hashtable<String,Byte>();
 		try {
 //			reader = Files.getReader(proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME), proj.getJarStatus(), true, false);
 			reader = Files.getReader(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
 			if (reader!=null) {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
-					colorHash.put(line[0]+"\t"+line[1], line[2]);
+					if (ext.isValidChromosome(line[2])) {
+						colorHash.put(line[0]+"\t"+line[1], Positions.chromosomeNumber(line[2]));
+					} else if (count > 0) {
+						invalidBytes.add(line[2]);
+					}
+					count++;
 				}
 				reader.close();
 			}
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+proj.MOSAIC_COLOR_CODES_FILENAME.getValue()+"\"");
-			System.exit(2);
+			return;
 		}
+		if (invalidBytes.size() > 0) {
+			proj.message("Invalid color codes for MosaicPlot in "+proj.MOSAIC_COLOR_CODES_FILENAME.getValue()+" (must be an integer < 128):\n"+Array.toStr(HashVec.getKeys(invalidBytes, false, false), "\n\t"));
+		}
+
 
 		image = null;
 //		locLookup = new Hashtable<String,IntVector>(); // takes place in AbstractPanel
@@ -195,7 +208,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		if (prox!=null&&prox.size()>0) {
 			menu = new JPopupMenu();
 			for (int i = 0; i<prox.size(); i++) {
-				menu.add(new LaunchAction(proj, samples[prox.elementAt(i)][0], samples[prox.elementAt(i)][1], colorHash.containsKey(samples[prox.elementAt(i)][0]+"\t"+samples[prox.elementAt(i)][1])?colorScheme[Integer.parseInt(colorHash.get(samples[prox.elementAt(i)][0]+"\t"+samples[prox.elementAt(i)][1]))]:Color.GRAY));
+				menu.add(new LaunchAction(proj, samples[prox.elementAt(i)][0], samples[prox.elementAt(i)][1], colorHash.containsKey(samples[prox.elementAt(i)][0]+"\t"+samples[prox.elementAt(i)][1])?colorScheme[colorHash.get(samples[prox.elementAt(i)][0]+"\t"+samples[prox.elementAt(i)][1])]:colorScheme[Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)+samples[i][0]+Sample.SAMPLE_DATA_FILE_EXTENSION)?0:1]));
 			}
 			menu.show(this, event.getX(), event.getY());
 		}
@@ -253,9 +266,9 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 //		for (int i = 0; i<data.length; i++) {
 			if (colorHash.containsKey(samples[i][0]+"\t"+samples[i][1])) {
 				//color = colorScheme[Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]))];
-				color = (byte) Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]));
+				color = colorHash.get(samples[i][0]+"\t"+samples[i][1]);
 			} else {
-				color = (byte) ((byte) ext.indexOfStr(samples[i][0]+Sample.SAMPLE_DATA_FILE_EXTENSION, files)>=0?0:1);	// What is the color code for Color.GRAY
+				color = (byte) (ext.indexOfStr(samples[i][0]+Sample.SAMPLE_DATA_FILE_EXTENSION, files)>=0?0:1);	// What is the color code for Color.GRAY
 			}
 			points[i] = new PlotPoint("",
 									  (byte) 1,
