@@ -1,5 +1,7 @@
 package widgets;
 
+import java.util.HashSet;
+
 import gwas.MetaAnalysis;
 import stats.Histogram;
 import common.*;
@@ -123,6 +125,32 @@ public class ClipSwap {
 		ext.setClipboard(Array.toStr(MetaAnalysis.inverseVarianceWeighting(ext.getClipboard().trim().split("\\n"), new Logger())));
 	}
 
+	public static void nominalVariable() {
+		String[] lines, values;
+		String result;
+		HashSet<String> hash;
+		
+		lines = ext.getClipboard().trim().split("\\n");
+		
+		hash = new HashSet<String>();
+		for (int i = 0; i < lines.length; i++) {
+			if (!ext.isMissingValue(lines[i])) {
+				hash.add(lines[i]);
+			}
+		}
+
+		values = HashVec.getKeys(hash);
+		result = Array.toStr(values)+"\r\n";
+		for (int i = 0; i < lines.length; i++) {
+			for (int j = 0; j < values.length; j++) {
+				result += (j==0?"":"\t") + (ext.isMissingValue(lines[i])?".":(lines[i].equals(values[j])?"1":"0"));
+			}
+			result += "\r\n";
+		}
+		
+		ext.setClipboard(result);
+	}
+
 	public static void main(String[] args) {
 	    int numArgs = args.length;
 	    boolean slash = false;
@@ -133,6 +161,7 @@ public class ClipSwap {
 	    boolean prettyP = false;
 	    boolean histogram = false;
 	    boolean inverseVariance = false;
+	    boolean nominalVariable = false;
 
 	    String usage = "\n"+
 	    "widgets.ClipSwap requires 0-1 arguments\n"+
@@ -144,6 +173,7 @@ public class ClipSwap {
 	    "   (6) Make p-values pretty (i.e. -prettyP (not the default))\n"+
 	    "   (7) Create bins and counts for a histogram (i.e. -histogram (not the default))\n"+
 	    "   (8) Perform an inverse-variance weighted meta-analysis on a series of betas/stderrs (i.e. -inverseVariance (not the default))\n"+
+	    "   (9) Split a nominal variable into binary columns (i.e. -nominalVariable (not the default))\n"+
 	    "";
 
 	    for (int i = 0; i<args.length; i++) {
@@ -174,6 +204,11 @@ public class ClipSwap {
 		    } else if (args[i].startsWith("-inverseVariance")) {
 		    	inverseVariance = true;
 			    numArgs--;
+		    } else if (args[i].startsWith("-nominalVariable")) {
+		    	nominalVariable = true;
+			    numArgs--;
+		    } else {
+			    System.err.println("Error - don't know what to do with argument '"+args[i]+"'");
 		    }
 	    }
 	    if (numArgs!=0) {
@@ -205,6 +240,9 @@ public class ClipSwap {
 	    	}
 	    	if (inverseVariance) {
 	    		inverseVarianceMeta();
+	    	}
+	    	if (nominalVariable) {
+	    		nominalVariable();
 	    	}
 	    } catch (Exception e) {
 		    e.printStackTrace();
