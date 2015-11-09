@@ -1154,7 +1154,6 @@ public class Project {
 	    this.progressMonitor = new ProgressMonitor(progBar, this.log);
 	}
 
-	
 	/**
 	 *	Reports message to the log and if and only if a GUI is being used, it also creates a message dialog as well
 	 * 
