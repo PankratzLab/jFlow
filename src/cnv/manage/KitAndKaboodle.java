@@ -11,6 +11,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 
 import cnv.Launch;
+import cnv.analysis.Mosaicism;
 import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsCompute;
@@ -894,11 +895,9 @@ public class KitAndKaboodle {
             String gcBaseFile = ((JTextField)variableFields.get(this).get(0)).getText().trim();
             String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
             String gcOutputFile = ((JTextField)variableFields.get(this).get(1)).getText().trim();
-
             if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
                 proj.GC_MODEL_FILENAME.setValue(gcOutputFile);
             }
-            
             cnv.analysis.PennCNV.gcModel(proj, gcBaseFile, gcOutputFile, 100);
         }
         @Override
@@ -918,7 +917,58 @@ public class KitAndKaboodle {
             return gcExists;
         }
     };
-    static final STEP S14_CREATE_MT_CN_EST = new STEP("Create Mitochondrial Copy-Number Estimates File", 
+    
+    static final STEP S14_MOSAIC_ARMS = new STEP("Create Mosaic Arms File", 
+                                                 "", 
+                                                 new String[][]{
+                                                        {"A MarkerSet file must already exist."}, 
+                                                        {"Number of Threads to Use"}},
+                                                 new RequirementInputType[][]{
+                                                        {RequirementInputType.FILE}, 
+                                                        {RequirementInputType.INT}}) {
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
+            String mkrPosFile = ((JTextField) variableFields.get(this).get(0)).getText().trim();
+            if (!mkrPosProj.equals(mkrPosFile)) {
+                proj.MARKERSET_FILENAME.setValue(mkrPosFile);
+            }
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(((JTextField) variableFields.get(this).get(4)).getText().trim());
+            } catch (NumberFormatException e) {}
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+                proj.NUM_THREADS.setValue(numThreads);
+            }
+            Mosaicism.findOutliers(proj);
+        }
+        
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            String mkrPosFile = ((JTextField) variableFields.get(this).get(1)).getText().trim();
+            boolean step11 = Files.exists(mkrPosFile);
+            int numThreads = -1;
+            try {
+                numThreads = Integer.parseInt(((JTextField) variableFields.get(this).get(4)).getText().trim());
+            } catch (NumberFormatException e) {}
+            return new boolean[][]{{step11}, {numThreads != -1 && numThreads > 0}};
+        }
+        
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
+            boolean outputCheck = Files.exists(proj.RESULTS_DIRECTORY.getValue(false, false) + "Mosaicism.xln");
+            return outputCheck;
+        }
+        
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            return new Object[]{proj.MARKERSET_FILENAME.getValue(), proj.NUM_THREADS.getValue()};
+        }
+        
+    };
+    
+    static final STEP S15_CREATE_MT_CN_EST = new STEP("Create Mitochondrial Copy-Number Estimates File", 
                         "", 
                         new String[][]{},
                         new RequirementInputType[][]{}) {
@@ -943,7 +993,7 @@ public class KitAndKaboodle {
         }
     };
     
-    static final STEP S15_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
+    static final STEP S16_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
                        "", 
                        new String[][]{},
                        new RequirementInputType[][]{}) {
@@ -1057,8 +1107,9 @@ public class KitAndKaboodle {
         S11_CREATE_PCS,
         S12_COMPUTE_PFB,
         S13_COMPUTE_BAF_GCMODEL,
-        S14_CREATE_MT_CN_EST,
-        S15_SHADOW_SAMPLES
+        S14_MOSAIC_ARMS,
+        S15_CREATE_MT_CN_EST,
+        S16_SHADOW_SAMPLES
     };
     private static STEP[] AFFY_STEPS = {
         S2A_PARSE_SAMPLES,
@@ -1073,8 +1124,9 @@ public class KitAndKaboodle {
         S11_CREATE_PCS,
         S12_COMPUTE_PFB,
         S13_COMPUTE_BAF_GCMODEL,
-        S14_CREATE_MT_CN_EST,
-        S15_SHADOW_SAMPLES
+        S14_MOSAIC_ARMS,
+        S15_CREATE_MT_CN_EST,
+        S16_SHADOW_SAMPLES
     };
     
     public static STEP[] getStepsForProject(Project proj) {
