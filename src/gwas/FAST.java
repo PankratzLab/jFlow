@@ -1050,6 +1050,7 @@ public class FAST {
 		                "   (3) Full-path to the directory in which you want to run these scripts (must include a folder named 'output') (i.e. rundir=" + run + " (default))\n" +
 		                "   (4) -prep flag\n" +
 	                    "   (5) OPTIONAL: -run flag to run FAST analyses after preparing FAST scripts\n" + 
+		                "   (6) OPTIONAL: specify the batch queue through which to run qsub files (i.e. qsub=" + qsub + " (default))" +
 		                " OR: \n" +
 		                "   (1) Path to population folder containing sub-folders for FAST analyses (i.e. rundir=~/FAST/ARIC/ (not the default))\n" +
 		                "   (2) Data file defining input files, in tab-delimited format (i.e. data=data.txt (not the default))\n" +

@@ -844,10 +844,10 @@ public class KitAndKaboodle {
                 proj.SAMPLELIST_FILENAME.setValue(sampListFile);
             }
             if (!ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
-                proj.SAMPLE_SUBSET_FILENAME.setValue(sampListFile);
+                proj.SAMPLE_SUBSET_FILENAME.setValue(subSampFile);
             }
             if (!ext.verifyDirFormat(setPFBFile).equals(pfbOutputFile)) {
-                proj.CUSTOM_PFB_FILENAME.setValue(sampListFile);
+                proj.CUSTOM_PFB_FILENAME.setValue(pfbOutputFile);
             }
             cnv.analysis.PennCNV.populationBAF(proj);
         }
@@ -936,7 +936,7 @@ public class KitAndKaboodle {
             }
             int numThreads = proj.NUM_THREADS.getValue();
             try {
-                numThreads = Integer.parseInt(((JTextField) variableFields.get(this).get(4)).getText().trim());
+                numThreads = Integer.parseInt(((JTextField) variableFields.get(this).get(1)).getText().trim());
             } catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
                 proj.NUM_THREADS.setValue(numThreads);
@@ -946,11 +946,11 @@ public class KitAndKaboodle {
         
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, JCheckBox> checkBoxes, HashMap<STEP, ArrayList<? extends JComponent>> variableFields) {
-            String mkrPosFile = ((JTextField) variableFields.get(this).get(1)).getText().trim();
+            String mkrPosFile = ((JTextField) variableFields.get(this).get(0)).getText().trim();
             boolean step11 = Files.exists(mkrPosFile);
             int numThreads = -1;
             try {
-                numThreads = Integer.parseInt(((JTextField) variableFields.get(this).get(4)).getText().trim());
+                numThreads = Integer.parseInt(((JTextField) variableFields.get(this).get(1)).getText().trim());
             } catch (NumberFormatException e) {}
             return new boolean[][]{{step11}, {numThreads != -1 && numThreads > 0}};
         }
