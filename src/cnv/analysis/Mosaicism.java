@@ -7,7 +7,6 @@ import java.util.concurrent.Callable;
 
 import javax.swing.JOptionPane;
 
-import link.init.maleHets;
 import cnv.analysis.MosaicismDetect.MosaicBuilder;
 import cnv.filesys.*;
 import cnv.plots.MosaicPlot;
@@ -218,12 +217,13 @@ public class Mosaicism {
 	}
 
 	private static double[] getMosiacMetric(MosaicismDetect md, Segment seg) {
+		
 		LocusSet<MosaicRegion> tmp = md.callMosaic(seg, false);
 		if (tmp.getLoci().length < 1 || seg.getChr() >= 23) {
 			return new double[] { 0, 0 };
 		} else {
 			double[] metrics = new double[] { 0, 0 };
-			double maxBpMetric = -1 * Double.MAX_VALUE;
+			//double maxBpMetric = -1 * Double.MAX_VALUE;
 			int numCounted = 0;
 			int numTotalMarkers = 0;
 			for (int i = 0; i < tmp.getLoci().length; i++) {
@@ -231,7 +231,7 @@ public class Mosaicism {
 					numCounted++;
 					double percentHere = (double) tmp.getLoci()[i].getSize() / seg.getSize();
 					numTotalMarkers += tmp.getLoci()[i].getNumMarkers();
-					maxBpMetric = tmp.getLoci()[i].getBpWeightedScore();
+					//maxBpMetric = tmp.getLoci()[i].getBpWeightedScore();
 					metrics[0] += Math.log10((double) tmp.getLoci()[i].getNumMarkers() * percentHere * tmp.getLoci()[i].getBpWeightedScore());
 					metrics[1] += tmp.getLoci()[i].getNearestStateScore();
 				}

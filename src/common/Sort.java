@@ -854,30 +854,34 @@ public class Sort {
 
 	private static int[] trickSortOrderTwoLayers(byte[] first, int[] second, boolean verbose, Logger log) {
 		BII[] biisSorted = trickSortTwoLayers(first, second, verbose, log);
-		int[] order = new int[biisSorted.length];
-		byte tmpFirst = biisSorted[0].getB();
-		int tmpSecond = biisSorted[0].getI();
-		for (int i = 0; i < order.length; i++) {
-			// TODO, these checks are because I am not positive of the Comparator implementation
-			if (biisSorted[i].getB() < tmpFirst) {
-				String error = "Invalid sorting of two layers";
-				log.reportTimeError(error);
-				throw new IllegalStateException(error);
+		if (biisSorted.length > 0) {
+			int[] order = new int[biisSorted.length];
+			byte tmpFirst = biisSorted[0].getB();
+			int tmpSecond = biisSorted[0].getI();
+			for (int i = 0; i < order.length; i++) {
+				// TODO, these checks are because I am not positive of the Comparator implementation
+				if (biisSorted[i].getB() < tmpFirst) {
+					String error = "Invalid sorting of two layers";
+					log.reportTimeError(error);
+					throw new IllegalStateException(error);
+				}
+				if (biisSorted[i].getB() > tmpFirst) {
+					tmpFirst = biisSorted[i].getB();
+				}
+				if (biisSorted[i].getI() < tmpSecond) {
+					String error = "Invalid sorting of two layers";
+					log.reportTimeError(error);
+					throw new IllegalStateException(error);
+				}
+				if (biisSorted[i].getI() > tmpSecond) {
+					tmpSecond = biisSorted[i].getB();
+				}
+				order[i] = biisSorted[i].getIndex();
 			}
-			if (biisSorted[i].getB() > tmpFirst) {
-				tmpFirst = biisSorted[i].getB();
-			}
-			if (biisSorted[i].getI() < tmpSecond) {
-				String error = "Invalid sorting of two layers";
-				log.reportTimeError(error);
-				throw new IllegalStateException(error);
-			}
-			if (biisSorted[i].getI() > tmpSecond) {
-				tmpSecond = biisSorted[i].getB();
-			}
-			order[i] = biisSorted[i].getIndex();
+			return order;
+		}else{
+			return new int[]{};
 		}
-		return order;
 	}
 
 	private static BII[] trickSortTwoLayers(byte[] first, int[] second, boolean verbose, Logger log) {

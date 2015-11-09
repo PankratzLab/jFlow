@@ -205,6 +205,10 @@ public class MosaicismQuant implements Calcfc {
 	}
 
 	public static SampleMosiac prep(Project proj, String sampleName, String qcMetric, int numControls) {
+		if (numControls > proj.getSamples().length - 1) {
+			proj.getLog().reportTimeWarning("Only have " + proj.getSamples().length + " total samples, changing number of controls to " + (proj.getSamples().length - 1));
+			numControls = proj.getSamples().length - 1;
+		}
 		SampleMosiacBase[] controls = new SampleMosiacBase[numControls];
 		int sampleIndex = ext.indexOfStr(sampleName, proj.getSamples());
 		SampleQC sampleQC = SampleQC.loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, new String[] { qcMetric }, true);
@@ -212,7 +216,13 @@ public class MosaicismQuant implements Calcfc {
 		int[] sorted = Sort.quicksort(data);
 		int sampleSortIndex = ext.indexOfStr(sampleIndex + "", Array.toStringArray(sorted));
 		int minIndex = Math.max(0, sampleSortIndex - numControls);
+		if (sampleSortIndex == minIndex) {
+			minIndex++;
+		}
 		int maxIndex = Math.min(proj.getSamples().length, sampleSortIndex + numControls);
+		if (sampleSortIndex == maxIndex) {
+			maxIndex--;
+		}
 		ArrayList<Double> controlData = new ArrayList<Double>();
 		ArrayList<String> controlDataNames = new ArrayList<String>();
 
@@ -223,8 +233,14 @@ public class MosaicismQuant implements Calcfc {
 				controlDataNames.add(proj.getSamples()[sorted[i]]);
 			}
 		}
+		if (minIndex == maxIndex) {
+			controlData.add(data[sorted[minIndex]]);
+			controlDataNames.add(proj.getSamples()[sorted[minIndex]]);
+		}
+
 		double[] distanceToSample = Array.InplaceAbs(Array.InplaceSub(Array.toDoubleArray(controlData), sampData));
 		int[] minDists = Sort.quicksort(distanceToSample);
+
 		for (int i = 0; i < controls.length; i++) {
 			int index = minDists[i];
 			SampleMosiacBase control = new SampleMosiacBase(proj, controlDataNames.get(index), qcMetric, controlData.get(index), distanceToSample[index], true);
@@ -636,7 +652,7 @@ public class MosaicismQuant implements Calcfc {
 					MosaicismQuant mosiacismQuant = new MosaicismQuant(proj, sampleMosiac, types[j], params, bins.getLoci()[i], markerSet, indices);
 					mosiacismQuant.prepareMosiacQuant(1, MIN_BAF, MAX_BAF);
 					numMarkers[j][i] = mosiacismQuant.getSampleMosiac().getCdf().getVals().length;
-					//System.out.println("Num Markers\t" + numMarkers[j][i]);
+					// System.out.println("Num Markers\t" + numMarkers[j][i]);
 					if (numMarkers[j][i] > 0) {
 						double[] x = params.getX();
 						CobylaExitStatus cobylaExitStatus = Cobyla.FindMinimum(mosiacismQuant, params.getX().length, params.getCon().length, x, params.getX_Bounds(), 100, .001, 0, 50000);

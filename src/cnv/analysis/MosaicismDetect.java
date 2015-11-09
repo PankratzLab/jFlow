@@ -15,7 +15,6 @@ import cnv.var.CNVariant;
 import cnv.var.LocusSet;
 import cnv.var.LocusSet.TO_STRING_TYPE;
 import cnv.var.MosaicRegion;
-import cnv.var.SampleData;
 import filesys.Segment;
 import cnv.var.CNVariant.CNVBuilder;
 
@@ -29,7 +28,7 @@ public class MosaicismDetect {
 	private static final int DEFAULT_MOVING_FACTOR = 25;
 	private static final double DEFAULT_NULL_SIGMA = 2;
 	private static final double DEFAULT_BASELINE = -1;
-	private static final double DEFAULT_MIN_PERCENT_STATES = 0.05;
+	//private static final double DEFAULT_MIN_PERCENT_STATES = 0.05;
 
 	private Project proj;
 	private String sample;
