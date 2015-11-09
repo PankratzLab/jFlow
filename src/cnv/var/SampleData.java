@@ -3,6 +3,8 @@ package cnv.var;
 import java.io.*;
 import java.util.*;
 
+import javax.swing.SwingUtilities;
+
 import cnv.filesys.Project;
 import common.*;
 import filesys.Segment;
@@ -406,7 +408,7 @@ public class SampleData {
 			}
 		}
 		if (missingFiles.size() > 0) {
-			proj.message("The following CNV "+(missingFiles.size() > 1?"files do not":"file does not")+" exist and therefore "+(missingFiles.size() > 1?"were":"was")+" not loaded:\n     "+Array.toStr(Array.toStringArray(missingFiles), "\n     ")+"\n\nTo prevent this message in the future, either find "+(missingFiles.size() > 1?"these files \n     or remove them":"this file \n     or remove it")+" from CNV_FILENAMES under CNV Files in Project Properties");
+			warnMissingFiles(proj, missingFiles);
 		}
 		
 		time = new Date().getTime();
@@ -433,7 +435,21 @@ public class SampleData {
         }
 		System.out.println("Added CNV data in "+ext.getTimeElapsed(time));
 	}
-	
+
+	/**
+	 * Popped this warning into a new Thread
+	 */
+	private static void warnMissingFiles(final Project proj, final Vector<String> missingFiles) {
+		Runnable mR = new Runnable() {
+			@Override
+			public void run() {
+				proj.message("The following CNV " + (missingFiles.size() > 1 ? "files do not" : "file does not") + " exist and therefore " + (missingFiles.size() > 1 ? "were" : "was") + " not loaded:\n     " + Array.toStr(Array.toStringArray(missingFiles), "\n     ") + "\n\nTo prevent this message in the future, either find " + (missingFiles.size() > 1 ? "these files \n     or remove them" : "this file \n     or remove it") + " from CNV_FILENAMES under CNV Files in Project Properties");
+
+			}
+		};
+		SwingUtilities.invokeLater(mR);
+	}
+
 	public void loadPlinkFiles(String[] files, boolean jar) {
 	    String[] tempPlinkClasses = new String[files.length];
 	    int cnt = 0;
