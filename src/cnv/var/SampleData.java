@@ -396,12 +396,25 @@ public class SampleData {
 		String[] inds;
 		String trav;
 		long time;
+		Vector<String> missingFiles = new Vector<String>();
+		
+		for (int i = 0; i < files.length; i++) {
+			if (!Files.exists(files[i], proj.JAR_STATUS.getValue())) {
+				missingFiles.add(files[i]);
+				files = Array.removeFromArray(files, i);
+				i--;
+			}
+		}
+		if (missingFiles.size() > 0) {
+			proj.message("The following CNV "+(missingFiles.size() > 1?"files do not":"file does not")+" exist and therefore "+(missingFiles.size() > 1?"were":"was")+" not loaded:\n     "+Array.toStr(Array.toStringArray(missingFiles), "\n     ")+"\n\nTo prevent this message in the future, either find "+(missingFiles.size() > 1?"these files \n     or remove them":"this file \n     or remove it")+" from CNV_FILENAMES under CNV Files in Project Properties");
+		}
 		
 		time = new Date().getTime();
 		cnvClasses = new String[files.length];
 		cnvhs = new CNVariantHash[files.length];
 		for (int i = 0; i<files.length; i++) {
 			cnvClasses[i] = ext.rootOf(files[i]);
+			System.out.println(i+"\t"+cnvClasses[i]);
 			cnvhs[i] = CNVariantHash.load(files[i], CNVariantHash.CONSTRUCT_BY_IND, jar);
 		}
 		System.out.println("Read in CNV data in "+ext.getTimeElapsed(time));

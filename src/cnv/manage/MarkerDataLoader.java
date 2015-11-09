@@ -487,10 +487,10 @@ public class MarkerDataLoader implements Runnable {
 			file.close();
 		} catch (FileNotFoundException e) {
 			log.reportError("Error - could not find RAF marker file '"+currentMarkFilename+"'");
-			e.printStackTrace();
-		} catch (IOException e) {
+			log.reportException(e);
+		} catch (IOException ioe) {
 			log.reportError("Error reading RAF marker file '"+currentMarkFilename+"'");
-			e.printStackTrace();
+			log.reportException(ioe);
 		}
 
 		isGcNull = Sample.isGcNull(nullStatus);
