@@ -343,6 +343,7 @@ public class SeqMeta {
 			return;
 		}
 		
+		new File("chunks/").mkdir();
 		if (jobNames.size() > 0) { 
 			Files.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkSplit", 24, 62000, 2);
 		} else {
@@ -636,6 +637,7 @@ public class SeqMeta {
 		} else {
 			log.report("There are "+jobNames.size()+" individual cohort analyses yet to be run using:   qsub chunkRun.pbs");
 		}
+		new File("chunks/").mkdir();
 		Files.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkRun", 24, 62000, 24);
 		
 		jobNames = new Vector<String>();

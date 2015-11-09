@@ -39,7 +39,7 @@ public class CreateDatabaseFromPlink {
         int[] positions;
         String delimiter;
         
-        params = Files.parseControlFile(filename, false, "plink", new String[] {"plink.ped", "plink.map", "plink.frq", "newDatabase.xln labelAlleles=false listPositions=false displayNotes=false maskModel=false maskFamID=false maskSex=false maskAffectionStatus=false allMarkers=false commaDelimited=false", "rs11550605\tADD", "rs10808555\tREC ADD note=CriticalMutation", "rs7837328\tADD DOM REC", "rs3730881\tADD DOM"}, log);
+        params = Files.parseControlFile(filename, false, "plink", new String[] {"plink.ped", "plink.map", "plink.frq", "newDatabase.xln labelAlleles=false listPositions=false displayNotes=false maskModel=true maskFamID=false maskSex=false maskAffectionStatus=false allMarkers=true commaDelimited=false", "# The following are examples if you just want a few markers from the file instead of all", "# rs11550605\tADD", "# rs10808555\tREC ADD note=CriticalMutation", "# rs7837328\tADD DOM REC", "# rs3730881\tADD DOM"}, log);
         
         if (params == null) {
         	return;
