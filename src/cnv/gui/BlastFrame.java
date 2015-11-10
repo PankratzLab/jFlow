@@ -37,12 +37,15 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import common.Array;
+import scala.collection.mutable.HashSet;
 import seq.manage.ReferenceGenome;
 import cnv.annotation.MarkerBlastAnnotation;
 import cnv.annotation.MarkerSeqAnnotation;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
+import cnv.filesys.Sample;
 import filesys.Segment;
 import net.miginfocom.swing.MigLayout;
 
@@ -326,6 +329,54 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         });
     }
     
+    private String getAB(int chr, int loc) {
+//        chr = this.referenceAnnotation.getSeg().getChr();
+//        loc = this.referenceAnnotation.getSeg().getStart();
+        String abCode = null;
+        String[] samples = proj.getSamples();
+        MarkerSet markerSet = proj.getMarkerSet();
+        // TODO alter 'loc' to reflect position of next allele after PROBE_SEQ
+        int[] mkrPoss = markerSet.getPositionsByChr()[chr];
+        int pos = Array.binarySearch(mkrPoss, loc, true);
+        if (pos != -1) {
+            int mkrInd = markerSet.getIndicesByChr()[chr][pos];
+            HashSet<String> alleleSet1 = new HashSet<String>();
+            HashSet<String> alleleSet2 = new HashSet<String>();
+            for (String sample : samples) {
+                Sample samp = proj.getPartialSampleFromRandomAccessFile(sample, false, false, false, false, true); // TODO should be cached?
+                byte[] geno = samp.getForwardGenotypes();
+                if (geno != null) {
+                    String alPair = Sample.ALLELE_PAIRS[geno[mkrInd]];
+                    alleleSet1.add("" + alPair.charAt(0));
+                    alleleSet2.add("" + alPair.charAt(1));                    
+                }
+            }
+            boolean a1_A = alleleSet1.contains("A");
+            boolean a1_C = alleleSet1.contains("C");
+            boolean a1_T = alleleSet1.contains("T");
+            boolean a1_G = alleleSet1.contains("G");
+            boolean a2_A = alleleSet1.contains("A");
+            boolean a2_C = alleleSet1.contains("C");
+            boolean a2_T = alleleSet1.contains("T");
+            boolean a2_G = alleleSet1.contains("G");
+            
+            boolean a1_AT = a1_A || a1_T;
+            boolean a1_CG = a1_C || a1_G;
+            boolean a2_AT = a2_A || a2_T;
+            boolean a2_CG = a2_C || a2_G;
+            if (a1_AT && !a1_CG && !a2_AT && a2_CG) {
+                abCode = "AB";
+            } else if (!a1_AT && a1_CG && a2_AT && !a2_CG) {
+                abCode = "BA";
+            }
+            // TODO verify AB encoding
+        } else {
+            // TODO couldn't find position of next base - should log?
+            abCode = "";
+        }
+        return abCode;
+    }
+    
     public void updateLabels() {
         BlastLabel.spaces = new TreeSet<Integer>();
         BlastLabel.spaceSets = new TreeMap<Integer, Integer>();
@@ -348,6 +399,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                 return res1;
             }
         });
+
         
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -395,7 +447,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     }
 
     private JPanel getHeaderPanel() {
-        JPanel hdrPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow]", "[][]")); // TODO
+        JPanel hdrPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow]", "[][]")); 
         hdrPanel.setBorder(null);
         locationLbl = new JLabel();
         Font lblFont = Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
