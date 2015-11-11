@@ -34,17 +34,17 @@ public class Pathways implements Serializable {
 	private static final String REF_SEQ_GENE_LINK = "http://rest.genome.jp/link/refnuc/";
 	private static final String PATH = "path";
 	private Pathway[] pathways;
-	private Logger log;
+	//private Logger log;
 
 	public Pathways(Logger log) {
 		super();
-		this.log = log;
+		//this.log = log;
 	}
 
 	public Pathways(Pathway[] pathways, Logger log) {
 		super();
 		this.pathways = pathways;
-		this.log = log;
+		//this.log = log;
 	}
 
 	public Pathway[] getPathways() {

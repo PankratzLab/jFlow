@@ -1,9 +1,6 @@
 package seq.analysis;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Hashtable;
@@ -28,7 +25,6 @@ import common.HashVec;
 import common.Logger;
 import common.Positions;
 import common.ext;
-import filesys.GeneData;
 import filesys.GeneTrack;
 
 /**
@@ -272,24 +268,24 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 
 	}
 
-	private void loadFromFile(String fullPathToOutput) {
-		initializeTrackers();
-		try {
-			BufferedReader reader = Files.getAppropriateReader(fullPathToOutput);
-			String[] header = reader.readLine().trim().split("\t");
-
-			while (reader.ready()) {
-
-			}
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + fullPathToOutput + "\" not found in current directory");
-			return;
-		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + fullPathToOutput + "\"");
-			return;
-		}
-	}
+//	private void loadFromFile(String fullPathToOutput) {
+//		initializeTrackers();
+//		try {
+//			BufferedReader reader = Files.getAppropriateReader(fullPathToOutput);
+//			String[] header = reader.readLine().trim().split("\t");
+//
+//			while (reader.ready()) {
+//
+//			}
+//			reader.close();
+//		} catch (FileNotFoundException fnfe) {
+//			log.reportError("Error: file \"" + fullPathToOutput + "\" not found in current directory");
+//			return;
+//		} catch (IOException ioe) {
+//			log.reportError("Error reading file \"" + fullPathToOutput + "\"");
+//			return;
+//		}
+//	}
 
 	public static void test(String vcf, String[] vpopFiles) {
 
@@ -337,8 +333,8 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 		String vcf = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.vcf";
 		String[] vpopFiles = new String[] { "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControl.txt", "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_Spector_Joint/vcf/pseqProj_tsai_spector_joint_AgilentCaptureRecal/vPopCaseControlAllRaces.txt" };
 
-		String logfile = null;
-		Logger log;
+//		String logfile = null;
+//		Logger log;
 		String usage = "\n" + "seq.analysis.VCFTallyPSeq requires 0-1 arguments\n";
 		usage += "   (1) vcf file (i.e. file=" + vcf + " (default))\n" + "";
 		usage += "   (2) vpop files, comma delimited (i.e. vpop=" + Array.toStr(vpopFiles) + " (default))\n" + "";
@@ -353,10 +349,12 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 			} else if (args[i].startsWith("vpop=")) {
 				vpopFiles = args[i].split("=")[1].split(",");
 				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
-				numArgs--;
-			} else {
+			} 
+//			else if (args[i].startsWith("log=")) {
+//				logfile = args[i].split("=")[1];
+//				numArgs--;
+//			}
+			else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
@@ -365,7 +363,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(logfile);
+		//	log = new Logger(logfile);
 			test(vcf, vpopFiles);
 		} catch (Exception e) {
 			e.printStackTrace();

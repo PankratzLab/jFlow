@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -263,27 +262,27 @@ public class IntensityCorrectionQC {
 		}
 	}
 
-	private static class WorkerICC implements Callable<CrossValidation> {
-		private PrincipalComponentsResiduals principalComponentsResiduals;
-		private double[] data;
-		private boolean[] samplesTobuildModel;
-		private int clusterComponent;
-		private boolean svdRegression;
-		private String title;
-
-		public WorkerICC(PrincipalComponentsResiduals principalComponentsResiduals, double[] data, boolean[] samplesTobuildModel, int clusterComponent, boolean svdRegression, String title, Logger log) {
-			this.principalComponentsResiduals = principalComponentsResiduals;
-			this.data = data;
-			this.samplesTobuildModel = samplesTobuildModel;
-			this.clusterComponent = clusterComponent;
-			this.svdRegression = svdRegression;
-			this.title = title;
-		}
-
-		public CrossValidation call() {
-			return this.principalComponentsResiduals.getCorrectedDataAt(this.data, this.samplesTobuildModel, this.clusterComponent, this.svdRegression, this.title, true);
-		}
-	}
+//	private static class WorkerICC implements Callable<CrossValidation> {
+//		private PrincipalComponentsResiduals principalComponentsResiduals;
+//		private double[] data;
+//		private boolean[] samplesTobuildModel;
+//		private int clusterComponent;
+//		private boolean svdRegression;
+//		private String title;
+//
+//		public WorkerICC(PrincipalComponentsResiduals principalComponentsResiduals, double[] data, boolean[] samplesTobuildModel, int clusterComponent, boolean svdRegression, String title, Logger log) {
+//			this.principalComponentsResiduals = principalComponentsResiduals;
+//			this.data = data;
+//			this.samplesTobuildModel = samplesTobuildModel;
+//			this.clusterComponent = clusterComponent;
+//			this.svdRegression = svdRegression;
+//			this.title = title;
+//		}
+//
+//		public CrossValidation call() {
+//			return this.principalComponentsResiduals.getCorrectedDataAt(this.data, this.samplesTobuildModel, this.clusterComponent, this.svdRegression, this.title, true);
+//		}
+//	}
 
 	public static void dumpToText(Project proj, String dir) {
 		String[] batches = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".icc", false);

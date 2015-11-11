@@ -205,8 +205,8 @@ public class BamImport {
 		int numthreads = 24;
 		int captureBuffer = 400;
 		// String referenceGenomeFasta = "hg19_canonical.fa";
-		String logfile = null;
-		Logger log;
+		//String logfile = null;
+		//Logger log;
 
 		String usage = "\n" + "seq.manage.BamImport requires 0-1 arguments\n";
 		usage += "(1) filename (i.e. proj= ( nodefault))\n" + "";
@@ -232,10 +232,12 @@ public class BamImport {
 			} else if (args[i].startsWith(Ext.NUM_THREADS_COMMAND)) {
 				numthreads = ext.parseIntArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
-				numArgs--;
-			} else {
+			} 
+//			else if (args[i].startsWith("log=")) {
+//				logfile = args[i].split("=")[1];
+//				numArgs--;
+//			} 
+			else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
@@ -244,7 +246,7 @@ public class BamImport {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(logfile);
+			//log = new Logger(logfile);
 			Project proj = new Project(filename, false);
 			importTheWholeBamProject(proj, binBed, captureBed, captureBuffer, numthreads);
 		} catch (Exception e) {

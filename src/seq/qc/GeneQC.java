@@ -44,22 +44,22 @@ public class GeneQC {
 
 	private void initializeSummaries() {
 		for (int i = 0; i < genes.getLoci().length; i++) {
-			int totalMrna = 0;
-			int mrnaNoUtrs = 0;
+			//int totalMrna = 0;
+			//int mrnaNoUtrs = 0;
 			for (int j = 0; j < genes.getLoci()[i].getExonBoundaries().length; j++) {
 				Segment exon = new Segment(genes.getLoci()[i].getChr(), genes.getLoci()[i].getExonBoundaries()[j][0], genes.getLoci()[i].getExonBoundaries()[j][1]);
-				totalMrna += exon.getSize();
-				mrnaNoUtrs += exon.getSize();
+				//totalMrna += exon.getSize();
+				//mrnaNoUtrs += exon.getSize();
 				Segment[] utrsOlap = utrs.getOverLappingLoci(exon);
 				if (utrsOlap != null) {
 					Vector<Segment> mergedUtrs = Segment.toVector(utrsOlap);
 					Segment.mergeOverlapsAndSort(mergedUtrs);
 					for (int k = 0; k < mergedUtrs.size(); k++) {
-						mrnaNoUtrs -= exon.getIntersection(mergedUtrs.get(k), log).getSize();
+					//	mrnaNoUtrs -= exon.getIntersection(mergedUtrs.get(k), log).getSize();
 					}
 				}
 			}
-			geneSummaries[i] = new GeneSummary(genes.getLoci()[i].getGeneName(), genes.getLoci()[i].getExonBoundaries().length, genes.getLoci()[i].getNcbiAssessionNumbers().length, totalMrna, mrnaNoUtrs);
+		//	geneSummaries[i] = new GeneSummary(genes.getLoci()[i].getGeneName(), genes.getLoci()[i].getExonBoundaries().length, genes.getLoci()[i].getNcbiAssessionNumbers().length, totalMrna, mrnaNoUtrs);
 		}
 	}
 
@@ -132,7 +132,7 @@ public class GeneQC {
 				numMrnaNonUTR.add(Integer.parseInt(toSumm[i][7]));
 				curIndex++;
 			} else {
-				int in = index.get(toSumm[i][0]);
+			//	int in = index.get(toSumm[i][0]);
 				// numMrnaTotal.get(in)
 			}
 
@@ -146,71 +146,29 @@ public class GeneQC {
 	}
 
 	private static class GeneSummary {
-		private static final String[] SUMMARY = new String[] { "Gene", "NumExons", "numIsoForms", "TotalMrna", "TotalMrnaMinusUTR", "CoveredMrna", "CoveredMrnaNoUtrs" };
-		private String geneName;
-		private int numExons;
-		private int numIsoForms;
-		private int totalMrna;
-		private int mrnaNoUtrs;
-		private int coveredMrna;
-		private int coveredMrnaNoUTRS;
-		private ArrayList<Segment> utrsAdded;
+		//private static final String[] SUMMARY = new String[] { "Gene", "NumExons", "numIsoForms", "TotalMrna", "TotalMrnaMinusUTR", "CoveredMrna", "CoveredMrnaNoUtrs" };
+//		private String geneName;
+//		private int numExons;
+//		private int numIsoForms;
+//		private int totalMrna;
+//		private int mrnaNoUtrs;
+//		private int coveredMrna;
+//		private int coveredMrnaNoUTRS;
+//		private ArrayList<Segment> utrsAdded;
+//
+//		public GeneSummary(String geneName, int numExons, int numIsoForms, int totalMrna, int mrnaNoUtrs) {
+//			super();
+//			this.geneName = geneName;
+//			this.numExons = numExons;
+//			this.numIsoForms = numIsoForms;
+//			this.totalMrna = totalMrna;
+//			this.mrnaNoUtrs = mrnaNoUtrs;
+//			this.coveredMrna = 0;
+//			this.coveredMrnaNoUTRS = 0;
+//			this.utrsAdded = new ArrayList<Segment>();
+//		}
 
-		public GeneSummary(String geneName, int numExons, int numIsoForms, int totalMrna, int mrnaNoUtrs) {
-			super();
-			this.geneName = geneName;
-			this.numExons = numExons;
-			this.numIsoForms = numIsoForms;
-			this.totalMrna = totalMrna;
-			this.mrnaNoUtrs = mrnaNoUtrs;
-			this.coveredMrna = 0;
-			this.coveredMrnaNoUTRS = 0;
-			this.utrsAdded = new ArrayList<Segment>();
-		}
-
-		public String getSummary() {
-			return geneName + "\t" + numExons + "\t" + numIsoForms + "\t" + totalMrna + "\t" + mrnaNoUtrs + "\t" + coveredMrna + "\t" + coveredMrnaNoUTRS;
-		}
-
-		public String getGeneName() {
-			return geneName;
-		}
-
-		public void setGeneName(String geneName) {
-			this.geneName = geneName;
-		}
-
-		public int getTotalMrna() {
-			return totalMrna;
-		}
-
-		public void setTotalMrna(int totalMrna) {
-			this.totalMrna = totalMrna;
-		}
-
-		public int getMrnaNoUtrs() {
-			return mrnaNoUtrs;
-		}
-
-		public void setMrnaNoUtrs(int mrnaNoUtrs) {
-			this.mrnaNoUtrs = mrnaNoUtrs;
-		}
-
-		public int getCoveredMrna() {
-			return coveredMrna;
-		}
-
-		public void setCoveredMrna(int coveredMrna) {
-			this.coveredMrna = coveredMrna;
-		}
-
-		public int getCoveredMrnaNoUTRS() {
-			return coveredMrnaNoUTRS;
-		}
-
-		public void setCoveredMrnaNoUTRS(int coveredMrnaNoUTRS) {
-			this.coveredMrnaNoUTRS = coveredMrnaNoUTRS;
-		}
+		
 
 	}
 

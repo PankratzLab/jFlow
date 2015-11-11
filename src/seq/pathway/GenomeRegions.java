@@ -22,6 +22,10 @@ public class GenomeRegions implements Serializable {
 		this.log = log;
 	}
 
+	public Logger getLog() {
+		return log;
+	}
+
 	public GeneTrack getGeneTrack() {
 		return geneTrack;
 	}

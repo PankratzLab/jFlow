@@ -192,7 +192,7 @@ public class VCOps {
 	}
 
 	public static Segment getSegment(VariantContext vc) {
-		return new Segment(Positions.chromosomeNumber(vc.getChr()), vc.getStart(), vc.getStart());
+		return new Segment(Positions.chromosomeNumber(vc.getContig()), vc.getStart(), vc.getStart());
 	}
 
 	/**
@@ -767,7 +767,7 @@ public class VCOps {
 		private String id;
 
 		public LocusID(VariantContext vc) {
-			this.chr = Positions.chromosomeNumber(vc.getChr());
+			this.chr = Positions.chromosomeNumber(vc.getContig());
 			this.start = vc.getStart();
 			this.ref = vc.getReference().getDisplayString();
 			this.alt = vc.getAltAlleleWithHighestAlleleCount().getDisplayString();

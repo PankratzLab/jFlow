@@ -278,7 +278,7 @@ public class ExomeDepth {
 		private HashSet<String> excludeFromRef;
 		private String script;
 		private String rScriptFile;
-		private boolean fail;
+		//private boolean fail;
 		private Logger log;
 
 		private ExomeDepthAnalysis(String inputBam, String outputDir, String outputRoot, Logger log) {

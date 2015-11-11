@@ -24,11 +24,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+
 
 final class BamExtractor {
 	public static final String BP_BUFFER_COMMAND = "bpBuffer=";
@@ -292,7 +288,7 @@ final class BamExtractor {
 	}
 
 	public static void main(String[] args) {
-		int numArgs = args.length;
+		//int numArgs = args.length;
 		String filename = "D:/data/Project_Tsai_Project_021/testBamExtract/rrd_lane_HapMap_Control_CAGAGAGG-CTCTCTAT.merge.sorted.dedup.realigned.bam";
 		test(filename);
 	}

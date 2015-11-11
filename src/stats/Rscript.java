@@ -365,7 +365,7 @@ public class Rscript {
 		private double angle;
 		private String label;
 		private String color;
-		private int fontSize;
+		//private int fontSize;
 
 		public GeomText(double x, double y,double angle, String label, int fontSize) {
 			super();
@@ -373,7 +373,7 @@ public class Rscript {
 			this.y = y;
 			this.angle = angle;
 			this.label = label;
-			this.fontSize = fontSize;
+			//this.fontSize = fontSize;
 			this.color =null;
 		}
 
@@ -596,7 +596,7 @@ public class Rscript {
 		private SeriesLabeler seriesLabeler;
 		private boolean directLableGtexts, onlyMaxMin;	
 		private ErrorBars errorBars;
-		private String legendName;
+		//private String legendName;
 		private boolean regLines;
 		private boolean scaleDensity;
 		private double midScaleDensity;
@@ -633,7 +633,7 @@ public class Rscript {
 			this.width = 11;
 			this.directLableGtexts =false;
 			this.onlyMaxMin = false;
-			this.legendName = "variable";
+			// this.legendName = "variable";
 			this.regLines = false;
 			this.midScaleDensity=.5;
 		}

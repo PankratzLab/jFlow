@@ -261,7 +261,7 @@ public class Mappability<SEGMENT extends Segment> {
 		private Logger log;
 		private double cumulativeMapScore;
 		private int numBases;
-		private int calledOnCount = 0;
+		//private int calledOnCount = 0;
 		private double averageMapScore;
 		private String[] subsetNames;
 		private SEGMENT t;
@@ -296,7 +296,7 @@ public class Mappability<SEGMENT extends Segment> {
 			HashSet<String> subsetNamesAl = new HashSet<String>();
 			this.numBases = 0;
 			double currentScore = -1;
-			int calledOnCount = 0;
+			//int calledOnCount = 0;
 			while (iterator.hasNext()) {
 				BEDFeature bedFeature = iterator.next();
 				Segment bedSeg = BedOps.getSegment(bedFeature, log);
@@ -330,7 +330,7 @@ public class Mappability<SEGMENT extends Segment> {
 						Segment calledUnion = union.getIntersection(called[i], log);
 						numBases += calledUnion.getSize();
 						tmpMap *= calledUnion.getSize();
-						calledOnCount++;
+						//calledOnCount++;
 						if (currentScore > 0) {
 							currentScore += tmpMap;
 						} else {
@@ -340,7 +340,7 @@ public class Mappability<SEGMENT extends Segment> {
 
 				}
 			}
-			this.calledOnCount = calledOnCount;
+			//this.calledOnCount = calledOnCount;
 			this.cumulativeMapScore = currentScore;
 			this.averageMapScore = (double) cumulativeMapScore / numBases;
 			this.subsetNames = subsetNamesAl.toArray(new String[subsetNamesAl.size()]);

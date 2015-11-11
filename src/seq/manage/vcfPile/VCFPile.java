@@ -36,6 +36,10 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 		this.log = log;
 	}
 
+	public String getVcfFile() {
+		return vcfFile;
+	}
+
 	@Override
 	public boolean hasNext() {
 		// TODO Auto-generated method stub
@@ -114,8 +118,8 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 
 		String outputDirectory = null;
 
-		String logfile = null;
-		Logger log;
+		//String logfile = null;
+		//Logger log;
 
 		String usage = "\n" + "seq.manage.vcfPile.VCFPile requires 0-1 arguments\n";
 		usage += "   (1) vcf  (i.e. vcf=" + vcfFile + " (default))\n" + "";
@@ -139,10 +143,12 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 			} else if (args[i].startsWith(PSF.Ext.OUTPUT_DIR_COMMAND)) {
 				outputDirectory = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
-				numArgs--;
-			} else {
+			} 
+//			else if (args[i].startsWith("log=")) {
+//				logfile = args[i].split("=")[1];
+//				numArgs--;
+//			} 
+			else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
@@ -151,7 +157,7 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(logfile);
+		//	log = new Logger(logfile);
 			pileVCF(vcfFile, referenceGenomeFile, regionsFile, outputDirectory);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -97,7 +97,7 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
 		private static final long serialVersionUID = 1L;
 
 		public BEDFeatureSeg(BEDFeature bedFeature, Logger log) {
-			super(bedFeature.getChr(), bedFeature.getStart(), bedFeature.getEnd());
+			super(bedFeature.getContig(), bedFeature.getStart(), bedFeature.getEnd());
 			this.bedFeature = bedFeature;
 		}
 

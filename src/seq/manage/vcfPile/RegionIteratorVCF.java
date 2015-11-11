@@ -32,6 +32,14 @@ public class RegionIteratorVCF<T extends Segment> implements Iterator<VariantCon
 		this.log = log;
 	}
 
+	public Logger getLog() {
+		return log;
+	}
+
+	public String getVcfFile() {
+		return vcfFile;
+	}
+
 	@Override
 	public boolean hasNext() {
 		boolean hasNext = setIndex < set.getLoci().length;

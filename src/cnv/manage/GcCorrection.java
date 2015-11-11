@@ -26,7 +26,7 @@ import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.qc.GcAdjustor;
 import cnv.qc.LrrSd;
-import cnv.qc.MarkerMetrics;
+//import cnv.qc.MarkerMetrics;
 import cnv.qc.GcAdjustor.GcModel;
 
 /**
@@ -251,12 +251,12 @@ public class GcCorrection {
 
 	private static class GcCorrectedSample {
 		private Hashtable<String, Float> outliers;
-		private Sample sample;
+		//private Sample sample;
 
 		public GcCorrectedSample(Hashtable<String, Float> outliers, Sample sample) {
 			super();
 			this.outliers = outliers;
-			this.sample = sample;
+			//this.sample = sample;
 		}
 
 		public Hashtable<String, Float> getOutliers() {

@@ -7,7 +7,6 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import stats.Rscript;
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.PLOT_DEVICE;
 import stats.Rscript.RScatter;
@@ -16,18 +15,13 @@ import stats.Rscript.Restrictions;
 import stats.Rscript.SCATTER_TYPE;
 import common.Array;
 import common.Files;
-import common.WorkerHive;
 import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
 import cnv.analysis.BeastScore;
 import cnv.analysis.MosaicismDetect;
-import cnv.analysis.MosaicismQuant;
 import cnv.analysis.MosaicismDetect.MosaicBuilder;
 import cnv.analysis.MosaicismDetect.MosaicProducer;
-import cnv.analysis.MosaicismQuant.MOSAIC_TYPE;
-import cnv.analysis.MosaicismQuant.MosaicQuantResults;
-import cnv.analysis.MosaicismQuant.MosaicQuantWorker;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
@@ -301,7 +295,7 @@ public class CNVMosaic {
 		private int index;
 		private String[] fidsIids;
 		private SampleData sampleData;
-		private int[][] indicesByChr;
+		//private int[][] indicesByChr;
 
 		public MosaicForceProducer(Project proj, Hashtable<String, LocusSet<CNVariant>> indSets) {
 			super();

@@ -62,7 +62,7 @@ public class DGV_CNV {
 					dgv = false;
 				}
 				int lineNum = 0;
-				String[] header = Files.getHeaderOfFile(filesToParse[i], log);
+				//String[] header = Files.getHeaderOfFile(filesToParse[i], log);
 				while (reader.ready()) {
 					lineNum++;
 					String[] line = reader.readLine().trim().split("\t");
@@ -259,9 +259,11 @@ public class DGV_CNV {
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
 					log.reportError("Error: file \"" + filesToParse[i] + "\" not found in current directory");
+					writer.close();
 					return;
 				} catch (IOException ioe) {
 					log.reportError("Error reading file \"" + filesToParse[i] + "\"");
+					writer.close();
 					return;
 				}
 				System.out.println(filesToParse[i]);

@@ -733,14 +733,14 @@ public class LibraryNGS implements Serializable {
 		private String[] ProbeIDs;
 		private Segment[] baits;
 		private double[] gcContentOfBait;
-		private Logger log;
+		//private Logger log;
 
 		public BaitsLibrary(String[] targetIDs, String[] probeIDs, Segment[] baits, double[] gcContentOfBait, Logger log) {
 			this.targetIDs = targetIDs;
 			this.ProbeIDs = probeIDs;
 			this.baits = baits;
 			this.gcContentOfBait = gcContentOfBait;
-			this.log = log;
+		//	this.log = log;
 		}
 
 		public void mapToLibrary(LibraryNGS libraryNGS, boolean baitsAsTarget) {
