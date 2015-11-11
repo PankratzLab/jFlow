@@ -298,6 +298,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         panel_1 = new JPanel();
         splitPane.setRightComponent(panel_1);
         
+        
         addWindowFocusListener(this);
     }
     
@@ -305,6 +306,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         this.panel_1 = img;
         this.panel_1.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
         splitPane.setRightComponent(this.panel_1);
+        splitPane.setDividerLocation(0.5);
         revalidate();
         repaint();
     }
