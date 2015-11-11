@@ -46,7 +46,7 @@ public class BamImport {
 				if (!bLocusSet.hasNoOverlap()) {
 					ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), log);
 					log.memoryFree();
-					LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(LocusSet.combine(bLocusSet, readerCapture.loadAll(log), true, log).mergeOverlapping(true), 400);
+					LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(LocusSet.combine(bLocusSet, readerCapture.loadAll(log), true, log).mergeOverlapping(true), 4000);
 					log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bins int the anti-on-target regions");
 					log.memoryFree();
 					generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure);
@@ -76,7 +76,7 @@ public class BamImport {
 
 						Hashtable<String, Float> outliers = bamSample.writeSample(fingerPrint);
 						if (outliers.size() > 0) {
-							allOutliers.putAll(allOutliers);
+							allOutliers.putAll(outliers);
 						}
 						index++;
 					}

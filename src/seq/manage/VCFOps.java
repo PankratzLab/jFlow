@@ -1208,7 +1208,28 @@ public class VCFOps {
 			if (Files.isDirectory(bams)) {
 				bamSample = new BamExtractor.BamSample(Files.listFullPaths(bams, ".bam", false), log, true);
 			} else {
-				bamSample = new BamExtractor.BamSample(HashVec.loadFileToStringArray(bams, false, new int[] { 0 }, false), log, true);
+				String[] tmp = null;
+				if (bams.split(",").length > 1) {
+					ArrayList<String> baTmp = new ArrayList<String>();
+					String[] split = bams.split(",");
+					for (int i = 0; i < split.length; i++) {
+						if (Files.isDirectory(split[i])) {
+							String[] dirBams = Files.listFullPaths(split[i], ".bam", false);
+							for (int j = 0; j < dirBams.length; j++) {
+								baTmp.add(dirBams[i]);
+							}
+						} else {
+							String[] fileBams = HashVec.loadFileToStringArray(split[i], false, new int[] { 0 }, false);
+							for (int j = 0; j < fileBams.length; j++) {
+								baTmp.add(fileBams[i]);
+							}
+						}
+					}
+					tmp = Array.toStringArray(baTmp);
+				} else {
+					tmp = HashVec.loadFileToStringArray(bams, false, new int[] { 0 }, false);
+				}
+				bamSample = new BamExtractor.BamSample(tmp, log, true);
 			}
 			bamSample.generateMap();
 			bamSample.getBamSampleMap();
