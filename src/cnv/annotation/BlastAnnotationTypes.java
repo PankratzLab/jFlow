@@ -9,6 +9,7 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 import java.util.ArrayList;
 
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
 import common.Logger;
 import seq.analysis.Blast.BlastResults;
 
@@ -152,6 +153,34 @@ public class BlastAnnotationTypes {
 		return annotations.toArray(new AnnotationData[annotations.size()]);
 	}
 
+	public enum TOP_BOT {
+		TOP, BOT, NA, /**
+		 * For cnvi
+		 */
+		PLUS, /**
+		 * For cnvi
+		 */
+		MINUS;
+	}
+
+	public enum PROBE_TAG {
+
+		A("_A"), B("_B"), /**
+		 * When both the A and B probes have identical sequences
+		 */
+		BOTH("_AB");
+		private String tag;
+
+		private PROBE_TAG(String tag) {
+			this.tag = tag;
+		}
+
+		public String getTag() {
+			return tag;
+		}
+
+	}
+
 	/**
 	 * @author lane0212 Stores the {@link Cigar} string for the blast hit, and the {@link Segment} on the reference genome
 	 */
@@ -159,12 +188,18 @@ public class BlastAnnotationTypes {
 		private Cigar cigar; // positive strand
 		private Segment refLoc;// positvie strand
 		private Strand strand;// original alignment strand
+		private PROBE_TAG tag;// A probe, B probe, or Both
 
-		public BlastAnnotation(Cigar cigar, Segment refLoc, Strand strand) {
+		public BlastAnnotation(Cigar cigar, Segment refLoc, Strand strand, PROBE_TAG tag) {
 			super();
 			this.cigar = cigar;
 			this.refLoc = refLoc;
 			this.strand = strand;
+			this.tag = tag;
+		}
+
+		public PROBE_TAG getTag() {
+			return tag;
 		}
 
 		public Cigar getCigar() {
@@ -182,7 +217,8 @@ public class BlastAnnotationTypes {
 		public static String[] toAnnotationString(BlastAnnotation[] blastAnnotations) {
 			String[] annotations = new String[blastAnnotations.length];
 			for (int i = 0; i < annotations.length; i++) {
-				annotations[i] = blastAnnotations[i].getCigar().toString() + "/" + blastAnnotations[i].getRefLoc().getUCSClocation() + "/" + blastAnnotations[i].getStrand().getEncoding();
+				BlastAnnotation tmp = blastAnnotations[i];
+				annotations[i] = tmp.getCigar().toString() + "/" + tmp.getRefLoc().getUCSClocation() + "/" + tmp.getStrand().getEncoding() + "/" + tmp.getTag();
 			}
 			return annotations;
 		}

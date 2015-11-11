@@ -16,6 +16,7 @@ import common.ArraySpecialList.*;
 import common.Files;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
 import cnv.annotation.LocusAnnotation.Builder;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -99,14 +100,25 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 						if (blastResults.getAlignmentLength() >= minAlignmentLength && blastResults.getGapOpens() <= maxGaps && blastResults.getMismatches() <= maxMismatches) {
 							String marker = blastResults.getQueryID();
+							PROBE_TAG tag = null;
 							if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
-								if (marker.endsWith("_A") || marker.endsWith("_B")) {
-									marker = marker.substring(0, marker.length() - 2);
-								} else {
-									proj.getLog().reportTimeError("Query id did not end with _A or _B which is required for an AFFY array");
-								}
+								if (marker.endsWith(PROBE_TAG.A.getTag()) || marker.endsWith(PROBE_TAG.B.getTag())) {
+									tag = PROBE_TAG.valueOf(marker.substring(marker.length() - 2));
+									marker = marker.substring(0, marker.length() - tag.getTag().length());
 
+								} else {
+									proj.getLog().reportTimeError("Query id did not end with " + PROBE_TAG.A.getTag() + "or " + PROBE_TAG.B.getTag() + " which is required for an AFFY array");
+								}
+							} else if (proj.getArrayType() == ARRAY.ILLUMINA) {
+								try {
+									tag = marker.endsWith(PROBE_TAG.BOTH.getTag()) ? PROBE_TAG.valueOf(marker.substring(marker.length() - PROBE_TAG.BOTH.getTag().length())) : PROBE_TAG.valueOf(marker.substring(marker.length() - 2));
+									marker = marker.substring(0, marker.length() - tag.getTag().length());
+
+								} catch (IllegalArgumentException ile) {
+									proj.getLog().reportTimeError("Query id did not end one of the following which is required for an ILLUMINA array");
+								}
 							}
+							
 							int markerIndex = markerIndices.get(marker);
 
 							Segment markerSeg = anDatas[markerIndex].getSeg().getBufferedSegment(1);
@@ -118,7 +130,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 							for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
 								if (BlastAnnotationTypes.shouldBeAnnotatedAs(proj, blastResults, BLAST_ANNOTATION_TYPES.values()[i], markerSeg, proj.getLog())) {
-									BlastAnnotation blastAnnotation = new BlastAnnotation(CigarOps.convertBtopToCigar(blastResults, seqLength, proj.getLog()), blastResults.getSegment(), blastResults.determineStrand());
+									BlastAnnotation blastAnnotation = new BlastAnnotation(CigarOps.convertBtopToCigar(blastResults, seqLength, proj.getLog()), blastResults.getSegment(), blastResults.determineStrand(), tag);
 									intLists[markerIndex][i].add(blastAnnotation);
 								}
 							}
@@ -175,9 +187,9 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 			}
 			if (markerSeqIndices.containsKey(anDatas[i].getLocusName())) {
 				int seqIndex = markerSeqIndices.get(anDatas[i].getLocusName());
-				MarkerFastaEntry markerFastaEntry = markerFastaEntries[seqIndex];
+				MarkerFastaEntry mfe = markerFastaEntries[seqIndex];
 				MarkerSeqAnnotation markerSeqAnnotation = new MarkerSeqAnnotation();
-				markerSeqAnnotation.setDesignData(markerFastaEntry.getSequence(), markerFastaEntry.getInterrogationPosition(), markerFastaEntry.getStrand());
+				markerSeqAnnotation.setDesignData(mfe.getSequence(), mfe.getInterrogationPosition(), mfe.getStrand(), mfe.getTopBotProbe(), mfe.getTopBotRef());
 				anDatas[i].addAnnotation(markerSeqAnnotation);
 			}
 		}

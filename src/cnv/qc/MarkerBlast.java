@@ -14,8 +14,10 @@ import common.WorkerHive;
 import common.ext;
 import cnv.annotation.AnnotationData;
 import cnv.annotation.AnnotationFileWriter;
+import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
 import cnv.annotation.BlastAnnotationWriter;
 import cnv.annotation.LocusAnnotation;
+import cnv.annotation.BlastAnnotationTypes.TOP_BOT;
 import cnv.annotation.LocusAnnotation.Builder;
 import cnv.annotation.MarkerGCAnnotation;
 import cnv.filesys.MarkerSet;
@@ -224,26 +226,40 @@ public class MarkerBlast {
 			for (int i = 0; i < parser.getDataPresent().length; i++) {
 				if (parser.getDataPresent()[i]) {
 
-					String seq = null;
+					String seqA = null;
+					String segB = null;
 					String markerName = parser.getDataToLoad()[i];
 					Segment markerSegment = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i], markerSet.getPositions()[i]);
 					if (type != FILE_SEQUENCE_TYPE.AFFY_ANNOT) {
-						seq = parser.getStringData()[0][i];
-						String ilmnStrand = parser.getStringData()[1][i];
+						seqA = parser.getStringData()[0][i];
+						segB = parser.getStringData()[1][i];
+						String ilmnStrand = parser.getStringData()[3][i];
 						Strand strand = null;
-						if (ilmnStrand.equals("TOP") || ilmnStrand.equals("PLUS")) {// PLUS seems to be for cnvi probes
+						if (ilmnStrand.equals("+")) {// PLUS seems to be for cnvi probes
 							strand = Strand.POSITIVE;
-						} else if (ilmnStrand.equals("BOT") || ilmnStrand.equals("MINUS")) {// MINUS seems to be for cnvi probes
+							// || ilmnStrand.equals("PLUS")
+						} else if (ilmnStrand.equals("-")) {// MINUS seems to be for cnvi probes
 							strand = Strand.NEGATIVE;
+							// || ilmnStrand.equals("MINUS")
 						} else {
 							proj.getLog().reportTimeError("Invalid IlmnStrand " + ilmnStrand);
 							return null;
 						}
-						if (seq.length() != seqLength) {
-							proj.getLog().reportTimeError("Sequence " + seq + " did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength());
+						if (seqA.length() != seqLength) {
+							proj.getLog().reportTimeError("Sequence " + seqA + " did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength());
 							return null;
 						}
-						entries.add(new MarkerFastaEntry(markerName, seq, strand, seqLength, markerSegment));
+						TOP_BOT topBotProbe = TOP_BOT.valueOf(parser.getStringData()[4][i]);
+						TOP_BOT topBotRef = TOP_BOT.valueOf(parser.getStringData()[5][i]);
+						// String snp = parser.getStringData()[2][i];
+
+						if (segB.equals("")) {
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.BOTH.getTag(), seqA, strand, seqLength, markerSegment, topBotProbe, topBotRef));
+						} else {
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A.getTag(), seqA, strand, seqLength, markerSegment, topBotProbe, topBotRef));
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), segB, strand, seqLength, markerSegment, topBotProbe, topBotRef));
+						}
+
 					} else {
 						String[] tmpSeq = Array.unique(parser.getStringData()[0][i].split("\t"));
 						if (tmpSeq.length != 2) {
@@ -281,8 +297,8 @@ public class MarkerBlast {
 								return null;
 							}
 							// proj.getLog().reportTimeWarning("Strand for affy warning, " + Strand.NONE);
-							entries.add(new MarkerFastaEntry(markerName + "_A", tmpSeq[0], strand, interrogationPosition, markerSegment));
-							entries.add(new MarkerFastaEntry(markerName + "_B", tmpSeq[1], strand, interrogationPosition, markerSegment));
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A, tmpSeq[0], strand, interrogationPosition, markerSegment, TOP_BOT.NA, TOP_BOT.NA));
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B, tmpSeq[1], strand, interrogationPosition, markerSegment, TOP_BOT.NA, TOP_BOT.NA));
 						}
 					}
 				}
@@ -306,7 +322,7 @@ public class MarkerBlast {
 			}
 			builder.separator(",");
 			builder.dataKeyColumnName("Name");
-			builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq", "IlmnStrand" });
+			builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP", "RefStrand", "IlmnStrand", "SourceStrand" });
 			builder.headerFlags(new String[] { "Name", "AlleleA_ProbeSeq" });
 			break;
 
@@ -336,9 +352,11 @@ public class MarkerBlast {
 		private int interrogationPosition;// Illumina = sequence length, affy = somewhere in the middle
 		private Segment markerSegment;
 		private Strand strand;
+		private TOP_BOT topBotProbe;
+		private TOP_BOT topBotRef;
 
 		// IlmnStrand
-		public MarkerFastaEntry(String name, String sequence, Strand strand, int interrogationPosition, Segment markerSegment) {
+		public MarkerFastaEntry(String name, String sequence, Strand strand, int interrogationPosition, Segment markerSegment, TOP_BOT topBotProbe, TOP_BOT topBotRef) {
 			super(name, sequence);
 			this.strand = strand;
 			this.interrogationPosition = interrogationPosition;
@@ -356,6 +374,14 @@ public class MarkerBlast {
 
 		public int getInterrogationPosition() {
 			return interrogationPosition;
+		}
+
+		public TOP_BOT getTopBotProbe() {
+			return topBotProbe;
+		}
+
+		public TOP_BOT getTopBotRef() {
+			return topBotRef;
 		}
 
 		public double getGCMinusInterrogationPosition() {

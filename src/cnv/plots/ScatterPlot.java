@@ -512,10 +512,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				parsers.add(blastResults);
 				parsers.add(gcAnnotations);
 				annotationLoader.fillAnnotations(masterMarkerList, parsers, QUERY_ORDER.NO_ORDER);
-//                for (int i = 0; i < blastResults.length; i++) {
-//                	
-//					System.out.println(masterMarkerList[i]+"\t"+blastResults[i].getMarkerSeqAnnotation().getStrand()+"\t"+blastResults[i].getMarkerSeqAnnotation().getSequence());
-//				}
+				for (int i = 0; i < blastResults.length; i++) {
+					blastResults[i].getMarkerSeqAnnotation().getTopBotProbe();
+					blastResults[i].getMarkerSeqAnnotation().getTopBotRef();
+					blastResults[i].getAnnotationLists()[0].get(0).getTag();
+					// System.out.println(masterMarkerList[i]+"\t"+blastResults[i].getMarkerSeqAnnotation().getStrand()+"\t"+blastResults[i].getMarkerSeqAnnotation().getSequence());
+				}
             } catch (Exception e) {
                 blastResults = null;
                 proj.getLog().reportException(e);
