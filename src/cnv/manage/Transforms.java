@@ -42,7 +42,7 @@ public class Transforms {
 				count = 0;
 				trav = new float[indices[i].length];
 				for (int j = 0; j < indices[i].length; j++) {
-					if ((input[indices[i][j]]+"").equals("NaN")) {
+					if (Float.isNaN(input[indices[i][j]])) {
 						if (indices[i][j] == 0) {
 							indices[i][j] = Integer.MAX_VALUE;
 						} else {

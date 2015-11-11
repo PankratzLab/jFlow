@@ -860,6 +860,15 @@ public class Sort {
 			int tmpSecond = biisSorted[0].getI();
 			for (int i = 0; i < order.length; i++) {
 				// TODO, these checks are because I am not positive of the Comparator implementation
+				if (biisSorted[i].getI() < tmpSecond && biisSorted[i].getB() == tmpFirst) {
+					String error = "Invalid sorting of two layers";
+					log.reportTimeError(error);
+					System.out.println(tmpSecond + " - > " + biisSorted[i].getI());
+					throw new IllegalStateException(error);
+				}
+				if (biisSorted[i].getI() > tmpSecond) {
+					tmpSecond = biisSorted[i].getB();
+				}
 				if (biisSorted[i].getB() < tmpFirst) {
 					String error = "Invalid sorting of two layers";
 					log.reportTimeError(error);
@@ -868,14 +877,7 @@ public class Sort {
 				if (biisSorted[i].getB() > tmpFirst) {
 					tmpFirst = biisSorted[i].getB();
 				}
-				if (biisSorted[i].getI() < tmpSecond) {
-					String error = "Invalid sorting of two layers";
-					log.reportTimeError(error);
-					throw new IllegalStateException(error);
-				}
-				if (biisSorted[i].getI() > tmpSecond) {
-					tmpSecond = biisSorted[i].getB();
-				}
+				
 				order[i] = biisSorted[i].getIndex();
 			}
 			return order;

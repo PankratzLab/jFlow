@@ -34,7 +34,6 @@ public class BamSample {
 		init();
 	}
 
-
 	public String getSampleName() {
 		return sampleName;
 	}
@@ -50,6 +49,9 @@ public class BamSample {
 	 */
 	private static double computeRPKM(int numMappedReads, Segment bin, int numTotalMappedReads) {
 		double data = (double) numMappedReads / bin.getSize();
+		if (Double.isNaN(data)) {
+			throw new IllegalArgumentException("Size and num mapped reads cannot be NaN, size cannot be 0" + bin.getUCSClocation());
+		}
 		double scale = numTotalMappedReads > 0 ? (double) SCALE_FACTOR_NUM_READS / numTotalMappedReads : 0;
 		return data * scale;
 	}
@@ -62,6 +64,9 @@ public class BamSample {
 		this.percentWithMismatch = new double[bamPiles.length];
 		byte currentChr = 0;
 		int currentPos = 0;
+		boolean[] useOffTarget = Array.booleanArray(bamPiles.length, true);
+		boolean[] useOntarget = Array.booleanArray(bamPiles.length, true);
+
 		for (int i = 0; i < bamPiles.length; i++) {
 			if (currentChr > bamPiles[i].getBin().getChr() || (bamPiles[i].getBin().getChr() <= currentChr && currentPos > bamPiles[i].getBin().getStart())) {
 				String error = "BUG, segments are unsorted";
@@ -75,7 +80,19 @@ public class BamSample {
 				currentPos = bamPiles[i].getBin().getStart();
 			}
 			rawDepth[i] = computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
+			// System.out.println(markerSet.getMarkerNames()[i] + "\t" + bamPiles[i].getNumOverlappingReads() + "\t" + rawDepth[i]);
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
+			if (markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
+				useOntarget[i] = false;
+				rawDepth[i] = rawDepth[i] > 0 ? Math.log(rawDepth[i]) : rawDepth[i];
+			} else {
+				useOffTarget[i] = false;
+			}
+			if (Double.isNaN(rawDepth[i])) {
+				String warning = "Found invalid scale raw depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[i];
+				proj.getLog().reportTimeWarning(warning);
+				throw new IllegalArgumentException(warning);
+			}
 			int currentSize = bamPiles[i].getBin().getSize();
 			double normBasesOverlap = (double) bamPiles[i].getNumBasesOverlap() / currentSize;
 			double normBasesMiss = (double) bamPiles[i].getNumBasesWithMismatch() / currentSize;
@@ -86,18 +103,27 @@ public class BamSample {
 			percentWithMismatch[i] = percentMiss;
 		}
 
-		BeastScore beastScore = new BeastScore(Array.toFloatArray(rawDepth), markerSet.getIndicesByChr(), null, proj.getLog());
-		float[] scaleMAD = beastScore.getScaleMadRawData(1.4826);// http://www.genomebiology.com/2014/15/12/550
 		int[][] chrIndices = markerSet.getIndicesByChr();
+
+		BeastScore beastScoreOnTarget = new BeastScore(Array.toFloatArray(rawDepth), chrIndices, null, proj.getLog());
+		beastScoreOnTarget.setUse(useOntarget);
+		float[] scaleMAD = beastScoreOnTarget.getScaleMadRawData(1.4826);// http://www.genomebiology.com/2014/15/12/550
+		BeastScore beastScoreOffTarget = new BeastScore(scaleMAD, chrIndices, null, proj.getLog());
+		beastScoreOffTarget.setUse(useOffTarget);
+		scaleMAD = beastScoreOffTarget.getScaleMadRawData(1.4826);
+
 		for (int i = 0; i < chrIndices.length; i++) {
 			boolean error = false;
 			for (int j = 0; j < chrIndices[i].length; j++) {
-				if ((Double.isNaN(scaleMAD[chrIndices[i][j]]) || Double.isInfinite(scaleMAD[chrIndices[i][j]])) && rawDepth[chrIndices[i][j]] == 0) {// should only happen if the MAD is NaN
+				int index = chrIndices[i][j];
+				if ((Double.isNaN(scaleMAD[index]) || Double.isInfinite(scaleMAD[index]))) {// should only happen if the MAD is NaN
 					if (!error) {
 						String warning = "Found invalid scale MAD depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[chrIndices[i][j]];
 						warning += "Setting all of chr" + i + " to 0";
+						warning += "This is usually caused by having zero passing reads for chr " + i;
 						proj.getLog().reportTimeWarning(warning);
 						error = true;
+						// error = true;
 					}
 				}
 			}
@@ -108,8 +134,13 @@ public class BamSample {
 
 			}
 		}
+//		for (int i = 0; i < scaleMAD.length; i++) {
+//			if (Double.isNaN(scaleMAD[i]) && !markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
+//				System.out.println(markerSet.getMarkerNames()[i]);
+//			}
+//		}
 		this.normDepth = Array.scaleMinTo(Array.toDoubleArray(scaleMAD), 1);
-		//this.normDepth = Array.scaleMinTo(rawDepth,1);
+		// this.normDepth = Array.scaleMinTo(rawDepth,1);
 		double scale = proj.XY_SCALE_FACTOR.getValue();
 		normDepth = Array.multiply(normDepth, (double) 1 / scale);
 		percentWithMismatch = Array.scale(percentWithMismatch);
@@ -117,7 +148,11 @@ public class BamSample {
 			if (Double.isNaN(normDepth[j])) {
 				String error = "Found invalid normalized depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[j];
 				proj.getLog().reportTimeError(error);
-				throw new IllegalStateException(error);
+				if (markerSet.getMarkerNames()[j].contains(BamImport.OFF_TARGET_FLAG)) {
+					normDepth[j] = 1;
+				} else {
+					throw new IllegalStateException(error);
+				}
 			}
 		}
 	}
@@ -128,7 +163,7 @@ public class BamSample {
 		float[] blankLRRs = Array.floatArray(bamPiles.length, 1);
 		String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION;
 		Sample sample = new Sample(sampleFile, fingerprint, Array.toFloatArray(mapQs), Array.toFloatArray(normDepth), Array.toFloatArray(normDepth), Array.toFloatArray(percentWithMismatch), blankLRRs, genos, genos, false);
-		sample.saveToRandomAccessFile(sampleFile, outliers, sampleFile);
+		sample.saveToRandomAccessFile(sampleFile, outliers, sampleName);
 		return outliers;
 	}
 }
