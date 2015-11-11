@@ -19,7 +19,7 @@ import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-import cnv.gui.KitAndKaboodleGUI;
+import cnv.gui.GenvisisPipelineGUI;
 import common.Aliases;
 import common.Array;
 import common.CmdLine;
@@ -27,11 +27,11 @@ import common.Files;
 import common.Logger;
 import common.ext;
 
-public class KitAndKaboodle {
+public class GenvisisPipeline {
     
     Project proj;
     Logger log;
-    private KitAndKaboodleGUI gui;
+    private GenvisisPipelineGUI gui;
     private Launch launch;
     
     static final STEP S1I_CREATE_MKR_POS = new STEP("Create Marker Positions (if not already exists)", 
@@ -1075,14 +1075,14 @@ public class KitAndKaboodle {
         BOOL()
     }
     
-    public KitAndKaboodle(Project project, Launch launch) {
+    public GenvisisPipeline(Project project, Launch launch) {
         this.proj = project;
         this.log = project == null ? new Logger() : project.getLog();
         this.launch = launch;
     }
     
     public void showDialogAndRun() {
-        gui = new KitAndKaboodleGUI(this.proj, this.launch);
+        gui = new GenvisisPipelineGUI(this.proj, this.launch);
         if (!gui.getCancelled()) {
             gui.setModal(true);
             gui.setVisible(true);

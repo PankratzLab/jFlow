@@ -499,10 +499,10 @@ public class FAST {
 					}
 				}
 			}
-			String metalCmd = "java -cp ~/park.jar gwas.FAST rundir=" + runDir + study + " data=" + dataFile + (qsubQueue == null ? "" : " qsub=" + qsubQueue) + " -process";
+			String metalCmd = "java -cp ~/park.jar gwas.FAST rundir=" + runDir + study + " data=" + dataFile + " -process";
 			Files.qsub(runDir + "step4_" + study + "_metaAnalyzeFAST.qsub", metalCmd, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
-			Files.write("qsub" + (qsubQueue == null ? "" : " -q " + qsubQueue) + " step4_" + study + "_metaAnalyzeFAST.qsub", runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
-			Files.chmod(runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
+//			Files.write("qsub" + (qsubQueue == null ? "" : " -q " + qsubQueue) + " step4_" + study + "_metaAnalyzeFAST.qsub", runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
+//			Files.chmod(runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
 		}
 		
 		Files.write(masterRunScript.toString(), runDir+"step2_runFAST.sh");

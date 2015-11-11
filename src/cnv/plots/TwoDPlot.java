@@ -229,6 +229,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		invYButton.repaint();
 	}
 	
+	public TwoDPanel getPanel() {
+	    return twoDPanel;
+	}
+	
 	private final ImageIcon flip1_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", true);
 	private final ImageIcon flip1_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg", true);
 	private final ImageIcon flip2_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv.jpg", true);
@@ -1258,10 +1262,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	public void showSpecificFile(Project proj, String filename, int colForX, int colForY) {
-		String[] prevFiles = filesProperty.getValue();
-		if(Arrays.binarySearch(prevFiles, filename) < 0) {
-			// the supplied file was not found so load it
-			loadFile(filename);	// load the file
+		if (filesProperty != null) {
+    	    String[] prevFiles = filesProperty.getValue();
+    		if(Arrays.binarySearch(prevFiles, filename) < 0) {
+    			// the supplied file was not found so load it
+    			loadFile(filename);	// load the file
+    		}
 		}
 		if(colForX != Integer.MIN_VALUE){
 			// select the x axis
@@ -1277,7 +1283,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		updateGUI();
 		tree.expandRow(dataKeys.indexOf(filename));
 		twoDPanel.paintAgain();
-
+		
 	}
 	public void windowActivated(WindowEvent e) {}
 

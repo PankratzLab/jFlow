@@ -99,18 +99,10 @@ public class BlastLabel extends JLabel {
     
     public static void setFontSize(int size) {
         LBL_FONT = BASE_FONT.deriveFont((float) size);
-        if (refLbl != null) {
-            refLbl.setFont(LBL_FONT);
-        }
-    }
-    
-    public static void setRefLabel(JLabel lbl) {
-        refLbl = lbl;
     }
     
     public static Font LBL_FONT = BASE_FONT.deriveFont(17f);
     public static final int CHAR_PADDING = 2;
-    private static JLabel refLbl = null;
     static boolean expanded = false; // static to affect all
     static TreeSet<Integer> spaces = new TreeSet<Integer>();
     static TreeMap<Integer, Integer> spaceSets = new TreeMap<Integer, Integer>();
