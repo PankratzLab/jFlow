@@ -155,7 +155,6 @@ public class VariantFilterSample {
 	}
 
 	public static class Builder {
-		private String filterName = "VariantFilter";
 		private VariantContextFilter vCFiltAltGeno = null;
 		private VariantContextFilter vCFiltHomRefGeno = null;
 		private VariantContextFilter vCFiltAllGeno = null;

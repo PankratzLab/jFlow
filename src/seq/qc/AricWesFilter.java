@@ -1,6 +1,5 @@
 package seq.qc;
 
-import java.util.ArrayList;
 
 import common.Logger;
 import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;

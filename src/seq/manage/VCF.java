@@ -44,8 +44,8 @@ import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.qc.FilterNGS.RareVariantFilter;
 
 public class VCF {
-	private static final String SITE_ONLY = ".siteOnly";
-	private static final String BLANK_ANNO = ".";
+	//private static final String SITE_ONLY = ".siteOnly";
+//	private static final String BLANK_ANNO = ".";
 	private static final Set<String> SAMPLE = new TreeSet<String>();
 	private static final String[] testExpress = { "CHROM == 'chr1' && DP > 0 && DP < 100" };
 	private static final String[] testExpress2 = { "ExonicFunc.refGene != '.' && ExonicFunc.refGene == 'nonsynonymous_SNV'" };
@@ -75,6 +75,10 @@ public class VCF {
 		this.vcfFileReader = new VCFFileReader(vcfFile, true);
 		this.variantContextWriter = null;
 		this.extractBams = false;
+	}
+
+	public boolean isFail() {
+		return fail;
 	}
 
 	public String[] getAvailableAnno() {
@@ -165,7 +169,7 @@ public class VCF {
 				this.log.reportTimeInfo("Using " + jExps.size() + " expression(s)");
 			}
 			// VariantContextUtils.match(vc, g, exps)
-			int report = 0;
+			//int report = 0;
 
 			for (VariantContext variantContext : this.vcfFileReader) {
 				// variantContext.getGenotype(1).
@@ -195,7 +199,7 @@ public class VCF {
 				}
 				if ((count != 0) && (count % 100000 == 0)) {
 					this.log.report(ext.getTime() + " Info - scanned " + count + " variants");
-					this.log.report(ext.getTime() + " Info - " + countPass + " variants have passed the filter thus far...currently on chromosome " + variantContext.getChr());
+					this.log.report(ext.getTime() + " Info - " + countPass + " variants have passed the filter thus far...currently on chromosome " + variantContext.getContig());
 					if (IDsToExtract.size() > 0) {
 						this.log.report(ext.getTime() + " Info - " + countPass + " variants ( " + IDsToExtract.size() + " eligible ) have passed the filter(s) thus far...");
 					}
@@ -203,7 +207,7 @@ public class VCF {
 				if (write) {
 					countPass++;
 					this.variantContextWriter.add(variantContext);
-					byte chr = Positions.chromosomeNumber(variantContext.getChr());
+					byte chr = Positions.chromosomeNumber(variantContext.getContig());
 					int start = variantContext.getStart();
 					if (this.extractBams) {
 						bamSample.addSegmentToExtract(new Segment(chr, start, start));
@@ -213,7 +217,7 @@ public class VCF {
 							variantContext = VCOps.getSubset(variantContext, vpop.getSubPop().get("CASE"));
 						}
 
-						String tmp = variantContext.getChr() + "\t" + variantContext.getStart();
+						String tmp = variantContext.getContig() + "\t" + variantContext.getStart();
 						int numAlts = variantContext.getHomVarCount() * 2 + variantContext.getHetCount();
 						for (int i = 0; i < toDump.length; i++) {
 							String key = toDump[i] + "\t" + variantContext.getCommonInfo().getAttributeAsString(toDump[i], ".");

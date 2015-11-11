@@ -8,9 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.swing.text.Position;
 
-import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import filesys.Segment;
 import htsjdk.tribble.Tribble;
@@ -24,12 +22,9 @@ import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFCodec;
-import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
-import htsjdk.variant.vcf.VCFRecordCodec;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -160,10 +155,10 @@ public class ConvertChargeToVCF {
 			} catch (IOException e) {
 				log.reportError("Error - could not create index file for" + fullPathToFile + ".vcf.gz");
 			}
-			VCFFileReader reader = new VCFFileReader(fullPathToFile + ".vcf.gz", true);
-			for (VariantContext vc : reader) {
-				System.out.println("hi");
-			}
+//			VCFFileReader reader = new VCFFileReader(fullPathToFile + ".vcf.gz", true);
+//			for (VariantContext vc : reader) {
+//				System.out.println("hi");
+//			}
 			// VCFHeaderLine info = new VCFHeaderLine(key, value)
 			// vcfHeader.addMetaDataLine(headerLine);
 		}
@@ -179,7 +174,7 @@ public class ConvertChargeToVCF {
 		String filename = "ConvertChargeToVCF.dat";
 		String fullPathToFile = "D:/data/Project_Tsai_Project_021/Variants/charge_fibrinogen_mafs_and_counts.xln";
 		// String fullPathToFile = null;
-		String logfile = null;
+		//String logfile = null;
 
 		String usage = "\n" + "jlDev.ConvertChargeToVCF requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 

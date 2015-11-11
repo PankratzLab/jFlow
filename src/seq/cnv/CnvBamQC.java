@@ -1,13 +1,11 @@
 package seq.cnv;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
 
 import cnv.var.CNVariant;
 import cnv.var.LocusSet;
@@ -30,7 +28,6 @@ import common.Logger;
 import common.WorkerTrain;
 import common.ext;
 import common.ArraySpecialList.ArrayIntList;
-import common.WorkerTrain.Producer;
 import filesys.Segment;
 
 /**

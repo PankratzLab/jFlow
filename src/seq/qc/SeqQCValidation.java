@@ -79,14 +79,14 @@ public class SeqQCValidation {
 		private int index;
 		private int numVariantsToTest;
 		int numInternalThreads;
-		private Logger log;
+		//private Logger log;
 
 		public SeqQCValidationProducer(SeqQCValidation[] validations, int numVariantsToTest, int numInternalThreads, Logger log) {
 			super();
 			this.validations = validations;
 			this.numVariantsToTest = numVariantsToTest;
 			this.numInternalThreads = numInternalThreads;
-			this.log = log;
+			//this.log = log;
 			this.index = 0;
 		}
 
@@ -285,7 +285,7 @@ public class SeqQCValidation {
 		// String vcf = "D:/data/Project_Tsai_Spector_Joint/joint_genotypes_tsai_21_25_spector_mt.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.vcf.gz";
 
 		int numThreads = 8;
-		String logfile = null;
+		//String logfile = null;
 		Logger log;
 
 		String usage = "\n" + "seq.qc.SeqErrorIterator requires 0-1 arguments\n";

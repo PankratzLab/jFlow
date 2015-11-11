@@ -1,23 +1,19 @@
 package one.JL;
 
-import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
 import java.io.File;
 import java.util.ArrayList;
 
-import cnv.annotation.Annotation;
 import cnv.annotation.AnnotationData;
 import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
 import cnv.annotation.AnnotationFileWriter;
 import cnv.annotation.AnnotationParser;
 import cnv.annotation.BlastAnnotationLoader;
-import cnv.annotation.BlastAnnotationTypes;
 import cnv.annotation.BlastAnnotationWriter;
 import cnv.annotation.LocusAnnotation;
 import cnv.annotation.MarkerAnnotationLoader;
 import cnv.annotation.MarkerBlastAnnotation;
-import cnv.annotation.BlastAnnotationLoader.MarkerBlastResult;
 import cnv.annotation.LocusAnnotation.Builder;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -50,21 +46,21 @@ public class BlastAnnotationTesting {
 
 		System.out.println("Finished getting testers");
 
-		long time = System.currentTimeMillis();
+//		long time = System.currentTimeMillis();
 
 		proj.getLog().reportTimeInfo("Loading " + t.size() + " markers");
 		BlastAnnotationLoader blastAnnotationLoader = new BlastAnnotationLoader(proj, annoFile, true);
 
-		MarkerBlastResult[] markerBlastResults = blastAnnotationLoader.loadBlastAnnotationsFor(Array.toStringArray(t), null);
-		proj.getLog().reportTimeElapsed(time);
-		for (int i = 0; i < markerBlastResults.length; i++) {
-			for (int j = 0; j < markerBlastResults[i].getAnnotationLists().length; j++) {
-				for (int j2 = 0; j2 < markerBlastResults[i].getAnnotationLists()[j].size(); j2++) {
-					// System.out.println();
-					// System.out.println(markerBlastResults[i].getbTypes()[j].getName() + "\t" + t.get(i) + "\t" + markerBlastResults[i].getAnnotationLists()[j].get(j2).getRefLoc().getUCSClocation() + "\t" + markerBlastResults[i].getAnnotationLists()[j].get(j2).getCigar().toString());
-				}
-			}
-		}
+//		MarkerBlastResult[] markerBlastResults = blastAnnotationLoader.loadBlastAnnotationsFor(Array.toStringArray(t), null);
+//		proj.getLog().reportTimeElapsed(time);
+//		for (int i = 0; i < markerBlastResults.length; i++) {
+//			for (int j = 0; j < markerBlastResults[i].getAnnotationLists().length; j++) {
+//				for (int j2 = 0; j2 < markerBlastResults[i].getAnnotationLists()[j].size(); j2++) {
+//					// System.out.println();
+//					 System.out.println(markerBlastResults[i].getbTypes()[j].getName() + "\t" + t.get(i) + "\t" + markerBlastResults[i].getAnnotationLists()[j].get(j2).getRefLoc().getUCSClocation() + "\t" + markerBlastResults[i].getAnnotationLists()[j].get(j2).getCigar().toString());
+//				}
+//			}
+//		}
 		blastAnnotationLoader.close();
 	}
 
@@ -81,8 +77,8 @@ public class BlastAnnotationTesting {
 		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
 
-		Annotation annotation = new Annotation(VCFHeaderLineType.String, null, 1, "test analysis ", "a test analysis addition", "DSDF") {
-		};
+//		Annotation annotation = new Annotation(VCFHeaderLineType.String, null, 1, "test analysis ", "a test analysis addition", "DSDF") {
+//		};
 		blastAnnotation = new BlastAnnotationWriter(proj, annoFile, blastResultFiles, minAlignmentLength, maxGaps, maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
@@ -170,7 +166,7 @@ public class BlastAnnotationTesting {
 	public static void main(String[] args) {
 		// Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties", false);
 		Project proj = new Project("/home/pankrat2/lanej/projects/gedi_gwas.properties", false);
-		String annoFile = proj.PROJECT_DIRECTORY.getValue() + "TestBlastLoad/blast.anno.vcf.gz";
+		//String annoFile = proj.PROJECT_DIRECTORY.getValue() + "TestBlastLoad/blast.anno.vcf.gz";
 		testHistogram(proj);
 		// test(proj, annoFile);
 		// testLoad(proj, annoFile);

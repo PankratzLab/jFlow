@@ -11,7 +11,6 @@ import htsjdk.variant.variantcontext.VariantContextUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -853,7 +852,7 @@ public class FilterNGS implements Serializable {
 	}
 
 	public static class RareVariantFilter {
-		private Set<String> totalPop;
+		//private Set<String> totalPop;
 		private Set<String> casePop;
 		private Set<String> refPop;
 		private VARIANT_FILTER_DOUBLE mafRef = VARIANT_FILTER_DOUBLE.MAF;
@@ -870,7 +869,7 @@ public class FilterNGS implements Serializable {
 			this.casePop = casePop;
 			this.refPop = refPop;
 			mafRef.setType(FILTER_TYPE.LTE_FILTER);
-			this.totalPop = new HashSet<String>();
+			//this.totalPop = new HashSet<String>();
 		}
 
 		public void setMafRef(double maf) {

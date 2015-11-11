@@ -1,14 +1,9 @@
 package seq.analysis;
 
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
 import htsjdk.tribble.annotation.Strand;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import stats.Histogram.DynamicHistogram;
@@ -89,6 +84,12 @@ public class Blast {
 			this.fail = !initDb(BLAST_DB_TYPE.NUCL, fastaDb, log);
 		}
 	}
+	
+
+	public boolean isOverwriteExisting() {
+		return overwriteExisting;
+	}
+
 
 	public void setEvalue(double evalue) {
 		this.evalue = evalue;
@@ -194,6 +195,10 @@ public class Blast {
 			this.fastaEntries = fastaEntries;
 			this.count = 0;
 			this.log = log;
+		}
+
+		public Logger getLog() {
+			return log;
 		}
 
 		@Override
@@ -509,8 +514,8 @@ public class Blast {
 		int numArgs = args.length;
 
 		String filename = "Blast.dat";
-		String logfile = null;
-		Logger log;
+	//	String logfile = null;
+		//Logger log;
 
 		String usage = "\n" + "seq.analysis.Blast requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
@@ -521,10 +526,12 @@ public class Blast {
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
-				numArgs--;
-			} else {
+			} 
+//			else if (args[i].startsWith("log=")) {
+//				logfile = args[i].split("=")[1];
+//				numArgs--;
+//			}
+			else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
@@ -533,7 +540,7 @@ public class Blast {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(logfile);
+			//log = new Logger(logfile);
 			test();
 		} catch (Exception e) {
 			e.printStackTrace();

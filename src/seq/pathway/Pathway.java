@@ -33,6 +33,10 @@ public class Pathway extends LocusSet<GeneData> {
 
 	
 
+	public boolean isComplete() {
+		return complete;
+	}
+
 	public String getPathwayName() {
 		return pathwayName;
 	}

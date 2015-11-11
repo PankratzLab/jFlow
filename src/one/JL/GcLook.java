@@ -183,6 +183,7 @@ public class GcLook {
 					}
 
 					writer.close();
+					writerSeparate.close();
 				} catch (Exception e) {
 					proj.getLog().reportError("Error writing to " + out);
 					proj.getLog().reportException(e);

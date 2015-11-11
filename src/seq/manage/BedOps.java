@@ -11,7 +11,6 @@ import htsjdk.tribble.index.IndexFactory.IndexType;
 import java.io.File;
 import java.io.IOException;
 
-import cnv.var.LocusSet;
 import common.Files;
 import common.Logger;
 
@@ -52,7 +51,7 @@ public class BedOps {
 	}
 	
 	public static Segment getSegment(BEDFeature bedFeature, Logger log) {
-		return new Segment(bedFeature.getChr(), bedFeature.getStart(), bedFeature.getEnd());
+		return new Segment(bedFeature.getContig(), bedFeature.getStart(), bedFeature.getEnd());
 	}
 
 }

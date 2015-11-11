@@ -18,7 +18,6 @@ import stats.Histogram.DynamicAveragingHistogram;
 import stats.Rscript.GeomText;
 import stats.Rscript.RScatter;
 import stats.Rscript.SCATTER_TYPE;
-import cnv.analysis.FilterCalls;
 import cnv.filesys.Project;
 import cnv.qc.CNVFilter;
 import cnv.qc.CNVFilter.FreqFilter;
@@ -195,7 +194,7 @@ public class CushingCnvs {
 		// public FreqFilter(int totalRequired, int delRequired, int dupRequired, int totalLimitedTo, int delLimitedTo, int dupLimitedTo, double proportionOfProbesThatNeedToPassForFinalInclusion) {
 
 		FreqFilter freqFilter = new FreqFilter(totalLimitedTo, 0, 0, numControls, numControls, numControls, .9);
-		CNVFilter cnvFilter = new CNVFilter(proj.getLog());
+		//CNVFilter cnvFilter = new CNVFilter(proj.getLog());
 		LocusSet<CNVariant> setToRemove = null;
 		setToRemove = CNVFilter.filterCNVFile(proj, cnSet2.getLoci(), outFilt, null, false, true, freqFilter, false, true);
 		setToRemove.writeRegions(outFilt, TO_STRING_TYPE.REGULAR, true, proj.getLog());
@@ -436,7 +435,7 @@ public class CushingCnvs {
 						writer.print("\t" + Array.toStr(Array.doubleArray(plinkResults.get(j).getLoci()[0].getData().length, Double.NaN)));
 						log.reportTimeError("Could not find overlapping plink results for " + currentCNV.toPlinkFormat());
 					} else {
-						int minEmp1Index = -1;
+					//	int minEmp1Index = -1;
 						int minEmp2Index = -1;
 						double minEmp1 = Double.MAX_VALUE;
 						double minEmp2 = Double.MAX_VALUE;
@@ -453,7 +452,7 @@ public class CushingCnvs {
 								if (overLaps[k].getEmp1() < minEmp1) {
 
 									minEmp1 = overLaps[k].getEmp1();
-									minEmp1Index = k;
+								//	minEmp1Index = k;
 								}
 								if (overLaps[k].getEmp2() < minEmp2) {
 									minEmp2 = overLaps[k].getEmp1();

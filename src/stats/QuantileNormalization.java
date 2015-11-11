@@ -4,7 +4,6 @@ package stats;
 import common.Array;
 import common.Logger;
 import common.Matrix;
-import common.Sort;
 
 public class QuantileNormalization {
 	private double thresholdFactor;
