@@ -103,7 +103,7 @@ public class SkatMeta {
 	}
 	*/
 
-	public static void generateSkatMetaRScriptConditional(String sourceRDataFilesDir, String snpInfoFile, String condFileDirFilenameTemplate, String rScriptDir, String resultsDir) {
+	public static void generateSkatMetaRScriptConditional(String sourceRDataFilesDir, String snpInfoFile, String condFileDirFilenameTemplate, String rScriptDir, String resultsDir, String rCommandLine) {
 		PrintWriter writer;
 		String[] temp1;
 		String[] phenoCondStratum;
@@ -126,7 +126,7 @@ public class SkatMeta {
 			writer.close();
 
 			writer = new PrintWriter(new FileOutputStream(rScriptDir + "runAll.bat", true));
-			writer.println("RScript --no-save "+root + ".R > "+root + ".log");
+			writer.println(rCommandLine + " --no-save "+root + ".R > "+root + ".log");
 			writer.close();
 			
 			if (!Files.exists(rScriptDir+"splitRuns.crf")) {
@@ -354,6 +354,9 @@ public class SkatMeta {
 		temp1 = sourceRDataFilesDir.split("/");
 		for (int i = 0; i < 3; i++) {
 			phenoAndCondition = temp1[temp1.length - i - 1] + "_" + phenoAndCondition;
+		}
+		if (phenoAndCondition.endsWith("_")) {
+		    phenoAndCondition = phenoAndCondition.substring(0, phenoAndCondition.length() - 1);
 		}
 
 		files = Files.list(sourceRDataFilesDir, ".RData", false);
@@ -611,7 +614,7 @@ public class SkatMeta {
 		return rScript;
 	}
 
-	public static void generateSkatMetaRScriptsForSubFolders(String sourceRDataFilesDir, String snpInfoFile, String condFileDir, String rScriptDir, String resultsDir) {
+	public static void generateSkatMetaRScriptsForSubFolders(String sourceRDataFilesDir, String snpInfoFile, String condFileDir, String rScriptDir, String resultsDir, String rCommandLine) {
 		String[] folders;
 		
 		if (!Files.exists(rScriptDir)) {
@@ -623,10 +626,10 @@ public class SkatMeta {
 			folders = Sort.putInOrder(folders, Sort.quicksort(folders, Sort.DESCENDING));
 		}
 		if (folders == null || folders.length < 1) {
-			generateSkatMetaRScriptConditional(sourceRDataFilesDir, snpInfoFile, condFileDir, rScriptDir, resultsDir);
+			generateSkatMetaRScriptConditional(sourceRDataFilesDir, snpInfoFile, condFileDir, rScriptDir, resultsDir, rCommandLine);
 		} else {
 			for (int i = 0; i < folders.length; i++) {
-				generateSkatMetaRScriptsForSubFolders(sourceRDataFilesDir + folders[i] + "/", snpInfoFile, condFileDir, rScriptDir, resultsDir);
+				generateSkatMetaRScriptsForSubFolders(sourceRDataFilesDir + folders[i] + "/", snpInfoFile, condFileDir, rScriptDir, resultsDir, rCommandLine);
 			}
 		}
 	}
@@ -1181,7 +1184,7 @@ public class SkatMeta {
 				} else {
 					summaryConditionGroup = summary.get(pheno);
 				}
-				regionToGenes = phenoToRegionToGenes.get(pheno);
+				regionToGenes = phenoToRegionToGenes == null ? null : phenoToRegionToGenes.get(pheno);
 
 				for (String condition : conditionGroup.keySet()) {
 					ethnicGroup = conditionGroup.get(condition);
@@ -1449,7 +1452,7 @@ public class SkatMeta {
 										analysesGroup = ethnicGroup.get(ethnic);
 										for (String analysis : analyses) {
 											geneGroup = analysesGroup.get(analysis);
-											line += ("\t" + (geneGroup.containsKey(gene)? geneGroup.get(gene) : ""));
+											line += ("\t" + (geneGroup != null && geneGroup.containsKey(gene) ? geneGroup.get(gene) : ""));
 										}
 									} else {
 										for (int i = 0; i < analyses.length; i++) {
@@ -1928,7 +1931,7 @@ public class SkatMeta {
 								snpResultsCurrentEthnic = snpResultsCurrentCondition.get(ethnic);
 								for (String analysis : analysesList) {
 									tmp = snpResultsCurrentEthnic.get(analysis + "_totals").get(geneSnp);
-									line += ("\t" + tmp[i]);
+									line += ("\t" + (tmp != null ? tmp[i] : "."));
 								}
 							}
 						}
@@ -2267,14 +2270,14 @@ public class SkatMeta {
 		}
 	}
 
-	public static void conditionalAnalysisWholeProcessMultiplePhenos (String previousResultFileDirFileameTemplate, String condFileDirFilenameTemplate, String phenoDirFilenameTemplate, String genoDirFileameTemplate, String snpInfoDirFilenameTemplate, String[] phenos, String[] ethnics, String rScriptDir, String resultSummariesDir, String rcommand, double pThresholdLower, double pThresholdHigher, int regionSearchDistance, Logger log) {
+	public static void conditionalAnalysisWholeProcessMultiplePhenos (String previousResultFileDirFilenameTemplate, String condFileDirFilenameTemplate, String phenoDirFilenameTemplate, String genoDirFileameTemplate, String snpInfoDirFilenameTemplate, String[] phenos, String[] ethnics, String rScriptDir, String resultSummariesDir, String rcommand, double pThresholdLower, double pThresholdHigher, int regionSearchDistance, Logger log) {
 		int currentCondition, startCondition = 1;
 		String condFileDirAndNameTemplateAfterPhenoFilled, phenoDirAndNameTemplateAfterPhenoFilled, snpInfoFile = null, resultFile, resultsDir, condFile, allEthnics;
 		String[] fromPreConditionResults;
 		boolean isInitialConditionReady;
 
-		if (! previousResultFileDirFileameTemplate.contains(FILENAME_CONDITION_SEGMENT)) {
-			log.reportError("Error - result file name template does not contain a condition segment: " + previousResultFileDirFileameTemplate + "\nNote: even the existing file(s) do not have condition segment, please still specify the segment in the file name template for next rounds' files.");
+		if (! previousResultFileDirFilenameTemplate.contains(FILENAME_CONDITION_SEGMENT)) {
+			log.reportError("Error - result file name template does not contain a condition segment: " + previousResultFileDirFilenameTemplate + "\nNote: even the existing file(s) do not have condition segment, please still specify the segment in the file name template for next rounds' files.");
 			return;
 		}
 		allEthnics = Array.toStr(ethnics, "");
@@ -2284,9 +2287,9 @@ public class SkatMeta {
 			isInitialConditionReady = false;
 			phenoDirAndNameTemplateAfterPhenoFilled = phenoDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]);
 			condFileDirAndNameTemplateAfterPhenoFilled = condFileDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]);
-			resultsDir = previousResultFileDirFileameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]);
+			resultsDir = previousResultFileDirFilenameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, phenos[i]);
 
-			resultFile = resultsDir.replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleVariant");
+			resultFile = resultsDir.replaceAll(FILENAME_ANALYSIS_SEGMENT, "SingleSNP");
 			resultFile = resultFile.replaceAll("_" + FILENAME_CONDITION_SEGMENT, "").replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, ""); //TODO
 			if (condFileDirFilenameTemplate.contains(FILENAME_ETHNIC_SEGMENT)) {
 				for (int j = 0; j < ethnics.length; j++) {	//TODO
@@ -2294,7 +2297,7 @@ public class SkatMeta {
 					condFile = condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_ETHNIC_SEGMENT, ethnics[j]);
 					if (! new File(condFile.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1")).exists()) {
 						condFile = condFile.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1");
-						fromPreConditionResults = getFirstCondition(resultFile, new String[] {"SingleVariant", "Chr", "Position"}, new String[] {"SKATgene", "ARIC_Whites_p_SingleSNP", "ARIC_Blacks_p_SingleSNP"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001", "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"}, regionSearchDistance, log);
+						fromPreConditionResults = getFirstCondition(resultFile, new String[] {"SingleSNP", "Chr", "Position"}, new String[] {"SKATgene", "ARIC_Whites_p_SingleSNP", "ARIC_Blacks_p_SingleSNP"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001", "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"}, regionSearchDistance, log);
 						if (fromPreConditionResults != null) {
 							Files.writeList(fromPreConditionResults, condFile);
 							isInitialConditionReady = true;
@@ -2308,7 +2311,7 @@ public class SkatMeta {
 			} else {
 				resultFile = resultFile.replaceAll("_" + FILENAME_ETHNIC_SEGMENT, "");
 				if (! new File(condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1")).exists()) {
-					fromPreConditionResults = getFirstCondition(resultFile, new String[] {"SingleVariant", "Chr", "Position"}, new String[] {"SKATgene", "ARIC_Whites_p_SingleSNP", "ARIC_Blacks_p_SingleSNP"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001", "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"}, regionSearchDistance, log);
+					fromPreConditionResults = getFirstCondition(resultFile, new String[] {"SingleSNP", "Chr", "Position"}, new String[] {"SKATgene", "ARIC_Whites_p_SingleSNP", "ARIC_Blacks_p_SingleSNP"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"}, new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001", "(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"}, regionSearchDistance, log);
 					if (fromPreConditionResults != null) {
 						Files.writeList(fromPreConditionResults, condFileDirAndNameTemplateAfterPhenoFilled.replaceAll(FILENAME_CONDITION_SEGMENT, "cond1"));
 						isInitialConditionReady = true;
@@ -2344,7 +2347,7 @@ public class SkatMeta {
 			}
 		}
 
-		summary(previousResultFileDirFileameTemplate, pThresholdHigher, phenos, ethnics, snpInfoDirFilenameTemplate, condFileDirFilenameTemplate, resultSummariesDir, log);
+		summary(previousResultFileDirFilenameTemplate, pThresholdHigher, phenos, ethnics, snpInfoDirFilenameTemplate, condFileDirFilenameTemplate, resultSummariesDir, log);
 	}
 
 	/* This is a working copy before the last modification of the method with the same name
@@ -3090,7 +3093,7 @@ public class SkatMeta {
 			log = new Logger();
 		}
 
-		condition = loadFile(input_fullpathToPreviousRoundCondition, null, new String[] {"SKATgene", "SNP"}, new String[] {"Chr", "Pos1", "Pos2"}, null, null);
+		condition = loadFile(input_fullpathToPreviousRoundCondition, null, new String[] {"SKATgene", "Name"}, new String[] {"Chr"/*, "Pos1", "Pos2"*/}, null, null);
 		uniqueGenes = new Vector<String> ();
 		uniqueSnps = new Vector<String> ();
 		for (String geneSnp : condition.keySet()) {
@@ -3583,261 +3586,282 @@ public class SkatMeta {
 	}
 
 	/**
-	 * This is a program specifically for 
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		int numArgs = args.length;
-		boolean isRScripts, isRScriptsSubFolders, isQcScript, isSummary, summarize, isConditional;
-		String cohortRDataFilesDir = null, snpInfoDirFilenameTemplate, genoDirFilenameTemplate, phenoDirFilenameTemplate, condFileDirFilenameTemplate, rScriptDir, condResultsDir, originalResultsDir, summaryDir = null, fullPathToSnpInfo = null, phenos, races, startConditionIdNumber, rCommandLine;
-		String commandConditional, commandRscript, commandRscriptSubDir, commandSummary, commandQcScript, commandPhenoDirFilenameTemplate, commandPhenos, commandGenoDirFilenameTemplate, commandRaces, commandSummaryDir, commandRCommand, commandPThreshold, commandPThresholdHigher;
-		String[] commands;
-		int[] columnIndeciesOfPhenoConditionEthnicAnalysis = null;
-		double pThreshold, pThresholdHigher;
-		int regionSearchDistance;
-		Logger log;
-
-		isRScripts = false;
-		isRScriptsSubFolders = false;
-		isQcScript = false;
-		isSummary = false;
-		isConditional = false;
-		summarize = false;
-
-		pThreshold = 0.0001;
-		pThresholdHigher = 0.001;
-		regionSearchDistance = 1000000;
-
-////		cohortRDataFilesDir = "N:/statgen/CHARGE-S_conditionals/cohortRDataFiles/";
-////		snpInfoFile = "D:/CHARGE-S_conditionals/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.RData";
-////		condFileDir = "N:/statgen/CHARGE-S_conditionals/conditions/";
-//		snpInfoFile = "/home/pankrat2/shared/skatMeta/snpInfos/exome_chip_v5_snpInfo_chr" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
-//		snpInfoFile = "/home/pankrat2/shared/skatMeta/snpInfos/snpInfoMinSubSet_CHARGES_ESP_RS_092413_chr" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
-		snpInfoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/freeze4/snpInfos/snpInfo_chr" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
-//		genoFile = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/exome_chip/genotypes_EA/EA_ARIC_noJHS_chr" + chr + "t.csv";
-//		phenoFile = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/exome_chip/inflammation/ARIC_EA_LpPLA2_" + subpheno + ".csv";
-		genoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/freeze4_genotypes/" + FILENAME_ETHNIC_SEGMENT + "_all/" + FILENAME_ETHNIC_SEGMENT + "_ARIC_ExFrz41_all_" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
-		phenoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/results_hemostasis/ARIC_" + FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_PHENO_SEGMENT + "_ABO.csv";
-//		phenoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/results_hemostasis/ARIC_" + FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_PHENO_SEGMENT + ".csv";
-		condFileDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/conditional/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
-//		condFileDirFilenameTemplate = "D:/charges_conditional_new/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
-
-		phenos = "F8,VWF";
-//		phenos = "F7,Fibrinogen";
-		races = "AA,EA";
-		startConditionIdNumber = "1";
-
-//		rScriptDir = "N:/statgen/CHARGE-S_conditionals/scripts/selectedSnpInfo_MoreCohorts/";
-//		resultsDir = "N:/statgen/CHARGE-S_conditionals/results/newFromSmallerSNPInfo/";
-//		summaryDir = "N:/statgen/CHARGE-S_conditionals/results/summary/automated_summaries/";
-		rScriptDir = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/conditional/scripts_dec2014/";
-		condResultsDir = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/conditional/results_dec2014/";
-		rCommandLine = "/soft/R/3.1.1/bin/Rscript";
-		summaryDir = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/conditional/summaries/";
-		columnIndeciesOfPhenoConditionEthnicAnalysis = new int[] {0, 1, 2, 3};
-//		rScriptDir = "D:/charges_conditional_new/";
-//		resultsDirFilenameTemplate = "D:/charges_conditional_new/outputs/";
-		
-//		resultsDirFilenameTemplate = "D:/charges_conditional_new/test1/";
-//		resultsDirFilenameTemplate = "D:/charges_conditional_new/preConditionalResults/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + "_" + FILENAME_ANALYSIS_SEGMENT + ".csv";
-//		summaryDir = "D:/charges_conditional_new/summaries/";
-
-//		cohortRDataFilesDir = null;
-//		snpInfoFile = null;
-//		condFileDir = null;
-//		rScriptDir = null;
-//		resultsDir = "D:/Inflammation/outputs/";
-//		columnIndeciesOfPhenoConditionEthnicAnalysis = new int[] {3, 6, 1, 7};	//Indices of the following info appeared in a file name Pheno, ConditionID, Ethnic, and AnalysisName, where a file name reads like this: ARIC_AA_LpPLA2_activity_prepCondScores_seqMeta_cond1_SingleSNP.csv
-//		pThreshold = 0.0001;
-//		fullPathToSnpInfo = "N:/statgen/inflammation/summary/SNPInfo_ExomeChipV5.csv";
-//		summaryDir = "D:/Inflammation/summary/";
-
-//		isRScriptsSubFolders = true;
-//		summarize = true;
-//		cohortRDataFilesDir = "D:/CHARGE-S_conditionals/npReplicate/cohortRDataFiles/";
-//		snpInfoDirFilenameTemplate = "D:/CHARGE-S_conditionals/npReplicate/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.Rdata";
-//		condFileDirFilenameTemplate = "D:/CHARGE-S_conditionals/npReplicate/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
-//		rScriptDir = "D:/CHARGE-S_conditionals/npReplicate/scripts/";
-//		condResultsDir = "D:/CHARGE-S_conditionals/npReplicate/results/";
-		originalResultsDir = "D:/CHARGE-S_conditionals/npReplicate/originalResults/";
-//		fullPathToSnpInfo = "D:/CHARGE-S_conditionals/npReplicate/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.Rdata";
-//		summaryDir = "D:/CHARGE-S_conditionals/npReplicate/summaries/";
-		
-//		phenos = "Fibrinogen,F7,F8,VWF";
-//		races = "EAAA,EA,AA";
-
-		commands = new String[] {"", "rdatadir=", "snpinfofile=", "conditionfile=", "resultdir=", "scriptdir="};
-		commandRscript = "-rscript";
-		commandRscriptSubDir = "-rscriptsubdir";
-		commandQcScript = "-qcscript";
-		commandSummary = "-summary";
-		commandConditional = "-conditional";
-		commandPhenoDirFilenameTemplate = "phenofile=";
-		commandPhenos = "phenos=";
-		commandGenoDirFilenameTemplate = "genofile=";
-		commandRaces = "races=";
-		commandSummaryDir = "summarydir=";
-		commandRCommand = "rcommand=";
-		commandPThreshold = "pthreshold=";
-		commandPThresholdHigher = "pthresholdhigh=";
-
-		String usage = "\nTo generate Skat Meta R scripts for all the .RData files in a single directory:"
-					+ "\n   (1) command for generating R scripts (i.e. " + commands[0] + " (default))"
-					+ "\n   (2) directory of the .RData files (i.e. " + commands[1] + cohortRDataFilesDir + " (default))"
-					+ "\n   (3) full path of the SNPInfo file (i.e. " + commands[2] + snpInfoDirFilenameTemplate + " (default))"
-					+ "\n   (4) directory of the condition files (i.e. " + commands[3] + condFileDirFilenameTemplate + " (default))"
-					+ "\n   (5) directory of results the condition files (i.e. " + commands[4] + condResultsDir + " (default))"
-					+ "\n   (6) directory to output the R scripts (i.e. " + commands[5] + rScriptDir + " (default))"
-					+ "\n"
-					+ "\nTo generate Skat Meta R scripts for all the .RData files in a single directory and all its subdirectories:"
-					+ "\n   (1) command for generating R scripts for a directory and all its subdirectories (i.e. " + commands[6] + " (default))"
-					+ "\n   (2) directory of the .RData files (i.e. " + commands[1] + cohortRDataFilesDir + " (default))"
-					+ "\n   (3) full path of the SNPInfo file (i.e. " + commands[2] + snpInfoDirFilenameTemplate + " (default))"
-					+ "\n   (4) directory of the condition files (i.e. " + commands[3] + condFileDirFilenameTemplate + " (default))"
-					+ "\n   (5) directory of results the condition files (i.e. " + commands[4] + condResultsDir + " (default))"
-					+ "\n   (6) directory to output the R scripts (i.e. " + commands[5] + rScriptDir + " (default))"
-					+ "\n"
-					+ "\nTo generate QC R scripts for all the .RData files in a single directory:"
-					+ "\n   (1) command for generating R scripts for a directory and all its subdirectories (i.e. " + commands[7] + " (default))"
-					+ "\n   (2) directory of the .RData files (i.e. " + commands[1] + cohortRDataFilesDir + " (default))"
-					+ "\n"
-					+ "\nTo summarize Skat Meta results:"
-					+ "\n   (1) command for summarizing Skat Meta results (i.e. " + commands[8] + " (default))"
-					+ "\n   (2) directory of Skat Meta results (i.e. " + commands[4] + condResultsDir + " (default))"
-					+ "\n   (3) directory of original meta-analysis results (i.e. originalResultsDir=" + originalResultsDir + " (default))"
-					+ "\n   (4) directory to output summary (i.e. " + commandSummaryDir + summaryDir + " (default))"
-					+ "\n"
-					+ "\nTo run conditional analysis from results of pre-conditional analysis:"
-					+ "\n   (1) command for conditional analysis (i.e. " + commandConditional + " (default))"
-					+ "\n   (2) template of dir and file name of the results of pre-conditional analyses, which the 1st condition is going to based on (i.e. " + commands[4] + condResultsDir + " (default))"
-					+ "\n   (3) phenos (i.e. " + commandPhenos + phenos + " (default))"
-					+ "\n   (4) template of pheno files' dir and name (i.e. " + commandPhenoDirFilenameTemplate + phenoDirFilenameTemplate + " (default))"
-					+ "\n   (5) template of geno files' dir and name (i.e. " + commandGenoDirFilenameTemplate + genoDirFilenameTemplate + " (default))"
-					+ "\n   (6) template of SNPInfo files' dir and name (i.e. " + commands[2] + snpInfoDirFilenameTemplate + " (default))"
-					+ "\n   (7) races (i.e. " + commandRaces + races + " (default))"
-					+ "\n   (8) folder to output the R scripts (i.e. " + commands[5] + rScriptDir + " (default))"
-					+ "\n   (9) template of folder and name of  (i.e. " + commands[3] + condFileDirFilenameTemplate + " (default))"
-					+ "\n   (10) folder to output summaries of Skat Meta results (i.e. " + commandSummaryDir + summaryDir + " (default))"
-					+ "\n   (11) command to launch R (i.e. " + commandRCommand + rCommandLine + " (default))"
-					+ "\n   (12) p-value threshold for next conditions (i.e. " + commandPThreshold + pThreshold  + " (default))"
-					+ "\n"
-					+ "\nTo run conditional analysis with existing 1st condition:"
-					+ "\n   (1) command for conditional analysis (i.e. " + commandConditional + " (default))"
-					+ "\n   (2) template of condition files' directory and name (i.e. " + commands[3] + condFileDirFilenameTemplate + " (default))"
-					+ "\n   (3) phenos (i.e. " + commandPhenos + phenos + " (default))"
-					+ "\n   (4) template of pheno files' dir and name (i.e. " + commandPhenoDirFilenameTemplate + phenoDirFilenameTemplate + " (default))"
-					+ "\n   (5) template of geno files' dir and name (i.e. " + commandGenoDirFilenameTemplate + genoDirFilenameTemplate + " (default))"
-					+ "\n   (6) template of SNPInfo files' dir and name (i.e. " + commands[2] + snpInfoDirFilenameTemplate + " (default))"
-					+ "\n   (7) races (i.e. " + commandRaces + races + " (default))"
-					+ "\n   (8) folder to output the R scripts (i.e. " + commands[5] + rScriptDir + " (default))"
-					+ "\n   (9) folder to output Skat Meta results (i.e. " + commands[4] + condResultsDir + " (default))"
-					+ "\n   (10) folder to output summaries of Skat Meta results (i.e. " + commandSummaryDir + summaryDir + " (default))"
-					+ "\n   (11) command to launch R (i.e. " + commandRCommand + rCommandLine + " (default))"
-					+ "\n   (12) p-value threshold for next conditions (i.e. " + commandPThreshold + pThreshold  + " (default))"
-					+ "";
-
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith(commandRscript)) {
-				isRScripts = true;
-				numArgs--;
-			} else if (args[i].startsWith(commands[1])) {
-				cohortRDataFilesDir = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commands[2])) {
-				snpInfoDirFilenameTemplate = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commands[3])) {
-				condFileDirFilenameTemplate = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commands[4])) {
-				condResultsDir = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("originalResultsDir=")) {
-				originalResultsDir = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commands[5])) {
-				rScriptDir = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commandRscriptSubDir)) {
-				isRScriptsSubFolders = true;
-				numArgs--;
-			} else if (args[i].startsWith(commandQcScript)) {
-				isQcScript = true;
-				numArgs--;
-			} else if (args[i].startsWith(commandSummary)) {
-				isSummary = true;
-				numArgs--;
-			} else if (args[i].startsWith(commandSummaryDir)) {
-				summaryDir = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commandConditional)) {
-				isConditional = true;
-				numArgs--;
-			} else if (args[i].startsWith(commandPhenoDirFilenameTemplate)) {
-				phenoDirFilenameTemplate = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commandGenoDirFilenameTemplate)) {
-				genoDirFilenameTemplate = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commandPhenos)) {
-				phenos = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commandRaces)) {
-				races = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commandRCommand)) {
-				rCommandLine = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(commandPThreshold)) {
-				pThreshold = Double.parseDouble(args[i].split("=")[1]);
-				numArgs--;
-			} else if (args[i].startsWith(commandPThresholdHigher)) {
-				pThresholdHigher = Double.parseDouble(args[i].split("=")[1]);
-				numArgs--;
-			} else if (args[i].startsWith("-summarize")) {
-				summarize = true;
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
-			}
-		}
-
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-
-		if (isRScripts) {
-			log = new Logger();
-//			generateSkatMetaRScript(phenoFile, genoFile, condFileDir, snpInfoFile, new String[] {"F7", "F8_ABO", "VWF_ABO", "Fibrinogen"}, new String[] {"AA", "EA"}, new String[] {"1"}, rScriptDir, resultsDir, rCommandLine);
-			generateSkatMetaRScript(phenoDirFilenameTemplate, genoDirFilenameTemplate, condFileDirFilenameTemplate, snpInfoDirFilenameTemplate, phenos.split(","), races.split(","), startConditionIdNumber, rScriptDir, condResultsDir, rCommandLine);
-//			generateSkatMetaRScriptConditional(cohortRDataFilesDir, snpInfoFile, condFileDir, rScriptDir, resultsDir);
-		} else if (isRScriptsSubFolders) {
-			log = new Logger();
-			generateSkatMetaRScriptsForSubFolders(cohortRDataFilesDir, snpInfoDirFilenameTemplate, condFileDirFilenameTemplate, rScriptDir, condResultsDir);
-		} else if (isQcScript) {
-			log = new Logger();
-			qcScript(cohortRDataFilesDir);
-		} else if (isSummary) {
-			log = new Logger(condResultsDir + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
-			summary(condResultsDir, columnIndeciesOfPhenoConditionEthnicAnalysis, pThreshold, null, fullPathToSnpInfo, null, summaryDir, log);
-		} else if (summarize) {
-			log = new Logger(summaryDir + "Summarize_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
-			summaryTable(phenos.split(","), races.split(","), condResultsDir, originalResultsDir, summaryDir, snpInfoDirFilenameTemplate, log);
-		} else if (isConditional) {
-			log = new Logger();
-//			conditionalAnalysisWholeProcess(fullpathToPreviousRoundResult, fullpathToPreviousRoundCondition, fullpathToOutputNextRoundCondition, pThreshold, log);
-//			Files.writeList(getFirstCondition("D:/charges_conditional_new/preConditionalResults/vWF_SingleVariant.csv", null, null, .0000001, .00001, 1000000, null), "D:/charges_conditional_new/preConditionalResults/vWF_cond1.txt");
-//			conditionalAnalysisWholeProcessMultiplePhenos(condFileDirFilenameTemplate, phenoDirFilenameTemplate, genoDirFilenameTemplate, snpInfoDirFilenameTemplate, phenos.split(","), races.split(","), Integer.parseInt(startConditionIdNumber), rScriptDir, resultsDir, summaryDir, rCommandLine, pThreshold, log);
-			conditionalAnalysisWholeProcessMultiplePhenos(condResultsDir, condFileDirFilenameTemplate, phenoDirFilenameTemplate, genoDirFilenameTemplate, snpInfoDirFilenameTemplate, phenos.split(","), races.split(","), rScriptDir, summaryDir, rCommandLine, pThreshold, pThresholdHigher, regionSearchDistance, log);
-		} else {
-			log = new Logger();
-			log.reportError("No command executed, due to none of the following is specified: " + commandRscript + ", " + commandRscriptSubDir + ", " + commandQcScript + ", " + commandSummary + ", or " + commandConditional + ".\n" + usage);
-		}
-		
-		log.report("Program completed.");
-	}
+    	 * This is a program specifically for 
+    	 * @param args
+    	 */
+    	public static void main(String[] args) {
+    		int numArgs = args.length;
+    		boolean isRScripts, isRScriptsSubFolders, isQcScript, isSummary, summarize, isConditional;
+    		String cohortRDataFilesDir = null, snpInfoDirFilenameTemplate, genoDirFilenameTemplate, phenoDirFilenameTemplate, condFileDirFilenameTemplate, rScriptDir, condResultsDir, originalResultsDir, summaryDir = null, fullPathToSnpInfo = null, phenos, races, startConditionIdNumber, rCommandLine;
+    		String commandConditional, commandRscript, commandRscriptSubDir, commandSummary, commandQcScript, commandPhenoDirFilenameTemplate, commandPhenos, commandGenoDirFilenameTemplate, commandRaces, commandSummaryDir, commandRCommand, commandPThreshold, commandPThresholdHigher;
+    		String[] commands;
+    		int[] columnIndeciesOfPhenoConditionEthnicAnalysis = null;
+    		double pThreshold, pThresholdHigher;
+    		int regionSearchDistance;
+    		Logger log;
+    
+    		isRScripts = false;
+    		isRScriptsSubFolders = false;
+    		isQcScript = false;
+    		isSummary = false;
+    		isConditional = false;
+    		summarize = false;
+    
+    		pThreshold = 0.0001;
+    		pThresholdHigher = 0.001;
+    		regionSearchDistance = 1000000;
+    
+    ////		cohortRDataFilesDir = "N:/statgen/CHARGE-S_conditionals/cohortRDataFiles/";
+    ////		snpInfoFile = "D:/CHARGE-S_conditionals/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.RData";
+    ////		condFileDir = "N:/statgen/CHARGE-S_conditionals/conditions/";
+    //		snpInfoFile = "/home/pankrat2/shared/skatMeta/snpInfos/exome_chip_v5_snpInfo_chr" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+    //		snpInfoFile = "/home/pankrat2/shared/skatMeta/snpInfos/snpInfoMinSubSet_CHARGES_ESP_RS_092413_chr" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+    		snpInfoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/freeze4/snpInfos/snpInfo_chr" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+    //		genoFile = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/exome_chip/genotypes_EA/EA_ARIC_noJHS_chr" + chr + "t.csv";
+    //		phenoFile = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/exome_chip/inflammation/ARIC_EA_LpPLA2_" + subpheno + ".csv";
+    		genoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/freeze4_genotypes/" + FILENAME_ETHNIC_SEGMENT + "_all/" + FILENAME_ETHNIC_SEGMENT + "_ARIC_ExFrz41_all_" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+    		phenoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/results_hemostasis/ARIC_" + FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_PHENO_SEGMENT + "_ABO.csv";
+    //		phenoDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/results_hemostasis/ARIC_" + FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_PHENO_SEGMENT + ".csv";
+    		condFileDirFilenameTemplate = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/conditional/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
+    //		condFileDirFilenameTemplate = "D:/charges_conditional_new/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
+    
+    		phenos = "F8,VWF";
+    //		phenos = "F7,Fibrinogen";
+    		races = "AA,EA";
+    		startConditionIdNumber = "1";
+    
+    //		rScriptDir = "N:/statgen/CHARGE-S_conditionals/scripts/selectedSnpInfo_MoreCohorts/";
+    //		resultsDir = "N:/statgen/CHARGE-S_conditionals/results/newFromSmallerSNPInfo/";
+    //		summaryDir = "N:/statgen/CHARGE-S_conditionals/results/summary/automated_summaries/";
+    		rScriptDir = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/conditional/scripts_dec2014/";
+    		condResultsDir = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/conditional/results_dec2014/";
+    		rCommandLine = "/soft/R/3.1.1/bin/Rscript";
+    		summaryDir = "/home/pankrat2/shared/skatMeta/aric_primary_analyses/charges/conditional/summaries/";
+    		columnIndeciesOfPhenoConditionEthnicAnalysis = new int[] {0, 1, 2, 3};
+    //		rScriptDir = "D:/charges_conditional_new/";
+    //		resultsDirFilenameTemplate = "D:/charges_conditional_new/outputs/";
+    		
+    //		resultsDirFilenameTemplate = "D:/charges_conditional_new/test1/";
+    //		resultsDirFilenameTemplate = "D:/charges_conditional_new/preConditionalResults/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + "_" + FILENAME_ANALYSIS_SEGMENT + ".csv";
+    //		summaryDir = "D:/charges_conditional_new/summaries/";
+    
+    //		cohortRDataFilesDir = null;
+    //		snpInfoFile = null;
+    //		condFileDir = null;
+    //		rScriptDir = null;
+    //		resultsDir = "D:/Inflammation/outputs/";
+    //		columnIndeciesOfPhenoConditionEthnicAnalysis = new int[] {3, 6, 1, 7};	//Indices of the following info appeared in a file name Pheno, ConditionID, Ethnic, and AnalysisName, where a file name reads like this: ARIC_AA_LpPLA2_activity_prepCondScores_seqMeta_cond1_SingleSNP.csv
+    //		pThreshold = 0.0001;
+    //		fullPathToSnpInfo = "N:/statgen/inflammation/summary/SNPInfo_ExomeChipV5.csv";
+    //		summaryDir = "D:/Inflammation/summary/";
+    
+    //		isRScriptsSubFolders = true;
+    //		summarize = true;
+    //		cohortRDataFilesDir = "D:/CHARGE-S_conditionals/npReplicate/cohortRDataFiles/";
+    //		snpInfoDirFilenameTemplate = "D:/CHARGE-S_conditionals/npReplicate/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.Rdata";
+    //		condFileDirFilenameTemplate = "D:/CHARGE-S_conditionals/npReplicate/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
+    //		rScriptDir = "D:/CHARGE-S_conditionals/npReplicate/scripts/";
+    //		condResultsDir = "D:/CHARGE-S_conditionals/npReplicate/results/";
+//    		originalResultsDir = "D:/CHARGE-S_conditionals/npReplicate/originalResults/";
+    //		fullPathToSnpInfo = "D:/CHARGE-S_conditionals/npReplicate/snpInfos/snpinfo_ChargeSFreeze3Freeze4_ESP_RS_ERF_Broad_Analytic_04112014.Rdata";
+    //		summaryDir = "D:/CHARGE-S_conditionals/npReplicate/summaries/";
+    		
+    
+			snpInfoDirFilenameTemplate = "F:/freeze4/freeze4.altered.all.RData";
+//            snpInfoDirFilenameTemplate = "F:/freeze4/conditional/npReplicate/snpInfos/snpInfo_chr" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+            condFileDirFilenameTemplate = "F:/freeze4/conditional/npReplicate/conditions_orig/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";
+            genoDirFilenameTemplate = "F:/freeze4/conditional/freeze4_genotypes/" + FILENAME_ETHNIC_SEGMENT + "_all/" + FILENAME_ETHNIC_SEGMENT + "_ARIC_ExFrz41_all_" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+            phenoDirFilenameTemplate = "F:/freeze4/conditional/phenos/ARIC_" + FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_PHENO_SEGMENT + ".csv";
+    		
+    		rScriptDir = "F:/freeze4/conditional/npReplicate/scripts_run/";
+    		condResultsDir = "F:/freeze4/conditional/npReplicate/results/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + "_" + FILENAME_ETHNIC_SEGMENT + "_" + FILENAME_ANALYSIS_SEGMENT + ".csv";
+    		rCommandLine = "\"C:/Program Files/R/R-3.1.1/bin/x64/Rscript.exe\"";
+    		summaryDir = "F:/freeze4/conditional/npReplicate/summaries/";
+    		
+    		cohortRDataFilesDir = "F:/freeze4/cohort/cohortRDataFiles/";
+            snpInfoDirFilenameTemplate = "F:/freeze4/cohort/snpInfos/snpInfo_chr" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+            condFileDirFilenameTemplate = "F:/freeze4/cohort/conditions/" + FILENAME_PHENO_SEGMENT + "_" + FILENAME_CONDITION_SEGMENT + ".txt";	
+            rScriptDir = "F:/freeze4/cohort/r_scripts/";
+            
+    		condResultsDir = "F:/freeze4/cohort/results/";
+    		phenos = "Fibrinogen,F7,F8,VWF";
+//    		races = "EAAA,EA,AA";
+            originalResultsDir = "F:/freeze4/conditional/npReplicate/originalResults/";
+            summaryDir = "F:/freeze4/cohort/summaries/";
+            fullPathToSnpInfo = "F:/freeze4/conditional/npReplicate/snpInfos/snpInfo_chr" + FILENAME_CHROMOSOME_SEGMENT + ".RData";
+    		
+    		commands = new String[] {"", "rdatadir=", "snpinfofile=", "conditionfile=", "resultdir=", "scriptdir=", "", "", ""};
+    		commandRscript = "-rscript2";
+    		commandRscriptSubDir = "-rscriptsubdir";
+    		commandQcScript = "-qcscript";
+    		commandSummary = "-summary";
+    		commandConditional = "-conditional";
+    		commandPhenoDirFilenameTemplate = "phenofile=";
+    		commandPhenos = "phenos=";
+    		commandGenoDirFilenameTemplate = "genofile=";
+    		commandRaces = "races=";
+    		commandSummaryDir = "summarydir=";
+    		commandRCommand = "rcommand=";
+    		commandPThreshold = "pthreshold=";
+    		commandPThresholdHigher = "pthresholdhigh=";
+    
+    		String usage = "\nTo generate Skat Meta R scripts for all the .RData files in a single directory:"
+    					+ "\n   (1) command for generating R scripts (i.e. " + commands[0] + " (default))"
+    					+ "\n   (2) directory of the .RData files (i.e. " + commands[1] + cohortRDataFilesDir + " (default))"
+    					+ "\n   (3) full path of the SNPInfo file (i.e. " + commands[2] + snpInfoDirFilenameTemplate + " (default))"
+    					+ "\n   (4) directory of the condition files (i.e. " + commands[3] + condFileDirFilenameTemplate + " (default))"
+    					+ "\n   (5) directory of results the condition files (i.e. " + commands[4] + condResultsDir + " (default))"
+    					+ "\n   (6) directory to output the R scripts (i.e. " + commands[5] + rScriptDir + " (default))"
+    					+ "\n"
+    					+ "\nTo generate Skat Meta R scripts for all the .RData files in a single directory and all its subdirectories:"
+    					+ "\n   (1) command for generating R scripts for a directory and all its subdirectories (i.e. " + commands[6] + " (default))"
+    					+ "\n   (2) directory of the .RData files (i.e. " + commands[1] + cohortRDataFilesDir + " (default))"
+    					+ "\n   (3) full path of the SNPInfo file (i.e. " + commands[2] + snpInfoDirFilenameTemplate + " (default))"
+    					+ "\n   (4) directory of the condition files (i.e. " + commands[3] + condFileDirFilenameTemplate + " (default))"
+    					+ "\n   (5) directory of results the condition files (i.e. " + commands[4] + condResultsDir + " (default))"
+    					+ "\n   (6) directory to output the R scripts (i.e. " + commands[5] + rScriptDir + " (default))"
+    					+ "\n"
+    					+ "\nTo generate QC R scripts for all the .RData files in a single directory:"
+    					+ "\n   (1) command for generating R scripts for a directory and all its subdirectories (i.e. " + commands[7] + " (default))"
+    					+ "\n   (2) directory of the .RData files (i.e. " + commands[1] + cohortRDataFilesDir + " (default))"
+    					+ "\n"
+    					+ "\nTo summarize Skat Meta results:"
+    					+ "\n   (1) command for summarizing Skat Meta results (i.e. " + commands[8] + " (default))"
+    					+ "\n   (2) directory of Skat Meta results (i.e. " + commands[4] + condResultsDir + " (default))"
+    					+ "\n   (3) directory of original meta-analysis results (i.e. originalResultsDir=" + originalResultsDir + " (default))"
+    					+ "\n   (4) directory to output summary (i.e. " + commandSummaryDir + summaryDir + " (default))"
+    					+ "\n"
+    					+ "\nTo run conditional analysis from results of pre-conditional analysis:"
+    					+ "\n   (1) command for conditional analysis (i.e. " + commandConditional + " (default))"
+    					+ "\n   (2) template of dir and file name of the results of pre-conditional analyses, which the 1st condition is going to based on (i.e. " + commands[4] + condResultsDir + " (default))"
+    					+ "\n   (3) phenos (i.e. " + commandPhenos + phenos + " (default))"
+    					+ "\n   (4) template of pheno files' dir and name (i.e. " + commandPhenoDirFilenameTemplate + phenoDirFilenameTemplate + " (default))"
+    					+ "\n   (5) template of geno files' dir and name (i.e. " + commandGenoDirFilenameTemplate + genoDirFilenameTemplate + " (default))"
+    					+ "\n   (6) template of SNPInfo files' dir and name (i.e. " + commands[2] + snpInfoDirFilenameTemplate + " (default))"
+    					+ "\n   (7) races (i.e. " + commandRaces + races + " (default))"
+    					+ "\n   (8) folder to output the R scripts (i.e. " + commands[5] + rScriptDir + " (default))"
+    					+ "\n   (9) template of folder and name of  (i.e. " + commands[3] + condFileDirFilenameTemplate + " (default))"
+    					+ "\n   (10) folder to output summaries of Skat Meta results (i.e. " + commandSummaryDir + summaryDir + " (default))"
+    					+ "\n   (11) command to launch R (i.e. " + commandRCommand + rCommandLine + " (default))"
+    					+ "\n   (12) p-value threshold for next conditions (i.e. " + commandPThreshold + pThreshold  + " (default))"
+    					+ "\n"
+    					+ "\nTo run conditional analysis with existing 1st condition:"
+    					+ "\n   (1) command for conditional analysis (i.e. " + commandConditional + " (default))"
+    					+ "\n   (2) template of condition files' directory and name (i.e. " + commands[3] + condFileDirFilenameTemplate + " (default))"
+    					+ "\n   (3) phenos (i.e. " + commandPhenos + phenos + " (default))"
+    					+ "\n   (4) template of pheno files' dir and name (i.e. " + commandPhenoDirFilenameTemplate + phenoDirFilenameTemplate + " (default))"
+    					+ "\n   (5) template of geno files' dir and name (i.e. " + commandGenoDirFilenameTemplate + genoDirFilenameTemplate + " (default))"
+    					+ "\n   (6) template of SNPInfo files' dir and name (i.e. " + commands[2] + snpInfoDirFilenameTemplate + " (default))"
+    					+ "\n   (7) races (i.e. " + commandRaces + races + " (default))"
+    					+ "\n   (8) folder to output the R scripts (i.e. " + commands[5] + rScriptDir + " (default))"
+    					+ "\n   (9) folder to output Skat Meta results (i.e. " + commands[4] + condResultsDir + " (default))"
+    					+ "\n   (10) folder to output summaries of Skat Meta results (i.e. " + commandSummaryDir + summaryDir + " (default))"
+    					+ "\n   (11) command to launch R (i.e. " + commandRCommand + rCommandLine + " (default))"
+    					+ "\n   (12) p-value threshold for next conditions (i.e. " + commandPThreshold + pThreshold  + " (default))"
+    					+ "";
+    
+    		for (int i = 0; i < args.length; i++) {
+    			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+    				System.err.println(usage);
+    				System.exit(1);
+    			} else if (args[i].startsWith(commandRscript)) {
+    				isRScripts = true;
+    				numArgs--;
+    			} else if (args[i].startsWith(commands[1])) {
+    				cohortRDataFilesDir = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commands[2])) {
+    				snpInfoDirFilenameTemplate = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commands[3])) {
+    				condFileDirFilenameTemplate = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commands[4])) {
+    				condResultsDir = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith("originalResultsDir=")) {
+    				originalResultsDir = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commands[5])) {
+    				rScriptDir = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commandRscriptSubDir)) {
+    				isRScriptsSubFolders = true;
+    				numArgs--;
+    			} else if (args[i].startsWith(commandQcScript)) {
+    				isQcScript = true;
+    				numArgs--;
+    			} else if (args[i].startsWith(commandSummary)) {
+    				isSummary = true;
+    				numArgs--;
+    			} else if (args[i].startsWith(commandSummaryDir)) {
+    				summaryDir = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commandConditional)) {
+    				isConditional = true;
+    				numArgs--;
+    			} else if (args[i].startsWith(commandPhenoDirFilenameTemplate)) {
+    				phenoDirFilenameTemplate = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commandGenoDirFilenameTemplate)) {
+    				genoDirFilenameTemplate = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commandPhenos)) {
+    				phenos = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commandRaces)) {
+    				races = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commandRCommand)) {
+    				rCommandLine = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith(commandPThreshold)) {
+    				pThreshold = Double.parseDouble(args[i].split("=")[1]);
+    				numArgs--;
+    			} else if (args[i].startsWith(commandPThresholdHigher)) {
+    				pThresholdHigher = Double.parseDouble(args[i].split("=")[1]);
+    				numArgs--;
+    			} else if (args[i].startsWith("-summarize")) {
+    				summarize = true;
+    				numArgs--;
+    			} else {
+    				System.err.println("Error - invalid argument: " + args[i]);
+    			}
+    		}
+    
+    		if (numArgs != 0) {
+    			System.err.println(usage);
+    			System.exit(1);
+    		}
+    
+    		if (isRScripts) {
+    			log = new Logger();
+    //			generateSkatMetaRScript(phenoFile, genoFile, condFileDir, snpInfoFile, new String[] {"F7", "F8_ABO", "VWF_ABO", "Fibrinogen"}, new String[] {"AA", "EA"}, new String[] {"1"}, rScriptDir, resultsDir, rCommandLine);
+    			generateSkatMetaRScript(phenoDirFilenameTemplate, genoDirFilenameTemplate, condFileDirFilenameTemplate, snpInfoDirFilenameTemplate, phenos.split(","), races.split(","), startConditionIdNumber, rScriptDir, condResultsDir, rCommandLine);
+    //			generateSkatMetaRScriptConditional(cohortRDataFilesDir, snpInfoFile, condFileDir, rScriptDir, resultsDir);
+    		} else if (isRScriptsSubFolders) {
+    			log = new Logger();
+    			generateSkatMetaRScriptsForSubFolders(cohortRDataFilesDir, snpInfoDirFilenameTemplate, condFileDirFilenameTemplate, rScriptDir, condResultsDir, rCommandLine);
+    		} else if (isQcScript) {
+    			log = new Logger();
+    			qcScript(cohortRDataFilesDir);
+    		} else if (isSummary) {
+    			log = new Logger(condResultsDir + "SuperNovo_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
+    			summary(condResultsDir, columnIndeciesOfPhenoConditionEthnicAnalysis, pThreshold, null, fullPathToSnpInfo, null, summaryDir, log);
+    		} else if (summarize) {
+    			log = new Logger(summaryDir + "Summarize_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date()) + ".log");
+    			summaryTable(phenos.split(","), races.split(","), condResultsDir, originalResultsDir, summaryDir, snpInfoDirFilenameTemplate, log);
+    		} else if (isConditional) {
+    			log = new Logger();
+    //			conditionalAnalysisWholeProcess(fullpathToPreviousRoundResult, fullpathToPreviousRoundCondition, fullpathToOutputNextRoundCondition, pThreshold, log);
+    //			Files.writeList(getFirstCondition("D:/charges_conditional_new/preConditionalResults/vWF_SingleVariant.csv", null, null, .0000001, .00001, 1000000, null), "D:/charges_conditional_new/preConditionalResults/vWF_cond1.txt");
+    //			conditionalAnalysisWholeProcessMultiplePhenos(condFileDirFilenameTemplate, phenoDirFilenameTemplate, genoDirFilenameTemplate, snpInfoDirFilenameTemplate, phenos.split(","), races.split(","), Integer.parseInt(startConditionIdNumber), rScriptDir, resultsDir, summaryDir, rCommandLine, pThreshold, log);
+    			conditionalAnalysisWholeProcessMultiplePhenos(condResultsDir, condFileDirFilenameTemplate, phenoDirFilenameTemplate, genoDirFilenameTemplate, snpInfoDirFilenameTemplate, phenos.split(","), races.split(","), rScriptDir, summaryDir, rCommandLine, pThreshold, pThresholdHigher, regionSearchDistance, log);
+    		} else {
+    			log = new Logger();
+    			log.reportError("No command executed, due to none of the following is specified: " + commandRscript + ", " + commandRscriptSubDir + ", " + commandQcScript + ", " + commandSummary + ", or " + commandConditional + ".\n" + usage);
+    		}
+    		
+    		log.report("Program completed.");
+    	}
 }

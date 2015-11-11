@@ -2232,18 +2232,19 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		updateGUI();
 		if (blastFrame != null && blastFrame.isVisible()) {
 		    blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
-		}
-		if (histFrame != null && histFrame.isVisible()) {
-		    histFrame.removeAllData();
-	        int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
-	        String[][] data = new String[histogram.length][];
-	        for (int i = 0; i < histogram.length; i++) {
-	            data[i] = new String[2];
-	            data[i][0] = "" + i;
-	            data[i][1] = "" + histogram[i];
-	        }
-	        histFrame.addDataSource("BLAST_Histogram", data, new String[]{"Bin", "Counts"});
-	        histFrame.showSpecificFile(getProject(), "BLAST_Histogram", 0, 1);
+//		}
+    		if (histFrame != null/* && histFrame.isVisible()*/) {
+    		    histFrame.removeAllData();
+    	        int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
+    	        String[][] data = new String[histogram.length][];
+    	        for (int i = 0; i < histogram.length; i++) {
+    	            data[i] = new String[2];
+    	            data[i][0] = "" + i;
+    	            data[i][1] = "" + histogram[i];
+    	        }
+    	        histFrame.addDataSource("BLAST_Histogram", data, new String[]{"Bin", "Counts"});
+    	        histFrame.showSpecificFile(getProject(), "BLAST_Histogram", 0, 1);
+    		}
 		}
 		displayClusterFilterIndex();
 //		long t3 = System.currentTimeMillis();
@@ -2406,7 +2407,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
         int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
         if (histFrame == null) {
-            histFrame = TwoDPlot.createGUI(getProject(), true, false, null);
+            histFrame = TwoDPlot.createGUI(getProject(), false, false, null);
         }
         histFrame.removeAllData();
         String[][] data = new String[histogram.length][];
@@ -2420,8 +2421,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                histFrame.setVisible(true);
                 blastFrame.setVisible(true);
+                blastFrame.setSecondPanel(histFrame.getPanel());
             }
         });
 	}
@@ -3219,15 +3220,16 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         typeLabel.setForeground(has ? Color.GREEN : Color.RED);
         blastPanel.add(typeLabel, "cell 1 0, alignx right");
 	    
-        typeLabel = new JLabel("# Off-Target Alignments (>" + proj.BLAST_PROPORTION_MATCH_FILTER.getValue() + "% match): ", JLabel.LEFT);
-        typeLabel.setFont(lblFont);
-        blastPanel.add(typeLabel, "cell 0 1");
-//        typeLabel = new JLabel(" " + blastResult.getNumOffTarget(log), JLabel.LEFT);
-        
         double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
         int probe = proj.ARRAY_TYPE.getValue().getProbeLength();
         int alignFilter = (int) (filter * probe);
-        typeLabel = new JLabel("" + BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log), alignFilter).size(), JLabel.LEFT);
+        int offTLbls = BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log), alignFilter).size();
+        typeLabel = new JLabel("# Off-Target Alignments (>" + proj.BLAST_PROPORTION_MATCH_FILTER.getValue() + "% match): ", JLabel.LEFT);
+        typeLabel.setFont(lblFont);
+        typeLabel.setForeground(offTLbls > 0 ? Color.RED : Color.BLACK);
+        blastPanel.add(typeLabel, "cell 0 1");
+        
+        typeLabel = new JLabel("" + offTLbls, JLabel.LEFT);
         typeLabel.setFont(lblFont);
         blastPanel.add(typeLabel, "cell 1 1, alignx right");
 	    
@@ -3242,7 +3244,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         
         JButton blastButton = new JButton();
         blastButton.setActionCommand(BLAST_DETAILS_COMMAND);
-        blastButton.setText("More Details");
+        blastButton.setText("Show BLAST Results");
+        blastButton.setMnemonic(KeyEvent.VK_B);
         blastButton.addActionListener(this);
         
 //        if (referenceGenome == null) {

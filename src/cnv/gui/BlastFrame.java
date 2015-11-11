@@ -6,6 +6,7 @@ import htsjdk.samtools.CigarOperator;
 import htsjdk.tribble.annotation.Strand;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -20,6 +21,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -48,6 +50,8 @@ import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import filesys.Segment;
 import net.miginfocom.swing.MigLayout;
+
+import javax.swing.JSplitPane;
 
 public class BlastFrame extends JFrame implements WindowFocusListener {
 
@@ -124,6 +128,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     private MarkerBlastAnnotation blastResult;
     public int currentAlignFilter;
     private String nextBase;
+    private JSplitPane splitPane;
+    private JPanel panel_1;
     
     public void addBlastLabel(BlastLabel lbl) {
         JLabel locLbl = new JLabel();
@@ -170,11 +176,6 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
-
-        blastPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow]", ""));
-        scrollPane = new JScrollPane(blastPanel);
-        
-        contentPane.add(scrollPane, BorderLayout.CENTER);
         
         JPanel panel = new JPanel();
         panel.setBorder(null);
@@ -229,6 +230,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
             @Override
             public void stateChanged(ChangeEvent e) {
                 BlastLabel.setFontSize((Integer) spnFontSize.getModel().getValue());
+                refLabel.setFont(BlastLabel.LBL_FONT);
+                probeLbl.setFont(BlastLabel.LBL_FONT);
                 for (BlastLabel lbl : bLabels) {
                     lbl.updateFont();
                 }
@@ -276,25 +279,34 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         
         lblAlignmentLength = new JLabel("Alignment Length");
         panel.add(lblAlignmentLength, "cell 7 0");
-        
+                
+        splitPane = new JSplitPane();
+        splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        contentPane.add(splitPane, BorderLayout.CENTER);
 
+        blastPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow]", ""));
+        scrollPane = new JScrollPane(blastPanel);
+        splitPane.setLeftComponent(scrollPane);
         refLabel = new ReferenceLabel();
         probeLbl = new ReferenceLabel();
-//        indexLabel.setFont(BlastLabel.LBL_FONT);
-//        indexLabel.setText(referenceAnnotation.getSequence());
-        BlastLabel.setRefLabel(refLabel);
-//        JPanel panel = new JPanel(new GridLayout(2, 1));
-//        panel.add(indexLabel);
-//        panel.add(refLabel);
-//        jsp.setColumnHeaderView(panel);
         JPanel hdrPanel = getHeaderPanel();
         scrollPane.setColumnHeaderView(hdrPanel);
-        
+                
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-//        frame.pack();
+        
+        panel_1 = new JPanel();
+        splitPane.setRightComponent(panel_1);
         
         addWindowFocusListener(this);
+    }
+    
+    public void setSecondPanel(JPanel img) {
+        this.panel_1 = img;
+        this.panel_1.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+        splitPane.setRightComponent(this.panel_1);
+        revalidate();
+        repaint();
     }
     
     public void setAnnotations(MarkerBlastAnnotation blastResult, ReferenceGenome refGen) {
@@ -421,14 +433,14 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                 int stop1 = seg.getStart();
                 int start2 = seg.getStart();
                 int stop2 = seg.getStart() + len;
-                String[] gen1 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start1, stop1));
-                String[] gen2 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start2, stop2));
-                String[] gen3 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start1, stop2));
-                System.out.println(referenceAnnotation.getInterrogationPosition());
-                System.out.println(refLabel.getText());
-                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen1, "")) : Array.toStr(gen1, ""));
-                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen2, "")) : Array.toStr(gen2, ""));
-                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen3, "")) : Array.toStr(gen3, ""));
+//                String[] gen1 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start1, stop1));
+//                String[] gen2 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start2, stop2));
+//                String[] gen3 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start1, stop2));
+//                System.out.println(referenceAnnotation.getInterrogationPosition());
+//                System.out.println(refLabel.getText());
+//                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen1, "")) : Array.toStr(gen1, ""));
+//                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen2, "")) : Array.toStr(gen2, ""));
+//                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen3, "")) : Array.toStr(gen3, ""));
                 int start = posStrand ? start1 : start2;
                 int stop = posStrand ? stop1 : stop2;
                 locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);

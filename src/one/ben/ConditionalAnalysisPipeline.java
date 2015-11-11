@@ -425,7 +425,7 @@ public class ConditionalAnalysisPipeline {
             
             try {
                 log("Preparing FAST analysis in directory [" + regionPathAndDataFile[0] + "]..."); 
-                String[] analysisDirs = FAST.prepareFAST(regionPathAndDataFile[0], regionPathAndDataFile[1], regionPathAndDataFile[0], true, false);
+                String[] analysisDirs = FAST.prepareFAST(regionPathAndDataFile[0], regionPathAndDataFile[1], regionPathAndDataFile[0], true, false, null);
                 
                 log("Running " + analysisDirs.length + " FAST analyses..."); 
                 boolean[] runs = Array.booleanArray(analysisDirs.length, false);
