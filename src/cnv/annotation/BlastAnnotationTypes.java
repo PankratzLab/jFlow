@@ -192,6 +192,9 @@ public class BlastAnnotationTypes {
 			}
 		}
 
+		public static PROBE_TAG parseMarkerTag(String markerWithTag, Logger log) {
+			return markerWithTag.endsWith(PROBE_TAG.BOTH.getTag()) ? PROBE_TAG.toTag(markerWithTag.substring(markerWithTag.length() - PROBE_TAG.BOTH.getTag().length()), log) : PROBE_TAG.toTag(markerWithTag.substring(markerWithTag.length() - 2), log);
+		}
 	}
 
 	/**
