@@ -102,7 +102,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 							PROBE_TAG tag = null;
 							if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
 								if (marker.endsWith(PROBE_TAG.A.getTag()) || marker.endsWith(PROBE_TAG.B.getTag())) {
-									tag = PROBE_TAG.toTag(marker.substring(marker.length() - 2), proj.getLog());
+									tag = PROBE_TAG.parseMarkerTag(marker, proj.getLog());
 									marker = marker.substring(0, marker.length() - tag.getTag().length());
 
 								} else {
@@ -110,17 +110,17 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 								}
 							} else if (proj.getArrayType() == ARRAY.ILLUMINA) {
 								try {
-									tag = marker.endsWith(PROBE_TAG.BOTH.getTag()) ? PROBE_TAG.toTag(marker.substring(marker.length() - PROBE_TAG.BOTH.getTag().length()), proj.getLog()) : PROBE_TAG.toTag(marker.substring(marker.length() - 2), proj.getLog());
+									tag = PROBE_TAG.parseMarkerTag(marker, proj.getLog());
 									marker = marker.substring(0, marker.length() - tag.getTag().length());
 
 								} catch (IllegalArgumentException ile) {
-									proj.getLog().reportTimeError("Query id ("+marker+") did not end one of the following which is required for an ILLUMINA array");
+									proj.getLog().reportTimeError("Query id (" + marker + ") did not end one of the following which is required for an ILLUMINA array");
 									for (int i = 0; i < PROBE_TAG.values().length; i++) {
 										proj.getLog().report(PROBE_TAG.values()[i].getTag());
 									}
 								}
 							}
-							
+
 							int markerIndex = markerIndices.get(marker);
 
 							Segment markerSeg = anDatas[markerIndex].getSeg().getBufferedSegment(1);
@@ -167,7 +167,9 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 		Hashtable<String, Integer> markerSeqIndices = new Hashtable<String, Integer>();
 		if (markerFastaEntries != null) {
 			for (int i = 0; i < markerFastaEntries.length; i++) {
-				markerSeqIndices.put(markerFastaEntries[i].getName(), i);
+				PROBE_TAG tag = PROBE_TAG.parseMarkerTag(markerFastaEntries[i].getName(), proj.getLog());
+				String marker = markerFastaEntries[i].getName().substring(0, markerFastaEntries[i].getName().length() - tag.getTag().length());
+				markerSeqIndices.put(marker, i);
 			}
 		}
 		for (int i = 0; i < anDatas.length; i++) {
