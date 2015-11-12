@@ -94,7 +94,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private SampleData sampleData;
 	private JButton flipButton, invXButton, invYButton;
 	private volatile boolean flipStatus, xInvStatus, yInvStatus, hideExcludes;
-	volatile boolean isHistPlot;
+	private volatile boolean isHistPlot;
 	private CheckBoxTree tree;
 	private ArrayList<String> dataKeys;
 	HashMap<String, ArrayList<String[]>> dataHash;
@@ -482,9 +482,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		menuItemHist.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				isHistPlot = menuItemHist.isSelected();
+				setHistogram(menuItemHist.isSelected());
 				
-				tree.setMaxSelections(isHistPlot ? 1 : 2);
+				tree.setMaxSelections(isHistogram() ? 1 : 2);
 				
 //				tree = new CheckBoxTree(new String[0], new String[0], new String[0][], new boolean[0], /*isHistPlot ? 1 : */2);
 //                updateTree();
@@ -1041,7 +1041,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					inLine[2] = yHash.get(key);
 					hasY = true;
 				}
-				if (hasY || isHistPlot) {
+				if (hasY || isHistogram()) {
     				if (includeColorKeyValue) {
     				    if (sampleData != null) {
     				        ids = sampleData.lookup(key);
@@ -1065,7 +1065,15 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		return v;
 	}
 	
-	public int getSelectedDataHash() {
+	public void setHistogram(boolean b) {
+        this.isHistPlot = b;
+    }
+
+	public boolean isHistogram() {
+	    return this.isHistPlot;
+	}
+	
+    public int getSelectedDataHash() {
 	    return selectedDataHash.hashCode();
 	}
 	
@@ -1562,7 +1570,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		
 		for (ScreenToCapture screencap : screens) {			
 		    this.hideExcludes = screencap.hideExcluded;
-		    this.isHistPlot = screencap.isHistogram;
+		    this.setHistogram(screencap.isHistogram);
 		    
 		    twoDPanel.forcePlotXmin = screencap.minX;
 		    twoDPanel.forcePlotXmax = screencap.maxX;

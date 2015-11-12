@@ -139,21 +139,21 @@ public class PhenoPrep {
 			if (idFile == null) {
 				log.reportError("Error - match was selected, but no ID file was provided, skippping this step");
 			} else {
-				prep.matchIdOrder(idFile);
+				prep.matchIdOrder(dir+idFile);
 			}
 		} else if (sort) {
 			prep.sort();
 		}
 
-		prep.writeFinalFile(dir+outFile, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, idFile, finalHeader);
-		prep.summarizeCentralMoments(idFile);
+		prep.writeFinalFile(dir+outFile, plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, dir+idFile, finalHeader);
+		prep.summarizeCentralMoments(dir+idFile);
 		
 		if (histogram) {
-		    String[] parts = Files.getHeaderOfFile(dir + outFile, log);
+		    String[] parts = Files.getHeaderOfFile(dir + filename, log);
 //		    int idIndex = ext.indexOfStr(idColName, parts);
 		    int dataIndex = ext.indexOfStr(pheno, parts);
 		    
-		    String[] dataStrs = HashVec.loadFileToStringArray(dir + outFile, true, new int[]{dataIndex}, false);
+		    String[] dataStrs = HashVec.loadFileToStringArray(dir + filename, true, new int[]{dataIndex}, false);
 		    String[] valid = Array.removeMissingValues(dataStrs);
 		    int missing = dataStrs.length - valid.length;
 		    log.report("Warning - " + missing + " missing values were found");
@@ -165,8 +165,11 @@ public class PhenoPrep {
 		        file = dir + "histograms/" + ext.rootOf(outFile, false) + "_hist_" + cnt++ + ".png";
 		    }
 		    TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false, false, null);
+		    tdp.setHistogram(true);
+		    tdp.getPanel().overrideAxisLabels(ext.rootOf(outFile, true), "");
+		    tdp.getPanel().setHistogramOverride(true);
 		    tdp.getPanel().setHistogram(hist);
-		    tdp.updateGUI();
+		    tdp.getPanel().createImage();
 		    tdp.getPanel().screenCapture(file);
 		    tdp.windowClosing(null);
 		    tdp = null;
