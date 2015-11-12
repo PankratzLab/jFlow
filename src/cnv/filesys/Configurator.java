@@ -67,7 +67,7 @@ import common.ext;
 
 public class Configurator extends JFrame {
     
-    String[][] propertySets = new String[][]{
+    public static final String[][] ALL_PROPERTY_SETS = new String[][]{
             {
                 "Project Name and Locations",
                 "PROJECT_NAME",
@@ -306,7 +306,7 @@ public class Configurator extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Configurator frame = new Configurator(new Project());
+					Configurator frame = new Configurator(new Project(), ALL_PROPERTY_SETS);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -318,7 +318,7 @@ public class Configurator extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Configurator(Project project) {
+	public Configurator(Project project, String[][] propertySets) {
 		setTitle("Genvisis - " + project.PROJECT_NAME.getValue() + " - Project Configuration");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setBounds(100, 100, 700, 800);
