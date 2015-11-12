@@ -1,6 +1,7 @@
 package seq.cnv;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ public class ExomeDepth {
 
 		this.analysisBamFiles = analysisBamFiles;
 		this.outputDir = outputDir;
+		new File(outputDir).mkdirs();
 		this.outputRoot = outputRoot;
 		if (!fail) {
 			fail = Array.countIf(ext.indexLargeFactors(analysisBamFiles, allReferenceBamFiles, true, log, true, false), -1) > 0;

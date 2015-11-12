@@ -46,7 +46,9 @@ public class ArraySpecialList {
 	}
 
 	public static class ArrayBlastAnnotationList extends ArrayList<BlastAnnotation> {
-
+		private double maxEval;
+		private double minEval;
+		private int maxEvalIndex;
 		/**
 		 * 
 		 */
@@ -54,6 +56,54 @@ public class ArraySpecialList {
 
 		public ArrayBlastAnnotationList(int capacity) {
 			super(capacity);
+			this.maxEval = -1;
+			this.minEval = Double.MAX_VALUE;
+			this.maxEvalIndex = -1;
+		}
+
+		public void update() {
+			this.maxEvalIndex = -1;
+			this.minEval = Double.MAX_VALUE;
+			this.maxEval = -1;
+			for (int i = 0; i < size(); i++) {
+				BlastAnnotation tmpBa = get(i);
+				double tmp = tmpBa.geteValue();
+				if (tmp > maxEval) {
+					maxEval = tmp;
+					maxEvalIndex = i;
+				}
+				if (tmp < minEval) {
+					minEval = tmp;
+				}
+			}
+		}
+
+		public boolean add(BlastAnnotation blastAnnotation) {
+			boolean add = super.add(blastAnnotation);
+			if (add) {
+				double tmp = blastAnnotation.geteValue();
+				if (tmp > maxEval) {
+					maxEval = tmp;
+					maxEvalIndex = size() - 1;
+
+				}
+				if (tmp < minEval) {
+					minEval = tmp;
+				}
+			}
+			return true;
+		}
+
+		public double getMaxEval() {
+			return maxEval;
+		}
+
+		public double getMinEval() {
+			return minEval;
+		}
+
+		public int getMaxEvalIndex() {
+			return maxEvalIndex;
 		}
 
 	}
