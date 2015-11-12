@@ -211,14 +211,13 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
 		} catch (ExecutionException e) {
 			computelog.reportError("Error - Could not Compute Median Log R Ratio Values");
-			e.printStackTrace();
-		} catch (InterruptedException e) {
+			computelog.reportException(e);
+		} catch (InterruptedException ie) {
 			computelog.reportError("Error - Median Log R Ratio Computation was Interupted ");
-			e.printStackTrace();
+			computelog.reportException(ie);
 		} catch (CancellationException cce) {
 			computelog.reportError("Error - Cancelling Median Log R Ratio Computation ");
-			cce.printStackTrace();
-
+			computelog.reportException(cce);
 		}
 	}
 
@@ -289,8 +288,10 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		float[][] sampleLrrs = new float[regionMarkers.length][samples.length];
 		MarkerDataLoader markerDataLoader;
 		boolean[] samplesToUse = null;
-		Logger projLog;
 		PrincipalComponentsResiduals pcrs = null;
+		Logger projLog;
+
+		projLog = proj.getLog();
 		if (correctLRR || correctXY || recomputeLRR) {// not truly necessary for recomputing LRR, but currently forcing it anyway
 //			if (!Files.exists(proj.getFilename(proj.INTENSITY_PC_FILENAME))) {
 			if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
@@ -302,17 +303,16 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 //				pcrs = new PrincipalComponentsResiduals(proj, proj.getFilename(proj.INTENSITY_PC_FILENAME), null, Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
 				pcrs = new PrincipalComponentsResiduals(proj, proj.INTENSITY_PC_FILENAME.getValue(), null, proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, 0, false, false, null);
 				samplesToUse = proj.getSamplesToInclude(null);
-//				proj.getLog().report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + " for correction clustering");
-//				proj.getLog().reportTimeInfo("Correcting with " + proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS) + " components");
-				proj.getLog().report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.SAMPLE_DATA_FILENAME.getValue() + " for correction clustering");
-				proj.getLog().reportTimeInfo("Correcting with " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components");
+//				projLog.report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + " for correction clustering");
+//				projLog.reportTimeInfo("Correcting with " + proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS) + " components");
+				projLog.report("Info - using " + Array.booleanArraySum(samplesToUse) + " individuals that were not defined as excluded in " + proj.SAMPLE_DATA_FILENAME.getValue() + " for correction clustering");
+				projLog.reportTimeInfo("Correcting with " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components");
 			}
 
 		}
 		regionMarkers = markerRegion.returnMarkers();
 		sampleLrrs = new float[regionMarkers.length][samples.length];
 		newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[2], "[%" + 0 + "]", markerRegion.getRegionName()));
-		projLog = proj.getLog();
 		proj.setLog(computelog);
 		markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, regionMarkers);
 		proj.setLog(projLog);
@@ -334,7 +334,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			float[] lrrs = markerData.getLRRs();// default
 			float[] bafs = markerData.getBAFs();
 			float[] gcs = markerData.getGCs();
-			byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, regionMarkers[i], 0);
+			byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, regionMarkers[i], 0, projLog);
  
 			if (recomputeLRR || correctLRR || correctXY) {
 //				int numThreads = Integer.parseInt(proj.getProperty(proj.NUM_THREADS));
@@ -382,7 +382,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 					sampleLrrs[i][j] = lrrs[j];
 				} catch (ArrayIndexOutOfBoundsException aioobe) {
 					computelog.report("" + i + "\t" + j);
-					aioobe.printStackTrace();
+					computelog.reportException(aioobe);
 					System.exit(1);
 				}
 			}
@@ -561,7 +561,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			writer.close();
 		} catch (Exception e) {
 			computelog.reportError("Error writing to Medain Log R Ratios to " + output);
-			e.printStackTrace();
+			computelog.reportException(e);
 		}
 		return output;
 	}
@@ -585,7 +585,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			writer.close();
 		} catch (Exception e) {
 			computelog.reportError("Error writing the list of marker names within the regions to " + output);
-			e.printStackTrace();
+			computelog.reportException(e);
 		}
 	}
 
@@ -943,7 +943,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
 		} catch (IOException e) {
 			log.reportError("Error reading file " + filename);
-			e.printStackTrace();
+			log.reportException(e);
 		}
 		return lines.toArray(new String[lines.size()]);
 	}

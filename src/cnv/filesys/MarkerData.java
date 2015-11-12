@@ -100,7 +100,7 @@ public class MarkerData implements Serializable {
 //			return getCorrectedIntesity(sampleSex, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, pcResids, numComponents, 2, nstage, residStandardDeviationFilter, true, numThreads,log);
 
 		default:
-			System.err.println("Error - invalid plot type");
+			log.reportError("Error - invalid plot type");
 			return null;
 		}
 	}
@@ -336,7 +336,7 @@ public class MarkerData implements Serializable {
 		
 	}
 	
-	public byte[] getAbGenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection, String markerName, float gcThreshold) {
+	public byte[] getAbGenotypesAfterFilters(ClusterFilterCollection clusterFilterCollection, String markerName, float gcThreshold, Logger log) {
 		byte[] result, original;
 		float[] realX;
 		float[] realY;
@@ -356,7 +356,7 @@ public class MarkerData implements Serializable {
 		original = getAbGenotypes();
 		result = new byte[original.length];
 		if (gcThreshold > 1 || gcThreshold < 0) {
-			System.err.println("Error - Invalid GC threshold: " + gcThreshold + ", expecting a decimal number between 0 and 1. Use 0 to include everything.");
+			log.reportError("Error - Invalid GC threshold: " + gcThreshold + ", expecting a decimal number between 0 and 1. Use 0 to include everything.");
 			return null;
 		} else if (gcThreshold == 0 || gcs == null) {
 			for (int i=0; i<original.length; i++) {
@@ -403,16 +403,24 @@ public class MarkerData implements Serializable {
 			clusterFilterXMax = clusterFilter.getXMax();
 			clusterFilterYMax = clusterFilter.getYMax();
 
-			counter = 0;
-			for (int j=0; j<result.length; j++) {
-				if (realX[j] >= clusterFilterXMin && realY[j] >= clusterFilterYMin && realX[j] <= clusterFilterXMax && realY[j] <= clusterFilterYMax) {
-					result[j] = clusterFilter.getCluterGenotype();
-					counter ++;
+			try {
+				counter = 0;
+				for (int j=0; j<result.length; j++) {
+					if (realX[j] >= clusterFilterXMin && realY[j] >= clusterFilterYMin && realX[j] <= clusterFilterXMax && realY[j] <= clusterFilterYMax) {
+						result[j] = clusterFilter.getCluterGenotype();
+						counter ++;
+					}
 				}
-			}
-			if (counter == 0) {
-				clusterFilterCollection.deleteClusterFilter(markerName, (byte) i);
-				i--;
+				if (counter == 0) {
+					clusterFilterCollection.deleteClusterFilter(markerName, (byte) i);
+					i--;
+				}
+			} catch (Exception e) {
+				if (realX == null || realY == null) {
+					log.reportError("Error - values for marker '"+markerName+"' were null; now returning null, which will probably create a new null pointer exception ");
+				}
+				log.reportException(e);
+				return null;
 			}
 		}
 		return result;		
@@ -422,7 +430,7 @@ public class MarkerData implements Serializable {
 		return forwardGenotypes;
 	}
 	
-	public double[] compareLRRs(float[][] centroids) {
+	public double[] compareLRRs(float[][] centroids, Logger log) {
 		double[] originalLRRs, compLRRs;
 		double error;
 		int count;
@@ -436,12 +444,12 @@ public class MarkerData implements Serializable {
 				originalLRRs[count] = lrrs[i];
 				compLRRs[count] = Centroids.calcLRR(Centroids.calcTheta(xs[i], ys[i]), Centroids.calcR(xs[i], ys[i]), centroids);
 				if (Double.isNaN(compLRRs[count])) {
-					System.err.println("Error - compLRR is invalid ("+compLRRs[count]+") where oriLRR is not ("+lrrs[count]+")");
+					log.reportError("Error - compLRR is invalid ("+compLRRs[count]+") where oriLRR is not ("+lrrs[count]+")");
 				} else {
 					error += Math.abs(compLRRs[count]-originalLRRs[count]);
 					count++;
 					if (Double.isNaN(error) || Double.isInfinite(error)) {
-						System.err.println("Started with index "+i+", compLRR of '"+compLRRs[count]+"', and oriLRR of '"+originalLRRs[count]+"'");
+						log.reportError("Started with index "+i+", compLRR of '"+compLRRs[count]+"', and oriLRR of '"+originalLRRs[count]+"'");
 						return new double[] {-999,-999};
 					}
 				}
@@ -452,12 +460,12 @@ public class MarkerData implements Serializable {
 		return new double[] {Correlation.Pearson(Array.subArray(originalLRRs, 0, count), Array.subArray(compLRRs, 0, count))[0], error/count};
 	}
 
-	public void dump(SampleData sampleData, String filename, String[] samples, boolean includeMarkerName) {
+	public void dump(SampleData sampleData, String filename, String[] samples, boolean includeMarkerName, Logger log) {
 		PrintWriter writer;
 		boolean hasExcludedIndividuals;
 		
 		if ((xs != null && samples != null && samples.length!=xs.length) || (lrrs != null && samples != null && samples.length!=lrrs.length)) {
-			System.err.println("Error - Number of samples (n="+samples.length+") does not match up with the number of LRRs/BAFs/etc (n="+lrrs.length+")");
+			log.reportError("Error - Number of samples (n="+samples.length+") does not match up with the number of LRRs/BAFs/etc (n="+lrrs.length+")");
 			return;
         }
 		
@@ -502,8 +510,8 @@ public class MarkerData implements Serializable {
         	}
         	writer.close();
         } catch (Exception e) {
-        	System.err.println("Error writing "+filename);
-        	e.printStackTrace();
+        	log.reportError("Error writing "+filename);
+        	log.reportException(e);
         }
 	}
 
@@ -615,7 +623,7 @@ public class MarkerData implements Serializable {
 
 	// samplesToBeUsed, sex, and clusterFilterCollection can be null
 	// however if sex is null then chrX genotype counts will be inaccurate and show deviation from Hardy-Weinberg equilibrium
-	public int[] getGenotypeCounts(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
+	public int[] getGenotypeCounts(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilterCollection, float gcThreshold, Logger log) {
 		int[] genotypeCounts = new int[3];
 		String sexSpecific;
 		byte[] genoytpes;
@@ -623,7 +631,7 @@ public class MarkerData implements Serializable {
 		if (clusterFilterCollection == null) {
 			genoytpes = getAbGenotypes();
 		} else {
-			genoytpes = getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+			genoytpes = getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold, log);
 		}
 		// 0=non-specific, 1=male, 2=female
 		if (chr == 23) {
@@ -643,10 +651,10 @@ public class MarkerData implements Serializable {
 
 	// samplesToBeUsed, sex, and clusterFilters can be null
 	// however if sex is null then chrX frequencies will be slightly inaccurate
-	public double getMAF(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilters, float gcThreshold) {
+	public double getMAF(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilters, float gcThreshold, Logger log) {
 		double freqB;
 		
-		freqB = getFrequencyOfB(samplesToBeUsed, sex, clusterFilters, gcThreshold);
+		freqB = getFrequencyOfB(samplesToBeUsed, sex, clusterFilters, gcThreshold, log);
 		if (freqB > 0.5) {
 			return 1-freqB;
 		} else {
@@ -656,7 +664,7 @@ public class MarkerData implements Serializable {
 
 	// samplesToBeUsed, sex, and clusterFilters can be null
 	// however if sex is null then chrX frequencies will be slightly inaccurate
-	public double getFrequencyOfB(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
+	public double getFrequencyOfB(boolean[] samplesToBeUsed, String[] sex, ClusterFilterCollection clusterFilterCollection, float gcThreshold, Logger log) {
 		int[] alleleCounts = new int[2];
 		byte[] genoytpes;
 
@@ -664,7 +672,7 @@ public class MarkerData implements Serializable {
 			if (clusterFilterCollection == null) {
 				genoytpes = getAbGenotypes();
 			} else {
-				genoytpes = getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+				genoytpes = getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold, log);
 			}
 
 			alleleCounts = new int[2];
@@ -700,7 +708,7 @@ public class MarkerData implements Serializable {
 			return (double)alleleCounts[1] / (double)(alleleCounts[0]+alleleCounts[1]);
 			
 		} else {
-			return AlleleFreq.calcFrequency(getGenotypeCounts(samplesToBeUsed, sex, clusterFilterCollection, gcThreshold));
+			return AlleleFreq.calcFrequency(getGenotypeCounts(samplesToBeUsed, sex, clusterFilterCollection, gcThreshold, log));
 		}
 	}
 	

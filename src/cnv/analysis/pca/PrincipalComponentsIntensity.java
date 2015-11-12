@@ -26,6 +26,8 @@ import cnv.plots.ScatterPlot;
  *
  */
 public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
+	private static final long serialVersionUID = 1L;
+	
 	private static final String[] CORRECTION_METHODS = { "Assign Missing Genotypes to Clusters (by nearest theta)", "Two stage correction (use existing genotypes to find most predictive model)", "N stage correction (use existing genotypes to find most predictive model)", "N stage correction with residual filtering (use existing genotypes to find most predictive model)" };
 	public static final String XY_RETURN = "X_Y";
 	public static final String THETA_R_RETURN = "THETA_R";
@@ -640,11 +642,11 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		if (isAffyIntensityOnly(markerData)) {
 			// centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, true, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
 			centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, false, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
-			CentroidCompute.setFakeAB(markerData, centroid, clusterFilterCollection, .1f);
+			CentroidCompute.setFakeAB(markerData, centroid, clusterFilterCollection, .1f, log);
 		} else {
 			centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, false, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
 			if (markerData.getMarkerName().startsWith(ILLUMINA_INTENSITY_ONLY_FLAG[0])) {
-				CentroidCompute.setFakeAB(markerData, centroid, clusterFilterCollection, 0);
+				CentroidCompute.setFakeAB(markerData, centroid, clusterFilterCollection, 0, log);
 			}
 		}
 		centroid.computeCentroid();
@@ -700,8 +702,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		private final boolean[] samplesToUseCluster;
 		private final boolean svdRegression;
 		private final int numCorrectionThreads;
-		private final int numDecompressThreads;
-		private final String[] markersToCorrect;
+//		private final int numDecompressThreads;
+//		private final String[] markersToCorrect;
 		private final int correctAt;
 
 		public PcCorrectionProducer(PrincipalComponentsResiduals pcResiduals, int correctAt, int[] sampleSex, boolean[] samplesToUseCluster, boolean svdRegression, int numCorrectionThreads, int numDecompressThreads, String[] markersToCorrect) {
@@ -711,8 +713,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			this.samplesToUseCluster = samplesToUseCluster;
 			this.svdRegression = svdRegression;
 			this.numCorrectionThreads = numCorrectionThreads;
-			this.numDecompressThreads = numDecompressThreads;
-			this.markersToCorrect = markersToCorrect;
+//			this.numDecompressThreads = numDecompressThreads;
+//			this.markersToCorrect = markersToCorrect;
 			this.correctAt = correctAt;
 			this.mdl = new MDL(pcResiduals.getProj(), markersToCorrect, numDecompressThreads, 0);
 		}

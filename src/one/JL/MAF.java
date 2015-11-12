@@ -1,12 +1,9 @@
 package one.JL;
 
-import htsjdk.variant.variantcontext.Allele;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import common.AlleleFreq;
-import common.Array;
+import common.Logger;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.manage.MDL;
@@ -14,6 +11,9 @@ import cnv.manage.MDL;
 public class MAF {
 
 	public static void computeMAF(Project proj) {
+		Logger log;
+		
+		log = proj.getLog();
 		MDL mdl = new MDL(proj, proj.getMarkerNames(), 4, 4);
 		String output =  proj.PROJECT_DIRECTORY.getValue() + "mafs.txt";
 		// String sampOutliers = proj.getDir(Project.SAMPLE_DIRECTORY)+"outliers.ser";
@@ -33,8 +33,8 @@ public class MAF {
 			while (mdl.hasNext()) {
 				MarkerData markerData = mdl.next();
 				try {
-					double maf = markerData.getMAF(null, null, null, 0);
-					int[] counts = markerData.getGenotypeCounts(null, null, null, 0);
+					double maf = markerData.getMAF(null, null, null, 0, log);
+//					int[] counts = markerData.getGenotypeCounts(null, null, null, 0, log);
 					//AlleleFreq.calcMAF(counts[0], counts[1], counts[2])
 					byte[] genotypes = markerData.getAbGenotypes();
 					int noCall = 0;
@@ -67,7 +67,6 @@ public class MAF {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
-		String logfile = null;
 
 		String usage = "\n" + "one.JL.MAF requires 0-1 arguments\n" + "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
 
@@ -77,9 +76,6 @@ public class MAF {
 				System.exit(1);
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);

@@ -134,7 +134,7 @@ public class CentroidCompute {
 		if (clusterFilterCollection == null) {
 			return markerData.getAbGenotypes();
 		} else {
-			return markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), (float) gcThreshold);
+			return markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), (float) gcThreshold, log);
 		}
 	}
 
@@ -566,27 +566,30 @@ public class CentroidCompute {
 	public static void test(Project proj) {
 		String[] markers = proj.getTargetMarkers();
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
-		System.out.println(proj.getPropertyFilename() + "\t" + markers.length);
+		Logger log;
+		
+		log = proj.getLog();
+		log.report(proj.getPropertyFilename() + "\t" + markers.length);
 		String min = "";
 		double mincor = .90;
 		for (int i = 0; i < markers.length; i++) {
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			CentroidCompute cent = new CentroidCompute(markerData, null, null, false, 1, 0, null, true, proj.getLog());
 			cent.computeCentroid();
-			double cor = markerData.compareLRRs(cent.getCentroid())[0];
+			double cor = markerData.compareLRRs(cent.getCentroid(), proj.getLog())[0];
 			if (markerData.getChr() < 23 && cor < mincor) {
 				// mincor = markerData.compareLRRs(cent.getCentroid())[0];
 				min += markers[i] + "\t" + markerData.getChr() + "\t" + markerData.getPosition() + "\t" + cor + "\n";
 			}
 			if (i % 1000 == 0) {
-				System.out.println((i + 1) + "/" + markers.length);
+				log.report((i + 1) + "/" + markers.length);
 			}
 			// System.out.println("LRR:" + Array.toStr(markerData.compareLRRs(cent.getCentroid())) + "\t" + markers[i]);
 			// System.out.println(cent.computeBAF()[0] + "\tBAF:\t" + Array.toStr(stats.Correlation.Pearson(Array.toDoubleArray(cent.computeBAF()), Array.toDoubleArray(markerData.getBAFs()))));
 			markerDataLoader.releaseIndex(i);
 		}
 		Files.write(min, proj.PROJECT_DIRECTORY.getValue() + "badcorrel.txt");
-		System.out.println("MINMarker:\t" + min + "\tMINCorrel\t" + mincor);
+		log.report("MINMarker:\t" + min + "\tMINCorrel\t" + mincor);
 	}
 
 	public static void main(String[] args) {
@@ -768,7 +771,7 @@ public class CentroidCompute {
 					CentroidCompute centroidCompute = builder.build(markerData, proj.getLog());
 					ARRAY array = proj.getArrayType();
 					if (array == ARRAY.ILLUMINA && array.isCNOnly(markerData.getMarkerName())) {
-						setFakeAB(markerData, centroidCompute, centroidCompute.getClusterFilterCollection(), 0);
+						setFakeAB(markerData, centroidCompute, centroidCompute.getClusterFilterCollection(), 0, proj.getLog());
 					} else if (array.isCNOnly(markerData.getMarkerName())) {
 						if (array != ARRAY.AFFY_GW6_CN && array != ARRAY.AFFY_GW6) {
 							proj.getLog().reportTimeError("Intenstity only centroid designed for Affymetrix only");
@@ -798,7 +801,7 @@ public class CentroidCompute {
 		while (train.hasNext()) {
 			CentroidCompute centroidCompute = train.next();
 			if (!centroidCompute.getMarkerData().getMarkerName().equals(markers[index])) {
-				System.err.println(centroidCompute.getMarkerData().getMarkerName() + "\t" + markers[index]);
+				proj.getLog().reportError(centroidCompute.getMarkerData().getMarkerName() + "\t" + markers[index]);
 			}
 			index++;
 		}
@@ -810,10 +813,9 @@ public class CentroidCompute {
 	 * We use this in the case of intensity only probesets...We assign all genotypes to be the same
 	 * 
 	 */
-	public static void setFakeAB(MarkerData markerData, CentroidCompute centroid, ClusterFilterCollection clusterFilterCollection, float gcThreshold) {
-
+	public static void setFakeAB(MarkerData markerData, CentroidCompute centroid, ClusterFilterCollection clusterFilterCollection, float gcThreshold, Logger log) {
 		byte[] fakeAB = new byte[centroid.getClustGenotypes().length];
-		byte[] clustAB = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), gcThreshold);
+		byte[] clustAB = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), gcThreshold, log);
 		int[] counts = new int[4];
 		for (int i = 0; i < clustAB.length; i++) {
 			counts[clustAB[i] + 1]++;

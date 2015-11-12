@@ -25,11 +25,11 @@ import cnv.gui.LaunchAction;
 import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.var.IndiPheno;
 import cnv.var.SampleData;
-
 import common.Array;
 import common.CountVector;
 import common.HashVec;
 import common.IntVector;
+import common.Logger;
 import common.Sort;
 
 // TODO Needs some cleanup, especially MouseMoved, MouseClicked, and generatePoints
@@ -161,7 +161,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		boolean shiftColorOfSexChromosomes;
 		String newGenotypingFilename;
 		boolean[] isNewGenotypingDifferent = null;
+		Logger log;
 		
+		log = sp.getProject().getLog();
 		disabledClassValues = sp.getDisabledClassValues();//panelIndex);
 		
 		shiftColorOfSexChromosomes = sp.getProject().SHIFT_SEX_CHR_COLORS_YESNO.getValue();
@@ -184,7 +186,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		datapoints = markerData.getDatapoints(plotType, null, toInclude, false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), sp.getCorrectionRatio(), sp.getProject().getProperty(sp.getProject().NUM_THREADS), sp.getCorrection(panelIndex), sp.getProject().getLog());
 		// alleleCounts = markerData[markerIndex].getAB_Genotypes();
 		//		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
-		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold());
+		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold(), log);
 //		Project r = sp.getProject();
 		newGenotypingFilename = sp.getProject().DATA_DIRECTORY.getValue(false, true) + sp.getMarkerName() + "_newGenotyping.xln";
 		if(new File(newGenotypingFilename).exists()) {
@@ -310,7 +312,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 					uniqueValueCounts.add(classCode+"");
 				}
 				if (classCode < 0) {
-					System.err.println("Error - classCode is less than 0 ("+classCode+")");
+					log.reportError("Error - classCode is less than 0 ("+classCode+")");
 				}
 				if (currentClass < SampleData.BASIC_CLASSES.length && SampleData.BASIC_CLASSES[currentClass].equals(SampleData.GENOTYPE) && chr > 22 && shiftColorOfSexChromosomes) {
 					points[numCents*3+i] = new PlotPoint(samples[i], type, datapoints[0][i], datapoints[1][i], type==PlotPoint.FILLED_CIRCLE?size:(type==PlotPoint.FILLED_TRIANGLE?(byte)(size+5):xFontSize), classCode==0? 0 : (byte) (classCode +  3), layer);
@@ -339,7 +341,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				//if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) callRate++;
 				otherClass[i] = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position) + "";
 			} else {
-				System.err.println("Error - no data pts for "+samples[i]);
+				log.reportError("Error - no data pts for "+samples[i]);
 				sex[i] = "missing";
 				points[numCents*3+i] = new PlotPoint(samples[i], PlotPoint.MISSING, datapoints[0][i], datapoints[1][i], (byte)(xFontSize*2), (byte)0, (byte)99);
 			}
@@ -388,7 +390,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		boolean swapAxes = false;
 		
 		if (sp.getPedigree() != null) {
-			MendelErrorCheck[] mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(sp.getPedigree(), sp.getCurrentMarkerData(), sp.hideExcludedSamples(panelIndex) ? sp.getProject().getSamplesToInclude(null,false) : null, sex, sp.getClusterFilterCollection(), sp.getGCthreshold());
+			MendelErrorCheck[] mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(sp.getPedigree(), sp.getCurrentMarkerData(), sp.hideExcludedSamples(panelIndex) ? sp.getProject().getSamplesToInclude(null,false) : null, sex, sp.getClusterFilterCollection(), sp.getGCthreshold(), sp.getProject().getLog());
 			if (mendelErrorChecks != null) {
     			for (int i = 0; i < samples.length; i++) {
     				PlotPoint indiPoint = points[centroidOffset + i];

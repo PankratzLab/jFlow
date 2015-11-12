@@ -3,13 +3,15 @@ package cnv.qc;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
+import common.Logger;
+
 import cnv.filesys.MarkerData;
 import cnv.filesys.Pedigree;
 import cnv.filesys.Project;
 import cnv.manage.MDL;
 
 /**
- * @author Kitty Check for mendelian errors in a pedigree , taken from http://pngu.mgh.harvard.edu/~purcell/plink/summary.shtml#mendel
+ * @author Kitty Check for Mendelian errors in a pedigree, taken from http://pngu.mgh.harvard.edu/~purcell/plink/summary.shtml#mendel
  */
 
 public class MendelErrors {
@@ -96,7 +98,7 @@ public class MendelErrors {
 	}
 
 	/**
-	 * @author Kitty Stores the mendel error, if any, and where it occurred
+	 * @author Kitty Stores the Mendel error, if any, and where it occurred
 	 */
 	public static class MendelErrorCheck {
 
@@ -153,6 +155,9 @@ public class MendelErrors {
 
 	public static void detectMendelMarkers(Project proj) {
 		Pedigree pedigree = proj.loadPedigree();
+		Logger log;
+		
+		log = proj.getLog();
 		if (pedigree == null) {
 			return;
 		} else {
@@ -164,7 +169,7 @@ public class MendelErrors {
 				MDL mdl = new MDL(proj, proj.getMarkerNames(), 2, 100);
 				while (mdl.hasNext()) {
 					MarkerData markerData = mdl.next();
-					MendelErrorCheck[] mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, samplesToCheck, null, null, 0);
+					MendelErrorCheck[] mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, samplesToCheck, null, null, 0, log);
 					int num = 0;
 					for (int i = 0; i < mendelErrorChecks.length; i++) {
 						if (mendelErrorChecks[i].getErrorCode() > 0) {
@@ -191,9 +196,11 @@ public class MendelErrors {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "C:/workspace/Genvisis/projects/Poynter_PCs.properties";
-		String logfile = null;
 
-		String usage = "\n" + "cnv.qc.MendelErrors requires 0-1 arguments\n" + "   (1) filename (i.e. proj=" + filename + " (default))\n" + "";
+		String usage = "\n" + 
+				"cnv.qc.MendelErrors requires 0-1 arguments\n" + 
+				"   (1) filename (i.e. proj=" + filename + " (default))\n" + 
+				"";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -201,9 +208,6 @@ public class MendelErrors {
 				System.exit(1);
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);

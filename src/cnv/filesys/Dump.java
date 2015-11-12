@@ -4,25 +4,25 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import common.Logger;
 import common.ext;
-
 import cnv.manage.TransposeData;
 
 public class Dump {
-	public static void dumpMdRaf(String filename, int[] indicesOfMarkersToDump) {
+	public static void dumpMdRaf(String filename, int[] indicesOfMarkersToDump, Logger log) {
 		try {
-		    	MarkerData[] mkData;
-		
-		    	if (indicesOfMarkersToDump == null) {
-		    		indicesOfMarkersToDump = new int[] {0};
-		    	}
-		    	mkData = TransposeData.loadFromRAF(filename, indicesOfMarkersToDump);
-		    	for (int i=0; i<mkData.length; i++) {
-		    		mkData[i].dump(null, ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln", null, false);
-		    	}
+			MarkerData[] mkData;
+			
+			if (indicesOfMarkersToDump == null) {
+				indicesOfMarkersToDump = new int[] {0};
+		    }
+			mkData = TransposeData.loadFromRAF(filename, indicesOfMarkersToDump);
+			for (int i=0; i<mkData.length; i++) {
+				mkData[i].dump(null, ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln", null, false, log);
+		    }
 		} catch (Exception e) {
-		    System.err.println("Error dumping data from "+filename+" to a textfile");
-		    e.printStackTrace();
+			log.reportError("Error dumping data from "+filename+" to a textfile");
+			log.reportException(e);
 		}
 	}
 
@@ -135,7 +135,7 @@ public class Dump {
 	        } else if (filename.endsWith(".bim")) {
 	        	dumpPlinkBim(filename);
 	        } else if (filename.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION)) {
-	        	dumpMdRaf(filename, indicesOfMarkersToDump);
+	        	dumpMdRaf(filename, indicesOfMarkersToDump, new Logger());
 	        } else if (filename.endsWith("outliers.ser")) {
 	        	Sample.dumpOutOfRangeValues(filename, ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln", false);
 	        } else {

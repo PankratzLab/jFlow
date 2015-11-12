@@ -1,14 +1,15 @@
 package one.ben;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.LinkedHashSet;
 
-import cnv.filesys.MarkerLookup;
-import cnv.manage.PlinkData;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -414,12 +415,39 @@ public class CALiCoResultsPackager {
         }
         return header.toString();
     }
-     
-    public static String[] writeLinesForModel(ModelSNP model, MarkerLookup ml, PrintWriter logWriter) {
+
+	public static Hashtable<String,String> parseMarkerLookup(String plinkFileRoot) {
+		BufferedReader reader;
+		String[] line;
+		Hashtable<String, String> hash;
+		int count;
+		
+		hash = new Hashtable<String, String>();
+		try {
+			reader = new BufferedReader(new FileReader(plinkFileRoot+".bim"));
+			count = 0;
+			while (reader.ready()) {
+				line = reader.readLine().trim().split("\\s+");
+				hash.put(line[1], ":\t"+count+"\t"+line[0] + "\t" + line[3] + "\t" + line[4]+"\t"+line[5]);
+				count++;
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("Error: file \"" + plinkFileRoot+".bim" + "\" not found in current directory");
+			System.exit(1);
+		} catch (IOException ioe) {
+			System.err.println("Error reading file \"" + plinkFileRoot+".bim" + "\"");
+			System.exit(2);
+		}
+
+		return hash;
+	}
+
+    public static String[] writeLinesForModel(ModelSNP model, Hashtable<String,String> markerHash, PrintWriter logWriter) {
         ArrayList<String> outputLines = new ArrayList<String>();
         String delim = "\t";
         for (String snp : model.keyList) {
-            String[] snpBIMData = ml.get(snp).split("[\\s]+");
+            String[] snpBIMData = markerHash.get(snp).split("[\\s]+");
             StringBuilder sb = new StringBuilder();
             sb.append(snp).append(delim)
                 .append(delim)
@@ -445,7 +473,7 @@ public class CALiCoResultsPackager {
             System.err.println("Error - couldn't read model data");
             return;
         }
-        MarkerLookup ml = PlinkData.parseMarkerLookup(plinkFileRoot);
+        Hashtable<String,String> ml = parseMarkerLookup(plinkFileRoot);
         String outputFile = runDir + "results1.xln";
         PrintWriter writer = Files.getAppropriateWriter(outputFile);
         PrintWriter logWriter = Files.getAppropriateWriter(runDir + "resultLog.txt");
@@ -470,5 +498,4 @@ public class CALiCoResultsPackager {
         logWriter.flush();
         logWriter.close();
     }
-    
 }

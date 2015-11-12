@@ -31,7 +31,9 @@ public class ThetaOutliers {
 		MarkerData markerData;
 		String[] markerNames;
 		long time;
+		Logger log;
 		
+		log = proj.getLog();
 		output = proj.PROJECT_DIRECTORY.getValue()+"resultOfReclusterByTheta_sd"+stdDev+".txt";
 
 		// load data: sample list
@@ -39,7 +41,7 @@ public class ThetaOutliers {
 		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")) {
 			sampleList = proj.getSampleList().getSamples();
 		} else if (Files.exists(filename, proj.JAR_STATUS.getValue())) {
-			System.out.print("filename: "+filename);
+			log.report("filename: "+filename);
 			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
 		} else {
 			proj.message("Failed to load \""+filename+"\"");
@@ -58,13 +60,13 @@ public class ThetaOutliers {
 	        for (int i = 0; i < markerNames.length; i++) {
 	        	markerData = markerDataLoader.requestMarkerData(i);
 	        	if (i % 100 == 0) {
-	        		System.out.println(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
+	        		log.report(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
 	        	}
 
 	        	if (useClusterFilters) {
-	        		result = reclusterNullGenotypeByTheta(markerData, clusterFilterCollection, 20);
+	        		result = reclusterNullGenotypeByTheta(markerData, clusterFilterCollection, 20, log);
 	        	} else {
-	        		result = reclusterNullGenotypeByTheta(markerData, null, stdDev);
+	        		result = reclusterNullGenotypeByTheta(markerData, null, stdDev, log);
 	        	}
 				for (int k=0; result!=null && k<result.length; k++) {
 					writer.println(markerData.getMarkerName()+"\t"+markerData.getChr()+"\t"+markerData.getPosition()+"\t"+sampleList[k]);
@@ -72,15 +74,15 @@ public class ThetaOutliers {
 				markerDataLoader.releaseIndex(i);
 			}
 			writer.close();
-			System.out.println("Reclusterable Null genotypes file is now ready at: "+output);
-			System.out.println("Finished searching for ThetaOutliers in " + ext.getTimeElapsed(time));
+			log.report("Reclusterable Null genotypes file is now ready at: "+output);
+			log.report("Finished searching for ThetaOutliers in " + ext.getTimeElapsed(time));
 		} catch (Exception e) {
-			System.err.println("Error writing to '" + output + "'");
-			e.printStackTrace();
+			log.reportError("Error writing to '" + output + "'");
+			log.reportException(e);
 		}
 	}
 
-	public static int[] reclusterNullGenotypeByTheta(MarkerData markerData, ClusterFilterCollection clusterFilterCollection, int numberOfStdDev) {
+	public static int[] reclusterNullGenotypeByTheta(MarkerData markerData, ClusterFilterCollection clusterFilterCollection, int numberOfStdDev, Logger log) {
 		byte[] genotypes;
 		double[] rs, thetas;
 		DoubleVector[] rsByGenotype, thetasByGenotype;
@@ -91,7 +93,7 @@ public class ThetaOutliers {
 		IntVector result;
 
 		if (clusterFilterCollection != null) {
-			genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), 0);
+			genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerData.getMarkerName(), 0, log);
 		} else {
 			genotypes = markerData.getAbGenotypes();
 		}
