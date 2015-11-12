@@ -5,7 +5,6 @@ import java.util.*;
 
 import cnv.filesys.Project;
 import cnv.plots.TwoDPlot;
-import cnv.plots.TwoDPlot.ScreenToCapture;
 import stats.Histogram;
 import stats.LeastSquares;
 import mining.Transformations;
@@ -150,31 +149,28 @@ public class PhenoPrep {
 		prep.summarizeCentralMoments(idFile);
 		
 		if (histogram) {
-        	// TODO this should be loading the outFilem not the filename
-        	// TODO make a subdirectory called histograms, and put all related files in there
-		    String[] parts = Files.getHeaderOfFile(dir+filename, log);
+		    String[] parts = Files.getHeaderOfFile(dir + outFile, log);
 //		    int idIndex = ext.indexOfStr(idColName, parts);
 		    int dataIndex = ext.indexOfStr(pheno, parts);
 		    
-		    String[] dataStrs = HashVec.loadFileToStringArray(dir + filename, true, new int[]{dataIndex}, false);
+		    String[] dataStrs = HashVec.loadFileToStringArray(dir + outFile, true, new int[]{dataIndex}, false);
 		    String[] valid = Array.removeMissingValues(dataStrs);
 		    int missing = dataStrs.length - valid.length;
 		    log.report("Warning - " + missing + " missing values were found");
 		    double[] data = Array.toDoubleArray(valid);
 		    Histogram hist = new Histogram(data);
-		    String file = dir + ext.rootOf(filename, false) + "_hist.txt";
+		    String file = dir + "histograms/" + ext.rootOf(outFile, false) + "_hist.png";
 		    int cnt = 1;
 		    while (Files.exists(file)) {
-		        file = dir + ext.rootOf(filename, false) + "_hist_" + cnt++ + ".txt";
+		        file = dir + "histograms/" + ext.rootOf(outFile, false) + "_hist_" + cnt++ + ".png";
 		    }
-		    
-		    hist.dump(file);
 		    TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false, false, null);
-		    ArrayList<ScreenToCapture> screens = new ArrayList<ScreenToCapture>();
-		    float minx = (float) hist.getMin(), maxx = (float) hist.getMax(), miny = 0, maxy = Array.max(hist.getCounts());
-		    screens.add(new ScreenToCapture(new String[]{file, file, null}, new int[]{0, 1, 0}, new int[]{0, 0, 0}, new float[]{minx, maxx, miny, maxy}, false, false, false, true));
-		    tdp.createScreenshots(dir, screens);
+		    tdp.getPanel().setHistogram(hist);
+		    tdp.updateGUI();
+		    tdp.getPanel().screenCapture(file);
 		    tdp.windowClosing(null);
+		    tdp = null;
+		    hist = null;
 		}
 		
 	}

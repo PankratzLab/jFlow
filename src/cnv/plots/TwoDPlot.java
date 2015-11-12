@@ -109,7 +109,25 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	Pattern headerPattern = Pattern.compile(DATA_TITLE_REGEX);
 	private final boolean promptOnClose;
     private StringListProperty filesProperty;
-	
+
+    private volatile boolean generatingScreenshots;
+    private HashMap<String, Integer> colorData;
+    private JPanel treePanel;
+    private JScrollPane scrollPane;
+    private HashSet<String> selectedDataHash = new HashSet<String>();
+    private final ImageIcon flip1_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", true);
+    private final ImageIcon flip1_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg", true);
+    private final ImageIcon flip2_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv.jpg", true);
+    private final ImageIcon flip2_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv_blue_3.jpg", true);
+    private final ImageIcon flipX1_1 = Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true);
+    private final ImageIcon flipX1_2 = Grafik.getImageIcon("images/flip_and_invert/right_10_blue.jpg", true);
+    private final ImageIcon flipX2_1 = Grafik.getImageIcon("images/flip_and_invert/left_10.gif", true);
+    private final ImageIcon flipX2_2 = Grafik.getImageIcon("images/flip_and_invert/left_10_blue.jpg", true);
+    private final ImageIcon flipY1_1 = Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true);
+    private final ImageIcon flipY1_2 = Grafik.getImageIcon("images/flip_and_invert/up_10_blue.jpg", true);
+    private final ImageIcon flipY2_1 = Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true);
+    private final ImageIcon flipY2_2 = Grafik.getImageIcon("images/flip_and_invert/down_10_blue.jpg", true);
+    
 	private TwoDPlot() {
 		this(new Project(), true, null, null);
 	}
@@ -233,20 +251,64 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	    return twoDPanel;
 	}
 	
-	private final ImageIcon flip1_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", true);
-	private final ImageIcon flip1_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg", true);
-	private final ImageIcon flip2_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv.jpg", true);
-	private final ImageIcon flip2_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv_blue_3.jpg", true);
-	private final ImageIcon flipX1_1 = Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true);
-	private final ImageIcon flipX1_2 = Grafik.getImageIcon("images/flip_and_invert/right_10_blue.jpg", true);
-	private final ImageIcon flipX2_1 = Grafik.getImageIcon("images/flip_and_invert/left_10.gif", true);
-	private final ImageIcon flipX2_2 = Grafik.getImageIcon("images/flip_and_invert/left_10_blue.jpg", true);
-	private final ImageIcon flipY1_1 = Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true);
-	private final ImageIcon flipY1_2 = Grafik.getImageIcon("images/flip_and_invert/up_10_blue.jpg", true);
-	private final ImageIcon flipY2_1 = Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true);
-	private final ImageIcon flipY2_2 = Grafik.getImageIcon("images/flip_and_invert/down_10_blue.jpg", true);
-	
-	private void generateFlipButton() {
+	// Mouse listener for the checkbox tree
+    	MouseListener checkBoxMouseListener = new MouseListener() {
+    
+    		@Override
+    		public void mouseClicked(MouseEvent e) {
+    		    String[][] selectionValues = tree.getSelectionValues();
+    		    selectedDataHash.clear();
+    		    for (int i = 0; i < selectionValues.length; i++) {
+    //                String file = selectionValues[i][0];
+    //                int col = Integer.parseInt(selectionValues[i][1]);
+                    selectedDataHash.add(selectionValues[i][0] + "***" + selectionValues[i][1]);
+    		    }
+    //			JCheckBox source;
+    //			JPopupMenu menu;
+    //			source = (JCheckBox) e.getSource();
+    //			if (e.getButton() == MouseEvent.BUTTON3) {
+    //
+    //				menu = new JPopupMenu();
+    //				menu.setName("Actions");
+    //				menu.add(new AbstractAction("Set As Color Key") {
+    //					private static final long serialVersionUID = 1L;
+    //
+    //					@Override
+    //					public void actionPerformed(ActionEvent e1) {
+    //						setColorKeyHandler(tree.getSelectionRows());
+    //					}
+    //				});
+    //				menu.add(new AbstractAction("Set As Link Key") {
+    //					private static final long serialVersionUID = 1L;
+    //
+    //					@Override
+    //					public void actionPerformed(ActionEvent e1) {
+    //						setLinkKeyHandler(tree.getSelectionRows());
+    //					}
+    //				});
+    //				menu.show(source, e.getX(), e.getY());
+    //			}
+    		}
+    
+    		@Override
+    		public void mousePressed(MouseEvent e) {
+    		}
+    
+    		@Override
+    		public void mouseReleased(MouseEvent e) {
+    
+    		}
+    
+    		@Override
+    		public void mouseEntered(MouseEvent e) {
+    		}
+    
+    		@Override
+    		public void mouseExited(MouseEvent e) {
+    		}
+    	};
+
+    private void generateFlipButton() {
 		flipButton = new JButton(flip1_1);
 		flipButton.setRolloverIcon(flip1_2);
 		flipButton.setToolTipText("Inverts X & Y Axes");
@@ -1002,60 +1064,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 		return v;
 	}
-
-	// Mouse listener for the checkbox tree
-	MouseListener checkBoxMouseListener = new MouseListener() {
-
-		@Override
-		public void mouseClicked(MouseEvent e) {
-//			JCheckBox source;
-//			JPopupMenu menu;
-//			source = (JCheckBox) e.getSource();
-//			if (e.getButton() == MouseEvent.BUTTON3) {
-//
-//				menu = new JPopupMenu();
-//				menu.setName("Actions");
-//				menu.add(new AbstractAction("Set As Color Key") {
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public void actionPerformed(ActionEvent e1) {
-//						setColorKeyHandler(tree.getSelectionRows());
-//					}
-//				});
-//				menu.add(new AbstractAction("Set As Link Key") {
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public void actionPerformed(ActionEvent e1) {
-//						setLinkKeyHandler(tree.getSelectionRows());
-//					}
-//				});
-//				menu.show(source, e.getX(), e.getY());
-//			}
-		}
-
-		@Override
-		public void mousePressed(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-		}
-	};
-	private boolean generatingScreenshots;
-	private HashMap<String, Integer> colorData;
-    private JPanel treePanel;
-    private JScrollPane scrollPane;
+	
+	public int getSelectedDataHash() {
+	    return selectedDataHash.hashCode();
+	}
+	
 
 //	public float[][] getDataSelected() {
 //		return getDataSelected(false);
