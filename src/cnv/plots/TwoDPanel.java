@@ -9,6 +9,7 @@ import java.util.Hashtable;
 
 import javax.swing.JPopupMenu;
 
+import stats.Histogram;
 import cnv.filesys.MarkerLookup;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
@@ -68,7 +69,10 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	private SampleData sampleData;
 	private Project proj;
 	private String[][] linkerData;
-
+	private int dataHash = -1;
+	private stats.Histogram currentHistogram;
+	private boolean histogramOverride = false;
+	
 	public TwoDPanel(TwoDPlot twoDPlot) {
 		super();
 		
@@ -266,25 +270,31 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	}
 
 	private void generateRectangles() {
-	    ArrayList<String[]> currentData;
-		boolean includeColorKeyValue;
-		int index;
-		
-		includeColorKeyValue = true;
-		currentData = tdp.getDataSelected(includeColorKeyValue);
-		index = includeColorKeyValue? 4 : 3;
-		if (currentData.size() > 0) {
-			linkerData = new String[currentData.size()][currentData.get(0).length - index];
-		} else {
-		    rectangles = new GenericRectangle[0];
-		    return;
-		}
-		
-		double[] dataArray = new double[currentData.size()];
-		for (int i = 0; i < dataArray.length; i++) {
-		    dataArray[i] = ext.isMissingValue(currentData.get(i)[1]) ? Double.NaN : Double.parseDouble(currentData.get(i)[1]);
-		}
-		stats.Histogram hist = new stats.Histogram(dataArray);
+	    stats.Histogram hist;
+	    if ((!histogramOverride && dataHash != tdp.getSelectedDataHash()) || currentHistogram == null) {
+    	    ArrayList<String[]> currentData;
+    		boolean includeColorKeyValue;
+    		int index;
+    		
+    		includeColorKeyValue = true;
+    		currentData = tdp.getDataSelected(includeColorKeyValue);
+    		index = includeColorKeyValue? 4 : 3;
+    		if (currentData.size() > 0) {
+    			linkerData = new String[currentData.size()][currentData.get(0).length - index];
+    		} else {
+    		    rectangles = new GenericRectangle[0];
+    		    return;
+    		}
+    		
+    		double[] dataArray = new double[currentData.size()];
+    		for (int i = 0; i < dataArray.length; i++) {
+    		    dataArray[i] = ext.isMissingValue(currentData.get(i)[1]) ? Double.NaN : Double.parseDouble(currentData.get(i)[1]);
+    		}
+    		hist = new stats.Histogram(dataArray);
+    		setHistogram(hist);
+	    } else {
+            hist = getHistogram();
+	    }
 
 		double min = hist.getMin();
 		double max = hist.getMax();
@@ -321,6 +331,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		
 	}
 	
+
+
 //	private void generateRectangles() {
 //	    Vector<String[]> currentData;
 //	    boolean includeColorKeyValue;
@@ -729,7 +741,23 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		return updateQcPanel;
 	}
 	
-	public void setSwapAxes(boolean swapAxes) {
+    public boolean isHistogramOverride() {
+        return histogramOverride;
+    }
+
+    public void setHistogramOverride(boolean histogramOverride) {
+        this.histogramOverride = histogramOverride;
+    }
+    
+    private Histogram getHistogram() {
+        return currentHistogram;
+    }
+
+    public void setHistogram(stats.Histogram hist) {
+        this.currentHistogram = hist;
+    }
+    
+    public void setSwapAxes(boolean swapAxes) {
 		this.swapAxes = swapAxes;
 	}
 

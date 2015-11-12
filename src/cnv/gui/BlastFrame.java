@@ -129,7 +129,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     public int currentAlignFilter;
     private String nextBase;
     private JSplitPane splitPane;
-    private JPanel panel_1;
+    private JPanel lowerPanel;
     
     public void addBlastLabel(BlastLabel lbl) {
         JLabel locLbl = new JLabel();
@@ -295,16 +295,16 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         
-        panel_1 = new JPanel();
-        splitPane.setRightComponent(panel_1);
+        lowerPanel = new JPanel();
+        splitPane.setRightComponent(lowerPanel);
         
         addWindowFocusListener(this);
     }
     
     public void setSecondPanel(JPanel img) {
-        this.panel_1 = img;
-        this.panel_1.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-        splitPane.setRightComponent(this.panel_1);
+        this.lowerPanel = img;
+        this.lowerPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+        splitPane.setRightComponent(this.lowerPanel);
         splitPane.setDividerLocation(0.5);
         splitPane.setOneTouchExpandable(true);
         revalidate();
