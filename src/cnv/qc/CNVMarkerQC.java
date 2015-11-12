@@ -20,13 +20,14 @@ public class CNVMarkerQC implements Runnable {
 	boolean[] samplesToBeUsed;
 	double[] mafs;
 	double [] bafs;
+	private Logger log;
 
-	public CNVMarkerQC(Project proj, String[] markerNames, boolean[] samplesToBeUsed) {
+	public CNVMarkerQC(Project proj, String[] markerNames, boolean[] samplesToBeUsed, Logger log) {
 		this.proj = proj;
 		this.markerNames = markerNames;
 		this.samplesToBeUsed = samplesToBeUsed;
 		this.mafs = new double[markerNames.length];
-
+		this.log = log;
 	}
 
 	public String[] getMarkerNames() {
@@ -44,7 +45,7 @@ public class CNVMarkerQC implements Runnable {
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 		for (int i = 0; i < markerNames.length; i++) {
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
-			mafs[i] = markerData.getMAF(samplesToBeUsed, null, null, 0);
+			mafs[i] = markerData.getMAF(samplesToBeUsed, null, null, 0, log);
 			markerDataLoader.releaseIndex(i);
 		}
 	}
@@ -115,7 +116,7 @@ public class CNVMarkerQC implements Runnable {
 		CNVMarkerQC[] markerFrequencies = new CNVMarkerQC[threads];
 		Thread[] runningthreads = new Thread[threads];
 		for (int i = 0; i < threads; i++) {
-			markerFrequencies[i] = new CNVMarkerQC(proj, toStringArray(cabinet.get(i)), samplesToBeUsed);
+			markerFrequencies[i] = new CNVMarkerQC(proj, toStringArray(cabinet.get(i)), samplesToBeUsed, proj.getLog());
 			runningthreads[i] = new Thread(markerFrequencies[i]);
 			runningthreads[i].start();
 		}

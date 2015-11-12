@@ -211,11 +211,9 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + residOutput + "\" could not be written to (it's probably open)");
 			log.reportException(fnfe);
-			System.exit(1);
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + residOutput + "\"");
 			log.reportException(ioe);
-			System.exit(2);
 		}
 	}
 
@@ -270,7 +268,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 * <p>
 	 * Data is loaded to assessmentData organized assessmentData[marker0][data for samples in PCs], ditto for abGenotypesAfterFilters
 	 * <p>
-	 * Note that the order of assessmentData[marker0] does not neccesarily reflect the same order as the samples in the pc file
+	 * Note that the order of assessmentData[marker0] does not necessarily reflect the same order as the samples in the pc file
 	 * 
 	 */
 	private void getData() {
@@ -302,7 +300,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			} else {
 				lrrs = markerData.getLRRs();
 			}
-			abGenos = markerData.getAbGenotypesAfterFilters(cluster, markersToAssess[index], gcThreshold);
+			abGenos = markerData.getAbGenotypesAfterFilters(cluster, markersToAssess[index], gcThreshold, log);
 			int sampleIndex = 0;
 			for (int k = 0; k < samplesToUse.length; k++) {
 				if (samplesToUse[k]) {
@@ -709,7 +707,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			log.report(ext.getTime() + " Info - finished validations for PC" + indeps[0].length + " and took " + ext.getTimeElapsed(time));
 			char S = 'S';
 			computeFullModel();
-			writeToTmpFile(crossValidation, ext.getTimeSince(time, S) + "");
+			writeToTmpFile(crossValidation, ext.getTimeSince(time, S) + "", log);
 			return crossValidation;
 		}
 
@@ -734,7 +732,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		/**
 		 * We write to a temporary file so we can monitor progress
 		 */
-		private void writeToTmpFile(CrossValidation[] crossValidation, String time) {
+		private void writeToTmpFile(CrossValidation[] crossValidation, String time, Logger log) {
 			if (tmpOutput != null) {
 				if (!Files.exists(tmpOutput)) {
 					Files.write(Array.toStr(MT_RESIDUAL_CROSS_VALIDATED_REPORT), tmpOutput);
@@ -744,8 +742,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 					writer.println(ext.getTime() + "\t" + time + "\t" + indeps[0].length + "\t" + CrossValidation.getEstimateError(crossValidation) + "\t" + CrossValidation.getAverageR2(crossValidation) + "\t" + CrossValidation.getAverageSEbetas(crossValidation) + "\t" + fullModelR2 + "\t" + fullModelSSerr);
 					writer.close();
 				} catch (Exception e) {
-					System.err.println("Error writing to " + tmpOutput);
-					System.err.println(e);
+					log.reportError("Error writing to " + tmpOutput);
+					log.reportException(e);
 				}
 			}
 		}
@@ -898,8 +896,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			}
 
 			double[] train_deps = (samplesTobuildModel == null ? data : Array.subArray(data, samplesTobuildModel));
-			double[][] train_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(samplesTobuildModel, extraIndeps, numComponentsForModel) : Array.subArray(extraIndeps, samplesTobuildModel);
-			double[][] val_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(null, extraIndeps, numComponentsForModel) : extraIndeps;
+			double[][] train_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(samplesTobuildModel, extraIndeps, numComponentsForModel, log) : Array.subArray(extraIndeps, samplesTobuildModel);
+			double[][] val_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(null, extraIndeps, numComponentsForModel, log) : extraIndeps;
 
 			cval = new CrossValidation(train_deps, train_indeps, data, val_indeps, verbose, svdRegression, proj.getLog());
 			cval.train();
@@ -922,13 +920,13 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 * @param numComponents
 	 * @return
 	 */
-	private double[][] getTrimmedPreppedIndepsProjectPCsFor(boolean[] toExtract, double[][] additionalData, int numComponents) {
+	private double[][] getTrimmedPreppedIndepsProjectPCsFor(boolean[] toExtract, double[][] additionalData, int numComponents, Logger log) {
 		double[][] preppedPcs = getTrimmedPreppedProjectPCsFor(toExtract, numComponents);
 		if (additionalData != null) {
 			double[][] tmp = new double[preppedPcs.length][numComponents + additionalData[0].length];
 			double[][] tmpAdd = toExtract == null ? additionalData : Array.subArray(additionalData, toExtract);
 			if (preppedPcs.length != tmpAdd.length) {
-				System.err.println("Mismatched array addition for additional data");
+				log.reportError("Mismatched array addition for additional data");
 				return null;
 			}
 			for (int i = 0; i < preppedPcs.length; i++) {
@@ -1278,8 +1276,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			allProjSamples = samples;
 			pcBasis = tmpBasis;
 			sortedByProject = true;
-			System.out.println(samplesInPc.size() + ": hash samples ; " + samplesToReport.length + " report Samples");
-			System.out.println(allProjSamples.length + ": project samples ; " + pcBasis[0].length + " pc Samples");
+			log.report(samplesInPc.size() + ": hash samples ; " + samplesToReport.length + " report Samples");
+			log.report(allProjSamples.length + ": project samples ; " + pcBasis[0].length + " pc Samples");
 		}
 	}
 }

@@ -94,14 +94,14 @@ public class Zcall {
 			for (int i = 0; i < markerNames.length; i++) {
 				markerData = markerDataLoader.requestMarkerData(i);
 				if (i % 1000 == 0) {
-					System.out.println(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
+					log.report(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
 				}
 
 				markerName = markerData.getMarkerName();
 				
 				xs = markerData.getXs();
 				ys = markerData.getYs();
-				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold, log);
 				
 				writer.print(markerName + "\t" + markerData.getChr() + "\t" + markerData.getPosition());
 
@@ -118,7 +118,7 @@ public class Zcall {
 			log.report("Finished analyzing "+markerNames.length+" in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
 			log.reportError("Error writing marker metrics to "+proj.MARKER_METRICS_FILENAME.getValue(false, false));
-			e.printStackTrace();
+			log.reportException(e);
 		}
 	}
 

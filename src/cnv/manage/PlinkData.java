@@ -80,9 +80,6 @@ public class PlinkData {
 				index2 = 0;
 				genotypeByteStream[genotypeByteStream.length - 1] = (byte) 0;
 				for (int i = 0; i < numMarkers; i++) {
-					if (i == 30 && line[0].equals("4")) {
-						System.out.println("");
-					}
 					for (int j = 0; j < 2; j++) {
 						temp = line[7 + i + i - j];
 						if (temp.equals("0")) {
@@ -135,10 +132,10 @@ public class PlinkData {
 			}
 			inFile.close();
 			outFamOrBim.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (FileNotFoundException fnfe) {
+			log.reportException(fnfe);
+		} catch (IOException ioe) {
+			log.reportException(ioe);
 		}
 	}
 
@@ -163,38 +160,6 @@ public class PlinkData {
 		}
 
 		convertFamBedToPed(plinkDirAndFilenameRoot, convertBimToMap(plinkDirAndFilenameRoot), log);
-	}
-	
-	/**
-	 * Load a PLINK .bim file and return the list of alleles.
-	 * @param plinkDirAndFilenameRoot
-	 * @return
-	 */
-	public static char[][] loadBimAlleles(String plinkDirAndFilenameRoot) {
-		Vector<char[]> allelesTmp;
-		Scanner reader;
-		String[] line;
-		char[][] alleles;
-		
-		allelesTmp = new Vector<char[]>();
-		try {
-			reader = new Scanner(new FileInputStream(plinkDirAndFilenameRoot + ".bim"));
-			reader.nextLine();
-			while (reader.hasNext()) {
-				line = reader.nextLine().split("\t");
-				allelesTmp.add(new char[] {line[4].charAt(0), line[5].charAt(0)});
-			}
-			reader.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		
-		alleles = new char[allelesTmp.size()][2];
-		for (int i = 0; i < alleles.length; i++) {
-			alleles[i] = allelesTmp.elementAt(i);
-		}
-
-		return alleles;
 	}
 	
 	/**
@@ -355,10 +320,10 @@ public class PlinkData {
 			}
 
 			famReader.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (FileNotFoundException fnfe) {
+			log.reportException(fnfe);
+		} catch (IOException ioe) {
+			log.reportException(ioe);
 		}
 	}
 
@@ -398,8 +363,8 @@ public class PlinkData {
 
 			reader.close();
 
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+		} catch (FileNotFoundException fnfe) {
+			log.reportException(fnfe);
 			return null;
 		}
 		
@@ -1083,7 +1048,9 @@ public class PlinkData {
 		char[][] abLookup = null;
 //		MarkerSet markerSet = proj.getMarkerSet();
 //		String[] markerNames;
-
+		Logger log;
+		
+		log = proj.getLog();
 //		allMarkersInProj = proj.getMarkerNames();
 //		markList = new String[indicesOfSelectedMarkers.length];
 //		for (int i = 0; i < indicesOfSelectedMarkers.length; i++) {
@@ -1113,7 +1080,7 @@ public class PlinkData {
 				fsamp = proj.getFullSampleFromRandomAccessFile(targetSamples[i]);
 
 				if (fsamp == null) {
-					System.err.println("Error - the DNA# " + targetSamples[i] + " was listed in the pedigree file but " + targetSamples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION+ " was not found in directory: " + proj.SAMPLE_DIRECTORY.getValue(false, true));
+					log.reportError("Error - the DNA# " + targetSamples[i] + " was listed in the pedigree file but " + targetSamples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION+ " was not found in directory: " + proj.SAMPLE_DIRECTORY.getValue(false, true));
 					genotypes = new byte[1];
 
 				} else {
@@ -1156,10 +1123,10 @@ public class PlinkData {
 			}
 
 			out.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (FileNotFoundException fnfe) {
+			log.reportException(fnfe);
+		} catch (IOException ioe) {
+			log.reportException(ioe);
 		}
 		
 		proj.getProgressMonitor().endTask(PROG_KEY);
@@ -1202,7 +1169,9 @@ public class PlinkData {
 		int[] indicesOfMarkersInProjForCurrentFile;
 		String markerDataDir;
 		long startTime;
+		Logger log;
 		
+		log = proj.getLog();
 		startTime = new Date().getTime();
 
 		try {
@@ -1258,7 +1227,7 @@ public class PlinkData {
 				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, markerDataDir + filenames[i], indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash, proj.getLog());
 
 				for (int j = 0; j < markerData.length; j++) {
-					genotypes = markerData[j].getAbGenotypesAfterFilters(clusterFilterCollection, markersOfThisFile[j], 0);
+					genotypes = markerData[j].getAbGenotypesAfterFilters(clusterFilterCollection, markersOfThisFile[j], 0, log);
 					for (int k = 0; k < indicesOfTargetSamplesInProj.length; k++) {
 						genotypesOfTargetSamples[k] = genotypes[indicesOfTargetSamplesInProj[k]];
 					}
@@ -1286,10 +1255,10 @@ public class PlinkData {
 			}
 			out1.close();
 
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (FileNotFoundException fnfe) {
+			log.reportException(fnfe);
+		} catch (IOException ioe) {
+			log.reportException(ioe);
 		}
 		
 		proj.getLog().report("Finished creating binary PLINK files in "+ext.getTimeElapsed(startTime));
@@ -1356,7 +1325,7 @@ public class PlinkData {
 		hash = new Hashtable<String,Integer>();
 		for (int i = 0; i<targetMarkers.length; i++) {
 			if (hash.containsKey(targetMarkers[i])) {
-				System.err.println("Warning - duplicate marker name: "+targetMarkers[i]);
+				log.reportError("Warning - duplicate marker name: "+targetMarkers[i]);
 			}
 			hash.put(targetMarkers[i], i);
 		}
@@ -1365,14 +1334,14 @@ public class PlinkData {
 		if (indicesOfTargetMarkersInProj != null) {
     		for (int i = 0; i < indicesOfTargetMarkersInProj.length; i++) {
     		    if (projHash.containsKey(targetMarkers[i])) {
-                    System.err.println("Warning - duplicate marker name: "+targetMarkers[i]);
+    		    	log.reportError("Warning - duplicate marker name: "+targetMarkers[i]);
                 }
     		    projHash.put(targetMarkers[i], indicesOfTargetMarkersInProj[i]);
     		}
 		} else {
 		    for (int i = 0; i < targetMarkers.length; i++) {
 		        if (projHash.containsKey(targetMarkers[i])) {
-		            System.err.println("Warning - duplicate marker name: "+targetMarkers[i]);
+		        	log.reportError("Warning - duplicate marker name: "+targetMarkers[i]);
 		        }
 		        projHash.put(targetMarkers[i], i);
 		    }
@@ -1429,7 +1398,7 @@ public class PlinkData {
 				subTime = new Date().getTime();
 				for (int j = 0; j < markerData.length; j++) {
 					targetIndex = hash.get(markersOfThisFile[j]);
-					genotypes = markerData[j].getAbGenotypesAfterFilters(clusterFilterCollection, markersOfThisFile[j], 0);
+					genotypes = markerData[j].getAbGenotypesAfterFilters(clusterFilterCollection, markersOfThisFile[j], 0, log);
 					for (int k = 0; k < indicesOfTargetSamplesInProj.length; k++) {
 						genotypesOfTargetSamples[k] = genotypes[indicesOfTargetSamplesInProj[k]];
 					}
@@ -1446,10 +1415,10 @@ public class PlinkData {
 			}
 			out.close();
 
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (FileNotFoundException fnfe) {
+			log.reportException(fnfe);
+		} catch (IOException ioe) {
+			log.reportException(ioe);
 		}
 		
 		proj.getProgressMonitor().endTask(PROG_KEY);
@@ -1473,7 +1442,7 @@ public class PlinkData {
 		PrintWriter writer;
 
 		if (abLookup == null) {
-			System.err.println("Error - abLookup cannot be null; failed to create .bim file");
+			log.reportError("Error - abLookup cannot be null; failed to create .bim file");
 			return false;
 		}
 		
@@ -1485,11 +1454,11 @@ public class PlinkData {
 			writer.close();
 
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: failed to write to gwas.map (in use?)");
-			System.exit(1);
+			log.reportError("Error: failed to write to gwas.map (in use?)");
+			return false;
 		} catch (IOException ioe) {
-			System.err.println("Error writing to gwas.map");
-			System.exit(2);
+			log.reportError("Error writing to gwas.map");
+			return false;
 		}
 
 		return true;
@@ -1556,10 +1525,10 @@ public class PlinkData {
 			reader.close();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + famDirAndFilenameRoot+".fam" + "\" not found in current directory");
+			log.reportError("Error: file \"" + famDirAndFilenameRoot+".fam" + "\" not found in current directory");
 			return null;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + famDirAndFilenameRoot+".fam" + "\"");
+			log.reportError("Error reading file \"" + famDirAndFilenameRoot+".fam" + "\"");
 			return null;
 		}
 
@@ -2110,38 +2079,6 @@ public class PlinkData {
 		}
 
 		return out;
-	}
-
-	/**
-	 * Generate MarkerLookup file from PLINK data sets. This is part of the process to convert PLINK data sets to Genvisis data.
-	 * @param plinkFileRoot
-	 * @return
-	 */
-	public static MarkerLookup parseMarkerLookup(String plinkFileRoot) {
-		BufferedReader reader;
-		String[] line;
-		Hashtable<String, String> hash;
-		int count;
-		
-		hash = new Hashtable<String, String>();
-		try {
-			reader = new BufferedReader(new FileReader(plinkFileRoot+".bim"));
-			count = 0;
-			while (reader.ready()) {
-				line = reader.readLine().trim().split("\\s+");
-				hash.put(line[1], ":\t"+count+"\t"+line[0] + "\t" + line[3] + "\t" + line[4]+"\t"+line[5]);
-				count++;
-			}
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + plinkFileRoot+".bim" + "\" not found in current directory");
-			System.exit(1);
-		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + plinkFileRoot+".bim" + "\"");
-			System.exit(2);
-		}
-
-		return new MarkerLookup(hash);
 	}
 
 	/**

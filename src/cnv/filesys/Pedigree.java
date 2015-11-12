@@ -169,14 +169,13 @@ public class Pedigree extends FamilyStructure {
             return trios;
         }
         
-        public static MendelErrorCheck[] checkMendelErrors(Pedigree pedigree, MarkerData markerData, boolean[] samplesToCheck, String[] sex, ClusterFilterCollection clusterFilters, float gcThreshold) {
+        public static MendelErrorCheck[] checkMendelErrors(Pedigree pedigree, MarkerData markerData, boolean[] samplesToCheck, String[] sex, ClusterFilterCollection clusterFilters, float gcThreshold, Logger log) {
             if (pedigree.getProject() == null) {
-                System.err.println(ext.getTime() + "]\t Error - cannot run checkMendelErrors without a Project");
+            	log.reportError(ext.getTime() + "]\t Error - cannot run checkMendelErrors without a Project");
                 return null;
             }
             MendelErrorCheck[] mendelErrorChecks = new MendelErrorCheck[pedigree.getProject().getSamples().length];
-            byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(), gcThreshold);
-            Logger log = pedigree.getProject().getLog();
+            byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters, markerData.getMarkerName(), gcThreshold, log);
             if (!pedigree.isProjectOrder()) {
                 log.reportTimeError("Pedigree file must be in project order, internal error");
                 return null;

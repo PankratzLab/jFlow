@@ -527,7 +527,7 @@ public class ABLookup {
 				} else {
 					MarkerData markerData = markerDataLoader.requestMarkerData(i);
 //					markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null, clusterFilterCollection, proj.getFloat(proj.GC_THRESHOLD));
-					markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null, clusterFilterCollection, proj.GC_THRESHOLD.getValue().floatValue());
+					markerNames[i] = markerNames[i] + "\t" + markerData.getFrequencyOfB(null, null, clusterFilterCollection, proj.GC_THRESHOLD.getValue().floatValue(), log);
 					markerDataLoader.releaseIndex(i);
 				}
 			}

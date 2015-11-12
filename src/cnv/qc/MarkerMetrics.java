@@ -131,7 +131,7 @@ public class MarkerMetrics {
 				markerName = markerData.getMarkerName();
 				thetas = markerData.getThetas();
 				rs = markerData.getRs();
-				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold, log);
 				lrrs = markerData.getLRRs();
 				aLRR = new ArrayList<Float>(samples.length);
 
@@ -188,7 +188,7 @@ public class MarkerMetrics {
 				String mecCnt = ".";
 				if (pedigree != null) {
 				    toInclude = samplesToExclude == null ? Array.booleanArray(samples.length, true) : Array.booleanNegative(samplesToExclude); 
-		            mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, toInclude, null, clusterFilterCollection, gcThreshold);
+		            mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, toInclude, null, clusterFilterCollection, gcThreshold, log);
 		            count = 0;
 		            for (int i = 0; i < mecArr.length; i++) {
 		                if (!toInclude[i]) continue;
@@ -274,7 +274,7 @@ public class MarkerMetrics {
 			log.report("Finished analyzing " + markerNames.length + " in " + ext.getTimeElapsed(time));
 		} catch (Exception e) {
 			log.reportError("Error writing marker metrics to " + fullPathToOutput);
-			e.printStackTrace();
+			log.reportException(e);
 		}
 	}
 
@@ -395,7 +395,7 @@ public class MarkerMetrics {
 			log.report("Finished analyzing "+markerNames.length+" in "+ext.getTimeElapsed(time));
 		} catch (Exception e) {
 			log.reportError("Error writing results");
-			e.printStackTrace();
+			log.reportException(e);
 		}
 	}
 	
@@ -420,6 +420,7 @@ public class MarkerMetrics {
         MarkerDataLoader markerDataLoader;
         String[] markerList;
         String line, eol;
+        Logger log;
         
         if (System.getProperty("os.name").startsWith("Windows")) {
         	eol = "\r\n";
@@ -427,6 +428,7 @@ public class MarkerMetrics {
 			eol = "\n";
 		}
         
+        log = proj.getLog();
         sampleData = proj.getSampleData(2, false);
         samples = proj.getSamples();
         sexes = new int[samples.length];
@@ -456,7 +458,7 @@ public class MarkerMetrics {
 				markerName = markerData.getMarkerName();
 				xs = markerData.getXs();
 				ys = markerData.getYs();
-				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold, log);
 				
 				values = new DoubleVector[3][4][3]; // x/y/r, genotype, sex
 				for (int s = 0; s < samples.length; s++) {
@@ -561,12 +563,12 @@ public class MarkerMetrics {
 				}
 			}
 			writer.print(line);
-			proj.getLog().report("Finished analyzing "+markerList.length+" in "+ext.getTimeElapsed(time));
+			log.report("Finished analyzing "+markerList.length+" in "+ext.getTimeElapsed(time));
 
 			writer.close();
 		} catch (Exception e) {
-			proj.getLog().reportError("Error writing results");
-			e.printStackTrace();
+			log.reportError("Error writing results");
+			log.reportException(e);
 		}
 		
 	}
@@ -735,7 +737,7 @@ public class MarkerMetrics {
 				if (checkForDeletedMarkers) {
 					markerData = markerDataLoader.requestMarkerData(j);
 					zeroedOut = true;
-					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
+					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold, log);
 					for (int k = 0; k < genotypes.length; k++) {
 						if (!shouldBeExcluded[k] && genotypes[k] != -1) {
 							zeroedOut = false;
@@ -823,7 +825,7 @@ public class MarkerMetrics {
 					if (checkForDeletedMarkers) {
 						markerData = markerDataLoader.requestMarkerData(j);
 						zeroedOut = true;
-						genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
+						genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold, log);
 						for (int k = 0; k < genotypes.length; k++) {
 							if (!shouldBeExcluded[k] && genotypes[k] != -1) {
 								zeroedOut = false;
@@ -932,7 +934,7 @@ public class MarkerMetrics {
 				markerData = markerDataLoader.requestMarkerData(i);
 				numGenotypesAffected = numNonMissingBefore = numNonMissingAfter = 0;
 				genotypesBefore = markerData.getAbGenotypes();
-				genotypesAfter = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[i], gcThreshold);
+				genotypesAfter = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[i], gcThreshold, log);
 				for (int k = 0; k < genotypesBefore.length; k++) {
 					if (samplesToInclude[k]) {
 						if (genotypesBefore[k] != genotypesAfter[k]) {
@@ -1011,7 +1013,7 @@ public class MarkerMetrics {
 			if (checkForDeletedMarkers) {
 				markerData = markerDataLoader.requestMarkerData(j);
 				zeroedOut = true;
-				genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
+				genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold, log);
 				for (int k = 0; k < genotypes.length; k++) {
 					if (!shouldBeExcluded[k] && genotypes[k] != -1) {
 						zeroedOut = false;
@@ -1081,7 +1083,7 @@ public class MarkerMetrics {
 				if (checkForDeletedMarkers) {
 					markerData = markerDataLoader.requestMarkerData(j);
 					zeroedOut = true;
-					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold);
+					genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerNames[j], gcThreshold, log);
 					for (int k = 0; k < genotypes.length; k++) {
 						if (!shouldBeExcluded[k] && genotypes[k] != -1) {
 							zeroedOut = false;
@@ -1210,7 +1212,7 @@ public class MarkerMetrics {
 		String markersSubset = null;
 		String samples = null;
 		String logfile = null;
-		Project proj;
+		Project proj = null;
 		String filename = null;
 		boolean sexSeparation = false;
 		boolean fullQC = false;
@@ -1347,7 +1349,11 @@ public class MarkerMetrics {
 				regress(proj, pheno);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (proj != null) {
+				proj.getLog().reportException(e);
+			} else {
+				e.printStackTrace();
+			}
 		}
 	}
 }

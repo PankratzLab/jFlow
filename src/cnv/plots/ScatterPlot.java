@@ -20,7 +20,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedReader;
@@ -75,7 +74,6 @@ import seq.manage.ReferenceGenome;
 import stats.CTable;
 import stats.ContingencyTable;
 import stats.ProbDist;
-import cnv.Launch;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
@@ -89,7 +87,6 @@ import cnv.filesys.AnnotationCollection;
 import cnv.filesys.Centroids;
 import cnv.filesys.ClusterFilter;
 import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.Configurator;
 import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerLookup;
 import cnv.filesys.MarkerSet;
@@ -2516,7 +2513,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			count++;
 		} while (new File(proj.PROJECT_DIRECTORY.getValue()+filename+".xln").exists());
 		String outFile = proj.PROJECT_DIRECTORY.getValue()+filename+".xln";
-		getCurrentMarkerData().dump(sampleData, outFile, samples, false);
+		getCurrentMarkerData().dump(sampleData, outFile, samples, false, log);
 		log.report(ext.getTime() + "]\tWrote data dump to [" + outFile + "]");
 	}
 	
@@ -2893,7 +2890,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			markerData = getCurrentMarkerData();
 			if (markerData.getLRRs() != null) {
 				for (int i = 0; i<centList.length; i++) {
-					comp = markerData.compareLRRs(centroids[i][markerIndex]);
+					comp = markerData.compareLRRs(centroids[i][markerIndex], log);
 					str = comp[0]+"";
 		
 					for (int j = 2; j<str.length(); j++) {
@@ -2954,7 +2951,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				// handle error by closing window
 			} catch (Exception e) {
 				log.reportError("Error reading file \""+filename+"\"");
-				e.printStackTrace();
+				log.reportException(e);
 				return;
 			}
 
@@ -2965,7 +2962,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			markerIndexHistory = new int[NUM_MARKERS_TO_SAVE_IN_HISTORY];
 		} catch (Exception e) {
 			log.reportError("Error loading: "+filename);
-			e.printStackTrace();
+			log.reportException(e);
 		}
 	}
 	

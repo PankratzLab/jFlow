@@ -449,14 +449,16 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 	private static void writeToFile (Project proj, byte[] estimatedSex) {
 		PrintWriter writer;
 		String famIndPair;
+		Logger log;
 		
+		log = proj.getLog();
 		try {
 			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"sexCheck.xln"));
 			writer.println(Array.toStr(SEX_HEADER));
 			for (int i = 0; i<samples.length; i++) {
 				famIndPair = sampleData.lookup(samples[i])[1];
 				if (famIndPair == null) {
-					System.err.println("Error - no data for sample '"+samples[i]+"'");
+					log.reportError("Error - no data for sample '"+samples[i]+"'");
 					writer.print(samples[i]+"\t"+".\t.\t-9\t-9");
 				} else {
 					writer.print(samples[i]+"\t"+famIndPair+"\t"+sampleData.getSexForIndividual(samples[i])+"\t"+estimatedSex[i]);
@@ -465,8 +467,8 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to sexCheck.xln");
-			e.printStackTrace();
+			log.reportError("Error writing to sexCheck.xln");
+			log.reportException(e);
 		}
 	}
 	
@@ -492,6 +494,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
         byte[] chrs;
         int[][] genotypeCounts;
         boolean[] samplesToExclude;
+        Logger log;
         
         if (System.getProperty("os.name").startsWith("Windows")) {
         	eol = "\r\n";
@@ -499,6 +502,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 			eol = "\n";
 		}
         
+        log = proj.getLog();
         sampleData = proj.getSampleData(2, false);
         samplesToExclude = proj.getSamplesToExclude();
         samples = proj.getSamples();
@@ -532,7 +536,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 
 				markerName = markerData.getMarkerName();
 				lrrs = markerData.getLRRs();
-				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold);
+				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold, log);
 				
 				genotypeCounts = new int[2][4]; // sex, genotype
 				values = new DoubleVector[2]; // sex
@@ -580,12 +584,12 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 				markerDataLoader.releaseIndex(i);
 			}
 			writer.print(line);
-			System.out.println("Finished analyzing "+markerList.length+" in "+ext.getTimeElapsed(time));
+			log.report("Identified pseudo-autosomal breakpoints from "+markerList.length+" markers in "+ext.getTimeElapsed(time));
 
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing results");
-			e.printStackTrace();
+			log.reportError("Error writing results");
+			log.reportException(e);
 		}
 		
 	}
