@@ -37,15 +37,15 @@ public class LrrSd extends Parallelizable {
 	public void run() {
 		PrintWriter writer;
 		Sample fsamp;
-		float[][][] cents;
-		byte[] chrs, abGenotypes, forwardGenotypes;
-		float[] lrrs, bafs, bafsWide;
-		double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound;
-		int[] bafBinCounts;
-		boolean multimodal;
-		int subIndex = -1;
-		Logger log;
-		
+        float[][][] cents;
+        byte[] chrs/*, abGenotypes, forwardGenotypes*/;
+//        float[] lrrs, bafs, bafsWide;
+//        double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound;
+//        int[] bafBinCounts;
+//        boolean multimodal;
+        int subIndex = -1;
+        Logger log;
+        
 		String PROG_KEY = "LRRSTDEV_" + threadNumber;
 		String progDesc = "Compute Log-R Ratio Std.Dev. in Thread " + threadNumber;
 		
@@ -116,95 +116,8 @@ public class LrrSd extends Parallelizable {
 				if (fsamp == null) {
 					log.reportError("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
 				} else {
-					lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
-					bafs = cents == null ? fsamp.getBAFs() : fsamp.getBAFs(cents);
-					bafsWide = bafs;
-
-					if (markersForEverythingElse != null) {
-						lrrs = Array.subArray(lrrs, markersForEverythingElse);
-						bafs = Array.subArray(bafs, markersForEverythingElse);
-						bafsWide = Array.subArray(bafsWide, markersForEverythingElse);
-					}
-					
-					abGenotypes = fsamp.getAB_Genotypes();
-					forwardGenotypes = fsamp.getForwardGenotypes();
-					
-					if (markersForCallrate != null) {//we do not need autosomal only markers here...
-						abGenotypes = (abGenotypes == null ? abGenotypes : Array.subArray(abGenotypes, markersForCallrate));
-						forwardGenotypes = (forwardGenotypes == null ? forwardGenotypes : Array.subArray(forwardGenotypes, markersForCallrate));
-					}
-
-					bafBinCounts = new int[101];
-					for (int j = 0; j < bafs.length; j++) {
-						if (!Float.isNaN(bafs[j])) {
-							bafBinCounts[(int)Math.floor(bafs[j]*100)]++;
-						}
-						if (bafs[j] < 0.15 || bafs[j] > 0.85) {
-							bafs[j] = Float.NaN;
-						}
-						if (bafsWide[j] < 0.03 || bafsWide[j] > 0.97) {
-							bafsWide[j] = Float.NaN;
-						}
-					}
-					abCallRate = abHetRate = 0;
-					if (abGenotypes != null) {
-						for (int j = 0; j < abGenotypes.length; j++) {
-							if (abGenotypes[j] >= 0) {
-								abCallRate++;
-							}
-							if (abGenotypes[j] == 1) {
-								abHetRate++;
-							}
-							
-						}
-						abHetRate /= abCallRate;
-						abCallRate /= abGenotypes.length;
-					}
-					forwardCallRate = forwardHetRate = 0;
-					if (forwardGenotypes != null) {
-						for (int j = 0; j < forwardGenotypes.length; j++) {
-							if (forwardGenotypes[j] > 0) {
-								forwardCallRate++;
-							}
-							if (forwardGenotypes[j] == 1) {
-								forwardHetRate++;
-							}
-						}
-						forwardHetRate /= forwardCallRate;
-						forwardCallRate /= forwardGenotypes.length;
-					}
-					wfPrior = Double.NaN;
-					gcwfPrior = Double.NaN;
-					wfPost = Double.NaN;
-					gcwfPost = Double.NaN;
-					lrrsdPost = Double.NaN;
-					lrrsdPostBound = Double.NaN;
-					if (gcModel != null) {
-						GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, lrrs, gcModel, false, true, true, false);
-						if (!gcAdjustor.isFail()) {
-							wfPrior = gcAdjustor.getWfPrior();
-							gcwfPrior = gcAdjustor.getGcwfPrior();
-							wfPost = gcAdjustor.getWfPost();
-							gcwfPost = gcAdjustor.getGcwfPost();
-							if (markersForEverythingElse == null) {
-								lrrsdPost = Array.stdev(gcAdjustor.getCorrectedIntensities(), true);
-								double[] tmp = CNVCaller.adjustLrr(gcAdjustor.getCorrectedIntensities(), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
-								lrrsdPostBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
-
-							} else {
-								double[] subLrr = Array.subArray(gcAdjustor.getCorrectedIntensities(), markersForEverythingElse);
-								lrrsdPost = Array.stdev(subLrr, true);
-								double[] tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
-								lrrsdPostBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
-							}
-						}
-					}
-					
-					multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-					double[] tmp = CNVCaller.adjustLrr(Array.toDoubleArray(lrrs), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
-					lrrsdBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
-					writer.println(samples[i] + "\t" + Array.mean(lrrs, true) + "\t" + Array.stdev(lrrs, true) + "\t" + lrrsdBound + "\t" + Array.stdev(bafs, true) + (abCallRate > 0 ? "\t" + abCallRate + "\t" + abHetRate : "\t" + forwardCallRate + "\t" + forwardHetRate) + "\t" + wfPrior + "\t" + gcwfPrior + "\t" + wfPost + "\t" + gcwfPost + "\t" + lrrsdPost + "\t" + lrrsdPostBound + "\t" + multimodal + "\t" + Array.toStr(bafBinCounts));
-					writer.flush();
+		            writer.println(Array.toStr(LrrSdPerSample(proj, samples[i], fsamp, cents, markersForCallrate, markersForEverythingElse, gcModel, log), "\t"));
+		            writer.flush();
 				}
 				if (progMon != null) {
 					proj.getProgressMonitor().updateTask(PROG_KEY);
@@ -218,6 +131,150 @@ public class LrrSd extends Parallelizable {
 			proj.getProgressMonitor().endTask(PROG_KEY);
 		}
 	}
+	
+	/**
+	 * Returns:<br/>
+                sampleID,<br/> 
+                Array.mean(lrrs, true)<br/> 
+                Array.stdev(lrrs, true)<br/>
+                lrrsdBound<br/>
+                Array.stdev(bafs, true)<br/> 
+                (abCallRate > 0 ? abCallRate : forwardCallRate)<br/>
+                (abCallRate > 0 ? abHetRate : forwardHetRate)<br/>
+                wfPrior<br/>
+                gcwfPrior<br/>
+                wfPost<br/>
+                gcwfPost <br/>
+                lrrsdPost<br/>
+                lrrsdPostBound<br/>
+                multimodal <br/>
+                Array.toStr(bafBinCounts)<br/>
+	 * 
+	 * 
+	 * @param proj
+	 * @param sampleID
+	 * @param fsamp
+	 * @param cents
+	 * @param markersForCallrate
+	 * @param markersForEverythingElse
+	 * @param gcModel
+	 * @param log
+	 * @return
+	 */
+	public static String[] LrrSdPerSample(Project proj, String sampleID, Sample fsamp, float[][][] cents, boolean[] markersForCallrate, boolean[] markersForEverythingElse, GcModel gcModel, Logger log) {
+        byte[] abGenotypes, forwardGenotypes;
+        float[] lrrs, bafs, bafsWide;
+        double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound;
+        int[] bafBinCounts;
+        boolean multimodal;
+        
+        lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
+        bafs = cents == null ? fsamp.getBAFs() : fsamp.getBAFs(cents);
+        bafsWide = bafs;
+
+        if (markersForEverythingElse != null) {
+            lrrs = Array.subArray(lrrs, markersForEverythingElse);
+            bafs = Array.subArray(bafs, markersForEverythingElse);
+            bafsWide = Array.subArray(bafsWide, markersForEverythingElse);
+        }
+        
+        abGenotypes = fsamp.getAB_Genotypes();
+        forwardGenotypes = fsamp.getForwardGenotypes();
+        
+        if (markersForCallrate != null) {//we do not need autosomal only markers here...
+            abGenotypes = (abGenotypes == null ? abGenotypes : Array.subArray(abGenotypes, markersForCallrate));
+            forwardGenotypes = (forwardGenotypes == null ? forwardGenotypes : Array.subArray(forwardGenotypes, markersForCallrate));
+        }
+
+        bafBinCounts = new int[101];
+        for (int j = 0; j < bafs.length; j++) {
+            if (!Float.isNaN(bafs[j])) {
+                bafBinCounts[(int)Math.floor(bafs[j]*100)]++;
+            }
+            if (bafs[j] < 0.15 || bafs[j] > 0.85) {
+                bafs[j] = Float.NaN;
+            }
+            if (bafsWide[j] < 0.03 || bafsWide[j] > 0.97) {
+                bafsWide[j] = Float.NaN;
+            }
+        }
+        abCallRate = abHetRate = 0;
+        if (abGenotypes != null) {
+            for (int j = 0; j < abGenotypes.length; j++) {
+                if (abGenotypes[j] >= 0) {
+                    abCallRate++;
+                }
+                if (abGenotypes[j] == 1) {
+                    abHetRate++;
+                }
+                
+            }
+            abHetRate /= abCallRate;
+            abCallRate /= abGenotypes.length;
+        }
+        forwardCallRate = forwardHetRate = 0;
+        if (forwardGenotypes != null) {
+            for (int j = 0; j < forwardGenotypes.length; j++) {
+                if (forwardGenotypes[j] > 0) {
+                    forwardCallRate++;
+                }
+                if (forwardGenotypes[j] == 1) {
+                    forwardHetRate++;
+                }
+            }
+            forwardHetRate /= forwardCallRate;
+            forwardCallRate /= forwardGenotypes.length;
+        }
+        wfPrior = Double.NaN;
+        gcwfPrior = Double.NaN;
+        wfPost = Double.NaN;
+        gcwfPost = Double.NaN;
+        lrrsdPost = Double.NaN;
+        lrrsdPostBound = Double.NaN;
+        if (gcModel != null) {
+            GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, lrrs, gcModel, false, true, true, false);
+            if (!gcAdjustor.isFail()) {
+                wfPrior = gcAdjustor.getWfPrior();
+                gcwfPrior = gcAdjustor.getGcwfPrior();
+                wfPost = gcAdjustor.getWfPost();
+                gcwfPost = gcAdjustor.getGcwfPost();
+                if (markersForEverythingElse == null) {
+                    lrrsdPost = Array.stdev(gcAdjustor.getCorrectedIntensities(), true);
+                    double[] tmp = CNVCaller.adjustLrr(gcAdjustor.getCorrectedIntensities(), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
+                    lrrsdPostBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
+
+                } else {
+                    double[] subLrr = Array.subArray(gcAdjustor.getCorrectedIntensities(), markersForEverythingElse);
+                    lrrsdPost = Array.stdev(subLrr, true);
+                    double[] tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
+                    lrrsdPostBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
+                }
+            }
+        }
+        
+        multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
+        double[] tmp = CNVCaller.adjustLrr(Array.toDoubleArray(lrrs), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
+        lrrsdBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
+        String[] retVals = new String[]{
+                sampleID, 
+                Array.mean(lrrs, true) + "", 
+                Array.stdev(lrrs, true) + "",
+                lrrsdBound + "", 
+                Array.stdev(bafs, true) + "", 
+                (abCallRate > 0 ? abCallRate : forwardCallRate) + "",
+                (abCallRate > 0 ? abHetRate : forwardHetRate) + "",
+                wfPrior + "",
+                gcwfPrior + "",
+                wfPost  + "",
+                gcwfPost + "",
+                lrrsdPost  + "",
+                lrrsdPostBound  + "",
+                multimodal + "",
+                Array.toStr(bafBinCounts),
+        };
+        return retVals;
+	}
+	
 	
 	public void finalAction() {
 		String[] files; 

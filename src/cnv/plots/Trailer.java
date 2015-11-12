@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import net.miginfocom.swing.MigLayout;
 import mining.Transformations;
 import common.*;
 import cnv.analysis.MosaicismDetect;
@@ -138,6 +139,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private GeneTrack track;
 	private SampleData sampleData;
 	private JLabel commentLabel;
+	private JLabel qcLabel;
 	private int transformation_type;
 	private boolean transformSeparatelyByChromosome;
 	private GcModel gcModel;
@@ -897,6 +899,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		getContentPane().add(dataPanel, BorderLayout.CENTER);
 
 		JPanel sampPanel = new JPanel();
+		((FlowLayout)sampPanel.getLayout()).setVgap(0);
 		previousRegion = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
 		previousRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
 		previousRegion.addActionListener(this);
@@ -928,8 +931,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         });
 		sampPanel.add(sampleList);
 		
+		
 		JPanel descrPanel = new JPanel();
-		descrPanel.setLayout(new BoxLayout(descrPanel, BoxLayout.Y_AXIS));
+		descrPanel.setLayout(new MigLayout("gap 0", "[grow, center]", "[]0[]0[]"));
 		
 		nextRegion = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
 		nextRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
@@ -937,14 +941,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		nextRegion.setActionCommand(NEXT_REGION);
 		nextRegion.setPreferredSize(new Dimension(25, 25));
 		sampPanel.setPreferredSize(new Dimension(sampPanel.getPreferredSize().width, sampleList.getPreferredSize().height + 5));
-		descrPanel.add(sampPanel);
+		descrPanel.add(sampPanel, "cell 0 0");
 		
-		JPanel compPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+		JPanel compPanel = new JPanel(new MigLayout("align center, fill, gap 0", "[grow, center]", "[][][]"));
 
 		JPanel regionPanel = new JPanel();
+        ((FlowLayout)regionPanel.getLayout()).setVgap(0);
 		regionField = new JTextField("", 8);
 		regionField.setHorizontalAlignment(JTextField.CENTER);
-		regionField.setFont(new Font("Arial", 0, 14));
+		Font font = new Font("Arial", 0, 14);
+        regionField.setFont(font);
 		regionField.setAction(new AbstractAction() {
             private static final long serialVersionUID = 1L;
             public void actionPerformed(ActionEvent e) {
@@ -962,18 +968,25 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		regionPanel.add(regionField);
 		regionField.setPreferredSize(new Dimension(regionField.getPreferredSize().width, 26));
 		regionPanel.add(nextRegion);
-		compPanel.add(regionPanel);
+		compPanel.add(regionPanel, "cell 0 0");
 		
 		commentLabel = new JLabel(" ", JLabel.CENTER);
 		commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		commentLabel.setFont(new Font("Arial", 0, 14));
+		commentLabel.setFont(font);
 //		commentLabel.setBorder(new LineBorder(Color.RED, 1));
-		compPanel.add(commentLabel);
+		compPanel.add(commentLabel, "cell 0 1");
 		
-		descrPanel.add(compPanel);
-		compPanel.setPreferredSize(new Dimension(compPanel.getPreferredSize().width, 75));
+		qcLabel = new JLabel(" ", JLabel.CENTER);
+		qcLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		qcLabel.setFont(font);
+		qcLabel.setToolTipText("Click for More Details");
+		compPanel.add(qcLabel, "cell 0 2");
+		
+		descrPanel.add(compPanel, "cell 0 1");
+		compPanel.setPreferredSize(new Dimension(compPanel.getPreferredSize().width, 95));
 
 		JPanel navigateChrPanel = new JPanel();
+        ((FlowLayout)navigateChrPanel.getLayout()).setVgap(0);
 		firstChr = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
 		firstChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
 		firstChr.addActionListener(this);
@@ -986,7 +999,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		previousChr.setPreferredSize(new Dimension(20, 20));
 		navigationField = new JTextField("", 20);
 		navigationField.setHorizontalAlignment(JTextField.CENTER);
-		navigationField.setFont(new Font("Arial", 0, 14));
+		navigationField.setFont(font);
 		navigationField.setAction(new AbstractAction() {
             private static final long serialVersionUID = 1L;
             public void actionPerformed(ActionEvent e) {
@@ -1012,7 +1025,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		navigateChrPanel.add(navigationField);
 		navigateChrPanel.add(nextChr);
 		navigateChrPanel.add(lastChr);
-		descrPanel.add(navigateChrPanel);
+		descrPanel.add(navigateChrPanel, "cell 0 2");
 		
 		JPanel overPanel = new JPanel();
 		overPanel.setLayout(new BoxLayout(overPanel, BoxLayout.LINE_AXIS));
@@ -1181,32 +1194,33 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         });
 		newRegionFile.setText("New Region List File");
 		newRegionFile.setMnemonic(KeyEvent.VK_N);
-		newRegionFile.setFont(new Font("Arial", 0, 12));
+		Font font = new Font("Arial", 0, 12);
+        newRegionFile.setFont(font);
 		fileMenu.add(newRegionFile);
 		
 		JMenuItem loadRegionFile = new JMenuItem();
 		loadRegionFile.setAction(loadRegionFileAction);
 		loadRegionFile.setText(REGION_LIST_NEW_FILE);
 		loadRegionFile.setMnemonic(KeyEvent.VK_L);
-		loadRegionFile.setFont(new Font("Arial", 0, 12));
+		loadRegionFile.setFont(font);
 		fileMenu.add(loadRegionFile);
 		loadRecentFileMenu = new JMenu("Load Recent Region List...");
 		loadRecentFileMenu.setMnemonic(KeyEvent.VK_R);
-		loadRecentFileMenu.setFont(new Font("Arial", 0, 12));
+		loadRecentFileMenu.setFont(font);
 		fileMenu.add(loadRecentFileMenu);
 		
 		JMenuItem screencap1 = new JMenuItem();
 		screencap1.setAction(screencapAction);
 		screencap1.setMnemonic(KeyEvent.VK_S);
 		screencap1.setText("Screen Capture");
-		screencap1.setFont(new Font("Arial", 0, 12));
+		screencap1.setFont(font);
 		fileMenu.add(screencap1);
 		
 		JMenuItem screencap2 = new JMenuItem();
 		screencap2.setAction(screencapClipboardAction);
 		screencap2.setMnemonic(KeyEvent.VK_C);
 		screencap2.setText("Screen Capture to Clipboard");
-		screencap2.setFont(new Font("Arial", 0, 12));
+		screencap2.setFont(font);
 		fileMenu.add(screencap2);
 		
 		menuBar.add(fileMenu);
@@ -1220,7 +1234,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				regionFileNameLoc.put(name, file);
 				JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
 				menuItem.setAction(markerFileSelectAction);
-				menuItem.setFont(new Font("Arial", 0, 12));
+				menuItem.setFont(font);
 				menuItem.setText(name);
 				regionFileNameBtn.put(name, menuItem);
 				regionButtonGroup.add(menuItem);
@@ -1231,7 +1245,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		JCheckBoxMenuItem item1 = new JCheckBoxMenuItem();
 		item1.setAction(markerFileSelectAction);
 		item1.setText(REGION_LIST_USE_CNVS);
-		item1.setFont(new Font("Arial", 0, 12));
+		item1.setFont(font);
 		regionFileNameBtn.put(REGION_LIST_USE_CNVS, item1);
 		regionButtonGroup.add(item1);
 		loadRecentFileMenu.add(item1);
@@ -1245,7 +1259,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     		
     		JMenuItem lbl1 = transMenu.add("LRR Transforms:");
     		lbl1.setEnabled(false);
-    		lbl1.setFont(new Font("Arial", 0, 12));
+    		lbl1.setFont(font);
     		
     		ButtonGroup lrrBtnGrp = new ButtonGroup();
     		ButtonGroup transBtnGrp = new ButtonGroup();
@@ -1269,7 +1283,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     		for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
     			transformBtns[i] = new JRadioButtonMenuItem(Transforms.TRANFORMATIONS[i]);
     			transformBtns[i].addItemListener(typeListener);
-    			transformBtns[i].setFont(new Font("Arial", 0, 12));
+    			transformBtns[i].setFont(font);
     			String[] wds = Transforms.TRANFORMATIONS[i].split("[\\s]+");
     			int ind = 0;
     			String mnem = wds[ind].substring(0, 1);
@@ -1286,7 +1300,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     		transMenu.addSeparator();
     		JMenuItem lbl2 = transMenu.add("Transform By:");
     		lbl2.setEnabled(false);
-    		lbl2.setFont(new Font("Arial", 0, 12));
+    		lbl2.setFont(font);
     		
     		JRadioButtonMenuItem[] scopeBtns = new JRadioButtonMenuItem[Transforms.SCOPES.length];
     		ItemListener scopeListener = new ItemListener() {
@@ -1303,7 +1317,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     		for (int i = 0; i<Transforms.SCOPES.length; i++) {
     			scopeBtns[i] = new JRadioButtonMenuItem(Transforms.SCOPES[i]);
     			scopeBtns[i].addItemListener(scopeListener);
-    			scopeBtns[i].setFont(new Font("Arial", 0, 12));
+    			scopeBtns[i].setFont(font);
     			
     			String[] wds = Transforms.SCOPES[i].split("[\\s]+");
     			int ind = 0;
@@ -1333,7 +1347,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
     		gcCorrectButton.setToolTipText("GC correction will be applied prior to any transformation");
     		gcCorrectButton.addItemListener(gcListener);
-    		gcCorrectButton.setFont(new Font("Arial", 0, 12));
+    		gcCorrectButton.setFont(font);
     //		act.addSeparator();
     		adjMenu.add(gcCorrectButton).setEnabled(gcModel != null);
     //		adjMenu.addSeparator();
@@ -1342,11 +1356,39 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		
 		{
+		    JMenu qcMenu = new JMenu("Show QC");
+		    String[] opts = new String[]{"Hide QC", "Genome", "Chromosome", "Region"};
+		    ItemListener qcListener = new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent arg0) {
+                    if (arg0.getStateChange() == ItemEvent.SELECTED) {
+                        String cmd = ((AbstractButton) arg0.getSource()).getActionCommand();
+                        System.out.println("Selected " + cmd);
+                    }
+                }
+            };
+            ButtonGroup qcBtnGrp = new ButtonGroup();
+            for (int i = 0; i < opts.length; i++) {
+                JRadioButtonMenuItem qcButton = new JRadioButtonMenuItem(opts[i]);
+                qcButton.setActionCommand(opts[i]);
+                qcButton.addItemListener(qcListener);
+                qcButton.setFont(font);
+                qcBtnGrp.add(qcButton);
+                qcMenu.add(qcButton);
+                if (i == 0) {
+                    qcButton.setSelected(true);
+                }
+            }
+            menuBar.add(qcMenu);
+            
+		}
+		
+		{
     		JMenu centMenu = new JMenu("Centroids");
     		autoSwitch = new JCheckBoxMenuItem();
     		autoSwitch.setText("Auto-Select Sex Centroid by Sample Sex");
     		autoSwitch.setMnemonic(KeyEvent.VK_A);
-    		autoSwitch.setFont(new Font("Arial", 0, 12));
+    		autoSwitch.setFont(font);
     		centMenu.add(autoSwitch);
 
             ItemListener centListener = new ItemListener() {
@@ -1410,20 +1452,20 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             ButtonGroup centButtons = new ButtonGroup();
             JCheckBoxMenuItem centBox = new JCheckBoxMenuItem("None");
             centBox.addItemListener(centListener);
-            centBox.setFont(new Font("Arial", 0, 12));
+            centBox.setFont(font);
             centBox.setSelected(true);
             centButtons.add(centBox);
             
             JMenu lbl3 = new JMenu("Derive from Centroids");
             lbl3.setMnemonic(KeyEvent.VK_D);
-            lbl3.setFont(new Font("Arial", 0, 12));
+            lbl3.setFont(font);
             centMenu.add(lbl3);
             lbl3.add(centBox);
             String[] centKeys = (String[]) namePathMap.keySet().toArray(new String[]{});
             for (String key : centKeys) {
                 centBox = new JCheckBoxMenuItem(key);
                 centBox.addItemListener(centListener);
-                centBox.setFont(new Font("Arial", 0, 12));
+                centBox.setFont(font);
                 centButtons.add(centBox);
                 lbl3.add(centBox);
                 centButtonMap.put(key, centBox);
@@ -1476,7 +1518,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     		};
     		callCnvsButton = new JCheckBoxMenuItem("Call CNVs", false);// stays hidden if gcModel is not detected
     		callCnvsButton.addItemListener(cnvListener);
-    		callCnvsButton.setFont(new Font("Arial", 0, 12));
+    		callCnvsButton.setFont(font);
     		cnvMenu.add(callCnvsButton);
 //    		cnvMenu.addSeparator();
     
@@ -1499,7 +1541,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     		};
     		mosaicCallButton = new JCheckBoxMenuItem("Call Mosaicism (extra beta)", false);
     		mosaicCallButton.addItemListener(mosaicListener);
-    		mosaicCallButton.setFont(new Font("Arial", 0, 12));
+    		mosaicCallButton.setFont(font);
     		cnvMenu.add(mosaicCallButton);
 
     		ItemListener mosaicFListener = new ItemListener() {
@@ -1515,7 +1557,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			};
 			mosaicFButton = new JCheckBoxMenuItem("Quantify Mosaicism (extra extra beta)", false);
 			mosaicFButton.addItemListener(mosaicFListener);
-			mosaicFButton.setFont(new Font("Arial", 0, 12));
+			mosaicFButton.setFont(font);
 			cnvMenu.add(mosaicFButton);
 
 //    		cnvMenu.addSeparator();
@@ -1529,13 +1571,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         JMenuItem launchScatter = new JMenuItem();
         launchScatter.setText(TO_SCATTER_PLOT);
         launchScatter.setMnemonic(KeyEvent.VK_S);
-        launchScatter.setFont(new Font("Arial", 0, 12));
+        launchScatter.setFont(font);
         launchScatter.addActionListener(this);
         act.add(launchScatter);
         JMenuItem launchComp = new JMenuItem();
         launchComp.setText(TO_COMP_PLOT);
         launchComp.setMnemonic(KeyEvent.VK_C);
-        launchComp.setFont(new Font("Arial", 0, 12));
+        launchComp.setFont(font);
         launchComp.addActionListener(this);
         act.add(launchComp);
         // act.addSeparator();
@@ -2130,7 +2172,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	public void showRegion() {
 		if (regions == null || regions.length == 0) {
 			regionField.setText("");
-			commentLabel.setText("");
+			commentLabel.setText(" ");
 			return;
 		}
 //		System.out.println("regionIndex="+regionIndex+"\t"+"regions.length="+regions.length);
