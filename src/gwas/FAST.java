@@ -706,8 +706,8 @@ public class FAST {
                 writer.println(line);
             } else {
                 String[] parts = line.split("\t");
-                String newLine = parts[0] + "\t" + parts[1] + "\t" + parts[2] + "\t" + parts[3] + "\t" + parts[4] + "\t" + parts[5]; 
-                for (int i = 0; i < parts.length - 6; i++) {
+                String newLine = parts[0] + "\t" + parts[1] + "\t" + parts[2] + "\t" + parts[3] + "\t" + parts[4]; 
+                for (int i = 0; i < parts.length - 5; i++) {
                     newLine += "\tNA";  
                 }
                 writer.println(newLine);
