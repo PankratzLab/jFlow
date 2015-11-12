@@ -188,7 +188,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 					List<String> groups = Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "").split("\\s*,\\s*"));
 					for (String group : groups) {
 						String[] segCigarStrand = group.split("/");
-						annotationLists[i].add(new BlastAnnotation(TextCigarCodec.decode(segCigarStrand[0]), new Segment(segCigarStrand[1]), Strand.valueOf(segCigarStrand[2]), PROBE_TAG.valueOf(segCigarStrand[3])));
+						annotationLists[i].add(new BlastAnnotation(TextCigarCodec.decode(segCigarStrand[0]), new Segment(segCigarStrand[1]), Strand.valueOf(segCigarStrand[2]), PROBE_TAG.valueOf(segCigarStrand[3]), Double.parseDouble(segCigarStrand[4])));
 					}
 				}
 			}

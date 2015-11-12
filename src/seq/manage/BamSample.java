@@ -80,7 +80,7 @@ public class BamSample {
 				currentPos = bamPiles[i].getBin().getStart();
 			}
 			rawDepth[i] = computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
-			// System.out.println(markerSet.getMarkerNames()[i] + "\t" + bamPiles[i].getNumOverlappingReads() + "\t" + rawDepth[i]);
+			//System.out.println(markerSet.getMarkerNames()[i] + "\t" + bamPiles[i].getNumOverlappingReads() + "\t" + rawDepth[i]);
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
 			if (markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
 				useOntarget[i] = false;
@@ -141,8 +141,8 @@ public class BamSample {
 //		}
 		this.normDepth = Array.scaleMinTo(Array.toDoubleArray(scaleMAD), 1);
 		// this.normDepth = Array.scaleMinTo(rawDepth,1);
-		double scale = proj.XY_SCALE_FACTOR.getValue();
-		normDepth = Array.multiply(normDepth, (double) 1 / scale);
+		//double scale = proj.XY_SCALE_FACTOR.getValue();
+		//normDepth = Array.multiply(normDepth, (double) 1 / scale);
 		percentWithMismatch = Array.scale(percentWithMismatch);
 		for (int j = 0; j < normDepth.length; j++) {
 			if (Double.isNaN(normDepth[j])) {

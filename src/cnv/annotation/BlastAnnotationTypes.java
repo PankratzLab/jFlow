@@ -9,7 +9,6 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 import java.util.ArrayList;
 
 import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
 import common.Logger;
 import seq.analysis.Blast.BlastResults;
 
@@ -179,6 +178,20 @@ public class BlastAnnotationTypes {
 			return tag;
 		}
 
+		public static PROBE_TAG toTag(String tag, Logger log) {
+			if (tag.equals(A.getTag())) {
+				return A;
+			} else if (tag.equals(B.getTag())) {
+				return B;
+			} else if (tag.equals(BOTH.getTag())) {
+				return BOTH;
+			} else {
+				String error = "Invalid tag instance " + tag;
+				log.reportTimeError(error);
+				throw new IllegalArgumentException(error);
+			}
+		}
+
 	}
 
 	/**
@@ -189,13 +202,15 @@ public class BlastAnnotationTypes {
 		private Segment refLoc;// positvie strand
 		private Strand strand;// original alignment strand
 		private PROBE_TAG tag;// A probe, B probe, or Both
+		private double eValue;
 
-		public BlastAnnotation(Cigar cigar, Segment refLoc, Strand strand, PROBE_TAG tag) {
+		public BlastAnnotation(Cigar cigar, Segment refLoc, Strand strand, PROBE_TAG tag, double eValue) {
 			super();
 			this.cigar = cigar;
 			this.refLoc = refLoc;
 			this.strand = strand;
 			this.tag = tag;
+			this.eValue = eValue;
 		}
 
 		public PROBE_TAG getTag() {
@@ -214,11 +229,15 @@ public class BlastAnnotationTypes {
 			return strand;
 		}
 
+		public double geteValue() {
+			return eValue;
+		}
+
 		public static String[] toAnnotationString(BlastAnnotation[] blastAnnotations) {
 			String[] annotations = new String[blastAnnotations.length];
 			for (int i = 0; i < annotations.length; i++) {
 				BlastAnnotation tmp = blastAnnotations[i];
-				annotations[i] = tmp.getCigar().toString() + "/" + tmp.getRefLoc().getUCSClocation() + "/" + tmp.getStrand().getEncoding() + "/" + tmp.getTag();
+				annotations[i] = tmp.getCigar().toString() + "/" + tmp.getRefLoc().getUCSClocation() + "/" + tmp.getStrand().getEncoding() + "/" + tmp.getTag() + "/" + tmp.geteValue();
 			}
 			return annotations;
 		}

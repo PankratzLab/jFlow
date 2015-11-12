@@ -93,8 +93,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 						numEntries++;
 						if (numEntries % 1000000 == 0) {
 							proj.getLog().reportTimeInfo("Processed " + numEntries + " blast results");
-							// reader.close();
-							// break;
+							proj.getLog().memoryPercetTotalFree();
 						}
 						BlastResults blastResults = new BlastResults(line, proj.getLog());
 
@@ -103,7 +102,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 							PROBE_TAG tag = null;
 							if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
 								if (marker.endsWith(PROBE_TAG.A.getTag()) || marker.endsWith(PROBE_TAG.B.getTag())) {
-									tag = PROBE_TAG.valueOf(marker.substring(marker.length() - 2));
+									tag = PROBE_TAG.toTag(marker.substring(marker.length() - 2), proj.getLog());
 									marker = marker.substring(0, marker.length() - tag.getTag().length());
 
 								} else {
@@ -111,11 +110,14 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 								}
 							} else if (proj.getArrayType() == ARRAY.ILLUMINA) {
 								try {
-									tag = marker.endsWith(PROBE_TAG.BOTH.getTag()) ? PROBE_TAG.valueOf(marker.substring(marker.length() - PROBE_TAG.BOTH.getTag().length())) : PROBE_TAG.valueOf(marker.substring(marker.length() - 2));
+									tag = marker.endsWith(PROBE_TAG.BOTH.getTag()) ? PROBE_TAG.toTag(marker.substring(marker.length() - PROBE_TAG.BOTH.getTag().length()), proj.getLog()) : PROBE_TAG.toTag(marker.substring(marker.length() - 2), proj.getLog());
 									marker = marker.substring(0, marker.length() - tag.getTag().length());
 
 								} catch (IllegalArgumentException ile) {
-									proj.getLog().reportTimeError("Query id did not end one of the following which is required for an ILLUMINA array");
+									proj.getLog().reportTimeError("Query id ("+marker+") did not end one of the following which is required for an ILLUMINA array");
+									for (int i = 0; i < PROBE_TAG.values().length; i++) {
+										proj.getLog().report(PROBE_TAG.values()[i].getTag());
+									}
 								}
 							}
 							
@@ -127,11 +129,22 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 								mHistogramAnnotations[markerIndex] = new MarkerBlastHistogramAnnotation(MarkerBlastHistogramAnnotation.DEFAULT_NAME, MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION, histogram);
 							}
 							mHistogramAnnotations[markerIndex].getDynamicHistogram().addDataPointToHistogram(blastResults.getAlignmentLength());
-
 							for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
 								if (BlastAnnotationTypes.shouldBeAnnotatedAs(proj, blastResults, BLAST_ANNOTATION_TYPES.values()[i], markerSeg, proj.getLog())) {
-									BlastAnnotation blastAnnotation = new BlastAnnotation(CigarOps.convertBtopToCigar(blastResults, seqLength, proj.getLog()), blastResults.getSegment(), blastResults.determineStrand(), tag);
-									intLists[markerIndex][i].add(blastAnnotation);
+									BlastAnnotation blastAnnotation = new BlastAnnotation(CigarOps.convertBtopToCigar(blastResults, seqLength, proj.getLog()), blastResults.getSegment(), blastResults.determineStrand(), tag, blastResults.getEvalue());
+									if (intLists[markerIndex][i].size() >= maxAlignmentsReported) {// we now start bounding by e-value
+										double eval = blastResults.getEvalue();
+										if (!Double.isNaN(eval) && eval < intLists[markerIndex][i].getMaxEval()) {// otherwise we skip it
+											// System.out.println("Add\t" + eval + "\t" + blastAnnotation.getCigar());
+											// System.out.println("OlD\t" + intLists[markerIndex][i].getMaxEval() + "\t" + intLists[markerIndex][i].get(intLists[markerIndex][i].getMaxEvalIndex()).getCigar());
+											intLists[markerIndex][i].remove(intLists[markerIndex][i].getMaxEvalIndex());
+											intLists[markerIndex][i].add(blastAnnotation);
+											intLists[markerIndex][i].update();
+										}
+									} else {
+										intLists[markerIndex][i].add(blastAnnotation);
+									}
+
 								}
 							}
 						}
