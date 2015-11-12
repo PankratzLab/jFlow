@@ -295,7 +295,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	
 	public void screenCapture(String filename) {
 		try {
-			ImageIO.write(image, "png", new File(filename));
+		    File imgFile = new File(filename);
+		    boolean mkdirs = imgFile.mkdirs();
+		    if (mkdirs) {
+		        ImageIO.write(image, "png", imgFile);
+		    } else {
+		        JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
+		    }
 		} catch (IOException ie) {
 			JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
 		}

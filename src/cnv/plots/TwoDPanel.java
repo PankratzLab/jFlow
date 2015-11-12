@@ -72,6 +72,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	private int dataHash = -1;
 	private stats.Histogram currentHistogram;
 	private boolean histogramOverride = false;
+    private boolean overrideAxisLabels = false;
 	
 	public TwoDPanel(TwoDPlot twoDPlot) {
 		super();
@@ -126,10 +127,24 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		tdp.refreshOtherButtons();
 	}
 
+	public void overrideAxisLabels(String xAxis, String yAxis) {
+	    this.overrideAxisLabels  = xAxis != null && yAxis != null;
+	    if (this.overrideAxisLabels) {
+	        xAxisLabel = xAxis;
+	        yAxisLabel = yAxis;
+	    }
+	}
+	
 	public void assignAxisLabels() {
 		displayXaxis = displayYaxis = true;
-		xAxisLabel = tdp.isHistPlot ? tdp.getNamesSelected()[0] : swapAxes ? tdp.getNamesSelected()[1] : tdp.getNamesSelected()[0];
-		yAxisLabel = tdp.isHistPlot ? "" : swapAxes ? tdp.getNamesSelected()[0] : tdp.getNamesSelected()[1];
+		if (!overrideAxisLabels) {
+//		    xAxisLabel = "Bins";
+//		    yAxisLabel = "";
+//		} else {
+		    String[] data = tdp.getNamesSelected();
+		    xAxisLabel = tdp.isHistogram() ? data[0] : swapAxes ? data[1] : data[0];
+		    yAxisLabel = tdp.isHistogram() ?      "" : swapAxes ? data[0] : data[1];
+		}
 	}
 	
 	public boolean invertX() {
@@ -205,7 +220,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		currentData = tdp.getDataSelected(includeColorKeyValue);
 		uniqueValueCounts = new CountVector();
 		
-		if (tdp.isHistPlot) {
+		if (tdp.isHistogram()) {
 			zoomable = false;
 			tdp.setPointSize((byte) 0);
 			points = new PlotPoint[0];//currentData.size()];
@@ -271,7 +286,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 
 	private void generateRectangles() {
 	    stats.Histogram hist;
-	    if ((!histogramOverride && dataHash != tdp.getSelectedDataHash()) || currentHistogram == null) {
+	    if ((!isHistogramOverride() && dataHash != tdp.getSelectedDataHash()) || currentHistogram == null) {
     	    ArrayList<String[]> currentData;
     		boolean includeColorKeyValue;
     		int index;
