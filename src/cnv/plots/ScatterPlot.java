@@ -20,6 +20,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedReader;
@@ -74,6 +75,7 @@ import seq.manage.ReferenceGenome;
 import stats.CTable;
 import stats.ContingencyTable;
 import stats.ProbDist;
+import cnv.Launch;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
@@ -87,6 +89,7 @@ import cnv.filesys.AnnotationCollection;
 import cnv.filesys.Centroids;
 import cnv.filesys.ClusterFilter;
 import cnv.filesys.ClusterFilterCollection;
+import cnv.filesys.Configurator;
 import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerLookup;
 import cnv.filesys.MarkerSet;
@@ -638,6 +641,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		loadItem.addActionListener(this);
 		loadItem.setText("Load Marker List");
 		fileMenu.add(loadItem);
+		
+//		JMenuItem testItem = new JMenuItem();
+//		testItem.setActionCommand(LOAD_LIST_COMMAND + "test");
+//		testItem.addActionListener(this);
+//		testItem.setText("Test Config");
+//		fileMenu.add(testItem);
 		
 		final JMenu previousListItem = new JMenu();
 		previousListItem.setMnemonic(KeyEvent.VK_P);
@@ -2367,6 +2376,11 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		        proj.DISPLAY_MARKERS_FILENAMES.addValue(mkrFile);
 		        loadMarkerFile(mkrFile);
 		    }
+//		} else if (command.equals(LOAD_LIST_COMMAND + "test")) {
+//
+//            final Configurator configurator = new Configurator(proj, new String[][]{Configurator.ALL_PROPERTY_SETS[10]});
+//            configurator.setVisible(true);
+            
 		} else if (command.equals(LOAD_LIST_COMMAND)) {
 		    JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
 		    jfc.setMultiSelectionEnabled(false);

@@ -298,7 +298,6 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         panel_1 = new JPanel();
         splitPane.setRightComponent(panel_1);
         
-        
         addWindowFocusListener(this);
     }
     
@@ -307,6 +306,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         this.panel_1.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
         splitPane.setRightComponent(this.panel_1);
         splitPane.setDividerLocation(0.5);
+        splitPane.setOneTouchExpandable(true);
         revalidate();
         repaint();
     }
@@ -423,18 +423,19 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                     BlastFrame.this.addBlastLabel(lbl);
                 }
                 boolean posStrand = BlastFrame.this.referenceAnnotation.getStrand() == Strand.POSITIVE;
+                String refSeq = BlastFrame.this.referenceAnnotation.getSequence();
 //                refLabel.setText(!posStrand ? new StringBuilder(BlastFrame.this.referenceAnnotation.getSequence()).reverse().toString() : BlastFrame.this.referenceAnnotation.getSequence());
-                refLabel.setText(BlastFrame.this.referenceAnnotation.getSequence());
+                refLabel.setText(!posStrand ? new StringBuilder(refSeq).reverse().toString() : refSeq); 
                 strandLbl.setText(BlastFrame.this.referenceAnnotation.getStrand().getEncoding());
                 int len = proj.ARRAY_TYPE.getValue().getProbeLength();
                 probeLengthLbl.setText(len + "");
                 Segment seg = BlastFrame.this.referenceAnnotation.getSeg();
 //                int start = (posStrand ? seg.getStart() - len : seg.getStart());
 //                int stop = (posStrand ?  seg.getStart() : seg.getStart() + len);
-                int start1 = seg.getStart() - len;
-                int stop1 = seg.getStart();
-                int start2 = seg.getStart();
-                int stop2 = seg.getStart() + len;
+//                int start1 = seg.getStart() - len;
+//                int stop1 = seg.getStart();
+//                int start2 = seg.getStart();
+//                int stop2 = seg.getStart() + len;
 //                String[] gen1 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start1, stop1));
 //                String[] gen2 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start2, stop2));
 //                String[] gen3 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start1, stop2));
@@ -443,17 +444,17 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 //                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen1, "")) : Array.toStr(gen1, ""));
 //                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen2, "")) : Array.toStr(gen2, ""));
 //                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen3, "")) : Array.toStr(gen3, ""));
-                int start = posStrand ? start1 : start2;
-                int stop = posStrand ? stop1 : stop2;
+                int start = referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
+                int stop = referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
                 locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
                 String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
                 String[] act = Array.subArray(gen, posStrand ? 0 : 1, posStrand ? gen.length - 1 : gen.length);
                 nextBase = posStrand ? gen[gen.length - 1] : gen[0];
                 String seq = Array.toStr(act, "");
-                if (!posStrand) {
+                if (!referenceAnnotation.goLeft()) {
                     seq = new StringBuilder(seq).reverse().toString();
                 }
-                probeLbl.setText(!posStrand ? BlastLabel.flipBases(seq) : seq);
+                probeLbl.setText(posStrand ? seq : BlastLabel.flipBases(seq));
                 BlastFrame.this.revalidate();
                 BlastFrame.this.repaint();
             }
