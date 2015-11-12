@@ -2,6 +2,8 @@ package widgets;
 
 import java.util.HashSet;
 
+import cnv.filesys.Project;
+import cnv.plots.TwoDPlot;
 import gwas.MetaAnalysis;
 import stats.Histogram;
 import common.*;
@@ -116,7 +118,23 @@ public class ClipSwap {
 		} else {
 			histo = new Histogram(array, Array.min(array), Array.max(array), sigfigsExtrastep[0], sigfigsExtrastep[1]);
 		}
+
+        String file = "./histograms/clipboard_histogram.png";
+        int cnt = 1;
+        while (Files.exists(file)) {
+            file = "./histograms/clipboard_histogram_" + cnt++ + ".png";
+        }
+        TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false, false, null);
+        tdp.setHistogram(true);
+        tdp.getPanel().overrideAxisLabels("Bins", "");
+        tdp.getPanel().setHistogramOverride(true);
+        tdp.getPanel().setHistogram(histo);
+        tdp.getPanel().createImage();
+        tdp.getPanel().screenCapture(file);
+        tdp.windowClosing(null);
+        tdp = null;
 		
+        // TODO set to histogram image location?  set to histogram image?
 		ext.setClipboard(histo.getSummary());
 	}
 
