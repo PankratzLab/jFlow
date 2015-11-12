@@ -1193,7 +1193,7 @@ public class FAST {
 		    if (metal) {
 		        prepareMETAL(run, data);
 		    } else if (prep) {
-		        prepareFAST(trait, data, run, linear, runFAST, qsub);
+		        prepareFAST("~/trait.txt".equals(trait) ? "./" : trait, data, run, linear, runFAST, qsub);
 		    } else if (process) {
 		        processAndPrepareMETAL(run, data);
 		    } else if (concat && convert) {
