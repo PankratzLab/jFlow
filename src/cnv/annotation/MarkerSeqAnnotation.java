@@ -86,7 +86,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 				alts[i] = alleles.get(i);
 			}
 			this.A = Allele.create(data.get(5), ref.basesMatch(data.get(5)));
-			this.B = Allele.create(data.get(6), ref.basesMatch(data.get(5)));
+			this.B = Allele.create(data.get(6), ref.basesMatch(data.get(6)));
 			if (A.isReference() && B.isReference()) {
 				throw new IllegalArgumentException("A and B alleles cannot both be reference");
 			}
