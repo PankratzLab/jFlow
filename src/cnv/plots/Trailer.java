@@ -150,7 +150,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JCheckBoxMenuItem callCnvsButton;
 	private JCheckBoxMenuItem mosaicCallButton;
 	private JCheckBoxMenuItem mosaicFButton;
-
+	private String[] qcGenome;
+	private String[] qcChromo;
+	private String[] qcRegion;
+    private int qcSelection = 0; 
+	
 	private Hashtable<String, String> namePathMap;
 //	private JComboBox<String> centroidsSelection;
 	private Logger log;
@@ -160,10 +164,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private String currentCentroid;
 	private static final String SEX_CENT = "Sex-Specific";
 	private JMenu loadRecentFileMenu;
-	private JMenuItem launchScatter;
-	private JMenuItem launchComp;
+//	private JMenuItem launchScatter;
+//	private JMenuItem launchComp;
 	private ButtonGroup regionButtonGroup;
     private Sample samp;
+    
+    private Thread updateQCThread = null;
 
 	private AbstractAction markerFileSelectAction = new AbstractAction() {
         private static final long serialVersionUID = 1L;
@@ -296,11 +302,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //	private JComboBox<String> regionFileList;
 	private String regionFileName;
 	private volatile boolean loadingFile = false;
-
 	private JTextField regionField;
-
 	private HashMap<String, JCheckBoxMenuItem> centButtonMap;
-
 	private JCheckBoxMenuItem autoSwitch;
 	
 	class CustomCallPopUp extends JPopupMenu {
@@ -1357,37 +1360,16 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                 public void itemStateChanged(ItemEvent arg0) {
                     if (arg0.getStateChange() == ItemEvent.SELECTED) {
                         String cmd = ((AbstractButton) arg0.getSource()).getActionCommand();
-//                        Project proj, 
-//                        String sampleID, 
-//                        Sample fsamp, 
-//                        float[][][] cents, 
-//                        boolean[] markersForCallrate, 
-//                        boolean[] markersForEverythingElse, 
-//                        GcModel gcModel, 
-//                        Logger log;
-                        boolean[] markersForCallrate = null;
-                        boolean[] markersForEverythingElse = Array.booleanNegative(dropped);
-                        if ("Genome".equals(cmd)) {
-                            //
+                        if ("Hide QC".equals(cmd)) {
+                            qcSelection = 0;
+                        } else if ("Genome".equals(cmd)) {
+                            qcSelection = 1;
                         } else if ("Chromosome".equals(cmd)) {
-                            markersForEverythingElse = Array.booleanNegative(dropped);
-                            byte[] chrs = markerSet.getChrs();
-                            // TODO check array lengths are the same
-                            for (int i = 0; i < chrs.length; i++) {
-                                if (chrs[i] != chr) {
-                                    markersForEverythingElse[i] = false;
-                                }
-                            }
+                            qcSelection = 2;
                         } else if ("Region".equals(cmd)) {
-                            for (int i = 0; i < markersForEverythingElse.length; i++) {
-                                if (i < startMarker || i > stopMarker) {
-                                    markersForEverythingElse[i] = false;
-                                }
-                            }
+                            qcSelection = 3;
                         }
-                        // TODO recompute for all [on sample change], chromosome [on chr change], and region [on region change] and set data in subframe
-                        String[] qcDetails = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElse, gcModel, log);
-                        // TODO recompute details on change and only change displayed info here
+                        updateQCDisplay();
                     }
                 }
             };
@@ -2089,7 +2071,102 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		
 		displayIndex();
+		
+		updateQC(true, true, true);
+		
 		repaint();
+	}
+	
+	private void updateQC(final boolean updateGenome, final boolean updateChr, final boolean updateRegion) {
+	    if (updateQCThread != null) {
+	        return;
+	    }
+	    updateQCThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (samp != null) {
+                    while(inDrag) {
+                        Thread.yield();
+                    }
+                    boolean[] markersForCallrate = null;
+                    GcModel gcModelToUse = gcModel != null && gcCorrectButton.isSelected() ? gcModel : null;
+                    if (updateGenome) {
+                        boolean[] markersForEverythingElseGenome = Array.booleanNegative(dropped);
+                        qcGenome = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseGenome, gcModelToUse, log);
+                    }
+                    if (updateChr) {
+                        boolean[] markersForEverythingElseChromosome = Array.booleanNegative(dropped);
+                        byte[] chrs = markerSet.getChrs();
+                        // TODO check array lengths are the same
+                        for (int i = 0; i < chrs.length; i++) {
+                            if (chrs[i] != chr) {
+                                markersForEverythingElseChromosome[i] = false;
+                            }
+                        }
+                        qcChromo = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseChromosome, gcModelToUse, log);
+                    }
+                    if (updateRegion) {
+                        boolean[] markersForEverythingElseRegion = Array.booleanNegative(dropped);
+                        for (int i = 0; i < markersForEverythingElseRegion.length; i++) {
+                            if (i < startMarker || i > stopMarker) {
+                                markersForEverythingElseRegion[i] = false;
+                            }
+                        }
+                        qcRegion = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseRegion, gcModelToUse, log);
+                    }
+                    updateQCDisplay();
+                }
+                updateQCThread = null;
+            }
+        });
+	    updateQCThread.start();
+	}
+	
+	private void updateQCDisplay() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                String[] qcDetails = null;
+                switch (qcSelection) {
+                    case 0:
+                        qcDetails = null;
+                        break;
+                    case 1: 
+                        qcDetails = qcGenome;
+                        break;
+                    case 2:
+                        qcDetails = qcChromo;
+                        break;
+                    case 3:
+                        qcDetails = qcRegion;
+                        break;
+                }
+//              0  sampleID
+//              1  Array.mean(lrrs, true)
+//              2  Array.stdev(lrrs, true)
+//              3  lrrsdBound
+//              4  Array.stdev(bafs, true)
+//              5  (abCallRate > 0 ? abCallRate : forwardCallRate)
+//              6  (abCallRate > 0 ? abHetRate : forwardHetRate)
+//              7  wfPrior
+//              8  gcwfPrior
+//              9  wfPost
+//             10  gcwfPost 
+//             11  lrrsdPost
+//             12  lrrsdPostBound
+//             13  multimodal 
+//             14  Array.toStr(bafBinCounts)
+                if (qcDetails == null) {
+                    qcLabel.setText("");
+                } else {
+                    String lrrSd = "LRR SD: " + qcDetails[2];
+                    String wf = "WF: " + qcDetails[9]; // + qcDetails[7];
+                    String gcWF = "GC WF: "  + qcDetails[10];//+ qcDetails[8]; 
+                    qcLabel.setText(lrrSd + " | " + wf + " | " + gcWF);
+                }
+                repaint();
+            }
+        });
 	}
 
 	public void loadRegions() {
