@@ -3,6 +3,7 @@ package cnv.annotation;
 import java.util.ArrayList;
 
 import common.Array;
+import common.Logger;
 import common.Positions;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -12,10 +13,18 @@ import filesys.Segment;
 public class LocusAnnotation {
 	private String locusName;
 	private Segment seg;
-	private String ref;
-	private String[] alts;
-
+	private Allele ref;
+	private Allele[] alts;
+	private Logger log;
 	private AnnotationData[] annotations;
+
+	public void setRef(Allele ref) {
+		this.ref = ref;
+	}
+
+	public void setAlts(Allele[] alts) {
+		this.alts = alts;
+	}
 
 	/**
 	 * @param skipDefaultValue
@@ -24,7 +33,7 @@ public class LocusAnnotation {
 	 */
 	public VariantContext annotateLocus(boolean skipDefaultValue) {
 		ArrayList<Allele> alleles = new ArrayList<Allele>();
-		Allele refA = Allele.create(ref, true);
+		Allele refA = Allele.create(ref, false);
 		alleles.add(refA);
 		for (int i = 0; i < alts.length; i++) {
 			Allele altA = Allele.create(alts[i], false);
@@ -50,7 +59,14 @@ public class LocusAnnotation {
 				}
 			}
 		}
-		return vBuilder.make();
+		VariantContext vc = null;
+		try {
+			vc = vBuilder.make();
+		} catch (Exception e) {
+			log.reportException(e);
+			log.reportTimeError("Could not create VC at " + seg.getUCSClocation() + " for " + locusName);
+		}
+		return vc;
 	}
 
 	public Segment getSeg() {
@@ -75,16 +91,22 @@ public class LocusAnnotation {
 	}
 
 	public static class Builder {
-		private String ref = "A";
-		private String[] alts = new String[] { "N" };
+		private Allele ref = Allele.create("A", true);
+		private Allele[] alts = new Allele[] { Allele.create("N", false) };
 		private AnnotationData[] annotations = null;
+		private Logger log = new Logger();
 
-		public Builder ref(String ref) {
+		public Builder ref(Allele ref) {
 			this.ref = ref;
 			return this;
 		}
 
-		public Builder alts(String[] alts) {
+		public Builder log(Logger log) {
+			this.log = log;
+			return this;
+		}
+
+		public Builder alts(Allele[] alts) {
 			this.alts = alts;
 			return this;
 		}
@@ -105,5 +127,6 @@ public class LocusAnnotation {
 		this.annotations = builder.annotations;
 		this.ref = builder.ref;
 		this.alts = builder.alts;
+		this.log = builder.log;
 	}
 }

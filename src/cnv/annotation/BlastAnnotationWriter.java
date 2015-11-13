@@ -62,7 +62,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 			}
 
-			write(annotations[i], skipDefaultValue);
+			write(annotations[i], skipDefaultValue, false);
 		}
 	}
 
@@ -91,9 +91,11 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 					String[] line = reader.readLine().trim().split("\t");
 					if ((line.length == Blast.BLAST_HEADER.length - 1 || line.length == Blast.BLAST_HEADER.length) && !line[0].startsWith(Blast.BLAST_HEADER[0])) {
 						numEntries++;
-						if (numEntries % 1000000 == 0) {
+						if (numEntries % 10000 == 0) {
 							proj.getLog().reportTimeInfo("Processed " + numEntries + " blast results");
 							proj.getLog().memoryPercetTotalFree();
+//							 reader.close();
+//							 break;
 						}
 						BlastResults blastResults = new BlastResults(line, proj.getLog());
 
@@ -204,8 +206,10 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 				int seqIndex = markerSeqIndices.get(anDatas[i].getLocusName());
 				MarkerFastaEntry mfe = markerFastaEntries[seqIndex];
 				MarkerSeqAnnotation markerSeqAnnotation = new MarkerSeqAnnotation();
-				markerSeqAnnotation.setDesignData(mfe.getSequence(), mfe.getInterrogationPosition(), mfe.getStrand(), mfe.getTopBotProbe(), mfe.getTopBotRef());
+				markerSeqAnnotation.setDesignData(mfe.getSequence(), mfe.getInterrogationPosition(), mfe.getStrand(), mfe.getTopBotProbe(), mfe.getTopBotRef(), mfe.getA(), mfe.getB());
 				anDatas[i].addAnnotation(markerSeqAnnotation);
+				anDatas[i].setRef(mfe.getRef());
+				anDatas[i].setAlts(mfe.getAlts());
 			}
 		}
 	}
@@ -223,6 +227,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 		LocusAnnotation[] anDatas = new LocusAnnotation[markerNames.length];
 		for (int i = 0; i < anDatas.length; i++) {
 			Builder builder = new Builder();
+			
 			DynamicHistogram histogram = new DynamicHistogram(minAlignmentLength, proj.getArrayType().getProbeLength(), 0);
 			MarkerBlastHistogramAnnotation markerBlastHistogramAnnotation = new MarkerBlastHistogramAnnotation(MarkerBlastHistogramAnnotation.DEFAULT_NAME, MarkerBlastHistogramAnnotation.DEFAULT_DESCRIPTION, histogram);
 			builder.annotations(Array.concatAll(BlastAnnotationTypes.getAnnotationDatas(), new AnnotationData[] { markerBlastHistogramAnnotation }, new AnnotationData[] { MarkerSeqAnnotation.getDefault() }));
