@@ -17,6 +17,7 @@ import javax.swing.JLabel;
 
 import seq.manage.ReferenceGenome;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import cnv.annotation.BlastAnnotationTypes.TOP_BOT;
 import cnv.annotation.MarkerSeqAnnotation;
 import common.Array;
 import common.Fonts;
@@ -113,7 +114,9 @@ public class BlastLabel extends JLabel {
     private String seq;
     private TreeSet<Integer> mySpaces = new TreeSet<Integer>();
     private TreeMap<Integer, Integer> mySpaceSets = new TreeMap<Integer, Integer>();
-    boolean strandFlipped = false;
+    boolean positiveStrand = false;
+    boolean oppositeStrand = false;
+    boolean flipSequence = false;
     ArrayList<CigarSeq> seqParts = new ArrayList<CigarSeq>();
     private int alignmentCount;
     
@@ -129,7 +132,9 @@ public class BlastLabel extends JLabel {
         super();
         this.refSeq = ref;
         this.myAnnotation = annot;
-        this.strandFlipped = ref.getStrand() != annot.getStrand();
+        this.positiveStrand = annot.getStrand() == Strand.POSITIVE;
+        this.oppositeStrand = ref.getStrand() != annot.getStrand();
+        this.flipSequence = oppositeStrand && ((ref.getTopBotRef() == TOP_BOT.PLUS && ref.getTopBotProbe() == TOP_BOT.PLUS) || (ref.getTopBotRef() == TOP_BOT.BOT && ref.getTopBotProbe() == TOP_BOT.BOT));
         this.fullSegment = BlastFrame.BlastUtils.getSegmentForAnnotation(ref, annot);
         this.alignmentCount = BlastFrame.BlastUtils.countAlignment(annot);
         if (refGen != null) {
@@ -143,9 +148,12 @@ public class BlastLabel extends JLabel {
             // TODO set to probe seq, with alterations, otherwise causes NPE
         }
         this.setFont(LBL_FONT);
+        if (!positiveStrand) {
+            this.seq = flipBases(seq);
+        }
         parse();
         String seq = getSeqPartsAsString(); 
-        setText(strandFlipped ? flipBases(seq) : seq);
+        setText(seq);
     }
     
     void updateFont() {
@@ -182,8 +190,8 @@ public class BlastLabel extends JLabel {
         int strandInd = 0;
         for (CigarElement ciggie : cig.getCigarElements()) {
             if (ciggie.getOperator().consumesReferenceBases()) {
-                if (/*strandFlipped && */!ciggie.getOperator().consumesReadBases()) {
-                    Integer key = strandFlipped ? refSeq.getSequence().length() - strandInd + 1 : strandInd;
+                if (/*flipSequence && */!ciggie.getOperator().consumesReadBases()) {
+                    Integer key = flipSequence ? refSeq.getSequence().length() - strandInd + 1 : strandInd;
                     if (spaceSets.containsKey(key)) {
                         spaceSets.put(key, Math.max(spaceSets.get(key), ciggie.getLength()));
                     } else {
@@ -191,7 +199,7 @@ public class BlastLabel extends JLabel {
                     }
                     mySpaceSets.put(key, ciggie.getLength());
                     for (int i = strandInd; i < strandInd + ciggie.getLength(); i++) {
-                        int ind = strandFlipped ? refSeq.getSequence().length() - i + 1 : i;
+                        int ind = flipSequence ? refSeq.getSequence().length() - i + 1 : i;
                         spaces.add(ind);
                         mySpaces.add(ind);
 //                        System.out.println(ind + " :: " + cig.toString());
@@ -223,7 +231,7 @@ public class BlastLabel extends JLabel {
         int addedSpaces = 0;
         int buildup = 0;
         
-        for (int i = strandFlipped ? seqParts.size() - 1 : 0; strandFlipped ? i >= 0 : i < seqParts.size(); i += strandFlipped ? -1 : 1) {
+        for (int i = flipSequence ? seqParts.size() - 1 : 0; flipSequence ? i >= 0 : i < seqParts.size(); i += flipSequence ? -1 : 1) {
             CigarSeq cs = seqParts.get(i);
             boolean diff = cs.elem.getOperator() != CigarOperator.EQ;
             boolean read = cs.elem.getOperator().consumesReadBases();
@@ -246,7 +254,7 @@ public class BlastLabel extends JLabel {
             } else {
                 boolean strike = diff && read && !ref;
                 int tempX = baseX;
-                for (int c = strandFlipped ? cs.elemSeq.length() - 1 : 0; strandFlipped ? c >= 0 : c < cs.elemSeq.length(); c += strandFlipped ? -1 : 1) {
+                for (int c = flipSequence ? cs.elemSeq.length() - 1 : 0; flipSequence ? c >= 0 : c < cs.elemSeq.length(); c += flipSequence ? -1 : 1) {
 //                    if (expanded) {
 //                        if (mySpaces.contains(charInd - addedSpaces)) {
 //                            mySpacesCnt++;
@@ -293,7 +301,7 @@ public class BlastLabel extends JLabel {
                         
                         charInd++;
                         addedSpaces++;
-                        c += strandFlipped ? 1 : -1;
+                        c += flipSequence ? 1 : -1;
                         
                         g.setColor(col);
                         continue;
