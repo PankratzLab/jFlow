@@ -238,17 +238,16 @@ public class LrrSd extends Parallelizable {
                 gcwfPrior = gcAdjustor.getGcwfPrior();
                 wfPost = gcAdjustor.getWfPost();
                 gcwfPost = gcAdjustor.getGcwfPost();
+                double[] tmp;
                 if (markersForEverythingElse == null) {
                     lrrsdPost = Array.stdev(gcAdjustor.getCorrectedIntensities(), true);
-                    double[] tmp = CNVCaller.adjustLrr(gcAdjustor.getCorrectedIntensities(), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
-                    lrrsdPostBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
-
+                    tmp = CNVCaller.adjustLrr(gcAdjustor.getCorrectedIntensities(), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
                 } else {
                     double[] subLrr = Array.subArray(gcAdjustor.getCorrectedIntensities(), markersForEverythingElse);
                     lrrsdPost = Array.stdev(subLrr, true);
-                    double[] tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
-                    lrrsdPostBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
+                    tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
                 }
+                lrrsdPostBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
             }
         }
         

@@ -30,6 +30,7 @@ import cnv.hmm.PFB;
 import cnv.hmm.PennHmm;
 import cnv.manage.Transforms;
 import cnv.qc.GcAdjustor;
+import cnv.qc.LrrSd;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
 import cnv.var.CNVariant.CNVBuilder;
@@ -162,6 +163,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JMenuItem launchScatter;
 	private JMenuItem launchComp;
 	private ButtonGroup regionButtonGroup;
+    private Sample samp;
 
 	private AbstractAction markerFileSelectAction = new AbstractAction() {
         private static final long serialVersionUID = 1L;
@@ -183,8 +185,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                 } else {
                     Trailer.this.regionFileName = file;
                     loadRegions();
-                    regionIndex = 0;
-                    showRegion();
+                    showRegion(0);
                 }
             } /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
                 // do nothing
@@ -204,8 +205,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     loadCNVsAsRegions();
                     procCNVs(chr);
                     updateGUI();
-                    regionIndex = 0;
-                    showRegion();
+                    showRegion(0);
                 }
             } 
         }
@@ -584,8 +584,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		updateGUI();
 		regionIndex = -1;
 		if (location.equals(DEFAULT_LOCATION)) {
-			regionIndex = 0;
-			showRegion();
+			showRegion(0);
 		}
 		
 	}
@@ -957,8 +956,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				try {
 					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().trim().split("[\\s]+")[0]).intValue()-1;
 					if (trav >=0 && trav < regions.length) {
-						regionIndex = trav;
-						showRegion();
+						showRegion(trav);
 					}
 				} catch (NumberFormatException nfe) {}
 				updateGUI();
@@ -1074,29 +1072,25 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		actionMap.put(FIRST_REGION, new AbstractAction() {
 			public static final long serialVersionUID = 9L;
 			public void actionPerformed(ActionEvent e) {
-				regionIndex = 0;
-				showRegion();
+				showRegion(0);
 			}
 		});
 		actionMap.put(PREVIOUS_REGION, new AbstractAction() {
 			public static final long serialVersionUID = 10L;
 			public void actionPerformed(ActionEvent e) {
-				regionIndex = Math.max(regionIndex-1, 0);
-				showRegion();
+				showRegion(Math.max(regionIndex-1, 0));
 			}
 		});
 		actionMap.put(NEXT_REGION, new AbstractAction() {
 			public static final long serialVersionUID = 11L;
 			public void actionPerformed(ActionEvent e) {
-				regionIndex = Math.min(regionIndex+1, regions.length-1);
-				showRegion();
+				showRegion(Math.min(regionIndex+1, regions.length-1));
 			}
 		});
 		actionMap.put(LAST_REGION, new AbstractAction() {
 			public static final long serialVersionUID = 12L;
 			public void actionPerformed(ActionEvent e) {
-				regionIndex = regions.length-1;
-				showRegion();
+				showRegion(regions.length - 1);
 			}
 		});
 		bafPanel.setActionMap(actionMap);
@@ -1363,7 +1357,37 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                 public void itemStateChanged(ItemEvent arg0) {
                     if (arg0.getStateChange() == ItemEvent.SELECTED) {
                         String cmd = ((AbstractButton) arg0.getSource()).getActionCommand();
-                        System.out.println("Selected " + cmd);
+//                        Project proj, 
+//                        String sampleID, 
+//                        Sample fsamp, 
+//                        float[][][] cents, 
+//                        boolean[] markersForCallrate, 
+//                        boolean[] markersForEverythingElse, 
+//                        GcModel gcModel, 
+//                        Logger log;
+                        boolean[] markersForCallrate = null;
+                        boolean[] markersForEverythingElse = Array.booleanNegative(dropped);
+                        if ("Genome".equals(cmd)) {
+                            //
+                        } else if ("Chromosome".equals(cmd)) {
+                            markersForEverythingElse = Array.booleanNegative(dropped);
+                            byte[] chrs = markerSet.getChrs();
+                            // TODO check array lengths are the same
+                            for (int i = 0; i < chrs.length; i++) {
+                                if (chrs[i] != chr) {
+                                    markersForEverythingElse[i] = false;
+                                }
+                            }
+                        } else if ("Region".equals(cmd)) {
+                            for (int i = 0; i < markersForEverythingElse.length; i++) {
+                                if (i < startMarker || i > stopMarker) {
+                                    markersForEverythingElse[i] = false;
+                                }
+                            }
+                        }
+                        // TODO recompute for all [on sample change], chromosome [on chr change], and region [on region change] and set data in subframe
+                        String[] qcDetails = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElse, gcModel, log);
+                        // TODO recompute details on change and only change displayed info here
                     }
                 }
             };
@@ -1602,15 +1626,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				JOptionPane.showMessageDialog(null, "Error - No regions have been loaded", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			regionIndex = 0;
-			showRegion();
+			showRegion(0);
 		} else if (command.equals(PREVIOUS_REGION)) {
 			if (regions == null || regions.length == 0) {
 				JOptionPane.showMessageDialog(null, "Error - No regions have been loaded", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			regionIndex = Math.max(regionIndex-1, 0);
-			showRegion();
+			showRegion(Math.max(regionIndex-1, 0));
 		} else if (command.equals(NEXT_REGION)) {
 //			System.out.println("next");
 			if (regions == null || regions.length == 0) {
@@ -1623,15 +1645,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //				}
 				return;
 			}
-			regionIndex = Math.min(regionIndex+1, regions.length-1);
-			showRegion();
+			showRegion(Math.min(regionIndex+1, regions.length-1));
 		} else if (command.equals(LAST_REGION)) {
 			if (regions == null || regions.length == 0) {
 				JOptionPane.showMessageDialog(null, "Error - No regions have been loaded", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			regionIndex = regions.length-1;
-			showRegion();
+			showRegion(regions.length - 1);
 		} else if (command.equals(TO_SCATTER_PLOT)) {
 		    if (proj == null) {
 		        JOptionPane.showConfirmDialog(this, "Error - a Project is required to open ScatterPlot", "Error - no Project", JOptionPane.CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
@@ -1884,8 +1904,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	}
 
 	public void loadValues() {
-		Sample samp;
-		
 		samp = proj.getPartialSampleFromRandomAccessFile(sample, false, true, true, true, false);
 		if (samp == null) {
 			System.err.println("Error - sample '"+sample+"' not found in "+proj.SAMPLE_DIRECTORY.getValue(false, true));
@@ -2169,7 +2187,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		return segs;
 	}
 
-	public void showRegion() {
+	public void showRegion(int regionIndex) {
+	    this.regionIndex = regionIndex;
 		if (regions == null || regions.length == 0) {
 			regionField.setText("");
 			commentLabel.setText(" ");
