@@ -81,7 +81,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 			this.topBotRef = TOP_BOT.valueOf(data.get(4));
 			this.ref = vc.getReference();
 			List<Allele> alleles = vc.getAlternateAlleles();
-			this.alts = new Allele[alts.length];
+			this.alts = new Allele[alleles.size()];
 			for (int i = 0; i < alts.length; i++) {
 				alts[i] = alleles.get(i);
 			}
