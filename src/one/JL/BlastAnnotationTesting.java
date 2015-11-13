@@ -87,7 +87,7 @@ public class BlastAnnotationTesting {
 		};
 		LocusAnnotation[] testAdd = getTestAddition(proj);
 		for (int i = 0; i < testAdd.length; i++) {
-			test.write(testAdd[i], true);
+			test.write(testAdd[i], true,false);
 		}
 		test.close();
 	}

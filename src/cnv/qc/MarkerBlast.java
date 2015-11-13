@@ -168,7 +168,7 @@ public class MarkerBlast {
 		};
 		for (int i = 0; i < gcAnnotations.length; i++) {
 			if (gcAnnotations[i] != null) {// currently some markers may not be represented, such as affy CN markers
-				writer.write(gcAnnotations[i], false,true);
+				writer.write(gcAnnotations[i], false, true);
 
 			} else {
 				double gcContent = Double.NaN;
@@ -237,8 +237,8 @@ public class MarkerBlast {
 			ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
 			for (int i = 0; i < parser.getDataPresent().length; i++) {
 				if (parser.getDataPresent()[i]) {
-					if(alleleLookup){
-						if((i+1)%10000==0){
+					if (alleleLookup) {
+						if ((i + 1) % 10000 == 0) {
 							proj.getLog().reportTimeInfo("Loaded " + (i + 1) + " reference alleles from " + referenceGenome.getReferenceFasta());
 						}
 					}
@@ -270,7 +270,7 @@ public class MarkerBlast {
 						String[] snp = parser.getStringData()[2][i].replaceAll("\\[", "").replaceAll("\\]", "").split("/");
 						AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, snp[0], snp[1], referenceGenome);
 						if (alleleLookup) {
-							alleleParser.parse(proj.getArrayType(), strand);
+							alleleParser.parse(proj.getArrayType(), strand, parser.getStringData()[6][i]);
 						}
 						if (segB.equals("")) {
 							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.BOTH.getTag(), seqA, strand, seqLength, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
@@ -320,7 +320,7 @@ public class MarkerBlast {
 
 							AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, aS, bS, referenceGenome);
 							if (alleleLookup) {
-								alleleParser.parse(proj.getArrayType(), strand);
+								alleleParser.parse(proj.getArrayType(), strand, null);
 							}
 							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A, tmpSeq[0], strand, interrogationPosition, markerSegment, TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
 							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B, tmpSeq[1], strand, interrogationPosition, markerSegment, TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
@@ -376,37 +376,84 @@ public class MarkerBlast {
 			return alts;
 		}
 
-		private void parse(ARRAY array, Strand strand) {
-			if (loc.getChr() > 0) {
-				String[] tmp = referenceGenome.getSequenceFor(loc);
-				if (tmp.length != 1) {// don't think we need multiple
-					throw new IllegalArgumentException("base query must be length one (" + loc.getUCSClocation() + " returned " + Array.toStr(tmp));
-				} else if (array.isCNOnly(markerName)) {
+		private boolean isIndel() {
+			if (aS.equals("I") || bS.equals("I")) {
+				return true;
+			}
+			if (aS.equals("D") || bS.equals("D")) {
+				return true;
+			}
+			return false;
+		}
 
-					ref = Allele.create(tmp[0], true);
-					alts = new Allele[1];
-					alts[0] = Allele.create("<" + array + "_CNP>", false);// Symbolic allele
-					A = Allele.create(alts[0], false);
-					B = Allele.create(alts[0], false);
+		private void parseIndel(ARRAY array, Strand strand, String sourceSeq) {
+			if (sourceSeq == null) {
+				throw new IllegalArgumentException("Must have source seq to get indel");
+			} else {
+				System.out.println(sourceSeq);
+				int start = sourceSeq.indexOf("\\[");
+				int stop = sourceSeq.indexOf("\\]") + 1;
+				System.out.println(start);
+				System.out.println(stop);
+
+				String indel = sourceSeq.substring(start, stop);
+				int len = indel.length() - 1;
+				boolean insertion = false;
+				if (indel.startsWith("-")) {
+					insertion = false;
+				} else if (indel.startsWith("+")) {
+					insertion = true;
+				} else {
+					throw new IllegalArgumentException("Indel source seq must start with - or +");
+				}
+				Segment newQuery = new Segment(loc.getChr(), loc.getStart(), loc.getStop() + len);
+				String[] tmp = referenceGenome.getSequenceFor(newQuery);
+				System.out.println(Array.toStr(tmp));
+				System.out.println(indel);
+				System.out.println(insertion);
+				if (loc.getChr() > 0) {
 
 				} else {
-					String flipA = StrandOps.flipIfNeeded(aS, strand);
-					String flipB = StrandOps.flipIfNeeded(bS, strand);
+					ref = Allele.create("N", true);
+				}
+			}
+		}
 
-					ref = Allele.create(tmp[0], true);
-					A = Allele.create(aS, false);
-					B = Allele.create(bS, false);
-					if (Allele.create(flipA, false).equals(ref, true)) {// A is ref
+		private void parse(ARRAY array, Strand strand, String sourceSeq) {
+			if (loc.getChr() > 0) {
+				if (!isIndel()) {
+					String[] tmp = referenceGenome.getSequenceFor(loc);
+					if (tmp.length != 1) {// don't think we need multiple
+						throw new IllegalArgumentException("base query must be length one (" + loc.getUCSClocation() + " returned " + Array.toStr(tmp));
+					} else if (array.isCNOnly(markerName)) {
+
+						ref = Allele.create(tmp[0], true);
 						alts = new Allele[1];
-						alts[0] = Allele.create(flipB);
-					} else if (Allele.create(flipB, false).equals(ref, true)) {// B is ref
-						alts = new Allele[1];
-						alts[0] = Allele.create(flipA);
-					} else {// neither are ref
-						alts = new Allele[2];
-						alts[0] = Allele.create(flipA, false);
-						alts[1] = Allele.create(flipB, false);
+						alts[0] = Allele.create("<" + array + "_CNP>", false);// Symbolic allele
+						A = Allele.create(alts[0], false);
+						B = Allele.create(alts[0], false);
+
+					} else {
+						String flipA = StrandOps.flipIfNeeded(aS, strand);
+						String flipB = StrandOps.flipIfNeeded(bS, strand);
+
+						ref = Allele.create(tmp[0], true);
+						A = Allele.create(aS, false);
+						B = Allele.create(bS, false);
+						if (Allele.create(flipA, false).equals(ref, true)) {// A is ref
+							alts = new Allele[1];
+							alts[0] = Allele.create(flipB);
+						} else if (Allele.create(flipB, false).equals(ref, true)) {// B is ref
+							alts = new Allele[1];
+							alts[0] = Allele.create(flipA);
+						} else {// neither are ref
+							alts = new Allele[2];
+							alts[0] = Allele.create(flipA, false);
+							alts[1] = Allele.create(flipB, false);
+						}
 					}
+				} else {
+					parseIndel(array, strand, sourceSeq);
 				}
 
 			} else {
@@ -414,10 +461,12 @@ public class MarkerBlast {
 
 					ref = Allele.create("N", true);
 					alts = new Allele[1];
-					alts[0] = Allele.create("<" + array + "_CNP>", false);// Symbolic allele
+					alts[0] = Allele.create("<" + array + "_CN>", false);// Symbolic allele
 					A = Allele.create(alts[0], false);
 					B = Allele.create(alts[0], false);
 
+				} else if (isIndel()) {
+					parseIndel(array, strand, sourceSeq);
 				} else {
 					ref = Allele.create("N", true);
 					alts = new Allele[2];
@@ -428,18 +477,18 @@ public class MarkerBlast {
 				}
 			}
 			// if (loc.getChr() > 0) {
-//				System.out.println("REF: -> " + ref.getDisplayString());
-//				for (int i = 0; i < alts.length; i++) {
-//					System.out.println("ALT " + i + " : -> " + alts[i].getDisplayString());
-//				}
-//				System.out.println("A: -> " + A.getDisplayString());
-//				System.out.println("B: -> " + B.getDisplayString());
-//				System.out.println("Strand: -> " + strand);
-//				try {
-//					Thread.sleep(100);
-//				} catch (InterruptedException ie) {
-//				}
-//			}
+			// System.out.println("REF: -> " + ref.getDisplayString());
+			// for (int i = 0; i < alts.length; i++) {
+			// System.out.println("ALT " + i + " : -> " + alts[i].getDisplayString());
+			// }
+			// System.out.println("A: -> " + A.getDisplayString());
+			// System.out.println("B: -> " + B.getDisplayString());
+			// System.out.println("Strand: -> " + strand);
+			// try {
+			// Thread.sleep(100);
+			// } catch (InterruptedException ie) {
+			// }
+			// }
 		}
 
 	}
@@ -454,7 +503,7 @@ public class MarkerBlast {
 			}
 			builder.separator(",");
 			builder.dataKeyColumnName("Name");
-			builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP", "RefStrand", "IlmnStrand", "SourceStrand" });
+			builder.stringDataTitles(new String[] { "AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP", "RefStrand", "IlmnStrand", "SourceStrand", "SourceSeq" });
 			builder.headerFlags(new String[] { "Name", "AlleleA_ProbeSeq" });
 			break;
 
