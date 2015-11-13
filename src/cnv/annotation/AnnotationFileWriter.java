@@ -56,7 +56,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 	 * @param skipDefaultValue
 	 *            if true, annotations that are set to their default value will not be added to the {@link VariantContext}
 	 */
-	public void write(LocusAnnotation locusAnnotation, boolean skipDefaultValue) {
+	public void write(LocusAnnotation locusAnnotation, boolean skipDefaultValue,boolean skipAlleleCheck) {
 		if (writer != null) {
 			VariantContext vcAnno = locusAnnotation.annotateLocus(skipDefaultValue);
 			if (vcAnno.getStart() <= 0 || vcAnno.getEnd() <= 0) {
@@ -71,7 +71,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 					throw new IllegalStateException(error);
 				} else {
 					VariantContext vcAdd = additionReader.next();
-					if (vcAdd.hasSameAllelesAs(vcAnno) && VCOps.getSegment(vcAdd).equals(VCOps.getSegment(vcAnno)) && vcAdd.getID().equals(vcAnno.getID())) {
+					if ((skipAlleleCheck || vcAdd.hasSameAllelesAs(vcAnno)) && VCOps.getSegment(vcAdd).equals(VCOps.getSegment(vcAnno)) && vcAdd.getID().equals(vcAnno.getID())) {
 						VariantContextBuilder builder = new VariantContextBuilder(vcAdd);
 						for (String att : vcAnno.getAttributes().keySet()) {
 							builder.attribute(att, vcAnno.getAttributes().get(att));
