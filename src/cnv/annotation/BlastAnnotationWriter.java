@@ -170,8 +170,10 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 		if (markerFastaEntries != null) {
 			for (int i = 0; i < markerFastaEntries.length; i++) {
 				PROBE_TAG tag = PROBE_TAG.parseMarkerTag(markerFastaEntries[i].getName(), proj.getLog());
-				String marker = markerFastaEntries[i].getName().substring(0, markerFastaEntries[i].getName().length() - tag.getTag().length());
-				markerSeqIndices.put(marker, i);
+				if (tag != PROBE_TAG.B) {
+					String marker = markerFastaEntries[i].getName().substring(0, markerFastaEntries[i].getName().length() - tag.getTag().length());
+					markerSeqIndices.put(marker, i);
+				}
 			}
 		}
 		for (int i = 0; i < anDatas.length; i++) {
@@ -206,7 +208,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 				int seqIndex = markerSeqIndices.get(anDatas[i].getLocusName());
 				MarkerFastaEntry mfe = markerFastaEntries[seqIndex];
 				MarkerSeqAnnotation markerSeqAnnotation = new MarkerSeqAnnotation();
-				markerSeqAnnotation.setDesignData(mfe.getSequence(), mfe.getInterrogationPosition(), mfe.getStrand(), mfe.getTopBotProbe(), mfe.getTopBotRef(), mfe.getA(), mfe.getB());
+				markerSeqAnnotation.setDesignData(mfe.getSequence(),mfe.getSeqB(), mfe.getInterrogationPosition(), mfe.getStrand(), mfe.getTopBotProbe(), mfe.getTopBotRef(), mfe.getA(), mfe.getB());
 				anDatas[i].addAnnotation(markerSeqAnnotation);
 				anDatas[i].setRef(mfe.getRef());
 				anDatas[i].setAlts(mfe.getAlts());

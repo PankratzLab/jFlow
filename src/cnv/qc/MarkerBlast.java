@@ -32,6 +32,10 @@ import seq.analysis.Blast.FastaEntry;
 import seq.manage.ReferenceGenome;
 import seq.manage.StrandOps;
 
+/**
+ * As starts handling more than just annotatating with Blast results, we should maybe re-name this class
+ *
+ */
 public class MarkerBlast {
 	public enum FILE_SEQUENCE_TYPE {
 		// /**
@@ -47,12 +51,13 @@ public class MarkerBlast {
 		AFFY_ANNOT;
 	}
 
-	public static MarkerBlastResult blastEm(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int blastWordSize, int reportWordSize, int maxAlignmentsReported, int numThreads, boolean reportToTmp, boolean annotateGCContent) {
+	public static MarkerBlastResult blastEm(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int blastWordSize, int reportWordSize, int maxAlignmentsReported, int numThreads, boolean reportToTmp, boolean annotateGCContent, boolean doBlast) {
 		String fastaDb = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 		if (!Files.exists(fastaDb)) {
 			proj.getLog().reportTimeError("Was not able to find reference genome defined by " + proj.REFERENCE_GENOME_FASTA_FILENAME.getName());
 			return null;
 		} else {
+
 			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
 			blast.setEvalue(10000);// we rely on the wordSize instead
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
@@ -70,7 +75,7 @@ public class MarkerBlast {
 				// proj.getLog().reportTimeInfo("REmember gz");
 			}
 
-			if (!Files.exists("", tmps)) {
+			if (doBlast && !Files.exists("", tmps)) {
 				MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type, false);
 				ArrayList<MarkerFastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
 
@@ -94,19 +99,22 @@ public class MarkerBlast {
 				}
 			} else {
 				for (int i = 0; i < tmps.length; i++) {
-					proj.getLog().reportFileExists(tmps[i]);
+					if (doBlast) {
+						proj.getLog().reportFileExists(tmps[i]);
+					}
 				}
 			}
 			proj.getLog().reportTimeWarning("Assuming that all sequences have length " + proj.getArrayType().getProbeLength() + " based on array type " + proj.getArrayType());
 			MarkerBlastResult result = new MarkerBlastResult(output, blastWordSize, reportWordSize, proj.getArrayType().getProbeLength());
 			result.setTmpFiles(tmps);
 
+			// TODO, revert this to addition mode again
 			if (Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
 				new File(proj.BLAST_ANNOTATION_FILENAME.getValue()).delete();
 			}
 
 			proj.getLog().reportTimeInfo("Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
-			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), tmps, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
+			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), doBlast ? tmps : new String[] {}, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
 			if (proj.getArrayType() != ARRAY.ILLUMINA) {
 				proj.getLog().reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
 			}
@@ -268,15 +276,15 @@ public class MarkerBlast {
 						TOP_BOT topBotProbe = TOP_BOT.valueOf(parser.getStringData()[4][i]);
 						TOP_BOT topBotRef = TOP_BOT.valueOf(parser.getStringData()[5][i]);
 						String[] snp = parser.getStringData()[2][i].replaceAll("\\[", "").replaceAll("\\]", "").split("/");
-						AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, snp[0], snp[1], referenceGenome);
+						AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, snp[0], seqA, snp[1], segB, referenceGenome);
 						if (alleleLookup) {
 							alleleParser.parse(proj.getArrayType(), strand, parser.getStringData()[6][i]);
 						}
-						if (segB.equals("")) {
-							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.BOTH.getTag(), seqA, strand, seqLength, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
-						} else {
-							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A.getTag(), seqA, strand, seqLength, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
-							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), segB, strand, seqLength, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
+						if (segB.equals("")) {// not ambiguous
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.BOTH.getTag(), seqA, segB, strand, seqLength, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
+						} else {// interrogationPosition is the last bp for Ambiguous SNPS
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A.getTag(), seqA, segB, strand, seqLength - 1, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), segB, segB, strand, seqLength - 1, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
 						}
 
 					} else {
@@ -318,12 +326,12 @@ public class MarkerBlast {
 							String aS = tmpSeq[0].substring(interrogationPosition, interrogationPosition + 1);
 							String bS = tmpSeq[1].substring(interrogationPosition, interrogationPosition + 1);
 
-							AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, aS, bS, referenceGenome);
+							AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, aS, tmpSeq[0], bS, tmpSeq[1], referenceGenome);
 							if (alleleLookup) {
 								alleleParser.parse(proj.getArrayType(), strand, null);
 							}
-							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A, tmpSeq[0], strand, interrogationPosition, markerSegment, TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
-							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B, tmpSeq[1], strand, interrogationPosition, markerSegment, TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A, tmpSeq[0], tmpSeq[1], strand, interrogationPosition, markerSegment, TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
+							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B, tmpSeq[1], tmpSeq[1], strand, interrogationPosition, markerSegment, TOP_BOT.NA, TOP_BOT.NA, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
 						}
 					}
 				}
@@ -344,6 +352,8 @@ public class MarkerBlast {
 		private Segment loc;
 		private String aS;
 		private String bS;
+		private String pseqA;
+		private String pseqB;
 		private String markerName;
 		private ReferenceGenome referenceGenome;
 		private Allele A;
@@ -351,11 +361,13 @@ public class MarkerBlast {
 		private Allele ref;
 		private Allele[] alts;
 
-		private AlleleParser(String markerName, Segment loc, String aS, String bS, ReferenceGenome referenceGenome) {
+		private AlleleParser(String markerName, Segment loc, String aS, String pseqA, String bS, String pseqB, ReferenceGenome referenceGenome) {
 			super();
 			this.markerName = markerName;
 			this.loc = loc;
 			this.aS = aS;
+			this.pseqA = pseqA;
+			this.pseqB = pseqB;
 			this.bS = bS;
 			this.referenceGenome = referenceGenome;
 		}
@@ -389,28 +401,36 @@ public class MarkerBlast {
 		private void parseIndel(ARRAY array, Strand strand, String sourceSeq) {
 			if (sourceSeq == null) {
 				throw new IllegalArgumentException("Must have source seq to get indel");
+			} else if (!pseqB.equals("")) {
+				throw new IllegalArgumentException("Assumptions violated for single probe indel ");
+
 			} else {
+
 				System.out.println(sourceSeq);
-				int start = sourceSeq.indexOf("\\[");
-				int stop = sourceSeq.indexOf("\\]") + 1;
+				int start = sourceSeq.indexOf("[") + 1;
+				int stop = sourceSeq.indexOf("]");
 				System.out.println(start);
 				System.out.println(stop);
 
 				String indel = sourceSeq.substring(start, stop);
 				int len = indel.length() - 1;
-				boolean insertion = false;
-				if (indel.startsWith("-")) {
-					insertion = false;
-				} else if (indel.startsWith("+")) {
-					insertion = true;
-				} else {
-					throw new IllegalArgumentException("Indel source seq must start with - or +");
+				if (!indel.startsWith("-/") && !indel.startsWith("+/")) {
+					throw new IllegalArgumentException("Indel source seq must start with - or + for " + indel);
 				}
+				// if()
+
 				Segment newQuery = new Segment(loc.getChr(), loc.getStart(), loc.getStop() + len);
 				String[] tmp = referenceGenome.getSequenceFor(newQuery);
 				System.out.println(Array.toStr(tmp));
 				System.out.println(indel);
-				System.out.println(insertion);
+				System.out.println(aS);
+				System.out.println(pseqA);
+
+				System.out.println(bS);
+				System.out.println(pseqB);
+
+				System.out.println(strand);
+
 				if (loc.getChr() > 0) {
 
 				} else {
@@ -434,8 +454,8 @@ public class MarkerBlast {
 						B = Allele.create(alts[0], false);
 
 					} else {
-						String flipA = StrandOps.flipIfNeeded(aS, strand);
-						String flipB = StrandOps.flipIfNeeded(bS, strand);
+						String flipA = StrandOps.flipIfNeeded(aS, strand, false);
+						String flipB = StrandOps.flipIfNeeded(bS, strand, false);
 
 						ref = Allele.create(tmp[0], true);
 						A = Allele.create(aS, false);
@@ -470,8 +490,8 @@ public class MarkerBlast {
 				} else {
 					ref = Allele.create("N", true);
 					alts = new Allele[2];
-					alts[0] = Allele.create(StrandOps.flipIfNeeded(aS, strand), false);
-					alts[1] = Allele.create(StrandOps.flipIfNeeded(bS, strand), false);
+					alts[0] = Allele.create(StrandOps.flipIfNeeded(aS, strand, false), false);
+					alts[1] = Allele.create(StrandOps.flipIfNeeded(bS, strand, false), false);
 					A = Allele.create(aS, false);
 					B = Allele.create(bS, false);
 				}
@@ -532,6 +552,7 @@ public class MarkerBlast {
 
 		private int interrogationPosition;// Illumina = sequence length, affy = somewhere in the middle
 		private Segment markerSegment;
+		private String seqB;
 		private Strand strand;
 		private TOP_BOT topBotProbe;
 		private TOP_BOT topBotRef;
@@ -541,8 +562,9 @@ public class MarkerBlast {
 		private Allele[] alts;
 
 		// IlmnStrand
-		public MarkerFastaEntry(String name, String sequence, Strand strand, int interrogationPosition, Segment markerSegment, TOP_BOT topBotProbe, TOP_BOT topBotRef, Allele A, Allele B, Allele ref, Allele[] alts) {
-			super(name, sequence);
+		public MarkerFastaEntry(String name, String seqA, String seqB, Strand strand, int interrogationPosition, Segment markerSegment, TOP_BOT topBotProbe, TOP_BOT topBotRef, Allele A, Allele B, Allele ref, Allele[] alts) {
+			super(name, seqA);
+			this.seqB = seqB;
 			this.strand = strand;
 			this.interrogationPosition = interrogationPosition;
 			this.markerSegment = markerSegment;
@@ -552,6 +574,10 @@ public class MarkerBlast {
 			this.B = B;
 			this.ref = ref;
 			this.alts = alts;
+		}
+
+		public String getSeqB() {
+			return seqB;
 		}
 
 		public Allele getRef() {
@@ -623,6 +649,7 @@ public class MarkerBlast {
 		int reportWordSize = -1;
 		int maxAlignmentsReported = 20;
 		boolean annotateGCContent = true;
+		boolean doBlast = true;
 		// boolean report = true;
 		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.MANIFEST_FILE;
 		String usage = "\n" + "cnv.qc.MarkerBlast requires 3 arguments\n";
@@ -635,6 +662,7 @@ public class MarkerBlast {
 		usage += "   (6) the maximum number of alignments to summarize (i.e. maxAlignmentsReported=" + maxAlignmentsReported + " (default))\n" + "";
 		usage += "   (7) annotate the summary file with GC content, both the probe's gc content and the regions gc content  (i.e. annoGC=" + annotateGCContent + " (default))\n";
 		usage += "   (8) sequence file type  (i.e. seqType=" + fSequence_TYPE + " (default))\n" + ", Options are:\n ";
+		usage += "   (9) skip the blast analysis and simply add the manifest annotations (i.e. -noBlast (not the default))\n" + ", Options are:\n ";
 
 		for (int i = 0; i < FILE_SEQUENCE_TYPE.values().length; i++) {
 			usage += FILE_SEQUENCE_TYPE.values()[i] + "\n";
@@ -667,6 +695,10 @@ public class MarkerBlast {
 				numArgs--;
 			} else if (args[i].startsWith("maxAlignmentsReported=")) {
 				maxAlignmentsReported = ext.parseIntArg(args[i]);
+				numArgs--;
+
+			} else if (args[i].startsWith("-noBlast")) {
+				doBlast = false;
 				numArgs--;
 
 			} else {
@@ -714,7 +746,7 @@ public class MarkerBlast {
 				proj.getLog().reportTimeInfo("blast word size updated to default " + blastWordSize + " for array " + proj.getArrayType());
 
 			}
-			blastEm(proj, fileSeq, fSequence_TYPE, blastWordSize, reportWordSize, maxAlignmentsReported, numThreads, true, annotateGCContent);
+			blastEm(proj, fileSeq, fSequence_TYPE, blastWordSize, reportWordSize, maxAlignmentsReported, numThreads, true, annotateGCContent, doBlast);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

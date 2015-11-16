@@ -106,7 +106,7 @@ public class MarkerBlastIterator {
 		int index = 0;
 		for (int i = 0; i < blastWordSizes.length; i++) {
 			for (int j = 0; j < reportWordSizes.length; j++) {
-				results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSizes[i], reportWordSizes[j], 100, numThreads, reportToTmp, true);
+				results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSizes[i], reportWordSizes[j], 100, numThreads, reportToTmp, true,true);
 				index++;
 			}
 		}
@@ -441,7 +441,7 @@ public class MarkerBlastIterator {
 		int index = 0;
 		for (int i = 0; i < blastWordSizes.length; i++) {
 			for (int j = 0; j < reportWordSizes.length; j++) {
-				results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSizes[i], reportWordSizes[j], Integer.MAX_VALUE, numThreads, reportToTmp, true);
+				results[index] = MarkerBlast.blastEm(proj, fileSeq, type, blastWordSizes[i], reportWordSizes[j], Integer.MAX_VALUE, numThreads, reportToTmp, true, true);
 				index++;
 			}
 		}
