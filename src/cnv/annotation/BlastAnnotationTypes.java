@@ -157,7 +157,7 @@ public class BlastAnnotationTypes {
 		 * For cnvi
 		 */
 		PLUS, /**
-		 * For cnvi
+		 * For cnvi and indels
 		 */
 		MINUS;
 	}

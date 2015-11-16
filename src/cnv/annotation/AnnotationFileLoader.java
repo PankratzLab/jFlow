@@ -78,33 +78,39 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 				int startSearch = 0;
 				switch (queryType) {
 				case NO_ORDER:
+					for (int i = startSearch; i < stopSearch; i++) {
+
+						if (parsers[i].shouldAnnotateWith(vc, proj.getLog())) {
+							parsers[i].parseAnnotation(vc, proj.getLog());
+							parsers[i].setFound(true);
+							search[searchIndex][0] = search[searchIndex][0] + 1;
+							search[searchIndex][1] = search[searchIndex][1] + 1;
+						} else {
+
+						}
+					}
 					break;
 				case ONE_PER_IN_ORDER:
-					proj.getLog().reportTimeWarning("Was changed on 9/16/15, may want to validate the start and stop searches again");
-					stopSearch = Math.min(search[searchIndex][1], parsers.length);
-					startSearch = search[searchIndex][0];
+					if (parsers[index - 1].shouldAnnotateWith(vc, proj.getLog())) {
+						String error = "Query type was set to " + queryType + " but the annotation at index " + (index - 1) + " did not match";
+						proj.getLog().reportTimeError(error);
+						throw new IllegalStateException(error);
+					} else {
+						parsers[index - 1].parseAnnotation(vc, proj.getLog());
+						parsers[index - 1].setFound(true);
+					}
 					break;
 				default:
 					String error = "Invalid query " + queryType;
 					proj.getLog().reportTimeInfo(error);
 					throw new IllegalArgumentException(error);
 				}
-				for (int i = startSearch; i < stopSearch; i++) {
 
-					if (parsers[i].shouldAnnotateWith(vc, proj.getLog())) {
-						parsers[i].parseAnnotation(vc, proj.getLog());
-						parsers[i].setFound(true);
-						search[searchIndex][0] = search[searchIndex][0] + 1;
-						search[searchIndex][1] = search[searchIndex][1] + 1;
-					} else {
-
-					}
-				}
 				switch (queryType) {
 				case NO_ORDER:
 					break;
 				case ONE_PER_IN_ORDER:
-					searchIndex++;
+					//searchIndex++;
 					break;
 				default:
 					String error = "Invalid query " + queryType;

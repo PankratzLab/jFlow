@@ -276,7 +276,7 @@ public class MarkerBlast {
 						TOP_BOT topBotProbe = TOP_BOT.valueOf(parser.getStringData()[4][i]);
 						TOP_BOT topBotRef = TOP_BOT.valueOf(parser.getStringData()[5][i]);
 						String[] snp = parser.getStringData()[2][i].replaceAll("\\[", "").replaceAll("\\]", "").split("/");
-						AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, snp[0], seqA, snp[1], segB, referenceGenome);
+						AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, snp[0], snp[1], segB, referenceGenome);
 						if (alleleLookup) {
 							alleleParser.parse(proj.getArrayType(), strand, parser.getStringData()[6][i]);
 						}
@@ -326,7 +326,7 @@ public class MarkerBlast {
 							String aS = tmpSeq[0].substring(interrogationPosition, interrogationPosition + 1);
 							String bS = tmpSeq[1].substring(interrogationPosition, interrogationPosition + 1);
 
-							AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, aS, tmpSeq[0], bS, tmpSeq[1], referenceGenome);
+							AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, aS, bS, tmpSeq[1], referenceGenome);
 							if (alleleLookup) {
 								alleleParser.parse(proj.getArrayType(), strand, null);
 							}
@@ -352,7 +352,6 @@ public class MarkerBlast {
 		private Segment loc;
 		private String aS;
 		private String bS;
-		private String pseqA;
 		private String pseqB;
 		private String markerName;
 		private ReferenceGenome referenceGenome;
@@ -361,12 +360,11 @@ public class MarkerBlast {
 		private Allele ref;
 		private Allele[] alts;
 
-		private AlleleParser(String markerName, Segment loc, String aS, String pseqA, String bS, String pseqB, ReferenceGenome referenceGenome) {
+		private AlleleParser(String markerName, Segment loc, String aS, String bS, String pseqB, ReferenceGenome referenceGenome) {
 			super();
 			this.markerName = markerName;
 			this.loc = loc;
 			this.aS = aS;
-			this.pseqA = pseqA;
 			this.pseqB = pseqB;
 			this.bS = bS;
 			this.referenceGenome = referenceGenome;
@@ -404,40 +402,112 @@ public class MarkerBlast {
 			} else if (!pseqB.equals("")) {
 				throw new IllegalArgumentException("Assumptions violated for single probe indel ");
 
+			} else if (!(aS.equals("I") && bS.equals("D")) && !(aS.equals("D") && bS.equals("I"))) {
+				throw new IllegalArgumentException("Assumptions violated for insertion deletion codes " + aS + " and " + bS);
+
 			} else {
 
-				System.out.println(sourceSeq);
 				int start = sourceSeq.indexOf("[") + 1;
 				int stop = sourceSeq.indexOf("]");
-				System.out.println(start);
-				System.out.println(stop);
 
 				String indel = sourceSeq.substring(start, stop);
-				int len = indel.length() - 1;
 				if (!indel.startsWith("-/") && !indel.startsWith("+/")) {
 					throw new IllegalArgumentException("Indel source seq must start with - or + for " + indel);
 				}
-				// if()
-
-				Segment newQuery = new Segment(loc.getChr(), loc.getStart(), loc.getStop() + len);
-				String[] tmp = referenceGenome.getSequenceFor(newQuery);
-				System.out.println(Array.toStr(tmp));
-				System.out.println(indel);
-				System.out.println(aS);
-				System.out.println(pseqA);
-
-				System.out.println(bS);
-				System.out.println(pseqB);
-
-				System.out.println(strand);
-
+				indel = indel.substring(2);
+				int len = indel.length() - 1;
 				if (loc.getChr() > 0) {
 
+					Segment newQuery = new Segment(loc.getChr(), loc.getStart() - 1, loc.getStop() + len);
+					String[] tmp = referenceGenome.getSequenceFor(newQuery);
+					if (tmp.length - 1 != indel.length()) {
+						throw new IllegalStateException("Invalid reference indel query; REF -> " + Array.toStr(tmp) + "\t indel -> " + indel);
+					}
+					boolean insertionisRef = true;
+					for (int i = 0; i < indel.length(); i++) {
+						if (!tmp[i + 1].equalsIgnoreCase(indel.charAt(i) + "")) {
+							insertionisRef = false;
+						}
+					}
+
+					ref = Allele.create(Array.toStr(tmp, ""), true);
+					if (insertionisRef) {
+						if (aS.equals("I")) {
+
+							String tmpA = Array.toStr(tmp, "");
+							String tmpB = tmp[0];
+							A = Allele.create(StrandOps.flipsIfNeeded(tmpA, strand, false), false);
+							B = Allele.create(StrandOps.flipsIfNeeded(tmpB, strand, false), false);
+							alts = new Allele[1];
+							alts[0] = Allele.create(tmp[0], false);
+
+						} else {
+							String tmpA = tmp[0];
+							String tmpB = Array.toStr(tmp, "");
+							A = Allele.create(StrandOps.flipsIfNeeded(tmpA, strand, false), false);
+							B = Allele.create(StrandOps.flipsIfNeeded(tmpB, strand, false), false);
+							alts = new Allele[1];
+							alts[0] = Allele.create(tmp[0], false);
+						}
+					} else {
+						if (aS.equals("I")) {
+							String tmpA = StrandOps.flipIfNeeded(tmp[0], strand, false) + indel;
+							String tmpB = StrandOps.flipIfNeeded(tmp[0], strand, false);
+							A = Allele.create(tmpA, false);
+							B = Allele.create(tmpB, false);
+							alts = new Allele[2];
+							alts[0] = Allele.create(tmp[0], false);
+							alts[1] = Allele.create(StrandOps.flipsIfNeeded(indel, strand, false), false);
+						} else {
+							String tmpA = StrandOps.flipIfNeeded(tmp[0], strand, false);
+							String tmpB = StrandOps.flipIfNeeded(tmp[0], strand, false) + indel;
+							A = Allele.create(tmpA, false);
+							B = Allele.create(tmpB, false);
+							alts = new Allele[2];
+							alts[0] = Allele.create(tmp[0], false);
+							alts[1] = Allele.create(StrandOps.flipsIfNeeded(indel, strand, false), false);
+						}
+					}
+
+					System.out.println(insertionisRef);
+
 				} else {
-					ref = Allele.create("N", true);
+
+					ref = Allele.create("NN", true);
+					if (aS.equals("I")) {
+						String tmpA = "N" + indel;
+						String tmpB = "N";
+						A = Allele.create(tmpA, false);
+						B = Allele.create(tmpB, false);
+						alts = new Allele[2];
+						alts[0] = Allele.create("N" + StrandOps.flipsIfNeeded(indel, strand, false), false);
+						alts[1] = Allele.create("N", false);
+					} else {
+						String tmpA = "N";
+						String tmpB = "N" + indel;
+						A = Allele.create(tmpA, false);
+						B = Allele.create(tmpB, false);
+						alts = new Allele[2];
+						alts[0] = Allele.create("N" + StrandOps.flipsIfNeeded(indel, strand, false), false);
+						alts[1] = Allele.create("N", false);
+					}
 				}
 			}
 		}
+
+		// System.out.println(sourceSeq);
+
+		// System.out.println(start);
+		// System.out.println(stop);
+		// System.out.println(Array.toStr(tmp));
+		// System.out.println(indel);
+		// System.out.println(aS);
+		// System.out.println(pseqA);
+		//
+		// System.out.println(bS);
+		// System.out.println(pseqB);
+		//
+		// System.out.println(strand);
 
 		private void parse(ARRAY array, Strand strand, String sourceSeq) {
 			if (loc.getChr() > 0) {
