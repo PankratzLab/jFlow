@@ -35,20 +35,25 @@ public class LocusAnnotation {
 		ArrayList<Allele> alleles = new ArrayList<Allele>();
 		Allele refA = Allele.create(ref, false);
 		alleles.add(refA);
+		int maxAlleleLength = refA.getBases().length - 1;
+		boolean isIndel = false;
 		for (int i = 0; i < alts.length; i++) {
 			Allele altA = Allele.create(alts[i], false);
 			alleles.add(altA);
+			if (!isIndel) {
+				isIndel = alts[i].getBases().length != refA.getBases().length;
+			}
 		}
 
 		VariantContextBuilder vBuilder = new VariantContextBuilder();
 		vBuilder.chr(Positions.getChromosomeUCSC(seg.getChr(), true));
 		if (seg.getChr() == 0) {
 			vBuilder.start(seg.getStart() <= 0 ? 1 : seg.getStart());
-			vBuilder.stop(seg.getStop() <= 0 ? 1 : seg.getStop());
+			vBuilder.stop(seg.getStop() <= 0 ? 1 + maxAlleleLength : seg.getStop() + maxAlleleLength);
 
 		} else {
 			vBuilder.start(seg.getStart());
-			vBuilder.stop(seg.getStop());
+			vBuilder.stop(seg.getStop() + maxAlleleLength);
 		}
 		vBuilder.id(locusName);
 		vBuilder.alleles(alleles);
@@ -65,6 +70,14 @@ public class LocusAnnotation {
 		} catch (Exception e) {
 			log.reportException(e);
 			log.reportTimeError("Could not create VC at " + seg.getUCSClocation() + " for " + locusName);
+			log.reportTimeError("Ref " + ref.getDisplayString());
+			for (int i = 0; i < alts.length; i++) {
+				log.reportTimeError("Alt " + alts[i].getDisplayString());
+
+			}
+			for (int i = 0; i < annotations.length; i++) {
+				log.reportTimeError("Annotation: " + annotations[i].getData());
+			}
 		}
 		return vc;
 	}

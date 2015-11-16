@@ -69,6 +69,10 @@ public class MarkerSeqAnnotation extends AnnotationData {
 		return alts;
 	}
 
+	public String getSeqB() {
+		return seqB;
+	}
+
 	@Override
 	public void parseAnnotation(VariantContext vc, Logger log) {
 		if (vc.hasAttribute(getName())) {
