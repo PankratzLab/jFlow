@@ -14,8 +14,9 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 public class MarkerSeqAnnotation extends AnnotationData {
 
 	private static final String DEFAULT_NAME = "PROBE_DESIGN";
-	private static final String DESCRIPTION = "The probe sequence, interrogation position,strand by design,TOB_BOTTOM SNP designation,TOP_BOTTOM Reference Designation, A allele, and B allele ";
-	private String sequence;
+	private static final String DESCRIPTION = "The probe sequence for the A probe, probe sequence for the B probe (if different than A) interrogation position,strand by design,TOB_BOTTOM SNP designation,TOP_BOTTOM Reference Designation, A allele, and B allele ";
+	private String seqA;
+	private String seqB;
 	private Strand strand;
 	private int interrogationPosition;
 	private Segment seg;
@@ -25,6 +26,11 @@ public class MarkerSeqAnnotation extends AnnotationData {
 	private Allele B;
 	private Allele ref;
 	private Allele[] alts;
+	private boolean indel;
+	private boolean aInsertion;
+	private boolean bInsertion;
+	private boolean aDeletion;
+	private boolean bDeletion;
 
 	public MarkerSeqAnnotation() {
 		super(VCFHeaderLineType.String, null, 1, DEFAULT_NAME, DESCRIPTION, DEFUALT_VALUE, DEFUALT_VALUE);
@@ -34,8 +40,9 @@ public class MarkerSeqAnnotation extends AnnotationData {
 		return new MarkerSeqAnnotation();
 	}
 
-	public void setDesignData(String sequence, int interrogationPosition, Strand strand, TOP_BOT topBotProbe, TOP_BOT topBotRef, Allele A, Allele B) {
-		this.sequence = sequence;
+	public void setDesignData(String seqA, String segB, int interrogationPosition, Strand strand, TOP_BOT topBotProbe, TOP_BOT topBotRef, Allele A, Allele B) {
+		this.seqA = seqA;
+		this.seqB = segB;
 		this.interrogationPosition = interrogationPosition;
 		this.strand = strand;
 		this.topBotProbe = topBotProbe;
@@ -43,7 +50,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 		this.A = A;
 		this.B = B;
 		// this.seg=seg; populate on load only
-		setData(sequence + DEFUALT_DELIMITER + interrogationPosition + DEFUALT_DELIMITER + strand.getEncoding() + DEFUALT_DELIMITER + topBotProbe + DEFUALT_DELIMITER + topBotRef + DEFUALT_DELIMITER + A.getDisplayString() + DEFUALT_DELIMITER + B.getDisplayString());
+		setData(seqA + DEFUALT_DELIMITER + segB + DEFUALT_DELIMITER + interrogationPosition + DEFUALT_DELIMITER + strand.getEncoding() + DEFUALT_DELIMITER + topBotProbe + DEFUALT_DELIMITER + topBotRef + DEFUALT_DELIMITER + A.getDisplayString() + DEFUALT_DELIMITER + B.getDisplayString());
 	}
 
 	public Allele getA() {
@@ -67,34 +74,67 @@ public class MarkerSeqAnnotation extends AnnotationData {
 		if (vc.hasAttribute(getName())) {
 			setData(vc.getAttributeAsString(getName(), DEFAULT_NAME));
 			List<String> data = getDataAsList();
-			this.sequence = data.get(0);
+			this.seqA = data.get(0);
+			this.seqB = data.get(1);
+
 			this.interrogationPosition = -1;
 			try {
-				interrogationPosition = Integer.parseInt(data.get(1));
+				interrogationPosition = Integer.parseInt(data.get(2));
 
 			} catch (NumberFormatException nfe) {
 
 			}
-			this.strand = Strand.toStrand(data.get(2));
+			this.strand = Strand.toStrand(data.get(3));
 			this.seg = VCOps.getSegment(vc);
-			this.topBotProbe = TOP_BOT.valueOf(data.get(3));
-			this.topBotRef = TOP_BOT.valueOf(data.get(4));
+			this.topBotProbe = TOP_BOT.valueOf(data.get(4));
+			this.topBotRef = TOP_BOT.valueOf(data.get(5));
 			this.ref = vc.getReference();
 			List<Allele> alleles = vc.getAlternateAlleles();
 			this.alts = new Allele[alleles.size()];
 			for (int i = 0; i < alts.length; i++) {
 				alts[i] = alleles.get(i);
 			}
-			this.A = Allele.create(data.get(5), ref.basesMatch(data.get(5)));
-			this.B = Allele.create(data.get(6), ref.basesMatch(data.get(6)));
+			this.A = Allele.create(data.get(6), ref.basesMatch(data.get(6)));
+			this.B = Allele.create(data.get(7), ref.basesMatch(data.get(7)));
 			if (A.isReference() && B.isReference()) {
 				throw new IllegalArgumentException("A and B alleles cannot both be reference");
+			}
+			this.indel = vc.isIndel();
+			if (indel) {
+				this.aInsertion = A.getBases().length > ref.getBases().length;
+				this.bInsertion = B.getBases().length > ref.getBases().length;
+				this.aDeletion = A.getBases().length < ref.getBases().length;
+				this.bDeletion = B.getBases().length < ref.getBases().length;
+
+				if ((aDeletion && aInsertion) || (bDeletion && bInsertion)) {
+					throw new IllegalStateException("Allele cannot be both insertion and deletion");
+				}
 			}
 		}
 	}
 
+	public boolean isIndel() {
+		return indel;
+	}
+
+	public boolean isaInsertion() {
+		return aInsertion;
+	}
+
+	public boolean isbInsertion() {
+		return bInsertion;
+
+	}
+	public boolean isaDeletion() {
+		return aDeletion;
+	}
+
+	public boolean isbDeletion() {
+		return bDeletion;
+	}
+
 	public String getSequence() {
-		return sequence;
+		return seqA;
 	}
 
 	public Strand getStrand() {
