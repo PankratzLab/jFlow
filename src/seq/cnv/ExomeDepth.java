@@ -193,7 +193,7 @@ public class ExomeDepth {
 		String script = generateCountsScripts();
 
 		CmdLine.prepareBatchForCommandLine(new String[] { script }, scriptFile, true, log);
-		created = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", scriptFile }, "", allReferenceBAMFiles, new String[] { getCountFile() }, true, false, false, log);
+		created = CmdLine.runCommandWithFileChecks(new String[] { getRscriptCall(), scriptFile }, "", allReferenceBAMFiles, new String[] { getCountFile() }, true, false, false, log);
 		return created;
 	}
 
