@@ -36,7 +36,7 @@ public class BlastAnnotationLoader extends AnnotationFileLoader {
 	 *            , should always be set to true
 	 */
 	public BlastAnnotationLoader(Project proj, String annotationFilename, boolean indexRequired) {
-		super(proj, BlastAnnotationTypes.getBaseAnnotations(), annotationFilename, indexRequired);
+		super(proj, null,BlastAnnotationTypes.getBaseAnnotations(), annotationFilename, indexRequired);
 		MarkerSet markerSet = proj.getMarkerSet();
 		this.chrs = markerSet.getChrs();
 		this.pos = markerSet.getPositions();

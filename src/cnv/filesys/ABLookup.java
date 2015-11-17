@@ -1,15 +1,25 @@
 package cnv.filesys;
 
+import htsjdk.tribble.annotation.Strand;
+import htsjdk.variant.variantcontext.Allele;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import seq.manage.StrandOps;
 import bioinformatics.Sequence;
+import cnv.annotation.AnnotationParser;
+import cnv.annotation.MarkerAnnotationLoader;
+import cnv.annotation.MarkerBlastAnnotation;
+import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
+import cnv.annotation.MarkerSeqAnnotation;
 import cnv.manage.MarkerDataLoader;
 import common.Array;
 import common.Files;
@@ -198,10 +208,70 @@ public class ABLookup {
         }
 		
 	}
-	
+
+	/**
+	 * @param proj
+	 *            Will try to generate the ab lookup from the annotation vcf. If fails, will use {@link ABLookup#parseFromOriginalGenotypes(Project)}
+	 */
+	public void parseFromAnnotationVCF(Project proj) {
+		if (!Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
+			proj.getLog().reportTimeWarning("Could not find " + proj.BLAST_ANNOTATION_FILENAME.getValue() + ", trying to parse from original genotypes instead");
+		} else {
+			proj.getLog().reportTimeWarning("This method has not been completely tested, you have been warned");
+			try {
+				MarkerSet markerSet = proj.getMarkerSet();
+				markerNames = markerSet.getMarkerNames();
+
+				MarkerBlastAnnotation[] masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
+				MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null, proj.BLAST_ANNOTATION_FILENAME.getValue(), markerSet, true);
+				annotationLoader.setReportEvery(10000);
+				ArrayList<AnnotationParser[]> parsers = new ArrayList<AnnotationParser[]>();
+				parsers.add(masterMarkerList);
+				annotationLoader.fillAnnotations(null, parsers, QUERY_ORDER.ONE_PER_IN_ORDER);
+				Hashtable<String, Integer> indices = proj.getMarkerIndices();// should be in perfect order but just in case;
+				lookup = new char[markerNames.length][2];
+
+				for (int i = 0; i < markerNames.length; i++) {
+					int indx = indices.get(markerNames[i]);
+					MarkerSeqAnnotation tmp = masterMarkerList[indx].getMarkerSeqAnnotation();
+					Strand strand = tmp.getStrand();
+					Allele A = tmp.getA();
+					Allele B = tmp.getB();
+					char a = 'N';
+					char b = 'N';
+					if (tmp.isIndel()) {
+						if (tmp.isaDeletion()) {
+							a = 'D';
+							b = 'I';// actually this is typically just :equals reference;
+						} else if (tmp.isbDeletion()) {
+							a = 'I';
+							b = 'D';
+						} else {
+							throw new IllegalStateException("Both A and B should not be deletions");
+						}
+					} else {
+						if (!A.isSymbolic()) {
+							a = StrandOps.flipIfNeeded(A.getDisplayString(), strand, false).charAt(0);
+						}
+						if (!B.isSymbolic()) {
+							b = StrandOps.flipIfNeeded(B.getDisplayString(), strand, false).charAt(0);
+						}
+					}
+					lookup[indx] = new char[] { a, b };
+				}
+				return;
+
+			} catch (Exception e) {
+				proj.getLog().reportTimeWarning("Could not generate AB lookup from " + proj.BLAST_ANNOTATION_FILENAME.getValue() + ", trying to parse from original genotypes instead");
+
+			}
+		}
+		parseFromOriginalGenotypes(proj);
+	}
+
 	public void parseFromOriginalGenotypes(Project proj) {
-        String fullGenotype;
-        String[] samples;
+		String fullGenotype;
+		String[] samples;
         String[][] genotypesSeen;
         int[][] countsForGenotypes;
         Sample fsamp;

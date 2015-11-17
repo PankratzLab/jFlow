@@ -108,7 +108,7 @@ public class GcLook {
 				}
 			}
 			if (!Files.exists(out)) {
-				MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getMarkerSet(), true);
+				MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(proj, null, proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getMarkerSet(), true);
 				markerAnnotationLoader.setReportEvery(500000);
 				MarkerGCAnnotation[] gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, markerNames, markerAnnotationLoader.getMarkerSet(), markerAnnotationLoader.getIndices());
 				MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
