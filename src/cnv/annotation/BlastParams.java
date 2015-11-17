@@ -44,6 +44,38 @@ public class BlastParams implements AnalysisParams {
 		this.log = log;
 	}
 
+	public String getFileSeq() {
+		return fileSeq;
+	}
+
+	public String getFastaDb() {
+		return fastaDb;
+	}
+
+	public int getMaxAlignmentsReported() {
+		return maxAlignmentsReported;
+	}
+
+	public int getReportWordSize() {
+		return reportWordSize;
+	}
+
+	public int getBlastWordSize() {
+		return blastWordSize;
+	}
+
+	public String getDateStamp() {
+		return dateStamp;
+	}
+
+	public double getEvalueCutoff() {
+		return evalueCutoff;
+	}
+
+	public Logger getLog() {
+		return log;
+	}
+
 	@Override
 	public VCFHeaderLine developHeaderLine() {
 		ArrayList<String> valueString = new ArrayList<String>();

@@ -698,7 +698,7 @@ public class CNVCaller {
 		String hmm = proj.HMM_FILENAME.getValue();
 		PennHmm pennHmmOriginal = PennHmm.loadPennHmm(hmm, new Logger());
 		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
-		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
+		//GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
 		int numThreads = 1;
 		long trailerTime = System.currentTimeMillis();
 		String[] samples = proj.getSamples();

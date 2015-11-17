@@ -26,7 +26,7 @@ public class MarkerEvalueHistogramAnnotation extends HistogramAnnotation {
 	private Hashtable<String, Integer> exactHistogram;
 
 	public MarkerEvalueHistogramAnnotation(String name, String description) {
-		super(name, description, new DynamicHistogram(0, 1, 2));
+		super(name, description, new DynamicHistogram(0, 1, 2));// the Dynamic histogram is not actualy used
 		this.exactHistogram = new Hashtable<String, Integer>();
 	}
 
@@ -66,11 +66,12 @@ public class MarkerEvalueHistogramAnnotation extends HistogramAnnotation {
 		if (vc.hasAttribute(getName())) {
 			setData(vc.getAttributeAsString(getName(), DEFAULT_NAME));
 			List<String> tmp = getDataAsList();
+			// System.out.println(tmp.toString());
 			ArrayList<String> tmpCounts = new ArrayList<String>();
 			ArrayList<String> tmpEvals = new ArrayList<String>();
 			for (int i = 0; i < tmp.size(); i += 2) {
-				tmpCounts.add(tmp.get(i));
-				tmpEvals.add(tmp.get(i + 1));
+				tmpEvals.add(tmp.get(i));
+				tmpCounts.add(tmp.get(i + 1));
 			}
 			blastEvalueCounts = tmpCounts;
 			blastEvalues = tmpEvals;
