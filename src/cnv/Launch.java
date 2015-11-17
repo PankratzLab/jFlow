@@ -460,7 +460,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				filename = proj.PROJECT_DIRECTORY.getValue()+ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
 				if (!Files.exists(filename)) {
 					abLookup = new ABLookup();
-					abLookup.parseFromOriginalGenotypes(proj);
+					abLookup.parseFromAnnotationVCF(proj);
 					abLookup.writeToFile(filename, proj.getLog());
 				}
 				

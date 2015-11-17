@@ -35,9 +35,11 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 	private String tmpFile;
 	private CloseableIterator<VariantContext> additionReader;
 
-	public AnnotationFileWriter(Project proj, Annotation[] annotations, String annotationFilename, boolean overWriteExisting) {
+	public AnnotationFileWriter(Project proj, AnalysisParams[] analysisParams, Annotation[] annotations, String annotationFilename, boolean overWriteExisting) {
 		super(proj, annotationFilename);
 		setAnnotations(annotations);
+		setParams(analysisParams);
+		
 		this.overWriteExisting = overWriteExisting;
 		this.additionMode = false;
 		this.tmpFile = null;
@@ -56,7 +58,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 	 * @param skipDefaultValue
 	 *            if true, annotations that are set to their default value will not be added to the {@link VariantContext}
 	 */
-	public void write(LocusAnnotation locusAnnotation, boolean skipDefaultValue,boolean skipAlleleCheck) {
+	public void write(LocusAnnotation locusAnnotation, boolean skipDefaultValue, boolean skipAlleleCheck) {
 		if (writer != null) {
 			VariantContext vcAnno = locusAnnotation.annotateLocus(skipDefaultValue);
 			if (vcAnno.getStart() <= 0 || vcAnno.getEnd() <= 0) {
@@ -151,7 +153,13 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 					proj.getLog().reportTimeWarning("Detected that info line " + annotations[i].getName() + " is already present, any new data added will overwrite previous");
 				}
 			}
-
+			if (params != null) {
+				for (int i = 0; i < params.length; i++) {
+					if (vcfHeader.getOtherHeaderLine(params[i].getKey()) == null) {
+						vcfHeader.addMetaDataLine(params[i].developHeaderLine());
+					}
+				}
+			}
 			VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(additionMode ? tmpFile : annotationFilename);// tmp file if needed
 			builder.clearOptions();
 			builder.setOption(Options.INDEX_ON_THE_FLY);

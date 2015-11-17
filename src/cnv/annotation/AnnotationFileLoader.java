@@ -33,9 +33,10 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 	 * @param indexRequired
 	 *            this should always be true, but may be optional at a later time
 	 */
-	public AnnotationFileLoader(Project proj, Annotation[] annotations, String annotationFilename, boolean indexRequired) {
+	public AnnotationFileLoader(Project proj, AnalysisParams[] params, Annotation[] annotations, String annotationFilename, boolean indexRequired) {
 		super(proj, annotationFilename);
 		setAnnotations(annotations);
+		setParams(params);
 		this.indexRequired = indexRequired;
 		this.valid = validate();
 		this.reportEvery = -1;
@@ -91,7 +92,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 					}
 					break;
 				case ONE_PER_IN_ORDER:
-					if (parsers[index - 1].shouldAnnotateWith(vc, proj.getLog())) {
+					if (!parsers[index - 1].shouldAnnotateWith(vc, proj.getLog())) {
 						String error = "Query type was set to " + queryType + " but the annotation at index " + (index - 1) + " did not match";
 						proj.getLog().reportTimeError(error);
 						throw new IllegalStateException(error);
@@ -110,7 +111,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 				case NO_ORDER:
 					break;
 				case ONE_PER_IN_ORDER:
-					//searchIndex++;
+					// searchIndex++;
 					break;
 				default:
 					String error = "Invalid query " + queryType;
@@ -201,7 +202,15 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 			try {
 				VCFFileReader reader = new VCFFileReader(annotationFilename, indexRequired);
 				VCFHeader vcfHeader = reader.getFileHeader();// doing this will trigger the htsjdk file format checks
-
+				if (params != null) {
+					for (int i = 0; i < params.length; i++) {
+						if (vcfHeader.getMetaDataLine(params[i].getKey()) != null) {
+							params[i].parseHeaderLine(vcfHeader.getMetaDataLine(params[i].getKey()));
+						} else {
+							proj.getLog().reportTimeWarning("Could not find parameters for " + params[i].getKey());
+						}
+					}
+				}
 				boolean hasAllAnno = true;
 				if (annotations != null) {
 					for (int i = 0; i < annotations.length; i++) {

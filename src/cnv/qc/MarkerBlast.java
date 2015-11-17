@@ -13,8 +13,10 @@ import common.Files;
 import common.PSF;
 import common.WorkerHive;
 import common.ext;
+import cnv.annotation.AnalysisParams;
 import cnv.annotation.AnnotationData;
 import cnv.annotation.AnnotationFileWriter;
+import cnv.annotation.BlastParams;
 import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
 import cnv.annotation.BlastAnnotationWriter;
 import cnv.annotation.LocusAnnotation;
@@ -57,9 +59,10 @@ public class MarkerBlast {
 			proj.getLog().reportTimeError("Was not able to find reference genome defined by " + proj.REFERENCE_GENOME_FASTA_FILENAME.getName());
 			return null;
 		} else {
-
+			double evalueCutoff =10000;
+			BlastParams blastParams = new BlastParams(fileSeq, fastaDb, maxAlignmentsReported, reportWordSize, blastWordSize, ext.getTimestampForFilename(), evalueCutoff, proj.getLog());
 			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
-			blast.setEvalue(10000);// we rely on the wordSize instead
+			blast.setEvalue(evalueCutoff);// we rely on the wordSize instead
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
 			new File(dir).mkdirs();
 
@@ -113,8 +116,9 @@ public class MarkerBlast {
 				new File(proj.BLAST_ANNOTATION_FILENAME.getValue()).delete();
 			}
 
+			System.out.println(blastParams.developHeaderLine().getValue());
 			proj.getLog().reportTimeInfo("Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
-			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), doBlast ? tmps : new String[] {}, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
+			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, new AnalysisParams[] { blastParams }, proj.BLAST_ANNOTATION_FILENAME.getValue(), doBlast ? tmps : new String[] {}, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
 			if (proj.getArrayType() != ARRAY.ILLUMINA) {
 				proj.getLog().reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
 			}
@@ -172,7 +176,7 @@ public class MarkerBlast {
 			MarkerGCAnnotation markerGCAnnotation = new MarkerGCAnnotation(builder, marker, fastaEntries[i].getMarkerSegment());
 			gcAnnotations[index] = markerGCAnnotation;
 		}
-		AnnotationFileWriter writer = new AnnotationFileWriter(proj, new AnnotationData[] { MarkerGCAnnotation.getGCAnnotationDatas() }, proj.BLAST_ANNOTATION_FILENAME.getValue(), false) {
+		AnnotationFileWriter writer = new AnnotationFileWriter(proj, null, new AnnotationData[] { MarkerGCAnnotation.getGCAnnotationDatas() }, proj.BLAST_ANNOTATION_FILENAME.getValue(), false) {
 		};
 		for (int i = 0; i < gcAnnotations.length; i++) {
 			if (gcAnnotations[i] != null) {// currently some markers may not be represented, such as affy CN markers
@@ -418,7 +422,7 @@ public class MarkerBlast {
 				int len = indel.length() - 1;
 				if (loc.getChr() > 0) {
 
-					Segment newQuery = new Segment(loc.getChr(), loc.getStart() - 1, loc.getStop() + len);
+					Segment newQuery = new Segment(loc.getChr(), loc.getStart() - 1, loc.getStop() + len);// need to grab preceeding ref bp
 					String[] tmp = referenceGenome.getSequenceFor(newQuery);
 					if (tmp.length - 1 != indel.length()) {
 						throw new IllegalStateException("Invalid reference indel query; REF -> " + Array.toStr(tmp) + "\t indel -> " + indel);
@@ -427,9 +431,9 @@ public class MarkerBlast {
 					for (int i = 0; i < indel.length(); i++) {
 						if (!tmp[i + 1].equalsIgnoreCase(indel.charAt(i) + "")) {
 							insertionisRef = false;
+							break;
 						}
 					}
-
 					ref = Allele.create(Array.toStr(tmp, ""), true);
 					if (insertionisRef) {
 						if (aS.equals("I")) {
@@ -468,9 +472,6 @@ public class MarkerBlast {
 							alts[1] = Allele.create(StrandOps.flipsIfNeeded(indel, strand, false), false);
 						}
 					}
-
-					System.out.println(insertionisRef);
-
 				} else {
 
 					ref = Allele.create("NN", true);
@@ -494,20 +495,6 @@ public class MarkerBlast {
 				}
 			}
 		}
-
-		// System.out.println(sourceSeq);
-
-		// System.out.println(start);
-		// System.out.println(stop);
-		// System.out.println(Array.toStr(tmp));
-		// System.out.println(indel);
-		// System.out.println(aS);
-		// System.out.println(pseqA);
-		//
-		// System.out.println(bS);
-		// System.out.println(pseqB);
-		//
-		// System.out.println(strand);
 
 		private void parse(ARRAY array, Strand strand, String sourceSeq) {
 			if (loc.getChr() > 0) {
@@ -566,21 +553,7 @@ public class MarkerBlast {
 					B = Allele.create(bS, false);
 				}
 			}
-			// if (loc.getChr() > 0) {
-			// System.out.println("REF: -> " + ref.getDisplayString());
-			// for (int i = 0; i < alts.length; i++) {
-			// System.out.println("ALT " + i + " : -> " + alts[i].getDisplayString());
-			// }
-			// System.out.println("A: -> " + A.getDisplayString());
-			// System.out.println("B: -> " + B.getDisplayString());
-			// System.out.println("Strand: -> " + strand);
-			// try {
-			// Thread.sleep(100);
-			// } catch (InterruptedException ie) {
-			// }
-			// }
 		}
-
 	}
 
 	private static ExtProjectDataParser.Builder formatParser(Project proj, FILE_SEQUENCE_TYPE type) {

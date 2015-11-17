@@ -37,8 +37,8 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 	private int maxMismatches;
 	private int maxAlignmentsReported;
 
-	public BlastAnnotationWriter(Project proj, String outputFile, String[] blastResultFiles, int minAlignmentLength, int maxGaps, int maxMismatches, int maxAlignmentsReported) {
-		super(proj, Array.concatAll(BlastAnnotationTypes.getBaseAnnotations(), new Annotation[] { MarkerBlastHistogramAnnotation.getDefaultBlastAnnotation() }, new Annotation[] { MarkerSeqAnnotation.getDefault() }), outputFile, false);
+	public BlastAnnotationWriter(Project proj, AnalysisParams[] analysisParams, String outputFile, String[] blastResultFiles, int minAlignmentLength, int maxGaps, int maxMismatches, int maxAlignmentsReported) {
+		super(proj, analysisParams, Array.concatAll(BlastAnnotationTypes.getBaseAnnotations(), new Annotation[] { MarkerBlastHistogramAnnotation.getDefaultBlastAnnotation() }, new Annotation[] { MarkerSeqAnnotation.getDefault() }), outputFile, false);
 		this.proj = proj;
 		this.blastResultFiles = blastResultFiles;
 		this.minAlignmentLength = minAlignmentLength;
@@ -91,11 +91,11 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 					String[] line = reader.readLine().trim().split("\t");
 					if ((line.length == Blast.BLAST_HEADER.length - 1 || line.length == Blast.BLAST_HEADER.length) && !line[0].startsWith(Blast.BLAST_HEADER[0])) {
 						numEntries++;
-						if (numEntries % 10000 == 0) {
+						if (numEntries % 1000000 == 0) {
 							proj.getLog().reportTimeInfo("Processed " + numEntries + " blast results");
 							proj.getLog().memoryPercetTotalFree();
-//							reader.close();
-//							break;
+							// reader.close();
+							// break;
 						}
 						BlastResults blastResults = new BlastResults(line, proj.getLog());
 

@@ -73,17 +73,17 @@ public class BlastAnnotationTesting {
 		int maxMismatches = 10;
 
 		// Writing:
-		BlastAnnotationWriter blastAnnotation = new BlastAnnotationWriter(proj, annoFile, blastResultFiles, minAlignmentLength, maxGaps, maxMismatches, 15);
+		BlastAnnotationWriter blastAnnotation = new BlastAnnotationWriter(proj, null,annoFile, blastResultFiles, minAlignmentLength, maxGaps, maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
 
 //		Annotation annotation = new Annotation(VCFHeaderLineType.String, null, 1, "test analysis ", "a test analysis addition", "DSDF") {
 //		};
-		blastAnnotation = new BlastAnnotationWriter(proj, annoFile, blastResultFiles, minAlignmentLength, maxGaps, maxMismatches, 15);
+		blastAnnotation = new BlastAnnotationWriter(proj, null, annoFile, blastResultFiles, minAlignmentLength, maxGaps, maxMismatches, 15);
 		blastAnnotation.summarizeResultFiles(true);
 		blastAnnotation.close();
 		// (Project proj, Annotation[] annotations, String annotationFilename, boolean overWriteExisting
-		AnnotationFileWriter test = new AnnotationFileWriter(proj, new AnnotationData[] { new AnnotationData(VCFHeaderLineType.String, null, 1, "TestAdd", "TestAddidtion", "DSF", ".") }, annoFile, false) {
+		AnnotationFileWriter test = new AnnotationFileWriter(proj, null, new AnnotationData[] { new AnnotationData(VCFHeaderLineType.String, null, 1, "TestAdd", "TestAddidtion", "DSF", ".") }, annoFile, false) {
 		};
 		LocusAnnotation[] testAdd = getTestAddition(proj);
 		for (int i = 0; i < testAdd.length; i++) {
@@ -108,7 +108,7 @@ public class BlastAnnotationTesting {
 		// t.add(markers[200003]);
 
 		MarkerBlastAnnotation[] blastResults = MarkerBlastAnnotation.initForMarkers(Array.toStringArray(t));
-		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getMarkerSet(), true);
+		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(proj, null, proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getMarkerSet(), true);
 		ArrayList<AnnotationParser[]> toparse = new ArrayList<AnnotationParser[]>();
 		toparse.add(blastResults);
 		annotationLoader.fillAnnotations(Array.toStringArray(t), toparse, QUERY_ORDER.NO_ORDER);

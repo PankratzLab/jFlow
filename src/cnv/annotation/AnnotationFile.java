@@ -14,6 +14,7 @@ public abstract class AnnotationFile {
 	protected Project proj;
 	protected String annotationFilename;
 	protected Annotation[] annotations;
+	protected AnalysisParams[] params;
 
 	/**
 	 * @param proj
@@ -35,6 +36,14 @@ public abstract class AnnotationFile {
 
 	public void setAnnotations(Annotation[] annotations) {
 		this.annotations = annotations;
+	}
+
+	public AnalysisParams[] getParams() {
+		return params;
+	}
+
+	public void setParams(AnalysisParams[] params) {
+		this.params = params;
 	}
 
 }

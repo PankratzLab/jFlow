@@ -25,8 +25,8 @@ public class MarkerAnnotationLoader extends AnnotationFileLoader {
 	 * @param indexRequired
 	 *            should always be true for now
 	 */
-	public MarkerAnnotationLoader(Project proj, String annotationFilename, MarkerSet markerSet, boolean indexRequired) {
-		super(proj, null, annotationFilename, indexRequired);
+	public MarkerAnnotationLoader(Project proj, AnalysisParams[] params, String annotationFilename, MarkerSet markerSet, boolean indexRequired) {
+		super(proj, params, null, annotationFilename, indexRequired);
 		if (markerSet == null) {
 			markerSet = proj.getMarkerSet();
 		}
@@ -52,7 +52,7 @@ public class MarkerAnnotationLoader extends AnnotationFileLoader {
 	 */
 	public void fillAnnotations(final String[] markers, List<AnnotationParser[]> parsersQueries, QUERY_ORDER qOrder) {
 		Segment[] markerSegments = null;
-		if (markers == null) {
+		if (markers == null && qOrder != QUERY_ORDER.NO_ORDER) {
 			proj.getLog().reportTimeWarning("No marker names were provided, searching entire annotation file");
 		} else {
 			markerSegments = getSegmentsForMarkers(markers);
