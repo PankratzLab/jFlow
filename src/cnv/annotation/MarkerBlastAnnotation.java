@@ -12,6 +12,7 @@ import java.util.List;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
+import cnv.annotation.MarkerEvalueHistogramAnnotation.EvalueHistogram;
 import cnv.filesys.Project;
 import common.Logger;
 import common.ArraySpecialList.ArrayBlastAnnotationList;
@@ -21,6 +22,7 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 	private BLAST_ANNOTATION_TYPES[] bTypes;
 	private ArrayBlastAnnotationList[] annotationLists;
 	private MarkerBlastHistogramAnnotation blastAlignmentHistogram;
+	private MarkerEvalueHistogramAnnotation markerEvalueHistogramAnnotation;
 	private MarkerSeqAnnotation markerSeqAnnotation;
 	private String markerName;
 	private boolean found;
@@ -80,6 +82,10 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 		return markerSeqAnnotation;
 	}
 
+	public EvalueHistogram getEvalueHistogram() {
+		return markerEvalueHistogramAnnotation.formatHistogram();
+	}
+
 	@Override
 	public void parseAnnotation(VariantContext vc, Logger log) {
 		for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {// each annotation type has a separate key in the file
@@ -96,6 +102,8 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 		blastAlignmentHistogram.parseAnnotation(vc, log);
 		this.markerSeqAnnotation = new MarkerSeqAnnotation();
 		markerSeqAnnotation.parseAnnotation(vc, log);
+		this.markerEvalueHistogramAnnotation = new MarkerEvalueHistogramAnnotation(MarkerEvalueHistogramAnnotation.DEFAULT_NAME, MarkerEvalueHistogramAnnotation.DEFAULT_DESCRIPTION);
+		markerEvalueHistogramAnnotation.parseAnnotation(vc, log);
 	}
 
 	@Override
