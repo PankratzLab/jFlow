@@ -91,7 +91,7 @@ public class VcfQuery {
 		byte firstChr = 0;
 		for (VariantContext variantContext : vcfFileReader) {
 			try {
-				firstChr = Byte.parseByte(variantContext.getChr());
+				firstChr = Byte.parseByte(variantContext.getContig());
 			} catch (NumberFormatException nfe) {
 				firstChr = 0;
 			}
@@ -139,7 +139,7 @@ public class VcfQuery {
 		private String outputDir;
 		private VCF_ORGANIZATION org;
 		private VcfPopulation vpop;
-		private VariantContextWriter writer;
+		//private VariantContextWriter writer;
 
 		private QueryManager(String vcfFile, Segment[] seqsToQuery, QueryParams params, String outputDir, VariantContextWriter writer, Logger log) {
 			super();
@@ -148,7 +148,7 @@ public class VcfQuery {
 			this.infoToExtract = params.getInfoToExtract();
 			this.outputDir = outputDir;
 			this.org = params.getOrg();
-			this.writer = writer;
+			//this.writer = writer;
 			this.vpop = params.getPopulationFile() == null ? null : VcfPopulation.load(params.getPopulationFile(),POPULATION_TYPE.ANY, log);
 			this.log = log;
 		}
@@ -334,7 +334,7 @@ public class VcfQuery {
 
 		private static QueryResult getFromVariantContext(VariantContext vc, String[] infoToExtract, Logger log) {
 			String name = vc.getID();
-			String chr = vc.getChr();
+			String chr = vc.getContig();
 			String ref = vc.getReference().getDisplayString();
 			Allele[] alt = vc.getAlternateAlleles().toArray(new Allele[vc.getAlternateAlleles().size()]);
 			String callRate = getCallRate(vc) + "";
@@ -344,7 +344,7 @@ public class VcfQuery {
 			}
 			int start = vc.getStart();
 			if (name.equals(".")) {
-				name = vc.getChr() + ":" + vc.getStart();
+				name = vc.getContig() + ":" + vc.getStart();
 			}
 			QueryResult qResult = new QueryResult(name, chr, ref, alts, start, callRate);
 			if (infoToExtract != null) {

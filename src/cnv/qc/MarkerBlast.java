@@ -429,7 +429,7 @@ public class MarkerBlast {
 					}
 					boolean insertionisRef = true;
 					for (int i = 0; i < indel.length(); i++) {
-						if (!tmp[i + 1].equalsIgnoreCase(indel.charAt(i) + "")) {
+						if (!tmp[i + 1].equalsIgnoreCase(indel.charAt(i) + "") && !tmp[i + 1].equalsIgnoreCase(StrandOps.flipIfNeeded(indel.charAt(i) + "", strand, false))) {
 							insertionisRef = false;
 							break;
 						}
@@ -461,7 +461,7 @@ public class MarkerBlast {
 							B = Allele.create(tmpB, false);
 							alts = new Allele[2];
 							alts[0] = Allele.create(tmp[0], false);
-							alts[1] = Allele.create(StrandOps.flipsIfNeeded(indel, strand, false), false);
+							alts[1] = Allele.create(tmp[0]+StrandOps.flipsIfNeeded(indel, strand, false), false);
 						} else {
 							String tmpA = StrandOps.flipIfNeeded(tmp[0], strand, false);
 							String tmpB = StrandOps.flipIfNeeded(tmp[0], strand, false) + indel;
@@ -469,7 +469,7 @@ public class MarkerBlast {
 							B = Allele.create(tmpB, false);
 							alts = new Allele[2];
 							alts[0] = Allele.create(tmp[0], false);
-							alts[1] = Allele.create(StrandOps.flipsIfNeeded(indel, strand, false), false);
+							alts[1] = Allele.create(tmp[0]+StrandOps.flipsIfNeeded(indel, strand, false), false);
 						}
 					}
 				} else {

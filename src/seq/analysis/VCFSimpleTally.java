@@ -310,7 +310,7 @@ public class VCFSimpleTally {
 				}
 				reader.close();
 				writer.close();
-				String outXl = caseWithControls + ".xls";
+				//String outXl = caseWithControls + ".xls";
 //				ExcelWriter writerxl = new ExcelWriter(Array.toStringArray(filesToWrite), Array.toStringArray(names), log);
 //				writerxl.write(outXl);
 
@@ -335,8 +335,8 @@ public class VCFSimpleTally {
 
 	private static class SimpleTallyResult {
 		private VcfPopulation controls;
-		private String finalOut;
-		private String finalOutVCF;
+		//private String finalOut;
+		//private String finalOutVCF;
 		private String finalAnnot;
 		private String finalAnnotSample;
 		private String finalsampSummary;
@@ -346,8 +346,8 @@ public class VCFSimpleTally {
 		public SimpleTallyResult(VcfPopulation controls, String finalOut, String finalOutVCF,String finalsampSummary, String finalAnnot, String finalAnnotSample, String finalAnnotGene) {
 			super();
 			this.controls = controls;
-			this.finalOut = finalOut;
-			this.finalOutVCF = finalOutVCF;
+			//this.finalOut = finalOut;
+		//	this.finalOutVCF = finalOutVCF;
 			this.finalsampSummary = finalsampSummary;
 			this.finalAnnot = finalAnnot;
 			this.finalAnnotGene = finalAnnotGene;
