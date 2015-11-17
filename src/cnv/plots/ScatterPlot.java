@@ -73,6 +73,7 @@ import net.miginfocom.swing.MigLayout;
 import seq.manage.ReferenceGenome;
 import stats.CTable;
 import stats.ContingencyTable;
+import stats.Histogram;
 import stats.ProbDist;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
@@ -2427,24 +2428,44 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private void displayBlast() {
         if (blastFrame == null) {
             blastFrame = new BlastFrame(proj);
-		}
-		// EvalueHistogram evh = blastResults[markerIndex].getEvalueHistogram();
-		// System.out.println(blastParams.getBlastWordSize());
-		// System.out.println(blastParams.getMaxAlignmentsReported());
+        }
         blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
-        int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
+        final int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
         if (histFrame == null) {
             histFrame = TwoDPlot.createGUI(getProject(), false, false, null);
         }
+
         histFrame.removeAllData();
-        String[][] data = new String[histogram.length][];
+        histFrame.setHistogram(true);
+        histFrame.getPanel().overrideAxisLabels("Bins", "");
+        histFrame.getPanel().setHistogramOverride(true);
+        final double[] bins = new double[histogram.length];
+        int min = 0;
         for (int i = 0; i < histogram.length; i++) {
-            data[i] = new String[2];
-            data[i][0] = "" + i;
-            data[i][1] = "" + histogram[i];
+            bins[i] = i + 1;
+            if (histogram[i] == 0) {
+                min++;
+            }
         }
-        histFrame.addDataSource("BLAST_Histogram", data, new String[]{"Bin", "Counts"});
-        histFrame.showSpecificFile(getProject(), "BLAST_Histogram", 0, 1);
+        final int min2 = min;
+        Histogram hist = new Histogram() {
+            private static final long serialVersionUID = 1L;
+            {
+                min = min2;
+                max = 50;
+                sigfigs = 4;
+                counts = histogram;
+            }
+            @Override
+            public double[] getBins() {
+                return bins;
+            }
+            @Override
+            public double determineStep() {
+                return 1d;
+            }
+        };
+        histFrame.getPanel().setHistogram(hist);
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {

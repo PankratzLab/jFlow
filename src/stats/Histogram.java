@@ -16,13 +16,13 @@ public class Histogram implements Serializable {
 			// To add more options, use POWER(10, -1*desired_value) and add it here
 	public final static double[] EXTRA_STEPS = {0.0, 0.698970004336019, 0.602059991327962, 0.301029995663981};
 
-	private int[] counts;
+	protected int[] counts;
 	private int sumTotal;
 	private float[] smoothed;
-	private double min;
-	private double max;
-	private int sigfigs;
-	private int extrastep;
+	protected double min;
+	protected double max;
+	protected int sigfigs;
+	protected int extrastep;
 	private int window;
 	private float peakThreshold;
 	private String title;
@@ -122,7 +122,11 @@ public class Histogram implements Serializable {
 		this(Array.toDoubleArray(array), min, max, sigfigs, 0);
 	}
 	
-	public double determineStep() {
+	protected Histogram() {
+        // TODO Auto-generated constructor stub
+    }
+
+    public double determineStep() {
 		return determineStep(sigfigs, extrastep);
 	}
 	
@@ -182,6 +186,7 @@ public class Histogram implements Serializable {
 	public double[] getBins() {
 		return getBins(false);
 	}
+	
 	public double[] getBins(boolean verbose) {
 		double[] bins = new double[counts.length];
 		int count = 0;

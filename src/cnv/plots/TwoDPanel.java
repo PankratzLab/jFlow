@@ -315,7 +315,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		double max = hist.getMax();
 		double minDiff = hist.determineStep();
 		int sig = hist.getSigfigs();
-		
+
 		float binHalf = (float) (hist.getBins().length > 1 ? ext.roundToSignificantFigures(minDiff / 2.0, sig + 1) : DEFAULT_HALF_BIN_SIZE);
 		
 		forcePlotXmax = (float) (max + minDiff);

@@ -34,8 +34,8 @@ public class PLINK2GenomePackager {
             }
         });
         if (covars.length == 0) {
-            System.err.println(ext.getTime() + "]\tError - no covariate files found.  Ensure that files are named *_covars.dat and try again.");
-            return;
+            System.err.println(ext.getTime() + "]\tWARNING - no covariate files found.  If covar files exist, ensure they are named *_covars.dat and try again.  Otherwise, skipping covariate analysis.");
+//            return;
         }
         
         
@@ -85,40 +85,44 @@ public class PLINK2GenomePackager {
         for (String pheno : phenos) {
             String[] parts = pheno.split("_");
             if (parts.length == 1) {
-                System.err.println(ext.getTime() + "]\tError - phenotype file {" + pheno + "} is named incorrectly.  Correct naming is *_pheno.dat for covariate files.");
+                System.err.println(ext.getTime() + "]\tError - phenotype file {" + pheno + "} is named incorrectly.  Correct naming is *_pheno.dat for phenotype files.");
                 continue;
             } else if (parts.length == 2) {
-                if (covarPrefices.containsKey(parts[0])) {
-                    if (setupForScript(dir, fileList, famFile, covarPrefices.get(parts[0]), pheno)) {
-                        String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
-                        String phenoDir = dir + phenoPrefix + "/";
-                        String script = createScript(fileList, famFile, covarPrefices.get(parts[0]), pheno, phenoDir); 
-                        plinkRuns.put(phenoDir, script);
-                    }
-                } else {
-                    System.err.println(ext.getTime() + "]\tError - no covariate file found for phenotype file {" + pheno + "}.");
-                    continue;
+//                if (covarPrefices.containsKey(parts[0])) {
+                if (setupForScript(dir, fileList, famFile, covarPrefices.get(parts[0]), pheno)) {
+                    String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
+                    String phenoDir = dir + phenoPrefix + "/";
+                    String script = createScript(fileList, famFile, covarPrefices.get(parts[0]), pheno, phenoDir); 
+                    plinkRuns.put(phenoDir, script);
                 }
+//                } else {
+//                    System.err.println(ext.getTime() + "]\tError - no covariate file found for phenotype file {" + pheno + "}.");
+//                    continue;
+//                }
             } else if (parts.length > 2) {
                 String phenoCovarCheck = pheno.substring(0, pheno.length() - "_pheno.dat".length());
-                if (covarPrefices.containsKey(phenoCovarCheck)) {
-                    if (setupForScript(dir, fileList, famFile, covarPrefices.get(phenoCovarCheck), pheno)) {
-                        String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
-                        String phenoDir = dir + phenoPrefix + "/";
-                        String script = createScript(fileList, famFile, covarPrefices.get(phenoCovarCheck), pheno, phenoDir);
-                        plinkRuns.put(phenoDir, script);
-                    }
-                } else if (covarPrefices.containsKey(parts[0])) {
-                    if (setupForScript(dir, fileList, famFile, covarPrefices.get(parts[0]), pheno)) {
-                        String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
-                        String phenoDir = dir + phenoPrefix + "/";
-                        String script = createScript(fileList, famFile, covarPrefices.get(parts[0]), pheno, phenoDir);
-                        plinkRuns.put(phenoDir, script);
-                    }
-                } else {
-                    System.err.println(ext.getTime() + "]\tError - no covariate file found for phenotype file {" + pheno + "}.");
-                    continue;
+                String covar = covarPrefices.get(phenoCovarCheck);
+                if (covar == null) {
+                    covar = covarPrefices.get(parts[0]);
                 }
+//                if (covarPrefices.containsKey(phenoCovarCheck)) {
+                if (setupForScript(dir, fileList, famFile, covar/*Prefices.get(phenoCovarCheck)*/, pheno)) {
+                    String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
+                    String phenoDir = dir + phenoPrefix + "/";
+                    String script = createScript(fileList, famFile, covar/*Prefices.get(phenoCovarCheck)*/, pheno, phenoDir);
+                    plinkRuns.put(phenoDir, script);
+                }
+//                } else if (covarPrefices.containsKey(parts[0])) {
+//                    if (setupForScript(dir, fileList, famFile, covarPrefices.get(parts[0]), pheno)) {
+//                        String phenoPrefix = pheno.substring(0, pheno.length() - "_pheno.dat".length());
+//                        String phenoDir = dir + phenoPrefix + "/";
+//                        String script = createScript(fileList, famFile, covarPrefices.get(parts[0]), pheno, phenoDir);
+//                        plinkRuns.put(phenoDir, script);
+//                    }
+//                } else {
+//                    System.err.println(ext.getTime() + "]\tError - no covariate file found for phenotype file {" + pheno + "}.");
+//                    continue;
+//                }
             }
         }
         
@@ -158,10 +162,13 @@ public class PLINK2GenomePackager {
             System.err.println(ext.getTime() + "]\tError - couldn't create directory {" + phenoDir + "}.");
             return false;
         }
-        boolean fileCopy = Files.copyFile(dir + covarFile, phenoDir + covarFile);
-        if (!fileCopy) {
-            System.err.println(ext.getTime() + "]\tError - couldn't copy covariate file into phenotype subdirectory {" + phenoDir + "}.");
-            return false;
+        boolean fileCopy;
+        if (covarFile != null) {
+            fileCopy = Files.copyFile(dir + covarFile, phenoDir + covarFile);
+            if (!fileCopy) {
+                System.err.println(ext.getTime() + "]\tError - couldn't copy covariate file into phenotype subdirectory {" + phenoDir + "}.");
+                return false;
+            }
         }
         fileCopy = Files.copyFile(dir + phenoFile, phenoDir + phenoFile);
         if (!fileCopy) {
@@ -178,7 +185,7 @@ public class PLINK2GenomePackager {
     }
     
     String createScript(String fileList, String famFile, String covarFile, String phenoFile, String phenoDir) {
-        String script = "cd " + phenoDir + "\nplink2 --dosage ../" + fileList + " list format=1 Zout --fam " + famFile + " --covar " + covarFile + " --pheno " + phenoFile;
+        String script = "cd " + phenoDir + "\nplink2 --dosage ../" + fileList + " list format=1 Zout --fam " + famFile + (covarFile != null ? " --covar " + covarFile : "") + " --pheno " + phenoFile;
         return script;
     }
     
