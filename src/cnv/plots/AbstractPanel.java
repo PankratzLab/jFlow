@@ -513,15 +513,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 			maximumObservedRawY = forcePlotYmax;
 		}
-		
-//		minimumObservedRawX = Float.isNaN(forcePlotXmin) ? minimumObservedRawX : forcePlotXmin;
-////		minimumObservedRawX = Float.isNaN(forcePlotXmin)?minimumObservedRawX-(maximumObservedRawX-minimumObservedRawX)*(float)0.01:forcePlotXmin;
-////		maximumObservedRawX = Float.isNaN(forcePlotXmax)?maximumObservedRawX:forcePlotXmax;
-//		maximumObservedRawX = Float.isNaN(forcePlotXmax) ? (maximumObservedRawX + (maximumObservedRawX - minimumObservedRawX) * (float) 0.01) : forcePlotXmax;
-//		minimumObservedRawY = Float.isNaN(forcePlotYmin) ? minimumObservedRawY : forcePlotYmin;
-////		minimumObservedRawY = Float.isNaN(forcePlotYmin)?(minimumObservedRawY-(maximumObservedRawY-minimumObservedRawY)*(float)0.01):forcePlotYmin;
-////		maximumObservedRawY = Float.isNaN(forcePlotYmax)?maximumObservedRawY:forcePlotYmax;
-//		maximumObservedRawY =  Float.isNaN(forcePlotYmax) ? (maximumObservedRawY + (maximumObservedRawY - minimumObservedRawY) * (float) 0.01) : forcePlotYmax;
+
+//        minimumObservedRawX = Float.isNaN(forcePlotXmin) ? minimumObservedRawX : forcePlotXmin;
+//        maximumObservedRawX = Float.isNaN(forcePlotXmax) ? (maximumObservedRawX + (maximumObservedRawX - minimumObservedRawX) * (float) 0.01) : forcePlotXmax;
+//        minimumObservedRawY = Float.isNaN(forcePlotYmin) ? minimumObservedRawY : forcePlotYmin;
+//        maximumObservedRawY = Float.isNaN(forcePlotYmax) ? (maximumObservedRawY + (maximumObservedRawY - minimumObservedRawY) * (float) 0.01) : forcePlotYmax;
 		
 		if (makeSymmetric) {
 			maximumObservedRawX = Math.max(maximumObservedRawX, maximumObservedRawY);
@@ -552,8 +548,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			canvasSectionMinimumY = 0;
 			canvasSectionMaximumY = axisXHeight;//HEIGHT_X_AXIS;
 			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
-			plotXmin = plotMinMaxStep[0];
-			plotXmax = plotMinMaxStep[1];
+			plotXmin = Float.isNaN(forcePlotXmin) ? plotMinMaxStep[0] : forcePlotXmin;
+			plotXmax = Float.isNaN(forcePlotXmax) ? plotMinMaxStep[1] : forcePlotXmax;
+//			plotXmin = Float.isNaN(forcePlotXmin) ? plotMinMaxStep[0] : forcePlotXmin;
+//			plotXmax = Float.isNaN(forcePlotXmax) ? plotMinMaxStep[1] : forcePlotXmin;
 			if (displayXaxis) {
 				sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
 				for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
