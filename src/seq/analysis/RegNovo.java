@@ -129,11 +129,11 @@ public class RegNovo {
 
 								Set<String> curFam = vpop.getSubPop().get(fam[i]);
 								boolean[] excludes = Array.booleanArray(2, false);
-								boolean hasExclude = false;
+								//boolean hasExclude = false;
 								int excludeIndex = 0;
 								for (String famInd : curFam) {
 									if (vpop.getSuperPop().get(VcfPopulation.EXCLUDE).contains(famInd)) {
-										hasExclude = true;
+										//hasExclude = true;
 										excludes[excludeIndex] = true;
 										excludeIndex++;
 									}
@@ -201,7 +201,7 @@ public class RegNovo {
 										sum += "\t" + VCOps.getAAC(VCOps.getAltAlleleContext(vc, readDepths, filterControl, ALT_ALLELE_CONTEXT_TYPE.ALL, log), all);
 										sum += "\t" + VCOps.getAAC(VCOps.getAltAlleleContext(vc, readDepths, filterControl, ALT_ALLELE_CONTEXT_TYPE.ALL, log), controls);
 										sum += "\t" + VCOps.getAAC(VCOps.getAltAlleleContext(vc, readDepths, filterControl, ALT_ALLELE_CONTEXT_TYPE.ALL, log), offspring);
-										summaryWriter.println(off + "\t" + vcOffAlt.getID() + "\t" + vcOffAlt.getReference() + "\t" + vcOffAlt.getAlternateAlleles().toString() + "\t" + vc.getChr() + "\t" + vc.getStart() + "\t" + vc.getEnd() + "\t" + passesAllControls + sum + pString + "\t" + vc.getFilters().toString() + "\t" + Array.toStr(anno) + "\t" + Array.toStr(Array.toStringArray(excludes, false)) + "\t" + regNovo);
+										summaryWriter.println(off + "\t" + vcOffAlt.getID() + "\t" + vcOffAlt.getReference() + "\t" + vcOffAlt.getAlternateAlleles().toString() + "\t" + vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getEnd() + "\t" + passesAllControls + sum + pString + "\t" + vc.getFilters().toString() + "\t" + Array.toStr(anno) + "\t" + Array.toStr(Array.toStringArray(excludes, false)) + "\t" + regNovo);
 										summaryWriter.flush();
 									}
 								}

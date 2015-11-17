@@ -17,12 +17,12 @@ import common.ext;
  */
 public class ExomeDepthRun {
 
-	public static void runExomeDepth(String bams, String vpopFile, String outputDir, String outputRoot, int numthreads, Logger log) {
+	public static void runExomeDepth(String bams, String vpopFile, String outputDir, String outputRoot, String rLoc, int numthreads, Logger log) {
 		VcfPopulation vpop = null;
 		String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams, BamOps.BAM_EXT, false) : HashVec.loadFileToStringArray(bams, false, new int[] { 0 }, true);
 		outputDir = outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir;
 		new File(outputDir).mkdirs();
-		ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles, outputDir, outputRoot, log);
+		ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles, outputDir, outputRoot, rLoc, log);
 		if (!Files.exists(exomeDepth.getCountFile())) {
 			log.reportTimeWarning("Did not find " + exomeDepth.getCountFile() + ", generating it now (takes a long time)");
 			exomeDepth.generateCountFile();
@@ -48,6 +48,8 @@ public class ExomeDepthRun {
 		int numthreads = 1;
 		String vpopFile = null;
 		String logfile = null;
+		String Rloc = null;
+
 		Logger log;
 
 		String usage = "\n" + "seq.analysis.ExomeDepth requires 0-1 arguments\n";
@@ -56,6 +58,7 @@ public class ExomeDepthRun {
 		usage += "   (3) output root command (i.e. root=" + outputRoot + " (default))\n" + "";
 		usage += PSF.Ext.getNumThreadsCommand(4, numthreads);
 		usage += "   (5) full path to a v population file, individuals with the same population will not be used as ref(i.e. vpop= (no default))\n" + "";
+		usage += "   (6) alternative R location (i.e. rDir= (no default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -73,6 +76,9 @@ public class ExomeDepthRun {
 			} else if (args[i].startsWith(PSF.Ext.OUTPUT_DIR_COMMAND)) {
 				outputDir = ext.parseStringArg(args[i], "");
 				numArgs--;
+			} else if (args[i].startsWith("rDir=")) {
+				Rloc = ext.parseStringArg(args[i], "");
+				numArgs--;
 			} else if (args[i].startsWith("root=")) {
 				outputRoot = ext.parseStringArg(args[i], "");
 				numArgs--;
@@ -89,7 +95,7 @@ public class ExomeDepthRun {
 		}
 		try {
 			log = new Logger(logfile);
-			runExomeDepth(bams, vpopFile, outputDir, outputRoot, numthreads, log);
+			runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, numthreads, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

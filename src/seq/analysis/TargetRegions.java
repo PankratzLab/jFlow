@@ -2,7 +2,6 @@ package seq.analysis;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.HashSet;
 import java.util.Set;
 
 import htsjdk.samtools.util.CloseableIterator;
@@ -18,7 +17,6 @@ import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 import seq.manage.VCOps;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
-import seq.manage.VCOps.COMMON_INFO;
 import seq.manage.VCOps.GENOTYPE_INFO;
 import seq.manage.VCOps.VC_SUBSET_TYPE;
 import cnv.var.LocusSet;
@@ -147,8 +145,8 @@ public class TargetRegions<T extends Segment> {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = "TargetRegions.dat";
-		String logfile = null;
-		Logger log;
+		//String logfile = null;
+		//Logger log;
 
 		String usage = "\n" + "seq.analysis.TargetRegions requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
 
@@ -159,10 +157,12 @@ public class TargetRegions<T extends Segment> {
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
-				numArgs--;
-			} else {
+			} 
+//			else if (args[i].startsWith("log=")) {
+//				logfile = args[i].split("=")[1];
+//				numArgs--;
+//			} 
+			else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
@@ -171,7 +171,7 @@ public class TargetRegions<T extends Segment> {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(logfile);
+			//log = new Logger(logfile);
 			test();
 		} catch (Exception e) {
 			e.printStackTrace();

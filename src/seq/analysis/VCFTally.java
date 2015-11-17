@@ -29,7 +29,6 @@ import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import seq.qc.FilterNGS.VariantContextFilter;
 import filesys.GeneData;
-import filesys.GeneTrack;
 import filesys.Segment;
 
 /**
@@ -356,15 +355,15 @@ public class VCFTally implements Serializable {
 				all.put(ways[i].getPathwayName(), new ArrayList<String>());
 			}
 		}
-
-		private static int total(GeneTrack geneTrack) {
-			int total = 0;
-			GeneData[][] gDatas = geneTrack.getGenes();
-			for (int i = 0; i < gDatas.length; i++) {
-				total += gDatas[i].length;
-			}
-			return total;
-		}
+//
+//		private static int total(GeneTrack geneTrack) {
+//			int total = 0;
+//			GeneData[][] gDatas = geneTrack.getGenes();
+//			for (int i = 0; i < gDatas.length; i++) {
+//				total += gDatas[i].length;
+//			}
+//			return total;
+//		}
 
 		private static Hashtable<String, Float> getTally(GenomeRegions genomeRegions, Logger log) {
 			Hashtable<String, Float> tally = new Hashtable<String, Float>();
@@ -415,10 +414,10 @@ public class VCFTally implements Serializable {
 			//String snpEffGeneName = vc.getCommonInfo().getAttributeAsString("SNPEFF_GENE_NAME", ".");
 			if (mac > 0) {
 				if (geneDatas.length > 0) {
-					boolean foundMatch = false;
+					//boolean foundMatch = false;
 					for (int i = 0; i < geneDatas.length; i++) {
 						//if (geneDatas[i].getGeneName().equals(snpEffGeneName)) {
-						foundMatch = true;
+						//foundMatch = true;
 						Pathway[] ways = gRegions.getPathways().getPathwaysFor(geneDatas[i]);
 						addVC(vc, geneDatas, filterNGS, mac, i, ways);
 						numAdded++;
@@ -583,7 +582,7 @@ public class VCFTally implements Serializable {
 				VcfPopulation vpop = VcfPopulation.load(vpopFiles[i], POPULATION_TYPE.CASE_CONTROL, log);
 				vpop.report();
 				String geneTrackFile = "N:/statgen/NCBI/RefSeq_hg19.gtrack";
-				int altAlleleDepth = 0;
+				//int altAlleleDepth = 0;
 				VCFTally tally = new VCFTally(vcf, GenomeRegions.load(geneTrackFile), vpop, CASE_CONTROL_TYPE.values()[j], log);
 				tally.tallyCaseControlVCF(null, outputList);
 				tally.tallyCharge(fullpathToChargeVCF);
