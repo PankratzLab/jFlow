@@ -76,10 +76,12 @@ import stats.ContingencyTable;
 import stats.ProbDist;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
+import cnv.annotation.AnalysisParams;
 import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
 import cnv.annotation.AnnotationParser;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import cnv.annotation.BlastParams;
 import cnv.annotation.MarkerAnnotationLoader;
 import cnv.annotation.MarkerBlastAnnotation;
 import cnv.annotation.MarkerGCAnnotation;
@@ -240,6 +242,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private MarkerBlastAnnotation[] blastResults = null;
 	private MarkerGCAnnotation[] gcAnnotations = null;
 	private ReferenceGenome referenceGenome = null;
+	private BlastParams blastParams = null;
 	
 	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
     private BlastFrame blastFrame;
@@ -319,8 +322,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         
 		String annoFile = proj.BLAST_ANNOTATION_FILENAME.getValue();
 		if (Files.exists(annoFile)) {
-		    hasAnnotationFile = true;
-			annotationLoader = new MarkerAnnotationLoader(proj, annoFile, proj.getMarkerSet(), true);
+			hasAnnotationFile = true;
+			blastParams = new BlastParams(log);
+			annotationLoader = new MarkerAnnotationLoader(proj, new AnalysisParams[] { blastParams }, annoFile, proj.getMarkerSet(), true);
 		}
 		String fastaFile = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 		if (Files.exists(fastaFile)) {
@@ -513,12 +517,19 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 				parsers.add(gcAnnotations);
 				annotationLoader.fillAnnotations(masterMarkerList, parsers, QUERY_ORDER.NO_ORDER);
 //				for (int i = 0; i < blastResults.length; i++) {
-////					blastResults[i].getMarkerSeqAnnotation().getTopBotProbe();
-////					blastResults[i].getMarkerSeqAnnotation().getTopBotRef();
-////					blastResults[i].getAnnotationLists()[0].get(0).getTag();
+//					// blastResults[i].getMarkerSeqAnnotation().getTopBotProbe();
+//					// blastResults[i].getMarkerSeqAnnotation().getTopBotRef();
+//					// blastResults[i].getAnnotationLists()[0].get(0).getTag();
 //					// System.out.println(masterMarkerList[i]+"\t"+blastResults[i].getMarkerSeqAnnotation().getStrand()+"\t"+blastResults[i].getMarkerSeqAnnotation().getSequence());
+//					System.out.println("REF -> " + masterMarkerList[i] + "\t" + blastResults[i].getMarkerSeqAnnotation().getRef().getDisplayString());
+//					for (int j = 0; j < blastResults[i].getMarkerSeqAnnotation().getAlts().length; j++) {
+//						System.out.println("ALT -> " + masterMarkerList[i] + "\t" + blastResults[i].getMarkerSeqAnnotation().getAlts()[j].getDisplayString());
+//					}
+//					System.out.println("A -> " + masterMarkerList[i] + "\t" + blastResults[i].getMarkerSeqAnnotation().getA().getDisplayString());
+//					System.out.println("B -> " + masterMarkerList[i] + "\t" + blastResults[i].getMarkerSeqAnnotation().getB().getDisplayString());
+//					System.out.println("STRAND -> " + masterMarkerList[i] + "\t" + blastResults[i].getMarkerSeqAnnotation().getStrand());
 //				}
-            } catch (Exception e) {
+			} catch (Exception e) {
                 blastResults = null;
                 proj.getLog().reportException(e);
             }
@@ -2416,7 +2427,10 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private void displayBlast() {
         if (blastFrame == null) {
             blastFrame = new BlastFrame(proj);
-        }
+		}
+		// EvalueHistogram evh = blastResults[markerIndex].getEvalueHistogram();
+		// System.out.println(blastParams.getBlastWordSize());
+		// System.out.println(blastParams.getMaxAlignmentsReported());
         blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
         int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
         if (histFrame == null) {

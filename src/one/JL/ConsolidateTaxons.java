@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import stats.Maths;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -99,7 +98,7 @@ public class ConsolidateTaxons {
 	}
 
 	public static void main(String[] args) {
-		int numArgs = args.length;
+		//int numArgs = args.length;
 		String rootDir = "/home/tsaim/shared/Project_Tsai_Project_021/contamination/";
 		consolidate(rootDir);
 	}
