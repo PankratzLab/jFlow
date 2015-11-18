@@ -1027,10 +1027,10 @@ public class PhenoPrep {
 				inverseNormalize = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("extras=")) {
-				extras = args[i].split("=")[1];
+				extras = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
+				logfile = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("match=")) {
 				matchIdOrder = ext.parseBooleanArg(args[i]);
