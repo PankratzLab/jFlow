@@ -2096,7 +2096,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     GC_CORRECTION_METHOD correctionMethod = GC_CORRECTION_METHOD.GENVISIS_GC;//!gcFastButton.isSelected(); 
                     if (updateGenome) {
                         boolean[] markersForEverythingElseGenome = Array.booleanNegative(dropped);
-                        qcGenome = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseGenome, gcModelToUse, correctionMethod, log);
+						qcGenome = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids, markersForCallrate, markersForEverythingElseGenome, gcModelToUse, correctionMethod, log);
                     }
 //                    if (updateChr) {
 //                        boolean[] markersForEverythingElseChromosome = Array.booleanNegative(dropped);
@@ -2116,7 +2116,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                                 markersForEverythingElseRegion[i] = false;
                             }
                         }
-						qcRegion = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseRegion, gcModelToUse, correctionMethod, log);
+						qcRegion = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids, markersForCallrate, markersForEverythingElseRegion, gcModelToUse, correctionMethod, log);
                     }
                     updateQCDisplay();
                 }
