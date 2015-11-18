@@ -48,7 +48,7 @@ public class CrossValidation {
 		this.analysisFailed = false;
 		this.verbose = verbose;
 		this.svdRegression = svdRegression;
-		this.logistic = isLogistic();
+		this.logistic = isLogistic(train_deps == null ? val_deps : train_deps);// in case we are just applying betas or something like that
 		this.log = log;
 	}
 
@@ -134,10 +134,10 @@ public class CrossValidation {
 		}
 	}
 
-	public boolean isLogistic() {
+	public static boolean isLogistic(double[] test) {
 		Hashtable<Double, Double> tmp = new Hashtable<Double, Double>();
-		for (int i = 0; i < train_deps.length; i++) {
-			tmp.put(train_deps[i], train_deps[i]);
+		for (int i = 0; i < test.length; i++) {
+			tmp.put(test[i], test[i]);
 			if (tmp.size() > 2) {
 				return false;
 			}

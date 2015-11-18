@@ -311,7 +311,7 @@ public class CNVBeast {
 						if (samp == null || lrrs == null) {// only load once, and only if needed
 							samp = proj.getFullSampleFromRandomAccessFile(sampleToParse);
 							if (gcModel != null) {
-								GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, samp, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, false, true, false);
+								GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, samp, null, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, false, true, false);
 								if (!gcAdjustor.isFail()) {
 									lrrs = Array.toFloatArray(gcAdjustor.getCorrectedIntensities());
 								} else {

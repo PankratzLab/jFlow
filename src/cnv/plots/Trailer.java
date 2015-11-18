@@ -21,6 +21,7 @@ import cnv.analysis.MosaicismQuant.MOSAIC_TYPE;
 import cnv.analysis.MosaicismQuant.MosaicQuantResults;
 import cnv.analysis.MosaicismQuant.MosaicQuantWorker;
 import cnv.filesys.*;
+import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.gui.NewRegionListDialog;
 import cnv.gui.SingleClick;
 import cnv.gui.ClickListener;
@@ -112,7 +113,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private boolean jar;
 	private IndiPheno indiPheno;
 	private String[] markerNames;
-	private MarkerSet markerSet;
+	private PreparedMarkerSet markerSet;
 	private long fingerprint;
 	private int[] positions;
 	private boolean[] dropped;
@@ -321,11 +322,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				 * 
 				 */
 				private static final long serialVersionUID = 1L;
-				private Segment toQuant;
+				//private Segment toQuant;
 
 				public QuantButton(final Segment toQuant,final CustomCallPopUp callPopUp) {
 					super("Quantify Mosaicism for " + toQuant.getUCSClocation());
-					this.toQuant = toQuant;
+					//this.toQuant = toQuant;
 					addActionListener(new ActionListener() {
 
 						public void actionPerformed(ActionEvent e) {
@@ -1850,7 +1851,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		time = new Date().getTime();
 
 		hash = proj.getFilteredHash();
-		markerSet = proj.getMarkerSet();
+		markerSet = new PreparedMarkerSet(proj.getMarkerSet());
 		if (markerSet == null) {
 			JOptionPane.showMessageDialog(null, "Error - Failed to load the MarkerSet file; make sure the raw data is parsed", "Error", JOptionPane.ERROR_MESSAGE);
 			log.reportError("Error - failed to load MarkerSet for project "+proj.PROJECT_NAME.getValue()+"; make sure the raw data is parsed");
@@ -2091,7 +2092,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     }
                     boolean[] markersForCallrate = null;
                     GcModel gcModelToUse = gcModel != null && gcCorrectButton.isSelected() ? gcModel : null;
-                    boolean fastQC = false;//gcFastButton.isSelected(); 
+					// boolean fastQC = false;//gcFastButton.isSelected();
                     GC_CORRECTION_METHOD correctionMethod = GC_CORRECTION_METHOD.GENVISIS_GC;//!gcFastButton.isSelected(); 
                     if (updateGenome) {
                         boolean[] markersForEverythingElseGenome = Array.booleanNegative(dropped);
@@ -2398,21 +2399,21 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	 * @param log
 	 * @return
 	 */
-	private static float[] getNewLRRs(Project proj, float[] lrrsToTransform, int transformation_type, boolean transformSeparatelyByChromosome, MarkerSet markerSet, GcModel gcModel, boolean correctGC, boolean correctGCFirst, Logger log) {
+	private static float[] getNewLRRs(Project proj, float[] lrrsToTransform, int transformation_type, boolean transformSeparatelyByChromosome, PreparedMarkerSet markerSet, GcModel gcModel, boolean correctGC, boolean correctGCFirst, Logger log) {
 		float[] tmpLrrs = lrrsToTransform; // make sure not to modify
 		if (gcModel == null && correctGC) {
 			log.reportError("Error - gc Correction was flagged and the model was null, this should not happen...skipping gc correction");
 			correctGC = false;
 		}
 		if (correctGC && correctGCFirst) {
-			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj, tmpLrrs, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, false, false, true).getCorrectedIntensities());
+			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj,markerSet, tmpLrrs, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, false, false, true).getCorrectedIntensities());
 		}
 
 		if (transformation_type > 0) {
 			tmpLrrs = Transforms.transform(tmpLrrs, transformation_type, transformSeparatelyByChromosome, markerSet);
 		}
 		if (correctGC && !correctGCFirst) {
-			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj, tmpLrrs, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, false, false, true).getCorrectedIntensities());
+			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj, markerSet, tmpLrrs, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, false, false, true).getCorrectedIntensities());
 		}
 		if (Transforms.TRANSFORMATION_TYPES[transformation_type] == Transformations.MAD_SCALED) {
 			for (int i = 0; i < tmpLrrs.length; i++) {
