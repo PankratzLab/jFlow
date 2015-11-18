@@ -96,7 +96,8 @@ class ReferenceLabel extends JLabel {
 public class BlastLabel extends JLabel {
 
     private static final long serialVersionUID = 1L;
-    private static final Font BASE_FONT = (Fonts.SOURCE_CODE_PRO_LIGHT == null ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_LIGHT);
+//    private static final Font BASE_FONT = (Fonts.SOURCE_CODE_PRO_LIGHT == null ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_LIGHT);
+    private static final Font BASE_FONT = (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_REGULAR);
     
     public static void setFontSize(int size) {
         LBL_FONT = BASE_FONT.deriveFont((float) size);
@@ -238,14 +239,17 @@ public class BlastLabel extends JLabel {
             boolean ref = cs.elem.getOperator().consumesReferenceBases();
             if (diff) {
                 if (read && ref) {
-                    g.setColor(Color.RED.darker());
+//                    g.setColor(Color.RED.darker());
+                    g.setColor(Color.RED);
                 } else if (read) {
                     g.setColor(Color.GRAY);
                 } else if (ref) {
-                    g.setColor(Color.BLUE.darker());
+//                    g.setColor(Color.BLUE.darker());
+                    g.setColor(Color.BLUE);
                 }
             } else {
-                g.setColor(Color.GREEN.darker());
+//                g.setColor(Color.GREEN.darker());
+                g.setColor(Color.BLACK);
             }
             boolean collapsed = !expanded && diff && !read && ref;
             if (collapsed) {

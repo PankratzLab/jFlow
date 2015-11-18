@@ -1009,6 +1009,7 @@ public class FAST {
 		String data = "~/data/";
 		String indiv = "~/indiv.txt";
 		String trait = "~/trait.txt";
+		String traitDir = ext.pwd();
 		String suffix = ".impute2.gz";
 		String run = ext.verifyDirFormat(System.getProperty("user.dir"));
 		String snps = null;
@@ -1046,7 +1047,7 @@ public class FAST {
 		                "             PATH TO .indiv FILE \n" + 
 		                "             (Optional:)\n" + 
 		                "                 GC CORRECTION VALUE (-1=OFF, -9=ON, other values used as given)\n" + 
-		                "   (2) Path to folder containing .trait files (i.e. trait=~/traits/ (not the default))\n" + 
+		                "   (2) Path to folder containing .trait files (i.e. traitDir=" + traitDir + " (default))\n" + 
 		                "   (3) Full-path to the directory in which you want to run these scripts (must include a folder named 'output') (i.e. rundir=" + run + " (default))\n" +
 		                "   (4) -prep flag\n" +
 	                    "   (5) OPTIONAL: -run flag to run FAST analyses after preparing FAST scripts\n" + 
@@ -1124,6 +1125,9 @@ public class FAST {
 			} else if (args[i].startsWith("trait=")) {
 				trait = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("traitDir=")) {
+			    traitDir = args[i].split("=")[1];
+			    numArgs--;
 			} else if (args[i].startsWith("suffix=")) {
 				suffix = args[i].split("=")[1];
 				numArgs--;
@@ -1193,7 +1197,7 @@ public class FAST {
 		    if (metal) {
 		        prepareMETAL(run, data);
 		    } else if (prep) {
-		        prepareFAST("~/trait.txt".equals(trait) ? "./" : trait, data, run, linear, runFAST, qsub);
+		        prepareFAST(traitDir, data, run, linear, runFAST, qsub);
 		    } else if (process) {
 		        processAndPrepareMETAL(run, data);
 		    } else if (concat && convert) {

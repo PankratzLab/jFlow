@@ -285,6 +285,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         contentPane.add(splitPane, BorderLayout.CENTER);
 
         blastPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow]", ""));
+//        blastPanel.setBackground(Color.WHITE);
         scrollPane = new JScrollPane(blastPanel);
         splitPane.setLeftComponent(scrollPane);
         refLabel = new ReferenceLabel();
