@@ -13,6 +13,7 @@ import common.WorkerTrain;
 import common.ext;
 import common.WorkerTrain.Producer;
 import cnv.filesys.MarkerSet;
+import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Sample;
@@ -115,7 +116,7 @@ public class CNVCaller {
 								dataToCorrect[analysisProjectIndices[j]] = analysisLrrs[j];
 							}
 						}
-						GcAdjustor gcAdjustor = new GcAdjustor(proj, gcModel, dataToCorrect, null, GC_CORRECTION_METHOD.PENNCNV_GC, debugMode);
+						GcAdjustor gcAdjustor = new GcAdjustor(proj, new PreparedMarkerSet(markerSet), gcModel, dataToCorrect, null, GC_CORRECTION_METHOD.PENNCNV_GC, debugMode);
 						gcAdjustor.correctIntensities();
 						gcAdjustor.computeQCMetrics(true, true);
 						analysisLrrs = Array.subArray(gcAdjustor.getCorrectedIntensities(), analysisProjectIndices);

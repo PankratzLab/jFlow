@@ -233,7 +233,8 @@ public class LrrSd extends Parallelizable {
         lrrsdPost = Double.NaN;
         lrrsdPostBound = Double.NaN;
         if (gcModel != null) {
-            GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, lrrs, gcModel, correctionMethod, true, true, false);
+        	//TODO, pass markerset to avoid loading
+			GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, null, lrrs, gcModel, correctionMethod, true, true, false);
             if (!gcAdjustor.isFail()) {
                 wfPrior = gcAdjustor.getWfPrior();
                 gcwfPrior = gcAdjustor.getGcwfPrior();

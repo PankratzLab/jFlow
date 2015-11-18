@@ -262,4 +262,28 @@ public class MarkerSet implements Serializable {
 		
 		return result;
 	}
+
+	/**
+	 * Same functionality as a {@link MarkerSet} but indicesByChr are explicitly computed and stored since that can be expensive<br>
+	 * Is nice if a function needs pos, chr, names, and indicesByChr across threads etc;
+	 */
+	public static class PreparedMarkerSet extends MarkerSet {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		private int[][] indicesByChr;
+
+		public PreparedMarkerSet(MarkerSet markerSet) {
+			super(markerSet.markerNames, markerSet.chrs, markerSet.positions);
+			this.indicesByChr = super.getIndicesByChr();
+		}
+
+		public int[][] getIndicesByChr() {
+			return indicesByChr;
+		}
+
+	}
 }

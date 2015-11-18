@@ -218,7 +218,7 @@ public class GcCorrection {
 			if (!Files.exists(newSampleFile)) {
 				Sample curSample = projOriginal.getFullSampleFromRandomAccessFile(sample);
 
-				GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(projOriginal, curSample, gcmodel, GC_CORRECTION_METHOD.GENVISIS_GC, true, true, false);
+				GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(projOriginal, curSample, null, gcmodel, GC_CORRECTION_METHOD.GENVISIS_GC, true, true, false);
 				outliers = new Hashtable<String, Float>();
 				correctedSamp = new Sample(curSample.getSampleName(), curSample.getFingerprint(), curSample.getGCs(), curSample.getXs(), curSample.getYs(), curSample.getBAFs(), Array.toFloatArray(gcAdjustor.getCorrectedIntensities()), curSample.getForwardGenotypes(), curSample.getAB_Genotypes(), curSample.getCanXYBeNegative());
 				correctedSamp.saveToRandomAccessFile(newSampleFile, outliers, curSample.getSampleName());
@@ -233,7 +233,6 @@ public class GcCorrection {
 			}
 			return new GcCorrectedSample(outliers, correctedSamp);
 		}
-
 	}
 
 	private static Project prepareNewProject(Project projOriginal) {
