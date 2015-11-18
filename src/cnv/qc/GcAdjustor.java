@@ -70,13 +70,24 @@ public class GcAdjustor {
 	private double[] fullIntensity, regressionIntensity, markerIntensities, correctedIntensities;
 	private int regressionDistance, skipPerChr;
 	private boolean[] markerMask;
-	private boolean fail, verbose, PennCNVGCWF;
+	private boolean fail, verbose;
+	private GC_CORRECTION_METHOD correctionMethod;
+
+	public enum GC_CORRECTION_METHOD {
+		/**
+		 * Perform gc correction using the penncnv defaults (chr 11, etc)
+		 */
+		PENNCNV_GC, /**
+		 * Perform gc correction using genvisis defaults (all available markers)
+		 */
+		GENVISIS_GC;
+	}
 
 	/**
 	 * Constructor for PennCNV defaults, minus the chromosome 11 GC content bins for the GCWF computation
 	 */
-	public GcAdjustor(Project proj, GcModel gcModel, double[] markerIntensities, boolean[] markerMask, boolean pennCNVGCWF, boolean verbose) {
-		this(proj, gcModel, markerIntensities, DEFAULT_MINAUTOSOMALGC, DEFAULT_MAXAUTOSOMALGC, DEFAULT_MIN_DATA_VALUE, DEFAULT_MAX_DATA_VALUE, DEFAULT_REGRESSION_DISTANCE[0], DEFAULT_SKIP_PER_CHR[0], markerMask, pennCNVGCWF, verbose);
+	public GcAdjustor(Project proj, GcModel gcModel, double[] markerIntensities, boolean[] markerMask,GC_CORRECTION_METHOD correctionMethod, boolean verbose) {
+		this(proj, gcModel, markerIntensities, DEFAULT_MINAUTOSOMALGC, DEFAULT_MAXAUTOSOMALGC, DEFAULT_MIN_DATA_VALUE, DEFAULT_MAX_DATA_VALUE, DEFAULT_REGRESSION_DISTANCE[0], DEFAULT_SKIP_PER_CHR[0], markerMask, correctionMethod, verbose);
 	}
 
 	/**
@@ -105,7 +116,7 @@ public class GcAdjustor {
 	 * @param verbose
 	 *            report
 	 */
-	public GcAdjustor(Project proj, GcModel gcModel, double[] markerIntensities, double minimumAutosomalGC, double maximimumAutosomalGC, double minIntensity, double maxIntensity, int regressionDistance, int skipPerChr, boolean[] markerMask, boolean PennCNVGCWF, boolean verbose) {
+	public GcAdjustor(Project proj, GcModel gcModel, double[] markerIntensities, double minimumAutosomalGC, double maximimumAutosomalGC, double minIntensity, double maxIntensity, int regressionDistance, int skipPerChr, boolean[] markerMask, GC_CORRECTION_METHOD correctionMethod, boolean verbose) {
 		super();
 		this.proj = proj;
 		this.gcModel = gcModel;
@@ -122,7 +133,7 @@ public class GcAdjustor {
 		this.wfPost = Double.NaN;
 		this.gcwfPrior = Double.NaN;
 		this.gcwfPost = Double.NaN;
-		this.PennCNVGCWF = PennCNVGCWF;
+		this.correctionMethod = correctionMethod;
 		this.markerMask = markerMask;
 		populateCurrentData();// Initialize everything needed
 	}
@@ -165,7 +176,7 @@ public class GcAdjustor {
 				proj.getLog().reportError("Error - can not compute qc metrics, not enough qc markers were found");
 				fail = true;
 			}
-			if (PennCNVGCWF && (chr11qcIndices == null || chr11qcIndices.length == 0)) {
+			if (correctionMethod==GC_CORRECTION_METHOD.PENNCNV_GC && (chr11qcIndices == null || chr11qcIndices.length == 0)) {
 				proj.getLog().reportError("Error - can not compute qc metrics using chromosome 11, not enough qc markers were found");
 				fail = true;
 			}
@@ -176,13 +187,13 @@ public class GcAdjustor {
 					}
 				} else {
 					if (computePost) {
-						double[] wavesCorrected = getWave(crossValidation.getResiduals(), fullGcs, qcIndices, PennCNVGCWF ? chr11qcIndices : null, verbose, proj.getLog());
+						double[] wavesCorrected = getWave(crossValidation.getResiduals(), fullGcs, qcIndices, correctionMethod==GC_CORRECTION_METHOD.PENNCNV_GC ? chr11qcIndices : null, verbose, proj.getLog());
 						this.wfPost = wavesCorrected[0];
 						this.gcwfPost = wavesCorrected[1];
 					}
 				}
 				if (computePrior) {
-					double[] wavesOriginal = getWave(fullIntensity, fullGcs, qcIndices, PennCNVGCWF ? chr11qcIndices : null, verbose, proj.getLog());
+					double[] wavesOriginal = getWave(fullIntensity, fullGcs, qcIndices, correctionMethod==GC_CORRECTION_METHOD.PENNCNV_GC ? chr11qcIndices : null, verbose, proj.getLog());
 					this.wfPrior = wavesOriginal[0];
 					this.gcwfPrior = wavesOriginal[1];
 				}
@@ -370,7 +381,7 @@ public class GcAdjustor {
 					chr11qcIndices[i] = tmpchr11qcIndices.get(i);
 				}
 				if (verbose) {
-					proj.getLog().report("Info - detected " + qcIndices.length + " " + ext.prettyUpDistance(regressionDistance, 2) + " sliding windows with >" + DEFUALT_NUM_SNP_MAD + " markers out of a possible " + numPossibleBins + " windows to compute WF" + (PennCNVGCWF ? "" : " and GCWF"));
+					proj.getLog().report("Info - detected " + qcIndices.length + " " + ext.prettyUpDistance(regressionDistance, 2) + " sliding windows with >" + DEFUALT_NUM_SNP_MAD + " markers out of a possible " + numPossibleBins + " windows to compute WF" + (correctionMethod==GC_CORRECTION_METHOD.PENNCNV_GC ? "" : " and GCWF"));
 				}
 			}
 		}
@@ -693,8 +704,8 @@ public class GcAdjustor {
 	/**
 	 * Similar to {@link GcAdjustor#getComputedAdjustor()} except it takes a {@link Sample} object as input
 	 */
-	public static GcAdjustor getComputedAdjustor(Project proj, Sample sample, GcModel gcModel, boolean pennCNVGCWF, boolean computePrior, boolean computePost, boolean verbose) {
-		return getComputedAdjustor(proj, sample.getLRRs(), gcModel, pennCNVGCWF, computePrior, computePost, verbose);
+	public static GcAdjustor getComputedAdjustor(Project proj, Sample sample, GcModel gcModel, GC_CORRECTION_METHOD correctionMethod, boolean computePrior, boolean computePost, boolean verbose) {
+		return getComputedAdjustor(proj, sample.getLRRs(), gcModel, correctionMethod, computePrior, computePost, verbose);
 	}
 
 	/**
@@ -713,8 +724,8 @@ public class GcAdjustor {
 	 *            reports things akin to PennCNV
 	 * @return a {@link GcAdjustor} object with corrected intensities and qc metrics
 	 */
-	public static GcAdjustor getComputedAdjustor(Project proj, float[] markerIntensities, GcModel gcModel, boolean pennCNVGCWF, boolean computePrior, boolean computePost, boolean verbose) {
-		GcAdjustor gcAdjustor = new GcAdjustor(proj, gcModel, Array.toDoubleArray(markerIntensities), null, pennCNVGCWF, verbose);
+	public static GcAdjustor getComputedAdjustor(Project proj, float[] markerIntensities, GcModel gcModel, GC_CORRECTION_METHOD correctionMethod, boolean computePrior, boolean computePost, boolean verbose) {
+		GcAdjustor gcAdjustor = new GcAdjustor(proj, gcModel, Array.toDoubleArray(markerIntensities), null, correctionMethod, verbose);
 		gcAdjustor.correctIntensities();
 		gcAdjustor.computeQCMetrics(computePrior, computePost);
 		return gcAdjustor;
@@ -730,7 +741,7 @@ public class GcAdjustor {
 				long time = System.currentTimeMillis();
 				Sample samp = proj.getFullSampleFromRandomAccessFile(samplesToTest[i]);
 				proj.getLog().report("Testing sample " + samp.getSampleName());
-				GcAdjustor gcAdjusterNew = new GcAdjustor(proj, gcModel, Array.toDoubleArray(samp.getLRRs()), null, false, true);
+				GcAdjustor gcAdjusterNew = new GcAdjustor(proj, gcModel, Array.toDoubleArray(samp.getLRRs()), null, GC_CORRECTION_METHOD.GENVISIS_GC, true);
 				gcAdjusterNew.correctIntensities();
 				gcAdjusterNew.computeQCMetrics(true, true);
 				writer.println(samp.getSampleName() + "\t" + gcAdjusterNew.getQCString() + "\t" + ext.getTimeElapsed(time));

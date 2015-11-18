@@ -10,6 +10,7 @@ import common.WorkerTrain.Producer;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.qc.GcAdjustor;
+import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustor.GcModel;
 
 public class VCFSamplePrep {
@@ -39,7 +40,7 @@ public class VCFSamplePrep {
 			break;
 		case NORMALIZED_GC_CORRECTED:
 			if (gcModel != null) {
-				normDepth = GcAdjustor.getComputedAdjustor(proj, Array.toFloatArray(normDepth), gcModel, false, true, true, false).getCorrectedIntensities();
+				normDepth = GcAdjustor.getComputedAdjustor(proj, Array.toFloatArray(normDepth), gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, true, true, false).getCorrectedIntensities();
 			} else {
 				proj.getLog().reportTimeError("Projects gcmodel file must be valid for this method, skipping gc correction");
 

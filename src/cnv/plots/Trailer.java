@@ -30,6 +30,7 @@ import cnv.hmm.PFB;
 import cnv.hmm.PennHmm;
 import cnv.manage.Transforms;
 import cnv.qc.GcAdjustor;
+import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.LrrSd;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
@@ -2091,9 +2092,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     boolean[] markersForCallrate = null;
                     GcModel gcModelToUse = gcModel != null && gcCorrectButton.isSelected() ? gcModel : null;
                     boolean fastQC = false;//gcFastButton.isSelected(); 
+                    GC_CORRECTION_METHOD correctionMethod = GC_CORRECTION_METHOD.GENVISIS_GC;//!gcFastButton.isSelected(); 
                     if (updateGenome) {
                         boolean[] markersForEverythingElseGenome = Array.booleanNegative(dropped);
-                        qcGenome = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseGenome, gcModelToUse, fastQC, log);
+                        qcGenome = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseGenome, gcModelToUse, correctionMethod, log);
                     }
 //                    if (updateChr) {
 //                        boolean[] markersForEverythingElseChromosome = Array.booleanNegative(dropped);
@@ -2113,7 +2115,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                                 markersForEverythingElseRegion[i] = false;
                             }
                         }
-                        qcRegion = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseRegion, gcModelToUse, fastQC, log);
+						qcRegion = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseRegion, gcModelToUse, correctionMethod, log);
                     }
                     updateQCDisplay();
                 }
@@ -2403,14 +2405,14 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			correctGC = false;
 		}
 		if (correctGC && correctGCFirst) {
-			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj, tmpLrrs, gcModel, false, false, false, true).getCorrectedIntensities());
+			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj, tmpLrrs, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, false, false, true).getCorrectedIntensities());
 		}
 
 		if (transformation_type > 0) {
 			tmpLrrs = Transforms.transform(tmpLrrs, transformation_type, transformSeparatelyByChromosome, markerSet);
 		}
 		if (correctGC && !correctGCFirst) {
-			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj, tmpLrrs, gcModel, false, false, false, true).getCorrectedIntensities());
+			tmpLrrs = Array.toFloatArray(GcAdjustor.getComputedAdjustor(proj, tmpLrrs, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, false, false, true).getCorrectedIntensities());
 		}
 		if (Transforms.TRANSFORMATION_TYPES[transformation_type] == Transformations.MAD_SCALED) {
 			for (int i = 0; i < tmpLrrs.length; i++) {

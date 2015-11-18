@@ -19,6 +19,7 @@ import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.qc.GcAdjustor;
+import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
@@ -310,7 +311,7 @@ public class CNVBeast {
 						if (samp == null || lrrs == null) {// only load once, and only if needed
 							samp = proj.getFullSampleFromRandomAccessFile(sampleToParse);
 							if (gcModel != null) {
-								GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, samp, gcModel, false, false, true, false);
+								GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, samp, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, false, true, false);
 								if (!gcAdjustor.isFail()) {
 									lrrs = Array.toFloatArray(gcAdjustor.getCorrectedIntensities());
 								} else {
