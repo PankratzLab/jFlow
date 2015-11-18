@@ -18,7 +18,7 @@ public class PLINK2GenomePackager {
     
 //    plink2 --dosage fullList.txt list format=1 Zout --fam gedi_exome_plink.fam --covar GEDI_covars.dat --pheno GEDI_pheno_mtPC0_exome.dat
     
-    void setup(String dir, String fileList, String pmAllFile) {
+    void setup(String dir, String fileList, String pmAllFile, String qsubQueue) {
         
         File dirFile = new File(dir);
         
@@ -138,13 +138,17 @@ public class PLINK2GenomePackager {
         StringBuilder sb = new StringBuilder("cd ").append(dir).append("\n");
         for (String plinkDir : plinkRuns.keySet()) {
             sb.append("cd ").append(plinkDir).append("\n")
-                .append("qsub runPlink2.qsub").append("\n")
+                .append("qsub");
+            if (qsubQueue != null) {
+                sb.append(" -q ").append(qsubQueue);
+            }
+            sb.append(" runPlink2.qsub").append("\n")
                 .append("cd ..").append("\n");
         }
         Files.write(sb.toString(), dir + "masterRun.sh");
         Files.chmod(dir + "masterRun.sh");
         
-        setupProcess(dir, plinkRuns, pmAllFile);
+        setupProcess(dir, plinkRuns, pmAllFile, qsubQueue);
     }
     
     boolean setupForScript(String dir, String fileList, String famFile, String covarFile, String phenoFile) {
@@ -189,7 +193,7 @@ public class PLINK2GenomePackager {
         return script;
     }
     
-    void setupProcess(String dir, HashMap<String, String> plinkRuns, String pmAllFile) {
+    void setupProcess(String dir, HashMap<String, String> plinkRuns, String pmAllFile, String qsubQueue) {
         StringBuilder masterProc = new StringBuilder();
         for (String plinkDir : plinkRuns.keySet()) {
             StringBuilder procCmd = new StringBuilder();
@@ -198,11 +202,15 @@ public class PLINK2GenomePackager {
             .append(plinkDir)
             .append(" pmFile=")
             .append(pmAllFile)
-            .append(" N=`grep -o -E '[0-9]+ people pass filters and QC' *.o | sed 's/*+://g' | sed 's/[^0-9]*//g'`")
+            .append(" N=`grep -o -E '[0-9]+ people pass filters and QC' *.o | sed 's/.*://g' | sed 's/[^0-9]*//g'`")
             .append("\n");
             Files.qsub(plinkDir + "process.qsub", procCmd.toString(), 5000, 3, 1);
             masterProc.append("cd ").append(plinkDir).append("\n");
-            masterProc.append("qsub process.qsub").append("\n");
+            masterProc.append("qsub");
+            if (qsubQueue != null) {
+                masterProc.append(" -q ").append(qsubQueue);
+            }
+            masterProc.append(" process.qsub").append("\n");
         }
         Files.write(masterProc.toString(), dir + "masterProcess.sh");
         Files.chmod(dir + "masterProcess.sh");
@@ -272,11 +280,12 @@ public class PLINK2GenomePackager {
     
     public static void main(String[] args) {
         int numArgs = args.length;
-        String dir = "D:/test/";
+        String dir = ext.pwd();
         String fileList = "fullList.txt";
         boolean process = false;
         String N = null;
         String pmAll = "D:/test/PM_all";
+        String qsub = null;
         
         String usage = "\n"
                         + "one.PLINK2GenomePackager requires 3-4 arguments\n"
@@ -303,6 +312,9 @@ public class PLINK2GenomePackager {
             } else if (args[i].startsWith("pmFile=")) {
                 pmAll = args[i].split("=")[1];
                 numArgs--;
+            } else if (args[i].startsWith("qsub=")) {
+                qsub = args[i].split("=")[1];
+                numArgs--;
             } else if (args[i].startsWith("N=")) {
                 N = args[i].split("=")[1];
                 numArgs--;
@@ -321,7 +333,7 @@ public class PLINK2GenomePackager {
             if (process) {
                 new PLINK2GenomePackager().process(dir, pmAll, N);
             } else {
-                new PLINK2GenomePackager().setup(dir, fileList, pmAll);
+                new PLINK2GenomePackager().setup(dir, fileList, pmAll, qsub);
             }   
         } catch (Exception e) {
             e.printStackTrace();

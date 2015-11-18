@@ -151,7 +151,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JCheckBoxMenuItem mosaicCallButton;
 	private JCheckBoxMenuItem mosaicFButton;
 	private String[] qcGenome;
-	private String[] qcChromo;
+//	private String[] qcChromo;
 	private String[] qcRegion;
     private int qcSelection = 0; 
 	
@@ -1354,7 +1354,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		
 		{
 		    JMenu qcMenu = new JMenu("Show QC");
-		    String[] opts = new String[]{"Hide QC", "Genome", "Chromosome", "Region"};
+		    String[] opts = new String[]{"Hide QC", "Genome", /*"Chromosome",*/ "Region"};
 		    ItemListener qcListener = new ItemListener() {
                 @Override
                 public void itemStateChanged(ItemEvent arg0) {
@@ -1364,10 +1364,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                             qcSelection = 0;
                         } else if ("Genome".equals(cmd)) {
                             qcSelection = 1;
-                        } else if ("Chromosome".equals(cmd)) {
-                            qcSelection = 2;
+//                        } else if ("Chromosome".equals(cmd)) {
+//                            qcSelection = 2;
                         } else if ("Region".equals(cmd)) {
-                            qcSelection = 3;
+                            qcSelection = 2;
                         }
                         updateQCDisplay();
                     }
@@ -2090,21 +2090,22 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     }
                     boolean[] markersForCallrate = null;
                     GcModel gcModelToUse = gcModel != null && gcCorrectButton.isSelected() ? gcModel : null;
+                    boolean fastQC = false;//gcFastButton.isSelected(); 
                     if (updateGenome) {
                         boolean[] markersForEverythingElseGenome = Array.booleanNegative(dropped);
-                        qcGenome = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseGenome, gcModelToUse, log);
+                        qcGenome = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseGenome, gcModelToUse, fastQC, log);
                     }
-                    if (updateChr) {
-                        boolean[] markersForEverythingElseChromosome = Array.booleanNegative(dropped);
-                        byte[] chrs = markerSet.getChrs();
-                        // TODO check array lengths are the same
-                        for (int i = 0; i < chrs.length; i++) {
-                            if (chrs[i] != chr) {
-                                markersForEverythingElseChromosome[i] = false;
-                            }
-                        }
-                        qcChromo = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseChromosome, gcModelToUse, log);
-                    }
+//                    if (updateChr) {
+//                        boolean[] markersForEverythingElseChromosome = Array.booleanNegative(dropped);
+//                        byte[] chrs = markerSet.getChrs();
+//                        // TODO check array lengths are the same
+//                        for (int i = 0; i < chrs.length; i++) {
+//                            if (chrs[i] != chr) {
+//                                markersForEverythingElseChromosome[i] = false;
+//                            }
+//                        }
+//                        qcChromo = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseChromosome, gcModelToUse, fastQC, log);
+//                    }
                     if (updateRegion) {
                         boolean[] markersForEverythingElseRegion = Array.booleanNegative(dropped);
                         for (int i = 0; i < markersForEverythingElseRegion.length; i++) {
@@ -2112,7 +2113,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                                 markersForEverythingElseRegion[i] = false;
                             }
                         }
-                        qcRegion = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseRegion, gcModelToUse, log);
+                        qcRegion = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate, markersForEverythingElseRegion, gcModelToUse, fastQC, log);
                     }
                     updateQCDisplay();
                 }
@@ -2134,10 +2135,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     case 1: 
                         qcDetails = qcGenome;
                         break;
+//                    case 2:
+//                        qcDetails = qcChromo;
+//                        break;
                     case 2:
-                        qcDetails = qcChromo;
-                        break;
-                    case 3:
                         qcDetails = qcRegion;
                         break;
                 }
