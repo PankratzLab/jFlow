@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.Arrays;
 
 import cnv.filesys.*;
+import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.hmm.CNVCaller;
 import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustor.GcModel;
@@ -110,14 +111,14 @@ public class LrrSd extends Parallelizable {
 //			writer = new PrintWriter(new FileWriter(ext.rootOf(proj.getFilename(proj.SAMPLE_QC_FILENAME), false) + "." + threadNumber));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false) + "." + threadNumber));
 			writer.println(SAMPLE_COLUMN + "\t" + Array.toStr(NUMERIC_COLUMNS));
-			
+			PreparedMarkerSet markerSet = new PreparedMarkerSet(proj.getMarkerSet());
 			for (int i = 0; i<samples.length; i++) {
 	        	log.report((i+1)+" of "+samples.length);
 				fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
 				if (fsamp == null) {
 					log.reportError("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
 				} else {
-					writer.println(Array.toStr(LrrSdPerSample(proj, samples[i], fsamp, cents, markersForCallrate, markersForEverythingElse, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, log), "\t"));
+					writer.println(Array.toStr(LrrSdPerSample(proj, markerSet, samples[i], fsamp, cents, markersForCallrate, markersForEverythingElse, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, log), "\t"));
 		            writer.flush();
 				}
 				if (progMon != null) {
@@ -153,6 +154,7 @@ public class LrrSd extends Parallelizable {
 	 * 
 	 * 
 	 * @param proj
+	 * @param pMarkerSet
 	 * @param sampleID
 	 * @param fsamp
 	 * @param cents
@@ -162,7 +164,7 @@ public class LrrSd extends Parallelizable {
 	 * @param log
 	 * @return
 	 */
-	public static String[] LrrSdPerSample(Project proj, String sampleID, Sample fsamp, float[][][] cents, boolean[] markersForCallrate, boolean[] markersForEverythingElse, GcModel gcModel, GC_CORRECTION_METHOD correctionMethod, Logger log) {
+	public static String[] LrrSdPerSample(Project proj, PreparedMarkerSet pMarkerSet, String sampleID, Sample fsamp, float[][][] cents, boolean[] markersForCallrate, boolean[] markersForEverythingElse, GcModel gcModel, GC_CORRECTION_METHOD correctionMethod, Logger log) {
         byte[] abGenotypes, forwardGenotypes;
         float[] lrrs, bafs, bafsWide;
         double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound;
@@ -233,8 +235,7 @@ public class LrrSd extends Parallelizable {
         lrrsdPost = Double.NaN;
         lrrsdPostBound = Double.NaN;
         if (gcModel != null) {
-        	//TODO, pass markerset to avoid loading
-			GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, null, lrrs, gcModel, correctionMethod, true, true, false);
+			GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, pMarkerSet, lrrs, gcModel, correctionMethod, true, true, false);
             if (!gcAdjustor.isFail()) {
                 wfPrior = gcAdjustor.getWfPrior();
                 gcwfPrior = gcAdjustor.getGcwfPrior();
