@@ -116,7 +116,7 @@ public class LocusSets<T extends Segment> {
 		int numArgs = args.length;
 		String[] filenames = null;
 		String output = null;
-		String logfile = null;
+		//String logfile = null;
 		UTILITY_TYPE uType = UTILITY_TYPE.UNIONIZE;
 
 		String usage = "\n" + "cnv.var.LocusSets requires 0-1 arguments\n";

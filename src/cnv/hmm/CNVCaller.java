@@ -19,6 +19,7 @@ import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Sample;
 import cnv.hmm.PennHmm.ViterbiResult;
 import cnv.qc.GcAdjustor;
+import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
@@ -116,7 +117,10 @@ public class CNVCaller {
 								dataToCorrect[analysisProjectIndices[j]] = analysisLrrs[j];
 							}
 						}
-						GcAdjustor gcAdjustor = new GcAdjustor(proj, new PreparedMarkerSet(markerSet), gcModel, dataToCorrect, null, GC_CORRECTION_METHOD.PENNCNV_GC, debugMode);
+						GCAdjustorBuilder builder = new GCAdjustorBuilder();
+						builder.correctionMethod(GC_CORRECTION_METHOD.PENNCNV_GC);
+						builder.verbose(debugMode);
+						GcAdjustor gcAdjustor = builder.build(proj, new PreparedMarkerSet(markerSet), gcModel, dataToCorrect);
 						gcAdjustor.correctIntensities();
 						gcAdjustor.computeQCMetrics(true, true);
 						analysisLrrs = Array.subArray(gcAdjustor.getCorrectedIntensities(), analysisProjectIndices);
