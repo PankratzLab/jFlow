@@ -2062,29 +2062,33 @@ public class SeqMeta {
 					}
 				}
 				if (Files.exists(dir+hitsDirectory+filename)) {
-					results = HitWindows.determine(dir+hitsDirectory+filename, indexThreshold, 500000, indexThreshold*100, Array.toStringArray(additionalCols));
-					results[0] = Array.addStrToArray("Trait", results[0], 0);
-					for (int j = 1; j < results.length; j++) {
-						results[j] = Array.addStrToArray(phenotypes[i][0], results[j], 0);
-					}
-					
-					// this won't be called if there is no SingleSNP method
-					if (groups[g].equals("SingleVariant") && methods[0][0].equals("SingleSNP")) {
-						forestInputs = new String[results.length-1][3];
-						for (int j = 0; j < forestInputs.length; j++) {
-							forestInputs[j][0] = results[j+1][2];
-							forestInputs[j][1] = results[j+1][0]+"/"+methods[0][0]+"/"+results[j+1][0]+"_"+methods[0][0]+".csv";
-							forestInputs[j][2] = "PanEthnic "+methods[0][0]+" for "+results[j+1][0]+" (p="+ext.prettyP(results[j+1][5])+")";
+					results = HitWindows.determine(dir+hitsDirectory+filename, indexThreshold, 500000, indexThreshold*100, Array.toStringArray(additionalCols), log);
+					if (results == null) {
+						log.reportError("HitWindows result from "+filename+" was null");
+					} else {
+						results[0] = Array.addStrToArray("Trait", results[0], 0);
+						for (int j = 1; j < results.length; j++) {
+							results[j] = Array.addStrToArray(phenotypes[i][0], results[j], 0);
 						}
-						Files.writeMatrix(forestInputs, ext.rootOf(dir+hitsDirectory+filename, false)+"_forestPlot.input", "\t");
-						inputsToCat.add(ext.rootOf(dir+hitsDirectory+filename, false)+"_forestPlot.input");
-						batchesToCat.addElement("# jcp cnv.plots.ForestPlot markerList="+hitsDirectory+ext.rootOf(filename, false)+"_forestPlot.input");
+						
+						// this won't be called if there is no SingleSNP method
+						if (groups[g].equals("SingleVariant") && methods[0][0].equals("SingleSNP")) {
+							forestInputs = new String[results.length-1][3];
+							for (int j = 0; j < forestInputs.length; j++) {
+								forestInputs[j][0] = results[j+1][2];
+								forestInputs[j][1] = results[j+1][0]+"/"+methods[0][0]+"/"+results[j+1][0]+"_"+methods[0][0]+".csv";
+								forestInputs[j][2] = "PanEthnic "+methods[0][0]+" for "+results[j+1][0]+" (p="+ext.prettyP(results[j+1][5])+")";
+							}
+							Files.writeMatrix(forestInputs, ext.rootOf(dir+hitsDirectory+filename, false)+"_forestPlot.input", "\t");
+							inputsToCat.add(ext.rootOf(dir+hitsDirectory+filename, false)+"_forestPlot.input");
+							batchesToCat.addElement("# jcp cnv.plots.ForestPlot markerList="+hitsDirectory+ext.rootOf(filename, false)+"_forestPlot.input");
+						}
+						Files.writeMatrix(results, ext.rootOf(dir+hitsDirectory+filename, false)+"_regions.xln", "\t");
+	//					String temp = phenotypes[i][0];
+	//					Files.write(temp, dir+hitsDirectory+temp+".tmp");
+	//					filesToCat.elementAt(g).add(dir+hitsDirectory+temp+".tmp");
+						filesToCat.elementAt(g).add(ext.rootOf(dir+hitsDirectory+filename, false)+"_regions.xln");
 					}
-					Files.writeMatrix(results, ext.rootOf(dir+hitsDirectory+filename, false)+"_regions.xln", "\t");
-//					String temp = phenotypes[i][0];
-//					Files.write(temp, dir+hitsDirectory+temp+".tmp");
-//					filesToCat.elementAt(g).add(dir+hitsDirectory+temp+".tmp");
-					filesToCat.elementAt(g).add(ext.rootOf(dir+hitsDirectory+filename, false)+"_regions.xln");
 				} else {
 					log.reportError("Error - could not find expected file: "+dir+hitsDirectory+filename);
 				}
