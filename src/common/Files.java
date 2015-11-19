@@ -785,6 +785,19 @@ public class Files {
 	}
 	
 	public static BufferedReader getAppropriateReader(String filename) throws FileNotFoundException {
+		BufferedReader reader = new BufferedReader(getAppropriateInputStreamReader(filename));
+		try {
+			if (!reader.ready()) {
+				System.err.println("Error - " + filename + " was empty");
+			}
+		} catch (IOException e) {
+			System.err.println("Error accessing '" + filename + "'");
+			e.printStackTrace();
+		}
+		return reader;
+	}
+
+	public static InputStreamReader getAppropriateInputStreamReader(String filename) throws FileNotFoundException {
 		InputStream is = null;
 		InputStreamReader isReader = null;
 
@@ -827,16 +840,7 @@ public class Files {
 			isReader = new InputStreamReader(is);
 		}		
 		
-		BufferedReader reader = new BufferedReader(isReader);
-		try {
-			if (!reader.ready()) {
-				System.err.println("Error - " + filename + " was empty");
-			}
-		} catch (IOException e) {
-			System.err.println("Error accessing '" + filename + "'");
-			e.printStackTrace();
-		}
-		return reader;
+		return isReader;
 	}
 
 	public static PrintWriter getWriter(String filename) {
@@ -2581,10 +2585,10 @@ public class Files {
 
         return -1;
 	}
-	
+
 	public static int countLines(String filename, int numberOfLinesNotToCount) {
 		try {
-			LineNumberReader lnr = new LineNumberReader(new java.io.FileReader(filename));
+			LineNumberReader lnr = new LineNumberReader(getAppropriateInputStreamReader(filename));
 			long num = -1;
 			while (num != 0) {
 			    num = lnr.skip(8192);

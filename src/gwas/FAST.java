@@ -271,7 +271,7 @@ public class FAST {
                             CmdLine.run(null, new String[]{"java", "-cp", decodedPath, "Launch", metalCRF}, metalDir, System.out, System.err, factorLog, false);
                             factorLog.report(ext.getTime() + "]\tRunning HitWindows analysis on METAL results...");
                             try {
-                                String[][] results1 = HitWindows.determine(metalDir + "topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0]);
+                                String[][] results1 = HitWindows.determine(metalDir + "topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0], factorLog);
                                 Files.writeMatrix(results1, metalDir + factorName + "_topHitWindows.out", "\t");
                             } catch (Exception e) {
                                 factorLog.report("ERROR - " + e.getMessage());
@@ -816,7 +816,7 @@ public class FAST {
             // TODO PROBLEMS WITH FILES.EXISTS and FILES.SIZE!!!!!!!
 		    if (f.exists() && f.length() > 0) {
     			System.out.println(ext.getTime() + "]\tRunning HitWindows analysis...");
-    			String[][] results = HitWindows.determine(resultsDir + resultsFile, 0.00000005f, 500000, 0.000005f, new String[0]);
+    			String[][] results = HitWindows.determine(resultsDir + resultsFile, 0.00000005f, 500000, 0.000005f, new String[0], new Logger());
     			Files.writeMatrix(results, resultsDir + "hits.out", "\t");
     			System.out.println(ext.getTime() + "]\tHitWindows analysis complete!");
 		    } else {

@@ -9,7 +9,7 @@ import filesys.Segment;
 import filesys.SnpMarkerSet;
 
 public class HitWindows {
-	public static String[][] determine(String filename, float indexThreshold, int windowMinSizePerSide, float windowExtensionThreshold, String[] additionalAnnotationVariableNames) {
+	public static String[][] determine(String filename, float indexThreshold, int windowMinSizePerSide, float windowExtensionThreshold, String[] additionalAnnotationVariableNames, Logger log) {
 		BufferedReader reader;
 		String[] line, header;
 		int count;
@@ -21,7 +21,6 @@ public class HitWindows {
 		String temp, delimiter;
 		String[][] factors;
 		String[][] annotation;
-		Logger log;
 		
 		if (additionalAnnotationVariableNames == null) {
 			additionalAnnotationVariableNames = new String[0];
@@ -35,7 +34,6 @@ public class HitWindows {
 			factors[4+i] = new String[] {additionalAnnotationVariableNames[i]};
 		}
 		
-		log = new Logger();
 		count = Files.countLines(filename, 1);
 //		log.report("Parsing "+count+" lines");
 		markerNames = new String[count];
@@ -50,14 +48,14 @@ public class HitWindows {
 			header = temp.trim().split(delimiter);
 			indices = ext.indexFactors(factors, header, false, false, true, true, log, false);
 			if (Array.min(indices) == -1) {
-				System.err.println("Aborting after failing to find the appropriate column headers in file "+filename);
-				System.err.println("Missing:");
+				log.reportError("Aborting after failing to find the appropriate column headers in file "+filename);
+				log.reportError("Missing:");
 				for (int i = 0; i < indices.length; i++) {
 					if (indices[i] == -1) {
-						System.err.println("  "+Array.toStr(factors[i], "/"));
+						log.reportError("  "+Array.toStr(factors[i], "/"));
 					}
 				}
-				System.exit(1);
+				return null;
 			}
 			count = 0;
 //			log.report("Parsing... "+filename);
@@ -398,12 +396,14 @@ public class HitWindows {
 			} else if (knownHits != null) {
 				generateHitsLookup(knownHits, windowMinSizePerSide, outfile, map, log);
 			} else {
-				results = determine(filename, indexThreshold, windowMinSizePerSide, windowExtensionThreshold, annotationCols);
-				if (outfile != null) {
-					Files.writeMatrix(results, outfile, "\t");
-				} else {
-					for (int i = 0; i < results.length; i++) {
-						System.out.println(Array.toStr(results[i], "\t"));
+				results = determine(filename, indexThreshold, windowMinSizePerSide, windowExtensionThreshold, annotationCols, log);
+				if (results != null) {
+					if (outfile != null) {
+						Files.writeMatrix(results, outfile, "\t");
+					} else {
+						for (int i = 0; i < results.length; i++) {
+							log.report(Array.toStr(results[i], "\t"));
+						}
 					}
 				}
 			}

@@ -673,7 +673,10 @@ public class GeneScorePipeline {
 		for (String dFile : dataFiles) {
 			String dataFile = ext.rootOf(dFile, false);
 			for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
-				String[][] results = HitWindows.determine(metaDir + dFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES);
+				String[][] results = HitWindows.determine(metaDir + dFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES, new Logger());
+				if (results == null) {
+					System.err.println("HitWindows result was null for "+dFile);
+				}
 				System.out.println(ext.getTime()+"]\tFound " + results.length + " hit windows");
 				
 				HashSet<String> hitMkrSet = new HashSet<String>();
@@ -893,10 +896,14 @@ public class GeneScorePipeline {
 					continue;
 				}
 				System.out.println(ext.getTime()+"]\tRunning hit window analysis [ --> '" + hitsFile + "']");
-				String[][] results = HitWindows.determine(crossFilterFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES);
-				System.out.println(ext.getTime()+"]\tFound " + results.length + " hit windows");
-				Files.writeMatrix(results, hitsFile, "\t");
-				study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, results.length);
+				String[][] results = HitWindows.determine(crossFilterFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES, new Logger());
+				if (results == null) {
+					System.err.println("Error - HitWindows result from "+crossFilterFile+" was null");
+				} else {
+					System.out.println(ext.getTime()+"]\tFound " + results.length + " hit windows");
+					Files.writeMatrix(results, hitsFile, "\t");
+					study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, results.length);
+				}
 			}
 		}
 	}
