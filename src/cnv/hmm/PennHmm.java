@@ -330,7 +330,7 @@ public class PennHmm {
 				int m = -1;
 				int n = -1;
 				double[][] a = null;
-				//double[][] b = null;
+				double[][] b = null;
 				// TODO what about the B:?
 
 				if (!M.startsWith("M=")) {
@@ -358,7 +358,7 @@ public class PennHmm {
 					log.reportTimeError("cannot read B: annotation from HMM file");
 					return null;
 				} else {
-					//b = loadMatrix(reader, m, n);
+					b = loadMatrix(reader, m, n);
 				}
 				double[] pi = loadTwoLineDoubleArray("pi", reader, log);
 				BStatus B1 = loadBstatus("B1", reader, log);

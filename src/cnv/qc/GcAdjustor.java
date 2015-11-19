@@ -16,7 +16,6 @@ import cnv.filesys.MarkerSet;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-import cnv.var.LocusSet;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -45,8 +44,8 @@ import filesys.Segment;
 public class GcAdjustor {
 
 	public static final String[] GC_ADJUSTOR_TITLE = { "Adjust by GC content" };
-	private static final int DEFUALT_GC_MODEL_WINDOW_SNP = 100 * 5120;
-	private static final int DEFUALT_GC_MODEL_WINDOW_GC = 5120;
+	// private static final int DEFUALT_GC_MODEL_WINDOW_SNP = 100 * 5120;
+	// private static final int DEFUALT_GC_MODEL_WINDOW_GC = 5120;
 
 	/**
 	 * These defaults are also used by PennCNV - detect_cnv.pl, but might be worth adjusting sometime, somewhere, in a galaxy called msi
@@ -69,7 +68,7 @@ public class GcAdjustor {
 	private double minimumAutosomalGC, maximimumAutosomalGC, minIntensity, maxIntensity, wfPrior, wfPost, gcwfPrior, gcwfPost;
 	private double[] regressionGcs, fullGcs;
 	private double[] fullIntensity, regressionIntensity, markerIntensities, correctedIntensities;
-	private int regressionDistance, skipPerChr;
+	private int regressionDistance, skipPerChr, numSnpMAD;
 	private boolean[] markerMask;
 	private boolean fail, verbose;
 	private GC_CORRECTION_METHOD correctionMethod;
@@ -220,6 +219,9 @@ public class GcAdjustor {
 					this.wfPrior = wavesOriginal[0];
 					this.gcwfPrior = wavesOriginal[1];
 				}
+				if (computePost || computePrior) {
+					proj.getLog().reportTimeInfo(getQCString());
+				}
 			} else {
 				proj.getLog().reportError("Error - cannot compute qc metrics");
 			}
@@ -291,7 +293,6 @@ public class GcAdjustor {
 
 			int qcIndex = -1;
 			int numPossibleBins = 0;
-
 			for (int i = 0; i < indicesByChr.length; i++) {
 				int currentRegressDistance = 0;
 				int currentBin = 0;
@@ -299,6 +300,7 @@ public class GcAdjustor {
 				ArrayList<Integer> tmpCurrentBinChr11 = new ArrayList<Integer>(1000);// only used for chromosome 11...for defualt pennCNV behavior, and track even if not needed
 
 				for (int j = 0; j < indicesByChr[i].length; j++) {
+
 					double gc = gcModel.getGcFor(markers[indicesByChr[i][j]]);// returns NaN if not present in the gcModel file
 					if (!Double.isNaN(gc) && !Double.isNaN(markerIntensities[indicesByChr[i][j]])) {// we take everything we can for correcting after the model is built
 						tmpFullGcs.add(gc);
@@ -318,45 +320,52 @@ public class GcAdjustor {
 										}
 									}
 								} else {// On to the next bin for qc, add indices if appropriate
-
+									numPossibleBins++;
+									currentBin++;
 									if (chrs[indicesByChr[i][j]] == 11) {
-										if (tmpCurrentBinChr11.size() > DEFUALT_NUM_SNP_MAD) {
+										if (tmpCurrentBinChr11.size() > numSnpMAD) {
 											tmpchr11qcIndices.add(Array.toIntegerArray(tmpCurrentBinChr11));
 										} else {
 											tmpchr11qcIndices.add(null);
 										}
 									}
-									if (tmpCurrentBin.size() > DEFUALT_NUM_SNP_MAD) {// skip small sized bins
+									if (tmpCurrentBin.size() > numSnpMAD) {// skip small sized bins
 										tmpQcIndices.add(Array.toIntegerArray(tmpCurrentBin));
-
+									} else {
+										tmpQcIndices.add(null);
 									}
-
-									while (positions[indicesByChr[i][j]] < regressionDistance * (currentBin + 1)) {// scan to the next bin to use, may be necesarry on less dense arrays
-										numPossibleBins++;
-										currentBin++;
-										proj.getLog().report("Warning - found a " + ext.prettyUpDistance(regressionDistance, 2) + " sliding window without any markers");
-									}
-									numPossibleBins++;
-									currentBin++;
-
 									tmpCurrentBin = new ArrayList<Integer>(1000);
 									tmpCurrentBinChr11 = new ArrayList<Integer>(1000);
-									// TODO, take this out if we start getting too far from PennCNV, should be more accurate though
-									// if (!Double.isNaN(gc) && !Double.isNaN(markerIntensities[indicesByChr[i][j]])) {// Note, PennCNV will not use this marker, they skip instead. We'll take it
-									// tmpCurrentBin.add(qcIndex);
-									// if (chrs[indicesByChr[i][j]] == 11) {
-									// tmpCurrentBinChr11.add(qcIndex);
-									// }
-									// }
+									if (correctionMethod == GC_CORRECTION_METHOD.GENVISIS_GC) {// PennCNV skips this marker, even though it can be added to a bin, especially if bins are small
+										if (regressionDistance * (currentBin + 1) <= positions[indicesByChr[i][j]]) {// this is in order to handle smaller regression distances
+											while (regressionDistance * (currentBin + 1) <= positions[indicesByChr[i][j]]) {
+												numPossibleBins++;
+												currentBin++;
+											}
+										}
+										if (positions[indicesByChr[i][j]] >= regressionDistance * currentBin && positions[indicesByChr[i][j]] < regressionDistance * (1 + currentBin)) {
+											if (!Double.isNaN(gc) && !Double.isNaN(markerIntensities[indicesByChr[i][j]])) {
+												tmpCurrentBin.add(qcIndex);
+												if (chrs[indicesByChr[i][j]] == 11) {
+													tmpCurrentBinChr11.add(qcIndex);
+												}
+											}
+										} else {
+											System.out.println(positions[indicesByChr[i][j]] + "\t" + (regressionDistance * currentBin) + "\t" + regressionDistance * (1 + currentBin));
+											proj.getLog().reportTimeError("SHould not happen");
+											System.exit(1);
+										}
+									}
 								}
 								if (!Double.isNaN(gc) && !Double.isNaN(markerIntensities[indicesByChr[i][j]])) {// for populating regression model
 									if (positions[indicesByChr[i][j]] - currentRegressDistance > regressionDistance) {
+
 										if (useMarker(markerIntensities[indicesByChr[i][j]], gc, minimumAutosomalGC, maximimumAutosomalGC, minIntensity, maxIntensity)) {
+
 											// The gc and intensity will be used for the correction
-											// if(!PennCNVGCWF||chrs[indicesByChr[i][j]] == 11){
 											tmpRegressGcs.add(gc);
 											tmpRegressIntensity.add(markerIntensities[indicesByChr[i][j]]);
-											// }
+
 										}
 										currentRegressDistance = positions[indicesByChr[i][j]];
 									}
@@ -367,12 +376,18 @@ public class GcAdjustor {
 				}
 				if (tmpCurrentBin.size() > 0) {
 					numPossibleBins++;
+
 				}
-				if (tmpCurrentBin.size() > DEFUALT_NUM_SNP_MAD) {// add any leftovers
+				if (tmpCurrentBin.size() > numSnpMAD) {// add any leftovers
 					tmpQcIndices.add(Array.toIntegerArray(tmpCurrentBin));
 					if (chrs[indicesByChr[i][0]] == 11) {
 						tmpchr11qcIndices.add(Array.toIntegerArray(tmpCurrentBinChr11));
 					}
+				} else {
+					if (indicesByChr[i].length > 0 && chrs[indicesByChr[i][0]] == 11) {
+						tmpchr11qcIndices.add(null);
+					}
+					tmpQcIndices.add(null);
 				}
 				tmpCurrentBin = new ArrayList<Integer>(1000);// reset the bins
 				tmpCurrentBinChr11 = new ArrayList<Integer>(1000);// reset the bins
@@ -380,6 +395,9 @@ public class GcAdjustor {
 			if (tmpRegressGcs.size() == 0) {
 				fail = true;
 				proj.getLog().reportError("Error - could not find any autosomal markers to train the regression model");
+				proj.getLog().reportError("Regression distance =" + regressionDistance);
+				proj.getLog().reportError("Method =" + correctionMethod);
+
 			} else {
 				this.regressionGcs = Array.toDoubleArray(tmpRegressGcs);
 				this.regressionIntensity = Array.toDoubleArray(tmpRegressIntensity);
@@ -404,7 +422,13 @@ public class GcAdjustor {
 					chr11qcIndices[i] = tmpchr11qcIndices.get(i);
 				}
 				if (verbose) {
-					proj.getLog().report("Info - detected " + qcIndices.length + " " + ext.prettyUpDistance(regressionDistance, 2) + " sliding windows with >" + DEFUALT_NUM_SNP_MAD + " markers out of a possible " + numPossibleBins + " windows to compute WF" + (correctionMethod == GC_CORRECTION_METHOD.PENNCNV_GC ? "" : " and GCWF"));
+					int totalMarkers = 0;
+					for (int i = 0; i < qcIndices.length; i++) {
+						if (qcIndices[i] != null && qcIndices[i].length > 0) {
+							totalMarkers += qcIndices[i].length;
+						}
+					}
+					proj.getLog().report("Info - Correction method=" + correctionMethod + ", detected " + qcIndices.length + " " + ext.prettyUpDistance(regressionDistance, 2) + " sliding windows with >" + numSnpMAD + " markers out of a possible " + numPossibleBins + " windows (" + totalMarkers + " markers total) to compute WF" + (correctionMethod == GC_CORRECTION_METHOD.PENNCNV_GC ? "" : " and GCWF"));
 				}
 			}
 		}
@@ -430,14 +454,18 @@ public class GcAdjustor {
 		ArrayList<Double> medianIntensity = new ArrayList<Double>();
 		ArrayList<Double> medianGc = new ArrayList<Double>();
 		for (int i = 0; i < WFbins.length; i++) {
-			medianIntensity.add(Array.median(Array.subArray(intensities, WFbins[i])));
-			medianGc.add(Array.median(Array.subArray(gcs, WFbins[i])));
+			if (WFbins[i] != null) {
+				medianIntensity.add(Array.median(Array.subArray(intensities, WFbins[i])));
+				medianGc.add(Array.median(Array.subArray(gcs, WFbins[i])));
+			}
 		}
 
 		double wf = Array.mad(Array.toDoubleArray(medianIntensity));
 		if (pennCNVGCBins != null) {// Used for PennCNV bins, if not supplied we use what we found above
 			if (pennCNVGCBins.length != DEFUALT_PENNCNV_CHR11_GC_BINS.length) {
 				log.reportError("Error - default PennCNV GC bins and current data do not match up, computing using full autosomal bins instead");
+				log.reportError("Error - should have " + DEFUALT_PENNCNV_CHR11_GC_BINS.length + " bins, but found " + pennCNVGCBins.length + " bins instead");
+
 			} else {
 				medianIntensity = new ArrayList<Double>();
 				medianGc = new ArrayList<Double>();
@@ -590,103 +618,111 @@ public class GcAdjustor {
 				MarkerSet markerSet = proj.getMarkerSet();
 				double[] gcs = new double[markerSet.getMarkerNames().length];
 				for (int i = 0; i < markerSet.getMarkerNames().length; i++) {
+					if (i % 10000 == 0) {
+						proj.getLog().reportTimeInfo("Generating snp window gc model for window of " + snpWindow + " (" + (i + 1) + " of " + markerSet.getMarkerNames().length + ")");
+					}
 					Segment seg = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i], markerSet.getPositions()[i]).getBufferedSegment(snpWindow);
-					double gc = referenceGenome.getGCContentFor(seg);
+					double gc = 100 * referenceGenome.getGCContentFor(seg);
 					gcs[i] = gc;
+					if (Double.isNaN(gc) && seg.getChr() > 0) {
+						proj.getLog().reportTimeError("Invalid gc content returned");
+						return null;
+					}
 				}
 
 				return new GcModel(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions(), gcs, indices, proj.getLog());
 			}
 		}
 
-		/**
-		 * uses {@link GcModel#generateFromReferenceGenome(Project, String, String, int)} but with the default gc model window size of 100*5120
-		 */
-		public static boolean generateFromReferenceGenome(Project proj, String fullPathToReferenceGenome, String fullPathToOutputModel) {
-			return generateFromReferenceGenome(proj, fullPathToReferenceGenome, fullPathToOutputModel, DEFUALT_GC_MODEL_WINDOW_SNP, DEFUALT_GC_MODEL_WINDOW_GC);
-		}
+		// /**
+		// * uses {@link GcModel#generateFromReferenceGenome(Project, String, String, int)} but with the default gc model window size of 100*5120
+		// */
+		// public static boolean generateFromReferenceGenome(Project proj, String fullPathToReferenceGenome, String fullPathToOutputModel) {
+		// return generateFromReferenceGenome(proj, fullPathToReferenceGenome, fullPathToOutputModel, DEFUALT_GC_MODEL_WINDOW_SNP, DEFUALT_GC_MODEL_WINDOW_GC);
+		// }
 
-		/**
-		 * @param proj
-		 * @param fullPathToReferenceGenome
-		 *            reference fasta
-		 * @param fullPathToOutputModel
-		 *            the output gc model file
-		 * @param windowPerSNP
-		 *            bp window around each marker to compute gc content in
-		 * @return
-		 */
-		public static boolean generateFromReferenceGenome(Project proj, String fullPathToReferenceGenome, String fullPathToOutputModel, int windowPerSNP, int windowPerGC) {
-			if (!Files.exists(fullPathToReferenceGenome)) {
-				proj.getLog().reportFileNotFound(fullPathToReferenceGenome);
-				return false;
-			} else if (Files.exists(fullPathToOutputModel)) {
-				proj.getLog().reportTimeWarning(fullPathToOutputModel + " exists, will not create again...");
-				return false;
-			} else {
-				proj.getLog().reportTimeInfo("Generating gc model file at " + fullPathToOutputModel);
-				ReferenceGenome referenceGenome = new ReferenceGenome(fullPathToReferenceGenome, proj.getLog());
-				LocusSet<Segment> bins = referenceGenome.getBins(windowPerGC);
-				proj.getLog().reportTimeInfo("Computing gc content for " + bins.getLoci().length + " bins of " + windowPerGC + " bp");
-				double[] gcContents = new double[bins.getLoci().length];
-				for (int i = 0; i < bins.getLoci().length; i++) {
-					if (i % 1000 == 0) {
-						proj.getLog().reportTimeInfo("Queried " + (i + 1) + " bins for gc content");
-					}
-					gcContents[i] = referenceGenome.getGCContentFor(bins.getLoci()[i]);
-				}
-
-				MarkerSet markerSet = proj.getMarkerSet();
-				String[] markerNames = markerSet.getMarkerNames();
-				int[] positions = markerSet.getPositions();
-				byte[] chrs = markerSet.getChrs();
-				try {
-					PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutputModel));
-					writer.println("Name\tChr\tPosition\tGC");
-					for (int i = 0; i < markerNames.length; i++) {
-						Segment bufferedMarkerSeg = new Segment(chrs[i], positions[i], positions[i]).getBufferedSegment(windowPerSNP);
-						String chr = chrs[i] + "";
-						if (chrs[i] == 23) {
-							chr = "X";
-						} else if (chrs[i] == 24) {
-							chr = "Y";
-						} else if (chrs[i] == 25) {
-							chr = "XY";
-						} else if (chrs[i] == 26) {
-							chr = "Un";
-						}
-						double gcContent = Double.NaN;
-						int[] overlapping = bins.getOverlappingIndices(bufferedMarkerSeg);
-
-						if (overlapping != null && overlapping.length > 0) {
-							Segment[] binOverlap = Array.subArray(bins.getLoci(), overlapping);
-							double gcs = 0;
-							int bps = 0;
-							for (int j = 0; j < overlapping.length; j++) {
-								bps += binOverlap[j].getSize();
-								gcs += gcContents[overlapping[j]] * binOverlap[j].getSize();
-							}
-							gcContent = (double) gcs / bps;
-						} else if (chrs[i] > 0) {
-							String error = "BUG: Did not find any overlapping bins for marker " + markerNames[i] + " for window search " + bufferedMarkerSeg.getUCSClocation();
-							proj.getLog().reportTimeError(error);
-							writer.close();
-							throw new IllegalStateException(error);
-						}
-
-						writer.println(markerNames[i] + "\t" + chr + "\t" + positions[i] + "\t" + gcContent);
-					}
-					writer.close();
-					return true;
-
-				} catch (Exception e) {
-					proj.getLog().reportError("Error writing to " + fullPathToOutputModel);
-					proj.getLog().reportException(e);
-					return false;
-				}
-
-			}
-		}
+		// /**
+		// * @param proj
+		// * @param fullPathToReferenceGenome
+		// * reference fasta
+		// * @param fullPathToOutputModel
+		// * the output gc model file
+		// * @param windowPerSNP
+		// * bp window around each marker to compute gc content in
+		// * @return
+		// */
+		// public static boolean generateFromReferenceGenome(Project proj, String fullPathToReferenceGenome, String fullPathToOutputModel, int windowPerSNP, int windowPerGC) {
+		// Sys
+		// if (!Files.exists(fullPathToReferenceGenome)) {
+		// proj.getLog().reportFileNotFound(fullPathToReferenceGenome);
+		// return false;
+		// } else if (Files.exists(fullPathToOutputModel)) {
+		// proj.getLog().reportTimeWarning(fullPathToOutputModel + " exists, will not create again...");
+		// return false;
+		// } else {
+		// proj.getLog().reportTimeInfo("Generating gc model file at " + fullPathToOutputModel);
+		// ReferenceGenome referenceGenome = new ReferenceGenome(fullPathToReferenceGenome, proj.getLog());
+		// LocusSet<Segment> bins = referenceGenome.getBins(windowPerGC);
+		// proj.getLog().reportTimeInfo("Computing gc content for " + bins.getLoci().length + " bins of " + windowPerGC + " bp");
+		// double[] gcContents = new double[bins.getLoci().length];
+		// for (int i = 0; i < bins.getLoci().length; i++) {
+		// if (i % 1000 == 0) {
+		// proj.getLog().reportTimeInfo("Queried " + (i + 1) + " bins for gc content");
+		// }
+		// gcContents[i] = referenceGenome.getGCContentFor(bins.getLoci()[i]);
+		// }
+		//
+		// MarkerSet markerSet = proj.getMarkerSet();
+		// String[] markerNames = markerSet.getMarkerNames();
+		// int[] positions = markerSet.getPositions();
+		// byte[] chrs = markerSet.getChrs();
+		// try {
+		// PrintWriter writer = new PrintWriter(new FileWriter(fullPathToOutputModel));
+		// writer.println("Name\tChr\tPosition\tGC");
+		// for (int i = 0; i < markerNames.length; i++) {
+		// Segment bufferedMarkerSeg = new Segment(chrs[i], positions[i], positions[i]).getBufferedSegment(windowPerSNP);
+		// String chr = chrs[i] + "";
+		// if (chrs[i] == 23) {
+		// chr = "X";
+		// } else if (chrs[i] == 24) {
+		// chr = "Y";
+		// } else if (chrs[i] == 25) {
+		// chr = "XY";
+		// } else if (chrs[i] == 26) {
+		// chr = "Un";
+		// }
+		// double gcContent = Double.NaN;
+		// int[] overlapping = bins.getOverlappingIndices(bufferedMarkerSeg);
+		//
+		// if (overlapping != null && overlapping.length > 0) {
+		// Segment[] binOverlap = Array.subArray(bins.getLoci(), overlapping);
+		// double gcs = 0;
+		// int bps = 0;
+		// for (int j = 0; j < overlapping.length; j++) {
+		// bps += binOverlap[j].getSize();
+		// gcs += gcContents[overlapping[j]] * binOverlap[j].getSize();
+		// }
+		// gcContent = (double) gcs / bps;
+		// } else if (chrs[i] > 0) {
+		// String error = "BUG: Did not find any overlapping bins for marker " + markerNames[i] + " for window search " + bufferedMarkerSeg.getUCSClocation();
+		// proj.getLog().reportTimeError(error);
+		// writer.close();
+		// throw new IllegalStateException(error);
+		// }
+		//
+		// writer.println(markerNames[i] + "\t" + chr + "\t" + positions[i] + "\t" + gcContent);
+		// }
+		// writer.close();
+		// return true;
+		//
+		// } catch (Exception e) {
+		// proj.getLog().reportError("Error writing to " + fullPathToOutputModel);
+		// proj.getLog().reportException(e);
+		// return false;
+		// }
+		//
+		// }
+		// }
 
 		public static GcModel populateFromFile(String fullPathToGcModel, boolean verbose, Logger log) {
 			ArrayList<String> markers = new ArrayList<String>();
@@ -843,6 +879,7 @@ public class GcAdjustor {
 		private double minIntensity = DEFAULT_MIN_DATA_VALUE;
 		private double maxIntensity = DEFAULT_MAX_DATA_VALUE;
 		private int regressionDistance = DEFAULT_REGRESSION_DISTANCE[0];
+		private int numSnpMAD = DEFUALT_NUM_SNP_MAD;
 		private int skipPerChr = DEFAULT_SKIP_PER_CHR[0];
 		private boolean[] markerMask = null;
 		private boolean verbose = false;
@@ -850,6 +887,11 @@ public class GcAdjustor {
 
 		public GCAdjustorBuilder minimumAutosomalGC(double minimumAutosomalGC) {
 			this.minimumAutosomalGC = minimumAutosomalGC;
+			return this;
+		}
+
+		public GCAdjustorBuilder numSnpMAD(int numSnpMAD) {
+			this.numSnpMAD = numSnpMAD;
 			return this;
 		}
 
@@ -896,9 +938,27 @@ public class GcAdjustor {
 		public GcAdjustor build(Project proj, PreparedMarkerSet markerSet, GcModel gcModel, double[] markerIntensities) {
 			return new GcAdjustor(this, proj, markerSet, gcModel, markerIntensities);
 		}
+
+		public GCAdjustorBuilder() {
+
+		}
+
+		public GCAdjustorBuilder(GCAdjustorBuilder builder) {
+			this.numSnpMAD = builder.numSnpMAD;
+			this.minimumAutosomalGC = builder.minimumAutosomalGC;
+			this.maximimumAutosomalGC = builder.maximimumAutosomalGC;
+			this.minIntensity = builder.minIntensity;
+			this.maxIntensity = builder.maxIntensity;
+			this.regressionDistance = builder.regressionDistance;
+			this.skipPerChr = builder.skipPerChr;
+			this.markerMask = builder.markerMask;
+			this.verbose = builder.verbose;
+			this.correctionMethod = builder.correctionMethod;
+		}
 	}
 
 	private GcAdjustor(GCAdjustorBuilder builder, Project proj, PreparedMarkerSet markerSet, GcModel gcModel, double[] markerIntensities) {
+		this.numSnpMAD = builder.numSnpMAD;
 		this.minimumAutosomalGC = builder.minimumAutosomalGC;
 		this.maximimumAutosomalGC = builder.maximimumAutosomalGC;
 		this.minIntensity = builder.minIntensity;
