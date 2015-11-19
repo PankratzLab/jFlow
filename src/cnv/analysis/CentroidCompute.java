@@ -692,11 +692,10 @@ public class CentroidCompute {
 	private CentroidCompute(Builder builder, MarkerData markerData, Logger log) {
 		this(markerData, builder.sampleSex, builder.samplesToUse, builder.intensityOnly, builder.missingnessThreshold, builder.gcThreshold, builder.clusterFilterCollection, builder.medianCenter, log);
 	}
-	
-	
-	public static void computeAndDumpCentroids(Project proj) {
+
+	public static Centroids computeAndDumpCentroids(Project proj) {
 		Builder builder = new Builder();
-		CentroidCompute.computeAndDumpCentroids(proj, null, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), builder, proj.NUM_THREADS.getValue(), 1);
+		return CentroidCompute.computeAndDumpCentroids(proj, null, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), builder, proj.NUM_THREADS.getValue(), 1);
 	}
 
 	/**
@@ -711,7 +710,7 @@ public class CentroidCompute {
 	 * @param numDecompressThreads
 	 *            number of threads for decompressing marker data
 	 */
-	public static void computeAndDumpCentroids(Project proj, boolean[] samplesToUse, String fullpathToCentFile, Builder builder, int numCentThreads, int numDecompressThreads) {
+	public static Centroids computeAndDumpCentroids(Project proj, boolean[] samplesToUse, String fullpathToCentFile, Builder builder, int numCentThreads, int numDecompressThreads) {
 		String[] markers = proj.getMarkerNames();
 		float[][][] centroids = new float[markers.length][][];
 		CentroidProducer producer = new CentroidProducer(proj, markers, samplesToUse, builder, numDecompressThreads);
@@ -726,7 +725,9 @@ public class CentroidCompute {
 			index++;
 		}
 		train.shutdown();
-		new Centroids(centroids, proj.getMarkerSet().getFingerprint()).serialize(fullpathToCentFile);
+		Centroids cent = new Centroids(centroids, proj.getMarkerSet().getFingerprint());
+		cent.serialize(fullpathToCentFile);
+		return cent;
 	}
 
 	private static class CentroidProducer implements Producer<CentroidCompute> {
