@@ -85,61 +85,61 @@ public class GcAdjustor {
 		GENVISIS_GC;
 	}
 
-	/**
-	 * Constructor for PennCNV defaults, minus the chromosome 11 GC content bins for the GCWF computation
-	 */
-	public GcAdjustor(Project proj, PreparedMarkerSet preparedMarkerSet, GcModel gcModel, double[] markerIntensities, boolean[] markerMask, GC_CORRECTION_METHOD correctionMethod, boolean verbose) {
-		this(proj, preparedMarkerSet, gcModel, markerIntensities, DEFAULT_MINAUTOSOMALGC, DEFAULT_MAXAUTOSOMALGC, DEFAULT_MIN_DATA_VALUE, DEFAULT_MAX_DATA_VALUE, DEFAULT_REGRESSION_DISTANCE[0], DEFAULT_SKIP_PER_CHR[0], markerMask, correctionMethod, verbose);
-	}
-
-	/**
-	 * @param proj
-	 *            current project
-	 * @param gcModel
-	 *            valid {@link GcModel} object to use for correction
-	 * @param markerIntensities
-	 *            array of intensities to correct
-	 * @param minimumAutosomalGC
-	 *            gc contents less than this will not be included in the regression model
-	 * @param maximimumAutosomalGC
-	 *            gc contents greater than this will not be included in the regression model
-	 * @param minIntensity
-	 *            intensities less than this will not be included in the regression model
-	 * @param maxIntensity
-	 *            intensities greater than this will not be included in the regression model
-	 * @param regressionDistance
-	 *            the bin distance in base pairs, sliding window for regression, straight bins for qc
-	 * @param skipPerChr
-	 *            skip this many markers at the beginning and end of each chromosome
-	 * @param markerMask
-	 *            use at own peril, mainly a place holder currently
-	 * @param PennCNVGCWF
-	 *            use the fixed PennCNV GC content array, based on chr 11
-	 * @param verbose
-	 *            report
-	 */
-	public GcAdjustor(Project proj, PreparedMarkerSet preparedMarkerSet, GcModel gcModel, double[] markerIntensities, double minimumAutosomalGC, double maximimumAutosomalGC, double minIntensity, double maxIntensity, int regressionDistance, int skipPerChr, boolean[] markerMask, GC_CORRECTION_METHOD correctionMethod, boolean verbose) {
-		super();
-		this.proj = proj;
-		this.gcModel = gcModel;
-		this.markerIntensities = markerIntensities;
-		this.minimumAutosomalGC = minimumAutosomalGC;
-		this.maximimumAutosomalGC = maximimumAutosomalGC;
-		this.minIntensity = minIntensity;
-		this.maxIntensity = maxIntensity;
-		this.regressionDistance = regressionDistance;
-		this.skipPerChr = skipPerChr;
-		this.verbose = verbose;
-		this.fail = false;
-		this.wfPrior = Double.NaN;
-		this.wfPost = Double.NaN;
-		this.gcwfPrior = Double.NaN;
-		this.gcwfPost = Double.NaN;
-		this.correctionMethod = correctionMethod;
-		this.markerMask = markerMask;
-		this.preparedMarkerSet = preparedMarkerSet;
-		populateCurrentData();// Initialize everything needed
-	}
+	// /**
+	// * Constructor for PennCNV defaults, minus the chromosome 11 GC content bins for the GCWF computation
+	// */
+	// public GcAdjustor(Project proj, PreparedMarkerSet preparedMarkerSet, GcModel gcModel, double[] markerIntensities, boolean[] markerMask, GC_CORRECTION_METHOD correctionMethod, boolean verbose) {
+	// this(proj, preparedMarkerSet, gcModel, markerIntensities, DEFAULT_MINAUTOSOMALGC, DEFAULT_MAXAUTOSOMALGC, DEFAULT_MIN_DATA_VALUE, DEFAULT_MAX_DATA_VALUE, DEFAULT_REGRESSION_DISTANCE[0], DEFAULT_SKIP_PER_CHR[0], markerMask, correctionMethod, verbose);
+	// }
+	//
+	// /**
+	// * @param proj
+	// * current project
+	// * @param gcModel
+	// * valid {@link GcModel} object to use for correction
+	// * @param markerIntensities
+	// * array of intensities to correct
+	// * @param minimumAutosomalGC
+	// * gc contents less than this will not be included in the regression model
+	// * @param maximimumAutosomalGC
+	// * gc contents greater than this will not be included in the regression model
+	// * @param minIntensity
+	// * intensities less than this will not be included in the regression model
+	// * @param maxIntensity
+	// * intensities greater than this will not be included in the regression model
+	// * @param regressionDistance
+	// * the bin distance in base pairs, sliding window for regression, straight bins for qc
+	// * @param skipPerChr
+	// * skip this many markers at the beginning and end of each chromosome
+	// * @param markerMask
+	// * use at own peril, mainly a place holder currently
+	// * @param PennCNVGCWF
+	// * use the fixed PennCNV GC content array, based on chr 11
+	// * @param verbose
+	// * report
+	// */
+	// public GcAdjustor(Project proj, PreparedMarkerSet preparedMarkerSet, GcModel gcModel, double[] markerIntensities, double minimumAutosomalGC, double maximimumAutosomalGC, double minIntensity, double maxIntensity, int regressionDistance, int skipPerChr, boolean[] markerMask, GC_CORRECTION_METHOD correctionMethod, boolean verbose) {
+	// super();
+	// this.proj = proj;
+	// this.gcModel = gcModel;
+	// this.markerIntensities = markerIntensities;
+	// this.minimumAutosomalGC = minimumAutosomalGC;
+	// this.maximimumAutosomalGC = maximimumAutosomalGC;
+	// this.minIntensity = minIntensity;
+	// this.maxIntensity = maxIntensity;
+	// this.regressionDistance = regressionDistance;
+	// this.skipPerChr = skipPerChr;
+	// this.verbose = verbose;
+	// this.fail = false;
+	// this.wfPrior = Double.NaN;
+	// this.wfPost = Double.NaN;
+	// this.gcwfPrior = Double.NaN;
+	// this.gcwfPost = Double.NaN;
+	// this.correctionMethod = correctionMethod;
+	// this.markerMask = markerMask;
+	// this.preparedMarkerSet = preparedMarkerSet;
+	// populateCurrentData();// Initialize everything needed
+	// }
 
 	public CrossValidation getCrossValidation() {
 		return crossValidation;
@@ -791,7 +791,17 @@ public class GcAdjustor {
 	 * @return a {@link GcAdjustor} object with corrected intensities and qc metrics
 	 */
 	public static GcAdjustor getComputedAdjustor(Project proj, String sample, GcAdjustorParameter gcParameters, PreparedMarkerSet preparedMarkerSet, float[] markerIntensities, GcModel gcModel, GC_CORRECTION_METHOD correctionMethod, boolean computePrior, boolean computePost, boolean verbose) {
-		GcAdjustor gcAdjustor = new GcAdjustor(proj, preparedMarkerSet, gcModel, Array.toDoubleArray(markerIntensities), null, correctionMethod, verbose);
+		GCAdjustorBuilder builder = new GCAdjustorBuilder();
+		builder.correctionMethod(correctionMethod);
+		builder.verbose(verbose);
+		GcAdjustor gcAdjustor = builder.build(proj, preparedMarkerSet, gcModel, Array.toDoubleArray(markerIntensities));
+		gcAdjustor.correctIntensities(sample, gcParameters);
+		gcAdjustor.computeQCMetrics(computePrior, computePost);
+		return gcAdjustor;
+	}
+
+	public static GcAdjustor getComputedAdjustor(Project proj, GCAdjustorBuilder builder, String sample, GcAdjustorParameter gcParameters, PreparedMarkerSet preparedMarkerSet, float[] markerIntensities, GcModel gcModel, boolean computePrior, boolean computePost) {
+		GcAdjustor gcAdjustor = builder.build(proj, preparedMarkerSet, gcModel, Array.toDoubleArray(markerIntensities));
 		gcAdjustor.correctIntensities(sample, gcParameters);
 		gcAdjustor.computeQCMetrics(computePrior, computePost);
 		return gcAdjustor;
@@ -807,7 +817,8 @@ public class GcAdjustor {
 				long time = System.currentTimeMillis();
 				Sample samp = proj.getFullSampleFromRandomAccessFile(samplesToTest[i]);
 				proj.getLog().report("Testing sample " + samp.getSampleName());
-				GcAdjustor gcAdjusterNew = new GcAdjustor(proj, null, gcModel, Array.toDoubleArray(samp.getLRRs()), null, GC_CORRECTION_METHOD.GENVISIS_GC, true);
+				GCAdjustorBuilder builder = new GCAdjustorBuilder();
+				GcAdjustor gcAdjusterNew = builder.build(proj, null, gcModel, Array.toDoubleArray(samp.getLRRs()));
 				gcAdjusterNew.correctIntensities();
 				gcAdjusterNew.computeQCMetrics(true, true);
 				writer.println(samp.getSampleName() + "\t" + gcAdjusterNew.getQCString() + "\t" + ext.getTimeElapsed(time));
@@ -824,6 +835,89 @@ public class GcAdjustor {
 		String fullPathToGcModel = "D:/data/gedi_gwas/CompareGC_CORRECTION/custom.gcmodel";
 		String fullPathToFileOfTestSamples = "D:/data/gedi_gwas/CompareGC_CORRECTION/testGCCorrection.txt";
 		test(proj, fullPathToGcModel, fullPathToFileOfTestSamples);
+	}
+
+	public static class GCAdjustorBuilder {
+		private double minimumAutosomalGC = DEFAULT_MINAUTOSOMALGC;
+		private double maximimumAutosomalGC = DEFAULT_MAXAUTOSOMALGC;
+		private double minIntensity = DEFAULT_MIN_DATA_VALUE;
+		private double maxIntensity = DEFAULT_MAX_DATA_VALUE;
+		private int regressionDistance = DEFAULT_REGRESSION_DISTANCE[0];
+		private int skipPerChr = DEFAULT_SKIP_PER_CHR[0];
+		private boolean[] markerMask = null;
+		private boolean verbose = false;
+		private GC_CORRECTION_METHOD correctionMethod = GC_CORRECTION_METHOD.GENVISIS_GC;
+
+		public GCAdjustorBuilder minimumAutosomalGC(double minimumAutosomalGC) {
+			this.minimumAutosomalGC = minimumAutosomalGC;
+			return this;
+		}
+
+		public GCAdjustorBuilder maximimumAutosomalGC(double maximimumAutosomalGC) {
+			this.maximimumAutosomalGC = maximimumAutosomalGC;
+			return this;
+		}
+
+		public GCAdjustorBuilder minIntensity(double minIntensity) {
+			this.minIntensity = minIntensity;
+			return this;
+		}
+
+		public GCAdjustorBuilder maxIntensity(double maxIntensity) {
+			this.maxIntensity = maxIntensity;
+			return this;
+		}
+
+		public GCAdjustorBuilder regressionDistance(int regressionDistance) {
+			this.regressionDistance = regressionDistance;
+			return this;
+		}
+
+		public GCAdjustorBuilder skipPerChr(int skipPerChr) {
+			this.skipPerChr = skipPerChr;
+			return this;
+		}
+
+		public GCAdjustorBuilder markerMask(boolean[] markerMask) {
+			this.markerMask = markerMask;
+			return this;
+		}
+
+		public GCAdjustorBuilder verbose(boolean verbose) {
+			this.verbose = verbose;
+			return this;
+		}
+
+		public GCAdjustorBuilder correctionMethod(GC_CORRECTION_METHOD correctionMethod) {
+			this.correctionMethod = correctionMethod;
+			return this;
+		}
+
+		public GcAdjustor build(Project proj, PreparedMarkerSet markerSet, GcModel gcModel, double[] markerIntensities) {
+			return new GcAdjustor(this, proj, markerSet, gcModel, markerIntensities);
+		}
+	}
+
+	private GcAdjustor(GCAdjustorBuilder builder, Project proj, PreparedMarkerSet markerSet, GcModel gcModel, double[] markerIntensities) {
+		this.minimumAutosomalGC = builder.minimumAutosomalGC;
+		this.maximimumAutosomalGC = builder.maximimumAutosomalGC;
+		this.minIntensity = builder.minIntensity;
+		this.maxIntensity = builder.maxIntensity;
+		this.regressionDistance = builder.regressionDistance;
+		this.skipPerChr = builder.skipPerChr;
+		this.markerMask = builder.markerMask;
+		this.verbose = builder.verbose;
+		this.correctionMethod = builder.correctionMethod;
+		this.proj = proj;
+		this.gcModel = gcModel;
+		this.markerIntensities = markerIntensities;
+		this.fail = false;
+		this.wfPrior = Double.NaN;
+		this.wfPost = Double.NaN;
+		this.gcwfPrior = Double.NaN;
+		this.gcwfPost = Double.NaN;
+		this.preparedMarkerSet = markerSet;
+		populateCurrentData();// Initialize everything needed
 	}
 }
 
