@@ -191,8 +191,9 @@ public class VCFSimpleTally {
 				BufferedReader reader = Files.getAppropriateReader(fileName);
 				String[] head = reader.readLine().trim().split("\t");
 				if (!head[0].equals(GENE_TAG)) {
-					throw new IllegalArgumentException("File must have " + GENE_TAG + " to be used for extra gene annotation");
+					throw new IllegalArgumentException("File "+fileName+" must have " + GENE_TAG + " to be used for extra gene annotation, found "+head[0]+" instead");
 				}
+
 				this.header = Array.tagOn(head, ext.removeDirectoryInfo(fileName), null);
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("\t");
@@ -220,9 +221,10 @@ public class VCFSimpleTally {
 	public static void test() {
 		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf.gz";
 		String popDir = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/Freq/";
-		String[] vpopsCase = new String[] { popDir + "OSTEO_OFF_INHERIT.vpop", popDir + "CUSHING_FREQ.vpop", popDir + "EPP.vpop" };
+		String[] vpopsCase = new String[] { popDir + "OSTEO_OFF_INHERIT.vpop" };
+		// popDir + "CUSHING_FREQ.vpop", popDir + "EPP.vpop" };
 		String omimDir = "/home/pankrat2/public/bin/ref/OMIM/";
-		String[] otherGenesOfInterest = new String[] { popDir + "SB_T1.txt", popDir + "SB_T2.txt" };
+		String[] otherGenesOfInterest = new String[] { popDir + "SB_T1.txt", popDir + "SB_T2.txt", "/home/pankrat2/public/bin/ref/COSMIC/cancer_gene_census.txt" };
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		int numThreads = 24;
 		for (int i = 0; i < vpopsCase.length; i++) {
@@ -251,13 +253,13 @@ public class VCFSimpleTally {
 			names.add("VARIANT_LEVEL");
 			filesToWrite.add(caseResult.getFinalAnnotSample());
 			names.add("VARIANT_SAMP_LEVEL");
-			
+
 			VcfPopulation controls = caseResult.getControls();
 			String controlFile = ext.parseDirectoryOfFile(vpopsCase[i]) + controls.getUniqSuperPop().get(0) + ".vpop";
 			controls.report();
 			controls.dump(controlFile);
 			SimpleTallyResult controlResult = runSimpleTally(vcf, controlFile, maf, numThreads, outDir, log);
-			
+
 			String geneFileCase = caseResult.getFinalAnnotGene();
 			String geneFileControl = controlResult.getFinalAnnotGene();
 			String caseWithControls = ext.addToRoot(geneFileCase, "_" + ext.rootOf(controlFile));
@@ -310,9 +312,9 @@ public class VCFSimpleTally {
 				}
 				reader.close();
 				writer.close();
-				//String outXl = caseWithControls + ".xls";
-//				ExcelWriter writerxl = new ExcelWriter(Array.toStringArray(filesToWrite), Array.toStringArray(names), log);
-//				writerxl.write(outXl);
+				// String outXl = caseWithControls + ".xls";
+				// ExcelWriter writerxl = new ExcelWriter(Array.toStringArray(filesToWrite), Array.toStringArray(names), log);
+				// writerxl.write(outXl);
 
 			} catch (FileNotFoundException fnfe) {
 				log.reportError("Error: file \"" + geneFileCase + "\" not found in current directory");
@@ -335,19 +337,19 @@ public class VCFSimpleTally {
 
 	private static class SimpleTallyResult {
 		private VcfPopulation controls;
-		//private String finalOut;
-		//private String finalOutVCF;
+		// private String finalOut;
+		// private String finalOutVCF;
 		private String finalAnnot;
 		private String finalAnnotSample;
 		private String finalsampSummary;
 
 		private String finalAnnotGene;
 
-		public SimpleTallyResult(VcfPopulation controls, String finalOut, String finalOutVCF,String finalsampSummary, String finalAnnot, String finalAnnotSample, String finalAnnotGene) {
+		public SimpleTallyResult(VcfPopulation controls, String finalOut, String finalOutVCF, String finalsampSummary, String finalAnnot, String finalAnnotSample, String finalAnnotGene) {
 			super();
 			this.controls = controls;
-			//this.finalOut = finalOut;
-		//	this.finalOutVCF = finalOutVCF;
+			// this.finalOut = finalOut;
+			// this.finalOutVCF = finalOutVCF;
 			this.finalsampSummary = finalsampSummary;
 			this.finalAnnot = finalAnnot;
 			this.finalAnnotGene = finalAnnotGene;
@@ -396,7 +398,7 @@ public class VCFSimpleTally {
 		String finalOutVCF = finalOut + VCFOps.VCF_EXTENSIONS.GZIP_VCF.getLiteral();
 		String finalAnnot = finalOut + ".summary";
 		String finalAnnotSample = finalOut + ".summary.sample";
-		String finalsampSummary =finalOut + ".sampSummary.txt";
+		String finalsampSummary = finalOut + ".sampSummary.txt";
 		String finalAnnotGene = finalOut + ".gene";
 		String finalAnnotGeneBed = finalOut + ".gene.bed";
 		// String finalAnnotGeneSample = finalOut + ".gene.sample";
