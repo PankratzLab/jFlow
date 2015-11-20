@@ -390,7 +390,7 @@ public class FAST {
 //        Files.qsub(ext.verifyDirFormat(studyDir) + "master_runMETAL.qsub", runMetal.toString(), QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
 //	}
 	
-	private static String writeMetalCRF(String factor, double pvalThresh, boolean gc) {
+	public static String writeMetalCRF(String factor, double pvalThresh, boolean gc) {
 	    StringBuilder metalCRF = new StringBuilder("metal\n")
                                 	    .append(factor).append("\n")
                                 	    .append("build=37\n")
