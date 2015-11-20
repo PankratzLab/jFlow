@@ -109,7 +109,7 @@ public class ProjectCreationGUI extends JDialog {
                     try {
                         txt = ext.verifyDirFormat(f.getCanonicalPath());
                     } catch (IOException e1) {}
-                    if (e.getActionCommand().equals("TARGET") && txt.length() > 1 && txt.endsWith("/")) {
+                    if (jfc.getFileSelectionMode() == FileChooser.FILES_ONLY && txt.length() > 1 && txt.endsWith("/")) {
                         txt = txt.substring(0, txt.length() - 1);
                     }
                     fld.setText(txt);
@@ -145,6 +145,7 @@ public class ProjectCreationGUI extends JDialog {
      * Create the frame.
      */
     public ProjectCreationGUI() {
+        setTitle("Genvisis: Create New Project");
         Project proj = new Project();
         
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -184,7 +185,6 @@ public class ProjectCreationGUI extends JDialog {
                 updateSourceFileNotice();
             }
         };
-        
         
         txtFldSrcDir = new JTextField(proj.SOURCE_DIRECTORY.getDefaultValueString());
         txtFldSrcDir.addCaretListener(checkSource);

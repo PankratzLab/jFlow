@@ -19,6 +19,8 @@ import seq.manage.ReferenceGenome;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import cnv.annotation.BlastAnnotationTypes.TOP_BOT;
 import cnv.annotation.MarkerSeqAnnotation;
+import cnv.filesys.Project;
+import cnv.gui.BlastFrame.BlastUtils;
 import common.Array;
 import common.Fonts;
 import filesys.Segment;
@@ -120,6 +122,7 @@ public class BlastLabel extends JLabel {
     boolean flipSequence = false;
     ArrayList<CigarSeq> seqParts = new ArrayList<CigarSeq>();
     private int alignmentCount;
+    private String nextBaseABCode = "";
     
     int getAlignment() {
         return alignmentCount;
@@ -129,7 +132,7 @@ public class BlastLabel extends JLabel {
         return myAnnotation.getStrand();
     }
     
-    public BlastLabel(MarkerSeqAnnotation ref, BlastAnnotation annot, ReferenceGenome refGen) {
+    public BlastLabel(Project proj, MarkerSeqAnnotation ref, BlastAnnotation annot, ReferenceGenome refGen) {
         super();
         this.refSeq = ref;
         this.myAnnotation = annot;
@@ -138,6 +141,7 @@ public class BlastLabel extends JLabel {
         this.flipSequence = oppositeStrand && ((ref.getTopBotRef() == TOP_BOT.PLUS && ref.getTopBotProbe() == TOP_BOT.PLUS) || (ref.getTopBotRef() == TOP_BOT.BOT && ref.getTopBotProbe() == TOP_BOT.BOT));
         this.fullSegment = BlastFrame.BlastUtils.getSegmentForAnnotation(ref, annot);
         this.alignmentCount = BlastFrame.BlastUtils.countAlignment(annot);
+        this.nextBaseABCode = annot.getTag().getTag();
         if (refGen != null) {
             String[] seqArr = refGen.getSequenceFor(this.fullSegment);
             if (seqArr != null) {
