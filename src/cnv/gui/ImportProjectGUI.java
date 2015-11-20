@@ -310,7 +310,7 @@ public class ImportProjectGUI extends JDialog {
         };
     }
     
-    private void updateFound(boolean[] statuses) {
+    private void updateFound(final boolean[] statuses) {
         
         SwingUtilities.invokeLater(new Runnable() {
             @Override
