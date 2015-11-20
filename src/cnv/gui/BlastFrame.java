@@ -94,6 +94,52 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
             
             return new Segment(origSeg.getChr(), start, stop);
         }
+
+//        public static String getAB(Project proj, int chr, int loc) {
+//                String abCode = null;
+//                String[] samples = proj.getSamples();
+//                MarkerSet markerSet = proj.getMarkerSet(); // TODO should be cached
+//                // TODO alter 'loc' to reflect position of next allele after PROBE_SEQ
+//                int[] mkrPoss = markerSet.getPositionsByChr()[chr];  // TODO should be cached
+//                int pos = Array.binarySearch(mkrPoss, loc, true); // TODO exact match??  should be okay with next marker, or must be exact next base?
+//                if (pos != -1) {
+//                    int mkrInd = markerSet.getIndicesByChr()[chr][pos];
+//                    HashSet<String> alleleSet1 = new HashSet<String>();
+//                    HashSet<String> alleleSet2 = new HashSet<String>();
+//                    for (String sample : samples) {
+//                        Sample samp = proj.getPartialSampleFromRandomAccessFile(sample, false, false, false, false, true); // TODO should be cached?
+//                        byte[] geno = samp.getForwardGenotypes();
+//                        if (geno != null) {
+//                            String alPair = Sample.ALLELE_PAIRS[geno[mkrInd]];
+//                            alleleSet1.add("" + alPair.charAt(0));
+//                            alleleSet2.add("" + alPair.charAt(1));                    
+//                        }
+//                    }
+//                    boolean a1_A = alleleSet1.contains("A");
+//                    boolean a1_C = alleleSet1.contains("C");
+//                    boolean a1_T = alleleSet1.contains("T");
+//                    boolean a1_G = alleleSet1.contains("G");
+//                    boolean a2_A = alleleSet1.contains("A");
+//                    boolean a2_C = alleleSet1.contains("C");
+//                    boolean a2_T = alleleSet1.contains("T");
+//                    boolean a2_G = alleleSet1.contains("G");
+//                    
+//                    boolean a1_AT = a1_A || a1_T;
+//                    boolean a1_CG = a1_C || a1_G;
+//                    boolean a2_AT = a2_A || a2_T;
+//                    boolean a2_CG = a2_C || a2_G;
+//                    if (a1_AT && !a1_CG && !a2_AT && a2_CG) {
+//                        abCode = "AB";
+//                    } else if (!a1_AT && a1_CG && a2_AT && !a2_CG) {
+//                        abCode = "BA";
+//                    }
+//                    // TODO verify AB encoding
+//                } else {
+//                    // TODO couldn't find position of next base - should log?
+//                    abCode = "";
+//                }
+//                return abCode;
+//            }
         
     }
 
@@ -344,61 +390,13 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         });
     }
     
-    private String getAB(int chr, int loc) {
-//        chr = this.referenceAnnotation.getSeg().getChr();
-//        loc = this.referenceAnnotation.getSeg().getStart();
-        String abCode = null;
-        String[] samples = proj.getSamples();
-        MarkerSet markerSet = proj.getMarkerSet();
-        // TODO alter 'loc' to reflect position of next allele after PROBE_SEQ
-        int[] mkrPoss = markerSet.getPositionsByChr()[chr];
-        int pos = Array.binarySearch(mkrPoss, loc, true);
-        if (pos != -1) {
-            int mkrInd = markerSet.getIndicesByChr()[chr][pos];
-            HashSet<String> alleleSet1 = new HashSet<String>();
-            HashSet<String> alleleSet2 = new HashSet<String>();
-            for (String sample : samples) {
-                Sample samp = proj.getPartialSampleFromRandomAccessFile(sample, false, false, false, false, true); // TODO should be cached?
-                byte[] geno = samp.getForwardGenotypes();
-                if (geno != null) {
-                    String alPair = Sample.ALLELE_PAIRS[geno[mkrInd]];
-                    alleleSet1.add("" + alPair.charAt(0));
-                    alleleSet2.add("" + alPair.charAt(1));                    
-                }
-            }
-            boolean a1_A = alleleSet1.contains("A");
-            boolean a1_C = alleleSet1.contains("C");
-            boolean a1_T = alleleSet1.contains("T");
-            boolean a1_G = alleleSet1.contains("G");
-            boolean a2_A = alleleSet1.contains("A");
-            boolean a2_C = alleleSet1.contains("C");
-            boolean a2_T = alleleSet1.contains("T");
-            boolean a2_G = alleleSet1.contains("G");
-            
-            boolean a1_AT = a1_A || a1_T;
-            boolean a1_CG = a1_C || a1_G;
-            boolean a2_AT = a2_A || a2_T;
-            boolean a2_CG = a2_C || a2_G;
-            if (a1_AT && !a1_CG && !a2_AT && a2_CG) {
-                abCode = "AB";
-            } else if (!a1_AT && a1_CG && a2_AT && !a2_CG) {
-                abCode = "BA";
-            }
-            // TODO verify AB encoding
-        } else {
-            // TODO couldn't find position of next base - should log?
-            abCode = "";
-        }
-        return abCode;
-    }
-    
     public void updateLabels() {
         BlastLabel.spaces = new TreeSet<Integer>();
         BlastLabel.spaceSets = new TreeMap<Integer, Integer>();
         bLabels = new ArrayList<BlastLabel>();
         sorted = new ArrayList<BlastLabel>();
         for (BlastAnnotation annot : annotations) {
-            BlastLabel lbl = new BlastLabel(referenceAnnotation, annot, referenceGenome);
+            BlastLabel lbl = new BlastLabel(proj, referenceAnnotation, annot, referenceGenome);
     //            if (lbl.strandFlipped) continue;
             bLabels.add(lbl);
             sorted.add(lbl);

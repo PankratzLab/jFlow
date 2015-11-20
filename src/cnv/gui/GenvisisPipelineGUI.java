@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -26,6 +27,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -59,7 +61,7 @@ public class GenvisisPipelineGUI extends JDialog {
     private HashMap<STEP, JLabel> descLabels = new HashMap<STEP, JLabel>();
     private HashMap<STEP, ArrayList<JLabel>> requirementsLabels = new HashMap<STEP, ArrayList<JLabel>>();
     private HashMap<STEP, JAccordionPanel> panels = new HashMap<GenvisisPipeline.STEP, JAccordionPanel>();
-    public HashMap<STEP, ArrayList<? extends JComponent>> varFields = new HashMap<GenvisisPipeline.STEP, ArrayList<? extends JComponent>>();
+    public ConcurrentHashMap<STEP, ArrayList<? extends JComponent>> varFields = new ConcurrentHashMap<GenvisisPipeline.STEP, ArrayList<? extends JComponent>>();
     public HashMap<STEP, JProgressBar> progBars = new HashMap<GenvisisPipeline.STEP, JProgressBar>();
     public HashMap<STEP, ArrayList<JButton>> fileBtns = new HashMap<GenvisisPipeline.STEP, ArrayList<JButton>>();
     public HashMap<STEP, JLabel> alreadyRunLbls = new HashMap<GenvisisPipeline.STEP, JLabel>();
@@ -216,15 +218,21 @@ public class GenvisisPipelineGUI extends JDialog {
                 doClose();
             }
         });
-        for (int i = 0; i < this.steps.length; i++) {
-            STEP step = this.steps[i];
-            if (step.checkIfOutputExists(this.proj, varFields)) {
-                checkBoxes.get(step).setSelected(false);
-                alreadyRunLbls.get(step).setVisible(true);
-                panels.get(step).shrink();
-                selected[i] = false;
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                HashMap<STEP, ArrayList<String>> variables = getVariables();
+                for (int i = 0; i < steps.length; i++) {
+                    STEP step = steps[i];
+                    if (step.checkIfOutputExists(proj, variables)) {
+                        checkBoxes.get(step).setSelected(false);
+                        alreadyRunLbls.get(step).setVisible(true);
+                        panels.get(step).shrink();
+                        selected[i] = false;
+                    }
+                }
             }
-        }
+        });
         refreshLabels();
         setBounds(100, 100, 700, 850);
         setTitle(TOP_LABEL);
@@ -491,12 +499,17 @@ public class GenvisisPipelineGUI extends JDialog {
                     if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
                         continue;
                     }
-                    if (!step.checkIfOutputExists(proj, varFields) || checkBoxes.get(step).isSelected()) {
-                        boolean check = step.hasRequirements(proj, checkBoxes, varFields);
+                    HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisPipeline.STEP, Boolean>();
+                    for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
+                        selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
+                    }
+                    HashMap<STEP, ArrayList<String>> variables = getVariables();
+                    if (!step.checkIfOutputExists(proj, variables) || checkBoxes.get(step).isSelected()) {
+                        boolean check = step.hasRequirements(proj, selectedSteps, variables);
                         descLabels.get(step).setForeground(check ? greenDark : Color.RED);
                         checkBoxes.get(step).setForeground(check ? greenDark : Color.RED);
                         final ArrayList<JLabel> reqLbls = requirementsLabels.get(step);
-                        final boolean[][] reqVals = step.checkRequirements(proj, checkBoxes, varFields);
+                        final boolean[][] reqVals = step.checkRequirements(proj, selectedSteps, variables);
                         SwingUtilities.invokeLater(new Runnable() {
                             @Override
                             public void run() {
@@ -510,7 +523,7 @@ public class GenvisisPipelineGUI extends JDialog {
                             }
                         });
                     } else {
-                        final boolean[][] reqVals = step.checkRequirements(proj, checkBoxes, varFields);
+                        final boolean[][] reqVals = step.checkRequirements(proj, selectedSteps, variables);
                         final ArrayList<JLabel> reqLbls = requirementsLabels.get(step);
                         SwingUtilities.invokeLater(new Runnable() {
                             @Override
@@ -579,19 +592,24 @@ public class GenvisisPipelineGUI extends JDialog {
                 lockup(true);
                 
                 boolean[] options = getSelectedOptions();
-                
-                if (checkRequirementsAndNotify()) {
+
+                HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisPipeline.STEP, Boolean>();
+                for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
+                    selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
+                }
+                HashMap<STEP, ArrayList<String>> variables = getVariables();
+                if (checkRequirementsAndNotify(selectedSteps, variables)) {
                     for (int i = 0; i < options.length; i++) {
                         if (options[i]) {
                             startStep(GenvisisPipelineGUI.this.steps[i]);
                             Exception e = null;
                             try {
-                                GenvisisPipelineGUI.this.steps[i].run(proj, varFields);
+                                GenvisisPipelineGUI.this.steps[i].run(proj, variables);
                             } catch (Exception e1) {
                                 e = e1;
                             }
                             boolean failed = false;
-                            if (e != null || GenvisisPipelineGUI.this.steps[i].getFailed() || !GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, varFields)) {
+                            if (e != null || GenvisisPipelineGUI.this.steps[i].getFailed() || !GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, variables)) {
                                 failed = true;
                             }
                             endStep(GenvisisPipelineGUI.this.steps[i], failed);
@@ -603,7 +621,7 @@ public class GenvisisPipelineGUI extends JDialog {
                                 for (String msg : GenvisisPipelineGUI.this.steps[i].getFailureMessages()) {
                                     failureMessage.append("\n").append(msg);
                                 }
-                            } else if (!GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, varFields)) {
+                            } else if (!GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, variables)) {
                                 failureMessage.append("\nUnknown error occurred.");
                             }
                             if (failed) {
@@ -634,14 +652,14 @@ public class GenvisisPipelineGUI extends JDialog {
         
     }
     
-    private boolean checkRequirementsAndNotify() {
+    private boolean checkRequirementsAndNotify(HashMap<STEP, Boolean> selectedSteps, HashMap<STEP, ArrayList<String>> variables) {
         boolean[] options = getSelectedOptions();
         
         ArrayList<String> reqMsgs = new ArrayList<String>();
         for (int i = 0; i < options.length; i++) {
             if (options[i]) {
                 STEP step = this.steps[i];
-                if (!step.hasRequirements(proj, checkBoxes, varFields)) {
+                if (!step.hasRequirements(proj, selectedSteps, variables)) {
                     reqMsgs.add((i + 1) + ". " + step.stepName);
                 }
             }
@@ -656,6 +674,26 @@ public class GenvisisPipelineGUI extends JDialog {
             retVal = false;
         }
         return retVal;
+    }
+    
+    private HashMap<STEP, ArrayList<String>> getVariables() {
+        HashMap<STEP, ArrayList<String>> returnVars = new HashMap<GenvisisPipeline.STEP, ArrayList<String>>();
+        for (Entry<STEP, ArrayList<? extends JComponent>> entry : varFields.entrySet()) {
+            ArrayList<String> values = new ArrayList<String>();
+            returnVars.put(entry.getKey(), values);
+            for (JComponent j : entry.getValue()) {
+                String val = "";
+                if (j instanceof JTextField) {
+                    val = ((JTextField) j).getText().trim();
+                } else if (j instanceof JCheckBox) {
+                    val = ((JCheckBox) j).isSelected() + "";
+                } else if (j instanceof JSpinner) {
+                    val = ((JSpinner) j).getValue().toString();
+                }
+                values.add(val);
+            }
+        }
+        return returnVars;
     }
     
     private Project createNewProject() {
