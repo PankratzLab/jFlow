@@ -681,7 +681,7 @@ public class Metal {
 				build = 37;
 			}
 			tempFiles = Array.toStringArray(params);
-			gcValues = Array.doubleArray(tempFiles.length, -9); // default to ON
+			gcValues = Array.doubleArray(tempFiles.length, -9); // default to GENOMICCONTROL ON
 			inputFiles = new String[tempFiles.length];//Array.toStringArray(params);
 			for (int i = 0; i < tempFiles.length; i++) {
 			    String[] parts = tempFiles[i].split("\t");
