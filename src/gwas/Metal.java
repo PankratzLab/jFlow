@@ -650,7 +650,7 @@ public class Metal {
 		int[] chrPosition, trav;
 		String[] hitList;
 		int countMissing;
-//		boolean gcControlOn;
+		boolean gcControlOn;
 		double thresholdForHits;
 		double[] gcValues;
 		int countMismatches;
@@ -658,7 +658,7 @@ public class Metal {
 		params = Files.parseControlFile(filename, "metal", new String[] {"outfile_root", "build=37",/* "genomic_control=TRUE",*/ "hits_p<=0.001", "file1.metal", "file2.txt", "file3.assoc.logistic"}, log);
 
 		thresholdForHits = 0.001;
-//		gcControlOn = true;
+		gcControlOn = true;
 		build = -1;
 		if (params != null) {
 			outputFile = params.remove(0);
@@ -667,10 +667,10 @@ public class Metal {
 					build = ext.parseByteArg(params.elementAt(i));
 					params.remove(i);
 				}
-//				if (params.elementAt(i).startsWith("genomic_control=")) {
-//					gcControlOn = ext.parseBooleanArg(params.elementAt(i));
-//					params.remove(i);
-//				}
+				if (params.elementAt(i).startsWith("genomic_control=")) {
+					gcControlOn = ext.parseBooleanArg(params.elementAt(i));
+					params.remove(i);
+				}
 				if (params.elementAt(i).startsWith("hits_p<=")) {
 					thresholdForHits = ext.parseDoubleArg(params.elementAt(i));
 					params.remove(i);
@@ -681,7 +681,7 @@ public class Metal {
 				build = 37;
 			}
 			tempFiles = Array.toStringArray(params);
-			gcValues = Array.doubleArray(tempFiles.length, -9); // default to GENOMICCONTROL ON
+			gcValues = Array.doubleArray(tempFiles.length, gcControlOn ? -9 : -1); // default to GENOMICCONTROL ON
 			inputFiles = new String[tempFiles.length];//Array.toStringArray(params);
 			for (int i = 0; i < tempFiles.length; i++) {
 			    String[] parts = tempFiles[i].split("\t");

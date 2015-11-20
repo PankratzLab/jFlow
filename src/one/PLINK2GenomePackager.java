@@ -1,17 +1,24 @@
 package one;
 
+import gwas.FAST;
+import gwas.HitWindows;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 
+import common.CmdLine;
 import common.Files;
 import common.HashVec;
+import common.Logger;
 import common.ext;
 
 public class PLINK2GenomePackager {
@@ -236,11 +243,11 @@ public class PLINK2GenomePackager {
         System.out.println(ext.getTime() + "]\tPM_ALL file successfully loaded.");
         
         System.out.println(ext.getTime() + "]\tProcessing results file...");
+        String temp = phenoDir.substring(0, phenoDir.length() - 1);
+        temp = temp.substring(temp.lastIndexOf("/") + 1, temp.length());
+        String outFile = phenoDir + temp + ".plink.assoc.dosage.gz";
         try {
             BufferedReader reader = Files.getAppropriateReader(file);
-            String temp = phenoDir.substring(0, phenoDir.length() - 1);
-            temp = temp.substring(temp.lastIndexOf("/") + 1, temp.length());
-            String outFile = phenoDir + temp + ".plink.assoc.dosage.gz";
             System.out.println(ext.getTime() + "]\tWriting results to {" + outFile + "}...");
             PrintWriter writer = Files.getAppropriateWriter(outFile);
             writer.println(newHeader);
@@ -275,7 +282,32 @@ public class PLINK2GenomePackager {
         }
 
         System.out.println(ext.getTime() + "]\tProcessing Complete!");
+        
+        double pvalThresh = 0.001;
+        boolean gc = true;
+
+        System.out.println(ext.getTime() + "]\tRunning METAL...");
+        StringBuilder metalCRF = new StringBuilder("metal\n")
+                                        .append(temp).append("\n")
+                                        .append("build=37\n")
+                                        .append("hits_p<="+pvalThresh+"\n")
+                                        .append("genomic_control=" + (gc ? "TRUE" : "FALSE") + "\n")
+                                        .append(temp + ".plink.assoc.dosage.gz");
+        String metalName = "metal_" + temp + ".crf";
+        String metalDir = (new File(phenoDir)).getAbsolutePath();
+        Files.write(metalCRF.toString(), ext.verifyDirFormat(metalDir) + metalName);
+        String path = PLINK2GenomePackager.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        String decodedPath = path;
+        try {
+            decodedPath = URLDecoder.decode(path, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        CmdLine.run(null, new String[]{"java", "-cp", decodedPath, "Launch", metalName}, metalDir, System.out, System.err, new Logger(), false);
+        System.out.println(ext.getTime() + "]\tMETAL Complete!");
     }
+    
     
     
     public static void main(String[] args) {
