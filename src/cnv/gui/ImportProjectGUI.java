@@ -24,6 +24,8 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.Action;
 
+import cnv.filesys.Project;
+import cnv.manage.MitoPipeline;
 import common.Files;
 import common.Grafik;
 import common.ext;
@@ -54,6 +56,9 @@ public class ImportProjectGUI extends JDialog {
     private ImageIcon redX = Grafik.getImageIcon("images/redx.png", true);
     private ImageIcon tick = Grafik.getImageIcon("images/tick.png", true);
     
+    volatile boolean cancelled = false;
+    
+    private String propertyFilePath = MitoPipeline.initGenvisisProject();
     
     /**
      * Launch the application.
@@ -129,12 +134,12 @@ public class ImportProjectGUI extends JDialog {
     public ImportProjectGUI() {
         setTitle("Genvisis: Import Existing Project Files");
         
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 550, 500);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        setBounds(100, 100, 500, 500);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
-        contentPanel.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow 70][grow 40]", "[grow][][grow][][][][][][grow][grow][][][][grow][]"));
+        contentPanel.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow 70][grow 40]", "[grow][][grow][][][][grow][][grow][grow][][][][grow][]"));
         CaretListener caretListener = new CaretListener() {
             @Override
             public void caretUpdate(CaretEvent arg0) {
@@ -201,54 +206,66 @@ public class ImportProjectGUI extends JDialog {
         {
             JPanel panel = new JPanel();
             contentPanel.add(panel, "cell 0 8 4 7,grow");
-            panel.setLayout(new MigLayout("", "[grow][][10px:10px:10px][][grow]", "[grow][][][][][grow]"));
+            panel.setLayout(new MigLayout("", "[][grow][][10px:10px:10px][grow][][]", "[grow][][][][][][][grow]"));
+            {
+                JLabel lblRequired = new JLabel("<html><u>Required:</u><html>");
+                panel.add(lblRequired, "cell 1 1,alignx left");
+            }
+            {
+                JLabel lblSample = new JLabel("<html><u>Sample Import:</u></html>");
+                panel.add(lblSample, "cell 4 1,alignx left");
+            }
             {
                 JLabel lblValidProjectDirectory = new JLabel("Valid Project Directory:");
-                panel.add(lblValidProjectDirectory, "cell 0 1,alignx right");
+                panel.add(lblValidProjectDirectory, "cell 1 2,alignx right");
                 lblFoundProjectStatus = new JLabel(redX);
-                panel.add(lblFoundProjectStatus, "cell 1 1,alignx left");
+                panel.add(lblFoundProjectStatus, "cell 2 2,alignx left");
             }
             {
                 JLabel lblValidSampledataFile = new JLabel("<html>Valid <code>SampleData</code> File:</html>");
-                panel.add(lblValidSampledataFile, "cell 3 1,alignx right");
-                lblFoundSampleDataStatus = new JLabel(redX);
-                panel.add(lblFoundSampleDataStatus, "cell 4 1,alignx left");
+                panel.add(lblValidSampledataFile, "cell 4 2,alignx right");
             }
+            lblFoundSampleDataStatus = new JLabel(redX);
+            panel.add(lblFoundSampleDataStatus, "cell 5 2,alignx left");
+            JLabel lblFoundDataDirectory = new JLabel("<html>Found <code>data/</code> Directory:</html>");
+            panel.add(lblFoundDataDirectory, "cell 1 3,alignx right");
             {
                 JLabel lblFoundSamplesDirectory = new JLabel("<html>Found <code>samples/</code> Directory:</html>");
-                panel.add(lblFoundSamplesDirectory, "cell 0 2,alignx right");
+                panel.add(lblFoundSamplesDirectory, "cell 4 3,alignx right");
                 lblFoundSamplesStatus = new JLabel(redX);
-                panel.add(lblFoundSamplesStatus, "cell 1 2,alignx left");
-            }
-            {
+                panel.add(lblFoundSamplesStatus, "cell 5 3,alignx left");
                 JLabel lblFoundSampleList = new JLabel("<html>Found <code>SampleList</code> File:</html>");
-                panel.add(lblFoundSampleList, "cell 3 2,alignx right");
-                lblFoundSampleListStatus = new JLabel(redX);
-                panel.add(lblFoundSampleListStatus, "cell 4 2,alignx left");
+                panel.add(lblFoundSampleList, "cell 1 4,alignx right");
             }
             {
-                JLabel lblFoundTransposedDirectory = new JLabel("<html>Found <code>transposed/</code> Directory:</html>");
-                panel.add(lblFoundTransposedDirectory, "cell 0 3,alignx right");
-                lblFoundTransposedStatus = new JLabel(redX);
-                panel.add(lblFoundTransposedStatus, "cell 1 3,alignx left");
+                lblFoundSampleListStatus = new JLabel(redX);
+                panel.add(lblFoundSampleListStatus, "cell 2 4,alignx left");
+            }
+            {
+                JLabel lblMarkerDataImport = new JLabel("<html><u>Marker Import:</u></html>");
+                panel.add(lblMarkerDataImport, "cell 4 4,alignx left");
             }
             {
                 JLabel lblFoundMarkerList = new JLabel("<html>Found <code>MarkerSet</code> File:</html>");
-                panel.add(lblFoundMarkerList, "cell 3 3,alignx right");
-                lblFoundMarkerListStatus = new JLabel(redX);
-                panel.add(lblFoundMarkerListStatus, "cell 4 3,alignx left");
+                panel.add(lblFoundMarkerList, "cell 1 5,alignx right");
             }
             {
-                JLabel lblFoundDataDirectory = new JLabel("<html>Found <code>data/</code> Directory:</html>");
-                panel.add(lblFoundDataDirectory, "cell 0 4,alignx right");
                 lblFoundDataStatus = new JLabel(redX);
-                panel.add(lblFoundDataStatus, "cell 1 4,alignx left");
+                panel.add(lblFoundDataStatus, "cell 2 3,alignx left");
             }
+            lblFoundMarkerListStatus = new JLabel(redX);
+            panel.add(lblFoundMarkerListStatus, "cell 2 5,alignx left");
             {
-                JLabel lblFoundMarkerlookupFile = new JLabel("<html>Found <code>MarkerLookup</code> File:</html>");
-                panel.add(lblFoundMarkerlookupFile, "cell 3 4,alignx right");
+                JLabel lblFoundTransposedDirectory = new JLabel("<html>Found <code>transposed/</code> Directory:</html>");
+                panel.add(lblFoundTransposedDirectory, "cell 4 5,alignx right");
+            }
+            lblFoundTransposedStatus = new JLabel(redX);
+            panel.add(lblFoundTransposedStatus, "cell 5 5,alignx left");
+            JLabel lblFoundMarkerlookupFile = new JLabel("<html>Found <code>MarkerLookup</code> File:</html>");
+            panel.add(lblFoundMarkerlookupFile, "cell 4 6,alignx right");
+            {
                 lblFoundMarkerLookupStatus = new JLabel(redX);
-                panel.add(lblFoundMarkerLookupStatus, "cell 4 4,alignx left");
+                panel.add(lblFoundMarkerLookupStatus, "cell 5 6,alignx left");
             }
         }
         {
@@ -263,6 +280,7 @@ public class ImportProjectGUI extends JDialog {
                 JButton okButton = new JButton("OK");
                 okButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent arg0) {
+                        close(false);
                     }
                 });
                 okButton.setActionCommand("OK");
@@ -273,6 +291,7 @@ public class ImportProjectGUI extends JDialog {
                 JButton cancelButton = new JButton("Cancel");
                 cancelButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent arg0) {
+                        close(true);
                     }
                 });
                 cancelButton.setActionCommand("Cancel");
@@ -281,9 +300,28 @@ public class ImportProjectGUI extends JDialog {
         }
     }
     
+    private void close(boolean cancelled) {
+        if (!cancelled) {
+            boolean[] statuses = getStatuses();
+            if (statuses[0] && statuses[1] && statuses[2] && statuses[3]) {
+                // good
+                if (statuses[4] && statuses[5]) { 
+                    // samples
+                }
+                if (statuses[6] && statuses[7]) {
+                    // markers
+                }
+            } else {
+                return;
+            }
+        }
+        this.cancelled = cancelled;
+        this.setVisible(false);
+    }
+    
     private boolean checkProjectName() {
         String name = txtFldProjName.getText().trim();
-        return !name.equals("") && !"New Project".equals(name);
+        return !name.equals("") && !"New Project".equals(name) && !(new File(propertyFilePath + name + MitoPipeline.PROJECT_EXT)).exists();
     }
     
     private boolean[] getStatuses() {
@@ -300,12 +338,12 @@ public class ImportProjectGUI extends JDialog {
         boolean foundMarkerLookup = Files.exists(baseDir + "data/markerLookup.bml");
         return new boolean[]{
                 /*0*/ foundProject,
-                /*1*/ foundSampleData,
-                /*2*/ foundSamples,
-                /*3*/ foundData,
-                /*4*/ foundTransposed,
-                /*5*/ foundSampleList,
-                /*6*/ foundMarkerList,
+                /*1*/ foundData,
+                /*2*/ foundSampleList,
+                /*3*/ foundMarkerList,
+                /*4*/ foundSampleData,
+                /*5*/ foundSamples,
+                /*6*/ foundTransposed,
                 /*7*/ foundMarkerLookup
         };
     }
@@ -316,15 +354,46 @@ public class ImportProjectGUI extends JDialog {
             @Override
             public void run() {
                 lblFoundProjectStatus.setIcon(statuses[0] ? tick : redX);
-                lblFoundSampleDataStatus.setIcon(statuses[1] ? tick : redX);
-                lblFoundSamplesStatus.setIcon(statuses[2] ? tick : redX);
-                lblFoundDataStatus.setIcon(statuses[3] ? tick : redX);
-                lblFoundTransposedStatus.setIcon(statuses[4] ? tick : redX);
-                lblFoundSampleListStatus.setIcon(statuses[5] ? tick : redX);
-                lblFoundMarkerListStatus.setIcon(statuses[6] ? tick : redX);
+                lblFoundDataStatus.setIcon(statuses[1] ? tick : redX);
+                lblFoundSampleListStatus.setIcon(statuses[2] ? tick : redX);
+                lblFoundMarkerListStatus.setIcon(statuses[3] ? tick : redX);
+                lblFoundSampleDataStatus.setIcon(statuses[4] ? tick : redX);
+                lblFoundSamplesStatus.setIcon(statuses[5] ? tick : redX);
+                lblFoundTransposedStatus.setIcon(statuses[6] ? tick : redX);
                 lblFoundMarkerLookupStatus.setIcon(statuses[7] ? tick : redX);
             }
         });
+    }
+
+    public boolean getCancelled() {
+        return cancelled;
+    }
+
+    public boolean run() {
+        String name = txtFldProjName.getText().trim();
+        String filename = propertyFilePath + name + MitoPipeline.PROJECT_EXT;
+        if (!checkProjectName() || Files.exists(filename)) {
+            return false;
+        } else {
+            Files.write((new Project()).PROJECT_NAME.getName() + "=" + name, filename);
+        }
+        
+        Project actualProj = new Project(filename, false);
+        actualProj.PROJECT_NAME.setValue(name);
+        actualProj.PROJECT_DIRECTORY.setValue(txtFldProjDir.getText().trim());
+//        actualProj.SOURCE_DIRECTORY.setValue(srcDir);
+//        actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);
+//        actualProj.LRRSD_CUTOFF.setValue(lrrSd);
+//        actualProj.XY_SCALE_FACTOR.setValue(xy);
+        // TODO should set the following two?
+//        actualProj.TARGET_MARKERS_FILENAMES.setValue(new String[]{ext.removeDirectoryInfo(tgtMkrs)});
+//        actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());
+//        actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION : cols[sampCol]);
+//        actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
+
+        actualProj.SAMPLE_DATA_FILENAME.setValue(txtFldSampleDataFile.getText().trim());
+        actualProj.saveProperties();
+        return true;
     }
     
     

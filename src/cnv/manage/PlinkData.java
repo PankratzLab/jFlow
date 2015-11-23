@@ -661,7 +661,7 @@ public class PlinkData {
 		
 		clusterFilterCollection = null;
 		if (clusterFiltersFilename != null) {
-			clusterFiltersFilename = proj.getProperty(proj.PROJECT_DIRECTORY)+proj.getProperty(proj.DATA_DIRECTORY)+clusterFiltersFilename;
+//			clusterFiltersFilename = proj.getProperty(proj.PROJECT_DIRECTORY)+proj.getProperty(proj.DATA_DIRECTORY)+clusterFiltersFilename;
 			if (Files.exists(clusterFiltersFilename, proj.JAR_STATUS.getValue())) {
 				clusterFilterCollection = ClusterFilterCollection.load(clusterFiltersFilename, proj.JAR_STATUS.getValue());
 			} else {

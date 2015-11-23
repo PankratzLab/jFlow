@@ -15,6 +15,7 @@ import cnv.analysis.Mosaicism;
 import cnv.analysis.pca.PrincipalComponentsCrossTabs;
 import cnv.analysis.pca.PrincipalComponentsManhattan;
 import cnv.filesys.*;
+import cnv.gui.ImportProjectGUI;
 import cnv.gui.PlinkExportOptions;
 //import cnv.gui.KitAndKaboodleGUI;
 //import cnv.gui.GuiManager;
@@ -83,7 +84,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 	public static final String TEST = "Test new program";
 	
-	public static String[][] MENUS = {{"File", "New Project", "Select Project", EDIT, "Preferences", EXIT},
+	public static String[][] MENUS = {{"File", "New Project", "Import Project", "Select Project", EDIT, "Preferences", EXIT},
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
@@ -321,6 +322,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				    menuItem.setMnemonic(KeyEvent.VK_N);
 //				    submenu.add(menuItem);
                     menu.add(menuItem);
+				} else if (MENUS[i][j].equals("Import Project")) {
+//				    submenu = new JMenu(MENUS[i][j]);
+				    menuItem = new JMenuItem("Import Project");
+				    menuItem.addActionListener(this);
+				    menuItem.setMnemonic(KeyEvent.VK_I);
+//				    submenu.add(menuItem);
+				    menu.add(menuItem);
 				} else if (MENUS[i][j].equals("Select Project")) {
 					submenu = new JMenu(MENUS[i][j]);
 //			        submenu.setMnemonic(KeyEvent.VK_S);
@@ -743,6 +751,19 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		    
 		    final GenvisisPipeline kAndK = new GenvisisPipeline(null, Launch.this);
 		    kAndK.showDialogAndRun();
+		    
+		} else if (command.equals("Import Project")) {
+		    
+		    ImportProjectGUI importGUI = new ImportProjectGUI();
+		    importGUI.setModal(true);
+		    importGUI.setVisible(true);
+		    
+		    if (!importGUI.getCancelled()) {
+		        if (importGUI.run()) {
+		            loadProjects();
+		        }
+		    }
+		    importGUI.dispose();
 		    
 		} else if (command.endsWith(" ")) {
 			for (int i=0; i<projects.length; i++) {
