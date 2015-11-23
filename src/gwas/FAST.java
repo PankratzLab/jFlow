@@ -41,12 +41,12 @@ public class FAST {
 	public static final String PROCESS_SCRIPT_NAME = "master_process.qsub";
 	
 	public static final String DATA_BUILD_1000G = "APR12";
-	public static final String PROCESSED_RESULT_FILE_EXT = ".csv.gz";
+	public static final String PROCESSED_RESULT_FILE_EXT = ".csv";
 	
 	public static final int QSUB_RAM_MB = 10000;
 	public static final int QSUB_TIME_HRS = 8;
 	public static final int QSUB_THREADS = 24;
-    private static final String FINAL_RESULT_DIR = "results/";
+    private static final String FINAL_RESULT_DIR = "_results/";
 
 	String FAST_LOC = "FAST";
 	String dir = "/home/pankarne/chandap/ARIC.whites.impute2/";
@@ -96,8 +96,16 @@ public class FAST {
 
 	    final double pvalThresh = 0.001;
 	    
-	    final File finalResultDir = new File(studyDir + FINAL_RESULT_DIR);
-	    final String finalResultsPath = finalResultDir.getAbsolutePath();
+	    final String finalResultDirName = tempName.substring(0, tempName.length() - 1)  + FINAL_RESULT_DIR;
+	    final File finalResultDir = new File(finalResultDirName);
+	    boolean fullParseOverrideTemp = false;
+	    if (!finalResultDir.exists()) {
+	        finalResultDir.mkdirs();
+	        fullParseOverrideTemp = true;
+	    }
+	    final boolean fullParseOverride = fullParseOverrideTemp;
+	    final String finalResultsPath = ext.verifyDirFormat(finalResultDir.getAbsolutePath());
+	    
 	    
 	    for (final File factorDir : factorDirs) {
             Runnable parseMetalRunnable = new Runnable() {
@@ -170,7 +178,7 @@ public class FAST {
                                 foundCount += names.length;
                                 for (String name : names) {
 //                                    metalFileContents.append(popName).append("/").append(name).append("\t").append(popDefs.get(popName).gc).append("\n");
-                                    metalFileContents.append("..").append("/").append(name).append("\t").append(popDefs.get(popName).gc).append("\n");
+                                    metalFileContents.append("../../").append(studyName).append(FINAL_RESULT_DIR).append(name).append("\t").append(popDefs.get(popName).gc).append("\n");
                                 }
                             }
                         }
@@ -229,7 +237,7 @@ public class FAST {
                             } else {
                                 for (String dataF : dataFilesF) {
 //                                    metaSex.append("female/").append(dataF).append("\t").append(popDefs.get(popName).gc).append("\n");
-                                    metaSex.append("../../").append(FINAL_RESULT_DIR).append(dataF).append("\t").append(popDefs.get(popName).gc).append("\n");
+                                    metaSex.append("../../../").append(studyName).append(FINAL_RESULT_DIR).append(dataF).append("\t").append(popDefs.get(popName).gc).append("\n");
                                 }
                             }
                             if (dataFilesM.length == 0) {
@@ -262,7 +270,7 @@ public class FAST {
                             } else {
                                 for (String dataM : dataFilesM) {
 //                                    metaSex.append("male/").append(dataM).append("\t").append(popDefs.get(popName).gc).append("\n");
-                                    metaSex.append("../../").append(FINAL_RESULT_DIR).append(dataM).append("\t").append(popDefs.get(popName).gc).append("\n");
+                                    metaSex.append("../../../").append(studyName).append(FINAL_RESULT_DIR).append(dataM).append("\t").append(popDefs.get(popName).gc).append("\n");
                                 }
                             }
                             if (dataFilesF.length >= 1 && dataFilesM.length >= 1) {
@@ -394,8 +402,8 @@ public class FAST {
 	    StringBuilder metalCRF = new StringBuilder("metal\n")
                                 	    .append(factor).append("\n")
                                 	    .append("build=37\n")
-	                                    .append("hits_p<="+pvalThresh+"\n")
-	                                    .append("genomic_control=" + (gc ? "TRUE" : "FALSE") + "\n");
+	                                    .append("hits_p<="+pvalThresh+"\n");
+//	                                    .append("genomic_control=" + (gc ? "TRUE" : "FALSE") + "\n");
 	    return metalCRF.toString();
 	}
 
@@ -753,7 +761,7 @@ public class FAST {
     	public String sexDir;
     	public String sexSuffix;
     	public String indivFile;
-    	public double gc = -1; // -1=OFF, -9=ON, other values used as given
+    	public double gc = -9; // -1=OFF, -9=ON, other values used as given
     }
 
     private static void runParser(String FORMAT, String concattedResultsFile, String outFileName, int count) {
