@@ -59,6 +59,22 @@ public class GcAdjustorParameter implements Serializable {
 		}
 	}
 
+	public String[] getQCString() {
+		ArrayList<String> qc = new ArrayList<String>();
+		qc.add(betas[0] + "");
+		qc.add(betas[1] + "");
+		qc.add(wfPrior + "");
+		qc.add(wfPost + "");
+		qc.add(gcwfPrior + "");
+		qc.add(gcwfPost + "");
+		qc.add(meanPrior + "");
+		qc.add(meanPost + "");
+		qc.add(lrrsdPrior + "");
+		qc.add(lrrsdPost + "");
+		return Array.toStringArray(qc);
+
+	}
+
 	public double getMeanPrior() {
 		return meanPrior;
 	}
@@ -178,8 +194,8 @@ public class GcAdjustorParameter implements Serializable {
 			}
 			this.sample = sample;
 			this.gcmodel = gcmodel;
-			this.centroids = centroids;
 			this.correction_METHODs = correction_METHODs;
+			this.centroids = centroids;
 			this.markerSet = markerSet;
 			this.debugMode = debugMode;
 		}
@@ -307,7 +323,7 @@ public class GcAdjustorParameter implements Serializable {
 			throw new IllegalArgumentException("Each builder must have an output");
 		}
 		//
-		// samples = Array.subArray(samples, 10, 10 + numThreads * 2);
+		// samples = Array.subArray(samples, 10, 10 + numThreads);
 
 		String[][][] outputs = new String[builders.length][centroids == null ? 1 : 1 + centroids.length][methods.length];
 		boolean skip = true;
@@ -353,8 +369,8 @@ public class GcAdjustorParameter implements Serializable {
 			}
 			proj.GC_CORRECTION_PARAMETERS_FILENAMES.setValue(new String[] {});
 			for (int builderIndex = 0; builderIndex < finalParams.length; builderIndex++) {
-				for (int centIndex = 0; centIndex < finalParams.length; centIndex++) {
-					for (int methodIndex = 0; methodIndex < finalParams[centIndex].length; methodIndex++) {
+				for (int centIndex = 0; centIndex < finalParams[builderIndex].length; centIndex++) {
+					for (int methodIndex = 0; methodIndex < finalParams[builderIndex][centIndex].length; methodIndex++) {
 						String output = outputs[builderIndex][centIndex][methodIndex];
 						if (centIndex != 0) {
 							GcAdjustorParameters tmp = new GcAdjustorParameters(finalParams[builderIndex][centIndex][methodIndex], centroids[centIndex - 1], methods[methodIndex], proj.getSampleList().getFingerprint(), proj.getMarkerSet().getFingerprint());
