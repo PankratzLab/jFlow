@@ -41,7 +41,7 @@ public class FAST {
 	public static final String PROCESS_SCRIPT_NAME = "master_process.qsub";
 	
 	public static final String DATA_BUILD_1000G = "APR12";
-	public static final String PROCESSED_RESULT_FILE_EXT = ".csv";
+	public static final String PROCESSED_RESULT_FILE_EXT = ".csv.gz";
 	
 	public static final int QSUB_RAM_MB = 10000;
 	public static final int QSUB_TIME_HRS = 8;

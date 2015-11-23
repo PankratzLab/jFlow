@@ -173,7 +173,6 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     private JSeparator separator_2;
     private MarkerBlastAnnotation blastResult;
     public int currentAlignFilter;
-    private String nextBase;
     private JSplitPane splitPane;
     private JPanel lowerPanel;
     
@@ -193,6 +192,12 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         probeLengthLbl.setFont(lblFont);
         this.blastPanel.add(probeLengthLbl, "cell 2 " + rowCnt);
         this.blastPanel.add(lbl, "grow, cell 3 " + rowCnt);
+        JLabel abLbl = new JLabel();
+        abLbl.setText(lbl.getAB());
+        abLbl.setFont(lblFont);
+        abLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        abLbl.setHorizontalTextPosition(SwingConstants.CENTER);
+        this.blastPanel.add(abLbl, "alignx center, cell 4 " + rowCnt);
         rowCnt++;
     }
     public void clearLabels() {
@@ -330,8 +335,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
         contentPane.add(splitPane, BorderLayout.CENTER);
 
-        blastPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow]", ""));
-//        blastPanel.setBackground(Color.WHITE);
+        blastPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow][]", ""));
         scrollPane = new JScrollPane(blastPanel);
         splitPane.setLeftComponent(scrollPane);
         refLabel = new ReferenceLabel();
@@ -423,32 +427,16 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                 }
                 boolean posStrand = BlastFrame.this.referenceAnnotation.getStrand() == Strand.POSITIVE;
                 String refSeq = BlastFrame.this.referenceAnnotation.getSequence();
-//                refLabel.setText(!posStrand ? new StringBuilder(BlastFrame.this.referenceAnnotation.getSequence()).reverse().toString() : BlastFrame.this.referenceAnnotation.getSequence());
                 refLabel.setText(!posStrand ? new StringBuilder(refSeq).reverse().toString() : refSeq); 
                 strandLbl.setText(BlastFrame.this.referenceAnnotation.getStrand().getEncoding());
                 int len = proj.ARRAY_TYPE.getValue().getProbeLength();
                 probeLengthLbl.setText(len + "");
                 Segment seg = BlastFrame.this.referenceAnnotation.getSeg();
-//                int start = (posStrand ? seg.getStart() - len : seg.getStart());
-//                int stop = (posStrand ?  seg.getStart() : seg.getStart() + len);
-//                int start1 = seg.getStart() - len;
-//                int stop1 = seg.getStart();
-//                int start2 = seg.getStart();
-//                int stop2 = seg.getStart() + len;
-//                String[] gen1 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start1, stop1));
-//                String[] gen2 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start2, stop2));
-//                String[] gen3 = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start1, stop2));
-//                System.out.println(referenceAnnotation.getInterrogationPosition());
-//                System.out.println(refLabel.getText());
-//                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen1, "")) : Array.toStr(gen1, ""));
-//                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen2, "")) : Array.toStr(gen2, ""));
-//                System.out.println(!posStrand ? BlastLabel.flipBases(Array.toStr(gen3, "")) : Array.toStr(gen3, ""));
                 int start = referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
                 int stop = referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
                 locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
                 String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
                 String[] act = Array.subArray(gen, posStrand ? 0 : 1, posStrand ? gen.length - 1 : gen.length);
-                nextBase = posStrand ? gen[gen.length - 1] : gen[0];
                 String seq = Array.toStr(act, "");
                 if (!referenceAnnotation.goLeft()) {
                     seq = new StringBuilder(seq).reverse().toString();
@@ -461,7 +449,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     }
 
     private JPanel getHeaderPanel() {
-        JPanel hdrPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow]", "[][]")); 
+        JPanel hdrPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow][]", "[][]")); 
         hdrPanel.setBorder(null);
         locationLbl = new JLabel();
         Font lblFont = Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
@@ -477,6 +465,9 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         probeLengthLbl.setFont(lblFont);
         hdrPanel.add(probeLengthLbl, "cell 2 0");
         hdrPanel.add(refLabel, "grow, cell 3 0");
+        JLabel abLbl = new JLabel("Probe A/B");
+        abLbl.setFont(lblFont);
+        hdrPanel.add(abLbl, "cell 4 0");
         hdrPanel.add(probeLbl, "grow, cell 3 1");
         return hdrPanel;
     }

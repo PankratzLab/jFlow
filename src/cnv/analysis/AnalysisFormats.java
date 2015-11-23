@@ -420,9 +420,13 @@ public class AnalysisFormats implements Runnable {
 			
 			centroids[0].serialize(centFiles[0]);
 			Centroids.exportToText(proj, centFiles[0], centFiles[0] + ".txt", allMarkers);
+			proj.SEX_CENTROIDS_MALE_FILENAME.setValue(centFiles[0]);
 			
 			centroids[1].serialize(centFiles[1]);
 			Centroids.exportToText(proj, centFiles[1], centFiles[1] + ".txt", allMarkers);
+			proj.SEX_CENTROIDS_FEMALE_FILENAME.setValue(centFiles[1]);
+
+            proj.saveProperties(new Project.Property[]{proj.SEX_CENTROIDS_MALE_FILENAME, proj.SEX_CENTROIDS_FEMALE_FILENAME});
 		}
 		
 		return centroids;
@@ -860,10 +864,14 @@ public class AnalysisFormats implements Runnable {
 			centroidsMale = new Centroids(rawCentroidsMale, MarkerSet.fingerprint(sexMarkers));
 			centroidsMale.serialize(centFilePathM[1]);
 			Centroids.exportToText(proj, centFilePathM[0], centFilePathM[0] + ".txt", sexMarkers);
-			
+            proj.SEX_CENTROIDS_MALE_FILENAME.setValue(centFilePathM[1]);
+            
 			centroidsFemale = new Centroids(rawCentroidsFemale, MarkerSet.fingerprint(sexMarkers));
 			centroidsFemale.serialize(centFilePathF[1]);
 			Centroids.exportToText(proj, centFilePathF[0], centFilePathF[0] + ".txt", sexMarkers);
+            proj.SEX_CENTROIDS_FEMALE_FILENAME.setValue(centFilePathF[1]);
+			
+			proj.saveProperties(new Project.Property[]{proj.SEX_CENTROIDS_MALE_FILENAME, proj.SEX_CENTROIDS_FEMALE_FILENAME});
 		}
 		centroidsMale = null;
 		centroidsFemale = null;
