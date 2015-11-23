@@ -885,6 +885,14 @@ public class GcAdjustor {
 		private boolean verbose = false;
 		private GC_CORRECTION_METHOD correctionMethod = GC_CORRECTION_METHOD.GENVISIS_GC;
 
+		public int getRegressionDistance() {
+			return regressionDistance;
+		}
+
+		public int getNumSnpMAD() {
+			return numSnpMAD;
+		}
+
 		public GCAdjustorBuilder minimumAutosomalGC(double minimumAutosomalGC) {
 			this.minimumAutosomalGC = minimumAutosomalGC;
 			return this;
