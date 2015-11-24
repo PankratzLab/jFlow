@@ -104,6 +104,7 @@ import cnv.gui.CycleRadio;
 import cnv.gui.NewMarkerListDialog;
 import cnv.manage.MarkerDataLoader;
 import cnv.manage.PlinkMarkerLoader;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.var.SampleData;
 import common.AlleleFreq;
 import common.Array;
@@ -185,6 +186,11 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private String[] commentList;
 	private float[][][][] centroids;
 	private String[] centList;
+	private String[][] gcCList;
+	private GcAdjustorParameters[] gcAdjustorParameters;
+	private JCheckBox[] gcAdjustorBoxes;
+	private boolean[] displaygcAdjustor;
+	private JLabel[] gcAdjustorLabels;
 	private JCheckBox[] centBoxes;
 	private boolean[] displayCentroids;
 	private JLabel[] centroidLabels;
@@ -244,6 +250,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	private MarkerGCAnnotation[] gcAnnotations = null;
 	private ReferenceGenome referenceGenome = null;
 	private BlastParams blastParams = null;
+	private Hashtable<String , Integer> markerProjectIndices;
 	
 	private HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
     private BlastFrame blastFrame;
@@ -465,9 +472,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 
 //		next.getInputMap().put(KeyStroke.getKeyStroke("space"), NEXT);
 //		next.setActionMap(actionMap);
-//		previous.setActionMap(actionMap);
+		// previous.setActionMap(actionMap);
 		scatterPanels[selectedPanelIndex].grabFocus();
-		
+		this.markerProjectIndices = proj.getMarkerIndices();
 		updateBLASTPanel();
 		updateGUI();
 		
@@ -495,6 +502,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         
         proj.getProgressMonitor().updateTask("SCATTERPLOT");
         loadCentroids();
+        prepGCAdjustorLoad();
         proj.getProgressMonitor().updateTask("SCATTERPLOT");
         
         sessionID = (new Date().getTime()+"").substring(5);
@@ -982,6 +990,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		tabbedPane.addTab("Centroid", null, centroidPanel(), "Displays the centroid");
 		tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
 
+		tabbedPane.addTab("GC Adjust", null, gcCorrectionPanel(), "Adjust LRR by gc content");
+		// tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
+		
 		annotationPanel();
 		tabbedPane.addTab("Annotation", null, annotationScrollPane, "Annotation to this marker");
 		tabbedPane.setMnemonicAt(2, KeyEvent.VK_3);
@@ -1515,6 +1526,69 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 
 		return controlPanel;
 	}
+	
+	private JPanel gcCorrectionPanel() {
+		JPanel gcAdjustorPanel;
+
+		gcAdjustorPanel = new JPanel();
+		// tabPanel.setLayout(new BoxLayout(tabPanel, BoxLayout.Y_AXIS));
+		gcAdjustorPanel.setLayout(new GridBagLayout());
+		gcAdjustorPanel.setSize(50, 100);
+		gcAdjustorPanel.setBackground(BACKGROUND_COLOR);
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(1, 3, 0, 30);
+		gbc.weightx = 1.0;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+
+		ItemListener centListener = new ItemListener() {
+			public void itemStateChanged(ItemEvent ie) {
+				int index = ext.indexOfStr(((JCheckBox) ie.getSource()).getText(), gcCList[0]);
+				displaygcAdjustor[index] = ((JCheckBox) ie.getSource()).isSelected();
+
+				gcAdjustorLabels[index].setVisible(displaygcAdjustor[index]);
+				for (int i = 0; i < gcAdjustorLabels.length; i++) {
+					if (i != index) {
+						displaygcAdjustor[i] = false;
+						gcAdjustorBoxes[i].setSelected(false);
+					}
+				}
+				for (int i = 0; i < scatterPanels.length; i++) {
+					scatterPanels[i].setPointsGeneratable(true);
+				}
+				updateGUI();
+			}
+		};
+		JLabel label = new JLabel("  ");
+		label.setFont(new Font("Arial", 0, 20));
+		gcAdjustorPanel.add(label, gbc);
+		label = new JLabel("GC content Adjustment:");
+		label.setFont(new Font("Arial", 0, 20));
+		label.setHorizontalAlignment(JLabel.CENTER);
+		gcAdjustorPanel.add(label, gbc);
+		gcAdjustorBoxes = new JCheckBox[gcCList.length];
+		displaygcAdjustor = new boolean[gcCList.length];
+		gcAdjustorLabels = new JLabel[gcCList.length];
+		for (int i = 0; i < gcCList.length; i++) {
+			gcAdjustorBoxes[i] = new JCheckBox(gcCList[0][i]);
+			gcAdjustorBoxes[i].setFont(new Font("Arial", 0, 14));
+			gcAdjustorBoxes[i].setSelected(displaygcAdjustor[i]);
+			gcAdjustorBoxes[i].addItemListener(centListener);
+			gcAdjustorBoxes[i].setBorder(BorderFactory.createLineBorder(ScatterPanel.DEFAULT_COLORS[5 + i], 5));
+			gcAdjustorBoxes[i].setBorderPainted(true);
+			gcAdjustorBoxes[i].setBackground(BACKGROUND_COLOR);
+			gcAdjustorPanel.add(gcAdjustorBoxes[i], gbc);
+
+			gcAdjustorLabels[i] = new JLabel("");
+			gcAdjustorLabels[i].setVisible(displaygcAdjustor[i]);
+			gcAdjustorPanel.add(gcAdjustorLabels[i], gbc);
+		}
+
+		return gcAdjustorPanel;
+	}
+	
+	
 
 	private JPanel centroidPanel() {
 		JPanel centroidPanel;
@@ -2864,6 +2938,19 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	public boolean[] getDisplayCentroids() {
 		return displayCentroids;
 	}
+	
+
+	public GcAdjustorParameters[] getGcAdjustorParameters() {
+		return gcAdjustorParameters;
+	}
+
+	public boolean[] getDisplaygcAdjustor() {
+		return displaygcAdjustor;
+	}
+
+	public String[][] getGcCList() {
+		return gcCList;
+	}
 
 	public ClusterFilterCollection getClusterFilterCollection() {
 		return clusterFilterCollection;
@@ -3102,6 +3189,22 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			centroids[i] = v.elementAt(i);
         }
 		centList = Array.toStringArray(fileList);
+
+	}
+
+	public void prepGCAdjustorLoad() {
+		String[] gcParamFiles = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue();
+		ArrayList<String> display = new ArrayList<String>();
+		ArrayList<String> actual = new ArrayList<String>();
+
+		for (int i = 0; i < gcParamFiles.length; i++) {
+			if (Files.exists(gcParamFiles[i])) {
+				display.add(ext.rootOf(gcParamFiles[i]));
+				actual.add(gcParamFiles[i]);
+			}
+		}
+		gcCList = new String[][] { Array.toStringArray(display), Array.toStringArray(actual) };
+		gcAdjustorParameters = new GcAdjustorParameters[gcCList[0].length];
 	}
 
 	public void changeToNewMarkerList(String[] newMarkerList, int indexOfDefaultFirstMarker) {
@@ -3855,7 +3958,11 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		return excludeSamples[index];
 	}
 
-    public byte getPlinkGenotypeForIndi(String sampleID, int currentClass) {
+	public Hashtable<String, Integer> getMarkerProjectIndices() {
+		return markerProjectIndices;
+	}
+
+	public byte getPlinkGenotypeForIndi(String sampleID, int currentClass) {
         int plinkIndex = currentClass - sampleData.getBasicClasses().length - sampleData.getNumActualClasses() - sampleData.getNumCNVClasses();
         String plinkRoot = proj.PLINK_DIR_FILEROOTS.getValue()[plinkIndex];
         String[] lookup = sampleData.lookup(sampleID); 

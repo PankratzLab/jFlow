@@ -22,6 +22,7 @@ import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Pedigree;
 import cnv.gui.LaunchAction;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.var.IndiPheno;
 import cnv.var.SampleData;
@@ -179,11 +180,30 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		} else {
 	    	chartType = SCATTER_PLOT_TYPE;
 		}
-		markerIndex = sp.getMarkerIndex();
+		markerIndex = sp.getMarkerIndex();//this is the index from the markers loaded perspective
 //		gcThreshold = sp.getGCthreshold();
 		markerData = sp.getCurrentMarkerData();
+		int markerProjectIndex = sp.getMarkerProjectIndices().get(markerData.getMarkerName()); //index of the marker in the project
+
 		boolean[] toInclude = sp.hideExcludedSamples(panelIndex) ? sp.getProject().getSamplesToInclude(null, false) : Array.booleanArray(samples.length, true);
-		datapoints = markerData.getDatapoints(plotType, null, toInclude, false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), sp.getCorrectionRatio(), sp.getProject().getProperty(sp.getProject().NUM_THREADS), sp.getCorrection(panelIndex), sp.getProject().getLog());
+		out: if (plotType == 2 && sp.getDisplaygcAdjustor() != null && Array.booleanArraySum(sp.getDisplaygcAdjustor()) == 1) {// plot types should be changed to enums sometime
+			for (int i = 0; i < sp.getDisplaygcAdjustor().length; i++) {
+				if (sp.getDisplaygcAdjustor()[i]) {
+					if (sp.getGcAdjustorParameters()[i] == null) {
+						sp.getGcAdjustorParameters()[i] = GcAdjustorParameters.readSerial(sp.getGcCList()[1][i], log);
+						log.reportTimeInfo("Lazy loading " + sp.getGcCList()[1][i]);
+					}
+					datapoints = markerData.getGCCorrectedLRR(sp.getGcAdjustorParameters()[i], markerProjectIndex, log);
+					break out;
+				}
+			}
+			datapoints = markerData.getDatapoints(plotType, null, toInclude, false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), sp.getCorrectionRatio(), sp.getProject().getProperty(sp.getProject().NUM_THREADS), sp.getCorrection(panelIndex), sp.getProject().getLog());
+
+		} else {
+
+			datapoints = markerData.getDatapoints(plotType, null, toInclude, false, 1, sp.getGCthreshold(), sp.getClusterFilterCollection(), true, sp.getPcResids(), sp.getNumComponents(), 5, sp.getstdevFilter(), sp.getCorrectionRatio(), sp.getProject().getProperty(sp.getProject().NUM_THREADS), sp.getCorrection(panelIndex), sp.getProject().getLog());
+		}
+		
 		// alleleCounts = markerData[markerIndex].getAB_Genotypes();
 		//		alleleCounts = sp.getClusterFilterCollection().filterMarker(markerData[markerIndex], sp.getGCthreshold());
 		alleleCounts = markerData.getAbGenotypesAfterFilters(sp.getClusterFilterCollection(), sp.getMarkerName(), sp.getGCthreshold(), log);
@@ -238,6 +258,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			points = new PlotPoint[samples.length];
 			numCents = 0;
 		}
+		
 		
 		if (plotType < 1 || plotType >= 4) {
 			forcePlotXmax = Float.NaN;

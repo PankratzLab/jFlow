@@ -9,6 +9,8 @@ import cnv.analysis.CentroidCompute;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.manage.MarkerDataLoader;
+import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.var.SampleData;
 import stats.Correlation;
 import common.AlleleFreq;
@@ -136,6 +138,29 @@ public class MarkerData implements Serializable {
 		}
 	}
 
+	public float[][] getGCCorrectedLRR(GcAdjustorParameters params, int markerIndexInProjec, Logger log) {
+		if (params.getSampleFingerprint() != fingerprint) {
+			throw new IllegalArgumentException("Mismatched marker fingerprints\tLoaded: " + params.getMarkerFingerprint() + " and should have seen " + fingerprint);
+		}
+		if (params.getGcAdjustorParameters().length != xs.length) {
+			throw new IllegalArgumentException("Mismatched sample sizes");
+
+		}
+		if (lrrs == null) {
+			return null;
+		} else {
+			float[][] recompBAFLRR = params.getCentroids() == null ? new float[][] { bafs.clone(), lrrs.clone() } : recomputeClone(params.getCentroids().getCentroids()[markerIndexInProjec]);
+
+			for (int i = 0; i < recompBAFLRR[0].length; i++) {
+				recompBAFLRR[1][i] = (float) params.getGcAdjustorParameters()[i].adjust(GC_CORRECTION_METHOD.GENVISIS_GC, recompBAFLRR[1][i], params.getGcContent()[i]);
+				if (Float.isNaN(recompBAFLRR[1][i])) {
+					recompBAFLRR[1][i] = lrrs[i];
+				}
+			}
+			return recompBAFLRR;
+		}
+	}
+
 	/**
 	 * Warning - the behavior of this method will likely be volatile for some time as the correction methods are improved
 	 */
@@ -224,6 +249,21 @@ public class MarkerData implements Serializable {
 			bafs[i] = Centroids.calcBAF(thetas[i], centroids);
 			lrrs[i] = Centroids.calcLRR(thetas[i], rs[i], centroids);
         }
+	}
+
+	public float[][] recomputeClone(float[][] centroids) {
+
+		float[] thetas = getThetas();
+		float[] rs = getRs();
+
+		float[] bafsRecomp = new float[xs.length];
+		float[] lrrsRecomp = new float[xs.length];
+		for (int i = 0; i < xs.length; i++) {
+			bafsRecomp[i] = Centroids.calcBAF(thetas[i], centroids);
+			lrrsRecomp[i] = Centroids.calcLRR(thetas[i], rs[i], centroids);
+		}
+		return new float[][] { bafsRecomp, lrrsRecomp };
+
 	}
 
 	public float[] getBAFs() {

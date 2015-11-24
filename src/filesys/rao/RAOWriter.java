@@ -24,7 +24,7 @@ public class RAOWriter {
 	private long offset;
 	private RandomAccessProducer rProducer;
 	private RandomAccessFile file;
-	private FileOutputStream fos;
+	//private FileOutputStream fos;
 	private RAOIndex index;
 	private OutputStream os;
 	private Logger log;
