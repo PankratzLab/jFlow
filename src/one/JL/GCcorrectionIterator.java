@@ -20,6 +20,7 @@ import common.PSF.Ext;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.Builder;
 import cnv.filesys.Project;
+import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustor.GcModel;
@@ -29,7 +30,7 @@ import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 public class GCcorrectionIterator {
 	private static final String CENT_TAG = "_CENT";
 
-	private static void batch(Project proj, String outputRootDir, int[] bpModels, int numThreads) {
+	private static void batch(Project proj, String outputRootDir, int[] bpModels, int[] regressDistance, int[] snpMAD, int numThreads) {
 		String batchRoot = proj.PROJECT_DIRECTORY.getValue() + outputRootDir;
 		ArrayList<String> pbs = new ArrayList<String>();
 		for (int i = 0; i < bpModels.length; i++) {
@@ -56,10 +57,8 @@ public class GCcorrectionIterator {
 		Files.chmod(batchMaster);
 	}
 
-	private static void iterate(Project proj, String outputRootDir, int[] bpModels, int numThreads) {
+	private static void iterate(Project proj, String outputRootDir, int[] bpModels, int[] regressDistance, int[] snpMAD, int numThreads) {
 		new File(proj.PROJECT_DIRECTORY.getValue() + outputRootDir).mkdirs();
-		int[] regressDistance = new int[] { 1000000, 10, 100, 1000, 2000, 4000, 8000, 10000, 20000, 40000, 80000, 100000, 500000 };// eq 13
-		int[] snpMAD = new int[] { 0, 1, 2, 5, 10, 15 };// gt 6
 		String freshCents = proj.PROJECT_DIRECTORY.getValue() + outputRootDir + "freshCents.cent";
 
 		proj.getLog().reportTimeInfo("total iterations currently at (2X) " + (bpModels.length * regressDistance.length * snpMAD.length));
@@ -75,51 +74,59 @@ public class GCcorrectionIterator {
 			for (int i = 0; i < bpModels.length; i++) {
 				String model = proj.PROJECT_DIRECTORY.getValue() + outputRootDir + "gcmodel_bp_" + bpModels[i] + ".ser";
 				GcModel gcModel = null;
-				if (Files.exists(model)) {
-					proj.getLog().reportTimeError("JOHN remember to remove this gcmodel skipper");
+				if (bpModels[i] < 0) {
+					gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), true, proj.getLog());
+					gcModel.Serialize(model);
+				}
+				// if (Files.exists(model)) {
+				// proj.getLog().reportTimeError("JOHN remember to remove this gcmodel skipper");
 
-					if (!Files.exists(model)) {
-						gcModel = GcModel.generateSnpWindowModel(proj, bpModels[i]);
-						gcModel.Serialize(model);
-					} else {
-						gcModel = GcModel.loadSerial(model);
-					}
-					ArrayList<GCAdjustorBuilder> builders = new ArrayList<GCAdjustorBuilder>();
-					ArrayList<String> outs = new ArrayList<String>();
-					for (int j = 0; j < regressDistance.length; j++) {
-						for (int j2 = 0; j2 < snpMAD.length; j2++) {
-							String root = outputRootDir + "gcmodel_bp_" + bpModels[i] + "_regress_" + regressDistance[j] + "_snpMad_" + snpMAD[j2];
-							outs.add(root);
-							builder.regressionDistance(regressDistance[j]);
-							builder.numSnpMAD(snpMAD[j2]);
-							builders.add(new GCAdjustorBuilder(builder));
-							proj.getLog().reportTimeError("JOHN remember to remove this");
-							break;
-						}
-						break;
-					}
-					proj.getLog().reportTimeInfo("Beginnning iteration group for gc model " + bpModels[i] + " (" + builders.size() + " iterations");
-					String[][][] generated = null;
-					try {
-						generated = GcAdjustorParameter.generateAdjustmentParameters(proj, builders.toArray(new GCAdjustorBuilder[builders.size()]), new String[] { freshCents }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, Array.toStringArray(outs), numThreads);
-					} catch (IllegalStateException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					IterationParameters[] tmp = getParameters(generated, bpModels[i], builders);
-					for (int j = 0; j < tmp.length; j++) {
-						finals.add(tmp[j]);
+				if (!Files.exists(model)) {
+					gcModel = GcModel.generateSnpWindowModel(proj, bpModels[i]);
+					gcModel.Serialize(model);
+				} else {
+					gcModel = GcModel.loadSerial(model);
+				}
+				// }
+				ArrayList<GCAdjustorBuilder> builders = new ArrayList<GCAdjustorBuilder>();
+				ArrayList<String> outs = new ArrayList<String>();
+				for (int j = 0; j < regressDistance.length; j++) {
+					for (int j2 = 0; j2 < snpMAD.length; j2++) {
+						String root = outputRootDir + "gcmodel_bp_" + bpModels[i] + "_regress_" + regressDistance[j] + "_snpMad_" + snpMAD[j2];
+						outs.add(root);
+						builder.regressionDistance(regressDistance[j]);
+						builder.numSnpMAD(snpMAD[j2]);
+						builders.add(new GCAdjustorBuilder(builder));
+						proj.getLog().reportTimeError("JOHN remember to remove this");
 					}
 				}
+				proj.getLog().reportTimeInfo("Beginnning iteration group for gc model " + bpModels[i] + " (" + builders.size() + " iterations");
+				String[][][] generated = null;
+				try {
+					generated = GcAdjustorParameter.generateAdjustmentParameters(proj, builders.toArray(new GCAdjustorBuilder[builders.size()]), new String[] { freshCents }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, Array.toStringArray(outs), numThreads);
+				} catch (IllegalStateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				IterationParameters[] tmp = getParameters(generated, bpModels[i], builders);
+				for (int j = 0; j < tmp.length; j++) {
+					finals.add(tmp[j]);
+				}
+
 			}
 		}
 
 		try {
-			summarize(proj, outputGz, finals);
+			summarizeSampleQC(proj, outputGz, finals);
 		} catch (IllegalStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	private static void GenerateMarkerQC(Project proj, ArrayList<IterationParameters> finals) {
+		String[] header = new String[] { "MarkerName", "CENT", "gcmodel_bp", "regress_bp", "snpMAD", "LRR_MEAN_PRIOR", "LRR_MEAN_POST", "LRR_SD_PRIOR", "LRR_SD_POST" };
+
 	}
 
 	private static void format(String base, Hashtable<String, String[]> plotCombos) {
@@ -127,7 +134,7 @@ public class GCcorrectionIterator {
 
 	}
 
-	private static void summarize(Project proj, String outputGZ, ArrayList<IterationParameters> finals) throws IllegalStateException {
+	private static void summarizeSampleQC(Project proj, String outputGZ, ArrayList<IterationParameters> finals) throws IllegalStateException {
 		String[] commonHeader = new String[] { "SampleName", "gcmodel_bp", "regress_bp", "snpMAD" };
 
 		String[] specificHeader = new String[] { "BETA_0", "BETA_1", "WF_PRIOR", "WF_POST", "GCWF_PRIOR", "GCWF_POST", "LRR_MEAN_PRIOR", "LRR_MEAN_POST", "LRR_SD_PRIOR", "LRR_SD_POST" };
@@ -298,12 +305,16 @@ public class GCcorrectionIterator {
 		int numThreads = 24;
 		String filename = null;
 		int[] bpModels = new int[] { 50, 100, 250, 500, 1000, 2500, 5000, 10000, 1000000 };
+		int[] regressDistance = new int[] { 1000000, 10, 100, 1000, 2000, 4000, 8000, 10000, 20000, 40000, 80000, 100000, 500000 };// eq 13
+		int[] snpMAD = new int[] { 0, 1, 2, 5, 10, 15 };
 		boolean batch = false;
 		String usage = "\n" + "one.JL.GCcorrectionIterator requires 0-1 arguments\n";
 		usage += "   (1) project filename (i.e. proj= (no default))\n" + "";
 		usage += "   (2) root directory under project directory (i.e. root=" + rootDir + " (default))\n" + "";
 		usage += "   (3) gcModel bp, comma delimited (i.e. bpGcModel=" + Array.toStr(Array.toStringArray(bpModels), ",") + " (default))\n" + "";
 		usage += "   (4) batch by gc model (i.e -batch, not the default)\n" + "";
+		usage += "   (5) regressDistance, comma delimited (i.e. regress=" + Array.toStr(Array.toStringArray(regressDistance), ",") + " (default))\n" + "";
+		usage += "   (6) snpMAD, comma delimited (i.e. mad=" + Array.toStr(Array.toStringArray(snpMAD), ",") + " (default))\n" + "";
 
 		usage += Ext.getNumThreadsCommand(5, numThreads);
 		for (int i = 0; i < args.length; i++) {
@@ -318,6 +329,12 @@ public class GCcorrectionIterator {
 				numArgs--;
 			} else if (args[i].startsWith("bpGcModel=")) {
 				bpModels = Array.toIntArray(ext.parseStringArg(args[i], "").split(","));
+				numArgs--;
+			} else if (args[i].startsWith("regress=")) {
+				regressDistance = Array.toIntArray(ext.parseStringArg(args[i], "").split(","));
+				numArgs--;
+			} else if (args[i].startsWith("mad=")) {
+				snpMAD = Array.toIntArray(ext.parseStringArg(args[i], "").split(","));
 				numArgs--;
 			} else if (args[i].startsWith("-batch")) {
 				batch = true;
@@ -336,10 +353,10 @@ public class GCcorrectionIterator {
 		try {
 			Project proj = new Project(filename, false);
 			if (!batch) {
-				iterate(proj, rootDir, bpModels, numThreads);
+				iterate(proj, rootDir, bpModels, regressDistance, snpMAD, numThreads);
 			} else {
 				proj.PROJECT_PROPERTIES_FILENAME.setValue(filename);
-				batch(proj, rootDir, bpModels, numThreads);
+				batch(proj, rootDir, bpModels, regressDistance, snpMAD, numThreads);
 			}
 
 		} catch (Exception e) {

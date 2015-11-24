@@ -31,6 +31,7 @@ import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.manage.MDL;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.var.SampleData;
 import common.Array;
 import common.Files;
@@ -287,7 +288,11 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			cluster = new ClusterFilterCollection();
 			log.report("Info - did not find the cluster filter file " + proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME) + "; using original genotypes");
 		}
-
+		Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
+		String gcCorrections = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0];
+		proj.getLog().reportTimeInfo("Using gc paramter file " + gcCorrections + " to compute median values");
+		// TODO, arg
+		GcAdjustorParameters parameters = GcAdjustorParameters.readSerial(gcCorrections, proj.getLog());
 		int index = 0;
 		while (mdl.hasNext()) {
 			// for (int index = 0;index < markersToAssess.length; index++) {
@@ -299,6 +304,13 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 				lrrs = markerData.getRecomputedLRR_BAF(null, null, false, 1, gcThreshold, cluster, true, true, log)[1];
 			} else {
 				lrrs = markerData.getLRRs();
+			}
+			if (parameters != null) {
+				if (parameters.getCentroids() == null) {
+					proj.getLog().reportTimeError("NO centroids available in median");
+					return;
+				}
+				lrrs = markerData.getGCCorrectedLRR(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
 			}
 			abGenos = markerData.getAbGenotypesAfterFilters(cluster, markersToAssess[index], gcThreshold, log);
 			int sampleIndex = 0;
