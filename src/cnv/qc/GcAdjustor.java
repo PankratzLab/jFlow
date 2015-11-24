@@ -588,6 +588,14 @@ public class GcAdjustor {
 			}
 		}
 
+		public double[] getGCsFor(String[] markers) {
+			double[] gcs = new double[markers.length];
+			for (int i = 0; i < gcs.length; i++) {
+				gcs[i] = getGcFor(markers[i]);
+			}
+			return gcs;
+		}
+
 		public boolean hasMarker(String marker) {
 			return index.containsKey(marker);
 		}

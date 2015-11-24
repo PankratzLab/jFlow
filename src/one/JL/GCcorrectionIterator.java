@@ -99,13 +99,18 @@ public class GCcorrectionIterator {
 						break;
 					}
 					proj.getLog().reportTimeInfo("Beginnning iteration group for gc model " + bpModels[i] + " (" + builders.size() + " iterations");
-					String[][][] generated = GcAdjustorParameter.generateAdjustmentParameters(proj, builders.toArray(new GCAdjustorBuilder[builders.size()]), new String[] { freshCents }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, Array.toStringArray(outs), numThreads);
+					String[][][] generated = null;
+					try {
+						generated = GcAdjustorParameter.generateAdjustmentParameters(proj, builders.toArray(new GCAdjustorBuilder[builders.size()]), new String[] { freshCents }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, Array.toStringArray(outs), numThreads);
+					} catch (IllegalStateException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					IterationParameters[] tmp = getParameters(generated, bpModels[i], builders);
 					for (int j = 0; j < tmp.length; j++) {
 						finals.add(tmp[j]);
 					}
 				}
-
 			}
 		}
 
@@ -132,36 +137,36 @@ public class GCcorrectionIterator {
 		format("LRR_MEAN", plotCombos);
 		format("LRR_SD", plotCombos);
 
-		if (!Files.exists(outputGZ)) {
-			String[] withoutCent = Array.tagOn(specificHeader, null, "");
-			String[] withCent = Array.tagOn(specificHeader, null, CENT_TAG);
-			PrintWriter writer = Files.getAppropriateWriter(outputGZ);
-			writer.println(Array.toStr(commonHeader) + "\t" + Array.toStr(withoutCent) + "\t" + Array.toStr(withCent));
+		// if (!Files.exists(outputGZ)) {
+		String[] withoutCent = Array.tagOn(specificHeader, null, "");
+		String[] withCent = Array.tagOn(specificHeader, null, CENT_TAG);
+		PrintWriter writer = Files.getAppropriateWriter(outputGZ);
+		writer.println(Array.toStr(commonHeader) + "\t" + Array.toStr(withoutCent) + "\t" + Array.toStr(withCent));
 
-			for (int i = 0; i < finals.size(); i++) {
-				IterationParameters cur = finals.get(i);
-				if (cur.getSerFiles().length != 2) {
-					throw new IllegalStateException("Ser replicates must be in two-fers");
+		for (int i = 0; i < finals.size(); i++) {
+			IterationParameters cur = finals.get(i);
+			if (cur.getSerFiles().length != 2) {
+				throw new IllegalStateException("Ser replicates must be in two-fers");
 
-				} else {
-					GcAdjustorParameters noCents = GcAdjustorParameters.readSerial(cur.getSerFiles()[0], proj.getLog());
-					GcAdjustorParameters cents = GcAdjustorParameters.readSerial(cur.getSerFiles()[1], proj.getLog());
-					String[] allSamples = proj.getSamples();
-					GcAdjustorParameter[] noCentParams = noCents.getGcAdjustorParameters();
-					GcAdjustorParameter[] centParams = cents.getGcAdjustorParameters();
-					for (int j = 0; j < noCentParams.length; j++) {
-						GcAdjustorParameter noC = noCentParams[j];
-						GcAdjustorParameter c = centParams[j];
-						if (!allSamples[j].equals(noC.getSample()) || !allSamples[j].equals(c.getSample())) {
-							throw new IllegalStateException("MisMatched sample order");
-						} else {
-							writer.println(noC.getSample() + "\t" + Array.toStr(cur.getParams()) + "\t" + Array.toStr(noC.getQCString()) + "\t" + Array.toStr(c.getQCString()));
-						}
+			} else {
+				GcAdjustorParameters noCents = GcAdjustorParameters.readSerial(cur.getSerFiles()[0], proj.getLog());
+				GcAdjustorParameters cents = GcAdjustorParameters.readSerial(cur.getSerFiles()[1], proj.getLog());
+				String[] allSamples = proj.getSamples();
+				GcAdjustorParameter[] noCentParams = noCents.getGcAdjustorParameters();
+				GcAdjustorParameter[] centParams = cents.getGcAdjustorParameters();
+				for (int j = 0; j < noCentParams.length; j++) {
+					GcAdjustorParameter noC = noCentParams[j];
+					GcAdjustorParameter c = centParams[j];
+					if (!allSamples[j].equals(noC.getSample()) || !allSamples[j].equals(c.getSample())) {
+						throw new IllegalStateException("MisMatched sample order");
+					} else {
+						writer.println(noC.getSample() + "\t" + Array.toStr(cur.getParams()) + "\t" + Array.toStr(noC.getQCString()) + "\t" + Array.toStr(c.getQCString()));
 					}
 				}
 			}
-			writer.close();
 		}
+		writer.close();
+		// }
 		ArrayList<RScatter> allLooks = new ArrayList<RScatter>();
 
 		for (String base : plotCombos.keySet()) {

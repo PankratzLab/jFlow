@@ -3,13 +3,10 @@ package filesys.rao;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Set;
 
 import cnv.var.CNVariant;
 import common.Files;
 import common.Logger;
-import filesys.rao.RAOWriter.RandomAccessProducer;
-import filesys.rao.RAOWriter.WriteComplete;
 
 public class RAOTests {
 
@@ -23,39 +20,39 @@ public class RAOTests {
 		segs = daSegs.toArray(new CNVariant[daSegs.size()]);
 		final CNVariant[] segsdump = segs;
 
-		RandomAccessProducer producer = new RandomAccessProducer() {
-			int index = 0;
+//		RandomAccessProducer producer = new RandomAccessProducer() {
+//			int index = 0;
+//
+//			@Override
+//			public void remove() {
+//				// TODO Auto-generated method stub
+//
+//			}
+//
+//			@Override
+//			public RAObject next() {
+//				//final CNVariant Aseg = segsdump[index];
+//				index++;
+//				return null;
+//			}
+//
+//			@Override
+//			public boolean hasNext() {
+//				return index < segsdump.length;
+//
+//			}
+//		};
 
-			@Override
-			public void remove() {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public RAObject next() {
-				final CNVariant Aseg = segsdump[index];
-				index++;
-				return null;
-			}
-
-			@Override
-			public boolean hasNext() {
-				return index < segsdump.length;
-
-			}
-		};
-
-		RAOWriter writer = new RAOWriter(testFile, producer, log);
+		//RAOWriter writer = new RAOWriter(testFile, producer, log);
 		log.reportTimeInfo("Beginning ser write");
 		long time = System.currentTimeMillis();
-		WriteComplete writeComplete = writer.writeToFile();
-		RAOIndex raoIndex = RAOIndex.load(writeComplete.getIndexFile(), log);
-		Set<String> s = raoIndex.getIndex().keySet();
+		//WriteComplete writeComplete = writer.writeToFile();
+	//	RAOIndex raoIndex = RAOIndex.load(writeComplete.getIndexFile(), log);
+		//Set<String> s = raoIndex.getIndex().keySet();
 		//RAOReader<CNVariant> reader = new RAOReader<CNVariant>(writeComplete.getDataFile(), writeComplete.getIndexFile(), log);
-		for (String as : s) {
-			//System.out.println(as + "\t" + reader.loadPosition(raoIndex.getIndex().get(as).get(1000)).getUCSClocation());
-		}
+//		for (String as : s) {
+//			//System.out.println(as + "\t" + reader.loadPosition(raoIndex.getIndex().get(as).get(1000)).getUCSClocation());
+//		}
 
 		log.reportTimeInfo("Ending ser write");
 		log.reportTimeElapsed(time);
