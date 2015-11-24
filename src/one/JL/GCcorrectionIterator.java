@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import javax.jms.IllegalStateException;
 
@@ -26,6 +27,7 @@ import cnv.qc.GcAdjustorParameter;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 
 public class GCcorrectionIterator {
+	private static final String CENT_TAG = "_CENT";
 
 	private static void batch(Project proj, String outputRootDir, int[] bpModels, int numThreads) {
 		String batchRoot = proj.PROJECT_DIRECTORY.getValue() + outputRootDir;
@@ -56,8 +58,8 @@ public class GCcorrectionIterator {
 
 	private static void iterate(Project proj, String outputRootDir, int[] bpModels, int numThreads) {
 		new File(proj.PROJECT_DIRECTORY.getValue() + outputRootDir).mkdirs();
-		int[] regressDistance = new int[] { 10, 100, 1000, 2000, 4000, 8000, 10000, 20000, 40000, 80000, 100000, 500000, 1000000 };// eq
-		int[] snpMAD = new int[] { 0, 1, 2, 5, 10, 15 };// gt
+		int[] regressDistance = new int[] { 1000000, 10, 100, 1000, 2000, 4000, 8000, 10000, 20000, 40000, 80000, 100000, 500000 };// eq 13
+		int[] snpMAD = new int[] { 0, 1, 2, 5, 10, 15 };// gt 6
 		String freshCents = proj.PROJECT_DIRECTORY.getValue() + outputRootDir + "freshCents.cent";
 
 		proj.getLog().reportTimeInfo("total iterations currently at (2X) " + (bpModels.length * regressDistance.length * snpMAD.length));
@@ -67,37 +69,45 @@ public class GCcorrectionIterator {
 		ArrayList<IterationParameters> finals = new ArrayList<IterationParameters>();
 		GCAdjustorBuilder builder = new GCAdjustorBuilder();
 		builder.verbose(true);
-		for (int i = 0; i < bpModels.length; i++) {
-			String model = proj.PROJECT_DIRECTORY.getValue() + outputRootDir + "gcmodel_bp_" + bpModels[i] + ".ser";
-			GcModel gcModel = null;
-			if (!Files.exists(model)) {
-				gcModel = GcModel.generateSnpWindowModel(proj, bpModels[i]);
-				gcModel.Serialize(model);
-			} else {
-				gcModel = GcModel.loadSerial(model);
-			}
-			ArrayList<GCAdjustorBuilder> builders = new ArrayList<GCAdjustorBuilder>();
-			ArrayList<String> outs = new ArrayList<String>();
-			for (int j = 0; j < regressDistance.length; j++) {
-				for (int j2 = 0; j2 < snpMAD.length; j2++) {
-					String root = outputRootDir + "gcmodel_bp_" + bpModels[i] + "_regress_" + regressDistance[j] + "_snpMad_" + snpMAD[j2];
-					outs.add(root);
-					builder.regressionDistance(regressDistance[j]);
-					builder.numSnpMAD(snpMAD[j2]);
-					builders.add(new GCAdjustorBuilder(builder));
-					proj.getLog().reportTimeError("JOHN remember to remove this");
-					break;
+		String outputGz = proj.PROJECT_DIRECTORY.getValue() + outputRootDir + "finalSummaryRaw.gz";
+
+		if (!Files.exists(outputGz)) {
+			for (int i = 0; i < bpModels.length; i++) {
+				String model = proj.PROJECT_DIRECTORY.getValue() + outputRootDir + "gcmodel_bp_" + bpModels[i] + ".ser";
+				GcModel gcModel = null;
+				if (Files.exists(model)) {
+					proj.getLog().reportTimeError("JOHN remember to remove this gcmodel skipper");
+
+					if (!Files.exists(model)) {
+						gcModel = GcModel.generateSnpWindowModel(proj, bpModels[i]);
+						gcModel.Serialize(model);
+					} else {
+						gcModel = GcModel.loadSerial(model);
+					}
+					ArrayList<GCAdjustorBuilder> builders = new ArrayList<GCAdjustorBuilder>();
+					ArrayList<String> outs = new ArrayList<String>();
+					for (int j = 0; j < regressDistance.length; j++) {
+						for (int j2 = 0; j2 < snpMAD.length; j2++) {
+							String root = outputRootDir + "gcmodel_bp_" + bpModels[i] + "_regress_" + regressDistance[j] + "_snpMad_" + snpMAD[j2];
+							outs.add(root);
+							builder.regressionDistance(regressDistance[j]);
+							builder.numSnpMAD(snpMAD[j2]);
+							builders.add(new GCAdjustorBuilder(builder));
+							proj.getLog().reportTimeError("JOHN remember to remove this");
+							break;
+						}
+						break;
+					}
+					proj.getLog().reportTimeInfo("Beginnning iteration group for gc model " + bpModels[i] + " (" + builders.size() + " iterations");
+					String[][][] generated = GcAdjustorParameter.generateAdjustmentParameters(proj, builders.toArray(new GCAdjustorBuilder[builders.size()]), new String[] { freshCents }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, Array.toStringArray(outs), numThreads);
+					IterationParameters[] tmp = getParameters(generated, bpModels[i], builders);
+					for (int j = 0; j < tmp.length; j++) {
+						finals.add(tmp[j]);
+					}
 				}
-				break;
-			}
-			proj.getLog().reportTimeInfo("Beginnning iteration group for gc model " + bpModels[i] + " (" + builders.size() + " iterations");
-			String[][][] generated = GcAdjustorParameter.generateAdjustmentParameters(proj, builders.toArray(new GCAdjustorBuilder[builders.size()]), new String[] { freshCents }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, Array.toStringArray(outs), numThreads);
-			IterationParameters[] tmp = getParameters(generated, bpModels[i], builders);
-			for (int j = 0; j < tmp.length; j++) {
-				finals.add(tmp[j]);
+
 			}
 		}
-		String outputGz = proj.PROJECT_DIRECTORY.getValue() + outputRootDir + "finalSummaryRaw.gz";
 
 		try {
 			summarize(proj, outputGz, finals);
@@ -107,47 +117,127 @@ public class GCcorrectionIterator {
 		}
 	}
 
+	private static void format(String base, Hashtable<String, String[]> plotCombos) {
+		plotCombos.put(base + "_PRIOR", new String[] { base + "_POST", base + "_PRIOR" + CENT_TAG, base + "_POST" + CENT_TAG });
+
+	}
+
 	private static void summarize(Project proj, String outputGZ, ArrayList<IterationParameters> finals) throws IllegalStateException {
 		String[] commonHeader = new String[] { "SampleName", "gcmodel_bp", "regress_bp", "snpMAD" };
 
 		String[] specificHeader = new String[] { "BETA_0", "BETA_1", "WF_PRIOR", "WF_POST", "GCWF_PRIOR", "GCWF_POST", "LRR_MEAN_PRIOR", "LRR_MEAN_POST", "LRR_SD_PRIOR", "LRR_SD_POST" };
-		String centTag = "_Cent";
-		String[] withoutCent = Array.tagOn(specificHeader, null, "");
-		String[] withCent = Array.tagOn(specificHeader, null, centTag);
-		PrintWriter writer = Files.getAppropriateWriter(outputGZ);
-		writer.println(Array.toStr(commonHeader) + "\t" + Array.toStr(withoutCent) + "\t" + Array.toStr(withCent));
+		Hashtable<String, String[]> plotCombos = new Hashtable<String, String[]>();
+		format("WF", plotCombos);
+		format("GCWF", plotCombos);
+		format("LRR_MEAN", plotCombos);
+		format("LRR_SD", plotCombos);
 
-		for (int i = 0; i < finals.size(); i++) {
-			IterationParameters cur = finals.get(i);
-			if (cur.getSerFiles().length != 2) {
-				throw new IllegalStateException("Ser replicates must be in two-fers");
+		if (!Files.exists(outputGZ)) {
+			String[] withoutCent = Array.tagOn(specificHeader, null, "");
+			String[] withCent = Array.tagOn(specificHeader, null, CENT_TAG);
+			PrintWriter writer = Files.getAppropriateWriter(outputGZ);
+			writer.println(Array.toStr(commonHeader) + "\t" + Array.toStr(withoutCent) + "\t" + Array.toStr(withCent));
 
-			} else {
-				GcAdjustorParameters noCents = GcAdjustorParameters.readSerial(cur.getSerFiles()[0], proj.getLog());
-				GcAdjustorParameters cents = GcAdjustorParameters.readSerial(cur.getSerFiles()[1], proj.getLog());
-				String[] allSamples = proj.getSamples();
-				GcAdjustorParameter[] noCentParams = noCents.getGcAdjustorParameters();
-				GcAdjustorParameter[] centParams = cents.getGcAdjustorParameters();
-				for (int j = 0; j < noCentParams.length; j++) {
-					GcAdjustorParameter noC = noCentParams[j];
-					GcAdjustorParameter c = centParams[j];
-					if (!allSamples[i].equals(noC.getSample()) || !allSamples[i].equals(c.getSample())) {
-						throw new IllegalStateException("MisMatched sample order");
-					} else {
-						writer.print(noC.getSample() + "\t" + Array.toStr(cur.getParams()) + "\t" + Array.toStr(noC.getQCString()) + "\t" + Array.toStr(c.getQCString()));
+			for (int i = 0; i < finals.size(); i++) {
+				IterationParameters cur = finals.get(i);
+				if (cur.getSerFiles().length != 2) {
+					throw new IllegalStateException("Ser replicates must be in two-fers");
+
+				} else {
+					GcAdjustorParameters noCents = GcAdjustorParameters.readSerial(cur.getSerFiles()[0], proj.getLog());
+					GcAdjustorParameters cents = GcAdjustorParameters.readSerial(cur.getSerFiles()[1], proj.getLog());
+					String[] allSamples = proj.getSamples();
+					GcAdjustorParameter[] noCentParams = noCents.getGcAdjustorParameters();
+					GcAdjustorParameter[] centParams = cents.getGcAdjustorParameters();
+					for (int j = 0; j < noCentParams.length; j++) {
+						GcAdjustorParameter noC = noCentParams[j];
+						GcAdjustorParameter c = centParams[j];
+						if (!allSamples[j].equals(noC.getSample()) || !allSamples[j].equals(c.getSample())) {
+							throw new IllegalStateException("MisMatched sample order");
+						} else {
+							writer.println(noC.getSample() + "\t" + Array.toStr(cur.getParams()) + "\t" + Array.toStr(noC.getQCString()) + "\t" + Array.toStr(c.getQCString()));
+						}
 					}
 				}
 			}
+			writer.close();
 		}
-		writer.close();
 		ArrayList<RScatter> allLooks = new ArrayList<RScatter>();
-		String meanRoot = ext.rootOf(outputGZ, false) + "means";
 
-		RScatter rScatter = new RScatter(outputGZ, meanRoot + ".rscript", ext.removeDirectoryInfo(meanRoot), meanRoot + ".pdf", "LRR_MEAN_PRIOR", new String[] { "LRR_MEAN_POST", "LRR_MEAN_PRIOR" + centTag, "LRR_MEAN_POST" + centTag }, null, SCATTER_TYPE.POINT, proj.getLog());
-		rScatter.execute();
-		allLooks.add(rScatter);
+		for (String base : plotCombos.keySet()) {
+			System.out.println(base);
+			System.out.println(Array.toStr(plotCombos.get(base)));
+			// String root = ext.rootOf(outputGZ, false) + base;
+			// RScatter rScatter = new RScatter(outputGZ, root + ".rscript", ext.removeDirectoryInfo(root), root + ".pdf", base, plotCombos.get(base), null, SCATTER_TYPE.POINT, proj.getLog());
+			// rScatter.setyLabel(base.replaceAll("_PRIOR", ""));
+			// rScatter.setxLabel(base);
+			// rScatter.execute();
+			// allLooks.add(rScatter);
+			// //
+			String rootBox = ext.rootOf(outputGZ, false) + base + ".box";
+			RScatter rScatterBox = new RScatter(outputGZ, rootBox + ".rscript", ext.removeDirectoryInfo(rootBox), rootBox + ".pdf", "gcmodel_bp", Array.concatAll(new String[] { base }, plotCombos.get(base)), null, SCATTER_TYPE.BOX, proj.getLog());
+			rScatterBox.setyLabel(rootBox.replaceAll("_PRIOR", ""));
+			rScatterBox.setFontsize(3);
+			rScatterBox.setyLabel(base.replaceAll("_PRIOR", ""));
+			rScatterBox.setTitle("Original AND re-computed LRR");
+			// rScatterBox.setxLabel(rootBox);
+			rScatterBox.execute();
+			allLooks.add(rScatterBox);
+
+			String rootBoxTrim = ext.rootOf(outputGZ, false) + base + ".trim";
+			RScatter rScatterBoxTrim = new RScatter(outputGZ, rootBoxTrim + ".rscript", ext.removeDirectoryInfo(rootBoxTrim), rootBoxTrim + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[2] }, null, SCATTER_TYPE.BOX, proj.getLog());
+			rScatterBoxTrim.setyLabel(rootBoxTrim.replaceAll("_PRIOR", ""));
+			rScatterBoxTrim.setFontsize(3);
+			rScatterBoxTrim.setyLabel(base.replaceAll("_PRIOR", ""));
+			rScatterBoxTrim.setTitle("re-computed LRR Only");
+
+			// rScatterBox.setxLabel(rootBox);
+			rScatterBoxTrim.execute();
+			allLooks.add(rScatterBoxTrim);
+
+			String rootBoxTrimTrim = ext.rootOf(outputGZ, false) + base + ".trimTrim";
+			RScatter rScatterBoxTrimTrim = new RScatter(outputGZ, rootBoxTrimTrim + ".rscript", ext.removeDirectoryInfo(rootBoxTrimTrim), rootBoxTrimTrim + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[2] }, null, SCATTER_TYPE.BOX, proj.getLog());
+			rScatterBoxTrimTrim.setyLabel(rootBoxTrimTrim.replaceAll("_PRIOR", ""));
+			rScatterBoxTrimTrim.setFontsize(3);
+			rScatterBoxTrimTrim.setyLabel(base.replaceAll("_PRIOR", ""));
+			rScatterBoxTrimTrim.setyRange(new double[] { -.5, .5 });
+			rScatterBoxTrimTrim.setTitle("re-computed LRR Only");
+
+			// rScatterBox.setxLabel(rootBox);
+			rScatterBoxTrimTrim.execute();
+			allLooks.add(rScatterBoxTrimTrim);
+
+			// String rootVsNoCent = ext.rootOf(outputGZ, false) + base + ".vs_noCent";
+			// RScatter rScattervs = new RScatter(outputGZ, rootVsNoCent + ".rscript", ext.removeDirectoryInfo(rootVsNoCent), rootVsNoCent + ".pdf", base, new String[] { plotCombos.get(base)[0] }, "gcmodel_bp", SCATTER_TYPE.POINT, proj.getLog());
+			// rScattervs.setxLabel(base);
+			// rScattervs.setyLabel(plotCombos.get(base)[0]);
+			// rScattervs.setTitle("NO Recompute");
+			// rScattervs.setFontsize(3);
+			// rScattervs.execute();
+			// allLooks.add(rScattervs);
+
+			String rootVsCent = ext.rootOf(outputGZ, false) + base + ".vs_Cent";
+			RScatter rScattervsCent = new RScatter(outputGZ, rootVsCent + ".rscript", ext.removeDirectoryInfo(rootVsCent), rootVsCent + ".pdf", plotCombos.get(base)[1], new String[] { plotCombos.get(base)[2] }, "gcmodel_bp", SCATTER_TYPE.POINT, proj.getLog());
+			rScattervsCent.setFontsize(3);
+			rScattervsCent.setxLabel("gcmodel_bp");
+			rScattervsCent.setyLabel(plotCombos.get(base)[2]);
+			rScattervsCent.setTitle("re-computed LRR Only");
+
+			// rScatterBox.setxLabel(rootBox);
+			rScattervsCent.execute();
+
+			String rootVsCentBP = ext.rootOf(outputGZ, false) + base + ".vs_Cent";
+			RScatter rScattervsCentBP = new RScatter(outputGZ, rootVsCentBP + ".rscript", ext.removeDirectoryInfo(rootVsCentBP), rootVsCentBP + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[2] }, "regress_bp", SCATTER_TYPE.POINT, proj.getLog());
+			rScattervsCentBP.setFontsize(3);
+			rScattervsCentBP.setxLabel("gcmodel_bp");
+			rScattervsCentBP.setyLabel(plotCombos.get(base)[2]);
+			rScattervsCentBP.setTitle("re-computed LRR Only");
+
+			allLooks.add(rScattervsCentBP);
+
+		}
+
 		String finalSummaryRoot = ext.rootOf(outputGZ, false) + "finalSummary";
-
 		RScatters rscScatters = new RScatters(allLooks.toArray(new RScatter[allLooks.size()]), finalSummaryRoot + ".rscript", finalSummaryRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
 		rscScatters.execute();
 
@@ -260,5 +350,40 @@ public class GCcorrectionIterator {
 	// iterate(proj, "gcCorrectionIterations/", 24);
 	// // generateAdjustmentParameters(proj, GC_CORRECTION_METHOD.values(), 4);
 	// }
+
+	// String meanRoot = ext.rootOf(outputGZ, false) + "means";
+	//
+	// RScatter rScattermean = new RScatter(outputGZ, meanRoot + ".rscript", ext.removeDirectoryInfo(meanRoot), meanRoot + ".pdf", "LRR_MEAN_PRIOR", new String[] { "LRR_MEAN_POST", "LRR_MEAN_PRIOR" + CENT_TAG, "LRR_MEAN_POST" + CENT_TAG }, null, SCATTER_TYPE.POINT, proj.getLog());
+	// rScattermean.setxLabel("LRR_MEAN_PRIOR (no recompute)");
+	// rScattermean.setyLabel("LRR_MEAN");
+	// rScattermean.execute();
+	// allLooks.add(rScattermean);
+	//
+	// String meanBoxRoot = ext.rootOf(outputGZ, false) + "meansBox";
+	//
+	// RScatter rScattermeanBox = new RScatter(outputGZ, meanBoxRoot + ".rscript", ext.removeDirectoryInfo(meanBoxRoot), meanBoxRoot + ".pdf", "gcmodel_bp", new String[] { "LRR_MEAN_PRIOR", "LRR_MEAN_POST", "LRR_MEAN_PRIOR" + CENT_TAG, "LRR_MEAN_POST" + CENT_TAG }, null, SCATTER_TYPE.BOX, proj.getLog());
+	// rScattermeanBox.setyRange(new double[] { 0, .5 });
+	//
+	// rScattermeanBox.execute();
+	//
+	// allLooks.add(rScattermeanBox);
+	//
+	// String sdRoot = ext.rootOf(outputGZ, false) + "SD";
+	//
+	// RScatter rScatterSD = new RScatter(outputGZ, sdRoot + ".rscript", ext.removeDirectoryInfo(sdRoot), sdRoot + ".pdf", "LRR_SD_PRIOR", new String[] { "LRR_SD_POST", "LRR_SD_PRIOR" + CENT_TAG, "LRR_SD_POST" + CENT_TAG }, null, SCATTER_TYPE.POINT, proj.getLog());
+	// rScatterSD.setxLabel("LRR_SD_PRIOR (no recompute)");
+	// rScatterSD.setyLabel("LRR_SD");
+	// rScatterSD.execute();
+	// allLooks.add(rScatterSD);
+	//
+	// String sdBoxRoot = ext.rootOf(outputGZ, false) + "SDBox";
+	//
+	// RScatter rScattersdBox = new RScatter(outputGZ, sdBoxRoot + ".rscript", ext.removeDirectoryInfo(sdBoxRoot), sdBoxRoot + ".pdf", "gcmodel_bp", new String[] { "LRR_SD_PRIOR", "LRR_SD_POST", "LRR_SD_PRIOR" + CENT_TAG, "LRR_SD_POST" + CENT_TAG }, null, SCATTER_TYPE.BOX, proj.getLog());
+	// rScattersdBox.setyRange(new double[] { 0, .5 });
+	//
+	// rScattersdBox.execute();
+	//
+	// allLooks.add(rScattersdBox);
+	//
 
 }
