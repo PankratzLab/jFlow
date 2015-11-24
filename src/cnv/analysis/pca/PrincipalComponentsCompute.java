@@ -13,6 +13,7 @@ import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.filesys.SampleList;
 import cnv.manage.MDL;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.var.SampleData;
 import common.Aliases;
 import common.Array;
@@ -492,6 +493,10 @@ public class PrincipalComponentsCompute {
 	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse, boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, boolean recomputeLRR, String output) {
 		double[][] dataToUse = getAppropriateArray(markers.length, samplesToUse);
 		MDL mdl = new MDL(proj, markers, 2, 1);
+		String gcCorrections = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0];
+		proj.getLog().reportTimeInfo("Using gc paramter file "+gcCorrections);
+		//TODO, arg
+		GcAdjustorParameters parameters = GcAdjustorParameters.readSerial(gcCorrections, proj.getLog());
 		// MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 		boolean[] markerUsed = new boolean[markers.length];
 		Logger log = proj.getLog();
@@ -499,6 +504,7 @@ public class PrincipalComponentsCompute {
 		Arrays.fill(markerUsed, true);
 		// for (int i = 0; i < markers.length; i++) {
 		int i = 0;
+		Hashtable<String , Integer> projectIndices =proj.getMarkerIndices();
 		while (mdl.hasNext()) {
 			float[][] data = new float[1][dataToUse[0].length];
 			if (i % 1000 == 0) {
@@ -515,6 +521,13 @@ public class PrincipalComponentsCompute {
 				data[0] = markerData.getRecomputedLRR_BAF(null, null, false, 1, 0, null, true, true, log)[1];
 			} else {
 				data[0] = markerData.getLRRs();
+			}
+			if (parameters != null) {
+				if (parameters.getCentroids() == null) {
+					proj.getLog().reportTimeError("NO centroids available in load");
+					return null;
+				}
+				data[0] = markerData.getGCCorrectedLRR(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
 			}
 			// please hard code dealWithNaN as it determines whether later data checks must be done;
 			if (dealWithNaN && hasNAN(data)) {

@@ -6,10 +6,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.manage.MDL;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.var.SampleData;
 import common.Array;
 import common.Files;
@@ -107,6 +109,12 @@ public class PrincipalComponentsApply {
 			log.reportError("Error - the boolean array of samples to use does not equal the length of the samples in the project, exiting");
 			return;
 		} else {
+			String gcCorrections = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0];
+			proj.getLog().reportTimeInfo("Using gc paramter file " + gcCorrections + " to apply loadings");
+			// TODO, arg
+			GcAdjustorParameters parameters = GcAdjustorParameters.readSerial(gcCorrections, proj.getLog());
+			Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
+
 			MDL mdl = new MDL(proj, markers, 2, 100);
 			// MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 			int index = 0;
@@ -125,6 +133,15 @@ public class PrincipalComponentsApply {
 				} else {
 					lrrs = markerData.getLRRs();
 				}
+
+				if (parameters != null) {
+					if (parameters.getCentroids() == null) {
+						proj.getLog().reportTimeError("NO centroids available in apply");
+						return;
+					}
+					lrrs = markerData.getGCCorrectedLRR(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
+				}
+				
 				if (!hasNAN(lrrs)) {
 					applyMarkerLoading(lrrs, index);
 				} else if (imputeMeanForNaN) {
