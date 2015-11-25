@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.Builder;
+import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 
 /**
  * @author lane0212 Handles the pfb data for the hmm in reduced format
@@ -51,7 +51,7 @@ public class PFB {
 
 	public static PFB loadPFB(Project proj, String fullPathToPfb) {
 
-		Builder builder = new Builder();
+		ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 		builder.dataKeyColumnName("Name");
 		builder.numericDataTitles(new String[] { "PFB" });
 		builder.sampleBased(false);

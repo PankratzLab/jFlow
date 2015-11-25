@@ -24,7 +24,7 @@ import cnv.annotation.MarkerGCAnnotation;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.Builder;
+import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import cnv.qc.MarkerMetrics;
 import filesys.Segment;
 
@@ -84,7 +84,7 @@ public class GcLook {
 
 		ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
 
-		Builder builder = new ExtProjectDataParser.Builder();
+		ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 		builder.separator("\t");
 		builder.sampleBased(false);
 		builder.requireAll(true);

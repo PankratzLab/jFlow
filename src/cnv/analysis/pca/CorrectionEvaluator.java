@@ -269,7 +269,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 	private void loadSampleData() {
 		log.reportTimeInfo("Found " + matchDouble.length + "(" + Array.toStr(matchDouble) + ") data columns to load matching the patterns defined by " + Array.toStr(DOUBLE_DATA_PATTERN));
 		log.reportTimeInfo("Found " + matchString.length + "(" + Array.toStr(matchString) + ") String columns to load matching the patterns defined by " + Array.toStr(STRING_DATA_PATTERN));
-		ExtProjectDataParser.Builder builder = new ExtProjectDataParser.Builder();
+		ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 		builder.sampleBased(true);
 		builder.treatAllNumeric(false);
 		builder.requireAll(true);

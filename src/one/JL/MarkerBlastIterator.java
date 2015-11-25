@@ -21,7 +21,7 @@ import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.Builder;
+import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import cnv.qc.MarkerBlast;
 import cnv.qc.MarkerMetrics;
 import cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
@@ -193,7 +193,7 @@ public class MarkerBlastIterator {
 
 			}
 			Files.writeList(markersOffTargetPerfectMatch.toArray(new String[markersOffTargetPerfectMatch.size()]), results[i].getOutput() + ".OFF_target_PM.TXT");
-			Builder builder = new ExtProjectDataParser.Builder();
+			ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 			builder.separator("\t");
 			builder.sampleBased(false);
 			builder.requireAll(true);
@@ -520,7 +520,7 @@ public class MarkerBlastIterator {
 
 				writerMatch.println(Array.toStr(PLOT_FILE_HEADER) + "\t" + Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
 				writerALL.println(Array.toStr(PLOT_FILE_HEADER) + "\t" + Array.toStr(Array.subArray(MarkerMetrics.FULL_QC_HEADER, 1)));
-				Builder builder = new ExtProjectDataParser.Builder();
+				ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 				builder.separator("\t");
 				builder.sampleBased(false);
 				builder.requireAll(true);
