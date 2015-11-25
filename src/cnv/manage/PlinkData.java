@@ -799,8 +799,8 @@ public class PlinkData {
 		String[] targetMarkers;
 		int[] indicesOfTargetSamplesInProj;
 		int[] indicesOfTargetMarkersInProj;
-		byte[] chrsOfTargetMarkers;
-		int[] posOfTargetMarkers;
+		HashMap<String, Byte> chrsOfTargetMarkers;
+		HashMap<String, Integer> posOfTargetMarkers;
 		String[] allSamplesInProj;
 		char[][] abLookup;
 		String[] targetSamples;
@@ -853,8 +853,8 @@ public class PlinkData {
 //		} else {
             proj.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Loading marker data", targetMarkers.length, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 			indicesOfTargetMarkersInProj = new int[targetMarkers.length];
-			chrsOfTargetMarkers = new byte[targetMarkers.length];
-			posOfTargetMarkers = new int[targetMarkers.length];
+			chrsOfTargetMarkers = new HashMap<String, Byte>();
+			posOfTargetMarkers = new HashMap<String, Integer>();
 			getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj, chrsOfTargetMarkers, posOfTargetMarkers, log);
 			
             proj.getProgressMonitor().endTask(PROG_KEY);
@@ -867,7 +867,7 @@ public class PlinkData {
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .bed file", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		if (isSnpMajor) {
 		    proj.getLog().report("Creating .bed file from SNP major data");
-			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot, log);
+			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj, chrsOfTargetMarkers, posOfTargetMarkers, targetSamples, indicesOfTargetSamplesInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot, log);
 //			abLookup = createBedFileSnpMajorAllInMemory(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, bedFilenameRoot, gcThreshold, bedFilenameRoot);
 		} else {
 		    proj.getLog().report("Creating .bed file from Sample major data");
@@ -880,10 +880,10 @@ public class PlinkData {
 			new File(outFileDirAndFilenameRoot+".fam").delete();
 			return false;
 		}
-
-		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .bim file", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-		createBimFile(targetMarkers, chrsOfTargetMarkers, posOfTargetMarkers, abLookup, outFileDirAndFilenameRoot, log);
-		proj.getProgressMonitor().endTask(PROG_KEY);
+		
+//		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .bim file", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+//		createBimFile(targetMarkers, chrsOfTargetMarkers, posOfTargetMarkers, abLookup, outFileDirAndFilenameRoot, log);
+//		proj.getProgressMonitor().endTask(PROG_KEY);
 
 		return true;
 	}
@@ -932,7 +932,7 @@ public class PlinkData {
 		return indicesOfTargetSampInProj;
 	}
 
-	public static void getIndicesOfTargetMarkers(Project proj, String[] inputTargetMarkers, int[] outputIndicesOfTargetMarkers, byte[] outputChrOfTagetMarkers, int[] outputPosOfTargetMarkers, Logger log) {
+	public static void getIndicesOfTargetMarkers(Project proj, String[] inputTargetMarkers, int[] outputIndicesOfTargetMarkers, HashMap<String, Byte> outputChrOfTagetMarkers, HashMap<String, Integer> outputPosOfTargetMarkers, Logger log) {
 	    String[] allMarkersInProj;
         MarkerSet markerSet;
         byte[] chrs;
@@ -949,8 +949,8 @@ public class PlinkData {
                 break;
             } else {
                 outputIndicesOfTargetMarkers[i] = posInProj[i];
-                outputChrOfTagetMarkers[i] = chrs[outputIndicesOfTargetMarkers[i]];
-                outputPosOfTargetMarkers[i] = positions[outputIndicesOfTargetMarkers[i]];
+                outputChrOfTagetMarkers.put(inputTargetMarkers[i], chrs[outputIndicesOfTargetMarkers[i]]);
+                outputPosOfTargetMarkers.put(inputTargetMarkers[i], positions[outputIndicesOfTargetMarkers[i]]);
             }
         }
 	    
@@ -1156,8 +1156,6 @@ public class PlinkData {
 	}
 
 	/**
-	 * CAUTION: implementation may be incorrect.  Use 10KperCycle instead.
-	 * 
 	 * Convert Genvisis data to PLINK .bed format (SNP Major, or in our term - organized by markers)
 	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
 	 * @param proj
@@ -1299,11 +1297,11 @@ public class PlinkData {
 	 * @param indicesOfTargetSamplesInProj
 	 * @param clusterFilterFileName
 	 * @param gcThreshold
-	 * @param bedDirAndFilenameRoot
+	 * @param plinkDirAndFilenameRoot
 	 * @param log
 	 * @return
 	 */
-	public static char[][] createBedFileSnpMajor10KperCycle(Project proj, String[] targetMarkers, int[] indicesOfTargetMarkersInProj, String[] targetSamples, int[] indicesOfTargetSamplesInProj, String clusterFilterFileName, float gcThreshold, String bedDirAndFilenameRoot, Logger log) {
+	public static char[][] createBedFileSnpMajor10KperCycle(Project proj, String[] targetMarkers, int[] indicesOfTargetMarkersInProj, HashMap<String,Byte> chrsOfTargetMarkers, HashMap<String,Integer> posOfTargetMarkers, String[] targetSamples, int[] indicesOfTargetSamplesInProj, String clusterFilterFileName, float gcThreshold, String plinkDirAndFilenameRoot, Logger log) {
 		RandomAccessFile out;
 		byte[] outStream;
 		byte[] genotypes;
@@ -1327,6 +1325,8 @@ public class PlinkData {
 		Hashtable<String,Integer> hash;
 		HashMap<String, Integer> markerIndexHash;
 		int targetIndex;
+		ArrayList<String> markerOutputOrder;
+		PrintWriter bimWriter;
 
 		startTime = new Date().getTime();
 
@@ -1370,6 +1370,7 @@ public class PlinkData {
 		    }
 		}
 
+		markerOutputOrder = new ArrayList<String>();
 		sampleFingerPrint = proj.getSampleList().getFingerprint();
 		allSamplesInProj = proj.getSamples();
 		dir = proj.MARKER_DATA_DIRECTORY.getValue(false, true);
@@ -1390,7 +1391,8 @@ public class PlinkData {
 		proj.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Exporting data to .bed file", expUpdateCount, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		
 		try {
-			out = new RandomAccessFile(bedDirAndFilenameRoot + ".bed", "rw");
+		    bimWriter = new PrintWriter(new FileWriter(plinkDirAndFilenameRoot + ".bim"));
+			out = new RandomAccessFile(plinkDirAndFilenameRoot + ".bed", "rw");
 			outStream = new byte[3];
 			outStream[0] = (byte) 108;	// 0b01101100
 			outStream[1] = (byte) 27;	// 0b00011011
@@ -1399,52 +1401,48 @@ public class PlinkData {
 
 			subTime = new Date().getTime();
 			
-			HashMap<String, MarkerData[]> fileData = new HashMap<String, MarkerData[]>();
-			HashMap<String, String> filePerMarker = new HashMap<String, String>();
-			HashMap<String, Integer> markerIndexInSet = new HashMap<String, Integer>();
 			for (int i = 0; i < filenames.length; i++) {
-		        proj.getProgressMonitor().changeTaskLabelWithUpdate(PROG_KEY, "Exporting data to .bed file from marker file ... " + filenames[i]);
-                
-                v = batches.get(filenames[i]);
-                markersOfThisFile = new String[v.size()];
-                indicesOfMarkersInFileForCurrentFile = new int[markersOfThisFile.length];
-                indicesOfMarkersInProjForCurrentFile = new int[markersOfThisFile.length];
-                for (int j = 0; j < v.size(); j++) {
-                    temp = v.elementAt(j).split("\t");
-                    markersOfThisFile[j] = temp[0];
-                    indicesOfMarkersInFileForCurrentFile[j] = Integer.parseInt(temp[1]);
-                    indicesOfMarkersInProjForCurrentFile[j] = markerIndexHash.get(temp[0]);
-                    filePerMarker.put(temp[0], filenames[i]);
-                    markerIndexInSet.put(temp[0], j);
-                }
-                
-                subTime = new Date().getTime();
-                proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY + filenames[i] + "_load", "Loading marker data from file ... " + filenames[i], ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-                MarkerData[] markerDataTemp = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filenames[i], /*indicesOfTargetMarkersInProj*/indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, true, true, true, sampleFingerPrint, outliersHash, proj.getLog());
-                proj.getProgressMonitor().endTask(PROG_KEY + filenames[i] + "_load");
-                fileData.put(filenames[i], markerDataTemp);
+			    proj.getProgressMonitor().changeTaskLabelWithUpdate(PROG_KEY, "Exporting data to .bed file from marker file ... " + filenames[i]);
+				
+				v = batches.get(filenames[i]);
+				markersOfThisFile = new String[v.size()];
+				indicesOfMarkersInFileForCurrentFile = new int[markersOfThisFile.length];
+				indicesOfMarkersInProjForCurrentFile = new int[markersOfThisFile.length];
+				for (int j = 0; j < v.size(); j++) {
+					temp = v.elementAt(j).split("\t");
+					markersOfThisFile[j] = temp[0];
+					indicesOfMarkersInFileForCurrentFile[j] = Integer.parseInt(temp[1]);
+					indicesOfMarkersInProjForCurrentFile[j] = markerIndexHash.get(temp[0]);
+				}
+				
+				subTime = new Date().getTime();
+				proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY + filenames[i] + "_load", "Loading marker data from file ... " + filenames[i], ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filenames[i], /*indicesOfTargetMarkersInProj*/indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, true, true, true, sampleFingerPrint, outliersHash, proj.getLog());
+				proj.getProgressMonitor().endTask(PROG_KEY + filenames[i] + "_load");
+				
+				subTime = new Date().getTime();
+				for (int j = 0; j < markerData.length; j++) {
+				    markerOutputOrder.add(markersOfThisFile[j]);
+					targetIndex = hash.get(markersOfThisFile[j]);
+					genotypes = markerData[j].getAbGenotypesAfterFilters(clusterFilterCollection, markersOfThisFile[j], 0, log);
+					for (int k = 0; k < indicesOfTargetSamplesInProj.length; k++) {
+						genotypesOfTargetSamples[k] = genotypes[indicesOfTargetSamplesInProj[k]];
+					}
+					if (abLookup[targetIndex] == null) {
+						abLookup[targetIndex] = markerData[j].getAB_AlleleMappings();
+					}
+					
+					out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
+//					if (j > 0 && j % mod == 0) {
+//					    proj.getProgressMonitor().changeTaskLabelWithUpdate(PROG_KEY + filenames[i] + "_export", "Exported " + j + " of " + markerData.length + " markers from file " + filenames[i]);
+//					}
+					proj.getProgressMonitor().updateTask(PROG_KEY);
+					bimWriter.println(chrsOfTargetMarkers.get(markersOfThisFile[j]) + "\t" + markersOfThisFile[j] + "\t0\t" + posOfTargetMarkers.get(markersOfThisFile[j]) + "\t" + abLookup[targetIndex][0] + "\t" + abLookup[targetIndex][1]); //TODO alleles[][] matching chrs[]
+				}
 			}
-			
-			for (int i = 0; i < targetMarkers.length; i++) {
-			    String fileForMarker = filePerMarker.get(targetMarkers[i]);
-			    int ind = markerIndexInSet.get(targetMarkers[i]);
-			    markerData = fileData.get(fileForMarker);
-			    genotypes = markerData[ind].getAbGenotypesAfterFilters(clusterFilterCollection, targetMarkers[i], 0, log);
-			    for (int k = 0; k < indicesOfTargetSamplesInProj.length; k++) {
-                    genotypesOfTargetSamples[k] = genotypes[indicesOfTargetSamplesInProj[k]];
-                }
-                targetIndex = hash.get(targetMarkers[i]);
-                if (abLookup[targetIndex] == null) {
-                    abLookup[targetIndex] = markerData[ind].getAB_AlleleMappings();
-                }
-                
-                out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
-//              if (j > 0 && j % mod == 0) {
-//                  proj.getProgressMonitor().changeTaskLabelWithUpdate(PROG_KEY + filenames[i] + "_export", "Exported " + j + " of " + markerData.length + " markers from file " + filenames[i]);
-//              }
-                proj.getProgressMonitor().updateTask(PROG_KEY);
-			}
-            out.close();
+			out.close();
+			bimWriter.flush();
+			bimWriter.close();
 
 		} catch (FileNotFoundException fnfe) {
 			log.reportException(fnfe);
@@ -1454,7 +1452,9 @@ public class PlinkData {
 		
 		proj.getProgressMonitor().endTask(PROG_KEY);
 		proj.getLog().report("Finished creating binary PLINK files in "+ext.getTimeElapsed(startTime));
-
+		
+		
+		
 		return abLookup;
 	}
 
