@@ -4,10 +4,15 @@ import java.io.*;
 import java.util.Map;
 
 public class CmdLine {
-	public static boolean run(String command, String dir) {
+    public static boolean runDefaults(String command, String dir) {
+        return run(command, null, dir, System.out, System.err, null, false);
+    }
+    public static boolean runDefaults(String command, String dir, Logger log) {
+        return run(command, null, dir, System.out, System.err, log, false);
+    }
+    public static boolean run(String command, String dir) {
 		return run(command, dir, null);
 	}
-	
 	public static boolean run(String command, String dir, PrintStream os) {
 		return run(command, dir, os, false);
 	}
