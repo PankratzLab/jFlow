@@ -373,7 +373,7 @@ public class MitoPipeline {
 					if (verifyAuxMarkers(proj, proj.TARGET_MARKERS_FILENAMES.getValue()[0], PC_MARKER_COMMAND)) {
 						// if marker QC is not flagged, sample qc is based on all target markers by default
 						if (markerQC) {
-							qcMarkers(proj, markerCallRateFilter, numThreads);
+							qcMarkers(proj, proj.TARGET_MARKERS_FILENAMES.getValue()[0], markerCallRateFilter, numThreads);
 							markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE;
 							if (!Files.exists(markersForABCallRate)) {
 								log.reportError("Error - markerQC was flagged but the file " + proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE + " could not be found");
@@ -381,7 +381,7 @@ public class MitoPipeline {
 							}
 						} else {
 							markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE;
-							writeMarkersToQC(proj);
+							writeMarkersToQC(proj, proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 						}
 
 						markersForEverythingElse = proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE;
@@ -556,7 +556,7 @@ public class MitoPipeline {
 		return allParsed;
 	}
 
-	public static void qcMarkers(Project proj, double markerCallRateFilter, int numthreads) {
+	public static void qcMarkers(Project proj, String targetMarkersFile, double markerCallRateFilter, int numthreads) {
 		Logger log;
 		String markerMetricsFilename;
 
@@ -567,9 +567,8 @@ public class MitoPipeline {
 			log.report("Marker QC file " + proj.MARKER_METRICS_FILENAME.getValue(true, false) + " exists");
 			log.report("Skipping Marker QC computation for the analysis, filtering on existing file");
 		} else {
-//			log.report("Computing marker QC for markers in " + proj.getFilename(proj.TARGET_MARKERS_FILENAME));
-			log.report("Computing marker QC for markers in " + proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
-			writeMarkersToQC(proj);
+			log.report("Computing marker QC for " + targetMarkersFile == null ? "all markers in project." : "markers in " + targetMarkersFile);
+			writeMarkersToQC(proj, targetMarkersFile);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);
 			MarkerMetrics.fullQC(proj, samplesToExclude, MARKERS_TO_QC_FILE, numthreads);
@@ -580,12 +579,17 @@ public class MitoPipeline {
 	/**
 	 * Currently un-neccesary, but it is set up in case we want to QC the median markers at the same time
 	 */
-	private static void writeMarkersToQC(Project proj) {
-//		String[] markersToQC = { proj.getFilename(proj.TARGET_MARKERS_FILENAME, true, false) };
-		String[] markersToQC = { proj.TARGET_MARKERS_FILENAMES.getValue()[0] };
-		Files.writeList(setMarkersToQC(proj, markersToQC), proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE);
+	private static void writeMarkersToQC(Project proj, String targetMarkersFile) {
+	    String[] markers = null;
+	    if (targetMarkersFile == null) {
+	        markers = proj.getMarkerNames();
+	    } else {
+    	    String[] markersToQC = { targetMarkersFile };
+    		markers = setMarkersToQC(proj, markersToQC);
+	    }
+		Files.writeList(markers, proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE);
 	}
-
+	
 	/**
 	 * Similar to above, currently un-neccesary, but it is set up in case we want to QC the median markers at the same time
 	 */

@@ -57,14 +57,14 @@ public class GenvisisPipelineGUI extends JDialog {
     private final JPanel contentPanel = new JPanel();
     
 
-    private HashMap<STEP, JCheckBox> checkBoxes = new HashMap<STEP, JCheckBox>();
-    private HashMap<STEP, JLabel> descLabels = new HashMap<STEP, JLabel>();
-    private HashMap<STEP, ArrayList<JLabel>> requirementsLabels = new HashMap<STEP, ArrayList<JLabel>>();
-    private HashMap<STEP, JAccordionPanel> panels = new HashMap<GenvisisPipeline.STEP, JAccordionPanel>();
+    private ConcurrentHashMap<STEP, JCheckBox> checkBoxes = new ConcurrentHashMap<STEP, JCheckBox>();
+    private ConcurrentHashMap<STEP, JLabel> descLabels = new ConcurrentHashMap<STEP, JLabel>();
+    private ConcurrentHashMap<STEP, ArrayList<JLabel>> requirementsLabels = new ConcurrentHashMap<STEP, ArrayList<JLabel>>();
+    private ConcurrentHashMap<STEP, JAccordionPanel> panels = new ConcurrentHashMap<GenvisisPipeline.STEP, JAccordionPanel>();
     public ConcurrentHashMap<STEP, ArrayList<? extends JComponent>> varFields = new ConcurrentHashMap<GenvisisPipeline.STEP, ArrayList<? extends JComponent>>();
-    public HashMap<STEP, JProgressBar> progBars = new HashMap<GenvisisPipeline.STEP, JProgressBar>();
-    public HashMap<STEP, ArrayList<JButton>> fileBtns = new HashMap<GenvisisPipeline.STEP, ArrayList<JButton>>();
-    public HashMap<STEP, JLabel> alreadyRunLbls = new HashMap<GenvisisPipeline.STEP, JLabel>();
+    public ConcurrentHashMap<STEP, JProgressBar> progBars = new ConcurrentHashMap<GenvisisPipeline.STEP, JProgressBar>();
+    public ConcurrentHashMap<STEP, ArrayList<JButton>> fileBtns = new ConcurrentHashMap<GenvisisPipeline.STEP, ArrayList<JButton>>();
+    public ConcurrentHashMap<STEP, JLabel> alreadyRunLbls = new ConcurrentHashMap<GenvisisPipeline.STEP, JLabel>();
     
     Project proj;
     

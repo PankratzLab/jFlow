@@ -1570,7 +1570,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		gcAdjustorBoxes = new JCheckBox[gcCList.length];
 		displaygcAdjustor = new boolean[gcCList.length];
 		gcAdjustorLabels = new JLabel[gcCList.length];
-		for (int i = 0; i < gcCList.length; i++) {
+		for (int i = 0; i < gcCList[0].length; i++) {
 			gcAdjustorBoxes[i] = new JCheckBox(gcCList[0][i]);
 			gcAdjustorBoxes[i].setFont(new Font("Arial", 0, 14));
 			gcAdjustorBoxes[i].setSelected(displaygcAdjustor[i]);

@@ -388,11 +388,15 @@ public class GenvisisPipeline {
             
             boolean create = PlinkData.saveGenvisisToPlinkPedSet(proj, "gwas", null, null);
             if (create) {
-                CmdLine.run("plink --file gwas --make-bed --out plink", proj.PROJECT_DIRECTORY.getValue());
-                create = new File(proj.PROJECT_DIRECTORY.getValue()+"genome/").mkdirs();
+                proj.getLog().report(ext.getTime() + "]\tExporting to binary...");
+                CmdLine.run("plink --file gwas --make-bed --out plink", null, proj.PROJECT_DIRECTORY.getValue(), System.out, System.err, proj.getLog(), false);
+                File genDir = new File(proj.PROJECT_DIRECTORY.getValue()+"genome/");
+                create = genDir.exists() || genDir.mkdirs();
                 if (create) {
-                    CmdLine.run("plink --bfile ../plink --freq", proj.PROJECT_DIRECTORY.getValue()+"genome/");
-                    CmdLine.run("plink --bfile ../plink --missing", proj.PROJECT_DIRECTORY.getValue()+"genome/");
+                    proj.getLog().report(ext.getTime() + "]\tCalculating frequencies...");
+                    boolean run1 = CmdLine.run("plink --bfile ../plink --freq", null, proj.PROJECT_DIRECTORY.getValue()+"genome/", System.out, System.err, proj.getLog(), false);
+                    proj.getLog().report(ext.getTime() + "]\tCalculating missingness...");
+                    boolean run2 = CmdLine.run("plink --bfile ../plink --missing", null, proj.PROJECT_DIRECTORY.getValue()+"genome/", System.out, System.err, proj.getLog(), false);
                 } else {
                     setFailed();
                     this.failReasons.add("Could not create genome/ folder in " + proj.PROJECT_DIRECTORY.getValue());
@@ -426,7 +430,7 @@ public class GenvisisPipeline {
             String fileCheck1 = proj.PROJECT_DIRECTORY.getValue()+"gwas.map";
             String fileCheck2 = proj.PROJECT_DIRECTORY.getValue()+"plink.bed";
             String fileCheck3 = proj.PROJECT_DIRECTORY.getValue()+"genome/";
-            return Files.exists(fileCheck1) && Files.exists(fileCheck2) && Files.exists(fileCheck3) && Files.list(fileCheck3, ".bed", false).length > 0;
+            return Files.exists(fileCheck1) && Files.exists(fileCheck2) && Files.exists(fileCheck3) /*&& Files.list(fileCheck3, ".bed", false).length > 0*/;
         }
     };
     
@@ -580,12 +584,12 @@ public class GenvisisPipeline {
             new String[][]{{"Marker Call-Rate Filter Threshold"},
     						{"[Create Marker Positions] step must be selected and valid.", "A MarkerSet file must already exist."}, 
     						{"[Parse Sample Files] step must be selected and valid (will create a SampleList file)", "A SampleList file must already exist."},
-    						{"A targetMarkers files listing the markers to QC"},
+    						{"Export all markers in project", "A targetMarkers files listing the markers to QC"},
     						{"Number of Threads to Use"}},
             new RequirementInputType[][]{{RequirementInputType.INT},
     									 {RequirementInputType.NONE, RequirementInputType.FILE}, 
     									 {RequirementInputType.NONE, RequirementInputType.FILE},
-    									 {RequirementInputType.FILE},
+    									 {RequirementInputType.NONE, RequirementInputType.FILE},
     									 {RequirementInputType.INT}}
             ) {
     	
@@ -604,10 +608,10 @@ public class GenvisisPipeline {
             if (!ext.verifyDirFormat(setSampList).equals(sampList)) {
                 proj.SAMPLELIST_FILENAME.setValue(sampList);
             }
-            if (!setTgtFile.equals(tgtFile)) {
-                String[] arr = proj.TARGET_MARKERS_FILENAMES.getValue();
-                arr[0] = tgtFile;
-            	proj.TARGET_MARKERS_FILENAMES.setValue(arr);
+            if (!"".equals(tgtFile) && !setTgtFile.equals(tgtFile)) {
+                // String[] arr = proj.TARGET_MARKERS_FILENAMES.getValue();
+                // arr[0] = tgtFile;
+                proj.TARGET_MARKERS_FILENAMES.addValue(tgtFile);
             }
         	int numThreads = proj.NUM_THREADS.getValue();
         	try {
@@ -617,12 +621,12 @@ public class GenvisisPipeline {
             	proj.NUM_THREADS.setValue(numThreads);
             }
             
-            MitoPipeline.qcMarkers(proj, markerCallRateFilter, numThreads);
+            MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{0.98, proj.MARKERSET_FILENAME.getValue(), proj.SAMPLELIST_FILENAME.getValue(), proj.TARGET_MARKERS_FILENAMES.getValue()[0], proj.NUM_THREADS.getValue()};
+            return new Object[]{0.98, proj.MARKERSET_FILENAME.getValue(), proj.SAMPLELIST_FILENAME.getValue(), ""/*proj.TARGET_MARKERS_FILENAMES.getValue()[0]*/, proj.NUM_THREADS.getValue()};
         }
         
         @Override
@@ -643,7 +647,7 @@ public class GenvisisPipeline {
             boolean step21 = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variableFields);
             boolean step22 = Files.exists(sampList);
             boolean step3 = Files.exists(tgtFile);
-            return new boolean[][]{{mkr != -1}, {step11, step12}, {step21, step22}, {step3}, {numThreads != -1 && numThreads > 0}};
+            return new boolean[][]{{mkr != -1}, {step11, step12}, {step21, step22}, {true, step3}, {numThreads != -1 && numThreads > 0}};
         }
         
         @Override
@@ -664,12 +668,12 @@ public class GenvisisPipeline {
                     new String[][]{{"Marker Call-Rate Filter Threshold"},
                                     {"A MarkerSet file must already exist."}, 
                                     {"[Parse Sample Files] step must be selected and valid (will create a SampleList file)", "A SampleList file must already exist."},
-                                    {"A targetMarkers files listing the markers to QC"},
+                                    {"Export all markers in project", "A targetMarkers files listing the markers to QC"},
                                     {"Number of Threads to Use"}},
                     new RequirementInputType[][]{{RequirementInputType.INT},
                                                     {RequirementInputType.FILE}, 
                                                     {RequirementInputType.NONE, RequirementInputType.FILE},
-                                                    {RequirementInputType.FILE},
+                                                    {RequirementInputType.NONE, RequirementInputType.FILE},
                                                     {RequirementInputType.INT}}
                 ) {
         
@@ -688,10 +692,10 @@ public class GenvisisPipeline {
             if (!ext.verifyDirFormat(setSampList).equals(sampList)) {
                 proj.SAMPLELIST_FILENAME.setValue(sampList);
             }
-            if (!setTgtFile.equals(tgtFile)) {
-                String[] arr = proj.TARGET_MARKERS_FILENAMES.getValue();
-                arr[0] = tgtFile;
-                proj.TARGET_MARKERS_FILENAMES.setValue(arr);
+            if (!"".equals(tgtFile) && !setTgtFile.equals(tgtFile)) {
+                // String[] arr = proj.TARGET_MARKERS_FILENAMES.getValue();
+                // arr[0] = tgtFile;
+                proj.TARGET_MARKERS_FILENAMES.addValue(tgtFile);
             }
             int numThreads = proj.NUM_THREADS.getValue();
             try {
@@ -701,12 +705,12 @@ public class GenvisisPipeline {
                 proj.NUM_THREADS.setValue(numThreads);
             }
             
-            MitoPipeline.qcMarkers(proj, markerCallRateFilter, numThreads);
+            MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{0.98, proj.MARKERSET_FILENAME.getValue(), proj.SAMPLELIST_FILENAME.getValue(), proj.TARGET_MARKERS_FILENAMES.getValue()[0], proj.NUM_THREADS.getValue()};
+            return new Object[]{0.98, proj.MARKERSET_FILENAME.getValue(), proj.SAMPLELIST_FILENAME.getValue(), ""/*proj.TARGET_MARKERS_FILENAMES.getValue()[0]*/, proj.NUM_THREADS.getValue()};
         }
         
         @Override
@@ -727,7 +731,7 @@ public class GenvisisPipeline {
             boolean step21 = stepSelections.get(S2A_PARSE_SAMPLES) && S2A_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variableFields);
             boolean step22 = Files.exists(sampList);
             boolean step3 = Files.exists(tgtFile);
-            return new boolean[][]{{mkr != -1}, {step12}, {step21, step22}, {step3}, {numThreads != -1 && numThreads > 0}};
+            return new boolean[][]{{mkr != -1}, {step12}, {step21, step22}, {true, step3}, {numThreads != -1 && numThreads > 0}};
         }
         
         @Override

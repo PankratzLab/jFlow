@@ -135,11 +135,11 @@ public class ImportProjectGUI extends JDialog {
         setTitle("Genvisis: Import Existing Project Files");
         
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        setBounds(100, 100, 500, 500);
+        setBounds(100, 100, 500, 450);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
-        contentPanel.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow 70][grow 40]", "[grow][][grow][][][][grow][][grow][grow][][][][grow][]"));
+        contentPanel.setLayout(new MigLayout("", "[grow][10px:10px:10px][grow 70][grow 40]", "[grow][][grow][][][][grow][][grow][grow][][][][grow][][]"));
         CaretListener caretListener = new CaretListener() {
             @Override
             public void caretUpdate(CaretEvent arg0) {
@@ -182,23 +182,23 @@ public class ImportProjectGUI extends JDialog {
             btnSelectProjDir.setActionCommand("PROJECT");
             contentPanel.add(btnSelectProjDir, "cell 2 4");
         }
-        {
-            JLabel lblSampleDataFile = new JLabel("<html><code>SampleData</code> File:</html>");
-            contentPanel.add(lblSampleDataFile, "cell 0 5,alignx right");
-        }
-        {
-            txtFldSampleDataFile = new JTextField("./");
-            txtFldSampleDataFile.setColumns(10);
-            txtFldSampleDataFile.addCaretListener(caretListener);
-            contentPanel.add(txtFldSampleDataFile, "flowx,cell 2 5,growx");
-        }
-        {
-            JButton btnSelectSampleDataFile = new JButton(fileSelectAction);
-            btnSelectSampleDataFile.setText("...");
-            btnSelectSampleDataFile.setMargin(btnInsets);
-            btnSelectSampleDataFile.setActionCommand("SAMPLEDATA");
-            contentPanel.add(btnSelectSampleDataFile, "cell 2 5");
-        }
+//        {
+//            JLabel lblSampleDataFile = new JLabel("<html><code>SampleData</code> File:</html>");
+//            contentPanel.add(lblSampleDataFile, "cell 0 5,alignx right");
+//        }
+//        {
+//            txtFldSampleDataFile = new JTextField("./");
+//            txtFldSampleDataFile.setColumns(10);
+//            txtFldSampleDataFile.addCaretListener(caretListener);
+//            contentPanel.add(txtFldSampleDataFile, "flowx,cell 2 5,growx");
+//        }
+//        {
+//            JButton btnSelectSampleDataFile = new JButton(fileSelectAction);
+//            btnSelectSampleDataFile.setText("...");
+//            btnSelectSampleDataFile.setMargin(btnInsets);
+//            btnSelectSampleDataFile.setActionCommand("SAMPLEDATA");
+//            contentPanel.add(btnSelectSampleDataFile, "cell 2 5");
+//        }
         {
             JSeparator separator = new JSeparator();
             contentPanel.add(separator, "cell 0 7 4 1,growx");
@@ -206,7 +206,7 @@ public class ImportProjectGUI extends JDialog {
         {
             JPanel panel = new JPanel();
             contentPanel.add(panel, "cell 0 8 4 7,grow");
-            panel.setLayout(new MigLayout("", "[][grow][][10px:10px:10px][grow][][]", "[grow][][][][][][][grow]"));
+            panel.setLayout(new MigLayout("", "[][grow][][10px:10px:10px][grow][][]", "[grow][][][][][][grow]"));
             {
                 JLabel lblRequired = new JLabel("<html><u>Required:</u><html>");
                 panel.add(lblRequired, "cell 1 1,alignx left");
@@ -221,19 +221,23 @@ public class ImportProjectGUI extends JDialog {
                 lblFoundProjectStatus = new JLabel(redX);
                 panel.add(lblFoundProjectStatus, "cell 2 2,alignx left");
             }
-            {
-                JLabel lblValidSampledataFile = new JLabel("<html>Valid <code>SampleData</code> File:</html>");
-                panel.add(lblValidSampledataFile, "cell 4 2,alignx right");
-            }
-            lblFoundSampleDataStatus = new JLabel(redX);
-            panel.add(lblFoundSampleDataStatus, "cell 5 2,alignx left");
+            JLabel lblFoundSamplesDirectory = new JLabel("<html>Found <code>samples/</code> Directory:</html>");
+            panel.add(lblFoundSamplesDirectory, "cell 4 2,alignx right");
+            lblFoundSamplesStatus = new JLabel(redX);
+            panel.add(lblFoundSamplesStatus, "cell 5 2,alignx left");
             JLabel lblFoundDataDirectory = new JLabel("<html>Found <code>data/</code> Directory:</html>");
             panel.add(lblFoundDataDirectory, "cell 1 3,alignx right");
             {
-                JLabel lblFoundSamplesDirectory = new JLabel("<html>Found <code>samples/</code> Directory:</html>");
-                panel.add(lblFoundSamplesDirectory, "cell 4 3,alignx right");
-                lblFoundSamplesStatus = new JLabel(redX);
-                panel.add(lblFoundSamplesStatus, "cell 5 3,alignx left");
+                JLabel lblMarkerDataImport = new JLabel("<html><u>Marker Import:</u></html>");
+                panel.add(lblMarkerDataImport, "cell 4 3,alignx left");
+            }
+//            {
+//                JLabel lblValidSampledataFile = new JLabel("<html>Valid <code>SampleData</code> File:</html>");
+//                panel.add(lblValidSampledataFile, "cell 4 4,alignx right");
+//            }
+//            lblFoundSampleDataStatus = new JLabel(redX);
+//            panel.add(lblFoundSampleDataStatus, "cell 5 4,alignx left");
+            {
                 JLabel lblFoundSampleList = new JLabel("<html>Found <code>SampleList</code> File:</html>");
                 panel.add(lblFoundSampleList, "cell 1 4,alignx right");
             }
@@ -242,9 +246,11 @@ public class ImportProjectGUI extends JDialog {
                 panel.add(lblFoundSampleListStatus, "cell 2 4,alignx left");
             }
             {
-                JLabel lblMarkerDataImport = new JLabel("<html><u>Marker Import:</u></html>");
-                panel.add(lblMarkerDataImport, "cell 4 4,alignx left");
+                JLabel lblFoundTransposedDirectory = new JLabel("<html>Found <code>transposed/</code> Directory:</html>");
+                panel.add(lblFoundTransposedDirectory, "cell 4 4,alignx right");
             }
+            lblFoundTransposedStatus = new JLabel(redX);
+            panel.add(lblFoundTransposedStatus, "cell 5 4,alignx left");
             {
                 JLabel lblFoundMarkerList = new JLabel("<html>Found <code>MarkerSet</code> File:</html>");
                 panel.add(lblFoundMarkerList, "cell 1 5,alignx right");
@@ -255,18 +261,17 @@ public class ImportProjectGUI extends JDialog {
             }
             lblFoundMarkerListStatus = new JLabel(redX);
             panel.add(lblFoundMarkerListStatus, "cell 2 5,alignx left");
-            {
-                JLabel lblFoundTransposedDirectory = new JLabel("<html>Found <code>transposed/</code> Directory:</html>");
-                panel.add(lblFoundTransposedDirectory, "cell 4 5,alignx right");
-            }
-            lblFoundTransposedStatus = new JLabel(redX);
-            panel.add(lblFoundTransposedStatus, "cell 5 5,alignx left");
             JLabel lblFoundMarkerlookupFile = new JLabel("<html>Found <code>MarkerLookup</code> File:</html>");
-            panel.add(lblFoundMarkerlookupFile, "cell 4 6,alignx right");
+            panel.add(lblFoundMarkerlookupFile, "cell 4 5,alignx right");
             {
                 lblFoundMarkerLookupStatus = new JLabel(redX);
-                panel.add(lblFoundMarkerLookupStatus, "cell 5 6,alignx left");
+                panel.add(lblFoundMarkerLookupStatus, "cell 5 5,alignx left");
             }
+        }
+        {
+            JLabel lblNewLabel = new JLabel("Note: Remember to set other properties as needed!");
+            lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+            contentPanel.add(lblNewLabel, "cell 0 15 4 1,alignx center");
         }
         {
             JPanel buttonPane = new JPanel();
@@ -305,12 +310,12 @@ public class ImportProjectGUI extends JDialog {
             boolean[] statuses = getStatuses();
             if (statuses[0] && statuses[1] && statuses[2] && statuses[3]) {
                 // good
-                if (statuses[4] && statuses[5]) { 
-                    // samples
-                }
-                if (statuses[6] && statuses[7]) {
-                    // markers
-                }
+//                if (statuses[4] && statuses[5]) { 
+//                    // samples
+//                }
+//                if (statuses[6] && statuses[7]) {
+//                    // markers
+//                }
             } else {
                 return;
             }
@@ -326,10 +331,10 @@ public class ImportProjectGUI extends JDialog {
     
     private boolean[] getStatuses() {
         String baseDir = ext.verifyDirFormat(txtFldProjDir.getText().trim());
-        String sampleData = txtFldSampleDataFile.getText().trim();
+//        String sampleData = txtFldSampleDataFile.getText().trim();
         boolean foundProject = Files.exists(baseDir);
-        File sampDFile = new File(sampleData);
-        boolean foundSampleData = sampDFile.exists() && sampDFile.isFile() && sampDFile.canRead();
+//        File sampDFile = new File(sampleData);
+//        boolean foundSampleData = sampDFile.exists() && sampDFile.isFile() && sampDFile.canRead();
         boolean foundSamples = Files.exists(baseDir + "samples/");
         boolean foundData = Files.exists(baseDir + "data/");
         boolean foundTransposed = Files.exists(baseDir + "transposed/");
@@ -341,7 +346,7 @@ public class ImportProjectGUI extends JDialog {
                 /*1*/ foundData,
                 /*2*/ foundSampleList,
                 /*3*/ foundMarkerList,
-                /*4*/ foundSampleData,
+//                /*4*/ foundSampleData,
                 /*5*/ foundSamples,
                 /*6*/ foundTransposed,
                 /*7*/ foundMarkerLookup
@@ -357,10 +362,10 @@ public class ImportProjectGUI extends JDialog {
                 lblFoundDataStatus.setIcon(statuses[1] ? tick : redX);
                 lblFoundSampleListStatus.setIcon(statuses[2] ? tick : redX);
                 lblFoundMarkerListStatus.setIcon(statuses[3] ? tick : redX);
-                lblFoundSampleDataStatus.setIcon(statuses[4] ? tick : redX);
-                lblFoundSamplesStatus.setIcon(statuses[5] ? tick : redX);
-                lblFoundTransposedStatus.setIcon(statuses[6] ? tick : redX);
-                lblFoundMarkerLookupStatus.setIcon(statuses[7] ? tick : redX);
+//                lblFoundSampleDataStatus.setIcon(statuses[4] ? tick : redX);
+                lblFoundSamplesStatus.setIcon(statuses[4] ? tick : redX);
+                lblFoundTransposedStatus.setIcon(statuses[5] ? tick : redX);
+                lblFoundMarkerLookupStatus.setIcon(statuses[6] ? tick : redX);
             }
         });
     }
@@ -391,7 +396,7 @@ public class ImportProjectGUI extends JDialog {
 //        actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION : cols[sampCol]);
 //        actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
 
-        actualProj.SAMPLE_DATA_FILENAME.setValue(txtFldSampleDataFile.getText().trim());
+//        actualProj.SAMPLE_DATA_FILENAME.setValue(txtFldSampleDataFile.getText().trim());
         actualProj.saveProperties();
         return true;
     }
