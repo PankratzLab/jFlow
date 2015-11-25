@@ -236,7 +236,7 @@ public class MarkerBlast {
 	}
 
 	private static MarkerFastaEntry[] getMarkerFastaEntries(Project proj, String strandReportFile, FILE_SEQUENCE_TYPE type, boolean alleleLookup) {
-		ExtProjectDataParser.Builder builder = formatParser(proj, type);
+		ExtProjectDataParser.ProjectDataParserBuilder builder = formatParser(proj, type);
 		MarkerFastaEntry[] fastaEntries = null;
 		try {
 			int seqLength = proj.ARRAY_TYPE.getValue().getProbeLength();
@@ -556,8 +556,8 @@ public class MarkerBlast {
 		}
 	}
 
-	private static ExtProjectDataParser.Builder formatParser(Project proj, FILE_SEQUENCE_TYPE type) {
-		ExtProjectDataParser.Builder builder = new ExtProjectDataParser.Builder();
+	private static ExtProjectDataParser.ProjectDataParserBuilder formatParser(Project proj, FILE_SEQUENCE_TYPE type) {
+		ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 		switch (type) {
 		case MANIFEST_FILE:
 			if (proj.getArrayType() != ARRAY.ILLUMINA) {

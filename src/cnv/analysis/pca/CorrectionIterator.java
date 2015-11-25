@@ -439,7 +439,7 @@ class CorrectionIterator implements Serializable {
 			new File(boxDir).mkdirs();
 			new File(quantDir).mkdirs();
 
-			ExtProjectDataParser.Builder builder = new ExtProjectDataParser.Builder();
+			ExtProjectDataParser.ProjectDataParserBuilder builder = new ExtProjectDataParser.ProjectDataParserBuilder();
 			builder.sampleBased(true);
 			builder.treatAllNumeric(false);
 			builder.requireAll(true);

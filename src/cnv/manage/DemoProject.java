@@ -9,7 +9,7 @@ import common.Files;
 import common.ext;
 import cnv.filesys.Project;
 import cnv.filesys.SampleList;
-import cnv.manage.ExtProjectDataParser.Builder;
+import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 
 public class DemoProject extends Project {
 	private Project proj;
@@ -186,7 +186,7 @@ public class DemoProject extends Project {
 	}
 
 	private static ExtProjectDataParser getParserFor(Project proj, String file, boolean sampleBased) {
-		ExtProjectDataParser.Builder builder = new Builder();
+		ExtProjectDataParser.ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 		builder.dataKeyColumnIndex(0);
 		builder.stringDataIndices(new int[][] { { 0 } });
 		builder.treatAllNumeric(false);

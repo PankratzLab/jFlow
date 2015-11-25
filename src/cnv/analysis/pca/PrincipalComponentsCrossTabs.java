@@ -12,7 +12,7 @@ import stats.StatsCrossTabs;
 import stats.StatsCrossTabs.STAT_TYPE;
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.Builder;
+import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import cnv.qc.SampleQC;
 
 /**
@@ -60,7 +60,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 	}
 
 	private ExtProjectDataParser loadExternalData(String fullPathToAlternateDataFile) {
-		ExtProjectDataParser.Builder builder = new Builder();
+		ExtProjectDataParser.ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 		ExtProjectDataParser extSampleFileParser = null;
 		builder.treatAllNumeric(true);
 

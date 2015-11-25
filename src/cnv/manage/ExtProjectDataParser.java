@@ -378,7 +378,7 @@ public class ExtProjectDataParser {
 	 * Builder for {@link ExtProjectDataParser}: the default options should handle a file with a header containing DNA, and all other columns (with header) containing numeric data
 	 *
 	 */
-	public static class Builder {
+	public static class ProjectDataParserBuilder {
 		TypedFileParser.Builder typeBuilder = new TypedFileParser.Builder();
 		private String[] numericDataTitles;
 		private String[] stringDataTitles;
@@ -402,7 +402,7 @@ public class ExtProjectDataParser {
 		 *            data separator for the file being loaded
 		 * @return
 		 */
-		public Builder separator(String separator) {
+		public ProjectDataParserBuilder separator(String separator) {
 			typeBuilder.separator(separator);
 			return this;
 		}
@@ -413,7 +413,7 @@ public class ExtProjectDataParser {
 		 *            indices to extract for numeric data...all data goes to double[]
 		 * @return
 		 */
-		public Builder numericDataIndices(int[][] numericDataIndices) {
+		public ProjectDataParserBuilder numericDataIndices(int[][] numericDataIndices) {
 			typeBuilder.numericDataIndices(numericDataIndices);
 			return this;
 		}
@@ -423,7 +423,7 @@ public class ExtProjectDataParser {
 		 *            indices to extract for string data...
 		 * @return
 		 */
-		public Builder stringDataIndices(int[][] stringDataIndices) {
+		public ProjectDataParserBuilder stringDataIndices(int[][] stringDataIndices) {
 			typeBuilder.stringDataIndices(stringDataIndices);
 			return this;
 		}
@@ -433,7 +433,7 @@ public class ExtProjectDataParser {
 		 *            optional titles of the numeric data...usually if a header is not present
 		 * @return
 		 */
-		public Builder numericDataTitles(String[] numericDataTitles) {
+		public ProjectDataParserBuilder numericDataTitles(String[] numericDataTitles) {
 			this.numericDataTitles = numericDataTitles;
 			return this;
 		}
@@ -443,7 +443,7 @@ public class ExtProjectDataParser {
 		 *            optional titles of the string data...usually if a header is not present
 		 * @return
 		 */
-		public Builder stringDataTitles(String[] stringDataTitles) {
+		public ProjectDataParserBuilder stringDataTitles(String[] stringDataTitles) {
 			this.stringDataTitles = stringDataTitles;
 			return this;
 		}
@@ -453,7 +453,7 @@ public class ExtProjectDataParser {
 		 *            this column will be matched to either the projects samples or markers
 		 * @return
 		 */
-		public Builder dataKeyColumnIndex(int dataKeyColumnIndex) {
+		public ProjectDataParserBuilder dataKeyColumnIndex(int dataKeyColumnIndex) {
 			this.dataKeyColumnIndex = dataKeyColumnIndex;
 			return this;
 		}
@@ -463,7 +463,7 @@ public class ExtProjectDataParser {
 		 *            name of the data to match column
 		 * @return
 		 */
-		public Builder dataKeyColumnName(String dataKeyColumnName) {
+		public ProjectDataParserBuilder dataKeyColumnName(String dataKeyColumnName) {
 			this.dataKeyColumnName = dataKeyColumnName;
 			return this;
 		}
@@ -473,7 +473,7 @@ public class ExtProjectDataParser {
 		 *            require all samples or markers to be present in the file
 		 * @return
 		 */
-		public Builder requireAll(boolean requireAll) {
+		public ProjectDataParserBuilder requireAll(boolean requireAll) {
 			this.requireAll = requireAll;
 			return this;
 		}
@@ -483,7 +483,7 @@ public class ExtProjectDataParser {
 		 *            if a sample or marker is not found, keep going and just skip it
 		 * @return
 		 */
-		public Builder skipUnFound(boolean skipUnFound) {
+		public ProjectDataParserBuilder skipUnFound(boolean skipUnFound) {
 			this.skipUnFound = skipUnFound;
 			return this;
 		}
@@ -493,7 +493,7 @@ public class ExtProjectDataParser {
 		 *            the file has a header
 		 * @return
 		 */
-		public Builder hasHeader(boolean hasHeader) {
+		public ProjectDataParserBuilder hasHeader(boolean hasHeader) {
 			this.hasHeader = hasHeader;
 			return this;
 		}
@@ -503,7 +503,7 @@ public class ExtProjectDataParser {
 		 *            all columns will be treated as numeric except for the column to be matched
 		 * @return
 		 */
-		public Builder treatAllNumeric(boolean treatAllNumeric) {
+		public ProjectDataParserBuilder treatAllNumeric(boolean treatAllNumeric) {
 			this.treatAllNumeric = treatAllNumeric;
 			return this;
 		}
@@ -513,7 +513,7 @@ public class ExtProjectDataParser {
 		 *            for string data, set strings to this if a sample/marker is not found in the data file
 		 * @return
 		 */
-		public Builder missingString(String missingString) {
+		public ProjectDataParserBuilder missingString(String missingString) {
 			this.missingString = missingString;
 			return this;
 		}
@@ -523,7 +523,7 @@ public class ExtProjectDataParser {
 		 *            the file will be matched to samples
 		 * @return
 		 */
-		public Builder sampleBased(boolean sampleBased) {
+		public ProjectDataParserBuilder sampleBased(boolean sampleBased) {
 			this.sampleBased = sampleBased;
 			return this;
 		}
@@ -533,7 +533,7 @@ public class ExtProjectDataParser {
 		 *            lines starting with this string will be skipped when parsing the header
 		 * @return
 		 */
-		public Builder commentString(String commentString) {
+		public ProjectDataParserBuilder commentString(String commentString) {
 			this.commentString = commentString;
 			return this;
 		}
@@ -543,7 +543,7 @@ public class ExtProjectDataParser {
 		 *            the header contains these lines, and others will be skipped
 		 * @return
 		 */
-		public Builder headerFlags(String[] headerFlags) {
+		public ProjectDataParserBuilder headerFlags(String[] headerFlags) {
 			this.headerFlags = headerFlags;
 			return this;
 		}
@@ -553,7 +553,7 @@ public class ExtProjectDataParser {
 		 *            verbose reporting
 		 * @return
 		 */
-		public Builder verbose(boolean verbose) {
+		public ProjectDataParserBuilder verbose(boolean verbose) {
 			this.verbose = verbose;
 			return this;
 		}
@@ -563,7 +563,7 @@ public class ExtProjectDataParser {
 		 *            if multiple entries are found for either a marker or sample, the results will be concatenated
 		 * @return
 		 */
-		public Builder concatMultipleStringEntries(boolean concatMultipleStringEntries) {
+		public ProjectDataParserBuilder concatMultipleStringEntries(boolean concatMultipleStringEntries) {
 			this.concatMultipleStringEntries = concatMultipleStringEntries;
 			return this;
 		}
@@ -583,7 +583,7 @@ public class ExtProjectDataParser {
 		}
 	}
 
-	private ExtProjectDataParser(Builder builder, Project proj, TypedFileParser.Builder typeBuilder, String fullPathToDataFile) throws FileNotFoundException {
+	private ExtProjectDataParser(ProjectDataParserBuilder builder, Project proj, TypedFileParser.Builder typeBuilder, String fullPathToDataFile) throws FileNotFoundException {
 		this.proj = proj;
 		this.numericDataTitles = builder.numericDataTitles;
 		this.stringDataTitles = builder.stringDataTitles;
