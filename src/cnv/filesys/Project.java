@@ -452,6 +452,7 @@ public class Project {
 		log = new Logger();
 		gui = false;
 		this.projectPropertiesFilename = "example.properties";
+		initializeProgressMonitor(null);
 	}
 	
 	public Project(String filename, boolean jar) {

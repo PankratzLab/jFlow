@@ -612,10 +612,11 @@ public class PlinkData {
 				}
 			}
 			if (prob) {
+	            proj.getProgressMonitor().endTask(PROG_KEY);
 				return false;
 			}
 		} else {
-			if (!targetMarkers.equals("")) {
+			if (targetMarkers != null && !targetMarkers.equals("")) {
 				proj.message("FYI, since target markers file '"+targetMarkers+"' was not found, all markers will be exported to PLINK");
 			}
 
@@ -684,13 +685,14 @@ public class PlinkData {
 			log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".ped");
 			count = 1;
 			invalidAbLookups = new Hashtable<Integer, Integer>();
-			while (reader.ready()) {
+			temp = null;
+			while ((temp = reader.readLine()) != null) {
 				count++;
 //				if (count % 100 == 0) {
 //					System.out.println(count);
 //				}
 				
-				temp = reader.readLine();
+//				temp = reader.readLine();
 				line = temp.split(ext.determineDelimiter(temp));
 				if (line.length < 7) {
 					proj.message("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.PEDIGREE_FILENAME.getValue()+"'.\n"+
@@ -746,7 +748,7 @@ public class PlinkData {
 			}
 			reader.close();
 			writer.close();
-
+			System.out.println("CHECK CHECK CHECK");
 			proj.getProgressMonitor().endTask(PROG_KEY + "_PEDEXPORT");
 			
 			if (invalidAbLookups.size() > 0) {
@@ -843,7 +845,12 @@ public class PlinkData {
 
 //		allMarkersInProj = proj.getMarkerNames();
 		targetMarkers = proj.getTargetMarkers(targetMarkersFileName);
-		if (targetMarkers != null) {
+		if (targetMarkers == null) {
+			indicesOfTargetMarkersInProj = null;
+			targetMarkers = proj.getMarkerNames();
+			chrsOfTargetMarkers = proj.getMarkerSet().getChrs();
+			posOfTargetMarkers = proj.getMarkerSet().getPositions();
+		} else {
             proj.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Loading marker data", targetMarkers.length, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 			indicesOfTargetMarkersInProj = new int[targetMarkers.length];
 			chrsOfTargetMarkers = new byte[targetMarkers.length];
@@ -851,15 +858,9 @@ public class PlinkData {
 			getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj, chrsOfTargetMarkers, posOfTargetMarkers);
 			
             proj.getProgressMonitor().endTask(PROG_KEY);
-		} else {
-			indicesOfTargetMarkersInProj = null;
-			targetMarkers = proj.getMarkerNames();
-			chrsOfTargetMarkers = proj.getMarkerSet().getChrs();
-			posOfTargetMarkers = proj.getMarkerSet().getPositions();
 		}
 
 		if (gcThreshold < 0) {
-//			gcThreshold = proj.getFloat(proj.GC_THRESHOLD);
 			gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 		}
 		
@@ -1224,7 +1225,7 @@ public class PlinkData {
 						}
 					}
 				}
-				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, markerDataDir + filenames[i], indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash, proj.getLog());
+				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, markerDataDir + filenames[i], indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, true, true, true, sampleFingerPrint, outliersHash, proj.getLog());
 
 				for (int j = 0; j < markerData.length; j++) {
 					genotypes = markerData[j].getAbGenotypesAfterFilters(clusterFilterCollection, markersOfThisFile[j], 0, log);
@@ -1392,7 +1393,7 @@ public class PlinkData {
 				
 				subTime = new Date().getTime();
 				proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY + filenames[i] + "_load", "Loading marker data from file ... " + filenames[i], ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filenames[i], /*indicesOfTargetMarkersInProj*/indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, false, false, true, sampleFingerPrint, outliersHash, proj.getLog());
+				markerData = MarkerDataLoader.loadFromRAF(null, null, null, allSamplesInProj, dir + filenames[i], /*indicesOfTargetMarkersInProj*/indicesOfMarkersInProjForCurrentFile, indicesOfMarkersInFileForCurrentFile, false, true, true, true, true, sampleFingerPrint, outliersHash, proj.getLog());
 				proj.getProgressMonitor().endTask(PROG_KEY + filenames[i] + "_load");
 				
 				subTime = new Date().getTime();
@@ -2377,13 +2378,13 @@ public class PlinkData {
 			proj = new Project(projPropertyFileFullPath, false);
 			log = proj.getLog();
 			log.report(ext.getTime()+"\tConverting Genvisis to PLINK text (.ped) data set.");
-			PlinkData.saveGenvisisToPlinkPedSet(proj, plinkDataDirAndFilenameRoot, proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, null);
+			PlinkData.saveGenvisisToPlinkPedSet(proj, plinkDataDirAndFilenameRoot, proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, true), proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 
 		} else if (conversionToRun.equals("-genvisisToBed")) {
 			proj = new Project(projPropertyFileFullPath, false);
 			log = proj.getLog();
 			log.report(ext.getTime()+"\tConverting from Genvisis to PLINK binary (.bed) data set.");
-			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, proj.DATA_DIRECTORY.getValue(false, true) + proj.CLUSTER_FILTER_COLLECTION_FILENAME, proj.TARGET_MARKERS_FILENAMES.getValue()[0], gcThreshold, true);
+			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, true), proj.TARGET_MARKERS_FILENAMES.getValue()[0], gcThreshold, true);
 			
 		} else if (conversionToRun.equals("-pedToBed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");

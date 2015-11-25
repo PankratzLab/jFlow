@@ -23,7 +23,11 @@ import common.ext;
 
 public class PLINK2GenomePackager {
     
-//    plink2 --dosage fullList.txt list format=1 Zout --fam gedi_exome_plink.fam --covar GEDI_covars.dat --pheno GEDI_pheno_mtPC0_exome.dat
+//    plink2 --threads 8 --dosage fullList.txt list format=1 Zout --fam gedi_exome_plink.fam --covar GEDI_covars.dat --pheno GEDI_pheno_mtPC0_exome.dat
+    
+    int QSUB_RAM = 10000;
+    int QSUB_HRS = 4;
+    int QSUB_PRC = 8;
     
     void setup(String dir, String fileList, String pmAllFile, String qsubQueue) {
         
@@ -139,7 +143,7 @@ public class PLINK2GenomePackager {
         }
         
         for (java.util.Map.Entry<String, String> plinkRun : plinkRuns.entrySet()) {
-            Files.qsub(plinkRun.getKey() + "runPlink2.qsub", plinkRun.getValue(), 5000, 4, 1);
+            Files.qsub(plinkRun.getKey() + "runPlink2.qsub", plinkRun.getValue(), QSUB_RAM, QSUB_HRS, QSUB_PRC);
         }
         
         StringBuilder sb = new StringBuilder("cd ").append(dir).append("\n");
@@ -196,7 +200,7 @@ public class PLINK2GenomePackager {
     }
     
     String createScript(String fileList, String famFile, String covarFile, String phenoFile, String phenoDir) {
-        String script = "cd " + phenoDir + "\nplink2 --dosage ../" + fileList + " list format=1 Zout --fam " + famFile + (covarFile != null ? " --covar " + covarFile : "") + " --pheno " + phenoFile;
+        String script = "cd " + phenoDir + "\nplink2 --threads " + QSUB_PRC + " --dosage ../" + fileList + " list format=1 Zout --fam " + famFile + (covarFile != null ? " --covar " + covarFile : "") + " --pheno " + phenoFile;
         return script;
     }
     
