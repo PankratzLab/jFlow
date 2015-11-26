@@ -17,6 +17,7 @@ import javax.swing.JLabel;
 
 import seq.manage.ReferenceGenome;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
 import cnv.annotation.BlastAnnotationTypes.TOP_BOT;
 import cnv.annotation.MarkerSeqAnnotation;
 import cnv.filesys.Project;
@@ -130,8 +131,8 @@ public class BlastLabel extends JLabel {
         return myAnnotation.getStrand();
     }
     
-    String getAB() {
-        return myAnnotation.getTag().name();
+    PROBE_TAG getAB() {
+        return myAnnotation.getTag();
     }
     
     public BlastLabel(Project proj, MarkerSeqAnnotation ref, BlastAnnotation annot, ReferenceGenome refGen) {

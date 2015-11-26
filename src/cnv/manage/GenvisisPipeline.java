@@ -12,6 +12,7 @@ import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsCompute;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
+import cnv.filesys.ABLookup;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
@@ -386,17 +387,24 @@ public class GenvisisPipeline {
             
             proj.getLog().report("Running PLINK");
             
-            boolean create = PlinkData.saveGenvisisToPlinkPedSet(proj, "gwas", null, null);
+            boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, "gwas", null, null, -1, true);
             if (create) {
-                proj.getLog().report(ext.getTime() + "]\tExporting to binary...");
-                CmdLine.run("plink --file gwas --make-bed --out plink", null, proj.PROJECT_DIRECTORY.getValue(), System.out, System.err, proj.getLog(), false);
                 File genDir = new File(proj.PROJECT_DIRECTORY.getValue()+"genome/");
                 create = genDir.exists() || genDir.mkdirs();
                 if (create) {
                     proj.getLog().report(ext.getTime() + "]\tCalculating frequencies...");
                     boolean run1 = CmdLine.run("plink --bfile ../plink --freq", null, proj.PROJECT_DIRECTORY.getValue()+"genome/", System.out, System.err, proj.getLog(), false);
-                    proj.getLog().report(ext.getTime() + "]\tCalculating missingness...");
-                    boolean run2 = CmdLine.run("plink --bfile ../plink --missing", null, proj.PROJECT_DIRECTORY.getValue()+"genome/", System.out, System.err, proj.getLog(), false);
+                    if (run1) {
+                        proj.getLog().report(ext.getTime() + "]\tCalculating missingness...");
+                        boolean run2 = CmdLine.run("plink --bfile ../plink --missing", null, proj.PROJECT_DIRECTORY.getValue()+"genome/", System.out, System.err, proj.getLog(), false);
+                        if (!run2) {
+                            setFailed();
+                            this.failReasons.add("Error running missingness analysis.");
+                        }
+                    } else {
+                        setFailed();
+                        this.failReasons.add("Error running frequency analysis.");
+                    }
                 } else {
                     setFailed();
                     this.failReasons.add("Could not create genome/ folder in " + proj.PROJECT_DIRECTORY.getValue());
@@ -498,7 +506,23 @@ public class GenvisisPipeline {
             if (!ext.verifyDirFormat(setDir).equals(sampDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(sampDir);
             }
-            if (MitoPipeline.generateABLookup(proj, proj.getLog()) == 0) {
+            
+            ABLookup abLookup;
+            String filename;
+            
+            filename = proj.PROJECT_DIRECTORY.getValue()+ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+            if (!Files.exists(filename)) {
+                abLookup = new ABLookup();
+                abLookup.parseFromAnnotationVCF(proj);
+                abLookup.writeToFile(filename, proj.getLog());
+            }
+            if (Files.exists(filename)) {
+                ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false);
+                ABLookup.applyABLookupToFullSampleFiles(proj);
+                proj.AB_LOOKUP_FILENAME.setValue(filename);
+                proj.saveProperties(new Project.Property[]{proj.AB_LOOKUP_FILENAME});
+            } else {
+//            if (MitoPipeline.generateABLookup(proj, proj.getLog()) == 0) {
                 setFailed();
             }
         }
@@ -706,6 +730,10 @@ public class GenvisisPipeline {
             }
             
             MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
+            
+            // TODO new step for this: requires lrrsd and marker qc
+            String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE;
+            MitoPipeline.filterSamples(proj, "PCA_GENVISIS", markersForAB, proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE, numThreads, "0.95", null);
         }
         
         @Override
@@ -742,6 +770,33 @@ public class GenvisisPipeline {
             }
             return true;
         }
+    };
+    
+    static final STEP S11_FILTER_SAMPLES = new STEP("Filter Samples by Call Rate", 
+            "", 
+            new String[][]{
+                    
+                },
+            new RequirementInputType[][]{
+                      
+                }) {
+
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        }
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
+            return null;
+        }
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            return null;
+        }
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+            return false;
+        }
+        
     };
     
     static final STEP S11_CREATE_PCS = new STEP("Create Principal Components File", 
@@ -795,6 +850,15 @@ public class GenvisisPipeline {
 //                boolean imputeMeanForNaN = ((JCheckBox)variableFields.get(this).get(2)).isSelected();
 //                boolean recomputeLRR_PCs = ((JCheckBox)variableFields.get(this).get(3)).isSelected();
             String outputBase = variableFields.get(this).get(4);
+            boolean outputCheck = (Files.exists(outputBase) && (new File(outputBase)).isDirectory());
+            File fil = new File(outputBase);
+            boolean exists = fil.exists();
+            boolean write = fil.canWrite();
+            while(!exists) {
+                fil = fil.getParentFile();
+                exists = fil.exists();
+                write = fil.canWrite();
+            }
             return new boolean[][]{
                     {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variableFields)), Files.exists(markerDir)},
 //                    {Files.exists(medianMarkers)},
@@ -803,7 +867,7 @@ public class GenvisisPipeline {
 //                    {true}, 
                     {true}, 
                     {true}, 
-                    {Files.exists(outputBase)}
+                    {outputCheck || (exists && write)}
             };
         }
         @Override
@@ -872,6 +936,15 @@ public class GenvisisPipeline {
     //                boolean recomputeLRR_Median = ((JCheckBox)variableFields.get(this).get(4)).isSelected();
     //                boolean homozygousOnly = ((JCheckBox)variableFields.get(this).get(5)).isSelected();
                 String outputBase = variableFields.get(this).get(6);
+                boolean outputCheck = (Files.exists(outputBase) && (new File(outputBase)).isDirectory());
+                File fil = new File(outputBase);
+                boolean exists = fil.exists();
+                boolean write = fil.canWrite();
+                while(!exists) {
+                    fil = fil.getParentFile();
+                    exists = fil.exists();
+                    write = fil.canWrite();
+                }
                 return new boolean[][]{
                         {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variableFields)), Files.exists(markerDir)},
                         {(stepSelections.get(S11_CREATE_PCS) && S11_CREATE_PCS.hasRequirements(proj, stepSelections, variableFields)), Files.exists(extrapPCFile)},
@@ -879,7 +952,7 @@ public class GenvisisPipeline {
                         {numComponents != -1},
                         {true}, // TRUE or FALSE are both valid selections
                         {true}, 
-                        {Files.exists(outputBase)}
+                        {outputCheck || (exists && write)}
                 };
             }
             @Override
