@@ -316,8 +316,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 //	private static final String ALT_DOWN = "ALT DOWN";
 //	private static final String ALT_LEFT = "ALT LEFT";
 //	private static final String ALT_RIGHT = "ALT RIGHT";
-	private static final String BETA_META_HEADER = "beta";
-	private static final String SE_META_HEADER = "se";
+	private static final String[] BETA_META_HEADERS = {"beta", "effect"};
+	private static final String[] SE_META_HEADERS = {"se", "stderr"};
 	private static final String BETA_PREFIX = "beta.";
 	private static final String SE_PREFIX = "se.";
 	private static final String FIRST = "First";
@@ -1201,11 +1201,14 @@ public class ForestPlot extends JFrame implements WindowListener {
 		String delim = data.file.toLowerCase().endsWith(".csv") ? ",!" : ext.determineDelimiter(hdr);
 		String[] dataFileHeaders = delim.startsWith(",") ? ext.splitCommasIntelligently(hdr, delim.endsWith("!"), log) : hdr.trim().split(delim);
 		for (int i = 0; i < dataFileHeaders.length; i++) {
-			if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADER)) {
-				if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_META_HEADER)) {
-					data.metaIndicies = new int[]{i, i+1};
+			for (int j = 0; j < BETA_META_HEADERS.length; j++) {
+				if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADERS[j])) {
+					if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_META_HEADERS[j])) {
+						data.metaIndicies = new int[]{i, i+1};
+					}
 				}
-			} else if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)) {
+			}
+			if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)) {
 				if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_PREFIX)) {
 					if (data.studyToColIndexMap.containsKey(dataFileHeaders[i].split("\\.")[1])) {
 						throw new RuntimeException("Malformed data file: Duplicate study name found in file");
@@ -1218,7 +1221,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 			}
 		}
 		if (data.metaIndicies == null) {
-			log.reportError("Error - no overall beta/stderr pairing found in file "+data.file);
+			log.reportError("Error - no overall beta/se pairing or effect/stderr pairing was found in file "+data.file);
 		}
 		dataFileHeaders = null;
 	}
