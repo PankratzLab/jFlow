@@ -79,7 +79,7 @@ public class ForestPanel extends AbstractPanel {
 				errorMessage = "No data file selected, or no data found in input file.  Please select a data file.";
 			} else {
 				input = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex());
-				errorMessage = "Cannot generate points for marker "+input.marker+" because the data did not load; check to see if file \""+input.file+"\" actually exists and if the beta/stderr columns are named as expected";
+				errorMessage = "Cannot generate points for marker "+input.marker+" because the data did not load; check to see if file \""+input.file+"\" actually exists and if the beta/se columns are named as expected (e.g., expecting beta.Study1 and not Study1.beta; overall results need to be exactly beta/se or effect/stderr)";
 			}
 			setNullMessage(errorMessage);
 			log.reportError("Error - "+errorMessage);
@@ -608,7 +608,7 @@ public class ForestPanel extends AbstractPanel {
 			if (forestPlot.getDataIndices().size() > 0) {
 				String comm = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).comment;
 				if (!"".equals(comm)) {
-					int w = fontMetrics.stringWidth(comm) / 2;
+					int w = g.getFontMetrics().stringWidth(comm) / 2;
 					g.drawString(comm, getWidth() / 2 - w, 3 * HEAD_BUFFER + 14);
 				} 
 			}
