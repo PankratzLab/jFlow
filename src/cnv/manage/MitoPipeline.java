@@ -20,6 +20,7 @@ import cnv.filesys.MarkerLookup;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.qc.MarkerMetrics;
 import cnv.var.SampleData;
 import common.Array;
@@ -411,20 +412,23 @@ public class MitoPipeline {
 						if (verifyAuxMarkers(proj, medianMarkers, MEDIAN_MARKER_COMMAND)) {
 							// compute PCs with samples passing QC
 							log.report("\nReady to perform the principal components analysis (PCA)\n");
-							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + PCA_SAMPLES, outputBase);
+							String gcAdjustParamFile = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0];
+							proj.getLog().reportTimeInfo("Using parameter file " + gcAdjustParamFile);// TODO, remove force and make arg/generator
+							GcAdjustorParameters params = GcAdjustorParameters.readSerial(gcAdjustParamFile, proj.getLog());
+							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + PCA_SAMPLES, outputBase, params);
 							if (pcs == null) {
 								return 3;
 							}
 							// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
 							// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
 							log.report("\nApplying the loadings from the principal components analysis to all samples\n");
-							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase);
+							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, params);
 							// Compute Medians for (MT) markers and compute residuals from PCs for everyone
 							log.report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
-							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase);
+							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase, params);
 							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
 							proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
-//							proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents + "");
+							// proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents + "");
 							proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
 							proj.saveProperties();
 						}

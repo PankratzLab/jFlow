@@ -1,6 +1,7 @@
 package cnv.analysis.pca;
 
 import cnv.filesys.Project;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import common.ext;
 
 /**
@@ -35,12 +36,12 @@ public class PCA {
 	 * @param useFile
 	 *            a subset of individuals to use
 	 * @param output
-	 *            a base name 
+	 *            a base name
 	 * @param log
-	 * Warning - if the principal component, singular values, and marker loadings files already exist, the {@link PrincipalComponentsCompute} object returned will only have the existing filenames populated. The U,V,and W matrices will not be computed again
+	 *            Warning - if the principal component, singular values, and marker loadings files already exist, the {@link PrincipalComponentsCompute} object returned will only have the existing filenames populated. The U,V,and W matrices will not be computed again
 	 */
-	public static PrincipalComponentsCompute computePrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, boolean recomputeLRR, String useFile, String output) {
-		return PrincipalComponentsCompute.getPrincipalComponents(proj, excludeSamples, numComponents, printFullData, center, reportMarkerLoadings, reportSingularValues, imputeMeanForNaN, recomputeLRR, useFile, output);
+	public static PrincipalComponentsCompute computePrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, boolean recomputeLRR, String useFile, String output, GcAdjustorParameters parameters) {
+		return PrincipalComponentsCompute.getPrincipalComponents(proj, excludeSamples, numComponents, printFullData, center, reportMarkerLoadings, reportSingularValues, imputeMeanForNaN, recomputeLRR, useFile, output, parameters);
 	}
 
 	/**
@@ -57,15 +58,16 @@ public class PCA {
 	 *            recompute the log R ratios on the fly
 	 * @param output
 	 * @param log
- 	 * Warning - if the extrapolated principal component file already exists, the {@link PrincipalComponentsApply} object returned will only have the extrapolated pc file populated
+	 *            Warning - if the extrapolated principal component file already exists, the {@link PrincipalComponentsApply} object returned will only have the extrapolated pc file populated
 	 */
-	public static PrincipalComponentsApply applyLoadings(Project proj, int numComponents, String singularFile, String markerLoadingFile, String useFile, boolean excludeSamples, boolean imputeMeanForNaN, boolean recomputeLRR, String output) {
+	public static PrincipalComponentsApply applyLoadings(Project proj, int numComponents, String singularFile, String markerLoadingFile, String useFile, boolean excludeSamples, boolean imputeMeanForNaN, boolean recomputeLRR, String output, GcAdjustorParameters params) {
 		// first retrieve the samples to apply marker loadings to
 		boolean[] samplesToUse = PrincipalComponentsCompute.getSamples(proj, excludeSamples, useFile);
 		PrincipalComponentsApply pcApply = new PrincipalComponentsApply(proj, numComponents, singularFile, markerLoadingFile, samplesToUse, imputeMeanForNaN, recomputeLRR);
-		if (pcApply.outputExists(proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(output) + FILE_EXTs[0], true)) {//warn about existence when checking
+		if (pcApply.outputExists(proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(output) + FILE_EXTs[0], true)) {// warn about existence when checking
 			pcApply.setExtrapolatedPCsFile(ext.rootOf(output) + FILE_EXTs[0]);
 		} else {
+			pcApply.setParams(params);
 			pcApply.applyLoadings();
 			pcApply.reportExtropolatedPCs(ext.rootOf(output) + FILE_EXTs[0]);
 		}
@@ -93,8 +95,9 @@ public class PCA {
 	 * @param log
 	 * @return
 	 */
-	public static PrincipalComponentsResiduals computeResiduals(Project proj, String pcFile, String markersToAssessFile, int numComponents, boolean printFull, float gcThreshold, boolean homozygousOnly, boolean recomputeLRR, String output) {
+	public static PrincipalComponentsResiduals computeResiduals(Project proj, String pcFile, String markersToAssessFile, int numComponents, boolean printFull, float gcThreshold, boolean homozygousOnly, boolean recomputeLRR, String output, GcAdjustorParameters params) {
 		PrincipalComponentsResiduals pcResids = new PrincipalComponentsResiduals(proj, pcFile, markersToAssessFile, numComponents, printFull, gcThreshold, homozygousOnly, recomputeLRR, ext.rootOf(output));
+		pcResids.setParams(params);//params can be null
 		pcResids.computeAssessmentDataMedians();
 		pcResids.computeResiduals();
 		pcResids.computeInverseTransformResiduals();
@@ -247,12 +250,12 @@ public class PCA {
 		Project proj = new Project(filename, logfile, false);
 
 		if (applyLoadings) {
-			applyLoadings(proj, numComponents, singularValueFile, markerLoadingFile, useFile, excludeSamples, imputeMeanForNaN, recomputeLRR, evalOut);
+			applyLoadings(proj, numComponents, singularValueFile, markerLoadingFile, useFile, excludeSamples, imputeMeanForNaN, recomputeLRR, evalOut, null);
 		} else if (computeResiduals) {
-			computeResiduals(proj, pcFile, markersToassessFile, numComponents, printFullData, gcThreshold, homozygousOnly, recomputeLRR, evalOut);
+			computeResiduals(proj, pcFile, markersToassessFile, numComponents, printFullData, gcThreshold, homozygousOnly, recomputeLRR, evalOut, null);
 		} else {
-			PrincipalComponentsCompute pc = computePrincipalComponents(proj, excludeSamples, numComponents, printFullData, center, true, true, imputeMeanForNaN, recomputeLRR, useFile, evalOut);
-			applyLoadings(proj, numComponents, pc.getSingularValuesFile(), pc.getMarkerLoadingFile(), useApplyfile, excludeSamples, imputeMeanForNaN, recomputeLRR, evalOut);
+			PrincipalComponentsCompute pc = computePrincipalComponents(proj, excludeSamples, numComponents, printFullData, center, true, true, imputeMeanForNaN, recomputeLRR, useFile, evalOut, null);
+			applyLoadings(proj, numComponents, pc.getSingularValuesFile(), pc.getMarkerLoadingFile(), useApplyfile, excludeSamples, imputeMeanForNaN, recomputeLRR, evalOut, null);
 		}
 	}
 }
