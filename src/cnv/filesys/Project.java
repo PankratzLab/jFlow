@@ -416,7 +416,7 @@ public class Project {
 	public      FileProperty              GENOME_CLUSTER_FILENAME = new       FileProperty(this,              "GENOME_CLUSTER_FILENAME", "", "cluster.genome.gz", false); 
 	public      FileProperty                  CUSTOM_PFB_FILENAME = new       FileProperty(this,                  "CUSTOM_PFB_FILENAME", "", "data/custom.pfb", false);
 	public      FileProperty                         HMM_FILENAME = new       FileProperty(this,                         "HMM_FILENAME", "", "data/hhall.hmm", false);
-
+    public      FileProperty       PCA_AUTOSOMAL_MARKERS_FILENAME = new       FileProperty(this,       "PCA_AUTOSOMAL_MARKERS_FILENAME", "", "", false);
 	public StringListProperty            TARGET_MARKERS_FILENAMES = new StringListProperty(this,             "TARGET_MARKERS_FILENAMES", "", "targetMarkers.txt", true, false);
 	public StringListProperty           DISPLAY_MARKERS_FILENAMES = new StringListProperty(this,            "DISPLAY_MARKERS_FILENAMES", "", "data/test.txt", true, false);
 	public StringListProperty               TWOD_LOADED_FILENAMES = new StringListProperty(this,                "TWOD_LOADED_FILENAMES", "", "", true, false);
@@ -495,39 +495,52 @@ public class Project {
 			log = new Logger(logfile, false, Math.abs(logLevel));
 		}
 		
-		HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
-		setSourceFileHeaders(headers);
-		
+	    HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
+	    setSourceFileHeaders(headers);
+	
 	    log.report("Genvisis, v"+cnv.Launch.VERSION+"\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
 		log.report("\nCurrent project: " + getProperty(PROJECT_NAME) + "\n");
 		log.report("Log level (verbosity) is set to " + getProperty(LOG_LEVEL) + "\n");
 	}
 	
+	private boolean reasonableCheckForParsedSource() {
+        String sampleDirectory = SAMPLE_DIRECTORY.getValue(false, false);
+        // TODO strict check for #files == #samples?
+        return Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && getSampleList() != null && getSampleList().getSamples().length > 0;
+	}
+	
 	@SuppressWarnings("unchecked")
     private HashMap<String, SourceFileHeaderData> readHeadersFile(boolean waitIfMissing) {
 	    String file = PROJECT_DIRECTORY.getValue() + "source.headers";
-	    System.out.println((new File(file)).getAbsolutePath());
 	    if (Files.exists(file)) {
-	        return (HashMap<String, SourceFileHeaderData>) Files.readSerial(file);
-	    } else {
-	        if (!waitIfMissing) {
-    	        new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        log.report("Parsing source file headers in background thread.");
-                        setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log));
-                        log.report("Source file header parsing complete.");
-                    }
-                }).start();
-    	        return null;
+	        HashMap<String, SourceFileHeaderData> headers = (HashMap<String, SourceFileHeaderData>) Files.readSerial(file, JAR_STATUS.getValue().booleanValue(), getLog(), false);
+	        if (headers != null) {
+	            return headers;
 	        } else {
-                log.report("Parsing source file headers in active thread.");
-                setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log));
-                log.report("Source file header parsing complete.");
-                return getSourceFileHeaders();
+	            // error reading headers; let's delete
+	            getLog().reportError(ext.getTime() + "]\tError reading source file header metadata.  Deleting file and reparsing.");
+	            getLog().reportError(ext.getTime() + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into " + Sample.SAMPLE_DATA_FILE_EXTENSION + " files.");
+	            getLog().reportError(ext.getTime() + "]\tA quick check (which may be incorrect) suggest this " + (reasonableCheckForParsedSource() ? " IS LIKELY NOT " : " IS LIKELY ") + "be an issue.");
+	            (new File(file)).delete();
 	        }
-	    }
-	}
+	    } 
+        if (!waitIfMissing) {
+	        new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    log.report("Parsing source file headers in background thread.");
+                    setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log));
+                    log.report("Source file header parsing complete.");
+                }
+            }).start();
+	        return null;
+        } else {
+            log.report("Parsing source file headers in active thread.");
+            setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log));
+            log.report("Source file header parsing complete.");
+            return getSourceFileHeaders();
+        }
+    }
 	
 	private void writeHeadersFile() {
 	    Files.writeSerial(sourceFileHeaders, PROJECT_DIRECTORY.getValue() + "source.headers");

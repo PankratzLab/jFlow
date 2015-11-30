@@ -27,7 +27,7 @@ public class Markers {
 		logLevel = log.getLevel();
 		log.setLevel(9);
 		time = new Date().getTime();
-		log.report(ext.getTime()+"\tLoading marker data from " + markerDatabase);
+		log.report(ext.getTime()+"]\tLoading marker data from " + markerDatabase);
 		snpPositions = loadFileToHashString(markerDatabase, log);
 		if (snpPositions == null) {
 			return null;

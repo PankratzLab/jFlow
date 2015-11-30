@@ -572,7 +572,23 @@ public class GenvisisPipeline {
             if (!ext.verifyDirFormat(setDir).equals(sampDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(sampDir);
             }
-            if (MitoPipeline.generateABLookup(proj, proj.getLog()) == 0) {
+
+            ABLookup abLookup;
+            String filename;
+            
+            filename = proj.PROJECT_DIRECTORY.getValue()+ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
+            if (!Files.exists(filename)) {
+                abLookup = new ABLookup();
+                abLookup.parseFromAnnotationVCF(proj);
+                abLookup.writeToFile(filename, proj.getLog());
+            }
+            if (Files.exists(filename)) {
+                ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false);
+                ABLookup.applyABLookupToFullSampleFiles(proj);
+                proj.AB_LOOKUP_FILENAME.setValue(filename);
+                proj.saveProperties(new Project.Property[]{proj.AB_LOOKUP_FILENAME});
+            } else {
+//            if (MitoPipeline.generateABLookup(proj, proj.getLog()) == 0) {
                 setFailed();
             }
         }
@@ -730,10 +746,6 @@ public class GenvisisPipeline {
             }
             
             MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
-            
-            // TODO new step for this: requires lrrsd and marker qc
-            String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE;
-            MitoPipeline.filterSamples(proj, "PCA_GENVISIS", markersForAB, proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE, numThreads, "0.95", null);
         }
         
         @Override
@@ -783,15 +795,21 @@ public class GenvisisPipeline {
 
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+            // TODO new step for this: requires lrrsd and marker qc
+//            String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE;
+//            MitoPipeline.filterSamples(proj, "PCA_GENVISIS", markersForAB, proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE, numThreads, "0.95", null);
         }
+        
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
             return null;
         }
+        
         @Override
         public Object[] getRequirementDefaults(Project proj) {
             return null;
         }
+        
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
             return false;
@@ -855,10 +873,14 @@ public class GenvisisPipeline {
             File fil = new File(outputBase);
             boolean exists = fil.exists();
             boolean write = fil.canWrite();
-            while(!exists) {
-                fil = fil.getParentFile();
+            if (!"".equals(outputBase)) {
                 exists = fil.exists();
                 write = fil.canWrite();
+                while(!exists) {
+                    fil = fil.getParentFile();
+                    exists = fil.exists();
+                    write = fil.canWrite();
+                }
             }
             return new boolean[][]{
                     {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variableFields)), Files.exists(markerDir)},
@@ -941,10 +963,14 @@ public class GenvisisPipeline {
                 File fil = new File(outputBase);
                 boolean exists = fil.exists();
                 boolean write = fil.canWrite();
-                while(!exists) {
-                    fil = fil.getParentFile();
+                if (!"".equals(outputBase)) {
                     exists = fil.exists();
                     write = fil.canWrite();
+                    while(!exists) {
+                        fil = fil.getParentFile();
+                        exists = fil.exists();
+                        write = fil.canWrite();
+                    }
                 }
                 return new boolean[][]{
                         {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variableFields)), Files.exists(markerDir)},

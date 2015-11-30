@@ -100,7 +100,7 @@ public class SourceFileHeaderData implements Serializable {
         reader.close(); // done
         reader = null; // release
         String columnHeaders = line;
-        delim = file.contains(".csv") ? SOURCE_FILE_DELIMITERS.SPACE.getDelimiter() : file.contains(".xln") ? SOURCE_FILE_DELIMITERS.TAB.getDelimiter() : SOURCE_FILE_DELIMITERS.getDelimiter(ext.determineDelimiter(columnHeaders)).getDelimiter();
+        delim = file.contains(".csv") ? SOURCE_FILE_DELIMITERS.COMMA.getDelimiter() : file.contains(".xln") ? SOURCE_FILE_DELIMITERS.TAB.getDelimiter() : SOURCE_FILE_DELIMITERS.getDelimiter(ext.determineDelimiter(columnHeaders)).getDelimiter();
 //        if (",".equals(delim)) {
 //            delim = "[\\s]*,[\\s]*";
 //        }
@@ -235,14 +235,14 @@ public class SourceFileHeaderData implements Serializable {
         boolean valid = false;
         HashMap<String, SourceFileHeaderData> headers = null;
         try {
-            if (fullValidation) {
+//            if (fullValidation) {
                 headers = new HashMap<String, SourceFileHeaderData>();
-            }
+//            }
             for (String possFile : possibleFiles) {
                 SourceFileHeaderData frhd = SourceFileHeaderData.parseHeader(dir + possFile, log);
-                if (fullValidation) {
+//                if (fullValidation) {
                     headers.put(possFile, frhd);
-                }
+//                }
             }
             if (fullValidation) {
                 String error = doFullValidation(headers, log);
