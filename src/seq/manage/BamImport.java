@@ -151,7 +151,7 @@ public class BamImport {
 		String mediaMarks = ext.addToRoot(proj.TARGET_MARKERS_FILENAMES.getValue()[0], ".median");
 		Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
 		String base = "BAM_PCS";
-		MitoPipeline.catAndCaboodle(proj, numthreads, "0", mediaMarks, proj.getSamples().length - 1, base, false, false, 0, null, null, null, false, false, false, true);
+		MitoPipeline.catAndCaboodle(proj, numthreads, "0", mediaMarks, proj.getSamples().length - 1, base, false, false, 0, null, null, null, false, false, false, true, false, null, -1, -1);
 	}
 
 	private static void generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet, LocusSet<Segment> genomeBinsMinusBinsCaputure) {
