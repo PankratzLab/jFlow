@@ -11,6 +11,7 @@ import common.Array;
 import common.Files;
 import common.Logger;
 import common.ext;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,6 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
 import stats.CrossValidation;
 import stats.ICC;
 
@@ -40,10 +42,10 @@ public class IntensityCorrectionQC {
 		new File(dir).mkdirs();
 		PrincipalComponentsResiduals pcComponentsResiduals = proj.loadPcResids();
 		ClassDefinition[] classDefinitions = ClassDefinition.getClassDefinitionsFromSampleData(proj);
-		int[] sampleSex = getSexDef(classDefinitions);
+	//	int[] sampleSex = getSexDef(classDefinitions);
 		boolean[] modelDefMask = getModelDefMask(proj, classDefinitions);
 
-		String[] allClasses = getAllClasses(classDefinitions);
+		//String[] allClasses = getAllClasses(classDefinitions);
 		output = proj.PROJECT_DIRECTORY.getValue() + dir + output + ".icc";
 		new File(proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
 		int numTests = 0;
@@ -237,30 +239,30 @@ public class IntensityCorrectionQC {
 		}
 		icMarkerResultsBatch.serialize(output);
 	}
-
-	private static void getICC(Project proj, int numCorrectionThreads, PrincipalComponentsResiduals pcComponentsResiduals, ClassDefinition[] classDefinitions, int[] sampleSex, boolean[] samplesToUseCluster, ICCMarkerResultsBatch icMarkerResultsBatch, int i, MarkerData markerData, float[] lrrs, int pcIndex, int j) {
-		float[] lrrICC;
-		if (j == 0) {
-			lrrICC = lrrs;
-		} else {
-			PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(pcComponentsResiduals, markerData, true, sampleSex, samplesToUseCluster, 1.0D, 0.0D, null, true, false, 2, 5, 0.0D, 0.1D, numCorrectionThreads, false, null);
-			principalComponentsIntensity.correctXYAt(j);
-			if (!principalComponentsIntensity.isFail()) {
-				lrrICC = principalComponentsIntensity.getCorrectedIntensity("BAF_LRR", true)[1];
-			} else {
-				lrrICC = lrrs;
-			}
-		}
-		for (int k = 0; k < classDefinitions.length; k++) {
-			double icc = (0.0D / 0.0D);
-			if (classDefinitions[k].isValidForICC()) {
-				ICC iccComp = new ICC(Array.toDoubleArray(lrrICC), classDefinitions[k].getClassDefs(), MASK, null, false, proj.getLog());
-				iccComp.computeICC();
-				icc = iccComp.getICC();
-			}
-			icMarkerResultsBatch.addICC(i, k, pcIndex, icc);
-		}
-	}
+//
+//	private static void getICC(Project proj, int numCorrectionThreads, PrincipalComponentsResiduals pcComponentsResiduals, ClassDefinition[] classDefinitions, int[] sampleSex, boolean[] samplesToUseCluster, ICCMarkerResultsBatch icMarkerResultsBatch, int i, MarkerData markerData, float[] lrrs, int pcIndex, int j) {
+//		float[] lrrICC;
+//		if (j == 0) {
+//			lrrICC = lrrs;
+//		} else {
+//			PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(pcComponentsResiduals, markerData, true, sampleSex, samplesToUseCluster, 1.0D, 0.0D, null, true, false, 2, 5, 0.0D, 0.1D, numCorrectionThreads, false, null);
+//			principalComponentsIntensity.correctXYAt(j);
+//			if (!principalComponentsIntensity.isFail()) {
+//				lrrICC = principalComponentsIntensity.getCorrectedIntensity("BAF_LRR", true)[1];
+//			} else {
+//				lrrICC = lrrs;
+//			}
+//		}
+//		for (int k = 0; k < classDefinitions.length; k++) {
+//			double icc = (0.0D / 0.0D);
+//			if (classDefinitions[k].isValidForICC()) {
+//				ICC iccComp = new ICC(Array.toDoubleArray(lrrICC), classDefinitions[k].getClassDefs(), MASK, null, false, proj.getLog());
+//				iccComp.computeICC();
+//				icc = iccComp.getICC();
+//			}
+//			icMarkerResultsBatch.addICC(i, k, pcIndex, icc);
+//		}
+//	}
 
 //	private static class WorkerICC implements Callable<CrossValidation> {
 //		private PrincipalComponentsResiduals principalComponentsResiduals;
@@ -289,8 +291,8 @@ public class IntensityCorrectionQC {
 		ICCMarkerResultsBatch[] icMarkerResultsBatchs = new ICCMarkerResultsBatch[batches.length];
 		String[] classDefs = null;
 		int[] pcsTested = null;
-		double[][] classPCAverages = null;
-		int[][] classPCCounts = null;
+	//	double[][] classPCAverages = null;
+		//int[][] classPCCounts = null;
 		if (icMarkerResultsBatchs.length < 1) {
 			proj.getLog().reportError("Error - did not find any result files");
 			return;
@@ -299,8 +301,8 @@ public class IntensityCorrectionQC {
 
 		classDefs = icMarkerResultsBatchs[0].getClasses();
 		pcsTested = icMarkerResultsBatchs[0].getPcsTested();
-		classPCAverages = new double[classDefs.length][pcsTested.length];
-		classPCCounts = new int[classDefs.length][pcsTested.length];
+		//classPCAverages = new double[classDefs.length][pcsTested.length];
+		//classPCCounts = new int[classDefs.length][pcsTested.length];
 
 		ICCClassResults[] icClassResults = new ICCClassResults[classDefs.length];
 		for (int i = 0; i < icClassResults.length; i++) {
@@ -358,7 +360,9 @@ public class IntensityCorrectionQC {
 	}
 
 	public static class ICCClassResults {
+		@SuppressWarnings("unused")
 		private int[] pcsTested;
+		@SuppressWarnings("unused")
 		private String classDef;
 		private IntensityCorrectionQC.ArraySpecialLists iccs;
 		private double[][] finalIccs;
@@ -423,9 +427,9 @@ public class IntensityCorrectionQC {
 			return Array.toDoubleArray(this.arraySpecialLists[index]);
 		}
 
-		public double getMedianAt(int index) {
-			return Array.median(getAt(index));
-		}
+//		public double getMedianAt(int index) {
+//			return Array.median(getAt(index));
+//		}
 	}
 
 	private static class ArraySpecialList extends ArrayList<Double> {
@@ -678,7 +682,7 @@ public class IntensityCorrectionQC {
 	public static void test(Project proj) {
 		MarkerSet markerSet = proj.getMarkerSet();
 		int[][] chrInd = markerSet.getIndicesByChr();
-		String[][] chunkMarkers = Array.splitUpStringArray(Array.subArray(proj.getMarkerNames(), chrInd[3]), 300, proj.getLog());
+		//String[][] chunkMarkers = Array.splitUpStringArray(Array.subArray(proj.getMarkerNames(), chrInd[3]), 300, proj.getLog());
 
 		ICCtheClasses(proj, Array.subArray(proj.getMarkerNames(), chrInd[26]), 6, 1, "Mito", "mitos/", 0, 1500, 5, true);
 		dumpToText(proj, "mitos/");
