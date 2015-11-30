@@ -139,7 +139,7 @@ public class PrincipalComponentsApply {
 						proj.getLog().reportTimeError("NO centroids available in apply");
 						return;
 					}
-					lrrs = markerData.getGCCorrectedLRR(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
+					lrrs = markerData.getGCCorrectedLRRBAF(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
 				}
 				
 				if (!hasNAN(lrrs)) {

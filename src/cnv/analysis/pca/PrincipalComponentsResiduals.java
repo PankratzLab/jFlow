@@ -310,7 +310,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 					proj.getLog().reportTimeError("NO centroids available in median");
 					return;
 				}
-				lrrs = markerData.getGCCorrectedLRR(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
+				lrrs = markerData.getGCCorrectedLRRBAF(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
 			}
 			abGenos = markerData.getAbGenotypesAfterFilters(cluster, markersToAssess[index], gcThreshold, log);
 			int sampleIndex = 0;

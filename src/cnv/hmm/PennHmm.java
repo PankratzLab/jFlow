@@ -330,6 +330,7 @@ public class PennHmm {
 				int m = -1;
 				int n = -1;
 				double[][] a = null;
+				@SuppressWarnings("unused")
 				double[][] b = null;
 				// TODO what about the B:?
 

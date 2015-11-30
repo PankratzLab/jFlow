@@ -527,7 +527,7 @@ public class PrincipalComponentsCompute {
 					proj.getLog().reportTimeError("NO centroids available in load");
 					return null;
 				}
-				data[0] = markerData.getGCCorrectedLRR(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
+				data[0] = markerData.getGCCorrectedLRRBAF(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
 			}
 			// please hard code dealWithNaN as it determines whether later data checks must be done;
 			if (dealWithNaN && hasNAN(data)) {
