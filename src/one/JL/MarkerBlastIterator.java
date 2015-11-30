@@ -58,10 +58,10 @@ public class MarkerBlastIterator {
 		public double getMinVal() {
 			return minVal;
 		}
-
-		public void setMinVal(double minVal) {
-			this.minVal = minVal;
-		}
+//
+//		public void setMinVal(double minVal) {
+//			this.minVal = minVal;
+//		}
 
 		public double getMaxVal() {
 			return maxVal;
@@ -75,9 +75,9 @@ public class MarkerBlastIterator {
 			return sigFigs;
 		}
 
-		public void setSigFigs(int sigFigs) {
-			this.sigFigs = sigFigs;
-		}
+//		public void setSigFigs(int sigFigs) {
+//			this.sigFigs = sigFigs;
+//		}
 
 	}
 
@@ -224,7 +224,7 @@ public class MarkerBlastIterator {
 				}
 
 			}
-			int numMarkers = 0;
+			//int numMarkers = 0;
 			ArrayList<String> oneHitters = new ArrayList<String>();
 			ArrayList<String> notOneHitters = new ArrayList<String>();
 			ArrayList<Double> notOneHittersMaxCrossHybe = new ArrayList<Double>();
@@ -232,7 +232,7 @@ public class MarkerBlastIterator {
 			ArrayList<Double> noAppropriateMatchMaxCrossHybe = new ArrayList<Double>();
 			MarkerSet markerSet = proj.getMarkerSet();
 			for (int k = 0; k < summaries.size(); k++) {
-				numMarkers++;
+				//numMarkers++;
 				int markerIndex = indices.get(summaries.get(k).getMarkerName());
 				if (summaries.get(k).isHasAppropriateMatch()) {
 					if (summaries.get(k).getCrossHybLength().size() == 0 || Array.max(Array.toDoubleArray(summaries.get(k).getCrossHybLength())) < oneHitWonderDef) {
@@ -637,7 +637,9 @@ public class MarkerBlastIterator {
 	private static class MarkerIterationSummary {
 		private String markerName;
 		private boolean hasAppropriateMatch;
+		@SuppressWarnings("unused")
 		private double percentAppropriateMatch;
+		@SuppressWarnings("unused")
 		private double evalueAppropriateMatch;
 		private ArrayList<Double> crossHybPercentMatch, crossHybEvalue, crossHybLength;
 		private double gcContent;
@@ -658,17 +660,17 @@ public class MarkerBlastIterator {
 			return gcContent;
 		}
 
-		public String getSummary() {
-			String summary = markerName;
-			summary += "\t" + percentAppropriateMatch;
-			summary += "\t" + evalueAppropriateMatch;
-			summary += "\t" + (crossHybPercentMatch.size() > 0 ? Array.mean(Array.toDoubleArray(crossHybPercentMatch), true) : "0");
-			summary += "\t" + (crossHybEvalue.size() > 0 ? Array.mean(Array.toDoubleArray(crossHybEvalue), true) : "1");
-			summary += "\t" + (crossHybLength.size() > 0 ? Array.mean(Array.toDoubleArray(crossHybLength), true) : "0");
-			summary += "\t" + crossHybEvalue.size();
-
-			return summary;
-		}
+//		public String getSummary() {
+//			String summary = markerName;
+//			summary += "\t" + percentAppropriateMatch;
+//			summary += "\t" + evalueAppropriateMatch;
+//			summary += "\t" + (crossHybPercentMatch.size() > 0 ? Array.mean(Array.toDoubleArray(crossHybPercentMatch), true) : "0");
+//			summary += "\t" + (crossHybEvalue.size() > 0 ? Array.mean(Array.toDoubleArray(crossHybEvalue), true) : "1");
+//			summary += "\t" + (crossHybLength.size() > 0 ? Array.mean(Array.toDoubleArray(crossHybLength), true) : "0");
+//			summary += "\t" + crossHybEvalue.size();
+//
+//			return summary;
+//		}
 
 		public ArrayList<Double> getCrossHybPercentMatch() {
 			return crossHybPercentMatch;

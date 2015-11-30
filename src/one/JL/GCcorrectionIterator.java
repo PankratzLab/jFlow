@@ -124,10 +124,10 @@ public class GCcorrectionIterator {
 		}
 	}
 
-	private static void GenerateMarkerQC(Project proj, ArrayList<IterationParameters> finals, String finalOut) {
-		String[] header = new String[] { "MarkerName", "CENT", "gcmodel_bp", "regress_bp", "snpMAD", "LRR_MEAN_PRIOR", "LRR_MEAN_POST", "LRR_SD_PRIOR", "LRR_SD_POST" };
-		
-	}
+	// private static void GenerateMarkerQC(Project proj, ArrayList<IterationParameters> finals, String finalOut) {
+	// String[] header = new String[] { "MarkerName", "CENT", "gcmodel_bp", "regress_bp", "snpMAD", "LRR_MEAN_PRIOR", "LRR_MEAN_POST", "LRR_SD_PRIOR", "LRR_SD_POST" };
+	//
+	// }
 
 	private static void format(String base, Hashtable<String, String[]> plotCombos) {
 		plotCombos.put(base + "_PRIOR", new String[] { base + "_POST", base + "_PRIOR" + CENT_TAG, base + "_POST" + CENT_TAG });
@@ -197,7 +197,7 @@ public class GCcorrectionIterator {
 			allLooks.add(rScatterBox);
 
 			String rootBoxTrim = ext.rootOf(outputGZ, false) + base + ".trim";
-			RScatter rScatterBoxTrim = new RScatter(outputGZ, rootBoxTrim + ".rscript", ext.removeDirectoryInfo(rootBoxTrim), rootBoxTrim + ".pdf", "gcmodel_bp", new String[] {plotCombos.get(base)[0], plotCombos.get(base)[2] }, null, SCATTER_TYPE.BOX, proj.getLog());
+			RScatter rScatterBoxTrim = new RScatter(outputGZ, rootBoxTrim + ".rscript", ext.removeDirectoryInfo(rootBoxTrim), rootBoxTrim + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[0], plotCombos.get(base)[2] }, null, SCATTER_TYPE.BOX, proj.getLog());
 			rScatterBoxTrim.setyLabel(rootBoxTrim.replaceAll("_PRIOR", ""));
 			rScatterBoxTrim.setFontsize(3);
 			rScatterBoxTrim.setyLabel(base.replaceAll("_PRIOR", ""));
@@ -208,7 +208,7 @@ public class GCcorrectionIterator {
 			allLooks.add(rScatterBoxTrim);
 
 			String rootBoxTrimTrim = ext.rootOf(outputGZ, false) + base + ".trimTrim";
-			RScatter rScatterBoxTrimTrim = new RScatter(outputGZ, rootBoxTrimTrim + ".rscript", ext.removeDirectoryInfo(rootBoxTrimTrim), rootBoxTrimTrim + ".pdf", "gcmodel_bp", new String[] {plotCombos.get(base)[0], plotCombos.get(base)[2] }, null, SCATTER_TYPE.BOX, proj.getLog());
+			RScatter rScatterBoxTrimTrim = new RScatter(outputGZ, rootBoxTrimTrim + ".rscript", ext.removeDirectoryInfo(rootBoxTrimTrim), rootBoxTrimTrim + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[0], plotCombos.get(base)[2] }, null, SCATTER_TYPE.BOX, proj.getLog());
 			rScatterBoxTrimTrim.setyLabel(rootBoxTrimTrim.replaceAll("_PRIOR", ""));
 			rScatterBoxTrimTrim.setFontsize(3);
 			rScatterBoxTrimTrim.setyLabel(base.replaceAll("_PRIOR", ""));

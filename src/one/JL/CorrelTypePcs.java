@@ -56,23 +56,23 @@ public class CorrelTypePcs {
 
 				writer.println(Array.toStr(Array.toStringArray(outHeader)));
 
-				for (int i = 0; i < fullPathPcFile.length; i++) {
-					String getItDir = ext.rootOf(fullPathPcFile[i], false) + SUB_DIR;
+				for (int pcFile1Index = 0; pcFile1Index < fullPathPcFile.length; pcFile1Index++) {
+					String getItDir = ext.rootOf(fullPathPcFile[pcFile1Index], false) + SUB_DIR;
 					String[] gzippers = Files.list(getItDir, ".gz", false);
 
-					for (int j = 0; j < gzippers.length; j++) {
+					for (int gzipIndex = 0; gzipIndex < gzippers.length; gzipIndex++) {
 						ProjectDataParserBuilder builderCurrent = new ProjectDataParserBuilder();
 
-						builderCurrent.numericDataTitles(getPCIndices(getItDir + gzippers[j], log));
+						builderCurrent.numericDataTitles(getPCIndices(getItDir + gzippers[gzipIndex], log));
 						builderCurrent.sampleBased(true);
 						builderCurrent.dataKeyColumnName("DNA");
 						builderCurrent.treatAllNumeric(false);
 
-						ExtProjectDataParser parser = builderCurrent.build(proj, getItDir + gzippers[j]);
+						ExtProjectDataParser parser = builderCurrent.build(proj, getItDir + gzippers[gzipIndex]);
 						parser.determineIndicesFromTitles();
 						parser.loadData();
-						for (int j2 = i + 1; j2 < fullPathPcFile.length; j2++) {
-							String comp = ext.rootOf(fullPathPcFile[j2], false) + SUB_DIR + gzippers[j];
+						for (int pcFile2Index = pcFile1Index + 1; pcFile2Index < fullPathPcFile.length; pcFile2Index++) {
+							String comp = ext.rootOf(fullPathPcFile[pcFile2Index], false) + SUB_DIR + gzippers[gzipIndex];
 							if (Files.exists(comp)) {
 								ProjectDataParserBuilder builderComp = new ProjectDataParserBuilder();
 
@@ -85,17 +85,28 @@ public class CorrelTypePcs {
 								parserComp.determineIndicesFromTitles();
 								parserComp.loadData();
 								int min = Math.min(parser.getNumericDataTitles().length, parserComp.getNumericDataTitles().length);
-								for (int k = 0; k < min; k++) {
+								for (int pcIndex = 0; pcIndex < min; pcIndex++) {
 									ArrayList<String> outData = new ArrayList<String>();
-									outData.add(fullPathPcFile[i]);
-									outData.add(fullPathPcFile[j2]);
-									outData.add(ext.rootOf(gzippers[j]));
+									outData.add(fullPathPcFile[pcFile1Index]);
+									outData.add(fullPathPcFile[pcFile2Index]);
+									outData.add(ext.rootOf(gzippers[gzipIndex]));
 									outData.add("TRUE");
-									if (parser.getNumericDataTitles()[k].equals(parserComp.getNumericDataTitles()[k])) {
-										outData.add(parser.getNumericDataTitles()[k].replaceAll("PC", ""));
-										String pc = parser.getNumericDataTitles()[k];
-										outData.add(Correlation.Spearman(new double[][] { parser.getNumericDataForTitle(pc), parserComp.getNumericDataForTitle(pc) })[0] + "");
-										outData.add(Correlation.Pearson(parser.getNumericDataForTitle(pc), parserComp.getNumericDataForTitle(pc))[0] + "");
+									if (parser.getNumericDataTitles()[pcIndex].equals(parserComp.getNumericDataTitles()[pcIndex])) {
+										outData.add(parser.getNumericDataTitles()[pcIndex].replaceAll("PC", ""));
+										String pc = parser.getNumericDataTitles()[pcIndex];
+										double[][] data = new double[][] { parser.getNumericDataForTitle(pc), parserComp.getNumericDataForTitle(pc) };
+										ArrayList<Integer> indicesToCorrel = new ArrayList<Integer>();
+										for (int i = 0; i < data[0].length; i++) {
+											if (!Double.isNaN(data[0][i]) && !Double.isNaN(data[1][i])) {
+												indicesToCorrel.add(i);
+											}
+										}
+										// proj.getLog().reportTimeInfo(indicesToCorrel.size() + " valid estimates of " + data[0].length + " total for " + gzippers[gzipIndex]);
+										data[0] = Array.subArray(data[0], Array.toIntArray(indicesToCorrel));
+										data[1] = Array.subArray(data[1], Array.toIntArray(indicesToCorrel));
+
+										outData.add(Correlation.Spearman(data)[0] + "");
+										outData.add(Correlation.Pearson(data)[0] + "");
 										writer.println(Array.toStr(Array.toStringArray(outData)));
 									} else {
 										writer.close();
@@ -121,7 +132,17 @@ public class CorrelTypePcs {
 		rsScatter.setOverWriteExisting(true);
 		rsScatter.setxLabel("PC");
 		rsScatter.setyLabel("SPEARMAN r");
+		rsScatter.setyRange(new double[] { -.5, 1 });
 		rsList.add(rsScatter);
+
+		String tmp2 = out + "_basicPear";
+		RScatter rsScatterP = new RScatter(out, tmp2 + ".rscript", ext.removeDirectoryInfo(tmp2), tmp2 + ".jpeg", "PC", new String[] { "PEARCorrelation" }, "METHOD_FILE", SCATTER_TYPE.POINT, log);
+		rsScatterP.setTitle(ext.removeDirectoryInfo(fullPathPcFile[0]) + " vs " + ext.removeDirectoryInfo(fullPathPcFile[1]));
+		rsScatterP.setOverWriteExisting(true);
+		rsScatterP.setxLabel("PC");
+		rsScatterP.setyLabel("PEARSON r");
+		rsScatterP.setyRange(new double[] { -.5, 1 });
+		rsList.add(rsScatterP);
 
 		RScatters rsScatters = new RScatters(rsList.toArray(new RScatter[rsList.size()]), out + ".rscript", out + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
 		rsScatters.execute();
