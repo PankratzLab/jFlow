@@ -218,18 +218,18 @@ public class ProjectCreationGUI extends JDialog {
         spinnerXY.setModel(new SpinnerNumberModel(proj.XY_SCALE_FACTOR.getDefaultValue().doubleValue(), 0.001, 10000000000d, 1.0));
         contentPane.add(spinnerXY, "cell 2 11,growx");
         
-        JLabel lblLogrRatioStddev = new JLabel("Log-R Ratio Std.Dev. Cut-off Threshold:");
-        contentPane.add(lblLogrRatioStddev, "cell 0 12,alignx trailing");
+//        JLabel lblLogrRatioStddev = new JLabel("Log-R Ratio Std.Dev. Cut-off Threshold:");
+//        contentPane.add(lblLogrRatioStddev, "cell 0 12,alignx trailing");
         
-        spinnerLrrSd = new JSpinner();
-        spinnerLrrSd.setModel(new SpinnerNumberModel(proj.LRRSD_CUTOFF.getDefaultValue().doubleValue(), 0.0, 3.0, 0.1));
-        contentPane.add(spinnerLrrSd, "cell 2 12,growx");
+//        spinnerLrrSd = new JSpinner();
+//        spinnerLrrSd.setModel(new SpinnerNumberModel(proj.LRRSD_CUTOFF.getDefaultValue().doubleValue(), 0.0, 3.0, 0.1));
+//        contentPane.add(spinnerLrrSd, "cell 2 12,growx");
         
         JLabel lblTargetMarkersFile = new JLabel("[Optional] Target Markers File:");
-        contentPane.add(lblTargetMarkersFile, "cell 0 13,alignx trailing");
+        contentPane.add(lblTargetMarkersFile, "cell 0 12,alignx trailing");
         
         txtFldTgtMkrs = new JTextField(proj.TARGET_MARKERS_FILENAMES.getDefaultValueString());
-        contentPane.add(txtFldTgtMkrs, "flowx,cell 2 13,growx");
+        contentPane.add(txtFldTgtMkrs, "flowx,cell 2 12,growx");
         txtFldTgtMkrs.setColumns(10);
         
         Insets fileBtnInsets = new Insets(0, 3, 0, 3);
@@ -249,7 +249,7 @@ public class ProjectCreationGUI extends JDialog {
         btnTgtMkrs.setMargin(fileBtnInsets);
         btnTgtMkrs.setText("...");
         btnTgtMkrs.setActionCommand("TARGET");
-        contentPane.add(btnTgtMkrs, "cell 2 13");
+        contentPane.add(btnTgtMkrs, "cell 2 12");
         
         JSeparator separator_1 = new JSeparator();
         contentPane.add(separator_1, "cell 0 15 4 1,growx");
@@ -395,7 +395,7 @@ public class ProjectCreationGUI extends JDialog {
         String srcDir = txtFldSrcDir.getText().trim();
         String srcExt = txtFldSrcExt.getText().trim();
 //        String idHdr = txtFldIDHdr.getText().trim();
-        double lrrSd = ((Double)spinnerLrrSd.getValue()).doubleValue();
+//        double lrrSd = ((Double)spinnerLrrSd.getValue()).doubleValue();
         double xy = ((Double)spinnerXY.getValue()).doubleValue();
         String tgtMkrs = txtFldTgtMkrs.getText().trim();
         
@@ -475,7 +475,7 @@ public class ProjectCreationGUI extends JDialog {
         actualProj.PROJECT_DIRECTORY.setValue(projDir);
         actualProj.SOURCE_DIRECTORY.setValue(srcDir);
         actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);
-        actualProj.LRRSD_CUTOFF.setValue(lrrSd);
+//        actualProj.LRRSD_CUTOFF.setValue(lrrSd);
         actualProj.XY_SCALE_FACTOR.setValue(xy);
         actualProj.TARGET_MARKERS_FILENAMES.setValue(new String[]{ext.removeDirectoryInfo(tgtMkrs)});
         actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());

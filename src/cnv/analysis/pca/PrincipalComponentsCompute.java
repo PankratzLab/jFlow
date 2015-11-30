@@ -418,7 +418,7 @@ public class PrincipalComponentsCompute {
 
 	// this version only supports target markers, and it takes them all
 	private static String[] getMarkers(Project proj) {
-		String[] markers = proj.getTargetMarkers();
+		String[] markers = proj.getTargetMarkers(proj.PCA_AUTOSOMAL_MARKERS_FILENAME.getValue());
 		return sortByProjectMarkers(proj, markers);
 	}
 
