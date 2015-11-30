@@ -212,7 +212,8 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return the PrincipalComponentsCompute object with PCs computed
 	 */
-	public static PrincipalComponentsCompute getPrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, boolean recomputeLRR, String useFile, String output) {
+	public static PrincipalComponentsCompute getPrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, boolean recomputeLRR, String useFile, String output,GcAdjustorParameters parameters) {
+
 		Logger log = proj.getLog();
 		PrincipalComponentsCompute pcs = populateWithExistingFiles(proj, output, log);
 		if (pcs != null) {
@@ -234,7 +235,7 @@ public class PrincipalComponentsCompute {
 		}
 
 		// deals with NaN on the fly
-		double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN, true, recomputeLRR, output);
+		double[][] dataToUse = getData(proj, markers, samplesToUse, printFullData, imputeMeanForNaN, true, recomputeLRR, output, parameters);
 		pcs = getPrincipalComponents(numComponents, center, dataToUse, true, log);
 		double[][] pcsBasis = getPCs(pcs, numComponents, true, log);
 		reportPCs(proj, pcs, numComponents, output, samplesToUse, pcsBasis);
@@ -490,17 +491,19 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return
 	 */
-	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse, boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, boolean recomputeLRR, String output) {
+	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse, boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, boolean recomputeLRR, String output,GcAdjustorParameters parameters) {
 		double[][] dataToUse = getAppropriateArray(markers.length, samplesToUse);
 		MDL mdl = new MDL(proj, markers, 2, 1);
-		String gcCorrections = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0];
-		proj.getLog().reportTimeInfo("Using gc paramter file "+gcCorrections);
-		//TODO, arg
-		GcAdjustorParameters parameters = GcAdjustorParameters.readSerial(gcCorrections, proj.getLog());
 		// MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 		boolean[] markerUsed = new boolean[markers.length];
 		Logger log = proj.getLog();
-
+		if (parameters != null && recomputeLRR) {
+			proj.getLog().reportTimeError("recompute lrr was flagged AND gc correction parameters were passed to data load");
+			return null;
+		}
+		if (parameters != null) {
+			proj.getLog().reportTimeInfo("Will be performing GC correction of input to PCA");
+		}
 		Arrays.fill(markerUsed, true);
 		// for (int i = 0; i < markers.length; i++) {
 		int i = 0;
@@ -523,10 +526,6 @@ public class PrincipalComponentsCompute {
 				data[0] = markerData.getLRRs();
 			}
 			if (parameters != null) {
-				if (parameters.getCentroids() == null) {
-					proj.getLog().reportTimeError("NO centroids available in load");
-					return null;
-				}
 				data[0] = markerData.getGCCorrectedLRRBAF(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
 			}
 			// please hard code dealWithNaN as it determines whether later data checks must be done;

@@ -37,6 +37,7 @@ public class PrincipalComponentsApply {
 	private String extrapolatedPCsFile;
 	// sample,PC#
 	private double[][] extrapolatedPCs;
+	private GcAdjustorParameters params;
 	private Logger log;
 
 	/**
@@ -68,6 +69,14 @@ public class PrincipalComponentsApply {
 		this.recomputeLRR = recomputeLRR;
 		getMarkers();
 		initExtPCS();
+	}
+
+	public GcAdjustorParameters getParams() {
+		return params;
+	}
+
+	public void setParams(GcAdjustorParameters params) {
+		this.params = params;
 	}
 
 	/**
@@ -109,10 +118,14 @@ public class PrincipalComponentsApply {
 			log.reportError("Error - the boolean array of samples to use does not equal the length of the samples in the project, exiting");
 			return;
 		} else {
-			String gcCorrections = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0];
-			proj.getLog().reportTimeInfo("Using gc paramter file " + gcCorrections + " to apply loadings");
-			// TODO, arg
-			GcAdjustorParameters parameters = GcAdjustorParameters.readSerial(gcCorrections, proj.getLog());
+
+			if (params != null && recomputeLRR) {
+				proj.getLog().reportTimeError("recompute lrr was flagged AND gc correction parameters were passed to data load when applying PCs");
+				return;
+			}
+			if (params != null) {
+				proj.getLog().reportTimeInfo("Will be performing GC correction of input for applying PCs");
+			}
 			Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
 
 			MDL mdl = new MDL(proj, markers, 2, 100);
@@ -134,14 +147,11 @@ public class PrincipalComponentsApply {
 					lrrs = markerData.getLRRs();
 				}
 
-				if (parameters != null) {
-					if (parameters.getCentroids() == null) {
-						proj.getLog().reportTimeError("NO centroids available in apply");
-						return;
-					}
-					lrrs = markerData.getGCCorrectedLRRBAF(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
+				if (params != null) {
+
+					lrrs = markerData.getGCCorrectedLRRBAF(params, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
 				}
-				
+
 				if (!hasNAN(lrrs)) {
 					applyMarkerLoading(lrrs, index);
 				} else if (imputeMeanForNaN) {

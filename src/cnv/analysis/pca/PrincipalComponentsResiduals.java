@@ -73,6 +73,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	protected Hashtable<String, Integer> samplesInPc;// stores the index of a sample in the pc file
 	protected boolean[] samplesToUse;// corresponds to the samples in the PC
 	private boolean printFull, homozygousOnly, recomputeLRR, sortedByProject;
+	private GcAdjustorParameters params;
 
 	/**
 	 * @param proj
@@ -112,6 +113,14 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		loadPcFile(pcFile, useIID);
 		parseSamplesToUse();
 		this.sortedByProject = determineSortedByProject();
+	}
+
+	public GcAdjustorParameters getParams() {
+		return params;
+	}
+
+	public void setParams(GcAdjustorParameters params) {
+		this.params = params;
 	}
 
 	public String[] getPcTitles() {
@@ -289,10 +298,14 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			log.report("Info - did not find the cluster filter file " + proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME) + "; using original genotypes");
 		}
 		Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
-		String gcCorrections = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0];
-		proj.getLog().reportTimeInfo("Using gc paramter file " + gcCorrections + " to compute median values");
+		if (params != null && recomputeLRR) {
+			proj.getLog().reportTimeError("recompute lrr was flagged AND gc correction parameters were passed to data load of median markers");
+			return;
+		}
+		if (params != null) {
+			proj.getLog().reportTimeInfo("Will be performing GC correction of median markers");
+		}
 		// TODO, arg
-		GcAdjustorParameters parameters = GcAdjustorParameters.readSerial(gcCorrections, proj.getLog());
 		int index = 0;
 		while (mdl.hasNext()) {
 			// for (int index = 0;index < markersToAssess.length; index++) {
@@ -305,12 +318,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			} else {
 				lrrs = markerData.getLRRs();
 			}
-			if (parameters != null) {
-				if (parameters.getCentroids() == null) {
-					proj.getLog().reportTimeError("NO centroids available in median");
-					return;
-				}
-				lrrs = markerData.getGCCorrectedLRRBAF(parameters, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
+			if (params != null) {
+				lrrs = markerData.getGCCorrectedLRRBAF(params, projectIndices.get(markerData.getMarkerName()), proj.getLog())[1];
 			}
 			abGenos = markerData.getAbGenotypesAfterFilters(cluster, markersToAssess[index], gcThreshold, log);
 			int sampleIndex = 0;

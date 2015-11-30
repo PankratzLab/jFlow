@@ -823,7 +823,8 @@ public class GenvisisPipeline {
             String outputBase = variableFields.get(this).get(4);
             
             proj.getLog().report("\nReady to perform the principal components analysis (PCA)\n");
-            PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + MitoPipeline.PCA_SAMPLES, outputBase);
+			//TODO, load gc params as needed instead of passing null...
+            PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + MitoPipeline.PCA_SAMPLES, outputBase, null);
             if (pcs == null) {
                 setFailed();
                 this.failReasons.add("# of Principal Components is greater than either the # of samples or the # of markers.  Please lower the # of PCs and try again.");
@@ -832,7 +833,7 @@ public class GenvisisPipeline {
             // apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
             // TODO, if we ever want to apply to only a subset of the project, we can do that here.....
             proj.getLog().report("\nApplying the loadings from the principal components analysis to all samples\n");
-            PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase);
+			PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, null);
             // Compute Medians for (MT) markers and compute residuals from PCs for everyone
             proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
             proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
@@ -921,7 +922,7 @@ public class GenvisisPipeline {
                 String outputBase = variableFields.get(this).get(6);
                 
                 proj.getLog().report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
-                PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, extrapolatedPCsFile, ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homozygousOnly, recomputeLRR_Median, outputBase);
+                PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, extrapolatedPCsFile, ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homozygousOnly, recomputeLRR_Median, outputBase,null);
                 MitoPipeline.generateFinalReport(proj, outputBase, pcResids.getResidOutput());
             }
             @Override
