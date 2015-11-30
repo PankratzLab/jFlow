@@ -10,9 +10,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import stats.CategoricalPredictor;
-import stats.Quantiles;
-import stats.CategoricalPredictor.DummyCoding;
+
+
+
+
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.ErrorBars;
 import stats.Rscript.GEOM_POINT_SIZE;
@@ -329,7 +330,7 @@ class CorrectionIterator implements Serializable {
 		private boolean[] samplesForModels;
 		private boolean[] samplesToEvaluate;
 		private String[] numericTitles;
-		private StatsCrossTabRank sTabRank;
+		//private StatsCrossTabRank sTabRank;
 
 		public BasicPrep(double[][] numericData, String[] numericTitles, boolean[] samplesToEvaluate, boolean[] samplesForModels, StatsCrossTabRank sTabRank) {
 			super();
@@ -337,7 +338,7 @@ class CorrectionIterator implements Serializable {
 			this.samplesToEvaluate = samplesToEvaluate;
 			this.samplesForModels = samplesForModels;
 			this.numericTitles = numericTitles;
-			this.sTabRank = sTabRank;
+		//	this.sTabRank = sTabRank;
 		}
 
 		public boolean[] getSamplesForModels() {
@@ -408,8 +409,12 @@ class CorrectionIterator implements Serializable {
 			this.oType = oType;
 			this.bType = bType;
 			this.pcPercent = pcPercent;
+			System.out.println(this.pcPercent);
+			System.out.println(this.valid);
+
 		}
 
+		
 		public String getBasePrep() {
 			return basePrep;
 		}
@@ -520,7 +525,7 @@ class CorrectionIterator implements Serializable {
 							for (int j = 0; j < numericStratCats.length; j++) {
 
 								String outputBoxSub = ext.addToRoot(outputBox, sampleDataStratCats[i] + "_" + numericStratCats[j]);
-								String outputQuantSub = quantDir + ext.addToRoot(ext.removeDirectoryInfo(boxPlot), sampleDataStratCats[i] + "_" + numericStratCats[j] + ".quant");
+								//String outputQuantSub = quantDir + ext.addToRoot(ext.removeDirectoryInfo(boxPlot), sampleDataStratCats[i] + "_" + numericStratCats[j] + ".quant");
 								double[] data = parser.getNumericDataForTitle(numericStratCats[j]);
 								if (data != null) {
 									// plotQuants(evaluationResults, outputQuantSub, data, 5, numericStratCats[j], proj.getLog());
@@ -588,81 +593,81 @@ class CorrectionIterator implements Serializable {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
-			String finalBoxPlot = boxDir + ext.removeDirectoryInfo(outputRoot) + "finalBoxPlot";
-			RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), finalBoxPlot + ".rscript", finalBoxPlot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+			//String finalBoxPlot = boxDir + ext.removeDirectoryInfo(outputRoot) + "finalBoxPlot";
+			//RScatters rScattersAll = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), finalBoxPlot + ".rscript", finalBoxPlot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
 			scatters.addAll(rScatters);
 			// rScattersAll.execute();
 			return classifiers;
 			// RScatter
 		}
 
-		private void plotQuants(EvaluationResult[] evaluationResults, String outputQuant, double[] data, int numq, String sampleDataStratCats, Logger log) throws IOException {
-			String realOut = ext.addToRoot(outputQuant, ".numQ_" + numq);
-			PrintWriter writerQuant = new PrintWriter(new FileWriter(realOut));
-			ArrayList<String> pcYsubQ = new ArrayList<String>();
-			String dataTitle = sampleDataStratCats + ".quant_" + numq;
-			pcYsubQ.add(dataTitle);
-			writerQuant.print(dataTitle);
-			System.out.println(realOut);
-
-			for (int PC = 0; PC < evaluationResults.length; PC++) {
-
-				String title = "PC" + PC;
-				String part = title + "quant.matched.dist_" + numq;
-				String full = title + "quant.full.dist_" + numq;
-				writerQuant.print("\t" + part + "\t" + full);
-				pcYsubQ.add(full);
-				pcYsubQ.add(part);
-			}
-			// Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, variableDomMatrix, titles, proj.getLog());
-
-			double[][] toQuant = new double[evaluationResults.length * 2 + 1][data.length];
-			toQuant[0] = data;
-			int index = 1;
-			for (int pcIndex = 0; pcIndex < evaluationResults.length; pcIndex++) {
-				double[] estimateMatched = new double[getBasicPrep().getSamplesToEvaluate().length];
-				double[] estimateFull = new double[getBasicPrep().getSamplesToEvaluate().length];
-				for (int k = 0; k < getBasicPrep().getSamplesToEvaluate().length; k++) {
-					estimateMatched[k] = Double.NaN;
-					estimateFull[k] = Double.NaN;
-					if (getBasicPrep().getSamplesToEvaluate()[k]) {
-						estimateFull[k] = evaluationResults[pcIndex].getEstimateData()[k];
-						if (!Double.isNaN(data[k])) {
-							estimateMatched[k] = evaluationResults[pcIndex].getEstimateData()[k];
-						}
-					}
-				}
-				toQuant[index] = estimateMatched;
-				index++;
-				toQuant[index] = estimateFull;
-				index++;
-			}
-			Quantiles[] quantiles = null;
-			try {
-				quantiles = Quantiles.qetQuantilesFor(numq, toQuant, Array.toStringArray(pcYsubQ), log);
-			} catch (Exception e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
-			// System.out.println(quantiles.length);
-
-			for (int sampleQuantileIndex = 0; sampleQuantileIndex < quantiles[0].getQuantileMembership().length; sampleQuantileIndex++) {
-				if (quantiles[0].getQuantileMembership()[sampleQuantileIndex] > 0) {
-					for (int i = 0; i < quantiles.length; i++) {
-
-						if (i > 0) {
-							writerQuant.print("\t");
-						}
-						writerQuant.print(quantiles[i].getQuantileMembership()[sampleQuantileIndex]);
-					}
-					writerQuant.println();
-				}
-			}
-
-			writerQuant.close();
-			// System.out.println("DSF");
-			// System.exit(1);
-		}
+//		private void plotQuants(EvaluationResult[] evaluationResults, String outputQuant, double[] data, int numq, String sampleDataStratCats, Logger log) throws IOException {
+//			String realOut = ext.addToRoot(outputQuant, ".numQ_" + numq);
+//			PrintWriter writerQuant = new PrintWriter(new FileWriter(realOut));
+//			ArrayList<String> pcYsubQ = new ArrayList<String>();
+//			String dataTitle = sampleDataStratCats + ".quant_" + numq;
+//			pcYsubQ.add(dataTitle);
+//			writerQuant.print(dataTitle);
+//			System.out.println(realOut);
+//
+//			for (int PC = 0; PC < evaluationResults.length; PC++) {
+//
+//				String title = "PC" + PC;
+//				String part = title + "quant.matched.dist_" + numq;
+//				String full = title + "quant.full.dist_" + numq;
+//				writerQuant.print("\t" + part + "\t" + full);
+//				pcYsubQ.add(full);
+//				pcYsubQ.add(part);
+//			}
+//			// Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, variableDomMatrix, titles, proj.getLog());
+//
+//			double[][] toQuant = new double[evaluationResults.length * 2 + 1][data.length];
+//			toQuant[0] = data;
+//			int index = 1;
+//			for (int pcIndex = 0; pcIndex < evaluationResults.length; pcIndex++) {
+//				double[] estimateMatched = new double[getBasicPrep().getSamplesToEvaluate().length];
+//				double[] estimateFull = new double[getBasicPrep().getSamplesToEvaluate().length];
+//				for (int k = 0; k < getBasicPrep().getSamplesToEvaluate().length; k++) {
+//					estimateMatched[k] = Double.NaN;
+//					estimateFull[k] = Double.NaN;
+//					if (getBasicPrep().getSamplesToEvaluate()[k]) {
+//						estimateFull[k] = evaluationResults[pcIndex].getEstimateData()[k];
+//						if (!Double.isNaN(data[k])) {
+//							estimateMatched[k] = evaluationResults[pcIndex].getEstimateData()[k];
+//						}
+//					}
+//				}
+//				toQuant[index] = estimateMatched;
+//				index++;
+//				toQuant[index] = estimateFull;
+//				index++;
+//			}
+//			Quantiles[] quantiles = null;
+//			try {
+//				quantiles = Quantiles.qetQuantilesFor(numq, toQuant, Array.toStringArray(pcYsubQ), log);
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//				System.exit(1);
+//			}
+//			// System.out.println(quantiles.length);
+//
+//			for (int sampleQuantileIndex = 0; sampleQuantileIndex < quantiles[0].getQuantileMembership().length; sampleQuantileIndex++) {
+//				if (quantiles[0].getQuantileMembership()[sampleQuantileIndex] > 0) {
+//					for (int i = 0; i < quantiles.length; i++) {
+//
+//						if (i > 0) {
+//							writerQuant.print("\t");
+//						}
+//						writerQuant.print(quantiles[i].getQuantileMembership()[sampleQuantileIndex]);
+//					}
+//					writerQuant.println();
+//				}
+//			}
+//
+//			writerQuant.close();
+//			// System.out.println("DSF");
+//			// System.exit(1);
+//		}
 
 		private void plotFirst(String[] sampleDataStratCats, Logger log, String dir, ArrayList<RScatter> rScatters, int i, EvaluationResult[] evaluationResults, String outputBox, ArrayList<String> pcYs) {
 			RScatter rScatterSubset = new RScatter(outputBox, ext.addToRoot(outputBox, "sub.rscript"), ext.removeDirectoryInfo(outputBox) + "sub", dir + ext.removeDirectoryInfo(outputBox) + "sub.pdf", sampleDataStratCats[i], Array.subArray(Array.toStringArray(pcYs), 0, Math.min(20, evaluationResults.length)), SCATTER_TYPE.BOX, log);
@@ -923,58 +928,58 @@ class CorrectionIterator implements Serializable {
 
 	}
 
-	private static double[][] loadIndeps(CorrectionEvaluator cEvaluator, String[] indepHeaders, double[][] indepMasks, String[] catHeaders, String[] catHeaderMask, Logger log) {
-		ExtProjectDataParser parser = cEvaluator.getParser();
-
-		double[][] extraIndeps = new double[Array.booleanArraySum(parser.getDataPresent())][indepHeaders.length];
-
-		for (int i = 0; i < indepHeaders.length; i++) {
-			int curSum = 0;
-			if (parser.getNumericDataForTitle(indepHeaders[i]).length <= 0) {
-				log.reportTimeError("Did not find " + indepHeaders[i] + " to load for independent variable");
-				return null;
-			} else {
-				double[] data = parser.getNumericDataForTitle(indepHeaders[i]);
-				for (int j = 0; j < data.length; j++) {
-					boolean mask = false;
-					for (int k = 0; k < indepMasks[i].length; k++) {
-						if (data[j] == indepMasks[i][k]) {
-							mask = true;
-						}
-					}
-					if (mask) {
-						extraIndeps[j][i] = Double.NaN;
-					} else {
-						extraIndeps[j][i] = data[j];
-						curSum++;
-					}
-				}
-			}
-			log.reportTimeInfo(curSum + " samples for independant variable " + indepHeaders[i]);
-		}
-		for (int i = 0; i < catHeaders.length; i++) {
-
-			if (parser.getStringDataForTitle(catHeaders[i]).length <= 0) {
-				log.reportTimeError("Did not find " + catHeaders[i] + " to load for independent variable");
-				return null;
-			} else {
-				String[] data = parser.getStringDataForTitle(catHeaders[i]);
-				CategoricalPredictor predictor = new CategoricalPredictor(data, catHeaderMask, log);
-				DummyCoding dummyCoding = predictor.createDummyCoding(false);
-				for (int j = 0; j < dummyCoding.getDummyBoolean().length; j++) {
-					double[] dummyData = Array.doubleArray(dummyCoding.getTitles().length, Double.NaN);
-					if (dummyCoding.getDummyBoolean()[j]) {
-						for (int k = 0; k < dummyData.length; k++) {
-							dummyData[k] = dummyCoding.getDummyData()[k][j];
-						}
-					}
-					extraIndeps[j] = Array.concatDubs(extraIndeps[j], dummyData);
-				}
-			}
-		}
-
-		return extraIndeps;
-	}
+//	private static double[][] loadIndeps(CorrectionEvaluator cEvaluator, String[] indepHeaders, double[][] indepMasks, String[] catHeaders, String[] catHeaderMask, Logger log) {
+//		ExtProjectDataParser parser = cEvaluator.getParser();
+//
+//		double[][] extraIndeps = new double[Array.booleanArraySum(parser.getDataPresent())][indepHeaders.length];
+//
+//		for (int i = 0; i < indepHeaders.length; i++) {
+//			int curSum = 0;
+//			if (parser.getNumericDataForTitle(indepHeaders[i]).length <= 0) {
+//				log.reportTimeError("Did not find " + indepHeaders[i] + " to load for independent variable");
+//				return null;
+//			} else {
+//				double[] data = parser.getNumericDataForTitle(indepHeaders[i]);
+//				for (int j = 0; j < data.length; j++) {
+//					boolean mask = false;
+//					for (int k = 0; k < indepMasks[i].length; k++) {
+//						if (data[j] == indepMasks[i][k]) {
+//							mask = true;
+//						}
+//					}
+//					if (mask) {
+//						extraIndeps[j][i] = Double.NaN;
+//					} else {
+//						extraIndeps[j][i] = data[j];
+//						curSum++;
+//					}
+//				}
+//			}
+//			log.reportTimeInfo(curSum + " samples for independant variable " + indepHeaders[i]);
+//		}
+//		for (int i = 0; i < catHeaders.length; i++) {
+//
+//			if (parser.getStringDataForTitle(catHeaders[i]).length <= 0) {
+//				log.reportTimeError("Did not find " + catHeaders[i] + " to load for independent variable");
+//				return null;
+//			} else {
+//				String[] data = parser.getStringDataForTitle(catHeaders[i]);
+//				CategoricalPredictor predictor = new CategoricalPredictor(data, catHeaderMask, log);
+//				DummyCoding dummyCoding = predictor.createDummyCoding(false);
+//				for (int j = 0; j < dummyCoding.getDummyBoolean().length; j++) {
+//					double[] dummyData = Array.doubleArray(dummyCoding.getTitles().length, Double.NaN);
+//					if (dummyCoding.getDummyBoolean()[j]) {
+//						for (int k = 0; k < dummyData.length; k++) {
+//							dummyData[k] = dummyCoding.getDummyData()[k][j];
+//						}
+//					}
+//					extraIndeps[j] = Array.concatDubs(extraIndeps[j], dummyData);
+//				}
+//			}
+//		}
+//
+//		return extraIndeps;
+//	}
 
 	private static CorrectionIterator[] getIterations(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, boolean svd, double pcPercent, int numthreads) {
 		ArrayList<CorrectionIterator> cIterators = new ArrayList<CorrectionIterator>();
@@ -1076,14 +1081,14 @@ class CorrectionIterator implements Serializable {
 		}
 		proj.getLog().reportTimeWarning("Skipping plots");
 
-		// WorkerTrain<IterSummary> summaryTrain = new WorkerTrain<IterSummary>(producer, numthreads, numthreads, proj.getLog());
-		// while (summaryTrain.hasNext()) {
-		// IterSummary iterSummary = summaryTrain.next();
-		// RScatter[] rScattersTmp = iterSummary.getrScatters();
-		// for (int i = 0; i < rScattersTmp.length; i++) {
-		// rScatters.add(rScattersTmp[i]);
-		// }
-		// }
+		WorkerTrain<IterSummary> summaryTrain = new WorkerTrain<IterSummary>(producer, numthreads, numthreads, proj.getLog());
+		while (summaryTrain.hasNext()) {
+			IterSummary iterSummary = summaryTrain.next();
+			RScatter[] rScattersTmp = iterSummary.getrScatters();
+			for (int i = 0; i < rScattersTmp.length; i++) {
+				rScatters.add(rScattersTmp[i]);
+			}
+		}
 
 		String outputRoot = outputDir + "finalSummary";
 		RScatters finalScatters = new RScatters(rScatters.toArray(new RScatter[rScatters.size()]), outputRoot + ".rscript", outputRoot + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_2, PLOT_DEVICE.PDF, proj.getLog());
@@ -1139,7 +1144,7 @@ class CorrectionIterator implements Serializable {
 			log.reportException(e);
 		}
 
-		// finalScatters.execute();
+		finalScatters.execute();
 		return cIterators;
 	}
 
@@ -1201,7 +1206,7 @@ class CorrectionIterator implements Serializable {
 				double stdvStat = Array.stdev(stats);
 
 				int numSamplesModel = Array.booleanArraySum(correctionIterator.getIterationResult().getBasicPrep().getSamplesForModels());
-				//int numSamplesEval = Array.booleanArraySum(correctionIterator.getIterationResult().getBasicPrep().getSamplesToEvaluate());
+				// int numSamplesEval = Array.booleanArraySum(correctionIterator.getIterationResult().getBasicPrep().getSamplesToEvaluate());
 				ArrayList<String> result = new ArrayList<String>();
 				result.add(mBuilder_TYPE.toString());
 				result.add(oType.toString());
@@ -1243,14 +1248,17 @@ class CorrectionIterator implements Serializable {
 			return rScatters;
 		}
 
+		@SuppressWarnings("unused")
 		public MODEL_BUILDER_TYPE getmBuilder_TYPE() {
 			return mBuilder_TYPE;
 		}
 
+		@SuppressWarnings("unused")
 		public ITERATION_TYPE getiType() {
 			return iType;
 		}
 
+		@SuppressWarnings("unused")
 		public ORDER_TYPE getOtType() {
 			return otType;
 		}
@@ -1319,7 +1327,7 @@ class CorrectionIterator implements Serializable {
 					}
 					EvaluationResult[] evaluationResults = EvaluationResult.readSerial(originalSer, proj.getLog());
 					// Add multiplots here
-					double font = .5;
+					//double font = .5;
 					int modelN = Array.booleanArraySum(iterationResult.getBasicPrep().getSamplesForModels());
 					for (int i = 0; i < plotTitlesForSummary.length; i++) {
 						RScatter rScatterSummary = iterationResult.plotSummary(plotTitlesForSummary[i], i, evaluationResults[0], modelN, proj.getLog());
