@@ -137,10 +137,20 @@ public class MarkerData implements Serializable {
 			return pcIntensity.getCorrectedIntensity(typeToReturn, true);
 		}
 	}
+	
+	
 
-	public float[][] getGCCorrectedLRR(GcAdjustorParameters params, int markerIndexInProjec, Logger log) {
+	/**
+	 * @param params
+	 *            valid {@link GcAdjustorParameters}
+	 * @param markerIndexInProject
+	 *            actual project index, for matching up which centroid to use
+	 * @param log
+	 * @return
+	 */
+	public float[][] getGCCorrectedLRRBAF(GcAdjustorParameters params, int markerIndexInProject, Logger log) {
 		if (params.getSampleFingerprint() != fingerprint) {
-			throw new IllegalArgumentException("Mismatched marker fingerprints\tLoaded: " + params.getMarkerFingerprint() + " and should have seen " + fingerprint);
+			throw new IllegalArgumentException("Mismatched sample fingerprints\tLoaded: " + params.getMarkerFingerprint() + " and should have seen " + fingerprint);
 		}
 		if (params.getGcAdjustorParameters().length != xs.length) {
 			throw new IllegalArgumentException("Mismatched sample sizes");
@@ -149,7 +159,7 @@ public class MarkerData implements Serializable {
 		if (lrrs == null) {
 			return null;
 		} else {
-			float[][] recompBAFLRR = params.getCentroids() == null ? new float[][] { bafs.clone(), lrrs.clone() } : recomputeClone(params.getCentroids().getCentroids()[markerIndexInProjec]);
+			float[][] recompBAFLRR = params.getCentroids() == null ? new float[][] { bafs.clone(), lrrs.clone() } : recomputeClone(params.getCentroids().getCentroids()[markerIndexInProject]);
 
 			for (int i = 0; i < recompBAFLRR[0].length; i++) {
 				recompBAFLRR[1][i] = (float) params.getGcAdjustorParameters()[i].adjust(GC_CORRECTION_METHOD.GENVISIS_GC, recompBAFLRR[1][i], params.getGcContent()[i]);

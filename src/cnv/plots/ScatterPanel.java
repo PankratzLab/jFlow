@@ -193,7 +193,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 						sp.getGcAdjustorParameters()[i] = GcAdjustorParameters.readSerial(sp.getGcCList()[1][i], log);
 						log.reportTimeInfo("Lazy loading " + sp.getGcCList()[1][i]);
 					}
-					datapoints = markerData.getGCCorrectedLRR(sp.getGcAdjustorParameters()[i], markerProjectIndex, log);
+					datapoints = markerData.getGCCorrectedLRRBAF(sp.getGcAdjustorParameters()[i], markerProjectIndex, log);
 					break out;
 				}
 			}

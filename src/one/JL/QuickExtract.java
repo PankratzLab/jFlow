@@ -16,8 +16,7 @@ import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCOps;
 
 /**
- * @author lane0212
- *Quickly looking at few variants in specific regions and pulling out some info of interest
+ * @author lane0212 Quickly looking at few variants in specific regions and pulling out some info of interest
  */
 public class QuickExtract {
 
@@ -48,8 +47,8 @@ public class QuickExtract {
 				if (num % 10000 == 0) {
 					log.reportTimeInfo(num + " scanned");
 					log.reportTimeInfo(found + " found");
-
 				}
+
 				Segment vSegment = VCOps.getSegment(vc);
 				int[] indices = set.getOverlappingIndices(vSegment);
 				if (indices != null) {

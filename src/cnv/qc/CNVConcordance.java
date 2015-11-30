@@ -208,8 +208,8 @@ public class CNVConcordance {
 	}
 
 	private static class ComparisionIndividualResults {
-		private String ind1;
-		private String ind2;
+//		private String ind1;
+//		private String ind2;
 		private int numCNVind1;
 		private int numCNVind2;
 		private int numOverlap;
@@ -218,8 +218,8 @@ public class CNVConcordance {
 		private ArrayList<Double> overlapScores;
 
 		public ComparisionIndividualResults(String ind1, String ind2, int numCNVind1, int numCNVind2) {
-			this.ind1 = ind1;
-			this.ind2 = ind2;
+//			this.ind1 = ind1;
+//			this.ind2 = ind2;
 			this.numCNVind1 = numCNVind1;
 			this.numCNVind2 = numCNVind2;
 			this.numOverlap = 0;
@@ -428,7 +428,7 @@ public class CNVConcordance {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + dir + output));
 				int start = filter.getMinNumMarkers();
-				int stop = filter.getMaxNumMarkers();
+				//int stop = filter.getMaxNumMarkers();
 				CNVariantHash[] cNVariantHash = new CNVariantHash[cnvFiles.length];
 				for (int i = 0; i < cnvFiles.length; i++) {
 					cNVariantHash[i] = CNVariantHash.load(cnvFiles[i], 1, false);

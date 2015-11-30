@@ -14,6 +14,9 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import cnv.qc.GcAdjustorParameter;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import common.Array;
 import common.DoubleVector;
 import common.Elision;
@@ -334,6 +337,47 @@ public class Sample implements Serializable {
         }
 
 		return lrrs;
+	}
+
+	/**
+	 * Use the centroids stored in the {@link GcAdjustorParameters} to recompute baf
+	 */
+	public float[] getBAF(GcAdjustorParameters params, int sampleIndex, Logger log) {
+		GcAdjustorParameter current = params.getGcAdjustorParameters()[sampleIndex];
+		verifyParams(params, current);
+		if (bafs == null) {
+			return null;
+		} else {
+			float[] recompBaf = params.getCentroids() == null ? bafs.clone() : getBAFs(params.getCentroids().getCentroids());
+			return recompBaf;
+		}
+	}
+
+	/**
+	 * Use the centroids stored in the {@link GcAdjustorParameters} to recompute lrr, and then gc correct the result
+	 */
+	public float[] getGCCorrectedLRR(GcAdjustorParameters params, int sampleIndex, Logger log) {
+		GcAdjustorParameter current = params.getGcAdjustorParameters()[sampleIndex];
+		verifyParams(params, current);
+
+		if (lrrs == null) {
+			return null;
+		} else {
+			float[] recompLrrs = params.getCentroids() == null ? lrrs.clone() : getLRRs(params.getCentroids().getCentroids());
+			for (int i = 0; i < recompLrrs.length; i++) {
+				recompLrrs[i] = (float) current.adjust(GC_CORRECTION_METHOD.GENVISIS_GC, recompLrrs[i], params.getGcContent()[i]);
+			}
+			return recompLrrs;
+		}
+	}
+
+	private void verifyParams(GcAdjustorParameters params, GcAdjustorParameter current) {
+		if (!current.getSample().equals(sampleName)) {
+			throw new IllegalArgumentException("Mismatched sample, was given " + current.getSample() + " and should have " + sampleName);
+		}
+		if (params.getMarkerFingerprint() != fingerprint) {
+			throw new IllegalArgumentException("Mismatched sample, was given " + params.getMarkerFingerprint() + " and should have " + fingerprint);
+		}
 	}
 
 	public byte[] getForwardGenotypes() {
