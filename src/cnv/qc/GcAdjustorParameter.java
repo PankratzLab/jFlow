@@ -1,10 +1,10 @@
 package cnv.qc;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import javax.jms.IllegalStateException;
 
 import common.Array;
 import common.Files;
@@ -13,6 +13,8 @@ import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
 import stats.CrossValidation;
+import cnv.analysis.CentroidCompute;
+import cnv.analysis.CentroidCompute.Builder;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
@@ -230,12 +232,7 @@ public class GcAdjustorParameter implements Serializable {
 			for (int i = 0; i < correction_METHODs.length; i++) {
 				if (computeMethods[i]) {
 					builder.correctionMethod(correction_METHODs[i]);
-					// long time = System.currentTimeMillis();
-					GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, builder, sample, null, markerSet, intensites, gcmodel, true, true);
-					if (debugMode) {
-						// proj.getLog().reportTimeInfo(correction_METHODs[i] + "\toriginal way " + ext.getTimeElapsed(time));
-					}
-
+					GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, builder, sample, null, markerSet, intensites, gcmodel, true, true, debugMode);
 					double[] meandSdPrior = getMeanSd(intensites, autosomalIndices);
 					double[] meandSdPost = getMeanSd(Array.toFloatArray(gcAdjustor.getCorrectedIntensities()), autosomalIndices);
 					GcAdjustorParameter gcAdjustorParameters = new GcAdjustorParameter(sample, gcAdjustor.getCrossValidation().getBetas(), gcAdjustor.getWfPrior(), gcAdjustor.getWfPost(), gcAdjustor.getGcwfPrior(), gcAdjustor.getGcwfPost(), meandSdPrior[0], meandSdPost[0], meandSdPrior[1], meandSdPost[1], correction_METHODs[i]);
@@ -303,6 +300,51 @@ public class GcAdjustorParameter implements Serializable {
 		}
 	}
 
+	public static GcAdjustorParameters generate(Project proj, String rootDir, String referenceGenome, GCAdjustorBuilder gcAdjustorBuilder, boolean recomputedLrr, int gcModelWindow, int numThreads) throws IllegalStateException {
+		String outDir = proj.PROJECT_DIRECTORY.getValue() + rootDir;
+		new File(outDir).mkdirs();
+		String gcSerModelFile = outDir + "gcModel_" + gcModelWindow + ".ser";
+		String centroids = outDir + "gc_Centroids.ser";
+		if ((referenceGenome != null && Files.exists(referenceGenome)) || Files.exists(gcSerModelFile) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
+			GcModel gcModel = null;
+			if (Files.exists(gcSerModelFile)) {
+				gcModel = GcModel.loadSerial(gcSerModelFile);
+			} else if (referenceGenome != null && Files.exists(referenceGenome)) {
+				if (!Files.exists(gcSerModelFile)) {
+					gcModel = GcModel.generateSnpWindowModel(proj, gcModelWindow);
+					gcModel.Serialize(gcSerModelFile);
+				} else {
+					try {
+						gcModel = GcModel.loadSerial(gcSerModelFile);
+					} catch (Exception e) {
+						gcModel = GcModel.generateSnpWindowModel(proj, gcModelWindow);
+						gcModel.Serialize(gcSerModelFile);
+					}
+				}
+			} else {
+				gcSerModelFile = outDir + ext.removeDirectoryInfo(proj.GC_MODEL_FILENAME.getValue()) + ".ser";
+				proj.getLog().reportTimeWarning("gc model file " + proj.GC_MODEL_FILENAME.getValue() + " exists and a valid reference was not provided, ignoring any gc model window argument");
+				gcModel = GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), true, proj.getLog());
+				gcModel.Serialize(gcSerModelFile);
+				proj.getLog().reportTimeWarning("copied existing  gc model file to " + gcSerModelFile + " for paramater computation");
+
+			}
+			if (!Files.exists(centroids)) {
+				CentroidCompute.computeAndDumpCentroids(proj, null, centroids, new Builder(), numThreads, 2);
+			}
+			if (recomputedLrr) {
+				proj.getLog().reportTimeInfo("GC correcting LRR values after recomputing LRR");
+			}
+			String[][][] generated = generateAdjustmentParameters(proj, new GCAdjustorBuilder[] { gcAdjustorBuilder }, new String[] { centroids }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, new String[] { rootDir + "default_" }, numThreads, false);
+			String file = generated[0][recomputedLrr ? 1 : 0][0];
+			proj.getLog().reportTimeInfo("Using gc parameter file " + file);
+			return GcAdjustorParameters.readSerial(file, proj.getLog());
+		} else {
+			proj.getLog().reportTimeError("Internal error, not enough preliminary files for gc correction");
+			return null;
+		}
+	}
+
 	// public static String[][] generateAdjustmentParameters(Project proj, GC_CORRECTION_METHOD[] methods, int numThreads) {
 	// String customCent = proj.DATA_DIRECTORY.getValue() + "custom_recomp.cent";
 	// proj.CUSTOM_CENTROIDS_FILENAME.setValue(customCent);
@@ -318,7 +360,7 @@ public class GcAdjustorParameter implements Serializable {
 	// return generateAdjustmentParameters(proj, new String[] { customCent }, methods, gcModel, numThreads);
 	// }
 
-	public static String[][][] generateAdjustmentParameters(Project proj, GCAdjustorBuilder builders[], String[] centroidFiles, GC_CORRECTION_METHOD[] methods, GcModel gcModel, String[] rootOuts, int numThreads) throws IllegalStateException {
+	public static String[][][] generateAdjustmentParameters(Project proj, GCAdjustorBuilder builders[], String[] centroidFiles, GC_CORRECTION_METHOD[] methods, GcModel gcModel, String[] rootOuts, int numThreads, boolean verbose) throws IllegalStateException {
 		Centroids[] centroids = null;
 
 		if (centroidFiles != null) {
@@ -371,7 +413,7 @@ public class GcAdjustorParameter implements Serializable {
 			proj.getLog().reportTimeWarning("All potential parameter files exist, skipping");
 		} else {
 
-			GcAdjustorProducer producer = new GcAdjustorProducer(proj, compute, builders, gcModel, samples, true, centroids, methods);
+			GcAdjustorProducer producer = new GcAdjustorProducer(proj, compute, builders, gcModel, samples, verbose, centroids, methods);
 			WorkerTrain<GcAdjustorParameter[][][]> train = new WorkerTrain<GcAdjustorParameter[][][]>(producer, numThreads, 2, proj.getLog());
 			int sampleIndex = 0;
 

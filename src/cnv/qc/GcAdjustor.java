@@ -170,7 +170,9 @@ public class GcAdjustor {
 				crossValidation.computeResiduals();
 			}
 			if (crossValidation.analysisFailed()) {
-				proj.getLog().reportError("Error - the regression model has failed,  reverting to original intensity values");
+				if (verbose) {
+					proj.getLog().reportError("Error - the regression model has failed,  reverting to original intensity values");
+				}
 				assignOriginalIntensities();
 			} else {
 				if (verbose) {
@@ -274,7 +276,9 @@ public class GcAdjustor {
 		}
 		if (markerIntensities.length != proj.getMarkerNames().length) {
 			fail = true;
-			proj.getLog().reportError("Error - the intensity data array must represent every marker in the project");
+			if (verbose) {
+				proj.getLog().reportError("Error - the intensity data array must represent every marker in the project");
+			}
 		} else {
 
 			preparedMarkerSet = preparedMarkerSet == null ? new PreparedMarkerSet(proj.getMarkerSet()) : preparedMarkerSet;
@@ -534,6 +538,7 @@ public class GcAdjustor {
 	public static class GcModel implements Serializable {
 		private static final long serialVersionUID = 1L;
 		public static final String[] GC_HEADER = { "Name", "Chr", "Position", "GC" };
+		public static final int DEFAULT_GC_MODEL_BIN_FASTA = 1000000; // default bin generation for reference genome-based gc model
 		private String[] markers;
 		private byte[] chrs;
 		private int[] positions;
@@ -844,8 +849,9 @@ public class GcAdjustor {
 		return gcAdjustor;
 	}
 
-	public static GcAdjustor getComputedAdjustor(Project proj, GCAdjustorBuilder builder, String sample, GcAdjustorParameter gcParameters, PreparedMarkerSet preparedMarkerSet, float[] markerIntensities, GcModel gcModel, boolean computePrior, boolean computePost) {
+	public static GcAdjustor getComputedAdjustor(Project proj, GCAdjustorBuilder builder, String sample, GcAdjustorParameter gcParameters, PreparedMarkerSet preparedMarkerSet, float[] markerIntensities, GcModel gcModel, boolean computePrior, boolean computePost, boolean verbose) {
 		GcAdjustor gcAdjustor = builder.build(proj, preparedMarkerSet, gcModel, Array.toDoubleArray(markerIntensities));
+		builder.verbose(verbose);
 		gcAdjustor.correctIntensities(sample, gcParameters);
 		gcAdjustor.computeQCMetrics(computePrior, computePost);
 		return gcAdjustor;

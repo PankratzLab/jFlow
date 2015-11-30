@@ -503,6 +503,9 @@ public class PrincipalComponentsCompute {
 		}
 		if (parameters != null) {
 			proj.getLog().reportTimeInfo("Will be performing GC correction of input to PCA");
+			if(parameters.getCentroids()!=null){
+				proj.getLog().reportTimeInfo("Will be adjusting data for current centroids");
+			}
 		}
 		Arrays.fill(markerUsed, true);
 		// for (int i = 0; i < markers.length; i++) {

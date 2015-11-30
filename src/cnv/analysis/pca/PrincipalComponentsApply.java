@@ -125,6 +125,9 @@ public class PrincipalComponentsApply {
 			}
 			if (params != null) {
 				proj.getLog().reportTimeInfo("Will be performing GC correction of input for applying PCs");
+				if (params.getCentroids() != null) {
+					proj.getLog().reportTimeInfo("Will be adjusting data for current centroids");
+				}
 			}
 			Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
 

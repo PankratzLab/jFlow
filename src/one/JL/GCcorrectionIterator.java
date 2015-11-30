@@ -102,12 +102,9 @@ public class GCcorrectionIterator {
 				}
 				proj.getLog().reportTimeInfo("Beginnning iteration group for gc model " + bpModels[i] + " (" + builders.size() + " iterations");
 				String[][][] generated = null;
-				try {
-					generated = GcAdjustorParameter.generateAdjustmentParameters(proj, builders.toArray(new GCAdjustorBuilder[builders.size()]), new String[] { freshCents }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, Array.toStringArray(outs), numThreads);
-				} catch (IllegalStateException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+
+				generated = GcAdjustorParameter.generateAdjustmentParameters(proj, builders.toArray(new GCAdjustorBuilder[builders.size()]), new String[] { freshCents }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, Array.toStringArray(outs), numThreads, true);
+
 				IterationParameters[] tmp = getParameters(generated, bpModels[i], builders);
 				for (int j = 0; j < tmp.length; j++) {
 					finals.add(tmp[j]);
@@ -304,7 +301,7 @@ public class GCcorrectionIterator {
 		String rootDir = "gcCorrectionIterations/";
 		int numThreads = 24;
 		String filename = null;
-		int[] bpModels = new int[] { 50, 100, 250, 500, 1000, 2500, 5000, 10000, 1000000 };
+		int[] bpModels = new int[] { -1, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 1000000 };
 		int[] regressDistance = new int[] { 1000000, 10, 100, 1000, 2000, 4000, 8000, 10000, 20000, 40000, 80000, 100000, 500000 };// eq 13
 		int[] snpMAD = new int[] { 0, 1, 2, 5, 10, 15 };
 		boolean batch = false;
