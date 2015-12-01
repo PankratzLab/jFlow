@@ -300,7 +300,7 @@ public class GcAdjustorParameter implements Serializable {
 	}
 
 	/**
-	 * Basic (non-batch) generation of adjustment parameters for a project.
+	 * Basic (non-batch) generation of adjustment parameters for a project, generates a recomputed, and original gc-correction
 	 */
 	public static GcAdjustorParameters generate(Project proj, String rootDir, String referenceGenome, GCAdjustorBuilder gcAdjustorBuilder, boolean recomputedLrr, int gcModelWindow, int numThreads) throws IllegalStateException {
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + rootDir;
