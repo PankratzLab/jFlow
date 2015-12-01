@@ -242,7 +242,7 @@ public class MitoPipeline {
 		proj.setProperty(proj.ID_HEADER, idHeader);
 		// proj.setProperty(proj.LRRSD_CUTOFF, defaultLRRSdFilter);
 		proj.setProperty(proj.LRRSD_CUTOFF, Double.valueOf(defaultLRRSdFilter));
-		proj.setProperty(proj.TARGET_MARKERS_FILENAMES, new String[] { ext.removeDirectoryInfo(targetMarkers) });
+		proj.setProperty(proj.INTENSITY_PC_MARKERS_FILENAME, ext.removeDirectoryInfo(targetMarkers));
 		if (markerPositions != null) {
 			proj.setProperty(proj.MARKER_POSITION_FILENAME, ext.removeDirectoryInfo(markerPositions));
 		}
@@ -374,10 +374,10 @@ public class MitoPipeline {
 					String markersForEverythingElse = null;
 					// check that all target markers are available
 					// if (verifyAuxMarkers(proj, proj.getFilename(proj.TARGET_MARKERS_FILENAME), PC_MARKER_COMMAND)) {
-					if (verifyAuxMarkers(proj, proj.TARGET_MARKERS_FILENAMES.getValue()[0], PC_MARKER_COMMAND)) {
+					if (verifyAuxMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), PC_MARKER_COMMAND)) {
 						// if marker QC is not flagged, sample qc is based on all target markers by default
 						if (markerQC) {
-							qcMarkers(proj, proj.TARGET_MARKERS_FILENAMES.getValue()[0], markerCallRateFilter, numThreads);
+							qcMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), markerCallRateFilter, numThreads);
 							markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE;
 							if (!Files.exists(markersForABCallRate)) {
 								log.reportError("Error - markerQC was flagged but the file " + proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE + " could not be found");
@@ -385,9 +385,8 @@ public class MitoPipeline {
 							}
 						} else {
 							markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE;
-							writeMarkersToQC(proj, proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
+							writeMarkersToQC(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue());
 						}
-
 						markersForEverythingElse = proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE;
 
 						counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
@@ -424,20 +423,21 @@ public class MitoPipeline {
 									if (refGenomeFasta != null && Files.exists(refGenomeFasta)) {
 										proj.REFERENCE_GENOME_FASTA_FILENAME.setValue(refGenomeFasta);
 									}
-									try {
-										GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
-										gAdjustorBuilder.regressionDistance(regressionDistance);
-										params = GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder, recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
-										if ((recomputeLRR_Median || recomputeLRR_PCs) && params.getCentroids() == null) {
-											throw new IllegalStateException("Internal error, did not recieve centroids");
-										} else if (params.getCentroids() != null) {
-											throw new IllegalStateException("Internal error, should not have recieved centroids");
-										}
-										recomputeLRR_Median = false;// recomputed if params has centroid
-										recomputeLRR_PCs = false;
-									} catch (IllegalStateException e) {
-										proj.getLog().reportTimeError("GC adjustment was flagged, but could not generate neccesary files");
+									// try {
+									GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
+									gAdjustorBuilder.regressionDistance(regressionDistance);
+									params = GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder, recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
+									if ((recomputeLRR_Median || recomputeLRR_PCs) && params.getCentroids() == null) {
+										throw new IllegalStateException("Internal error, did not recieve centroids");
+									} else if ((!recomputeLRR_Median && !recomputeLRR_PCs) && params.getCentroids() != null) {
+										throw new IllegalStateException("Internal error, should not have recieved centroids");
 									}
+									recomputeLRR_Median = false;// recomputed if params has centroid
+									recomputeLRR_PCs = false;
+									// } catch (IllegalStateException e) {
+									//
+									// proj.getLog().reportTimeError("GC adjustment was flagged, but could not generate neccesary files");
+									// }
 								} else {
 									proj.getLog().reportTimeError("Can not gc correct values without a valid reference genome");
 									proj.getLog().reportTimeError("please supply a valid reference genome (full path) with the \"ref=\" argument");
@@ -459,7 +459,6 @@ public class MitoPipeline {
 							proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
 							// proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents + "");
 							proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
-							proj.saveProperties();
 						}
 					}
 				}

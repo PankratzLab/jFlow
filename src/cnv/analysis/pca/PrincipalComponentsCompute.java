@@ -418,7 +418,10 @@ public class PrincipalComponentsCompute {
 
 	// this version only supports target markers, and it takes them all
 	private static String[] getMarkers(Project proj) {
-		String[] markers = proj.getTargetMarkers(proj.PCA_AUTOSOMAL_MARKERS_FILENAME.getValue());
+		if (proj.INTENSITY_PC_MARKERS_FILENAME.getValue() == null || !Files.exists(proj.INTENSITY_PC_MARKERS_FILENAME.getValue())) {
+			proj.getLog().reportTimeError("Internal error " + proj.INTENSITY_PC_MARKERS_FILENAME.getName() + " did not have a valid setting, please update in the properties file");
+		}
+		String[] markers = proj.getTargetMarkers(proj.INTENSITY_PC_MARKERS_FILENAME.getValue());
 		return sortByProjectMarkers(proj, markers);
 	}
 
