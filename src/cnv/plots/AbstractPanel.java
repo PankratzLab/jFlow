@@ -1318,7 +1318,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public double[] getPlotMinMaxStep(double min, double max, Graphics g, boolean xAxis) {
 		double range, plotStep, stepStep, plotMin, plotMax;
-		double zoomMin, zoomMax, dist;
+		double zoomMin, zoomMax, dist, tempD;
 		int numHashes, wid;
 		FontMetrics fontMetrics;
 		int sf;
@@ -1342,19 +1342,38 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		while (range/plotStep>numHashes) {
 			plotStep += stepStep;
 		}
-		plotMin = plotMax = 0;
-		while (max - plotMax > DOUBLE_INACCURACY_HEDGE) {
-			plotMax += plotStep;
-		}
-		while (min - plotMin < -1*DOUBLE_INACCURACY_HEDGE) { // double check this, untested
-			plotMin -= plotStep;
-		}
-//		if (min >= 0 && plotMin < 0) {
-//			plotMin = 0;
+		
+        plotMin = plotMax = 0;
+        while (max - plotMax > DOUBLE_INACCURACY_HEDGE) {
+            plotMax += plotStep;
+        }
+        if (min > plotMin) {
+            tempD = min - (plotMin + 2 * plotStep);
+            while (tempD > DOUBLE_INACCURACY_HEDGE) {
+                plotMin += plotStep;
+                tempD = min - (plotMin + 2 * plotStep);
+            }
+        } else {
+            tempD = min - plotMin;
+            while (tempD < -DOUBLE_INACCURACY_HEDGE) {
+                plotMin -= plotStep;
+                tempD = min - plotMin;
+            }
+        }
+		
+//		plotMin = plotMax = 0;
+//		while (max - plotMax > DOUBLE_INACCURACY_HEDGE) {
+//			plotMax += plotStep;
 //		}
-		
-//		System.out.println(Float.parseFloat(ext.formDeci(plotMin, sf))+"\t"+Float.parseFloat(ext.formDeci(plotMax, sf))+"\t"+Float.parseFloat(ext.formDeci(plotStep, sf)));
-		
+//		while (min - plotMin < -1*DOUBLE_INACCURACY_HEDGE) { // double check this, untested
+//			plotMin -= plotStep;
+//		}
+////		if (min >= 0 && plotMin < 0) {
+////			plotMin = 0;
+////		}
+//		
+////		System.out.println(Float.parseFloat(ext.formDeci(plotMin, sf))+"\t"+Float.parseFloat(ext.formDeci(plotMax, sf))+"\t"+Float.parseFloat(ext.formDeci(plotStep, sf)));
+//		
 		if (zoomable) {
 			dist = plotMax - plotMin;
 			zoomMin = plotMin+zoomSubsets[xAxis?0:1][0]*dist;

@@ -207,10 +207,10 @@ public class ForestPanel extends AbstractPanel {
 	@Override
 	public double[] getPlotMinMaxStep(double min, double max, Graphics g, boolean xAxis) {
 		double range, plotStep, stepStep, plotMin, plotMax;
-		double zoomMin, zoomMax, dist;
-		int numHashes, wid;
+		double zoomMin, zoomMax, dist, tempD;
+		int numHashes, wid, canvasRange;
 		FontMetrics fontMetrics = g.getFontMetrics(g.getFont());;
-		int sf;
+		int sf, temp;
 
 		range = max-min;
 
@@ -220,8 +220,11 @@ public class ForestPanel extends AbstractPanel {
 		if (xAxis) {
 			wid = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf)), fontMetrics.stringWidth(ext.formDeci(max, sf)));
 			numHashes = 12;
-			while ((wid+30)*numHashes>canvasSectionMaximumX-canvasSectionMinimumX) {
+			canvasRange = canvasSectionMaximumX-canvasSectionMinimumX;
+			temp = (wid + 30) * numHashes;
+			while (temp > canvasRange) {
 				numHashes -= 1;
+				temp = (wid + 30) * numHashes;
 			}
 		} else {
 			numHashes = 10;
@@ -235,13 +238,23 @@ public class ForestPanel extends AbstractPanel {
 		while (max - plotMax > DOUBLE_INACCURACY_HEDGE) {
 			plotMax += plotStep;
 		}
-		while (min - plotMin < -1*DOUBLE_INACCURACY_HEDGE) { // double check this, untested
-			plotMin -= plotStep;
+		if (min > plotMin) {
+		    tempD = min - (plotMin + 2*plotStep);
+		    while (tempD > DOUBLE_INACCURACY_HEDGE) {
+	            plotMin += plotStep;
+		        tempD = min - (plotMin + 2*plotStep);
+		    }
+		} else {
+		    tempD = min - plotMin;
+		    while (tempD < -DOUBLE_INACCURACY_HEDGE) { 
+	            plotMin -= plotStep;
+		        tempD = min - plotMin;
+		    }
 		}
 
 		dist = plotMax - plotMin;
-		zoomMin = plotMin+zoomSubsets[xAxis?0:1][0]*dist;
-		zoomMax = plotMax-(1-zoomSubsets[xAxis?0:1][1])*dist;
+		zoomMin = plotMin + zoomSubsets[xAxis ? 0 : 1][0] * dist;
+		zoomMax = plotMax - (1 - zoomSubsets[xAxis ? 0 : 1][1]) * dist;
 		
 		range = zoomMax-zoomMin;
 		plotStep = stepStep = calcStepStep(range);
@@ -386,7 +399,7 @@ public class ForestPanel extends AbstractPanel {
 		maximumObservedRawY = maximumObservedRawY == Float.MIN_VALUE ? 1 : maximumObservedRawY;
 
 		// otherwise step is off
-		minimumObservedRawX = minimumObservedRawX > 0 ? 0 : minimumObservedRawX;
+		minimumObservedRawX = !oddsDisplay ? (minimumObservedRawX > 0 ? 0 : minimumObservedRawX) : minimumObservedRawX;
 		minimumObservedRawY = minimumObservedRawY > 0 ? 0 : minimumObservedRawY;
 
 		minimumObservedRawX = Float.isNaN(forcePlotXmin) ? minimumObservedRawX : forcePlotXmin;
