@@ -412,6 +412,9 @@ public class GenvisisPipelineGUI extends JDialog {
                         Grafik.scaleCheckBoxIcon(checkBox);
                         checkBox.setVerticalAlignment(SwingConstants.TOP);
                         checkBox.setHorizontalAlignment(SwingConstants.RIGHT);
+                        boolean sel = false;
+                        sel = Boolean.valueOf(step.getRequirementDefaults(proj)[reqIndex].toString());
+                        checkBox.setSelected(sel);
                         reqIndex++;
                         reqInputFields.add(checkBox);
                         panel.contentPanel.add(checkBox, "alignx right, aligny center, growx, gapleft 20, cell 1 " + rowIndex);

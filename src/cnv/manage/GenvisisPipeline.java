@@ -874,7 +874,7 @@ public class GenvisisPipeline {
         }
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false),proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(),"", "",""};
+            return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false),proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), "true", "true",""};
         }
 
         @Override
