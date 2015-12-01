@@ -41,13 +41,13 @@ public class GCcorrectionIterator {
 			command.add("proj=" + proj.PROJECT_PROPERTIES_FILENAME.getValue());
 			command.add("numthreads=" + numThreads);
 			command.add("bpGcModel=" + bpModels[i]);
-			Files.qsub(currentSub, Array.toStr(Array.toStringArray(command), " "), 245000, 48.00, numThreads);
+			Files.qsub(currentSub, Array.toStr(Array.toStringArray(command), " "), 55000, 48.00, numThreads);
 		}
 		String batchMaster = batchRoot + "master.pbs";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(batchMaster));
 			for (int i = 0; i < pbs.size(); i++) {
-				writer.println("qsub -q ram256g " + pbs.get(i));
+				writer.println("qsub -q small " + pbs.get(i));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -301,7 +301,7 @@ public class GCcorrectionIterator {
 		String rootDir = "gcCorrectionIterations/";
 		int numThreads = 24;
 		String filename = null;
-		int[] bpModels = new int[] { -1, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 1000000 };
+		int[] bpModels = new int[] { -1, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000 };
 		int[] regressDistance = new int[] { 1000000, 10, 100, 1000, 2000, 4000, 8000, 10000, 20000, 40000, 80000, 100000, 500000 };// eq 13
 		int[] snpMAD = new int[] { 0, 1, 2, 5, 10, 15 };
 		boolean batch = false;
