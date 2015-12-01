@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-
 import cnv.LaunchProperties;
 import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PrincipalComponentsApply;
@@ -418,7 +417,7 @@ public class MitoPipeline {
 							GcAdjustorParameters params = null;
 							if (gcCorrect) {
 								if ((refGenomeFasta != null && !Files.exists(refGenomeFasta)) && Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())) {
-									proj.getLog().reportTimeWarning("Command line reference genome did not exist, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
+									proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
 									refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 								}
 								if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO, after evaluating reference genome based gc model files, will demand a refGenome
@@ -444,7 +443,6 @@ public class MitoPipeline {
 									proj.getLog().reportTimeError("please supply a valid reference genome (full path) with the \"ref=\" argument");
 								}
 							}
-							System.exit(1);
 							log.report("\nReady to perform the principal components analysis (PCA)\n");
 							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + PCA_SAMPLES, outputBase, params);
 							if (pcs == null) {
@@ -1235,7 +1233,7 @@ public class MitoPipeline {
 		usage += "   (23) Impute mean for markers with NaN data, if false markers with NaN values for any sample will be skipped (i.e. imputeMeanForNaN=" + imputeMeanForNaN + " (default))\n";
 		usage += "   (24) gc correct Log R Ratios, cannot be used with recomputeLRR options (i.e. gcCorrect=" + gcCorrect + " (default))\n";
 		usage += "   (25) A reference genome file used to assign gc content to each marker (i.e. ref= (no default))\n";
-		usage += "   (26) base pair bins for the gc model generated from the reference (i.e. bpGcModel=" + bpGcModel + " (default))\n";
+		usage += "   (26) base-pair bins for the gc model generated from the reference (i.e. bpGcModel=" + bpGcModel + " (default))\n";
 		usage += "   (27) regression distance for the gc adjustment (i.e. regressionDistance=" + regressionDistance + " (default))\n";
 
 		usage += "   NOTE:\n";

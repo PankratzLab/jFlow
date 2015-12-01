@@ -212,7 +212,7 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return the PrincipalComponentsCompute object with PCs computed
 	 */
-	public static PrincipalComponentsCompute getPrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, boolean recomputeLRR, String useFile, String output,GcAdjustorParameters parameters) {
+	public static PrincipalComponentsCompute getPrincipalComponents(Project proj, boolean excludeSamples, int numComponents, boolean printFullData, boolean center, boolean reportMarkerLoadings, boolean reportSingularValues, boolean imputeMeanForNaN, boolean recomputeLRR, String useFile, String output, GcAdjustorParameters parameters) {
 
 		Logger log = proj.getLog();
 		PrincipalComponentsCompute pcs = populateWithExistingFiles(proj, output, log);
@@ -384,7 +384,7 @@ public class PrincipalComponentsCompute {
 		SampleData sampleData = proj.getSampleData(0, false);
 		Logger log = proj.getLog();
 		String[] samplesToUseFromFile = HashVec.loadFileToStringArray(useFile, false, false, new int[] { 0 }, true, true, "\t");
-		//previous method causes issues with spaces in sample names
+		// previous method causes issues with spaces in sample names
 		// HashVec.loadFileToStringArray(useFile, false, new int[] { 0 }, true);
 		String[] projSamples = proj.getSampleList().getSamples();
 		boolean[] samplesToUse = new boolean[projSamples.length];
@@ -491,7 +491,7 @@ public class PrincipalComponentsCompute {
 	 * @param log
 	 * @return
 	 */
-	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse, boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, boolean recomputeLRR, String output,GcAdjustorParameters parameters) {
+	public static double[][] getData(Project proj, String[] markers, boolean[] samplesToUse, boolean printFullData, boolean imputeMeanForNaN, boolean dealWithNaN, boolean recomputeLRR, String output, GcAdjustorParameters parameters) {
 		double[][] dataToUse = getAppropriateArray(markers.length, samplesToUse);
 		MDL mdl = new MDL(proj, markers, 2, 1);
 		// MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
@@ -503,14 +503,14 @@ public class PrincipalComponentsCompute {
 		}
 		if (parameters != null) {
 			proj.getLog().reportTimeInfo("Will be performing GC correction of input to PCA");
-			if(parameters.getCentroids()!=null){
+			if (parameters.getCentroids() != null) {
 				proj.getLog().reportTimeInfo("Will be adjusting data for current centroids");
 			}
 		}
 		Arrays.fill(markerUsed, true);
 		// for (int i = 0; i < markers.length; i++) {
 		int i = 0;
-		Hashtable<String , Integer> projectIndices =proj.getMarkerIndices();
+		Hashtable<String, Integer> projectIndices = proj.getMarkerIndices();
 		while (mdl.hasNext()) {
 			float[][] data = new float[1][dataToUse[0].length];
 			if (i % 1000 == 0) {

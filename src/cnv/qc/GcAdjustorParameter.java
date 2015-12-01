@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -300,6 +299,9 @@ public class GcAdjustorParameter implements Serializable {
 		}
 	}
 
+	/**
+	 * Basic (non-batch) generation of adjustment parameters for a project.
+	 */
 	public static GcAdjustorParameters generate(Project proj, String rootDir, String referenceGenome, GCAdjustorBuilder gcAdjustorBuilder, boolean recomputedLrr, int gcModelWindow, int numThreads) throws IllegalStateException {
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + rootDir;
 		new File(outDir).mkdirs();
@@ -308,9 +310,11 @@ public class GcAdjustorParameter implements Serializable {
 		if ((referenceGenome != null && Files.exists(referenceGenome)) || Files.exists(gcSerModelFile) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
 			GcModel gcModel = null;
 			if (Files.exists(gcSerModelFile)) {
+				proj.getLog().reportTimeWarning("Loading existing file " + gcSerModelFile);
 				gcModel = GcModel.loadSerial(gcSerModelFile);
-			} else if (referenceGenome != null && Files.exists(referenceGenome)) {
+			} else if (referenceGenome != null && Files.exists(referenceGenome)) {// we prefer the ref genome
 				if (!Files.exists(gcSerModelFile)) {
+					proj.getLog().reportTimeInfo("Generating gc model file " + gcSerModelFile);
 					gcModel = GcModel.generateSnpWindowModel(proj, gcModelWindow);
 					gcModel.Serialize(gcSerModelFile);
 				} else {
@@ -323,7 +327,7 @@ public class GcAdjustorParameter implements Serializable {
 				}
 			} else {
 				gcSerModelFile = outDir + ext.removeDirectoryInfo(proj.GC_MODEL_FILENAME.getValue()) + ".ser";
-				proj.getLog().reportTimeWarning("gc model file " + proj.GC_MODEL_FILENAME.getValue() + " exists and a valid reference was not provided, ignoring any gc model window argument");
+				proj.getLog().reportTimeWarning("gc model file " + proj.GC_MODEL_FILENAME.getValue() + " exists and a valid reference was not provided, ignoring gc model window argument");
 				gcModel = GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), true, proj.getLog());
 				gcModel.Serialize(gcSerModelFile);
 				proj.getLog().reportTimeWarning("copied existing  gc model file to " + gcSerModelFile + " for paramater computation");
@@ -333,10 +337,12 @@ public class GcAdjustorParameter implements Serializable {
 				CentroidCompute.computeAndDumpCentroids(proj, null, centroids, new Builder(), numThreads, 2);
 			}
 			if (recomputedLrr) {
-				proj.getLog().reportTimeInfo("GC correcting LRR values after recomputing LRR");
+				proj.getLog().reportTimeInfo("Recompute LRR was flagged, will GC correct LRR post recomputing");
 			}
 			String[][][] generated = generateAdjustmentParameters(proj, new GCAdjustorBuilder[] { gcAdjustorBuilder }, new String[] { centroids }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, new String[] { rootDir + "default_" }, numThreads, false);
 			String file = generated[0][recomputedLrr ? 1 : 0][0];
+			proj.GC_CORRECTION_PARAMETERS_FILENAMES.setValue(new String[] { file });
+			proj.saveProperties();
 			proj.getLog().reportTimeInfo("Using gc parameter file " + file);
 			return GcAdjustorParameters.readSerial(file, proj.getLog());
 		} else {
@@ -392,12 +398,12 @@ public class GcAdjustorParameter implements Serializable {
 					}
 					if (Files.exists(output)) {
 						compute[builderIndex][centIndex][methodIndex] = false;
-						GcAdjustorParameters tmp = GcAdjustorParameters.readSerial(output, proj.getLog());
-						proj.getLog().reportTimeInfo("You can remove this gc populater later");
-						if (tmp.getGcContent() == null) {
-							tmp.setGcContent(gcContent);
-							tmp.writeSerial(output);
-						}
+						// GcAdjustorParameters tmp = GcAdjustorParameters.readSerial(output, proj.getLog());
+						// proj.getLog().reportTimeInfo("You can remove this gc populater later");
+						// if (tmp.getGcContent() == null) {
+						// tmp.setGcContent(gcContent);
+						// tmp.writeSerial(output);
+						// }
 					} else {
 						compute[builderIndex][centIndex][methodIndex] = true;
 
@@ -432,7 +438,6 @@ public class GcAdjustorParameter implements Serializable {
 						}
 					}
 				}
-
 				sampleIndex++;
 				if (sampleIndex % 100 == 0) {
 					proj.getLog().reportTimeInfo("Generated gc correction parameters for " + sampleIndex + " of " + proj.getSamples().length + " samples");
@@ -460,11 +465,10 @@ public class GcAdjustorParameter implements Serializable {
 		}
 		proj.saveProperties();
 		return outputs;
-
 	}
 
 	/**
-	 * Storage of adjustment parameters, also stores any the centroids that were used
+	 * Storage of adjustment parameters, also stores any the centroids/gc contents that were used
 	 *
 	 */
 	public static class GcAdjustorParameters implements Serializable {
