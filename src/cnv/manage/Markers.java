@@ -23,6 +23,7 @@ public class Markers {
 		long time;
 		int logLevel;
 		int[] chrCounts;
+        HashSet<String> reportMarkers, databaseMarkers, databaseMarkersRef;
 
 		logLevel = log.getLevel();
 		log.setLevel(9);
@@ -40,7 +41,38 @@ public class Markers {
 			}
 			markerNames = HashVec.getKeys(snpPositions, false, false);
 		}
-
+		
+		reportMarkers = new HashSet<String>();
+		for (String str : markerNames) {
+		    reportMarkers.add(str);
+		}
+		databaseMarkersRef = new HashSet<String>();
+		databaseMarkers = new HashSet<String>();
+		databaseMarkersRef.addAll(snpPositions.keySet());
+		databaseMarkers.addAll(snpPositions.keySet());
+		
+		databaseMarkers.removeAll(reportMarkers);
+		int posNotFoundInRpt = databaseMarkers.size();
+		
+		reportMarkers.removeAll(databaseMarkersRef);
+		int rptNotFoundInPos = reportMarkers.size();
+		
+		if (posNotFoundInRpt > 0) {
+		    log.reportError("Error - There "+(posNotFoundInRpt==1?"was one":"were "+posNotFoundInRpt)+" markers found in the file of marker positions that were not listed in the FinalReport file.");
+		    Files.writeList(databaseMarkers.toArray(new String[]{}), ext.parseDirectoryOfFile(markerDatabase)+"markersNotInSourceFile.txt");
+		}
+		if (rptNotFoundInPos > 0) {
+            log.reportError("Error - There "+(rptNotFoundInPos==1?"was one":"were "+rptNotFoundInPos)+" markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
+            log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
+            Files.writeList(reportMarkers.toArray(new String[]{}), ext.parseDirectoryOfFile(markerDatabase)+"markersNotInPositionsFile.txt");
+		}
+		databaseMarkersRef = null;
+		databaseMarkers = null;
+		reportMarkers = null;
+		if (rptNotFoundInPos > 0) {
+		    return null;
+		}
+		
 		v = new Vector<String>();
 		log.report(ext.getTime()+"\tSorting markers by chromosome and position");
 		chrs = new byte[markerNames.length];
@@ -57,9 +89,10 @@ public class Markers {
 			}
 		}
 		if (v.size() > 0) {
-			log.reportError("Error - There "+(v.size()==1?"was one":"were "+v.size())+" markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation");
+			log.reportError("Error - There "+(v.size()==1?"was one":"were "+v.size())+" markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
 			log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
 			Files.writeList(Array.toStringArray(v), ext.parseDirectoryOfFile(markerDatabase)+"markersNotInPositionsFile.txt");
+			// write markerPositionsNotInReport.txt
 			return null;			
 		}
 

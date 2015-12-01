@@ -54,7 +54,7 @@ public class ProjectCreationGUI extends JDialog {
     private JTextField txtFldSrcDir;
     private JTextField txtFldSrcExt;
     private JTextField txtFldTgtMkrs;
-    private JSpinner spinnerLrrSd;
+//    private JSpinner spinnerLrrSd;
     private Project proj;
     private volatile boolean cancelled = false;
     private Action fileSelectAction = new AbstractAction() {

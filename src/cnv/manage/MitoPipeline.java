@@ -49,7 +49,7 @@ public class MitoPipeline {
 	static final String MARKERS_TO_QC_FILE = "markers_to_QC.txt";
 	static final String MARKERS_FOR_ABCALLRATE = "markers_ABCallRate.txt";
 	protected static final String PCA_SAMPLES = ".samples.USED_PC.txt";
-	private static final String PCA_SAMPLES_SUMMARY = ".samples.QC_Summary.txt";
+	protected static final String PCA_SAMPLES_SUMMARY = ".samples.QC_Summary.txt";
 	private static final String PCA_FINAL_REPORT = ".finalReport.txt";
 	private static final String[] SPLITS = { "\t", "," };
 	public static final String PROJECT_EXT = ".properties";
@@ -793,7 +793,7 @@ public class MitoPipeline {
 
 		SampleData sampleData = proj.getSampleData(0, false);
 		// double lrrSdFilter = Double.parseDouble(proj.getProperty(proj.LRRSD_CUTOFF));
-		double lrrSdFilter = proj.getProperty(proj.LRRSD_CUTOFF);
+		double lrrSdFilter = proj.LRRSD_CUTOFF.getValue();
 		double callRateFilter = Double.parseDouble(sampleCallRateFilter);
 		boolean addToSampleData = checkSampleData(proj, sampleData);
 		Hashtable<String, String> subset = checkSubset(useFile, log);
