@@ -1563,13 +1563,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		JLabel label = new JLabel("  ");
 		label.setFont(new Font("Arial", 0, 20));
 		gcAdjustorPanel.add(label, gbc);
-		label = new JLabel("GC content Adjustment:");
+		label = new JLabel("GC Adjustment (LRR/BAF only) :");
+		label.setToolTipText("These adjustments will be applied to LRR values (and BAFs if new centroids were stored");
 		label.setFont(new Font("Arial", 0, 20));
 		label.setHorizontalAlignment(JLabel.CENTER);
 		gcAdjustorPanel.add(label, gbc);
-		gcAdjustorBoxes = new JCheckBox[gcCList.length];
-		displaygcAdjustor = new boolean[gcCList.length];
-		gcAdjustorLabels = new JLabel[gcCList.length];
+		gcAdjustorBoxes = new JCheckBox[gcCList[0].length];
+		displaygcAdjustor = new boolean[gcCList[0].length];
+		gcAdjustorLabels = new JLabel[gcCList[0].length];
 		for (int i = 0; i < gcCList[0].length; i++) {
 			gcAdjustorBoxes[i] = new JCheckBox(gcCList[0][i]);
 			gcAdjustorBoxes[i].setFont(new Font("Arial", 0, 14));

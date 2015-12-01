@@ -2,7 +2,6 @@ package cnv.gui;
 
 import java.awt.Font;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -53,7 +52,7 @@ public abstract class FileActionMenu {
 				}
 			}
 		}
-		
+
 	}
 
 	public void developMenu() {
@@ -83,7 +82,6 @@ public abstract class FileActionMenu {
 		return actionMenu;
 	}
 
-
 	public ArrayList<String> getExistingFiles() {
 		return existingFiles;
 	}
@@ -103,6 +101,5 @@ public abstract class FileActionMenu {
 	public Font getFont() {
 		return font;
 	}
-
 
 }
