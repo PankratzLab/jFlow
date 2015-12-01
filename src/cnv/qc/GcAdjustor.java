@@ -176,7 +176,7 @@ public class GcAdjustor {
 				assignOriginalIntensities();
 			} else {
 				if (verbose) {
-					proj.getLog().report("Info - regression model determined to be " + crossValidation.getBetas()[0] + " + " + crossValidation.getBetas()[1] + " * GC content");
+					proj.getLog().reportTimeInfo("regression model determined to be " + crossValidation.getBetas()[0] + " + " + crossValidation.getBetas()[1] + " * GC content");
 				}
 				assignCorrectedIntensities();
 			}
@@ -222,7 +222,18 @@ public class GcAdjustor {
 					this.gcwfPrior = wavesOriginal[1];
 				}
 				if (computePost || computePrior) {
-					proj.getLog().reportTimeInfo(getQCString());
+					if (computePrior) {
+						proj.getLog().reportTimeInfo("WF_PRIOR   -> " + wfPrior);
+					}
+					if (computePost) {
+						proj.getLog().reportTimeInfo("WF_POST    -> " + wfPost);
+					}
+					if (computePrior) {
+						proj.getLog().reportTimeInfo("GCWF_PRIOR -> " + gcwfPrior);
+					}
+					if (computePost) {
+						proj.getLog().reportTimeInfo("GCWF_PRIOR -> " + gcwfPost);
+					}
 				}
 			} else {
 				proj.getLog().reportError("Error - cannot compute qc metrics");

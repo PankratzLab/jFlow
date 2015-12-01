@@ -26,7 +26,6 @@ public abstract class FileActionMenu {
 	private Hashtable<String, Integer> namePathMap;
 	private String menuTitle;
 	private Font font = new Font("Arial", 0, 12);
-	private KeyEvent keyEvent;
 
 	public FileActionMenu(String menuTitle, String[] actionFiles) {
 		super();
@@ -54,6 +53,7 @@ public abstract class FileActionMenu {
 				}
 			}
 		}
+		
 	}
 
 	public void developMenu() {
@@ -64,9 +64,7 @@ public abstract class FileActionMenu {
 		blankBox.setFont(font);
 		blankBox.setSelected(true);
 		buttonGroup.add(blankBox);
-		if (keyEvent != null) {
-			actionMenu.setMnemonic(KeyEvent.VK_D);
-		}
+		buttonMap.put("None", blankBox);
 		actionMenu.setFont(font);
 		actionMenu.add(blankBox);
 		for (String key : namePathMap.keySet()) {
@@ -84,6 +82,7 @@ public abstract class FileActionMenu {
 	public JMenu getActionMenu() {
 		return actionMenu;
 	}
+
 
 	public ArrayList<String> getExistingFiles() {
 		return existingFiles;
@@ -105,8 +104,5 @@ public abstract class FileActionMenu {
 		return font;
 	}
 
-	public KeyEvent getKeyEvent() {
-		return keyEvent;
-	}
 
 }

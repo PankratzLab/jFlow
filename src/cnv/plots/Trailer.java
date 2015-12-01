@@ -1336,15 +1336,20 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     		menuBar.add(transMenu);
 	    }  
 		{
-    		JMenu adjMenu = new JMenu("Adjustments");
-    		
-    		ItemListener gcListener = new ItemListener() {
-    			public void itemStateChanged(ItemEvent ie) {
-    				JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-    				lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, jrb.isSelected(), jrb.isSelected(), log);
-    				updateGUI();
-    			}
-    		};
+			gcParameterDisplay = new GCParameterDisplay(proj, this, proj.getLog());
+
+			JMenu adjMenu = new JMenu("Adjustments");
+			adjMenu.setMnemonic(KeyEvent.VK_J);
+			ItemListener gcListener = new ItemListener() {
+				public void itemStateChanged(ItemEvent ie) {
+					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+					if (jrb.isSelected()) {
+						gcParameterDisplay.getButtonMap().get("None").setSelected(true);
+					}
+					lrrValues = getNewLRRs(proj, lrrs, transformation_type, transformSeparatelyByChromosome, markerSet, gcModel, jrb.isSelected(), jrb.isSelected(), log);
+					updateGUI();
+				}
+			};
 
     		gcCorrectButton.setToolTipText("GC correction will be applied prior to any transformation");
     		gcCorrectButton.addItemListener(gcListener);
@@ -1352,7 +1357,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			// act.addSeparator();
 			adjMenu.add(gcCorrectButton).setEnabled(gcModel != null);
 			// adjMenu.addSeparator();
-			gcParameterDisplay = new GCParameterDisplay(proj, this, proj.getLog());
 			adjMenu.add(gcParameterDisplay.getActionMenu());
 
 			menuBar.add(adjMenu);
@@ -2127,10 +2131,11 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                         for (int i = 0; i < markersForEverythingElseRegion.length; i++) {
                             if (i < startMarker || i > stopMarker) {
                                 markersForEverythingElseRegion[i] = false;
-                            }
-                        }
-						qcRegion = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids, markersForCallrate, markersForEverythingElseRegion, gcModelToUse, correctionMethod, log);
-                    }
+							}
+						}
+						// GC correction not valid for a region
+						qcRegion = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids, markersForCallrate, markersForEverythingElseRegion, null, correctionMethod, log);
+					}
                     updateQCDisplay();
                 }
                 updateQCThread = null;
@@ -2603,6 +2608,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			developItemListener();
 			developMenu();
 			getActionMenu().setToolTipText("This uses a precomputed GC correction to adjust the sample by GC content");
+			getActionMenu().setMnemonic(KeyEvent.VK_A);
 		}
 
 		public Hashtable<String, Integer> getSampleIndex() {
@@ -2645,8 +2651,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 								String fileToLoad = getExistingFiles().get(currentParamIndex);
 								log.reportTimeInfo("Loading GC parameter file " + fileToLoad);
 								params.set(currentParamIndex, GcAdjustorParameters.readSerial(fileToLoad, log));
-
 							}
+							trailer.gcCorrectButton.setSelected(false);
 						} else {
 							currentParamIndex = -1;
 						}
