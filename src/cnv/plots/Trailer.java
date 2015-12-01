@@ -22,6 +22,7 @@ import cnv.analysis.MosaicismQuant.MosaicQuantResults;
 import cnv.analysis.MosaicismQuant.MosaicQuantWorker;
 import cnv.filesys.*;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
+import cnv.gui.FileActionMenu;
 import cnv.gui.NewRegionListDialog;
 import cnv.gui.SingleClick;
 import cnv.gui.ClickListener;
@@ -32,6 +33,7 @@ import cnv.hmm.PennHmm;
 import cnv.manage.Transforms;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.qc.LrrSd;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
@@ -169,6 +171,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //	private JMenuItem launchScatter;
 //	private JMenuItem launchComp;
 	private ButtonGroup regionButtonGroup;
+	private GCParameterDisplay gcParameterDisplay;
     private Sample samp;
     
     private Thread updateQCThread = null;
@@ -591,7 +594,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		if (location.equals(DEFAULT_LOCATION)) {
 			showRegion(0);
 		}
-		
 	}
 	
 	private void paintLRRPanel(Graphics g) {
@@ -1347,13 +1349,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     		gcCorrectButton.setToolTipText("GC correction will be applied prior to any transformation");
     		gcCorrectButton.addItemListener(gcListener);
     		gcCorrectButton.setFont(font);
-    //		act.addSeparator();
-    		adjMenu.add(gcCorrectButton).setEnabled(gcModel != null);
-    //		adjMenu.addSeparator();
-    		
-    		menuBar.add(adjMenu);
+			// act.addSeparator();
+			adjMenu.add(gcCorrectButton).setEnabled(gcModel != null);
+			// adjMenu.addSeparator();
+			gcParameterDisplay = new GCParameterDisplay(proj, this, proj.getLog());
+			adjMenu.add(gcParameterDisplay.getActionMenu());
+
+			menuBar.add(adjMenu);
 		}
-		
+
 		{
 		    JMenu qcMenu = new JMenu("Show QC");
 		    String[] opts = new String[]{"Hide QC", "Genome", /*"Chromosome",*/ "Region"};
@@ -1390,6 +1394,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             menuBar.add(qcMenu);
             
 		}
+		//TODO
+		
 		
 		{
     		JMenu centMenu = new JMenu("Centroids");
@@ -1888,7 +1894,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	}
 
 	public void loadValues() {
-		samp = proj.getPartialSampleFromRandomAccessFile(sample, false, true, true, true, false);
+		//Need to load every time?
+		if (samp == null || !samp.getSampleName().equals(sample)) {
+			samp = proj.getPartialSampleFromRandomAccessFile(sample, false, true, true, true, false);
+		}
 		if (samp == null) {
 			System.err.println("Error - sample '"+sample+"' not found in "+proj.SAMPLE_DIRECTORY.getValue(false, true));
 		} else if ( samp.getFingerprint()!=fingerprint) {
@@ -1923,11 +1932,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				lrrValues = samp.getLRRs(centroids);
 				originalBAFs = bafs;
 				bafs = samp.getBAFs(centroids);
+			} else if (gcParameterDisplay.getCurrentParamIndex() >= 0) {
+				int sampleIndex = gcParameterDisplay.getSampleIndex().get(sample);
+				GcAdjustorParameters tmp = gcParameterDisplay.getParams().get(gcParameterDisplay.getCurrentParamIndex());
+				lrrValues = samp.getGCCorrectedLRR(tmp, sampleIndex, log);
+				bafs = samp.getBAF(tmp, sampleIndex, log);
 			} else {
 				lrrValues = lrrs;
 				originalBAFs = bafs;
 			}
-			
 		}
 		// lrrMin = Math.floor(lrrMin);
 		// lrrMax = Math.ceil(lrrMax);
@@ -2560,11 +2573,98 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //			}
 //
 //		}
-//
-//		return CNVariant.sortCNVs(CNVariant.toArray(v));
-//	}
-	
-	
+	//
+	// return CNVariant.sortCNVs(CNVariant.toArray(v));
+	// }
+	/**
+	 * Handle the actions for gc parameter files ~ fast version of gc-adjustment
+	 *
+	 */
+	private static class GCParameterDisplay extends FileActionMenu {
+		private ArrayList<GcAdjustorParameters> params;
+		private Trailer trailer;
+		private ItemListener itemListener;
+		private Hashtable<String, Integer> sampleIndex;
+		private int currentParamIndex;
+		private Logger log;
+
+		private GCParameterDisplay(Project proj, Trailer trailer, Logger log) {
+			super("Adjust with gc parameter file", proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue());
+			
+			String[] samps = proj.getSamples();
+			this.sampleIndex = new Hashtable<String, Integer>();
+			for (int i = 0; i < samps.length; i++) {
+				sampleIndex.put(samps[i], i);
+			}
+			this.trailer = trailer;
+			this.currentParamIndex = -1;
+			this.params = new ArrayList<GcAdjustorParameters>();
+			this.log = log;
+			developItemListener();
+			developMenu();
+			getActionMenu().setToolTipText("This uses a precomputed GC correction to adjust the sample by GC content");
+		}
+
+		public Hashtable<String, Integer> getSampleIndex() {
+			return sampleIndex;
+		}
+
+		public int getCurrentParamIndex() {
+			return currentParamIndex;
+		}
+
+		public ArrayList<GcAdjustorParameters> getParams() {
+			return params;
+		}
+
+		@Override
+		public ItemListener getListener() {
+			return itemListener;
+		}
+
+		private void developItemListener() {
+			int num = getNamePathMap().keySet().size();
+			for (int i = 0; i < num; i++) {
+				params.add(null);
+			}
+
+			this.itemListener = new ItemListener() {
+
+				@Override
+				public void itemStateChanged(ItemEvent ie) {
+					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+					if (jrb.isSelected() && !"None".equals(jrb.getText())) {
+						if (getNamePathMap() == null || getNamePathMap().isEmpty()) {
+							jrb.setSelected(false);
+							currentParamIndex = -1;
+							return;
+						}
+						if (getNamePathMap().containsKey(jrb.getText())) {
+							currentParamIndex = getNamePathMap().get(jrb.getText());
+							if (params.get(currentParamIndex) == null) {// lazy load the params
+								String fileToLoad = getExistingFiles().get(currentParamIndex);
+								log.reportTimeInfo("Loading GC parameter file " + fileToLoad);
+								params.set(currentParamIndex, GcAdjustorParameters.readSerial(fileToLoad, log));
+
+							}
+						} else {
+							currentParamIndex = -1;
+						}
+						trailer.loadValues();
+						trailer.updateGUI();
+						trailer.repaint();
+					} else {
+						currentParamIndex = -1;
+						trailer.loadValues();
+						trailer.updateGUI();
+						trailer.repaint();
+					}
+				}
+
+			};
+		}
+	}
+
 	public static void main(String[] args) {
 //		Project proj;
 //		
