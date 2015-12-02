@@ -19,6 +19,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import seq.analysis.BWA_Analysis;
+import stats.Rscript.COLUMNS_MULTIPLOT;
+import stats.Rscript.PLOT_DEVICE;
+import stats.Rscript.RScatter;
+import stats.Rscript.RScatters;
+import stats.Rscript.SCATTER_TYPE;
 import common.Array;
 import common.CmdLine;
 import common.Files;
@@ -109,6 +114,8 @@ public class FastQC {
 					}
 				}
 				if (!fail) {
+					ArrayList<RScatter> rscaScatters = new ArrayList<RScatter>();
+					
 					for (int i = 0; i < fastaQCModuleResults[0].length; i++) {
 						String currentModule = fastaQCModuleResults[0][i].getModuleTitleFormatted();
 						String currentOutput = rootOutputDir + currentModule + FAST_SUMMARY_FILE;
@@ -128,8 +135,51 @@ public class FastQC {
 							log.reportError("Error writing to " + currentOutput);
 							log.reportException(e);
 						}
-					}
+						if (currentModule.startsWith("Per_sequence_GC_content")) {
+							String gcOutSame = rootOutputDir + currentModule + "same_plot";
+							RScatter gcContentSame = new RScatter(currentOutput, gcOutSame + ".rscript", ext.removeDirectoryInfo(gcOutSame), gcOutSame + ".jpeg", "GC Content", new String[] { "Count" }, null, SCATTER_TYPE.POINT, log);
+							gcContentSame.setyLabel("Read Count");
+							gcContentSame.setxLabel("GC content");
+							gcContentSame.setTitle(currentModule);
+							gcContentSame.setOverWriteExisting(true);
+							rscaScatters.add(gcContentSame);
 
+							String gcOut = rootOutputDir + currentModule + "_plot";
+							RScatter gcContent = new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg", "GC Content", new String[] { "Count" }, "Sample", SCATTER_TYPE.POINT, log);
+							gcContent.setyLabel("Read Count");
+							gcContent.setxLabel("GC content");
+							gcContent.setTitle(currentModule);
+							gcContent.setOverWriteExisting(true);
+							rscaScatters.add(gcContent);
+						} else if (currentModule.startsWith("Per_base_sequence_quality")) {
+							String gcOut = rootOutputDir + currentModule + "_plot";
+							RScatter gcContent = new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg", "Base", new String[] { "Mean", "Median", "Lower Quartile" }, null, SCATTER_TYPE.POINT, log);
+							gcContent.setyLabel("Phred");
+							gcContent.setxLabel("Base");
+							gcContent.setTitle(currentModule);
+							gcContent.setOverWriteExisting(true);
+							rscaScatters.add(gcContent);
+						} else if (currentModule.startsWith("Adapter_Content")) {
+							String gcOut = rootOutputDir + currentModule + "_plot";
+							RScatter gcContent = new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg", "Position", new String[] { "Illumina Universal Adapter", "Illumina Small RNA Adapter", "Lower Nextera Transposase Sequence" }, null, SCATTER_TYPE.POINT, log);
+							gcContent.setyLabel("Adapter Content");
+							gcContent.setxLabel("Position");
+							gcContent.setTitle(currentModule);
+							gcContent.setOverWriteExisting(true);
+							rscaScatters.add(gcContent);
+						} else if (currentModule.startsWith("Sequence_Duplication_Levels")) {
+							String gcOut = rootOutputDir + currentModule + "_plot";
+							RScatter gcContent = new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg", "Duplication Level", new String[] { "Percentage of total" }, null, SCATTER_TYPE.POINT, log);
+							gcContent.setyLabel("Duplication Percent");
+							gcContent.setxLabel("Duplication Level");
+							gcContent.setTitle(currentModule);
+							gcContent.setOverWriteExisting(true);
+							rscaScatters.add(gcContent);
+						}
+					}
+					String finalOut = rootOutputDir + "FastQC_summary";
+					RScatters rscScatters = new RScatters(rscaScatters.toArray(new RScatter[rscaScatters.size()]), finalOut + ".rscript", finalOut + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+					rscScatters.execute();
 				}
 			}
 		}

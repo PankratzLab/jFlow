@@ -15,6 +15,7 @@ import java.util.concurrent.Callable;
 
 
 
+
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.ErrorBars;
 import stats.Rscript.GEOM_POINT_SIZE;
@@ -229,9 +230,15 @@ class CorrectionIterator implements Serializable {
 				pcResiduals.setMarkersToAssessFile(markesToEvaluate);
 
 				pcResiduals.setHomozygousOnly(true);
-				proj.getLog().reportTimeWarning("In gc-correction mode now, using "+proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0]);
-				System.exit(1);//add adjustment params
-				//GcAdjustorParameters params = 
+				proj.getLog().reportTimeWarning("In gc-correction mode now, using " + proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0]);
+				GcAdjustorParameters params = GcAdjustorParameters.readSerial(proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0], proj.getLog());
+				if (params.getCentroids() == null) {
+					throw new IllegalArgumentException("Must have centroids");
+				} else {
+					proj.getLog().reportTimeInfo("Using centroids and gc correction from " + proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0]);
+				}
+				// GcAdjustorParameters params =
+				pcResiduals.setParams(params);
 				pcResiduals.computeAssessmentDataMedians();
 				cEvaluator = new CorrectionEvaluator(proj, pcResiduals, null, null, null, svd);
 				int[] order = null;
@@ -283,7 +290,6 @@ class CorrectionIterator implements Serializable {
 					}
 					boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
 					cEvaluator = new CorrectionEvaluator(proj, pcResiduals, order, new boolean[][] { samplesForModels, samplesToEvaluate }, extraIndeps, svd);
-					System.exit(1);
 					BasicPrep basicPrep = new BasicPrep(cEvaluator.getParser().getNumericData(), cEvaluator.getParser().getNumericDataTitles(), samplesToEvaluate, samplesForModels, sTabRank);
 					BasicPrep.serialize(basicPrep, iterationResult.getBasePrep());
 					iterationResult.setBasicPrep(basicPrep);
