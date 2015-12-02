@@ -37,6 +37,11 @@ public class GenvisisPipeline {
                       new RequirementInputType[][]{{RequirementInputType.FILE}}) {
         
         @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // not needed for step
+        }
+        
+        @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             proj.getLog().report("Generating marker positions file");
             String filename = variables.get(this).get(0);
@@ -77,10 +82,9 @@ public class GenvisisPipeline {
                      "", 
                      new String[][]{{"[Create Marker Positions] step must be selected and valid.", "Parsed markerPositions file must already exist."}, {"Number of Threads to Use"}}, 
                      new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.INT}}) {
-        
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            proj.getLog().report("Parsing sample files");
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
             String mkrFile = variables.get(this).get(0);
             mkrFile = ext.verifyDirFormat(mkrFile);
@@ -89,12 +93,22 @@ public class GenvisisPipeline {
                 proj.MARKER_POSITION_FILENAME.setValue(mkrFile);
             }
             int numThreads = proj.NUM_THREADS.getValue();
-        	try {
-        		numThreads = Integer.parseInt(variables.get(this).get(1));
-        	} catch (NumberFormatException e) {}
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
-            	proj.NUM_THREADS.setValue(numThreads);
+                proj.NUM_THREADS.setValue(numThreads);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            int numThreads = proj.NUM_THREADS.getValue();
+//            left as unneeded/pre-run checks ensure int value
+//            try {
+//                numThreads = Integer.parseInt(variables.get(this).get(1));
+//            } catch (NumberFormatException e) {}
+            proj.getLog().report("Parsing sample files");
             int retCode = cnv.manage.SourceFileParser.createFiles(proj, numThreads);
             switch (retCode) {
             case 0:
@@ -138,23 +152,28 @@ public class GenvisisPipeline {
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projPropFile = proj.getPropertyFilename();
-            
-            // set necessary properties before exporting, assuming the command is to be run.
+            StringBuilder kvCmd = new StringBuilder("jcp cnv.filesys.Project proj=").append(projPropFile);
+            StringBuilder kvPairs = new StringBuilder();
             String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
             String mkrFile = variables.get(this).get(0);
             mkrFile = ext.verifyDirFormat(mkrFile);
             mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
             if (!mkrFile.equals(projFile)) {
-                proj.MARKER_POSITION_FILENAME.setValue(mkrFile);
+                kvPairs.append(" MARKER_POSITION_FILENAME=").append(mkrFile);
             }
             int numThreads = proj.NUM_THREADS.getValue();
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
-                proj.NUM_THREADS.setValue(numThreads);
+                kvPairs.append(" NUM_THREADS=").append(numThreads);
             }
-            return "jcp cnv.manage.SourceFileParser proj=" + projPropFile + " threads=" + numThreads;
+            StringBuilder command = new StringBuilder();
+            if (kvPairs.length() != 0) {
+                command.append(kvCmd).append(kvPairs).append("\n");
+            }
+            command.append("jcp cnv.manage.SourceFileParser proj=").append(projPropFile).append(" threads=").append(numThreads);
+            return command.toString();
         }
         
     };
@@ -165,8 +184,7 @@ public class GenvisisPipeline {
             new RequirementInputType[][]{{RequirementInputType.FILE}, {RequirementInputType.INT}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            proj.getLog().report("Parsing sample files");
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
             String mkrFile = variables.get(this).get(0);
             mkrFile = ext.verifyDirFormat(mkrFile);
@@ -181,6 +199,13 @@ public class GenvisisPipeline {
             if (numThreads != proj.NUM_THREADS.getValue()) {
                 proj.NUM_THREADS.setValue(numThreads);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            int numThreads = proj.NUM_THREADS.getValue();
+            numThreads = Integer.parseInt(variables.get(this).get(1));
+            proj.getLog().report("Parsing sample files");
             int retCode = cnv.manage.SourceFileParser.createFiles(proj, numThreads);
             switch (retCode) {
             case 0:
@@ -223,23 +248,28 @@ public class GenvisisPipeline {
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projPropFile = proj.getPropertyFilename();
-            
-            // set necessary properties before exporting, assuming the command is to be run.
+            StringBuilder kvCmd = new StringBuilder("jcp cnv.filesys.Project proj=").append(projPropFile);
+            StringBuilder kvPairs = new StringBuilder();
             String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
             String mkrFile = variables.get(this).get(0);
             mkrFile = ext.verifyDirFormat(mkrFile);
             mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
             if (!mkrFile.equals(projFile)) {
-                proj.MARKER_POSITION_FILENAME.setValue(mkrFile);
+                kvPairs.append(" MARKER_POSITION_FILENAME=").append(mkrFile);
             }
             int numThreads = proj.NUM_THREADS.getValue();
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
-                proj.NUM_THREADS.setValue(numThreads);
+                kvPairs.append(" NUM_THREADS=").append(numThreads);
             }
-            return "jcp cnv.manage.SourceFileParser proj=" + projPropFile + " threads=" + numThreads;
+            StringBuilder command = new StringBuilder();
+            if (kvPairs.length() != 0) {
+                command.append(kvCmd).append(kvPairs).append("\n");
+            }
+            command.append("jcp cnv.manage.SourceFileParser proj=").append(projPropFile).append(" threads=").append(numThreads);
+            return command.toString();
         }
         
     };
@@ -248,14 +278,18 @@ public class GenvisisPipeline {
                          "", 
                          new String[][]{{"[Parse Sample Files] step must be selected and valid (will create a minimal SampleData.txt file)", "Parsed sample files must already exist (will create a minimal SampleData.txt file)", "A tab-delimited .PED format file with header \"" + Array.toStr(MitoPipeline.PED_INPUT, ", ") + "\"", "A Sample_Map.csv file, with at least two columns having headers \"" + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \"" + MitoPipeline.SAMPLEMAP_INPUT[2] + "\""}}, 
                          new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR, RequirementInputType.FILE, RequirementInputType.FILE}}) {
-        
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
             String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String pedFile = variables.get(this).get(1);
             String sampleMapCsv = variables.get(this).get(2);
             proj.getLog().report("Creating SampleData.txt");
@@ -285,6 +319,7 @@ public class GenvisisPipeline {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO don't forget setting project properties 
             return "## << Create SampleData >> Not Implemented For Command Line Yet ##";
         }
         
@@ -294,14 +329,18 @@ public class GenvisisPipeline {
                         "", 
                         new String[][]{{"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}}, 
                         new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}}) {
-        
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
             String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             proj.getLog().report("Transposing data");
             TransposeData.transposeData(proj, 2000000000, false); // compact if no LRR was provided
         }
@@ -329,13 +368,18 @@ public class GenvisisPipeline {
         
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String kvCmd = "";
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
             String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
-                proj.SAMPLE_DIRECTORY.setValue(setDir);
+                kvCmd += " SAMPLE_DIRECTORY=" + setDir;
             }
             String projPropFile = proj.getPropertyFilename();
-            return "jcp cnv.manage.TransposeData -transpose proj=" + projPropFile + " max=" + 2000000000;
+            StringBuilder cmd = new StringBuilder();
+            if (kvCmd.length() > 0) {
+                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+            }
+            return cmd.append("jcp cnv.manage.TransposeData -transpose proj=" + projPropFile + " max=" + 2000000000).toString();
         }
         
     };
@@ -346,15 +390,19 @@ public class GenvisisPipeline {
                                  {"[Create SampleData.txt File] step must be selected and valid.", "SampleData.txt file must already exist."}}, 
                   new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, 
                                                {RequirementInputType.NONE, RequirementInputType.FILE}}) {
-        
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            proj.getLog().report("Running SexCheck");
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
             String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            proj.getLog().report("Running SexCheck");
             cnv.qc.SexChecks.sexCheck(proj);
         }
         
@@ -384,12 +432,17 @@ public class GenvisisPipeline {
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projPropFile = proj.getPropertyFilename();
+            String kvCmd = "";
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
             String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
-                proj.SAMPLE_DIRECTORY.setValue(setDir);
+                kvCmd += " SAMPLE_DIRECTORY=" + setDir;
             }
-            return "jcp cnv.qc.SexChecks -check proj=" + projPropFile;
+            StringBuilder cmd = new StringBuilder();
+            if (kvCmd.length() > 0) {
+                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+            }
+            return cmd.append("jcp cnv.qc.SexChecks -check proj=" + projPropFile).toString();
         }
         
     };
@@ -398,9 +451,9 @@ public class GenvisisPipeline {
                  "", 
                  new String[][]{{"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}, {"A pedigree.dat file is must exist."}}, 
                  new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.FILE}}) {
-        
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
             String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
@@ -411,6 +464,10 @@ public class GenvisisPipeline {
             if (!pedFile.equals(projPedFile)) {
                 proj.PEDIGREE_FILENAME.setValue(pedFile);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             
             proj.getLog().report("Running PLINK");
             
@@ -477,6 +534,11 @@ public class GenvisisPipeline {
                "", 
                new String[][]{{"[Create/Run PLINK Files] step must be selected and valid.", "PLINK files must already exist."}, {"Keep genome info for unrelateds only?"}},
                new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.BOOL}}) {
+
+        @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // not needed for step
+        }
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -532,9 +594,9 @@ public class GenvisisPipeline {
             new String[][]{{"[Create Marker Positions] step must be selected and valid.", "A MarkerSet file must already exist."}, 
                            {"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}},
             new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.NONE, RequirementInputType.DIR}}) {
-        
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
             String mkrPosFile = variables.get(this).get(0);
             String setDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
@@ -545,7 +607,10 @@ public class GenvisisPipeline {
             if (!ext.verifyDirFormat(setDir).equals(sampDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(sampDir);
             }
-            
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             ABLookup abLookup;
             String filename;
             
@@ -601,9 +666,9 @@ public class GenvisisPipeline {
             new String[][]{{"A MarkerSet file must already exist."}, 
                             {"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}},
             new RequirementInputType[][]{{RequirementInputType.FILE}, {RequirementInputType.NONE, RequirementInputType.DIR}}) {
-        
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
             String mkrPosFile = variables.get(this).get(0);
             String setDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
@@ -614,7 +679,10 @@ public class GenvisisPipeline {
             if (!ext.verifyDirFormat(setDir).equals(sampDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(sampDir);
             }
-
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             ABLookup abLookup;
             String filename;
             
@@ -677,10 +745,9 @@ public class GenvisisPipeline {
     									 {RequirementInputType.NONE, RequirementInputType.FILE},
     									 {RequirementInputType.INT}}
             ) {
-    	
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(0));
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
             String mkrPosFile = variables.get(this).get(1);
             String setSampList = proj.SAMPLELIST_FILENAME.getValue(false, false);
@@ -698,13 +765,23 @@ public class GenvisisPipeline {
                 // arr[0] = tgtFile;
                 proj.TARGET_MARKERS_FILENAMES.addValue(tgtFile);
             }
-        	int numThreads = proj.NUM_THREADS.getValue();
-        	try {
-        		numThreads = Integer.parseInt(variables.get(this).get(4));
-        	} catch (NumberFormatException e) {}
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(4));
+            } catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
-            	proj.NUM_THREADS.setValue(numThreads);
+                proj.NUM_THREADS.setValue(numThreads);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(0));
+            String tgtFile = variables.get(this).get(3);
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(4));
+            } catch (NumberFormatException e) {}
             
             MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
         }
@@ -765,10 +842,9 @@ public class GenvisisPipeline {
                                                     {RequirementInputType.NONE, RequirementInputType.FILE},
                                                     {RequirementInputType.INT}}
                 ) {
-        
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(0));
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
             String mkrPosFile = variables.get(this).get(1);
             String setSampList = proj.SAMPLELIST_FILENAME.getValue(false, false);
@@ -793,6 +869,16 @@ public class GenvisisPipeline {
             if (numThreads != proj.NUM_THREADS.getValue()) {
                 proj.NUM_THREADS.setValue(numThreads);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(0));
+            String tgtFile = variables.get(this).get(3);
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(4));
+            } catch (NumberFormatException e) {}
             
             MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
         }
@@ -845,22 +931,30 @@ public class GenvisisPipeline {
                                 {"Sample CallRate Threshold"},
                             }, 
                           new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.INT}, {RequirementInputType.STRING}}) {
-        
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            proj.getLog().report("Running LrrSd");
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
             String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
             int numThreads = proj.NUM_THREADS.getValue();
-        	try {
-        		numThreads = Integer.parseInt(variables.get(this).get(1));
-        	} catch (NumberFormatException e) {}
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
-            	proj.NUM_THREADS.setValue(numThreads);
+                proj.NUM_THREADS.setValue(numThreads);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            proj.getLog().report("Running LrrSd");
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
             String callRate = variables.get(this).get(2);
             String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE;
             String markersForEverything =  proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE;
@@ -903,6 +997,7 @@ public class GenvisisPipeline {
             return "## << Extract LRRSD and Filter Samples by CallRate >> Not Implemented For Command Line Yet ##";
         }
     };
+    
     static final STEP S11_CREATE_PCS = new STEP("Create Principal Components File", 
                   "", 
                   new String[][]{
@@ -917,6 +1012,11 @@ public class GenvisisPipeline {
                             {RequirementInputType.BOOL}, 
                             {RequirementInputType.BOOL}, 
                     }) {
+
+        @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // not needed for step
+        }
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -1000,6 +1100,12 @@ public class GenvisisPipeline {
                                     {RequirementInputType.BOOL}, 
                                     {RequirementInputType.BOOL}, 
                         }) {
+
+        @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // not needed for step
+        }
+        
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String extrapolatedPCsFile = "";
@@ -1053,8 +1159,9 @@ public class GenvisisPipeline {
                     {RequirementInputType.NONE, RequirementInputType.FILE, RequirementInputType.FILE},
                     {RequirementInputType.FILE}}
             ) {
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String setSampList = proj.SAMPLELIST_FILENAME.getValue();
             String sampListFile = variables.get(this).get(0);
             String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
@@ -1071,6 +1178,10 @@ public class GenvisisPipeline {
             if (!ext.verifyDirFormat(setPFBFile).equals(pfbOutputFile)) {
                 proj.CUSTOM_PFB_FILENAME.setValue(pfbOutputFile);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             cnv.analysis.PennCNV.populationBAF(proj);
         }
         
@@ -1104,6 +1215,8 @@ public class GenvisisPipeline {
         
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String kvCmd = "";
+            
             String setSampList = proj.SAMPLELIST_FILENAME.getValue();
             String sampListFile = variables.get(this).get(0);
             String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
@@ -1112,15 +1225,21 @@ public class GenvisisPipeline {
             String pfbOutputFile = variables.get(this).get(2);
             
             if (!ext.verifyDirFormat(setSampList).equals(sampListFile)) {
-                proj.SAMPLELIST_FILENAME.setValue(sampListFile);
+                kvCmd += " SAMPLELIST_FILENAME=" + sampListFile;
             }
             if (!ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
-                proj.SAMPLE_SUBSET_FILENAME.setValue(subSampFile);
+                kvCmd += " SAMPLE_SUBSET_FILENAME=" + subSampFile;
             }
             if (!ext.verifyDirFormat(setPFBFile).equals(pfbOutputFile)) {
-                proj.CUSTOM_PFB_FILENAME.setValue(pfbOutputFile);
+                kvCmd += " CUSTOM_PFB_FILENAME=" + pfbOutputFile;
             }
-            return "jcp cnv.analysis.PennCNV -pfb proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename();
+            
+            String projPropFile = proj.getPropertyFilename();
+            StringBuilder cmd = new StringBuilder();
+            if (kvCmd.length() > 0) {
+                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+            }
+            return cmd.append("jcp cnv.analysis.PennCNV -pfb proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename()).toString();
         }
         
     };
@@ -1134,14 +1253,20 @@ public class GenvisisPipeline {
                             {RequirementInputType.FILE}, 
                             {RequirementInputType.FILE}
                 }) {
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String gcBaseFile = variables.get(this).get(0);
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
             String gcOutputFile = variables.get(this).get(1);
             if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
                 proj.GC_MODEL_FILENAME.setValue(gcOutputFile);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String gcBaseFile = variables.get(this).get(0);
+            String gcOutputFile = variables.get(this).get(1);
             cnv.analysis.PennCNV.gcModel(proj, gcBaseFile, gcOutputFile, 100);
         }
         @Override
@@ -1163,13 +1288,21 @@ public class GenvisisPipeline {
         
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String gcBaseFile = variables.get(this).get(0);
+            String kvCmd = "";
+            
             String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
             String gcOutputFile = variables.get(this).get(1);
             if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
-                proj.GC_MODEL_FILENAME.setValue(gcOutputFile);
+                kvCmd += " GC_MODEL_FILENAME=" + gcOutputFile;
             }
-            return "jcp cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename() + " gc5base=" + gcBaseFile;
+            
+            String projPropFile = proj.getPropertyFilename();
+            StringBuilder cmd = new StringBuilder();
+            if (kvCmd.length() > 0) {
+                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+            }
+            String gcBaseFile = variables.get(this).get(0);
+            return cmd.append("jcp cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename() + " gc5base=" + gcBaseFile).toString();
         }
         
     };
@@ -1182,9 +1315,9 @@ public class GenvisisPipeline {
                                                  new RequirementInputType[][]{
                                                         {RequirementInputType.FILE}, 
                                                         {RequirementInputType.INT}}) {
-        
+
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
             String mkrPosFile = variables.get(this).get(0);
             if (!mkrPosProj.equals(mkrPosFile)) {
@@ -1197,6 +1330,10 @@ public class GenvisisPipeline {
             if (numThreads != proj.NUM_THREADS.getValue()) {
                 proj.NUM_THREADS.setValue(numThreads);
             }
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             Mosaicism.findOutliers(proj);
         }
         
@@ -1224,19 +1361,27 @@ public class GenvisisPipeline {
         
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String kvCmd = "";
+            
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
             String mkrPosFile = variables.get(this).get(0);
             if (!mkrPosProj.equals(mkrPosFile)) {
-                proj.MARKERSET_FILENAME.setValue(mkrPosFile);
+                kvCmd += " MARKERSET_FILENAME=" + mkrPosFile;
             }
             int numThreads = proj.NUM_THREADS.getValue();
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
-                proj.NUM_THREADS.setValue(numThreads);
+                kvCmd += " NUM_THREADS=" + numThreads;
             }
-            return "jcp cnv.analysis.Mosaicism proj=" + proj.getPropertyFilename();
+            
+            String projPropFile = proj.getPropertyFilename();
+            StringBuilder cmd = new StringBuilder();
+            if (kvCmd.length() > 0) {
+                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+            }
+            return cmd.append("jcp cnv.analysis.Mosaicism proj=" + proj.getPropertyFilename()).toString();
         }
         
     };
@@ -1245,6 +1390,10 @@ public class GenvisisPipeline {
                        "", 
                        new String[][]{},
                        new RequirementInputType[][]{}) {
+        @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // not needed for step
+        }
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             // TODO Auto-generated method stub
@@ -1279,6 +1428,10 @@ public class GenvisisPipeline {
                             new RequirementInputType[][]{
                                 
                             }) {
+        @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+        }
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             // TODO Auto-generated method stub
@@ -1315,27 +1468,25 @@ public class GenvisisPipeline {
                                 
                             }) {
         @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+        }
+        @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
         }
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
             return new boolean[][]{};
         }
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            // TODO Auto-generated method stub
             return null;
         }
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
             return false;
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
             return null;
         }
         
@@ -1352,6 +1503,7 @@ public class GenvisisPipeline {
         protected void setFailed() { failed = true; }
         public ArrayList<String> getFailureMessages() { return failReasons; }
         public abstract void run(Project proj, HashMap<STEP, ArrayList<String>> variables);
+        public abstract void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables);
         public abstract boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables);
         public boolean hasRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
             if (stepSelections.get(this) == null || variables.get(this) == null) {

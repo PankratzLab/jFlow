@@ -610,11 +610,11 @@ public class GenvisisPipelineGUI extends JDialog {
                 }
                 HashMap<STEP, ArrayList<String>> variables = getVariables();
                 if (checkRequirementsAndNotify(selectedSteps, variables)) {
-                    StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n");
+                    StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
                     for (int i = 0; i < options.length; i++) {
                         if (options[i]) {
                             String cmd = GenvisisPipelineGUI.this.steps[i].getCommandLine(proj, variables);
-                            output.append(cmd).append("\n");
+                            output.append("## ").append(GenvisisPipelineGUI.this.steps[i].stepName).append("\n").append(cmd).append("\n\n");
                         }
                     }
                     Files.write(output.toString(), proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
@@ -647,6 +647,7 @@ public class GenvisisPipelineGUI extends JDialog {
                             startStep(GenvisisPipelineGUI.this.steps[i]);
                             Throwable e = null;
                             try {
+                                GenvisisPipelineGUI.this.steps[i].setNecessaryPreRunProperties(proj, variables);
                                 GenvisisPipelineGUI.this.steps[i].run(proj, variables);
                             } catch (Throwable e1) {
                                 e = e1;
