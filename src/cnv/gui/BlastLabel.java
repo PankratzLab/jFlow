@@ -141,7 +141,7 @@ public class BlastLabel extends JLabel {
         this.myAnnotation = annot;
         this.positiveStrand = annot.getStrand() == Strand.POSITIVE;
         this.oppositeStrand = ref.getStrand() != annot.getStrand();
-        this.flipSequence = oppositeStrand && ((ref.getTopBotRef() == TOP_BOT.PLUS && ref.getTopBotProbe() == TOP_BOT.PLUS) || (ref.getTopBotRef() == TOP_BOT.BOT && ref.getTopBotProbe() == TOP_BOT.BOT));
+        this.flipSequence = oppositeStrand && ((ref.getTopBotRef() == TOP_BOT.PLUS && ref.getTopBotProbe() == TOP_BOT.PLUS) || (ref.getTopBotRef() == TOP_BOT.BOT && ref.getTopBotProbe() == TOP_BOT.BOT) || (ref.getTopBotRef() == TOP_BOT.TOP && ref.getTopBotProbe() == TOP_BOT.TOP) || (ref.getTopBotRef() == TOP_BOT.MINUS && ref.getTopBotProbe() == TOP_BOT.MINUS));
         this.fullSegment = BlastFrame.BlastUtils.getSegmentForAnnotation(ref, annot);
         this.alignmentCount = BlastFrame.BlastUtils.countAlignment(annot);
         if (refGen != null) {
@@ -226,6 +226,7 @@ public class BlastLabel extends JLabel {
 //    chr17:74,783,145-74,785,655
 //    chr17:74,784,671-74,787,181
 //    chr17:4,914,805-5,526,347 -- #37 of 4656
+//    chr7:104,057,182-104,954,272  -- #63
     
     @Override
     protected void paintComponent(Graphics g) {

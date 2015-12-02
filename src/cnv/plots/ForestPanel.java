@@ -209,7 +209,7 @@ public class ForestPanel extends AbstractPanel {
 		double range, plotStep, stepStep, plotMin, plotMax;
 		double zoomMin, zoomMax, dist, tempD;
 		int numHashes, wid, canvasRange;
-		FontMetrics fontMetrics = g.getFontMetrics(g.getFont());;
+		FontMetrics fontMetrics = g.getFontMetrics(g.getFont());
 		int sf, temp;
 
 		range = max-min;
@@ -218,13 +218,13 @@ public class ForestPanel extends AbstractPanel {
 		sf = ext.getNumSigFig(stepStep);
 
 		if (xAxis) {
-			wid = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf)), fontMetrics.stringWidth(ext.formDeci(max, sf)));
+			wid = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf, true)), fontMetrics.stringWidth(ext.formDeci(max, sf, true)));
 			numHashes = 12;
 			canvasRange = canvasSectionMaximumX-canvasSectionMinimumX;
 			temp = (wid + 30) * numHashes;
 			while (temp > canvasRange) {
 				numHashes -= 1;
-				temp = (wid + 30) * numHashes;
+				temp = (wid + 20) * numHashes;
 			}
 		} else {
 			numHashes = 10;
@@ -262,11 +262,14 @@ public class ForestPanel extends AbstractPanel {
 
 		if (xAxis) {
 			fontMetrics = g.getFontMetrics(g.getFont());
-			wid = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf)), fontMetrics.stringWidth(ext.formDeci(max, sf)));
+			wid = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf, true)), fontMetrics.stringWidth(ext.formDeci(max, sf, true)));
 			numHashes = 12;
-			while ((wid+30)*numHashes>canvasSectionMaximumX-canvasSectionMinimumX) {
-				numHashes -= 1;
-			}
+            canvasRange = canvasSectionMaximumX-canvasSectionMinimumX;
+            temp = (wid + 30) * numHashes;
+            while (temp > canvasRange) {
+                numHashes -= 1;
+                temp = (wid + 20) * numHashes;
+            }
 		} else {
 			numHashes = (int) ((canvasSectionMaximumY - canvasSectionMinimumY) / (fontMetrics.getHeight()));
 		}
@@ -276,7 +279,7 @@ public class ForestPanel extends AbstractPanel {
 			plotStep += stepStep;
 		}
 
-		return new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf)), Double.parseDouble(ext.formDeci(plotMin, sf))};
+		return new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf, true)), Double.parseDouble(ext.formDeci(plotMin, sf, false))};
 
 	}
 	

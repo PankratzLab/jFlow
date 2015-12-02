@@ -39,7 +39,7 @@ public class temp {
 		
 		System.exit(1);
 		
-		boolean wassup = Boolean.getBoolean("true");
+		boolean wassup = Boolean.valueOf("true");
 		System.out.println(wassup);
 		
 		System.exit(1);

@@ -43,6 +43,7 @@ import cnv.manage.GenvisisPipeline;
 import cnv.manage.GenvisisPipeline.RequirementInputType;
 import cnv.manage.GenvisisPipeline.STEP;
 import common.Array;
+import common.Files;
 import common.Grafik;
 import common.ext;
 
@@ -120,7 +121,7 @@ public class GenvisisPipelineGUI extends JDialog {
         {
             JPanel buttonPane = new JPanel();
             getContentPane().add(buttonPane, BorderLayout.SOUTH);
-            buttonPane.setLayout(new MigLayout("", "[][][][][][][grow][47px][59px]", "[23px]"));
+            buttonPane.setLayout(new MigLayout("", "[][][][][][][grow][][47px][59px]", "[23px]"));
             
             JLabel lblSelect = new JLabel("Select:");
             buttonPane.add(lblSelect, "flowx,cell 0 0");
@@ -177,19 +178,10 @@ public class GenvisisPipelineGUI extends JDialog {
                 }
             });
             buttonPane.add(btnNone, "cell 5 0");
-            JButton okButton = new JButton("OK");
-            okButton.setActionCommand("OK");
-            okButton.setMnemonic(KeyEvent.VK_O);
-            buttonPane.add(okButton, "cell 7 0,alignx left,aligny top");
-            getRootPane().setDefaultButton(okButton);
-            JButton cancelButton = new JButton("Close");
-            cancelButton.setActionCommand("Close");
-            cancelButton.setMnemonic(KeyEvent.VK_C);
-            buttonPane.add(cancelButton, "cell 8 0,alignx left,aligny top");
             
             AbstractAction listener = new AbstractAction() {
                 private static final long serialVersionUID = 1L;
-
+                
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     if (running) {
@@ -198,11 +190,27 @@ public class GenvisisPipelineGUI extends JDialog {
                     if (e.getActionCommand().equals("Close")) {
                         cancelled = true;
                         doClose();
+                    } else if (e.getActionCommand().equals("Export")) {
+                        exportToText();
                     } else {
                         run();
                     }
                 }
             };
+            JButton btnExportToText = new JButton("Export To Text");
+            btnExportToText.setActionCommand("Export");
+            btnExportToText.addActionListener(listener);
+            buttonPane.add(btnExportToText, "cell 7 0");
+            JButton okButton = new JButton("OK");
+            okButton.setActionCommand("OK");
+            okButton.setMnemonic(KeyEvent.VK_O);
+            buttonPane.add(okButton, "cell 8 0,alignx left,aligny top");
+            getRootPane().setDefaultButton(okButton);
+            JButton cancelButton = new JButton("Close");
+            cancelButton.setActionCommand("Close");
+            cancelButton.setMnemonic(KeyEvent.VK_C);
+            buttonPane.add(cancelButton, "cell 9 0,alignx left,aligny top");
+            
             okButton.addActionListener(listener);
             cancelButton.addActionListener(listener);
             
@@ -587,6 +595,38 @@ public class GenvisisPipelineGUI extends JDialog {
         }
     }
     
+    private void exportToText() {
+        running = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                lockup(true);
+                
+                boolean[] options = getSelectedOptions();
+
+                HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisPipeline.STEP, Boolean>();
+                for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
+                    selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
+                }
+                HashMap<STEP, ArrayList<String>> variables = getVariables();
+                if (checkRequirementsAndNotify(selectedSteps, variables)) {
+                    StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n");
+                    for (int i = 0; i < options.length; i++) {
+                        if (options[i]) {
+                            String cmd = GenvisisPipelineGUI.this.steps[i].getCommandLine(proj, variables);
+                            output.append(cmd).append("\n");
+                        }
+                    }
+                    Files.write(output.toString(), proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
+                    proj.message("GenvisisPipeline commands written to " + proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run", "Command File Written", JOptionPane.INFORMATION_MESSAGE);
+                }
+                
+                lockup(false);
+                running = false;
+            }
+        }).start();
+    }
+
     private void run() {
         running = true;
         new Thread(new Runnable() {
@@ -605,10 +645,10 @@ public class GenvisisPipelineGUI extends JDialog {
                     for (int i = 0; i < options.length; i++) {
                         if (options[i]) {
                             startStep(GenvisisPipelineGUI.this.steps[i]);
-                            Exception e = null;
+                            Throwable e = null;
                             try {
                                 GenvisisPipelineGUI.this.steps[i].run(proj, variables);
-                            } catch (Exception e1) {
+                            } catch (Throwable e1) {
                                 e = e1;
                             }
                             boolean failed = false;
@@ -616,18 +656,18 @@ public class GenvisisPipelineGUI extends JDialog {
                                 failed = true;
                             }
                             endStep(GenvisisPipelineGUI.this.steps[i], failed);
-                            StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ").append(i + 1);
-                            if (e != null) {
-                                proj.getLog().reportException(e);
-                                failureMessage.append("\n").append(e.getMessage());
-                            } else if (GenvisisPipelineGUI.this.steps[i].getFailed()) {
-                                for (String msg : GenvisisPipelineGUI.this.steps[i].getFailureMessages()) {
-                                    failureMessage.append("\n").append(msg);
-                                }
-                            } else if (!GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, variables)) {
-                                failureMessage.append("\nUnknown error occurred.");
-                            }
                             if (failed) {
+                                StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ").append(i + 1);
+                                if (e != null) {
+                                    proj.getLog().reportException(e, 0);
+                                    failureMessage.append("\n").append(e.getMessage());
+                                } else if (GenvisisPipelineGUI.this.steps[i].getFailed()) {
+                                    for (String msg : GenvisisPipelineGUI.this.steps[i].getFailureMessages()) {
+                                        failureMessage.append("\n").append(msg);
+                                    }
+                                } else if (!GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, variables)) {
+                                    failureMessage.append("\nUnknown error occurred.");
+                                }
                                 failureMessage.append("\nPlease check project log for more details.");
                                 String[] opts = {"Continue", "Retry", "Cancel"};
                                 int opt = JOptionPane.showOptionDialog(GenvisisPipelineGUI.this, failureMessage.toString(), "Error!", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, opts, opts[2]);

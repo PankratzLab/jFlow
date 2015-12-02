@@ -737,17 +737,17 @@ public class MitoPipeline {
 		Logger log = proj.getLog();
 
 		try {
-			DNAIndex = getDNAIndex(proj, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES_SUMMARY);
-			reader = Files.getReader(proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES_SUMMARY, false, true, false);
+			DNAIndex = getDNAIndex(proj, outputBase + PCA_SAMPLES_SUMMARY);
+			reader = Files.getReader(outputBase + PCA_SAMPLES_SUMMARY, false, true, false);
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
 				qcLookup.put(line[DNAIndex], Array.toStr(Array.subArray(line, 1)));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + proj.PROJECT_DIRECTORY.getValue() + PCA_SAMPLES_SUMMARY + "\" not found in current directory");
+			log.reportError("Error: file \"" + outputBase + PCA_SAMPLES_SUMMARY + "\" not found.");
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + proj.PROJECT_DIRECTORY.getValue() + PCA_SAMPLES_SUMMARY + "\"");
+			log.reportError("Error reading file \"" + outputBase + PCA_SAMPLES_SUMMARY + "\"");
 		}
 		return qcLookup;
 	}
@@ -1220,7 +1220,7 @@ public class MitoPipeline {
 		usage += "   (12) Call rate filter to exclude samples from PCs (i.e. sampleCallRate=" + sampleCallRateFilter + " (default))\n";
 		usage += "   (13) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
 		usage += "   (14) Number of threads to use for multi-threaded portions of the analysis (i.e. numThreads=" + numThreads + " (default))\n";
-		usage += "   (15) Output file baseName (i.e. output=" + output + " (default))\n";
+		usage += "   (15) Output file full path and baseName (i.e. output=" + output + " (default))\n";
 		usage += "   (16) Project filename (if you manually created a project properties file, or edited an existing project). Note that default arguments available here can overide existing project properties (i.e. proj=" + filename + " (no default))\n";
 		usage += "   (17) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader=" + idHeader + " (default))\n";
 		// usage += "   (18) A file specifying the AB allele lookup for markers, often times required  (i.e. abLookup=" + idHeader + " (default))\n";

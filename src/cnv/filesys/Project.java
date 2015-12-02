@@ -1141,7 +1141,7 @@ public class Project {
 			if (! targetMarkers.equals("")) {
 				log.report("FYI, since target markers file '" + targetMarkers + "' was not found, all markers will be exported/analyzed");
 			}
-			targets = null;
+			targets = getMarkerNames();
 		}
 
 		return targets;

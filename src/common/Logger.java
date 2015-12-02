@@ -214,7 +214,7 @@ public class Logger implements Serializable {
 		reportException(e, 0);
 	}
 	
-	public void reportException(Exception e, int levelRequiredToReport) {
+	public void reportException(Throwable e, int levelRequiredToReport) {
 		PrintWriter writer;
 		
 		e.printStackTrace();

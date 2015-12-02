@@ -1538,7 +1538,8 @@ public class ext {
 		String str = formDeci(num, 5);
 	
 		if (str.contains(".")) {
-			return str.length()-str.indexOf(".")-1;
+		    int ind = str.indexOf(".");
+			return str.length() - ind - 1;
 		} else {
 			return 0;
 		}
