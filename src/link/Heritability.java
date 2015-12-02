@@ -421,9 +421,14 @@ public class Heritability {
 	    				ArrayList<String[]> sibList = Pedigree.PedigreeUtils.loadSibs(ped, true, null, validIDs, true); // double actual due to bidirectionality
 	    				ArrayList<String[]> poPairs = Pedigree.PedigreeUtils.loadPOPairs(ped, true, null, validIDs, true);
 	    				ArrayList<int[]> trios = Pedigree.PedigreeUtils.loadCompleteTrios(ped, null, validIDs, true);
+
+						double[] resids = RegressionModel.processDeps(deps);
+						if (indeps.size() > 0) {
+							RegressionModel model = RegressionModel.determineAppropriate(resids, RegressionModel.processIndeps(indeps), false, true);
+							resids = model.getResiduals();
+						}
 	    				
-	    				RegressionModel model = RegressionModel.determineAppropriate(RegressionModel.processDeps(deps), RegressionModel.processIndeps(indeps), false, true);
-	    				double[] resids = model.getResiduals();
+	    				
 	    				
 	    				double sibICC;
 	    				double poICC;
