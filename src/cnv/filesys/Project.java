@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
@@ -1508,5 +1509,49 @@ public class Project {
 		return projCorrected;
 	}
     
+	public static void main(String[] args) {
+        int numArgs = args.length;
+        String filename = null;
+        Project proj;
+        HashMap<String, String> kvPairs = new HashMap<String, String>();
+        
+        String usage = "\n"+
+            "cnv.filesys.Project requires 2+ arguments\n"+
+            "   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+            "   (2+) key-value pairs for properties (i.e. NUM_THREADS=6 (not the default))\n"+
+            "";
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-h") || args[i].equals("-help")
+                    || args[i].equals("/h") || args[i].equals("/help")) {
+                System.err.println(usage);
+                System.exit(1);
+            } else if (args[i].startsWith("proj=")) {
+                filename = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].contains("=")) {
+                String[] parts = args[i].split("=");
+                if (parts.length > 2) {
+                    break;
+                }
+                kvPairs.put(parts[0], parts[1]);
+                numArgs--;
+            }
+        }
+        if (numArgs != 0) {
+            System.err.println(usage);
+            System.exit(1);
+        }
+        
+        proj = new Project(filename, false);
+        for (Entry<String, String> kv : kvPairs.entrySet()) {
+            try {
+                proj.setProperty(kv.getKey(), kv.getValue());
+            } catch (Throwable e) {
+                System.err.println("Error - malformed key-value property: {" + kv.getKey() + "=" + kv.getValue() + "}");
+            }
+        }
+        proj.saveProperties();
+    }
 		
 }
