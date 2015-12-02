@@ -20,6 +20,7 @@ import java.util.zip.ZipFile;
 
 import seq.analysis.BWA_Analysis;
 import stats.Rscript.COLUMNS_MULTIPLOT;
+import stats.Rscript.ErrorBars;
 import stats.Rscript.PLOT_DEVICE;
 import stats.Rscript.RScatter;
 import stats.Rscript.RScatters;
@@ -115,7 +116,7 @@ public class FastQC {
 				}
 				if (!fail) {
 					ArrayList<RScatter> rscaScatters = new ArrayList<RScatter>();
-					
+
 					for (int i = 0; i < fastaQCModuleResults[0].length; i++) {
 						String currentModule = fastaQCModuleResults[0][i].getModuleTitleFormatted();
 						String currentOutput = rootOutputDir + currentModule + FAST_SUMMARY_FILE;
@@ -152,16 +153,39 @@ public class FastQC {
 							gcContent.setOverWriteExisting(true);
 							rscaScatters.add(gcContent);
 						} else if (currentModule.startsWith("Per_base_sequence_quality")) {
-							String gcOut = rootOutputDir + currentModule + "_plot";
-							RScatter gcContent = new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg", "Base", new String[] { "Mean", "Median", "Lower Quartile" }, null, SCATTER_TYPE.POINT, log);
-							gcContent.setyLabel("Phred");
-							gcContent.setxLabel("Base");
-							gcContent.setTitle(currentModule);
-							gcContent.setOverWriteExisting(true);
-							rscaScatters.add(gcContent);
+							String qual = rootOutputDir + currentModule + "_plot";
+							RScatter qualPlot = new RScatter(currentOutput, qual + ".rscript", ext.removeDirectoryInfo(qual), qual + ".jpeg", "InternalKey", new String[] { "Mean", "Median", "Lower Quartile" }, null, SCATTER_TYPE.POINT, log);
+							qualPlot.setyLabel("Phred");
+							qualPlot.setxLabel("Base");
+							qualPlot.setTitle(currentModule);
+
+							qualPlot.setOverWriteExisting(true);
+							rscaScatters.add(qualPlot);
+
+							String errorQual = rootOutputDir + currentModule + "Error_plot";
+							RScatter qualError = new RScatter(currentOutput, errorQual + ".rscript", ext.removeDirectoryInfo(errorQual), errorQual + ".jpeg", "InternalKey", new String[] { "Median" }, null, SCATTER_TYPE.POINT, log);
+							qualError.setyLabel("Phred");
+							qualError.setxLabel("Base");
+							qualError.setTitle(currentModule);
+							qualError.setOverWriteExisting(true);
+							ErrorBars errorBars = new ErrorBars(new String[] { "Median" }, new String[] { "Lower Quartile", "Upper Quartile" });
+							errorBars.setDoubleCoded(true);
+							qualError.setErrorBars(errorBars);
+							rscaScatters.add(qualError);
+
+							String justMedian = rootOutputDir + currentModule + "Median_plot";
+							RScatter qualMedian = new RScatter(currentOutput, justMedian + ".rscript", ext.removeDirectoryInfo(justMedian), justMedian + ".jpeg", "InternalKey", new String[] { "Median" }, null, SCATTER_TYPE.POINT, log);
+							qualMedian.setyLabel("Phred");
+							qualMedian.setxLabel("Base");
+							qualMedian.setTitle(currentModule);
+							qualMedian.setOverWriteExisting(true);
+
+							rscaScatters.add(qualMedian);
+							
+
 						} else if (currentModule.startsWith("Adapter_Content")) {
 							String gcOut = rootOutputDir + currentModule + "_plot";
-							RScatter gcContent = new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg", "Position", new String[] { "Illumina Universal Adapter", "Illumina Small RNA Adapter", "Lower Nextera Transposase Sequence" }, null, SCATTER_TYPE.POINT, log);
+							RScatter gcContent = new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg", "Position", new String[] { "Illumina Universal Adapter", "Illumina Small RNA Adapter", "Nextera Transposase Sequence" }, null, SCATTER_TYPE.POINT, log);
 							gcContent.setyLabel("Adapter Content");
 							gcContent.setxLabel("Position");
 							gcContent.setTitle(currentModule);
@@ -169,12 +193,31 @@ public class FastQC {
 							rscaScatters.add(gcContent);
 						} else if (currentModule.startsWith("Sequence_Duplication_Levels")) {
 							String gcOut = rootOutputDir + currentModule + "_plot";
-							RScatter gcContent = new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg", "Duplication Level", new String[] { "Percentage of total" }, null, SCATTER_TYPE.POINT, log);
-							gcContent.setyLabel("Duplication Percent");
-							gcContent.setxLabel("Duplication Level");
-							gcContent.setTitle(currentModule);
-							gcContent.setOverWriteExisting(true);
-							rscaScatters.add(gcContent);
+							RScatter seqQuality = new RScatter(currentOutput, gcOut + ".rscript", ext.removeDirectoryInfo(gcOut), gcOut + ".jpeg", "Duplication Level", new String[] { "Percentage of total" }, null, SCATTER_TYPE.POINT, log);
+							seqQuality.setyLabel("Duplication Percent");
+							seqQuality.setxLabel("Duplication Level");
+							seqQuality.setTitle(currentModule);
+							seqQuality.setOverWriteExisting(true);
+							seqQuality.setyRange(new double[] { 0, 45 });
+							rscaScatters.add(seqQuality);
+						} else if (currentModule.startsWith("Per_sequence_quality_scores")) {
+							String outSame = rootOutputDir + currentModule + "same_plot";
+							RScatter seqQuality = new RScatter(currentOutput, outSame + ".rscript", ext.removeDirectoryInfo(outSame), outSame + ".jpeg", "Quality", new String[] { "Count" }, null, SCATTER_TYPE.POINT, log);
+							seqQuality.setyLabel("Read Count");
+							seqQuality.setxLabel("Sequence Quality");
+							seqQuality.setTitle(currentModule);
+							seqQuality.setOverWriteExisting(true);
+							// seqQuality.setyRange(new double[] { 0, 45 });
+							rscaScatters.add(seqQuality);
+
+							String out = rootOutputDir + currentModule + "_plot";
+							RScatter seqQualitySample = new RScatter(currentOutput, out + ".rscript", ext.removeDirectoryInfo(out), out + ".jpeg", "Quality", new String[] { "Count" }, "Sample", SCATTER_TYPE.POINT, log);
+							seqQualitySample.setyLabel("Read Count");
+							seqQualitySample.setxLabel("Sequence Quality");
+							seqQualitySample.setTitle(currentModule);
+							seqQualitySample.setOverWriteExisting(true);
+							// seqQuality.setyRange(new double[] { 0, 45 });
+							rscaScatters.add(seqQualitySample);
 						}
 					}
 					String finalOut = rootOutputDir + "FastQC_summary";

@@ -9,7 +9,7 @@ import java.util.*;
 import common.*;
 
 public class Rscript {
-	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-","="));
+	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-","="," "));
 	public static final String R_REPLACEMENT = ".";
 	public static final String[] RSCRIPT_EXECS = {
 			// "/soft/R/3.0.1/bin/Rscript", // MSI
@@ -329,21 +329,41 @@ public class Rscript {
 		
 		private String[] rSafeDataColumns;
 		private String[] rSafeErrorColumns;
+		private boolean doubleCoded;
 
 		public ErrorBars(String[] dataColumns, String[] stdErrorColumns) {
 			super();
 			this.rSafeDataColumns = makeRSafe(dataColumns);
 			this.rSafeErrorColumns = makeRSafe(stdErrorColumns);
+			this.doubleCoded = false;
 		}
 
-		public String[] getErrorBarCalls(String dataFrame,String xColumn) {
+		public void setDoubleCoded(boolean doubleCoded) {
+			this.doubleCoded = doubleCoded;
+		}
+
+		public String[] getErrorBarCalls(String dataFrame, String xColumn) {
 			String[] errorBars = new String[rSafeDataColumns.length];
-			for (int i = 0; i < errorBars.length; i++) {
-				StringBuilder builder = new StringBuilder();
-				builder.append("geom_errorbar(data=" + dataFrame + ",");
-				builder.append("aes(x="+xColumn+", ymin =" + rSafeDataColumns[i] + "-" + rSafeErrorColumns[i] + ",");
-				builder.append("ymax=" + rSafeDataColumns[i] + "+" + rSafeErrorColumns[i] + ",colour=\"" + rSafeDataColumns[i] + "\"))");
-				errorBars[i] = builder.toString();
+			if (doubleCoded) {
+				int dataIndex = 0;
+				for (int i = 0; i < rSafeErrorColumns.length; i += 2) {
+					StringBuilder builder = new StringBuilder();
+					builder.append("geom_errorbar(data=" + dataFrame + ",");
+					builder.append("aes(x=" + xColumn + ", ymin =" + rSafeErrorColumns[i] + ",");
+					builder.append("ymax=" + rSafeErrorColumns[i + 1] + ",colour=\"" + rSafeDataColumns[dataIndex] + "\"))");
+					errorBars[dataIndex] = builder.toString();
+					dataIndex++;
+
+				}
+			} else {
+
+				for (int i = 0; i < errorBars.length; i++) {
+					StringBuilder builder = new StringBuilder();
+					builder.append("geom_errorbar(data=" + dataFrame + ",");
+					builder.append("aes(x=" + xColumn + ", ymin =" + rSafeDataColumns[i] + "-" + rSafeErrorColumns[i] + ",");
+					builder.append("ymax=" + rSafeDataColumns[i] + "+" + rSafeErrorColumns[i] + ",colour=\"" + rSafeDataColumns[i] + "\"))");
+					errorBars[i] = builder.toString();
+				}
 			}
 			return errorBars;
 
