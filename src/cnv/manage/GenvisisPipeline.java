@@ -37,9 +37,9 @@ public class GenvisisPipeline {
                       new RequirementInputType[][]{{RequirementInputType.FILE}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             proj.getLog().report("Generating marker positions file");
-            String filename = variableFields.get(this).get(0);
+            String filename = variables.get(this).get(0);
             cnv.manage.Markers.generateMarkerPositions(proj, filename);
         }
         
@@ -58,11 +58,18 @@ public class GenvisisPipeline {
         }
 
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             boolean mkrPosFile = Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
             boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
             return mkrPosFile && mkrSetFile;
         };
+        
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String projFile = proj.getPropertyFilename();
+            String filename = variables.get(this).get(0);
+            return "jcp cnv.manage.Markers proj=" + projFile + " snps=" + filename;
+        }
         
     };
     
@@ -72,10 +79,10 @@ public class GenvisisPipeline {
                      new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.INT}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             proj.getLog().report("Parsing sample files");
             String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
-            String mkrFile = variableFields.get(this).get(0);
+            String mkrFile = variables.get(this).get(0);
             mkrFile = ext.verifyDirFormat(mkrFile);
             mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
             if (!mkrFile.equals(projFile)) {
@@ -83,7 +90,7 @@ public class GenvisisPipeline {
             }
             int numThreads = proj.NUM_THREADS.getValue();
         	try {
-        		numThreads = Integer.parseInt(variableFields.get(this).get(1));
+        		numThreads = Integer.parseInt(variables.get(this).get(1));
         	} catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
             	proj.NUM_THREADS.setValue(numThreads);
@@ -104,14 +111,14 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
         	int numThreads = -1;
         	try {
-        		numThreads = Integer.parseInt(variableFields.get(this).get(1));
+        		numThreads = Integer.parseInt(variables.get(this).get(1));
         	} catch (NumberFormatException e) {}
             return new boolean[][]{
-                    { stepSelections.get(S1I_CREATE_MKR_POS) && S1I_CREATE_MKR_POS.hasRequirements(proj, stepSelections, variableFields),
-                    	Files.exists(ext.verifyDirFormat(variableFields.get(this).get(0))),},
+                    { stepSelections.get(S1I_CREATE_MKR_POS) && S1I_CREATE_MKR_POS.hasRequirements(proj, stepSelections, variables),
+                    	Files.exists(ext.verifyDirFormat(variables.get(this).get(0))),},
                 	{numThreads != -1 && numThreads > 0}
             };
         }
@@ -122,10 +129,32 @@ public class GenvisisPipeline {
         }
 
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
             // TODO strict check for #files == #samples?
             return Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
+        }
+        
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String projPropFile = proj.getPropertyFilename();
+            
+            // set necessary properties before exporting, assuming the command is to be run.
+            String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
+            String mkrFile = variables.get(this).get(0);
+            mkrFile = ext.verifyDirFormat(mkrFile);
+            mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
+            if (!mkrFile.equals(projFile)) {
+                proj.MARKER_POSITION_FILENAME.setValue(mkrFile);
+            }
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+                proj.NUM_THREADS.setValue(numThreads);
+            }
+            return "jcp cnv.manage.SourceFileParser proj=" + projPropFile + " threads=" + numThreads;
         }
         
     };
@@ -136,10 +165,10 @@ public class GenvisisPipeline {
             new RequirementInputType[][]{{RequirementInputType.FILE}, {RequirementInputType.INT}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             proj.getLog().report("Parsing sample files");
             String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
-            String mkrFile = variableFields.get(this).get(0);
+            String mkrFile = variables.get(this).get(0);
             mkrFile = ext.verifyDirFormat(mkrFile);
             mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
             if (!mkrFile.equals(projFile)) {
@@ -147,7 +176,7 @@ public class GenvisisPipeline {
             }
             int numThreads = proj.NUM_THREADS.getValue();
             try {
-                numThreads = Integer.parseInt(variableFields.get(this).get(1));
+                numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
                 proj.NUM_THREADS.setValue(numThreads);
@@ -168,13 +197,13 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
             int numThreads = -1;
             try {
-                numThreads = Integer.parseInt(variableFields.get(this).get(1));
+                numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
             return new boolean[][]{
-                    {Files.exists(ext.verifyDirFormat(variableFields.get(this).get(0))),},
+                    {Files.exists(ext.verifyDirFormat(variables.get(this).get(0))),},
                     {numThreads != -1 && numThreads > 0}
             };
         }
@@ -185,10 +214,32 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
             // TODO strict check for #files == #samples?
             return Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
+        }
+        
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String projPropFile = proj.getPropertyFilename();
+            
+            // set necessary properties before exporting, assuming the command is to be run.
+            String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
+            String mkrFile = variables.get(this).get(0);
+            mkrFile = ext.verifyDirFormat(mkrFile);
+            mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
+            if (!mkrFile.equals(projFile)) {
+                proj.MARKER_POSITION_FILENAME.setValue(mkrFile);
+            }
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+                proj.NUM_THREADS.setValue(numThreads);
+            }
+            return "jcp cnv.manage.SourceFileParser proj=" + projPropFile + " threads=" + numThreads;
         }
         
     };
@@ -199,28 +250,28 @@ public class GenvisisPipeline {
                          new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR, RequirementInputType.FILE, RequirementInputType.FILE}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            String setDir = variableFields.get(this).get(0);
+            String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
-            String pedFile = variableFields.get(this).get(1);
-            String sampleMapCsv = variableFields.get(this).get(2);
+            String pedFile = variables.get(this).get(1);
+            String sampleMapCsv = variables.get(this).get(2);
             proj.getLog().report("Creating SampleData.txt");
             /*int retStat = */MitoPipeline.createSampleData(pedFile, sampleMapCsv, proj);
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-            String sampDir = variableFields.get(this).get(0);
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String sampDir = variables.get(this).get(0);
             STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
-            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variableFields);
+            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
             return new boolean[][]{
                     {checkStepParseSamples,
                         (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0), 
-                            Files.exists(variableFields.get(this).get(1)), 
-                            Files.exists(variableFields.get(this).get(2))}};
+                            Files.exists(variables.get(this).get(1)), 
+                            Files.exists(variables.get(this).get(2))}};
         }
         
         @Override
@@ -229,8 +280,12 @@ public class GenvisisPipeline {
         }
 
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             return Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false));
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Create SampleData >> Not Implemented For Command Line Yet ##";
         }
         
     };
@@ -241,9 +296,9 @@ public class GenvisisPipeline {
                         new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            String setDir = variableFields.get(this).get(0);
+            String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
@@ -252,10 +307,10 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-            String sampDir = variableFields.get(this).get(0);
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String sampDir = variables.get(this).get(0);
             STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
-            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variableFields);
+            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
             return new boolean[][]{
                     {checkStepParseSamples,
                     (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0),}
@@ -268,8 +323,19 @@ public class GenvisisPipeline {
         }
 
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             return Files.list(proj.MARKER_DATA_DIRECTORY.getValue(false, false), MarkerData.MARKER_DATA_FILE_EXTENSION, false).length > 0;
+        }
+        
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
+            String setDir = variables.get(this).get(0);
+            if (!ext.verifyDirFormat(setDir).equals(projDir)) {
+                proj.SAMPLE_DIRECTORY.setValue(setDir);
+            }
+            String projPropFile = proj.getPropertyFilename();
+            return "jcp cnv.manage.TransposeData -transpose proj=" + projPropFile + " max=" + 2000000000;
         }
         
     };
@@ -282,10 +348,10 @@ public class GenvisisPipeline {
                                                {RequirementInputType.NONE, RequirementInputType.FILE}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             proj.getLog().report("Running SexCheck");
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            String setDir = variableFields.get(this).get(0);
+            String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
@@ -293,14 +359,14 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-            String sampDir = variableFields.get(this).get(0);
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String sampDir = variables.get(this).get(0);
             STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
-            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variableFields);
+            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
             return new boolean[][]{
                     {checkStepParseSamples,
                      (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
-                    {stepSelections.get(S3_CREATE_SAMPLEDATA) && S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections, variableFields),
+                    {stepSelections.get(S3_CREATE_SAMPLEDATA) && S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections, variables),
                      Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))}, 
             };
         }
@@ -311,8 +377,19 @@ public class GenvisisPipeline {
         }
 
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             return Files.exists(proj.PROJECT_DIRECTORY.getValue()+"sexCheck.xln");
+        }
+        
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String projPropFile = proj.getPropertyFilename();
+            String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
+            String setDir = variables.get(this).get(0);
+            if (!ext.verifyDirFormat(setDir).equals(projDir)) {
+                proj.SAMPLE_DIRECTORY.setValue(setDir);
+            }
+            return "jcp cnv.qc.SexChecks -check proj=" + projPropFile;
         }
         
     };
@@ -323,14 +400,14 @@ public class GenvisisPipeline {
                  new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.FILE}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            String setDir = variableFields.get(this).get(0);
+            String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
             String projPedFile = proj.PEDIGREE_FILENAME.getValue(false, false);
-            String pedFile = variableFields.get(this).get(1);
+            String pedFile = variables.get(this).get(1);
             if (!pedFile.equals(projPedFile)) {
                 proj.PEDIGREE_FILENAME.setValue(pedFile);
             }
@@ -349,11 +426,11 @@ public class GenvisisPipeline {
                         boolean run2 = CmdLine.run("plink --bfile ../plink --missing", null, proj.PROJECT_DIRECTORY.getValue()+"genome/", System.out, System.err, proj.getLog(), false);
                         if (!run2) {
                             setFailed();
-                            this.failReasons.add("Error running missingness analysis.");
+                            this.failReasons.add("Error occured while running missingness analysis.");
                         }
                     } else {
                         setFailed();
-                        this.failReasons.add("Error running frequency analysis.");
+                        this.failReasons.add("Error occured while running frequency analysis.");
                     }
                 } else {
                     setFailed();
@@ -366,11 +443,11 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-            String sampDir = variableFields.get(this).get(0);
-            String pedFile = variableFields.get(this).get(1);
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String sampDir = variables.get(this).get(0);
+            String pedFile = variables.get(this).get(1);
             STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
-            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variableFields);
+            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
             return new boolean[][]{
                     {checkStepParseSamples,
                         (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
@@ -384,11 +461,15 @@ public class GenvisisPipeline {
         }
 
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String fileCheck1 = proj.PROJECT_DIRECTORY.getValue()+"gwas.map";
             String fileCheck2 = proj.PROJECT_DIRECTORY.getValue()+"plink.bed";
             String fileCheck3 = proj.PROJECT_DIRECTORY.getValue()+"genome/";
             return Files.exists(fileCheck1) && Files.exists(fileCheck2) && Files.exists(fileCheck3) /*&& Files.list(fileCheck3, ".bed", false).length > 0*/;
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Run Plink >> Not Implemented For Command Line Yet ##";
         }
     };
     
@@ -398,17 +479,17 @@ public class GenvisisPipeline {
                new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.BOOL}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-            String dir = variableFields.get(this).get(0);
-            boolean keepUnrelatedsOnly = Boolean.getBoolean(variableFields.get(this).get(1));
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String dir = variables.get(this).get(0);
+            boolean keepUnrelatedsOnly = Boolean.valueOf(variables.get(this).get(1));
             Qc.fullGamut(dir, keepUnrelatedsOnly, proj.getLog());
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
             return new boolean[][]{
-                    {(stepSelections.get(S6_RUN_PLINK) && S6_RUN_PLINK.hasRequirements(proj, stepSelections, variableFields)), 
-                        Files.exists(variableFields.get(this).get(0))},
+                    {(stepSelections.get(S6_RUN_PLINK) && S6_RUN_PLINK.hasRequirements(proj, stepSelections, variables)), 
+                        Files.exists(variables.get(this).get(0))},
                     {true}
             };
         }
@@ -419,8 +500,8 @@ public class GenvisisPipeline {
         }
 
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-            String projDir = variableFields.get(this).get(0);
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String projDir = variables.get(this).get(0);
             boolean allExist = true;
             folders: for (int i = 0; i < gwas.Qc.FOLDERS_CREATED.length; i++) {
                 for (int j = 0; j < gwas.Qc.FILES_CREATED[i].length; j++) {
@@ -431,6 +512,14 @@ public class GenvisisPipeline {
                 }
             }
             return allExist;
+        }
+        
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String dir = variables.get(this).get(0);
+            boolean keepUnrelatedsOnly = Boolean.valueOf(variables.get(this).get(1));
+            String logFile = proj.getLog().getFilename();
+            return "jcp gwas.Qc dir=" + dir + " log=" + logFile + " keepGenomeInfoForRelatedsOnly=" + keepUnrelatedsOnly;
         }
         
     };
@@ -445,11 +534,11 @@ public class GenvisisPipeline {
             new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.NONE, RequirementInputType.DIR}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
-            String mkrPosFile = variableFields.get(this).get(0);
+            String mkrPosFile = variables.get(this).get(0);
             String setDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            String sampDir = variableFields.get(this).get(1);
+            String sampDir = variables.get(this).get(1);
             if (!mkrPosProj.equals(mkrPosFile)) {
                 proj.MARKERSET_FILENAME.setValue(mkrPosFile);
             }
@@ -472,7 +561,6 @@ public class GenvisisPipeline {
                 proj.AB_LOOKUP_FILENAME.setValue(filename);
                 proj.saveProperties(new Project.Property[]{proj.AB_LOOKUP_FILENAME});
             } else {
-//            if (MitoPipeline.generateABLookup(proj, proj.getLog()) == 0) {
                 setFailed();
             }
         }
@@ -483,12 +571,12 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-            String mkrPosFile = variableFields.get(this).get(0);
-            String sampDir = variableFields.get(this).get(1);
-            boolean checkStepParseSamples = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variableFields);
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String mkrPosFile = variables.get(this).get(0);
+            String sampDir = variables.get(this).get(1);
+            boolean checkStepParseSamples = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
             return new boolean[][]{
-                    {stepSelections.get(S1I_CREATE_MKR_POS) && S1I_CREATE_MKR_POS.hasRequirements(proj, stepSelections, variableFields), 
+                    {stepSelections.get(S1I_CREATE_MKR_POS) && S1I_CREATE_MKR_POS.hasRequirements(proj, stepSelections, variables), 
                         Files.exists(mkrPosFile)},
                     {checkStepParseSamples,
                         (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
@@ -496,8 +584,12 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             return Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false));
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Generate ABLookup >> Not Implemented For Command Line Yet ##";
         }
     };
 
@@ -511,11 +603,11 @@ public class GenvisisPipeline {
             new RequirementInputType[][]{{RequirementInputType.FILE}, {RequirementInputType.NONE, RequirementInputType.DIR}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
-            String mkrPosFile = variableFields.get(this).get(0);
+            String mkrPosFile = variables.get(this).get(0);
             String setDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            String sampDir = variableFields.get(this).get(1);
+            String sampDir = variables.get(this).get(1);
             if (!mkrPosProj.equals(mkrPosFile)) {
                 proj.MARKERSET_FILENAME.setValue(mkrPosFile);
             }
@@ -538,7 +630,6 @@ public class GenvisisPipeline {
                 proj.AB_LOOKUP_FILENAME.setValue(filename);
                 proj.saveProperties(new Project.Property[]{proj.AB_LOOKUP_FILENAME});
             } else {
-//            if (MitoPipeline.generateABLookup(proj, proj.getLog()) == 0) {
                 setFailed();
             }
         }
@@ -549,10 +640,10 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-            String mkrPosFile = variableFields.get(this).get(0);
-            String sampDir = variableFields.get(this).get(1);
-            boolean checkStepParseSamples = stepSelections.get(S2A_PARSE_SAMPLES) && S2A_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variableFields);
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String mkrPosFile = variables.get(this).get(0);
+            String sampDir = variables.get(this).get(1);
+            boolean checkStepParseSamples = stepSelections.get(S2A_PARSE_SAMPLES) && S2A_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
             return new boolean[][]{
                     {Files.exists(mkrPosFile)},
                     {checkStepParseSamples,
@@ -561,8 +652,12 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             return Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false));
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Generate ABLookup >> Not Implemented For Command Line Yet ##";
         }
     };
     
@@ -584,14 +679,14 @@ public class GenvisisPipeline {
             ) {
     	
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-            double markerCallRateFilter = Double.parseDouble(variableFields.get(this).get(0));
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(0));
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
-            String mkrPosFile = variableFields.get(this).get(1);
+            String mkrPosFile = variables.get(this).get(1);
             String setSampList = proj.SAMPLELIST_FILENAME.getValue(false, false);
-            String sampList = variableFields.get(this).get(2);
+            String sampList = variables.get(this).get(2);
             String setTgtFile = proj.TARGET_MARKERS_FILENAMES.getValue()[0];
-            String tgtFile = variableFields.get(this).get(3);
+            String tgtFile = variables.get(this).get(3);
             if (!mkrPosProj.equals(mkrPosFile)) {
                 proj.MARKERSET_FILENAME.setValue(mkrPosFile);
             }
@@ -605,7 +700,7 @@ public class GenvisisPipeline {
             }
         	int numThreads = proj.NUM_THREADS.getValue();
         	try {
-        		numThreads = Integer.parseInt(variableFields.get(this).get(4));
+        		numThreads = Integer.parseInt(variables.get(this).get(4));
         	} catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
             	proj.NUM_THREADS.setValue(numThreads);
@@ -620,33 +715,37 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
             double mkr = -1;
             try {
-                mkr = Double.parseDouble(variableFields.get(this).get(0));
+                mkr = Double.parseDouble(variables.get(this).get(0));
             } catch (NumberFormatException e) {}
-            String mkrPosFile = variableFields.get(this).get(1);
-            String sampList = variableFields.get(this).get(2);
-            String tgtFile = variableFields.get(this).get(3);
+            String mkrPosFile = variables.get(this).get(1);
+            String sampList = variables.get(this).get(2);
+            String tgtFile = variables.get(this).get(3);
         	int numThreads = -1;
         	try {
-        		numThreads = Integer.parseInt(variableFields.get(this).get(4));
+        		numThreads = Integer.parseInt(variables.get(this).get(4));
         	} catch (NumberFormatException e) {}
-            boolean step11 = stepSelections.get(S1I_CREATE_MKR_POS) && S1I_CREATE_MKR_POS.hasRequirements(proj, stepSelections, variableFields);
+            boolean step11 = stepSelections.get(S1I_CREATE_MKR_POS) && S1I_CREATE_MKR_POS.hasRequirements(proj, stepSelections, variables);
             boolean step12 = Files.exists(mkrPosFile);
-            boolean step21 = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variableFields);
+            boolean step21 = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
             boolean step22 = Files.exists(sampList);
             boolean step3 = Files.exists(tgtFile);
             return new boolean[][]{{mkr != -1}, {step11, step12}, {step21, step22}, {true, step3}, {numThreads != -1 && numThreads > 0}};
         }
         
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE;
             if (!Files.exists(markersForABCallRate)) {
                 return false;
             }
             return true;
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Marker QC >> Not Implemented For Command Line Yet ##";
         }
     };
     
@@ -668,14 +767,14 @@ public class GenvisisPipeline {
                 ) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-            double markerCallRateFilter = Double.parseDouble(variableFields.get(this).get(0));
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(0));
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
-            String mkrPosFile = variableFields.get(this).get(1);
+            String mkrPosFile = variables.get(this).get(1);
             String setSampList = proj.SAMPLELIST_FILENAME.getValue(false, false);
-            String sampList = variableFields.get(this).get(2);
+            String sampList = variables.get(this).get(2);
             String setTgtFile = proj.TARGET_MARKERS_FILENAMES.getValue()[0];
-            String tgtFile = variableFields.get(this).get(3);
+            String tgtFile = variables.get(this).get(3);
             if (!mkrPosProj.equals(mkrPosFile)) {
                 proj.MARKERSET_FILENAME.setValue(mkrPosFile);
             }
@@ -689,7 +788,7 @@ public class GenvisisPipeline {
             }
             int numThreads = proj.NUM_THREADS.getValue();
             try {
-                numThreads = Integer.parseInt(variableFields.get(this).get(4));
+                numThreads = Integer.parseInt(variables.get(this).get(4));
             } catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
                 proj.NUM_THREADS.setValue(numThreads);
@@ -704,33 +803,37 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
             double mkr = -1;
             try {
-                mkr = Double.parseDouble(variableFields.get(this).get(0));
+                mkr = Double.parseDouble(variables.get(this).get(0));
             } catch (NumberFormatException e) {}
-            String mkrPosFile = variableFields.get(this).get(1);
-            String sampList = variableFields.get(this).get(2);
-            String tgtFile = variableFields.get(this).get(3);
+            String mkrPosFile = variables.get(this).get(1);
+            String sampList = variables.get(this).get(2);
+            String tgtFile = variables.get(this).get(3);
             int numThreads = -1;
             try {
-                numThreads = Integer.parseInt(variableFields.get(this).get(4));
+                numThreads = Integer.parseInt(variables.get(this).get(4));
             } catch (NumberFormatException e) {}
-//            boolean step11 = checkBoxes.get(S1I_CREATE_MKR_POS).isSelected() && S1I_CREATE_MKR_POS.hasRequirements(proj, checkBoxes, variableFields);
+//            boolean step11 = checkBoxes.get(S1I_CREATE_MKR_POS).isSelected() && S1I_CREATE_MKR_POS.hasRequirements(proj, checkBoxes, variables);
             boolean step12 = Files.exists(mkrPosFile);
-            boolean step21 = stepSelections.get(S2A_PARSE_SAMPLES) && S2A_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variableFields);
+            boolean step21 = stepSelections.get(S2A_PARSE_SAMPLES) && S2A_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
             boolean step22 = Files.exists(sampList);
             boolean step3 = Files.exists(tgtFile);
             return new boolean[][]{{mkr != -1}, {step12}, {step21, step22}, {true, step3}, {numThreads != -1 && numThreads > 0}};
         }
         
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE;
             if (!Files.exists(markersForABCallRate)) {
                 return false;
             }
             return true;
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Marker QC >> Not Implemented For Command Line Yet ##";
         }
     };
     
@@ -744,38 +847,38 @@ public class GenvisisPipeline {
                           new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.INT}, {RequirementInputType.STRING}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             proj.getLog().report("Running LrrSd");
             String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            String setDir = variableFields.get(this).get(0);
+            String setDir = variables.get(this).get(0);
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
             int numThreads = proj.NUM_THREADS.getValue();
         	try {
-        		numThreads = Integer.parseInt(variableFields.get(this).get(1));
+        		numThreads = Integer.parseInt(variables.get(this).get(1));
         	} catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
             	proj.NUM_THREADS.setValue(numThreads);
             }
-            String callRate = variableFields.get(this).get(2);
+            String callRate = variables.get(this).get(2);
             String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE;
             String markersForEverything =  proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE;
             MitoPipeline.filterSamples(proj, "PCA_GENVISIS", markersForAB, markersForEverything, numThreads, callRate, null);
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
         	int numThreads = -1;
         	try {
-        		numThreads = Integer.parseInt(variableFields.get(this).get(1));
+        		numThreads = Integer.parseInt(variables.get(this).get(1));
         	} catch (NumberFormatException e) {}
-            String sampDir = variableFields.get(this).get(0);
+            String sampDir = variables.get(this).get(0);
             STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
-            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variableFields);
+            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
             boolean validCallRate = false;
             try {
-                Double.parseDouble(variableFields.get(this).get(2));
+                Double.parseDouble(variables.get(this).get(2));
                 validCallRate = true;
             } catch (NumberFormatException e) {}
             return new boolean[][]{
@@ -792,8 +895,12 @@ public class GenvisisPipeline {
         }
     
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             return Files.exists(proj.SAMPLE_QC_FILENAME.getValue(false, false)) || (Files.exists("PCA_GENVISIS" + MitoPipeline.PCA_SAMPLES) && Files.exists("PCA_GENVISIS" + MitoPipeline.PCA_SAMPLES_SUMMARY));
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Extract LRRSD and Filter Samples by CallRate >> Not Implemented For Command Line Yet ##";
         }
     };
     static final STEP S11_CREATE_PCS = new STEP("Create Principal Components File", 
@@ -803,21 +910,20 @@ public class GenvisisPipeline {
                             {"Number of Principal Components"}, 
                             {"Should impute mean value for NaN?"}, 
                             {"Should recompute Log-R ratio?"}, 
-                            {"Output directory"}},
+                            },
                   new RequirementInputType[][]{
                             {RequirementInputType.NONE, RequirementInputType.DIR}, 
                             {RequirementInputType.INT}, 
                             {RequirementInputType.BOOL}, 
                             {RequirementInputType.BOOL}, 
-                            {RequirementInputType.DIR}
                     }) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-            int numComponents = Integer.parseInt(variableFields.get(this).get(1));
-            boolean imputeMeanForNaN = Boolean.getBoolean(variableFields.get(this).get(2));
-            boolean recomputeLRR_PCs = Boolean.getBoolean(variableFields.get(this).get(3));
-            String outputBase = variableFields.get(this).get(4);
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            int numComponents = Integer.parseInt(variables.get(this).get(1));
+            boolean imputeMeanForNaN = Boolean.valueOf(variables.get(this).get(2));
+            boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(3));
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//variables.get(this).get(4);
             
             proj.getLog().report("\nReady to perform the principal components analysis (PCA)\n");
 			//TODO, load gc params as needed instead of passing null...
@@ -838,139 +944,108 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-            String markerDir = variableFields.get(this).get(0);
-//            String medianMarkers = variableFields.get(this).get(1);
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String markerDir = variables.get(this).get(0);
             int numComponents = -1;
             try {
-                numComponents = Integer.parseInt(variableFields.get(this).get(1));
+                numComponents = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
-//                boolean imputeMeanForNaN = ((JCheckBox)variableFields.get(this).get(2)).isSelected();
-//                boolean recomputeLRR_PCs = ((JCheckBox)variableFields.get(this).get(3)).isSelected();
-            String outputBase = variableFields.get(this).get(4);
-            boolean outputCheck = (Files.exists(outputBase) && (new File(outputBase)).isDirectory());
-            File fil = new File(outputBase);
-            boolean exists = fil.exists();
-            boolean write = fil.canWrite();
-            if (!"".equals(outputBase)) {
-                exists = fil.exists();
-                write = fil.canWrite();
-                while(!exists) {
-                    fil = fil.getParentFile();
-                    exists = fil.exists();
-                    write = fil.canWrite();
-                }
-            }
             return new boolean[][]{
-                    {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variableFields)), Files.exists(markerDir)},
-//                    {Files.exists(medianMarkers)},
+                    {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)), Files.exists(markerDir)},
                     {numComponents != -1},
-//                    {true}, // TRUE or FALSE are both valid selections
-//                    {true}, 
+                    {true}, // TRUE or FALSE are both valid selections
                     {true}, 
-                    {true}, 
-                    {outputCheck || (exists && write)}
             };
         }
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false),proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), "true", "true",""};
+            return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false),proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), "true", "true"/*,""*/};
         }
 
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-            String outputBase = ext.rootOf(variableFields.get(this).get(4));
-            String finalReport = outputBase + PrincipalComponentsResiduals.MT_REPORT_EXT[0];
-            boolean mkrFiles = true;
-            for (String file : PrincipalComponentsResiduals.MT_REPORT_MARKERS_USED) {
-                if (!Files.exists(outputBase + file)) {
-                    mkrFiles = false;
-                    break;
-                }
-            }
-            return Files.exists(finalReport) && mkrFiles;
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//ext.rootOf(variables.get(this).get(4));
+            String finalReport = outputBase + PCA.FILE_EXTs[0];//PrincipalComponentsResiduals.MT_REPORT_EXT[0];
+//            boolean mkrFiles = true;
+//            for (String file : PrincipalComponentsResiduals.MT_REPORT_MARKERS_USED) {
+//                if (!Files.exists(outputBase + file)) {
+//                    mkrFiles = false;
+//                    break;
+//                }
+//            }
+            return Files.exists(finalReport) /*&& mkrFiles*/;
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Create PrincipalComponents File >> Not Implemented For Command Line Yet ##";
         }
         
     };
     
     static final STEP S12_CREATE_MT_CN_EST = new STEP("Create Mitochondrial Copy-Number Estimates File", 
-                            "", 
-                            new String[][]{
-                                        {"[Transpose Data into Marker-Dominant Files] step must be selected and valid.", "Parsed marker data files must already exist."}, 
-                                        {"[Create Principal Components File] step must be selected and valid.", "Extrapolated PCs file must already exist."},
-                                        {"Median Markers file"}, 
-                                        {"Number of Principal Components"}, 
-                                        {"Should recompute Log-R ratio median?"}, 
-                                        {"Homozygous only?"}, 
-                                        {"Output directory"},
-                                    },
-                            new RequirementInputType[][]{
-                                        {RequirementInputType.NONE, RequirementInputType.DIR},
-                                        {RequirementInputType.NONE, RequirementInputType.FILE},
-                                        {RequirementInputType.FILE}, 
-                                        {RequirementInputType.INT}, 
-                                        {RequirementInputType.BOOL}, 
-                                        {RequirementInputType.BOOL}, 
-                                        {RequirementInputType.DIR},
-                            }) {
-            @Override
-            public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-                String extrapolatedPCsFile = "";
-                int numComponents = Integer.parseInt(variableFields.get(this).get(2));
-                String medianMarkers = variableFields.get(this).get(3);
-                boolean recomputeLRR_Median = Boolean.getBoolean(variableFields.get(this).get(4));
-                boolean homozygousOnly = Boolean.getBoolean(variableFields.get(this).get(5));
-                String outputBase = variableFields.get(this).get(6);
-                
-                proj.getLog().report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
-                PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, extrapolatedPCsFile, ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homozygousOnly, recomputeLRR_Median, outputBase,null);
-                MitoPipeline.generateFinalReport(proj, outputBase, pcResids.getResidOutput());
-            }
-            @Override
-            public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-                String markerDir = variableFields.get(this).get(0);
-                String extrapPCFile = variableFields.get(this).get(1);
-                String medianMarkers = variableFields.get(this).get(2);
-                int numComponents = -1;
-                try {
-                    numComponents = Integer.parseInt(variableFields.get(this).get(3));
-                } catch (NumberFormatException e) {}
-    //                boolean recomputeLRR_Median = ((JCheckBox)variableFields.get(this).get(4)).isSelected();
-    //                boolean homozygousOnly = ((JCheckBox)variableFields.get(this).get(5)).isSelected();
-                String outputBase = variableFields.get(this).get(6);
-                boolean outputCheck = (Files.exists(outputBase) && (new File(outputBase)).isDirectory());
-                File fil = new File(outputBase);
-                boolean exists = fil.exists();
-                boolean write = fil.canWrite();
-                if (!"".equals(outputBase)) {
-                    exists = fil.exists();
-                    write = fil.canWrite();
-                    while(!exists) {
-                        fil = fil.getParentFile();
-                        exists = fil.exists();
-                        write = fil.canWrite();
-                    }
-                }
-                return new boolean[][]{
-                        {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variableFields)), Files.exists(markerDir)},
-                        {(stepSelections.get(S11_CREATE_PCS) && S11_CREATE_PCS.hasRequirements(proj, stepSelections, variableFields)), Files.exists(extrapPCFile)},
-                        {Files.exists(medianMarkers)},
-                        {numComponents != -1},
-                        {true}, // TRUE or FALSE are both valid selections
-                        {true}, 
-                        {outputCheck || (exists && write)}
-                };
-            }
-            @Override
-            public Object[] getRequirementDefaults(Project proj) {
-                return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false), proj.INTENSITY_PC_FILENAME.getValue(), "", proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), "", "", ""};
-            }
-            @Override
-            public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-                // existing files will be backed up if re-run
-                return false;
-            }
-        };
+                        "", 
+                        new String[][]{
+                                    {"[Transpose Data into Marker-Dominant Files] step must be selected and valid.", "Parsed marker data files must already exist."}, 
+                                    {"[Create Principal Components File] step must be selected and valid.", "Extrapolated PCs file must already exist."},
+                                    {"Median Markers file"}, 
+                                    {"Number of Principal Components"}, 
+                                    {"Should recompute Log-R ratio median?"}, 
+                                    {"Homozygous only?"}, 
+                                },
+                        new RequirementInputType[][]{
+                                    {RequirementInputType.NONE, RequirementInputType.DIR},
+                                    {RequirementInputType.NONE, RequirementInputType.FILE},
+                                    {RequirementInputType.FILE}, 
+                                    {RequirementInputType.INT}, 
+                                    {RequirementInputType.BOOL}, 
+                                    {RequirementInputType.BOOL}, 
+                        }) {
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String extrapolatedPCsFile = "";
+            int numComponents = Integer.parseInt(variables.get(this).get(2));
+            String medianMarkers = variables.get(this).get(3);
+            boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(4));
+            boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(5));
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//variables.get(this).get(6);
+            
+            proj.getLog().report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
+            PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, extrapolatedPCsFile, ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homozygousOnly, recomputeLRR_Median, outputBase, null);
+            MitoPipeline.generateFinalReport(proj, outputBase, pcResids.getResidOutput());
+        }
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String markerDir = variables.get(this).get(0);
+            String extrapPCFile = variables.get(this).get(1);
+            String medianMarkers = variables.get(this).get(2);
+            int numComponents = -1;
+            try {
+                numComponents = Integer.parseInt(variables.get(this).get(3));
+            } catch (NumberFormatException e) {}
+            return new boolean[][]{
+                    {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)), Files.exists(markerDir)},
+                    {(stepSelections.get(S11_CREATE_PCS) && S11_CREATE_PCS.hasRequirements(proj, stepSelections, variables)), Files.exists(extrapPCFile)},
+                    {Files.exists(medianMarkers)},
+                    {numComponents != -1},
+                    {true}, // TRUE or FALSE are both valid selections
+                    {true}, 
+            };
+        }
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false), proj.INTENSITY_PC_FILENAME.getValue(), "", proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), "", ""/*, ""*/};
+        }
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // existing files will be backed up if re-run
+            return false;
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Create Mitochondrial Copy-Number Estimates File >> Not Implemented For Command Line Yet ##";
+        }
+    };
+    
     static final STEP S13_COMPUTE_PFB = new STEP("Compute Population BAF files", "", new String[][]{
             {"[Parse Sample Files] step must be selected and valid (will create a SampleList file)", "A SampleList file must already exist.", "A Sample subset file must exist."}, 
             {"PFB (population BAF) output file must be specified."}},
@@ -979,13 +1054,13 @@ public class GenvisisPipeline {
                     {RequirementInputType.FILE}}
             ) {
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String setSampList = proj.SAMPLELIST_FILENAME.getValue();
-            String sampListFile = variableFields.get(this).get(0);
+            String sampListFile = variables.get(this).get(0);
             String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
-            String subSampFile = variableFields.get(this).get(1);
+            String subSampFile = variables.get(this).get(1);
             String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
-            String pfbOutputFile = variableFields.get(this).get(2);
+            String pfbOutputFile = variables.get(this).get(2);
             
             if (!ext.verifyDirFormat(setSampList).equals(sampListFile)) {
                 proj.SAMPLELIST_FILENAME.setValue(sampListFile);
@@ -1005,13 +1080,13 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-            String sampListFile = variableFields.get(this).get(0);
-            String subSampFile = variableFields.get(this).get(1);
-            String pfbOutputFile = variableFields.get(this).get(2);
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String sampListFile = variables.get(this).get(0);
+            String subSampFile = variables.get(this).get(1);
+            String pfbOutputFile = variables.get(this).get(2);
             
             STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
-            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variableFields);
+            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
             boolean step12 = Files.exists(sampListFile);
             boolean step13 = Files.exists(subSampFile);
             boolean step21 = !Files.exists(pfbOutputFile);
@@ -1020,15 +1095,37 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-            String subSampFile = variableFields.get(this).get(1);
-            String pfbOutputFile = variableFields.get(this).get(2);
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String subSampFile = variables.get(this).get(1);
+            String pfbOutputFile = variables.get(this).get(2);
             boolean pfbExists = Files.exists(pfbOutputFile) || Files.exists(ext.rootOf(subSampFile) + ".pfb");
             return pfbExists;
         }
+        
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String setSampList = proj.SAMPLELIST_FILENAME.getValue();
+            String sampListFile = variables.get(this).get(0);
+            String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
+            String subSampFile = variables.get(this).get(1);
+            String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
+            String pfbOutputFile = variables.get(this).get(2);
+            
+            if (!ext.verifyDirFormat(setSampList).equals(sampListFile)) {
+                proj.SAMPLELIST_FILENAME.setValue(sampListFile);
+            }
+            if (!ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
+                proj.SAMPLE_SUBSET_FILENAME.setValue(subSampFile);
+            }
+            if (!ext.verifyDirFormat(setPFBFile).equals(pfbOutputFile)) {
+                proj.CUSTOM_PFB_FILENAME.setValue(pfbOutputFile);
+            }
+            return "jcp cnv.analysis.PennCNV -pfb proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename();
+        }
+        
     };
     
-    static final STEP S14_COMPUTE_BAF_GCMODEL = new STEP("Compute GCMODEL File", 
+    static final STEP S14_COMPUTE_GCMODEL = new STEP("Compute GCMODEL File", 
                     "", 
                     new String[][]{
                                 {"A GC Base file must exist."}, 
@@ -1038,19 +1135,19 @@ public class GenvisisPipeline {
                             {RequirementInputType.FILE}
                 }) {
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-            String gcBaseFile = variableFields.get(this).get(0);
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String gcBaseFile = variables.get(this).get(0);
             String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
-            String gcOutputFile = variableFields.get(this).get(1);
+            String gcOutputFile = variables.get(this).get(1);
             if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
                 proj.GC_MODEL_FILENAME.setValue(gcOutputFile);
             }
             cnv.analysis.PennCNV.gcModel(proj, gcBaseFile, gcOutputFile, 100);
         }
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-            String gcBaseFile = variableFields.get(this).get(0);
-            String gcOutputFile = variableFields.get(this).get(1);
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String gcBaseFile = variables.get(this).get(0);
+            String gcOutputFile = variables.get(this).get(1);
             return new boolean[][]{{Files.exists(gcBaseFile)},{!Files.exists(gcOutputFile)}};
         }
         @Override
@@ -1058,11 +1155,23 @@ public class GenvisisPipeline {
             return new Object[]{Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS, "gc5Base.txt", true, false, proj.getLog()), proj.GC_MODEL_FILENAME.getValue()};
         }
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
-            String gcOutputFile = variableFields.get(this).get(1);
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String gcOutputFile = variables.get(this).get(1);
             boolean gcExists = Files.exists(gcOutputFile);
             return gcExists;
         }
+        
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String gcBaseFile = variables.get(this).get(0);
+            String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
+            String gcOutputFile = variables.get(this).get(1);
+            if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
+                proj.GC_MODEL_FILENAME.setValue(gcOutputFile);
+            }
+            return "jcp cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename() + " gc5base=" + gcBaseFile;
+        }
+        
     };
     
     static final STEP S15_MOSAIC_ARMS = new STEP("Create Mosaic Arms File", 
@@ -1075,15 +1184,15 @@ public class GenvisisPipeline {
                                                         {RequirementInputType.INT}}) {
         
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
-            String mkrPosFile = variableFields.get(this).get(0);
+            String mkrPosFile = variables.get(this).get(0);
             if (!mkrPosProj.equals(mkrPosFile)) {
                 proj.MARKERSET_FILENAME.setValue(mkrPosFile);
             }
             int numThreads = proj.NUM_THREADS.getValue();
             try {
-                numThreads = Integer.parseInt(variableFields.get(this).get(1));
+                numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
             if (numThreads != proj.NUM_THREADS.getValue()) {
                 proj.NUM_THREADS.setValue(numThreads);
@@ -1092,18 +1201,18 @@ public class GenvisisPipeline {
         }
         
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
-            String mkrPosFile = variableFields.get(this).get(0);
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String mkrPosFile = variables.get(this).get(0);
             boolean step11 = Files.exists(mkrPosFile);
             int numThreads = -1;
             try {
-                numThreads = Integer.parseInt(variableFields.get(this).get(1));
+                numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
             return new boolean[][]{{step11}, {numThreads != -1 && numThreads > 0}};
         }
         
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             boolean outputCheck = Files.exists(proj.RESULTS_DIRECTORY.getValue(false, false) + "Mosaicism.xln");
             return outputCheck;
         }
@@ -1113,6 +1222,23 @@ public class GenvisisPipeline {
             return new Object[]{proj.MARKERSET_FILENAME.getValue(), proj.NUM_THREADS.getValue()};
         }
         
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
+            String mkrPosFile = variables.get(this).get(0);
+            if (!mkrPosProj.equals(mkrPosFile)) {
+                proj.MARKERSET_FILENAME.setValue(mkrPosFile);
+            }
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+                proj.NUM_THREADS.setValue(numThreads);
+            }
+            return "jcp cnv.analysis.Mosaicism proj=" + proj.getPropertyFilename();
+        }
+        
     };
     
     static final STEP S16_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
@@ -1120,11 +1246,11 @@ public class GenvisisPipeline {
                        new String[][]{},
                        new RequirementInputType[][]{}) {
         @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             // TODO Auto-generated method stub
         }
         @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
             // TODO Auto-generated method stub
             return new boolean[][]{};
         }
@@ -1134,13 +1260,87 @@ public class GenvisisPipeline {
             return null;
         }
         @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields) {
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             // TODO Auto-generated method stub
             return false;
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+    };
+    
+    static final STEP S17_SHADOW_MARKERS = new STEP("Create 'Shadow' Marker Files", 
+                            "", 
+                            new String[][]{
+                                
+                            },
+                            new RequirementInputType[][]{
+                                
+                            }) {
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+        }
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+            return new boolean[][]{};
+        }
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+            return null;
         }
         
     };
     
+    static final STEP S00_TEMPLATE = new STEP("", 
+                            "", 
+                            new String[][]{
+                                
+                            },
+                            new RequirementInputType[][]{
+                                
+                            }) {
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+        }
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+            return new boolean[][]{};
+        }
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+        
+    };
+
     public static abstract class STEP {
         public String stepName;
         public String stepDesc;
@@ -1166,7 +1366,7 @@ public class GenvisisPipeline {
         }
         public String[][] getRequirements() { return reqs; }
         public RequirementInputType[][] getRequirementInputTypes() { return this.reqTypes; }
-        public abstract boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variableFields);
+        public abstract boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables);
         public void resetRun() {
             failed = false;
             failReasons.clear();
@@ -1177,6 +1377,7 @@ public class GenvisisPipeline {
          * @return
          */
         public abstract Object[] getRequirementDefaults(Project proj);
+        public abstract String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables);
         
         STEP(String name, String desc, String[][] requirements, RequirementInputType[][] reqTypes) {
             this.stepName = name;
@@ -1229,7 +1430,7 @@ public class GenvisisPipeline {
         S11_CREATE_PCS,
         S12_CREATE_MT_CN_EST,
         S13_COMPUTE_PFB,
-        S14_COMPUTE_BAF_GCMODEL,
+        S14_COMPUTE_GCMODEL,
         S15_MOSAIC_ARMS,
         S16_SHADOW_SAMPLES
     };
@@ -1246,7 +1447,7 @@ public class GenvisisPipeline {
         S11_CREATE_PCS,
         S12_CREATE_MT_CN_EST,
         S13_COMPUTE_PFB,
-        S14_COMPUTE_BAF_GCMODEL,
+        S14_COMPUTE_GCMODEL,
         S15_MOSAIC_ARMS,
         S16_SHADOW_SAMPLES
     };

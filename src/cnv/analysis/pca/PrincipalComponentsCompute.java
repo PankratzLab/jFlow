@@ -146,8 +146,10 @@ public class PrincipalComponentsCompute {
 		// Compute SVD and save time by not computing U,
 		// if loadings are wanted, we compute them later/on the fly to save memory
 		SingularValueDecomposition<DenseMatrix64F> svd = DecompositionFactory.svd(A.numRows, A.numCols, false, true, false);
+		System.gc();
 		if (!svd.decompose(A))
 			throw new RuntimeException("SVD failed");
+		System.gc();
 		V_t = svd.getV(null, true);
 		DenseMatrix64F W = svd.getW(null);
 		// Singular values are in an arbitrary order initially
@@ -318,11 +320,11 @@ public class PrincipalComponentsCompute {
 		if (useFile == null) {
 			return getSamples(proj, excludeSamples);
 		}
-		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue() + useFile)) {
-			proj.getLog().reportError("Error - could not find the file of samples to use " + proj.PROJECT_DIRECTORY.getValue() + useFile);
+		if (!Files.exists(/*proj.PROJECT_DIRECTORY.getValue() + */useFile)) {
+			proj.getLog().reportError("Error - could not find the file of samples to use " + /*proj.PROJECT_DIRECTORY.getValue() + */useFile);
 			return null;
 		} else {
-			return getSamplesFromFile(proj, proj.PROJECT_DIRECTORY.getValue() + useFile);
+			return getSamplesFromFile(proj, /*proj.PROJECT_DIRECTORY.getValue() + */useFile);
 		}
 	}
 

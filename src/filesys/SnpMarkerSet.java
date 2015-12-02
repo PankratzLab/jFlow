@@ -1067,7 +1067,7 @@ public class SnpMarkerSet implements Serializable {
 			    noX = true;
 			    numArgs--;
 		    } else if (args[i].startsWith("verbose=")) {
-			    verbose = Boolean.getBoolean(args[i].split("=")[1]);
+			    verbose = Boolean.valueOf(args[i].split("=")[1]);
 			    numArgs--;
 		    } else if (args[i].startsWith("source=")) {
 			    source = args[i].split("=")[1];
