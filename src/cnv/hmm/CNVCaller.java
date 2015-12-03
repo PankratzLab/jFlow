@@ -695,7 +695,7 @@ public class CNVCaller {
 
 		};
 
-		finalSet.writeRegions(proj.PROJECT_DIRECTORY.getValue() + output, TO_STRING_TYPE.REGULAR, true, proj.getLog());
+		finalSet.writeRegions(output, TO_STRING_TYPE.REGULAR, true, proj.getLog());
 
 	}
 
