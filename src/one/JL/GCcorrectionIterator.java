@@ -18,7 +18,7 @@ import common.Files;
 import common.ext;
 import common.PSF.Ext;
 import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.Builder;
+import cnv.analysis.CentroidCompute.CentroidBuilder;
 import cnv.filesys.Project;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
@@ -63,7 +63,7 @@ public class GCcorrectionIterator {
 
 		proj.getLog().reportTimeInfo("total iterations currently at (2X) " + (bpModels.length * regressDistance.length * snpMAD.length));
 		if (!Files.exists(freshCents)) {
-			CentroidCompute.computeAndDumpCentroids(proj, null, freshCents, new Builder(), numThreads, 2);
+			CentroidCompute.computeAndDumpCentroids(proj,  freshCents, new CentroidBuilder(), numThreads, 2);
 		}
 		ArrayList<IterationParameters> finals = new ArrayList<IterationParameters>();
 		GCAdjustorBuilder builder = new GCAdjustorBuilder();

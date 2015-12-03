@@ -15,7 +15,7 @@ import common.WorkerTrain;
 import common.ext;
 import common.PSF.Ext;
 import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.Builder;
+import cnv.analysis.CentroidCompute.CentroidBuilder;
 import cnv.analysis.PennCNVPrep;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerSet;
@@ -86,7 +86,7 @@ public class BamImport {
 					Files.writeList(mappedReadCounts, readCountFile);
 
 					TransposeData.transposeData(proj, 2000000000, false);
-					CentroidCompute.computeAndDumpCentroids(proj, null, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new Builder(), numthreads, 2);
+					CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numthreads, 2);
 					Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true);
 					TransposeData.transposeData(proj, 2000000000, false);
 
