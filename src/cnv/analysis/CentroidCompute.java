@@ -567,7 +567,7 @@ public class CentroidCompute {
 		String[] markers = proj.getTargetMarkers();
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
 		Logger log;
-		
+
 		log = proj.getLog();
 		log.report(proj.getPropertyFilename() + "\t" + markers.length);
 		String min = "";
@@ -606,7 +606,7 @@ public class CentroidCompute {
 	 * @author Builder for {@link CentroidCompute}
 	 *
 	 */
-	public static class Builder {
+	public static class CentroidBuilder {
 		private boolean[] samplesToUse = null;
 		private boolean intensityOnly = false;
 		private boolean medianCenter = true;
@@ -620,7 +620,7 @@ public class CentroidCompute {
 		 *            only cluster on these samples
 		 * @return
 		 */
-		public Builder samplesToUse(boolean[] samplesToUse) {
+		public CentroidBuilder samplesToUse(boolean[] samplesToUse) {
 			this.samplesToUse = samplesToUse;
 			return this;
 		}
@@ -630,7 +630,7 @@ public class CentroidCompute {
 		 *            this is an intensity only cluster
 		 * @return
 		 */
-		public Builder intensityOnly(boolean intensityOnly) {
+		public CentroidBuilder intensityOnly(boolean intensityOnly) {
 			this.intensityOnly = intensityOnly;
 			return this;
 		}
@@ -640,7 +640,7 @@ public class CentroidCompute {
 		 *            cluster about the median value
 		 * @return
 		 */
-		public Builder medianCenter(boolean medianCenter) {
+		public CentroidBuilder medianCenter(boolean medianCenter) {
 			this.medianCenter = medianCenter;
 			return this;
 		}
@@ -650,7 +650,7 @@ public class CentroidCompute {
 		 *            sex of each individual
 		 * @return
 		 */
-		public Builder sampleSex(int[] sampleSex) {
+		public CentroidBuilder sampleSex(int[] sampleSex) {
 			this.sampleSex = sampleSex;
 			return this;
 		}
@@ -660,7 +660,7 @@ public class CentroidCompute {
 		 *            call rate for clustering
 		 * @return
 		 */
-		public Builder missingnessThreshold(double missingnessThreshold) {
+		public CentroidBuilder missingnessThreshold(double missingnessThreshold) {
 			this.missingnessThreshold = missingnessThreshold;
 			return this;
 		}
@@ -670,7 +670,7 @@ public class CentroidCompute {
 		 *            gc threshold for clustering
 		 * @return
 		 */
-		public Builder gcThreshold(double gcThreshold) {
+		public CentroidBuilder gcThreshold(double gcThreshold) {
 			this.gcThreshold = gcThreshold;
 			return this;
 		}
@@ -679,7 +679,7 @@ public class CentroidCompute {
 		 * @param clusterFilterCollection
 		 * @return
 		 */
-		public Builder clusterFilterCollection(ClusterFilterCollection clusterFilterCollection) {
+		public CentroidBuilder clusterFilterCollection(ClusterFilterCollection clusterFilterCollection) {
 			this.clusterFilterCollection = clusterFilterCollection;
 			return this;
 		}
@@ -689,13 +689,17 @@ public class CentroidCompute {
 		}
 	}
 
-	private CentroidCompute(Builder builder, MarkerData markerData, Logger log) {
+	private CentroidCompute(CentroidBuilder builder, MarkerData markerData, Logger log) {
 		this(markerData, builder.sampleSex, builder.samplesToUse, builder.intensityOnly, builder.missingnessThreshold, builder.gcThreshold, builder.clusterFilterCollection, builder.medianCenter, log);
 	}
 
 	public static Centroids computeAndDumpCentroids(Project proj) {
-		Builder builder = new Builder();
-		return CentroidCompute.computeAndDumpCentroids(proj, null, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), builder, proj.NUM_THREADS.getValue(), 1);
+		CentroidBuilder builder = new CentroidBuilder();
+		return CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), builder, proj.NUM_THREADS.getValue(), 1);
+	}
+
+	public static Centroids computeAndDumpCentroids(Project proj, String fullpathToCentFile, CentroidBuilder builder, int numCentThreads, int numDecompressThreads) {
+		return computeAndDumpCentroids(proj, new String[] { fullpathToCentFile }, new CentroidBuilder[] { builder }, numCentThreads, numDecompressThreads)[0];
 	}
 
 	/**
@@ -710,39 +714,47 @@ public class CentroidCompute {
 	 * @param numDecompressThreads
 	 *            number of threads for decompressing marker data
 	 */
-	public static Centroids computeAndDumpCentroids(Project proj, boolean[] samplesToUse, String fullpathToCentFile, Builder builder, int numCentThreads, int numDecompressThreads) {
+	public static Centroids[] computeAndDumpCentroids(Project proj, String[] fullpathToCentFiles, CentroidBuilder[] builders, int numCentThreads, int numDecompressThreads) {
+		if (builders.length != fullpathToCentFiles.length) {
+			throw new IllegalArgumentException("Each centroid builder must have a file name associated");
+		}
 		String[] markers = proj.getMarkerNames();
-		float[][][] centroids = new float[markers.length][][];
-		CentroidProducer producer = new CentroidProducer(proj, markers, samplesToUse, builder, numDecompressThreads);
-		WorkerTrain<CentroidCompute> train = new WorkerTrain<CentroidCompute>(producer, numCentThreads, 10, proj.getLog());
+		float[][][][] centroids = new float[builders.length][markers.length][][];
+		CentroidProducer producer = new CentroidProducer(proj, markers, builders, numDecompressThreads);
+		WorkerTrain<CentroidCompute[]> train = new WorkerTrain<CentroidCompute[]>(producer, numCentThreads, 10, proj.getLog());
 		int index = 0;
 		while (train.hasNext()) {
-			CentroidCompute centroidCompute = train.next();
+			CentroidCompute[] centroidCompute = train.next();
 			if (index % 10000 == 0) {
 				proj.getLog().reportTimeInfo(index + " of " + markers.length);
 			}
-			centroids[index] = centroidCompute.getCentroid();
+			for (int i = 0; i < centroidCompute.length; i++) {
+				centroids[i][index] = centroidCompute[i].getCentroid();
+
+			}
 			index++;
 		}
 		train.shutdown();
-		Centroids cent = new Centroids(centroids, proj.getMarkerSet().getFingerprint());
-		cent.serialize(fullpathToCentFile);
-		return cent;
+		Centroids[] computed = new Centroids[builders.length];
+		for (int i = 0; i < centroids.length; i++) {
+			Centroids cent = new Centroids(centroids[i], proj.getMarkerSet().getFingerprint());
+			cent.serialize(fullpathToCentFiles[i]);
+		}
+		return computed;
 	}
 
-	private static class CentroidProducer implements Producer<CentroidCompute> {
+	private static class CentroidProducer implements Producer<CentroidCompute[]> {
 		private final Project proj;
 		private String[] markers;
-		private final Builder builder;
+		private final CentroidBuilder[] builders;
 		private final MDL mdl;
 		private int count;
 
-		public CentroidProducer(Project proj, String[] markers, boolean[] samplesToUse, Builder builder, int numDecompressThreads) {
+		public CentroidProducer(Project proj, String[] markers, CentroidBuilder[] builders, int numDecompressThreads) {
 			super();
 			this.proj = proj;
 			this.markers = markers;
-			this.builder = builder;
-			builder.samplesToUse(samplesToUse);
+			this.builders = builders;
 			this.mdl = new MDL(proj, markers, numDecompressThreads, 100);
 
 			this.count = 0;
@@ -763,24 +775,30 @@ public class CentroidCompute {
 		}
 
 		@Override
-		public Callable<CentroidCompute> next() {
+		public Callable<CentroidCompute[]> next() {
 			final MarkerData markerData = mdl.next();
-			Callable<CentroidCompute> compute = new Callable<CentroidCompute>() {
+			Callable<CentroidCompute[]> compute = new Callable<CentroidCompute[]>() {
 
 				@Override
-				public CentroidCompute call() throws Exception {
-					CentroidCompute centroidCompute = builder.build(markerData, proj.getLog());
-					ARRAY array = proj.getArrayType();
-					if (array == ARRAY.ILLUMINA && array.isCNOnly(markerData.getMarkerName())) {
-						setFakeAB(markerData, centroidCompute, centroidCompute.getClusterFilterCollection(), 0, proj.getLog());
-					} else if (array.isCNOnly(markerData.getMarkerName())) {
-						if (array != ARRAY.AFFY_GW6_CN && array != ARRAY.AFFY_GW6) {
-							proj.getLog().reportTimeError("Intenstity only centroid designed for Affymetrix only");
-							return null;
+				public CentroidCompute[] call() throws Exception {
+					CentroidCompute[] computed = new CentroidCompute[builders.length];
+					for (int i = 0; i < computed.length; i++) {
+
+						CentroidCompute centroidCompute = builders[i].build(markerData, proj.getLog());
+						ARRAY array = proj.getArrayType();
+						if (array == ARRAY.ILLUMINA && array.isCNOnly(markerData.getMarkerName())) {
+							setFakeAB(markerData, centroidCompute, centroidCompute.getClusterFilterCollection(), 0, proj.getLog());
+						} else if (array.isCNOnly(markerData.getMarkerName())) {
+							if (array != ARRAY.AFFY_GW6_CN && array != ARRAY.AFFY_GW6) {
+								proj.getLog().reportTimeError("Intenstity only centroid designed for Affymetrix only");
+								return null;
+							}
 						}
+						centroidCompute.computeCentroid();
+						computed[i] = centroidCompute;
 					}
-					centroidCompute.computeCentroid();
-					return centroidCompute;
+
+					return computed;
 				}
 			};
 			count++;
@@ -795,14 +813,14 @@ public class CentroidCompute {
 	public static void test2(Project proj) {
 		String[] markers = proj.getMarkerNames();
 		long time = System.currentTimeMillis();
-		Builder builder = new Builder();
-		CentroidProducer producer = new CentroidProducer(proj, markers, null, builder, 2);
-		WorkerTrain<CentroidCompute> train = new WorkerTrain<CentroidCompute>(producer, 6, 100, proj.getLog());
+		CentroidBuilder builder = new CentroidBuilder();
+		CentroidProducer producer = new CentroidProducer(proj, markers, new CentroidBuilder[] { builder }, 2);
+		WorkerTrain<CentroidCompute[]> train = new WorkerTrain<CentroidCompute[]>(producer, 6, 100, proj.getLog());
 		int index = 0;
 		while (train.hasNext()) {
-			CentroidCompute centroidCompute = train.next();
-			if (!centroidCompute.getMarkerData().getMarkerName().equals(markers[index])) {
-				proj.getLog().reportError(centroidCompute.getMarkerData().getMarkerName() + "\t" + markers[index]);
+			CentroidCompute[] centroidCompute = train.next();
+			if (!centroidCompute[0].getMarkerData().getMarkerName().equals(markers[index])) {
+				proj.getLog().reportError(centroidCompute[0].getMarkerData().getMarkerName() + "\t" + markers[index]);
 			}
 			index++;
 		}

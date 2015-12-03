@@ -13,7 +13,7 @@ import common.WorkerTrain.Producer;
 import common.ext;
 import stats.CrossValidation;
 import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.Builder;
+import cnv.analysis.CentroidCompute.CentroidBuilder;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
@@ -334,7 +334,7 @@ public class GcAdjustorParameter implements Serializable {
 
 			}
 			if (!Files.exists(centroids)) {
-				CentroidCompute.computeAndDumpCentroids(proj, null, centroids, new Builder(), numThreads, 2);
+				CentroidCompute.computeAndDumpCentroids(proj, centroids, new CentroidBuilder(), numThreads, 2);
 			}
 			if (recomputedLrr) {
 				proj.getLog().reportTimeInfo("Recompute LRR was flagged, will GC correct LRR post recomputing");

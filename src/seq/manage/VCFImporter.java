@@ -11,7 +11,7 @@ import java.util.concurrent.Callable;
 
 import one.JL.MAF;
 import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.Builder;
+import cnv.analysis.CentroidCompute.CentroidBuilder;
 import cnv.analysis.PennCNV;
 import cnv.filesys.Centroids;
 import cnv.filesys.Project;
@@ -421,9 +421,10 @@ public class VCFImporter {
 		double qual = VARIANT_FILTER_DOUBLE.GQ_LOOSE.getDFilter() / 100;
 		String cent = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(vcf) + "qual" + ext.formDeci(qual, 2) + ".cent";
 		if (!Files.exists(cent)) {
-			Builder builder = new Builder();
+			CentroidBuilder builder = new CentroidBuilder();
 			builder.gcThreshold(qual);
-			CentroidCompute.computeAndDumpCentroids(proj, proj.getSamplesToInclude(null), cent, builder, numThreads, 3);
+			builder.samplesToUse(proj.getSamplesToInclude(null));
+			CentroidCompute.computeAndDumpCentroids(proj, cent, builder, numThreads, 3);
 			proj.CUSTOM_CENTROIDS_FILENAME.setValue(cent);
 			Centroids.recompute(proj, cent);
 			TransposeData.transposeData(proj, 2000000000, false);

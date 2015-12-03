@@ -581,10 +581,11 @@ public class Centroids implements Serializable {
         rawCentroidsFemale = new float[allMarkers.length][][];
 
         pfbInfo = new Hashtable<Integer, String[][]>();
-        
         log.report("Computing sex-specific centroids for " + markerCount + " sex-specific markers on " + threadCount + " thread(s).");
         
         computeHub = Executors.newFixedThreadPool(threadCount);
+        
+        
         for (int i = 0; i < threadCount; i++) {
             final int myIndex = i;
             final long myStartTime = System.currentTimeMillis();

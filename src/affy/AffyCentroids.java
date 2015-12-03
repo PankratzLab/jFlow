@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.Hashtable;
 
 import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.Builder;
+import cnv.analysis.CentroidCompute.CentroidBuilder;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerSet;
@@ -239,8 +239,8 @@ public class AffyCentroids implements Serializable {
 		markerSet = proj.getMarkerSet();
 		markerNames = markerSet.getMarkerNames();
 		centroids = new float[markerNames.length][][];
-		Builder builder = new Builder();
-		CentroidCompute.computeAndDumpCentroids(proj, null, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), builder, 2, 2);
+		CentroidBuilder builder = new CentroidBuilder();
+		CentroidCompute.computeAndDumpCentroids(proj, new String[] { proj.CUSTOM_CENTROIDS_FILENAME.getValue() }, new CentroidBuilder[] { builder }, 2, 2);
 	}
 
 	private static float[][] computeCluster(Project proj, boolean[] samplesToBeUsed, double missingnessThreshold, String[] samples, SampleData sampleData, MarkerData markerData, int i, double confThreshold) {
