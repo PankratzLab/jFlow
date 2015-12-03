@@ -410,7 +410,7 @@ public class PlinkExportOptions extends JDialog {
         } else {
             lblNameConflict.setVisible(true);
             chckbxOverwrite.setEnabled(true);
-            okButton.setEnabled(false);
+            okButton.setEnabled(chckbxOverwrite.isSelected());
         }
     }
     
