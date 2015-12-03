@@ -2,24 +2,24 @@ package cnv.manage;
 
 import gwas.Qc;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import cnv.Launch;
+import cnv.analysis.AnalysisFormats;
 import cnv.analysis.Mosaicism;
 import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsCompute;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.ABLookup;
+import cnv.filesys.Centroids;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.gui.GenvisisPipelineGUI;
 import common.Aliases;
 import common.Array;
-import common.CmdLine;
 import common.Files;
 import common.Logger;
 import common.ext;
@@ -133,7 +133,7 @@ public class GenvisisPipeline {
             return new boolean[][]{
                     { stepSelections.get(S1I_CREATE_MKR_POS) && S1I_CREATE_MKR_POS.hasRequirements(proj, stepSelections, variables),
                     	Files.exists(ext.verifyDirFormat(variables.get(this).get(0))),},
-                	{numThreads != -1 && numThreads > 0}
+                	{numThreads > 0}
             };
         }
         
@@ -229,7 +229,7 @@ public class GenvisisPipeline {
             } catch (NumberFormatException e) {}
             return new boolean[][]{
                     {Files.exists(ext.verifyDirFormat(variables.get(this).get(0))),},
-                    {numThreads != -1 && numThreads > 0}
+                    {numThreads > 0}
             };
         }
         
@@ -472,28 +472,7 @@ public class GenvisisPipeline {
             proj.getLog().report("Running PLINK");
             
             boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, "gwas", null, null, -1, true);
-            if (create) {
-                File genDir = new File(proj.PROJECT_DIRECTORY.getValue()+"genome/");
-                create = genDir.exists() || genDir.mkdirs();
-                if (create) {
-                    proj.getLog().report(ext.getTime() + "]\tCalculating frequencies...");
-                    boolean run1 = CmdLine.run("plink --bfile ../plink --freq", null, proj.PROJECT_DIRECTORY.getValue()+"genome/", System.out, System.err, proj.getLog(), false);
-                    if (run1) {
-                        proj.getLog().report(ext.getTime() + "]\tCalculating missingness...");
-                        boolean run2 = CmdLine.run("plink --bfile ../plink --missing", null, proj.PROJECT_DIRECTORY.getValue()+"genome/", System.out, System.err, proj.getLog(), false);
-                        if (!run2) {
-                            setFailed();
-                            this.failReasons.add("Error occured while running missingness analysis.");
-                        }
-                    } else {
-                        setFailed();
-                        this.failReasons.add("Error occured while running frequency analysis.");
-                    }
-                } else {
-                    setFailed();
-                    this.failReasons.add("Could not create genome/ folder in " + proj.PROJECT_DIRECTORY.getValue());
-                }
-            } else {
+            if (!create) {
                 setFailed();
                 this.failReasons.add("Creation of initial PLINK files failed.");
             }
@@ -519,14 +498,33 @@ public class GenvisisPipeline {
 
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String fileCheck1 = proj.PROJECT_DIRECTORY.getValue()+"gwas.map";
+//            String fileCheck1 = proj.PROJECT_DIRECTORY.getValue()+"gwas.map";
             String fileCheck2 = proj.PROJECT_DIRECTORY.getValue()+"plink.bed";
-            String fileCheck3 = proj.PROJECT_DIRECTORY.getValue()+"genome/";
-            return Files.exists(fileCheck1) && Files.exists(fileCheck2) && Files.exists(fileCheck3) /*&& Files.list(fileCheck3, ".bed", false).length > 0*/;
+//            String fileCheck3 = proj.PROJECT_DIRECTORY.getValue()+"genome/";
+            return/* Files.exists(fileCheck1) &&*/ Files.exists(fileCheck2) /*&& Files.exists(fileCheck3)*/ /*&& Files.list(fileCheck3, ".bed", false).length > 0*/;
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Run Plink >> Not Implemented For Command Line Yet ##";
+            String kvCmd = "";
+            
+            String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
+            String setDir = variables.get(this).get(0);
+            if (!ext.verifyDirFormat(setDir).equals(projDir)) {
+                kvCmd += " SAMPLE_DIRECTORY=" + setDir;
+            }
+            String projPedFile = proj.PEDIGREE_FILENAME.getValue(false, false);
+            String pedFile = variables.get(this).get(1);
+            if (!pedFile.equals(projPedFile)) {
+                kvCmd += " PEDIGREE_FILENAME=" + pedFile;
+            }
+            
+            String projPropFile = proj.getPropertyFilename();
+            StringBuilder cmd = new StringBuilder();
+            if (kvCmd.length() > 0) {
+                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+            }
+            cmd.append("jcp cnv.manage.PlinkData -genvisisToBed plinkdata=gwas gcthreshold=-1 proj=").append(proj.getPropertyFilename());
+            return cmd.toString();
         }
     };
     
@@ -809,7 +807,7 @@ public class GenvisisPipeline {
             boolean step21 = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
             boolean step22 = Files.exists(sampList);
             boolean step3 = Files.exists(tgtFile);
-            return new boolean[][]{{mkr != -1}, {step11, step12}, {step21, step22}, {true, step3}, {numThreads != -1 && numThreads > 0}};
+            return new boolean[][]{{mkr != -1}, {step11, step12}, {step21, step22}, {true, step3}, {numThreads > 0}};
         }
         
         @Override
@@ -906,7 +904,7 @@ public class GenvisisPipeline {
             boolean step21 = stepSelections.get(S2A_PARSE_SAMPLES) && S2A_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
             boolean step22 = Files.exists(sampList);
             boolean step3 = Files.exists(tgtFile);
-            return new boolean[][]{{mkr != -1}, {step12}, {step21, step22}, {true, step3}, {numThreads != -1 && numThreads > 0}};
+            return new boolean[][]{{mkr != -1}, {step12}, {step21, step22}, {true, step3}, {numThreads > 0}};
         }
         
         @Override
@@ -978,7 +976,7 @@ public class GenvisisPipeline {
             return new boolean[][]{
                     {checkStepParseSamples,
                     	(Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0),},
-                    {numThreads != -1 && numThreads > 0},
+                    {numThreads > 0},
                     {validCallRate}
             };
         }
@@ -1205,7 +1203,7 @@ public class GenvisisPipeline {
             } catch (NumberFormatException e) {}
             return new boolean[][]{
                     {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)), Files.exists(markerDir)},
-                    {numComponents != -1},
+                    {numComponents > 0},
                     {true}, // TRUE or FALSE are both valid selections
                     {true}, 
             };
@@ -1285,7 +1283,7 @@ public class GenvisisPipeline {
                     {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)), Files.exists(markerDir)},
                     {(stepSelections.get(S13_CREATE_PCS) && S13_CREATE_PCS.hasRequirements(proj, stepSelections, variables)), Files.exists(extrapPCFile)},
                     {Files.exists(medianMarkers)},
-                    {numComponents != -1},
+                    {numComponents > 0},
                     {true}, // TRUE or FALSE are both valid selections
                     {true}, 
             };
@@ -1343,7 +1341,7 @@ public class GenvisisPipeline {
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
-            return new boolean[][]{{step11}, {numThreads != -1 && numThreads > 0}};
+            return new boolean[][]{{step11}, {numThreads > 0}};
         }
         
         @Override
@@ -1384,79 +1382,156 @@ public class GenvisisPipeline {
         
     };
     
-    static final STEP S16_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
-                       "", 
-                       new String[][]{},
-                       new RequirementInputType[][]{}) {
-        @Override
-        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // not needed for step
-        }
-        @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
-        }
-        @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
-            return new boolean[][]{};
-        }
-        @Override
-        public Object[] getRequirementDefaults(Project proj) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-        @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
-            return false;
-        }
-        @Override
-        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-    };
-    
-    static final STEP S17_SHADOW_MARKERS = new STEP("Create 'Shadow' Marker Files", 
+    static final STEP S16_SEX_CENTROIDS_PFB_GCMODEL = new STEP("Create Sex-Specific Centroids, PFB, and GCMODEL Files", 
                             "", 
                             new String[][]{
-                                
+                                {"GC Model Files"},
+                                {"Number of Threads to Use"},
                             },
                             new RequirementInputType[][]{
-                                
+                                {RequirementInputType.FILE},
+                                {RequirementInputType.INT}
                             }) {
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+                proj.NUM_THREADS.setValue(numThreads);
+            }
         }
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
+            String pennData, sexDir, malePFB, femalePFB, centFilePathM, centFilePathF, newGCFile;
+            pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
+            sexDir = pennData + "sexSpecific/";
+            newGCFile = sexDir + "sexSpecific.gcModel";
+            malePFB = sexDir + "males.pfb";
+            femalePFB = sexDir + "females.pfb";
+            centFilePathM = sexDir + "sexSpecific_Male.cent";
+            centFilePathF = sexDir + "sexSpecific_Female.cent";
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
+            String gcModelFile = variables.get(this).get(0);
+            Centroids.computeSexSpecificCentroids(proj, AnalysisFormats.getChromosomalMarkersOnly(proj), new String[]{malePFB, femalePFB}, new String[]{centFilePathM, centFilePathF}, true, numThreads);
+
+            AnalysisFormats.filterSexSpecificGCModel(proj, gcModelFile, newGCFile);
         }
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
+            int numThreads = -1;
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
+            String gcModelFile = variables.get(this).get(0);
+            return new boolean[][]{
+                {Files.exists(gcModelFile)},
+                {numThreads > 0}
+            };
+        }
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            return new Object[]{proj.GC_MODEL_FILENAME.getValue(), proj.NUM_THREADS.getValue()};
+        }
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String pennData, sexDir, malePFB, femalePFB, centFilePathM, centFilePathF, newGCFile;
+            pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
+            sexDir = pennData + "sexSpecific/";
+            malePFB = sexDir + "males.pfb";
+            femalePFB = sexDir + "females.pfb";
+            centFilePathM = sexDir + "sexSpecific_Male.cent";
+            centFilePathF = sexDir + "sexSpecific_Female.cent";
+            newGCFile = sexDir + "sexSpecific.gcModel";
+            return Files.exists(malePFB) && Files.exists(femalePFB) && Files.exists(centFilePathM) && Files.exists(centFilePathF) && Files.exists(newGCFile);
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
+            String mainCmd = "jcp cnv.filesys.Centroids proj=" + proj.getPropertyFilename() + " threads=" + numThreads;
+            String gcModelFile = variables.get(this).get(0);
+            String gcCmd = "jcp cnv.analysis.AnalysisFormats proj=" + proj.getPropertyFilename() + " gcmodel=" + gcModelFile;
+            return mainCmd + "\n" + gcCmd; 
+        }
+        
+    };
+    static final STEP S17_CNV_CALLING = new STEP("Call CNVs", 
+                            "", 
+                            new String[][]{
+                
+                            },
+                            new RequirementInputType[][]{
+                                    
+                            }) {
+        @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+        }
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+        }
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
             return new boolean[][]{};
         }
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            // TODO Auto-generated method stub
             return null;
         }
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
             return false;
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
             return null;
         }
         
     };
-    
+    static final STEP S99_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
+                "", 
+                new String[][]{},
+                new RequirementInputType[][]{}) {
+        @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // not needed for step
+        }
+
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+        }
+
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+            return new boolean[][] {};
+        }
+
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+    };
     static final STEP S00_TEMPLATE = new STEP("", 
                             "", 
                             new String[][]{
@@ -1582,7 +1657,7 @@ public class GenvisisPipeline {
         S13_CREATE_PCS,
         S14_CREATE_MT_CN_EST,
         S15_MOSAIC_ARMS,
-        S16_SHADOW_SAMPLES
+        S16_SEX_CENTROIDS_PFB_GCMODEL,
     };
     private static STEP[] AFFY_STEPS = {
         S2A_PARSE_SAMPLES,
@@ -1599,7 +1674,7 @@ public class GenvisisPipeline {
         S13_CREATE_PCS,
         S14_CREATE_MT_CN_EST,
         S15_MOSAIC_ARMS,
-        S16_SHADOW_SAMPLES
+        S16_SEX_CENTROIDS_PFB_GCMODEL,
     };
     
     public static STEP[] getStepsForProject(Project proj) {
