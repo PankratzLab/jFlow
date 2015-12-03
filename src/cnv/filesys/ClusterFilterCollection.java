@@ -2,6 +2,7 @@ package cnv.filesys;
 
 import java.io.*;
 import java.util.*;
+import java.util.Map.Entry;
 
 import javax.swing.JOptionPane;
 
@@ -9,7 +10,6 @@ import common.Array;
 import common.Files;
 import common.HashVec;
 import common.ext;
-
 import cnv.plots.GenericRectangle;
 
 /**
@@ -306,6 +306,25 @@ public class ClusterFilterCollection implements Serializable {
 		}
 	}
 	
+	private static void recode(String filename, String out) {
+        ClusterFilterCollection collection;
+        
+        if (!Files.exists(filename)) {
+            System.err.println("Error - collection '"+filename+"' does not exist");
+            return;
+        }
+        
+        collection = load(filename, false);
+        
+        for (Entry<String, ArrayList<ClusterFilter>> entry : collection.hash.entrySet()) {
+            for (ClusterFilter cf : entry.getValue()) {
+                cf.setPlotType((byte) (cf.getPlotType() - 1));
+            }
+        }
+        
+        collection.serialize(out);
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String[] filenames = null;
@@ -314,6 +333,7 @@ public class ClusterFilterCollection implements Serializable {
 		boolean describeFile = false;
 		boolean exportFile = false;
 		boolean importFile = false;		
+		boolean recodeOld = false;
 
 		String usage = "\n" + 
 				"cnv.filesys.ClusterFilterCollection requires 0-1 arguments\n" +
@@ -327,7 +347,7 @@ public class ClusterFilterCollection implements Serializable {
 				"   (2) name of clusterFilter file to import (i.e. file="+filename+" (default))\n" + 
 				" OR:\n" +
 				"   (1) import text file into a clusterFilter collection (i.e. -import (not the default; and still needs to be implemented))\n" + 
-				"   (2) name of text file to import (i.e. file="+filename+" (default))\n" + 
+				"   (2) name of text file to import (i.e. file="+filename+" (default))\n" +  
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -352,6 +372,9 @@ public class ClusterFilterCollection implements Serializable {
 			} else if (args[i].startsWith("-import")) {
 				importFile = true;
 				numArgs--;
+			} else if (args[i].startsWith("-recode")) {
+			    recodeOld = true;
+			    numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -362,7 +385,9 @@ public class ClusterFilterCollection implements Serializable {
 		}
 
 		try {
-			if (filenames != null) {
+		    if (recodeOld) {
+		        recode(filename, out);
+		    } else if (filenames != null) {
 				merge(filenames, out);
 			} else if (describeFile) {
 				describe(filename);
