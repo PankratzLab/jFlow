@@ -28,6 +28,8 @@ public class GATK {
 	public static final String VARIANT_RECALIBRATOR = "VariantRecalibrator";
 	public static final String APPLY_RECALIBRATION = "ApplyRecalibration";
 	public static final String VARIANT_ANNOTATOR = "VariantAnnotator";
+	public static final String MUTECT2 ="Mutect2";
+	
 
 	public static final String PRINT_READS = "PrintReads";
 	public static final String[] LOAD_R = { "module load R", "R" };
@@ -249,6 +251,9 @@ public class GATK {
 		haplotypeCaller.setFail(!progress);
 		return haplotypeCaller;
 	}
+	
+	
+	
 
 	public SnpEffResult annotateAVcfWithSnpEFF(SnpEffResult snpEffResult, boolean addDBSNP) {
 		if (!snpEffResult.isFail()) {
@@ -724,6 +729,16 @@ public class GATK {
 			this.fail = fail;
 		}
 
+	}
+	
+	public static class Mutect2{
+		private String normalBam;
+		private String tumorBam;
+		private String outputVCF;
+		
+		
+		
+		
 	}
 
 	private static String[] parseAndAddToCommand(String[] command, String commandToAdd, String[] values) {
