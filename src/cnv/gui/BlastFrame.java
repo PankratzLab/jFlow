@@ -153,7 +153,9 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     private JLabel probeLengthLbl;
     private JLabel locationLbl;
     private JLabel probeDescLbl;
-    private JLabel probeLbl;
+    private ReferenceLabel probeLbl;
+    private JLabel probeShiftLbl;
+    private JLabel nextBaseLbl;
     
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -194,6 +196,18 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         probeLengthLbl.setFont(lblFont);
         this.blastPanel.add(probeLengthLbl, "cell 2 " + rowCnt);
         this.blastPanel.add(lbl, "grow, cell 3 " + rowCnt);
+        
+        JLabel nextBaseLbl = new JLabel();
+        nextBaseLbl.setFont(lblFont);
+        Segment seg = lbl.fullSegment;
+        int len = proj.ARRAY_TYPE.getValue().getProbeLength();
+        int start = referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
+        int stop = referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
+        locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
+        String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
+        nextBaseLbl.setText(lbl.positiveStrand ? gen[gen.length - 1] : gen[0]);
+        this.blastPanel.add(nextBaseLbl, "alignx left, cell 4 " + rowCnt);
+        
         JLabel abLbl = new JLabel();
         String ab = "";
         if (referenceAnnotation != null) {
@@ -205,7 +219,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                     ab = StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(), referenceAnnotation.getStrand(), false);
                     break; 
                 case BOTH:
-                    ab = StrandOps.flipsIfNeeded(referenceAnnotation.getA().getBaseString(), referenceAnnotation.getStrand(), false) + "/" + StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(), referenceAnnotation.getStrand(), false);
+//                    ab = StrandOps.flipsIfNeeded(referenceAnnotation.getA().getBaseString(), referenceAnnotation.getStrand(), false) + "/" + StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(), referenceAnnotation.getStrand(), false);
                     break; 
             }
         }
@@ -213,7 +227,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         abLbl.setFont(lblFont);
         abLbl.setHorizontalAlignment(SwingConstants.CENTER);
         abLbl.setHorizontalTextPosition(SwingConstants.CENTER);
-        this.blastPanel.add(abLbl, "alignx center, cell 4 " + rowCnt);
+        this.blastPanel.add(abLbl, "alignx center, cell 5 " + rowCnt);
         rowCnt++;
     }
     public void clearLabels() {
@@ -231,6 +245,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         }
 
     }
+    
+    String BLAST_COL_DEF = "[200px][20px][20px][grow][20px:20px:20px][100px:100px:100px]";
     
     /**
      * Create the frame.
@@ -351,7 +367,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
         contentPane.add(splitPane, BorderLayout.CENTER);
 
-        blastPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow][]", ""));
+        blastPanel = new JPanel(new MigLayout("", BLAST_COL_DEF, ""));
         scrollPane = new JScrollPane(blastPanel);
         splitPane.setLeftComponent(scrollPane);
         refLabel = new ReferenceLabel();
@@ -432,7 +448,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                 return res1;
             }
         });
-
+        ArrayList<BlastAnnotation> onT = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, proj.getLog());
+        probeLbl.setAnnotation(onT.size() > 0 ? onT.get(0) : null);
         
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -447,18 +464,57 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                 strandLbl.setText(BlastFrame.this.referenceAnnotation.getStrand().getEncoding());
                 int len = proj.ARRAY_TYPE.getValue().getProbeLength();
                 probeLengthLbl.setText(len + "");
-                Segment seg = BlastFrame.this.referenceAnnotation.getSeg();
-                int start = referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
-                int stop = referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
-                locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
-                String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
-                String[] act = Array.subArray(gen, posStrand ? 0 : 1, posStrand ? gen.length - 1 : gen.length);
-                System.out.println(posStrand ? gen[gen.length - 1] : gen[0]);
-                String seq = Array.toStr(act, "");
-                if (!referenceAnnotation.goLeft()) {
-                    seq = new StringBuilder(seq).reverse().toString();
+                ArrayList<BlastAnnotation> onT = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, proj.getLog());
+                String lbl = "";
+//                if (onT.size() > 0) {
+//                    if (onT.size() > 1) {
+//                        System.out.println("Warning - multiple On-Target Non-Perfect Matches Found. Displaying information for first result.");
+//                    }
+//                    BlastAnnotation onTAnnot = onT.get(0);
+//                    int preCount = onTAnnot.getCigar().getCigarElement(0).getOperator() == CigarOperator.X ? onTAnnot.getCigar().getCigarElement(0).getLength() : 0;
+//                    int postCount = onTAnnot.getCigar().getCigarElement(onTAnnot.getCigar().numCigarElements() - 1).getOperator() == CigarOperator.X ? onTAnnot.getCigar().getCigarElement(onTAnnot.getCigar().numCigarElements() - 1).getLength() : 0;
+//                    if (preCount > 0 && postCount > 0) {
+//                        lbl = preCount + "-> | <-" + postCount;
+//                    } else if (preCount > 0) {
+//                        lbl = preCount + "->";
+//                    } else if (postCount > 0) {
+//                        lbl = "<-" + postCount;
+//                    }
+//                }
+                probeShiftLbl.setText(lbl);
+                {
+                    boolean hasMatch = blastResult.hasPerfectMatch(proj.getLog());
+                    boolean hasOnT = onT.size() > 0;
+//                    if (hasMatch) {
+                        probeDescLbl.setText("<reference sequence:>");
+                        Segment seg = BlastFrame.this.referenceAnnotation.getSeg();
+                        int start = referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
+                        int stop = referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
+                        locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
+                        String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
+                        String[] act = Array.subArray(gen, posStrand ? 0 : 1, posStrand ? gen.length - 1 : gen.length);
+                        nextBaseLbl.setText(posStrand ? gen[gen.length - 1] : gen[0]);
+                        String seq = Array.toStr(act, "");
+                        if (!referenceAnnotation.goLeft()) {
+                            seq = new StringBuilder(seq).reverse().toString();
+                        }
+                        probeLbl.setText(posStrand ? seq : BlastLabel.flipBases(seq));
+//                    } else if (hasOnT) {
+//                        probeDescLbl.setText("<on-target mismatch:>");
+//                        Segment seg = BlastUtils.getSegmentForAnnotation(referenceAnnotation, onT.get(0));
+//                        int start = referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
+//                        int stop = referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
+//                        locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
+//                        String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
+//                        String[] act = Array.subArray(gen, posStrand ? 0 : 1, posStrand ? gen.length - 1 : gen.length);
+//                        nextBaseLbl.setText(posStrand ? gen[gen.length - 1] : gen[0]);
+//                        String seq = Array.toStr(act, "");
+//                        if (!referenceAnnotation.goLeft()) {
+//                            seq = new StringBuilder(seq).reverse().toString();
+//                        }
+//                        probeLbl.setText(posStrand ? seq : BlastLabel.flipBases(seq));
+//                    }
                 }
-                probeLbl.setText(posStrand ? seq : BlastLabel.flipBases(seq));
                 String abLblStr = referenceAnnotation == null ? "" : "(A) " + StrandOps.flipsIfNeeded(referenceAnnotation.getA().getBaseString(), referenceAnnotation.getStrand(), false) + " | (B) " + StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(), referenceAnnotation.getStrand(), false); 
                 abLbl.setText(abLblStr);
                 BlastFrame.this.revalidate();
@@ -466,9 +522,9 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
             }
         });        
     }
-
+    
     private JPanel getHeaderPanel() {
-        JPanel hdrPanel = new JPanel(new MigLayout("", "[200px][20px][20px][grow][]", "[][]")); 
+        JPanel hdrPanel = new JPanel(new MigLayout("", BLAST_COL_DEF, "[][]")); 
         hdrPanel.setBorder(null);
         locationLbl = new JLabel();
         Font lblFont = Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
@@ -484,10 +540,16 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         probeLengthLbl.setFont(lblFont);
         hdrPanel.add(probeLengthLbl, "cell 2 0");
         hdrPanel.add(refLabel, "grow, cell 3 0");
+        nextBaseLbl = new JLabel();
+        nextBaseLbl.setFont(lblFont);
+        hdrPanel.add(nextBaseLbl, "alignx left, cell 4 0");
         String abLblStr = referenceAnnotation == null ? "" : "(A) " + StrandOps.flipsIfNeeded(referenceAnnotation.getA().getBaseString(), referenceAnnotation.getStrand(), false) + "- (B) " + StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(), referenceAnnotation.getStrand(), false); 
         abLbl = new JLabel(abLblStr);
         abLbl.setFont(lblFont);
-        hdrPanel.add(abLbl, "cell 4 0");
+        hdrPanel.add(abLbl, "alignx center, cell 5 0");
+        probeShiftLbl = new JLabel();
+        probeShiftLbl.setFont(lblFont);
+        hdrPanel.add(probeShiftLbl, "cell 1 1, span 2");
         hdrPanel.add(probeLbl, "grow, cell 3 1");
         return hdrPanel;
     }

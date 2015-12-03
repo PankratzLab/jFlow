@@ -593,22 +593,18 @@ public class PennCNVPrep {
 			batches[i][0] = "batch_" + i + "_" + chunks[i] + "_markers";
 			Files.writeList(chunk.toArray(new String[chunk.size()]), thisDir + dir + batches[i][0] + ".txt");
 		}
-		String command = "module load java\n";
-		// command += "java -cp  " + classPath + " -Xmx" + memoryInMB + "m cnv.analysis.PennCNVPrep proj=" + proj.getFilename(proj.PROJECT_PROPERTIES_FILENAME) + " dir=" + dir;
-		command += "java -cp  " + classPath + " -Xmx" + memoryInMB + "m cnv.analysis.PennCNVPrep proj=" + proj.getPropertyFilename() + " dir=" + dir;
-		Files.qsub("ShadowCNVPrepFormatExport", command + " -shadow sampleChunks=NeedToFillThisIn numThreads=1", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
-		Files.qsub("PennCNVPrepFormatExport", command + " -create", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
-		command += " numMarkerThreads=" + numMarkerThreads + " numThreads=" + numThreads + " numComponents=" + numComponents + " markers=" + thisDir + dir + "[%0].txt";
-		command += " tmpDir=" + thisDir;
-		Files.qsub("PennCNVPrepFormatTmpFiles", command, batches, memoryInMB, wallTimeInHours, numThreads * numMarkerThreads);
-		// if (!Files.exists(proj.getFilename(proj.INTENSITY_PC_FILENAME))) {
+		StringBuilder cmd = new StringBuilder("module load java\n");
+		cmd.append("java -cp  ").append(classPath).append(" -Xmx").append(memoryInMB).append("M cnv.analysis.PennCNVPrep proj=").append(proj.getPropertyFilename()).append(" dir=").append(dir);
+		Files.qsub("ShadowCNVPrepFormatExport", cmd.toString() + " -shadow sampleChunks=NeedToFillThisIn numThreads=1", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
+		Files.qsub("PennCNVPrepFormatExport", cmd.toString() + " -create", new String[][] { { "" } }, memoryInMB, 3 * wallTimeInHours, 1);
+		cmd.append(" numMarkerThreads=").append(numMarkerThreads).append(" numThreads=").append(" numComponents=").append(numComponents).append(" markers=").append(thisDir).append(dir).append("[%0].txt");
+		cmd.append(" tmpDir=").append(thisDir);
+		Files.qsub("PennCNVPrepFormatTmpFiles", cmd.toString(), batches, memoryInMB, wallTimeInHours, numThreads * numMarkerThreads);
 		if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
 			proj.getLog().report("Warning - all jobs will fail if the property " + proj.INTENSITY_PC_FILENAME + " in " + proj.getPropertyFilename() + " is not set to an existing file");
-			// proj.getLog().report("		  - did not find " + proj.getFilename(proj.INTENSITY_PC_FILENAME));
 			proj.getLog().report("		  - did not find " + proj.INTENSITY_PC_FILENAME.getValue());
 		}
 		if (getSampleSex(proj) == null) {
-			// proj.getLog().report("Warning - all jobs will fail if sample sex is not provided in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME));
 			proj.getLog().report("Warning - all jobs will fail if sample sex is not provided in " + proj.SAMPLE_DATA_FILENAME.getValue());
 			proj.getLog().report("		  - please specify sex for as many individuals as possible");
 		}
