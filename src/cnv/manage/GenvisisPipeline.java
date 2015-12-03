@@ -998,168 +998,14 @@ public class GenvisisPipeline {
         }
     };
     
-    static final STEP S11_CREATE_PCS = new STEP("Create Principal Components File", 
-                  "", 
-                  new String[][]{
-                            {"[Transpose Data into Marker-Dominant Files] step must be selected and valid.", "Parsed marker data files must already exist."}, 
-                            {"Number of Principal Components"}, 
-                            {"Should impute mean value for NaN?"}, 
-                            {"Should recompute Log-R ratio?"}, 
-                            },
-                  new RequirementInputType[][]{
-                            {RequirementInputType.NONE, RequirementInputType.DIR}, 
-                            {RequirementInputType.INT}, 
-                            {RequirementInputType.BOOL}, 
-                            {RequirementInputType.BOOL}, 
-                    }) {
-
-        @Override
-        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // not needed for step
-        }
-        
-        @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            int numComponents = Integer.parseInt(variables.get(this).get(1));
-            boolean imputeMeanForNaN = Boolean.valueOf(variables.get(this).get(2));
-            boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(3));
-            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//variables.get(this).get(4);
-            
-            proj.getLog().report("\nReady to perform the principal components analysis (PCA)\n");
-			//TODO, load gc params as needed instead of passing null...
-            PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + MitoPipeline.PCA_SAMPLES, outputBase, null);
-            if (pcs == null) {
-                setFailed();
-                this.failReasons.add("# of Principal Components is greater than either the # of samples or the # of markers.  Please lower the # of PCs and try again.");
-                return;
-            }
-            // apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
-            // TODO, if we ever want to apply to only a subset of the project, we can do that here.....
-            proj.getLog().report("\nApplying the loadings from the principal components analysis to all samples\n");
-			PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, null);
-            // Compute Medians for (MT) markers and compute residuals from PCs for everyone
-            proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
-            proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
-            proj.saveProperties();
-        }
-        
-        @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            String markerDir = variables.get(this).get(0);
-            int numComponents = -1;
-            try {
-                numComponents = Integer.parseInt(variables.get(this).get(1));
-            } catch (NumberFormatException e) {}
-            return new boolean[][]{
-                    {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)), Files.exists(markerDir)},
-                    {numComponents != -1},
-                    {true}, // TRUE or FALSE are both valid selections
-                    {true}, 
-            };
-        }
-        @Override
-        public Object[] getRequirementDefaults(Project proj) {
-            return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false),proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), "true", "true"/*,""*/};
-        }
-
-        @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//ext.rootOf(variables.get(this).get(4));
-            String finalReport = outputBase + PCA.FILE_EXTs[0];//PrincipalComponentsResiduals.MT_REPORT_EXT[0];
-//            boolean mkrFiles = true;
-//            for (String file : PrincipalComponentsResiduals.MT_REPORT_MARKERS_USED) {
-//                if (!Files.exists(outputBase + file)) {
-//                    mkrFiles = false;
-//                    break;
-//                }
-//            }
-            return Files.exists(finalReport) /*&& mkrFiles*/;
-        }
-        @Override
-        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Create PrincipalComponents File >> Not Implemented For Command Line Yet ##";
-        }
-        
-    };
-    
-    static final STEP S12_CREATE_MT_CN_EST = new STEP("Create Mitochondrial Copy-Number Estimates File", 
-                        "", 
-                        new String[][]{
-                                    {"[Transpose Data into Marker-Dominant Files] step must be selected and valid.", "Parsed marker data files must already exist."}, 
-                                    {"[Create Principal Components File] step must be selected and valid.", "Extrapolated PCs file must already exist."},
-                                    {"Median Markers file"}, 
-                                    {"Number of Principal Components"}, 
-                                    {"Should recompute Log-R ratio median?"}, 
-                                    {"Homozygous only?"}, 
-                                },
-                        new RequirementInputType[][]{
-                                    {RequirementInputType.NONE, RequirementInputType.DIR},
-                                    {RequirementInputType.NONE, RequirementInputType.FILE},
-                                    {RequirementInputType.FILE}, 
-                                    {RequirementInputType.INT}, 
-                                    {RequirementInputType.BOOL}, 
-                                    {RequirementInputType.BOOL}, 
-                        }) {
-
-        @Override
-        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // not needed for step
-        }
-        
-        @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String extrapolatedPCsFile = "";
-            int numComponents = Integer.parseInt(variables.get(this).get(2));
-            String medianMarkers = variables.get(this).get(3);
-            boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(4));
-            boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(5));
-            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//variables.get(this).get(6);
-            
-            proj.getLog().report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
-            PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, extrapolatedPCsFile, ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homozygousOnly, recomputeLRR_Median, outputBase, null);
-            MitoPipeline.generateFinalReport(proj, outputBase, pcResids.getResidOutput());
-        }
-        @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            String markerDir = variables.get(this).get(0);
-            String extrapPCFile = variables.get(this).get(1);
-            String medianMarkers = variables.get(this).get(2);
-            int numComponents = -1;
-            try {
-                numComponents = Integer.parseInt(variables.get(this).get(3));
-            } catch (NumberFormatException e) {}
-            return new boolean[][]{
-                    {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)), Files.exists(markerDir)},
-                    {(stepSelections.get(S11_CREATE_PCS) && S11_CREATE_PCS.hasRequirements(proj, stepSelections, variables)), Files.exists(extrapPCFile)},
-                    {Files.exists(medianMarkers)},
-                    {numComponents != -1},
-                    {true}, // TRUE or FALSE are both valid selections
-                    {true}, 
-            };
-        }
-        @Override
-        public Object[] getRequirementDefaults(Project proj) {
-            return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false), proj.INTENSITY_PC_FILENAME.getValue(), "", proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), "", ""/*, ""*/};
-        }
-        @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // existing files will be backed up if re-run
-            return false;
-        }
-        @Override
-        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Create Mitochondrial Copy-Number Estimates File >> Not Implemented For Command Line Yet ##";
-        }
-    };
-    
-    static final STEP S13_COMPUTE_PFB = new STEP("Compute Population BAF files", "", new String[][]{
+    static final STEP S11_COMPUTE_PFB = new STEP("Compute Population BAF files", "", new String[][]{
             {"[Parse Sample Files] step must be selected and valid (will create a SampleList file)", "A SampleList file must already exist.", "A Sample subset file must exist."}, 
             {"PFB (population BAF) output file must be specified."}},
             new RequirementInputType[][]{
                     {RequirementInputType.NONE, RequirementInputType.FILE, RequirementInputType.FILE},
                     {RequirementInputType.FILE}}
             ) {
-
+    
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String setSampList = proj.SAMPLELIST_FILENAME.getValue();
@@ -1243,8 +1089,7 @@ public class GenvisisPipeline {
         }
         
     };
-    
-    static final STEP S14_COMPUTE_GCMODEL = new STEP("Compute GCMODEL File", 
+    static final STEP S12_COMPUTE_GCMODEL = new STEP("Compute GCMODEL File", 
                     "", 
                     new String[][]{
                                 {"A GC Base file must exist."}, 
@@ -1253,7 +1098,7 @@ public class GenvisisPipeline {
                             {RequirementInputType.FILE}, 
                             {RequirementInputType.FILE}
                 }) {
-
+    
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
@@ -1305,6 +1150,159 @@ public class GenvisisPipeline {
             return cmd.append("jcp cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename() + " gc5base=" + gcBaseFile).toString();
         }
         
+    };
+    static final STEP S13_CREATE_PCS = new STEP("Create Principal Components File", 
+                  "", 
+                  new String[][]{
+                            {"[Transpose Data into Marker-Dominant Files] step must be selected and valid.", "Parsed marker data files must already exist."}, 
+                            {"Number of Principal Components"}, 
+                            {"Should impute mean value for NaN?"}, 
+                            {"Should recompute Log-R ratio?"}, 
+                            },
+                  new RequirementInputType[][]{
+                            {RequirementInputType.NONE, RequirementInputType.DIR}, 
+                            {RequirementInputType.INT}, 
+                            {RequirementInputType.BOOL}, 
+                            {RequirementInputType.BOOL}, 
+                    }) {
+
+        @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // not needed for step
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            int numComponents = Integer.parseInt(variables.get(this).get(1));
+            boolean imputeMeanForNaN = Boolean.valueOf(variables.get(this).get(2));
+            boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(3));
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//variables.get(this).get(4);
+            
+            proj.getLog().report("\nReady to perform the principal components analysis (PCA)\n");
+			//TODO, load gc params as needed instead of passing null...
+            PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + MitoPipeline.PCA_SAMPLES, outputBase, null);
+            if (pcs == null) {
+                setFailed();
+                this.failReasons.add("# of Principal Components is greater than either the # of samples or the # of markers.  Please lower the # of PCs and try again.");
+                return;
+            }
+            // apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
+            // TODO, if we ever want to apply to only a subset of the project, we can do that here.....
+            proj.getLog().report("\nApplying the loadings from the principal components analysis to all samples\n");
+			PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, null);
+            // Compute Medians for (MT) markers and compute residuals from PCs for everyone
+            proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
+            proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
+            proj.saveProperties();
+        }
+        
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String markerDir = variables.get(this).get(0);
+            int numComponents = -1;
+            try {
+                numComponents = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
+            return new boolean[][]{
+                    {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)), Files.exists(markerDir)},
+                    {numComponents != -1},
+                    {true}, // TRUE or FALSE are both valid selections
+                    {true}, 
+            };
+        }
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false),proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), "true", "true"/*,""*/};
+        }
+
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//ext.rootOf(variables.get(this).get(4));
+            String finalReport = outputBase + PCA.FILE_EXTs[0];//PrincipalComponentsResiduals.MT_REPORT_EXT[0];
+//            boolean mkrFiles = true;
+//            for (String file : PrincipalComponentsResiduals.MT_REPORT_MARKERS_USED) {
+//                if (!Files.exists(outputBase + file)) {
+//                    mkrFiles = false;
+//                    break;
+//                }
+//            }
+            return Files.exists(finalReport) /*&& mkrFiles*/;
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Create PrincipalComponents File >> Not Implemented For Command Line Yet ##";
+        }
+        
+    };
+    
+    static final STEP S14_CREATE_MT_CN_EST = new STEP("Create Mitochondrial Copy-Number Estimates File", 
+                        "", 
+                        new String[][]{
+                                    {"[Transpose Data into Marker-Dominant Files] step must be selected and valid.", "Parsed marker data files must already exist."}, 
+                                    {"[Create Principal Components File] step must be selected and valid.", "Extrapolated PCs file must already exist."},
+                                    {"Median Markers file"}, 
+                                    {"Number of Principal Components"}, 
+                                    {"Should recompute Log-R ratio median?"}, 
+                                    {"Homozygous only?"}, 
+                                },
+                        new RequirementInputType[][]{
+                                    {RequirementInputType.NONE, RequirementInputType.DIR},
+                                    {RequirementInputType.NONE, RequirementInputType.FILE},
+                                    {RequirementInputType.FILE}, 
+                                    {RequirementInputType.INT}, 
+                                    {RequirementInputType.BOOL}, 
+                                    {RequirementInputType.BOOL}, 
+                        }) {
+
+        @Override
+        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // not needed for step
+        }
+        
+        @Override
+        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String extrapolatedPCsFile = "";
+            int numComponents = Integer.parseInt(variables.get(this).get(2));
+            String medianMarkers = variables.get(this).get(3);
+            boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(4));
+            boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(5));
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//variables.get(this).get(6);
+            
+            proj.getLog().report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
+            PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, extrapolatedPCsFile, ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homozygousOnly, recomputeLRR_Median, outputBase, null);
+            MitoPipeline.generateFinalReport(proj, outputBase, pcResids.getResidOutput());
+        }
+        @Override
+        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String markerDir = variables.get(this).get(0);
+            String extrapPCFile = variables.get(this).get(1);
+            String medianMarkers = variables.get(this).get(2);
+            int numComponents = -1;
+            try {
+                numComponents = Integer.parseInt(variables.get(this).get(3));
+            } catch (NumberFormatException e) {}
+            return new boolean[][]{
+                    {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)), Files.exists(markerDir)},
+                    {(stepSelections.get(S13_CREATE_PCS) && S13_CREATE_PCS.hasRequirements(proj, stepSelections, variables)), Files.exists(extrapPCFile)},
+                    {Files.exists(medianMarkers)},
+                    {numComponents != -1},
+                    {true}, // TRUE or FALSE are both valid selections
+                    {true}, 
+            };
+        }
+        @Override
+        public Object[] getRequirementDefaults(Project proj) {
+            return new String[]{proj.MARKER_DATA_DIRECTORY.getValue(false, false), proj.INTENSITY_PC_FILENAME.getValue(), "", proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), "", ""/*, ""*/};
+        }
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            // existing files will be backed up if re-run
+            return false;
+        }
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            return "## << Create Mitochondrial Copy-Number Estimates File >> Not Implemented For Command Line Yet ##";
+        }
     };
     
     static final STEP S15_MOSAIC_ARMS = new STEP("Create Mosaic Arms File", 
@@ -1579,10 +1577,10 @@ public class GenvisisPipeline {
         S8I_GENERATE_ABLOOKUP,
         S9I_MARKER_QC,
         S10_EXTRACT_LRRSD_AND_FILTER,
-        S11_CREATE_PCS,
-        S12_CREATE_MT_CN_EST,
-        S13_COMPUTE_PFB,
-        S14_COMPUTE_GCMODEL,
+        S11_COMPUTE_PFB,
+        S12_COMPUTE_GCMODEL,
+        S13_CREATE_PCS,
+        S14_CREATE_MT_CN_EST,
         S15_MOSAIC_ARMS,
         S16_SHADOW_SAMPLES
     };
@@ -1596,10 +1594,10 @@ public class GenvisisPipeline {
         S8A_GENERATE_ABLOOKUP,
         S9A_MARKER_QC,
         S10_EXTRACT_LRRSD_AND_FILTER,
-        S11_CREATE_PCS,
-        S12_CREATE_MT_CN_EST,
-        S13_COMPUTE_PFB,
-        S14_COMPUTE_GCMODEL,
+        S11_COMPUTE_PFB,
+        S12_COMPUTE_GCMODEL,
+        S13_CREATE_PCS,
+        S14_CREATE_MT_CN_EST,
         S15_MOSAIC_ARMS,
         S16_SHADOW_SAMPLES
     };

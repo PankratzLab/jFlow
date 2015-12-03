@@ -279,7 +279,7 @@ public class ForestPanel extends AbstractPanel {
 			plotStep += stepStep;
 		}
 
-		return new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf, true)), Double.parseDouble(ext.formDeci(plotMin, sf, false))};
+		return new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf, true)), Double.parseDouble(ext.formDeci(plotMin, sf, false)), sf};
 
 	}
 	
@@ -447,7 +447,7 @@ public class ForestPanel extends AbstractPanel {
 				plotXmin = plotMinMaxStep[0];
 				plotXmax = plotMinMaxStep[1];
 
-				sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
+				sigFigs = (int) plotMinMaxStep[4];
 				for (double x = plotMinMaxStep[3]; x <= plotXmax; x += plotMinMaxStep[2]) {
 					if (x >= plotXmin || !truncate) {
 						Grafik.drawThickLine(g, 
@@ -486,7 +486,7 @@ public class ForestPanel extends AbstractPanel {
 				plotYmin = plotMinMaxStep[0];
 				plotYmax = plotMinMaxStep[1];
 				
-				sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
+				sigFigs = (int) plotMinMaxStep[4];
 				double step = 1;//Math.max(1, Math.round(plotMinMaxStep[2] * 2) / 2.0f);
 				for (double y = plotMinMaxStep[3]; y <= plotYmax; y += step) {
 					if ((y >= plotYmin && y == (int) y && y <= points.length && y > 0) || !truncate) {

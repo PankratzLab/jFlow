@@ -29,8 +29,13 @@ class ReferenceLabel extends JLabel {
     
     private static final long serialVersionUID = 1L;
     
+    BlastAnnotation annot;
     public ReferenceLabel() {
         setFont(BlastLabel.LBL_FONT);
+    }
+    
+    public void setAnnotation(BlastAnnotation annot) {
+        this.annot = annot;
     }
     
     @Override
@@ -75,21 +80,6 @@ class ReferenceLabel extends JLabel {
                 baseX += fm.charWidth(txt.charAt(c));
             }
 
-            // if (BlastLabel.expanded && BlastLabel.spacescontains(charInd)) {
-            // g.drawString("-", baseX, h);
-            // baseX += BlastLabel.CHAR_PADDING; // char padding
-            // baseX += fm.charWidth('-');
-            // charInd++;
-            // c--;
-            // continue;
-            // }
-            //
-            //
-            // g.drawString(txt.substring(c, c+1), baseX, h);
-            // baseX += BlastLabel.CHAR_PADDING; // char padding
-            // baseX += fm.charWidth(txt.charAt(c));
-            // charInd++;
-
         }
 
     }
@@ -98,7 +88,6 @@ class ReferenceLabel extends JLabel {
 public class BlastLabel extends JLabel {
 
     private static final long serialVersionUID = 1L;
-//    private static final Font BASE_FONT = (Fonts.SOURCE_CODE_PRO_LIGHT == null ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_LIGHT);
     private static final Font BASE_FONT = (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_REGULAR);
     
     public static void setFontSize(int size) {
@@ -227,6 +216,7 @@ public class BlastLabel extends JLabel {
 //    chr17:74,784,671-74,787,181
 //    chr17:4,914,805-5,526,347 -- #37 of 4656
 //    chr7:104,057,182-104,954,272  -- #63
+//    chr19:33,876,905-33,881,272
     
     @Override
     protected void paintComponent(Graphics g) {
@@ -379,14 +369,4 @@ class CigarSeq {
     }
     
 }
-
-
-
-
-
-
-
-
-
-
 
