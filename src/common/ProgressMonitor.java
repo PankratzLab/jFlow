@@ -141,6 +141,7 @@ public class ProgressMonitor {
     private synchronized void beginTask(String taskName, String label, boolean indeterminate, int expectedUpdateCount, int timeout, DISPLAY_MODE mode) {
         if (taskMap.containsKey(taskName)) {
             // likely programmer error, or trying to run a task twice at the same time
+            // TODO, sometimes causes conflict with opening multiple ScatterPlots at the same time...
             throw new IllegalArgumentException("Error - task with key [" + taskName + "] already exists!"); 
         }
         
@@ -247,7 +248,7 @@ public class ProgressMonitor {
         }
     }
 
-    private void updateDisplay(final Task task) {
+    private synchronized void updateDisplay(final Task task) {
         taskUpdateStack.push(task.getName());
         if (internalProgBar != null && (task.getDisplayMode() == DISPLAY_MODE.GUI_AND_CONSOLE || task.getDisplayMode() == DISPLAY_MODE.GUI_ONLY)) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -272,13 +273,14 @@ public class ProgressMonitor {
             });
         }
         if (task.getDisplayMode() == DISPLAY_MODE.GUI_AND_CONSOLE || task.getDisplayMode() == DISPLAY_MODE.CONSOLE_ONY) {
+            long currTime = System.nanoTime();
             if (task.getIndeterminate()) {
-                long elapsedLong = task.getLastDisplayUpdateTime() - task.getCreationTime();
+                long elapsedLong = currTime - task.getLastDisplayUpdateTime();//task.getCreationTime();
                 elapsedLong /= 60;
                 elapsedLong /= 1000;
                 elapsedLong /= 1000;
                 int elapsed = (int) elapsedLong;
-                if (elapsed > 0 && elapsed % INDET_ELAPSED_LOG_SECONDS == 0) {
+                if (elapsed > INDET_ELAPSED_LOG_SECONDS) {
                     String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' has been updated";
                     if (this.internalLogger != null) {
                         this.internalLogger.report(msg);
@@ -287,30 +289,21 @@ public class ProgressMonitor {
                     }
                 }
             } else {
-                long elapsedLong = task.getLastDisplayUpdateTime() - task.getCreationTime();
-                elapsedLong /= 1000;
-                elapsedLong /= 1000;
-                elapsedLong /= 1000;
-    //            System.out.println(elapsedLong / DET_ELAPSED_LOG_SECONDS);
+                long elapsedLong = currTime - task.getLastDisplayUpdateTime();//task.getCreationTime();
+                elapsedLong /= 60d;
+                elapsedLong /= 1000d;
+                elapsedLong /= 1000d;
                 int elapsed = (int) elapsedLong;
-                if (elapsed % DET_ELAPSED_LOG_SECONDS == 0) {
+                if (elapsed > DET_ELAPSED_LOG_SECONDS) {
                     double rawPct = 100d * ((double)task.getUpdateCount()) / ((double) task.getExpectedUpdateCount());
                     String pct = (task.getIndeterminate() ? "" : " (" + ext.formDeci(rawPct, 2) + "%)");
                     String msg = ext.getTime() + "]\tTask '" + task.getName() + "' with status '" + task.getLabel() + "' is " + pct + " complete";
                     if (task.getExpectedUpdateCount() > 100 && task.getUpdateCount() > 0) {
-    //                    int mod = 10;
-    //                    String exp = "" + task.getExpectedUpdateCount();
-    //                    for (int i = 0; i < exp.length() - 4; i++) {
-    //                        mod *= 10;
-    //                    }
-    //                    mod = task.getExpectedUpdateCount() / mod;
-    //                    if (task.getUpdateCount() % mod == 0) {
-                            if (this.internalLogger != null) {
-                                this.internalLogger.report(msg);
-                            } else {
-                                System.out.println(msg);
-                            }
-    //                    }
+                        if (this.internalLogger != null) {
+                            this.internalLogger.report(msg);
+                        } else {
+                            System.out.println(msg);
+                        }
                     } else {
                         if (this.internalLogger != null) {
                             this.internalLogger.report(msg);
