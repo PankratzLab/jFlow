@@ -51,6 +51,10 @@ public class ClusterFilter implements Serializable {
 		return this.plotType;
 	}
 	
+	public void setPlotType(byte plotType) {
+        this.plotType = plotType;
+    }
+	
 	public void setClusterGenotype (byte newGenotype) {
 		this.newGenotype=newGenotype;
 	}
@@ -306,4 +310,5 @@ public class ClusterFilter implements Serializable {
 
 		return genotypeNew;
 	}
+
 }
