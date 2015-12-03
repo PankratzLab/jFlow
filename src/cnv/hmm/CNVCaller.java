@@ -230,11 +230,15 @@ public class CNVCaller {
 			for (int j = 0; j < results.get(i).getChrCNVs().getLoci().length; j++) {
 				allCNVs.add(results.get(i).getChrCNVs().getLoci()[j]);
 			}
-			for (int j = 0; j < results.get(i).getChrCNVsReverse().getLoci().length; j++) {
-				allReverse.add(results.get(i).getChrCNVsReverse().getLoci()[j]);
+			if (callReverse && results.get(i).getChrCNVsReverse() != null) {
+				for (int j = 0; j < results.get(i).getChrCNVsReverse().getLoci().length; j++) {
+					allReverse.add(results.get(i).getChrCNVsReverse().getLoci()[j]);
+				}
 			}
-			for (int j = 0; j < results.get(i).getChrCNVsReverseConsensus().getLoci().length; j++) {
-				allReverseConsensus.add(results.get(i).getChrCNVsReverseConsensus().getLoci()[j]);
+			if (callReverse && results.get(i).getChrCNVsReverseConsensus() != null) {
+				for (int j = 0; j < results.get(i).getChrCNVsReverseConsensus().getLoci().length; j++) {
+					allReverseConsensus.add(results.get(i).getChrCNVsReverseConsensus().getLoci()[j]);
+				}
 			}
 		}
 
