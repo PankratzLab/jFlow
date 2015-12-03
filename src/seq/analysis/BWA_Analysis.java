@@ -246,7 +246,7 @@ public class BWA_Analysis {
 	}
 
 	private void gatherInputFilesFromFile(String fileOfSamplePairs) {
-
+		
 		try {
 			int numSamples = Files.countLines(fileOfSamplePairs, 0);
 			this.bwAnalysisIndividuals = new BWA_AnalysisIndividual[numSamples];// this a per lane way of doing it
@@ -275,16 +275,18 @@ public class BWA_Analysis {
 							bwAnalysisIndividuals[index] = getAnalysisIndFromFileParser(fileNameParser1);
 							bwAnalysisIndividuals[index].assignFile(line[0]);
 							bwAnalysisIndividuals[index].assignFile(line[1]);
-							
 							if (track.containsKey(bwAnalysisIndividuals[index].getOutput())) {
 								int num = track.get(bwAnalysisIndividuals[index].getOutput());
-								bwAnalysisIndividuals[index].setOutput(ext.addToRoot(bwAnalysisIndividuals[index].getOutput(), "_rep" + num));
-								bwAnalysisIndividuals[index].setLibrary("_rep" + num);
+								bwAnalysisIndividuals[index].setOutput(ext.addToRoot(bwAnalysisIndividuals[index].getOutput(), "rep" + num));
+								bwAnalysisIndividuals[index].setLibrary(bwAnalysisIndividuals[index].getLibrary() + "rep" + num);
 								track.put(bwAnalysisIndividuals[index].getOutput(), (num + 1));
 							} else {
 								track.put(bwAnalysisIndividuals[index].getOutput(), 1);
 							}
+							System.out.println(bwAnalysisIndividuals[index].getReadGroup());
+
 							index++;
+
 						}
 					} else {
 						fail = true;

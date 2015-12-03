@@ -38,7 +38,10 @@ public class S3cmdDL {
 		for (int i = 0; i < files.length; i++) {
 			out: if (files[i].endsWith(exten)) {
 				String actual = files[i].substring(files[i].indexOf(" s3:"));
-				if (!Files.exists(ext.removeDirectoryInfo(actual))) {
+				String dl = dir + ext.removeDirectoryInfo(actual);
+				// String dlVerify = dl+".verify";
+				if (!Files.exists(dl)) {
+					// ||!Files.exists(dlVerify)
 					int count = 0;
 					for (int j = 0; j < actual.length(); j++) {
 						if ((actual.charAt(j) + "").equals("/")) {
@@ -50,6 +53,7 @@ public class S3cmdDL {
 					}
 					System.out.println(actual);
 					filesGet.add("s3cmd get " + actual + "\n");
+					// "; touch " + dlVerify +
 				}
 			}
 		}
@@ -76,8 +80,8 @@ public class S3cmdDL {
 		String it = "gvcf";
 		String it2 = "gvcf.idx";
 		int numThreads = 24;
-		getEm(dir, bucket, it, numThreads);
 		getEm(dir, bucket, it2, numThreads);
+		getEm(dir, bucket, it, numThreads);
 
 	}
 
