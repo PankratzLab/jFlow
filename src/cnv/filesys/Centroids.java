@@ -9,12 +9,13 @@ import java.util.concurrent.Executors;
 import cnv.analysis.AnalysisFormats;
 import cnv.analysis.CentroidCompute;
 import cnv.manage.MarkerDataLoader;
+import cnv.manage.TextExport;
 import cnv.qc.SexChecks;
 import cnv.var.SampleData;
 import stats.Maths;
 import common.*;
 
-public class Centroids implements Serializable {
+public class Centroids implements Serializable, TextExport {
 	public static final long serialVersionUID = 1L;
 	public static final String[] ILLUMINA_CENTROID_SUFFIXES = {"Name", "AA T Mean", "AA R Mean", "AB T Mean", "AB R Mean", "BB T Mean", "BB R Mean"};
 	
@@ -37,7 +38,49 @@ public class Centroids implements Serializable {
 	public void serialize(String filename) {
 		Files.writeSerial(this, filename);
 	}
+	
+	public void exportToText(Project proj, String outputFile) {
+	    PrintWriter writer;
+        float[][][] centroids;
+        MarkerSet markerSet;
+        String[] markerNames;
+        Logger log = proj.getLog();
+        
+        markerSet = proj.getMarkerSet();
+        markerNames = markerSet.getMarkerNames();
+        centroids = getCentroids();
+        
+        if (markerNames.length != centroids.length) {
+            log.reportError("Error - mismatched number of markers in centroid object and the project's marker set; aborting");
+            return;
+        }
 
+        if (markerSet.getFingerprint() != getFingerprint()) {
+            log.reportError("Error - mismatched marker fingerprints in centroid object and the project's marker set ; aborting");
+            return;
+        }
+        
+        try {
+            writer = new PrintWriter(new FileWriter(outputFile));
+            writer.println("marker_fingerprint="+getFingerprint());
+            writer.println("MarkerName\tAA_Theta_Mean\tAA_R_Mean\tAB_Theta_Mean\tAB_R_Mean\tBB_Theta_Mean\tBB_R_Mean");
+            for (int i = 0; i < markerNames.length; i++) {
+                writer.print(markerNames[i]);
+                for (int j = 0; j < 3; j++) {
+                    if (centroids[i][j] == null) {
+                        writer.print("\t.\t.");
+                    } else {
+                        writer.print("\t"+centroids[i][j][0]+"\t"+centroids[i][j][1]);
+                    }
+                }
+                writer.println();
+            }
+            writer.close();
+        } catch (Exception e) {
+            log.reportException(e);
+        }
+	}
+	
 	public static Centroids load(String filename, boolean jar) {
 		return (Centroids)Files.readSerial(filename, jar, true);
 	}
@@ -426,6 +469,8 @@ public class Centroids implements Serializable {
 		return centers;
 	}
 	
+	
+	
 	/**
 	 * 
 	 * @param proj
@@ -433,49 +478,14 @@ public class Centroids implements Serializable {
 	 * @param exportFilename File path FROM THE PROJECT'S DIRECTORY
 	 */
 	public static void exportToText(Project proj, String centFilename, String exportFilename) {
-		PrintWriter writer;
+
 		Centroids centObject;
-		float[][][] centroids;
-		MarkerSet markerSet;
-		String[] markerNames;
 		String dir;
 		
 		dir = proj.PROJECT_DIRECTORY.getValue();
-		markerSet = proj.getMarkerSet();
-		markerNames = markerSet.getMarkerNames();
 		centObject = Centroids.load(dir+centFilename, false);
-		centroids = centObject.getCentroids();
 		
-		if (markerNames.length != centroids.length) {
-			System.err.println("Error - mismatched number of markers in the project's marker set and the imported centroids file ("+centFilename+"); aborting");
-			return;
-		}
-
-		if (markerSet.getFingerprint() != centObject.getFingerprint()) {
-			System.err.println("Error - mismatched marker fingerprints in the project's marker set and the imported centroids file ("+centFilename+"); aborting");
-			return;
-		}
-		
-		try {
-			writer = new PrintWriter(new FileWriter(dir+exportFilename));
-			writer.println("marker_fingerprint="+centObject.getFingerprint());
-			writer.println("MarkerName\tAA_Theta_Mean\tAA_R_Mean\tAB_Theta_Mean\tAB_R_Mean\tBB_Theta_Mean\tBB_R_Mean");
-			for (int i = 0; i < markerNames.length; i++) {
-				writer.print(markerNames[i]);
-				for (int j = 0; j < 3; j++) {
-					if (centroids[i][j] == null) {
-						writer.print("\t.\t.");
-					} else {
-						writer.print("\t"+centroids[i][j][0]+"\t"+centroids[i][j][1]);
-					}
-				}
-				writer.println();
-			}
-			writer.close();
-		} catch (Exception e) {
-			System.err.println("Error writing to " + exportFilename);
-			e.printStackTrace();
-		}
+		centObject.exportToText(proj, dir + exportFilename);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -748,7 +758,7 @@ public class Centroids implements Serializable {
         
         return centroids;
     }
-
+	
 	public static void exportToText(Project proj, String centFilename, String exportFilename, String[] markerNames) {
 		PrintWriter writer;
 		Centroids centObject;
@@ -869,7 +879,7 @@ public class Centroids implements Serializable {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		
+
 		proj = new Project(filename, false);
 //		fromGenotypes = true;
 ////		compute = "genotype.cent";

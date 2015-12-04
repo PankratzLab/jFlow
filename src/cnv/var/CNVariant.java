@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
+import cnv.manage.TextExport;
 import common.ByteVector;
 import common.Files;
 import common.IntVector;

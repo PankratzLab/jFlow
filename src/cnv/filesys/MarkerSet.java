@@ -3,10 +3,11 @@ package cnv.filesys;
 import java.io.*;
 import java.util.ArrayList;
 
+import cnv.manage.TextExport;
 import common.*;
 import filesys.Segment;
 
-public class MarkerSet implements Serializable {
+public class MarkerSet implements Serializable, TextExport {
 	public static final long serialVersionUID = 1L;
 	public static final char[] ALLELES = {'A', 'C', 'G', 'T', 'I', 'D'};
 	// TODO these alleles were recently added, should they not be from some place else??
@@ -118,7 +119,7 @@ public class MarkerSet implements Serializable {
 		return fingerprint;
 	}
 	
-	public void writeToFile(String filename) {
+	public void exportToText(Project proj, String filename) {
 		PrintWriter writer;
 
 		try {
