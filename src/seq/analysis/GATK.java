@@ -1,5 +1,7 @@
 package seq.analysis;
 
+import java.util.ArrayList;
+
 import seq.analysis.GATK_Genotyper.JointGATKGenotyper;
 import seq.analysis.SNPEFF.SnpEffResult;
 import common.Array;
@@ -48,6 +50,7 @@ public class GATK {
 
 	public static final String DB_SNP = "--dbsnp";
 	public static final String DB_SNP_FILE = "dbsnp";
+	public static final String COSMIC ="--cosmic";
 
 	public static final String BEFORE = "-before";
 	public static final String AFTER = "-after";
@@ -63,6 +66,7 @@ public class GATK {
 	public static final String L = "-L";
 
 	public static final String I = "-I";
+	public static final String I_TUMOR ="-I:tumor";
 	public static final String INPUT = "-input";
 
 	public static final String MAX_GAUSSIANS = "--maxGaussians";
@@ -70,6 +74,7 @@ public class GATK {
 	public static final String TS_FILTER_LEVEL = "--ts_filter_level";
 	public static final String DEFUALT_TS_FILTER_LEVEL_SNP = "99.5";
 	public static final String DEFUALT_TS_FILTER_LEVEL_INDEL = "99.0";
+	public static final String ARTIFACT_DETECTION_MODE = "--artifact_detection_mode";
 
 	public static final String AN = "-an";
 	// from https://www.broadinstitute.org/gatk/guide/article?id=1259
@@ -114,6 +119,8 @@ public class GATK {
 
 	private String GATKLocation, referenceGenomeFasta;
 	private String[] knownSitesSnpFile, knownSitesIndelFile;
+	private String dbSnpKnownSites;
+	private String cosmicKnownSites;
 	private String javaLocation;
 	private boolean fail, verbose, overWriteExistingOutput;
 	private Logger log;
@@ -141,6 +148,21 @@ public class GATK {
 		this.GATKLocation = gATKLocation;
 		this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
 		this.referenceGenomeFasta = referenceGenomeFasta;
+		this.verbose = verbose;
+		this.overWriteExistingOutput = overWriteExisting;
+		this.log = log;
+		this.fail = verifyGATKLocation();
+	}
+
+	public GATK(String gATKLocation, String referenceGenomeFasta, String dbSnpKnownSites, String regionsFile, String cosmicKnownSites, boolean verbose, boolean overWriteExisting, boolean mutect, Logger log) {
+		if (!mutect) {
+			throw new IllegalArgumentException("This is the mutect constructor");
+		}
+		this.GATKLocation = gATKLocation;
+		this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
+		this.referenceGenomeFasta = referenceGenomeFasta;
+		this.dbSnpKnownSites = dbSnpKnownSites;
+		this.regionsFile = regionsFile;
 		this.verbose = verbose;
 		this.overWriteExistingOutput = overWriteExisting;
 		this.log = log;
@@ -366,6 +388,34 @@ public class GATK {
 
 		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, HAPLOTYPE_CALLER, R, referenceGenomeFasta, I, bamFile, ERC_MODE, GVCF_MODE, VARIANT_INDEX_TYPE, LINEAR, VARIANT_INDEX_PARAMETER, VARIANT_INDEX_DEFAULT, dbSnpFile == null ? "" : DB_SNP, dbSnpFile == null ? "" : dbSnpFile, O, output, NCT, numWithinSampleThreads + "" };
 		return CmdLine.runCommandWithFileChecks(command, "", input, new String[] { output, output + VCF_INDEX }, verbose, overWriteExistingOutput, true, (altLog == null ? log : altLog));
+	}
+
+	// TODO
+	//https://www.broadinstitute.org/gatk/gatkdocs/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php
+	public boolean generateMutect2Normal(String bamFile, String outputVcf, int numWithinSampleThreads, Logger log) {
+		String[] input = new String[] { referenceGenomeFasta, bamFile, dbSnpKnownSites, regionsFile, cosmicKnownSites };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add(javaLocation);
+		command.add(JAR);
+		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+		command.add(T);
+		command.add(HAPLOTYPE_CALLER);
+		command.add(R);
+		command.add(referenceGenomeFasta);
+		command.add(I_TUMOR);
+		command.add(bamFile);
+		command.add(DB_SNP);
+		command.add(dbSnpKnownSites);
+		command.add(COSMIC);
+		command.add(cosmicKnownSites);
+		command.add(ARTIFACT_DETECTION_MODE);
+		command.add(L);
+		command.add(regionsFile);
+		command.add(O);
+		command.add(outputVcf);
+
+		String[] outputs = new String[] { outputVcf, outputVcf + VCF_INDEX };
+		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, true, log);
 	}
 
 	private boolean addSnpEffAnnotation(String inputVCF, String snpEffVcf, String outputVCF, boolean addDBSNP, Logger log) {
@@ -731,14 +781,19 @@ public class GATK {
 
 	}
 	
-	public static class Mutect2{
+
+	
+	public static class Mutect2Normal {
+		
+	}
+	public static class Mutect2 {
 		private String normalBam;
 		private String tumorBam;
 		private String outputVCF;
 		
 		
 		
-		
+
 	}
 
 	private static String[] parseAndAddToCommand(String[] command, String commandToAdd, String[] values) {
