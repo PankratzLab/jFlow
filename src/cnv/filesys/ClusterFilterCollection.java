@@ -10,6 +10,7 @@ import common.Array;
 import common.Files;
 import common.HashVec;
 import common.ext;
+import cnv.manage.TextExport;
 import cnv.plots.GenericRectangle;
 
 /**
@@ -17,7 +18,7 @@ import cnv.plots.GenericRectangle;
  * @author npankratz and zxu
  *
  */
-public class ClusterFilterCollection implements Serializable {
+public class ClusterFilterCollection implements Serializable, TextExport {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -185,8 +186,33 @@ public class ClusterFilterCollection implements Serializable {
 	public void serialize(String filename) {
 		Files.writeSerial(this, filename);
 	}
-
-	public static ClusterFilterCollection load(String filename, boolean jar) {
+	
+	@Override
+    public void exportToText(Project proj, String outputFile) {
+        PrintWriter writer;
+        String[] markerNames;
+        ArrayList<ClusterFilter> list;
+        ClusterFilter filter;
+        
+        try {
+            writer = new PrintWriter(new FileWriter(outputFile));
+            writer.println("MarkerIndex\tMarkerName\tFilterIndex\tPlotType\tGenotype\tminX\tminY\tmaxX\tmaxY");
+            markerNames = getMarkerNames();
+            for (int i = 0; i < markerNames.length; i++) {
+                list = getClusterFilters(markerNames[i]);
+                for (int j = 0; j < list.size(); j++) {
+                    filter = list.get(j);
+                    writer.println(i+"\t"+markerNames[i]+"\t"+j+"\t"+filter.getPlotType()+"\t"+filter.getCluterGenotype()+"\t"+filter.getXMin()+"\t"+filter.getYMin()+"\t"+filter.getXMax()+"\t"+filter.getYMax());
+                }
+            }
+            writer.close();
+        } catch (Exception e) {
+            System.err.println("Error writing to " + outputFile +"_dump.xln");
+            e.printStackTrace();
+        }
+	}
+	
+    public static ClusterFilterCollection load(String filename, boolean jar) {
 		return (ClusterFilterCollection)Files.readSerial(filename, jar, true);
 	}
 	
@@ -276,11 +302,8 @@ public class ClusterFilterCollection implements Serializable {
 	}
 
 	public static void dump(String filename) {
-		PrintWriter writer;
-		String[] markerNames;
 		ClusterFilterCollection collection;
-		ArrayList<ClusterFilter> list;
-		ClusterFilter filter;
+		String outFile;
 		
 		if (!Files.exists(filename)) {
 			System.err.println("Error - collection '"+filename+"' does not exist");
@@ -288,18 +311,9 @@ public class ClusterFilterCollection implements Serializable {
 		}
 		
 		try {
-			writer = new PrintWriter(new FileWriter(ext.rootOf(filename, false)+"_dump.xln"));
-			writer.println("MarkerIndex\tMarkerName\tFilterIndex\tPlotType\tGenotype\tminX\tminY\tmaxX\tmaxY");
 			collection = load(filename, false);
-			markerNames = collection.getMarkerNames();
-			for (int i = 0; i < markerNames.length; i++) {
-				list = collection.getClusterFilters(markerNames[i]);
-				for (int j = 0; j < list.size(); j++) {
-					filter = list.get(j);
-					writer.println(i+"\t"+markerNames[i]+"\t"+j+"\t"+filter.getPlotType()+"\t"+filter.getCluterGenotype()+"\t"+filter.getXMin()+"\t"+filter.getYMin()+"\t"+filter.getXMax()+"\t"+filter.getYMax());
-				}
-			}
-			writer.close();
+			outFile = ext.rootOf(filename, false)+"_dump.xln";
+			collection.exportToText(null, outFile);
 		} catch (Exception e) {
 			System.err.println("Error writing to " + ext.rootOf(filename)+"_dump.xln");
 			e.printStackTrace();

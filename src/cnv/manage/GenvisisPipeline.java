@@ -120,8 +120,7 @@ public class GenvisisPipeline {
             case 1:
                 break;
             case 6:
-                // TODO ab genotypes not in samples files, show warning when parsing sample file headers
-                this.failReasons.add("ABLookup ");
+                this.failReasons.add("ABLookup required but wasn't found.");
                 break;
             }
         }
@@ -147,7 +146,6 @@ public class GenvisisPipeline {
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            // TODO strict check for #files == #samples?
             return Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
         }
         
@@ -217,8 +215,7 @@ public class GenvisisPipeline {
             case 1:
                 break;
             case 6:
-                // TODO ab genotypes not in samples files, show warning when parsing sample file headers
-                this.failReasons.add("ABLookup ");
+                this.failReasons.add("ABLookup required but wasn't found.");
                 break;
             }
         }
@@ -243,7 +240,6 @@ public class GenvisisPipeline {
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            // TODO strict check for #files == #samples?
             return Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
         }
         
@@ -322,7 +318,7 @@ public class GenvisisPipeline {
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             // TODO don't forget setting project properties 
-            return "## << Create SampleData >> Not Implemented For Command Line Yet ##";
+            return "## << Create SampleData >> Not Implemented For Command Line Yet ##"; // TODO
         }
         
     };
@@ -654,7 +650,7 @@ public class GenvisisPipeline {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Generate ABLookup >> Not Implemented For Command Line Yet ##";
+            return "## << Generate ABLookup >> Not Implemented For Command Line Yet ##"; // TODO
         }
     };
 
@@ -725,7 +721,7 @@ public class GenvisisPipeline {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Generate ABLookup >> Not Implemented For Command Line Yet ##";
+            return "## << Generate ABLookup >> Not Implemented For Command Line Yet ##"; // TODO
         }
     };
     
@@ -822,7 +818,7 @@ public class GenvisisPipeline {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Marker QC >> Not Implemented For Command Line Yet ##";
+            return "## << Marker QC >> Not Implemented For Command Line Yet ##"; // TODO
         }
     };
     
@@ -919,7 +915,7 @@ public class GenvisisPipeline {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Marker QC >> Not Implemented For Command Line Yet ##";
+            return "## << Marker QC >> Not Implemented For Command Line Yet ##"; // TODO
         }
     };
     
@@ -994,7 +990,7 @@ public class GenvisisPipeline {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Extract LRRSD and Filter Samples by CallRate >> Not Implemented For Command Line Yet ##";
+            return "## << Extract LRRSD and Filter Samples by CallRate >> Not Implemented For Command Line Yet ##"; // TODO
         }
     };
     
@@ -1230,7 +1226,7 @@ public class GenvisisPipeline {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Create PrincipalComponents File >> Not Implemented For Command Line Yet ##";
+            return "## << Create PrincipalComponents File >> Not Implemented For Command Line Yet ##"; // TODO
         }
         
     };
@@ -1301,7 +1297,7 @@ public class GenvisisPipeline {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Create Mitochondrial Copy-Number Estimates File >> Not Implemented For Command Line Yet ##";
+            return "## << Create Mitochondrial Copy-Number Estimates File >> Not Implemented For Command Line Yet ##"; // TODO
         }
     };
     
@@ -1549,11 +1545,36 @@ public class GenvisisPipeline {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String kvCmd = "";
+            
+            String hmm_P = proj.HMM_FILENAME.getValue();
+            String hmm_G = variables.get(this).get(0);
+            if (!hmm_P.equals(hmm_G)) {
+                kvCmd += " HMM_FILENAME=" + hmm_G;
+            }
+            String pfb_P = proj.CUSTOM_PFB_FILENAME.getValue();
+            String pfb_G = variables.get(this).get(1);
+            if (!pfb_P.equals(pfb_G)) {
+                kvCmd += " CUSTOM_PFB_FILENAME=" + pfb_G;
+            }
+            String gcm_P = proj.GC_MODEL_FILENAME.getValue();
+            String gcm_G = variables.get(this).get(2);
+            if (!gcm_P.equals(gcm_G)) {
+                kvCmd += " GC_MODEL_FILENAME=" + gcm_G;
+            }
             int numThreads = proj.NUM_THREADS.getValue();
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(3));
             } catch (NumberFormatException e) {}
-            return "jcp cnv.hmm.CNVCaller proj=" + proj.getPropertyFilename() + " out=" + variables.get(this).get(4) + " numthreads=" + numThreads;
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+                kvCmd += " NUM_THREADS=" + numThreads;
+            }
+            String projPropFile = proj.getPropertyFilename();
+            StringBuilder cmd = new StringBuilder();
+            if (kvCmd.length() > 0) {
+                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+            }
+            return "jcp cnv.hmm.CNVCaller proj=" + projPropFile + " out=" + variables.get(this).get(4) + " numthreads=" + numThreads;
         }
         
     };

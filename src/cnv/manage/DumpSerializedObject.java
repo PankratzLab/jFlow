@@ -1,17 +1,20 @@
 package cnv.manage;
 
-import java.io.*;
-import java.util.*;
-
 import cnv.filesys.*;
 import common.*;
 
 public class DumpSerializedObject {
-	private static void dump(String filename, Logger log) {
-		Object object;
+	private static void dump(String projectPropertyFile, String filename, String logFile) {
+		Project proj = new Project(projectPropertyFile, logFile, false);
+	    Object object;
+		object = Files.readSerial(filename, false, proj.getLog(), false, false);
 		
-		object = Files.readSerial(filename, false, log, false, false);
-		log.report("Information on class:"+
+		if (object instanceof TextExport) {
+		    ((TextExport) object).exportToText(proj, ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln");
+		    return;
+		}
+
+		proj.getLog().report("Information on class:"+
 				"\n"+"object.getClass().getName()="+object.getClass().getName()+
 				"\n"+"object.getClass()="+object.getClass()+
 				"\n"+"object.toString()="+object.toString());
@@ -20,11 +23,11 @@ public class DumpSerializedObject {
 		 * 
 		 * outliers.ser
 		 * AnnotationCollection
-		 * Centroids
-		 * ClusterFilterCollection
-		 * MarkerSet
-		 * CNVariant
-		 * SNPMarkerSet
+		 --* Centroids
+		 --* ClusterFilterCollection
+		 --* MarkerSet
+		 * CNVariant --- would only write one cnvariant to one file...
+		 * SNPMarkerSet --- relies on extra info [SNPMarkerSet FORMAT], shouldn't have references to project
 		 * 
 		 */
 
@@ -40,7 +43,7 @@ public class DumpSerializedObject {
 		 */
 
 		if (object instanceof AnnotationCollection) {
-			log.report("Detected an AnnotationCollection file");
+			proj.getLog().report("Detected an AnnotationCollection file");
 //			AnnotationCollection.dump();
 		}
 		
@@ -54,9 +57,9 @@ public class DumpSerializedObject {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
+		String proj = null;
 		String filename = null;
 		String logfile = null;
-		Logger log;
 
 		String usage = "\n" + 
 				"widgets.DumpSerializedObject requires 0-1 arguments\n" + 
@@ -66,6 +69,9 @@ public class DumpSerializedObject {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
+			} else if (args[i].startsWith("proj=")) {
+			    proj = args[i].split("=")[1];
+			    numArgs--;
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
@@ -81,11 +87,9 @@ public class DumpSerializedObject {
 			System.exit(1);
 		}
 		try {
-			if (logfile == null) {
-				logfile = ext.rootOf(filename)+"_dump.log";
-			}
-			log = new Logger(logfile);
-			dump(filename, log);
+		    if (proj != null) {
+    			dump(proj, filename, logfile);
+		    }
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

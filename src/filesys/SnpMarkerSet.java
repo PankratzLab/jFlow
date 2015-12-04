@@ -336,7 +336,7 @@ public class SnpMarkerSet implements Serializable {
 	public long getFingerprint() {
 		return fingerprint;
 	}
-
+	
 	public void writeToFile(String filename, int format) {
 		writeToFile(filename, INDICES[format], HEADERS[format]);
 	}

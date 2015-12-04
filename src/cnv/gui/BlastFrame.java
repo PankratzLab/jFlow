@@ -183,7 +183,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     public void addBlastLabel(BlastLabel lbl) {
         JLabel locLbl = new JLabel();
         locLbl.setText(lbl.fullSegment.getUCSClocation());
-        Font lblFont = Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
+        Font lblFont = BlastLabel.LBL_FONT;//Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
         locLbl.setFont(lblFont);
         this.blastPanel.add(locLbl, "cell 0 " + rowCnt);
         JLabel strandLbl = new JLabel();
