@@ -2,6 +2,7 @@ package cnv.manage;
 
 import gwas.Qc;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -18,6 +19,7 @@ import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.gui.GenvisisPipelineGUI;
+import cnv.hmm.CNVCaller;
 import common.Aliases;
 import common.Array;
 import common.Files;
@@ -735,8 +737,8 @@ public class GenvisisPipeline {
             new String[][]{{"Marker Call-Rate Filter Threshold"},
     						{"[Create Marker Positions] step must be selected and valid.", "A MarkerSet file must already exist."}, 
     						{"[Parse Sample Files] step must be selected and valid (will create a SampleList file)", "A SampleList file must already exist."},
-    						{"Export all markers in project", "A targetMarkers files listing the markers to QC"},
-    						{"Number of Threads to Use"}},
+    						{"Export all markers in project.", "A targetMarkers files listing the markers to QC."},
+    						{"Number of threads to use."}},
             new RequirementInputType[][]{{RequirementInputType.INT},
     									 {RequirementInputType.NONE, RequirementInputType.FILE}, 
     									 {RequirementInputType.NONE, RequirementInputType.FILE},
@@ -832,8 +834,8 @@ public class GenvisisPipeline {
                     new String[][]{{"Marker Call-Rate Filter Threshold"},
                                     {"A MarkerSet file must already exist."}, 
                                     {"[Parse Sample Files] step must be selected and valid (will create a SampleList file)", "A SampleList file must already exist."},
-                                    {"Export all markers in project", "A targetMarkers files listing the markers to QC"},
-                                    {"Number of Threads to Use"}},
+                                    {"Export all markers in project.", "A targetMarkers files listing the markers to QC."},
+                                    {"Number of threads to use."}},
                     new RequirementInputType[][]{{RequirementInputType.INT},
                                                     {RequirementInputType.FILE}, 
                                                     {RequirementInputType.NONE, RequirementInputType.FILE},
@@ -925,8 +927,8 @@ public class GenvisisPipeline {
                           "", 
                           new String[][]{
                                 {"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}, 
-                                {"Number of Threads to Use"},
-                                {"Sample CallRate Threshold"},
+                                {"Number of threads to use."},
+                                {"Sample call rate filter threshold."},
                             }, 
                           new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.INT}, {RequirementInputType.STRING}}) {
 
@@ -1153,7 +1155,7 @@ public class GenvisisPipeline {
                   "", 
                   new String[][]{
                             {"[Transpose Data into Marker-Dominant Files] step must be selected and valid.", "Parsed marker data files must already exist."}, 
-                            {"Number of Principal Components"}, 
+                            {"Number of principal components."}, 
                             {"Should impute mean value for NaN?"}, 
                             {"Should recompute Log-R ratio?"}, 
                             },
@@ -1238,8 +1240,8 @@ public class GenvisisPipeline {
                         new String[][]{
                                     {"[Transpose Data into Marker-Dominant Files] step must be selected and valid.", "Parsed marker data files must already exist."}, 
                                     {"[Create Principal Components File] step must be selected and valid.", "Extrapolated PCs file must already exist."},
-                                    {"Median Markers file"}, 
-                                    {"Number of Principal Components"}, 
+                                    {"MedianMarkers file must exist."}, 
+                                    {"Number of principal components."}, 
                                     {"Should recompute Log-R ratio median?"}, 
                                     {"Homozygous only?"}, 
                                 },
@@ -1307,7 +1309,7 @@ public class GenvisisPipeline {
                                                  "", 
                                                  new String[][]{
                                                         {"A MarkerSet file must already exist."}, 
-                                                        {"Number of Threads to Use"}},
+                                                        {"Number of threads to use."}},
                                                  new RequirementInputType[][]{
                                                         {RequirementInputType.FILE}, 
                                                         {RequirementInputType.INT}}) {
@@ -1385,8 +1387,8 @@ public class GenvisisPipeline {
     static final STEP S16_SEX_CENTROIDS_PFB_GCMODEL = new STEP("Create Sex-Specific Centroids, PFB, and GCMODEL Files", 
                             "", 
                             new String[][]{
-                                {"GC Model Files"},
-                                {"Number of Threads to Use"},
+                                {"GC Model File."},
+                                {"Number of threads to use."},
                             },
                             new RequirementInputType[][]{
                                 {RequirementInputType.FILE},
@@ -1462,38 +1464,100 @@ public class GenvisisPipeline {
         }
         
     };
+    
     static final STEP S17_CNV_CALLING = new STEP("Call CNVs", 
                             "", 
                             new String[][]{
-                
+                                {"Hidden Markov Model File Must Exist"},
+                                {"[Compute Population BAF File] step must be selected and valid", "PFB File Must Exist"},
+                                {"[Compute GCMODEL File] step must be selected and valid", "GCMODEL File Must Exist"},
+                                {"Number of threads To use."},
+                                {"Output filename."}
                             },
                             new RequirementInputType[][]{
-                                    
+                                {RequirementInputType.FILE},
+                                {RequirementInputType.NONE, RequirementInputType.FILE},
+                                {RequirementInputType.NONE, RequirementInputType.FILE},
+                                {RequirementInputType.INT},
+                                {RequirementInputType.FILE},
                             }) {
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String hmm_P = proj.HMM_FILENAME.getValue();
+            String hmm_G = variables.get(this).get(0);
+            if (!hmm_P.equals(hmm_G)) {
+                proj.HMM_FILENAME.setValue(hmm_G);
+            }
+            String pfb_P = proj.CUSTOM_PFB_FILENAME.getValue();
+            String pfb_G = variables.get(this).get(1);
+            if (!pfb_P.equals(pfb_G)) {
+                proj.CUSTOM_PFB_FILENAME.setValue(pfb_G);
+            }
+            String gcm_P = proj.GC_MODEL_FILENAME.getValue();
+            String gcm_G = variables.get(this).get(2);
+            if (!gcm_P.equals(gcm_G)) {
+                proj.GC_MODEL_FILENAME.setValue(gcm_G);
+            }
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(3));
+            } catch (NumberFormatException e) {}
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+                proj.NUM_THREADS.setValue(numThreads);
+            }
         }
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(3));
+            } catch (NumberFormatException e) {}
+            if (numThreads != proj.NUM_THREADS.getValue()) {
+                proj.NUM_THREADS.setValue(numThreads);
+            }
+            String output = variables.get(this).get(4); // gets PROJ_DIR prepended, so NOT ABSOLUTE
+            (new File(ext.parseDirectoryOfFile(output))).mkdirs();
+            CNVCaller.callCNVs(proj, output, numThreads, 1);
         }
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            return new boolean[][]{};
+            boolean checkHMM = Files.exists(variables.get(this).get(0)); 
+            boolean checkPFB1 = stepSelections.get(S11_COMPUTE_PFB).booleanValue();
+            boolean checkPFB2 = Files.exists(variables.get(this).get(1));
+            boolean checkGC1 = stepSelections.get(S12_COMPUTE_GCMODEL).booleanValue();
+            boolean checkGC2 = Files.exists(variables.get(this).get(2));
+            int numThreads = -1;
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(3));
+            } catch (NumberFormatException e) {}
+            return new boolean[][]{
+                    {checkHMM},
+                    {checkPFB1, checkPFB2},
+                    {checkGC1, checkGC2},
+                    {numThreads > 0},
+                    {!Files.exists(variables.get(this).get(4))}, 
+            };
         }
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return null;
+            return new Object[]{proj.HMM_FILENAME.getValue(), proj.CUSTOM_PFB_FILENAME.getValue(), proj.GC_MODEL_FILENAME.getValue(), proj.NUM_THREADS.getValue(), "cnvs/genvisis.cnv"};
         }
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return false;
+            String output = variables.get(this).get(4);
+            return Files.exists(output);
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return null;
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(3));
+            } catch (NumberFormatException e) {}
+            return "jcp cnv.hmm.CNVCaller proj=" + proj.getPropertyFilename() + " out=" + variables.get(this).get(4) + " numthreads=" + numThreads;
         }
         
     };
+    
     static final STEP S99_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
                 "", 
                 new String[][]{},
@@ -1658,6 +1722,7 @@ public class GenvisisPipeline {
         S14_CREATE_MT_CN_EST,
         S15_MOSAIC_ARMS,
         S16_SEX_CENTROIDS_PFB_GCMODEL,
+        S17_CNV_CALLING,
     };
     private static STEP[] AFFY_STEPS = {
         S2A_PARSE_SAMPLES,
@@ -1675,6 +1740,8 @@ public class GenvisisPipeline {
         S14_CREATE_MT_CN_EST,
         S15_MOSAIC_ARMS,
         S16_SEX_CENTROIDS_PFB_GCMODEL,
+        S17_CNV_CALLING,
+        
     };
     
     public static STEP[] getStepsForProject(Project proj) {
