@@ -15,6 +15,7 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
+import cnv.manage.TextExport;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -22,7 +23,7 @@ import common.Logger;
 import common.Sort;
 import common.ext;
 
-public class AnnotationCollection implements Serializable {
+public class AnnotationCollection implements Serializable, TextExport {
 	private static final long serialVersionUID = 1L;
 	
 	private Hashtable<Character, String> commentsHash;		//annotation keys
@@ -283,20 +284,20 @@ public class AnnotationCollection implements Serializable {
 		return (includeShortcuts? "'" + c + "' " : "") + commentsHash.get(c) + (includeNumbers? " (n=" + annotationMarkerLists.get(c+"").size() + ")" : "");
 	}
 	
-	public void exportList(String exportList, Logger log) {
+	public void exportToText(Project proj, String outputFile) {
 		PrintWriter writer;
 		char[] keys;
 		
 		keys = getKeys();
 		try {
-			writer = new PrintWriter(new FileWriter(exportList));
+			writer = new PrintWriter(new FileWriter(outputFile));
 			for (int i = 0; i < keys.length; i++) {
 				writer.println(keys[i]+"\t"+getDescriptionForComment(keys[i], false, false));
 			}
 			writer.close();
-			log.report("Finished exporting annotation list to "+exportList);
+			proj.getLog().report("Finished exporting annotation list to "+outputFile);
 		} catch (Exception e) {
-			System.err.println("Error writing to " + exportList);
+			System.err.println("Error writing to " + outputFile);
 			e.printStackTrace();
 		}
 	}
@@ -412,7 +413,7 @@ public class AnnotationCollection implements Serializable {
 //					annotationCollection.serialize(proj.getFilename(proj.ANNOTATION_FILENAME, false, false));
 					annotationCollection.serialize(proj.ANNOTATION_FILENAME.getValue(false, false));
 				} else {
-					annotationCollection.exportList(exportList, log);
+					annotationCollection.exportToText(proj, exportList);
 				}
 			}
 		} catch (Exception e) {

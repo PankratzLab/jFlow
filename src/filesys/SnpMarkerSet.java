@@ -15,10 +15,10 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import cnv.manage.PlainTextExport;
 import link.LinkageMap;
 import bioinformatics.MapSNPsAndGenes;
 import bioinformatics.ParseSNPlocations;
-
 import common.Aliases;
 import common.Array;
 import common.Files;
@@ -31,7 +31,7 @@ import common.Sort;
 import common.Unique;
 import common.ext;
 
-public class SnpMarkerSet implements Serializable {
+public class SnpMarkerSet implements Serializable, PlainTextExport {
 	public static final long serialVersionUID = 1L;
 	public static final int NAMES_ONLY = 0;
 	public static final int GENERIC_FORMAT = 1;
@@ -335,6 +335,10 @@ public class SnpMarkerSet implements Serializable {
 	
 	public long getFingerprint() {
 		return fingerprint;
+	}
+	
+	public void exportToText(String outputFile) {
+	    writeToFile(outputFile, determineType(outputFile));
 	}
 	
 	public void writeToFile(String filename, int format) {

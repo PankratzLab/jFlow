@@ -12,6 +12,8 @@ public class DumpSerializedObject {
 		if (object instanceof TextExport) {
 		    ((TextExport) object).exportToText(proj, ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln");
 		    return;
+		} else if (object instanceof PlainTextExport) {
+		    ((PlainTextExport) object).exportToText(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln");
 		}
 
 		proj.getLog().report("Information on class:"+
@@ -22,12 +24,14 @@ public class DumpSerializedObject {
 		 * Classes we should support now:
 		 * 
 		 * outliers.ser
-		 * AnnotationCollection
+		 --* AnnotationCollection
 		 --* Centroids
 		 --* ClusterFilterCollection
 		 --* MarkerSet
 		 * CNVariant --- would only write one cnvariant to one file...
-		 * SNPMarkerSet --- relies on extra info [SNPMarkerSet FORMAT], shouldn't have references to project
+		 --* SNPMarkerSet
+		 --* SegmentList
+		 --* SegmentLists
 		 * 
 		 */
 
@@ -35,17 +39,17 @@ public class DumpSerializedObject {
 		 * Classes we might consider supporting in the future:
 		 * 
 		 * BurdenMatrix
+		 * ChromatinAccessibility
 		 * GenotypeMatrix
 		 * LDdatabase
 		 * SerialStringMatrix
-		 * ChromatinAccessibility
 		 * SuperNovo
 		 */
 
-		if (object instanceof AnnotationCollection) {
-			proj.getLog().report("Detected an AnnotationCollection file");
-//			AnnotationCollection.dump();
-		}
+//		if (object instanceof AnnotationCollection) {
+//			proj.getLog().report("Detected an AnnotationCollection file");
+////			AnnotationCollection.dump();
+//		}
 		
 		
     	if (filename.endsWith("outliers.ser")) { // Hashtable<String, Float>

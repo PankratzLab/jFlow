@@ -1,14 +1,16 @@
 package filesys;
 
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import cnv.manage.PlainTextExport;
 import common.Array;
 import common.Files;
 import common.HashVec;
 
-public class SegmentLists implements Serializable {
+public class SegmentLists implements Serializable, PlainTextExport {
 	public static final long serialVersionUID = 1L;
 	
 	private Segment[][] lists;
@@ -23,6 +25,20 @@ public class SegmentLists implements Serializable {
 
 	public void serialize(String filename) {
 		Files.writeSerial(this, filename);
+	}
+	
+	public void exportToText(String outputFile) {
+	    PrintWriter writer;
+	    
+	    writer = Files.getAppropriateWriter(outputFile);
+	    writer.println("Chr\tStart\tStop");
+	    for (Segment[] segList : lists) {
+	        for (Segment seg : segList) {
+	            writer.println(seg.toAnalysisString());
+	        }
+	    }
+	    writer.flush();
+	    writer.close();
 	}
 	
 	public static SegmentLists parseUCSCSegmentList(String filename, boolean ignoreFirstLine) {
