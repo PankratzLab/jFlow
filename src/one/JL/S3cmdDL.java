@@ -82,6 +82,8 @@ public class S3cmdDL {
 		int numThreads = 24;
 		getEm(dir, bucket, it2, numThreads);
 		getEm(dir, bucket, it, numThreads);
+		getEm(dir, bucket, "bam", numThreads);
+		getEm(dir, bucket, "bai", numThreads);
 
 	}
 

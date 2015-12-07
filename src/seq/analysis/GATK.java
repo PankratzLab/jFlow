@@ -30,7 +30,7 @@ public class GATK {
 	public static final String VARIANT_RECALIBRATOR = "VariantRecalibrator";
 	public static final String APPLY_RECALIBRATION = "ApplyRecalibration";
 	public static final String VARIANT_ANNOTATOR = "VariantAnnotator";
-	public static final String MUTECT2 ="Mutect2";
+	public static final String MUTECT2 ="MuTect2";
 	
 
 	public static final String PRINT_READS = "PrintReads";
@@ -162,6 +162,7 @@ public class GATK {
 		this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
 		this.referenceGenomeFasta = referenceGenomeFasta;
 		this.dbSnpKnownSites = dbSnpKnownSites;
+		this.cosmicKnownSites=cosmicKnownSites;
 		this.regionsFile = regionsFile;
 		this.verbose = verbose;
 		this.overWriteExistingOutput = overWriteExisting;
@@ -390,16 +391,21 @@ public class GATK {
 		return CmdLine.runCommandWithFileChecks(command, "", input, new String[] { output, output + VCF_INDEX }, verbose, overWriteExistingOutput, true, (altLog == null ? log : altLog));
 	}
 
+	public Mutect2Normal generateMutect2Normal(String bamFile, String outputVcf, int numWithinSampleThreads, Logger log) {
+		boolean progress = mutect2NormalABam(bamFile, outputVcf, numWithinSampleThreads, log);
+		return new Mutect2Normal(bamFile, outputVcf, !progress);
+	}
+
 	// TODO
-	//https://www.broadinstitute.org/gatk/gatkdocs/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php
-	public boolean generateMutect2Normal(String bamFile, String outputVcf, int numWithinSampleThreads, Logger log) {
+	// https://www.broadinstitute.org/gatk/gatkdocs/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php
+	private boolean mutect2NormalABam(String bamFile, String outputVcf, int numWithinSampleThreads, Logger log) {
 		String[] input = new String[] { referenceGenomeFasta, bamFile, dbSnpKnownSites, regionsFile, cosmicKnownSites };
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
 		command.add(JAR);
 		command.add(GATKLocation + GENOME_ANALYSIS_TK);
 		command.add(T);
-		command.add(HAPLOTYPE_CALLER);
+		command.add(MUTECT2);
 		command.add(R);
 		command.add(referenceGenomeFasta);
 		command.add(I_TUMOR);
@@ -413,9 +419,11 @@ public class GATK {
 		command.add(regionsFile);
 		command.add(O);
 		command.add(outputVcf);
+		command.add(NCT);
+		command.add(numWithinSampleThreads+"");
 
 		String[] outputs = new String[] { outputVcf, outputVcf + VCF_INDEX };
-		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, true, log);
+		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
 	}
 
 	private boolean addSnpEffAnnotation(String inputVCF, String snpEffVcf, String outputVCF, boolean addDBSNP, Logger log) {
@@ -780,18 +788,34 @@ public class GATK {
 		}
 
 	}
-	
 
-	
 	public static class Mutect2Normal {
-		
+		private String normalBam;
+		private String outputVCF;
+		private boolean fail;
+
+		public Mutect2Normal(String normalBam, String outputVCF, boolean fail) {
+			super();
+			this.normalBam = normalBam;
+			this.outputVCF = outputVCF;
+			this.fail = fail;
+		}
+
+		public boolean isFail() {
+			return fail;
+		}
+
+		public String getOutputVCF() {
+			return outputVCF;
+		}
+
 	}
+	
 	public static class Mutect2 {
 		private String normalBam;
 		private String tumorBam;
 		private String outputVCF;
-		
-		
+	
 		
 
 	}
