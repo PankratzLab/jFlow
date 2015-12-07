@@ -68,9 +68,30 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         public static int countAlignment(BlastAnnotation annotation) {
             int align = 0;
             for (CigarElement ce : annotation.getCigar().getCigarElements()) {
-                if (ce.getOperator() == CigarOperator.EQ) {
-                    align += ce.getLength();
+                switch (ce.getOperator()) {
+                    case D:
+                        break;
+                    case EQ:
+                        align += ce.getLength();
+                        break;
+                    case H:
+                        break;
+                    case I:
+                        break;
+                    case M:
+                        break;
+                    case N:
+                        break;
+                    case P:
+                        break;
+                    case S:
+                        break;
+                    case X:
+                        break;
+                    default:
+                        break;
                 }
+                
             }
             return align;
         }
