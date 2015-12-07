@@ -165,6 +165,7 @@ public class VCFOps {
 		if (sequenceDictionary != null) {
 			builder.setReferenceDictionary(sequenceDictionary);
 		}
+
 		VariantContextWriter writer = builder.build();
 		return writer;
 	}
@@ -1177,6 +1178,34 @@ public class VCFOps {
 		}
 		reader.close();
 		return new String[][] { annotationKeys, descriptions };
+
+	}
+
+	/**
+	 * just converts the contigs from number (b37 ex) to chr (hg10 ex)
+	 */
+	public static void b_ToHg(String input, String output, String refGenome, Logger log) {
+		ReferenceGenome ref = new ReferenceGenome(refGenome, log);
+		VCFFileReader reader = new VCFFileReader(input, false);
+		VariantContextWriterBuilder builderWriter = new VariantContextWriterBuilder().setOutputFile(output);
+		builderWriter.setReferenceDictionary(ref.getIndexedFastaSequenceFile().getSequenceDictionary());
+		builderWriter.setOption(Options.DO_NOT_WRITE_GENOTYPES);
+		VariantContextWriter writer = builderWriter.build();
+		VCFHeader header = new VCFHeader(reader.getFileHeader());
+		header.setSequenceDictionary(ref.getIndexedFastaSequenceFile().getSequenceDictionary());
+
+		writer.writeHeader(header);
+		for (VariantContext vc : reader) {
+			VariantContextBuilder builder = new VariantContextBuilder(vc);
+			builder.chr(Positions.getChromosomeUCSC(Integer.parseInt(vc.getContig()), true));
+			builder.attributes(null);
+			builder.noGenotypes();
+			VariantContext vcNew = builder.make();
+			writer.add(vcNew);
+
+		}
+		reader.close();
+		writer.close();
 
 	}
 
