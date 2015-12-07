@@ -338,6 +338,10 @@ public class GenotypeMatrix implements Serializable {
 		}
 	}
 	
+	public void exportToText(String outputFile) {
+	    
+	}
+	
 	public void writeToPlinkFiles(String root) {
 		PrintWriter writer;
 //		private SnpMarkerSet markerSet;

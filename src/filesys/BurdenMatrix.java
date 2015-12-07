@@ -288,7 +288,7 @@ public class BurdenMatrix implements Serializable {
 		}
 
 	}
-
+	
 	public void writeToFile(String newMatrixFile, String phenotypeFileToMergeWith, String newMapFile, Logger log) {
 		PrintWriter writer;
 		int count;
@@ -328,12 +328,6 @@ public class BurdenMatrix implements Serializable {
 		count = 0;
 		try {
 			writer = new PrintWriter(new FileWriter(newMatrixFile));
-//			writer.print("gene");
-//			for (int i = 0; i < ids.length; i++) {
-//				if (hash == null || hash.containsKey(ids[i])) {
-//					writer.print(","+ids[i]);
-//				}
-//			}
 
 			for (int i = 0; i < ids.length; i++) {
 				if (hash == null || hash.containsKey(ids[i])) {
@@ -343,7 +337,6 @@ public class BurdenMatrix implements Serializable {
 			
 			writer.println("\"");
 			for (int geneIndex = 0; geneIndex < geneNames.length; geneIndex++) {
-//				writer.print(geneNames[geneIndex]);
 				writer.print("\""+geneNames[geneIndex]+"\"");
 				
 				for (int idIndex = 0; idIndex < ids.length; idIndex++) {

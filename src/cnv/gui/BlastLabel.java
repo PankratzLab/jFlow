@@ -94,7 +94,7 @@ public class BlastLabel extends JLabel {
         LBL_FONT = BASE_FONT.deriveFont((float) size);
     }
     
-    public static Font LBL_FONT = BASE_FONT.deriveFont(17f);
+    public static Font LBL_FONT = BASE_FONT.deriveFont(15f);
     public static final int CHAR_PADDING = 2;
     static boolean expanded = false; // static to affect all
     static TreeSet<Integer> spaces = new TreeSet<Integer>();
@@ -139,8 +139,10 @@ public class BlastLabel extends JLabel {
                 this.seq = Array.toStr(seqArr, "");
             } else {
                 // TODO set to probe seq, with alterations, otherwise causes NPE
+                this.seq = ref.getSequence();
             }
         } else {
+            this.seq = ref.getSequence();
             // TODO set to probe seq, with alterations, otherwise causes NPE
         }
         this.setFont(LBL_FONT);
@@ -150,10 +152,6 @@ public class BlastLabel extends JLabel {
         parse();
         String seq = getSeqPartsAsString(); 
         setText(seq);
-    }
-    
-    void updateFont() {
-        this.setFont(LBL_FONT);
     }
     
     public static String flipBases(String seq) {
@@ -242,7 +240,7 @@ public class BlastLabel extends JLabel {
                     g.setColor(Color.GRAY);
                 } else if (ref) {
 //                    g.setColor(Color.BLUE.darker());
-                    g.setColor(Color.BLUE);
+                    g.setColor(Color.BLUE.brighter());
                 }
             } else {
 //                g.setColor(Color.GREEN.darker());

@@ -39,16 +39,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import common.Array;
-import scala.collection.mutable.HashSet;
 import seq.manage.ReferenceGenome;
 import seq.manage.StrandOps;
 import cnv.annotation.MarkerBlastAnnotation;
 import cnv.annotation.MarkerSeqAnnotation;
 import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
-import cnv.filesys.Sample;
 import filesys.Segment;
 import net.miginfocom.swing.MigLayout;
 
@@ -171,6 +168,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     HashMap<BlastLabel, JLabel> alignCntLblMap = new HashMap<BlastLabel, JLabel>();
     private ArrayList<BlastLabel> bLabels;
     private ArrayList<BlastLabel> sorted;
+    private ArrayList<JLabel> otherLabels;
     private JSpinner spinnerAlignmentLength;
     private JLabel lblAlignmentLength;
     private JSeparator separator_2;
@@ -185,15 +183,18 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         locLbl.setText(lbl.fullSegment.getUCSClocation());
         Font lblFont = BlastLabel.LBL_FONT;//Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
         locLbl.setFont(lblFont);
+        otherLabels.add(locLbl);
         this.blastPanel.add(locLbl, "cell 0 " + rowCnt);
         JLabel strandLbl = new JLabel();
         strandLbl.setText(lbl.getStrand().getEncoding());
         strandLbl.setFont(lblFont);
+        otherLabels.add(strandLbl);
         alignCntLblMap.put(lbl, strandLbl);
         this.blastPanel.add(strandLbl, "cell 1 " + rowCnt);
         JLabel probeLengthLbl = new JLabel();
         probeLengthLbl.setText(lbl.getAlignment() + "");
         probeLengthLbl.setFont(lblFont);
+        otherLabels.add(probeLengthLbl);
         this.blastPanel.add(probeLengthLbl, "cell 2 " + rowCnt);
         this.blastPanel.add(lbl, "grow, cell 3 " + rowCnt);
         
@@ -203,9 +204,10 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         int len = proj.ARRAY_TYPE.getValue().getProbeLength();
         int start = referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
         int stop = referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
-        locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
+//        locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
         String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
         nextBaseLbl.setText(lbl.positiveStrand ? gen[gen.length - 1] : gen[0]);
+        otherLabels.add(nextBaseLbl);
         this.blastPanel.add(nextBaseLbl, "alignx left, cell 4 " + rowCnt);
         
         JLabel abLbl = new JLabel();
@@ -227,11 +229,13 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         abLbl.setFont(lblFont);
         abLbl.setHorizontalAlignment(SwingConstants.CENTER);
         abLbl.setHorizontalTextPosition(SwingConstants.CENTER);
+        otherLabels.add(abLbl);
         this.blastPanel.add(abLbl, "alignx center, cell 5 " + rowCnt);
         rowCnt++;
     }
     public void clearLabels() {
         this.blastPanel.removeAll();
+        this.otherLabels.clear();
     }
     
     public void windowGainedFocus(WindowEvent e) {}
@@ -308,15 +312,25 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         separator.setOrientation(SwingConstants.VERTICAL);
         panel.add(separator, "cell 4 0,alignx left,growy");
         
-        spnFontSize = new JSpinner(new SpinnerNumberModel(17, 5, 25, 1));
+        spnFontSize = new JSpinner(new SpinnerNumberModel(15, 5, 25, 1));
         spnFontSize.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
                 BlastLabel.setFontSize((Integer) spnFontSize.getModel().getValue());
                 refLabel.setFont(BlastLabel.LBL_FONT);
                 probeLbl.setFont(BlastLabel.LBL_FONT);
+                locationLbl.setFont(BlastLabel.LBL_FONT);
+                probeDescLbl.setFont(BlastLabel.LBL_FONT);
+                strandLbl.setFont(BlastLabel.LBL_FONT);
+                probeLengthLbl.setFont(BlastLabel.LBL_FONT);
+                nextBaseLbl.setFont(BlastLabel.LBL_FONT);
+                abLbl.setFont(BlastLabel.LBL_FONT);
+                probeShiftLbl.setFont(BlastLabel.LBL_FONT);
                 for (BlastLabel lbl : bLabels) {
-                    lbl.updateFont();
+                    lbl.setFont(BlastLabel.LBL_FONT);
+                }
+                for (JLabel lbl : otherLabels) {
+                    lbl.setFont(BlastLabel.LBL_FONT);
                 }
                 BlastFrame.this.repaint();
             }
@@ -431,6 +445,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         BlastLabel.spaceSets = new TreeMap<Integer, Integer>();
         bLabels = new ArrayList<BlastLabel>();
         sorted = new ArrayList<BlastLabel>();
+        otherLabels = new ArrayList<JLabel>();
         for (BlastAnnotation annot : annotations) {
             BlastLabel lbl = new BlastLabel(proj, referenceAnnotation, annot, referenceGenome);
     //            if (lbl.strandFlipped) continue;
@@ -527,7 +542,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         JPanel hdrPanel = new JPanel(new MigLayout("", BLAST_COL_DEF, "[][]")); 
         hdrPanel.setBorder(null);
         locationLbl = new JLabel();
-        Font lblFont = Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
+        Font lblFont = BlastLabel.LBL_FONT;//Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
         locationLbl.setFont(lblFont);
         hdrPanel.add(locationLbl, "cell 0 0");
         probeDescLbl = new JLabel("<reference sequence:>");
