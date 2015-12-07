@@ -234,6 +234,7 @@ public class ForestPanel extends AbstractPanel {
 		while (range / plotStep >= numHashes) {
 			plotStep += stepStep;
 		}
+		
 		plotMin = plotMax = 0;
 		while (max - plotMax > DOUBLE_INACCURACY_HEDGE) {
 			plotMax += plotStep;
@@ -278,8 +279,13 @@ public class ForestPanel extends AbstractPanel {
 		while (range / plotStep >= numHashes) {
 			plotStep += stepStep;
 		}
-
-		return new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf, true)), Double.parseDouble(ext.formDeci(plotMin, sf, false)), sf};
+	    
+		double minBnd = Double.parseDouble(ext.formDeci(plotMin, sf, false));
+		if (minBnd > zoomMin) {
+		    minBnd = zoomMin - (plotStep / 2d);
+		}
+		
+		return new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf, true)), minBnd, sf};
 
 	}
 	
@@ -421,6 +427,7 @@ public class ForestPanel extends AbstractPanel {
 		int leftsize = 0;
 		int rightsize = 0;
 		if (base) {
+		    setAxisFontSize(22);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			g.setFont(new Font("Arial", 0, axisFontSize));
 
@@ -448,7 +455,12 @@ public class ForestPanel extends AbstractPanel {
 				plotXmax = plotMinMaxStep[1];
 
 				sigFigs = (int) plotMinMaxStep[4];
-				for (double x = plotMinMaxStep[3]; x <= plotXmax; x += plotMinMaxStep[2]) {
+//				for (double x = plotMinMaxStep[3]; x <= plotXmax; x += plotMinMaxStep[2]) {
+				double loopMax = plotXmin;
+				while (loopMax < plotXmax) {
+				    loopMax += plotMinMaxStep[2];
+				}
+				for (double x = plotXmin; x <= plotXmax; x += plotMinMaxStep[2]) {
 					if (x >= plotXmin || !truncate) {
 						Grafik.drawThickLine(g, 
 											 getXPixel(x), 
@@ -460,6 +472,17 @@ public class ForestPanel extends AbstractPanel {
 						str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
 						g.drawString(str, getXPixel(x) - str.length() * 8, getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
 					}
+				}
+				if (loopMax > plotXmax) {
+				    Grafik.drawThickLine(g, 
+                            getXPixel(plotXmax), 
+                            getHeight() - canvasSectionMaximumY, 
+                            getXPixel(plotXmax), 
+                            getHeight() - (canvasSectionMaximumY - TICK_LENGTH), 
+                            TICK_THICKNESS, 
+                            Color.BLACK);
+                   str = ext.formDeci(Math.abs(plotXmax) < DOUBLE_INACCURACY_HEDGE ? 0 : plotXmax, sigFigs, true);
+                   g.drawString(str, getXPixel(plotXmax) - str.length() * 8, getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
 				}
 				Grafik.drawThickLine(g, canvasSectionMinimumX - (int) Math.ceil((double) AXIS_THICKNESS / 2.0), getHeight() - canvasSectionMaximumY, canvasSectionMaximumX + (int) Math.ceil((double) AXIS_THICKNESS / 2.0), getHeight() - canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
 				g.drawString(xAxisLabel, 
