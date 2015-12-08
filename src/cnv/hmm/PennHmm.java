@@ -78,7 +78,7 @@ import common.Logger;
 // 0.010000
 
 public class PennHmm {
-	public static final int LOH_FLAG = 704;
+	public static final int LOH_FLAG = 99;
 	private static final double NOT_ZERO_PI = 0.000000001; // 1e-9
 	private static final double STATE_CHANGE = 100000.0;
 	private static final double VITHUGE = 100000000000.0;
@@ -492,10 +492,14 @@ public class PennHmm {
 
 					int currentCN = states[i];
 					if (currentCN == 3) {
-						currentCN = 100;
+						currentCN = LOH_FLAG;
 					}
 					if (currentCN != normalState) {// CN 3 denotes LOH.
-						if (currentCN > 3) {
+						if (currentCN == LOH_FLAG) {
+							currentCN = LOH_FLAG;
+						}
+
+						else if (currentCN > 3) {
 							currentCN--;
 						}
 						if (foundSignal && currentCN != currentFind) {// new, adjacent cnv
@@ -565,12 +569,13 @@ public class PennHmm {
 			}
 			int numNonNormalStates = 0;
 			for (int i = 0; i < q.length; i++) {
-				if (q[i] != normalState && q[i] != 3) {
+				if (q[i] != normalState) {
+					// && q[i] != 3
 					numNonNormalStates++;
 				}
 			}
 			if (numNonNormalStates != numTotalMarkers) {
-				String error = "BUG: detected " + numNonNormalStates + " non-normal and non-LOH cn states, but collapsed to " + numTotalMarkers + " markers";
+				String error = "BUG: detected " + numNonNormalStates + " non-normal states, but collapsed to " + numTotalMarkers + " markers";
 				error += "\nSample: " + fid + "\t" + fid;
 				proj.getLog().reportTimeError(error);
 				for (int i = 0; i < tmp.size(); i++) {

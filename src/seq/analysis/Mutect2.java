@@ -26,16 +26,22 @@ public class Mutect2 {
 		private GATK gatk;
 		private String[] samples;
 		private Logger log;
+		private String ponDir;
 
 		private NormalSample[] normalSamples;
 
-		private PopulationOfNormals(GATK gatk, String[] bamFilesFullPath, String[] samples, Logger log) {
+		private PopulationOfNormals(GATK gatk, String[] bamFilesFullPath, String ponDir, String[] samples, Logger log) {
 			super();
 			this.samples = samples;
 			this.gatk = gatk;
 			this.log = log;
+			this.ponDir = ponDir;
 			log.reportTimeInfo("Mapping normals to bam files ");
 			mapNormals(bamFilesFullPath);
+		}
+
+		public NormalSample[] getNormalSamples() {
+			return normalSamples;
 		}
 
 		private void mapNormals(String[] bamFilesFullPath) {
@@ -44,18 +50,17 @@ public class Mutect2 {
 			for (int i = 0; i < bamFilesFullPath.length; i++) {
 				map.put(BamOps.getSampleName(bamFilesFullPath[i]), bamFilesFullPath[i]);
 			}
-
 			for (int i = 0; i < samples.length; i++) {
 				if (!map.containsKey(samples[i])) {
 					throw new IllegalArgumentException("Could not determine bam map for " + samples[i]);
 				} else {
-					normalSamples[i] = new NormalSample(samples[i], map.get(samples[i]));
+					normalSamples[i] = new NormalSample(samples[i], map.get(samples[i]), ponDir + samples[i] + ".normal.vcf");
 				}
 			}
 		}
 
-		private void generatePON(String outputNormalDir, int numThreads) throws IllegalStateException {
-			NormalProducer producer = new NormalProducer(gatk, normalSamples, outputNormalDir, log);
+		private void generatePON(int numThreads, int numSampleThreads) throws IllegalStateException {
+			NormalProducer producer = new NormalProducer(gatk, normalSamples, ponDir, numSampleThreads, log);
 			WorkerTrain<Mutect2Normal> train = new WorkerTrain<GATK.Mutect2Normal>(producer, numThreads, 2, log);
 			ArrayList<String> vcfsToCombine = new ArrayList<String>();
 
@@ -67,24 +72,21 @@ public class Mutect2 {
 					vcfsToCombine.add(validate.getOutputVCF());
 				}
 			}
-
 		}
-
 	}
 
 	private static class NormalProducer implements Producer<Mutect2Normal> {
 		private GATK gatk;
 		private NormalSample[] normalSamples;
-		private String outputDir;
 		private Logger log;
 		private int index;
+		private int numSampleThreads;
 
-		public NormalProducer(GATK gatk, NormalSample[] normalSamples, String outputDir, Logger log) {
+		private NormalProducer(GATK gatk, NormalSample[] normalSamples, String outputDir, int numSampleThreads, Logger log) {
 			super();
 			this.gatk = gatk;
 			this.normalSamples = normalSamples;
-			this.outputDir = outputDir;
-
+			this.numSampleThreads = numSampleThreads;
 			this.log = log;
 			this.index = 0;
 		}
@@ -97,7 +99,7 @@ public class Mutect2 {
 		@Override
 		public Callable<Mutect2Normal> next() {
 			final NormalSample current = normalSamples[index];
-			Mutect2Worker worker = new Mutect2Worker(current, outputDir, gatk, log);
+			Mutect2Worker worker = new Mutect2Worker(current, gatk, numSampleThreads, log);
 			index++;
 			return worker;
 		}
@@ -109,48 +111,55 @@ public class Mutect2 {
 
 	private static class Mutect2Worker implements Callable<Mutect2Normal> {
 		private NormalSample current;
-		private String outputDir;
 		private GATK gatk;
+		private int numSampleThreads;
 		private Logger log;
 
-		public Mutect2Worker(NormalSample current, String outputDir, GATK gatk, Logger log) {
+		private Mutect2Worker(NormalSample current, GATK gatk, int numSampleThreads, Logger log) {
 			super();
 			this.current = current;
-			this.outputDir = outputDir;
 			this.gatk = gatk;
+			this.numSampleThreads = numSampleThreads;
 			this.log = log;
 		}
 
 		@Override
 		public Mutect2Normal call() throws Exception {
-			String outputVCF = outputDir + current.getSample() + ".normal.vcf";
-			return gatk.generateMutect2Normal(current.getBamFile(), outputVCF, 1, log);
+			log.reportTimeInfo("Calling pon for sample " + current.getSample());
+			return gatk.generateMutect2Normal(current.getBamFile(), current.getPonVCF(), numSampleThreads, log);
 		}
 	}
 
 	private static class NormalSample {
 		private String sample;
 		private String bamFile;
+		private String ponVCF;
 
-		private NormalSample(String sample, String bamFile) {
+		private NormalSample(String sample, String bamFile, String ponVCF) {
 			super();
 			this.sample = sample;
 			this.bamFile = bamFile;
+			this.ponVCF = ponVCF;
 			if (!BamOps.getSampleName(bamFile).equals(sample)) {
 				throw new IllegalArgumentException("Sample detected in bam file " + bamFile + " shoul have been " + sample + " but saw " + BamOps.getSampleName(bamFile) + "+ instead");
 			}
 		}
 
-		public String getBamFile() {
+		private String getSample() {
+			return sample;
+		}
+
+		private String getBamFile() {
 			return bamFile;
 		}
 
-		public String getSample() {
-			return sample;
+		private String getPonVCF() {
+			return ponVCF;
 		}
+
 	}
 
-	public static void run(String fileOfBams, String outputDir, GATK gatk, int numThreads, Logger log) {
+	public static void run(String fileOfBams, String outputDir, String ponVcf, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, Logger log) throws IllegalStateException {
 		String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] { 0 }, true);
 		String[] samples = new String[bams.length];
 		for (int i = 0; i < samples.length; i++) {
@@ -161,17 +170,29 @@ public class Mutect2 {
 				return;
 			}
 		}
-		PopulationOfNormals normals = new PopulationOfNormals(gatk, bams, samples, log);
+		PopulationOfNormals normals = new PopulationOfNormals(gatk, bams, outputDir, samples, log);
 
 		try {
-			normals.generatePON(outputDir, numThreads);
+			normals.generatePON(numThreads, numSampleThreads);
 		} catch (IllegalStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		if (type == MUTECT_RUN_TYPES.COMBINE_NORMALS) {
+			ArrayList<String> ponVcfs = new ArrayList<String>();
+			for (int i = 0; i < normals.getNormalSamples().length; i++) {
+				if (Files.exists(normals.getNormalSamples()[i].getPonVCF())) {
+					ponVcfs.add(normals.getNormalSamples()[i].getPonVCF());
+				} else {
+					throw new IllegalStateException("Missing pon vcf " + normals.getNormalSamples()[i].getPonVCF());
+				}
+			}
+			
+			
+		}
 	}
 
-	private static void batchPON(int numNormalBatches, GATK gatk, String bamFilesFullPath, String outputDir, int numthreads, Logger log) {
+	private static void batchPON(int numNormalBatches, GATK gatk, String bamFilesFullPath, String outputDir, int numthreads, int numSampleThreads, Logger log) {
 		ArrayList<String[]> splits = Array.splitUpArray(HashVec.loadFileToStringArray(bamFilesFullPath, false, new int[] { 0 }, true), numNormalBatches, log);
 		ArrayList<String> command = new ArrayList<String>();
 		String[][] batches = new String[splits.size()][1];
@@ -181,23 +202,22 @@ public class Mutect2 {
 			Files.writeList(splits.get(i), batches[i][0]);
 		}
 		getJava(command);
-		command.addAll(getBaseArgs(gatk, outputDir, numthreads));
+		command.addAll(getBaseArgs(gatk, outputDir, numthreads, numSampleThreads));
 		command.add("normalBams=" + baseOut);
 
-		Files.qsub(outputDir + "Contam.txt", Array.toStr(Array.toStringArray(command), " "), batches, 255000, 120, numthreads, "pankratz");
+		Files.qsub(outputDir + "Contam.txt", Array.toStr(Array.toStringArray(command), " "), batches, 62000, 40, numthreads * numSampleThreads, "small");
 	}
 
 	private static void getJava(ArrayList<String> command) {
 		command.add("java");
-		command.add("-Xmx256000m");
-
+		command.add("-Xmx62000m");
 		command.add("-cp");
 		command.add("~/parkMutect.jar");
 		command.add("seq.analysis.Mutect2");
 
 	}
 
-	private static ArrayList<String> getBaseArgs(GATK gatk, String outputDir, int numthreads) {
+	private static ArrayList<String> getBaseArgs(GATK gatk, String outputDir, int numthreads, int numSampleThreads) {
 		ArrayList<String> base = new ArrayList<String>();
 		base.add("gatk=" + gatk.getGATKLocation());
 		base.add("ref=" + gatk.getReferenceGenomeFasta());
@@ -206,6 +226,8 @@ public class Mutect2 {
 		base.add("regions=" + gatk.getRegionsFile());
 		base.add("outputDir=" + outputDir);
 		base.add("numthreads=" + numthreads);
+		base.add("numSampleThreads=" + numSampleThreads);
+
 		return base;
 	}
 
@@ -214,10 +236,10 @@ public class Mutect2 {
 		 * Generate individual normal calls
 		 */
 		GEN_NORMALS, /**
-		 * Combine individual normal calls
+		 * Combine individual normal calls, will generate normals if needed
 		 */
 		COMBINE_NORMALS, /**
-		 * Call somatic variants
+		 * Call somatic variants, will combine variants and generate normals if needed
 		 */
 		CALL_SOMATIC;
 	}
@@ -230,7 +252,9 @@ public class Mutect2 {
 		String gatkLocation = "GATK_3_5/";
 		String cosmic = "b37_cosmic_v54_120711.hg19_chr.vcf";
 		String regions = "AgilentCaptureRegions.bed";
+		String ponVCF = "pon.vcf";
 		int numthreads = 1;
+		int numSampleThreads = 4;
 		int numbatches = 0;
 		String outputDir = "mutect/";
 		MUTECT_RUN_TYPES run = MUTECT_RUN_TYPES.GEN_NORMALS;
@@ -246,6 +270,8 @@ public class Mutect2 {
 		usage += "   (8) number of threads (i.e. numthreads=" + numthreads + " (default))\n" + "";
 		usage += "   (9) gatk directory (i.e. gatk=" + gatkLocation + " (default))\n" + "";
 		usage += "   (10) type of analysis (i.e. run=" + run + " (default))\n" + "";
+		usage += "   (11) pon vcf (i.e. ponVcf=" + ponVCF + " (default))\n" + "";
+		usage += "   (12) number of threads per sample (i.e. numSampleThreads=" + numSampleThreads + " (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -262,6 +288,9 @@ public class Mutect2 {
 				numArgs--;
 			} else if (args[i].startsWith("gatk=")) {
 				gatkLocation = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("ponVCF=")) {
+				ponVCF = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("knownSnps=")) {
 				knownSnps = args[i].split("=")[1];
@@ -281,6 +310,9 @@ public class Mutect2 {
 			} else if (args[i].startsWith("numthreads=")) {
 				numthreads = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("numSampleThreads=")) {
+				numSampleThreads = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -296,6 +328,7 @@ public class Mutect2 {
 		case CALL_SOMATIC:
 			break;
 		case COMBINE_NORMALS:
+
 			break;
 		case GEN_NORMALS:
 
@@ -303,10 +336,15 @@ public class Mutect2 {
 				String outputNormal = outputDir + "pon/";
 				new File(outputNormal).mkdirs();
 				log.reportTimeInfo("Generating normal sample vcfs batches in " + outputNormal);
-				batchPON(numbatches, gatk, fileOfNormalBams, outputNormal, numthreads, log);
+				batchPON(numbatches, gatk, fileOfNormalBams, outputNormal, numthreads, numSampleThreads, log);
 			} else if (fileOfNormalBams != "") {
 				log.reportTimeInfo("Generating normal sample vcfs");
-				run(fileOfNormalBams, outputDir, gatk, numthreads, log);
+				try {
+					run(fileOfNormalBams, outputDir, ponVCF, gatk, run, numthreads, numSampleThreads, log);
+				} catch (IllegalStateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			break;
 		default:
