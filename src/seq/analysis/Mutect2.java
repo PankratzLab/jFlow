@@ -7,6 +7,7 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
+import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
@@ -15,8 +16,6 @@ import common.WorkerTrain.Producer;
 import common.ext;
 import seq.analysis.GATK.Mutect2Normal;
 import seq.manage.BamOps;
-import seq.manage.VCFOps;
-import seq.manage.VCOps;
 
 /**
  * @author lane0212 For using the native Mutect in GATK 3.5+
@@ -55,7 +54,7 @@ public class Mutect2 {
 			}
 		}
 
-		private void generatePON(String outputNormalDir, String ponVCF, int numThreads) throws IllegalStateException {
+		private void generatePON(String outputNormalDir, int numThreads) throws IllegalStateException {
 			NormalProducer producer = new NormalProducer(gatk, normalSamples, outputNormalDir, log);
 			WorkerTrain<Mutect2Normal> train = new WorkerTrain<GATK.Mutect2Normal>(producer, numThreads, 2, log);
 			ArrayList<String> vcfsToCombine = new ArrayList<String>();
@@ -125,8 +124,7 @@ public class Mutect2 {
 		@Override
 		public Mutect2Normal call() throws Exception {
 			String outputVCF = outputDir + current.getSample() + ".normal.vcf";
-			return gatk.generateMutect2Normal(current.getBamFile(), outputVCF, 8, log);
-
+			return gatk.generateMutect2Normal(current.getBamFile(), outputVCF, 1, log);
 		}
 	}
 
@@ -164,41 +162,124 @@ public class Mutect2 {
 			}
 		}
 		PopulationOfNormals normals = new PopulationOfNormals(gatk, bams, samples, log);
-		String ponDir = outputDir + "pon/";
-		new File(ponDir).mkdirs();
-		String ponVCF = ponDir + "pon.vcf";
+
 		try {
-			normals.generatePON(ponDir, ponVCF, numThreads);
+			normals.generatePON(outputDir, numThreads);
 		} catch (IllegalStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
 
+	private static void batchPON(int numNormalBatches, GATK gatk, String bamFilesFullPath, String outputDir, int numthreads, Logger log) {
+		ArrayList<String[]> splits = Array.splitUpArray(HashVec.loadFileToStringArray(bamFilesFullPath, false, new int[] { 0 }, true), numNormalBatches, log);
+		ArrayList<String> command = new ArrayList<String>();
+		String[][] batches = new String[splits.size()][1];
+		String baseOut = "[%0]";
+		for (int i = 0; i < batches.length; i++) {
+			batches[i][0] = outputDir + "batch_" + i + "_" + "pon.txt";
+			Files.writeList(splits.get(i), batches[i][0]);
+		}
+		getJava(command);
+		command.addAll(getBaseArgs(gatk, outputDir, numthreads));
+		command.add("normalBams=" + baseOut);
+
+		Files.qsub(outputDir + "Contam.txt", Array.toStr(Array.toStringArray(command), " "), batches, 255000, 120, numthreads, "pankratz");
+	}
+
+	private static void getJava(ArrayList<String> command) {
+		command.add("java");
+		command.add("-Xmx256000m");
+
+		command.add("-cp");
+		command.add("~/parkMutect.jar");
+		command.add("seq.analysis.Mutect2");
+
+	}
+
+	private static ArrayList<String> getBaseArgs(GATK gatk, String outputDir, int numthreads) {
+		ArrayList<String> base = new ArrayList<String>();
+		base.add("gatk=" + gatk.getGATKLocation());
+		base.add("ref=" + gatk.getReferenceGenomeFasta());
+		base.add("knownSnps=" + gatk.getDbSnpKnownSites());
+		base.add("cosmic=" + gatk.getCosmicKnownSites());
+		base.add("regions=" + gatk.getRegionsFile());
+		base.add("outputDir=" + outputDir);
+		base.add("numthreads=" + numthreads);
+		return base;
+	}
+
+	public enum MUTECT_RUN_TYPES {
+		/**
+		 * Generate individual normal calls
+		 */
+		GEN_NORMALS, /**
+		 * Combine individual normal calls
+		 */
+		COMBINE_NORMALS, /**
+		 * Call somatic variants
+		 */
+		CALL_SOMATIC;
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String fileOfBams = "fileOfPonBams.txt";
-		String referenceGenomeFasta = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
-		String knownSnps = "/home/tsaim/lane0212/bin/ref/dbsnp_138.hg19.vcf";
-		String gatkLocation = "/home/tsaim/lane0212/bin/GATK_3_5/";
-		String bams = "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/mutect/ponBams.txt";
-		String cosmic = "/home/pankrat2/public/bin/ref/COSMIC/b37_cosmic_v54_120711.hg19_chr.vcf";
-		String regions = "/home/pankrat2/public/bin/ref/AgilentCaptureRegions.bpBuffer100.bed";
+		String fileOfNormalBams = "";
+		String referenceGenomeFasta = "hg19_canonical.fa";
+		String knownSnps = "dbsnp_138.hg19.vcf";
+		String gatkLocation = "GATK_3_5/";
+		String cosmic = "b37_cosmic_v54_120711.hg19_chr.vcf";
+		String regions = "AgilentCaptureRegions.bed";
 		int numthreads = 1;
-		String ouptputDir = "/scratch.global/lane0212/Project_Tsai_Project_028/151120_D00635_0090_BC81JNANXX/mutect/";
-		new File(ouptputDir).mkdirs();
-		Logger log = new Logger(ouptputDir + "TN.log");
+		int numbatches = 0;
+		String outputDir = "mutect/";
+		MUTECT_RUN_TYPES run = MUTECT_RUN_TYPES.GEN_NORMALS;
 
 		String usage = "\n" + "seq.analysis.Mutect2 requires 0-1 arguments\n";
-		usage += "   (1) full path to a file of bams (i.e. bams=" + fileOfBams + " (default))\n" + "";
+		usage += "   (1) full path to a file of normal sample bams (i.e. normalBams=" + fileOfNormalBams + " (default))\n" + "";
+		usage += "   (2) full path to a reference genome (i.e. ref=" + referenceGenomeFasta + " (default))\n" + "";
+		usage += "   (3) known dbsnp snps (i.e. knownSnps=" + knownSnps + " (default))\n" + "";
+		usage += "   (4) cosmic snps (i.e. cosmic=" + cosmic + " (default))\n" + "";
+		usage += "   (5) regions for calling (i.e. regions=" + regions + " (default))\n" + "";
+		usage += "   (6) output root directory (i.e. outputDir=" + outputDir + " (default))\n" + "";
+		usage += "   (7) number of batches- triggers qsub generation (i.e. numNormalBatches=" + numbatches + " (default))\n" + "";
+		usage += "   (8) number of threads (i.e. numthreads=" + numthreads + " (default))\n" + "";
+		usage += "   (9) gatk directory (i.e. gatk=" + gatkLocation + " (default))\n" + "";
+		usage += "   (10) type of analysis (i.e. run=" + run + " (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("bams=")) {
-				fileOfBams = args[i].split("=")[1];
+			} else if (args[i].startsWith("normalBams=")) {
+				fileOfNormalBams = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("ref=")) {
+				referenceGenomeFasta = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("run=")) {
+				run = MUTECT_RUN_TYPES.valueOf(args[i].split("=")[1]);
+				numArgs--;
+			} else if (args[i].startsWith("gatk=")) {
+				gatkLocation = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("knownSnps=")) {
+				knownSnps = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("cosmic=")) {
+				cosmic = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("regions=")) {
+				regions = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("outputDir=")) {
+				outputDir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("numNormalBatches=")) {
+				numbatches = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("numthreads=")) {
+				numthreads = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -208,8 +289,31 @@ public class Mutect2 {
 			System.err.println(usage);
 			System.exit(1);
 		}
+		new File(outputDir).mkdirs();
+		Logger log = new Logger(outputDir + "TN.log");
 		GATK gatk = new GATK(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic, true, false, true, log);
-		run(bams, ouptputDir, gatk, numthreads, log);
+		switch (run) {
+		case CALL_SOMATIC:
+			break;
+		case COMBINE_NORMALS:
+			break;
+		case GEN_NORMALS:
+
+			if (numbatches > 0) {
+				String outputNormal = outputDir + "pon/";
+				new File(outputNormal).mkdirs();
+				log.reportTimeInfo("Generating normal sample vcfs batches in " + outputNormal);
+				batchPON(numbatches, gatk, fileOfNormalBams, outputNormal, numthreads, log);
+			} else if (fileOfNormalBams != "") {
+				log.reportTimeInfo("Generating normal sample vcfs");
+				run(fileOfNormalBams, outputDir, gatk, numthreads, log);
+			}
+			break;
+		default:
+
+			break;
+
+		}
 
 	}
 }

@@ -190,6 +190,18 @@ public class GATK {
 		return knownSitesSnpFile;
 	}
 
+	public String getDbSnpKnownSites() {
+		return dbSnpKnownSites;
+	}
+
+	public String getCosmicKnownSites() {
+		return cosmicKnownSites;
+	}
+
+	public void setCosmicKnownSites(String cosmicKnownSites) {
+		this.cosmicKnownSites = cosmicKnownSites;
+	}
+
 	public String getMillsIndelTraining() {
 		return millsIndelTraining;
 	}
@@ -419,8 +431,10 @@ public class GATK {
 		command.add(regionsFile);
 		command.add(O);
 		command.add(outputVcf);
-		command.add(NCT);
-		command.add(numWithinSampleThreads+"");
+		if (numWithinSampleThreads > 1) {
+			command.add(NCT);
+			command.add(numWithinSampleThreads + "");
+		}
 
 		String[] outputs = new String[] { outputVcf, outputVcf + VCF_INDEX };
 		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);

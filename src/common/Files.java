@@ -415,6 +415,10 @@ public class Files {
 	}
 
 	public static void qsub(String root, String commands, String[][] iterations, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs) {
+		qsub(root, commands, iterations, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs, null);
+	}
+
+	public static void qsub(String root, String commands, String[][] iterations, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs, String q) {
 		PrintWriter writer;
 		String filename, trav;
 
@@ -431,6 +435,7 @@ public class Files {
 				} else {
 					filename = ext.parseDirectoryOfFile(trav) + "master." + ext.rootOf(trav) + ".qsub";
 				}
+
 			}
 			writer = new PrintWriter(new FileWriter(filename));
 			for (int i = 0; i<iterations.length; i++) {
@@ -455,7 +460,7 @@ public class Files {
 					trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
 				}
 				qsub(filename, trav, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
-				writer.println("qsub "+filename);
+				writer.println("qsub " + (q == null ? "" : "-q " + q + " ") + filename);
 			}
 			writer.close();
 			Files.chmod("master."+(root==null?"qsub":root));
