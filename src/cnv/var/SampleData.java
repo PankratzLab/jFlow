@@ -667,7 +667,7 @@ public class SampleData {
 			if (segs == null) {
 				return 0;
 			} else {
-				index = Segment.binarySearchForOverlap(new Segment((byte)-1, position, position), segs); 
+				index = Segment.binarySearchForOverlap(new Segment(chr, position-2, position+2), segs); 
 				if (index == -1) {
 					return 0;
 				} else {

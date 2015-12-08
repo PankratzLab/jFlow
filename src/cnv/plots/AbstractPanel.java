@@ -1319,7 +1319,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public double[] getPlotMinMaxStep(double min, double max, Graphics g, boolean xAxis) {
 		double range, plotStep, stepStep, plotMin, plotMax;
 		double zoomMin, zoomMax, dist, tempD;
-		int numHashes, wid, canvasRange;
+		int numHashes, wid, hgt, canvasRange;
 		FontMetrics fontMetrics;
 		int sf, temp;
 
@@ -1328,18 +1328,25 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		plotStep = stepStep = calcStepStep(range);
 		sf = ext.getNumSigFig(stepStep);
 
+		fontMetrics = g.getFontMetrics(g.getFont());
 		if (xAxis) {
-			fontMetrics = g.getFontMetrics(g.getFont());
 			wid = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf)), fontMetrics.stringWidth(ext.formDeci(max, sf)));
 			numHashes = 12;
             canvasRange = canvasSectionMaximumX-canvasSectionMinimumX;
             temp = (wid + 30) * numHashes;
             while (temp > canvasRange) {
                 numHashes -= 1;
-                temp = (wid + 20) * numHashes;
+                temp = (wid + 30) * numHashes;
             }
 		} else {
-			numHashes = 10;
+		    hgt = fontMetrics.getHeight();
+		    numHashes = 10;
+		    canvasRange = canvasSectionMaximumY - canvasSectionMinimumY;
+		    temp = (hgt + 10) * numHashes;
+		    while (temp > canvasRange) {
+		        numHashes -= 1;
+		        temp = (hgt + 10) * numHashes;
+		    }
 		}
 
 		while (range/plotStep>numHashes) {

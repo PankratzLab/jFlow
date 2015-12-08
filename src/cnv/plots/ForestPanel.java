@@ -10,7 +10,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import stats.Maths;
-
 import common.Array;
 import common.Grafik;
 import common.Logger;
@@ -208,23 +207,23 @@ public class ForestPanel extends AbstractPanel {
 	public double[] getPlotMinMaxStep(double min, double max, Graphics g, boolean xAxis) {
 		double range, plotStep, stepStep, plotMin, plotMax;
 		double zoomMin, zoomMax, dist, tempD;
-		int numHashes, wid, canvasRange;
+		int numHashes, textWidth, canvasRange;
 		FontMetrics fontMetrics = g.getFontMetrics(g.getFont());
 		int sf, temp;
 
-		range = max-min;
+		range = max - min;
 
 		plotStep = stepStep = calcStepStep(range);
 		sf = ext.getNumSigFig(stepStep);
 
 		if (xAxis) {
-			wid = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf, true)), fontMetrics.stringWidth(ext.formDeci(max, sf, true)));
+			textWidth = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf, true)), fontMetrics.stringWidth(ext.formDeci(max, sf, true)));
 			numHashes = 12;
 			canvasRange = canvasSectionMaximumX-canvasSectionMinimumX;
-			temp = (wid + 30) * numHashes;
+			temp = (textWidth + 30) * numHashes;
 			while (temp > canvasRange) {
 				numHashes -= 1;
-				temp = (wid + 20) * numHashes;
+				temp = (textWidth + 20) * numHashes;
 			}
 		} else {
 			numHashes = 10;
@@ -263,13 +262,13 @@ public class ForestPanel extends AbstractPanel {
 
 		if (xAxis) {
 			fontMetrics = g.getFontMetrics(g.getFont());
-			wid = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf, true)), fontMetrics.stringWidth(ext.formDeci(max, sf, true)));
+			textWidth = Math.max(fontMetrics.stringWidth(ext.formDeci(min, sf, true)), fontMetrics.stringWidth(ext.formDeci(max, sf, true)));
 			numHashes = 12;
             canvasRange = canvasSectionMaximumX-canvasSectionMinimumX;
-            temp = (wid + 30) * numHashes;
+            temp = (textWidth + 30) * numHashes;
             while (temp > canvasRange) {
                 numHashes -= 1;
-                temp = (wid + 20) * numHashes;
+                temp = (textWidth + 20) * numHashes;
             }
 		} else {
 			numHashes = (int) ((canvasSectionMaximumY - canvasSectionMinimumY) / (fontMetrics.getHeight()));
@@ -291,10 +290,15 @@ public class ForestPanel extends AbstractPanel {
 	
 	public static double calcStepStep(double range) {
 		String[] line;
-		
+		int temp;
+//		double val;
+		double val2;
 		try {
 			line = new DecimalFormat("0.0E0").format(range).split("E");
-			return Math.pow(10, Integer.parseInt(line[1])-1)*1;//(Double.parseDouble(line[0]));//>2.0?5:1);
+			temp = Integer.parseInt(line[1]) - 1;
+//			val = Math.pow(10, temp); // ticks at 0.01
+			val2 = Math.pow(10, temp) * (Double.parseDouble(line[0]) > 2.0 ? 5 : 1); // ticks at 0.05
+			return val2;
 		} catch (Exception e) {
 			System.err.println("Error - could not parse stepStep from range '"+range+"'");
 			return Double.NaN;
@@ -443,7 +447,6 @@ public class ForestPanel extends AbstractPanel {
 			
 			leftsize = determineLongestLeft(g, getMarkerFontSize(g));
 			rightsize = determineRightBorder(g, getMarkerFontSize(g));
-//			System.out.println("size: " + getMarkerFontSize());
 
 			if (displayXaxis) {
 				canvasSectionMinimumX = WIDTH_BUFFER + leftsize;
@@ -473,7 +476,7 @@ public class ForestPanel extends AbstractPanel {
 						g.drawString(str, getXPixel(x) - str.length() * 8, getHeight() - (canvasSectionMaximumY - TICK_LENGTH - 30));
 					}
 				}
-				if (loopMax > plotXmax) {
+				if (Math.abs(loopMax - plotXmax) > DOUBLE_INACCURACY_HEDGE) {
 				    Grafik.drawThickLine(g, 
                             getXPixel(plotXmax), 
                             getHeight() - canvasSectionMaximumY, 

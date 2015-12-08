@@ -708,7 +708,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				}
 				if (sample != null) {
 					if (region != null) {
-						if(region2 != null) {
+						if(region2 != null && !region.equals(region2)) {
 							menu.add(new LaunchAction(proj, sample, new String[]{region, region2}, sampColor == null ? Color.GRAY : sampColor));
 						} else {
 							menu.add(new LaunchAction(proj, sample, region, sampColor == null ? Color.GRAY : sampColor));

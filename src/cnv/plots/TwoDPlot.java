@@ -1050,7 +1050,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     				        } else if (generatingScreenshots) {
     				            colorCode = getColorForScreenshot(ids[0]);
     				        } else {
-    				            colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) 0, 0);
+    				            String[][] metaData = getCurrentColumnMetaData();
+    				            int chr = Integer.parseInt(metaData[0][0]);
+    				            int start = Integer.parseInt(metaData[0][2]);
+    				            int stop = Integer.parseInt(metaData[0][3]);
+    				            colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) chr, start + ((stop - start) / 2));
     				        }
     				    } else {
     				        colorCode = 0;
@@ -1972,7 +1976,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		
 //		
 //		
-		fromParameters("D:/data/gedi_gwas/data/corrected/twoDscreenshotsSplit.dat", new Logger());
+		fromParameters("D:/data/FarrarReparse/classification/twoDscreenshots.dat", new Logger());
 //        javax.swing.SwingUtilities.invokeLater(new Runnable() {
 //            public void run() {
 //                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
