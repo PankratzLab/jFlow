@@ -30,8 +30,7 @@ public class GATK {
 	public static final String VARIANT_RECALIBRATOR = "VariantRecalibrator";
 	public static final String APPLY_RECALIBRATION = "ApplyRecalibration";
 	public static final String VARIANT_ANNOTATOR = "VariantAnnotator";
-	public static final String MUTECT2 ="MuTect2";
-	
+	public static final String MUTECT2 = "MuTect2";
 
 	public static final String PRINT_READS = "PrintReads";
 	public static final String[] LOAD_R = { "module load R", "R" };
@@ -47,10 +46,14 @@ public class GATK {
 	public static final String LINEAR = "LINEAR";
 	public static final String VARIANT_INDEX_PARAMETER = "-variant_index_parameter";
 	public static final String VARIANT_INDEX_DEFAULT = "128000";
-
+	public static final String MIN_N = "-minN";
+	public static final String SET_KEY = "--setKey";
+	public static final String FILTERED_ARE_UNCALLED = "--filteredAreUncalled";
+	public static final String FILTERED_RECORDS_MERGE_TYPE = "--filteredrecordsmergetype";
+	public static final String KEEP_IF_ANY_UNFILTERED = "KEEP_IF_ANY_UNFILTERED";
 	public static final String DB_SNP = "--dbsnp";
 	public static final String DB_SNP_FILE = "dbsnp";
-	public static final String COSMIC ="--cosmic";
+	public static final String COSMIC = "--cosmic";
 
 	public static final String BEFORE = "-before";
 	public static final String AFTER = "-after";
@@ -64,9 +67,10 @@ public class GATK {
 	public static final String SNP_EFF = "SnpEff";
 	public static final String SNP_EFF_FILE = "--snpEffFile";
 	public static final String L = "-L";
+	public static final String V = "-V";
 
 	public static final String I = "-I";
-	public static final String I_TUMOR ="-I:tumor";
+	public static final String I_TUMOR = "-I:tumor";
 	public static final String INPUT = "-input";
 
 	public static final String MAX_GAUSSIANS = "--maxGaussians";
@@ -162,7 +166,7 @@ public class GATK {
 		this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
 		this.referenceGenomeFasta = referenceGenomeFasta;
 		this.dbSnpKnownSites = dbSnpKnownSites;
-		this.cosmicKnownSites=cosmicKnownSites;
+		this.cosmicKnownSites = cosmicKnownSites;
 		this.regionsFile = regionsFile;
 		this.verbose = verbose;
 		this.overWriteExistingOutput = overWriteExisting;
@@ -286,9 +290,6 @@ public class GATK {
 		haplotypeCaller.setFail(!progress);
 		return haplotypeCaller;
 	}
-	
-	
-	
 
 	public SnpEffResult annotateAVcfWithSnpEFF(SnpEffResult snpEffResult, boolean addDBSNP) {
 		if (!snpEffResult.isFail()) {
@@ -401,6 +402,45 @@ public class GATK {
 
 		String[] command = new String[] { javaLocation, JAR, GATKLocation + GENOME_ANALYSIS_TK, T, HAPLOTYPE_CALLER, R, referenceGenomeFasta, I, bamFile, ERC_MODE, GVCF_MODE, VARIANT_INDEX_TYPE, LINEAR, VARIANT_INDEX_PARAMETER, VARIANT_INDEX_DEFAULT, dbSnpFile == null ? "" : DB_SNP, dbSnpFile == null ? "" : dbSnpFile, O, output, NCT, numWithinSampleThreads + "" };
 		return CmdLine.runCommandWithFileChecks(command, "", input, new String[] { output, output + VCF_INDEX }, verbose, overWriteExistingOutput, true, (altLog == null ? log : altLog));
+	}
+
+	/**
+	 * @param vcfs
+	 * @param outputVcf
+	 * @param minN
+	 *            records with lt this number will not be combined
+	 * @param log
+	 * @return
+	 */
+	public boolean combinePonVcfs(String[] vcfs, String outputVcf, int minN, Logger log) {
+		String[] input = new String[] { referenceGenomeFasta, regionsFile };
+		input = Array.concatAll(input, vcfs);
+		String[] outputs = new String[] { outputVcf, outputVcf + VCF_INDEX };
+
+		ArrayList<String> command = new ArrayList<String>();
+		command.add(javaLocation);
+		command.add(JAR);
+		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+		command.add(T);
+		command.add(COMBINE_VARIANTS);
+		command.add(R);
+		command.add(referenceGenomeFasta);
+		for (int i = 0; i < vcfs.length; i++) {
+			command.add(V);
+			command.add(vcfs[i]);
+		}
+		command.add(MIN_N);
+		command.add(minN + "");
+		command.add(SET_KEY);
+		command.add("\"null\"");
+		command.add(FILTERED_ARE_UNCALLED);
+		command.add(FILTERED_RECORDS_MERGE_TYPE);
+		command.add(KEEP_IF_ANY_UNFILTERED);
+		command.add(L);
+		command.add(regionsFile);
+		command.add(O);
+		command.add(outputVcf);
+		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
 	}
 
 	public Mutect2Normal generateMutect2Normal(String bamFile, String outputVcf, int numWithinSampleThreads, Logger log) {
@@ -824,13 +864,11 @@ public class GATK {
 		}
 
 	}
-	
+
 	public static class Mutect2 {
 		private String normalBam;
 		private String tumorBam;
 		private String outputVCF;
-	
-		
 
 	}
 
