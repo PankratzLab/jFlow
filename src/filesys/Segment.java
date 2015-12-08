@@ -516,14 +516,15 @@ public class Segment implements Serializable {
 		
 		low = 0;
 		high = orderedList.length-1;
-		while (low<=high) {
-			mid = low+(high-low)/2;
-			if (orderedList[mid].overlaps(seg)) {
+		while (low <= high) {
+			mid = low + ((high - low) / 2);
+			Segment inspect = orderedList[mid];
+			if (inspect.overlaps(seg)) {
 				return mid;
-			} else if (seg.stop < orderedList[mid].start) {
-				high = mid-1;
+			} else if (seg.stop < inspect.start) {
+				high = mid - 1;
 			} else {
-				low = mid+1;
+				low = mid + 1;
 			}
 		}
 
