@@ -23,6 +23,7 @@ public class ReferenceGenome {
 	private String referenceFasta;
 	private IndexedFastaSequenceFile indexedFastaSequenceFile;
 	private byte[] currentSeq;
+	private String[] inMemoryContig;
 	private int defaultBuffer;
 	private ReferenceSequence referenceSequence;
 	private Logger log;
@@ -113,8 +114,8 @@ public class ReferenceGenome {
 		this.defaultBuffer = defaultBuffer;
 	}
 
-	public String[][] getSequencesFor(Segment[] segs) {
-		return getSequencesFor(segs, -1);
+	public String[][] getSequencesFor(Segment[] segs, boolean memoryMode) {
+		return getSequencesFor(segs, -1, memoryMode);
 	}
 
 	/**
@@ -122,7 +123,7 @@ public class ReferenceGenome {
 	 *            these should be sorted in chromosomal order if speed is desired
 	 * @return
 	 */
-	public String[][] getSequencesFor(Segment[] segs, int reportEvery) {
+	public String[][] getSequencesFor(Segment[] segs, int reportEvery,boolean memoryMode) {
 		String[][] seqs = new String[segs.length][];
 		for (int i = 0; i < seqs.length; i++) {
 			if (reportEvery > 0 && i % reportEvery == 0) {
@@ -130,7 +131,7 @@ public class ReferenceGenome {
 				log.memoryFree();
 				log.memoryTotal();
 			}
-			seqs[i] = getSequenceFor(segs[i]);
+			seqs[i] = getSequenceFor(segs[i], memoryMode);
 		}
 		return seqs;
 	}
@@ -139,13 +140,20 @@ public class ReferenceGenome {
 		return indexedFastaSequenceFile.getSequenceDictionary().getSequence(contig) != null;
 	}
 
+	public String[] getSequenceFor(Segment segment) {
+		return getSequenceFor(segment, false);
+	}
+
 	/**
 	 * @param segment
+	 * @param memoryMode
+	 *            this stores an entire contig in memory, which is faster for many large, in order queries.
 	 * @return will return null if {@link Positions#getChromosomeUCSC(int, boolean, boolean)} returns a contig not in the files {@link SAMSequenceDictionary}
 	 */
-	public String[] getSequenceFor(Segment segment) {
+	public String[] getSequenceFor(Segment segment,boolean memoryMode) {
 		String requestedContig = Positions.getChromosomeUCSC(segment.getChr(), true, true);
 		if (hasContig(requestedContig)) {
+			
 			int seqLength = indexedFastaSequenceFile.getSequenceDictionary().getSequence(requestedContig).getSequenceLength();
 			int start = segment.getStart() - defaultBuffer;
 			if (start < 0) {
@@ -155,8 +163,24 @@ public class ReferenceGenome {
 			if (stop > seqLength) {
 				stop = seqLength;
 			}
-			ReferenceSequence referenceSequence = indexedFastaSequenceFile.getSubsequenceAt(requestedContig, start, stop);
-			String[] requestedSeq = Array.decodeByteArray(referenceSequence.getBases(), BYTE_DECODE_FORMAT.UPPER_CASE, log);
+			String[] requestedSeq = null;
+			System.out.println(memoryMode);
+			if (memoryMode) {
+				if (this.referenceSequence == null || !this.referenceSequence.getName().equals(requestedContig)) {
+					this.referenceSequence = indexedFastaSequenceFile.getSequence(requestedContig);
+					this.inMemoryContig = Array.decodeByteArray(referenceSequence.getBases(), BYTE_DECODE_FORMAT.UPPER_CASE, log);
+				} else {
+					log.reportTimeInfo("Memory works");
+				}
+				try {
+					requestedSeq = Array.subArray(inMemoryContig, Math.max(0, start - 1), Math.min(inMemoryContig.length - 1, stop));
+				} catch (Exception e) {
+					log.reportTimeError("Invalid query " + segment.getUCSClocation() + "; buffer " + defaultBuffer + "; current contig " + referenceSequence.getName());
+				}
+			} else {
+				ReferenceSequence subReferenceSequence = indexedFastaSequenceFile.getSubsequenceAt(requestedContig, start, stop);
+				requestedSeq = Array.decodeByteArray(subReferenceSequence.getBases(), BYTE_DECODE_FORMAT.UPPER_CASE, log);
+			}
 			return requestedSeq;
 
 		} else {
@@ -219,7 +243,11 @@ public class ReferenceGenome {
 	}
 
 	public double getGCContentFor(Segment seg) {
-		String[] seq = getSequenceFor(seg);
+		return getGCContentFor(seg, false);
+	}
+
+	public double getGCContentFor(Segment seg, boolean memoryMode) {
+		String[] seq = getSequenceFor(seg, memoryMode);
 		if (seq != null) {
 			return getPercent(seq);
 
@@ -239,7 +267,7 @@ public class ReferenceGenome {
 		// defaultBuffer=0;
 		// System.out.println("REF\t"+Array.toStr(getSequenceFor(VCOps.getSegment(vc))));
 		// System.out.println("VARIANT_A\t"+vc.getAlleles().toString());
-		return getGCContentFor(VCOps.getSegment(vc));
+		return getGCContentFor(VCOps.getSegment(vc), false);
 	}
 
 }

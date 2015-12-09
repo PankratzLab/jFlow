@@ -646,7 +646,7 @@ public class GcAdjustor {
 						proj.getLog().reportTimeInfo("Generating snp window gc model for window of " + snpWindow + " (" + (i + 1) + " of " + markerSet.getMarkerNames().length + ")");
 					}
 					Segment seg = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i], markerSet.getPositions()[i]).getBufferedSegment(snpWindow);
-					double gc = 100 * referenceGenome.getGCContentFor(seg);
+					double gc = 100 * referenceGenome.getGCContentFor(seg, snpWindow > 100000);//not sure about the optimal query size
 					gcs[i] = gc;
 					if (Double.isNaN(gc) && seg.getChr() > 0) {
 						proj.getLog().reportTimeError("Invalid gc content returned");
