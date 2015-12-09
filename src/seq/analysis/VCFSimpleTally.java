@@ -169,10 +169,10 @@ public class VCFSimpleTally {
 		private Hashtable<String, String> genes;
 		private String tag;
 
-		public GeneSet(String fileName, Logger log) {
+		public GeneSet(String fileName, String tag, Logger log) {
 			super();
 			this.fileName = fileName;
-			this.tag = ext.rootOf(fileName);
+			this.tag = tag;
 			this.log = log;
 		}
 
@@ -180,10 +180,10 @@ public class VCFSimpleTally {
 			return tag;
 		}
 
-		private static GeneSet[] load(String[] setFiles, Logger log) {
+		private static GeneSet[] load(String[] setFiles, String vpop, Logger log) {
 			GeneSet[] sets = new GeneSet[setFiles.length];
 			for (int i = 0; i < sets.length; i++) {
-				sets[i] = new GeneSet(setFiles[i], log);
+				sets[i] = new GeneSet(setFiles[i], ext.rootOf(setFiles[i]).replaceAll("_" + vpop, ""), log);
 				sets[i].load();
 			}
 			return sets;
@@ -202,7 +202,9 @@ public class VCFSimpleTally {
 					String[] line = reader.readLine().trim().split("\t");
 					String gene = line[0];
 					if (genes.contains(line[0])) {
-						throw new IllegalAccessError("One entry per gene per file");
+						log.reportTimeWarning(gene + " was sen twice, using first annotation");
+
+						// throw new IllegalAccessError("One entry per gene per file");
 
 					} else {
 						genes.put(gene.toUpperCase(), line[0]);
@@ -295,7 +297,7 @@ public class VCFSimpleTally {
 			String outDir = ext.parseDirectoryOfFile(vpopsCase[i]);
 			new File(outDir).mkdirs();
 			Logger log = new Logger(ext.rootOf(vpopsCase[i], false) + ".log");
-			GeneSet[] currentSets = GeneSet.load(Files.listFullPaths(ext.parseDirectoryOfFile(vpopsCase[i]), ext.rootOf(vpopsCase[i]) + ".geneset", false), log);
+			GeneSet[] currentSets = GeneSet.load(Files.listFullPaths(ext.parseDirectoryOfFile(vpopsCase[i]), ext.rootOf(vpopsCase[i]) + ".geneset", false), ext.rootOf(vpopsCase[i]), log);
 			log.reportTimeInfo("Found " + currentSets.length + " gene sets for " + vpopsCase[i]);
 			OMIM omim = new OMIM(omimDir, log);
 			OtherGeneInfo[] otherGeneInfos = null;
@@ -313,7 +315,7 @@ public class VCFSimpleTally {
 			names.add("VARIANT_LEVEL");
 			filesToWrite.add(caseResult.getFinalAnnotSample());
 			names.add("VARIANT_SAMP_LEVEL");
-
+			summarizeVariantsBySample(caseResult, log);
 			VcfPopulation controls = caseResult.getControls();
 			String controlFile = ext.parseDirectoryOfFile(vpopsCase[i]) + controls.getUniqSuperPop().get(0) + ".vpop";
 			controls.report();
@@ -395,6 +397,54 @@ public class VCFSimpleTally {
 		// }
 	}
 
+	private static void summarizeVariantsBySample(SimpleTallyResult sr, Logger log) {
+
+		try {
+			BufferedReader reader = Files.getAppropriateReader(sr.getFinalAnnotSample());
+			int snpEFFIndex = ext.indexOfStr("SNPEFF_IMPACT", Files.getHeaderOfFile(sr.getFinalAnnotSample(), log));
+			int sampIndex = ext.indexOfStr("SAMPLE", Files.getHeaderOfFile(sr.getFinalAnnotSample(), log));
+
+			Hashtable<String, Integer> counts = new Hashtable<String, Integer>();
+			reader.readLine();
+			while (reader.ready()) {
+				String[] line = reader.readLine().trim().split("\t");
+
+				String anyKey = line[sampIndex] + "\tANY_EFF";
+				String funcKey = line[sampIndex] + "\t" + line[snpEFFIndex];
+				if (!counts.containsKey(anyKey)) {
+					counts.put(anyKey, 1);
+				} else {
+					counts.put(anyKey, counts.get(anyKey) + 1);
+				}
+				if (!counts.containsKey(funcKey)) {
+					counts.put(funcKey, 1);
+				} else {
+					counts.put(funcKey, counts.get(funcKey) + 1);
+				}
+			}
+			reader.close();
+			String out = sr.getFinalAnnotSample() + ".varCounts";
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(out));
+				writer.println("Sample\tSNPEFF_IMPACT\tCOUNTS");
+				for (String key : counts.keySet()) {
+					writer.println(key + "\t" + counts.get(key));
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + out);
+				log.reportException(e);
+			}
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + sr.getFinalAnnotSample() + "\" not found in current directory");
+			return;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + sr.getFinalAnnotSample() + "\"");
+			return;
+		}
+		
+	}
+
 	private static class SimpleTallyResult {
 		private VcfPopulation controls;
 		// private String finalOut;
@@ -402,7 +452,6 @@ public class VCFSimpleTally {
 		private String finalAnnot;
 		private String finalAnnotSample;
 		private String finalsampSummary;
-
 		private String finalAnnotGene;
 
 		public SimpleTallyResult(VcfPopulation controls, String finalOut, String finalOutVCF, String finalsampSummary, String finalAnnot, String finalAnnotSample, String finalAnnotGene) {
@@ -461,6 +510,7 @@ public class VCFSimpleTally {
 		String finalsampSummary = finalOut + ".sampSummary.txt";
 		String finalAnnotGene = finalOut + ".gene";
 		String finalAnnotGeneBed = finalOut + ".gene.bed";
+		String finalGeneSetSummary = finalOut + ".geneset.summmary";
 		// String finalAnnotGeneSample = finalOut + ".gene.sample";
 
 		Set<String> cases = vpopAc.getSuperPop().get(caseDef);
@@ -479,7 +529,7 @@ public class VCFSimpleTally {
 		VcfPopulation controlVcfPopulation = new VcfPopulation(controlPop, controlPop, POPULATION_TYPE.CASE_CONTROL, new Logger());
 		SimpleTallyResult simpleTallyResult = new SimpleTallyResult(controlVcfPopulation, finalOut, finalOutVCF, finalsampSummary, finalAnnot, finalAnnotSample, finalAnnotGene);
 		summarizeAnalysisParams(finalsampSummary, caseDef, cases, controls, maf, log);
-
+		summarizeGeneSets(geneSets, finalGeneSetSummary, log);
 		if (!Files.exists(finalAnnotGene) || !Files.exists(finalAnnotGeneBed) || !Files.exists(finalAnnotSample)) {
 			VCFFileReader tmp = new VCFFileReader(filtVcfs.get(0), true);
 
@@ -511,6 +561,7 @@ public class VCFSimpleTally {
 				annoWriterSample.print(annotLine);
 				annoGeneWriter.print("\t" + Array.toStr(Array.tagOn(GENE_ADD, controlsOrdered.get(i) + "_N_" + controls.get(controlsOrdered.get(i)).size(), null)));
 			}
+			annoGeneWriter.print("\t" + "GENE_SET(s)\tIS_GENE_SET");
 			annoGeneWriter.println();
 			String[][] annotations = VCFOps.getAnnotationKeys(vcf, log);
 			annoWriter.print("\t" + Array.toStr(annotations[0]) + "\tGENE_SET(s)");
@@ -541,22 +592,27 @@ public class VCFSimpleTally {
 
 					VcGroupSummary vcCaseGroup = new VcGroupSummary(caseDef, cases, vc, qual, log);
 					ArrayList<String> sets = new ArrayList<String>();
-					//TODO, check
+					// TODO, check
 					for (int j = 0; j < geneSummaries.get(geneName).get(0).length; j++) {
-						geneSummaries.get(geneName).get(0)[j].add(vcCaseGroup);
+						geneSummaries.get(geneName).get(0)[j].add(vcCaseGroup, null);
 						for (int j2 = 0; j2 < geneSets.length; j2++) {
 							if (geneSets[j2].getGenes().containsKey(geneName)) {
-								sets.add(geneSets[j2].getTag());
-								geneSummaries.get(geneSets[j2].getTag()).get(0)[j].add(vcCaseGroup);
+								if (j == 0) {
+									sets.add(geneSets[j2].getTag());
+								}
+								geneSummaries.get(geneSets[j2].getTag()).get(0)[j].add(vcCaseGroup, geneSets[j2].getTag());
 							}
 						}
+					}
+					if (sets.size() == 0) {
+						sets.add(".");
 					}
 
 					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
 					annoWriter.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 
 					GenotypesContext gc = vcCaseGroup.getVcAlt().getGenotypes();
-				
+
 					ArrayList<VcGroupSummary> controlGroupSummaries = new ArrayList<VCFSimpleTally.VcGroupSummary>();
 					for (int j = 0; j < controlsOrdered.size(); j++) {
 						VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(j), controls.get(controlsOrdered.get(j)), vc, qual, log);
@@ -569,23 +625,23 @@ public class VCFSimpleTally {
 						for (int j = 0; j < controlsOrdered.size(); j++) {
 							annoWriterSample.print("\t" + Array.toStr(controlGroupSummaries.get(j).getSummary()));
 						}
-						annoWriterSample.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")) + "\t" + Array.toStr(Array.toStringArray(sets), ":"));
+						annoWriterSample.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")) + "\t" + Array.toStr(Array.toStringArray(sets), ";"));
 						annoWriterSample.println();
 					}
 
 					for (int j = 0; j < controlsOrdered.size(); j++) {
 						VcGroupSummary vcControlGroup = controlGroupSummaries.get(j);
 						for (int k = 0; k < geneSummaries.get(geneName).get(0).length; k++) {
-							geneSummaries.get(geneName).get(j + 1)[k].add(vcControlGroup);
+							geneSummaries.get(geneName).get(j + 1)[k].add(vcControlGroup, null);
 							for (int j2 = 0; j2 < geneSets.length; j2++) {
 								if (geneSets[j2].getGenes().containsKey(geneName)) {
-									geneSummaries.get(geneSets[j2].getTag()).get(j + 1)[k].add(vcControlGroup);
+									geneSummaries.get(geneSets[j2].getTag()).get(j + 1)[k].add(vcControlGroup, geneSets[j2].getTag());
 								}
 							}
 						}
 						annoWriter.print("\t" + Array.toStr(vcControlGroup.getSummary()));
 					}
-					annoWriter.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")) + "\t" + Array.toStr(Array.toStringArray(sets), ":"));
+					annoWriter.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")) + "\t" + Array.toStr(Array.toStringArray(sets), ";"));
 					annoWriter.println();
 				}
 				result.close();
@@ -602,6 +658,21 @@ public class VCFSimpleTally {
 					for (int j = 0; j < geneSummariesCurrent.size(); j++) {
 						annoGeneWriter.print("\t" + Array.toStr(geneSummariesCurrent.get(j)[i].getSummary()));
 					}
+					boolean setMember = false;
+					for (int j = 0; j < geneSets.length; j++) {
+						if (geneSets[j].getGenes().containsKey(gene)) {
+							setMember = true;
+							if (j == 0) {
+								annoGeneWriter.print("\t" + geneSets[j].getTag());
+							} else {
+								annoGeneWriter.print(";" + geneSets[j].getTag());
+							}
+						}
+					}
+					if (!setMember) {
+						annoGeneWriter.print("\t.");
+					}
+					annoGeneWriter.print("\t" + isGeneSet(geneSets, gene));
 					annoGeneWriter.println();
 				}
 			}
@@ -611,6 +682,33 @@ public class VCFSimpleTally {
 			log.reportTimeWarning(finalAnnotGene + " exists so skipping summarize");
 		}
 		return simpleTallyResult;
+	}
+
+	private static boolean isGeneSet(GeneSet[] geneSets, String tag) {
+		for (int i = 0; i < geneSets.length; i++) {
+			if (geneSets[i].getTag().equals(tag)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void summarizeGeneSets(GeneSet[] geneSets, String sumFile, Logger log) {
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(sumFile));
+			writer.println("GENE_SET\tN_GENES\tGENES->");
+			for (int i = 0; i < geneSets.length; i++) {
+				writer.print(geneSets[i].getTag() + "\t" + geneSets[i].getGenes().size());
+				for (String gene : geneSets[i].getGenes().keySet()) {
+					writer.print("\t" + gene);
+				}
+				writer.println();
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + sumFile);
+			log.reportException(e);
+		}
 	}
 
 	private static void summarizeAnalysisParams(String sumFile, String caseDef, Set<String> cases, Hashtable<String, Set<String>> controls, double maf, Logger log) {
@@ -737,14 +835,14 @@ public class VCFSimpleTally {
 			}
 		}
 
-		private void add(VcGroupSummary vcGroupSummary) {
+		private void add(VcGroupSummary vcGroupSummary, String setTag) {
 			if (!vcGroupSummary.getGroupName().equals(group)) {
 
 				throw new IllegalArgumentException("Mismatched group names: should be " + group + " but actually " + vcGroupSummary.getGroupName());
 
 			}
-			if (!VCOps.getSNP_EFFGeneName(vcGroupSummary.getVcOriginal()).equals(geneName)) {
-				throw new IllegalArgumentException("Mismatched gene names");
+			if (!VCOps.getSNP_EFFGeneName(vcGroupSummary.getVcOriginal()).equals(geneName) && (setTag != null && !setTag.equals(geneName))) {
+				throw new IllegalArgumentException("Mismatched gene/geneSet names");
 			} else {
 				String impact = VCOps.getSNP_EFFImpact(vcGroupSummary.getVcOriginal());
 				if (ext.indexOfStr(impact, effects) >= 0) {
