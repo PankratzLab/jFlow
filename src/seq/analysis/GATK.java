@@ -335,7 +335,7 @@ public class GATK {
 		command.add(annoVcf);
 		for (int i = 0; i < annotations.length; i++) {
 			command.add(E);
-			command.add(annotations[i]);
+			command.add(resourceName + "." + annotations[i]);
 		}
 		if (numThreads > 1) {
 			command.add(NT);
@@ -892,14 +892,18 @@ public class GATK {
 			return outputVCF;
 		}
 
-	}
-
-	public static class Mutect2 {
-		private String normalBam;
-		private String tumorBam;
-		private String outputVCF;
+		public String getNormalBam() {
+			return normalBam;
+		}
 
 	}
+
+//	public static class Mutect2 {
+//		private String normalBam;
+//		private String tumorBam;
+//		private String outputVCF;
+//
+//	}
 
 	private static String[] parseAndAddToCommand(String[] command, String commandToAdd, String[] values) {
 		String[] knowns;

@@ -509,12 +509,12 @@ public class PlinkSeq implements Serializable {
 	public static class PlinkSeqProducer implements Producer<PlinkSeqWorker> {
 		private PlinkSeqWorker[] plinkSeqWorkers;
 		private int index;
-		private Logger log;
+	//	private Logger log;
 
 		public PlinkSeqProducer(PlinkSeqWorker[] plinkSeqWorkers, Logger log) {
 			super();
 			this.plinkSeqWorkers = plinkSeqWorkers;
-			this.log = log;
+		//	this.log = log;
 			this.index = 0;
 		}
 
