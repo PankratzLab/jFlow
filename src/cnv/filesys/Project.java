@@ -1254,7 +1254,7 @@ public class Project {
 	}
 	
 	/**
-	 * Attempts to return the gene track file from the properties, and then attempts other default locations
+	 * Attempts to return the gene track file from the properties, and then attempts other default locations, set's property if found elsewhere
 	 * 
 	 * @param verbose	whether to report
 	 * @return			GeneTrack, if it found one, otherwise null
@@ -1273,6 +1273,9 @@ public class Project {
 			} else {
 				log.reportTimeInfo("Using gene track " + geneTrackFilename);
 			}
+		}
+		if (geneTrackFilename != null && Files.exists(geneTrackFilename) && !geneTrackFilename.equals(this.GENETRACK_FILENAME.getValue(false, false))) {
+		    this.GENETRACK_FILENAME.setValue(geneTrackFilename);
 		}
 		return geneTrackFilename;
 	}

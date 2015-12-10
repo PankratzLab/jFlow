@@ -22,6 +22,7 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import net.miginfocom.swing.MigLayout;
 import cnv.filesys.Project;
 import cnv.plots.CompPlot;
 import cnv.plots.Trailer;
@@ -253,6 +254,7 @@ class CNVPanel extends JPanel implements ActionListener {
 	public CNVPanel(CompPlot cp) {
 		compPlot = cp;
 		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+//		setLayout(new MigLayout("debug", "[]", "[][][]"));
 		add(new JLabel("Selected CNV:"));
 		iid = new JLabel();
 		fid = new JLabel();
@@ -299,24 +301,33 @@ class CNVPanel extends JPanel implements ActionListener {
 		cnvListLabel = new JLabel("Select CNVs:");
 		cnvPanel.add(cnvListLabel);
 
+//		add(cnvPanel, "cell 0 0");
 		add(cnvPanel);
 
 		cnvScroll = new JScrollPane();
+//		add(cnvScroll, "cell 0 1, hidemode 3");
 		add(cnvScroll);
 		cnvScroll.setVisible(false);
-
-		add(selectAll);
+		
+		JPanel btnPanel = new JPanel();
+		btnPanel.setLayout(new FlowLayout(FlowLayout.LEADING));
+//		add(selectAll, "cell 0 2, split 3");
+		btnPanel.add(selectAll);
 		selectAll.setVisible(false);
 		selectAll.addActionListener(this);
 
-		add(selectNone);
+//		add(selectNone,  "cell 0 2");
+		btnPanel.add(selectNone);
 		selectNone.setVisible(false);
 		selectNone.addActionListener(this);
 
 		// Link off to Trailer
-		add(trailerButton);
+//		add(trailerButton, "cell 0 2");
+		btnPanel.add(trailerButton);
 		trailerButton.setEnabled(false);
 		trailerButton.addActionListener(this);
+		
+		add(btnPanel);
 	}
 
 	// Update the fields
@@ -405,6 +416,8 @@ class CNVPanel extends JPanel implements ActionListener {
 	public void setDisplayMode(String mode) {
 		displayMode = mode;
 		clearCNVText();
+		selectedCNV = null;
+		selectedCNVs = null;
 	}
 
 	@Override

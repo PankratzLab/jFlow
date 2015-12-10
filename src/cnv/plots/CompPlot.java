@@ -5,6 +5,7 @@ package cnv.plots;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -15,6 +16,8 @@ import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,17 +42,20 @@ import cnv.filesys.Project;
 import cnv.gui.ChromosomeViewer;
 import cnv.gui.CompConfig;
 import cnv.gui.FileNavigator;
+import cnv.gui.LRRComp;
 import cnv.gui.NewRegionListDialog;
 import cnv.gui.RegionNavigator;
+import cnv.manage.UCSCtrack;
 import cnv.var.CNVRectangles;
 import cnv.var.CNVariant;
 import cnv.var.CNVariantHash;
 import cnv.var.Region;
+
 import common.Array;
 import common.Files;
 import common.Positions;
 import common.ext;
-import filesys.GeneSet;
+
 import filesys.GeneTrack;
 
 /**
@@ -181,11 +187,11 @@ public class CompPlot extends JFrame {
 		originalRegionFiles = proj.REGION_LIST_FILENAMES.getValue();
 
 		// Get the GeneTrack
-		String geneTrackFile = proj.GENETRACK_FILENAME.getValue(false, false);
+		String geneTrackFile = proj.getGeneTrackFilename(false);
 		if (geneTrackFile != null && !geneTrackFile.endsWith("/") && new File(geneTrackFile).exists()) {
 			track = GeneTrack.load(geneTrackFile, false);
-		} else if (new File(GeneSet.REFSEQ_TRACK).exists()) {
-			track = GeneTrack.load(GeneSet.REFSEQ_TRACK, false);
+//		} else if (new File(GeneSet.REFSEQ_TRACK).exists()) {
+//			track = GeneTrack.load(GeneSet.REFSEQ_TRACK, false);
 		} else {
 			JOptionPane.showMessageDialog(this, "Gene track is not installed. Gene boundaries will not be displayed.", "FYI", JOptionPane.INFORMATION_MESSAGE);
 			track = null;
@@ -356,12 +362,119 @@ public class CompPlot extends JFrame {
             }
         }
 
-//        JMenu act = new JMenu("Actions");
-//        act.setMnemonic(KeyEvent.VK_A);
-//        menuBar.add(act);
+        JMenu act = new JMenu("Actions");
+        act.setMnemonic(KeyEvent.VK_A);
+        menuBar.add(act);
+        
+        JMenuItem ucsc;
+        JMenuItem bedUcsc;
+        JMenuItem medianLRR;
+        
+        ucsc = new JMenuItem();
+        ucsc.setAction(ucscAction);
+        ucsc.setText("Open Region in UCSC");
+        if (Desktop.isDesktopSupported()) {
+            ucsc.setToolTipText("View this location on UCSC in a browser");
+            ucsc.setEnabled(true);
+        } else {
+            ucsc.setToolTipText("Browser operations are not supported");
+            ucsc.setEnabled(false);
+        }
+        act.add(ucsc);
+
+        bedUcsc = new JMenuItem();
+        bedUcsc.setAction(ucscBedAction);
+        bedUcsc.setText("Upload to UCSC");
+        if (Desktop.isDesktopSupported()) {
+            bedUcsc.setToolTipText("Generate and upload a .BED file to UCSC");
+            bedUcsc.setEnabled(true);
+        } else {
+            bedUcsc.setToolTipText("Browser operations are not supported");
+            bedUcsc.setEnabled(false);
+        }
+        act.add(bedUcsc);
+        
+        medianLRR = new JMenuItem();
+        medianLRR.setAction(lrrCompAction);
+        medianLRR.setText("Median LRR");
+        medianLRR.setToolTipText("Compute median Log R Ratios for a region");
+        act.add(medianLRR);
 
         return menuBar;
     }
+    
+    private AbstractAction lrrCompAction = new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            new Thread(new LRRComp(proj, regionNavigator.getTextField().getText())).start();
+        }
+    };
+    
+    private AbstractAction ucscBedAction = new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // Figure out which files are selected
+            // Only allow upload if one file is selected (JDialog warning if multiples)
+            ArrayList<String> files = getFilterFiles();
+            if (files.size() != 1) {
+                JOptionPane.showMessageDialog(null, "One and only one file must be selected before a .BED File can be generated", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                // Find the full path to the selected file
+                String[] filePaths = proj.CNV_FILENAMES.getValue();
+                String compressedFile = "";
+                for (String file : filePaths) {
+                    if (file.endsWith(files.get(0))) {
+                        System.out.println("File path is " + file);
+                        compressedFile = file + ".bed..gz"; // TODO this should be .bed.gz?
+                        // Generate BED file with:
+                        UCSCtrack.makeTrack(file, file, proj.getLog());
+                        break;
+                    }
+                }
+
+                // Direct the user to the BED upload page at UCSC Genome Browser
+                Desktop desktop = Desktop.getDesktop();
+                String URL = Positions.getUCSCUploadLink(Positions.parseUCSClocation(regionNavigator.getTextField().getText()), compressedFile);
+
+                // UCSC uses chrX and chrY instead of 23 and 24
+                URL = URL.replaceAll("chr23", "chrX");
+                URL = URL.replaceAll("chr24", "chrY");
+                try {
+                    URI uri = new URI(URL);
+                    System.out.println("Browsing to " + URL);
+                    desktop.browse(uri);
+                } catch (URISyntaxException e1) {
+                    e1.printStackTrace();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+    };
+    
+    private AbstractAction ucscAction = new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+            Desktop desktop = Desktop.getDesktop();
+            String URL = Positions.getUCSClink(Positions.parseUCSClocation(regionNavigator.getTextField().getText()));
+
+            // UCSC uses chrX and chrY instead of 23 and 24
+            URL = URL.replaceAll("chr23", "chrX");
+            URL = URL.replaceAll("chr24", "chrY");
+            try {
+                URI uri = new URI(URL);
+                System.out.println("Browsing to " + URL);
+                desktop.browse(uri);
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }            
+        }
+    };
     
     private AbstractAction deleteFileAction = new AbstractAction() {
         private static final long serialVersionUID = 1L;

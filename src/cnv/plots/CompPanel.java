@@ -195,6 +195,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 		} else {
 			setRectangles(cnvRectangles.getFullRectangles());
 		}
+		selectedCNVs = null;
 	}
 
 	/**
