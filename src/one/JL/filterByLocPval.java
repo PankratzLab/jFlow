@@ -53,7 +53,7 @@ public class filterByLocPval {
 	}
 
 	public static void main(String[] args) {
-		int numArgs = args.length;
+	//	int numArgs = args.length;
 		String segFile = "D:/data/Project_Tsai_21_25_26_spector/meregedCaptureRegions.txt";
 		String locPvalFile = "D:/data/Project_Tsai_21_25_26_spector/NORMALIZED_GC_CORRECTED/NORMALIZED_GC_CORRECTED/p.loc.txt";
 
