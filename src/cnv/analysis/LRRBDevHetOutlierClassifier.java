@@ -597,6 +597,16 @@ public class LRRBDevHetOutlierClassifier {
 		writer.close();
 	}
 
+	/**
+	 * Validation File: <br />
+	 * Columns: {ID \t UCSC \t Outlier Code 0/1 \t Validation Code 0-9 } <br />
+	 * 
+	 * 
+	 * @param validationFile
+	 * @param resultsFile
+	 * @param outFile
+	 * @throws IOException
+	 */
 	private static void validateResults(String validationFile, String resultsFile, String outFile) throws IOException {
 		HashSet<String> locationsInValidationSet = new HashSet<String>();
 		HashMap<String, HashSet<String>> outliersInRegionsMap = new HashMap<String, HashSet<String>>();
@@ -859,7 +869,7 @@ public class LRRBDevHetOutlierClassifier {
 						+ "     OR "
 						+ "   (5b) (Optional) Excluded data from analysis based on a file of excluded sample IDs (i.e. excl=excluded.txt (not the default))\n"
 						+ "   (6) filename of validation set (i.e. vfile=outliers.txt (not the default))\n"
-						+ "   (7) Run validation and write results, do no write outliers or scores (i.e. -validateOnly (not the default))\n"
+						+ "   (7) Run validation and write results, do not write outliers or scores (i.e. -validateOnly (not the default))\n"
 						+ "  OR  \n"
 						+ "   (1) filename of outlier results (i.e. file=" + filename + " (default))\n"
 						+ "   (2) filename of validation set (i.e. vfile=outliers.txt (not the default))\n"
@@ -954,7 +964,7 @@ public class LRRBDevHetOutlierClassifier {
 			classifier.scoreOutliers();
 			classifier.validateResults(validationFilename);
 			if (!validationOnly) {
-				classifier.writeResults(outFile, outliersOnly, validationFilename != null, validationFilename != null, writeScores, !noHeader, !splitResults);
+				classifier.writeResults(outFile, outliersOnly, validationFilename != null, false, writeScores, !noHeader, !splitResults);
 			}
 			classifier.dispose();
 		} catch (Exception e) {
