@@ -64,6 +64,7 @@ public class GATK {
 	public static final String VARIANT = "--variant";
 	public static final String R = "-R";
 	public static final String A = "-A";
+	public static final String E = "-E";
 	public static final String SNP_EFF = "SnpEff";
 	public static final String SNP_EFF_FILE = "--snpEffFile";
 	public static final String L = "-L";
@@ -313,6 +314,34 @@ public class GATK {
 			fail = true;
 		}
 		return verified;
+	}
+
+	public boolean annotateWithAnotherVCF(String inputVcf, String annoVcf, String outVCF, String[] annotations, String resourceName, int numThreads) {
+		String[] inputs = new String[] { inputVcf, annoVcf };
+		String[] outputs = new String[] { outVCF };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add(javaLocation);
+		command.add(JAR);
+		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+		command.add(T);
+		command.add(VARIANT_ANNOTATOR);
+		command.add(R);
+		command.add(referenceGenomeFasta);
+		command.add(V);
+		command.add(inputVcf);
+		command.add(O);
+		command.add(outVCF);
+		command.add(RESOURCE + ":" + resourceName);
+		command.add(annoVcf);
+		for (int i = 0; i < annotations.length; i++) {
+			command.add(E);
+			command.add(annotations[i]);
+		}
+		if (numThreads > 1) {
+			command.add(NT);
+			command.add(numThreads + "");
+		}
+		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, verbose, overWriteExistingOutput, false, log);
 	}
 
 	private boolean determineTargetIndels(String dedup_reads_bam, String output, Logger altLog) {
