@@ -1514,6 +1514,8 @@ public class GenvisisPipeline {
             String output = variables.get(this).get(4); // gets PROJ_DIR prepended, so NOT ABSOLUTE
             (new File(ext.parseDirectoryOfFile(proj.PROJECT_DIRECTORY.getValue() + output))).mkdirs();
             CNVCaller.callCNVs(proj, output, numThreads, 1);
+            proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
+            proj.saveProperties(new Project.Property[]{proj.CNV_FILENAMES});
         }
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
@@ -1541,7 +1543,7 @@ public class GenvisisPipeline {
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String output = variables.get(this).get(4);
-            return Files.exists(output);
+            return Files.exists(proj.PROJECT_DIRECTORY.getValue() + output);
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {

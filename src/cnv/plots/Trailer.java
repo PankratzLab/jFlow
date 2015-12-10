@@ -167,6 +167,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private float[][][] centroids;
 	private String currentCentroid;
 	private static final String SEX_CENT = "Sex-Specific";
+	private static final int LOH_CNV = 99;
 	private JMenu loadRecentFileMenu;
 //	private JMenuItem launchScatter;
 //	private JMenuItem launchComp;
@@ -671,7 +672,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					}
 					end = getX(cnvs[i][j].getStop());
 					Color[] colors = getAColor(source);
-					g.setColor(colors[cnvs[i][j].getCN() < 2 ? 0 : 1]);
+					Color cnvColor = cnvs[i][j].getCN() == LOH_CNV ? Color.GRAY : colors[cnvs[i][j].getCN() < 2 ? 0 : 1];
+					g.setColor(cnvColor);
 					g.fillRoundRect(begin, (source+2)*15, end-begin+1, 10, 2, 2);
 					g.setColor(Color.BLACK);
 					if (selectedCNV != null && selectedCNV[0] == i && selectedCNV[1] == j) {
