@@ -399,7 +399,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     StringBuilder txtBld = new StringBuilder();
                     txtBld.append("<html>Start: ").append(ext.addCommas(cnv.getStart())).append("<br/>");
                     txtBld.append(" Stop: ").append(ext.addCommas(cnv.getStop())).append("<br/>");
-                    txtBld.append(" Length: ").append((cnv.getStop() - cnv.getStart())).append("<br/>");
+                    txtBld.append(" Length: ").append(ext.addCommas((cnv.getStop() - cnv.getStart()))).append("<br/>");
                     txtBld.append("# Mkrs: ").append(cnv.getNumMarkers()).append("<br/>");
                     txtBld.append("CN: ").append(cnv.getCN()).append("<br/>");
                     txtBld.append("Score: ").append(cnv.getScore()).append("</html>");
@@ -1236,7 +1236,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
 				menuItem.setAction(markerFileSelectAction);
 				menuItem.setFont(font);
-				menuItem.setText(name);
+				boolean found = Files.exists(file);
+				menuItem.setText(name + (found ? "" : " -- [file not found]"));
+				menuItem.setEnabled(found);
 				regionFileNameBtn.put(name, menuItem);
 				regionButtonGroup.add(menuItem);
 				loadRecentFileMenu.add(menuItem);
