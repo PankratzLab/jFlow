@@ -15,7 +15,7 @@ public class ReferenceGenomeTest {
 
 		// basic
 		ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
-		String[] test1 = referenceGenome.getSequenceFor(new Segment((byte) 26, 1, 50));
+	//	String[] test1 = referenceGenome.getSequenceFor(new Segment((byte) 26, 1, 50));
 
 		// other testing
 		String[] test = referenceGenome.getSequenceFor(new Segment((byte) 26, 1, 50));

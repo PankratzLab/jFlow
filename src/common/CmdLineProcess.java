@@ -59,6 +59,14 @@ public class CmdLineProcess implements Iterator<String> {
 	private boolean verbose, fail;
 	private Logger log;
 
+	public int getLineBufferSize() {
+		return lineBufferSize;
+	}
+
+	public InputWriter getInputWriter() {
+		return inputWriter;
+	}
+
 	/**
 	 * Sets up error streams,input streams, and output streams
 	 * 
