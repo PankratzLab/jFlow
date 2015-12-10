@@ -1,10 +1,10 @@
 package seq.analysis;
 
+import seq.manage.VCFOps;
 import common.CmdLine;
 import common.Files;
 import common.Logger;
 import common.PSF;
-import common.ext;
 
 /**
  * Class for automating the annotation of a vcf using ANNOVAR
@@ -104,7 +104,7 @@ public class ANNOVAR {
 		}
 
 		public void parse() {
-			this.output = ext.rootOf(inputVCF, false);
+			this.output = VCFOps.getAppropriateRoot(inputVCF, false);
 			this.outputVCF = output + "."+build + "_" + MULTI_ANNO;
 		}
 
