@@ -1512,7 +1512,7 @@ public class GenvisisPipeline {
                 proj.NUM_THREADS.setValue(numThreads);
             }
             String output = variables.get(this).get(4); // gets PROJ_DIR prepended, so NOT ABSOLUTE
-            (new File(ext.parseDirectoryOfFile(output))).mkdirs();
+            (new File(ext.parseDirectoryOfFile(proj.PROJECT_DIRECTORY.getValue() + output))).mkdirs();
             CNVCaller.callCNVs(proj, output, numThreads, 1);
         }
         @Override
