@@ -9,6 +9,7 @@ import seq.analysis.SNPEFF.SnpEffResult;
 import seq.analysis.SNPSIFT.SnpSiftResult;
 import seq.manage.VCFOps;
 import common.Array;
+import common.CmdLine;
 import common.Files;
 import common.HashVec;
 import common.Logger;
@@ -96,6 +97,12 @@ public class GATK_Genotyper {
 				AnnovarResults annovarResults = annovar.AnnovarAVCF(in, build, log);
 				in = annovarResults.getOutputVCF();
 				out = annovarResults.getOutputVCF();
+				log.reportTimeInfo("Since Annovar uses invalid char sequence for 1000g2014oct_all (starts with number), replacing with g10002014oct_all");
+				log.reportTimeInfo("Note this is a hard-coded sed, so...");
+
+				in = sed1000g(in, log);
+				out = in;
+
 			}
 			if (!snpeff.isFail()) {
 				SnpEffResult snpEffResult = snpeff.annotateAVCF(in, build);
@@ -116,6 +123,17 @@ public class GATK_Genotyper {
 			return out;
 		}
 		return null;
+	}
+	
+	private String sed1000g(String in, Logger log) {
+		String out = ext.addToRoot(in, ".sed1000g");
+		String command = "cat " + in + "|sed 's/1000g2014oct_all/g10002014oct_all/g'>" + out;
+		String[] bat = CmdLine.prepareBatchForCommandLine(new String[] { command }, out + ".bat", true, log);
+		if (CmdLine.runCommandWithFileChecks(bat, "", new String[] { in }, new String[] { out }, true, false, false, log)) {
+			return out;
+		} else {
+			return null;
+		}
 	}
 
 	public boolean determineTsTV(String inputVCF) {
@@ -157,7 +175,6 @@ public class GATK_Genotyper {
 		if (gatk.getRegionsFile() != null) {
 			command += REGIONS_FILE + gatk.getRegionsFile();
 		}
-
 		Files.qsub("GATK_Genotype_" + baseName, command, memoryInMB, wallTimeInHours, numWithinSampleThreads);
 	}
 
