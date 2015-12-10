@@ -668,7 +668,7 @@ public class VCFSimpleTally {
 					
 					annoGeneWriter.print("\t" + isGeneSet(geneSets, gene));
 					for (int j = 0; j < geneSets.length; j++) {
-						annoGeneWriter.println("\t" + geneSets[j].getGenes().containsKey(gene));
+						annoGeneWriter.print("\t" + geneSets[j].getGenes().containsKey(gene));
 					}
 					annoGeneWriter.println();
 				}
