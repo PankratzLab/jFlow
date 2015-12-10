@@ -1,28 +1,23 @@
 package cnv.gui;
 
-import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import cnv.filesys.Project;
-import cnv.manage.UCSCtrack;
 import cnv.plots.CompPlot;
 import cnv.var.Region;
+
 import common.Grafik;
 import common.Positions;
 import common.ext;
@@ -34,9 +29,6 @@ public class RegionNavigator extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
 	private JTextField textField;
 	JButton firstButton, leftButton, rightButton, lastButton; // Navigation buttons
-	JButton UCSCButton; // Launches a browser instance
-	JButton BEDButton; // Generates, compresses, and uploads a BED file base on the selected CNV file
-	JButton LRRButton; // Launches a widget to compute median LRR values across regions of interest
 	JLabel location;
 	String[] regionsList; // List of the region files
 	Project proj;
@@ -97,33 +89,6 @@ public class RegionNavigator extends JPanel implements ActionListener {
 
 		location = new JLabel();
 		add(location);
-
-		UCSCButton = new JButton("To UCSC");
-		if (Desktop.isDesktopSupported()) {
-			UCSCButton.setToolTipText("View this location on UCSC in a browser");
-			UCSCButton.addActionListener(this);
-			UCSCButton.setEnabled(true);
-		} else {
-			UCSCButton.setToolTipText("Browser operations are not supported");
-			UCSCButton.setEnabled(false);
-		}
-		add(UCSCButton);
-
-		BEDButton = new JButton("Upload to UCSC");
-		if (Desktop.isDesktopSupported()) {
-			BEDButton.setToolTipText("Generate and upload a .BED file to UCSC");
-			BEDButton.addActionListener(this);
-			BEDButton.setEnabled(true);
-		} else {
-			BEDButton.setToolTipText("Browser operations are not supported");
-			BEDButton.setEnabled(false);
-		}
-		add(BEDButton);
-		
-		LRRButton = new JButton("Median LRR");
-		LRRButton.setToolTipText("Compute median Log R Ratios for a region");
-		LRRButton.addActionListener(this);
-		add(LRRButton);
 	}
 
 	/**
@@ -212,59 +177,6 @@ public class RegionNavigator extends JPanel implements ActionListener {
 			}
 		} else if (source.equals(lastButton)) {
 			regionIndex = regions.get(currentFile).size() - 1;
-		} else if (source.equals(UCSCButton)) {
-			Desktop desktop = Desktop.getDesktop();
-			String URL = Positions.getUCSClink(Positions.parseUCSClocation(getTextField().getText()));
-
-			// UCSC uses chrX and chrY instead of 23 and 24
-			URL = URL.replaceAll("chr23", "chrX");
-			URL = URL.replaceAll("chr24", "chrY");
-			try {
-				URI uri = new URI(URL);
-				System.out.println("Browsing to " + URL);
-				desktop.browse(uri);
-			} catch (URISyntaxException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} else if (source.equals(BEDButton)) {
-			// Figure out which files are selected
-			// Only allow upload if one file is selected (JDialog warning if multiples)
-			ArrayList<String> files = plot.getFilterFiles();
-			if (files.size() != 1) {
-				JOptionPane.showMessageDialog(null, "One and only one file must be selected before a .BED File can be generated", "Error", JOptionPane.ERROR_MESSAGE);
-			} else {
-				// Find the full path to the selected file
-				String[] filePaths = proj.CNV_FILENAMES.getValue();
-				String compressedFile = "";
-				for (String file : filePaths) {
-					if (file.endsWith(files.get(0))) {
-						System.out.println("File path is " + file);
-						compressedFile = file + ".bed..gz"; // TODO this should be .bed.gz?
-						// Generate BED file with:
-						UCSCtrack.makeTrack(file, file, proj.getLog());
-						break;
-					}
-				}
-
-				// Direct the user to the BED upload page at UCSC Genome Browser
-				Desktop desktop = Desktop.getDesktop();
-				String URL = Positions.getUCSCUploadLink(Positions.parseUCSClocation(getTextField().getText()), compressedFile);
-
-				// UCSC uses chrX and chrY instead of 23 and 24
-				URL = URL.replaceAll("chr23", "chrX");
-				URL = URL.replaceAll("chr24", "chrY");
-				try {
-					URI uri = new URI(URL);
-					System.out.println("Browsing to " + URL);
-					desktop.browse(uri);
-				} catch (URISyntaxException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 		if (lastRegionIndex != regionIndex) {
 			setRegion(regionIndex);
@@ -279,9 +191,7 @@ public class RegionNavigator extends JPanel implements ActionListener {
 				// Pass along the property change
 				firePropertyChange("location", regions.get(currentFile).get(lastRegionIndex), new Region(newLocation));
 //			}
-		} else if (source.equals(LRRButton)) {
-			new Thread(new LRRComp(proj, getTextField().getText())).start();
-		}
+		} 
 	}
 
 	/**
