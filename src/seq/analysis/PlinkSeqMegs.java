@@ -52,7 +52,7 @@ public class PlinkSeqMegs {
 
 		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), ext.parseDirectoryOfFile(vpop.getFileName()) + VCFOps.getAppropriateRoot(vcf, true) + "/", vcf, vpop, resourceDirectory, true, true, log);
 		VCFFileReader reader = new VCFFileReader(vcf, true);
-		int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
+		//int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
 		reader.close();
 		// System.exit(1);
 
@@ -178,7 +178,7 @@ public class PlinkSeqMegs {
 		// ext.parseDirectoryOfFile(vpop.getFileName())
 		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), directory, vcf, vpop, resourceDirectory, true, loadLoc, log);
 		VCFFileReader reader = new VCFFileReader(vcf, true);
-		int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
+		//int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
 		reader.close();
 		return plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, null, -1, maf+"", ext.rootOf(vpop.getFileName()), false, numthreads);
 	}

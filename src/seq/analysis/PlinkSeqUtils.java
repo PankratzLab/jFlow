@@ -14,7 +14,6 @@ import java.util.Properties;
 
 import seq.analysis.PlinkSeq.BURDEN_Tests;
 import seq.pathway.GenomeRegions;
-import seq.pathway.Pathway;
 import common.Array;
 import common.Files;
 import common.HashVec;

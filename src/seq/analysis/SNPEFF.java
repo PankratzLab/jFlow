@@ -1,6 +1,5 @@
 package seq.analysis;
 
-import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
 import common.Array;
 import common.CmdLine;
 import common.Files;
