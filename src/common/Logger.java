@@ -258,7 +258,7 @@ public class Logger implements Serializable {
 	/**
 	 * @return percent free memory of the maximum available 
 	 */
-	public double memoryPercetTotalFree() {
+	public double memoryPercentTotalFree() {
 		double used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		double percentTotalFree = 100 - ((float) 100 * used / Runtime.getRuntime().maxMemory());
 		report("Percent free total heap size is: " + ext.formDeci(percentTotalFree, 1) + "%");

@@ -94,7 +94,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 						numEntries++;
 						if (numEntries % 1000000 == 0) {
 							proj.getLog().reportTimeInfo("Processed " + numEntries + " blast results");
-							proj.getLog().memoryPercetTotalFree();
+							proj.getLog().memoryPercentTotalFree();
 //							 reader.close();
 //							 break;
 						}
