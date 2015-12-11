@@ -105,6 +105,7 @@ public class Configurator extends JFrame {
                 "AB_LOOKUP_FILENAME",
                 "GENETRACK_FILENAME",
                 "GC_MODEL_FILENAME",
+                "GC_CORRECTION_PARAMETERS_FILENAMES",
                 "REFERENCE_GENOME_FASTA_FILENAME"
             },
             {
