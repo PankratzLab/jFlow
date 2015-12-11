@@ -570,6 +570,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
+                            updateSample(sample);
                             updateGUI();
                         }
                     });
@@ -764,7 +765,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		regionFileNameBtn.put(name, item);
 		regionButtonGroup.add(item);
 		loadRecentFileMenu.add(item);
-		
 	}
 	
 	public void generateComponents() {
@@ -1185,12 +1185,17 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-	            NewRegionListDialog newRgnList = new NewRegionListDialog(proj == null ? null : proj.getSamples(), proj == null ? null : proj.getProperty(proj.PROJECT_DIRECTORY), true);
+	            NewRegionListDialog newRgnList = new NewRegionListDialog(proj == null ? null : proj.getSamples(), proj == null ? null : proj.PROJECT_DIRECTORY.getValue(), true);
 	            newRgnList.setModal(true);
 	            newRgnList.setVisible(true);
 	            if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
 	                String rgnFile = newRgnList.getFileName();
 	                addFileToList(rgnFile);
+	                String file = ext.verifyDirFormat(rgnFile);
+	                file = file.substring(0, file.length() - 1);
+	                String name = ext.rootOf(file);
+	                regionFileNameBtn.get(name).setSelected(true);
+	                regionFileNameBtn.get(name).doClick();
 	            }
             }
         });
@@ -2390,6 +2395,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 //	}
 	
 	public void procCNVs(byte chr) {
+	    if (cnvLabels == null) {
+	        cnvs = new CNVariant[0][];
+	        return;
+	    }
 		cnvs = new CNVariant[cnvLabels.length][];  
 		if (indiPheno != null) {
     		for (int i = 0; i<cnvLabels.length; i++) {

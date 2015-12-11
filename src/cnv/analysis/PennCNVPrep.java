@@ -601,7 +601,7 @@ public class PennCNVPrep {
 		cmd.append(" tmpDir=").append(thisDir);
 		Files.qsub("PennCNVPrepFormatTmpFiles", cmd.toString(), batches, memoryInMB, wallTimeInHours, numThreads * numMarkerThreads);
 		if (!Files.exists(proj.INTENSITY_PC_FILENAME.getValue())) {
-			proj.getLog().report("Warning - all jobs will fail if the property " + proj.INTENSITY_PC_FILENAME + " in " + proj.getPropertyFilename() + " is not set to an existing file");
+			proj.getLog().report("Warning - all jobs will fail if the property " + proj.INTENSITY_PC_FILENAME.getName() + " in " + proj.getPropertyFilename() + " is not set to an existing file");
 			proj.getLog().report("		  - did not find " + proj.INTENSITY_PC_FILENAME.getValue());
 		}
 		if (getSampleSex(proj) == null) {
