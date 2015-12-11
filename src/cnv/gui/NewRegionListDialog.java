@@ -43,7 +43,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
     private HashSet<String> idSet = null;
     private String missingValue = DEFAULT_MISSING_UCSC_LOCATION;
     private boolean allowMissing = true;
-    
+    private String dir = "";
     /**
      * Launch the application.
      */
@@ -70,6 +70,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
     public NewRegionListDialog(String[] sampleNames, final String dir, boolean allowMissing, String missingValue) {
         this.allowMissing = allowMissing;
         this.missingValue = allowMissing && missingValue == null ? DEFAULT_MISSING_UCSC_LOCATION : missingValue;
+        this.dir = dir;
         setTitle("Create New UCSC Regions List");
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 550, 300);
@@ -88,7 +89,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
         JLabel lblMarkerNamesone = new JLabel(label);
         contentPane.add(lblMarkerNamesone, "cell 0 0,growx,aligny top");
         
-        JLabel lblFileName = new JLabel("File name (full path):");
+        JLabel lblFileName = new JLabel("File name (relative to project directory):");
         contentPane.add(lblFileName, "cell 0 2");
         
         textField = new JTextField();
@@ -201,8 +202,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
         }
         
         String filepath = textField.getText();
-        String dir = "";
-        File newFile = new File(dir + filepath);
+        File newFile = new File(filepath);
         boolean reachable = false;
         try {
             filepath = newFile.getCanonicalPath();

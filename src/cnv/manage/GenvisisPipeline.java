@@ -1581,7 +1581,7 @@ public class GenvisisPipeline {
         
     };
     
-    static final STEP S99_SHADOW_SAMPLES = new STEP("Create 'Shadow' Sample Files", 
+    static final STEP S99_SHADOW_SAMPLES = new STEP("Create 'Shadow' Project", 
                 "", 
                 new String[][]{},
                 new RequirementInputType[][]{}) {
