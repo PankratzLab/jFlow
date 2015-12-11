@@ -109,8 +109,8 @@ public class VerifyBamID {
 	public static void runVerifies(String bamDir, String vcf, int nThreads) {
 		String[] bams = Files.listFullPaths(bamDir, ".bam", false);
 
-		VerifyProducer producer = new VerifyProducer(bams, vcf);
-		WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, nThreads, 10, new Logger());
+		//VerifyProducer producer = new VerifyProducer(bams, vcf);
+		//WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, nThreads, 10, new Logger());
 		for (int i = 0; i < bams.length; i++) {
 			verifyBamID(bams[i], vcf);
 		}
@@ -122,7 +122,7 @@ public class VerifyBamID {
 		String bamDir = "/bams/";
 		int numThreads = 8;
 		String logfile = null;
-		Logger log;
+		//Logger log;
 
 		String usage = "\n" + "one.JL.VerifyBamID requires 0-1 arguments\n";
 		usage += "   (1) vcf file name (i.e. file=" + filename + " (default))\n" + "";
@@ -154,7 +154,7 @@ public class VerifyBamID {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(logfile);
+			//log = new Logger(logfile);
 			runVerifies(bamDir, filename, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();

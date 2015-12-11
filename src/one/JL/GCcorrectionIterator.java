@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
@@ -15,6 +16,9 @@ import stats.Rscript.RScatters;
 import stats.Rscript.SCATTER_TYPE;
 import common.Array;
 import common.Files;
+import common.Logger;
+import common.WorkerTrain;
+import common.WorkerTrain.Producer;
 import common.ext;
 import common.PSF.Ext;
 import cnv.analysis.CentroidCompute;
@@ -63,7 +67,7 @@ public class GCcorrectionIterator {
 
 		proj.getLog().reportTimeInfo("total iterations currently at (2X) " + (bpModels.length * regressDistance.length * snpMAD.length));
 		if (!Files.exists(freshCents)) {
-			CentroidCompute.computeAndDumpCentroids(proj,  freshCents, new CentroidBuilder(), numThreads, 2);
+			CentroidCompute.computeAndDumpCentroids(proj, freshCents, new CentroidBuilder(), numThreads, 2);
 		}
 		ArrayList<IterationParameters> finals = new ArrayList<IterationParameters>();
 		GCAdjustorBuilder builder = new GCAdjustorBuilder();
@@ -114,7 +118,7 @@ public class GCcorrectionIterator {
 		}
 
 		try {
-			summarizeSampleQC(proj, outputGz, finals);
+			summarizeSampleQC(proj, outputGz, numThreads,finals);
 		} catch (IllegalStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -131,7 +135,57 @@ public class GCcorrectionIterator {
 
 	}
 
-	private static void summarizeSampleQC(Project proj, String outputGZ, ArrayList<IterationParameters> finals) throws IllegalStateException {
+	private static class IPloadProducer implements Producer<IterationParameters> {
+		private ArrayList<IterationParameters> finals;
+		private Logger log;
+		private int index;
+
+		public IPloadProducer(ArrayList<IterationParameters> finals, Logger log) {
+			super();
+			this.finals = finals;
+			this.log = log;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < finals.size();
+		}
+
+		@Override
+		public Callable<IterationParameters> next() {
+			IPLoadWorker lw = new IPLoadWorker(finals.get(index), log);
+			index++;
+			// TODO Auto-generated method stub
+			return lw;
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+	}
+
+	private static class IPLoadWorker implements Callable<IterationParameters> {
+		private IterationParameters ip;
+		private Logger log;
+
+		public IPLoadWorker(IterationParameters ip, Logger log) {
+			super();
+			this.ip = ip;
+			this.log = log;
+		}
+
+		@Override
+		public IterationParameters call() throws Exception {
+			ip.load(log);
+			// TODO Auto-generated method stub
+			return ip;
+		}
+
+	}
+
+	private static void summarizeSampleQC(Project proj, String outputGZ, int numthreads, ArrayList<IterationParameters> finals) throws IllegalStateException {
 		String[] commonHeader = new String[] { "SampleName", "gcmodel_bp", "regress_bp", "snpMAD" };
 
 		String[] specificHeader = new String[] { "BETA_0", "BETA_1", "WF_PRIOR", "WF_POST", "GCWF_PRIOR", "GCWF_POST", "LRR_MEAN_PRIOR", "LRR_MEAN_POST", "LRR_SD_PRIOR", "LRR_SD_POST" };
@@ -140,21 +194,25 @@ public class GCcorrectionIterator {
 		format("GCWF", plotCombos);
 		format("LRR_MEAN", plotCombos);
 		format("LRR_SD", plotCombos);
-
+		IPloadProducer ipp = new IPloadProducer(finals, proj.getLog());
+		WorkerTrain<IterationParameters> train = new WorkerTrain<GCcorrectionIterator.IterationParameters>(ipp, numthreads, 2, proj.getLog());
 		if (!Files.exists(outputGZ)) {
 			String[] withoutCent = Array.tagOn(specificHeader, null, "");
 			String[] withCent = Array.tagOn(specificHeader, null, CENT_TAG);
 			PrintWriter writer = Files.getAppropriateWriter(outputGZ);
 			writer.println(Array.toStr(commonHeader) + "\t" + Array.toStr(withoutCent) + "\t" + Array.toStr(withCent));
-
-			for (int i = 0; i < finals.size(); i++) {
-				IterationParameters cur = finals.get(i);
+			int index = 0;
+			while (train.hasNext()) {
+				IterationParameters cur = train.next();
+				if (index % 50 == 0) {
+					proj.getLog().reportTimeInfo("Summarized " + index);
+				}
 				if (cur.getSerFiles().length != 2) {
 					throw new IllegalStateException("Ser replicates must be in two-fers");
 
 				} else {
-					GcAdjustorParameters noCents = GcAdjustorParameters.readSerial(cur.getSerFiles()[0], proj.getLog());
-					GcAdjustorParameters cents = GcAdjustorParameters.readSerial(cur.getSerFiles()[1], proj.getLog());
+					GcAdjustorParameters noCents = cur.getNoCents();
+					GcAdjustorParameters cents = cur.getCents();
 					String[] allSamples = proj.getSamples();
 					GcAdjustorParameter[] noCentParams = noCents.getGcAdjustorParameters();
 					GcAdjustorParameter[] centParams = cents.getGcAdjustorParameters();
@@ -168,6 +226,9 @@ public class GCcorrectionIterator {
 						}
 					}
 				}
+				finals.set(index, null);
+				index++;
+				proj.getLog().memoryPercentTotalFree();
 			}
 			writer.close();
 		}
@@ -272,8 +333,10 @@ public class GCcorrectionIterator {
 		private int regressDistance;
 		private int numSnpMad;
 		private String[] serFiles;
+		private GcAdjustorParameters noCents;
+		private GcAdjustorParameters cents;
 
-		public IterationParameters(int bpModel, int regressDistance, int numSnpMad, String[] serFiles) {
+		private IterationParameters(int bpModel, int regressDistance, int numSnpMad, String[] serFiles) {
 			super();
 			this.bpModel = bpModel;
 			this.regressDistance = regressDistance;
@@ -281,11 +344,24 @@ public class GCcorrectionIterator {
 			this.serFiles = serFiles;
 		}
 
-		public String[] getSerFiles() {
+		private String[] getSerFiles() {
 			return serFiles;
 		}
 
-		public String[] getParams() {
+		private void load(Logger log) {
+			this.noCents = GcAdjustorParameters.readSerial(serFiles[0], log);
+			this.cents = GcAdjustorParameters.readSerial(serFiles[1], log);
+		}
+
+		public GcAdjustorParameters getNoCents() {
+			return noCents;
+		}
+
+		public GcAdjustorParameters getCents() {
+			return cents;
+		}
+
+		private String[] getParams() {
 			ArrayList<String> params = new ArrayList<String>();
 			params.add(bpModel + "");
 			params.add(regressDistance + "");
@@ -302,6 +378,9 @@ public class GCcorrectionIterator {
 		int numThreads = 24;
 		String filename = null;
 		int[] bpModels = new int[] { -1, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000 };
+
+		System.out.println("JOHN add back in -1 and 1000000 and remove final.gz");
+		bpModels = new int[] { 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000 };
 		int[] regressDistance = new int[] { 1000000, 10, 100, 1000, 2000, 4000, 8000, 10000, 20000, 40000, 80000, 100000, 500000 };// eq 13
 		int[] snpMAD = new int[] { 0, 1, 2, 5, 10, 15 };
 		boolean batch = false;
