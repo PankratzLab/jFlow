@@ -313,9 +313,15 @@ public class MapSNPsAndGenes {
     public static void fromParameters(String filename, Logger log) {
         Vector<String> params;
 
-        String snpEffLoc = Aliases.getPathToFileInReferenceDirectory(SNPEFF.SNP_EFF, false, new Logger());
+        String snpEffLoc = Aliases.getPathToFileInReferenceDirectory(SNPEFF.SNP_EFF, true, new Logger());
+        if (snpEffLoc == null) { 
+            snpEffLoc = Aliases.getPathToFileInReferenceDirectory("snpEff/" + SNPEFF.SNP_EFF, true, new Logger());
+        }
         if (snpEffLoc == null) { snpEffLoc = ""; }
-        String annovarLoc = Aliases.getPathToFileInReferenceDirectory(ANNOVAR.TABLE_ANNOVAR, false, new Logger());
+        String annovarLoc = Aliases.getPathToFileInReferenceDirectory(ANNOVAR.TABLE_ANNOVAR, true, new Logger());
+        if (annovarLoc == null) {
+            annovarLoc = Aliases.getPathToFileInReferenceDirectory("ANNOVAR/annovar/" + ANNOVAR.TABLE_ANNOVAR, true, new Logger());
+        }
         if (annovarLoc == null) { annovarLoc = ""; }
         
         params = Files.parseControlFile(filename, 
@@ -439,7 +445,7 @@ public class MapSNPsAndGenes {
 						wiggleRoom = DEFAULT_WIGGLE_ROOM;
 					}
 				}				
-				procSNPsToGenes("", filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc, swap, xln);
+				procSNPsToGenes(dir, filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc, swap, xln);
 			} else {
 				log = new Logger(logfile);
 				procSNPsToGenes(dir, filename, wiggleRoom, build, log, vcf, snpeff, gatk, snpEffLoc, annovarLoc, swap, xln);
