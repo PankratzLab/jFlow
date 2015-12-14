@@ -43,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.JComboBox;
+import javax.swing.JProgressBar;
 
 public class ProjectCreationGUI extends JDialog {
 
@@ -124,6 +125,7 @@ public class ProjectCreationGUI extends JDialog {
 //    private JComboBox<String> comboBoxArrayType;
     private JLabel lblSrcFileStatus;
     private JSpinner spinnerXY;
+    private JProgressBar progressBar;
 
     /**
      * Launch the application.
@@ -258,18 +260,36 @@ public class ProjectCreationGUI extends JDialog {
         contentPane.add(panel, "south");
         panel.setLayout(new MigLayout("", "[grow][]", "[]"));
         
-        JButton btnCreate = new JButton("Validate and Create");
+        JButton btnCreate = new JButton("[Fast] Validate and Create");
         btnCreate.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (checkValues()) {
-                    if (createProject()) {
+                    if (createProject(false)) {
                         doClose(false);
                     }
                 }
             }
         });
-        btnCreate.setMnemonic(KeyEvent.VK_V);
+        
+        progressBar = new JProgressBar();
+        progressBar.setVisible(false);
+        panel.add(progressBar, "hidemode 2, cell 0 0");
+        
+        btnCreate.setMnemonic(KeyEvent.VK_F);
         panel.add(btnCreate, "flowx,cell 1 0");
+
+        JButton btnCreateAndValidate = new JButton("[Full] Validate and Create");
+        btnCreateAndValidate.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (checkValues()) {
+                    if (createProject(true)) {
+                        doClose(false);
+                    }
+                }
+            }
+        });
+        btnCreateAndValidate.setMnemonic(KeyEvent.VK_V);
+        panel.add(btnCreateAndValidate, "cell 1 0");
         
         JButton btnCancel = new JButton("Cancel");
         btnCancel.addActionListener(new ActionListener() {
@@ -389,7 +409,7 @@ public class ProjectCreationGUI extends JDialog {
         }
     }
     
-    private boolean createProject() {
+    private boolean createProject(boolean fullValidation) {
         String name = txtFldProjName.getText().trim();
         String projDir = txtFldProjDir.getText().trim();
         String srcDir = txtFldSrcDir.getText().trim();
@@ -399,7 +419,7 @@ public class ProjectCreationGUI extends JDialog {
         double xy = ((Double)spinnerXY.getValue()).doubleValue();
         String tgtMkrs = txtFldTgtMkrs.getText().trim();
         
-        HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt, true, new common.Logger());
+        HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt, fullValidation, new common.Logger(), progressBar);
         if (headers == null) {
             // errors found in headers - check output and retry?
             return false;

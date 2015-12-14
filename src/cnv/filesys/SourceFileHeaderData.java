@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import javax.swing.JProgressBar;
+
 import cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import cnv.manage.SourceFileParser;
 import common.Array;
@@ -223,7 +225,7 @@ public class SourceFileHeaderData implements Serializable {
         }
     }
     
-    public static HashMap<String, SourceFileHeaderData> validate(final String rawDir, final String ext, boolean fullValidation, Logger log) {
+    public static HashMap<String, SourceFileHeaderData> validate(final String rawDir, final String ext, boolean fullValidation, Logger log, JProgressBar progressBar) {
         String dir = rawDir.endsWith("/") || rawDir.endsWith("\\") ? rawDir : common.ext.verifyDirFormat(rawDir);
         String[] possibleFiles = (new File(dir)).list(new FilenameFilter() {
             @Override
@@ -231,24 +233,38 @@ public class SourceFileHeaderData implements Serializable {
                 return name.endsWith(ext);
             }
         });
+        if (progressBar != null) {
+            progressBar.setVisible(true);
+            progressBar.setMinimum(0);
+            progressBar.setMaximum(possibleFiles.length);
+            progressBar.setString(null);
+            progressBar.setStringPainted(true);
+        }
         
         boolean valid = false;
         HashMap<String, SourceFileHeaderData> headers = null;
+        int progCnt = 0;
         try {
-//            if (fullValidation) {
-                headers = new HashMap<String, SourceFileHeaderData>();
-//            }
+            headers = new HashMap<String, SourceFileHeaderData>();
             for (String possFile : possibleFiles) {
                 SourceFileHeaderData frhd = SourceFileHeaderData.parseHeader(dir + possFile, log);
-//                if (fullValidation) {
-                    headers.put(possFile, frhd);
-//                }
+                headers.put(possFile, frhd);
+                if (progressBar != null) {
+                    progressBar.setValue(++progCnt);
+                }
             }
             if (fullValidation) {
+                if (progressBar != null) {
+                    progressBar.setIndeterminate(true);
+                    progressBar.setString("Verifying...");
+                }
                 String error = doFullValidation(headers, log);
                 if (error != null) {
                     throw new Elision("Error - " + error);
                 }
+            }
+            if (progressBar != null) {
+                progressBar.setVisible(false);
             }
             valid = true;
         } catch (Elision e) {
@@ -674,7 +690,7 @@ public class SourceFileHeaderData implements Serializable {
             System.exit(1);
         }
         try {
-            validate(dir, ext, true, log == null ? new Logger() : new Logger(log));
+            validate(dir, ext, true, log == null ? new Logger() : new Logger(log), null);
         } catch (Exception e) {
             e.printStackTrace();
         }

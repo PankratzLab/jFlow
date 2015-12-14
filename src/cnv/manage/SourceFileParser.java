@@ -862,7 +862,7 @@ public class SourceFileParser implements Runnable {
         			for (int i = 0; i < files.length; i++) {
         				files[i] = ext.removeDirectoryInfo(affyProcess.getCombinedOutputFiles()[i]);
         			}
-        			proj.setSourceFileHeaders(SourceFileHeaderData.validate(ext.parseDirectoryOfFile(affyProcess.getCombinedOutputFiles()[0]), "." + proj.getArrayType() + ".tmp.gz", true, proj.getLog()));
+        			proj.setSourceFileHeaders(SourceFileHeaderData.validate(ext.parseDirectoryOfFile(affyProcess.getCombinedOutputFiles()[0]), "." + proj.getArrayType() + ".tmp.gz", true, proj.getLog(), null));
         			break;
         		case ILLUMINA:
         			break;
@@ -1289,7 +1289,7 @@ public class SourceFileParser implements Runnable {
     			for (int i = 0; i < files.length; i++) {
     				files[i] = ext.removeDirectoryInfo(affyProcess.getCombinedOutputFiles()[i]);
     			}
-    			proj.setSourceFileHeaders(SourceFileHeaderData.validate(ext.parseDirectoryOfFile(affyProcess.getCombinedOutputFiles()[0]), "." + proj.getArrayType() + ".tmp.gz", true, proj.getLog()));
+    			proj.setSourceFileHeaders(SourceFileHeaderData.validate(ext.parseDirectoryOfFile(affyProcess.getCombinedOutputFiles()[0]), "." + proj.getArrayType() + ".tmp.gz", true, proj.getLog(), null));
     			break;
     		case ILLUMINA:
     			break;

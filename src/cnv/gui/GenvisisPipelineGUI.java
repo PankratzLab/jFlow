@@ -201,8 +201,8 @@ public class GenvisisPipelineGUI extends JDialog {
             btnExportToText.setActionCommand("Export");
             btnExportToText.addActionListener(listener);
             buttonPane.add(btnExportToText, "cell 7 0");
-            JButton okButton = new JButton("OK");
-            okButton.setActionCommand("OK");
+            JButton okButton = new JButton("Run");
+            okButton.setActionCommand("Run");
             okButton.setMnemonic(KeyEvent.VK_O);
             buttonPane.add(okButton, "cell 8 0,alignx left,aligny top");
             getRootPane().setDefaultButton(okButton);
