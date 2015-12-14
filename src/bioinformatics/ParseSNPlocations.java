@@ -157,11 +157,13 @@ public class ParseSNPlocations {
                             } while (next != null);
                             
                             if (!curr.equals(rs)) {
+                                rsNumber = Integer.parseInt(curr.substring(2));// error checking on RS w/ allele
+                                chrom = rsNumber / (512 * 1024 * 1024) + 1;
                                 vcIter = vcfReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
                                 markerVC = null;
                                 while (vcIter.hasNext()) {
                                     VariantContext vc = vcIter.next();
-                                    if (vc.getID().equals(rs)) {
+                                    if (vc.getID().equals(curr)) {
                                         markerVC = vc;
                                         break;
                                     }
@@ -256,7 +258,9 @@ public class ParseSNPlocations {
         }
         
         vcfReader.close();
-        Files.writeArrayList(rsNotFound, ext.rootOf(snpListFile, false)+"_missing.txt");
+        if (rsNotFound.size() > 0) {
+            Files.writeArrayList(rsNotFound, ext.rootOf(snpListFile, false)+"_missing.txt");
+        }
         monitor.endTask(PROG_KEY);
     }
 	

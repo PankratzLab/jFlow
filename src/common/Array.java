@@ -2154,11 +2154,11 @@ public class Array {
 	 */
 	public static int[] splitUp(int total, int numSplits) {
 		int[] splits = new int[numSplits];
-
-		for (int i = 0; i<numSplits-1; i++) {
-			splits[i] = (int)Math.floor((double)total/(double)numSplits);
+		int fullBinAmt = (int) Math.floor((double)total / (double)numSplits);
+		for (int i = 0; i < numSplits - 1; i++) {
+			splits[i] = fullBinAmt;
 		}
-		splits[numSplits-1] = total-(numSplits-1)*(int)Math.floor((double)total/(double)numSplits);
+		splits[numSplits - 1] = total - (numSplits - 1) * fullBinAmt;
 
 		return splits;
 	}
