@@ -557,9 +557,12 @@ public class PlinkData {
 //			e.printStackTrace();
 //		}
 //	}
-	
 	public static boolean saveGenvisisToPlinkPedSet(Project proj, String filenameRoot, String clusterFiltersFilename, String targetMarkersFilename) {
-		BufferedReader reader;
+		return saveGenvisisToPlinkPedSet(proj, filenameRoot, null, clusterFiltersFilename, targetMarkersFilename);
+	}
+
+	public static boolean saveGenvisisToPlinkPedSet(Project proj, String filenameRoot, String dir, String clusterFiltersFilename, String targetMarkersFilename) {
+	BufferedReader reader;
 		PrintWriter writer;
 		Hashtable<String,Integer> hash;
 		String[] line;
@@ -590,7 +593,7 @@ public class PlinkData {
 		
 		String PROG_KEY = "PLINKEXPORT";
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Exporting marker data for PLINK analysis", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-		
+		dir = dir == null ? proj.PROJECT_DIRECTORY.getValue() : dir;
 		for (int i = 0; i<markerNames.length; i++) {
 			if (hash.containsKey(markerNames[i])) {
 				proj.message("Warning - duplicate marker name: "+markerNames[i]);
@@ -630,7 +633,7 @@ public class PlinkData {
 		positions = markerSet.getPositions();
 		try {
 		    log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".map");
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filenameRoot+".map"));
+			writer = new PrintWriter(new FileWriter(dir+filenameRoot+".map"));
 			for (int i = 0; i<indices.length; i++) {
 				writer.println(chrs[indices[i]]+" "+markerNames[indices[i]]+" 0 "+positions[indices[i]]);
 				proj.getProgressMonitor().updateTask(PROG_KEY + "_MAPEXPORT");
@@ -681,7 +684,7 @@ public class PlinkData {
 		
 		try {
 			reader = new BufferedReader(new FileReader(proj.PEDIGREE_FILENAME.getValue()));
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+filenameRoot+".ped"));
+			writer = new PrintWriter(new FileWriter(dir+filenameRoot+".ped"));
 			log.report(ext.getTime() + "]\tWriting " + filenameRoot + ".ped");
 			count = 1;
 			invalidAbLookups = new Hashtable<Integer, Integer>();
@@ -717,6 +720,9 @@ public class PlinkData {
 							writer.print(" 0 0");
 						}
 					} else {
+						long time =System.currentTimeMillis();
+						StringBuilder builder =new StringBuilder();
+
 						if (clusterFiltersFilename == null) {
 							genotypes = fsamp.getForwardGenotypes(gcThreshold);
 						} else {
@@ -725,20 +731,27 @@ public class PlinkData {
 						for (int i = 0; i<indices.length; i++) {
 							genIndex = genotypes[indices[i]];
 							if (genIndex==0) {
-								writer.print(" 0 0");
+								builder.append(" 0 0");
+								//writer.print(" 0 0");
 							} else {
 								if (genIndex < 0) {
 									if (!invalidAbLookups.containsKey(indices[i])) {
 										log.reportError("Error - marker '"+markerNames[indices[i]]+"' was manually reclustered and requires a previously undefined AB lookup code ("+abLookup[indices[i]][0]+"/"+abLookup[indices[i]][1]+"); alleles will be set to missing for anyone with an invalid allele");
 										invalidAbLookups.put(indices[i], invalidAbLookups.size());
 									}
-									writer.print(" 0 0");
+									builder.append(" 0 0");
+									//writer.print(" 0 0");
 								} else {
 									genotype = Sample.ALLELE_PAIRS[genIndex];
-									writer.print(" "+genotype.charAt(0)+" "+genotype.charAt(1));
+									//writer.print(" "+genotype.charAt(0)+" "+genotype.charAt(1));
+									builder.append(" "+genotype.charAt(0)+" "+genotype.charAt(1));
 								}
 							}
 						}
+						writer.print(builder.toString());
+//						log.reportTimeElapsed(time);
+//						log.reportTimeInfo("Sample " + line[6]);
+
 					}
 				}
 				writer.println();
@@ -754,7 +767,7 @@ public class PlinkData {
 			if (invalidAbLookups.size() > 0) {
 				proj.message("There "+(invalidAbLookups.size()==1?" was one marker ":"were "+invalidAbLookups.size()+" markers")+" with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -cp Genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "+proj.getProperty(proj.DATA_DIRECTORY)+"invalid_AB_codes.out for a list of variants that this affects.");
 				try {
-					writer = new PrintWriter(new FileWriter(proj.DATA_DIRECTORY.getValue(false, true)+"invalid_AB_codes.out"));
+					writer = new PrintWriter(new FileWriter(dir+"invalid_AB_codes.out"));
 					writer.println("MarkerNames\tA\tB");
 					indices = Array.toIntArray(invalidAbLookups);
 					for (int i = 0; i < indices.length; i++) {
@@ -762,7 +775,7 @@ public class PlinkData {
 					}
 					writer.close();
 				} catch (Exception e) {
-					proj.message("Error writing to " + proj.DATA_DIRECTORY.getValue(false, true)+"invalid_AB_codes.out");
+					proj.message("Error writing to " + dir+"invalid_AB_codes.out");
 					log.reportException(e);
 				}
 			}
