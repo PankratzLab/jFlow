@@ -720,7 +720,6 @@ public class PlinkData {
 							writer.print(" 0 0");
 						}
 					} else {
-						long time =System.currentTimeMillis();
 						StringBuilder builder =new StringBuilder();
 
 						if (clusterFiltersFilename == null) {
