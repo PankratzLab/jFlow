@@ -7,11 +7,15 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
 import common.Array;
 import common.CmdLine;
 import common.Files;
+import common.Logger;
+import common.WorkerTrain;
 import common.ext;
+import common.WorkerTrain.Producer;
 import cnv.filesys.Pedigree;
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
@@ -35,11 +39,12 @@ public class MitoGWAS {
 	 * @param outputDir
 	 *            where the analysis will happen, full path
 	 */
-	public static void analyze(Project proj, String pedFile, String pcFile, String covarFile, String outputDir) {
+	public static void analyze(Project proj, String pedFile, String pcFile, String covarFile, String outputDir, int numthreads) {
 		Pedigree ped = new Pedigree(proj, pedFile, false);
 
 		String fullOut = outputDir + ext.rootOf(proj.getPropertyFilename()) + "/";
 		new File(fullOut).mkdirs();
+
 		String root = fullOut + ext.rootOf(proj.getPropertyFilename());
 		String newPed = root + ".pedigree.dat";
 
@@ -54,13 +59,21 @@ public class MitoGWAS {
 			proj.getLog().reportTimeInfo(plinkMap + " and " + plinkPed + "exist, skipping");
 		}
 
+		int mac = 5;
+		double maf = (double) 5 / ped.getDnas().length;
+		proj.getLog().reportTimeInfo("using maf of " + maf + " (MAC= " + mac + "  of " + ped.getDnas().length);
+
 		ArrayList<String> plinkConverCommand = new ArrayList<String>();
 		plinkConverCommand.add("plink2");
 		plinkConverCommand.add("--file");
 		plinkConverCommand.add(root);
 		plinkConverCommand.add("--make-bed");
 		plinkConverCommand.add("--out");
+		root = root + "_maf_" + ext.roundToSignificantFigures(maf, 5);
 		plinkConverCommand.add(root);
+		plinkConverCommand.add("--maf");
+		plinkConverCommand.add(maf + "");
+
 		String[] in = new String[] { plinkPed, plinkMap };
 		String fam = root + ".fam";
 		String bim = root + ".bim";
@@ -72,16 +85,16 @@ public class MitoGWAS {
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
 		String natty = subDir + "WITHOUT_BUILDERS_NATURAL_WITHOUT_INDEPS_finalSummary.estimates.txt.gz";
 		String[] nattyTitles = new String[] { "PC15", "PC150" };
-		runGwas(proj, root, natty, nattyTitles, covarFile, ped);
+		runGwas(proj, root, natty, nattyTitles, covarFile, ped, numthreads);
 
 		String stepWise = subDir + "WITHOUT_BUILDERS_STEPWISE_RANK_R2_WITHOUT_INDEPS_finalSummary.estimates.txt.gz";
 		String[] header = Files.getHeaderOfFile(stepWise, proj.getLog());
 		String[] stepWiseTitles = new String[] { "PC15", header[header.length - 1] };
-		runGwas(proj, root, stepWise, stepWiseTitles, covarFile, ped);
+		runGwas(proj, root, stepWise, stepWiseTitles, covarFile, ped, numthreads);
 
 	}
 
-	private static void runGwas(Project proj, String root, String mtPhenoFile, String[] titles, String covarFile, Pedigree ped) {
+	private static void runGwas(Project proj, String root, String mtPhenoFile, String[] titles, String covarFile, Pedigree ped, int numThreads) {
 		ProjectDataParserBuilder builderCurrent = new ProjectDataParserBuilder();
 		builderCurrent.numericDataTitles(titles);
 		builderCurrent.sampleBased(true);
@@ -103,6 +116,8 @@ public class MitoGWAS {
 			ExtProjectDataParser covarParser = builderCovar.build(proj, covarFile);
 			covarParser.determineIndicesFromTitles();
 			covarParser.loadData();
+			ArrayList<PlinkAssoc> plinkCommands = new ArrayList<PlinkAssoc>();
+
 			for (int i = 0; i < titles.length; i++) {
 				String outCurrent = root + ext.rootOf(mtPhenoFile) + "_" + titles[i] + ".txt";
 				for (int j = 0; j < covarParser.getNumericDataTitles().length; j++) {
@@ -124,15 +139,23 @@ public class MitoGWAS {
 						writer.println();
 					}
 					writer.close();
+
 					String outPrepReg = ext.addToRoot(outCurrent, ".prepped");
-					PhenoPrep.parse("", outCurrent, "IID", titles[i], null, 3.0, false, false, true, false, false, Array.toStr(covarParser.getNumericDataTitles(), ","), root + ".fam", true, true, false, false, false, false, null, outPrepReg, true, false, false, false, false, false, proj.getLog());
+					PlinkAssoc regCommand = prepareAssoc(root, false, outCurrent, titles[i], Array.toStr(covarParser.getNumericDataTitles(), ","), outPrepReg, proj.getLog());
+					plinkCommands.add(regCommand);
 					String outPrepInv = ext.addToRoot(outCurrent, ".prepped.inv");
-					PhenoPrep.parse("", outCurrent, "IID", titles[i], null, 3.0, false, false, true, false, true, Array.toStr(covarParser.getNumericDataTitles(), ","), root + ".fam", true, true, false, false, false, false, null, outPrepInv, true, false, false, false, false, false, proj.getLog());
+					PlinkAssoc invCommand = prepareAssoc(root, true, outCurrent, titles[i], Array.toStr(covarParser.getNumericDataTitles(), ","), outPrepInv, proj.getLog());
+					plinkCommands.add(invCommand);
 
 				} catch (Exception e) {
 					proj.getLog().reportError("Error writing to " + outCurrent);
 					proj.getLog().reportException(e);
 				}
+			}
+			PlinkAssocProducer producer = new PlinkAssocProducer(plinkCommands, proj.getLog());
+			WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numThreads, 2, proj.getLog());
+			while (train.hasNext()) {
+				train.next();
 			}
 
 		} catch (FileNotFoundException e) {
@@ -142,14 +165,90 @@ public class MitoGWAS {
 
 	}
 
+	private static class PlinkAssocProducer implements Producer<Boolean> {
+		private ArrayList<PlinkAssoc> assocs;
+		private int index;
+
+		public PlinkAssocProducer(ArrayList<PlinkAssoc> assocs, Logger log) {
+			super();
+			this.assocs = assocs;
+			this.index = 0;
+
+		}
+
+		@Override
+		public boolean hasNext() {
+
+			// TODO Auto-generated method stub
+			return index < assocs.size();
+		}
+
+		@Override
+		public Callable<Boolean> next() {
+			PlinkAssoc toReturn = assocs.get(index);
+			index++;
+			return toReturn;
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+	}
+
+	private static class PlinkAssoc implements Callable<Boolean> {
+		private ArrayList<String> command;
+		private String[] inputs;
+		private String[] outputs;
+		private Logger log;
+
+		public PlinkAssoc(ArrayList<String> command, String[] inputs, String[] outputs, Logger log) {
+			super();
+			this.command = command;
+			this.inputs = inputs;
+			this.outputs = outputs;
+			this.log = log;
+		}
+
+		@Override
+		public Boolean call() throws Exception {
+			return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true, false, false, log);
+		}
+	}
+
+	private static PlinkAssoc prepareAssoc(String root, boolean inverse, String inputDb, String pheno, String covars, String output, Logger log) {
+		System.out.println(output);
+		String processed = ext.addToRoot(output, "_pheno");
+		PhenoPrep.parse("", inputDb, "IID", pheno, null, 3.0, false, false, true, false, inverse, covars, root + ".fam", true, true, false, false, false, false, null, output, true, false, false, false, false, false, log);
+		ArrayList<String> plink = new ArrayList<String>();
+		plink.add("plink2");
+		plink.add("--linear");
+		plink.add("--bfile");
+		plink.add(root);
+		plink.add("--covar-name");
+		plink.add(covars);
+		plink.add("--covar");
+		plink.add(inputDb);
+		plink.add("--pheno");
+		plink.add(processed);
+		plink.add("--out");
+		plink.add(ext.rootOf(output, false));
+		String[] inputs = new String[] { processed, inputDb };
+		String[] outputs = new String[] { root + ".assoc.linear" };
+		PlinkAssoc assoc = new PlinkAssoc(plink, inputs, outputs, log);
+
+		return assoc;
+	}
+
 	public static void test() {
 		Project proj = new Project("/home/pankrat2/lanej/projects/gedi_gwas.properties", false);
 		String ped = "/panfs/roc/groups/5/pankrat2/shared/gedi_gwas/mitoAnalyze/gedi_gwas.ped";
 		String covar = "/panfs/roc/groups/5/pankrat2/shared/gedi_gwas/mitoAnalyze/gedi_gwas.covar";
-
+		int numthreads = 12;
 		String outputDir = "/scratch.global/lanej/mitoAnalyze/";
 		String pcFile = proj.PROJECT_DIRECTORY.getValue() + "gedi_gwasALL_1000PCs_OHW_40_ws15_gc_corrected_recomp.PCs.extrapolated.txt";
-		analyze(proj, ped, pcFile, covar, outputDir);
+		analyze(proj, ped, pcFile, covar, outputDir, numthreads);
 	}
 
 	public static void main(String[] args) {
