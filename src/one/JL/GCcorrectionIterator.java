@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
+import stats.Rscript;
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.PLOT_DEVICE;
 import stats.Rscript.RScatter;
@@ -108,7 +109,17 @@ public class GCcorrectionIterator {
 				String[][][] generated = null;
 
 				generated = GcAdjustorParameter.generateAdjustmentParameters(proj, builders.toArray(new GCAdjustorBuilder[builders.size()]), new String[] { freshCents }, new GC_CORRECTION_METHOD[] { GC_CORRECTION_METHOD.GENVISIS_GC }, gcModel, Array.toStringArray(outs), numThreads, true);
-
+				proj.getLog().reportTimeInfo("Adding gc Content");
+				double[] gcs = gcModel.getGCsFor(proj.getMarkerNames());
+//				for (int j = 0; j < generated.length; j++) {
+//					for (int j2 = 0; j2 < generated[j].length; j2++) {
+//						for (int k = 0; k < generated[j][j2].length; k++) {
+//							GcAdjustorParameters tmp = GcAdjustorParameters.readSerial(generated[j][j2][k], proj.getLog());
+//							tmp.setGcContent(gcs);
+//							tmp.writeSerial(generated[j][j2][k]);
+//						}
+//					}
+//				}
 				IterationParameters[] tmp = getParameters(generated, bpModels[i], builders);
 				for (int j = 0; j < tmp.length; j++) {
 					finals.add(tmp[j]);
@@ -235,75 +246,87 @@ public class GCcorrectionIterator {
 		ArrayList<RScatter> allLooks = new ArrayList<RScatter>();
 
 		for (String base : plotCombos.keySet()) {
-			System.out.println(base);
-			System.out.println(Array.toStr(plotCombos.get(base)));
-			// String root = ext.rootOf(outputGZ, false) + base;
-			// RScatter rScatter = new RScatter(outputGZ, root + ".rscript", ext.removeDirectoryInfo(root), root + ".pdf", base, plotCombos.get(base), null, SCATTER_TYPE.POINT, proj.getLog());
-			// rScatter.setyLabel(base.replaceAll("_PRIOR", ""));
-			// rScatter.setxLabel(base);
-			// rScatter.execute();
-			// allLooks.add(rScatter);
-			// //
-			String rootBox = ext.rootOf(outputGZ, false) + base + ".box";
-			RScatter rScatterBox = new RScatter(outputGZ, rootBox + ".rscript", ext.removeDirectoryInfo(rootBox), rootBox + ".pdf", "gcmodel_bp", Array.concatAll(new String[] { base }, plotCombos.get(base)), null, SCATTER_TYPE.BOX, proj.getLog());
-			rScatterBox.setyLabel(rootBox.replaceAll("_PRIOR", ""));
-			rScatterBox.setFontsize(3);
-			rScatterBox.setyLabel(base.replaceAll("_PRIOR", ""));
-			rScatterBox.setTitle("Original AND re-computed LRR");
-			// rScatterBox.setxLabel(rootBox);
-			rScatterBox.execute();
-			allLooks.add(rScatterBox);
+			
+//			System.out.println(base);
+//			System.out.println(Array.toStr(plotCombos.get(base)));
+//			// String root = ext.rootOf(outputGZ, false) + base;
+//			// RScatter rScatter = new RScatter(outputGZ, root + ".rscript", ext.removeDirectoryInfo(root), root + ".pdf", base, plotCombos.get(base), null, SCATTER_TYPE.POINT, proj.getLog());
+//			// rScatter.setyLabel(base.replaceAll("_PRIOR", ""));
+//			// rScatter.setxLabel(base);
+//			// rScatter.execute();
+//			// allLooks.add(rScatter);
+//			// //
+//			String rootBox = ext.rootOf(outputGZ, false) + base + ".box";
+//			RScatter rScatterBox = new RScatter(outputGZ, rootBox + ".rscript", ext.removeDirectoryInfo(rootBox), rootBox + ".pdf", "gcmodel_bp", Array.concatAll(new String[] { base }, plotCombos.get(base)), null, SCATTER_TYPE.BOX, proj.getLog());
+//			rScatterBox.setyLabel(rootBox.replaceAll("_PRIOR", ""));
+//			rScatterBox.setFontsize(3);
+//			rScatterBox.setyLabel(base.replaceAll("_PRIOR", ""));
+//			rScatterBox.setTitle("Original AND re-computed LRR");
+//			// rScatterBox.setxLabel(rootBox);
+//			rScatterBox.execute();
+//			allLooks.add(rScatterBox);
+//
+//			String rootBoxTrim = ext.rootOf(outputGZ, false) + base + ".trim";
+//			RScatter rScatterBoxTrim = new RScatter(outputGZ, rootBoxTrim + ".rscript", ext.removeDirectoryInfo(rootBoxTrim), rootBoxTrim + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[0], plotCombos.get(base)[2] }, null, SCATTER_TYPE.BOX, proj.getLog());
+//			rScatterBoxTrim.setyLabel(rootBoxTrim.replaceAll("_PRIOR", ""));
+//			rScatterBoxTrim.setFontsize(3);
+//			rScatterBoxTrim.setyLabel(base.replaceAll("_PRIOR", ""));
+//			rScatterBoxTrim.setTitle("re-computed LRR Only");
+//
+//			// rScatterBox.setxLabel(rootBox);
+//			rScatterBoxTrim.execute();
+//			allLooks.add(rScatterBoxTrim);
+//
+//			String rootBoxTrimTrim = ext.rootOf(outputGZ, false) + base + ".trimTrim";
+//			RScatter rScatterBoxTrimTrim = new RScatter(outputGZ, rootBoxTrimTrim + ".rscript", ext.removeDirectoryInfo(rootBoxTrimTrim), rootBoxTrimTrim + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[0], plotCombos.get(base)[2] }, null, SCATTER_TYPE.BOX, proj.getLog());
+//			rScatterBoxTrimTrim.setyLabel(rootBoxTrimTrim.replaceAll("_PRIOR", ""));
+//			rScatterBoxTrimTrim.setFontsize(3);
+//			rScatterBoxTrimTrim.setyLabel(base.replaceAll("_PRIOR", ""));
+//			rScatterBoxTrimTrim.setyRange(new double[] { -.5, .5 });
+//			rScatterBoxTrimTrim.setTitle("re-computed LRR Only");
+//
+//			// rScatterBox.setxLabel(rootBox);
+//			rScatterBoxTrimTrim.execute();
+//			allLooks.add(rScatterBoxTrimTrim);
+//
+//			// String rootVsNoCent = ext.rootOf(outputGZ, false) + base + ".vs_noCent";
+//			// RScatter rScattervs = new RScatter(outputGZ, rootVsNoCent + ".rscript", ext.removeDirectoryInfo(rootVsNoCent), rootVsNoCent + ".pdf", base, new String[] { plotCombos.get(base)[0] }, "gcmodel_bp", SCATTER_TYPE.POINT, proj.getLog());
+//			// rScattervs.setxLabel(base);
+//			// rScattervs.setyLabel(plotCombos.get(base)[0]);
+//			// rScattervs.setTitle("NO Recompute");
+//			// rScattervs.setFontsize(3);
+//			// rScattervs.execute();
+//			// allLooks.add(rScattervs);
+//
+//			String rootVsCent = ext.rootOf(outputGZ, false) + base + ".vs_Cent";
+//			RScatter rScattervsCent = new RScatter(outputGZ, rootVsCent + ".rscript", ext.removeDirectoryInfo(rootVsCent), rootVsCent + ".pdf", plotCombos.get(base)[1], new String[] { plotCombos.get(base)[2] }, "gcmodel_bp", SCATTER_TYPE.POINT, proj.getLog());
+//			rScattervsCent.setFontsize(3);
+//			rScattervsCent.setxLabel("gcmodel_bp");
+//			rScattervsCent.setyLabel(plotCombos.get(base)[2]);
+//			rScattervsCent.setTitle("re-computed LRR Only");
+//
+//			// rScatterBox.setxLabel(rootBox);
+//			rScattervsCent.execute();
+//
+//			String rootVsCentBP = ext.rootOf(outputGZ, false) + base + ".vs_Cent";
+//			RScatter rScattervsCentBP = new RScatter(outputGZ, rootVsCentBP + ".rscript", ext.removeDirectoryInfo(rootVsCentBP), rootVsCentBP + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[2] }, "regress_bp", SCATTER_TYPE.POINT, proj.getLog());
+//			rScattervsCentBP.setFontsize(3);
+//			rScattervsCentBP.setxLabel("gcmodel_bp");
+//			rScattervsCentBP.setyLabel(plotCombos.get(base)[2]);
+//			rScattervsCentBP.setTitle("re-computed LRR Only");
+//
+//			allLooks.add(rScattervsCentBP);
 
-			String rootBoxTrim = ext.rootOf(outputGZ, false) + base + ".trim";
-			RScatter rScatterBoxTrim = new RScatter(outputGZ, rootBoxTrim + ".rscript", ext.removeDirectoryInfo(rootBoxTrim), rootBoxTrim + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[0], plotCombos.get(base)[2] }, null, SCATTER_TYPE.BOX, proj.getLog());
-			rScatterBoxTrim.setyLabel(rootBoxTrim.replaceAll("_PRIOR", ""));
-			rScatterBoxTrim.setFontsize(3);
-			rScatterBoxTrim.setyLabel(base.replaceAll("_PRIOR", ""));
-			rScatterBoxTrim.setTitle("re-computed LRR Only");
-
-			// rScatterBox.setxLabel(rootBox);
-			rScatterBoxTrim.execute();
-			allLooks.add(rScatterBoxTrim);
-
-			String rootBoxTrimTrim = ext.rootOf(outputGZ, false) + base + ".trimTrim";
-			RScatter rScatterBoxTrimTrim = new RScatter(outputGZ, rootBoxTrimTrim + ".rscript", ext.removeDirectoryInfo(rootBoxTrimTrim), rootBoxTrimTrim + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[0], plotCombos.get(base)[2] }, null, SCATTER_TYPE.BOX, proj.getLog());
-			rScatterBoxTrimTrim.setyLabel(rootBoxTrimTrim.replaceAll("_PRIOR", ""));
-			rScatterBoxTrimTrim.setFontsize(3);
-			rScatterBoxTrimTrim.setyLabel(base.replaceAll("_PRIOR", ""));
-			rScatterBoxTrimTrim.setyRange(new double[] { -.5, .5 });
-			rScatterBoxTrimTrim.setTitle("re-computed LRR Only");
-
-			// rScatterBox.setxLabel(rootBox);
-			rScatterBoxTrimTrim.execute();
-			allLooks.add(rScatterBoxTrimTrim);
-
-			// String rootVsNoCent = ext.rootOf(outputGZ, false) + base + ".vs_noCent";
-			// RScatter rScattervs = new RScatter(outputGZ, rootVsNoCent + ".rscript", ext.removeDirectoryInfo(rootVsNoCent), rootVsNoCent + ".pdf", base, new String[] { plotCombos.get(base)[0] }, "gcmodel_bp", SCATTER_TYPE.POINT, proj.getLog());
-			// rScattervs.setxLabel(base);
-			// rScattervs.setyLabel(plotCombos.get(base)[0]);
-			// rScattervs.setTitle("NO Recompute");
-			// rScattervs.setFontsize(3);
-			// rScattervs.execute();
-			// allLooks.add(rScattervs);
-
-			String rootVsCent = ext.rootOf(outputGZ, false) + base + ".vs_Cent";
-			RScatter rScattervsCent = new RScatter(outputGZ, rootVsCent + ".rscript", ext.removeDirectoryInfo(rootVsCent), rootVsCent + ".pdf", plotCombos.get(base)[1], new String[] { plotCombos.get(base)[2] }, "gcmodel_bp", SCATTER_TYPE.POINT, proj.getLog());
-			rScattervsCent.setFontsize(3);
-			rScattervsCent.setxLabel("gcmodel_bp");
-			rScattervsCent.setyLabel(plotCombos.get(base)[2]);
-			rScattervsCent.setTitle("re-computed LRR Only");
-
-			// rScatterBox.setxLabel(rootBox);
-			rScattervsCent.execute();
-
-			String rootVsCentBP = ext.rootOf(outputGZ, false) + base + ".vs_Cent";
-			RScatter rScattervsCentBP = new RScatter(outputGZ, rootVsCentBP + ".rscript", ext.removeDirectoryInfo(rootVsCentBP), rootVsCentBP + ".pdf", "gcmodel_bp", new String[] { plotCombos.get(base)[2] }, "regress_bp", SCATTER_TYPE.POINT, proj.getLog());
-			rScattervsCentBP.setFontsize(3);
-			rScattervsCentBP.setxLabel("gcmodel_bp");
-			rScattervsCentBP.setyLabel(plotCombos.get(base)[2]);
-			rScattervsCentBP.setTitle("re-computed LRR Only");
-
-			allLooks.add(rScattervsCentBP);
+			String rootVsCentDensity = ext.rootOf(outputGZ, false) + base + ".vs_CentDensity";
+			RScatter rScattervsCentDensity = new RScatter(outputGZ, rootVsCentDensity + ".rscript", ext.removeDirectoryInfo(rootVsCentDensity), rootVsCentDensity + ".pdf", "gcmodel_bp", new String[] { "regress_bp" }, plotCombos.get(base)[2], SCATTER_TYPE.POINT, proj.getLog());
+			rScattervsCentDensity.setFontsize(3);
+			rScattervsCentDensity.setxLabel("regress_bp");
+			rScattervsCentDensity.setyLabel(plotCombos.get(base)[2]);
+			rScattervsCentDensity.setTitle("re-computed LRR Only");
+			rScattervsCentDensity.setRestrictions(new Rscript.Restrictions[] { new Rscript.Restrictions(new String[] { "snpMAD" }, new double[] { 0 }, new String[] { "==" }, null) });
+			rScattervsCentDensity.setScaleDensity(true);
+			
+			allLooks.add(rScattervsCentDensity);
 
 		}
 
@@ -379,8 +402,8 @@ public class GCcorrectionIterator {
 		String filename = null;
 		int[] bpModels = new int[] { -1, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000 };
 
-		System.out.println("JOHN add back in -1 and 1000000 and remove final.gz");
-		bpModels = new int[] { 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000 };
+		System.out.println("JOHN add 1000000 and remove final.gz");
+		bpModels = new int[] { -1,50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000 };
 		int[] regressDistance = new int[] { 1000000, 10, 100, 1000, 2000, 4000, 8000, 10000, 20000, 40000, 80000, 100000, 500000 };// eq 13
 		int[] snpMAD = new int[] { 0, 1, 2, 5, 10, 15 };
 		boolean batch = false;
