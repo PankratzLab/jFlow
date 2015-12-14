@@ -985,7 +985,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		qcLabel = new JLabel(" ", JLabel.CENTER);
 		qcLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		qcLabel.setFont(font);
-		qcLabel.setToolTipText("Click for More Details");
+//		qcLabel.setToolTipText("Click for More Details");
 		compPanel.add(qcLabel, "cell 0 2");
 		
 		descrPanel.add(compPanel, "cell 0 1");

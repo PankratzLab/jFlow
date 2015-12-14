@@ -45,7 +45,7 @@ public class ImportProjectGUI extends JDialog {
     private JTextField txtFldProjDir;
     private JTextField txtFldSampleDataFile;
     private JLabel lblFoundProjectStatus;
-    private JLabel lblFoundSampleDataStatus;
+//    private JLabel lblFoundSampleDataStatus;
     private JLabel lblFoundSamplesStatus;
     private JLabel lblFoundSampleListStatus;
     private JLabel lblFoundMarkerLookupStatus;

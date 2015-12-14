@@ -66,6 +66,8 @@ public class Project {
 		public  abstract void parseValue(String valueStr);
 		public  String getValueString() { return value.toString(); }
 		public  String getDefaultValueString() { return defaultValue.toString(); }
+		@Override
+		public String toString() { return getName() + "=" + getValueString(); }
 	}
 	
 	public static class StringProperty extends Property<String> {
@@ -530,14 +532,14 @@ public class Project {
                 @Override
                 public void run() {
                     log.report("Parsing source file headers in background thread.");
-                    setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log));
+                    setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log, null));
                     log.report("Source file header parsing complete.");
                 }
             }).start();
 	        return null;
         } else {
             log.report("Parsing source file headers in active thread.");
-            setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log));
+            setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log, null));
             log.report("Source file header parsing complete.");
             return getSourceFileHeaders();
         }
