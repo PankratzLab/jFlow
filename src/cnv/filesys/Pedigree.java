@@ -221,6 +221,7 @@ public class Pedigree extends FamilyStructure {
     private int[][] dnaIndicesInProject;
     public static final int MISSING_DNA_INDEX = -1;
     boolean projectOrder;
+    private String pedigreeFile;
     
     public Pedigree(Project proj) {
         this(proj, proj.PEDIGREE_FILENAME.getValue(), true);
@@ -249,6 +250,7 @@ public class Pedigree extends FamilyStructure {
         this.projectOrder = projectOrder;
         SampleData sampleData = nullProject ? null : proj.getSampleData(0, false);
         String[] samples = nullProject ? null : proj.getSamples();
+		this.pedigreeFile = pedigreeFile;
         for (int i = 0; i < this.ids.length; i++) {
             int iDNAIndex = proj == null ? MISSING_DNA_INDEX : getSampleIndex(this.dnas[i], sampleData, samples);
             int faDNAIndex = proj == null ? MISSING_DNA_INDEX : getSampleIndex(this.ids[i][FamilyStructure.FA_INDEX], sampleData, samples);
@@ -283,5 +285,10 @@ public class Pedigree extends FamilyStructure {
     public int getMoDNAIndex(int index) {
         return this.dnaIndicesInProject[index][2];
     }
+
+	public String getPedigreeFile() {
+		return pedigreeFile;
+	}
+    
     
 }
