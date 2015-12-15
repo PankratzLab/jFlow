@@ -97,6 +97,7 @@ public class SourceFileParser implements Runnable {
 //		delimiter = proj.getSourceFileDelimiter();
 		allOutliers = new Hashtable<String, Float>();
 		headers = proj.getSourceFileHeaders();
+		boolean headersOutput = false;
         try {
 			for (int i = 0; i < files.length; i++) {
 				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.CANCEL_OPTION_FILE).exists()) {
@@ -172,23 +173,25 @@ public class SourceFileParser implements Runnable {
 					        Array.byteArray(markerNames.length, (byte) 0),
 					        ignoreAB ? null : Array.byteArray(markerNames.length, (byte) -1),
 					}; // two sets of genotypes, the "forward" alleles and the AB alleles
-					
-					StringBuilder logOutput = new StringBuilder();
-					logOutput.append("Column name assignments for data import:\n");
-					logOutput.append("GC: ").append(headerData.cols[headerData.colGC]).append("\n");
-					logOutput.append("XRaw: ").append(headerData.cols[headerData.colXRaw]).append("\n");
-					logOutput.append("YRaw: ").append(headerData.cols[headerData.colYRaw]).append("\n");
-                    logOutput.append("X: ").append(headerData.cols[headerData.colX]).append("\n");
-                    logOutput.append("Y: ").append(headerData.cols[headerData.colY]).append("\n");
-                    logOutput.append("Theta: ").append(headerData.cols[headerData.colTheta]).append("\n");
-                    logOutput.append("R: ").append(headerData.cols[headerData.colR]).append("\n");
-                    logOutput.append("BAF: ").append(headerData.cols[headerData.colBAF]).append("\n");
-                    logOutput.append("LRR: ").append(headerData.cols[headerData.colLRR]).append("\n");
-                    logOutput.append("Geno1: ").append(headerData.cols[headerData.colGeno1]).append("\n");
-                    logOutput.append("Geno2: ").append(headerData.cols[headerData.colGeno2]).append("\n");
-                    logOutput.append("AB1: ").append(headerData.cols[headerData.colGenoAB1]).append("\n");
-                    logOutput.append("AB2: ").append(headerData.cols[headerData.colGenoAB2]).append("\n");
-					log.report(logOutput.toString());
+					if (!headersOutput) {
+    					StringBuilder logOutput = new StringBuilder();
+    					logOutput.append("Column name assignments for data import:\n");
+    					logOutput.append("GC: ").append(headerData.colGC == -1 ? "[missing]" : headerData.cols[headerData.colGC]).append("\n");
+    					logOutput.append("XRaw: ").append(headerData.colXRaw == -1 ? "[missing]" : headerData.cols[headerData.colXRaw]).append("\n");
+    					logOutput.append("YRaw: ").append(headerData.colYRaw == -1 ? "[missing]" : headerData.cols[headerData.colYRaw]).append("\n");
+                        logOutput.append("X: ").append(headerData.colX == -1 ? "[missing]" : headerData.cols[headerData.colX]).append("\n");
+                        logOutput.append("Y: ").append(headerData.colY == -1 ? "[missing]" : headerData.cols[headerData.colY]).append("\n");
+                        logOutput.append("Theta: ").append(headerData.colTheta == -1 ? "[missing]" : headerData.cols[headerData.colTheta]).append("\n");
+                        logOutput.append("R: ").append(headerData.colR == -1 ? "[missing]" : headerData.cols[headerData.colR]).append("\n");
+                        logOutput.append("BAF: ").append(headerData.colBAF == -1 ? "[missing]" : headerData.cols[headerData.colBAF]).append("\n");
+                        logOutput.append("LRR: ").append(headerData.colLRR == -1 ? "[missing]" : headerData.cols[headerData.colLRR]).append("\n");
+                        logOutput.append("Geno1: ").append(headerData.colGeno1 == -1 ? "[missing]" : headerData.cols[headerData.colGeno1]).append("\n");
+                        logOutput.append("Geno2: ").append(headerData.colGeno2 == -1 ? "[missing]" : headerData.cols[headerData.colGeno2]).append("\n");
+                        logOutput.append("AB1: ").append(headerData.colGenoAB1 == -1 ? "[missing]" : headerData.cols[headerData.colGenoAB1]).append("\n");
+                        logOutput.append("AB2: ").append(headerData.colGenoAB2 == -1 ? "[missing]" : headerData.cols[headerData.colGenoAB2]).append("\n");
+    					log.report(logOutput.toString());
+    					headersOutput = true;
+					}
 					
 					count = 0;
 					parseAtAt = proj.getProperty(proj.PARSE_AT_AT_SYMBOL);
@@ -220,31 +223,31 @@ public class SourceFileParser implements Runnable {
 						int ind = 0;
 						int col = headerData.colGC;
 						try {
-						    data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+						    if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
                             ind = 1;
                             col = headerData.colXRaw;
-						    data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
 						    ind = 2;
 						    col = headerData.colYRaw;
-                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+						    if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
                             ind = 3;
                             col = headerData.colX;
-                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
                             ind = 4;
                             col = headerData.colY;
-                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
                             ind = 5;
                             col = headerData.colTheta;
-                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
                             ind = 6;
                             col = headerData.colR;
-                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
                             ind = 7;
                             col = headerData.colBAF;
-                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
                             ind = 8;
                             col = headerData.colLRR;
-                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
+                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
                         } catch (NumberFormatException nfe) {
                             log.reportError("Error - failed at line " + key + " to parse '" + line[col] + "' into a valid " + Array.toStr(Sample.DATA_FIELDS[ind], "/"));
                             return;

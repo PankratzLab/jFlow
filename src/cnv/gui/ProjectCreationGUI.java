@@ -260,12 +260,16 @@ public class ProjectCreationGUI extends JDialog {
         contentPane.add(panel, "south");
         panel.setLayout(new MigLayout("", "[grow][]", "[]"));
         
-        JButton btnCreate = new JButton("[Fast] Validate and Create");
+        JButton btnCreate = new JButton("Create [Skip Validation]");
+        btnCreate.setToolTipText("<html>Create new project, skipping source file validation.<br />  ONLY select if all source files are guaranteed <br />to be correct, valid, and uniform in structure.</html>");
         btnCreate.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (checkValues()) {
-                    if (createProject(false)) {
-                        doClose(false);
+                    int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this, "<html>Do you confirm that all source files are valid, correct, and uniform in structure? <br />[If not, or if unsure, select 'Validate and Create' to check for uniformity and validity]</html>", "Confirm File Validity", JOptionPane.YES_NO_OPTION);
+                    if (resp == JOptionPane.YES_OPTION) {
+                        if (createProject(false)) {
+                            doClose(false);
+                        }
                     }
                 }
             }
@@ -278,7 +282,7 @@ public class ProjectCreationGUI extends JDialog {
         btnCreate.setMnemonic(KeyEvent.VK_F);
         panel.add(btnCreate, "flowx,cell 1 0");
 
-        JButton btnCreateAndValidate = new JButton("[Full] Validate and Create");
+        JButton btnCreateAndValidate = new JButton("Validate and Create");
         btnCreateAndValidate.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (checkValues()) {
@@ -409,7 +413,7 @@ public class ProjectCreationGUI extends JDialog {
         }
     }
     
-    private boolean createProject(boolean fullValidation) {
+    private boolean createProject(boolean actuallyValidate) {
         String name = txtFldProjName.getText().trim();
         String projDir = txtFldProjDir.getText().trim();
         String srcDir = txtFldSrcDir.getText().trim();
@@ -419,7 +423,7 @@ public class ProjectCreationGUI extends JDialog {
         double xy = ((Double)spinnerXY.getValue()).doubleValue();
         String tgtMkrs = txtFldTgtMkrs.getText().trim();
         
-        HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt, fullValidation, new common.Logger(), progressBar);
+        HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt, actuallyValidate, new common.Logger(), progressBar);
         if (headers == null) {
             // errors found in headers - check output and retry?
             return false;
