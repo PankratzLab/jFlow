@@ -246,8 +246,19 @@ public class SourceFileHeaderData implements Serializable {
         int progCnt = 0;
         try {
             headers = new HashMap<String, SourceFileHeaderData>();
+            SourceFileHeaderData exemplar = null;
             for (String possFile : possibleFiles) {
-                SourceFileHeaderData frhd = SourceFileHeaderData.parseHeader(dir + possFile, log);
+                SourceFileHeaderData frhd;
+                if (!fullValidation) {
+                    if (exemplar == null) {
+                        frhd = SourceFileHeaderData.parseHeader(dir + possFile, log);
+                        exemplar = frhd; 
+                    } else {
+                        frhd = exemplar;
+                    }
+                } else {
+                    frhd = SourceFileHeaderData.parseHeader(dir + possFile, log);
+                }
                 headers.put(possFile, frhd);
                 if (progressBar != null) {
                     progressBar.setValue(++progCnt);
