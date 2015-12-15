@@ -665,7 +665,7 @@ public class VCFSimpleTally {
 					for (int j = 0; j < geneSummariesCurrent.size(); j++) {
 						annoGeneWriter.print("\t" + Array.toStr(geneSummariesCurrent.get(j)[i].getSummary()));
 					}
-					
+
 					annoGeneWriter.print("\t" + isGeneSet(geneSets, gene));
 					for (int j = 0; j < geneSets.length; j++) {
 						annoGeneWriter.print("\t" + geneSets[j].getGenes().containsKey(gene));
@@ -1024,21 +1024,20 @@ public class VCFSimpleTally {
 	public static void main(String[] args) {
 		test();
 	}
-	
-	
-//	boolean setMember = false;
-//	for (int j = 0; j < geneSets.length; j++) {
-//		if (geneSets[j].getGenes().containsKey(gene)) {
-//			if (!setMember) {
-//				annoGeneWriter.print("\t" + geneSets[j].getTag());
-//			} else {
-//				annoGeneWriter.print(";" + geneSets[j].getTag());
-//			}
-//			setMember = true;
-//
-//		}
-//	}
-//	if (!setMember) {
-//		annoGeneWriter.print("\t.");
-//	}
+
+	// boolean setMember = false;
+	// for (int j = 0; j < geneSets.length; j++) {
+	// if (geneSets[j].getGenes().containsKey(gene)) {
+	// if (!setMember) {
+	// annoGeneWriter.print("\t" + geneSets[j].getTag());
+	// } else {
+	// annoGeneWriter.print(";" + geneSets[j].getTag());
+	// }
+	// setMember = true;
+	//
+	// }
+	// }
+	// if (!setMember) {
+	// annoGeneWriter.print("\t.");
+	// }
 }
