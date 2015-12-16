@@ -623,7 +623,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(GCMODEL)) {
 				cnv.analysis.PennCNV.gcModel(proj, Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS, "gc5Base.txt", true, false, log), proj.PROJECT_DIRECTORY.getValue()+"data/custom.gcModel", 100);
 			} else if (command.equals(MARKER_METRICS)) {
-				cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, proj.NUM_THREADS.getValue());
+				cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, true, proj.NUM_THREADS.getValue());
 			} else if (command.equals(FILTER_MARKER_METRICS)) {
 				cnv.qc.MarkerMetrics.filterMetrics(proj);
 			} else if (command.equals(TALLY_MARKER_ANNOTATIONS)) {

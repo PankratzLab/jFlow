@@ -377,6 +377,8 @@ public class MitoPipeline {
 					if (verifyAuxMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), PC_MARKER_COMMAND)) {
 						// if marker QC is not flagged, sample qc is based on all target markers by default
 						if (markerQC) {
+							String markerQCFile = outputBase+"_markerQC.txt";
+							proj.MARKER_METRICS_FILENAME.setValue(markerQCFile);
 							qcMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), markerCallRateFilter, numThreads);
 							markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE;
 							if (!Files.exists(markersForABCallRate)) {
@@ -603,7 +605,7 @@ public class MitoPipeline {
 			writeMarkersToQC(proj, targetMarkersFile);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);
-			MarkerMetrics.fullQC(proj, samplesToExclude, MARKERS_TO_QC_FILE, numthreads);
+			MarkerMetrics.fullQC(proj, samplesToExclude, MARKERS_TO_QC_FILE, false, numthreads);
 		}
 		filterMarkerMetricsFile(proj, markerCallRateFilter);
 	}
@@ -800,6 +802,9 @@ public class MitoPipeline {
 			log.report("Skipping qc computation, filtering on existing qc file " + proj.PROJECT_DIRECTORY.getValue() + DEFAULT_QC_FILE);
 		} else {
 			log.report("Computing sample QC for all samples...");
+			String qcFile = outputBase + "_lrr_sd.txt";
+			log.report("Will be reporting sample qc to " + qcFile);
+			proj.SAMPLE_QC_FILENAME.setValue(qcFile);
 			cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, null, numThreads);
 		}
 
