@@ -265,9 +265,9 @@ public class MarkerMetrics {
 			//	markerDataLoader.releaseIndex(i);
 			}
 			mdl.shutdown();
-			if (pedigree != null) {
-    			mendelWriter.flush();
-    			mendelWriter.close();
+			if (pedigree != null && checkMendel) {
+				mendelWriter.flush();
+				mendelWriter.close();
 			}
 			writer.print(line);
 			writer.close();
