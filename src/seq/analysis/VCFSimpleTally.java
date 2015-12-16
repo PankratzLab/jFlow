@@ -23,7 +23,7 @@ import java.util.concurrent.Callable;
 
 import bioinformatics.OMIM;
 import bioinformatics.OMIM.OMIMGene;
-import seq.analysis.VCFSimpleTally.GeneVariantSummary.ADD_TYPE;
+import seq.analysis.VCFSimpleTally.GeneVariantPositionSummary.ADD_TYPE;
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import seq.manage.VCFOps.ChrSplitResults;
@@ -606,9 +606,7 @@ public class VCFSimpleTally {
 							addEntries(caseDef, controlsOrdered, geneSummaries, geneSets[j].getTag());
 						}
 					}
-
 					VcGroupSummary vcCaseGroup = new VcGroupSummary(caseDef, cases, vc, qual, log);
-
 					// TODO, check
 					for (int j = 0; j < geneSummaries.get(geneName).get(0).length; j++) {
 						geneSummaries.get(geneName).get(0)[j].add(vcCaseGroup, null);
@@ -668,10 +666,12 @@ public class VCFSimpleTally {
 			annoGeneBedWriter.close();
 			annoWriter.close();
 			writer.close();
-
+			ArrayList<GeneVariantPositionSummary> controlPos = new ArrayList<GeneVariantPositionSummary>();
 			for (String gene : geneSummaries.keySet()) {
 				ArrayList<GeneSummary[]> geneSummariesCurrent = geneSummaries.get(gene);
+
 				for (int i = 0; i < geneSummariesCurrent.get(0).length; i++) {
+					controlPos.add(geneSummariesCurrent.get(0)[0].getGeneVariantPositionSummary());// case only
 					annoGeneWriter.print(gene + "\t" + Array.toStr(geneSummariesCurrent.get(0)[i].getEffects(), "||"));
 					for (int j = 0; j < geneSummariesCurrent.size(); j++) {
 						annoGeneWriter.print("\t" + Array.toStr(geneSummariesCurrent.get(j)[i].getSummary()));
@@ -685,6 +685,7 @@ public class VCFSimpleTally {
 				}
 			}
 			annoGeneWriter.close();
+			GeneVariantPositionSummary.writeSerial(controlPos.toArray(new GeneVariantPositionSummary[controlPos.size()]), finalGeneVariantPositions, log);
 			VCFOps.VcfPopulation.splitVcfByPopulation(finalOutVCF, vpop, true, true, log);
 		} else {
 			log.reportTimeWarning(finalAnnotGene + " exists so skipping summarize");
@@ -768,7 +769,7 @@ public class VCFSimpleTally {
 		}
 	}
 
-	public static class GeneVariantSummary implements Serializable {
+	public static class GeneVariantPositionSummary implements Serializable {
 
 		/**
 		 * 
@@ -777,13 +778,14 @@ public class VCFSimpleTally {
 
 		private String name;
 		private String group;
+		private String key;
 		private ArrayList<Integer> variantNPositions;
 		private ArrayList<Integer> hqVariantNPositions;
 		private ArrayList<Integer> variantAAPositions;
 		private ArrayList<Integer> hqVariantAAPositions;
 		private String[] effects;
 
-		public GeneVariantSummary(String name, String group, String[] effects) {
+		public GeneVariantPositionSummary(String name, String group, String[] effects) {
 			super();
 			this.name = name;
 			this.group = group;
@@ -792,18 +794,23 @@ public class VCFSimpleTally {
 			this.variantAAPositions = new ArrayList<Integer>();
 			this.hqVariantNPositions = new ArrayList<Integer>();
 			this.hqVariantAAPositions = new ArrayList<Integer>();
+			this.key = name + "_" + Array.toStr(effects, "||");
+		}
+
+		public String getKey() {
+			return key;
 		}
 
 		public String[] getEffects() {
 			return effects;
 		}
 
-		public static void writeSerial(GeneVariantSummary[] geneVariantSummaries, String filename, Logger log) {
+		public static void writeSerial(GeneVariantPositionSummary[] geneVariantSummaries, String filename, Logger log) {
 			Files.writeSerial(geneVariantSummaries, filename, true);
 		}
 
-		public static GeneVariantSummary[] readSerial(String filename, Logger log) {
-			return (GeneVariantSummary[]) Files.readSerial(filename, false, log, false, true);
+		public static GeneVariantPositionSummary[] readSerial(String filename, Logger log) {
+			return (GeneVariantPositionSummary[]) Files.readSerial(filename, false, log, false, true);
 		}
 
 		public static long getSerialversionuid() {
@@ -846,7 +853,7 @@ public class VCFSimpleTally {
 	}
 
 	private static class GeneSummary {
-		private GeneVariantSummary geneVariantSummary;
+		private GeneVariantPositionSummary geneVariantPositionSummary;
 		private String geneName;
 		private String group;
 		private String[] effects;
@@ -878,7 +885,11 @@ public class VCFSimpleTally {
 			this.numVarsDiffHaploPerInd = new Hashtable<String, Integer>();
 			this.sampleHaplotype = new Hashtable<String, ArrayList<String>>();
 			this.sampleHQHaplotype = new Hashtable<String, ArrayList<String>>();
-			this.geneVariantSummary = new GeneVariantSummary(geneName, group, effects);
+			this.geneVariantPositionSummary = new GeneVariantPositionSummary(geneName, group, effects);
+		}
+
+		public GeneVariantPositionSummary getGeneVariantPositionSummary() {
+			return geneVariantPositionSummary;
 		}
 
 		public String[] getEffects() {
@@ -950,7 +961,7 @@ public class VCFSimpleTally {
 							}
 						}
 						addHash(numVarsDiffHaploPerInd, newHaplos);
-						geneVariantSummary.add(vcGroupSummary.getVcAlt(), ADD_TYPE.REGULAR);
+						geneVariantPositionSummary.add(vcGroupSummary.getVcAlt(), ADD_TYPE.REGULAR);
 						if (vcGroupSummary.getHqIndsWithAlt().size() > 0) {
 							hqNumVar++;
 							uniqueHqIndsWithVar.addAll(vcGroupSummary.getHqIndsWithAlt());
@@ -968,7 +979,7 @@ public class VCFSimpleTally {
 									sampleHQHaplotype.get(g.getSampleName()).add(pid);
 								}
 							}
-							geneVariantSummary.add(vcGroupSummary.getVcAltHq(), ADD_TYPE.HQ);
+							geneVariantPositionSummary.add(vcGroupSummary.getVcAltHq(), ADD_TYPE.HQ);
 							addHash(numHQDiffHaploVarsPerInd, newHaplosHQ);
 						}
 					}
