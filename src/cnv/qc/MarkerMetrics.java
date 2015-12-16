@@ -63,6 +63,13 @@ public class MarkerMetrics {
 			ArrayList<Boolean> complete = hive.getResults();
 			if (Array.booleanArraySum(Array.toBooleanArray(complete)) == complete.size()) {
 				Files.cat(tmpQc, proj.MARKER_METRICS_FILENAME.getValue(), new int[0], proj.getLog());
+				if (Files.exists(proj.MARKER_METRICS_FILENAME.getValue()) && Files.countLines(proj.MARKER_METRICS_FILENAME.getValue(), 1) == markerNames.length) {
+					for (int i = 0; i < tmpQc.length; i++) {
+						new File(tmpQc[i]).delete();
+					}
+				} else {
+					proj.getLog().reportTimeError("Could not collapse temporary marker files to " + proj.MARKER_METRICS_FILENAME.getValue());
+				}
 			} else {
 				proj.getLog().reportTimeError("Could not complete marker QC");
 			}
