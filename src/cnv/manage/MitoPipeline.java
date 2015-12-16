@@ -52,7 +52,6 @@ public class MitoPipeline {
 	private static final String PCA_FINAL_REPORT = ".finalReport.txt";
 	private static final String[] SPLITS = { "\t", "," };
 	public static final String PROJECT_EXT = ".properties";
-	private static final String DEFAULT_QC_FILE = "lrr_sd.xln";
 	private static final String PC_MARKER_COMMAND = "PCmarkers=";
 	private static final String MEDIAN_MARKER_COMMAND = "medianMarkers=";
 	private static final String USE_FILE_COMMAND = "useFile=";
@@ -392,20 +391,22 @@ public class MitoPipeline {
 							writeMarkersToQC(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), markersToQC);
 						}
 						markersForEverythingElse = markersToQC;
+						String qcFile = outputBase + "_lrr_sd.txt";
+						proj.SAMPLE_QC_FILENAME.setValue(qcFile);
 
 						counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
 						if (counts == null || counts[1] != sampleList.getSamples().length) {
-							if (counts == null || counts[1] == 0 && Files.exists(proj.PROJECT_DIRECTORY.getValue() + DEFAULT_QC_FILE)) {
-								log.reportError("Error - was unable to parse QC file " + proj.PROJECT_DIRECTORY.getValue() + DEFAULT_QC_FILE + ", backing up this file to " + proj.BACKUP_DIRECTORY.getValue(false, false) + " and re-starting sample qc");
-								Files.backup(DEFAULT_QC_FILE, proj.PROJECT_DIRECTORY.getValue(), proj.BACKUP_DIRECTORY.getValue(true, false), true);
+							if (counts == null || counts[1] == 0 && Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+								log.reportError("Error - was unable to parse QC file " + proj.SAMPLE_QC_FILENAME.getValue() + ", backing up this file to " + proj.BACKUP_DIRECTORY.getValue(false, false) + " and re-starting sample qc");
+								Files.backup(ext.removeDirectoryInfo(proj.SAMPLE_QC_FILENAME.getValue()), proj.PROJECT_DIRECTORY.getValue(), proj.BACKUP_DIRECTORY.getValue(true, false), true);
 							}
 							counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
 							if (counts == null || counts[1] != sampleList.getSamples().length) {
 								if (counts == null) {
-									log.reportError("Error - could not parse QC file (" + DEFAULT_QC_FILE + ")");
+									log.reportError("Error - could not parse QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ")");
 								} else {
-									log.reportError("Error - different number of samples (n=" + counts[1] + ") listed in the QC file (" + DEFAULT_QC_FILE + ") compared to the number of samples in the project (n=" + sampleList.getSamples().length + ")");
-									log.reportError("      - delete the QC file (" + DEFAULT_QC_FILE + ") to regenerate it with the correct number of samples");
+									log.reportError("Error - different number of samples (n=" + counts[1] + ") listed in the QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") compared to the number of samples in the project (n=" + sampleList.getSamples().length + ")");
+									log.reportError("      - delete the QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") to regenerate it with the correct number of samples");
 								}
 								log.reportError("aborting...");
 								return 2;
@@ -799,21 +800,19 @@ public class MitoPipeline {
 		boolean addToSampleData = checkSampleData(proj, sampleData);
 		Hashtable<String, String> subset = checkSubset(useFile, log);
 
-		if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + DEFAULT_QC_FILE)) {
-			log.report("The sample qc file " + proj.PROJECT_DIRECTORY.getValue() + DEFAULT_QC_FILE + " already exists");
-			log.report("Skipping qc computation, filtering on existing qc file " + proj.PROJECT_DIRECTORY.getValue() + DEFAULT_QC_FILE);
+		if (Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+			log.report("The sample qc file " + proj.SAMPLE_QC_FILENAME.getValue() + " already exists");
+			log.report("Skipping qc computation, filtering on existing qc file " + proj.SAMPLE_QC_FILENAME.getValue());
 		} else {
 			log.report("Computing sample QC for all samples...");
-			String qcFile = outputBase + "_lrr_sd.txt";
-			log.report("Will be reporting sample qc to " + qcFile);
-			proj.SAMPLE_QC_FILENAME.setValue(qcFile);
+			log.report("Will be reporting sample qc to " + proj.SAMPLE_QC_FILENAME.getValue());
 			cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, null, numThreads);
 		}
 
 		count = 0;
 		numPassing = 0;
 		try {
-			BufferedReader reader = Files.getReader(proj.PROJECT_DIRECTORY.getValue() + DEFAULT_QC_FILE, false, true, false);
+			BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
 			PrintWriter writerUse = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES));
 			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES_SUMMARY));
 
@@ -822,7 +821,7 @@ public class MitoPipeline {
 				writerUse.close();
 				writerSummary.close();
 				reader.close();
-				log.reportError("Error - QC file (" + DEFAULT_QC_FILE + ") was empty");
+				log.reportError("Error - QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") was empty");
 				return new int[] { numPassing, count };
 			}
 			line = reader.readLine().trim().split(SPLITS[0]);
@@ -832,7 +831,7 @@ public class MitoPipeline {
 				writerUse.close();
 				writerSummary.close();
 				reader.close();
-				log.reportError("Error - could not detect proper header in QC file (" + DEFAULT_QC_FILE + ")");
+				log.reportError("Error - could not detect proper header in QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ")");
 				return null;
 			}
 
@@ -871,9 +870,9 @@ public class MitoPipeline {
 			}
 			log.report("Info - " + numPassing + " " + (numPassing == 1 ? "sample" : "samples") + " passed the QC threshold" + (subset.size() > 0 ? " and were present in the subset file " + useFile : ""));
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + DEFAULT_QC_FILE + "\" not found in current directory");
+			log.reportError("Error: file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\" not found in current directory");
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + DEFAULT_QC_FILE + "\"");
+			log.reportError("Error reading file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\"");
 		}
 
 		if (addToSampleData) {
@@ -939,7 +938,7 @@ public class MitoPipeline {
 		for (int i = 0; i < indices.length; i++) {
 			if (indices[i] == -1) {
 				allGood = false;
-				proj.getLog().reportError("Error - The sample QC file " + proj.PROJECT_DIRECTORY.getValue() + DEFAULT_QC_FILE + " did not contain the proper headings, this should not happen");
+				proj.getLog().reportError("Error - The sample QC file " +proj.SAMPLE_QC_FILENAME.getValue() + " did not contain the proper headings, this should not happen");
 			}
 		}
 		return allGood;

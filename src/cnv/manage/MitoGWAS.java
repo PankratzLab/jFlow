@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
 import common.Array;
@@ -16,6 +17,7 @@ import common.Logger;
 import common.WorkerTrain;
 import common.ext;
 import common.WorkerTrain.Producer;
+import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.Pedigree;
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
@@ -54,7 +56,25 @@ public class MitoGWAS {
 		String plinkPed = root + ".ped";
 		String plinkMap = root + ".map";
 		if (!Files.exists(plinkMap) || !Files.exists(plinkPed)) {
-			PlinkData.saveGenvisisToPlinkPedSet(proj, root, "", null, null);
+			String[] markerNames = proj.getMarkerNames();
+			ArrayList<String> markersToAnalyze = new ArrayList<String>();
+			int numCNOnly = 0;
+			for (int i = 0; i < markerNames.length; i++) {
+				if (proj.getArrayType().isCNOnly(markerNames[i])) {
+					numCNOnly++;
+				} else {
+					markersToAnalyze.add(markerNames[i]);
+				}
+			}
+			proj.getLog().reportTimeInfo(numCNOnly + " copy number only probes were removed, " + markersToAnalyze.size() + " remaining");
+			String exportList = root + "_markers.txt";
+			Files.writeList(Array.toStringArray(markersToAnalyze), exportList);
+			String blankCluster = root + ".blankCluster.ser";
+			proj.getLog().reportTimeWarning("Using blank cluster filter file to ensure AB lookup");
+			new ClusterFilterCollection().serialize(blankCluster);
+			proj.GC_THRESHOLD.setValue((double) 0);
+			proj.getLog().reportTimeWarning("Setting gc threshold to 0");
+			PlinkData.saveGenvisisToPlinkPedSet(proj, root, "", blankCluster, null);
 		} else {
 			proj.getLog().reportTimeInfo(plinkMap + " and " + plinkPed + "exist, skipping");
 		}
@@ -117,34 +137,57 @@ public class MitoGWAS {
 			covarParser.determineIndicesFromTitles();
 			covarParser.loadData();
 			ArrayList<PlinkAssoc> plinkCommands = new ArrayList<PlinkAssoc>();
+			boolean[] hasVarianceWithinPed = Array.booleanArray(covarParser.getNumericDataTitles().length, false);
+			for (int i = 0; i < hasVarianceWithinPed.length; i++) {
+				Hashtable<String, String> varHash = new Hashtable<String, String>();
+				for (int j = 0; j < ped.getDnas().length; j++) {
+					int sampIndex = ext.indexOfStr(ped.getDnas()[j], proj.getSamples());
+					String val = covarParser.getNumericDataForTitle(covarParser.getNumericDataTitles()[i])[sampIndex] + "";
+					varHash.put(val, val);
+					if (varHash.size() > 1) {
+						hasVarianceWithinPed[i] = true;
+						break;
+					}
+				}
+				if (varHash.size() < 2) {
+					proj.getLog().reportTimeWarning(covarParser.getNumericDataTitles()[i] + " had no variance in ped samples, removing");
+				}
+			}
 
 			for (int i = 0; i < titles.length; i++) {
 				String outCurrent = root + ext.rootOf(mtPhenoFile) + "_" + titles[i] + ".txt";
 				for (int j = 0; j < covarParser.getNumericDataTitles().length; j++) {
-					outCurrent = ext.addToRoot(outCurrent, covarParser.getNumericDataTitles()[j]);
+					if (hasVarianceWithinPed[j]) {
+						outCurrent = ext.addToRoot(outCurrent, "_" + covarParser.getNumericDataTitles()[j]);
+					}
 				}
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(outCurrent));
 					writer.print("FID\tIID\t" + titles[i]);
 					for (int j = 0; j < covarParser.getNumericDataTitles().length; j++) {
-						writer.print("\t" + covarParser.getNumericDataTitles()[j]);
+						if (hasVarianceWithinPed[j]) {
+							writer.print("\t" + covarParser.getNumericDataTitles()[j]);
+						}
 					}
 					writer.println();
 					for (int j = 0; j < ped.getDnas().length; j++) {
 						int sampIndex = ext.indexOfStr(ped.getDnas()[j], proj.getSamples());
 						writer.print(ped.getFID(j) + "\t" + ped.getIID(j) + "\t" + parser.getNumericDataForTitle(titles[i])[sampIndex]);
 						for (int k = 0; k < covarParser.getNumericDataTitles().length; k++) {
-							writer.print("\t" + covarParser.getNumericDataForTitle(covarParser.getNumericDataTitles()[k])[sampIndex]);
+							if (hasVarianceWithinPed[k]) {
+								writer.print("\t" + covarParser.getNumericDataForTitle(covarParser.getNumericDataTitles()[k])[sampIndex]);
+							}
 						}
 						writer.println();
 					}
 					writer.close();
 
+					String covarTitles = Array.toStr(Array.subArray(covarParser.getNumericDataTitles(), hasVarianceWithinPed), ",");
 					String outPrepReg = ext.addToRoot(outCurrent, ".prepped");
-					PlinkAssoc regCommand = prepareAssoc(root, false, outCurrent, titles[i], Array.toStr(covarParser.getNumericDataTitles(), ","), outPrepReg, proj.getLog());
+					PlinkAssoc regCommand = prepareAssoc(root, false, outCurrent, titles[i], covarTitles, outPrepReg, proj.getLog());
 					plinkCommands.add(regCommand);
 					String outPrepInv = ext.addToRoot(outCurrent, ".prepped.inv");
-					PlinkAssoc invCommand = prepareAssoc(root, true, outCurrent, titles[i], Array.toStr(covarParser.getNumericDataTitles(), ","), outPrepInv, proj.getLog());
+					PlinkAssoc invCommand = prepareAssoc(root, true, outCurrent, titles[i], covarTitles, outPrepInv, proj.getLog());
 					plinkCommands.add(invCommand);
 
 				} catch (Exception e) {
@@ -223,7 +266,10 @@ public class MitoGWAS {
 		PhenoPrep.parse("", inputDb, "IID", pheno, null, 3.0, false, false, true, false, inverse, covars, root + ".fam", true, true, false, false, false, false, null, output, true, false, false, false, false, false, log);
 		ArrayList<String> plink = new ArrayList<String>();
 		plink.add("plink2");
+
 		plink.add("--linear");
+		plink.add("perm");
+
 		plink.add("--bfile");
 		plink.add(root);
 		plink.add("--covar-name");
@@ -234,8 +280,9 @@ public class MitoGWAS {
 		plink.add(processed);
 		plink.add("--out");
 		plink.add(ext.rootOf(output, false));
+
 		String[] inputs = new String[] { processed, inputDb };
-		String[] outputs = new String[] { root + ".assoc.linear" };
+		String[] outputs = new String[] { root + ".assoc.linear.perm" };
 		PlinkAssoc assoc = new PlinkAssoc(plink, inputs, outputs, log);
 
 		return assoc;
@@ -258,8 +305,8 @@ public class MitoGWAS {
 		String ped = null;
 		String outputDir = null;
 		int numthreads = 24;
-		String pcFile =null;
-		String covar=null;
+		String pcFile = null;
+		String covar = null;
 		String usage = "\n" + "one.JL.MitoAnalyze requires 0-1 arguments\n";
 		usage += "   (1) filename (i.e. proj= (no default))\n" + "";
 		usage += "   (2) ped (i.e. ped= (no default))\n" + "";
@@ -284,19 +331,19 @@ public class MitoGWAS {
 			} else if (args[i].startsWith("ped=")) {
 				ped = args[i].split("=")[1];
 				numArgs--;
-			}else if (args[i].startsWith("out=")) {
+			} else if (args[i].startsWith("out=")) {
 				outputDir = args[i].split("=")[1];
 				numArgs--;
-			}else if (args[i].startsWith("pc=")) {
+			} else if (args[i].startsWith("pc=")) {
 				pcFile = args[i].split("=")[1];
 				numArgs--;
-			}else if (args[i].startsWith("cov=")) {
+			} else if (args[i].startsWith("cov=")) {
 				covar = args[i].split("=")[1];
 				numArgs--;
-			}  else if (args[i].startsWith("numthreads=")) {
+			} else if (args[i].startsWith("numthreads=")) {
 				numthreads = ext.parseIntArg(args[i]);
 				numArgs--;
-			}  else {
+			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
