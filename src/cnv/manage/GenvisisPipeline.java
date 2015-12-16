@@ -778,8 +778,9 @@ public class GenvisisPipeline {
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(4));
             } catch (NumberFormatException e) {}
-            
-            MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
+            System.out.println("JOHN CAUSED THIS");
+            System.exit(1);
+            //MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
         }
         
         @Override
@@ -875,8 +876,9 @@ public class GenvisisPipeline {
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(4));
             } catch (NumberFormatException e) {}
-            
-            MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
+            System.out.println("JOHN CAUSED THIS");
+            System.exit(1);
+           // MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
         }
         
         @Override

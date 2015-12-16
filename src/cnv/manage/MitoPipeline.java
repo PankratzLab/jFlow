@@ -376,20 +376,22 @@ public class MitoPipeline {
 					// if (verifyAuxMarkers(proj, proj.getFilename(proj.TARGET_MARKERS_FILENAME), PC_MARKER_COMMAND)) {
 					if (verifyAuxMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), PC_MARKER_COMMAND)) {
 						// if marker QC is not flagged, sample qc is based on all target markers by default
+						String markersToQC = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_" + MARKERS_TO_QC_FILE;
+						String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_" + MARKERS_FOR_ABCALLRATE;
 						if (markerQC) {
-							String markerQCFile = outputBase+"_markerQC.txt";
+							String markerQCFile = outputBase + "_markerQC.txt";
 							proj.MARKER_METRICS_FILENAME.setValue(markerQCFile);
-							qcMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), markerCallRateFilter, numThreads);
-							markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE;
+							qcMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), markersToQC, markersABCallrate, markerCallRateFilter, numThreads);
+							markersForABCallRate = markersABCallrate;
 							if (!Files.exists(markersForABCallRate)) {
-								log.reportError("Error - markerQC was flagged but the file " + proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE + " could not be found");
+								log.reportError("Error - markerQC was flagged but the file " + markersABCallrate + " could not be found");
 								return 1;
 							}
 						} else {
-							markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE;
-							writeMarkersToQC(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue());
+							markersForABCallRate = markersToQC;
+							writeMarkersToQC(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), markersToQC);
 						}
-						markersForEverythingElse = proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE;
+						markersForEverythingElse = markersToQC;
 
 						counts = filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
 						if (counts == null || counts[1] != sampleList.getSamples().length) {
@@ -590,30 +592,30 @@ public class MitoPipeline {
 		return allParsed;
 	}
 
-	public static void qcMarkers(Project proj, String targetMarkersFile, double markerCallRateFilter, int numthreads) {
+	public static void qcMarkers(Project proj, String targetMarkersFile, String markersToQCFile, String markersABCallrate, double markerCallRateFilter, int numthreads) {
 		Logger log;
 		String markerMetricsFilename;
 
 		log = proj.getLog();
 		markerMetricsFilename = proj.MARKER_METRICS_FILENAME.getValue(true, false);
 		// skip if marker qc file exists
-		if (Files.exists(markerMetricsFilename) && new File(markerMetricsFilename).length() > 0 && Files.exists(proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE) && Files.countLines(markerMetricsFilename, 1) >= Files.countLines(proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE, 0)) {
+		if (Files.exists(markerMetricsFilename) && new File(markerMetricsFilename).length() > 0 && Files.exists(markersToQCFile) && Files.countLines(markerMetricsFilename, 1) >= Files.countLines(markersToQCFile, 0)) {
 			log.report("Marker QC file " + proj.MARKER_METRICS_FILENAME.getValue(true, false) + " exists");
 			log.report("Skipping Marker QC computation for the analysis, filtering on existing file");
 		} else {
 			log.report("Computing marker QC for " + targetMarkersFile == null ? "all markers in project." : "markers in " + targetMarkersFile);
-			writeMarkersToQC(proj, targetMarkersFile);
+			writeMarkersToQC(proj, targetMarkersFile, markersToQCFile);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);
-			MarkerMetrics.fullQC(proj, samplesToExclude, MARKERS_TO_QC_FILE, false, numthreads);
+			MarkerMetrics.fullQC(proj, samplesToExclude, ext.removeDirectoryInfo(markersToQCFile), false, numthreads);
 		}
-		filterMarkerMetricsFile(proj, markerCallRateFilter);
+		filterMarkerMetricsFile(proj, markerCallRateFilter, markersABCallrate);
 	}
 
 	/**
 	 * Currently un-neccesary, but it is set up in case we want to QC the median markers at the same time
 	 */
-	private static void writeMarkersToQC(Project proj, String targetMarkersFile) {
+	private static void writeMarkersToQC(Project proj, String targetMarkersFile, String markersToQCFile) {
 		String[] markers = null;
 		if (targetMarkersFile == null) {
 			markers = proj.getMarkerNames();
@@ -621,7 +623,7 @@ public class MitoPipeline {
 			String[] markersToQC = { targetMarkersFile };
 			markers = setMarkersToQC(proj, markersToQC);
 		}
-		Files.writeList(markers, proj.PROJECT_DIRECTORY.getValue() + MARKERS_TO_QC_FILE);
+		Files.writeList(markers, markersToQCFile);
 	}
 
 	/**
@@ -641,7 +643,7 @@ public class MitoPipeline {
 	/**
 	 * Write a filtered list of markers to use for ab callRate in sample QC
 	 */
-	private static boolean filterMarkerMetricsFile(Project proj, double markerCallRateFilter) {
+	private static boolean filterMarkerMetricsFile(Project proj, double markerCallRateFilter,String markersABCallrate) {
 		ArrayList<String> abMarkersToUse = new ArrayList<String>();
 		BufferedReader reader;
 		Logger log = proj.getLog();
@@ -674,7 +676,7 @@ public class MitoPipeline {
 				return false;
 			} else {
 				log.report("Sample call rate will be computed with " + abMarkersToUse.size() + " markers");
-				Files.writeList(abMarkersToUse.toArray(new String[abMarkersToUse.size()]), proj.PROJECT_DIRECTORY.getValue() + MARKERS_FOR_ABCALLRATE);
+				Files.writeList(abMarkersToUse.toArray(new String[abMarkersToUse.size()]), markersABCallrate);
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
