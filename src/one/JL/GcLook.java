@@ -71,7 +71,7 @@ public class GcLook {
 	public static void gcQCSummary(Project proj) {
 
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
-			MarkerMetrics.fullQC(proj, null, null, 12);
+			MarkerMetrics.fullQC(proj, null, null, false, 12);
 		}
 
 		MarkerSet markerSet = proj.getMarkerSet();

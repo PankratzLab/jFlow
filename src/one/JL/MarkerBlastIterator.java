@@ -99,7 +99,7 @@ public class MarkerBlastIterator {
 		final int crossHybBufferDistance = proj.getArrayType().getProbeLength();
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
 			proj.getLog().reportTimeInfo("Creating file " + proj.MARKER_METRICS_FILENAME.getValue());
-			MarkerMetrics.fullQC(proj, null, null, numThreads);
+			MarkerMetrics.fullQC(proj, null, null, false, numThreads);
 		}
 
 		MarkerBlastResult[] results = new MarkerBlastResult[blastWordSizes.length * reportWordSizes.length];
@@ -435,7 +435,7 @@ public class MarkerBlastIterator {
 
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
 			proj.getLog().reportTimeInfo("Creating file " + proj.MARKER_METRICS_FILENAME.getValue());
-			MarkerMetrics.fullQC(proj, null, null, numThreads);
+			MarkerMetrics.fullQC(proj, null, null, false, numThreads);
 		}
 		MarkerBlastResult[] results = new MarkerBlastResult[blastWordSizes.length * reportWordSizes.length];
 		int index = 0;

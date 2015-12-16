@@ -36,7 +36,7 @@ public class MarkerMetrics {
 	 *            compute qc over the markers in this file only
 	 * @param numThreads
 	 */
-	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude, int numThreads) {
+	public static void fullQC(Project proj, boolean[] samplesToExclude, String markersToInclude, boolean checkMendel, int numThreads) {
 		String[] markerNames;
 		String finalQcFile = proj.MARKER_METRICS_FILENAME.getValue(true, false);
 
@@ -48,14 +48,14 @@ public class MarkerMetrics {
 		proj.verifyAndGenerateOutliers(false);
 
 		if (numThreads <= 1) {
-			fullQC(proj, samplesToExclude, markerNames, finalQcFile);
+			fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel);
 		} else {
 			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
 			ArrayList<String[]> batches = Array.splitUpArray(markerNames, numThreads, proj.getLog());
 			String[] tmpQc = new String[batches.size()];
 			for (int i = 0; i < batches.size(); i++) {
 				String tmp = ext.addToRoot(finalQcFile, "tmp" + i);
-				hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, batches.get(i), tmp));
+				hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, batches.get(i), tmp, checkMendel));
 				tmpQc[i] = tmp;
 			}
 
@@ -70,7 +70,7 @@ public class MarkerMetrics {
 	}
 	
 	
-	private static void fullQC(Project proj, boolean[] samplesToExclude, String[] markerNames, String fullPathToOutput) {
+	private static void fullQC(Project proj, boolean[] samplesToExclude, String[] markerNames, String fullPathToOutput,boolean checkMendel) {
 		PrintWriter writer, mendelWriter = null;
 		String[] samples;
 		float[] thetas, rs, lrrs;
@@ -110,7 +110,7 @@ public class MarkerMetrics {
 			writer = new PrintWriter(new FileWriter(fullPathToOutput));
 			writer.println(Array.toStr(FULL_QC_HEADER));
 			
-			if (pedigree != null) {
+			if (pedigree != null&&checkMendel) {
     			mendelWriter = new PrintWriter(new FileWriter(ext.rootOf(fullPathToOutput, false) + DEFAULT_MENDEL_FILE_SUFFIX));
     			mendelWriter.println(Array.toStr(MENDEL_HEADER));
 			}
@@ -186,7 +186,7 @@ public class MarkerMetrics {
 				}
 				
 				String mecCnt = ".";
-				if (pedigree != null) {
+				if (pedigree != null&&checkMendel) {
 				    toInclude = samplesToExclude == null ? Array.booleanArray(samples.length, true) : Array.booleanNegative(samplesToExclude); 
 		            mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, toInclude, null, clusterFilterCollection, gcThreshold, log);
 		            count = 0;
@@ -1180,19 +1180,21 @@ public class MarkerMetrics {
 		private boolean[] samplesToExclude;
 		private String[] markerNames;
 		private String fullPathToOutput;
+		private boolean checkMendel;
 
-		public MarkerMetricsWorker(Project proj, boolean[] samplesToExclude, String[] markerNames, String fullPathToOutput) {
+		public MarkerMetricsWorker(Project proj, boolean[] samplesToExclude, String[] markerNames, String fullPathToOutput, boolean checkMendel) {
 			super();
 			this.proj = proj;
 			this.samplesToExclude = samplesToExclude;
 			this.markerNames = markerNames;
 			this.fullPathToOutput = fullPathToOutput;
+			this.checkMendel = checkMendel;
 		}
 
 		@Override
 		public Boolean call() throws Exception {
 			
-			fullQC(proj, samplesToExclude, markerNames, fullPathToOutput);
+			fullQC(proj, samplesToExclude, markerNames, fullPathToOutput, checkMendel);
 			if (Files.exists(fullPathToOutput) && Files.countLines(fullPathToOutput, 1) == markerNames.length) {
 				return true;
 			} else {
@@ -1331,7 +1333,7 @@ public class MarkerMetrics {
 				separationOfSexes(proj, markersSubset);
 			}
 			if (fullQC) {
-				fullQC(proj, proj.getSamplesToExclude(), markersSubset, numThreads);
+				fullQC(proj, proj.getSamplesToExclude(), markersSubset, true, numThreads);
 			}
 			if (lrrVariance) {
 				lrrVariance(proj, proj.getSamplesToInclude(samples), markersSubset);
