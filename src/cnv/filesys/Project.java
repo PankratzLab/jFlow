@@ -541,7 +541,7 @@ public class Project {
             log.report("Parsing source file headers in active thread.");
             setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log, null));
             log.report("Source file header parsing complete.");
-            return getSourceFileHeaders();
+            return getSourceFileHeaders(false);
         }
     }
 	
@@ -1205,20 +1205,26 @@ public class Project {
 	public String getLocationOfSNP_Map(boolean verbose) {
 		String filename;
 		
-		if (Files.exists(PROJECT_DIRECTORY.getValue()+"SNP_Map.csv")) {
-			filename = PROJECT_DIRECTORY.getValue()+"SNP_Map.csv";
-		} else if (Files.exists(PROJECT_DIRECTORY.getValue()+"SNP_Map.csv.gz")) {
-			filename = PROJECT_DIRECTORY.getValue()+"SNP_Map.csv.gz";
-		} else if (Files.exists(this.SOURCE_DIRECTORY.getValue(false, false)+"SNP_Map.csv")) {
-			filename = this.SOURCE_DIRECTORY.getValue(false, false)+"SNP_Map.csv";
-		} else if (Files.exists(this.SOURCE_DIRECTORY.getValue(false, false)+"SNP_Map.csv.gz")) {
-			filename = this.SOURCE_DIRECTORY.getValue(false, false)+"SNP_Map.csv.gz";
+		String projDir = PROJECT_DIRECTORY.getValue();
+        String snpMap = "SNP_Map.csv";
+        String snpMapGz = "SNP_Map.csv.gz";
+        if (Files.exists(projDir + snpMap)) {
+			filename = projDir + snpMap;
+		} else if (Files.exists(projDir + "SNP_Map.csv.gz")) {
+			filename = projDir + snpMapGz;
 		} else {
-			if (verbose) {
-			    log.reportError("Failed; could not find \"SNP_Map.csv\" or \"SNP_Map.csv.gz\" in "+PROJECT_DIRECTORY.getValue()+" or in "+this.SOURCE_DIRECTORY.getValue(false, false));
-			}
-			return null;
-		}
+            String srcDir = this.SOURCE_DIRECTORY.getValue();
+            if (Files.exists(srcDir + snpMap)) {
+            	filename = srcDir + snpMap;
+            } else if (Files.exists(srcDir + snpMapGz)) {
+            	filename = srcDir + snpMapGz;
+            } else {
+            	if (verbose) {
+            	    log.reportError("Failed; could not find \"" + snpMap + "\" or \"" + snpMapGz + "\" in " + projDir + " or in " + srcDir);
+            	}
+            	return null;
+            }
+        }
 		
 		return filename;
 	}
@@ -1482,10 +1488,10 @@ public class Project {
 		Sample.verifyAndGenerateOutliers(this, NUM_THREADS.getValue(), false);
 	}
 
-    public HashMap<String, SourceFileHeaderData> getSourceFileHeaders() {
-        return sourceFileHeaders == null ? readHeadersFile(true) : sourceFileHeaders;
-    }
-
+	public HashMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
+	    return sourceFileHeaders == null ? readIfNull ? readHeadersFile(true) : null : sourceFileHeaders;
+	}
+	
     public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
         this.sourceFileHeaders = sourceFileHeaders;
         writeHeadersFile();
