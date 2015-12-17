@@ -280,6 +280,172 @@ public class VCFSimpleTally {
 
 	}
 
+	private static Hashtable<String, GeneVariantPositionSummary> parseAvailable(GeneVariantPositionSummary[] summaries) {
+		Hashtable<String, GeneVariantPositionSummary> parse = new Hashtable<String, GeneVariantPositionSummary>();
+		for (int i = 0; i < summaries.length; i++) {
+			String key = summaries[i].getKey();
+			System.out.println(key);
+
+			if (parse.containsKey(key)) {
+				System.out.println(key);
+				throw new IllegalArgumentException("Dup keys");
+			} else {
+				parse.put(key, summaries[i]);
+			}
+		}
+		return parse;
+	}
+
+	private static ArrayList<Integer> removeNeg(ArrayList<Integer> al) {
+		ArrayList<Integer> pos = new ArrayList<Integer>();
+		for (int i = 0; i < al.size(); i++) {
+			if (al.get(i) >= 0) {
+				pos.add(al.get(i));
+			}
+		}
+		return pos;
+	}
+
+	private static double centroid(ArrayList<Integer> al) {
+		return Array.mean(Array.toIntArray(al));
+	}
+
+	// private static double distanceSED(double cent, ArrayList<Integer> al) {
+	// double sum = 0;
+	// for (int i = 0; i < al.size(); i++) {
+	// sum += Math.pow((double) al.get(i) - cent, 2);
+	// }
+	// return Math.sqrt(sum);
+	// }
+	private static class DistanceResult{
+		private double distance;
+		private int iter;
+		public DistanceResult(double distance, int iter) {
+			super();
+			this.distance = distance;
+			this.iter = iter;
+		}
+		public double getDistance() {
+			return distance;
+		}
+		public int getIter() {
+			return iter;
+		}
+
+	}
+
+	private static DistanceResult distance(ArrayList<Integer> from, ArrayList<Integer> to, boolean identical) {
+		double sum = 0;
+		int num = 0;
+		for (int i = 0; i < from.size(); i++) {
+			for (int j = identical ? i + 1 : 0; j < to.size(); j++) {
+				sum += (double) Math.abs(from.get(i) - to.get(j));
+				num++;
+			}
+		}
+		double distance = (double) sum / num;
+		return new DistanceResult(distance, num);
+	}
+
+	// private static double distance(double cent, ArrayList<Integer> al) {
+	// double sum = 0;
+	// for (int i = 0; i < al.size(); i++) {
+	// sum += Math.abs((double) (al.get(i) - cent));
+	// }
+	// return sum / al.size();
+	// }
+
+	private static class PosCluster {
+		private static final String[] BASE = new String[] { "_AA_CENTROID", "_AVG_DISTANCE", "_N_COMP" };
+		private static final String[] OTHER = new String[] { "_DIS_FROM_", "_N_COMP" };
+		// private static final String[] FINAL_METRIC = new String[] { "FINAL_METRIC" };
+
+		private double centriodBelong;
+		private DistanceResult distanceBelong;
+		private double centriodOut;
+		private DistanceResult distanceOut;
+		private DistanceResult distanceBelongOut;
+		private DistanceResult distanceOutBelong;
+
+		private ArrayList<Integer> al;
+
+		public PosCluster(ArrayList<Integer> al) {
+			super();
+			this.al = removeNeg(al);
+			this.distanceOut = new DistanceResult(Double.NaN, 0);
+			this.distanceOutBelong =new DistanceResult(Double.NaN, 0);
+			this.distanceBelongOut =new DistanceResult(Double.NaN, 0);
+			init();
+		}
+
+		private void init() {
+			if (al.size() > 0) {
+				this.centriodBelong = centroid(al);
+				this.distanceBelong = distance(al, al, true);
+			} else {
+				this.centriodBelong = Double.NaN;
+				this.distanceBelong = new DistanceResult(Double.NaN, 0);
+			}
+		}
+
+		private void computeBelongs(ArrayList<Integer> others) {
+			this.centriodOut = centroid(others);
+			this.distanceOut = distance(others, others, true);
+			this.distanceOutBelong = distance(others, al, false);
+			this.distanceBelongOut = distance(al, others, false);
+		}
+
+		private static String[] getHeader(String cases, String controls) {
+			String[] header = Array.tagOn(BASE, cases, null);
+			header = Array.concatAll(header, Array.tagOn(OTHER, cases, controls));
+			// header = Array.concatAll(header, Array.tagOn(FINAL_METRIC, cases, null));
+			header = Array.concatAll(header, Array.tagOn(BASE, controls, null));
+			header = Array.concatAll(header, Array.tagOn(OTHER, controls, cases));
+			// header = Array.concatAll(header, Array.tagOn(FINAL_METRIC, controls, null));
+			return header;
+		}
+
+		private String[] getData() {
+			ArrayList<String> data = new ArrayList<String>();
+			data.add(centriodBelong + "");
+			data.add(distanceBelong.getDistance() + "");
+			data.add(distanceBelong.getIter() + "");
+			data.add(distanceBelongOut.getDistance() + "");
+			data.add(distanceBelongOut.getIter() + "");
+			data.add(centriodOut + "");
+			data.add(distanceOut.getDistance() + "");
+			data.add(distanceOut.getIter() + "");
+
+			data.add(distanceOutBelong.getDistance() + "");
+			data.add(distanceOutBelong.getIter() + "");
+
+			return Array.toStringArray(data);
+		}
+	}
+
+	private static Hashtable<String, PosCluster[]> densityEnrichment(SimpleTallyResult cases, SimpleTallyResult controls, Logger log) {
+		Hashtable<String, PosCluster[]> cluster = new Hashtable<String, PosCluster[]>();
+		System.out.println(cases.getFinalGeneVariantPositions());
+		Hashtable<String, GeneVariantPositionSummary> casesSummaries = parseAvailable(GeneVariantPositionSummary.readSerial(cases.getFinalGeneVariantPositions(), log));
+		System.out.println(controls.getFinalGeneVariantPositions());
+
+		Hashtable<String, GeneVariantPositionSummary> controlSummaries = parseAvailable(GeneVariantPositionSummary.readSerial(controls.getFinalGeneVariantPositions(), log));
+		for (String key : casesSummaries.keySet()) {
+			GeneVariantPositionSummary currentCase = casesSummaries.get(key);
+			PosCluster currentCaseClusReg = new PosCluster(currentCase.variantAAPositions);
+			PosCluster currentCaseClusHQ = new PosCluster(currentCase.hqVariantAAPositions);
+
+			GeneVariantPositionSummary currentControl = null;
+			if (controlSummaries.containsKey(key)) {
+				currentControl = controlSummaries.get(key);
+				currentCaseClusReg.computeBelongs(currentControl.variantAAPositions);
+				currentCaseClusHQ.computeBelongs(currentControl.hqVariantAAPositions);
+			}
+			cluster.put(key, new PosCluster[] { currentCaseClusReg, currentCaseClusHQ });
+		}
+		return cluster;
+	}
+
 	public static void test() {
 		String vcf = "/home/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/joint_genotypes_tsai_21_25_26_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.hg19_multianno.eff.gatk.sed.aric.chargeMaf.vcf.gz";
 		String popDir = "/panfs/roc/groups/14/tsaim/shared/Project_Tsai_21_25_26_Spector_Joint/aric_merge/vcf/Freq/";
@@ -290,6 +456,7 @@ public class VCFSimpleTally {
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		int numThreads = 24;
 		for (int i = 0; i < vpopsCase.length; i++) {
+
 			double maf = 0.01;
 			ArrayList<String> filesToWrite = new ArrayList<String>();
 			ArrayList<String> names = new ArrayList<String>();
@@ -299,6 +466,10 @@ public class VCFSimpleTally {
 			String outDir = ext.parseDirectoryOfFile(vpopsCase[i]);
 			new File(outDir).mkdirs();
 			Logger log = new Logger(ext.rootOf(vpopsCase[i], false) + ".log");
+			if (i > 0) {
+				log.reportTimeWarning("JOHN remember break");
+				break;
+			}
 			GeneSet[] currentSets = GeneSet.load(Files.listFullPaths(ext.parseDirectoryOfFile(vpopsCase[i]), ext.rootOf(vpopsCase[i]) + ".geneset", false), ext.rootOf(vpopsCase[i]), log);
 			log.reportTimeInfo("Found " + currentSets.length + " gene sets for " + vpopsCase[i]);
 			OMIM omim = new OMIM(omimDir, log);
@@ -329,12 +500,15 @@ public class VCFSimpleTally {
 			String caseWithControls = ext.addToRoot(geneFileCase, "_" + ext.rootOf(controlFile));
 			filesToWrite.add(caseWithControls);
 			names.add("GENE");
-
+			Hashtable<String, PosCluster[]> cluster = densityEnrichment(caseResult, controlResult, log);
 			Hashtable<String, String[]> controlsFuncHash = loadToGeneFuncHash(geneFileControl, log);
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(caseWithControls));
 
 				BufferedReader reader = Files.getAppropriateReader(geneFileCase);
+				String[] blanksEnrichment = new String[PosCluster.getHeader("BLANK", "BLANK").length * 2];
+				Arrays.fill(blanksEnrichment, "0");
+
 				String[] blanks = new String[GENE_ADD.length];
 				Arrays.fill(blanks, "0");
 				int line = 0;
@@ -355,6 +529,9 @@ public class VCFSimpleTally {
 								writer.print("\t" + Array.toStr(otherGeneInfos[j].getHeader()));
 							}
 						}
+						String[] baseHeader = PosCluster.getHeader(ext.rootOf(vpopsCase[i]), ext.rootOf(controlFile));
+						writer.print("\t" + Array.toStr(baseHeader) + "\t" + Array.toStr(Array.tagOn(baseHeader, "HQ_", null)));
+
 					} else {
 						writer.print("\t");
 						for (int j = 0; j < oGene.size(); j++) {
@@ -370,6 +547,12 @@ public class VCFSimpleTally {
 									writer.print("\t" + Array.toStr(blank));
 								}
 							}
+						}
+						if (cluster.containsKey(key)) {
+							PosCluster[] tmp = cluster.get(key);
+							writer.print("\t" + Array.toStr(tmp[0].getData()) + "\t" + Array.toStr(tmp[1].getData()));
+						} else {
+							writer.print("\t" + Array.toStr(blanksEnrichment));
 						}
 					}
 					writer.println();
@@ -589,6 +772,10 @@ public class VCFSimpleTally {
 			VariantContextFilter qual = getQualityFilterwkggseq(log);
 			Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<String, ArrayList<GeneSummary[]>>();
 			for (int i = 0; i < filtVcfs.size(); i++) {
+				if (i > 1) {
+					log.reportTimeWarning("JOHN remember break");
+					break;
+				}
 				log.reportTimeInfo("Summarizing " + filtVcfs.get(i));
 				VCFFileReader result = new VCFFileReader(filtVcfs.get(i), true);
 				for (VariantContext vc : result) {
@@ -671,7 +858,7 @@ public class VCFSimpleTally {
 				ArrayList<GeneSummary[]> geneSummariesCurrent = geneSummaries.get(gene);
 
 				for (int i = 0; i < geneSummariesCurrent.get(0).length; i++) {
-					controlPos.add(geneSummariesCurrent.get(0)[0].getGeneVariantPositionSummary());// case only
+					controlPos.add(geneSummariesCurrent.get(0)[i].getGeneVariantPositionSummary());// case only
 					annoGeneWriter.print(gene + "\t" + Array.toStr(geneSummariesCurrent.get(0)[i].getEffects(), "||"));
 					for (int j = 0; j < geneSummariesCurrent.size(); j++) {
 						annoGeneWriter.print("\t" + Array.toStr(geneSummariesCurrent.get(j)[i].getSummary()));
@@ -839,12 +1026,17 @@ public class VCFSimpleTally {
 
 			switch (type) {
 			case HQ:
-				hqVariantAAPositions.add(aapos);
-				hqVariantNPositions.add(nucPos);
+				for (int i = 0; i < vc.getSampleNames().size(); i++) {
+					hqVariantAAPositions.add(aapos);
+					hqVariantNPositions.add(nucPos);
+				}
+
 				break;
 			case REGULAR:
-				variantAAPositions.add(aapos);
-				variantNPositions.add(nucPos);
+				for (int i = 0; i < vc.getSampleNames().size(); i++) {
+					variantAAPositions.add(aapos);
+					variantNPositions.add(nucPos);
+				}
 				break;
 			default:
 				break;
