@@ -281,7 +281,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	// new Color(189, 243, 61), // light green
 	// };
 
-	private static ArrayList<Color[]> getColor() {
+	static ArrayList<Color[]> getColor() {
 		ArrayList<Color[]> colors = new ArrayList<Color[]>();
 		colors.add(new Color[] { new Color(23, 58, 172), new Color(55, 129, 252) });
 		colors.add(new Color[] { new Color(140, 20, 180), new Color(94, 88, 214) }); // deep/light purple
@@ -462,10 +462,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             Trailer.this.repaint();
         }
     };
-	
-	
-	
-	
 	
 	public Trailer(Project proj, String selectedSample, String[] filenames, String location) {
 		this(proj, selectedSample, filenames, location, DEFAULT_STARTX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
