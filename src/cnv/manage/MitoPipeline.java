@@ -37,7 +37,8 @@ import common.ext;
  * 
  * */
 public class MitoPipeline {
-	public static final String[] PED_INPUT = { "DNA", "FID", "IID", "FA", "MO", "SEX", "AFF" };
+	public static final String FILE_BASE = "PCA_GENVISIS";
+    public static final String[] PED_INPUT = { "DNA", "FID", "IID", "FA", "MO", "SEX", "AFF" };
 	public static final String[] SAMPLEMAP_INPUT = { "Index", "Name", "ID", "Gender", "Plate", "Well", "Group", "Parent1", "Parent2", "Replicate", "SentrixPosition" };
 	public static final String[] QC_COLUMNS = { "Sample", "LRR_SD", "Genotype_callrate" };
 	public static final String[] SAMPLE_QC_SUMMARY = { "DNA", "LRR_SD", "Genotype_callrate", "Included in PC?" };
@@ -1173,7 +1174,7 @@ public class MitoPipeline {
 		String markerPositions = null;
 		String medianMarkers = null;
 
-		String output = "PCA_GENVISIS";
+		String output = FILE_BASE;
 		String idHeader = "Sample ID";
 		String abLookup = null;
 		// String pedFile = "D:/data/TestAuto/testped.txt";

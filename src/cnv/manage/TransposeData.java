@@ -33,7 +33,7 @@ public class TransposeData {
 	 * Transpose data from sample based structure into Marker based structure.
 	 * The input is a set of files based on the sample oriented structure, and
 	 * the output is a set of data files based on the marker oriented structure.
-	 * @param proj The Genivis project containing the data to be transposed
+	 * @param proj The Genvisis project containing the data to be transposed
 	 * @param markerFileSizeSuggested The maximum size in mb of a single output
 	 * file. If set to 0, the default value 2000 is taken on.
 	 * @param keepAllSampleFilesOpen To keep all the files or just a single one
@@ -114,6 +114,7 @@ public class TransposeData {
 		timerOverAll = new Date().getTime();
 		numMarkers_WriteBuffer = Math.min(getOptimaleNumSamplesBasingOnHeapSpace(-1, numBytes_Mark), allMarkerNamesInProj.length);
 		while (!done) {
+		    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 			try {
 				numMarkers_File = (int) Math.min((double)markerFileSizeSuggested / (double)numBytes_Mark, allMarkerNamesInProj.length);
 				parameters = getOptimizedFileAndBufferSize(numMarkers_WriteBuffer, allMarkerNamesInProj.length, numBytes_Mark, numMarkers_File);
@@ -150,8 +151,10 @@ public class TransposeData {
 					}
 					markersInEachFile[i] = Compression.objToBytes(markersInEachFile1);
 				}
+	            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 				new MarkerLookup(markerLookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue(false, false));
-		
+
+	            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 				indexFirstMarkerCurrentIteration = 0;
 				readBuffer = new byte[numMarkers_WriteBuffer * numBytesPerSampleMarker];
 				writeBuffer = new byte[numChunks_WriteBuffer][numMarkers_Chunk * numBytes_Mark];
@@ -164,6 +167,7 @@ public class TransposeData {
 				if (keepAllSampleFilesOpen) {
 					sampleFiles = new RandomAccessFile[allSampleNamesInProj.length];
 					for (int i=0; i<allSampleNamesInProj.length; i++) {
+			            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 						try {
 							sampleFiles[i] = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, "r");
 						} catch (FileNotFoundException fnfe) {
@@ -181,6 +185,7 @@ public class TransposeData {
 					allOutliers = new Hashtable<String, Float>();
 				}
 				markFileOutliers = getOutlierHashForEachMdRafFile(allOutliers, numFiles, numMarkers_File, allSampleNamesInProj);
+	            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 
 				markerFileIndex = 0;
 				numBufferChunksNeededCurrentMarkFile = 0;
@@ -189,6 +194,7 @@ public class TransposeData {
 				timerWriteFiles = 0;
 				log.report("--\ni (<" + numRounds_LoadSampFile + ")\tLoad\tTranspose\tWrite");
 				for(int i=0; i<numRounds_LoadSampFile; i++) {
+		            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 					if ((i+1)==numRounds_LoadSampFile && numMarkers_LastRound != 0) {
 						numChunks_WriteBuffer = (int) Math.ceil((double)numMarkers_LastRound / (double)numMarkers_Chunk);
 						for (int j = numChunks_WriteBuffer; j< writeBuffer.length; j++) {
@@ -201,6 +207,7 @@ public class TransposeData {
 					timerLoadFiles = 0;
 					timerTransposeMemory = 0;
 					for (int j=0; j<allSampleNamesInProj.length; j++) {
+			            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 						timerTmp = new Date().getTime();
 						if (! keepAllSampleFilesOpen) {
 							sampleFile = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[j] + Sample.SAMPLE_DATA_FILE_EXTENSION, "r");
@@ -209,12 +216,14 @@ public class TransposeData {
 						}
 
 						Sample.loadFromRandomAccessFileWithoutDecompress(sampleFile, readBuffer, true, j, indexFirstMarkerCurrentIteration, numBytesPerSampleMarker, allMarkerNamesInProj.length, null, log);
-
+			            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+			            
 						timerLoadFiles += (new Date().getTime() - timerTmp);
 						timerTmp = new Date().getTime();
 
 						transposeBuffer(writeBuffer, writeBufferSizes, readBuffer, numBytesPerSampleMarker, indexFirstMarkerCurrentIteration, j, allSampleNamesInProj.length);
-
+			            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+			            
 						timerTransposeMemory += (new Date().getTime() - timerTmp);
 
 					    if (!keepAllSampleFilesOpen) {
@@ -228,6 +237,7 @@ public class TransposeData {
 					numChunks_RemainedInWriteBuffer = Math.min(countTotalChunks_writeBuffer, numChunks_WriteBuffer);
 					countTotalChunks_writeBuffer -= numChunks_RemainedInWriteBuffer;
 					for (int j = 0; j < numChunks_RemainedInWriteBuffer; j ++) {
+			            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 						if (isFileClosed) {
 							numBufferChunksNeededCurrentMarkFile = Math.min(numChunks_File, countTotalChunks_MarkerFile);
 							countTotalChunks_MarkerFile -= numBufferChunksNeededCurrentMarkFile;
@@ -260,6 +270,8 @@ public class TransposeData {
 
 						timerTmp = new Date().getTime();
 						writeBufferToRAF(writeBuffer, writeBufferSizes, j, index_WriteBufferEnd, markerFilenames[markerFileIndex], markFileParameterSection, markFileOutliersBytes);
+			            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+			            
 						j = index_WriteBufferEnd;
 						if (isFileClosed) {
 							markerFileIndex ++;
@@ -650,7 +662,7 @@ public class TransposeData {
 
 	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int indexOfStart, int indexOfEnd, BufferedOutputStream markerFile, byte[] head, byte[] tail) {
 		if (buffer==null || indexOfStart<0 || indexOfEnd>=buffer.length || indexOfEnd<indexOfStart) {
-			System.err.println("\nTranspose Data encoutered the following error: buffer be null, or start index of buffer is negative, or end index is less than the start index, or end index is over the buffer size.");
+			System.err.println("\nTranspose Data encoutered the following error: buffer is null, or start index of buffer is negative, or end index is less than the start index, or end index is over the buffer size.");
 			System.exit(1);
 		}
 

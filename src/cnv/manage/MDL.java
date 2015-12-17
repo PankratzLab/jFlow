@@ -32,6 +32,7 @@ public class MDL implements Iterator<MarkerData> {
 	private BufferReader producer;
 	private int reportEvery;
 	private boolean debugMode;
+	private String currentFile;
 
 	/**
 	 * @param proj
@@ -74,7 +75,7 @@ public class MDL implements Iterator<MarkerData> {
 			proj.getLog().reportIOException(match.getFileName());
 			e.printStackTrace();
 		}
-
+		this.currentFile = match.fileName;
 		this.decompTrain = new WorkerTrain<MarkerData>(producer, numDecompressThreads, markerBuffer, proj.getLog());
 	}
 
@@ -143,6 +144,10 @@ public class MDL implements Iterator<MarkerData> {
 		this.debugMode = debugMode;
 	}
 
+	public String getCurrentFile() {
+	    return currentFile;
+	}
+	
 	/**
 	 * Stores the markers and indices for loading
 	 *

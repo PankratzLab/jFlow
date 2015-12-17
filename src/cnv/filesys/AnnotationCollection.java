@@ -45,7 +45,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 		int response;
 		Vector<String> markers;
 		
-		response = JOptionPane.showConfirmDialog(null, "This will remove the annotaion '" + commentsHash.get(c) + "' from all markers (n="+annotationMarkerLists.get(c+"").size() + ") from the annotation database", "Warning", JOptionPane.ERROR_MESSAGE);
+		response = JOptionPane.showConfirmDialog(null, "This will remove the annotation '" + commentsHash.get(c) + "' from all markers (n="+annotationMarkerLists.get(c+"").size() + ") from the annotation database", "Warning", JOptionPane.ERROR_MESSAGE);
 		if (response == 0) {
 			serialize(proj.BACKUP_DIRECTORY.getValue(true, true)+"annotationsBeforeRemoving_"+ext.replaceWithLinuxSafeCharacters(commentsHash.get(c), true)+".ser." +(new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
 			commentsHash.remove(c);

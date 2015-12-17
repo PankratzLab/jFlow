@@ -110,7 +110,7 @@ public class PSF {
 
 		public static final String AMP = "&";
 		public static final String BLANK = "";
-		public static final String NUM_THREADS_COMMAND = "numthreads=";
+		public static final String NUM_THREADS_COMMAND = "threads=";
 		public static final String OUTPUT_DIR_COMMAND = "outputdir=";
 		public static final String MEMORY_MB = "memoryInMb=";
 		public static final String WALLTIME_HRS = "wallTimeInHour=";
