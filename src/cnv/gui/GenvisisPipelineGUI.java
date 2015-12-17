@@ -66,6 +66,7 @@ public class GenvisisPipelineGUI extends JDialog {
     public ConcurrentHashMap<STEP, JProgressBar> progBars = new ConcurrentHashMap<GenvisisPipeline.STEP, JProgressBar>();
     public ConcurrentHashMap<STEP, ArrayList<JButton>> fileBtns = new ConcurrentHashMap<GenvisisPipeline.STEP, ArrayList<JButton>>();
     public ConcurrentHashMap<STEP, JLabel> alreadyRunLbls = new ConcurrentHashMap<GenvisisPipeline.STEP, JLabel>();
+    public ConcurrentHashMap<STEP, JButton> cancelStepBtns = new ConcurrentHashMap<GenvisisPipeline.STEP, JButton>();
     
     Project proj;
     
@@ -242,7 +243,7 @@ public class GenvisisPipelineGUI extends JDialog {
             }
         });
         refreshLabels();
-        setBounds(100, 100, 700, 850);
+        setBounds(100, 100, 750, 850);
         setTitle(TOP_LABEL);
         addWindowFocusListener(new WindowFocusListener() {
             @Override
@@ -265,6 +266,16 @@ public class GenvisisPipelineGUI extends JDialog {
         this.setVisible(false);
         this.dispose();
     }
+    
+    AbstractAction interruptAction = new AbstractAction() {
+        private static final long serialVersionUID = 1L;
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+            if (runThread != null) {
+                runThread.interrupt();
+            }
+        }
+    };
 
     AbstractAction fileSelectAction = new AbstractAction() {
         private static final long serialVersionUID = 1L;
@@ -346,12 +357,19 @@ public class GenvisisPipelineGUI extends JDialog {
         JProgressBar stepProgBar = new JProgressBar();
         progBars.put(step, stepProgBar);
         stepProgBar.setVisible(false);
-        panel.topPanel.add(stepProgBar, "cell 1 0, alignx right, hidemode 3, split 1");
+        panel.topPanel.add(stepProgBar, "cell 1 0, alignx right, hidemode 3, split 2");
         JLabel alreadyRanLbl = new JLabel("Output Already Exists!");
         alreadyRanLbl.setVisible(false);
         alreadyRunLbls.put(step, alreadyRanLbl);
         panel.topPanel.add(alreadyRanLbl, "cell 1 0, alignx right, hidemode 3");
-
+        JButton cancelStepButton = new JButton(interruptAction);
+        cancelStepButton.setIcon(Grafik.getImageIcon("images/redx.png", true));
+        cancelStepButton.setVisible(false);
+        cancelStepButton.setIconTextGap(0);
+        cancelStepButton.setMargin(new Insets(1, 1, 0, 1));
+        cancelStepBtns.put(step, cancelStepButton);
+        panel.topPanel.add(cancelStepButton, "cell 1 0, alignx right, hidemode 3");
+        
         JLabel descLbl = new JLabel("<html><center><p>" + step.stepDesc + "</p></center></html>");
         descLbl.setVerticalAlignment(SwingConstants.TOP);
         descLbl.setHorizontalAlignment(SwingConstants.LEFT);
@@ -492,11 +510,15 @@ public class GenvisisPipelineGUI extends JDialog {
         progBars.get(step).setStringPainted(true);
         progBars.get(step).setIndeterminate(true);
         progBars.get(step).setVisible(true);
+        cancelStepBtns.get(step).setVisible(true);
+        cancelStepBtns.get(step).setEnabled(true);
     }
     
-    public void endStep(STEP step, boolean failed) {
-        progBars.get(step).setString(failed ? "Failed!" : "Complete!");
+    public void endStep(STEP step, FINAL_CODE code) {
+        String resp = code.getMessage();
+        progBars.get(step).setString(resp);
         progBars.get(step).setIndeterminate(false);
+        cancelStepBtns.get(step).setEnabled(false);
     }
     
     
@@ -565,6 +587,8 @@ public class GenvisisPipelineGUI extends JDialog {
     private JButton btnSelectAll;
 
     private JButton btnDeselectAll;
+
+    private Thread runThread;
     
     private void lockup(final boolean lock) {
         try {
@@ -626,10 +650,24 @@ public class GenvisisPipelineGUI extends JDialog {
             }
         }).start();
     }
+    
+    enum FINAL_CODE {
+        COMPLETE("Complete"),
+        FAILED("Failed"),
+        CANCELLED("Cancelled");
 
+        private String message;
+        FINAL_CODE(String msg) {
+            this.message = msg;
+        }
+        public String getMessage() {
+            return this.message;
+        }
+    }
+    
     private void run() {
         running = true;
-        new Thread(new Runnable() {
+        runThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 lockup(true);
@@ -646,18 +684,21 @@ public class GenvisisPipelineGUI extends JDialog {
                         if (options[i]) {
                             startStep(GenvisisPipelineGUI.this.steps[i]);
                             Throwable e = null;
+                            FINAL_CODE code = FINAL_CODE.COMPLETE;
                             try {
                                 GenvisisPipelineGUI.this.steps[i].setNecessaryPreRunProperties(proj, variables);
                                 GenvisisPipelineGUI.this.steps[i].run(proj, variables);
                             } catch (Throwable e1) {
+                                if (e1 instanceof RuntimeException && ((RuntimeException)e1).getCause() instanceof InterruptedException) {
+                                    code = FINAL_CODE.CANCELLED;
+                                }
                                 e = e1;
                             }
-                            boolean failed = false;
-                            if (e != null || GenvisisPipelineGUI.this.steps[i].getFailed() || !GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, variables)) {
-                                failed = true;
+                            if (code != FINAL_CODE.CANCELLED && (e != null || GenvisisPipelineGUI.this.steps[i].getFailed() || !GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, variables))) {
+                                code = FINAL_CODE.FAILED;
                             }
-                            endStep(GenvisisPipelineGUI.this.steps[i], failed);
-                            if (failed) {
+                            endStep(GenvisisPipelineGUI.this.steps[i], code);
+                            if (code == FINAL_CODE.FAILED) {
                                 StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ").append(i + 1);
                                 if (e != null) {
                                     proj.getLog().reportException(e, 0);
@@ -683,6 +724,30 @@ public class GenvisisPipelineGUI extends JDialog {
                                 } else {
                                     // continue
                                 }
+                            } else if (code == FINAL_CODE.CANCELLED) {
+                                GenvisisPipelineGUI.this.steps[i].gracefulDeath(proj);
+                                // TODO remove message when gracefulDeath is implemented for each step
+                                JOptionPane.showMessageDialog(GenvisisPipelineGUI.this, "Error - cleanup of cancelled steps is not implemented.  Please clean or remove any generated files and try again.", "Error", JOptionPane.ERROR_MESSAGE);
+                                boolean foundMore = false;
+                                for (int k = i+1; k < GenvisisPipelineGUI.this.steps.length; k++) {
+                                    if (options[k]) {
+                                        foundMore = true;
+                                        break;
+                                    }
+                                }
+                                boolean continueExec = false;
+                                if (foundMore) {
+                                    int opt = JOptionPane.showConfirmDialog(GenvisisPipelineGUI.this, "A step was cancelled.  Do you wish to continue?", "Step Cancelled", JOptionPane.YES_NO_OPTION);
+                                    if (opt == JOptionPane.YES_OPTION) {
+                                        continueExec = true;
+                                    }
+                                }
+                                if (!continueExec) {
+                                    for (STEP step : GenvisisPipelineGUI.this.steps) {
+                                        step.resetRun();
+                                    }
+                                    break;
+                                }
                             }
                             
                         }
@@ -692,7 +757,8 @@ public class GenvisisPipelineGUI extends JDialog {
                 lockup(false);
                 running = false;
             }
-        }).start();
+        });
+        runThread.start();
         
     }
     

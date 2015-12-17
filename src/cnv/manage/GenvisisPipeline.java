@@ -778,9 +778,9 @@ public class GenvisisPipeline {
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(4));
             } catch (NumberFormatException e) {}
-            System.out.println("JOHN CAUSED THIS");
-            System.exit(1);
-            //MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
+            String markersToQC = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
+            String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE;
+            MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markersToQC, markersABCallrate, markerCallRateFilter, numThreads);
         }
         
         @Override
@@ -876,8 +876,9 @@ public class GenvisisPipeline {
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(4));
             } catch (NumberFormatException e) {}
-            System.out.println("JOHN CAUSED THIS");
-            System.exit(1);
+            String markersToQC = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
+            String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE;
+            MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markersToQC, markersABCallrate, markerCallRateFilter, numThreads);
            // MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
         }
         
@@ -956,7 +957,7 @@ public class GenvisisPipeline {
             String callRate = variables.get(this).get(2);
             String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE;
             String markersForEverything =  proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_TO_QC_FILE;
-            MitoPipeline.filterSamples(proj, "PCA_GENVISIS", markersForAB, markersForEverything, numThreads, callRate, null);
+            MitoPipeline.filterSamples(proj, MitoPipeline.FILE_BASE, markersForAB, markersForEverything, numThreads, callRate, null);
         }
         
         @Override
@@ -988,7 +989,7 @@ public class GenvisisPipeline {
     
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return Files.exists(proj.SAMPLE_QC_FILENAME.getValue(false, false)) || (Files.exists("PCA_GENVISIS" + MitoPipeline.PCA_SAMPLES) && Files.exists("PCA_GENVISIS" + MitoPipeline.PCA_SAMPLES_SUMMARY));
+            return Files.exists(proj.SAMPLE_QC_FILENAME.getValue(false, false)) || (Files.exists(MitoPipeline.FILE_BASE + MitoPipeline.PCA_SAMPLES) && Files.exists(MitoPipeline.FILE_BASE + MitoPipeline.PCA_SAMPLES_SUMMARY));
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -1174,7 +1175,7 @@ public class GenvisisPipeline {
             int numComponents = Integer.parseInt(variables.get(this).get(1));
             boolean imputeMeanForNaN = Boolean.valueOf(variables.get(this).get(2));
             boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(3));
-            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//variables.get(this).get(4);
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;//variables.get(this).get(4);
             
             proj.getLog().report("\nReady to perform the principal components analysis (PCA)\n");
 			//TODO, load gc params as needed instead of passing null...
@@ -1215,7 +1216,7 @@ public class GenvisisPipeline {
 
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//ext.rootOf(variables.get(this).get(4));
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;//ext.rootOf(variables.get(this).get(4));
             String finalReport = outputBase + PCA.FILE_EXTs[0];//PrincipalComponentsResiduals.MT_REPORT_EXT[0];
 //            boolean mkrFiles = true;
 //            for (String file : PrincipalComponentsResiduals.MT_REPORT_MARKERS_USED) {
@@ -1264,7 +1265,7 @@ public class GenvisisPipeline {
             String medianMarkers = variables.get(this).get(3);
             boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(4));
             boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(5));
-            String outputBase = proj.PROJECT_DIRECTORY.getValue() + "PCA_GENVISIS";//variables.get(this).get(6);
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;//variables.get(this).get(6);
             
             proj.getLog().report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
             PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, extrapolatedPCsFile, ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homozygousOnly, recomputeLRR_Median, outputBase, null);
@@ -1664,8 +1665,12 @@ public class GenvisisPipeline {
         public boolean getFailed() { return failed; }
         protected void setFailed() { failed = true; }
         public ArrayList<String> getFailureMessages() { return failReasons; }
-        public abstract void run(Project proj, HashMap<STEP, ArrayList<String>> variables);
         public abstract void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables);
+        public abstract void run(Project proj, HashMap<STEP, ArrayList<String>> variables);
+//        public abstract void gracefulDeath();
+        public void gracefulDeath(Project proj) {
+            return;
+        }
         public abstract boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables);
         public boolean hasRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
             if (stepSelections.get(this) == null || variables.get(this) == null) {

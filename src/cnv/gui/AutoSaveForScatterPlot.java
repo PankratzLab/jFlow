@@ -15,20 +15,20 @@ public class AutoSaveForScatterPlot implements Runnable {
 	private boolean isClusterFiltersUpdated;
 	private boolean isAnnotationsUpdated;
 	
-	public AutoSaveForScatterPlot(ClusterFilterCollection clusterFilterCollection, String clusterFilterFilename, AnnotationCollection AnnotationCollection, String annotaionFilename, int periodInSeconds) {
+	public AutoSaveForScatterPlot(ClusterFilterCollection clusterFilterCollection, String clusterFilterFilename, AnnotationCollection AnnotationCollection, String annotationFilename, int periodInSeconds) {
 		this.clusterFilters = clusterFilterCollection;
 		this.clusterFilterFilename = clusterFilterFilename;
 		this.annotations = AnnotationCollection;
-		this.annotationFilename = annotaionFilename;
+		this.annotationFilename = annotationFilename;
 		this.period = periodInSeconds;
 		this.killed = false;
 		this.isClusterFiltersUpdated = false;
 		this.isAnnotationsUpdated = false;
 	}
 
-	public void addToAutoSave(AnnotationCollection collection, String annotaionFilename) {
+	public void addToAutoSave(AnnotationCollection collection, String annotationFilename) {
 		this.annotations = collection;
-		this.annotationFilename = annotaionFilename;
+		this.annotationFilename = annotationFilename;
 	}
 
 	public void addToAutoSave(ClusterFilterCollection collection, String clusterFilterFilename) {
