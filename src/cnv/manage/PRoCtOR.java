@@ -11,6 +11,7 @@ import cnv.analysis.PennCNVPrep.ShadowSample;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.MarkerData;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 
@@ -88,7 +89,8 @@ public class PRoCtOR {
         
         long msFingerprint = proj.getMarkerSet().getFingerprint();
         Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
-        int numMarkers = proj.getMarkerSet().getPositions().length;
+		MarkerSet markerSet = proj.getMarkerSet();
+        int numMarkers = markerSet.getPositions().length;
         ArrayList<String> notCorrected = new ArrayList<String>();
         PrincipalComponentsResiduals principalComponentsResiduals = PennCNVPrep.loadPcResids(proj, numComponents);
         if (principalComponentsResiduals == null) {
@@ -105,7 +107,7 @@ public class PRoCtOR {
 
             proj.getLog().report(ext.getTime() + "]\tLoading all markers into memory...");
             MarkerData[] allMarkers = new MarkerData[numMarkers];
-            MDL dataLoader = new MDL(proj, markerNames, numThreads, mkrBuffer);
+			MDL dataLoader = new MDL(proj, markerSet, markerNames, numThreads, mkrBuffer);
             dataLoader.setReportEvery(50000);
             int index = 0;
             while (dataLoader.hasNext()) {

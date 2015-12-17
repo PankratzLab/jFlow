@@ -14,7 +14,7 @@ public class MAF {
 		Logger log;
 		
 		log = proj.getLog();
-		MDL mdl = new MDL(proj, proj.getMarkerNames(), 4, 4);
+		MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames(), 4, 4);
 		String output =  proj.PROJECT_DIRECTORY.getValue() + "mafs.txt";
 		// String sampOutliers = proj.getDir(Project.SAMPLE_DIRECTORY)+"outliers.ser";
 		// Hashtable<String, Float> outSamps = (Hashtable<String, Float>) Files.readSerial(sampOutliers);

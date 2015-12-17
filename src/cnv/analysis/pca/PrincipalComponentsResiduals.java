@@ -282,7 +282,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 * 
 	 */
 	private void getData() {
-		MDL mdl = new MDL(proj, markersToAssess, 2, 100);
+		MDL mdl = new MDL(proj, proj.getMarkerSet(), markersToAssess, 2, 100);
 		// MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markersToAssess);
 		int count = numUsed(samplesToUse);
 		this.fullData = new double[markersToAssess.length][count];

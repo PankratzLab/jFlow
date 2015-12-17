@@ -23,6 +23,7 @@ import common.ext;
 public class MDL implements Iterator<MarkerData> {
 	private Project proj;
 	private String[] markerNames;
+	private MarkerSet markerSet;
 	private int numDecompressThreads;
 	private WorkerTrain<MarkerData> decompTrain;
 	private MarkerLookup markerLookup;
@@ -36,6 +37,8 @@ public class MDL implements Iterator<MarkerData> {
 
 	/**
 	 * @param proj
+	 * @param markerSet
+	 *            if null, will be loaded
 	 * @param markerNames
 	 *            them to load
 	 * @param numDecompressThreads
@@ -43,10 +46,11 @@ public class MDL implements Iterator<MarkerData> {
 	 * @param markerBuffer
 	 *            number of markers to hold in the queue for processing
 	 */
-	public MDL(Project proj, String[] markerNames, int numDecompressThreads, int markerBuffer) {
+	public MDL(Project proj, MarkerSet markerSet, String[] markerNames, int numDecompressThreads, int markerBuffer) {
 		this.proj = proj;
 		this.missing = new Hashtable<String, String>();
 		this.markerNames = markerNames;
+		this.markerSet = markerSet == null ? proj.getMarkerSet() : markerSet;
 		this.numDecompressThreads = numDecompressThreads;
 		this.markerLookup = proj.getMarkerLookup();
 		this.files = matchFileNames();
@@ -65,7 +69,7 @@ public class MDL implements Iterator<MarkerData> {
 		if (decompTrain != null) {
 			decompTrain.shutdown();
 		}
-		this.producer = new BufferReader(proj, match.getFileName(), Array.toIntegerArray(match.getFileIndices()), Array.toIntegerArray(match.getProjIndices()), debugMode);
+		this.producer = new BufferReader(proj, markerSet, match.getFileName(), Array.toIntegerArray(match.getFileIndices()), Array.toIntegerArray(match.getProjIndices()), debugMode);
 		try {
 			producer.init();
 		} catch (IllegalStateException e) {
@@ -236,10 +240,12 @@ public class MDL implements Iterator<MarkerData> {
 		private Project proj;
 		private boolean isGcNull, isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull, isNegativeXYAllowed, debugMode;
 		private Hashtable<String, Float> outlierHash;
+		private MarkerSet markerSet;
 
-		private BufferReader(Project proj, String currentMarkFilename, int[] markersIndicesInFile, int[] markerIndicesInProject, boolean debugMode) {
+		private BufferReader(Project proj, MarkerSet markerSet, String currentMarkFilename, int[] markersIndicesInFile, int[] markerIndicesInProject, boolean debugMode) {
 			super();
 			this.proj = proj;
+			this.markerSet = markerSet;
 			this.currentMarkFilename = currentMarkFilename;
 			this.markersIndicesInFile = markersIndicesInFile;
 			this.markerIndicesInProject = markerIndicesInProject;
@@ -250,11 +256,9 @@ public class MDL implements Iterator<MarkerData> {
 		@SuppressWarnings("unchecked")
 		private void init() throws IOException, IllegalStateException {
 			this.sampleFingerprint = proj.getSampleList().getFingerprint();
-			MarkerSet markerSet = proj.getMarkerSet();
 			this.chrs = Array.subArray(markerSet.getChrs(), markerIndicesInProject);
 			this.positions = Array.subArray(markerSet.getPositions(), markerIndicesInProject);
 			this.names = Array.subArray(markerSet.getMarkerNames(), markerIndicesInProject);
-
 			this.file = new RandomAccessFile(currentMarkFilename, "r");
 			file.read(parameterReadBuffer);
 			this.nullStatus = parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START];
@@ -499,7 +503,7 @@ public class MDL implements Iterator<MarkerData> {
 
 		for (int i = 0; i < iter; i++) {
 			int index = 0;
-			MDL mdl = new MDL(proj, proj.getMarkerNames(), 3, 10);
+			MDL mdl = new MDL(proj, null, proj.getMarkerNames(), 3, 10);
 			while (mdl.hasNext()) {
 				try {
 					MarkerData markerData = mdl.next();

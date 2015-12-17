@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 
 import common.*;
 import cnv.filesys.*;
+import cnv.manage.SDL.LOAD_TYPE;
 import cnv.var.SampleData;
 
 public class PlinkData {
@@ -558,10 +559,10 @@ public class PlinkData {
 //		}
 //	}
 	public static boolean saveGenvisisToPlinkPedSet(Project proj, String filenameRoot, String clusterFiltersFilename, String targetMarkersFilename) {
-		return saveGenvisisToPlinkPedSet(proj, filenameRoot, null, clusterFiltersFilename, targetMarkersFilename);
+		return saveGenvisisToPlinkPedSet(proj, filenameRoot, null, clusterFiltersFilename, targetMarkersFilename,1);
 	}
 
-	public static boolean saveGenvisisToPlinkPedSet(Project proj, String filenameRoot, String dir, String clusterFiltersFilename, String targetMarkersFilename) {
+	public static boolean saveGenvisisToPlinkPedSet(Project proj, String filenameRoot, String dir, String clusterFiltersFilename, String targetMarkersFilename, int numthreads) {
 	BufferedReader reader;
 		PrintWriter writer;
 		Hashtable<String,Integer> hash;
@@ -681,7 +682,11 @@ public class PlinkData {
 		
 		int exp = Files.countLines(proj.PEDIGREE_FILENAME.getValue(), 0);
 		proj.getProgressMonitor().beginDeterminateTask(PROG_KEY + "_PEDEXPORT", "Exporting sample data to .ped file", exp, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-		
+		SDL sdl = null;
+		if (numthreads > 1) {
+			sdl = new SDL(proj, loadSampsInPed(proj.PEDIGREE_FILENAME.getValue(), log), LOAD_TYPE.FULL_SAMPLE, numthreads);
+		}
+
 		try {
 			reader = new BufferedReader(new FileReader(proj.PEDIGREE_FILENAME.getValue()));
 			writer = new PrintWriter(new FileWriter(dir+filenameRoot+".ped"));
@@ -713,7 +718,21 @@ public class PlinkData {
 						writer.print(" 0 0");
 					}
 				} else {
-					fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
+					if (numthreads > 1 && sdl != null) {
+						if (!sdl.hasNext()) {
+							reader.close();
+							writer.close();
+							throw new IllegalArgumentException("BUG: SDL ran out of samples to load, set threads to 1 or less");
+						}
+						fsamp = sdl.next();
+						if (fsamp != null && !fsamp.getSampleName().equals(line[6])) {
+							reader.close();
+							writer.close();
+							throw new IllegalArgumentException("BUG: SDL loaded in incorrect error, set threads to 1 or less");
+						}
+					} else {
+						fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
+					}
 					if (fsamp==null) {
 						log.reportError("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+Sample.SAMPLE_DATA_FILE_EXTENSION+" was not found in directory: "+proj.SAMPLE_DIRECTORY.getValue(false, true));
 						for (int i = 0; i<indices.length; i++) {
@@ -797,7 +816,32 @@ public class PlinkData {
         
 		return true;
 	}
-	
+
+	private static String[] loadSampsInPed(String ped, Logger log) {
+		ArrayList<String> samps = new ArrayList<String>();
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(ped));
+			String temp = null;
+			try {
+				while ((temp = reader.readLine()) != null) {
+					String[] line = temp.split(ext.determineDelimiter(temp));
+					if (line.length < 7) {// let the erro message be reported later if needed
+						samps.add("NA");
+					} else {
+						samps.add(line[6]);
+					}
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return Array.toStringArray(samps);
+	}
 
 	/**
 	 * Convert Genvisis data into a PLINK .bed data set.

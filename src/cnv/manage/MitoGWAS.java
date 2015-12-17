@@ -18,6 +18,7 @@ import common.WorkerTrain;
 import common.ext;
 import common.WorkerTrain.Producer;
 import cnv.filesys.ClusterFilterCollection;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Pedigree;
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
@@ -56,17 +57,19 @@ public class MitoGWAS {
 		String plinkPed = root + ".ped";
 		String plinkMap = root + ".map";
 		if (!Files.exists(plinkMap) || !Files.exists(plinkPed)) {
-			String[] markerNames = proj.getMarkerNames();
+			MarkerSet markerSet = proj.getMarkerSet();
+			String[] markerNames = markerSet.getMarkerNames();
+			byte[] chr = markerSet.getChrs();
 			ArrayList<String> markersToAnalyze = new ArrayList<String>();
-			int numCNOnly = 0;
+			int numSkipped = 0;
 			for (int i = 0; i < markerNames.length; i++) {
-				if (proj.getArrayType().isCNOnly(markerNames[i])) {
-					numCNOnly++;
+				if (proj.getArrayType().isCNOnly(markerNames[i]) || chr[i] < 1) {
+					numSkipped++;
 				} else {
 					markersToAnalyze.add(markerNames[i]);
 				}
 			}
-			proj.getLog().reportTimeInfo(numCNOnly + " copy number only probes were removed, " + markersToAnalyze.size() + " remaining");
+			proj.getLog().reportTimeInfo(numSkipped + " copy number or chr0 only probes  were removed, " + markersToAnalyze.size() + " remaining");
 			String exportList = root + "_markers.txt";
 			Files.writeList(Array.toStringArray(markersToAnalyze), exportList);
 			String blankCluster = root + ".blankCluster.ser";
@@ -74,14 +77,14 @@ public class MitoGWAS {
 			new ClusterFilterCollection().serialize(blankCluster);
 			proj.GC_THRESHOLD.setValue((double) 0);
 			proj.getLog().reportTimeWarning("Setting gc threshold to 0");
-			PlinkData.saveGenvisisToPlinkPedSet(proj, root, "", blankCluster, null);
+			PlinkData.saveGenvisisToPlinkPedSet(proj, root, "", blankCluster, exportList, numthreads);
 		} else {
 			proj.getLog().reportTimeInfo(plinkMap + " and " + plinkPed + "exist, skipping");
 		}
 
 		int mac = 5;
-		double maf = (double) 5 / ped.getDnas().length;
-		proj.getLog().reportTimeInfo("using maf of " + maf + " (MAC= " + mac + "  of " + ped.getDnas().length);
+		double geno = 0.1;
+		proj.getLog().reportTimeInfo("using maf of " + mac + " (MAC= " + mac + "  of " + ped.getDnas().length);
 
 		ArrayList<String> plinkConverCommand = new ArrayList<String>();
 		plinkConverCommand.add("plink2");
@@ -89,10 +92,12 @@ public class MitoGWAS {
 		plinkConverCommand.add(root);
 		plinkConverCommand.add("--make-bed");
 		plinkConverCommand.add("--out");
-		root = root + "_maf_" + ext.roundToSignificantFigures(maf, 5);
+		root = root + "_mac_" + mac + "_geno_" + geno;
 		plinkConverCommand.add(root);
-		plinkConverCommand.add("--maf");
-		plinkConverCommand.add(maf + "");
+		plinkConverCommand.add("--mac");
+		plinkConverCommand.add(mac + "");
+		plinkConverCommand.add("--geno");
+		plinkConverCommand.add(geno + "");
 
 		String[] in = new String[] { plinkPed, plinkMap };
 		String fam = root + ".fam";
@@ -279,6 +284,8 @@ public class MitoGWAS {
 		plink.add(processed);
 		plink.add("--out");
 		plink.add(ext.rootOf(output, false));
+		plink.add("--threads");
+		plink.add(6 + "");
 
 		String[] inputs = new String[] { processed, inputDb };
 		String[] outputs = new String[] { root + ".assoc.linear.perm" };
