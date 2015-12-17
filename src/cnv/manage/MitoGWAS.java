@@ -261,7 +261,6 @@ public class MitoGWAS {
 	}
 
 	private static PlinkAssoc prepareAssoc(String root, boolean inverse, String inputDb, String pheno, String covars, String output, Logger log) {
-		System.out.println(output);
 		String processed = ext.addToRoot(output, "_pheno");
 		PhenoPrep.parse("", inputDb, "IID", pheno, null, 3.0, false, false, true, false, inverse, covars, root + ".fam", true, true, false, false, false, false, null, output, true, false, false, false, false, false, log);
 		ArrayList<String> plink = new ArrayList<String>();

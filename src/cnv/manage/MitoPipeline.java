@@ -450,7 +450,7 @@ public class MitoPipeline {
 								}
 							}
 							log.report("\nReady to perform the principal components analysis (PCA)\n");
-							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + PCA_SAMPLES, outputBase, params);
+							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, proj.PROJECT_DIRECTORY.getValue()+outputBase + PCA_SAMPLES, outputBase, params);
 							if (pcs == null) {
 								return 3;
 							}
