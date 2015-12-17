@@ -166,7 +166,7 @@ public class MendelErrors {
 				PrintWriter writer = new PrintWriter(new FileWriter(output));
 				writer.println("MarkerName\tNumMendelErrors");
 				boolean[] samplesToCheck = proj.getSamplesToInclude(null);
-				MDL mdl = new MDL(proj, proj.getMarkerNames(), 2, 100);
+				MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames(), 2, 100);
 				while (mdl.hasNext()) {
 					MarkerData markerData = mdl.next();
 					MendelErrorCheck[] mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData, samplesToCheck, null, null, 0, log);

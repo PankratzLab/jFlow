@@ -755,7 +755,7 @@ public class CentroidCompute {
 			this.proj = proj;
 			this.markers = markers;
 			this.builders = builders;
-			this.mdl = new MDL(proj, markers, numDecompressThreads, 100);
+			this.mdl = new MDL(proj, proj.getMarkerSet(), markers, numDecompressThreads, 100);
 
 			this.count = 0;
 		}

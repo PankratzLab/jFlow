@@ -716,7 +716,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 //			this.numDecompressThreads = numDecompressThreads;
 //			this.markersToCorrect = markersToCorrect;
 			this.correctAt = correctAt;
-			this.mdl = new MDL(pcResiduals.getProj(), markersToCorrect, numDecompressThreads, 0);
+			this.mdl = new MDL(pcResiduals.getProj(), pcResiduals.getProj().getMarkerSet(), markersToCorrect, numDecompressThreads, 0);
 		}
 
 		@Override
