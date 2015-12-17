@@ -296,7 +296,7 @@ public class PennCNVPrep {
 	// this.canXYBeNegative = canXYBeNegative;
 	// updateNullStatus();
 	// }
-	private static class ShadowSample {
+	public static class ShadowSample {
 		private String sampleName;
 		private String[] shadowMarkers;
 		private float[] shadowGCs;
@@ -413,7 +413,7 @@ public class PennCNVPrep {
 	/**
 	 * Grab the {@link PrincipalComponentsResiduals} from {@link Project#INTENSITY_PC_FILENAME}
 	 */
-	private static PrincipalComponentsResiduals loadPcResids(Project proj, int numComponents) {
+	public static PrincipalComponentsResiduals loadPcResids(Project proj, int numComponents) {
 		// String pcFile = proj.getFilename(proj.INTENSITY_PC_FILENAME);
 		String pcFile = proj.INTENSITY_PC_FILENAME.getValue();
 		PrincipalComponentsResiduals pcResids;
@@ -437,7 +437,7 @@ public class PennCNVPrep {
 		return samples;
 	}
 
-	private static int[] getSampleSex(Project proj) {
+	public static int[] getSampleSex(Project proj) {
 		String[] samples = proj.getSamples();
 		SampleData sampleData = proj.getSampleData(0, false);
 		int[] sex = new int[samples.length];
