@@ -880,6 +880,7 @@ public class PlinkData {
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .fam file", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot);
 		proj.getProgressMonitor().endTask(PROG_KEY);
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		
 		allSamplesInProj = proj.getSamples();
 		if (targetSamples != null) {
@@ -898,6 +899,7 @@ public class PlinkData {
 			    indicesOfTargetSamplesInProj[i] = i;
 			}
 		}
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 
 //		allMarkersInProj = proj.getMarkerNames();
 		targetMarkers = proj.getTargetMarkers(targetMarkersFileName);
@@ -916,6 +918,7 @@ public class PlinkData {
             proj.getProgressMonitor().endTask(PROG_KEY);
 //		}
 
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (gcThreshold < 0) {
 			gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 		}
@@ -1154,6 +1157,7 @@ public class PlinkData {
 			out.write(outStream);
 
 			for (int i = 0; i < targetSamples.length; i++) {
+		        if (Thread.currentThread().isInterrupted()) { out.close();  throw new RuntimeException(new InterruptedException()); }
 				fsamp = proj.getFullSampleFromRandomAccessFile(targetSamples[i]);
 
 				if (fsamp == null) {
@@ -1425,6 +1429,7 @@ public class PlinkData {
 		        markerIndexHash.put(targetMarkers[i], i);
 		    }
 		}
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 
 		markerOutputOrder = new ArrayList<String>();
 		sampleFingerPrint = proj.getSampleList().getFingerprint();
@@ -1458,6 +1463,7 @@ public class PlinkData {
 			subTime = new Date().getTime();
 			
 			for (int i = 0; i < filenames.length; i++) {
+		        if (Thread.currentThread().isInterrupted()) { bimWriter.close(); out.close(); throw new RuntimeException(new InterruptedException()); }
 			    proj.getProgressMonitor().changeTaskLabelWithUpdate(PROG_KEY, "Exporting data to .bed file from marker file ... " + filenames[i]);
 				
 				v = batches.get(filenames[i]);

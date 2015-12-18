@@ -774,6 +774,7 @@ public class PennCNV {
 			}
 		}
 
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		try {
 			writer = new PrintWriter(new FileWriter(output));
 			writer.println("Name\tChr\tPosition\tPFB");
@@ -865,6 +866,7 @@ public class PennCNV {
 
 		// load gcFile
 		try {
+	        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 			reader = Files.getAppropriateReader(inputGcBaseFullPath);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
@@ -925,7 +927,8 @@ public class PennCNV {
 			log.reportException(e);
 			return;
 		}
-		
+
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		// load pfb file or generate it
 		
 		// output the result

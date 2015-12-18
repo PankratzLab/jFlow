@@ -609,8 +609,10 @@ public class MitoPipeline {
 			writeMarkersToQC(proj, targetMarkersFile, markersToQCFile);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);
+	        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 			MarkerMetrics.fullQC(proj, samplesToExclude, ext.removeDirectoryInfo(markersToQCFile), false, numthreads);
 		}
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		filterMarkerMetricsFile(proj, markerCallRateFilter, markersABCallrate);
 	}
 
@@ -808,11 +810,13 @@ public class MitoPipeline {
 			log.report("Computing sample QC for all samples...");
 			log.report("Will be reporting sample qc to " + proj.SAMPLE_QC_FILENAME.getValue());
 			cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, null, numThreads);
+	        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		}
 
 		count = 0;
 		numPassing = 0;
 		try {
+	        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 			BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
 			PrintWriter writerUse = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES));
 			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES_SUMMARY));
