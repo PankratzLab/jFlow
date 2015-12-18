@@ -1,49 +1,83 @@
 package cnv.plots;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import net.miginfocom.swing.MigLayout;
-import mining.Transformations;
-import common.*;
-import cnv.analysis.MosaicismDetect;
-import cnv.analysis.MosaicismQuant;
-import cnv.analysis.MosaicismDetect.MosaicBuilder;
-import cnv.analysis.MosaicismQuant.MOSAIC_TYPE;
-import cnv.analysis.MosaicismQuant.MosaicQuantResults;
-import cnv.analysis.MosaicismQuant.MosaicQuantWorker;
-import cnv.filesys.*;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
-import cnv.gui.FileActionMenu;
+import cnv.filesys.Project;
 import cnv.gui.NewRegionListDialog;
-import cnv.gui.SingleClick;
-import cnv.gui.ClickListener;
-import cnv.hmm.CNVCaller;
-import cnv.hmm.CNVCaller.CNVCallResult;
-import cnv.hmm.PFB;
-import cnv.hmm.PennHmm;
-import cnv.manage.Transforms;
-import cnv.qc.GcAdjustor;
-import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import cnv.qc.LrrSd;
-import cnv.qc.GcAdjustor.GcModel;
-import cnv.var.CNVariant;
-import cnv.var.CNVariant.CNVBuilder;
-import cnv.var.IndiPheno;
-import cnv.var.LocusSet;
-import cnv.var.MosaicRegion;
 import cnv.var.Region;
-import cnv.var.SampleData;
-import filesys.*;
+
+import common.Array;
+import common.Files;
+import common.Grafik;
+import common.HashVec;
+import common.Logger;
+import common.Positions;
+import common.TransferableImage;
+import common.ext;
+
+import filesys.GeneData;
+import filesys.GeneTrack;
+import filesys.Segment;
 
 public class TrailerClone extends JFrame implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener {
 	public static final long serialVersionUID = 1L;
@@ -69,14 +103,17 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	private static final String PREVIOUS_REGION = "Previous region";
 	private static final String NEXT_REGION = "Next region";
 	private static final String LAST_REGION = "Last region";
+	private static final String TO_TRAILER_PLOT = "To Trailer";
 	private static final String TO_SCATTER_PLOT = "To Scatter Plot";
 	private static final String TO_COMP_PLOT = "To Comp Plot";
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
 
+    protected static final int COLLAPSE_ISOFORMS = -9;
+
 	private JComboBox<String> isoformList;
 	private String[] isoformsPresent;
-	private JButton previousRegion, nextRegion;
+	private JButton previousGene, nextGene;
 	private Project proj;
 	private boolean jar;
 	private int[] positions;
@@ -87,12 +124,14 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	private int stop, stopMarker;
 	private boolean inDrag;
 	private int startX;
-	private String[][] regions;
-	private int regionIndex;
+	private String[][] geneRegions;
+	private int geneIndex;
+	private int isoformIndex;
 	private JPanel lrrPanel;
 	private JPanel bafPanel;
 	private JPanel cnvPanel;
 	private GeneTrack track;
+	GeneData[][] geneData;
 	private JLabel commentLabel;
 	private String isoform;
 	
@@ -100,8 +139,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	private Logger log;
 	private boolean fail;
 	private JMenu loadRecentFileMenu;
-	private JMenuItem launchScatter;
-	private JMenuItem launchComp;
 	private ButtonGroup regionButtonGroup;
 
 	private AbstractAction markerFileSelectAction = new AbstractAction() {
@@ -113,7 +150,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                     && !REGION_LIST_NEW_FILE.equals(shortName) 
                     && !REGION_LIST_PLACEHOLDER.equals(shortName)) {
                 String file = regionFileNameLoc.get(shortName);
-                if (file != null && file.equals(TrailerClone.this.regionFileName)) {
+                if (file != null && file.equals(TrailerClone.this.geneFileName)) {
                     return;
                 }
                 String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
@@ -121,17 +158,17 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                     proj.message("Error - region file '" + shortName + "' doesn't exist.");
                     regionFileNameBtn.get(shortName).setSelected(true);
                 } else {
-                    TrailerClone.this.regionFileName = file;
-                    loadRegions();
-                    showRegion(0);
+                    TrailerClone.this.geneFileName = file;
+                    loadGenes(TrailerClone.this.geneFileName);
+                    showGene(0);
                 }
             } /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
                 // do nothing
             } */else if (loadingFile || REGION_LIST_PLACEHOLDER.equals(shortName)) {
                 // leave as currently selected marker
-                if (TrailerClone.this.regionFileName != "" && TrailerClone.this.regionFileName != null) {
-                    String file = TrailerClone.this.regionFileName;
-                    file = ext.rootOf(TrailerClone.this.regionFileName);
+                if (TrailerClone.this.geneFileName != "" && TrailerClone.this.geneFileName != null) {
+                    String file = TrailerClone.this.geneFileName;
+                    file = ext.rootOf(TrailerClone.this.geneFileName);
                     regionFileNameBtn.get(file).setSelected(true);
                 }
                 return;
@@ -139,14 +176,14 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         }
     };
 	
-    AbstractAction loadRegionFileAction = new AbstractAction() {
+    AbstractAction loadGeneListFileAction = new AbstractAction() {
         private static final long serialVersionUID = 1L;
         @Override
         public void actionPerformed(ActionEvent e) {
             String newFile = chooseNewFiles();
             if (newFile == null) {
-                if (TrailerClone.this.regionFileName != null && !"".equals(TrailerClone.this.regionFileName)) {
-                    regionFileNameBtn.get(ext.rootOf(TrailerClone.this.regionFileName)).setSelected(true);
+                if (TrailerClone.this.geneFileName != null && !"".equals(TrailerClone.this.geneFileName)) {
+                    regionFileNameBtn.get(ext.rootOf(TrailerClone.this.geneFileName)).setSelected(true);
                 }
             } else {
                 String file = ext.verifyDirFormat(newFile);
@@ -187,17 +224,21 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 
 	private HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<String, JCheckBoxMenuItem>();
 	private HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
-	private String regionFileName;
+	private String geneFileName;
 	private volatile boolean loadingFile = false;
-	private JTextField regionField;
+	private JComboBox<String> geneList;
+
+    private PreparedMarkerSet markerSet;
+    private long fingerprint;
+    private String[] markerNames;
 	
-	public TrailerClone(Project proj, String selectedSample, String location) {
-		this(proj, null);
+	public TrailerClone(Project proj) {
+		this(proj, proj.DATA_DIRECTORY.getValue()  + "genes.txt"/*proj.GENE_LIST_FILENAMES.getValue()[0]*/);
 	}
 
 	// TODO Trailer should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
 //	public TrailerClone(Project proj, String selectedSample, String location, int startX, int startY, int width, int height) {
-	public TrailerClone(Project proj, String[] genes) {
+	public TrailerClone(Project proj, String file) {
 		super("Genvisis - Trailer - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
@@ -223,8 +264,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 				        String message = newSet.size() + " files have been added.  ";
 				        int choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time TrailerClose is loaded?", "Preserve TrailerClone workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 				        if (choice == 0) {
-				            TrailerClone.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.setValue(newList);
-				            TrailerClone.this.proj.saveProperties();
+//				            TrailerClone.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.setValue(newList);
+//				            TrailerClone.this.proj.saveProperties();
 				        }
 					}
 				}
@@ -246,16 +287,11 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 
 //		chr = (byte)Positions.parseUCSClocation(location)[0]; 
 
-		fail = false;//!loadMarkers();
+		fail = !loadMarkers();
 		if (fail) {
 			return;
-		}
-		generateComponents();
-		this.setJMenuBar(createMenuBar());
-			
-		time = new Date().getTime();
-        
-        trackFilename = proj.getGeneTrackFilename(false);
+		}        
+		trackFilename = proj.getGeneTrackFilename(false);
         if (trackFilename != null) {
             log.report("Loading track from "+trackFilename);    
             track = GeneTrack.load(trackFilename, jar);
@@ -264,7 +300,14 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             log.report("Cannot create display without GeneTrack");
             return;
         }
-        loadGenes(genes);
+        loadGenes(file);
+        
+		generateComponents();
+		this.setJMenuBar(createMenuBar());
+			
+		time = new Date().getTime();
+        
+
         
 		System.out.println("All in "+ext.getTimeElapsed(time));
 
@@ -272,14 +315,38 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		setBounds(startX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 		setVisible(true);
 		
-		TrailerClone.this.regionFileName = "";
+		TrailerClone.this.geneFileName = "";
 		updateGUI();
-		regionIndex = -1;
-		showRegion(0);
+		geneIndex = -1;
+		showGene(0);
 	}
 	
-	private void loadGenes(String[] genes) {
-	    track.lookupAllGeneData(genes);
+	private void loadGenes(String file) {
+	    String[] genes = HashVec.loadFileToStringArray(file, false, new int[]{0}, false);
+	    geneData = track.lookupAllGeneData(genes); 
+	    geneRegions = new String[geneData.length][];
+	    for (int g = 0; g < geneData.length; g++) {
+	        // TODO deal with multiple geneDatas
+	        // TODO comments
+	        geneRegions[g] = new String[]{geneData[g][0].getGeneName(), geneData[g][0].getUCSClocation(), ""};
+	    }
+	}
+	
+	private void updateGeneList() {
+	    FontMetrics fontMetrics;
+        int maxWidth;
+
+        fontMetrics = geneList.getFontMetrics(geneList.getFont());
+        maxWidth = fontMetrics.stringWidth("----------");
+        
+        String[] geneNames = new String[geneData.length];
+        for (int i = 0; i < geneData.length; i++) {
+            geneNames[i] = geneData[i][0].getGeneName();
+            maxWidth = Math.max(maxWidth, fontMetrics.stringWidth(geneNames[i]));
+        }
+
+        geneList.setModel(new DefaultComboBoxModel<String>(geneNames));
+        geneList.setPreferredSize(new Dimension(maxWidth + 50, 30));
 	}
 	
 	private void paintLRRPanel(Graphics g) {
@@ -287,62 +354,46 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 	
 	private void paintGeneTrackPanel(Graphics g) {
-
 		GeneData[] genes;
 		int[][] exons;
 		Vector<Segment> v = new Vector<Segment>();
 		Segment[] segs;
-		int width, begin, end, source;
-		Segment currentView;
-		String text;
+		int width, begin, end;
 		
-//		g.drawRect(0, 0, this.getWidth()-1, this.getHeight()-1);
-		
-		
-		if (track == null) {
-			text = "Gene track is not installed";
-			width = g.getFontMetrics(g.getFont()).stringWidth(text);
-			g.drawString(text, this.getWidth()/2-width/2, 10);
+		if (stop-start > 10000000) {
+			g.drawString("Zoom in to see genes", 10, 10);
 		} else {
-			if (stop-start > 10000000) {
-				g.drawString("Zoom in to see genes", 10, 10);
-			} else {
-				genes = track.getBetween(chr, start, stop, 30);
-//				System.out.println(ext.getUCSCformat(new int[] {chr, start, stop}));
-				g.setColor(Color.BLACK);
-				for (int i = 0; i<genes.length; i++) {
-					begin = getX(genes[i].getStart());
-					end = getX(genes[i].getStop());
-					g.drawRoundRect(begin, 0*15, end-begin, 10, 2, 2);
-					v.add(new Segment(begin, end));
-					exons = genes[i].getExonBoundaries();
-					for (int j = 0; j<exons.length; j++) {
-						begin = getX(exons[j][0]);
-						end = getX(exons[j][1]);
-						if (j==0 || j==exons.length-1) {
-							g.fillRoundRect(begin, 0*15, end-begin+1, 10, 2, 2);
-						} else {
-							g.fillRect(begin, 0*15, end-begin+1, 10);
-						}
-						
+			genes = geneData[geneIndex];// track.getBetween(chr, start, stop, 30);
+			g.setColor(Color.BLACK);
+			for (int i = 0; i<genes.length; i++) {
+				begin = getX(genes[i].getStart());
+				end = getX(genes[i].getStop());
+				g.drawRoundRect(begin, 0*15, end-begin, 10, 2, 2);
+				v.add(new Segment(begin, end));
+				exons = genes[i].getExonBoundaries();
+				for (int j = 0; j < exons.length; j++) {
+					begin = getX(exons[j][0]);
+					end = getX(exons[j][1]);
+					if (j==0 || j==exons.length-1) {
+						g.fillRoundRect(begin, 0*15, end-begin+1, 10, 2, 2);
+					} else {
+						g.fillRect(begin, 0*15, end-begin+1, 10);
 					}
-//					System.out.println(genes[i].getGeneName()+"\t"+genes[i].getStart()+"\t"+genes[i].getStop());
-                }
-//				System.out.println();
-				Segment.mergeOverlapsAndSort(v);
-				segs = Segment.toArray(v);
-				g.setFont(new Font("Arial", 0, 14));
-				
-				for (int i = 0; i<genes.length; i++) {
-					begin = getX(genes[i].getStart());
-					width = g.getFontMetrics(g.getFont()).stringWidth(genes[i].getGeneName());
-					if (!Segment.overlapsAny(new Segment(begin-width-5, begin-1), segs)) {
-						g.drawString(genes[i].getGeneName(), begin-width-3, 0*15+10);
-					}
+					
+				}
+            }
+			Segment.mergeOverlapsAndSort(v);
+			segs = Segment.toArray(v);
+			g.setFont(new Font("Arial", 0, 14));
+			
+			for (int i = 0; i<genes.length; i++) {
+				begin = getX(genes[i].getStart());
+				width = g.getFontMetrics(g.getFont()).stringWidth(genes[i].getGeneName());
+				if (!Segment.overlapsAny(new Segment(begin-width-5, begin-1), segs)) {
+					g.drawString(genes[i].getGeneName(), begin-width-3, 0*15+10);
 				}
 			}
 		}
-		currentView = new Segment(chr, start, stop);
 	}
 	
 	private Color[] getAColor(int index) {
@@ -357,7 +408,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 	
 	private String chooseNewFiles() {
-		JFileChooser jfc = new JFileChooser((proj != null || regionFileName == null ? proj.PROJECT_DIRECTORY.getValue() : ext.parseDirectoryOfFile(regionFileName)));
+		JFileChooser jfc = new JFileChooser((proj != null || geneFileName == null ? proj.PROJECT_DIRECTORY.getValue() : ext.parseDirectoryOfFile(geneFileName)));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(TrailerClone.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
@@ -454,9 +505,13 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		cnvPanel = new JPanel() {
 			public static final long serialVersionUID = 8L;
 			public void paintComponent(Graphics g) {
-			}
+			    paintGeneTrackPanel(g);
+		    }
 		};
 		cnvPanel.setMaximumSize(new Dimension(getWidth(), 20));
+		cnvPanel.addMouseListener(this);
+		cnvPanel.addMouseMotionListener(this);
+		cnvPanel.addMouseWheelListener(this);
 		dataPanel.add(cnvPanel);
 
 		bafPanel = new JPanel() {
@@ -475,17 +530,60 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 
 		JPanel sampPanel = new JPanel();
 		((FlowLayout)sampPanel.getLayout()).setVgap(0);
-		previousRegion = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
-		previousRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
-		previousRegion.addActionListener(this);
-		previousRegion.setActionCommand(PREVIOUS_REGION);
-		previousRegion.setPreferredSize(new Dimension(25, 25));
-
-		isoformList = new JComboBox<String>();
-		isoformList.setFont(new Font("Arial", 0, 20));
-		createisoformList();
+		previousGene = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
+		previousGene.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+		previousGene.addActionListener(this);
+		previousGene.setActionCommand(PREVIOUS_REGION);
+		previousGene.setPreferredSize(new Dimension(25, 25));
+		JPanel compPanel = new JPanel(new MigLayout("align center, fill, gap 0", "[grow, center]", "[][][]"));
 		
-		DefaultListCellRenderer dlcr = new DefaultListCellRenderer();
+		JPanel regionPanel = new JPanel();
+		((FlowLayout)regionPanel.getLayout()).setVgap(0);
+		geneList = new JComboBox<String>();
+        DefaultListCellRenderer dlcr = new DefaultListCellRenderer();
+        dlcr.setHorizontalAlignment(DefaultListCellRenderer.CENTER);
+        geneList.setRenderer(dlcr);
+        geneList.setBorder(BorderFactory.createEtchedBorder());
+        geneList.setEditable(false);
+		Font font = new Font("Arial", 0, 14);
+		geneList.setFont(font);
+		geneList.setAction(new AbstractAction() {
+		    private static final long serialVersionUID = 1L;
+		    public void actionPerformed(ActionEvent e) {
+		        geneIndex = geneList.getSelectedIndex();
+		        showGene(geneIndex);
+		        updateGUI();
+		    }
+		});
+		geneList.setPreferredSize(new Dimension(geneList.getPreferredSize().width, 26));
+		nextGene = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
+        nextGene.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+        nextGene.addActionListener(this);
+        nextGene.setActionCommand(NEXT_REGION);
+        nextGene.setPreferredSize(new Dimension(25, 25));
+        
+        regionPanel.add(previousGene);
+        regionPanel.add(geneList);
+		regionPanel.add(nextGene);
+		updateGeneList();
+		
+		compPanel.add(regionPanel, "cell 0 0");
+		compPanel.setPreferredSize(new Dimension(compPanel.getPreferredSize().width, 95));
+		
+		commentLabel = new JLabel(" ", JLabel.CENTER);
+		commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		commentLabel.setFont(font);
+		compPanel.add(commentLabel, "cell 0 1");
+
+        JPanel descrPanel = new JPanel();
+        descrPanel.setLayout(new MigLayout("gap 0", "[grow, center]", "[]0[]0[]"));
+		descrPanel.add(compPanel, "cell 0 0");
+		
+		isoformList = new JComboBox<String>();
+		isoformList.setFont(font);
+		createIsoformList();
+		
+		dlcr = new DefaultListCellRenderer();
 	    dlcr.setHorizontalAlignment(DefaultListCellRenderer.CENTER);
 	    isoformList.setRenderer(dlcr);
 	    isoformList.setBorder(BorderFactory.createEtchedBorder());
@@ -498,60 +596,20 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 JComboBox<String> jcb = (JComboBox<String>)e.getSource();
                 int index = jcb.getSelectedIndex();
                 if (index == isoformsPresent.length-1) {
-                    createisoformList();
-                } else if (isoform != isoformsPresent[index]) {
+//                    createIsoformList(); // TODO collapse isoforms
+                    isoformIndex = COLLAPSE_ISOFORMS;
+                } else if (!isoformsPresent[index].equals(isoform)) {
+                    isoformIndex = index;
 //                    updateSample(isoformsPresent[index]);
                 }
+                updateGUI();
             }
         });
 		sampPanel.add(isoformList);
-		
-		JPanel descrPanel = new JPanel();
-		descrPanel.setLayout(new MigLayout("gap 0", "[grow, center]", "[]0[]0[]"));
-		
-		nextRegion = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
-		nextRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
-		nextRegion.addActionListener(this);
-		nextRegion.setActionCommand(NEXT_REGION);
-		nextRegion.setPreferredSize(new Dimension(25, 25));
-		sampPanel.setPreferredSize(new Dimension(sampPanel.getPreferredSize().width, isoformList.getPreferredSize().height + 5));
-		descrPanel.add(sampPanel, "cell 0 0");
-		
-		JPanel compPanel = new JPanel(new MigLayout("align center, fill, gap 0", "[grow, center]", "[][][]"));
+        sampPanel.setPreferredSize(new Dimension(sampPanel.getPreferredSize().width, isoformList.getPreferredSize().height + 5));
+        descrPanel.add(sampPanel, "cell 0 1");
 
-		JPanel regionPanel = new JPanel();
-        ((FlowLayout)regionPanel.getLayout()).setVgap(0);
-		regionField = new JTextField("", 8);
-		regionField.setHorizontalAlignment(JTextField.CENTER);
-		Font font = new Font("Arial", 0, 14);
-        regionField.setFont(font);
-		regionField.setAction(new AbstractAction() {
-            private static final long serialVersionUID = 1L;
-            public void actionPerformed(ActionEvent e) {
-				try {
-					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().trim().split("[\\s]+")[0]).intValue()-1;
-					if (trav >=0 && trav < regions.length) {
-						showRegion(trav);
-					}
-				} catch (NumberFormatException nfe) {}
-				updateGUI();
-	        }
-		});
-		regionPanel.add(previousRegion);
-		regionPanel.add(regionField);
-		regionField.setPreferredSize(new Dimension(regionField.getPreferredSize().width, 26));
-		regionPanel.add(nextRegion);
-		compPanel.add(regionPanel, "cell 0 0");
-		
-		commentLabel = new JLabel(" ", JLabel.CENTER);
-		commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		commentLabel.setFont(font);
-//		commentLabel.setBorder(new LineBorder(Color.RED, 1));
-		compPanel.add(commentLabel, "cell 0 1");
-		
-		descrPanel.add(compPanel, "cell 0 1");
-		compPanel.setPreferredSize(new Dimension(compPanel.getPreferredSize().width, 95));
-
+        
 		JPanel overPanel = new JPanel();
 		overPanel.setLayout(new BoxLayout(overPanel, BoxLayout.LINE_AXIS));
 		
@@ -573,25 +631,25 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		actionMap.put(FIRST_REGION, new AbstractAction() {
 			public static final long serialVersionUID = 9L;
 			public void actionPerformed(ActionEvent e) {
-				showRegion(0);
+				showGene(0);
 			}
 		});
 		actionMap.put(PREVIOUS_REGION, new AbstractAction() {
 			public static final long serialVersionUID = 10L;
 			public void actionPerformed(ActionEvent e) {
-				showRegion(Math.max(regionIndex-1, 0));
+				showGene(Math.max(geneIndex-1, 0));
 			}
 		});
 		actionMap.put(NEXT_REGION, new AbstractAction() {
 			public static final long serialVersionUID = 11L;
 			public void actionPerformed(ActionEvent e) {
-				showRegion(Math.min(regionIndex+1, regions.length-1));
+				showGene(Math.min(geneIndex+1, geneRegions.length-1));
 			}
 		});
 		actionMap.put(LAST_REGION, new AbstractAction() {
 			public static final long serialVersionUID = 12L;
 			public void actionPerformed(ActionEvent e) {
-				showRegion(regions.length - 1);
+				showGene(geneRegions.length - 1);
 			}
 		});
 		bafPanel.setActionMap(actionMap);
@@ -683,19 +741,19 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	            }
             }
         });
-		newRegionFile.setText("New Region List File");
+		newRegionFile.setText("New Gene List File");
 		newRegionFile.setMnemonic(KeyEvent.VK_N);
 		Font font = new Font("Arial", 0, 12);
         newRegionFile.setFont(font);
 		fileMenu.add(newRegionFile);
 		
 		JMenuItem loadRegionFile = new JMenuItem();
-		loadRegionFile.setAction(loadRegionFileAction);
+		loadRegionFile.setAction(loadGeneListFileAction);
 		loadRegionFile.setText(REGION_LIST_NEW_FILE);
 		loadRegionFile.setMnemonic(KeyEvent.VK_L);
 		loadRegionFile.setFont(font);
 		fileMenu.add(loadRegionFile);
-		loadRecentFileMenu = new JMenu("Load Recent Region List...");
+		loadRecentFileMenu = new JMenu("Load Recent Gene List...");
 		loadRecentFileMenu.setMnemonic(KeyEvent.VK_R);
 		loadRecentFileMenu.setFont(font);
 		fileMenu.add(loadRecentFileMenu);
@@ -739,6 +797,12 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         act.setMnemonic(KeyEvent.VK_A);
         menuBar.add(act);
 
+        JMenuItem launchTrailer = new JMenuItem();
+        launchTrailer.setText(TO_TRAILER_PLOT);
+        launchTrailer.setMnemonic(KeyEvent.VK_T);
+        launchTrailer.setFont(font);
+        launchTrailer.addActionListener(this);
+        act.add(launchTrailer);
         JMenuItem launchScatter = new JMenuItem();
         launchScatter.setText(TO_SCATTER_PLOT);
         launchScatter.setMnemonic(KeyEvent.VK_S);
@@ -761,20 +825,20 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 //		String[] filenames;
 
 		if (command.equals(FIRST_REGION)) {
-			if (regions == null || regions.length == 0) {
+			if (geneRegions == null || geneRegions.length == 0) {
 				JOptionPane.showMessageDialog(null, "Error - No regions have been loaded", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			showRegion(0);
+			showGene(0);
 		} else if (command.equals(PREVIOUS_REGION)) {
-			if (regions == null || regions.length == 0) {
+			if (geneRegions == null || geneRegions.length == 0) {
 				JOptionPane.showMessageDialog(null, "Error - No regions have been loaded", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			showRegion(Math.max(regionIndex-1, 0));
+			showGene(Math.max(geneIndex-1, 0));
 		} else if (command.equals(NEXT_REGION)) {
 //			System.out.println("next");
-			if (regions == null || regions.length == 0) {
+			if (geneRegions == null || geneRegions.length == 0) {
 //				filenames = proj.getIndividualRegionLists();
 //				if (filenames.length == 0) {
 //					JOptionPane.showMessageDialog(null, "Error - No regions have been loaded, since there no individual CNV region files defined in the properties file", "Error", JOptionPane.ERROR_MESSAGE);
@@ -784,13 +848,13 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 //				}
 				return;
 			}
-			showRegion(Math.min(regionIndex+1, regions.length-1));
+			showGene(Math.min(geneIndex+1, geneRegions.length-1));
 		} else if (command.equals(LAST_REGION)) {
-			if (regions == null || regions.length == 0) {
+			if (geneRegions == null || geneRegions.length == 0) {
 				JOptionPane.showMessageDialog(null, "Error - No regions have been loaded", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			showRegion(regions.length - 1);
+			showGene(geneRegions.length - 1);
 		} else if (command.equals(TO_SCATTER_PLOT)) {
 //		    if (proj == null) {
 //		        JOptionPane.showConfirmDialog(this, "Error - a Project is required to open ScatterPlot", "Error - no Project", JOptionPane.CANCEL_OPTION, JOptionPane.ERROR_MESSAGE);
@@ -847,17 +911,19 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 
 	public void mouseDragged(MouseEvent e) {
 		int curX = e.getPoint().x;
-		int distance = startX-curX;
+		int distance = startX - curX;
 
-		distance *= (stop-start)/(getWidth()-2*WIDTH_BUFFER);
+		distance *= (stop - start) / (getWidth() - 2 * WIDTH_BUFFER);
 
-		if (distance<0) {
-			distance = Math.max(distance, 1-start);
+		if (distance < 0) {
+			distance = Math.max(distance, 1 - start);
 		} else {
-			distance = Math.min(distance, positions[chrBoundaries[chr][1]]-stop);
+//			distance = Math.min(distance, positions[chrBoundaries[chr][1]]-stop);
+			distance = Math.min(distance, (geneData[geneIndex][0].getStop() + MIN_BUFFER) - stop);
 		}
 
-		if ((start<=1&&distance<0)||(stop>=positions[chrBoundaries[chr][1]]&&distance>0)) {
+//		if ((start<=1&&distance<0)||(stop>=positions[chrBoundaries[chr][1]]&&distance>0)) {
+		if ((start <= geneData[geneIndex][0].getStart() - MIN_BUFFER && distance < 0) || (stop >= geneData[geneIndex][0].getStop() + MIN_BUFFER && distance > 0)) {
 
 		} else {
 			start += distance;
@@ -934,45 +1000,78 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		}
 		
 	}
+	
+   public boolean loadMarkers() {
+        Hashtable<String,String> hash;
+        byte[] chrs;
+        long time;
+        int chr;
 
-	public void createisoformList() {
-		long time;
-		String[] filesPresent;
+        time = new Date().getTime();
+
+        hash = proj.getFilteredHash();
+        markerSet = new PreparedMarkerSet(proj.getMarkerSet());
+        if (markerSet == null) {
+            JOptionPane.showMessageDialog(null, "Error - Failed to load the MarkerSet file; make sure the raw data is parsed", "Error", JOptionPane.ERROR_MESSAGE);
+            log.reportError("Error - failed to load MarkerSet for project "+proj.PROJECT_NAME.getValue()+"; make sure the raw data is parsed");
+            return false;
+        }
+        fingerprint = markerSet.getFingerprint();
+        markerNames = markerSet.getMarkerNames();
+        chrs = markerSet.getChrs();
+        positions = markerSet.getPositions();
+
+        dropped = new boolean[markerNames.length];
+        chrBoundaries = new int[27][2];
+        for (int i = 0; i<chrBoundaries.length; i++) {
+//	          chrBoundaries[i][0] = chrBoundaries[i][1] = -1;
+            chrBoundaries[i][0] = chrBoundaries[i][1] = 0;
+        }
+        chr = 0;
+        for (int i = 0; i<markerNames.length; i++) {
+            dropped[i] = hash.containsKey(markerNames[i]);
+            if (chrs[i]>chr) {
+                if (chr!=0) {
+                    chrBoundaries[chr][1] = i-1;
+                }
+                chr = chrs[i];
+                chrBoundaries[chr][0] = i;
+            }
+        }
+        chrBoundaries[chr][1] = markerNames.length-1;
+        chrBoundaries[0][0] = 0;
+        chrBoundaries[0][1] = markerNames.length-1;
+
+        System.out.println("Read in data for "+markerNames.length+" markers in "+ext.getTimeElapsed(time));
+        return true;
+    }
+
+	public void createIsoformList() {
 		FontMetrics fontMetrics;
-		String refresh;
+		String collapse;
 		int maxWidth;
-		MessageOfEncouragment mess;
 
-		time = new Date().getTime();
-		log.report("  Getting a list of all files with extension "+Sample.SAMPLE_DATA_FILE_EXTENSION+" (if the process hangs here the first time after reverse transposing, please be patient, the operating system is busy indexing the new files) ...");
-		mess = new MessageOfEncouragment("Getting a list of all sample files is taking longer than usual and probably means that your recently created files are still being indexed on the hard drive. Please be patient...", proj);
-		new Thread(mess).start();
-		filesPresent = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_DATA_FILE_EXTENSION, jar);
-		log.report("Getting list of files took "+ext.getTimeElapsed(time));
-		time = new Date().getTime();
 		fontMetrics = isoformList.getFontMetrics(isoformList.getFont());
-		refresh = "refresh list";
-		maxWidth = fontMetrics.stringWidth(refresh);
-		System.out.println("  computing font metrics took "+ext.getTimeElapsed(time));
-		System.out.println("Determined sample list in "+ext.getTimeElapsed(time));
-		mess.disregard();
-
-		if (filesPresent == null || filesPresent.length == 0) {
-//			isoformsPresent = new String[] {proj.get(Project.SAMPLE_DIRECTORY)+" directory is empty", refresh};
-			isoformsPresent = new String[] {proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory is empty", refresh};
+		collapse = "Collapse Isoforms";
+		maxWidth = fontMetrics.stringWidth(collapse);
+		
+		boolean missing = geneData == null || geneData[geneIndex] == null || geneData[geneIndex].length == 0;
+		String[] numbers = missing ? new String[0] : geneData[geneIndex][0].getNcbiAssessionNumbers();
+		
+		if (missing) {
+			isoformsPresent = new String[] {"Gene Not Found"};
 			maxWidth = Math.max(maxWidth, fontMetrics.stringWidth(isoformsPresent[0]));
 		} else {
-			isoformsPresent = new String[filesPresent.length+1];
-			for (int i = 0; i<filesPresent.length; i++) {
-				isoformsPresent[i] = filesPresent[i].substring(0, filesPresent[i].lastIndexOf("."));
+			isoformsPresent = new String[numbers.length + 1];
+			for (int i = 0; i < numbers.length; i++) {
+				isoformsPresent[i] = numbers[i];
 				maxWidth = Math.max(maxWidth, fontMetrics.stringWidth(isoformsPresent[i]));
             }
-			isoformsPresent[filesPresent.length] = refresh;
+			isoformsPresent[numbers.length] = collapse;
 		}
 		
 		isoformList.setModel(new DefaultComboBoxModel<String>(isoformsPresent));
 		isoformList.setPreferredSize(new Dimension(maxWidth+50, 30));
-
 	}
 
 
@@ -1020,7 +1119,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		if (start==-1||start<0) {
 			start = 1;
 		}
-		if (stop==-1||stop>positions[chrBoundaries[chr][1]]) {
+		if (stop == -1 || stop > positions[chrBoundaries[chr][1]]) {
 			stop = positions[chrBoundaries[chr][1]];
 		}
 		
@@ -1028,102 +1127,99 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 
 	public void updateGUI() {
-//		if (start<=1) {
+		if (start <= geneData[geneIndex][0].getStart() - MIN_BUFFER) {
+			start = geneData[geneIndex][0].getStart() - MIN_BUFFER;
+		}
+		startMarker = Array.binarySearch(positions, start, chrBoundaries[chr][0], chrBoundaries[chr][1], false);
+
+		if (stop >= geneData[geneIndex][0].getStop() + MIN_BUFFER) {
+			stop = geneData[geneIndex][0].getStop() + MIN_BUFFER;
+		}
+		stopMarker = Array.binarySearch(positions, stop, chrBoundaries[chr][0], chrBoundaries[chr][1], false);
+
+		if (startMarker == -1) {
+			System.err.println("Error - failed to find startMarker");
 //			startMarker = chrBoundaries[chr][0];
-//			start = 1;
-//		} else {
-//			startMarker = Array.binarySearch(positions, start, chrBoundaries[chr][0], chrBoundaries[chr][1], false);
-//		}
-//
-//		if (stop>=positions[chrBoundaries[chr][1]]) {
-//			stop = positions[chrBoundaries[chr][1]];
-//			stopMarker = chrBoundaries[chr][1];
-//		} else {
-//			stopMarker = Array.binarySearch(positions, stop, chrBoundaries[chr][0], chrBoundaries[chr][1], false);
-//		}
-//
-//		if (startMarker==-1) {
-//			System.err.println("Error - failed to find startMarker");
-//			startMarker = chrBoundaries[chr][0];
-//		}
-//
-//		if (stopMarker==-1) {
+		}
+
+		if (stopMarker == -1) {
 //			System.err.println("Error - failed to find stopMarker");
-//			stopMarker = chrBoundaries[chr][1];
-//		}
+			stopMarker = chrBoundaries[chr][1];
+		}
 		
 //		displayIndex();
 		
 		repaint();
 	}
 	
-	public void loadRegions() {
-		BufferedReader reader;
-        Vector<String[]> v;
-        String line;
-        String[] parts;
-        int ignoredLines, countMissingRegions, invalidSamples;
-		
-		try {
-			String file = regionFileName.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + regionFileName : regionFileName;
-			reader = Files.getAppropriateReader(file);//Files.getReader(file, jar, false, false);
-			System.out.print("Loading regions from " + regionFileName + "...");
-	        v = new Vector<String[]>();
-	        ignoredLines = countMissingRegions = invalidSamples = 0;
-	        line = null;
-            while ((line = reader.readLine()) != null) {
-            	parts = line.trim().split("\t");
-            	if (parts.length == 1) {
-            		v.add(new String[] {parts[0], "chr1"});
-            		countMissingRegions++;
-            	} else if (parts.length > 1 && parts[1].startsWith("chr")) {
-            		v.add(parts);
-            	} else {
-            		ignoredLines++;
-            	}
-            }
-            System.out.println(" loaded "+v.size()+" regions");
-            regions = Matrix.toStringArrays(v);
-            if (invalidSamples > 0) {
-            	JOptionPane.showMessageDialog(null, "Error - there were "+invalidSamples+" invalid samples in '"+regionFileName+"' that were ignored because they could not be found", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-            if (countMissingRegions > 0) {
-            	JOptionPane.showMessageDialog(null, "Warning - there were "+countMissingRegions+" lines in '"+regionFileName+"' without a chromosomal region listed; using \"chr1\" for all missing values", "Warning", JOptionPane.ERROR_MESSAGE);
-            }
-            if (ignoredLines > 1) {
-            	JOptionPane.showMessageDialog(null, "Error - there were "+ignoredLines+" regions in '"+regionFileName+"' that were ignored due to improper formatting", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-            reader.close();
-            
-            
-        } catch (FileNotFoundException fnfe) {
-            System.err.println("Error: file \""+regionFileName+"\" not found in data directory");
-        } catch (IOException ioe) {
-            System.err.println("Error reading file \""+regionFileName+"\"");
-        }
-	}
+//	public void loadRegions() {
+//		BufferedReader reader;
+//        Vector<String[]> v;
+//        String line;
+//        String[] parts;
+//        int ignoredLines, countMissingRegions, invalidSamples;
+//		
+//		try {
+//			String file = regionFileName.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + regionFileName : regionFileName;
+//			reader = Files.getAppropriateReader(file);//Files.getReader(file, jar, false, false);
+//			System.out.print("Loading regions from " + regionFileName + "...");
+//	        v = new Vector<String[]>();
+//	        ignoredLines = countMissingRegions = invalidSamples = 0;
+//	        line = null;
+//            while ((line = reader.readLine()) != null) {
+//            	parts = line.trim().split("\t");
+//            	if (parts.length == 1) {
+//            		v.add(new String[] {parts[0], "chr1"});
+//            		countMissingRegions++;
+//            	} else if (parts.length > 1 && parts[1].startsWith("chr")) {
+//            		v.add(parts);
+//            	} else {
+//            		ignoredLines++;
+//            	}
+//            }
+//            System.out.println(" loaded "+v.size()+" regions");
+//            regions = Matrix.toStringArrays(v);
+//            if (invalidSamples > 0) {
+//            	JOptionPane.showMessageDialog(null, "Error - there were "+invalidSamples+" invalid samples in '"+regionFileName+"' that were ignored because they could not be found", "Error", JOptionPane.ERROR_MESSAGE);
+//            }
+//            if (countMissingRegions > 0) {
+//            	JOptionPane.showMessageDialog(null, "Warning - there were "+countMissingRegions+" lines in '"+regionFileName+"' without a chromosomal region listed; using \"chr1\" for all missing values", "Warning", JOptionPane.ERROR_MESSAGE);
+//            }
+//            if (ignoredLines > 1) {
+//            	JOptionPane.showMessageDialog(null, "Error - there were "+ignoredLines+" regions in '"+regionFileName+"' that were ignored due to improper formatting", "Error", JOptionPane.ERROR_MESSAGE);
+//            }
+//            reader.close();
+//            
+//            
+//        } catch (FileNotFoundException fnfe) {
+//            System.err.println("Error: file \""+regionFileName+"\" not found in data directory");
+//        } catch (IOException ioe) {
+//            System.err.println("Error reading file \""+regionFileName+"\"");
+//        }
+//	}
 	
-	public void showRegion(int regionIndex) {
-	    this.regionIndex = regionIndex;
-		if (regions == null || regions.length == 0) {
-			regionField.setText("");
+	public void showGene(int geneIndex) {
+	    this.geneIndex = geneIndex;
+		if (geneRegions == null || geneRegions.length == 0) {
+			geneList.setSelectedIndex(geneIndex);
 			commentLabel.setText(" ");
 			return;
 		}
-		parseLocation(regions[regionIndex][1]);
-		if (regions[regionIndex].length > 2) {
-			commentLabel.setText("region #"+(regionIndex+1)+":  "+ regions[regionIndex][2]);
+		parseLocation(geneRegions[geneIndex][1]);
+		if (geneRegions[geneIndex].length > 2) {
+			commentLabel.setText("region #"+(geneIndex+1)+":  "+ geneRegions[geneIndex][2]);
 		} else {
 			commentLabel.setText(" -- no comment -- ");
 		}
-
-		regionField.setText((regionIndex + 1) + " of " + regions.length);
+		geneList.setSelectedIndex(geneIndex);
+		isoformIndex = 0;
+		createIsoformList();
 	}
 
 	public static void main(String[] args) {
 		Project proj = new Project("D:/projects/poynter.properties", false);
 
-		new TrailerClone(proj, DEFAULT_SAMPLE, DEFAULT_LOCATION);
+		new TrailerClone(proj);
 	}
 }
 
