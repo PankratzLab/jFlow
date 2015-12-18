@@ -2,6 +2,8 @@ package filesys;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -143,20 +145,25 @@ public class GeneTrack implements Serializable {
 	}
 	
 	public GeneData[][] lookupAllGeneData(String[] geneNames) {
-	    GeneData[][] returnData = new GeneData[geneNames.length][];
+	    HashMap<String, ArrayList<GeneData>> data = new HashMap<String, ArrayList<GeneData>>();
 	    for (int g = 0; g < geneNames.length; g++) {
             ArrayList<GeneData> geneDatas = new ArrayList<GeneData>();
-            for (int i = 1; i < 25; i++) {
-                if (genes[i] != null) {
-                    for (int j = 0; j < genes[i].length; j++) {
-                        if (genes[i][j].getGeneName().equalsIgnoreCase(geneNames[g])) {
-                            geneDatas.add(genes[i][j]);
-                        }
+            data.put(geneNames[g].toLowerCase(), geneDatas);
+	    }
+        for (int i = 1; i < 25; i++) {
+            if (genes[i] != null) {
+                for (int j = 0; j < genes[i].length; j++) {
+                    String gene = genes[i][j].getGeneName().toLowerCase();
+                    if (data.containsKey(gene)) {
+                        data.get(gene).add(genes[i][j]);
                     }
                 }
             }
-            returnData[g] = geneDatas.toArray(new GeneData[geneDatas.size()]);
-	    }
+        }
+        GeneData[][] returnData = new GeneData[geneNames.length][];
+        for (int g = 0; g < geneNames.length; g++) {
+            returnData[g] = data.get(geneNames[g].toLowerCase()).toArray(new GeneData[data.get(geneNames[g].toLowerCase()).size()]);
+        }
 	    return returnData;
 	}
     

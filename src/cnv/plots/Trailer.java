@@ -415,19 +415,51 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			if (e.isPopupTrigger())
+			if (e.isPopupTrigger()) {
 				if (selectedCNV != null) {
 					doPop(e);
 				}
+			} else {
+	            startX = e.getPoint().x;
+	            inDrag = true;
+			}
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			if (e.isPopupTrigger())
+			if (e.isPopupTrigger()) {
 				if (selectedCNV != null) {
 					doPop(e);
 				}
+			} 
+		    inDrag = false;
 		}
+
+	    public void mouseDragged(MouseEvent e) {
+	        int curX = e.getPoint().x;
+	        int distance = startX-curX;
+
+	        distance *= (stop-start)/(getWidth()-2*WIDTH_BUFFER);
+
+	        if (distance<0) {
+	            distance = Math.max(distance, 1-start);
+	        } else {
+	            distance = Math.min(distance, positions[chrBoundaries[chr][1]]-stop);
+	        }
+
+	        if ((start<=1&&distance<0)||(stop>=positions[chrBoundaries[chr][1]]&&distance>0)) {
+
+	        } else {
+	            start += distance;
+	            stop += distance;
+	        }
+
+	        if (inDrag) {
+	            updateGUI();
+	            startX = curX;
+	        }
+	    }
+
 
 		private void doPop(MouseEvent e) {
 			CustomCallPopUp menu = new CustomCallPopUp();
