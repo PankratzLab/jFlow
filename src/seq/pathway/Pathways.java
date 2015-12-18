@@ -219,7 +219,7 @@ public class Pathways implements Serializable {
 		// else {
 		ArrayList<GeneData> genes = new ArrayList<GeneData>();
 		for (String gene : pathGenes) {
-			GeneData[] tmp = geneTrack.lookupAllGeneDatas(gene);
+			GeneData[] tmp = geneTrack.lookupAllGeneData(gene);
 			for (int i = 0; i < tmp.length; i++) {
 				genes.add(tmp[i]);
 			}

@@ -82,9 +82,10 @@ public class MitoGWAS {
 			proj.getLog().reportTimeInfo(plinkMap + " and " + plinkPed + "exist, skipping");
 		}
 
-		int mac = 5;
+		double maf = (double) 6 / ped.getDnas().length;
 		double geno = 0.1;
-		proj.getLog().reportTimeInfo("using maf of " + mac + " (MAC= " + mac + "  of " + ped.getDnas().length);
+		double mind = 0.1;
+		proj.getLog().reportTimeInfo("using maf of " + maf + " (MAF= " + maf + "  of " + ped.getDnas().length);
 
 		ArrayList<String> plinkConverCommand = new ArrayList<String>();
 		plinkConverCommand.add("plink2");
@@ -92,12 +93,14 @@ public class MitoGWAS {
 		plinkConverCommand.add(root);
 		plinkConverCommand.add("--make-bed");
 		plinkConverCommand.add("--out");
-		root = root + "_mac_" + mac + "_geno_" + geno;
+		root = root + "_maf_" + ext.roundToSignificantFigures(maf, 5) + "_geno_" + geno + "_mind_" + mind;
 		plinkConverCommand.add(root);
-		plinkConverCommand.add("--mac");
-		plinkConverCommand.add(mac + "");
+		plinkConverCommand.add("--maf");
+		plinkConverCommand.add(maf + "");
 		plinkConverCommand.add("--geno");
 		plinkConverCommand.add(geno + "");
+		plinkConverCommand.add("--mind");
+		plinkConverCommand.add("" + mind);
 
 		String[] in = new String[] { plinkPed, plinkMap };
 		String fam = root + ".fam";
