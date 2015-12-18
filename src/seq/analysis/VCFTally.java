@@ -490,7 +490,7 @@ public class VCFTally implements Serializable {
 		}
 
 		public GeneData[] getGene(String gene) {
-			return gRegions.getGeneTrack().lookupAllGeneDatas(gene);
+			return gRegions.getGeneTrack().lookupAllGeneData(gene);
 		}
 
 		public int getGeneTotalLength(String agene) {
