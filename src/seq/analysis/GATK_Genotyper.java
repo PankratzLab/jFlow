@@ -6,7 +6,6 @@ import java.util.concurrent.Callable;
 
 import seq.analysis.ANNOVAR.AnnovarResults;
 import seq.analysis.SNPEFF.SnpEffResult;
-import seq.analysis.SNPSIFT.SnpSiftResult;
 import seq.manage.VCFOps;
 import common.Array;
 import common.CmdLine;
@@ -87,22 +86,18 @@ public class GATK_Genotyper {
 			String out = "";
 			if (mergeVCF != null) {
 				log.reportTimeInfo("Applying merge " + mergeVCF.getArg() + " prior to annotation");
-				in = VCFOps.getAppropriateRoot(inputVCF, false) + ".merge_" + mergeVCF.getTag();
+				in = VCFOps.getAppropriateRoot(inputVCF, false) + ".merge_" + mergeVCF.getTag() + ".vcf";
 				log.reportTimeInfo("Output merge: " + in);
 				gatk.mergeVCFs(Array.concatAll(new String[] { inputVCF }, mergeVCF.getVcfsToMergeWith()), in, numWithinSampleThreads, false, log);
 				out = in;
+				System.out.println("JOHN add annovar");
+				System.exit(1);
 			}
 
 			if (!annovar.isFail()) {
-				AnnovarResults annovarResults = annovar.AnnovarAVCF(in, build, log);
+				AnnovarResults annovarResults = annovar.AnnovarAVCF(in, build, numWithinSampleThreads, log);
 				in = annovarResults.getOutputVCF();
 				out = annovarResults.getOutputVCF();
-				log.reportTimeInfo("Since Annovar uses invalid char sequence for 1000g2014oct_all (starts with number), replacing with g10002014oct_all");
-				log.reportTimeInfo("Note this is a hard-coded sed, so...");
-
-				in = sed1000g(in, log);
-				out = in;
-
 			}
 			if (!snpeff.isFail()) {
 				SnpEffResult snpEffResult = snpeff.annotateAVCF(in, build);
@@ -111,23 +106,29 @@ public class GATK_Genotyper {
 				if (!snpEffResult.isFail()) {
 					if (annoVCF != null) {
 						log.reportTimeInfo("Applying annotations from " + annoVCF.getArg());
-						out = VCFOps.getAppropriateRoot(snpEffResult.getOutputGatkSnpEffVCF(), false) + ".ann0_" + annoVCF.getTag();
+						out = VCFOps.getAppropriateRoot(snpEffResult.getOutputGatkSnpEffVCF(), false) + ".anno_" + annoVCF.getTag() + ".vcf";
 						log.reportTimeInfo("Output anno: " + out);
 						gatk.annotateWithAnotherVCF(snpEffResult.getOutputGatkSnpEffVCF(), annoVCF.getVcf(), out, annoVCF.getAnnos(), annoVCF.getTag(), numWithinSampleThreads);
 						in = out;
 					}
-					SnpSiftResult ssr = snpsift.annotateDbnsfp(in, log);
-					out = ssr.getOutputVCF();
+					log.reportTimeInfo("Since Annovar uses invalid char sequence for 1000g2014oct_* and 1000g2015aug_* (starts with number), replacing with g10002014oct_* or g10002015aug_*");
+					log.reportTimeInfo("Note this is a hard-coded sed, so...");
+
+					in = sed1000g(in, log);
+					out = in;
+					VCFOps.gzipAndIndex(in, log);
+					// SnpSiftResult ssr = snpsift.annotateDbnsfp(in, log);
+					// out = ssr.getOutputVCF();
 				}
 			}
 			return out;
 		}
 		return null;
 	}
-	
+
 	private String sed1000g(String in, Logger log) {
 		String out = ext.addToRoot(in, ".sed1000g");
-		String command = "cat " + in + "|sed 's/1000g2014oct_all/g10002014oct_all/g'>" + out;
+		String command = "cat " + in + "|sed 's/1000g2014oct_/g1000g2014oct_/g'|sed 's/1000g2015aug_/g10002015aug_/g'>" + out;
 		String[] bat = CmdLine.prepareBatchForCommandLine(new String[] { command }, out + ".bat", true, log);
 		if (CmdLine.runCommandWithFileChecks(bat, "", new String[] { in }, new String[] { out }, true, false, false, log)) {
 			return out;
