@@ -879,7 +879,6 @@ public class GenvisisPipeline {
             String markersToQC = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
             String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE;
             MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markersToQC, markersABCallrate, markerCallRateFilter, numThreads);
-           // MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markerCallRateFilter, numThreads);
         }
         
         @Override

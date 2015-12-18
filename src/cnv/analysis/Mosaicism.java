@@ -73,7 +73,7 @@ public class Mosaicism {
 			}
 		}
 		
-
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		samples = proj.getSamples();
 		try {
 			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, true)+"Mosaicism.xln"));
@@ -88,6 +88,7 @@ public class Mosaicism {
 			long time = System.currentTimeMillis();
 
 			while (train.hasNext()) {
+		        if (Thread.currentThread().isInterrupted()) { writer.close(); throw new RuntimeException(new InterruptedException()); }
 				try {
 					String[] results = train.next();
 					index++;

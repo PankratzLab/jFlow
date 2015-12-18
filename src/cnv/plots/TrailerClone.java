@@ -232,13 +232,12 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private long fingerprint;
     private String[] markerNames;
 	
-	public TrailerClone(Project proj) {
-		this(proj, proj.DATA_DIRECTORY.getValue()  + "genes.txt"/*proj.GENE_LIST_FILENAMES.getValue()[0]*/);
+	public TrailerClone(Project proj, String[] vcfFiles) {
+		this(proj, proj.DATA_DIRECTORY.getValue()  + "genes.txt"/*proj.GENE_LIST_FILENAMES.getValue()[0]*/, vcfFiles);
 	}
 
 	// TODO Trailer should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
-//	public TrailerClone(Project proj, String selectedSample, String location, int startX, int startY, int width, int height) {
-	public TrailerClone(Project proj, String file) {
+	public TrailerClone(Project proj, String file, String[] vcfs) {
 		super("Genvisis - Trailer - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
@@ -306,16 +305,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		this.setJMenuBar(createMenuBar());
 			
 		time = new Date().getTime();
-        
 
-        
-		System.out.println("All in "+ext.getTimeElapsed(time));
-
-//		parseLocation(location);
 		setBounds(startX, DEFAULT_STARTX, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 		setVisible(true);
 		
-		TrailerClone.this.geneFileName = "";
 		updateGUI();
 		geneIndex = -1;
 		showGene(0);
@@ -327,9 +320,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    geneRegions = new String[geneData.length][];
 	    for (int g = 0; g < geneData.length; g++) {
 	        // TODO deal with multiple geneDatas
-	        // TODO comments
+	        // TODO deal with comments
 	        geneRegions[g] = new String[]{geneData[g][0].getGeneName(), geneData[g][0].getUCSClocation(), ""};
 	    }
+        TrailerClone.this.geneFileName = file;
 	}
 	
 	private void updateGeneList() {
@@ -1219,7 +1213,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	public static void main(String[] args) {
 		Project proj = new Project("D:/projects/poynter.properties", false);
 
-		new TrailerClone(proj);
+		new TrailerClone(proj, new String[]{});
 	}
 }
 

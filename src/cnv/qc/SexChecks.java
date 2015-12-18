@@ -43,13 +43,16 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 			log.reportError("Error - without a sample data file, sexChecks will fail");
 			return;
 		}
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 
 		log.report("Took "+ext.getTimeElapsed(time)+" to hash samples");
 		time = new Date().getTime();
 
 		samples = proj.getSamples();
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		lrrCounts(samples, proj, sexlinked(markerSet.getChrs()));
 		byte[] estSex = estimateSex(samples);
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		writeToFile(proj, estSex);
 		
 		String[] classes = sampleData.getClasses();
@@ -60,6 +63,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 				break;
 			}
 		}
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (sexInd == -1) {
 			Hashtable<String, String> linkData = new Hashtable<String, String>();
 			for (int i = 0; i < samples.length; i++) {
@@ -292,6 +296,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 		lrrsY = new double[samples.length];
 
 		for (int i = 0; i<samples.length; i++) {
+	        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 			numXs[i] = numYs[i] = numX_10_90[i] = 0;
 			lrrsX[i] = lrrsY[i] = 0;
 

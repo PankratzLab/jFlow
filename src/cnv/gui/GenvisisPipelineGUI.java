@@ -693,6 +693,7 @@ public class GenvisisPipelineGUI extends JDialog {
                                     code = FINAL_CODE.CANCELLED;
                                 }
                                 e = e1;
+                                System.gc();
                             }
                             if (code != FINAL_CODE.CANCELLED && (e != null || GenvisisPipelineGUI.this.steps[i].getFailed() || !GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, variables))) {
                                 code = FINAL_CODE.FAILED;
