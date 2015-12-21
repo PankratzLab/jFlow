@@ -14,8 +14,10 @@ import common.*;
 public class LrrSd extends Parallelizable {
 	private static final String BOUND_SD = "LRR_SD_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_" + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
 	private static final String BOUND_SD_CORRECTED = "LRR_SD_Post_Correction_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_" + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
-
-	public static final String[] NUMERIC_COLUMNS = { "LRR_AVG", "LRR_SD", BOUND_SD, "BAF1585_SD", "Genotype_callrate", "Genotype_heterozygosity", "WF_Prior_Correction", "GCWF_Prior_Correction", "WF_Post_Correction", "GCWF_Post_Correction", "LRR_SD_Post_Correction", BOUND_SD_CORRECTED };
+	private static final String BOUND_MAD = "LRR_MAD_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_" + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
+	private static final String BOUND_MAD_CORRECTED = "LRR_MAD_Post_Correction_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_" + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
+	
+	public static final String[] NUMERIC_COLUMNS = { "LRR_AVG", "LRR_SD", BOUND_SD, "LRR_MAD", BOUND_MAD, "BAF1585_SD", "Genotype_callrate", "Genotype_heterozygosity", "WF_Prior_Correction", "GCWF_Prior_Correction", "WF_Post_Correction", "GCWF_Post_Correction", "LRR_SD_Post_Correction", BOUND_SD_CORRECTED, "LRR_MAD_Post_Correction", BOUND_MAD_CORRECTED };
 	public static final String SAMPLE_COLUMN = "Sample";
 	private Project proj;
 	private String[] samples;
@@ -140,6 +142,8 @@ public class LrrSd extends Parallelizable {
                 Array.mean(lrrs, true)<br/> 
                 Array.stdev(lrrs, true)<br/>
                 lrrsdBound<br/>
+                Array.mad(Array.removeNaN(lrrs))<br/>
+                lrrMadBound<br/>
                 Array.stdev(bafs, true)<br/> 
                 (abCallRate > 0 ? abCallRate : forwardCallRate)<br/>
                 (abCallRate > 0 ? abHetRate : forwardHetRate)<br/>
@@ -149,6 +153,8 @@ public class LrrSd extends Parallelizable {
                 gcwfPost <br/>
                 lrrsdPost<br/>
                 lrrsdPostBound<br/>
+                lrrMadPost<br/>
+                lrrMadBoundPost<br/>
                 multimodal <br/>
                 Array.toStr(bafBinCounts)<br/>
 	 * 
@@ -167,7 +173,7 @@ public class LrrSd extends Parallelizable {
 	public static String[] LrrSdPerSample(Project proj, PreparedMarkerSet pMarkerSet, String sampleID, Sample fsamp, float[][][] cents, boolean[] markersForCallrate, boolean[] markersForEverythingElse, GcModel gcModel, GC_CORRECTION_METHOD correctionMethod, Logger log) {
         byte[] abGenotypes, forwardGenotypes;
         float[] lrrs, bafs, bafsWide;
-        double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound;
+		double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound, lrrMadBound, lrrMadPost, lrrMadBoundPost;
         int[] bafBinCounts;
         boolean multimodal;
         
@@ -231,9 +237,11 @@ public class LrrSd extends Parallelizable {
         wfPrior = Double.NaN;
         gcwfPrior = Double.NaN;
         wfPost = Double.NaN;
-        gcwfPost = Double.NaN;
-        lrrsdPost = Double.NaN;
-        lrrsdPostBound = Double.NaN;
+		gcwfPost = Double.NaN;
+		lrrsdPost = Double.NaN;
+		lrrsdPostBound = Double.NaN;
+		lrrMadPost = Double.NaN;
+		lrrMadBoundPost = Double.NaN;
         if (gcModel != null) {
 			GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, pMarkerSet, lrrs, gcModel, correctionMethod, true, true, false);
             if (!gcAdjustor.isFail()) {
@@ -243,25 +251,36 @@ public class LrrSd extends Parallelizable {
                 gcwfPost = gcAdjustor.getGcwfPost();
                 double[] tmp;
                 if (markersForEverythingElse == null) {
+                	
                     lrrsdPost = Array.stdev(gcAdjustor.getCorrectedIntensities(), true);
+                    lrrMadPost = Array.mad(Array.removeNaN(gcAdjustor.getCorrectedIntensities()));
                     tmp = CNVCaller.adjustLrr(gcAdjustor.getCorrectedIntensities(), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
-                } else {
-                    double[] subLrr = Array.subArray(gcAdjustor.getCorrectedIntensities(), markersForEverythingElse);
-                    lrrsdPost = Array.stdev(subLrr, true);
-                    tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
-                }
-                lrrsdPostBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
-            }
-        }
+				} else {
+					double[] subLrr = Array.subArray(gcAdjustor.getCorrectedIntensities(), markersForEverythingElse);
+					lrrsdPost = Array.stdev(subLrr, true);
+					lrrMadPost = Array.mad(Array.removeNaN(subLrr));
+					tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
+				}
+				tmp = Array.removeNaN(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));
+				lrrsdPostBound = Array.stdev(tmp, true);
+				lrrMadBoundPost = Array.mad(tmp);
+			}
+		}
         
-        multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-        double[] tmp = CNVCaller.adjustLrr(Array.toDoubleArray(lrrs), CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
-        lrrsdBound = Array.stdev(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false), true);
+		multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
+		double[] dlrrs = Array.toDoubleArray(lrrs);
+		double[] tmp = CNVCaller.adjustLrr(dlrrs, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
+		tmp = Array.removeNaN(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));
+		lrrsdBound = Array.stdev(tmp, true);
+		lrrMadBound = Array.mad(tmp);
+		
         String[] retVals = new String[]{
                 sampleID, 
                 Array.mean(lrrs, true) + "", 
                 Array.stdev(lrrs, true) + "",
                 lrrsdBound + "", 
+				Array.mad(Array.removeNaN(dlrrs)) + "",
+				lrrMadBound + "",
                 Array.stdev(bafs, true) + "", 
                 (abCallRate > 0 ? abCallRate : forwardCallRate) + "",
                 (abCallRate > 0 ? abHetRate : forwardHetRate) + "",
@@ -271,6 +290,8 @@ public class LrrSd extends Parallelizable {
                 gcwfPost + "",
                 lrrsdPost  + "",
                 lrrsdPostBound  + "",
+				lrrMadPost + "",
+				lrrMadBoundPost + "",
                 multimodal + "",
                 Array.toStr(bafBinCounts),
         };
