@@ -90,8 +90,6 @@ public class GATK_Genotyper {
 				log.reportTimeInfo("Output merge: " + in);
 				gatk.mergeVCFs(Array.concatAll(new String[] { inputVCF }, mergeVCF.getVcfsToMergeWith()), in, numWithinSampleThreads, false, log);
 				out = in;
-				System.out.println("JOHN add annovar");
-				System.exit(1);
 			}
 
 			if (!annovar.isFail()) {

@@ -10,23 +10,34 @@ import java.io.Reader;
 public class TypedFileParser extends FileParser {
 	private int[][] numericColumns;
 	private int[][] stringColumns;
+	private boolean setInvalidNumericToNaN;
 
 	public TypedFileLine readTypedLine() throws IOException {
 		String[] line = readLineArray();
 		double[][] numericData = null;
 		String[][] stringData = null;
 		boolean validLine = true;
+		int numInvalidNumerics =0;
 		// TODO, check length of line
 		try {
 			if (numericColumns != null) {
 				numericData = new double[numericColumns.length][];
-				try {
-					for (int i = 0; i < numericColumns.length; i++) {
-						numericData[i] = Array.toDoubleArray(Array.subArray(line, numericColumns[i]));
+				for (int i = 0; i < numericColumns.length; i++) {
+					String[] tmp = Array.subArray(line, numericColumns[i]);
+					numericData[i] = new double[tmp.length];
+					for (int j = 0; j < tmp.length; j++) {
+						try {
+							numericData[i][j] = Double.parseDouble(tmp[j]);
+						} catch (NumberFormatException nfe) {
+							if (!setInvalidNumericToNaN) {
+								log.reportTimeError("Found invalid number on line " + Array.toStr(line));
+								validLine = false;
+							} else {
+								numInvalidNumerics++;
+								numericData[i][j] = Double.NaN;
+							}
+						}
 					}
-				} catch (Exception e) {
-					log.reportTimeError("Found invalid number on line " + Array.toStr(line));
-					validLine = false;
 				}
 			}
 			if (stringColumns != null) {
@@ -35,7 +46,7 @@ public class TypedFileParser extends FileParser {
 					stringData[i] = Array.subArray(line, stringColumns[i]);
 				}
 			}
-			return new TypedFileLine(numericData, stringData, validLine);
+			return new TypedFileLine(numericData, stringData, validLine, numInvalidNumerics);
 		} catch (ArrayIndexOutOfBoundsException aiob) {
 			log.reportTimeError("Could not extract indices from line " + Array.toStr(line));
 			if (numericColumns != null) {
@@ -54,7 +65,7 @@ public class TypedFileParser extends FileParser {
 			}
 			// log.reportException(aiob);
 			// aiob.printStackTrace();
-			return new TypedFileLine(null, null, false);
+			return new TypedFileLine(null, null, false,numInvalidNumerics);
 		}
 	}
 
@@ -90,6 +101,7 @@ public class TypedFileParser extends FileParser {
 	public static class Builder extends FileParser.Builder<Builder> {
 		private int[][] numericDataIndices;
 		private int[][] stringDataIndices;
+		private boolean setInvalidNumericToNaN;
 
 		public Builder numericDataIndices(int[][] numericDataIndices) {
 			this.numericDataIndices = numericDataIndices;
@@ -98,6 +110,11 @@ public class TypedFileParser extends FileParser {
 
 		public Builder stringDataIndices(int[][] stringDataIndices) {
 			this.stringDataIndices = stringDataIndices;
+			return this;
+		}
+
+		public Builder setInvalidNumericToNaN(boolean setInvalidNumericToNaN) {
+			this.setInvalidNumericToNaN = setInvalidNumericToNaN;
 			return this;
 		}
 
@@ -110,6 +127,7 @@ public class TypedFileParser extends FileParser {
 		super(builder, in);
 		this.numericColumns = builder.numericDataIndices;
 		this.stringColumns = builder.stringDataIndices;
+		this.setInvalidNumericToNaN = builder.setInvalidNumericToNaN;
 	}
 
 	public static class TypedFileLine {
@@ -118,18 +136,24 @@ public class TypedFileParser extends FileParser {
 		private boolean hasNumericData;
 		private boolean hasStringData;
 		private boolean validLine;
+		private int numInvalidNumerics;
 
-		public TypedFileLine(double[][] numericData, String[][] stringData, boolean validLine) {
+		public TypedFileLine(double[][] numericData, String[][] stringData, boolean validLine,int numInvalidNumerics) {
 			super();
 			this.numericData = numericData;
 			this.stringData = stringData;
 			this.hasNumericData = numericData != null;
 			this.hasStringData = stringData != null;
 			this.validLine = validLine;
+			this.numInvalidNumerics = numInvalidNumerics;
 		}
 
 		public boolean hasNumericData() {
 			return hasNumericData;
+		}
+
+		public int getNumInvalidNumerics() {
+			return numInvalidNumerics;
 		}
 
 		public boolean hasStringData() {

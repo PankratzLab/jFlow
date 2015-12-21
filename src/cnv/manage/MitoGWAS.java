@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import stats.StatsCrossTabs;
+import stats.StatsCrossTabs.STAT_TYPE;
 import common.Array;
 import common.CmdLine;
 import common.Files;
@@ -109,20 +111,136 @@ public class MitoGWAS {
 
 		String[] out = new String[] { fam, bim, bed };
 		CmdLine.runCommandWithFileChecks(Array.toStringArray(plinkConverCommand), "", in, out, true, false, false, proj.getLog());
-
+		ArrayList<PlinkAssoc> completedPlinkCommands = new ArrayList<MitoGWAS.PlinkAssoc>();
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
 		String natty = subDir + "WITHOUT_BUILDERS_NATURAL_WITHOUT_INDEPS_finalSummary.estimates.txt.gz";
 		String[] nattyTitles = new String[] { "PC15", "PC150" };
-		runGwas(proj, root, natty, nattyTitles, covarFile, ped, numthreads);
+		completedPlinkCommands.addAll(runGwas(proj, root, natty, nattyTitles, covarFile, ped, numthreads));
 
 		String stepWise = subDir + "WITHOUT_BUILDERS_STEPWISE_RANK_R2_WITHOUT_INDEPS_finalSummary.estimates.txt.gz";
 		String[] header = Files.getHeaderOfFile(stepWise, proj.getLog());
 		String[] stepWiseTitles = new String[] { "PC15", header[header.length - 1] };
-		runGwas(proj, root, stepWise, stepWiseTitles, covarFile, ped, numthreads);
-
+		completedPlinkCommands.addAll(runGwas(proj, root, stepWise, stepWiseTitles, covarFile, ped, numthreads));
+		summarize(proj, root, completedPlinkCommands);
 	}
 
-	private static void runGwas(Project proj, String root, String mtPhenoFile, String[] titles, String covarFile, Pedigree ped, int numThreads) {
+	private static void summarize(Project proj, String root, ArrayList<PlinkAssoc> plinkCommands) {
+		proj.getLog().reportTimeInfo("Computing correlation matrix of results");
+		double[][] emp1s = new double[plinkCommands.size()][];
+		String[] empTitles = new String[plinkCommands.size()];
+		String outQQ = root + "summaryPvals";
+		String pvalDB = outQQ + ".txt";
+		String plot = outQQ + ".jpeg";
+		String outTabs = root + "stabs.correl.txt";
+
+		for (int j = 0; j < plinkCommands.size(); j++) {
+			String results = plinkCommands.get(j).getOutputs()[0];
+			empTitles[j] = ext.removeDirectoryInfo(results);
+		}
+
+		if (!Files.exists(pvalDB)) {
+			for (int j = 0; j < plinkCommands.size(); j++) {
+				String results = plinkCommands.get(j).getOutputs()[0];
+				proj.getLog().reportTimeInfo("Loading " + results);
+				ProjectDataParserBuilder builderPermResults = new ProjectDataParserBuilder();
+				builderPermResults.treatAllNumeric(false);
+				builderPermResults.sampleBased(false);
+				builderPermResults.hasHeader(true);
+				builderPermResults.dataKeyColumnName("SNP");
+				builderPermResults.requireAll(false);
+				builderPermResults.separator("[\\s]+");
+				builderPermResults.setInvalidNumericToNaN(true);
+				builderPermResults.numericDataTitles(new String[] { "EMP1" });
+				ExtProjectDataParser permParser;
+				try {
+					permParser = builderPermResults.build(proj, results);
+					permParser.determineIndicesFromTitles();
+					permParser.loadData();
+					emp1s[j] = permParser.getNumericDataForTitle("EMP1");
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return;
+				}
+
+			}
+			StatsCrossTabs sTabs = new StatsCrossTabs(emp1s, null, null, empTitles, STAT_TYPE.SPEARMAN_CORREL, true, proj.getLog());
+			sTabs.computeTable();
+			sTabs.dumpTables(outTabs);
+			MarkerSet markerSet = proj.getMarkerSet();
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(pvalDB));
+				writer.println("SNP\tCHR\tBP\t" + Array.toStr(empTitles));
+				int numInvalid = 0;
+				for (int i = 0; i < emp1s[0].length; i++) {
+					boolean valid = true;
+					StringBuilder builder = new StringBuilder();
+					for (int j = 0; j < emp1s.length; j++) {
+						if (valid) {
+							valid = Double.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
+							if (!valid) {
+								numInvalid++;
+							}
+							if (j == 0) {
+								builder.append(markerSet.getMarkerNames()[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + emp1s[j][i]);
+							} else {
+								builder.append("\t" + emp1s[j][i]);
+							}
+						}
+					}
+					if (valid) {
+						writer.println(builder.toString());
+					}
+
+				}
+				if (numInvalid > 0) {
+					proj.getLog().reportTimeWarning(numInvalid + " markers had an NaN or chr 0 in one of the gwas runs ( or was not included in the analysis), removed");
+				}
+				writer.close();
+			} catch (Exception e) {
+				proj.getLog().reportError("Error writing to " + pvalDB);
+				proj.getLog().reportException(e);
+			}
+		}
+		String[] script = generateManhatQQScript(pvalDB, empTitles, plot);
+		String rscript = plot + ".rscript";
+		Files.writeList(script, rscript);
+		CmdLine.runCommandWithFileChecks(new String[] { "/panfs/roc/itascasoft/R/3.1.1/bin/Rscript", rscript }, "", null, new String[] { plot }, true, true, false, proj.getLog());
+	}
+
+	private static String[] generateManhatQQScript(String db, String[] pvalColumns, String output) {
+		ArrayList<String> command = new ArrayList<String>();
+		ArrayList<String> order = new ArrayList<String>();
+
+		command.add("library(qqman)");
+
+		String main = "data";
+		command.add(main + "=read.table(\"" + db + "\", header=TRUE)");
+		//
+		for (int i = 0; i < pvalColumns.length; i++) {
+			command.add("jpeg(file=\"" + ext.parseDirectoryOfFile(output) + pvalColumns[i] + ".jpeg" + "\",height=2000,width=2500)");
+			// ,onefile = TRUE
+			command.add("op <- par(mfrow=c(1,2))");
+
+			order.add(pvalColumns[i]);
+			String man = pvalColumns[i] + "man =manhattan(" + main + ", p =\"" + pvalColumns[i] + "\")";
+			command.add(man);
+			command.add(pvalColumns[i] + "q =qq(" + main + "$" + pvalColumns[i] + ")");
+			command.add(pvalColumns[i] + "man");
+			command.add("title(main = \"" + pvalColumns[i] + "\")");
+			command.add(pvalColumns[i] + "q");
+			command.add("title(main = \"" + pvalColumns[i] + "\")");
+			command.add("par(op)");
+			command.add("dev.off()");
+		}
+
+		Files.writeList(Array.toStringArray(order), output + ".order.txt");
+		return Array.toStringArray(command);
+	}
+
+	private static ArrayList<PlinkAssoc> runGwas(Project proj, String root, String mtPhenoFile, String[] titles, String covarFile, Pedigree ped, int numThreads) {
+		ArrayList<PlinkAssoc> plinkCommands = new ArrayList<PlinkAssoc>();
+
 		ProjectDataParserBuilder builderCurrent = new ProjectDataParserBuilder();
 		builderCurrent.numericDataTitles(titles);
 		builderCurrent.sampleBased(true);
@@ -144,7 +262,6 @@ public class MitoGWAS {
 			ExtProjectDataParser covarParser = builderCovar.build(proj, covarFile);
 			covarParser.determineIndicesFromTitles();
 			covarParser.loadData();
-			ArrayList<PlinkAssoc> plinkCommands = new ArrayList<PlinkAssoc>();
 			boolean[] hasVarianceWithinPed = Array.booleanArray(covarParser.getNumericDataTitles().length, false);
 			for (int i = 0; i < hasVarianceWithinPed.length; i++) {
 				Hashtable<String, String> varHash = new Hashtable<String, String>();
@@ -192,6 +309,7 @@ public class MitoGWAS {
 
 					String covarTitles = Array.toStr(Array.subArray(covarParser.getNumericDataTitles(), hasVarianceWithinPed), ",");
 					String outPrepReg = ext.addToRoot(outCurrent, ".prepped");
+
 					PlinkAssoc regCommand = prepareAssoc(root, false, outCurrent, titles[i], covarTitles, outPrepReg, proj.getLog());
 					plinkCommands.add(regCommand);
 					String outPrepInv = ext.addToRoot(outCurrent, ".prepped.inv");
@@ -213,6 +331,7 @@ public class MitoGWAS {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return plinkCommands;
 
 	}
 
@@ -262,6 +381,10 @@ public class MitoGWAS {
 			this.log = log;
 		}
 
+		public String[] getOutputs() {
+			return outputs;
+		}
+
 		@Override
 		public Boolean call() throws Exception {
 			return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", inputs, outputs, true, false, false, log);
@@ -270,7 +393,9 @@ public class MitoGWAS {
 
 	private static PlinkAssoc prepareAssoc(String root, boolean inverse, String inputDb, String pheno, String covars, String output, Logger log) {
 		String processed = ext.addToRoot(output, "_pheno");
-		PhenoPrep.parse("", inputDb, "IID", pheno, null, 3.0, false, false, true, false, inverse, covars, root + ".fam", true, true, false, false, false, false, null, output, true, false, false, false, false, false, log);
+		if (!Files.exists(processed)) {
+			PhenoPrep.parse("", inputDb, "IID", pheno, null, 3.0, false, false, true, false, inverse, covars, root + ".fam", true, true, false, false, false, false, null, output, true, false, false, false, false, false, log);
+		}
 		ArrayList<String> plink = new ArrayList<String>();
 		plink.add("plink2");
 
@@ -291,9 +416,8 @@ public class MitoGWAS {
 		plink.add(6 + "");
 
 		String[] inputs = new String[] { processed, inputDb };
-		String[] outputs = new String[] { root + ".assoc.linear.perm" };
+		String[] outputs = new String[] { ext.rootOf(output, false) + ".assoc.linear.perm", ext.rootOf(output, false) + ".assoc.linear" };
 		PlinkAssoc assoc = new PlinkAssoc(plink, inputs, outputs, log);
-
 		return assoc;
 	}
 

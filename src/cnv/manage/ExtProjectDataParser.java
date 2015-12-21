@@ -43,6 +43,7 @@ public class ExtProjectDataParser {
 	private String[] headerFlags;
 	private boolean sampleBased;
 	private boolean concatMultipleStringEntries;
+	private boolean setInvalidNumericToNaN;
 
 	public void loadData() {
 		Hashtable<String, Integer> markerIndices = proj.getMarkerIndices();
@@ -55,6 +56,7 @@ public class ExtProjectDataParser {
 			if (hasHeader) {
 				scanToData();
 			}
+			int numInvalidNumerics =0;
 			while (typedFileParser.ready()) {
 				TypedFileLine typedFileLine = typedFileParser.readTypedLine();
 				if (typedFileLine.isValidLine()) {
@@ -91,15 +93,14 @@ public class ExtProjectDataParser {
 						dataPresent[dataIndex] = true;
 						if (typedFileLine.hasNumericData() && numericData != null) {
 							for (int i = 0; i < numericData.length; i++) {
-								try {
-									numericData[i][dataIndex] = typedFileLine.getNumericData()[0][i];
-								} catch (Exception e) {
+								if (typedFileLine.getNumInvalidNumerics() > 0 && !setInvalidNumericToNaN) {
 									proj.getLog().reportTimeError("failed to load " + numericDataTitles[i]);
-									proj.getLog().reportException(e);
+									proj.getLog().reportTimeInfo("Set the setInvalidNumericToNaN flag to avoid this shutdown");
 									return;
 								}
+								numInvalidNumerics += typedFileLine.getNumInvalidNumerics();
+								numericData[i][dataIndex] = typedFileLine.getNumericData()[0][i];
 							}
-
 						}
 						if (typedFileLine.hasStringData() && stringData != null) {
 							for (int i = 0; i < stringData.length; i++) {
@@ -117,6 +118,9 @@ public class ExtProjectDataParser {
 				numericData = null;
 			} else {
 				proj.getLog().reportTimeInfo("Loaded data for " + dataLoaded + " " + (sampleBased ? "sample(s)" : "marker(s) ") + " of " + dataPresent.length);
+				if (numInvalidNumerics > 0) {
+					proj.getLog().reportTimeWarning(numInvalidNumerics + "numeric entries had invalid doubles and were set to NaN");
+				}
 			}
 		} catch (IOException e) {
 			proj.getLog().reportTimeError("Error reading file " + fullPathToDataFile);
@@ -243,7 +247,7 @@ public class ExtProjectDataParser {
 		double[] data = new double[] {};
 		if (index < 0 || numericData == null) {
 			proj.getLog().reportTimeError("Data for " + title + " was not found");
-			proj.getLog().reportTimeError(numericData == null ? "No Numeric data Titles available" : Array.toStr(numericDataTitles));
+			proj.getLog().reportTimeError(numericData == null ? "No Numeric data Titles available" : "Titles available: " + Array.toStr(numericDataTitles));
 			if (numericData == null) {
 				proj.getLog().reportTimeError("No Numeric data available");
 			}
@@ -275,6 +279,7 @@ public class ExtProjectDataParser {
 			if (dataKeyColumnIndex < 0) {
 				proj.getLog().reportTimeError("Header must contain sample name column " + dataKeyColumnName);
 				determined = false;
+				proj.getLog().reportError("Header found was" + Array.toStr(header));
 			}
 		}
 		return determined;
@@ -396,6 +401,7 @@ public class ExtProjectDataParser {
 		private boolean verbose = true;
 		private String[] headerFlags = null;
 		private boolean concatMultipleStringEntries = false;
+		private boolean setInvalidNumericToNaN = false;
 
 		/**
 		 * @param separator
@@ -445,6 +451,17 @@ public class ExtProjectDataParser {
 		 */
 		public ProjectDataParserBuilder stringDataTitles(String[] stringDataTitles) {
 			this.stringDataTitles = stringDataTitles;
+			return this;
+		}
+		
+		/**
+		 * @param numericDataTitles
+		 *            optional titles of the string data...usually if a header is not present
+		 * @return
+		 */
+		public ProjectDataParserBuilder setInvalidNumericToNaN(boolean setInvalidNumericToNaN) {
+			this.setInvalidNumericToNaN = setInvalidNumericToNaN;
+			typeBuilder.setInvalidNumericToNaN(setInvalidNumericToNaN);
 			return this;
 		}
 
@@ -603,5 +620,6 @@ public class ExtProjectDataParser {
 		this.headerFlags = builder.headerFlags;
 		this.concatMultipleStringEntries = builder.concatMultipleStringEntries;
 		this.typedFileParser = typeBuilder.build(Files.getAppropriateReader(fullPathToDataFile));
+		this.setInvalidNumericToNaN = builder.setInvalidNumericToNaN;
 	}
 }
