@@ -364,6 +364,71 @@ public class Sort {
 	}
 
 	/**
+	 * Sort by doubles first, then by strings
+	 *
+	 */
+	private static class ScoreDoubleStringIndex implements Comparable<ScoreDoubleStringIndex> {
+		final double score;
+		final String s;
+		final int index;
+
+		ScoreDoubleStringIndex(double score, String s, int index) {
+			super();
+			this.score = score;
+			this.s = s;
+			this.index = index;
+		}
+
+		public int getIndex() {
+			return index;
+		}
+
+		@Override
+		public int compareTo(ScoreDoubleStringIndex o) {
+			int cmp = Double.compare(score, o.score);
+			if (cmp == 0 && !s.equalsIgnoreCase(o.s)) {
+				cmp = s.compareToIgnoreCase(o.s);
+			}
+			return cmp == 0 ? Integer.compare(index, o.index) : cmp;
+		}
+
+	}
+
+	private static class ScoreStringComp implements Comparator<ScoreDoubleStringIndex> {
+
+		@Override
+		public int compare(ScoreDoubleStringIndex o1, ScoreDoubleStringIndex o2) {
+			int cmp = Double.compare(o1.score, o2.score);
+			if (cmp == 0 && !o1.s.equalsIgnoreCase(o2.s)) {
+				cmp = o1.s.compareToIgnoreCase(o2.s);
+			}
+			return cmp == 0 ? Integer.compare(o1.index, o2.index) : cmp;
+		}
+
+	}
+
+	/**
+	 * uses {@link ScoreStringComp} to sort the double array first, then the string array within the double order, and get indices
+	 * 
+	 * @param results
+	 * @return
+	 */
+	public static int[] trickSort(double[] results, String[] s) {
+		if (results.length != s.length) {
+			throw new IllegalArgumentException("Double array and String array must be same size");
+		}
+		ScoreDoubleStringIndex[] sIndexs = new ScoreDoubleStringIndex[results.length];
+		for (int i = 0; i < results.length; i++) {
+			sIndexs[i] = new ScoreDoubleStringIndex(results[i], s[i], i);
+		}
+		Arrays.sort(sIndexs, new ScoreStringComp());
+		int[] indexes = new int[results.length];
+		for (int i = 0; i < sIndexs.length; i++)
+			indexes[i] = sIndexs[i].getIndex();
+		return indexes;
+	}
+
+	/**
 	 * For sorting doubles and keeping the index, taken from http://stackoverflow.com/questions/14186529/java-array-of-sorted-indexes
 	 */
 	private static class ScoreDoubleIndex implements Comparable<ScoreDoubleIndex> {
@@ -400,6 +465,10 @@ public class Sort {
 
 	}
 
+	
+	
+	
+	
 	/**
 	 * uses {@link ScoreDoubleIndex} to sort the double array and get indices
 	 * 

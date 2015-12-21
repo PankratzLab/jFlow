@@ -83,7 +83,8 @@ public class ANNOVAR {
 	private boolean AnnovarAVCF(String inputVCF, String outputBase, String outputVCF, String build, int numthreads, Logger log) {
 		boolean progress = !fail;
 		if (progress) {
-			String[] command = new String[] { PSF.Cmd.PERL, annovarLocation + TABLE_ANNOVAR, inputVCF, annovarLocation + DEFUALT_ANNOVAR_DB, BUILD_VERSION, build, OUT, outputBase, THREAD, numthreads + "", REMOVE, PROTOCOL, DEFAULT_PROTOCOLS, OPERATION, DEFAULT_OPERATIONS, NA_STRING, DEFAULT_NA_STRING, VCF_INPUT };
+			// THREAD, numthreads + ""
+			String[] command = new String[] { PSF.Cmd.PERL, annovarLocation + TABLE_ANNOVAR, inputVCF, annovarLocation + DEFUALT_ANNOVAR_DB, BUILD_VERSION, build, OUT, outputBase, REMOVE, PROTOCOL, DEFAULT_PROTOCOLS, OPERATION, DEFAULT_OPERATIONS, NA_STRING, DEFAULT_NA_STRING, VCF_INPUT };
 			progress = CmdLine.runCommandWithFileChecks(command, "", new String[] { inputVCF }, new String[] { outputVCF }, verbose, overWriteExistingOutput, false, log);
 		}
 		return progress;
