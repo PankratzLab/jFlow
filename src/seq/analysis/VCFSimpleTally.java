@@ -39,6 +39,7 @@ import seq.qc.FilterNGS.VariantContextFilter;
 import common.Array;
 import common.Files;
 import common.Logger;
+import common.Sort;
 import common.WorkerHive;
 import common.ext;
 
@@ -357,7 +358,7 @@ public class VCFSimpleTally {
 
 	private static class PosCluster {
 		private static final String[] BASE = new String[] { "_AA_CENTROID", "_AVG_DISTANCE", "_N_COMP" };
-		private static final String[] OTHER = new String[] { "_DIS_FROM_", "_N_COMP" };
+		private static final String[] OTHER = new String[] { "_DIS_FROM_", "_N_COMP_" };
 		// private static final String[] FINAL_METRIC = new String[] { "FINAL_METRIC" };
 
 		private double centriodBelong;
@@ -393,6 +394,31 @@ public class VCFSimpleTally {
 			this.distanceOut = distance(others, others, true);
 			this.distanceOutBelong = distance(others, al, false);
 			this.distanceBelongOut = distance(al, others, false);
+				
+		}
+
+		private void computeNN(ArrayList<Integer> others) {
+			ArrayList<Integer> combined = new ArrayList<Integer>();
+			ArrayList<String> member = new ArrayList<String>();
+			for (int i = 0; i < al.size(); i++) {
+				combined.add(al.get(i));
+				member.add("current");
+
+			}
+			for (int i = 0; i < others.size(); i++) {
+				combined.add(others.get(i));
+				member.add("other");
+			}
+
+			for (int i = 0; i < al.size(); i++) {
+				ArrayList<Double> distances = new ArrayList<Double>();
+				for (int j = 0; j < combined.size(); j++) {
+					distances.add((double) Math.abs(al.get(i) - combined.get(j)));
+				}
+				int[] sort = Sort.trickSort(Array.toDoubleArray(distances));
+				//ArrayList<String>
+			}
+
 		}
 
 		private static String[] getHeader(String cases, String controls) {
@@ -772,10 +798,10 @@ public class VCFSimpleTally {
 			VariantContextFilter qual = getQualityFilterwkggseq(log);
 			Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<String, ArrayList<GeneSummary[]>>();
 			for (int i = 0; i < filtVcfs.size(); i++) {
-				if (i > 1) {
-					log.reportTimeWarning("JOHN remember break");
-					break;
-				}
+//				if (i > 1) {
+//					log.reportTimeWarning("JOHN remember break");
+//					break;
+//				}
 				log.reportTimeInfo("Summarizing " + filtVcfs.get(i));
 				VCFFileReader result = new VCFFileReader(filtVcfs.get(i), true);
 				for (VariantContext vc : result) {
