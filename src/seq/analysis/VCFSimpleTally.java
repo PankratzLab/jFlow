@@ -21,6 +21,8 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import javax.jms.IllegalStateException;
+
 import bioinformatics.OMIM;
 import bioinformatics.OMIM.OMIMGene;
 import seq.analysis.VCFSimpleTally.GeneVariantPositionSummary.ADD_TYPE;
@@ -285,10 +287,8 @@ public class VCFSimpleTally {
 		Hashtable<String, GeneVariantPositionSummary> parse = new Hashtable<String, GeneVariantPositionSummary>();
 		for (int i = 0; i < summaries.length; i++) {
 			String key = summaries[i].getKey();
-			System.out.println(key);
 
 			if (parse.containsKey(key)) {
-				System.out.println(key);
 				throw new IllegalArgumentException("Dup keys");
 			} else {
 				parse.put(key, summaries[i]);
@@ -318,17 +318,20 @@ public class VCFSimpleTally {
 	// }
 	// return Math.sqrt(sum);
 	// }
-	private static class DistanceResult{
+	private static class DistanceResult {
 		private double distance;
 		private int iter;
+
 		public DistanceResult(double distance, int iter) {
 			super();
 			this.distance = distance;
 			this.iter = iter;
 		}
+
 		public double getDistance() {
 			return distance;
 		}
+
 		public int getIter() {
 			return iter;
 		}
@@ -359,14 +362,19 @@ public class VCFSimpleTally {
 	private static class PosCluster {
 		private static final String[] BASE = new String[] { "_AA_CENTROID", "_AVG_DISTANCE", "_N_COMP" };
 		private static final String[] OTHER = new String[] { "_DIS_FROM_", "_N_COMP_" };
-		// private static final String[] FINAL_METRIC = new String[] { "FINAL_METRIC" };
+		private static final String[] NN = new String[] { "_NumNearestTo_" };
 
+		// private static final String[] FINAL_METRIC = new String[] { "FINAL_METRIC" };
+		private static final String MEMBER = "member";
+		private static final String NONMEMBER = "non";
 		private double centriodBelong;
 		private DistanceResult distanceBelong;
 		private double centriodOut;
 		private DistanceResult distanceOut;
 		private DistanceResult distanceBelongOut;
 		private DistanceResult distanceOutBelong;
+		private int nnCase;
+		private int nnControl;
 
 		private ArrayList<Integer> al;
 
@@ -374,8 +382,8 @@ public class VCFSimpleTally {
 			super();
 			this.al = removeNeg(al);
 			this.distanceOut = new DistanceResult(Double.NaN, 0);
-			this.distanceOutBelong =new DistanceResult(Double.NaN, 0);
-			this.distanceBelongOut =new DistanceResult(Double.NaN, 0);
+			this.distanceOutBelong = new DistanceResult(Double.NaN, 0);
+			this.distanceBelongOut = new DistanceResult(Double.NaN, 0);
 			init();
 		}
 
@@ -389,36 +397,63 @@ public class VCFSimpleTally {
 			}
 		}
 
-		private void computeBelongs(ArrayList<Integer> others) {
+		private void computeBelongs(ArrayList<Integer> others) throws IllegalStateException {
+			others = removeNeg(others);
 			this.centriodOut = centroid(others);
 			this.distanceOut = distance(others, others, true);
 			this.distanceOutBelong = distance(others, al, false);
 			this.distanceBelongOut = distance(al, others, false);
-				
+			Hashtable<String, Integer> tmp = computeNN(al, others);
+			this.nnCase = tmp.containsKey(MEMBER) ? tmp.get(MEMBER) : 0;
+			this.nnControl = tmp.containsKey(NONMEMBER) ? tmp.get(NONMEMBER) : 0;
 		}
 
-		private void computeNN(ArrayList<Integer> others) {
+		private static Hashtable<String, Integer> computeNN(ArrayList<Integer> al, ArrayList<Integer> others) throws IllegalStateException {
 			ArrayList<Integer> combined = new ArrayList<Integer>();
 			ArrayList<String> member = new ArrayList<String>();
+			Hashtable<String, Integer> totals = new Hashtable<String, Integer>();
 			for (int i = 0; i < al.size(); i++) {
 				combined.add(al.get(i));
-				member.add("current");
+				member.add(MEMBER);
 
 			}
 			for (int i = 0; i < others.size(); i++) {
 				combined.add(others.get(i));
-				member.add("other");
+				member.add(NONMEMBER);
 			}
-
 			for (int i = 0; i < al.size(); i++) {
 				ArrayList<Double> distances = new ArrayList<Double>();
+				ArrayList<String> currentMemberDistance = new ArrayList<String>();
+
 				for (int j = 0; j < combined.size(); j++) {
 					distances.add((double) Math.abs(al.get(i) - combined.get(j)));
+					currentMemberDistance.add(member.get(j));
 				}
-				int[] sort = Sort.trickSort(Array.toDoubleArray(distances));
-				//ArrayList<String>
-			}
 
+				int[] sort = Sort.trickSort(Array.toDoubleArray(distances), Array.toStringArray(currentMemberDistance));// so that member is favored when there are ties
+				// for (int j = 0; j < sort.length; j++) {
+				// System.out.println(j + "\t" + currentMemberDistance.get(sort[j]) + "\t" + distances.get(sort[j])+"\t"+al.size());
+				// }
+				// try {
+				// Thread.sleep(1000);
+				// } catch (InterruptedException ie) {
+				// }
+				int rank = 0;
+				while (rank < Math.min(al.size(), others.size())) {
+					String key = member.get(sort[rank]);
+					if (rank == 0 && key != MEMBER) {
+						throw new IllegalStateException("ALL v ALL did not return self when sorted");
+					} else if (rank > 0) {
+						if (totals.containsKey(key)) {
+							totals.put(key, totals.get(key) + 1);
+						} else {
+							totals.put(key, 1);
+						}
+					}
+					rank++;
+				}
+			}
+			return totals;
 		}
 
 		private static String[] getHeader(String cases, String controls) {
@@ -427,6 +462,10 @@ public class VCFSimpleTally {
 			// header = Array.concatAll(header, Array.tagOn(FINAL_METRIC, cases, null));
 			header = Array.concatAll(header, Array.tagOn(BASE, controls, null));
 			header = Array.concatAll(header, Array.tagOn(OTHER, controls, cases));
+
+			header = Array.concatAll(header, Array.tagOn(NN, cases, cases));
+			header = Array.concatAll(header, Array.tagOn(NN, cases, controls));
+
 			// header = Array.concatAll(header, Array.tagOn(FINAL_METRIC, controls, null));
 			return header;
 		}
@@ -444,12 +483,14 @@ public class VCFSimpleTally {
 
 			data.add(distanceOutBelong.getDistance() + "");
 			data.add(distanceOutBelong.getIter() + "");
+			data.add(nnCase + "");
+			data.add(nnControl + "");
 
 			return Array.toStringArray(data);
 		}
 	}
 
-	private static Hashtable<String, PosCluster[]> densityEnrichment(SimpleTallyResult cases, SimpleTallyResult controls, Logger log) {
+	private static Hashtable<String, PosCluster[]> densityEnrichment(SimpleTallyResult cases, SimpleTallyResult controls, Logger log) throws IllegalStateException {
 		Hashtable<String, PosCluster[]> cluster = new Hashtable<String, PosCluster[]>();
 		System.out.println(cases.getFinalGeneVariantPositions());
 		Hashtable<String, GeneVariantPositionSummary> casesSummaries = parseAvailable(GeneVariantPositionSummary.readSerial(cases.getFinalGeneVariantPositions(), log));
@@ -526,7 +567,14 @@ public class VCFSimpleTally {
 			String caseWithControls = ext.addToRoot(geneFileCase, "_" + ext.rootOf(controlFile));
 			filesToWrite.add(caseWithControls);
 			names.add("GENE");
-			Hashtable<String, PosCluster[]> cluster = densityEnrichment(caseResult, controlResult, log);
+			Hashtable<String, PosCluster[]> cluster;
+			try {
+				cluster = densityEnrichment(caseResult, controlResult, log);
+			} catch (IllegalStateException e) {
+				log.reportTimeError("Could not enrich");
+				e.printStackTrace();
+				return;
+			}
 			Hashtable<String, String[]> controlsFuncHash = loadToGeneFuncHash(geneFileControl, log);
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(caseWithControls));
@@ -798,10 +846,10 @@ public class VCFSimpleTally {
 			VariantContextFilter qual = getQualityFilterwkggseq(log);
 			Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<String, ArrayList<GeneSummary[]>>();
 			for (int i = 0; i < filtVcfs.size(); i++) {
-//				if (i > 1) {
-//					log.reportTimeWarning("JOHN remember break");
-//					break;
-//				}
+				// if (i > 1) {
+				// log.reportTimeWarning("JOHN remember break");
+				// break;
+				// }
 				log.reportTimeInfo("Summarizing " + filtVcfs.get(i));
 				VCFFileReader result = new VCFFileReader(filtVcfs.get(i), true);
 				for (VariantContext vc : result) {
