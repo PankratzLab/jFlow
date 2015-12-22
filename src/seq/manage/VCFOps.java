@@ -47,7 +47,9 @@ import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.tribble.util.TabixUtils;
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
@@ -270,6 +272,73 @@ public class VCFOps {
 		GWAS_QC, HOMOGENEITY;
 	}
 
+	public static boolean generateStripVCF(String inputVCF, String outputVCF, int maxAlleles, Logger log) {
+		System.out.println("Why are you using this method");
+		System.exit(1);
+		if (Files.exists(outputVCF)) {
+			log.reportFileExists(outputVCF);
+			return true;
+		}
+		HashSet<String> samps = new HashSet<String>();
+		for (int i = 0; i < maxAlleles; i++) {
+			samps.add("Allele" + i);
+		}
+		VCFFileReader reader = new VCFFileReader(inputVCF, false);
+		VariantContextWriter writer = initWriter(outputVCF, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
+		copyHeader(reader, writer, samps, HEADER_COPY_TYPE.SUBSET_LOOSE, log);
+		int num = 0;
+		for (VariantContext vc : reader) {
+			num++;
+			if (num % 100000 == 0) {
+				log.reportTimeInfo(num + " variants stripped");
+			}
+			// int totalDiff = vc.getAlleles().size();
+
+			GenotypesContext genotypesContext = vc.getGenotypes();
+			ArrayList<Genotype> genos = new ArrayList<Genotype>();
+			Hashtable<String, String> added = new Hashtable<String, String>();
+			int currentIndex = 0;
+			for (Genotype g : genotypesContext) {
+				List<Allele> alleles = g.getAlleles();
+				String aKey = alleles.get(0).getDisplayString();
+				for (int i = 1; i < alleles.size(); i++) {
+					aKey += "/" + alleles.get(i).getDisplayString();
+				}
+				if (!added.containsKey(aKey)) {
+					GenotypeBuilder builder = new GenotypeBuilder("Allele" + currentIndex, alleles);
+					currentIndex++;
+					genos.add(builder.make());
+					added.put(aKey, aKey);
+				}
+			}
+			if (currentIndex > maxAlleles) {
+				throw new IllegalArgumentException("max allele size was too small, found " + currentIndex + " alts for " + vc.toStringWithoutGenotypes());
+			}
+			while (currentIndex < samps.size()) {
+				GenotypeBuilder builder = new GenotypeBuilder("Allele" + currentIndex, GenotypeOps.getNoCall());
+				currentIndex++;
+				genos.add(builder.make());
+			}
+
+			VariantContextBuilder vcBuilder = new VariantContextBuilder(vc);
+			vcBuilder.genotypes(GenotypesContext.create(genos));
+			VariantContext st = vcBuilder.make();
+			if (!vc.isMonomorphicInSamples() && st.isMonomorphicInSamples()) {
+				throw new IllegalArgumentException("non to mono");
+			}
+			if (vc.isMonomorphicInSamples() && !st.isMonomorphicInSamples()) {
+				throw new IllegalArgumentException("mono to non");
+			}
+			if (!vc.hasSameAllelesAs(st)) {
+				throw new IllegalArgumentException("diff alleles");
+			}
+
+			writer.add(st);
+
+		}
+		return Files.exists(outputVCF);
+	}
+
 	public static String[] reportCallRateHWEFiltered(String vcf, String outputFile, double callRate, double hweP, Logger log) {
 		VARIANT_FILTER_DOUBLE callRateFilter = VARIANT_FILTER_DOUBLE.CALL_RATE_LOOSE;
 		VARIANT_FILTER_DOUBLE hwe = VARIANT_FILTER_DOUBLE.HWE;
@@ -361,8 +430,8 @@ public class VCFOps {
 			log.reportTimeWarning("Detected that the following files already exist " + Array.toStr(outFiles));
 		}
 		if (Files.exists("", outFiles)) {
-			//Hashtable<String, String> newIDS = new Hashtable<String, String>();
-			 fixFamFile(log, outFiles[2]);
+			// Hashtable<String, String> newIDS = new Hashtable<String, String>();
+			fixFamFile(log, outFiles[2]);
 			log.reportTimeInfo("MODE=" + mode);
 			if (mode == PLINK_SET_MODE.GWAS_QC) {
 
