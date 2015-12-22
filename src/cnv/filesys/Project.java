@@ -310,7 +310,7 @@ public class Project {
             }
         }
 	}
-	
+
 	public <T> T getProperty(Property<T> prop) {
 		return prop.getValue();
 	}
@@ -419,7 +419,8 @@ public class Project {
 	public      FileProperty              GENOME_CLUSTER_FILENAME = new       FileProperty(this,              "GENOME_CLUSTER_FILENAME", "", "cluster.genome.gz", false); 
 	public      FileProperty                  CUSTOM_PFB_FILENAME = new       FileProperty(this,                  "CUSTOM_PFB_FILENAME", "", "data/custom.pfb", false);
 	public      FileProperty                         HMM_FILENAME = new       FileProperty(this,                         "HMM_FILENAME", "", "data/hhall.hmm", false);
-    public      FileProperty       INTENSITY_PC_MARKERS_FILENAME = new       FileProperty(this,       "PCA_AUTOSOMAL_MARKERS_FILENAME", "", "", false);
+    public      FileProperty        INTENSITY_PC_MARKERS_FILENAME = new       FileProperty(this,       "PCA_AUTOSOMAL_MARKERS_FILENAME", "", "", false);
+    public StringListProperty                 GENE_LIST_FILENAMES = new StringListProperty(this,                  "GENE_LIST_FILENAMES", "", "data/genes.txt", true, false);
 	public StringListProperty            TARGET_MARKERS_FILENAMES = new StringListProperty(this,             "TARGET_MARKERS_FILENAMES", "", "targetMarkers.txt", true, false);
 	public StringListProperty           DISPLAY_MARKERS_FILENAMES = new StringListProperty(this,            "DISPLAY_MARKERS_FILENAMES", "", "data/test.txt", true, false);
 	public StringListProperty               TWOD_LOADED_FILENAMES = new StringListProperty(this,                "TWOD_LOADED_FILENAMES", "", "", true, false);

@@ -14,11 +14,12 @@ public class GeneData extends Segment implements Serializable {
 	private String geneName;
 	private String[] ncbiAssessionNumbers;
 	private boolean positionFinalized;
+	private boolean collapsed;
 	private byte strand;
 	private int[][] exonBoundaries;
 	private byte multiLoc;
 
-	public GeneData(String geneName, String[] ncbiAssessionNumbers, byte chr, boolean positionFinalized, byte strand, int startTranscription, int stop, int[][] exonBoundaries, byte multiLoc) {
+	public GeneData(String geneName, String[] ncbiAssessionNumbers, byte chr, boolean positionFinalized, byte strand, int startTranscription, int stop, int[][] exonBoundaries, byte multiLoc, boolean collapsedIsoformGene) {
 		this.geneName = geneName;
 		this.ncbiAssessionNumbers = ncbiAssessionNumbers;
 		this.chr = chr;
@@ -28,6 +29,7 @@ public class GeneData extends Segment implements Serializable {
 		this.stop = stop;
 		this.exonBoundaries = exonBoundaries;
 		this.multiLoc = multiLoc;
+		this.collapsed = collapsedIsoformGene;
 	}
 	
 	public GeneData(String refGeneLine) {
@@ -84,6 +86,8 @@ public class GeneData extends Segment implements Serializable {
 				}
             }
 		}
+		
+		this.collapsed = false;
 	}
 	
 	public int getSize() {
@@ -139,6 +143,10 @@ public class GeneData extends Segment implements Serializable {
 
 	public int getMultiLoc() {
 		return multiLoc;
+	}
+	
+	public boolean isCollapsedIsoforms() {
+	    return collapsed;
 	}
 	
 	// used to be just toArray, which overrode Segment.toArray, but Ant thinks this is a compile error for some reason

@@ -651,7 +651,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				g.drawString("Zoom in to see genes", 10, 10);
 			} else {
 				genes = track.getBetween(chr, start, stop, 30);
-//				System.out.println(ext.getUCSCformat(new int[] {chr, start, stop}));
 				g.setColor(Color.BLACK);
 				for (int i = 0; i<genes.length; i++) {
 					begin = getX(genes[i].getStart());
@@ -669,9 +668,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						}
 						
 					}
-//					System.out.println(genes[i].getGeneName()+"\t"+genes[i].getStart()+"\t"+genes[i].getStop());
                 }
-//				System.out.println();
 				Segment.mergeOverlapsAndSort(v);
 				segs = Segment.toArray(v);
 				g.setFont(new Font("Arial", 0, 14));

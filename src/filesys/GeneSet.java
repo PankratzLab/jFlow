@@ -176,6 +176,7 @@ public class GeneSet implements Serializable {
     			exons = new Vector<Segment>();
     			for (int j = 0; j<overlapping.size(); j++) {
     				gene = overlapping.elementAt(j);
+    				finalList.add(gene); // add all genes/isoforms to list
     				assessionNumbers.add(gene.getNcbiAssessionNumbers()[0]);
     				if (gene.getStrand() != strand) {
     					strand = GeneData.BOTH_STRANDS; // genes can be listed as being on both strands
@@ -205,7 +206,8 @@ public class GeneSet implements Serializable {
         				exonBoundaries[0][0],
         				exonBoundaries[exons.size()-1][1],
         				exonBoundaries,
-        				(count==1&&v.size()==0?0:count)
+        				(count==1&&v.size()==0?0:count),
+        				true
         		));
     		}
         }
@@ -255,7 +257,8 @@ public class GeneSet implements Serializable {
 	    }
 	    try {
 	    	if (refseq) {
-	    		parseRefSeqGenes(Aliases.getPathToFileInReferenceDirectory("gc5Base.txt", true, new Logger()));
+//	    		parseRefSeqGenes(Aliases.getPathToFileInReferenceDirectory("gc5Base.txt", true, new Logger()));
+	    		parseRefSeqGenes("N:/statgen/NCBI/testAgain/refGene_hg19.txt");
 	    	}
 	    	if (known) {
 	    		parseUCSCknownGenes();
