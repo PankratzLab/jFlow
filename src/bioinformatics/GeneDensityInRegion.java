@@ -20,7 +20,7 @@ public class GeneDensityInRegion {
         geneSet = GeneSet.load(Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_DB, true, new Logger()), false);
         genes = geneSet.getSet();
         loc = Positions.parseUCSClocation(region);
-        regionAsGene = new GeneData("", new String[0], (byte)loc[0], true, (byte)0, loc[1], loc[2], new int[][] {}, (byte)0);
+        regionAsGene = new GeneData("", new String[0], (byte)loc[0], true, (byte)0, loc[1], loc[2], new int[][] {}, (byte)0, false);
         inRegion = new Vector<GeneData>();
         for (int i = 0; i<genes.length; i++) {
         	if (genes[i].overlaps(regionAsGene)) {
