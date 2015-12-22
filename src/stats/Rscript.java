@@ -9,20 +9,20 @@ import java.util.*;
 import common.*;
 
 public class Rscript {
-	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-","="," "));
+	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-", "=", " "));
 	public static final String R_REPLACEMENT = ".";
 	public static final String[] RSCRIPT_EXECS = {
 			// "/soft/R/3.0.1/bin/Rscript", // MSI
-	"/soft/R/2.15.1/bin/Rscript", // Itasca nodes can only see this
-	"/share/apps/R-3.0.1/bin/Rscript", // psych
-	"/share/apps/src/R-3.0.1/bin/Rscript", // alcatraz
+			"/soft/R/2.15.1/bin/Rscript", // Itasca nodes can only see this
+			"/share/apps/R-3.0.1/bin/Rscript", // psych
+			"/share/apps/src/R-3.0.1/bin/Rscript", // alcatraz
 	};
 
 	public static final String[] R_EXECS = {
 			// "/soft/R/3.0.1/bin/R", // MSI
-	"/soft/R/2.15.1/bin/R", // Itasca nodes can only see this
-	"/share/apps/R-3.0.1/bin/R", // psych
-	"/share/apps/src/R-3.0.1/bin/R", // alcatraz
+			"/soft/R/2.15.1/bin/R", // Itasca nodes can only see this
+			"/share/apps/R-3.0.1/bin/R", // psych
+			"/share/apps/src/R-3.0.1/bin/R", // alcatraz
 	};
 
 	public static String getRscriptExecutable(Logger log) {
@@ -320,13 +320,12 @@ public class Rscript {
 		}
 	}
 
-	
 	/**
 	 * plot error bars on data points
 	 *
 	 */
 	public static class ErrorBars {
-		
+
 		private String[] rSafeDataColumns;
 		private String[] rSafeErrorColumns;
 		private boolean doubleCoded;
@@ -378,29 +377,30 @@ public class Rscript {
 		}
 
 	}
+
 	public static class GeomText {
-		private static final String[] HEADER = new String[] { "X", "Y", "ANGLE", "LABEL","FONTSIZE" };
+		private static final String[] HEADER = new String[] { "X", "Y", "ANGLE", "LABEL", "FONTSIZE" };
 		private double x;
 		private double y;
 		private double angle;
 		private String label;
 		private String color;
-		//private int fontSize;
 
-		public GeomText(double x, double y,double angle, String label, int fontSize) {
+		// private int fontSize;
+
+		public GeomText(double x, double y, double angle, String label, int fontSize) {
 			super();
 			this.x = x;
 			this.y = y;
 			this.angle = angle;
 			this.label = label;
-			//this.fontSize = fontSize;
-			this.color =null;
+			// this.fontSize = fontSize;
+			this.color = null;
 		}
 
 		public double getY() {
 			return y;
 		}
-		
 
 		public String getColor() {
 			return color;
@@ -428,8 +428,8 @@ public class Rscript {
 			stringBuilder.append(x + ", y = ");
 			stringBuilder.append(y + ", label=");
 			stringBuilder.append("\"" + label + "\",angle=" + angle + " ))");
-			//,size=" + fontSize  + "
-			//+ (color == null ? "" : ",color=\"" + color + "\"")
+			// ,size=" + fontSize  + "
+			// + (color == null ? "" : ",color=\"" + color + "\"")
 			return stringBuilder.toString();
 		}
 
@@ -438,12 +438,12 @@ public class Rscript {
 				log.reportFileNotFound(file);
 				return null;
 			} else if (!Files.headerOfFileContainsAll(file, HEADER, log)) {
-				log.reportTimeError("Geom text "+file+"  must have header " + Array.toStr(HEADER));
+				log.reportTimeError("Geom text " + file + "  must have header " + Array.toStr(HEADER));
 				return null;
 			} else {
 				ArrayList<GeomText> geomTexts = new ArrayList<GeomText>();
 				try {
-					int[] indices  = ext.indexFactors(HEADER, Files.getHeaderOfFile(file, log), true, false);
+					int[] indices = ext.indexFactors(HEADER, Files.getHeaderOfFile(file, log), true, false);
 					BufferedReader reader = Files.getAppropriateReader(file);
 					reader.readLine();
 					while (reader.ready()) {
@@ -468,7 +468,7 @@ public class Rscript {
 			}
 
 		}
-		
+
 	}
 
 	// public static class RBoxPlot implements RCommand{
@@ -482,7 +482,7 @@ public class Rscript {
 		private String valueTag;
 		private int textSize;
 		private double textAngle;
-		
+
 		public SeriesLabeler(boolean labelMax, boolean labelMin, String indexTag, String valueTag) {
 			super();
 			this.labelMax = labelMax;
@@ -490,8 +490,8 @@ public class Rscript {
 			this.indexTag = indexTag;
 			this.valueTag = valueTag;
 			this.textSize = 3;
-			this.textAngle=0;
-			
+			this.textAngle = 0;
+
 		}
 
 		public void setLabelMax(boolean labelMax) {
@@ -544,8 +544,25 @@ public class Rscript {
 
 	}
 
+	public static class SlopeLine {
+		private double xIntercept;
+		private double slope;
+
+		public SlopeLine(double xIntercept, double slope) {
+			super();
+			this.xIntercept = xIntercept;
+			this.slope = slope;
+		}
+
+		public String getCall() {
+			return "geom_abline(xintercept =" + xIntercept + ",slope=" + slope + ")";
+		}
+
+	}
+
 	public static class VertLine {
 		private double xIntercept;
+
 		public VertLine(double xIntercept) {
 			super();
 			this.xIntercept = xIntercept;
@@ -590,10 +607,10 @@ public class Rscript {
 		private static final String DATA_TABLE_EXTRACT = "extract";
 
 		private static final String PLOT_VAR = "p";
-		
+		private SlopeLine[] slopeLines;
 		private VertLine[] vertLines;
 		private String dataFile, output, rScriptFile;
-		private String[] dataYvalueColumns, rSafeYColumns,rSafeAltYColumnNames;
+		private String[] dataYvalueColumns, rSafeYColumns, rSafeAltYColumnNames;
 		private String dataXvalueColumn, rSafeXColumn, colorColumn, rSafeColorColumn;
 		private double[] xRange, yRange;
 		private double yMin;
@@ -614,9 +631,9 @@ public class Rscript {
 		private int width;
 		private GeomText[] gTexts;
 		private SeriesLabeler seriesLabeler;
-		private boolean directLableGtexts, onlyMaxMin;	
+		private boolean directLableGtexts, onlyMaxMin;
 		private ErrorBars errorBars;
-		//private String legendName;
+		// private String legendName;
 		private boolean regLines;
 		private boolean scaleDensity;
 		private double midScaleDensity;
@@ -626,7 +643,10 @@ public class Rscript {
 			this(dataFile, rSriptFile, plotVar, output, dataXvalueColumn, dataYvalueColumns, null, sType, log);
 		}
 
-		
+		public void setSlopeLines(SlopeLine[] slopeLines) {
+			this.slopeLines = slopeLines;
+		}
+
 		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, String colorColumn, SCATTER_TYPE sType, Logger log) {
 			super();
 			this.dataFile = dataFile;
@@ -651,11 +671,11 @@ public class Rscript {
 			this.yMin = Double.NaN;
 			this.height = 6;
 			this.width = 11;
-			this.directLableGtexts =false;
+			this.directLableGtexts = false;
 			this.onlyMaxMin = false;
 			// this.legendName = "variable";
 			this.regLines = false;
-			this.midScaleDensity=.5;
+			this.midScaleDensity = .5;
 		}
 
 		public ErrorBars getErrorBars() {
@@ -669,7 +689,6 @@ public class Rscript {
 		public void setMidScaleDensity(double midScaleDensity) {
 			this.midScaleDensity = midScaleDensity;
 		}
-
 
 		public void setScaleDensity(boolean scaleDensity) {
 			this.scaleDensity = scaleDensity;
@@ -818,7 +837,7 @@ public class Rscript {
 			}
 		}
 
-		private GeomText[] getLabelers(){
+		private GeomText[] getLabelers() {
 			if (seriesLabeler != null) {
 				ArrayList<GeomText> geomTexts = new ArrayList<GeomText>();
 				double[] xs = Array.toDoubleArray(HashVec.loadFileToStringArray(dataFile, true, new int[] { ext.indexOfStr(dataXvalueColumn, Files.getHeaderOfFile(dataFile, log)) }, false));
@@ -826,7 +845,7 @@ public class Rscript {
 					int maxIndex = -1;
 					int minIndex = -1;
 					double min = Double.MAX_VALUE;
-					double max = -1*Double.MAX_VALUE;
+					double max = -1 * Double.MAX_VALUE;
 
 					double[] data = Array.toDoubleArray(HashVec.loadFileToStringArray(dataFile, true, new int[] { ext.indexOfStr(dataYvalueColumns[i], Files.getHeaderOfFile(dataFile, log)) }, false));
 					for (int j = 0; j < data.length; j++) {
@@ -837,21 +856,21 @@ public class Rscript {
 						if (data[j] < min) {
 							min = data[j];
 							minIndex = j;
-							
+
 						}
 					}
 
 					if (seriesLabeler.isLabelMax()) {
 						String maxLabel = "MAX_" + dataYvalueColumns[i] + "_" + seriesLabeler.getIndexTag() + "-" + Math.round(xs[maxIndex]) + " " + seriesLabeler.getValueTag() + "-" + ext.formDeci(data[maxIndex], 2);
 						GeomText maxText = new GeomText(xs[maxIndex], max, seriesLabeler.getTextAngle(), maxLabel, seriesLabeler.getTextSize());
-						//maxText.setColor(dataYvalueColumns[i]);
+						// maxText.setColor(dataYvalueColumns[i]);
 						geomTexts.add(maxText);
 					}
 					if (seriesLabeler.isLabelMin()) {
 
-						String minLabel = "MIN_" + dataYvalueColumns[i] + "_" +seriesLabeler.getIndexTag() + "-" + Math.round(xs[minIndex]) + " " + seriesLabeler.getValueTag() + "-" + ext.formDeci(data[minIndex], 2);
+						String minLabel = "MIN_" + dataYvalueColumns[i] + "_" + seriesLabeler.getIndexTag() + "-" + Math.round(xs[minIndex]) + " " + seriesLabeler.getValueTag() + "-" + ext.formDeci(data[minIndex], 2);
 						GeomText minText = new GeomText(xs[minIndex], min, seriesLabeler.getTextAngle(), minLabel, seriesLabeler.getTextSize());
-					//	minText.setColor(dataYvalueColumns[i]);
+						// minText.setColor(dataYvalueColumns[i]);
 						geomTexts.add(minText);
 					}
 				}
@@ -861,10 +880,9 @@ public class Rscript {
 			}
 			return null;
 		}
-		
-		
-		private String[] directLabelFrame(String currentPlot,String factorTitel,String xTitle,String meltYTitle){
-			String[] directDataFrame= new String[2];
+
+		private String[] directLabelFrame(String currentPlot, String factorTitel, String xTitle, String meltYTitle) {
+			String[] directDataFrame = new String[2];
 			String[] types = new String[gTexts.length];
 			double[] xs = new double[gTexts.length];
 			double[] ys = new double[gTexts.length];
@@ -877,8 +895,8 @@ public class Rscript {
 			String xVector = generateRVector(Array.toStringArray(xs), false);
 			String yVector = generateRVector(Array.toStringArray(ys), false);
 
-			String df = currentPlot+"_direcLdf";
-			directDataFrame[0]=df;
+			String df = currentPlot + "_direcLdf";
+			directDataFrame[0] = df;
 			String dfGenerate = df + " <-  data.frame(" + xTitle + "=" + xVector + "," + factorTitel + "=" + typeVector + "," + meltYTitle + "=" + yVector + ")";
 			directDataFrame[1] = dfGenerate;
 			return directDataFrame;
@@ -937,10 +955,10 @@ public class Rscript {
 					}
 					String rename = getRename(currentNames, altNames, dataTable);
 					rCmd.add(rename);
-				}else{
+				} else {
 					rSafeAltYColumnNames = rSafeYColumns;
 				}
-				
+
 				String[] toExtract = Array.concatAll(new String[] { rSafeXColumn }, rSafeAltYColumnNames);
 				if (errorBars != null) {
 					toExtract = Array.concatAll(toExtract, errorBars.getrSafeErrorColumns());
@@ -951,7 +969,7 @@ public class Rscript {
 				String extract = dataTableExtract + " <- " + dataTable + "[," + generateRVector(toExtract, true) + "]";
 
 				rCmd.add(extract);
-			
+
 				String melt = dataTableMelt + "<-  melt(" + dataTableExtract + ",id.vars =\"" + rSafeXColumn + "\")";
 				rCmd.add(melt);
 				int numColors = rSafeYColumns.length;
@@ -994,10 +1012,10 @@ public class Rscript {
 					}
 				}
 				else if (sType == SCATTER_TYPE.BOX) {
-					
-					//String labs = " xlabs <- paste(factor(levels(" + dataTableExtract + "$" + rSafeXColumn + "))," + "\"\\n(N=\",table(" + dataTableExtract + "$" + rSafeXColumn + "),\")\",sep=\"\")";
-					//rCmd.add(labs);
-					String addN =  dataTable + " <- ddply(" + dataTable + ",.(" + rSafeXColumn + ",variable),transform,N=length(" + rSafeXColumn + "))";
+
+					// String labs = " xlabs <- paste(factor(levels(" + dataTableExtract + "$" + rSafeXColumn + "))," + "\"\\n(N=\",table(" + dataTableExtract + "$" + rSafeXColumn + "),\")\",sep=\"\")";
+					// rCmd.add(labs);
+					String addN = dataTable + " <- ddply(" + dataTable + ",.(" + rSafeXColumn + ",variable),transform,N=length(" + rSafeXColumn + "))";
 					rCmd.add(addN);
 					String label = dataTable + "$label <- paste0(" + dataTable + "$" + rSafeXColumn + ",\"\\n\",\"(n=\"," + dataTable + "$N,\")\")";
 					rCmd.add(label);
@@ -1007,9 +1025,9 @@ public class Rscript {
 					rCmd.add(order);
 					plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=variable, y=value)) ";
 					plot += " + " + sType.getCall() + "(aes(fill=factor(" + rSafeXColumn + ")))";
-					
-				//	plot += " + scale_x_discrete(limits=" + dataTable + "$label)";
-			//	factor(" + dataTableMelt + "$label, levels = " + dataTableMelt + "$label[order(as.numeric(" + dataTableMelt + "$variable))]))+facet_grid(.~variable)";
+
+					// plot += " + scale_x_discrete(limits=" + dataTable + "$label)";
+					// factor(" + dataTableMelt + "$label, levels = " + dataTableMelt + "$label[order(as.numeric(" + dataTableMelt + "$variable))]))+facet_grid(.~variable)";
 
 				} else if (sType == SCATTER_TYPE.BOX_NO_MELT) {
 					plot += plotVar + " <- ggplot(" + dataTable + ",aes(x=variable, y=value)) ";
@@ -1037,8 +1055,8 @@ public class Rscript {
 						// data=subset(dataTableMeltcorrectionEval_WITHOUT_INDEPS_STEPWISE_RANK_R2_WITH_BUILDERS.summary.DK.summary.heritability_summary.parsed,variable==c("SOLAR_PERCENT_HERITABLITY","MERLIN_PERCENT_HERITABLITY")
 						String data = "";
 						if (errorBars != null) {
-							data =dataTable+"["+dataTable+"$variable %in% "+generateRVector(rSafeAltYColumnNames, true)+",]";
-							//data = "subset(" + dataTable + ",variable==" +  + ")";
+							data = dataTable + "[" + dataTable + "$variable %in% " + generateRVector(rSafeAltYColumnNames, true) + ",]";
+							// data = "subset(" + dataTable + ",variable==" + + ")";
 						} else {
 							data = dataTable;
 						}
@@ -1054,7 +1072,7 @@ public class Rscript {
 						plot += " + " + errors[i];
 					}
 				}
-				
+
 				// } else {
 				// plot += plotVar + " <- ggplot(" + dataTable + ", aes(x = " + dataTable + "$" + rSafeXColumn + ")) ";
 				// plot += " + " + sType.getCall() + "(aes(y = " + dataTable + "$" + rSafeYColumns[0] + "))";
@@ -1100,7 +1118,7 @@ public class Rscript {
 				plot += "legend.text=element_text(size=" + fontsize + "),";
 				plot += "panel.background = element_blank())";
 				plot += title == null ? "" : "+ labs(title = \"" + title + "\")";
-				if (gTexts != null&&!directLableGtexts) {
+				if (gTexts != null && !directLableGtexts) {
 					for (int i = 0; i < gTexts.length; i++) {
 						plot += " + " + gTexts[i].getCommand();
 					}
@@ -1113,8 +1131,14 @@ public class Rscript {
 						plot += " + " + vertLines[i].getCall();
 					}
 				}
+				if (slopeLines != null) {
+					for (int i = 0; i < slopeLines.length; i++) {
+						plot += " + " + slopeLines[i].getCall();
+					}
+				}
+
 				if (sType == SCATTER_TYPE.BOX) {
-				
+
 				}
 				rCmd.add(plot);
 
@@ -1152,7 +1176,7 @@ public class Rscript {
 					}
 					dataYvalueColumns = Array.subArray(dataYvalueColumns, extract);
 					rSafeYColumns = makeRSafe(dataYvalueColumns);
-					
+
 					log.reportTimeWarning("Using available columns\t\t\n" + Array.toStr(dataYvalueColumns, "\n"));
 					if (dataYvalueColumns.length < 1) {
 						log.reportTimeError("Could not find any Y value columns, invalid plotting");

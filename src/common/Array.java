@@ -4600,6 +4600,61 @@ public class Array {
 		}
 		return result;
 	}
+
+	/**
+	 * Remove common elements from the front and/or back of strings Ex
+	 * 
+	 * [acatcat3cat, acatcat4cat] -> [3,4] <br>
+	 * Not supremely tested though...
+	 * 
+	 * @param front
+	 * @param back
+	 * @return
+	 */
+	public static String[] untag(final String[] toUniq, boolean front, boolean back) {
+		String[] uniq = new String[toUniq.length];
+		boolean findingstart = true;
+		int startIndex = 0;
+		for (int i = 0; i < uniq.length; i++) {
+			uniq[i] = toUniq[i];
+		}
+
+		if (front) {
+			while (findingstart && startIndex < toUniq[0].length()) {
+				String start = toUniq[0].charAt(startIndex) + "";
+				for (int i = 0; i < uniq.length; i++) {
+					if (startIndex >= toUniq[i].length() || !(toUniq[i].charAt(startIndex) + "").equals(start)) {
+						findingstart = false;
+						startIndex--;
+						break;
+					}
+				}
+				startIndex++;
+			}
+		}
+		boolean findingstop = true;
+		int stopIndex = 1;
+		if (back) {
+			while (findingstop && toUniq[0].length() > stopIndex + 1) {
+				String stop = toUniq[0].charAt(toUniq[0].length() - stopIndex) + "";
+				for (int i = 0; i < uniq.length; i++) {
+					if (toUniq[i].length() <= stopIndex || !(toUniq[i].charAt(toUniq[i].length() - stopIndex) + "").equals(stop)) {
+						stopIndex--;
+						findingstop = false;
+						break;
+					}
+				}
+				stopIndex++;
+			}
+		}
+		for (int i = 0; i < uniq.length; i++) {
+			uniq[i] = toUniq[i].substring(startIndex, toUniq[i].length() - Math.max(0, stopIndex - 1));
+		}
+
+		return uniq;
+	}
+	
+	
 	
 	/**
 	 * @param array

@@ -10,12 +10,16 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import stats.Rscript.RScatter;
+import stats.Rscript.SCATTER_TYPE;
+import stats.Rscript.SlopeLine;
 import stats.StatsCrossTabs;
 import stats.StatsCrossTabs.STAT_TYPE;
 import common.Array;
 import common.CmdLine;
 import common.Files;
 import common.Logger;
+import common.Sort;
 import common.WorkerTrain;
 import common.ext;
 import common.WorkerTrain.Producer;
@@ -124,21 +128,30 @@ public class MitoGWAS {
 		summarize(proj, root, completedPlinkCommands);
 	}
 
+	
+
 	private static void summarize(Project proj, String root, ArrayList<PlinkAssoc> plinkCommands) {
 		proj.getLog().reportTimeInfo("Computing correlation matrix of results");
 		double[][] emp1s = new double[plinkCommands.size()][];
+		int[][] keys = new int[plinkCommands.size()][];
 		String[] empTitles = new String[plinkCommands.size()];
 		String outQQ = root + "summaryPvals";
 		String pvalDB = outQQ + ".txt";
-		String plot = outQQ + ".jpeg";
+		String pvalQQ = outQQ + ".qq.txt";
+		// /String plot = outQQ + ".jpeg";
 		String outTabs = root + "stabs.correl.txt";
-
 		for (int j = 0; j < plinkCommands.size(); j++) {
 			String results = plinkCommands.get(j).getOutputs()[0];
 			empTitles[j] = ext.removeDirectoryInfo(results);
 		}
-
-		if (!Files.exists(pvalDB)) {
+		empTitles = Array.untag(empTitles, true, true);
+		String[] pvalFiles = new String[plinkCommands.size()];
+		for (int i = 0; i < pvalFiles.length; i++) {
+			pvalFiles[i] = ext.parseDirectoryOfFile(pvalDB) + empTitles[i] + ".pvalsQQ.txt";
+		}
+		System.out.println(Array.toStr(empTitles, "\n"));
+		String[] empLogP = Array.tagOn(empTitles, "p_", null);
+		if (!Files.exists(pvalDB) || !Files.exists(pvalQQ)) {
 			for (int j = 0; j < plinkCommands.size(); j++) {
 				String results = plinkCommands.get(j).getOutputs()[0];
 				proj.getLog().reportTimeInfo("Loading " + results);
@@ -157,6 +170,7 @@ public class MitoGWAS {
 					permParser.determineIndicesFromTitles();
 					permParser.loadData();
 					emp1s[j] = permParser.getNumericDataForTitle("EMP1");
+					Files.writeList(Array.toStringArray(Array.removeNaN(emp1s[j])), pvalFiles[j]);
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -168,6 +182,8 @@ public class MitoGWAS {
 			sTabs.computeTable();
 			sTabs.dumpTables(outTabs);
 			MarkerSet markerSet = proj.getMarkerSet();
+			boolean[] valids = Array.booleanArray(emp1s[0].length, true);
+
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(pvalDB));
 				writer.println("SNP\tCHR\tBP\t" + Array.toStr(empTitles));
@@ -180,6 +196,7 @@ public class MitoGWAS {
 							valid = Double.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
 							if (!valid) {
 								numInvalid++;
+								valids[i] = false;
 							}
 							if (j == 0) {
 								builder.append(markerSet.getMarkerNames()[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + emp1s[j][i]);
@@ -201,42 +218,78 @@ public class MitoGWAS {
 				proj.getLog().reportError("Error writing to " + pvalDB);
 				proj.getLog().reportException(e);
 			}
+			try {
+
+				for (int i = 0; i < emp1s.length; i++) {
+					emp1s[i] = Array.subArray(emp1s[i], valids);
+					keys[i] = Sort.trickSort(emp1s[i]);
+				}
+				PrintWriter writer = new PrintWriter(new FileWriter(pvalQQ));
+				writer.println("RANK\t" + Array.toStr(empLogP));
+				for (int i = 0; i < emp1s[0].length; i++) {
+					StringBuilder builder = new StringBuilder();
+					double ranke = (double) (i + 1);
+					double rankP = -1 * Math.log10((double) ranke / emp1s[0].length);
+					builder.append(rankP);
+					for (int j = 0; j < emp1s.length; j++) {
+						double plog = -1 * Math.log10(emp1s[j][keys[j][i]]);
+						builder.append("\t" + plog);
+					}
+					writer.println(builder.toString());
+				}
+				writer.close();
+			} catch (Exception e) {
+				proj.getLog().reportError("Error writing to " + pvalQQ);
+				proj.getLog().reportException(e);
+			}
 		}
-		String[] script = generateManhatQQScript(pvalDB, empTitles, plot);
-		String rscript = plot + ".rscript";
-		Files.writeList(script, rscript);
-		CmdLine.runCommandWithFileChecks(new String[] { "/panfs/roc/itascasoft/R/3.1.1/bin/Rscript", rscript }, "", null, new String[] { plot }, true, true, false, proj.getLog());
+		proj.QQ_FILENAMES.setValue(pvalFiles);
+		proj.saveProperties();
+		String out = ext.addToRoot(pvalQQ, ".qqplot");
+		RScatter rScatter = new RScatter(pvalQQ, out + ".rscript", ext.removeDirectoryInfo(out), out + ".jpeg", "RANK", empLogP, null, SCATTER_TYPE.POINT, proj.getLog());
+		SlopeLine slopeLine = new SlopeLine(0, 1);
+		rScatter.setSlopeLines(new SlopeLine[] { slopeLine });
+		rScatter.setOverWriteExisting(true);
+		rScatter.execute();
+
+		//ArrayList<RScatter> rs = new ArrayList<RScatter>();
+		//RScatters rsScatters = new RScatters(rs.toArray(new RScatter[rs.size()]), pvalQQ + "finalRscript", pvalQQ + "final.pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+
+		// String[] script = generateManhatQQScript(pvalDB, empTitles, plot);
+		// String rscript = plot + ".rscript";
+		// Files.writeList(script, rscript);
+		// CmdLine.runCommandWithFileChecks(new String[] { "/panfs/roc/itascasoft/R/3.1.1/bin/Rscript", rscript }, "", null, new String[] { plot }, true, true, false, proj.getLog());
 	}
 
-	private static String[] generateManhatQQScript(String db, String[] pvalColumns, String output) {
-		ArrayList<String> command = new ArrayList<String>();
-		ArrayList<String> order = new ArrayList<String>();
-
-		command.add("library(qqman)");
-
-		String main = "data";
-		command.add(main + "=read.table(\"" + db + "\", header=TRUE)");
-		//
-		for (int i = 0; i < pvalColumns.length; i++) {
-			command.add("jpeg(file=\"" + ext.parseDirectoryOfFile(output) + pvalColumns[i] + ".jpeg" + "\",height=2000,width=2500)");
-			// ,onefile = TRUE
-			command.add("op <- par(mfrow=c(1,2))");
-
-			order.add(pvalColumns[i]);
-			String man = pvalColumns[i] + "man =manhattan(" + main + ", p =\"" + pvalColumns[i] + "\")";
-			command.add(man);
-			command.add(pvalColumns[i] + "q =qq(" + main + "$" + pvalColumns[i] + ")");
-			command.add(pvalColumns[i] + "man");
-			command.add("title(main = \"" + pvalColumns[i] + "\")");
-			command.add(pvalColumns[i] + "q");
-			command.add("title(main = \"" + pvalColumns[i] + "\")");
-			command.add("par(op)");
-			command.add("dev.off()");
-		}
-
-		Files.writeList(Array.toStringArray(order), output + ".order.txt");
-		return Array.toStringArray(command);
-	}
+	// private static String[] generateMadnhatQQScript(String db, String[] pvalColumns, String output) {
+	// ArrayList<String> command = new ArrayList<String>();
+	// ArrayList<String> order = new ArrayList<String>();
+	//
+	// command.add("library(qqman)");
+	//
+	// String main = "data";
+	// command.add(main + "=read.table(\"" + db + "\", header=TRUE)");
+	// //
+	// for (int i = 0; i < pvalColumns.length; i++) {
+	// command.add("jpeg(file=\"" + ext.parseDirectoryOfFile(output) + pvalColumns[i] + ".jpeg" + "\",height=2000,width=2500)");
+	// // ,onefile = TRUE
+	// command.add("op <- par(mfrow=c(1,2))");
+	//
+	// order.add(pvalColumns[i]);
+	// String man = pvalColumns[i] + "man =manhattan(" + main + ", p =\"" + pvalColumns[i] + "\")";
+	// command.add(man);
+	// command.add(pvalColumns[i] + "q =qq(" + main + "$" + pvalColumns[i] + ")");
+	// command.add(pvalColumns[i] + "man");
+	// command.add("title(main = \"" + pvalColumns[i] + "\")");
+	// command.add(pvalColumns[i] + "q");
+	// command.add("title(main = \"" + pvalColumns[i] + "\")");
+	// command.add("par(op)");
+	// command.add("dev.off()");
+	// }
+	//
+	// Files.writeList(Array.toStringArray(order), output + ".order.txt");
+	// return Array.toStringArray(command);
+	// }
 
 	private static ArrayList<PlinkAssoc> runGwas(Project proj, String root, String mtPhenoFile, String[] titles, String covarFile, Pedigree ped, int numThreads) {
 		ArrayList<PlinkAssoc> plinkCommands = new ArrayList<PlinkAssoc>();
