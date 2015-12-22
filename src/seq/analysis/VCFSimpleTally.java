@@ -64,7 +64,7 @@ public class VCFSimpleTally {
 
 	private static final String[] ANNO_ADD = new String[] { "_AVG_GQ", "_AVG_DP", "_NUM_WITH_CALLS", "_NUM_WITH_ALT", "_AAC", "_HQ_NUM_WITH_ALT", "_HQ_AAC", };
 	private static final String[] GENE_BASE = new String[] { "GENE/GENE_SET", "FUNCTIONAL_TYPE" };
-	private static final String[] GENE_ADD = new String[] { "numVar", "uniqInds", "numCompoundHets", "numCompoundHetsDiffHaplotype", "hqNumVar", "hqUniqInds", "numHQCompoundHets", "numHQCompoundHetsDiffHaplotype" };
+	private static final String[] GENE_ADD = new String[] { "numVar", "numMut", "uniqInds", "numCompoundHets", "numCompoundHetsDiffHaplotype", "hqNumVar", "hqNumMut", "hqUniqInds", "numHQCompoundHets", "numHQCompoundHetsDiffHaplotype" };
 
 	private static boolean filterCHARGE(VariantContext vc, double maf) {
 		boolean pass = true;
@@ -439,6 +439,7 @@ public class VCFSimpleTally {
 				// } catch (InterruptedException ie) {
 				// }
 				int rank = 0;
+
 				while (rank < Math.min(al.size(), others.size())) {
 					String key = member.get(sort[rank]);
 					if (rank == 0 && key != MEMBER) {
@@ -492,9 +493,7 @@ public class VCFSimpleTally {
 
 	private static Hashtable<String, PosCluster[]> densityEnrichment(SimpleTallyResult cases, SimpleTallyResult controls, Logger log) throws IllegalStateException {
 		Hashtable<String, PosCluster[]> cluster = new Hashtable<String, PosCluster[]>();
-		System.out.println(cases.getFinalGeneVariantPositions());
 		Hashtable<String, GeneVariantPositionSummary> casesSummaries = parseAvailable(GeneVariantPositionSummary.readSerial(cases.getFinalGeneVariantPositions(), log));
-		System.out.println(controls.getFinalGeneVariantPositions());
 
 		Hashtable<String, GeneVariantPositionSummary> controlSummaries = parseAvailable(GeneVariantPositionSummary.readSerial(controls.getFinalGeneVariantPositions(), log));
 		for (String key : casesSummaries.keySet()) {
@@ -597,16 +596,22 @@ public class VCFSimpleTally {
 						writer.print(Array.toStr(caseLine) + "\t" + Array.toStr(blanks));
 					}
 					if (line == 1) {
+						String[] baseHeader = PosCluster.getHeader(ext.rootOf(vpopsCase[i]), ext.rootOf(controlFile));
+						writer.print("\t" + Array.toStr(baseHeader) + "\t" + Array.toStr(Array.tagOn(baseHeader, "HQ_", null)));
 						writer.print("\tOMIM_DISORDER(S)\tOMIM_GENE_STATUS\tOMIM_GENE_Symbol(s)\tOMIM_GENE_TITLE(s)");
 						if (otherGeneInfos != null) {
 							for (int j = 0; j < otherGeneInfos.length; j++) {
 								writer.print("\t" + Array.toStr(otherGeneInfos[j].getHeader()));
 							}
 						}
-						String[] baseHeader = PosCluster.getHeader(ext.rootOf(vpopsCase[i]), ext.rootOf(controlFile));
-						writer.print("\t" + Array.toStr(baseHeader) + "\t" + Array.toStr(Array.tagOn(baseHeader, "HQ_", null)));
 
 					} else {
+						if (cluster.containsKey(key)) {
+							PosCluster[] tmp = cluster.get(key);
+							writer.print("\t" + Array.toStr(tmp[0].getData()) + "\t" + Array.toStr(tmp[1].getData()));
+						} else {
+							writer.print("\t" + Array.toStr(blanksEnrichment));
+						}
 						writer.print("\t");
 						for (int j = 0; j < oGene.size(); j++) {
 							writer.print((j == 0 ? "" : "|AdditionalOMIM") + (oGene.get(j).getDisorders().equals("") ? "NA" : oGene.get(j).getDisorders()) + (j == 0 ? "\t" : "|") + oGene.get(j).getStatus() + (j == 0 ? "\t" : "|") + Array.toStr(oGene.get(j).getGeneSymbols(), "/") + (j == 0 ? "\t" : "|") + oGene.get(j).getTitle());
@@ -622,12 +627,7 @@ public class VCFSimpleTally {
 								}
 							}
 						}
-						if (cluster.containsKey(key)) {
-							PosCluster[] tmp = cluster.get(key);
-							writer.print("\t" + Array.toStr(tmp[0].getData()) + "\t" + Array.toStr(tmp[1].getData()));
-						} else {
-							writer.print("\t" + Array.toStr(blanksEnrichment));
-						}
+
 					}
 					writer.println();
 				}
@@ -873,7 +873,6 @@ public class VCFSimpleTally {
 						geneSummaries.get(geneName).get(0)[j].add(vcCaseGroup, null);
 						for (int j2 = 0; j2 < geneSets.length; j2++) {
 							if (geneSets[j2].getGenes().containsKey(geneName)) {
-
 								geneSummaries.get(geneSets[j2].getTag()).get(0)[j].add(vcCaseGroup, geneSets[j2].getTag());
 							}
 						}
@@ -1124,8 +1123,10 @@ public class VCFSimpleTally {
 		private String group;
 		private String[] effects;
 		private int numVar;
+		private int numMut;
 		private HashSet<String> uniqueIndsWithVar;
 		private int hqNumVar;
+		private int hqNumMut;
 		private HashSet<String> uniqueHqIndsWithVar;
 		private Hashtable<String, Integer> numVarsPerInd;
 		private Hashtable<String, Integer> numVarsDiffHaploPerInd;
@@ -1141,7 +1142,10 @@ public class VCFSimpleTally {
 			this.group = group;
 			this.geneName = geneName;
 			this.numVar = 0;
+			this.numMut = 0;
 			this.hqNumVar = 0;
+			this.hqNumMut = 0;
+
 			this.effects = effects;
 			this.uniqueHqIndsWithVar = new HashSet<String>();
 			this.uniqueIndsWithVar = new HashSet<String>();
@@ -1175,11 +1179,15 @@ public class VCFSimpleTally {
 		private String[] getSummary() {
 			ArrayList<String> summary = new ArrayList<String>();
 			summary.add(numVar + "");
+			summary.add(numMut + "");
+
 			summary.add(uniqueIndsWithVar.size() + "");
 			summary.add(numGreaterThan(numVarsPerInd, 2) + "");
 			summary.add(numGreaterThan(numVarsDiffHaploPerInd, 2) + "");
 
 			summary.add(hqNumVar + "");
+			summary.add(hqNumMut + "");
+
 			summary.add(uniqueHqIndsWithVar.size() + "");
 			summary.add(numGreaterThan(numHQVarsPerInd, 2) + "");
 			summary.add(numGreaterThan(numHQDiffHaploVarsPerInd, 2) + "");
@@ -1211,9 +1219,10 @@ public class VCFSimpleTally {
 				if (ext.indexOfStr(impact, effects) >= 0) {
 					if (vcGroupSummary.getIndsWithAlt().size() > 0) {
 						numVar++;
+						numMut += vcGroupSummary.getIndsWithAlt().size();
+
 						uniqueIndsWithVar.addAll(vcGroupSummary.getIndsWithAlt());
 						addHash(numVarsPerInd, vcGroupSummary.getIndsWithAlt());
-
 						GenotypesContext gc = vcGroupSummary.getVcAlt().getGenotypes();
 						HashSet<String> newHaplos = new HashSet<String>();
 						for (Genotype g : gc) {
@@ -1230,6 +1239,7 @@ public class VCFSimpleTally {
 						geneVariantPositionSummary.add(vcGroupSummary.getVcAlt(), ADD_TYPE.REGULAR);
 						if (vcGroupSummary.getHqIndsWithAlt().size() > 0) {
 							hqNumVar++;
+							hqNumMut += vcGroupSummary.getHqIndsWithAlt().size();
 							uniqueHqIndsWithVar.addAll(vcGroupSummary.getHqIndsWithAlt());
 							addHash(numHQVarsPerInd, vcGroupSummary.getHqIndsWithAlt());
 
