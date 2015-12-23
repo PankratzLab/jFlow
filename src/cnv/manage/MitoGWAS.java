@@ -1,6 +1,7 @@
 package cnv.manage;
 
 import gwas.PhenoPrep;
+import gwas.Qc;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -93,7 +94,7 @@ public class MitoGWAS {
 			proj.getLog().reportTimeInfo(plinkMap + " and " + plinkPed + "exist, skipping");
 		}
 
-		double maf = (double) 6 / ped.getDnas().length;
+		double maf = (double) 5 / ped.getDnas().length;
 		double geno = 0.1;
 		double mind = 0.1;
 		proj.getLog().reportTimeInfo("using maf of " + maf + " (MAF= " + maf + "  of " + ped.getDnas().length);
@@ -118,22 +119,36 @@ public class MitoGWAS {
 		String bim = root + ".bim";
 		String bed = root + ".bed";
 
+		Files.copyFileUsingFileChannels(fam, fullOut + "plink.fam", proj.getLog());
+		Files.copyFileUsingFileChannels(bim, fullOut + "plink.bim", proj.getLog());
+		Files.copyFileUsingFileChannels(bed, fullOut + "plink.bed", proj.getLog());
+		Qc.fullGamut(fullOut, true, proj.getLog());
+
 		String[] out = new String[] { fam, bim, bed };
 		CmdLine.runCommandWithFileChecks(Array.toStringArray(plinkConverCommand), "", in, out, true, false, false, proj.getLog());
-		ArrayList<PlinkAssoc> completedPlinkCommands = new ArrayList<MitoGWAS.PlinkAssoc>();
+		ArrayList<PlinkAssoc> plinkCommands = new ArrayList<MitoGWAS.PlinkAssoc>();
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
 		String natty = subDir + "WITHOUT_BUILDERS_NATURAL_WITHOUT_INDEPS_finalSummary.estimates.txt.gz";
 		String[] nattyTitles = new String[] { "PC15", "PC150" };
-		completedPlinkCommands.addAll(runGwas(proj, root, natty, nattyTitles, covarFile, ped, numthreads));
+		plinkCommands.addAll(generateCommands(proj, root, natty, nattyTitles, covarFile, ped));
 
 		String stepWise = subDir + "WITHOUT_BUILDERS_STEPWISE_RANK_R2_WITHOUT_INDEPS_finalSummary.estimates.txt.gz";
 		String[] header = Files.getHeaderOfFile(stepWise, proj.getLog());
 		String[] stepWiseTitles = new String[] { "PC15", header[header.length - 1] };
-		completedPlinkCommands.addAll(runGwas(proj, root, stepWise, stepWiseTitles, covarFile, ped, numthreads));
-		summarize(proj, root, completedPlinkCommands);
+
+		plinkCommands.addAll(generateCommands(proj, root, stepWise, stepWiseTitles, covarFile, ped));
+
+		PlinkAssocProducer producer = new PlinkAssocProducer(plinkCommands, proj.getLog());
+		WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numthreads, 2, proj.getLog());
+		while (train.hasNext()) {
+			train.next();
+		}
+
+		summarize(proj, root, plinkCommands);
 	}
 
 	private static void summarize(Project proj, String root, ArrayList<PlinkAssoc> plinkCommands) {
+		System.exit(1);
 		proj.getLog().reportTimeInfo("Computing correlation matrix of results");
 		double[][] emp1s = new double[plinkCommands.size()][];
 		int[][] keys = new int[plinkCommands.size()][];
@@ -156,7 +171,7 @@ public class MitoGWAS {
 		String[] empLogP = Array.tagOn(empTitles, "p_", null);
 		if (!Files.exists(pvalDB) || !Files.exists(pvalQQ)) {
 			for (int j = 0; j < plinkCommands.size(); j++) {
-				String results = plinkCommands.get(j).getOutputs()[0];
+				String results = plinkCommands.get(j).getOutputs()[1];
 				proj.getLog().reportTimeInfo("Loading " + results);
 				ProjectDataParserBuilder builderPermResults = new ProjectDataParserBuilder();
 				builderPermResults.treatAllNumeric(false);
@@ -166,13 +181,14 @@ public class MitoGWAS {
 				builderPermResults.requireAll(false);
 				builderPermResults.separator("[\\s]+");
 				builderPermResults.setInvalidNumericToNaN(true);
-				builderPermResults.numericDataTitles(new String[] { "EMP1" });
+				builderPermResults.firstEntryOnly(true);
+				builderPermResults.numericDataTitles(new String[] { "P" });
 				ExtProjectDataParser permParser;
 				try {
 					permParser = builderPermResults.build(proj, results);
 					permParser.determineIndicesFromTitles();
 					permParser.loadData();
-					emp1s[j] = permParser.getNumericDataForTitle("EMP1");
+					emp1s[j] = permParser.getNumericDataForTitle("P");
 					Files.writeList(Array.toStringArray(Array.removeNaN(emp1s[j])), pvalFiles[j]);
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
@@ -192,7 +208,7 @@ public class MitoGWAS {
 			CloseableIterator<VariantContext> vcIter = annoReader.iterator();
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(pvalDB));
-				writer.println("SNP\tCHR\tBP\t" + Array.toStr(empTitles) + "\t" + Array.toStr(annotations));
+				writer.println("SNP\tCHR\tBP\tREF\tALT" + Array.toStr(empTitles) + "\t" + Array.toStr(annotations));
 				int numInvalid = 0;
 				for (int i = 0; i < emp1s[0].length; i++) {
 					if (!vcIter.hasNext()) {
@@ -217,7 +233,7 @@ public class MitoGWAS {
 								valids[i] = false;
 							}
 							if (j == 0) {
-								builder.append(markerSet.getMarkerNames()[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + emp1s[j][i]);
+								builder.append(markerSet.getMarkerNames()[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + markVC.getReference().getDisplayString() + "\t" + markVC.getAlternateAlleles().toString() + emp1s[j][i]);
 							} else {
 								builder.append("\t" + emp1s[j][i]);
 							}
@@ -312,7 +328,7 @@ public class MitoGWAS {
 	// return Array.toStringArray(command);
 	// }
 
-	private static ArrayList<PlinkAssoc> runGwas(Project proj, String root, String mtPhenoFile, String[] titles, String covarFile, Pedigree ped, int numThreads) {
+	private static ArrayList<PlinkAssoc> generateCommands(Project proj, String root, String mtPhenoFile, String[] titles, String covarFile, Pedigree ped) {
 		ArrayList<PlinkAssoc> plinkCommands = new ArrayList<PlinkAssoc>();
 
 		ProjectDataParserBuilder builderCurrent = new ProjectDataParserBuilder();
@@ -394,11 +410,6 @@ public class MitoGWAS {
 					proj.getLog().reportError("Error writing to " + outCurrent);
 					proj.getLog().reportException(e);
 				}
-			}
-			PlinkAssocProducer producer = new PlinkAssocProducer(plinkCommands, proj.getLog());
-			WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numThreads, 2, proj.getLog());
-			while (train.hasNext()) {
-				train.next();
 			}
 
 		} catch (FileNotFoundException e) {
@@ -487,7 +498,7 @@ public class MitoGWAS {
 		plink.add("--out");
 		plink.add(ext.rootOf(output, false));
 		plink.add("--threads");
-		plink.add(6 + "");
+		plink.add(2 + "");
 
 		String[] inputs = new String[] { processed, inputDb };
 		String[] outputs = new String[] { ext.rootOf(output, false) + ".assoc.linear.perm", ext.rootOf(output, false) + ".assoc.linear" };

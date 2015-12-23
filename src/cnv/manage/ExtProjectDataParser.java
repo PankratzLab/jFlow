@@ -44,6 +44,7 @@ public class ExtProjectDataParser {
 	private boolean sampleBased;
 	private boolean concatMultipleStringEntries;
 	private boolean setInvalidNumericToNaN;
+	private boolean firstEntryOnly;
 
 	public void loadData() {
 		Hashtable<String, Integer> markerIndices = proj.getMarkerIndices();
@@ -56,7 +57,7 @@ public class ExtProjectDataParser {
 			if (hasHeader) {
 				scanToData();
 			}
-			int numInvalidNumerics =0;
+			int numInvalidNumerics = 0;
 			while (typedFileParser.ready()) {
 				TypedFileLine typedFileLine = typedFileParser.readTypedLine();
 				if (typedFileLine.isValidLine()) {
@@ -81,30 +82,32 @@ public class ExtProjectDataParser {
 						}
 					} else {
 						boolean concat = dataPresent[dataIndex];
-						if (concat && (!concatMultipleStringEntries || typedFileLine.hasNumericData())) {
-							if (typedFileLine.hasNumericData()) {
-								proj.getLog().reportTimeError("Multiple entries for the same " + (sampleBased ? "sample" : "marker") + " " + data + " were found and numeric indices were requested, cannot load...");
+						if (!concat || !firstEntryOnly) {
+							if (concat && (!concatMultipleStringEntries || typedFileLine.hasNumericData())) {
+								if (typedFileLine.hasNumericData()) {
+									proj.getLog().reportTimeError("Multiple entries for the same " + (sampleBased ? "sample" : "marker") + " " + data + " were found and numeric indices were requested, cannot load...");
 
-							} else {
-								proj.getLog().reportTimeError("Multiple entries for the same " + (sampleBased ? "sample" : "marker") + " " + data + " were found, consider setting the concatMultipleStringEntries option if only string data is needed");
-							}
-							return;
-						}
-						dataPresent[dataIndex] = true;
-						if (typedFileLine.hasNumericData() && numericData != null) {
-							for (int i = 0; i < numericData.length; i++) {
-								if (typedFileLine.getNumInvalidNumerics() > 0 && !setInvalidNumericToNaN) {
-									proj.getLog().reportTimeError("failed to load " + numericDataTitles[i]);
-									proj.getLog().reportTimeInfo("Set the setInvalidNumericToNaN flag to avoid this shutdown");
-									return;
+								} else {
+									proj.getLog().reportTimeError("Multiple entries for the same " + (sampleBased ? "sample" : "marker") + " " + data + " were found, consider setting the concatMultipleStringEntries option if only string data is needed");
 								}
-								numInvalidNumerics += typedFileLine.getNumInvalidNumerics();
-								numericData[i][dataIndex] = typedFileLine.getNumericData()[0][i];
+								return;
 							}
-						}
-						if (typedFileLine.hasStringData() && stringData != null) {
-							for (int i = 0; i < stringData.length; i++) {
-								stringData[i][dataIndex] = (concat ? stringData[i][dataIndex] + typedFileParser.getSeparator() + typedFileLine.getStringData()[1][i] : typedFileLine.getStringData()[1][i]);// 0 is reserved for the samples
+							dataPresent[dataIndex] = true;
+							if (typedFileLine.hasNumericData() && numericData != null) {
+								for (int i = 0; i < numericData.length; i++) {
+									if (typedFileLine.getNumInvalidNumerics() > 0 && !setInvalidNumericToNaN) {
+										proj.getLog().reportTimeError("failed to load " + numericDataTitles[i]);
+										proj.getLog().reportTimeInfo("Set the setInvalidNumericToNaN flag to avoid this shutdown");
+										return;
+									}
+									numInvalidNumerics += typedFileLine.getNumInvalidNumerics();
+									numericData[i][dataIndex] = typedFileLine.getNumericData()[0][i];
+								}
+							}
+							if (typedFileLine.hasStringData() && stringData != null) {
+								for (int i = 0; i < stringData.length; i++) {
+									stringData[i][dataIndex] = (concat ? stringData[i][dataIndex] + typedFileParser.getSeparator() + typedFileLine.getStringData()[1][i] : typedFileLine.getStringData()[1][i]);// 0 is reserved for the samples
+								}
 							}
 						}
 					}
@@ -402,6 +405,7 @@ public class ExtProjectDataParser {
 		private String[] headerFlags = null;
 		private boolean concatMultipleStringEntries = false;
 		private boolean setInvalidNumericToNaN = false;
+		private boolean firstEntryOnly = false;
 
 		/**
 		 * @param separator
@@ -453,7 +457,7 @@ public class ExtProjectDataParser {
 			this.stringDataTitles = stringDataTitles;
 			return this;
 		}
-		
+
 		/**
 		 * @param numericDataTitles
 		 *            optional titles of the string data...usually if a header is not present
@@ -472,6 +476,16 @@ public class ExtProjectDataParser {
 		 */
 		public ProjectDataParserBuilder dataKeyColumnIndex(int dataKeyColumnIndex) {
 			this.dataKeyColumnIndex = dataKeyColumnIndex;
+			return this;
+		}
+
+		/**
+		 * @param firstEntryOnly
+		 *            if true, only the first entry of a duplicate will be loaded
+		 * @return
+		 */
+		public ProjectDataParserBuilder firstEntryOnly(boolean firstEntryOnly) {
+			this.firstEntryOnly = firstEntryOnly;
 			return this;
 		}
 
@@ -621,5 +635,6 @@ public class ExtProjectDataParser {
 		this.concatMultipleStringEntries = builder.concatMultipleStringEntries;
 		this.typedFileParser = typeBuilder.build(Files.getAppropriateReader(fullPathToDataFile));
 		this.setInvalidNumericToNaN = builder.setInvalidNumericToNaN;
+		this.firstEntryOnly = builder.firstEntryOnly;
 	}
 }
