@@ -1,6 +1,9 @@
 package cnv.manage;
 
 import gwas.PhenoPrep;
+import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import seq.manage.VCFOps;
+import seq.manage.VCOps;
 import stats.Rscript.RScatter;
 import stats.Rscript.SCATTER_TYPE;
 import stats.Rscript.SlopeLine;
@@ -128,8 +133,6 @@ public class MitoGWAS {
 		summarize(proj, root, completedPlinkCommands);
 	}
 
-	
-
 	private static void summarize(Project proj, String root, ArrayList<PlinkAssoc> plinkCommands) {
 		proj.getLog().reportTimeInfo("Computing correlation matrix of results");
 		double[][] emp1s = new double[plinkCommands.size()][];
@@ -183,12 +186,27 @@ public class MitoGWAS {
 			sTabs.dumpTables(outTabs);
 			MarkerSet markerSet = proj.getMarkerSet();
 			boolean[] valids = Array.booleanArray(emp1s[0].length, true);
+			VCFFileReader annoReader = new VCFFileReader(proj.BLAST_ANNOTATION_FILENAME.getValue(), true);
+			String[] annotations = VCFOps.getAnnotationKeys(proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getLog())[0];
 
+			CloseableIterator<VariantContext> vcIter = annoReader.iterator();
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(pvalDB));
-				writer.println("SNP\tCHR\tBP\t" + Array.toStr(empTitles));
+				writer.println("SNP\tCHR\tBP\t" + Array.toStr(empTitles) + "\t" + Array.toStr(annotations));
 				int numInvalid = 0;
 				for (int i = 0; i < emp1s[0].length; i++) {
+					if (!vcIter.hasNext()) {
+						writer.close();
+						annoReader.close();
+						throw new IllegalArgumentException("Invalid marker annotation " + proj.BLAST_ANNOTATION_FILENAME.getValue());
+					}
+					VariantContext markVC = vcIter.next();
+					if (!markVC.getID().equals(markerSet.getMarkerNames()[i])) {
+						writer.close();
+						annoReader.close();
+						throw new IllegalArgumentException("Mismatched file/project order for " + proj.BLAST_ANNOTATION_FILENAME.getValue());
+					}
+
 					boolean valid = true;
 					StringBuilder builder = new StringBuilder();
 					for (int j = 0; j < emp1s.length; j++) {
@@ -205,6 +223,7 @@ public class MitoGWAS {
 							}
 						}
 					}
+					builder.append(VCOps.getAnnotationsFor(annotations, markVC, "."));
 					if (valid) {
 						writer.println(builder.toString());
 					}
@@ -218,6 +237,8 @@ public class MitoGWAS {
 				proj.getLog().reportError("Error writing to " + pvalDB);
 				proj.getLog().reportException(e);
 			}
+			annoReader.close();
+
 			try {
 
 				for (int i = 0; i < emp1s.length; i++) {
@@ -252,8 +273,8 @@ public class MitoGWAS {
 		rScatter.setOverWriteExisting(true);
 		rScatter.execute();
 
-		//ArrayList<RScatter> rs = new ArrayList<RScatter>();
-		//RScatters rsScatters = new RScatters(rs.toArray(new RScatter[rs.size()]), pvalQQ + "finalRscript", pvalQQ + "final.pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+		// ArrayList<RScatter> rs = new ArrayList<RScatter>();
+		// RScatters rsScatters = new RScatters(rs.toArray(new RScatter[rs.size()]), pvalQQ + "finalRscript", pvalQQ + "final.pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
 
 		// String[] script = generateManhatQQScript(pvalDB, empTitles, plot);
 		// String rscript = plot + ".rscript";
