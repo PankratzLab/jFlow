@@ -934,7 +934,7 @@ public class Array {
 	 */
 	public static double[] movingMedianForward(int n, double[] array) {
 		double[] ma = new double[array.length];
-		double[] a = new double[n];
+//		double[] a = new double[n];
 		ArrayList<Double> tmp = new ArrayList<Double>();
 		for (int i = 0; i < array.length; i++) {
 			tmp.add(array[i]);
@@ -3845,6 +3845,24 @@ public class Array {
 		return reverse;
 	}
 	
+	/**
+	 * Extract the element at the given index in each sub-array and return a single flat array.
+	 * 
+	 * @param srcArr Source array of type T[][]
+	 * @param index Index of elements in subArrays
+	 * @return null if <code>srcArr</code> is null or empty, <br />or an array of type T[], with the same length as <code>srcArr</code>, containing only the elements at <code>index</code> in each sub-array of <code>srcArr</code>
+	 */
+    public static <T> T[] extract(T[][] srcArr, int index) {
+        if (srcArr == null) return null;
+        if (srcArr.length == 0) return null;
+        Class<?> arrClz = srcArr[0][0].getClass();
+        @SuppressWarnings("unchecked")
+        T[] arr = (T[])java.lang.reflect.Array.newInstance(arrClz, srcArr.length);//new Object[srcArr.length];
+        for (int i = 0; i < srcArr.length; i++) {
+            arr[i] = srcArr[i][index];
+        }
+        return arr;
+    }
 
 	/**
 	 * Copies an array exactly
@@ -4681,7 +4699,7 @@ public class Array {
 	}
 
 	/**
-	 * Function to concat n number of Arrays.
+	 * Function to concatenate an arbitrary number of Arrays.
 	 *
 	 * @param first
 	 *            the first array
@@ -4689,9 +4707,9 @@ public class Array {
 	 *            rest all arrays
 	 * @param <T>
 	 *            generic: can take any type of object
-	 * @return an array which is obtained by concatenating all the arrays.
+	 * @return a flat array containing the elements of all given arrays
 	 */
-	public static <T> T[] concatAll(T[] first, T[]... rest) {
+	public static <T> T[] concatAll(T[] first, @SuppressWarnings("unchecked") T[]... rest) {
 		int totalLength = first.length;
 		for (T[] array : rest) {
 			totalLength += array.length;

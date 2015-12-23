@@ -13,11 +13,16 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -26,14 +31,15 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map.Entry;
-import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -55,6 +61,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -67,7 +74,6 @@ import cnv.var.Region;
 import common.Array;
 import common.Files;
 import common.Grafik;
-import common.HashVec;
 import common.Logger;
 import common.Positions;
 import common.TransferableImage;
@@ -108,6 +114,22 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 
     protected static final int COLLAPSE_ISOFORMS = -9;
 
+    private static final int GENE_HEIGHT = 30;
+    private static final int EQUALIZED_EXON_BP_LENGTH = 300;
+    private static final int INTRON_PLACEHOLDER_BP_LENGTH = 25;
+    private static final String EXON_PREFIX = "exon";
+    private static final int Y_START = 3*15;
+    private static final Color FILLED_EXON_COLOR = Color.GRAY;
+    private static final int DATA_PNT_SIZE = 10;
+
+    private volatile int intronBPWidth = INTRON_PLACEHOLDER_BP_LENGTH;
+    private volatile boolean equalizeExonLength = false;
+    private volatile boolean paintExonNumbers = false;
+    private volatile boolean paintIntrons = false;
+    private volatile boolean fillExons = true;
+    private volatile boolean paintExonBoxes = true;
+    private volatile boolean paintInternalLine = false;
+    
 	private JComboBox<String> isoformList;
 	private String[] isoformsPresent;
 	private JButton previousGene, nextGene;
@@ -123,13 +145,17 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	private int startX;
 	private int geneIndex;
 	private int isoformIndex;
-	private JPanel lrrPanel;
-	private JPanel bafPanel;
+//	private JPanel lrrPanel;
+//	private JPanel bafPanel;
 	private JPanel genePanel;
 	private GeneTrack track;
+	HashMap<String, String> geneToCommentMap;
 	HashMap<String, HashMap<String, String>> geneToRegionMap;
+	HashMap<String, HashMap<String, Segment[]>> geneToSegmentMap;
 	HashMap<String, HashMap<String, GeneData>> geneToIsoformMap;
+	HashMap<String, HashMap<String, ArrayList<VariantContext>>> loadedVCFData;
 	private JLabel commentLabel;
+	private JTextField commentField;
 	private String isoform;
 	private ArrayList<String> geneList;
 	
@@ -284,7 +310,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		if (fail) {
 			return;
 		}        
-		trackFilename = "N:/statgen/NCBI/fullIsoforms/RefSeq.gtrack";// TODO proj.getGeneTrackFilename(false);
+//		trackFilename = proj.getGeneTrackFilename(false);
+		trackFilename = "N:/statgen/NCBI/fullIsoforms/RefSeq.gtrack";
         if (trackFilename != null) {
             log.report("Loading track from "+trackFilename);    
             track = GeneTrack.load(trackFilename, jar);
@@ -308,14 +335,38 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		showGene(0);
 	}
 	
+	private String[][] readFile(String file) {
+	    BufferedReader reader;
+	    String line;
+	    ArrayList<String[]> data;
+	    
+	    data = new ArrayList<String[]>();
+	    try {
+	        reader = Files.getAppropriateReader(file);
+            while ((line = reader.readLine()) != null) {
+                data.add(line.trim().split("\t"));
+            }
+        } catch (FileNotFoundException fnfe) {
+            System.err.println("Error: file \"" + file + "\" not found in data directory");
+        } catch (IOException ioe) {
+            System.err.println("Error reading file \"" + file + "\"");
+        }
+	    
+	    return data.toArray(new String[data.size()][]);
+	}
+
 	private void loadGenes(String file) {
-	    String[] genes = HashVec.loadFileToStringArray(file, false, new int[]{0}, false);
+	    String[][] geneFile = readFile(file);
 	    geneList = new ArrayList<String>();
-	    geneToIsoformMap = new HashMap<String, HashMap<String,GeneData>>();
-	    geneToRegionMap = new HashMap<String, HashMap<String,String>>();
+	    geneToIsoformMap = new HashMap<String, HashMap<String, GeneData>>();
+	    geneToRegionMap = new HashMap<String, HashMap<String, String>>();
+	    geneToSegmentMap = new HashMap<String, HashMap<String, Segment[]>>();
+	    geneToCommentMap = new HashMap<String, String>();
+	    loadedVCFData = new HashMap<String, HashMap<String,ArrayList<VariantContext>>>();
+	    String[] genes = Array.extract(geneFile, 0);
 	    GeneData[][] geneData = track.lookupAllGeneData(genes);
 	    
-	    for (int i = 0; i < genes.length; i++) {
+	    for (int i = 0; i < geneFile.length; i++) {
 	        // first, check if genes are on multiple chrs:
 	        boolean multiChr = false;
 	        int chr = -1;
@@ -354,21 +405,29 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     	            isoformMap.put(geneData[i][g].getNcbiAssessionNumbers()[0], geneData[i][g]);
     	        }
 	        }
+	        if (geneFile[i].length >= 2) {
+	            geneToCommentMap.put(geneFile[i][0], geneFile[i][1]);
+	        }
 	    }
 	    geneToRegionMap = new HashMap<String, HashMap<String, String>>();
+	    geneToSegmentMap = new HashMap<String, HashMap<String,Segment[]>>();
 	    for (String gene : geneList) {
 	        HashMap<String, GeneData> isoMap = geneToIsoformMap.get(gene);
 	        HashMap<String, String> isoPosMap = new HashMap<String, String>();
+	        HashMap<String, Segment[]> isoSegMap = new HashMap<String, Segment[]>();
 	        geneToRegionMap.put(gene, isoPosMap);
+	        geneToSegmentMap.put(gene, isoSegMap);
 	        for (Entry<String, GeneData> isoEntry : isoMap.entrySet()) {
-	            isoPosMap.put(isoEntry.getKey(), isoEntry.getValue().getChromosomeUCSC());
+	            GeneData value = isoEntry.getValue();
+                isoPosMap.put(isoEntry.getKey(), "chr" + value.getChr() + ":" + value.getStart() + "-" + value.getStop());
+	            int[][] exons = value.getExonBoundaries();
+	            ArrayList<Segment> segList = new ArrayList<Segment>();
+	            for (int[] i : exons) {
+	                segList.add(new Segment(value.getChr(), i[0], i[1]));
+	            }
+	            isoSegMap.put(isoEntry.getKey(), segList.toArray(new Segment[segList.size()]));
 	        }
 	    }
-//	    for (int g = 0; g < geneData.length; g++) {
-//	        // TODO deal with multiple geneDatas
-//	        // TODO deal with comments
-//	        geneRegions[g] = new String[]{geneData[g][0].getGeneName(), geneData[g][0].getUCSClocation(), ""};
-//	    }
         TrailerClone.this.geneFileName = file;
 	}
 	
@@ -389,108 +448,141 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         geneListCmb.setPreferredSize(new Dimension(maxWidth + 50, 30));
 	}
 	
-	private void paintLRRPanel(Graphics g) {
-		// TODO moving paintComponent code here breaks drawing, and I haven't figured out why.. (cole - 3/6/15)
+	private ArrayList<VariantContext> filter(Segment exon, ArrayList<VariantContext> all) {
+	    ArrayList<VariantContext> retArr = new ArrayList<VariantContext>();
+	    for (VariantContext vc : all) {
+	        if (exon.overlaps(new Segment(vc.getContig(), vc.getStart(), vc.getEnd()))) {
+	            retArr.add(vc);
+	        }
+	    }
+	    return retArr;
 	}
 	
-	private volatile boolean equalizeExonLength = false;
-	private volatile boolean paintExonNumbers = false;
-	private volatile boolean paintIntrons = false;
-	private volatile boolean fillExons = true;
-	private volatile boolean paintExonBoxes = true;
-	private volatile boolean paintInternalLine = false;
-	
-	private volatile int intronBPWidth = INTRON_PLACEHOLDER_BP_LENGTH;
-	
-	private static final int GENE_HEIGHT = 30;
-	private static final int EQUALIZED_EXON_BP_LENGTH = 300;
-	private static final int INTRON_PLACEHOLDER_BP_LENGTH = 25;
-	private static final String EXON_PREFIX = "exon";
-	private static final int Y_START = 0*15;
-	private static final Color FILLED_EXON_COLOR = Color.GRAY;
-	
 	private void paintGeneTrackPanel(Graphics g) {
-//		GeneData[] genes;
 		GeneData gene;
+		ArrayList<VariantContext> vcfData;
+		ArrayList<VariantContext> vcfInSeg;
 		int[][] exons;
-		Vector<Segment> v = new Vector<Segment>();
-		Segment[] segs;
-		int width, begin, tempB, len, temp;
+		int width, begin, tempX, tempPx, len, lenPx, height;
 		
 		if (stop-start > 10000000) {
 			g.drawString("Zoom in to see genes", 10, 10);
 		} else {
-//			genes = geneData[geneIndex];// track.getBetween(chr, start, stop, 30);
+		    height = genePanel.getHeight() - Y_START - GENE_HEIGHT;
 			gene = geneToIsoformMap.get(geneList.get(geneIndex)).get(isoformList.getSelectedItem());
+			if (loadedVCFData.get(geneList.get(geneIndex)) != null) {
+			    vcfData = loadedVCFData.get(geneList.get(geneIndex)).get(isoformList.getSelectedItem());
+			} else {
+			    vcfData = new ArrayList<VariantContext>();
+			}
 			g.setColor(Color.BLACK);
 			
-//			for (int i = 0; i < genes.length; i++) {
-	            g.setFont(new Font("Arial", 0, 12));
-//	            tempB = begin = genes[i].getStart();
-//	            exons = genes[i].getExonBoundaries();
-		        tempB = begin = gene.getStart();
-		        exons = gene.getExonBoundaries();
-                for (int j = 0; j < exons.length; j++) {
-                    len = equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : exons[j][1] - exons[j][0];
-                    temp = getX(tempB + len) - getX(tempB);
-                    // vertical line: 
-                    g.fillRect(getX(tempB), Y_START, 1, GENE_HEIGHT);
+            g.setFont(new Font("Arial", 0, 12));
+	        tempX = begin = gene.getStart();
+	        exons = gene.getExonBoundaries();
+            for (int j = 0; j < exons.length; j++) {
+                Segment exonSeg = new Segment(gene.getChr(), exons[j][0], exons[j][1]);
+                vcfInSeg = filter(exonSeg, vcfData);
+                tempPx = getX(tempX);
+                len = equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : exons[j][1] - exons[j][0];
+                lenPx = getX(tempX + len) - tempPx;
+                // vertical line: 
+                g.fillRect(tempPx, height, 1, GENE_HEIGHT);
+                if (fillExons) {
+                    g.setColor(FILLED_EXON_COLOR);
+                    g.fillRect(tempPx, height, lenPx, GENE_HEIGHT);
+                    g.setColor(Color.BLACK);
+                }
+                if (paintExonBoxes) {
                     // horiz. line: for individual lines
-                    if (fillExons) {
-                        g.setColor(FILLED_EXON_COLOR);
-                        g.fillRect(getX(tempB), Y_START, temp, GENE_HEIGHT);
+                    g.drawRect(tempPx, height, lenPx, GENE_HEIGHT);
+                }
+                if (paintExonNumbers) {
+                    width = g.getFontMetrics().stringWidth(EXON_PREFIX + (j + 1));
+                    if (width < lenPx - 2) {
+                        if (fillExons) {
+                            g.setColor(Color.WHITE);
+                        }
+                        g.drawString(EXON_PREFIX + (j + 1), tempPx + 2, height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() - 2);
+                        if (fillExons) {
+                            g.setColor(Color.BLACK);
+                        }
+                    }
+                }
+                if (vcfInSeg.size() > 0) {
+                    if (lenPx <= DATA_PNT_SIZE + 2) {
+                        g.setColor(Color.RED);
+                        g.drawLine(tempPx + (lenPx / 2), height - 30, tempPx + (lenPx / 2), height - 5);
                         g.setColor(Color.BLACK);
-                    }
-                    if (paintExonBoxes) {
-                        g.drawRect(getX(tempB), Y_START, temp, GENE_HEIGHT);
-                    }
-                    if (paintExonNumbers) {
-                        width = g.getFontMetrics().stringWidth(EXON_PREFIX + (j + 1));
-                        if (width < temp - 2) {
-                            if (fillExons) {
-                                g.setColor(Color.WHITE);
-                            }
-                            g.drawString(EXON_PREFIX + (j + 1), getX(tempB) + 2, GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() - 2);
-                            if (fillExons) {
-                                g.setColor(Color.BLACK);
-                            }
-                        }
-                    }
-                    tempB += len;
-                    if (!fillExons && !paintExonBoxes/* && j == exons.length - 1*/) {
-                        g.fillRect(getX(tempB)-1, Y_START, 1, GENE_HEIGHT);
-                    }
-                    if (intronBPWidth > 0 || paintIntrons) {
+                    } else {
+                        // draw all in rows, ignoring actual position: 
+//                        int numRows = (int) Math.ceil((vcfInSeg.size() * (PNT_SIZE + 2)) / (double)px);
+//                        int numInRow = (int) Math.floor(px / (double)PNT_SIZE);
+//                        int index = 0;
+//                        g.setColor(Color.RED);
+//                        for (int r = 0; index < vcfInSeg.size() && r < numRows; r++) {
+//                            for (int n = 0; index < vcfInSeg.size() && n < numInRow; n++) {
+//                                g.fillOval(getX(tempX) + 1 + n * (PNT_SIZE + 2), height - ((PNT_SIZE + 2) * (r + 1)), PNT_SIZE, PNT_SIZE);
+//                                index++;
+//                            }
+//                        }
+//                        g.setColor(Color.BLACK);
                         
-                        if (j < exons.length - 1) {
-                            int intronLen = paintIntrons ? exons[j+1][0] - exons[j][1] : intronBPWidth + 1;
-                            if (!paintInternalLine) {
-                                g.fillRect(getX(tempB), GENE_HEIGHT / 2 - 1, getX(tempB + intronLen) - getX(tempB), 2);
-                            }
-                            tempB += intronLen;
+                        // draw all in relative position, pushing up if overlapping
+                        g.setColor(Color.RED);
+                        
+                        ArrayList<Rectangle> plotted = new ArrayList<Rectangle>();
+                        for (VariantContext vc : vcfInSeg) {
+                            int diffA = vc.getStart() - exons[j][0];
+                            double prop = diffA / len;
+                            int diffPx = (int) (lenPx * prop);
+                            Rectangle vcRect = new Rectangle(tempPx + diffPx, 0, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
+                            boolean overlap = false;
+                            do {
+                                overlap = false;
+                                for (Rectangle rect : plotted) {
+                                    if (rect.intersects(vcRect)) {
+                                        overlap = true;
+                                        break;
+                                    }
+                                }
+                                if (overlap) {
+                                    vcRect = new Rectangle(tempPx + diffPx, vcRect.y + vcRect.height, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
+                                }
+                            } while (overlap);
+                            plotted.add(vcRect);
                         }
+                        for (Rectangle rect : plotted) {
+                            g.fillOval(rect.x, height - DATA_PNT_SIZE - 2 - rect.y, DATA_PNT_SIZE, DATA_PNT_SIZE);
+                        }
+                        g.setColor(Color.BLACK);
+                        
                     }
                 }
-                if (paintInternalLine) {
-                    // horiz. line connecting all exons 
-                    g.fillRect(getX(begin), GENE_HEIGHT / 2 - 1, getX(tempB) - getX(begin), 2);
+                // move tempX to other side of exon:
+                tempX += len;
+                if (!fillExons && !paintExonBoxes) {
+                    g.fillRect(getX(tempX)-1, height, 1, GENE_HEIGHT);
                 }
-                
-//		    }
-			Segment.mergeOverlapsAndSort(v);
-			segs = Segment.toArray(v);
+                if (intronBPWidth > 0 || paintIntrons) {
+                    if (j < exons.length - 1) {
+                        int intronLen = paintIntrons ? exons[j+1][0] - exons[j][1] : intronBPWidth + 1;
+                        if (!paintInternalLine) {
+                            g.fillRect(getX(tempX), height + GENE_HEIGHT / 2 - 1, getX(tempX + intronLen) - getX(tempX), 2);
+                        }
+                        tempX += intronLen;
+                    }
+                }
+            }
+            if (paintInternalLine) {
+                // horiz. line connecting all exons 
+                g.fillRect(getX(begin), height + GENE_HEIGHT / 2 - 1, getX(tempX) - getX(begin), 2);
+            }
+
 			g.setFont(new Font("Arial", 0, 14));
             begin = getX(gene.getStart());
             width = g.getFontMetrics().stringWidth(gene.getGeneName());
-			g.drawString(gene.getGeneName(), begin-width-3, GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() / 2 - 3);
-			
-//			for (int i = 0; i<genes.length; i++) {
-//				begin = getX(gene.getStart());
-//				width = g.getFontMetrics().stringWidth(gene.getGeneName());
-//				if (!Segment.overlapsAny(new Segment(begin-width-5, begin-1), segs)) {
-//					g.drawString(gene.getGeneName(), begin-width-3, GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() / 2 - 3);
-//				}
-//			}
+			g.drawString(gene.getGeneName(), begin-width-3, height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() / 2 - 3);
 		}
 	}
 	
@@ -575,27 +667,27 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	
 	public void generateComponents() {
 		JPanel dataPanel = new JPanel();
-		dataPanel.setLayout(new MigLayout("", "[grow, fill]", "[grow 100, fill][grow 20, fill]"));
+		dataPanel.setLayout(new MigLayout("", "[grow, fill]", "[grow, fill]"));
 
-		lrrPanel = new JPanel() {
-			public static final long serialVersionUID = 2L;
-			public void paintComponent(Graphics g) {
-				paintLRRPanel(g);
-				
-//				float min, max;
-//				g.setFont(new Font("Arial", 0, 20));
-//				g.drawString("Log R Ratio", WIDTH_BUFFER, 20);
-//				if (SHOW_MIDLINE) {
-//					g.setColor(Color.LIGHT_GRAY);
-//					g.drawLine(WIDTH_BUFFER, getHeight()-(int)((double)(0-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER, getWidth()-WIDTH_BUFFER, getHeight()-(int)((double)(0-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
-//				}
-//				g.setFont(new Font("Arial", 0, 12));
-			}
-		};
-		lrrPanel.addMouseListener(this);
-		lrrPanel.addMouseMotionListener(this);
-		lrrPanel.addMouseWheelListener(this);
-		dataPanel.add(lrrPanel, "cell 0 0");
+//		lrrPanel = new JPanel() {
+//			public static final long serialVersionUID = 2L;
+//			public void paintComponent(Graphics g) {
+//				paintLRRPanel(g);
+//				
+////				float min, max;
+////				g.setFont(new Font("Arial", 0, 20));
+////				g.drawString("Log R Ratio", WIDTH_BUFFER, 20);
+////				if (SHOW_MIDLINE) {
+////					g.setColor(Color.LIGHT_GRAY);
+////					g.drawLine(WIDTH_BUFFER, getHeight()-(int)((double)(0-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER, getWidth()-WIDTH_BUFFER, getHeight()-(int)((double)(0-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
+////				}
+////				g.setFont(new Font("Arial", 0, 12));
+//			}
+//		};
+//		lrrPanel.addMouseListener(this);
+//		lrrPanel.addMouseMotionListener(this);
+//		lrrPanel.addMouseWheelListener(this);
+//		dataPanel.add(lrrPanel, "cell 0 0");
 
 		genePanel = new JPanel() {
 			public static final long serialVersionUID = 8L;
@@ -606,19 +698,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		genePanel.addMouseListener(this);
 		genePanel.addMouseMotionListener(this);
 		genePanel.addMouseWheelListener(this);
-		dataPanel.add(genePanel, "cell 0 1");
-
-//		bafPanel = new JPanel() {
-//			public static final long serialVersionUID = 7L;
-//
-//			public void paintComponent(Graphics g) {
-//				g.setFont(new Font("Arial", 0, 20));
-//				g.drawString("B Allele Frequency", WIDTH_BUFFER, 20);
-//
-//				g.setFont(new Font("Arial", 0, 10));
-//			}
-//		};
-//		dataPanel.add(bafPanel);
+		dataPanel.add(genePanel, "cell 0 0");
 
 		getContentPane().add(dataPanel, BorderLayout.CENTER);
 
@@ -629,7 +709,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		previousGene.addActionListener(this);
 		previousGene.setActionCommand(PREVIOUS_REGION);
 		previousGene.setPreferredSize(new Dimension(25, 25));
-		JPanel compPanel = new JPanel(new MigLayout("align center, fill, gap 0", "[grow, center]", "[]5[]5[]"));
+		JPanel compPanel = new JPanel(new MigLayout("align center, fill, gap 0", "[grow, center]", "[]5[21:21:21]5[]"));
 		
 		JPanel regionPanel = new JPanel();
 		((FlowLayout)regionPanel.getLayout()).setVgap(0);
@@ -662,16 +742,48 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		updateGeneList();
 		
 		compPanel.add(regionPanel, "cell 0 0");
-		compPanel.setPreferredSize(new Dimension(compPanel.getPreferredSize().width, 95));
+		compPanel.setPreferredSize(new Dimension(compPanel.getPreferredSize().width, 105));
 		
-		commentLabel = new JLabel(" ", JLabel.CENTER);
-		commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		commentLabel.setFont(font);
-		compPanel.add(commentLabel, "cell 0 1");
-
-//        JPanel descrPanel = new JPanel();
-//        descrPanel.setLayout(new MigLayout("gap 0", "[grow, center]", "[]0[]0[]"));
-//		descrPanel.add(compPanel, "cell 0 0");
+        commentLabel = new JLabel(" ", JLabel.CENTER);
+        commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        commentLabel.setFont(font);
+        commentLabel.setToolTipText("Click to Edit Comment");
+        commentLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                commentLabel.setVisible(false);
+                commentField.setVisible(true);
+                commentField.requestFocusInWindow();
+            }
+        });
+        compPanel.add(commentLabel, "cell 0 1, hidemode 3");
+        
+        commentField = new JTextField(20);
+        commentField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        commentField.setFont(font);
+        commentField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                super.focusLost(e);
+                String newComment = commentField.getText();
+                if (newComment.length() == 0) {
+                    newComment = null;
+                    geneToCommentMap.remove(geneList.get(geneIndex));
+                } else {
+                    geneToCommentMap.put(geneList.get(geneIndex), newComment);
+                }
+                if (newComment != null) {
+                    commentLabel.setText("gene #"+(geneIndex+1)+":  "+ geneToCommentMap.get(geneList.get(geneIndex)));
+                } else {
+                    commentLabel.setText(" -- no comment -- ");
+                }
+                commentLabel.setVisible(true);
+                commentField.setVisible(false);
+            }
+        });
+        commentField.setVisible(false);
+        compPanel.add(commentField, "cell 0 1, hidemode 3");
 		
 		isoformList = new JComboBox<String>();
 		isoformList.setFont(font);
@@ -768,41 +880,42 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	
 	
 	private BufferedImage generateScreenshot() {
-	    int lW = lrrPanel.getWidth();
-	    int bW = bafPanel.getWidth();
+//	    int lW = lrrPanel.getWidth();
+//	    int bW = bafPanel.getWidth();
 	    int cW = genePanel.getWidth();
-	    int lH = lrrPanel.getHeight();
-	    int bH = bafPanel.getHeight();
+//	    int lH = lrrPanel.getHeight();
+//	    int bH = bafPanel.getHeight();
 	    int cH = genePanel.getHeight();
-	    BufferedImage imageLrr = new BufferedImage(lW, lH, BufferedImage.TYPE_INT_RGB);
-	    BufferedImage imageBaf = new BufferedImage(bW, bH, BufferedImage.TYPE_INT_RGB);
+//	    BufferedImage imageLrr = new BufferedImage(lW, lH, BufferedImage.TYPE_INT_RGB);
+//	    BufferedImage imageBaf = new BufferedImage(bW, bH, BufferedImage.TYPE_INT_RGB);
 	    BufferedImage imageCnv = new BufferedImage(cW, cH, BufferedImage.TYPE_INT_RGB);
 	    
-	    Graphics g = imageLrr.getGraphics();
-        g.setColor(lrrPanel.getBackground());
-        g.fillRect(0, 0, imageLrr.getWidth(), imageLrr.getHeight());
-	    lrrPanel.paintAll(g);
+//	    Graphics g = imageLrr.getGraphics();
+//        g.setColor(lrrPanel.getBackground());
+//        g.fillRect(0, 0, imageLrr.getWidth(), imageLrr.getHeight());
+//	    lrrPanel.paintAll(g);
 	    
-	    g = imageCnv.getGraphics();
+	    Graphics g = imageCnv.getGraphics();
         g.setColor(genePanel.getBackground());
         g.fillRect(0, 0, imageCnv.getWidth(), imageCnv.getHeight());
         genePanel.paintAll(g);
 	    
-	    g = imageBaf.getGraphics();
-        g.setColor(bafPanel.getBackground());
-        g.fillRect(0, 0, imageBaf.getWidth(), imageBaf.getHeight());
-	    bafPanel.paintAll(g);
+//	    g = imageBaf.getGraphics();
+//        g.setColor(bafPanel.getBackground());
+//        g.fillRect(0, 0, imageBaf.getWidth(), imageBaf.getHeight());
+//	    bafPanel.paintAll(g);
 	    
-	    int w = Math.max(lW, Math.max(bW, cW));
-	    int h = lH + bH + cH + HEIGHT_BUFFER;
+//        int w = Math.max(lW, Math.max(bW, cW));
+	    int w = cW;//Math.max(lW, cW);
+	    int h = /*lH + bH + */cH + HEIGHT_BUFFER;
 	    BufferedImage finalImage = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 	    
 	    g = finalImage.getGraphics();
-	    g.setColor(lrrPanel.getBackground());
+	    g.setColor(genePanel.getBackground());
 	    g.fillRect(0, 0, finalImage.getWidth(), finalImage.getHeight());
-	    g.drawImage(imageLrr, 0, 0, null);
-	    g.drawImage(imageCnv, 0, lH + 5, null);
-	    g.drawImage(imageBaf, 0, lH + cH + 10, null);
+	    g.drawImage(imageCnv, 0, 0, null);
+//	    g.drawImage(imageCnv, 0, lH + 5, null);
+//	    g.drawImage(imageBaf, 0, lH + cH + 10, null);
 	    g.dispose();
 	    
 	    return finalImage;
@@ -1177,7 +1290,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 
 	public void zoomProportionally(boolean outNotIn, Point p, boolean center) {
-		int width = lrrPanel.getWidth()-2*WIDTH_BUFFER;
+		int width = genePanel.getWidth()-2*WIDTH_BUFFER;
 		double x = p.getX()-WIDTH_BUFFER;
 		double xHat = width-x;
 		double left = x/width;
@@ -1392,52 +1505,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		repaint();
 	}
 	
-//	public void loadRegions() {
-//		BufferedReader reader;
-//        Vector<String[]> v;
-//        String line;
-//        String[] parts;
-//        int ignoredLines, countMissingRegions, invalidSamples;
-//		
-//		try {
-//			String file = regionFileName.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + regionFileName : regionFileName;
-//			reader = Files.getAppropriateReader(file);//Files.getReader(file, jar, false, false);
-//			System.out.print("Loading regions from " + regionFileName + "...");
-//	        v = new Vector<String[]>();
-//	        ignoredLines = countMissingRegions = invalidSamples = 0;
-//	        line = null;
-//            while ((line = reader.readLine()) != null) {
-//            	parts = line.trim().split("\t");
-//            	if (parts.length == 1) {
-//            		v.add(new String[] {parts[0], "chr1"});
-//            		countMissingRegions++;
-//            	} else if (parts.length > 1 && parts[1].startsWith("chr")) {
-//            		v.add(parts);
-//            	} else {
-//            		ignoredLines++;
-//            	}
-//            }
-//            System.out.println(" loaded "+v.size()+" regions");
-//            regions = Matrix.toStringArrays(v);
-//            if (invalidSamples > 0) {
-//            	JOptionPane.showMessageDialog(null, "Error - there were "+invalidSamples+" invalid samples in '"+regionFileName+"' that were ignored because they could not be found", "Error", JOptionPane.ERROR_MESSAGE);
-//            }
-//            if (countMissingRegions > 0) {
-//            	JOptionPane.showMessageDialog(null, "Warning - there were "+countMissingRegions+" lines in '"+regionFileName+"' without a chromosomal region listed; using \"chr1\" for all missing values", "Warning", JOptionPane.ERROR_MESSAGE);
-//            }
-//            if (ignoredLines > 1) {
-//            	JOptionPane.showMessageDialog(null, "Error - there were "+ignoredLines+" regions in '"+regionFileName+"' that were ignored due to improper formatting", "Error", JOptionPane.ERROR_MESSAGE);
-//            }
-//            reader.close();
-//            
-//            
-//        } catch (FileNotFoundException fnfe) {
-//            System.err.println("Error: file \""+regionFileName+"\" not found in data directory");
-//        } catch (IOException ioe) {
-//            System.err.println("Error reading file \""+regionFileName+"\"");
-//        }
-//	}
-	
 	public void showGene(int geneIndex) {
 	    this.geneIndex = geneIndex;
 		if (geneToRegionMap == null || geneToRegionMap.size() == 0) {
@@ -1450,28 +1517,59 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		isoformIndex = 0;
 		isoformList.setSelectedIndex(isoformIndex);
 		parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(isoformList.getItemAt(0)));
-//		if (geneRegions[geneIndex].length > 2) {
-//			commentLabel.setText("region #"+(geneIndex+1)+":  "+ geneRegions[geneIndex][2]);
-//		} else {
+		if (geneToCommentMap.containsKey(geneList.get(geneIndex)) && geneToCommentMap.get(geneList.get(geneIndex)) != null) {
+			commentLabel.setText("gene #"+(geneIndex+1)+":  "+ geneToCommentMap.get(geneList.get(geneIndex)));
+		} else {
 			commentLabel.setText(" -- no comment -- ");
-//		}
+		}
 		loadData();
+	}
+	
+	private HashMap<String, ArrayList<VariantContext>> sortData(ArrayList<VariantContext> vcfEntries) {
+	    ArrayList<Segment> vcfSegments = new ArrayList<Segment>();
+	    for (VariantContext vc : vcfEntries) {
+            Segment vcfSeg = new Segment(vc.getContig(), vc.getStart(), vc.getEnd());
+            vcfSegments.add(vcfSeg);
+        }
+	    
+	    HashMap<String, ArrayList<VariantContext>> isoformToVCFMap = new HashMap<String, ArrayList<VariantContext>>();
+	    
+	    HashMap<String, Segment[]> isoToSegMap = geneToSegmentMap.get(geneList.get(geneIndex));
+	    for (Entry<String, Segment[]> isoSegEntry : isoToSegMap.entrySet()) {
+	        String isoKey = isoSegEntry.getKey();
+	        Segment[] isoSegs = isoSegEntry.getValue();
+	        
+	        ArrayList<VariantContext> isoVCFs = new ArrayList<VariantContext>();
+	        isoformToVCFMap.put(isoKey, isoVCFs);
+	        
+	        for (int i = 0; i < vcfSegments.size(); i++) {
+	            if (Segment.overlapsAny(vcfSegments.get(i), isoSegs)) {
+	                isoVCFs.add(vcfEntries.get(i));
+	            }
+	        }
+	    }
+	    
+	    return isoformToVCFMap;
 	}
 	
 	private void loadData() {
 	    String[] vcfFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz", "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz"};
 	    String gene = geneList.get(geneIndex);
-	    String isoform = (String) isoformList.getSelectedItem();
-	    VCFFileReader vcfReader = new VCFFileReader(vcfFiles[0], true);
-	    CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chr, start, stop);
-	    int cnt = 0;
-	    while (vcIter.hasNext()) {
-            VariantContext vc = vcIter.next();
-            cnt++;
+	    if (loadedVCFData.containsKey(gene)) {
+	        return;
+	    } else {
+	        ArrayList<VariantContext> data = new ArrayList<VariantContext>();
+	        for (String vcfFile : vcfFiles) {
+    	        VCFFileReader vcfReader = new VCFFileReader(vcfFile, true);
+        	    CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chr, start, stop);
+        	    while (vcIter.hasNext()) {
+        	        data.add(vcIter.next());
+        	    }
+                vcIter.close();
+                vcfReader.close();
+	        }
+            loadedVCFData.put(gene, sortData(data));
 	    }
-	    System.out.println("Found " + cnt + " results");
-        vcIter.close();
-        vcfReader.close();
 	}
 	
 	public static void main(String[] args) {
