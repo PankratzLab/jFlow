@@ -144,6 +144,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private GeneTrack track;
 	private SampleData sampleData;
 	private JLabel commentLabel;
+	private JTextField commentField;
 	private JLabel qcLabel;
 	private int transformation_type;
 	private boolean transformSeparatelyByChromosome;
@@ -595,10 +596,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                     if (REGION_LIST_USE_CNVS.equals(Trailer.this.regionFileName)) {
                         loadCNVsAsRegions();
                     }
+                    Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
+                            setBounds(startX, startY, width, height);
+                            setVisible(true);
+                            
                             updateSample(sample);
+                            showRegion(0);
                             updateGUI();
                         }
                     });
@@ -606,23 +612,34 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
             }).start();
 		} else {
 		    cnvLabels = sampleData.getCnvClasses();
+		    updateSample(sample);
+		    parseLocation(location);
+	        setBounds(startX, startY, width, height);
+	        setVisible(true);
+	        
+	        Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
+	        loadCNVsAsRegions();
+	        procCNVs(chr);
+	        updateGUI();
+	        regionIndex = -1;
+	        if (location.equals(DEFAULT_LOCATION)) {
+	            showRegion(0);
+	        }
 		}
 
-        updateSample(sample);
 		System.out.println("All in "+ext.getTimeElapsed(time));
 
-		parseLocation(location);
-		setBounds(startX, startY, width, height);
-		setVisible(true);
-		
-		Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
-		loadCNVsAsRegions();
-		procCNVs(chr);
-		updateGUI();
-		regionIndex = -1;
-		if (location.equals(DEFAULT_LOCATION)) {
-			showRegion(0);
-		}
+//		setBounds(startX, startY, width, height);
+//		setVisible(true);
+//		
+//		Trailer.this.regionFileName = REGION_LIST_USE_CNVS;
+//		loadCNVsAsRegions();
+//		procCNVs(chr);
+//		updateGUI();
+//		regionIndex = -1;
+//		if (location.equals(DEFAULT_LOCATION)) {
+//			showRegion(0);
+//		}
 	}
 	
 	private void paintLRRPanel(Graphics g) {
@@ -975,7 +992,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		sampPanel.setPreferredSize(new Dimension(sampPanel.getPreferredSize().width, sampleList.getPreferredSize().height + 5));
 		descrPanel.add(sampPanel, "cell 0 0");
 		
-		JPanel compPanel = new JPanel(new MigLayout("align center, fill, gap 0", "[grow, center]", "[][][]"));
+		JPanel compPanel = new JPanel(new MigLayout("align center, fill, gap 0", "[grow, center]", "[]5[21:21:21]5[]"));
 
 		JPanel regionPanel = new JPanel();
         ((FlowLayout)regionPanel.getLayout()).setVgap(0);
@@ -1004,8 +1021,40 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		commentLabel = new JLabel(" ", JLabel.CENTER);
 		commentLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		commentLabel.setFont(font);
-//		commentLabel.setBorder(new LineBorder(Color.RED, 1));
-		compPanel.add(commentLabel, "cell 0 1");
+		commentLabel.setToolTipText("Click to Edit Comment");
+		commentLabel.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseClicked(MouseEvent e) {
+		        super.mouseClicked(e);
+		        commentLabel.setVisible(false);
+		        commentField.setVisible(true);
+		        commentField.requestFocusInWindow();
+		    }
+		});
+		compPanel.add(commentLabel, "cell 0 1, hidemode 3");
+		
+		commentField = new JTextField(20);
+		commentField.setAlignmentX(Component.CENTER_ALIGNMENT);
+		commentField.setFont(font);
+		commentField.addFocusListener(new FocusAdapter() {
+		    @Override
+		    public void focusLost(FocusEvent e) {
+		        super.focusLost(e);
+		        String newComment = commentField.getText();
+		        String[] regionDetails = regions[regionIndex];
+		        if (regionDetails.length >= 3) {
+		            regionDetails[2] = newComment;
+		        } else {
+		            regionDetails = Array.addStrToArray(newComment, regionDetails);
+		        }
+		        regions[regionIndex] = regionDetails;
+		        commentLabel.setText("region #"+(regionIndex+1)+":  "+ regions[regionIndex][2]);
+		        commentLabel.setVisible(true);
+		        commentField.setVisible(false);
+		    }
+        });
+		commentField.setVisible(false);
+		compPanel.add(commentField, "cell 0 1, hidemode 3");
 		
 		qcLabel = new JLabel(" ", JLabel.CENTER);
 		qcLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -2320,25 +2369,33 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	}
 
 	public void showRegion(int regionIndex) {
-	    this.regionIndex = regionIndex;
-		if (regions == null || regions.length == 0) {
-			regionField.setText("");
-			commentLabel.setText(" ");
-			return;
-		}
-//		System.out.println("regionIndex="+regionIndex+"\t"+"regions.length="+regions.length);
-		parseLocation(regions[regionIndex][1]);
-		if (regions[regionIndex].length > 2) {
-			commentLabel.setText("region #"+(regionIndex+1)+":  "+ regions[regionIndex][2]);
-		} else {
-			commentLabel.setText(" -- no comment -- ");
-		}
-		
-		if (!regions[regionIndex][0].equals(sample)) {
-			updateSample(regions[regionIndex][0]);
-		}
-
-		regionField.setText((regionIndex + 1) + " of " + regions.length);
+//	    SwingUtilities.invokeLater(new Runnable() {
+//            @Override
+//            public void run() {
+                
+        	    Trailer.this.regionIndex = regionIndex;
+        		if (regions == null || regions.length == 0) {
+        			regionField.setText("");
+        			commentLabel.setText(" ");
+        			return;
+        		}
+        //		System.out.println("regionIndex="+regionIndex+"\t"+"regions.length="+regions.length);
+        		parseLocation(regions[regionIndex][1]);
+        		if (regions[regionIndex].length > 2) {
+        		    commentField.setText(regions[regionIndex][2]);
+        			commentLabel.setText("region #"+(regionIndex+1)+":  "+ regions[regionIndex][2]);
+        		} else {
+        		    commentField.setText("");
+        			commentLabel.setText(" -- no comment -- ");
+        		}
+        		
+        		if (!regions[regionIndex][0].equals(sample)) {
+        			updateSample(regions[regionIndex][0]);
+        		}
+        
+        		regionField.setText((regionIndex + 1) + " of " + regions.length);
+//            }
+//	    });
 	}
 	
 //	public static Vector<String[]> loadFileToVec(String filename, boolean demo, boolean ignoreFirstLine, int[] cols, boolean onlyIfAbsent) {
