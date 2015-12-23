@@ -1278,6 +1278,21 @@ public class VCFOps {
 
 	}
 
+	public static void createSiteOnlyVcf(String inputVCF, String outputVCF, boolean overWrite, Logger log) {
+		VCFFileReader reader = new VCFFileReader(inputVCF, false);
+		if (Files.exists(outputVCF) && !overWrite) {
+			log.reportTimeWarning(outputVCF + " exists, skipping site only");
+		} else {
+			VariantContextWriter writer = initWriter(outputVCF, new Options[] { Options.DO_NOT_WRITE_GENOTYPES }, reader.getFileHeader().getSequenceDictionary());
+			copyHeader(reader, writer, null, HEADER_COPY_TYPE.SITE_ONLY, log);
+			for (VariantContext vc : reader) {
+				writer.add(vc);
+			}
+			reader.close();
+			writer.close();
+		}
+	}
+
 	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, int numThreads, Logger log) {
 		return extractSegments(vcf, segmentFile, bpBuffer, bams, outputDir, skipFiltered, gzipOutput, false, numThreads, log);
 	}
