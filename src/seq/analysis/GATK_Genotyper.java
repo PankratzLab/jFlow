@@ -711,10 +711,6 @@ public class GATK_Genotyper {
 		if (snpSiftLocation.equals(PSF.Ext.BLANK)) {
 			snpSiftLocation = snpEffLocation;
 		}
-		if (mergeVCF == null || annoVCF == null) {
-			System.err.println("Message for JOHN, supply this arg");
-			System.exit(1);
-		}
 		if (vcfToAnnotate != null) {
 			log.reportTimeInfo("Attempting to annotate " + vcfToAnnotate);
 			annotateOnly(vcfToAnnotate, gATKLocation, referenceGenomeFasta, fileOfGVCFs, hapMapTraining, omniTraining, thousandGTraining, dbSnpTraining, millsIndelTraining, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild, verbose, overwriteExisting, log);

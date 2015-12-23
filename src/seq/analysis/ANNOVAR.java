@@ -25,7 +25,7 @@ public class ANNOVAR {
 	private static final String DEFAULT_NA_STRING = ".";
 	private static final String VCF_INPUT = "-vcfinput";
 	private static final String MULTI_ANNO = "multianno.vcf";
-	private static final String THREAD ="--thread";
+	//private static final String THREAD ="--thread";
 
 	private String annovarLocation;
 	private String annodvarDB;
