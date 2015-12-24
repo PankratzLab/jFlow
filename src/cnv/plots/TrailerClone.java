@@ -117,7 +117,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private static final int GENE_HEIGHT = 30;
     private static final int EQUALIZED_EXON_BP_LENGTH = 300;
     private static final int INTRON_PLACEHOLDER_BP_LENGTH = 25;
-    private static final String EXON_PREFIX = "exon";
+    private static final String EXON_PREFIX = "";
     private static final int Y_START = 3*15;
     private static final Color FILLED_EXON_COLOR = Color.GRAY;
     private static final int DATA_PNT_SIZE = 10;
@@ -534,8 +534,11 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                         ArrayList<Rectangle> plotted = new ArrayList<Rectangle>();
                         for (VariantContext vc : vcfInSeg) {
                             int diffA = vc.getStart() - exons[j][0];
-                            double prop = diffA / len;
+                            double prop = diffA / (double)len;
                             int diffPx = (int) (lenPx * prop);
+                            if (diffPx + DATA_PNT_SIZE + 2 > lenPx) { // don't let the markings go past the exon
+                                diffPx = lenPx - DATA_PNT_SIZE - 2;
+                            }
                             Rectangle vcRect = new Rectangle(tempPx + diffPx, 0, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
                             boolean overlap = false;
                             do {
@@ -547,7 +550,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                     }
                                 }
                                 if (overlap) {
-                                    vcRect = new Rectangle(tempPx + diffPx, vcRect.y + vcRect.height, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
+                                    vcRect = new Rectangle(vcRect.x, vcRect.y + vcRect.height, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
                                 }
                             } while (overlap);
                             plotted.add(vcRect);
