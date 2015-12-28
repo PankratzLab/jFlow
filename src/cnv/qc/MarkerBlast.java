@@ -66,7 +66,7 @@ public class MarkerBlast {
 			return null;
 		} else {
 			double evalueCutoff = 10000;
-			BlastParams blastParams = new BlastParams(fileSeq, fastaDb, maxAlignmentsReported, reportWordSize, blastWordSize, ext.getTimestampForFilename(), evalueCutoff, proj.getLog());
+			BlastParams blastParams = new BlastParams(fileSeq, fastaDb, maxAlignmentsReported, reportWordSize, blastWordSize, ext.getTimestampForFilename(), evalueCutoff, proj.getMarkerSet().getFingerprint(), proj.getLog());
 			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
 			blast.setEvalue(evalueCutoff);// we rely on the wordSize instead
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
@@ -697,17 +697,15 @@ public class MarkerBlast {
 				proj.ARRAY_TYPE.setValue(ARRAY.ILLUMINA);
 				log.reportTimeWarning("Extracting marker positions from " + csv);
 				String[] required = new String[] { "Name", "Chr", "MapInfo" };
-
 				try {
 					BufferedReader reader = Files.getAppropriateReader(csv);
 					boolean start = false;
 					int[] extract = new int[required.length];
 					PrintWriter writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue()));
 					ArrayList<String> markerNames = new ArrayList<String>();
-					
 					while (reader.ready()) {
 						String[] line = reader.readLine().trim().split(",");
-					
+
 						if (!start && Array.countIf(ext.indexFactors(required, line, true, log, false, false), -1) == 0) {
 							start = true;
 							extract = ext.indexFactors(required, line, true, log, false, false);
@@ -722,9 +720,9 @@ public class MarkerBlast {
 
 							} catch (ArrayIndexOutOfBoundsException aOfBoundsException) {
 								log.reportTimeWarning("Skipping line " + Array.toStr(line));
-								lineMP =null;
+								lineMP = null;
 							}
-							if (lineMP != null&&lineMP[0]!=null) {
+							if (lineMP != null && lineMP[0] != null) {
 								markerNames.add(lineMP[0]);
 								writer.println(Array.toStr(lineMP));
 							}

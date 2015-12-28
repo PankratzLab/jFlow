@@ -14,7 +14,7 @@ public class BlastParams implements AnalysisParams {
 	 */
 	private static final String KEY = "GENVISIS_BLAST_PARAMETERS";
 	private static final String DATA_DELIMITER = ",";
-	private static final String[] parseKeys = new String[] { "fileSeq=", "ref=", "maxAlignmentsReported=", "reportWordSize=", "blastWordSize=", "evalueCutoff=", "date=" };
+	private static final String[] parseKeys = new String[] { "fileSeq=", "ref=", "maxAlignmentsReported=", "reportWordSize=", "blastWordSize=", "evalueCutoff=", "date=", "markerFingerPrint=" };
 
 	private String fileSeq;
 	private String fastaDb;
@@ -23,6 +23,7 @@ public class BlastParams implements AnalysisParams {
 	private int blastWordSize;
 	private String dateStamp;
 	private double evalueCutoff;
+	private long markerFingerPrint;
 	private boolean sawValidHeaderLine;
 	private Logger log;
 
@@ -31,7 +32,7 @@ public class BlastParams implements AnalysisParams {
 		this.sawValidHeaderLine = false;
 	}
 
-	public BlastParams(String fileSeq, String fastaDb, int maxAlignmentsReported, int reportWordSize, int blastWordSize, String dateStamp, double evalueCutoff, Logger log) {
+	public BlastParams(String fileSeq, String fastaDb, int maxAlignmentsReported, int reportWordSize, int blastWordSize, String dateStamp, double evalueCutoff, long markerFingerPrint, Logger log) {
 		super();
 		this.fileSeq = fileSeq;
 		this.fastaDb = fastaDb;
@@ -72,6 +73,10 @@ public class BlastParams implements AnalysisParams {
 		return evalueCutoff;
 	}
 
+	public long getMarkerFingerPrint() {
+		return markerFingerPrint;
+	}
+
 	public Logger getLog() {
 		return log;
 	}
@@ -86,6 +91,8 @@ public class BlastParams implements AnalysisParams {
 		valueString.add(parseKeys[4] + blastWordSize);
 		valueString.add(parseKeys[5] + evalueCutoff);
 		valueString.add(parseKeys[6] + dateStamp);
+		valueString.add(parseKeys[7] + markerFingerPrint);
+
 		String value = Array.toStr(Array.toStringArray(valueString), DATA_DELIMITER);
 		return new VCFHeaderLine(KEY, value);
 	}
@@ -135,6 +142,12 @@ public class BlastParams implements AnalysisParams {
 					}
 				} else if (tmp[i].startsWith(parseKeys[6])) {
 					dateStamp = tmp[i].split("=")[1];
+				} else if (tmp[i].startsWith(parseKeys[7])) {
+					try {
+						markerFingerPrint = Long.parseLong(tmp[i].split("=")[1]);
+					} catch (NumberFormatException nfe) {
+						log.reportTimeError("Could not parse marker fingerprint " + tmp[i]);
+					}
 				}
 			}
 		}
