@@ -331,8 +331,8 @@ public class AuthorCorral {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String inFile = "N:/statgen/authors/input2e.xln";
-		String outFile = "N:/statgen/authors/authorship.rtf";
+		String inFile = "N:/statgen/authors/input2f_ordered.xln";
+		String outFile = "N:/statgen/authors/2nd_submission_authorship.rtf";
 		boolean rtf = true;
 		boolean err = true;
 		
