@@ -15,12 +15,88 @@ import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
 import seq.analysis.GATK.Mutect2Normal;
+import seq.analysis.GATK.MutectTumorNormal;
 import seq.manage.BamOps;
 
 /**
  * @author lane0212 For using the native Mutect in GATK 3.5+
  */
-public class Mutect2 {
+public class Mutect2 implements Producer<MutectTumorNormal> {
+
+	private GATK gatk;
+	private String[][] tumorNormalMatchedBams;
+	private String pon;
+
+	private String outputDir;
+	private int numSampleThreads;
+	private Logger log;
+	private int index;
+
+	public Mutect2(GATK gatk, String[][] tumorNormalMatchedBams, String pon, String outputDir, int numSampleThreads, Logger log) {
+		super();
+		this.gatk = gatk;
+		this.tumorNormalMatchedBams = tumorNormalMatchedBams;
+		this.pon = pon;
+		this.outputDir = outputDir;
+		new File(outputDir).mkdirs();
+		this.log = log;
+		verify();
+		this.index = 0;
+	}
+
+	private void verify() {
+		for (int i = 0; i < tumorNormalMatchedBams.length; i++) {
+			if (tumorNormalMatchedBams[i] == null || tumorNormalMatchedBams[i].length != 2) {
+				throw new IllegalArgumentException("All bams must have a single normal and a single tumor");
+			} else if (!Files.exists("", tumorNormalMatchedBams[i])) {
+				throw new IllegalArgumentException("Missing one of " + Array.toStr(tumorNormalMatchedBams[i], "\n"));
+			}
+		}
+	}
+
+	@Override
+	public boolean hasNext() {
+		return index < tumorNormalMatchedBams.length;
+	}
+
+	@Override
+	public Callable<MutectTumorNormal> next() {
+		String normalBam = tumorNormalMatchedBams[index][0];
+		String normalSample = BamOps.getSampleName(normalBam);
+		String tumorBam = tumorNormalMatchedBams[index][1];
+		String tumorSample = BamOps.getSampleName(tumorBam);
+		return new MutectTumorNormalWorker(gatk, normalBam, tumorBam, outputDir + normalSample + "_normal_" + tumorSample + "_tumor" + ".vcf.gz", pon, log);
+	}
+
+	@Override
+	public void shutdown() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private static class MutectTumorNormalWorker implements Callable<MutectTumorNormal> {
+		private GATK gatk;
+		private String normalBam;
+		private String tumorBam;
+		private String outputVCF;
+		private String pon;
+		private Logger log;
+
+		public MutectTumorNormalWorker(GATK gatk, String normalBam, String tumorBam, String outputVCF, String pon, Logger log) {
+			super();
+			this.gatk = gatk;
+			this.normalBam = normalBam;
+			this.tumorBam = tumorBam;
+			this.outputVCF = outputVCF;
+			this.pon = pon;
+			this.log = log;
+		}
+
+		@Override
+		public MutectTumorNormal call() throws Exception {
+			return gatk.callTumor(normalBam, tumorBam, outputVCF, pon, log);
+		}
+	}
 
 	private static class PopulationOfNormals {
 		private GATK gatk;
@@ -72,6 +148,7 @@ public class Mutect2 {
 					vcfsToCombine.add(validate.getOutputVCF());
 				}
 			}
+
 		}
 	}
 
@@ -141,7 +218,7 @@ public class Mutect2 {
 			this.bamFile = bamFile;
 			this.ponVCF = ponVCF;
 			if (!BamOps.getSampleName(bamFile).equals(sample)) {
-				throw new IllegalArgumentException("Sample detected in bam file " + bamFile + " shoul have been " + sample + " but saw " + BamOps.getSampleName(bamFile) + "+ instead");
+				throw new IllegalArgumentException("Sample detected in bam file " + bamFile + " should have been " + sample + " but saw " + BamOps.getSampleName(bamFile) + "+ instead");
 			}
 		}
 
@@ -159,36 +236,48 @@ public class Mutect2 {
 
 	}
 
-	public static void run(String fileOfBams, String outputDir, String ponVcf, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, Logger log) throws IllegalStateException {
-		String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] { 0 }, true);
-		String[] samples = new String[bams.length];
-		for (int i = 0; i < samples.length; i++) {
-			try {
-				samples[i] = BamOps.getSampleName(bams[i]);
-			} catch (Exception e) {
-				log.reportTimeError("Could not find sample for " + bams[i]);
-				return;
-			}
-		}
-		PopulationOfNormals normals = new PopulationOfNormals(gatk, bams, outputDir, samples, log);
-
-		try {
-			normals.generatePON(numThreads, numSampleThreads);
-		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if (type == MUTECT_RUN_TYPES.COMBINE_NORMALS) {
-			ArrayList<String> ponVcfs = new ArrayList<String>();
-			for (int i = 0; i < normals.getNormalSamples().length; i++) {
-				if (Files.exists(normals.getNormalSamples()[i].getPonVCF())) {
-					ponVcfs.add(normals.getNormalSamples()[i].getPonVCF());
-				} else {
-					throw new IllegalStateException("Missing pon vcf " + normals.getNormalSamples()[i].getPonVCF());
+	public static void run(String fileOfBams, String fileOftumorNormalMatchedBams, String outputDir, String ponVcf, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, Logger log) throws IllegalStateException {
+		if (type == MUTECT_RUN_TYPES.GEN_NORMALS || type == MUTECT_RUN_TYPES.COMBINE_NORMALS) {
+			String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] { 0 }, true);
+			String[] samples = new String[bams.length];
+			for (int i = 0; i < samples.length; i++) {
+				try {
+					samples[i] = BamOps.getSampleName(bams[i]);
+				} catch (Exception e) {
+					log.reportTimeError("Could not find sample for " + bams[i]);
+					return;
 				}
 			}
-			
-			
+			PopulationOfNormals normals = new PopulationOfNormals(gatk, bams, outputDir, samples, log);
+
+			try {
+				normals.generatePON(numThreads, numSampleThreads);
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (type == MUTECT_RUN_TYPES.COMBINE_NORMALS) {
+				ArrayList<String> ponVcfs = new ArrayList<String>();
+				for (int i = 0; i < normals.getNormalSamples().length; i++) {
+					if (Files.exists(normals.getNormalSamples()[i].getPonVCF())) {
+						ponVcfs.add(normals.getNormalSamples()[i].getPonVCF());
+					} else {
+						throw new IllegalStateException("Missing pon vcf " + normals.getNormalSamples()[i].getPonVCF());
+					}
+				}
+				gatk.combinePonVcfs(Array.toStringArray(ponVcfs), ponVcf, 2, log);
+			}
+		} else if (type == MUTECT_RUN_TYPES.CALL_SOMATIC) {
+			if (fileOftumorNormalMatchedBams == null || !Files.exists(fileOftumorNormalMatchedBams)) {
+				throw new IllegalArgumentException("Missing file " + fileOftumorNormalMatchedBams);
+			}
+			String[][] tumorNormalMatchedBams = HashVec.loadFileToStringMatrix(fileOftumorNormalMatchedBams, false, new int[] { 0, 1 }, false);
+			Mutect2 mutect2 = new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads, log);
+			WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2, numThreads, 2, log);
+			ArrayList<MutectTumorNormal> results = new ArrayList<GATK.MutectTumorNormal>();
+			while (train.hasNext()) {
+				results.add(train.next());
+			}
 		}
 	}
 
@@ -227,7 +316,6 @@ public class Mutect2 {
 		base.add("outputDir=" + outputDir);
 		base.add("numthreads=" + numthreads);
 		base.add("numSampleThreads=" + numSampleThreads);
-
 		return base;
 	}
 
@@ -257,6 +345,7 @@ public class Mutect2 {
 		int numSampleThreads = 4;
 		int numbatches = 0;
 		String outputDir = "mutect/";
+		String tumorNormalBams = null;
 		MUTECT_RUN_TYPES run = MUTECT_RUN_TYPES.GEN_NORMALS;
 
 		String usage = "\n" + "seq.analysis.Mutect2 requires 0-1 arguments\n";
@@ -272,6 +361,7 @@ public class Mutect2 {
 		usage += "   (10) type of analysis (i.e. run=" + run + " (default))\n" + "";
 		usage += "   (11) pon vcf (i.e. ponVcf=" + ponVCF + " (default))\n" + "";
 		usage += "   (12) number of threads per sample (i.e. numSampleThreads=" + numSampleThreads + " (default))\n" + "";
+		usage += "   (13) full path to a file of tumor-normal matched (tab-delimited) bam files (i.e. tumorNormalBams= (no default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -282,6 +372,9 @@ public class Mutect2 {
 				numArgs--;
 			} else if (args[i].startsWith("ref=")) {
 				referenceGenomeFasta = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("tumorNormalBams=")) {
+				tumorNormalBams = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("run=")) {
 				run = MUTECT_RUN_TYPES.valueOf(args[i].split("=")[1]);
@@ -326,8 +419,20 @@ public class Mutect2 {
 		GATK gatk = new GATK(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic, true, false, true, log);
 		switch (run) {
 		case CALL_SOMATIC:
+			try {
+				run(fileOfNormalBams, tumorNormalBams, outputDir, ponVCF, gatk, run, numthreads, numSampleThreads, log);
+			} catch (IllegalStateException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			break;
 		case COMBINE_NORMALS:
+			try {
+				run(fileOfNormalBams, tumorNormalBams, outputDir, ponVCF, gatk, run, numthreads, numSampleThreads, log);
+			} catch (IllegalStateException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 
 			break;
 		case GEN_NORMALS:
@@ -340,7 +445,7 @@ public class Mutect2 {
 			} else if (fileOfNormalBams != "") {
 				log.reportTimeInfo("Generating normal sample vcfs");
 				try {
-					run(fileOfNormalBams, outputDir, ponVCF, gatk, run, numthreads, numSampleThreads, log);
+					run(fileOfNormalBams, tumorNormalBams, outputDir, ponVCF, gatk, run, numthreads, numSampleThreads, log);
 				} catch (IllegalStateException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -354,6 +459,7 @@ public class Mutect2 {
 		}
 
 	}
+
 }
 // VCFOps.b_ToHg(cosmic, ext.addToRoot(cosmic, ".hg19_chr"), referenceGenomeFasta, log);
 // System.exit(1);

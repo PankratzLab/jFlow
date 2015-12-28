@@ -27,6 +27,7 @@ import bioinformatics.OMIM;
 import bioinformatics.OMIM.OMIMGene;
 import seq.analysis.VCFSimpleTally.GeneVariantPositionSummary.ADD_TYPE;
 import seq.manage.VCFOps;
+import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 import seq.manage.VCOps;
 import seq.manage.VCFOps.ChrSplitResults;
 import seq.manage.VCFOps.HEADER_COPY_TYPE;
@@ -566,15 +567,44 @@ public class VCFSimpleTally {
 			String caseWithControls = ext.addToRoot(geneFileCase, "_" + ext.rootOf(controlFile));
 			filesToWrite.add(caseWithControls);
 			names.add("GENE");
-			Hashtable<String, PosCluster[]> cluster;
+
+			ArrayList<Hashtable<String, PosCluster[]>> clusters = new ArrayList<Hashtable<String, PosCluster[]>>();
+			ArrayList<Hashtable<String, String[]>> controlFuncHashes = new ArrayList<Hashtable<String, String[]>>();
+			ArrayList<String> allControlFiles = new ArrayList<String>();
+			Hashtable<String, PosCluster[]> clusterAllControls;
 			try {
-				cluster = densityEnrichment(caseResult, controlResult, log);
+				clusterAllControls = densityEnrichment(caseResult, controlResult, log);
 			} catch (IllegalStateException e) {
 				log.reportTimeError("Could not enrich");
 				e.printStackTrace();
 				return;
 			}
-			Hashtable<String, String[]> controlsFuncHash = loadToGeneFuncHash(geneFileControl, log);
+			clusters.add(clusterAllControls);
+			
+			Hashtable<String, String[]> controlsAllFuncHash = loadToGeneFuncHash(geneFileControl, log);
+			controlFuncHashes.add(controlsAllFuncHash);
+			allControlFiles.add(controlFile);
+
+			for (String controlGroup : controls.getSubPop().keySet()) {
+				log.reportTimeInfo("Generating control specific comparison for " + controlGroup);
+				Hashtable<String, Set<String>> specificControls = new Hashtable<String, Set<String>>();
+				specificControls.put(controlGroup, controls.getSubPop().get(controlGroup));
+				VcfPopulation tmpPop = new VcfPopulation(specificControls, specificControls, POPULATION_TYPE.CASE_CONTROL, log);
+				String out = ext.parseDirectoryOfFile(vpopsCase[i]) + controlGroup + ".vpop";
+				tmpPop.dump(out);
+				SimpleTallyResult controlSpecificResult = runSimpleTally(vcf, out, maf, numThreads, outDir, currentSets, log);
+				controlFuncHashes.add(loadToGeneFuncHash(controlSpecificResult.getFinalAnnotGene(), log));
+				Hashtable<String, PosCluster[]> clusterSpecific;
+				try {
+					clusterSpecific = densityEnrichment(caseResult, controlSpecificResult, log);
+				} catch (IllegalStateException e) {
+					log.reportTimeError("Could not enrich");
+					e.printStackTrace();
+					return;
+				}
+				clusters.add(clusterSpecific);
+				allControlFiles.add(out);
+			}
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(caseWithControls));
 
@@ -590,14 +620,21 @@ public class VCFSimpleTally {
 					String[] caseLine = reader.readLine().trim().split("\t");
 					String key = caseLine[0] + "_" + caseLine[1];
 					ArrayList<OMIMGene> oGene = omim.getOmimGene(caseLine[0]);
-					if (controlsFuncHash.containsKey(key)) {
-						writer.print(Array.toStr(caseLine) + "\t" + Array.toStr(Array.subArray(controlsFuncHash.get(key), 0, GENE_ADD.length)));// skip non-count data (like geneset denote)
-					} else {
-						writer.print(Array.toStr(caseLine) + "\t" + Array.toStr(blanks));
+					writer.print(Array.toStr(caseLine));
+
+					for (int j = 0; j < controlFuncHashes.size(); j++) {
+						if (controlFuncHashes.get(j).containsKey(key)) {
+							writer.print("\t" + Array.toStr(Array.subArray(controlFuncHashes.get(j).get(key), 0, GENE_ADD.length)));// skip non-count data (like geneset denote)
+						} else {
+							writer.print("\t" + Array.toStr(blanks));
+						}
 					}
+					
 					if (line == 1) {
-						String[] baseHeader = PosCluster.getHeader(ext.rootOf(vpopsCase[i]), ext.rootOf(controlFile));
-						writer.print("\t" + Array.toStr(baseHeader) + "\t" + Array.toStr(Array.tagOn(baseHeader, "HQ_", null)));
+						for (int j = 0; j < clusters.size(); j++) {
+							String[] baseHeader = PosCluster.getHeader(ext.rootOf(vpopsCase[i]), ext.rootOf(allControlFiles.get(j)));
+							writer.print("\t" + Array.toStr(baseHeader) + "\t" + Array.toStr(Array.tagOn(baseHeader, "HQ_", null)));
+						}
 						writer.print("\tOMIM_DISORDER(S)\tOMIM_GENE_STATUS\tOMIM_GENE_Symbol(s)\tOMIM_GENE_TITLE(s)");
 						if (otherGeneInfos != null) {
 							for (int j = 0; j < otherGeneInfos.length; j++) {
@@ -606,12 +643,15 @@ public class VCFSimpleTally {
 						}
 
 					} else {
-						if (cluster.containsKey(key)) {
-							PosCluster[] tmp = cluster.get(key);
-							writer.print("\t" + Array.toStr(tmp[0].getData()) + "\t" + Array.toStr(tmp[1].getData()));
-						} else {
-							writer.print("\t" + Array.toStr(blanksEnrichment));
+						for (int j = 0; j < clusters.size(); j++) {
+							if (clusters.get(j).containsKey(key)) {
+								PosCluster[] tmp = clusters.get(j).get(key);
+								writer.print("\t" + Array.toStr(tmp[0].getData()) + "\t" + Array.toStr(tmp[1].getData()));
+							} else {
+								writer.print("\t" + Array.toStr(blanksEnrichment));
+							}
 						}
+						
 						writer.print("\t");
 						for (int j = 0; j < oGene.size(); j++) {
 							writer.print((j == 0 ? "" : "|AdditionalOMIM") + (oGene.get(j).getDisorders().equals("") ? "NA" : oGene.get(j).getDisorders()) + (j == 0 ? "\t" : "|") + oGene.get(j).getStatus() + (j == 0 ? "\t" : "|") + Array.toStr(oGene.get(j).getGeneSymbols(), "/") + (j == 0 ? "\t" : "|") + oGene.get(j).getTitle());
@@ -792,7 +832,16 @@ public class VCFSimpleTally {
 		for (String acontrolPop : controls.keySet()) {
 			controlPop.get(caseDef + "_" + VcfPopulation.CONTROL).addAll(controls.get(acontrolPop));
 		}
-		VcfPopulation controlVcfPopulation = new VcfPopulation(controlPop, controlPop, POPULATION_TYPE.CASE_CONTROL, new Logger());
+		Hashtable<String, Set<String>> controlSubPop = new Hashtable<String, Set<String>>();
+
+		for (String aControl : controlPop.get(caseDef + "_" + VcfPopulation.CONTROL)) {
+			if (!controlSubPop.containsKey(caseDef + "_" + vpopAc.getPopulationForInd(aControl, RETRIEVE_TYPE.SUB)[0])) {
+				Set<String> tmpSetSub = new HashSet<String>();
+				controlSubPop.put(caseDef + "_" + vpopAc.getPopulationForInd(aControl, RETRIEVE_TYPE.SUB)[0], tmpSetSub);
+			}
+			controlSubPop.get(caseDef + "_" + vpopAc.getPopulationForInd(aControl, RETRIEVE_TYPE.SUB)[0]).add(aControl);
+		}
+		VcfPopulation controlVcfPopulation = new VcfPopulation(controlSubPop, controlPop, POPULATION_TYPE.CASE_CONTROL, new Logger());
 		SimpleTallyResult simpleTallyResult = new SimpleTallyResult(controlVcfPopulation, finalOut, finalOutVCF, finalsampSummary, finalAnnot, finalAnnotSample, finalAnnotGene, finalGeneVariantPositions);
 		simpleTallyResult.getFinalGeneVariantPositions();
 
