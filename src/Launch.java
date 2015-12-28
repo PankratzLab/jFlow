@@ -239,6 +239,10 @@ public class Launch {
 				create = true;
 				numArgs--;
 			} else {
+				if (args[i].startsWith("file=")) {
+					args[i] = args[i].substring(5);
+					System.out.println("(FYI, the file= prefix is not necessary)");
+				}
 				filename = args[i];
 				numArgs--;
 			}
