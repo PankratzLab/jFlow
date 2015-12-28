@@ -3,13 +3,18 @@ package cnv.qc;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
 import common.Array;
 import common.Files;
+import common.Logger;
 import common.PSF;
 import common.WorkerHive;
 import common.ext;
@@ -27,6 +32,7 @@ import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
+import cnv.manage.Markers;
 import filesys.Segment;
 import seq.analysis.Blast;
 import seq.analysis.Blast.BlastWorker;
@@ -59,7 +65,7 @@ public class MarkerBlast {
 			proj.getLog().reportTimeError("Was not able to find reference genome defined by " + proj.REFERENCE_GENOME_FASTA_FILENAME.getName());
 			return null;
 		} else {
-			double evalueCutoff =10000;
+			double evalueCutoff = 10000;
 			BlastParams blastParams = new BlastParams(fileSeq, fastaDb, maxAlignmentsReported, reportWordSize, blastWordSize, ext.getTimestampForFilename(), evalueCutoff, proj.getLog());
 			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
 			blast.setEvalue(evalueCutoff);// we rely on the wordSize instead
@@ -461,7 +467,7 @@ public class MarkerBlast {
 							B = Allele.create(tmpB, false);
 							alts = new Allele[2];
 							alts[0] = Allele.create(tmp[0], false);
-							alts[1] = Allele.create(tmp[0]+StrandOps.flipsIfNeeded(indel, strand, false), false);
+							alts[1] = Allele.create(tmp[0] + StrandOps.flipsIfNeeded(indel, strand, false), false);
 						} else {
 							String tmpA = StrandOps.flipIfNeeded(tmp[0], strand, false);
 							String tmpB = StrandOps.flipIfNeeded(tmp[0], strand, false) + indel;
@@ -469,7 +475,7 @@ public class MarkerBlast {
 							B = Allele.create(tmpB, false);
 							alts = new Allele[2];
 							alts[0] = Allele.create(tmp[0], false);
-							alts[1] = Allele.create(tmp[0]+StrandOps.flipsIfNeeded(indel, strand, false), false);
+							alts[1] = Allele.create(tmp[0] + StrandOps.flipsIfNeeded(indel, strand, false), false);
 						}
 					}
 				} else {
@@ -676,6 +682,80 @@ public class MarkerBlast {
 
 	}
 
+	private static Project prepareDummyProject(String csv, FILE_SEQUENCE_TYPE type) {
+		if (Files.exists(csv)) {
+			String dir = ext.parseDirectoryOfFile(csv);
+			Project proj = new Project();
+			proj.PROJECT_DIRECTORY.setValue(dir);
+			Logger log = proj.getLog();
+			switch (type) {
+			case AFFY_ANNOT:
+				System.err.println("Not implemented for AFFY, yet");
+				return null;
+				// proj.ARRAY_TYPE.setValue(ARRAY.AFFY_GW6);
+			case MANIFEST_FILE:
+				proj.ARRAY_TYPE.setValue(ARRAY.ILLUMINA);
+				log.reportTimeWarning("Extracting marker positions from " + csv);
+				String[] required = new String[] { "Name", "Chr", "MapInfo" };
+
+				try {
+					BufferedReader reader = Files.getAppropriateReader(csv);
+					boolean start = false;
+					int[] extract = new int[required.length];
+					PrintWriter writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue()));
+					ArrayList<String> markerNames = new ArrayList<String>();
+					
+					while (reader.ready()) {
+						String[] line = reader.readLine().trim().split(",");
+					
+						if (!start && Array.countIf(ext.indexFactors(required, line, true, log, false, false), -1) == 0) {
+							start = true;
+							extract = ext.indexFactors(required, line, true, log, false, false);
+							writer.println("Name\tChr\tPosition");
+						} else if (start) {
+							String[] lineMP = null;
+							try {
+								lineMP = new String[required.length];
+								lineMP[0] = line[extract[0]];
+								lineMP[1] = line[extract[1]];
+								lineMP[2] = line[extract[2]];
+
+							} catch (ArrayIndexOutOfBoundsException aOfBoundsException) {
+								log.reportTimeWarning("Skipping line " + Array.toStr(line));
+								lineMP =null;
+							}
+							if (lineMP != null&&lineMP[0]!=null) {
+								markerNames.add(lineMP[0]);
+								writer.println(Array.toStr(lineMP));
+							}
+						}
+					}
+
+					reader.close();
+					writer.close();
+					if (!start) {
+						throw new IllegalStateException("Could not find required header " + Array.toStr(required, ",") + " in " + csv);
+					}
+					Markers.orderMarkers(Array.toStringArray(markerNames), proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+
+				} catch (FileNotFoundException fnfe) {
+					log.reportError("Error: file \"" + csv + "\" not found in current directory");
+					return null;
+				} catch (IOException ioe) {
+					log.reportError("Error reading file \"" + csv + "\"");
+					return null;
+				}
+				break;
+			default:
+				break;
+			}
+			return proj;
+		} else {
+			System.err.println("could not find " + csv);
+			return null;
+		}
+	}
+
 	// public static void test() {
 	// String file = "/home/pankrat2/shared/aric_exome_chip/Blast/HumanExome-12-v1-0-B.csv";
 	// String fastaDb = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
@@ -692,6 +772,7 @@ public class MarkerBlast {
 		int reportWordSize = -1;
 		int maxAlignmentsReported = 20;
 		boolean annotateGCContent = true;
+		String referenceGenomeFasta = null;
 		boolean doBlast = true;
 		// boolean report = true;
 		FILE_SEQUENCE_TYPE fSequence_TYPE = FILE_SEQUENCE_TYPE.MANIFEST_FILE;
@@ -706,6 +787,7 @@ public class MarkerBlast {
 		usage += "   (7) annotate the summary file with GC content, both the probe's gc content and the regions gc content  (i.e. annoGC=" + annotateGCContent + " (default))\n";
 		usage += "   (8) sequence file type  (i.e. seqType=" + fSequence_TYPE + " (default))\n" + ", Options are:\n ";
 		usage += "   (9) skip the blast analysis and simply add the manifest annotations (i.e. -noBlast (not the default))\n" + ", Options are:\n ";
+		usage += "   (10) full path to a reference genome if not using the project's default (i.e. ref= ( no default))\n" + ", Options are:\n ";
 
 		for (int i = 0; i < FILE_SEQUENCE_TYPE.values().length; i++) {
 			usage += FILE_SEQUENCE_TYPE.values()[i] + "\n";
@@ -720,6 +802,9 @@ public class MarkerBlast {
 				numArgs--;
 			} else if (args[i].startsWith("fileSeq=")) {
 				fileSeq = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("ref=")) {
+				referenceGenomeFasta = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(args[i]);
@@ -753,7 +838,19 @@ public class MarkerBlast {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = null;
+
+			if (filename == null) {
+				proj = prepareDummyProject(fileSeq, fSequence_TYPE);
+			} else {
+				proj = new Project(filename, false);
+			}
+			if (proj == null) {
+				System.err.println("Invalid project");
+			}
+			if (referenceGenomeFasta != null) {
+				proj.REFERENCE_GENOME_FASTA_FILENAME.setValue(referenceGenomeFasta);
+			}
 			if (reportWordSize == -1) {
 				switch (proj.getArrayType()) {
 				case AFFY_GW6:
