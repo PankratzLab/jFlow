@@ -54,6 +54,7 @@ public class GATK {
 	public static final String DB_SNP = "--dbsnp";
 	public static final String DB_SNP_FILE = "dbsnp";
 	public static final String COSMIC = "--cosmic";
+	public static final String PON = "-PON";
 
 	public static final String BEFORE = "-before";
 	public static final String AFTER = "-after";
@@ -72,6 +73,8 @@ public class GATK {
 
 	public static final String I = "-I";
 	public static final String I_TUMOR = "-I:tumor";
+	public static final String I_NORMAL = "-I:normal";
+
 	public static final String INPUT = "-input";
 
 	public static final String MAX_GAUSSIANS = "--maxGaussians";
@@ -465,11 +468,41 @@ public class GATK {
 		command.add(FILTERED_ARE_UNCALLED);
 		command.add(FILTERED_RECORDS_MERGE_TYPE);
 		command.add(KEEP_IF_ANY_UNFILTERED);
-//		command.add(L);
-//		command.add(regionsFile);
+		// command.add(L);
+		// command.add(regionsFile);
 		command.add(O);
 		command.add(outputVcf);
 		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
+	}
+
+	public MutectTumorNormal callTumor(String normalBam, String tumorBam, String outputVCF, String pon, Logger log) {
+		String[] input = new String[] { referenceGenomeFasta, normalBam, tumorBam, dbSnpKnownSites, regionsFile, cosmicKnownSites };
+		if (pon != null) {
+			input = Array.concatAll(input, new String[] { pon });
+		} else {
+			log.reportTimeWarning("Running tumor normal calling without PON");
+		}
+		String[] outputs = new String[] { outputVCF, outputVCF + VCF_INDEX };
+
+		ArrayList<String> command = new ArrayList<String>();
+		command.add(javaLocation);
+		command.add(JAR);
+		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+		command.add(T);
+		command.add(MUTECT2);
+		command.add(R);
+		command.add(referenceGenomeFasta);
+		command.add(I_NORMAL);
+		command.add(normalBam);
+		command.add(I_TUMOR);
+		command.add(tumorBam);
+		if (pon != null) {
+			command.add(PON);
+			command.add(pon);
+		}
+		command.add(outputVCF);
+		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
+		return new MutectTumorNormal(normalBam, tumorBam, outputVCF, !progress);
 	}
 
 	public Mutect2Normal generateMutect2Normal(String bamFile, String outputVcf, int numWithinSampleThreads, Logger log) {
@@ -489,12 +522,12 @@ public class GATK {
 		command.add(MUTECT2);
 		command.add(R);
 		command.add(referenceGenomeFasta);
-		command.add(I_TUMOR);
+		command.add(I_NORMAL);
 		command.add(bamFile);
-		command.add(DB_SNP);
-		command.add(dbSnpKnownSites);
-		command.add(COSMIC);
-		command.add(cosmicKnownSites);
+		// command.add(DB_SNP);
+		// command.add(dbSnpKnownSites);
+		// command.add(COSMIC);
+		// command.add(cosmicKnownSites);
 		command.add(ARTIFACT_DETECTION_MODE);
 		// command.add(L);
 		// command.add(regionsFile);
@@ -898,12 +931,44 @@ public class GATK {
 
 	}
 
-//	public static class Mutect2 {
-//		private String normalBam;
-//		private String tumorBam;
-//		private String outputVCF;
-//
-//	}
+	public static class MutectTumorNormal {
+		private String normalBam;
+		private String tumorBam;
+		private String outputVCF;
+		private boolean fail;
+
+		public MutectTumorNormal(String normalBam, String tumorBam, String outputVCF, boolean fail) {
+			super();
+			this.normalBam = normalBam;
+			this.tumorBam = tumorBam;
+			this.outputVCF = outputVCF;
+			this.fail = fail;
+		}
+
+		public String getNormalBam() {
+			return normalBam;
+		}
+
+		public String getTumorBam() {
+			return tumorBam;
+		}
+
+		public String getOutputVCF() {
+			return outputVCF;
+		}
+
+		public boolean isFail() {
+			return fail;
+		}
+
+	}
+
+	// public static class Mutect2 {
+	// private String normalBam;
+	// private String tumorBam;
+	// private String outputVCF;
+	//
+	// }
 
 	private static String[] parseAndAddToCommand(String[] command, String commandToAdd, String[] values) {
 		String[] knowns;
