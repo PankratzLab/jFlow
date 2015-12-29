@@ -230,6 +230,11 @@ public class ExtProjectDataParser {
 		return stringData;
 	}
 
+	public boolean hasStringDataForTitle(String title) {
+		int index = stringDataTitles == null ? -1 : ext.indexOfStr(title, stringDataTitles);
+		return index >= 0 && stringData == null;
+	}
+
 	public String[] getStringDataForTitle(String title) {
 		int index = stringDataTitles == null ? -1 : ext.indexOfStr(title, stringDataTitles);
 		String[] data = new String[] {};
