@@ -70,8 +70,6 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 
 	@Override
 	public void shutdown() {
-		// TODO Auto-generated method stub
-
 	}
 
 	private static class MutectTumorNormalWorker implements Callable<MutectTumorNormal> {

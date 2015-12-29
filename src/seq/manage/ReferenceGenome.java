@@ -164,7 +164,6 @@ public class ReferenceGenome {
 				stop = seqLength;
 			}
 			String[] requestedSeq = null;
-			System.out.println(memoryMode);
 			if (memoryMode) {
 				if (this.referenceSequence == null || !this.referenceSequence.getName().equals(requestedContig)) {
 					this.referenceSequence = indexedFastaSequenceFile.getSequence(requestedContig);
