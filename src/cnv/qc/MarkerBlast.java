@@ -813,10 +813,8 @@ public class MarkerBlast {
 	 * @return a String[] of marker names found in the manifest file
 	 */
 	public static String[] extractMarkerPositionsFromManifest(String csv, ARRAY array, FILE_SEQUENCE_TYPE type, String output, String delimiter, Logger log) {
-		if (array != ARRAY.ILLUMINA) {
-			throw new IllegalArgumentException("This method should only be used in preparing marker positions for an " + ARRAY.ILLUMINA + " array");
-		}
-		if (type != FILE_SEQUENCE_TYPE.MANIFEST_FILE) {
+
+		if (type != FILE_SEQUENCE_TYPE.MANIFEST_FILE || array != ARRAY.ILLUMINA) {
 			throw new IllegalArgumentException("This method should only be used in preparing marker positions for an " + ARRAY.ILLUMINA + " array using a " + FILE_SEQUENCE_TYPE.MANIFEST_FILE);
 		}
 		String[] required = new String[] { "Name", "Chr", "MapInfo" };
