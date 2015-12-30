@@ -227,7 +227,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //		frame.setBounds(20, 20, 1000, 600);
 		frame.addWindowListener(frame);
 //		frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
-		frame.setVisible(true);
+
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                frame.setVisible(true);
+            }
+        });
 
 		// TODO only instantiate when used
 		frame.setIndexOfCurrentProject(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
@@ -862,13 +867,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 	public static void main(String[] args) {
     	try {
-	        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-	            public void run() {
+//	        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+//	            public void run() {
 	            	System.out.println(ext.getTime() + "]\tStarting Genvisis...");
             		createAndShowGUI();
             		System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
-	            }
-	        });
+//	            }
+//	        });
     	} catch (InternalError e) {
     		if (e.getMessage().contains("X11")) {
     			System.err.println("Error occurred with X11 forwarding - please install an X11 forwarding server (we recommend Xming - http://sourceforge.net/projects/xming/) or check your X11 forwarding configuration");

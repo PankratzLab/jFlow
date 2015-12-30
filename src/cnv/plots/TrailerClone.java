@@ -12,8 +12,10 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -60,6 +62,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -74,6 +77,7 @@ import cnv.var.Region;
 import common.Array;
 import common.Files;
 import common.Grafik;
+import common.HashVec;
 import common.Logger;
 import common.Positions;
 import common.TransferableImage;
@@ -83,7 +87,9 @@ import filesys.GeneTrack;
 import filesys.Segment;
 
 public class TrailerClone extends JFrame implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener {
-	public static final long serialVersionUID = 1L;
+	private static final String COLLAPSE_ISOFORMS_KEY = "Collapse Isoforms";
+
+    public static final long serialVersionUID = 1L;
 
 	public static final String DEFAULT_LOCATION = "chr17:55,609,472-55,824,368"; // USP32
 
@@ -113,6 +119,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
 
     protected static final int COLLAPSE_ISOFORMS = -9;
+    protected static final int EXON_LBL_LEFT = 1;
+    protected static final int EXON_LBL_CENTER = 2;
+    protected static final int EXON_LBL_RIGHT = 3;
 
     private static final int GENE_HEIGHT = 30;
     private static final int EQUALIZED_EXON_BP_LENGTH = 300;
@@ -129,6 +138,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private volatile boolean fillExons = true;
     private volatile boolean paintExonBoxes = true;
     private volatile boolean paintInternalLine = false;
+    private volatile int exonLabelLocation = EXON_LBL_LEFT;
     
 	private JComboBox<String> isoformList;
 	private String[] isoformsPresent;
@@ -387,7 +397,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                         isoMap = new HashMap<String, GeneData>();
                         chrMap.put((int) geneData[i][g].getChr(), isoMap);
                     }
-                    isoMap.put(geneData[i][g].isCollapsedIsoforms() ? "Collapse Isoforms" : geneData[i][g].getNcbiAssessionNumbers()[0], geneData[i][g]);
+                    isoMap.put(geneData[i][g].isCollapsedIsoforms() ? COLLAPSE_ISOFORMS_KEY : geneData[i][g].getNcbiAssessionNumbers()[0], geneData[i][g]);
                 }
 	            for (Entry<Integer, HashMap<String, GeneData>> chrEntry : chrMap.entrySet()) {
 	                geneToIsoformMap.put(genes[i].toUpperCase() + " - chr" + chrEntry.getKey().intValue(), chrEntry.getValue());
@@ -400,9 +410,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	            geneList.add(genes[i].toUpperCase());
     	        for (int g = 0; g < geneData[i].length; g++) {
     	            if (geneData[i][g].isCollapsedIsoforms()) {
-    	                isoformMap.put("Collapse Isoforms", geneData[i][g]);
+    	                isoformMap.put(COLLAPSE_ISOFORMS_KEY, geneData[i][g]);
+    	            } else {
+    	                isoformMap.put(geneData[i][g].getNcbiAssessionNumbers()[0], geneData[i][g]);
     	            }
-    	            isoformMap.put(geneData[i][g].getNcbiAssessionNumbers()[0], geneData[i][g]);
     	        }
 	        }
 	        if (geneFile[i].length >= 2) {
@@ -465,6 +476,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		int[][] exons;
 		int width, begin, tempX, tempPx, len, lenPx, height;
 		
+		((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		
 		if (stop-start > 10000000) {
 			g.drawString("Zoom in to see genes", 10, 10);
 		} else {
@@ -498,12 +511,19 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                     g.drawRect(tempPx, height, lenPx, GENE_HEIGHT);
                 }
                 if (paintExonNumbers) {
-                    width = g.getFontMetrics().stringWidth(EXON_PREFIX + (j + 1));
+                    int exonNumber = determineExonNumber(geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY), exons[j]);
+                    width = g.getFontMetrics().stringWidth(EXON_PREFIX + exonNumber);
                     if (width < lenPx - 2) {
                         if (fillExons) {
                             g.setColor(Color.WHITE);
                         }
-                        g.drawString(EXON_PREFIX + (j + 1), tempPx + 2, height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() - 2);
+                        int exonX = tempPx + 2;
+                        if (exonLabelLocation == EXON_LBL_CENTER) {
+                            exonX = (int)(tempPx + (lenPx / 2d)) - (int)(width / 2d);
+                        } else if (exonLabelLocation == EXON_LBL_RIGHT) {
+                            exonX = getX(tempX + len) - width - 2; 
+                        }
+                        g.drawString(EXON_PREFIX + exonNumber, exonX, height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() - 2);
                         if (fillExons) {
                             g.setColor(Color.BLACK);
                         }
@@ -555,8 +575,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                             } while (overlap);
                             plotted.add(vcRect);
                         }
-                        for (Rectangle rect : plotted) {
-                            g.fillOval(rect.x, height - DATA_PNT_SIZE - 2 - rect.y, DATA_PNT_SIZE, DATA_PNT_SIZE);
+                        for (int i = 0; i < vcfInSeg.size(); i++) {
+                            drawVcfEntry(g, plotted.get(i), vcfInSeg.get(i));
                         }
                         g.setColor(Color.BLACK);
                         
@@ -589,7 +609,54 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		}
 	}
 	
-	private Color[] getAColor(int index) {
+	private void drawVcfEntry(Graphics g, Rectangle rect, VariantContext vc) {
+	    int height = genePanel.getHeight() - Y_START - GENE_HEIGHT;
+	    
+	    String impAttr = vc.getAttribute("SNPEFF_IMPACT").toString();
+	    String isoAttr = vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
+//	    Object exnAttr = vc.getAttribute("SNPEFF_EXON_ID").toString();
+	    
+	    String selIso = isoformList.getSelectedItem().toString();
+	    // only draw if collapsed, or showing affected isoform
+	    if (!selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
+	        return;
+	    }
+	    
+	    // TODO set color
+//	    g.setColor(getColor(vc)); 
+	    Color c = Color.RED;
+	    g.setColor(c);
+	    
+	    int x = rect.x;
+	    int y = height - DATA_PNT_SIZE - 2 - rect.y;
+	    if ("LOW".equals(impAttr)) {
+	        g.fillOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
+	    } else if ("MODERATE".equals(impAttr)) {
+	        g.drawOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
+	        g.drawOval(x + 1, y + 1, DATA_PNT_SIZE - 2, DATA_PNT_SIZE - 2);
+	    } else if ("HIGH".equals(impAttr)) {
+	        Grafik.drawThickLine(g, x, y, x + DATA_PNT_SIZE, y + DATA_PNT_SIZE, 2, c);
+	        Grafik.drawThickLine(g, x, y + DATA_PNT_SIZE, x + DATA_PNT_SIZE, y, 2, c);
+	    } else {
+	        // TODO Error
+	    }
+	    
+	    
+	    g.setColor(Color.BLACK);
+    }
+
+    private int determineExonNumber(GeneData geneData, int[] exonBnds) {
+        Segment seg = new Segment(exonBnds[0], exonBnds[1]);
+        for (int i = 0; i < geneData.getExonBoundaries().length; i++) {
+            Segment exSeg = new Segment(geneData.getExonBoundaries()[i][0], geneData.getExonBoundaries()[i][1]);
+            if(exSeg.significantOverlap(seg)) {
+                return i + 1;
+            }
+        }
+        return -1;
+    }
+
+    private Color[] getAColor(int index) {
 		while (index >= colorScheme.size()) {
 			colorScheme.add(ColorExt.generatePastelShades());
 		}
@@ -1014,8 +1081,19 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		disp.add(paintExonLinesChk);
 		JCheckBoxMenuItem equalizeExonsChk = new JCheckBoxMenuItem();
         disp.add(equalizeExonsChk);
+        disp.add(new JSeparator());
         JCheckBoxMenuItem paintExonNumbersChk = new JCheckBoxMenuItem();
         disp.add(paintExonNumbersChk);
+        ButtonGroup exonLblGroup = new ButtonGroup();
+        JRadioButtonMenuItem exonLblLeft = new JRadioButtonMenuItem();
+        exonLblGroup.add(exonLblLeft);
+        disp.add(exonLblLeft);
+        JRadioButtonMenuItem exonLblCenter = new JRadioButtonMenuItem();
+        exonLblGroup.add(exonLblCenter);
+        disp.add(exonLblCenter);
+        JRadioButtonMenuItem exonLblRight = new JRadioButtonMenuItem();
+        exonLblGroup.add(exonLblRight);
+        disp.add(exonLblRight);
         
 		paintIntronsChk.setAction(new AbstractAction() {
             private static final long serialVersionUID = 1L;
@@ -1086,6 +1164,35 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         });
 		paintExonNumbersChk.setText("Display Exon Numbers");
 		paintExonNumbersChk.setSelected(paintExonNumbers);
+		
+		exonLblLeft.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                exonLabelLocation = EXON_LBL_LEFT;
+                updateGUI();
+            }
+        });
+		exonLblLeft.setText("Left-Aligned");
+		exonLblLeft.setSelected(true);
+		exonLblCenter.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                exonLabelLocation = EXON_LBL_CENTER;
+                updateGUI();
+            }
+        });
+        exonLblCenter.setText("Center-Aligned");
+		exonLblRight.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                exonLabelLocation = EXON_LBL_RIGHT;
+                updateGUI();
+            }
+        });
+        exonLblRight.setText("Right-Aligned");
 		
 		
         JMenu act = new JMenu("Actions");
@@ -1214,12 +1321,13 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 	
 	public void mouseClicked(MouseEvent e) {
-        if (e.getButton()==MouseEvent.BUTTON1) {
-            zoomProportionally(false, e.getPoint(), true);
-        } else if (e.getButton()==MouseEvent.BUTTON3) {
-            zoom(1, 1);
-        }
+//        if (e.getButton()==MouseEvent.BUTTON1) {
+//            zoomProportionally(false, e.getPoint(), true);
+//        } else if (e.getButton()==MouseEvent.BUTTON3) {
+//            zoom(1, 1);
+//        }
     }
+	
 	public void mouseEntered(MouseEvent e) {}
 
 	public void mouseExited(MouseEvent e) {}
@@ -1402,7 +1510,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		int maxWidth;
 
 		fontMetrics = isoformList.getFontMetrics(isoformList.getFont());
-		collapse = "Collapse Isoforms";
+		collapse = COLLAPSE_ISOFORMS_KEY;
 		maxWidth = fontMetrics.stringWidth(collapse);
 		
 		HashMap<String, GeneData> isoMap = geneToIsoformMap.get(geneList.get(geneIndex));
@@ -1553,6 +1661,17 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    }
 	    
 	    return isoformToVCFMap;
+	}
+	
+	private void loadPopulation() {
+	    String[] vpopFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.vpop", "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.vpop"};
+	    String[][] vpopData = HashVec.loadFileToStringMatrix(vpopFiles[0], true, new int[]{0, 1, 2}, false);
+	    HashMap<String, String> popMap = new HashMap<String, String>();
+	    HashMap<String, String> superPopMap = new HashMap<String, String>();
+	    for (String[] indiInfo : vpopData) {
+	        popMap.put(indiInfo[0], indiInfo[1]);
+	        superPopMap.put(indiInfo[0], indiInfo[2]);
+	    }
 	}
 	
 	private void loadData() {
