@@ -2041,7 +2041,7 @@ public class SourceFileParser implements Runnable {
 		String sampleName;
 		float[][] data;
 		byte[][] genotypes;
-		boolean ignoreAB, splitAB = false, headersChanged;
+		boolean ignoreAB, splitAB = false, done;
 		CountHash countHash, dupHash;
 		int numCols;
 		String tempLine;
@@ -2056,7 +2056,6 @@ public class SourceFileParser implements Runnable {
 		allOutliers = new Hashtable<String, Float>();
 		renamedIDsHash = new Hashtable<String, String>();
 		headers = proj.getSourceFileHeaders(false);
-		headersChanged = false;
         try {
 			for (int i = 0; i<files.length; i++) {
 	            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
@@ -2086,7 +2085,6 @@ public class SourceFileParser implements Runnable {
                         log.report("WARNING - No parsed header object found for file " + files[i] + ".  Parsing now.  If columns are non-standard, or an error occurs, please re-create the project from scratch and validate source files.");
                         headerData = SourceFileHeaderData.parseHeader(files[i], log);
                         headers.put(files[i], headerData);
-                        headersChanged = true;
                     }
                     if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
                     
@@ -2118,43 +2116,71 @@ public class SourceFileParser implements Runnable {
 					genotypes = null;
 					parseAtAt = proj.PARSE_AT_AT_SYMBOL.getValue();
 					numCols = -1;
-					while ((tempLine = reader.readLine()) != null) {
-				        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-						line = tempLine.split(delimiter);
-						if (numCols == -1) {
-							numCols = line.length;
-						} else if (line.length != numCols) {
-							log.reportError("Error - mismatched number of columns at marker index " + markerCount);
-						}
-						if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
-							log.reportError("Error - "+idHeader+" '"+line[sampIndex]+"' did not contain an @ sample");
-							parseAtAt = false;
-						}
-						temp = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex];
-						trav = ext.replaceWithLinuxSafeCharacters(temp, true);
-						
-						if (!trav.equals(temp) && !renamedIDsHash.containsKey(temp)) {
-							try {
-								writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt", true));
-								if (renamedIDsHash.size() == 0) {
-									writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
-								}
-								writer.println(temp+"\t"+trav);
-								writer.close();
-							} catch (Exception e) {
-								log.reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt");
-								log.reportException(e);
-							}
-							renamedIDsHash.put(temp, trav);
-						}
-
-						if (!trav.equals(sampleName)) {
+                    done = false;
+					while (!done) {
+					    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+					    if ((tempLine = reader.readLine()) != null) {
+    				        
+    						line = tempLine.split(delimiter);
+    						if (numCols == -1) {
+    							numCols = line.length;
+    						} else if (line.length != numCols) {
+    							log.reportError("Error - mismatched number of columns at marker index " + markerCount);
+    						}
+    						if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
+    							log.reportError("Error - "+idHeader+" '"+line[sampIndex]+"' did not contain an @ sample");
+    							parseAtAt = false;
+    						}
+    						temp = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex];
+    						trav = ext.replaceWithLinuxSafeCharacters(temp, true);
+    						
+    						if (!trav.equals(temp) && !renamedIDsHash.containsKey(temp)) {
+    							try {
+    								writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt", true));
+    								if (renamedIDsHash.size() == 0) {
+    									writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
+    								}
+    								writer.println(temp+"\t"+trav);
+    								writer.close();
+    							} catch (Exception e) {
+    								log.reportError("Error writing to " + proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt");
+    								log.reportException(e);
+    							}
+    							renamedIDsHash.put(temp, trav);
+    						}
+					    } else {
+					        done = true;
+					        trav = null;
+					        line = null;
+					    }
+ 
+						if (done || !trav.equals(sampleName)) {
 							if (!sampleName.equals("just starting")) {
-								if (markerCount != markerNames.length) {
-									log.reportError("Error - expecting "+markerNames.length+" markers and only found "+markerCount+" for sample "+sampleName+"; this usually happens when the input file is truncated");
-									return 0;
-								}
-							} else {
+							    if (markerCount != markerNames.length) {
+                                    log.reportError("Error - expecting "+markerNames.length+" markers and only found "+markerCount+" for sample "+sampleName+"; this usually happens when the input file is truncated");
+                                    return 0;
+                                }
+
+                                if (fixes.containsKey(sampleName)) {
+                                    sampleName = fixes.get(sampleName);
+                                }
+                                
+                                filename = SourceFileParser.determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan, log);
+                                if (filename == null) {
+                                    return 0;
+                                }
+                                if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+
+                                samp = new Sample(sampleName, fingerprint, data, genotypes, false);
+                                samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
+                                
+                                count++;
+                                markerCount = 0;
+//                                if (count % 100 == 0) {
+//                                    log.report(count+" of ???"); // TODO make this intelligent and guess the number remaining in this file based on average byte usage and the size of the file (estimate when the file is gzip compressed, the factor is probably somewhere around ~15%)
+//                                }
+							} 
+							if (!done) {
 								if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
 									log.reportError("Warning - marker data must be out of order, becaue we're seeing "+trav+(fixes.containsKey(trav)?"-->"+fixes.get(trav):"")+" again at line "+count);
 									samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue());
@@ -2181,196 +2207,176 @@ public class SourceFileParser implements Runnable {
 								sampleName = trav;
 							}
 						}
-
-						countHash.add(line[snpIndex]);							
-						if (markerIndices.containsKey(line[snpIndex])) {
-							key = markerIndices.get(line[snpIndex]);
-
-	                        int ind = 0;
-	                        int col = headerData.colGC;
-	                        try {
-	                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
-	                            ind = 1;
-	                            col = headerData.colXRaw;
-	                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
-	                            ind = 2;
-	                            col = headerData.colYRaw;
-	                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
-	                            ind = 3;
-	                            col = headerData.colX;
-	                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
-	                            ind = 4;
-	                            col = headerData.colY;
-	                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
-	                            ind = 5;
-	                            col = headerData.colTheta;
-	                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
-	                            ind = 6;
-	                            col = headerData.colR;
-	                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
-	                            ind = 7;
-	                            col = headerData.colBAF;
-	                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
-	                            ind = 8;
-	                            col = headerData.colLRR;
-	                            data[ind][key] = col == -1 ? null : ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]);
-	                        } catch (NumberFormatException nfe) {
-	                            log.reportError("Error - failed at line " + key + " to parse '" + line[col] + "' into a valid " + Array.toStr(Sample.DATA_FIELDS[ind], "/"));
-	                            return 0;
-	                        } catch (Exception e) {
-	                            log.reportError("Some other exception");
-	                            log.reportException(e);
-	                            return 0;
-	                        }
-							if (line[headerData.colGeno1].length() > 1) {
-	                            if (i == 0 && !splitAB) {
-	                                log.reportTimeInfo("Detected genotype calls for each allele are in the same column (Such as in Affymetrix .chp format) ");
-	                                splitAB = true;
-	                            }
-	                            if (splitAB) {
-	                                String tmp0 = line[headerData.colGeno1].substring(0, 1);
-	                                String tmp1 = line[headerData.colGeno1].substring(1, 2);
-	                                line[headerData.colGeno1] = tmp0;
-	                                line[headerData.colGeno2] = tmp1;
-	                                if (!ignoreAB) {
-	                                    try{
-	                                        String tmp2 = line[headerData.colGenoAB1].substring(0, 1);
-	                                        String tmp3 = line[headerData.colGenoAB1].substring(1, 2);
-	                                        line[headerData.colGenoAB1] = tmp2;
-	                                        line[headerData.colGenoAB2] = tmp3;
-	                                    } catch (Exception e) {
-	                                        log.reportTimeError("Could not parse genotypes on line "+Array.toStr(line));
-	                                        log.reportException(e);
-	                                        return 0;
-	                                    }
-	                                }
-	                            } else {
-	                                log.reportTimeError("Inconsistant genotype call lengths");
-	                            }
-	                        } else if(splitAB){
-	                            log.reportTimeError("Detected previously that genotype calls should be split, but the calls on line "+Array.toStr(line) +" did not");
-	                            return 0;
-	                        }
-	                        genotypes[0][key] = (byte)ext.indexOfStr(line[headerData.colGeno1]+line[headerData.colGeno2], Sample.ALLELE_PAIRS);
-	                        if (genotypes[0][key] == -1) {
-	                            if (proj.getArrayType() == ARRAY.ILLUMINA) {// Affy matrix format does not use ALLELE_PAIRS
-
-	                                if (ext.indexOfStr(line[headerData.colGeno1] + line[headerData.colGeno2], Sample.ALT_NULLS) == -1) {
-	                                    log.reportError("Error - failed to lookup " + line[headerData.colGeno1] + line[headerData.colGeno2] + " for marker " + markerNames[count] + " of sample " + files[i] + "; setting to missing");
-	                                }
-	                                genotypes[0][key] = 0;
-	                            } else {
-	                                genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1] + line[headerData.colGenoAB2], Sample.AB_PAIRS);
-	                                if (genotypes[0][key] == -1) {
-	                                    log.reportError("Error - failed to lookup " + line[headerData.colGeno1] + line[headerData.colGeno2] + " for marker " + markerNames[count] + " of sample " + files[i] + "; setting to missing");
-	                                    genotypes[0][key] = 0;
-	                                }
-	                            }
-	                        }
-							
-                            if (ignoreAB) {
-                                // do nothing, will need to use these files to determine AB lookup table
-                            } else if (abLookup == null) {
-                                genotypes[1][key] = (byte)ext.indexOfStr(line[headerData.colGenoAB1]+line[headerData.colGenoAB2], Sample.AB_PAIRS);
-                            } else {
-                                if (genotypes[0][key] == 0) {
-                                    genotypes[1][key] = -1;
+						if (!done) {
+    						countHash.add(line[snpIndex]);							
+    						if (markerIndices.containsKey(line[snpIndex])) {
+    							key = markerIndices.get(line[snpIndex]);
+    
+    	                        int ind = 0;
+    	                        int col = headerData.colGC;
+    	                        try {
+    	                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
+    	                            ind = 1;
+    	                            col = headerData.colXRaw;
+    	                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
+    	                            ind = 2;
+    	                            col = headerData.colYRaw;
+    	                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
+    	                            ind = 3;
+    	                            col = headerData.colX;
+    	                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
+    	                            ind = 4;
+    	                            col = headerData.colY;
+    	                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
+    	                            ind = 5;
+    	                            col = headerData.colTheta;
+    	                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
+    	                            ind = 6;
+    	                            col = headerData.colR;
+    	                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
+    	                            ind = 7;
+    	                            col = headerData.colBAF;
+    	                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
+    	                            ind = 8;
+    	                            col = headerData.colLRR;
+    	                            if (col != -1) { data[ind][key] = ext.isMissingValue(line[col]) ? Float.NaN : Float.parseFloat(line[col]); }
+    	                        } catch (NumberFormatException nfe) {
+    	                            log.reportError("Error - failed at line " + key + " to parse '" + line[col] + "' into a valid " + Array.toStr(Sample.DATA_FIELDS[ind], "/"));
+    	                            return 0;
+    	                        } catch (Exception e) {
+    	                            log.reportError("Some other exception");
+    	                            log.reportException(e);
+    	                            return 0;
+    	                        }
+    							if (line[headerData.colGeno1].length() > 1) {
+    	                            if (i == 0 && !splitAB) {
+    	                                log.reportTimeInfo("Detected genotype calls for each allele are in the same column (Such as in Affymetrix .chp format) ");
+    	                                splitAB = true;
+    	                            }
+    	                            if (splitAB) {
+    	                                String tmp0 = line[headerData.colGeno1].substring(0, 1);
+    	                                String tmp1 = line[headerData.colGeno1].substring(1, 2);
+    	                                line[headerData.colGeno1] = tmp0;
+    	                                line[headerData.colGeno2] = tmp1;
+    	                                if (!ignoreAB) {
+    	                                    try{
+    	                                        String tmp2 = line[headerData.colGenoAB1].substring(0, 1);
+    	                                        String tmp3 = line[headerData.colGenoAB1].substring(1, 2);
+    	                                        line[headerData.colGenoAB1] = tmp2;
+    	                                        line[headerData.colGenoAB2] = tmp3;
+    	                                    } catch (Exception e) {
+    	                                        log.reportTimeError("Could not parse genotypes on line "+Array.toStr(line));
+    	                                        log.reportException(e);
+    	                                        return 0;
+    	                                    }
+    	                                }
+    	                            } else {
+    	                                log.reportTimeError("Inconsistant genotype call lengths");
+    	                            }
+    	                        } else if(splitAB){
+    	                            log.reportTimeError("Detected previously that genotype calls should be split, but the calls on line "+Array.toStr(line) +" did not");
+    	                            return 0;
+    	                        }
+    	                        genotypes[0][key] = (byte)ext.indexOfStr(line[headerData.colGeno1]+line[headerData.colGeno2], Sample.ALLELE_PAIRS);
+    	                        if (genotypes[0][key] == -1) {
+    	                            if (proj.getArrayType() == ARRAY.ILLUMINA) {// Affy matrix format does not use ALLELE_PAIRS
+    
+    	                                if (ext.indexOfStr(line[headerData.colGeno1] + line[headerData.colGeno2], Sample.ALT_NULLS) == -1) {
+    	                                    log.reportError("Error - failed to lookup " + line[headerData.colGeno1] + line[headerData.colGeno2] + " for marker " + markerNames[count] + " of sample " + files[i] + "; setting to missing");
+    	                                }
+    	                                genotypes[0][key] = 0;
+    	                            } else {
+    	                                genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.colGenoAB1] + line[headerData.colGenoAB2], Sample.AB_PAIRS);
+    	                                if (genotypes[0][key] == -1) {
+    	                                    log.reportError("Error - failed to lookup " + line[headerData.colGeno1] + line[headerData.colGeno2] + " for marker " + markerNames[count] + " of sample " + files[i] + "; setting to missing");
+    	                                    genotypes[0][key] = 0;
+    	                                }
+    	                            }
+    	                        }
+    							
+                                if (ignoreAB) {
+                                    // do nothing, will need to use these files to determine AB lookup table
+                                } else if (abLookup == null) {
+                                    genotypes[1][key] = (byte)ext.indexOfStr(line[headerData.colGenoAB1]+line[headerData.colGenoAB2], Sample.AB_PAIRS);
                                 } else {
-                                    genotypes[1][key] = 0;
-                                    if (line[headerData.colGeno1].charAt(0) == abLookup[count][1]) {
-                                        genotypes[1][key]++;
-                                    } else if (line[headerData.colGeno1].charAt(0) != abLookup[count][0]) {
-                                        log.reportError("Error - alleles for individual '" + (sampIndex < 0 ? trav : line[sampIndex]) + "' (" + line[headerData.colGeno1] + "/" + line[headerData.colGeno2] + ") do not match up with the defined AB lookup alleles (" + abLookup[count][0] + "/" + abLookup[count][1] + ") for marker " + markerNames[count]);
-                                    }
-                                    if (line[headerData.colGeno2].charAt(0) == abLookup[count][1]) {
-                                        genotypes[1][key]++;
-                                    } else if (line[headerData.colGeno2].charAt(0) != abLookup[count][0]) {
-                                        log.reportError("Error - alleles for individual '" + (sampIndex < 0 ? trav : line[sampIndex]) + "' (" + line[headerData.colGeno1] + "/" + line[headerData.colGeno2] + ") do not match up with the defined AB lookup alleles (" + abLookup[count][0] + "/" + abLookup[count][1] + ") for marker " + markerNames[count]);
+                                    if (genotypes[0][key] == 0) {
+                                        genotypes[1][key] = -1;
+                                    } else {
+                                        genotypes[1][key] = 0;
+                                        if (line[headerData.colGeno1].charAt(0) == abLookup[count][1]) {
+                                            genotypes[1][key]++;
+                                        } else if (line[headerData.colGeno1].charAt(0) != abLookup[count][0]) {
+                                            log.reportError("Error - alleles for individual '" + (sampIndex < 0 ? trav : line[sampIndex]) + "' (" + line[headerData.colGeno1] + "/" + line[headerData.colGeno2] + ") do not match up with the defined AB lookup alleles (" + abLookup[count][0] + "/" + abLookup[count][1] + ") for marker " + markerNames[count]);
+                                        }
+                                        if (line[headerData.colGeno2].charAt(0) == abLookup[count][1]) {
+                                            genotypes[1][key]++;
+                                        } else if (line[headerData.colGeno2].charAt(0) != abLookup[count][0]) {
+                                            log.reportError("Error - alleles for individual '" + (sampIndex < 0 ? trav : line[sampIndex]) + "' (" + line[headerData.colGeno1] + "/" + line[headerData.colGeno2] + ") do not match up with the defined AB lookup alleles (" + abLookup[count][0] + "/" + abLookup[count][1] + ") for marker " + markerNames[count]);
+                                        }
                                     }
                                 }
-                            }
-						}
-						markerCount++;
-					}
-                    trav = null;
-                    line = null;
-                    count++;
-                    markerCount = 0;
+    						}
+                            markerCount++;
+                        }
+                    }
                     reader.close();
-                    
-                    if (fixes.containsKey(sampleName)) {
-                        log.report("Sample " + sampleName + " changed to " + fixes.get(sampleName));
-                        sampleName = fixes.get(sampleName);
-                    }
-                    
-                    filename = SourceFileParser.determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true), sampleName, timeBegan, log);
-                    if (filename == null) {
-                        // cancelled parsing
-                        return 0;
-                    }
+                } catch (FileNotFoundException fnfe) {
+                    log.reportError("Error: file \""+files[i]+"\" not found in current directory");
+                    return 0;
+                } catch (IOException ioe) {
+                    log.reportError("Error reading file \""+files[i]+"\"");
+                    return 0;
+                }
+            }
+            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 
-                    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-                    samp = new Sample(sampleName, fingerprint, data, genotypes, false);
-                    samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
-                    
-				} catch (FileNotFoundException fnfe) {
-					log.reportError("Error: file \""+files[i]+"\" not found in current directory");
-					return 0;
-				} catch (IOException ioe) {
-					log.reportError("Error reading file \""+files[i]+"\"");
-					return 0;
-				}
-			}
-			if (headersChanged) {
-			    proj.setSourceFileHeaders(headers);
-			}
+            if (allOutliers.size()>0) {
+                if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {
+                    log.reportError("Error - the following file already exists: " + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+                    return 0;
+                } else {
+                    Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+                }
+            }
 
-			if (allOutliers.size()>0) {
-				if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {
-					log.reportError("Error - the following file already exists: " + proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
-					return 0;
-				} else {
-					Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
-				}
-			}
-
-			log.report(ext.getTime()+"\tfinished");
-		} catch (Exception e) {
-			log.reportException(e);
-		}
+            log.report(ext.getTime()+"\tfinished");
+        } catch (Exception e) {
+            log.reportException(e);
+        }
 
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
         
-		log.report(ext.getTime()+"\t"+"Parsed "+count+" sample(s)");
-		SampleList.generateSampleList(proj).writeToTextFile(proj.PROJECT_DIRECTORY.getValue()+"ListOfSamples.txt");
+        log.report(ext.getTime()+"\t"+"Parsed "+count+" sample(s)");
+        SampleList.generateSampleList(proj).writeToTextFile(proj.PROJECT_DIRECTORY.getValue()+"ListOfSamples.txt");
 
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"ListOfMarkers.txt"));
-			writer.println("Marker\tExpected\tTimesSeen\tTimesDuplicated");
-			for (int j = 0; j < markerNames.length; j++) {
-				writer.println(markerNames[j]+"\t1\t"+countHash.getCount(markerNames[j])+"\t"+dupHash.getCount(markerNames[j]));
-				countHash.remove(markerNames[j], false);
-			}
-			list = countHash.getValues();
-			for (int j = 0; j < list.length; j++) {
-				writer.println(list[j]+"\t0\t"+countHash.getCount(markerNames[j])+"\t.");
-			}			
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing to " + "ListOfMarkers.txt");
-			log.reportException(e);
-		}
+        try {
+            writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"ListOfMarkers.txt"));
+            writer.println("Marker\tExpected\tTimesSeen\tTimesDuplicated");
+            for (int j = 0; j < markerNames.length; j++) {
+                writer.println(markerNames[j]+"\t1\t"+countHash.getCount(markerNames[j])+"\t"+dupHash.getCount(markerNames[j]));
+                countHash.remove(markerNames[j], false);
+            }
+            list = countHash.getValues();
+            for (int j = 0; j < list.length; j++) {
+                writer.println(list[j]+"\t0\t"+countHash.getCount(markerNames[j])+"\t.");
+            }           
+            writer.close();
+        } catch (Exception e) {
+            log.reportError("Error writing to " + "ListOfMarkers.txt");
+            log.reportException(e);
+        }
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 
         new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.OVERWRITE_OPTION_FILE).delete();
         new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.HOLD_OPTION_FILE).delete();
         new File(proj.SAMPLE_DIRECTORY.getValue(true, true)+SourceFileParser.CANCEL_OPTION_FILE).delete();
        
-		if (abLookupRequired && !Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
-			return 6;
-		} else {
-			return 1;
-		}
+        if (abLookupRequired && !Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
+            return 6;
+        } else {
+            return 1;
+        }
 	}
 
 	public static void main(String[] args) {

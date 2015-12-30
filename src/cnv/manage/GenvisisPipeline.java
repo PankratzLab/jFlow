@@ -67,8 +67,8 @@ public class GenvisisPipeline {
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             boolean mkrPosFile = Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
-            boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
-            return mkrPosFile && mkrSetFile;
+//            boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
+            return mkrPosFile/* && mkrSetFile*/;
         };
         
         @Override
@@ -146,7 +146,8 @@ public class GenvisisPipeline {
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            return Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
+            boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
+            return mkrSetFile && Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
         }
         
         @Override
@@ -240,7 +241,8 @@ public class GenvisisPipeline {
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            return Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
+            boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
+            return mkrSetFile && Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
         }
         
         @Override
@@ -581,13 +583,9 @@ public class GenvisisPipeline {
         }
         
     };
-
-    /**
-     * Near-duplicate of S9A, including the requirement of Step 1 (parse Snp_map)
-     * CAUTION: any changes to S9I must be reflected in S9A!
-     */
-    static final STEP S8I_GENERATE_ABLOOKUP = new STEP("Generate AB Lookup File", "", 
-            new String[][]{{"[Create Marker Positions] step must be selected and valid.", "A MarkerSet file must already exist."}, 
+    
+    static final STEP S8_GENERATE_ABLOOKUP = new STEP("Generate AB Lookup File", "", 
+            new String[][]{{"[Parse Sample Files] step must be selected and valid.", "A MarkerSet file must already exist."}, 
                            {"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}},
             new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.NONE, RequirementInputType.DIR}}) {
 
@@ -637,7 +635,7 @@ public class GenvisisPipeline {
             String sampDir = variables.get(this).get(1);
             boolean checkStepParseSamples = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
             return new boolean[][]{
-                    {stepSelections.get(S1I_CREATE_MKR_POS) && S1I_CREATE_MKR_POS.hasRequirements(proj, stepSelections, variables), 
+                    {checkStepParseSamples, 
                         Files.exists(mkrPosFile)},
                     {checkStepParseSamples,
                         (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
@@ -654,85 +652,10 @@ public class GenvisisPipeline {
         }
     };
 
-    /**
-     * Near-duplicate of S9I, excluding the requirement of Step 1 (parse Snp_map)
-     * CAUTION: any changes to S9A must be reflected in S9I!
-     */
-    static final STEP S8A_GENERATE_ABLOOKUP = new STEP("Generate AB Lookup File", "", 
-            new String[][]{{"A MarkerSet file must already exist."}, 
-                            {"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}},
-            new RequirementInputType[][]{{RequirementInputType.FILE}, {RequirementInputType.NONE, RequirementInputType.DIR}}) {
-
-        @Override
-        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
-            String mkrPosFile = variables.get(this).get(0);
-            String setDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            String sampDir = variables.get(this).get(1);
-            if (!mkrPosProj.equals(mkrPosFile)) {
-                proj.MARKERSET_FILENAME.setValue(mkrPosFile);
-            }
-            if (!ext.verifyDirFormat(setDir).equals(sampDir)) {
-                proj.SAMPLE_DIRECTORY.setValue(sampDir);
-            }
-        }
-        
-        @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            ABLookup abLookup;
-            String filename;
-            
-            filename = proj.PROJECT_DIRECTORY.getValue()+ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
-            if (!Files.exists(filename)) {
-                abLookup = new ABLookup();
-                abLookup.parseFromAnnotationVCF(proj);
-                abLookup.writeToFile(filename, proj.getLog());
-            }
-            if (Files.exists(filename)) {
-                ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false);
-                ABLookup.applyABLookupToFullSampleFiles(proj);
-                proj.AB_LOOKUP_FILENAME.setValue(filename);
-                proj.saveProperties(new Project.Property[]{proj.AB_LOOKUP_FILENAME});
-            } else {
-                setFailed();
-            }
-        }
-        
-        @Override
-        public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{proj.MARKERSET_FILENAME.getValue(false, false), proj.SAMPLE_DIRECTORY.getValue(false, false)};
-        }
-        
-        @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            String mkrPosFile = variables.get(this).get(0);
-            String sampDir = variables.get(this).get(1);
-            boolean checkStepParseSamples = stepSelections.get(S2A_PARSE_SAMPLES) && S2A_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
-            return new boolean[][]{
-                    {Files.exists(mkrPosFile)},
-                    {checkStepParseSamples,
-                        (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
-            };
-        }
-        
-        @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false));
-        }
-        @Override
-        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Generate ABLookup >> Not Implemented For Command Line Yet ##"; // TODO
-        }
-    };
-    
-    /**
-     * Near-duplicate of S10A, including the requirement of Step 1 (parse Snp_map)
-     * CAUTION: any changes to S10I must be reflected in S10A!
-     */
-    static final STEP S9I_MARKER_QC = new STEP("Run Marker QC Metrics", "",
+    static final STEP S9_MARKER_QC = new STEP("Run Marker QC Metrics", "",
             new String[][]{{"Marker Call-Rate Filter Threshold"},
-    						{"[Create Marker Positions] step must be selected and valid.", "A MarkerSet file must already exist."}, 
-    						{"[Parse Sample Files] step must be selected and valid (will create a SampleList file)", "A SampleList file must already exist."},
+    						{"[Parse Sample Files] step must be selected and valid.", "A MarkerSet file must already exist."}, 
+    						{"[Parse Sample Files] step must be selected and valid.", "A SampleList file must already exist."},
     						{"Export all markers in project.", "A targetMarkers files listing the markers to QC."},
     						{"Number of threads to use."}},
             new RequirementInputType[][]{{RequirementInputType.INT},
@@ -801,110 +724,11 @@ public class GenvisisPipeline {
         	try {
         		numThreads = Integer.parseInt(variables.get(this).get(4));
         	} catch (NumberFormatException e) {}
-            boolean step11 = stepSelections.get(S1I_CREATE_MKR_POS) && S1I_CREATE_MKR_POS.hasRequirements(proj, stepSelections, variables);
             boolean step12 = Files.exists(mkrPosFile);
-            boolean step21 = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
+            boolean step2 = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
             boolean step22 = Files.exists(sampList);
             boolean step3 = Files.exists(tgtFile);
-            return new boolean[][]{{mkr != -1}, {step11, step12}, {step21, step22}, {true, step3}, {numThreads > 0}};
-        }
-        
-        @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.MARKERS_FOR_ABCALLRATE;
-            if (!Files.exists(markersForABCallRate)) {
-                return false;
-            }
-            return true;
-        }
-        @Override
-        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Marker QC >> Not Implemented For Command Line Yet ##"; // TODO
-        }
-    };
-    
-    /**
-     * Near-duplicate of S10I, excluding the requirement of Step 1 (parse Snp_map)
-     * CAUTION: any changes to S10A must be reflected in S10I!
-     */
-    static final STEP S9A_MARKER_QC = new STEP("Run Marker QC Metrics", "",
-                    new String[][]{{"Marker Call-Rate Filter Threshold"},
-                                    {"A MarkerSet file must already exist."}, 
-                                    {"[Parse Sample Files] step must be selected and valid (will create a SampleList file)", "A SampleList file must already exist."},
-                                    {"Export all markers in project.", "A targetMarkers files listing the markers to QC."},
-                                    {"Number of threads to use."}},
-                    new RequirementInputType[][]{{RequirementInputType.INT},
-                                                    {RequirementInputType.FILE}, 
-                                                    {RequirementInputType.NONE, RequirementInputType.FILE},
-                                                    {RequirementInputType.NONE, RequirementInputType.FILE},
-                                                    {RequirementInputType.INT}}
-                ) {
-
-        @Override
-        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String mkrPosProj = proj.MARKERSET_FILENAME.getValue(false, false);
-            String mkrPosFile = variables.get(this).get(1);
-            String setSampList = proj.SAMPLELIST_FILENAME.getValue(false, false);
-            String sampList = variables.get(this).get(2);
-            String setTgtFile = proj.TARGET_MARKERS_FILENAMES.getValue()[0];
-            String tgtFile = variables.get(this).get(3);
-            if (!mkrPosProj.equals(mkrPosFile)) {
-                proj.MARKERSET_FILENAME.setValue(mkrPosFile);
-            }
-            if (!ext.verifyDirFormat(setSampList).equals(sampList)) {
-                proj.SAMPLELIST_FILENAME.setValue(sampList);
-            }
-            if (!"".equals(tgtFile) && !setTgtFile.equals(tgtFile)) {
-                // String[] arr = proj.TARGET_MARKERS_FILENAMES.getValue();
-                // arr[0] = tgtFile;
-                proj.TARGET_MARKERS_FILENAMES.addValue(tgtFile);
-            }
-            int numThreads = proj.NUM_THREADS.getValue();
-            try {
-                numThreads = Integer.parseInt(variables.get(this).get(4));
-            } catch (NumberFormatException e) {}
-            if (numThreads != proj.NUM_THREADS.getValue()) {
-                proj.NUM_THREADS.setValue(numThreads);
-            }
-        }
-        
-        @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(0));
-            String tgtFile = variables.get(this).get(3);
-            int numThreads = proj.NUM_THREADS.getValue();
-            try {
-                numThreads = Integer.parseInt(variables.get(this).get(4));
-            } catch (NumberFormatException e) {}
-            String markersToQC = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
-            String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE;
-            MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markersToQC, markersABCallrate, markerCallRateFilter, numThreads);
-        }
-        
-        @Override
-        public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{0.98, proj.MARKERSET_FILENAME.getValue(), proj.SAMPLELIST_FILENAME.getValue(), ""/*proj.TARGET_MARKERS_FILENAMES.getValue()[0]*/, proj.NUM_THREADS.getValue()};
-        }
-        
-        @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            double mkr = -1;
-            try {
-                mkr = Double.parseDouble(variables.get(this).get(0));
-            } catch (NumberFormatException e) {}
-            String mkrPosFile = variables.get(this).get(1);
-            String sampList = variables.get(this).get(2);
-            String tgtFile = variables.get(this).get(3);
-            int numThreads = -1;
-            try {
-                numThreads = Integer.parseInt(variables.get(this).get(4));
-            } catch (NumberFormatException e) {}
-//            boolean step11 = checkBoxes.get(S1I_CREATE_MKR_POS).isSelected() && S1I_CREATE_MKR_POS.hasRequirements(proj, checkBoxes, variables);
-            boolean step12 = Files.exists(mkrPosFile);
-            boolean step21 = stepSelections.get(S2A_PARSE_SAMPLES) && S2A_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
-            boolean step22 = Files.exists(sampList);
-            boolean step3 = Files.exists(tgtFile);
-            return new boolean[][]{{mkr != -1}, {step12}, {step21, step22}, {true, step3}, {numThreads > 0}};
+            return new boolean[][]{{mkr != -1}, {step2, step12}, {step2, step22}, {true, step3}, {numThreads > 0}};
         }
         
         @Override
@@ -997,7 +821,7 @@ public class GenvisisPipeline {
     };
     
     static final STEP S11_COMPUTE_PFB = new STEP("Compute Population BAF files", "", new String[][]{
-            {"[Parse Sample Files] step must be selected and valid (will create a SampleList file)", "A SampleList file must already exist.", "A Sample subset file must exist."}, 
+            {"[Parse Sample Files] step must be selected and valid.", "A SampleList file must already exist.", "A Sample subset file must exist."}, 
             {"PFB (population BAF) output file must be specified."}},
             new RequirementInputType[][]{
                     {RequirementInputType.NONE, RequirementInputType.FILE, RequirementInputType.FILE},
@@ -1306,10 +1130,10 @@ public class GenvisisPipeline {
     static final STEP S15_MOSAIC_ARMS = new STEP("Create Mosaic Arms File", 
                                                  "", 
                                                  new String[][]{
-                                                        {"A MarkerSet file must already exist."}, 
+                                                        {"[Parse Sample Files] step must be selected and valid.","A MarkerSet file must already exist."}, 
                                                         {"Number of threads to use."}},
                                                  new RequirementInputType[][]{
-                                                        {RequirementInputType.FILE}, 
+                                                        {RequirementInputType.NONE, RequirementInputType.FILE}, 
                                                         {RequirementInputType.INT}}) {
 
         @Override
@@ -1335,13 +1159,14 @@ public class GenvisisPipeline {
         
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            boolean checkStepParseSamples = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
             String mkrPosFile = variables.get(this).get(0);
             boolean step11 = Files.exists(mkrPosFile);
             int numThreads = -1;
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
-            return new boolean[][]{{step11}, {numThreads > 0}};
+            return new boolean[][]{{checkStepParseSamples, step11}, {numThreads > 0}};
         }
         
         @Override
@@ -1382,10 +1207,10 @@ public class GenvisisPipeline {
         
     };
     
-    static final STEP S16_SEX_CENTROIDS_PFB_GCMODEL = new STEP("Create Sex-Specific Centroids, PFB, and GCMODEL Files", 
+    static final STEP S16_SEX_CENTROIDS_PFB_GCMODEL = new STEP("Create Sex-Specific Centroids; Filter PFB and GCMODEL Files", 
                             "", 
                             new String[][]{
-                                {"GC Model File."},
+                                {"Full GC Model File."},
                                 {"Number of threads to use."},
                             },
                             new RequirementInputType[][]{
@@ -1742,8 +1567,8 @@ public class GenvisisPipeline {
         S5_SEX_CHECKS,
         S6_RUN_PLINK,
         S7_GWAS_QC,
-        S8I_GENERATE_ABLOOKUP,
-        S9I_MARKER_QC,
+        S8_GENERATE_ABLOOKUP,
+        S9_MARKER_QC,
         S10_EXTRACT_LRRSD_AND_FILTER,
         S11_COMPUTE_PFB,
         S12_COMPUTE_GCMODEL,
@@ -1760,8 +1585,8 @@ public class GenvisisPipeline {
         S5_SEX_CHECKS,
         S6_RUN_PLINK,
         S7_GWAS_QC,
-        S8A_GENERATE_ABLOOKUP,
-        S9A_MARKER_QC,
+        S8_GENERATE_ABLOOKUP,
+        S9_MARKER_QC,
         S10_EXTRACT_LRRSD_AND_FILTER,
         S11_COMPUTE_PFB,
         S12_COMPUTE_GCMODEL,
@@ -1770,7 +1595,6 @@ public class GenvisisPipeline {
         S15_MOSAIC_ARMS,
         S16_SEX_CENTROIDS_PFB_GCMODEL,
         S17_CNV_CALLING,
-        
     };
     
     public static STEP[] getStepsForProject(Project proj) {
