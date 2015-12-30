@@ -799,7 +799,7 @@ public class MarkerBlast {
 	 *            Date Manufactured,5/2/2011 <br>
 	 *            Loci Count ,1134514 <br>
 	 *            [Assay] <br>
-	 *            IlmnID,Name,IlmnStrand,SNP,AddressA_ID,AlleleA_ProbeSeq,AddressB_ID,AlleleB_ProbeSeq,GenomeBuild,Chr,MapInfo,Ploidy,Species,Source,SourceVersion,SourceStrand,SourceSeq,TopGenomicSeq,BeadSetID,Exp_Clusters,Intensi ty_Only,RefStrand <br>
+	 *            IlmnID,Name,IlmnStrand,SNP,AddressA_ID,AlleleA_ProbeSeq,AddressB_ID,AlleleB_ProbeSeq,GenomeBuild,Chr,MapInfo,Ploidy,Species,Source,SourceVersion,SourceStrand,SourceSeq,TopGenomicSeq,BeadSetID,Exp_Clusters,Intensity_Only,RefStrand <br>
 	 * 
 	 * @param array
 	 *            must be {@link ARRAY#ILLUMINA}
