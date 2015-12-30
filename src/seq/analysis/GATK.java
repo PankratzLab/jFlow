@@ -334,7 +334,7 @@ public class GATK {
 		command.add(inputVcf);
 		command.add(O);
 		command.add(outVCF);
-		command.add(RESOURCE + ":" + resourceName);
+		command.add(RESOURCE +resourceName);
 		command.add(annoVcf);
 		for (int i = 0; i < annotations.length; i++) {
 			command.add(E);

@@ -144,6 +144,18 @@ public class ReferenceGenome {
 		return getSequenceFor(segment, false);
 	}
 
+	public int getContigLength(Segment seg) {
+		return getContigLength(Positions.getChromosomeUCSC(seg.getChr(), true, true));
+	}
+	
+	public int getContigLength(String contig) {
+		if (hasContig(contig)) {
+			return indexedFastaSequenceFile.getSequenceDictionary().getSequence(contig).getSequenceLength();
+		} else {
+			return -1;
+		}
+	}
+	
 	/**
 	 * @param segment
 	 * @param memoryMode
@@ -161,7 +173,7 @@ public class ReferenceGenome {
 			}
 			int stop = segment.getStop() + defaultBuffer;
 			if (stop > seqLength) {
-				stop = seqLength;
+				stop = seqLength - 1;
 			}
 			String[] requestedSeq = null;
 			if (memoryMode) {

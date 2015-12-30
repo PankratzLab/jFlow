@@ -8,6 +8,7 @@ import seq.manage.ReferenceGenome;
 import seq.manage.VCOps;
 import common.Array;
 import common.Files;
+import common.Positions;
 import common.ext;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
@@ -191,8 +192,9 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 		ArrayList<SAMSequenceRecord> updatedRecords = new ArrayList<SAMSequenceRecord>();
 		SAMSequenceRecord mitoRecord = null;
 		int currentIndex = 0;
-		if (samSequenceDictionary.getSequenceIndex("chr0") == -1 && markerSet.getIndicesByChr()[0].length > 0) {// not always present in ref
-			int[] chr0Len = Array.subArray(markerSet.getPositions(), markerSet.getIndicesByChr()[0]);
+		int[][] indicesByChr= markerSet.getIndicesByChr();
+		if (samSequenceDictionary.getSequenceIndex("chr0") == -1 &&indicesByChr[0].length > 0) {// not always present in ref
+			int[] chr0Len = Array.subArray(markerSet.getPositions(), indicesByChr[0]);
 			proj.getLog().reportTimeInfo("Since the project contained markers designated as chr0, a chr0 contig is being added");
 			if (Array.countIf(chr0Len, 0) > 0) {
 				proj.getLog().reportTimeWarning("VCF files cannot have positions of 0, positions will be updated to chr0:1");
@@ -204,33 +206,43 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 		}
 		for (SAMSequenceRecord samSequenceRecord : samSequenceRecords) {
 			if (!samSequenceRecord.getSequenceName().equals("chrM")) {
-				samSequenceRecord.setSequenceIndex(currentIndex);
-				currentIndex++;
-				updatedRecords.add(samSequenceRecord);
+
+				int contig = Positions.chromosomeNumber(samSequenceRecord.getSequenceName());
+				if (contig > 0) {
+					samSequenceRecord.setSequenceIndex(currentIndex);
+
+					int contigProjLength = Array.max(Array.subArray(markerSet.getPositions(), indicesByChr[contig]));
+					if (samSequenceRecord.getSequenceLength() < contigProjLength) {
+						proj.getLog().reportTimeError(samSequenceRecord.getSequenceName() + " had length " + samSequenceRecord.getSequenceLength() + " but the project had a max length of " + contigProjLength + " ,please choose check your reference build, but will update for now");
+						return null;
+						// samSequenceRecord.setSequenceLength(contigProjLength);
+					}
+					currentIndex++;
+					updatedRecords.add(samSequenceRecord);
+				} else {
+					proj.getLog().reportTimeWarning(samSequenceRecord.getSequenceName() + " is an invalid chromosome for Genvisis, skipping");
+				}
 			} else {
 				mitoRecord = samSequenceRecord;
 			}
 		}
 
-		if (samSequenceDictionary.getSequenceIndex("chrXY") == -1 && markerSet.getIndicesByChr()[25].length > 0) {// not always present in ref
-			int[] chrxyLen = Array.subArray(markerSet.getPositions(), markerSet.getIndicesByChr()[25]);
+		if (samSequenceDictionary.getSequenceIndex("chrXY") == -1 && indicesByChr[25].length > 0) {// not always present in ref
+			int[] chrxyLen = Array.subArray(markerSet.getPositions(), indicesByChr[25]);
 			proj.getLog().reportTimeInfo("Since the project contained markers designated as pseudo-autosomal, a chrXY contig is being added");
 			SAMSequenceRecord samSequenceRecord = new SAMSequenceRecord("chrXY", Array.max(chrxyLen) + 1);
 			samSequenceRecord.setSequenceIndex(currentIndex);
 			currentIndex++;
 			updatedRecords.add(samSequenceRecord);
 		}
-		if (markerSet.getIndicesByChr()[26].length > 0) {// not always present in ref
-			int[] chrMLen = Array.subArray(markerSet.getPositions(), markerSet.getIndicesByChr()[26]);
+		if (indicesByChr[26].length > 0) {// not always present in ref
+			int[] chrMLen = Array.subArray(markerSet.getPositions(), indicesByChr[26]);
 			proj.getLog().reportTimeInfo("Since the project contained markers designated as mitochondrial, a chrM entry is being added");
 			mitoRecord = mitoRecord != null ? mitoRecord : new SAMSequenceRecord("chrM", Array.max(chrMLen) + 1);
 			mitoRecord.setSequenceIndex(currentIndex);
 			updatedRecords.add(mitoRecord);
 		}
-		// System.out.println(currentIndex);
-		// for(SAMSequenceRecord samSequenceRecord :updatedRecords){
-		// System.out.println(samSequenceRecord.toString());
-		// }
+	
 		return new SAMSequenceDictionary(updatedRecords);
 	}
 

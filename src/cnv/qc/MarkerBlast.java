@@ -66,7 +66,7 @@ public class MarkerBlast {
 			return null;
 		} else {
 			double evalueCutoff = 10000;
-			BlastParams blastParams = new BlastParams(fileSeq, fastaDb, maxAlignmentsReported, reportWordSize, blastWordSize, ext.getTimestampForFilename(), evalueCutoff, proj.getMarkerSet().getFingerprint(), proj.getLog());
+			BlastParams blastParams = new BlastParams(fileSeq, fastaDb, maxAlignmentsReported, reportWordSize, blastWordSize, ext.getTimestampForFilename(), evalueCutoff, proj.getMarkerSet().getFingerprint(), "", proj.getLog());
 			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
 			blast.setEvalue(evalueCutoff);// we rely on the wordSize instead
 			String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
@@ -85,7 +85,7 @@ public class MarkerBlast {
 			}
 
 			if (doBlast && !Files.exists("", tmps)) {
-				MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type, false);
+				MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type, null, false);
 				ArrayList<MarkerFastaEntry[]> splits = Array.splitUpArray(fastaEntries, numThreads, proj.getLog());
 
 				ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
@@ -121,6 +121,7 @@ public class MarkerBlast {
 			if (Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
 				new File(proj.BLAST_ANNOTATION_FILENAME.getValue()).delete();
 			}
+			MarkerFastaEntry[] entries = getMarkerFastaEntries(proj, fileSeq, type, blastParams, true);
 
 			proj.getLog().reportTimeInfo("Summarizing blast results to " + proj.BLAST_ANNOTATION_FILENAME.getValue());
 			BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj, new AnalysisParams[] { blastParams }, proj.BLAST_ANNOTATION_FILENAME.getValue(), doBlast ? tmps : new String[] {}, reportWordSize, proj.getArrayType().getProbeLength(), proj.getArrayType().getProbeLength(), maxAlignmentsReported);
@@ -128,9 +129,7 @@ public class MarkerBlast {
 			if (proj.getArrayType() != ARRAY.ILLUMINA) {
 				proj.getLog().reportTimeWarning("Did not detect array type " + ARRAY.ILLUMINA + " , probe sequence annotation may not reflect the true design since multiple designs may be reported");
 			}
-			blastAnnotationWriter.setMarkerFastaEntries(getMarkerFastaEntries(proj, fileSeq, type, true));
-			System.exit(1);
-
+			blastAnnotationWriter.setMarkerFastaEntries(entries);
 			blastAnnotationWriter.summarizeResultFiles(false);
 			blastAnnotationWriter.close();
 			if (annotateGCContent) {
@@ -148,7 +147,7 @@ public class MarkerBlast {
 	 * Adds the gc content annotation to the summary file, does some repeat loading but oh well.
 	 */
 	private static void annotateGCContent(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type) {
-		MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type, false);
+		MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(proj, fileSeq, type, null, false);
 		String[] markerNames = proj.getMarkerNames();
 		MarkerSet markerSet = proj.getMarkerSet();
 		Hashtable<String, Integer> indices = proj.getMarkerIndices();
@@ -243,7 +242,7 @@ public class MarkerBlast {
 		}
 	}
 
-	private static MarkerFastaEntry[] getMarkerFastaEntries(Project proj, String strandReportFile, FILE_SEQUENCE_TYPE type, boolean alleleLookup) {
+	private static MarkerFastaEntry[] getMarkerFastaEntries(Project proj, String strandReportFile, FILE_SEQUENCE_TYPE type, BlastParams params, boolean alleleLookup) {
 		ExtProjectDataParser.ProjectDataParserBuilder builder = formatParser(proj, type, strandReportFile);
 		MarkerFastaEntry[] fastaEntries = null;
 		try {
@@ -257,6 +256,9 @@ public class MarkerBlast {
 			// SequenceLookup sequenceLookup = new SequenceLookup(proj.getLog());
 			ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
 			boolean hasRefStrand = parser.hasStringDataForTitle("RefStrand");
+			if (!hasRefStrand && params != null) {
+				params.setNotes("Warning, the positive and negative strands of the probe design are actually forward and reverse designations, due to parsing IlmnIDs ");
+			}
 			for (int i = 0; i < parser.getDataPresent().length; i++) {
 				if (parser.getDataPresent()[i]) {
 					if (alleleLookup) {
@@ -299,7 +301,7 @@ public class MarkerBlast {
 						String[] snp = parser.getStringDataForTitle("SNP")[i].replaceAll("\\[", "").replaceAll("\\]", "").split("/");
 						AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, snp[0], snp[1], seqB, referenceGenome);
 						if (alleleLookup) {
-							alleleParser.parse(proj.getArrayType(), strand, parser.getStringData()[6][i]);
+							alleleParser.parse(proj.getArrayType(), strand, parser.getStringDataForTitle("SourceSeq")[i]);
 						}
 						if (seqB.equals("")) {// not ambiguous
 							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.BOTH.getTag(), seqA, seqB, strand, seqLength, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
@@ -309,7 +311,8 @@ public class MarkerBlast {
 						}
 
 					} else {
-						String[] tmpSeq = Array.unique(parser.getStringData()[0][i].split("\t"));
+
+						String[] tmpSeq = Array.unique(parser.getStringDataForTitle("PROBE_SEQUENCE")[i].split("\t"));
 						if (tmpSeq.length != 2) {
 							proj.getLog().reportTimeError("Marker " + markerName + " did not have 2 unique probe designs");
 							proj.getLog().reportTimeError("found the following " + markerName + "\t" + Array.toStr(tmpSeq));
@@ -329,7 +332,7 @@ public class MarkerBlast {
 									interrogationPosition = j;
 								}
 							}
-							String[] affyStrandtmp = parser.getStringData()[1][i].split("\t");
+							String[] affyStrandtmp = parser.getStringDataForTitle("TARGET_STRANDEDNESS")[i].split("\t");
 							if (Array.unique(affyStrandtmp).length != 1) {
 								proj.getLog().reportTimeError("Multiple strands detected " + Array.toStr(affyStrandtmp));
 								return null;
@@ -554,7 +557,13 @@ public class MarkerBlast {
 		private void parse(ARRAY array, Strand strand, String sourceSeq) {
 			if (loc.getChr() > 0) {
 				if (!isIndel()) {
-					String[] tmp = referenceGenome.getSequenceFor(loc);
+					String[] tmp;
+					if (loc.getStart() > referenceGenome.getContigLength(loc)) {
+						tmp = new String[] { "N" };
+					} else {
+						tmp = referenceGenome.getSequenceFor(loc);
+
+					}
 					if (tmp.length != 1) {// don't think we need multiple
 						throw new IllegalArgumentException("base query must be length one (" + loc.getUCSClocation() + " returned " + Array.toStr(tmp));
 					} else if (array.isCNOnly(markerName)) {
@@ -635,7 +644,9 @@ public class MarkerBlast {
 			if (hasRef) {
 				dataTitles = Array.concatAll(dataTitles, new String[] { "RefStrand" });
 			} else {
-				proj.getLog().reportTimeWarning(strandReportFile + " did not have a column for RefStrand, will determine strand from IlmnID");
+				proj.getLog().reportTimeWarning(strandReportFile + " did not have a column for RefStrand, will determine strand from IlmnID but these will be inacurate, forward assigned to +");
+				// proj.getLog().reportTimeError("Actully we are stopping, get the strands from http://www.well.ox.ac.uk/~wrayner/strand/");
+				// return null;
 			}
 			builder.stringDataTitles(dataTitles);
 
@@ -761,53 +772,9 @@ public class MarkerBlast {
 			case MANIFEST_FILE:
 				proj.ARRAY_TYPE.setValue(ARRAY.ILLUMINA);
 				log.reportTimeWarning("Extracting marker positions from " + csv);
-				String[] required = new String[] { "Name", "Chr", "MapInfo" };
-				try {
-					BufferedReader reader = Files.getAppropriateReader(csv);
-					boolean start = false;
-					int[] extract = new int[required.length];
-					PrintWriter writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue()));
-					ArrayList<String> markerNames = new ArrayList<String>();
-					while (reader.ready()) {
-						String[] line = reader.readLine().trim().split(",");
+				String[] markerNames = extractMarkerPositionsFromManifest(csv, proj.getArrayType(), type, proj.MARKER_POSITION_FILENAME.getValue(), ",", log);
+				Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 
-						if (!start && Array.countIf(ext.indexFactors(required, line, true, log, false, false), -1) == 0) {
-							start = true;
-							extract = ext.indexFactors(required, line, true, log, false, false);
-							writer.println("Name\tChr\tPosition");
-						} else if (start) {
-							String[] lineMP = null;
-							try {
-								lineMP = new String[required.length];
-								lineMP[0] = line[extract[0]];
-								lineMP[1] = line[extract[1]];
-								lineMP[2] = line[extract[2]];
-
-							} catch (ArrayIndexOutOfBoundsException aOfBoundsException) {
-								log.reportTimeWarning("Skipping line " + Array.toStr(line));
-								lineMP = null;
-							}
-							if (lineMP != null && lineMP[0] != null) {
-								markerNames.add(lineMP[0]);
-								writer.println(Array.toStr(lineMP));
-							}
-						}
-					}
-
-					reader.close();
-					writer.close();
-					if (!start) {
-						throw new IllegalStateException("Could not find required header " + Array.toStr(required, ",") + " in " + csv);
-					}
-					Markers.orderMarkers(Array.toStringArray(markerNames), proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
-
-				} catch (FileNotFoundException fnfe) {
-					log.reportError("Error: file \"" + csv + "\" not found in current directory");
-					return null;
-				} catch (IOException ioe) {
-					log.reportError("Error reading file \"" + csv + "\"");
-					return null;
-				}
 				break;
 			default:
 				break;
@@ -817,6 +784,88 @@ public class MarkerBlast {
 			System.err.println("could not find " + csv);
 			return null;
 		}
+	}
+
+	/**
+	 * @param csv
+	 *            a .csv manifest file <br>
+	 *            Example Head; <br>
+	 * 
+	 * 
+	 *            Illumina, Inc. <br>
+	 *            [Heading] <br>
+	 *            Descriptor File Name,HumanOmni1-Quad_v1-0-Multi_H.bpm <br>
+	 *            Assay Format,Infinium HD Super <br>
+	 *            Date Manufactured,5/2/2011 <br>
+	 *            Loci Count ,1134514 <br>
+	 *            [Assay] <br>
+	 *            IlmnID,Name,IlmnStrand,SNP,AddressA_ID,AlleleA_ProbeSeq,AddressB_ID,AlleleB_ProbeSeq,GenomeBuild,Chr,MapInfo,Ploidy,Species,Source,SourceVersion,SourceStrand,SourceSeq,TopGenomicSeq,BeadSetID,Exp_Clusters,Intensi ty_Only,RefStrand <br>
+	 * 
+	 * @param array
+	 *            must be {@link ARRAY#ILLUMINA}
+	 * @param type
+	 *            must be {@link FILE_SEQUENCE_TYPE#MANIFEST_FILE}
+	 * @param output
+	 *            the output file, typically a projects marker positions
+	 * @param delimiter
+	 *            , typically ","
+	 * @param log
+	 * @return a String[] of marker names found in the manifest file
+	 */
+	public static String[] extractMarkerPositionsFromManifest(String csv, ARRAY array, FILE_SEQUENCE_TYPE type, String output, String delimiter, Logger log) {
+		if (array != ARRAY.ILLUMINA) {
+			throw new IllegalArgumentException("This method should only be used in preparing marker positions for an " + ARRAY.ILLUMINA + " array");
+		}
+		if (type != FILE_SEQUENCE_TYPE.MANIFEST_FILE) {
+			throw new IllegalArgumentException("This method should only be used in preparing marker positions for an " + ARRAY.ILLUMINA + " array using a " + FILE_SEQUENCE_TYPE.MANIFEST_FILE);
+		}
+		String[] required = new String[] { "Name", "Chr", "MapInfo" };
+		ArrayList<String> markerNames = new ArrayList<String>();
+		try {
+			BufferedReader reader = Files.getAppropriateReader(csv);
+			boolean start = false;
+			int[] extract = new int[required.length];
+			PrintWriter writer = new PrintWriter(new FileWriter(output));
+			while (reader.ready()) {
+				String[] line = reader.readLine().trim().split(delimiter);
+
+				if (!start && Array.countIf(ext.indexFactors(required, line, true, log, false, false), -1) == 0) {
+					start = true;
+					extract = ext.indexFactors(required, line, true, log, false, false);
+					writer.println("Name\tChr\tPosition");
+				} else if (start) {
+					String[] lineMP = null;
+					try {
+						lineMP = new String[required.length];
+						lineMP[0] = line[extract[0]];
+						lineMP[1] = line[extract[1]];
+						lineMP[2] = line[extract[2]];
+
+					} catch (ArrayIndexOutOfBoundsException aOfBoundsException) {
+						log.reportTimeWarning("Skipping line " + Array.toStr(line));
+						lineMP = null;
+					}
+					if (lineMP != null && lineMP[0] != null) {
+						markerNames.add(lineMP[0]);
+						writer.println(Array.toStr(lineMP));
+					}
+				}
+			}
+
+			reader.close();
+			writer.close();
+			if (!start) {
+				throw new IllegalStateException("Could not find required header subset " + Array.toStr(required, ",") + " in " + csv);
+			}
+
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + csv + "\" not found in current directory");
+			return null;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + csv + "\"");
+			return null;
+		}
+		return Array.toStringArray(markerNames);
 	}
 
 	// public static void test() {
