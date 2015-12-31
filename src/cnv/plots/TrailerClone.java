@@ -1,8 +1,12 @@
 package cnv.plots;
 
 import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeType;
+import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
+import htsjdk.variant.vcf.VCFHeader;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -40,6 +44,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map.Entry;
 
@@ -164,6 +169,11 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	HashMap<String, HashMap<String, Segment[]>> geneToSegmentMap;
 	HashMap<String, HashMap<String, GeneData>> geneToIsoformMap;
 	HashMap<String, HashMap<String, ArrayList<VariantContext>>> loadedVCFData;
+	VCFHeader vcfHeader;
+	HashMap<String, String> popMap;
+    HashMap<String, String> superPopMap;
+    HashMap<String, Color> popColorMap;
+	HashMap<String, VCFHeader> headerMap;
 	private JLabel commentLabel;
 	private JTextField commentField;
 	private String isoform;
@@ -175,6 +185,29 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	private JMenu loadRecentFileMenu;
 	private ButtonGroup regionButtonGroup;
 
+	private enum DrawType { 
+	    FILLED_CIRCLE,
+	    EMPTY_CIRCLE,
+	    X;
+	}
+	private class DrawPoint {
+	    public DrawPoint(int x2, int y2, int height, int width, DrawType drawType, Color color) {
+            this.x = x2;
+            this.y = y2;
+            this.h = height;
+            this.w = width;
+            this.type = drawType;
+            this.c = color;
+        }
+        int x;
+	    int y;
+	    int h;
+	    int w;
+	    DrawType type;
+	    Color c;
+	}
+	
+	
 	private AbstractAction geneFileSelectAction = new AbstractAction() {
         private static final long serialVersionUID = 1L;
         @Override
@@ -373,6 +406,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    geneToSegmentMap = new HashMap<String, HashMap<String, Segment[]>>();
 	    geneToCommentMap = new HashMap<String, String>();
 	    loadedVCFData = new HashMap<String, HashMap<String,ArrayList<VariantContext>>>();
+	    headerMap = new HashMap<String, VCFHeader>();
+	    popColorMap = new HashMap<String, Color>();
+	    popMap = new HashMap<String, String>();
+	    superPopMap = new HashMap<String, String>();
 	    String[] genes = Array.extract(geneFile, 0);
 	    GeneData[][] geneData = track.lookupAllGeneData(genes);
 	    
@@ -551,32 +588,61 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                         // draw all in relative position, pushing up if overlapping
                         g.setColor(Color.RED);
                         
+                        ArrayList<DrawPoint> drawn = new ArrayList<DrawPoint>();
                         ArrayList<Rectangle> plotted = new ArrayList<Rectangle>();
+                        HashMap<String, Integer> plottedCnt = new HashMap<String, Integer>();
+                        String selIso = isoformList.getSelectedItem().toString();
                         for (VariantContext vc : vcfInSeg) {
-                            int diffA = vc.getStart() - exons[j][0];
-                            double prop = diffA / (double)len;
-                            int diffPx = (int) (lenPx * prop);
-                            if (diffPx + DATA_PNT_SIZE + 2 > lenPx) { // don't let the markings go past the exon
-                                diffPx = lenPx - DATA_PNT_SIZE - 2;
+                            String isoAttr = vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
+                            // only draw if collapsed, or showing affected isoform
+                            if (!selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
+                                continue;
                             }
-                            Rectangle vcRect = new Rectangle(tempPx + diffPx, 0, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
-                            boolean overlap = false;
-                            do {
-                                overlap = false;
-                                for (Rectangle rect : plotted) {
-                                    if (rect.intersects(vcRect)) {
-                                        overlap = true;
-                                        break;
+                            GenotypesContext gctx = vc.getGenotypes();
+//                            int cnt = 0;
+                            for (int i = 0; i < gctx.size(); i++) {
+//                            for (Genotype geno : gctx) {
+                                Genotype geno = gctx.get(i);
+                                if (geno.getType() != GenotypeType.HOM_REF) { // anything besides Homozygous Reference
+//                                    cnt++;
+                                    int diffA = vc.getStart() - exons[j][0];
+                                    double prop = diffA / (double)len;
+                                    int diffPx = (int) (lenPx * prop);
+                                    if (diffPx + DATA_PNT_SIZE + 2 > lenPx) { // don't let the markings go past the exon
+                                        diffPx = lenPx - DATA_PNT_SIZE - 2;
                                     }
+                                    Rectangle vcRect = new Rectangle(tempPx + diffPx, 0, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
+                                    boolean overlap = false;
+//                                    int jumps = 0;
+                                    do {
+                                        overlap = false;
+                                        for (Rectangle rect : plotted) {
+                                            if (rect.intersects(vcRect)) {
+                                                overlap = true;
+                                                break;
+                                            }
+                                        }
+                                        if (overlap) {
+                                            vcRect = new Rectangle(vcRect.x, vcRect.y + vcRect.height, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
+//                                            jumps++;
+                                        }
+                                    } while (overlap && vcRect.y + vcRect.height + 110 < getHeight()); // running off top of screen
+                                    plotted.add(vcRect);
+//                                    Integer popCnt = plottedCnt.get(popMap.get(geno.getSampleName()));
+//                                    if (popCnt == null) {
+//                                        popCnt = Integer.valueOf(0);
+//                                    }
+//                                    plottedCnt.put(popMap.get(geno.getSampleName()), popCnt++);
+                                    drawn.add(new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width, getDrawType(vc), getColor(geno.getSampleName())));
                                 }
-                                if (overlap) {
-                                    vcRect = new Rectangle(vcRect.x, vcRect.y + vcRect.height, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
-                                }
-                            } while (overlap);
-                            plotted.add(vcRect);
+                            }
+//                            System.out.println(cnt);
                         }
-                        for (int i = 0; i < vcfInSeg.size(); i++) {
-                            drawVcfEntry(g, plotted.get(i), vcfInSeg.get(i));
+//                        for (int i = 0; i < vcfInSeg.size(); i++) {
+//                            drawVcfEntry(g, plotted.get(i), vcfInSeg.get(i));
+//                        }
+                        for (int i = 0; i < drawn.size(); i++) {
+                            drawVcfEntry(g, drawn.get(i));
                         }
                         g.setColor(Color.BLACK);
                         
@@ -607,44 +673,85 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             width = g.getFontMetrics().stringWidth(gene.getGeneName());
 			g.drawString(gene.getGeneName(), begin-width-3, height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() / 2 - 3);
 		}
+//		drawLegend(g);
 	}
 	
-	private void drawVcfEntry(Graphics g, Rectangle rect, VariantContext vc) {
-	    int height = genePanel.getHeight() - Y_START - GENE_HEIGHT;
+	private void drawLegend(Graphics g) {
+	    FontMetrics fm = g.getFontMetrics();
+	    int lblMaxWidth = 0;
 	    
-	    String impAttr = vc.getAttribute("SNPEFF_IMPACT").toString();
-	    String isoAttr = vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
-//	    Object exnAttr = vc.getAttribute("SNPEFF_EXON_ID").toString();
-	    
-	    String selIso = isoformList.getSelectedItem().toString();
-	    // only draw if collapsed, or showing affected isoform
-	    if (!selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
-	        return;
-	    }
-	    
-	    // TODO set color
-//	    g.setColor(getColor(vc)); 
-	    Color c = Color.RED;
-	    g.setColor(c);
-	    
-	    int x = rect.x;
-	    int y = height - DATA_PNT_SIZE - 2 - rect.y;
-	    if ("LOW".equals(impAttr)) {
-	        g.fillOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
-	    } else if ("MODERATE".equals(impAttr)) {
-	        g.drawOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
-	        g.drawOval(x + 1, y + 1, DATA_PNT_SIZE - 2, DATA_PNT_SIZE - 2);
-	    } else if ("HIGH".equals(impAttr)) {
-	        Grafik.drawThickLine(g, x, y, x + DATA_PNT_SIZE, y + DATA_PNT_SIZE, 2, c);
-	        Grafik.drawThickLine(g, x, y + DATA_PNT_SIZE, x + DATA_PNT_SIZE, y, 2, c);
-	    } else {
-	        // TODO Error
-	    }
-	    
-	    
+	    int x = 15;
+	    int y = 15 + fm.getHeight();
+	    g.fillOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
+	    g.drawString("Low Impact", x + DATA_PNT_SIZE + 5, y + fm.getHeight() / 2 + 2);
+	    y += 15;
+        g.drawOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
+        g.drawOval(x + 1, y + 1, DATA_PNT_SIZE - 2, DATA_PNT_SIZE - 2);
+        g.drawString("Moderate Impact", x + DATA_PNT_SIZE + 5, y + fm.getHeight() / 2 + 2);
+        lblMaxWidth = fm.stringWidth("Moderate Impact");
+        y += 15;
+        Grafik.drawThickLine(g, x, y, x + DATA_PNT_SIZE, y + DATA_PNT_SIZE, 2, Color.BLACK);
+        Grafik.drawThickLine(g, x, y + DATA_PNT_SIZE, x + DATA_PNT_SIZE, y, 2, Color.BLACK);
+        g.drawString("High Impact", x + DATA_PNT_SIZE + 5, y + fm.getHeight() / 2 + 2);
+	    y += 15;
+//        g.drawLine(10, y, 110, y);
+        y += 10;
+        for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
+            g.setColor(Color.BLACK);
+            g.drawRect(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
+            g.drawString(colEntry.getKey(), x + DATA_PNT_SIZE + 5, y + fm.getHeight() / 2 + 2);
+            g.setColor(colEntry.getValue());
+            g.fillRect(x+1, y+1, DATA_PNT_SIZE - 1, DATA_PNT_SIZE - 1);
+            y += 15;
+            lblMaxWidth = Math.max(lblMaxWidth, fm.stringWidth(colEntry.getKey()));
+        }
+        
+        int maxWidth = lblMaxWidth + 25 + DATA_PNT_SIZE;
 	    g.setColor(Color.BLACK);
+	    g.drawRect(10, 10, maxWidth, 200);
+	    g.drawString("Key:", 15, 7 + fm.getHeight());
+	    g.drawLine(10, 10 + fm.getHeight(), 10 + maxWidth, 10 + fm.getHeight());
+	}
+	
+	private Color getColor(String sampIdent) {
+	    return popColorMap.get(popMap.get(sampIdent));
     }
 
+    private DrawType getDrawType(VariantContext vc) {
+        String impAttr = vc.getAttribute("SNPEFF_IMPACT").toString();
+
+        if ("LOW".equals(impAttr)) {
+            return DrawType.FILLED_CIRCLE;
+        } else if ("MODERATE".equals(impAttr)) {
+            return DrawType.EMPTY_CIRCLE;
+        } else if ("HIGH".equals(impAttr)) {
+            return DrawType.X;
+        } else {
+            return null;
+        }
+	}
+	
+    private void drawVcfEntry(Graphics g, DrawPoint dp) {
+        int height = genePanel.getHeight() - Y_START - GENE_HEIGHT;
+        g.setColor(dp.c);
+        
+        int x = dp.x;
+        int y = height - DATA_PNT_SIZE - 2 - dp.y;
+        if (dp.type == DrawType.FILLED_CIRCLE) {
+            g.fillOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
+        } else if (dp.type == DrawType.EMPTY_CIRCLE) {
+            g.drawOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
+            g.drawOval(x + 1, y + 1, DATA_PNT_SIZE - 2, DATA_PNT_SIZE - 2);
+        } else if (dp.type == DrawType.X) {
+            Grafik.drawThickLine(g, x, y, x + DATA_PNT_SIZE, y + DATA_PNT_SIZE, 2, dp.c);
+            Grafik.drawThickLine(g, x, y + DATA_PNT_SIZE, x + DATA_PNT_SIZE, y, 2, dp.c);
+        } else {
+            // TODO Error
+        }
+        
+        g.setColor(Color.BLACK);
+    }
+    
     private int determineExonNumber(GeneData geneData, int[] exonBnds) {
         Segment seg = new Segment(exonBnds[0], exonBnds[1]);
         for (int i = 0; i < geneData.getExonBoundaries().length; i++) {
@@ -1634,6 +1741,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 			commentLabel.setText(" -- no comment -- ");
 		}
 		loadData();
+		loadPopulation();
 	}
 	
 	private HashMap<String, ArrayList<VariantContext>> sortData(ArrayList<VariantContext> vcfEntries) {
@@ -1664,18 +1772,27 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 	
 	private void loadPopulation() {
-	    String[] vpopFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.vpop", "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.vpop"};
+	    String[] vpopFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.vpop"/*, "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.vpop"*/};
 	    String[][] vpopData = HashVec.loadFileToStringMatrix(vpopFiles[0], true, new int[]{0, 1, 2}, false);
-	    HashMap<String, String> popMap = new HashMap<String, String>();
-	    HashMap<String, String> superPopMap = new HashMap<String, String>();
 	    for (String[] indiInfo : vpopData) {
 	        popMap.put(indiInfo[0], indiInfo[1]);
 	        superPopMap.put(indiInfo[0], indiInfo[2]);
 	    }
+	    HashSet<String> popSet = new HashSet<String>();
+	    HashSet<String> superPopSet = new HashSet<String>();
+	    popSet.addAll(popMap.values());
+	    superPopSet.addAll(superPopMap.values());
+	    int index = 0;
+	    for (String s : popSet) {
+	        popColorMap.put(s, getAColor(index++)[0]);
+	    }
+	    for (String s : superPopSet) {
+	        popColorMap.put(s, getAColor(index++)[0]);
+	    }
 	}
 	
 	private void loadData() {
-	    String[] vcfFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz", "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz"};
+	    String[] vcfFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz"/*, "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz"*/};
 	    String gene = geneList.get(geneIndex);
 	    if (loadedVCFData.containsKey(gene)) {
 	        return;
@@ -1683,6 +1800,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	        ArrayList<VariantContext> data = new ArrayList<VariantContext>();
 	        for (String vcfFile : vcfFiles) {
     	        VCFFileReader vcfReader = new VCFFileReader(vcfFile, true);
+    	        VCFHeader header = vcfReader.getFileHeader();
+    	        vcfHeader = header;
         	    CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chr, start, stop);
         	    while (vcIter.hasNext()) {
         	        data.add(vcIter.next());
