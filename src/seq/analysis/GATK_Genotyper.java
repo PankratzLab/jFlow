@@ -126,7 +126,7 @@ public class GATK_Genotyper {
 
 	private String sed1000g(String in, Logger log) {
 		String out = ext.addToRoot(in, ".sed1000g");
-		String command = "cat " + in + "|sed 's/1000g2014oct_/g1000g2014oct_/g'|sed 's/1000g2015aug_/g10002015aug_/g'>" + out;
+		String command = "cat " + in + "|sed 's/1000g2014oct_/g10002014oct_/g'|sed 's/1000g2015aug_/g10002015aug_/g'>" + out;
 		String[] bat = CmdLine.prepareBatchForCommandLine(new String[] { command }, out + ".bat", true, log);
 		if (CmdLine.runCommandWithFileChecks(bat, "", new String[] { in }, new String[] { out }, true, false, false, log)) {
 			return out;
