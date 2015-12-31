@@ -116,7 +116,7 @@ public class VCFSimpleTally {
 						// String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
 						// error += "\n" + vc.toStringWithoutGenotypes();
 						// throw new IllegalStateException(error);
-					} else if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size() && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed() && filterCHARGE(vcCase, 0.01)) {// as alts in rare esp/1000g
+					} else if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size() && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed() && filterCHARGE(vcCase, controlFreq)) {// as alts in rare esp/1000g
 						boolean controlPass = true;
 						for (String controlPop : controls.keySet()) {
 							VariantContext vcControl = VCOps.getSubset(vc, controls.get(controlPop), VC_SUBSET_TYPE.SUBSET_STRICT, false);
