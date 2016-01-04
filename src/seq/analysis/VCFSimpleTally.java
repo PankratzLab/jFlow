@@ -1339,6 +1339,8 @@ public class VCFSimpleTally {
 			allControlFiles.add(controlFile);
 
 			if (controlSpecifiComp) {
+				log.reportTimeWarning("Not doing individual control comparisions");
+
 				for (String controlGroup : controls.getSubPop().keySet()) {
 					log.reportTimeInfo("Generating control specific comparison for " + controlGroup);
 					Hashtable<String, Set<String>> specificControls = new Hashtable<String, Set<String>>();
@@ -1359,6 +1361,8 @@ public class VCFSimpleTally {
 					clusters.add(clusterSpecific);
 					allControlFiles.add(out);
 				}
+			} else {
+				log.reportTimeWarning("Not doing individual control comparisions");
 			}
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(caseWithControls));
@@ -1463,7 +1467,7 @@ public class VCFSimpleTally {
 		// String[] otherGenesOfInterest = new String[] { popDir + "SB_T1.txt", popDir + "SB_T2.txt", "/home/pankrat2/public/bin/ref/COSMIC/cancer_gene_census.txt" };
 		String[] otherGenesOfInterest = null;
 		boolean controlSpecifiComp = false;
-		double maf = 0.01;
+		double[] mafs = new double[] { 0.01 };
 
 		String usage = "\n" +
 				"seq.analysis.VCFSimpleTally requires 0-1 arguments\n" +
@@ -1472,7 +1476,7 @@ public class VCFSimpleTally {
 				"   (3) comma-delimited .vpop files in the popDir (i.e. vpops=" + Array.toStr(vpopsCase, ",") + " (default))\n" +
 				"   (4) omim directory (i.e. omim=" + omimDir + " (default))\n" +
 				"   (5) comma-delimited extra-info files (i.e. extra= (no default))\n" +
-				"   (6) maf  (i.e. maf=" + maf + " (default))\n" +
+				"   (6) comma separated mafs  (i.e. maf=" + Array.toStr(Array.toStringArray(mafs), ",") + " (default))\n" +
 				"   (7) for each control group, run a specific tally  (i.e. controlSpecifiComp=" + controlSpecifiComp + " (default))\n" +
 
 				"";
@@ -1497,7 +1501,7 @@ public class VCFSimpleTally {
 				controlSpecifiComp = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("maf=")) {
-				maf = ext.parseDoubleArg(args[i]);
+				mafs = Array.toDoubleArray(ext.parseStringArg(args[i], "NA").split(","));
 				numArgs--;
 			} else if (args[i].startsWith("vpops=")) {
 				vpopsCase = args[i].split("=")[1].split(",");
@@ -1512,7 +1516,9 @@ public class VCFSimpleTally {
 		}
 		try {
 			vpopsCase = Array.tagOn(vpopsCase, popDir, null);
-			test(vcf, popDir, vpopsCase, omimDir, otherGenesOfInterest, maf, controlSpecifiComp);
+			for (int i = 0; i < mafs.length; i++) {
+				test(vcf, popDir, vpopsCase, omimDir, otherGenesOfInterest, mafs[i], controlSpecifiComp);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
