@@ -57,6 +57,7 @@ public class VCFSimpleTally {
 	private static final String ESPV2_FILTER = "(esp6500siv2_all=='.'||esp6500siv2_all <=";
 	private static final String G10002014_FILTER = "(g10002014oct_all=='.'||g10002014oct_all <=";
 	private static final String G10002015_FILTER = "(g10002015aug_all=='.'||g10002015aug_all <=";
+	private static final String POPFREQ_MAXFILTER = "(PopFreqMax=='.'||PopFreqMax <=";
 
 	private static final String AND = "&&";
 	private static final String SNPEFF_IMPACTS = "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')";
@@ -112,7 +113,7 @@ public class VCFSimpleTally {
 					if (vcCase.getSampleNames().size() != cases.size()) {
 						throw new IllegalArgumentException("could not find all cases for " + casePop);
 					}
-					if (!vcCase.isMonomorphicInSamples() && vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all"))) {
+					if (!vcCase.isMonomorphicInSamples() && vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all") || !vc.hasAttribute("g10002015aug_all") || !vc.hasAttribute("esp6500siv2_all"))) {
 						// String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
 						// error += "\n" + vc.toStringWithoutGenotypes();
 						// throw new IllegalStateException(error);
@@ -124,7 +125,7 @@ public class VCFSimpleTally {
 								throw new IllegalArgumentException("could not find all controls for " + controlPop);
 							}
 							double maf = VCOps.getMAF(vcControl, null);
-							if ((!VCOps.isMinorAlleleAlternate(vcControl, null) || maf >= controlFreq) && vcControl.getNoCallCount() != controls.get(controlPop).size()) {// rare in control
+							if ((!VCOps.isMinorAlleleAlternate(vcControl, null) || maf > controlFreq) && vcControl.getNoCallCount() != controls.get(controlPop).size()) {// rare in control
 								controlPass = false;
 								break;
 							}
@@ -1269,8 +1270,7 @@ public class VCFSimpleTally {
 	}
 
 	private static String getPopFreqFilter(double maf) {
-		String freq = ESP_FILTER + maf + ")" + AND + G10002014_FILTER + maf + ")" + AND + G10002015_FILTER + maf + ")" + AND + ESPV2_FILTER + maf + ")";
-
+		String freq = ESP_FILTER + maf + ")" + AND + G10002014_FILTER + maf + ")" + AND + G10002015_FILTER + maf + ")" + AND + ESPV2_FILTER + maf + ")" + AND + POPFREQ_MAXFILTER + maf + ")";
 		return freq;
 	}
 
