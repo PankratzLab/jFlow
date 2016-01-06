@@ -271,7 +271,22 @@ public class VCFSimpleTally {
 						throw new IllegalAccessError("One entry per gene per file");
 
 					} else {
-						anno.put(gene.toUpperCase(), line);
+						if (line.length > header.length) {
+							throw new IllegalArgumentException("Error, lines cannot be greater length than the header in"+fileName);
+						}
+						ArrayList<String> filled = new ArrayList<String>();
+						for (int i = 0; i < header.length; i++) {
+							if (i < line.length) {
+								filled.add(line[i]);
+							} else {
+								filled.add("NA");
+							}
+						}
+						if (filled.size() != header.length) {
+							throw new IllegalArgumentException("Error, could not fill line in" + fileName);
+
+						}
+						anno.put(gene.toUpperCase(), Array.toStringArray(filled));
 					}
 
 				}
@@ -284,7 +299,6 @@ public class VCFSimpleTally {
 				return;
 			}
 		}
-
 	}
 
 	private static Hashtable<String, GeneVariantPositionSummary> parseAvailable(GeneVariantPositionSummary[] summaries) {
@@ -498,9 +512,15 @@ public class VCFSimpleTally {
 	private static Hashtable<String, PosCluster[]> densityEnrichment(SimpleTallyResult cases, SimpleTallyResult controls, Logger log) throws IllegalStateException {
 		Hashtable<String, PosCluster[]> cluster = new Hashtable<String, PosCluster[]>();
 		Hashtable<String, GeneVariantPositionSummary> casesSummaries = parseAvailable(GeneVariantPositionSummary.readSerial(cases.getFinalGeneVariantPositions(), log));
+		log.reportTimeInfo("Computing density enrichments  for comp " + ext.rootOf(cases.getFinalGeneVariantPositions()) + " Vs " + controls.getFinalGeneVariantPositions());
 
 		Hashtable<String, GeneVariantPositionSummary> controlSummaries = parseAvailable(GeneVariantPositionSummary.readSerial(controls.getFinalGeneVariantPositions(), log));
+		int index = 0;
 		for (String key : casesSummaries.keySet()) {
+			if (index % 1000 == 0) {
+				log.reportTimeInfo("On index " + index + ", gene " + key + " of " + casesSummaries.keySet().size() + " for comp " + ext.rootOf(cases.getFinalGeneVariantPositions()) + " Vs " + controls.getFinalGeneVariantPositions());
+			}
+			index++;
 			GeneVariantPositionSummary currentCase = casesSummaries.get(key);
 			PosCluster currentCaseClusReg = new PosCluster(currentCase.variantAAPositions);
 			PosCluster currentCaseClusHQ = new PosCluster(currentCase.hqVariantAAPositions);
