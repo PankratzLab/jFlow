@@ -1448,13 +1448,11 @@ public class VCFOps {
 	public static ChrSplitResults[] splitByChrs(String vcf, String newDir, int numthreads, boolean onlyWithVariants, Logger log) {
 		String[] toSplit = getAllContigs(vcf, log);
 		log.reportTimeInfo("Detected " + toSplit.length + " chrs to split");
-		log.reportTimeInfo(Array.toStr(toSplit, "\n"));
 		VCFSplitProducer producer = new VCFSplitProducer(vcf, newDir, toSplit, log);
 		WorkerTrain<ChrSplitResults> train = new WorkerTrain<VCFOps.ChrSplitResults>(producer, numthreads, numthreads, log);
 		ArrayList<ChrSplitResults> chrSplitResults = new ArrayList<ChrSplitResults>();
 		while (train.hasNext()) {
 			ChrSplitResults tmp = train.next();
-			System.out.println(tmp.getChr() + "HJ");
 			if (onlyWithVariants) {
 				if (tmp.hasVariants()) {
 					chrSplitResults.add(tmp);

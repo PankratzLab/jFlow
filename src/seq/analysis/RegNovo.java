@@ -97,6 +97,8 @@ public class RegNovo {
 
 	public void scanForDenovo() {
 		String outputVCF = outputDir + ext.rootOf(vcf) + ".denovo.vcf.gz";
+		String outputVCFReg = outputDir + ext.rootOf(vcf) + ".denovo.reg.vcf.gz";
+
 		String outputSummary = outputDir + ext.rootOf(vcf) + ".denovoSummary.txt";
 		String segSummary = outputDir + "denovo_segment.txt";
 
@@ -117,6 +119,9 @@ public class RegNovo {
 			VCFFileReader reader = new VCFFileReader(vcf, true);
 			VariantContextWriter writer = VCFOps.initWriter(outputVCF, null, reader.getFileHeader().getSequenceDictionary());
 			VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
+
+			VariantContextWriter writerReg = VCFOps.initWriter(outputVCFReg, null, reader.getFileHeader().getSequenceDictionary());
+			VCFOps.copyHeader(reader, writerReg, null, HEADER_COPY_TYPE.FULL_COPY, log);
 
 			PrintWriter summaryWriter = Files.getAppropriateWriter(outputSummary);
 			summaryWriter.println(Array.toStr(HEADER) + "\t" + Array.toStr(annos[0]) + "\tOff_Exclude\tOFF_Exclude_Notes\tP1_EXCLUDE\tP1_EXCLUDE_Notes\tP2_EXCLUDE\tP2_EXCLUDE_Notes\t" + REG_NOVO);
@@ -230,6 +235,9 @@ public class RegNovo {
 										sum += "\t" + VCOps.getAAC(VCOps.getAltAlleleContext(vcOffAlt, readDepths, filterControl, ALT_ALLELE_CONTEXT_TYPE.ALL, log), null);
 										summaryWriter.println(off + "\t" + vcOffAlt.getID() + "\t" + vcOffAlt.getReference() + "\t" + vcOffAlt.getAlternateAlleles().toString() + "\t" + vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getEnd() + "\t" + passesAllControls + sum + pString + "\t" + vc.getFilters().toString() + "\t" + Array.toStr(anno) + "\t" + Array.toStr(excludes) + "\t" + regNovo);
 										summaryWriter.flush();
+										if (regNovo) {
+											writerReg.add(vc);
+										}
 									}
 								}
 							}
@@ -242,6 +250,7 @@ public class RegNovo {
 			}
 			reader.close();
 			writer.close();
+			writerReg.close();
 			summaryWriter.close();
 			LocusSet<Segment> set = new LocusSet<Segment>(segsToReview.toArray(new Segment[segsToReview.size()]), false, log) {
 				private static final long serialVersionUID = 1L;
