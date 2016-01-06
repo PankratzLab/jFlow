@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map.Entry;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -75,6 +76,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 
+import seq.manage.VCOps;
 import net.miginfocom.swing.MigLayout;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
@@ -83,6 +85,7 @@ import cnv.var.Region;
 import common.Aliases;
 import common.Array;
 import common.Files;
+import common.Fonts;
 import common.Grafik;
 import common.Logger;
 import common.Positions;
@@ -133,7 +136,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private static final int EQUALIZED_EXON_BP_LENGTH = 300;
     private static final int INTRON_PLACEHOLDER_BP_LENGTH = 25;
     private static final String EXON_PREFIX = "";
-    private static final int Y_START = 3*15;
+    private static final int Y_START = 5*15;
     private static final Color FILLED_EXON_COLOR = Color.GRAY;
     private static final int DATA_PNT_SIZE = 8;
 
@@ -146,6 +149,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private volatile boolean paintInternalLine = false;
     private volatile int exonLabelLocation = EXON_LBL_LEFT;
     private volatile boolean showExcludes = false;
+    private volatile boolean drawFreqs = true;
+    
+    private volatile int dataPntSize = DATA_PNT_SIZE;
+    private volatile int yStart = Y_START;
     
 	private JComboBox<String> isoformList;
 	private String[] isoformsPresent;
@@ -179,6 +186,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 //    HashMap<String, String> popColorCodeMap;
 //    HashMap<String, Color> colorCodeMap;
     HashMap<String, Color> popColorMap;
+    HashMap<String, HashSet<String>> popIndiMap;
+    HashMap<String, HashSet<String>> popIndiMapWithExcludes;
 	HashMap<String, VCFHeader> headerMap;
 	private JLabel commentLabel;
 	private JTextField commentField;
@@ -216,7 +225,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	        }
 	    }
 	}
-	private class BlockDraw {
+	private static class BlockDraw {
 	    public BlockDraw(int xPixel, int numGenotypes, int totalAffected, HashMap<String, Integer> popCnts, DrawType drawType, VariantContext vc) {
 	        this.x = xPixel;
 	        this.g = numGenotypes;
@@ -232,8 +241,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    DrawType dt;
 	    VariantContext vcRecord;
 	}
-	private class DrawPoint {
-	    public DrawPoint(int x2, int y2, int height, int width, DrawType drawType, Color color, VariantContext vc) {
+	private static class DrawPoint {
+	    public DrawPoint(int x2, int y2, int height, int width, DrawType drawType, Color color, String sampleID, VariantContext vc) {
             this.x = x2;
             this.y = y2;
             this.h = height;
@@ -241,6 +250,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             this.type = drawType;
             this.c = color;
             this.vcRecord = vc;
+            this.sampleID = sampleID;
         }
         int x;
 	    int y;
@@ -249,6 +259,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    DrawType type;
 	    Color c;
 	    VariantContext vcRecord;
+	    String sampleID;
 	}
 	
 	
@@ -557,11 +568,11 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 	
 	private GeneData getCurrentGeneData() {
-	    if (geneToIsoformMap == null || geneList == null || isoformList == null) return null;
+	    if (geneToIsoformMap == null || geneList == null || geneList.isEmpty() || isoformList == null) return null;
 	    return geneToIsoformMap.get(geneList.get(geneIndex)).get(isoformList.getSelectedItem());
 	}
 	
-	private void paintGeneTrackPanel(Graphics g) {
+	private void paintPanel(Graphics g) {
 		GeneData gene;
 		ArrayList<VariantContext> vcfInSeg;
 		int[][] exons;
@@ -576,7 +587,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		if (stop-start > 10000000) {
 			g.drawString("Zoom in to see genes", 10, 10);
 		} else {
-		    height = genePanel.getHeight() - Y_START - GENE_HEIGHT;
+		    height = genePanel.getHeight() - yStart - GENE_HEIGHT;
 			gene = getCurrentGeneData();
 			if (gene == null) {
 			    return;
@@ -622,7 +633,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 }
                 vcfInSeg = getExonVCFRecords(j);
                 if (vcfInSeg.size() > 0) {
-                    if (lenPx <= DATA_PNT_SIZE + 2) {
+                    if (lenPx <= dataPntSize + 2) {
                         g.setColor(Color.RED);
                         g.drawLine(tempPx + (lenPx / 2), height - 30, tempPx + (lenPx / 2), height - 5);
                         g.setColor(Color.BLACK);
@@ -630,10 +641,11 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                         activeBlocks.clear();
                         activePoints.clear();
                         activeRects.clear();
+                        drawnFreqs.clear();
+                        String selIso = isoformList.getSelectedItem().toString();
                         if (drawType == DRAW_AS_BLOCKS) {
                             // draw populations
                             ArrayList<BlockDraw> toDraw = new ArrayList<TrailerClone.BlockDraw>();
-                            String selIso = isoformList.getSelectedItem().toString();
                             for (VariantContext vc : vcfInSeg) {
                                 String isoAttr = vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
                                 // only draw if collapsed, or showing affected isoform
@@ -649,7 +661,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                     if (excluded.contains(geno.getSampleName()) && !showExcludes) {
                                         continue;
                                     }
-                                    if (geno.getType() != GenotypeType.HOM_REF) { // anything besides Homozygous Reference
+                                    if (geno.getType() != GenotypeType.HOM_REF && geno.getType() != GenotypeType.NO_CALL) { // anything besides Homozygous Reference
                                         totAff++;
                                         String pop = popMap.get(geno.getSampleName());
                                         Integer cnt = popGenoCnt.get(pop);
@@ -665,8 +677,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                 int diffA = vc.getStart() - exons[j][0];
                                 double prop = diffA / (double) len;
                                 int diffPx = (int) (lenPx * prop);
-                                if (diffPx + DATA_PNT_SIZE + 2 > lenPx) { // don't let the markings go past the exon
-                                    diffPx = lenPx - DATA_PNT_SIZE - 2;
+                                if (diffPx + dataPntSize + 2 > lenPx) { // don't let the markings go past the exon
+                                    diffPx = lenPx - dataPntSize - 2;
                                 }
                                 
                                 BlockDraw bd = new BlockDraw(tempPx + diffPx, gctx.size(), totAff, popGenoCnt, vcType, vc);
@@ -680,7 +692,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                             ArrayList<DrawPoint> drawn = new ArrayList<DrawPoint>();
                             ArrayList<Rectangle> plotted = new ArrayList<Rectangle>();
     //                        HashMap<String, Integer> plottedCnt = new HashMap<String, Integer>();
-                            String selIso = isoformList.getSelectedItem().toString();
                             for (VariantContext vc : vcfInSeg) {
                                 String isoAttr = vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
                                 // only draw if collapsed, or showing affected isoform
@@ -694,14 +705,14 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                     if (excluded.contains(geno.getSampleName()) && !showExcludes) {
                                         continue;
                                     }
-                                    if (geno.getType() != GenotypeType.HOM_REF) { // anything besides Homozygous Reference
+                                    if (geno.getType() != GenotypeType.HOM_REF && geno.getType() != GenotypeType.NO_CALL) { // anything besides Homozygous Reference
                                         int diffA = vc.getStart() - exons[j][0];
                                         double prop = diffA / (double)len;
                                         int diffPx = (int) (lenPx * prop);
-                                        if (diffPx + DATA_PNT_SIZE + 2 > lenPx) { // don't let the markings go past the exon
-                                            diffPx = lenPx - DATA_PNT_SIZE - 2;
+                                        if (diffPx + dataPntSize + 2 > lenPx) { // don't let the markings go past the exon
+                                            diffPx = lenPx - dataPntSize - 2;
                                         }
-                                        Rectangle vcRect = new Rectangle(tempPx + diffPx + xOffset, 0, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
+                                        Rectangle vcRect = new Rectangle(tempPx + diffPx + xOffset, 0, dataPntSize + 2, dataPntSize + 2);
                                         boolean overlap = false;
                                         do {
                                             overlap = false;
@@ -712,14 +723,14 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                                 }
                                             }
                                             if (overlap) {
-                                                vcRect = new Rectangle(vcRect.x, vcRect.y + vcRect.height, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
+                                                vcRect = new Rectangle(vcRect.x, vcRect.y + vcRect.height, dataPntSize + 2, dataPntSize + 2);
     //                                            if (vcRect.y + vcRect.height + 110 >= getHeight()) {
-    //                                                vcRect = new Rectangle(tempPx + diffPx + (xOffset += DATA_PNT_SIZE), 0, DATA_PNT_SIZE + 2, DATA_PNT_SIZE + 2);
+    //                                                vcRect = new Rectangle(tempPx + diffPx + (xOffset += dataPntSize), 0, dataPntSize + 2, dataPntSize + 2);
     //                                            }
                                             }
                                         } while (overlap && vcRect.y + vcRect.height + 110 < getHeight()/* && xOffset <= 20*/); // running off top of screen
                                         plotted.add(vcRect);
-                                        DrawPoint dp = new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width, DrawType.getDrawType(vc), popColorMap.get(popMap.get(geno.getSampleName())), vc);
+                                        DrawPoint dp = new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width, DrawType.getDrawType(vc), popColorMap.get(popMap.get(geno.getSampleName())), geno.getSampleName(), vc);
                                         activePoints.add(dp);
                                         activeRects.add(vcRect);
                                         drawn.add(dp);
@@ -764,48 +775,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		drawLegend(g);
 	}
 	
-	private void drawLegend(Graphics g) {
-	    FontMetrics fm = g.getFontMetrics();
-	    int lblMaxWidth = 0;
-	    
-	    int x = 15;
-	    int y = 15 + fm.getHeight();
-	    g.fillOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
-	    g.drawString("Low Impact", x + DATA_PNT_SIZE + 5, y + fm.getHeight() / 2 + 2);
-	    y += 15;
-        g.drawOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
-        g.drawOval(x + 1, y + 1, DATA_PNT_SIZE - 2, DATA_PNT_SIZE - 2);
-        g.drawString("Moderate Impact", x + DATA_PNT_SIZE + 5, y + fm.getHeight() / 2 + 2);
-        lblMaxWidth = fm.stringWidth("Moderate Impact");
-        y += 15;
-        Grafik.drawThickLine(g, x, y, x + DATA_PNT_SIZE, y + DATA_PNT_SIZE, 2, Color.BLACK);
-        Grafik.drawThickLine(g, x, y + DATA_PNT_SIZE, x + DATA_PNT_SIZE, y, 2, Color.BLACK);
-        g.drawString("High Impact", x + DATA_PNT_SIZE + 5, y + fm.getHeight() / 2 + 2);
-	    y += 15;
-//        g.drawLine(10, y, 110, y);
-        y += 10;
-        if (popColorMap != null) {
-            for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
-                g.setColor(Color.BLACK);
-                g.drawRect(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
-                g.drawString(colEntry.getKey(), x + DATA_PNT_SIZE + 5, y + fm.getHeight() / 2 + 2);
-                g.setColor(colEntry.getValue());
-                g.fillRect(x+1, y+1, DATA_PNT_SIZE - 1, DATA_PNT_SIZE - 1);
-                y += 17;
-                lblMaxWidth = Math.max(lblMaxWidth, fm.stringWidth(colEntry.getKey()));
-            }
-        }
-        
-        int maxWidth = lblMaxWidth + 25 + DATA_PNT_SIZE;
-	    g.setColor(Color.BLACK);
-	    g.drawRect(10, 10, maxWidth, 200);
-	    g.drawString("Key:", 15, 7 + fm.getHeight());
-	    g.drawLine(10, 10 + fm.getHeight(), 10 + maxWidth, 10 + fm.getHeight());
-	}
-	
 	private void drawBlock(Graphics g, BlockDraw bd) {
-        int height = genePanel.getHeight() - Y_START - GENE_HEIGHT - 4;
-        int width = DATA_PNT_SIZE;
+        int height = genePanel.getHeight() - yStart - GENE_HEIGHT - 4;
+        int width = dataPntSize;
         int x = bd.x;
         int tempY = 2;
         int scav = 0;
@@ -834,13 +806,13 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 continue;
             }
             int drawLen = drawPop.get(pop);
-            if (drawLen == drawMax) {
+            if (drawLen == drawMax && scav > 0) {
                 drawLen -= scav - 1;
             }
             g.setColor(popColorMap.get(pop));
 
             if (bd.dt == DrawType.FILLED_CIRCLE) {
-                g.fillRect(x, tempY, width, drawLen);
+                g.fillRect(x, tempY, width + 1, drawLen);
             } else if (bd.dt == DrawType.EMPTY_CIRCLE) {
                 g.drawRect(x, tempY, width, drawLen);
                 g.drawRect(x+1, tempY + 1, width - 2, drawLen - 2);
@@ -858,27 +830,116 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             tempY += drawLen;
         }
         g.setColor(Color.BLACK);
+        if (selectedBlockDraw != null && bd.x == selectedBlockDraw.x) {
+            g.drawRect(x - 1, 2, width + 2, tempY - 2);
+        }
+        
+        if (drawFreqs) {
+            drawFreqs(g, x, bd.vcRecord);
+        }
 	}
 	
     private void drawVcfEntry(Graphics g, DrawPoint dp) {
-        int height = genePanel.getHeight() - Y_START - GENE_HEIGHT;
+        int height = genePanel.getHeight() - yStart - GENE_HEIGHT;
         g.setColor(dp.c);
         
         int x = dp.x;
-        int y = height - DATA_PNT_SIZE - 2 - dp.y;
+        int y = height - dataPntSize - 2 - dp.y;
         if (dp.type == DrawType.FILLED_CIRCLE) {
-            g.fillOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
+            g.fillOval(x, y, dataPntSize, dataPntSize);
         } else if (dp.type == DrawType.EMPTY_CIRCLE) {
-            g.drawOval(x, y, DATA_PNT_SIZE, DATA_PNT_SIZE);
-            g.drawOval(x + 1, y + 1, DATA_PNT_SIZE - 2, DATA_PNT_SIZE - 2);
+            g.drawOval(x, y, dataPntSize, dataPntSize);
+            g.drawOval(x + 1, y + 1, dataPntSize - 2, dataPntSize - 2);
         } else if (dp.type == DrawType.X) {
-            Grafik.drawThickLine(g, x, y, x + DATA_PNT_SIZE, y + DATA_PNT_SIZE, 2, dp.c);
-            Grafik.drawThickLine(g, x, y + DATA_PNT_SIZE, x + DATA_PNT_SIZE, y, 2, dp.c);
+            Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, dp.c);
+            Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, dp.c);
         } else {
             // TODO Error
         }
         
+        if (selectedDrawPoint != null) {
+            if (dp.sampleID.equals(selectedDrawPoint.sampleID)) { 
+                g.setColor(Color.black);
+                g.drawOval(x-1, y-1, dataPntSize + 1, dataPntSize + 1);
+            }
+        }
+        
+        if (drawFreqs) {
+            drawFreqs(g, x, dp.vcRecord);
+        }
+        
         g.setColor(Color.BLACK);
+    }
+    
+    private void drawLegend(Graphics g) {
+        FontMetrics fm = g.getFontMetrics();
+        int lblMaxWidth = 0;
+        
+        int x = 15;
+        int y = 15 + fm.getHeight();
+        g.drawOval(x, y, dataPntSize, dataPntSize);
+        g.drawOval(x + 1, y + 1, dataPntSize - 2, dataPntSize - 2);
+        g.drawString("Low Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
+        y += 15;
+        g.fillOval(x, y, dataPntSize, dataPntSize);
+        g.drawString("Moderate Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
+        lblMaxWidth = fm.stringWidth("Moderate Impact");
+        y += 15;
+        Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, Color.BLACK);
+        Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, Color.BLACK);
+        g.drawString("High Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
+        y += 15;
+//        g.drawLine(10, y, 110, y);
+        y += 10;
+        if (popColorMap != null) {
+            for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
+                g.setColor(Color.BLACK);
+                g.drawRect(x, y, dataPntSize, dataPntSize);
+                g.drawString(colEntry.getKey() + " (n=" + (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(colEntry.getKey()).size() + ")", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
+                g.setColor(colEntry.getValue());
+                g.fillRect(x+1, y+1, dataPntSize - 1, dataPntSize - 1);
+                y += dataPntSize * 2 - 1;
+                lblMaxWidth = Math.max(lblMaxWidth, fm.stringWidth(colEntry.getKey() + " (n=" + (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(colEntry.getKey()).size() + ")"));
+            }
+        }
+        
+        int maxWidth = lblMaxWidth + 25 + dataPntSize;
+        g.setColor(Color.BLACK);
+        g.drawRect(10, 10, maxWidth, 200);
+        g.drawString("Key:", 15, 7 + fm.getHeight());
+        g.drawLine(10, 10 + fm.getHeight(), 10 + maxWidth, 10 + fm.getHeight());
+    }
+    
+    private void drawFreqs(Graphics g, int x, VariantContext vc) {
+        if (drawnFreqs.contains(vc)) {
+            return;
+        }
+        drawnFreqs.add(vc);
+        Font prevFont = g.getFont();
+        int spanAll = getStop(true) - getStart(true);
+        int spanCur = stop - start;
+        double prop = spanCur / (double) spanAll;
+        float fsz = (float) Math.min(14d, 5 / prop);
+        g.setFont((Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_REGULAR).deriveFont(fsz));
+        
+        FontMetrics fm = g.getFontMetrics();
+        int y = genePanel.getHeight() - yStart + 3;
+        
+        for (Entry<String, HashSet<String>> popSetEntry : (showExcludes ? popIndiMapWithExcludes.entrySet() : popIndiMap.entrySet())) {
+            double maf = VCOps.getMAF(vc, popSetEntry.getValue());
+            double mac = VCOps.getMAC(vc, popSetEntry.getValue());
+            if ((Double.isNaN(maf) || maf == 0d) && (mac == 0d || Double.isNaN(mac))) continue;
+            Color popColor = popColorMap.get(popSetEntry.getKey());
+            g.setColor(Color.black);
+            g.drawRect(x, y, dataPntSize, dataPntSize);
+            String dtls = String.format("%1$4d | %2$6s", (int) mac, ext.formDeci(maf, 4));
+            g.drawString(dtls, x + dataPntSize + 3, y + fm.getHeight() / 2 + 2);
+            g.setColor(popColor);
+            g.fillRect(x+1, y+1, dataPntSize - 1, dataPntSize - 1);
+            y += dataPntSize * 2 - 1;
+        } // TODO mouse-over details
+        
+        g.setFont(prevFont);
     }
     
     private int determineExonNumber(GeneData geneData, int[] exonBnds) {
@@ -998,7 +1059,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		genePanel = new JPanel() {
 			public static final long serialVersionUID = 8L;
 			public void paintComponent(Graphics g) {
-			    paintGeneTrackPanel(g);
+			    paintPanel(g);
 		    }
 		};
 		genePanel.addMouseListener(this);
@@ -1602,11 +1663,12 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	ArrayList<Rectangle> activeRects = new ArrayList<Rectangle>();
 	ArrayList<BlockDraw> activeBlocks = new ArrayList<TrailerClone.BlockDraw>();
 	ArrayList<DrawPoint> activePoints = new ArrayList<TrailerClone.DrawPoint>();
+	HashSet<VariantContext> drawnFreqs = new HashSet<VariantContext>();
 
 	public void mouseClicked(MouseEvent e) {
         int x = e.getX();
-        int y = e.getY();
-        
+        int y = genePanel.getHeight() - yStart - GENE_HEIGHT - e.getY() - 2;
+
         for (int i = 0; i < activeRects.size(); i++) {
             if (activeRects.get(i).contains(x, y)) {
                 selectedRect = activeRects.get(i);
@@ -1615,7 +1677,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 } else if (drawType == DRAW_AS_CIRCLES) {
                     selectedDrawPoint = activePoints.get(i);
                 }
-                MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, y, 0, false);
+                MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, e.getY(), 0, false);
                 ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
                 this.mouseMoved(phantom);
                 TrailerClone.this.repaint();
@@ -1634,9 +1696,20 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 //        }
     }
 	
-	public void mouseEntered(MouseEvent e) {}
-
-	public void mouseExited(MouseEvent e) {}
+    int defaultInitial = ToolTipManager.sharedInstance().getInitialDelay();
+    int defaultReshow = ToolTipManager.sharedInstance().getReshowDelay();
+    
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        ToolTipManager.sharedInstance().setReshowDelay(3);
+        ToolTipManager.sharedInstance().setInitialDelay(3);
+    }
+    
+    @Override
+    public void mouseExited(MouseEvent e) {
+        ToolTipManager.sharedInstance().setReshowDelay(defaultReshow);
+        ToolTipManager.sharedInstance().setInitialDelay(defaultInitial);
+    }
 
 	public void mousePressed(MouseEvent e) {
 		startX = e.getPoint().x;
@@ -1647,16 +1720,16 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		inDrag = false;
 	}
 	
-	private int getBufferedStart() {
+	private int getStart(boolean buffered) {
 //	    return geneData[geneIndex][0].getStart() - MIN_BUFFER;
 	    GeneData gd = getCurrentGeneData();
-	    return gd == null ? -1 * MIN_BUFFER : getCurrentGeneData().getStart() - MIN_BUFFER;
+	    return gd == null ? (buffered ? -1 * MIN_BUFFER : 0) : getCurrentGeneData().getStart() - (buffered ? MIN_BUFFER : 0);
 	}
 
-	private int getBufferedStop() {
+	private int getStop(boolean buffered) {
 //	    int stop = geneData[geneIndex][0].getStart();
         GeneData gd = getCurrentGeneData();
-        if (gd == null) return MIN_BUFFER;
+        if (gd == null) return buffered ? MIN_BUFFER : 0;
         int stop = gd.getStart();
         if (paintIntrons) {
 //            stop = geneData[geneIndex][0].getStop();
@@ -1675,7 +1748,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 }
             }
         }
-        return stop + MIN_BUFFER;
+        return stop + (buffered ? MIN_BUFFER : 0);
     }
 	
 	public void mouseDragged(MouseEvent e) {
@@ -1687,10 +1760,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		if (distance < 0) {
 			distance = Math.max(distance, 1 - start);
 		} else {
-			distance = Math.min(distance, getBufferedStop() - stop);
+			distance = Math.min(distance, getStop(true) - stop);
 		}
 
-	    if ((start <= getBufferedStart() && distance < 0) || (stop >= getBufferedStop() && distance > 0)) {
+	    if ((start <= getStart(true) && distance < 0) || (stop >= getStop(true) && distance > 0)) {
 
 		} else {
 			start += distance;
@@ -1706,18 +1779,22 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	public void mouseMoved(MouseEvent e) {
 	    if (selectedRect == null) return;
 	    int x = e.getX();
-        int y = e.getY();
+        int y = genePanel.getHeight() - yStart - GENE_HEIGHT - e.getY() - 2;
         
         if (selectedRect.contains(x, y)) {
             if (genePanel.getToolTipText() == null) {
-                StringBuilder txtBld = new StringBuilder();
-                txtBld.append("CHECK IT OUT");
-                genePanel.setToolTipText(txtBld.toString());
+                genePanel.setToolTipText(buildToolTip(selectedBlockDraw == null ? selectedDrawPoint.vcRecord : selectedBlockDraw.vcRecord));
             }
         } else {
             genePanel.setToolTipText(null);
         }
         
+	}
+	
+	private String buildToolTip(VariantContext vc) {
+	    StringBuilder txtBld = new StringBuilder();
+        txtBld.append("Details Here");
+	    return txtBld.toString();
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent e) {
@@ -1739,7 +1816,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		}
 
 		zoom(left*multiplier, right*multiplier);
-
 	}
 
 	public void zoom(double leftProportion, double rightProportion) {
@@ -1866,7 +1942,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 			start = stop = -1;
 		}
 		start = loc[1] - MIN_BUFFER;
-		stop = getBufferedStop();
+		stop = getStop(true);
 //		if (start==-1||start<0) {
 //			start = 1;
 //		}
@@ -1878,16 +1954,16 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	};
 
 	public void updateGUI() {
-		if (start < getBufferedStart()) {
-			start = getBufferedStart();
+		if (start < getStart(true)) {
+			start = getStart(true);
 		}
 		startMarker = Array.binarySearch(positions, start, chrBoundaries[chr][0], chrBoundaries[chr][1], false);
 
 //		if (stop >= geneData[geneIndex][0].getStop() + MIN_BUFFER) {
 //		    stop = geneData[geneIndex][0].getStop() + MIN_BUFFER;
 //		}
-		if (stop > getBufferedStop()) {
-			stop = getBufferedStop();
+		if (stop > getStop(true)) {
+			stop = getStop(true);
 		}
 		stopMarker = Array.binarySearch(positions, stop, chrBoundaries[chr][0], chrBoundaries[chr][1], false);
 
@@ -1947,6 +2023,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    String[] header = reader.readLine().trim().split("\t", -1);
 //	    colorCodeMap = new HashMap<String, Color>();
 	    popColorMap = new HashMap<String, Color>();
+	    popIndiMap = new HashMap<String, HashSet<String>>();
+	    popIndiMapWithExcludes = new HashMap<String, HashSet<String>>();
 	    
 	    int iidCol = -1;
 	    int exclCol = -1;
@@ -1966,18 +2044,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	        String hdr = header[i].toLowerCase();
 	        if (hdr.startsWith("class=exclude")) {
 	            exclCol = i;
-//	        } else if (hdr.startsWith("class=color")) {
-//	            colorCol = i;
 	        } else if (hdr.startsWith("class=pop")) {
 	            popCol = i;
 	        }
 	    }
-//	    if (colorCol != -1) {
-//	        colorCodeMap = parseColors(header[colorCol]);
-//	    } 
-	    if (popCol != -1) {
-	        popColorMap = parseColors(header[popCol]);
-	    } 
 
 	    chkbxDisplayExcludes.setEnabled(exclCol != -1);
 
@@ -1995,14 +2065,33 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	        if (popCol != -1) {
 	            popMap.put(parts[iidCol], parts[popCol]);
 	            popSet.add(parts[popCol]);
+	            if (exclCol == -1 || !parts[exclCol].equals("1")) {
+    	            HashSet<String> indiSet = popIndiMap.get(parts[popCol]);
+    	            if (indiSet == null) {
+    	                indiSet = new HashSet<String>();
+    	                popIndiMap.put(parts[popCol], indiSet);
+    	            }
+    	            indiSet.add(parts[iidCol]);
+	            }
+	            HashSet<String> indiSet = popIndiMapWithExcludes.get(parts[popCol]);
+	            if (indiSet == null) {
+	                indiSet = new HashSet<String>();
+	                popIndiMapWithExcludes.put(parts[popCol], indiSet);
+	            }
+	            indiSet.add(parts[iidCol]);
+	            
 	        }
-//	        if (colorCol != -1 && colorCodeMap != null) {
-//	            popColorCodeMap.put(parts[iidCol], parts[colorCol]);
-//	        } else {
-//	            popColorCodeMap.put(parts[iidCol], "missing");
-//	        }
 	    }
 	    reader.close();
+	    
+        if (popCol != -1) {
+            popColorMap = parseColors(header[popCol]);
+        } else {
+            int index = 0;
+            for (String pop : popSet) {
+                popColorMap.put(pop, getAColor(index++)[0]);
+            }
+        }
 	}
 	
 	private HashMap<String, Color> parseColors(String colorHeader) {
