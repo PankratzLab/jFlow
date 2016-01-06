@@ -1,4 +1,5 @@
 package one.ben;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Toolkit;
@@ -857,7 +858,25 @@ public class lab {
 		boolean test = true;
 		if (test) {
 		    
-		    System.out.println(Files.countLines("F:/testProjectSrc/AffyMatrix/00src/ABEAM_p_ARIC_reex2_002_affy_GenomeWideSNP_6_B05_220652.CEL.IND.txt", 0));
+		    String testStr = "Class=Color;1=255,0,0;2=green;3=0,0,255";
+		    String[] pts = testStr.split(";");
+		    for (int i = 1; i < pts.length; i++) {
+		        Color c = null;
+		        String code = pts[i].split("=")[0];
+		        String col = pts[i].split("=")[1].toLowerCase();
+		        if (col.contains(",")) {
+		            String[] colPts = col.split(",");
+		            c = new Color(Integer.parseInt(colPts[0]), Integer.parseInt(colPts[1]), Integer.parseInt(colPts[2]));
+		        } else {
+		            try {
+		                c = (Color)Class.forName("java.awt.Color").getField(col).get(null);
+		            } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException | ClassNotFoundException e) {
+		            }
+		        }
+		    }
+		    
+		    
+//		    System.out.println(Files.countLines("F:/testProjectSrc/AffyMatrix/00src/ABEAM_p_ARIC_reex2_002_affy_GenomeWideSNP_6_B05_220652.CEL.IND.txt", 0));
 		    
 //		    createRandomSelectionFile();
 		    
