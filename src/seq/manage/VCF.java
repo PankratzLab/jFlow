@@ -155,7 +155,7 @@ public class VCF {
 				bamSample = new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam", false), this.log, true);
 				bamSample.generateMap();
 				bamSample.getBamSampleMap();
-				if ((!bamSample.isFail()) && (bamSample.verify(getSamplesInVcf()))) {
+				if ((!bamSample.isFail()) && (bamSample.verify(getSamplesInVcf(),null))) {
 				}
 			} else {
 				this.extractBams = false;
@@ -259,7 +259,7 @@ public class VCF {
 				BamExtractor.extractAll(bamSample, outputDir, bpBuffer, true, true, numThreads, this.log);
 				bamSample = new BamExtractor.BamSample(Files.listFullPaths(outputDir, ".bam", false), this.log, true);
 				bamSample.generateMap();
-				bamSample.dumpToIGVMap(outputVCF);
+				bamSample.dumpToIGVMap(outputVCF,null);
 			}
 		}
 	}

@@ -58,7 +58,7 @@ public class VCFSimpleTally {
 	private static final String G10002014_FILTER = "(g10002014oct_all=='.'||g10002014oct_all <=";
 	private static final String G10002015_FILTER = "(g10002015aug_all=='.'||g10002015aug_all <=";
 	private static final String POPFREQ_MAXFILTER = "(PopFreqMax=='.'||PopFreqMax <=";
-
+	private static final String ANY_GENE_SET = "*";
 	private static final String AND = "&&";
 	private static final String SNPEFF_IMPACTS = "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')";
 	private static final String SNPEFF_NAMES = "G1000_esp_charge_aricFreq_SNPEFF_HIGH_MODERATE_LOW";
@@ -178,6 +178,20 @@ public class VCFSimpleTally {
 		private Hashtable<String, String> genes;
 		private String tag;
 
+		public GeneSet(String fileName, Logger log, Hashtable<String, String> genes, String tag) {
+			super();
+			this.fileName = fileName;
+			this.log = log;
+			this.genes = genes;
+			this.tag = tag;
+		}
+
+		private static GeneSet getAnySet(Logger log) {
+			Hashtable<String, String> permiscuousSet = new Hashtable<String, String>();
+			permiscuousSet.put(ANY_GENE_SET, ANY_GENE_SET);
+			return new GeneSet(null, log, permiscuousSet, ANY_GENE_SET);
+		}
+
 		public GeneSet(String fileName, String tag, Logger log) {
 			super();
 			this.fileName = fileName;
@@ -195,6 +209,7 @@ public class VCFSimpleTally {
 				sets[i] = new GeneSet(setFiles[i], ext.rootOf(setFiles[i]).replaceAll("_" + vpop, ""), log);
 				sets[i].load();
 			}
+			sets = Array.concatAll(sets, new GeneSet[] { getAnySet(log) });
 			return sets;
 		}
 
@@ -752,7 +767,7 @@ public class VCFSimpleTally {
 						addEntries(caseDef, controlsOrdered, geneSummaries, geneName);
 					}
 					for (int j = 0; j < geneSets.length; j++) {
-						if (geneSets[j].getGenes().containsKey(geneName) && !geneSummaries.containsKey(geneSets[j].getTag())) {
+						if ((geneSets[j].getGenes().containsKey(geneName)||geneSets[j].getGenes().containsKey(ANY_GENE_SET))  && !geneSummaries.containsKey(geneSets[j].getTag())) {
 							addEntries(caseDef, controlsOrdered, geneSummaries, geneSets[j].getTag());
 						}
 					}
@@ -761,7 +776,7 @@ public class VCFSimpleTally {
 					for (int j = 0; j < geneSummaries.get(geneName).get(0).length; j++) {
 						geneSummaries.get(geneName).get(0)[j].add(vcCaseGroup, null);
 						for (int j2 = 0; j2 < geneSets.length; j2++) {
-							if (geneSets[j2].getGenes().containsKey(geneName)) {
+							if (geneSets[j2].getGenes().containsKey(geneName) || geneSets[j2].getGenes().containsKey(ANY_GENE_SET)) {
 								geneSummaries.get(geneSets[j2].getTag()).get(0)[j].add(vcCaseGroup, geneSets[j2].getTag());
 							}
 						}
@@ -786,7 +801,7 @@ public class VCFSimpleTally {
 						}
 						annoWriterSample.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
 						for (int j = 0; j < geneSets.length; j++) {
-							annoWriterSample.print("\t" + geneSets[j].getGenes().containsKey(geneName));
+							annoWriterSample.print("\t" + (geneSets[j].getGenes().containsKey(geneName) || geneSets[j].getGenes().containsKey(ANY_GENE_SET)));
 						}
 						annoWriterSample.println();
 					}
@@ -796,7 +811,7 @@ public class VCFSimpleTally {
 						for (int k = 0; k < geneSummaries.get(geneName).get(0).length; k++) {
 							geneSummaries.get(geneName).get(j + 1)[k].add(vcControlGroup, null);
 							for (int j2 = 0; j2 < geneSets.length; j2++) {
-								if (geneSets[j2].getGenes().containsKey(geneName)) {
+								if (geneSets[j2].getGenes().containsKey(geneName) || geneSets[j2].getGenes().containsKey(ANY_GENE_SET)) {
 									geneSummaries.get(geneSets[j2].getTag()).get(j + 1)[k].add(vcControlGroup, geneSets[j2].getTag());
 								}
 							}
@@ -805,7 +820,7 @@ public class VCFSimpleTally {
 					}
 					annoWriter.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
 					for (int j = 0; j < geneSets.length; j++) {
-						annoWriter.print("\t" + geneSets[j].getGenes().containsKey(geneName));
+						annoWriter.print("\t" +(geneSets[j].getGenes().containsKey(geneName) || geneSets[j].getGenes().containsKey(ANY_GENE_SET)));
 					}
 					annoWriter.println();
 				}
@@ -828,7 +843,7 @@ public class VCFSimpleTally {
 
 					annoGeneWriter.print("\t" + isGeneSet(geneSets, gene));
 					for (int j = 0; j < geneSets.length; j++) {
-						annoGeneWriter.print("\t" + geneSets[j].getGenes().containsKey(gene));
+						annoGeneWriter.print("\t" + (geneSets[j].getGenes().containsKey(gene) || geneSets[j].getGenes().containsKey(ANY_GENE_SET)));
 					}
 					annoGeneWriter.println();
 				}

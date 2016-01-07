@@ -221,12 +221,16 @@ final class BamExtractor {
 			}
 		}
 
-		public boolean verify(String[] samples) {
+		public boolean verify(String[] samples, String varset) {
 			boolean verified = true;
 			for (int i = 0; i < samples.length; i++) {
-				if (!this.bamSampleMap.containsKey(samples[i])) {
+
+				if (varset == null && !this.bamSampleMap.containsKey(samples[i])) {
 					verified = false;
 					this.log.reportTimeError("Could not find a matching bam file for sample " + samples[i]);
+				} else if (varset != null && !this.bamSampleMap.containsKey(samples[i].replaceAll(varset, ""))) {
+					verified = false;
+					this.log.reportTimeError("Could not find a matching bam file for sample " + samples[i].replaceAll(varset, ""));
 				}
 			}
 			return verified;
@@ -236,13 +240,14 @@ final class BamExtractor {
 			return this.fail;
 		}
 
-		public void dumpToIGVMap(String correspondingVCF) {
+		public void dumpToIGVMap(String correspondingVCF, String varSet) {
 			String output = correspondingVCF + ".mapping";
+			
 			String dumper = "";
 			for (int i = 0; i < this.samples.length; i++) {
 				String curSample = this.samples[i];
 				if (this.bamSampleMap.containsKey(curSample)) {
-					dumper = dumper + (i == 0 ? "" : "\n") + curSample + "\t" + "./"+ext.removeDirectoryInfo(this.bamSampleMap.get(curSample));
+					dumper = dumper + (i == 0 ? "" : "\n") + curSample + (varSet == null ? "" : varSet) + "\t" + "./" + ext.removeDirectoryInfo(this.bamSampleMap.get(curSample));
 				} else {
 					this.log.reportTimeError("did not find sample " + curSample + " in the sample map");
 				}
