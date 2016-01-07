@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
@@ -78,7 +77,7 @@ import common.WorkerTrain.Producer;
  *
  */
 public class VCFOps {
-	public static final Set<String> BLANK_SAMPLE = new TreeSet<String>();
+	public static final Set<String> BLANK_SAMPLE = new HashSet<String>();
 	public static final Options[] DEFUALT_WRITER_OPTIONS = new Options[] { Options.INDEX_ON_THE_FLY };
 
 	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT", "NUM_HOM_VAR", "NUM_HET", "NUM_HOM_ALT" };
@@ -1298,6 +1297,10 @@ public class VCFOps {
 	}
 
 	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, boolean createAnnotationFile, int numThreads, Logger log) {
+		return extractSegments(vcf, segmentFile, bpBuffer, bams, outputDir, skipFiltered, gzipOutput, createAnnotationFile, false, null, numThreads, log);
+	}
+
+	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, boolean createAnnotationFile, boolean subToBam, String varSet, int numThreads, Logger log) {
 		BamExtractor.BamSample bamSample = null;
 
 		if (vcf == null || !Files.exists(vcf)) {
@@ -1308,6 +1311,7 @@ public class VCFOps {
 			log.reportFileNotFound(segmentFile);
 			return null;
 		}
+		HashSet<String> bamSamples = new HashSet<String>();
 
 		String dir = outputDir == null ? ext.parseDirectoryOfFile(vcf) : outputDir;
 		new File(dir).mkdirs();
@@ -1342,11 +1346,17 @@ public class VCFOps {
 				} else {
 					tmp = HashVec.loadFileToStringArray(bams, false, new int[] { 0 }, false);
 				}
+				log.reportTimeInfo("found " + tmp.length + " bam files in " + bams);
 				bamSample = new BamExtractor.BamSample(tmp, log, true);
 			}
 			bamSample.generateMap();
 			bamSample.getBamSampleMap();
-			bamSample.verify(getSamplesInFile(reader));
+			bamSample.verify(getSamplesInFile(reader), varSet);
+			if (subToBam) {
+				for (String abamSample : bamSample.getBamSampleMap().keySet()) {
+					bamSamples.add(varSet == null ? abamSample : abamSample + varSet);
+				}
+			}
 		}
 		String output = dir + root + "." + ext.rootOf(segmentFile) + ".vcf" + (gzipOutput ? ".gz" : "");
 		String annoFile = dir + root + "." + ext.rootOf(segmentFile) + ".anno.txt";
@@ -1365,7 +1375,7 @@ public class VCFOps {
 			}
 
 			VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
-			copyHeader(reader, writer, BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
+			copyHeader(reader, writer, bamSamples, HEADER_COPY_TYPE.FULL_COPY, log);
 			int progress = 0;
 			int found = 0;
 
@@ -1384,7 +1394,11 @@ public class VCFOps {
 
 				}
 				if ((!skipFiltered || !vc.isFiltered()) && VCOps.isInTheseSegments(vc, segsToSearch)) {
-					writer.add(vc);
+					if (subToBam) {
+						writer.add(VCOps.getSubset(vc, bamSamples));
+					} else {
+						writer.add(vc);
+					}
 					if (bamSample != null) {
 						bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getContig()), vc.getStart(), vc.getEnd()));
 					}
@@ -1404,7 +1418,7 @@ public class VCFOps {
 				BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, numThreads, log);
 				bamSample = new BamExtractor.BamSample(Files.listFullPaths(dir, ".bam", false), log, true);
 				bamSample.generateMap();
-				bamSample.dumpToIGVMap(output);
+				bamSample.dumpToIGVMap(output, varSet);
 			}
 			writer.close();
 			if (createAnnotationFile) {
@@ -2038,6 +2052,8 @@ public class VCFOps {
 		boolean keepIds = false;
 		int numThreads = 1;
 		Logger log;
+		boolean subToBam = false;
+		String varSet = null;
 
 		String usage = "\n" + "seq.analysis.VCFUtils requires 0-1 arguments\n";
 		usage += "   (1) full path to a vcf file (i.e. " + VCF_COMMAND + vcf + " (default))\n" + "";
@@ -2056,6 +2072,8 @@ public class VCFOps {
 		usage += "   (14) when subsetting, keep variant ids if set to \".\" (i.e. -keepIds (not the default))\n" + "";
 		usage += "   (15) full path to a segment file  (i.e. " + SEGMENT_FILE_COMMAND + "( no default)\n" + "";
 		usage += "   (16) full path to a bed file for annotating  (i.e. bed= (no default)\n" + "";
+		usage += "   (17) subset samples to bam files in vcf (i.e. subToBam=false (no default)\n" + "";
+		usage += "   (18) varset for sample matching in vcf (i.e. varSet= (no default)\n" + "";
 
 		usage += PSF.Ext.getNumThreadsCommand(14, numThreads);
 		usage += "   NOTE: available utilities are:\n";
@@ -2078,6 +2096,12 @@ public class VCFOps {
 				numArgs--;
 			} else if (args[i].startsWith("segs=")) {
 				segmentFile = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("varSet=")) {
+				varSet = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("subToBam=")) {
+				subToBam = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("idFile=")) {
 				idFile = ext.parseStringArg(args[i], "");
@@ -2135,7 +2159,7 @@ public class VCFOps {
 				VcfPopulation.splitVcfByPopulation(vcf, populationFile, removeMonoMorphic, keepIds, log);
 				break;
 			case EXTRACT_SEGMENTS:
-				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, false, numThreads, log);
+				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, false, subToBam, varSet, numThreads, log);
 				break;
 			case EXTRACT_SEGMENTS_ANNOTATION:
 				extractSegments(vcf, segmentFile, bpBuffer, bams, outDir, skipFiltered, gzip, true, numThreads, log);
