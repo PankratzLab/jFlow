@@ -524,7 +524,7 @@ public class Project {
 	            // error reading headers; let's delete
 	            getLog().reportError(ext.getTime() + "]\tError reading source file header metadata.  Deleting file and reparsing.");
 	            getLog().reportError(ext.getTime() + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into " + Sample.SAMPLE_DATA_FILE_EXTENSION + " files.");
-	            getLog().reportError(ext.getTime() + "]\tA quick check (which may be incorrect) suggest this " + (reasonableCheckForParsedSource() ? " IS LIKELY NOT " : " IS LIKELY ") + "be an issue.");
+	            getLog().reportError(ext.getTime() + "]\tA quick check (which may be incorrect) suggest this " + (reasonableCheckForParsedSource() ? "IS LIKELY NOT " : "IS LIKELY") + " to be an issue.");
 	            (new File(file)).delete();
 	        }
 	    } 

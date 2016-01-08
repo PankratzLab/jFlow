@@ -150,7 +150,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private volatile boolean paintInternalLine = false;
     private volatile int exonLabelLocation = EXON_LBL_LEFT;
     private volatile boolean showExcludes = false;
+    private volatile boolean showLegend = true;
     private volatile boolean drawMAF = false;
+    private volatile boolean drawMAC = false;
     
     private volatile int dataPntSize = DATA_PNT_SIZE;
     private volatile int yStart = Y_START;
@@ -194,6 +196,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	private JTextField commentField;
 	private String isoform;
 	private ArrayList<String> geneList;
+	
+	private String vcfFile;
+	private String popFile;
 	
 	private Hashtable<String, String> namePathMap;
 	private Logger log;
@@ -356,12 +361,12 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private PreparedMarkerSet markerSet;
     private String[] markerNames;
 	
-	public TrailerClone(Project proj, String[] vcfFiles) {
-		this(proj, proj.GENE_LIST_FILENAMES.getValue()[0], vcfFiles);
+	public TrailerClone(Project proj, String vcfFile, String popFile) {
+		this(proj, proj.GENE_LIST_FILENAMES.getValue()[0], vcfFile, popFile);
 	}
 
 	// TODO TrailerClone should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
-	public TrailerClone(Project proj, String file, String[] vcfs) {
+	public TrailerClone(Project proj, String geneListFile, String vcfFile, String popFile) {
 		super("Genvisis - Trailer - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
@@ -403,6 +408,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		this.log = proj.getLog();
 		jar = proj.JAR_STATUS.getValue();
 		fail = false;
+		this.vcfFile = vcfFile;
+		this.popFile = popFile;
 		
 		time = new Date().getTime();
 
@@ -430,7 +437,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		setVisible(true);
 		
 		updateGUI();
-		loadGenes(file);
+		loadGenes(geneListFile);
         createIsoformList();
 		geneIndex = 0;
         try {
@@ -799,11 +806,11 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             begin = getX(gene.getStart());
             width = g.getFontMetrics().stringWidth(gene.getGeneName());
 			g.drawString(gene.getGeneName(), begin-width-3, height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() / 2 - 3);
-			if (drawMAF) {
-			    drawFreqs(g, freqLocs, begin);
-			}
+		    drawFreqs(g, freqLocs, begin);
 		}
-		drawLegend(g);
+		if (showLegend) {
+		    drawLegend(g);
+		}
 	}
 	
 	private void drawBlock(Graphics g, BlockDraw bd) {
@@ -905,6 +912,21 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private void drawLegend(Graphics g) {
         FontMetrics fm = g.getFontMetrics();
         int lblMaxWidth = 0;
+        int maxWidth;
+        HashMap<String, String> lblMap = new HashMap<String, String>();
+
+        lblMaxWidth = fm.stringWidth("Moderate Impact");
+        if (popColorMap != null) {
+            for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
+                String lbl = colEntry.getKey() + " (n=" + (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(colEntry.getKey()).size() + ")";
+                lblMap.put(colEntry.getKey(), lbl);
+                lblMaxWidth = Math.max(lblMaxWidth, fm.stringWidth(lbl));
+            }
+        }
+        maxWidth = lblMaxWidth + 25 + dataPntSize;
+        g.setColor(genePanel.getBackground());
+        g.fillRect(10, 10, maxWidth, 200);
+        g.setColor(Color.black);
         
         int x = 15;
         int y = 15 + fm.getHeight();
@@ -914,7 +936,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         y += 15;
         g.fillOval(x, y, dataPntSize, dataPntSize);
         g.drawString("Moderate Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
-        lblMaxWidth = fm.stringWidth("Moderate Impact");
         y += 15;
         Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, Color.BLACK);
         Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, Color.BLACK);
@@ -924,17 +945,17 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         y += 10;
         if (popColorMap != null) {
             for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
+                String lbl = lblMap.containsKey(colEntry.getKey()) ? lblMap.get(colEntry.getKey()) : colEntry.getKey() + " (n=" + (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(colEntry.getKey()).size() + ")";
                 g.setColor(Color.BLACK);
                 g.drawRect(x, y, dataPntSize, dataPntSize);
-                g.drawString(colEntry.getKey() + " (n=" + (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(colEntry.getKey()).size() + ")", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
+                g.drawString(lbl, x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
                 g.setColor(colEntry.getValue());
                 g.fillRect(x+1, y+1, dataPntSize - 1, dataPntSize - 1);
                 y += dataPntSize * 2 - 1;
-                lblMaxWidth = Math.max(lblMaxWidth, fm.stringWidth(colEntry.getKey() + " (n=" + (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(colEntry.getKey()).size() + ")"));
             }
         }
         
-        int maxWidth = lblMaxWidth + 25 + dataPntSize;
+        
         g.setColor(Color.BLACK);
         g.drawRect(10, 10, maxWidth, 200);
         g.drawString("Key:", 15, 7 + fm.getHeight());
@@ -942,13 +963,17 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     }
     
     private void drawFreqs(Graphics g, ArrayList<VCFLocation> vcfLocs, int lblX) {
+        if (!drawMAF && !drawMAC) {
+            return;
+        }
         Font prevFont = g.getFont();
         int spanAll = getStop(true) - getStart(true);
         int spanCur = stop - start;
         double prop = spanCur / (double) spanAll;
         float fsz = (float) Math.min(14d, 11 / prop);
 //        float fsz = 11f;
-        g.setFont((Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_REGULAR).deriveFont(fsz));
+        Font newFont = (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_REGULAR).deriveFont(fsz);
+        g.setFont(newFont);
         FontMetrics fm = g.getFontMetrics();
         
         if ((showExcludes ? popIndiMapWithExcludes : popIndiMap) == null) return;
@@ -970,35 +995,84 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         
         int y = genePanel.getHeight() - yStart + 3;
         
-        for (int i = 0; i < pops.size(); i++) {
-            for (int v = 0; v < vcfLocs.size(); v++) {
-                String draw = vcfLocs.get(v).mafMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).mafMap.get(pops.get(i)), 4) : "--";
-                int width = fm.stringWidth(draw);
-                if (v < vcfLocs.size() - 1) {
-                    if (vcfLocs.get(v).x + width > vcfLocs.get(v + 1).x) {
-                        draw = "*";
+        if (drawMAF) {
+            for (int i = 0; i < pops.size(); i++) {
+                for (int v = 0; v < vcfLocs.size(); v++) {
+                    String draw = vcfLocs.get(v).mafMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).mafMap.get(pops.get(i)), 4) : "--";
+                    int width = fm.stringWidth(draw);
+                    if (v < vcfLocs.size() - 1) {
+                        if (vcfLocs.get(v).x + width > vcfLocs.get(v + 1).x) {
+                            draw = "*";
+                        }
+                    } else if (v > 0) {
+                        String prevDraw = vcfLocs.get(v - 1).mafMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v - 1).mafMap.get(pops.get(i)), 4) : "--";
+                        if (vcfLocs.get(v).x < vcfLocs.get(v - 1).x + fm.stringWidth(prevDraw)) {
+                            draw = "*";
+                        }
                     }
+                    
+                    int yTemp = y + i * (dataPntSize * 2 - 1);
+                    g.drawString(draw, vcfLocs.get(v).x, yTemp + fm.getHeight() / 2 + 1);
                 }
-                int yTemp = y + i * (dataPntSize * 2 - 1);
-                g.drawString(draw, vcfLocs.get(v).x, yTemp + fm.getHeight() / 2 + 1);
+            }
+            for (int i = 0; i < pops.size(); i++) {
+                int yTemp = y + i * (dataPntSize * 2 - 1) + 1;
+                g.setColor(Color.BLACK);
+                g.drawRect(lblX - dataPntSize - 5, yTemp, dataPntSize, dataPntSize);
+                g.setColor(popColorMap.get(pops.get(i)));
+                g.fillRect(lblX - dataPntSize - 4, yTemp+1, dataPntSize - 1, dataPntSize - 1);
+            }
+            g.setColor(Color.BLACK);
+            g.setFont(prevFont);
+            if (pops.size() > 0) {
+                String lbl = "MAF:";
+                fm = g.getFontMetrics();
+                int yHalf = y + (pops.size() * (dataPntSize * 2 - 1)) / 2 + fm.getHeight() / 3 - 2;
+                int tempX = lblX - dataPntSize - 10;
+                g.drawString(lbl, tempX - fm.stringWidth(lbl), yHalf);
+            }
+            y += dataPntSize * pops.size();
+            y += fm.getHeight() + 4;
+        }
+        if (drawMAC) {
+            g.setFont(newFont);
+            fm = g.getFontMetrics();
+            for (int i = 0; i < pops.size(); i++) {
+                for (int v = 0; v < vcfLocs.size(); v++) {
+                    String draw = vcfLocs.get(v).macMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).macMap.get(pops.get(i)), 4) : "--";
+                    int width = fm.stringWidth(draw);
+                    if (v < vcfLocs.size() - 1) {
+                        if (vcfLocs.get(v).x + width > vcfLocs.get(v + 1).x) {
+                            draw = "*";
+                        }
+                    } else if (v > 0) {
+                        String prevDraw = vcfLocs.get(v - 1).macMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v - 1).macMap.get(pops.get(i)), 4) : "--";
+                        if (vcfLocs.get(v).x < vcfLocs.get(v - 1).x + fm.stringWidth(prevDraw)) {
+                            draw = "*";
+                        }
+                    }
+                    int yTemp = y + i * (dataPntSize * 2 - 1);
+                    g.drawString(draw, vcfLocs.get(v).x, yTemp + fm.getHeight() / 2 + 1);
+                }
+            }
+            for (int i = 0; i < pops.size(); i++) {
+                int yTemp = y + i * (dataPntSize * 2 - 1) + 1;
+                g.setColor(Color.BLACK);
+                g.drawRect(lblX - dataPntSize - 5, yTemp, dataPntSize, dataPntSize);
+                g.setColor(popColorMap.get(pops.get(i)));
+                g.fillRect(lblX - dataPntSize - 4, yTemp+1, dataPntSize - 1, dataPntSize - 1);
+            }
+            g.setColor(Color.BLACK);
+            g.setFont(prevFont);
+            if (pops.size() > 0) {
+                String lbl = "MAC:";
+                fm = g.getFontMetrics();
+                int yHalf = y + (pops.size() * (dataPntSize * 2 - 1)) / 2 + fm.getHeight() / 3 - 2;
+                int tempX = lblX - dataPntSize - 10;
+                g.drawString(lbl, tempX - fm.stringWidth(lbl), yHalf);
             }
         }
-        for (int i = 0; i < pops.size(); i++) {
-            int yTemp = y + i * (dataPntSize * 2 - 1) + 1;
-            g.setColor(Color.BLACK);
-            g.drawRect(lblX - dataPntSize - 5, yTemp, dataPntSize, dataPntSize);
-            g.setColor(popColorMap.get(pops.get(i)));
-            g.fillRect(lblX - dataPntSize - 4, yTemp+1, dataPntSize - 1, dataPntSize - 1);
-        }
-        g.setColor(Color.BLACK);
-        g.setFont(prevFont);
-        if (pops.size() > 0) {
-            String lbl = "MAF:";
-            fm = g.getFontMetrics();
-            int yHalf = y + (pops.size() * (dataPntSize * 2 - 1)) / 2 + fm.getHeight() / 3 - 2;
-            int tempX = lblX - dataPntSize - 10;
-            g.drawString(lbl, tempX - fm.stringWidth(lbl), yHalf);
-        }
+        
     }
     
     private int determineExonNumber(GeneData geneData, int[] exonBnds) {
@@ -1454,6 +1528,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         exonLblGroup.add(exonLblRight);
         disp.add(exonLblRight);
         disp.add(new JSeparator());
+        JCheckBoxMenuItem chkbxDisplayLegend = new JCheckBoxMenuItem();
+        disp.add(chkbxDisplayLegend);
         chkbxDisplayExcludes = new JCheckBoxMenuItem();
         disp.add(chkbxDisplayExcludes);
         disp.add(new JSeparator());
@@ -1467,6 +1543,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         disp.add(new JSeparator());
         JCheckBoxMenuItem displayMAF = new JCheckBoxMenuItem();
         disp.add(displayMAF);
+        JCheckBoxMenuItem displayMAC = new JCheckBoxMenuItem();
+        disp.add(displayMAC);
         
         paintExonBoundariesChk.setAction(new AbstractAction() {
             private static final long serialVersionUID = 1L;
@@ -1578,6 +1656,17 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         });
         exonLblRight.setText("Right-Aligned");
 		
+        chkbxDisplayLegend.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showLegend = chkbxDisplayLegend.isSelected();
+                updateGUI();
+            }
+        });
+        chkbxDisplayLegend.setText("Show Legend");
+        chkbxDisplayLegend.setSelected(showLegend);
+        
         chkbxDisplayExcludes.setAction(new AbstractAction() {
             private static final long serialVersionUID = 1L;
             @Override
@@ -1619,11 +1708,32 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 } else {
                     yStart = Y_START;
                 }
+                if (drawMAC) {
+                    yStart += dataPntSize * popSet.size();
+                }
                 updateGUI();
             }
         });
         displayMAF.setText("Display Minor Allele Frequencies (MAF)");
 		
+        displayMAC.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                drawMAC = displayMAC.isSelected();
+                if (drawMAC) {
+                    yStart = Y_START + dataPntSize * popSet.size();
+                } else {
+                    yStart = Y_START;
+                }
+                if (drawMAF) {
+                    yStart += dataPntSize * popSet.size();
+                }
+                updateGUI();
+            }
+        });
+        displayMAC.setText("Display Minor Allele Counts (MAC)");
+
         JMenu act = new JMenu("Actions");
         act.setMnemonic(KeyEvent.VK_A);
         menuBar.add(act);
@@ -2131,7 +2241,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 	
 	private void loadPopulationFile() throws IOException {
-	    String popFile = "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.pop";
 	    BufferedReader reader = Files.getAppropriateReader(popFile);
 	    String[] header = reader.readLine().trim().split("\t", -1);
 //	    colorCodeMap = new HashMap<String, Color>();
@@ -2231,13 +2340,12 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 	
 	private void loadDataIfMissing() {
-	    String[] vcfFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz"/*, "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz"*/};
 	    String gene = geneList.get(geneIndex);
 	    if (loadedVCFData.containsKey(gene)) {
 	        return;
 	    } else {
 	        ArrayList<VariantContext> data = new ArrayList<VariantContext>();
-	        for (String vcfFile : vcfFiles) {
+//	        for (String vcfFile : vcfFiles) {
     	        VCFFileReader vcfReader = new VCFFileReader(vcfFile, true);
     	        VCFHeader header = vcfReader.getFileHeader();
     	        vcfHeader = header;
@@ -2247,7 +2355,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         	    }
                 vcIter.close();
                 vcfReader.close();
-	        }
+//	        }
             loadedVCFData.put(gene, sortData(data));
 	    }
 	}
@@ -2273,8 +2381,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	
 	public static void main(String[] args) {
 		Project proj = new Project("D:/projects/poynter.properties", false);
-
-		new TrailerClone(proj, new String[]{});
+		String[] vcfFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz"/*, "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz"*/};
+        String popFile = "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.pop";
+		new TrailerClone(proj, vcfFiles[0], popFile);
 	}
 }
 
