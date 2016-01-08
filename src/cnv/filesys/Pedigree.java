@@ -1,12 +1,16 @@
 package cnv.filesys;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 
 import cnv.qc.MendelErrors;
 import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.var.SampleData;
+import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.ext;
 import filesys.FamilyStructure;
@@ -290,5 +294,90 @@ public class Pedigree extends FamilyStructure {
 		return pedigreeFile;
 	}
     
-    
+	public static void build(Project proj, String newPedFile, boolean overwrite) {
+	    // FID IID FAID MOID SEX PHENO DNA
+	    PrintWriter writer;
+	    String[] samples;
+//	    SampleData sd;
+	    String file; 
+	    Logger log;
+	    Hashtable<String, String> sexDict;
+	    
+	    log = proj.getLog();
+	    file = newPedFile == null ? proj.PEDIGREE_FILENAME.getValue() : newPedFile;
+	    if (Files.exists(file) && !overwrite) {
+	        log.reportError("Error - file " + file + " already exists; overwrite flag must be set or a different output file must be specified.");
+	        return;
+	    }
+	    
+	    String sexFile = proj.SEXCHECK_RESULTS_FILENAME.getValue();
+	    
+	    if (Files.exists(sexFile)) {
+	        log.report("Found sex check file.");
+//	        sexDict = HashVec.loadFileToHashString(sexFile, new int[]{1, 2}, new int[]{3, 4}, false, "\t", true, false, true);
+	        sexDict = HashVec.loadFileToHashString(sexFile, new int[]{0}, new int[]{3, 4}, false, "\t", true, false, true);
+	    } else {
+	        log.report("Warning - no sex check file found, sex will be set to '0' for all individuals.  Otherwise, first run SexChecks and then re-run.");
+	        sexDict = new Hashtable<String, String>();
+	    }
+	    
+	    samples = proj.getSamples();
+//	    sd = proj.getSampleData(0, false);
+	    
+	    writer = Files.getAppropriateWriter(file);
+	    for (int i = 0; i < samples.length; i++) {
+//	        String[] ids = sd.lookup(samples[i]);
+//	        String sexCode = sexDict.containsKey(samples[i]) ? sexDict.get(samples[i]).split("\t")[0] : "0"; // sex
+	        String sexCode = sexDict.containsKey(samples[i]) ? sexDict.get(samples[i]).split("\t")[1] : "0"; // ext sex
+//	        writer.println(ids[1] + "\t0\t0\t" + sexCode + "\t1\t" + ids[0]);
+	        writer.println(samples[i] + "\t" + samples[i] + "\t0\t0\t" + sexCode + "\t1\t" + samples[i]);
+	    }
+	    writer.flush();
+	    writer.close();
+	    
+	}
+	
+    public static void main(String[] args) {
+        int numArgs = args.length;
+        String filename = null;
+        String out = null;
+        boolean overwrite = false;
+        Project proj;
+
+        String usage = "\n"+
+            "cnv.filesys.Pedigree requires 1-3 arguments\n"+
+            "   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+            "   (2) OPTIONAL: Pedigree output filename (if omitted, output file will be project property) (i.e. out="+out+" (default))\n"+
+            "   (1) OPTIONAL: overwrite flag, will overwrite the output file if it already exists (i.e. -overwrite (not the default))\n"+
+            "";
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+                System.err.println(usage);
+                System.exit(1);
+            } else if (args[i].startsWith("file=")) {
+                filename = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("out=")) {
+                out = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].equals("-overwrite")) {
+                overwrite = true;
+                numArgs--;
+            } else {
+                System.err.println("Error - invalid argument: " + args[i]);
+            }
+        }
+        if (numArgs != 0) {
+            System.err.println(usage);
+            System.exit(1);
+        }
+        try {
+            proj = new Project(filename, false);
+            build(proj, out, overwrite);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+	
 }
