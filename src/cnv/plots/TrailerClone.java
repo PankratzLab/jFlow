@@ -20,7 +20,6 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
@@ -47,7 +46,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map.Entry;
-import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -76,12 +74,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 
-import seq.manage.VCOps;
 import net.miginfocom.swing.MigLayout;
+import seq.manage.VCOps;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
 import cnv.gui.NewRegionListDialog;
 import cnv.var.Region;
+
 import common.Aliases;
 import common.Array;
 import common.Files;
@@ -91,6 +90,7 @@ import common.Logger;
 import common.Positions;
 import common.TransferableImage;
 import common.ext;
+
 import filesys.GeneData;
 import filesys.GeneTrack;
 import filesys.Segment;
@@ -136,20 +136,21 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private static final int EQUALIZED_EXON_BP_LENGTH = 300;
     private static final int INTRON_PLACEHOLDER_BP_LENGTH = 25;
     private static final String EXON_PREFIX = "";
-    private static final int Y_START = 5*15;
+    private static final int Y_START = 2*15;
     private static final Color FILLED_EXON_COLOR = Color.GRAY;
     private static final int DATA_PNT_SIZE = 8;
 
     private volatile int intronBPWidth = INTRON_PLACEHOLDER_BP_LENGTH;
     private volatile boolean equalizeExonLength = false;
     private volatile boolean paintExonNumbers = false;
+    private volatile boolean paintExonBoundaries = true;
     private volatile boolean paintIntrons = false;
     private volatile boolean fillExons = true;
     private volatile boolean paintExonBoxes = true;
     private volatile boolean paintInternalLine = false;
     private volatile int exonLabelLocation = EXON_LBL_LEFT;
     private volatile boolean showExcludes = false;
-    private volatile boolean drawFreqs = true;
+    private volatile boolean drawMAF = false;
     
     private volatile int dataPntSize = DATA_PNT_SIZE;
     private volatile int yStart = Y_START;
@@ -226,7 +227,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    }
 	}
 	private static class BlockDraw {
-	    public BlockDraw(int xPixel, int numGenotypes, int totalAffected, HashMap<String, Integer> popCnts, DrawType drawType, VariantContext vc) {
+	    public BlockDraw(int basePairLoc, int xPixel, int numGenotypes, int totalAffected, HashMap<String, Integer> popCnts, DrawType drawType, VariantContext vc) {
+	        this.bpX = basePairLoc;
 	        this.x = xPixel;
 	        this.g = numGenotypes;
 	        this.aff = totalAffected;
@@ -234,6 +236,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	        this.dt = drawType;
 	        this.vcRecord = vc;
         }
+	    int bpX;
 	    int x;
 	    int g;
 	    int aff;
@@ -351,14 +354,13 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	private JComboBox<String> geneListCmb;
 
     private PreparedMarkerSet markerSet;
-    private long fingerprint;
     private String[] markerNames;
 	
 	public TrailerClone(Project proj, String[] vcfFiles) {
 		this(proj, proj.GENE_LIST_FILENAMES.getValue()[0], vcfFiles);
 	}
 
-	// TODO Trailer should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
+	// TODO TrailerClone should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
 	public TrailerClone(Project proj, String file, String[] vcfs) {
 		super("Genvisis - Trailer - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -619,7 +621,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 len = equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : exons[j][1] - exons[j][0];
                 lenPx = getX(tempX + len) - tempPx;
                 // vertical line: 
-                g.fillRect(tempPx, height, 1, GENE_HEIGHT);
+                if (paintExonBoundaries) {
+                    g.fillRect(tempPx, height, 1, GENE_HEIGHT);
+                }
                 if (fillExons) {
                     g.setColor(FILLED_EXON_COLOR);
                     g.fillRect(tempPx, height, lenPx, GENE_HEIGHT);
@@ -695,7 +699,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                 }
 
                                 freqLocs.add(new VCFLocation(tempPx + diffPx, vc));
-                                BlockDraw bd = new BlockDraw(tempPx + diffPx, gctx.size(), totAff, popGenoCnt, vcType, vc);
+                                BlockDraw bd = new BlockDraw(vc.getStart(), tempPx + diffPx, gctx.size(), totAff, popGenoCnt, vcType, vc);
                                 toDraw.add(bd);
                             }
                             for (BlockDraw bd : toDraw) {
@@ -749,6 +753,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                         DrawPoint dp = new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width, DrawType.getDrawType(vc), popColorMap.get(popMap.get(geno.getSampleName())), geno.getSampleName(), vc);
                                         activePoints.add(dp);
                                         activeRects.add(vcRect);
+                                        if (selectedDrawPoint != null && dp.sampleID.equals(selectedDrawPoint.sampleID)) {
+                                            selectedRect = vcRect;
+                                        }
                                         drawn.add(dp);
                                         if (vcRect.y + vcRect.height + 110 >= getHeight()) {
                                             break; // stop doing things if we're off the screen
@@ -769,7 +776,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 // move tempX to other side of exon:
                 tempX += len;
                 if (!fillExons && !paintExonBoxes) {
-                    g.fillRect(getX(tempX)-1, height, 1, GENE_HEIGHT);
+                    if (paintExonBoundaries) {
+                        g.fillRect(getX(tempX)-1, height, 1, GENE_HEIGHT);
+                    }
                 }
                 if (intronBPWidth > 0 || paintIntrons) {
                     if (j < exons.length - 1) {
@@ -790,8 +799,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             begin = getX(gene.getStart());
             width = g.getFontMetrics().stringWidth(gene.getGeneName());
 			g.drawString(gene.getGeneName(), begin-width-3, height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() / 2 - 3);
-			
-			drawFreqs(g, freqLocs, begin);
+			if (drawMAF) {
+			    drawFreqs(g, freqLocs, begin);
+			}
 		}
 		drawLegend(g);
 	}
@@ -806,6 +816,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         int drawMax = 0;
         activeRects.add(new Rectangle(x, 2, width, height));
         activeBlocks.add(bd);
+        if (selectedBlockDraw != null && bd.bpX == selectedBlockDraw.bpX) {
+            selectedRect = activeRects.get(activeRects.size() - 1);
+        }
         for (String pop : popSet) {
             Integer propInt = bd.gen.get(pop);
             if (propInt == null) {
@@ -856,7 +869,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             tempY += drawLen;
         }
         g.setColor(Color.BLACK);
-        if (selectedBlockDraw != null && bd.x == selectedBlockDraw.x) {
+        if (selectedBlockDraw != null && bd.bpX == selectedBlockDraw.bpX) {
             g.drawRect(x - 1, 2, width + 2, tempY - 2);
         }
 	}
@@ -933,9 +946,12 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         int spanAll = getStop(true) - getStart(true);
         int spanCur = stop - start;
         double prop = spanCur / (double) spanAll;
-        float fsz = (float) Math.min(14d, 5 / prop);
+        float fsz = (float) Math.min(14d, 11 / prop);
+//        float fsz = 11f;
         g.setFont((Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED) : Fonts.SOURCE_CODE_PRO_REGULAR).deriveFont(fsz));
         FontMetrics fm = g.getFontMetrics();
+        
+        if ((showExcludes ? popIndiMapWithExcludes : popIndiMap) == null) return;
         
         ArrayList<String> pops = new ArrayList<String>();
 
@@ -954,25 +970,35 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         
         int y = genePanel.getHeight() - yStart + 3;
         
-        for (VCFLocation vcfLoc : vcfLocs) {
-            
-            for (int i = 0; i < pops.size(); i++) {
-                
-                String draw = vcfLoc.mafMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLoc.mafMap.get(pops.get(i)), 4) : "--";
+        for (int i = 0; i < pops.size(); i++) {
+            for (int v = 0; v < vcfLocs.size(); v++) {
+                String draw = vcfLocs.get(v).mafMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).mafMap.get(pops.get(i)), 4) : "--";
+                int width = fm.stringWidth(draw);
+                if (v < vcfLocs.size() - 1) {
+                    if (vcfLocs.get(v).x + width > vcfLocs.get(v + 1).x) {
+                        draw = "*";
+                    }
+                }
                 int yTemp = y + i * (dataPntSize * 2 - 1);
-                g.drawString(draw, vcfLoc.x, yTemp + fm.getHeight() / 2 + 2);
-                
+                g.drawString(draw, vcfLocs.get(v).x, yTemp + fm.getHeight() / 2 + 1);
             }
-            
         }
         for (int i = 0; i < pops.size(); i++) {
-            int yTemp = y + i * (dataPntSize * 2 - 1);
+            int yTemp = y + i * (dataPntSize * 2 - 1) + 1;
             g.setColor(Color.BLACK);
             g.drawRect(lblX - dataPntSize - 5, yTemp, dataPntSize, dataPntSize);
             g.setColor(popColorMap.get(pops.get(i)));
             g.fillRect(lblX - dataPntSize - 4, yTemp+1, dataPntSize - 1, dataPntSize - 1);
         }
+        g.setColor(Color.BLACK);
         g.setFont(prevFont);
+        if (pops.size() > 0) {
+            String lbl = "MAF:";
+            fm = g.getFontMetrics();
+            int yHalf = y + (pops.size() * (dataPntSize * 2 - 1)) / 2 + fm.getHeight() / 3 - 2;
+            int tempX = lblX - dataPntSize - 10;
+            g.drawString(lbl, tempX - fm.stringWidth(lbl), yHalf);
+        }
     }
     
     private int determineExonNumber(GeneData geneData, int[] exonBnds) {
@@ -1199,13 +1225,17 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 JComboBox<String> jcb = (JComboBox<String>)e.getSource();
                 int index = jcb.getSelectedIndex();
                 if (index == isoformsPresent.length-1) {
-//                    createIsoformList(); // TODO collapse isoforms
+//                    createIsoformList();
 //                    isoformIndex = COLLAPSE_ISOFORMS;
                 } else if (!isoformsPresent[index].equals(isoform)) {
 //                    isoformIndex = index;
 //                    updateSample(isoformsPresent[index]);
                 }
+                selectedBlockDraw = null;
+                selectedDrawPoint = null;
+                selectedRect = null;
                 parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(isoformList.getSelectedItem()));
+                
                 updateGUI();
             }
         });
@@ -1398,6 +1428,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		JMenu disp = new JMenu("Display");
 		disp.setMnemonic(KeyEvent.VK_D);
 		menuBar.add(disp);
+		JCheckBoxMenuItem paintExonBoundariesChk = new JCheckBoxMenuItem();
+		disp.add(paintExonBoundariesChk);
 		JCheckBoxMenuItem paintIntronsChk = new JCheckBoxMenuItem();
 		disp.add(paintIntronsChk);
 		JCheckBoxMenuItem paintExonBoxesChk = new JCheckBoxMenuItem();
@@ -1432,6 +1464,20 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         JRadioButtonMenuItem displayIndiCircles = new JRadioButtonMenuItem();
         displayGroup.add(displayIndiCircles);
         disp.add(displayIndiCircles);
+        disp.add(new JSeparator());
+        JCheckBoxMenuItem displayMAF = new JCheckBoxMenuItem();
+        disp.add(displayMAF);
+        
+        paintExonBoundariesChk.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                paintExonBoundaries = paintExonBoundariesChk.isSelected();
+                updateGUI();
+            }
+        });
+        paintExonBoundariesChk.setText("Paint Exon Boundaries");
+        paintExonBoundariesChk.setSelected(paintExonBoundaries);
         
 		paintIntronsChk.setAction(new AbstractAction() {
             private static final long serialVersionUID = 1L;
@@ -1541,7 +1587,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             }
         });
         chkbxDisplayExcludes.setText("Show Excluded");
-        // TODO disable menu item if excluded column not found
         
         displayPopBlocks.setAction(new AbstractAction() {
             private static final long serialVersionUID = 1L;
@@ -1564,6 +1609,20 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         });
         displayIndiCircles.setText("Display Individuals");
         
+        displayMAF.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                drawMAF = displayMAF.isSelected();
+                if (drawMAF) {
+                    yStart = Y_START + dataPntSize * popSet.size();
+                } else {
+                    yStart = Y_START;
+                }
+                updateGUI();
+            }
+        });
+        displayMAF.setText("Display Minor Allele Frequencies (MAF)");
 		
         JMenu act = new JMenu("Actions");
         act.setMnemonic(KeyEvent.VK_A);
@@ -1816,7 +1875,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         
         if (selectedRect.contains(x, y)) {
             if (genePanel.getToolTipText() == null) {
-                genePanel.setToolTipText(buildToolTip(selectedBlockDraw == null ? selectedDrawPoint.vcRecord : selectedBlockDraw.vcRecord));
+                genePanel.setToolTipText(selectedBlockDraw == null ? buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
             }
         } else {
             genePanel.setToolTipText(null);
@@ -1824,14 +1883,36 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         
 	}
 	
-	private String buildToolTip(VariantContext vc) {
+	private String buildToolTip(DrawPoint dp) {
 	    StringBuilder txtBld = new StringBuilder();
-        txtBld.append("Details Here");
+	    txtBld.append("Details Here");
+	    return txtBld.toString();
+	}
+	
+	private String buildToolTip(BlockDraw bd) {
+	    StringBuilder txtBld = new StringBuilder("<html><pre>");
+	    txtBld.append("Total = ").append(bd.aff).append("<br />");
+	    txtBld.append("</pre><hr><pre>");
+	    int lenMax = 0;
+	    for (String pop : bd.gen.keySet()) {
+	        lenMax = Math.max(lenMax, pop.length());
+	    }
+	    int szMax = 0;
+	    for (Integer t : bd.gen.values()) {
+	        szMax = Math.max(szMax, ("" + t).length());
+	    }
+	    String format = "%1$" + lenMax + "s = %2$" + szMax + "d";
+	    for (Entry<String, Integer> entry : bd.gen.entrySet()) {
+	        String s = String.format(format, entry.getKey(), entry.getValue());
+	        txtBld.append(s).append("<br />");
+//	        txtBld.append(entry.getKey()).append(" = ").append(entry.getValue()).append("<br />");
+	    }
+        txtBld.append("</pre></html>");
 	    return txtBld.toString();
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		zoomProportionally(e.getWheelRotation()>0, e.getPoint(), false);
+		zoomProportionally(e.getWheelRotation() > 0, e.getPoint(), false);
 	}
 
 	public void zoomProportionally(boolean outNotIn, Point p, boolean center) {
@@ -1873,7 +1954,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             log.reportError("Error - failed to load MarkerSet for project "+proj.PROJECT_NAME.getValue()+"; make sure the raw data is parsed");
             return false;
         }
-        fingerprint = markerSet.getFingerprint();
         markerNames = markerSet.getMarkerNames();
         chrs = markerSet.getChrs();
         positions = markerSet.getPositions();
@@ -2149,26 +2229,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         }
         return colorMap;
 	}
-	
-//	private void loadPopulation() {
-//	    String[] vpopFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.vpop"/*, "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.vpop"*/};
-//	    String[][] vpopData = HashVec.loadFileToStringMatrix(vpopFiles[0], true, new int[]{0, 1, 2}, false);
-//	    for (String[] indiInfo : vpopData) {
-//	        popMap.put(indiInfo[0], indiInfo[1]);
-//	        superPopMap.put(indiInfo[0], indiInfo[2]);
-//	    }
-//	    popSet = new HashSet<String>();
-//	    HashSet<String> superPopSet = new HashSet<String>();
-//	    popSet.addAll(popMap.values());
-//	    superPopSet.addAll(superPopMap.values());
-//	    int index = 0;
-//	    for (String s : popSet) {
-//	        popColorMap.put(s, getAColor(index++)[0]);
-//	    }
-////	    for (String s : superPopSet) {
-////	        popColorMap.put(s, getAColor(index++)[0]);
-////	    }
-//	}
 	
 	private void loadDataIfMissing() {
 	    String[] vcfFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz"/*, "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz"*/};

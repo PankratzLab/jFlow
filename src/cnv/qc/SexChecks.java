@@ -458,7 +458,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 		
 		log = proj.getLog();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"sexCheck.xln"));
+			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue()));
 			writer.println(Array.toStr(SEX_HEADER));
 			for (int i = 0; i<samples.length; i++) {
 				famIndPair = sampleData.lookup(samples[i])[1];
@@ -472,7 +472,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 			}
 			writer.close();
 		} catch (Exception e) {
-			log.reportError("Error writing to sexCheck.xln");
+			log.reportError("Error writing to " + proj.SEXCHECK_RESULTS_FILENAME.getValue());
 			log.reportException(e);
 		}
 	}

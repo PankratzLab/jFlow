@@ -16,6 +16,7 @@ import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.ABLookup;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerData;
+import cnv.filesys.Pedigree;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.gui.GenvisisPipelineGUI;
@@ -426,7 +427,7 @@ public class GenvisisPipeline {
 
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return Files.exists(proj.PROJECT_DIRECTORY.getValue()+"sexCheck.xln");
+            return Files.exists(proj.SEXCHECK_RESULTS_FILENAME.getValue());
         }
         
         @Override
@@ -449,8 +450,8 @@ public class GenvisisPipeline {
     
     static final STEP S6_RUN_PLINK = new STEP("Create/Run PLINK Files", 
                  "", 
-                 new String[][]{{"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}, {"A pedigree.dat file is must exist."}}, 
-                 new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.FILE}}) {
+                 new String[][]{{"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}, {"A pedigree.dat file is must exist.", "Create a minimal pedigree.dat file."}}, 
+                 new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.FILE, RequirementInputType.BOOL}}) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -459,15 +460,26 @@ public class GenvisisPipeline {
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 proj.SAMPLE_DIRECTORY.setValue(setDir);
             }
-            String projPedFile = proj.PEDIGREE_FILENAME.getValue(false, false);
-            String pedFile = variables.get(this).get(1);
-            if (!pedFile.equals(projPedFile)) {
-                proj.PEDIGREE_FILENAME.setValue(pedFile);
+            if (!Boolean.valueOf(variables.get(this).get(2))) {
+                String projPedFile = proj.PEDIGREE_FILENAME.getValue(false, false);
+                String pedFile = variables.get(this).get(1);
+                if (!pedFile.equals(projPedFile)) {
+                    proj.PEDIGREE_FILENAME.setValue(pedFile);
+                }
             }
         }
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            if (Boolean.valueOf(variables.get(this).get(2))) {
+                proj.getLog().report("Creating Pedigree File");
+                Pedigree.build(proj, null, false);
+            }
+            if (!Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
+                setFailed();
+                this.failReasons.add("Creation of Pedigree file in [Create/Run PLINK Files] step failed.");
+                return;
+            }
             
             proj.getLog().report("Running PLINK");
             
@@ -487,13 +499,14 @@ public class GenvisisPipeline {
             return new boolean[][]{
                     {checkStepParseSamples,
                         (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
-                    {Files.exists(pedFile)}
+                    {Files.exists(pedFile),
+                            true}
             };
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{proj.SAMPLE_DIRECTORY.getValue(false, false), proj.PEDIGREE_FILENAME.getValue(false, false)};
+            return new Object[]{proj.SAMPLE_DIRECTORY.getValue(false, false), proj.PEDIGREE_FILENAME.getValue(false, false), false};
         }
 
         @Override
@@ -501,8 +514,10 @@ public class GenvisisPipeline {
 //            String fileCheck1 = proj.PROJECT_DIRECTORY.getValue()+"gwas.map";
             String fileCheck2 = proj.PROJECT_DIRECTORY.getValue()+"plink.bed";
 //            String fileCheck3 = proj.PROJECT_DIRECTORY.getValue()+"genome/";
-            return/* Files.exists(fileCheck1) &&*/ Files.exists(fileCheck2) /*&& Files.exists(fileCheck3)*/ /*&& Files.list(fileCheck3, ".bed", false).length > 0*/;
+            boolean pedCheck = Boolean.valueOf(variables.get(this).get(2)) ? Files.exists(proj.PEDIGREE_FILENAME.getValue()) : true;
+            return/* Files.exists(fileCheck1) &&*/ Files.exists(fileCheck2) /*&& Files.exists(fileCheck3)*/ /*&& Files.list(fileCheck3, ".bed", false).length > 0*/ && pedCheck;
         }
+        
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String kvCmd = "";
@@ -512,16 +527,21 @@ public class GenvisisPipeline {
             if (!ext.verifyDirFormat(setDir).equals(projDir)) {
                 kvCmd += " SAMPLE_DIRECTORY=" + setDir;
             }
-            String projPedFile = proj.PEDIGREE_FILENAME.getValue(false, false);
-            String pedFile = variables.get(this).get(1);
-            if (!pedFile.equals(projPedFile)) {
-                kvCmd += " PEDIGREE_FILENAME=" + pedFile;
+            if (!Boolean.valueOf(variables.get(this).get(2))) {
+                String projPedFile = proj.PEDIGREE_FILENAME.getValue(false, false);
+                String pedFile = variables.get(this).get(1);
+                if (!pedFile.equals(projPedFile)) {
+                    kvCmd += " PEDIGREE_FILENAME=" + pedFile;
+                }
             }
             
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
             if (kvCmd.length() > 0) {
-                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+                cmd.append("jcp cnv.filesys.Project proj=").append(projPropFile).append(kvCmd).append("\n");
+            }
+            if (Boolean.valueOf(variables.get(this).get(2))) {
+                cmd.append("jcp cnv.filesys.Pedigree proj=").append(projPropFile).append("\n");
             }
             cmd.append("jcp cnv.manage.PlinkData -genvisisToBed plinkdata=gwas gcthreshold=-1 proj=").append(proj.getPropertyFilename());
             return cmd.toString();

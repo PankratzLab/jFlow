@@ -83,7 +83,7 @@ public class SexPlot extends JFrame {
 		sexes = new Vector<Byte>();
 		estimatedSexes = new Vector<Byte>();
 		try {
-			reader = Files.getReader(proj.PROJECT_DIRECTORY.getValue()+"sexCheck.xln", proj.JAR_STATUS.getValue(), true, false);
+			reader = Files.getReader(proj.SEXCHECK_RESULTS_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
 			if (reader == null) {
 				return;
 			}
@@ -101,10 +101,10 @@ public class SexPlot extends JFrame {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+proj.PROJECT_DIRECTORY.getValue()+"sexCheck.xln"+"\" not found in current directory");
+			System.err.println("Error: file \""+proj.SEXCHECK_RESULTS_FILENAME.getValue()+"\" not found in current directory");
 			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.PROJECT_DIRECTORY.getValue()+"sexCheck.xln"+"\"");
+			System.err.println("Error reading file \""+proj.SEXCHECK_RESULTS_FILENAME.getValue()+"\"");
 			return;
 		}
 	
