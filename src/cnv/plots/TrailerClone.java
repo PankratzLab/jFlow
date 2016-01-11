@@ -930,15 +930,34 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         
         int x = 15;
         int y = 15 + fm.getHeight();
-        g.drawOval(x, y, dataPntSize, dataPntSize);
-        g.drawOval(x + 1, y + 1, dataPntSize - 2, dataPntSize - 2);
+        if (drawType == DRAW_AS_CIRCLES) {
+            g.drawOval(x, y, dataPntSize, dataPntSize);
+            g.drawOval(x + 1, y + 1, dataPntSize - 2, dataPntSize - 2);
+        } else {
+            g.drawRect(x, y, dataPntSize, dataPntSize);
+            g.drawRect(x+1, y + 1, dataPntSize - 2, dataPntSize - 2);
+            g.drawRect(x+2, y + 2, dataPntSize - 4, dataPntSize - 4);
+        }
         g.drawString("Low Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
         y += 15;
-        g.fillOval(x, y, dataPntSize, dataPntSize);
+        if (drawType == DRAW_AS_CIRCLES) {
+            g.fillOval(x, y, dataPntSize, dataPntSize);
+        } else {
+            g.fillRect(x, y, dataPntSize, dataPntSize);
+        }
         g.drawString("Moderate Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
         y += 15;
-        Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, Color.BLACK);
-        Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, Color.BLACK);
+        if (drawType == DRAW_AS_CIRCLES) {
+            Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, Color.BLACK);
+            Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, Color.BLACK);
+        } else {
+            g.drawRect(x, y, dataPntSize, dataPntSize);
+            int tickLen = 4;
+            int ticks = dataPntSize / tickLen;
+            for (int i = 0; i < ticks; i++) {
+                g.drawLine(x + 1, y + (i * tickLen), x + dataPntSize - 1, y + ((i + 1) * tickLen));
+            }
+        }
         g.drawString("High Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
         y += 15;
 //        g.drawLine(10, y, 110, y);
@@ -1682,6 +1701,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawType = DRAW_AS_BLOCKS;
+                selectedRect = null;
+                selectedDrawPoint = null;
+                selectedBlockDraw = null;
                 updateGUI();
             }
         });
@@ -1693,6 +1715,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             @Override
             public void actionPerformed(ActionEvent e) {
                 drawType = DRAW_AS_CIRCLES;
+                selectedRect = null;
+                selectedDrawPoint = null;
+                selectedBlockDraw = null;
                 updateGUI();
             }
         });

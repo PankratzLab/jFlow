@@ -500,7 +500,7 @@ public class GenvisisPipeline {
                     {checkStepParseSamples,
                         (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
                     {Files.exists(pedFile),
-                            true}
+                            Boolean.parseBoolean(variables.get(this).get(2))}
             };
         }
         

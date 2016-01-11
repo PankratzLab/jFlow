@@ -13,7 +13,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
-import cnv.manage.TextExport;
 import common.ByteVector;
 import common.Files;
 import common.IntVector;
@@ -589,7 +588,6 @@ public class CNVariant extends Segment {
 		int numArgs = args.length;
 		String filename1 = "CNVariant1.dat";
 		String filename2 = "CNVariant2.dat";
-		String logfile = null;
 		boolean signif = false;
 		
 		String usage = 
@@ -612,9 +610,6 @@ public class CNVariant extends Segment {
 				numArgs--;
 			} else if (args[i].startsWith("-sig")) {
 				signif = true;
-				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -779,6 +774,11 @@ public class CNVariant extends Segment {
 		public int getStartIndex() {
 			return startIndex;
 		}
+		
+		public int getStopIndex() {
+		    return stopIndex;
+		}
+		
 		public CNVBuilder stopIndex(int stopIndex) {
 			this.stopIndex = stopIndex;
 			return this;
