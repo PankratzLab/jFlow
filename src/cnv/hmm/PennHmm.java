@@ -457,6 +457,10 @@ public class PennHmm {
 			return indexStateChange;
 		}
 
+		public int[] getQ() {
+			return q;
+		}
+
 		/**
 		 * @param proj
 		 * @param fid
@@ -712,16 +716,25 @@ public class PennHmm {
 		return converted;
 	}
 
-	public static LocusSet<CNVariant> scoreCNVsSameChr(PennHmm pennHmm, LocusSet<CNVariant> cLocusSet, int[] posChr, double[] lrrChr, double[] bafsChr, double[] pfbsChr, boolean[] copyNumberOnlyDef, Logger log) {
+	public static LocusSet<CNVariant> scoreCNVsSameChr(PennHmm pennHmm, LocusSet<CNVariant> cLocusSet, int[] posChr, double[] lrrChr, double[] bafsChr, double[] pfbsChr, boolean[] copyNumberOnlyDef, int[] q, int normalState, Logger log) {
 		ArrayList<CNVariant> scored = new ArrayList<CNVariant>();
 
 		for (int i = 0; i < cLocusSet.getLoci().length; i++) {
 			CNVariant current = cLocusSet.getLoci()[i];
 			ArrayList<Integer> indicestmp = new ArrayList<Integer>();
-			for (int j = 0; j < posChr.length; j++) {
+			for (int j = 0; j < posChr.length; j++) {// TODO, speed up this search
 				int pos = posChr[j];
 				if (pos >= current.getStart() && pos <= current.getStop()) {
-					indicestmp.add(j);
+					if (q[j] != normalState) {// occurs when two markers have identical positions and only one of the two supports a cnv start or end
+						indicestmp.add(j);
+					} else {
+						if (current.getStart() != pos && current.getStop() != pos) {
+							throw new IllegalStateException("Found normal state within a cnv");
+						}
+					}
+				}
+				if (pos > current.getStop()) {
+					break;
 				}
 			}
 			int hmmState = current.getCN();
@@ -732,6 +745,7 @@ public class PennHmm {
 			int[] indices = Array.toIntArray(indicestmp);
 			if (indices.length != current.getNumMarkers()) {
 				String error = "BUG: could not reconstruct original markers, found " + indices.length + " and should have found " + current.getNumMarkers();
+				error += "Sample FID: " + current.getFamilyID() + " IID: " + current.getIndividualID();
 				log.reportTimeError(error);
 				throw new IllegalStateException(error);
 			}
