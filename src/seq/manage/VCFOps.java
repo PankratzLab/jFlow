@@ -588,6 +588,8 @@ public class VCFOps {
 		public static final String CASE = "CASE";
 		public static final String CONTROL = "CONTROL";
 		public static final String EXCLUDE = "EXCLUDE";
+		public static final String TUMOR = "TUMOR";
+		public static final String NORMAL = "NORMAL";
 		public static final String DETERMINE_ANCESTRY = "DETERMINE_ANCESTRY";
 		public static final String[] HEADER = new String[] { "IID", "Population", "SuperPopulation" };
 		private static final String SKIP = "#N/A";
@@ -600,7 +602,7 @@ public class VCFOps {
 		private Logger log;
 
 		public enum POPULATION_TYPE {
-			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH, PC_ANCESTRY, ANCHOR_BARNACLE;
+			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH, PC_ANCESTRY, ANCHOR_BARNACLE,TUMOR_NORMAL;
 		}
 
 		public enum RETRIEVE_TYPE {
@@ -743,6 +745,14 @@ public class VCFOps {
 				if (!superPop.containsKey(ANCHOR) || !superPop.containsKey(ANCHOR)) {
 					log.reportTimeError("Population type was set to " + type + ", but did not contain " + ANCHOR + " AND " + BARNACLE);
 					valid = false;
+				}
+				break;
+			case TUMOR_NORMAL:
+				if (superPop.size() != 3) {
+					throw new IllegalArgumentException(POPULATION_TYPE.TUMOR_NORMAL + " must have two and only three types and found "+superPop.keySet());
+
+				} else if (!superPop.containsKey(TUMOR) || !superPop.containsKey(NORMAL)) {
+					throw new IllegalArgumentException(POPULATION_TYPE.TUMOR_NORMAL + " must only contain " + TUMOR + " and " + NORMAL);
 				}
 				break;
 			default:
@@ -1375,7 +1385,7 @@ public class VCFOps {
 			}
 
 			VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
-			copyHeader(reader, writer, bamSamples, HEADER_COPY_TYPE.FULL_COPY, log);
+			copyHeader(reader, writer, bamSamples, subToBam ? HEADER_COPY_TYPE.SUBSET_STRICT : HEADER_COPY_TYPE.FULL_COPY, log);
 			int progress = 0;
 			int found = 0;
 
