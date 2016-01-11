@@ -154,7 +154,7 @@ class MetaStudy {
 	}
 
 	public ArrayList<StudyData> getStudies() {
-	    return this.shouldSort ? this.sortOrder == null || this.sortOrder.isEmpty() ? getSorted() : getSorted(this.sortOrder) : this.studies;
+	    return this.shouldSort ? (this.sortOrder == null || this.sortOrder.isEmpty() ? getSorted() : getSorted(this.sortOrder)) : this.studies;
 	}
 
 	public float[] getMetaConf(boolean odds) {
@@ -179,6 +179,7 @@ class MetaStudy {
     public void setSort(boolean sortedDisplay, ArrayList<String> sortOrder) {
         this.shouldSort = sortedDisplay;
         this.sortOrder = sortOrder;
+        this.sorted = null;
     }
 	
 }
