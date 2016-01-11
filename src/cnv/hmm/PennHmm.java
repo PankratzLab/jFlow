@@ -494,18 +494,10 @@ public class PennHmm {
 				}
 				for (int i = 0; i < states.length; i++) {
 
-					int currentCN = states[i];
-					if (currentCN == 3) {
-						currentCN = LOH_FLAG;
-					}
-					if (currentCN != normalState) {// CN 3 denotes LOH.
-						if (currentCN == LOH_FLAG) {
-							currentCN = LOH_FLAG;
-						}
+					int currentCN = getStateCN(states[i]);
 
-						else if (currentCN > 3) {
-							currentCN--;
-						}
+					if (currentCN != normalState) {// CN 3 denotes LOH.
+
 						if (foundSignal && currentCN != currentFind) {// new, adjacent cnv
 							builder.stop(positions[i - 1]);
 							indexStateChange.add(new int[] { builder.getStartIndex(), i - 1 });
@@ -725,11 +717,12 @@ public class PennHmm {
 			for (int j = 0; j < posChr.length; j++) {// TODO, speed up this search
 				int pos = posChr[j];
 				if (pos >= current.getStart() && pos <= current.getStop()) {
-					if (q[j] != normalState) {// occurs when two markers have identical positions and only one of the two supports a cnv start or end
+					int stateCN = getStateCN(q[j]);
+					if (stateCN == current.getCN()) {// can be different when two markers have identical positions and only one of the two supports a cnv start or end
 						indicestmp.add(j);
 					} else {
 						if (current.getStart() != pos && current.getStop() != pos) {
-							throw new IllegalStateException("Found normal state within a cnv");
+							throw new IllegalStateException("Found mismatched states within a cnv");
 						}
 					}
 				}
@@ -764,6 +757,17 @@ public class PennHmm {
 
 		};
 		return locusSetScored;
+	}
+
+	private static int getStateCN(int q) {
+		int stateCN = q;
+		if (stateCN == 3) {
+			stateCN = LOH_FLAG;
+		}
+		else if (stateCN > 3) {
+			stateCN--;
+		}
+		return stateCN;
 	}
 
 	private static double getLocScore(PennHmm pennHmm, double[] o1, double[] o2, double[] pfb, boolean[] copyNumberOnlyDef, int actualStateIndex) {
