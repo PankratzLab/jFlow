@@ -315,13 +315,13 @@ public class CNVCaller {
 			LocusSet<CNVariant> chrCnvsReverse = null;
 			LocusSet<CNVariant> chrCNVsReverseConsensus = null;
 
-			chrCnvs = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs, cnDef, proj.getLog());
+			chrCnvs = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs, cnDef, viterbiResult.getQ(), 2, proj.getLog());
 			if (callReverse) {
 				ViterbiResult viterbiResultReverse = PennHmm.ViterbiLogNP_CHMM(pennHmm, Array.reverse(lrrs), Array.reverse(bafs), Array.reverse(pfbs), snipDistsReverse, Array.reverse(cnDef));
 				chrCnvsReverse = viterbiResultReverse.analyzeStateSequence(proj, dna, dna, currentChr, positions, names, 2, true, verbose);
-				chrCnvsReverse = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs, cnDef, proj.getLog());
+				chrCnvsReverse = PennHmm.scoreCNVsSameChr(pennHmm, chrCnvs, positions, lrrs, bafs, pfbs, cnDef, viterbiResult.getQ(), 2, proj.getLog());
 				chrCNVsReverseConsensus = developConsensus(chrCnvs, chrCnvsReverse, positions, proj.getLog());
-				chrCNVsReverseConsensus = PennHmm.scoreCNVsSameChr(pennHmm, chrCNVsReverseConsensus, positions, lrrs, bafs, pfbs, cnDef, proj.getLog());
+				chrCNVsReverseConsensus = PennHmm.scoreCNVsSameChr(pennHmm, chrCNVsReverseConsensus, positions, lrrs, bafs, pfbs, cnDef, viterbiResult.getQ(), 2, proj.getLog());
 			}
 			CNVCallResult callResult = new CNVCallResult(chrCnvs, chrCnvsReverse, chrCNVsReverseConsensus);
 			return callResult;
@@ -686,6 +686,7 @@ public class CNVCaller {
 				train.next().getChrCNVs().addAll(allCNVs);
 			} catch (Exception e) {
 				proj.getLog().reportTimeError("encountered problems calling cnvs for sample " + index + "\t" + samples[index]);
+				System.exit(1);
 			}
 			proj.getLog().reportTimeInfo("Called CNVs for" + index + " samples");
 
