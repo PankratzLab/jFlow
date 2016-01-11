@@ -686,7 +686,6 @@ public class CNVCaller {
 				train.next().getChrCNVs().addAll(allCNVs);
 			} catch (Exception e) {
 				proj.getLog().reportTimeError("encountered problems calling cnvs for sample " + index + "\t" + samples[index]);
-				System.exit(1);
 			}
 			proj.getLog().reportTimeInfo("Called CNVs for" + index + " samples");
 
