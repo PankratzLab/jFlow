@@ -344,7 +344,7 @@ public class ExportCNVsToPedFormat {
 				cnvFilename = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("ped=")) {
-				pedFilename = args[i].split("=")[1];
+				pedFilename = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("out=")) {
 				outputFilename = args[i].split("=")[1];

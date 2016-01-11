@@ -462,6 +462,17 @@ public class ForestPlot extends JFrame implements WindowListener {
 		
 		actions.add(new JSeparator());
         
+		JMenuItem createSortFile = new JMenuItem();
+		createSortFile.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generateStudyNameFile();
+            }
+		});
+		createSortFile.setText("Create Sort File");
+		actions.add(createSortFile);
+		
 		final JRadioButtonMenuItem noSortButton = new JRadioButtonMenuItem();
 		AbstractAction noSortAction = new AbstractAction() {
             private static final long serialVersionUID = 1L;
@@ -793,7 +804,17 @@ public class ForestPlot extends JFrame implements WindowListener {
 		
 	}
 
-	private void updateForestPlot(){
+	private void generateStudyNameFile() {
+        String fileName = ext.verifyDirFormat(ext.parseDirectoryOfFile(markerFileName)) + "sort.txt";
+        ArrayList<StudyData> currentData = getCurrentMetaStudy().getStudies();
+        ArrayList<String> names = new ArrayList<String>();
+        for (StudyData sd : currentData) {
+            names.add(sd.getLabel());
+        }
+        Files.writeArrayList(names, fileName);
+    }
+
+    private void updateForestPlot(){
 		forestPanel.setPointsGeneratable(true);
 		forestPanel.setRectangleGeneratable(true);
 		forestPanel.setExtraLayersVisible(new byte[] { 99 });
