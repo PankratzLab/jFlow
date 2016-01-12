@@ -870,7 +870,7 @@ public class lab {
 		        } else {
 		            try {
 		                c = (Color)Class.forName("java.awt.Color").getField(col).get(null);
-		            } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException | ClassNotFoundException e) {
+		            } catch (Exception e) {
 		            }
 		        }
 		    }

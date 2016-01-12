@@ -1521,48 +1521,48 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		JMenu disp = new JMenu("Display");
 		disp.setMnemonic(KeyEvent.VK_D);
 		menuBar.add(disp);
-		JCheckBoxMenuItem paintExonBoundariesChk = new JCheckBoxMenuItem();
+		final JCheckBoxMenuItem paintExonBoundariesChk = new JCheckBoxMenuItem();
 		disp.add(paintExonBoundariesChk);
-		JCheckBoxMenuItem paintIntronsChk = new JCheckBoxMenuItem();
+		final JCheckBoxMenuItem paintIntronsChk = new JCheckBoxMenuItem();
 		disp.add(paintIntronsChk);
-		JCheckBoxMenuItem paintExonBoxesChk = new JCheckBoxMenuItem();
+		final JCheckBoxMenuItem paintExonBoxesChk = new JCheckBoxMenuItem();
 		disp.add(paintExonBoxesChk);
-		JCheckBoxMenuItem fillExonsChk = new JCheckBoxMenuItem();
+		final JCheckBoxMenuItem fillExonsChk = new JCheckBoxMenuItem();
 		disp.add(fillExonsChk);
-		JCheckBoxMenuItem paintExonLinesChk = new JCheckBoxMenuItem();
+		final JCheckBoxMenuItem paintExonLinesChk = new JCheckBoxMenuItem();
 		disp.add(paintExonLinesChk);
-		JCheckBoxMenuItem equalizeExonsChk = new JCheckBoxMenuItem();
+		final JCheckBoxMenuItem equalizeExonsChk = new JCheckBoxMenuItem();
         disp.add(equalizeExonsChk);
         disp.add(new JSeparator());
-        JCheckBoxMenuItem paintExonNumbersChk = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem paintExonNumbersChk = new JCheckBoxMenuItem();
         disp.add(paintExonNumbersChk);
         ButtonGroup exonLblGroup = new ButtonGroup();
-        JRadioButtonMenuItem exonLblLeft = new JRadioButtonMenuItem();
+        final JRadioButtonMenuItem exonLblLeft = new JRadioButtonMenuItem();
         exonLblGroup.add(exonLblLeft);
         disp.add(exonLblLeft);
-        JRadioButtonMenuItem exonLblCenter = new JRadioButtonMenuItem();
+        final JRadioButtonMenuItem exonLblCenter = new JRadioButtonMenuItem();
         exonLblGroup.add(exonLblCenter);
         disp.add(exonLblCenter);
-        JRadioButtonMenuItem exonLblRight = new JRadioButtonMenuItem();
+        final JRadioButtonMenuItem exonLblRight = new JRadioButtonMenuItem();
         exonLblGroup.add(exonLblRight);
         disp.add(exonLblRight);
         disp.add(new JSeparator());
-        JCheckBoxMenuItem chkbxDisplayLegend = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem chkbxDisplayLegend = new JCheckBoxMenuItem();
         disp.add(chkbxDisplayLegend);
         chkbxDisplayExcludes = new JCheckBoxMenuItem();
         disp.add(chkbxDisplayExcludes);
         disp.add(new JSeparator());
         ButtonGroup displayGroup = new ButtonGroup();
-        JRadioButtonMenuItem displayPopBlocks = new JRadioButtonMenuItem();
+        final JRadioButtonMenuItem displayPopBlocks = new JRadioButtonMenuItem();
         displayGroup.add(displayPopBlocks);
         disp.add(displayPopBlocks);
-        JRadioButtonMenuItem displayIndiCircles = new JRadioButtonMenuItem();
+        final JRadioButtonMenuItem displayIndiCircles = new JRadioButtonMenuItem();
         displayGroup.add(displayIndiCircles);
         disp.add(displayIndiCircles);
         disp.add(new JSeparator());
-        JCheckBoxMenuItem displayMAF = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem displayMAF = new JCheckBoxMenuItem();
         disp.add(displayMAF);
-        JCheckBoxMenuItem displayMAC = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem displayMAC = new JCheckBoxMenuItem();
         disp.add(displayMAC);
         
         paintExonBoundariesChk.setAction(new AbstractAction() {
@@ -2355,7 +2355,15 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             } else {
                 try {
                     c = (Color)Class.forName("java.awt.Color").getField(col).get(null);
-                } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException | ClassNotFoundException e) {
+                } catch (IllegalAccessException e) {
+                    System.err.println("Error - couldn't parse color " + col);
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Error - couldn't parse color " + col);
+                } catch (NoSuchFieldException e) {
+                    System.err.println("Error - couldn't parse color " + col);
+                } catch (SecurityException e) {
+                    System.err.println("Error - couldn't parse color " + col);
+                } catch (ClassNotFoundException e) {
                     System.err.println("Error - couldn't parse color " + col);
                 }
             }
