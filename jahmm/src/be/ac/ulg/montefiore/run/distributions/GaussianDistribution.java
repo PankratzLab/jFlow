@@ -24,6 +24,8 @@ package be.ac.ulg.montefiore.run.distributions;
 
 import java.util.*;
 
+import ca.mcgill.mcb.pcingola.probablility.NormalDistribution;
+
 //import org.apache.commons.math3.distribution.NormalDistribution;
 
 
@@ -95,20 +97,19 @@ public class GaussianDistribution implements RandomDistribution {
 	 * @return the cdf of this value using taylor aproximation, custom genvisis code.
 	 */
 	public double cdf(double n) {
-		
-		
-		double z = (n - mean) / deviation;
-		if (z < -8.0)
-			return 0.0;
-		if (z > 8.0)
-			return 1.0;
-		double sum = 0.0, term = z;
-		for (int i = 3; sum + term != sum; i += 2) {
-			sum = sum + term;
-			term = term * z * z / i;
-		}
-		return 0.5 + sum * probability(z);
-		//return new NormalDistribution(mean, deviation).cumulativeProbability(n);
+
+		// double z = (n - mean) / deviation;
+		// if (z < -8.0)
+		// return 0.0;
+		// if (z > 8.0)
+		// return 1.0;
+		// double sum = 0.0, term = z;
+		// for (int i = 3; sum + term != sum; i += 2) {
+		// sum = sum + term;
+		// term = term * z * z / i;
+		// }
+		// return 0.5 + sum * probability(z);
+		return new org.apache.commons.math3.distribution.NormalDistribution(mean, deviation).cumulativeProbability(n);// SNPEff already uses this
 	}
 
 	private static final long serialVersionUID = 9127329839769283975L;
