@@ -1300,6 +1300,31 @@ public class ext {
 			return Integer.MIN_VALUE;
 		}
 	}
+	
+	/**
+	 * Parse an integer array argument; 
+	 * @param arg argument in form of <code>arg=2,4-10,20</code>, which will return <code>int[]{2,4,5,6,7,8,9,10,20}</code>
+	 * @return
+	 */
+	public static int[] parseIntArrayArg(String arg) {
+	    String lst = arg.trim().split("=")[1];
+	    String[] pts = lst.split(",");
+	    ArrayList<Integer> returnList = new ArrayList<Integer>();
+	    for (String pt : pts) {
+	        //check for range
+	        if (pt.contains("-")) {
+	            int begin = Integer.parseInt(pt.split("-")[0]);
+	            int end = Integer.parseInt(pt.split("-")[1]);
+	            for (int i = begin; i < end+1; i++) {
+	                returnList.add(i);
+	            }
+	        } else {
+	            int ent = Integer.parseInt(pt);
+	            returnList.add(ent);
+	        }
+	    }
+	    return Array.toIntArray(returnList);
+	}
 
 	public static byte parseByteArg(String arg) {
 		try {

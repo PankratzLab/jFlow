@@ -452,7 +452,7 @@ public class GenvisisPipeline {
         
     };
     
-    static final STEP S6_RUN_PLINK = new STEP("Create/Run PLINK Files", 
+    static final STEP S6_RUN_PLINK = new STEP("Create PLINK Files", 
                  "", 
                  new String[][]{{"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}, {"A pedigree.dat file is must exist.", "Create a minimal pedigree.dat file."}}, 
                  new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.FILE, RequirementInputType.BOOL}}) {

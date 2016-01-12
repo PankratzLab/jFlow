@@ -1559,7 +1559,7 @@ public class Project {
                 if (parts.length > 2) {
                     break;
                 }
-                kvPairs.put(parts[0], parts[1]);
+                kvPairs.put(parts[0], parts.length > 1 ? parts[1] : "");
                 numArgs--;
             }
         }

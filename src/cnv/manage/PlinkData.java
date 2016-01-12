@@ -2461,7 +2461,8 @@ public class PlinkData {
 				System.err.println("Error - invalid argument: "+args[i]);
 			}
 		}
-
+		
+		
 		if  (conversionToRun == null) {
 			log = new Logger();
 			log.report(usage);
@@ -2470,13 +2471,21 @@ public class PlinkData {
 			proj = new Project(projPropertyFileFullPath, false);
 			log = proj.getLog();
 			log.report(ext.getTime()+"\tConverting Genvisis to PLINK text (.ped) data set.");
-			PlinkData.saveGenvisisToPlinkPedSet(proj, plinkDataDirAndFilenameRoot, proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, true), proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
+            String clusterFile = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, true);
+            if (!Files.exists(clusterFile)) {
+                clusterFile = null;
+            }
+			PlinkData.saveGenvisisToPlinkPedSet(proj, plinkDataDirAndFilenameRoot, clusterFile, proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 
 		} else if (conversionToRun.equals("-genvisisToBed")) {
 			proj = new Project(projPropertyFileFullPath, false);
 			log = proj.getLog();
 			log.report(ext.getTime()+"\tConverting from Genvisis to PLINK binary (.bed) data set.");
-			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, true), proj.TARGET_MARKERS_FILENAMES.getValue()[0], gcThreshold, true);
+	        String clusterFile = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, true);
+	        if (!Files.exists(clusterFile)) {
+	            clusterFile = null;
+	        }
+			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, clusterFile, proj.TARGET_MARKERS_FILENAMES.getValue()[0], gcThreshold, true);
 			
 		} else if (conversionToRun.equals("-pedToBed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".log");
