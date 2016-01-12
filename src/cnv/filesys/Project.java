@@ -499,8 +499,12 @@ public class Project {
 			log = new Logger(logfile, false, Math.abs(logLevel));
 		}
 		
-	    HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
-	    setSourceFileHeaders(headers);
+		if (Files.exists(SAMPLE_DIRECTORY.getValue()) && (new File(SAMPLE_DIRECTORY.getValue()).list().length > 0)) {
+		    // skip source file headers, sample files already parsed
+		} else {
+    	    HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
+    	    setSourceFileHeaders(headers);
+		}
 	
 	    log.report("Genvisis, v"+cnv.Launch.VERSION+"\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
 		log.report("\nCurrent project: " + getProperty(PROJECT_NAME) + "\n");
@@ -532,17 +536,26 @@ public class Project {
 	        new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    log.report("Parsing source file headers in background thread.");
-                    setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log, null));
-                    log.report("Source file header parsing complete.");
+                    try {
+                        log.report("Parsing source file headers in background thread.");
+                        setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log, null));
+                        log.report("Source file header parsing complete.");
+                    } catch (Exception e) {
+                        log.reportException(e);
+                    }
                 }
             }).start();
 	        return null;
         } else {
-            log.report("Parsing source file headers in active thread.");
-            setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log, null));
-            log.report("Source file header parsing complete.");
-            return getSourceFileHeaders(false);
+            try {
+                log.report("Parsing source file headers in active thread.");
+                setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), true, log, null));
+                log.report("Source file header parsing complete.");
+                return getSourceFileHeaders(false);
+            } catch (Exception e) {
+                log.reportException(e);
+                return null;
+            }
         }
     }
 	
