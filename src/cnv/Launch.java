@@ -177,7 +177,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	
 	private static void createAndShowGUI() {
     	String launchPropertiesFile;
-        Launch frame;
+    	final Launch frame;
 //    	String path;
     	
 //		try {
