@@ -733,7 +733,6 @@ public class CNVCaller {
 		output = proj.PROJECT_DIRECTORY.getValue() + output;
 		proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
 		new File(ext.parseDirectoryOfFile(output)).mkdirs();
-		samples = new String[] { "0009T-4" };
 		CNVCallerIterator callerIterator = getCallerIterator(proj, samples, chrsToCall, null, centroids, numSampleThreads, numChrThreads);
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(output));
