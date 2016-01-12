@@ -12,6 +12,7 @@ import common.WorkerHive;
 import common.WorkerTrain;
 import common.ext;
 import common.WorkerTrain.Producer;
+import cnv.filesys.Centroids;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
@@ -146,7 +147,7 @@ public class CNVCaller {
 					break;
 				case MEDIAN_ADJUST:
 					analysisLrrs = adjustLrr(analysisLrrs, MIN_LRR_MEDIAN_ADJUST, MAX_LRR_MEDIAN_ADJUST, debugMode, proj.getLog());
-					analysisBafs = adjustBaf(analysisBafs, MIN_BAF_MEDIAN_ADJUST, MAX_BAF_MEDIAN_ADJUST,debugMode, proj.getLog());
+					analysisBafs = adjustBaf(analysisBafs, MIN_BAF_MEDIAN_ADJUST, MAX_BAF_MEDIAN_ADJUST, debugMode, proj.getLog());
 					// TODO, update lrrSd later?
 					// lrrSd = Array.stdev(getValuesBetween(analysisLrrs, MIN_LRR_MEDIAN_ADJUST, MAX_LRR_MEDIAN_ADJUST)); PennCNV does not update lrr sd here so we wont either
 					break;
@@ -596,6 +597,7 @@ public class CNVCaller {
 		private PFB pfb;
 		private String[] samples;
 		private int[] chrsToCall;
+		private Centroids centroids;
 		private int numSampleThreads, index;
 		private boolean debugMode, callReverse;
 
@@ -606,10 +608,14 @@ public class CNVCaller {
 		 * @param pfb
 		 * @param samples
 		 *            call cnvs on these samples
+		 * @param chrsToCall
+		 *            call cnvs on these chromosomes only
+		 * @param centroids
+		 *            use these centroids for deriving lrr/baf
 		 * @param numSampleThreads
 		 * @param debugMode
 		 */
-		private CNVProducer(Project proj, PennHmm pennHmm, GcModel gcModel, PFB pfb, String[] samples, int[] chrsToCall, int numSampleThreads, boolean callReverse, boolean debugMode) {
+		private CNVProducer(Project proj, PennHmm pennHmm, GcModel gcModel, PFB pfb, String[] samples, int[] chrsToCall, Centroids centroids, int numSampleThreads, boolean callReverse, boolean debugMode) {
 			super();
 			this.proj = proj;
 			this.pennHmm = pennHmm;
@@ -617,6 +623,7 @@ public class CNVCaller {
 			this.pfb = pfb;
 			this.samples = samples;
 			this.chrsToCall = chrsToCall;
+			this.centroids = centroids;
 			this.numSampleThreads = numSampleThreads;
 			this.index = 0;
 			this.callReverse = callReverse;
@@ -640,7 +647,9 @@ public class CNVCaller {
 				@Override
 				public CNVCallResult call() throws Exception {
 					Sample curSample = proj.getFullSampleFromRandomAccessFile(sample);
-					CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(), Array.toDoubleArray(curSample.getLRRs()), Array.toDoubleArray(curSample.getBAFs()), gcModelTmp, pfbTmp, markerSet, chrsToCall, callReverse, numSampleThreads, debugMode);
+					float[] lrrs = centroids == null ? curSample.getLRRs() : curSample.getLRRs(centroids.getCentroids());
+					float[] bafs = centroids == null ? curSample.getBAFs() : curSample.getBAFs(centroids.getCentroids());
+					CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(), Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs), gcModelTmp, pfbTmp, markerSet, chrsToCall, callReverse, numSampleThreads, debugMode);
 					return cnvs;
 				}
 
@@ -658,6 +667,12 @@ public class CNVCaller {
 	/**
 	 * @param proj
 	 * @param output
+	 * @param call
+	 *            on these samples only
+	 * @param chrsToCall
+	 *            call cnvs on thest chromosomes only
+	 * @param centroids
+	 *            use these centroids to call cnvs
 	 * @param numSampleThreads
 	 *            number of samples analyzed at once.
 	 * @param numChrThreads
@@ -665,7 +680,7 @@ public class CNVCaller {
 	 * 
 	 *            NOTE: total thread usage is numSampleThreads*numChrThreads
 	 */
-	public static void callCNVs(Project proj, String output, int numSampleThreads, int numChrThreads) {
+	public static LocusSet<CNVariant> callCNVs(Project proj, String output, String[] samples, int[] chrsToCall, Centroids centroids, int numSampleThreads, int numChrThreads) {
 		output = proj.PROJECT_DIRECTORY.getValue() + output;
 		proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
 		PennHmm pennHmmOriginal = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), new Logger());
@@ -674,8 +689,7 @@ public class CNVCaller {
 		if (gcModel == null) {
 			proj.getLog().reportTimeWarning("Calling cnvs without gc correction");
 		}
-		String[] samples = proj.getSamples();
-		CNVProducer producer = new CNVProducer(proj, pennHmmOriginal, gcModel, pfb, samples, null, numChrThreads, false, true);
+		CNVProducer producer = new CNVProducer(proj, pennHmmOriginal, gcModel, pfb, samples, chrsToCall, centroids, numChrThreads, false, true);
 		WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numSampleThreads, 2, proj.getLog());
 		ArrayList<CNVariant> allCNVs = new ArrayList<CNVariant>();
 
@@ -700,7 +714,7 @@ public class CNVCaller {
 		};
 
 		finalSet.writeRegions(output, TO_STRING_TYPE.REGULAR, true, proj.getLog());
-
+		return finalSet;
 	}
 
 	public static void test() {
@@ -708,14 +722,14 @@ public class CNVCaller {
 		String hmm = proj.HMM_FILENAME.getValue();
 		PennHmm pennHmmOriginal = PennHmm.loadPennHmm(hmm, new Logger());
 		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
-		//GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
+		// GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
 		int numThreads = 1;
 		long trailerTime = System.currentTimeMillis();
 		String[] samples = proj.getSamples();
 		ArrayList<CNVariant> allCNVs = new ArrayList<CNVariant>();
 		String[] sampTmp = new String[] { samples[ext.indexOfStr("7165764002_R06C02", samples)] };
 		// String[] sampTmp= samples;
-		CNVProducer producer = new CNVProducer(proj, pennHmmOriginal, null, pfb, sampTmp, null, 1, true, true);
+		CNVProducer producer = new CNVProducer(proj, pennHmmOriginal, null, pfb, sampTmp, null, null, 1, true, true);
 		WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numThreads, 2, proj.getLog());
 		int index = 0;
 		while (train.hasNext()) {
@@ -777,7 +791,7 @@ public class CNVCaller {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			callCNVs(proj, output, numThreads, 1);
+			callCNVs(proj, output, proj.getSamples(), null, null, numThreads, 1);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

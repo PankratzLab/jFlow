@@ -1311,7 +1311,7 @@ public class SampleData {
 	 * 
 	 * @return true if a minimal sample data file was created, false if not
 	 */
-	private static boolean createMinimalSampleData(Project proj) {
+	public static boolean createMinimalSampleData(Project proj) {
 		boolean created = false;
 		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 		Logger log = proj.getLog();
