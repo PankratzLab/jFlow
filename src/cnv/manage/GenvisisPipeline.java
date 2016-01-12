@@ -21,6 +21,7 @@ import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.gui.GenvisisPipelineGUI;
 import cnv.hmm.CNVCaller;
+import cnv.var.SampleData;
 import common.Aliases;
 import common.Array;
 import common.Files;
@@ -294,7 +295,7 @@ public class GenvisisPipeline {
             String pedFile = variables.get(this).get(1);
             String sampleMapCsv = variables.get(this).get(2);
             proj.getLog().report("Creating SampleData.txt");
-            /*int retStat = */MitoPipeline.createSampleData(pedFile, sampleMapCsv, proj);
+            /*int retStat = */SampleData.createSampleData(pedFile, sampleMapCsv, proj);
         }
         
         @Override
@@ -320,8 +321,11 @@ public class GenvisisPipeline {
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO don't forget setting project properties 
-            return "## << Create SampleData >> Not Implemented For Command Line Yet ##"; // TODO
+            String projPropFile = proj.getPropertyFilename();
+            String pedFile = variables.get(this).get(1);
+            String sampleMapCsv = variables.get(this).get(2);
+            StringBuilder cmd = new StringBuilder();
+            return cmd.append("jcp cnv.var.SampleData proj=").append(projPropFile).append(" ped=").append(pedFile).append(" sampleMap=").append(sampleMapCsv).toString();
         }
         
     };

@@ -51,7 +51,6 @@ public class MitoPipeline {
 	protected static final String PCA_SAMPLES = ".samples.USED_PC.txt";
 	protected static final String PCA_SAMPLES_SUMMARY = ".samples.QC_Summary.txt";
 	private static final String PCA_FINAL_REPORT = ".finalReport.txt";
-	private static final String[] SPLITS = { "\t", "," };
 	public static final String PROJECT_EXT = ".properties";
 	private static final String PC_MARKER_COMMAND = "PCmarkers=";
 	private static final String MEDIAN_MARKER_COMMAND = "medianMarkers=";
@@ -252,47 +251,9 @@ public class MitoPipeline {
 		proj.saveProperties();
 	}
 
-	public static void generateSampleDataMap(Project proj, String sampleMapCsv) {
-		generateSampleData(proj, loadSampleMapFile(sampleMapCsv, proj.getLog()));
-	}
-
-	public static void generateSampleDataPed(Project proj, String pedFile) {
-		generateSampleData(proj, loadPedFile(pedFile, proj.getLog()));
-	}
-
 	public static Project initializeProject(Project proj, String projectName, String projectDirectory, String sourceDirectory, String dataExtension, String idHeader, String abLookup, String targetMarkers, String medianMarkers, String markerPositions, String defaultLRRSdFilter, String defaultCallRateFilter, String logfile) {
 		MitoPipeline projG = new MitoPipeline(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, defaultLRRSdFilter, defaultCallRateFilter, targetMarkers, markerPositions, medianMarkers, logfile);
 		return projG.getProj();
-	}
-
-	/**
-	 * @param pedFile
-	 *            ped format file to create sample data,
-	 * @param sampleMapCsv
-	 *            sample_Map.csv format file to create sample data
-	 * @param proj
-	 *            an existing, or newly created project
-	 * @param log
-	 *            Note: if the pedFile and sampleMapCsv file are both null, we create a minimal sample data instead Note: if sample data already exists, we leave it alone
-	 */
-	public static int createSampleData(String pedFile, String sampleMapCsv, Project proj) {
-		String sampleDataFilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
-		if ((sampleMapCsv == null || "".equals(sampleMapCsv) || !Files.exists(sampleMapCsv)) && (pedFile == null || "".equals(pedFile) || !Files.exists(pedFile)) && !Files.exists(sampleDataFilename)) {
-			proj.getLog().report("Neither a sample manifest nor a sample map file was provided; generating sample data file at: " + sampleDataFilename);
-			SampleData.createMinimalSampleData(proj);
-			return 0;
-		} else if (!Files.exists(sampleDataFilename)) {
-			if (pedFile != null) {
-				generateSampleDataPed(proj, pedFile);
-				return 1;
-			} else {
-				generateSampleDataMap(proj, sampleMapCsv);
-				return 2;
-			}
-		} else {
-			proj.getLog().report("Detected that a sampleData file already exists at " + sampleDataFilename + ", skipping sampleData creation");
-			return -1;
-		}
 	}
 
 	/**
@@ -350,7 +311,7 @@ public class MitoPipeline {
 			}
 		}
 
-		createSampleData(pedFile, sampleMapCsv, proj);
+		SampleData.createSampleData(pedFile, sampleMapCsv, proj);
 		// we require that every sample that has been parsed has an entry in sampleData
 		if (verifyAllSamples(proj, sampleList.getSamples())) {
 			if (doAbLookup) {
@@ -795,6 +756,7 @@ public class MitoPipeline {
 		String[] line;
 		int numPassing, count;
 		Logger log = proj.getLog();
+        String delim = "\t";
 
 		SampleData sampleData = proj.getSampleData(0, false);
 		// double lrrSdFilter = Double.parseDouble(proj.getProperty(proj.LRRSD_CUTOFF));
@@ -829,7 +791,7 @@ public class MitoPipeline {
 				log.reportError("Error - QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") was empty");
 				return new int[] { numPassing, count };
 			}
-			line = reader.readLine().trim().split(SPLITS[0]);
+			line = reader.readLine().trim().split(delim);
 			indices = ext.indexFactors(QC_COLUMNS, line, true, log, true, false);
 
 			if (!checkIndices(proj, indices)) {
@@ -841,7 +803,7 @@ public class MitoPipeline {
 			}
 
 			while (reader.ready()) {
-				line = reader.readLine().trim().split(SPLITS[0]);
+				line = reader.readLine().trim().split(delim);
 				// skip any headers as a result of concatenating the qc results
 				if (!line[indices[0]].equals(QC_COLUMNS[0])) {
 					// if passes qc
@@ -881,7 +843,7 @@ public class MitoPipeline {
 		}
 
 		if (addToSampleData) {
-			sampleData.addData(sampDataQC, DNA_LINKER, SAMPLE_DATA_ADDITION_HEADERS, ext.MISSING_VALUES[1], SPLITS[0], log);
+			sampleData.addData(sampDataQC, DNA_LINKER, SAMPLE_DATA_ADDITION_HEADERS, ext.MISSING_VALUES[1], delim, log);
 		}
 		return new int[] { numPassing, count };
 	}
@@ -996,32 +958,6 @@ public class MitoPipeline {
 		}
 	}
 
-	/**
-	 * We use the Individual class as input so that we only need one method to generate the sample data
-	 */
-	public static void generateSampleData(Project proj, Individual[] inds) {
-		// String sampleDataFile = proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.SAMPLE_DATA_FILENAME);
-		String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, true);
-		Logger log = proj.getLog();
-
-		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile));
-			String[] classed = PED_INPUT;
-			classed[5] = "Class=Sex";
-			writer.println(Array.toStr(classed) + (inds[0].getSampleMapHeader() == null ? "" : "\t" + Array.toStr(inds[0].getSampleMapHeader())));
-			for (int i = 0; i < inds.length; i++) {
-				writer.println(inds[i].getSampDataFormat());
-			}
-			writer.close();
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + sampleDataFile + "\" could not be written to (it's probably open)");
-			log.reportException(fnfe);
-		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + sampleDataFile + "\"");
-			log.reportException(ioe);
-		}
-	}
-
 	private static void mkdir(String outputDirectory, Logger log) {
 		File file = new File(outputDirectory);
 		if (!file.exists()) {
@@ -1031,136 +967,6 @@ public class MitoPipeline {
 				log.reportError("Error - failed to create  " + outputDirectory + ", please manually create it unless it already exists");
 			}
 		}
-	}
-
-	public static Individual[] loadPedFile(String pedFile, Logger log) {
-		String[] line;
-		ArrayList<Individual> al = new ArrayList<Individual>();
-		try {
-			BufferedReader reader = Files.getReader(pedFile, false, true, false);
-			String temp = reader.readLine().trim();
-			String delim = ext.determineDelimiter(temp);
-			line = temp.split(delim);
-			int[] indices = ext.indexFactors(PED_INPUT, line, true, false);
-			for (int i = 0; i < indices.length; i++) {
-				if (indices[i] < 0) {
-					log.reportError("Error - Improper formatting of the pedigree file, can not generate sampleData");
-					log.reportError("Warning - Parsing can proceed, but a sample data file is needed to generate principal components");
-				}
-			}
-			while (reader.ready()) {
-				line = reader.readLine().trim().split(delim);
-				al.add(new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]));
-			}
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + pedFile + "\" not found in current directory");
-		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + pedFile + "\"");
-		}
-		return al.toArray(new Individual[al.size()]);
-	}
-
-	public static Individual[] loadSampleMapFile(String sampleMapCsv, Logger log) {
-		String[] line;
-		ArrayList<Individual> al = new ArrayList<Individual>();
-		log.report("Using Sample Map file " + sampleMapCsv);
-		try {
-			BufferedReader reader = Files.getReader(sampleMapCsv, false, true, false);
-			line = reader.readLine().trim().split(SPLITS[1]);
-			String[] header = line;
-			int[] indices = ext.indexFactors(SAMPLEMAP_INPUT, line, true, false);
-			if (indices[1] == -1 || indices[2] == -1) {
-				log.reportError("Error - Columns \"" + SAMPLEMAP_INPUT[1] + "\" and \"" + SAMPLEMAP_INPUT[2] + "\" must be provided in .csv format " + sampleMapCsv);
-			}
-			while (reader.ready()) {
-				line = reader.readLine().trim().split(SPLITS[1]);
-				al.add(new Individual(indices, line, header));
-			}
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + sampleMapCsv + "\" not found in current directory");
-		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + sampleMapCsv + "\"");
-		}
-		return al.toArray(new Individual[al.size()]);
-	}
-
-	/**
-	 * A helper class to facilitate creating sample data from either .ped or Sample_Map.csv formats
-	 * 
-	 */
-	public static class Individual {
-		private String fid;
-		private String iid;
-		private String fa;
-
-		private String mo;
-		private String sex;
-		private String aff;
-		private String dna;
-		private String[] sampleMapLine;
-		private String[] sampleMapHeader;
-
-		public Individual(String dna, String fid, String iid, String fa, String mo, String sex, String aff) {
-			this.fid = fid;
-			this.iid = iid;
-			this.fa = fa;
-			this.mo = mo;
-			this.sex = sex;
-			this.aff = aff;
-			this.dna = dna;
-		}
-
-		/**
-		 * @param indices
-		 *            of the required columns
-		 * @param sampleMapLine
-		 *            a line from the sampleMap file
-		 * @param header
-		 */
-		public Individual(int[] indices, String[] sampleMapLine, String[] header) {
-			this.fid = sampleMapLine[indices[1]];
-			this.iid = sampleMapLine[indices[2]];
-			this.fa = "NA";
-			this.mo = "NA";
-			this.sex = indices[3] == -1 ? "NA" : parseSex(sampleMapLine[indices[3]]);
-			this.dna = sampleMapLine[indices[2]];
-			this.aff = "NA";
-			this.sampleMapHeader = header;
-			this.sampleMapLine = sampleMapLine;
-		}
-
-		public String getDna() {
-			return dna;
-		}
-
-		public void setDna(String dna) {
-			this.dna = dna;
-		}
-
-		public String parseSex(String sex) {
-			String s = "-1";
-			if (sex.toLowerCase().equals(SEX[0])) {
-				s = "2";
-			} else if (sex.toLowerCase().equals(SEX[1])) {
-				s = "1";
-			}
-			return s;
-		}
-
-		public String[] getSampleMapHeader() {
-			return sampleMapHeader;
-		}
-
-		public String getSampDataFormat() {
-			if (sampleMapHeader == null) {
-				return this.dna + "\t" + this.fid + "\t" + this.iid + "\t" + this.fa + "\t" + this.mo + "\t" + this.sex + "\t" + this.aff;
-			} else {
-				return this.dna + "\t" + this.fid + "\t" + this.iid + "\t" + this.fa + "\t" + this.mo + "\t" + this.sex + "\t" + this.aff + "\t" + Array.toStr(sampleMapLine);
-			}
-		}
-
 	}
 
 	public static void main(String[] args) {

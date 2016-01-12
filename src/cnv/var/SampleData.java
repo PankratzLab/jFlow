@@ -7,11 +7,89 @@ import java.util.*;
 import javax.swing.SwingUtilities;
 
 import cnv.filesys.Project;
+import cnv.manage.MitoPipeline;
 import common.*;
 import filesys.Segment;
 
 public class SampleData {
-	public static final String HEATMAP = "Heat map";
+	/**
+     * A helper class to facilitate creating sample data from either .ped or Sample_Map.csv formats
+     * 
+     */
+    public static class Individual {
+    	private String fid;
+    	private String iid;
+    	private String fa;
+    
+    	private String mo;
+    	private String sex;
+    	private String aff;
+    	private String dna;
+    	private String[] sampleMapLine;
+    	private String[] sampleMapHeader;
+    
+    	public Individual(String dna, String fid, String iid, String fa, String mo, String sex, String aff) {
+    		this.fid = fid;
+    		this.iid = iid;
+    		this.fa = fa;
+    		this.mo = mo;
+    		this.sex = sex;
+    		this.aff = aff;
+    		this.dna = dna;
+    	}
+    
+    	/**
+    	 * @param indices
+    	 *            of the required columns
+    	 * @param sampleMapLine
+    	 *            a line from the sampleMap file
+    	 * @param header
+    	 */
+    	public Individual(int[] indices, String[] sampleMapLine, String[] header) {
+    		this.fid = sampleMapLine[indices[1]];
+    		this.iid = sampleMapLine[indices[2]];
+    		this.fa = "NA";
+    		this.mo = "NA";
+    		this.sex = indices[3] == -1 ? "NA" : parseSex(sampleMapLine[indices[3]]);
+    		this.dna = sampleMapLine[indices[2]];
+    		this.aff = "NA";
+    		this.sampleMapHeader = header;
+    		this.sampleMapLine = sampleMapLine;
+    	}
+    
+    	public String getDna() {
+    		return dna;
+    	}
+    
+    	public void setDna(String dna) {
+    		this.dna = dna;
+    	}
+    
+    	public String parseSex(String sex) {
+    		String s = "-1";
+    		if (sex.toLowerCase().equals(MitoPipeline.SEX[0])) {
+    			s = "2";
+    		} else if (sex.toLowerCase().equals(MitoPipeline.SEX[1])) {
+    			s = "1";
+    		}
+    		return s;
+    	}
+    
+    	public String[] getSampleMapHeader() {
+    		return sampleMapHeader;
+    	}
+    
+    	public String getSampDataFormat() {
+    		if (sampleMapHeader == null) {
+    			return this.dna + "\t" + this.fid + "\t" + this.iid + "\t" + this.fa + "\t" + this.mo + "\t" + this.sex + "\t" + this.aff;
+    		} else {
+    			return this.dna + "\t" + this.fid + "\t" + this.iid + "\t" + this.fa + "\t" + this.mo + "\t" + this.sex + "\t" + this.aff + "\t" + Array.toStr(sampleMapLine);
+    		}
+    	}
+    
+    }
+
+    public static final String HEATMAP = "Heat map";
 	public static final String GENOTYPE = "Genotype";
 	public static final String[] BASIC_CLASSES = {"All", HEATMAP, GENOTYPE};
 	public static final String[] MINIMAL_SAMPLE_DATA_HEADER = { "DNA", "FID", "IID" };
@@ -734,37 +812,7 @@ public class SampleData {
 //		proj.message("Unable to set link key. Please make sure you are selecting a valid key");
 //	}
 
-	public static void main(String[] args) throws IOException {
-		int numArgs = args.length;
-		String filename = null;
-
-		String usage = "\\n" + 
-		"cnv.var.SampleData requires 0-1 arguments\n" + 
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
-		"";
-
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith("proj=")) {
-				filename = args[i].split("=")[1];
-				numArgs--;
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-
-		Project thisProject = new Project(filename, false);
-
-		if (Files.exists(thisProject.SAMPLE_DATA_FILENAME.getValue(false, false), thisProject.JAR_STATUS.getValue())) {
-			thisProject.getSampleData(2, false);
-		} else {
-			System.err.println("Error: Unable to find sample data file in project. Please add sample data file path");
-		}
-	}
+	
 
 //	public void setColorKey(String dataFile, int selectedColorKey) {
 //		ArrayList<Integer> colorKeys;
@@ -1137,6 +1185,124 @@ public class SampleData {
 	}
 	
 	/**
+     * @param pedFile
+     *            ped format file to create sample data,
+     * @param sampleMapCsv
+     *            sample_Map.csv format file to create sample data
+     * @param proj
+     *            an existing, or newly created project
+     * @param log
+     *            Note: if the pedFile and sampleMapCsv file are both null, we create a minimal sample data instead Note: if sample data already exists, we leave it alone
+     */
+    public static int createSampleData(String pedFile, String sampleMapCsv, Project proj) {
+    	String sampleDataFilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
+    	if ((sampleMapCsv == null || "".equals(sampleMapCsv) || !Files.exists(sampleMapCsv)) && (pedFile == null || "".equals(pedFile) || !Files.exists(pedFile)) && !Files.exists(sampleDataFilename)) {
+    		proj.getLog().report("Neither a sample manifest nor a sample map file was provided; generating sample data file at: " + sampleDataFilename);
+    		createMinimalSampleData(proj);
+    		return 0;
+    	} else if (!Files.exists(sampleDataFilename)) {
+    		if (pedFile != null) {
+    			generateSampleDataPed(proj, pedFile);
+    			return 1;
+    		} else {
+    			generateSampleDataMap(proj, sampleMapCsv);
+    			return 2;
+    		}
+    	} else {
+    		proj.getLog().report("Detected that a sampleData file already exists at " + sampleDataFilename + ", skipping sampleData creation");
+    		return -1;
+    	}
+    }
+
+    private static void generateSampleDataMap(Project proj, String sampleMapCsv) {
+        SampleData.generateSampleData(proj, SampleData.loadSampleMapFile(sampleMapCsv, proj.getLog()));
+    }
+
+    private static void generateSampleDataPed(Project proj, String pedFile) {
+        SampleData.generateSampleData(proj, SampleData.loadPedFile(pedFile, proj.getLog()));
+    }
+    
+    /**
+     * We use the Individual class as input so that we only need one method to generate the sample data
+     */
+    private static void generateSampleData(Project proj, Individual[] inds) {
+    	// String sampleDataFile = proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.SAMPLE_DATA_FILENAME);
+    	String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, true);
+    	Logger log = proj.getLog();
+    
+    	try {
+    		PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile));
+    		String[] classed = MitoPipeline.PED_INPUT;
+    		classed[5] = "Class=Sex";
+    		writer.println(Array.toStr(classed) + (inds[0].getSampleMapHeader() == null ? "" : "\t" + Array.toStr(inds[0].getSampleMapHeader())));
+    		for (int i = 0; i < inds.length; i++) {
+    			writer.println(inds[i].getSampDataFormat());
+    		}
+    		writer.close();
+    	} catch (FileNotFoundException fnfe) {
+    		log.reportError("Error: file \"" + sampleDataFile + "\" could not be written to (it's probably open)");
+    		log.reportException(fnfe);
+    	} catch (IOException ioe) {
+    		log.reportError("Error reading file \"" + sampleDataFile + "\"");
+    		log.reportException(ioe);
+    	}
+    }
+
+    private static Individual[] loadPedFile(String pedFile, Logger log) {
+    	String[] line;
+    	ArrayList<Individual> al = new ArrayList<Individual>();
+    	try {
+    		BufferedReader reader = Files.getReader(pedFile, false, true, false);
+    		String temp = reader.readLine().trim();
+    		String delim = ext.determineDelimiter(temp);
+    		line = temp.split(delim);
+    		int[] indices = ext.indexFactors(MitoPipeline.PED_INPUT, line, true, false);
+    		for (int i = 0; i < indices.length; i++) {
+    			if (indices[i] < 0) {
+    				log.reportError("Error - Improper formatting of the pedigree file, can not generate sampleData");
+    				log.reportError("Warning - Parsing can proceed, but a sample data file is needed to generate principal components");
+    			}
+    		}
+    		while (reader.ready()) {
+    			line = reader.readLine().trim().split(delim);
+    			al.add(new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]));
+    		}
+    		reader.close();
+    	} catch (FileNotFoundException fnfe) {
+    		log.reportError("Error: file \"" + pedFile + "\" not found in current directory");
+    	} catch (IOException ioe) {
+    		log.reportError("Error reading file \"" + pedFile + "\"");
+    	}
+    	return al.toArray(new Individual[al.size()]);
+    }
+
+    private static Individual[] loadSampleMapFile(String sampleMapCsv, Logger log) {
+    	String[] line;
+    	ArrayList<Individual> al = new ArrayList<Individual>();
+    	log.report("Using Sample Map file " + sampleMapCsv);
+        String delim = ",";
+    	try {
+    		BufferedReader reader = Files.getReader(sampleMapCsv, false, true, false);
+    		line = reader.readLine().trim().split(delim);
+    		String[] header = line;
+    		int[] indices = ext.indexFactors(MitoPipeline.SAMPLEMAP_INPUT, line, true, false);
+    		if (indices[1] == -1 || indices[2] == -1) {
+    			log.reportError("Error - Columns \"" + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \"" + MitoPipeline.SAMPLEMAP_INPUT[2] + "\" must be provided in .csv format " + sampleMapCsv);
+    		}
+    		while (reader.ready()) {
+    			line = reader.readLine().trim().split(delim);
+    			al.add(new Individual(indices, line, header));
+    		}
+    		reader.close();
+    	} catch (FileNotFoundException fnfe) {
+    		log.reportError("Error: file \"" + sampleMapCsv + "\" not found in current directory");
+    	} catch (IOException ioe) {
+    		log.reportError("Error reading file \"" + sampleMapCsv + "\"");
+    	}
+    	return al.toArray(new Individual[al.size()]);
+    }
+
+    /**
 	 * Creates a minimal sample data file using sample names. Sample names are assigned for all entries in {@link SampleData#MINIMAL_SAMPLE_DATA_HEADER} (currently DNA,FID,IID)
 	 * <p>
 	 * Warning - if a sample data file already exists for the project, a new one will not be created
@@ -1145,7 +1311,7 @@ public class SampleData {
 	 * 
 	 * @return true if a minimal sample data file was created, false if not
 	 */
-	public static boolean createMinimalSampleData(Project proj) {
+	private static boolean createMinimalSampleData(Project proj) {
 		boolean created = false;
 		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 		Logger log = proj.getLog();
@@ -1178,5 +1344,90 @@ public class SampleData {
 		}
 		return created;
 	}
+
+    //	public void initLinkKey(String filename) {
+    //		int[] linkKeyColumnLabels = determineKeyIndices(filename);
+    //		if (linkKeyColumnLabels[DNA_INDEX_IN_LINKERS] >= 0) {
+    //			// {"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"} exists
+    //			linkKeyIndex.put(filename, DNA_INDEX_IN_LINKERS);
+    //			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+    //			System.out.println("Link key set to: " + Arrays.toString(LINKERS[DNA_INDEX_IN_LINKERS]));
+    //		} else if (linkKeyColumnLabels[FID_INDEX_IN_LINKERS] >= 0) {
+    //			linkKeyIndex.put(filename, FID_INDEX_IN_LINKERS);
+    //			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+    //			System.out.println("Link key set to: " + Arrays.toString(LINKERS[FID_INDEX_IN_LINKERS]));
+    //		} else if (linkKeyColumnLabels[IID_INDEX_IN_LINKERS] >= 0) {
+    //			linkKeyIndex.put(filename, IID_INDEX_IN_LINKERS);
+    //			// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]), "Information", JOptionPane.INFORMATION_MESSAGE);
+    //			System.out.println("Link key set to: " + Arrays.toString(LINKERS[IID_INDEX_IN_LINKERS]));
+    //		} else {
+    //			// JOptionPane.showMessageDialog(null, "Unable to initialize the link key. Please select a link key manually.", "Error", JOptionPane.ERROR_MESSAGE);
+    //			System.out.println("Unable to initialize the link key.");
+    //		}
+    //	}
+    
+    //	public void setLinkKey(String filename, int selectedLinkKey) {
+    //		int[] linkKeyColumnLabels;
+    //
+    //		linkKeyColumnLabels = determineKeyIndices(filename);
+    //
+    //		for (int i = 0; i < linkKeyColumnLabels.length; i++) {
+    //			if ((linkKeyColumnLabels[i] + 1) == selectedLinkKey) {
+    //				linkKeyIndex.put(filename, i);
+    //				System.out.println("Link Key set to: " + Arrays.toString(LINKERS[i]));
+    //				// createLinkKeyToDataHash(selectedNodes[0][0], linkKeyColumnLabels);
+    //				// JOptionPane.showMessageDialog(null, "Link is set to: " + Arrays.toString(LINKERS[i]), "Information", JOptionPane.INFORMATION_MESSAGE);
+    //				System.err.println("Link is set to:" + Arrays.toString(LINKERS[i]));
+    //				return;
+    //			}
+    //		}
+    //		proj.message("Unable to set link key. Please make sure you are selecting a valid key");
+    //	}
+    
+    	public static void main(String[] args) throws IOException {
+    		int numArgs = args.length;
+    		String filename = null;
+    		String ped = null;
+    		String samp = null;
+    		
+    		String usage = "\n" + 
+    		"cnv.var.SampleData requires 1-3 arguments\n" + 
+    		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+    		" OR\n" + 
+    		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+    		"   (2a) OPTIONAL: .ped file (i.e. ped=data.ped (not the default))\n" +
+    		"      OR\n" + 
+    		"   (2b) OPTIONAL: sampleMap.csv file (i.e. sampleMap=sampleMap.csv (not the default))\n" +
+    		"\n" + 
+    		"";
+    
+    		for (int i = 0; i < args.length; i++) {
+    			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+    				System.err.println(usage);
+    				System.exit(1);
+    			} else if (args[i].startsWith("proj=")) {
+    				filename = args[i].split("=")[1];
+    				numArgs--;
+    			} else if (args[i].startsWith("ped=")) {
+    			    ped = args[i].split("=")[1];
+    			    numArgs--;
+    			} else if (args[i].startsWith("sampleMap=")) {
+    			    samp = args[i].split("=")[1];
+    			    numArgs--;
+    			}
+    		}
+    		if (numArgs != 0) {
+    			System.err.println(usage);
+    			System.exit(1);
+    		}
+    
+    		Project thisProject = new Project(filename, false);
+    
+    		if (Files.exists(thisProject.SAMPLE_DATA_FILENAME.getValue(false, false), thisProject.JAR_STATUS.getValue())) {
+    			thisProject.getSampleData(2, false);
+    		} else {
+    		    createSampleData(ped, samp, thisProject);
+    		}
+    	}
 }
 
