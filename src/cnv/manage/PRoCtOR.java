@@ -158,13 +158,15 @@ public class PRoCtOR {
         int numArgs = args.length;
         String filename = "D:/projects/Poynter.properties";
 
-        String usage = "\n" + "cnv.manage.PRoCtOR requires 0-1 arguments\n" + "   (1) filename (i.e. file=" + filename + " (default))\n" + "";
+        String usage = "\n" + 
+                       "cnv.manage.PRoCtOR requires 0-1 arguments\n" + 
+                       "   (1) project properties filename (i.e. proj=" + filename + " (default))\n" + "";
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
                 System.err.println(usage);
                 System.exit(1);
-            } else if (args[i].startsWith("file=")) {
+            } else if (args[i].startsWith("proj=")) {
                 filename = args[i].split("=")[1];
                 numArgs--;
             } else {
