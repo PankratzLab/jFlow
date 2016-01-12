@@ -381,6 +381,13 @@ public class PennHmm {
 		if (o1.length != o2.length || o1.length != pfb.length || o1.length != snpdist.length || o1.length != copyNumberOnlyDef.length) {
 			String error = "BUG: mismatched array lengths";
 			pennHmm.getLog().reportTimeError(error);
+			error += "\nO1 Length: " + o1.length + "\n";
+			error += "O2 Length: " + o2.length + "\n";
+			error += "pfb Length: " + pfb.length + "\n";
+
+			error += "SnpDist Length: " + snpdist.length + "\n";
+			error += "CN Length: " + copyNumberOnlyDef.length + "\n";
+
 			throw new IllegalArgumentException(error);
 		}
 
