@@ -167,7 +167,6 @@ public class MitoGWAS {
 		for (int i = 0; i < pvalFiles.length; i++) {
 			pvalFiles[i] = ext.parseDirectoryOfFile(pvalDB) + empTitles[i] + ".pvalsQQ.txt";
 		}
-		System.out.println(Array.toStr(empTitles, "\n"));
 		String[] empLogP = Array.tagOn(empTitles, "p_", null);
 		if (!Files.exists(pvalDB) || !Files.exists(pvalQQ)) {
 			for (int j = 0; j < plinkCommands.size(); j++) {
