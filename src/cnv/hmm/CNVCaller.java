@@ -694,6 +694,35 @@ public class CNVCaller {
 	}
 
 	/**
+	 * Possible autosomal, and sex chrs cnv calling method
+	 */
+	public static void callGenomeCnvs(Project proj, String output, String[] maleSamples, String[] femaleSamples, int[] chrsToCall, Centroids[] centroids, int numSampleThreads, int numChrThreads) {
+
+		CNVCallerIterator autosomal = getCallerIterator(proj, Array.concatAll(maleSamples, femaleSamples), null, null, centroids[0], numSampleThreads, numChrThreads);
+		MarkerSet markerSet = proj.getMarkerSet();
+		boolean[] chr23 = Array.booleanArray(markerSet.getMarkerNames().length, false);
+		int[][] indicesByChr = markerSet.getIndicesByChr();
+		for (int i = 0; i < indicesByChr[23].length; i++) {
+			chr23[indicesByChr[23][i]] = true;
+		}
+
+		boolean[] chr24 = Array.booleanArray(markerSet.getMarkerNames().length, false);
+		for (int i = 0; i < indicesByChr[24].length; i++) {
+			chr24[indicesByChr[24][i]] = true;
+		}
+		CNVCallerIterator xMale = getCallerIterator(proj, maleSamples, new int[] { 23 }, chr23, centroids[1], numSampleThreads, numChrThreads);
+		CNVCallerIterator xFemale = getCallerIterator(proj, maleSamples, new int[] { 23 }, chr23, centroids[2], numSampleThreads, numChrThreads);
+		CNVCallerIterator yMale = getCallerIterator(proj, maleSamples, new int[] { 24 }, chr24, centroids[1], numSampleThreads, numChrThreads);
+
+		// while(autosomal.hasNext()){
+		// LocusSet<CNVariant> set = autosomal.next().getChrCNVs();
+		// for (int i = 0; i < set.getLoci().length; i++) {
+		// ....
+		// }
+		// }
+	}
+
+	/**
 	 * @param proj
 	 * @param call
 	 *            on these samples only
