@@ -276,15 +276,22 @@ public class MarkerSet implements Serializable, TextExport {
 		private static final long serialVersionUID = 1L;
 
 		private int[][] indicesByChr;
+		private int[][] positionsByChr;
 
 		public PreparedMarkerSet(MarkerSet markerSet) {
 			super(markerSet.markerNames, markerSet.chrs, markerSet.positions);
 			this.indicesByChr = super.getIndicesByChr();
+			this.positionsByChr = super.getPositionsByChr();
+
 		}
 
 		public int[][] getIndicesByChr() {
 			return indicesByChr;
 		}
 
+		public int[][] getPositionsByChr() {
+			return positionsByChr;
+		}
+		
 	}
 }
