@@ -226,6 +226,10 @@ public class ExtProjectDataParser {
 		return numericData;
 	}
 
+	public TypedFileParser getTypedFileParser() {
+		return typedFileParser;
+	}
+
 	public String[][] getStringData() {
 		return stringData;
 	}
@@ -250,6 +254,14 @@ public class ExtProjectDataParser {
 		return data;
 	}
 
+	public double[] getNumericDataFor(String[] titles, int index) {
+		double[] data = new double[titles.length];
+		for (int i = 0; i < data.length; i++) {
+			data[i] = getNumericDataForTitle(titles[i])[index];
+		}
+		return data;
+	}
+	
 	public double[] getNumericDataForTitle(String title) {
 		int index = numericData == null ? -1 : ext.indexOfStr(title, numericDataTitles);
 		double[] data = new double[] {};

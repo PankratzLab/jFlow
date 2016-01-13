@@ -9,6 +9,8 @@ import stats.LogisticRegression;
 import stats.RegressionModel;
 import stats.Ttest;
 import cnv.filesys.*;
+import cnv.manage.ExtProjectDataParser;
+import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import cnv.manage.MDL;
 import cnv.manage.MarkerDataLoader;
 import cnv.qc.MendelErrors.MendelErrorCheck;
@@ -1213,6 +1215,26 @@ public class MarkerMetrics {
 				}
 				return false;
 			}
+		}
+	}
+
+	public static ExtProjectDataParser developParser(Project proj, String markerMetricsFile) {
+		ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
+		builder.sampleBased(false);
+		builder.requireAll(false);
+		builder.dataKeyColumnName(FULL_QC_HEADER[0]);
+		builder.numericDataTitles(FULL_QC_HEADER);
+		builder.setInvalidNumericToNaN(true);
+		
+		try {
+			ExtProjectDataParser parser = builder.build(proj, markerMetricsFile);
+			parser.determineIndicesFromTitles();
+			parser.loadData();
+			return parser;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
 		}
 	}
 
