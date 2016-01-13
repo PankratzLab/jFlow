@@ -9,6 +9,11 @@ import cnv.var.CNVariant;
 import common.*;
 
 public class ExportCNVsToPedFormat {
+	private static final String MATRIX_FORMAT = "MATRIX";
+	private static final String PLINK_TEXT_FORMAT = "PLINK_TEXT";
+	private static final String PLINK_BINARY_FORMAT = "PLINK_BINARY_FORMAT";
+	private static final String RFGLS_FORMAT = "RFGLS";
+
 	/*
 	 * Convert a cnv data file into
 	 */
@@ -27,7 +32,7 @@ public class ExportCNVsToPedFormat {
 		
 	}
 	
-	public static void export(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, boolean rfglsOutput, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win, Logger log) {
+	public static void export(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, String fileFormat, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygousOnly, boolean excludeMonomorphicLoci, int markersPerFile, int windowInBasepairs, Logger log) {
 		PrintWriter writer;
 		CNVariant[] cnvs;
 		Hashtable<String,String> allChrPosHash;
@@ -120,7 +125,7 @@ public class ExportCNVsToPedFormat {
 		allChrPosSegs = new Segment[allChrPosKeys.length];
 		for (int i = 0; i < allChrPosSegs.length; i++) {
 			line = allChrPosKeys[i].split("\t");
-			allChrPosSegs[i] = new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1])-win, Integer.parseInt(line[1])+win);
+			allChrPosSegs[i] = new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1])-windowInBasepairs, Integer.parseInt(line[1])+windowInBasepairs);
 		}
 		log.report("Generated hashtable of positions in " + ext.getTimeElapsed(time));
 
@@ -188,10 +193,10 @@ public class ExportCNVsToPedFormat {
 					if (!ordered) {
 						currentCN = (byte)Math.abs(currentCN);
 					}
-					if (homozygous && Math.abs(currentCN) == 1) {
+					if (homozygousOnly && Math.abs(currentCN) == 1) {
 						currentCN = 0;
 					}
-					if (collapsed && Math.abs(currentCN) == 2) {
+					if ((collapsed || homozygousOnly) && Math.abs(currentCN) == 2) {
 						currentCN /= 2;
 					}
 					currentCNs[i][j] = currentCN;
@@ -199,43 +204,47 @@ public class ExportCNVsToPedFormat {
 			}
 
 			time = new Date().getTime();
-			try {
-				for (int i = 0; i<currentChrPosSegs.length; i++) {
-					if (!excludeMonomorphicLoci || Array.min(currentCNs[i]) < 0 || Array.max(currentCNs[i]) > 0 && !Array.equals(currentCNs[i], previousCNs)) {
-						if (countValidLoci % markersPerFile == 0) {
-							if (writer != null) {
-								writer.close();
-								if (rfglsOutput) {
-									convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
+			if (fileFormat.equals(PLINK_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
+				// dig into whether we need to convert this into MarkerData + an AB_Lookup object, or if this can be modularized
+			} else {
+				try {
+					for (int i = 0; i<currentChrPosSegs.length; i++) {
+						if (!excludeMonomorphicLoci || Array.min(currentCNs[i]) < 0 || Array.max(currentCNs[i]) > 0 && !Array.equals(currentCNs[i], previousCNs)) {
+							if (countValidLoci % markersPerFile == 0) {
+								if (writer != null) {
+									writer.close();
+									if (fileFormat.equals(RFGLS_FORMAT)) {
+										convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
+									}
+									fileNumber++;
 								}
-								fileNumber++;
+								outputFilename = outputRoot+"_"+fileNumber;
+								writer = new PrintWriter(new FileWriter(outputFilename));
+								writer.print("markerName\t"+Array.toStr(finalSampleList));
+								writer.print(endOfLine);
 							}
-							outputFilename = outputRoot+"_"+fileNumber;
-							writer = new PrintWriter(new FileWriter(outputFilename));
-							writer.print("markerName\t"+Array.toStr(finalSampleList));
+							
+							writer.print(currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart());
+							for (int j=0; j<finalSampleList.length; j++) {
+								writer.print("\t"+currentCNs[i][j]);
+							}
 							writer.print(endOfLine);
-						}
-						
-						writer.print(currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart());
-						for (int j=0; j<finalSampleList.length; j++) {
-							writer.print("\t"+currentCNs[i][j]);
-						}
-						writer.print(endOfLine);
-						countValidLoci++;
-						previousCNs = currentCNs[i];
-					}					
+							countValidLoci++;
+							previousCNs = currentCNs[i];
+						}					
+					}
+				} catch (Exception e) {
+					log.reportError("Error writing to '" + outputFilename + "'");
+					log.reportException(e);
 				}
-			} catch (Exception e) {
-				log.reportError("Error writing to '" + outputFilename + "'");
-				log.reportException(e);
+				if (writer != null) {
+					writer.close();
+					if (fileFormat.equals(RFGLS_FORMAT)) {
+						convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
+					}
+				}
 			}
 			log.report("    ...finished in " + ext.getTimeElapsed(time));
-		}
-		if (writer != null) {
-			writer.close();
-			if (rfglsOutput) {
-				convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-			}
 		}
 	}
 	
@@ -317,23 +326,25 @@ public class ExportCNVsToPedFormat {
 		int lociPerFile = 5000;
 		int window = 0;
 		String endOfLine = "\r\n";
-		boolean rfglsOutput = false;
+//		boolean rfglsOutput = false;
+		String fileFormat = MATRIX_FORMAT;
 
 		String usage = "\n" +
 				"cnv.analysis.CnvBySample requires the following arguments\n" +
 				"   (1) cnv filename (i.e. cnv=" + cnvFilename + " (default))\n" +
 				"   (2) pedigree filename (i.e. ped=" + pedFilename + " (default))\n" +
-				"   (3) output filename (i.e. out=" + outputFilename + " (default))\n" +
-				"   (4) to include Deletion or not (i.e. del=" + includeDele + " (default))\n" +
-				"   (5) to include Duplication or not (i.e. dup=" + includeDupl + " (default))\n" +
-				"   (6) to use ordered value or not (i.e. ord=" + ordered + " (default))\n" +
-				"   (7) to use collapsed value or not (i.e. coll=" + collapsed + " (default))\n" +
-				"   (8) to only use homozygous variants (i.e. homozygousOnly=" + homozygous + " (default))\n" +
-				"   (9) exclude monomorphic loci (i.e. excludeMonomorphicLoci=" + excludeMonomorphicLoci + " (default))\n" +
-				"   (10) number of loci per file in the output file (i.e. lociPerFile=" + lociPerFile + " (default))\n" +
-				"   (11) width of the window (i.e. win=" + window + " (default))\n" +
-				"   (12) use linux line endings (i.e. -linux (not the default))\n" +
-				"   (13) create sample dominant matrix w/ separate map and ped file (i.e. -rfgls (not the default))\n" +
+				"   (3) output format (i.e. format=" + fileFormat + " (default; options are "+MATRIX_FORMAT+", "+PLINK_TEXT_FORMAT+", "+PLINK_BINARY_FORMAT+", and "+RFGLS_FORMAT+"))\n" +
+				"   (4) output filename (i.e. out=" + outputFilename + " (default))\n" +
+				"   (5) to include Deletion or not (i.e. del=" + includeDele + " (default))\n" +
+				"   (6) to include Duplication or not (i.e. dup=" + includeDupl + " (default))\n" +
+				"   (7) to use ordered value or not (i.e. ord=" + ordered + " (default))\n" +
+				"   (8) to use collapsed value or not (i.e. coll=" + collapsed + " (default))\n" +
+				"   (9) to only use homozygous variants (i.e. homozygousOnly=" + homozygous + " (default))\n" +
+				"   (10) exclude monomorphic loci (i.e. excludeMonomorphicLoci=" + excludeMonomorphicLoci + " (default))\n" +
+				"   (11) number of loci per file in the output file (i.e. lociPerFile=" + lociPerFile + " (default))\n" +
+				"   (12) width of the window (i.e. win=" + window + " (default))\n" +
+				"   (13) use linux line endings (i.e. -linux (not the default))\n" +
+				" Note: RFGLS format is sample dominant matrix w/ separate map and ped file\n" +
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -376,8 +387,8 @@ public class ExportCNVsToPedFormat {
 			} else if (args[i].startsWith("-linux")) {
 				endOfLine = "\n";
 				numArgs--;
-			} else if (args[i].startsWith("-rfgls")) {
-				rfglsOutput = true;
+			} else if (args[i].startsWith("format=")) {
+				fileFormat = ext.parseStringArg(args[i], MATRIX_FORMAT);
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -416,9 +427,9 @@ public class ExportCNVsToPedFormat {
 				input = fileChooser.getSelectedFile();
 				output = input.getPath() + "cnvBySample.txt";
 				//TODO this line should be further elaborated.
-				export(input.toString(), null, output, endOfLine, rfglsOutput, true, true, true, false, false, false, lociPerFile, window, new Logger());
+				export(input.toString(), null, output, endOfLine, fileFormat, true, true, true, false, false, false, lociPerFile, window, new Logger());
 			} else {
-				export(cnvFilename, pedFilename, outputFilename, endOfLine, rfglsOutput, includeDele, includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci, lociPerFile, window, new Logger());
+				export(cnvFilename, pedFilename, outputFilename, endOfLine, fileFormat, includeDele, includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci, lociPerFile, window, new Logger());
 //				cnvBySample("C:/projects/Geti/filtered.cnv", null, "C:/projects/Geti/cnvBySample.txt", endOfLine, rfglsOutput, true, false, true, false, saveIntermediateFiles, markersPerFile);
 			}
 		} catch (Exception e) {
