@@ -271,7 +271,7 @@ public class Rscript {
 			String[] rScript = developScript();
 			// log.report(Array.toStr(rScript, "\n"));
 			Files.writeList(rScript, rScriptFile);
-			boolean ran = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", rScriptFile }, "", new String[] { rScriptFile }, new String[] { mergeOutput }, true, true, false, log);
+			boolean ran = CmdLine.runCommandWithFileChecks(new String[] { rScatters[0].getrScriptLoc(), rScriptFile }, "", new String[] { rScriptFile }, new String[] { mergeOutput }, true, true, false, log);
 			return ran;
 		}
 
@@ -575,11 +575,19 @@ public class Rscript {
 
 	public static class Restrictions {
 		private String[] cols;
-		private double[] vals;
+		private String[] vals;
 		private String[] ops;
 		private String cond;
 
 		public Restrictions(String cols[], double[] vals, String[] ops, String cond) {
+			super();
+			this.cols = cols;
+			this.vals = Array.toStringArray(vals);
+			this.ops = ops;
+			this.cond = cond;
+		}
+
+		public Restrictions(String cols[], String[] vals, String[] ops, String cond) {
 			super();
 			this.cols = cols;
 			this.vals = vals;
@@ -638,6 +646,7 @@ public class Rscript {
 		private boolean scaleDensity;
 		private double midScaleDensity;
 		private Restrictions[] restrictions;
+		private String rScriptLoc;
 
 		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
 			this(dataFile, rSriptFile, plotVar, output, dataXvalueColumn, dataYvalueColumns, null, sType, log);
@@ -676,6 +685,15 @@ public class Rscript {
 			// this.legendName = "variable";
 			this.regLines = false;
 			this.midScaleDensity = .5;
+			this.rScriptLoc = "Rscript";
+		}
+
+		public String getrScriptLoc() {
+			return rScriptLoc;
+		}
+
+		public void setrScriptLoc(String rScriptLoc) {
+			this.rScriptLoc = rScriptLoc;
 		}
 
 		public ErrorBars getErrorBars() {
@@ -830,7 +848,7 @@ public class Rscript {
 			if (rScript != null) {
 				// log.report(Array.toStr(rScript, "\n"));
 				Files.writeList(rScript, rScriptFile);
-				boolean ran = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", rScriptFile }, "", new String[] { rScriptFile }, new String[] { output }, true, overWriteExisting, false, log);
+				boolean ran = CmdLine.runCommandWithFileChecks(new String[] { rScriptLoc, rScriptFile }, "", new String[] { rScriptFile }, new String[] { output }, true, overWriteExisting, false, log);
 				return ran;
 			} else {
 				return false;
