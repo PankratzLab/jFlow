@@ -122,7 +122,7 @@ public class MitoGWAS {
 		Files.copyFileUsingFileChannels(fam, fullOut + "plink.fam", proj.getLog());
 		Files.copyFileUsingFileChannels(bim, fullOut + "plink.bim", proj.getLog());
 		Files.copyFileUsingFileChannels(bed, fullOut + "plink.bed", proj.getLog());
-		Qc.fullGamut(fullOut, "plink", true, proj.getLog());
+		// Qc.fullGamut(fullOut, true, proj.getLog());
 
 		String[] out = new String[] { fam, bim, bed };
 		CmdLine.runCommandWithFileChecks(Array.toStringArray(plinkConverCommand), "", in, out, true, false, false, proj.getLog());
