@@ -16,7 +16,11 @@ import java.util.concurrent.Callable;
 
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
+import stats.Rscript.COLUMNS_MULTIPLOT;
+import stats.Rscript.PLOT_DEVICE;
 import stats.Rscript.RScatter;
+import stats.Rscript.RScatters;
+import stats.Rscript.Restrictions;
 import stats.Rscript.SCATTER_TYPE;
 import stats.Rscript.SlopeLine;
 import stats.StatsCrossTabs;
@@ -24,6 +28,7 @@ import stats.StatsCrossTabs.STAT_TYPE;
 import common.Array;
 import common.CmdLine;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.Sort;
 import common.WorkerTrain;
@@ -34,6 +39,7 @@ import cnv.filesys.MarkerSet;
 import cnv.filesys.Pedigree;
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import cnv.qc.MarkerMetrics;
 
 /**
  * Run a gwas of original (Array) genotypes for mitochondrial cn for estimates from particular pc-estimates/pedigree/covars <br>
@@ -148,12 +154,14 @@ public class MitoGWAS {
 	}
 
 	private static void summarize(Project proj, String root, ArrayList<PlinkAssoc> plinkCommands) {
-		System.exit(1);
+		// MarkerMetrics.fullQC(proj, null, null, false, 24);
+		String[] qcpass = HashVec.loadFileToStringArray(ext.parseDirectoryOfFile(root) + "ldPruning/plink.prune.out", false, new int[] { 0 }, true);
 		proj.getLog().reportTimeInfo("Computing correlation matrix of results");
 		double[][] emp1s = new double[plinkCommands.size()][];
 		int[][] keys = new int[plinkCommands.size()][];
 		String[] empTitles = new String[plinkCommands.size()];
 		String outQQ = root + "summaryPvals";
+
 		String pvalDB = outQQ + ".txt";
 		String pvalQQ = outQQ + ".qq.txt";
 		// /String plot = outQQ + ".jpeg";
@@ -170,46 +178,57 @@ public class MitoGWAS {
 		String[] empLogP = Array.tagOn(empTitles, "p_", null);
 		if (!Files.exists(pvalDB) || !Files.exists(pvalQQ)) {
 			for (int j = 0; j < plinkCommands.size(); j++) {
-				String results = plinkCommands.get(j).getOutputs()[1];
-				proj.getLog().reportTimeInfo("Loading " + results);
-				ProjectDataParserBuilder builderPermResults = new ProjectDataParserBuilder();
-				builderPermResults.treatAllNumeric(false);
-				builderPermResults.sampleBased(false);
-				builderPermResults.hasHeader(true);
-				builderPermResults.dataKeyColumnName("SNP");
-				builderPermResults.requireAll(false);
-				builderPermResults.separator("[\\s]+");
-				builderPermResults.setInvalidNumericToNaN(true);
-				builderPermResults.firstEntryOnly(true);
-				builderPermResults.numericDataTitles(new String[] { "P" });
-				ExtProjectDataParser permParser;
-				try {
-					permParser = builderPermResults.build(proj, results);
-					permParser.determineIndicesFromTitles();
-					permParser.loadData();
-					emp1s[j] = permParser.getNumericDataForTitle("P");
-					Files.writeList(Array.toStringArray(Array.removeNaN(emp1s[j])), pvalFiles[j]);
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					return;
+				if (!Files.exists(pvalFiles[j])) {
+					String results = plinkCommands.get(j).getOutputs()[1];
+					proj.getLog().reportTimeInfo("Loading " + results);
+					ProjectDataParserBuilder builderPermResults = new ProjectDataParserBuilder();
+					builderPermResults.treatAllNumeric(false);
+					builderPermResults.sampleBased(false);
+					builderPermResults.hasHeader(true);
+					builderPermResults.dataKeyColumnName("SNP");
+					builderPermResults.requireAll(false);
+					builderPermResults.separator("[\\s]+");
+					builderPermResults.setInvalidNumericToNaN(true);
+					builderPermResults.firstEntryOnly(true);
+					builderPermResults.numericDataTitles(new String[] { "P" });
+					ExtProjectDataParser permParser;
+					try {
+						permParser = builderPermResults.build(proj, results);
+						permParser.determineIndicesFromTitles();
+						permParser.loadData();
+						emp1s[j] = permParser.getNumericDataForTitle("P");
+						Files.writeList(Array.toStringArray(Array.removeNaN(emp1s[j])), pvalFiles[j]);
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						return;
+					}
+				} else {
+					emp1s[j] = Array.toDoubleArray(HashVec.loadFileToStringArray(pvalFiles[j], false, new int[] { 0 }, false));
 				}
 
 			}
-			StatsCrossTabs sTabs = new StatsCrossTabs(emp1s, null, null, empTitles, STAT_TYPE.SPEARMAN_CORREL, true, proj.getLog());
-			sTabs.computeTable();
-			sTabs.dumpTables(outTabs);
+			if (!Files.exists(outTabs)) {
+				StatsCrossTabs sTabs = new StatsCrossTabs(emp1s, null, null, empTitles, STAT_TYPE.SPEARMAN_CORREL, true, proj.getLog());
+				sTabs.computeTable();
+				sTabs.dumpTables(outTabs);
+			}
 			MarkerSet markerSet = proj.getMarkerSet();
 			boolean[] valids = Array.booleanArray(emp1s[0].length, true);
 			VCFFileReader annoReader = new VCFFileReader(proj.BLAST_ANNOTATION_FILENAME.getValue(), true);
 			String[] annotations = VCFOps.getAnnotationKeys(proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getLog())[0];
-
+			ExtProjectDataParser qcParser = MarkerMetrics.developParser(proj, proj.MARKER_METRICS_FILENAME.getValue());
+			int[] qcindices = qcParser.getTypedFileParser().getNumericColumns()[0];
 			CloseableIterator<VariantContext> vcIter = annoReader.iterator();
 			try {
+
 				PrintWriter writer = new PrintWriter(new FileWriter(pvalDB));
-				writer.println("SNP\tCHR\tBP\tREF\tALT" + Array.toStr(empTitles) + "\t" + Array.toStr(annotations));
+				writer.println("SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t" + Array.toStr(empTitles) + "\tMinPval\tMaxPval\tMaxDiffPval\tStdPval\t" + Array.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t" + Array.toStr(annotations));
 				int numInvalid = 0;
 				for (int i = 0; i < emp1s[0].length; i++) {
+					if (i % 10000 == 0) {
+						proj.getLog().reportTimeInfo("Summarized " + i + " markers");
+					}
 					if (!vcIter.hasNext()) {
 						writer.close();
 						annoReader.close();
@@ -223,7 +242,9 @@ public class MitoGWAS {
 					}
 
 					boolean valid = true;
-					StringBuilder builder = new StringBuilder();
+					ArrayList<String> line = new ArrayList<String>(100);
+					double[] pvals = new double[emp1s.length];
+
 					for (int j = 0; j < emp1s.length; j++) {
 						if (valid) {
 							valid = Double.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
@@ -232,15 +253,31 @@ public class MitoGWAS {
 								valids[i] = false;
 							}
 							if (j == 0) {
-								builder.append(markerSet.getMarkerNames()[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + markVC.getReference().getDisplayString() + "\t" + markVC.getAlternateAlleles().toString() + emp1s[j][i]);
-							} else {
-								builder.append("\t" + emp1s[j][i]);
+								line.add(markerSet.getMarkerNames()[i]);
+								line.add(markerSet.getChrs()[i] + "");
+								line.add(markerSet.getPositions()[i] + "");
+								line.add(markVC.getReference().getDisplayString() + "");
+								line.add(markVC.getAlternateAlleles().toString() + "");
+								line.add((ext.indexOfStr(markerSet.getMarkerNames()[i], qcpass) > 0) + "");
 							}
+							line.add(emp1s[j][i] + "");
+							pvals[j] = emp1s[j][i];
 						}
 					}
-					builder.append(VCOps.getAnnotationsFor(annotations, markVC, "."));
+					pvals = Array.removeNaN(pvals);
+					double max = Array.max(pvals);
+					double min = Array.min(pvals);
+					double maxDiff = max - min;
+					double std = Array.stdev(pvals);
+					line.add(min + "");
+					line.add(max + "");
+					line.add(maxDiff + "");
+					line.add(std + "");
+					for (int j = 0; j < qcindices.length; j++) {
+						line.add(qcParser.getNumericData()[qcindices[j]][i] + "");
+					}
 					if (valid) {
-						writer.println(builder.toString());
+						writer.println(Array.toStr(Array.toStringArray(line)) + "\t" + Array.toStr(VCOps.getAnnotationsFor(annotations, markVC, ".")));
 					}
 
 				}
@@ -281,16 +318,38 @@ public class MitoGWAS {
 		}
 		proj.QQ_FILENAMES.setValue(pvalFiles);
 		proj.saveProperties();
-		String out = ext.addToRoot(pvalQQ, ".qqplot");
-		RScatter rScatter = new RScatter(pvalQQ, out + ".rscript", ext.removeDirectoryInfo(out), out + ".jpeg", "RANK", empLogP, null, SCATTER_TYPE.POINT, proj.getLog());
-		SlopeLine slopeLine = new SlopeLine(0, 1);
-		rScatter.setSlopeLines(new SlopeLine[] { slopeLine });
-		rScatter.setOverWriteExisting(true);
-		rScatter.execute();
+		ArrayList<RScatter> rs = new ArrayList<RScatter>();
 
-		// ArrayList<RScatter> rs = new ArrayList<RScatter>();
-		// RScatters rsScatters = new RScatters(rs.toArray(new RScatter[rs.size()]), pvalQQ + "finalRscript", pvalQQ + "final.pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+		String out = ext.addToRoot(pvalDB, ".qc");
 
+		String[][] qcGroups = new String[][] { { "meanTheta_AA", "meanTheta_AB", "meanTheta_BB" },
+				{ "diffTheta_AB-AA", "diffTheta_BB-AB" },
+				{ "sdTheta_AA", "sdTheta_AB", "sdTheta_BB" },
+				{ "meanR_AA", "meanR_AB", "meanR_BB" },
+				{ "LRR_SD" },
+				{ "MARKER_GC_CONTENT" } };
+
+		for (int j = 0; j < qcGroups.length; j++) {
+			String currentOut = ext.addToRoot(out, "METRICS_" + j);
+			RScatter rScatter = new RScatter(pvalDB, currentOut + ".rscript", ext.removeDirectoryInfo(currentOut), currentOut + ".jpeg", "MaxDiffPval", qcGroups[j], null, SCATTER_TYPE.POINT, proj.getLog());
+			rScatter.setOverWriteExisting(true);
+			rScatter.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
+			rScatter.execute();
+			rs.add(rScatter);
+
+			String currentOutPrune = ext.addToRoot(out, "GWAS_QC_METRICS_GROUP_" + j);
+			RScatter rScatterPrune = new RScatter(pvalDB, currentOutPrune + ".rscript", ext.removeDirectoryInfo(currentOutPrune), currentOutPrune + ".jpeg", "MaxDiffPval", qcGroups[j], null, SCATTER_TYPE.POINT, proj.getLog());
+			rScatterPrune.setOverWriteExisting(true);
+			Restrictions restrictions = new Restrictions(new String[] { "PlinkPruneOut" }, new String[] { "true" }, new String[] { "==" }, null);
+			rScatterPrune.setRestrictions(new Restrictions[] { restrictions });
+			rScatterPrune.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
+
+			rScatterPrune.execute();
+			rs.add(rScatterPrune);
+		}
+
+		RScatters rsScatters = new RScatters(rs.toArray(new RScatter[rs.size()]), out + "finalRscript", out + "final.pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
+		rsScatters.execute();
 		// String[] script = generateManhatQQScript(pvalDB, empTitles, plot);
 		// String rscript = plot + ".rscript";
 		// Files.writeList(script, rscript);
