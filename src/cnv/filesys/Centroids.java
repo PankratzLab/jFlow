@@ -314,7 +314,7 @@ public class Centroids implements Serializable, TextExport {
 			System.out.println("Computed mean genotyped centroids for all "+centroids.length+" markers");
 		}
 //		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.getFilename(proj.GENOTYPE_CENTROIDS_FILENAME));
-		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.GENOTYPE_CENTROIDS_FILENAME.getValue());
+		new Centroids(centroids, markerSet.getFingerprint()).serialize(proj.GENOTYPE_CENTROIDS_FILENAME.getValue(true, false));
 		System.out.println("Computation took "+ext.getTimeElapsed(time));
 	}
 

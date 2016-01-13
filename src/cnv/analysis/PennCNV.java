@@ -731,7 +731,7 @@ public class PennCNV {
 
 		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("") || !Files.exists(filename, proj.JAR_STATUS.getValue())) {
 			sampleList = proj.getSampleList().getSamples();
-			output = proj.CUSTOM_PFB_FILENAME.getValue();
+			output = proj.CUSTOM_PFB_FILENAME.getValue(true, false);
 		} else if (Files.exists(filename, proj.JAR_STATUS.getValue())) {
 			log.report("filename: "+filename);
 			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);

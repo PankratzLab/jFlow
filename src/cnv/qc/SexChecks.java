@@ -458,7 +458,7 @@ public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Kli
 		
 		log = proj.getLog();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue()));
+			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)));
 			writer.println(Array.toStr(SEX_HEADER));
 			for (int i = 0; i<samples.length; i++) {
 				famIndPair = sampleData.lookup(samples[i])[1];

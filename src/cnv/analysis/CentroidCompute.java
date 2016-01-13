@@ -695,7 +695,7 @@ public class CentroidCompute {
 
 	public static Centroids computeAndDumpCentroids(Project proj) {
 		CentroidBuilder builder = new CentroidBuilder();
-		return CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), builder, proj.NUM_THREADS.getValue(), 1);
+		return CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(true, false), builder, proj.NUM_THREADS.getValue(), 1);
 	}
 
 	public static Centroids computeAndDumpCentroids(Project proj, String fullpathToCentFile, CentroidBuilder builder, int numCentThreads, int numDecompressThreads) {
