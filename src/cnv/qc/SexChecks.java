@@ -11,7 +11,8 @@ import common.*;
 import stats.*;
 
 public class SexChecks {
-public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner";
+	public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner";
+	public static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 2, 2, 2};
 	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Mean X LRR", "Num X markers", "Num X 10-90", "% 10-90", "Mean Y LRR", "Num Y markers"};
 	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXX", "X", "X", "XYY", "XXYY"};
 	public static final String[] SAMPLE_FIELDS = {"DNA", "IID", "CLASS=Gender"};
