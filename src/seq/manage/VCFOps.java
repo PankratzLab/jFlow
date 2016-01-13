@@ -434,7 +434,7 @@ public class VCFOps {
 			log.reportTimeInfo("MODE=" + mode);
 			if (mode == PLINK_SET_MODE.GWAS_QC) {
 
-				gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
+				gwas.Qc.fullGamut(dir, rootOut, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
 				String mdsFile = dir + "genome/mds20.mds";
 				if (Files.exists(mdsFile)) {
 					// fixMdsFile(log, dir, newIDS, mdsFile);
@@ -445,7 +445,7 @@ public class VCFOps {
 			} else if (mode == PLINK_SET_MODE.HOMOGENEITY) {
 
 				if (!Files.exists(ext.parseDirectoryOfFile(outFiles[2]) + "hardy.hwe")) {
-					CmdLine.run("plink --bfile plink --maf 0 --geno 1 --mind 1 --hardy --out hardy --noweb", ext.parseDirectoryOfFile(outFiles[2]));
+					CmdLine.run("plink --bfile " + rootOut + " --maf 0 --geno 1 --mind 1 --hardy --out hardy --noweb", ext.parseDirectoryOfFile(outFiles[2]));
 				} else {
 					log.reportTimeInfo("Found file " + ext.parseDirectoryOfFile(outFiles[2]) + "hardy.hwe");
 				}

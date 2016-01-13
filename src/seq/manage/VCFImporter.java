@@ -136,7 +136,7 @@ public class VCFImporter {
 	 */
 	private void generateMarkerPositions(Project proj, ArrayList<LocusID> markers) {
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue()));
+			PrintWriter writer = new PrintWriter(new FileWriter(proj.MARKER_POSITION_FILENAME.getValue(true, false)));
 			writer.println("Marker\tChr\tPosition");
 			for (LocusID id : markers) {
 				writer.println(id.getId() + "\t" + id.getChr() + "\t" + id.getStart());
