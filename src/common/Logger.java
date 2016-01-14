@@ -210,7 +210,7 @@ public class Logger implements Serializable {
 		}
 	}
 
-	public void reportException(Exception e) {
+	public void reportException(Throwable e) {
 		reportException(e, 0);
 	}
 	

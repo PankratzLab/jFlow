@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 
 import cnv.qc.MendelErrors;
+import cnv.qc.SexChecks;
 import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.var.SampleData;
 import common.Files;
@@ -298,7 +299,7 @@ public class Pedigree extends FamilyStructure {
 	    // FID IID FAID MOID SEX PHENO DNA
 	    PrintWriter writer;
 	    String[] samples;
-//	    SampleData sd;
+	    SampleData sd = null;
 	    String file; 
 	    Logger log;
 	    Hashtable<String, String> sexDict;
@@ -322,15 +323,21 @@ public class Pedigree extends FamilyStructure {
 	    }
 	    
 	    samples = proj.getSamples();
-//	    sd = proj.getSampleData(0, false);
+	    if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue())) {
+	        sd = proj.getSampleData(0, false);
+	    }
 	    
 	    writer = Files.getAppropriateWriter(file);
 	    for (int i = 0; i < samples.length; i++) {
-//	        String[] ids = sd.lookup(samples[i]);
-//	        String sexCode = sexDict.containsKey(samples[i]) ? sexDict.get(samples[i]).split("\t")[0] : "0"; // sex
-	        String sexCode = sexDict.containsKey(samples[i]) ? sexDict.get(samples[i]).split("\t")[1] : "0"; // ext sex
-//	        writer.println(ids[1] + "\t0\t0\t" + sexCode + "\t1\t" + ids[0]);
-	        writer.println(samples[i] + "\t" + samples[i] + "\t0\t0\t" + sexCode + "\t1\t" + samples[i]);
+	        String[] ids = sd == null ? new String[]{samples[i], samples[i] + "\t" + samples[i]} : sd.lookup(samples[i]);
+	        String sexCode = "0";
+	        if (sexDict.size() > 0 && sexDict.containsKey(samples[i])) {
+	            sexCode = sexDict.get(samples[i]).split("\t")[1]; // est. sex
+	        } else if (sd != null) {
+	            sexCode = "" + sd.getSexForIndividual(samples[i]); // putative sex
+	        }
+	        sexCode = "" + SexChecks.mapEstimatedSexToSex(sexCode);
+	        writer.println(ids[1] + "\t0\t0\t" + sexCode + "\t1\t" + ids[0]);
 	    }
 	    writer.flush();
 	    writer.close();
