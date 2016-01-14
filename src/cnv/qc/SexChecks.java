@@ -30,7 +30,17 @@ public class SexChecks {
 	static int[] numX_10_90;
 	static double[] lrrsX;
 	static double[] lrrsY;
-
+	
+	public static int mapEstimatedSexToSex(String estCode) {
+	    String[] estCodes = EST_SEX_HEADER.split(";");
+	    for (int i = 0; i < estCodes.length; i++) {
+	        if (estCodes[i].startsWith(estCode)) {
+	            return EST_SEX_MAPPING[i];
+	        }
+	    }
+	    return 0;
+	}
+	
 	public static void sexCheck(Project proj) {
 		long time;
 		Logger log;

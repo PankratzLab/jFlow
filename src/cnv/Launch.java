@@ -1,6 +1,7 @@
 package cnv;
 
 import java.io.*;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -175,6 +176,25 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		}
 	}
 	
+    private static final class ExceptionHandler implements Thread.UncaughtExceptionHandler {
+        public Logger log;
+
+        public void setLog(Logger log) {
+            this.log = log;
+        }
+
+        @Override
+        public void uncaughtException(Thread t, Throwable e) {
+            if (log != null) {
+                log.reportError("Uncaught Exception in Thread {" + t.getName() + "}:");
+                log.reportException(e);
+            } else {
+                System.err.println("Error - Uncaught Exception in Thread {" + t.getName() + "}:");
+                e.printStackTrace();
+            }
+        }
+    }
+    
 	private static void createAndShowGUI() {
     	String launchPropertiesFile;
     	final Launch frame;
@@ -199,6 +219,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //			System.err.println("Error - failed to load custom font 'LiberationSans'");
 //			e.printStackTrace();
 //		}
+
+
+        ExceptionHandler ueh = new ExceptionHandler();
+    	
+    	Thread.setDefaultUncaughtExceptionHandler(ueh);
     	
     	// set system-wide anti-aliasing
     	System.setProperty("awt.useSystemAAFontSettings","on");
@@ -237,6 +262,8 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		// TODO only instantiate when used
 		frame.setIndexOfCurrentProject(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
 		frame.loadProject();
+		
+		ueh.setLog(frame.log);
     }
 
 	public static void initLaunchProperties(String launchPropertiesFile, boolean force, boolean relativePath) {
@@ -748,9 +775,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	        loadProjects();
 			log.report("Refreshed list of projects");
 		} else if (command.equals(PIPELINE)) {
-		    
-            final GenvisisPipeline kAndK = new GenvisisPipeline(proj, Launch.this);
-            kAndK.showDialogAndRun();
+		    SwingUtilities.invokeLater(new Runnable() {
+		        @Override
+		        public void run() {
+		            final GenvisisPipeline kAndK = new GenvisisPipeline(proj, Launch.this);
+		            kAndK.showDialogAndRun();
+		        }
+		    });
             
 		} else if (command.equals("New Project")) {
 		    

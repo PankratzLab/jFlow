@@ -9,10 +9,10 @@ import cnv.var.CNVariant;
 import common.*;
 
 public class ExportCNVsToPedFormat {
-	private static final String MATRIX_FORMAT = "MATRIX";
-	private static final String PLINK_TEXT_FORMAT = "PLINK_TEXT";
-	private static final String PLINK_BINARY_FORMAT = "PLINK_BINARY_FORMAT";
-	private static final String RFGLS_FORMAT = "RFGLS";
+	public static final String MATRIX_FORMAT = "MATRIX";
+	public static final String PLINK_TEXT_FORMAT = "PLINK_TEXT";
+	public static final String PLINK_BINARY_FORMAT = "PLINK_BINARY_FORMAT";
+	public static final String RFGLS_FORMAT = "RFGLS";
 
 	/*
 	 * Convert a cnv data file into
