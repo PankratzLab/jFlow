@@ -29,7 +29,7 @@ public class Qc {
 		
 		new File(dir+"markerQC/").mkdirs();
 		log.report(ext.getTime() + "]\tRunning --mind 0.1");
-		CmdLine.runDefaults("plink --bfile ../" + plink + " --mind 0.1 --make-bed --noweb", dir+"markerQC/", log);
+		CmdLine.runDefaults("plink --bfile ../" + plink + " --mind 0.1 --make-bed --noweb --out ./" + plinkPrefix, dir+"markerQC/", log);
 		
 		if (!Files.exists(dir+"markerQC/freq.frq")) {
 			log.report(ext.getTime() + "]\tRunning --freq");

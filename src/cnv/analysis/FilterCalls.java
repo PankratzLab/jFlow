@@ -167,7 +167,7 @@ public class FilterCalls {
 		
 		sampleData = proj == null ? null : proj.getSampleData(0, false);
 		
-		Vector<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, proj == null ? false : proj.JAR_STATUS.getValue());
+		Vector<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, true, proj == null ? false : proj.JAR_STATUS.getValue());
 		HashMap<String, ArrayList<CNVariant>[]> cnvMap = new HashMap<String, ArrayList<CNVariant>[]>();
 		for (CNVariant cnv : cnvList) {
 			ArrayList<CNVariant>[] indivLists = cnvMap.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
@@ -904,7 +904,7 @@ public class FilterCalls {
 	}
 	
 	public static void mergeCNVs(String in, String out, float distanceQuotient, String bimFile) {
-		Vector<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, false);
+		Vector<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, true, false);
 		
 		int[][] positions = null;
 		if (bimFile != null) {
@@ -1250,7 +1250,7 @@ public class FilterCalls {
 
 	public static void filterExclusions(String dir, String in, String out, String indivFile, boolean exclude) {
 		PrintWriter writer;
-		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, false);
+		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, true, false);
 		boolean[] remove = Array.booleanArray(cnvs.size(), !exclude);
 		HashSet<String> indivList = HashVec.convertHashNullToHashSet(HashVec.loadFileToHashString(indivFile, new int[]{0, 1}, null, false, "\t", false, false, false));
 		
