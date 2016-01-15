@@ -589,7 +589,7 @@ public class ResultsPackager {
 	 * 							  "D:/temp/Poynter_emim/testing/markerList.txt",
 	 * 							  "MarkerName",
 	 * 							  new String[] {"tdt", "emim"},
-	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C"}},
+	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
 	 * 							  "D:/temp/Poynter_emim/testing/forestplot.xln",
 	 * 							  null);
 	 * 
@@ -597,7 +597,7 @@ public class ResultsPackager {
 	 * 							  "/home/pankrat2/shared/Poynter_emim/markerList.txt",
 	 * 							  "MarkerName",
 	 * 							  new String[] {"tdt", "emim"},
-	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "p-value_C"}},
+	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
 	 * 							  "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln",
 	 * 							  null);
 	 */
@@ -988,13 +988,29 @@ public class ResultsPackager {
 			} else if (type.equalsIgnoreCase("emim")) {
 				parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt, mapFile, mendelErrorFile, hweFile, pThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("emimPoynterToForest")) {
-				getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/fileList.txt", false, null, false),
-						"/home/pankrat2/shared/Poynter_emim/markerList.txt",
-						"MarkerName",
-						new String[] {"tdt", "emim"},
-						new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "p-value_C"}},
-						"forestplot.input",
-						null);
+//				getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/fileList.txt", false, null, false),
+//						"/home/pankrat2/shared/Poynter_emim/markerList.txt",
+//						"MarkerName",
+//						new String[] {"tdt", "emim"},
+//						new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "p-value_C"}},
+//						"forestplot.input",
+//						null);
+			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt", false, null, false),
+			                    "/home/pankrat2/shared/Poynter_emim/markerList.txt",
+			                    "MarkerName",
+			                    new String[] {"tdt", "emim"},
+			                    new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
+			                    "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln",
+			                    null);
+			    
+			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/fileList_completeWhiteTriosPoynter.txt", false, null, false),
+			            "/home/pankrat2/shared/Poynter_emim/markerList.txt",
+			            "MarkerName",
+			            new String[] {"tdt", "emim"},
+			            new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
+			            "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/completeWhiteTriosPoynter_forestplot.xln",
+			            null);
+
 			} else {
 				System.err.println("Error - unknown results type: '"+type+"'");
 			}

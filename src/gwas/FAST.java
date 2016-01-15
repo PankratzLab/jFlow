@@ -60,6 +60,7 @@ public class FAST {
 	String factor = null;
 	int sex = -2;
 	boolean isLinear;
+	static int[] SEX_CODES = {0, 1, 2};
 	
 	private static FilenameFilter dirFilter = new FilenameFilter() {
         @Override
@@ -123,7 +124,7 @@ public class FAST {
                         String popName = ext.rootOf(popDir.getName(), true);
                         
                         auto : {
-                            final String finalOut = buildFinalFilename(studyName, popName, factorName, -1);
+                            final String finalOut = buildFinalFilename(studyName, popName, factorName, SEX_CODES[0]);
                             FilenameFilter currFilter = new FilenameFilter() {
                                 @Override
                                 public boolean accept(File dir, String name) {
@@ -183,8 +184,8 @@ public class FAST {
                             }
                         }
         
-                        final String finalOutF = buildFinalFilename(studyName, popName, factorName, 0);
-                        final String finalOutM = buildFinalFilename(studyName, popName, factorName, 1);
+                        final String finalOutF = buildFinalFilename(studyName, popName, factorName, SEX_CODES[2]);
+                        final String finalOutM = buildFinalFilename(studyName, popName, factorName, SEX_CODES[1]);
                         File femaleDir = new File(popDir, "female/");
                         File maleDir = new File(popDir, "male/");
                         FilenameFilter femFilt = new FilenameFilter() {
@@ -213,12 +214,12 @@ public class FAST {
                                     factorLog.report(ext.getTime() + "]\tNo female-specific output directory found for population " + popName + "!");
                                 } else {
                                     try {
-                                        String resultsDirPathFemale = femaleResultsDir.getAbsolutePath();
+                                        String resultsDirPathFemale = ext.verifyDirFormat(femaleResultsDir.getAbsolutePath());
                                         String midOutF = "concatenated.result";
                                         String traitFileF = ext.verifyDirFormat(femaleDir.getAbsolutePath()) + studyName + "_" + popName + "_" + factorName + "_female.trait";
                                         concatResults(resultsDirPathFemale, midOutF, pvalThresh, true, true);
                                         if (Files.exists(resultsDirPathFemale + midOutF) && Files.getSize(resultsDirPathFemale + midOutF, false) > 0) { 
-                                            runParser(DEFAULT_FORMAT, ext.verifyDirFormat(resultsDirPathFemale) + midOutF, finalResultsPath + finalOutF, countValid(traitFileF));
+                                            runParser(DEFAULT_FORMAT, resultsDirPathFemale + midOutF, finalResultsPath + finalOutF, countValid(traitFileF));
                                             factorLog.report(ext.getTime() + "]\tParsing complete.");
                                             parsedF = true;
                                             dataFilesF = finalResultDir.list(femFilt);
@@ -406,12 +407,56 @@ public class FAST {
 //	                                    .append("genomic_control=" + (gc ? "TRUE" : "FALSE") + "\n");
 	    return metalCRF.toString();
 	}
+	
+//	private static boolean checkKeys(HashMap<String, HashMap<String, HashMap<String, String>>> traits, HashMap<String, HashMap<String, DataDefinitions>> data) {
+//	    if (traits.keySet().size() == data.keySet().size() && traits.keySet().containsAll(data.keySet())) {
+//	        for (String study : traits.keySet()) {
+//	            for (Entry<String, HashMap<String, String>> factorEntry : traits.get(study).entrySet()) {
+//	                
+//	            }
+//	        }
+//	    }
+//	    return false;
+//	}
+	
+//	private static void ensureIndivOrder(HashMap<String, HashMap<String, HashMap<String, String>>> traits, HashMap<String, HashMap<String, DataDefinitions>> data) {
+//	    HashMap<String, HashMap<String, String>> factorToPopToTraitMap;
+//	    HashMap<String, String> popToTraitMap;
+//	    String study, factor;
+//	    HashMap<String, HashMap<String, String[]>> dataIndivs = new HashMap<String, HashMap<String,String[]>>();
+//	    HashMap<String, HashMap<String, String[]>> traitIndivs = new HashMap<String, HashMap<String,String[]>>();
+//	    
+//        for (java.util.Map.Entry<String, HashMap<String, HashMap<String, String>>> entry : traits.entrySet()) {
+//            study = entry.getKey();
+//            factorToPopToTraitMap = entry.getValue();
+//            for (java.util.Map.Entry<String, HashMap<String, String>> factors : factorToPopToTraitMap.entrySet()) {
+//                factor = factors.getKey();
+//                popToTraitMap = factors.getValue();
+//                for (java.util.Map.Entry<String, String> pops : popToTraitMap.entrySet()) {
+//                    String pop = pops.getKey();
+//                    String traitFile = pops.getValue();
+//                    data.get(study).get(pop).indivFile
+//                }
+//            }
+//        }
+//	}
 
     public static String[] prepareFAST(String traitDir, String dataFile, String runDir, boolean isLinear, boolean run, boolean gcMetal, String qsubQueue) throws IOException {
-		HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
+//		        Study           Factor          Pop     File
+        HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
+//		        Study           Pop     DefObject
 		HashMap<String, HashMap<String, DataDefinitions>> data = parseDataDefinitionsFile(dataFile);
 		ArrayList<String> dirs = new ArrayList<String>();
-		// TODO ensure 1-1 keymapping between traits and data maps
+//		if (!checkKeys(traits, data)) {
+//		    // TODO error, missing trait (okay) or missing data (not as okay)
+//		}
+//		if (checkOrder) {
+//		    if (checkOrder()) {
+//		        // err
+//		    }
+//		} else {
+//		    System.out.println("Warning - skipping check to ensure .indiv order matches .trait order");
+//      }
 		// TODO ensure 1-1 keymapping between study.pop in both maps
 		
 		traitDir = ext.verifyDirFormat(traitDir);
@@ -471,7 +516,7 @@ public class FAST {
 					fastRun.study = study;
 					fastRun.factor = factor;
 					fastRun.pop = pop;
-					fastRun.sex = -1;
+					fastRun.sex = SEX_CODES[0];
 					fastRun.run();
 					
 					dirs.add(dir);
@@ -493,16 +538,16 @@ public class FAST {
 					    String maleTraitFile = sexCopyTraitFile(dir + "male/", traitDir + traitFile, true);
 					    String femaleTraitFile = sexCopyTraitFile(dir + "female/", traitDir + traitFile, false);
 	                    FAST fastRunMale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, maleTraitFile, dataDef.sexSuffix, dir + "male/", covars, isLinear);
-	                    fastRun.study = study;
-	                    fastRun.factor = factor;
-	                    fastRun.pop = pop;
-	                    fastRun.sex = 1;
+	                    fastRunMale.study = study;
+	                    fastRunMale.factor = factor;
+	                    fastRunMale.pop = pop;
+	                    fastRunMale.sex = SEX_CODES[1];
 	                    fastRunMale.run();
 	                    FAST fastRunFemale = new FAST("FAST", dataDef.sexDir, dataDef.indivFile, femaleTraitFile, dataDef.sexSuffix, dir + "female/", covars, isLinear);
-	                    fastRun.study = study;
-	                    fastRun.factor = factor;
-	                    fastRun.pop = pop;
-	                    fastRun.sex = 0;
+	                    fastRunFemale.study = study;
+	                    fastRunFemale.factor = factor;
+	                    fastRunFemale.pop = pop;
+	                    fastRunFemale.sex = SEX_CODES[2];
 	                    fastRunFemale.run();
 	                    masterRunScript.append("cd ").append(dir).append("male/\n");
 	                    masterRunScript.append("qsub ");
@@ -587,7 +632,7 @@ public class FAST {
 				.append(" --impute2-info-file ")
 				.append(dir)
 				.append(dataFiles[i].substring(0, dataFiles[i].length() - 3)) // TODO assuming files are gzipped
-				.append("_info --indiv-file ") // assuming info files end with _info
+				.append("_info --indiv-file ") // TODO assuming info files end with _info
 				.append(indivFile)
 				.append(" --trait-file ")
 				.append(traitFile)
@@ -634,11 +679,11 @@ public class FAST {
             procFileOut.append(factor).append("_");
         }
         procFileOut.append(DATA_BUILD_1000G).append("_");
-        if (sex == 0) {
-            procFileOut.append("chrX_female_");
-        } else if (sex == 1) {
-            procFileOut.append("chrX_male_");
-        } else {
+        if (sex == SEX_CODES[2]) {
+            procFileOut.append("chr23_female_");
+        } else if (sex == SEX_CODES[1]) {
+            procFileOut.append("chr23_male_");
+        } else if (sex == SEX_CODES[0]){
             procFileOut.append("autosomes_");
         }
         procFileOut.append((new SimpleDateFormat("ddMMMyyyy")).format(new Date()).toUpperCase());
