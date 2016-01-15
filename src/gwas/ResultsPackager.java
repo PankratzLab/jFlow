@@ -995,16 +995,31 @@ public class ResultsPackager {
 //						new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "p-value_C"}},
 //						"forestplot.input",
 //						null);
-			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt", false, null, false),
-			                    "/home/pankrat2/shared/Poynter_emim/markerList.txt",
+			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/fileList_allFinalWhitePoynter.txt", false, null, false),
+			                    "/home/pankrat2/shared/Poynter_emim/gwasHits.txt",
 			                    "MarkerName",
 			                    new String[] {"tdt", "emim"},
 			                    new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
-			                    "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln",
+			                    "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/allFinalWhitePoynter_forestplot.xln",
 			                    null);
 			    
+			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/fileList_completeTriosPoynter.txt", false, null, false),
+			            "/home/pankrat2/shared/Poynter_emim/gwasHits.txt",
+			            "MarkerName",
+			            new String[] {"tdt", "emim"},
+			            new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
+			            "/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/completeTriosPoynter_forestplot.xln",
+			            null);
+			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt", false, null, false),
+			            "/home/pankrat2/shared/Poynter_emim/gwasHits.txt",
+			            "MarkerName",
+			            new String[] {"tdt", "emim"},
+			            new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
+			            "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/allFinalWhitePoynter_forestplot.xln",
+			            null);
+			    
 			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/fileList_completeWhiteTriosPoynter.txt", false, null, false),
-			            "/home/pankrat2/shared/Poynter_emim/markerList.txt",
+			            "/home/pankrat2/shared/Poynter_emim/gwasHits.txt",
 			            "MarkerName",
 			            new String[] {"tdt", "emim"},
 			            new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
