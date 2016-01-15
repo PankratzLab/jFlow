@@ -34,8 +34,30 @@ public class ExportCNVsToPedFormat {
 		
 	}
 	
+	private void bedExport() {
+	    
+//	    bimWriter = new PrintWriter(new FileWriter(plinkDirAndFilenameRoot + ".bim"));
+//        out = new RandomAccessFile(plinkDirAndFilenameRoot + ".bed", "rw");
+//        outStream = new byte[3];
+//        outStream[0] = (byte) 108;  // 0b01101100
+//        outStream[1] = (byte) 27;   // 0b00011011
+//        outStream[2] = (byte) 1;    // 0b00000001 <-- be careful here
+//        out.write(outStream);
+//        genotypesOfTargetSamples = new byte[indicesOfTargetSamplesInProj.length];
+//        for (int k = 0; k < indicesOfTargetSamplesInProj.length; k++) {
+//            genotypesOfTargetSamples[k] = genotypes[indicesOfTargetSamplesInProj[k]];
+//        }
+//        if (abLookup[targetIndex] == null) {
+//            abLookup[targetIndex] = markerData[j].getAB_AlleleMappings();
+//        }
+        
+//        out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
+//        bimWriter.println(chrsOfTargetMarkers.get(markersOfThisFile[j]) + "\t" + markersOfThisFile[j] + "\t0\t" + posOfTargetMarkers.get(markersOfThisFile[j]) + "\t" + abLookup[targetIndex][0] + "\t" + abLookup[targetIndex][1]); //TODO alleles[][] matching chrs[]
+	}
+	
 	public static void export(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, String fileFormat, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygousOnly, boolean excludeMonomorphicLoci, int markersPerFile, int windowInBasepairs, Logger log) {
         		PrintWriter writer;
+        		RandomAccessFile bedWriter = null;
         		CNVariant[] cnvs;
         		Hashtable<String,String> allChrPosHash;
         		Hashtable<String,String> sampleListHashFromCnvOrPedData;
@@ -228,14 +250,30 @@ public class ExportCNVsToPedFormat {
         						if (!excludeMonomorphicLoci || Array.min(currentCNs[i]) < 0 || Array.max(currentCNs[i]) > 0 && !Array.equals(currentCNs[i], previousCNs)) {
         							if (countValidLoci % markersPerFile == 0) {
         								if (writer != null) {
+        								    writer.flush();
         									writer.close();
         									if (fileFormat.equals(RFGLS_FORMAT)) {
         										convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-        									}
+        									} else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+        		                                writeFam(pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
+        		                            }
         									fileNumber++;
         								}
+        								if (bedWriter != null) {
+        								    bedWriter.close();
+        								}
         								outputFilename = outputRoot+"_"+fileNumber;
-        								writer = new PrintWriter(new FileWriter(outputFilename));
+        								if (!fileFormat.equals(PLINK_BINARY_FORMAT)) {
+        								    writer = new PrintWriter(new FileWriter(outputFilename));
+        								} else {
+        								    bedWriter = new RandomAccessFile(outputFilename + ".bed", "rw");
+        						            byte[] outStream = new byte[3];
+        						            outStream[0] = (byte) 108;  // 0b01101100
+        						            outStream[1] = (byte) 27;   // 0b00011011
+        						            outStream[2] = (byte) 1;    // 0b00000001 <-- be careful here
+        						            bedWriter.write(outStream);
+        						            writer = Files.getAppropriateWriter(outputFilename + ".bim");
+        								}
         								if (!fileFormat.equals(PLINK_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
         								    writer.print("markerName\t"+Array.toStr(finalSampleList));
         								    writer.print(endOfLine);
@@ -243,18 +281,27 @@ public class ExportCNVsToPedFormat {
         							}
         							if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
         							    writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart() + "\t0\t" + currentChrPosSegs[i].getStart());
-        							} else {
+        							} else if (fileFormat.equals(PLINK_BINARY_FORMAT)) { 
+        							    String a1 = "";// + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0);  // ablookup code allele1 (minor allele)
+        							    String a2 = "";// + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1);   // ablookup code allele2 (major allele)
+        							    writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart() + "\t0\t" + currentChrPosSegs[i].getStart() + "\t" + a1 + "\t" + a2);
+        						    } else {
         							    writer.print(currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart());
         							}
-        							for (int j = 0; j < finalSampleList.length; j++) {
-        							    if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
-        							        if (currentCNs[i][j] < 0 || currentCNs[i][j] > 2) {
-        							            System.out.println("S: " + finalSampleList[j] + " : CN: " + currentCNs[i][j]);
-        							        }
-        							        writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));    							    
-        							    } else {
-        							        writer.print("\t" + currentCNs[i][j]);
+        							if (fileFormat.equals(PLINK_BINARY_FORMAT)) {
+        							    byte[] genotypes = new byte[finalSampleList.length];
+        							    for (int j = 0; j < finalSampleList.length; j++) {
+        							        genotypes[j] = currentCNs[i][j];
         							    }
+    							        bedWriter.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(genotypes));
+        							} else {
+        							    for (int j = 0; j < finalSampleList.length; j++) {
+            							    if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+            							        writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));    							    
+            							    } else {
+            							        writer.print("\t" + currentCNs[i][j]);
+            							    }
+            							}
         							}
         							writer.print(endOfLine);
         							countValidLoci++;
@@ -266,6 +313,7 @@ public class ExportCNVsToPedFormat {
         					log.reportException(e);
         				}
         				if (writer != null) {
+                            writer.flush();
         					writer.close();
         					if (fileFormat.equals(RFGLS_FORMAT)) {
         						convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
@@ -273,6 +321,14 @@ public class ExportCNVsToPedFormat {
         					    writeFam(pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
         					}
         				}
+                        if (bedWriter != null) {
+                            try {
+                                bedWriter.close();
+                            } catch (IOException e) {
+                                log.reportError("Error closing .bed file");
+                                log.reportException(e);
+                            }
+                        }
         			}
         			log.report("    ...finished in " + ext.getTimeElapsed(time));
     //    		}
