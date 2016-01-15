@@ -407,7 +407,7 @@ public class GenvisisPipeline {
             String mkrPosFile = variables.get(this).get(1);
             String setSampList = proj.SAMPLELIST_FILENAME.getValue(false, false);
             String sampList = variables.get(this).get(2);
-            String setTgtFile = proj.TARGET_MARKERS_FILENAMES.getValue()[0];
+            String setTgtFile = proj.TARGET_MARKERS_FILENAMES.getValue().length > 0 ? proj.TARGET_MARKERS_FILENAMES.getValue()[0] : "";
             String tgtFile = variables.get(this).get(3);
             if (!mkrPosProj.equals(mkrPosFile)) {
                 proj.MARKERSET_FILENAME.setValue(mkrPosFile);
