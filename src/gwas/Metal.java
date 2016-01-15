@@ -337,7 +337,7 @@ public class Metal {
 					writer.close();
 					return;
 				}
-				travCommaDelimited = filenames[i].endsWith(".csv");
+				travCommaDelimited = filenames[i].endsWith(".csv") || filenames[i].endsWith(".csv.gz");
 				header = Files.getHeaderOfFile(dir+filenames[i], log);
 
 				indices = ext.indexFactors(new String[][] {unitOfAnalysis}, header, false, true, true, log, false);
