@@ -50,27 +50,31 @@ public class CmdLine {
 			in = proc.getInputStream();
 			err = proc.getErrorStream();
 			finish = false;
-
+			byte[] b;
 			while (!finish) {
 				try {
 					while (in.available()>0||err.available()>0) {
 						while (in.available()>0) {
+						    b = new byte[in.available()];
 							if (log != null) {
-								log.report((char) in.read()+"",false,true);
+								log.report((char) in.read(b)+"",false,true);
 							} else if (inOs != null) {
-								inOs.print((char) in.read());
+								inOs.print((char) in.read(b));
 							} else {
-								in.read();
+								in.read(b);
 							}
+							b = null;
 						}
 						while (err.available() > 0) {
+						    b = new byte[err.available()];
 							if (log != null) {
-								log.report((char) err.read() + "",false,true);
+								log.report((char) err.read(b) + "",false,true);
 							} else if (errOS != null) {
-								errOS.print((char) err.read());
+								errOS.print((char) err.read(b));
 							} else {
-								err.read();
+								err.read(b);
 							}
+							b = null;
 						}
 					}
 					proc.exitValue();
