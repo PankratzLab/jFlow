@@ -1,6 +1,7 @@
 package common;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class CmdLine {
@@ -56,24 +57,24 @@ public class CmdLine {
 					while (in.available()>0||err.available()>0) {
 						while (in.available()>0) {
 						    b = new byte[in.available()];
+						    in.read(b);
 							if (log != null) {
-								log.report((char) in.read(b)+"",false,true);
+								log.report(new String(b, StandardCharsets.UTF_8),false,true);
 							} else if (inOs != null) {
-								inOs.print((char) in.read(b));
-							} else {
-								in.read(b);
-							}
+								inOs.print(new String(b, StandardCharsets.UTF_8));
+							}/* else {
+							}*/
 							b = null;
 						}
 						while (err.available() > 0) {
 						    b = new byte[err.available()];
+						    err.read(b);
 							if (log != null) {
-								log.report((char) err.read(b) + "",false,true);
+								log.report(new String(b, StandardCharsets.UTF_8),false,true);
 							} else if (errOS != null) {
-								errOS.print((char) err.read(b));
-							} else {
-								err.read(b);
-							}
+								errOS.print(new String(b, StandardCharsets.UTF_8));
+							}/* else {
+							}*/
 							b = null;
 						}
 					}
