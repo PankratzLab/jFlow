@@ -163,7 +163,7 @@ public class CnvBamQC {
 		try {
 			BufferedReader reader = Files.getAppropriateReader(summary);
 			reader.readLine();
-			CNVariant[] cnvs = CNVariant.toCNVariantArray(CNVariant.loadPlinkFile(summary, null, false));
+			CNVariant[] cnvs = CNVariant.toCNVariantArray(CNVariant.loadPlinkFile(summary, null, true, false));
 			int index = 0;
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("[\\s]+");

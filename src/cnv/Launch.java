@@ -1,7 +1,6 @@
 package cnv;
 
 import java.io.*;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;

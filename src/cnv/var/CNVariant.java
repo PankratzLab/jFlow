@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
+import cnv.hmm.PennHmm;
 import common.ByteVector;
 import common.Files;
 import common.IntVector;
@@ -207,10 +208,14 @@ public class CNVariant extends Segment {
 	}
 
 	public static CNVariant[] loadPlinkFile(String filename, boolean jar) {
-		return CNVariant.sortCNVs(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, jar)));
+		return CNVariant.sortCNVs(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, true, jar)));
 	}
 
-	public static Vector<CNVariant> loadPlinkFile(String filename, Hashtable<String, String> sampleHash, boolean jar) {
+	public static CNVariant[] loadPlinkFile(String filename, boolean includeLOH, boolean jar) {
+	    return CNVariant.sortCNVs(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, includeLOH, jar)));
+	}
+
+	public static Vector<CNVariant> loadPlinkFile(String filename, Hashtable<String, String> sampleHash, boolean includeLOH, boolean jar) {
 		BufferedReader reader;
 		Vector<CNVariant> v = null;
 		String[] line;
@@ -227,6 +232,11 @@ public class CNVariant extends Segment {
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
 				if (sampleHash == null || sampleHash.containsKey(line[0] + "\t" + line[1])) {
+				    CNVariant var = new CNVariant(line);
+				    if (!includeLOH && var.getCN() == PennHmm.LOH_FLAG) {
+				        var = null;
+				        continue;
+				    }
 					v.add(new CNVariant(line));
 				}
 			}

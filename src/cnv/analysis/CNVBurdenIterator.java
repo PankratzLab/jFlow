@@ -453,7 +453,7 @@ public class CNVBurdenIterator {
 	}
 	
 	private void loadCNVs(String cnvFile) {
-		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, null, false);
+		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, null, true, false);
 		
 		for (CNVariant cnv : cnvs) {
 			CNVData indiv = idData.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());

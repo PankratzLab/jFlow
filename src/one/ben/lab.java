@@ -156,7 +156,7 @@ public class lab {
 		}
 		reader.close();
 		
-		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, sampleKeyHash, false);
+		Vector<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, sampleKeyHash, true, false);
 		
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 		for (CNVariant cnv : cnvs) {
