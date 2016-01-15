@@ -671,9 +671,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //					}
 //				});
 			} else if (command.equals(PIPELINE)) {
-			    GenvisisPipeline kAndK = new GenvisisPipeline(proj, Launch.this);
-			    kAndK.showDialogAndRun();
-
+	            SwingUtilities.invokeLater(new Runnable() {
+	                @Override
+	                public void run() {
+        			    GenvisisPipeline kAndK = new GenvisisPipeline(proj, Launch.this);
+        			    kAndK.showDialogAndRun();
+	                }
+	            });
 			} else if (command.equals(PrincipalComponentsManhattan.PRINCIPAL_MANHATTAN_MI)) {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
@@ -781,7 +785,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		            kAndK.showDialogAndRun();
 		        }
 		    });
-            
 		} else if (command.equals("New Project")) {
 		    
 		    final GenvisisPipeline kAndK = new GenvisisPipeline(null, Launch.this);
