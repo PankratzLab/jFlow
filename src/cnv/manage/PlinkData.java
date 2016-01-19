@@ -1453,12 +1453,12 @@ public class PlinkData {
 		
 		try {
 		    bimWriter = new PrintWriter(new FileWriter(plinkDirAndFilenameRoot + ".bim"));
-			out = new RandomAccessFile(plinkDirAndFilenameRoot + ".bed", "rw");
-			outStream = new byte[3];
-			outStream[0] = (byte) 108;	// 0b01101100
-			outStream[1] = (byte) 27;	// 0b00011011
-			outStream[2] = (byte) 1;	// 0b00000001 <-- be careful here
-			out.write(outStream);
+            out = new RandomAccessFile(plinkDirAndFilenameRoot + ".bed", "rw");
+            outStream = new byte[3];
+            outStream[0] = (byte) 108;  // 0b01101100
+            outStream[1] = (byte) 27;   // 0b00011011
+            outStream[2] = (byte) 1;    // 0b00000001 <-- be careful here
+            out.write(outStream);
 
 			subTime = new Date().getTime();
 			

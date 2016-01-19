@@ -6,12 +6,14 @@ import java.util.*;
 import javax.swing.JFileChooser;
 
 import filesys.Segment;
+import cnv.filesys.Sample;
 import cnv.var.CNVariant;
 import common.*;
 
 public class ExportCNVsToPedFormat {
 	public static final String MATRIX_FORMAT = "MATRIX";
 	public static final String PLINK_TEXT_FORMAT = "PLINK_TEXT";
+	public static final String PLINK_TRANSPOSED_TEXT_FORMAT = "PLINK_TPED";
 	private static final String[] PLINK_TEXT_CODES = {"RR", "RA", "AA"};
 	public static final String PLINK_BINARY_FORMAT = "PLINK_BINARY_FORMAT";
 	public static final String RFGLS_FORMAT = "RFGLS";
@@ -32,27 +34,6 @@ public class ExportCNVsToPedFormat {
 	// Step 2
 	public static void export(CNVariant[] cnvs, String[][] pedstructure, String outputRoot, String endOfLine, boolean rfglsOutput, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win) {
 		
-	}
-	
-	private void bedExport() {
-	    
-//	    bimWriter = new PrintWriter(new FileWriter(plinkDirAndFilenameRoot + ".bim"));
-//        out = new RandomAccessFile(plinkDirAndFilenameRoot + ".bed", "rw");
-//        outStream = new byte[3];
-//        outStream[0] = (byte) 108;  // 0b01101100
-//        outStream[1] = (byte) 27;   // 0b00011011
-//        outStream[2] = (byte) 1;    // 0b00000001 <-- be careful here
-//        out.write(outStream);
-//        genotypesOfTargetSamples = new byte[indicesOfTargetSamplesInProj.length];
-//        for (int k = 0; k < indicesOfTargetSamplesInProj.length; k++) {
-//            genotypesOfTargetSamples[k] = genotypes[indicesOfTargetSamplesInProj[k]];
-//        }
-//        if (abLookup[targetIndex] == null) {
-//            abLookup[targetIndex] = markerData[j].getAB_AlleleMappings();
-//        }
-        
-//        out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
-//        bimWriter.println(chrsOfTargetMarkers.get(markersOfThisFile[j]) + "\t" + markersOfThisFile[j] + "\t0\t" + posOfTargetMarkers.get(markersOfThisFile[j]) + "\t" + abLookup[targetIndex][0] + "\t" + abLookup[targetIndex][1]); //TODO alleles[][] matching chrs[]
 	}
 	
 	public static void export(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, String fileFormat, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygousOnly, boolean excludeMonomorphicLoci, int markersPerFile, int windowInBasepairs, Logger log) {
@@ -86,6 +67,7 @@ public class ExportCNVsToPedFormat {
         		CNVariant cnv;
         		int numBaseCNVs;
         		boolean wasNull = false;
+        		String exten;
         		
         		log.report("Generating files for "+outputRoot);
         		if (!Files.exists(ext.parseDirectoryOfFile(outputRoot), false)) {
@@ -212,7 +194,7 @@ public class ExportCNVsToPedFormat {
         			tempSampleList = HashVec.getKeys(sampleListHashFromCnvOrPedData, false, false);
         			finalSampleList = new String[sampleListHashFromCnvOrPedData.size()];
         			for (int i = 0; i < tempSampleList.length; i++) {
-        			    if (!fileFormat.equals(PLINK_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
+        			    if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
         			        finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = ext.replaceAllWith(tempSampleList[i], "\t", "-");
         			    } else {
         			        finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = tempSampleList[i];
@@ -254,17 +236,27 @@ public class ExportCNVsToPedFormat {
         									writer.close();
         									if (fileFormat.equals(RFGLS_FORMAT)) {
         										convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-        									} else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
-        		                                writeFam(pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
+        									} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
+        		                                writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
+        		                            } else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+        		                                writeFamOrPed(currentCNs, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
         		                            }
         									fileNumber++;
         								}
         								if (bedWriter != null) {
         								    bedWriter.close();
         								}
+        								exten = "";
+        								if (fileFormat.equals(PLINK_BINARY_FORMAT)) {
+        								    exten = ".bim";
+        								} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
+        								    exten = ".tped";
+        								} else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+        								    exten = ".map";
+        								}
         								outputFilename = outputRoot+"_"+fileNumber;
         								if (!fileFormat.equals(PLINK_BINARY_FORMAT)) {
-        								    writer = new PrintWriter(new FileWriter(outputFilename));
+        								    writer = new PrintWriter(new FileWriter(outputFilename + exten));
         								} else {
         								    bedWriter = new RandomAccessFile(outputFilename + ".bed", "rw");
         						            byte[] outStream = new byte[3];
@@ -272,18 +264,19 @@ public class ExportCNVsToPedFormat {
         						            outStream[1] = (byte) 27;   // 0b00011011
         						            outStream[2] = (byte) 1;    // 0b00000001 <-- be careful here
         						            bedWriter.write(outStream);
-        						            writer = Files.getAppropriateWriter(outputFilename + ".bim");
+        						            writer = Files.getAppropriateWriter(outputFilename + exten);
         								}
-        								if (!fileFormat.equals(PLINK_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
+        								if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
         								    writer.print("markerName\t"+Array.toStr(finalSampleList));
         								    writer.print(endOfLine);
         								}
         							}
-        							if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+        							if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_TEXT_FORMAT)) {
         							    writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart() + "\t0\t" + currentChrPosSegs[i].getStart());
         							} else if (fileFormat.equals(PLINK_BINARY_FORMAT)) { 
-        							    String a1 = "";// + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0);  // ablookup code allele1 (minor allele)
-        							    String a2 = "";// + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1);   // ablookup code allele2 (major allele)
+        							    char[] genoCodes = getPlinkGeno(currentCNs[i]);
+        							    String a1 = "" + genoCodes[0];
+        							    String a2 = "" + genoCodes[1];
         							    writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart() + "\t0\t" + currentChrPosSegs[i].getStart() + "\t" + a1 + "\t" + a2);
         						    } else {
         							    writer.print(currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart());
@@ -296,7 +289,7 @@ public class ExportCNVsToPedFormat {
     							        bedWriter.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(genotypes));
         							} else {
         							    for (int j = 0; j < finalSampleList.length; j++) {
-            							    if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+            							    if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
             							        writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));    							    
             							    } else {
             							        writer.print("\t" + currentCNs[i][j]);
@@ -317,8 +310,10 @@ public class ExportCNVsToPedFormat {
         					writer.close();
         					if (fileFormat.equals(RFGLS_FORMAT)) {
         						convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
+        					} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
+        					    writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
         					} else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
-        					    writeFam(pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
+                                writeFamOrPed(currentCNs, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
         					}
         				}
                         if (bedWriter != null) {
@@ -333,6 +328,21 @@ public class ExportCNVsToPedFormat {
         			log.report("    ...finished in " + ext.getTimeElapsed(time));
     //    		}
         	}
+
+    private static char[] getPlinkGeno(byte[] bs) {
+        char[] mapping = {'0', '0'};
+
+        for (int i = 0; i < bs.length; i++) {
+            if (mapping[1] == '0' && (bs[i] == 0 || bs[i] == 1)) {
+                mapping[1] = PLINK_TEXT_CODES[bs[i]].charAt(0);
+            } else if (mapping[0] == '0' && (bs[i] == 1 || bs[i] == 2)) {
+                mapping[0] = PLINK_TEXT_CODES[bs[i]].charAt(1);
+            } else if (mapping[0] != '0' && mapping[1] != '0') {
+                return mapping;
+            }
+        }
+        return mapping;
+    }
 
     public static void exportPREV(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, String fileFormat, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygousOnly, boolean excludeMonomorphicLoci, int markersPerFile, int windowInBasepairs, Logger log) {
     		PrintWriter writer;
@@ -490,7 +500,7 @@ public class ExportCNVsToPedFormat {
     			tempSampleList = HashVec.getKeys(sampleListHashFromCnvOrPedData, false, false);
     			finalSampleList = new String[sampleListHashFromCnvOrPedData.size()];
     			for (int i = 0; i < tempSampleList.length; i++) {
-    			    if (!fileFormat.equals(PLINK_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
+    			    if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
     			        finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = ext.replaceAllWith(tempSampleList[i], "\t", "-");
     			    } else {
     			        finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = tempSampleList[i];
@@ -536,18 +546,18 @@ public class ExportCNVsToPedFormat {
     								}
     								outputFilename = outputRoot+"_"+fileNumber;
     								writer = new PrintWriter(new FileWriter(outputFilename));
-    								if (!fileFormat.equals(PLINK_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
+    								if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
     								    writer.print("markerName\t"+Array.toStr(finalSampleList));
     								    writer.print(endOfLine);
     								}
     							}
-    							if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+    							if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
     							    writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart() + "\t0\t" + currentChrPosSegs[i].getStart());
     							} else {
     							    writer.print(currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart());
     							}
     							for (int j = 0; j < finalSampleList.length; j++) {
-    							    if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+    							    if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
     							        writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));    							    
     							    } else {
     							        writer.print("\t" + currentCNs[i][j]);
@@ -566,8 +576,8 @@ public class ExportCNVsToPedFormat {
     					writer.close();
     					if (fileFormat.equals(RFGLS_FORMAT)) {
     						convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-    					} else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
-    					    writeFam(pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
+    					} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
+    					    writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
     					}
     				}
     			}
@@ -575,9 +585,9 @@ public class ExportCNVsToPedFormat {
 //    		}
     	}
 
-	private static void writeFam(String pedFile, String outputRoot, int fileNumber, String endOfLine, String[] idList, Logger log) {
+	private static void writeFamOrPed(byte[][] currentCNs, String pedFile, String outputRoot, int fileNumber, String endOfLine, String[] idList, Logger log) {
 	    PrintWriter writer;
-	    log.report("Writing .fam file...");
+	    log.report("Writing " + (currentCNs == null ? ".fam" : ".ped") + " file...");
 	    Hashtable<String, Vector<String>> sexMap;
 	    
 	    if (pedFile != null) {
@@ -587,11 +597,16 @@ public class ExportCNVsToPedFormat {
 	        sexMap = new Hashtable<String, Vector<String>>();
 	    }
 	    
-        writer = Files.getAppropriateWriter(outputRoot + "_" + fileNumber + ".fam");
-        for (String str : idList) {
-            String iid = str.split("\t")[1];
+        writer = Files.getAppropriateWriter(outputRoot + "_" + fileNumber + (currentCNs == null ? ".fam" : ".ped"));
+        for (int i = 0; i < idList.length; i++) {
+            String iid = idList[i].split("\t")[1];
             String sexCode = sexMap.containsKey(iid) ? sexMap.get(iid).get(0) : "0";
-            writer.print(str + "\t0\t0\t" + sexCode + "\t-9");
+            writer.print(idList[i] + "\t0\t0\t" + sexCode + "\t-9");
+            if (currentCNs != null) {
+                for (int j = 0; j < idList.length; j++) {
+                    writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));                                    
+                }
+            }
             writer.print(endOfLine);
         }
         writer.flush();
@@ -770,7 +785,7 @@ public class ExportCNVsToPedFormat {
 			}
 
 			time = new Date().getTime();
-			if (fileFormat.equals(PLINK_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
+			if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
 				// dig into whether we need to convert this into MarkerData + an AB_Lookup object, or if this can be modularized
 			} else {
 				try {
@@ -899,7 +914,7 @@ public class ExportCNVsToPedFormat {
 				"cnv.analysis.CnvBySample requires the following arguments\n" +
 				"   (1) cnv filename (i.e. cnv=" + cnvFilename + " (default))\n" +
 				"   (2) pedigree filename (i.e. ped=" + pedFilename + " (default))\n" +
-				"   (3) output format (i.e. format=" + fileFormat + " (default; options are "+MATRIX_FORMAT+", "+PLINK_TEXT_FORMAT+", "+PLINK_BINARY_FORMAT+", and "+RFGLS_FORMAT+"))\n" +
+				"   (3) output format (i.e. format=" + fileFormat + " (default; options are "+MATRIX_FORMAT+", "+PLINK_TRANSPOSED_TEXT_FORMAT+", "+PLINK_BINARY_FORMAT+", and "+RFGLS_FORMAT+"))\n" +
 				"   (4) output filename (i.e. out=" + outputFilename + " (default))\n" +
 				"   (5) to include Deletion or not (i.e. del=" + includeDele + " (default))\n" +
 				"   (6) to include Duplication or not (i.e. dup=" + includeDupl + " (default))\n" +

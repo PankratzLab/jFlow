@@ -650,26 +650,26 @@ public class MarkerData implements Serializable {
 		lrrs[i] = lrr;
 	}
 
-	public char[] getAB_AlleleMappings() {
-		byte[] abGenotypes, forwardGenotypes;
-		char[] mapping;
-		
-		mapping = new char[] {'0','0'};
-		abGenotypes = getAbGenotypes();
-		forwardGenotypes = getForwardGenotypes();
+    public char[] getAB_AlleleMappings() {
+        byte[] abGenotypes, forwardGenotypes;
+        char[] mapping;
+        
+        mapping = new char[] {'0','0'};
+        abGenotypes = getAbGenotypes();
+        forwardGenotypes = getForwardGenotypes();
 
-		for (int i = 0; i < abGenotypes.length; i++) {
-			if (mapping[0] == '0' && (abGenotypes[i] == 0 || abGenotypes[i] == 1)) {
-				mapping[0] = Sample.ALLELE_PAIRS[forwardGenotypes[i]].charAt(0);
-			} else if (mapping[1] == '0' && (abGenotypes[i] == 1 || abGenotypes[i] == 2)) {
-				mapping[1] = Sample.ALLELE_PAIRS[forwardGenotypes[i]].charAt(1);
-			} else if (mapping[0] != '0' && mapping[1] != '0'){
-				return mapping;
-			}
-		}
-		
-		return mapping;
-	}
+        for (int i = 0; i < abGenotypes.length; i++) {
+            if (mapping[0] == '0' && (abGenotypes[i] == 0 || abGenotypes[i] == 1)) {
+                mapping[0] = Sample.ALLELE_PAIRS[forwardGenotypes[i]].charAt(0);
+            } else if (mapping[1] == '0' && (abGenotypes[i] == 1 || abGenotypes[i] == 2)) {
+                mapping[1] = Sample.ALLELE_PAIRS[forwardGenotypes[i]].charAt(1);
+            } else if (mapping[0] != '0' && mapping[1] != '0'){
+                return mapping;
+            }
+        }
+        
+        return mapping;
+    }
 
 	// samplesToBeUsed, sex, and clusterFilterCollection can be null
 	// however if sex is null then chrX genotype counts will be inaccurate and show deviation from Hardy-Weinberg equilibrium
