@@ -22,7 +22,6 @@ import stats.Rscript.RScatter;
 import stats.Rscript.RScatters;
 import stats.Rscript.Restrictions;
 import stats.Rscript.SCATTER_TYPE;
-import stats.Rscript.SlopeLine;
 import stats.StatsCrossTabs;
 import stats.StatsCrossTabs.STAT_TYPE;
 import common.Array;
@@ -93,8 +92,8 @@ public class MitoGWAS {
 			String blankCluster = root + ".blankCluster.ser";
 			proj.getLog().reportTimeWarning("Using blank cluster filter file to ensure AB lookup");
 			new ClusterFilterCollection().serialize(blankCluster);
-			proj.GC_THRESHOLD.setValue((double) 0);
-			proj.getLog().reportTimeWarning("Setting gc threshold to 0");
+			proj.GC_THRESHOLD.setValue((double) 0.01);
+			proj.getLog().reportTimeWarning("Setting gc threshold to 0.01");
 			PlinkData.saveGenvisisToPlinkPedSet(proj, root, "", blankCluster, exportList, numthreads);
 		} else {
 			proj.getLog().reportTimeInfo(plinkMap + " and " + plinkPed + "exist, skipping");
@@ -128,7 +127,7 @@ public class MitoGWAS {
 		Files.copyFileUsingFileChannels(fam, fullOut + "plink.fam", proj.getLog());
 		Files.copyFileUsingFileChannels(bim, fullOut + "plink.bim", proj.getLog());
 		Files.copyFileUsingFileChannels(bed, fullOut + "plink.bed", proj.getLog());
-		// Qc.fullGamut(fullOut, true, proj.getLog());
+		Qc.fullGamut(fullOut, "plink", true, proj.getLog());
 
 		String[] out = new String[] { fam, bim, bed };
 		CmdLine.runCommandWithFileChecks(Array.toStringArray(plinkConverCommand), "", in, out, true, false, false, proj.getLog());
@@ -156,6 +155,11 @@ public class MitoGWAS {
 	private static void summarize(Project proj, String root, ArrayList<PlinkAssoc> plinkCommands) {
 		// MarkerMetrics.fullQC(proj, null, null, false, 24);
 		String[] qcpass = HashVec.loadFileToStringArray(ext.parseDirectoryOfFile(root) + "ldPruning/plink.prune.out", false, new int[] { 0 }, true);
+		qcpass = Array.concatAll(qcpass, HashVec.loadFileToStringArray(ext.parseDirectoryOfFile(root) + "ldPruning/plink.prune.in", false, new int[] { 0 }, true));
+		Hashtable<String, String> qcHash = new Hashtable<String, String>();
+		for (int i = 0; i < qcpass.length; i++) {
+			qcHash.put(qcpass[i], qcpass[i]);
+		}
 		proj.getLog().reportTimeInfo("Computing correlation matrix of results");
 		double[][] emp1s = new double[plinkCommands.size()][];
 		int[][] keys = new int[plinkCommands.size()][];
@@ -223,7 +227,11 @@ public class MitoGWAS {
 			try {
 
 				PrintWriter writer = new PrintWriter(new FileWriter(pvalDB));
-				writer.println("SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t" + Array.toStr(empTitles) + "\tMinPval\tMaxPval\tMaxDiffPval\tStdPval\t" + Array.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t" + Array.toStr(annotations));
+				PrintWriter writerTrim = new PrintWriter(new FileWriter(pvalDB + ".trim"));
+
+				String header = "SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t" + Array.toStr(empTitles) + "\tMinPval\tMaxPval\tMaxDiffPval\tStdPval\t" + Array.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t" + Array.toStr(annotations);
+				writer.println(header);
+				writerTrim.println(header);
 				int numInvalid = 0;
 				for (int i = 0; i < emp1s[0].length; i++) {
 					if (i % 10000 == 0) {
@@ -231,12 +239,14 @@ public class MitoGWAS {
 					}
 					if (!vcIter.hasNext()) {
 						writer.close();
+						writerTrim.close();
 						annoReader.close();
 						throw new IllegalArgumentException("Invalid marker annotation " + proj.BLAST_ANNOTATION_FILENAME.getValue());
 					}
 					VariantContext markVC = vcIter.next();
 					if (!markVC.getID().equals(markerSet.getMarkerNames()[i])) {
 						writer.close();
+						writerTrim.close();
 						annoReader.close();
 						throw new IllegalArgumentException("Mismatched file/project order for " + proj.BLAST_ANNOTATION_FILENAME.getValue());
 					}
@@ -258,7 +268,12 @@ public class MitoGWAS {
 								line.add(markerSet.getPositions()[i] + "");
 								line.add(markVC.getReference().getDisplayString() + "");
 								line.add(markVC.getAlternateAlleles().toString() + "");
-								line.add((ext.indexOfStr(markerSet.getMarkerNames()[i], qcpass) > 0) + "");
+								if (qcHash.containsKey(markerSet.getMarkerNames()[i])) {
+									line.add(0 + "");
+								} else {
+									line.add(1 + "");
+
+								}
 							}
 							line.add(emp1s[j][i] + "");
 							pvals[j] = emp1s[j][i];
@@ -277,14 +292,18 @@ public class MitoGWAS {
 						line.add(qcParser.getNumericData()[qcindices[j]][i] + "");
 					}
 					if (valid) {
-						writer.println(Array.toStr(Array.toStringArray(line)) + "\t" + Array.toStr(VCOps.getAnnotationsFor(annotations, markVC, ".")));
+						String data = Array.toStr(Array.toStringArray(line)) + "\t" + Array.toStr(VCOps.getAnnotationsFor(annotations, markVC, "."));
+						writer.println(data);
+						if (min < 0.05) {
+							writerTrim.println(data);
+						}
 					}
-
 				}
 				if (numInvalid > 0) {
 					proj.getLog().reportTimeWarning(numInvalid + " markers had an NaN or chr 0 in one of the gwas runs ( or was not included in the analysis), removed");
 				}
 				writer.close();
+				writerTrim.close();
 			} catch (Exception e) {
 				proj.getLog().reportError("Error writing to " + pvalDB);
 				proj.getLog().reportException(e);
@@ -327,25 +346,87 @@ public class MitoGWAS {
 				{ "sdTheta_AA", "sdTheta_AB", "sdTheta_BB" },
 				{ "meanR_AA", "meanR_AB", "meanR_BB" },
 				{ "LRR_SD" },
-				{ "MARKER_GC_CONTENT" } };
+				{ "MARKER_GC_CONTENT" },
+				{ "LRR_SEX_z" } };
 
+		boolean overwrite = true;
+		String gwasQCFlag = "Markers passing gwas qc";
 		for (int j = 0; j < qcGroups.length; j++) {
+			String currentOutMIN = ext.addToRoot(out, "METRICS_MIN" + j);
+			RScatter rScatterMIN = new RScatter(pvalDB, currentOutMIN + ".rscript", ext.removeDirectoryInfo(currentOutMIN), currentOutMIN + ".jpeg", "MinPval", qcGroups[j], null, SCATTER_TYPE.POINT, proj.getLog());
+			rScatterMIN.setOverWriteExisting(overwrite);
+			rScatterMIN.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
+			rScatterMIN.setxLabel("Min pval");
+			rScatterMIN.execute();
+			rs.add(rScatterMIN);
+
+			String currentOutPruneMIN = ext.addToRoot(out, "GWAS_QC_METRICS_GROUP_MIN" + j);
+			RScatter rScatterPruneMIN = new RScatter(pvalDB, currentOutPruneMIN + ".rscript", ext.removeDirectoryInfo(currentOutPruneMIN), currentOutPruneMIN + ".jpeg", "MinPval", qcGroups[j], null, SCATTER_TYPE.POINT, proj.getLog());
+
+			rScatterPruneMIN.setOverWriteExisting(overwrite);
+			Restrictions restrictionsMIN = new Restrictions(new String[] { "PlinkPruneOut" }, new double[] { 0 }, new String[] { "!=" }, null);
+			rScatterPruneMIN.setRestrictions(new Restrictions[] { restrictionsMIN });
+			rScatterPruneMIN.setxLabel(gwasQCFlag + "Min pval");
+			rScatterPruneMIN.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
+			rScatterPruneMIN.execute();
+			rs.add(rScatterPruneMIN);
+
+			String currentOutMAX = ext.addToRoot(out, "METRICS_MAX" + j);
+			RScatter rScatterMAX = new RScatter(pvalDB, currentOutMAX + ".rscript", ext.removeDirectoryInfo(currentOutMAX), currentOutMAX + ".jpeg", "MaxPval", qcGroups[j], null, SCATTER_TYPE.POINT, proj.getLog());
+			rScatterMAX.setOverWriteExisting(overwrite);
+			rScatterMAX.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
+			rScatterMAX.setxLabel("Max pval");
+			rScatterMAX.execute();
+			rs.add(rScatterMAX);
+
+			String currentOutPruneMAX = ext.addToRoot(out, "GWAS_QC_METRICS_GROUP_MAX" + j);
+			RScatter rScatterPruneMAX = new RScatter(pvalDB, currentOutPruneMAX + ".rscript", ext.removeDirectoryInfo(currentOutPruneMAX), currentOutPruneMAX + ".jpeg", "MaxPval", qcGroups[j], null, SCATTER_TYPE.POINT, proj.getLog());
+
+			rScatterPruneMAX.setOverWriteExisting(overwrite);
+			Restrictions restrictionsMAX = new Restrictions(new String[] { "PlinkPruneOut" }, new double[] { 0 }, new String[] { "!=" }, null);
+			rScatterPruneMAX.setRestrictions(new Restrictions[] { restrictionsMAX });
+			rScatterPruneMAX.setxLabel(gwasQCFlag + "Max pvals");
+			rScatterPruneMAX.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
+			rScatterPruneMAX.execute();
+			rs.add(rScatterPruneMAX);
+
+			String currentOutSD = ext.addToRoot(out, "METRICS_SD" + j);
+			RScatter rScatterSD = new RScatter(pvalDB, currentOutSD + ".rscript", ext.removeDirectoryInfo(currentOutSD), currentOutSD + ".jpeg", "StdPval", qcGroups[j], null, SCATTER_TYPE.POINT, proj.getLog());
+			rScatterSD.setOverWriteExisting(overwrite);
+			rScatterSD.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
+			rScatterSD.setxLabel("SD pvals");
+			rScatterSD.execute();
+			rs.add(rScatterSD);
+
+			String currentOutPruneSD = ext.addToRoot(out, "GWAS_QC_METRICS_GROUP_SD" + j);
+			RScatter rScatterPruneSD = new RScatter(pvalDB, currentOutPruneSD + ".rscript", ext.removeDirectoryInfo(currentOutPruneSD), currentOutPruneSD + ".jpeg", "StdPval", qcGroups[j], null, SCATTER_TYPE.POINT, proj.getLog());
+
+			rScatterPruneSD.setOverWriteExisting(overwrite);
+			Restrictions restrictionsSD = new Restrictions(new String[] { "PlinkPruneOut" }, new double[] { 0 }, new String[] { "!=" }, null);
+			rScatterPruneSD.setRestrictions(new Restrictions[] { restrictionsSD });
+			rScatterPruneSD.setxLabel(gwasQCFlag + "SD pvals");
+			rScatterPruneSD.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
+			rScatterPruneSD.execute();
+			rs.add(rScatterPruneSD);
+
 			String currentOut = ext.addToRoot(out, "METRICS_" + j);
 			RScatter rScatter = new RScatter(pvalDB, currentOut + ".rscript", ext.removeDirectoryInfo(currentOut), currentOut + ".jpeg", "MaxDiffPval", qcGroups[j], null, SCATTER_TYPE.POINT, proj.getLog());
-			rScatter.setOverWriteExisting(true);
+			rScatter.setOverWriteExisting(overwrite);
 			rScatter.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
+			rScatter.setxLabel("Maximum Pval difference");
 			rScatter.execute();
 			rs.add(rScatter);
 
 			String currentOutPrune = ext.addToRoot(out, "GWAS_QC_METRICS_GROUP_" + j);
 			RScatter rScatterPrune = new RScatter(pvalDB, currentOutPrune + ".rscript", ext.removeDirectoryInfo(currentOutPrune), currentOutPrune + ".jpeg", "MaxDiffPval", qcGroups[j], null, SCATTER_TYPE.POINT, proj.getLog());
-			rScatterPrune.setOverWriteExisting(true);
-			Restrictions restrictions = new Restrictions(new String[] { "PlinkPruneOut" }, new String[] { "true" }, new String[] { "==" }, null);
+			rScatterPrune.setOverWriteExisting(overwrite);
+			Restrictions restrictions = new Restrictions(new String[] { "PlinkPruneOut" }, new double[] { 0 }, new String[] { "!=" }, null);
 			rScatterPrune.setRestrictions(new Restrictions[] { restrictions });
+			rScatterPrune.setxLabel(gwasQCFlag + "Maximum Pval difference");
 			rScatterPrune.setrScriptLoc("/panfs/roc/itascasoft/R/3.2.1/bin/Rscript");
-
 			rScatterPrune.execute();
 			rs.add(rScatterPrune);
+
 		}
 
 		RScatters rsScatters = new RScatters(rs.toArray(new RScatter[rs.size()]), out + "finalRscript", out + "final.pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, proj.getLog());
