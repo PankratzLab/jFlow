@@ -228,6 +228,7 @@ public class AuthorCorral {
 		outWriter.println(rtfOutput ? rtfFormatted("Email list", false) : "Email list");
 		outWriter.print(rtfOutput ? PARAGRAH : "");
 		StringBuilder emailString = new StringBuilder();
+		HashSet<String> emailSet = new HashSet<String>();
 		HashSet<String> noEmailSet = new HashSet<String>();
 		int outerCount = 0;
 		for (int i = 0; i < authorNamesOrder.size(); i++) {
@@ -242,16 +243,16 @@ public class AuthorCorral {
 					noEmailSet.add(noEmailString.toString());
 					continue;
 				}
-				if (outerCount > 0 || innerCount > 0) {
-					emailString.append("; ");
+				String email = fullnameToParts.get(authorNamesOrder.get(i))[0] +" "+ fullnameToParts.get(authorNamesOrder.get(i))[2] +" <"+	myDepts.get(j)[3] +">";
+				if (!emailSet.contains(email)) {
+					if (outerCount > 0 || innerCount > 0) {
+						emailString.append("; ");
+					}
+				
+					emailString.append(email);
+					innerCount++;
+					emailSet.add(email);
 				}
-				emailString.append(fullnameToParts.get(authorNamesOrder.get(i))[0])
-							.append(" ")
-							.append(fullnameToParts.get(authorNamesOrder.get(i))[2])
-							.append(" <");
-				emailString.append(myDepts.get(j)[3]);
-				emailString.append(">");
-				innerCount++;
 			}
 			if (innerCount > 0) {
 				outerCount++;
@@ -331,8 +332,8 @@ public class AuthorCorral {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String inFile = "N:/statgen/authors/input2f_ordered.xln";
-		String outFile = "N:/statgen/authors/2nd_submission_authorship.rtf";
+		String inFile = "N:/statgen/authors/input2h.xln";
+		String outFile = "N:/statgen/authors/2nd_submission_authorship_final.rtf";
 		boolean rtf = true;
 		boolean err = true;
 		
