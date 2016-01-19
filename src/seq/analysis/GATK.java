@@ -334,7 +334,7 @@ public class GATK {
 		command.add(inputVcf);
 		command.add(O);
 		command.add(outVCF);
-		command.add(RESOURCE +resourceName);
+		command.add(RESOURCE + resourceName);
 		command.add(annoVcf);
 		for (int i = 0; i < annotations.length; i++) {
 			command.add(E);
@@ -524,13 +524,13 @@ public class GATK {
 		command.add(referenceGenomeFasta);
 		command.add(I_NORMAL);
 		command.add(bamFile);
-		// command.add(DB_SNP);
-		// command.add(dbSnpKnownSites);
-		// command.add(COSMIC);
-		// command.add(cosmicKnownSites);
+		command.add(DB_SNP);
+		command.add(dbSnpKnownSites);
+		command.add(COSMIC);
+		command.add(cosmicKnownSites);
 		command.add(ARTIFACT_DETECTION_MODE);
-		// command.add(L);
-		// command.add(regionsFile);
+		command.add(L);
+		command.add(regionsFile);
 		command.add(O);
 		command.add(outputVcf);
 		if (numWithinSampleThreads > 1) {
