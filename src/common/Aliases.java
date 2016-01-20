@@ -19,11 +19,11 @@ public class Aliases {
 	public static final String[] STD_ERRS = {"se", "StdErr", "sebeta_SNP_add"};
 	
 	public static final String[] PVALUES = {"pval", "P", "p-val", "p-value", "Pvalue", "mbpval", "minPval"};
-	public static final String[] NS = {"N", "NMISS", "sampleN", "n_total"};
+	public static final String[] NS = { "N", "NMISS", "sampleN", "n_total", "ESampleSize" };
 	
-	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency", "EAF", "FRQ"};
+	public static final String[] ALLELE_FREQS = { "freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency", "EAF", "FRQ", "Coded.Af" };
 	
-	public static final String[] IMPUTATION_EFFICIENCY = {"imp_info", "rsq"};
+	public static final String[] IMPUTATION_EFFICIENCY = { "imp_info", "rsq", "Qual" };
 	
 	public static final String[] REFERENCE_FOLDERS = {"C:/bin/NCBI/", "N:/statgen/NCBI/", "/panfs/roc/groups/5/pankrat2/public/bin/NCBI/", "/home/npankrat/NCBI/", "/panfs/roc/groups/5/pankrat2/public/bin/"};
 	
