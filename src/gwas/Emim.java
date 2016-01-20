@@ -86,13 +86,46 @@ public class Emim {
 			}
 		}
 	}
+	
+	private static void listSexMarkers(String bimFile, String sexFile) throws NumberFormatException, IOException {
+	    PrintWriter writer;
+	    BufferedReader reader;
+	    String line;
+	    String[] parts;
+	    int chr;
+	    
+	    writer = Files.getAppropriateWriter(sexFile);
+	    reader = Files.getAppropriateReader(bimFile);
+	    line = null;
+	    while ((line = reader.readLine()) != null) {
+	        parts = line.trim().split("\t", -1);
+	        chr = Integer.parseInt(parts[0]);
+	        if (chr > 22) {
+	            writer.println(parts[1]);
+	        }
+	    }
+	    writer.flush();
+	    writer.close();
+	    reader.close();
+	}
 
-	private static void scriptAll(String plinkPrefix) {
+	private static void scriptAll(String plinkPrefix, String excludeFile) {
 		String commands;
+		String currDir;
 		
-		// TODO generate sexChrMarkers.txt		
+		if (excludeFile.equals("GEN")) {
+		    try {
+                listSexMarkers(plinkPrefix + ".bim", "sexChrMarkers.txt");
+                excludeFile = "sexChrMarkers.txt";
+            } catch (NumberFormatException | IOException e) {
+                excludeFile = null;
+                e.printStackTrace();
+            }
+		}
 		
-		commands = "plink --noweb --bfile "+plinkPrefix+" --exclude sexChrMarkers.txt --make-bed --out emimPrep\n"+
+		currDir = (new File("./")).getAbsolutePath();
+		commands = "cd " + currDir + "\n" + 
+		        "plink --noweb --bfile " + plinkPrefix + (excludeFile != null ? " --exclude " + excludeFile : "") + " --make-bed --out emimPrep\n"+
 				"plink --noweb --bfile emimPrep --mendel\n"+
 				"plink --noweb --bfile emimPrep --tdt\n"+
 				"premim -cg -a -rout risksnplist.txt emimPrep.bed\n"+
@@ -162,6 +195,7 @@ public class Emim {
 		String hweFile = null;
 		String plinkPrefix = null;
 		boolean allelic = true;
+		String excludeFile = "GEN";
 
 		String usage = "\n" +
 		"gwas.Emim requires 0-1 arguments\n" +
@@ -185,6 +219,9 @@ public class Emim {
 			} else if (args[i].startsWith("plinkPrefix=")) {
 				plinkPrefix = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("exclude=")) {
+			    excludeFile = ext.parseStringArg(args[i], null);
+			    numArgs--;
 			} else if (args[i].startsWith("parse=")) {
 				dir = ext.parseStringArg(args[i], null);
 				numArgs--;
@@ -209,7 +246,7 @@ public class Emim {
 			if (dir != null) {
 				parse(dir, hweFile, pValueThreshold);
 			} else if (plinkPrefix != null) {
-				scriptAll(plinkPrefix);
+				scriptAll(plinkPrefix, excludeFile);
 			} else {
 				setTo(runType, allelic);
 			}

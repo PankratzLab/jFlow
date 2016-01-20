@@ -15,7 +15,7 @@ public class ExportCNVsToPedFormat {
 	public static final String PLINK_TEXT_FORMAT = "PLINK_TEXT";
 	public static final String PLINK_TRANSPOSED_TEXT_FORMAT = "PLINK_TPED";
 	private static final String[] PLINK_TEXT_CODES = {"RR", "RA", "AA"};
-	public static final String PLINK_BINARY_FORMAT = "PLINK_BINARY_FORMAT";
+	public static final String PLINK_BINARY_FORMAT = "PLINK_BINARY";
 	public static final String RFGLS_FORMAT = "RFGLS";
 
 	/*
@@ -591,6 +591,7 @@ public class ExportCNVsToPedFormat {
 	    Hashtable<String, Vector<String>> sexMap;
 	    
 	    if (pedFile != null) {
+	        log.report("Loading ped file, assuming IID is column 2 and sex is column 5");
 	        sexMap = HashVec.loadFileToHashVec(pedFile, 1, new int[]{4}, "", false, false);
 	    } else {
 	        log.report("Warning - pedigree file missing, sex will be set to '0' for all individuals.");
@@ -914,7 +915,7 @@ public class ExportCNVsToPedFormat {
 				"cnv.analysis.CnvBySample requires the following arguments\n" +
 				"   (1) cnv filename (i.e. cnv=" + cnvFilename + " (default))\n" +
 				"   (2) pedigree filename (i.e. ped=" + pedFilename + " (default))\n" +
-				"   (3) output format (i.e. format=" + fileFormat + " (default; options are "+MATRIX_FORMAT+", "+PLINK_TRANSPOSED_TEXT_FORMAT+", "+PLINK_BINARY_FORMAT+", and "+RFGLS_FORMAT+"))\n" +
+				"   (3) output format (i.e. format=" + fileFormat + " (default; options are "+MATRIX_FORMAT+", "+PLINK_TRANSPOSED_TEXT_FORMAT+", "+PLINK_TEXT_FORMAT+", "+PLINK_BINARY_FORMAT+", and "+RFGLS_FORMAT+"))\n" +
 				"   (4) output filename (i.e. out=" + outputFilename + " (default))\n" +
 				"   (5) to include Deletion or not (i.e. del=" + includeDele + " (default))\n" +
 				"   (6) to include Duplication or not (i.e. dup=" + includeDupl + " (default))\n" +
@@ -981,7 +982,7 @@ public class ExportCNVsToPedFormat {
 			System.exit(1);
 		}
 		
-		if (ordered && (fileFormat.equals(PLINK_TEXT_CODES) || fileFormat.equals(PLINK_BINARY_FORMAT))) {
+		if (ordered && (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT) || fileFormat.equals(PLINK_TEXT_FORMAT))) {
 		    System.err.println("Error - cannot output PLINK format files with ordered output.  Please specify a different output format, or set ordered to false with 'ord=false' argument.");
 		    System.exit(1);
 		}
