@@ -671,6 +671,11 @@ public class ResultsPackager {
 						}
 					} else {
 						if (analyses[i].equalsIgnoreCase("tdt")) {
+						    if (markers[markerIndex].equals("rs4888262")) {
+						        System.out.println(fullPathStatResults[k][0]); 
+						        System.out.println("  OR: " + Double.parseDouble(statResults[k][markerIndex][0]));
+						        System.out.println("lnOR: " + Math.log(Double.parseDouble(statResults[k][markerIndex][0])));
+						    }
 							beta = Math.log(Double.parseDouble(statResults[k][markerIndex][0]));
 							out1[j] += "\t" + beta + "\t" + ((Math.log(Double.parseDouble(statResults[k][markerIndex][1])) - beta) / 1.96);
 						} else {
@@ -1015,7 +1020,7 @@ public class ResultsPackager {
 			            "MarkerName",
 			            new String[] {"tdt", "emim"},
 			            new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
-			            "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/allFinalWhitePoynter_forestplot.xln",
+			            "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln",
 			            null);
 			    
 			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/fileList_completeWhiteTriosPoynter.txt", false, null, false),
