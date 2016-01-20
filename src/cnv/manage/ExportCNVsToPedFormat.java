@@ -194,7 +194,7 @@ public class ExportCNVsToPedFormat {
         			tempSampleList = HashVec.getKeys(sampleListHashFromCnvOrPedData, false, false);
         			finalSampleList = new String[sampleListHashFromCnvOrPedData.size()];
         			for (int i = 0; i < tempSampleList.length; i++) {
-        			    if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
+        			    if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT) && !fileFormat.equals(PLINK_TEXT_FORMAT)) {
         			        finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = ext.replaceAllWith(tempSampleList[i], "\t", "-");
         			    } else {
         			        finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = tempSampleList[i];
@@ -236,7 +236,7 @@ public class ExportCNVsToPedFormat {
         									writer.close();
         									if (fileFormat.equals(RFGLS_FORMAT)) {
         										convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-        									} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
+        									} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
         		                                writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
         		                            } else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
         		                                writeFamOrPed(currentCNs, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
@@ -266,7 +266,7 @@ public class ExportCNVsToPedFormat {
         						            bedWriter.write(outStream);
         						            writer = Files.getAppropriateWriter(outputFilename + exten);
         								}
-        								if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
+        								if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT) && !fileFormat.equals(PLINK_TEXT_FORMAT)) {
         								    writer.print("markerName\t"+Array.toStr(finalSampleList));
         								    writer.print(endOfLine);
         								}
@@ -287,7 +287,7 @@ public class ExportCNVsToPedFormat {
         							        genotypes[j] = currentCNs[i][j];
         							    }
     							        bedWriter.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(genotypes));
-        							} else {
+        							} else if (!fileFormat.equals(PLINK_TEXT_FORMAT)) {
         							    for (int j = 0; j < finalSampleList.length; j++) {
             							    if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
             							        writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));    							    
@@ -310,7 +310,7 @@ public class ExportCNVsToPedFormat {
         					writer.close();
         					if (fileFormat.equals(RFGLS_FORMAT)) {
         						convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-        					} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
+        					} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
         					    writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
         					} else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
                                 writeFamOrPed(currentCNs, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
