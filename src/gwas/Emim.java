@@ -159,7 +159,7 @@ public class Emim {
 		resultsFileMom = dir+"emimsummary_M.out";
 		resultsFileChildMom = dir+"emimsummary_CM.out";
 		resultsFileTdt = dir+"plink.tdt";
-		mapFile = dir+"plink.bim";
+		mapFile = dir+"emimPrep.bim";
 		mendelErrorFile = dir+"plink.lmendel";
 		outfile = dir+"results_pVals.xln";
 
