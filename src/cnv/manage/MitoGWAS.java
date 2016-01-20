@@ -98,6 +98,10 @@ public class MitoGWAS {
 		} else {
 			proj.getLog().reportTimeInfo(plinkMap + " and " + plinkPed + "exist, skipping");
 		}
+		proj.MARKER_METRICS_FILENAME.setValue(root + "markerMetricsFull.txt");
+		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
+			MarkerMetrics.fullQC(proj, null, null, false, numthreads);
+		}
 
 		double maf = (double) 5 / ped.getDnas().length;
 		double geno = 0.1;
@@ -125,8 +129,10 @@ public class MitoGWAS {
 		String bed = root + ".bed";
 
 		Files.copyFileUsingFileChannels(fam, fullOut + "plink.fam", proj.getLog());
-		Files.copyFileUsingFileChannels(bim, fullOut + "plink.bim", proj.getLog());
-		Files.copyFileUsingFileChannels(bed, fullOut + "plink.bed", proj.getLog());
+		if (!Files.exists(fullOut + "plink.bed")) {
+			Files.copyFileUsingFileChannels(bim, fullOut + "plink.bim", proj.getLog());
+			Files.copyFileUsingFileChannels(bed, fullOut + "plink.bed", proj.getLog());
+		}
 		if (qc) {
 			Qc.fullGamut(fullOut, "plink", true, proj.getLog());
 		}
@@ -181,169 +187,182 @@ public class MitoGWAS {
 		for (int i = 0; i < pvalFiles.length; i++) {
 			pvalFiles[i] = ext.parseDirectoryOfFile(pvalDB) + empTitles[i] + ".pvalsQQ.txt";
 		}
+		MarkerSet markerSet = proj.getMarkerSet();
+
 		String[] empLogP = Array.tagOn(empTitles, "p_", null);
-		if (!Files.exists(pvalDB) || !Files.exists(pvalQQ)) {
-			for (int j = 0; j < plinkCommands.size(); j++) {
-				if (!Files.exists(pvalFiles[j])) {
-					String results = plinkCommands.get(j).getOutputs()[0];
-					proj.getLog().reportTimeInfo("Loading " + results);
-					ProjectDataParserBuilder builderPermResults = new ProjectDataParserBuilder();
-					builderPermResults.treatAllNumeric(false);
-					builderPermResults.sampleBased(false);
-					builderPermResults.hasHeader(true);
-					builderPermResults.dataKeyColumnName("SNP");
-					builderPermResults.requireAll(false);
-					builderPermResults.separator("[\\s]+");
-					builderPermResults.setInvalidNumericToNaN(true);
-					builderPermResults.firstEntryOnly(true);
-					builderPermResults.numericDataTitles(new String[] { "P" });
-					ExtProjectDataParser permParser;
-					try {
-						permParser = builderPermResults.build(proj, results);
-						permParser.determineIndicesFromTitles();
-						permParser.loadData();
-						emp1s[j] = permParser.getNumericDataForTitle("P");
-						Files.writeList(Array.toStringArray(Array.removeNaN(emp1s[j])), pvalFiles[j]);
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-						return;
-					}
-				} else {
-					emp1s[j] = Array.toDoubleArray(HashVec.loadFileToStringArray(pvalFiles[j], false, new int[] { 0 }, false));
-				}
+		// if (!Files.exists(pvalDB) || !Files.exists(pvalQQ)) {
+		for (int j = 0; j < plinkCommands.size(); j++) {
+			if (!Files.exists(pvalFiles[j])) {
+				String results = plinkCommands.get(j).getOutputs()[0];
+				proj.getLog().reportTimeInfo("Loading " + results);
+				ProjectDataParserBuilder builderPermResults = new ProjectDataParserBuilder();
+				builderPermResults.treatAllNumeric(false);
+				builderPermResults.sampleBased(false);
+				builderPermResults.hasHeader(true);
+				builderPermResults.dataKeyColumnName("SNP");
+				builderPermResults.requireAll(false);
+				builderPermResults.separator("[\\s]+");
+				builderPermResults.setInvalidNumericToNaN(true);
+				builderPermResults.firstEntryOnly(true);
+				builderPermResults.numericDataTitles(new String[] { "P" });
+				ExtProjectDataParser permParser;
+				try {
+					permParser = builderPermResults.build(proj, results);
+					permParser.determineIndicesFromTitles();
+					permParser.loadData();
+					emp1s[j] = permParser.getNumericDataForTitle("P");
 
+					Files.writeList(Array.toStringArray(emp1s[j]), pvalFiles[j]);
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+					return;
+				}
 			}
-			if (!Files.exists(outTabs)) {
-				StatsCrossTabs sTabs = new StatsCrossTabs(emp1s, null, null, empTitles, STAT_TYPE.SPEARMAN_CORREL, true, proj.getLog());
-				sTabs.computeTable();
-				sTabs.dumpTables(outTabs);
+			else {
+				emp1s[j] = Array.toDoubleArray(HashVec.loadFileToStringArray(pvalFiles[j], false, new int[] { 0 }, false));
 			}
-			MarkerSet markerSet = proj.getMarkerSet();
-			boolean[] valids = Array.booleanArray(emp1s[0].length, true);
-			VCFFileReader annoReader = new VCFFileReader(proj.BLAST_ANNOTATION_FILENAME.getValue(), true);
-			String[] annotations = VCFOps.getAnnotationKeys(proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getLog())[0];
-			ExtProjectDataParser qcParser = MarkerMetrics.developParser(proj, proj.MARKER_METRICS_FILENAME.getValue());
-			int[] qcindices = qcParser.getTypedFileParser().getNumericColumns()[0];
-			CloseableIterator<VariantContext> vcIter = annoReader.iterator();
-			try {
-
-				PrintWriter writer = new PrintWriter(new FileWriter(pvalDB));
-				PrintWriter writerSig = new PrintWriter(new FileWriter(pvalDB + ".sig"));
-				PrintWriter writerSigQc = new PrintWriter(new FileWriter(pvalDB + ".sig.qc"));
-
-				String header = "SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t" + Array.toStr(empTitles) + "\tMinPval\tMaxPval\tMaxDiffPval\tStdPval\t" + Array.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t" + Array.toStr(annotations);
-				writer.println(header);
-				writerSig.println(header);
-				writerSigQc.println(header);
-				int numInvalid = 0;
-				for (int i = 0; i < emp1s[0].length; i++) {
-					if (i % 10000 == 0) {
-						proj.getLog().reportTimeInfo("Summarized " + i + " markers");
-					}
-					if (!vcIter.hasNext()) {
-						writer.close();
-						writerSig.close();
-						writerSigQc.close();
-						annoReader.close();
-						throw new IllegalArgumentException("Invalid marker annotation " + proj.BLAST_ANNOTATION_FILENAME.getValue());
-					}
-					VariantContext markVC = vcIter.next();
-					if (!markVC.getID().equals(markerSet.getMarkerNames()[i])) {
-						writer.close();
-						writerSig.close();
-						writerSigQc.close();
-						annoReader.close();
-						throw new IllegalArgumentException("Mismatched file/project order for " + proj.BLAST_ANNOTATION_FILENAME.getValue());
-					}
-
-					boolean valid = true;
-					ArrayList<String> line = new ArrayList<String>(100);
-					double[] pvals = new double[emp1s.length];
-
-					for (int j = 0; j < emp1s.length; j++) {
-						if (valid) {
-							valid = Double.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
-							if (!valid) {
-								numInvalid++;
-								valids[i] = false;
-							}
-							if (j == 0) {
-								line.add(markerSet.getMarkerNames()[i]);
-								line.add(markerSet.getChrs()[i] + "");
-								line.add(markerSet.getPositions()[i] + "");
-								line.add(markVC.getReference().getDisplayString() + "");
-								line.add(markVC.getAlternateAlleles().toString() + "");
-								if (qcHash.containsKey(markerSet.getMarkerNames()[i])) {
-									line.add(0 + "");
-								} else {
-									line.add(1 + "");
-
-								}
-							}
-							line.add(emp1s[j][i] + "");
-							pvals[j] = emp1s[j][i];
-						}
-					}
-					pvals = Array.removeNaN(pvals);
-					double max = Array.max(pvals);
-					double min = Array.min(pvals);
-					double maxDiff = max - min;
-					double std = Array.stdev(pvals);
-					line.add(min + "");
-					line.add(max + "");
-					line.add(maxDiff + "");
-					line.add(std + "");
-					for (int j = 0; j < qcindices.length; j++) {
-						line.add(qcParser.getNumericData()[qcindices[j]][i] + "");
-					}
-					if (valid) {
-						String data = Array.toStr(Array.toStringArray(line)) + "\t" + Array.toStr(VCOps.getAnnotationsFor(annotations, markVC, "."));
-						writer.println(data);
-						if (min < 0.05) {
-							writerSig.println(data);
-							if (qcHash.containsKey(markerSet.getMarkerNames()[i])) {
-								writerSigQc.println(data);
-							}
-						}
-					}
-				}
-				if (numInvalid > 0) {
-					proj.getLog().reportTimeWarning(numInvalid + " markers had an NaN or chr 0 in one of the gwas runs ( or was not included in the analysis), removed");
-				}
-				writer.close();
-				writerSig.close();
-				writerSigQc.close();
-			} catch (Exception e) {
-				proj.getLog().reportError("Error writing to " + pvalDB);
-				proj.getLog().reportException(e);
+			if (emp1s[j].length != markerSet.getMarkerNames().length) {
+				throw new IllegalArgumentException("Invalid loading of pvalues");
 			}
-			annoReader.close();
 
-			try {
-
-				for (int i = 0; i < emp1s.length; i++) {
-					emp1s[i] = Array.subArray(emp1s[i], valids);
-					keys[i] = Sort.trickSort(emp1s[i]);
-				}
-				PrintWriter writer = new PrintWriter(new FileWriter(pvalQQ));
-				writer.println("RANK\t" + Array.toStr(empLogP));
-				for (int i = 0; i < emp1s[0].length; i++) {
-					StringBuilder builder = new StringBuilder();
-					double ranke = (double) (i + 1);
-					double rankP = -1 * Math.log10((double) ranke / emp1s[0].length);
-					builder.append(rankP);
-					for (int j = 0; j < emp1s.length; j++) {
-						double plog = -1 * Math.log10(emp1s[j][keys[j][i]]);
-						builder.append("\t" + plog);
-					}
-					writer.println(builder.toString());
-				}
-				writer.close();
-			} catch (Exception e) {
-				proj.getLog().reportError("Error writing to " + pvalQQ);
-				proj.getLog().reportException(e);
-			}
 		}
+		if (!Files.exists(outTabs)) {
+			StatsCrossTabs sTabs = new StatsCrossTabs(emp1s, null, null, empTitles, STAT_TYPE.SPEARMAN_CORREL, true, proj.getLog());
+			sTabs.computeTable();
+			sTabs.dumpTables(outTabs);
+		}
+		boolean[] valids = Array.booleanArray(emp1s[0].length, true);
+		VCFFileReader annoReader = null;
+		if (Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
+			annoReader = new VCFFileReader(proj.BLAST_ANNOTATION_FILENAME.getValue(), true);
+		}
+		String[] annotations = annoReader == null ? new String[] {} : VCFOps.getAnnotationKeys(proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getLog())[0];
+		ExtProjectDataParser qcParser = MarkerMetrics.developParser(proj, proj.MARKER_METRICS_FILENAME.getValue());
+		int[] qcindices = qcParser.getTypedFileParser().getNumericColumns()[0];
+		CloseableIterator<VariantContext> vcIter = annoReader == null ? null : annoReader.iterator();
+		try {
+
+			PrintWriter writer = new PrintWriter(new FileWriter(pvalDB));
+			PrintWriter writerSig = new PrintWriter(new FileWriter(pvalDB + ".sig"));
+			PrintWriter writerSigQc = new PrintWriter(new FileWriter(pvalDB + ".sig.qc"));
+
+			String header = "SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t" + Array.toStr(empTitles) + "\tMinPval\tMaxPval\tMaxDiffPval\tStdPval\t" + Array.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t" + Array.toStr(annotations);
+			writer.println(header);
+			writerSig.println(header);
+			writerSigQc.println(header);
+			int numInvalid = 0;
+			for (int i = 0; i < emp1s[0].length; i++) {
+				if (i % 10000 == 0) {
+					proj.getLog().reportTimeInfo("Summarized " + i + " markers");
+				}
+				if (vcIter != null && !vcIter.hasNext()) {
+					writer.close();
+					writerSig.close();
+					writerSigQc.close();
+					annoReader.close();
+					vcIter.close();
+					throw new IllegalArgumentException("Invalid marker annotation " + proj.BLAST_ANNOTATION_FILENAME.getValue());
+				}
+				VariantContext markVC = vcIter == null ? null : vcIter.next();
+				if (vcIter != null && !markVC.getID().equals(markerSet.getMarkerNames()[i])) {
+					writer.close();
+					writerSig.close();
+					writerSigQc.close();
+					annoReader.close();
+					vcIter.close();
+					throw new IllegalArgumentException("Mismatched file/project order for " + proj.BLAST_ANNOTATION_FILENAME.getValue());
+				}
+
+				boolean valid = true;
+				ArrayList<String> line = new ArrayList<String>(100);
+				double[] pvals = new double[emp1s.length];
+
+				for (int j = 0; j < emp1s.length; j++) {
+					if (valid) {
+						valid = Double.isFinite(emp1s[j][i]) && markerSet.getChrs()[i] > 0;
+						if (!valid) {
+							numInvalid++;
+							valids[i] = false;
+						}
+						if (j == 0) {
+							line.add(markerSet.getMarkerNames()[i]);
+							line.add(markerSet.getChrs()[i] + "");
+							line.add(markerSet.getPositions()[i] + "");
+							line.add(markVC == null ? "NA" : markVC.getReference().getDisplayString() + "");
+							line.add(markVC == null ? "NA" : markVC.getAlternateAlleles().toString() + "");
+							if (qcHash.containsKey(markerSet.getMarkerNames()[i])) {
+								line.add(0 + "");
+							} else {
+								line.add(1 + "");
+
+							}
+						}
+						line.add(emp1s[j][i] + "");
+						pvals[j] = emp1s[j][i];
+					}
+				}
+				pvals = Array.removeNaN(pvals);
+				double max = Array.max(pvals);
+				double min = Array.min(pvals);
+				double maxDiff = max - min;
+				double std = Array.stdev(pvals);
+				line.add(min + "");
+				line.add(max + "");
+				line.add(maxDiff + "");
+				line.add(std + "");
+				for (int j = 0; j < qcindices.length; j++) {
+					line.add(qcParser.getNumericData()[qcindices[j]][i] + "");
+				}
+				if (valid) {
+					String data = Array.toStr(Array.toStringArray(line)) + (markVC == null ? "" : "\t" + Array.toStr(VCOps.getAnnotationsFor(annotations, markVC, ".")));
+					writer.println(data);
+					if (min < 0.05) {
+						writerSig.println(data);
+						if (qcHash.containsKey(markerSet.getMarkerNames()[i])) {
+							writerSigQc.println(data);
+						}
+					}
+				}
+			}
+			if (numInvalid > 0) {
+				proj.getLog().reportTimeWarning(numInvalid + " markers had an NaN or chr 0 in one of the gwas runs ( or was not included in the analysis), removed");
+			}
+			writer.close();
+			writerSig.close();
+			writerSigQc.close();
+		} catch (Exception e) {
+			proj.getLog().reportError("Error writing to " + pvalDB);
+			proj.getLog().reportException(e);
+		}
+		if (annoReader != null) {
+			annoReader.close();
+		}
+
+		try {
+
+			for (int i = 0; i < emp1s.length; i++) {
+				emp1s[i] = Array.subArray(emp1s[i], valids);
+				keys[i] = Sort.trickSort(emp1s[i]);
+			}
+			PrintWriter writer = new PrintWriter(new FileWriter(pvalQQ));
+			writer.println("RANK\t" + Array.toStr(empLogP));
+			for (int i = 0; i < emp1s[0].length; i++) {
+				StringBuilder builder = new StringBuilder();
+				double ranke = (double) (i + 1);
+				double rankP = -1 * Math.log10((double) ranke / emp1s[0].length);
+				builder.append(rankP);
+				for (int j = 0; j < emp1s.length; j++) {
+					double plog = -1 * Math.log10(emp1s[j][keys[j][i]]);
+					builder.append("\t" + plog);
+				}
+				writer.println(builder.toString());
+			}
+			writer.close();
+		} catch (Exception e) {
+			proj.getLog().reportError("Error writing to " + pvalQQ);
+			proj.getLog().reportException(e);
+		}
+		// }
 		proj.QQ_FILENAMES.setValue(pvalFiles);
 		proj.saveProperties();
 		ArrayList<RScatter> rs = new ArrayList<RScatter>();
