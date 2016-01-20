@@ -13,7 +13,6 @@ import stats.Rscript.RScatter;
 import stats.Rscript.RScatters;
 import stats.Rscript.SCATTER_TYPE;
 
-import com.sun.xml.internal.txw2.IllegalSignatureException;
 
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser;
@@ -111,7 +110,7 @@ public class CorrelTypePcs {
 									} else {
 										writer.close();
 
-										throw new IllegalSignatureException("Mismatched PC order");
+										throw new IllegalStateException("Mismatched PC order");
 									}
 								}
 							}

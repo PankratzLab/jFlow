@@ -59,7 +59,7 @@ public class MitoGWAS {
 	 * @param outputDir
 	 *            where the analysis will happen, full path
 	 */
-	public static void analyze(Project proj, String pedFile, String pcFile, String covarFile, String outputDir, int numthreads) {
+	public static void analyze(Project proj, String pedFile, String pcFile, String covarFile, String outputDir, boolean qc, boolean perm, int numthreads) {
 		Pedigree ped = new Pedigree(proj, pedFile, false);
 
 		String fullOut = outputDir + ext.rootOf(proj.getPropertyFilename()) + "/";
@@ -127,7 +127,9 @@ public class MitoGWAS {
 		Files.copyFileUsingFileChannels(fam, fullOut + "plink.fam", proj.getLog());
 		Files.copyFileUsingFileChannels(bim, fullOut + "plink.bim", proj.getLog());
 		Files.copyFileUsingFileChannels(bed, fullOut + "plink.bed", proj.getLog());
-		Qc.fullGamut(fullOut, "plink", true, proj.getLog());
+		if (qc) {
+			Qc.fullGamut(fullOut, "plink", true, proj.getLog());
+		}
 
 		String[] out = new String[] { fam, bim, bed };
 		CmdLine.runCommandWithFileChecks(Array.toStringArray(plinkConverCommand), "", in, out, true, false, false, proj.getLog());
@@ -135,13 +137,13 @@ public class MitoGWAS {
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
 		String natty = subDir + "WITHOUT_BUILDERS_NATURAL_WITHOUT_INDEPS_finalSummary.estimates.txt.gz";
 		String[] nattyTitles = new String[] { "PC15", "PC150" };
-		plinkCommands.addAll(generateCommands(proj, root, natty, nattyTitles, covarFile, ped));
+		plinkCommands.addAll(generateCommands(proj, root, natty, nattyTitles, covarFile, ped, perm));
 
 		String stepWise = subDir + "WITHOUT_BUILDERS_STEPWISE_RANK_R2_WITHOUT_INDEPS_finalSummary.estimates.txt.gz";
 		String[] header = Files.getHeaderOfFile(stepWise, proj.getLog());
 		String[] stepWiseTitles = new String[] { "PC15", header[header.length - 1] };
 
-		plinkCommands.addAll(generateCommands(proj, root, stepWise, stepWiseTitles, covarFile, ped));
+		plinkCommands.addAll(generateCommands(proj, root, stepWise, stepWiseTitles, covarFile, ped, perm));
 
 		PlinkAssocProducer producer = new PlinkAssocProducer(plinkCommands, proj.getLog());
 		WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numthreads, 2, proj.getLog());
@@ -183,7 +185,7 @@ public class MitoGWAS {
 		if (!Files.exists(pvalDB) || !Files.exists(pvalQQ)) {
 			for (int j = 0; j < plinkCommands.size(); j++) {
 				if (!Files.exists(pvalFiles[j])) {
-					String results = plinkCommands.get(j).getOutputs()[1];
+					String results = plinkCommands.get(j).getOutputs()[0];
 					proj.getLog().reportTimeInfo("Loading " + results);
 					ProjectDataParserBuilder builderPermResults = new ProjectDataParserBuilder();
 					builderPermResults.treatAllNumeric(false);
@@ -203,7 +205,6 @@ public class MitoGWAS {
 						emp1s[j] = permParser.getNumericDataForTitle("P");
 						Files.writeList(Array.toStringArray(Array.removeNaN(emp1s[j])), pvalFiles[j]);
 					} catch (FileNotFoundException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 						return;
 					}
@@ -227,11 +228,13 @@ public class MitoGWAS {
 			try {
 
 				PrintWriter writer = new PrintWriter(new FileWriter(pvalDB));
-				PrintWriter writerTrim = new PrintWriter(new FileWriter(pvalDB + ".trim"));
+				PrintWriter writerSig = new PrintWriter(new FileWriter(pvalDB + ".sig"));
+				PrintWriter writerSigQc = new PrintWriter(new FileWriter(pvalDB + ".sig.qc"));
 
 				String header = "SNP\tCHR\tBP\tREF\tALT\tPlinkPruneOut\t" + Array.toStr(empTitles) + "\tMinPval\tMaxPval\tMaxDiffPval\tStdPval\t" + Array.toStr(MarkerMetrics.FULL_QC_HEADER) + "\t" + Array.toStr(annotations);
 				writer.println(header);
-				writerTrim.println(header);
+				writerSig.println(header);
+				writerSigQc.println(header);
 				int numInvalid = 0;
 				for (int i = 0; i < emp1s[0].length; i++) {
 					if (i % 10000 == 0) {
@@ -239,14 +242,16 @@ public class MitoGWAS {
 					}
 					if (!vcIter.hasNext()) {
 						writer.close();
-						writerTrim.close();
+						writerSig.close();
+						writerSigQc.close();
 						annoReader.close();
 						throw new IllegalArgumentException("Invalid marker annotation " + proj.BLAST_ANNOTATION_FILENAME.getValue());
 					}
 					VariantContext markVC = vcIter.next();
 					if (!markVC.getID().equals(markerSet.getMarkerNames()[i])) {
 						writer.close();
-						writerTrim.close();
+						writerSig.close();
+						writerSigQc.close();
 						annoReader.close();
 						throw new IllegalArgumentException("Mismatched file/project order for " + proj.BLAST_ANNOTATION_FILENAME.getValue());
 					}
@@ -295,7 +300,10 @@ public class MitoGWAS {
 						String data = Array.toStr(Array.toStringArray(line)) + "\t" + Array.toStr(VCOps.getAnnotationsFor(annotations, markVC, "."));
 						writer.println(data);
 						if (min < 0.05) {
-							writerTrim.println(data);
+							writerSig.println(data);
+							if (qcHash.containsKey(markerSet.getMarkerNames()[i])) {
+								writerSigQc.println(data);
+							}
 						}
 					}
 				}
@@ -303,7 +311,8 @@ public class MitoGWAS {
 					proj.getLog().reportTimeWarning(numInvalid + " markers had an NaN or chr 0 in one of the gwas runs ( or was not included in the analysis), removed");
 				}
 				writer.close();
-				writerTrim.close();
+				writerSig.close();
+				writerSigQc.close();
 			} catch (Exception e) {
 				proj.getLog().reportError("Error writing to " + pvalDB);
 				proj.getLog().reportException(e);
@@ -467,7 +476,7 @@ public class MitoGWAS {
 	// return Array.toStringArray(command);
 	// }
 
-	private static ArrayList<PlinkAssoc> generateCommands(Project proj, String root, String mtPhenoFile, String[] titles, String covarFile, Pedigree ped) {
+	private static ArrayList<PlinkAssoc> generateCommands(Project proj, String root, String mtPhenoFile, String[] titles, String covarFile, Pedigree ped, boolean perm) {
 		ArrayList<PlinkAssoc> plinkCommands = new ArrayList<PlinkAssoc>();
 
 		ProjectDataParserBuilder builderCurrent = new ProjectDataParserBuilder();
@@ -539,10 +548,10 @@ public class MitoGWAS {
 					String covarTitles = Array.toStr(Array.subArray(covarParser.getNumericDataTitles(), hasVarianceWithinPed), ",");
 					String outPrepReg = ext.addToRoot(outCurrent, ".prepped");
 
-					PlinkAssoc regCommand = prepareAssoc(root, false, outCurrent, titles[i], covarTitles, outPrepReg, proj.getLog());
+					PlinkAssoc regCommand = prepareAssoc(root, false, outCurrent, titles[i], covarTitles, outPrepReg, perm, proj.getLog());
 					plinkCommands.add(regCommand);
 					String outPrepInv = ext.addToRoot(outCurrent, ".prepped.inv");
-					PlinkAssoc invCommand = prepareAssoc(root, true, outCurrent, titles[i], covarTitles, outPrepInv, proj.getLog());
+					PlinkAssoc invCommand = prepareAssoc(root, true, outCurrent, titles[i], covarTitles, outPrepInv, perm, proj.getLog());
 					plinkCommands.add(invCommand);
 
 				} catch (Exception e) {
@@ -552,7 +561,6 @@ public class MitoGWAS {
 			}
 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return plinkCommands;
@@ -572,8 +580,6 @@ public class MitoGWAS {
 
 		@Override
 		public boolean hasNext() {
-
-			// TODO Auto-generated method stub
 			return index < assocs.size();
 		}
 
@@ -586,8 +592,6 @@ public class MitoGWAS {
 
 		@Override
 		public void shutdown() {
-			// TODO Auto-generated method stub
-
 		}
 	}
 
@@ -615,16 +619,19 @@ public class MitoGWAS {
 		}
 	}
 
-	private static PlinkAssoc prepareAssoc(String root, boolean inverse, String inputDb, String pheno, String covars, String output, Logger log) {
+	private static PlinkAssoc prepareAssoc(String root, boolean inverse, String inputDb, String pheno, String covars, String output, boolean perm, Logger log) {
 		String processed = ext.addToRoot(output, "_pheno");
 		if (!Files.exists(processed)) {
-			PhenoPrep.parse("", inputDb, "IID", pheno, null, 3.0, false, false, true, false, inverse, covars, root + ".fam", true, true, false, false, false, false, null, output, true, false, false, false, false, false, log);
+			PhenoPrep.parse("", inputDb, "IID", pheno, null, 3.0, false, false, true, false, inverse, covars, root + ".fam", true, true, false, false, true, false, null, output, true, false, false, false, false, false, log);
 		}
+
 		ArrayList<String> plink = new ArrayList<String>();
 		plink.add("plink2");
 
 		plink.add("--linear");
-		plink.add("perm");
+		if (perm) {
+			plink.add("perm");
+		}
 
 		plink.add("--bfile");
 		plink.add(root);
@@ -637,23 +644,26 @@ public class MitoGWAS {
 		plink.add("--out");
 		plink.add(ext.rootOf(output, false));
 		plink.add("--threads");
-		plink.add(2 + "");
+		plink.add(3 + "");
 
 		String[] inputs = new String[] { processed, inputDb };
-		String[] outputs = new String[] { ext.rootOf(output, false) + ".assoc.linear.perm", ext.rootOf(output, false) + ".assoc.linear" };
+		String[] outputs = new String[] { ext.rootOf(output, false) + ".assoc.linear" };
+		if (perm) {
+			outputs = Array.concatAll(outputs, new String[] { ext.rootOf(output, false) + ".assoc.linear.perm" });
+		}
 		PlinkAssoc assoc = new PlinkAssoc(plink, inputs, outputs, log);
 		return assoc;
 	}
 
-	public static void test() {
-		Project proj = new Project("/home/pankrat2/lanej/projects/gedi_gwas.properties", false);
-		String ped = "/panfs/roc/groups/5/pankrat2/shared/gedi_gwas/mitoAnalyze/gedi_gwas.ped";
-		String covar = "/panfs/roc/groups/5/pankrat2/shared/gedi_gwas/mitoAnalyze/gedi_gwas.covar";
-		int numthreads = 12;
-		String outputDir = "/scratch.global/lanej/mitoAnalyze/";
-		String pcFile = proj.PROJECT_DIRECTORY.getValue() + "gedi_gwasALL_1000PCs_OHW_40_ws15_gc_corrected_recomp.PCs.extrapolated.txt";
-		analyze(proj, ped, pcFile, covar, outputDir, numthreads);
-	}
+	// public static void test() {
+	// Project proj = new Project("/home/pankrat2/lanej/projects/gedi_gwas.properties", false);
+	// String ped = "/panfs/roc/groups/5/pankrat2/shared/gedi_gwas/mitoAnalyze/gedi_gwas.ped";
+	// String covar = "/panfs/roc/groups/5/pankrat2/shared/gedi_gwas/mitoAnalyze/gedi_gwas.covar";
+	// int numthreads = 12;
+	// String outputDir = "/scratch.global/lanej/mitoAnalyze/";
+	// String pcFile = proj.PROJECT_DIRECTORY.getValue() + "gedi_gwasALL_1000PCs_OHW_40_ws15_gc_corrected_recomp.PCs.extrapolated.txt";
+	// // analyze(proj, ped, pcFile, covar, outputDir, numthreads);
+	// }
 
 	public static void main(String[] args) {
 
@@ -664,6 +674,9 @@ public class MitoGWAS {
 		int numthreads = 24;
 		String pcFile = null;
 		String covar = null;
+		boolean qc = true;
+		boolean perm = false;
+
 		String usage = "\n" + "one.JL.MitoAnalyze requires 0-1 arguments\n";
 		usage += "   (1) filename (i.e. proj= (no default))\n" + "";
 		usage += "   (2) ped (i.e. ped= (no default))\n" + "";
@@ -671,17 +684,15 @@ public class MitoGWAS {
 		usage += "   (4) numthreads (i.e. numthreads=" + numthreads + " ( default))\n" + "";
 		usage += "   (5) PC file (i.e. pc= (no default))\n" + "";
 		usage += "   (6) covarFile (i.e. cov= (no default))\n" + "";
+		usage += "   (7) qc  (i.e. qc=" + qc + " (no default))\n" + "";
+		usage += "   (8) permute  (i.e. perm=" + perm + " (no default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
 			}
-			if (args[i].startsWith("-t")) {
-				System.out.println("Running test suite");
-				test();
-				System.exit(1);
-			}
+
 			else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
@@ -697,6 +708,13 @@ public class MitoGWAS {
 			} else if (args[i].startsWith("cov=")) {
 				covar = args[i].split("=")[1];
 				numArgs--;
+			}
+			else if (args[i].startsWith("qc=")) {
+				qc = ext.parseBooleanArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("perm=")) {
+				perm = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("numthreads=")) {
 				numthreads = ext.parseIntArg(args[i]);
 				numArgs--;
@@ -710,10 +728,9 @@ public class MitoGWAS {
 		}
 		try {
 			Project proj = new Project(filename, false);
-			analyze(proj, ped, pcFile, covar, outputDir, numthreads);
+			analyze(proj, ped, pcFile, covar, outputDir, qc, perm, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
 }
