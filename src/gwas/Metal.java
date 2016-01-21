@@ -283,10 +283,14 @@ public class Metal {
 	}
 	
 	public static void metaAnalyze(String dir, String[] filenames, String outputFile, boolean se, Logger log) {
-		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null, Array.doubleArray(filenames.length, -9), log);
+		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null, null, Array.doubleArray(filenames.length, -9), log);
 	}
-	
-	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnalysis, String outputFile, int analysisType, double[] defaultWeights, double[] gcValues/*boolean gcControlOn*/, Logger log) {
+
+	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnalysis, String outputFile, int analysisType, double[] defaultWeights, double[] gcValues/* boolean gcControlOn */, Logger log) {
+		metaAnalyze(dir, filenames, unitOfAnalysis, outputFile, analysisType, defaultWeights, gcValues, null, log);
+	}
+
+	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnalysis, String outputFile, int analysisType, double[] defaultWeights, double[] gcValues/* boolean gcControlOn */, double[] seValues, Logger log) {
 		PrintWriter writer;
 		Vector<String> mappings;
 		String[] header, travAlleles, prevAlleles, travReqs, prevReqs, travFreq, prevFreq;
@@ -374,10 +378,14 @@ public class Metal {
 				travReqs = Array.subArray(header, indices);
 				if (analysisType == SE_ANALYSIS || analysisType == WEIGHTED_SE_ANALYSIS) {
 					if (!travReqs[0].equals(prevReqs[0])) {
-						mappings.add("EFFECT "+travReqs[0]);
+						mappings.add("EFFECT " + travReqs[0]);
 					}
 					if (!travReqs[1].equals(prevReqs[1])) {
-						mappings.add("STDERR "+travReqs[1]);
+						mappings.add("STDERR " + travReqs[1]);
+
+					}
+					if (seValues != null) {
+						mappings.add("ADDFILTER " + travReqs[1] + " <= " + seValues[i]);
 					}
 				} else if (analysisType == PVAL_ANALYSIS) {
 					if (!travReqs[0].equals(prevReqs[0])) {
@@ -655,11 +663,13 @@ public class Metal {
 		double[] gcValues;
 		int countMismatches;
 		
-		params = Files.parseControlFile(filename, "metal", new String[] {"outfile_root", "build=37",/* "genomic_control=TRUE",*/ "hits_p<=0.001", "file1.metal", "file2.txt", "file3.assoc.logistic"}, log);
+		params = Files.parseControlFile(filename, "metal", new String[] { "outfile_root", "build=37",/* "genomic_control=TRUE", */"hits_p<=0.001", "se<=5", "file1.metal", "file2.txt", "file3.assoc.logistic" }, log);
 
 		thresholdForHits = 0.001;
 		gcControlOn = true;
 		build = -1;
+		double seThreshold = Double.NaN;
+		double[] seValues = null;
 		if (params != null) {
 			outputFile = params.remove(0);
 			for (int i = 0; i < params.size(); i++) {
@@ -675,6 +685,11 @@ public class Metal {
 					thresholdForHits = ext.parseDoubleArg(params.elementAt(i));
 					params.remove(i);
 				}
+				if (params.elementAt(i).startsWith("se<=")) {
+					seThreshold = ext.parseDoubleArg(params.elementAt(i));
+					params.remove(i);
+				}
+
 			}
 			if (build == -1) {
 				log.reportError("Warning - build was not specified, assuming build 37 (aka hg19)");
@@ -695,17 +710,22 @@ public class Metal {
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
 
-//            String dir = ext.verifyDirFormat((new File("./")).getAbsolutePath());
-			if (!Files.exists(outputFile+"_InvVar1.out")) {
-	            log.report("Running inverse variance weighted meta-analysis...");
-			    metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcValues, log);
+			// String dir = ext.verifyDirFormat((new File("./")).getAbsolutePath());
+			if (!Files.exists(outputFile + "_InvVar1.out")) {
+
+				log.report("Running inverse variance weighted meta-analysis...");
+				if (!Double.isNaN(seThreshold)) {
+					seValues = Array.doubleArray(inputFiles.length, seThreshold);
+					log.reportTimeInfo("Setting se threshold to " + seThreshold);
+				}
+				metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile + "_InvVar", SE_ANALYSIS, null, gcValues, seValues, log);
 			} else {
-			    log.report("Found inverse variance weighted meta-analysis results - skipping.");
+				log.report("Found inverse variance weighted meta-analysis results - skipping.");
 			}
 //			metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcControlOn, log);
 			if (!Files.exists(outputFile+"_NWeighted1.out")) {
     			log.report("Running sample size weighted meta-analysis...");
-    			metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile+"_NWeighted", PVAL_ANALYSIS, null, gcValues, log);
+				metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile + "_NWeighted", PVAL_ANALYSIS, null, gcValues, null, log);
 			} else {
 			    log.report("Found sample size weighted meta-analysis results - skipping.");
 			}
@@ -749,8 +769,12 @@ public class Metal {
 				for (int j = 0; j < indices.length; j++) {
 					if (indices[j] != -1) {
 						fileParameters[i + 4] += " '"+header[indices[j]]+"'";
+					}else{
+//						System.out.println(inputFiles[i]);
+//						System.exit(1);
 					}
 				}
+				System.out.println(fileParameters[i + 4]);
 
 				indices = ext.indexFactors(new String[][] {Aliases.CHRS, Aliases.POSITIONS}, header, true, false, true, true, log, false);
 				if (indices[0] != -1 && indices[0] != -1) {

@@ -21,7 +21,7 @@ public class Aliases {
 	public static final String[] PVALUES = {"pval", "P", "p-val", "p-value", "Pvalue", "mbpval", "minPval"};
 	public static final String[] NS = { "N", "NMISS", "sampleN", "n_total", "ESampleSize" };
 	
-	public static final String[] ALLELE_FREQS = { "freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency", "EAF", "FRQ", "Coded.Af" };
+	public static final String[] ALLELE_FREQS = { "freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF", "sampleMAF", "Effect_allele_frequency", "EAF", "FRQ", "Coded.Af","AF_coded_all" };
 	
 	public static final String[] IMPUTATION_EFFICIENCY = { "imp_info", "rsq", "Qual" };
 	
