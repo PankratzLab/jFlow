@@ -49,6 +49,7 @@ import cnv.qc.CNVFilter;
 import cnv.qc.CNVFilter.CNVFilterPass;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
+import filesys.DosageData;
 import filesys.Segment;
 import filesys.SnpMarkerSet;
 
@@ -857,26 +858,13 @@ public class lab {
 		
 		boolean test = true;
 		if (test) {
+
+		    String doseFile = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2.gz";
+		    String mapFile = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2_info";
+		    String idFile = "/home/pankarne/cole0482/EA.indiv.dup";
 		    
-		    String testStr = "Class=Color;1=255,0,0;2=green;3=0,0,255";
-		    String[] pts = testStr.split(";");
-		    for (int i = 1; i < pts.length; i++) {
-		        Color c = null;
-		        String code = pts[i].split("=")[0];
-		        String col = pts[i].split("=")[1].toLowerCase();
-		        if (col.contains(",")) {
-		            String[] colPts = col.split(",");
-		            c = new Color(Integer.parseInt(colPts[0]), Integer.parseInt(colPts[1]), Integer.parseInt(colPts[2]));
-		        } else {
-		            try {
-		                c = (Color)Class.forName("java.awt.Color").getField(col).get(null);
-		            } catch (Exception e) {
-		            }
-		        }
-		    }
-		    
-		    
-//		    System.out.println(Files.countLines("F:/testProjectSrc/AffyMatrix/00src/ABEAM_p_ARIC_reex2_002_affy_GenomeWideSNP_6_B05_220652.CEL.IND.txt", 0));
+		    DosageData dd = new DosageData(doseFile, idFile, mapFile, DosageData.BEAGLE_DOSE_FORMAT, true, null);
+		    System.out.println("complete!");
 		    
 //		    createRandomSelectionFile();
 		    

@@ -572,7 +572,7 @@ public class DosageData implements Serializable {
 			return MACH_MLPROB_FORMAT;
 		} else if (dosageFile.endsWith(".dose")) {
 			return MINIMAC_DOSE_FORMAT;
-		} else if (dosageFile.endsWith(".impute2")) {
+		} else if (dosageFile.endsWith(".impute2") || dosageFile.endsWith(".imputed")) {
 			return IMPUTE2_DOSE_FORMAT;
 		} else if (dosageFile.endsWith(".db.xln")) {
 			return DATABASE_DOSE_FORMAT;

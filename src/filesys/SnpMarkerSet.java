@@ -46,13 +46,29 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	public static final int MINIMAC_INFO_FORMAT = 10;
 	public static final int PLINK_MAP_FORMAT_WITHOUT_CM = 11;
 	public static final int INFO_FOR_BURDEN_TESTING = 12;
+	public static final int IMPUTE2_INFO_FORMAT = 13;
 
 //	public static final String[][] NATURAL_PAIRINGS = {{"A", "T"}, {"C", "G"}};
 	public static final String[] NULL_ALLLES = {"0", "-"};
 	public static final String[] INDEL_ALLLES = {"I", "D"};
 	
 	public static final String[] HAPMAP_CM_SRC_HEADER = {"position", "COMBINED_rate(cM/Mb)", "Genetic_Map(cM)"};
-	public static final String[][] HEADERS = {null, null, null, null, null, {"Marker", "Chr", "Position"}, null, {"Marker", "Chr", "Position", "Annotation"}, {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality", "Rsq"}, null, {"SNP", "Al1", "Al2", "Freq1", "MAF", "AvgCall", "Rsq", "Genotyped", "LooRsq", "EmpR", "EmpRsq", "Dose1", "Dose2"}, null, {"Marker", "Chr", "Position", "REF", "ALT", "gene", "AAF", "Function"}};
+	public static final String[][] HEADERS = {
+	                                        null, 
+	                                        null, 
+	                                        null, 
+	                                        null, 
+	                                        null, 
+	                                        {"Marker", "Chr", "Position"}, 
+	                                        null, 
+	                                        {"Marker", "Chr", "Position", "Annotation"}, 
+	                                        {"SNP", "Al1", "Al2", "Freq1", "MAF", "Quality", "Rsq"}, 
+	                                        null, 
+	                                        {"SNP", "Al1", "Al2", "Freq1", "MAF", "AvgCall", "Rsq", "Genotyped", "LooRsq", "EmpR", "EmpRsq", "Dose1", "Dose2"}, 
+	                                        null, 
+	                                        {"Marker", "Chr", "Position", "REF", "ALT", "gene", "AAF", "Function"},
+	                                        {"snp_id", "rs_id", "position", "exp_freq_a1", "info", "certainty", "type", "info_type0", "concord_type0", "r2_type0"},
+	};
 
 	public static final String[][] HEADER_ELEMEMTS = {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS, Aliases.CENTIMORGANS, Aliases.ALLELES[0], Aliases.ALLELES[1]};
 	
@@ -70,7 +86,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 										   {0, -1,  1, -1, -1, -1},
 										   {0, -1, -1, -1,  1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 										   {1,  0,  2, -1, -1, -1},
-										   {0, 1, 2, -1,  3,  4, 5, 6, 7},
+										   {0,  1,  2, -1,  3,  4, 5, 6, 7},
+										   {1, -1,  2, -1, -1, -1, 3, 4, 5, 6, 7, 8, 9}
 										   // make sure to add an entry into HEADERS as well
 };
 	
@@ -910,6 +927,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			return GENERIC_FORMAT_IGNORE_FIRST_LINE;
 		} else if (filename.endsWith(".burdenInfo")) {
 			return INFO_FOR_BURDEN_TESTING;
+		} else if (filename.endsWith(".impute2_info") || filename.endsWith(".imputed_info")) {
+		    return IMPUTE2_INFO_FORMAT;
 		} else {
 			System.err.println("Warning - format of file ('"+filename+"') could not be deduced solely by the filename extension");
 			return -1;

@@ -18,6 +18,102 @@ public class Qc {
         {"plink.bed", "unrelateds.txt"}
     };
     
+    public static void exportFullGamut(String dir, String plinkPrefix, boolean keepGenomeInfoForRelatedsOnly) {
+        dir = ext.verifyDirFormat(dir);
+        String plink = plinkPrefix == null ? "plink" : plinkPrefix;
+        
+        StringBuilder cmds = new StringBuilder();
+        cmds.append("cd ").append(dir).append("\n");
+        cmds.append("mkdir markerQC/").append("\n");
+        cmds.append("cd markerQC/").append(";\n");
+        cmds.append("plink --bfile ../").append(plink).append(" --mind 0.1 --make-bed --noweb --out ./").append(plink).append(";\n");
+        cmds.append("if [ ! -f freq.frq ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --freq --out freq --noweb").append(";\n");
+        cmds.append("fi;\n");
+        cmds.append("if [ ! -f missing.imiss ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --missing --out missing --noweb").append(";\n");
+        cmds.append("fi;\n");
+        cmds.append("if [ ! -f test.missing.missing ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --test-missing --out test.missing --noweb").append(";\n");
+        cmds.append("fi;\n");
+        cmds.append("if [ ! -f hardy.hwe ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --hardy --out hardy --noweb").append(";\n");
+        cmds.append("fi;\n");
+        cmds.append("if [ ! -f mishap.missing.hap ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --test-mishap --out mishap --noweb").append(";\n");
+        cmds.append("fi;\n");
+        cmds.append("if [ ! -f gender.assoc ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --assoc --out gender --noweb").append(";\n");
+        cmds.append("fi;\n");
+        cmds.append("if [ ! -f gender.missing ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --test-missing --out gender --noweb").append(";\n");
+        cmds.append("fi;\n");
+       
+//        TODO
+//        if (!Files.exists(dir+"markerQC/miss_drops.dat")) {
+//            new File(dir+"markerQC/miss.crf").delete();
+//            int runCode1 = MarkerQC.parseParameters(dir+"markerQC/miss.crf", log, false); // first generates a file with the defaults
+//            if (runCode1 != 0) {
+//                // ERROR!  TODO not sure if we should quit here; for now, continue;
+//            }
+//            Files.writeList(Array.addStrToArray("dir="+dir+"markerQC/", HashVec.loadFileToStringArray(dir+"markerQC/miss.crf", false, new int[] {0}, false), 1), dir+"markerQC/miss.crf");
+//            int runCode2 = MarkerQC.parseParameters(dir+"markerQC/miss.crf", log, false); // second runs the filtering
+//            if (runCode2 != 0) {
+//                // ERROR  TODO not sure if we should quit here; for now, continue;
+//            }
+//        }
+        
+        cmds.append("cd ..\n");
+        cmds.append("mkdir sampleQC/\n");
+        cmds.append("cd sampleQC/\n");
+        cmds.append("if [ ! -f ").append(plink).append(".bed ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ../").append(plink).append(" --exclude ../markerQC/miss_drops.dat --make-bed --noweb\n");
+        cmds.append("fi;\n");
+        cmds.append("if [ ! -f missing.imiss ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --missing --out missing --noweb").append(";\n");
+        cmds.append("fi;\n");
+        
+        cmds.append("cd ..\n");
+        cmds.append("mkdir ldPruning/\n");
+        cmds.append("cd ldPruning/\n");
+        cmds.append("if [ ! -f ").append(plink).append(".bed ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ../sampleQC/").append(plink).append(" --mind 0.05 --make-bed --noweb\n");
+        cmds.append("fi;\n");
+        cmds.append("if [ ! -f ").append(plink).append(".prune.in ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ../sampleQC/").append(plink).append(" --indep-pairwise 50 5 0.3 --noweb\n");
+        cmds.append("fi;\n");
+
+        cmds.append("cd ..\n");
+        cmds.append("mkdir genome/\n");
+        cmds.append("cd genome/\n");
+        cmds.append("if [ ! -f ").append(plink).append(".bed ] ; then").append("\n");
+        cmds.append("\t").append("plink --bfile ../ldPruning/").append(plink).append(" --extract ../ldPruning/").append(plink).append(".prune.in --make-bed --noweb\n");
+        cmds.append("fi;\n");
+        cmds.append("if [ ! -f ").append(plink).append(".genome ] ; then").append("\n");
+        cmds.append("\t").append("plink --noweb --bfile ").append(plink).append(" --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":"")).append("\n");
+        cmds.append("fi;\n");        
+        if (!keepGenomeInfoForRelatedsOnly) {
+            cmds.append("if [ ! -f mds20.mds ] ; then").append("\n");
+            cmds.append("\tplink --bfile " + plink + " --read-genome " + plink + ".genome --cluster --mds-plot 20 --out mds20 --noweb\n");
+            cmds.append("fi;\n");
+        }
+        if (!Files.exists(dir+"genome/" + plink + ".genome_keep.dat")) {
+            Plink.flagRelateds(dir+"genome/" + plink + ".genome", dir+"genome/" + plink + ".fam", dir+"markerQC/missing.imiss", dir+"genome/lrr_sd.xln", Plink.FLAGS, Plink.THRESHOLDS, 4, false);
+        }
+        
+        // TODO fill in when ancestry method is finished, currently does nothing but create more files
+//        new File(dir+"ancestry/").mkdirs();
+//        if (!Files.exists(dir+"ancestry/unrelateds.txt")) {
+//            Files.copyFile(dir+"genome/" + plink + ".genome_keep.dat", dir+"ancestry/unrelateds.txt");
+//        }
+//        if (!Files.exists(dir+"ancestry/" + plink + ".bed")) {
+//            CmdLine.runDefaults("plink --bfile ../genome/" + plink + " --make-bed --noweb", dir+"ancestry/", log);
+//        }
+//        
+//        ancestry(dir+"ancestry/");
+        
+    }
+    
 	public static void fullGamut(String dir, String plinkPrefix, boolean keepGenomeInfoForRelatedsOnly, Logger log) {
 		long time;
 		
@@ -28,8 +124,11 @@ public class Qc {
 		String plink = plinkPrefix == null ? "plink" : plinkPrefix;
 		
 		new File(dir+"markerQC/").mkdirs();
+		log.report(ext.getTime() + "]\tRunning --geno 0.2");
+		CmdLine.runDefaults("plink --bfile ../" + plink + " --geno 0.2 --make-bed --noweb --out ./" + plink + "_geno20", dir+"markerQC/", log);
+
 		log.report(ext.getTime() + "]\tRunning --mind 0.1");
-		CmdLine.runDefaults("plink --bfile ../" + plink + " --mind 0.1 --make-bed --noweb --out ./" + plink, dir+"markerQC/", log);
+		CmdLine.runDefaults("plink --bfile " + plink + "_geno20 --mind 0.1 --make-bed --noweb --out ./" + plink, dir+"markerQC/", log);
 		
 		if (!Files.exists(dir+"markerQC/freq.frq")) {
 			log.report(ext.getTime() + "]\tRunning --freq");
