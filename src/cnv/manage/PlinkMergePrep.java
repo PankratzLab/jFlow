@@ -1,8 +1,12 @@
 package cnv.manage;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
+import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Positions;
@@ -64,6 +68,34 @@ public class PlinkMergePrep {
         return outFile;
     }
     
+    static void renameMarkers(String dir, String plinkRoot, int rootType) {
+        BufferedReader reader;
+        PrintWriter writer;
+        String line, ext;
+        String[] parts;
+        
+        ext = rootType == PEDMAP ? ".map" : ".bim";
+        boolean moved = (new File(dir + plinkRoot + ext)).renameTo(new File(dir + plinkRoot + "_orig" + ext));
+        if (moved) {
+            try {
+                reader = Files.getAppropriateReader(dir + plinkRoot + "_orig" + ext);
+                writer = Files.getAppropriateWriter(dir + plinkRoot + ext);
+                while ((line = reader.readLine()) != null) {
+                    parts = line.split("[\\s]+", -1);
+                    parts[1] = plinkRoot + "_" + parts[1];
+                    writer.println(Array.toStr(parts, "\t"));
+                }
+                writer.flush();
+                writer.close();
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("Error - unable to move " + plinkRoot + ext + " to " + plinkRoot + "_orig" + ext + ".");
+        }
+    }
+    
     static String merge(int outType, String outRoot, boolean overwrite, boolean renameMarkers, String regionFile, String dir, String plinkRoot1, String plinkRoot2) {
         int rootType1, rootType2;
         StringBuilder cmds;
@@ -95,6 +127,11 @@ public class PlinkMergePrep {
         }
         dir = ext.verifyDirFormat(dir);
         
+        if (renameMarkers) {
+            renameMarkers(dir, plinkRoot1, rootType1);
+            renameMarkers(dir, plinkRoot2, rootType2);
+        }
+        
         cmds = new StringBuilder();
         cmds.append("plink2 --noweb --").append(rootType1 == PEDMAP ? "file " : "bfile ").append(plinkRoot1).append(" --merge ");
         if (rootType2 == PEDMAP) {
@@ -117,7 +154,6 @@ public class PlinkMergePrep {
         String fileListName, tempRgnFile;
         StringBuilder cmds;
         int index;
-        
         
         if (outType != PEDMAP && outType != BEDBIMFAM) {
             System.err.println("Error - output type must be either (" + PEDMAP + ") PED/MAP, or (" + BEDBIMFAM + ") BED/BIM/FAM.");
@@ -159,6 +195,12 @@ public class PlinkMergePrep {
             fileListName = "fileList_" + index++ + ".txt"; 
         }
         Files.writeList(lines, dir + fileListName);
+        
+        if (renameMarkers) {
+            for (int i = 0; i < plinkRoots.length; i++) {
+                renameMarkers(dir, plinkRoots[i], rootTypes[i]);
+            }
+        }
         
         cmds = new StringBuilder();
         cmds.append("plink2 --noweb --").append(rootTypes[0] == PEDMAP ? "file " : "bfile ").append(plinkRoots[0]).append(" --merge-list ").append(fileListName);
