@@ -32,7 +32,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 	public static final String[] INDEPS = new String[] { "CLASS=SEX", "AGE" };
 	public static final String[] INDEPS_CATS = new String[] { "CENTER" };
 	private static final String NO_STRAT = "NO_STRAT";
-	private static final String STRAT_BY = "STRAT_";
+	//private static final String STRAT_BY = "STRAT_";
 	public static final int NUM_PC_SVD_OVERIDE = 160;
 	private Project proj;
 	private PrincipalComponentsIterator iterator;

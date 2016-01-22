@@ -24,7 +24,6 @@ package be.ac.ulg.montefiore.run.distributions;
 
 import java.util.*;
 
-import ca.mcgill.mcb.pcingola.probablility.NormalDistribution;
 
 //import org.apache.commons.math3.distribution.NormalDistribution;
 

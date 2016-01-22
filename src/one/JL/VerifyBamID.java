@@ -15,7 +15,6 @@ import common.CmdLine;
 import common.Files;
 import common.Logger;
 import common.PSF;
-import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
 
@@ -121,7 +120,7 @@ public class VerifyBamID {
 		String filename = "VerifyBamID.dat";
 		String bamDir = "/bams/";
 		int numThreads = 8;
-		String logfile = null;
+		//String logfile = null;
 		//Logger log;
 
 		String usage = "\n" + "one.JL.VerifyBamID requires 0-1 arguments\n";
@@ -143,7 +142,7 @@ public class VerifyBamID {
 				numThreads = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
+				//logfile = args[i].split("=")[1];
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
