@@ -84,7 +84,7 @@ class MetaStudy {
 	String findLongestStudyName() {
 		String longest = "";
 		for(StudyData ft : studies){
-			longest = longest.length() < ft.getLabel().length() ? ft.getLabel() : longest;
+			longest = longest.length() < ft.getDisplayLabel().length() ? ft.getDisplayLabel() : longest;
 		}
 		return longest;
 	}
@@ -110,10 +110,18 @@ class MetaStudy {
 	        this.sorted = new ArrayList<StudyData>();
 	        for (int i = order.size() - 1; i >= 0; i--) {
 	            String name = order.get(i);
+	            String repl = null;
 	            if (name.equals("")) {
 	                this.sorted.add(new StudyBreak());
 	            } else {
+	                if (name.split("\t").length > 1) {
+	                    repl = name.split("\t")[1];
+	                    name = name.split("\t")[0];
+	                }
 	                StudyData sd = nameMap.get(name);
+	                if (repl != null) {
+	                    sd.setReplacementLabel(repl);
+	                }
 	                if (sd == null) {
 	                    sd = new StudyBreak();
 	                }
@@ -196,6 +204,7 @@ class StudyBreak extends StudyData {
 
 class StudyData {
 	private final String label;
+	private String replLabel = null;
 	private final float beta;
 	private final float stderr;
 	private int color;
@@ -215,7 +224,18 @@ class StudyData {
 		this.zScore = stderr == 0.0f ? 0.0f : Math.abs(beta / stderr);
 	}
 
-	public String getLabel() {
+	public void setReplacementLabel(String repl) {
+       this.replLabel = repl;
+    }
+	
+	public String getDisplayLabel() {
+	    if (replLabel != null) {
+	        return replLabel;
+	    }
+	    return label;
+	}
+	
+    public String getLabel() {
 		return label;
 	}
 
@@ -572,7 +592,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 		return bar;
 	}
 
-	protected void setOddsRatioDisplay(boolean selected) {
+	public void setOddsRatioDisplay(boolean selected) {
         this.forestPanel.oddsDisplay = selected;
     }
 
@@ -1420,7 +1440,16 @@ public class ForestPlot extends JFrame implements WindowListener {
 	private JProgressBar progressBar;
 	private ArrayList<String> sortOrder = null;
 	
-	private void loadOrderFile(String filename) {
+	public void loadOrderFile(String filename) {
+	    if (!Files.exists(filename)) {
+	        String msg = "Error - study order file (" + filename + ") not found!";
+	        if (log != null) {
+	            log.reportError(msg);
+	        } else {
+	            System.err.println(msg);
+	        }
+	        return;
+	    }
 	    ArrayList<String> order = new ArrayList<String>();
 	    try {
     	    BufferedReader reader = Files.getAppropriateReader(filename);
