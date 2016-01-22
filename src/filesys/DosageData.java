@@ -98,18 +98,33 @@ public class DosageData implements Serializable {
 				if (parameters[2] == INDIVIDUAL_DOMINANT_FORMAT) {
 					for (int i = 0; i < markerNames.length; i++) {
 						if (!markerNames[i].equals(line[parameters[1]+parameters[3]*i]))	{
-							log.reportError("Error - mismatched name at marker "+(i+1)+" of "+dosageFile+"; expecting "+markerNames[i]+" given map file "+mapFile+", found "+line[parameters[1]+parameters[3]*i]);
+							String msg = "Error - mismatched name at marker "+(i+1)+" of "+dosageFile+"; expecting "+markerNames[i]+" given map file "+mapFile+", found "+line[parameters[1]+parameters[3]*i];
+							if (log != null) {
+							    log.reportError(msg);
+							} else {
+							    System.err.println(msg);
+							}
 							reader.close();
 							return;
 						}
 					}
 				} else if (parameters[2] == MARKER_DOMINANT_FORMAT) {
 					if (parameters[3] != 2) {
-						log.reportError("Warning - ignoring the header with IDs in file "+dosageFile+" because it does not contain 2 columns for each individual");
+					    String msg = "Warning - ignoring the header with IDs in file "+dosageFile+" because it does not contain 2 columns for each individual";
+					    if (log != null) {
+					        log.reportError(msg);
+					    } else {
+					        System.err.println(msg);
+					    }
 					} else {
 						for (int i = 0; i < ids.length; i++) {
 							if (!ids[i][0].equals(line[parameters[1]+parameters[3]*i+0]) || !ids[i][1].equals(line[parameters[1]+parameters[3]*i+1]))	{
-								log.reportError("Error - mismatched IDs at individual "+(i+1)+" of "+dosageFile+"; expecting "+ids[i][0]+","+ids[i][1]+" given id file "+idFile+", found "+line[parameters[1]+parameters[3]*i+0]+","+line[parameters[1]+parameters[3]*i+1]);
+							    String msg = "Error - mismatched IDs at individual "+(i+1)+" of "+dosageFile+"; expecting "+ids[i][0]+","+ids[i][1]+" given id file "+idFile+", found "+line[parameters[1]+parameters[3]*i+0]+","+line[parameters[1]+parameters[3]*i+1];
+							    if (log != null) {
+							        log.reportError(msg);
+							    } else {
+							        System.err.println(msg);
+							    }
 								reader.close();
 								return;
 							}
@@ -122,20 +137,35 @@ public class DosageData implements Serializable {
 				for (int i = 0; i < markerNames.length; i++) {
 					line = reader.readLine().trim().split(parameters[10]==1?",":"[\\s]+");
 					if (!markerNames[i].equals(line[parameters[5]])) {
-						log.reportError("Error - mismatched name at marker "+(i+1)+" of "+dosageFile+"; expecting "+markerNames[i]+" given map file "+mapFile+", found "+line[parameters[5]]);
+						String msg = "Error - mismatched name at marker "+(i+1)+" of "+dosageFile+"; expecting "+markerNames[i]+" given map file "+mapFile+", found "+line[parameters[5]];
+						if (log != null) {
+						    log.reportError(msg);
+						} else {
+						    System.err.println(msg);
+						}
 						reader.close();
 						return;
 					}
 
 					if (parameters[6] != -1) {
 						if (line[parameters[6]].length() > 1 || !Sequence.validAllele(line[parameters[6]])) {
-							log.reportError("Warning - invalid allele ('"+line[parameters[6]]+"') at marker "+markerNames[i]);
+							String msg = "Warning - invalid allele ('"+line[parameters[6]]+"') at marker "+markerNames[i];
+	                        if (log != null) {
+	                            log.reportError(msg);
+	                        } else {
+	                            System.err.println(msg);
+	                        }
 						}
 						alleles[i][0] = line[parameters[6]].charAt(0);
 					}
 					if (parameters[7] != -1) {
 						if (line[parameters[7]].length() > 1 || !Sequence.validAllele(line[parameters[7]])) {
-							log.reportError("Warning - invalid allele ('"+line[parameters[7]]+"') at marker "+markerNames[i]);
+							String msg = "Warning - invalid allele ('"+line[parameters[7]]+"') at marker "+markerNames[i];
+	                        if (log != null) {
+	                            log.reportError(msg);
+	                        } else {
+	                            System.err.println(msg);
+	                        }
 						}
 						alleles[i][1] = line[parameters[7]].charAt(0);
 					}
@@ -145,7 +175,12 @@ public class DosageData implements Serializable {
 						} catch (NumberFormatException nfe) {
 							chrs[i] = -1;
 							if (!invalids.containsKey(line[parameters[8]])) {
-								log.reportError("Warning - invalid chromosome number ('"+line[parameters[8]]+"'), first seen at marker "+markerNames[i]);
+								String msg = "Warning - invalid chromosome number ('"+line[parameters[8]]+"'), first seen at marker "+markerNames[i];
+		                        if (log != null) {
+		                            log.reportError(msg);
+		                        } else {
+		                            System.err.println(msg);
+		                        }
 								invalids.put(line[parameters[8]], ""); 
 							}
 						}
@@ -156,14 +191,24 @@ public class DosageData implements Serializable {
 						} catch (NumberFormatException nfe) {
 							positions[i] = -1;
 							if (!invalids.containsKey(line[parameters[9]])) {
-								log.reportError("Warning - invalid genome position ('"+line[parameters[9]]+"') for marker "+markerNames[i]);
+								String msg = "Warning - invalid genome position ('"+line[parameters[9]]+"') for marker "+markerNames[i];
+		                        if (log != null) {
+		                            log.reportError(msg);
+		                        } else {
+		                            System.err.println(msg);
+		                        }
 								invalids.put(line[parameters[9]], ""); 
 							}
 						}
 					}
 
 					if (line.length - parameters[1] != ids.length * parameters[3]) {
-						log.reportError("Error - mismatched number of elements in line "+(i+1+parameters[4])+" of "+dosageFile+"; expecting "+ids.length+"*"+parameters[3]+"+"+parameters[1]+"[="+(ids.length * parameters[3] + parameters[1])+"], found "+line.length);
+					    String msg = "Error - mismatched number of elements in line "+(i+1+parameters[4])+" of "+dosageFile+"; expecting "+ids.length+"*"+parameters[3]+"+"+parameters[1]+"[="+(ids.length * parameters[3] + parameters[1])+"], found "+line.length;
+                        if (log != null) {
+                            log.reportError(msg);
+                        } else {
+                            System.err.println(msg);
+                        }
 						System.exit(1);
 					}
 					if (parameters[3] == 1) {
@@ -177,7 +222,12 @@ public class DosageData implements Serializable {
 							if (parameters[3] == 3) {
 								genotypeProbabilities[i][j][2] = Float.parseFloat(line[parameters[1]+j*parameters[3]+2]);
 								if (Math.abs((1 - genotypeProbabilities[i][j][1] - genotypeProbabilities[i][j][0]) - genotypeProbabilities[i][j][2]) > 0.01) {
-									log.reportError("Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "+ids[j][0]+","+ids[j][1]+" at marker "+markerNames[i]+" which is line "+(i+1+parameters[4])+" of "+dosageFile+": "+line[parameters[1]+j*parameters[3]+0]+" "+line[parameters[1]+j*parameters[3]+1]+" "+line[parameters[1]+j*parameters[3]+2]);
+									String msg = "Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "+ids[j][0]+","+ids[j][1]+" at marker "+markerNames[i]+" which is line "+(i+1+parameters[4])+" of "+dosageFile+": "+line[parameters[1]+j*parameters[3]+0]+" "+line[parameters[1]+j*parameters[3]+1]+" "+line[parameters[1]+j*parameters[3]+2];
+			                        if (log != null) {
+			                            log.reportError(msg);
+			                        } else {
+			                            System.err.println(msg);
+			                        }
 								}
 							}
 						}
@@ -187,7 +237,12 @@ public class DosageData implements Serializable {
 				for (int i = 0; i < ids.length; i++) {
 					line = reader.readLine().trim().split(parameters[10]==1?",":"[\\s]+");
 					if (line.length - parameters[1] != markerNames.length * parameters[3]) {
-						log.reportError("Error - mismatched number of elements in line "+(i+1+parameters[4])+" of "+dosageFile+"; expecting "+markerNames.length+"*"+parameters[3]+"+"+parameters[1]+"[="+(markerNames.length * parameters[3] + parameters[1])+"], found "+line.length);
+						String msg = "Error - mismatched number of elements in line "+(i+1+parameters[4])+" of "+dosageFile+"; expecting "+markerNames.length+"*"+parameters[3]+"+"+parameters[1]+"[="+(markerNames.length * parameters[3] + parameters[1])+"], found "+line.length;
+                        if (log != null) {
+                            log.reportError(msg);
+                        } else {
+                            System.err.println(msg);
+                        }
 						System.exit(1);
 					}
 					if (parameters[3] == 1) {
@@ -201,7 +256,12 @@ public class DosageData implements Serializable {
 							if (parameters[3] == 3) {
 								genotypeProbabilities[j][i][2] = Float.parseFloat(line[parameters[1]+j*parameters[3]+2]);
 								if (Math.abs((1 - genotypeProbabilities[j][i][1] - genotypeProbabilities[j][i][0]) - genotypeProbabilities[j][i][2]) > 0.01) {
-									log.reportError("Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "+ids[i][0]+","+ids[i][1]+" at marker "+markerNames[j]+" which is line "+(i+1+parameters[4])+" of "+dosageFile+": "+line[parameters[1]+j*parameters[3]+0]+" "+line[parameters[1]+j*parameters[3]+1]+" "+line[parameters[1]+j*parameters[3]+2]);
+									String msg = "Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "+ids[i][0]+","+ids[i][1]+" at marker "+markerNames[j]+" which is line "+(i+1+parameters[4])+" of "+dosageFile+": "+line[parameters[1]+j*parameters[3]+0]+" "+line[parameters[1]+j*parameters[3]+1]+" "+line[parameters[1]+j*parameters[3]+2];
+			                        if (log != null) {
+			                            log.reportError(msg);
+			                        } else {
+			                            System.err.println(msg);
+			                        }
 								}
 							}
 						}
