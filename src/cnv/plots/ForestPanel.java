@@ -81,7 +81,9 @@ public class ForestPanel extends AbstractPanel {
 				errorMessage = "Cannot generate points for marker "+input.marker+" because the data did not load; check to see if file \""+input.file+"\" actually exists and if the beta/se columns are named as expected (e.g., expecting beta.Study1 and not Study1.beta; overall results need to be exactly beta/se or effect/stderr)";
 			}
 			setNullMessage(errorMessage);
-			log.reportError("Error - "+errorMessage);
+			if (log != null) {
+			    log.reportError("Error - "+errorMessage);
+			}
 			
 			points = new PlotPoint[0];
 			setPointsGeneratable(false);

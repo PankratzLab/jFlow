@@ -602,7 +602,7 @@ public class ResultsPackager {
 	 * 							  null);
 	 */
 	public static void getForestPlotParameterFile(String[][] fullPathStatResults, String fullPathMarkerList, String markerColumnName, String[] analyses, String[][] columnNamesOfAnalyses, String fullPathOutFile, Logger log) {
-		Double beta;
+		Double beta, se;
 		int markerIndex, mainIndex, columnIndex;
 		int[][] indices;
 		String filename;
@@ -644,7 +644,10 @@ public class ResultsPackager {
 						mainIndex = j;
 					}
 					out1[0] += "\tbeta" + (isMain? "" : "." + fullPathStatResults[j][0])
-								+ "\tse" + (isMain? "" : "." + fullPathStatResults[j][0]);
+								+ "\tse" + (isMain? "" : "." + fullPathStatResults[j][0])
+								+ "\tOR" + (isMain? "" : "." + fullPathStatResults[j][0])
+								+ "\tLowerCI" + (isMain? "" : "." + fullPathStatResults[j][0])
+								+ "\tUpperCI" + (isMain? "" : "." + fullPathStatResults[j][0]);
 					for (int k = 2; k < columnNamesOfAnalyses[i].length; k++) {
 						out1[0] += "\t" + columnNamesOfAnalyses[i][k] + (isMain? "" : "." + fullPathStatResults[j][0]);
 					}
@@ -665,21 +668,22 @@ public class ResultsPackager {
 					}
 
 					if (statResults[k][markerIndex][0] == null) {
-						out1[j] += "\t.\t.";
+						out1[j] += "\t.\t.\t.\t.\t.";
 						for (int l = 2; l < columnNamesOfAnalyses[i].length; l++) {
 							out1[j] += "\t.";
 						}
 					} else {
 						if (analyses[i].equalsIgnoreCase("tdt")) {
-						    if (markers[markerIndex].equals("rs4888262")) {
-						        System.out.println(fullPathStatResults[k][0]); 
-						        System.out.println("  OR: " + Double.parseDouble(statResults[k][markerIndex][0]));
-						        System.out.println("lnOR: " + Math.log(Double.parseDouble(statResults[k][markerIndex][0])));
-						    }
 							beta = Math.log(Double.parseDouble(statResults[k][markerIndex][0]));
-							out1[j] += "\t" + beta + "\t" + ((Math.log(Double.parseDouble(statResults[k][markerIndex][1])) - beta) / 1.96);
+							se = ((Math.log(Double.parseDouble(statResults[k][markerIndex][1])) - beta) / 1.96);
+							out1[j] += "\t" + beta + "\t" + se + "\t" + Math.exp(beta) + "\t" + Math.exp(beta - 1.96*se) + "\t" + Math.exp(beta + 1.96*se);
 						} else {
-							out1[j] += "\t" + statResults[k][markerIndex][3] + "\t" + statResults[k][markerIndex][4];
+						    beta = Double.parseDouble(statResults[k][markerIndex][3]);
+						    se = Double.parseDouble(statResults[k][markerIndex][4]);
+							out1[j] += "\t" + statResults[k][markerIndex][3] + "\t" + statResults[k][markerIndex][4] + 
+							        "\t" + Math.exp(beta) + 
+							        "\t" + Math.exp(beta - 1.96*se) + 
+							        "\t" + Math.exp(beta + 1.96*se); 
 						}
 
 						for (int l = 2; l < columnNamesOfAnalyses[i].length; l++) {
@@ -750,7 +754,7 @@ public class ResultsPackager {
 	public static void createFromParameters(String filename, Logger log) {
         Vector<String> params;
 
-		params = Files.parseControlFile(filename, "results", new String[] {"dir=", "results=plink.assoc.linear or plink.assoc.logistic", "type=plink or gwaf", "map=plink.map", "freq=plink.frq", "customFreq=", "list=specificSNPs.txt # leave blank for all", "filter=1.0 # set to 0.001 to report only those variants with a p<=0.001", "out=finalProduct.out"}, log);
+		params = Files.parseControlFile(filename, "results", new String[] {"dir=", "results=plink.assoc.linear or plink.assoc.logistic", "type=plink, gwaf, sol, emim, or  forest", "map=plink.map", "freq=plink.frq", "customFreq=", "list=specificSNPs.txt # leave blank for all", "filter=1.0 # set to 0.001 to report only those variants with a p<=0.001", "out=finalProduct.out"}, log);
 
 		if (params != null) {
 			params.add("log="+log.getFilename());
@@ -785,7 +789,7 @@ public class ResultsPackager {
 		"gwas.ResultsPackager requires 0-1 arguments\n" + 
 		"   (0) name of directory of all other files (i.e. dir="+dir+" (default))\n" + 
 		"   (1) name of results file (i.e. results=all_results.csv (not the default))\n" + 
-		"   (2) type of gwas file (i.e. type=plink (default) other options include =gwaf)\n" + 
+		"   (2) type of gwas file (i.e. type=plink (default) other options include =gwaf, =forest, =sol, and =emim)\n" + 
 		"   (3) name of map file (i.e. map="+mapFile+" (default))\n" + 
 		"   (4) name of original freq file used to generate the gwaf files (i.e. freq="+mapFile+" (default; needs to be original freq file from when the gwaf files were made))\n" + 
 		"   (5) (optional) name of freq file limited to those indiviudals used in anlayses (i.e. customFreq=femalesOnly.frq (not the default; only used in gwaf))\n" + 
@@ -992,45 +996,44 @@ public class ResultsPackager {
 				parseSOLformat(dir, resultsFile, "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", freqFile, markersToReport, filter, callRateThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("emim")) {
 				parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt, mapFile, mendelErrorFile, hweFile, pThreshold, outfile, log);
-			} else if (type.equalsIgnoreCase("emimPoynterToForest")) {
-//				getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/fileList.txt", false, null, false),
-//						"/home/pankrat2/shared/Poynter_emim/markerList.txt",
-//						"MarkerName",
-//						new String[] {"tdt", "emim"},
-//						new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "p-value_C"}},
-//						"forestplot.input",
-//						null);
-			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/fileList_allFinalWhitePoynter.txt", false, null, false),
-			                    "/home/pankrat2/shared/Poynter_emim/gwasHits.txt",
-			                    "MarkerName",
-			                    new String[] {"tdt", "emim_child", "emim_maternal"},
-			                    new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}, {"CM_lnR1", "CM_sd_lnR1", "pVal_CM-C_df1"}},
-			                    "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/allFinalWhitePoynter_forestplot.xln",
-			                    null);
+			} else if (type.equalsIgnoreCase("forest")) {
+			    String mkrFile = "/home/pankrat2/shared/Poynter_emim/gwasHits.txt";
+			    String mkrColNm = "markerName";
+			    String[] analyses = {"tdt", "emim_child", "emim_maternal"};
+			    String[][] analysisNms = {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}, {"CM_lnR1", "CM_sd_lnR1", "pVal_CM-C_df1"}};
+                boolean generatePlots = true;
+                
+			    String[][] files = {
+			            {
+			                "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/fileList_allFinalWhitePoynter.txt",
+			                "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/allFinalWhitePoynter_forestplot.xln"
+			            },
+			            {
+			                "/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/fileList_completeTriosPoynter.txt",
+			                "/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/completeTriosPoynter_forestplot.xln"
+			            },
+			            {
+			                "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt",
+			                "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln"
+			            },
+			            {
+			                "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/fileList_completeWhiteTriosPoynter.txt",
+			                "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/completeWhiteTriosPoynter_forestplot.xln"
+			            },
+			    };
 			    
-			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/fileList_completeTriosPoynter.txt", false, null, false),
-			            "/home/pankrat2/shared/Poynter_emim/gwasHits.txt",
-			            "MarkerName",
-			            new String[] {"tdt", "emim_child", "emim_maternal"},
-			            new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}, {"CM_lnR1", "CM_sd_lnR1", "pVal_CM-C_df1"}},
-			            "/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/completeTriosPoynter_forestplot.xln",
-			            null);
-			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt", false, null, false),
-			            "/home/pankrat2/shared/Poynter_emim/gwasHits.txt",
-			            "MarkerName",
-			            new String[] {"tdt", "emim_child", "emim_maternal"},
-			            new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}, {"CM_lnR1", "CM_sd_lnR1", "pVal_CM-C_df1"}},
-			            "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln",
-			            null);
+			    for (String[] fileSet : files) {
+    			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix(fileSet[0], false, null, false),
+    			                                mkrFile, mkrColNm, analyses, analysisNms, fileSet[1], null);
+    			    if (generatePlots) {
+        			    cnv.plots.ForestPlot fp = new cnv.plots.ForestPlot(ext.rootOf(fileSet[1], false) + ".input", null);
+        			    fp.waitForLoad();
+        			    fp.screenCapAll("forestPlots", false);
+        			    fp.setVisible(false);
+        			    fp.dispose();
+    			    }
+			    }
 			    
-			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/fileList_completeWhiteTriosPoynter.txt", false, null, false),
-			            "/home/pankrat2/shared/Poynter_emim/gwasHits.txt",
-			            "MarkerName",
-			            new String[] {"tdt", "emim_child", "emim_maternal"},
-			            new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}, {"CM_lnR1", "CM_sd_lnR1", "pVal_CM-C_df1"}},
-			            "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/completeWhiteTriosPoynter_forestplot.xln",
-			            null);
-
 			} else {
 				System.err.println("Error - unknown results type: '"+type+"'");
 			}
