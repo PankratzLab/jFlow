@@ -14,10 +14,8 @@ import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 import common.Array;
 import common.Files;
 import common.Logger;
-import common.Sort;
 import common.ext;
 import cnv.filesys.Project;
-import cnv.var.SampleData;
 
 /**
  * @author lane0212 Class to compute percent race with genotyping pcs, hijacking the {@link PrincipalComponentsResiduals} methods
@@ -28,7 +26,7 @@ public class PCPopulation {
 	private int clusterComponents;
 	private VcfPopulation vpop;
 	private Population[] populations;
-	private boolean verbose;
+	//private boolean verbose;
 	private Logger log;
 
 	public PCPopulation(Project proj, PrincipalComponentsResiduals pResiduals, VcfPopulation vpop, int clusterComponents, boolean verbose) {
@@ -124,9 +122,9 @@ public class PCPopulation {
 			this.otherPopulations = new ArrayList<String>();
 		}
 
-		public Population getPopulation() {
-			return population;
-		}
+//		public Population getPopulation() {
+//			return population;
+//		}
 
 		public void add(Population otherPopulation) {
 			if (otherPopulation.isTest()) {
@@ -142,21 +140,21 @@ public class PCPopulation {
 			}
 		}
 
-		public ArrayList<Double> getOtherDistances() {
-			return otherDistances;
-		}
-
-		public void setOtherDistances(ArrayList<Double> otherDistances) {
-			this.otherDistances = otherDistances;
-		}
-
-		public ArrayList<String> getOtherPopulations() {
-			return otherPopulations;
-		}
-
-		public void setOtherPopulations(ArrayList<String> otherPopulations) {
-			this.otherPopulations = otherPopulations;
-		}
+//		public ArrayList<Double> getOtherDistances() {
+//			return otherDistances;
+//		}
+//
+//		public void setOtherDistances(ArrayList<Double> otherDistances) {
+//			this.otherDistances = otherDistances;
+//		}
+//
+//		public ArrayList<String> getOtherPopulations() {
+//			return otherPopulations;
+//		}
+//
+//		public void setOtherPopulations(ArrayList<String> otherPopulations) {
+//			this.otherPopulations = otherPopulations;
+//		}
 
 	}
 
@@ -182,18 +180,18 @@ public class PCPopulation {
 
 		public void computeNormDist(Hashtable<String, TestPopulationDistances> pdists, Logger log) {
 			double minDist = Double.MAX_VALUE;
-			String minDistPop = null;
+			//String minDistPop = null;
 			double[] allDists = new double[populations.size()];
 			for (int i = 0; i < populations.size(); i++) {
-				String curPop = populations.get(i);
+				//String curPop = populations.get(i);
 
-				TestPopulationDistances curPopulationDistance = pdists.get(curPop);
+				//TestPopulationDistances curPopulationDistance = pdists.get(curPop);
 				double distToCur = distances.get(i);
 				allDists[i] = distToCur;
 
 				if (distToCur < minDist) {
 					minDist = distToCur;
-					minDistPop = curPop;
+					//minDistPop = curPop;
 				}
 
 				// for (int j = 0; j < populations.size(); j++) {
@@ -226,7 +224,7 @@ public class PCPopulation {
 
 			}
 			// System.out.println(Array.toStr(allDists));
-			int[] order = Sort.quicksort(allDists);
+			//int[] order = Sort.quicksort(allDists);
 			// System.out.println(Array.toStr(order));
 			// System.out.println(Array.toStr(allDists));
 
@@ -237,7 +235,7 @@ public class PCPopulation {
 			for (int i = 0; i < populations.size(); i++) {
 				double normDist = Double.NaN;
 
-				String curPop = populations.get(i);
+				//String curPop = populations.get(i);
 				// if (curPop.equals(minDistPop)) {
 
 				// if (sample.startsWith("F10626D")) {
@@ -245,7 +243,7 @@ public class PCPopulation {
 				// System.out.println(clusterPop.getOtherPopulations().get(i) + "\t" + clusterPop.getOtherDistances().get(i));
 				// System.out.println(clusterPop.getOtherDistances().get(i) - distances.get(i));
 				// }
-				TestPopulationDistances clusterPop = pdists.get(curPop);
+				//TestPopulationDistances clusterPop = pdists.get(curPop);
 				boolean[] mask = new boolean[populations.size()];
 				Arrays.fill(mask, true);
 				mask[i] = false;
@@ -365,9 +363,9 @@ public class PCPopulation {
 			return isTest;
 		}
 
-		public boolean[] getPcMatchedMask() {
-			return pcMatchedMask;
-		}
+//		public boolean[] getPcMatchedMask() {
+//			return pcMatchedMask;
+//		}
 
 		public double[] getClusterCenters() {
 			return clusterCenters;
@@ -451,8 +449,8 @@ public class PCPopulation {
 		String filename = null;
 		String genoPCfile = null;
 		int numComponents = 2;
-		String logfile = null;
-		Logger log;
+		//String logfile = null;
+		//Logger log;
 
 		String usage = "\n" + "cnv.analysis.pca.PCPopulation requires 0-1 arguments\n";
 		usage += "   (1) project filename (i.e. proj=" + filename + " (default))\n" + "";
@@ -473,7 +471,7 @@ public class PCPopulation {
 				numComponents = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("log=")) {
-				logfile = args[i].split("=")[1];
+				//logfile = args[i].split("=")[1];
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
@@ -484,7 +482,7 @@ public class PCPopulation {
 			System.exit(1);
 		}
 		try {
-			log = new Logger(logfile);
+			//log = new Logger(logfile);
 			test(new Project(filename, false), genoPCfile, numComponents);
 		} catch (Exception e) {
 			e.printStackTrace();

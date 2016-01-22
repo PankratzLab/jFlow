@@ -66,6 +66,10 @@ class EvaluationResult implements Serializable {
 		this.itType = itType;
 	}
 
+	public ArrayList<Integer> getNumIndsPearsonCorrel() {
+		return numIndsPearsonCorrel;
+	}
+
 	public String[] getHeader() {
 		ArrayList<String> tmp = new ArrayList<String>();
 		tmp.add("Evaluated");

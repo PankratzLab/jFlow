@@ -19,6 +19,11 @@ import cnv.qc.SampleQC;
  * Class that may be used for pruning/testing principal components according to correlation with sample QC and other metrics TODO , implement a pc-selector based of thresholds....
  */
 public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public static final String PRINCIPAL_CROSSTABS_MI = "Generate PC crosstabs";
 
 	private SampleQC sampleQC;
@@ -52,7 +57,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 	}
 
 	public void dumpTables() {
-		Project r = getProj();
+	//	Project r = getProj();
 		String outputDir = proj.RESULTS_DIRECTORY.getValue(false, true);
 		proj.getLog().reportTimeInfo("Dumping data to " + outputDir);
 		new File(outputDir).mkdirs();

@@ -42,6 +42,8 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		this.log = log;
 		verify();
 		this.index = 0;
+		this.numSampleThreads = numSampleThreads;
+		System.out.println(this.numSampleThreads);
 	}
 
 	private void verify() {
