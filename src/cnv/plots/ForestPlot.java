@@ -721,6 +721,13 @@ public class ForestPlot extends JFrame implements WindowListener {
 		return descrPanel;
 	}
 
+    public boolean waitForLoad() {
+        while(this.loadingFile) {
+            Thread.yield();
+        }
+        return true;
+    }
+    
 	private void loadMarkerFile() {
 		if (!this.loadingFile) {
 			this.loadingFile = true;
@@ -891,6 +898,46 @@ public class ForestPlot extends JFrame implements WindowListener {
 		markerFileList.setModel(new DefaultComboBoxModel<String>(currFiles));
 	}
 	
+	/**
+	 * NOTE: be sure to call 'waitForLoad' before calling screenCap, otherwise data might not be loaded in time.
+	 * @param subdir
+	 * @param odds
+	 */
+	public void screenCapAll(String subdir, boolean odds) {
+	    setOddsRatioDisplay(odds);
+        int currentSelection = getCurrentDataIndex();
+        ArrayList<ForestInput> data = getDataIndices();
+        for (int i = 0; i < data.size(); i++) {
+            setCurrentData(i);
+            forestPanel.createImage();
+            String marker = "", filename = "", dataFile = "";
+            int count = 1;
+            String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.PROJECT_DIRECTORY.getValue());
+            root = ext.verifyDirFormat(root);
+            if (subdir != null && !subdir.equals("")) {
+                root += subdir;
+                root = ext.verifyDirFormat(root);
+            }
+            marker = getDataIndices().get(getCurrentDataIndex()).marker;
+            dataFile = ext.rootOf(getDataIndices().get(getCurrentDataIndex()).file, true);
+            filename = marker + "_" + dataFile;
+            filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+            while (new File(root+filename+".png").exists()) {
+                filename = marker + "_" + dataFile + "_v" + count;
+                filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+                count++;
+            }
+            if (log != null) {
+                log.report("Writing screenshot to file " + root + filename + ".png");
+            } else {
+                System.out.println("Writing screenshot to file " + root + filename + ".png");
+            }
+            ForestPlot.this.forestPanel.screenCapture(root+filename+".png");
+        }
+        setCurrentData(currentSelection);
+        updateForestPlot();
+	}
+	
 	private void screenCapAll() {
 		int currentSelection = getCurrentDataIndex();
 		ArrayList<ForestInput> data = getDataIndices();
@@ -909,7 +956,11 @@ public class ForestPlot extends JFrame implements WindowListener {
 				filename = ext.replaceWithLinuxSafeCharacters(filename, true);
 				count++;
 			}
-			log.report("Writing screenshot to file " + root + filename + ".png");
+            if (log != null) {
+                log.report("Writing screenshot to file " + root + filename + ".png");
+            } else {
+                System.out.println("Writing screenshot to file " + root + filename + ".png");
+            }
 			ForestPlot.this.forestPanel.screenCapture(root+filename+".png");
 		}
 		setCurrentData(currentSelection);
@@ -929,7 +980,11 @@ public class ForestPlot extends JFrame implements WindowListener {
 			filename = ext.replaceWithLinuxSafeCharacters(filename, true);
 			count++;
 		}
-		log.report("Writing screenshot to file " + root + filename + ".png");
+        if (log != null) {
+            log.report("Writing screenshot to file " + root + filename + ".png");
+        } else {
+            System.out.println("Writing screenshot to file " + root + filename + ".png");
+        }
 		ForestPlot.this.forestPanel.screenCapture(root+filename+".png");
 	}
 	
@@ -947,7 +1002,12 @@ public class ForestPlot extends JFrame implements WindowListener {
 //		setCurrentMetaStudy(dataToMetaMap.get(getDataIndices().get(index)));
 		setCurrentMetaStudy(getDataIndices().get(index).getMetaStudy());
 		if (getCurrentMetaStudy() == null) {
-			log.reportError("Error - could not set index to "+index+" since the data did not load properly; check to see if any results files are missing");
+		    String msg = "Error - could not set index to "+index+" since the data did not load properly; check to see if any results files are missing";
+		    if (log != null) {
+		        log.reportError(msg);
+		    } else {
+		        System.err.println(msg);
+		    }
 			return;
 		}
 		maxZScore = getCurrentMetaStudy().findMaxZScore();
@@ -1249,6 +1309,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 	}
 	
 	private LinkedHashSet<ForestInput> readMarkerFile(String markerFile) {
+	    String file;
 		LinkedHashSet<ForestInput> markerNames = new LinkedHashSet<ForestInput>();
 		BufferedReader markerReader = Files.getReader(markerFile, false, true, false);
 		
@@ -1256,14 +1317,30 @@ public class ForestPlot extends JFrame implements WindowListener {
     		try {
     			while (markerReader.ready() && !Thread.interrupted()) {
     				String[] line = markerReader.readLine().trim().split("\\t");
-    				if (line.length >= 2) {
-    					markerNames.add(new ForestInput(line[0], line[1], line.length > 2 ? line[2] : ""));
+				    if (line.length >= 2) {
+				        file = line[1];
+				        if (!file.contains(":") && !file.startsWith("/") && !Files.exists(file)) {
+				            if (Files.exists(ext.verifyDirFormat(ext.parseDirectoryOfFile(markerFile)) + file)) {
+				                file = ext.verifyDirFormat(ext.parseDirectoryOfFile(markerFile)) + file;
+				            } else {
+				                if (log != null) {
+				                    log.reportError("Error - file " + file + " not found!");
+				                } else {
+				                    System.err.println("Error - file " + file + " not found!");
+				                }
+				            }
+				        }
+    					markerNames.add(new ForestInput(line[0], file, line.length > 2 ? line[2] : ""));
     				} else if (line.length == 1) {
     					markerNames.add(new ForestInput(line[0], "", ""));
     				}
     			}
     		} catch (IOException e) {
-    			log.reportException(e);
+    		    if (log != null) {
+    		        log.reportException(e);
+    		    } else {
+    		        e.printStackTrace();
+    		    }
     		}
 		}
 		
@@ -1352,8 +1429,14 @@ public class ForestPlot extends JFrame implements WindowListener {
                 order.add(line.trim());
             }
         } catch (IOException e) {
-            proj.message("Error occurred while loading study order file: " + e.getMessage());
-            log.reportException(e);
+            if (proj != null) {
+                proj.message("Error occurred while loading study order file: " + e.getMessage());
+            }
+            if (log != null) {
+                log.reportException(e);
+            } else {
+                e.printStackTrace();
+            }
         }
 	    this.sortOrder = order;
 	}
