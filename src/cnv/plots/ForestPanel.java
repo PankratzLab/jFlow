@@ -114,17 +114,17 @@ public class ForestPanel extends AbstractPanel {
 		    } else {
 				xAxisValue = currentData.get(i).getConfInterval(oddsDisplay)[0];
 				yAxisValue = (float) i + 1;
-				PlotPoint leftEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+				PlotPoint leftEnd = new PlotPoint(currentData.get(i).getDisplayLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
 				xAxisValue = currentData.get(i).getConfInterval(oddsDisplay)[1];
 				yAxisValue = (float) i + 1;
-				PlotPoint rightEnd = new PlotPoint(currentData.get(i).getLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+				PlotPoint rightEnd = new PlotPoint(currentData.get(i).getDisplayLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
 				linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
 				
 				xAxisValue = currentData.get(i).getBeta(oddsDisplay);
 				yAxisValue = (float) i + 1;
-				tempPoints[i] = new PlotPoint(currentData.get(i).getLabel() + "|" + prepareRightMarkers(currentData.get(i)), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
+				tempPoints[i] = new PlotPoint(currentData.get(i).getDisplayLabel() + "|" + prepareRightMarkers(currentData.get(i)), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
 				tempPoints[i].setVisible(false);
 			}
 		}
