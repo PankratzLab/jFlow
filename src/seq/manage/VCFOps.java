@@ -1573,6 +1573,23 @@ public class VCFOps {
 		return false;
 	}
 
+	public static void dumpSnpEffGenes(String vcfFile, String geneFile, Logger log) {
+
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(geneFile));
+			VCFFileReader reader = new VCFFileReader(vcfFile, true);
+			for (VariantContext vc : reader) {
+				writer.println(VCOps.getSNP_EFFGeneName(vc));
+			}
+			reader.close();
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + geneFile);
+			log.reportException(e);
+		}
+	
+	}
+
 	public static ChrSplitResults splitByChr(String vcfFile, String outputVCF, String chr, Logger log) {
 		int numChr = 0;
 		int numTotal = 0;
