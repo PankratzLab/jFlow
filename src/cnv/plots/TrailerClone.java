@@ -196,7 +196,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	private String isoform;
 	private ArrayList<String> geneList;
 	
-	private String vcfFile;
+	private String[] vcfFiles;
 	private String popFile;
 	
 	private Hashtable<String, String> namePathMap;
@@ -360,12 +360,12 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private PreparedMarkerSet markerSet;
     private String[] markerNames;
 	
-	public TrailerClone(Project proj, String vcfFile, String popFile) {
-		this(proj, proj.GENE_LIST_FILENAMES.getValue()[0], vcfFile, popFile);
+	public TrailerClone(Project proj, String[] vcfFiles, String popFile) {
+		this(proj, proj.GENE_LIST_FILENAMES.getValue()[0], vcfFiles, popFile);
 	}
 
 	// TODO TrailerClone should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
-	public TrailerClone(Project proj, String geneListFile, String vcfFile, String popFile) {
+	public TrailerClone(Project proj, String geneListFile, String[] vcfFiles, String popFile) {
 		super("Genvisis - Trailer - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
@@ -407,7 +407,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		this.log = proj.getLog();
 		jar = proj.JAR_STATUS.getValue();
 		fail = false;
-		this.vcfFile = vcfFile;
+		this.vcfFiles = vcfFiles;
 		this.popFile = popFile;
 		
 		time = new Date().getTime();
@@ -471,8 +471,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 
 	private void loadGenes(String file) {
 		if (!Files.exists(file)) {// TODO, can put somewhere else
-			proj.getLog().reportTimeWarning("Generating " + file + " using all genes in " + vcfFile);
-			VCFOps.dumpSnpEffGenes(vcfFile, file, proj.getLog());
+			proj.getLog().reportTimeWarning("Generating " + file + " using all genes in " + vcfFiles[0]);
+			VCFOps.dumpSnpEffGenes(vcfFiles[0], file, proj.getLog());
 		}
 
 		String[][] geneFile = readFile(file);
@@ -2382,7 +2382,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	        return;
 	    } else {
 	        ArrayList<VariantContext> data = new ArrayList<VariantContext>();
-//	        for (String vcfFile : vcfFiles) {
+	        for (String vcfFile : vcfFiles) {
     	        VCFFileReader vcfReader = new VCFFileReader(vcfFile, true);
     	        VCFHeader header = vcfReader.getFileHeader();
     	        vcfHeader = header;
@@ -2392,7 +2392,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         	    }
                 vcIter.close();
                 vcfReader.close();
-//	        }
+	        }
             loadedVCFData.put(gene, sortData(data));
 	    }
 	}
@@ -2419,9 +2419,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	public static void main(String[] args) {
 		Project proj = new Project("D:/projects/poynter.properties", false);
 		// Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
-		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz"/* , "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz" */};
+		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz" , "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz"};
 		String popFile = "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.pop";
-		new TrailerClone(proj, vcfFiles[0], popFile);
+		new TrailerClone(proj, vcfFiles, popFile);
 	}
 }
 
