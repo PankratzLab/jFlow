@@ -602,7 +602,7 @@ public class VCFOps {
 		private Logger log;
 
 		public enum POPULATION_TYPE {
-			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH, PC_ANCESTRY, ANCHOR_BARNACLE,TUMOR_NORMAL;
+			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH, PC_ANCESTRY, ANCHOR_BARNACLE, TUMOR_NORMAL;
 		}
 
 		public enum RETRIEVE_TYPE {
@@ -749,7 +749,7 @@ public class VCFOps {
 				break;
 			case TUMOR_NORMAL:
 				if (superPop.size() != 3) {
-					throw new IllegalArgumentException(POPULATION_TYPE.TUMOR_NORMAL + " must have two and only three types and found "+superPop.keySet());
+					throw new IllegalArgumentException(POPULATION_TYPE.TUMOR_NORMAL + " must have two and only three types and found " + superPop.keySet());
 
 				} else if (!superPop.containsKey(TUMOR) || !superPop.containsKey(NORMAL)) {
 					throw new IllegalArgumentException(POPULATION_TYPE.TUMOR_NORMAL + " must only contain " + TUMOR + " and " + NORMAL);
@@ -1574,12 +1574,16 @@ public class VCFOps {
 	}
 
 	public static void dumpSnpEffGenes(String vcfFile, String geneFile, Logger log) {
-
+		Hashtable<String, String> track = new Hashtable<String, String>();
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(geneFile));
 			VCFFileReader reader = new VCFFileReader(vcfFile, true);
 			for (VariantContext vc : reader) {
-				writer.println(VCOps.getSNP_EFFGeneName(vc));
+				String name = VCOps.getSNP_EFFGeneName(vc);
+				if (!track.containsKey(name)) {
+					writer.println(name);
+					track.put(name, name);
+				}
 			}
 			reader.close();
 			writer.close();
@@ -1587,7 +1591,7 @@ public class VCFOps {
 			log.reportError("Error writing to " + geneFile);
 			log.reportException(e);
 		}
-	
+
 	}
 
 	public static ChrSplitResults splitByChr(String vcfFile, String outputVCF, String chr, Logger log) {
