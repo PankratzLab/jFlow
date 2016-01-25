@@ -283,14 +283,14 @@ public class Metal {
 	}
 	
 	public static void metaAnalyze(String dir, String[] filenames, String outputFile, boolean se, Logger log) {
-		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null, null, Array.doubleArray(filenames.length, -9), log);
+		metaAnalyze(dir, filenames, Aliases.MARKER_NAMES, outputFile, SE_ANALYSIS, null, Array.doubleArray(filenames.length, -9), null, null, null, log);
 	}
 
 	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnalysis, String outputFile, int analysisType, double[] defaultWeights, double[] gcValues/* boolean gcControlOn */, Logger log) {
-		metaAnalyze(dir, filenames, unitOfAnalysis, outputFile, analysisType, defaultWeights, gcValues, null, log);
+		metaAnalyze(dir, filenames, unitOfAnalysis, outputFile, analysisType, defaultWeights, gcValues, null, null, null, log);
 	}
 
-	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnalysis, String outputFile, int analysisType, double[] defaultWeights, double[] gcValues/* boolean gcControlOn */, double[] seValues, Logger log) {
+	public static void metaAnalyze(String dir, String[] filenames, String[] unitOfAnalysis, String outputFile, int analysisType, double[] defaultWeights, double[] gcValues/* boolean gcControlOn */, double[] seValues, double[] mafValues, Hashtable<String, ArrayList<String>> customCommands, Logger log) {
 		PrintWriter writer;
 		Vector<String> mappings;
 		String[] header, travAlleles, prevAlleles, travReqs, prevReqs, travFreq, prevFreq;
@@ -411,6 +411,21 @@ public class Metal {
 						}
 					}
 				}
+
+				if (mafValues != null) {
+					int freqIndex = ext.indexFactors(new String[][] { Aliases.ALLELE_FREQS }, header, false, true, true, false)[0];
+					if (freqIndex < 0) {
+						writer.close();
+						throw new IllegalArgumentException("input file " + filenames[i] + " did not have a valid freq column, please remove maf argument");
+					} else {
+						mappings.add("ADDFILTER " + header[freqIndex] + " >= " + mafValues[i]);// TODO, make this filter dynamic based on mac
+					}
+				}
+				if (customCommands != null && customCommands.containsKey(filenames[i])) {
+					for (String command : customCommands.get(filenames[i])) {
+						mappings.add(command);
+					}
+				}
 				
 				if (travCommaDelimited != prevCommaDelimited) {
 					if (travCommaDelimited) {
@@ -439,6 +454,7 @@ public class Metal {
 				    log.report("Setting GENOMICCONTROL to {" + gcValues[i] + "} for file {" + filenames[i] + "}");
 				}
 				writer.println("PROCESS "+filenames[i]);
+				// writer.println("REMOVEFILTERS");
 				prevMarker = travMarker;				
 				prevAlleles = travAlleles;				
 				prevReqs = travReqs;
@@ -663,23 +679,27 @@ public class Metal {
 		double[] gcValues;
 		int countMismatches;
 		
-		params = Files.parseControlFile(filename, "metal", new String[] { "outfile_root", "build=37",/* "genomic_control=TRUE", */"hits_p<=0.001", "se<=5", "file1.metal", "file2.txt", "file3.assoc.logistic" }, log);
+		params = Files.parseControlFile(filename, "metal", new String[] { "outfile_root", "build=37",/* "genomic_control=TRUE", */"hits_p<=0.001", "se<=5", "maf>=0.001", "customCommand=file1.metal:aCommand", "file1.metal", "file2.txt", "file3.assoc.logistic" }, log);
 
 		thresholdForHits = 0.001;
 		gcControlOn = true;
 		build = -1;
 		double seThreshold = Double.NaN;
+		double mafThreshold = Double.NaN;
 		double[] seValues = null;
+		double[] mafValues = null;
+		Hashtable<String, ArrayList<String>> customCommands = new Hashtable<String, ArrayList<String>>();
 		if (params != null) {
 			outputFile = params.remove(0);
+			ArrayList<Integer> paramsToRemove = new ArrayList<Integer>();// to avoid modifying within loop
 			for (int i = 0; i < params.size(); i++) {
 				if (params.elementAt(i).startsWith("build=")) {
 					build = ext.parseByteArg(params.elementAt(i));
-					params.remove(i);
+					paramsToRemove.add(i);
 				}
 				if (params.elementAt(i).startsWith("genomic_control=")) {
 					gcControlOn = ext.parseBooleanArg(params.elementAt(i));
-					params.remove(i);
+					paramsToRemove.add(i);
 				}
 				if (params.elementAt(i).startsWith("hits_p<=")) {
 					thresholdForHits = ext.parseDoubleArg(params.elementAt(i));
@@ -687,7 +707,19 @@ public class Metal {
 				}
 				if (params.elementAt(i).startsWith("se<=")) {
 					seThreshold = ext.parseDoubleArg(params.elementAt(i));
-					params.remove(i);
+					paramsToRemove.add(i);
+				}
+				if (params.elementAt(i).startsWith("maf>=")) {
+					mafThreshold = ext.parseDoubleArg(params.elementAt(i));
+					paramsToRemove.add(i);
+				}
+				if (params.elementAt(i).startsWith("customCommand=")) {
+					String[] tmp = params.elementAt(i).split(":");
+					if (!customCommands.containsKey(tmp[0])) {
+						customCommands.put(tmp[0], new ArrayList<String>());
+					}
+					customCommands.get(tmp[0]).add(tmp[1]);
+					paramsToRemove.add(i);
 				}
 
 			}
@@ -695,6 +727,13 @@ public class Metal {
 				log.reportError("Warning - build was not specified, assuming build 37 (aka hg19)");
 				build = 37;
 			}
+			Vector<String> remaining = new Vector<String>();
+			for (int i = 0; i < params.size(); i++) {
+				if (!paramsToRemove.contains(i)) {
+					remaining.add(params.elementAt(i));
+				}
+			}
+			params = remaining;
 			tempFiles = Array.toStringArray(params);
 			gcValues = Array.doubleArray(tempFiles.length, gcControlOn ? -9 : -1); // default to GENOMICCONTROL ON
 			inputFiles = new String[tempFiles.length];//Array.toStringArray(params);
@@ -711,6 +750,9 @@ public class Metal {
 //			Files.backup(outputFile+"_InvVar", null, backupDir);
 
 			// String dir = ext.verifyDirFormat((new File("./")).getAbsolutePath());
+			if(!Double.isNaN(mafThreshold)){
+				mafValues = Array.doubleArray(inputFiles.length, mafThreshold);
+			}
 			if (!Files.exists(outputFile + "_InvVar1.out")) {
 
 				log.report("Running inverse variance weighted meta-analysis...");
@@ -718,14 +760,14 @@ public class Metal {
 					seValues = Array.doubleArray(inputFiles.length, seThreshold);
 					log.reportTimeInfo("Setting se threshold to " + seThreshold);
 				}
-				metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile + "_InvVar", SE_ANALYSIS, null, gcValues, seValues, log);
+				metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile + "_InvVar", SE_ANALYSIS, null, gcValues, seValues, mafValues, customCommands, log);
 			} else {
 				log.report("Found inverse variance weighted meta-analysis results - skipping.");
 			}
 //			metaAnalyze(dir, inputFiles, Aliases.MARKER_NAMES, outputFile+"_InvVar", SE_ANALYSIS, null, gcControlOn, log);
 			if (!Files.exists(outputFile+"_NWeighted1.out")) {
     			log.report("Running sample size weighted meta-analysis...");
-				metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile + "_NWeighted", PVAL_ANALYSIS, null, gcValues, null, log);
+				metaAnalyze("./", inputFiles, Aliases.MARKER_NAMES, outputFile + "_NWeighted", PVAL_ANALYSIS, null, gcValues, null, mafValues, customCommands, log);
 			} else {
 			    log.report("Found sample size weighted meta-analysis results - skipping.");
 			}
@@ -756,26 +798,31 @@ public class Metal {
 //			positions = new Vector<String>();
 //			geneNames = new Vector<String>();
 			markerPositionHash = new Hashtable<String, int[]>();
-
 			countMismatches = 0;
 			fileParameters = new String[4 + inputFiles.length];
+		
 			fileParameters[1] = "hits.txt 0 1=minPval skip=0";
 			fileParameters[2] = outputFile + "_InvVar1.out 0 'Allele1' 'Allele2' 'Effect'=Beta 'StdErr' 'P-value' 'Direction'";
 			fileParameters[3] = outputFile + "_NWeighted1.out 0 'Weight' 'P-value'";
+			Hashtable<String, Hashtable<String, String>> altHeaders = new Hashtable<String, Hashtable<String, String>>();
+			String[][] headersWithAlts =new String[][] {Aliases.ALLELES[0], Aliases.ALLELES[1], Aliases.ALLELE_FREQS, Aliases.NS, Aliases.EFFECTS, Aliases.STD_ERRS, Aliases.PVALUES, Aliases.IMPUTATION_EFFICIENCY};
 			for (int i=0; i<inputFiles.length; i++) {
 				header = Files.getHeaderOfFile(inputFiles[i], log);
-				indices = ext.indexFactors(new String[][] {Aliases.ALLELES[0], Aliases.ALLELES[1], Aliases.ALLELE_FREQS, Aliases.NS, Aliases.EFFECTS, Aliases.STD_ERRS, Aliases.PVALUES, Aliases.IMPUTATION_EFFICIENCY}, header, true, false, true, true, log, false);
-				fileParameters[i + 4] = inputFiles[i]+" 0";
+				indices = ext.indexFactors(headersWithAlts, header, true, false, true, true, log, false);
+				fileParameters[i + 4] = inputFiles[i] + " 0";
+				altHeaders.put(inputFiles[i], new Hashtable<String, String>());
 				for (int j = 0; j < indices.length; j++) {
 					if (indices[j] != -1) {
-						fileParameters[i + 4] += " '"+header[indices[j]]+"'";
-					}else{
-//						System.out.println(inputFiles[i]);
-//						System.exit(1);
+						fileParameters[i + 4] += " '" + header[indices[j]] + "'";
+						altHeaders.get(ext.removeDirectoryInfo(inputFiles[i])).put(header[indices[j]], headersWithAlts[j][0] + "." + ext.rootOf(filename));
 					}
 				}
 				System.out.println(fileParameters[i + 4]);
-
+				for (String file : altHeaders.keySet()) {
+					for (String headerOrig : altHeaders.get(file).keySet()) {
+						System.out.println(file + "\toriginal: " + headerOrig + "\tnew: " + altHeaders.get(file).get(headerOrig));
+					}
+				}
 				indices = ext.indexFactors(new String[][] {Aliases.CHRS, Aliases.POSITIONS}, header, true, false, true, true, log, false);
 				if (indices[0] != -1 && indices[0] != -1) {
 					try {
@@ -845,7 +892,7 @@ public class Metal {
 			}
 
 			fileParameters[0] = "genes.txt" + " 0=MarkerName 1=Chr 2=Position 3=Gene(s)";
-			Files.combine(hitList, fileParameters, null, "MarkerName", ".", "topHits.xln", log, true, true, false);
+			Files.combine(hitList, fileParameters, null, "MarkerName", ".", "topHits.xln", log, true, true, false, altHeaders);
 
 			String[][] results = HitWindows.determine("topHits.xln", 0.00000005f, 500000, 0.000005f, new String[0], log);
 			try {
@@ -855,9 +902,12 @@ public class Metal {
                 e.printStackTrace();
             }
             Files.writeMatrix(results, "topHitWindows.out", "\t");
+            
+            
 			
 		}
 	}
+	//private static void generateForestPlotParams(String )
 	
 	private static String[][] includeExtraInfoFromTopHits(String[][] hwResults) throws IOException {
 	    String[][] newResults = new String[hwResults.length][];

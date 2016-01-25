@@ -373,16 +373,16 @@ public class MarkerBlast {
 		String refStrand = null;
 		String tb = fullId[fullId.length - 3];
 		String fr = fullId[fullId.length - 2];
-		if ((!tb.equals("B") && !tb.equals("T")) || (!fr.equals("F") && !fr.equals("R"))) {
-			throw new IllegalStateException("Invalid IlmnID parsing asumption, splitting with _ for " + Array.toStr(fullId, "_") + "\t" + tb + "\t" + fr);
+		if ((!tb.equals("B") && !tb.equals("T") && !tb.equals("M")) || (!fr.equals("F") && !fr.equals("R"))) {
+			throw new IllegalStateException("Invalid IlmnID parsing asumption, splitting with _ for " + Array.toStr(fullId, "_") + "\t" + tb + "\t" + fr + "\nPlease update TOP/BOT strand designation");
 		}
 
 		switch (topBotRef) {
 		case BOT:
 		case MINUS:
-			if ((tb.equals("B") && fr.equals("F")) || tb.equals("T") && fr.equals("R")) {
+			if (((tb.equals("B") || tb.equals("M")) && fr.equals("F")) || tb.equals("T") && fr.equals("R")) {
 				refStrand = "+";
-			} else if ((tb.equals("B") && fr.equals("R")) || tb.equals("T") && fr.equals("F")) {
+			} else if (((tb.equals("B") || tb.equals("M")) && fr.equals("R")) || tb.equals("T") && fr.equals("F")) {
 				refStrand = "-";
 			}
 
