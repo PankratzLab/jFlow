@@ -75,12 +75,12 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 
 import net.miginfocom.swing.MigLayout;
+import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
 import cnv.gui.NewRegionListDialog;
 import cnv.var.Region;
-
 import common.Aliases;
 import common.Array;
 import common.Files;
@@ -90,7 +90,6 @@ import common.Logger;
 import common.Positions;
 import common.TransferableImage;
 import common.ext;
-
 import filesys.GeneData;
 import filesys.GeneTrack;
 import filesys.Segment;
@@ -471,7 +470,12 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 
 	private void loadGenes(String file) {
-	    String[][] geneFile = readFile(file);
+		if (!Files.exists(file)) {// TODO, can put somewhere else
+			proj.getLog().reportTimeWarning("Generating " + file + " using all genes in " + vcfFile);
+			VCFOps.dumpSnpEffGenes(vcfFile, file, proj.getLog());
+		}
+
+		String[][] geneFile = readFile(file);
 	    geneList = new ArrayList<String>();
 	    geneToIsoformMap = new HashMap<String, HashMap<String, GeneData>>();
 	    geneToRegionMap = new HashMap<String, HashMap<String, String>>();
@@ -2414,8 +2418,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	
 	public static void main(String[] args) {
 		Project proj = new Project("D:/projects/poynter.properties", false);
-		String[] vcfFiles = new String[]{"N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz"/*, "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz"*/};
-        String popFile = "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.pop";
+		// Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz"/* , "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz" */};
+		String popFile = "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.pop";
 		new TrailerClone(proj, vcfFiles[0], popFile);
 	}
 }
