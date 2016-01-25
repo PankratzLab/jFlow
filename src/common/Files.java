@@ -1131,10 +1131,18 @@ public class Files {
 	}
 	
 	public static void combine(String[] keys, String[] fileParameters, String unit, String outputFilename, Logger log, boolean ignoreCase) {
-		combine(keys, fileParameters, new String[fileParameters.length][], unit, ".", outputFilename, log, ignoreCase, true, false);
+		combine(keys, fileParameters, new String[fileParameters.length][], unit, ".", outputFilename, log, ignoreCase, true, false, null);
 	}
-	
+
 	public static void combine(String[] keys, String[] fileParameters, String[][] headers, String unit, String missingValue, String outputFilename, Logger log, boolean ignoreCase, boolean finalHeader, boolean hideIndex) {
+		combine(keys, fileParameters, headers, unit, missingValue, outputFilename, log, ignoreCase, finalHeader, hideIndex, null);
+	}
+
+	/**
+	 * @param altHeaderMap
+	 *            Map containing keys as filename_headerInFile and values of header in output
+	 */
+	public static void combine(String[] keys, String[] fileParameters, String[][] headers, String unit, String missingValue, String outputFilename, Logger log, boolean ignoreCase, boolean finalHeader, boolean hideIndex, Hashtable<String, Hashtable<String, String>> altHeaderMap) {
         PrintWriter writer;
         String[] line, colNames;
         Hashtable<String,String> hash;
@@ -1145,7 +1153,7 @@ public class Files {
         String serializedFilename;
         boolean serializing;
         String delimiter;
-        
+		ArrayList<String> fileNames = new ArrayList<String>(fileParameters.length);
         delimiter = Files.suggestDelimiter(outputFilename, log);
         
     	hash = new Hashtable<String,String>();
@@ -1162,6 +1170,7 @@ public class Files {
             for (int i = 0; i<fileParameters.length; i++) {
             	line = fileParameters[i].trim().split("[\\s]+");
             	serializedFilename = GenParser.parseSerialFilename(line);
+				fileNames.add(line[0]);
             	if (Files.exists(serializedFilename, false)) {
                     if (log.getLevel() > 8) {
                     	log.report("Loading pre-serialized data from '"+line[0]+"'");
@@ -1250,7 +1259,20 @@ public class Files {
             	}
 	        	for (int i = 0; i<data.length; i++) {
 	        		try {
-	        			writer.print((hideIndex&&i==0?"":delimiter)+Array.toStr(data[i][keys.length], delimiter));
+						if (altHeaderMap != null) {
+							String[] tmp = new String[data[i][keys.length].length];
+							for (int j = 0; j < data[i][keys.length].length; j++) {
+								String f = ext.removeDirectoryInfo(fileNames.get(i));
+								if (altHeaderMap.containsKey(f) && altHeaderMap.get(f).contains(data[i][keys.length][j])) {
+									tmp[j] = altHeaderMap.get(f).get(data[i][keys.length][j]);
+								} else {
+									tmp[j] = data[i][keys.length][j];
+								}
+							}
+							writer.print((hideIndex && i == 0 ? "" : delimiter) + Array.toStr(tmp, delimiter));
+						} else {
+							writer.print((hideIndex && i == 0 ? "" : delimiter) + Array.toStr(data[i][keys.length], delimiter));
+						}
 	        		} catch (Exception e) {
 	        			e.printStackTrace();
 	        		}
