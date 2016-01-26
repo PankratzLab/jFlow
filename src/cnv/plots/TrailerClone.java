@@ -692,6 +692,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                     if (geno.getType() != GenotypeType.HOM_REF && geno.getType() != GenotypeType.NO_CALL) { // anything besides Homozygous Reference
                                         totAff++;
                                         String pop = popMap.get(geno.getSampleName());
+                                        if (pop == null) {
+                                            System.err.println("Error - no population entry found for ID: " + geno.getSampleName());
+                                        }
                                         Integer cnt = popGenoCnt.get(pop);
                                         if (cnt == null) {
                                             cnt = Integer.valueOf(0);
@@ -830,34 +833,51 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         if (selectedBlockDraw != null && bd.bpX == selectedBlockDraw.bpX) {
             selectedRect = activeRects.get(activeRects.size() - 1);
         }
+        int popCnt = 0;
         for (String pop : popSet) {
             Integer propInt = bd.gen.get(pop);
             if (propInt == null) {
                 continue;
             }
+            popCnt++;
+        }
+        int index = 0;
+        int drawCumu = 0;
+        for (String pop : popSet) {
+            Integer propInt = bd.gen.get(pop);
+            if (propInt == null) {
+                continue;
+            }            
+            index++;
             double prop = propInt.doubleValue() / bd.aff;
             int minDraw = 2;
-//            int drawLen = Math.max(minDraw, (int) (height * prop));
             int drawLen = (int) (height * prop);
             if (drawLen == 0) {
                 scav += minDraw;
                 drawLen = minDraw;
+            } else if (bd.dt == DrawType.EMPTY_CIRCLE || bd.dt == DrawType.X) {
+                drawLen -= 1;
+            }
+            drawCumu += drawLen;
+            if (popCnt > 1 && index == popCnt) {
+                if (height - drawCumu > 0 || height - drawCumu < 0) {
+                    drawLen += height - drawCumu;
+                    if (bd.dt == DrawType.EMPTY_CIRCLE || bd.dt == DrawType.X) {
+                        drawLen -= 1;
+                    }
+                }
             }
             drawPop.put(pop, drawLen);
             drawMax = Math.max(drawMax, drawLen);
         }
-        int index = 0;
+        
         for (String pop : popSet) {
             if (!drawPop.containsKey(pop)) {
                 continue;
             }
-            index++;
             int drawLen = drawPop.get(pop);
             if (drawLen == drawMax && scav > 0) {
-                drawLen -= (scav - 1);
-            }
-            if (index == drawPop.size() && drawPop.size() > 1) {
-                drawLen += 1;
+                drawLen -= scav;
             }
             
             g.setColor(popColorMap.get(pop));
@@ -879,6 +899,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 // TODO Error
             }
             tempY += drawLen;
+            
         }
         g.setColor(Color.BLACK);
         if (selectedBlockDraw != null && bd.bpX == selectedBlockDraw.bpX) {
@@ -923,7 +944,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         lblMaxWidth = fm.stringWidth("Moderate Impact");
         if (popColorMap != null) {
             for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
-                String lbl = colEntry.getKey() + " (n=" + (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(colEntry.getKey()).size() + ")";
+                HashSet<String> popSet = (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(colEntry.getKey());
+                String lbl = colEntry.getKey() + " (n=" + (popSet == null ? 0 : popSet.size()) + ")";
                 lblMap.put(colEntry.getKey(), lbl);
                 lblMaxWidth = Math.max(lblMaxWidth, fm.stringWidth(lbl));
             }
@@ -2035,7 +2057,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    txtBld.append("</pre><hr><pre>");
 	    int lenMax = 0;
 	    for (String pop : bd.gen.keySet()) {
-	        lenMax = Math.max(lenMax, pop.length());
+	        lenMax = Math.max(lenMax, pop == null ? 4 : pop.length());
 	    }
 	    int szMax = 0;
 	    for (Integer t : bd.gen.values()) {
@@ -2244,8 +2266,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		}
 		geneListCmb.setSelectedIndex(geneIndex);
 		createIsoformList();
-//		isoformIndex = 0;
-//		isoformList.setSelectedIndex(isoformIndex);
 		isoformList.setSelectedItem(COLLAPSE_ISOFORMS_KEY);
 		parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY));
 		if (geneToCommentMap.containsKey(geneList.get(geneIndex)) && geneToCommentMap.get(geneList.get(geneIndex)) != null) {
@@ -2426,7 +2446,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test2/genes.txt" });
 		//
 		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz", "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_CONTROL.maf_0.01.final.vcf.gz" };
-		String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.vpop";
+		String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALL.vpop";
 		new TrailerClone(proj, vcfFiles, popFile);
 	}
 }
