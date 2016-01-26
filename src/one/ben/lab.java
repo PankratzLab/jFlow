@@ -27,6 +27,8 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Random;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -870,7 +872,6 @@ public class lab {
 		    System.out.println("complete!");
 		    
 //		    createRandomSelectionFile();
-		    
 //		    try {
 //    		    String checkfile = "D:/data/gedi_gwas/data/cluster.genome.gz";
 //    		    BufferedReader reader = Files.getAppropriateReader(checkfile);

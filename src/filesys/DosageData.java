@@ -4,9 +4,10 @@ package filesys;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import bioinformatics.Sequence;
-
 import common.*;
 import stats.*;
 import gwas.*;
@@ -31,6 +32,10 @@ public class DosageData implements Serializable {
 	public static final int INDIVIDUAL_DOMINANT_FORMAT = 0;
 	public static final int MARKER_DOMINANT_FORMAT = 1;
 	
+	public static final int CHR_INFO_IN_FILENAME = -2;
+	
+	public static final String CHR_REGEX = ".*?chr(\\d\\d?).*?";
+	
 	public static final String[][] HEADS = {null,				null,	{"id"}, 	{"SNP", "A1", "A2"},	null, 				null,				{"FID", "IID"}};
 	public static final String[][] LEADS = {{null, "MLDOSE"},	null,	null, 		null, 					{null, "MLPROB"},	{null, "DOSE"},		null};
 	public static final String[] DELIMITERS = {"\t", ",", " "};
@@ -45,7 +50,7 @@ public class DosageData implements Serializable {
 											  {FID_IID_TYPE,          3, MARKER_DOMINANT_FORMAT,     2, 1, 0,  1,  2, -1, -1, 0, 3, 3, 3}, // .dosage (PLINK)
 											  {MACH_ID_TYPE,          2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0, -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob (MACH)
 											  {MACH_ID_TYPE,          2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 5, 3, 3}, // .dose (MINIMAC)
-											  {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT,     3, 0, 1,  3,  4, -1,  2, 0, 1, 3, 3}, // .impute2
+											  {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT,     3, 0, 1,  3,  4, CHR_INFO_IN_FILENAME,  2, 0, 1, 3, 3}, // .impute2
 											  {FID_IID_TYPE,          3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0,  3,  4, -1,  2, 0, 6, 3, 3}, // .db.xln
 											  {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT,     1, 1, 0,  1,  2, -1, -1, 2, 1, 4, 4}, // .dose (BEAGLE)
 	};
@@ -83,7 +88,27 @@ public class DosageData implements Serializable {
 		if (parameters[6] != -1) {
 			alleles = new char[markerNames.length][2];
 		}
-		if (parameters[8] != -1) {
+		if (parameters[8] == CHR_INFO_IN_FILENAME) {
+            Matcher m = Pattern.compile(CHR_REGEX).matcher(dosageFile);
+            byte chr = -1;
+            if (m.matches()) {
+                chr = (byte) Integer.parseInt(m.group(1));
+                String msg = "Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{" + chr + "}.";
+                if (log != null) {
+                    log.report(msg);
+                } else {
+                    System.out.println(msg);
+                }
+                chrs = Array.byteArray(markerNames.length, chr);
+            } else {
+                String msg = "Error - the format given expects chromosome number to be part of the file name, but no chromosome number was found.  Chromosome information will not be included.";
+                if (log != null) {
+                    log.reportError(msg);
+                } else {
+                    System.err.println(msg);
+                }
+            }
+		} else if (parameters[8] != -1) {
 			chrs = new byte[markerNames.length];
 		}
 		if (parameters[9] != -1) {
@@ -169,7 +194,7 @@ public class DosageData implements Serializable {
 						}
 						alleles[i][1] = line[parameters[7]].charAt(0);
 					}
-					if (parameters[8] != -1) {
+					if (parameters[8] >= 0) {
 						try {
 							chrs[i] = Byte.parseByte(line[parameters[8]]);
 						} catch (NumberFormatException nfe) {

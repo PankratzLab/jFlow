@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import cnv.manage.PlainTextExport;
 import link.LinkageMap;
@@ -72,6 +74,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 
 	public static final String[][] HEADER_ELEMEMTS = {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS, Aliases.CENTIMORGANS, Aliases.ALLELES[0], Aliases.ALLELES[1]};
 	
+    public static final int CHR_INFO_IN_FILENAME = -2;
+	
 	/** 0            1    2         3             4   5   6+         */
 	/** Marker name, Chr, Position, centiMorgans, A1, A2, annotation */
 	public static final int[][] INDICES = {{0, -1, -1, -1, -1, -1},
@@ -87,7 +91,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 										   {0, -1, -1, -1,  1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 										   {1,  0,  2, -1, -1, -1},
 										   {0,  1,  2, -1,  3,  4, 5, 6, 7},
-										   {1, -1,  2, -1, -1, -1, 3, 4, 5, 6, 7, 8, 9}
+										   {1, CHR_INFO_IN_FILENAME,  2, -1, -1, -1, 3, 4, 5, 6, 7, 8, 9}
 										   // make sure to add an entry into HEADERS as well
 };
 	
@@ -175,7 +179,30 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				count--;
 			}
 			markerNames = new String[count];
-			chrs = new byte[count];
+			if (indices[1] == CHR_INFO_IN_FILENAME) {
+	            Matcher m = Pattern.compile(DosageData.CHR_REGEX).matcher(filename);
+	            byte chr = -1;
+	            if (m.matches()) {
+	                chr = (byte) Integer.parseInt(m.group(1));
+	                String msg = "Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{" + chr + "}.";
+	                if (log != null) {
+	                    log.report(msg);
+	                } else {
+	                    System.out.println(msg);
+	                }
+	                chrs = Array.byteArray(count, chr);
+	            } else {
+	                String msg = "Error - the format given expects chromosome number to be part of the file name, but no chromosome number was found.  Chromosome information will not be included.";
+	                if (log != null) {
+	                    log.reportError(msg);
+	                } else {
+	                    System.err.println(msg);
+	                }
+	                chrs = new byte[count];
+	            }
+			} else {
+			    chrs = new byte[count];
+			}
 			positions = new int[count];
 			
 			if (indices[3] == -1) {
@@ -200,7 +227,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				}
 				line = temp.split(delimiter, -1);
 				markerNames[i] = line[indices[0]];
-				if (indices[1] != -1) {
+				if (indices[1] >= 0) {
 					chrs[i] = Positions.chromosomeNumber(line[indices[1]]);
 				}
 				if (indices[2] != -1) {
