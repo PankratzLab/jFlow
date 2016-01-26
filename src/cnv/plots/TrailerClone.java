@@ -474,6 +474,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 			proj.getLog().reportTimeWarning("Generating " + file + " using all genes in " + vcfFiles[0]);
 			VCFOps.dumpSnpEffGenes(vcfFiles[0], file, proj.getLog());
 		}
+		proj.getLog().reportTimeWarning("Loading " + file );
 
 		String[][] geneFile = readFile(file);
 	    geneList = new ArrayList<String>();
@@ -2387,11 +2388,13 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     	        VCFHeader header = vcfReader.getFileHeader();
     	        vcfHeader = header;
         	    CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chr, start, stop);
+				System.out.println("chr" + chr + ":" + start + "-" + stop);
         	    while (vcIter.hasNext()) {
         	        data.add(vcIter.next());
         	    }
                 vcIter.close();
                 vcfReader.close();
+				System.out.println(data.size() + " for " + gene + " in " + vcfFile);
 	        }
             loadedVCFData.put(gene, sortData(data));
 	    }
@@ -2415,12 +2418,14 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    
 	    return isoformMapToVCFList;
 	}
-	
+
 	public static void main(String[] args) {
-		Project proj = new Project("D:/projects/poynter.properties", false);
-		// Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
-		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.final.vcf.gz" , "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT_CONTROL.final.vcf.gz"};
-		String popFile = "N:/statgen/VariantMapper/OSTEO_OFF_INHERIT.pop";
+		//Project proj = new Project("D:/projects/poynter.properties", false);
+		 Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test2/genes.txt" });
+		//
+		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz", "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_CONTROL.maf_0.01.final.vcf.gz" };
+		String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.vpop";
 		new TrailerClone(proj, vcfFiles, popFile);
 	}
 }
