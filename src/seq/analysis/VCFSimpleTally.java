@@ -287,7 +287,7 @@ public class VCFSimpleTally {
 
 					} else {
 						if (line.length > header.length) {
-							throw new IllegalArgumentException("Error, lines cannot be greater length than the header in"+fileName);
+							throw new IllegalArgumentException("Error, lines cannot be greater length than the header in" + fileName);
 						}
 						ArrayList<String> filled = new ArrayList<String>();
 						for (int i = 0; i < header.length; i++) {
@@ -602,7 +602,7 @@ public class VCFSimpleTally {
 	private static class SimpleTallyResult {
 		private VcfPopulation controls;
 		// private String finalOut;
-		// private String finalOutVCF;
+		private String finalOutVCF;
 		private String finalAnnot;
 		private String finalAnnotSample;
 		private String finalsampSummary;
@@ -613,12 +613,16 @@ public class VCFSimpleTally {
 			super();
 			this.controls = controls;
 			// this.finalOut = finalOut;
-			// this.finalOutVCF = finalOutVCF;
+			this.finalOutVCF = finalOutVCF;
 			this.finalsampSummary = finalsampSummary;
 			this.finalAnnot = finalAnnot;
 			this.finalAnnotGene = finalAnnotGene;
 			this.finalAnnotSample = finalAnnotSample;
 			this.finalGeneVariantPositions = finalGeneVariantPositions;
+		}
+
+		public String getFinalOutVCF() {
+			return finalOutVCF;
 		}
 
 		public String getFinalAnnot() {
@@ -767,7 +771,7 @@ public class VCFSimpleTally {
 						addEntries(caseDef, controlsOrdered, geneSummaries, geneName);
 					}
 					for (int j = 0; j < geneSets.length; j++) {
-						if ((geneSets[j].getGenes().containsKey(geneName)||geneSets[j].getGenes().containsKey(ANY_GENE_SET))  && !geneSummaries.containsKey(geneSets[j].getTag())) {
+						if ((geneSets[j].getGenes().containsKey(geneName) || geneSets[j].getGenes().containsKey(ANY_GENE_SET)) && !geneSummaries.containsKey(geneSets[j].getTag())) {
 							addEntries(caseDef, controlsOrdered, geneSummaries, geneSets[j].getTag());
 						}
 					}
@@ -820,7 +824,7 @@ public class VCFSimpleTally {
 					}
 					annoWriter.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
 					for (int j = 0; j < geneSets.length; j++) {
-						annoWriter.print("\t" +(geneSets[j].getGenes().containsKey(geneName) || geneSets[j].getGenes().containsKey(ANY_GENE_SET)));
+						annoWriter.print("\t" + (geneSets[j].getGenes().containsKey(geneName) || geneSets[j].getGenes().containsKey(ANY_GENE_SET)));
 					}
 					annoWriter.println();
 				}
@@ -1349,7 +1353,7 @@ public class VCFSimpleTally {
 			controls.report();
 			controls.dump(controlFile);
 			SimpleTallyResult controlResult = runSimpleTally(vcf, controlFile, maf, numThreads, outDir, currentSets, log);
-
+			VCFOps.VcfPopulation.splitVcfByPopulation(controlResult.getFinalOutVCF(), vpopsCase[i], true, true, log);
 			String geneFileCase = caseResult.getFinalAnnotGene();
 			String geneFileControl = controlResult.getFinalAnnotGene();
 			String caseWithControls = ext.addToRoot(geneFileCase, "_" + ext.rootOf(controlFile));
