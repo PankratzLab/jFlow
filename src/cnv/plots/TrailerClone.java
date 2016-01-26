@@ -109,7 +109,6 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	public static final int HEIGHT_BUFFER = 10;
 	public static final int DYNAMIC_HEIGHT_LIMIT = 0;
 	public static final int DOUBLE_CLICK_INTERVAL = 500;
-	public static final int SIZE = 4;
 	public static final int MIN_BUFFER = 1500;
 	public static final int DEFAULT_STARTX = 20;
 	public static final int DEFAULT_STARTY = 20;
@@ -541,8 +540,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	        geneToExonSegmentMap.put(gene, isoSegMap);
 	        for (Entry<String, GeneData> isoEntry : isoMap.entrySet()) {
 	            GeneData value = isoEntry.getValue();
-                isoPosMap.put(isoEntry.getKey(), "chr" + value.getChr() + ":" + value.getStart() + "-" + value.getStop());
-	            int[][] exons = value.getExonBoundaries();
+                isoPosMap.put(isoEntry.getKey(), "chr" + value.getChr() + ":" + value.getStart() + "-" + value.getStop());                
+                int[][] exons = value.getExonBoundaries();
 	            ArrayList<Segment> segList = new ArrayList<Segment>();
 	            for (int[] i : exons) {
 	                segList.add(new Segment(value.getChr(), i[0], i[1]));
@@ -991,7 +990,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             return;
         }
         Font prevFont = g.getFont();
-        int spanAll = getStop(true) - getStart(true);
+        int spanAll = getStop() - getStart(true);
         int spanCur = stop - start;
         double prop = spanCur / (double) spanAll;
         float fsz = (float) Math.min(14d, 11 / prop);
@@ -1958,10 +1957,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    return gd == null ? (buffered ? -1 * MIN_BUFFER : 0) : getCurrentGeneData().getStart() - (buffered ? MIN_BUFFER : 0);
 	}
 
-	private int getStop(boolean buffered) {
+	private int getStop() {
 //	    int stop = geneData[geneIndex][0].getStart();
         GeneData gd = getCurrentGeneData();
-        if (gd == null) return buffered ? MIN_BUFFER : 0;
+        if (gd == null) return MIN_BUFFER;
         int stop = gd.getStart();
         if (paintIntrons) {
 //            stop = geneData[geneIndex][0].getStop();
@@ -1980,7 +1979,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 }
             }
         }
-        return stop + (buffered ? MIN_BUFFER : 0);
+        return stop + MIN_BUFFER;
     }
 	
 	public void mouseDragged(MouseEvent e) {
@@ -1992,10 +1991,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		if (distance < 0) {
 			distance = Math.max(distance, 1 - start);
 		} else {
-			distance = Math.min(distance, getStop(true) - stop);
+			distance = Math.min(distance, getStop() - stop);
 		}
 
-	    if ((start <= getStart(true) && distance < 0) || (stop >= getStop(true) && distance > 0)) {
+	    if ((start <= getStart(true) && distance < 0) || (stop >= getStop() && distance > 0)) {
 
 		} else {
 			start += distance;
@@ -2195,7 +2194,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 			start = stop = -1;
 		}
 		start = loc[1] - MIN_BUFFER;
-		stop = getStop(true);
+		stop = getStop();
 //		if (start==-1||start<0) {
 //			start = 1;
 //		}
@@ -2215,8 +2214,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 //		if (stop >= geneData[geneIndex][0].getStop() + MIN_BUFFER) {
 //		    stop = geneData[geneIndex][0].getStop() + MIN_BUFFER;
 //		}
-		if (stop > getStop(true)) {
-			stop = getStop(true);
+		if (stop > getStop()) {
+			stop = getStop();
 		}
 		stopMarker = Array.binarySearch(positions, stop, chrBoundaries[chr][0], chrBoundaries[chr][1], false);
 
@@ -2382,13 +2381,14 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    if (loadedVCFData.containsKey(gene)) {
 	        return;
 	    } else {
+	        GeneData gd = getCurrentGeneData();
 	        ArrayList<VariantContext> data = new ArrayList<VariantContext>();
 	        for (String vcfFile : vcfFiles) {
     	        VCFFileReader vcfReader = new VCFFileReader(vcfFile, true);
     	        VCFHeader header = vcfReader.getFileHeader();
     	        vcfHeader = header;
-        	    CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chr, start, stop);
-				System.out.println("chr" + chr + ":" + start + "-" + stop);
+        	    CloseableIterator<VariantContext> vcIter = vcfReader.query(gd.getChromosomeUCSC(), gd.getStart(), gd.getStop());
+				System.out.println(gd.getChromosomeUCSC() + ":" + gd.getStart() + "-" + gd.getStop());
         	    while (vcIter.hasNext()) {
         	        data.add(vcIter.next());
         	    }
@@ -2420,8 +2420,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 
 	public static void main(String[] args) {
-		//Project proj = new Project("D:/projects/poynter.properties", false);
-		 Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+		Project proj = new Project("D:/projects/poynter.properties", false);
+//		 Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test2/genes.txt" });
 		//
 		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz", "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_CONTROL.maf_0.01.final.vcf.gz" };
