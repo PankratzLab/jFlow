@@ -862,8 +862,11 @@ public class lab {
 		    String doseFile = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2.gz";
 		    String mapFile = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2_info";
 		    String idFile = "/home/pankarne/cole0482/EA.indiv.dup";
+		    String outFile = "/scratch.global/cole0482/test.db.xln";
+		    String mapOutFile = "/scratch.global/cole0482/mapOut.xln";
 		    
-		    DosageData dd = new DosageData(doseFile, idFile, mapFile, DosageData.BEAGLE_DOSE_FORMAT, true, null);
+		    DosageData dd = new DosageData(doseFile, idFile, mapFile, DosageData.IMPUTE2_DOSE_FORMAT, true, null);
+		    dd.writeToFile(outFile, mapOutFile, null, DosageData.DATABASE_DOSE_FORMAT, null);
 		    System.out.println("complete!");
 		    
 //		    createRandomSelectionFile();
