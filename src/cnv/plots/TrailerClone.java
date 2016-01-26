@@ -859,6 +859,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             if (index == drawPop.size() && drawPop.size() > 1) {
                 drawLen += 1;
             }
+            
             g.setColor(popColorMap.get(pop));
 
             if (bd.dt == DrawType.FILLED_CIRCLE) {
@@ -2246,7 +2247,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 //		isoformIndex = 0;
 //		isoformList.setSelectedIndex(isoformIndex);
 		isoformList.setSelectedItem(COLLAPSE_ISOFORMS_KEY);
-		parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(isoformList.getItemAt(0)));
+		parseLocation(geneToRegionMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY));
 		if (geneToCommentMap.containsKey(geneList.get(geneIndex)) && geneToCommentMap.get(geneList.get(geneIndex)) != null) {
 			commentLabel.setText("gene #"+(geneIndex+1)+":  "+ geneToCommentMap.get(geneList.get(geneIndex)));
 		} else {
