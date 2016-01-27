@@ -51,7 +51,7 @@ import common.ext;
  *
  */
 public class VCFSimpleTally {
-	private static final String[] EFF = { "HIGH", "MODERATE", "LOW" };
+	public static final String[] EFF = { "HIGH", "MODERATE", "LOW" };
 	private static final String[][] EFF_DEFS = new String[][] { new String[] { EFF[0] }, new String[] { EFF[0], EFF[1] }, new String[] { EFF[0], EFF[1], EFF[2] } };
 	private static final String ESP_FILTER = "(esp6500si_all=='.'||esp6500si_all <=";
 	private static final String ESPV2_FILTER = "(esp6500siv2_all=='.'||esp6500siv2_all <=";

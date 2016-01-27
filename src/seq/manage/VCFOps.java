@@ -871,7 +871,7 @@ public class VCFOps {
 
 			String dir = ext.parseDirectoryOfFile(fullPathToPopFile);
 			String root = getAppropriateRoot(vcf, true);
-
+			log.reportTimeInfo("Writing to root split "+dir + root);
 			VariantContextWriter[] writers = vpop.getWritersForPop(dir + root, reader, log);
 			if (writers != null) {
 
