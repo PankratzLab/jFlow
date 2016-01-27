@@ -19,6 +19,7 @@ import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 import seq.manage.VCOps.VC_SUBSET_TYPE;
 import common.Logger;
+import common.ext;
 
 /**
  * @author lane0212 fairly specific class that uses the results of {@link VCFSimpleTally} to find genes with potential compound hets in tumor normal subsets<br>
@@ -32,19 +33,19 @@ public class TNHetDetector {
 	private static void filter(String vcfTumor, String vcfNormals, String vcfPop, String outputDir, String omimDir, String[] otherGenesOfInterest, double maf, Logger log) {
 		log.reportTimeInfo("Building normal hash");
 		VcfPopulation vpop = VcfPopulation.load(vcfPop, POPULATION_TYPE.TUMOR_NORMAL, log);
-		Hashtable<String, String> normalHash = new Hashtable<String, String>();
+		Hashtable<String, Genotype> normalHash = new Hashtable<String, Genotype>();
 		Hashtable<String, String> match = matchSamples(vpop, log);
 
+		VcfPopulation.splitVcfByPopulation(vcfNormals, vcfPop, true, true, log);
 		VCFFileReader readerNormal = new VCFFileReader(vcfNormals, true);
 		for (VariantContext vc : readerNormal) {
 			VariantContext vcNormal = VCOps.getSubset(vc, vpop.getSuperPop().get(VcfPopulation.NORMAL), VC_SUBSET_TYPE.SUBSET_STRICT);
 			for (String normalSamp : vcNormal.getSampleNames()) {
 				Genotype g = vcNormal.getGenotype(normalSamp);
 
-				if (!g.isHomRef() && g.isCalled()) {
-					// System.out.println(normalSamp + "_" + VCOps.getSNP_EFFGeneName(vc));
-
-					normalHash.put(normalSamp + "_" + VCOps.getSNP_EFFGeneName(vc), "HasVar");
+				if (!g.isHomRef() && g.isCalled() && ext.indexOfStr(VCOps.getSNP_EFFImpact(vc), VCFSimpleTally.EFF) >= 0) {
+					System.out.println(g.toBriefString());
+					normalHash.put(normalSamp + "_" + VCOps.getSNP_EFFGeneName(vc), g);
 				}
 			}
 		}
@@ -61,8 +62,13 @@ public class TNHetDetector {
 				Genotype g = vcTumor.getGenotype(tumorSamp);
 				boolean add = false;
 				if (!g.isHomRef() && g.isCalled()) {
-					if (normalHash.containsKey(match.get(tumorSamp) + "_" + VCOps.getSNP_EFFGeneName(vc))) {
-						add = true;
+					String key = match.get(tumorSamp) + "_" + VCOps.getSNP_EFFGeneName(vc);
+					if (normalHash.containsKey(key)) {
+						if (!g.sameGenotype(normalHash.get(key))) {
+							add = true;
+						} else {
+							log.reportTimeInfo("Removing identical geno");
+						}
 					}
 				}
 				if (add) {
