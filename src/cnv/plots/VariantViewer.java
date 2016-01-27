@@ -146,6 +146,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     private volatile boolean fillExons = true;
     private volatile boolean paintExonBoxes = true;
     private volatile boolean paintInternalLine = false;
+    private volatile boolean displayIfSmooshed = false;
     private volatile int exonLabelLocation = EXON_LBL_LEFT;
     private volatile boolean showExcludes = false;
     private volatile boolean showLegend = true;
@@ -375,7 +376,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 	// TODO TrailerClone should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
 	public VariantViewer(Project proj, String geneListFile, String[] vcfFiles, String popFile) {
-		super("Genvisis - Trailer - " + proj.PROJECT_NAME.getValue());
+		super("Genvisis - VariantViewer - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -398,7 +399,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 					    String[] newList = files.toArray(new String[]{});
 
 				        String message = newSet.size() + " files have been added.  ";
-				        int choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time TrailerClose is loaded?", "Preserve TrailerClone workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+				        int choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time VariantViewer is loaded?", "Preserve VariantViewer workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 				        if (choice == 0) {
 				            VariantViewer.this.proj.GENE_LIST_FILENAMES.setValue(newList);
 				            VariantViewer.this.proj.saveProperties();
@@ -664,7 +665,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                 }
                 vcfInSeg = getExonVCFRecords(j);
                 if (vcfInSeg.size() > 0) {
-                    if (lenPx <= dataPntSize + 2) {
+                    if (lenPx <= dataPntSize + 2 && !displayIfSmooshed) {
                         g.setColor(Color.RED);
                         g.drawLine(tempPx + (lenPx / 2), height - 30, tempPx + (lenPx / 2), height - 5);
                         g.setColor(Color.BLACK);
@@ -1582,6 +1583,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         chkbxDisplayExcludes = new JCheckBoxMenuItem();
         disp.add(chkbxDisplayExcludes);
         disp.add(new JSeparator());
+        final JCheckBoxMenuItem chkbxDisplayIfSmooshed = new JCheckBoxMenuItem();
+        disp.add(chkbxDisplayIfSmooshed);
+        disp.add(new JSeparator());
         ButtonGroup displayGroup = new ButtonGroup();
         final JRadioButtonMenuItem displayPopBlocks = new JRadioButtonMenuItem();
         displayGroup.add(displayPopBlocks);
@@ -1715,6 +1719,17 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         });
         chkbxDisplayLegend.setText("Show Legend");
         chkbxDisplayLegend.setSelected(showLegend);
+        
+        chkbxDisplayIfSmooshed.setAction(new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                displayIfSmooshed = chkbxDisplayIfSmooshed.isSelected();
+                updateGUI();
+            }
+        });
+        chkbxDisplayIfSmooshed.setText("Display Variants if exons are smooshed");
+        chkbxDisplayIfSmooshed.setSelected(displayIfSmooshed);
         
         chkbxDisplayExcludes.setAction(new AbstractAction() {
             private static final long serialVersionUID = 1L;
@@ -2469,8 +2484,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	}
 
 	public static void main(String[] args) {
-		// Project proj = new Project("D:/projects/poynter.properties", false);
-		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+		 Project proj = new Project("D:/projects/poynter.properties", false);
+//		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test2/genes.txt" });
 		//
 		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz", "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_CONTROL.maf_0.01.final.vcf.gz" };
