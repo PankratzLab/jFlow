@@ -71,10 +71,12 @@ public class DosageData implements Serializable {
 	        idSet.add(id[0] + "\t" + id[1]);
 	    }
 	    HashSet<Integer> droppedSampleIndices = new HashSet<Integer>();
+	    HashMap<String, Integer> droppedSamplesAndIndices = new HashMap<String, Integer>();
 	    for (int i = 0; i < dd2_ids.length; i++) {
 	        boolean alreadyPresent = idSet.add(dd2_ids[i][0] + "\t" + dd2_ids[i][1]);
 	        if (alreadyPresent) {
 	            droppedSampleIndices.add(i);
+	            droppedSamplesAndIndices.put(dd2_ids[i][0] + "\t" + dd2_ids[i][1], i);
 	            // TODO log? mark positions?
 	        }
 	    }

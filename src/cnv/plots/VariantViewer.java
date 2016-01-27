@@ -94,7 +94,7 @@ import filesys.GeneData;
 import filesys.GeneTrack;
 import filesys.Segment;
 
-public class TrailerClone extends JFrame implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener {
+public class VariantViewer extends JFrame implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener {
 	private static final String COLLAPSE_ISOFORMS_KEY = "Collapse Isoforms";
 
     public static final long serialVersionUID = 1L;
@@ -288,7 +288,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                     && !REGION_LIST_NEW_FILE.equals(shortName) 
                     && !REGION_LIST_PLACEHOLDER.equals(shortName)) {
                 String file = regionFileNameLoc.get(shortName);
-                if (file != null && file.equals(TrailerClone.this.geneFileName)) {
+                if (file != null && file.equals(VariantViewer.this.geneFileName)) {
                     return;
                 }
                 String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
@@ -296,17 +296,17 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                     proj.message("Error - region file '" + shortName + "' doesn't exist.");
                     regionFileNameBtn.get(shortName).setSelected(true);
                 } else {
-                    TrailerClone.this.geneFileName = file;
-                    loadGenes(TrailerClone.this.geneFileName);
+                    VariantViewer.this.geneFileName = file;
+                    loadGenes(VariantViewer.this.geneFileName);
                     showGene(0);
                 }
             } /*else if (loadingFile && REGION_LIST_PLACEHOLDER.equals(shortName)) {
                 // do nothing
             } */else if (loadingFile || REGION_LIST_PLACEHOLDER.equals(shortName)) {
                 // leave as currently selected marker
-                if (TrailerClone.this.geneFileName != "" && TrailerClone.this.geneFileName != null) {
-                    String file = TrailerClone.this.geneFileName;
-                    file = ext.rootOf(TrailerClone.this.geneFileName);
+                if (VariantViewer.this.geneFileName != "" && VariantViewer.this.geneFileName != null) {
+                    String file = VariantViewer.this.geneFileName;
+                    file = ext.rootOf(VariantViewer.this.geneFileName);
                     regionFileNameBtn.get(file).setSelected(true);
                 }
                 return;
@@ -320,8 +320,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         public void actionPerformed(ActionEvent e) {
             String newFile = chooseNewFiles();
             if (newFile == null) {
-                if (TrailerClone.this.geneFileName != null && !"".equals(TrailerClone.this.geneFileName)) {
-                    regionFileNameBtn.get(ext.rootOf(TrailerClone.this.geneFileName)).setSelected(true);
+                if (VariantViewer.this.geneFileName != null && !"".equals(VariantViewer.this.geneFileName)) {
+                    regionFileNameBtn.get(ext.rootOf(VariantViewer.this.geneFileName)).setSelected(true);
                 }
             } else {
                 String file = ext.verifyDirFormat(newFile);
@@ -342,7 +342,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
             jfc.setDialogTitle("Save Screen Capture...");
             jfc.setDialogType(JFileChooser.SAVE_DIALOG);
-            int code = jfc.showSaveDialog(TrailerClone.this);
+            int code = jfc.showSaveDialog(VariantViewer.this);
             if (code == JFileChooser.APPROVE_OPTION) {
                 String filename = jfc.getSelectedFile().getAbsolutePath();
                 doScreenCapture(filename);
@@ -369,20 +369,20 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
     private PreparedMarkerSet markerSet;
     private String[] markerNames;
 	
-	public TrailerClone(Project proj, String[] vcfFiles, String popFile) {
+	public VariantViewer(Project proj, String[] vcfFiles, String popFile) {
 		this(proj, proj.GENE_LIST_FILENAMES.getValue()[0], vcfFiles, popFile);
 	}
 
 	// TODO TrailerClone should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
-	public TrailerClone(Project proj, String geneListFile, String[] vcfFiles, String popFile) {
+	public VariantViewer(Project proj, String geneListFile, String[] vcfFiles, String popFile) {
 		super("Genvisis - Trailer - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				if (TrailerClone.this.proj != null) {
+				if (VariantViewer.this.proj != null) {
 					ArrayList<String> files = new ArrayList<String>(regionFileNameLoc.values());
-					String[] currSet = TrailerClone.this.proj.GENE_LIST_FILENAMES.getValue();
+					String[] currSet = VariantViewer.this.proj.GENE_LIST_FILENAMES.getValue();
 					
 					ArrayList<String> newSet = new ArrayList<String>();
 					outer: for (String s : files) {
@@ -400,8 +400,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 				        String message = newSet.size() + " files have been added.  ";
 				        int choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time TrailerClose is loaded?", "Preserve TrailerClone workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 				        if (choice == 0) {
-				            TrailerClone.this.proj.GENE_LIST_FILENAMES.setValue(newList);
-				            TrailerClone.this.proj.saveProperties();
+				            VariantViewer.this.proj.GENE_LIST_FILENAMES.setValue(newList);
+				            VariantViewer.this.proj.saveProperties();
 				        }
 					}
 				}
@@ -559,7 +559,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	            isoSegMap.put(isoEntry.getKey(), segList.toArray(new Segment[segList.size()]));
 	        }
 	    }
-        TrailerClone.this.geneFileName = file;
+        VariantViewer.this.geneFileName = file;
         updateGeneList();
 	}
 	
@@ -601,7 +601,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		int[][] exons;
 		int width, begin, tempX, tempPx, len, lenPx, height;
 		
-		ArrayList<VCFLocation> freqLocs = new ArrayList<TrailerClone.VCFLocation>();
+		ArrayList<VCFLocation> freqLocs = new ArrayList<VariantViewer.VCFLocation>();
 		
 		boolean antiAlias = true;
         if (g instanceof Graphics2D) {
@@ -672,7 +672,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                         String selIso = isoformList.getSelectedItem().toString();
                         if (drawType == DRAW_AS_BLOCKS) {
                             // draw populations
-                            ArrayList<BlockDraw> toDraw = new ArrayList<TrailerClone.BlockDraw>();
+                            ArrayList<BlockDraw> toDraw = new ArrayList<VariantViewer.BlockDraw>();
                             for (VariantContextWithFile vc : vcfInSeg) {
                                 String isoAttr = vc.vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
                                 // only draw if collapsed, or showing affected isoform
@@ -1149,7 +1149,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	private String chooseNewFiles() {
 		JFileChooser jfc = new JFileChooser((proj != null || geneFileName == null ? proj.PROJECT_DIRECTORY.getValue() : ext.parseDirectoryOfFile(geneFileName)));
 		jfc.setMultiSelectionEnabled(true);
-		if (jfc.showOpenDialog(TrailerClone.this) == JFileChooser.APPROVE_OPTION) {
+		if (jfc.showOpenDialog(VariantViewer.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
 			if (files.length > 0) {
 				boolean[] keep = Array.booleanArray(files.length, true);
@@ -1168,7 +1168,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 					for (File disc : discards) {
 						msg.append("\n").append(disc.getName());
 					}
-					JOptionPane.showMessageDialog(TrailerClone.this, msg.toString()); 
+					JOptionPane.showMessageDialog(VariantViewer.this, msg.toString()); 
 				}
 				
 				for (File kept : keptFiles) {
@@ -1186,7 +1186,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 				
 				if (!keep) {
 					StringBuilder msg = new StringBuilder("The following data file is already present:\n").append(file.getName());
-					JOptionPane.showMessageDialog(TrailerClone.this, msg.toString()); 
+					JOptionPane.showMessageDialog(VariantViewer.this, msg.toString()); 
 					return null;
 				} else {
 					addFileToList(file.getAbsolutePath());
@@ -1918,8 +1918,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	BlockDraw selectedBlockDraw;
 	DrawPoint selectedDrawPoint;
 	ArrayList<Rectangle> activeRects = new ArrayList<Rectangle>();
-	ArrayList<BlockDraw> activeBlocks = new ArrayList<TrailerClone.BlockDraw>();
-	ArrayList<DrawPoint> activePoints = new ArrayList<TrailerClone.DrawPoint>();
+	ArrayList<BlockDraw> activeBlocks = new ArrayList<VariantViewer.BlockDraw>();
+	ArrayList<DrawPoint> activePoints = new ArrayList<VariantViewer.DrawPoint>();
 	HashSet<VariantContext> drawnFreqs = new HashSet<VariantContext>();
 
 	public void mouseClicked(MouseEvent e) {
@@ -1937,7 +1937,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                 MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, e.getY(), 0, false);
                 ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
                 this.mouseMoved(phantom);
-                TrailerClone.this.repaint();
+                VariantViewer.this.repaint();
                 return;
             }
         }
@@ -1945,7 +1945,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         selectedRect = null;
         selectedBlockDraw = null;
         selectedDrawPoint = null;
-        TrailerClone.this.repaint();
+        VariantViewer.this.repaint();
 //        if (e.getButton()==MouseEvent.BUTTON1) {
 //            zoomProportionally(false, e.getPoint(), true);
 //        } else if (e.getButton()==MouseEvent.BUTTON3) {
@@ -2475,12 +2475,12 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		//
 		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz", "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_CONTROL.maf_0.01.final.vcf.gz" };
 		String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALL.vpop";
-		new TrailerClone(proj, vcfFiles, popFile);
+		new VariantViewer(proj, vcfFiles, popFile);
 
 		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test3/genes.txt" });
 		String[] vcfFiles2 = new String[] { "N:/statgen/VariantMapper/test3/CUSHINGS_TUMOR.maf_0.001.final.vcf.gz", "N:/statgen/VariantMapper/test3/CUSHINGS_TUMOR_CONTROL.maf_0.001.final.CUSHING_FREQ.vcf.gz" };
 		String popFile2 = "N:/statgen/VariantMapper/test3/TN.vpop";
-		new TrailerClone(proj, vcfFiles2, popFile2);
+		new VariantViewer(proj, vcfFiles2, popFile2);
 
 	}
 }
