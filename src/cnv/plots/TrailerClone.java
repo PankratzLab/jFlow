@@ -2441,13 +2441,19 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project("D:/projects/poynter.properties", false);
-//		 Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+		// Project proj = new Project("D:/projects/poynter.properties", false);
+		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test2/genes.txt" });
 		//
 		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz", "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_CONTROL.maf_0.01.final.vcf.gz" };
 		String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALL.vpop";
 		new TrailerClone(proj, vcfFiles, popFile);
+
+		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test3/genes.txt" });
+		String[] vcfFiles2 = new String[] { "N:/statgen/VariantMapper/test3/CUSHINGS_TUMOR.maf_0.001.final.vcf.gz", "N:/statgen/VariantMapper/test3/CUSHINGS_TUMOR_CONTROL.maf_0.001.final.CUSHING_FREQ.vcf.gz" };
+		String popFile2 = "N:/statgen/VariantMapper/test3/TN.vpop";
+		new TrailerClone(proj, vcfFiles2, popFile2);
+
 	}
 }
 

@@ -1329,7 +1329,8 @@ public class VCFSimpleTally {
 				log.reportTimeWarning("JOHN remember break");
 				break;
 			}
-			GeneSet[] currentSets = GeneSet.load(Files.listFullPaths(ext.parseDirectoryOfFile(vpopsCase[i]), ext.rootOf(vpopsCase[i]) + ".geneset", false), ext.rootOf(vpopsCase[i]), log);
+			log.reportTimeWarning("Now loading all .geneset");
+			GeneSet[] currentSets = GeneSet.load(Files.listFullPaths(ext.parseDirectoryOfFile(vpopsCase[i]), ".geneset", false), ext.rootOf(vpopsCase[i]), log);
 			log.reportTimeInfo("Found " + currentSets.length + " gene sets for " + vpopsCase[i]);
 			OMIM omim = new OMIM(omimDir, log);
 			OtherGeneInfo[] otherGeneInfos = null;
