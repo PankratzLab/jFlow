@@ -178,7 +178,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	HashMap<String, HashMap<String, String>> geneToRegionMap;
 	HashMap<String, HashMap<String, Segment[]>> geneToExonSegmentMap;
 	HashMap<String, HashMap<String, GeneData>> geneToIsoformMap;
-	HashMap<String, HashMap<String, ArrayList<ArrayList<VariantContext>>>> loadedVCFData;
+	HashMap<String, HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>> loadedVCFData;
 	VCFHeader vcfHeader;
 	HashSet<String> popSet;
 	HashSet<String> excluded;
@@ -230,7 +230,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    }
 	}
 	private static class BlockDraw {
-	    public BlockDraw(int basePairLoc, int xPixel, int numGenotypes, int totalAffected, HashMap<String, Integer> popCnts, DrawType drawType, VariantContext vc) {
+	    public BlockDraw(int basePairLoc, int xPixel, int numGenotypes, int totalAffected, HashMap<String, Integer> popCnts, DrawType drawType, VariantContextWithFile vc) {
 	        this.bpX = basePairLoc;
 	        this.x = xPixel;
 	        this.g = numGenotypes;
@@ -245,10 +245,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    int aff;
 	    HashMap<String, Integer> gen;
 	    DrawType dt;
-	    VariantContext vcRecord;
+	    VariantContextWithFile vcRecord;
 	}
 	private static class DrawPoint {
-	    public DrawPoint(int x2, int y2, int height, int width, DrawType drawType, Color color, String sampleID, VariantContext vc) {
+	    public DrawPoint(int x2, int y2, int height, int width, DrawType drawType, Color color, String sampleID, VariantContextWithFile vc) {
             this.x = x2;
             this.y = y2;
             this.h = height;
@@ -264,11 +264,21 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    int w;
 	    DrawType type;
 	    Color c;
-	    VariantContext vcRecord;
+	    VariantContextWithFile vcRecord;
 	    String sampleID;
 	}
 	
-	
+    private static class VCFLocation {
+        public VCFLocation(int x, VariantContext vc) {
+            this.x = x;
+            this.vc = vc;
+        }
+        int x;
+        VariantContext vc;
+        HashMap<String, Double> mafMap = new HashMap<String, Double>();
+        HashMap<String, Double> macMap = new HashMap<String, Double>();
+    }
+    
 	private AbstractAction geneFileSelectAction = new AbstractAction() {
         private static final long serialVersionUID = 1L;
         @Override
@@ -481,7 +491,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    geneToRegionMap = new HashMap<String, HashMap<String, String>>();
 	    geneToExonSegmentMap = new HashMap<String, HashMap<String, Segment[]>>();
 	    geneToCommentMap = new HashMap<String, String>();
-	    loadedVCFData = new HashMap<String, HashMap<String,ArrayList<ArrayList<VariantContext>>>>();
+	    loadedVCFData = new HashMap<String, HashMap<String,ArrayList<ArrayList<VariantContextWithFile>>>>();
 	    headerMap = new HashMap<String, VCFHeader>();
 	    String[] genes = Array.extract(geneFile, 0);
 	    GeneData[][] geneData = track.lookupAllGeneData(genes);
@@ -570,10 +580,10 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         geneListCmb.setPreferredSize(new Dimension(maxWidth + 50, 30));
 	}
 	
-	private ArrayList<VariantContext> filter(Segment exon, ArrayList<VariantContext> all) {
-	    ArrayList<VariantContext> retArr = new ArrayList<VariantContext>();
-	    for (VariantContext vc : all) {
-	        if (exon.overlaps(new Segment(vc.getContig(), vc.getStart(), vc.getEnd()))) {
+	private ArrayList<VariantContextWithFile> filter(Segment exon, ArrayList<VariantContextWithFile> all) {
+	    ArrayList<VariantContextWithFile> retArr = new ArrayList<VariantContextWithFile>();
+	    for (VariantContextWithFile vc : all) {
+	        if (exon.overlaps(new Segment(vc.vc.getContig(), vc.vc.getStart(), vc.vc.getEnd()))) {
 	            retArr.add(vc);
 	        }
 	    }
@@ -585,20 +595,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    return geneToIsoformMap.get(geneList.get(geneIndex)).get(isoformList.getSelectedItem());
 	}
 	
-	private static class VCFLocation {
-	    public VCFLocation(int x, VariantContext vc) {
-	        this.x = x;
-	        this.vc = vc;
-	    }
-	    int x;
-	    VariantContext vc;
-	    HashMap<String, Double> mafMap = new HashMap<String, Double>();
-	    HashMap<String, Double> macMap = new HashMap<String, Double>();
-	}
-	
 	private void paintPanel(Graphics g) {
 		GeneData gene;
-		ArrayList<VariantContext> vcfInSeg;
+		ArrayList<VariantContextWithFile> vcfInSeg;
 		int[][] exons;
 		int width, begin, tempX, tempPx, len, lenPx, height;
 		
@@ -674,14 +673,14 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                         if (drawType == DRAW_AS_BLOCKS) {
                             // draw populations
                             ArrayList<BlockDraw> toDraw = new ArrayList<TrailerClone.BlockDraw>();
-                            for (VariantContext vc : vcfInSeg) {
-                                String isoAttr = vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
+                            for (VariantContextWithFile vc : vcfInSeg) {
+                                String isoAttr = vc.vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
                                 // only draw if collapsed, or showing affected isoform
                                 if (!selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
                                     continue;
                                 }
                                 
-                                GenotypesContext gctx = vc.getGenotypes();
+                                GenotypesContext gctx = vc.vc.getGenotypes();
                                 HashMap<String, Integer> popGenoCnt = new HashMap<String, Integer>();
                                 int totAff = 0;
                                 for (int i = 0; i < gctx.size(); i++) {
@@ -703,17 +702,17 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                     }
                                 }
                                 
-                                DrawType vcType = DrawType.getDrawType(vc);
+                                DrawType vcType = DrawType.getDrawType(vc.vc);
                                 
-                                int diffA = vc.getStart() - exons[j][0];
+                                int diffA = vc.vc.getStart() - exons[j][0];
                                 double prop = diffA / (double) len;
                                 int diffPx = (int) (lenPx * prop);
                                 if (diffPx + dataPntSize + 2 > lenPx) { // don't let the markings go past the exon
                                     diffPx = lenPx - dataPntSize - 2;
                                 }
 
-                                freqLocs.add(new VCFLocation(tempPx + diffPx, vc));
-                                BlockDraw bd = new BlockDraw(vc.getStart(), tempPx + diffPx, gctx.size(), totAff, popGenoCnt, vcType, vc);
+                                freqLocs.add(new VCFLocation(tempPx + diffPx, vc.vc));
+                                BlockDraw bd = new BlockDraw(vc.vc.getStart(), tempPx + diffPx, gctx.size(), totAff, popGenoCnt, vcType, vc);
                                 toDraw.add(bd);
                             }
                             for (BlockDraw bd : toDraw) {
@@ -724,15 +723,15 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                             ArrayList<DrawPoint> drawn = new ArrayList<DrawPoint>();
                             ArrayList<Rectangle> plotted = new ArrayList<Rectangle>();
     //                        HashMap<String, Integer> plottedCnt = new HashMap<String, Integer>();
-                            for (VariantContext vc : vcfInSeg) {
-                                String isoAttr = vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
+                            for (VariantContextWithFile vc : vcfInSeg) {
+                                String isoAttr = vc.vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
                                 // only draw if collapsed, or showing affected isoform
                                 if (!selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
                                     continue;
                                 }
-                                GenotypesContext gctx = vc.getGenotypes();
+                                GenotypesContext gctx = vc.vc.getGenotypes();
                                 int xOffset = 0;
-                                int diffA = vc.getStart() - exons[j][0];
+                                int diffA = vc.vc.getStart() - exons[j][0];
                                 double prop = diffA / (double)len;
                                 int diffPx = (int) (lenPx * prop);
                                 if (diffPx + dataPntSize + 2 > lenPx) { // don't let the markings go past the exon
@@ -764,7 +763,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                             }
                                         } while (overlap && vcRect.y + vcRect.height + 110 < getHeight()/* && xOffset <= 20*/); // running off top of screen
                                         plotted.add(vcRect);
-                                        DrawPoint dp = new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width, DrawType.getDrawType(vc), popColorMap.get(popMap.get(geno.getSampleName())), geno.getSampleName(), vc);
+                                        DrawPoint dp = new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width, DrawType.getDrawType(vc.vc), popColorMap.get(popMap.get(geno.getSampleName())), geno.getSampleName(), vc);
                                         activePoints.add(dp);
                                         activeRects.add(vcRect);
                                         if (selectedDrawPoint != null && dp.sampleID.equals(selectedDrawPoint.sampleID)) {
@@ -777,7 +776,7 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
                                     }
                                 }
                                 if (genoCnt > 0) {
-                                    freqLocs.add(new VCFLocation(vcRect.x, vc));
+                                    freqLocs.add(new VCFLocation(vcRect.x, vc.vc));
                                 }
                             }
                             for (int i = 0; i < drawn.size(); i++) {
@@ -925,10 +924,14 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
             // TODO Error
         }
         
+        int offset = 1;
+        if (dp.type == DrawType.EMPTY_CIRCLE) {
+            offset = 2;
+        }
         if (selectedDrawPoint != null) {
-            if (dp.sampleID.equals(selectedDrawPoint.sampleID)) { 
+            if (dp.sampleID.equals(selectedDrawPoint.sampleID) && dp.vcRecord.equals(selectedDrawPoint.vcRecord)) {
                 g.setColor(Color.black);
-                g.drawOval(x-1, y-1, dataPntSize + 1, dataPntSize + 1);
+                g.drawOval(x-1, y-1, dataPntSize + offset, dataPntSize + offset);
             }
         }
         
@@ -2046,8 +2049,20 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	}
 	
 	private String buildToolTip(DrawPoint dp) {
-	    StringBuilder txtBld = new StringBuilder();
-	    txtBld.append("Details Here");
+	    StringBuilder txtBld = new StringBuilder("<html><pre>");
+	    txtBld.append("Sample ID: ").append(dp.sampleID).append("<br />");
+        txtBld.append("</pre><hr><pre>");
+        txtBld.append("Genotype: ").append(dp.vcRecord.vc.getGenotype(dp.sampleID).toBriefString());
+        txtBld.append("</pre><pre>");
+        txtBld.append("Genotype Quality: ").append(dp.vcRecord.vc.getGenotype(dp.sampleID).getGQ());
+        txtBld.append("</pre><hr><pre>");
+        txtBld.append("Position: ").append(dp.vcRecord.vc.getContig()).append(":").append(dp.vcRecord.vc.getStart());
+        if (dp.vcRecord.vc.getStart() != dp.vcRecord.vc.getEnd()) {
+            txtBld.append("-").append(dp.vcRecord.vc.getEnd());
+        }
+        txtBld.append("</pre><hr><pre>");
+        txtBld.append("File: ").append(dp.vcRecord.file);
+        txtBld.append("</pre></html>");
 	    return txtBld.toString();
 	}
 	
@@ -2069,6 +2084,8 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	        txtBld.append(s).append("<br />");
 //	        txtBld.append(entry.getKey()).append(" = ").append(entry.getValue()).append("<br />");
 	    }
+        txtBld.append("</pre><hr><pre>");
+        txtBld.append("File: ").append(bd.vcRecord.file);
         txtBld.append("</pre></html>");
 	    return txtBld.toString();
 	}
@@ -2276,16 +2293,16 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 		loadDataIfMissing();
 	}
 	
-	private ArrayList<VariantContext> getExonVCFRecords(int exonIndex) {
+	private ArrayList<VariantContextWithFile> getExonVCFRecords(int exonIndex) {
 	    String gene = geneList.get(geneIndex);
-	    HashMap<String, ArrayList<ArrayList<VariantContext>>> isoformData = loadedVCFData.get(gene);
+	    HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformData = loadedVCFData.get(gene);
 	    if (isoformData == null) {
-	        return new ArrayList<VariantContext>();
+	        return new ArrayList<VariantContextWithFile>();
 	    }
 	    String isoform = (String) isoformList.getSelectedItem();
-	    ArrayList<ArrayList<VariantContext>> exonData = isoformData.get(isoform);
+	    ArrayList<ArrayList<VariantContextWithFile>> exonData = isoformData.get(isoform);
 	    if (exonData == null || exonIndex >= exonData.size()) {
-	        return new ArrayList<VariantContext>();
+	        return new ArrayList<VariantContextWithFile>();
 	    }
 	    return exonData.get(exonIndex);
 	}
@@ -2397,13 +2414,22 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         return colorMap;
 	}
 	
+	private class VariantContextWithFile {
+	    public VariantContextWithFile(VariantContext vc2, String vcfFile) {
+	        this.vc = vc2;
+	        this.file = vcfFile;
+	    }
+        VariantContext vc;
+	    String file;
+	}
+	
 	private void loadDataIfMissing() {
 	    String gene = geneList.get(geneIndex);
 	    if (loadedVCFData.containsKey(gene)) {
 	        return;
 	    } else {
 	        GeneData gd = getCurrentGeneData();
-	        ArrayList<VariantContext> data = new ArrayList<VariantContext>();
+	        ArrayList<VariantContextWithFile> data = new ArrayList<VariantContextWithFile>();
 	        for (String vcfFile : vcfFiles) {
     	        VCFFileReader vcfReader = new VCFFileReader(vcfFile, true);
     	        VCFHeader header = vcfReader.getFileHeader();
@@ -2411,7 +2437,9 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
         	    CloseableIterator<VariantContext> vcIter = vcfReader.query(gd.getChromosomeUCSC(), gd.getStart(), gd.getStop());
 				System.out.println(gd.getChromosomeUCSC() + ":" + gd.getStart() + "-" + gd.getStop());
         	    while (vcIter.hasNext()) {
-        	        data.add(vcIter.next());
+        	        VariantContext vc = vcIter.next();
+        	        VariantContextWithFile vcwf = new VariantContextWithFile(vc, vcfFile);
+        	        data.add(vcwf);
         	    }
                 vcIter.close();
                 vcfReader.close();
@@ -2421,15 +2449,15 @@ public class TrailerClone extends JFrame implements ActionListener, MouseListene
 	    }
 	}
 	
-	private HashMap<String, ArrayList<ArrayList<VariantContext>>> sortData(ArrayList<VariantContext> vcfEntries) {	    
-	    HashMap<String, ArrayList<ArrayList<VariantContext>>> isoformMapToVCFList = new HashMap<String, ArrayList<ArrayList<VariantContext>>>();
+	private HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> sortData(ArrayList<VariantContextWithFile> vcfEntries) {	    
+	    HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformMapToVCFList = new HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>();
 	    HashMap<String, Segment[]> isoToExonSegMap = geneToExonSegmentMap.get(geneList.get(geneIndex));
 	    
 	    for (Entry<String, Segment[]> isoSegEntry : isoToExonSegMap.entrySet()) {
 	        String isoKey = isoSegEntry.getKey();
 	        Segment[] isoExonSegs = isoSegEntry.getValue();
 	        
-	        ArrayList<ArrayList<VariantContext>> isoVCFLists = new ArrayList<ArrayList<VariantContext>>();
+	        ArrayList<ArrayList<VariantContextWithFile>> isoVCFLists = new ArrayList<ArrayList<VariantContextWithFile>>();
 	        isoformMapToVCFList.put(isoKey, isoVCFLists);
 	        
 	        for (int i = 0; i < isoExonSegs.length; i++) {

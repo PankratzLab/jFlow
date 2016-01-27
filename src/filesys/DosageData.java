@@ -63,6 +63,30 @@ public class DosageData implements Serializable {
 	private byte[] chrs;
 	private int[] positions;
 	
+	public static DosageData combine(DosageData dd1, DosageData dd2) {
+	    String[][] dd1_ids = dd1.ids;
+	    String[][] dd2_ids = dd2.ids;
+	    LinkedHashSet<String> idSet = new LinkedHashSet<String>(); // use to ensure uniqueness and order
+	    for (String[] id : dd1_ids) {
+	        idSet.add(id[0] + "\t" + id[1]);
+	    }
+	    HashSet<Integer> droppedSampleIndices = new HashSet<Integer>();
+	    for (int i = 0; i < dd2_ids.length; i++) {
+	        boolean alreadyPresent = idSet.add(dd2_ids[i][0] + "\t" + dd2_ids[i][1]);
+	        if (alreadyPresent) {
+	            droppedSampleIndices.add(i);
+	            // TODO log? mark positions?
+	        }
+	    }
+	    if (droppedSampleIndices.size() > 0) {
+	        System.out.println(droppedSampleIndices.size() + " duplicate sample IDs found, out of " + dd2_ids.length + " samples present.");
+	    }
+	    
+	    // combining values when marker and sample are the same?
+	    
+	    return null;
+	}
+	
 	public DosageData(String dosageFile, String idFile, String mapFile, boolean verbose, Logger log) {
 		this(dosageFile, idFile, mapFile, determineType(dosageFile), verbose, log);
 	}
