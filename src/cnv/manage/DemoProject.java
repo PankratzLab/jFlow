@@ -27,7 +27,7 @@ public class DemoProject extends Project {
 
 	public DemoProject(Project proj, String demoDirectory, boolean overwriteExisting, DEMO_TYPE dType) {
 		super();
-		this.proj = new Project();//(Project) proj.clone();
+		this.proj =proj;//(Project) proj.clone();
 		this.demoDirectory = demoDirectory;
 		this.overwriteExisting = overwriteExisting;
 		this.dType = dType;
@@ -44,29 +44,30 @@ public class DemoProject extends Project {
 	}
 
 	private void init() {
-		String demoProjectDirectory = demoDirectory + proj.PROJECT_NAME.getValue() + "_" + dType + "/";
-		setProperty(proj.PROJECT_DIRECTORY, demoProjectDirectory);
+		String demoProjectDirectory = demoDirectory + proj.PROJECT_NAME.getValue().replaceAll(" ", "") + "_" + dType + "/";
+		setProperty(this.PROJECT_DIRECTORY, demoProjectDirectory);
 		if (!Files.exists(PROJECT_DIRECTORY.getValue()) || overwriteExisting) {
 			new File(PROJECT_DIRECTORY.getValue()).mkdirs();
-			proj.DATA_DIRECTORY.getValue(true, false);
-			proj.SAMPLE_DIRECTORY.getValue(true, false);
-			proj.RESULTS_DIRECTORY.getValue(true, false);
+			this.DATA_DIRECTORY.getValue(true, false);
+			this.SAMPLE_DIRECTORY.getValue(true, false);
+			this.RESULTS_DIRECTORY.getValue(true, false);
 
 			if (dType == DEMO_TYPE.MARKER_FOCUS) {
-				proj.MARKER_DATA_DIRECTORY.getValue(true, false);
+				this.MARKER_DATA_DIRECTORY.getValue(true, false);
 			}
 
 			// single file Copies
-			copyFileIfExists(proj.MARKER_POSITION_FILENAME);
-			copyFileIfExists(proj.SAMPLE_DATA_FILENAME);
-			copyFileIfExists(proj.SAMPLE_QC_FILENAME);
-			copyFileIfExists(proj.MOSAIC_RESULTS_FILENAME);
-			copyFileIfExists(proj.SEXCHECK_RESULTS_FILENAME);
-			copyFileIfExists(proj.INTENSITY_PC_FILENAME);
-			copyFileIfExists(proj.CLUSTER_FILTER_COLLECTION_FILENAME);
-			copyFileIfExists(proj.ANNOTATION_FILENAME);
-			
-//			copyFileIfExists(proj.MARKER_POSITION_FILENAME.getName());
+			copyFileIfExists(proj.MARKER_POSITION_FILENAME, this.MARKER_POSITION_FILENAME);
+			copyFileIfExists(proj.SAMPLE_DATA_FILENAME, this.SAMPLE_DATA_FILENAME);
+			copyFileIfExists(proj.SAMPLE_QC_FILENAME, this.SAMPLE_QC_FILENAME);
+			copyFileIfExists(proj.MOSAIC_RESULTS_FILENAME, this.MOSAIC_RESULTS_FILENAME);
+			copyFileIfExists(proj.SEXCHECK_RESULTS_FILENAME, this.SEXCHECK_RESULTS_FILENAME);
+			copyFileIfExists(proj.INTENSITY_PC_FILENAME, this.INTENSITY_PC_FILENAME);
+			copyFileIfExists(proj.CLUSTER_FILTER_COLLECTION_FILENAME, this.CLUSTER_FILTER_COLLECTION_FILENAME);
+			copyFileIfExists(proj.ANNOTATION_FILENAME, this.ANNOTATION_FILENAME);
+			copyFileIfExists(proj.BLAST_ANNOTATION_FILENAME, this.BLAST_ANNOTATION_FILENAME);
+			Files.copyFile(proj.BLAST_ANNOTATION_FILENAME.getValue() + ".tbi", this.BLAST_ANNOTATION_FILENAME.getValue() + ".tbi");
+			// copyFileIfExists(proj.MARKER_POSITION_FILENAME.getName());
 //			copyFileIfExists(proj.SAMPLE_DATA_FILENAME.getName());
 //			copyFileIfExists(proj.SAMPLE_QC_FILENAME.getName());
 //			copyFileIfExists(proj.MOSAIC_RESULTS_FILENAME.getName());
@@ -95,7 +96,9 @@ public class DemoProject extends Project {
 		if (geneTrack != null && Files.exists(geneTrack)) {
 			demo.setProperty(demo.GENETRACK_FILENAME, ext.removeDirectoryInfo(geneTrack));
 			original.getLog().reportTimeInfo("Detected " + geneTrack + ", copying to " + demo.GENETRACK_FILENAME.getValue(false, false) + "\n\t (this takes a while due to byte by byte copying)");
-			Files.copyFileExactlyByteByByte(geneTrack, demo.GENETRACK_FILENAME.getValue(false, false));
+			if (!Files.exists(demo.GENETRACK_FILENAME.getValue(false, false))) {
+				Files.copyFileExactlyByteByByte(geneTrack, demo.GENETRACK_FILENAME.getValue(false, false));
+			}
 		}
 	}
 
@@ -139,10 +142,11 @@ public class DemoProject extends Project {
 	}
 
 //	private void copyFileIfExists(String property) {
-	private void copyFileIfExists(FileProperty property) {
+	private void copyFileIfExists(FileProperty property, FileProperty other) {
 		String file = property.getValue(false, false);
 		if (file != null && Files.exists(file)) {
-			Files.copyFile(file, property.getValue(false, false));
+			System.out.println("Copying " + file + " to " + other.getValue(false, false));
+			Files.copyFile(file, other.getValue(false, false));
 		} else {
 			proj.getLog().reportTimeWarning("Did not find file " + file + " cannot copy to demo");
 		}
@@ -168,7 +172,7 @@ public class DemoProject extends Project {
 	}
 
 	private static String[] loadMarkers(Project proj, String markersFile, DEMO_TYPE dType) {
-		String[] markersToUse = proj.getMarkerNames();
+		String[] markersToUse =null;
 		String targetMarkerFile = proj.TARGET_MARKERS_FILENAMES.getDefaultValueString();
 		if (markersFile != null) {
 			markersToUse = getParserFor(proj, markersFile, false).getStringDataAt(0, true);
@@ -206,6 +210,7 @@ public class DemoProject extends Project {
 
 	public boolean createProjectDemo(String markersFile, String samplesFile, int numThreads) {
 		if (!fail) {
+			System.out.println(proj.MARKERSET_FILENAME.getValue());
 			return createProjectDemo(loadMarkers(proj, markersFile, dType), loadSamples(proj, samplesFile, dType), numThreads);
 		} else {
 			return false;
@@ -231,7 +236,7 @@ public class DemoProject extends Project {
 				return created;
 			} else {
 //				Markers.orderMarkers(markersToExport, getFilename(proj.MARKER_POSITION_FILENAME), getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
-				Markers.orderMarkers(markersToExport, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+				Markers.orderMarkers(markersToExport, proj.MARKER_POSITION_FILENAME.getValue(), this.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 				long fingerPrint = getMarkerSet().getFingerprint();
 				proj.getLog().reportTimeInfo("Attempting to subset the samples...");
 				new File(SAMPLELIST_FILENAME.getValue(false, false)).delete();
@@ -241,7 +246,7 @@ public class DemoProject extends Project {
 						proj.getLog().reportTimeInfo("Finished subsetting the samples...Attempting to transpose the data");
 						TransposeData.transposeData(this, 2000000000, false);
 //						Files.writeList(markersToExport, getFilename(proj.DISPLAY_MARKERS_FILENAME));
-						Files.writeList(markersToExport, proj.DISPLAY_MARKERS_FILENAMES.getValue()[0]);
+						Files.writeList(markersToExport, this.DISPLAY_MARKERS_FILENAMES.getValue()[0]);
 					}
 					SampleList.generateSampleList(this).writeToTextFile(PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
 					getSamples();

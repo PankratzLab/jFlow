@@ -59,7 +59,7 @@ public class DemoPackage {
 			if (!Files.exists(demoVis)) {
 				if (!Files.exists(copyRunning) && !runningJar.endsWith(GENVISIS_PARK_JAR)) {
 					log.reportTimeInfo("Detected " + runningJar + ", copying to " + copyRunning + "\n\t (this takes a while due to byte by byte copying)");
-					if (Files.copyFileExactlyByteByByte(runningJar, copyRunning)) {
+					if (Files.copyFileUsingFileChannels(runningJar, copyRunning, log)) {
 						log.reportTimeInfo("Finished copying " + runningJar + ", to " + copyRunning);
 					} else {
 						log.reportTimeError("Could not copy " + runningJar + " to " + copyRunning);
@@ -71,7 +71,7 @@ public class DemoPackage {
 				if (Files.exists(other) && !Files.exists(copyOther) && !other.endsWith(GENVISIS_PARK_JAR)) {
 					if (Files.exists(other)) {
 						log.reportTimeInfo("Detected " + other + ", copying to " + copyOther + "\n\t (this takes a while due to byte by byte copying)");
-						if (Files.copyFileExactlyByteByByte(other, copyOther)) {
+						if (Files.copyFileUsingFileChannels(other, copyOther, log)) {
 							log.reportTimeInfo("Finished copying " + other + ", to " + copyOther);
 						} else {
 							log.reportTimeError("Could not copy " + other + " to " + copyOther);
@@ -86,7 +86,7 @@ public class DemoPackage {
 		} else {
 			log.reportTimeError("Could not detect proper jar file, found " + runningJar + " and it should have ended with " + GENVISIS_PARK_JAR + " or " + GENVISIS_VIS_JAR);
 			log.reportTimeError("This could be because you are running from eclipse without a jar file");
-			fail = true;
+			//fail = true;
 		}
 		String launchProperties = demoDirectory + LaunchProperties.DEFAULT_PROPERTIES_FILE;
 		cnv.Launch.initLaunchProperties(launchProperties, true, true);
@@ -165,17 +165,24 @@ public class DemoPackage {
 		demoProject.setProperty(demoProject.PROJECT_NAME, proj.PROJECT_NAME.getValue() + "_" + demoProject.getdType());
 		String newProjectFile = projectsDir + demoProject.PROJECT_NAME.getValue() + ".properties";
 		demoProject.setProperty(demoProject.PROJECT_DIRECTORY, demoProject.PROJECT_NAME.getValue() + "/");
+		Files.copyFile(proj.getPropertyFilename(), newProjectFile);
+		Files.copyFile(proj.getPropertyFilename(), projectsDir+"example.properties");
+
 		if (!demoProject.isFail()) {
 			try {
-				PrintWriter writer = new PrintWriter(new FileWriter(newProjectFile));
-//				demoProject.store(writer, demoProject.getNameOfProject());
-				demoProject.saveProperties(newProjectFile);
-				writer.close();
+//				PrintWriter writer = new PrintWriter(new FileWriter(newProjectFile));
+//				writer.println("##");
+//				writer.close();
+
+   			  //demoProject.store(writer, demoProject.getNameOfProject());
+				demoProject.setPropertyFilename(newProjectFile);
+				demoProject.saveProperties();
 			} catch (Exception e) {
 				log.reportError("Error writing to " + newProjectFile);
 				log.reportException(e);
 			}
 		}
+
 		if (setToDefault) {
 			newLaunchProperties.setProperty(LaunchProperties.LAST_PROJECT_OPENED, demoProject.PROJECT_NAME.getValue() + ".properties");
 			newLaunchProperties.save();
@@ -340,7 +347,7 @@ public class DemoPackage {
 		JTextField sampFileText = new JTextField(proj.SAMPLE_SUBSET_FILENAME.getValue().replaceAll("\"", ""));
 		sampFileText.setSize(width, 30);
 //		JTextField markFileText = new JTextField(proj.getFilename(proj.TARGET_MARKERS_FILENAME).replaceAll("\"", ""));
-		JTextField markFileText = new JTextField(proj.TARGET_MARKERS_FILENAMES.getDefaultValueString().replaceAll("\"", ""));
+		JTextField markFileText = new JTextField(proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 		filePanel.add(markFileText, BorderLayout.NORTH);
 		filePanel.add(sampFileText, BorderLayout.SOUTH);
 
