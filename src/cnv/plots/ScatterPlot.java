@@ -336,7 +336,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		}
 		String fastaFile = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 		if (Files.exists(fastaFile)) {
-		    referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
+			referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
 		}
 		
 		masterMarkerList = initMarkerList;
@@ -3621,7 +3621,19 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			qcPanelLabel.setFont(new Font("Arial", 0, 14));
 			qcPanel.add(qcPanelLabel, "cell 1 7");
 		}
-
+		qcPanelLabel = new JLabel("Marker GC content:", JLabel.LEFT);
+		qcPanelLabel.setFont(new Font("Arial", 0, 14));
+		qcPanel.add(qcPanelLabel, "cell 0 8");
+		if (gcAnnotations != null) {
+			String gc = gcAnnotations[markerIndex].getAnnotations()[0].getData();
+			gc = gc.substring(0, Math.min(gc.length(), 4));
+			qcPanelLabel = new JLabel(gc, JLabel.LEFT);
+		} else {
+			qcPanelLabel = new JLabel("NA", JLabel.LEFT);
+		}
+		qcPanelLabel.setFont(new Font("Arial", 0, 14));
+		qcPanel.add(qcPanelLabel, "cell 1 8");
+		
 //		qcPanelLabel = new JLabel("Minor Allele Freq: " + (new DecimalFormat("#.####").format(classCount.getMinorAlleleFrequency())), JLabel.LEFT);
 //      qcPanelLabel.setFont(new Font("Arial", 0, 14));
 //		qcPanel.add(qcPanelLabel);

@@ -1,7 +1,9 @@
 package seq.analysis;
 
 import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 
@@ -11,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Set;
 
 import seq.manage.BamOps;
+import seq.manage.GenotypeOps;
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import seq.manage.VCFOps.HEADER_COPY_TYPE;
@@ -38,13 +41,14 @@ public class TNHetDetector {
 
 		VcfPopulation.splitVcfByPopulation(vcfNormals, vcfPop, true, true, log);
 		VCFFileReader readerNormal = new VCFFileReader(vcfNormals, true);
+
 		for (VariantContext vc : readerNormal) {
+
 			VariantContext vcNormal = VCOps.getSubset(vc, vpop.getSuperPop().get(VcfPopulation.NORMAL), VC_SUBSET_TYPE.SUBSET_STRICT);
 			for (String normalSamp : vcNormal.getSampleNames()) {
 				Genotype g = vcNormal.getGenotype(normalSamp);
 
 				if (!g.isHomRef() && g.isCalled() && ext.indexOfStr(VCOps.getSNP_EFFImpact(vc), VCFSimpleTally.EFF) >= 0) {
-					System.out.println(g.toBriefString());
 					normalHash.put(normalSamp + "_" + VCOps.getSNP_EFFGeneName(vc), g);
 				}
 			}
@@ -58,21 +62,30 @@ public class TNHetDetector {
 		int num = 0;
 		for (VariantContext vc : readerTumor) {
 			VariantContext vcTumor = VCOps.getSubset(vc, vpop.getSuperPop().get(VcfPopulation.TUMOR), VC_SUBSET_TYPE.SUBSET_STRICT);
+			VariantContextBuilder builder = new VariantContextBuilder(vcTumor);
+			ArrayList<Genotype> genotypes = new ArrayList<Genotype>();
 			for (String tumorSamp : vcTumor.getSampleNames()) {
 				Genotype g = vcTumor.getGenotype(tumorSamp);
 				boolean add = false;
+				GenotypeBuilder bGenotypeBuilder = new GenotypeBuilder(g);
+				bGenotypeBuilder.alleles(GenotypeOps.getNoCall());
 				if (!g.isHomRef() && g.isCalled()) {
 					String key = match.get(tumorSamp) + "_" + VCOps.getSNP_EFFGeneName(vc);
 					if (normalHash.containsKey(key)) {
 						if (!g.sameGenotype(normalHash.get(key))) {
 							add = true;
+							genotypes.add(g);
 						} else {
+							genotypes.add(bGenotypeBuilder.make());
 							log.reportTimeInfo("Removing identical geno");
 						}
 					}
+				} else {
+					genotypes.add(bGenotypeBuilder.make());
 				}
 				if (add) {
-					writer.add(vc);
+					builder.genotypes(genotypes);
+					writer.add(builder.make());
 					num++;
 				}
 			}

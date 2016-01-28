@@ -140,11 +140,10 @@ public class FocusedSample {
 		for (int i = 0; i < focusedSamples.length; i++) {
 			outliers.putAll(focusedSamples[i].getOutliers());
 		}
-		if (outliers.size() > 0) {
-			String outlierFileName = newFocus.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser";
-			newFocus.getLog().reportTimeInfo("Writing outliers to " + outlierFileName);
-			Files.writeSerial(outliers, outlierFileName);
-		}
+		String outlierFileName = newFocus.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser";
+		newFocus.getLog().reportTimeInfo("Writing outliers to " + outlierFileName);
+		Files.writeSerial(outliers, outlierFileName);
+	
 	}
 
 	public static void test() {
