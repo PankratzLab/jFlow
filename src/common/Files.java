@@ -11,6 +11,7 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import DistLib.negative_binomial;
 import filesys.*;
 import parse.*;
 
@@ -1455,7 +1456,7 @@ public class Files {
         }
 	}
 	
-	public static void filterByKeys(String keysFile, String fileIn, String fileOut, int keyColumn) throws IOException {
+	public static void filterByKeys(String keysFile, String fileIn, String fileOut, int keyColumn, boolean preserveKeyOrder) throws IOException {
 	    if (!Files.exists(keysFile)) {
 	        System.err.println("Error - key file " + keysFile + " doesn't exist!");
 	        return;
@@ -1474,24 +1475,40 @@ public class Files {
 	    }
 	    
 	    BufferedReader reader;
-	    PrintWriter writer;
+	    PrintWriter writer; 
 	    String line, delim;
-	    HashSet<String> keySet = HashVec.loadFileToHashSet(keysFile, false);
-	    
+
+        String[] keys = HashVec.loadFileToStringArray(keysFile, false, new int[]{0}, false);
+	    HashMap<String, Integer> keyMap = new HashMap<String, Integer>();
+	    for (int i = 0; i < keys.length; i++) {
+	        keyMap.put(keys[i], i);
+	    }
+        ArrayList<String> lines = preserveKeyOrder ? new ArrayList<String>((int) (keys.length * 1.77)) : null;
+
 	    reader = Files.getAppropriateReader(fileIn);
-	    writer = Files.getAppropriateWriter(fileOut);
+	    writer = preserveKeyOrder ? null : Files.getAppropriateWriter(fileOut);
 	    line = delim = null;
 	    while ((line = reader.readLine()) != null) {
 	        if (delim == null) {
 	            delim = ext.determineDelimiter(line);
 	        }
-	        if (keySet.contains(line.split(delim, -1)[keyColumn])) {
-	            writer.println(line);
+	        String key = line.split(delim, -1)[keyColumn];
+	        if (keyMap.containsKey(key)) {
+	            if (!preserveKeyOrder) {
+	                writer.println(line);
+	            } else {
+	                lines.add(keyMap.get(key), line);
+	            }
 	        }
+	        if (!preserveKeyOrder) {
+        	    writer.flush();
+        	    writer.close();
+	        }
+    	    reader.close();
 	    }
-	    writer.flush();
-	    writer.close();
-	    reader.close();
+	    if (preserveKeyOrder) {
+	        Files.writeArrayList(lines, fileOut);
+	    }
 	}
 	
 	public static void generateTables(String outputFile, String[] files, String[] fileDescriptions, String[][] parameters, Logger log) {
