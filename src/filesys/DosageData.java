@@ -64,29 +64,101 @@ public class DosageData implements Serializable {
 	private int[] positions;
 	
 	public static DosageData combine(DosageData dd1, DosageData dd2) {
-	    String[][] dd1_ids = dd1.ids;
-	    String[][] dd2_ids = dd2.ids;
+	    byte missingChr = 0;
+	    int missingPos = 0;
+	    char[] missingAlleles = null;
+	    
+	    
+	    String[][] dd1Ids = dd1.ids;
+	    String[][] dd2Ids = dd2.ids;
 	    LinkedHashSet<String> idSet = new LinkedHashSet<String>(); // use to ensure uniqueness and order
-	    for (String[] id : dd1_ids) {
+	    for (String[] id : dd1Ids) {
 	        idSet.add(id[0] + "\t" + id[1]);
 	    }
-	    HashSet<Integer> droppedSampleIndices = new HashSet<Integer>();
-	    HashMap<String, Integer> droppedSamplesAndIndices = new HashMap<String, Integer>();
-	    for (int i = 0; i < dd2_ids.length; i++) {
-	        boolean alreadyPresent = idSet.add(dd2_ids[i][0] + "\t" + dd2_ids[i][1]);
+	    HashSet<Integer> duplicatedSampleIndices = new HashSet<Integer>();
+	    HashMap<String, Integer> duplicatedSamplesAndIndices = new HashMap<String, Integer>();
+	    for (int i = 0; i < dd2Ids.length; i++) {
+	        boolean alreadyPresent = !idSet.add(dd2Ids[i][0] + "\t" + dd2Ids[i][1]);
 	        if (alreadyPresent) {
-	            droppedSampleIndices.add(i);
-	            droppedSamplesAndIndices.put(dd2_ids[i][0] + "\t" + dd2_ids[i][1], i);
+	            duplicatedSampleIndices.add(i);
+	            duplicatedSamplesAndIndices.put(dd2Ids[i][0] + "\t" + dd2Ids[i][1], i);
 	            // TODO log? mark positions?
 	        }
 	    }
-	    if (droppedSampleIndices.size() > 0) {
-	        System.out.println(droppedSampleIndices.size() + " duplicate sample IDs found, out of " + dd2_ids.length + " samples present.");
+	    if (duplicatedSampleIndices.size() > 0) {
+	        System.out.println(duplicatedSampleIndices.size() + " duplicate sample IDs found, out of " + dd2Ids.length + " samples present.");
 	    }
 	    
-	    // combining values when marker and sample are the same?
+	    String[] dd1Mkrs = dd1.markerSet.getMarkerNames();
+	    String[] dd2Mkrs = dd2.markerSet.getMarkerNames();
+	    LinkedHashSet<String> markers = new LinkedHashSet<String>();
+	    for (String mkr : dd1Mkrs) {
+	        markers.add(mkr);
+	    }
+	    HashSet<Integer> duplicatedMarkerIndices = new HashSet<Integer>();
+	    HashMap<String, Integer> duplicatedMarkersAndIndices = new HashMap<String, Integer>();
+	    for (int i = 0; i < dd2Mkrs.length; i++) {
+	        boolean alreadyPresentMkr = markers.add(dd2Mkrs[i]);
+	        if (alreadyPresentMkr) {
+	            duplicatedMarkerIndices.add(i);
+	            duplicatedMarkersAndIndices.put(dd2Mkrs[i], i);
+	            if (duplicatedSampleIndices.size() > 0) {
+	                System.err.println("Error - cannot combine data sets with the same marker and sample names.  Yet.");
+	                // TODO 
+	                // combining values when marker and sample are the same?
+	                System.exit(1);
+	            }
+	        }
+	    }
 	    
-	    return null;
+	    DosageData ddNew = new DosageData();
+	    ddNew.ids = new String[idSet.size()][];
+	    Iterator<String> iter = idSet.iterator();
+	    int ind = 0;
+	    while (iter.hasNext()) {
+	        ddNew.ids[ind++] = iter.next().split("\t");
+	    }
+	    idSet = null; // can now refer to ddNew.ids
+	    
+	    ddNew.markerSet = SnpMarkerSet.merge(dd1.markerSet, dd2.markerSet);
+	    
+	    ddNew.alleles = new char[markers.size()][];
+	    ddNew.chrs = new byte[markers.size()];
+	    ddNew.positions = new int[markers.size()];
+	    byte[] chrSrc = dd1.chrs == null ? dd1.markerSet.getChrs() : dd1.chrs;
+	    char[][] alleleSrc = dd1.alleles == null ? dd1.markerSet.getAlleles() : dd1.alleles;
+	    int[] posSrc = dd1.positions == null ? dd1.markerSet.getPositions() : dd1.positions;
+	    int chrOffset = chrSrc == null ? dd1Mkrs.length : chrSrc.length;
+	    for (int i = 0; i < chrSrc.length; i++) {
+	        ddNew.chrs[i] = chrSrc == null ? missingChr : chrSrc[i];
+	        ddNew.alleles[i] = alleleSrc == null ? missingAlleles : alleleSrc[i];
+	        ddNew.positions[i] = posSrc == null ? missingPos : posSrc[i];
+	    }
+	    chrSrc = dd2.chrs == null ? dd2.markerSet.getChrs() : dd2.chrs;
+	    alleleSrc = dd2.alleles == null ? dd2.markerSet.getAlleles() : dd2.alleles;
+	    posSrc = dd2.positions == null ? dd2.markerSet.getPositions() : dd2.positions;
+	    for (int i = 0; i < chrSrc.length; i++) {
+	        if (!duplicatedMarkerIndices.contains(i)) {
+	            ddNew.chrs[chrOffset + i] = chrSrc == null ? missingChr : chrSrc[i];
+	            ddNew.alleles[chrOffset + i] = alleleSrc == null ? missingAlleles : alleleSrc[i];
+	            ddNew.positions[chrOffset + i] = posSrc == null ? missingPos : posSrc[i];
+	        }
+	    }
+	    
+	    // TODO combine dosage/geno values 
+	    // arrays are marker -> sample, i.e. arr[m][s]
+	    
+	    return ddNew;
+	}
+	
+	private DosageData() {
+	    this.ids = null;
+	    this.markerSet = null;
+	    this.chrs = null;
+	    this.positions = null;
+	    this.alleles = null;
+	    this.genotypeProbabilities = null;
+	    this.dosageValues = null;
 	}
 	
 	public DosageData(String dosageFile, String idFile, String mapFile, boolean verbose, Logger log) {
@@ -523,7 +595,7 @@ public class DosageData implements Serializable {
 								writer.print(delimiter+ext.formDeci(genotypeProbabilities[j][i][0], parameters[13], parameters[12] == parameters[13]));
 								writer.print(delimiter+ext.formDeci(genotypeProbabilities[j][i][1], parameters[13], parameters[12] == parameters[13]));
 								if (parameters[3] == 3) {
-									if (genotypeProbabilities[i][j].length > 2) {
+									if (genotypeProbabilities[j][i].length > 2) {
 										writer.print(delimiter+ext.formDeci(genotypeProbabilities[j][i][2], parameters[13], parameters[12] == parameters[13]));
 									} else {
 										writer.print(delimiter+ext.formDeci(1 - genotypeProbabilities[j][i][1] - genotypeProbabilities[j][i][0], parameters[13], parameters[12] == parameters[13]));
