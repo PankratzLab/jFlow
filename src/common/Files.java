@@ -3658,6 +3658,7 @@ public class Files {
 		Logger log;
 		String logfile = null;
 		boolean filter = false;
+		boolean ord = true;
 		int keyIndex = -1;
 		
 		String usage = "\n" + 
@@ -3697,6 +3698,8 @@ public class Files {
 		"   (3) key file (i.e. keys=gwasHits.txt (not the default))\n" +
 		"   (4) output file name (i.e. out=gwasHits.tdt (not the default))\n" +
 		"   (5) index of key column in data file (i.e. keyIndex=7 (not the default))\n" +
+		"   (6) order results by key order (i.e. ordered=TRUE (default))\n" +
+		
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -3757,6 +3760,9 @@ public class Files {
 			} else if (args[i].startsWith("keyIndex=")) {
 			    keyIndex = ext.parseIntArg(args[i]);
 			    numArgs--;
+			} else if (args[i].startsWith("ordered=")) {
+			    ord = ext.parseBooleanArg(args[i]);
+			    numArgs--;
 			} else if (args[i].startsWith("dir=")) {
 				dir = args[i].split("=")[1];
 				numArgs--;
@@ -3800,7 +3806,7 @@ public class Files {
 			log = new Logger(logfile);
 			
 			if (filter) {
-			    filterByKeys(keyfile, filename, outfile, keyIndex);
+			    filterByKeys(keyfile, filename, outfile, keyIndex, ord);
 			} else if (wc) {
 				long time = new java.util.Date().getTime();
 				log.report("Counted "+countLines(args[0], 0)+ " lines in "+ext.getTimeElapsed(time));
