@@ -67,6 +67,8 @@ public class DosageData implements Serializable {
 	    byte missingChr = 0;
 	    int missingPos = 0;
 	    char[] missingAlleles = null;
+	    float missingDosage = 0;
+	    float missingGeno = 0;
 	    
 	    
 	    String[][] dd1Ids = dd1.ids;
@@ -97,7 +99,9 @@ public class DosageData implements Serializable {
 	    }
 	    HashSet<Integer> duplicatedMarkerIndices = new HashSet<Integer>();
 	    HashMap<String, Integer> duplicatedMarkersAndIndices = new HashMap<String, Integer>();
+	    HashMap<String, Integer> dd2markersAndIndices = new HashMap<String, Integer>();
 	    for (int i = 0; i < dd2Mkrs.length; i++) {
+	        dd2markersAndIndices.put(dd2Mkrs[i], i);
 	        boolean alreadyPresentMkr = markers.add(dd2Mkrs[i]);
 	        if (alreadyPresentMkr) {
 	            duplicatedMarkerIndices.add(i);
@@ -157,51 +161,85 @@ public class DosageData implements Serializable {
         
         ddNew.genotypeProbabilities = ddNewNumGeno > 1 ? new float[markers.size()][ddNew.ids.length][ddNewNumGeno] : null;
         ddNew.dosageValues = ddNewNumGeno == 1 ? new float[markers.size()][ddNew.ids.length] : null;
-	    // TODO combine dosage/geno values 
-	    // arrays are marker -> sample, i.e. arr[m][s]
         
         if (ddNewNumGeno > 1) {
             // combine genotypeProbs
             Iterator<String> markerIter = markers.iterator();
             int m = 0;
             int dd2IndM = -1;
-            int dd2IndS = -1;
             int dd1MarkerOffset = dd1Mkrs.length;
-            int dd1SampleOffset = dd1.ids.length;
             while (markerIter.hasNext()) {
                 String mkr = markerIter.next();
+                dd2IndM = -1;
                 if (duplicatedMarkersAndIndices.containsKey(mkr)) {
                     dd2IndM = duplicatedMarkersAndIndices.get(mkr);
                 }
                 
-                for (int s = 0; s < ddNew.ids.length; s++) {
+                for (int s = 0; s < dd1.ids.length; s++) {
                     if (m < dd1MarkerOffset) {
-                        if (s < dd1SampleOffset) {
-                            ddNew.genotypeProbabilities[m][s] = dd1.genotypeProbabilities[m][s];
-                        } else {
-                            if (duplicatedSamplesAndIndices.containsKey(ddNew.ids[s - dd1SampleOffset][0] + "\t" + ddNew.ids[s - dd1SampleOffset][1])) {
-                                dd2IndS = duplicatedSamplesAndIndices.get(ddNew.ids[s - dd1SampleOffset][0] + "\t" + ddNew.ids[s - dd1SampleOffset][1]);
-                            }
-                            ddNew.genotypeProbabilities[m][s] = dd2IndM == -1 ? Array.floatArray(ddNewNumGeno, 0) : dd2.genotypeProbabilities[dd2IndM][dd2IndS == -1 ? s - dd1SampleOffset : dd2IndS];
-                        }
+                        ddNew.genotypeProbabilities[m][s] = dd1.genotypeProbabilities[m][s];
                     } else {
-                        if (s < dd1SampleOffset) {
-                            ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, 0);
+                        if (duplicatedSamplesAndIndices.containsKey(dd1.ids[s][0] + "\t" + dd1.ids[s][1])) {
+                            ddNew.genotypeProbabilities[m][s] = dd2.genotypeProbabilities[dd2markersAndIndices.get(mkr)][duplicatedSamplesAndIndices.get(dd1.ids[s][0] + "\t" + dd1.ids[s][1])];
                         } else {
-                            if (duplicatedSamplesAndIndices.containsKey(ddNew.ids[s - dd1SampleOffset][0] + "\t" + ddNew.ids[s - dd1SampleOffset][1])) {
-                                dd2IndS = duplicatedSamplesAndIndices.get(ddNew.ids[s - dd1SampleOffset][0] + "\t" + ddNew.ids[s - dd1SampleOffset][1]);
-                            }
-                            ddNew.genotypeProbabilities[m][s] = dd2.genotypeProbabilities[dd2IndM == -1 ? m - dd1MarkerOffset : dd2IndM][dd2IndS == -1 ? s - dd1SampleOffset : dd2IndS]; 
+                            ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, missingGeno);
                         }
                     }
-                    dd2IndS = -1;
                 }
-                dd2IndM = -1;
+                int newInd = dd1.ids.length;
+                for (int s = 0; s < dd2.ids.length; s++) {
+                    if (duplicatedSampleIndices.contains(s)) {
+                        continue;
+                    }
+                    if (!dd2markersAndIndices.containsKey(mkr)) {
+                        ddNew.genotypeProbabilities[m][newInd] = Array.floatArray(ddNewNumGeno, missingGeno);
+                    } else {
+                        ddNew.genotypeProbabilities[m][newInd] = dd2.genotypeProbabilities[dd2IndM == -1 ? dd2markersAndIndices.get(mkr) : dd2IndM][s];
+                    }
+                    newInd++;
+                }
                 
                 m++;
             }
-            
-            
+        } else if (ddNewNumGeno == 1) {
+
+            Iterator<String> markerIter = markers.iterator();
+            int m = 0;
+            int dd2IndM = -1;
+            int dd1MarkerOffset = dd1Mkrs.length;
+            while (markerIter.hasNext()) {
+                String mkr = markerIter.next();
+                dd2IndM = -1;
+                if (duplicatedMarkersAndIndices.containsKey(mkr)) {
+                    dd2IndM = duplicatedMarkersAndIndices.get(mkr);
+                }
+                
+                for (int s = 0; s < dd1.ids.length; s++) {
+                    if (m < dd1MarkerOffset) {
+                        ddNew.dosageValues[m][s] = dd1.dosageValues[m][s];
+                    } else {
+                        if (duplicatedSamplesAndIndices.containsKey(dd1.ids[s][0] + "\t" + dd1.ids[s][1])) {
+                            ddNew.dosageValues[m][s] = dd2.dosageValues[dd2markersAndIndices.get(mkr)][duplicatedSamplesAndIndices.get(dd1.ids[s][0] + "\t" + dd1.ids[s][1])];
+                        } else {
+                            ddNew.dosageValues[m][s] = missingDosage;
+                        }
+                    }
+                }
+                int newInd = dd1.ids.length;
+                for (int s = 0; s < dd2.ids.length; s++) {
+                    if (duplicatedSampleIndices.contains(s)) {
+                        continue;
+                    }
+                    if (!dd2markersAndIndices.containsKey(mkr)) {
+                        ddNew.dosageValues[m][newInd] = missingDosage;
+                    } else {
+                        ddNew.dosageValues[m][newInd] = dd2.dosageValues[dd2IndM == -1 ? dd2markersAndIndices.get(mkr) : dd2IndM][s];
+                    }
+                    newInd++;
+                }
+                
+                m++;
+            }
         }
 	    
 	    return ddNew;

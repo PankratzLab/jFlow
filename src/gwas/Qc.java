@@ -26,7 +26,8 @@ public class Qc {
         cmds.append("cd ").append(dir).append("\n");
         cmds.append("mkdir markerQC/").append("\n");
         cmds.append("cd markerQC/").append(";\n");
-        cmds.append("plink --bfile ../").append(plink).append(" --mind 0.1 --make-bed --noweb --out ./").append(plink).append(";\n");
+        cmds.append("plink --bfile ../").append(plink).append(" --geno 0.2 --make-bed --noweb --out ./").append(plink).append("_geno20;\n");
+        cmds.append("plink --bfile ").append(plink).append("_geno20 --mind 0.1 --make-bed --noweb --out ").append(plink).append(";\n");
         cmds.append("if [ ! -f freq.frq ] ; then").append("\n");
         cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --freq --out freq --noweb").append(";\n");
         cmds.append("fi;\n");
@@ -67,7 +68,7 @@ public class Qc {
         cmds.append("mkdir sampleQC/\n");
         cmds.append("cd sampleQC/\n");
         cmds.append("if [ ! -f ").append(plink).append(".bed ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ../").append(plink).append(" --exclude ../markerQC/miss_drops.dat --make-bed --noweb\n");
+        cmds.append("\t").append("plink --bfile ../markerQC/").append(plink).append(" --exclude ../markerQC/miss_drops.dat --make-bed --noweb\n");
         cmds.append("fi;\n");
         cmds.append("if [ ! -f missing.imiss ] ; then").append("\n");
         cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --missing --out missing --noweb").append(";\n");
@@ -114,6 +115,7 @@ public class Qc {
         
     }
     
+    // TODO CAUTION, MAKE SURE ALL CHANGES TO fullGamut ARE ALSO CHANGED IN exportFullGamut
 	public static void fullGamut(String dir, String plinkPrefix, boolean keepGenomeInfoForRelatedsOnly, Logger log) {
 		long time;
 		
