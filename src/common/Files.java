@@ -1454,7 +1454,46 @@ public class Files {
         	log.reportException(e);
         }
 	}
-
+	
+	public static void filterByKeys(String keysFile, String fileIn, String fileOut, int keyColumn) throws IOException {
+	    if (!Files.exists(keysFile)) {
+	        System.err.println("Error - key file " + keysFile + " doesn't exist!");
+	        return;
+	    }
+	    if (!Files.exists(fileIn)) {
+	        System.err.println("Error - input data file " + fileIn + " doesn't exist!");
+	        return;
+	    }
+	    if (Files.exists(fileOut)) {
+	        System.err.println("Error - output file " + fileOut + " already exists!");
+	        return;
+	    }
+	    if (keyColumn < 0) {
+	        System.err.println("Error - invalid key column index: " + keyColumn);
+	        return;
+	    }
+	    
+	    BufferedReader reader;
+	    PrintWriter writer;
+	    String line, delim;
+	    HashSet<String> keySet = HashVec.loadFileToHashSet(keysFile, false);
+	    
+	    reader = Files.getAppropriateReader(fileIn);
+	    writer = Files.getAppropriateWriter(fileOut);
+	    line = delim = null;
+	    while ((line = reader.readLine()) != null) {
+	        if (delim == null) {
+	            delim = ext.determineDelimiter(line);
+	        }
+	        if (keySet.contains(line.split(delim, -1)[keyColumn])) {
+	            writer.println(line);
+	        }
+	    }
+	    writer.flush();
+	    writer.close();
+	    reader.close();
+	}
+	
 	public static void generateTables(String outputFile, String[] files, String[] fileDescriptions, String[][] parameters, Logger log) {
         PrintWriter writer;
         String[] values;
@@ -3594,12 +3633,15 @@ public class Files {
 		boolean commaDelimitedOut = false;
 		String dir = null;
 		String outfile = null;
+		String keyfile = null;
 		boolean multiple = false;
 		boolean cwd = false;
 		boolean wc = false;
 		String replacements = null;
 		Logger log;
 		String logfile = null;
+		boolean filter = false;
+		int keyIndex = -1;
 		
 		String usage = "\n" + 
 		"common.Files requires 0-1 arguments\n" + 
@@ -3632,6 +3674,12 @@ public class Files {
 		"       [requires two tab delimited columns of what to search for (first col) and what to replace it with (second col)]\n" + 
 		"   (2) name of input file (i.e. file=input.txt (not the default))\n" + 
 		"   (3) name of output file (i.e. out=output.txt (not the default))\n" + 
+		"  OR\n" +
+		"   (1) filter a file by a set of keys (i.e. -filter (not the default))\n" +
+		"   (2) input data file (i.e. file=plink.tdt (not the default))\n" +
+		"   (3) key file (i.e. keys=gwasHits.txt (not the default))\n" +
+		"   (4) output file name (i.e. out=gwasHits.tdt (not the default))\n" +
+		"   (5) index of key column in data file (i.e. keyIndex=7 (not the default))\n" +
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -3662,6 +3710,9 @@ public class Files {
 			} else if (args[i].startsWith("-nextRep")) {
 				findNextRep = true;
 				numArgs--;
+            } else if (args[i].startsWith("-filter")) {
+                filter = true;
+                numArgs--;
 			} else if (args[i].startsWith("wc")) {
 				wc = true;
 				numArgs--;
@@ -3683,6 +3734,12 @@ public class Files {
 			} else if (args[i].startsWith("out=")) {
 				outfile = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("keys=")) {
+			    keyfile = ext.parseStringArg(args[i], null);
+			    numArgs--;
+			} else if (args[i].startsWith("keyIndex=")) {
+			    keyIndex = ext.parseIntArg(args[i]);
+			    numArgs--;
 			} else if (args[i].startsWith("dir=")) {
 				dir = args[i].split("=")[1];
 				numArgs--;
@@ -3725,7 +3782,9 @@ public class Files {
 			
 			log = new Logger(logfile);
 			
-			if (wc) {
+			if (filter) {
+			    filterByKeys(keyfile, filename, outfile, keyIndex);
+			} else if (wc) {
 				long time = new java.util.Date().getTime();
 				log.report("Counted "+countLines(args[0], 0)+ " lines in "+ext.getTimeElapsed(time));
 			} else if (findNextRep && patterns !=null) {
