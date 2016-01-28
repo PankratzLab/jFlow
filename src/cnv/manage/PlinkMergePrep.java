@@ -18,7 +18,7 @@ public class PlinkMergePrep {
     private static final int PEDMAP = 1;
     private static final int BEDBIMFAM = 2;
     
-    static int isValidRoot(String dir, String plinkRoot) {
+    static int isValidRoot(String dir, final String plinkRoot) {
         String[] files = (new File(dir)).list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {

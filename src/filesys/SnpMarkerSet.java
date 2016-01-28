@@ -1011,7 +1011,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
         }
 	}
 	
-	public static SnpMarkerSet merge(SnpMarkerSet[] sets) {
+	public static SnpMarkerSet merge(SnpMarkerSet... sets) {
 		Hashtable<String, Integer> indices;
 		String[][] arraysOfMarkerNames, annotation;
 		boolean[] hasPositions, hasAlleles;
