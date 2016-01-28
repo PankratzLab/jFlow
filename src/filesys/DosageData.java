@@ -145,8 +145,64 @@ public class DosageData implements Serializable {
 	        }
 	    }
 	    
+	    int dd1NumGeno = dd1.genotypeProbabilities == null ? 0 : dd1.genotypeProbabilities[0][0].length;
+        int dd2NumGeno = dd2.genotypeProbabilities == null ? 0 : dd2.genotypeProbabilities[0][0].length;
+	    
+        if (dd1NumGeno > 1 || dd2NumGeno > 1 && dd1NumGeno != dd2NumGeno) {
+            System.err.println("Error - cannot combine data sets with different numbers of genotype probabilities.  Yet.");
+            // TODO error, mismatched number of genotype probabilities
+            System.exit(1);
+        }
+        int ddNewNumGeno = dd1NumGeno; 
+        
+        ddNew.genotypeProbabilities = ddNewNumGeno > 1 ? new float[markers.size()][ddNew.ids.length][ddNewNumGeno] : null;
+        ddNew.dosageValues = ddNewNumGeno == 1 ? new float[markers.size()][ddNew.ids.length] : null;
 	    // TODO combine dosage/geno values 
 	    // arrays are marker -> sample, i.e. arr[m][s]
+        
+        if (ddNewNumGeno > 1) {
+            // combine genotypeProbs
+            Iterator<String> markerIter = markers.iterator();
+            int m = 0;
+            int dd2IndM = -1;
+            int dd2IndS = -1;
+            int dd1MarkerOffset = dd1Mkrs.length;
+            int dd1SampleOffset = dd1.ids.length;
+            while (markerIter.hasNext()) {
+                String mkr = markerIter.next();
+                if (duplicatedMarkersAndIndices.containsKey(mkr)) {
+                    dd2IndM = duplicatedMarkersAndIndices.get(mkr);
+                }
+                
+                for (int s = 0; s < ddNew.ids.length; s++) {
+                    if (m < dd1MarkerOffset) {
+                        if (s < dd1SampleOffset) {
+                            ddNew.genotypeProbabilities[m][s] = dd1.genotypeProbabilities[m][s];
+                        } else {
+                            if (duplicatedSamplesAndIndices.containsKey(ddNew.ids[s - dd1SampleOffset][0] + "\t" + ddNew.ids[s - dd1SampleOffset][1])) {
+                                dd2IndS = duplicatedSamplesAndIndices.get(ddNew.ids[s - dd1SampleOffset][0] + "\t" + ddNew.ids[s - dd1SampleOffset][1]);
+                            }
+                            ddNew.genotypeProbabilities[m][s] = dd2IndM == -1 ? Array.floatArray(ddNewNumGeno, 0) : dd2.genotypeProbabilities[dd2IndM][dd2IndS == -1 ? s - dd1SampleOffset : dd2IndS];
+                        }
+                    } else {
+                        if (s < dd1SampleOffset) {
+                            ddNew.genotypeProbabilities[m][s] = Array.floatArray(ddNewNumGeno, 0);
+                        } else {
+                            if (duplicatedSamplesAndIndices.containsKey(ddNew.ids[s - dd1SampleOffset][0] + "\t" + ddNew.ids[s - dd1SampleOffset][1])) {
+                                dd2IndS = duplicatedSamplesAndIndices.get(ddNew.ids[s - dd1SampleOffset][0] + "\t" + ddNew.ids[s - dd1SampleOffset][1]);
+                            }
+                            ddNew.genotypeProbabilities[m][s] = dd2.genotypeProbabilities[dd2IndM == -1 ? m - dd1MarkerOffset : dd2IndM][dd2IndS == -1 ? s - dd1SampleOffset : dd2IndS]; 
+                        }
+                    }
+                    dd2IndS = -1;
+                }
+                dd2IndM = -1;
+                
+                m++;
+            }
+            
+            
+        }
 	    
 	    return ddNew;
 	}

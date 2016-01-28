@@ -183,7 +183,7 @@ public class Qc {
 		new File(dir+"sampleQC/").mkdirs();
 		if (!Files.exists(dir+"sampleQC/" + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --exclude miss_drops.dat");
-			CmdLine.runDefaults("plink --bfile ../" + plink + " --exclude ../markerQC/miss_drops.dat --make-bed --noweb", dir+"sampleQC/", log);
+			CmdLine.runDefaults("plink --bfile ../markerQC/" + plink + " --exclude ../markerQC/miss_drops.dat --make-bed --noweb", dir+"sampleQC/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"sampleQC/missing.imiss")) {
