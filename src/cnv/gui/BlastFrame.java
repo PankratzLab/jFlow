@@ -431,6 +431,10 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     
     public void setAnnotations(MarkerBlastAnnotation blastResult, ReferenceGenome refGen) {
         this.referenceAnnotation = blastResult.getMarkerSeqAnnotation();
+        if (blastResult.hasPerfectMatch(proj.getLog())) {
+            this.referenceAnnotation.setStrand(blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, proj.getLog()).get(0).getStrand());
+            this.referenceAnnotation.setSegment(blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH, proj.getLog()).get(0).getRefLoc());
+        }
         this.blastResult = blastResult;
         this.referenceGenome = refGen;
         double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
@@ -524,16 +528,20 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 //                    if (hasMatch) {
                         probeDescLbl.setText("<reference sequence:>");
                         Segment seg = BlastFrame.this.referenceAnnotation.getSeg();
-                        int start = referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
-                        int stop = referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
+                        int start = hasMatch ? seg.getStart() : referenceAnnotation.goLeft() ? seg.getStart() - len : seg.getStart();
+                        int stop = hasMatch ? seg.getStop() : referenceAnnotation.goLeft() ? seg.getStart() : seg.getStart() + len;
+                        if (posStrand) {
+                            stop = stop + 1;
+                        } else {
+                            start = start - 1;
+                        }
                         locationLbl.setText(seg.getChromosomeUCSC() + ":" + start + "-" + stop);
+                        
                         String[] gen = referenceGenome.getSequenceFor(new Segment(seg.getChr(), start, stop));
                         String[] act = Array.subArray(gen, posStrand ? 0 : 1, posStrand ? gen.length - 1 : gen.length);
+                        
                         nextBaseLbl.setText(posStrand ? gen[gen.length - 1] : gen[0]);
                         String seq = Array.toStr(act, "");
-                        if (!referenceAnnotation.goLeft()) {
-                            seq = new StringBuilder(seq).reverse().toString();
-                        }
                         probeLbl.setText(posStrand ? seq : BlastLabel.flipBases(seq));
 //                    } else if (hasOnT) {
 //                        probeDescLbl.setText("<on-target mismatch:>");
