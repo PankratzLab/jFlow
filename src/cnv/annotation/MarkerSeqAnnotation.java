@@ -145,12 +145,20 @@ public class MarkerSeqAnnotation extends AnnotationData {
 		return strand;
 	}
 
-	public int getInterrogationPosition() {
+	public void setStrand(Strand strand2) {
+        this.strand = strand2;
+    }
+
+    public int getInterrogationPosition() {
 		return interrogationPosition;
 	}
 
 	public Segment getSeg() {
 		return seg;
+	}
+
+	public void setSegment(Segment seg1) {
+	    seg = seg1;
 	}
 
 	public boolean goLeft() {
