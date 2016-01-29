@@ -694,7 +694,7 @@ public class CNVCaller {
 	 * Possible autosomal, and sex chrs cnv calling method
 	 */
 	public static void callGenomeCnvs(Project proj, String output, String[] maleSamples, String[] femaleSamples, int[] chrsToCall, Centroids[] centroids, int numSampleThreads, int numChrThreads) {
-		PreparedMarkerSet markerSet = new PreparedMarkerSet(proj.getMarkerSet());
+		PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 		CNVCallerIterator autosomal = getCallerIterator(proj, markerSet, Array.concatAll(maleSamples, femaleSamples), null, null, centroids[0], numSampleThreads, numChrThreads);
 		boolean[] chr23 = Array.booleanArray(markerSet.getMarkerNames().length, false);
 		int[][] indicesByChr = markerSet.getIndicesByChr();
@@ -755,7 +755,7 @@ public class CNVCaller {
 	 *            relative to the project directory
 	 */
 	public static void callAutosomalCNVs(Project proj, String output, String[] samples, int[] chrsToCall, Centroids centroids, int numSampleThreads, int numChrThreads) {
-		PreparedMarkerSet markerSet = new PreparedMarkerSet(proj.getMarkerSet());
+		PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 		output = proj.PROJECT_DIRECTORY.getValue() + output;
 		proj.getLog().reportTimeInfo("CNVS will be reported to " + output);
 		new File(ext.parseDirectoryOfFile(output)).mkdirs();
@@ -793,7 +793,7 @@ public class CNVCaller {
 		ArrayList<CNVariant> allCNVs = new ArrayList<CNVariant>();
 		String[] sampTmp = new String[] { samples[ext.indexOfStr("7165764002_R06C02", samples)] };
 		// String[] sampTmp= samples;
-		CNVProducer producer = new CNVProducer(proj, new PreparedMarkerSet(proj.getMarkerSet()), pennHmmOriginal, null, pfb, sampTmp, null, null, null, 1, true, true);
+		CNVProducer producer = new CNVProducer(proj, PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet()), pennHmmOriginal, null, pfb, sampTmp, null, null, null, 1, true, true);
 		WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numThreads, 2, proj.getLog());
 		int index = 0;
 		while (train.hasNext()) {
