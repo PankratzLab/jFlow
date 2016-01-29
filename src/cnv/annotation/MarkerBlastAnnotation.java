@@ -44,6 +44,10 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 	public int getNumOffTarget(Logger log) {
 		return getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log).size();
 	}
+	
+	public int getNumOnTargetNonPerfect(Logger log) {
+		return getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, log).size();
+	}
 
 	public ArrayList<BlastAnnotation> getAnnotationsFor(BLAST_ANNOTATION_TYPES btype, Logger log) {
 		int testIndex = getAnnotationIndexFor(btype, log);
