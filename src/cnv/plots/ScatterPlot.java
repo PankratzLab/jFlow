@@ -2327,18 +2327,50 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		updateGUI();
 		if (blastFrame != null && blastFrame.isVisible()) {
 		    blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
-//		}
     		if (histFrame != null/* && histFrame.isVisible()*/) {
+    	        final int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
     		    histFrame.removeAllData();
-    	        int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
-    	        String[][] data = new String[histogram.length][];
+    	        histFrame.setHistogram(true);
+    	        histFrame.getPanel().overrideAxisLabels("Bins", "");
+    	        histFrame.getPanel().setHistogramOverride(true);
+    	        histFrame.getPanel().setForceXAxisWholeNumbers(true);
+    	        final double[] bins = new double[histogram.length];
+    	        int min = 0;
     	        for (int i = 0; i < histogram.length; i++) {
-    	            data[i] = new String[2];
-    	            data[i][0] = "" + i;
-    	            data[i][1] = "" + histogram[i];
+    	            bins[i] = i + 1;
+    	            if (histogram[i] == 0) {
+    	                min++;
+    	            }
     	        }
-    	        histFrame.addDataSource("BLAST_Histogram", data, new String[]{"Bin", "Counts"});
-    	        histFrame.showSpecificFile(getProject(), "BLAST_Histogram", 0, 1);
+    	        final int min2 = min;
+    	        Histogram hist = new Histogram() {
+    	            private static final long serialVersionUID = 1L;
+    	            {
+    	                min = min2;
+    	                max = 50;
+    	                sigfigs = 4;
+    	                counts = histogram;
+    	            }
+    	            @Override
+    	            public double[] getBins() {
+    	                return bins;
+    	            }
+    	            @Override
+    	            public double determineStep() {
+    	                return 1d;
+    	            }
+    	        };
+    	        histFrame.getPanel().setHistogram(hist);
+//    	        int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
+//    	        String[][] data = new String[histogram.length][];
+//    	        for (int i = 0; i < histogram.length; i++) {
+//    	            data[i] = new String[2];
+//    	            data[i][0] = "" + i;
+//    	            data[i][1] = "" + histogram[i];
+//    	        }
+//    	        histFrame.addDataSource("BLAST_Histogram", data, new String[]{"Bin", "Counts"});
+//    	        histFrame.showSpecificFile(getProject(), "BLAST_Histogram", 0, 1);
+//    	        histFrame.getPanel().repaint();
     		}
 		}
 		displayClusterFilterIndex();
@@ -2509,11 +2541,12 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         if (histFrame == null) {
             histFrame = TwoDPlot.createGUI(getProject(), false, false, null);
         }
-
+        
         histFrame.removeAllData();
         histFrame.setHistogram(true);
         histFrame.getPanel().overrideAxisLabels("Bins", "");
         histFrame.getPanel().setHistogramOverride(true);
+        histFrame.getPanel().setForceXAxisWholeNumbers(true);
         final double[] bins = new double[histogram.length];
         int min = 0;
         for (int i = 0; i < histogram.length; i++) {

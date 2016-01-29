@@ -95,6 +95,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected boolean displayYaxis;
 	protected boolean displayGrid;
 	protected boolean displayTitle;
+	protected boolean xAxisWholeNumbers;
 	protected int missingWidth;
 	protected int nanWidth;
 	protected int axisFontSize = AXIS_FONT_SIZE;
@@ -322,6 +323,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void setForcePlotYmax(float forcePlotYmax) {
 		this.forcePlotYmax = forcePlotYmax;
 	}
+	
+	public void setForceXAxisWholeNumbers(boolean whole) {
+	    this.xAxisWholeNumbers = whole;
+	}
 
 	public abstract void generatePoints();
 
@@ -548,6 +553,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			canvasSectionMinimumY = 0;
 			canvasSectionMaximumY = axisXHeight;//HEIGHT_X_AXIS;
 			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
+			if (xAxisWholeNumbers) {
+			    if (plotMinMaxStep[2] < 1) {
+			        plotMinMaxStep[2] = 1;
+			    } else {
+			        plotMinMaxStep[2] = Math.round(plotMinMaxStep[2]);
+			    }
+			}
 			plotXmin = Float.isNaN(forcePlotXmin) ? plotMinMaxStep[0] : forcePlotXmin;
 			plotXmax = Float.isNaN(forcePlotXmax) ? plotMinMaxStep[1] : forcePlotXmax;
 //			plotXmin = Float.isNaN(forcePlotXmin) ? plotMinMaxStep[0] : forcePlotXmin;
@@ -558,6 +570,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					if (x >= plotXmin || !truncate) {
 						Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
 						str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
+						System.out.println(x + " ==> " + str);
 						g.drawString(str, getXPixel(x)-str.length()*8, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-30));
 					}
 				}
@@ -1407,7 +1420,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			while (range/plotStep>numHashes) {
 				plotStep += stepStep;
 			}
-			
 			return new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf)), Double.parseDouble(ext.formDeci(plotMin, sf))};
 		} else {
 			return new double[] {Double.parseDouble(ext.formDeci(plotMin, sf)), Double.parseDouble(ext.formDeci(plotMax, sf)), Double.parseDouble(ext.formDeci(plotStep, sf)), Double.parseDouble(ext.formDeci(plotMin, sf))};
