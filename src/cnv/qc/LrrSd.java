@@ -113,7 +113,7 @@ public class LrrSd extends Parallelizable {
 //			writer = new PrintWriter(new FileWriter(ext.rootOf(proj.getFilename(proj.SAMPLE_QC_FILENAME), false) + "." + threadNumber));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false) + "." + threadNumber));
 			writer.println(SAMPLE_COLUMN + "\t" + Array.toStr(NUMERIC_COLUMNS));
-			PreparedMarkerSet markerSet = new PreparedMarkerSet(proj.getMarkerSet());
+			PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 			for (int i = 0; i<samples.length; i++) {
 	        	log.report((i+1)+" of "+samples.length);
 				fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);

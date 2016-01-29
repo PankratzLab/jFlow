@@ -292,7 +292,7 @@ public class GcAdjustor {
 			}
 		} else {
 
-			preparedMarkerSet = preparedMarkerSet == null ? new PreparedMarkerSet(proj.getMarkerSet()) : preparedMarkerSet;
+			preparedMarkerSet = preparedMarkerSet == null ? PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet()) : preparedMarkerSet;
 			String[] markers = preparedMarkerSet.getMarkerNames();
 			int[][] indicesByChr = preparedMarkerSet.getIndicesByChr();
 			byte[] chrs = preparedMarkerSet.getChrs();

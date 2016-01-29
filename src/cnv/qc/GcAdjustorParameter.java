@@ -272,7 +272,7 @@ public class GcAdjustorParameter implements Serializable {
 			super();
 			this.proj = proj;
 			this.builders = builders;
-			this.markerSet = new PreparedMarkerSet(proj.getMarkerSet());
+			this.markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 			this.samples = samples;
 			this.gcmodel = gcmodel;
 			this.debugMode = debugMode;

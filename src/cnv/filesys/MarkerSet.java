@@ -278,7 +278,15 @@ public class MarkerSet implements Serializable, TextExport {
 		private int[][] indicesByChr;
 		private int[][] positionsByChr;
 
-		public PreparedMarkerSet(MarkerSet markerSet) {
+		public static PreparedMarkerSet getPreparedMarkerSet(MarkerSet markerSet) {
+		    if (markerSet == null) {
+		        return null;
+		    } else {
+		        return new PreparedMarkerSet(markerSet);
+		    }
+		}
+
+		private PreparedMarkerSet(MarkerSet markerSet) {
 			super(markerSet.markerNames, markerSet.chrs, markerSet.positions);
 			this.indicesByChr = super.getIndicesByChr();
 			this.positionsByChr = super.getPositionsByChr();

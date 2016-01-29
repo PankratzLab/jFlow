@@ -2142,7 +2142,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         time = new Date().getTime();
 
         hash = proj.getFilteredHash();
-        markerSet = new PreparedMarkerSet(proj.getMarkerSet());
+        markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
         if (markerSet == null) {
             JOptionPane.showMessageDialog(null, "Error - Failed to load the MarkerSet file; make sure the raw data is parsed", "Error", JOptionPane.ERROR_MESSAGE);
             log.reportError("Error - failed to load MarkerSet for project "+proj.PROJECT_NAME.getValue()+"; make sure the raw data is parsed");
