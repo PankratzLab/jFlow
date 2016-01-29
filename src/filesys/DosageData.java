@@ -102,11 +102,12 @@ public class DosageData implements Serializable {
 	    HashMap<String, Integer> dd2markersAndIndices = new HashMap<String, Integer>();
 	    for (int i = 0; i < dd2Mkrs.length; i++) {
 	        dd2markersAndIndices.put(dd2Mkrs[i], i);
-	        boolean alreadyPresentMkr = markers.add(dd2Mkrs[i]);
+	        boolean alreadyPresentMkr = !markers.add(dd2Mkrs[i]);
 	        if (alreadyPresentMkr) {
 	            duplicatedMarkerIndices.add(i);
 	            duplicatedMarkersAndIndices.put(dd2Mkrs[i], i);
 	            if (duplicatedSampleIndices.size() > 0) {
+	                System.out.println("Duplicate marker: " + dd2Mkrs[i]);
 	                System.err.println("Error - cannot combine data sets with the same marker and sample names.  Yet.");
 	                // TODO 
 	                // combining values when marker and sample are the same?
@@ -152,7 +153,8 @@ public class DosageData implements Serializable {
 	    int dd1NumGeno = dd1.genotypeProbabilities == null ? 0 : dd1.genotypeProbabilities[0][0].length;
         int dd2NumGeno = dd2.genotypeProbabilities == null ? 0 : dd2.genotypeProbabilities[0][0].length;
 	    
-        if (dd1NumGeno > 1 || dd2NumGeno > 1 && dd1NumGeno != dd2NumGeno) {
+        if ((dd1NumGeno > 1 || dd2NumGeno > 1) && dd1NumGeno != dd2NumGeno) {
+            System.out.println("dd1: " + dd1NumGeno + " | dd2: " + dd2NumGeno);
             System.err.println("Error - cannot combine data sets with different numbers of genotype probabilities.  Yet.");
             // TODO error, mismatched number of genotype probabilities
             System.exit(1);
