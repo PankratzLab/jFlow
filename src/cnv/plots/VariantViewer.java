@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -217,7 +218,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	    X;
 	    
 	    public static DrawType getDrawType(VariantContext vc) {
-	        String impAttr = vc.getAttribute("SNPEFF_IMPACT").toString();
+			String impAttr = vc.getAttributeAsString("SNPEFF_IMPACT", ".").toString();
 
 	        if ("LOW".equals(impAttr)) {
 	            return DrawType.EMPTY_CIRCLE;
@@ -418,6 +419,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		jar = proj.JAR_STATUS.getValue();
 		fail = false;
 		this.vcfFiles = vcfFiles;
+		generateSampleLists(vcfFiles);
 		this.popFile = popFile;
 		
 		time = new Date().getTime();
@@ -457,6 +459,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             return;
         }
 		showGene(0);
+	}
+	
+	private void generateSampleLists(String[] vcfFiles){
+		for (int i = 0; i < vcfFiles.length; i++) {
+			String[] samps = VCFOps.getSamplesInFile(vcfFiles[i]);
+			Files.writeList(samps, VCFOps.getAppropriateRoot(vcfFiles[i], false)+".samples.txt");
+		}
 	}
 	
 	private String[][] readFile(String file) {
@@ -675,11 +684,12 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                             // draw populations
                             ArrayList<BlockDraw> toDraw = new ArrayList<VariantViewer.BlockDraw>();
                             for (VariantContextWithFile vc : vcfInSeg) {
-                                String isoAttr = vc.vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
-                                // only draw if collapsed, or showing affected isoform
-                                if (!selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
-                                    continue;
-                                }
+								String isoAttr = vc.vc.getAttributeAsString("SNPEFF_TRANSCRIPT_ID", ".").toString();
+								// only draw if collapsed, or showing affected isoform
+
+								if (isoAttr.equals(".")|| !selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
+									continue;
+								}
                                 
                                 GenotypesContext gctx = vc.vc.getGenotypes();
                                 HashMap<String, Integer> popGenoCnt = new HashMap<String, Integer>();
@@ -725,9 +735,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                             ArrayList<Rectangle> plotted = new ArrayList<Rectangle>();
     //                        HashMap<String, Integer> plottedCnt = new HashMap<String, Integer>();
                             for (VariantContextWithFile vc : vcfInSeg) {
-                                String isoAttr = vc.vc.getAttribute("SNPEFF_TRANSCRIPT_ID").toString();
+								String isoAttr = vc.vc.getAttributeAsString("SNPEFF_TRANSCRIPT_ID", ".").toString();
                                 // only draw if collapsed, or showing affected isoform
-                                if (!selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
+								if (!isoAttr.equals(".") && !selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
                                     continue;
                                 }
                                 GenotypesContext gctx = vc.vc.getGenotypes();
@@ -742,6 +752,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                                 int genoCnt = 0;
                                 for (int i = 0; i < gctx.size(); i++) {
                                     Genotype geno = gctx.get(i);
+									if (geno.getSampleName().startsWith("PT434")) {
+										System.out.println(gene.getGeneName() + "\t"+geno.getType()+"\t" + geno.toString());
+									}
                                     if (excluded.contains(geno.getSampleName()) && !showExcludes) {
                                         continue;
                                     }
@@ -2067,10 +2080,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	    StringBuilder txtBld = new StringBuilder("<html><pre>");
 	    txtBld.append("Sample ID: ").append(dp.sampleID).append("<br />");
         txtBld.append("</pre><hr><pre>");
-        txtBld.append("Genotype: ").append(dp.vcRecord.vc.getGenotype(dp.sampleID).toBriefString());
-        txtBld.append("</pre><pre>");
-        txtBld.append("Genotype Quality: ").append(dp.vcRecord.vc.getGenotype(dp.sampleID).getGQ());
-        txtBld.append("</pre><hr><pre>");
+		txtBld.append("Genotype: ").append(dp.vcRecord.vc.getGenotype(dp.sampleID).toBriefString());
+		txtBld.append("</pre><pre>");
+		txtBld.append("Max Freq: ").append(dp.vcRecord.vc.getAttributeAsString("PopFreqMax", "."));
+		txtBld.append("</pre><hr><pre>");
         txtBld.append("Position: ").append(dp.vcRecord.vc.getContig()).append(":").append(dp.vcRecord.vc.getStart());
         if (dp.vcRecord.vc.getStart() != dp.vcRecord.vc.getEnd()) {
             txtBld.append("-").append(dp.vcRecord.vc.getEnd());
@@ -2444,6 +2457,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	        return;
 	    } else {
 	        GeneData gd = getCurrentGeneData();
+	        Set<String> sub = popMap.keySet();
 	        ArrayList<VariantContextWithFile> data = new ArrayList<VariantContextWithFile>();
 	        for (String vcfFile : vcfFiles) {
     	        VCFFileReader vcfReader = new VCFFileReader(vcfFile, true);
@@ -2452,7 +2466,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         	    CloseableIterator<VariantContext> vcIter = vcfReader.query(gd.getChromosomeUCSC(), gd.getStart(), gd.getStop());
 				System.out.println(gd.getChromosomeUCSC() + ":" + gd.getStart() + "-" + gd.getStop());
         	    while (vcIter.hasNext()) {
-        	        VariantContext vc = vcIter.next();
+					VariantContext vc = VCOps.getSubset(vcIter.next(), sub);
         	        VariantContextWithFile vcwf = new VariantContextWithFile(vc, vcfFile);
         	        data.add(vcwf);
         	    }
@@ -2484,18 +2498,32 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	}
 
 	public static void main(String[] args) {
-		 Project proj = new Project("D:/projects/poynter.properties", false);
-//		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+		// Project proj = new Project("D:/projects/poynter.properties", false);
+		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test2/genes.txt" });
 		//
-		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz", "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_CONTROL.maf_0.01.final.vcf.gz" };
-		String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALL.vpop";
+		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz" };
+		String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
 		new VariantViewer(proj, vcfFiles, popFile);
 
-		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test3/genes.txt" });
-		String[] vcfFiles2 = new String[] { "N:/statgen/VariantMapper/test3/CUSHINGS_TUMOR.maf_0.001.final.vcf.gz", "N:/statgen/VariantMapper/test3/CUSHINGS_TUMOR_CONTROL.maf_0.001.final.CUSHING_FREQ.vcf.gz" };
-		String popFile2 = "N:/statgen/VariantMapper/test3/TN.vpop";
+		String[] vcfFiles2 = new String[] { "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz" };
+		String popFile2 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
 		new VariantViewer(proj, vcfFiles2, popFile2);
+		//
+		String[] vcfFiles3 = new String[] { "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz" };
+		String popFile3 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS.vpop";
+		new VariantViewer(proj, vcfFiles3, popFile3);
+
+		String[] vcfFiles4 = new String[] { "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz" };
+		String popFile4 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS_OTEHRS.vpop";
+		new VariantViewer(proj, vcfFiles4, popFile4);
+		//
+//		OSTEO_OFF_INHERIT.maf_0.01.chr17.vcf.gz.tbi
+		
+//		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test3/genes.txt" });
+//		String[] vcfFiles2 = new String[] { "N:/statgen/VariantMapper/test3/CUSHINGS_TUMOR.maf_0.001.final.vcf.gz", "N:/statgen/VariantMapper/test3/CUSHINGS_TUMOR_CONTROL.maf_0.001.final.CUSHING_FREQ.vcf.gz" };
+//		String popFile2 = "N:/statgen/VariantMapper/test3/TN.vpop";
+//		new VariantViewer(proj, vcfFiles2, popFile2);
 
 	}
 }
