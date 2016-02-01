@@ -11,7 +11,6 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import DistLib.negative_binomial;
 import filesys.*;
 import parse.*;
 
