@@ -317,38 +317,7 @@ public class SomaticSniper {
 
 				progress = runSamToolsIndel();
 				if (!Files.exists(outputGz)) {
-					VCFFileReader reader = new VCFFileReader(output, false);
-					VariantContextWriter writer = VCFOps.initWriter(outputGz, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
-					Set<String> samps = new HashSet<String>();
-					samps.add(normalSample);
-					samps.add(tumorSample);
-					final VCFHeader outHeader = new VCFHeader(reader.getFileHeader().getMetaDataInInputOrder(), samps);
-					writer.writeHeader(outHeader);
-					for (VariantContext vc : reader) {
-						VariantContextBuilder builder = new VariantContextBuilder(vc);
-						ArrayList<Genotype> renamed = new ArrayList<Genotype>();
-						Genotype normal = rename(vc.getGenotype("NORMAL"), normalSample);
-						Genotype tumor = rename(vc.getGenotype("TUMOR"), tumorSample);
-						renamed.add(normal);
-						renamed.add(tumor);
-						builder.genotypes(renamed);
-						if (!renamed.get(0).sameGenotype(vc.getGenotype("NORMAL"))) {
-							reader.close();
-							writer.close();
-							throw new IllegalStateException("Improprer rename");
-						}
-						builder.genotypes(renamed);
-						if (!renamed.get(1).sameGenotype(vc.getGenotype("TUMOR"))) {
-							reader.close();
-							writer.close();
-							throw new IllegalStateException("Improprer rename");
-						}
-
-						writer.add(builder.make());
-					}
-					log.reportTimeInfo("Re-named and indexed " + output + " to " + outputGz);
-					reader.close();
-					writer.close();
+					VCFOps.renameTumorNormalVCF(output, tumorSample, normalSample, outputGz, log);
 				}
 
 			}
@@ -358,12 +327,6 @@ public class SomaticSniper {
 				return null;
 			}
 		}
-	}
-
-	private static Genotype rename(Genotype g, String newName) {
-		GenotypeBuilder builder = new GenotypeBuilder(g);
-		builder.name(newName);
-		return builder.make();
 	}
 
 	public static void main(String[] args) {

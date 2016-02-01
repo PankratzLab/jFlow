@@ -573,6 +573,72 @@ public class VCFOps {
 		}
 	}
 
+	public static void renameTumorNormalVCF(String vcf, String tumorSamp, String normalSamp, String output, Logger log) {
+		renameTumorNormalVCF(vcf, tumorSamp, "TUMOR", normalSamp, "NORMAL", output, log);
+	}
+
+	/**
+	 * @param vcf
+	 *            vcf to rename
+	 * @param tumorSamp
+	 *            the tumor sample
+	 * @param tumorDef
+	 *            tumorSamp will replace this sample
+	 * @param normalSamp
+	 *            the normal sample
+	 * @param normalDef
+	 *            normalSamp will replace this sample
+	 * @param output
+	 *            output vcf
+	 * @param log
+	 */
+	public static void renameTumorNormalVCF(String vcf, String tumorSamp, String tumorDef, String normalSamp, String normalDef, String output, Logger log) {
+
+		if (getSamplesInFile(vcf).length != 2) {
+			throw new IllegalArgumentException("This method is only designd for tumor normal renaming");
+		}
+		VCFFileReader reader = new VCFFileReader(output, false);
+		VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
+		Set<String> samps = new HashSet<String>();
+		samps.add(normalSamp);
+		samps.add(tumorSamp);
+		final VCFHeader outHeader = new VCFHeader(reader.getFileHeader().getMetaDataInInputOrder(), samps);
+		writer.writeHeader(outHeader);
+		for (VariantContext vc : reader) {
+
+			VariantContextBuilder builder = new VariantContextBuilder(vc);
+			ArrayList<Genotype> renamed = new ArrayList<Genotype>();
+			Genotype normal = rename(vc.getGenotype(normalDef), normalSamp);
+			Genotype tumor = rename(vc.getGenotype(tumorDef), tumorSamp);
+			renamed.add(normal);
+			renamed.add(tumor);
+			builder.genotypes(renamed);
+			if (!renamed.get(0).sameGenotype(vc.getGenotype(normalDef))) {
+				reader.close();
+				writer.close();
+				throw new IllegalStateException("Improprer rename");
+			}
+			builder.genotypes(renamed);
+			if (!renamed.get(1).sameGenotype(vc.getGenotype(tumorDef))) {
+				reader.close();
+				writer.close();
+				throw new IllegalStateException("Improprer rename");
+			}
+
+			writer.add(builder.make());
+		}
+		log.reportTimeInfo("Re-named and indexed " + vcf + " to " + output);
+		reader.close();
+		writer.close();
+
+	}
+
+	private static Genotype rename(Genotype g, String newName) {
+		GenotypeBuilder builder = new GenotypeBuilder(g);
+		builder.name(newName);
+		return builder.make();
+	}
+
 	/**
 	 * Class that manages the population structure represented in a vcf<br>
 	 * Can be used for HWE tests on sub and super populations etc...
@@ -871,7 +937,7 @@ public class VCFOps {
 
 			String dir = ext.parseDirectoryOfFile(fullPathToPopFile);
 			String root = getAppropriateRoot(vcf, true);
-			log.reportTimeInfo("Writing to root split "+dir + root);
+			log.reportTimeInfo("Writing to root split " + dir + root);
 			VariantContextWriter[] writers = vpop.getWritersForPop(dir + root, reader, log);
 			if (writers != null) {
 
