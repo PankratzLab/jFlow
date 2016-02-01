@@ -253,14 +253,13 @@ public class Mosaicism {
 		}
 	}
 
-	public static void checkForOverlap(Project proj) {
+	public static void checkForOverlap(Project proj, String listOfMosaicArms) {
 		BufferedReader reader;
         PrintWriter writer;
         String[] line;
         Vector<String> v;
         Vector<String[]> list;
         int count;
-        String listOfMosaicArms;
         SampleData sampleData;
         int chr, sum;
         Segment arm;
@@ -274,7 +273,6 @@ public class Mosaicism {
         String[] cnvFiles;
         
         time = new Date().getTime();
-        listOfMosaicArms = proj.MOSAIC_ARMS_FILENAME.getValue(false, false);
         cnvFiles = proj.CNV_FILENAMES.getValue();
         if (cnvFiles.length == 0) {
         	System.err.println("Error - need to specify the name of a CNV file in the project properties file before running Mosaicism.checkForOverlap()");
@@ -398,6 +396,7 @@ public class Mosaicism {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
+		String arms = "MosaicArms.txt";
 		Project proj;
 		boolean check = false;
 
@@ -405,6 +404,7 @@ public class Mosaicism {
 		"filesys.ParseIllumina requires 0-1 arguments\n"+
 		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) check for overlap between mosaic arms and CNV calls in the first CNV file listed in the project file (i.e. -check (not the default))\n"+
+		"   (3) mosaic arms file (i.e. arms=MosaicArms.txt (default))\n" + 
 		"";
 
 		for (int i = 0; i<args.length; i++) {
@@ -414,6 +414,9 @@ public class Mosaicism {
 			} else if (args[i].startsWith("proj=")) {
 				filename = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("arms=")) {
+			    arms = args[i].split("=")[1];
+			    numArgs--;
 			} else if (args[i].startsWith("-check")) {
 				check = true;
 				numArgs--;
@@ -427,7 +430,7 @@ public class Mosaicism {
 		try {
 			proj = new Project(filename, false);
 			if (check) {
-				checkForOverlap(proj);
+				checkForOverlap(proj, arms);
 			} else {
 				findOutliers(proj);
 			}

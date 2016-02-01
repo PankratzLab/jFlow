@@ -129,7 +129,6 @@ public class Configurator extends JFrame {
                 "MosaicPlot",
                 "MOSAIC_RESULTS_FILENAME",
                 "MOSAIC_COLOR_CODES_FILENAME",
-                "MOSAIC_ARMS_FILENAME"
             },
             {
                 "Data Cleaning",

@@ -604,8 +604,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
                             setVisible(true);
                             
                             updateSample(sample);
-                            showRegion(0);
+                            parseLocation(location);
                             updateGUI();
+
+                            if (location.equals(DEFAULT_LOCATION)) {
+                                showRegion(0);
+                            }
                         }
                     });
                 }
@@ -2079,6 +2083,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 		if (stop==-1||stop>positions[chrBoundaries[chr][1]]) {
 			stop = positions[chrBoundaries[chr][1]];
+		}
+		if (start >= stop) {
+		    start = stop - 1;
 		}
 		
 		updateGUI();

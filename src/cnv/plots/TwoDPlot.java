@@ -1051,10 +1051,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     				            colorCode = getColorForScreenshot(ids[0]);
     				        } else {
     				            String[][] metaData = getCurrentColumnMetaData();
-    				            int chr = Integer.parseInt(metaData[0][0]);
-    				            int start = Integer.parseInt(metaData[0][2]);
-    				            int stop = Integer.parseInt(metaData[0][3]);
-    				            colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) chr, start + ((stop - start) / 2));
+    				            if (metaData != null && metaData.length != 0 && metaData[0] != null) {
+        				            int chr = Integer.parseInt(metaData[0][0]);
+        				            int start = Integer.parseInt(metaData[0][2]);
+        				            int stop = Integer.parseInt(metaData[0][3]);
+        				            colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) chr, start + ((stop - start) / 2));
+    				            } else {
+    				                colorCode = 0;
+    				            }
     				        }
     				    } else {
     				        colorCode = 0;
