@@ -205,6 +205,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         Font lblFont = BlastLabel.LBL_FONT;//Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
         locLbl.setFont(lblFont);
         otherLabels.add(locLbl);
+//        locLbl.setToolTipText(lbl.myAnnotation.getCigar().toString());
         this.blastPanel.add(locLbl, "cell 0 " + rowCnt);
         JLabel strandLbl = new JLabel();
         strandLbl.setText(lbl.getStrand().getEncoding());
@@ -271,12 +272,13 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 
     }
     
-    String BLAST_COL_DEF = "[200px][20px][20px][grow][20px:20px:20px][100px:100px:100px]";
+    String BLAST_COL_DEF = "[250px][20px][20px][grow][20px:20px:20px][120px:120px:120px]";
     
     /**
      * Create the frame.
      */
     public BlastFrame(Project proj) {
+        super("Genvisis - BlastViewer - " + proj.PROJECT_NAME.getValue());
         this.proj = proj;
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 1150, 800);
@@ -402,7 +404,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
         contentPane.add(splitPane, BorderLayout.CENTER);
 
-        blastPanel = new JPanel(new MigLayout("", BLAST_COL_DEF, ""));
+        blastPanel = new JPanel();
+        blastPanel.setLayout(new MigLayout("", BLAST_COL_DEF, ""));
         scrollPane = new JScrollPane(blastPanel);
         splitPane.setLeftComponent(scrollPane);
         refLabel = new ReferenceLabel();
@@ -559,7 +562,10 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 //                        probeLbl.setText(posStrand ? seq : BlastLabel.flipBases(seq));
 //                    }
                 }
-                String abLblStr = referenceAnnotation == null ? "" : "(A) " + StrandOps.flipsIfNeeded(referenceAnnotation.getA().getBaseString(), referenceAnnotation.getStrand(), false) + " | (B) " + StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(), referenceAnnotation.getStrand(), false); 
+                String a = StrandOps.flipsIfNeeded(referenceAnnotation.getA().getBaseString(), referenceAnnotation.getStrand(), false);
+                String b = StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(), referenceAnnotation.getStrand(), false);
+                String abLblStr = referenceAnnotation == null ? "" : "(A) " + a + " | (B) " + b; 
+                System.out.println(abLblStr);
                 abLbl.setText(abLblStr);
                 BlastFrame.this.revalidate();
                 BlastFrame.this.repaint();
