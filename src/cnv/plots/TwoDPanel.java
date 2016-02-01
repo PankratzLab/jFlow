@@ -664,7 +664,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				region = null;
 				region2 = null;
 				String[][] metaData = tdp.getCurrentColumnMetaData();
-				if (metaData != null && metaData.length > 0) {
+				if (metaData != null && metaData.length > 0 && !(metaData[0] == null && (metaData.length > 1 ? metaData[1] == null : true))) {
 				    if (metaData[0] != null) {
 				        int[] tempPositions = new int[3];
 				        tempPositions[0] = Positions.chromosomeNumber(metaData[0][0]);

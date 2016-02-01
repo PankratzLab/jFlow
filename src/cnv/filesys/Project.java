@@ -395,7 +395,6 @@ public class Project {
 	public      FileProperty                    PEDIGREE_FILENAME = new       FileProperty(this,                    "PEDIGREE_FILENAME", "", "pedigree.dat", false);
 	public      FileProperty          MOSAIC_COLOR_CODES_FILENAME = new       FileProperty(this,          "MOSAIC_COLOR_CODES_FILENAME", "", "data/mosaic_colors.txt", false);
 	public      FileProperty              MOSAIC_RESULTS_FILENAME = new       FileProperty(this,              "MOSAIC_RESULTS_FILENAME", "", "results/Mosaicism.xln", false);
-	public      FileProperty                 MOSAIC_ARMS_FILENAME = new       FileProperty(this,                 "MOSAIC_ARMS_FILENAME", "", "MosaicArms.txt", false);
 	public      FileProperty   CLUSTER_FILTER_COLLECTION_FILENAME = new       FileProperty(this,   "CLUSTER_FILTER_COLLECTION_FILENAME", "", "data/clusterFilters.ser", false);
 	public      FileProperty            SEXCHECK_RESULTS_FILENAME = new       FileProperty(this,            "SEXCHECK_RESULTS_FILENAME", "", "results/sexCheck.xln", false);
 	public      FileProperty                   GENETRACK_FILENAME = new       FileProperty(this,                   "GENETRACK_FILENAME", "", "RefSeq.gtrack", false);

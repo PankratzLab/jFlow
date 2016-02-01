@@ -559,18 +559,19 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			    } else {
 			        plotMinMaxStep[2] = Math.round(plotMinMaxStep[2]);
 			    }
+			    System.out.println(plotMinMaxStep[3] + " - " + minimumObservedRawX + " -- " + plotMinMaxStep[2]);
+			    if (plotMinMaxStep[3] >= (minimumObservedRawX - plotMinMaxStep[2])) {
+			        plotMinMaxStep[3] = plotMinMaxStep[3] - plotMinMaxStep[2];
+			    }
 			}
 			plotXmin = Float.isNaN(forcePlotXmin) ? plotMinMaxStep[0] : forcePlotXmin;
 			plotXmax = Float.isNaN(forcePlotXmax) ? plotMinMaxStep[1] : forcePlotXmax;
-//			plotXmin = Float.isNaN(forcePlotXmin) ? plotMinMaxStep[0] : forcePlotXmin;
-//			plotXmax = Float.isNaN(forcePlotXmax) ? plotMinMaxStep[1] : forcePlotXmin;
 			if (displayXaxis) {
 				sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
 				for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
 					if (x >= plotXmin || !truncate) {
 						Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
 						str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
-						System.out.println(x + " ==> " + str);
 						g.drawString(str, getXPixel(x)-str.length()*8, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-30));
 					}
 				}

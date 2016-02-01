@@ -2,13 +2,16 @@ package cnv.plots;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
 
 import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+
 import java.awt.image.BufferedImage;
+
 import javax.imageio.*;
 
 import cnv.filesys.Project;
@@ -81,9 +84,9 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		count = 0;
 		invalidBytes = new HashSet<String>();
 		colorHash = new Hashtable<String,Byte>();
-		try {
-//			reader = Files.getReader(proj.getFilename(proj.MOSAIC_COLOR_CODES_FILENAME), proj.getJarStatus(), true, false);
-			reader = Files.getReader(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
+		String mosaicColorFile = proj.MOSAIC_COLOR_CODES_FILENAME.getValue();
+        try {
+			reader = Files.getReader(mosaicColorFile, proj.JAR_STATUS.getValue(), true, false);
 			if (reader!=null) {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("[\\s]+");
@@ -97,11 +100,11 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 				reader.close();
 			}
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.MOSAIC_COLOR_CODES_FILENAME.getValue()+"\"");
+			System.err.println("Error reading file \""+mosaicColorFile+"\"");
 			return;
 		}
 		if (invalidBytes.size() > 0) {
-			proj.message("Invalid color codes for MosaicPlot in "+proj.MOSAIC_COLOR_CODES_FILENAME.getValue()+" (must be an integer < 128):\n"+Array.toStr(HashVec.getKeys(invalidBytes, false, false), "\n\t"));
+			proj.message("Invalid color codes for MosaicPlot in "+mosaicColorFile+" (must be an integer < 128):\n"+Array.toStr(HashVec.getKeys(invalidBytes, false, false), "\n\t"));
 		}
 
 
