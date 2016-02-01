@@ -64,6 +64,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 	private IntVector prox;
 	private Hashtable<String,Byte> colorHash;
 	private SampleData sampleData;
+	boolean hideExcluded = false;
 
 	public MosaicPanel(Project proj, String[][] samples, double[][] data) {
 		BufferedReader reader;
@@ -164,17 +165,15 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 			for (int i = 0; iv!=null&&i<iv.size(); i++) {
 				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(data[iv.elementAt(i)][0]), getYPixel(data[iv.elementAt(i)][1])})<HIGHLIGHT_DISTANCE) {
 					g.setColor(Color.RED);
-					prox.add(iv.elementAt(i));
 					if (sampleData.individualShouldBeExcluded(samples[iv.elementAt(i)][0])) {
+					    if (hideExcluded) {
+					        continue;
+					    }
 						g.fillOval(getXPixel(data[iv.elementAt(i)][0])-SIZE_FAILED/2, getYPixel(data[iv.elementAt(i)][1])-SIZE_FAILED/2, SIZE_FAILED, SIZE_FAILED);
 					} else {
 						g.fillOval(getXPixel(data[iv.elementAt(i)][0])-SIZE/2, getYPixel(data[iv.elementAt(i)][1])-SIZE/2, SIZE, SIZE);
 					}
-
-					// } else {
-					// g.setColor(Color.BLACK);
-					// g.fillOval(getX(data[iv.elementAt(i)][0])-SIZE/2,
-					// getY(data[iv.elementAt(i)][1])-SIZE/2, SIZE, SIZE);
+					prox.add(iv.elementAt(i));
 				}
 			}
 			// if (linkSamples && prox != null && prox.size() > 0) {
@@ -183,7 +182,10 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 					iv = sampLookup.get(samples[prox.elementAt(i)][0]);
 					g.setColor(Color.YELLOW);
 					for (int j = 0; j<Math.min(iv.size(), 10); j++) {
-						if (sampleData.individualShouldBeExcluded(samples[iv.elementAt(i)][0])) {
+						if (sampleData.individualShouldBeExcluded(samples[iv.elementAt(j)][0])) {
+	                        if (hideExcluded) {
+	                            continue;
+	                        }
 							g.fillOval(getXPixel(data[iv.elementAt(j)][0])-SIZE_FAILED/2, getYPixel(data[iv.elementAt(j)][1])-SIZE_FAILED/2, SIZE_FAILED, SIZE_FAILED);
 						} else {
 							g.fillOval(getXPixel(data[iv.elementAt(j)][0])-SIZE/2, getYPixel(data[iv.elementAt(j)][1])-SIZE/2, SIZE, SIZE);
@@ -257,13 +259,15 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 				return filename.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION);
 			}
 		});
-		if (files==null) {
+		if (files == null) {
 			files = new String[0];
 		}
-		
+
 		points = new PlotPoint[data.length];
-		for (int i = 0; i<data.length&&getFlow(); i++) {
-//		for (int i = 0; i<data.length; i++) {
+		for (int i = 0; i < data.length && getFlow(); i++) {
+		    if (hideExcluded && sampleData.individualShouldBeExcluded(samples[i][0])) {
+		        continue;
+		    }
 			if (colorHash.containsKey(samples[i][0]+"\t"+samples[i][1])) {
 				//color = colorScheme[Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]))];
 				color = colorHash.get(samples[i][0]+"\t"+samples[i][1]);
@@ -281,22 +285,5 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		}
 		setSwapable(false);
 
-		//SampleData sampleData = new SampleData(proj, true);
-		/*
-		String[] markerList = Array.toStringArray(markerNames);
-		MarkerData[] markerData = MarkerSet.loadFromList(proj, markerList);
-		for (int i=0; i<samples.length; i++) {
-			points[i] = new PlotPoint(samples[i][0],
-											 1,
-											 markerData[1].getDatapoints(0)[0][i],
-											 markerData[1].getDatapoints(0)[1][i],
-											 SIZE,
-											 0,
-											 0
-											);
-		}
-		*/
-		
-		//Color color;
 	}
 }

@@ -26,28 +26,28 @@ public class Qc {
         cmds.append("cd ").append(dir).append("\n");
         cmds.append("mkdir markerQC/").append("\n");
         cmds.append("cd markerQC/").append(";\n");
-        cmds.append("plink --bfile ../").append(plink).append(" --geno 0.2 --make-bed --noweb --out ./").append(plink).append("_geno20;\n");
-        cmds.append("plink --bfile ").append(plink).append("_geno20 --mind 0.1 --make-bed --noweb --out ").append(plink).append(";\n");
+        cmds.append("plink2 --bfile ../").append(plink).append(" --geno 0.2 --make-bed --noweb --out ./").append(plink).append("_geno20;\n");
+        cmds.append("plink2 --bfile ").append(plink).append("_geno20 --mind 0.1 --make-bed --noweb --out ").append(plink).append(";\n");
         cmds.append("if [ ! -f freq.frq ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --freq --out freq --noweb").append(";\n");
+        cmds.append("\t").append("plink2 --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --freq --out freq --noweb").append(";\n");
         cmds.append("fi;\n");
         cmds.append("if [ ! -f missing.imiss ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --missing --out missing --noweb").append(";\n");
+        cmds.append("\t").append("plink2 --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --missing --out missing --noweb").append(";\n");
         cmds.append("fi;\n");
         cmds.append("if [ ! -f test.missing.missing ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --test-missing --out test.missing --noweb").append(";\n");
+        cmds.append("\t").append("plink2 --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --test-missing --out test.missing --noweb").append(";\n");
         cmds.append("fi;\n");
         cmds.append("if [ ! -f hardy.hwe ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --hardy --out hardy --noweb").append(";\n");
+        cmds.append("\t").append("plink2 --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --hardy --out hardy --noweb").append(";\n");
         cmds.append("fi;\n");
         cmds.append("if [ ! -f mishap.missing.hap ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --test-mishap --out mishap --noweb").append(";\n");
+        cmds.append("\t").append("plink2 --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --test-mishap --out mishap --noweb").append(";\n");
         cmds.append("fi;\n");
         cmds.append("if [ ! -f gender.assoc ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --assoc --out gender --noweb").append(";\n");
+        cmds.append("\t").append("plink2 --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --assoc --out gender --noweb").append(";\n");
         cmds.append("fi;\n");
         cmds.append("if [ ! -f gender.missing ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --test-missing --out gender --noweb").append(";\n");
+        cmds.append("\t").append("plink2 --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --test-missing --out gender --noweb").append(";\n");
         cmds.append("fi;\n");
        
 //        TODO
@@ -68,30 +68,30 @@ public class Qc {
         cmds.append("mkdir sampleQC/\n");
         cmds.append("cd sampleQC/\n");
         cmds.append("if [ ! -f ").append(plink).append(".bed ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ../markerQC/").append(plink).append(" --exclude ../markerQC/miss_drops.dat --make-bed --noweb\n");
+        cmds.append("\t").append("plink2 --bfile ../markerQC/").append(plink).append(" --exclude ../markerQC/miss_drops.dat --make-bed --noweb\n");
         cmds.append("fi;\n");
         cmds.append("if [ ! -f missing.imiss ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --missing --out missing --noweb").append(";\n");
+        cmds.append("\t").append("plink2 --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --missing --out missing --noweb").append(";\n");
         cmds.append("fi;\n");
         
         cmds.append("cd ..\n");
         cmds.append("mkdir ldPruning/\n");
         cmds.append("cd ldPruning/\n");
         cmds.append("if [ ! -f ").append(plink).append(".bed ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ../sampleQC/").append(plink).append(" --mind 0.05 --make-bed --noweb\n");
+        cmds.append("\t").append("plink2 --bfile ../sampleQC/").append(plink).append(" --mind 0.05 --make-bed --noweb\n");
         cmds.append("fi;\n");
         cmds.append("if [ ! -f ").append(plink).append(".prune.in ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ../sampleQC/").append(plink).append(" --indep-pairwise 50 5 0.3 --noweb\n");
+        cmds.append("\t").append("plink2 --bfile ../sampleQC/").append(plink).append(" --indep-pairwise 50 5 0.3 --noweb\n");
         cmds.append("fi;\n");
 
         cmds.append("cd ..\n");
         cmds.append("mkdir genome/\n");
         cmds.append("cd genome/\n");
         cmds.append("if [ ! -f ").append(plink).append(".bed ] ; then").append("\n");
-        cmds.append("\t").append("plink --bfile ../ldPruning/").append(plink).append(" --extract ../ldPruning/").append(plink).append(".prune.in --make-bed --noweb\n");
+        cmds.append("\t").append("plink2 --bfile ../ldPruning/").append(plink).append(" --extract ../ldPruning/").append(plink).append(".prune.in --make-bed --noweb\n");
         cmds.append("fi;\n");
         cmds.append("if [ ! -f ").append(plink).append(".genome ] ; then").append("\n");
-        cmds.append("\t").append("plink --noweb --bfile ").append(plink).append(" --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":"")).append("\n");
+        cmds.append("\t").append("plink2 --noweb --bfile ").append(plink).append(" --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":"")).append("\n");
         cmds.append("fi;\n");        
         if (!keepGenomeInfoForRelatedsOnly) {
             cmds.append("if [ ! -f mds20.mds ] ; then").append("\n");
@@ -108,7 +108,7 @@ public class Qc {
 //            Files.copyFile(dir+"genome/" + plink + ".genome_keep.dat", dir+"ancestry/unrelateds.txt");
 //        }
 //        if (!Files.exists(dir+"ancestry/" + plink + ".bed")) {
-//            CmdLine.runDefaults("plink --bfile ../genome/" + plink + " --make-bed --noweb", dir+"ancestry/", log);
+//            CmdLine.runDefaults("plink2 --bfile ../genome/" + plink + " --make-bed --noweb", dir+"ancestry/", log);
 //        }
 //        
 //        ancestry(dir+"ancestry/");
@@ -127,44 +127,44 @@ public class Qc {
 		
 		new File(dir+"markerQC/").mkdirs();
 		log.report(ext.getTime() + "]\tRunning --geno 0.2");
-		CmdLine.runDefaults("plink --bfile ../" + plink + " --geno 0.2 --make-bed --noweb --out ./" + plink + "_geno20", dir+"markerQC/", log);
+		CmdLine.runDefaults("plink2 --bfile ../" + plink + " --geno 0.2 --make-bed --noweb --out ./" + plink + "_geno20", dir+"markerQC/", log);
 
 		log.report(ext.getTime() + "]\tRunning --mind 0.1");
-		CmdLine.runDefaults("plink --bfile " + plink + "_geno20 --mind 0.1 --make-bed --noweb --out ./" + plink, dir+"markerQC/", log);
+		CmdLine.runDefaults("plink2 --bfile " + plink + "_geno20 --mind 0.1 --make-bed --noweb --out ./" + plink, dir+"markerQC/", log);
 		
 		if (!Files.exists(dir+"markerQC/freq.frq")) {
 			log.report(ext.getTime() + "]\tRunning --freq");
-			CmdLine.runDefaults("plink --bfile " + plink + " --maf 0 --geno 1 --mind 1 --freq --out freq --noweb", dir+"markerQC/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --maf 0 --geno 1 --mind 1 --freq --out freq --noweb", dir+"markerQC/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"markerQC/missing.imiss")) {
 			log.report(ext.getTime() + "]\tRunning --missing");
-			CmdLine.runDefaults("plink --bfile " + plink + " --maf 0 --geno 1 --mind 1 --missing --out missing --noweb", dir+"markerQC/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --maf 0 --geno 1 --mind 1 --missing --out missing --noweb", dir+"markerQC/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"markerQC/test.missing.missing")) {
 			log.report(ext.getTime() + "]\tRunning --test-missing");
-			CmdLine.runDefaults("plink --bfile " + plink + " --maf 0 --geno 1 --mind 1 --test-missing --out test.missing --noweb", dir+"markerQC/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --maf 0 --geno 1 --mind 1 --test-missing --out test.missing --noweb", dir+"markerQC/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"markerQC/hardy.hwe")) {
 			log.report(ext.getTime() + "]\tRunning --hardy");
-			CmdLine.runDefaults("plink --bfile " + plink + " --maf 0 --geno 1 --mind 1 --hardy --out hardy --noweb", dir+"markerQC/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --maf 0 --geno 1 --mind 1 --hardy --out hardy --noweb", dir+"markerQC/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"markerQC/mishap.missing.hap")) {
 			log.report(ext.getTime() + "]\tRunning --test-mishap");
-			CmdLine.runDefaults("plink --bfile " + plink + " --maf 0 --geno 1 --mind 1 --test-mishap --out mishap --noweb", dir+"markerQC/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --maf 0 --geno 1 --mind 1 --test-mishap --out mishap --noweb", dir+"markerQC/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"markerQC/gender.assoc")) {
 			log.report(ext.getTime() + "]\tRunning --assoc gender");
-			CmdLine.runDefaults("plink --bfile " + plink + " --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --assoc --out gender --noweb", dir+"markerQC/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --assoc --out gender --noweb", dir+"markerQC/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"markerQC/gender.missing")) {
 			log.report(ext.getTime() + "]\tRunning --test-missing gender");
-			CmdLine.runDefaults("plink --bfile " + plink + " --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --test-missing --out gender --noweb", dir+"markerQC/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --maf 0 --geno 1 --mind 1 --pheno plink.fam --mpheno 3 --test-missing --out gender --noweb", dir+"markerQC/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		
@@ -185,41 +185,41 @@ public class Qc {
 		new File(dir+"sampleQC/").mkdirs();
 		if (!Files.exists(dir+"sampleQC/" + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --exclude miss_drops.dat");
-			CmdLine.runDefaults("plink --bfile ../markerQC/" + plink + " --exclude ../markerQC/miss_drops.dat --make-bed --noweb", dir+"sampleQC/", log);
+			CmdLine.runDefaults("plink2 --bfile ../markerQC/" + plink + " --exclude ../markerQC/miss_drops.dat --make-bed --noweb", dir+"sampleQC/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"sampleQC/missing.imiss")) {
 			log.report(ext.getTime() + "]\tRunning --missing");
-			CmdLine.runDefaults("plink --bfile " + plink + " --maf 0 --geno 1 --mind 1 --missing --out missing --noweb", dir+"sampleQC/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --maf 0 --geno 1 --mind 1 --missing --out missing --noweb", dir+"sampleQC/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		
 		new File(dir+"ldPruning/").mkdirs();
 		if (!Files.exists(dir+"ldPruning/" + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --mind 0.05 (removes samples with callrate <95% for the markers that did pass QC)");
-			CmdLine.runDefaults("plink --bfile ../sampleQC/" + plink + " --mind 0.05 --make-bed --noweb", dir+"ldPruning/", log);
+			CmdLine.runDefaults("plink2 --bfile ../sampleQC/" + plink + " --mind 0.05 --make-bed --noweb", dir+"ldPruning/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"ldPruning/" + plink + ".prune.in")) {
 			log.report(ext.getTime() + "]\tRunning --indep-pairwise 50 5 0.3");
-			CmdLine.runDefaults("plink --noweb --bfile " + plink + " --indep-pairwise 50 5 0.3", dir+"ldPruning/", log);
+			CmdLine.runDefaults("plink2 --noweb --bfile " + plink + " --indep-pairwise 50 5 0.3", dir+"ldPruning/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 
 		new File(dir+"genome/").mkdirs();
 		if (!Files.exists(dir+"genome/" + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --extract " + plink + ".prune.in");
-			CmdLine.runDefaults("plink --bfile ../ldPruning/" + plink + " --extract ../ldPruning/" + plink + ".prune.in --make-bed --noweb", dir+"genome/", log);
+			CmdLine.runDefaults("plink2 --bfile ../ldPruning/" + plink + " --extract ../ldPruning/" + plink + ".prune.in --make-bed --noweb", dir+"genome/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"genome/" + plink + ".genome")) {
 			log.report(ext.getTime() + "]\tRunning --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""));
-			CmdLine.runDefaults("plink --noweb --bfile " + plink + " --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""), dir+"genome/", log);
+			CmdLine.runDefaults("plink2 --noweb --bfile " + plink + " --genome"+(keepGenomeInfoForRelatedsOnly?" --min 0.1":""), dir+"genome/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!keepGenomeInfoForRelatedsOnly && !Files.exists(dir + "genome/mds20.mds")) {
 			log.report(ext.getTime() + "]\tRunning --mds-plot 20");
-			CmdLine.runDefaults("plink --bfile " + plink + " --read-genome " + plink + ".genome --cluster --mds-plot 20 --out mds20 --noweb", dir+"genome/", log);
+			CmdLine.runDefaults("plink2 --bfile " + plink + " --read-genome " + plink + ".genome --cluster --mds-plot 20 --out mds20 --noweb", dir+"genome/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"genome/" + plink + ".genome_keep.dat")) {
@@ -236,7 +236,7 @@ public class Qc {
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"ancestry/" + plink + ".bed")) {
 			log.report(ext.getTime() + "]\tRunning --extract " + plink + ".prune.in (again, this time to ancestry/)");
-			CmdLine.runDefaults("plink --bfile ../genome/" + plink + " --make-bed --noweb", dir+"ancestry/", log);
+			CmdLine.runDefaults("plink2 --bfile ../genome/" + plink + " --make-bed --noweb", dir+"ancestry/", log);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		
