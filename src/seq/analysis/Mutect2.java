@@ -67,6 +67,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		String normalSample = BamOps.getSampleName(normalBam);
 		String tumorBam = tumorNormalMatchedBams[index][1];
 		String tumorSample = BamOps.getSampleName(tumorBam);
+		index++;
 		return new MutectTumorNormalWorker(gatk, normalBam, tumorBam, outputDir + normalSample + "_normal_" + tumorSample + "_tumor" + ".vcf.gz", pon, log);
 	}
 
@@ -340,7 +341,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		String gatkLocation = "GATK_3_5/";
 		String cosmic = "b37_cosmic_v54_120711.hg19_chr.vcf";
 		String regions = "AgilentCaptureRegions.bed";
-		String ponVCF = "pon.vcf";
+		String ponVCF = null;
 		int numthreads = 1;
 		int numSampleThreads = 4;
 		int numbatches = 0;
@@ -359,7 +360,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		usage += "   (8) number of threads (i.e. numthreads=" + numthreads + " (default))\n" + "";
 		usage += "   (9) gatk directory (i.e. gatk=" + gatkLocation + " (default))\n" + "";
 		usage += "   (10) type of analysis (i.e. run=" + run + " (default))\n" + "";
-		usage += "   (11) pon vcf (i.e. ponVcf=" + ponVCF + " (default))\n" + "";
+		usage += "   (11) pon vcf (i.e. ponVcf= (no default))\n" + "";
 		usage += "   (12) number of threads per sample (i.e. numSampleThreads=" + numSampleThreads + " (default))\n" + "";
 		usage += "   (13) full path to a file of tumor-normal matched (tab-delimited) bam files (i.e. tumorNormalBams= (no default))\n" + "";
 
@@ -418,6 +419,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		Logger log = new Logger(outputDir + "TN.log");
 		GATK gatk = new GATK(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic, true, false, true, log);
 		switch (run) {
+		case COMBINE_NORMALS:
 		case CALL_SOMATIC:
 			try {
 				run(fileOfNormalBams, tumorNormalBams, outputDir, ponVCF, gatk, run, numthreads, numSampleThreads, log);
@@ -425,15 +427,6 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			break;
-		case COMBINE_NORMALS:
-			try {
-				run(fileOfNormalBams, tumorNormalBams, outputDir, ponVCF, gatk, run, numthreads, numSampleThreads, log);
-			} catch (IllegalStateException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
 			break;
 		case GEN_NORMALS:
 

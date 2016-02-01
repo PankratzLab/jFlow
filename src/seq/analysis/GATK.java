@@ -490,6 +490,10 @@ public class GATK {
 		command.add(GATKLocation + GENOME_ANALYSIS_TK);
 		command.add(T);
 		command.add(MUTECT2);
+		command.add(DB_SNP);
+		command.add(dbSnpKnownSites);
+		command.add(COSMIC);
+		command.add(cosmicKnownSites);
 		command.add(R);
 		command.add(referenceGenomeFasta);
 		command.add(I_NORMAL);
@@ -500,6 +504,9 @@ public class GATK {
 			command.add(PON);
 			command.add(pon);
 		}
+		command.add(L);
+		command.add(regionsFile);
+		command.add(O);
 		command.add(outputVCF);
 		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
 		return new MutectTumorNormal(normalBam, tumorBam, outputVCF, !progress);
