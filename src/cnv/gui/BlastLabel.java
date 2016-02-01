@@ -100,7 +100,7 @@ public class BlastLabel extends JLabel {
     static TreeSet<Integer> spaces = new TreeSet<Integer>();
     static TreeMap<Integer, Integer> spaceSets = new TreeMap<Integer, Integer>();
     
-    private BlastAnnotation myAnnotation;
+    protected BlastAnnotation myAnnotation;
     private MarkerSeqAnnotation refSeq;
     Segment fullSegment;
     private String seq;
@@ -130,11 +130,11 @@ public class BlastLabel extends JLabel {
         this.myAnnotation = annot;
         this.positiveStrand = annot.getStrand() == Strand.POSITIVE;
         this.oppositeStrand = ref.getStrand() != annot.getStrand();
-        this.reverseSequence = oppositeStrand && 
+        this.reverseSequence = oppositeStrand/* && 
                                 ((ref.getTopBotRef() == TOP_BOT.PLUS && ref.getTopBotProbe() == TOP_BOT.PLUS) || 
                                         (ref.getTopBotRef() == TOP_BOT.BOT && ref.getTopBotProbe() == TOP_BOT.BOT) || 
                                         (ref.getTopBotRef() == TOP_BOT.TOP && ref.getTopBotProbe() == TOP_BOT.TOP) || 
-                                        (ref.getTopBotRef() == TOP_BOT.MINUS && ref.getTopBotProbe() == TOP_BOT.MINUS));
+                                        (ref.getTopBotRef() == TOP_BOT.MINUS && ref.getTopBotProbe() == TOP_BOT.MINUS))*/;
         this.fullSegment = BlastFrame.BlastUtils.getSegmentForAnnotation(ref, annot);
         this.alignmentCount = BlastFrame.BlastUtils.countAlignment(annot);
         if (refGen != null) {
@@ -191,7 +191,7 @@ public class BlastLabel extends JLabel {
         for (CigarElement ciggie : cig.getCigarElements()) {
             if (ciggie.getOperator().consumesReferenceBases()) {
                 if (/*flipSequence && */!ciggie.getOperator().consumesReadBases()) {
-                    Integer key = reverseSequence ? refSeq.getSequence().length() - strandInd + 1 : strandInd;
+                    Integer key = /*reverseSequence ? refSeq.getSequence().length() - strandInd + 1 :*/ strandInd;
                     if (spaceSets.containsKey(key)) {
                         spaceSets.put(key, Math.max(spaceSets.get(key), ciggie.getLength()));
                     } else {
@@ -199,7 +199,7 @@ public class BlastLabel extends JLabel {
                     }
                     mySpaceSets.put(key, ciggie.getLength());
                     for (int i = strandInd; i < strandInd + ciggie.getLength(); i++) {
-                        int ind = reverseSequence ? refSeq.getSequence().length() - i + 1 : i;
+                        int ind = /*reverseSequence ? refSeq.getSequence().length() - i + 1 :*/ i;
                         spaces.add(ind);
                         mySpaces.add(ind);
 //                        System.out.println(ind + " :: " + cig.toString());
