@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import seq.manage.BamOps;
 import seq.manage.GenotypeOps;
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
