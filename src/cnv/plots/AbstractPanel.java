@@ -1146,6 +1146,16 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public void componentMoved(ComponentEvent e) {}
 
 	public void componentResized(ComponentEvent e) {
+        int w = (int) e.getComponent().getSize().getWidth();
+        int h = (int) e.getComponent().getSize().getHeight();
+        if (trackedW == -1 || trackedH == -1) {
+            setTrackedSize(w, h);
+            return;
+        }
+        if (w != trackedW || h != trackedH) {
+            setTrackedSize(w, h);
+        }
+	    
 		if (this.waitingTimer==null) {
 			/* Start waiting for DELAY to elapse. */
 			this.waitingTimer = new Timer(DELAY,this);
@@ -1156,6 +1166,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			this.waitingTimer.restart();
 		}
 	}
+	
+    private volatile int trackedW = -1;
+    private volatile int trackedH = -1; 
+    public void setTrackedSize(int w, int h) {
+        this.trackedW = w;
+        this.trackedH = h;
+    }
 
 	public void componentShown(ComponentEvent e) {}
 

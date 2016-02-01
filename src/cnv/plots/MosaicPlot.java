@@ -4,10 +4,12 @@ package cnv.plots;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 import cnv.filesys.Project;
@@ -16,12 +18,14 @@ import cnv.var.SampleData;
 public class MosaicPlot extends JFrame implements ActionListener {
 	public static final long serialVersionUID = 1L;
 	public static final String[] MOSAICISM_HEADER = { "Sample", "Band", "LRR N", "mean LRR", "BAF N", "SD of BAF (0.15-0.85)", "IQR of BAF (0.15-0.85)", "%Homo", "MosaicMetric","MosaicNearestNeighbor" };
-
+	
+	MosaicPanel panel;
+	
 	public MosaicPlot(Project proj, String[][] samples, double[][] data) {
 		super("Genvisis - Mosaicism Plot - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-		MosaicPanel panel = new MosaicPanel(proj, samples, data);
+		panel = new MosaicPanel(proj, samples, data);
 		// panel.setToolTipText("");
 		getContentPane().add(panel, BorderLayout.CENTER);
 
@@ -38,16 +42,37 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		descrPanel.setBackground(Color.WHITE);
 
 		getContentPane().add(descrPanel, BorderLayout.NORTH);
-
-		repaint();
-
+		
+		setJMenuBar(createMenuBar());
+		
 		setBounds(20, 20, 1000, 720);
 		setVisible(true);
-
+		
 //		unnecessary leads to a double rendering
 //		panel.createImage();
 	}
 
+    private JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("File");
+        
+        JCheckBoxMenuItem hideExcluded = new JCheckBoxMenuItem();
+        hideExcluded.setMnemonic(KeyEvent.VK_E);
+        hideExcluded.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                panel.hideExcluded = hideExcluded.isSelected();
+                panel.paintAgain();
+            }
+        });
+        hideExcluded.setText("Hide Excluded");
+        menu.add(hideExcluded);
+        
+        menuBar.add(menu);
+        
+        return menuBar;
+    }
+	
 	public void actionPerformed(ActionEvent ae) {
 		String command = ae.getActionCommand();
 
@@ -61,12 +86,11 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		Vector<double[]> datapoints;
 		SampleData sampleData;
 		String[] classes;
-//		Hashtable
-
-//		if (!Files.exists(proj.getFilename(proj.MOSAIC_RESULTS_FILENAME), proj.getJarStatus())) {
-//			JOptionPane.showMessageDialog(null, "Could not find file: "+proj.getFilename(proj.MOSAIC_RESULTS_FILENAME), "Error", JOptionPane.ERROR_MESSAGE);
-		if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue(), proj.JAR_STATUS.getValue())) {
-			JOptionPane.showMessageDialog(null, "Could not find file: "+proj.MOSAIC_RESULTS_FILENAME.getValue(), "Error", JOptionPane.ERROR_MESSAGE);
+		
+		String mosaicFile = proj.MOSAIC_RESULTS_FILENAME.getValue();
+		
+        if (!Files.exists(mosaicFile, proj.JAR_STATUS.getValue())) {
+			JOptionPane.showMessageDialog(null, "Could not find file: "+mosaicFile, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		
@@ -79,8 +103,7 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		samples = new Vector<String[]>();
 		datapoints = new Vector<double[]>();
 		try {
-//			reader = Files.getReader(proj.getFilename(proj.MOSAIC_RESULTS_FILENAME), proj.getJarStatus(), true, true);
-			reader = Files.getReader(proj.MOSAIC_RESULTS_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, true);
+			reader = Files.getReader(mosaicFile, proj.JAR_STATUS.getValue(), true, true);
 			if (!ext.checkHeader(reader.readLine().trim().split("\t"), MOSAICISM_HEADER, false)) {
 				proj.message("Different Mosaicism header than expected (see log); this could blow up");
 			}
@@ -93,11 +116,10 @@ public class MosaicPlot extends JFrame implements ActionListener {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-//			System.err.println("Error: file \""+proj.getFilename(proj.MOSAIC_RESULTS_FILENAME)+"\" not found in current directory");
-			System.err.println("Error: file \""+proj.MOSAIC_RESULTS_FILENAME.getValue()+"\" not found in current directory");
+			System.err.println("Error: file \""+mosaicFile+"\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+proj.MOSAIC_RESULTS_FILENAME.getValue()+"\"");
+			System.err.println("Error reading file \""+mosaicFile+"\"");
 			System.exit(2);
 		}
 
