@@ -109,6 +109,7 @@ public class GATK {
 
 	public static final String VCF = ".vcf";
 	public static final String VCF_INDEX = ".idx";
+	public static final String VCF_GZ_INDEX = ".tbi";
 
 	public static final String GVCF = ".gvcf";
 	public static final String RESOURCE = "-resource:";
@@ -485,7 +486,7 @@ public class GATK {
 		} else {
 			log.reportTimeWarning("Running tumor normal calling without PON");
 		}
-		String[] outputs = new String[] { outputVCF, outputVCF + VCF_INDEX };
+		String[] outputs = new String[] { outputVCF, outputVCF + (outputVCF.endsWith(".gz") ? VCF_GZ_INDEX : VCF_INDEX) };
 
 		ArrayList<String> command = new ArrayList<String>();
 		command.add(javaLocation);
