@@ -32,6 +32,10 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 	private Logger log;
 	private int index;
 
+	/**
+	 * @param tumorNormalMatchedBams
+	 *            String[sampleCombo][0]=normal and String[sampleCombo][1]=tumor
+	 */
 	public Mutect2(GATK gatk, String[][] tumorNormalMatchedBams, String pon, String outputDir, int numSampleThreads, Logger log) {
 		super();
 		this.gatk = gatk;
@@ -235,6 +239,19 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 
 	}
 
+	/**
+	 * @param fileOfBams
+	 * @param fileOftumorNormalMatchedBams
+	 *            first column is normal, second is tumor
+	 * @param outputDir
+	 * @param ponVcf
+	 * @param gatk
+	 * @param type
+	 * @param numThreads
+	 * @param numSampleThreads
+	 * @param log
+	 * @throws IllegalStateException
+	 */
 	public static void run(String fileOfBams, String fileOftumorNormalMatchedBams, String outputDir, String ponVcf, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, Logger log) throws IllegalStateException {
 		if (type == MUTECT_RUN_TYPES.GEN_NORMALS || type == MUTECT_RUN_TYPES.COMBINE_NORMALS) {
 			String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] { 0 }, true);
@@ -267,21 +284,30 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 				gatk.combinePonVcfs(Array.toStringArray(ponVcfs), ponVcf, 2, log);
 			}
 		} else if (type == MUTECT_RUN_TYPES.CALL_SOMATIC) {
-			if (fileOftumorNormalMatchedBams == null || !Files.exists(fileOftumorNormalMatchedBams)) {
-				throw new IllegalArgumentException("Missing file " + fileOftumorNormalMatchedBams);
-			}
-			String[][] tumorNormalMatchedBams = HashVec.loadFileToStringMatrix(fileOftumorNormalMatchedBams, false, new int[] { 0, 1 }, false);
-			Mutect2 mutect2 = new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads, log);
-			WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2, numThreads, 2, log);
-			ArrayList<MutectTumorNormal> results = new ArrayList<GATK.MutectTumorNormal>();
-			ArrayList<String> finalTNVCfs = new ArrayList<String>();
+			callSomatic(fileOftumorNormalMatchedBams, outputDir, ponVcf, gatk, numThreads, numSampleThreads, true, log);
+		}
+	}
 
-			while (train.hasNext()) {
-				MutectTumorNormal tmp = train.next();
-				results.add(tmp);
-				finalTNVCfs.add(tmp.getReNamedFilteredVCF());
-			}
+	public static MutectTumorNormal[] callSomatic(String fileOftumorNormalMatchedBams, String outputDir, String ponVcf, GATK gatk, int numThreads, int numSampleThreads, boolean merge, Logger log) {
+		if (fileOftumorNormalMatchedBams == null || !Files.exists(fileOftumorNormalMatchedBams)) {
+			throw new IllegalArgumentException("Missing file " + fileOftumorNormalMatchedBams);
+		}
+		if (!merge) {
+			log.reportTimeInfo("Will not merge results as strict tumor normal comparison");
+		}
+		String[][] tumorNormalMatchedBams = HashVec.loadFileToStringMatrix(fileOftumorNormalMatchedBams, false, new int[] { 0, 1 }, false);
+		Mutect2 mutect2 = new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads, log);
+		WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2, numThreads, 2, log);
+		ArrayList<MutectTumorNormal> results = new ArrayList<GATK.MutectTumorNormal>();
+		ArrayList<String> finalTNVCfs = new ArrayList<String>();
 
+		while (train.hasNext()) {
+			MutectTumorNormal tmp = train.next();
+			results.add(tmp);
+			finalTNVCfs.add(tmp.getReNamedFilteredVCF());
+		}
+
+		if (merge) {
 			String root = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged";
 			String outMergeVCF = root + ".vcf.gz";
 			String outMergeRenameVCF = root + ".renamed.vcf.gz";
@@ -294,6 +320,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 				VCFTumorNormalOps.renameMergeVCF(outMergeVCF, outMergeRenameVCF);
 			}
 		}
+		return results.toArray(new MutectTumorNormal[results.size()]);
 	}
 
 	private static void batchPON(int numNormalBatches, GATK gatk, String bamFilesFullPath, String outputDir, int numthreads, int numSampleThreads, Logger log) {
@@ -376,7 +403,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		usage += "   (10) type of analysis (i.e. run=" + run + " (default))\n" + "";
 		usage += "   (11) pon vcf (i.e. ponVcf= (no default))\n" + "";
 		usage += "   (12) number of threads per sample (i.e. numSampleThreads=" + numSampleThreads + " (default))\n" + "";
-		usage += "   (13) full path to a file of tumor-normal matched (tab-delimited) bam files (i.e. tumorNormalBams= (no default))\n" + "";
+		usage += "   (13) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
