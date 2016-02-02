@@ -26,7 +26,9 @@ public class Qc {
         cmds.append("cd ").append(dir).append("\n");
         cmds.append("mkdir markerQC/").append("\n");
         cmds.append("cd markerQC/").append(";\n");
+        cmds.append("if [ ! -f ").append(plink).append("_geno20 ] ; then").append("\n");
         cmds.append("plink2 --bfile ../").append(plink).append(" --geno 0.2 --make-bed --noweb --out ./").append(plink).append("_geno20;\n");
+        cmds.append("fi;\n");
         cmds.append("plink2 --bfile ").append(plink).append("_geno20 --mind 0.1 --make-bed --noweb --out ").append(plink).append(";\n");
         cmds.append("if [ ! -f freq.frq ] ; then").append("\n");
         cmds.append("\t").append("plink2 --bfile ").append(plink).append(" --maf 0 --geno 1 --mind 1 --freq --out freq --noweb").append(";\n");
@@ -99,7 +101,13 @@ public class Qc {
             cmds.append("fi;\n");
         }
         if (!Files.exists(dir+"genome/" + plink + ".genome_keep.dat")) {
-            Plink.flagRelateds(dir+"genome/" + plink + ".genome", dir+"genome/" + plink + ".fam", dir+"markerQC/missing.imiss", dir+"genome/lrr_sd.xln", Plink.FLAGS, Plink.THRESHOLDS, 4, false);
+            String geno = dir+"genome/" + plink + ".genome";
+            String fam = dir+"genome/" + plink + ".fam";
+            String imiss = dir+"markerQC/missing.imiss";
+            String lrrsd = dir+"genome/lrr_sd.xln";
+            int level = 4;
+//            Plink.flagRelateds(geno, fam, imiss, lrrsd, Plink.FLAGS, Plink.THRESHOLDS, level, false);
+            cmds.append("jcp gwas.Plink relate=").append(geno).append(" fam=").append(fam).append(" imiss=").append(imiss).append(" lrr_sd=").append(lrrsd).append(" level=").append(level).append("\n");
         }
         
         // TODO fill in when ancestry method is finished, currently does nothing but create more files
@@ -126,12 +134,16 @@ public class Qc {
 		String plink = plinkPrefix == null ? "plink" : plinkPrefix;
 		
 		new File(dir+"markerQC/").mkdirs();
-		log.report(ext.getTime() + "]\tRunning --geno 0.2");
-		CmdLine.runDefaults("plink2 --bfile ../" + plink + " --geno 0.2 --make-bed --noweb --out ./" + plink + "_geno20", dir+"markerQC/", log);
-
-		log.report(ext.getTime() + "]\tRunning --mind 0.1");
-		CmdLine.runDefaults("plink2 --bfile " + plink + "_geno20 --mind 0.1 --make-bed --noweb --out ./" + plink, dir+"markerQC/", log);
-		
+		if (!Files.exists(dir + "markerQC/" + plink + "_geno20.bed")) {
+    		log.report(ext.getTime() + "]\tRunning --geno 0.2");
+    		CmdLine.runDefaults("plink2 --bfile ../" + plink + " --geno 0.2 --make-bed --noweb --out ./" + plink + "_geno20", dir+"markerQC/", log);
+		}
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+		if (!Files.exists(dir + "markerQC/" + plink + ".bed")) {
+    		log.report(ext.getTime() + "]\tRunning --mind 0.1");
+    		CmdLine.runDefaults("plink2 --bfile " + plink + "_geno20 --mind 0.1 --make-bed --noweb --out ./" + plink, dir+"markerQC/", log);
+		}
+        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"markerQC/freq.frq")) {
 			log.report(ext.getTime() + "]\tRunning --freq");
 			CmdLine.runDefaults("plink2 --bfile " + plink + " --maf 0 --geno 1 --mind 1 --freq --out freq --noweb", dir+"markerQC/", log);
