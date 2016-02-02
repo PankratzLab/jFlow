@@ -66,7 +66,7 @@ public class SomaticSniper {
 		String outFiltRename = params.getOutputDir() + "tn.out.filt.vcf.gz";
 
 		if (gatk.mergeVCFs(Array.toStringArray(finalOuts), out, numThreads, false, log)) {
-			
+
 		}
 
 	}
@@ -276,7 +276,7 @@ public class SomaticSniper {
 
 				progress = runSamToolsIndel();
 				if (!Files.exists(outputGz)) {
-					VCFTumorNormalOps.renameTumorNormalVCF(output, tumorSample, normalSample, outputGz, log);
+					VCFTumorNormalOps.renameTumorNormalVCF(output, tumorSample, normalSample, outputGz, VCFOps.getAppropriateRoot(outputGz, false) + ".filtered.vcf.gz", log);
 				}
 
 			}
