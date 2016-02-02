@@ -275,17 +275,24 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2, numThreads, 2, log);
 			ArrayList<MutectTumorNormal> results = new ArrayList<GATK.MutectTumorNormal>();
 			ArrayList<String> finalTNVCfs = new ArrayList<String>();
+
 			while (train.hasNext()) {
 				MutectTumorNormal tmp = train.next();
 				results.add(tmp);
-				finalTNVCfs.add(tmp.getReNamedOutputVCF());
+				finalTNVCfs.add(tmp.getReNamedFilteredVCF());
 			}
 
 			String root = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged";
 			String outMergeVCF = root + ".vcf.gz";
-			gatk.mergeVCFs(Array.toStringArray(finalTNVCfs), outMergeVCF, numThreads, false, log);
 			String outMergeRenameVCF = root + ".renamed.vcf.gz";
-			VCFTumorNormalOps.renameMergeVCF(outMergeVCF, outMergeRenameVCF);
+
+			if (!Files.exists(outMergeVCF)) {
+				gatk.mergeVCFs(Array.toStringArray(finalTNVCfs), outMergeVCF, numThreads, false, log);
+			}
+
+			if (!Files.exists(outMergeRenameVCF)) {
+				VCFTumorNormalOps.renameMergeVCF(outMergeVCF, outMergeRenameVCF);
+			}
 		}
 	}
 

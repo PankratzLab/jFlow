@@ -6,10 +6,16 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
+import htsjdk.variant.vcf.VCFFormatHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import common.Logger;
@@ -19,11 +25,15 @@ import common.Logger;
  *
  */
 public class VCFTumorNormalOps {
-	public static void renameTumorNormalVCF(String vcf, String tumorSamp, String normalSamp, String output, Logger log) {
-		renameTumorNormalVCF(vcf, tumorSamp, "TUMOR", normalSamp, "NORMAL", output, log);
+	public static void renameTumorNormalVCF(String vcf, String tumorSamp, String normalSamp, String output, String outputFiltered, Logger log) {
+		renameAndTransferInfo(vcf, tumorSamp, "TUMOR", normalSamp, "NORMAL", output, outputFiltered, log);
 	}
 
 	/**
+	 * 
+	 * NOTE, we also add "variant level" annotations to the genotypes format to preserve this information after merging<br>
+	 * NOTE, really designed for mutect2
+	 * 
 	 * @param vcf
 	 *            vcf to rename
 	 * @param tumorSamp
@@ -38,30 +48,49 @@ public class VCFTumorNormalOps {
 	 *            output vcf
 	 * @param log
 	 */
-	public static void renameTumorNormalVCF(String vcf, String tumorSamp, String tumorDef, String normalSamp, String normalDef, String output, Logger log) {
+	public static void renameAndTransferInfo(String vcf, String tumorSamp, String tumorDef, String normalSamp, String normalDef, String output, String outputFiltered, Logger log) {
 
 		if (VCFOps.getSamplesInFile(vcf).length != 2) {
-			throw new IllegalArgumentException("This method is only sdesignd for tumor normal renaming");
+			throw new IllegalArgumentException("This method is only designed for tumor normal renaming");
 		}
 		VCFFileReader reader = new VCFFileReader(output, false);
 		VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
+		VariantContextWriter writerFiltered = VCFOps.initWriter(outputFiltered, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
+
 		Set<String> samps = new HashSet<String>();
 		samps.add(normalSamp);
 		samps.add(tumorSamp);
-		final VCFHeader outHeader = new VCFHeader(reader.getFileHeader().getMetaDataInInputOrder(), samps);
+		ArrayList<String> attsRemoveVCAddGT = new ArrayList<String>();
+		Set<VCFHeaderLine> newHeaderlines = reader.getFileHeader().getMetaDataInInputOrder();
+		Collection<VCFInfoHeaderLine> infos = reader.getFileHeader().getInfoHeaderLines();
+		for (VCFInfoHeaderLine vcfInfoHeaderLine : infos) {
+			if (!vcfInfoHeaderLine.getID().equals("DB")) {// keep dbsnp
+				newHeaderlines.remove(vcfInfoHeaderLine);// remove "variant" level annotations
+				attsRemoveVCAddGT.add(vcfInfoHeaderLine.getID());
+				VCFFormatHeaderLine newFormat = new VCFFormatHeaderLine(vcfInfoHeaderLine.getID(), vcfInfoHeaderLine.getCount(), vcfInfoHeaderLine.getType(), vcfInfoHeaderLine.getDescription());
+				newHeaderlines.add(newFormat);// transfer to genotype level annotations for merging
+			}
+		}
+
+		final VCFHeader outHeader = new VCFHeader(newHeaderlines, samps);
 		writer.writeHeader(outHeader);
+		writerFiltered.writeHeader(outHeader);
+		System.exit(1);
 		for (VariantContext vc : reader) {
 
 			VariantContextBuilder builder = new VariantContextBuilder(vc);
+			builder.rmAttributes(attsRemoveVCAddGT);
 			ArrayList<Genotype> renamed = new ArrayList<Genotype>();
 			Genotype normal = rename(vc.getGenotype(normalDef), normalSamp);
 			Genotype tumor = rename(vc.getGenotype(tumorDef), tumorSamp);
+			tumor = transferFormat(tumor, vc, attsRemoveVCAddGT);
 			renamed.add(normal);
 			renamed.add(tumor);
 			builder.genotypes(renamed);
 			if (!renamed.get(0).sameGenotype(vc.getGenotype(normalDef))) {
 				reader.close();
 				writer.close();
+				writerFiltered.close();
 				throw new IllegalStateException("Improprer rename");
 			}
 			builder.genotypes(renamed);
@@ -70,13 +99,27 @@ public class VCFTumorNormalOps {
 				writer.close();
 				throw new IllegalStateException("Improprer rename");
 			}
-
-			writer.add(builder.make());
+			VariantContext vcRename = builder.make();
+			writer.add(vcRename);
+			if (!vcRename.isFiltered()) {
+				writerFiltered.add(vcRename);
+			}
 		}
 		log.reportTimeInfo("Re-named and indexed " + vcf + " to " + output);
 		reader.close();
 		writer.close();
+		writerFiltered.close();
 
+	}
+
+	private static Genotype transferFormat(Genotype g, VariantContext vc, List<String> attsToadd) {
+		GenotypeBuilder builder = new GenotypeBuilder(g);
+		for (String att : attsToadd) {
+			if (vc.hasAttribute(att)) {
+				builder.attribute(att, vc.getAttribute(att));
+			}
+		}
+		return builder.make();
 	}
 
 	private static Genotype rename(Genotype g, String newName) {

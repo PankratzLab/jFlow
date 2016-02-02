@@ -515,13 +515,11 @@ public class GATK {
 		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
 
 		MutectTumorNormal mutectTumorNormal = new MutectTumorNormal(normalBam, tumorBam, outputVCF, !progress);
-		if (progress && rename) {
+		if (progress && rename && (!Files.exists(mutectTumorNormal.getReNamedFilteredVCF()) || !Files.exists(mutectTumorNormal.getReNamedOutputVCF()))) {
 			log.reportTimeInfo("Re-naming samples in file " + outputVCF);
 			String normalSamp = BamOps.getSampleName(normalBam);
 			String tumorSamp = BamOps.getSampleName(tumorBam);
-			VCFTumorNormalOps.renameTumorNormalVCF(outputVCF, tumorSamp, normalSamp, mutectTumorNormal.getReNamedOutputVCF(), log);
-		} else {
-			mutectTumorNormal.setReNamedOutputVCF(null);
+			VCFTumorNormalOps.renameTumorNormalVCF(outputVCF, tumorSamp, normalSamp, mutectTumorNormal.getReNamedOutputVCF(), mutectTumorNormal.getReNamedFilteredVCF(), log);
 		}
 		return mutectTumorNormal;
 	}
@@ -957,6 +955,7 @@ public class GATK {
 		private String tumorBam;
 		private String outputVCF;
 		private String reNamedOutputVCF;
+		private String reNamedFilteredVCF;
 		private boolean fail;
 
 		public MutectTumorNormal(String normalBam, String tumorBam, String outputVCF, boolean fail) {
@@ -965,6 +964,7 @@ public class GATK {
 			this.tumorBam = tumorBam;
 			this.outputVCF = outputVCF;
 			this.reNamedOutputVCF = VCFOps.getAppropriateRoot(outputVCF, false) + ".renamed.vcf.gz";
+			this.reNamedFilteredVCF = VCFOps.getAppropriateRoot(outputVCF, false) + ".renamed.filtered.vcf.gz";
 			this.fail = fail;
 		}
 
@@ -974,6 +974,10 @@ public class GATK {
 
 		public void setReNamedOutputVCF(String reNamedOutputVCF) {
 			this.reNamedOutputVCF = reNamedOutputVCF;
+		}
+
+		public String getReNamedFilteredVCF() {
+			return reNamedFilteredVCF;
 		}
 
 		public String getNormalBam() {
