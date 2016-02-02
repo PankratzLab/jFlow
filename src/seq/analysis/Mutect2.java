@@ -43,7 +43,6 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		verify();
 		this.index = 0;
 		this.numSampleThreads = numSampleThreads;
-		System.out.println(this.numSampleThreads);
 	}
 
 	private void verify() {
@@ -95,7 +94,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 
 		@Override
 		public MutectTumorNormal call() throws Exception {
-			return gatk.callTumor(normalBam, tumorBam, outputVCF, pon, log);
+			return gatk.callTumor(normalBam, tumorBam, outputVCF, pon, true, log);
 		}
 	}
 

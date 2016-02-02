@@ -29,6 +29,7 @@ import seq.manage.VCFOps;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import seq.manage.VCFTumorNormalOps;
 
 /**
  * Wrapper and parser/assembler for Somatic Sniper (https://github.com/genome/somatic-sniper)
@@ -317,7 +318,7 @@ public class SomaticSniper {
 
 				progress = runSamToolsIndel();
 				if (!Files.exists(outputGz)) {
-					VCFOps.renameTumorNormalVCF(output, tumorSample, normalSample, outputGz, log);
+					VCFTumorNormalOps.renameTumorNormalVCF(output, tumorSample, normalSample, outputGz, log);
 				}
 
 			}
