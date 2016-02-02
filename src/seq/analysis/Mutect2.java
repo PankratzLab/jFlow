@@ -17,6 +17,7 @@ import common.ext;
 import seq.analysis.GATK.Mutect2Normal;
 import seq.analysis.GATK.MutectTumorNormal;
 import seq.manage.BamOps;
+import seq.manage.VCFTumorNormalOps;
 
 /**
  * @author lane0212 For using the native Mutect in GATK 3.5+
@@ -28,7 +29,6 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 	private String pon;
 
 	private String outputDir;
-	private int numSampleThreads;
 	private Logger log;
 	private int index;
 
@@ -42,7 +42,6 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		this.log = log;
 		verify();
 		this.index = 0;
-		this.numSampleThreads = numSampleThreads;
 	}
 
 	private void verify() {
@@ -275,9 +274,18 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			Mutect2 mutect2 = new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads, log);
 			WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2, numThreads, 2, log);
 			ArrayList<MutectTumorNormal> results = new ArrayList<GATK.MutectTumorNormal>();
+			ArrayList<String> finalTNVCfs = new ArrayList<String>();
 			while (train.hasNext()) {
-				results.add(train.next());
+				MutectTumorNormal tmp = train.next();
+				results.add(tmp);
+				finalTNVCfs.add(tmp.getReNamedOutputVCF());
 			}
+
+			String root = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged";
+			String outMergeVCF = root + ".vcf.gz";
+			gatk.mergeVCFs(Array.toStringArray(finalTNVCfs), outMergeVCF, numThreads, false, log);
+			String outMergeRenameVCF = root + ".renamed.vcf.gz";
+			VCFTumorNormalOps.renameMergeVCF(outMergeVCF, outMergeRenameVCF);
 		}
 	}
 

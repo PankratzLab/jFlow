@@ -66,49 +66,7 @@ public class SomaticSniper {
 		String outFiltRename = params.getOutputDir() + "tn.out.filt.vcf.gz";
 
 		if (gatk.mergeVCFs(Array.toStringArray(finalOuts), out, numThreads, false, log)) {
-			VCFFileReader reader = new VCFFileReader(out, true);
-			Set<String> samps = new HashSet<String>();
-			String[] sampIn = VCFOps.getSamplesInFile(out);
-			for (int i = 0; i < sampIn.length; i++) {
-				String fix = sampIn[i].replaceAll(".variant.*", "");
-				samps.add(fix);
-			}
-
-			final VCFHeader outHeader = new VCFHeader(reader.getFileHeader().getMetaDataInInputOrder(), samps);
-
-			VariantContextWriter writer = VCFOps.initWriter(outFiltRename, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
-			writer.writeHeader(outHeader);
-			for (VariantContext vc : reader) {
-				VariantContextBuilder builder = new VariantContextBuilder(vc);
-				ArrayList<Genotype> renameGeno = new ArrayList<Genotype>();
-				for (Genotype g : vc.getGenotypes()) {
-					GenotypeBuilder gBuilder = new GenotypeBuilder(g);
-					gBuilder.name(g.getSampleName().replaceAll(".variant.*", ""));
-					double mapQ = 0;
-					double ssc = 0;
-					try {
-						if (g.hasAnyAttribute("MQ")) {
-							mapQ = Double.parseDouble(g.getAnyAttribute("MQ").toString());
-						}
-						if (g.hasAnyAttribute("SSC")) {
-							ssc = Double.parseDouble(g.getAnyAttribute("SSC").toString());
-						}
-					} catch (NumberFormatException nfe) {
-
-					}
-					if (mapQ < 40 || ssc < 40) {
-						gBuilder.alleles(GenotypeOps.getNoCall());
-					}
-					renameGeno.add(gBuilder.make());
-				}
-				builder.genotypes(renameGeno);
-				VariantContext vcFilt = builder.make();
-				if (!vcFilt.isMonomorphicInSamples()) {
-					writer.add(vcFilt);
-				}
-			}
-			reader.close();
-			writer.close();
+			
 		}
 
 	}
