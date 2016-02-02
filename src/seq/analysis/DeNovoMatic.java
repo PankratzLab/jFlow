@@ -26,6 +26,9 @@ import common.ext;
 public class DeNovoMatic {
 	public static void run(String vpopFile, String fileOfBams, String outputDir, String ponVcf, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, Logger log) throws IllegalStateException {
 		new File(outputDir).mkdirs();
+		
+		
+		
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
 		String matchFile = outputDir + ext.rootOf(vpopFile) + ".matchedbams.txt";
 		if (!Files.exists(matchFile)) {
@@ -104,6 +107,7 @@ public class DeNovoMatic {
 		usage += "   (12) number of threads per sample (i.e. numSampleThreads=" + numSampleThreads + " (default))\n" + "";
 		usage += "   (13) full to a vpop file (i.e. vpop= (no default))\n" + "";
 		usage += "   (14) full path to a file of bams (i.e. bams= (no default))\n" + "";
+		usage += "   (15) full path to a file of supporting snps (i.e. supportSnps= (no default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {

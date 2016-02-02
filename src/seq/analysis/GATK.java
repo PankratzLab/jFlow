@@ -1,5 +1,6 @@
 package seq.analysis;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import seq.analysis.GATK_Genotyper.JointGATKGenotyper;
@@ -142,6 +143,7 @@ public class GATK {
 	private String dbSnpTraining;
 	private String millsIndelTraining;
 	private String regionsFile;
+	private String supportingSnps;
 
 	public GATK(String gATKLocation, String referenceGenomeFasta, String javaLocation, String[] knownSitesSnpFile, String[] knownSitesIndelFile, boolean verbose, boolean overWriteExisting, Logger log) {
 		super();
@@ -184,6 +186,10 @@ public class GATK {
 
 	public String getRegionsFile() {
 		return regionsFile;
+	}
+
+	public void setSupportingSnps(String supportingSnps) {
+		this.supportingSnps = supportingSnps;
 	}
 
 	public void setRegionsFile(String regionsFile) {
@@ -527,6 +533,158 @@ public class GATK {
 	public Mutect2Normal generateMutect2Normal(String bamFile, String outputVcf, int numWithinSampleThreads, Logger log) {
 		boolean progress = mutect2NormalABam(bamFile, outputVcf, numWithinSampleThreads, log);
 		return new Mutect2Normal(bamFile, outputVcf, !progress);
+	}
+
+	public static class GenotypeRefiner {
+		private String ped;
+		private String baseVCF;
+		private String cgpVCF;
+		private String filtVCF;
+		private String denovoVCF;
+		private String outputDir;
+		private Logger log;
+		private boolean fail;
+
+		public GenotypeRefiner(String ped, String baseVCF, String outputDir, Logger log) {
+			super();
+			this.ped = ped;
+			this.baseVCF = baseVCF;
+			this.outputDir = outputDir;
+			this.cgpVCF = outputDir + VCFOps.getAppropriateRoot(baseVCF, true) + "postCGP.vcf.gz";
+			this.filtVCF = outputDir + VCFOps.getAppropriateRoot(baseVCF, true) + "postCGP.Gfiltered.vcf.gz";
+			this.denovoVCF = outputDir + VCFOps.getAppropriateRoot(baseVCF, true) + "postCGP.Gfiltered.deNovos.vcf.gz";
+			this.log = log;
+			this.fail = false;
+
+		}
+
+		public void setFail(boolean fail) {
+			this.fail = fail;
+		}
+
+		public String getPed() {
+			return ped;
+		}
+
+		public String getBaseVCF() {
+			return baseVCF;
+		}
+
+		public String getCgpVCF() {
+			return cgpVCF;
+		}
+
+		public String getFiltVCF() {
+			return filtVCF;
+		}
+
+		public String getDenovoVCF() {
+			return denovoVCF;
+		}
+
+		public String getOutputDir() {
+			return outputDir;
+		}
+
+		public Logger getLog() {
+			return log;
+		}
+
+		public boolean isFail() {
+			return fail;
+		}
+
+	}
+
+	/**
+	 * Running https://www.broadinstitute.org/gatk/guide/tagged?tag=denovo
+	 */
+	public GenotypeRefiner refineGenotypes(String vcf, String ped, String outputDir, Logger log) {
+		new File(outputDir).mkdirs();
+		GenotypeRefiner refiner = new GenotypeRefiner(ped, vcf, outputDir, log);
+		boolean progress = derivePosteriorProbabilities(refiner.getBaseVCF(), refiner.getCgpVCF(), ped, outputDir, log);
+
+		if (progress) {
+			progress = filterLowQualGenotpyes(refiner.getCgpVCF(), refiner.getFiltVCF(), refiner.getOutputDir(), log);
+			if (progress) {
+				annotateDenovo(refiner.getFiltVCF(), refiner.getDenovoVCF(), refiner.getPed(), refiner.getOutputDir(), log);
+			}
+		}
+		refiner.setFail(!progress);
+		return refiner;
+	}
+
+	private boolean annotateDenovo(String inputVCF, String outputVCF, String ped, String outputDir, Logger log) {
+
+		new File(outputDir).mkdirs();
+		String[] input = new String[] { referenceGenomeFasta, inputVCF, ped, supportingSnps, cosmicKnownSites };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add(javaLocation);
+		command.add(JAR);
+		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+		command.add(T);
+		command.add("VariantAnnotator");
+		command.add(R);
+		command.add(referenceGenomeFasta);
+		command.add("-A");
+		command.add("PossibleDeNovo");
+		command.add("-ped");
+		command.add(ped);
+		command.add(V);
+		command.add(inputVCF);
+		command.add(O);
+		command.add(outputVCF);
+		String[] outputs = new String[] { outputVCF, outputVCF + VCF_GZ_INDEX };
+		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
+	}
+
+	private boolean filterLowQualGenotpyes(String inputVCF, String outputVCF, String outputDir, Logger log) {
+
+		new File(outputDir).mkdirs();
+		String[] input = new String[] { referenceGenomeFasta, inputVCF, supportingSnps, cosmicKnownSites };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add(javaLocation);
+		command.add(JAR);
+		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+		command.add(T);
+		command.add("VariantFiltration");
+		command.add(R);
+		command.add(referenceGenomeFasta);
+		command.add("-G_filter");
+		command.add("\"GQ < 20.0\"");
+		command.add("-G_filterName");
+		command.add("lowGQ");
+		command.add(V);
+		command.add(inputVCF);
+		command.add(O);
+		command.add(outputVCF);
+		String[] outputs = new String[] { outputVCF, outputVCF + VCF_GZ_INDEX };
+		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
+	}
+
+	private boolean derivePosteriorProbabilities(String inputVCF, String outputVCF, String ped, String outputDir, Logger log) {
+
+		new File(outputDir).mkdirs();
+		String[] input = new String[] { referenceGenomeFasta, inputVCF, ped, supportingSnps };
+		ArrayList<String> command = new ArrayList<String>();
+		command.add(javaLocation);
+		command.add(JAR);
+		command.add(GATKLocation + GENOME_ANALYSIS_TK);
+		command.add(T);
+		command.add("CalculateGenotypePosteriors");
+		command.add(R);
+		command.add(referenceGenomeFasta);
+
+		command.add("--supporting");
+		command.add(supportingSnps);
+		command.add("-ped");
+		command.add(ped);
+		command.add(V);
+		command.add(inputVCF);
+		command.add(O);
+		command.add(outputVCF);
+		String[] outputs = new String[] { outputVCF, outputVCF + VCF_GZ_INDEX };
+		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
 	}
 
 	// TODO
