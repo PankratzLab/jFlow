@@ -1482,7 +1482,7 @@ public class Files {
 	    for (int i = 0; i < keys.length; i++) {
 	        keyMap.put(keys[i], i);
 	    }
-        ArrayList<String> lines = preserveKeyOrder ? new ArrayList<String>((int) (keys.length * 1.77)) : null;
+	    String[] lines = new String[keys.length];
 
 	    reader = Files.getAppropriateReader(fileIn);
 	    writer = preserveKeyOrder ? null : Files.getAppropriateWriter(fileOut);
@@ -1496,17 +1496,18 @@ public class Files {
 	            if (!preserveKeyOrder) {
 	                writer.println(line);
 	            } else {
-	                lines.add(keyMap.get(key), line);
+	                lines[keyMap.get(key)] = line;
 	            }
 	        }
-	        if (!preserveKeyOrder) {
-        	    writer.flush();
-        	    writer.close();
-	        }
-    	    reader.close();
 	    }
+	    if (!preserveKeyOrder) {
+	        writer.flush();
+	        writer.close();
+	    }
+	    reader.close();
 	    if (preserveKeyOrder) {
-	        Files.writeArrayList(lines, fileOut);
+	        lines = Array.removeMissingValues(lines);
+	        Files.writeList(lines, fileOut);
 	    }
 	}
 	

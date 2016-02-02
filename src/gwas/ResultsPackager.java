@@ -1002,6 +1002,7 @@ public class ResultsPackager {
 			    String[] analyses = {"tdt", "emim_child", "emim_maternal"};
 			    String[][] analysisNms = {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}, {"CM_lnR1", "CM_sd_lnR1", "pVal_CM-C_df1"}};
                 boolean generatePlots = true;
+                boolean filterTDT = true;
                 boolean oddsRatio = true;
                 String sortFileName = "/home/pankrat2/shared/Poynter_emim/forestPlotDisplayOrder.txt";
                 
@@ -1023,7 +1024,6 @@ public class ResultsPackager {
 			                "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/completeWhiteTriosPoynter_forestplot.xln"
 			            },
 			    };
-			    
 			    for (String[] fileSet : files) {
     			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix(fileSet[0], false, null, false),
     			                                mkrFile, mkrColNm, analyses, analysisNms, fileSet[1], null);
@@ -1036,6 +1036,21 @@ public class ResultsPackager {
         			    fp.setVisible(false);
         			    fp.dispose();
     			    }
+			    }
+			    if (filterTDT) {
+			        String[] dirs = {
+			                "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/",
+			                "/home/pankrat2/shared/Poynter_emim/completeTriosPoynter/",
+			                "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/",
+			                "/home/pankrat2/shared/Poynter_emim/completeWhiteTriosPoynter/"
+			        };
+			        for (String rundir : dirs) {
+			            String fileOut = ext.rootOf(mkrFile, true);
+			            String temp = rundir.substring(0, rundir.length() - 1);
+			            temp = temp.substring(temp.lastIndexOf('/') + 1);
+			            fileOut += "_" + temp + "_plink_tdtWithCi.tdt";
+			            Files.filterByKeys(mkrFile, rundir + "plink_tdtWithCi.tdt", rundir + fileOut, 2, true);
+			        }
 			    }
 			    
 			} else {
