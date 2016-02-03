@@ -1254,7 +1254,7 @@ public class Project {
 //			pcResids = new PrincipalComponentsResiduals(this, pcFile, null, Integer.parseInt(getProperty(Project.INTENSITY_PC_NUM_COMPONENTS)), false, 0, false, false, null);
 			pcResids = new PrincipalComponentsResiduals(this, pcFile, null, this.INTENSITY_PC_NUM_COMPONENTS.getValue(), false, 0, false, false, null);
 		} else {
-			getLog().reportError("Warning - did not find Intensity PC File " + pcFile + " as defined by" + this.INTENSITY_PC_FILENAME.getName() + "=" + this.INTENSITY_PC_FILENAME.getValue());
+			getLog().reportError("Warning - did not find Intensity PC File " + pcFile + " as defined by " + this.INTENSITY_PC_FILENAME.getName() + "=" + this.INTENSITY_PC_FILENAME.getValue());
 			pcResids = null;
 		}
 		return pcResids;
