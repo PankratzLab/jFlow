@@ -36,6 +36,10 @@ public class GenotypeRefinement {
 		String subVcf = VcfPopulation.splitVcfByPopulation(vcf, vpopTmp, true, true, log)[0];
 
 		GenotypeRefiner genotypeRefiner = gatk.refineGenotypes(subVcf, ped, outputDir, log);
+		
+		//TODO, filter low qual, high qual denovo -> pipe to tally
+		
+		
 		System.out.println(genotypeRefiner);
 	}
 
