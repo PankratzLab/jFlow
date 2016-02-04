@@ -21,6 +21,7 @@ import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.gui.GenvisisPipelineGUI;
 import cnv.hmm.CNVCaller;
+import cnv.qc.LrrSd;
 import cnv.var.SampleData;
 import common.Aliases;
 import common.Array;
@@ -521,7 +522,7 @@ public class GenvisisPipeline {
             markersForAB = Files.exists(markersForAB) ? markersForAB : null;
             markersForEverything = Files.exists(markersForEverything) ? markersForEverything : null;
             
-            MitoPipeline.filterSamples(proj, MitoPipeline.FILE_BASE, markersForAB, markersForEverything, numThreads, callRate, null);
+            LrrSd.filterSamples(proj, MitoPipeline.FILE_BASE, markersForAB, markersForEverything, numThreads, callRate, null);
         }
 
         @Override
@@ -555,7 +556,33 @@ public class GenvisisPipeline {
 
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Extract LRRSD and Filter Samples by CallRate >> Not Implemented For Command Line Yet ##"; // TODO
+            proj.getLog().report("Running LrrSd");
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {
+            }
+            String callRate = variables.get(this).get(2);
+            String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
+            String markersForEverything = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
+            
+            markersForAB = Files.exists(markersForAB) ? markersForAB : null;
+            markersForEverything = Files.exists(markersForEverything) ? markersForEverything : null;
+            
+            String projPropFile = proj.getPropertyFilename();
+            StringBuilder cmd = new StringBuilder();
+            cmd.append("jcp cnv.qc.LrrSd -filter")
+                    .append(" proj=").append(projPropFile)
+                    .append(" outBase=").append(MitoPipeline.FILE_BASE);
+            if (markersForAB != null) {
+                cmd.append(" callRateMarkers=").append(markersForAB);
+            }
+            if (markersForEverything != null) {
+                cmd.append(" otherMarkers=").append(markersForEverything);
+            }
+            cmd.append(" threads=").append(numThreads)
+                .append(" callRate=").append(callRate);
+            return cmd.toString();
         }
     };
 

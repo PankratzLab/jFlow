@@ -2,12 +2,15 @@ package cnv.qc;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.Hashtable;
 
 import cnv.filesys.*;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.hmm.CNVCaller;
+import cnv.manage.MitoPipeline;
 import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustor.GcModel;
+import cnv.var.SampleData;
 //import java.util.*;
 import common.*;
 
@@ -311,6 +314,199 @@ public class LrrSd extends Parallelizable {
         }
 	}
 	
+
+    /**
+     * If the useFile is not null, we return a hash with the subset of individuals. Can return null if useFile does not exist or does not contain any individuals
+     * 
+     * @param useFile
+     * @param log
+     * @return
+     */
+    private static Hashtable<String, String> checkSubset(String useFile, Logger log) {
+        Hashtable<String, String> subset = new Hashtable<String, String>();
+        if (useFile != null) {
+            if (Files.exists(useFile)) {
+                subset = HashVec.loadFileToHashString(useFile, 0, new int[] { 0 }, null, false, false);
+                if (subset.size() == 0) {
+                    log.reportError("Error - did not find any samples in the subset file " + useFile);
+                    return null;
+                } else {
+                    log.report("Analysis will be performed starting with the subset of " + subset.size() + " samples found in " + useFile);
+                }
+            } else {
+                log.reportError("Error - a file list of samples to use was provided, but the file " + useFile + " does not exist");
+                return null;
+            }
+        } else {
+            log.report("Info - A subset of samples was not provided with the \"useFile=\" argument, using all parsed samples as input to the SVD");
+        }
+        return subset;
+    }
+
+    /**
+     * Check to make sure that sample data has DNA header, and that the QC has not already been added
+     */
+    private static boolean checkSampleData(Project proj, SampleData sampleData) {
+        // This should not happen, but if it is the case we will not attempt to add qc metrics
+        boolean addToSampleData = true;
+        Logger log = proj.getLog();
+
+        if (!sampleData.containsDNA()) {
+            addToSampleData = false;
+            log.reportError("Error - sample data did not contain column with header \"DNA\", not adding sample qc summaries to sample data");
+        }
+        if (qcAdded(proj)) {
+            addToSampleData = false;
+            log.reportError("Detected that sample data QC metrics have been added already, will not add these again");
+            // log.reportError("If new thresholds were used, please remove the columns [" + ext.listWithCommas(SAMPLE_DATA_ADDITION_HEADERS, true) + "] in " + proj.getFilename(proj.SAMPLE_DATA_FILENAME));
+            log.reportError("If new thresholds were used, please remove the columns [" + ext.listWithCommas(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, true) + "] in " + proj.SAMPLE_DATA_FILENAME.getValue());
+        }
+        return addToSampleData;
+    }
+
+    /**
+     * Check all indices for -1 status
+     */
+    private static boolean checkIndices(Project proj, int[] indices) {
+        boolean allGood = true;
+        for (int i = 0; i < indices.length; i++) {
+            if (indices[i] == -1) {
+                allGood = false;
+                proj.getLog().reportError("Error - The sample QC file " +proj.SAMPLE_QC_FILENAME.getValue() + " did not contain the proper headings, this should not happen");
+            }
+        }
+        return allGood;
+    }
+
+    /**
+     * Check the header of the sample data file to see if the sample data qc headers are present
+     */
+    private static boolean qcAdded(Project proj) {
+        boolean added = true;
+        // String[] header = Files.getHeaderOfFile(proj.getFilename(proj.SAMPLE_DATA_FILENAME), proj.getLog());
+        String[] header = Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), proj.getLog());
+        int[] indices = ext.indexFactors(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, header, true, proj.getLog(), false, false);
+        for (int i = 0; i < indices.length; i++) {
+            if (indices[i] < 0) {
+                added = false;
+            }
+        }
+        return added;
+    }
+	
+	/**
+     * @param proj
+     *            current project
+     * @param outputBase
+     * @param markersForABCallRate
+     * @param markersForEverythingElse
+     * @param numThreads
+     *            threads for LRR_SD
+     * @param sampleCallRateFilter
+     *            filter samples by this call rate (LRR_SD filter is set in project)
+     * @param computeQC
+     * @param useFile
+     *            a further filter of samples that will be used
+     * @param log
+     */
+    public static int[] filterSamples(Project proj, String outputBase, String markersForABCallRate, String markersForEverythingElse, int numThreads, String sampleCallRateFilter, String useFile) {
+        Hashtable<String, String> sampDataQC = new Hashtable<String, String>();
+        int[] indices;
+        String[] line;
+        int numPassing, count;
+        Logger log = proj.getLog();
+        String delim = "\t";
+
+        SampleData sampleData = proj.getSampleData(0, false);
+        // double lrrSdFilter = Double.parseDouble(proj.getProperty(proj.LRRSD_CUTOFF));
+        double lrrSdFilter = proj.LRRSD_CUTOFF.getValue();
+        double callRateFilter = Double.parseDouble(sampleCallRateFilter);
+        boolean addToSampleData = checkSampleData(proj, sampleData);
+        Hashtable<String, String> subset = checkSubset(useFile, log);
+
+        if (Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+            log.report("The sample qc file " + proj.SAMPLE_QC_FILENAME.getValue() + " already exists");
+            log.report("Skipping qc computation, filtering on existing qc file " + proj.SAMPLE_QC_FILENAME.getValue());
+        } else {
+            log.report("Computing sample QC for all samples...");
+            log.report("Will be reporting sample qc to " + proj.SAMPLE_QC_FILENAME.getValue());
+            cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, null, numThreads);
+            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+        }
+
+        count = 0;
+        numPassing = 0;
+        try {
+            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+            BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
+            PrintWriter writerUse = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + MitoPipeline.PCA_SAMPLES));
+            PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + MitoPipeline.PCA_SAMPLES_SUMMARY));
+
+            writerSummary.println(Array.toStr(MitoPipeline.SAMPLE_QC_SUMMARY));
+            if (!reader.ready()) {
+                writerUse.close();
+                writerSummary.close();
+                reader.close();
+                log.reportError("Error - QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") was empty");
+                return new int[] { numPassing, count };
+            }
+            line = reader.readLine().trim().split(delim);
+            indices = ext.indexFactors(MitoPipeline.QC_COLUMNS, line, true, log, true, false);
+
+            if (!checkIndices(proj, indices)) {
+                writerUse.close();
+                writerSummary.close();
+                reader.close();
+                log.reportError("Error - could not detect proper header in QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ")");
+                return null;
+            }
+
+            while (reader.ready()) {
+                line = reader.readLine().trim().split(delim);
+                // skip any headers as a result of concatenating the qc results
+                if (!line[indices[0]].equals(MitoPipeline.QC_COLUMNS[0])) {
+                    // if passes qc
+                    if (Double.parseDouble(line[indices[1]]) < lrrSdFilter && Double.parseDouble(line[indices[2]]) > callRateFilter) {
+                        sampDataQC.put(line[indices[0]], line[indices[1]] + "\t" + line[indices[2]] + "\t" + "0");
+                        // check the subset
+                        if (subset.size() == 0 || subset.containsKey(line[indices[0]])) {
+                            writerUse.println(line[indices[0]]);
+                            writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t" + line[indices[2]] + "\t" + "TRUE");
+                            numPassing++;
+                        } else {
+                            // sampDataQC.put(line[indices[0]], line[indices[1]] + "\t" + line[indices[2]] + "\t" + "1");
+                            writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t" + line[indices[2]] + "\t" + "FALSE");
+                        }
+                    } else {
+                        sampDataQC.put(line[indices[0]], line[indices[1]] + "\t" + line[indices[2]] + "\t" + "1");
+                        writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t" + line[indices[2]] + "\t" + "FALSE");
+                    }
+                    count++;
+                }
+            }
+
+            reader.close();
+            writerUse.close();
+            writerSummary.close();
+
+            if (numPassing == 0) {
+                log.reportError("Error - all Samples were filtered out by the QC step");
+                log.reportError("If there are a large number of cnv-only probes on the array, try lowering the call rate threshold for samples or use the \"-markerQC\" option to only select markers with high quality call rates");
+                return new int[] { numPassing, count };
+            }
+            log.report("Info - " + numPassing + " " + (numPassing == 1 ? "sample" : "samples") + " passed the QC threshold" + (subset.size() > 0 ? " and were present in the subset file " + useFile : ""));
+        } catch (FileNotFoundException fnfe) {
+            log.reportError("Error: file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\" not found in current directory");
+        } catch (IOException ioe) {
+            log.reportError("Error reading file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\"");
+        }
+
+        if (addToSampleData) {
+            sampleData.addData(sampDataQC, MitoPipeline.DNA_LINKER, MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, ext.MISSING_VALUES[1], delim, log);
+        }
+        return new int[] { numPassing, count };
+    }
+	
 	private static boolean[] getMarkerSubset(Project proj, String[] subMarkers) {
 		String[] markers = proj.getMarkerNames();
 		boolean[] markerSubset = new boolean[markers.length];
@@ -409,6 +605,9 @@ public class LrrSd extends Parallelizable {
 		String markersForEverythingElseFile = null;
 		int numThreads = 1;
 		Project proj;
+		boolean filter = false;
+		String sampleCallRateFilter = "0.95";
+		String outputBase = null;
 
 		String usage = "\n"+
 		"cnv.qc.LrrSd requires 0-6 arguments\n"+
@@ -444,6 +643,15 @@ public class LrrSd extends Parallelizable {
 			} else if (args[i].startsWith("threads=")) {
 				numThreads = Integer.parseInt(args[i].split("=")[1]);
 				numArgs--;
+			} else if (args[i].startsWith("-filter")) {
+			    filter = true;
+			    numArgs--;
+			} else if (args[i].startsWith("outBase=")) {
+			    outputBase = args[i].split("=")[1];
+			    numArgs--;
+			} else if (args[i].startsWith("callRate=")) {
+			    sampleCallRateFilter = args[i].split("=")[1];
+			    numArgs--;
 			}
 		}
 		if (numArgs!=0) {
@@ -453,9 +661,12 @@ public class LrrSd extends Parallelizable {
 		try {
 //			filename = "/home/npankrat/projects/GEDI.properties";
 //			filenameOfListOfSamples = "D:/data/GEDI/plate51.txt";			
-//			
-			proj = new Project(filename, false);
-			init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile, centroids, numThreads);
+		    proj = new Project(filename, false);
+			if (filter) {
+			    filterSamples(proj, outputBase, markersForCallrateFile, markersForEverythingElseFile, numThreads, sampleCallRateFilter, filenameOfListOfSamples);
+			} else {
+			    init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile, centroids, numThreads);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
