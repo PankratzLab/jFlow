@@ -1045,14 +1045,17 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		    public void focusLost(FocusEvent e) {
 		        super.focusLost(e);
 		        String newComment = commentField.getText();
-		        String[] regionDetails = regions[regionIndex];
-		        if (regionDetails.length >= 3) {
-		            regionDetails[2] = newComment;
-		        } else {
-		            regionDetails = Array.addStrToArray(newComment, regionDetails);
+		        if (regions != null && regions.length > 0 && regionFileName != null) {
+		            String[] regionDetails = regions[regionIndex];
+    		        if (regionDetails.length >= 3) {
+    		            regionDetails[2] = newComment;
+    		        } else {
+    		            regionDetails = Array.addStrToArray(newComment, regionDetails);
+    		        }
+    		        regions[regionIndex] = regionDetails;
+    		        commentLabel.setText(regions[regionIndex][2].equals("") ? "" : "region #"+(regionIndex+1)+":  "+ regions[regionIndex][2]);
+    		        Files.writeMatrix(regions, regionFileName, "\t");
 		        }
-		        regions[regionIndex] = regionDetails;
-		        commentLabel.setText("region #"+(regionIndex+1)+":  "+ regions[regionIndex][2]);
 		        commentLabel.setVisible(true);
 		        commentField.setVisible(false);
 		    }

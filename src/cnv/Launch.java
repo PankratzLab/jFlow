@@ -55,15 +55,15 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String TALLY_WITHOUT_DETERMINING_DROPS = "Tally without determining dropped markers (much faster)";
 	public static final String TALLY_CLUSTER_FILTERS = "Tally all reclustered markers";
 	
-	public static final String SCATTER = "Scatter module";
-	public static final String QQ = "QQ module";
-	public static final String STRAT = "Stratify module";
-	public static final String MOSAIC_PLOT = "Mosaic plot module";
-	public static final String SEX_PLOT = "Sex module";
-	public static final String TRAILER = "Trailer module";
+	public static final String SCATTER = "Scatter Plot";
+	public static final String QQ = "QQ Plot";
+	public static final String STRAT = "Stratify Plot";
+	public static final String MOSAIC_PLOT = "Mosaic Pot";
+	public static final String SEX_PLOT = "Sex Plot";
+	public static final String TRAILER = "Trailer Plot";
 	public static final String TWOD = "2D Plot";
 	public static final String LINE_PLOT = "Line Plot";
-	public static final String COMP = "Comp module";
+	public static final String COMP = "Comp Plot";
 	public static final String FOREST_PLOT = "Forest Plot";
 
 	public static final String GENERATE_ABLOOKUP = "Generate AB Lookup";

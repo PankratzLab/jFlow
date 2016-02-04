@@ -60,6 +60,7 @@ import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -437,7 +438,13 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		viewPanel.add(colorKeyPanel, BorderLayout.SOUTH);
 		
 		getContentPane().add(viewPanel, BorderLayout.CENTER);
-		getContentPane().add(eastPanel(), BorderLayout.EAST);
+		JScrollPane eastScroll = new JScrollPane();
+		JPanel eastPanel = eastPanel();
+		eastScroll.setBorder(null);
+		eastScroll.setViewportView(eastPanel);
+		eastScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		eastScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		getContentPane().add(eastScroll, BorderLayout.EAST);
 
 		for (int i = 0; i < scatterPanels.length; i++) {
 			scatterPanels[i].setPointsGeneratable(true);
