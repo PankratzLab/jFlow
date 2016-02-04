@@ -311,6 +311,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			String root = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged";
 			String outMergeVCF = root + ".vcf.gz";
 			String outMergeRenameVCF = root + ".renamed.vcf.gz";
+			// String outMergeRenameAnnoVCF = root + ".renamed.anno.vcf.gz";
 
 			if (!Files.exists(outMergeVCF)) {
 				gatk.mergeVCFs(Array.toStringArray(finalTNVCfs), outMergeVCF, numThreads, false, log);
@@ -319,6 +320,8 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			if (!Files.exists(outMergeRenameVCF)) {
 				VCFTumorNormalOps.renameMergeVCF(outMergeVCF, outMergeRenameVCF);
 			}
+			log.reportTimeWarning("Attempting to annotate using default locations...");
+			GATK_Genotyper.annotateOnlyWithDefualtLocations(outMergeRenameVCF, true, false, log);
 		}
 		return results.toArray(new MutectTumorNormal[results.size()]);
 	}
