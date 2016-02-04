@@ -15,7 +15,6 @@ import javax.jms.IllegalStateException;
 
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import stats.Rscript;
 import stats.Rscript.RScatter;
 import stats.Rscript.SCATTER_TYPE;
 import common.Array;
@@ -75,8 +74,6 @@ public class SummarizeOSTrioCoverage {
 		}
 		// }
 
-		ArrayList<RScatter> rsArrayList = new ArrayList<RScatter>();
-
 		// String scripA = outputFinal + ".avgC.rscript";
 		// String plotA = ext.removeDirectoryInfo(scripA);
 		// String outA = outputFinal + ".avgC.jpeg";
@@ -99,14 +96,28 @@ public class SummarizeOSTrioCoverage {
 		String scripAINMIN = outputFinal + ".avgCIMin.rscript";
 		String plotAInMIN = ext.removeDirectoryInfo(scripAINMIN);
 		String outAINMIN = outputFinal + ".avgCIMin.jpeg";
-		RScatter rscatterAvgINMIN = new RScatter(outputFinal, scripAINMIN, plotAInMIN, outAINMIN, "MIN_AVG_COVERAGE", new String[] { "INTERSECT_ProportionCoveredAt5X", "INTERSECT_ProportionCoveredAt10X", "INTERSECT_ProportionCoveredAt20X", "INTERSECT_ProportionCoveredAt30X" }, null, SCATTER_TYPE.POINT, log);
-		rscatterAvgINMIN.setrSafeAltYColumnNames(new String[] { "5X Coverage", "10X Coverage", "20X Coverage", "30X Coverage" });
+		RScatter rscatterAvgINMIN = new RScatter(outputFinal, scripAINMIN, plotAInMIN, outAINMIN, "MIN_AVG_COVERAGE", new String[] { "INTERSECT_ProportionCoveredAt5X", "INTERSECT_ProportionCoveredAt10X", "INTERSECT_ProportionCoveredAt20X", "INTERSECT_ProportionCoveredAt30X", "INTERSECT_ProportionCoveredAt40X" }, null, SCATTER_TYPE.POINT, log);
+		rscatterAvgINMIN.setrSafeAltYColumnNames(new String[] { "5X Coverage", "10X Coverage", "20X Coverage", "30X Coverage", "40X Coverage" });
 		rscatterAvgINMIN.setOverWriteExisting(true);
-		rscatterAvgINMIN.setxLabel("Minimum average coverage of trio");
+		rscatterAvgINMIN.setxLabel("Minimum average coverage of trio (n=" + Files.countLines(outputFinal, 1) + ")");
 		rscatterAvgINMIN.setyLabel("Proportion of targets covered in all members of trio");
 		rscatterAvgINMIN.setyRange(new double[] { 0, 1 });
+		rscatterAvgINMIN.setxRange(new double[] { 15, 55 });
+
 		rscatterAvgINMIN.setFontsize(10);
 		rscatterAvgINMIN.execute();
+
+		String scripBOX = outputFinal + ".avgCIMinbox.rscript";
+		String plotABOX = ext.removeDirectoryInfo(scripBOX);
+		String outAINBOX = outputFinal + ".avgCIMinbox.jpeg";
+		RScatter rscatterAvgBOX = new RScatter(outputFinal, scripBOX, plotABOX, outAINBOX, "MIN_AVG_COVERAGE", new String[] { "INTERSECT_ProportionCoveredAt5X", "INTERSECT_ProportionCoveredAt10X", "INTERSECT_ProportionCoveredAt20X", "INTERSECT_ProportionCoveredAt30X", "INTERSECT_ProportionCoveredAt40X" }, null, SCATTER_TYPE.BOX_NO_MELT, log);
+		rscatterAvgBOX.setrSafeAltYColumnNames(new String[] { "5X Coverage", "10X Coverage", "20X Coverage", "30X Coverage", "40X Coverage" });
+		rscatterAvgBOX.setOverWriteExisting(true);
+		rscatterAvgBOX.setxLabel("Minimum average coverage of trio (n=" + Files.countLines(outputFinal, 1) + ")");
+		rscatterAvgBOX.setyLabel("Proportion of targets covered in all members of trio");
+		rscatterAvgBOX.setyRange(new double[] { 0, 1 });
+		rscatterAvgBOX.setFontsize(10);
+		rscatterAvgBOX.execute();
 
 		// RScatters rsScatters = new RScatters(rsArrayList.toArray(new RScatter[rsArrayList.size()]), outputFinal + ".rscript", outputFinal + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
 		// rsScatters.execute();
@@ -173,9 +184,9 @@ public class SummarizeOSTrioCoverage {
 			return famCoverageResults;
 		}
 
-		public void setFamCoverageResults(FamCoverageResults famCoverageResults) {
-			this.famCoverageResults = famCoverageResults;
-		}
+		// public void setFamCoverageResults(FamCoverageResults famCoverageResults) {
+		// this.famCoverageResults = famCoverageResults;
+		// }
 
 		@Override
 		public FamSum call() throws Exception {
@@ -191,7 +202,7 @@ public class SummarizeOSTrioCoverage {
 	}
 
 	private static class FamCoverageResults {
-		private String covFile;
+		// private String covFile;
 		private String fam;
 		private String off;
 		private String mo;
@@ -201,7 +212,7 @@ public class SummarizeOSTrioCoverage {
 		private int[] numCoveredAtMo;
 		private int[] numCoveredAtFa;
 		private int[] numCoveredAtIntersect;
-		private int[] coverageTargets;
+		// private int[] coverageTargets;
 		private double[] totalAvgCoverage;
 
 		public FamCoverageResults(String covFile, String fam, String off, String mo, String fa, int numTotalRegions, int[] numCoveredAtOff, int[] numCoveredAtMo, int[] numCoveredAtFa, int[] numCoveredAtIntersect, int[] coverageTargets, double[] totalAvgCoverage) {
@@ -215,7 +226,7 @@ public class SummarizeOSTrioCoverage {
 			this.numCoveredAtMo = numCoveredAtMo;
 			this.numCoveredAtFa = numCoveredAtFa;
 			this.numCoveredAtIntersect = numCoveredAtIntersect;
-			this.coverageTargets = coverageTargets;
+			// this.coverageTargets = coverageTargets;
 			this.totalAvgCoverage = totalAvgCoverage;
 		}
 
