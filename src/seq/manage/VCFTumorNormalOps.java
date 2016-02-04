@@ -53,7 +53,7 @@ public class VCFTumorNormalOps {
 		if (VCFOps.getSamplesInFile(vcf).length != 2) {
 			throw new IllegalArgumentException("This method is only designed for tumor normal renaming");
 		}
-		VCFFileReader reader = new VCFFileReader(output, false);
+		VCFFileReader reader = new VCFFileReader(vcf, false);
 		VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 		VariantContextWriter writerFiltered = VCFOps.initWriter(outputFiltered, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 
