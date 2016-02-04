@@ -437,6 +437,10 @@ public class GATK_Genotyper {
 		}
 	}
 
+	public static String annotateOnlyWithDefualtLocations(String vcf, boolean verbose, boolean overwriteExisting, Logger log) {
+		return annotateOnly(vcf, AnnotationDefaults.GATK_LOC, AnnotationDefaults.REF, null, null, null, null, null, null, AnnotationDefaults.SNP_EFF, null, AnnotationDefaults.ANNOVAR, SNPEFF.BUILDS[0], verbose, overwriteExisting, log);
+	}
+
 	public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta, String fileOfGVCFs, String hapMapTraining, String omniTraining, String thousandGTraining, String dbSnpTraining, String millsIndelTraining, String snpEffLocation, String snpSiftLocation, String annovarLocation, String annoBuild, boolean verbose, boolean overwriteExisting, Logger log) {
 		String snpSiftLoc = snpSiftLocation;
 		if (snpSiftLoc == null || snpSiftLoc.equals(PSF.Ext.BLANK)) {
