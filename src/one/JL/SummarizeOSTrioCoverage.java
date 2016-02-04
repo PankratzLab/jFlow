@@ -21,17 +21,21 @@ public class SummarizeOSTrioCoverage {
 			Logger log) throws IllegalStateException {
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY,
 				log);
-
+		vpop.report();
 		String[] files = Files.listFullPaths(indir,
 				".sorted.dedup.realigned.recal.txt", false);
+		log.reportTimeInfo("Found " + files.length + " files to summarize");
 		Hashtable<String, String> map = new Hashtable<String, String>();
 		for (int i = 0; i < files.length; i++) {
-			map.put(files[i].split("_")[0], files[i]);
+			String key = ext.removeDirectoryInfo(files[i]).split("_")[0];
+			map.put(key, files[i]);
+			System.out.println(key);
+
 		}
 		ArrayList<String> famsNotFound = new ArrayList<String>();
 		for (String fam : vpop.getSubPop().keySet()) {
-																		// mo,
-																		// fa
+			// mo,
+			// fa
 			Set<String> famInds = vpop.getSubPop().get(fam);
 			String off = null;
 			String offFile = null;
@@ -50,6 +54,8 @@ public class SummarizeOSTrioCoverage {
 					if (map.containsKey(off)) {
 						offFile = map.get(off);
 						useFam = true;
+					} else {
+						log.reportTimeInfo("No file for ind " + ind);
 					}
 				}
 
@@ -80,14 +86,12 @@ public class SummarizeOSTrioCoverage {
 
 				String[] tags = new String[] { off, mo, fa };
 				String coverageTrio = outDir + fam + ".covSummary.txt";
-				int col = ext.indexOfStr("AvgCoverage",
+				int col = ext.indexOfStr("averageCoverage",
 						Files.getHeaderOfFile(offFile, log));
 				if (!Files.exists(coverageTrio)) {
 					Files.paste(new String[] { offFile, moFile, faFile },
 							coverageTrio, new int[] { col }, 0, tags, null, log);
 				}
-				
-				
 
 			}
 
@@ -96,7 +100,16 @@ public class SummarizeOSTrioCoverage {
 	}
 
 	public static void main(String[] args) {
-		// String vpop
+		String vpop = "/panfs/roc/groups/12/spectorl/lanej0/OS_seq/trioCoverage/dn.vpop";
+		String inDir = "/panfs/roc/groups/12/spectorl/lanej0/OS_seq/bamQC/";
+		String outDir = "/panfs/roc/groups/12/spectorl/lanej0/OS_seq/trioCoverage/";
+		Logger log = new Logger(outDir + "tc.log");
+		try {
+			summarize(vpop, inDir, outDir, log);
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
