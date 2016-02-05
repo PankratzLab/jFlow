@@ -16,6 +16,7 @@ import seq.analysis.GATK.MutectTumorNormal;
 import seq.analysis.Mutect2.MUTECT_RUN_TYPES;
 import seq.manage.BamOps;
 import seq.manage.VCFOps;
+import seq.manage.VCOps;
 import seq.manage.VCFOps.HEADER_COPY_TYPE;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
@@ -31,7 +32,8 @@ import common.ext;
  *
  */
 public class DeNovoMatic {
-	public static void run(String vpopFile, String fileOfBams, String outputDir, String ponVcf, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, Logger log) throws IllegalStateException {
+
+	public static void run(String vpopFile, String fileOfBams, String outputDir, String ponVcf, double freqFilter, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, Logger log) throws IllegalStateException {
 		new File(outputDir).mkdirs();
 
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.DENOVO, log);
@@ -49,9 +51,43 @@ public class DeNovoMatic {
 			resultsMerge[i].scanForDenovo();
 			finalFilesToMerge[i] = resultsMerge[i].getPotentialDenovoVcf();
 		}
-		String mergeDenovoOut = outputDir + ext.rootOf(vpopFile) + ".merge.denovo.vcf.gz";
+		String mergeDenovoOut = outputDir + ext.rootOf(vpopFile) + ".merge.denovo.vcf";
 		gatk.mergeVCFs(finalFilesToMerge, mergeDenovoOut, numThreads, false, log);
+		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(mergeDenovoOut, false, false, log);
+		log.reportTimeInfo("Filtering " + annotatedVcf);
+		String annoFreq = VCFOps.getAppropriateRoot(annotatedVcf, false) + ".freq_" + freqFilter + ".func.vcf.gz";
+		filterByFreq(annotatedVcf, annoFreq, freqFilter, log);
+		log.reportTimeInfo("FIN");
 
+	}
+
+	private static void filterByFreq(String invcf, String outVcf, double freq, Logger log) {
+		VCFFileReader reader = new VCFFileReader(invcf, true);
+		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, outVcf, VCFOps.DEFUALT_WRITER_OPTIONS, log);
+		int total = 0;
+		int pass = 0;
+		for (VariantContext vc : reader) {
+			total++;
+			if (!vc.hasAttribute("PopFreqMax")) {
+				throw new IllegalArgumentException("Method expects PopFreqMax annotations for all variants");
+			}
+			String f = vc.getAttributeAsString("PopFreqMax", "-1");
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException ie) {
+			}
+			if (f.equals(".")) {
+				f = "-1";
+			}
+			System.out.println(f + "\t" + VCOps.getSNP_EFFImpact(vc));
+
+			double freqVc = Double.parseDouble(f);
+			if (freqVc < freq && VCOps.isHighModLowSNP_EFFImpact(vc)) {
+				writer.add(vc);
+				pass++;
+			}
+		}
+		log.reportTimeInfo("Scanned " + total + " variants and " + pass + " passed freq threshold of " + freq);
 	}
 
 	private static class MergeFamResult {
@@ -83,23 +119,25 @@ public class DeNovoMatic {
 		}
 
 		private void scanForDenovo() {
-			VCFFileReader reader = new VCFFileReader(mergedVCF, true);
-			VariantContextWriter writer = VCFOps.initWriter(potentialDenovoVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
-			VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
-			int numPossible = 0;
-			int numTotal = 0;
-			for (VariantContext vc : reader) {
-				numTotal++;
-				if (vc.getAttribute("set", ".").equals("Intersection")) {// called somatic in both files
-					writer.add(vc);
-					numPossible++;
+			if (!VCFOps.existsWithIndex(potentialDenovoVcf)) {
+				VCFFileReader reader = new VCFFileReader(mergedVCF, true);
+				VariantContextWriter writer = VCFOps.initWriter(potentialDenovoVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
+				VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
+				int numPossible = 0;
+				int numTotal = 0;
+				for (VariantContext vc : reader) {
+					numTotal++;
+					if (vc.getAttribute("set", ".").equals("Intersection")) {// called somatic in both files
+						writer.add(vc);
+						numPossible++;
+					}
+					if (numTotal % 1000 == 0) {
+						log.reportTimeInfo("Detected " + numPossible + " possible denovos after scanning " + numTotal);
+					}
 				}
-				if (numTotal % 1000 == 0) {
-					log.reportTimeInfo("Detected " + numPossible + " possible denovos after scanning " + numTotal);
-				}
+				reader.close();
+				writer.close();
 			}
-			reader.close();
-			writer.close();
 		}
 	}
 
@@ -118,8 +156,6 @@ public class DeNovoMatic {
 			}
 			boolean found = false;
 			for (int j = 0; j < inds.length; j++) {
-				System.out.println(inds[j]);
-
 				String fam = vpop.getPopulationForInd(inds[j], RETRIEVE_TYPE.SUB)[0];
 				if (vpop.getPopulationForInd(inds[j], RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.OFFSPRING)) {
 					if (!offSpringMatch.containsKey(fam)) {
@@ -147,8 +183,8 @@ public class DeNovoMatic {
 			if (vcfsToMerge.length != 2) {
 				throw new IllegalArgumentException("Internal error, need to merge two vcfs");
 			}
-			if(!Files.exists(outputMerge))
-			gatk.mergeVCFs(vcfsToMerge, outputMerge, numThreads, false, log);
+			if (!Files.exists(outputMerge))
+				gatk.mergeVCFs(vcfsToMerge, outputMerge, numThreads, false, log);
 			String[] famMembers = vpop.getOffP1P2ForFam(fam);
 			MergeFamResult mergeFamResult = new MergeFamResult(famResults, outputMerge, famMembers[0], famMembers[1], famMembers[2], log);
 			mergeResults.add(mergeFamResult);
@@ -209,6 +245,7 @@ public class DeNovoMatic {
 		String outputDir = "mutect/";
 		String vpopFile = null;
 		String fileOfBams = null;
+		double freqFilter = .01;
 
 		String usage = "\n" + "seq.analysis.DeNovoMatic requires 0-1 arguments\n";
 		usage += "   (2) full path to a reference genome (i.e. ref=" + referenceGenomeFasta + " (default))\n" + "";
@@ -273,7 +310,7 @@ public class DeNovoMatic {
 		Logger log = new Logger(outputDir + "TN.log");
 		GATK gatk = new GATK(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic, true, false, true, log);
 		try {
-			run(vpopFile, fileOfBams, outputDir, ponVCF, gatk, MUTECT_RUN_TYPES.CALL_SOMATIC, numthreads, numSampleThreads, log);
+			run(vpopFile, fileOfBams, outputDir, ponVCF, freqFilter, gatk, MUTECT_RUN_TYPES.CALL_SOMATIC, numthreads, numSampleThreads, log);
 		} catch (IllegalStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

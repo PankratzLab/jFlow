@@ -111,10 +111,8 @@ public class GATK_Genotyper {
 					}
 					log.reportTimeInfo("Since Annovar uses invalid char sequence for 1000g2014oct_* and 1000g2015aug_* (starts with number), replacing with g10002014oct_* or g10002015aug_*");
 					log.reportTimeInfo("Note this is a hard-coded sed, so...");
-
-					in = sed1000g(in, log);
-					out = in;
-					VCFOps.gzipAndIndex(in, log);
+					in = sed1000g(out, log);
+					out = VCFOps.gzipAndIndex(in, log);
 					// SnpSiftResult ssr = snpsift.annotateDbnsfp(in, log);
 					// out = ssr.getOutputVCF();
 				}
