@@ -518,6 +518,10 @@ public class GATK {
 		command.add(regionsFile);
 		command.add(O);
 		command.add(outputVCF);
+		if (!Files.exists(outputVCF)) {
+			System.out.println(outputVCF);
+			System.exit(1);
+		}
 		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
 
 		MutectTumorNormal mutectTumorNormal = new MutectTumorNormal(normalBam, tumorBam, outputVCF, !progress);
@@ -839,7 +843,7 @@ public class GATK {
 			index++;
 		}
 		command = Array.concatAll(command, inputArgVCF);
-		return CmdLine.runCommandWithFileChecks(command, "", vcfs, new String[] { output }, verbose, overWriteExistingOutput, skipReporting, log);
+		return CmdLine.runCommandWithFileChecks(command, "", vcfs, new String[] { output, output.endsWith(".gz") ? output + VCF_GZ_INDEX : output + VCF_INDEX }, verbose, overWriteExistingOutput, skipReporting, log);
 	}
 
 	private static String[] buildAns(boolean SNP) {

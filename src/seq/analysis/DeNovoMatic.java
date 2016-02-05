@@ -1,7 +1,12 @@
 package seq.analysis;
 
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import htsjdk.variant.vcf.VCFFileReader;
+
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -11,6 +16,7 @@ import seq.analysis.GATK.MutectTumorNormal;
 import seq.analysis.Mutect2.MUTECT_RUN_TYPES;
 import seq.manage.BamOps;
 import seq.manage.VCFOps;
+import seq.manage.VCFOps.HEADER_COPY_TYPE;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
@@ -31,38 +37,123 @@ public class DeNovoMatic {
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.DENOVO, log);
 		vpop.report();
 		String matchFile = outputDir + ext.rootOf(vpopFile) + ".matchedbams.txt";
-		if (!Files.exists(matchFile)) {
+		if (!Files.exists(matchFile) || Files.countLines(matchFile, 0) != vpop.getSuperPop().get(VcfPopulation.OFFSPRING).size() * 2) {
 			prepareMatchedBamFile(vpop, fileOfBams, matchFile, log);
 		}
 
-		String callDir = outputDir + "mutect2Calls/";
-		new File(callDir).mkdirs();
 		// Mutect2.run(null, matchFile, callDir, ponVcf, gatk, type, numThreads, numSampleThreads, log);
 		MutectTumorNormal[] results = Mutect2.callSomatic(matchFile, outputDir, ponVcf, gatk, numThreads, numSampleThreads, false, log);
-		buildResultsToFamily(vpop, results, log);
+		MergeFamResult[] resultsMerge = combineResultsForFamilies(gatk, vpop, results, outputDir, numThreads, log);
+		String[] finalFilesToMerge = new String[resultsMerge.length];
+		for (int i = 0; i < resultsMerge.length; i++) {
+			resultsMerge[i].scanForDenovo();
+			finalFilesToMerge[i] = resultsMerge[i].getPotentialDenovoVcf();
+		}
+		String mergeDenovoOut = outputDir + ext.rootOf(vpopFile) + ".merge.denovo.vcf.gz";
+		gatk.mergeVCFs(finalFilesToMerge, mergeDenovoOut, numThreads, false, log);
+
 	}
 
-	private static void buildResultsToFamily(VcfPopulation vpop, MutectTumorNormal[] results, Logger log) {
-		Hashtable<String, String> offSpringMatch = new Hashtable<String, String>();
+	private static class MergeFamResult {
+		private MutectTumorNormal[] famResults;
+		private String mergedVCF;
+		private String potentialDenovoVcf;
+		private String off;
+		private HashSet<String> offCombo;
+		private String p1;
+		private String p2;
+		private Logger log;
+
+		public MergeFamResult(MutectTumorNormal[] famResults, String mergedVCF, String off, String p1, String p2, Logger log) {
+			super();
+			this.famResults = famResults;
+			this.mergedVCF = mergedVCF;
+			this.potentialDenovoVcf = VCFOps.getAppropriateRoot(mergedVCF, false) + ".denovo.vcf.gz";
+			this.off = off;
+			this.offCombo = new HashSet<String>();
+			offCombo.add(off + ".variant");
+			offCombo.add(off + ".variant2");
+			this.p1 = p1;
+			this.p2 = p2;
+			this.log = log;
+		}
+
+		public String getPotentialDenovoVcf() {
+			return potentialDenovoVcf;
+		}
+
+		private void scanForDenovo() {
+			VCFFileReader reader = new VCFFileReader(mergedVCF, true);
+			VariantContextWriter writer = VCFOps.initWriter(potentialDenovoVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
+			VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
+			int numPossible = 0;
+			int numTotal = 0;
+			for (VariantContext vc : reader) {
+				numTotal++;
+				if (vc.getAttribute("set", ".").equals("Intersection")) {// called somatic in both files
+					writer.add(vc);
+					numPossible++;
+				}
+				if (numTotal % 1000 == 0) {
+					log.reportTimeInfo("Detected " + numPossible + " possible denovos after scanning " + numTotal);
+				}
+			}
+			reader.close();
+			writer.close();
+		}
+	}
+
+	private static MergeFamResult[] combineResultsForFamilies(GATK gatk, VcfPopulation vpop, MutectTumorNormal[] results, String outputDir, int numThreads, Logger log) {
+		Hashtable<String, ArrayList<MutectTumorNormal>> offSpringMatch = new Hashtable<String, ArrayList<MutectTumorNormal>>();
 		if (results.length % 2 != 0) {
 			throw new IllegalArgumentException("Expecting even number of results");
 
 		}
+		ArrayList<MergeFamResult> mergeResults = new ArrayList<MergeFamResult>();
 		for (int i = 0; i < results.length; i++) {
+			String currentVCF = results[i].getReNamedFilteredVCF();
 			String[] inds = VCFOps.getSamplesInFile(results[i].getReNamedFilteredVCF());
 			if (inds.length != 2) {
-				throw new IllegalArgumentException("Expecting two samples per vcf, found " + inds.length + " in " + results[i].getReNamedFilteredVCF());
+				throw new IllegalArgumentException("Expecting two samples per vcf, found " + inds.length + " in " + currentVCF);
 			}
+			boolean found = false;
 			for (int j = 0; j < inds.length; j++) {
-				// if(vpop.getPopulationForInd(inds[i], type))
-			}
+				System.out.println(inds[j]);
 
+				String fam = vpop.getPopulationForInd(inds[j], RETRIEVE_TYPE.SUB)[0];
+				if (vpop.getPopulationForInd(inds[j], RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.OFFSPRING)) {
+					if (!offSpringMatch.containsKey(fam)) {
+						offSpringMatch.put(fam, new ArrayList<MutectTumorNormal>());
+					}
+					found = true;
+					offSpringMatch.get(fam).add(results[i]);
+				}
+			}
+			if (!found) {
+				throw new IllegalArgumentException("Could not find matching entries for " + currentVCF);
+			}
 		}
 
 		for (String fam : vpop.getSubPop().keySet()) {
-			log.reportTimeInfo("Detecting denovo variants for " + fam);
+			String outputMerge = outputDir + fam + ".merge.vcf.gz";
+			log.reportTimeInfo("Combining variants for " + fam + " to " + outputMerge);
+			MutectTumorNormal[] famResults = offSpringMatch.get(fam).toArray(new MutectTumorNormal[offSpringMatch.get(fam).size()]);
 
+			ArrayList<String> toMerge = new ArrayList<String>();
+			for (int i = 0; i < famResults.length; i++) {
+				toMerge.add(famResults[i].getReNamedFilteredVCF());
+			}
+			String[] vcfsToMerge = Array.toStringArray(toMerge);
+			if (vcfsToMerge.length != 2) {
+				throw new IllegalArgumentException("Internal error, need to merge two vcfs");
+			}
+			if(!Files.exists(outputMerge))
+			gatk.mergeVCFs(vcfsToMerge, outputMerge, numThreads, false, log);
+			String[] famMembers = vpop.getOffP1P2ForFam(fam);
+			MergeFamResult mergeFamResult = new MergeFamResult(famResults, outputMerge, famMembers[0], famMembers[1], famMembers[2], log);
+			mergeResults.add(mergeFamResult);
 		}
+		return mergeResults.toArray(new MergeFamResult[mergeResults.size()]);
 	}
 
 	private static void prepareMatchedBamFile(VcfPopulation vpop, String fileOfBams, String output, Logger log) {
@@ -81,7 +172,8 @@ public class DeNovoMatic {
 			String p1 = null;
 			String p2 = null;
 			for (String ind : fam) {
-				String key = ind.replaceAll(".variant.*", "");
+				// String key = ind.replaceAll(".variant.*", "");
+				String key = ind;
 				if (vpop.getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.OFFSPRING)) {
 					off = match.get(key);
 				} else if (vpop.getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.PARENTS)) {
