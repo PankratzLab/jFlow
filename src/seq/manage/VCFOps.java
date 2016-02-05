@@ -641,6 +641,32 @@ public class VCFOps {
 			return log;
 		}
 
+		public String[] getOffP1P2ForFam(String fam) {
+			if (type != POPULATION_TYPE.DENOVO) {
+				throw new IllegalArgumentException("Method can only be used for denovo");
+			}
+			if (!subPop.containsKey(fam) || subPop.get(fam).size() != 3) {
+				throw new IllegalArgumentException("Invalid fam");
+
+			} else {
+				String off = null;
+				String p1 = null;
+				String p2 = null;
+				for (String ind : subPop.get(fam)) {
+					if (getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0].equals(OFFSPRING)) {
+						off = ind;
+					} else if (getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0].equals(PARENTS)) {
+						if (p1 == null) {
+							p1 = ind;
+						} else {
+							p2 = ind;
+						}
+					}
+				}
+				return new String[] { off, p1, p2 };
+			}
+		}
+
 		public String[] getPopulationForInd(String ind, RETRIEVE_TYPE type) {
 			ArrayList<String> tmp = new ArrayList<String>();
 			Set<String> avail;
