@@ -592,6 +592,9 @@ public class VCFOps {
 		public static final String EXCLUDE = "EXCLUDE";
 		public static final String TUMOR = "TUMOR";
 		public static final String NORMAL = "NORMAL";
+		public static final String OFFSPRING = "OFFSPRING";
+		public static final String PARENTS = "PARENTS";
+
 		public static final String DETERMINE_ANCESTRY = "DETERMINE_ANCESTRY";
 		public static final String[] HEADER = new String[] { "IID", "Population", "SuperPopulation" };
 		private static final String SKIP = "#N/A";
@@ -604,7 +607,7 @@ public class VCFOps {
 		private Logger log;
 
 		public enum POPULATION_TYPE {
-			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH, PC_ANCESTRY, ANCHOR_BARNACLE, TUMOR_NORMAL;
+			CASE_CONTROL, ANY, STRATIFICATION, EXOME_DEPTH, PC_ANCESTRY, ANCHOR_BARNACLE, TUMOR_NORMAL, DENOVO;
 		}
 
 		public enum RETRIEVE_TYPE {
@@ -755,6 +758,15 @@ public class VCFOps {
 
 				} else if (!superPop.containsKey(TUMOR) || !superPop.containsKey(NORMAL)) {
 					throw new IllegalArgumentException(POPULATION_TYPE.TUMOR_NORMAL + " must only contain " + TUMOR + " and " + NORMAL);
+				}
+				break;
+
+			case DENOVO:
+				if (superPop.size() != 3) {
+					throw new IllegalArgumentException(POPULATION_TYPE.DENOVO + " must have two and found " + superPop.keySet());
+
+				} else if (!superPop.containsKey(OFFSPRING) || !superPop.containsKey(PARENTS)) {
+					throw new IllegalArgumentException(POPULATION_TYPE.DENOVO + " must only contain " + OFFSPRING + " and " + PARENTS);
 				}
 				break;
 			default:

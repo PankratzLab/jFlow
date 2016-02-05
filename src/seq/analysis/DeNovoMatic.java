@@ -10,6 +10,7 @@ import javax.jms.IllegalStateException;
 import seq.analysis.GATK.MutectTumorNormal;
 import seq.analysis.Mutect2.MUTECT_RUN_TYPES;
 import seq.manage.BamOps;
+import seq.manage.VCFOps;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
@@ -26,10 +27,9 @@ import common.ext;
 public class DeNovoMatic {
 	public static void run(String vpopFile, String fileOfBams, String outputDir, String ponVcf, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, Logger log) throws IllegalStateException {
 		new File(outputDir).mkdirs();
-		
-		
-		
-		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
+
+		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.DENOVO, log);
+		vpop.report();
 		String matchFile = outputDir + ext.rootOf(vpopFile) + ".matchedbams.txt";
 		if (!Files.exists(matchFile)) {
 			prepareMatchedBamFile(vpop, fileOfBams, matchFile, log);
@@ -39,7 +39,30 @@ public class DeNovoMatic {
 		new File(callDir).mkdirs();
 		// Mutect2.run(null, matchFile, callDir, ponVcf, gatk, type, numThreads, numSampleThreads, log);
 		MutectTumorNormal[] results = Mutect2.callSomatic(matchFile, outputDir, ponVcf, gatk, numThreads, numSampleThreads, false, log);
-		System.out.println(results.length);
+		buildResultsToFamily(vpop, results, log);
+	}
+
+	private static void buildResultsToFamily(VcfPopulation vpop, MutectTumorNormal[] results, Logger log) {
+		Hashtable<String, String> offSpringMatch = new Hashtable<String, String>();
+		if (results.length % 2 != 0) {
+			throw new IllegalArgumentException("Expecting even number of results");
+
+		}
+		for (int i = 0; i < results.length; i++) {
+			String[] inds = VCFOps.getSamplesInFile(results[i].getReNamedFilteredVCF());
+			if (inds.length != 2) {
+				throw new IllegalArgumentException("Expecting two samples per vcf, found " + inds.length + " in " + results[i].getReNamedFilteredVCF());
+			}
+			for (int j = 0; j < inds.length; j++) {
+				// if(vpop.getPopulationForInd(inds[i], type))
+			}
+
+		}
+
+		for (String fam : vpop.getSubPop().keySet()) {
+			log.reportTimeInfo("Detecting denovo variants for " + fam);
+
+		}
 	}
 
 	private static void prepareMatchedBamFile(VcfPopulation vpop, String fileOfBams, String output, Logger log) {
@@ -59,16 +82,16 @@ public class DeNovoMatic {
 			String p2 = null;
 			for (String ind : fam) {
 				String key = ind.replaceAll(".variant.*", "");
-				if (vpop.getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0].equals("OFFSPRING")) {
+				if (vpop.getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.OFFSPRING)) {
 					off = match.get(key);
-				} else if (vpop.getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0].equals("CONTROL")) {
+				} else if (vpop.getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.PARENTS)) {
 					if (p1 == null) {
 						p1 = match.get(key);
 					} else {
 						p2 = match.get(key);
 					}
 				} else {
-					throw new IllegalArgumentException("Super pop can only be OFFSPRING or CONTROL and found "+vpop.getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0]);
+					throw new IllegalArgumentException("Super pop can only be " + VcfPopulation.OFFSPRING + "  or " + VcfPopulation.OFFSPRING + " and found " + vpop.getPopulationForInd(ind, RETRIEVE_TYPE.SUPER)[0]);
 				}
 			}
 			if (off == null || p1 == null || p2 == null) {

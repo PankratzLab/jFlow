@@ -9,11 +9,13 @@ import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFFormatHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
@@ -60,48 +62,67 @@ public class VCFTumorNormalOps {
 		samps.add(normalSamp);
 		samps.add(tumorSamp);
 		ArrayList<String> attsRemoveVCAddGT = new ArrayList<String>();
-		Set<VCFHeaderLine> newHeaderlines = reader.getFileHeader().getMetaDataInInputOrder();
+		Set<VCFHeaderLine> newHeaderLines = new HashSet<VCFHeaderLine>();
 		Collection<VCFInfoHeaderLine> infos = reader.getFileHeader().getInfoHeaderLines();
 		for (VCFInfoHeaderLine vcfInfoHeaderLine : infos) {
-			if (!vcfInfoHeaderLine.getID().equals("DB")) {// keep dbsnp
-				newHeaderlines.remove(vcfInfoHeaderLine);// remove "variant" level annotations
-				attsRemoveVCAddGT.add(vcfInfoHeaderLine.getID());
-				VCFFormatHeaderLine newFormat = new VCFFormatHeaderLine(vcfInfoHeaderLine.getID(), vcfInfoHeaderLine.getCount(), vcfInfoHeaderLine.getType(), vcfInfoHeaderLine.getDescription());
-				newHeaderlines.add(newFormat);// transfer to genotype level annotations for merging
-			}
-		}
+			if (!vcfInfoHeaderLine.getID().equals("DB") && vcfInfoHeaderLine.getType() != VCFHeaderLineType.Flag) {// keep dbsnp
+				if (!vcfInfoHeaderLine.getID().equals("PON")) {
+					// oldHeaderLine.remove(vcfInfoHeaderLine);// remove "variant" level annotations
+					attsRemoveVCAddGT.add(vcfInfoHeaderLine.getID());
 
-		final VCFHeader outHeader = new VCFHeader(newHeaderlines, samps);
+					VCFFormatHeaderLine newFormat = new VCFFormatHeaderLine(vcfInfoHeaderLine.getID(), vcfInfoHeaderLine.isFixedCount() ? vcfInfoHeaderLine.getCount() : 1, vcfInfoHeaderLine.getType(), vcfInfoHeaderLine.getDescription());
+
+					newHeaderLines.add(newFormat);// transfer to genotype level annotations for merging
+				}
+			}
+			newHeaderLines.add(vcfInfoHeaderLine);
+		}
+		newHeaderLines.addAll(reader.getFileHeader().getFormatHeaderLines());
+		newHeaderLines.addAll(reader.getFileHeader().getOtherHeaderLines());
+		newHeaderLines.addAll(reader.getFileHeader().getContigLines());
+		newHeaderLines.addAll(reader.getFileHeader().getFilterLines());
+		final VCFHeader outHeader = new VCFHeader(newHeaderLines, samps);
 		writer.writeHeader(outHeader);
 		writerFiltered.writeHeader(outHeader);
-		System.exit(1);
+		int index = 0;
+		int pass = 0;
 		for (VariantContext vc : reader) {
-
 			VariantContextBuilder builder = new VariantContextBuilder(vc);
-			builder.rmAttributes(attsRemoveVCAddGT);
+			index++;
+			if (index % 10000 == 0) {
+				log.reportTimeInfo("Parsed " + index + " total variants, " + pass + " variants were PASS");
+			}
 			ArrayList<Genotype> renamed = new ArrayList<Genotype>();
 			Genotype normal = rename(vc.getGenotype(normalDef), normalSamp);
 			Genotype tumor = rename(vc.getGenotype(tumorDef), tumorSamp);
 			tumor = transferFormat(tumor, vc, attsRemoveVCAddGT);
-			renamed.add(normal);
+			Hashtable<String, Object> map = new Hashtable<String, Object>();
+			map.putAll(vc.getAttributes());
+
 			renamed.add(tumor);
+			renamed.add(normal);
 			builder.genotypes(renamed);
-			if (!renamed.get(0).sameGenotype(vc.getGenotype(normalDef))) {
+			if (!renamed.get(0).sameGenotype(vc.getGenotype(tumorDef))) {
 				reader.close();
 				writer.close();
 				writerFiltered.close();
 				throw new IllegalStateException("Improprer rename");
 			}
 			builder.genotypes(renamed);
-			if (!renamed.get(1).sameGenotype(vc.getGenotype(tumorDef))) {
+			if (!renamed.get(1).sameGenotype(vc.getGenotype(normalDef))) {
 				reader.close();
 				writer.close();
 				throw new IllegalStateException("Improprer rename");
 			}
-			VariantContext vcRename = builder.make();
+			for (String key : attsRemoveVCAddGT) {
+				map.remove(key);
+			}
+			builder.attributes(map);
+			VariantContext vcRename = builder.make(true);
 			writer.add(vcRename);
 			if (!vcRename.isFiltered()) {
 				writerFiltered.add(vcRename);
+				pass++;
 			}
 		}
 		log.reportTimeInfo("Re-named and indexed " + vcf + " to " + output);
