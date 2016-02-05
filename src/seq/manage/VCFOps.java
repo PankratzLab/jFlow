@@ -18,6 +18,7 @@ import java.util.concurrent.Callable;
 
 import cnv.var.LocusSet;
 import cnv.var.LocusSet.TO_STRING_TYPE;
+import seq.analysis.GATK;
 import seq.analysis.PlinkSeq;
 import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import seq.analysis.PlinkSeq.LOAD_TYPES;
@@ -146,6 +147,15 @@ public class VCFOps {
 	}
 
 	/**
+	 * Initialize a writer where all the samples will be present in the new vcf
+	 */
+	public static VariantContextWriter initWriterWithHeader(final VCFFileReader in, final String output, final Options[] options, Logger log) {
+		VariantContextWriter writer = initWriter(output, options, in.getFileHeader().getSequenceDictionary());
+		copyHeader(in, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
+		return writer;
+	}
+
+	/**
 	 * @param output
 	 *            the output file to write to
 	 * @param options
@@ -169,6 +179,23 @@ public class VCFOps {
 
 		VariantContextWriter writer = builder.build();
 		return writer;
+	}
+
+	/**
+	 * @param vcf
+	 * @return appropriate index
+	 */
+	public static String getIndex(String vcf) {
+		return vcf.endsWith("gz") ? vcf + GATK.VCF_GZ_INDEX : GATK.VCF_INDEX;
+
+	}
+
+	/**
+	 * @param vcf
+	 * @return whether the vcf and appropriate index exists
+	 */
+	public static boolean existsWithIndex(String vcf) {
+		return Files.exists(vcf) && Files.exists(getIndex(vcf));
 	}
 
 	public enum HEADER_COPY_TYPE {
@@ -572,8 +599,6 @@ public class VCFOps {
 			log.reportFileNotFound(vcf);
 		}
 	}
-
-	
 
 	/**
 	 * Class that manages the population structure represented in a vcf<br>
@@ -1796,7 +1821,7 @@ public class VCFOps {
 	/**
 	 * @return true if the vcf file was gzipped
 	 */
-	public static boolean gzipAndIndex(String vcfFile, Logger log) {
+	public static String gzipAndIndex(String vcfFile, Logger log) {
 		boolean created = false;
 		String vcfFileGz = vcfFile + ".gz";
 
@@ -1816,7 +1841,7 @@ public class VCFOps {
 
 			}
 		}
-		return created;
+		return vcfFileGz;
 	}
 
 	public static VariantContext lookupExactVariant(String vcf, VariantContext vc, Logger log) {

@@ -13,6 +13,7 @@ import common.AlleleFreq;
 import common.Array;
 import common.Logger;
 import common.Positions;
+import common.ext;
 import filesys.GeneData;
 import filesys.GeneTrack;
 import filesys.Segment;
@@ -31,6 +32,7 @@ import htsjdk.variant.variantcontext.VariantContextUtils;
 public class VCOps {
 	private static final String SNPEFF_GENE_NAME = "SNPEFF_GENE_NAME";
 	private static final String SNPEFF_IMPACT = "SNPEFF_IMPACT";
+	private static final String[] SNPEFF_IMPACT_IMPACTS = new String[] { "HIGH", "MODERATE", "LOW" };
 
 	public enum GENOTYPE_INFO {
 		GQ("GQ"), AD_REF("AD"), AD_ALT("AD"), DP("DP");
@@ -104,6 +106,11 @@ public class VCOps {
 		return getAnnotationsFor(new String[] { SNPEFF_IMPACT }, vc, impact)[0];
 	}
 
+	public static boolean isHighModLowSNP_EFFImpact(VariantContext vc) {
+		return ext.indexOfStr(getSNP_EFFImpact(vc), SNPEFF_IMPACT_IMPACTS) >= 0;
+	}
+	
+	
 	public static double getMAF(VariantContext vc, Set<String> sampleNames) {
 		VariantContext vcSub = sampleNames == null ? vc : getSubset(vc, sampleNames);
 		int[] alleleCounts = getAlleleCounts(vcSub);
