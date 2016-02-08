@@ -16,7 +16,9 @@ import common.WorkerTrain.Producer;
 import common.ext;
 import seq.analysis.GATK.Mutect2Normal;
 import seq.analysis.GATK.MutectTumorNormal;
+import seq.analysis.GATK_Genotyper.ANNOVCF;
 import seq.manage.BamOps;
+import seq.manage.VCFOps;
 import seq.manage.VCFTumorNormalOps;
 
 /**
@@ -284,11 +286,11 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 				gatk.combinePonVcfs(Array.toStringArray(ponVcfs), ponVcf, 2, log);
 			}
 		} else if (type == MUTECT_RUN_TYPES.CALL_SOMATIC) {
-			callSomatic(fileOftumorNormalMatchedBams, outputDir, ponVcf, gatk, numThreads, numSampleThreads, true, log);
+			callSomatic(fileOftumorNormalMatchedBams, outputDir, ponVcf, gatk, null,null, numThreads, numSampleThreads, true, log);
 		}
 	}
 
-	public static MutectTumorNormal[] callSomatic(String fileOftumorNormalMatchedBams, String outputDir, String ponVcf, GATK gatk, int numThreads, int numSampleThreads, boolean merge, Logger log) {
+	public static MutectTumorNormal[] callSomatic(String fileOftumorNormalMatchedBams, String outputDir, String ponVcf, GATK gatk, ANNOVCF annoVCF, String finalMergeWithVCF, int numThreads, int numSampleThreads, boolean merge, Logger log) {
 		if (fileOftumorNormalMatchedBams == null || !Files.exists(fileOftumorNormalMatchedBams)) {
 			throw new IllegalArgumentException("Missing file " + fileOftumorNormalMatchedBams);
 		}
@@ -304,7 +306,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		while (train.hasNext()) {
 			MutectTumorNormal tmp = train.next();
 			results.add(tmp);
-			finalTNVCfs.add(tmp.getReNamedFilteredVCF());
+			finalTNVCfs.add(tmp.getReNamedOutputVCF());
 		}
 
 		if (merge) {
@@ -321,7 +323,12 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 				VCFTumorNormalOps.renameMergeVCF(outMergeVCF, outMergeRenameVCF);
 			}
 			log.reportTimeWarning("Attempting to annotate using default locations...");
-			GATK_Genotyper.annotateOnlyWithDefualtLocations(outMergeRenameVCF, true, false, log);
+			String finalAnno = GATK_Genotyper.annotateOnlyWithDefualtLocations(outMergeRenameVCF, annoVCF, true, false, log);
+			if (finalMergeWithVCF != null) {
+				String finalMerge = VCFOps.getAppropriateRoot(finalAnno, false) + ".finalMerge.vcf.gz";
+				log.reportTimeInfo("Merging with " + finalMergeWithVCF);
+				gatk.mergeVCFs(new String[] { outMergeRenameVCF, finalMergeWithVCF }, finalMerge, numThreads, false, log);
+			}
 		}
 		return results.toArray(new MutectTumorNormal[results.size()]);
 	}
@@ -392,7 +399,8 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		String outputDir = "mutect/";
 		String tumorNormalBams = null;
 		MUTECT_RUN_TYPES run = MUTECT_RUN_TYPES.GEN_NORMALS;
-
+		String finalMergeVCF = null;
+		ANNOVCF annoVCF = null;
 		String usage = "\n" + "seq.analysis.Mutect2 requires 0-1 arguments\n";
 		usage += "   (1) full path to a file of normal sample bams (i.e. normalBams=" + fileOfNormalBams + " (default))\n" + "";
 		usage += "   (2) full path to a reference genome (i.e. ref=" + referenceGenomeFasta + " (default))\n" + "";
@@ -407,6 +415,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		usage += "   (11) pon vcf (i.e. ponVcf= (no default))\n" + "";
 		usage += "   (12) number of threads per sample (i.e. numSampleThreads=" + numSampleThreads + " (default))\n" + "";
 		usage += "   (13) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n" + "";
+		usage += "   (14) full path to a final merge vcf to merge somatic calls with (i.e. finalVCF= (no default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -414,6 +423,9 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 				System.exit(1);
 			} else if (args[i].startsWith("normalBams=")) {
 				fileOfNormalBams = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("finalVCF=")) {
+				finalMergeVCF = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("ref=")) {
 				referenceGenomeFasta = args[i].split("=")[1];
@@ -451,6 +463,9 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			} else if (args[i].startsWith("numSampleThreads=")) {
 				numSampleThreads = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith(GATK_Genotyper.EXTRA_VCF_ANNOTATIONS)) {
+				annoVCF = ANNOVCF.fromArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -465,12 +480,8 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		switch (run) {
 		case COMBINE_NORMALS:
 		case CALL_SOMATIC:
-			try {
-				run(fileOfNormalBams, tumorNormalBams, outputDir, ponVCF, gatk, run, numthreads, numSampleThreads, log);
-			} catch (IllegalStateException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			callSomatic(tumorNormalBams, outputDir, ponVCF, gatk, annoVCF, finalMergeVCF, numthreads, numSampleThreads, true, log);
+
 			break;
 		case GEN_NORMALS:
 
@@ -482,7 +493,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			} else if (fileOfNormalBams != "") {
 				log.reportTimeInfo("Generating normal sample vcfs");
 				try {
-					run(fileOfNormalBams, tumorNormalBams, outputDir, ponVCF, gatk, run, numthreads, numSampleThreads, log);
+					run(fileOfNormalBams, tumorNormalBams, outputDir, ponVCF, gatk,  run, numthreads, numSampleThreads, log);
 				} catch (IllegalStateException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

@@ -26,6 +26,7 @@ import javax.jms.IllegalStateException;
 import bioinformatics.OMIM;
 import bioinformatics.OMIM.OMIMGene;
 import seq.analysis.VCFSimpleTally.GeneVariantPositionSummary.ADD_TYPE;
+import seq.manage.GenotypeOps;
 import seq.manage.VCFOps;
 import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 import seq.manage.VCOps;
@@ -99,7 +100,7 @@ public class VCFSimpleTally {
 			VariantContextFilter freqFilter = getFreqFilter(controlFreq, log);
 			int numScanned = 0;
 			int numPass = 0;
-
+			log.reportTimeWarning("Note, bialliec variant frequencies will be inaccurate");
 			for (VariantContext vc : reader) {
 				numScanned++;
 				if (numScanned % 10000 == 0) {
@@ -108,7 +109,7 @@ public class VCFSimpleTally {
 
 				// System.out.println(Array.toStr(VCOps.getAnnotationsFor(new String[] { "charge.MAF_whites", "charge.MAF_blacks" }, vc, ".")));
 
-				if (!vc.isFiltered() && vc.isBiallelic()) {// no tranche
+				if (!vc.isFiltered()) {// no tranche
 					VariantContext vcCase = VCOps.getSubset(vc, cases, VC_SUBSET_TYPE.SUBSET_STRICT, false);
 					if (vcCase.getSampleNames().size() != cases.size()) {
 						throw new IllegalArgumentException("could not find all cases for " + casePop);
@@ -718,12 +719,15 @@ public class VCFSimpleTally {
 			annoGeneBedWriter.println("CHR\tSTART\tSTOP\tGENENAME_FUNCTION");
 			annoGeneWriter.print(Array.toStr(GENE_BASE));
 
+			String[][] genotypeAnnotations = GenotypeOps.getGenoFormatKeys(vcf, log);
+
 			PrintWriter annoWriterSample = Files.getAppropriateWriter(finalAnnotSample);
 
 			PrintWriter annoWriter = Files.getAppropriateWriter(finalAnnot);
 
 			annoWriter.print(Array.toStr(ANNO_BASE));
 			annoWriterSample.print(Array.toStr(ANNO_BASE_SAMPLE));
+			annoWriterSample.print("\t" + Array.toStr(genotypeAnnotations[0]));
 			annoWriter.print("\t" + Array.toStr(Array.tagOn(ANNO_ADD, caseDef + "_N_" + cases.size(), null)));
 			annoWriterSample.print("\t" + Array.toStr(Array.tagOn(ANNO_ADD, caseDef + "_N_" + cases.size(), null)));
 
@@ -739,9 +743,10 @@ public class VCFSimpleTally {
 			}
 			annoGeneWriter.print("\tIS_GENE_SET");
 
-			String[][] annotations = VCFOps.getAnnotationKeys(vcf, log);
-			annoWriter.print("\t" + Array.toStr(annotations[0]));
-			annoWriterSample.print("\t" + Array.toStr(annotations[0]));
+			String[][] variantAnnotations = VCFOps.getAnnotationKeys(vcf, log);
+
+			annoWriter.print("\t" + Array.toStr(variantAnnotations[0]));
+			annoWriterSample.print("\t" + Array.toStr(variantAnnotations[0]));
 			for (int i = 0; i < geneSets.length; i++) {
 				annoGeneWriter.print("\t" + geneSets[i].getTag() + "_Membership");
 				annoWriter.print("\t" + geneSets[i].getTag() + "_Membership");
@@ -798,12 +803,12 @@ public class VCFSimpleTally {
 					}
 
 					for (Genotype g : gc) {
-						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + g.getSampleName() + "\t" + g.toString());
+						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + g.getSampleName() + "\t" + g.toString() + "\t" + Array.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0], g, ".")));
 						annoWriterSample.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 						for (int j = 0; j < controlsOrdered.size(); j++) {
 							annoWriterSample.print("\t" + Array.toStr(controlGroupSummaries.get(j).getSummary()));
 						}
-						annoWriterSample.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
+						annoWriterSample.print("\t" + Array.toStr(VCOps.getAnnotationsFor(variantAnnotations[0], vc, ".")));
 						for (int j = 0; j < geneSets.length; j++) {
 							annoWriterSample.print("\t" + (geneSets[j].getGenes().containsKey(geneName) || geneSets[j].getGenes().containsKey(ANY_GENE_SET)));
 						}
@@ -822,7 +827,7 @@ public class VCFSimpleTally {
 						}
 						annoWriter.print("\t" + Array.toStr(vcControlGroup.getSummary()));
 					}
-					annoWriter.print("\t" + Array.toStr(VCOps.getAnnotationsFor(annotations[0], vc, ".")));
+					annoWriter.print("\t" + Array.toStr(VCOps.getAnnotationsFor(variantAnnotations[0], vc, ".")));
 					for (int j = 0; j < geneSets.length; j++) {
 						annoWriter.print("\t" + (geneSets[j].getGenes().containsKey(geneName) || geneSets[j].getGenes().containsKey(ANY_GENE_SET)));
 					}

@@ -1,5 +1,6 @@
 package seq.analysis;
 
+import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -32,6 +33,7 @@ import common.ext;
  *
  */
 public class DeNovoMatic {
+	private static final String[] ACCEPTED_FILTER_BYPASS = new String[] { "str_contraction" };
 
 	public static void run(String vpopFile, String fileOfBams, String outputDir, String ponVcf, double freqFilter, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, Logger log) throws IllegalStateException {
 		new File(outputDir).mkdirs();
@@ -44,16 +46,19 @@ public class DeNovoMatic {
 		}
 
 		// Mutect2.run(null, matchFile, callDir, ponVcf, gatk, type, numThreads, numSampleThreads, log);
-		MutectTumorNormal[] results = Mutect2.callSomatic(matchFile, outputDir, ponVcf, gatk, numThreads, numSampleThreads, false, log);
+		MutectTumorNormal[] results = Mutect2.callSomatic(matchFile, outputDir, ponVcf, gatk, null, null, numThreads, numSampleThreads, false, log);
+
 		MergeFamResult[] resultsMerge = combineResultsForFamilies(gatk, vpop, results, outputDir, numThreads, log);
 		String[] finalFilesToMerge = new String[resultsMerge.length];
 		for (int i = 0; i < resultsMerge.length; i++) {
 			resultsMerge[i].scanForDenovo();
 			finalFilesToMerge[i] = resultsMerge[i].getPotentialDenovoVcf();
 		}
+
 		String mergeDenovoOut = outputDir + ext.rootOf(vpopFile) + ".merge.denovo.vcf";
+
 		gatk.mergeVCFs(finalFilesToMerge, mergeDenovoOut, numThreads, false, log);
-		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(mergeDenovoOut, false, false, log);
+		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(mergeDenovoOut,null, false, false, log);
 		log.reportTimeInfo("Filtering " + annotatedVcf);
 		String annoFreq = VCFOps.getAppropriateRoot(annotatedVcf, false) + ".freq_" + freqFilter + ".func.vcf.gz";
 		filterByFreq(annotatedVcf, annoFreq, freqFilter, log);
@@ -62,6 +67,7 @@ public class DeNovoMatic {
 	}
 
 	private static void filterByFreq(String invcf, String outVcf, double freq, Logger log) {
+
 		VCFFileReader reader = new VCFFileReader(invcf, true);
 		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, outVcf, VCFOps.DEFUALT_WRITER_OPTIONS, log);
 		int total = 0;
@@ -72,21 +78,19 @@ public class DeNovoMatic {
 				throw new IllegalArgumentException("Method expects PopFreqMax annotations for all variants");
 			}
 			String f = vc.getAttributeAsString("PopFreqMax", "-1");
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException ie) {
-			}
+
 			if (f.equals(".")) {
 				f = "-1";
 			}
-			System.out.println(f + "\t" + VCOps.getSNP_EFFImpact(vc));
-
 			double freqVc = Double.parseDouble(f);
 			if (freqVc < freq && VCOps.isHighModLowSNP_EFFImpact(vc)) {
+
 				writer.add(vc);
 				pass++;
 			}
 		}
+		writer.close();
+		reader.close();
 		log.reportTimeInfo("Scanned " + total + " variants and " + pass + " passed freq threshold of " + freq);
 	}
 
@@ -119,24 +123,50 @@ public class DeNovoMatic {
 		}
 
 		private void scanForDenovo() {
+
 			if (!VCFOps.existsWithIndex(potentialDenovoVcf)) {
 				VCFFileReader reader = new VCFFileReader(mergedVCF, true);
 				VariantContextWriter writer = VCFOps.initWriter(potentialDenovoVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 				VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 				int numPossible = 0;
 				int numTotal = 0;
+				int numByPassFilters = 0;
 				for (VariantContext vc : reader) {
 					numTotal++;
-					if (vc.getAttribute("set", ".").equals("Intersection")) {// called somatic in both files
+					VariantContext vcSubOff = VCOps.getSubset(vc, offCombo);
+					Genotype g1 = vcSubOff.getGenotype(0);
+					Genotype g2 = vcSubOff.getGenotype(1);
+
+					if (g1.sameGenotype(g2)) {// called somatic in both files
 						writer.add(vc);
 						numPossible++;
+						// Set<String> filters = vc.getFilters();
+						// if (filters.size() == 0 || filters.size() == 1) {
+						// boolean ok = true;
+						// for (String filt : filters) {
+						// if (ext.indexOfStr(filt, ACCEPTED_FILTER_BYPASS) < 0) {
+						// ok = false;
+						// }
+						// }
+						// if (ok) {
+						// if(filters.size()==1){
+						// numByPassFilters++;
+						// }
+						//
+						// }
+						// }
 					}
-					if (numTotal % 1000 == 0) {
+					if (numTotal % 100000 == 0) {
 						log.reportTimeInfo("Detected " + numPossible + " possible denovos after scanning " + numTotal);
 					}
 				}
 				reader.close();
 				writer.close();
+				log.reportTimeInfo("Detected " + numPossible + " possible denovos after scanning " + numTotal);
+				if (numByPassFilters > 0) {
+					log.reportTimeWarning(numByPassFilters + " possible denovos were allowed past mutects filters " + Array.toStr(ACCEPTED_FILTER_BYPASS));
+
+				}
 			}
 		}
 	}
@@ -177,7 +207,7 @@ public class DeNovoMatic {
 
 			ArrayList<String> toMerge = new ArrayList<String>();
 			for (int i = 0; i < famResults.length; i++) {
-				toMerge.add(famResults[i].getReNamedFilteredVCF());
+				toMerge.add(famResults[i].getReNamedOutputVCF());
 			}
 			String[] vcfsToMerge = Array.toStringArray(toMerge);
 			if (vcfsToMerge.length != 2) {
