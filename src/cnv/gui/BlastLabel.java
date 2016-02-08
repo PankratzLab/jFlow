@@ -152,8 +152,6 @@ public class BlastLabel extends JLabel {
         this.setFont(LBL_FONT);
         if (!positiveStrand) {
             this.seq = flipBases(seq);
-        } else if (oppositeStrand /* and positiveStrand */) {
-            this.seq = new StringBuilder(this.seq).reverse().toString();
         }
         parse();
         String seq = getSeqPartsAsString(); 
