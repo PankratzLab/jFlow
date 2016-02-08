@@ -1579,9 +1579,9 @@ public class VCFOps {
 		@Override
 		public Callable<ChrSplitResults> next() {
 			final String chr = toSplit[index];
-			String dir = ext.parseDirectoryOfFile(vcfFile) + chr + "/";
+			String dir = newDir == null ? ext.parseDirectoryOfFile(vcfFile) : newDir + chr + "/";
 			new File(dir).mkdirs();
-			final String output = (newDir == null ? dir : newDir) + getAppropriateRoot(vcfFile, true) + "." + chr + VCF_EXTENSIONS.GZIP_VCF.getLiteral();
+			final String output = dir + getAppropriateRoot(vcfFile, true) + "." + chr + VCF_EXTENSIONS.GZIP_VCF.getLiteral();
 			Callable<ChrSplitResults> callable = new Callable<VCFOps.ChrSplitResults>() {
 
 				@Override

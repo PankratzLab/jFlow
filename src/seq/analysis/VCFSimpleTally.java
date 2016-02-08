@@ -65,7 +65,7 @@ public class VCFSimpleTally {
 	private static final String SNPEFF_NAMES = "G1000_esp_charge_aricFreq_SNPEFF_HIGH_MODERATE_LOW";
 	// private static final String CHARGE_B_FILTER = "(charge.MAF_blacks=='.'||charge.MAF_blacks <= 0.01)";
 	// private static final String CHARGE_W_FILTER = "(charge.MAF_whites=='.'||charge.MAF_whites <= 0.01)";
-	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT" };
+	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT", "BIALLELIC" };
 	private static final String[] ANNO_BASE_SAMPLE = Array.concatAll(ANNO_BASE, new String[] { "SAMPLE", "GENOTYPE" });
 
 	private static final String[] ANNO_ADD = new String[] { "_AVG_GQ", "_AVG_DP", "_NUM_WITH_CALLS", "_NUM_WITH_ALT", "_AAC", "_HQ_NUM_WITH_ALT", "_HQ_AAC", };
@@ -112,6 +112,11 @@ public class VCFSimpleTally {
 				if (!vc.isFiltered()) {// no tranche
 					VariantContext vcCase = VCOps.getSubset(vc, cases, VC_SUBSET_TYPE.SUBSET_STRICT, false);
 					if (vcCase.getSampleNames().size() != cases.size()) {
+						String[] allSamps = VCFOps.getSamplesInFile(vcf);
+						for (String aCase : cases) {
+							log.reportTimeWarning("CASE: " + aCase + " in vcf " + (ext.indexOfStr(aCase, allSamps) >= 0));
+						}
+						Files.writeList(allSamps, ext.rootOf(casePop, false) + "samplesToPickFrom.txt");
 						throw new IllegalArgumentException("could not find all cases for " + casePop);
 					}
 					if (!vcCase.isMonomorphicInSamples() && vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all") || !vc.hasAttribute("g10002015aug_all") || !vc.hasAttribute("esp6500siv2_all"))) {
@@ -791,7 +796,7 @@ public class VCFSimpleTally {
 						}
 					}
 
-					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString());
+					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString()+"\t"+vc.isBiallelic());
 					annoWriter.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 
 					GenotypesContext gc = vcCaseGroup.getVcAlt().getGenotypes();
@@ -803,7 +808,7 @@ public class VCFSimpleTally {
 					}
 
 					for (Genotype g : gc) {
-						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + g.getSampleName() + "\t" + g.toString() + "\t" + Array.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0], g, ".")));
+						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + g.getSampleName() + "\t" + g.toString() + "\t" + Array.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0], g, ".")));
 						annoWriterSample.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 						for (int j = 0; j < controlsOrdered.size(); j++) {
 							annoWriterSample.print("\t" + Array.toStr(controlGroupSummaries.get(j).getSummary()));
