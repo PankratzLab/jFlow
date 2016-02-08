@@ -518,10 +518,6 @@ public class GATK {
 		command.add(regionsFile);
 		command.add(O);
 		command.add(outputVCF);
-		if (!Files.exists(outputVCF)) {
-			System.out.println(outputVCF);
-			System.exit(1);
-		}
 		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
 
 		MutectTumorNormal mutectTumorNormal = new MutectTumorNormal(normalBam, tumorBam, outputVCF, !progress);
