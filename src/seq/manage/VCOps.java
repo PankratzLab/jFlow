@@ -109,8 +109,7 @@ public class VCOps {
 	public static boolean isHighModLowSNP_EFFImpact(VariantContext vc) {
 		return ext.indexOfStr(getSNP_EFFImpact(vc), SNPEFF_IMPACT_IMPACTS) >= 0;
 	}
-	
-	
+
 	public static double getMAF(VariantContext vc, Set<String> sampleNames) {
 		VariantContext vcSub = sampleNames == null ? vc : getSubset(vc, sampleNames);
 		int[] alleleCounts = getAlleleCounts(vcSub);
@@ -136,7 +135,7 @@ public class VCOps {
 	 * get the alternate allele count for a variant context
 	 */
 	public static double getAAC(VariantContext vc, Set<String> sampleNames) {
-		VariantContext vcSub = sampleNames==null?vc:getSubset(vc, sampleNames);
+		VariantContext vcSub = sampleNames == null ? vc : getSubset(vc, sampleNames);
 		int[] alleleCounts = getAlleleCounts(vcSub);
 		return (alleleCounts[2] * 2 + alleleCounts[1]);
 
@@ -302,20 +301,22 @@ public class VCOps {
 			}
 			if (use) {
 				int[] AD = new int[] { 0, 0 };
-				try {
-					if (geno.hasAD()) {
-						AD = getAppropriateAlleleDepths(vc, geno, verbose, log);
-					} else {
-						AD = new int[] { altAlleleDepth + 1, altAlleleDepth + 1 };
-						if (verbose) {
-							log.reportTimeWarning(geno.toString() + " did not have allele depths, setting depths to " + Array.toStr(AD));
+				if (altAlleleDepth >= 0 || altAlleleDepthRatio >= 0) {
+					try {
+						if (geno.hasAD()) {
+							AD = getAppropriateAlleleDepths(vc, geno, verbose, log);
+						} else {
+							AD = new int[] { altAlleleDepth + 1, altAlleleDepth + 1 };
+							if (verbose) {
+								log.reportTimeWarning(geno.toString() + " did not have allele depths, setting depths to " + Array.toStr(AD));
+							}
 						}
-					}
-				} catch (IllegalStateException ise) {
-					if (verbose) {
-						// TODO, report?
-						log.reportTimeError("Could not compute appropriate allele Depths");
-						log.reportException(ise);
+					} catch (IllegalStateException ise) {
+						if (verbose) {
+							// TODO, report?
+							log.reportTimeError("Could not compute appropriate allele Depths");
+							log.reportException(ise);
+						}
 					}
 				}
 				// TODO gte vs gt
@@ -372,12 +373,12 @@ public class VCOps {
 		List<Allele> varAlleles = vc.getAlleles();
 
 		if (gAlleles.size() != 2 && g.hasAD()) {
-			log.reportTimeError("Number of alleles must equal 2");
-			return null;
+			log.reportTimeError("Number of alleles must equal 2, return AD[0,0]");
+			return AD;
 		} else if (gAlleles.size() == 0 || !g.hasAD()) {
 			String error = "Invalid Allele retrieval";
-			error +=g.toString();
-			error+= vc.toStringWithoutGenotypes();
+			error += g.toString();
+			error += vc.toStringWithoutGenotypes();
 			throw new IllegalStateException(error);
 
 		} else {

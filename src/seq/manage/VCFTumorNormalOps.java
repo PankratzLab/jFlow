@@ -9,6 +9,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFFormatHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
@@ -77,6 +78,9 @@ public class VCFTumorNormalOps {
 			}
 			newHeaderLines.add(vcfInfoHeaderLine);
 		}
+		
+		VCFFormatHeaderLine ADPreserve = new VCFFormatHeaderLine("ADMUT", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.Integer, "A preservation of mutect's AD, which will be removed if merged at a tri-allelic site");
+		newHeaderLines.add(ADPreserve);
 		newHeaderLines.addAll(reader.getFileHeader().getFormatHeaderLines());
 		newHeaderLines.addAll(reader.getFileHeader().getOtherHeaderLines());
 		newHeaderLines.addAll(reader.getFileHeader().getContigLines());
@@ -138,6 +142,9 @@ public class VCFTumorNormalOps {
 			if (vc.hasAttribute(att)) {
 				builder.attribute(att, vc.getAttribute(att));
 			}
+		}
+		if (g.hasAD()) {
+			builder.attribute("ADMUT", g.getAnyAttribute("AD"));
 		}
 		return builder.make();
 	}
