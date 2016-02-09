@@ -293,11 +293,11 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 				gatk.combinePonVcfs(Array.toStringArray(ponVcfs), ponVcf, 2, log);
 			}
 		} else if (type == MUTECT_RUN_TYPES.CALL_SOMATIC) {
-			callSomatic(fileOftumorNormalMatchedBams, outputDir, ponVcf, gatk, null, null, numThreads, numSampleThreads, true, log);
+			callSomatic(fileOftumorNormalMatchedBams, outputDir, ponVcf, gatk, null, null, null, numThreads, numSampleThreads, true, log);
 		}
 	}
 
-	public static MutectTumorNormal[] callSomatic(String fileOftumorNormalMatchedBams, String outputDir, String ponVcf, GATK gatk, ANNOVCF annoVCF, String finalMergeWithVCF, int numThreads, int numSampleThreads, boolean merge, Logger log) {
+	public static MutectTumorNormal[] callSomatic(String fileOftumorNormalMatchedBams, String outputDir, String ponVcf, GATK gatk, ANNOVCF annoVCF, String finalMergeWithVCF, String tparams, int numThreads, int numSampleThreads, boolean merge, Logger log) {
 		if (fileOftumorNormalMatchedBams == null || !Files.exists(fileOftumorNormalMatchedBams)) {
 			throw new IllegalArgumentException("Missing file " + fileOftumorNormalMatchedBams);
 		}
@@ -315,7 +315,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			MutectTumorNormal tmp = train.next();
 			results.add(tmp);
 			finalTNnoFiltVCfs.add(tmp.getReNamedOutputVCF());
-			finalTNFiltVCFS.add(tmp.getReNamedOutputVCF());
+			finalTNFiltVCFS.add(tmp.getReNamedFilteredVCF());
 
 		}
 
@@ -324,13 +324,59 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log, tumorNormalMatchedBams, finalTNnoFiltVCfs, rootNoFilter);
 
 			String rootFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged.filtered";
-			mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log, tumorNormalMatchedBams, finalTNFiltVCFS, rootFilter);
+			String filtAnno = mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log, tumorNormalMatchedBams, finalTNFiltVCFS, rootFilter);
 
+			ArrayList<String> bamsToExtract = new ArrayList<String>();
+			for (int i = 0; i < tumorNormalMatchedBams.length; i++) {
+				for (int j = 0; j < tumorNormalMatchedBams[i].length; j++) {
+					bamsToExtract.add(tumorNormalMatchedBams[i][j]);
+				}
+			}
+			// String extractNoFiltDir = outputDir + "extractedNofilt/";
+			String extractFiltDir = outputDir + "extractedFilt/";
+			// extractBamsTo(extractNoFiltDir, Array.toStringArray(bamsToExtract), finalAnno, numThreads, log); //This is huge
+			extractBamsTo(extractFiltDir, Array.toStringArray(bamsToExtract), filtAnno, numThreads, log);
+			if (tparams != null) {
+				log.reportTimeInfo("Loading vcf tally params from " + tparams);
+				String[] params = HashVec.loadFileToStringArray(tparams, false, new int[] { 0 }, true);
+				String vpops = null;
+				String popDir = null;
+				String omim = null;
+				String[] extras = null;
+				boolean controlSpecifiComp = true;
+				double[] mafs = null;
+				String genesetDir = null;
+
+				for (int i = 0; i < params.length; i++) {
+					if (params[i].startsWith("vpops=")) {
+						vpops = ext.parseStringArg(params[i], null);
+					} else if (params[i].startsWith("popDir=")) {
+						popDir = ext.parseStringArg(params[i], null);
+					} else if (params[i].startsWith("omim=")) {
+						omim = ext.parseStringArg(params[i], null);
+					} else if (params[i].startsWith("extra=")) {
+						extras = ext.parseStringArg(params[i], null).split(",");
+					} else if (params[i].startsWith("controlSpecifiComp=")) {
+						controlSpecifiComp = ext.parseBooleanArg(params[i]);
+					} else if (params[i].startsWith("genesetDir=")) {
+						genesetDir = ext.parseStringArg(params[i], null);
+					} else if (params[i].startsWith("maf=")) {
+						mafs = Array.toDoubleArray(ext.parseStringArg(params[i], null).split(","));
+					}
+				}
+				String annoCp = popDir + VCFOps.getAppropriateRoot(filtAnno, true) + ".vcf.gz";
+				Files.copyFileUsingFileChannels(filtAnno, annoCp, log);
+				Files.copyFileUsingFileChannels(filtAnno + ".tbi", annoCp + ".tbi", log);
+
+				for (int i = 0; i < mafs.length; i++) {
+					VCFSimpleTally.test(filtAnno, popDir, new String[] { vpops }, omim, extras, genesetDir, mafs[i], controlSpecifiComp);
+				}
+			}
 		}
 		return results.toArray(new MutectTumorNormal[results.size()]);
 	}
 
-	private static void mergeAndAnnotate(String outputDir, GATK gatk, ANNOVCF annoVCF, String finalMergeWithVCF, int numThreads, Logger log, String[][] tumorNormalMatchedBams, ArrayList<String> finalTNVCfs, String root) {
+	private static String mergeAndAnnotate(String outputDir, GATK gatk, ANNOVCF annoVCF, String finalMergeWithVCF, int numThreads, Logger log, String[][] tumorNormalMatchedBams, ArrayList<String> finalTNVCfs, String root) {
 		String outMergeVCF = root + ".vcf.gz";
 		String outMergeRenameVCF = root + ".renamed.vcf.gz";
 		// String outMergeRenameAnnoVCF = root + ".renamed.anno.vcf.gz";
@@ -350,17 +396,8 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			log.reportTimeInfo("Merging with " + finalMergeWithVCF);
 			gatk.mergeVCFs(new String[] { outMergeRenameVCF, finalMergeWithVCF }, finalMerge, numThreads, false, log);
 		}
+		return finalAnno;
 
-		ArrayList<String> bamsToExtract = new ArrayList<String>();
-		for (int i = 0; i < tumorNormalMatchedBams.length; i++) {
-			for (int j = 0; j < tumorNormalMatchedBams[i].length; j++) {
-				bamsToExtract.add(tumorNormalMatchedBams[i][j]);
-			}
-		}
-		String extractNoFiltDir = outputDir + "extractedNofilt/";
-		String extractFiltDir = outputDir + "extractedFilt/";
-		extractBamsTo(extractNoFiltDir, Array.toStringArray(bamsToExtract), finalAnno, numThreads, log);
-		extractBamsTo(extractFiltDir, Array.toStringArray(bamsToExtract), finalAnno, numThreads, log);
 	}
 
 	private static void extractBamsTo(String extractDir, String[] bams, String vcf, int numThreads, Logger log) {
@@ -455,6 +492,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		MUTECT_RUN_TYPES run = MUTECT_RUN_TYPES.GEN_NORMALS;
 		String finalMergeVCF = null;
 		ANNOVCF annoVCF = null;
+		String tparams = null;
 		String usage = "\n" + "seq.analysis.Mutect2 requires 0-1 arguments\n";
 		usage += "   (1) full path to a file of normal sample bams (i.e. normalBams=" + fileOfNormalBams + " (default))\n" + "";
 		usage += "   (2) full path to a reference genome (i.e. ref=" + referenceGenomeFasta + " (default))\n" + "";
@@ -470,6 +508,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		usage += "   (12) number of threads per sample (i.e. numSampleThreads=" + numSampleThreads + " (default))\n" + "";
 		usage += "   (13) full path to a file of tumor-normal matched (tab-delimited) bam files, normal in first column, tumor in second (i.e. tumorNormalBams= (no default))\n" + "";
 		usage += "   (14) full path to a final merge vcf to merge somatic calls with (i.e. finalVCF= (no default))\n" + "";
+		usage += "   (15) full path to a vcf tallyparamFile (i.e. tparams= (no default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -480,6 +519,9 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 				numArgs--;
 			} else if (args[i].startsWith("finalVCF=")) {
 				finalMergeVCF = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("tparams=")) {
+				tparams = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("ref=")) {
 				referenceGenomeFasta = args[i].split("=")[1];
@@ -534,7 +576,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		switch (run) {
 		case COMBINE_NORMALS:
 		case CALL_SOMATIC:
-			callSomatic(tumorNormalBams, outputDir, ponVCF, gatk, annoVCF, finalMergeVCF, numthreads, numSampleThreads, true, log);
+			callSomatic(tumorNormalBams, outputDir, ponVCF, gatk, annoVCF, finalMergeVCF, tparams, numthreads, numSampleThreads, true, log);
 
 			break;
 		case GEN_NORMALS:

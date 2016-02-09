@@ -711,14 +711,13 @@ public class VCFSimpleTally {
 		VcfPopulation controlVcfPopulation = new VcfPopulation(controlSubPop, controlPop, POPULATION_TYPE.CASE_CONTROL, new Logger());
 		SimpleTallyResult simpleTallyResult = new SimpleTallyResult(controlVcfPopulation, finalOut, finalOutVCF, finalsampSummary, finalAnnot, finalAnnotSample, finalAnnotGene, finalGeneVariantPositions);
 		simpleTallyResult.getFinalGeneVariantPositions();
-		
+
 		String[][] genotypeAnnotations = GenotypeOps.getGenoFormatKeys(vcf, log);
 		String[][] variantAnnotations = VCFOps.getAnnotationKeys(vcf, log);
 		String annos = Array.toStr(genotypeAnnotations[1]) + "\t" + Array.toStr(variantAnnotations[1]) + "\n";
 		annos += Array.toStr(genotypeAnnotations[0]) + "\t" + Array.toStr(variantAnnotations[0]);
 		Files.write(annos, annotKeysFile);
-		
-		
+
 		summarizeAnalysisParams(finalsampSummary, caseDef, cases, controls, maf, log);
 		summarizeGeneSets(geneSets, finalGeneSetSummary, log);
 		if (!Files.exists(finalAnnotGene) || !Files.exists(finalAnnotGeneBed) || !Files.exists(finalAnnotSample) || !Files.exists(finalGeneVariantPositions)) {
@@ -732,8 +731,6 @@ public class VCFSimpleTally {
 			PrintWriter annoGeneBedWriter = Files.getAppropriateWriter(finalAnnotGeneBed);
 			annoGeneBedWriter.println("CHR\tSTART\tSTOP\tGENENAME_FUNCTION");
 			annoGeneWriter.print(Array.toStr(GENE_BASE));
-
-			
 
 			PrintWriter annoWriterSample = Files.getAppropriateWriter(finalAnnotSample);
 
@@ -756,7 +753,6 @@ public class VCFSimpleTally {
 				annoGeneWriter.print("\t" + Array.toStr(Array.tagOn(GENE_ADD, controlsOrdered.get(i) + "_N_" + controls.get(controlsOrdered.get(i)).size(), null)));
 			}
 			annoGeneWriter.print("\tIS_GENE_SET");
-
 
 			annoWriter.print("\t" + Array.toStr(variantAnnotations[0]));
 			annoWriterSample.print("\t" + Array.toStr(variantAnnotations[0]));
@@ -1332,7 +1328,7 @@ public class VCFSimpleTally {
 		return freq;
 	}
 
-	public static void test(String vcf, String popDir, String[] vpopsCase, String omimDir, String[] otherGenesOfInterest, double maf, boolean controlSpecifiComp) {
+	public static void test(String vcf, String popDir, String[] vpopsCase, String omimDir, String[] otherGenesOfInterest, String genesetDir, double maf, boolean controlSpecifiComp) {
 		// popDir + "CUSHING_FREQ.vpop", popDir + "EPP.vpop" };
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		int numThreads = 24;
@@ -1349,7 +1345,7 @@ public class VCFSimpleTally {
 				break;
 			}
 			log.reportTimeWarning("Now loading all .geneset");
-			GeneSet[] currentSets = GeneSet.load(Files.listFullPaths(ext.parseDirectoryOfFile(vpopsCase[i]), ".geneset", false), ext.rootOf(vpopsCase[i]), log);
+			GeneSet[] currentSets = GeneSet.load(Files.listFullPaths(genesetDir == null ? ext.parseDirectoryOfFile(vpopsCase[i]) : genesetDir, ".geneset", false), ext.rootOf(vpopsCase[i]), log);
 			log.reportTimeInfo("Found " + currentSets.length + " gene sets for " + vpopsCase[i]);
 			OMIM omim = new OMIM(omimDir, log);
 			OtherGeneInfo[] otherGeneInfos = null;
@@ -1576,7 +1572,7 @@ public class VCFSimpleTally {
 		try {
 			vpopsCase = Array.tagOn(vpopsCase, popDir, null);
 			for (int i = 0; i < mafs.length; i++) {
-				test(vcf, popDir, vpopsCase, omimDir, otherGenesOfInterest, mafs[i], controlSpecifiComp);
+				test(vcf, popDir, vpopsCase, omimDir, otherGenesOfInterest, null, mafs[i], controlSpecifiComp);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
