@@ -165,6 +165,30 @@ public class FilterNGS implements Serializable {
 		 * Filters by the alternate allele depth
 		 */
 		ALT_ALLELE_DEPTH(5, FILTER_TYPE.GTE_FILTER),
+
+		/**
+		 * Specific filters for tumor normal comparisons
+		 */
+		/**
+		 * Total depth for the tumor
+		 */
+		AD_MUT(10, FILTER_TYPE.GTE_FILTER),
+
+		/**
+		 * Total depth for the normal
+		 */
+		AD_NORMAL(10, FILTER_TYPE.GTE_FILTER),
+
+		/**
+		 * Alt allele depth for tumor
+		 */
+		ALT_AD_MUT(4, FILTER_TYPE.GTE_FILTER),
+
+		/**
+		 * Allelic fraction for the tumor
+		 */
+		AF_MUT(0.2, FILTER_TYPE.GTE_FILTER)
+
 		// /**
 		// * Used for filtering by the upper bound for average allelic ratio across alternate calls
 		// */
@@ -372,7 +396,7 @@ public class FilterNGS implements Serializable {
 	 * Handles boolean based filtering
 	 *
 	 */
-	private abstract class VcFilterBoolean implements VcFilterI<Boolean>, Serializable {
+	public abstract class VcFilterBoolean implements VcFilterI<Boolean>, Serializable {
 		/**
 		 * 
 		 */
@@ -609,6 +633,72 @@ public class FilterNGS implements Serializable {
 		};
 	}
 
+	// case AD_MUT:
+	// vDoubles[i] =
+	// break;
+	// case AD_NORMAL:
+	// vDoubles[i] =
+	// break;
+	// case ALT_AD_MUT:
+	// vDoubles[i] =
+	// break;
+	// case AF_MUT:
+	private VcFilterDouble getAvgAD_MUTFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
+		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Double getValue(VariantContext vc) {
+				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.AD_MUT, log);
+			}
+		};
+	}
+
+	private VcFilterDouble getAvgAD_NORMALFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
+		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Double getValue(VariantContext vc) {
+				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.AD_NORMAL, log);
+			}
+		};
+	}
+
+	private VcFilterDouble getAvgALT_AD_MUTFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
+		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Double getValue(VariantContext vc) {
+				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.ALT_AD_MUT, log);
+			}
+		};
+	}
+
+	private VcFilterDouble getAvgAF_MUTTFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
+		return new VcFilterDouble(dfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Double getValue(VariantContext vc) {
+				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.AF_MUT, log);
+			}
+		};
+	}
+
 	private VcFilterDouble getAvgDPFilter(VARIANT_FILTER_DOUBLE dfilter, final Logger log) {
 		return new VcFilterDouble(dfilter) {
 			/**
@@ -737,6 +827,19 @@ public class FilterNGS implements Serializable {
 			case HET_ALLELE_RATIO_HIGH:
 				vDoubles[i] = getHetAltAlleleDepthRatioFilter(dfilter);
 				break;
+
+			case AD_MUT:
+				vDoubles[i] = getAvgAD_MUTFilter(dfilter, log);
+				break;
+			case AD_NORMAL:
+				vDoubles[i] = getAvgAD_NORMALFilter(dfilter, log);
+				break;
+			case ALT_AD_MUT:
+				vDoubles[i] = getAvgALT_AD_MUTFilter(dfilter, log);
+				break;
+			case AF_MUT:
+				vDoubles[i] = getAvgAF_MUTTFilter(dfilter, log);
+				break;
 			default:
 				log.reportTimeError("Invalid double filter type " + dfilter);
 				vDoubles[i] = null;
@@ -852,7 +955,7 @@ public class FilterNGS implements Serializable {
 	}
 
 	public static class RareVariantFilter {
-		//private Set<String> totalPop;
+		// private Set<String> totalPop;
 		private Set<String> casePop;
 		private Set<String> refPop;
 		private VARIANT_FILTER_DOUBLE mafRef = VARIANT_FILTER_DOUBLE.MAF;
@@ -869,7 +972,7 @@ public class FilterNGS implements Serializable {
 			this.casePop = casePop;
 			this.refPop = refPop;
 			mafRef.setType(FILTER_TYPE.LTE_FILTER);
-			//this.totalPop = new HashSet<String>();
+			// this.totalPop = new HashSet<String>();
 		}
 
 		public void setMafRef(double maf) {
@@ -1040,6 +1143,72 @@ public class FilterNGS implements Serializable {
 		}
 
 		return filters;
+	}
+
+	private static final String ESP_FILTER = "(esp6500si_all=='.'||esp6500si_all <=";
+	private static final String ESPV2_FILTER = "(esp6500siv2_all=='.'||esp6500siv2_all <=";
+	private static final String G10002014_FILTER = "(g10002014oct_all=='.'||g10002014oct_all <=";
+	private static final String G10002015_FILTER = "(g10002015aug_all=='.'||g10002015aug_all <=";
+	private static final String POPFREQ_MAXFILTER = "(PopFreqMax=='.'||PopFreqMax <=";
+	private static final String AND = "&&";
+
+	public static String getPopFreqFilterString(double maf) {
+		String freq = ESP_FILTER + maf + ")" + AND + G10002014_FILTER + maf + ")" + AND + G10002015_FILTER + maf + ")" + AND + ESPV2_FILTER + maf + ")" + AND + POPFREQ_MAXFILTER + maf + ")";
+		return freq;
+	}
+
+	/**
+	 * Currently paramaterized to match http://www.nature.com/cr/journal/v25/n3/extref/cr201520x14.pdf <br>
+	 * The standards to reduce false positives were as follows: (1) a minimum depth of 10x in both tumors and normal pairs; (2) read depths of variant alleles in tumors should be more than 4x; (3) allelic fractions in tumors should be more than 20%."
+	 */
+	public static VariantContextFilter getTumorNormalFilter(double maf, Logger log) {
+		// /**
+		// * Total depth for the tumor
+		// */
+		// AD_MUT(10, FILTER_TYPE.GTE_FILTER),
+		//
+		// /**
+		// * Total depth for the normal
+		// */
+		// AD_NORMAL(10, FILTER_TYPE.GTE_FILTER),
+		//
+		// /**
+		// * Alt allele depth for tumor
+		// */
+		// ALT_AD_MUT(4, FILTER_TYPE.GTE_FILTER),
+		//
+		// /**
+		// * Allelic fraction for the tumor
+		// */
+		// AF_MUT(0.2, FILTER_TYPE.GTE_FILTER)
+		VARIANT_FILTER_DOUBLE callRate = VARIANT_FILTER_DOUBLE.CALL_RATE;
+		VARIANT_FILTER_DOUBLE dpMut = VARIANT_FILTER_DOUBLE.AD_MUT;
+		dpMut.setDFilter(10);
+
+		VARIANT_FILTER_DOUBLE dpNormal = VARIANT_FILTER_DOUBLE.AD_NORMAL;
+		dpNormal.setDFilter(10);
+
+		VARIANT_FILTER_DOUBLE altAD = VARIANT_FILTER_DOUBLE.ALT_AD_MUT;
+		dpNormal.setDFilter(4);
+
+		VARIANT_FILTER_DOUBLE mutAF = VARIANT_FILTER_DOUBLE.AF_MUT;
+		mutAF.setDFilter(.2);
+
+		// VARIANT_FILTER_DOUBLE altD = VARIANT_FILTER_DOUBLE.ALT_ALLELE_DEPTH;
+		// altD.setDFilter(3);
+
+		// VARIANT_FILTER_DOUBLE vqslod = VARIANT_FILTER_DOUBLE.VQSLOD_LOOSE;
+		// VARIANT_FILTER_BOOLEAN biallelic = VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER;
+		// VARIANT_FILTER_BOOLEAN amb = VARIANT_FILTER_BOOLEAN.AMBIGUOUS_FILTER;
+		VARIANT_FILTER_BOOLEAN fail = VARIANT_FILTER_BOOLEAN.FAILURE_FILTER;
+
+		// VARIANT_FILTER_BOOLEAN[] bQualFilts = new VARIANT_FILTER_BOOLEAN[] { amb };
+
+		VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] { callRate, dpNormal, altAD, mutAF };
+
+		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] { fail }, new String[] { "G1000Freq" }, new String[] { FilterNGS.getPopFreqFilterString(maf) }, log);
+		return vContextFilter;
+
 	}
 
 }

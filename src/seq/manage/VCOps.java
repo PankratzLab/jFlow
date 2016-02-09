@@ -35,7 +35,7 @@ public class VCOps {
 	private static final String[] SNPEFF_IMPACT_IMPACTS = new String[] { "HIGH", "MODERATE", "LOW" };
 
 	public enum GENOTYPE_INFO {
-		GQ("GQ"), AD_REF("AD"), AD_ALT("AD"), DP("DP");
+		GQ("GQ"), AD_REF("AD"), AD_ALT("AD"), DP("DP"), AD_MUT("ADMUT"), AD_NORMAL("AD_NORMAL"), ALT_AD_MUT("ADMUT"), AF_MUT("AF");
 		private String flag;
 
 		private GENOTYPE_INFO(String flag) {
@@ -45,6 +45,7 @@ public class VCOps {
 		public String getFlag() {
 			return flag;
 		}
+
 	}
 
 	/**
@@ -503,6 +504,8 @@ public class VCOps {
 		// g.getAlleles();
 	}
 
+	
+
 	public static double getAvgGenotypeInfo(VariantContext vc, Set<String> sampleNames, GENOTYPE_INFO info, Logger log) {
 		double avgGI = 0;
 		int numWith = 0;
@@ -523,6 +526,17 @@ public class VCOps {
 					break;
 				case GQ:
 					avgGI += geno.getGQ();
+					break;
+				case AD_MUT:
+				case AD_NORMAL:
+					double[] adTotal = Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString().split(","));
+					avgGI += Array.sum(adTotal);
+					break;
+				case ALT_AD_MUT:
+					avgGI += Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString().split(","))[1];
+					break;
+				case AF_MUT:
+					avgGI += Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString().split(","))[0];
 					break;
 				default:
 					log.reportTimeError("Invalid average type");

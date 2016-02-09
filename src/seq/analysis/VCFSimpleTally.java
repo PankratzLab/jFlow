@@ -37,9 +37,12 @@ import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
 import seq.manage.VCOps.GENOTYPE_INFO;
 import seq.manage.VCOps.VC_SUBSET_TYPE;
+import seq.qc.FilterNGS;
 import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import seq.qc.FilterNGS.VariantContextFilter;
+import seq.qc.FilterNGS.VcFilterBoolean;
+import seq.qc.FilterNGS.VcFilterDouble;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -54,11 +57,7 @@ import common.ext;
 public class VCFSimpleTally {
 	public static final String[] EFF = { "HIGH", "MODERATE", "LOW" };
 	private static final String[][] EFF_DEFS = new String[][] { new String[] { EFF[0] }, new String[] { EFF[0], EFF[1] }, new String[] { EFF[0], EFF[1], EFF[2] } };
-	private static final String ESP_FILTER = "(esp6500si_all=='.'||esp6500si_all <=";
-	private static final String ESPV2_FILTER = "(esp6500siv2_all=='.'||esp6500siv2_all <=";
-	private static final String G10002014_FILTER = "(g10002014oct_all=='.'||g10002014oct_all <=";
-	private static final String G10002015_FILTER = "(g10002015aug_all=='.'||g10002015aug_all <=";
-	private static final String POPFREQ_MAXFILTER = "(PopFreqMax=='.'||PopFreqMax <=";
+
 	private static final String ANY_GENE_SET = "*";
 	private static final String AND = "&&";
 	private static final String SNPEFF_IMPACTS = "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')";
@@ -151,7 +150,7 @@ public class VCFSimpleTally {
 	}
 
 	private static VariantContextFilter getFreqFilter(double maf, Logger log) {
-		VariantContextFilter vContextFilter = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {}, new String[] { "RARE_" + SNPEFF_NAMES }, new String[] { getPopFreqFilter(maf) + AND + SNPEFF_IMPACTS }, log);
+		VariantContextFilter vContextFilter = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {}, new String[] { "RARE_" + SNPEFF_NAMES }, new String[] { FilterNGS.getPopFreqFilterString(maf) + AND + SNPEFF_IMPACTS }, log);
 		return vContextFilter;
 	}
 
@@ -657,7 +656,7 @@ public class VCFSimpleTally {
 
 	}
 
-	private static SimpleTallyResult runSimpleTally(String vcf, String vpop, double maf, int numThreads, String outDir, GeneSet[] geneSets, Logger log) {
+	private static SimpleTallyResult runSimpleTally(String vcf, String vpop, double maf, int numThreads, String outDir, GeneSet[] geneSets, VariantContextFilter qualCase, Logger log) {
 		VcfPopulation vpopAc = VcfPopulation.load(vpop, POPULATION_TYPE.ANY, log);
 		vpopAc.report();
 		String caseDef = ext.rootOf(vpop);
@@ -683,6 +682,7 @@ public class VCFSimpleTally {
 		String finalGeneSetSummary = finalOut + ".geneset.summmary";
 		String finalGeneVariantPositions = finalOut + ".gene.position.counts.ser";
 		String annotKeysFile = finalOut + ".annotation.keys.txt";
+		String filterFile = finalOut + "filters.applied.txt";
 
 		// String finalAnnotGeneSample = finalOut + ".gene.sample";
 
@@ -765,7 +765,14 @@ public class VCFSimpleTally {
 			annoWriter.println();
 			annoWriterSample.println();
 
-			VariantContextFilter qual = getQualityFilterwkggseq(maf, log);
+			if (qualCase != null) {
+				log.reportTimeWarning("Using different qc filter for cases, this is appropriate for Tumor Normal analysis, but not much else currently");
+			} else {
+				qualCase = getQualityFilterwkggseq(maf, log);
+			}
+			VariantContextFilter qualControl = getQualityFilterwkggseq(maf, log);
+			summarizeQC(filterFile, qualCase, qualControl);
+			System.exit(1);
 			Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<String, ArrayList<GeneSummary[]>>();
 			for (int i = 0; i < filtVcfs.size(); i++) {
 				// if (i > 1) {
@@ -789,7 +796,7 @@ public class VCFSimpleTally {
 							addEntries(caseDef, controlsOrdered, geneSummaries, geneSets[j].getTag());
 						}
 					}
-					VcGroupSummary vcCaseGroup = new VcGroupSummary(caseDef, cases, vc, qual, log);
+					VcGroupSummary vcCaseGroup = new VcGroupSummary(caseDef, cases, vc, qualCase, log);
 					// TODO, check
 					for (int j = 0; j < geneSummaries.get(geneName).get(0).length; j++) {
 						geneSummaries.get(geneName).get(0)[j].add(vcCaseGroup, null);
@@ -807,7 +814,7 @@ public class VCFSimpleTally {
 
 					ArrayList<VcGroupSummary> controlGroupSummaries = new ArrayList<VCFSimpleTally.VcGroupSummary>();
 					for (int j = 0; j < controlsOrdered.size(); j++) {
-						VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(j), controls.get(controlsOrdered.get(j)), vc, qual, log);
+						VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(j), controls.get(controlsOrdered.get(j)), vc, qualControl, log);
 						controlGroupSummaries.add(vcControlGroup);
 					}
 
@@ -873,6 +880,31 @@ public class VCFSimpleTally {
 			log.reportTimeWarning(finalAnnotGene + " exists so skipping summarize");
 		}
 		return simpleTallyResult;
+	}
+
+	private static void summarizeQC(String output, VariantContextFilter caseFilter, VariantContextFilter controlFilter) {
+		ArrayList<String> filterSummary = new ArrayList<String>();
+		filterSummary.add("GROUP\tTYPE\tID\tVALUE\tDIRECTION");
+		for (int i = 0; i < caseFilter.getvBooleans().length; i++) {
+			VcFilterBoolean vb = caseFilter.getvBooleans()[i];
+			filterSummary.add("CASE\tBOOLEAN\t" + vb.getBfilter() + "\t" + vb.getBfilter().getType() + "\tNA");
+		}
+		for (int i = 0; i < caseFilter.getvDoubles().length; i++) {
+			VcFilterDouble vd = caseFilter.getvDoubles()[i];
+			filterSummary.add("CASE\tNUMERIC\t" + vd.getDfilter() + "\t" + vd.getFilterThreshold() + "\t" + vd.getDfilter().getType());
+		}
+		filterSummary.add("CASE\tSTRING\tJEXL\t" + caseFilter.getvFilterJEXL().getjExps().toString() + "\tNA");
+
+		for (int i = 0; i < controlFilter.getvBooleans().length; i++) {
+			VcFilterBoolean vb = controlFilter.getvBooleans()[i];
+			filterSummary.add("CONTROL\tBOOLEAN\t" + vb.getBfilter() + "\t" + vb.getBfilter().getType() + "\tNA");
+		}
+		for (int i = 0; i < controlFilter.getvDoubles().length; i++) {
+			VcFilterDouble vd = controlFilter.getvDoubles()[i];
+			filterSummary.add("CONTROL\tNUMERIC\t" + vd.getDfilter() + "\t" + vd.getFilterThreshold() + "\t" + vd.getDfilter().getType());
+		}
+		filterSummary.add("CONTROL\tSTRING\tJEXL\t" + controlFilter.getvFilterJEXL().getjExps().toString() + "\tNA");
+		Files.writeList(Array.toStringArray(filterSummary), output);
 	}
 
 	private static boolean isGeneSet(GeneSet[] geneSets, String tag) {
@@ -1319,16 +1351,11 @@ public class VCFSimpleTally {
 
 		VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] { callRate, dp, gq };
 
-		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] { fail }, new String[] { "G1000Freq" }, new String[] { getPopFreqFilter(maf) }, log);
+		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] { fail }, new String[] { "G1000Freq" }, new String[] { FilterNGS.getPopFreqFilterString(maf) }, log);
 		return vContextFilter;
 	}
 
-	private static String getPopFreqFilter(double maf) {
-		String freq = ESP_FILTER + maf + ")" + AND + G10002014_FILTER + maf + ")" + AND + G10002015_FILTER + maf + ")" + AND + ESPV2_FILTER + maf + ")" + AND + POPFREQ_MAXFILTER + maf + ")";
-		return freq;
-	}
-
-	public static void test(String vcf, String popDir, String[] vpopsCase, String omimDir, String[] otherGenesOfInterest, String genesetDir, double maf, boolean controlSpecifiComp) {
+	public static void test(String vcf, String popDir, String[] vpopsCase, String omimDir, String[] otherGenesOfInterest, String genesetDir, double maf, boolean controlSpecifiComp, VariantContextFilter caseQualFilter) {
 		// popDir + "CUSHING_FREQ.vpop", popDir + "EPP.vpop" };
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		int numThreads = 24;
@@ -1356,7 +1383,7 @@ public class VCFSimpleTally {
 					otherGeneInfos[j].load();
 				}
 			}
-			SimpleTallyResult caseResult = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, currentSets, log);
+			SimpleTallyResult caseResult = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, currentSets, caseQualFilter, log);
 			filesToWrite.add(caseResult.getFinalsampSummary());
 			names.add("AnalysisInfo");
 			filesToWrite.add(caseResult.getFinalAnnot());
@@ -1368,7 +1395,7 @@ public class VCFSimpleTally {
 			String controlFile = ext.parseDirectoryOfFile(vpopsCase[i]) + controls.getUniqSuperPop().get(0) + ".vpop";
 			controls.report();
 			controls.dump(controlFile);
-			SimpleTallyResult controlResult = runSimpleTally(vcf, controlFile, maf, numThreads, outDir, currentSets, log);
+			SimpleTallyResult controlResult = runSimpleTally(vcf, controlFile, maf, numThreads, outDir, currentSets, null, log);
 			VCFOps.VcfPopulation.splitVcfByPopulation(controlResult.getFinalOutVCF(), vpopsCase[i], true, true, log);
 			String geneFileCase = caseResult.getFinalAnnotGene();
 			String geneFileControl = controlResult.getFinalAnnotGene();
@@ -1403,7 +1430,7 @@ public class VCFSimpleTally {
 					VcfPopulation tmpPop = new VcfPopulation(specificControls, specificControls, POPULATION_TYPE.CASE_CONTROL, log);
 					String out = ext.parseDirectoryOfFile(vpopsCase[i]) + controlGroup + ".vpop";
 					tmpPop.dump(out);
-					SimpleTallyResult controlSpecificResult = runSimpleTally(vcf, out, maf, numThreads, outDir, currentSets, log);
+					SimpleTallyResult controlSpecificResult = runSimpleTally(vcf, out, maf, numThreads, outDir, currentSets, null, log);
 					controlFuncHashes.add(loadToGeneFuncHash(controlSpecificResult.getFinalAnnotGene(), log));
 					Hashtable<String, PosCluster[]> clusterSpecific;
 					try {
@@ -1572,7 +1599,7 @@ public class VCFSimpleTally {
 		try {
 			vpopsCase = Array.tagOn(vpopsCase, popDir, null);
 			for (int i = 0; i < mafs.length; i++) {
-				test(vcf, popDir, vpopsCase, omimDir, otherGenesOfInterest, null, mafs[i], controlSpecifiComp);
+				test(vcf, popDir, vpopsCase, omimDir, otherGenesOfInterest, null, mafs[i], controlSpecifiComp, null);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

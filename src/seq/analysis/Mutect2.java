@@ -27,6 +27,8 @@ import seq.manage.BamOps;
 import seq.manage.VCFOps;
 import seq.manage.VCFTumorNormalOps;
 import seq.manage.VCOps;
+import seq.qc.FilterNGS;
+import seq.qc.FilterNGS.VariantContextFilter;
 
 /**
  * @author lane0212 For using the native Mutect in GATK 3.5+
@@ -332,6 +334,10 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		}
 		return results.toArray(new MutectTumorNormal[results.size()]);
 	}
+	
+	
+	
+	
 
 	private static void runTally(String tparams, Logger log, String vcf) {
 		log.reportTimeInfo("Loading vcf tally params from " + tparams);
@@ -362,17 +368,19 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 				mafs = Array.toDoubleArray(ext.parseStringArg(params[i], null).split(","));
 			}
 		}
-
+		new File(popDir).mkdirs();
 		String annoCp = popDir + VCFOps.getAppropriateRoot(vcf, true) + ".vcf.gz";
-		Files.copyFileUsingFileChannels(vcf, annoCp, log);
-		Files.copyFileUsingFileChannels(vcf + ".tbi", annoCp + ".tbi", log);
-		popDir = popDir + "freq_" + VCFOps.getAppropriateRoot(vcf, true);
+		if (!Files.exists(annoCp)) {
+			Files.copyFileUsingFileChannels(vcf, annoCp, log);
+			Files.copyFileUsingFileChannels(vcf + ".tbi", annoCp + ".tbi", log);
+		}
+		popDir = popDir + "freq_" + VCFOps.getAppropriateRoot(vcf, true) + "/";
 		new File(popDir).mkdirs();
 		Files.copyFile(vpops, popDir + ext.removeDirectoryInfo(vpops));
 
-		System.exit(1);
 		for (int i = 0; i < mafs.length; i++) {
-			VCFSimpleTally.test(vcf, popDir, new String[] { ext.removeDirectoryInfo(vpops) }, omim, extras, genesetDir, mafs[i], controlSpecifiComp);
+			VariantContextFilter filterTumor = FilterNGS.getTumorNormalFilter(mafs[i], log);
+			VCFSimpleTally.test(vcf, popDir, new String[] { ext.removeDirectoryInfo(vpops) }, omim, extras, genesetDir, mafs[i], controlSpecifiComp, filterTumor);
 		}
 	}
 
@@ -407,7 +415,8 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 					bamsToExtract.add(tumorNormalMatchedBams[i][j]);
 				}
 			}
-			String extractFiltDir = outputDir + "extract_" + VCFOps.getAppropriateRoot(finalAnno, true);
+			String extractFiltDir = outputDir + "extract_" + VCFOps.getAppropriateRoot(finalAnno, true)+"/";
+			new File(extractFiltDir).mkdirs();
 			extractBamsTo(extractFiltDir, Array.toStringArray(bamsToExtract), finalAnno, numThreads, log);
 		}
 
