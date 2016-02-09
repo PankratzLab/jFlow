@@ -65,7 +65,7 @@ public class VCFSimpleTally {
 	private static final String SNPEFF_NAMES = "G1000_esp_charge_aricFreq_SNPEFF_HIGH_MODERATE_LOW";
 	// private static final String CHARGE_B_FILTER = "(charge.MAF_blacks=='.'||charge.MAF_blacks <= 0.01)";
 	// private static final String CHARGE_W_FILTER = "(charge.MAF_whites=='.'||charge.MAF_whites <= 0.01)";
-	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT", "BIALLELIC" };
+	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT", "BIALLELIC", "FILTERS" };
 	private static final String[] ANNO_BASE_SAMPLE = Array.concatAll(ANNO_BASE, new String[] { "SAMPLE", "GENOTYPE" });
 
 	private static final String[] ANNO_ADD = new String[] { "_AVG_GQ", "_AVG_DP", "_NUM_WITH_CALLS", "_NUM_WITH_ALT", "_AAC", "_HQ_NUM_WITH_ALT", "_HQ_AAC", };
@@ -682,6 +682,8 @@ public class VCFSimpleTally {
 		String finalAnnotGeneBed = finalOut + ".gene.bed";
 		String finalGeneSetSummary = finalOut + ".geneset.summmary";
 		String finalGeneVariantPositions = finalOut + ".gene.position.counts.ser";
+		String annotKeysFile = finalOut + ".annotation.keys.txt";
+
 		// String finalAnnotGeneSample = finalOut + ".gene.sample";
 
 		Set<String> cases = vpopAc.getSuperPop().get(caseDef);
@@ -709,7 +711,14 @@ public class VCFSimpleTally {
 		VcfPopulation controlVcfPopulation = new VcfPopulation(controlSubPop, controlPop, POPULATION_TYPE.CASE_CONTROL, new Logger());
 		SimpleTallyResult simpleTallyResult = new SimpleTallyResult(controlVcfPopulation, finalOut, finalOutVCF, finalsampSummary, finalAnnot, finalAnnotSample, finalAnnotGene, finalGeneVariantPositions);
 		simpleTallyResult.getFinalGeneVariantPositions();
-
+		
+		String[][] genotypeAnnotations = GenotypeOps.getGenoFormatKeys(vcf, log);
+		String[][] variantAnnotations = VCFOps.getAnnotationKeys(vcf, log);
+		String annos = Array.toStr(genotypeAnnotations[1]) + "\t" + Array.toStr(variantAnnotations[1]) + "\n";
+		annos += Array.toStr(genotypeAnnotations[0]) + "\t" + Array.toStr(variantAnnotations[0]);
+		Files.write(annos, annotKeysFile);
+		
+		
 		summarizeAnalysisParams(finalsampSummary, caseDef, cases, controls, maf, log);
 		summarizeGeneSets(geneSets, finalGeneSetSummary, log);
 		if (!Files.exists(finalAnnotGene) || !Files.exists(finalAnnotGeneBed) || !Files.exists(finalAnnotSample) || !Files.exists(finalGeneVariantPositions)) {
@@ -724,7 +733,7 @@ public class VCFSimpleTally {
 			annoGeneBedWriter.println("CHR\tSTART\tSTOP\tGENENAME_FUNCTION");
 			annoGeneWriter.print(Array.toStr(GENE_BASE));
 
-			String[][] genotypeAnnotations = GenotypeOps.getGenoFormatKeys(vcf, log);
+			
 
 			PrintWriter annoWriterSample = Files.getAppropriateWriter(finalAnnotSample);
 
@@ -748,7 +757,6 @@ public class VCFSimpleTally {
 			}
 			annoGeneWriter.print("\tIS_GENE_SET");
 
-			String[][] variantAnnotations = VCFOps.getAnnotationKeys(vcf, log);
 
 			annoWriter.print("\t" + Array.toStr(variantAnnotations[0]));
 			annoWriterSample.print("\t" + Array.toStr(variantAnnotations[0]));
@@ -796,7 +804,7 @@ public class VCFSimpleTally {
 						}
 					}
 
-					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString()+"\t"+vc.isBiallelic());
+					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + vc.getFilters().toString());
 					annoWriter.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 
 					GenotypesContext gc = vcCaseGroup.getVcAlt().getGenotypes();
@@ -808,7 +816,7 @@ public class VCFSimpleTally {
 					}
 
 					for (Genotype g : gc) {
-						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + g.getSampleName() + "\t" + g.toString() + "\t" + Array.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0], g, ".")));
+						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + vc.getFilters().toString() + "\t" + g.getSampleName() + "\t" + g.toString() + "\t" + Array.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0], g, ".")));
 						annoWriterSample.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 						for (int j = 0; j < controlsOrdered.size(); j++) {
 							annoWriterSample.print("\t" + Array.toStr(controlGroupSummaries.get(j).getSummary()));
@@ -1313,7 +1321,7 @@ public class VCFSimpleTally {
 
 		// VARIANT_FILTER_BOOLEAN[] bQualFilts = new VARIANT_FILTER_BOOLEAN[] { amb };
 
-		VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] { callRate, dp,  gq };
+		VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] { callRate, dp, gq };
 
 		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] { fail }, new String[] { "G1000Freq" }, new String[] { getPopFreqFilter(maf) }, log);
 		return vContextFilter;
