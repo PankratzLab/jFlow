@@ -427,7 +427,7 @@ public class RegNovo {
 
 	private static VariantContextFilter getQualityFilter(double gqVal, Logger log) {
 		VARIANT_FILTER_DOUBLE callRate = VARIANT_FILTER_DOUBLE.CALL_RATE;
-		VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ_LOOSE;
+		VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ;
 		gq.setDFilter(gqVal);
 		VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
 		dp.setDFilter(8);

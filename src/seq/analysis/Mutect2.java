@@ -377,10 +377,10 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		popDir = popDir + "freq_" + VCFOps.getAppropriateRoot(vcf, true) + "/";
 		new File(popDir).mkdirs();
 		Files.copyFile(vpops, popDir + ext.removeDirectoryInfo(vpops));
-
+		
 		for (int i = 0; i < mafs.length; i++) {
 			VariantContextFilter filterTumor = FilterNGS.getTumorNormalFilter(mafs[i], log);
-			VCFSimpleTally.test(vcf, popDir, new String[] { ext.removeDirectoryInfo(vpops) }, omim, extras, genesetDir, mafs[i], controlSpecifiComp, filterTumor);
+			VCFSimpleTally.test(vcf, new String[] { popDir + ext.removeDirectoryInfo(vpops) }, omim, extras, genesetDir, mafs[i], controlSpecifiComp, filterTumor);
 		}
 	}
 
