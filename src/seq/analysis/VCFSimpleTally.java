@@ -41,6 +41,7 @@ import seq.qc.FilterNGS;
 import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import seq.qc.FilterNGS.VariantContextFilter;
+import seq.qc.FilterNGS.VariantContextFilterPass;
 import seq.qc.FilterNGS.VcFilterBoolean;
 import seq.qc.FilterNGS.VcFilterDouble;
 import common.Array;
@@ -65,7 +66,7 @@ public class VCFSimpleTally {
 	// private static final String CHARGE_B_FILTER = "(charge.MAF_blacks=='.'||charge.MAF_blacks <= 0.01)";
 	// private static final String CHARGE_W_FILTER = "(charge.MAF_whites=='.'||charge.MAF_whites <= 0.01)";
 	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT", "BIALLELIC", "FILTERS" };
-	private static final String[] ANNO_BASE_SAMPLE = Array.concatAll(ANNO_BASE, new String[] { "SAMPLE", "GENOTYPE" });
+	private static final String[] ANNO_BASE_SAMPLE = Array.concatAll(ANNO_BASE, new String[] { "SAMPLE", "GENOTYPE", "HQ" });
 
 	private static final String[] ANNO_ADD = new String[] { "_AVG_GQ", "_AVG_DP", "_NUM_WITH_CALLS", "_NUM_WITH_ALT", "_AAC", "_HQ_NUM_WITH_ALT", "_HQ_AAC", };
 	private static final String[] GENE_BASE = new String[] { "GENE/GENE_SET", "FUNCTIONAL_TYPE" };
@@ -714,12 +715,25 @@ public class VCFSimpleTally {
 
 		String[][] genotypeAnnotations = GenotypeOps.getGenoFormatKeys(vcf, log);
 		String[][] variantAnnotations = VCFOps.getAnnotationKeys(vcf, log);
-		String annos = Array.toStr(genotypeAnnotations[1]) + "\t" + Array.toStr(variantAnnotations[1]) + "\n";
-		annos += Array.toStr(genotypeAnnotations[0]) + "\t" + Array.toStr(variantAnnotations[0]);
+		String annos = "CONTEXT\tID\tDescription\n";
+		for (int j = 0; j < genotypeAnnotations[0].length; j++) {
+			annos += "GENOTYPE\t" + genotypeAnnotations[0][j] + "\t" + genotypeAnnotations[1][j] + "\n";
+		}
+		for (int j = 0; j < variantAnnotations[0].length; j++) {
+			annos += "VARIANT\t" + variantAnnotations[0][j] + "\t" + variantAnnotations[1][j] + "\n";
+		}
+		
 		Files.write(annos, annotKeysFile);
 
 		summarizeAnalysisParams(finalsampSummary, caseDef, cases, controls, maf, log);
 		summarizeGeneSets(geneSets, finalGeneSetSummary, log);
+		if (qualCase != null) {
+			log.reportTimeWarning("Using different qc filter for cases, this is appropriate for Tumor Normal analysis, but not much else currently");
+		} else {
+			qualCase = getQualityFilterwkggseq(maf, log);
+		}
+		VariantContextFilter qualControl = getQualityFilterwkggseq(maf, log);
+		summarizeQC(caseDef, filterFile, qualCase, qualControl);
 		if (!Files.exists(finalAnnotGene) || !Files.exists(finalAnnotGeneBed) || !Files.exists(finalAnnotSample) || !Files.exists(finalGeneVariantPositions)) {
 			VCFFileReader tmp = new VCFFileReader(filtVcfs.get(0), true);
 
@@ -765,14 +779,6 @@ public class VCFSimpleTally {
 			annoWriter.println();
 			annoWriterSample.println();
 
-			if (qualCase != null) {
-				log.reportTimeWarning("Using different qc filter for cases, this is appropriate for Tumor Normal analysis, but not much else currently");
-			} else {
-				qualCase = getQualityFilterwkggseq(maf, log);
-			}
-			VariantContextFilter qualControl = getQualityFilterwkggseq(maf, log);
-			summarizeQC(filterFile, qualCase, qualControl);
-			System.exit(1);
 			Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<String, ArrayList<GeneSummary[]>>();
 			for (int i = 0; i < filtVcfs.size(); i++) {
 				// if (i > 1) {
@@ -819,7 +825,10 @@ public class VCFSimpleTally {
 					}
 
 					for (Genotype g : gc) {
-						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + vc.getFilters().toString() + "\t" + g.getSampleName() + "\t" + g.toString() + "\t" + Array.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0], g, ".")));
+						HashSet<String> tmpVCSub = new HashSet<String>();
+						tmpVCSub.add(g.getSampleName());
+						VariantContextFilterPass pass = qualCase.filter(VCOps.getSubset(vc, tmpVCSub));
+						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + vc.getFilters().toString() + "\t" + g.getSampleName() + "\t" + g.toString() + "\t" + pass.getTestPerformed() + "\t" + Array.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0], g, ".")));
 						annoWriterSample.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 						for (int j = 0; j < controlsOrdered.size(); j++) {
 							annoWriterSample.print("\t" + Array.toStr(controlGroupSummaries.get(j).getSummary()));
@@ -882,18 +891,22 @@ public class VCFSimpleTally {
 		return simpleTallyResult;
 	}
 
-	private static void summarizeQC(String output, VariantContextFilter caseFilter, VariantContextFilter controlFilter) {
+	private static void summarizeQC(String controlGroup, String output, VariantContextFilter caseFilter, VariantContextFilter controlFilter) {
 		ArrayList<String> filterSummary = new ArrayList<String>();
 		filterSummary.add("GROUP\tTYPE\tID\tVALUE\tDIRECTION");
 		for (int i = 0; i < caseFilter.getvBooleans().length; i++) {
 			VcFilterBoolean vb = caseFilter.getvBooleans()[i];
-			filterSummary.add("CASE\tBOOLEAN\t" + vb.getBfilter() + "\t" + vb.getBfilter().getType() + "\tNA");
+			filterSummary.add(controlGroup + "\tBOOLEAN\t" + vb.getBfilter() + "\t" + vb.getBfilter().getType() + "\tNA");
 		}
 		for (int i = 0; i < caseFilter.getvDoubles().length; i++) {
 			VcFilterDouble vd = caseFilter.getvDoubles()[i];
-			filterSummary.add("CASE\tNUMERIC\t" + vd.getDfilter() + "\t" + vd.getFilterThreshold() + "\t" + vd.getDfilter().getType());
+			String add = controlGroup + "\tNUMERIC\t" + vd.getDfilter() + "\t" + vd.getFilterThreshold() + "\t" + vd.getDfilter().getType();
+			filterSummary.add(add);
 		}
-		filterSummary.add("CASE\tSTRING\tJEXL\t" + caseFilter.getvFilterJEXL().getjExps().toString() + "\tNA");
+
+		if (caseFilter.getvFilterJEXL().getjExps().size() > 0) {
+			filterSummary.add(controlGroup + "\tSTRING\t" + caseFilter.getvFilterJEXL().getjExps().get(0).name + "\t" + caseFilter.getvFilterJEXL().getjExps().get(0).exp + "\tNA");
+		}
 
 		for (int i = 0; i < controlFilter.getvBooleans().length; i++) {
 			VcFilterBoolean vb = controlFilter.getvBooleans()[i];
@@ -903,7 +916,9 @@ public class VCFSimpleTally {
 			VcFilterDouble vd = controlFilter.getvDoubles()[i];
 			filterSummary.add("CONTROL\tNUMERIC\t" + vd.getDfilter() + "\t" + vd.getFilterThreshold() + "\t" + vd.getDfilter().getType());
 		}
-		filterSummary.add("CONTROL\tSTRING\tJEXL\t" + controlFilter.getvFilterJEXL().getjExps().toString() + "\tNA");
+		if (controlFilter.getvFilterJEXL().getjExps().size() > 0) {
+			filterSummary.add("CONTROL\tSTRING\t" + controlFilter.getvFilterJEXL().getjExps().get(0).name + "\t" + controlFilter.getvFilterJEXL().getjExps().get(0).exp + "\tNA");
+		}
 		Files.writeList(Array.toStringArray(filterSummary), output);
 	}
 
@@ -1334,8 +1349,8 @@ public class VCFSimpleTally {
 	 * @return the {@link htsjdk.variant.variantcontext.filter.VariantContextFilter} used for genotype qc
 	 */
 	private static VariantContextFilter getQualityFilterwkggseq(double maf, Logger log) {
-		VARIANT_FILTER_DOUBLE callRate = VARIANT_FILTER_DOUBLE.CALL_RATE;
-		VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ_LOOSE;
+		// VARIANT_FILTER_DOUBLE callRate = VARIANT_FILTER_DOUBLE.CALL_RATE;
+		VARIANT_FILTER_DOUBLE gq = VARIANT_FILTER_DOUBLE.GQ;
 		gq.setDFilter(50);
 		VARIANT_FILTER_DOUBLE dp = VARIANT_FILTER_DOUBLE.DP;
 		dp.setDFilter(10);
@@ -1349,13 +1364,13 @@ public class VCFSimpleTally {
 
 		// VARIANT_FILTER_BOOLEAN[] bQualFilts = new VARIANT_FILTER_BOOLEAN[] { amb };
 
-		VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] { callRate, dp, gq };
+		VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] { dp, gq };
 
 		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] { fail }, new String[] { "G1000Freq" }, new String[] { FilterNGS.getPopFreqFilterString(maf) }, log);
 		return vContextFilter;
 	}
 
-	public static void test(String vcf, String popDir, String[] vpopsCase, String omimDir, String[] otherGenesOfInterest, String genesetDir, double maf, boolean controlSpecifiComp, VariantContextFilter caseQualFilter) {
+	public static void test(String vcf, String[] vpopsCase, String omimDir, String[] otherGenesOfInterest, String genesetDir, double maf, boolean controlSpecifiComp, VariantContextFilter caseQualFilter) {
 		// popDir + "CUSHING_FREQ.vpop", popDir + "EPP.vpop" };
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		int numThreads = 24;
@@ -1599,7 +1614,7 @@ public class VCFSimpleTally {
 		try {
 			vpopsCase = Array.tagOn(vpopsCase, popDir, null);
 			for (int i = 0; i < mafs.length; i++) {
-				test(vcf, popDir, vpopsCase, omimDir, otherGenesOfInterest, null, mafs[i], controlSpecifiComp, null);
+				test(vcf, vpopsCase, omimDir, otherGenesOfInterest, null, mafs[i], controlSpecifiComp, null);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
