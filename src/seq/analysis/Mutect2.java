@@ -1,6 +1,12 @@
 package seq.analysis;
 
+import filesys.Segment;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
+
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
@@ -20,6 +26,7 @@ import seq.analysis.GATK_Genotyper.ANNOVCF;
 import seq.manage.BamOps;
 import seq.manage.VCFOps;
 import seq.manage.VCFTumorNormalOps;
+import seq.manage.VCOps;
 
 /**
  * @author lane0212 For using the native Mutect in GATK 3.5+
@@ -286,7 +293,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 				gatk.combinePonVcfs(Array.toStringArray(ponVcfs), ponVcf, 2, log);
 			}
 		} else if (type == MUTECT_RUN_TYPES.CALL_SOMATIC) {
-			callSomatic(fileOftumorNormalMatchedBams, outputDir, ponVcf, gatk, null,null, numThreads, numSampleThreads, true, log);
+			callSomatic(fileOftumorNormalMatchedBams, outputDir, ponVcf, gatk, null, null, numThreads, numSampleThreads, true, log);
 		}
 	}
 
@@ -301,36 +308,83 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		Mutect2 mutect2 = new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads, log);
 		WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2, numThreads, 2, log);
 		ArrayList<MutectTumorNormal> results = new ArrayList<GATK.MutectTumorNormal>();
-		ArrayList<String> finalTNVCfs = new ArrayList<String>();
+		ArrayList<String> finalTNnoFiltVCfs = new ArrayList<String>();
+		ArrayList<String> finalTNFiltVCFS = new ArrayList<String>();
 
 		while (train.hasNext()) {
 			MutectTumorNormal tmp = train.next();
 			results.add(tmp);
-			finalTNVCfs.add(tmp.getReNamedOutputVCF());
+			finalTNnoFiltVCfs.add(tmp.getReNamedOutputVCF());
+			finalTNFiltVCFS.add(tmp.getReNamedOutputVCF());
+
 		}
 
 		if (merge) {
-			String root = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged";
-			String outMergeVCF = root + ".vcf.gz";
-			String outMergeRenameVCF = root + ".renamed.vcf.gz";
-			// String outMergeRenameAnnoVCF = root + ".renamed.anno.vcf.gz";
+			String rootNoFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged";
+			mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log, tumorNormalMatchedBams, finalTNnoFiltVCfs, rootNoFilter);
 
-			if (!Files.exists(outMergeVCF)) {
-				gatk.mergeVCFs(Array.toStringArray(finalTNVCfs), outMergeVCF, numThreads, false, log);
-			}
+			String rootFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged.filtered";
+			mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log, tumorNormalMatchedBams, finalTNFiltVCFS, rootFilter);
 
-			if (!Files.exists(outMergeRenameVCF)) {
-				VCFTumorNormalOps.renameMergeVCF(outMergeVCF, outMergeRenameVCF);
-			}
-			log.reportTimeWarning("Attempting to annotate using default locations...");
-			String finalAnno = GATK_Genotyper.annotateOnlyWithDefualtLocations(outMergeRenameVCF, annoVCF, true, false, log);
-			if (finalMergeWithVCF != null) {
-				String finalMerge = VCFOps.getAppropriateRoot(finalAnno, false) + ".finalMerge.vcf.gz";
-				log.reportTimeInfo("Merging with " + finalMergeWithVCF);
-				gatk.mergeVCFs(new String[] { outMergeRenameVCF, finalMergeWithVCF }, finalMerge, numThreads, false, log);
-			}
 		}
 		return results.toArray(new MutectTumorNormal[results.size()]);
+	}
+
+	private static void mergeAndAnnotate(String outputDir, GATK gatk, ANNOVCF annoVCF, String finalMergeWithVCF, int numThreads, Logger log, String[][] tumorNormalMatchedBams, ArrayList<String> finalTNVCfs, String root) {
+		String outMergeVCF = root + ".vcf.gz";
+		String outMergeRenameVCF = root + ".renamed.vcf.gz";
+		// String outMergeRenameAnnoVCF = root + ".renamed.anno.vcf.gz";
+
+		if (!Files.exists(outMergeVCF)) {
+			gatk.mergeVCFs(Array.toStringArray(finalTNVCfs), outMergeVCF, numThreads, false, log);
+		}
+
+		if (!Files.exists(outMergeRenameVCF)) {
+			VCFTumorNormalOps.renameMergeVCF(outMergeVCF, outMergeRenameVCF);
+		}
+		log.reportTimeWarning("Attempting to annotate using default locations...");
+		String finalAnno = GATK_Genotyper.annotateOnlyWithDefualtLocations(outMergeRenameVCF, annoVCF, true, false, log);
+
+		if (finalMergeWithVCF != null) {
+			String finalMerge = VCFOps.getAppropriateRoot(finalAnno, false) + ".finalMerge.vcf.gz";
+			log.reportTimeInfo("Merging with " + finalMergeWithVCF);
+			gatk.mergeVCFs(new String[] { outMergeRenameVCF, finalMergeWithVCF }, finalMerge, numThreads, false, log);
+		}
+
+		ArrayList<String> bamsToExtract = new ArrayList<String>();
+		for (int i = 0; i < tumorNormalMatchedBams.length; i++) {
+			for (int j = 0; j < tumorNormalMatchedBams[i].length; j++) {
+				bamsToExtract.add(tumorNormalMatchedBams[i][j]);
+			}
+		}
+		String extractNoFiltDir = outputDir + "extractedNofilt/";
+		String extractFiltDir = outputDir + "extractedFilt/";
+		extractBamsTo(extractNoFiltDir, Array.toStringArray(bamsToExtract), finalAnno, numThreads, log);
+		extractBamsTo(extractFiltDir, Array.toStringArray(bamsToExtract), finalAnno, numThreads, log);
+	}
+
+	private static void extractBamsTo(String extractDir, String[] bams, String vcf, int numThreads, Logger log) {
+		new File(extractDir).mkdirs();
+		String segFile = extractDir + "segments.txt";
+		String bamFile = extractDir + "bams.txt";
+		Files.writeList(bams, bamFile);
+		if (!Files.exists(segFile)) {
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(segFile));
+				VCFFileReader reader = new VCFFileReader(vcf, true);
+				for (VariantContext vc : reader) {
+					Segment seg = VCOps.getSegment(vc);
+					writer.println(seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop());
+				}
+				writer.close();
+				reader.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + segFile);
+				log.reportException(e);
+			}
+
+		}
+		VCFOps.extractSegments(vcf, segFile, 300, bamFile, extractDir, false, true, false, false, null, numThreads, log);
 	}
 
 	private static void batchPON(int numNormalBatches, GATK gatk, String bamFilesFullPath, String outputDir, int numthreads, int numSampleThreads, Logger log) {
@@ -493,7 +547,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			} else if (fileOfNormalBams != "") {
 				log.reportTimeInfo("Generating normal sample vcfs");
 				try {
-					run(fileOfNormalBams, tumorNormalBams, outputDir, ponVCF, gatk,  run, numthreads, numSampleThreads, log);
+					run(fileOfNormalBams, tumorNormalBams, outputDir, ponVCF, gatk, run, numthreads, numSampleThreads, log);
 				} catch (IllegalStateException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

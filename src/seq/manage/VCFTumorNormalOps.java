@@ -50,6 +50,9 @@ public class VCFTumorNormalOps {
 	 *            output vcf
 	 * @param log
 	 */
+	
+	private static final String NORMAL_TAG = "_NORMAL";
+
 	public static void renameAndTransferInfo(String vcf, String tumorSamp, String tumorDef, String normalSamp, String normalDef, String output, String outputFiltered, Logger log) {
 
 		if (VCFOps.getSamplesInFile(vcf).length != 2) {
@@ -82,6 +85,13 @@ public class VCFTumorNormalOps {
 		VCFFormatHeaderLine ADPreserve = new VCFFormatHeaderLine("ADMUT", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.Integer, "A preservation of mutect's AD, which will be removed if merged at a tri-allelic site");
 		newHeaderLines.add(ADPreserve);
 		newHeaderLines.addAll(reader.getFileHeader().getFormatHeaderLines());
+		ArrayList<String> attsToTransferFromNormal = new ArrayList<String>();
+		for (VCFFormatHeaderLine vcfFormatHeaderLine : reader.getFileHeader().getFormatHeaderLines()) {
+			VCFFormatHeaderLine normal = new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + NORMAL_TAG, vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount() : 1, vcfFormatHeaderLine.getType(), vcfFormatHeaderLine.getDescription() + " in the normal sample from mutect calls");
+			newHeaderLines.add(normal);
+			attsToTransferFromNormal.add(vcfFormatHeaderLine.getID());
+		}
+
 		newHeaderLines.addAll(reader.getFileHeader().getOtherHeaderLines());
 		newHeaderLines.addAll(reader.getFileHeader().getContigLines());
 		newHeaderLines.addAll(reader.getFileHeader().getFilterLines());
@@ -99,7 +109,7 @@ public class VCFTumorNormalOps {
 			ArrayList<Genotype> renamed = new ArrayList<Genotype>();
 			Genotype normal = rename(vc.getGenotype(normalDef), normalSamp);
 			Genotype tumor = rename(vc.getGenotype(tumorDef), tumorSamp);
-			tumor = transferFormat(tumor, vc, attsRemoveVCAddGT);
+			tumor = transferFormat(tumor, normal, vc, attsRemoveVCAddGT, attsToTransferFromNormal);
 			Hashtable<String, Object> map = new Hashtable<String, Object>();
 			map.putAll(vc.getAttributes());
 
@@ -136,16 +146,23 @@ public class VCFTumorNormalOps {
 
 	}
 
-	private static Genotype transferFormat(Genotype g, VariantContext vc, List<String> attsToadd) {
-		GenotypeBuilder builder = new GenotypeBuilder(g);
+	private static Genotype transferFormat(Genotype gTumor, Genotype gNormal, VariantContext vc, List<String> attsToadd, List<String> attsToTransferFromNormal) {
+		GenotypeBuilder builder = new GenotypeBuilder(gTumor);
 		for (String att : attsToadd) {
 			if (vc.hasAttribute(att)) {
 				builder.attribute(att, vc.getAttribute(att));
 			}
 		}
-		if (g.hasAD()) {
-			builder.attribute("ADMUT", g.getAnyAttribute("AD"));
+		if (gTumor.hasAD()) {
+			builder.attribute("ADMUT", gTumor.getAnyAttribute("AD"));
 		}
+
+		for (String att : attsToTransferFromNormal) {
+			if (gNormal.hasAnyAttribute(att)) {
+				builder.attribute(att + NORMAL_TAG, gNormal.getAnyAttribute(att));
+			}
+		}
+
 		return builder.make();
 	}
 
