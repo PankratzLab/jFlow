@@ -50,7 +50,7 @@ public class VCFTumorNormalOps {
 	 *            output vcf
 	 * @param log
 	 */
-	
+
 	private static final String NORMAL_TAG = "_NORMAL";
 
 	public static void renameAndTransferInfo(String vcf, String tumorSamp, String tumorDef, String normalSamp, String normalDef, String output, String outputFiltered, Logger log) {
@@ -81,7 +81,7 @@ public class VCFTumorNormalOps {
 			}
 			newHeaderLines.add(vcfInfoHeaderLine);
 		}
-		
+
 		VCFFormatHeaderLine ADPreserve = new VCFFormatHeaderLine("ADMUT", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.Integer, "A preservation of mutect's AD, which will be removed if merged at a tri-allelic site");
 		newHeaderLines.add(ADPreserve);
 		newHeaderLines.addAll(reader.getFileHeader().getFormatHeaderLines());
@@ -205,6 +205,8 @@ public class VCFTumorNormalOps {
 		reader.close();
 		writer.close();
 	}
+
+	
 
 	// double mapQ = 0;
 	// double ssc = 0;
