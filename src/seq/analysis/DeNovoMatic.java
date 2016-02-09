@@ -46,7 +46,7 @@ public class DeNovoMatic {
 		}
 
 		// Mutect2.run(null, matchFile, callDir, ponVcf, gatk, type, numThreads, numSampleThreads, log);
-		MutectTumorNormal[] results = Mutect2.callSomatic(matchFile, outputDir, ponVcf, gatk, null, null, numThreads, numSampleThreads, false, log);
+		MutectTumorNormal[] results = Mutect2.callSomatic(matchFile, outputDir, ponVcf, gatk, null, null, null, numThreads, numSampleThreads, false, log);
 
 		MergeFamResult[] resultsMerge = combineResultsForFamilies(gatk, vpop, results, outputDir, numThreads, log);
 		String[] finalFilesToMerge = new String[resultsMerge.length];
@@ -58,7 +58,7 @@ public class DeNovoMatic {
 		String mergeDenovoOut = outputDir + ext.rootOf(vpopFile) + ".merge.denovo.vcf";
 
 		gatk.mergeVCFs(finalFilesToMerge, mergeDenovoOut, numThreads, false, log);
-		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(mergeDenovoOut,null, false, false, log);
+		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(mergeDenovoOut, null, false, false, log);
 		log.reportTimeInfo("Filtering " + annotatedVcf);
 		String annoFreq = VCFOps.getAppropriateRoot(annotatedVcf, false) + ".freq_" + freqFilter + ".func.vcf.gz";
 		filterByFreq(annotatedVcf, annoFreq, freqFilter, log);
