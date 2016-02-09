@@ -586,23 +586,39 @@ public class ExportCNVsToPedFormat {
     	}
 
 	private static void writeFamOrPed(byte[][] currentCNs, String pedFile, String outputRoot, int fileNumber, String endOfLine, String[] idList, Logger log) {
-	    PrintWriter writer;
+	    PrintWriter writer, missingWriter = null;
 	    log.report("Writing " + (currentCNs == null ? ".fam" : ".ped") + " file...");
-	    Hashtable<String, Vector<String>> sexMap;
+	    Hashtable<String, Vector<String>> iidMap, dnaMap;
 	    
 	    if (pedFile != null) {
-	        log.report("Loading ped file, assuming IID is column 2 and sex is column 5");
-	        sexMap = HashVec.loadFileToHashVec(pedFile, 1, new int[]{4}, "", false, false);
+	        log.report("Loading ped file, assuming IID is column 2, sex is column 5, and phenotype is column 6");
+	        iidMap = HashVec.loadFileToHashVec(pedFile, 1, new int[]{4,5}, "\t", false, false);
+	        dnaMap = HashVec.loadFileToHashVec(pedFile, 6, new int[]{4,5}, "\t", false, false);
+	        missingWriter = Files.getAppropriateWriter(outputRoot + "_missing.iid");
+	        
 	    } else {
 	        log.report("Warning - pedigree file missing, sex will be set to '0' for all individuals.");
-	        sexMap = new Hashtable<String, Vector<String>>();
+	        iidMap = new Hashtable<String, Vector<String>>();
+	        dnaMap = new Hashtable<String, Vector<String>>();
 	    }
 	    
         writer = Files.getAppropriateWriter(outputRoot + "_" + fileNumber + (currentCNs == null ? ".fam" : ".ped"));
+        
         for (int i = 0; i < idList.length; i++) {
             String iid = idList[i].split("\t")[1];
-            String sexCode = sexMap.containsKey(iid) ? sexMap.get(iid).get(0) : "0";
-            writer.print(idList[i] + "\t0\t0\t" + sexCode + "\t-9");
+            String sexCode = "0";
+            String phenoCode = "-9";
+            if (iidMap.containsKey(iid)) {
+                sexCode = iidMap.get(iid).get(0).split("\t")[0];
+                phenoCode = iidMap.get(iid).get(0).split("\t")[1];
+            } else if (dnaMap.containsKey(iid)) {
+                sexCode = dnaMap.get(iid).get(0).split("\t")[0];
+                phenoCode = dnaMap.get(iid).get(0).split("\t")[1];
+            }
+            if (missingWriter != null && !iidMap.containsKey(iid) && !dnaMap.containsKey(iid)) {
+                missingWriter.println(iid);
+            }
+            writer.print(idList[i] + "\t0\t0\t" + sexCode + "\t" + phenoCode);
             if (currentCNs != null) {
                 for (int j = 0; j < idList.length; j++) {
                     writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));                                    
@@ -612,6 +628,10 @@ public class ExportCNVsToPedFormat {
         }
         writer.flush();
         writer.close();
+        if (missingWriter != null) {
+            missingWriter.flush();
+            missingWriter.close();
+        }
 	}
 	
     public static void exportOLD(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, String fileFormat, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygousOnly, boolean excludeMonomorphicLoci, int markersPerFile, int windowInBasepairs, Logger log) {

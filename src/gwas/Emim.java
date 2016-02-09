@@ -125,9 +125,9 @@ public class Emim {
 		
 		currDir = (new File("./")).getAbsolutePath();
 		commands = "cd " + currDir + "\n" + 
-		        "plink --noweb --bfile " + plinkPrefix + (excludeFile != null ? " --exclude " + excludeFile : "") + " --make-bed --out emimPrep\n"+
-				"plink --noweb --bfile emimPrep --mendel\n"+
-				"plink --noweb --bfile emimPrep --tdt\n"+
+		        "plink2 --noweb --bfile " + plinkPrefix + (excludeFile != null ? " --exclude " + excludeFile : "") + " --make-bed --out emimPrep\n"+
+				"plink2 --noweb --bfile emimPrep --mendel\n"+
+				"plink2 --noweb --bfile emimPrep --tdt\n"+
 				"premim -cg -a -rout risksnplist.txt emimPrep.bed\n"+
 				"\n"+
 				"jcp gwas.Emim run=C\n"+
