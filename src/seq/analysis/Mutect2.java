@@ -320,16 +320,15 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			finalTNFiltVCFS.add(tmp.getReNamedFilteredVCF());
 
 		}
-
 		if (merge) {
 			String rootNoFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged";
-			mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log, tumorNormalMatchedBams, finalTNnoFiltVCfs, false, rootNoFilter);
+			String anno = mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log, tumorNormalMatchedBams, finalTNnoFiltVCfs, false, rootNoFilter);
 
-			String rootFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged.filtered";
-			String filtAnno = mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log, tumorNormalMatchedBams, finalTNFiltVCFS, true, rootFilter);
+			// String rootFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged.filtered";
+			// String filtAnno = mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log, tumorNormalMatchedBams, finalTNFiltVCFS, false, rootFilter);
 
 			if (tparams != null) {
-				runTally(tparams, log, filtAnno);
+				runTally(tparams, log, anno);
 			}
 		}
 		return results.toArray(new MutectTumorNormal[results.size()]);
