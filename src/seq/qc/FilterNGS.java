@@ -202,6 +202,9 @@ public class FilterNGS implements Serializable {
 		 * https://www.broadinstitute.org/cancer/cga/mutect for description of why 6.3 and 2.3
 		 * 
 		 */
+		/**
+		 * Set so errors are half the somatic mutation rate
+		 */
 		TLOD(6.3, FILTER_TYPE.GTE_FILTER),
 
 		NLOD(2.3, FILTER_TYPE.GTE_FILTER)
@@ -975,7 +978,6 @@ public class FilterNGS implements Serializable {
 			case TLOD:
 				vDoubles[i] = getAvgTLODFilter(dfilter, log);
 				break;
-
 			case NLOD:
 				vDoubles[i] = getAvgNLODFilter(dfilter, log);
 				break;
@@ -1324,26 +1326,7 @@ public class FilterNGS implements Serializable {
 	 * NOTE: we also add a tlod, nlod, and normal alt count filter
 	 */
 	public static VariantContextFilter getTumorNormalFilter(double maf, Logger log) {
-		// /**
-		// * Total depth for the tumor
-		// */
-		// AD_MUT(10, FILTER_TYPE.GTE_FILTER),
-		//
-		// /**
-		// * Total depth for the normal
-		// */
-		// AD_NORMAL(10, FILTER_TYPE.GTE_FILTER),
-		//
-		// /**
-		// * Alt allele depth for tumor
-		// */
-		// ALT_AD_MUT(4, FILTER_TYPE.GTE_FILTER),
-		//
-		// /**
-		// * Allelic fraction for the tumor
-		// */
-		// AF_MUT(0.2, FILTER_TYPE.GTE_FILTER)
-		// VARIANT_FILTER_DOUBLE callRate = VARIANT_FILTER_DOUBLE.CALL_RATE;
+
 		VARIANT_FILTER_DOUBLE dpMut = VARIANT_FILTER_DOUBLE.AD_TUMOR;
 		dpMut.setDFilter(10);
 

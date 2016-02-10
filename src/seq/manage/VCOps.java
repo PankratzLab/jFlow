@@ -546,11 +546,12 @@ public class VCOps {
 					avgGI += Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString().split(","))[1];
 					break;
 				case AF_TUMOR:
+				case NLOD:
+				case TLOD:
 					avgGI += Array.toDoubleArray(geno.getAnyAttribute(info.getFlag()).toString().split(","))[0];
 					break;
 				default:
-					log.reportTimeError("Invalid average type");
-					break;
+					throw new IllegalArgumentException("Invalid genotype flag " + info);
 				}
 			}
 		}
