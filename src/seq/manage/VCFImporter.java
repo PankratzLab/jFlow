@@ -418,7 +418,7 @@ public class VCFImporter {
 	}
 
 	private static void processCentroids(Project proj, String vcf, int numThreads) {
-		double qual = VARIANT_FILTER_DOUBLE.GQ_LOOSE.getDFilter() / 100;
+		double qual = VARIANT_FILTER_DOUBLE.GQ.getDFilter() / 100;
 		String cent = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(vcf) + "qual" + ext.formDeci(qual, 2) + ".cent";
 		if (!Files.exists(cent)) {
 			CentroidBuilder builder = new CentroidBuilder();

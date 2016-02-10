@@ -134,7 +134,7 @@ public class VCFTumorNormalOps {
 			builder.attributes(map);
 			VariantContext vcRename = builder.make(true);
 			writer.add(vcRename);
-			if (!vcRename.isFiltered()) {
+			if (!vcRename.isFiltered() || (vcRename.getFilters().size() == 1 && vcRename.getFilters().contains("str_contraction"))) {
 				writerFiltered.add(vcRename);
 				pass++;
 			}
