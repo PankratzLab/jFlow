@@ -35,7 +35,19 @@ public class VCOps {
 	private static final String[] SNPEFF_IMPACT_IMPACTS = new String[] { "HIGH", "MODERATE", "LOW" };
 
 	public enum GENOTYPE_INFO {
-		GQ("GQ"), AD_REF("AD"), AD_ALT("AD"), DP("DP"), AD_TUMOR("AD_TUMOR"), AD_NORMAL("AD_NORMAL"), ALT_AD_TUMOR("AD_TUMOR"), AF_TUMOR("AF"), ALT_AD_NORMAL("AD_NORMAL"), MUTECT_FILTERS("MUTF");
+		GQ("GQ"),
+		AD_REF("AD"),
+		AD_ALT("AD"),
+		DP("DP"),
+		AD_TUMOR("AD_TUMOR"),
+		AD_NORMAL("AD_NORMAL"),
+		ALT_AD_TUMOR("AD_TUMOR"),
+		AF_TUMOR("AF"),
+		ALT_AD_NORMAL("AD_NORMAL"),
+		MUTECT_FILTERS("MUTF"),
+		TLOD("TLOD"),
+		NLOD("NLOD");
+
 		private String flag;
 
 		private GENOTYPE_INFO(String flag) {
@@ -45,7 +57,6 @@ public class VCOps {
 		public String getFlag() {
 			return flag;
 		}
-
 	}
 
 	/**
