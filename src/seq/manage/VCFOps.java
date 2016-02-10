@@ -2163,7 +2163,7 @@ public class VCFOps {
 		usage += "   (9) skip filtered variants when extracting (i.e. -skipFiltered (not the default))\n" + "";
 		usage += "   (10) gzip the output when extracting (i.e. -gzip ( the default))\n" + "";
 		usage += "   (11) full path to a file of ids (i.e. idFile= (no default))\n" + "";
-		usage += "   (12) when removing filtered variants, apply our standard filters as well (i.e. -standardFilters (not the default, GQ >=" + VARIANT_FILTER_DOUBLE.GQ_LOOSE.getDFilter() + " and DP >=" + VARIANT_FILTER_DOUBLE.DP.getDFilter() + "))\n" + "";
+		usage += "   (12) when removing filtered variants, apply our standard filters as well (i.e. -standardFilters (not the default, GQ >=" + VARIANT_FILTER_DOUBLE.GQ.getDFilter() + " and DP >=" + VARIANT_FILTER_DOUBLE.DP.getDFilter() + "))\n" + "";
 		usage += "   (13) when subsetting by samples, remove monomorphic variants (i.e. -removeMonoMorphic (not the default))\n" + "";
 		usage += "   (14) when subsetting, keep variant ids if set to \".\" (i.e. -keepIds (not the default))\n" + "";
 		usage += "   (15) full path to a segment file  (i.e. " + SEGMENT_FILE_COMMAND + "( no default)\n" + "";
