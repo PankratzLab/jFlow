@@ -331,7 +331,7 @@ public class FilterNGS implements Serializable {
 		public VariantContextFilterPass filter(VariantContext vc, Logger log) {
 			double value = getValue(vc);
 			//" Value :" + value + (vc.getSampleNames().size() == 1 ? vc.getGenotype(0).toString() : ""
-			String testPerformed = "Type: " + dfilter + " Directon: " + type + " Threshold: " + filterThreshold;
+			String testPerformed = "Type: " + dfilter + " Directon: " + type + " Threshold: " + filterThreshold + " Value :" + value;
 			boolean passes = false;
 			switch (type) {
 			case ET_FILTER:
@@ -658,7 +658,7 @@ public class FilterNGS implements Serializable {
 
 			@Override
 			public Double getValue(VariantContext vc) {
-				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.AD_MUT, log);
+				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.AD_TUMOR, log);
 			}
 		};
 	}
@@ -686,7 +686,7 @@ public class FilterNGS implements Serializable {
 
 			@Override
 			public Double getValue(VariantContext vc) {
-				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.ALT_AD_MUT, log);
+				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.ALT_AD_TUMOR, log);
 			}
 		};
 	}
@@ -714,7 +714,7 @@ public class FilterNGS implements Serializable {
 
 			@Override
 			public Double getValue(VariantContext vc) {
-				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.AF_MUT, log);
+				return VCOps.getAvgGenotypeInfo(vc, null, GENOTYPE_INFO.AF_TUMOR, log);
 			}
 		};
 	}

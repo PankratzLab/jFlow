@@ -20,6 +20,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
+import seq.manage.VCOps.GENOTYPE_INFO;
 import common.Logger;
 
 /**
@@ -82,8 +83,11 @@ public class VCFTumorNormalOps {
 			newHeaderLines.add(vcfInfoHeaderLine);
 		}
 
-		VCFFormatHeaderLine ADPreserve = new VCFFormatHeaderLine("ADMUT", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.Integer, "A preservation of mutect's AD, which will be removed if merged at a tri-allelic site");
+		VCFFormatHeaderLine ADPreserve = new VCFFormatHeaderLine(GENOTYPE_INFO.AD_TUMOR.getFlag(), VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.Integer, "Allelic depths for the ref and alt alleles in the order listed for the tumor sample");
+		VCFFormatHeaderLine filterPreserve = new VCFFormatHeaderLine(GENOTYPE_INFO.MUTECT_FILTERS.getFlag(), VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Filters applied by mutect to somatic calls");
+
 		newHeaderLines.add(ADPreserve);
+		newHeaderLines.add(filterPreserve);
 		newHeaderLines.addAll(reader.getFileHeader().getFormatHeaderLines());
 		ArrayList<String> attsToTransferFromNormal = new ArrayList<String>();
 		for (VCFFormatHeaderLine vcfFormatHeaderLine : reader.getFileHeader().getFormatHeaderLines()) {
@@ -154,13 +158,20 @@ public class VCFTumorNormalOps {
 			}
 		}
 		if (gTumor.hasAD()) {
-			builder.attribute("ADMUT", gTumor.getAnyAttribute("AD"));
+			builder.attribute(GENOTYPE_INFO.AD_TUMOR.getFlag(), gTumor.getAnyAttribute("AD"));
 		}
 
 		for (String att : attsToTransferFromNormal) {
 			if (gNormal.hasAnyAttribute(att)) {
 				builder.attribute(att + NORMAL_TAG, gNormal.getAnyAttribute(att));
 			}
+		}
+		if (vc.isFiltered()) {
+			builder.attribute(GENOTYPE_INFO.MUTECT_FILTERS.getFlag(), vc.getFilters().toString());
+		} else {
+			HashSet<String> noFilt = new HashSet<String>();
+			noFilt.add("PASS");
+			builder.attribute(GENOTYPE_INFO.MUTECT_FILTERS.getFlag(), noFilt.toString());
 		}
 
 		return builder.make();
@@ -205,8 +216,6 @@ public class VCFTumorNormalOps {
 		reader.close();
 		writer.close();
 	}
-
-	
 
 	// double mapQ = 0;
 	// double ssc = 0;
