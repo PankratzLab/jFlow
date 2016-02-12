@@ -560,35 +560,103 @@ public class VCFSimpleTally {
 	private static void summarizeVariantsBySample(SimpleTallyResult sr, Logger log) {
 
 		try {
+			Hashtable<String, ArrayList<String>> funcHash = new Hashtable<String, ArrayList<String>>();
+			ArrayList<String> h = new ArrayList<String>();
+			h.add("HIGH");
+			h.add("HIGH||MODERATE");
+			h.add("HIGH||MODERATE||LOW");
+			ArrayList<String> m = new ArrayList<String>();
+			m.add("HIGH||MODERATE");
+			m.add("HIGH||MODERATE||LOW");
+			ArrayList<String> l = new ArrayList<String>();
+			m.add("HIGH||MODERATE||LOW");
+
+			funcHash.put("HIGH", h);
+			funcHash.put("MODERATE", m);
+			funcHash.put("LOW", l);
+
 			BufferedReader reader = Files.getAppropriateReader(sr.getFinalAnnotSample());
 			int snpEFFIndex = ext.indexOfStr("SNPEFF_IMPACT", Files.getHeaderOfFile(sr.getFinalAnnotSample(), log));
 			int sampIndex = ext.indexOfStr("SAMPLE", Files.getHeaderOfFile(sr.getFinalAnnotSample(), log));
+			int geneIndex = ext.indexOfStr("SNPEFF_GENE_NAME", Files.getHeaderOfFile(sr.getFinalAnnotSample(), log));
+			int hqIndex = ext.indexOfStr("HQ", Files.getHeaderOfFile(sr.getFinalAnnotSample(), log));
 
 			Hashtable<String, Integer> counts = new Hashtable<String, Integer>();
+			Hashtable<String, Integer> countsGene = new Hashtable<String, Integer>();
+
 			reader.readLine();
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
+				// writer.println("Sample\tSNPEFF_IMPACT\tQUALITY\tGENE\tCOUNTS");
 
-				String anyKey = line[sampIndex] + "\tANY_EFF";
-				String funcKey = line[sampIndex] + "\t" + line[snpEFFIndex];
+				String anyKey = line[sampIndex] + "\tANY_EFF\tANY";
+				String funcKey = line[sampIndex] + "\t" + line[snpEFFIndex] + "\tANY";
+				String geneAnyKey = line[sampIndex] + "\tANY_EFF\tANY\t" + line[geneIndex];
+				String geneFuncKey = line[sampIndex] + "\t" + line[snpEFFIndex] + "\tANY\t" + line[geneIndex];
+
+				String anyKeyHQ = line[sampIndex] + "\tANY_EFF\tHQ";
+				String funcKeyHQ = line[sampIndex] + "\t" + line[snpEFFIndex] + "\tHQ";
+				String geneAnyKeyHQ = line[sampIndex] + "\tANY_EFF\tHQ\t" + line[geneIndex];
+				String geneFuncKeyHQ = line[sampIndex] + "\t" + line[snpEFFIndex] + "\tHQ\t" + line[geneIndex];
+				String qual = line[hqIndex];
 				if (!counts.containsKey(anyKey)) {
 					counts.put(anyKey, 1);
 				} else {
 					counts.put(anyKey, counts.get(anyKey) + 1);
 				}
+				if (!countsGene.containsKey(geneAnyKey)) {
+					countsGene.put(geneAnyKey, 1);
+				} else {
+					countsGene.put(geneAnyKey, countsGene.get(geneAnyKey) + 1);
+				}
+
 				if (!counts.containsKey(funcKey)) {
 					counts.put(funcKey, 1);
 				} else {
 					counts.put(funcKey, counts.get(funcKey) + 1);
 				}
+
+				if (!countsGene.containsKey(geneFuncKey)) {
+					countsGene.put(geneFuncKey, 1);
+				} else {
+					countsGene.put(geneFuncKey, countsGene.get(geneFuncKey) + 1);
+				}
+				if (qual.contains("Passed")) {
+					if (!counts.containsKey(anyKeyHQ)) {
+						counts.put(anyKeyHQ, 1);
+					} else {
+						counts.put(anyKeyHQ, counts.get(anyKeyHQ) + 1);
+					}
+					if (!countsGene.containsKey(geneAnyKeyHQ)) {
+						countsGene.put(geneAnyKeyHQ, 1);
+					} else {
+						countsGene.put(geneAnyKeyHQ, countsGene.get(geneAnyKeyHQ) + 1);
+					}
+					if (!counts.containsKey(funcKeyHQ)) {
+						counts.put(funcKeyHQ, 1);
+					} else {
+						counts.put(funcKeyHQ, counts.get(funcKeyHQ) + 1);
+					}
+
+					if (!countsGene.containsKey(geneFuncKeyHQ)) {
+						countsGene.put(geneFuncKeyHQ, 1);
+					} else {
+						countsGene.put(geneFuncKeyHQ, countsGene.get(geneFuncKeyHQ) + 1);
+					}
+				}
+
 			}
 			reader.close();
 			String out = sr.getFinalAnnotSample() + ".varCounts";
+
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(out));
-				writer.println("Sample\tSNPEFF_IMPACT\tCOUNTS");
+				writer.println("Sample\tSNPEFF_IMPACT\tQUALITY\tGENE\tCOUNTS");
 				for (String key : counts.keySet()) {
-					writer.println(key + "\t" + counts.get(key));
+					writer.println(key + "\tANY\t" + counts.get(key));
+				}
+				for (String key : countsGene.keySet()) {
+					writer.println(key + "\t" + countsGene.get(key));
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -722,7 +790,7 @@ public class VCFSimpleTally {
 		for (int j = 0; j < variantAnnotations[0].length; j++) {
 			annos += "VARIANT\t" + variantAnnotations[0][j] + "\t" + variantAnnotations[1][j] + "\n";
 		}
-		
+
 		Files.write(annos, annotKeysFile);
 
 		summarizeAnalysisParams(finalsampSummary, caseDef, cases, controls, maf, log);
@@ -733,10 +801,9 @@ public class VCFSimpleTally {
 			qualCase = getQualityFilterwkggseq(maf, log);
 		}
 		VariantContextFilter qualControl = getQualityFilterwkggseq(maf, log);
-		summarizeQC(caseDef, filterFile, qualCase, qualControl);
 		if (!Files.exists(finalAnnotGene) || !Files.exists(finalAnnotGeneBed) || !Files.exists(finalAnnotSample) || !Files.exists(finalGeneVariantPositions)) {
 			VCFFileReader tmp = new VCFFileReader(filtVcfs.get(0), true);
-
+			summarizeQC(caseDef, filterFile, qualCase, qualControl);
 			VariantContextWriter writer = VCFOps.initWriter(finalOutVCF, VCFOps.DEFUALT_WRITER_OPTIONS, VCFOps.getSequenceDictionary(tmp));
 			VCFOps.copyHeader(tmp, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 			tmp.close();
@@ -1370,7 +1437,7 @@ public class VCFSimpleTally {
 		return vContextFilter;
 	}
 
-	public static void test(String vcf, String[] vpopsCase, String omimDir, String[] otherGenesOfInterest, String genesetDir, double maf, boolean controlSpecifiComp, VariantContextFilter caseQualFilter) {
+	public static void test(String vcf, String[] vpopsCase, String omimDir, String[] otherGenesOfInterest, String genesetDir, double maf, boolean controlSpecifiComp, boolean controlSpecifiEnrich, VariantContextFilter caseQualFilter) {
 		// popDir + "CUSHING_FREQ.vpop", popDir + "EPP.vpop" };
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
 		int numThreads = 24;
@@ -1447,15 +1514,17 @@ public class VCFSimpleTally {
 					tmpPop.dump(out);
 					SimpleTallyResult controlSpecificResult = runSimpleTally(vcf, out, maf, numThreads, outDir, currentSets, null, log);
 					controlFuncHashes.add(loadToGeneFuncHash(controlSpecificResult.getFinalAnnotGene(), log));
-					Hashtable<String, PosCluster[]> clusterSpecific;
-					try {
-						clusterSpecific = densityEnrichment(caseResult, controlSpecificResult, log);
-					} catch (IllegalStateException e) {
-						log.reportTimeError("Could not enrich");
-						e.printStackTrace();
-						return;
+					if (controlSpecifiEnrich) {
+						Hashtable<String, PosCluster[]> clusterSpecific;
+						try {
+							clusterSpecific = densityEnrichment(caseResult, controlSpecificResult, log);
+						} catch (IllegalStateException e) {
+							log.reportTimeError("Could not enrich");
+							e.printStackTrace();
+							return;
+						}
+						clusters.add(clusterSpecific);
 					}
-					clusters.add(clusterSpecific);
 					allControlFiles.add(out);
 				}
 			} else {
@@ -1564,6 +1633,8 @@ public class VCFSimpleTally {
 		// String[] otherGenesOfInterest = new String[] { popDir + "SB_T1.txt", popDir + "SB_T2.txt", "/home/pankrat2/public/bin/ref/COSMIC/cancer_gene_census.txt" };
 		String[] otherGenesOfInterest = null;
 		boolean controlSpecifiComp = false;
+		boolean controlSpecifiEnrich = false;
+
 		double[] mafs = new double[] { 0.01 };
 
 		String usage = "\n" +
@@ -1575,6 +1646,7 @@ public class VCFSimpleTally {
 				"   (5) comma-delimited extra-info files (i.e. extra= (no default))\n" +
 				"   (6) comma separated mafs  (i.e. maf=" + Array.toStr(Array.toStringArray(mafs), ",") + " (default))\n" +
 				"   (7) for each control group, run a specific tally  (i.e. controlSpecifiComp=" + controlSpecifiComp + " (default))\n" +
+				"   (8) for each control group, do enrichment (i.e. controlSpecifiEnrich=" + controlSpecifiEnrich + " (default))\n" +
 
 				"";
 
@@ -1597,6 +1669,9 @@ public class VCFSimpleTally {
 			} else if (args[i].startsWith("controlSpecifiComp=")) {
 				controlSpecifiComp = ext.parseBooleanArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("controlSpecifiEnrich=")) {
+				controlSpecifiEnrich = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("maf=")) {
 				mafs = Array.toDoubleArray(ext.parseStringArg(args[i], "NA").split(","));
 				numArgs--;
@@ -1614,7 +1689,7 @@ public class VCFSimpleTally {
 		try {
 			vpopsCase = Array.tagOn(vpopsCase, popDir, null);
 			for (int i = 0; i < mafs.length; i++) {
-				test(vcf, vpopsCase, omimDir, otherGenesOfInterest, null, mafs[i], controlSpecifiComp, null);
+				test(vcf, vpopsCase, omimDir, otherGenesOfInterest, null, mafs[i], controlSpecifiComp, controlSpecifiEnrich, null);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

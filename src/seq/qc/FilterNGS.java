@@ -1323,7 +1323,12 @@ public class FilterNGS implements Serializable {
 	/**
 	 * Currently paramaterized to be similar to http://www.nature.com/cr/journal/v25/n3/extref/cr201520x14.pdf <br>
 	 * The standards to reduce false positives were as follows: (1) a minimum depth of 10x in both tumors and normal pairs; (2) read depths of variant alleles in tumors should be more than 4x; (3) allelic fractions in tumors should be more than 20%." <br>
-	 * NOTE: we also add a tlod, nlod, and normal alt count filter
+	 * NOTE: we also add a tlod, nlod, and normal alt count filter. Now removed AF
+	 */
+	/**
+	 * @param maf
+	 * @param log
+	 * @return
 	 */
 	public static VariantContextFilter getTumorNormalFilter(double maf, Logger log) {
 
@@ -1334,13 +1339,13 @@ public class FilterNGS implements Serializable {
 		dpNormal.setDFilter(10);
 
 		VARIANT_FILTER_DOUBLE altADTumor = VARIANT_FILTER_DOUBLE.ALT_AD_TUMOR;
-		altADTumor.setDFilter(4);
+		altADTumor.setDFilter(3);
 
 		VARIANT_FILTER_DOUBLE altAdNormal = VARIANT_FILTER_DOUBLE.ALT_AD_NORMAL;
 		altAdNormal.setDFilter(0);
 
-		VARIANT_FILTER_DOUBLE mutAF = VARIANT_FILTER_DOUBLE.AF_TUMOR;
-		mutAF.setDFilter(.2);
+		 VARIANT_FILTER_DOUBLE mutAF = VARIANT_FILTER_DOUBLE.AF_TUMOR;
+		 mutAF.setDFilter(.1);
 
 		VARIANT_FILTER_DOUBLE tlod = VARIANT_FILTER_DOUBLE.TLOD;
 		VARIANT_FILTER_DOUBLE nlod = VARIANT_FILTER_DOUBLE.NLOD;
