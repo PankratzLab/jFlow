@@ -6,7 +6,6 @@ import java.util.*;
 import javax.swing.JFileChooser;
 
 import filesys.Segment;
-import cnv.filesys.Sample;
 import cnv.var.CNVariant;
 import common.*;
 
@@ -591,9 +590,9 @@ public class ExportCNVsToPedFormat {
 	    Hashtable<String, Vector<String>> iidMap, dnaMap;
 	    
 	    if (pedFile != null) {
-	        log.report("Loading ped file, assuming IID is column 2, sex is column 5, and phenotype is column 6");
-	        iidMap = HashVec.loadFileToHashVec(pedFile, 1, new int[]{4,5}, "\t", false, false);
-	        dnaMap = HashVec.loadFileToHashVec(pedFile, 6, new int[]{4,5}, "\t", false, false);
+	        log.report("Loading ped file, assuming standard pedigree.dat file format (FID, IID, FA, MO, SEX, PHENO, DNA)");
+	        iidMap = HashVec.loadFileToHashVec(pedFile, new int[]{0, 1}, new int[]{2,3,4,5}, "\t", false, false);
+	        dnaMap = HashVec.loadFileToHashVec(pedFile, 6, new int[]{0,1,2,3,4,5}, "\t", false, false);
 	        missingWriter = Files.getAppropriateWriter(outputRoot + "_missing.iid");
 	        
 	    } else {
@@ -605,20 +604,29 @@ public class ExportCNVsToPedFormat {
         writer = Files.getAppropriateWriter(outputRoot + "_" + fileNumber + (currentCNs == null ? ".fam" : ".ped"));
         
         for (int i = 0; i < idList.length; i++) {
-            String iid = idList[i].split("\t")[1];
+            String[] fidiid = idList[i].split("\t");
             String sexCode = "0";
             String phenoCode = "-9";
-            if (iidMap.containsKey(iid)) {
-                sexCode = iidMap.get(iid).get(0).split("\t")[0];
-                phenoCode = iidMap.get(iid).get(0).split("\t")[1];
-            } else if (dnaMap.containsKey(iid)) {
-                sexCode = dnaMap.get(iid).get(0).split("\t")[0];
-                phenoCode = dnaMap.get(iid).get(0).split("\t")[1];
+            String moIID = "0";
+            String faIID = "0";
+            if (iidMap.containsKey(idList[i])) {
+                String[] pedDeets = iidMap.get(idList[i]).get(0).split("\t");
+                faIID = pedDeets[0];
+                moIID = pedDeets[1];
+                sexCode = pedDeets[2];
+                phenoCode = pedDeets[3];
+            } else if (dnaMap.containsKey(fidiid[1])) {
+                String[] pedDeets = dnaMap.get(fidiid[1]).get(0).split("\t");
+                fidiid = new String[]{pedDeets[0], pedDeets[1]};
+                faIID = pedDeets[2];
+                moIID = pedDeets[3];
+                sexCode = pedDeets[4];
+                phenoCode = pedDeets[5];
             }
-            if (missingWriter != null && !iidMap.containsKey(iid) && !dnaMap.containsKey(iid)) {
-                missingWriter.println(iid);
+            if (missingWriter != null && !iidMap.containsKey(idList[i]) && !dnaMap.containsKey(fidiid[1])) {
+                missingWriter.println(idList[i]);
             }
-            writer.print(idList[i] + "\t0\t0\t" + sexCode + "\t" + phenoCode);
+            writer.print(fidiid[0] + "\t" + fidiid[1] + "\t" + faIID + "\t" + moIID + "\t" + sexCode + "\t" + phenoCode);
             if (currentCNs != null) {
                 for (int j = 0; j < idList.length; j++) {
                     writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));                                    
@@ -913,7 +921,7 @@ public class ExportCNVsToPedFormat {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String cnvFilename = "penncnv.cnv";
+		String cnvFilename = null;
 		String pedFilename = "pedigree.dat";
 		String outputFilename = "cnv_matrix";
 		JFileChooser fileChooser = new JFileChooser(); // TODO Should this be open up in any particular directory?
@@ -933,7 +941,7 @@ public class ExportCNVsToPedFormat {
 
 		String usage = "\n" +
 				"cnv.analysis.CnvBySample requires the following arguments\n" +
-				"   (1) cnv filename (i.e. cnv=" + cnvFilename + " (default))\n" +
+				"   (1) cnv filename (i.e. cnv=" + cnvFilename + " (default - will open a File Chooser))\n" +
 				"   (2) pedigree filename (i.e. ped=" + pedFilename + " (default))\n" +
 				"   (3) output format (i.e. format=" + fileFormat + " (default; options are "+MATRIX_FORMAT+", "+PLINK_TRANSPOSED_TEXT_FORMAT+", "+PLINK_TEXT_FORMAT+", "+PLINK_BINARY_FORMAT+", and "+RFGLS_FORMAT+"))\n" +
 				"   (4) output filename (i.e. out=" + outputFilename + " (default))\n" +
@@ -1029,12 +1037,14 @@ public class ExportCNVsToPedFormat {
 //		System.exit(1);
 
 		try {
-			int fileAction = fileChooser.showOpenDialog(null);
-			if (fileAction == JFileChooser.APPROVE_OPTION) {
-				input = fileChooser.getSelectedFile();
-				output = input.getPath() + "cnvBySample.txt";
-				//TODO this line should be further elaborated.
-				export(input.toString(), null, output, endOfLine, fileFormat, true, true, true, false, false, false, lociPerFile, window, new Logger());
+		    if (cnvFilename == null) {
+    			int fileAction = fileChooser.showOpenDialog(null);
+    			if (fileAction == JFileChooser.APPROVE_OPTION) {
+    				input = fileChooser.getSelectedFile();
+    				output = input.getPath() + "cnvBySample.txt";
+    				//TODO this line should be further elaborated.
+    				export(input.toString(), null, output, endOfLine, fileFormat, true, true, true, false, false, false, lociPerFile, window, new Logger());
+    			}
 			} else {
 				export(cnvFilename, pedFilename, outputFilename, endOfLine, fileFormat, includeDele, includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci, lociPerFile, window, new Logger());
 //				cnvBySample("C:/projects/Geti/filtered.cnv", null, "C:/projects/Geti/cnvBySample.txt", endOfLine, rfglsOutput, true, false, true, false, saveIntermediateFiles, markersPerFile);
