@@ -506,6 +506,17 @@ public class Project {
 		}
 	
 	    log.report("Genvisis, v"+cnv.Launch.VERSION+"\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
+		log.report("\nJava version: " + System.getProperty("java.version"));
+
+		try {
+			String[] version = System.getProperty("java.version").split("\\.");
+			if (version[0].equals("1") && Integer.parseInt(version[1]) < 8) {
+				log.reportError("\nYOUR VERSION OF JAVA IS OUT OF DATE; update if you get a NoSuchMethodError");
+			}
+		} catch (Exception e) {
+			log.reportError("\nCould not parse Java version and check for possible compatibility issues\n");
+		}
+		
 		log.report("\nCurrent project: " + getProperty(PROJECT_NAME) + "\n");
 		log.report("Log level (verbosity) is set to " + getProperty(LOG_LEVEL) + "\n");
 	}

@@ -232,11 +232,21 @@ public class PowerCalculator {
 //			rangeOfMaf(0.001, 0.01, 1500, 1500, 1000, false); // Logan's ALL grant v1
 //			rangeOfMaf(0.001, 0.01, 1350, 1350, 1000, false); // Logan's ALL grant v2
 //			rangeOfMaf(0.001, 0.01, 365, 1350, 500, false); // Logan's ALL grant v2
-			rangeOfMaf(0.001, 0.01, 985, 1350, 500, false); // Logan's ALL grant v2
+//			rangeOfMaf(0.001, 0.01, 985, 1350, 500, false); // Logan's ALL grant v2
 //			rangeOfMaf(0.001, 0.01, 1350, 1350, 1, false); // Logan's ALL grant v2
 //			rangeOfMaf(0.001, 0.01, 365, 1350, 1, false); // Logan's ALL grant v2
 //			rangeOfMaf(0.001, 0.01, 985, 1350, 1, false); // Logan's ALL grant v2
-
+//			rangeOfMaf(0.001, 0.01, 1700, 1700, 500, false); // Heather's OSCA2 grant
+//			rangeOfMaf(0.001, 0.01, 1700, 1700, 2291, false); // Heather's OSCA2 grant
+//			rangeOfMaf(0.001, 0.01, 1700, 1700, 2000, false); // Heather's OSCA2 grant, aim 1 discovery
+//			rangeOfMaf(0.001, 0.01, 1500, 1500, 1, false); // Heather's OSCA2 grant, aim 1 replication
+			rangeOfMaf(0.001, 0.01, 1500, 1500, 5, false); // Heather's OSCA2 grant, aim 1 replication
+//			rangeOfMaf(0.5, 0.01, 178, 178, 3, false); // Heather's OSCA2 grant, aim 2a
+//			rangeOfMaf(0.19, 0.01, 266, 1400-266, 3, false); // Heather's OSCA2 grant, aim 2b i
+//			rangeOfMaf(0.19, 0.01, (int)(1230*0.19), (int)(1230*(1-0.19)), 3, false); // Heather's OSCA2 grant, aim 2b ii
+//			rangeOfMaf(0.001, 0.01, 900, 800, 3, false); // Heather's OSCA2 grant, aim 3
+		
+			
 			
 			
 //			rangeOfRelativeRisk(0.15, 200, false);
