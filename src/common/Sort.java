@@ -874,25 +874,40 @@ public class Sort {
 		return orderTwoLayers(first, second, false, log);
 	}
 
+	/**
+	 *	Class copied from Java 1.8
+	 */
+    private static int byteCompare(byte x, byte y) {
+        return x - y;
+    }
+    
+	/**
+	 *	Class copied from Java 1.8
+	 */
+    public static int intCompare(int x, int y) {
+        return (x < y) ? -1 : ((x == y) ? 0 : 1);
+    }
 	
 	
 	/**
 	 * @author lane0212 {@link Comparator} for {@link BII}
-	 *
+	 * 
 	 */
 	private static class BIIComp implements Comparator<BII> {
 
 		@Override
 		public int compare(BII o1, BII o2) {
-
-			int value1 = Byte.compare(o1.getB(), o2.getB());
+//			int value1 = Byte.compare(o1.getB(), o2.getB());	// Not compatible with Java version 1.6
+			int value1 = byteCompare(o1.getB(), o2.getB());
 			if (value1 == 0) {
-				value1 = Integer.compare(o1.getI(), o2.getI());
+//				value1 = Integer.compare(o1.getI(), o2.getI());	// Not compatible with Java version 1.6
+				value1 = intCompare(o1.getI(), o2.getI());
 			}
-			return value1 == 0 ? Integer.compare(o1.getIndex(), o2.getIndex()) : value1;
+//			return value1 == 0 ? Integer.compare(o1.getIndex(), o2.getIndex()) : value1;	// Not compatible with Java version 1.6
+			return value1 == 0 ? intCompare(o1.getIndex(), o2.getIndex()) : value1;
 		}
 	}
-
+	
 	/**
 	 * @author lane0212 Store a byte, Integer, Integer(Index)
 	 */
