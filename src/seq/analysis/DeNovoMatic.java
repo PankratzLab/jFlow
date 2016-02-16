@@ -1,19 +1,28 @@
 package seq.analysis;
 
 import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
+import htsjdk.variant.vcf.VCFFormatHeaderLine;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
+import htsjdk.variant.vcf.VCFHeaderLineType;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
 import seq.analysis.GATK.MutectTumorNormal;
+import seq.analysis.GATK_Genotyper.ANNOVCF;
 import seq.analysis.Mutect2.MUTECT_RUN_TYPES;
 import seq.manage.BamOps;
 import seq.manage.VCFOps;
@@ -22,10 +31,15 @@ import seq.manage.VCFOps.HEADER_COPY_TYPE;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import seq.manage.VCOps.VC_SUBSET_TYPE;
+import seq.qc.FilterNGS;
+import seq.qc.FilterNGS.VariantContextFilter;
+import seq.qc.FilterNGS.VariantContextFilterPass;
 import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.WorkerHive;
 import common.ext;
 
 /**
@@ -35,7 +49,7 @@ import common.ext;
 public class DeNovoMatic {
 	private static final String[] ACCEPTED_FILTER_BYPASS = new String[] { "str_contraction" };
 
-	public static void run(String vpopFile, String fileOfBams, String outputDir, String ponVcf, double freqFilter, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, Logger log) throws IllegalStateException {
+	public static void run(String vpopFile, String fileOfBams, String outputDir, String ponVcf, double freqFilter, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, ANNOVCF annoVCF, String finalVcf, String tparams, Logger log) throws IllegalStateException {
 		new File(outputDir).mkdirs();
 
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.DENOVO, log);
@@ -48,21 +62,32 @@ public class DeNovoMatic {
 		// Mutect2.run(null, matchFile, callDir, ponVcf, gatk, type, numThreads, numSampleThreads, log);
 		MutectTumorNormal[] results = Mutect2.callSomatic(matchFile, outputDir, ponVcf, gatk, null, null, null, numThreads, numSampleThreads, false, log);
 
-		MergeFamResult[] resultsMerge = combineResultsForFamilies(gatk, vpop, results, outputDir, numThreads, log);
+		MergeFamResult[] resultsMerge = prepareResultsForFamilies(gatk, vpop, results, outputDir, numThreads, log);
 		String[] finalFilesToMerge = new String[resultsMerge.length];
-		for (int i = 0; i < resultsMerge.length; i++) {
-			resultsMerge[i].scanForDenovo();
-			finalFilesToMerge[i] = resultsMerge[i].getPotentialDenovoVcf();
+
+		WorkerHive<MergeFamResult> hive = new WorkerHive<DeNovoMatic.MergeFamResult>(1, 10, log);
+		hive.addCallables(resultsMerge);
+		hive.execute(true);
+		ArrayList<MergeFamResult> resultsDenovo = hive.getResults();
+		for (int i = 0; i < resultsDenovo.size(); i++) {
+			finalFilesToMerge[i] = resultsDenovo.get(i).getPotentialDenovoVcf();
 		}
 
 		String mergeDenovoOut = outputDir + ext.rootOf(vpopFile) + ".merge.denovo.vcf";
 
 		gatk.mergeVCFs(finalFilesToMerge, mergeDenovoOut, numThreads, false, log);
-		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(mergeDenovoOut, null, false, false, log);
-		log.reportTimeInfo("Filtering " + annotatedVcf);
-		String annoFreq = VCFOps.getAppropriateRoot(annotatedVcf, false) + ".freq_" + freqFilter + ".func.vcf.gz";
-		filterByFreq(annotatedVcf, annoFreq, freqFilter, log);
-		log.reportTimeInfo("FIN");
+		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(mergeDenovoOut, annoVCF, false, false, log);
+		String mergeFinal = VCFOps.getAppropriateRoot(annotatedVcf, false) + ".merged.vcf.gz";
+		if (finalVcf != null) {
+			gatk.mergeVCFs(new String[] { annotatedVcf, finalVcf }, mergeFinal, numThreads, false, log);
+			if (tparams != null) {
+				Mutect2.runTally(tparams, log, mergeFinal);
+			}
+		}
+		// log.reportTimeInfo("Filtering " + annotatedVcf);
+		// String annoFreq = VCFOps.getAppropriateRoot(annotatedVcf, false) + ".freq_" + freqFilter + ".func.vcf.gz";
+		// filterByFreq(annotatedVcf, annoFreq, freqFilter, log);
+		// log.reportTimeInfo("FIN");
 
 	}
 
@@ -94,8 +119,10 @@ public class DeNovoMatic {
 		log.reportTimeInfo("Scanned " + total + " variants and " + pass + " passed freq threshold of " + freq);
 	}
 
-	private static class MergeFamResult {
+	private static class MergeFamResult implements Callable<MergeFamResult> {
 		private MutectTumorNormal[] famResults;
+		private GATK gatk;
+		private String[] vcfsToMerge;
 		private String mergedVCF;
 		private String potentialDenovoVcf;
 		private String off;
@@ -104,8 +131,10 @@ public class DeNovoMatic {
 		private String p2;
 		private Logger log;
 
-		public MergeFamResult(MutectTumorNormal[] famResults, String mergedVCF, String off, String p1, String p2, Logger log) {
+		public MergeFamResult(GATK gatk, MutectTumorNormal[] famResults, String mergedVCF, String[] vcfsToMerge, String off, String p1, String p2, Logger log) {
 			super();
+			this.gatk = gatk;
+			this.vcfsToMerge = vcfsToMerge;
 			this.famResults = famResults;
 			this.mergedVCF = mergedVCF;
 			this.potentialDenovoVcf = VCFOps.getAppropriateRoot(mergedVCF, false) + ".denovo.vcf.gz";
@@ -118,27 +147,94 @@ public class DeNovoMatic {
 			this.log = log;
 		}
 
+		@Override
+		public MergeFamResult call() throws Exception {
+			if (!Files.exists(mergedVCF)) {
+				gatk.mergeVCFs(vcfsToMerge, mergedVCF, 1, false, log);
+			}
+			scanForDenovo();
+			return this;
+		}
+
 		public String getPotentialDenovoVcf() {
 			return potentialDenovoVcf;
 		}
 
 		private void scanForDenovo() {
-
+			VariantContextFilter filter = FilterNGS.getTumorNormalFilter(Double.NaN, log);
 			if (!VCFOps.existsWithIndex(potentialDenovoVcf)) {
 				VCFFileReader reader = new VCFFileReader(mergedVCF, true);
 				VariantContextWriter writer = VCFOps.initWriter(potentialDenovoVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
-				VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
+				HashSet<VCFHeaderLine> newHeader = new HashSet<VCFHeaderLine>();
+				for (VCFHeaderLine vcfHeaderLine : reader.getFileHeader().getMetaDataInInputOrder()) {
+					newHeader.add(vcfHeaderLine);
+				}
+				VCFFormatHeaderLine hqInBoth = new VCFFormatHeaderLine("HQ_DNM", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant status for denovo filters in both MO -> off direction and FA -> OFF direction");
+				VCFFormatHeaderLine hqNonTransmissionP1 = new VCFFormatHeaderLine("HQ_P1_NT", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant  status for non-transmission of alleles filters in  P1 -> off direction");
+				VCFFormatHeaderLine hqNonTransmissionP2 = new VCFFormatHeaderLine("HQ_P2_NT", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant  status for non-transmission of alleles filters in  P2 -> off direction");
+
+				newHeader.add(hqInBoth);
+				newHeader.add(hqNonTransmissionP1);
+				newHeader.add(hqNonTransmissionP2);
+
+				ArrayList<String > originalAtts = new ArrayList<String>();
+				for (VCFFormatHeaderLine vcfFormatHeaderLine : reader.getFileHeader().getFormatHeaderLines()) {
+					originalAtts.add(vcfFormatHeaderLine.getID());
+					VCFFormatHeaderLine newFormatP1 = new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + "_P1", vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount() : 1, vcfFormatHeaderLine.getType(), vcfFormatHeaderLine.getDescription());
+					VCFFormatHeaderLine newFormatP2 = new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + "_P2", vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount() : 1, vcfFormatHeaderLine.getType(), vcfFormatHeaderLine.getDescription());
+					newHeader.remove(vcfFormatHeaderLine);
+					newHeader.add(newFormatP1);
+					newHeader.add(newFormatP2);
+
+				}
+				HashSet<String> offFinal = new HashSet<String>();
+				offFinal.add(off);
+				VCFHeader header = new VCFHeader(newHeader, offFinal);
+
+				writer.writeHeader(header);
+				writer.close();
+				System.exit(1);
 				int numPossible = 0;
 				int numTotal = 0;
 				int numByPassFilters = 0;
+			
 				for (VariantContext vc : reader) {
 					numTotal++;
 					VariantContext vcSubOff = VCOps.getSubset(vc, offCombo);
 					Genotype g1 = vcSubOff.getGenotype(0);
 					Genotype g2 = vcSubOff.getGenotype(1);
+					VariantContextBuilder vBuilder = new VariantContextBuilder(vcSubOff);
 
 					if (g1.sameGenotype(g2)) {// called somatic in both files
-						writer.add(vc);
+						VariantContextFilterPass pass1 = filter.filter(VCOps.getSubset(vcSubOff, g1.getSampleName(), VC_SUBSET_TYPE.SUBSET_STRICT));
+						VariantContextFilterPass pass2 = filter.filter(VCOps.getSubset(vcSubOff, g2.getSampleName(), VC_SUBSET_TYPE.SUBSET_STRICT));
+
+						GenotypeBuilder g1bBuilder = new GenotypeBuilder(g1);
+						g1bBuilder.name(off);
+						Hashtable<String, Object> map = new Hashtable<String, Object>();
+						map.put("HQ_P1_NT", pass1.getTestPerformed());
+						map.put("HQ_P2_NT", pass2.getTestPerformed());
+
+						if (pass1.passed() && pass2.passed()) {
+							map.put("HQ_DNM", true);
+						} else {
+							map.put("HQ_DNM", !pass1.passed() + "," + !pass2.passed());
+						}
+
+						for (String att : originalAtts) {
+							if (g1.hasAnyAttribute(att)) {
+								map.put(att + "_P1", g1.getAnyAttribute(att));
+							}
+							if (g2.hasAnyAttribute(att)) {
+								map.put(att + "_P2", g2.getAnyAttribute(att));
+							}
+						}
+
+						g1bBuilder.attributes(map);
+						ArrayList<Genotype> gtypes = new ArrayList<Genotype>();
+						gtypes.add(g1bBuilder.make());
+
+						writer.add(vBuilder.make());
 						numPossible++;
 						// Set<String> filters = vc.getFilters();
 						// if (filters.size() == 0 || filters.size() == 1) {
@@ -168,10 +264,11 @@ public class DeNovoMatic {
 
 				}
 			}
+			System.exit(1);
 		}
 	}
 
-	private static MergeFamResult[] combineResultsForFamilies(GATK gatk, VcfPopulation vpop, MutectTumorNormal[] results, String outputDir, int numThreads, Logger log) {
+	private static MergeFamResult[] prepareResultsForFamilies(GATK gatk, VcfPopulation vpop, MutectTumorNormal[] results, String outputDir, int numThreads, Logger log) {
 		Hashtable<String, ArrayList<MutectTumorNormal>> offSpringMatch = new Hashtable<String, ArrayList<MutectTumorNormal>>();
 		if (results.length % 2 != 0) {
 			throw new IllegalArgumentException("Expecting even number of results");
@@ -213,10 +310,11 @@ public class DeNovoMatic {
 			if (vcfsToMerge.length != 2) {
 				throw new IllegalArgumentException("Internal error, need to merge two vcfs");
 			}
-			if (!Files.exists(outputMerge))
-				gatk.mergeVCFs(vcfsToMerge, outputMerge, numThreads, false, log);
+			// if (!Files.exists(outputMerge)) {
+			// gatk.mergeVCFs(vcfsToMerge, outputMerge, numThreads, false, log);
+			// }
 			String[] famMembers = vpop.getOffP1P2ForFam(fam);
-			MergeFamResult mergeFamResult = new MergeFamResult(famResults, outputMerge, famMembers[0], famMembers[1], famMembers[2], log);
+			MergeFamResult mergeFamResult = new MergeFamResult(gatk, famResults, outputMerge, vcfsToMerge, famMembers[0], famMembers[1], famMembers[2], log);
 			mergeResults.add(mergeFamResult);
 		}
 		return mergeResults.toArray(new MergeFamResult[mergeResults.size()]);
@@ -276,7 +374,9 @@ public class DeNovoMatic {
 		String vpopFile = null;
 		String fileOfBams = null;
 		double freqFilter = .01;
-
+		ANNOVCF annoVCF = null;
+		String finalVCF = null;
+		String tparams = null;
 		String usage = "\n" + "seq.analysis.DeNovoMatic requires 0-1 arguments\n";
 		usage += "   (2) full path to a reference genome (i.e. ref=" + referenceGenomeFasta + " (default))\n" + "";
 		usage += "   (3) known dbsnp snps (i.e. knownSnps=" + knownSnps + " (default))\n" + "";
@@ -328,6 +428,15 @@ public class DeNovoMatic {
 			} else if (args[i].startsWith("numSampleThreads=")) {
 				numSampleThreads = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith(GATK_Genotyper.EXTRA_VCF_ANNOTATIONS)) {
+				annoVCF = ANNOVCF.fromArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("finalVCF")) {
+				finalVCF = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("tparams=")) {
+				tparams = args[i].split("=")[1];
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -340,7 +449,7 @@ public class DeNovoMatic {
 		Logger log = new Logger(outputDir + "TN.log");
 		GATK gatk = new GATK(gatkLocation, referenceGenomeFasta, knownSnps, regions, cosmic, true, false, true, log);
 		try {
-			run(vpopFile, fileOfBams, outputDir, ponVCF, freqFilter, gatk, MUTECT_RUN_TYPES.CALL_SOMATIC, numthreads, numSampleThreads, log);
+			run(vpopFile, fileOfBams, outputDir, ponVCF, freqFilter, gatk, MUTECT_RUN_TYPES.CALL_SOMATIC, numthreads, numSampleThreads, annoVCF, finalVCF, tparams, log);
 		} catch (IllegalStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

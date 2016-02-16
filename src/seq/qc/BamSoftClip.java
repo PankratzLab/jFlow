@@ -10,8 +10,11 @@ import htsjdk.samtools.ValidationStringency;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
+import scala.collection.generic.BitOperations.Int;
 import seq.manage.BamOps;
+import seq.manage.ReferenceGenome;
 import stats.Histogram.DynamicAveragingHistogram;
 import common.Array;
 import common.Files;
@@ -34,21 +37,48 @@ public class BamSoftClip {
 			log.report(ext.getTime() + " Info - beginning processing of " + bams[i]);
 			int numTotalReads = 0;
 			DynamicAveragingHistogram dynamicAveragingHistogram = new DynamicAveragingHistogram(-700, 700, 0);
+			Hashtable<String, Integer> seqCount = new Hashtable<String, Integer>();
 			for (SAMRecord samRecord : reader) {
 				numTotalReads++;
-				if (numTotalReads % 10000000 == 0) {
+				if (numTotalReads % 1000000 == 0) {
 					log.reportTimeInfo(numTotalReads + " total reads scanned");
+					System.exit(1);
 					break;
 				}
 				if (!samRecord.getReadUnmappedFlag() && samRecord.getReadPairedFlag() && !samRecord.getMateUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
 					int insert = samRecord.getInferredInsertSize();
 					int numSoft = 0;
 					Cigar cigar = samRecord.getCigar();
+					String[] bases = Array.decodeByteArray(samRecord.getReadBases(), log);
+					int curStart = 0;
+					int readIndex = 0;
 					for (CigarElement cigarElement : cigar.getCigarElements()) {
+						if (cigarElement.getOperator().consumesReadBases()) {
+							readIndex += cigarElement.getLength();
+						}
 						if (cigarElement.getOperator() == CigarOperator.S) {
 							numSoft += cigarElement.getLength();
+							System.out.println(Array.toStr(bases));
+							System.out.println(cigar);
+
+							String softy = Array.toStr(Array.subArray(bases, curStart, readIndex), "");
+							System.out.println(softy);
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException ie) {
+							}
+
+							if (seqCount.containsKey(softy)) {
+								seqCount.put(softy, seqCount.get(softy));
+							} else {
+								seqCount.put(softy, 1);
+							}
+						}
+						if (cigarElement.getOperator().consumesReadBases()) {
+							curStart += cigarElement.getLength();
 						}
 					}
+
 					dynamicAveragingHistogram.addDataPair(insert, numSoft);
 				}
 			}

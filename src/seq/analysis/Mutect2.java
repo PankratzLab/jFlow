@@ -338,7 +338,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 	
 	
 
-	private static void runTally(String tparams, Logger log, String vcf) {
+	public static void runTally(String tparams, Logger log, String vcf) {
 		log.reportTimeInfo("Loading vcf tally params from " + tparams);
 		log.reportTimeWarning("Relying on specific file format... you will likely need to see the code to get this to work");
 		String[] params = HashVec.loadFileToStringArray(tparams, false, new int[] { 0 }, true);
