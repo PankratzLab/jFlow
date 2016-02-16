@@ -12,7 +12,6 @@ import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import common.Array;
 import common.Logger;
-import common.ext;
 
 /**
  * Extract variants called LOH by somatic sniper
@@ -29,8 +28,8 @@ public class SomSnipLOH {
 			String[][] geneAnno = GenotypeOps.getGenoFormatKeys(vcf, log);
 
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE" + Array.toStr(geneAnno[1]) + "\t" + Array.toStr(varAnno[0]));
-			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE" + Array.toStr(geneAnno[0]) + "\t" + Array.toStr(varAnno[0]));
+			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t" + Array.toStr(geneAnno[1]) + "\t" + Array.toStr(varAnno[1]));
+			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t" + Array.toStr(geneAnno[0]) + "\t" + Array.toStr(varAnno[0]));
 
 			VCFFileReader reader = new VCFFileReader(vcf, true);
 			for (VariantContext vc : reader) {
@@ -52,7 +51,7 @@ public class SomSnipLOH {
 	}
 
 	public static void main(String[] args) {
-		String vcf = ext.parseStringArg(args[0], ".");
+		String vcf = args[0];
 		extract(vcf);
 	}
 
