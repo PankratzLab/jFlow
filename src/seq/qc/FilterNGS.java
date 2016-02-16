@@ -1356,7 +1356,16 @@ public class FilterNGS implements Serializable {
 
 		VARIANT_FILTER_DOUBLE[] qualFilts = new VARIANT_FILTER_DOUBLE[] { tlod, nlod, dpMut, dpNormal, altADTumor, altAdNormal, mutAF };
 
-		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] { fail }, new String[] { "G1000Freq" }, new String[] { FilterNGS.getPopFreqFilterString(maf) }, log);
+		String[] jexl = new String[] {};
+		String[] jexp = new String[] {};
+		if (!Double.isNaN(maf)) {
+			jexl = new String[] { "G1000Freq" };
+			jexp = new String[] { FilterNGS.getPopFreqFilterString(maf) };
+		} else {
+			log.reportTimeWarning("No frequency filter");
+		}
+
+		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] { fail }, jexl, jexp, log);
 		return vContextFilter;
 
 	}
