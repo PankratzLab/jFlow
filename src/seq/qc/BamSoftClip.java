@@ -58,15 +58,7 @@ public class BamSoftClip {
 						}
 						if (cigarElement.getOperator() == CigarOperator.S) {
 							numSoft += cigarElement.getLength();
-							System.out.println(Array.toStr(bases));
-							System.out.println(cigar);
-
 							String softy = Array.toStr(Array.subArray(bases, curStart, readIndex), "");
-							System.out.println(softy);
-							try {
-								Thread.sleep(100);
-							} catch (InterruptedException ie) {
-							}
 
 							if (seqCount.containsKey(softy)) {
 								seqCount.put(softy, seqCount.get(softy));
@@ -89,6 +81,16 @@ public class BamSoftClip {
 			for (int j = 0; j < dynamicAveragingHistogram.getCounts().length; j++) {
 				outPrint.add(dynamicAveragingHistogram.getBins()[j] + "\t" + dynamicAveragingHistogram.getCounts()[j] + "\t" + dynamicAveragingHistogram.getAverages()[j]);
 			}
+			String outCounts = outputDir + BamOps.getSampleName(bams[i]) + "clipSumCounts.txt";
+			ArrayList<String> outPrintCount = new ArrayList<String>();
+			outPrint.add("clippedBases\tCount");
+			for (String clip : seqCount.keySet()) {
+				if (seqCount.get(clip) > 5) {
+					outPrint.add(clip + "\t" + seqCount.get(clip));
+				}
+			}
+			Files.writeList(Array.toStringArray(outPrintCount), outCounts);
+
 			Files.writeList(Array.toStringArray(outPrint), out);
 
 		}
