@@ -21,6 +21,7 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
+import ca.mcgill.mcb.pcingola.akka.vcf.VcfWorkQueue;
 import seq.analysis.GATK.MutectTumorNormal;
 import seq.analysis.GATK_Genotyper.ANNOVCF;
 import seq.analysis.Mutect2.MUTECT_RUN_TYPES;
@@ -161,14 +162,21 @@ public class DeNovoMatic {
 		}
 
 		private void scanForDenovo() {
-			VariantContextFilter filter = FilterNGS.getTumorNormalFilter(Double.NaN, log);
+			VariantContextFilter filter = FilterNGS.getTumorNormalFilter(Double.NaN,false, log);
 			if (!VCFOps.existsWithIndex(potentialDenovoVcf)) {
 				VCFFileReader reader = new VCFFileReader(mergedVCF, true);
 				VariantContextWriter writer = VCFOps.initWriter(potentialDenovoVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 				HashSet<VCFHeaderLine> newHeader = new HashSet<VCFHeaderLine>();
-				for (VCFHeaderLine vcfHeaderLine : reader.getFileHeader().getMetaDataInInputOrder()) {
-					newHeader.add(vcfHeaderLine);
-				}
+//				for (VCFHeaderLine vcfHeaderLine : reader.getFileHeader().getMetaDataInInputOrder()) {
+//					newHeader.add(vcfHeaderLine);
+//				}
+				newHeader.addAll(reader.getFileHeader().getFormatHeaderLines());
+				newHeader.addAll(reader.getFileHeader().getInfoHeaderLines());
+				newHeader.addAll(reader.getFileHeader().getContigLines());
+				newHeader.addAll(reader.getFileHeader().getOtherHeaderLines());
+				newHeader.addAll(reader.getFileHeader().getFilterLines());
+
+
 				VCFFormatHeaderLine hqInBoth = new VCFFormatHeaderLine("HQ_DNM", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant status for denovo filters in both MO -> off direction and FA -> OFF direction");
 				VCFFormatHeaderLine hqNonTransmissionP1 = new VCFFormatHeaderLine("HQ_P1_NT", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant  status for non-transmission of alleles filters in  P1 -> off direction");
 				VCFFormatHeaderLine hqNonTransmissionP2 = new VCFFormatHeaderLine("HQ_P2_NT", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant  status for non-transmission of alleles filters in  P2 -> off direction");
@@ -182,7 +190,9 @@ public class DeNovoMatic {
 					originalAtts.add(vcfFormatHeaderLine.getID());
 					VCFFormatHeaderLine newFormatP1 = new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + "_P1", vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount() : 1, vcfFormatHeaderLine.getType(), vcfFormatHeaderLine.getDescription());
 					VCFFormatHeaderLine newFormatP2 = new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + "_P2", vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount() : 1, vcfFormatHeaderLine.getType(), vcfFormatHeaderLine.getDescription());
-					newHeader.remove(vcfFormatHeaderLine);
+					// if (!vcfFormatHeaderLine.getID().equals("GT") && !vcfFormatHeaderLine.getID().equals("AD")) {
+					// newHeader.remove(vcfFormatHeaderLine);
+					// }
 					newHeader.add(newFormatP1);
 					newHeader.add(newFormatP2);
 
@@ -192,12 +202,10 @@ public class DeNovoMatic {
 				VCFHeader header = new VCFHeader(newHeader, offFinal);
 
 				writer.writeHeader(header);
-				writer.close();
-				System.exit(1);
 				int numPossible = 0;
 				int numTotal = 0;
 				int numByPassFilters = 0;
-			
+				int numHQ =0;
 				for (VariantContext vc : reader) {
 					numTotal++;
 					VariantContext vcSubOff = VCOps.getSubset(vc, offCombo);
@@ -208,17 +216,18 @@ public class DeNovoMatic {
 					if (g1.sameGenotype(g2)) {// called somatic in both files
 						VariantContextFilterPass pass1 = filter.filter(VCOps.getSubset(vcSubOff, g1.getSampleName(), VC_SUBSET_TYPE.SUBSET_STRICT));
 						VariantContextFilterPass pass2 = filter.filter(VCOps.getSubset(vcSubOff, g2.getSampleName(), VC_SUBSET_TYPE.SUBSET_STRICT));
-
 						GenotypeBuilder g1bBuilder = new GenotypeBuilder(g1);
 						g1bBuilder.name(off);
 						Hashtable<String, Object> map = new Hashtable<String, Object>();
-						map.put("HQ_P1_NT", pass1.getTestPerformed());
-						map.put("HQ_P2_NT", pass2.getTestPerformed());
+						map.put("HQ_P1_NT", pass1.getTestPerformed().replaceAll(":", "_").replaceAll(" ", "_"));
+						map.put("HQ_P2_NT", pass2.getTestPerformed().replaceAll(":", "_").replaceAll(" ", "_"));
 
 						if (pass1.passed() && pass2.passed()) {
-							map.put("HQ_DNM", true);
+							System.out.println(g1.getAnyAttribute("AD_TUMOR") + "\t" + p1 + "\t" + p2 + "\t" + g1.getAnyAttribute("AD_NORMAL") + "\t" + g2.getAnyAttribute("AD_NORMAL"));
+							map.put("HQ_DNM", true + "");
+							numHQ++;
 						} else {
-							map.put("HQ_DNM", !pass1.passed() + "," + !pass2.passed());
+							map.put("HQ_DNM", !pass1.passed() + "_" + !pass2.passed());
 						}
 
 						for (String att : originalAtts) {
@@ -233,7 +242,7 @@ public class DeNovoMatic {
 						g1bBuilder.attributes(map);
 						ArrayList<Genotype> gtypes = new ArrayList<Genotype>();
 						gtypes.add(g1bBuilder.make());
-
+						vBuilder.genotypes(gtypes);
 						writer.add(vBuilder.make());
 						numPossible++;
 						// Set<String> filters = vc.getFilters();
@@ -258,13 +267,12 @@ public class DeNovoMatic {
 				}
 				reader.close();
 				writer.close();
-				log.reportTimeInfo("Detected " + numPossible + " possible denovos after scanning " + numTotal);
+				log.reportTimeInfo("Detected " + numPossible + " possible denovos (" + numHQ + " HQ)  after scanning " + numTotal);
 				if (numByPassFilters > 0) {
 					log.reportTimeWarning(numByPassFilters + " possible denovos were allowed past mutects filters " + Array.toStr(ACCEPTED_FILTER_BYPASS));
 
 				}
 			}
-			System.exit(1);
 		}
 	}
 
