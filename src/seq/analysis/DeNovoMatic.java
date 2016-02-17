@@ -33,6 +33,7 @@ import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 import seq.manage.VCOps.GENOTYPE_INFO;
 import seq.manage.VCOps.VC_SUBSET_TYPE;
 import seq.qc.FilterNGS;
+import seq.qc.FilterNGS.FILTER_GENERATION_TYPE;
 import seq.qc.FilterNGS.VariantContextFilter;
 import seq.qc.FilterNGS.VariantContextFilterPass;
 import common.Array;
@@ -81,7 +82,8 @@ public class DeNovoMatic {
 			gatk.mergeVCFs(new String[] { annotatedVcf, finalVcf }, mergeFinal, numThreads, false, log);
 			System.exit(1);
 			if (tparams != null) {
-				Mutect2.runTally(tparams, log, mergeFinal);
+				Mutect2.runTally(tparams, FILTER_GENERATION_TYPE.HQ_DNM, false, log, mergeFinal);// failure taken care of
+				Mutect2.runTally(tparams, FILTER_GENERATION_TYPE.EHQ_DNM, false, log, mergeFinal);// failure taken care of
 			}
 		}
 		// log.reportTimeInfo("Filtering " + annotatedVcf);
@@ -131,7 +133,8 @@ public class DeNovoMatic {
 		}
 
 		private void scanForDenovo() {
-			VariantContextFilter filter = FilterNGS.getTumorNormalFilter(Double.NaN, false, log);
+			VariantContextFilter filter = FilterNGS.generateFilter(FILTER_GENERATION_TYPE.TN, Double.NaN, false, log);
+			
 			if (!VCFOps.existsWithIndex(potentialDenovoVcf)) {
 				VCFFileReader reader = new VCFFileReader(mergedVCF, true);
 				VariantContextWriter writer = VCFOps.initWriter(potentialDenovoVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());

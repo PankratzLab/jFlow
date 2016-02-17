@@ -47,10 +47,26 @@ public class VCOps {
 		MUTECT_FILTERS("MUTF"),
 		TLOD("TLOD"),
 		NLOD("NLOD");
+		
 
 		private String flag;
 
 		private GENOTYPE_INFO(String flag) {
+			this.flag = flag;
+		}
+
+		public String getFlag() {
+			return flag;
+		}
+	}
+
+	public enum GENOTYPE_FLAG_INFO {
+		HQ_DNM("HQ_DNM"),
+		EHQ_DNM("EHQ_DNM");
+
+		private String flag;
+
+		private GENOTYPE_FLAG_INFO(String flag) {
 			this.flag = flag;
 		}
 
@@ -513,6 +529,17 @@ public class VCOps {
 		// //vc
 		// g.ge
 		// g.getAlleles();
+	}
+
+	public static boolean getFlagEqualsInfo(VariantContext vc, Set<String> sampleNames, GENOTYPE_FLAG_INFO info, String equal, Logger log) {
+		VariantContext vcSub = sampleNames == null ? vc : getSubset(vc, sampleNames);
+		GenotypesContext gc = vcSub.getGenotypes();
+		for (Genotype geno : gc) {
+			if (!geno.hasAnyAttribute(info.getFlag()) || !geno.getAnyAttribute(info.getFlag()).toString().equals(equal)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public static double getAvgGenotypeInfo(VariantContext vc, Set<String> sampleNames, GENOTYPE_INFO info, Logger log) {
