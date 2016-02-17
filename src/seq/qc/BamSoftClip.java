@@ -9,7 +9,10 @@ import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import scala.collection.generic.BitOperations.Int;
@@ -28,7 +31,26 @@ import common.ext;
  */
 public class BamSoftClip {
 
+	private static class Summary {
+		private Hashtable<String, Integer> seqCount;
+		private HashSet<String> rgs;
+
+		public Summary(Hashtable<String, Integer> seqCount, HashSet<String> rgs) {
+			super();
+			this.seqCount = seqCount;
+			this.rgs = rgs;
+		}
+
+		public Hashtable<String, Integer> getSeqCount() {
+			return seqCount;
+		}
+		
+
+	}
+
 	private static void clipVInsert(String[] bams, String outputDir, Logger log) {
+		ArrayList<Summary> summaries = new ArrayList<Summary>();
+		HashSet<String> allSofts = new HashSet<String>();
 		for (int i = 0; i < bams.length; i++) {
 
 			SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
@@ -38,16 +60,17 @@ public class BamSoftClip {
 			int numTotalReads = 0;
 			DynamicAveragingHistogram dynamicAveragingHistogram = new DynamicAveragingHistogram(-700, 700, 0);
 			Hashtable<String, Integer> seqCount = new Hashtable<String, Integer>();
+			HashSet<String> rgs = new HashSet<String>();
 			for (SAMRecord samRecord : reader) {
 				numTotalReads++;
-				if (numTotalReads % 1000000 == 0) {
+				if (numTotalReads % 3000000 == 0) {
 					log.reportTimeInfo(numTotalReads + " total reads scanned");
-					System.exit(1);
 					break;
 				}
 				if (!samRecord.getReadUnmappedFlag() && samRecord.getReadPairedFlag() && !samRecord.getMateUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
 					int insert = samRecord.getInferredInsertSize();
 					int numSoft = 0;
+					rgs.add(samRecord.getReadGroup().getId());
 					Cigar cigar = samRecord.getCigar();
 					String[] bases = Array.decodeByteArray(samRecord.getReadBases(), log);
 					int curStart = 0;
@@ -61,7 +84,7 @@ public class BamSoftClip {
 							String softy = Array.toStr(Array.subArray(bases, curStart, readIndex), "");
 
 							if (seqCount.containsKey(softy)) {
-								seqCount.put(softy, seqCount.get(softy));
+								seqCount.put(softy, seqCount.get(softy) + 1);
 							} else {
 								seqCount.put(softy, 1);
 							}
@@ -84,15 +107,42 @@ public class BamSoftClip {
 			String outCounts = outputDir + BamOps.getSampleName(bams[i]) + "clipSumCounts.txt";
 			ArrayList<String> outPrintCount = new ArrayList<String>();
 			outPrint.add("clippedBases\tCount");
+			ArrayList<String> remove = new ArrayList<String>();
 			for (String clip : seqCount.keySet()) {
-				if (seqCount.get(clip) > 5) {
-					outPrint.add(clip + "\t" + seqCount.get(clip));
+				if (seqCount.get(clip) > 5 && clip.length() > 3) {
+					allSofts.add(clip);
+					outPrintCount.add(clip + "\t" + seqCount.get(clip));
+				} else {
+					remove.add(clip);
 				}
 			}
+			for (String r : remove) {
+				seqCount.remove(r);
+			}
+			Summary summary = new Summary(seqCount, rgs);
+			summaries.add(summary);
 			Files.writeList(Array.toStringArray(outPrintCount), outCounts);
-
 			Files.writeList(Array.toStringArray(outPrint), out);
-
+		}
+		String outFinal = outputDir + "summaryCounts.txt";
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(outFinal));
+			writer.println("Clipped\t" + Array.toStr(Array.tagOn(bams, "Count_", null)));
+			for (String clip : allSofts) {
+				writer.print(clip);
+				for (Summary summary : summaries) {
+					if (summary.getSeqCount().containsKey(clip)) {
+						writer.print("\t" + summary.getSeqCount().get(clip));
+					} else {
+						writer.print("\t0");
+					}
+				}
+				writer.println();
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + outFinal);
+			log.reportException(e);
 		}
 	}
 
@@ -103,6 +153,7 @@ public class BamSoftClip {
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "clip.log");
 		clipVInsert(bams, outputDir, log);
+		// jcp seq.qc.BamSoftClip
 	}
 
 }

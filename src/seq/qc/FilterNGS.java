@@ -1330,7 +1330,7 @@ public class FilterNGS implements Serializable {
 	 * @param log
 	 * @return
 	 */
-	public static VariantContextFilter getTumorNormalFilter(double maf, Logger log) {
+	public static VariantContextFilter getTumorNormalFilter(double maf,boolean failure, Logger log) {
 
 		VARIANT_FILTER_DOUBLE dpMut = VARIANT_FILTER_DOUBLE.AD_TUMOR;
 		dpMut.setDFilter(10);
@@ -1365,7 +1365,7 @@ public class FilterNGS implements Serializable {
 			log.reportTimeWarning("No frequency filter");
 		}
 
-		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, new VARIANT_FILTER_BOOLEAN[] { fail }, jexl, jexp, log);
+		VariantContextFilter vContextFilter = new VariantContextFilter(qualFilts, failure ? new VARIANT_FILTER_BOOLEAN[] { fail } : new VARIANT_FILTER_BOOLEAN[] {}, jexl, jexp, log);
 		return vContextFilter;
 
 	}

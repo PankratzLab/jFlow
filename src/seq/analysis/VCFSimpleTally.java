@@ -109,40 +109,40 @@ public class VCFSimpleTally {
 
 				// System.out.println(Array.toStr(VCOps.getAnnotationsFor(new String[] { "charge.MAF_whites", "charge.MAF_blacks" }, vc, ".")));
 
-				if (!vc.isFiltered()) {// no tranche
-					VariantContext vcCase = VCOps.getSubset(vc, cases, VC_SUBSET_TYPE.SUBSET_STRICT, false);
-					if (vcCase.getSampleNames().size() != cases.size()) {
-						String[] allSamps = VCFOps.getSamplesInFile(vcf);
-						for (String aCase : cases) {
-							log.reportTimeWarning("CASE: " + aCase + " in vcf " + (ext.indexOfStr(aCase, allSamps) >= 0));
-						}
-						Files.writeList(allSamps, ext.rootOf(casePop, false) + "samplesToPickFrom.txt");
-						throw new IllegalArgumentException("could not find all cases for " + casePop);
+				// if (!vc.isFiltered()) {// no tranche
+				VariantContext vcCase = VCOps.getSubset(vc, cases, VC_SUBSET_TYPE.SUBSET_STRICT, false);
+				if (vcCase.getSampleNames().size() != cases.size()) {
+					String[] allSamps = VCFOps.getSamplesInFile(vcf);
+					for (String aCase : cases) {
+						log.reportTimeWarning("CASE: " + aCase + " in vcf " + (ext.indexOfStr(aCase, allSamps) >= 0));
 					}
-					if (!vcCase.isMonomorphicInSamples() && vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all") || !vc.hasAttribute("g10002015aug_all") || !vc.hasAttribute("esp6500siv2_all"))) {
-						// String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
-						// error += "\n" + vc.toStringWithoutGenotypes();
-						// throw new IllegalStateException(error);
-					} else if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size() && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed() && filterCHARGE(vcCase, controlFreq)) {// as alts in rare esp/1000g
-						boolean controlPass = true;
-						for (String controlPop : controls.keySet()) {
-							VariantContext vcControl = VCOps.getSubset(vc, controls.get(controlPop), VC_SUBSET_TYPE.SUBSET_STRICT, false);
-							if (vcControl.getSampleNames().size() != controls.get(controlPop).size()) {
-								throw new IllegalArgumentException("could not find all controls for " + controlPop);
-							}
-							double maf = VCOps.getMAF(vcControl, null);
-							if ((!VCOps.isMinorAlleleAlternate(vcControl, null) || maf > controlFreq) && vcControl.getNoCallCount() != controls.get(controlPop).size()) {// rare in control
-								controlPass = false;
-								break;
-							}
+					Files.writeList(allSamps, ext.rootOf(casePop, false) + "samplesToPickFrom.txt");
+					throw new IllegalArgumentException("could not find all cases for " + casePop);
+				}
+				if (!vcCase.isMonomorphicInSamples() && vcCase.getNoCallCount() != cases.size() && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all") || !vc.hasAttribute("g10002015aug_all") || !vc.hasAttribute("esp6500siv2_all"))) {
+					// String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
+					// error += "\n" + vc.toStringWithoutGenotypes();
+					// throw new IllegalStateException(error);
+				} else if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size() && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed() && filterCHARGE(vcCase, controlFreq)) {// as alts in rare esp/1000g
+					boolean controlPass = true;
+					for (String controlPop : controls.keySet()) {
+						VariantContext vcControl = VCOps.getSubset(vc, controls.get(controlPop), VC_SUBSET_TYPE.SUBSET_STRICT, false);
+						if (vcControl.getSampleNames().size() != controls.get(controlPop).size()) {
+							throw new IllegalArgumentException("could not find all controls for " + controlPop);
 						}
-						if (controlPass) {
-							numPass++;
-							writer.add(vc);
+						double maf = VCOps.getMAF(vcControl, null);
+						if ((!VCOps.isMinorAlleleAlternate(vcControl, null) || maf > controlFreq) && vcControl.getNoCallCount() != controls.get(controlPop).size()) {// rare in control
+							controlPass = false;
+							break;
 						}
+					}
+					if (controlPass) {
+						numPass++;
+						writer.add(vc);
 					}
 				}
 			}
+			// }
 			reader.close();
 			writer.close();
 		} else {
