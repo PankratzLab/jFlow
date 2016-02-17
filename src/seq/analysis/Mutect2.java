@@ -28,6 +28,7 @@ import seq.manage.VCFOps;
 import seq.manage.VCFTumorNormalOps;
 import seq.manage.VCOps;
 import seq.qc.FilterNGS;
+import seq.qc.FilterNGS.FILTER_GENERATION_TYPE;
 import seq.qc.FilterNGS.VariantContextFilter;
 
 /**
@@ -328,17 +329,13 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			// String filtAnno = mergeAndAnnotate(outputDir, gatk, annoVCF, finalMergeWithVCF, numThreads, log, tumorNormalMatchedBams, finalTNFiltVCFS, false, rootFilter);
 
 			if (tparams != null) {
-				runTally(tparams, log, anno);
+				runTally(tparams, FILTER_GENERATION_TYPE.TN, true, log, anno);
 			}
 		}
 		return results.toArray(new MutectTumorNormal[results.size()]);
 	}
-	
-	
-	
-	
 
-	public static void runTally(String tparams, Logger log, String vcf) {
+	public static void runTally(String tparams, FILTER_GENERATION_TYPE type, boolean failureFilter, Logger log, String vcf) {
 		log.reportTimeInfo("Loading vcf tally params from " + tparams);
 		log.reportTimeWarning("Relying on specific file format... you will likely need to see the code to get this to work");
 		String[] params = HashVec.loadFileToStringArray(tparams, false, new int[] { 0 }, true);
@@ -373,13 +370,14 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 			Files.copyFileUsingFileChannels(vcf, annoCp, log);
 			Files.copyFileUsingFileChannels(vcf + ".tbi", annoCp + ".tbi", log);
 		}
-		popDir = popDir + "freq_" + VCFOps.getAppropriateRoot(vcf, true) + "/";
+		popDir = popDir + type + "freq_" + VCFOps.getAppropriateRoot(vcf, true) + "/";
+		log.reportTimeWarning("John, might want to cp/mv files instead of re-running adding type " + type + " to dir structure");
 		new File(popDir).mkdirs();
 		Files.copyFile(vpops, popDir + ext.removeDirectoryInfo(vpops));
-		
+
 		for (int i = 0; i < mafs.length; i++) {
-			VariantContextFilter filterTumor = FilterNGS.getTumorNormalFilter(mafs[i], true, log);
-			VCFSimpleTally.test(vcf, new String[] { popDir + ext.removeDirectoryInfo(vpops) }, omim, extras, genesetDir, mafs[i], controlSpecifiComp, false, filterTumor);
+			VariantContextFilter filter = FilterNGS.generateFilter(type, mafs[i], failureFilter, log);
+			VCFSimpleTally.test(vcf, new String[] { popDir + ext.removeDirectoryInfo(vpops) }, omim, extras, genesetDir, mafs[i], controlSpecifiComp, false, filter);
 		}
 	}
 
@@ -414,7 +412,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 					bamsToExtract.add(tumorNormalMatchedBams[i][j]);
 				}
 			}
-			String extractFiltDir = outputDir + "extract_" + VCFOps.getAppropriateRoot(finalAnno, true)+"/";
+			String extractFiltDir = outputDir + "extract_" + VCFOps.getAppropriateRoot(finalAnno, true) + "/";
 			new File(extractFiltDir).mkdirs();
 			extractBamsTo(extractFiltDir, Array.toStringArray(bamsToExtract), finalAnno, numThreads, log);
 		}

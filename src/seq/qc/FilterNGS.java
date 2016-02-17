@@ -19,7 +19,9 @@ import java.util.Set;
 import common.Array;
 import common.Logger;
 import seq.manage.VCOps;
+import seq.manage.VCOps.GENOTYPE_FLAG_INFO;
 import seq.manage.VCOps.GENOTYPE_INFO;
+import seq.qc.FilterNGS.VariantContextFilter.VariantContextFilterBuilder;
 
 public class FilterNGS implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -292,7 +294,16 @@ public class FilterNGS implements Serializable {
 		/**
 		 * When a genotype has a custom annotation denoting a mutect failure
 		 */
-		MUTECT_FAIL_FILTER(FILTER_TYPE.TRUE_BOOL);
+		MUTECT_FAIL_FILTER(FILTER_TYPE.TRUE_BOOL),
+
+		/**
+		 * Relies on custom annotation, for high quality DNMs
+		 */
+		DENOVO_HQ_FILTER(FILTER_TYPE.TRUE_BOOL),
+		/**
+		 * Relies on custom annotation, for extra high quality DNMs...whatever that means
+		 */
+		DENOVO_EHQ_FILTER(FILTER_TYPE.TRUE_BOOL);
 		;
 
 		private FILTER_TYPE type;
@@ -420,6 +431,12 @@ public class FilterNGS implements Serializable {
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
+
+		@Override
+		public Boolean getValue(VariantContext vc) {
+			// TODO Auto-generated method stub
+			return super.getValue(vc);
+		}
 
 	}
 
@@ -868,6 +885,23 @@ public class FilterNGS implements Serializable {
 		};
 	}
 
+	private VcFilterBoolean getDNMFilter(VARIANT_FILTER_BOOLEAN bfilter, GENOTYPE_FLAG_INFO info, Logger log) {
+		return new VcFilterBoolean(bfilter) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Boolean getValue(VariantContext vc) {
+				if (vc.getGenotypes().size() != 1) {
+					throw new IllegalArgumentException("Mutect failure checks can only be used on a single genotype VariantContex");
+				}
+				return VCOps.getFlagEqualsInfo(vc, null, info, "true", log);
+			}
+		};
+	}
+
 	private VcFilterBoolean getUnambiguousFilter(VARIANT_FILTER_BOOLEAN bfilter) {
 		return new VcFilterBoolean(bfilter) {
 			/**
@@ -903,10 +937,17 @@ public class FilterNGS implements Serializable {
 			case MUTECT_FAIL_FILTER:
 				vBooleans[i] = getMutectFailureFilter(bfilter);
 				break;
+			case DENOVO_HQ_FILTER:
+				vBooleans[i] = getDNMFilter(bfilter, GENOTYPE_FLAG_INFO.HQ_DNM, log);
+				break;
+			case DENOVO_EHQ_FILTER:
+				vBooleans[i] = getDNMFilter(bfilter, GENOTYPE_FLAG_INFO.EHQ_DNM, log);
+				break;
 			default:
 				log.reportTimeError("Invalid boolean filter type " + bfilter);
 				vBooleans[i] = null;
-				break;
+				throw new IllegalArgumentException("Invalid double filter type " + bfilter);
+
 			}
 		}
 		return vBooleans;
@@ -1016,6 +1057,14 @@ public class FilterNGS implements Serializable {
 			}
 		}
 
+		public void setvDoubles(VcFilterDouble[] vDoubles) {
+			this.vDoubles = vDoubles;
+		}
+
+		public void setvBooleans(VcFilterBoolean[] vBooleans) {
+			this.vBooleans = vBooleans;
+		}
+
 		public Logger getLog() {
 			return log;
 		}
@@ -1074,6 +1123,31 @@ public class FilterNGS implements Serializable {
 
 			public VariantContextFilter build(Logger log) {
 				return new VariantContextFilter(this, log);
+			}
+
+			public VariantContextFilterBuilder vDoubles(VcFilterDouble[] vDoubles) {
+				this.vDoubles = vDoubles;
+				return this;
+			}
+
+			public VariantContextFilterBuilder vBooleans(VcFilterBoolean[] vBooleans) {
+				this.vBooleans = vBooleans;
+				return this;
+			}
+
+			public VariantContextFilterBuilder vFilterJEXL(VcFilterJEXL vFilterJEXL) {
+				this.vFilterJEXL = vFilterJEXL;
+				return this;
+			}
+
+			public VariantContextFilterBuilder vDoubles(VARIANT_FILTER_DOUBLE[] vd, Logger log) {
+				this.vDoubles = new FilterNGS().getDoubleFilters(vd, log);
+				return this;
+			}
+
+			public VariantContextFilterBuilder vBooleans(VARIANT_FILTER_BOOLEAN[] bd, Logger log) {
+				this.vBooleans = new FilterNGS().getBooleanFilters(bd, log);
+				return this;
 			}
 		}
 
@@ -1320,6 +1394,53 @@ public class FilterNGS implements Serializable {
 		return freq;
 	}
 
+	public enum FILTER_GENERATION_TYPE {
+		/**
+		 * Generate filter for HQ denovos
+		 */
+		HQ_DNM,
+		/**
+		 * Generate filter for extraHQ denovos
+		 */
+		EHQ_DNM,
+		/**
+		 * Generate tumor normal filter
+		 */
+		TN;
+	}
+
+	/**
+	 * @param type
+	 * @param maf
+	 * @param failure
+	 *            include a failure filter,
+	 * @param log
+	 * @return
+	 */
+	public static VariantContextFilter generateFilter(FILTER_GENERATION_TYPE type, double maf, boolean failure, Logger log) {
+		switch (type) {
+		case EHQ_DNM:
+			return getDNFFilter(VARIANT_FILTER_BOOLEAN.DENOVO_EHQ_FILTER, maf, failure, log);
+		case HQ_DNM:
+			return getDNFFilter(VARIANT_FILTER_BOOLEAN.DENOVO_HQ_FILTER, maf, failure, log);
+		case TN:
+			return getTumorNormalFilter(maf, failure, log);
+		default:
+			throw new IllegalArgumentException("Invalid filter generator " + type);
+		}
+	}
+
+	private static VariantContextFilter getDNFFilter(VARIANT_FILTER_BOOLEAN dnm, double maf,boolean failure, Logger log) {
+		VariantContextFilterBuilder buildertmp = new VariantContextFilterBuilder();
+		buildertmp.vBooleans(new VARIANT_FILTER_BOOLEAN[] { dnm }, log);
+		VariantContextFilter tmp = buildertmp.build(log);
+		VariantContextFilter tnfilt = getTumorNormalFilter(maf, failure, log);
+		VariantContextFilterBuilder builderFilter = new VariantContextFilterBuilder();
+		builderFilter.vBooleans(Array.concatAll(tmp.getvBooleans(), tnfilt.getvBooleans()));
+		builderFilter.vFilterJEXL(tnfilt.getvFilterJEXL());
+		return builderFilter.build(log);
+	}
+
 	/**
 	 * Currently paramaterized to be similar to http://www.nature.com/cr/journal/v25/n3/extref/cr201520x14.pdf <br>
 	 * The standards to reduce false positives were as follows: (1) a minimum depth of 10x in both tumors and normal pairs; (2) read depths of variant alleles in tumors should be more than 4x; (3) allelic fractions in tumors should be more than 20%." <br>
@@ -1330,7 +1451,7 @@ public class FilterNGS implements Serializable {
 	 * @param log
 	 * @return
 	 */
-	public static VariantContextFilter getTumorNormalFilter(double maf,boolean failure, Logger log) {
+	private static VariantContextFilter getTumorNormalFilter(double maf, boolean failure, Logger log) {
 
 		VARIANT_FILTER_DOUBLE dpMut = VARIANT_FILTER_DOUBLE.AD_TUMOR;
 		dpMut.setDFilter(10);
@@ -1344,8 +1465,8 @@ public class FilterNGS implements Serializable {
 		VARIANT_FILTER_DOUBLE altAdNormal = VARIANT_FILTER_DOUBLE.ALT_AD_NORMAL;
 		altAdNormal.setDFilter(0);
 
-		 VARIANT_FILTER_DOUBLE mutAF = VARIANT_FILTER_DOUBLE.AF_TUMOR;
-		 mutAF.setDFilter(.1);
+		VARIANT_FILTER_DOUBLE mutAF = VARIANT_FILTER_DOUBLE.AF_TUMOR;
+		mutAF.setDFilter(.1);
 
 		VARIANT_FILTER_DOUBLE tlod = VARIANT_FILTER_DOUBLE.TLOD;
 		VARIANT_FILTER_DOUBLE nlod = VARIANT_FILTER_DOUBLE.NLOD;
