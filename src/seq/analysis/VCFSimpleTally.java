@@ -130,10 +130,12 @@ public class VCFSimpleTally {
 						if (vcControl.getSampleNames().size() != controls.get(controlPop).size()) {
 							throw new IllegalArgumentException("could not find all controls for " + controlPop);
 						}
-						double maf = VCOps.getMAF(vcControl, null);
-						if ((!VCOps.isMinorAlleleAlternate(vcControl, null) || maf > controlFreq) && vcControl.getNoCallCount() != controls.get(controlPop).size()) {// rare in control
-							controlPass = false;
-							break;
+						if (controlFreq < 1) {
+							double maf = VCOps.getMAF(vcControl, null);
+							if ((!VCOps.isMinorAlleleAlternate(vcControl, null) || maf > controlFreq) && vcControl.getNoCallCount() != controls.get(controlPop).size()) {// rare in control
+								controlPass = false;
+								break;
+							}
 						}
 					}
 					if (controlPass) {
@@ -663,6 +665,8 @@ public class VCFSimpleTally {
 				log.reportError("Error writing to " + out);
 				log.reportException(e);
 			}
+			Files.copyFile(out, sr.getBundleDir() + ext.removeDirectoryInfo(out));
+
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + sr.getFinalAnnotSample() + "\" not found in current directory");
 			return;
@@ -682,8 +686,9 @@ public class VCFSimpleTally {
 		private String finalsampSummary;
 		private String finalAnnotGene;
 		private String finalGeneVariantPositions;
+		private String bundleDir;
 
-		public SimpleTallyResult(VcfPopulation controls, String finalOut, String finalOutVCF, String finalsampSummary, String finalAnnot, String finalAnnotSample, String finalAnnotGene, String finalGeneVariantPositions) {
+		public SimpleTallyResult(VcfPopulation controls, String finalOut, String finalOutVCF, String finalsampSummary, String finalAnnot, String finalAnnotSample, String finalAnnotGene, String finalGeneVariantPositions, String bundleDir) {
 			super();
 			this.controls = controls;
 			// this.finalOut = finalOut;
@@ -693,10 +698,15 @@ public class VCFSimpleTally {
 			this.finalAnnotGene = finalAnnotGene;
 			this.finalAnnotSample = finalAnnotSample;
 			this.finalGeneVariantPositions = finalGeneVariantPositions;
+			this.bundleDir = bundleDir;
 		}
 
 		public String getFinalOutVCF() {
 			return finalOutVCF;
+		}
+
+		public String getBundleDir() {
+			return bundleDir;
 		}
 
 		public String getFinalAnnot() {
@@ -778,7 +788,9 @@ public class VCFSimpleTally {
 			controlSubPop.get(caseDef + "_" + vpopAc.getPopulationForInd(aControl, RETRIEVE_TYPE.SUB)[0]).add(aControl);
 		}
 		VcfPopulation controlVcfPopulation = new VcfPopulation(controlSubPop, controlPop, POPULATION_TYPE.CASE_CONTROL, new Logger());
-		SimpleTallyResult simpleTallyResult = new SimpleTallyResult(controlVcfPopulation, finalOut, finalOutVCF, finalsampSummary, finalAnnot, finalAnnotSample, finalAnnotGene, finalGeneVariantPositions);
+		String bundleDir = outDir + "bundle_" + caseDef + "maf_" + maf + "/";
+		new File(bundleDir).mkdirs();
+		SimpleTallyResult simpleTallyResult = new SimpleTallyResult(controlVcfPopulation, finalOut, finalOutVCF, finalsampSummary, finalAnnot, finalAnnotSample, finalAnnotGene, finalGeneVariantPositions, bundleDir);
 		simpleTallyResult.getFinalGeneVariantPositions();
 
 		String[][] genotypeAnnotations = GenotypeOps.getGenoFormatKeys(vcf, log);
@@ -955,7 +967,15 @@ public class VCFSimpleTally {
 		} else {
 			log.reportTimeWarning(finalAnnotGene + " exists so skipping summarize");
 		}
+		Files.copyFile(finalAnnot, bundleDir + ext.removeDirectoryInfo(finalAnnot));
+		Files.copyFile(filterFile, bundleDir + ext.removeDirectoryInfo(filterFile));
+		Files.copyFile(annotKeysFile, bundleDir + ext.removeDirectoryInfo(annotKeysFile));
+		Files.copyFile(finalAnnotGene, bundleDir + ext.removeDirectoryInfo(finalAnnotGene));
+		Files.copyFile(finalsampSummary, bundleDir + ext.removeDirectoryInfo(finalsampSummary));
+		Files.copyFile(finalGeneSetSummary, bundleDir + ext.removeDirectoryInfo(finalGeneSetSummary));
+		Files.copyFile(finalAnnotSample, bundleDir + ext.removeDirectoryInfo(finalAnnotSample));
 		return simpleTallyResult;
+		
 	}
 
 	private static void summarizeQC(String controlGroup, String output, VariantContextFilter caseFilter, VariantContextFilter controlFilter) {
@@ -1598,6 +1618,7 @@ public class VCFSimpleTally {
 				}
 				reader.close();
 				writer.close();
+				Files.copyFile(caseWithControls, caseResult.getBundleDir() + ext.removeDirectoryInfo(caseWithControls));
 				// String outXl = caseWithControls + ".xls";
 				// ExcelWriter writerxl = new ExcelWriter(Array.toStringArray(filesToWrite), Array.toStringArray(names), log);
 				// writerxl.write(outXl);
