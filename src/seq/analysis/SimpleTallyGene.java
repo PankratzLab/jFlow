@@ -14,10 +14,11 @@ public class SimpleTallyGene {
 		String vcf = "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.vcf.gz";
 
 		Segment[] segs = new Segment[] { new Segment("chr15:50714579-50795277") };
+
 		String[] names = new String[] { "USP8" };
 		String vpopFile = "D:/data/Project_Tsai_21_25_26_28_spector/Cushings/candidateGenes/CUSHING_FREQ.vpop";
 		String omimDir = "C:/bin/ref/OMIM/";
-		double[] mafs = new double[] { 1.2, .01, .001 };
+		double[] mafs = new double[] { 1.2 };
 		for (int i = 0; i < names.length; i++) {
 
 			String dir = ext.parseDirectoryOfFile(vpopFile) + names[i] + "/";
