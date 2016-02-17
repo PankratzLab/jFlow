@@ -26,6 +26,7 @@ import seq.analysis.GATK_Genotyper.ANNOVCF;
 import seq.analysis.Mutect2.MUTECT_RUN_TYPES;
 import seq.manage.BamOps;
 import seq.manage.VCFOps;
+import seq.manage.VCFTumorNormalOps;
 import seq.manage.VCOps;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
@@ -73,17 +74,20 @@ public class DeNovoMatic {
 			finalFilesToMerge[i] = resultsDenovo.get(i).getPotentialDenovoVcf();
 		}
 
-		String mergeDenovoOut = outputDir + ext.rootOf(vpopFile) + ".merge.denovo.vcf";
+		String mergeDenovoOut = outputDir + ext.rootOf(vpopFile) + ".merge.denovo.vcf.gz";
 
 		gatk.mergeVCFs(finalFilesToMerge, mergeDenovoOut, numThreads, false, log);
-		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(mergeDenovoOut, annoVCF, false, false, log);
+		String renamed = VCFOps.getAppropriateRoot(mergeDenovoOut, false) + ".renamed.vcf";
+		if (!Files.exists(renamed)) {
+			VCFTumorNormalOps.renameMergeVCF(mergeDenovoOut, renamed);
+		}
+		String annotatedVcf = GATK_Genotyper.annotateOnlyWithDefualtLocations(renamed, annoVCF, false, false, log);
 		String mergeFinal = VCFOps.getAppropriateRoot(annotatedVcf, false) + ".merged.vcf.gz";
 		if (finalVcf != null) {
 			gatk.mergeVCFs(new String[] { annotatedVcf, finalVcf }, mergeFinal, numThreads, false, log);
-			System.exit(1);
 			if (tparams != null) {
-				Mutect2.runTally(tparams, FILTER_GENERATION_TYPE.HQ_DNM, false, log, mergeFinal);// failure taken care of
 				Mutect2.runTally(tparams, FILTER_GENERATION_TYPE.EHQ_DNM, false, log, mergeFinal);// failure taken care of
+				Mutect2.runTally(tparams, FILTER_GENERATION_TYPE.HQ_DNM, false, log, mergeFinal);
 			}
 		}
 		// log.reportTimeInfo("Filtering " + annotatedVcf);
