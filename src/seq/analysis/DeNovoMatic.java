@@ -21,17 +21,16 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
-import ca.mcgill.mcb.pcingola.akka.vcf.VcfWorkQueue;
 import seq.analysis.GATK.MutectTumorNormal;
 import seq.analysis.GATK_Genotyper.ANNOVCF;
 import seq.analysis.Mutect2.MUTECT_RUN_TYPES;
 import seq.manage.BamOps;
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
-import seq.manage.VCFOps.HEADER_COPY_TYPE;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import seq.manage.VCOps.GENOTYPE_INFO;
 import seq.manage.VCOps.VC_SUBSET_TYPE;
 import seq.qc.FilterNGS;
 import seq.qc.FilterNGS.VariantContextFilter;
@@ -48,7 +47,6 @@ import common.ext;
  *
  */
 public class DeNovoMatic {
-	private static final String[] ACCEPTED_FILTER_BYPASS = new String[] { "str_contraction" };
 
 	public static void run(String vpopFile, String fileOfBams, String outputDir, String ponVcf, double freqFilter, GATK gatk, MUTECT_RUN_TYPES type, int numThreads, int numSampleThreads, ANNOVCF annoVCF, String finalVcf, String tparams, Logger log) throws IllegalStateException {
 		new File(outputDir).mkdirs();
@@ -66,7 +64,7 @@ public class DeNovoMatic {
 		MergeFamResult[] resultsMerge = prepareResultsForFamilies(gatk, vpop, results, outputDir, numThreads, log);
 		String[] finalFilesToMerge = new String[resultsMerge.length];
 
-		WorkerHive<MergeFamResult> hive = new WorkerHive<DeNovoMatic.MergeFamResult>(1, 10, log);
+		WorkerHive<MergeFamResult> hive = new WorkerHive<DeNovoMatic.MergeFamResult>(numThreads, 10, log);
 		hive.addCallables(resultsMerge);
 		hive.execute(true);
 		ArrayList<MergeFamResult> resultsDenovo = hive.getResults();
@@ -81,6 +79,7 @@ public class DeNovoMatic {
 		String mergeFinal = VCFOps.getAppropriateRoot(annotatedVcf, false) + ".merged.vcf.gz";
 		if (finalVcf != null) {
 			gatk.mergeVCFs(new String[] { annotatedVcf, finalVcf }, mergeFinal, numThreads, false, log);
+			System.exit(1);
 			if (tparams != null) {
 				Mutect2.runTally(tparams, log, mergeFinal);
 			}
@@ -92,59 +91,29 @@ public class DeNovoMatic {
 
 	}
 
-	private static void filterByFreq(String invcf, String outVcf, double freq, Logger log) {
-
-		VCFFileReader reader = new VCFFileReader(invcf, true);
-		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, outVcf, VCFOps.DEFUALT_WRITER_OPTIONS, log);
-		int total = 0;
-		int pass = 0;
-		for (VariantContext vc : reader) {
-			total++;
-			if (!vc.hasAttribute("PopFreqMax")) {
-				throw new IllegalArgumentException("Method expects PopFreqMax annotations for all variants");
-			}
-			String f = vc.getAttributeAsString("PopFreqMax", "-1");
-
-			if (f.equals(".")) {
-				f = "-1";
-			}
-			double freqVc = Double.parseDouble(f);
-			if (freqVc < freq && VCOps.isHighModLowSNP_EFFImpact(vc)) {
-
-				writer.add(vc);
-				pass++;
-			}
-		}
-		writer.close();
-		reader.close();
-		log.reportTimeInfo("Scanned " + total + " variants and " + pass + " passed freq threshold of " + freq);
-	}
-
 	private static class MergeFamResult implements Callable<MergeFamResult> {
-		private MutectTumorNormal[] famResults;
+		// private MutectTumorNormal[] famResults;
 		private GATK gatk;
 		private String[] vcfsToMerge;
 		private String mergedVCF;
 		private String potentialDenovoVcf;
 		private String off;
 		private HashSet<String> offCombo;
-		private String p1;
-		private String p2;
 		private Logger log;
 
 		public MergeFamResult(GATK gatk, MutectTumorNormal[] famResults, String mergedVCF, String[] vcfsToMerge, String off, String p1, String p2, Logger log) {
 			super();
 			this.gatk = gatk;
 			this.vcfsToMerge = vcfsToMerge;
-			this.famResults = famResults;
+			// this.famResults = famResults;
 			this.mergedVCF = mergedVCF;
 			this.potentialDenovoVcf = VCFOps.getAppropriateRoot(mergedVCF, false) + ".denovo.vcf.gz";
 			this.off = off;
 			this.offCombo = new HashSet<String>();
 			offCombo.add(off + ".variant");
 			offCombo.add(off + ".variant2");
-			this.p1 = p1;
-			this.p2 = p2;
+			// this.p1 = p1;
+			// this.p2 = p2;
 			this.log = log;
 		}
 
@@ -162,30 +131,32 @@ public class DeNovoMatic {
 		}
 
 		private void scanForDenovo() {
-			VariantContextFilter filter = FilterNGS.getTumorNormalFilter(Double.NaN,false, log);
+			VariantContextFilter filter = FilterNGS.getTumorNormalFilter(Double.NaN, false, log);
 			if (!VCFOps.existsWithIndex(potentialDenovoVcf)) {
 				VCFFileReader reader = new VCFFileReader(mergedVCF, true);
 				VariantContextWriter writer = VCFOps.initWriter(potentialDenovoVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 				HashSet<VCFHeaderLine> newHeader = new HashSet<VCFHeaderLine>();
-//				for (VCFHeaderLine vcfHeaderLine : reader.getFileHeader().getMetaDataInInputOrder()) {
-//					newHeader.add(vcfHeaderLine);
-//				}
+				// for (VCFHeaderLine vcfHeaderLine : reader.getFileHeader().getMetaDataInInputOrder()) {
+				// newHeader.add(vcfHeaderLine);
+				// }
 				newHeader.addAll(reader.getFileHeader().getFormatHeaderLines());
 				newHeader.addAll(reader.getFileHeader().getInfoHeaderLines());
 				newHeader.addAll(reader.getFileHeader().getContigLines());
 				newHeader.addAll(reader.getFileHeader().getOtherHeaderLines());
 				newHeader.addAll(reader.getFileHeader().getFilterLines());
 
+				VCFFormatHeaderLine hqInBoth = new VCFFormatHeaderLine("HQ_DNM", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant status for custom denovo filters in both MO -> off direction and FA -> OFF direction");
+				VCFFormatHeaderLine ehqInBoth = new VCFFormatHeaderLine("EHQ_DNM", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant status for custom and mutect denovo filters in both MO -> off direction and FA -> OFF direction");
 
-				VCFFormatHeaderLine hqInBoth = new VCFFormatHeaderLine("HQ_DNM", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant status for denovo filters in both MO -> off direction and FA -> OFF direction");
 				VCFFormatHeaderLine hqNonTransmissionP1 = new VCFFormatHeaderLine("HQ_P1_NT", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant  status for non-transmission of alleles filters in  P1 -> off direction");
 				VCFFormatHeaderLine hqNonTransmissionP2 = new VCFFormatHeaderLine("HQ_P2_NT", VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, "Variant  status for non-transmission of alleles filters in  P2 -> off direction");
 
 				newHeader.add(hqInBoth);
+				newHeader.add(ehqInBoth);
 				newHeader.add(hqNonTransmissionP1);
 				newHeader.add(hqNonTransmissionP2);
 
-				ArrayList<String > originalAtts = new ArrayList<String>();
+				ArrayList<String> originalAtts = new ArrayList<String>();
 				for (VCFFormatHeaderLine vcfFormatHeaderLine : reader.getFileHeader().getFormatHeaderLines()) {
 					originalAtts.add(vcfFormatHeaderLine.getID());
 					VCFFormatHeaderLine newFormatP1 = new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + "_P1", vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount() : 1, vcfFormatHeaderLine.getType(), vcfFormatHeaderLine.getDescription());
@@ -204,8 +175,8 @@ public class DeNovoMatic {
 				writer.writeHeader(header);
 				int numPossible = 0;
 				int numTotal = 0;
-				int numByPassFilters = 0;
-				int numHQ =0;
+				int numHQ = 0;
+				int numEHQ = 0;
 				for (VariantContext vc : reader) {
 					numTotal++;
 					VariantContext vcSubOff = VCOps.getSubset(vc, offCombo);
@@ -223,9 +194,17 @@ public class DeNovoMatic {
 						map.put("HQ_P2_NT", pass2.getTestPerformed().replaceAll(":", "_").replaceAll(" ", "_"));
 
 						if (pass1.passed() && pass2.passed()) {
-							System.out.println(g1.getAnyAttribute("AD_TUMOR") + "\t" + p1 + "\t" + p2 + "\t" + g1.getAnyAttribute("AD_NORMAL") + "\t" + g2.getAnyAttribute("AD_NORMAL"));
 							map.put("HQ_DNM", true + "");
 							numHQ++;
+							String mutF1 = g1.getAnyAttribute(GENOTYPE_INFO.MUTECT_FILTERS.getFlag()).toString();
+							String mutF2 = g2.getAnyAttribute(GENOTYPE_INFO.MUTECT_FILTERS.getFlag()).toString();
+
+							if (mutF1.equals("[PASS]") && mutF2.equals("[PASS]")) {
+								map.put("EHQ_DNM", true + "");
+								numEHQ++;
+							} else {
+								map.put("EHQ_DNM", mutF1 + "_" + mutF2);
+							}
 						} else {
 							map.put("HQ_DNM", !pass1.passed() + "_" + !pass2.passed());
 						}
@@ -236,9 +215,9 @@ public class DeNovoMatic {
 							}
 							if (g2.hasAnyAttribute(att)) {
 								map.put(att + "_P2", g2.getAnyAttribute(att));
+
 							}
 						}
-
 						g1bBuilder.attributes(map);
 						ArrayList<Genotype> gtypes = new ArrayList<Genotype>();
 						gtypes.add(g1bBuilder.make());
@@ -267,11 +246,8 @@ public class DeNovoMatic {
 				}
 				reader.close();
 				writer.close();
-				log.reportTimeInfo("Detected " + numPossible + " possible denovos (" + numHQ + " HQ)  after scanning " + numTotal);
-				if (numByPassFilters > 0) {
-					log.reportTimeWarning(numByPassFilters + " possible denovos were allowed past mutects filters " + Array.toStr(ACCEPTED_FILTER_BYPASS));
+				log.reportTimeInfo("Detected " + numPossible + " possible denovos (" + numHQ + " HQ, " + numEHQ + " EHQ)  after scanning " + numTotal);
 
-				}
 			}
 		}
 	}
@@ -463,5 +439,32 @@ public class DeNovoMatic {
 			e.printStackTrace();
 		}
 	}
+	// private static void filterByFreq(String invcf, String outVcf, double freq, Logger log) {
+	//
+	// VCFFileReader reader = new VCFFileReader(invcf, true);
+	// VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, outVcf, VCFOps.DEFUALT_WRITER_OPTIONS, log);
+	// int total = 0;
+	// int pass = 0;
+	// for (VariantContext vc : reader) {
+	// total++;
+	// if (!vc.hasAttribute("PopFreqMax")) {
+	// throw new IllegalArgumentException("Method expects PopFreqMax annotations for all variants");
+	// }
+	// String f = vc.getAttributeAsString("PopFreqMax", "-1");
+	//
+	// if (f.equals(".")) {
+	// f = "-1";
+	// }
+	// double freqVc = Double.parseDouble(f);
+	// if (freqVc < freq && VCOps.isHighModLowSNP_EFFImpact(vc)) {
+	//
+	// writer.add(vc);
+	// pass++;
+	// }
+	// }
+	// writer.close();
+	// reader.close();
+	// log.reportTimeInfo("Scanned " + total + " variants and " + pass + " passed freq threshold of " + freq);
+	// }
 
 }
