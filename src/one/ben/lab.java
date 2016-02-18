@@ -861,19 +861,28 @@ public class lab {
 		boolean test = true;
 		if (test) {
 
-		    String doseFile1 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2.gz";
-		    String mapFile1 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2_info";
-		    String doseFile2 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.95069244.100069244.impute2.gz";
-		    String mapFile2 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.95069244.100069244.impute2_info";
-		    String idFile = "/home/pankarne/cole0482/EA.indiv.dup";
-		    String outFile = "/scratch.global/cole0482/test.db.xln";
-		    String mapOutFile = "/scratch.global/cole0482/mapOut.xln";
+		    double[] arr = {9.6, 9.96, 9.996, 9.9996, 9.99996};
+		    for (int i = 0; i < 6; i++) {
+		        for (double d : arr) {
+		            System.out.print(ext.formDeci(d, i) + ", ");
+		        }
+		        System.out.println();
+		    }
 		    
-		    DosageData dd1 = new DosageData(doseFile1, idFile, mapFile1, DosageData.IMPUTE2_DOSE_FORMAT, true, null);
-		    DosageData dd2 = new DosageData(doseFile2, idFile, mapFile2, DosageData.IMPUTE2_DOSE_FORMAT, true, null);
-		    DosageData dd3 = DosageData.combine(dd1, dd2);
-		    dd3.writeToFile(outFile, mapOutFile, null, DosageData.DATABASE_DOSE_FORMAT, null);
-		    System.out.println("complete!");
+		    
+//		    String doseFile1 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2.gz";
+//		    String mapFile1 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2_info";
+//		    String doseFile2 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.95069244.100069244.impute2.gz";
+//		    String mapFile2 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.95069244.100069244.impute2_info";
+//		    String idFile = "/home/pankarne/cole0482/EA.indiv.dup";
+//		    String outFile = "/scratch.global/cole0482/test.db.xln";
+//		    String mapOutFile = "/scratch.global/cole0482/mapOut.xln";
+//		    
+//		    DosageData dd1 = new DosageData(doseFile1, idFile, mapFile1, DosageData.IMPUTE2_DOSE_FORMAT, true, null);
+//		    DosageData dd2 = new DosageData(doseFile2, idFile, mapFile2, DosageData.IMPUTE2_DOSE_FORMAT, true, null);
+//		    DosageData dd3 = DosageData.combine(dd1, dd2);
+//		    dd3.writeToFile(outFile, mapOutFile, null, DosageData.DATABASE_DOSE_FORMAT, null);
+//		    System.out.println("complete!");
 		    
 //		    createRandomSelectionFile();
 //		    try {

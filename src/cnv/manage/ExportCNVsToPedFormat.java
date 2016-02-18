@@ -17,316 +17,320 @@ public class ExportCNVsToPedFormat {
 	public static final String PLINK_BINARY_FORMAT = "PLINK_BINARY";
 	public static final String RFGLS_FORMAT = "RFGLS";
 
-	/*
-	 * Convert a cnv data file into
-	 */
-	// Step 1a
-	public static void convertFromRawCNV(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, boolean rfglsOutput, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win) {
-		
-	}
+    public static void export(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, String fileFormat, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygousOnly, boolean excludeMonomorphicLoci, int markersPerFile, int windowInBasepairs, Logger log) {
+        PrintWriter writer;
+        RandomAccessFile bedWriter = null;
+        CNVariant[] cnvs;
+        Hashtable<String, String> allChrPosHash;
+        Hashtable<String, String> sampleListHashFromCnvOrPedData;
+        Hashtable<String, String> dnaHashFromCnvOrPedData;
+        String[][] dnaMapping;
+        Hashtable<String, Vector<String>> mzTwins;
+        Vector<String> mzPairs;
+        String[] allChrPosKeys;
+        byte[][] currentCNs;
+        byte[] previousCNs;
+        Segment[] allChrPosSegs, currentChrPosSegs;
+        String[] line;
+        byte currentCN;
+        long time;
+        String[] tempSampleList;
+        String[] finalSampleList;
+        int cnvIndex;
+        boolean done;
+        String outputFilename;
+        int numMarkers;
+        int currentSampleIndex;
+        int indexOfCurrentSeg;
+        int countValidLoci;
+        int fileNumber;
+        // Logger log;
+        Vector<CNVariant> cnVector;
+        CNVariant cnv;
+        int numBaseCNVs;
+        boolean wasNull = false;
+        boolean cnvIsDNAKeyed = false;
+        String exten;
 
-	// Step 1b
-	public static void convertFromTrioOrJointCNVs(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, boolean rfglsOutput, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win) {
-		
-	}
+        log.report("Generating files for " + outputRoot);
+        if (!Files.exists(ext.parseDirectoryOfFile(outputRoot), false)) {
+            log.report("Created directory: '" + ext.parseDirectoryOfFile(outputRoot) + "'");
+            new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
+        }
 
-	// Step 2
-	public static void export(CNVariant[] cnvs, String[][] pedstructure, String outputRoot, String endOfLine, boolean rfglsOutput, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygous, boolean excludeMonomorphicLoci, int markersPerFile, int win) {
-		
-	}
-	
-	public static void export(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, String fileFormat, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygousOnly, boolean excludeMonomorphicLoci, int markersPerFile, int windowInBasepairs, Logger log) {
-        		PrintWriter writer;
-        		RandomAccessFile bedWriter = null;
-        		CNVariant[] cnvs;
-        		Hashtable<String,String> allChrPosHash;
-        		Hashtable<String,String> sampleListHashFromCnvOrPedData;
-        		String[][] dnaMapping;
-        		Hashtable<String,Vector<String>> mzTwins;
-        		Vector<String> mzPairs;
-        		String[] allChrPosKeys;
-        		byte[][] currentCNs;
-        		byte[] previousCNs;
-        		Segment[] allChrPosSegs, currentChrPosSegs;
-        		String[] line;
-        		byte currentCN;
-        		long time;
-        		String[] tempSampleList;
-        		String[] finalSampleList;
-        		int cnvIndex;
-        		boolean done;
-        		String outputFilename;
-        		int numMarkers;
-        		int currentSampleIndex;
-        		int indexOfCurrentSeg;
-        		int countValidLoci;
-        		int fileNumber;
-        //		Logger log;
-        		Vector<CNVariant> cnVector;
-        		CNVariant cnv;
-        		int numBaseCNVs;
-        		boolean wasNull = false;
-        		String exten;
-        		
-        		log.report("Generating files for "+outputRoot);
-        		if (!Files.exists(ext.parseDirectoryOfFile(outputRoot), false)) {
-        			log.report("Created directory: '"+ext.parseDirectoryOfFile(outputRoot)+"'");
-        			new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
-        		}
+        time = new Date().getTime();
+        mzTwins = new Hashtable<String, Vector<String>>();
+        if (pedFilename != null) {
+            log.report("Loading Pedigree file, assuming standard pedigree.dat file format (FID, IID, FA, MO, SEX, PHENO, DNA)");
+            try {
+                sampleListHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] { 0, 1 }, new int[] { -7 }, pedFilename.endsWith(".csv"), "\t", false, false, false);
+                dnaHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] { 6, 6 }, new int[] { -7 }, pedFilename.endsWith(".csv"), "\t", false, false, false);
+                dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] { 0, 1, 6 }, "[\\s]+", false, 10000, false);
+                HashSet<String> dnaSet = new HashSet<String>();
+                for (int i = 0; i < dnaMapping.length; i++) {
+                    if (dnaSet.contains(dnaMapping[i][2])) {
+                        HashVec.addToHashVec(mzTwins, dnaMapping[i][2] + "\t" + dnaMapping[i][2], dnaMapping[i][0] + "\t" + dnaMapping[i][1], false);
+                    }
+                    dnaSet.add(dnaMapping[i][2]);
+                }
+                BufferedReader reader = Files.getAppropriateReader(cnvFilename);
+                reader.readLine();
+                String tempLine = null;
+                while((tempLine = reader.readLine()) != null) {
+                    String[] tempParts = tempLine.split("\t");
+                    if (dnaHashFromCnvOrPedData.containsKey(tempParts[0] + "\t" + tempParts[1])) {
+                        cnvIsDNAKeyed = true;
+                        break;
+                    } else if (sampleListHashFromCnvOrPedData.containsKey(tempParts[0] + "\t" + tempParts[1])) {
+                        cnvIsDNAKeyed = false;
+                        break;
+                    }
+                }
+                reader.close();
+            } catch (Exception e) {
+                log.reportException(e);
+                sampleListHashFromCnvOrPedData = null;
+                dnaHashFromCnvOrPedData = null;
+            }
+        } else {
+            sampleListHashFromCnvOrPedData = null;
+            dnaHashFromCnvOrPedData = null;
+        }
+
+        log.report("Matched " + mzTwins.size() + " sets of twins");
         
-        		time = new Date().getTime();
-        		mzTwins = new Hashtable<String, Vector<String>>();
-        		if (pedFilename != null) {
-        		    try {
-            			line = Files.getHeaderOfFile(pedFilename, new Logger());
-            			if (ext.checkHeader(line, new String[] {"FAMID", "ID", "DNA"}, false)) {
-                			sampleListHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {0,1}, new int[] {-7}, pedFilename.endsWith(".csv"), "\t", true, false, false);
-                			dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] {0,1,2}, "[\\s]+", false, 10000, false);
-                			for (int i = 0; i < dnaMapping.length; i++) {
-                				if (!dnaMapping[i][1].equals(dnaMapping[i][2])) {
-                					HashVec.addToHashVec(mzTwins, dnaMapping[i][0]+"\t"+dnaMapping[i][2], dnaMapping[i][0]+"\t"+dnaMapping[i][1], false);
-                				}
-                			}
-            			} else {
-            			    sampleListHashFromCnvOrPedData = null;
-            			}
-        		    } catch (Exception e) {
-        		        log.reportException(e);
-        		        sampleListHashFromCnvOrPedData = null;
-        		    }
-        		} else {
-        			sampleListHashFromCnvOrPedData = null;
-        		}
-        		
-        		log.report("Matched "+mzTwins.size()+" twins");
-        		
-        		cnVector = CNVariant.loadPlinkFile(cnvFilename, sampleListHashFromCnvOrPedData, false, false);
-        		if (mzTwins.size() > 0) {
-        			numBaseCNVs = cnVector.size();
-        			for (int i = 0; i < numBaseCNVs; i++) {
-        				cnv = cnVector.elementAt(i);
-        				if (mzTwins.containsKey(cnv.getFamilyID()+"\t"+cnv.getIndividualID())) {
-        					mzPairs = mzTwins.get(cnv.getFamilyID()+"\t"+cnv.getIndividualID());
-        					for (int j = 0; j < mzPairs.size(); j++) {
-        						cnv = cnVector.elementAt(i).clone();
-        						line = mzPairs.elementAt(j).split("[\\s]+");
-        						cnv.setFamilyID(line[0]);
-        						cnv.setIndividualID(line[1]);
-        						cnVector.add(cnv);
-        					}					
-        				}
-        			}
-        			
-        		}
-        		cnvs = CNVariant.toCNVariantArray(cnVector);
-        		log.report("Loaded file in " + ext.getTimeElapsed(time));
-        		
-        		//Generate chrPosition and sampleHash, to be used for the rows and columns of the final result.
-        		time = new Date().getTime();
-        		allChrPosHash = new Hashtable<String,String>();
-        		if (pedFilename==null || sampleListHashFromCnvOrPedData==null) {
-        			sampleListHashFromCnvOrPedData = new Hashtable<String,String>();
-        			wasNull = true;
-        		}
-        		for (int i=0; i<cnvs.length; i++) {
-        			allChrPosHash.put(cnvs[i].getChr()+"\t"+cnvs[i].getStart(), "");
-        			allChrPosHash.put(cnvs[i].getChr()+"\t"+cnvs[i].getStop(), "");
-        			allChrPosHash.put(cnvs[i].getChr()+"\t"+(cnvs[i].getStop()+1), "");
-        			if (wasNull && !sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID())) {
-        				sampleListHashFromCnvOrPedData.put(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID(), sampleListHashFromCnvOrPedData.size()+"");
-        			}
-        		}
-        		allChrPosKeys = HashVec.getKeys(allChrPosHash);
-        		allChrPosSegs = new Segment[allChrPosKeys.length];
-        		for (int i = 0; i < allChrPosSegs.length; i++) {
-        			line = allChrPosKeys[i].split("\t");
-        			allChrPosSegs[i] = new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1])-windowInBasepairs, Integer.parseInt(line[1])+windowInBasepairs);
-        		}
-        		log.report("Generated hashtable of positions in " + ext.getTimeElapsed(time));
         
-        		time = new Date().getTime();
-        		allChrPosSegs = Segment.sortSegments(allChrPosSegs);
-        		log.report("Sorted positions in " + ext.getTimeElapsed(time));
-        
-        		time = new Date().getTime();
-        		cnvs = CNVariant.sort(cnvs);
-        		log.report("Sorted CNVariants in " + ext.getTimeElapsed(time));
-        
-        		
-        		cnvIndex = 0;
-        		fileNumber = 0;
-        		countValidLoci = 0;
-        		writer = null;
-        		outputFilename = "very first file";
-        		for (int startPosition = 0; startPosition < allChrPosSegs.length; startPosition+=markersPerFile) {
-        			numMarkers = Math.min(markersPerFile, allChrPosSegs.length-startPosition);
-        			log.report("Calculating CN for positions "+(startPosition+1)+" through "+(startPosition+numMarkers));
-        
-        			currentChrPosSegs = new Segment[numMarkers];
-        			for (int i = 0; i < currentChrPosSegs.length; i++) {
-        				currentChrPosSegs[i] = allChrPosSegs[startPosition+i];
-        			}
-        			
-        			currentCNs = new byte[currentChrPosSegs.length][sampleListHashFromCnvOrPedData.size()];
-        			previousCNs = Array.byteArray(sampleListHashFromCnvOrPedData.size(), Byte.MIN_VALUE);
-        
-        			while (cnvs[cnvIndex].getChr() < currentChrPosSegs[0].getChr() || (cnvs[cnvIndex].getChr() == currentChrPosSegs[0].getChr() && cnvs[cnvIndex].getStop() < currentChrPosSegs[0].getStart())) {
-        				cnvIndex++;
-        			}
-        
-        			done = false;				
-        			for (int i = cnvIndex; !done && i < cnvs.length; i++) {
-        				// determine column from sample hash
-        				currentSampleIndex = sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID())?Integer.parseInt(sampleListHashFromCnvOrPedData.get(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID())):-1;
-        				if (cnvs[i].getChr() > currentChrPosSegs[currentChrPosSegs.length-1].getChr() || (cnvs[i].getChr() == currentChrPosSegs[currentChrPosSegs.length-1].getChr() && cnvs[i].getStart() > currentChrPosSegs[currentChrPosSegs.length-1].getStop())) {
-        					done = true;
-        				} else if (currentSampleIndex >= 0) {
-        					indexOfCurrentSeg = Math.max(Segment.binarySearchForStartPositions(cnvs[i], currentChrPosSegs), 0);
-        					while (indexOfCurrentSeg < currentChrPosSegs.length && currentChrPosSegs[indexOfCurrentSeg].overlaps(cnvs[i])) {
-        						currentCNs[indexOfCurrentSeg][currentSampleIndex] = (byte) (cnvs[i].getCN()-2);
-        						indexOfCurrentSeg++;
-        					}
-        
-        				}
-        			}
-        
-        			tempSampleList = HashVec.getKeys(sampleListHashFromCnvOrPedData, false, false);
-        			finalSampleList = new String[sampleListHashFromCnvOrPedData.size()];
-        			for (int i = 0; i < tempSampleList.length; i++) {
-        			    if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT) && !fileFormat.equals(PLINK_TEXT_FORMAT)) {
-        			        finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = ext.replaceAllWith(tempSampleList[i], "\t", "-");
-        			    } else {
-        			        finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = tempSampleList[i];
-        			    }
-        			}
-        
-        			for (int i = 0; i < currentCNs.length; i++) {
-        				for (int j = 0; j < currentCNs[i].length; j++) {
-        					currentCN = currentCNs[i][j];
-        					if (!includeDele && currentCN < 0) {
-        						currentCN = 0;
-        					}
-        					if (!includeDupl && currentCN > 0) {
-        						currentCN = 0;
-        					}
-        					if (!ordered) {
-        						currentCN = (byte)Math.abs(currentCN);
-        					}
-        					if (homozygousOnly && Math.abs(currentCN) == 1) {
-        						currentCN = 0;
-        					}
-        					if ((collapsed || homozygousOnly) && Math.abs(currentCN) == 2) {
-        						currentCN /= 2;
-        					}
-        					currentCNs[i][j] = currentCN;
-        				}
-        			}
-        
-        			time = new Date().getTime();
-    //    			if (fileFormat.equals(PLINK_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
-    //    				// dig into whether we need to convert this into MarkerData + an AB_Lookup object, or if this can be modularized
-    //    			} else {
-        				try {
-        					for (int i = 0; i<currentChrPosSegs.length; i++) {
-        						if (!excludeMonomorphicLoci || Array.min(currentCNs[i]) < 0 || Array.max(currentCNs[i]) > 0 && !Array.equals(currentCNs[i], previousCNs)) {
-        							if (countValidLoci % markersPerFile == 0) {
-        								if (writer != null) {
-        								    writer.flush();
-        									writer.close();
-        									if (fileFormat.equals(RFGLS_FORMAT)) {
-        										convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-        									} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
-        		                                writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
-        		                            } else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
-        		                                writeFamOrPed(currentCNs, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
-        		                            }
-        									fileNumber++;
-        								}
-        								if (bedWriter != null) {
-        								    bedWriter.close();
-        								}
-        								exten = "";
-        								if (fileFormat.equals(PLINK_BINARY_FORMAT)) {
-        								    exten = ".bim";
-        								} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
-        								    exten = ".tped";
-        								} else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
-        								    exten = ".map";
-        								}
-        								outputFilename = outputRoot+"_"+fileNumber;
-        								if (!fileFormat.equals(PLINK_BINARY_FORMAT)) {
-        								    writer = new PrintWriter(new FileWriter(outputFilename + exten));
-        								} else {
-        								    bedWriter = new RandomAccessFile(outputFilename + ".bed", "rw");
-        						            byte[] outStream = new byte[3];
-        						            outStream[0] = (byte) 108;  // 0b01101100
-        						            outStream[1] = (byte) 27;   // 0b00011011
-        						            outStream[2] = (byte) 1;    // 0b00000001 <-- be careful here
-        						            bedWriter.write(outStream);
-        						            writer = Files.getAppropriateWriter(outputFilename + exten);
-        								}
-        								if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT) && !fileFormat.equals(PLINK_TEXT_FORMAT)) {
-        								    writer.print("markerName\t"+Array.toStr(finalSampleList));
-        								    writer.print(endOfLine);
-        								}
-        							}
-        							if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_TEXT_FORMAT)) {
-        							    writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart() + "\t0\t" + currentChrPosSegs[i].getStart());
-        							} else if (fileFormat.equals(PLINK_BINARY_FORMAT)) { 
-        							    char[] genoCodes = getPlinkGeno(currentCNs[i]);
-        							    String a1 = "" + genoCodes[0];
-        							    String a2 = "" + genoCodes[1];
-        							    writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart() + "\t0\t" + currentChrPosSegs[i].getStart() + "\t" + a1 + "\t" + a2);
-        						    } else {
-        							    writer.print(currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart());
-        							}
-        							if (fileFormat.equals(PLINK_BINARY_FORMAT)) {
-        							    byte[] genotypes = new byte[finalSampleList.length];
-        							    for (int j = 0; j < finalSampleList.length; j++) {
-        							        genotypes[j] = currentCNs[i][j];
-        							    }
-    							        bedWriter.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(genotypes));
-        							} else if (!fileFormat.equals(PLINK_TEXT_FORMAT)) {
-        							    for (int j = 0; j < finalSampleList.length; j++) {
-            							    if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
-            							        writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));    							    
-            							    } else {
-            							        writer.print("\t" + currentCNs[i][j]);
-            							    }
-            							}
-        							}
-        							writer.print(endOfLine);
-        							countValidLoci++;
-        							previousCNs = currentCNs[i];
-        						}					
-        					}
-        				} catch (Exception e) {
-        					log.reportError("Error writing to '" + outputFilename + "'");
-        					log.reportException(e);
-        				}
-        				if (writer != null) {
-                            writer.flush();
-        					writer.close();
-        					if (fileFormat.equals(RFGLS_FORMAT)) {
-        						convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-        					} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
-        					    writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
-        					} else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
-                                writeFamOrPed(currentCNs, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
-        					}
-        				}
-                        if (bedWriter != null) {
-                            try {
+        cnVector = CNVariant.loadPlinkFile(cnvFilename, cnvIsDNAKeyed ? dnaHashFromCnvOrPedData : sampleListHashFromCnvOrPedData, false, false);
+        if (mzTwins.size() > 0) {
+            numBaseCNVs = cnVector.size();
+            for (int i = 0; i < numBaseCNVs; i++) {
+                cnv = cnVector.elementAt(i);
+                if (mzTwins.containsKey(cnv.getFamilyID() + "\t" + cnv.getIndividualID())) {
+                    mzPairs = mzTwins.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
+                    for (int j = 0; j < mzPairs.size(); j++) { // TODO concerns about duplication of CNVs?
+                        cnv = cnVector.elementAt(i).clone();
+                        line = mzPairs.elementAt(j).split("[\\s]+");
+                        cnv.setFamilyID(line[0]);
+                        cnv.setIndividualID(line[1]);
+                        cnVector.add(cnv);
+                    }
+                }
+            }
+        }
+        cnvs = CNVariant.toCNVariantArray(cnVector);
+        log.report("Loaded file in " + ext.getTimeElapsed(time));
+
+        // Generate chrPosition and sampleHash, to be used for the rows and columns of the final result.
+        time = new Date().getTime();
+        allChrPosHash = new Hashtable<String, String>();
+        if (pedFilename == null || sampleListHashFromCnvOrPedData == null) {
+            sampleListHashFromCnvOrPedData = new Hashtable<String, String>();
+            dnaHashFromCnvOrPedData = new Hashtable<String, String>();
+            wasNull = true;
+        }
+        for (int i = 0; i < cnvs.length; i++) {
+            allChrPosHash.put(cnvs[i].getChr() + "\t" + cnvs[i].getStart(), "");
+            allChrPosHash.put(cnvs[i].getChr() + "\t" + cnvs[i].getStop(), "");
+            allChrPosHash.put(cnvs[i].getChr() + "\t" + (cnvs[i].getStop() + 1), "");
+            if (wasNull && !sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID())) {
+                sampleListHashFromCnvOrPedData.put(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID(), sampleListHashFromCnvOrPedData.size() + "");
+            }
+        }
+        allChrPosKeys = HashVec.getKeys(allChrPosHash);
+        allChrPosSegs = new Segment[allChrPosKeys.length];
+        for (int i = 0; i < allChrPosSegs.length; i++) {
+            line = allChrPosKeys[i].split("\t");
+            allChrPosSegs[i] = new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1]) - windowInBasepairs, Integer.parseInt(line[1]) + windowInBasepairs);
+        }
+        log.report("Generated hashtable of positions in " + ext.getTimeElapsed(time));
+
+        time = new Date().getTime();
+        allChrPosSegs = Segment.sortSegments(allChrPosSegs);
+        log.report("Sorted positions in " + ext.getTimeElapsed(time));
+
+        time = new Date().getTime();
+        cnvs = CNVariant.sort(cnvs);
+        log.report("Sorted CNVariants in " + ext.getTimeElapsed(time));
+
+        cnvIndex = 0;
+        fileNumber = 0;
+        countValidLoci = 0;
+        writer = null;
+        outputFilename = "very first file";
+        for (int startPosition = 0; startPosition < allChrPosSegs.length; startPosition += markersPerFile) {
+            numMarkers = Math.min(markersPerFile, allChrPosSegs.length - startPosition);
+            log.report("Calculating CN for positions " + (startPosition + 1) + " through " + (startPosition + numMarkers));
+
+            currentChrPosSegs = new Segment[numMarkers];
+            for (int i = 0; i < currentChrPosSegs.length; i++) {
+                currentChrPosSegs[i] = allChrPosSegs[startPosition + i];
+            }
+
+            currentCNs = new byte[currentChrPosSegs.length][sampleListHashFromCnvOrPedData.size()];
+            previousCNs = Array.byteArray(sampleListHashFromCnvOrPedData.size(), Byte.MIN_VALUE);
+
+            while (cnvs[cnvIndex].getChr() < currentChrPosSegs[0].getChr() || (cnvs[cnvIndex].getChr() == currentChrPosSegs[0].getChr() && cnvs[cnvIndex].getStop() < currentChrPosSegs[0].getStart())) {
+                cnvIndex++;
+            }
+
+            done = false;
+            for (int i = cnvIndex; !done && i < cnvs.length; i++) {
+                // determine column from sample hash
+                currentSampleIndex = sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID()) ? 
+                                            Integer.parseInt(sampleListHashFromCnvOrPedData.get(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID())) 
+                                            :
+                                            dnaHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID()) ?
+                                                    Integer.parseInt(dnaHashFromCnvOrPedData.get(cnvs[i].getFamilyID() + "\t" + cnvs[i].getIndividualID())) 
+                                                    : -1;
+                if (cnvs[i].getChr() > currentChrPosSegs[currentChrPosSegs.length - 1].getChr() || (cnvs[i].getChr() == currentChrPosSegs[currentChrPosSegs.length - 1].getChr() && cnvs[i].getStart() > currentChrPosSegs[currentChrPosSegs.length - 1].getStop())) {
+                    done = true;
+                } else if (currentSampleIndex >= 0) {
+                    indexOfCurrentSeg = Math.max(Segment.binarySearchForStartPositions(cnvs[i], currentChrPosSegs), 0);
+                    while (indexOfCurrentSeg < currentChrPosSegs.length && currentChrPosSegs[indexOfCurrentSeg].overlaps(cnvs[i])) {
+                        currentCNs[indexOfCurrentSeg][currentSampleIndex] = (byte) (cnvs[i].getCN() - 2);
+                        indexOfCurrentSeg++;
+                    }
+
+                }
+            }
+
+            tempSampleList = HashVec.getKeys(sampleListHashFromCnvOrPedData, false, false);
+            finalSampleList = new String[sampleListHashFromCnvOrPedData.size()];
+            for (int i = 0; i < tempSampleList.length; i++) {
+                if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT) && !fileFormat.equals(PLINK_TEXT_FORMAT)) {
+                    finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = ext.replaceAllWith(tempSampleList[i], "\t", "-");
+                } else {
+                    finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = tempSampleList[i];
+                }
+            }
+
+            for (int i = 0; i < currentCNs.length; i++) {
+                for (int j = 0; j < currentCNs[i].length; j++) {
+                    currentCN = currentCNs[i][j];
+                    if (!includeDele && currentCN < 0) {
+                        currentCN = 0;
+                    }
+                    if (!includeDupl && currentCN > 0) {
+                        currentCN = 0;
+                    }
+                    if (!ordered) {
+                        currentCN = (byte) Math.abs(currentCN);
+                    }
+                    if (homozygousOnly && Math.abs(currentCN) == 1) {
+                        currentCN = 0;
+                    }
+                    if ((collapsed || homozygousOnly) && Math.abs(currentCN) == 2) {
+                        currentCN /= 2;
+                    }
+                    currentCNs[i][j] = currentCN;
+                }
+            }
+
+            time = new Date().getTime();
+            // if (fileFormat.equals(PLINK_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
+            // // dig into whether we need to convert this into MarkerData + an AB_Lookup object, or if this can be modularized
+            // } else {
+            try {
+                for (int i = 0; i < currentChrPosSegs.length; i++) {
+                    if (!excludeMonomorphicLoci || Array.min(currentCNs[i]) < 0 || Array.max(currentCNs[i]) > 0 && !Array.equals(currentCNs[i], previousCNs)) {
+                        if (countValidLoci % markersPerFile == 0) {
+                            if (writer != null) {
+                                writer.flush();
+                                writer.close();
+                                if (fileFormat.equals(RFGLS_FORMAT)) {
+                                    convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
+                                } else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
+                                    writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
+                                } else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+                                    writeFamOrPed(currentCNs, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
+                                }
+                                fileNumber++;
+                            }
+                            if (bedWriter != null) {
                                 bedWriter.close();
-                            } catch (IOException e) {
-                                log.reportError("Error closing .bed file");
-                                log.reportException(e);
+                            }
+                            exten = "";
+                            if (fileFormat.equals(PLINK_BINARY_FORMAT)) {
+                                exten = ".bim";
+                            } else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
+                                exten = ".tped";
+                            } else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+                                exten = ".map";
+                            }
+                            outputFilename = outputRoot + "_" + fileNumber;
+                            if (!fileFormat.equals(PLINK_BINARY_FORMAT)) {
+                                writer = new PrintWriter(new FileWriter(outputFilename + exten));
+                            } else {
+                                bedWriter = new RandomAccessFile(outputFilename + ".bed", "rw");
+                                byte[] outStream = new byte[3];
+                                outStream[0] = (byte) 108; // 0b01101100
+                                outStream[1] = (byte) 27; // 0b00011011
+                                outStream[2] = (byte) 1; // 0b00000001 <-- be careful here
+                                bedWriter.write(outStream);
+                                writer = Files.getAppropriateWriter(outputFilename + exten);
+                            }
+                            if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT) && !fileFormat.equals(PLINK_TEXT_FORMAT)) {
+                                writer.print("markerName\t" + Array.toStr(finalSampleList));
+                                writer.print(endOfLine);
                             }
                         }
-        			}
-        			log.report("    ...finished in " + ext.getTimeElapsed(time));
-    //    		}
-        	}
+                        if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_TEXT_FORMAT)) {
+                            writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr() + ":" + currentChrPosSegs[i].getStart() + "\t0\t" + currentChrPosSegs[i].getStart());
+                        } else if (fileFormat.equals(PLINK_BINARY_FORMAT)) {
+                            char[] genoCodes = getPlinkGeno(currentCNs[i]);
+                            String a1 = "" + genoCodes[0];
+                            String a2 = "" + genoCodes[1];
+                            writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr() + ":" + currentChrPosSegs[i].getStart() + "\t0\t" + currentChrPosSegs[i].getStart() + "\t" + a1 + "\t" + a2);
+                        } else {
+                            writer.print(currentChrPosSegs[i].getChr() + ":" + currentChrPosSegs[i].getStart());
+                        }
+                        if (fileFormat.equals(PLINK_BINARY_FORMAT)) {
+                            byte[] genotypes = new byte[finalSampleList.length];
+                            for (int j = 0; j < finalSampleList.length; j++) {
+                                genotypes[j] = currentCNs[i][j];
+                            }
+                            bedWriter.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(genotypes));
+                        } else if (!fileFormat.equals(PLINK_TEXT_FORMAT)) {
+                            for (int j = 0; j < finalSampleList.length; j++) {
+                                if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
+                                    writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));
+                                } else {
+                                    writer.print("\t" + currentCNs[i][j]);
+                                }
+                            }
+                        }
+                        writer.print(endOfLine);
+                        countValidLoci++;
+                        previousCNs = currentCNs[i];
+                    }
+                }
+            } catch (Exception e) {
+                log.reportError("Error writing to '" + outputFilename + "'");
+                log.reportException(e);
+            }
+            if (writer != null) {
+                writer.flush();
+                writer.close();
+                if (fileFormat.equals(RFGLS_FORMAT)) {
+                    convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
+                } else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
+                    writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
+                } else if (fileFormat.equals(PLINK_TEXT_FORMAT)) {
+                    writeFamOrPed(currentCNs, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
+                }
+            }
+            if (bedWriter != null) {
+                try {
+                    bedWriter.close();
+                } catch (IOException e) {
+                    log.reportError("Error closing .bed file");
+                    log.reportException(e);
+                }
+            }
+        }
+        log.report("    ...finished in " + ext.getTimeElapsed(time));
+        // }
+    }
 
     private static char[] getPlinkGeno(byte[] bs) {
         char[] mapping = {'0', '0'};
@@ -343,258 +347,16 @@ public class ExportCNVsToPedFormat {
         return mapping;
     }
 
-    public static void exportPREV(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, String fileFormat, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygousOnly, boolean excludeMonomorphicLoci, int markersPerFile, int windowInBasepairs, Logger log) {
-    		PrintWriter writer;
-    		CNVariant[] cnvs;
-    		Hashtable<String,String> allChrPosHash;
-    		Hashtable<String,String> sampleListHashFromCnvOrPedData;
-    		String[][] dnaMapping;
-    		Hashtable<String,Vector<String>> mzTwins;
-    		Vector<String> mzPairs;
-    		String[] allChrPosKeys;
-    		byte[][] currentCNs;
-    		byte[] previousCNs;
-    		Segment[] allChrPosSegs, currentChrPosSegs;
-    		String[] line;
-    		byte currentCN;
-    		long time;
-    		String[] tempSampleList;
-    		String[] finalSampleList;
-    		int cnvIndex;
-    		boolean done;
-    		String outputFilename;
-    		int numMarkers;
-    		int currentSampleIndex;
-    		int indexOfCurrentSeg;
-    		int countValidLoci;
-    		int fileNumber;
-    //		Logger log;
-    		Vector<CNVariant> cnVector;
-    		CNVariant cnv;
-    		int numBaseCNVs;
-    		boolean wasNull = false;
-    		
-    		log.report("Generating files for "+outputRoot);
-    		if (!Files.exists(ext.parseDirectoryOfFile(outputRoot), false)) {
-    			log.report("Created directory: '"+ext.parseDirectoryOfFile(outputRoot)+"'");
-    			new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
-    		}
-    
-    		time = new Date().getTime();
-    		mzTwins = new Hashtable<String, Vector<String>>();
-    		if (pedFilename != null) {
-    		    try {
-        			line = Files.getHeaderOfFile(pedFilename, new Logger());
-        			if (ext.checkHeader(line, new String[] {"FAMID", "ID", "DNA"}, false)) {
-            			sampleListHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {0,1}, new int[] {-7}, pedFilename.endsWith(".csv"), "\t", true, false, false);
-            			dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] {0,1,2}, "[\\s]+", false, 10000, false);
-            			for (int i = 0; i < dnaMapping.length; i++) {
-            				if (!dnaMapping[i][1].equals(dnaMapping[i][2])) {
-            					HashVec.addToHashVec(mzTwins, dnaMapping[i][0]+"\t"+dnaMapping[i][2], dnaMapping[i][0]+"\t"+dnaMapping[i][1], false);
-            				}
-            			}
-        			} else {
-        			    sampleListHashFromCnvOrPedData = null;
-        			}
-    		    } catch (Exception e) {
-    		        log.reportException(e);
-    		        sampleListHashFromCnvOrPedData = null;
-    		    }
-    		} else {
-    			sampleListHashFromCnvOrPedData = null;
-    		}
-    		
-    		log.report("Matched "+mzTwins.size()+" twins");
-    		
-    		cnVector = CNVariant.loadPlinkFile(cnvFilename, sampleListHashFromCnvOrPedData, false, false);
-    		if (mzTwins.size() > 0) {
-    			numBaseCNVs = cnVector.size();
-    			for (int i = 0; i < numBaseCNVs; i++) {
-    				cnv = cnVector.elementAt(i);
-    				if (mzTwins.containsKey(cnv.getFamilyID()+"\t"+cnv.getIndividualID())) {
-    					mzPairs = mzTwins.get(cnv.getFamilyID()+"\t"+cnv.getIndividualID());
-    					for (int j = 0; j < mzPairs.size(); j++) {
-    						cnv = cnVector.elementAt(i).clone();
-    						line = mzPairs.elementAt(j).split("[\\s]+");
-    						cnv.setFamilyID(line[0]);
-    						cnv.setIndividualID(line[1]);
-    						cnVector.add(cnv);
-    					}					
-    				}
-    			}
-    			
-    		}
-    		cnvs = CNVariant.toCNVariantArray(cnVector);
-    		log.report("Loaded file in " + ext.getTimeElapsed(time));
-    		
-    		//Generate chrPosition and sampleHash, to be used for the rows and columns of the final result.
-    		time = new Date().getTime();
-    		allChrPosHash = new Hashtable<String,String>();
-    		if (pedFilename==null || sampleListHashFromCnvOrPedData==null) {
-    			sampleListHashFromCnvOrPedData = new Hashtable<String,String>();
-    			wasNull = true;
-    		}
-    		for (int i=0; i<cnvs.length; i++) {
-    			allChrPosHash.put(cnvs[i].getChr()+"\t"+cnvs[i].getStart(), "");
-    			allChrPosHash.put(cnvs[i].getChr()+"\t"+cnvs[i].getStop(), "");
-    			allChrPosHash.put(cnvs[i].getChr()+"\t"+(cnvs[i].getStop()+1), "");
-    			if (wasNull && !sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID())) {
-    				sampleListHashFromCnvOrPedData.put(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID(), sampleListHashFromCnvOrPedData.size()+"");
-    			}
-    		}
-    		allChrPosKeys = HashVec.getKeys(allChrPosHash);
-    		allChrPosSegs = new Segment[allChrPosKeys.length];
-    		for (int i = 0; i < allChrPosSegs.length; i++) {
-    			line = allChrPosKeys[i].split("\t");
-    			allChrPosSegs[i] = new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1])-windowInBasepairs, Integer.parseInt(line[1])+windowInBasepairs);
-    		}
-    		log.report("Generated hashtable of positions in " + ext.getTimeElapsed(time));
-    
-    		time = new Date().getTime();
-    		allChrPosSegs = Segment.sortSegments(allChrPosSegs);
-    		log.report("Sorted positions in " + ext.getTimeElapsed(time));
-    
-    		time = new Date().getTime();
-    		cnvs = CNVariant.sort(cnvs);
-    		log.report("Sorted CNVariants in " + ext.getTimeElapsed(time));
-    
-    		
-    		cnvIndex = 0;
-    		fileNumber = 0;
-    		countValidLoci = 0;
-    		writer = null;
-    		outputFilename = "very first file";
-    		for (int startPosition = 0; startPosition < allChrPosSegs.length; startPosition+=markersPerFile) {
-    			numMarkers = Math.min(markersPerFile, allChrPosSegs.length-startPosition);
-    			log.report("Calculating CN for positions "+(startPosition+1)+" through "+(startPosition+numMarkers));
-    
-    			currentChrPosSegs = new Segment[numMarkers];
-    			for (int i = 0; i < currentChrPosSegs.length; i++) {
-    				currentChrPosSegs[i] = allChrPosSegs[startPosition+i];
-    			}
-    			
-    			currentCNs = new byte[currentChrPosSegs.length][sampleListHashFromCnvOrPedData.size()];
-    			previousCNs = Array.byteArray(sampleListHashFromCnvOrPedData.size(), Byte.MIN_VALUE);
-    
-    			while (cnvs[cnvIndex].getChr() < currentChrPosSegs[0].getChr() || (cnvs[cnvIndex].getChr() == currentChrPosSegs[0].getChr() && cnvs[cnvIndex].getStop() < currentChrPosSegs[0].getStart())) {
-    				cnvIndex++;
-    			}
-    
-    			done = false;				
-    			for (int i = cnvIndex; !done && i < cnvs.length; i++) {
-    				// determine column from sample hash
-    				currentSampleIndex = sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID())?Integer.parseInt(sampleListHashFromCnvOrPedData.get(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID())):-1;
-    				if (cnvs[i].getChr() > currentChrPosSegs[currentChrPosSegs.length-1].getChr() || (cnvs[i].getChr() == currentChrPosSegs[currentChrPosSegs.length-1].getChr() && cnvs[i].getStart() > currentChrPosSegs[currentChrPosSegs.length-1].getStop())) {
-    					done = true;
-    				} else if (currentSampleIndex >= 0) {
-    					indexOfCurrentSeg = Math.max(Segment.binarySearchForStartPositions(cnvs[i], currentChrPosSegs), 0);
-    					while (indexOfCurrentSeg < currentChrPosSegs.length && currentChrPosSegs[indexOfCurrentSeg].overlaps(cnvs[i])) {
-    						currentCNs[indexOfCurrentSeg][currentSampleIndex] = (byte) (cnvs[i].getCN()-2);
-    						indexOfCurrentSeg++;
-    					}
-    
-    				}
-    			}
-    
-    			tempSampleList = HashVec.getKeys(sampleListHashFromCnvOrPedData, false, false);
-    			finalSampleList = new String[sampleListHashFromCnvOrPedData.size()];
-    			for (int i = 0; i < tempSampleList.length; i++) {
-    			    if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
-    			        finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = ext.replaceAllWith(tempSampleList[i], "\t", "-");
-    			    } else {
-    			        finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = tempSampleList[i];
-    			    }
-    			}
-    
-    			for (int i = 0; i < currentCNs.length; i++) {
-    				for (int j = 0; j < currentCNs[i].length; j++) {
-    					currentCN = currentCNs[i][j];
-    					if (!includeDele && currentCN < 0) {
-    						currentCN = 0;
-    					}
-    					if (!includeDupl && currentCN > 0) {
-    						currentCN = 0;
-    					}
-    					if (!ordered) {
-    						currentCN = (byte)Math.abs(currentCN);
-    					}
-    					if (homozygousOnly && Math.abs(currentCN) == 1) {
-    						currentCN = 0;
-    					}
-    					if ((collapsed || homozygousOnly) && Math.abs(currentCN) == 2) {
-    						currentCN /= 2;
-    					}
-    					currentCNs[i][j] = currentCN;
-    				}
-    			}
-    
-    			time = new Date().getTime();
-//    			if (fileFormat.equals(PLINK_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
-//    				// dig into whether we need to convert this into MarkerData + an AB_Lookup object, or if this can be modularized
-//    			} else {
-    				try {
-    					for (int i = 0; i<currentChrPosSegs.length; i++) {
-    						if (!excludeMonomorphicLoci || Array.min(currentCNs[i]) < 0 || Array.max(currentCNs[i]) > 0 && !Array.equals(currentCNs[i], previousCNs)) {
-    							if (countValidLoci % markersPerFile == 0) {
-    								if (writer != null) {
-    									writer.close();
-    									if (fileFormat.equals(RFGLS_FORMAT)) {
-    										convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-    									}
-    									fileNumber++;
-    								}
-    								outputFilename = outputRoot+"_"+fileNumber;
-    								writer = new PrintWriter(new FileWriter(outputFilename));
-    								if (!fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) && !fileFormat.equals(PLINK_BINARY_FORMAT)) {
-    								    writer.print("markerName\t"+Array.toStr(finalSampleList));
-    								    writer.print(endOfLine);
-    								}
-    							}
-    							if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
-    							    writer.print(currentChrPosSegs[i].getChr() + "\t" + currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart() + "\t0\t" + currentChrPosSegs[i].getStart());
-    							} else {
-    							    writer.print(currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart());
-    							}
-    							for (int j = 0; j < finalSampleList.length; j++) {
-    							    if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
-    							        writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));    							    
-    							    } else {
-    							        writer.print("\t" + currentCNs[i][j]);
-    							    }
-    							}
-    							writer.print(endOfLine);
-    							countValidLoci++;
-    							previousCNs = currentCNs[i];
-    						}					
-    					}
-    				} catch (Exception e) {
-    					log.reportError("Error writing to '" + outputFilename + "'");
-    					log.reportException(e);
-    				}
-    				if (writer != null) {
-    					writer.close();
-    					if (fileFormat.equals(RFGLS_FORMAT)) {
-    						convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-    					} else if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {
-    					    writeFamOrPed(null, pedFilename, outputRoot, fileNumber, endOfLine, finalSampleList, log);
-    					}
-    				}
-    			}
-    			log.report("    ...finished in " + ext.getTimeElapsed(time));
-//    		}
-    	}
-
-	private static void writeFamOrPed(byte[][] currentCNs, String pedFile, String outputRoot, int fileNumber, String endOfLine, String[] idList, Logger log) {
+    private static void writeFamOrPed(byte[][] currentCNs, String pedFile, String outputRoot, int fileNumber, String endOfLine, String[] idList, Logger log) {
 	    PrintWriter writer, missingWriter = null;
+	    int missingCount;
 	    log.report("Writing " + (currentCNs == null ? ".fam" : ".ped") + " file...");
 	    Hashtable<String, Vector<String>> iidMap, dnaMap;
 	    
 	    if (pedFile != null) {
-	        log.report("Loading ped file, assuming standard pedigree.dat file format (FID, IID, FA, MO, SEX, PHENO, DNA)");
 	        iidMap = HashVec.loadFileToHashVec(pedFile, new int[]{0, 1}, new int[]{2,3,4,5}, "\t", false, false);
 	        dnaMap = HashVec.loadFileToHashVec(pedFile, 6, new int[]{0,1,2,3,4,5}, "\t", false, false);
 	        missingWriter = Files.getAppropriateWriter(outputRoot + "_missing.iid");
-	        
 	    } else {
 	        log.report("Warning - pedigree file missing, sex will be set to '0' for all individuals.");
 	        iidMap = new Hashtable<String, Vector<String>>();
@@ -602,14 +364,14 @@ public class ExportCNVsToPedFormat {
 	    }
 	    
         writer = Files.getAppropriateWriter(outputRoot + "_" + fileNumber + (currentCNs == null ? ".fam" : ".ped"));
-        
+        missingCount = 0;
         for (int i = 0; i < idList.length; i++) {
             String[] fidiid = idList[i].split("\t");
             String sexCode = "0";
             String phenoCode = "-9";
             String moIID = "0";
             String faIID = "0";
-            if (iidMap.containsKey(idList[i])) {
+             if (iidMap.containsKey(idList[i])) {
                 String[] pedDeets = iidMap.get(idList[i]).get(0).split("\t");
                 faIID = pedDeets[0];
                 moIID = pedDeets[1];
@@ -622,243 +384,32 @@ public class ExportCNVsToPedFormat {
                 moIID = pedDeets[3];
                 sexCode = pedDeets[4];
                 phenoCode = pedDeets[5];
-            }
+            } 
             if (missingWriter != null && !iidMap.containsKey(idList[i]) && !dnaMap.containsKey(fidiid[1])) {
                 missingWriter.println(idList[i]);
-            }
-            writer.print(fidiid[0] + "\t" + fidiid[1] + "\t" + faIID + "\t" + moIID + "\t" + sexCode + "\t" + phenoCode);
-            if (currentCNs != null) {
-                for (int j = 0; j < idList.length; j++) {
-                    writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));                                    
+                missingCount++;
+            } else {
+                writer.print(fidiid[0] + "\t" + fidiid[1] + "\t" + faIID + "\t" + moIID + "\t" + sexCode + "\t" + phenoCode);
+                if (currentCNs != null) {
+                    for (int j = 0; j < idList.length; j++) {
+                        writer.print("\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(0) + "\t" + PLINK_TEXT_CODES[currentCNs[i][j]].charAt(1));                                    
+                    }
                 }
+                writer.print(endOfLine);
             }
-            writer.print(endOfLine);
         }
         writer.flush();
         writer.close();
         if (missingWriter != null) {
             missingWriter.flush();
             missingWriter.close();
+            if (missingCount > 0) {
+                System.out.println(missingCount + " individuals missing from pedigree.dat file.");
+            }
         }
 	}
 	
-    public static void exportOLD(String cnvFilename, String pedFilename, String outputRoot, String endOfLine, String fileFormat, boolean includeDele, boolean includeDupl, boolean ordered, boolean collapsed, boolean homozygousOnly, boolean excludeMonomorphicLoci, int markersPerFile, int windowInBasepairs, Logger log) {
-		PrintWriter writer;
-		CNVariant[] cnvs;
-		Hashtable<String,String> allChrPosHash;
-		Hashtable<String,String> sampleListHashFromCnvOrPedData;
-		String[][] dnaMapping;
-		Hashtable<String,Vector<String>> mzTwins;
-		Vector<String> mzPairs;
-		String[] allChrPosKeys;
-		byte[][] currentCNs;
-		byte[] previousCNs;
-		Segment[] allChrPosSegs, currentChrPosSegs;
-		String[] line;
-		byte currentCN;
-		long time;
-		String[] tempSampleList;
-		String[] finalSampleList;
-		int cnvIndex;
-		boolean done;
-		String outputFilename;
-		int numMarkers;
-		int currentSampleIndex;
-		int indexOfCurrentSeg;
-		int countValidLoci;
-		int fileNumber;
-//		Logger log;
-		Vector<CNVariant> cnVector;
-		CNVariant cnv;
-		int numBaseCNVs;
-
-		log.report("Generating files for "+outputRoot);
-		if (!Files.exists(ext.parseDirectoryOfFile(outputRoot), false)) {
-			log.report("Created directory: '"+ext.parseDirectoryOfFile(outputRoot)+"'");
-			new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
-		}
-
-		time = new Date().getTime();
-		mzTwins = new Hashtable<String, Vector<String>>();
-		if (pedFilename != null) {
-			line = Files.getHeaderOfFile(pedFilename, new Logger());
-			ext.checkHeader(line, new String[] {"FAMID", "ID", "DNA"}, true);
-			sampleListHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {0,1}, new int[] {-7}, pedFilename.endsWith(".csv"), "\t", true, false, false);
-			dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] {0,1,2}, "[\\s]+", false, 10000, false);
-			for (int i = 0; i < dnaMapping.length; i++) {
-				if (!dnaMapping[i][1].equals(dnaMapping[i][2])) {
-					HashVec.addToHashVec(mzTwins, dnaMapping[i][0]+"\t"+dnaMapping[i][2], dnaMapping[i][0]+"\t"+dnaMapping[i][1], false);
-				}
-			}
-		} else {
-			sampleListHashFromCnvOrPedData = null;
-		}
-		
-		log.report("Matched "+mzTwins.size()+" twins");
-		
-		cnVector = CNVariant.loadPlinkFile(cnvFilename, sampleListHashFromCnvOrPedData, false, false);
-		if (mzTwins.size() > 0) {
-			numBaseCNVs = cnVector.size();
-			for (int i = 0; i < numBaseCNVs; i++) {
-				cnv = cnVector.elementAt(i);
-				if (mzTwins.containsKey(cnv.getFamilyID()+"\t"+cnv.getIndividualID())) {
-					mzPairs = mzTwins.get(cnv.getFamilyID()+"\t"+cnv.getIndividualID());
-					for (int j = 0; j < mzPairs.size(); j++) {
-						cnv = cnVector.elementAt(i).clone();
-						line = mzPairs.elementAt(j).split("[\\s]+");
-						cnv.setFamilyID(line[0]);
-						cnv.setIndividualID(line[1]);
-						cnVector.add(cnv);
-					}					
-				}
-			}
-			
-		}
-		cnvs = CNVariant.toCNVariantArray(cnVector);
-		log.report("Loaded file in " + ext.getTimeElapsed(time));
-		
-		//Generate chrPosition and sampleHash, to be used for the rows and columns of the final result.
-		time = new Date().getTime();
-		allChrPosHash = new Hashtable<String,String>();
-		if (pedFilename==null) {
-			sampleListHashFromCnvOrPedData = new Hashtable<String,String>();
-		}
-		for (int i=0; i<cnvs.length; i++) {
-			allChrPosHash.put(cnvs[i].getChr()+"\t"+cnvs[i].getStart(), "");
-			allChrPosHash.put(cnvs[i].getChr()+"\t"+cnvs[i].getStop(), "");
-			allChrPosHash.put(cnvs[i].getChr()+"\t"+(cnvs[i].getStop()+1), "");
-			if (pedFilename==null && !sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID())) {
-				sampleListHashFromCnvOrPedData.put(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID(), sampleListHashFromCnvOrPedData.size()+"");
-			}
-		}
-		allChrPosKeys = HashVec.getKeys(allChrPosHash);
-		allChrPosSegs = new Segment[allChrPosKeys.length];
-		for (int i = 0; i < allChrPosSegs.length; i++) {
-			line = allChrPosKeys[i].split("\t");
-			allChrPosSegs[i] = new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1])-windowInBasepairs, Integer.parseInt(line[1])+windowInBasepairs);
-		}
-		log.report("Generated hashtable of positions in " + ext.getTimeElapsed(time));
-
-		time = new Date().getTime();
-		allChrPosSegs = Segment.sortSegments(allChrPosSegs);
-		log.report("Sorted positions in " + ext.getTimeElapsed(time));
-
-		time = new Date().getTime();
-		cnvs = CNVariant.sort(cnvs);
-		log.report("Sorted CNVariants in " + ext.getTimeElapsed(time));
-
-		
-		cnvIndex = 0;
-		fileNumber = 0;
-		countValidLoci = 0;
-		writer = null;
-		outputFilename = "very first file";
-		for (int startPosition = 0; startPosition < allChrPosSegs.length; startPosition+=markersPerFile) {
-			numMarkers = Math.min(markersPerFile, allChrPosSegs.length-startPosition);
-			log.report("Calculating CN for positions "+(startPosition+1)+" through "+(startPosition+numMarkers));
-
-			currentChrPosSegs = new Segment[numMarkers];
-			for (int i = 0; i < currentChrPosSegs.length; i++) {
-				currentChrPosSegs[i] = allChrPosSegs[startPosition+i];
-			}
-			
-			currentCNs = new byte[currentChrPosSegs.length][sampleListHashFromCnvOrPedData.size()];
-			previousCNs = Array.byteArray(sampleListHashFromCnvOrPedData.size(), Byte.MIN_VALUE);
-
-			while (cnvs[cnvIndex].getChr() < currentChrPosSegs[0].getChr() || (cnvs[cnvIndex].getChr() == currentChrPosSegs[0].getChr() && cnvs[cnvIndex].getStop() < currentChrPosSegs[0].getStart())) {
-				cnvIndex++;
-			}
-
-			done = false;				
-			for (int i = cnvIndex; !done && i < cnvs.length; i++) {
-				// determine column from sample hash
-				currentSampleIndex = sampleListHashFromCnvOrPedData.containsKey(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID())?Integer.parseInt(sampleListHashFromCnvOrPedData.get(cnvs[i].getFamilyID()+"\t"+cnvs[i].getIndividualID())):-1;
-				if (cnvs[i].getChr() > currentChrPosSegs[currentChrPosSegs.length-1].getChr() || (cnvs[i].getChr() == currentChrPosSegs[currentChrPosSegs.length-1].getChr() && cnvs[i].getStart() > currentChrPosSegs[currentChrPosSegs.length-1].getStop())) {
-					done = true;
-				} else if (currentSampleIndex >= 0) {
-					indexOfCurrentSeg = Math.max(Segment.binarySearchForStartPositions(cnvs[i], currentChrPosSegs), 0);
-					while (indexOfCurrentSeg < currentChrPosSegs.length && currentChrPosSegs[indexOfCurrentSeg].overlaps(cnvs[i])) {
-						currentCNs[indexOfCurrentSeg][currentSampleIndex] = (byte) (cnvs[i].getCN()-2);
-						indexOfCurrentSeg++;
-					}
-
-				}
-			}
-
-			tempSampleList = HashVec.getKeys(sampleListHashFromCnvOrPedData, false, false);
-			finalSampleList = new String[sampleListHashFromCnvOrPedData.size()];
-			for (int i = 0; i < tempSampleList.length; i++) {
-				finalSampleList[Integer.parseInt(sampleListHashFromCnvOrPedData.get(tempSampleList[i]))] = ext.replaceAllWith(tempSampleList[i], "\t", "-");
-			}
-
-			for (int i = 0; i < currentCNs.length; i++) {
-				for (int j = 0; j < currentCNs[i].length; j++) {
-					currentCN = currentCNs[i][j];
-					if (!includeDele && currentCN < 0) {
-						currentCN = 0;
-					}
-					if (!includeDupl && currentCN > 0) {
-						currentCN = 0;
-					}
-					if (!ordered) {
-						currentCN = (byte)Math.abs(currentCN);
-					}
-					if (homozygousOnly && Math.abs(currentCN) == 1) {
-						currentCN = 0;
-					}
-					if ((collapsed || homozygousOnly) && Math.abs(currentCN) == 2) {
-						currentCN /= 2;
-					}
-					currentCNs[i][j] = currentCN;
-				}
-			}
-
-			time = new Date().getTime();
-			if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT) || fileFormat.equals(PLINK_BINARY_FORMAT)) {
-				// dig into whether we need to convert this into MarkerData + an AB_Lookup object, or if this can be modularized
-			} else {
-				try {
-					for (int i = 0; i<currentChrPosSegs.length; i++) {
-						if (!excludeMonomorphicLoci || Array.min(currentCNs[i]) < 0 || Array.max(currentCNs[i]) > 0 && !Array.equals(currentCNs[i], previousCNs)) {
-							if (countValidLoci % markersPerFile == 0) {
-								if (writer != null) {
-									writer.close();
-									if (fileFormat.equals(RFGLS_FORMAT)) {
-										convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-									}
-									fileNumber++;
-								}
-								outputFilename = outputRoot+"_"+fileNumber;
-								writer = new PrintWriter(new FileWriter(outputFilename));
-								writer.print("markerName\t"+Array.toStr(finalSampleList));
-								writer.print(endOfLine);
-							}
-							
-							writer.print(currentChrPosSegs[i].getChr()+":"+currentChrPosSegs[i].getStart());
-							for (int j=0; j<finalSampleList.length; j++) {
-								writer.print("\t"+currentCNs[i][j]);
-							}
-							writer.print(endOfLine);
-							countValidLoci++;
-							previousCNs = currentCNs[i];
-						}					
-					}
-				} catch (Exception e) {
-					log.reportError("Error writing to '" + outputFilename + "'");
-					log.reportException(e);
-				}
-				if (writer != null) {
-					writer.close();
-					if (fileFormat.equals(RFGLS_FORMAT)) {
-						convertToRfglsFormat(outputRoot, fileNumber, endOfLine, log);
-					}
-				}
-			}
-			log.report("    ...finished in " + ext.getTimeElapsed(time));
-		}
-	}
-	
-	private static void convertToRfglsFormat(String root, int fileNumber, String endOfLine, Logger log) {
+    private static void convertToRfglsFormat(String root, int fileNumber, String endOfLine, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer, mapWriter;
 		String[] line, ids;
@@ -1005,7 +556,7 @@ public class ExportCNVsToPedFormat {
 			}
 		}
 
-		if (numArgs != 0) {
+		if (numArgs != 0 || args.length == 0) {
 			System.err.println(usage);
 			System.exit(1);
 		}

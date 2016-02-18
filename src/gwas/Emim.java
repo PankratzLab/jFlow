@@ -109,7 +109,7 @@ public class Emim {
 	    reader.close();
 	}
 
-	protected static void scriptAllInDir(String runDir, String plinkDirAndRoot, String relativePlinkRoot, String excludeFile, String keepFile, double pThreshold) {
+	protected static void scriptAllInDir(String runDir, String plinkDirAndRoot, String relativePlinkRoot, String excludeFile, String keepFile, double pThreshold, String resultPrefix) {
 	    String commands;
         String currDir = ext.verifyDirFormat(runDir);
         
@@ -162,13 +162,21 @@ public class Emim {
                 "mv emimresults.out emimresults_M.out\n"+
                 "cp emimparams.dat emimparams_M.dat\n"+
                 "\n"+
-                "jcp gwas.Emim parse=./ hwe=plink.hwe pThreshold=" + pThreshold;
+                "jcp gwas.Emim parse=./ hwe=plink.hwe pThreshold=" + pThreshold + 
+                "\n";
+            if (resultPrefix != null) {
+                commands += "if [ -f results_pVals.xln ] ; then \n" +
+                            "    mv results_pVals.xln " + resultPrefix + "_results_pVals.xln\n" + 
+                            "fi;\n" + 
+                            "";
+            }
+        
         
         Files.qsub(currDir + ext.rootOf(plinkDirAndRoot, true)+"_runEmim.pbs", commands, 5000, 24, 1);
 	}
 	
 	public static void scriptAll(String plinkPrefix, String excludeFile, String keepFile, double pThreshold) {
-	    scriptAllInDir("./", plinkPrefix, plinkPrefix, excludeFile, keepFile, pThreshold);
+	    scriptAllInDir("./", plinkPrefix, plinkPrefix, excludeFile, keepFile, pThreshold, null);
 //		String commands;
 //		String currDir;
 //		
