@@ -441,6 +441,7 @@ public class GenvisisPipeline {
             String markersToQC = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
             String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE;
             MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markersToQC, markersABCallrate, markerCallRateFilter, numThreads);
+            // TODO Replace with MarkerMetrics.fullQC
         }
         
         @Override
@@ -481,112 +482,112 @@ public class GenvisisPipeline {
             return "## << Marker QC >> Not Implemented For Command Line Yet ##"; // TODO
         }
     };
-    static final STEP S6_EXTRACT_LRRSD_AND_FILTER = new STEP("Extract Lrrsd.xln File and Filter Samples by CallRate", 
-            "", 
-            new String[][]{
-                  {"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}, 
-                  {"Number of threads to use."},
-                  {"Sample call rate filter threshold."},
-              }, 
-            new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.INT}, {RequirementInputType.STRING}}) {
+//    static final STEP S6_EXTRACT_LRRSD_AND_FILTER = new STEP("Extract Lrrsd.xln File and Filter Samples by CallRate", 
+//            "", 
+//            new String[][]{
+//                  {"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}, 
+//                  {"Number of threads to use."},
+//                  {"Sample call rate filter threshold."},
+//              }, 
+//            new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.INT}, {RequirementInputType.STRING}}) {
+//
+//        @Override
+//        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+//            String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
+//            String setDir = variables.get(this).get(0);
+//            if (!ext.verifyDirFormat(setDir).equals(projDir)) {
+//                proj.SAMPLE_DIRECTORY.setValue(setDir);
+//            }
+//            int numThreads = proj.NUM_THREADS.getValue();
+//            try {
+//                numThreads = Integer.parseInt(variables.get(this).get(1));
+//            } catch (NumberFormatException e) {
+//            }
+//            if (numThreads != proj.NUM_THREADS.getValue()) {
+//                proj.NUM_THREADS.setValue(numThreads);
+//            }
+//        }
+//
+//        @Override
+//        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+//            proj.getLog().report("Running LrrSd");
+//            int numThreads = proj.NUM_THREADS.getValue();
+//            try {
+//                numThreads = Integer.parseInt(variables.get(this).get(1));
+//            } catch (NumberFormatException e) {
+//            }
+//            String callRate = variables.get(this).get(2);
+//            String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
+//            String markersForEverything = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
+//            
+//            markersForAB = Files.exists(markersForAB) ? markersForAB : null;
+//            markersForEverything = Files.exists(markersForEverything) ? markersForEverything : null;
+//            
+//            LrrSd.filterSamples(proj, MitoPipeline.FILE_BASE, markersForAB, markersForEverything, numThreads, callRate, null);
+//        }
+//
+//        @Override
+//        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+//            int numThreads = -1;
+//            try {
+//                numThreads = Integer.parseInt(variables.get(this).get(1));
+//            } catch (NumberFormatException e) {
+//            }
+//            String sampDir = variables.get(this).get(0);
+//            STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
+//            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
+//            boolean validCallRate = false;
+//            try {
+//                Double.parseDouble(variables.get(this).get(2));
+//                validCallRate = true;
+//            } catch (NumberFormatException e) {
+//            }
+//            return new boolean[][] { { checkStepParseSamples, (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0), }, { numThreads > 0 }, { validCallRate } };
+//        }
+//
+//        @Override
+//        public Object[] getRequirementDefaults(Project proj) {
+//            return new Object[] { proj.SAMPLE_DIRECTORY.getValue(false, false), proj.NUM_THREADS.getValue(), "0.95" };
+//        }
+//
+//        @Override
+//        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+//            return Files.exists(proj.SAMPLE_QC_FILENAME.getValue(false, false)) || (Files.exists(MitoPipeline.FILE_BASE + MitoPipeline.PCA_SAMPLES) && Files.exists(MitoPipeline.FILE_BASE + MitoPipeline.PCA_SAMPLES_SUMMARY));
+//        }
+//
+//        @Override
+//        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+//            proj.getLog().report("Running LrrSd");
+//            int numThreads = proj.NUM_THREADS.getValue();
+//            try {
+//                numThreads = Integer.parseInt(variables.get(this).get(1));
+//            } catch (NumberFormatException e) {
+//            }
+//            String callRate = variables.get(this).get(2);
+//            String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
+//            String markersForEverything = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
+//            
+//            markersForAB = Files.exists(markersForAB) ? markersForAB : null;
+//            markersForEverything = Files.exists(markersForEverything) ? markersForEverything : null;
+//            
+//            String projPropFile = proj.getPropertyFilename();
+//            StringBuilder cmd = new StringBuilder();
+//            cmd.append("jcp cnv.qc.LrrSd -filter")
+//                    .append(" proj=").append(projPropFile)
+//                    .append(" outBase=").append(MitoPipeline.FILE_BASE);
+//            if (markersForAB != null) {
+//                cmd.append(" callRateMarkers=").append(markersForAB);
+//            }
+//            if (markersForEverything != null) {
+//                cmd.append(" otherMarkers=").append(markersForEverything);
+//            }
+//            cmd.append(" threads=").append(numThreads)
+//                .append(" callRate=").append(callRate);
+//            return cmd.toString();
+//        }
+//    };
 
-        @Override
-        public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String projDir = proj.SAMPLE_DIRECTORY.getValue(false, false);
-            String setDir = variables.get(this).get(0);
-            if (!ext.verifyDirFormat(setDir).equals(projDir)) {
-                proj.SAMPLE_DIRECTORY.setValue(setDir);
-            }
-            int numThreads = proj.NUM_THREADS.getValue();
-            try {
-                numThreads = Integer.parseInt(variables.get(this).get(1));
-            } catch (NumberFormatException e) {
-            }
-            if (numThreads != proj.NUM_THREADS.getValue()) {
-                proj.NUM_THREADS.setValue(numThreads);
-            }
-        }
-
-        @Override
-        public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            proj.getLog().report("Running LrrSd");
-            int numThreads = proj.NUM_THREADS.getValue();
-            try {
-                numThreads = Integer.parseInt(variables.get(this).get(1));
-            } catch (NumberFormatException e) {
-            }
-            String callRate = variables.get(this).get(2);
-            String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
-            String markersForEverything = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
-            
-            markersForAB = Files.exists(markersForAB) ? markersForAB : null;
-            markersForEverything = Files.exists(markersForEverything) ? markersForEverything : null;
-            
-            LrrSd.filterSamples(proj, MitoPipeline.FILE_BASE, markersForAB, markersForEverything, numThreads, callRate, null);
-        }
-
-        @Override
-        public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            int numThreads = -1;
-            try {
-                numThreads = Integer.parseInt(variables.get(this).get(1));
-            } catch (NumberFormatException e) {
-            }
-            String sampDir = variables.get(this).get(0);
-            STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
-            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
-            boolean validCallRate = false;
-            try {
-                Double.parseDouble(variables.get(this).get(2));
-                validCallRate = true;
-            } catch (NumberFormatException e) {
-            }
-            return new boolean[][] { { checkStepParseSamples, (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0), }, { numThreads > 0 }, { validCallRate } };
-        }
-
-        @Override
-        public Object[] getRequirementDefaults(Project proj) {
-            return new Object[] { proj.SAMPLE_DIRECTORY.getValue(false, false), proj.NUM_THREADS.getValue(), "0.95" };
-        }
-
-        @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return Files.exists(proj.SAMPLE_QC_FILENAME.getValue(false, false)) || (Files.exists(MitoPipeline.FILE_BASE + MitoPipeline.PCA_SAMPLES) && Files.exists(MitoPipeline.FILE_BASE + MitoPipeline.PCA_SAMPLES_SUMMARY));
-        }
-
-        @Override
-        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            proj.getLog().report("Running LrrSd");
-            int numThreads = proj.NUM_THREADS.getValue();
-            try {
-                numThreads = Integer.parseInt(variables.get(this).get(1));
-            } catch (NumberFormatException e) {
-            }
-            String callRate = variables.get(this).get(2);
-            String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
-            String markersForEverything = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
-            
-            markersForAB = Files.exists(markersForAB) ? markersForAB : null;
-            markersForEverything = Files.exists(markersForEverything) ? markersForEverything : null;
-            
-            String projPropFile = proj.getPropertyFilename();
-            StringBuilder cmd = new StringBuilder();
-            cmd.append("jcp cnv.qc.LrrSd -filter")
-                    .append(" proj=").append(projPropFile)
-                    .append(" outBase=").append(MitoPipeline.FILE_BASE);
-            if (markersForAB != null) {
-                cmd.append(" callRateMarkers=").append(markersForAB);
-            }
-            if (markersForEverything != null) {
-                cmd.append(" otherMarkers=").append(markersForEverything);
-            }
-            cmd.append(" threads=").append(numThreads)
-                .append(" callRate=").append(callRate);
-            return cmd.toString();
-        }
-    };
-
-    static final STEP S7_SEX_CHECKS = new STEP("Run Sex Checks", 
+    static final STEP S6_SEX_CHECKS = new STEP("Run Sex Checks", 
                   "", 
                   new String[][]{{"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."},
                                  {"[Create SampleData.txt File] step must be selected and valid.", "SampleData.txt file must already exist."}}, 
@@ -649,7 +650,7 @@ public class GenvisisPipeline {
         
     };
     
-    static final STEP S8_RUN_PLINK = new STEP("Create PLINK Files", 
+    static final STEP S7_RUN_PLINK = new STEP("Create PLINK Files", 
                  "", 
                  new String[][]{{"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}, {"A pedigree.dat file is must exist.", "Create a minimal pedigree.dat file."}}, 
                  new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.FILE, RequirementInputType.BOOL}}) {
@@ -762,31 +763,42 @@ public class GenvisisPipeline {
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String dir = variables.get(this).get(0);
+            if (!dir.startsWith("/") && !dir.contains(":")) {
+                dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
+            }
             boolean keepUnrelatedsOnly = Boolean.valueOf(variables.get(this).get(1));
             Qc.fullGamut(dir, null, keepUnrelatedsOnly, proj.getLog());
         }
         
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+            String dir = variables.get(this).get(0);
+            if (!dir.startsWith("/") && !dir.contains(":")) {
+                dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
+            }
+            boolean files = Files.exists(dir);
             return new boolean[][]{
-                    {(stepSelections.get(S8_RUN_PLINK) && S8_RUN_PLINK.hasRequirements(proj, stepSelections, variables)), 
-                        Files.exists(variables.get(this).get(0))},
+                    {(stepSelections.get(S7_RUN_PLINK) && S7_RUN_PLINK.hasRequirements(proj, stepSelections, variables)), 
+                        files},
                     {true}
             };
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{"", ""};
+            return new Object[]{"plink/", ""};
         }
 
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String projDir = variables.get(this).get(0);
+            String dir = variables.get(this).get(0);
+            if (!dir.startsWith("/") && !dir.contains(":")) {
+                dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
+            }
             boolean allExist = true;
             folders: for (int i = 0; i < gwas.Qc.FOLDERS_CREATED.length; i++) {
                 for (int j = 0; j < gwas.Qc.FILES_CREATED[i].length; j++) {
-                    if (!Files.exists(projDir + gwas.Qc.FOLDERS_CREATED[i] + gwas.Qc.FILES_CREATED[i][j])) {
+                    if (!Files.exists(dir + gwas.Qc.FOLDERS_CREATED[i] + gwas.Qc.FILES_CREATED[i][j])) {
                         allExist = false;
                         break folders;
                     }
@@ -1052,23 +1064,23 @@ public class GenvisisPipeline {
             boolean imputeMeanForNaN = Boolean.valueOf(variables.get(this).get(2));
             boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(3));
             String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;//variables.get(this).get(4);
-            
-            proj.getLog().report("\nReady to perform the principal components analysis (PCA)\n");
-			//TODO, load gc params as needed instead of passing null...
-            PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + MitoPipeline.PCA_SAMPLES, outputBase, null);
-            if (pcs == null) {
-                setFailed();
-                this.failReasons.add("# of Principal Components is greater than either the # of samples or the # of markers.  Please lower the # of PCs and try again.");
-                return;
-            }
-            // apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
-            // TODO, if we ever want to apply to only a subset of the project, we can do that here.....
-            proj.getLog().report("\nApplying the loadings from the principal components analysis to all samples\n");
-			PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, null);
-            // Compute Medians for (MT) markers and compute residuals from PCs for everyone
-            proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
-            proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
-            proj.saveProperties();
+//            
+//            proj.getLog().report("\nReady to perform the principal components analysis (PCA)\n");
+//			//TODO, load gc params as needed instead of passing null...
+//            PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + MitoPipeline.PCA_SAMPLES, outputBase, null);
+//            if (pcs == null) {
+//                setFailed();
+//                this.failReasons.add("# of Principal Components is greater than either the # of samples or the # of markers.  Please lower the # of PCs and try again.");
+//                return;
+//            }
+//            // apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
+//            // TODO, if we ever want to apply to only a subset of the project, we can do that here.....
+//            proj.getLog().report("\nApplying the loadings from the principal components analysis to all samples\n");
+//			PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, null);
+//            // Compute Medians for (MT) markers and compute residuals from PCs for everyone
+//            proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
+//            proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
+//            proj.saveProperties();
         }
         
         @Override
@@ -1618,9 +1630,8 @@ public class GenvisisPipeline {
         S3_CREATE_SAMPLEDATA,
         S4_TRANSPOSE_TO_MDF,
         S5_MARKER_QC,
-        S6_EXTRACT_LRRSD_AND_FILTER,
-        S7_SEX_CHECKS,
-        S8_RUN_PLINK,
+        S6_SEX_CHECKS,
+        S7_RUN_PLINK,
         S9_GWAS_QC,
         S10_GENERATE_ABLOOKUP,
         S11_COMPUTE_PFB,
@@ -1636,9 +1647,8 @@ public class GenvisisPipeline {
         S3_CREATE_SAMPLEDATA,
         S4_TRANSPOSE_TO_MDF,
         S5_MARKER_QC,
-        S6_EXTRACT_LRRSD_AND_FILTER,
-        S7_SEX_CHECKS,
-        S8_RUN_PLINK,
+        S6_SEX_CHECKS,
+        S7_RUN_PLINK,
         S9_GWAS_QC,
         S10_GENERATE_ABLOOKUP,
         S11_COMPUTE_PFB,

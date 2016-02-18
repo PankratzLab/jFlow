@@ -864,7 +864,7 @@ public class PlinkData {
 		Logger log;
 		
 		log = proj.getLog();
-		outFileDirAndFilenameRoot = proj.PROJECT_DIRECTORY.getValue() + plinkPrefix;
+		outFileDirAndFilenameRoot = proj.PROJECT_DIRECTORY.getValue()/* + "plink/"*/ + plinkPrefix;
 //		if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot + ".fam").exists()) {
 //			log.reportError("System abort. PLINK binary file set \"" + outFileDirAndFilenameRoot + "\" .bed/.bim/.fam already exist. Please remove the file(s).");
 //			return false;
@@ -2236,7 +2236,7 @@ public class PlinkData {
 	/**
 	 * (This method is dropped, because of a conceptual error - PLINK data do not have intensity x and y)
 	 * 
-	 * This is a method to load data from a PLINK data set into MarkerData[]. This is part of the process to conver PLINK data into Genvisis data.
+	 * This is a method to load data from a PLINK data set into MarkerData[]. This is part of the process to convert PLINK data into Genvisis data.
 	 * 
 	 * @param allMarkersInProj
 	 * @param allChrsInProj

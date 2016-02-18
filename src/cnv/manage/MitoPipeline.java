@@ -587,6 +587,7 @@ public class MitoPipeline {
 			String[] markersToQC = { targetMarkersFile };
 			markers = setMarkersToQC(proj, markersToQC);
 		}
+		// TODO remove CNVi probe markers (here?)
 		Files.writeList(markers, markersToQCFile);
 	}
 
@@ -624,6 +625,7 @@ public class MitoPipeline {
 			} else {
 				String[] metrics;
 				while (reader.ready()) {
+//				    proj.getArrayType().isCNOnly(markerName)
 					metrics = reader.readLine().trim().split("\t");
 					try {
 						double callRate = Double.parseDouble(metrics[abIndex]);

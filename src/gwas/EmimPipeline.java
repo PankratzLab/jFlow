@@ -15,17 +15,6 @@ import common.ext;
 
 public class EmimPipeline {
     
-    /*
-     
-    | CNVFILE |
-    |   \ /   |
-    | filters |
-    |   \ /   |
-    PLINK files
-        \ / 
-         
-     */
-    
     static class PopFileData {
         String[] pops;
         LinkedHashMap<String, Integer> idsIndexMap;
@@ -95,6 +84,7 @@ public class EmimPipeline {
     
     
     private static void generateFolderStructureAndKeepsFiles(String runDir, String[] cnvFiles, PopFileData popFile, PopFileData subPopFile) {
+        (new File(runDir + "results/")).mkdirs();
         for (String cnvFile : cnvFiles) {
             String cnvRoot = ext.rootOf(cnvFile, true);
             String cnvDir = runDir + cnvRoot + "/";
@@ -156,22 +146,25 @@ public class EmimPipeline {
                 continue;
             }
             String relativePlinkRoot = "../" + cnvRoot + "_0";
+            String resultFile = cnvRoot;
             
-            Emim.scriptAllInDir(runDir + cnvDir, plinkRoot, relativePlinkRoot, "GEN", null, pThreshold);
+            Emim.scriptAllInDir(runDir + cnvDir, plinkRoot, relativePlinkRoot, "GEN", null, pThreshold, resultFile);
             String pbsFile = cnvDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
             if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
             pbsFiles.add(pbsFile);
 
             for (int p = 0; p < popData.pops.length; p++) {
                 String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
-                Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold);
+                resultFile = cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true);
+                Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
                 pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
                 if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
                 pbsFiles.add(pbsFile);
                 
                 for (int sP = 0; sP < subPopData.pops.length; sP++) {
                     String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/"; 
-                    Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold);
+                    resultFile = cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true);
+                    Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
                     pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
                     if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
                     pbsFiles.add(pbsFile);
@@ -215,7 +208,7 @@ public class EmimPipeline {
         String pedFile = "./pedigree.dat";
         String popFile = "./pops.xln";
         String subPopFile = "./subPops.xln";
-        double pThreshold = 0.005;
+        double pThreshold = 0.05;
         String logFile = null;
         Logger log = null;
         

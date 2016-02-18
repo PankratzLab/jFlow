@@ -177,7 +177,7 @@ public class CNVariant extends Segment {
 	}
 
 	public String toPlinkFormat() {
-		return familyID + "\t" + individualID + "\t" + chr + "\t" + start + "\t" + stop + "\t" + cn + "\t" + ext.formDeci(score, 2) + "\t" + numMarkers;
+		return familyID + "\t" + individualID + "\t" + chr + "\t" + start + "\t" + stop + "\t" + cn + "\t" + ext.formDeci(score, 5) + "\t" + numMarkers;
 	}
 
 	public String getFingerprint() {
