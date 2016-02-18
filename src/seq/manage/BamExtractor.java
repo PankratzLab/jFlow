@@ -200,6 +200,10 @@ final class BamExtractor {
 			return this.bamSampleMap;
 		}
 
+		public String[] getBamFiles() {
+			return bamFiles;
+		}
+
 		public String[] getSamples() {
 			return this.samples;
 		}
@@ -259,13 +263,12 @@ final class BamExtractor {
 			for (int i = 0; i < this.samples.length; i++) {
 				String curSample = this.samples[i];
 				if (this.bamSampleMap.containsKey(curSample)) {
-					dumper = dumper + (i == 0 ? "" : "\n");
 					if (varSets != null) {
 						for (int j = 0; j < varSets.length; j++) {
-							dumper = dumper + curSample + varSets[j] + "\t" + "./" + ext.removeDirectoryInfo(this.bamSampleMap.get(curSample));
+							dumper = dumper + curSample + varSets[j] + "\t" + "./" + ext.removeDirectoryInfo(this.bamSampleMap.get(curSample) + "\n");
 						}
 					} else {
-						dumper = dumper + curSample + "\t" + "./" + ext.removeDirectoryInfo(this.bamSampleMap.get(curSample));
+						dumper = dumper + curSample + "\t" + "./" + ext.removeDirectoryInfo(this.bamSampleMap.get(curSample) + "\n");
 					}
 
 				} else {
