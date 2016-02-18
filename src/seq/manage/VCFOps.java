@@ -1375,7 +1375,7 @@ public class VCFOps {
 		return extractSegments(vcf, segmentFile, bpBuffer, bams, outputDir, skipFiltered, gzipOutput, createAnnotationFile, false, null, numThreads, log);
 	}
 
-	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, boolean createAnnotationFile, boolean subToBam, String varSet, int numThreads, Logger log) {
+	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams, String outputDir, boolean skipFiltered, boolean gzipOutput, boolean createAnnotationFile, boolean subToBam, String[] varSets, int numThreads, Logger log) {
 		BamExtractor.BamSample bamSample = null;
 
 		if (vcf == null || !Files.exists(vcf)) {
@@ -1426,10 +1426,20 @@ public class VCFOps {
 			}
 			bamSample.generateMap();
 			bamSample.getBamSampleMap();
-			bamSample.verify(getSamplesInFile(reader), varSet);
+			bamSample.verify(getSamplesInFile(reader), varSets);
+			String[] vcfSamples = getSamplesInFile(reader);
 			if (subToBam) {
 				for (String abamSample : bamSample.getBamSampleMap().keySet()) {
-					bamSamples.add(varSet == null ? abamSample : abamSample + varSet);
+					if (varSets == null) {
+						bamSamples.add(abamSample);
+					} else {
+						for (int i = 0; i < varSets.length; i++) {
+							String tmp = abamSample + varSets[i];
+							if (ext.indexOfStr(tmp, vcfSamples) >= 0) {
+								bamSamples.add(tmp);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -1489,13 +1499,14 @@ public class VCFOps {
 					found++;
 				}
 			}
+			writer.close();
+
 			if (bamSample != null) {
 				BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, numThreads, log);
 				bamSample = new BamExtractor.BamSample(Files.listFullPaths(dir, ".bam", false), log, true);
 				bamSample.generateMap();
-				bamSample.dumpToIGVMap(output, varSet);
+				bamSample.dumpToIGVMap(output, varSets);
 			}
-			writer.close();
 			if (createAnnotationFile) {
 				annoWriter.close();
 			}
@@ -2149,7 +2160,7 @@ public class VCFOps {
 		int numThreads = 1;
 		Logger log;
 		boolean subToBam = false;
-		String varSet = null;
+		String[] varSet = null;
 
 		String usage = "\n" + "seq.analysis.VCFUtils requires 0-1 arguments\n";
 		usage += "   (1) full path to a vcf file (i.e. " + VCF_COMMAND + vcf + " (default))\n" + "";
@@ -2194,7 +2205,7 @@ public class VCFOps {
 				segmentFile = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith("varSet=")) {
-				varSet = ext.parseStringArg(args[i], "");
+				varSet = ext.parseStringArg(args[i], "").split(",");
 				numArgs--;
 			} else if (args[i].startsWith("subToBam=")) {
 				subToBam = ext.parseBooleanArg(args[i]);
