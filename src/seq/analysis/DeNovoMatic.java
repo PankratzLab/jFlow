@@ -213,7 +213,7 @@ public class DeNovoMatic {
 								map.put("EHQ_DNM", mutF1 + "_" + mutF2);
 							}
 						} else {
-							map.put("HQ_DNM", !pass1.passed() + "_" + !pass2.passed());
+							map.put("HQ_DNM", pass1.passed() + "_" + pass2.passed());
 						}
 
 						for (String att : originalAtts) {

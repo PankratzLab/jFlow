@@ -25,7 +25,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-
 final class BamExtractor {
 	public static final String BP_BUFFER_COMMAND = "bpBuffer=";
 	private Segment[] segmentsToExtract;
@@ -221,16 +220,29 @@ final class BamExtractor {
 			}
 		}
 
-		public boolean verify(String[] samples, String varset) {
+		public boolean verify(String[] samples, String[] varset) {
 			boolean verified = true;
 			for (int i = 0; i < samples.length; i++) {
 
 				if (varset == null && !this.bamSampleMap.containsKey(samples[i])) {
 					verified = false;
 					this.log.reportTimeError("Could not find a matching bam file for sample " + samples[i]);
-				} else if (varset != null && !this.bamSampleMap.containsKey(samples[i].replaceAll(varset, ""))) {
-					verified = false;
-					this.log.reportTimeError("Could not find a matching bam file for sample " + samples[i].replaceAll(varset, ""));
+				} else {
+					boolean hasOne = false;
+
+					for (int j = 0; j < varset.length; j++) {
+						if (samples[i].endsWith(varset[j])) {
+							if (!this.bamSampleMap.containsKey(samples[i].replaceAll(varset[j], ""))) {
+							} else {
+								hasOne = true;
+							}
+						}
+					}
+					if (!hasOne) {
+						this.log.reportTimeError("Could not find a matching bam file for sample " + samples[i] + " in the following var sets" + Array.toStr(varset, ","));
+
+					}
+					verified = hasOne;
 				}
 			}
 			return verified;
@@ -240,14 +252,22 @@ final class BamExtractor {
 			return this.fail;
 		}
 
-		public void dumpToIGVMap(String correspondingVCF, String varSet) {
+		public void dumpToIGVMap(String correspondingVCF, String[] varSets) {
 			String output = correspondingVCF + ".mapping";
-			
+
 			String dumper = "";
 			for (int i = 0; i < this.samples.length; i++) {
 				String curSample = this.samples[i];
 				if (this.bamSampleMap.containsKey(curSample)) {
-					dumper = dumper + (i == 0 ? "" : "\n") + curSample + (varSet == null ? "" : varSet) + "\t" + "./" + ext.removeDirectoryInfo(this.bamSampleMap.get(curSample));
+					dumper = dumper + (i == 0 ? "" : "\n");
+					if (varSets != null) {
+						for (int j = 0; j < varSets.length; j++) {
+							dumper = dumper + curSample + varSets[j] + "\t" + "./" + ext.removeDirectoryInfo(this.bamSampleMap.get(curSample));
+						}
+					} else {
+						dumper = dumper + curSample + "\t" + "./" + ext.removeDirectoryInfo(this.bamSampleMap.get(curSample));
+					}
+
 				} else {
 					this.log.reportTimeError("did not find sample " + curSample + " in the sample map");
 				}
@@ -267,7 +287,7 @@ final class BamExtractor {
 						for (int j = 0; j < sGroupRecords.size(); j++) {
 							this.bamSampleMap.put(((SAMReadGroupRecord) sGroupRecords.get(j)).getSample(), this.bamFiles[i]);
 							tmpSamples.add(((SAMReadGroupRecord) sGroupRecords.get(j)).getSample());
-							//System.out.println((sGroupRecords.get(j)).getSample());
+							// System.out.println((sGroupRecords.get(j)).getSample());
 						}
 						try {
 							reader.close();
@@ -293,7 +313,7 @@ final class BamExtractor {
 	}
 
 	public static void main(String[] args) {
-		//int numArgs = args.length;
+		// int numArgs = args.length;
 		String filename = "D:/data/Project_Tsai_Project_021/testBamExtract/rrd_lane_HapMap_Control_CAGAGAGG-CTCTCTAT.merge.sorted.dedup.realigned.bam";
 		test(filename);
 	}

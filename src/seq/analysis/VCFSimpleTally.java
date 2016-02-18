@@ -57,15 +57,16 @@ import common.ext;
  */
 public class VCFSimpleTally {
 	public static final String[] EFF = { "HIGH", "MODERATE", "LOW" };
-	private static final String[][] EFF_DEFS = new String[][] { new String[] { EFF[0] }, new String[] { EFF[0], EFF[1] }, new String[] { EFF[0], EFF[1], EFF[2] } };
+	public static final String ANY_EFF = "OTHER";
+	private static final String[][] EFF_DEFS = new String[][] { new String[] { EFF[0] }, new String[] { EFF[0], EFF[1] }, new String[] { EFF[0], EFF[1], EFF[2] }, new String[] { EFF[0], EFF[1], EFF[2], ANY_EFF } };
 
 	private static final String ANY_GENE_SET = "*";
 	private static final String AND = "&&";
-	private static final String SNPEFF_IMPACTS = "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')";
+	//private static final String SNPEFF_IMPACTS = "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')";
 	private static final String SNPEFF_NAMES = "G1000_esp_charge_aricFreq_SNPEFF_HIGH_MODERATE_LOW";
 	// private static final String CHARGE_B_FILTER = "(charge.MAF_blacks=='.'||charge.MAF_blacks <= 0.01)";
 	// private static final String CHARGE_W_FILTER = "(charge.MAF_whites=='.'||charge.MAF_whites <= 0.01)";
-	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT", "BIALLELIC", "FILTERS" };
+	private static final String[] ANNO_BASE = new String[] { "CHROM", "POS", "ID", "REF", "ALT", "BIALLELIC", "FILTERS", "HIGH||MODERATE||LOW" };
 	private static final String[] ANNO_BASE_SAMPLE = Array.concatAll(ANNO_BASE, new String[] { "SAMPLE", "GENOTYPE", "HQ" });
 
 	private static final String[] ANNO_ADD = new String[] { "_AVG_GQ", "_AVG_DP", "_NUM_WITH_CALLS", "_NUM_WITH_ALT", "_AAC", "_HQ_NUM_WITH_ALT", "_HQ_AAC", };
@@ -153,7 +154,7 @@ public class VCFSimpleTally {
 	}
 
 	private static VariantContextFilter getFreqFilter(double maf, Logger log) {
-		VariantContextFilter vContextFilter = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {}, new String[] { "RARE_" + SNPEFF_NAMES }, new String[] { FilterNGS.getPopFreqFilterString(maf) + AND + SNPEFF_IMPACTS }, log);
+		VariantContextFilter vContextFilter = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {}, new VARIANT_FILTER_BOOLEAN[] {}, new String[] { "RARE_" + SNPEFF_NAMES }, new String[] { FilterNGS.getPopFreqFilterString(maf) }, log);
 		return vContextFilter;
 	}
 
@@ -562,20 +563,6 @@ public class VCFSimpleTally {
 	private static void summarizeVariantsBySample(SimpleTallyResult sr, Logger log) {
 
 		try {
-			Hashtable<String, ArrayList<String>> funcHash = new Hashtable<String, ArrayList<String>>();
-			ArrayList<String> h = new ArrayList<String>();
-			h.add("HIGH");
-			h.add("HIGH||MODERATE");
-			h.add("HIGH||MODERATE||LOW");
-			ArrayList<String> m = new ArrayList<String>();
-			m.add("HIGH||MODERATE");
-			m.add("HIGH||MODERATE||LOW");
-			ArrayList<String> l = new ArrayList<String>();
-			m.add("HIGH||MODERATE||LOW");
-
-			funcHash.put("HIGH", h);
-			funcHash.put("MODERATE", m);
-			funcHash.put("LOW", l);
 
 			BufferedReader reader = Files.getAppropriateReader(sr.getFinalAnnotSample());
 			int snpEFFIndex = ext.indexOfStr("SNPEFF_IMPACT", Files.getHeaderOfFile(sr.getFinalAnnotSample(), log));
@@ -891,8 +878,8 @@ public class VCFSimpleTally {
 							}
 						}
 					}
-
-					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + vc.getFilters().toString());
+					boolean highModLow = ext.indexOfStr(func, EFF) >= 0;
+					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + vc.getFilters().toString()+"\t"+highModLow);
 					annoWriter.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 
 					GenotypesContext gc = vcCaseGroup.getVcAlt().getGenotypes();
@@ -907,7 +894,7 @@ public class VCFSimpleTally {
 						HashSet<String> tmpVCSub = new HashSet<String>();
 						tmpVCSub.add(g.getSampleName());
 						VariantContextFilterPass pass = qualCase.filter(VCOps.getSubset(vc, tmpVCSub));
-						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + vc.getFilters().toString() + "\t" + g.getSampleName() + "\t" + g.toString() + "\t" + pass.getTestPerformed() + "\t" + Array.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0], g, ".")));
+						annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + vc.getFilters().toString() + "\t" + highModLow + "\t" + g.getSampleName() + "\t" + g.toString() + "\t" + pass.getTestPerformed() + "\t" + Array.toStr(GenotypeOps.getGenoAnnotationsFor(genotypeAnnotations[0], g, ".")));
 						annoWriterSample.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 						for (int j = 0; j < controlsOrdered.size(); j++) {
 							annoWriterSample.print("\t" + Array.toStr(controlGroupSummaries.get(j).getSummary()));
@@ -975,7 +962,7 @@ public class VCFSimpleTally {
 		Files.copyFile(finalGeneSetSummary, bundleDir + ext.removeDirectoryInfo(finalGeneSetSummary));
 		Files.copyFile(finalAnnotSample, bundleDir + ext.removeDirectoryInfo(finalAnnotSample));
 		return simpleTallyResult;
-		
+
 	}
 
 	private static void summarizeQC(String controlGroup, String output, VariantContextFilter caseFilter, VariantContextFilter controlFilter) {
@@ -1272,7 +1259,7 @@ public class VCFSimpleTally {
 				throw new IllegalArgumentException("Mismatched gene/geneSet names");
 			} else {
 				String impact = VCOps.getSNP_EFFImpact(vcGroupSummary.getVcOriginal());
-				if (ext.indexOfStr(impact, effects) >= 0) {
+				if (ext.indexOfStr(impact, effects) >= 0 || effects[effects.length - 1].equals(ANY_EFF)) {
 					if (vcGroupSummary.getIndsWithAlt().size() > 0) {
 						numVar++;
 						numMut += vcGroupSummary.getIndsWithAlt().size();
