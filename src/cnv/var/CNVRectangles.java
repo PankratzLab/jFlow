@@ -8,6 +8,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import cnv.plots.CompPlot;
 
@@ -29,13 +30,19 @@ public class CNVRectangles {
 	int qualityScore;
 	int[] location;
 
-	public CNVRectangles(ArrayList<CNVariantHash> hashes, ArrayList<String> allFiles, ArrayList<String> filterFiles, int[] location, int probes, int minSize, int qualityScore) {
+	public CNVRectangles(ArrayList<CNVariantHash> hashes, ArrayList<String> allFiles, ArrayList<String> filterFiles, int[] location, int probes, int minSize, int qualityScore, String[] samplesToUse) {
 		// Set the color scheme
 		colorScheme = CompPlot.colorScheme;
 		// Read the data from the CNV files
 		this.location = location;
 		fileMap = new HashMap<String, ArrayList<CNVariant>>();
-
+		HashSet<String> sampleSet = null;
+		if (samplesToUse != null) {
+		    sampleSet = new HashSet<String>();
+    		for (String s : samplesToUse) {
+    		    sampleSet.add(s);
+    		}
+		}
 		for (CNVariantHash hash : hashes) {
 
 			// All CNVs are loaded into an array, which is then stored in an array by file
@@ -57,11 +64,13 @@ public class CNVRectangles {
 			if (filterFiles.contains(key)) {
 				for (CNVariant variant : fileMap.get(key)) {
 					// Set the color
-					CNVRectangle cnvRect = new CNVRectangle(variant, location[1]);
-					cnvRect.setCNVColor(colorScheme[allFiles.indexOf(key) % colorScheme.length]);
-					cnvRect.setFilename(key);
-					cnvRect.addCNV(variant);
-					cnvRectangles.add(cnvRect);
+				    if (sampleSet == null || sampleSet.contains(variant.getIndividualID()) || sampleSet.contains(variant.getFamilyID() + "\t" + variant.getIndividualID())) {
+    					CNVRectangle cnvRect = new CNVRectangle(variant, location[1]);
+    					cnvRect.setCNVColor(colorScheme[allFiles.indexOf(key) % colorScheme.length]);
+    					cnvRect.setFilename(key);
+    					cnvRect.addCNV(variant);
+    					cnvRectangles.add(cnvRect);
+				    }
 				}
 			}
 		}

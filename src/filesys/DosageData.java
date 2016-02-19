@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import cnv.manage.PlinkData;
 import bioinformatics.Sequence;
 import common.*;
 import stats.*;
@@ -63,13 +64,104 @@ public class DosageData implements Serializable {
 	private byte[] chrs;
 	private int[] positions;
 	
+	
+	public static DosageData loadPlinkBinary(String dir, String plinkRoot) {
+	    DosageData dd = new DosageData();
+	    
+	    dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false, new int[]{0, 1}, false);
+	    int numMarkers = Files.countLines(dir + plinkRoot + ".bim", 0);
+	    dd.alleles = new char[numMarkers][2];
+	    dd.chrs = new byte[numMarkers];
+	    dd.positions = new int[numMarkers];
+	    
+	    String[] markerNames = new String[numMarkers];
+	    String[][] bimData = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".bim", false, new int[]{0, 1, 3, 4, 5}, false);
+	    
+	    for (int i = 0; i < bimData.length; i++) {
+	        markerNames[i] = bimData[i][1];
+	        dd.chrs[i] = decodeChr(bimData[i][0]);
+	        dd.positions[i] = Integer.parseInt(bimData[i][3]);
+	        dd.alleles[i][0] = bimData[i][4].charAt(0);
+	        dd.alleles[i][1] = bimData[i][5].charAt(0);
+	    }
+	    dd.markerSet = new SnpMarkerSet(markerNames, dd.chrs, dd.positions, dd.alleles, null, false, false);
+        dd.dosageValues = new float[markerNames.length][dd.ids.length];
+	    
+        RandomAccessFile in;
+        try {
+            in = new RandomAccessFile(dir + plinkRoot + ".bed", "r");
+            byte[] magicBytes = new byte[3];
+            in.read(magicBytes);
+            if (magicBytes[2] == 0) {
+                System.err.println("Error - .bed file is sample-dominant.");
+            } else {
+                int famCnt = dd.ids.length;
+                int blockSize = (int) ((double) famCnt / 4.0d); // TODO check for non-completeness (i.e. N not evenly divisible by 4)
+                
+                for (int i = 0; i < dd.positions.length; i++) {
+                    if (dd.positions[i] == -1) {
+                        dd.dosageValues[i] = Array.floatArray(dd.ids.length, -1); // TODO is this correct code? i.e. will this ever occur?
+                        continue;
+                    }
+                    in.seek(dd.positions[i] * blockSize);
+                    
+                    byte[] markerBytes = new byte[blockSize];
+                    byte[] sampGeno = new byte[dd.ids.length];
+                    in.read(markerBytes);
+                    for (int bitInd = 0; bitInd < markerBytes.length; bitInd++) {
+                        byte bedByte = markerBytes[bitInd];
+                        byte[] genotypes = PlinkData.decodeBedByte(bedByte);
+                        
+                        for (int g = 0; g < genotypes.length; g++) {
+                            int idInd = bitInd * 4 + g;
+                            if (idInd == -1 || idInd > sampGeno.length) {
+                                continue;
+                            }
+                            sampGeno[idInd] = genotypes[g];
+                        }
+                    }
+                    
+                    dd.dosageValues[i] = Array.toFloatArray(sampGeno);
+                }
+            }
+            
+            in.close();
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (Elision e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+	    return dd;
+	}
+
+	private static byte decodeChr(String chrStr) {
+	    int chr = 0; 
+	    try {
+	        chr = Integer.parseInt(chrStr);
+	        return (byte) chr;
+	    } catch (NumberFormatException e) {
+	        if ("X".equals(chr)) { return 23; }
+	        if ("Y".equals(chr)) { return 24; }
+	        if ("XY".equals(chr)) { return 25; }
+	        if ("MT".equals(chr)) { return 26; }
+	    }
+	    System.err.println("ERROR - unrecognized PLINK .bim chr: " + chrStr);
+	    return 0;
+	}
+	
+	
 	public static DosageData combine(DosageData dd1, DosageData dd2) {
 	    byte missingChr = 0;
 	    int missingPos = 0;
 	    char[] missingAlleles = null;
 	    float missingDosage = 0;
 	    float missingGeno = 0;
-	    
 	    
 	    String[][] dd1Ids = dd1.ids;
 	    String[][] dd2Ids = dd2.ids;
@@ -150,8 +242,8 @@ public class DosageData implements Serializable {
 	        }
 	    }
 	    
-	    int dd1NumGeno = dd1.genotypeProbabilities == null ? 0 : dd1.genotypeProbabilities[0][0].length;
-        int dd2NumGeno = dd2.genotypeProbabilities == null ? 0 : dd2.genotypeProbabilities[0][0].length;
+	    int dd1NumGeno = dd1.genotypeProbabilities == null ? (dd1.dosageValues == null ? 0 : 1) : dd1.genotypeProbabilities[0][0].length;
+        int dd2NumGeno = dd2.genotypeProbabilities == null ? (dd2.dosageValues == null ? 0 : 1) : dd2.genotypeProbabilities[0][0].length;
 	    
         if ((dd1NumGeno > 1 || dd2NumGeno > 1) && dd1NumGeno != dd2NumGeno) {
             System.out.println("dd1: " + dd1NumGeno + " | dd2: " + dd2NumGeno);
@@ -159,7 +251,17 @@ public class DosageData implements Serializable {
             // TODO error, mismatched number of genotype probabilities
             System.exit(1);
         }
-        int ddNewNumGeno = dd1NumGeno; 
+        int ddNewNumGeno = Math.min(dd1NumGeno, dd2NumGeno); 
+        if (ddNewNumGeno == 0) {
+            System.err.println("Error - cannot combine data sets when a dataset is missing both genotype and/or dosage data [dataset " + (dd1NumGeno == 0 ? "1" : "2") + "]");
+            System.exit(1);
+        }
+        
+        if (dd1NumGeno == 1 && dd2NumGeno > 1) {
+            dd2.computeDosageValues(null);
+        } else if (dd1NumGeno > 1 && dd2NumGeno == 1) {
+            dd1.computeDosageValues(null);
+        }
         
         ddNew.genotypeProbabilities = ddNewNumGeno > 1 ? new float[markers.size()][ddNew.ids.length][ddNewNumGeno] : null;
         ddNew.dosageValues = ddNewNumGeno == 1 ? new float[markers.size()][ddNew.ids.length] : null;
@@ -510,10 +612,19 @@ public class DosageData implements Serializable {
 		return dosageValues;
 	}
 
-	public void computeDosageValues(Logger log) {
+	public void computeDosageValues(Logger log/*, boolean kill*/) {
 		if (genotypeProbabilities == null) {
-			log.reportError("Error - cannot compute dosage values from genotype probabilities, if there are no genotype probabilities!");
-			System.exit(1);
+		    String msg = "Error - cannot compute dosage values from genotype probabilities, if there are no genotype probabilities!";
+			if (log != null) {
+			    log.reportError(msg);
+			} else {
+			    System.err.println(msg);
+			}
+//			if (kill) {
+			    System.exit(1);
+//			} else {
+//			    return;
+//			}
 		}
 		dosageValues = new float[genotypeProbabilities.length][genotypeProbabilities[0].length];
 		for (int i = 0; i < dosageValues.length; i++) {

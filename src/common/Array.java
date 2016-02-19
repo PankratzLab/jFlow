@@ -488,6 +488,25 @@ public class Array {
 	}
 
 	/**
+	 * Creates an array of floats from the contents of a byte array
+	 * 
+	 * @param array
+	 *            array of bytes to be converted
+	 * @return array of the converted numbers
+	 */
+	public static float[] toFloatArray(byte[] array) {
+	    float[] arr = new float[array.length];
+	    for (int i = 0; i<array.length; i++) {
+	        try {
+	            arr[i] = (float)array[i];
+	        } catch (NumberFormatException nfe) {
+	            System.err.println("Error - failed to convert '"+array[i]+"' into a double");
+	        }
+	    }
+	    return arr;
+	}
+
+	/**
 	 * Creates a double array of given size and initializes each element with
 	 * the given value
 	 * 

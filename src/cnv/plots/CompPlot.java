@@ -95,6 +95,7 @@ public class CompPlot extends JFrame {
 	int qualityScore;
 	int rectangleHeight;
 	String displayMode;
+	boolean showExcludes = false;
 
 	CNVRectangles cnvRects;
 
@@ -102,7 +103,7 @@ public class CompPlot extends JFrame {
 	int[] location = new int[3];
 	MarkerSet markerSet;
 	int[] positions;
-	String[] markerNames;
+	String[] markerNames, allSamples, subSamples;
 	boolean[] dropped;
 	int[][] chrBoundaries;
 
@@ -143,6 +144,8 @@ public class CompPlot extends JFrame {
             chrBoundaries[0][0] = 0;
             chrBoundaries[0][1] = markerNames.length-1;
 		}
+        allSamples = proj.getSamples();
+        subSamples = Array.subArray(proj.getSamples(), Array.booleanNegative(proj.getSamplesToExclude()));
 		init();
 		
 		addWindowListener(new WindowAdapter() {
@@ -362,6 +365,23 @@ public class CompPlot extends JFrame {
             }
         }
 
+
+        JMenu disp = new JMenu("Display");
+        disp.setMnemonic(KeyEvent.VK_D);
+        menuBar.add(disp);
+        
+        JCheckBoxMenuItem displayExcludes = new JCheckBoxMenuItem();
+        displayExcludes.setAction(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                setShowExcludes(displayExcludes.isSelected());
+            }
+        });
+        displayExcludes.setText("Display Excludes?");
+        displayExcludes.setSelected(showExcludes);
+        displayExcludes.setMnemonic(KeyEvent.VK_E);
+        disp.add(displayExcludes);
+        
         JMenu act = new JMenu("Actions");
         act.setMnemonic(KeyEvent.VK_A);
         menuBar.add(act);
@@ -399,6 +419,7 @@ public class CompPlot extends JFrame {
         medianLRR.setText("Median LRR");
         medianLRR.setToolTipText("Compute median Log R Ratios for a region");
         act.add(medianLRR);
+        
 
         return menuBar;
     }
@@ -661,8 +682,7 @@ public class CompPlot extends JFrame {
 
     public void loadCNVs(int[] location) {
 		// long startTime = Calendar.getInstance().getTimeInMillis();
-
-		cnvRects = new CNVRectangles(hashes, allFiles, filterFiles, location, probes, minSize, qualityScore);
+		cnvRects = new CNVRectangles(hashes, allFiles, filterFiles, location, probes, minSize, qualityScore, showExcludes ? allSamples : subSamples);
 		cnvRects.setRectangleHeight(rectangleHeight);
 		compPanel.setWindow(location[1], location[2]);
 		cnvRects.setScalingFactor(compPanel.getScalingFactor());
@@ -681,6 +701,11 @@ public class CompPlot extends JFrame {
 		this.files = files;
 	}
 
+	public void setShowExcludes(boolean show) {
+	    showExcludes = show;
+	    loadCNVs(location);
+	}
+	
 	/*
 	 * Methods to set values pulled from CompConfig
 	 */
