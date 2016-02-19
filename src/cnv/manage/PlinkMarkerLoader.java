@@ -193,18 +193,18 @@ public class PlinkMarkerLoader implements Runnable {
     			} else {
     				int famCnt = Files.countLines(fileRoot + ".fam", 0); 
     				int blockSize = (int) ((double) famCnt / 4.0d); // TODO check for non-completeness (i.e. N not evenly divisible by 4)
-    				String[] markersSorted = sortMarkers(markerList, markerPositions);
+//    				String[] markersSorted = sortMarkers(markerList, markerPositions);
 //    				int[] markerIndices = sortMarkerIndices(markerPositions);
-    				int[] markerIndices = Sort.putInOrder(markerPositions);
+//    				int[] markerIndices = Sort.putInOrder(markerPositions);
     				
-    				for (int i = 0; i < markerIndices.length; i++) {
-    				    if (markerIndices[i] == -1) {
+    				for (int i = 0; i < markerPositions.length; i++) {
+    				    if (markerPositions[i] == -1) {
     				        // missing marker, not present in PLINK files
-    				        mkrGenotypes.put(markersSorted[i], Array.byteArray(idList.length, (byte) -1));
+    				        mkrGenotypes.put(markerList[i], Array.byteArray(idList.length, (byte) -1));
     	                    cnt++;
     				        continue;
     				    }
-    					in.seek(markerIndices[i] * blockSize);
+    					in.seek(markerPositions[i] * blockSize);
     					
     					byte[] markerBytes = new byte[blockSize];
     					byte[] sampGeno = new byte[idList.length];
@@ -222,7 +222,7 @@ public class PlinkMarkerLoader implements Runnable {
     						}
     					}
     					
-    					mkrGenotypes.put(markersSorted[i], sampGeno);
+    					mkrGenotypes.put(markerList[i], sampGeno);
     					cnt++;
     				}
     			}
@@ -270,7 +270,7 @@ public class PlinkMarkerLoader implements Runnable {
 		
 	}
 
-    private static String[] sortMarkers(String[] markers, int[] positions) {
+    public static String[] sortMarkers(String[] markers, int[] positions) {
         final ArrayList<String> missing = new ArrayList<String>();
 		final HashMap<String, Integer> unsortedMap = new HashMap<String, Integer>();
 		for (int i = 0; i < markers.length; i++) {
