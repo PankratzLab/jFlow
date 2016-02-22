@@ -622,6 +622,25 @@ public class Array {
 	}
 		
 	/**
+	 * Creates a byte array from the contents of an integer array
+	 * 
+	 * @param array
+	 *            array of floats to be converted
+	 * @return array of the converted bytes
+	 */
+	public static byte[] toByteArray(float[] array) {
+	    byte[] arr = new byte[array.length];
+	    for (int i = 0; i<array.length; i++) {
+	        try {
+	            arr[i] = (byte)array[i];
+	        } catch (NumberFormatException nfe) {
+	            System.err.println("Error - failed to convert '"+array[i]+"' into a byte");
+	        }
+	    }
+	    return arr;
+	}
+	
+	/**
 	 * Creates an array of byte and copies the contents of a vector of byte into it
 	 * 
 	 * @param v

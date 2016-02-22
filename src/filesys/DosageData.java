@@ -65,17 +65,69 @@ public class DosageData implements Serializable {
 	private int[] positions;
 	
 	
+	public void writeToPlinkBinary(String dir, String plinkRoot) throws IOException {
+        PrintWriter writer;
+        RandomAccessFile out;
+        byte[] outStream;
+        
+        if (dosageValues == null && genotypeProbabilities != null) {
+            computeDosageValues(null);
+        }
+        if (dosageValues == null) {
+            System.err.println("Error - Cannot write to Plink files without data!");
+            return;
+        }
+	    
+        (new File(dir)).mkdirs();
+        
+        // FAM
+        writer = new PrintWriter(new FileWriter(dir + plinkRoot +".fam"));
+        for (int i = 0; i < ids.length; i++) {
+            writer.print(ids[i][0] + "\t" + ids[i][1] + "\t");
+            String[] parts = {
+                    ids[i].length > 2 ? ids[i][2] : "0", 
+                    ids[i].length > 3 ? ids[i][3] : "0",
+                    ids[i].length > 4 ? ids[i][4] : "0",
+                    ids[i].length > 5 ? ids[i][5] : "-9",
+            };
+            writer.println(Array.toStr(parts, "\t"));
+        }
+        writer.close();
+
+        // BIM
+        String[] markerNames = markerSet.getMarkerNames();
+        writer = new PrintWriter(new FileWriter(dir + plinkRoot +".bim"));
+        for (int i = 0; i < markerNames.length; i++) {
+            writer.println(chrs[i] + "\t" + markerNames[i] + "\t0\t" + positions[i] + "\t" + alleles[i][0] + "\t" + alleles[i][1]);
+        }
+        writer.close();
+        
+        // BED
+        out = new RandomAccessFile(dir + plinkRoot + ".bed", "rw");
+        outStream = new byte[3];
+        outStream[0] = (byte) 108;  // 0b01101100
+        outStream[1] = (byte) 27;   // 0b00011011
+        outStream[2] = (byte) 1;    // 0b00000001 <-- be careful here
+        out.write(outStream);
+        
+        for (int j = 0; j < markerNames.length; j++) {
+            out.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(Array.toByteArray(dosageValues[j])));
+        }
+        
+        out.close();
+	}
+	
 	public static DosageData loadPlinkBinary(String dir, String plinkRoot) {
 	    DosageData dd = new DosageData();
 	    
-	    dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false, new int[]{0, 1}, false);
+	    dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false, new int[]{0, 1, 2, 3, 4, 5}, false);
 	    int numMarkers = Files.countLines(dir + plinkRoot + ".bim", 0);
 	    dd.alleles = new char[numMarkers][2];
 	    dd.chrs = new byte[numMarkers];
 	    dd.positions = new int[numMarkers];
 	    
 	    String[] markerNames = new String[numMarkers];
-	    String[][] bimData = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".bim", false, new int[]{0, 1, 3, 4, 5}, false);
+	    String[][] bimData = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".bim", false, new int[]{0, 1, 2, 3, 4, 5}, false);
 	    
 	    for (int i = 0; i < bimData.length; i++) {
 	        markerNames[i] = bimData[i][1];
@@ -96,14 +148,14 @@ public class DosageData implements Serializable {
                 System.err.println("Error - .bed file is sample-dominant.");
             } else {
                 int famCnt = dd.ids.length;
-                int blockSize = (int) ((double) famCnt / 4.0d); // TODO check for non-completeness (i.e. N not evenly divisible by 4)
+                int blockSize = (int) Math.ceil((double) famCnt / 4.0); 
                 
                 for (int i = 0; i < dd.positions.length; i++) {
                     if (dd.positions[i] == -1) {
                         dd.dosageValues[i] = Array.floatArray(dd.ids.length, -1); // TODO is this correct code? i.e. will this ever occur?
                         continue;
                     }
-                    in.seek(dd.positions[i] * blockSize);
+                    in.seek(3 + i * blockSize);
                     
                     byte[] markerBytes = new byte[blockSize];
                     byte[] sampGeno = new byte[dd.ids.length];
