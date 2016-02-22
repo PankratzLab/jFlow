@@ -83,7 +83,7 @@ public class EmimPipeline {
     }
     
     
-    private static void generateFolderStructureAndKeepsFiles(String runDir, String[] cnvFiles, PopFileData popFile, PopFileData subPopFile) {
+    private static void generateFolderStructureAndKeepsFiles(String runDir, String[] cnvFiles, String[] plinkRoots, PopFileData popFile, PopFileData subPopFile) {
         (new File(runDir + "results/")).mkdirs();
         for (String cnvFile : cnvFiles) {
             String cnvRoot = ext.rootOf(cnvFile, true);
@@ -119,9 +119,42 @@ public class EmimPipeline {
                 }
             }
         }
+        for (String plinkRoot : plinkRoots) {
+            String plinkDir = runDir + plinkRoot + "/";
+            boolean created = (!Files.exists(plinkDir) && (new File(plinkDir)).mkdir());
+            if (!created) { 
+                /* TODO ERROR, or already exists */ 
+                System.err.println("Error - Could not create folder " + plinkDir);
+                continue; 
+            }
+            
+            for (int p = 0; p < popFile.pops.length; p++) {
+                String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(popFile.pops[p], true) + "/";
+                created = (!Files.exists(popDir) && (new File(popDir)).mkdir());
+                if (!created) { 
+                    /* TODO ERROR, or already exists */ 
+                    System.err.println("Error - Could not create folder " + popDir);
+                    continue; 
+                }
+                String keepsFile = popDir + "keeps.txt";
+                generateKeepsFile(keepsFile, popFile, p, null, 0);
+                
+                for (int sP = 0; sP < subPopFile.pops.length; sP++) {
+                    String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
+                    created = (!Files.exists(subPopDir) && (new File(subPopDir)).mkdir());
+                    if (!created) { 
+                        /* TODO ERROR, or already exists */ 
+                        System.err.println("Error - Could not create folder " + subPopDir);
+                        continue; 
+                    }
+                    keepsFile = subPopDir + "keeps.txt";
+                    generateKeepsFile(keepsFile, popFile, p, subPopFile, sP);
+                }
+            }
+        }
     }
     
-    static void setup(String runDir, String[] cnvFiles, String pedFile, String popFile, String subPopFile, double pThreshold, String qsubQueue, Logger log1) {
+    static void setup(String runDir, String[] cnvFiles, String[] plinkRoots, String pedFile, String popFile, String subPopFile, double pThreshold, String qsubQueue, Logger log1) {
         ArrayList<String> pbsFiles = new ArrayList<String>();
         Logger log = log1 == null ? new Logger() : log1;
         PopFileData popData, subPopData;
@@ -133,41 +166,72 @@ public class EmimPipeline {
             log.reportException(e);
             return;
         }
-        generateFolderStructureAndKeepsFiles(runDir, cnvFiles, popData, subPopData);
-        for (String cnvFile : cnvFiles) {
-            String cnvRoot = ext.rootOf(cnvFile, true);
-            String cnvDir = cnvRoot + "/";
-            String plinkRoot = runDir + cnvRoot + "_0";
-            if (!Files.exists(plinkRoot + ".bim") || !Files.exists(plinkRoot + ".bed") || !Files.exists(plinkRoot + ".fam")) {
-                ExportCNVsToPedFormat.export(cnvFile, pedFile, runDir + cnvRoot, "\r\n", ExportCNVsToPedFormat.PLINK_BINARY_FORMAT, true, true, false, false, false, false, Integer.MAX_VALUE, 0, log);
+        generateFolderStructureAndKeepsFiles(runDir, cnvFiles, plinkRoots, popData, subPopData);
+        if (cnvFiles != null) {
+            for (String cnvFile : cnvFiles) {
+                String cnvRoot = ext.rootOf(cnvFile, true);
+                String cnvDir = cnvRoot + "/";
+                String plinkRoot = runDir + cnvRoot + "_0";
+                if (!Files.exists(plinkRoot + ".bim") || !Files.exists(plinkRoot + ".bed") || !Files.exists(plinkRoot + ".fam")) {
+                    ExportCNVsToPedFormat.export(cnvFile, pedFile, runDir + cnvRoot, "\r\n", ExportCNVsToPedFormat.PLINK_BINARY_FORMAT, true, true, false, false, false, false, Integer.MAX_VALUE, 0, log);
+                }
+                if (!Files.exists(plinkRoot + ".bim") || !Files.exists(plinkRoot + ".bed") || !Files.exists(plinkRoot + ".fam")) {
+                    log.reportError("ERROR - couldn't find exported PLINK files for CNV root " + cnvRoot + " in directory " + runDir);
+                    continue;
+                }
+                String relativePlinkRoot = "../" + cnvRoot + "_0";
+                String resultFile = cnvRoot;
+                
+                Emim.scriptAllInDir(runDir + cnvDir, plinkRoot, relativePlinkRoot, "GEN", null, pThreshold, resultFile);
+                String pbsFile = cnvDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
+                pbsFiles.add(pbsFile);
+    
+                for (int p = 0; p < popData.pops.length; p++) {
+                    String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
+                    resultFile = cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true);
+                    Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
+                    pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                    if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
+                    pbsFiles.add(pbsFile);
+                    
+                    for (int sP = 0; sP < subPopData.pops.length; sP++) {
+                        String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/"; 
+                        resultFile = cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true);
+                        Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
+                        pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                        if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
+                        pbsFiles.add(pbsFile);
+                    }
+                }
             }
-            if (!Files.exists(plinkRoot + ".bim") || !Files.exists(plinkRoot + ".bed") || !Files.exists(plinkRoot + ".fam")) {
-                log.reportError("ERROR_- couldn't find exported PLINK files for CNV root " + cnvRoot + " in directory " + runDir);
-                continue;
-            }
-            String relativePlinkRoot = "../" + cnvRoot + "_0";
-            String resultFile = cnvRoot;
-            
-            Emim.scriptAllInDir(runDir + cnvDir, plinkRoot, relativePlinkRoot, "GEN", null, pThreshold, resultFile);
-            String pbsFile = cnvDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-            if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
-            pbsFiles.add(pbsFile);
-
-            for (int p = 0; p < popData.pops.length; p++) {
-                String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
-                resultFile = cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true);
-                Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
-                pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+        }
+        if (plinkRoots != null) {
+            for (String plinkRoot : plinkRoots) {
+                String plinkDir = plinkRoot + "/";
+                String resultFile = plinkRoot;
+                
+                Emim.scriptAllInDir(runDir + plinkDir, plinkRoot, plinkRoot, "GEN", null, pThreshold, resultFile);
+                String pbsFile = plinkDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
                 if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
                 pbsFiles.add(pbsFile);
                 
-                for (int sP = 0; sP < subPopData.pops.length; sP++) {
-                    String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/"; 
-                    resultFile = cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true);
-                    Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
-                    pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                for (int p = 0; p < popData.pops.length; p++) {
+                    String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
+                    resultFile = plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true);
+                    Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../" + plinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
+                    pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
                     if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
                     pbsFiles.add(pbsFile);
+                    
+                    for (int sP = 0; sP < subPopData.pops.length; sP++) {
+                        String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/"; 
+                        resultFile = plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true);
+                        Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../" + plinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
+                        pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                        if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
+                        pbsFiles.add(pbsFile);
+                    }
                 }
             }
         }
@@ -205,6 +269,7 @@ public class EmimPipeline {
         int numArgs = args.length;
         String runDir = "./";
         String[] cnvFiles = null;
+        String[] plinkRoots = null;
         String pedFile = "./pedigree.dat";
         String popFile = "./pops.xln";
         String subPopFile = "./subPops.xln";
@@ -215,7 +280,10 @@ public class EmimPipeline {
         String usage = "\n" + 
                        "gwas.EmimPipeline requires 0-1 arguments\n" + 
                        "   (1) run directory (i.e. dir=" + runDir + " (default))\n" + 
-                       "   (2) cnv files (i.e. cnvs=cnvFile1.cnv,cnvFile2.cnv (not the default))\n" + 
+                       " AND EITHER" +
+                       "   (2a) cnv files (i.e. cnvs=cnvFile1.cnv,cnvFile2.cnv (not the default))\n" +
+                       "   OR " + 
+                       "   (2b) PLINK fileroots (i.e. plink=plink1,plink2 (not the default))\n" + 
                        "";
         
         for (int i = 0; i < args.length; i++) {
@@ -227,6 +295,9 @@ public class EmimPipeline {
                 numArgs--;
             } else if (args[i].startsWith("cnvs=")) {
                 cnvFiles = args[i].split("=")[1].split(",");
+                numArgs--;
+            } else if (args[i].startsWith("plink=")) {
+                plinkRoots = args[i].split("=")[1].split(",");
                 numArgs--;
             } else if (args[i].startsWith("log=")) {
                 logFile = args[i].split("=")[1];
@@ -243,7 +314,7 @@ public class EmimPipeline {
             if (logFile != null) {
                 log = new Logger(logFile);
             }
-            setup(runDir, cnvFiles, pedFile, popFile, subPopFile, pThreshold, null, log);
+            setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, null, log);
         } catch (Exception e) {
             e.printStackTrace();
         }
