@@ -248,7 +248,7 @@ public class EmimPipeline {
             
         }
         
-        String processCommand = "jcp gwas.EmimPipeline -process run=" + runDir;
+        String processCommand = "jcp gwas.EmimPipeline -process pThreshold=0.00001 run=" + runDir;
         if (cnvFiles != null) {
             processCommand += " cnvs=" + Array.toStr(cnvFiles, ",");
         }
@@ -278,7 +278,7 @@ public class EmimPipeline {
         return true;
     }
 
-    private static void process(String dir, String[] cnvFiles, String[] plinkRoots, String popFile, String subPopFile, Logger log1) throws IOException {
+    private static void process(String dir, String[] cnvFiles, String[] plinkRoots, String popFile, String subPopFile, double thresh, Logger log1) throws IOException {
         PrintWriter writer;
         Logger log = log1 == null ? new Logger() : log1;
         String finalDir = ext.verifyDirFormat(dir);
@@ -301,16 +301,16 @@ public class EmimPipeline {
             for (String cnvFile : cnvFiles) {
                 String cnvRoot = ext.rootOf(cnvFile, true);
                 String cnvDir = finalDir + cnvRoot + "/";
-                writeResults(cnvDir + cnvRoot + "_results_pVals.xln", writer, cnvRoot, "#N/A", "#N/A", first);
+                writeResults(cnvDir + cnvRoot + "_results_pVals.xln", writer, cnvRoot, "#N/A", "#N/A", thresh, first);
                 first = false;
                 
                 for (int p = 0; p < popData.pops.length; p++) {
                     String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
-                    writeResults(popDir + cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_results_pVals.xln", writer, cnvRoot, popData.pops[p], "#N/A", first);
+                    writeResults(popDir + cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_results_pVals.xln", writer, cnvRoot, popData.pops[p], "#N/A", thresh, first);
                     
                     for (int sP = 0; sP < subPopData.pops.length; sP++) {
                         String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/";
-                        writeResults(subPopDir + cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "_results_pVals.xln", writer, cnvRoot, popData.pops[p], subPopData.pops[sP], first);
+                        writeResults(subPopDir + cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "_results_pVals.xln", writer, cnvRoot, popData.pops[p], subPopData.pops[sP], thresh, first);
                     }
                 }
             }
@@ -318,16 +318,16 @@ public class EmimPipeline {
         if (plinkRoots != null) {
             for (String plinkRoot : plinkRoots) {
                 String plinkDir = finalDir + plinkRoot + "/";
-                writeResults(plinkDir + plinkRoot + "_results_pVals.xln", writer, plinkRoot, "#N/A", "#N/A", first);
+                writeResults(plinkDir + plinkRoot + "_results_pVals.xln", writer, plinkRoot, "#N/A", "#N/A", thresh, first);
                 first = false;
                 
                 for (int p = 0; p < popData.pops.length; p++) {
                     String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
-                    writeResults(popDir + plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_results_pVals.xln", writer, plinkRoot, popData.pops[p], "#N/A", first);
+                    writeResults(popDir + plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_results_pVals.xln", writer, plinkRoot, popData.pops[p], "#N/A", thresh, first);
                     
                     for (int sP = 0; sP < subPopData.pops.length; sP++) {
                         String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/";
-                        writeResults(subPopDir + plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "_results_pVals.xln", writer, plinkRoot, popData.pops[p], subPopData.pops[sP], first);
+                        writeResults(subPopDir + plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "_results_pVals.xln", writer, plinkRoot, popData.pops[p], subPopData.pops[sP], thresh, first);
                     }
                 }
             }
@@ -337,17 +337,22 @@ public class EmimPipeline {
         writer.close();
     }
     
-    private static void writeResults(String file, PrintWriter writer, String root1, String root2, String root3, boolean includeHeader) throws IOException {
+    private static void writeResults(String file, PrintWriter writer, String root1, String root2, String root3, double thresh, boolean includeHeader) throws IOException {
         BufferedReader reader = Files.getAppropriateReader(file);
         
         String line = includeHeader ? null : reader.readLine();
+        int pValueColumn = includeHeader ? -1 : ext.indexOfStr("tdt_P", line.split("\t"));
         boolean isHeader = true;
         while ((line = reader.readLine()) != null) {
             if (includeHeader && isHeader) {
                 isHeader = false; 
                 writer.println("DataFileRoot\tPopulation\tSubPopulation\t" + line);
+                pValueColumn = ext.indexOfStr("tdt_P", line.split("\t"));
             } else {
-                writer.println(root1 + "\t" + root2 + "\t" + root3 + "\t" + line);
+                String val = line.split("\t")[pValueColumn];
+                if (!ext.isMissingValue(val) && Double.parseDouble(val) < thresh) {
+                    writer.println(root1 + "\t" + root2 + "\t" + root3 + "\t" + line);
+                }
             }
         }
         reader.close();
@@ -437,7 +442,7 @@ public class EmimPipeline {
                 log = new Logger(logFile);
             }
             if (process) {
-                process(runDir, cnvFiles, plinkRoots, popFile, subPopFile, log);
+                process(runDir, cnvFiles, plinkRoots, popFile, subPopFile, pThreshold, log);
             } else {
                 setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, qsub, log);
             }
