@@ -253,7 +253,7 @@ public class CALiCo {
 				writer.println(uniqueMarkers[i]+"\t"+minPvalues[i]+"\t"+(genes[i].equals("")?".":genes[i]));
 			}
 			writer.close();
-			uniqueMarkers = Sort.putInOrder(Sort.quicksort(minPvalues), uniqueMarkers);
+			uniqueMarkers = Sort.putInOrder(uniqueMarkers, Sort.quicksort(minPvalues));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

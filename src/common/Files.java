@@ -260,7 +260,7 @@ public class Files {
 		if (jobSizes == null) {
 			files = Array.toStringArray(jobNamesWithAbsolutePaths);
 		} else {
-			files = Sort.putInOrder(Sort.quicksort(jobSizes.toArray(), Sort.DESCENDING), Array.toStringArray(jobNamesWithAbsolutePaths));
+			files = Sort.putInOrder(Array.toStringArray(jobNamesWithAbsolutePaths), Sort.quicksort(jobSizes.toArray(), Sort.DESCENDING));
 		}
 		count = 0;
 		v = new Vector<String>();
@@ -281,7 +281,7 @@ public class Files {
 		if (jobSizes == null) {
 			commands = Array.toStringArray(commandsWithAbsolutePaths);
 		} else {
-			commands = Sort.putInOrder(Sort.quicksort(jobSizes.toArray(), Sort.DESCENDING), Array.toStringArray(commandsWithAbsolutePaths));
+			commands = Sort.putInOrder(Array.toStringArray(commandsWithAbsolutePaths), Sort.quicksort(jobSizes.toArray(), Sort.DESCENDING));
 		}
 		
 		Files.writeList(commands, batchRoot+".chain");
@@ -3827,4 +3827,5 @@ public class Files {
 			e.printStackTrace();
 		}
 	}
+
 }

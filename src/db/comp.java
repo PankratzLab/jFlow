@@ -758,7 +758,7 @@ public class comp {
 			int maxFigs = Math.max(10, (int)Math.floor(Math.log10(Math.max(Math.max(Math.abs(min), Math.abs(max)), 1))));
 			
 			line = new String[] {"R-Sqr", "  Sig  ", "N", (logistic?ext.formStr("MeanAff", maxFigs, true)+ext.formStr("MeanUnaff", maxFigs, true):"")+"dir", (logistic?"Odds ratio (95% CI)   ":"Beta (95% CI)         "), "Factor", "Mean +/- SD", "Failures", "p-value"};
-			writer.println(Array.toStr(order==null?line:Sort.putInOrder(order, line)));
+			writer.println(Array.toStr(order==null?line:Sort.putInOrder(line, order)));
 			
 			for (int i = 1; i<=M; i++) {
 //				count = 0;
@@ -783,7 +783,7 @@ public class comp {
 //				line[8] = "("+ext.formSciNot(sigs[i][0], 1, true)+")";
 				line[8] = factorNs[i]==0?".":(logistic?"=NORMSDIST("+Math.sqrt(sigs[i][2])+")":"=TDIST("+Math.abs(sigs[i][2])+","+factorNs[i]+",2)");
 				
-				writer.println(Array.toStr(order==null?line:Sort.putInOrder(order, line)));
+				writer.println(Array.toStr(order==null?line:Sort.putInOrder(line, order)));
 			}
 			writer.println();
 			writer.println();
