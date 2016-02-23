@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 
 import cnv.manage.ExportCNVsToPedFormat;
@@ -84,7 +85,6 @@ public class EmimPipeline {
     
     
     private static void generateFolderStructureAndKeepsFiles(String runDir, String[] cnvFiles, String[] plinkRoots, PopFileData popFile, PopFileData subPopFile) {
-        (new File(runDir + "results/")).mkdirs();
         for (String cnvFile : cnvFiles) {
             String cnvRoot = ext.rootOf(cnvFile, true);
             String cnvDir = runDir + cnvRoot + "/";
@@ -167,6 +167,10 @@ public class EmimPipeline {
             return;
         }
         generateFolderStructureAndKeepsFiles(runDir, cnvFiles, plinkRoots, popData, subPopData);
+        if (!checkRoots(cnvFiles, plinkRoots)) {
+            log.reportError("Error - cannot have cnv roots and plink roots that have the same name.");
+            return;
+        }
         if (cnvFiles != null) {
             for (String cnvFile : cnvFiles) {
                 String cnvRoot = ext.rootOf(cnvFile, true);
@@ -241,11 +245,114 @@ public class EmimPipeline {
 //            for (String pbsFile : pbsFiles) {
 //                CmdLine.run("qsub " + (qsubQueue != null ? "-q " + qsubQueue : "") + pbsFile, ext.parseDirectoryOfFile(pbsFile));
 //            }
+            
         }
         
-        
+        String processCommand = "jcp gwas.EmimPipeline -process run=" + runDir;
+        if (cnvFiles != null) {
+            processCommand += " cnvs=" + Array.toStr(cnvFiles, ",");
+        }
+        if (plinkRoots != null) {
+            processCommand += " plink=" + Array.toStr(plinkRoots, ",");
+        }
+        processCommand += " pop=" + popFile + " subPop=" + subPopFile;
+        if (log1 != null) {
+            processCommand += " log=" + log1.getFilename();
+        }
+        Files.write(processCommand, runDir + "processResults.sh");
+        Files.chmod(runDir + "processResults.sh");
     }
     
+    private static boolean checkRoots(String[] cnvFiles, String[] plinkRoots) {
+        HashSet<String> rootSet = new HashSet<String>();
+        for (String root : plinkRoots) {
+            if (!rootSet.add(root)) {
+                return false;
+            }
+        }
+        for (String cnv : cnvFiles) {
+            if (!rootSet.add(ext.rootOf(cnv, true))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static void process(String dir, String[] cnvFiles, String[] plinkRoots, String popFile, String subPopFile, Logger log1) throws IOException {
+        PrintWriter writer;
+        Logger log = log1 == null ? new Logger() : log1;
+        String finalDir = ext.verifyDirFormat(dir);
+        
+        
+        PopFileData popData, subPopData;
+        try {
+            popData = loadPopFile(popFile);
+            subPopData = loadPopFile(subPopFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.reportException(e);
+            return;
+        }
+        
+        String finalOut = finalDir + "final_results_pVals.xln";
+        writer = Files.getAppropriateWriter(finalOut);
+        boolean first = true;
+        if (cnvFiles != null) {
+            for (String cnvFile : cnvFiles) {
+                String cnvRoot = ext.rootOf(cnvFile, true);
+                String cnvDir = finalDir + cnvRoot + "/";
+                writeResults(cnvDir + cnvRoot + "_results_pVals.xln", writer, cnvRoot, "#N/A", "#N/A", first);
+                first = false;
+                
+                for (int p = 0; p < popData.pops.length; p++) {
+                    String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
+                    writeResults(popDir + cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_results_pVals.xln", writer, cnvRoot, popData.pops[p], "#N/A", first);
+                    
+                    for (int sP = 0; sP < subPopData.pops.length; sP++) {
+                        String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/";
+                        writeResults(subPopDir + cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "_results_pVals.xln", writer, cnvRoot, popData.pops[p], subPopData.pops[sP], first);
+                    }
+                }
+            }
+        }
+        if (plinkRoots != null) {
+            for (String plinkRoot : plinkRoots) {
+                String plinkDir = finalDir + plinkRoot + "/";
+                writeResults(plinkDir + plinkRoot + "_results_pVals.xln", writer, plinkRoot, "#N/A", "#N/A", first);
+                first = false;
+                
+                for (int p = 0; p < popData.pops.length; p++) {
+                    String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
+                    writeResults(popDir + plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_results_pVals.xln", writer, plinkRoot, popData.pops[p], "#N/A", first);
+                    
+                    for (int sP = 0; sP < subPopData.pops.length; sP++) {
+                        String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/";
+                        writeResults(subPopDir + plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "_results_pVals.xln", writer, plinkRoot, popData.pops[p], subPopData.pops[sP], first);
+                    }
+                }
+            }
+        }
+        
+        writer.flush();
+        writer.close();
+    }
+    
+    private static void writeResults(String file, PrintWriter writer, String root1, String root2, String root3, boolean includeHeader) throws IOException {
+        BufferedReader reader = Files.getAppropriateReader(file);
+        
+        String line = includeHeader ? null : reader.readLine();
+        boolean isHeader = true;
+        while ((line = reader.readLine()) != null) {
+            if (includeHeader && isHeader) {
+                isHeader = false; 
+                writer.println("DataFileRoot\tPopulation\tSubPopulation\t" + line);
+            } else {
+                writer.println(root1 + "\t" + root2 + "\t" + root3 + "\t" + line);
+            }
+        }
+        reader.close();
+    }
+
     private static void writeQsubs(ArrayList<String> qsubFiles, String runDir, String qsubQueue) {
         ArrayList<String> qsubCommands = new ArrayList<String>();
         for (String qsub : qsubFiles) {
@@ -276,15 +383,18 @@ public class EmimPipeline {
         double pThreshold = 0.05;
         String logFile = null;
         Logger log = null;
+        String qsub = null;
+        boolean process = false;
         
         String usage = "\n" + 
-                       "gwas.EmimPipeline requires 0-1 arguments\n" + 
+                       "gwas.EmimPipeline requires 2-4 arguments\n" + 
                        "   (1) run directory (i.e. dir=" + runDir + " (default))\n" + 
-                       " AND EITHER" +
+                       " AND\n" +
                        "   (2a) cnv files (i.e. cnvs=cnvFile1.cnv,cnvFile2.cnv (not the default))\n" +
-                       "   OR " + 
+                       " AND/OR \n" + 
                        "   (2b) PLINK fileroots (i.e. plink=plink1,plink2 (not the default))\n" + 
-                       "";
+                       " AND, if desired (though the script to run this will be created automatically)\n" + 
+                       "   (3) -process flag to consolidate results after PBS files have completed (i.e. -process (not the default))\n";
         
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -302,6 +412,18 @@ public class EmimPipeline {
             } else if (args[i].startsWith("log=")) {
                 logFile = args[i].split("=")[1];
                 numArgs--;
+            } else if (args[i].startsWith("pop=")) {
+                popFile = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("subPop=")) {
+                subPopFile = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("pThreshold=")) {
+                pThreshold = ext.parseDoubleArg(args[i]);
+                numArgs--;
+            } else if (args[i].startsWith("-process")) {
+                process = true;
+                numArgs--;
             } else {
                 System.err.println("Error - invalid argument: " + args[i]);
             }
@@ -314,7 +436,11 @@ public class EmimPipeline {
             if (logFile != null) {
                 log = new Logger(logFile);
             }
-            setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, null, log);
+            if (process) {
+                process(runDir, cnvFiles, plinkRoots, popFile, subPopFile, log);
+            } else {
+                setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, qsub, log);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
