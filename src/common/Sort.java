@@ -778,7 +778,7 @@ public class Sort {
 		array[index1] = array[index2];
 		array[index2] = temp;
 	}
-
+	
 	/**
 	 * Sorts an array of integers and returns the sorted array
 	 * 
@@ -1175,37 +1175,16 @@ public class Sort {
 		
 	}
 
-	public static String[] putInOrder(String[] array, int[] order) {
-		String[] newArray;
-		
-		newArray = new String[array.length];
-		for (int i = 0; i<array.length; i++) {
-			newArray[i] = array[order[i]];
-        }
-		
-		return newArray;
-	}
-	
-	public static String[][] putInOrder(String[][] matrix, int[] order) {
-		String[][] newMatrix;
-		
-		newMatrix = new String[matrix.length][];
-		for (int i = 0; i<matrix.length; i++) {
-			newMatrix[i] = matrix[order[i]];
-        }
-		
-		return newMatrix;
-	}
-	
-	public static String[] putInOrder(int[] order, String[] array) {
-		String[] newArray;
-		
-		newArray = new String[order.length];
-		for (int i = 0; i<order.length; i++) {
-			newArray[i] = array[order[i]];
-        }
-		
-		return newArray;
+	@SuppressWarnings("unchecked")
+    public static <T> T[] putInOrder(T[] array, int[] order) {
+	    T[] newArray;
+	    
+	    newArray = (T[]) java.lang.reflect.Array.newInstance(array.getClass(), array.length);
+	    for (int i = 0; i < array.length; i++) {
+	        newArray[i] = array[order[i]];
+	    }
+	    
+	    return newArray;
 	}
 	
 	public static byte[] putInOrder(byte[] array, int[] order) {

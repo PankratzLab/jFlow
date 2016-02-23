@@ -1753,7 +1753,6 @@ public class FilterCalls {
 				firstSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
 				lastSNP = Array.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
 				indel = cnvs[i].getCN()<2?0:1;
-
 				
 				if (firstSNP == -1 || lastSNP == -1) {
 					accepted = false;
@@ -1889,11 +1888,11 @@ public class FilterCalls {
 				"delSize=0",
 				"dupSize=0",
 				"# minimum size of homozygous deletions / duplications (in kb):",
-				"hDelSize = 0",
-				"hDupSize = 0",
+				"hDelSize=0",
+				"hDupSize=0",
 				"# minimum number of heterozygous SNPs:",
 				"number=15",
-				"# minimum number of homozygous SNPs:",
+				"# minimum number of probes for homozygous deletions:",
 				"hNumber=15",
 				"minScore=10.0",
 				"filterFile="+problematicRegionsLocation,
@@ -1904,11 +1903,34 @@ public class FilterCalls {
 				"# make a UCSC track (.bed file) as well",
 				"ucsc=true",
 				"",
-				"# ALTERNATIVELY, in addition to the dir/in/out and ignoring all other filters you can",
+				"# ALTERNATIVELY, in addition to dir/in/out and ignoring all other filters, you can",
 				"# keep only CNVs overlapping these segments (simply uncomment the following argument):",
 				"#segs=gene_region.dat",
 				"# exclude instead of include:",
-				"#excludeSegsInstead=true"
+				"#excludeSegsInstead=true",
+				"",
+				"# ALTERNATIVELY, in addition to dir/in/out, and ignoring all other filters, you can",
+				"#  filter CNVs by frequency of occurrence:",
+				"# Project Properties File", 
+				"# proj=project.properties",
+				"# FAM file, or list or IDs (used to count number of individuals)",
+				"# famFile=plink.fam",
+				"# Percentage of total required before reporting CNVs at a locus",
+				"# totalRequired=0",
+				"# Percentage of deletions required before reporting CNVs at a locus",
+				"# delRequired=0",
+				"# Percentage of duplications required before reporting CNVs at a locus",
+				"# dupRequired=0",
+				"# Percentage limit of total before excluding CNVs at a locus",
+				"# totalLimitedTo=1",
+				"# Percentage limit of deletions before excluding CNVs at a locus",
+				"# delLimitedTo=1",
+				"# Percentage limit of duplications before excluding CNVs at a locus",
+				"# dupLimitedTo=1",
+				"# Proportion of probes that need to pass for final inclusion ",
+				"# proportion=0.5",
+				"",
+				
 		}, log);
 
 		if (params != null) {
@@ -1987,9 +2009,16 @@ public class FilterCalls {
 		"   (1) directory (i.e. dir="+dir+" (default))\n"+
 		"   (2) file in (i.e. in="+in+" (default))\n"+
 		"   (3) file out (i.e. out="+out+" (default))\n"+
-		"   (4) filter out CNVs that overlap with a percentage of other CNVs (i.e. -common (not the default))\n" +
-		"   (5) percent threshold for filtering common CNVs (i.e. pct=.05 (default))\n" +
-		"  OR\n" + 
+        "   (4) Project Properties File (i.e. proj=project.properties (not the default))\n" +
+        "   (5) FAM file, or list of IDs (used to count number of individuals) (i.e. famFile=plink.fam (not the default))\n" +
+        "   (6) Percentage of total required before reporting CNVs at a locus (i.e. totalRequired=0 (default))\n" +
+        "   (7) Percentage of deletions required before reporting CNVs at a locus (i.e. delRequired=0 (default))\n" +
+        "   (8) Percentage of duplications required before reporting CNVs at a locus (i.e. dupRequired=0 (default))\n" +
+        "   (9) Percentage limit of total before excluding CNVs at a locus (i.e. totalLimitedTo=1 (default))\n" +
+        "  (10) Percentage limit of deletions before excluding CNVs at a locus (i.e. delLimitedTo=1 (default))\n" +
+        "  (11) Percentage limit of duplications before excluding CNVs at a locus (i.e. dupLimitedTo=1 (default))\n" +
+        "  (12) Proportion of probes that need to pass for final inclusion (i.e. proportion=0.5 (default))\n" +
+ 		"  OR\n" + 
 		"   (1) directory (i.e. dir="+dir+" (default))\n"+
 		"   (2) file in (i.e. in="+in+" (default))\n"+
 		"   (3) file out (i.e. out="+out+" (default))\n"+
