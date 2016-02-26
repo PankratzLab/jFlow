@@ -3483,7 +3483,7 @@ public class Files {
 	 * @param path
 	 */
 	public static boolean isRelativePath(String path) {
-		return (path.startsWith("/") || path.indexOf(":") < 0);
+		return (!path.startsWith("/") && path.indexOf(":") < 0);
 	}
 	
 	/**

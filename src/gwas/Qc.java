@@ -140,7 +140,7 @@ public class Qc {
 		
 		dir = ext.verifyDirFormat(dir) + "quality_control/";
 		if (!dir.startsWith("/") && !dir.contains(":")) {
-		    dir = (new File("./" + dir)).getAbsolutePath();
+		    dir = ext.verifyDirFormat((new File("./" + dir)).getAbsolutePath());
 		}
 
 		String plink = plinkPrefix == null ? "plink" : plinkPrefix;
