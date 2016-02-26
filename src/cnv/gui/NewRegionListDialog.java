@@ -202,6 +202,9 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
         }
         
         String filepath = textField.getText();
+        if (Files.isRelativePath(filepath)) {
+            filepath = dir + filepath;
+        }
         File newFile = new File(filepath);
         boolean reachable = false;
         try {
@@ -213,7 +216,7 @@ public class NewRegionListDialog extends JDialog implements ActionListener {
         if (!reachable) {
             JOptionPane.showMessageDialog(null, "Error - file name [" + filepath + "] is invalid.", "Error", JOptionPane.ERROR_MESSAGE);
             return false;
-        } else if (Files.exists(dir + filepath)) {
+        } else if (Files.exists(filepath)) {
             JOptionPane.showMessageDialog(null, "Error - file [" + filepath + "] already exists.", "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }

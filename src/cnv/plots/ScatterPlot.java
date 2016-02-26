@@ -555,7 +555,13 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
     private void convertSamples() {
 	    sampleFIDIIDs = new String[samples.length];
         for (int i = 0; i < sampleFIDIIDs.length; i++) {
-            sampleFIDIIDs[i] = sampleData.lookup(samples[i])[1];
+            String[] look = sampleData.lookup(samples[i]);
+            if (look == null) {
+                log.reportError("Error - no lookup data found for sample {" + samples[i] + "}");
+                sampleFIDIIDs[i] = samples[i];
+            } else {
+                sampleFIDIIDs[i] = sampleData.lookup(samples[i])[1];
+            }
         }
     }
 
