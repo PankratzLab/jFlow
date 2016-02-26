@@ -8,7 +8,7 @@ import common.*;
 public class Qc {
     
     /** A rough listing of the Folders created by fullGamut */
-    public static String[] FOLDERS_CREATED = {"marker_qc/", "sample_qc/", "ld_pruning/", "genome/", "ancestry/"};
+    public static String[] FOLDERS_CREATED = {"quality_control/marker_qc/", "quality_control/sample_qc/", "quality_control/ld_pruning/", "quality_control/genome/", "quality_control/ancestry/"};
     /** A rough listing of the files created, by folder, by fullGamut */
     public static String[][] FILES_CREATED = {
         {"plink.bed", "freq.frq", "missing.imiss", "test.missing.missing", "hardy.hwe", "mishap.missing.hap", "gender.assoc", "gender.missing", "miss_drops.dat"},
