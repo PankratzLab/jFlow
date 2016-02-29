@@ -45,6 +45,8 @@ import seq.qc.FilterNGS.VariantContextFilterPass;
 import seq.qc.FilterNGS.VcFilterBoolean;
 import seq.qc.FilterNGS.VcFilterDouble;
 import common.Array;
+import common.ExcelConverter;
+import common.ExcelConverter.ExcelConversionParams;
 import common.Files;
 import common.Logger;
 import common.Sort;
@@ -62,7 +64,7 @@ public class VCFSimpleTally {
 
 	private static final String ANY_GENE_SET = "*";
 	private static final String AND = "&&";
-	//private static final String SNPEFF_IMPACTS = "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')";
+	// private static final String SNPEFF_IMPACTS = "(SNPEFF_IMPACT=='HIGH'||SNPEFF_IMPACT=='MODERATE'||SNPEFF_IMPACT=='LOW')";
 	private static final String SNPEFF_NAMES = "G1000_esp_charge_aricFreq_SNPEFF_HIGH_MODERATE_LOW";
 	// private static final String CHARGE_B_FILTER = "(charge.MAF_blacks=='.'||charge.MAF_blacks <= 0.01)";
 	// private static final String CHARGE_W_FILTER = "(charge.MAF_whites=='.'||charge.MAF_whites <= 0.01)";
@@ -636,7 +638,7 @@ public class VCFSimpleTally {
 
 			}
 			reader.close();
-			String out = sr.getFinalAnnotSample() + ".varCounts";
+			String out = sr.getSampleVarCounts();
 
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(out));
@@ -674,8 +676,11 @@ public class VCFSimpleTally {
 		private String finalAnnotGene;
 		private String finalGeneVariantPositions;
 		private String bundleDir;
+		private String annotKeysFile;
+		private String filters;
+		private String sampleVarCounts;
 
-		public SimpleTallyResult(VcfPopulation controls, String finalOut, String finalOutVCF, String finalsampSummary, String finalAnnot, String finalAnnotSample, String finalAnnotGene, String finalGeneVariantPositions, String bundleDir) {
+		public SimpleTallyResult(VcfPopulation controls, String finalOut, String finalOutVCF, String finalsampSummary, String finalAnnot, String finalAnnotSample, String finalAnnotGene, String finalGeneVariantPositions, String bundleDir, String annotKeysFile, String filters, String sampleVarCounts) {
 			super();
 			this.controls = controls;
 			// this.finalOut = finalOut;
@@ -686,10 +691,25 @@ public class VCFSimpleTally {
 			this.finalAnnotSample = finalAnnotSample;
 			this.finalGeneVariantPositions = finalGeneVariantPositions;
 			this.bundleDir = bundleDir;
+			this.annotKeysFile = annotKeysFile;
+			this.filters = filters;
+			this.sampleVarCounts = sampleVarCounts;
 		}
 
 		public String getFinalOutVCF() {
 			return finalOutVCF;
+		}
+
+		public String getSampleVarCounts() {
+			return sampleVarCounts;
+		}
+
+		public String getFilters() {
+			return filters;
+		}
+
+		public String getAnnotKeysFile() {
+			return annotKeysFile;
 		}
 
 		public String getBundleDir() {
@@ -749,7 +769,7 @@ public class VCFSimpleTally {
 		String finalGeneVariantPositions = finalOut + ".gene.position.counts.ser";
 		String annotKeysFile = finalOut + ".annotation.keys.txt";
 		String filterFile = finalOut + "filters.applied.txt";
-
+		String varCounts = finalAnnotSample + ".varCounts";
 		// String finalAnnotGeneSample = finalOut + ".gene.sample";
 
 		Set<String> cases = vpopAc.getSuperPop().get(caseDef);
@@ -777,7 +797,7 @@ public class VCFSimpleTally {
 		VcfPopulation controlVcfPopulation = new VcfPopulation(controlSubPop, controlPop, POPULATION_TYPE.CASE_CONTROL, new Logger());
 		String bundleDir = outDir + "bundle_" + caseDef + "maf_" + maf + "/";
 		new File(bundleDir).mkdirs();
-		SimpleTallyResult simpleTallyResult = new SimpleTallyResult(controlVcfPopulation, finalOut, finalOutVCF, finalsampSummary, finalAnnot, finalAnnotSample, finalAnnotGene, finalGeneVariantPositions, bundleDir);
+		SimpleTallyResult simpleTallyResult = new SimpleTallyResult(controlVcfPopulation, finalOut, finalOutVCF, finalsampSummary, finalAnnot, finalAnnotSample, finalAnnotGene, finalGeneVariantPositions, bundleDir, annotKeysFile, filterFile, varCounts);
 		simpleTallyResult.getFinalGeneVariantPositions();
 
 		String[][] genotypeAnnotations = GenotypeOps.getGenoFormatKeys(vcf, log);
@@ -879,7 +899,7 @@ public class VCFSimpleTally {
 						}
 					}
 					boolean highModLow = ext.indexOfStr(func, EFF) >= 0;
-					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + vc.getFilters().toString()+"\t"+highModLow);
+					annoWriter.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.isBiallelic() + "\t" + vc.getFilters().toString() + "\t" + highModLow);
 					annoWriter.print("\t" + Array.toStr(vcCaseGroup.getSummary()));
 
 					GenotypesContext gc = vcCaseGroup.getVcAlt().getGenotypes();
@@ -1450,8 +1470,7 @@ public class VCFSimpleTally {
 		int numThreads = 24;
 		for (int i = 0; i < vpopsCase.length; i++) {
 
-			ArrayList<String> filesToWrite = new ArrayList<String>();
-			ArrayList<String> names = new ArrayList<String>();
+			ArrayList<ExcelConversionParams> excelFile = new ArrayList<ExcelConversionParams>();
 
 			String outDir = ext.parseDirectoryOfFile(vpopsCase[i]);
 			new File(outDir).mkdirs();
@@ -1473,12 +1492,7 @@ public class VCFSimpleTally {
 				}
 			}
 			SimpleTallyResult caseResult = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, currentSets, caseQualFilter, log);
-			filesToWrite.add(caseResult.getFinalsampSummary());
-			names.add("AnalysisInfo");
-			filesToWrite.add(caseResult.getFinalAnnot());
-			names.add("VARIANT_LEVEL");
-			filesToWrite.add(caseResult.getFinalAnnotSample());
-			names.add("VARIANT_SAMP_LEVEL");
+
 			summarizeVariantsBySample(caseResult, log);
 			VcfPopulation controls = caseResult.getControls();
 			String controlFile = ext.parseDirectoryOfFile(vpopsCase[i]) + controls.getUniqSuperPop().get(0) + ".vpop";
@@ -1489,8 +1503,6 @@ public class VCFSimpleTally {
 			String geneFileCase = caseResult.getFinalAnnotGene();
 			String geneFileControl = controlResult.getFinalAnnotGene();
 			String caseWithControls = ext.addToRoot(geneFileCase, "_" + ext.rootOf(controlFile));
-			filesToWrite.add(caseWithControls);
-			names.add("GENE");
 
 			ArrayList<Hashtable<String, PosCluster[]>> clusters = new ArrayList<Hashtable<String, PosCluster[]>>();
 			ArrayList<Hashtable<String, String[]>> controlFuncHashes = new ArrayList<Hashtable<String, String[]>>();
@@ -1617,6 +1629,23 @@ public class VCFSimpleTally {
 				log.reportError("Error reading file \"" + geneFileCase + "\"");
 				return;
 			}
+			ExcelConversionParams samples = new ExcelConversionParams(caseResult.getFinalsampSummary(), "\t", "samples");
+			excelFile.add(samples);
+			ExcelConversionParams annotations = new ExcelConversionParams(caseResult.getAnnotKeysFile(), "\t", "Annotations");
+			excelFile.add(annotations);
+			ExcelConversionParams filters = new ExcelConversionParams(caseResult.getFilters(), "\t", "HQ_filters");
+			excelFile.add(filters);
+			ExcelConversionParams varCount = new ExcelConversionParams(caseResult.getSampleVarCounts(), "\t", "samplesVarCount");
+			excelFile.add(varCount);
+
+			ExcelConversionParams var = new ExcelConversionParams(caseResult.getFinalAnnot(), "\t", "Summary_Var");
+			excelFile.add(var);
+			ExcelConversionParams varSample = new ExcelConversionParams(caseResult.getFinalAnnotSample(), "\t", "Summary_Var_Sample");
+			excelFile.add(varSample);
+			ExcelConversionParams gene = new ExcelConversionParams(caseWithControls, "\t", "Gene");
+			excelFile.add(gene);
+			String output = caseResult.getBundleDir() + ext.rootOf(vpopsCase[i]) + "_summary.xlsx";
+			new ExcelConverter(excelFile, output, log).convert(true);
 
 		}
 

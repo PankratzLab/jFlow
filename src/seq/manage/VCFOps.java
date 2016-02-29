@@ -1833,7 +1833,6 @@ public class VCFOps {
 	 * @return true if the vcf file was gzipped
 	 */
 	public static String gzipAndIndex(String vcfFile, Logger log) {
-		boolean created = false;
 		String vcfFileGz = vcfFile + ".gz";
 
 		if (Files.exists(vcfFileGz)) {
@@ -1848,7 +1847,6 @@ public class VCFOps {
 				}
 				reader.close();
 				writer.close();
-				created = true;
 
 			}
 		}
