@@ -121,7 +121,7 @@ public class Emim {
             try {
                 listSexMarkers(plinkDirAndRoot + ".bim", currDir + "sexChrMarkers.txt");
                 excludeFile = "sexChrMarkers.txt";
-            } catch (NumberFormatException | IOException e) {
+            } catch (Exception e) {
                 excludeFile = null;
                 e.printStackTrace();
             }

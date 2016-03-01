@@ -50,12 +50,10 @@ import cnv.var.CNVRectangles;
 import cnv.var.CNVariant;
 import cnv.var.CNVariantHash;
 import cnv.var.Region;
-
 import common.Array;
 import common.Files;
 import common.Positions;
 import common.ext;
-
 import filesys.GeneTrack;
 
 /**
@@ -291,7 +289,8 @@ public class CompPlot extends JFrame {
 		setVisible(true);
 	}
 
-    private JMenuBar createMenuBar() {
+    @SuppressWarnings("serial")
+	private JMenuBar createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
         JMenu fileMenu = new JMenu("File");
@@ -370,7 +369,7 @@ public class CompPlot extends JFrame {
         disp.setMnemonic(KeyEvent.VK_D);
         menuBar.add(disp);
         
-        JCheckBoxMenuItem displayExcludes = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem displayExcludes = new JCheckBoxMenuItem();
         displayExcludes.setAction(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
