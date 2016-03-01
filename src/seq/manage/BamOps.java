@@ -2,7 +2,9 @@ package seq.manage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 
 import common.Logger;
 import common.Positions;
@@ -185,4 +187,51 @@ public class BamOps {
 		}
 		return sample;
 	}
+
+	/**
+	 * Designed to take the sample names from {@link VCFOps#getSamplesInFile(htsjdk.variant.vcf.VCFFileReader)} and match to an array of bams
+	 * 
+	 * @param samples
+	 *            samples to match
+	 * @param variantSets
+	 *            variant sets that may be appended to the vcf sample names
+	 * @param bams
+	 *            the bam files
+	 * @param log
+	 * @return Hashtable of the sample -> bam file mapping
+	 */
+	public static Hashtable<String, String> matchToVcfSamplesToBamFiles(String[] samples, Set<String> variantSets, String[] bams, Logger log) {
+		Hashtable<String, String> matched = new Hashtable<String, String>();
+		Hashtable<String, String> bamSamples = new Hashtable<String, String>();
+		for (int i = 0; i < bams.length; i++) {
+			String bamSamp = getSampleName(bams[i]);
+			if (bamSamples.containsKey(bamSamp)) {
+				throw new IllegalArgumentException("Bams must be sample unique");
+			} else {
+				bamSamples.put(bamSamp, bams[i]);
+				if (variantSets != null) {
+					for (String set : variantSets) {
+						bamSamples.put(bamSamp + set, bams[i]);
+					}
+				}
+			}
+		}
+
+		for (int i = 0; i < samples.length; i++) {
+			if (!bamSamples.containsKey(samples[i])) {
+				log.reportTimeWarning("Did not find matching bam file for " + samples[i]);
+			} else {
+				if (matched.contains(samples[i])) {
+					throw new IllegalArgumentException("Multiple bam files matched sample " + samples[i] + ", perhaps because of variant sets?");
+				}
+				matched.put(samples[i], bamSamples.get(samples[i]));
+			}
+		}
+
+		log.reportTimeInfo("Found matching bam files for" + matched.size() + " of " + samples.length + " samples");
+
+		return matched;
+
+	}
+
 }

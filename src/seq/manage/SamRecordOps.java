@@ -1,8 +1,14 @@
 package seq.manage;
 
+import java.util.ArrayList;
+
+import common.Array;
 import common.Logger;
 import common.Positions;
 import filesys.Segment;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 
 /**
@@ -15,7 +21,7 @@ public class SamRecordOps {
 		byte chr = getChromosome(samRecord, log);
 		int start = samRecord.getAlignmentStart();
 		int stop = samRecord.getAlignmentEnd();
-		if (start == 0 || stop == 0) { 
+		if (start == 0 || stop == 0) {
 			log.reportTimeError("Could not determing start and stop for " + samRecord.toString());
 		}
 
@@ -56,4 +62,32 @@ public class SamRecordOps {
 		}
 		return d;
 	}
+
+	/**
+	 * @param samRecord
+	 * @param log
+	 * @return String[] containing any bp sequences that were soft clipped
+	 */
+	public static String[] getSoftClippedBases(SAMRecord samRecord, Logger log) {
+		ArrayList<String> softies = new ArrayList<String>();
+		Cigar cigar = samRecord.getCigar();
+		String[] bases = Array.decodeByteArray(samRecord.getReadBases(), log);
+		int curStart = 0;
+		int readIndex = 0;
+		for (CigarElement cigarElement : cigar.getCigarElements()) {
+			if (cigarElement.getOperator().consumesReadBases()) {
+				readIndex += cigarElement.getLength();
+			}
+			if (cigarElement.getOperator() == CigarOperator.S) {
+				String softy = Array.toStr(Array.subArray(bases, curStart, readIndex), "");
+				softies.add(softy);
+
+			}
+			if (cigarElement.getOperator().consumesReadBases()) {
+				curStart += cigarElement.getLength();
+			}
+		}
+		return Array.toStringArray(softies);
+	}
+
 }
