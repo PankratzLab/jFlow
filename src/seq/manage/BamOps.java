@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import common.Logger;
 import common.Positions;
+import common.WorkerTrain;
+import common.WorkerTrain.Producer;
 import filesys.Segment;
 import htsjdk.samtools.BAMIndex;
 import htsjdk.samtools.BAMIndexMetaData;
@@ -188,6 +191,62 @@ public class BamOps {
 		return sample;
 	}
 
+	private static class SampleNameExtractor implements Callable<SampleNameExtractor> {
+		private String bamFile;
+		private String sampleName;
+
+		public SampleNameExtractor(String bamFile) {
+			super();
+			this.bamFile = bamFile;
+		}
+
+		@Override
+		public SampleNameExtractor call() throws Exception {
+			this.sampleName = getSampleName(bamFile);
+			return this;
+		}
+
+		public String getBamFile() {
+			return bamFile;
+		}
+
+		public String getName() {
+			return sampleName;
+		}
+
+	}
+
+	private static class SampleNameProducer implements Producer<SampleNameExtractor> {
+
+		private String[] bamFiles;
+		private int index;
+
+		public SampleNameProducer(String[] bamFiles) {
+			super();
+			this.bamFiles = bamFiles;
+			this.index = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < bamFiles.length;
+		}
+
+		@Override
+		public Callable<SampleNameExtractor> next() {
+			SampleNameExtractor ex = new SampleNameExtractor(bamFiles[index]);
+			index++;
+			return ex;
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
+
 	/**
 	 * Designed to take the sample names from {@link VCFOps#getSamplesInFile(htsjdk.variant.vcf.VCFFileReader)} and match to an array of bams
 	 * 
@@ -200,18 +259,22 @@ public class BamOps {
 	 * @param log
 	 * @return Hashtable of the sample -> bam file mapping
 	 */
-	public static Hashtable<String, String> matchToVcfSamplesToBamFiles(String[] samples, Set<String> variantSets, String[] bams, Logger log) {
+	public static Hashtable<String, String> matchToVcfSamplesToBamFiles(String[] samples, Set<String> variantSets, String[] bams, int numThreads, Logger log) {
 		Hashtable<String, String> matched = new Hashtable<String, String>();
 		Hashtable<String, String> bamSamples = new Hashtable<String, String>();
-		for (int i = 0; i < bams.length; i++) {
-			String bamSamp = getSampleName(bams[i]);
+		SampleNameProducer producer = new SampleNameProducer(bams);
+		WorkerTrain<SampleNameExtractor> train = new WorkerTrain<SampleNameExtractor>(producer, numThreads, 10, log);
+
+		while (train.hasNext()) {
+			SampleNameExtractor ex = train.next();
+			String bamSamp = ex.getName();
 			if (bamSamples.containsKey(bamSamp)) {
 				throw new IllegalArgumentException("Bams must be sample unique");
 			} else {
-				bamSamples.put(bamSamp, bams[i]);
+				bamSamples.put(bamSamp, ex.getBamFile());
 				if (variantSets != null) {
 					for (String set : variantSets) {
-						bamSamples.put(bamSamp + set, bams[i]);
+						bamSamples.put(bamSamp + set, ex.getBamFile());
 					}
 				}
 			}

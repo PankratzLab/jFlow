@@ -25,7 +25,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-final class BamExtractor {
+public class BamExtractor {
 	public static final String BP_BUFFER_COMMAND = "bpBuffer=";
 	private Segment[] segmentsToExtract;
 	private final String bamFile;
@@ -129,7 +129,7 @@ final class BamExtractor {
 
 	}
 
-	private static class WorkerExtractor implements Callable<BamExtractor> {
+	public static class WorkerExtractor implements Callable<BamExtractor> {
 		private BamExtractor bamExtractor;
 		private String outputBam;
 
