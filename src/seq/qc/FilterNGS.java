@@ -885,7 +885,7 @@ public class FilterNGS implements Serializable {
 		};
 	}
 
-	private VcFilterBoolean getDNMFilter(VARIANT_FILTER_BOOLEAN bfilter, GENOTYPE_FLAG_INFO info, Logger log) {
+	private VcFilterBoolean getDNMFilter(VARIANT_FILTER_BOOLEAN bfilter, final GENOTYPE_FLAG_INFO info, final Logger log) {
 		return new VcFilterBoolean(bfilter) {
 			/**
 			 * 

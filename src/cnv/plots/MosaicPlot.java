@@ -56,7 +56,7 @@ public class MosaicPlot extends JFrame implements ActionListener {
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
         
-        JCheckBoxMenuItem hideExcluded = new JCheckBoxMenuItem();
+        final JCheckBoxMenuItem hideExcluded = new JCheckBoxMenuItem();
         hideExcluded.setMnemonic(KeyEvent.VK_E);
         hideExcluded.addActionListener(new ActionListener() {
             @Override
