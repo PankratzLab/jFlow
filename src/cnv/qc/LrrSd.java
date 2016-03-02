@@ -182,17 +182,19 @@ public class LrrSd extends Parallelizable {
         
         lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
         bafs = cents == null ? fsamp.getBAFs() : fsamp.getBAFs(cents);
-        bafsWide = bafs;
-
-        if (markersForEverythingElse != null) {
-            lrrs = Array.subArray(lrrs, markersForEverythingElse);
-            bafs = Array.subArray(bafs, markersForEverythingElse);
-            bafsWide = Array.subArray(bafsWide, markersForEverythingElse);
-        }
-        
+		bafsWide = bafs;
+		markersForEverythingElse = markersForEverythingElse == null ? proj.getAutosomalMarkerBoolean() : markersForEverythingElse;
+		if (markersForEverythingElse == null || markersForEverythingElse.length == 0) {
+			proj.getLog().reportTimeWarning("Could not determine appropriate marker subset, lrr_sd.xln data for sample " + fsamp.getSampleName() + " will be based on all markers, not just autosomal markers");
+			markersForEverythingElse = null;
+		} else {
+			lrrs = Array.subArray(lrrs, markersForEverythingElse);
+			bafs = Array.subArray(bafs, markersForEverythingElse);
+			bafsWide = Array.subArray(bafsWide, markersForEverythingElse);
+		}
         abGenotypes = fsamp.getAB_Genotypes();
         forwardGenotypes = fsamp.getForwardGenotypes();
-        
+        //TODO, remove cnv only probes using proj Array type if markersForCallrate is not provided...
         if (markersForCallrate != null) {//we do not need autosomal only markers here...
             abGenotypes = (abGenotypes == null ? abGenotypes : Array.subArray(abGenotypes, markersForCallrate));
             forwardGenotypes = (forwardGenotypes == null ? forwardGenotypes : Array.subArray(forwardGenotypes, markersForCallrate));
@@ -246,7 +248,7 @@ public class LrrSd extends Parallelizable {
 		lrrMadPost = Double.NaN;
 		lrrMadBoundPost = Double.NaN;
         if (gcModel != null) {
-			GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, pMarkerSet, lrrs, gcModel, correctionMethod, true, true, false);
+			GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, pMarkerSet, cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents), gcModel, correctionMethod, true, true, false);
             if (!gcAdjustor.isFail()) {
                 wfPrior = gcAdjustor.getWfPrior();
                 gcwfPrior = gcAdjustor.getGcwfPrior();
@@ -271,15 +273,15 @@ public class LrrSd extends Parallelizable {
 		}
         
 		multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-		if (markersForEverythingElse == null) {
-		    int[] inds = proj.getAutosomalMarkerIndices();
-		    lrrs = Array.subArray(lrrs, inds);
-		    if (lrrs == null) {
-		        proj.getLog().reportTimeError("invalid index of marker in getAutosomalMarkerIndices().");
-		        lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
-		        proj.getLog().reportTimeWarning("lrr_sd.xln data for sample " + fsamp.getSampleName() + " will be based on all markers, not just autosomal markers");
-		    }
-		}
+//		if (markersForEverythingElse == null) {
+//		    int[] inds = proj.getAutosomalMarkerIndices();
+//		    lrrs = Array.subArray(lrrs, inds);
+//		    if (lrrs == null) {
+//		        proj.getLog().reportTimeError("invalid index of marker in getAutosomalMarkerIndices().");
+//		        lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
+//		        proj.getLog().reportTimeWarning("lrr_sd.xln data for sample " + fsamp.getSampleName() + " will be based on all markers, not just autosomal markers");
+//		    }
+//		}
 	    double[] dlrrs = Array.toDoubleArray(lrrs);
 		double[] tmp = CNVCaller.adjustLrr(dlrrs, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
 		tmp = Array.removeNaN(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));
