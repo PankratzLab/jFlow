@@ -1352,13 +1352,26 @@ public class Project {
 		return tmp.toArray(new String[tmp.size()]);
 	}
 	
+	/**
+	 * @return indices of autosomal markers
+	 */
 	public int[] getAutosomalMarkerIndices() {
 		String[] autosomalMarkers = getAutosomalMarkers();
 		int[] indices = ext.indexLargeFactors(autosomalMarkers, getMarkerNames(), true, log, true, false);
 		return indices;
 	}
-
 	
+	/**
+	 * @return boolean representation of autosomal markers
+	 */
+	public boolean[] getAutosomalMarkerBoolean() {
+		int[] indices = getAutosomalMarkerIndices();
+		boolean[] autoB = Array.booleanArray(getMarkerNames().length, false);
+		for (int i = 0; i < indices.length; i++) {
+			autoB[indices[i]] = true;
+		}
+		return autoB;
+	}
 	
 	
 	/**
