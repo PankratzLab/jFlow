@@ -63,31 +63,54 @@ public class SamRecordOps {
 		return d;
 	}
 
+	public static class SoftClipped {
+		private String bases;
+		private Segment refSeg;// for soft clipped, this should always be a 1 bp seg
+
+		public SoftClipped(String bases, Segment refSeg) {
+			super();
+			this.bases = bases;
+			this.refSeg = refSeg;
+		}
+
+		public String getBases() {
+			return bases;
+		}
+
+		public Segment getRefSeg() {
+			return refSeg;
+		}
+
+	}
+
 	/**
 	 * @param samRecord
 	 * @param log
 	 * @return String[] containing any bp sequences that were soft clipped
 	 */
-	public static String[] getSoftClippedBases(SAMRecord samRecord, Logger log) {
-		ArrayList<String> softies = new ArrayList<String>();
+	public static SoftClipped[] getSoftClippedBases(SAMRecord samRecord, Logger log) {
+		ArrayList<SoftClipped> softies = new ArrayList<SoftClipped>();
 		Cigar cigar = samRecord.getCigar();
 		String[] bases = Array.decodeByteArray(samRecord.getReadBases(), log);
 		int curStart = 0;
 		int readIndex = 0;
+
+		byte chr = getChromosome(samRecord, log);
 		for (CigarElement cigarElement : cigar.getCigarElements()) {
 			if (cigarElement.getOperator().consumesReadBases()) {
 				readIndex += cigarElement.getLength();
 			}
 			if (cigarElement.getOperator() == CigarOperator.S) {
 				String softy = Array.toStr(Array.subArray(bases, curStart, readIndex), "");
-				softies.add(softy);
-
+				// soft clips are at begining and ends of reads....
+				int refPos = curStart == 0 ? samRecord.getReferencePositionAtReadPosition(readIndex) : samRecord.getReferencePositionAtReadPosition(curStart);
+				softies.add(new SoftClipped(softy, new Segment(chr, refPos, refPos)));
 			}
 			if (cigarElement.getOperator().consumesReadBases()) {
 				curStart += cigarElement.getLength();
 			}
 		}
-		return Array.toStringArray(softies);
+		return softies.toArray(new SoftClipped[softies.size()]);
 	}
 
 }
