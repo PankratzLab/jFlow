@@ -59,7 +59,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final double DOUBLE_INACCURACY_HEDGE = 0.00001;
 	public static final double MINIMUM_ZOOM_PROPORTION_WINDOW = 0.0001;
 	public static final float DEFAULT_MOUSE_WHEEL_MULTIPLIER = 0.5f;
-	public static final int DEFAULT_PLOTPOINTSET_SIZE = 1000000;
+	public static final int DEFAULT_PLOTPOINTSET_SIZE = 10;
 	public static final int SIZE = 12;
 	public static final double HIGHLIGHT_DISTANCE = 20;//= Math.sqrt(SIZE*SIZE/2);
 	public static final int DELAY = 0;	//A control variable to reduce the repaint() operations during component resizing;
@@ -1531,8 +1531,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	 */
 	public void highlightPoints(boolean[] array) {
 		if (points.length != array.length) {
-			System.err.println("Error - mismatched array size when highlighting");
-		} else {
+		    if (DEBUGGING) {
+		        System.err.println("Error - mismatched array size when highlighting");
+		    }
+	    } else {
 			for (int i=0; i<points.length; i++) {
 				if (points[i]!=null && array[i]) {
 					points[i].setHighlighted(true);

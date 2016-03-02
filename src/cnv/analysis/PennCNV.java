@@ -752,7 +752,7 @@ public class PennCNV {
 			if (i % 100 == 0) {
 				log.report("Loading file "+(i+1)+" of "+sampleList.length);
 			}
-			samp = proj.getFullSampleFromRandomAccessFile(sampleList[i]);
+			samp = proj.getPartialSampleFromRandomAccessFile(sampleList[i], false, false, true, false, true);
 			bafs = samp.getBAFs();
 			genotypes = samp.getAB_Genotypes();
 			for (int j=0; j<bafSum.length; j++) {
