@@ -685,7 +685,7 @@ public class GenvisisPipeline {
             
             proj.getLog().report("Running PLINK");
             
-            boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, "plink", null, null, -1, true);
+            boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, "plink/plink", null, null, -1, true);
             if (!create) {
                 setFailed();
                 this.failReasons.add("Creation of initial PLINK files failed.");
