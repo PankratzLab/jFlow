@@ -7,6 +7,7 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import cnv.var.LocusSet;
 import filesys.Segment;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
@@ -21,6 +22,7 @@ import seq.manage.BamExtractor;
 import seq.manage.BamExtractor.WorkerExtractor;
 import seq.manage.BamOps;
 import seq.manage.SamRecordOps;
+import seq.manage.SamRecordOps.SoftClipped;
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import common.Array;
@@ -59,10 +61,11 @@ public class Indelathon {
 		Hashtable<String, String> matchedIndelSamps = BamOps.matchToVcfSamplesToBamFiles(samps, variantSets, indelBams, numThreads, log);
 		SoftClipResultProducer producer = new SoftClipResultProducer(samps, sampSegs, matchedIndelSamps, log);
 		WorkerTrain<SoftClipResult> train = new WorkerTrain<Indelathon.SoftClipResult>(producer, numThreads, 10, log);
-		
+
 		while (train.hasNext()) {
 			train.next();
 		}
+
 	}
 
 	/**
@@ -70,34 +73,72 @@ public class Indelathon {
 	 *
 	 */
 	private static class SoftClipResult implements Callable<SoftClipResult> {
-		private ArrayList<Segment> toQuery;
+		private LocusSet<Segment> locs;
 		private Hashtable<String, Integer> scCounts;
+		private Hashtable<String, ArrayList<String>> segScs;
+		private String scCountSerFile;
+		private String segScsSerFile;
+
 		private String vcfSample;
 		private String bamFile;
 		private Logger log;
 
 		public SoftClipResult(ArrayList<Segment> toQuery, String vcfSample, String bamFile, Logger log) {
 			super();
-			this.toQuery = toQuery;
+			this.locs = new LocusSet<Segment>(toQuery.toArray(new Segment[toQuery.size()]), true, log) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+			};
 			this.vcfSample = vcfSample;
 			this.bamFile = bamFile;
+			this.scCountSerFile = bamFile == null ? null : ext.rootOf(bamFile, false) + ".softclippedCounts.ser";
+			this.segScsSerFile = bamFile == null ? null : ext.rootOf(bamFile, false) + ".softclippedSegmentCounts.ser";
 			this.log = log;
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public SoftClipResult call() throws Exception {
+			this.scCounts = new Hashtable<String, Integer>();
+			this.segScs = new Hashtable<String, ArrayList<String>>();
+
 			if (bamFile != null) {
+				// if (!Files.exists(scCountSerFile) || !Files.exists(segScsSerFile)) {
 				SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
 				samReaderFactory.validationStringency(ValidationStringency.LENIENT);
 				SamReader reader = samReaderFactory.open(new File(bamFile));
 				for (SAMRecord samRecord : reader) {
 					if (!samRecord.getReadUnmappedFlag() && samRecord.getReadPairedFlag() && !samRecord.getMateUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
-						String[] softs = SamRecordOps.getSoftClippedBases(samRecord, log);
+						SoftClipped[] softs = SamRecordOps.getSoftClippedBases(samRecord, log);
 						if (softs.length > 0) {
-							System.out.println(Array.toStr(softs));
+							for (int i = 0; i < softs.length; i++) {
+								if (!scCounts.containsKey(softs[i])) {
+									scCounts.put(softs[i].getBases(), 0);
+								}
+								scCounts.put(softs[i].getBases(), scCounts.get(softs[i].getBases()) + 1);
+								Segment[] varLocs = locs.getOverLappingLoci(softs[i].getRefSeg());
+								if (varLocs != null) {
+									for (int j = 0; j < varLocs.length; j++) {
+										if (!segScs.containsKey(varLocs[i].getChromosomeUCSC())) {
+											segScs.put(varLocs[i].getChromosomeUCSC(), new ArrayList<String>());
+										}
+										segScs.get(varLocs[i].getChromosomeUCSC()).add(softs[i].getBases());
+									}
+								}
+							}
 						}
 					}
 				}
+				Files.writeSerial(scCounts, scCountSerFile, true);
+				Files.writeSerial(segScs, segScsSerFile, true);
+
+				// }
+				scCounts = (Hashtable<String, Integer>) Files.readSerial(scCountSerFile, false, log, false, true);
+				segScs = (Hashtable<String, ArrayList<String>>) Files.readSerial(segScsSerFile, false, log, false, true);
+
 			} else {
 				log.reportTimeWarning("Skipping sample " + vcfSample + " could not determine bam file");
 			}
@@ -134,7 +175,6 @@ public class Indelathon {
 			String bamFile = null;
 			if (matchedIndelSamps.containsKey(vcfSample)) {
 				bamFile = matchedIndelSamps.get(vcfSample);
-				System.out.println(bamFile + "\t" + sampSegs.containsKey(vcfSample));
 				toQuery = sampSegs.get(vcfSample);
 			}
 			SoftClipResult sc = new SoftClipResult(toQuery, vcfSample, bamFile, log);
