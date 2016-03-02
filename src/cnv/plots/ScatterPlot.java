@@ -2408,7 +2408,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			if (clusterFilterCollection.getSize(getMarkerName())>0) {
 //				seletedScatterPanel.rectangles[currentClusterFilter].setColor((byte)7);
 				for (int i = 0; i < scatterPanels.length; i++) {
-					scatterPanels[i].rectangles[currentClusterFilter].setColor((byte)7);
+				    if (scatterPanels[i].rectangles != null) {
+				        scatterPanels[i].rectangles[currentClusterFilter].setColor((byte)7);
+				    }
 				}
 				//scatPanel.setRectangles();
 				setCurrentClusterFilter((byte) Math.max(currentClusterFilter-1, 0));
@@ -2427,7 +2429,9 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			if (clusterFilterCollection.getSize(getMarkerName())>0) {
 //				seletedScatterPanel.rectangles[currentClusterFilter].setColor((byte)7);
 				for (int i = 0; i < scatterPanels.length; i++) {
-					scatterPanels[i].rectangles[currentClusterFilter].setColor((byte)7);
+                    if (scatterPanels[i].rectangles != null) {
+                        scatterPanels[i].rectangles[currentClusterFilter].setColor((byte)7);
+                    }
 				}
 				//scatPanel.setRectangles();
 				setCurrentClusterFilter((byte) Math.min(currentClusterFilter+1, (clusterFilterCollection.getSize(getMarkerName())==0?0:(clusterFilterCollection.getSize(getMarkerName())-1))));

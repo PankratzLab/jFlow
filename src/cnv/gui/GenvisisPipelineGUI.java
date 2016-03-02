@@ -75,6 +75,7 @@ public class GenvisisPipelineGUI extends JDialog {
     volatile boolean cancelled = false;
     volatile boolean[] selected;
     STEP[] steps;
+    int DEFAULT_SCROLL_SPEED = 16;
     
     /**
      * Create the dialog.
@@ -102,6 +103,7 @@ public class GenvisisPipelineGUI extends JDialog {
         JScrollPane scrollPane = new JScrollPane(optionPanel);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(DEFAULT_SCROLL_SPEED);
         contentPanel.setLayout(new MigLayout("", "[grow]", "[][][]"));
         contentPanel.add(scrollPane, "cell 0 2, grow");
         getContentPane().add(contentPanel, BorderLayout.CENTER);
