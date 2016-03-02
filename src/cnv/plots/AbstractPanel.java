@@ -490,7 +490,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //			minimumObservedRawX = minimumObservedRawX;
 		} else {
 			if (forcePlotXmin > minimumObservedRawX) {
-				System.err.println("WARNING - specified [minimum X boundary : " + forcePlotXmin + "] is higher than the data point with the [lowest X value : " + minimumObservedRawX + "]");
+			    if (DEBUGGING) {
+			        System.err.println("WARNING - specified [minimum X boundary : " + forcePlotXmin + "] is higher than the data point with the [lowest X value : " + minimumObservedRawX + "]");
+			    }
 			}
 			minimumObservedRawX = forcePlotXmin;
 		}
@@ -498,7 +500,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			maximumObservedRawX = (maximumObservedRawX + (maximumObservedRawX - minimumObservedRawX) * (float) 0.01);
 		} else {
 			if (forcePlotXmax < maximumObservedRawX) {
-				System.err.println("WARNING - specified [maximum X boundary : " + forcePlotXmax + "] is lower than the data point with the [highest X value : " + maximumObservedRawX + "]");
+			    if (DEBUGGING) {
+			        System.err.println("WARNING - specified [maximum X boundary : " + forcePlotXmax + "] is lower than the data point with the [highest X value : " + maximumObservedRawX + "]");
+			    }
 			}
 			maximumObservedRawX = forcePlotXmax;
 		}
@@ -506,7 +510,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //			minimumObservedRawY = minimumObservedRawY;
 		} else {
 			if (forcePlotYmin > minimumObservedRawY) {
-				System.err.println("WARNING - specified [minimum Y boundary : " + forcePlotYmin + "] is higher than the data point with the [lowest Y value : " + minimumObservedRawY + "]");
+			    if (DEBUGGING) {
+			        System.err.println("WARNING - specified [minimum Y boundary : " + forcePlotYmin + "] is higher than the data point with the [lowest Y value : " + minimumObservedRawY + "]");
+			    }
 			}
 			minimumObservedRawY = forcePlotYmin;
 		}
@@ -514,7 +520,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			maximumObservedRawY = (maximumObservedRawY + (maximumObservedRawY - minimumObservedRawY) * (float) 0.01);
 		} else {
 			if (forcePlotYmax < maximumObservedRawY) {
-				System.err.println("WARNING - specified [maximum Y boundary : " + forcePlotYmax + "] is lower than the data point with the [highest Y value : " + maximumObservedRawY + "]");
+			    if (DEBUGGING) {
+			        System.err.println("WARNING - specified [maximum Y boundary : " + forcePlotYmax + "] is lower than the data point with the [highest Y value : " + maximumObservedRawY + "]");
+			    }
 			}
 			maximumObservedRawY = forcePlotYmax;
 		}

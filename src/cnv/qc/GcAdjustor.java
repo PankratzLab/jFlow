@@ -221,19 +221,21 @@ public class GcAdjustor {
 					this.wfPrior = wavesOriginal[0];
 					this.gcwfPrior = wavesOriginal[1];
 				}
-				if (computePost || computePrior) {
-					if (computePrior) {
-						proj.getLog().reportTimeInfo("WF_PRIOR   -> " + wfPrior);
-					}
-					if (computePost) {
-						proj.getLog().reportTimeInfo("WF_POST    -> " + wfPost);
-					}
-					if (computePrior) {
-						proj.getLog().reportTimeInfo("GCWF_PRIOR -> " + gcwfPrior);
-					}
-					if (computePost) {
-						proj.getLog().reportTimeInfo("GCWF_PRIOR -> " + gcwfPost);
-					}
+				if (verbose) {
+    				if (computePost || computePrior) {
+    					if (computePrior) {
+    						proj.getLog().reportTimeInfo("WF_PRIOR   -> " + wfPrior);
+    					}
+    					if (computePost) {
+    						proj.getLog().reportTimeInfo("WF_POST    -> " + wfPost);
+    					}
+    					if (computePrior) {
+    						proj.getLog().reportTimeInfo("GCWF_PRIOR -> " + gcwfPrior);
+    					}
+    					if (computePost) {
+    						proj.getLog().reportTimeInfo("GCWF_PRIOR -> " + gcwfPost);
+    					}
+    				}
 				}
 			} else {
 				proj.getLog().reportError("Error - cannot compute qc metrics");

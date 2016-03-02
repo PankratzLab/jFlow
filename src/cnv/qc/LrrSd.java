@@ -118,7 +118,7 @@ public class LrrSd extends Parallelizable {
 			writer.println(SAMPLE_COLUMN + "\t" + Array.toStr(NUMERIC_COLUMNS));
 			PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 			for (int i = 0; i<samples.length; i++) {
-	        	log.report((i+1)+" of "+samples.length);
+//	        	log.report((i+1)+" of "+samples.length);
 				fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
 				if (fsamp == null) {
 					log.reportError("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
@@ -271,7 +271,16 @@ public class LrrSd extends Parallelizable {
 		}
         
 		multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-		double[] dlrrs = Array.toDoubleArray(lrrs);
+		if (markersForEverythingElse == null) {
+		    int[] inds = proj.getAutosomalMarkerIndices();
+		    lrrs = Array.subArray(lrrs, inds);
+		    if (lrrs == null) {
+		        proj.getLog().reportTimeError("invalid index of marker in getAutosomalMarkerIndices().");
+		        lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
+		        proj.getLog().reportTimeWarning("lrr_sd.xln data for sample " + fsamp.getSampleName() + " will be based on all markers, not just autosomal markers");
+		    }
+		}
+	    double[] dlrrs = Array.toDoubleArray(lrrs);
 		double[] tmp = CNVCaller.adjustLrr(dlrrs, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
 		tmp = Array.removeNaN(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));
 		lrrsdBound = Array.stdev(tmp, true);

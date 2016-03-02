@@ -4747,7 +4747,7 @@ public class Array {
 	 *            generic: can take any type of object
 	 * @return a flat array containing the elements of all given arrays
 	 */
-	public static <T> T[] concatAll(T[] first, @SuppressWarnings("unchecked") T[]... rest) {
+	public static <T> T[] concatAll(T[] first, T[]... rest) {
 		int totalLength = first.length;
 		for (T[] array : rest) {
 			totalLength += array.length;
