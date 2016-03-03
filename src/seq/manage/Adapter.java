@@ -25,13 +25,40 @@ public class Adapter {
 		String seq = "CTGTCTCTTGATCACA";
 		String name = "AgilentQXT_Adapter";
 		String description = "Adapter sequence for Agilent QXT protocol";
-
 		return new Adapter(seq, name, description);
 	}
 
-	public static ArrayList<Adapter> getCurrentAdapters() {
+	public static Adapter getIlluminaTopAdapter() {
+		String seq = "ACACTCTTTCCCTACACGACGCTCTTCCGATC";
+		String name = "IlluminaTop_Adapter";
+		String description = "Adapter sequence for Illumina Top adapter";
+		return new Adapter(seq, name, description);
+	}
+
+	public static Adapter getIlluminaBottomAdapter() {
+		String seq = "GATCGGAAGAGCGGTTCAGCAGGAATGCCGAG";
+		String name = "IlluminaBottom_Adapter";
+		String description = "Adapter sequence for Illumina Bottom adapter";
+		return new Adapter(seq, name, description);
+	}
+
+	public static Adapter[] getBarcodes(String[] barCodes) {
+		Adapter[] adapters = new Adapter[barCodes.length];
+		for (int i = 0; i < barCodes.length; i++) {
+			adapters[i] = new Adapter(barCodes[i], barCodes[i] + "_barcode", "barcode");
+		}
+		return adapters;
+	}
+	
+
+	public static ArrayList<Adapter> getCurrentAdapters(Adapter[] extras) {
 		ArrayList<Adapter> adapters = new ArrayList<Adapter>();
 		adapters.add(getAgilentQXTAdapter());
+		adapters.add(getIlluminaTopAdapter());
+		adapters.add(getIlluminaBottomAdapter());
+		for (int i = 0; i < extras.length; i++) {
+			adapters.add(extras[i]);
+		}
 		return adapters;
 	}
 

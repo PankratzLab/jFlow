@@ -70,10 +70,16 @@ public class Indelathon {
 		while (train.hasNext()) {
 			results.add(train.next());
 		}
-
+		String outBarCode = outDir + "barCodes.txt";
+		String bcPrint = "bamSample\tbam\tBarcode1\tBarcode2";
+		for (int i = 0; i < bams.length; i++) {
+			ArrayList<String> bc = BamOps.getBarcodesFor(bams[i], log);
+			bcPrint += "\n" + BamOps.getSampleName(bams[i]) + bams[i] + "\t" + bc.toArray(new String[bc.size()]);
+		}
+		Files.write(bcPrint, outBarCode);
 		String out = outDir + "countit.txt";
 		HashSet<String> allClips = new HashSet<String>();
-		ArrayList<Adapter> adapters = Adapter.getCurrentAdapters();
+		ArrayList<Adapter> adapters = Adapter.getCurrentAdapters(Adapter.getBarcodes(BamOps.getAllBarCodes(bams, log)));
 		for (SoftClipResult result : results) {
 			for (String clip : result.getScAllCounts().keySet()) {
 				if (clip.replaceAll("N", "").length() >= minSCLenth && result.getScAllCounts().get(clip) >= minSCCount) {
@@ -86,7 +92,7 @@ public class Indelathon {
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			writer.print("SoftClippedSequence");
+			writer.print("SoftClippedSequence\tPercentAdapterInSoftClip");
 			for (SoftClipResult result : results) {
 				if (result.getBamFile() != null) {
 					writer.print("\t" + result.getVcfSample());

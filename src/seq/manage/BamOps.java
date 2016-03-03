@@ -2,6 +2,8 @@ package seq.manage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +18,7 @@ import htsjdk.samtools.BAMIndex;
 import htsjdk.samtools.BAMIndexMetaData;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReader.Indexing;
@@ -95,6 +98,42 @@ public class BamOps {
 
 	}
 
+	public static String[] getAllBarCodes(String[] bams, Logger log) {
+		HashSet<String> unique = new HashSet<String>();
+		for (int i = 0; i < bams.length; i++) {
+			unique.addAll(getBarcodesFor(bams[i], log));
+		}
+		return unique.toArray(new String[unique.size()]);
+	}
+
+	public static ArrayList<String> getBarcodesFor(String bam, Logger log) {
+		ArrayList<String> barcodes = new ArrayList<String>();
+		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
+		samReaderFactory.validationStringency(ValidationStringency.LENIENT);
+		SamReader reader = samReaderFactory.open(new File(bam));
+		List<SAMReadGroupRecord> rgs = reader.getFileHeader().getReadGroups();
+		HashSet<String> barcodesUnique = new HashSet<String>();
+		for (SAMReadGroupRecord samReadGroupRecord : rgs) {
+			String[] id = samReadGroupRecord.getId().split("_");
+			String[] tmpCodes = id[id.length - 3].split("-");
+			if (tmpCodes.length != 2) {
+				throw new IllegalArgumentException("Could not parse barcodes for RG " + samReadGroupRecord + " in bam file " + bam);
+
+			} else {
+				for (int i = 0; i < tmpCodes.length; i++) {
+					if (tmpCodes[i].replaceAll("A", "").replaceAll("C", "").replaceAll("T", "").replaceAll("G", "").length() != 0) {
+						throw new IllegalArgumentException("Invalid barcode " + tmpCodes[i]);
+					} else {
+						barcodesUnique.add(tmpCodes[i]);
+					}
+				}
+			}
+
+		}
+		barcodes.addAll(barcodesUnique);
+		return barcodes;
+	}
+	
 	public static String[] getSampleNames(String[] bamFiles) {
 		String[] sampleNames = new String[bamFiles.length];
 		for (int i = 0; i < sampleNames.length; i++) {
