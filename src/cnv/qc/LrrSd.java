@@ -273,15 +273,6 @@ public class LrrSd extends Parallelizable {
 		}
         
 		multimodal = Array.isMultimodal(Array.toDoubleArray(Array.removeNaN(bafsWide)), 0.1, 0.5, 0.01);
-//		if (markersForEverythingElse == null) {
-//		    int[] inds = proj.getAutosomalMarkerIndices();
-//		    lrrs = Array.subArray(lrrs, inds);
-//		    if (lrrs == null) {
-//		        proj.getLog().reportTimeError("invalid index of marker in getAutosomalMarkerIndices().");
-//		        lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
-//		        proj.getLog().reportTimeWarning("lrr_sd.xln data for sample " + fsamp.getSampleName() + " will be based on all markers, not just autosomal markers");
-//		    }
-//		}
 	    double[] dlrrs = Array.toDoubleArray(lrrs);
 		double[] tmp = CNVCaller.adjustLrr(dlrrs, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
 		tmp = Array.removeNaN(Array.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST, CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));

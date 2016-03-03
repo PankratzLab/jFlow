@@ -884,8 +884,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public String[] getNamesSelected() {
 	    ArrayList<String> resultList = new ArrayList<String>();
 	    String[][] metaData = getCurrentColumnMetaData();
+	    String[][] selectedValues = tree.getSelectionValues();
 	    for (int i = 0; i < metaData.length; i++) {
-	        resultList.add(metaData[i] == null ? "" : metaData[i][4] + " chr" + metaData[i][0] + ":" + metaData[i][1]);
+	        resultList.add(metaData[i] == null ? dataColumnsHash.get(selectedValues[i][0])[Integer.parseInt(selectedValues[i][1])] : metaData[i][4] + " chr" + metaData[i][0] + ":" + metaData[i][1]);
 	    }
 	    String[] result = resultList.toArray(new String[resultList.size()]);
 	    return result;
@@ -1051,14 +1052,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     				            colorCode = getColorForScreenshot(ids[0]);
     				        } else {
     				            String[][] metaData = getCurrentColumnMetaData();
+    				            int chr = 0, start = 0, stop = 0;
     				            if (metaData != null && metaData.length != 0 && metaData[0] != null) {
-        				            int chr = Integer.parseInt(metaData[0][0]);
-        				            int start = Integer.parseInt(metaData[0][2]);
-        				            int stop = Integer.parseInt(metaData[0][3]);
-        				            colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) chr, start + ((stop - start) / 2));
-    				            } else {
-    				                colorCode = 0;
+        				            chr = Integer.parseInt(metaData[0][0]);
+        				            start = Integer.parseInt(metaData[0][2]);
+        				            stop = Integer.parseInt(metaData[0][3]);
     				            }
+    				            colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) chr, start + ((stop - start) / 2));
     				        }
     				    } else {
     				        colorCode = 0;
