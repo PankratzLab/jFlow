@@ -22,7 +22,7 @@ import common.ext;
 import filesys.Segment;
 
 public class Blast {
-	private static final String[] DB_EXTs = new String[] { ".nsq", ".nin", ".nhr" };
+	public static final String[] DB_EXTs = new String[] { ".nsq", ".nin", ".nhr" };
 	public static final String[] BLAST_HEADER = new String[] { "query id", "subject id", "% identity", "alignment length", "mismatches", "gap opens", "q. start", "q. end", "s. start", "s. end", "evalue", "bit score", "BTOP" };
 	private static final String DB = "-db";
 	private static final String IN = "-in";
