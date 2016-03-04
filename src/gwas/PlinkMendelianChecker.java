@@ -1,6 +1,4 @@
-package one.ben;
-
-import gwas.Plink;
+package gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,7 +18,7 @@ import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.qc.SampleQC;
 import cnv.var.SampleData;
 
-public class PLINKMendelianChecker {
+public class PlinkMendelianChecker {
     
     static class Pair {
 
@@ -240,7 +238,7 @@ public class PLINKMendelianChecker {
     final String mendelFile; // from MarkerMetrics.fullQC - outputs a property file with an appended name
     final String outDir;
     
-    public PLINKMendelianChecker(Project project) {
+    public PlinkMendelianChecker(Project project) {
         this.project = project;
         this.pedFile = project.PEDIGREE_FILENAME.getValue(false, false);
         this.mendelFile = ext.rootOf(project.MARKER_METRICS_FILENAME.getValue(true, false), false) + MarkerMetrics.DEFAULT_MENDEL_FILE_SUFFIX;
@@ -248,7 +246,7 @@ public class PLINKMendelianChecker {
         this.outDir = project.PROJECT_DIRECTORY.getValue(false, false);
     }
     
-    public PLINKMendelianChecker(String pedFile, String mendelFile, String genomeFile, String outDir) {
+    public PlinkMendelianChecker(String pedFile, String mendelFile, String genomeFile, String outDir) {
         this.project = null;
         this.pedFile = pedFile;
         this.mendelFile = mendelFile;
@@ -953,16 +951,16 @@ public class PLINKMendelianChecker {
         String projFile = null;
         String ped = null;
         String mendel = null;
-        String genomic = null;
+        String genome = null;
         String out = null;
 
         String usage = "\n" + 
-                       "one.ben.PLINKMendelianChecker requires 0-1 arguments\n" + 
+                       "gwas.PlinkMendelianChecker requires 0-1 arguments\n" + 
                        "   (1) Project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
                        "  OR \n" + 
                        "   (1) File with pedigree data (i.e. pedigree=pedigree.dat (not the default))\n" + 
                        "   (2) (optional) File with Mendelian Error data (i.e. mendel=markerQualityChecks.mendel (not the default))\n" + 
-                       "   (3) (optional) File with genomic cluster data (i.e. genomic=cluster.genome.gz (not the default))\n" + 
+                       "   (3) (optional) File with genomic cluster data (i.e. genome=cluster.genome.gz (not the default))\n" + 
                        "   (4) (optional) Directory of output (i.e. out=/path/to/dir/ (not the default))\n"+
                        "";
 
@@ -979,8 +977,8 @@ public class PLINKMendelianChecker {
             } else if (args[i].startsWith("mendel=")) {
                 mendel = args[i].split("=")[1];
                 numArgs--;
-            } else if (args[i].startsWith("genomic=")) {
-                genomic = args[i].split("=")[1];
+            } else if (args[i].startsWith("genome=")) {
+                genome = args[i].split("=")[1];
                 numArgs--;
             } else if (args[i].startsWith("out=")) {
                 out = args[i].split("=")[1];
@@ -995,12 +993,12 @@ public class PLINKMendelianChecker {
         }
         try {
             if (projFile != null) {
-                (new PLINKMendelianChecker(new Project(projFile, false))).run();
+                (new PlinkMendelianChecker(new Project(projFile, false))).run();
             } else if (ped != null) {
                 if (out == null) {
                     out = ext.parseDirectoryOfFile(ped);
                 }
-                (new PLINKMendelianChecker(ped, mendel, genomic, out)).run();
+                (new PlinkMendelianChecker(ped, mendel, genome, out)).run();
             } else {
                 System.err.println(usage);
                 System.exit(1);

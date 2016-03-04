@@ -20,7 +20,7 @@ public class Plink {
 	
 	public static final String[] FLAGS = new String[] {"duplicate", "parent-offspring", "sibling", "avuncular,gg", "first cousins,halfsibs", "second cousins"};
 	public static final double[][] THRESHOLDS = new double[][] {{0, 0, 0, 0.95}, // duplicate
-											{0, 0.90, 0, 0.49}, // parent-offspring
+											{0, 0.80, 0, 0.49}, // parent-offspring
 											{0, 0.30, 0.10, 0.35}, // sibling
 											{0, 0.40, 0, 0}, // second degree, avuncular, gg
 											{0, 0.20, 0, 0}, // third degree, cousins, halfsibs
