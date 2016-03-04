@@ -234,7 +234,8 @@ public class PlinkMendelianChecker {
     
     final Project project;
     final String pedFile;
-    final String genomeFile; // from property - cluster.genome.gz
+    final String genomeFile; // from property - plink.genome
+    final boolean genomeDNA; // is the genome file FID/IID or DNA/DNA?
     final String mendelFile; // from MarkerMetrics.fullQC - outputs a property file with an appended name
     final String outDir;
     
@@ -243,14 +244,16 @@ public class PlinkMendelianChecker {
         this.pedFile = project.PEDIGREE_FILENAME.getValue(false, false);
         this.mendelFile = ext.rootOf(project.MARKER_METRICS_FILENAME.getValue(true, false), false) + MarkerMetrics.DEFAULT_MENDEL_FILE_SUFFIX;
         this.genomeFile = project.GENOME_CLUSTER_FILENAME.getValue();
+        this.genomeDNA = false;
         this.outDir = project.PROJECT_DIRECTORY.getValue(false, false);
     }
     
-    public PlinkMendelianChecker(String pedFile, String mendelFile, String genomeFile, String outDir) {
+    public PlinkMendelianChecker(String pedFile, String mendelFile, String genomeFile, boolean genomeDNA, String outDir) {
         this.project = null;
         this.pedFile = pedFile;
         this.mendelFile = mendelFile;
         this.genomeFile = genomeFile;
+        this.genomeDNA = genomeDNA;
         this.outDir = ext.verifyDirFormat(outDir);
     }
     
@@ -329,21 +332,23 @@ public class PlinkMendelianChecker {
             String fidiid = childrenList.getKey();
             
             for (String childFIDIID : childrenList.getValue()) {
-//                String[] spl1 = childFIDIID.split("\t");
-//                String[] spl2 = fidiid.split("\t");
+                String[] spl1 = childFIDIID.split("\t");
+                String[] spl2 = fidiid.split("\t");
                 String childDNA = dnaLookup.get(childFIDIID); // shouldn't be nul, unless child DNA value was missing
                 String parentDNA = dnaLookup.get(fidiid); 
                 if (childDNA == null) {
                     continue;
                 }
                 if (parentDNA != null) {
-                    pairs.add(new Pair(childDNA, childDNA, parentDNA, parentDNA)); // for DNA/DNA genome file
-                    pairs.add(new Pair(parentDNA, parentDNA, childDNA, childDNA)); // either bi-directional here or in genome loader
+                    if (genomeDNA) {
+                        pairs.add(new Pair(childDNA, childDNA, parentDNA, parentDNA)); // for DNA/DNA genome file
+                        pairs.add(new Pair(parentDNA, parentDNA, childDNA, childDNA)); // either bi-directional here or in genome loader
+                    } else {                    
+                        pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // for fid/iid genome file
+                        pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // either bi-directional here or in genomeloader
+                    }
                 }
                 
-//                pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // for fid/iid genome file
-//                pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // either bi-directional here or in genomeloader
-
                 String[] famo = pedToFAMO.get(childFIDIID);
                 ArrayList<String> spouseChildren = null;
                 if (famo[0].equals(fidiid) && !".".equals(famo[1])) {
@@ -355,28 +360,34 @@ public class PlinkMendelianChecker {
                 HashSet<String> sameParentSibs = new HashSet<String>(childrenList.getValue());
                 for (String otherChild : spouseChildren) {
                     if (otherChild.equals(childFIDIID)) continue;
-//                    spl2 = otherChild.split("\t");
+                    spl2 = otherChild.split("\t");
                     if (sameParentSibs.contains(otherChild)) {
                         sameParentSibs.remove(otherChild);
                     }
                     String otherChildDNA = dnaLookup.get(otherChild);
                     if (otherChildDNA != null) {
-                        pairs.add(new Pair(childDNA, childDNA, otherChildDNA, otherChildDNA)); // sib1 -> sib2
-                        pairs.add(new Pair(otherChildDNA, otherChildDNA, childDNA, childDNA)); // sib2 -> sib1
+                        if (genomeDNA) {
+                            pairs.add(new Pair(childDNA, childDNA, otherChildDNA, otherChildDNA)); // sib1 -> sib2
+                            pairs.add(new Pair(otherChildDNA, otherChildDNA, childDNA, childDNA)); // sib2 -> sib1
+                        } else {
+                            pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // sib1 -> sib2
+                            pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // sib2 -> sib1
+                        }
                     }
-//                    pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // sib1 -> sib2
-//                    pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // sib2 -> sib1
                 }
                 for (String halfSib : sameParentSibs) {
                     if (halfSib.equals(childFIDIID)) continue;
                     String halfSibDNA = dnaLookup.get(halfSib);
                     if (halfSibDNA != null) {
-                        pairs.add(new Pair(childDNA, childDNA, halfSibDNA, halfSibDNA));
-                        pairs.add(new Pair(halfSibDNA, halfSibDNA, childDNA, childDNA));
+                        if (genomeDNA) {
+                            pairs.add(new Pair(childDNA, childDNA, halfSibDNA, halfSibDNA));
+                            pairs.add(new Pair(halfSibDNA, halfSibDNA, childDNA, childDNA));
+                        } else {
+                            spl2 = halfSib.split("\t");
+                            pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // sib1 -> sib2
+                            pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // sib2 -> sib1
+                        }
                     }
-//                    spl2 = halfSib.split("\t");
-//                    pairs.add(new Pair(spl1[0], spl1[1], spl2[0], spl2[1])); // sib1 -> sib2
-//                    pairs.add(new Pair(spl2[0], spl2[1], spl1[0], spl1[1])); // sib2 -> sib1
                 }
             }
         }
@@ -953,15 +964,17 @@ public class PlinkMendelianChecker {
         String mendel = null;
         String genome = null;
         String out = null;
-
+        boolean genomeDNA = false;
+        
         String usage = "\n" + 
                        "gwas.PlinkMendelianChecker requires 0-1 arguments\n" + 
                        "   (1) Project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
                        "  OR \n" + 
                        "   (1) File with pedigree data (i.e. pedigree=pedigree.dat (not the default))\n" + 
                        "   (2) (optional) File with Mendelian Error data (i.e. mendel=markerQualityChecks.mendel (not the default))\n" + 
-                       "   (3) (optional) File with genomic cluster data (i.e. genome=cluster.genome.gz (not the default))\n" + 
-                       "   (4) (optional) Directory of output (i.e. out=/path/to/dir/ (not the default))\n"+
+                       "   (3) (optional) File with genomic cluster data (i.e. genome=plink.genome (not the default))\n" +
+                       "   (4) (optional) If a genomeic cluster file is specified, specify if the id columns are FID/IID or DNA/DNA (i.e. genomeDNA=TRUE (not the default)) \n" + 
+                       "   (5) (optional) Directory of output (i.e. out=/path/to/dir/ (not the default))\n"+
                        "";
 
         for (int i = 0; i < args.length; i++) {
@@ -983,6 +996,9 @@ public class PlinkMendelianChecker {
             } else if (args[i].startsWith("out=")) {
                 out = args[i].split("=")[1];
                 numArgs--;
+            } else if (args[i].startsWith("genomeDNA=")) {
+                genomeDNA = ext.parseBooleanArg(args[i]);
+                numArgs--;
             } else {
                 System.err.println("Error - invalid argument: " + args[i]);
             }
@@ -998,7 +1014,7 @@ public class PlinkMendelianChecker {
                 if (out == null) {
                     out = ext.parseDirectoryOfFile(ped);
                 }
-                (new PlinkMendelianChecker(ped, mendel, genome, out)).run();
+                (new PlinkMendelianChecker(ped, mendel, genome, genomeDNA, out)).run();
             } else {
                 System.err.println(usage);
                 System.exit(1);
