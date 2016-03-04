@@ -15,7 +15,7 @@ import common.ext;
 import htsjdk.tribble.annotation.Strand;
 
 public class Adapter {
-
+	public static final String BARCODE ="barcode";
 	private String adaptorSequence;
 	private String adaptorRSSequence;// reverse strand
 	private String name;
@@ -45,11 +45,10 @@ public class Adapter {
 	public static Adapter[] getBarcodes(String[] barCodes) {
 		Adapter[] adapters = new Adapter[barCodes.length];
 		for (int i = 0; i < barCodes.length; i++) {
-			adapters[i] = new Adapter(barCodes[i], barCodes[i] + "_barcode", "barcode");
+			adapters[i] = new Adapter(barCodes[i], BARCODE, BARCODE);
 		}
 		return adapters;
 	}
-	
 
 	public static ArrayList<Adapter> getCurrentAdapters(Adapter[] extras) {
 		ArrayList<Adapter> adapters = new ArrayList<Adapter>();
