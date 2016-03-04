@@ -1,7 +1,10 @@
 package seq.analysis;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,6 +23,7 @@ import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
+import seq.analysis.Blast.BlastResults;
 import seq.analysis.Blast.BlastResultsSummary;
 import seq.manage.Adapter;
 import seq.manage.BamExtractor;
@@ -30,6 +34,7 @@ import seq.manage.SamRecordOps.SoftClipped;
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import common.Array;
+import common.ExcelConverter;
 import common.Files;
 import common.HashVec;
 import common.Logger;
@@ -46,13 +51,14 @@ import common.ext;
 public class Indelathon {
 
 	@SuppressWarnings("unchecked")
-	private static void summarizeSoftClippings(String vcf, String bamFilesFile, String outDir, Set<String> variantSets, int buffer, int minSCLenth, int minSCCount,int numThreads) {
+	private static void summarizeSoftClippings(String vcf, String bamFilesFile, String outDir, Set<String> variantSets, int buffer, int minSCLenth, int minSCCount, int numThreads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "indel.log");
 		String[] bams = HashVec.loadFileToStringArray(bamFilesFile, false, new int[] { 0 }, true);
 		String[] samps = VCFOps.getSamplesInFile(vcf);
-		Hashtable<String, String> matchedSamps = BamOps.matchToVcfSamplesToBamFiles(samps, variantSets, bams, numThreads, log);
+		ArrayList<String> excelFiles = new ArrayList<String>();
 
+		Hashtable<String, String> matchedSamps = BamOps.matchToVcfSamplesToBamFiles(samps, variantSets, bams, numThreads, log);
 		String outIndelVCF = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".indels.vcf.gz";
 		String outSegSer = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".indels.seg.ser";
 		Hashtable<String, ArrayList<Segment>> sampSegs = new Hashtable<String, ArrayList<Segment>>();
@@ -64,17 +70,21 @@ public class Indelathon {
 		String indelBamDir = outDir + "indel_bams/";
 		String[] indelBams = extractIndelSegments(indelBamDir, matchedSamps, sampSegs, buffer, numThreads, log);
 		Hashtable<String, String> matchedIndelSamps = BamOps.matchToVcfSamplesToBamFiles(samps, variantSets, indelBams, numThreads, log);
+
+		// extracting soft clips
 		SoftClipResultProducer producer = new SoftClipResultProducer(samps, sampSegs, matchedSamps, indelBamDir, log);
 		WorkerTrain<SoftClipResult> train = new WorkerTrain<Indelathon.SoftClipResult>(producer, numThreads, 10, log);
 		ArrayList<SoftClipResult> results = new ArrayList<Indelathon.SoftClipResult>();
 		while (train.hasNext()) {
 			results.add(train.next());
 		}
+
+		// summarize barcodes
 		String outBarCode = outDir + "barCodes.txt";
 		String bcPrint = "bamSample\tbam\tBarcode1\tBarcode2";
 		for (int i = 0; i < bams.length; i++) {
 			ArrayList<String> bc = BamOps.getBarcodesFor(bams[i], log);
-			bcPrint += "\n" + BamOps.getSampleName(bams[i]) + bams[i] + "\t" + bc.toArray(new String[bc.size()]);
+			bcPrint += "\n" + BamOps.getSampleName(bams[i]) + "\t" + bams[i] + "\t" + Array.toStr(bc.toArray(new String[bc.size()]));
 		}
 		Files.write(bcPrint, outBarCode);
 		String out = outDir + "countit.txt";
@@ -89,10 +99,11 @@ public class Indelathon {
 		}
 		String blastDir = outDir + "blast/";
 		String[] blasts = Adapter.blast(minSCLenth, adapters, allClips.toArray(new String[allClips.size()]), blastDir, "softClip", numThreads, log);
-
+		Hashtable<String, HitSummary> hits =summarizeBlasts(blasts, allClips, log);
 		try {
+			
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			writer.print("SoftClippedSequence\tPercentAdapterInSoftClip");
+			writer.print("Clip\t"+HitSummary.getHeader());
 			for (SoftClipResult result : results) {
 				if (result.getBamFile() != null) {
 					writer.print("\t" + result.getVcfSample());
@@ -100,7 +111,11 @@ public class Indelathon {
 			}
 			writer.println();
 			for (String clip : allClips) {
-				writer.print(clip);
+				HitSummary hitSummary = null;
+				if (hits.containsKey(clip)) {
+					hitSummary = hits.get(clip);
+				}
+				writer.print(clip + "\t" + (hitSummary == null ? HitSummary.getBlank() : hitSummary.getSummary()));
 				for (SoftClipResult result : results) {
 					if (result.getBamFile() != null) {
 						if (result.getScAllCounts().containsKey(clip)) {
@@ -108,6 +123,7 @@ public class Indelathon {
 						} else {
 							writer.print("\t0");
 						}
+						
 					}
 				}
 				writer.println();
@@ -119,6 +135,11 @@ public class Indelathon {
 			log.reportException(e);
 		}
 
+		excelFiles.add(out);
+		excelFiles.add(outBarCode);
+		String excelOut = outDir + "summary.xlsx";
+		ExcelConverter converter = new ExcelConverter(excelFiles, excelOut, log);
+		converter.convert(true);
 		for (SoftClipResult result : results) {
 			Hashtable<String, Integer> maxCountClipLength = new Hashtable<String, Integer>();
 			for (String clip : result.getScAllCounts().keySet()) {
@@ -133,6 +154,107 @@ public class Indelathon {
 			// result.g
 		}
 
+	}
+
+	private static class HitSummary {
+		private String clip;
+		private String adapterHit;
+		private String barcode;
+		private double minEvaladapter;
+		private double minEvalBarcode;
+
+		public HitSummary(String clip) {
+			super();
+			this.clip = clip;
+			this.minEvaladapter = Double.NaN;
+			this.minEvalBarcode = Double.NaN;
+			this.adapterHit = "NONE";
+			this.barcode = "NONE";
+		}
+
+		private String getSummary() {
+			return minEvalBarcode + "\t" + barcode + "\t" + minEvaladapter + "\t" + adapterHit;
+		}
+
+		public static String getBlank() {
+			return Double.NaN + "\t" + "NONE" + "\t" + Double.NaN + "\t" + "NONE";
+		}
+
+		public static String getHeader() {
+			return "MinEvalBarcode\tBarcode\tMinEvalAdapter\tAdapter";
+
+		}
+
+		public double getMinEvaladapter() {
+			return minEvaladapter;
+		}
+
+		public void setMinEvaladapter(double minEvaladapter) {
+			this.minEvaladapter = minEvaladapter;
+		}
+
+		public double getMinEvalBarcode() {
+			return minEvalBarcode;
+		}
+
+		public void setMinEvalBarcode(double minEvalBarcode) {
+			this.minEvalBarcode = minEvalBarcode;
+		}
+
+
+		public void setAdapterHit(String adapterHit) {
+			this.adapterHit = adapterHit;
+		}
+
+		public void setBarcode(String barcode) {
+			this.barcode = barcode;
+		}
+
+	}
+
+	private static Hashtable<String, HitSummary>  summarizeBlasts(String[] blastFiles, Set<String> softClip, Logger log) {
+		Hashtable<String, HitSummary> hits = new Hashtable<String, HitSummary>();
+
+		for (int i = 0; i < blastFiles.length; i++) {
+			try {
+				BufferedReader reader = Files.getAppropriateReader(blastFiles[i]);
+				reader.readLine();
+				while (reader.ready()) {
+					BlastResults result = new BlastResults(reader.readLine().trim().split("\t"), log);
+					String clip = result.getQueryID().split("_")[0];
+					boolean barcode = result.getSubjectID().split("_")[1].equals(Adapter.BARCODE);
+					if (!hits.containsKey(clip)) {
+						hits.put(clip, new HitSummary(clip));
+					}
+					if (barcode) {
+						if (Double.isNaN(hits.get(clip).getMinEvalBarcode())) {
+							hits.get(clip).setMinEvalBarcode(result.getEvalue());
+							hits.get(clip).setBarcode(result.getSubjectID());
+						} else if (hits.get(clip).getMinEvalBarcode() > result.getEvalue()) {
+							hits.get(clip).setMinEvalBarcode(result.getEvalue());
+							hits.get(clip).setBarcode(result.getSubjectID());
+						}
+					} else {
+						if (Double.isNaN(hits.get(clip).getMinEvaladapter())) {
+							hits.get(clip).setMinEvaladapter(result.getEvalue());
+							hits.get(clip).setAdapterHit(result.getSubjectID());
+						} else if (hits.get(clip).getMinEvaladapter() > result.getEvalue()) {
+							hits.get(clip).setMinEvaladapter(result.getEvalue());
+							hits.get(clip).setAdapterHit(result.getSubjectID());
+						}
+					}
+				}
+				reader.close();
+			} catch (FileNotFoundException fnfe) {
+				log.reportError("Error: file \"" + blastFiles[i] + "\" not found in current directory");
+				return null;
+			} catch (IOException ioe) {
+				log.reportError("Error reading file \"" + blastFiles[i] + "\"");
+				return null;
+			}
+		}
+		return hits;
+		
 	}
 
 	/**
@@ -383,7 +505,7 @@ public class Indelathon {
 			} else if (args[i].startsWith("minSCCount=")) {
 				minSCCount = ext.parseIntArg(args[i]);
 				numArgs--;
-			}else if (args[i].startsWith("sets=")) {
+			} else if (args[i].startsWith("sets=")) {
 				String[] tmp = ext.parseStringArg(args[i], "").split(",");
 				for (int j = 0; j < tmp.length; j++) {
 					sets.add(tmp[j]);

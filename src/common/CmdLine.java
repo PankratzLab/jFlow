@@ -59,9 +59,9 @@ public class CmdLine {
 						    b = new byte[in.available()];
 						    in.read(b);
 							if (log != null) {
-								log.report(new String(b, StandardCharsets.UTF_8),false,true);
+								log.report(new String(b, "UTF-8"),false,true);
 							} else if (inOs != null) {
-								inOs.print(new String(b, StandardCharsets.UTF_8));
+								inOs.print(new String(b, "UTF-8"));
 							}/* else {
 							}*/
 							b = null;
@@ -70,9 +70,9 @@ public class CmdLine {
 						    b = new byte[err.available()];
 						    err.read(b);
 							if (log != null) {
-								log.report(new String(b, StandardCharsets.UTF_8),false,true);
+								log.report(new String(b, "UTF-8"),false,true);
 							} else if (errOS != null) {
-								errOS.print(new String(b, StandardCharsets.UTF_8));
+								errOS.print(new String(b, "UTF-8"));
 							}/* else {
 							}*/
 							b = null;

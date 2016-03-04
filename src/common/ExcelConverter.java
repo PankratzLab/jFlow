@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -23,6 +24,20 @@ public class ExcelConverter {
 	private String output;
 	private Logger log;
 
+	public ExcelConverter(ArrayList<String> files, String output, Logger log) {
+		super();
+
+		this.files = new ArrayList<ExcelConversionParams>();
+		for (int i = 0; i < files.size(); i++) {
+			this.files.add(new ExcelConversionParams(files.get(i), "\t", ext.rootOf(files.get(i))));
+		}
+		this.output = output;
+		if (!output.endsWith(".xlsx")) {
+			throw new IllegalArgumentException("output must have .xlsx extension");
+		}
+		this.log = log;
+	}
+	
 	public ExcelConverter(List<ExcelConversionParams> files, String output, Logger log) {
 		super();
 		this.files = files;
