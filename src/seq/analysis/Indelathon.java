@@ -26,7 +26,6 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 import seq.analysis.Blast.BlastResults;
-import seq.analysis.Blast.BlastResultsSummary;
 import seq.manage.Adapter;
 import seq.manage.BamExtractor;
 import seq.manage.CigarOps;
