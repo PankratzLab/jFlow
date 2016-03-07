@@ -497,12 +497,12 @@ public class PlinkMendelianChecker {
             
             if (gl != null) {
                 
-                HashMap<String, String> genoLines = gl.pairData.get(ped.getiDNA(i) + "\t" + ped.getiDNA(i));
+                HashMap<String, String> genoLines = gl.pairData.get(ped.getFID(i) + "\t" + ped.getIID(i));
 
-                String key = faDNA + "\t" + faDNA;
+                String key = ped.getFID(i) + "\t" + ped.getFA(i);
                 if (genoLines == null || (!".".equals(faDNA) && !genoLines.containsKey(key))) {                    
                     genoLines = gl.pairData.get(key);
-                    key = ped.getiDNA(i) + "\t" + ped.getiDNA(i);
+                    key = ped.getFID(i) + "\t" + ped.getIID(i);
                 }
                 
                 if (genoLines == null || ".".equals(faDNA) || !genoLines.containsKey(key)) {
@@ -519,12 +519,12 @@ public class PlinkMendelianChecker {
                         .append(tmpGL[9]).append("\t");
                 }
 
-                genoLines = gl.pairData.get(ped.getiDNA(i) + "\t" + ped.getiDNA(i));
+                genoLines = gl.pairData.get(ped.getFID(i) + "\t" + ped.getIID(i));
 
-                key = moDNA + "\t" + moDNA;
+                key = ped.getFID(i) + "\t" + ped.getMO(i);
                 if (genoLines == null || (!".".equals(moDNA) && !genoLines.containsKey(key))) {                    
                     genoLines = gl.pairData.get(key);
-                    key = ped.getiDNA(i) + "\t" + ped.getiDNA(i);
+                    key = ped.getFID(i) + "\t" + ped.getIID(i);
                 }
                 
                 if (genoLines == null || ".".equals(moDNA) || !genoLines.containsKey(key)) {
@@ -733,11 +733,11 @@ public class PlinkMendelianChecker {
                             sb.append(".\t.\t.\t.\t.\t.\t");
                         } else {
                             
-                            HashMap<String, String> genoData = gl.pairData.get(parentDNA + "\t" + parentDNA);
-                            String key = childDNA + "\t" + childDNA; 
+                            HashMap<String, String> genoData = gl.pairData.get(fidiid);
+                            String key = childFIDIID; 
                             if (genoData == null || !genoData.containsKey(key)) {
                                 genoData = gl.pairData.get(key);
-                                key = parentDNA + "\t" + parentDNA;
+                                key = fidiid;
                             }
                             
                             if (genoData != null) {
@@ -804,12 +804,12 @@ public class PlinkMendelianChecker {
                         if (childDNA == null || otherChildDNA == null) {
                             sb.append(".\t.\t.\t.\t.\t.\t");
                         } else {
-                            HashMap<String, String> genoData = gl.pairData.get(childDNA + "\t" + childDNA);
+                            HashMap<String, String> genoData = gl.pairData.get(childFIDIID);
                             
-                            String key = otherChildDNA + "\t" + otherChildDNA;
+                            String key = otherChild;
                             if (genoData == null || !genoData.containsKey(key)) {
                                 genoData = gl.pairData.get(key);
-                                key = childDNA + "\t" + childDNA;
+                                key = childFIDIID;
                             }
                             
                             if (genoData != null) {
@@ -861,12 +861,12 @@ public class PlinkMendelianChecker {
                         if (childDNA == null || halfSibDNA == null) {
                             sb.append(".\t.\t.\t.\t.\t.\t");
                         } else {
-                            HashMap<String, String> genoData = gl.pairData.get(childDNA + "\t" + childDNA);
+                            HashMap<String, String> genoData = gl.pairData.get(childFIDIID);
                             
-                            String key = halfSibDNA + "\t" + halfSibDNA;
+                            String key = halfSib;
                             if (genoData == null || !genoData.containsKey(key)) {
                                 genoData = gl.pairData.get(key);
-                                key = childDNA + "\t" + childDNA;
+                                key = childFIDIID;
                             }
                             
                             if (genoData != null) {
