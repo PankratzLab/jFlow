@@ -936,8 +936,8 @@ public class Project {
         loaded.remove(PROJECT_PROPERTIES_FILENAME);
         try {
             reader = new BufferedReader(new FileReader(projectPropertiesFilename));
-            while (reader.ready()) {
-                trav = reader.readLine();
+            trav = null;
+            while ((trav = reader.readLine()) != null) {
                 index = trav.trim().indexOf("=");
                 if (trav.startsWith("#") || trav.startsWith("??_") || trav.equals("")) {
                     props.add(trav);
@@ -955,31 +955,24 @@ public class Project {
                         loaded.remove(key);
                         if (!valueString.equals(trav.trim().substring(index+1))) {
                             changes.add(key+"="+valueString);
-                            System.out.println("Was '"+trav.trim().substring(index+1)+"' now '"+valueString+"'");
+                            log.report("Was '"+trav.trim().substring(index+1)+"' now '"+valueString+"'");
                         }
-//                      props.add(key+"="+getProperty(key).getValueString());
-//                        loaded.remove(key);
-//                        if (!getProperty(key).getValueString().equals(trav.trim().substring(index+1))) {
-//                            changes.add(key+"="+getProperty(key).getValueString());
-//                            System.out.println("Was '"+trav.trim().substring(index+1)+"' now '"+getProperty(key).getValueString()+"'");
-//                        }
+                    } else {
+                        props.add(trav);
                     }
                 }
             }
             reader.close();
         } catch (FileNotFoundException fnfe) {
-            System.err.println("Error: file \""+projectPropertiesFilename+"\" not found in current directory");
+            log.reportError("Error: file \""+projectPropertiesFilename+"\" not found in current directory");
             System.exit(1);
         } catch (IOException ioe) {
-            System.err.println("Error reading file \""+projectPropertiesFilename+"\"");
+            log.reportError("Error reading file \""+projectPropertiesFilename+"\"");
             System.exit(2);
         }
         
         changed = false;
         if (loaded.size() > 0) {
-//          System.out.println("Default properties were unchanged - no properties file will be written");
-//          defaultProps = new Properties();
-//          Files.loadProperties(defaultProps, DEFAULT_PROPERTIES, true, true, false);
             for (int i = 0; i < loaded.size(); i++) {
                 key = loaded.elementAt(i);
                 
@@ -998,7 +991,7 @@ public class Project {
                     }
                     props.add(key+"="+valueString);
                     changes.add(key+"="+valueString);
-                    System.out.println("Default is '"+defaultValueString+"' now '"+valueString+"'");
+                    log.report("Default is '"+defaultValueString+"' now '"+valueString+"'");
                 }
             }
         }

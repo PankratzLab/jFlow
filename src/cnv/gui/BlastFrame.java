@@ -277,7 +277,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     /**
      * Create the frame.
      */
-    public BlastFrame(Project proj) {
+    public BlastFrame(Project proj, ChangeListener alignLengthListener) {
         super("Genvisis - BlastViewer - " + proj.PROJECT_NAME.getValue());
         this.proj = proj;
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -371,15 +371,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         double pRat = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
         int pRatLen = (int) (pLen * pRat);
         spinnerAlignmentLength = new JSpinner(new SpinnerNumberModel(pRatLen, 1, pLen, 1));
-        spinnerAlignmentLength.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                int value = ((SpinnerNumberModel) spinnerAlignmentLength.getModel()).getNumber().intValue();
-                updateAnnotations(value - 1);
-                updateLabels();
-                BlastFrame.this.repaint();
-            }
-        });
+        spinnerAlignmentLength.addChangeListener(alignLengthListener);
         panel.add(spinnerAlignmentLength, "flowx,cell 7 0");
         
         chckbxPinToFront = new JCheckBox("Pin to Front");
@@ -407,6 +399,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         blastPanel = new JPanel();
         blastPanel.setLayout(new MigLayout("", BLAST_COL_DEF, ""));
         scrollPane = new JScrollPane(blastPanel);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         splitPane.setLeftComponent(scrollPane);
         refLabel = new ReferenceLabel();
         probeLbl = new ReferenceLabel();
@@ -447,7 +440,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         this.updateLabels();
     }
     
-    private void updateAnnotations(int alignFilter) {
+    public void updateAnnotations(int alignFilter) {
         currentAlignFilter = alignFilter;
         this.annotations = BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, proj.getLog()), alignFilter);
     }
@@ -459,7 +452,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    BlastFrame frame = new BlastFrame(null);
+                    BlastFrame frame = new BlastFrame(null, null);
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();

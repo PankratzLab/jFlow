@@ -124,7 +124,7 @@ public class GenvisisPipelineGUI extends JDialog {
         {
             JPanel buttonPane = new JPanel();
             getContentPane().add(buttonPane, BorderLayout.SOUTH);
-            buttonPane.setLayout(new MigLayout("", "[][][][][][][grow][][47px][59px]", "[23px]"));
+            buttonPane.setLayout(new MigLayout("", "[][][][][][][][grow][][47px][59px]", "[23px]"));
             
             JLabel lblSelect = new JLabel("Select:");
             buttonPane.add(lblSelect, "flowx,cell 0 0");
@@ -138,6 +138,7 @@ public class GenvisisPipelineGUI extends JDialog {
                     for (int i = 0; i < selected.length; i++) {
                         selected[i] = true;
                     }
+                    refreshLabels();
                 }
             });
             buttonPane.add(btnSelectAll, "cell 0 0");
@@ -151,16 +152,47 @@ public class GenvisisPipelineGUI extends JDialog {
                     for (int i = 0; i < selected.length; i++) {
                         selected[i] = false;
                     }
+                    refreshLabels();
                 }
             });
             buttonPane.add(btnDeselectAll, "cell 1 0");
             
+            btnSelectValid = new JButton("Valid");
+            btnSelectValid.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    int stepIndex = -1;
+                    HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisPipeline.STEP, Boolean>();
+                    for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
+                        selectedSteps.put(entry.getKey(), true); // pretend everything is selected
+                    }
+                    HashMap<STEP, ArrayList<String>> variables = getVariables();
+                    for (final STEP step : GenvisisPipelineGUI.this.steps) {
+                        stepIndex++;
+                        if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
+                            continue;
+                        }
+                        if (!step.checkIfOutputExists(proj, variables)) {
+                            boolean check = step.hasRequirements(proj, selectedSteps, variables);
+                            checkBoxes.get(step).setSelected(check);
+                            selected[stepIndex] = check;
+                            selectedSteps.put(step, check);
+                        } else {
+                            selectedSteps.put(step, false);
+                            selected[stepIndex] = false;
+                            checkBoxes.get(step).setSelected(false);
+                        }
+                    }
+                    refreshLabels();
+                }
+            });
+            buttonPane.add(btnSelectValid, "cell 2 0");
+            
             JSeparator separator = new JSeparator();
             separator.setOrientation(SwingConstants.VERTICAL);
-            buttonPane.add(separator, "cell 2 0,growy");
+            buttonPane.add(separator, "cell 3 0,growy");
             
             JLabel lblCollapse = new JLabel("Collapse:");
-            buttonPane.add(lblCollapse, "cell 3 0");
+            buttonPane.add(lblCollapse, "cell 4 0");
             
             JButton btnAll = new JButton("All");
             btnAll.addActionListener(new ActionListener() {
@@ -170,7 +202,7 @@ public class GenvisisPipelineGUI extends JDialog {
                     }
                 }
             });
-            buttonPane.add(btnAll, "cell 4 0");
+            buttonPane.add(btnAll, "cell 5 0");
             
             JButton btnNone = new JButton("None");
             btnNone.addActionListener(new ActionListener() {
@@ -180,7 +212,7 @@ public class GenvisisPipelineGUI extends JDialog {
                     }
                 }
             });
-            buttonPane.add(btnNone, "cell 5 0");
+            buttonPane.add(btnNone, "cell 6 0");
             
             AbstractAction listener = new AbstractAction() {
                 private static final long serialVersionUID = 1L;
@@ -203,16 +235,16 @@ public class GenvisisPipelineGUI extends JDialog {
             JButton btnExportToText = new JButton("Export To Text");
             btnExportToText.setActionCommand("Export");
             btnExportToText.addActionListener(listener);
-            buttonPane.add(btnExportToText, "cell 7 0");
+            buttonPane.add(btnExportToText, "cell 8 0");
             JButton okButton = new JButton("Run");
             okButton.setActionCommand("Run");
             okButton.setMnemonic(KeyEvent.VK_O);
-            buttonPane.add(okButton, "cell 8 0,alignx left,aligny top");
+            buttonPane.add(okButton, "cell 9 0,alignx left,aligny top");
             getRootPane().setDefaultButton(okButton);
             JButton cancelButton = new JButton("Close");
             cancelButton.setActionCommand("Close");
             cancelButton.setMnemonic(KeyEvent.VK_C);
-            buttonPane.add(cancelButton, "cell 9 0,alignx left,aligny top");
+            buttonPane.add(cancelButton, "cell 10 0,alignx left,aligny top");
             
             okButton.addActionListener(listener);
             cancelButton.addActionListener(listener);
@@ -506,6 +538,14 @@ public class GenvisisPipelineGUI extends JDialog {
     public boolean[] getSelectedOptions() {
         return selected;
     }
+    
+    public HashMap<STEP, Boolean> getSelectedOptionsMap() {
+        HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisPipeline.STEP, Boolean>();
+        for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
+            selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
+        }
+        return selectedSteps;
+    }
 
     public boolean getCancelled() {
         return cancelled;
@@ -594,8 +634,8 @@ public class GenvisisPipelineGUI extends JDialog {
     private volatile boolean running = false;
 
     private JButton btnSelectAll;
-
     private JButton btnDeselectAll;
+    private JButton btnSelectValid;
 
     private Thread runThread;
     
@@ -636,11 +676,7 @@ public class GenvisisPipelineGUI extends JDialog {
                 lockup(true);
                 
                 boolean[] options = getSelectedOptions();
-
-                HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisPipeline.STEP, Boolean>();
-                for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
-                    selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
-                }
+                HashMap<STEP, Boolean> selectedSteps = getSelectedOptionsMap();
                 HashMap<STEP, ArrayList<String>> variables = getVariables();
                 if (checkRequirementsAndNotify(selectedSteps, variables)) {
                     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
@@ -682,11 +718,7 @@ public class GenvisisPipelineGUI extends JDialog {
                 lockup(true);
                 
                 boolean[] options = getSelectedOptions();
-
-                HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisPipeline.STEP, Boolean>();
-                for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
-                    selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
-                }
+                HashMap<STEP, Boolean> selectedSteps = getSelectedOptionsMap();
                 HashMap<STEP, ArrayList<String>> variables = getVariables();
                 if (checkRequirementsAndNotify(selectedSteps, variables)) {
                     for (int i = 0; i < options.length; i++) {

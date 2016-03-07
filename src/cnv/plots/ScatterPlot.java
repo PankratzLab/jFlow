@@ -57,10 +57,12 @@ import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -2321,8 +2323,6 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	}
 	
 	public void finishProcessing() {
-
-//		long t1 = System.currentTimeMillis();
 		updateMarkerIndexHistory();
 		displayIndex(navigationField);
 		if (showingAll) {
@@ -2334,64 +2334,18 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			scatterPanels[selectedPanelIndex].setPointsGeneratable(true);
 			scatterPanels[selectedPanelIndex].setUpdateQCPanel(true);
 		}
-//		long t2 = System.currentTimeMillis();
 		setCurrentClusterFilter();
 		updateBLASTPanel();
 		updateGUI();
 		if (blastFrame != null && blastFrame.isVisible()) {
 		    blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
     		if (histFrame != null/* && histFrame.isVisible()*/) {
-    	        final int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
-    		    histFrame.removeAllData();
-    	        histFrame.setHistogram(true);
-    	        histFrame.getPanel().overrideAxisLabels("Bins", "");
-    	        histFrame.getPanel().setHistogramOverride(true);
-    	        histFrame.getPanel().setForceXAxisWholeNumbers(true);
-    	        final double[] bins = new double[histogram.length];
-    	        int min = 0;
-    	        for (int i = 0; i < histogram.length; i++) {
-    	            bins[i] = i + 1;
-    	            if (histogram[i] == 0) {
-    	                min++;
-    	            }
-    	        }
-    	        final int min2 = min;
-    	        Histogram hist = new Histogram() {
-    	            private static final long serialVersionUID = 1L;
-    	            {
-    	                min = min2;
-    	                max = 50;
-    	                sigfigs = 4;
-    	                counts = histogram;
-    	            }
-    	            @Override
-    	            public double[] getBins() {
-    	                return bins;
-    	            }
-    	            @Override
-    	            public double determineStep() {
-    	                return 1d;
-    	            }
-    	        };
-    	        histFrame.getPanel().setHistogram(hist);
-//    	        int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
-//    	        String[][] data = new String[histogram.length][];
-//    	        for (int i = 0; i < histogram.length; i++) {
-//    	            data[i] = new String[2];
-//    	            data[i][0] = "" + i;
-//    	            data[i][1] = "" + histogram[i];
-//    	        }
-//    	        histFrame.addDataSource("BLAST_Histogram", data, new String[]{"Bin", "Counts"});
-//    	        histFrame.showSpecificFile(getProject(), "BLAST_Histogram", 0, 1);
-//    	        histFrame.getPanel().repaint();
+                double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
+                int probe = proj.ARRAY_TYPE.getValue().getProbeLength();
+    		    setHistogram((int) (filter * probe));
     		}
 		}
 		displayClusterFilterIndex();
-//		long t3 = System.currentTimeMillis();
-//		System.out.println("Updated: ");
-//		System.out.println("\tt1: " + t1);
-//		System.out.println("\tt2: " + t2);
-//		System.out.println("\tt3: " + t3);
 	}
 
 	public void actionPerformed(ActionEvent ae) {
@@ -2551,19 +2505,61 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	
 	private void displayBlast() {
         if (blastFrame == null) {
-            blastFrame = new BlastFrame(proj);
+            final ChangeListener alignLengthListener = new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    int value = ((SpinnerNumberModel) ((JSpinner)e.getSource()).getModel()).getNumber().intValue();
+                    blastFrame.updateAnnotations(value - 1);
+                    blastFrame.updateLabels();
+                    setHistogram(value);
+                    updateBLASTPanel();
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            blastFrame.setVisible(true);
+                            blastFrame.setSecondPanel(histFrame.getPanel());
+                        }
+                    });
+                }
+            };
+            blastFrame = new BlastFrame(proj, alignLengthListener);
         }
         blastFrame.setAnnotations(blastResults[markerIndex], referenceGenome);
-        final int[] histogram = blastResults[markerIndex].getAlignmentHistogram(getProject());
+        
+        
         if (histFrame == null) {
             histFrame = TwoDPlot.createGUI(getProject(), false, false, null);
         }
-        
+
+        double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
+        int probe = proj.ARRAY_TYPE.getValue().getProbeLength();
+        int alignFilter = blastFrame == null ? (int) (filter * probe) : blastFrame.currentAlignFilter;
+        setHistogram(alignFilter);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                blastFrame.setVisible(true);
+                blastFrame.setSecondPanel(histFrame.getPanel());
+            }
+        });
+	}
+	
+	private void setHistogram(int length) {
+        int[] histotemp = blastResults[markerIndex].getAlignmentHistogram(getProject());
+        final int[] histogram = new int[histotemp.length];
+        for (int i = 0; i < histogram.length; i++) {
+            if (i < length) {
+                histogram[i] = 0;
+            } else {
+                histogram[i] = histotemp[i];
+            }
+        }
         histFrame.removeAllData();
         histFrame.setHistogram(true);
         histFrame.getPanel().overrideAxisLabels("Bins", "");
         histFrame.getPanel().setHistogramOverride(true);
         histFrame.getPanel().setForceXAxisWholeNumbers(true);
+        
         final double[] bins = new double[histogram.length];
         int min = 0;
         for (int i = 0; i < histogram.length; i++) {
@@ -2591,13 +2587,6 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
             }
         };
         histFrame.getPanel().setHistogram(hist);
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                blastFrame.setVisible(true);
-                blastFrame.setSecondPanel(histFrame.getPanel());
-            }
-        });
 	}
 	
 	private ItemListener classListener = new ItemListener() {
@@ -3424,9 +3413,20 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	    
         double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
         int probe = proj.ARRAY_TYPE.getValue().getProbeLength();
-        int alignFilter = (int) (filter * probe);
-        int offTLbls = BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log), alignFilter).size();
-        typeLabel = new JLabel("# Off-Target Alignments (>" + proj.BLAST_PROPORTION_MATCH_FILTER.getValue() + "% match): ", JLabel.LEFT);
+        int alignFilter = blastFrame == null ? (int) (filter * probe) : blastFrame.currentAlignFilter;
+        int[] hist = blastResult.getAlignmentHistogram(proj);
+        int offTLbls = 0;
+        for (int i = hist.length - 2; i >= 0; i--) { // use -2 to avoid counting a perfect match
+            int len = probe - hist.length + i;
+            if (len >= alignFilter) {
+                offTLbls += hist[i];
+            } else {
+                break;
+            }
+        }
+        double ratio = blastFrame == null ? filter : ((double) blastFrame.currentAlignFilter) / ((double) proj.ARRAY_TYPE.getValue().getProbeLength());
+//        int offTLbls = BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log), alignFilter).size();
+        typeLabel = new JLabel("# Off-Target Alignments (>" + ratio + "% match): ", JLabel.LEFT);
         typeLabel.setFont(lblFont);
         typeLabel.setForeground(offTLbls > 0 ? Color.RED : Color.BLACK);
         blastPanel.add(typeLabel, "cell 0 1");
