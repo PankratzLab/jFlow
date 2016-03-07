@@ -220,8 +220,8 @@ public class MarkerMetrics {
 		                    mendelLine = markerName
 		                                + "\t" + markerData.getChr()
 		                                + "\t" + markerData.getPosition()
-		                                + "\t" + pedigree.getIDs()[FamilyStructure.FID_INDEX]
-		                                + "\t" + pedigree.getIDs()[FamilyStructure.IID_INDEX]
+		                                + "\t" + pedigree.getFID(i)
+		                                + "\t" + pedigree.getIID(i)
 		                                + "\t" + pedigree.getDnas()[i]
 		                                + "\t" + (faDNAIndex >= 0 ? samples[faDNAIndex] : ".")
 		                                + "\t" + (moDNAIndex >= 0 ? samples[moDNAIndex] : ".")
