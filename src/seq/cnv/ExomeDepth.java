@@ -278,6 +278,7 @@ public class ExomeDepth {
 					}
 					CmdLine.runCommandWithFileChecks(new String[] { eAnalysis.getrScriptCall(), eAnalysis.getrScriptFile() }, "", exomeDepth.getAllReferenceBAMFiles(), new String[] { eAnalysis.getExomeDepthOutput(), eAnalysis.getAnnoExomeDepthOutput() }, true, false, false, log);
 					eAnalysis.plotCNVs(0.5);
+					eAnalysis.dumpRawData();
 					return eAnalysis;
 				}
 			};
@@ -300,6 +301,7 @@ public class ExomeDepth {
 		private String exomeDepthOutput;
 		private String rDafrexomeDepthOutput;
 		private String exomeDepthPDFOutput;
+		private String exomeDepthRawDataOutput;
 		private HashSet<String> excludeFromRef;
 		private String script;
 		private String rScriptFile;
@@ -314,6 +316,7 @@ public class ExomeDepth {
 			this.rScriptFile = outputDir + outputRoot + ext.rootOf(inputBam) + ".RScript";
 			this.rDafrexomeDepthOutput = outputDir + outputRoot + ext.rootOf(inputBam) + ".dafr";
 			this.exomeDepthPDFOutput = outputDir + outputRoot + ext.rootOf(inputBam) + "cnvs.pdf";
+			this.exomeDepthRawDataOutput = outputDir + outputRoot + ext.rootOf(inputBam) + "rawData.txt";
 			this.sampleName = BamOps.getSampleName(inputBam);
 			this.excludeFromRef = new HashSet<String>();
 			this.rScriptCall = rScriptCall;
@@ -374,7 +377,6 @@ public class ExomeDepth {
 			CmdLine.prepareBatchForCommandLine(new String[] { script }, scriptFile, true, log);
 			boolean created = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", scriptFile }, "", new String[] { rDafrexomeDepthOutput }, new String[] { exomeDepthPDFOutput }, true, true, false, log);
 			return created;
-
 		}
 
 		public String getCNVPlotScript(double bufferPercent) {
@@ -387,6 +389,31 @@ public class ExomeDepth {
 				script = getPlotFor(bufferPercent, cnvs[i], script);
 			}
 			return script;
+		}
+
+		public boolean dumpRawData() {
+			String script = "";
+			script += addBaseLoadScript(script);
+			script += getRawDataDumpScript();
+			String scriptFile = exomeDepthRawDataOutput + ".rawData.Rscript";
+			CmdLine.prepareBatchForCommandLine(new String[] { script }, scriptFile, true, log);
+			boolean created = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", scriptFile }, "", new String[] { rDafrexomeDepthOutput }, new String[] { exomeDepthRawDataOutput }, true, true, false, log);
+			return created;
+		}
+
+		public String getRawDataDumpScript() {
+			String script = "";
+			script += "load(\"" + rDafrexomeDepthOutput + "\")\n";
+			script += "expected = all.exons@expected\n";
+			script += "test <- all.exons@test\n";
+			script += "reference <- all.exons@reference\n";
+			script += "freq = test/ (reference + test)\n";
+			script += "ratio <-  freq/ expected\n";
+			script += "anno <- all.exons@annotations\n";
+			script += "exomeObject = data.frame(anno$chromosome,anno$start,anno$end, test,expected,reference,ratio)";
+			script += "write.table(exomeObject, \"" + exomeDepthRawDataOutput + "\",row.names = FALSE,quote=FALSE )";
+			return script;
+
 		}
 
 		private static String getPlotFor(double bufferPercent, SeqCNVariant cnv, String script) {
