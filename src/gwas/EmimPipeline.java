@@ -85,70 +85,74 @@ public class EmimPipeline {
     
     
     private static void generateFolderStructureAndKeepsFiles(String runDir, String[] cnvFiles, String[] plinkRoots, PopFileData popFile, PopFileData subPopFile) {
-        for (String cnvFile : cnvFiles) {
-            String cnvRoot = ext.rootOf(cnvFile, true);
-            String cnvDir = runDir + cnvRoot + "/";
-            boolean created = (!Files.exists(cnvDir) && (new File(cnvDir)).mkdir());
-            if (!created) { 
-                /* TODO ERROR, or already exists */ 
-                System.err.println("Error - Could not create folder " + cnvDir);
-                continue; 
-            }
-            
-            for (int p = 0; p < popFile.pops.length; p++) {
-                String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(popFile.pops[p], true) + "/";
-                created = (!Files.exists(popDir) && (new File(popDir)).mkdir());
+        if (cnvFiles != null) {
+            for (String cnvFile : cnvFiles) {
+                String cnvRoot = ext.rootOf(cnvFile, true);
+                String cnvDir = runDir + cnvRoot + "/";
+                boolean created = (!Files.exists(cnvDir) && (new File(cnvDir)).mkdir());
                 if (!created) { 
                     /* TODO ERROR, or already exists */ 
-                    System.err.println("Error - Could not create folder " + popDir);
+                    System.err.println("Error - Could not create folder " + cnvDir);
                     continue; 
                 }
-                String keepsFile = popDir + "keeps.txt";
-                generateKeepsFile(keepsFile, popFile, p, null, 0);
                 
-                for (int sP = 0; sP < subPopFile.pops.length; sP++) {
-                    String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
-                    created = (!Files.exists(subPopDir) && (new File(subPopDir)).mkdir());
+                for (int p = 0; p < popFile.pops.length; p++) {
+                    String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(popFile.pops[p], true) + "/";
+                    created = (!Files.exists(popDir) && (new File(popDir)).mkdir());
                     if (!created) { 
                         /* TODO ERROR, or already exists */ 
-                        System.err.println("Error - Could not create folder " + subPopDir);
+                        System.err.println("Error - Could not create folder " + popDir);
                         continue; 
                     }
-                    keepsFile = subPopDir + "keeps.txt";
-                    generateKeepsFile(keepsFile, popFile, p, subPopFile, sP);
+                    String keepsFile = popDir + "keeps.txt";
+                    generateKeepsFile(keepsFile, popFile, p, null, 0);
+                    
+                    for (int sP = 0; sP < subPopFile.pops.length; sP++) {
+                        String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
+                        created = (!Files.exists(subPopDir) && (new File(subPopDir)).mkdir());
+                        if (!created) { 
+                            /* TODO ERROR, or already exists */ 
+                            System.err.println("Error - Could not create folder " + subPopDir);
+                            continue; 
+                        }
+                        keepsFile = subPopDir + "keeps.txt";
+                        generateKeepsFile(keepsFile, popFile, p, subPopFile, sP);
+                    }
                 }
             }
         }
-        for (String plinkRoot : plinkRoots) {
-            String plinkDir = runDir + plinkRoot + "/";
-            boolean created = (!Files.exists(plinkDir) && (new File(plinkDir)).mkdir());
-            if (!created) { 
-                /* TODO ERROR, or already exists */ 
-                System.err.println("Error - Could not create folder " + plinkDir);
-                continue; 
-            }
-            
-            for (int p = 0; p < popFile.pops.length; p++) {
-                String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(popFile.pops[p], true) + "/";
-                created = (!Files.exists(popDir) && (new File(popDir)).mkdir());
+        if (plinkRoots != null) {
+            for (String plinkRoot : plinkRoots) {
+                String plinkDir = runDir + plinkRoot + "/";
+                boolean created = (!Files.exists(plinkDir) && (new File(plinkDir)).mkdir());
                 if (!created) { 
                     /* TODO ERROR, or already exists */ 
-                    System.err.println("Error - Could not create folder " + popDir);
+                    System.err.println("Error - Could not create folder " + plinkDir);
                     continue; 
                 }
-                String keepsFile = popDir + "keeps.txt";
-                generateKeepsFile(keepsFile, popFile, p, null, 0);
                 
-                for (int sP = 0; sP < subPopFile.pops.length; sP++) {
-                    String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
-                    created = (!Files.exists(subPopDir) && (new File(subPopDir)).mkdir());
+                for (int p = 0; p < popFile.pops.length; p++) {
+                    String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(popFile.pops[p], true) + "/";
+                    created = (!Files.exists(popDir) && (new File(popDir)).mkdir());
                     if (!created) { 
                         /* TODO ERROR, or already exists */ 
-                        System.err.println("Error - Could not create folder " + subPopDir);
+                        System.err.println("Error - Could not create folder " + popDir);
                         continue; 
                     }
-                    keepsFile = subPopDir + "keeps.txt";
-                    generateKeepsFile(keepsFile, popFile, p, subPopFile, sP);
+                    String keepsFile = popDir + "keeps.txt";
+                    generateKeepsFile(keepsFile, popFile, p, null, 0);
+                    
+                    for (int sP = 0; sP < subPopFile.pops.length; sP++) {
+                        String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
+                        created = (!Files.exists(subPopDir) && (new File(subPopDir)).mkdir());
+                        if (!created) { 
+                            /* TODO ERROR, or already exists */ 
+                            System.err.println("Error - Could not create folder " + subPopDir);
+                            continue; 
+                        }
+                        keepsFile = subPopDir + "keeps.txt";
+                        generateKeepsFile(keepsFile, popFile, p, subPopFile, sP);
+                    }
                 }
             }
         }
@@ -166,6 +170,7 @@ public class EmimPipeline {
             log.reportException(e);
             return;
         }
+        log.reportTimeInfo("Generating folder structure in run directory...");
         generateFolderStructureAndKeepsFiles(runDir, cnvFiles, plinkRoots, popData, subPopData);
         if (!checkRoots(cnvFiles, plinkRoots)) {
             log.reportError("Error - cannot have cnv roots and plink roots that have the same name.");
@@ -177,6 +182,7 @@ public class EmimPipeline {
                 String cnvDir = cnvRoot + "/";
                 String plinkRoot = runDir + cnvRoot + "_0";
                 if (!Files.exists(plinkRoot + ".bim") || !Files.exists(plinkRoot + ".bed") || !Files.exists(plinkRoot + ".fam")) {
+                    log.reportTimeInfo("Exporting cnv files for root " + plinkRoot + " to PLINK files...");
                     ExportCNVsToPedFormat.export(cnvFile, pedFile, runDir + cnvRoot, "\r\n", ExportCNVsToPedFormat.PLINK_BINARY_FORMAT, true, true, false, false, false, false, Integer.MAX_VALUE, 0, log);
                 }
                 if (!Files.exists(plinkRoot + ".bim") || !Files.exists(plinkRoot + ".bed") || !Files.exists(plinkRoot + ".fam")) {
@@ -186,6 +192,7 @@ public class EmimPipeline {
                 String relativePlinkRoot = "../" + cnvRoot + "_0";
                 String resultFile = cnvRoot;
                 
+                log.reportTimeInfo("Generating EMIM files for cnv root " + plinkRoot);
                 Emim.scriptAllInDir(runDir + cnvDir, plinkRoot, relativePlinkRoot, "GEN", null, pThreshold, resultFile);
                 String pbsFile = cnvDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
                 if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
@@ -214,7 +221,8 @@ public class EmimPipeline {
             for (String plinkRoot : plinkRoots) {
                 String plinkDir = plinkRoot + "/";
                 String resultFile = plinkRoot;
-                
+
+                log.reportTimeInfo("Generating EMIM files for PLINK root " + plinkRoot);
                 Emim.scriptAllInDir(runDir + plinkDir, plinkRoot, plinkRoot, "GEN", null, pThreshold, resultFile);
                 String pbsFile = plinkDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
                 if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
@@ -240,6 +248,8 @@ public class EmimPipeline {
             }
         }
         
+
+        log.reportTimeInfo("Writing QSUB files...");
         if (pbsFiles.size() > 0) {
             writeQsubs(pbsFiles, runDir, qsubQueue);
 //            for (String pbsFile : pbsFiles) {
@@ -248,7 +258,7 @@ public class EmimPipeline {
             
         }
         
-        String processCommand = "jcp gwas.EmimPipeline -process pThreshold=0.00001 run=" + runDir;
+        String processCommand = "jcp gwas.EmimPipeline -process pThreshold=0.00001 dir=" + runDir;
         if (cnvFiles != null) {
             processCommand += " cnvs=" + Array.toStr(cnvFiles, ",");
         }
@@ -259,20 +269,24 @@ public class EmimPipeline {
         if (log1 != null) {
             processCommand += " log=" + log1.getFilename();
         }
-        Files.write(processCommand, runDir + "processResults.sh");
-        Files.chmod(runDir + "processResults.sh");
+        Files.write(processCommand, runDir + "../processResults.sh");
+        Files.chmod(runDir + "../processResults.sh");
     }
     
     private static boolean checkRoots(String[] cnvFiles, String[] plinkRoots) {
         HashSet<String> rootSet = new HashSet<String>();
-        for (String root : plinkRoots) {
-            if (!rootSet.add(root)) {
-                return false;
+        if (plinkRoots != null) {
+            for (String root : plinkRoots) {
+                if (!rootSet.add(root)) {
+                    return false;
+                }
             }
         }
-        for (String cnv : cnvFiles) {
-            if (!rootSet.add(ext.rootOf(cnv, true))) {
-                return false;
+        if (cnvFiles != null) {
+            for (String cnv : cnvFiles) {
+                if (!rootSet.add(ext.rootOf(cnv, true))) {
+                    return false;
+                }
             }
         }
         return true;
