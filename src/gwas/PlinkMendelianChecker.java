@@ -188,9 +188,9 @@ public class PlinkMendelianChecker {
                     
                     MendelErrorCheck mec = new MendelErrors((byte)(Integer.parseInt(temp[1])), 
                                                                     -1, 
-                                                                    (byte)(Integer.parseInt(temp[7])), 
                                                                     (byte)(Integer.parseInt(temp[8])), 
-                                                                    (byte)(Integer.parseInt(temp[9]))).checkMendelError();
+                                                                    (byte)(Integer.parseInt(temp[9])), 
+                                                                    (byte)(Integer.parseInt(temp[10]))).checkMendelError();
 //                    MarkerName  
 //                    Chr 
 //                    Position    
