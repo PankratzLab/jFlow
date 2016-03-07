@@ -34,7 +34,7 @@ import common.ext;
 /**
  * A class that serves as the outer wrapper for PCA related happenings...does import, marker QC, sample QC, PCA, etc
  * 
- * */
+ */
 public class MitoPipeline {
 	public static final String FILE_BASE = "PCA_GENVISIS";
     public static final String[] PED_INPUT = { "DNA", "FID", "IID", "FA", "MO", "SEX", "AFF" };
@@ -423,7 +423,6 @@ public class MitoPipeline {
 							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase, params);
 							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
 							proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
-							// proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents + "");
 							proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
 						}
 					}
