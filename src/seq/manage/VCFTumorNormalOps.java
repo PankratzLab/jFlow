@@ -20,7 +20,11 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
+import seq.manage.VCFOps.VcfPopulation;
+import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 import seq.manage.VCOps.GENOTYPE_INFO;
+
 import common.Logger;
 
 /**
@@ -215,6 +219,81 @@ public class VCFTumorNormalOps {
 		}
 		reader.close();
 		writer.close();
+	}
+
+	public static class TNSample {
+		private String tumorSample;
+		private String normalSample;
+		private String tumorBam;
+		private String normalBam;
+
+		public TNSample(String tumorSample, String normalSample, String tumorBam, String normalBam) {
+			super();
+			this.tumorSample = tumorSample;
+			this.normalSample = normalSample;
+			this.tumorBam = tumorBam;
+			this.normalBam = normalBam;
+		}
+
+		public String getTumorSample() {
+			return tumorSample;
+		}
+
+		public String getNormalSample() {
+			return normalSample;
+		}
+
+		public String getTumorBam() {
+			return tumorBam;
+		}
+
+		public String getNormalBam() {
+			return normalBam;
+		}
+
+	}
+
+	public static TNSample[] matchSamples(String[] bamFiles, VcfPopulation vpop, Logger log) {
+		if (vpop.getType() != POPULATION_TYPE.TUMOR_NORMAL) {
+			throw new IllegalArgumentException("Vpop must be " + POPULATION_TYPE.TUMOR_NORMAL);
+		}
+
+		Hashtable<String, String> all = new Hashtable<String, String>();
+		for (int i = 0; i < bamFiles.length; i++) {
+			all.put(BamOps.getSampleName(bamFiles[i]), bamFiles[i]);
+		}
+		ArrayList<String> analysisBams = new ArrayList<String>();
+		ArrayList<TNSample> tnSamples = new ArrayList<TNSample>();
+		for (String tnPair : vpop.getSubPop().keySet()) {
+			Set<String> samps = vpop.getSubPop().get(tnPair);
+			String tumor = null;
+			String normal = null;
+			for (String samp : samps) {
+				if (vpop.getPopulationForInd(samp, RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.TUMOR)) {
+					tumor = samp;
+				} else if (vpop.getPopulationForInd(samp, RETRIEVE_TYPE.SUPER)[0].equals(VcfPopulation.NORMAL)) {
+					normal = samp;
+				} else {
+					throw new IllegalArgumentException("Unknown types");
+				}
+			}
+
+			if (!all.containsKey(tumor) || !all.containsKey(normal)) {
+				throw new IllegalArgumentException("Could not find bam file for Tumor " + tumor + " or for Normal " + normal);
+			} else {
+				TNSample tSample = new TNSample(all.get(normal), normal, all.get(tumor), tumor);
+				tnSamples.add(tSample);
+				analysisBams.add(all.get(normal));
+				analysisBams.add(all.get(tumor));
+
+			}
+		}
+		// if (analysisBams.size() < bamFiles.length) {
+		// Files.writeList(Array.toStringArray(analysisBams), outputDir + ext.rootOf(vpop.getFileName() + ".analysis.bams.txt"));
+		// }
+
+		log.reportTimeInfo("Matched " + tnSamples.size() + " tumor normals with bams ");
+		return tnSamples.toArray(new TNSample[tnSamples.size()]);
 	}
 
 	// double mapQ = 0;

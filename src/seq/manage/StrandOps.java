@@ -13,11 +13,15 @@ public class StrandOps {
 	}
 
 	public static String flipsIfNeeded(String b, Strand strand, boolean ignoreInvalidAlleles) {
+		return flipsIfNeeded(b, strand, ignoreInvalidAlleles, false);
+	}
+
+	public static String flipsIfNeeded(String b, Strand strand, boolean ignoreInvalidAlleles, boolean reverse) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < b.length(); i++) {
 			sb.append(flipIfNeeded(b.charAt(i) + "", strand, ignoreInvalidAlleles));
 		}
-		return sb.toString();
+		return reverse ? sb.reverse().toString() : sb.toString();
 	}
 
 	public static String flipIfNeeded(String b, Strand strand, boolean ignoreInvalidAlleles) {

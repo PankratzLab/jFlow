@@ -17,7 +17,7 @@ import common.ext;
  */
 public class ExomeDepthRun {
 
-	public static void runExomeDepth(String bams, String vpopFile, String outputDir, String outputRoot, String rLoc, int numthreads, Logger log) {
+	public static void runExomeDepth(String bams, String vpopFile, String outputDir, String outputRoot, String rLoc, boolean somaticMode, int numthreads, Logger log) {
 		VcfPopulation vpop = null;
 		String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams, BamOps.BAM_EXT, false) : HashVec.loadFileToStringArray(bams, false, new int[] { 0 }, true);
 		outputDir = outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir;
@@ -32,8 +32,14 @@ public class ExomeDepthRun {
 		if (vpopFile == null) {
 			log.reportTimeWarning("A vpopulation file was not provided, sample specific and global exclusions will not be applied");
 		} else {
-			vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.EXOME_DEPTH, log);
+			if (somaticMode) {
+				vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
+			}else{
+				vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.EXOME_DEPTH, log);
+			}
 			vpop.report();
+			System.exit(1);
+
 			exomeDepth.parseVpop(vpop);
 		}
 		ExomeDepthAnalysis[] eDepthAnalysis = ExomeDepth.callCNVs(exomeDepth, outputDir, outputRoot, numthreads, log);
@@ -49,7 +55,7 @@ public class ExomeDepthRun {
 		String vpopFile = null;
 		String logfile = null;
 		String Rloc = null;
-
+		boolean somaticMode =false;
 		Logger log;
 
 		String usage = "\n" + "seq.analysis.ExomeDepth requires 0-1 arguments\n";
@@ -59,6 +65,7 @@ public class ExomeDepthRun {
 		usage += PSF.Ext.getNumThreadsCommand(4, numthreads);
 		usage += "   (5) full path to a v population file, individuals with the same population will not be used as ref(i.e. vpop= (no default))\n" + "";
 		usage += "   (6) alternative R location (i.e. rDir= (no default))\n" + "";
+		usage += "   (7) somatic mode (i.e. somaticMode="+somaticMode+" (default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -82,6 +89,9 @@ public class ExomeDepthRun {
 			} else if (args[i].startsWith("root=")) {
 				outputRoot = ext.parseStringArg(args[i], "");
 				numArgs--;
+			} else if (args[i].startsWith("somaticMode=")) {
+				somaticMode = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
@@ -95,7 +105,7 @@ public class ExomeDepthRun {
 		}
 		try {
 			log = new Logger(logfile);
-			runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, numthreads, log);
+			runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, somaticMode, numthreads, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

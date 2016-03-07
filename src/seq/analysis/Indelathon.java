@@ -14,10 +14,12 @@ import java.util.concurrent.Callable;
 
 import cnv.var.LocusSet;
 import filesys.Segment;
+import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
+import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -27,10 +29,12 @@ import seq.analysis.Blast.BlastResults;
 import seq.analysis.Blast.BlastResultsSummary;
 import seq.manage.Adapter;
 import seq.manage.BamExtractor;
+import seq.manage.CigarOps;
 import seq.manage.BamExtractor.WorkerExtractor;
 import seq.manage.BamOps;
 import seq.manage.SamRecordOps;
 import seq.manage.SamRecordOps.SoftClipped;
+import seq.manage.StrandOps;
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
 import common.Array;
@@ -99,11 +103,11 @@ public class Indelathon {
 		}
 		String blastDir = outDir + "blast/";
 		String[] blasts = Adapter.blast(minSCLenth, adapters, allClips.toArray(new String[allClips.size()]), blastDir, "softClip", numThreads, log);
-		Hashtable<String, HitSummary> hits =summarizeBlasts(blasts, allClips, log);
+		Hashtable<String, HitSummary> hits = summarizeBlasts(blasts, allClips, log);
 		try {
-			
+
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
-			writer.print("Clip\t"+HitSummary.getHeader());
+			writer.print("Clip\t" + HitSummary.getHeader());
 			for (SoftClipResult result : results) {
 				if (result.getBamFile() != null) {
 					writer.print("\t" + result.getVcfSample());
@@ -123,7 +127,7 @@ public class Indelathon {
 						} else {
 							writer.print("\t0");
 						}
-						
+
 					}
 				}
 				writer.println();
@@ -160,8 +164,12 @@ public class Indelathon {
 		private String clip;
 		private String adapterHit;
 		private String barcode;
+		private Cigar adapterCigar;
+		private Cigar barCodeCigar;
 		private double minEvaladapter;
 		private double minEvalBarcode;
+		private String strandClipAdapter;
+		private String strandClipBarCode;
 
 		public HitSummary(String clip) {
 			super();
@@ -170,18 +178,38 @@ public class Indelathon {
 			this.minEvalBarcode = Double.NaN;
 			this.adapterHit = "NONE";
 			this.barcode = "NONE";
+			this.barCodeCigar = null;
+			this.adapterCigar = null;
+			this.strandClipAdapter = "NA";
+			this.strandClipBarCode = "NA";
+		}
+
+		public void setStrandClipAdapter(String strandClipAdapter) {
+			this.strandClipAdapter = strandClipAdapter;
+		}
+
+		public void setStrandClipBarCode(String strandClipBarCode) {
+			this.strandClipBarCode = strandClipBarCode;
+		}
+
+		public void setBarCodeCigar(Cigar barCodeCigar) {
+			this.barCodeCigar = barCodeCigar;
+		}
+
+		public void setAdapterCigar(Cigar adapterCigar) {
+			this.adapterCigar = adapterCigar;
 		}
 
 		private String getSummary() {
-			return minEvalBarcode + "\t" + barcode + "\t" + minEvaladapter + "\t" + adapterHit;
+			return strandClipBarCode + "\t" + barcode + "\t" + (barCodeCigar == null ? "NA" : barCodeCigar.toString()) + "\t" + minEvalBarcode + "\t" + strandClipAdapter + "\t" + adapterHit + "\t" + (adapterCigar == null ? "NA" : adapterCigar.toString()) + "\t" + minEvaladapter;
 		}
 
 		public static String getBlank() {
-			return Double.NaN + "\t" + "NONE" + "\t" + Double.NaN + "\t" + "NONE";
+			return "NA\tNONE\tNONE\t" + Double.NaN + "\tNA\tNONE\tNONE\t" + Double.NaN;
 		}
 
 		public static String getHeader() {
-			return "MinEvalBarcode\tBarcode\tMinEvalAdapter\tAdapter";
+			return "StrandClipBarCode\tBarcode\tBarcodeCigar\tMinEvalBarcode\tStrandClipAdapter\tAdapter\tAdapterCigar\tMinEvalAdapter";
 
 		}
 
@@ -201,7 +229,6 @@ public class Indelathon {
 			this.minEvalBarcode = minEvalBarcode;
 		}
 
-
 		public void setAdapterHit(String adapterHit) {
 			this.adapterHit = adapterHit;
 		}
@@ -212,7 +239,7 @@ public class Indelathon {
 
 	}
 
-	private static Hashtable<String, HitSummary>  summarizeBlasts(String[] blastFiles, Set<String> softClip, Logger log) {
+	private static Hashtable<String, HitSummary> summarizeBlasts(String[] blastFiles, Set<String> softClip, Logger log) {
 		Hashtable<String, HitSummary> hits = new Hashtable<String, HitSummary>();
 
 		for (int i = 0; i < blastFiles.length; i++) {
@@ -222,7 +249,10 @@ public class Indelathon {
 				while (reader.ready()) {
 					BlastResults result = new BlastResults(reader.readLine().trim().split("\t"), log);
 					String clip = result.getQueryID().split("_")[0];
+					String strandClip = result.isStrandFlipped() ? StrandOps.flipsIfNeeded(clip, Strand.NEGATIVE, true, true) : clip;
+					Cigar cigar = CigarOps.convertBtopToCigar(result, clip.length(), log);
 					boolean barcode = result.getSubjectID().split("_")[1].equals(Adapter.BARCODE);
+
 					if (!hits.containsKey(clip)) {
 						hits.put(clip, new HitSummary(clip));
 					}
@@ -230,17 +260,29 @@ public class Indelathon {
 						if (Double.isNaN(hits.get(clip).getMinEvalBarcode())) {
 							hits.get(clip).setMinEvalBarcode(result.getEvalue());
 							hits.get(clip).setBarcode(result.getSubjectID());
+							hits.get(clip).setBarCodeCigar(cigar);
+							hits.get(clip).setStrandClipBarCode(strandClip);
+
 						} else if (hits.get(clip).getMinEvalBarcode() > result.getEvalue()) {
 							hits.get(clip).setMinEvalBarcode(result.getEvalue());
 							hits.get(clip).setBarcode(result.getSubjectID());
+							hits.get(clip).setBarCodeCigar(cigar);
+							hits.get(clip).setStrandClipBarCode(strandClip);
+
 						}
 					} else {
 						if (Double.isNaN(hits.get(clip).getMinEvaladapter())) {
+							hits.get(clip).setAdapterCigar(cigar);
 							hits.get(clip).setMinEvaladapter(result.getEvalue());
 							hits.get(clip).setAdapterHit(result.getSubjectID());
+							hits.get(clip).setStrandClipAdapter(strandClip);
+
 						} else if (hits.get(clip).getMinEvaladapter() > result.getEvalue()) {
 							hits.get(clip).setMinEvaladapter(result.getEvalue());
 							hits.get(clip).setAdapterHit(result.getSubjectID());
+							hits.get(clip).setAdapterCigar(cigar);
+							hits.get(clip).setStrandClipAdapter(strandClip);
+
 						}
 					}
 				}
@@ -254,7 +296,7 @@ public class Indelathon {
 			}
 		}
 		return hits;
-		
+
 	}
 
 	/**
@@ -322,7 +364,7 @@ public class Indelathon {
 							log.reportTimeInfo("Scanned " + num + " reads, currently on " + SamRecordOps.getDisplayLoc(samRecord) + "from " + bamFile);
 							log.reportTimeInfo("Found " + scAllCounts.keySet().size() + " unique soft clipped reads");
 						}
-						if (!samRecord.getReadUnmappedFlag() && samRecord.getReadPairedFlag() && !samRecord.getMateUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
+						if (!samRecord.getReadUnmappedFlag() && !samRecord.getDuplicateReadFlag()) {
 							SoftClipped[] softs = SamRecordOps.getSoftClippedBases(samRecord, log);
 							if (softs.length > 0) {
 								for (int i = 0; i < softs.length; i++) {
@@ -470,7 +512,7 @@ public class Indelathon {
 		HashSet<String> sets = new HashSet<String>();
 		int numThreads = 24;
 		int buffer = 100;
-		int minSC = 6;
+		int minSC = 0;
 		int minSCCount = 5;
 
 		String usage = "\n" +

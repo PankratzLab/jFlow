@@ -276,6 +276,10 @@ public class Blast {
 		public BlastResults(String[] blastLine, Logger log) {
 			this(blastLine, false, log);
 		}
+		
+		public boolean isStrandFlipped() {
+			return getSstart() > getSstop();
+		}
 
 		public BlastResults(String[] blastLine, boolean taxonMode, Logger log) {
 			this.queryID = blastLine[0];
