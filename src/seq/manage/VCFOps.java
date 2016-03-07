@@ -639,6 +639,10 @@ public class VCFOps {
 			SUPER, SUB;
 		}
 
+		public POPULATION_TYPE getType() {
+			return type;
+		}
+
 		public VcfPopulation(Hashtable<String, Set<String>> subPop, Hashtable<String, Set<String>> superPop, POPULATION_TYPE type, Logger log) {
 			super();
 			this.subPop = subPop;

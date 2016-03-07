@@ -16,7 +16,10 @@ import cnv.var.LocusSet.TO_STRING_TYPE;
 import seq.cnv.CNVExtraInfo.EXTRA_INFO_TYPE;
 import seq.manage.BamOps;
 import seq.manage.VCFOps.VcfPopulation;
+import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import seq.manage.VCFTumorNormalOps;
+import seq.manage.VCFTumorNormalOps.TNSample;
 import stats.Rscript;
 import common.Array;
 import common.CmdLine;
@@ -50,7 +53,7 @@ public class ExomeDepth {
 	private String rLoc;
 	private Logger log;
 
-	public ExomeDepth(String[] allReferenceBamFiles, String[] analysisBamFiles, String outputDir, String outputRoot,String rLoc, Logger log) {
+	public ExomeDepth(String[] allReferenceBamFiles, String[] analysisBamFiles, String outputDir, String outputRoot, String rLoc, Logger log) {
 		super();
 		this.allReferenceBAMFiles = allReferenceBamFiles;
 		this.log = log;
@@ -69,13 +72,12 @@ public class ExomeDepth {
 				log.reportTimeError("Could not detect all analysis .bam files in the complete reference set");
 			}
 		}
-		this.rLoc=rLoc;
+		this.rLoc = rLoc;
 	}
 
 	public String[] getAnalysisBamFiles() {
 		return analysisBamFiles;
 	}
-	
 
 	public String getRscriptCall() {
 		return rLoc == null ? "Rscript" : rLoc + "Rscript";
@@ -98,20 +100,35 @@ public class ExomeDepth {
 	}
 
 	public void parseVpop(VcfPopulation vpop) {
-		for (int i = 0; i < allSampleNames.length; i++) {
-			if (vpop.getSuperPop().get(VcfPopulation.EXCLUDE).contains(allSampleNames[i])) {
-				globalExclude.add(allSampleNames[i]);
+		if (vpop.getType() == POPULATION_TYPE.TUMOR_NORMAL) {
+			log.reportTimeInfo("Setting up exome depth for somatic cnv calling");
+			TNSample[] tnsaSamples = VCFTumorNormalOps.matchSamples(allReferenceBAMFiles, vpop, log);
+			for (int i = 0; i < tnsaSamples.length; i++) {
+				for (int j = 0; j < tnsaSamples.length; j++) {
+					if (i != j) {
+						sampleSpecificExclude.get(tnsaSamples[i].getTumorSample()).add(tnsaSamples[j].getTumorSample());
+						sampleSpecificExclude.get(tnsaSamples[i].getTumorSample()).add(tnsaSamples[j].getNormalSample());
+					}
+				}
 			}
-			String[] sampSpecificExclude = vpop.getPopulationForInd(allSampleNames[i], RETRIEVE_TYPE.SUB);
-			for (int j = 0; j < sampSpecificExclude.length; j++) {
-				Set<String> curSet = vpop.getSubPop().get(sampSpecificExclude[j]);
-				for (String samp : curSet) {
-					if (!samp.equals(allSampleNames[i])) {
-						sampleSpecificExclude.get(allSampleNames[i]).add(samp);
+
+		} else {
+			for (int i = 0; i < allSampleNames.length; i++) {
+				if (vpop.getSuperPop().get(VcfPopulation.EXCLUDE).contains(allSampleNames[i])) {
+					globalExclude.add(allSampleNames[i]);
+				}
+				String[] sampSpecificExclude = vpop.getPopulationForInd(allSampleNames[i], RETRIEVE_TYPE.SUB);
+				for (int j = 0; j < sampSpecificExclude.length; j++) {
+					Set<String> curSet = vpop.getSubPop().get(sampSpecificExclude[j]);
+					for (String samp : curSet) {
+						if (!samp.equals(allSampleNames[i])) {
+							sampleSpecificExclude.get(allSampleNames[i]).add(samp);
+						}
 					}
 				}
 			}
 		}
+
 	}
 
 	private boolean gatherBai() {
@@ -287,10 +304,10 @@ public class ExomeDepth {
 		private String script;
 		private String rScriptFile;
 		private String rScriptCall;
-		//private boolean fail;
+		// private boolean fail;
 		private Logger log;
 
-		private ExomeDepthAnalysis(String inputBam, String outputDir, String outputRoot,String rScriptCall, Logger log) {
+		private ExomeDepthAnalysis(String inputBam, String outputDir, String outputRoot, String rScriptCall, Logger log) {
 			super();
 			this.inputBam = inputBam;
 			this.exomeDepthOutput = outputDir + outputRoot + ext.rootOf(inputBam) + ".exCNV";
@@ -451,7 +468,7 @@ public class ExomeDepth {
 			log.reportTimeInfo("number of batches set to " + numBatches + ", preparing for batched run...");
 			ArrayList<String[]> batches = Array.splitUpArray(allReferenceBamFiles, numBatches, log);
 			for (int i = 0; i < batches.size(); i++) {
-				ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, batches.get(i), outputDir, outputRoot,Rloc, log);
+				ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, batches.get(i), outputDir, outputRoot, Rloc, log);
 				if (!Files.exists(exomeDepth.getCountFile())) {
 					log.reportTimeWarning("Did not find " + exomeDepth.getCountFile() + ", generating it now (takes a long time)");
 					exomeDepth.generateCountFile();
@@ -475,7 +492,7 @@ public class ExomeDepth {
 				Files.qsub(qsub, command, memoryInMb, wallTimeInHours, numthreads);
 			}
 		} else {
-			ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles, outputDir, outputRoot,Rloc, log);
+			ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles, outputDir, outputRoot, Rloc, log);
 			callCNVs(exomeDepth, outputDir, outputRoot, numthreads, log);
 		}
 	}
@@ -534,7 +551,7 @@ public class ExomeDepth {
 		int numthreads = 1;
 		String logfile = null;
 		Logger log;
-		String Rloc =null;
+		String Rloc = null;
 
 		String usage = "\n" + "seq.analysis.ExomeDepth requires 0-1 arguments\n";
 		usage += "   (1) full path to a directory of or file of bams (i.e. bams=" + bams + " (default))\n" + "";
@@ -587,7 +604,7 @@ public class ExomeDepth {
 		}
 		try {
 			log = new Logger(logfile);
-			runExomeDepth(bams, outputDir, outputRoot,Rloc, numBatches, numthreads, wallTimeInHours, memoryInMb, log);
+			runExomeDepth(bams, outputDir, outputRoot, Rloc, numBatches, numthreads, wallTimeInHours, memoryInMb, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
