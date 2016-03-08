@@ -262,7 +262,6 @@ public class VCFTumorNormalOps {
 		for (int i = 0; i < bamFiles.length; i++) {
 			all.put(BamOps.getSampleName(bamFiles[i]), bamFiles[i]);
 		}
-		ArrayList<String> analysisBams = new ArrayList<String>();
 		ArrayList<TNSample> tnSamples = new ArrayList<TNSample>();
 		for (String tnPair : vpop.getSubPop().keySet()) {
 			Set<String> samps = vpop.getSubPop().get(tnPair);
@@ -281,11 +280,8 @@ public class VCFTumorNormalOps {
 			if (!all.containsKey(tumor) || !all.containsKey(normal)) {
 				throw new IllegalArgumentException("Could not find bam file for Tumor " + tumor + " or for Normal " + normal);
 			} else {
-				TNSample tSample = new TNSample(all.get(normal), normal, all.get(tumor), tumor);
+				TNSample tSample = new TNSample(tumor, normal, all.get(tumor), all.get(normal));
 				tnSamples.add(tSample);
-				analysisBams.add(all.get(normal));
-				analysisBams.add(all.get(tumor));
-
 			}
 		}
 		// if (analysisBams.size() < bamFiles.length) {
