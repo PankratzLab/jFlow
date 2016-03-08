@@ -414,15 +414,34 @@ public class Matrix {
 	/**
      * Creates a matrix of String and copies the contents of an array of String into the first column
      * 
-     * @param ds
-     *            an array of double
-     * @return a matrix of double copied from an array of double
+     * @param array
+     *            an array of String
+     * @return a matrix of String copied from an array of String
      */
-	public static String[][] toMatrix(String[] ds) {
-    	String[][] matrix = new String[ds.length][1];
+	public static String[][] toMatrix(String[] array) {
+    	String[][] matrix = new String[array.length][1];
     
-    	for (int i = 0; i<ds.length; i++) {
-    		matrix[i][0] = ds[i];
+    	for (int i = 0; i<array.length; i++) {
+    		matrix[i][0] = array[i];
+    	}
+    
+    	return matrix;
+    }
+	
+	/**
+     * Creates a matrix of String and copies the contents of an array of String after splitting on the delimiter value
+     * 
+     * @param array
+     *            an array of double
+     * @param delimiter
+     *            the value with which to split the array
+     * @return a matrix of String copied and split from an array of String
+     */
+	public static String[][] toMatrix(String[] array, String delimiter) {
+    	String[][] matrix = new String[array.length][];
+    
+    	for (int i = 0; i<array.length; i++) {
+    		matrix[i] = array[i].split(delimiter);
     	}
     
     	return matrix;
