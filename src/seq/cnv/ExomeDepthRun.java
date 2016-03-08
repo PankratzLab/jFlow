@@ -2,6 +2,7 @@ package seq.cnv;
 
 import java.io.File;
 
+import cnv.filesys.Sample;
 import seq.cnv.ExomeDepth.ExomeDepthAnalysis;
 import seq.manage.BamOps;
 import seq.manage.VCFOps.VcfPopulation;
@@ -34,16 +35,24 @@ public class ExomeDepthRun {
 		} else {
 			if (somaticMode) {
 				vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
-			}else{
+			} else {
 				vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.EXOME_DEPTH, log);
 			}
 			vpop.report();
-			System.exit(1);
-
 			exomeDepth.parseVpop(vpop);
 		}
 		ExomeDepthAnalysis[] eDepthAnalysis = ExomeDepth.callCNVs(exomeDepth, outputDir, outputRoot, numthreads, log);
 		log.reportTimeInfo("Finished running exome depth for " + eDepthAnalysis.length + " .bam files");
+
+		log.reportTimeInfo("Generating project in " + outputDir);
+
+	}
+
+	private Sample parseToSample(ExomeDepthAnalysis exomeDepthAnalysis, Logger log) {
+		String input =exomeDepthAnalysis.getExomeDepthRawDataOutput();
+		int ratioIndex = ext.indexOfStr("ratio", Files.getHeaderOfFile(input, log));
+		String[] ratios = HashVec.loadFileToStringArray(input, true, new int[] { ratioIndex }, false);
+		return null;
 	}
 
 	public static void main(String[] args) {

@@ -169,14 +169,21 @@ public class ExomeDepth {
 
 		script += MY_REF_SAMPLES_VAR + " <- " + Rscript.generateRVector(Array.toStringArray(tmpRef), true) + "\n";
 		script += MY_REF_SET_VAR + " <- " + "as.matrix(" + EXOME_COUNTS_DAFR + "[, " + MY_REF_SAMPLES_VAR + "])\n";
+		if (tmpRef.size() == 0) {
+			throw new IllegalArgumentException("0 size reference set, cannot call cnvs with exomeDepth");
+		}
 
-		script += MY_CHOICE_VAR + " <- " + "select.reference.set (test.counts = " + MY_TEST_VAR + ",reference.counts = " + MY_REF_SET_VAR;
-		script += ",bin.length = (" + EXOME_COUNTS_DAFR + "$end - " + EXOME_COUNTS_DAFR + "$start)/1000,n.bins.reduced = 10000)\n";
-		script += "print(" + MY_CHOICE_VAR + "[[1]])\n";
+		if (tmpRef.size() > 1) {
+			script += MY_CHOICE_VAR + " <- " + "select.reference.set (test.counts = " + MY_TEST_VAR + ",reference.counts = " + MY_REF_SET_VAR;
+			script += ",bin.length = (" + EXOME_COUNTS_DAFR + "$end - " + EXOME_COUNTS_DAFR + "$start)/1000,n.bins.reduced = 10000)\n";
+			script += "print(" + MY_CHOICE_VAR + "[[1]])\n";
 
-		script += MY_MATRIX_VAR + " <- as.matrix( " + EXOME_COUNTS_DAFR + "[," + MY_CHOICE_VAR + "$reference.choice, drop = FALSE])\n";
-		script += MY_REF_SET_SELECTED_VAR + "<- apply(X =" + MY_MATRIX_VAR + ",MAR = 1,FUN = sum)\n";
-
+			script += MY_MATRIX_VAR + " <- as.matrix( " + EXOME_COUNTS_DAFR + "[," + MY_CHOICE_VAR + "$reference.choice, drop = FALSE])\n";
+			script += MY_REF_SET_SELECTED_VAR + "<- apply(X =" + MY_MATRIX_VAR + ",MAR = 1,FUN = sum)\n";
+		}
+		else {// causes R error otherwise, and no need to select ref
+			script += MY_REF_SET_SELECTED_VAR + " <- " + EXOME_COUNTS_DAFR + "$" + Rscript.makeRSafe(ext.removeDirectoryInfo(tmpRef.get(0))) + "\n";
+		}
 		script += MY_ALL_EXONS_VAR + "<- new ('ExomeDepth', test = " + MY_TEST_VAR + " , reference = " + MY_REF_SET_SELECTED_VAR + ",";
 		script += "formula = 'cbind(test,reference) ~ 1')\n";
 
@@ -323,6 +330,10 @@ public class ExomeDepth {
 			this.log = log;
 		}
 
+		public String getExomeDepthRawDataOutput() {
+			return exomeDepthRawDataOutput;
+		}
+
 		public String getrScriptCall() {
 			return rScriptCall;
 		}
@@ -375,7 +386,7 @@ public class ExomeDepth {
 			script += "dev.off()";
 			String scriptFile = exomeDepthPDFOutput + ".Rscript";
 			CmdLine.prepareBatchForCommandLine(new String[] { script }, scriptFile, true, log);
-			boolean created = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", scriptFile }, "", new String[] { rDafrexomeDepthOutput }, new String[] { exomeDepthPDFOutput }, true, true, false, log);
+			boolean created = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", scriptFile }, "", new String[] { rDafrexomeDepthOutput }, new String[] { exomeDepthPDFOutput }, true, false, false, log);
 			return created;
 		}
 
@@ -397,7 +408,7 @@ public class ExomeDepth {
 			script += getRawDataDumpScript();
 			String scriptFile = exomeDepthRawDataOutput + ".rawData.Rscript";
 			CmdLine.prepareBatchForCommandLine(new String[] { script }, scriptFile, true, log);
-			boolean created = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", scriptFile }, "", new String[] { rDafrexomeDepthOutput }, new String[] { exomeDepthRawDataOutput }, true, true, false, log);
+			boolean created = CmdLine.runCommandWithFileChecks(new String[] { "Rscript", scriptFile }, "", new String[] { rDafrexomeDepthOutput }, new String[] { exomeDepthRawDataOutput }, true, false, false, log);
 			return created;
 		}
 
@@ -410,8 +421,8 @@ public class ExomeDepth {
 			script += "freq = test/ (reference + test)\n";
 			script += "ratio <-  freq/ expected\n";
 			script += "anno <- all.exons@annotations\n";
-			script += "exomeObject = data.frame(anno$chromosome,anno$start,anno$end, test,expected,reference,ratio)";
-			script += "write.table(exomeObject, \"" + exomeDepthRawDataOutput + "\",row.names = FALSE,quote=FALSE )";
+			script += "exomeObject = data.frame(anno$chromosome,anno$start,anno$end, test,expected,reference,ratio)\n";
+			script += "write.table(exomeObject, \"" + exomeDepthRawDataOutput + "\",row.names = FALSE,quote=FALSE )\n";
 			return script;
 
 		}
