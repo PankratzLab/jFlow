@@ -1,13 +1,13 @@
 package common;
 
 /**
- * Signals that an exception of some sort has occurred.
+ * Signals that a foreseen problem (may or not be an actual exception) has occurred
  */
 public class Elision extends Exception {
 	public static final long serialVersionUID = -1;
 
 	/**
-	 * Constructs an <code>Elisiono</code> with <code>null</code> as its
+	 * Constructs an <code>Elision</code> with <code>null</code> as its
 	 * error detail message.
 	 */
 	public Elision() {
@@ -26,5 +26,4 @@ public class Elision extends Exception {
 	public Elision(String str) {
 		super(str);
 	}
-
 }

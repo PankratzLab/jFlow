@@ -1,9 +1,11 @@
 package widgets;
 
+import java.io.File;
+import java.util.Date;
 import java.util.HashSet;
-
 import cnv.filesys.Project;
 import cnv.plots.TwoDPlot;
+import filesys.SerialStringArray;
 import gwas.MetaAnalysis;
 import stats.Histogram;
 import common.*;
@@ -169,6 +171,89 @@ public class ClipSwap {
 		ext.setClipboard(result);
 	}
 
+	public static void saveKeysToFile() {
+		long time = new Date().getTime();
+		
+		new SerialStringArray(ext.getClipboard().trim().split("\\n")).serialize("savedKeysForLookup.ser");
+
+		if (new Date().getTime() - time > 1 * 1000) { // report if it took more than a second
+			System.out.println("Converted lookup result to text in " + ext.getTimeElapsed(time));
+		}
+	}
+
+	public static boolean lookupValuesForSavedKeys() {
+		String[] keys;
+		String[][] result;
+		StringBuilder temp;
+		long time;
+		Logger log;
+		String lineEnding;
+		int count;
+		
+		log = new Logger();
+        log.setLevel(11);
+
+		time = new Date().getTime();
+		if (!Files.exists("savedKeysForLookup.ser")) {
+			log.reportError("Our expected file 'savedKeysForLookup.ser' does not exist; run -saveKeys first");
+			return false;
+		}
+
+		if (new Date().getTime() - new File("savedKeysForLookup.ser").lastModified() > 10 * 60 * 1000) { // if file is more than 10 minutes old
+			log.reportError("Our expected file 'savedKeysForLookup.ser' was created "+ext.getTimeElapsed(new File("savedKeysForLookup.ser").lastModified())+" ago; resave keys using -saveKeys");
+			return false;
+		}
+		
+		keys = SerialStringArray.load("savedKeysForLookup.ser", false).getArray();
+		if (new Date().getTime() - time > 1 * 1000) { // report if it took more than a second
+			log.report("Loaded serialized keys in " + ext.getTimeElapsed(time));
+		}
+
+		time = new Date().getTime();
+		temp = new StringBuilder();
+		try {
+			result = Files.combineInMemory(keys, Matrix.toMatrix(ext.getClipboard().trim().split("\\n"), "\t"), ".", false, false, log);
+			if (new Date().getTime() - time > 1 * 1000) { // report if it took more than a second
+				log.report("Performed lookup in " + ext.getTimeElapsed(time));
+			}
+			
+			if (System.getProperty("os.name").startsWith("Windows")) {
+				lineEnding = "\r\n";
+			} else {
+				lineEnding = "\n";
+			}
+			
+			count = 0;
+			time = new Date().getTime();
+			for (int i = 0; i < keys.length; i++) {
+				if (keys[i].trim().equals("")) {
+					temp.append(lineEnding);
+					count++;
+				} else {
+					temp.append(Array.toStr(result[i])+lineEnding);
+				}
+			}
+			if (count > 0) {
+				log.report("(There "+(count==1?"was one key that was":"were "+count+" keys that were")+" blank)"+lineEnding);
+			}
+			
+			if (new Date().getTime() - time > 1 * 1000) { // report if it took more than a second
+				log.report("Converted lookup result to text in " + ext.getTimeElapsed(time));
+			}
+		} catch (Elision e) {
+			log.reportError(e.getMessage());
+			return false;
+		}
+		
+		time = new Date().getTime();
+		ext.setClipboard(temp.toString());
+		if (new Date().getTime() - time > 1 * 1000) { // report if it took more than a second
+			log.report("Posted result to clipboard in " + ext.getTimeElapsed(time));
+		}
+
+		return true;
+	}
+
 	public static void main(String[] args) {
 	    int numArgs = args.length;
 	    boolean slash = false;
@@ -180,7 +265,9 @@ public class ClipSwap {
 	    boolean histogram = false;
 	    boolean inverseVariance = false;
 	    boolean nominalVariable = false;
-
+    	boolean saveKeysToFile = false;
+    	boolean lookupValuesForSavedKeys = false;
+    	
 	    String usage = "\n"+
 	    "widgets.ClipSwap requires 0-1 arguments\n"+
 	    "   (1) Fix slashes (i.e. -slash (not the default))\n"+
@@ -192,6 +279,8 @@ public class ClipSwap {
 	    "   (7) Create bins and counts for a histogram (i.e. -histogram (not the default))\n"+
 	    "   (8) Perform an inverse-variance weighted meta-analysis on a series of betas/stderrs (i.e. -inverseVariance (not the default))\n"+
 	    "   (9) Split a nominal variable into binary columns (i.e. -nominalVariable (not the default))\n"+
+	    "   (10) Extracts keys from clipboard and saves them to a serialized file, with tabs maintained in lookup values (i.e. -saveKeys (not the default))\n"+
+	    "   (11) Lookup the values for the stored keys using the contents of the clipboard (i.e. -lookupValuesForSavedKeys (not the default))\n"+
 	    "";
 
 	    for (int i = 0; i<args.length; i++) {
@@ -224,6 +313,12 @@ public class ClipSwap {
 			    numArgs--;
 		    } else if (args[i].startsWith("-nominalVariable")) {
 		    	nominalVariable = true;
+			    numArgs--;
+		    } else if (args[i].startsWith("-saveKeys")) {
+		    	saveKeysToFile = true;
+			    numArgs--;
+		    } else if (args[i].startsWith("-lookupValuesForSavedKeys")) {
+		    	lookupValuesForSavedKeys = true;
 			    numArgs--;
 		    } else {
 			    System.err.println("Error - don't know what to do with argument '"+args[i]+"'");
@@ -262,6 +357,18 @@ public class ClipSwap {
 	    	if (nominalVariable) {
 	    		nominalVariable();
 	    	}
+			if (saveKeysToFile) {
+	    		saveKeysToFile();
+	    	    ext.waitForResponse("Keys have been saved; ready to perform lookup\npress any key to continue");
+	    	}
+			if (lookupValuesForSavedKeys) {
+				if (lookupValuesForSavedKeys()) {
+					ext.waitForResponse("Lookup was successful!\npress any key to close");
+				} else {
+					ext.waitForResponse("Lookup was not successful\npress any key to close");
+				}
+	    	}
+	    	
 	    } catch (Exception e) {
 		    e.printStackTrace();
 		    ext.waitForResponse("Some sort of error");

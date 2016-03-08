@@ -1454,7 +1454,123 @@ public class Files {
         	log.reportException(e);
         }
 	}
+
 	
+	/**
+	 * Looks up the values for a set of keys in memory
+	 *  
+	 * @param keys - the keys to lookup (if they contain tabs, then they will be matched on the first N set of columns in the lookup values)
+	 * @param lookupValues - Matrix of String with the lookup values
+	 * @param missingValue - the String to use if the key is not present in the lookup values 
+	 * @param ignoreCase - ignore case when matching keys to values 
+	 * @param hideIndex - do not return the keys as the first column of the result 
+	 * @param log - the Logger to report any errors
+	 * @return 
+	 * @throws Elision 
+	 */
+	public static String[][] combineInMemory(String[] keys, String[][] lookupSource, String missingValue, boolean ignoreCase, boolean hideIndex, Logger log) throws Elision {
+        Hashtable<String, Integer> hash;
+        int numColsInKey, numColsInValues;
+        String[][] data;
+        String key;
+        int count;
+        
+        numColsInKey = keys[0].split("\t", -1).length;
+		numColsInValues = lookupSource[0].length;
+		
+		if (numColsInKey > 1) {
+			log.report("The keys contain tabs, so the lookup will be performed on the first "+numColsInKey+" columns in the lookup source data");
+		}
+        
+		count = 0;
+		hash = new Hashtable<String, Integer>(keys.length);
+		for (int i = 0; i < lookupSource.length; i++) {
+			if (lookupSource[i].length > 0) {
+				if (lookupSource[i].length < numColsInKey + 1) {
+					throw new Elision("The lookup values require at least "+(numColsInKey+1)+" columns ("+numColsInKey+" for the key and at least one value"+"), but row "+(i+1)+" has only "+lookupSource[i].length);
+				}
+				if (lookupSource[i].length != numColsInValues) {
+					throw new Elision("The first row of the lookup values had "+numColsInValues+" columns while row "+(i+1)+" has "+keys[i].split("\t", -1).length);
+				}
+
+				key = lookupSource[i][0];
+	    		for (int j = 1; j < numColsInKey; j++) {
+	    			key += "\t"+lookupSource[i][j];
+				}
+	    		if (ignoreCase) {
+	    			key = key.toLowerCase();
+	    		}
+	    		
+	    		if (hash.containsKey(key)) {
+	    			if (count < 5 && log.getLevel() > 8) {
+	    				log.reportError("Warning duplicate key in lookup values ('"+key+"'); only the first value will be used:");
+	    				log.reportError(Array.toStr(lookupSource[hash.get(key)]));
+	    				log.reportError("...and not this one:");
+	    				log.reportError(Array.toStr(lookupSource[i]));
+	    			} else if (count == 5) {
+	    				log.reportError("...");
+	    			}
+	    			count++;
+	    		}
+	    		hash.put(key, i);
+			}
+		}
+		if (count > 5) {
+			log.reportError("There were "+count+" instances of duplicate keys in the lookup values");
+		}
+        data = new String[keys.length][];
+        
+        if (log.getLevel() > 8) {
+        	log.report(ext.addCommas(Runtime.getRuntime().maxMemory())+" memory available");
+        }
+
+        count = 0;
+        try {
+        	for (int i = 0; i < keys.length; i++) {
+        		key = ignoreCase?keys[i].toLowerCase():keys[i];
+    			if (key.split("\t", -1).length != numColsInKey) {
+    				throw new Elision("The first row of the keys had "+numColsInKey+" column"+(numColsInKey==1?"":"s")+" while row "+(i+1)+" has "+keys[i].split("\t", -1).length);
+    			}
+        		
+        		if (hash.containsKey(key)) {
+        			data[i] = lookupSource[hash.get(key)];
+        		} else {
+        			data[i] = Array.stringArray(numColsInValues, missingValue);
+        			count++;
+        		}
+			}
+        } catch (OutOfMemoryError oome) {
+        	log.reportError("Uh oh! Ran out of memory while combining files!");
+        	return null;
+        } catch (Exception e) {
+        	log.reportException(e);
+        	return null;
+        }
+        
+        if (count > 0 && log.getLevel() > 8) {
+        	log.report("\nOf the "+data.length+" keys, "+count+" "+(count==1?"was":"were")+" not found among the lookup values\n");
+        	
+        	if (data.length == count) {
+            	log.report("The first few keys were: ");
+            	for (int i = 0; i < Math.min(keys.length, 10); i++) {
+                	log.report(keys[i]);
+				}
+            	log.report("");
+            	log.report("The first few lookup values were: ");
+            	for (int i = 0; i < Math.min(lookupSource.length, 10); i++) {
+            		key = lookupSource[i][0];
+            		for (int j = 1; j < numColsInKey; j++) {
+            			key += "\t"+lookupSource[i][j];
+    				}
+                	log.report(key);
+				}
+        	}
+        }
+
+
+        return data;
+	}
+
 	public static void filterByKeys(String keysFile, String fileIn, String fileOut, int keyColumn, boolean preserveKeyOrder) throws IOException {
 	    if (!Files.exists(keysFile)) {
 	        System.err.println("Error - key file " + keysFile + " doesn't exist!");
