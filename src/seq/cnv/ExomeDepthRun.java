@@ -12,9 +12,9 @@ import cnv.manage.Markers;
 import cnv.manage.TransposeData;
 import seq.cnv.ExomeDepth.ExomeDepthAnalysis;
 import seq.manage.BamOps;
-import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import stats.Maths;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -65,7 +65,7 @@ public class ExomeDepthRun {
 		proj.PROJECT_DIRECTORY.setValue(projectDir);
 		proj.saveProperties(projectFile);
 		generateMarkerPositions(proj, eDepthAnalysis[0], log);
-
+		proj.CNV_FILENAMES.setValue(new String[] { outputResultsDir + outputRoot + ".all.cnvs" });
 		GenvisisSampleProducer producer = new GenvisisSampleProducer(proj, eDepthAnalysis, outputRoot, log);
 		WorkerTrain<ExomeSample> train = new WorkerTrain<ExomeDepthRun.ExomeSample>(producer, numthreads, 10, log);
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
@@ -83,6 +83,7 @@ public class ExomeDepthRun {
 		String outliersSer = proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser";
 		Files.writeSerial(allOutliers, outliersSer);
 		TransposeData.transposeData(proj, 2000000000, false);
+		proj.saveProperties();
 	}
 
 	private static void generateMarkerPositions(Project proj, ExomeDepthAnalysis first, Logger log) {
@@ -95,35 +96,36 @@ public class ExomeDepthRun {
 		String positions = proj.MARKER_POSITION_FILENAME.getValue();
 		proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
 		String[] markerNames = new String[segments.length];
-		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(positions));
-			int markerIndex = 0;
-			writer.println("BinName\tChr\tPosition");
-			for (int i = 0; i < segments.length; i++) {
-				Segment bFeatureSeg = segments[i];
-				String markerName = bFeatureSeg.getUCSClocation();
-				markerNames[markerIndex] = markerName;
-				int diff = bFeatureSeg.getStop() - bFeatureSeg.getStart();
-				int mid = Math.round((float) diff / 2);
-				int pos = bFeatureSeg.getStart() + mid;
-				writer.println(markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos);
-				markerIndex++;
+		if (!Files.exists(positions) || !Files.exists(proj.MARKERSET_FILENAME.getValue(true, true))) {
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(positions));
+				int markerIndex = 0;
+				writer.println("BinName\tChr\tPosition");
+				for (int i = 0; i < segments.length; i++) {
+					Segment bFeatureSeg = segments[i];
+					String markerName = bFeatureSeg.getUCSClocation();
+					markerNames[markerIndex] = markerName;
+					int diff = bFeatureSeg.getStop() - bFeatureSeg.getStart();
+					int mid = Math.round((float) diff / 2);
+					int pos = bFeatureSeg.getStart() + mid;
+					writer.println(markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos);
+					markerIndex++;
+				}
+
+				writer.close();
+			} catch (Exception e) {
+				proj.getLog().reportError("Error writing to " + positions);
+				proj.getLog().reportException(e);
 			}
 
-			writer.close();
-		} catch (Exception e) {
-			proj.getLog().reportError("Error writing to " + positions);
-			proj.getLog().reportException(e);
+			Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 		}
-
-		Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
-
 	}
 
 	private static class ExomeSample implements Callable<ExomeSample> {
 		private Project proj;
 		private ExomeDepthAnalysis eDepthAnalysis;
-		private String outputSampleRoot;
+		// private String outputSampleRoot;
 		private Hashtable<String, Float> outliers;
 		private Logger log;
 
@@ -131,7 +133,7 @@ public class ExomeDepthRun {
 			super();
 			this.proj = proj;
 			this.eDepthAnalysis = eDepthAnalysis;
-			this.outputSampleRoot = outputSampleRoot;
+			// this.outputSampleRoot = outputSampleRoot;
 			this.log = log;
 			this.outliers = new Hashtable<String, Float>();
 		}
@@ -142,7 +144,7 @@ public class ExomeDepthRun {
 
 		@Override
 		public ExomeSample call() throws Exception {
-			String sample = outputSampleRoot + "_" + BamOps.getSampleName(eDepthAnalysis.getInputBam());
+			String sample = BamOps.getSampleName(eDepthAnalysis.getInputBam());
 			String sampFile = proj.SAMPLE_DIRECTORY.getValue(true, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION;
 
 			if (!Files.exists(sampFile)) {
@@ -153,14 +155,14 @@ public class ExomeDepthRun {
 				for (int i = 0; i < ratios.length; i++) {
 					try {
 						float tmp = Float.parseFloat(ratios[i]);
-						ratioLrr[i] = 1 - tmp;
+						ratioLrr[i] = (float) Maths.log2(tmp);
 					} catch (NumberFormatException nfe) {
 						ratioLrr[i] = Float.NaN;
 					}
 				}
 				byte[] genos = Array.byteArray(ratioLrr.length, (byte) 1);
 				float[] bafs = Array.floatArray(ratioLrr.length, 0);
-				Sample samp = new Sample(sample, proj.getMarkerSet().getFingerprint(), null, ratioLrr, ratioLrr, bafs, ratioLrr, genos, genos, false);
+				Sample samp = new Sample(sample, proj.getMarkerSet().getFingerprint(), null, bafs, bafs, bafs, ratioLrr, genos, genos, false);
 				samp.saveToRandomAccessFile(sampFile, outliers, sample);
 			} else {
 				outliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(sampFile);
@@ -206,22 +208,22 @@ public class ExomeDepthRun {
 
 	}
 
-	private Sample parseToSample(ExomeDepthAnalysis exomeDepthAnalysis, Logger log) {
-		String input = exomeDepthAnalysis.getExomeDepthRawDataOutput();
-		int ratioIndex = ext.indexOfStr("ratio", Files.getHeaderOfFile(input, log));
-		String[] ratios = HashVec.loadFileToStringArray(input, true, new int[] { ratioIndex }, false);
-		float[] ratioLrr = new float[ratios.length];
-		for (int i = 0; i < ratios.length; i++) {
-			try {
-				float tmp = Float.parseFloat(ratios[i]);
-				ratioLrr[i] = tmp;
-			} catch (NumberFormatException nfe) {
-				ratioLrr[i] = Float.NaN;
-			}
-		}
-
-		return null;
-	}
+	// private Sample parseToSample(ExomeDepthAnalysis exomeDepthAnalysis, Logger log) {
+	// String input = exomeDepthAnalysis.getExomeDepthRawDataOutput();
+	// int ratioIndex = ext.indexOfStr("ratio", Files.getHeaderOfFile(input, log));
+	// String[] ratios = HashVec.loadFileToStringArray(input, true, new int[] { ratioIndex }, false);
+	// float[] ratioLrr = new float[ratios.length];
+	// for (int i = 0; i < ratios.length; i++) {
+	// try {
+	// float tmp = Float.parseFloat(ratios[i]);
+	// ratioLrr[i] = tmp;
+	// } catch (NumberFormatException nfe) {
+	// ratioLrr[i] = Float.NaN;
+	// }
+	// }
+	//
+	// return null;
+	// }
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
