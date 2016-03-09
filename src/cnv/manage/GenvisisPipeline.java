@@ -329,7 +329,14 @@ public class GenvisisPipeline {
             String pedFile = variables.get(this).get(1);
             String sampleMapCsv = variables.get(this).get(2);
             StringBuilder cmd = new StringBuilder();
-            return cmd.append("jcp cnv.var.SampleData proj=").append(projPropFile).append(" ped=").append(pedFile).append(" sampleMap=").append(sampleMapCsv).toString();
+            cmd.append("jcp cnv.var.SampleData proj=").append(projPropFile);
+            if (!"".equals(pedFile)) {
+                cmd.append(" ped=").append(pedFile);
+            }
+            if (!"".equals(sampleMapCsv)) {
+                cmd.append(" sampleMap=").append(sampleMapCsv);
+            }
+            return cmd.toString();
         }
         
     };
@@ -748,7 +755,7 @@ public class GenvisisPipeline {
             if (Boolean.valueOf(variables.get(this).get(2))) {
                 cmd.append("jcp cnv.filesys.Pedigree proj=").append(projPropFile).append("\n");
             }
-            cmd.append("jcp cnv.manage.PlinkData -genvisisToBed plinkdata=gwas gcthreshold=-1 proj=").append(proj.getPropertyFilename());
+            cmd.append("jcp cnv.manage.PlinkData -genvisisToBed plinkdata=plink/plink gcthreshold=-1 proj=").append(proj.getPropertyFilename());
             return cmd.toString();
         }
     };
@@ -814,8 +821,7 @@ public class GenvisisPipeline {
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String dir = variables.get(this).get(0);
             boolean keepUnrelatedsOnly = Boolean.valueOf(variables.get(this).get(1));
-            String logFile = proj.getLog().getFilename();
-            return "jcp gwas.Qc dir=" + dir + " log=" + logFile + " keepGenomeInfoForRelatedsOnly=" + keepUnrelatedsOnly;
+            return "jcp gwas.Qc dir=" + dir + " keepGenomeInfoForRelatedsOnly=" + keepUnrelatedsOnly;
         }
         
     };

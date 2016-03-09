@@ -865,6 +865,7 @@ public class PlinkData {
 		
 		log = proj.getLog();
 		outFileDirAndFilenameRoot = proj.PROJECT_DIRECTORY.getValue()/* + "plink/"*/ + plinkPrefix;
+        (new File(ext.parseDirectoryOfFile(outFileDirAndFilenameRoot + ".bim"))).mkdirs();
 //		if (new File(outFileDirAndFilenameRoot + ".bed").exists() || new File(outFileDirAndFilenameRoot + ".bim").exists() || new File(outFileDirAndFilenameRoot + ".fam").exists()) {
 //			log.reportError("System abort. PLINK binary file set \"" + outFileDirAndFilenameRoot + "\" .bed/.bim/.fam already exist. Please remove the file(s).");
 //			return false;
@@ -878,45 +879,32 @@ public class PlinkData {
 		
 		String PROG_KEY = "PLINKBINARYEXPORT";
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .fam file", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot);
+		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot); // samples and FAM file are in pedigree order, not project order
 		proj.getProgressMonitor().endTask(PROG_KEY);
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		
-		allSamplesInProj = proj.getSamples();
-		if (targetSamples != null) {
-		    proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Loading sample data", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-			indicesOfTargetSamplesInProj = getSortedIndicesOfTargetSamplesInProj(allSamplesInProj, targetSamples, log);
-			targetSamples = new String[indicesOfTargetSamplesInProj.length];
-			for (int i = 0; i < indicesOfTargetSamplesInProj.length; i++) {
-				targetSamples[i] = allSamplesInProj[ indicesOfTargetSamplesInProj[i] ];
-			}
-	        proj.getProgressMonitor().endTask(PROG_KEY);
+		if (targetSamples == null) {
+		    log.reportTimeError("FAM file wasn't written properly.");
+		    return false;
 		} else {
-			targetSamples = allSamplesInProj;
-//			indicesOfTargetSamplesInProj = null;
-			indicesOfTargetSamplesInProj = new int[allSamplesInProj.length];
-			for (int i = 0; i < allSamplesInProj.length; i++) {
-			    indicesOfTargetSamplesInProj[i] = i;
-			}
-		}
+		    proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Loading sample data", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+		    allSamplesInProj = proj.getSamples();
+			indicesOfTargetSamplesInProj = getIndicesOfTargetSamplesInProj(allSamplesInProj, targetSamples, log);
+//			targetSamples = new String[indicesOfTargetSamplesInProj.length];
+//			for (int i = 0; i < indicesOfTargetSamplesInProj.length; i++) {
+//				targetSamples[i] = allSamplesInProj[indicesOfTargetSamplesInProj[i]];
+//			}
+	        proj.getProgressMonitor().endTask(PROG_KEY);
+		} 
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 
-//		allMarkersInProj = proj.getMarkerNames();
 		targetMarkers = proj.getTargetMarkers(targetMarkersFileName);
-//		if (targetMarkers == null) {
-//			indicesOfTargetMarkersInProj = null;
-//			targetMarkers = proj.getMarkerNames();
-//			chrsOfTargetMarkers = proj.getMarkerSet().getChrs();
-//			posOfTargetMarkers = proj.getMarkerSet().getPositions();
-//		} else {
-            proj.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Loading marker data", targetMarkers.length, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-			indicesOfTargetMarkersInProj = new int[targetMarkers.length];
-			chrsOfTargetMarkers = new HashMap<String, Byte>();
-			posOfTargetMarkers = new HashMap<String, Integer>();
-			getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj, chrsOfTargetMarkers, posOfTargetMarkers, log);
-			
-            proj.getProgressMonitor().endTask(PROG_KEY);
-//		}
+        proj.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Loading marker data", targetMarkers.length, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+		indicesOfTargetMarkersInProj = new int[targetMarkers.length];
+		chrsOfTargetMarkers = new HashMap<String, Byte>();
+		posOfTargetMarkers = new HashMap<String, Integer>();
+		getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj, chrsOfTargetMarkers, posOfTargetMarkers, log);
+        proj.getProgressMonitor().endTask(PROG_KEY);
 
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (gcThreshold < 0) {
@@ -926,11 +914,11 @@ public class PlinkData {
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .bed file", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		if (isSnpMajor) {
 		    proj.getLog().report("Creating .bed file from SNP major data");
-			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj, chrsOfTargetMarkers, posOfTargetMarkers, targetSamples, indicesOfTargetSamplesInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot, log);
-//			abLookup = createBedFileSnpMajorAllInMemory(proj, targetMarkers, indicesOfTargetMarkersInProj, targetSamples, indicesOfTargetSamplesInProj, bedFilenameRoot, gcThreshold, bedFilenameRoot);
+			abLookup = createBedFileSnpMajor10KperCycle(proj, targetMarkers, indicesOfTargetMarkersInProj, chrsOfTargetMarkers, posOfTargetMarkers, indicesOfTargetSamplesInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot, log);
 		} else {
 		    proj.getLog().report("Creating .bed file from Sample major data");
 			abLookup = createBedFileIndividualMajor(proj, targetSamples, targetMarkers, indicesOfTargetMarkersInProj, clusterFilterFileName, gcThreshold, outFileDirAndFilenameRoot);
+			createBimFile(targetMarkers, chrsOfTargetMarkers, posOfTargetMarkers, abLookup, outFileDirAndFilenameRoot, log);
 		}
 		proj.getProgressMonitor().endTask(PROG_KEY);
 		
@@ -940,10 +928,6 @@ public class PlinkData {
 			return false;
 		}
 		
-//		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .bim file", ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
-//		createBimFile(targetMarkers, chrsOfTargetMarkers, posOfTargetMarkers, abLookup, outFileDirAndFilenameRoot, log);
-//		proj.getProgressMonitor().endTask(PROG_KEY);
-
 		return true;
 	}
 
@@ -953,16 +937,12 @@ public class PlinkData {
 	    return indices;
 	}
 	
-    public static int[] getSortedIndicesOfTargetSamplesInProj(String[] allSampInProj, String[] targetSamples, Logger log) {
-//		String[] sampleNames;
+    public static int[] getIndicesOfTargetSamplesInProj(String[] allSampInProj, String[] targetSamples, Logger log) {
 		int[] indicesOfTargetSampInProj;
 		Hashtable<String, Integer> hash;
-		Enumeration<String> keys;
-		hash = new Hashtable<String, Integer>();
 		boolean found;
-//		sampleNames = proj.getSamples();
 
-//		indices = new int[sampList.length];
+		hash = new Hashtable<String, Integer>();
 		for (int i = 0; i < targetSamples.length; i++) {
 			if (hash.containsKey(targetSamples[i])) {
 				log.reportError("Warning - duplicate sample id in the list of samples to include: " + targetSamples[i]);
@@ -980,14 +960,12 @@ public class PlinkData {
 				}
 			}
 		}
-
-		indicesOfTargetSampInProj = new int[hash.size()];
-		keys = hash.keys();
+		
+		// needs to be in targetSamples order - we've already written the FAM file, so removing anything, even a duplicate, is a no-no
+		indicesOfTargetSampInProj = new int[targetSamples.length];
 		for (int i = 0; i < indicesOfTargetSampInProj.length; i++) {
-			indicesOfTargetSampInProj[i] = hash.get(keys.nextElement());
+			indicesOfTargetSampInProj[i] = hash.get(targetSamples[i]);
 		}
-
-		Arrays.sort(indicesOfTargetSampInProj);
 		return indicesOfTargetSampInProj;
 	}
 
@@ -1361,7 +1339,7 @@ public class PlinkData {
 	 * @param log
 	 * @return
 	 */
-	public static char[][] createBedFileSnpMajor10KperCycle(Project proj, String[] targetMarkers, int[] indicesOfTargetMarkersInProj, HashMap<String,Byte> chrsOfTargetMarkers, HashMap<String,Integer> posOfTargetMarkers, String[] targetSamples, int[] indicesOfTargetSamplesInProj, String clusterFilterFileName, float gcThreshold, String plinkDirAndFilenameRoot, Logger log) {
+	public static char[][] createBedFileSnpMajor10KperCycle(Project proj, String[] targetMarkers, int[] indicesOfTargetMarkersInProj, HashMap<String,Byte> chrsOfTargetMarkers, HashMap<String,Integer> posOfTargetMarkers, int[] indicesOfTargetSamplesInProj, String clusterFilterFileName, float gcThreshold, String plinkDirAndFilenameRoot, Logger log) {
 		RandomAccessFile out;
 		byte[] outStream;
 		byte[] genotypes;
@@ -1451,8 +1429,9 @@ public class PlinkData {
 		}
 		proj.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Exporting data to .bed file", expUpdateCount, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		
+		
 		try {
-		    bimWriter = new PrintWriter(new FileWriter(plinkDirAndFilenameRoot + ".bim"));
+		    bimWriter = Files.getAppropriateWriter(plinkDirAndFilenameRoot + ".bim");
             out = new RandomAccessFile(plinkDirAndFilenameRoot + ".bed", "rw");
             outStream = new byte[3];
             outStream[0] = (byte) 108;  // 0b01101100
@@ -1495,9 +1474,6 @@ public class PlinkData {
 					}
 					
 					out.write(encodePlinkBedBytesForASingleMarkerOrSample(genotypesOfTargetSamples));
-//					if (j > 0 && j % mod == 0) {
-//					    proj.getProgressMonitor().changeTaskLabelWithUpdate(PROG_KEY + filenames[i] + "_export", "Exported " + j + " of " + markerData.length + " markers from file " + filenames[i]);
-//					}
 					proj.getProgressMonitor().updateTask(PROG_KEY);
 					bimWriter.println(chrsOfTargetMarkers.get(markersOfThisFile[j]) + "\t" + markersOfThisFile[j] + "\t0\t" + posOfTargetMarkers.get(markersOfThisFile[j]) + "\t" + abLookup[targetIndex][0] + "\t" + abLookup[targetIndex][1]); //TODO alleles[][] matching chrs[]
 				}
@@ -1524,14 +1500,14 @@ public class PlinkData {
 	 * Convert Genvisis data to PLINK .bim format (SNP Major, or in our term - organized by markers)
 	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
 	 * @param targetMarkers
-	 * @param chrsOfTargetMarkers
+	 * @param chrsOfTargetMarkers.get(
 	 * @param posOfTargetMarkers
 	 * @param abLookup
 	 * @param bimDirAndFilenameRoot
 	 * @param log
 	 * @return
 	 */
-	public static boolean createBimFile(String[] targetMarkers, byte[] chrsOfTargetMarkers, int[] posOfTargetMarkers, char[][] abLookup, String bimDirAndFilenameRoot, Logger log) {
+	public static boolean createBimFile(String[] targetMarkers, HashMap<String, Byte> chrsOfTargetMarkers, HashMap<String, Integer> posOfTargetMarkers, char[][] abLookup, String bimDirAndFilenameRoot, Logger log) {
 		PrintWriter writer;
 
 		if (abLookup == null) {
@@ -1542,7 +1518,7 @@ public class PlinkData {
 		try {
 			writer = new PrintWriter(new FileWriter(bimDirAndFilenameRoot + ".bim"));
 			for (int i = 0; i < targetMarkers.length; i++) {
-				writer.println(chrsOfTargetMarkers[i] + "\t" + targetMarkers[i] + "\t0\t" + posOfTargetMarkers[i] + "\t" + abLookup[i][0] + "\t" + abLookup[i][1]); //TODO alleles[][] matching chrs[]
+				writer.println(chrsOfTargetMarkers.get(targetMarkers[i]) + "\t" + targetMarkers[i] + "\t0\t" + posOfTargetMarkers.get(targetMarkers[i]) + "\t" + abLookup[i][0] + "\t" + abLookup[i][1]); //TODO alleles[][] matching chrs[]
 			}
 			writer.close();
 
@@ -1586,12 +1562,13 @@ public class PlinkData {
 				log.reportError("Error - pedigree file ('"+filename+"') is not found.  Cannot create .fam file.");
 				return null;
 			}
-			reader = new BufferedReader(new FileReader(proj.PEDIGREE_FILENAME.getValue()));
-			writer = new PrintWriter(new FileWriter(famDirAndFilenameRoot+".fam"));
+			reader = Files.getAppropriateReader(proj.PEDIGREE_FILENAME.getValue());
+			writer = Files.getAppropriateWriter(famDirAndFilenameRoot + ".fam");
 			count = 1;
-			while (reader.ready()) {
+			temp = null;
+			while ((temp = reader.readLine()) != null) {
 				count++;
-				temp = reader.readLine().trim();
+				temp = temp.trim();
 				line = temp.split(ext.determineDelimiter(temp));
 				if (temp.equals("")) {
 					// then do nothing
@@ -1600,6 +1577,7 @@ public class PlinkData {
 					log.reportError("  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA");
 					log.reportError("  where DNA is the sample name associated with the genotypic data (see the "+proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory for examples)");
 					reader.close();
+					writer.flush();
 					writer.close();
 					return null;
 				} else if (ext.isMissingValue(line[6])) {
@@ -1616,6 +1594,7 @@ public class PlinkData {
 				}
 			}
 			reader.close();
+			writer.flush();
 			writer.close();
 		} catch (FileNotFoundException fnfe) {
 			log.reportError("Error: file \"" + famDirAndFilenameRoot+".fam" + "\" not found in current directory");
