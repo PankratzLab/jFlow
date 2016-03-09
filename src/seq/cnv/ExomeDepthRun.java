@@ -161,8 +161,8 @@ public class ExomeDepthRun {
 					}
 				}
 				byte[] genos = Array.byteArray(ratioLrr.length, (byte) 1);
-				float[] bafs = Array.floatArray(ratioLrr.length, 0);
-				Sample samp = new Sample(sample, proj.getMarkerSet().getFingerprint(), null, bafs, bafs, bafs, ratioLrr, genos, genos, false);
+				float[] zeroArray = Array.floatArray(ratioLrr.length, 0);
+				Sample samp = new Sample(sample, proj.getMarkerSet().getFingerprint(), zeroArray, zeroArray, zeroArray, zeroArray, ratioLrr, genos, genos, false);
 				samp.saveToRandomAccessFile(sampFile, outliers, sample);
 			} else {
 				outliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(sampFile);

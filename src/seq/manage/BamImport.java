@@ -10,6 +10,7 @@ import seq.manage.BamSegPileUp.PileupProducer;
 import seq.qc.FilterNGS;
 import common.Array;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.WorkerTrain;
 import common.ext;
@@ -34,8 +35,15 @@ public class BamImport {
 		if (proj.getArrayType() == ARRAY.NGS) {
 			Logger log = proj.getLog();
 
+			
 			String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
-			String[] bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(), proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
+			String[] bamsToImport = null;
+			if (Files.isDirectory(proj.SOURCE_DIRECTORY.getValue())) {
+				bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(), proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
+			} else {
+				bamsToImport = HashVec.loadFileToStringArray(proj.SOURCE_DIRECTORY.getValue(), false, new int[] { 0 }, true);
+			}
+			
 			log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
 			if (BedOps.verifyBedIndex(binBed, log)) {
 				BEDFileReader readerBin = new BEDFileReader(binBed, false);
