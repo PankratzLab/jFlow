@@ -3416,14 +3416,22 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         int alignFilter = blastFrame == null ? (int) (filter * probe) : blastFrame.currentAlignFilter;
         int[] hist = blastResult.getAlignmentHistogram(proj);
         int offTLbls = 0;
-        for (int i = hist.length - 2; i >= 0; i--) { // use -2 to avoid counting a perfect match
-            int len = probe - hist.length + i;
+        for (int i = hist.length - 1; i >= 0; i--) { 
+            int len = probe - hist.length + i; // compensate for a histogram that could be of shorter length than the probe 
             if (len >= alignFilter) {
+                if (i == hist.length - 1) {
+                    if (has && hist[i] > 0) {
+                        offTLbls--; // remove perfect match
+                    } else if (has && hist[i] == 0) {
+                        // error, no record for perfect match in histogram
+                    }
+                }
                 offTLbls += hist[i];
             } else {
                 break;
             }
         }
+        
         double ratio = blastFrame == null ? filter : ((double) blastFrame.currentAlignFilter) / ((double) proj.ARRAY_TYPE.getValue().getProbeLength());
 //        int offTLbls = BlastFrame.BlastUtils.filterAnnotations(proj, blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS, log), alignFilter).size();
         typeLabel = new JLabel("# Off-Target Alignments (>" + ratio + "% match): ", JLabel.LEFT);
