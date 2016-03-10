@@ -64,6 +64,18 @@ public class BamImport {
 			return this;
 		}
 
+		public String getSample() {
+			return sample;
+		}
+
+		public BamIndexStats getBamIndexStats() {
+			return bamIndexStats;
+		}
+
+		public Hashtable<String, Float> getOutliers() {
+			return outliers;
+		}
+
 	}
 
 	private static class BamPileConverterProducer implements Producer<BamPileConversionResults> {
@@ -137,39 +149,45 @@ public class BamImport {
 					PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(), filterNGS, analysisSet.getStrictSegments(), log);
 					WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<BamPileResult>(pileProducer, numthreads, 2, log);
 					int index = 0;
-					Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 					proj.SAMPLE_DIRECTORY.getValue(true, false);
 					proj.XY_SCALE_FACTOR.setValue((double) 10);
-					String[] mappedReadCounts = new String[bamsToImport.length + 1];
-					mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
+
 					BamPileResult[] results = new BamPileResult[bamsToImport.length];
 					while (pileTrain.hasNext()) {
 						results[index] = pileTrain.next();
 						index++;
 
 					}
+					String[] mappedReadCounts = new String[bamsToImport.length + 1];
+					mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
 					long fingerPrint = proj.getMarkerSet().getFingerprint();
 					BamPileConverterProducer conversionProducer = new BamPileConverterProducer(proj, results, fingerPrint, log);
+					WorkerTrain<BamPileConversionResults> conversionTrain = new WorkerTrain<BamImport.BamPileConversionResults>(conversionProducer, numthreads, 10, log);
 
-					// BamSample bamSample = new BamSample(proj, bamsToImport[index], train.next());
-					// String sample = bamSample.getSampleName();
-					// BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamsToImport[index]);
-					// int numAligned = bamIndexStats.getAlignedRecordCount();
-					// int numNotAligned = bamIndexStats.getUnalignedRecordCount();
-					// mappedReadCounts[index + 1] = sample + "\t" + numAligned + "\t" + numNotAligned;
-					//
-					// Hashtable<String, Float> outliers = bamSample.writeSample(fingerPrint);
-					// if (outliers.size() > 0) {
-					// allOutliers.putAll(outliers);
-					// }
-					Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+					Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 
+					int convIndex = 0;
+					while (conversionTrain.hasNext()) {
+						BamPileConversionResults conversionResult = conversionTrain.next();
+						BamIndexStats bamIndexStats = conversionResult.getBamIndexStats();
+						int numAligned = bamIndexStats.getAlignedRecordCount();
+						int numNotAligned = bamIndexStats.getUnalignedRecordCount();
+						mappedReadCounts[convIndex + 1] = conversionResult.getSample() + "\t" + numAligned + "\t" + numNotAligned;
+						convIndex++;
+						if (conversionResult.getOutliers().size() > 0) {
+							allOutliers.putAll(conversionResult.getOutliers());
+						}
+
+					}
 					String readCountFile = proj.PROJECT_DIRECTORY.getValue() + "sample.readCounts.txt";
+
 					Files.writeList(mappedReadCounts, readCountFile);
+
+					Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 
 					TransposeData.transposeData(proj, 2000000000, false);
 					CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numthreads, 2);
-					Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true);
+					Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numthreads);
 					TransposeData.transposeData(proj, 2000000000, false);
 
 					GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
