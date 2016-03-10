@@ -656,6 +656,14 @@ public class VCFOps {
 			this.log = log;
 		}
 
+		public Set<String> getTumorSamples() {
+			if (type == POPULATION_TYPE.TUMOR_NORMAL) {
+				throw new IllegalArgumentException("Can only get tumor samples from tumor normal vpop");
+			} else {
+				return superPop.get(TUMOR);
+			}
+		}
+
 		public VcfPopulation(POPULATION_TYPE type, Logger log) {
 			this.subPop = new Hashtable<String, Set<String>>();
 			this.superPop = new Hashtable<String, Set<String>>();

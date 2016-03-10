@@ -66,7 +66,6 @@ public class BamSample {
 		int currentPos = 0;
 		boolean[] useOffTarget = Array.booleanArray(bamPiles.length, true);
 		boolean[] useOntarget = Array.booleanArray(bamPiles.length, true);
-
 		for (int i = 0; i < bamPiles.length; i++) {
 			if (currentChr > bamPiles[i].getBin().getChr() || (bamPiles[i].getBin().getChr() <= currentChr && currentPos > bamPiles[i].getBin().getStart())) {
 				String error = "BUG, segments are unsorted";
@@ -80,7 +79,7 @@ public class BamSample {
 				currentPos = bamPiles[i].getBin().getStart();
 			}
 			rawDepth[i] = computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
-			//System.out.println(markerSet.getMarkerNames()[i] + "\t" + bamPiles[i].getNumOverlappingReads() + "\t" + rawDepth[i]);
+
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
 			if (markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
 				useOntarget[i] = false;
@@ -102,7 +101,6 @@ public class BamSample {
 			}
 			percentWithMismatch[i] = percentMiss;
 		}
-
 		int[][] chrIndices = markerSet.getIndicesByChr();
 
 		BeastScore beastScoreOnTarget = new BeastScore(Array.toFloatArray(rawDepth), chrIndices, null, proj.getLog());
@@ -116,6 +114,7 @@ public class BamSample {
 			boolean error = false;
 			for (int j = 0; j < chrIndices[i].length; j++) {
 				int index = chrIndices[i][j];
+				
 				if ((Double.isNaN(scaleMAD[index]) || Double.isInfinite(scaleMAD[index]))) {// should only happen if the MAD is NaN
 					if (!error) {
 						String warning = "Found invalid scale MAD depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[chrIndices[i][j]];
@@ -136,10 +135,17 @@ public class BamSample {
 		}
 //		for (int i = 0; i < scaleMAD.length; i++) {
 //			if (Double.isNaN(scaleMAD[i]) && !markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
-//				System.out.println(markerSet.getMarkerNames()[i]);
+		// System.out.println(markerSet.getMarkerNames()[i]);
+		// }
+		// }
+		this.normDepth = Array.scaleMinTo(Array.toDoubleArray(scaleMAD), 1);
+//		for (int i = 0; i < scaleMAD.length; i++) {
+//			System.out.println(markerSet.getMarkerNames()[i] + "\t" + bamPiles[i].getNumOverlappingReads() + "\t" + rawDepth[i] + "\t" + scaleMAD[i] + "\t" + normDepth[i]);
+//			try {
+//				Thread.sleep(100);
+//			} catch (InterruptedException ie) {
 //			}
 //		}
-		this.normDepth = Array.scaleMinTo(Array.toDoubleArray(scaleMAD), 1);
 		// this.normDepth = Array.scaleMinTo(rawDepth,1);
 		//double scale = proj.XY_SCALE_FACTOR.getValue();
 		//normDepth = Array.multiply(normDepth, (double) 1 / scale);

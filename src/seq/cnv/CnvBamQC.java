@@ -12,6 +12,7 @@ import cnv.var.LocusSet;
 import seq.manage.BEDFileReader;
 import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.manage.BamPile;
+import seq.manage.BamSegPileUp.BamPileResult;
 import seq.manage.BamSegPileUp.PileupProducer;
 import seq.manage.BedOps;
 import seq.qc.Mappability;
@@ -365,11 +366,11 @@ public class CnvBamQC {
 
 		String serToReport = serDir + ext.rootOf(cnvFile) + "_QC/";
 		PileupProducer producer = new PileupProducer(bamFiles, serToReport, null, null, callSplit.getSegsToSearch(), log);
-		WorkerTrain<BamPile[]> train = new WorkerTrain<BamPile[]>(producer, numThreads, 2, log);
+		WorkerTrain<BamPileResult> train = new WorkerTrain<BamPileResult>(producer, numThreads, 2, log);
 		BamPile[][] bamPiles = new BamPile[bamFiles.length][];
 		int index = 0;
 		while (train.hasNext()) {
-			BamPile[] bPilesTmp = train.next();
+			BamPile[] bPilesTmp = train.next().loadResults(log);
 			bamPiles[index] = bPilesTmp;
 			index++;
 		}
