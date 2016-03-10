@@ -2,6 +2,7 @@ package cnv.filesys;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,7 +15,12 @@ import cnv.qc.SexChecks;
 import cnv.var.SampleData;
 import stats.Maths;
 import common.*;
+import common.WorkerTrain.Producer;
 
+/**
+ * @author lane0212
+ *
+ */
 public class Centroids implements Serializable, TextExport {
 	public static final long serialVersionUID = 1L;
 	public static final String[] ILLUMINA_CENTROID_SUFFIXES = {"Name", "AA T Mean", "AA R Mean", "AB T Mean", "AB R Mean", "BB T Mean", "BB R Mean"};
@@ -383,43 +389,121 @@ public class Centroids implements Serializable, TextExport {
 	}
 	
 	public static void recompute(Project proj, String centroidsFile) {
-		recompute(proj, centroidsFile, false);
+		recompute(proj, centroidsFile, false, 1);
 	}
 
+	/**
+	 *Recompute thread, applies centroids and saves new sample file
+	 *
+	 */
+	private static class RecomputeWorker implements Callable<Hashtable<String, Float>>{
+		private Project proj;
+		private String sample; 
+		private Centroids centroids;
+		private boolean preserveBafs;
+		
+		
+		public RecomputeWorker(Project proj, String sample, Centroids centroids, boolean preserveBafs) {
+			super();
+			this.proj = proj;
+			this.sample = sample;
+			this.centroids = centroids;
+			this.preserveBafs = preserveBafs;
+		}
+
+		@Override
+		public Hashtable<String, Float> call() throws Exception {
+			Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+			Sample original = proj.getFullSampleFromRandomAccessFile(sample);
+			Sample sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), preserveBafs ? original.getBAFs() : original.getBAFs(centroids.getCentroids()), original.getLRRs(centroids.getCentroids()), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
+			sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, sample.getSampleName());
+			return outliers;
+		}
+
+	}
+
+	/**
+	 * Manages centroid application to each sample
+	 *
+	 */
+	private static class RecomputeProducer implements Producer<Hashtable<String, Float>> {
+		private Project proj;
+		private String[] samples;
+		private Centroids centroids;
+		private boolean preserveBafs;
+		private int index;
+
+		public RecomputeProducer(Project proj, String[] samples, Centroids centroids, boolean preserveBafs) {
+			super();
+			this.proj = proj;
+			this.samples = samples;
+			this.centroids = centroids;
+			this.preserveBafs = preserveBafs;
+			this.index = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < samples.length;
+		}
+
+		@Override
+		public Callable<Hashtable<String, Float>> next() {
+			String currentSample = samples[index];
+			RecomputeWorker worker = new RecomputeWorker(proj, currentSample, centroids, preserveBafs);
+			index++;
+			return worker;
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	
+	
 	/**
 	 * @param proj
 	 * @param centroidsFile
 	 * @param preserveBafs
 	 *            bafs will not be recomputed from the centroids, useful if an atypical baf value is used
 	 */
-	public static void recompute(Project proj, String centroidsFile, boolean preserveBafs) {
+	public static void recompute(Project proj, String centroidsFile, boolean preserveBafs,int numThreads) {
 		MarkerSet markerSet;
 		Centroids centroids;
-		Sample original, sample;
+		// Sample original, sample;
 		String[] samples;
-        float[][][] cents;
-        
+		// float[][][] cents;
+
 		markerSet = proj.getMarkerSet();
 		centroids = load(centroidsFile, proj.JAR_STATUS.getValue());
 		if (centroids.getFingerprint() != markerSet.getFingerprint()) {
-			System.err.println("Error - fingerprint for Centroids file '"+centroidsFile+"' does not match the fingerprint for the current MarkerSet");
+			System.err.println("Error - fingerprint for Centroids file '" + centroidsFile + "' does not match the fingerprint for the current MarkerSet");
 		}
 
-        cents = centroids.getCentroids(); 
+		// cents = centroids.getCentroids();
 		samples = proj.getSamples();
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
-		for (int i = 0; i < samples.length; i++) {
-			original = proj.getFullSampleFromRandomAccessFile(samples[i]);
-			sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), preserveBafs ? original.getBAFs() : original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
-			sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, sample.getSampleName());
+		RecomputeProducer producer = new RecomputeProducer(proj, samples, centroids, preserveBafs);
+		WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer, numThreads, 10, proj.getLog());
+		while (train.hasNext()) {
+			Hashtable<String, Float> currentOutliers = train.next();
+			outliers.putAll(currentOutliers);
 		}
+		// for (int i = 0; i < samples.length; i++) {
+		// original = proj.getFullSampleFromRandomAccessFile(samples[i]);
+		// sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), preserveBafs ? original.getBAFs() : original.getBAFs(cents), original.getLRRs(cents), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
+		// sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, sample.getSampleName());
+		// }
 		if (outliers.size() > 0) {
 			if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {
 				Files.copyFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser", ext.addToRoot(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser", ext.getTimestampForFilename()));
 			}
 		}
 		Files.writeSerial(outliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
-        
+
 	}
 
 	public static float[][] computeClusterCenters(MarkerData markerData, boolean[] samplesToBeUsed, double missingnessThreshold) {
