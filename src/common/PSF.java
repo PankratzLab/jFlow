@@ -156,7 +156,24 @@ public class PSF {
 		public static final String BIM = ".bim";
 		public static final String BED = ".bed";
 		public static final String FAM = ".fam";
-
+		public static final String PED = ".ped";
+		public static final String MAP = ".map";
+		
+		public static boolean allFilesExist(String plinkDirAndRoot, boolean bed) {
+		    String[] files;
+		    if (bed) {
+		        files = new String[]{getBED(plinkDirAndRoot), getBIM(plinkDirAndRoot), getFAM(plinkDirAndRoot)};
+		    } else {
+    		    files = new String[]{getPED(plinkDirAndRoot), getMAP(plinkDirAndRoot)};
+    		}
+		    for (String file : files) {
+		        if (!Files.exists(file)) {
+		            return false;
+		        }
+		    }
+		    return true;
+		}
+		
 		/**
 		 * Get a command that will convert a vcf to plink format using plink2
 		 * 
@@ -190,7 +207,15 @@ public class PSF {
 		public static String[] getPlinkBedBimFam(String root) {
 			return new String[] { getBED(root), getBIM(root), getFAM(root) };
 		}
+		
+		public static String getPED(String root) {
+		    return root + PED;
+		}
 
+		public static String getMAP(String root) {
+		    return root + MAP;
+		}
+		
 		public static String getBED(String root) {
 			return root + BED;
 		}
