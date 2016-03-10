@@ -164,7 +164,30 @@ public class BamSegPileUp implements Iterator<BamPile> {
 	// return bamPilesToReturn.remove(0);
 	// }
 
-	public static class PileUpWorker implements Callable<BamPile[]> {
+	public static class BamPileResult {
+		private String ser;
+		private String bam;
+
+		public BamPileResult(String bam, String ser) {
+			super();
+			this.bam = bam;
+			this.ser = ser;
+		}
+
+		public String getBam() {
+			return bam;
+		}
+
+		public String getSer() {
+			return ser;
+		}
+
+		public BamPile[] loadResults(Logger log) {
+			return BamPile.readSerial(ser, log);
+		}
+
+	}
+	public static class PileUpWorker implements Callable<BamPileResult> {
 		private String bamFile;
 		private String serDir;
 		private Logger log;
@@ -184,7 +207,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 		}
 
 		@Override
-		public BamPile[] call() throws Exception {
+		public BamPileResult call() throws Exception {
 			String ser = serDir + ext.rootOf(bamFile) + ".ser";
 			if (!Files.exists(ser)) {
 				BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs, filterNGS, log);
@@ -196,14 +219,12 @@ public class BamSegPileUp implements Iterator<BamPile> {
 				}
 				BamPile[] bamPilesFinal = bamPiles.toArray(new BamPile[bamPiles.size()]);
 				BamPile.writeSerial(bamPilesFinal, ser);
-				return bamPilesFinal;
-			} else {
-				return BamPile.readSerial(ser, log);
 			}
+			return new BamPileResult(bamFile, ser);
 		}
 	}
 
-	public static class PileupProducer implements Producer<BamPile[]> {
+	public static class PileupProducer implements Producer<BamPileResult> {
 		private int index;
 		private String[] bamFiles;
 		private String serDir;
@@ -229,7 +250,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 		}
 
 		@Override
-		public Callable<BamPile[]> next() {
+		public Callable<BamPileResult> next() {
 			PileUpWorker worker = new PileUpWorker(bamFiles[index], serDir, referenceGenomeFasta, pileSegs, filterNGS, log);
 			index++;
 			return worker;

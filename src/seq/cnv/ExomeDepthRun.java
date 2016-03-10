@@ -3,13 +3,18 @@ package seq.cnv;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.manage.Markers;
 import cnv.manage.TransposeData;
+import cnv.var.CNVariant;
+import cnv.var.LocusSet;
+import cnv.var.SampleData;
 import seq.cnv.ExomeDepth.ExomeDepthAnalysis;
 import seq.manage.BamOps;
 import seq.manage.VCFOps.VcfPopulation;
@@ -23,6 +28,7 @@ import common.PSF;
 import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
+import filesys.GeneTrack;
 import filesys.Segment;
 
 /**
@@ -65,7 +71,8 @@ public class ExomeDepthRun {
 		proj.PROJECT_DIRECTORY.setValue(projectDir);
 		proj.saveProperties(projectFile);
 		generateMarkerPositions(proj, eDepthAnalysis[0], log);
-		proj.CNV_FILENAMES.setValue(new String[] { outputResultsDir + outputRoot + ".all.cnvs" });
+		String currentCnvFile = outputResultsDir + outputRoot + ".all.cnvs";
+		proj.CNV_FILENAMES.setValue(new String[] { currentCnvFile });
 		GenvisisSampleProducer producer = new GenvisisSampleProducer(proj, eDepthAnalysis, outputRoot, log);
 		WorkerTrain<ExomeSample> train = new WorkerTrain<ExomeDepthRun.ExomeSample>(producer, numthreads, 10, log);
 		Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
@@ -84,6 +91,40 @@ public class ExomeDepthRun {
 		Files.writeSerial(allOutliers, outliersSer);
 		TransposeData.transposeData(proj, 2000000000, false);
 		proj.saveProperties();
+		SampleData.createMinimalSampleData(proj);
+
+	}
+
+	private static class GeneCNVTracker {
+		private String pop;
+		private Set<String> inds;
+		private Hashtable<String, Integer> geneCounts;
+
+		public GeneCNVTracker(String pop, Set<String> inds) {
+			super();
+			this.pop = pop;
+			this.inds = inds;
+			this.geneCounts = new Hashtable<String, Integer>();
+		}
+
+	}
+
+	private static void summarizeByPop(Project proj, String cnvFile, VcfPopulation vpop, Logger log) {
+		if (proj.getGeneTrackFilename(true) != null) {
+			log.reportTimeInfo("Tallying geneHits");
+			GeneTrack geneTrack = new GeneTrack(proj.getGeneTrackFilename(true));
+			LocusSet<CNVariant> set = CNVariant.loadLocSet(cnvFile, log);
+			ArrayList<GeneCNVTracker> pops = new ArrayList<GeneCNVTracker>();
+			Set<String> allInds = CNVariant.getUniqueInds(set, log);
+			GeneCNVTracker geneCNVTracker = new GeneCNVTracker("ALL", allInds);
+			pops.add(geneCNVTracker);
+			if (vpop != null) {
+				for (String superPop : vpop.getSuperPop().keySet()) {
+					GeneCNVTracker geneCNVTrackerPop = new GeneCNVTracker(superPop, vpop.getSuperPop().get(superPop));
+					pops.add(geneCNVTrackerPop);
+				}
+			}
+		}
 	}
 
 	private static void generateMarkerPositions(Project proj, ExomeDepthAnalysis first, Logger log) {
@@ -169,7 +210,6 @@ public class ExomeDepthRun {
 			}
 			return this;
 		}
-
 	}
 
 	private static class GenvisisSampleProducer implements Producer<ExomeSample> {

@@ -998,7 +998,13 @@ public class Array {
 	 * @return
 	 */
 	public static double[] scaleMinTo(double[] array, final double minForce) {
-		double min = Array.min(Array.removeNaN(array)) + minForce;
+		double min = Array.min(Array.removeNaN(array));
+
+		if (min < minForce) {
+			min = minForce - min;
+		} else {
+			min = -1 * (min - minForce);
+		}
 		double[] scaled = new double[array.length];
 		for (int i = 0; i < array.length; i++) {
 			scaled[i] = array[i] + min;

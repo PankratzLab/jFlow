@@ -3,9 +3,11 @@ package seq.manage;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Hashtable;
+import java.util.concurrent.Callable;
 
 import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.manage.BamOps.BamIndexStats;
+import seq.manage.BamSegPileUp.BamPileResult;
 import seq.manage.BamSegPileUp.PileupProducer;
 import seq.qc.FilterNGS;
 import common.Array;
@@ -13,11 +15,11 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.WorkerTrain;
+import common.WorkerTrain.Producer;
 import common.ext;
 import common.PSF.Ext;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.CentroidBuilder;
-import cnv.analysis.PennCNVPrep;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -25,17 +27,84 @@ import cnv.filesys.Project.ARRAY;
 import cnv.manage.Markers;
 import cnv.manage.MitoPipeline;
 import cnv.manage.TransposeData;
+import cnv.qc.GcAdjustor;
+import cnv.qc.GcAdjustorParameter;
+import cnv.qc.GcAdjustor.GCAdjustorBuilder;
+import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.var.LocusSet;
 import filesys.Segment;
 
 public class BamImport {
 	public static final String OFF_TARGET_FLAG = "OFF_TARGET";
 
+	private static class BamPileConversionResults implements Callable<BamPileConversionResults> {
+		private Project proj;
+		private BamPileResult result;
+		private String sample;
+		private BamIndexStats bamIndexStats;
+		private Hashtable<String, Float> outliers;
+		private Logger log;
+		private long fingerPrint;
+
+		public BamPileConversionResults(Project proj, BamPileResult result, long fingerPrint, Logger log) {
+			super();
+			this.proj = proj;
+			this.result = result;
+			this.outliers = new Hashtable<String, Float>();
+			this.log = log;
+
+		}
+
+		@Override
+		public BamPileConversionResults call() throws Exception {
+			BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
+			sample = bamSample.getSampleName();
+			bamIndexStats = BamOps.getBamIndexStats(result.getBam());
+			outliers = bamSample.writeSample(fingerPrint);
+			return this;
+		}
+
+	}
+
+	private static class BamPileConverterProducer implements Producer<BamPileConversionResults> {
+		private Project proj;
+		private BamPileResult[] pileResults;
+		private long fingerPrint;
+		private Logger log;
+		private int index;
+
+		public BamPileConverterProducer(Project proj, BamPileResult[] pileResults, long fingerPrint, Logger log) {
+			super();
+			this.proj = proj;
+			this.pileResults = pileResults;
+			this.fingerPrint = fingerPrint;
+			this.log = log;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index < pileResults.length;
+		}
+
+		@Override
+		public Callable<BamPileConversionResults> next() {
+			BamPileResult current = pileResults[index];
+			BamPileConversionResults conv = new BamPileConversionResults(proj, current, fingerPrint, log);
+			index++;
+			return conv;
+		}
+
+		@Override
+		public void shutdown() {
+
+		}
+
+	}
+
 	public static void importTheWholeBamProject(Project proj, String binBed, String captureBed, int captureBuffer, int numthreads) {
 		if (proj.getArrayType() == ARRAY.NGS) {
 			Logger log = proj.getLog();
 
-			
 			String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
 			String[] bamsToImport = null;
 			if (Files.isDirectory(proj.SOURCE_DIRECTORY.getValue())) {
@@ -43,7 +112,7 @@ public class BamImport {
 			} else {
 				bamsToImport = HashVec.loadFileToStringArray(proj.SOURCE_DIRECTORY.getValue(), false, new int[] { 0 }, true);
 			}
-			
+
 			log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
 			if (BedOps.verifyBedIndex(binBed, log)) {
 				BEDFileReader readerBin = new BEDFileReader(binBed, false);
@@ -62,32 +131,37 @@ public class BamImport {
 					LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure, true, log);
 					log.memoryFree();
 					generateGCModel(proj, analysisSet, referenceGenome);
-					long fingerPrint = proj.getMarkerSet().getFingerprint();
 
 					log.reportTimeInfo(analysisSet.getLoci().length + " segments to pile");
 					FilterNGS filterNGS = new FilterNGS(20, 20, null);
-					PileupProducer producer = new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(), filterNGS, analysisSet.getStrictSegments(), log);
-					WorkerTrain<BamPile[]> train = new WorkerTrain<BamPile[]>(producer, numthreads, 2, log);
+					PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(), filterNGS, analysisSet.getStrictSegments(), log);
+					WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<BamPileResult>(pileProducer, numthreads, 2, log);
 					int index = 0;
 					Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 					proj.SAMPLE_DIRECTORY.getValue(true, false);
 					proj.XY_SCALE_FACTOR.setValue((double) 10);
 					String[] mappedReadCounts = new String[bamsToImport.length + 1];
 					mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
-					while (train.hasNext()) {
-						BamSample bamSample = new BamSample(proj, bamsToImport[index], train.next());
-						String sample = bamSample.getSampleName();
-						BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamsToImport[index]);
-						int numAligned = bamIndexStats.getAlignedRecordCount();
-						int numNotAligned = bamIndexStats.getUnalignedRecordCount();
-						mappedReadCounts[index + 1] = sample + "\t" + numAligned + "\t" + numNotAligned;
-
-						Hashtable<String, Float> outliers = bamSample.writeSample(fingerPrint);
-						if (outliers.size() > 0) {
-							allOutliers.putAll(outliers);
-						}
+					BamPileResult[] results = new BamPileResult[bamsToImport.length];
+					while (pileTrain.hasNext()) {
+						results[index] = pileTrain.next();
 						index++;
+
 					}
+					long fingerPrint = proj.getMarkerSet().getFingerprint();
+					BamPileConverterProducer conversionProducer = new BamPileConverterProducer(proj, results, fingerPrint, log);
+
+					// BamSample bamSample = new BamSample(proj, bamsToImport[index], train.next());
+					// String sample = bamSample.getSampleName();
+					// BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamsToImport[index]);
+					// int numAligned = bamIndexStats.getAlignedRecordCount();
+					// int numNotAligned = bamIndexStats.getUnalignedRecordCount();
+					// mappedReadCounts[index + 1] = sample + "\t" + numAligned + "\t" + numNotAligned;
+					//
+					// Hashtable<String, Float> outliers = bamSample.writeSample(fingerPrint);
+					// if (outliers.size() > 0) {
+					// allOutliers.putAll(outliers);
+					// }
 					Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 
 					String readCountFile = proj.PROJECT_DIRECTORY.getValue() + "sample.readCounts.txt";
@@ -98,23 +172,27 @@ public class BamImport {
 					Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true);
 					TransposeData.transposeData(proj, 2000000000, false);
 
+					GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
+					GcAdjustorParameters params = GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
+
 					generatePCFile(proj, numthreads);
 					proj.INTENSITY_PC_NUM_COMPONENTS.setValue(5);
 					proj.saveProperties();
-					String PCCorrected = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected");
-					String newName = proj.PROJECT_NAME.getValue() + "_" + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected";
-					Files.copyFileUsingFileChannels(proj.getPropertyFilename(), PCCorrected, log);
-					Project pcCorrected = new Project(PCCorrected, false);
-					pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
-					pcCorrected.PROJECT_NAME.setValue(newName);
-					proj.copyBasicFiles(pcCorrected, true);
 
-					log.reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
-					PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, false, false, -1, true);
-					PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, true, false, -1, true);
-					pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue() + "shadowSamples3/");
-					pcCorrected.saveProperties();
-					TransposeData.transposeData(pcCorrected, 2000000000, false);
+					// String PCCorrected = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected");
+					// String newName = proj.PROJECT_NAME.getValue() + "_" + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected";
+					// Files.copyFileUsingFileChannels(proj.getPropertyFilename(), PCCorrected, log);
+					// Project pcCorrected = new Project(PCCorrected, false);
+					// pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
+					// pcCorrected.PROJECT_NAME.setValue(newName);
+					// proj.copyBasicFiles(pcCorrected, true);
+					//
+					// log.reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
+					// PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, false, false, -1, true);
+					// PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, true, false, -1, true);
+					// pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue() + "shadowSamples3/");
+					// pcCorrected.saveProperties();
+					// TransposeData.transposeData(pcCorrected, 2000000000, false);
 
 					// MDL
 
@@ -213,8 +291,8 @@ public class BamImport {
 		int numthreads = 24;
 		int captureBuffer = 400;
 		// String referenceGenomeFasta = "hg19_canonical.fa";
-		//String logfile = null;
-		//Logger log;
+		// String logfile = null;
+		// Logger log;
 
 		String usage = "\n" + "seq.manage.BamImport requires 0-1 arguments\n";
 		usage += "(1) filename (i.e. proj= ( nodefault))\n" + "";
@@ -240,11 +318,11 @@ public class BamImport {
 			} else if (args[i].startsWith(Ext.NUM_THREADS_COMMAND)) {
 				numthreads = ext.parseIntArg(args[i]);
 				numArgs--;
-			} 
-//			else if (args[i].startsWith("log=")) {
-//				logfile = args[i].split("=")[1];
-//				numArgs--;
-//			} 
+			}
+			// else if (args[i].startsWith("log=")) {
+			// logfile = args[i].split("=")[1];
+			// numArgs--;
+			// }
 			else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -254,7 +332,7 @@ public class BamImport {
 			System.exit(1);
 		}
 		try {
-			//log = new Logger(logfile);
+			// log = new Logger(logfile);
 			Project proj = new Project(filename, false);
 			importTheWholeBamProject(proj, binBed, captureBed, captureBuffer, numthreads);
 		} catch (Exception e) {
