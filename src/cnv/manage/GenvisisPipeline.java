@@ -1124,7 +1124,7 @@ public class GenvisisPipeline {
                 }
             }
             proj.getLog().report("\nReady to perform the principal components analysis (PCA)\n");
-            PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, proj.PROJECT_DIRECTORY.getValue() + outputBase + MitoPipeline.PCA_SAMPLES, outputBase, params);
+            PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + MitoPipeline.PCA_SAMPLES, outputBase, params);
             if (pcs == null) {
                 setFailed();
                 this.failReasons.add("# of Principal Components is greater than either the # of samples or the # of markers.  Please lower the # of PCs and try again.");
