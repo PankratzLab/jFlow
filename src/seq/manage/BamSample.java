@@ -83,7 +83,7 @@ public class BamSample {
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
 			if (markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
 				useOntarget[i] = false;
-				rawDepth[i] = rawDepth[i] > 0 ? Math.log(rawDepth[i]) : rawDepth[i];
+				//rawDepth[i] = rawDepth[i] > 0 ? Math.log(rawDepth[i]) : rawDepth[i];
 			} else {
 				useOffTarget[i] = false;
 			}
