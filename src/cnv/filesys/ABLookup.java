@@ -21,6 +21,8 @@ import cnv.annotation.MarkerBlastAnnotation;
 import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
 import cnv.annotation.MarkerSeqAnnotation;
 import cnv.manage.MarkerDataLoader;
+import cnv.qc.MarkerBlast;
+import cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -208,10 +210,24 @@ public class ABLookup {
         }
 		
 	}
+	
+	
+	
+	/**
+	 * {@link ABLookup#parseFromManifest(Project, String)}
+	 */
+	private void parseFromManifest(Project proj, String manifestFile) {
+		MarkerBlast.blastEm(proj, manifestFile, FILE_SEQUENCE_TYPE.MANIFEST_FILE, -1, -1, -1, 1, false, false, false);
+		parseFromAnnotationVCF(proj);
+	}
+	
+	
 
 	/**
 	 * @param proj
+	 * 
 	 *            Will try to generate the ab lookup from the annotation vcf. If fails, will use {@link ABLookup#parseFromOriginalGenotypes(Project)}
+	 *                  
 	 */
 	public void parseFromAnnotationVCF(Project proj) {
 		if (!Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {

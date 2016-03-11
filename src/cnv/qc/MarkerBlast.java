@@ -59,12 +59,16 @@ public class MarkerBlast {
 		AFFY_ANNOT;
 	}
 
+	/**
+	 * {@link MarkerBlast#blastEm(Project, String, FILE_SEQUENCE_TYPE, int, int, int, int, boolean, boolean, boolean)}
+	 */
 	public static MarkerBlastResult blastEm(Project proj, String fileSeq, FILE_SEQUENCE_TYPE type, int blastWordSize, int reportWordSize, int maxAlignmentsReported, int numThreads, boolean reportToTmp, boolean annotateGCContent, boolean doBlast) {
 		String fastaDb = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
-		if (!Files.exists(fastaDb)) {
+		if (!Files.exists(fastaDb) && doBlast) {
 			proj.getLog().reportTimeError("Was not able to find reference genome defined by " + proj.REFERENCE_GENOME_FASTA_FILENAME.getName());
 			return null;
-		} else {
+		}
+		else {
 			double evalueCutoff = 10000;
 			BlastParams blastParams = new BlastParams(fileSeq, fastaDb, maxAlignmentsReported, reportWordSize, blastWordSize, ext.getTimestampForFilename(), evalueCutoff, proj.getMarkerSet().getFingerprint(), "", proj.getLog());
 			Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, proj.getLog(), true, true);
