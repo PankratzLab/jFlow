@@ -199,8 +199,8 @@ public class BamImport {
 					log.memoryFree();
 
 					LocusSet<BEDFeatureSeg> varFeatures = extractVCF(proj, optionalVCF);
-					if(varFeatures.getLoci().length>0){
-					log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
+					if (varFeatures.getLoci().length > 0) {
+						log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
 					}
 
 					generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure, varFeatures);
@@ -211,8 +211,6 @@ public class BamImport {
 					log.memoryFree();
 
 					log.reportTimeInfo(analysisSet.getLoci().length + " segments to pile");
-					System.exit(1);
-
 					generateGCModel(proj, analysisSet, referenceGenome);
 
 					FilterNGS filterNGS = new FilterNGS(20, 20, null);
