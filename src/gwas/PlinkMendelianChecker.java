@@ -13,7 +13,6 @@ import common.ext;
 import cnv.filesys.Pedigree;
 import cnv.filesys.Project;
 import cnv.qc.MarkerMetrics;
-import cnv.qc.MendelErrors;
 import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.qc.SampleQC;
 import cnv.var.SampleData;
@@ -181,45 +180,46 @@ public class PlinkMendelianChecker {
             String[] temp;
             try {
                 reader = Files.getAppropriateReader(mendelFile);
-                line = reader.readLine();
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    temp = line.split("[\\s]+");
-                    
-                    MendelErrorCheck mec = new MendelErrors((byte)(Integer.parseInt(temp[1])), 
-                                                                    -1, 
-                                                                    (byte)(Integer.parseInt(temp[8])), 
-                                                                    (byte)(Integer.parseInt(temp[9])), 
-                                                                    (byte)(Integer.parseInt(temp[10]))).checkMendelError();
-//                    MarkerName  
-//                    Chr 
-//                    Position    
-//                    FID 
-//                    IID 
-//                    DNA
-//                    FA_DNA  
-//                    MO_DNA  
-//                    AB  
-//                    FA_AB   
-//                    MO_AB
-                    
-                    if (mec.hasFaMendelError()) {
-                        ArrayList<String> mkrs = ml.errorMarkersMapFather.get(temp[5]);
-                        if (mkrs == null) {
-                            mkrs = new ArrayList<String>();
-                            ml.errorMarkersMapFather.put(temp[5], mkrs);
-                        }
-                        mkrs.add(temp[0]);
-                    }
-                    if (mec.hasMoMendelError()) {
-                        ArrayList<String> mkrs = ml.errorMarkersMapMother.get(temp[5]);
-                        if (mkrs == null) {
-                            mkrs = new ArrayList<String>();
-                            ml.errorMarkersMapMother.put(temp[5], mkrs);
-                        }
-                        mkrs.add(temp[0]);
-                    }
-                    
+                line = reader.readLine().trim();
+                if(ext.checkHeader(line.split("[\\s]+"), new String[] {"FID","KID","CHR","SNP","CODE","ERROR"},false)) {
+                	while ((line = reader.readLine()) != null) {
+                		line = line.trim();
+                		temp = line.split("[\\s]+");
+                		
+                		// FID  
+                		// KID 
+                		// CHR    
+                		// SNP 
+                		// CODE 
+                		// ERROR (could be split into 5 when from PLINK due to spaces)
+                		
+                		try {
+                			MendelErrorCheck mec = new MendelErrorCheck(Integer.parseInt(temp[4]));
+
+                			String fidiid = temp[0] + "\t" + temp[1];
+
+                			if (mec.hasFaMendelError()) {
+                				ArrayList<String> mkrs = ml.errorMarkersMapFather.get(fidiid);
+                				if (mkrs == null) {
+                					mkrs = new ArrayList<String>();
+                					ml.errorMarkersMapFather.put(fidiid, mkrs);
+                				}
+                				mkrs.add(temp[3]);
+                			}
+                			if (mec.hasMoMendelError()) {
+                				ArrayList<String> mkrs = ml.errorMarkersMapMother.get(fidiid);
+                				if (mkrs == null) {
+                					mkrs = new ArrayList<String>();
+                					ml.errorMarkersMapMother.put(fidiid, mkrs);
+                				}
+                				mkrs.add(temp[3]);
+                			}
+                		}
+                		catch (NumberFormatException e) {
+                			System.err.println("Warning - Non-integer mendelian error code (" + temp[4] + ") ignored!" );
+                		}
+
+                	}
                 }
                 reader.close();
                 reader = null;
@@ -543,13 +543,13 @@ public class PlinkMendelianChecker {
             }
             
             if (ml != null) {
-                ArrayList<String> errors = ml.errorMarkersMapFather.get(ped.getiDNA(i));
+                ArrayList<String> errors = ml.errorMarkersMapFather.get(idLookup.get(ped.getiDNA(i)));
                 if (errors == null) {
                     sb.append(0).append("\t");
                 } else {
                     sb.append(errors.size()).append("\t");
                 }
-                errors = ml.errorMarkersMapMother.get(ped.getiDNA(i));
+                errors = ml.errorMarkersMapMother.get(idLookup.get(ped.getiDNA(i)));
                 if (errors == null) {
                     sb.append(0).append("\t");
                 } else {
