@@ -551,7 +551,7 @@ public class GcAdjustor {
 	public static class GcModel implements Serializable {
 		private static final long serialVersionUID = 1L;
 		public static final String[] GC_HEADER = { "Name", "Chr", "Position", "GC" };
-		public static final int DEFAULT_GC_MODEL_BIN_FASTA = 1000000; // default bin generation for reference genome-based gc model
+		public static final int DEFAULT_GC_MODEL_BIN_FASTA = 5120; // default bin generation for reference genome-based gc model
 		private String[] markers;
 		private byte[] chrs;
 		private int[] positions;
