@@ -2,7 +2,6 @@ package seq.manage;
 
 import java.util.Hashtable;
 
-import seq.manage.BamOps.BamIndexStats;
 import cnv.analysis.BeastScore;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -16,6 +15,7 @@ import filesys.Segment;
 public class BamSample {
 	private static final double MAX_MAPQ = 60;
 	private static final double SCALE_FACTOR_NUM_READS = 1000000;
+	private static final double MAD_FACTOR = 1.4826;
 	private String bamFile;
 	private String sampleName;
 	private BamPile[] bamPiles;
@@ -61,22 +61,88 @@ public class BamSample {
 
 	}
 
-	private static BAM_PILE_TYPE fromPile(BamPile bamPiles) {
+	private static class BamPileParams {
+		private BAM_PILE_TYPE type;
+		private boolean[] mask;
+		private int rpkmVal;
 
-		return null;
+		private BamPileParams(BAM_PILE_TYPE type, boolean[] mask) {
+			super();
+			this.type = type;
+			this.mask = mask;
+			this.rpkmVal = 0;
+		}
+
+		public int getRpkmVal() {
+			return rpkmVal;
+		}
+
+		public void setRpkmVal(int rpkmVal) {
+			this.rpkmVal = rpkmVal;
+		}
+
+		public boolean[] getMask() {
+			return mask;
+		}
+
+		public BAM_PILE_TYPE getType() {
+			return type;
+		}
+
+	}
+
+	private static BAM_PILE_TYPE fromPile(String markerName) {
+
+		if (markerName.contains(BamImport.OFF_TARGET_FLAG)) {
+			return BAM_PILE_TYPE.OFF_TARGET;
+		}
+		else if (markerName.contains(BamImport.VARIANT_SITE_FLAG)) {
+			return BAM_PILE_TYPE.VARIANT_SITE;
+		}
+		else {
+			return BAM_PILE_TYPE.ON_TARGET;
+		}
 	}
 
 	private void init() {
 		MarkerSet markerSet = proj.getMarkerSet();
-		BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
+		// BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
 		this.rawDepth = new double[bamPiles.length];
 		this.mapQs = new double[bamPiles.length];
 		this.percentWithMismatch = new double[bamPiles.length];
 		byte currentChr = 0;
 		int currentPos = 0;
-		boolean[] useOffTarget = Array.booleanArray(bamPiles.length, false);
-		boolean[] useOntarget = Array.booleanArray(bamPiles.length, false);
-		boolean[] useVariantSite = Array.booleanArray(bamPiles.length, false);
+
+		BamPileParams[] params = new BamPileParams[BAM_PILE_TYPE.values().length];
+		for (int i = 0; i < params.length; i++) {
+			params[i] = new BamPileParams(BAM_PILE_TYPE.values()[i], Array.booleanArray(bamPiles.length, false));
+		}
+
+		proj.getLog().reportTimeInfo("Computing rpkm mask");
+		for (int i = 0; i < bamPiles.length; i++) {
+			if (currentChr > bamPiles[i].getBin().getChr() || (bamPiles[i].getBin().getChr() <= currentChr && currentPos > bamPiles[i].getBin().getStart())) {
+				String error = "BUG, segments are unsorted";
+				error += " current CHR: " + currentChr + " CurrentPOS: " + currentPos;
+				error += "Bin: " + bamPiles[i].getBin().getUCSClocation();
+				error += "Index " + i;
+				proj.getLog().reportTimeError(error);
+				throw new IllegalStateException(error);
+			} else {
+				currentChr = bamPiles[i].getBin().getChr();
+				currentPos = bamPiles[i].getBin().getStart();
+			}
+
+			BAM_PILE_TYPE current = fromPile(markerSet.getMarkerNames()[i]);
+			for (int j = 0; j < params.length; j++) {
+				if (current == params[j].getType()) {
+					params[j].getMask()[i] = true;
+					params[j].setRpkmVal(params[j].getRpkmVal() + bamPiles[i].getNumOverlappingReads());
+					break;
+				}
+			}
+		}
+
+		proj.getLog().reportTimeInfo("Computing Normalized depths");
 
 		for (int i = 0; i < bamPiles.length; i++) {
 			if (currentChr > bamPiles[i].getBin().getChr() || (bamPiles[i].getBin().getChr() <= currentChr && currentPos > bamPiles[i].getBin().getStart())) {
@@ -90,22 +156,25 @@ public class BamSample {
 				currentChr = bamPiles[i].getBin().getChr();
 				currentPos = bamPiles[i].getBin().getStart();
 			}
-			// TODO, specific to ON target aligned count and off target aligned count?
-			rawDepth[i] = computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
+			BAM_PILE_TYPE current = fromPile(markerSet.getMarkerNames()[i]);
+			for (int j = 0; j < params.length; j++) {
+				if (current == params[j].getType()) {
+					rawDepth[i] = computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), params[j].getRpkmVal());
+					break;
+				}
+			}
 
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
-			if (markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
-				useOffTarget[i] = true;
-
-			}
-			else if (markerSet.getMarkerNames()[i].contains(BamImport.VARIANT_SITE_FLAG)) {
-				useVariantSite[i] = true;
-			}
-
-			else {
-				useOntarget[i] = false;
-
-			}
+			// if (markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
+			// useOffTarget[i] = true;
+			// }
+			// else if (markerSet.getMarkerNames()[i].contains(BamImport.VARIANT_SITE_FLAG)) {
+			// useVariantSite[i] = true;
+			// }
+			//
+			// else {
+			// useOntarget[i] = false;
+			// }
 			if (Double.isNaN(rawDepth[i])) {
 				String warning = "Found invalid scale raw depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[i];
 				proj.getLog().reportTimeWarning(warning);
@@ -122,23 +191,21 @@ public class BamSample {
 		}
 		int[][] chrIndices = markerSet.getIndicesByChr();
 
-		BeastScore beastScoreOnTarget = new BeastScore(Array.toFloatArray(rawDepth), chrIndices, null, proj.getLog());
-		beastScoreOnTarget.setUse(useOntarget);
-		float[] scaleMAD = beastScoreOnTarget.getScaleMadRawData(1.4826);// http://www.genomebiology.com/2014/15/12/550
-		
-		BeastScore beastScoreOffTarget = new BeastScore(scaleMAD, chrIndices, null, proj.getLog());
-		beastScoreOffTarget.setUse(useOffTarget);
-		scaleMAD = beastScoreOffTarget.getScaleMadRawData(1.4826);
-		
-		BeastScore beastScoreVariantSite = new BeastScore(scaleMAD, chrIndices, null, proj.getLog());
-		beastScoreVariantSite.setUse(useVariantSite);
-		scaleMAD = beastScoreVariantSite.getScaleMadRawData(1.4826);
+		BeastScore beastScoreFirst = new BeastScore(Array.toFloatArray(rawDepth), chrIndices, null, proj.getLog());
+		beastScoreFirst.setUse(params[0].getMask());
+		float[] scaleMAD = beastScoreFirst.getScaleMadRawData(MAD_FACTOR);// http://www.genomebiology.com/2014/15/12/550
+
+		for (int i = 1; i < params.length; i++) {
+			BeastScore beastScoretmp = new BeastScore(scaleMAD, chrIndices, null, proj.getLog());
+			beastScoretmp.setUse(params[i].getMask());
+			scaleMAD = beastScoretmp.getScaleMadRawData(MAD_FACTOR);
+		}
 
 		for (int i = 0; i < chrIndices.length; i++) {
 			boolean error = false;
 			for (int j = 0; j < chrIndices[i].length; j++) {
 				int index = chrIndices[i][j];
-				
+
 				if ((Double.isNaN(scaleMAD[index]) || Double.isInfinite(scaleMAD[index]))) {// should only happen if the MAD is NaN
 					if (!error) {
 						String warning = "Found invalid scale MAD depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[chrIndices[i][j]];
@@ -157,22 +224,22 @@ public class BamSample {
 
 			}
 		}
-//		for (int i = 0; i < scaleMAD.length; i++) {
-//			if (Double.isNaN(scaleMAD[i]) && !markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
+		// for (int i = 0; i < scaleMAD.length; i++) {
+		// if (Double.isNaN(scaleMAD[i]) && !markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
 		// System.out.println(markerSet.getMarkerNames()[i]);
 		// }
 		// }
 		this.normDepth = Array.scaleMinTo(Array.toDoubleArray(scaleMAD), 1);
-//		for (int i = 0; i < scaleMAD.length; i++) {
-//			System.out.println(markerSet.getMarkerNames()[i] + "\t" + bamPiles[i].getNumOverlappingReads() + "\t" + rawDepth[i] + "\t" + scaleMAD[i] + "\t" + normDepth[i]);
-//			try {
-//				Thread.sleep(100);
-//			} catch (InterruptedException ie) {
-//			}
-//		}
+		// for (int i = 0; i < scaleMAD.length; i++) {
+		// System.out.println(markerSet.getMarkerNames()[i] + "\t" + bamPiles[i].getNumOverlappingReads() + "\t" + rawDepth[i] + "\t" + scaleMAD[i] + "\t" + normDepth[i]);
+		// try {
+		// Thread.sleep(100);
+		// } catch (InterruptedException ie) {
+		// }
+		// }
 		// this.normDepth = Array.scaleMinTo(rawDepth,1);
-		//double scale = proj.XY_SCALE_FACTOR.getValue();
-		//normDepth = Array.multiply(normDepth, (double) 1 / scale);
+		// double scale = proj.XY_SCALE_FACTOR.getValue();
+		// normDepth = Array.multiply(normDepth, (double) 1 / scale);
 		percentWithMismatch = Array.scale(percentWithMismatch);
 		for (int j = 0; j < normDepth.length; j++) {
 			if (Double.isNaN(normDepth[j])) {
