@@ -1,5 +1,6 @@
 package seq.manage;
 
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
@@ -34,7 +35,6 @@ import cnv.manage.TransposeData;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustorParameter;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.var.LocusSet;
 import filesys.Segment;
 
@@ -129,17 +129,30 @@ public class BamImport {
 		};
 
 		if (vcf != null) {
-			String outDir = proj.PROJECT_DIRECTORY.getDefaultValue() + "vcf/";
+
+			String outDir = proj.PROJECT_DIRECTORY.getValue() + "vcf/";
 			new File(outDir).mkdirs();
 			String out = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".regions.txt";
-
+			String outVCF = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".site.only.vcf.gz";
+			VCFOps.createSiteOnlyVcf(vcf, outVCF, false, proj.getLog());
 			if (!Files.exists(out)) {
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(out));
-					VCFFileReader reader = new VCFFileReader(vcf, true);
+					VCFFileReader reader = new VCFFileReader(outVCF, true);
 
+					int num = 0;
 					for (VariantContext vc : reader) {
-						writer.println(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getEnd() + "\t" + vc.getReference().getDisplayString() + "_" + vc.getAlternateAlleles().toString());
+						num++;
+						if (num % 100000 == 0) {
+							proj.getLog().reportTimeInfo(num + " variant sites read, writing to " + out);
+						}
+						String name = "REF_" + vc.getReference().getDisplayString();
+						int i = 0;
+						for (Allele allele : vc.getAlternateAlleles()) {
+							i++;
+							name += "_ALT" + i + "_" + allele.getDisplayString();
+						}
+						writer.println(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getEnd() + "\t" + name);
 					}
 					reader.close();
 
@@ -186,6 +199,9 @@ public class BamImport {
 					log.memoryFree();
 
 					LocusSet<BEDFeatureSeg> varFeatures = extractVCF(proj, optionalVCF);
+					if(varFeatures.getLoci().length>0){
+					log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
+					}
 
 					generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure, varFeatures);
 					log.memoryFree();
@@ -245,8 +261,8 @@ public class BamImport {
 					TransposeData.transposeData(proj, 2000000000, false);
 
 					GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
-					GcAdjustorParameters params = GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
-
+					GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
+					// GcAdjustorParameters params =
 					generatePCFile(proj, numthreads);
 					proj.INTENSITY_PC_NUM_COMPONENTS.setValue(5);
 					proj.saveProperties();
