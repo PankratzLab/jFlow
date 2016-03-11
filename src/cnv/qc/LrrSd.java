@@ -500,15 +500,15 @@ public class LrrSd extends Parallelizable {
         } catch (FileNotFoundException fnfe) {
             log.reportError("Error: file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\" not found in current directory");
         } catch (IOException ioe) {
-            log.reportError("Error reading file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\"");
-        }
+			log.reportError("Error reading file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\"");
+		}
 
-        if (addToSampleData) {
-            sampleData.addData(sampDataQC, MitoPipeline.DNA_LINKER, MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, ext.MISSING_VALUES[1], delim, log);
-        }
-        return new int[] { numPassing, count };
-    }
-	
+		if (addToSampleData) {
+			sampleData.addData(sampDataQC, MitoPipeline.DNA_LINKER, Array.tagOn(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, outputBase, null), ext.MISSING_VALUES[1], delim, log);
+		}
+		return new int[] { numPassing, count };
+	}
+
 	private static boolean[] getMarkerSubset(Project proj, String[] subMarkers) {
 		String[] markers = proj.getMarkerNames();
 		boolean[] markerSubset = new boolean[markers.length];
