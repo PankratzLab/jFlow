@@ -56,6 +56,16 @@ public class BamSample {
 		return data * scale;
 	}
 
+	public enum BAM_PILE_TYPE {
+		ON_TARGET, OFF_TARGET, VARIANT_SITE;
+
+	}
+
+	private static BAM_PILE_TYPE fromPile(BamPile bamPiles) {
+
+		return null;
+	}
+
 	private void init() {
 		MarkerSet markerSet = proj.getMarkerSet();
 		BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
@@ -80,6 +90,7 @@ public class BamSample {
 				currentChr = bamPiles[i].getBin().getChr();
 				currentPos = bamPiles[i].getBin().getStart();
 			}
+			// TODO, specific to ON target aligned count and off target aligned count?
 			rawDepth[i] = computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
 
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
@@ -89,7 +100,6 @@ public class BamSample {
 			}
 			else if (markerSet.getMarkerNames()[i].contains(BamImport.VARIANT_SITE_FLAG)) {
 				useVariantSite[i] = true;
-
 			}
 
 			else {
