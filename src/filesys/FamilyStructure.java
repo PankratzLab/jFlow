@@ -25,6 +25,7 @@ public class FamilyStructure {
     public ArrayList<String[]> cached_all_trios = null;
     public ArrayList<int[]> cached_complete_trios = null;
     public ArrayList<String[]> cached_sib_pairs = null;
+    public HashMap<String,Integer> cached_fidiidToIndexMap = null;
     
     public void clearCache() {
         cached_poPairsIDs = null;
@@ -34,6 +35,7 @@ public class FamilyStructure {
         cached_all_trios = null;
         cached_complete_trios = null;
         cached_sib_pairs  = null;
+        cached_fidiidToIndexMap = null;
     }
     
 	protected String[][] ids;
@@ -111,6 +113,27 @@ public class FamilyStructure {
 		return ids;
 	}
 	
+	public int getIndIndex(String fid, String iid){
+		Integer index = getfidiidToIndexMap().get(fid + "\t" + iid);
+		return index == null ? -1 : index;
+	}
+	
+	public HashMap<String,Integer> getfidiidToIndexMap() {
+		if (cached_fidiidToIndexMap == null) {
+			buildfidiidToIndexMap();
+		}
+		return cached_fidiidToIndexMap;
+	}
+	
+	private void buildfidiidToIndexMap(){
+		cached_fidiidToIndexMap = new HashMap<String,Integer>();
+		for(int i = 0; i < ids.length; i++){
+			if (cached_fidiidToIndexMap.put(this.fids[i] + "\t" + this.iids[i], i) != null){
+				System.err.println("Warning - Pedigree contains non-unique FID/IID combinations!");
+			}
+		}
+	}
+	
     public String getiDNA(int i) {
         return this.dnas[i];
     }
@@ -128,11 +151,11 @@ public class FamilyStructure {
 	}
 	
 	public int getIndexOfFaInIDs(int indivIndex) {
-	    return MISSING_ID_STR.equals(this.fas[indivIndex]) ? -1 : ext.indexOfStr(this.fas[indivIndex], this.iids, true, true, null, false);
+		return MISSING_ID_STR.equals(fas[indivIndex]) ? -1 : getIndIndex(fids[indivIndex],fas[indivIndex]);
 	}
 	
 	public int getIndexOfMoInIDs(int indivIndex) {
-	    return MISSING_ID_STR.equals(this.mos[indivIndex]) ? -1 : ext.indexOfStr(this.mos[indivIndex], this.iids, true, true, null, false);
+		return MISSING_ID_STR.equals(mos[indivIndex]) ? -1 : getIndIndex(fids[indivIndex],mos[indivIndex]);
 	}
 	
 	public String getMO(int index) {

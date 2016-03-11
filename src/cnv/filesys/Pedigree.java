@@ -257,9 +257,24 @@ public class Pedigree extends FamilyStructure {
         String[] samples = nullProject ? null : proj.getSamples();
 		this.pedigreeFile = pedigreeFile;
         for (int i = 0; i < this.ids.length; i++) {
-            int iDNAIndex = proj == null ? MISSING_DNA_INDEX : getSampleIndex(this.dnas[i], sampleData, samples);
-            int faDNAIndex = proj == null ? MISSING_DNA_INDEX : getSampleIndex(this.ids[i][FamilyStructure.FA_INDEX], sampleData, samples);
-            int moDNAIndex = proj == null ? MISSING_DNA_INDEX : getSampleIndex(this.ids[i][FamilyStructure.MO_INDEX], sampleData, samples);
+            int iDNAIndex = MISSING_DNA_INDEX;
+            int faDNAIndex = MISSING_DNA_INDEX;
+            int moDNAIndex = MISSING_DNA_INDEX;
+            
+            if(proj != null) {
+            	iDNAIndex = getSampleIndex(this.dnas[i], sampleData, samples);
+            	
+            	int faIDIndex = this.getIndexOfFaInIDs(i);
+            	if(faIDIndex != -1) {
+            		faDNAIndex = getSampleIndex(this.dnas[faIDIndex], sampleData, samples);
+            	}
+            	
+                int moIDIndex = this.getIndexOfMoInIDs(i);
+                if (moIDIndex != -1) {
+                	moDNAIndex =  getSampleIndex(this.dnas[moIDIndex], sampleData, samples);
+                }
+            }
+            
             this.dnaIndicesInProject[i] = new int[]{iDNAIndex, faDNAIndex, moDNAIndex};
         }
         
@@ -267,7 +282,7 @@ public class Pedigree extends FamilyStructure {
     
     private static int getSampleIndex(String sample, SampleData sampleData, String[] projectSamples) {
         int sampleIndex = MISSING_DNA_INDEX;
-        if (!sample.equals(FamilyStructure.MISSING_ID_STR) && sampleData != null && projectSamples != null && sampleData.lookup(sample) != null) {
+        if (sample != null && !sample.equals(FamilyStructure.MISSING_ID_STR) && sampleData != null && projectSamples != null && sampleData.lookup(sample) != null) {
             sampleIndex = ext.indexOfStr(sampleData.lookup(sample)[0], projectSamples);
         }
         return sampleIndex;

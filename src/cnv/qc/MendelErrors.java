@@ -46,55 +46,55 @@ public class MendelErrors {
 
 	public MendelErrorCheck checkMendelError() {
 		if (offGenotype == -1) {
-			return new MendelErrorCheck(-1, false, false);
+			return new MendelErrorCheck(-1);
 		}
 		if (moGenotype == -1 && faGenotype == -1) {
-			return new MendelErrorCheck(-1, false, false);
+			return new MendelErrorCheck(-1);
 		}
 		if (chr < 23) {
 			// note these are not in error code order
 			if (faGenotype == 0 && moGenotype == 0 && offGenotype == 1) {
-				return new MendelErrorCheck(1, true, true);
+				return new MendelErrorCheck(1);
 			}
 			if (faGenotype == 2 && moGenotype == 2 && offGenotype == 1) {
-				return new MendelErrorCheck(2, true, true);
+				return new MendelErrorCheck(2);
 			}
 			if (faGenotype == 2 && moGenotype == 2 && offGenotype == 0) {
-				return new MendelErrorCheck(5, true, true);
+				return new MendelErrorCheck(5);
 			}
 			if (faGenotype == 0 && moGenotype == 0 && offGenotype == 2) {
-				return new MendelErrorCheck(8, true, true);
+				return new MendelErrorCheck(8);
 			}
 			if (faGenotype == 2 && offGenotype == 0) {
-				return new MendelErrorCheck(3, true, false);
+				return new MendelErrorCheck(3);
 			}
 			if (moGenotype == 2 && offGenotype == 0) {
-				return new MendelErrorCheck(4, false, true);
+				return new MendelErrorCheck(4);
 			}
 			if (faGenotype == 0 && offGenotype == 2) {
-				return new MendelErrorCheck(6, true, false);
+				return new MendelErrorCheck(6);
 			}
 			if (moGenotype == 0 && offGenotype == 2) {
-				return new MendelErrorCheck(7, false, true);
+				return new MendelErrorCheck(7);
 			}
 
 		} else if (chr == 23) {
 			if (offSex == 1 && moGenotype == 0 && offGenotype == 2) {
-				return new MendelErrorCheck(9, false, true);
+				return new MendelErrorCheck(9);
 			}
 			if (offSex == 1 && moGenotype == 2 && offGenotype == 0) {
-				return new MendelErrorCheck(10, false, true);
+				return new MendelErrorCheck(10);
 			}
 		} else if (chr == 26) {
 
 			if (moGenotype == 2 && offGenotype != 2) {
-				return new MendelErrorCheck(11, false, true);
+				return new MendelErrorCheck(11);
 			}
 			if (moGenotype == 0 && offGenotype != 0) {
-				return new MendelErrorCheck(12, false, true);
+				return new MendelErrorCheck(12);
 			}
 		}
-		return new MendelErrorCheck(-1, false, false);
+		return new MendelErrorCheck(-1);
 	}
 
 	/**
@@ -126,14 +126,86 @@ public class MendelErrors {
 		 * 
 		 */
 		private int errorCode;
+		private String error;
 		private boolean faMendelError;
 		private boolean moMendelError;
-
-		public MendelErrorCheck(int errorCode, boolean faMendelError, boolean moMendelError) {
+		
+		public MendelErrorCheck(int errorCode) {
 			super();
 			this.errorCode = errorCode;
-			this.faMendelError = faMendelError;
-			this.moMendelError = moMendelError;
+			switch (errorCode) {
+				case -1:
+					faMendelError = false;
+					moMendelError = false;
+					error = null;
+					break;
+				case 1:
+					faMendelError = true;
+					moMendelError = true;
+					error = "AA , AA -> AB";
+					break;
+				case 2:
+					faMendelError = true;
+					moMendelError = true;
+					error = "BB , BB -> AB";
+					break;
+				case 3:
+					faMendelError = true;
+					moMendelError = false;
+					error = "BB , ** -> AA";
+					break;
+				case 4:
+					faMendelError = false;
+					moMendelError = true;
+					error = "** , BB -> AA";
+					break;
+				case 5:
+					faMendelError = true;
+					moMendelError = true;
+					error = "BB , BB -> AA";
+					break;
+				case 6:
+					faMendelError = true;
+					moMendelError = false;
+					error = "AA , ** -> BB";
+					break;
+				case 7:
+					faMendelError = false;
+					moMendelError = true;
+					error = "** , AA -> BB";
+					break;
+				case 8:
+					faMendelError = true;
+					moMendelError = true;
+					error = "AA , AA -> BB";
+					break;
+				case 9:
+					faMendelError = false;
+					moMendelError = true;
+					error = "** , AA -> BB (X chromosome male offspring)";
+					break;
+				case 10:
+					faMendelError = false;
+					moMendelError = true;
+					error = "** , BB -> AA (X chromosome male offspring)";
+					break;
+				case 11:
+					faMendelError = false;
+					moMendelError = true;
+					error = "**,AA -> !AA (Mitochondrial, maternal)";
+					break;
+				case 12:
+					faMendelError = false;
+					moMendelError = true;
+					error = "**,BB -> !BB (Mitochondrial, maternal)";
+					break;
+				default:
+					System.err.println("Warning - Unrecognized Mendel Error Code (" + errorCode +")");
+					faMendelError = false;
+					moMendelError = false;
+					error = null;
+					break;
+			}
 		}
 
 		public boolean hasError() {
@@ -142,6 +214,10 @@ public class MendelErrors {
 
 		public int getErrorCode() {
 			return errorCode;
+		}
+		
+		public String getError(){
+			return error;
 		}
 
 		public boolean hasFaMendelError() {

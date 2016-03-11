@@ -17,12 +17,11 @@ import cnv.qc.MendelErrors.MendelErrorCheck;
 import cnv.var.SampleData;
 import common.*;
 import db.FilterDB;
-import filesys.FamilyStructure;
 
 public class MarkerMetrics {
 	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z", "LRR_SD", "LRR_num_NaNs", "MendelianErrors"};
 	public static final String[] LRR_VARIANCE_HEADER = {"MarkerName", "Chr", "Position", "SD_LRR", "MeanAbsLRR", "SD_BAF1585", "MeanAbsBAF1585"};
-	private static final String[] MENDEL_HEADER = {"MarkerName", "Chr", "Position", "FID", "IID", "DNA", "FA_DNA", "MO_DNA", "AB", "FA_AB", "MO_AB"};
+	private static final String[] MENDEL_HEADER = {"FID", "KID", "CHR", "SNP", "CODE", "ERROR"};
 	
 	
 	public static final String DEFAULT_REVIEW_CRITERIA = "cnv/qc/default_review.criteria";
@@ -55,22 +54,35 @@ public class MarkerMetrics {
 			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
 			ArrayList<String[]> batches = Array.splitUpArray(markerNames, numThreads, proj.getLog());
 			String[] tmpQc = new String[batches.size()];
+			String[] tmpMendel = new String[batches.size()];
 			for (int i = 0; i < batches.size(); i++) {
 				String tmp = ext.addToRoot(finalQcFile, "tmp" + i);
 				hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, batches.get(i), tmp, checkMendel));
 				tmpQc[i] = tmp;
+				if(checkMendel) tmpMendel[i] = ext.rootOf(tmp, false) + DEFAULT_MENDEL_FILE_SUFFIX;
 			}
 
 			hive.execute(true);
 			ArrayList<Boolean> complete = hive.getResults();
 			if (Array.booleanArraySum(Array.toBooleanArray(complete)) == complete.size()) {
-				Files.cat(tmpQc, proj.MARKER_METRICS_FILENAME.getValue(), new int[0], proj.getLog());
-				if (Files.exists(proj.MARKER_METRICS_FILENAME.getValue()) && Files.countLines(proj.MARKER_METRICS_FILENAME.getValue(), 1) == markerNames.length) {
+				Files.cat(tmpQc, finalQcFile, new int[0], proj.getLog());
+				if (Files.exists(finalQcFile) && Files.countLines(finalQcFile, 1) == markerNames.length) {
 					for (int i = 0; i < tmpQc.length; i++) {
 						new File(tmpQc[i]).delete();
 					}
 				} else {
-					proj.getLog().reportTimeError("Could not collapse temporary marker files to " + proj.MARKER_METRICS_FILENAME.getValue());
+					proj.getLog().reportTimeError("Could not collapse temporary marker files to " + finalQcFile);
+				}
+				
+				if (checkMendel){
+					Files.cat(tmpMendel, ext.rootOf(finalQcFile, false) + DEFAULT_MENDEL_FILE_SUFFIX, new int[0], proj.getLog());
+					if (Files.exists(ext.rootOf(finalQcFile, false) + DEFAULT_MENDEL_FILE_SUFFIX)) {
+						for (int i = 0; i < tmpMendel.length; i++) {
+							new File(tmpMendel[i]).delete();
+						}
+					} else {
+						proj.getLog().reportTimeError("Could not collapse temporary mendel files to " + ext.rootOf(finalQcFile, false) + DEFAULT_MENDEL_FILE_SUFFIX);
+					}
 				}
 			} else {
 				proj.getLog().reportTimeError("Could not complete marker QC");
@@ -79,7 +91,7 @@ public class MarkerMetrics {
 	}
 	
 	
-	private static void fullQC(Project proj, boolean[] samplesToExclude, String[] markerNames, String fullPathToOutput,boolean checkMendel) {
+	private static void fullQC(Project proj, boolean[] samplesToExclude, String[] markerNames, String fullPathToOutput, boolean checkMendel) {
 		PrintWriter writer, mendelWriter = null;
 		String[] samples;
 		float[] thetas, rs, lrrs;
@@ -94,12 +106,11 @@ public class MarkerMetrics {
 		int[] counts, sexes;
 		double[] sumTheta, sumR, meanTheta, sdTheta;
 		double temp, lrrSexZ;
-		int numNaNs, numLRRNaNs, count, sampleIndex, faDNAIndex, moDNAIndex;
+		int numNaNs, numLRRNaNs, count;
 		ArrayList<Float> aLRR;
 		Logger log;
 		boolean[] toInclude;
 		MendelErrorCheck[] mecArr;
-		byte faGenotype, moGenotype, indGeno;
 		
 		log = proj.getLog();
 
@@ -203,31 +214,13 @@ public class MarkerMetrics {
 		                if (!toInclude[i]) continue;
 		                if (mecArr[i].getErrorCode() != -1) {
 		                    count++;
-		                    sampleIndex = pedigree.getIDNAIndex(i);
-		                    faDNAIndex = pedigree.getFaDNAIndex(i);
-		                    moDNAIndex = pedigree.getMoDNAIndex(i);
-
-		                    faGenotype = -1;
-		                    if (faDNAIndex >= 0 && toInclude[faDNAIndex]) {
-		                        faGenotype = abGenotypes[faDNAIndex];
-		                    }
-		                    moGenotype = -1;
-		                    if (moDNAIndex >= 0 && toInclude[moDNAIndex]) {
-		                        moGenotype = abGenotypes[moDNAIndex];
-		                    }
-		                    indGeno = abGenotypes[sampleIndex];
 		                    
-		                    mendelLine = markerName
-		                                + "\t" + markerData.getChr()
-		                                + "\t" + markerData.getPosition()
-		                                + "\t" + pedigree.getFID(i)
+		                    mendelLine = pedigree.getFID(i)
 		                                + "\t" + pedigree.getIID(i)
-		                                + "\t" + pedigree.getDnas()[i]
-		                                + "\t" + (faDNAIndex >= 0 ? samples[faDNAIndex] : ".")
-		                                + "\t" + (moDNAIndex >= 0 ? samples[moDNAIndex] : ".")
-		                                + "\t" + indGeno 
-		                                + "\t" + faGenotype
-		                                + "\t" + moGenotype
+		                                + "\t" + markerData.getChr()
+		                                + "\t" + markerName
+		                                + "\t" + mecArr[i].getErrorCode()
+		                                + "\t" + mecArr[i].getError()
 		                                + eol;
 		                    
 		                    mendelWriter.print(mendelLine);
@@ -1362,7 +1355,7 @@ public class MarkerMetrics {
 				separationOfSexes(proj, markersSubset);
 			}
 			if (fullQC) {
-				fullQC(proj, proj.getSamplesToExclude(), markersSubset, true, numThreads);
+				fullQC(proj, (samples == null) ?  proj.getSamplesToExclude() : Array.booleanNegative(proj.getSamplesToInclude(samples)), markersSubset, true, numThreads);
 			}
 			if (lrrVariance) {
 				lrrVariance(proj, proj.getSamplesToInclude(samples), markersSubset);
