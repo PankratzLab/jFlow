@@ -1,5 +1,9 @@
 package seq.manage;
 
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
+
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Hashtable;
@@ -36,6 +40,7 @@ import filesys.Segment;
 
 public class BamImport {
 	public static final String OFF_TARGET_FLAG = "OFF_TARGET";
+	public static final String VARIANT_SITE_FLAG = "VARIANT_SITE";
 
 	private static class BamPileConversionResults implements Callable<BamPileConversionResults> {
 		private Project proj;
@@ -113,7 +118,48 @@ public class BamImport {
 
 	}
 
-	public static void importTheWholeBamProject(Project proj, String binBed, String captureBed, int captureBuffer, int numthreads) {
+	private static LocusSet<BEDFeatureSeg> extractVCF(Project proj, String vcf) {
+		LocusSet<BEDFeatureSeg> varLocusSet = new LocusSet<BEDFeatureSeg>(new BEDFeatureSeg[] {}, true, proj.getLog()) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+
+		if (vcf != null) {
+			String outDir = proj.PROJECT_DIRECTORY.getDefaultValue() + "vcf/";
+			new File(outDir).mkdirs();
+			String out = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".regions.txt";
+
+			if (!Files.exists(out)) {
+				try {
+					PrintWriter writer = new PrintWriter(new FileWriter(out));
+					VCFFileReader reader = new VCFFileReader(vcf, true);
+
+					for (VariantContext vc : reader) {
+						writer.println(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getEnd() + "\t" + vc.getReference().getDisplayString() + "_" + vc.getAlternateAlleles().toString());
+					}
+					reader.close();
+
+					writer.close();
+				} catch (Exception e) {
+					proj.getLog().reportError("Error writing to " + out);
+					proj.getLog().reportException(e);
+				}
+
+			}
+
+			BEDFileReader readerVarBed = new BEDFileReader(out, false);
+			varLocusSet = readerVarBed.loadAll(proj.getLog());
+			readerVarBed.close();
+		}
+		return varLocusSet;
+
+	}
+
+	public static void importTheWholeBamProject(Project proj, String binBed, String captureBed, String optionalVCF, int captureBuffer, int numthreads) {
 		if (proj.getArrayType() == ARRAY.NGS) {
 			Logger log = proj.getLog();
 
@@ -138,13 +184,21 @@ public class BamImport {
 					LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(LocusSet.combine(bLocusSet, readerCapture.loadAll(log), true, log).mergeOverlapping(true), 4000);
 					log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bins int the anti-on-target regions");
 					log.memoryFree();
-					generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure);
+
+					LocusSet<BEDFeatureSeg> varFeatures = extractVCF(proj, optionalVCF);
+
+					generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure, varFeatures);
 					log.memoryFree();
 					LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure, true, log);
+					analysisSet = LocusSet.combine(analysisSet, varFeatures.getStrictSegmentSet(), true, log);
+
 					log.memoryFree();
-					generateGCModel(proj, analysisSet, referenceGenome);
 
 					log.reportTimeInfo(analysisSet.getLoci().length + " segments to pile");
+					System.exit(1);
+
+					generateGCModel(proj, analysisSet, referenceGenome);
+
 					FilterNGS filterNGS = new FilterNGS(20, 20, null);
 					PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(), filterNGS, analysisSet.getStrictSegments(), log);
 					WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<BamPileResult>(pileProducer, numthreads, 2, log);
@@ -258,10 +312,10 @@ public class BamImport {
 		MitoPipeline.catAndCaboodle(proj, numthreads, "0", mediaMarks, proj.getSamples().length - 1, base, false, false, 0, null, null, null, false, false, false, true, false, null, -1, -1);
 	}
 
-	private static void generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet, LocusSet<Segment> genomeBinsMinusBinsCaputure) {
+	private static void generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet, LocusSet<Segment> genomeBinsMinusBinsCaputure, LocusSet<BEDFeatureSeg> varFeatures) {
 		String positions = proj.MARKER_POSITION_FILENAME.getValue();
 		proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
-		String[] markerNames = new String[bLocusSet.getLoci().length + genomeBinsMinusBinsCaputure.getLoci().length];
+		String[] markerNames = new String[bLocusSet.getLoci().length + genomeBinsMinusBinsCaputure.getLoci().length + varFeatures.getLoci().length];
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(positions));
 			int markerIndex = 0;
@@ -292,6 +346,20 @@ public class BamImport {
 				markerIndex++;
 			}
 
+			for (int i = 0; i < varFeatures.getLoci().length; i++) {
+				BEDFeatureSeg variantFeatureSeg = varFeatures.getLoci()[i];
+				String markerName = variantFeatureSeg.getUCSClocation();
+				String name = variantFeatureSeg.getBedFeature().getName();
+				if (name != null) {
+					markerName += "|" + name;
+				}
+				markerName = markerName + "|" + VARIANT_SITE_FLAG;
+				markerNames[markerIndex] = markerName;
+				int pos = variantFeatureSeg.getStart();
+				writer.println(markerName + "\t" + variantFeatureSeg.getChr() + "\t" + pos);
+				markerIndex++;
+			}
+
 			writer.close();
 		} catch (Exception e) {
 			proj.getLog().reportError("Error writing to " + positions);
@@ -308,6 +376,7 @@ public class BamImport {
 		String captureBed = "AgilentCaptureRegions.txt";
 		int numthreads = 24;
 		int captureBuffer = 400;
+		String vcf = null;
 		// String referenceGenomeFasta = "hg19_canonical.fa";
 		// String logfile = null;
 		// Logger log;
@@ -317,6 +386,7 @@ public class BamImport {
 		usage += "(2) bed file to import  (i.e. importBed=" + binBed + " ( no default))\n" + "";
 		usage += Ext.getNumThreadsCommand(3, numthreads);
 		usage += "(4) bed file to import  (i.e. captureBed=" + captureBed + " ( no default))\n" + "";
+		usage += "(5) a vcf, if provided the variants will be imported with bp resolution  (i.e. vcf= ( no default))\n" + "";
 
 		// usage += "(3) reference genome  (i.e. ref=" + referenceGenomeFasta + " ( default))\n" + "";
 
@@ -332,6 +402,9 @@ public class BamImport {
 				numArgs--;
 			} else if (args[i].startsWith("captureBed=")) {
 				captureBed = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("vcf=")) {
+				vcf = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith(Ext.NUM_THREADS_COMMAND)) {
 				numthreads = ext.parseIntArg(args[i]);
@@ -352,7 +425,7 @@ public class BamImport {
 		try {
 			// log = new Logger(logfile);
 			Project proj = new Project(filename, false);
-			importTheWholeBamProject(proj, binBed, captureBed, captureBuffer, numthreads);
+			importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
