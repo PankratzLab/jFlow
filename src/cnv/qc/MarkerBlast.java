@@ -242,6 +242,10 @@ public class MarkerBlast {
 		}
 	}
 
+	/**
+	 * 
+	 * {@link MarkerBlast#getMarkerFastaEntries(Project, String, FILE_SEQUENCE_TYPE, BlastParams, boolean)}
+	 */
 	private static MarkerFastaEntry[] getMarkerFastaEntries(Project proj, String strandReportFile, FILE_SEQUENCE_TYPE type, BlastParams params, boolean alleleLookup) {
 		ExtProjectDataParser.ProjectDataParserBuilder builder = formatParser(proj, type, strandReportFile);
 		MarkerFastaEntry[] fastaEntries = null;
@@ -254,7 +258,10 @@ public class MarkerBlast {
 			ArrayList<MarkerFastaEntry> entries = new ArrayList<MarkerFastaEntry>(Array.booleanArraySum(parser.getDataPresent()));
 			MarkerSet markerSet = proj.getMarkerSet();
 			// SequenceLookup sequenceLookup = new SequenceLookup(proj.getLog());
-			ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog());
+			ReferenceGenome referenceGenome = Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue()) ? new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), proj.getLog()) : null;
+			if (referenceGenome == null) {
+				proj.getLog().reportTimeWarning("A reference genome was not found");
+			}
 			boolean hasRefStrand = parser.hasStringDataForTitle("RefStrand");
 			if (!hasRefStrand && params != null) {
 				params.setNotes("Warning, the positive and negative strands of the probe design are actually forward and reverse designations, due to parsing IlmnIDs ");
@@ -262,7 +269,7 @@ public class MarkerBlast {
 			for (int i = 0; i < parser.getDataPresent().length; i++) {
 				if (parser.getDataPresent()[i]) {
 					if (alleleLookup) {
-						if ((i + 1) % 10000 == 0) {
+						if ((i + 1) % 10000 == 0 && referenceGenome != null) {
 							proj.getLog().reportTimeInfo("Loaded " + (i + 1) + " reference alleles from " + referenceGenome.getReferenceFasta());
 						}
 					}
@@ -481,7 +488,7 @@ public class MarkerBlast {
 				if (loc.getChr() > 0) {
 
 					Segment newQuery = new Segment(loc.getChr(), loc.getStart() - 1, loc.getStop() + len);// need to grab preceeding ref bp
-					String[] tmp = referenceGenome.getSequenceFor(newQuery);
+					String[] tmp = referenceGenome == null ? Array.stringArray(indel.length() + 1, "N") : referenceGenome.getSequenceFor(newQuery);
 					if (tmp.length - 1 != indel.length()) {
 						throw new IllegalStateException("Invalid reference indel query; REF -> " + Array.toStr(tmp) + "\t indel -> " + indel);
 					}
@@ -558,7 +565,7 @@ public class MarkerBlast {
 			if (loc.getChr() > 0) {
 				if (!isIndel()) {
 					String[] tmp;
-					if (loc.getStart() > referenceGenome.getContigLength(loc)) {
+					if (loc.getStart() > referenceGenome.getContigLength(loc) || referenceGenome == null) {
 						tmp = new String[] { "N" };
 					} else {
 						tmp = referenceGenome.getSequenceFor(loc);
