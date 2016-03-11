@@ -64,8 +64,10 @@ public class BamSample {
 		this.percentWithMismatch = new double[bamPiles.length];
 		byte currentChr = 0;
 		int currentPos = 0;
-		boolean[] useOffTarget = Array.booleanArray(bamPiles.length, true);
-		boolean[] useOntarget = Array.booleanArray(bamPiles.length, true);
+		boolean[] useOffTarget = Array.booleanArray(bamPiles.length, false);
+		boolean[] useOntarget = Array.booleanArray(bamPiles.length, false);
+		boolean[] useVariantSite = Array.booleanArray(bamPiles.length, false);
+
 		for (int i = 0; i < bamPiles.length; i++) {
 			if (currentChr > bamPiles[i].getBin().getChr() || (bamPiles[i].getBin().getChr() <= currentChr && currentPos > bamPiles[i].getBin().getStart())) {
 				String error = "BUG, segments are unsorted";
@@ -82,10 +84,17 @@ public class BamSample {
 
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
 			if (markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
+				useOffTarget[i] = true;
+
+			}
+			else if (markerSet.getMarkerNames()[i].contains(BamImport.VARIANT_SITE_FLAG)) {
+				useVariantSite[i] = true;
+
+			}
+
+			else {
 				useOntarget[i] = false;
-				//rawDepth[i] = rawDepth[i] > 0 ? Math.log(rawDepth[i]) : rawDepth[i];
-			} else {
-				useOffTarget[i] = false;
+
 			}
 			if (Double.isNaN(rawDepth[i])) {
 				String warning = "Found invalid scale raw depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[i];
@@ -106,9 +115,14 @@ public class BamSample {
 		BeastScore beastScoreOnTarget = new BeastScore(Array.toFloatArray(rawDepth), chrIndices, null, proj.getLog());
 		beastScoreOnTarget.setUse(useOntarget);
 		float[] scaleMAD = beastScoreOnTarget.getScaleMadRawData(1.4826);// http://www.genomebiology.com/2014/15/12/550
+		
 		BeastScore beastScoreOffTarget = new BeastScore(scaleMAD, chrIndices, null, proj.getLog());
 		beastScoreOffTarget.setUse(useOffTarget);
 		scaleMAD = beastScoreOffTarget.getScaleMadRawData(1.4826);
+		
+		BeastScore beastScoreVariantSite = new BeastScore(scaleMAD, chrIndices, null, proj.getLog());
+		beastScoreVariantSite.setUse(useVariantSite);
+		scaleMAD = beastScoreVariantSite.getScaleMadRawData(1.4826);
 
 		for (int i = 0; i < chrIndices.length; i++) {
 			boolean error = false;
