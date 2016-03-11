@@ -51,8 +51,8 @@ public class BamImport {
 			this.proj = proj;
 			this.result = result;
 			this.outliers = new Hashtable<String, Float>();
+			this.fingerPrint = fingerPrint;
 			this.log = log;
-
 		}
 
 		@Override
