@@ -338,7 +338,7 @@ public class BamPileUp implements Iterator<BamPile> {
 			BamPileUp pileUp = new BamPileUp(bamFile, referenceGenome, binSize, filterNGS, q, type, filterType,true, log);
 			String output = ext.rootOf(bamFile, false) + ".bamPile.txt";
 			PrintWriter writer = Files.getAppropriateWriter(output);
-			writer.println(BamPile.getHeader());
+			writer.println(BamPile.getBampPileHeader());
 			while (pileUp.hasNext()) {
 				writer.println(pileUp.next().getOuput(log));
 			}

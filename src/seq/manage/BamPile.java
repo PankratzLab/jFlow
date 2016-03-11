@@ -17,7 +17,7 @@ import common.Logger;
  * Stores the pileUp of a bam file for each position found (by bin)
  *
  */
-public class BamPile implements Serializable {
+public class BamPile extends Segment implements Serializable {
 
 	/**
 	 * 
@@ -39,7 +39,7 @@ public class BamPile implements Serializable {
 	private double overallAvgMapQ;
 	private double overallAvgDepth;
 
-	public static String getHeader() {
+	public static String getBampPileHeader() {
 		String header = Array.toStr(BASE_HEADER);
 		for (int i = 0; i < COUNT_HEADER.length; i++) {
 			header += "\t" + COUNT_HEADER[i];
