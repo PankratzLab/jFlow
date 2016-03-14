@@ -420,14 +420,22 @@ public class DosageData implements Serializable {
 	}
 	
 	public DosageData(String dosageFile, String idFile, String mapFile, boolean verbose, Logger log) {
-		this(dosageFile, idFile, mapFile, determineType(dosageFile), verbose, log);
+	    this(dosageFile, idFile, mapFile, determineType(dosageFile), null, verbose, log);
+	}
+
+	public DosageData(String dosageFile, String idFile, String mapFile, String markersFile, boolean verbose, Logger log) {
+		this(dosageFile, idFile, mapFile, determineType(dosageFile), markersFile, verbose, log);
 	}
 	
 	public DosageData(String dosageFile, String idFile, String mapFile, int type, boolean verbose, Logger log) {
-		this(dosageFile, idFile, mapFile, PARAMETERS[type], verbose, log);
+	    this(dosageFile, idFile, mapFile, PARAMETERS[type], null, verbose, log);
+	}
+
+	public DosageData(String dosageFile, String idFile, String mapFile, int type, String markersFile, boolean verbose, Logger log) {
+		this(dosageFile, idFile, mapFile, PARAMETERS[type], markersFile, verbose, log);
 	}
 	
-	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, boolean verbose, Logger log) {
+	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, String markersToUseFile, boolean verbose, Logger log) {
 	    if (parameters[2] == PLINK_BINARY_FORMAT) {
 	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), ext.rootOf(dosageFile, true));
 	        this.alleles = dd.alleles;
@@ -443,21 +451,46 @@ public class DosageData implements Serializable {
 		BufferedReader reader;
 		String[] line;
 		String[] markerNames;
+		boolean[] markersToKeep;
 		Hashtable<String, String> invalids;
+		int keepTotal;
 		if (log == null) {
 		    log = new Logger();
 		}
 		
 		markerSet = new SnpMarkerSet(mapFile);
 		markerNames = markerSet.getMarkerNames();
+		
+		if (markersToUseFile != null && !"".equals(markersToUseFile) && Files.exists(markersToUseFile)) {
+		    String[] mkrs = HashVec.loadFileToStringArray(markersToUseFile, false, new int[]{0}, false);
+		    HashSet<String> mkrsToKeep = new HashSet<String>();
+		    for (String m : mkrs) {
+		        mkrsToKeep.add(m);
+		    }
+		    markersToKeep = Array.booleanArray(markerNames.length, false);
+		    for (int i = 0; i < markerNames.length; i++) {
+		        if (mkrsToKeep.contains(markerNames[i])) {
+		            markersToKeep[i] = true;
+		            mkrsToKeep.remove(markerNames[i]);
+		        }
+		    }
+		    if (mkrsToKeep.size() > 0) {
+		        log.reportTimeWarning(mkrsToKeep.size() + " markers listed in extract file not found in map file");
+		    }
+		    markerSet = markerSet.trim(mkrs, true, verbose, log);
+	    } else {
+	        markersToKeep = Array.booleanArray(markerNames.length, true);
+	    }
+		keepTotal = Array.booleanArraySum(markersToKeep);
+		
 		ids = HashVec.loadFileToStringMatrix(idFile, false, new int[] {0,1}, false);
 		if (parameters[3] == 1) {
-			dosageValues = new float[markerNames.length][ids.length];
+			dosageValues = new float[keepTotal][ids.length];
 		} else {
-			genotypeProbabilities = new float[markerNames.length][ids.length][parameters[3]];
+			genotypeProbabilities = new float[keepTotal][ids.length][parameters[3]];
 		}
 		if (parameters[6] != -1) {
-			alleles = new char[markerNames.length][2];
+			alleles = new char[keepTotal][2];
 		}
 		if (parameters[8] == CHR_INFO_IN_FILENAME) {
             Matcher m = Pattern.compile(CHR_REGEX).matcher(dosageFile);
@@ -468,7 +501,7 @@ public class DosageData implements Serializable {
                     String msg = "Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{" + chr + "}.";
                     log.report(msg);
                 }
-                chrs = Array.byteArray(markerNames.length, chr);
+                chrs = Array.byteArray(keepTotal, chr);
             } else {
                 if (verbose) {
                     String msg = "Error - the format given expects chromosome number to be part of the file name, but no chromosome number was found.  Chromosome information will not be included.";
@@ -476,10 +509,10 @@ public class DosageData implements Serializable {
                 }
             }
 		} else if (parameters[8] != -1) {
-			chrs = new byte[markerNames.length];
+			chrs = new byte[keepTotal];
 		}
 		if (parameters[9] != -1) {
-			positions = new int[markerNames.length];
+			positions = new int[keepTotal];
 		}
 
 		invalids = new Hashtable<String, String>();
@@ -516,6 +549,7 @@ public class DosageData implements Serializable {
 			}
 
 			if (parameters[2] == MARKER_DOMINANT_FORMAT) {
+			    int index = -1;
 				for (int i = 0; i < markerNames.length; i++) {
 					line = reader.readLine().trim().split(parameters[10]==1?",":"[\\s]+");
 					if (!markerNames[i].equals(line[parameters[5]])) {
@@ -526,7 +560,10 @@ public class DosageData implements Serializable {
 						reader.close();
 						return;
 					}
-
+					if (!markersToKeep[i]) {
+					    continue;
+					}
+					index++;
 					if (parameters[6] != -1) {
 						if (line[parameters[6]].length() > 1 || !Sequence.validAllele(line[parameters[6]])) {
 						    if (verbose) {
@@ -534,7 +571,7 @@ public class DosageData implements Serializable {
                                 log.reportError(msg);
 						    }
 						}
-						alleles[i][0] = line[parameters[6]].charAt(0);
+						alleles[index][0] = line[parameters[6]].charAt(0);
 					}
 					if (parameters[7] != -1) {
 						if (line[parameters[7]].length() > 1 || !Sequence.validAllele(line[parameters[7]])) {
@@ -543,13 +580,13 @@ public class DosageData implements Serializable {
                                 log.reportError(msg);
                             }
 						}
-						alleles[i][1] = line[parameters[7]].charAt(0);
+						alleles[index][1] = line[parameters[7]].charAt(0);
 					}
 					if (parameters[8] >= 0) {
 						try {
-							chrs[i] = Byte.parseByte(line[parameters[8]]);
+							chrs[index] = Byte.parseByte(line[parameters[8]]);
 						} catch (NumberFormatException nfe) {
-							chrs[i] = -1;
+							chrs[index] = -1;
 							if (!invalids.containsKey(line[parameters[8]])) {
 	                            if (verbose) {
     								String msg = "Warning - invalid chromosome number ('"+line[parameters[8]]+"'), first seen at marker "+markerNames[i];
@@ -561,9 +598,9 @@ public class DosageData implements Serializable {
 					}
 					if (parameters[9] != -1) {
 						try {
-							positions[i] = Integer.parseInt(line[parameters[9]]);
+							positions[index] = Integer.parseInt(line[parameters[9]]);
 						} catch (NumberFormatException nfe) {
-							positions[i] = -1;
+							positions[index] = -1;
 							if (!invalids.containsKey(line[parameters[9]])) {
 	                            if (verbose) {
         							String msg = "Warning - invalid genome position ('"+line[parameters[9]]+"') for marker "+markerNames[i];
@@ -581,15 +618,15 @@ public class DosageData implements Serializable {
 					}
 					if (parameters[3] == 1) {
 						for (int j = 0; j < ids.length; j++) {
-							dosageValues[i][j] = Float.parseFloat(line[parameters[1]+j]);
+							dosageValues[index][j] = Float.parseFloat(line[parameters[1]+j]);
 						}
 					} else {
 						for (int j = 0; j < ids.length; j++) {
-							genotypeProbabilities[i][j][0] = Float.parseFloat(line[parameters[1]+j*parameters[3]+0]);
-							genotypeProbabilities[i][j][1] = Float.parseFloat(line[parameters[1]+j*parameters[3]+1]);
+							genotypeProbabilities[index][j][0] = Float.parseFloat(line[parameters[1]+j*parameters[3]+0]);
+							genotypeProbabilities[index][j][1] = Float.parseFloat(line[parameters[1]+j*parameters[3]+1]);
 							if (parameters[3] == 3) {
-								genotypeProbabilities[i][j][2] = Float.parseFloat(line[parameters[1]+j*parameters[3]+2]);
-								if (Math.abs((1 - genotypeProbabilities[i][j][1] - genotypeProbabilities[i][j][0]) - genotypeProbabilities[i][j][2]) > 0.01) {
+								genotypeProbabilities[index][j][2] = Float.parseFloat(line[parameters[1]+j*parameters[3]+2]);
+								if (Math.abs((1 - genotypeProbabilities[index][j][1] - genotypeProbabilities[index][j][0]) - genotypeProbabilities[index][j][2]) > 0.01) {
 									String msg = "Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "+ids[j][0]+","+ids[j][1]+" at marker "+markerNames[i]+" which is line "+(i+1+parameters[4])+" of "+dosageFile+": "+line[parameters[1]+j*parameters[3]+0]+" "+line[parameters[1]+j*parameters[3]+1]+" "+line[parameters[1]+j*parameters[3]+2];
 		                            log.reportError(msg);
 								}
@@ -606,16 +643,26 @@ public class DosageData implements Serializable {
 						System.exit(1);
 					}
 					if (parameters[3] == 1) {
+					    int index = -1;
 						for (int j = 0; j < markerNames.length; j++) {
-							dosageValues[j][i] = Float.parseFloat(line[parameters[1]+j]);
+						    if (!markersToKeep[j]) {
+						        continue;
+						    }
+						    index++;
+							dosageValues[index][i] = Float.parseFloat(line[parameters[1]+j]);
 						}
 					} else {
+					    int index = -1;
 						for (int j = 0; j < markerNames.length; j++) {
-							genotypeProbabilities[j][i][0] = Float.parseFloat(line[parameters[1]+j*parameters[3]+0]);
-							genotypeProbabilities[j][i][1] = Float.parseFloat(line[parameters[1]+j*parameters[3]+1]);
+						    if (!markersToKeep[j]) {
+						        continue;
+						    }
+						    index++;
+							genotypeProbabilities[index][i][0] = Float.parseFloat(line[parameters[1]+j*parameters[3]+0]);
+							genotypeProbabilities[index][i][1] = Float.parseFloat(line[parameters[1]+j*parameters[3]+1]);
 							if (parameters[3] == 3) {
-								genotypeProbabilities[j][i][2] = Float.parseFloat(line[parameters[1]+j*parameters[3]+2]);
-								if (Math.abs((1 - genotypeProbabilities[j][i][1] - genotypeProbabilities[j][i][0]) - genotypeProbabilities[j][i][2]) > 0.01) {
+								genotypeProbabilities[index][i][2] = Float.parseFloat(line[parameters[1]+j*parameters[3]+2]);
+								if (Math.abs((1 - genotypeProbabilities[index][i][1] - genotypeProbabilities[index][i][0]) - genotypeProbabilities[index][i][2]) > 0.01) {
 									String msg = "Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "+ids[i][0]+","+ids[i][1]+" at marker "+markerNames[j]+" which is line "+(i+1+parameters[4])+" of "+dosageFile+": "+line[parameters[1]+j*parameters[3]+0]+" "+line[parameters[1]+j*parameters[3]+1]+" "+line[parameters[1]+j*parameters[3]+2];
 									log.reportError(msg);
 								}
@@ -669,8 +716,11 @@ public class DosageData implements Serializable {
 		}
 	}
 	
+	public void writeToFile(String filename, String mapOut, String extract, Logger log) {
+	    writeToFile(filename, mapOut, extract, determineType(filename), log);
+	}
+	
 	public void writeToFile(String filename, String mapOut, String extract, int format, Logger log) {
-//		System.err.println("Error - type:" +format);
 		writeToFile(filename, mapOut, extract, false, PARAMETERS[format], log);
 	}	
 	
@@ -1534,7 +1584,7 @@ public class DosageData implements Serializable {
 				log.reportError("Error - cannot convert dosage values to genotype probabilities");
 			} else if (PARAMETERS[from][2] != PARAMETERS[to][2]) {
 				log.reportError("Conversion will have to take place in memory in order to transpose between marker dominant/individual dominant");
-				new DosageData(filename, idFile, mapFile, from, true, log).writeToFile(outfile, mapOut, extract, to, log);
+				new DosageData(filename, idFile, mapFile, from, extract, true, log).writeToFile(outfile, mapOut, extract, to, log);
 			} else {
 				date = new Date().getTime();
 				convert(filename, idFile, mapFile, from, outfile, mapOut, extract, to, awk, true, log);

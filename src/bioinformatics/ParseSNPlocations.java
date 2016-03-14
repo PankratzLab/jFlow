@@ -56,6 +56,164 @@ public class ParseSNPlocations {
 	private static String[] TAG_SET = {"NSF","NSM","NSN","SYN","U3","U5","ASS","DSS","INT","R3","R5"};
 	private static String[] TAG_SET_2 = {"PM","MUT"};
 	
+	public static int[][] parseSNPLocations(String snpListFile, String vcfFile, String unmappedVCF, String mergedVCF, Logger log, ProgressMonitor monitor) {
+	    VCFFileReader vcfReader, unmappedVCFReader, mergedVCFReader;
+        BufferedReader reader;
+        
+        ArrayList<int[]> resultList = new ArrayList<int[]>();
+        
+        String[] parts;
+        String line = null;
+        ArrayList<String> nonRS = new ArrayList<String>();
+        ArrayList<String> rsNotFound = new ArrayList<String>();
+        HashMap<String, Integer> indexMap = new HashMap<String, Integer>(); 
+        int index = 0;
+        
+        String PROG_KEY = "PARSESNPS";
+        int lineCnt = Files.countLines(snpListFile, 0);
+        if (monitor != null) {
+            monitor.beginDeterminateTask(PROG_KEY, "Processing " + lineCnt + " SNPs", lineCnt, ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
+        } else {
+            System.out.println("Processing " + lineCnt + " SNPs");
+        }
+        
+        vcfReader = new VCFFileReader(vcfFile, true);
+        unmappedVCFReader = unmappedVCF == null ? null : new VCFFileReader(unmappedVCF, true);
+        mergedVCFReader = mergedVCF == null ? null : new VCFFileReader(mergedVCF, true);
+        try {
+            reader = Files.getAppropriateReader(snpListFile);
+
+            while ((line = reader.readLine()) != null) {
+                parts = line.trim().split("[\\s]+");
+                if (parts[0].equalsIgnoreCase("snp") || parts[0].toLowerCase().startsWith("marker")) {
+                    continue;
+                }
+                index++;
+                if (!parts[0].startsWith("rs")) {
+                    resultList.add(new int[]{Integer.parseInt(parts.length > 1 ? parts[1] : "-1"),  Integer.parseInt(parts.length > 2 ? parts[2] : "-1")});
+                    nonRS.add(parts[0]);
+                    indexMap.put(parts[0], index);
+                    // parse chr:pos:alleles markers later
+                } else {
+                    String rs = parts[0];
+                    if (rs.indexOf(":") != -1) {
+                        rs = rs.substring(0, rs.indexOf(":")); // remove alleles if they exist
+                    }
+                    int rsNumber = Integer.parseInt(rs.substring(2));// error checking on RS w/ allele
+                    int chrom = rsNumber / (512 * 1024 * 1024) + 1;
+                    
+                    CloseableIterator<VariantContext> vcIter = vcfReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
+                    VariantContext markerVC = null;
+                    while (vcIter.hasNext()) {
+                        VariantContext vc = vcIter.next();
+                        if (vc.getID().equals(rs)) {
+                            markerVC = vc;
+                            break;
+                        }
+                    }
+                    vcIter.close();
+                    vcIter = null;
+                    if (markerVC == null) {
+//                        System.err.println("Error - couldn't find {" + rs + "} in the regular database.  Checking merged and unmapped marker databases...");
+                        if (unmappedVCFReader != null) {
+                            CloseableIterator<VariantContext> vcIterUn = unmappedVCFReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
+                            while (vcIterUn.hasNext()) {
+                                VariantContext vc = vcIterUn.next();
+                                if (vc.getID().equals(rs)) {
+                                    markerVC = vc;
+                                    break;
+                                }
+                            }
+                            vcIterUn.close();
+                            vcIterUn = null;
+                            if (markerVC == null) {
+//                                System.err.println("Error - couldn't find {" + parts[0] + "} in the unmapped database.  Checking merged database now...");
+                            }
+                        }
+                        if (markerVC == null && mergedVCFReader != null) {
+                            String curr = null;
+                            String next = rs;
+                            HashSet<String> found = new HashSet<String>();
+                            found.add(rs);
+                            do {
+                                curr = next;
+                                next = null;
+                                int rsCurr = Integer.parseInt(curr.startsWith("rs") ? curr.substring(2) : curr);
+                                int chromCurr = rsCurr / (512 * 1024 * 1024) + 1;
+                                CloseableIterator<VariantContext> vcIterUn = mergedVCFReader.query("chr" + chromCurr, rsCurr-2, rsCurr+2);
+                                while (vcIterUn.hasNext()) {
+                                    VariantContext vc = vcIterUn.next();
+                                    if (vc.getID().equals(curr)) {
+                                        if (!found.contains("rs" + vc.getAttribute("RSMRG").toString())) {
+                                            next = "rs" + vc.getAttribute("RSMRG").toString();
+                                            found.add("rs" + vc.getAttribute("RSMRG").toString());
+                                        }
+                                        break;
+                                    }
+                                }
+                                vcIterUn.close();
+                                vcIterUn = null;
+                            } while (next != null);
+                            
+                            if (!curr.equals(rs)) {
+                                rsNumber = Integer.parseInt(curr.substring(2));// error checking on RS w/ allele
+                                chrom = rsNumber / (512 * 1024 * 1024) + 1;
+                                vcIter = vcfReader.query("chr" + chrom, rsNumber-2, rsNumber+2);
+                                markerVC = null;
+                                while (vcIter.hasNext()) {
+                                    VariantContext vc = vcIter.next();
+                                    if (vc.getID().equals(curr)) {
+                                        markerVC = vc;
+                                        break;
+                                    }
+                                }
+                                vcIter.close();
+                                vcIter = null;
+                            } else {
+//                                System.err.println("Error - couldn't find {" + rs + "} in the merged database.");
+                            }
+                        }
+                    }
+                    if (markerVC != null) {
+                        String attr = (String) markerVC.getAttribute("CHRPOS");
+                        String[] pts = attr.split(":");
+                        resultList.add(new int[]{Integer.parseInt(parts.length > 1 ? parts[1] : pts[0]), Integer.parseInt(parts.length > 2 ? parts[2] : pts[1])});
+                    } else {
+                        resultList.add(new int[]{Integer.parseInt(parts.length > 1 ? parts[1] : "-1"), Integer.parseInt(parts.length > 2 ? parts[2] : "-1")});
+                        rsNotFound.add(rs);
+                        indexMap.put(rs, index);
+                    }
+                }
+                if (monitor != null) {
+                    monitor.updateTask(PROG_KEY);
+                }
+            }
+            reader.close();
+        } catch (NumberFormatException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        vcfReader.close();
+        if (unmappedVCFReader != null) {
+            unmappedVCFReader.close();
+        }
+        if (mergedVCFReader != null) {
+            mergedVCFReader.close();
+        }
+        if (rsNotFound.size() > 0) {
+            Files.writeArrayList(rsNotFound, ext.rootOf(snpListFile, false)+"_missing.txt");
+        }
+        if (monitor != null) {
+            monitor.endTask(PROG_KEY);
+        }
+        
+        return resultList.toArray(new int[resultList.size()][]);
+	}
+	
 	public static void parseSNPlocations(String snpListFile, String vcfFile, String unmappedVCF, String mergedVCF, Logger log, ProgressMonitor monitor) {
         VCFFileReader vcfReader, unmappedVCFReader, mergedVCFReader;
         BufferedReader reader;
@@ -258,10 +416,18 @@ public class ParseSNPlocations {
         }
         
         vcfReader.close();
+        if (unmappedVCFReader != null) {
+            unmappedVCFReader.close();
+        }
+        if (mergedVCFReader != null) {
+            mergedVCFReader.close();
+        }
         if (rsNotFound.size() > 0) {
             Files.writeArrayList(rsNotFound, ext.rootOf(snpListFile, false)+"_missing.txt");
         }
-        monitor.endTask(PROG_KEY);
+        if (monitor != null) {
+            monitor.endTask(PROG_KEY);
+        }
     }
 	
 	public static void lowMemParse(String snpListFile, String db, String mergeDB, boolean useExistingPositions, Logger log) {

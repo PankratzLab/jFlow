@@ -355,6 +355,16 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		return positionsByChr;
 	}
 	
+	public int[][] getChrAndPositionsAsInts() {
+	    int[][] chrPositions = new int[positions.length][];
+	    
+	    for (int i = 0; i<positions.length; i++) {
+	        chrPositions[i] = new int[]{chrs[i], positions[i]};
+	    }
+	    
+	    return chrPositions;
+	}
+
 	public String[] getChrAndPositions() {
 		String[] chrPositions = new String[positions.length];
 		

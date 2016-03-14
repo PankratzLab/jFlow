@@ -15,14 +15,14 @@ import common.ext;
 public class PlinkMergePrep {
     
     private static final int INVALID_ROOT = 0;
-    private static final int PEDMAP = 1;
-    private static final int BEDBIMFAM = 2;
+    public static final int PEDMAP = 1;
+    public static final int BEDBIMFAM = 2;
     
-    static int isValidRoot(String dir, final String plinkRoot) {
-        String[] files = (new File(dir)).list(new FilenameFilter() {
+    static int isValidRoot(final String plinkRootWithDir) {
+        String[] files = (new File(ext.parseDirectoryOfFile(plinkRootWithDir + ".bim"))).list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.startsWith(plinkRoot);
+                return name.startsWith(ext.rootOf(plinkRootWithDir));
             }
         });
         boolean foundBed = false;
@@ -52,34 +52,34 @@ public class PlinkMergePrep {
         return INVALID_ROOT;
     }
     
-    static String writeTempRegionFileFromUCSCFile(String regionFile, String dir) {
+    static String writeTempRegionFileFromUCSCFile(String regionFile) {
         String outFile = "tempRegions.txt";
         int index = 1;
-        while (Files.exists(dir + outFile)) {
+        while (Files.exists(ext.parseDirectoryOfFile(regionFile) + outFile)) {
             outFile = "tempRegions_" + index++ + ".txt"; 
         }
-        String[] ucscLines = HashVec.loadFileToStringArray(dir + regionFile, false, new int[]{0}, false);
+        String[] ucscLines = HashVec.loadFileToStringArray(regionFile, false, new int[]{0}, false);
         String[] plinkLines = new String[ucscLines.length];
         for (int i = 0; i < ucscLines.length; i++) {
             int[] pos = Positions.parseUCSClocation(ucscLines[i]);
             plinkLines[i] = pos[0] + "\t" + pos[1] + "\t" + pos[2] + "\tPLINK_" + i; 
         }
-        Files.writeList(plinkLines, dir + outFile);
+        Files.writeList(plinkLines, ext.parseDirectoryOfFile(regionFile) + outFile);
         return outFile;
     }
     
-    static void renameMarkers(String dir, String plinkRoot, int rootType) {
+    static void renameMarkers(String plinkRoot, int rootType) {
         BufferedReader reader;
         PrintWriter writer;
         String line, ext;
         String[] parts;
         
         ext = rootType == PEDMAP ? ".map" : ".bim";
-        boolean moved = (new File(dir + plinkRoot + ext)).renameTo(new File(dir + plinkRoot + "_orig" + ext));
+        boolean moved = (new File(plinkRoot + ext)).renameTo(new File(plinkRoot + "_orig" + ext));
         if (moved) {
             try {
-                reader = Files.getAppropriateReader(dir + plinkRoot + "_orig" + ext);
-                writer = Files.getAppropriateWriter(dir + plinkRoot + ext);
+                reader = Files.getAppropriateReader(plinkRoot + "_orig" + ext);
+                writer = Files.getAppropriateWriter(plinkRoot + ext);
                 while ((line = reader.readLine()) != null) {
                     parts = line.split("[\\s]+", -1);
                     parts[1] = plinkRoot + "_" + parts[1];
@@ -96,7 +96,7 @@ public class PlinkMergePrep {
         }
     }
     
-    static String merge(int outType, String outRoot, boolean overwrite, boolean renameMarkers, String regionFile, String dir, String plinkRoot1, String plinkRoot2) {
+    static String merge(int outType, String outDirAndRoot, boolean overwrite, boolean renameMarkers, String regionFile, String plinkRootWithDir1, String plinkRootWithDir2) {
         int rootType1, rootType2;
         StringBuilder cmds;
         String tempRgnFile;
@@ -105,19 +105,19 @@ public class PlinkMergePrep {
             System.err.println("Error - output type must be either (" + PEDMAP + ") PED/MAP, or (" + BEDBIMFAM + ") BED/BIM/FAM.");
             return null;
         }
-        rootType1 = isValidRoot(dir, plinkRoot1);
+        rootType1 = isValidRoot(plinkRootWithDir1);
         if (rootType1 == INVALID_ROOT) {
-            System.err.println("Error - couldn't find a complete set of PED/MAP or BED/BIM/FAM files for plink root '" + plinkRoot1 + "'.");
+            System.err.println("Error - couldn't find a complete set of PED/MAP or BED/BIM/FAM files for plink root '" + plinkRootWithDir1 + "'.");
             return null;
         }
-        rootType2 = isValidRoot(dir, plinkRoot2);
+        rootType2 = isValidRoot(plinkRootWithDir2);
         if (rootType2 == INVALID_ROOT) {
-            System.err.println("Error - couldn't find a complete set of PED/MAP or BED/BIM/FAM files for plink root '" + plinkRoot2 + "'.");
+            System.err.println("Error - couldn't find a complete set of PED/MAP or BED/BIM/FAM files for plink root '" + plinkRootWithDir2 + "'.");
             return null;
         }
-        if (Files.exists(dir + outRoot + (outType == PEDMAP ? ".ped" : ".bed"))) {
+        if (Files.exists(outDirAndRoot + (outType == PEDMAP ? ".ped" : ".bed"))) {
             if (!overwrite) {
-                System.err.println("Error - PLINK files with given output root ('" + outRoot + "') already exist!  Please specify alternate output name or set overwrite flag.");
+                System.err.println("Error - PLINK files with given output root ('" + outDirAndRoot + "') already exist!  Please specify alternate output name or set overwrite flag.");
                 return null;
             }
         }
@@ -125,91 +125,106 @@ public class PlinkMergePrep {
             System.err.println("Error - specified region file ('" + regionFile + "') doesn't exist!");
             return null;
         }
-        dir = ext.verifyDirFormat(dir);
         
         if (renameMarkers) {
-            renameMarkers(dir, plinkRoot1, rootType1);
-            renameMarkers(dir, plinkRoot2, rootType2);
+            renameMarkers(plinkRootWithDir1, rootType1);
+            renameMarkers(plinkRootWithDir2, rootType2);
         }
         
         cmds = new StringBuilder();
-        cmds.append("plink2 --noweb --").append(rootType1 == PEDMAP ? "file " : "bfile ").append(plinkRoot1).append(" --merge ");
+        cmds.append("plink2 --noweb --").append(rootType1 == PEDMAP ? "file " : "bfile ").append(plinkRootWithDir1).append(" --merge ");
         if (rootType2 == PEDMAP) {
-            cmds.append(plinkRoot2).append(".ped ").append(plinkRoot2).append(".map ");
+            cmds.append(plinkRootWithDir2).append(".ped ").append(plinkRootWithDir2).append(".map ");
         } else if (rootType2 == BEDBIMFAM) {
-            cmds.append(plinkRoot2).append(".bed ").append(plinkRoot2).append(".bim ").append(plinkRoot2).append(".fam ");
+            cmds.append(plinkRootWithDir2).append(".bed ").append(plinkRootWithDir2).append(".bim ").append(plinkRootWithDir2).append(".fam ");
         }
         cmds.append("--").append(outType == PEDMAP ? "recode" : "make-bed");
         if (regionFile != null && !regionFile.equals("") && Files.exists(regionFile)) {
-            tempRgnFile = writeTempRegionFileFromUCSCFile(regionFile, dir);
+            tempRgnFile = writeTempRegionFileFromUCSCFile(regionFile);
             cmds.append(" --extract range ").append(tempRgnFile);
         }
-        cmds.append(" --out ").append(outRoot);
+        cmds.append(" --out ").append(outDirAndRoot);
         return cmds.toString();
     }
     
-    static String merge(int outType, String outRoot, boolean overwrite, boolean renameMarkers, String regionFile, String dir, String[] plinkRoots) {
+    public static String merge(int outType, String outDirAndRoot, boolean overwrite, boolean renameMarkers, String regionFile, String markersFile, String[] plinkRootsWithDirs) {
         int[] rootTypes;
         String[] lines;
         String fileListName, tempRgnFile;
         StringBuilder cmds;
         int index;
-        
+
         if (outType != PEDMAP && outType != BEDBIMFAM) {
             System.err.println("Error - output type must be either (" + PEDMAP + ") PED/MAP, or (" + BEDBIMFAM + ") BED/BIM/FAM.");
             return null;
         }
-        if (plinkRoots.length < 2) {
+        if (plinkRootsWithDirs.length < 2) {
             System.err.println("Error - at least two distinct PLINK file roots must be specified for merging.");
             return null;
-        } else if (plinkRoots.length == 2) {
-            return merge(outType, outRoot, overwrite, renameMarkers, regionFile, dir, plinkRoots[0], plinkRoots[1]);
+        } else if (plinkRootsWithDirs.length == 2) {
+            return merge(outType, outDirAndRoot, overwrite, renameMarkers, regionFile, plinkRootsWithDirs[0], plinkRootsWithDirs[1]);
         }
-        if (Files.exists(dir + outRoot + (outType == PEDMAP ? ".ped" : ".bed"))) {
+        if (Files.exists(outDirAndRoot + (outType == PEDMAP ? ".ped" : ".bed"))) {
             if (!overwrite) {
-                System.err.println("Error - PLINK files with given output root ('" + outRoot + "') already exist!  Please specify alternate output name or set overwrite flag.");
+                System.err.println("Error - PLINK files with given output root ('" + outDirAndRoot + "') already exist!  Please specify alternate output name or set overwrite flag.");
                 return null;
             }
         }
-        if (regionFile != null && !regionFile.equals("") && !Files.exists(dir + regionFile)) {
+        boolean hasRgns = false;
+        if (regionFile != null && !regionFile.equals("") && !Files.exists(regionFile)) {
             System.err.println("Error - specified region file ('" + regionFile + "') doesn't exist!");
             return null;
+        } else {
+            hasRgns = true;
         }
-        dir = ext.verifyDirFormat(dir);
+        boolean hasMkrs = false;
+        if (markersFile != null && !markersFile.equals("") && !Files.exists(markersFile)) {
+            System.err.println("Error - specified markers file ('" + markersFile + "') doesn't exist!");
+            return null;
+        } else {
+            hasMkrs = true;
+        }
+        if (hasRgns && hasMkrs) {
+            System.err.println("Error - cannot specify both a regions file and a markers file.");
+            return null;
+        }
         
-        rootTypes = new int[plinkRoots.length];
-        for (int i = 0; i < plinkRoots.length; i++) {
-            rootTypes[i] = isValidRoot(dir, plinkRoots[i]);
+        rootTypes = new int[plinkRootsWithDirs.length];
+        for (int i = 0; i < plinkRootsWithDirs.length; i++) {
+            rootTypes[i] = isValidRoot(plinkRootsWithDirs[i]);
             if (rootTypes[i] == INVALID_ROOT) {
-                System.err.println("Error - couldn't find a complete set of PED/MAP or BED/BIM/FAM files for plink root '" + plinkRoots[i] + "'.");
+                System.err.println("Error - couldn't find a complete set of PED/MAP or BED/BIM/FAM files for plink root '" + plinkRootsWithDirs[i] + "'.");
                 return null;
             }
         }
-        lines = new String[plinkRoots.length - 1];
-        for (int i = 1; i < plinkRoots.length; i++) {
-            lines[i - 1] = rootTypes[i] == PEDMAP ? plinkRoots[i] + ".ped " + plinkRoots[i] + ".map" : plinkRoots[i] + ".bed " + plinkRoots[i] + ".bim " + plinkRoots[i] + ".fam";  
+        lines = new String[plinkRootsWithDirs.length - 1];
+        for (int i = 1; i < plinkRootsWithDirs.length; i++) {
+            lines[i - 1] = rootTypes[i] == PEDMAP ? plinkRootsWithDirs[i] + ".ped " + plinkRootsWithDirs[i] + ".map" : plinkRootsWithDirs[i] + ".bed " + plinkRootsWithDirs[i] + ".bim " + plinkRootsWithDirs[i] + ".fam";  
         }
         fileListName = "fileList.txt";
         index = 1;
-        while (Files.exists(dir + fileListName)) {
+        while (Files.exists(fileListName)) {
             fileListName = "fileList_" + index++ + ".txt"; 
         }
-        Files.writeList(lines, dir + fileListName);
+        Files.writeList(lines, fileListName);
         
         if (renameMarkers) {
-            for (int i = 0; i < plinkRoots.length; i++) {
-                renameMarkers(dir, plinkRoots[i], rootTypes[i]);
+            for (int i = 0; i < plinkRootsWithDirs.length; i++) {
+                renameMarkers(plinkRootsWithDirs[i], rootTypes[i]);
             }
         }
         
         cmds = new StringBuilder();
-        cmds.append("plink2 --noweb --").append(rootTypes[0] == PEDMAP ? "file " : "bfile ").append(plinkRoots[0]).append(" --merge-list ").append(fileListName);
+        cmds.append("plink2 --noweb --").append(rootTypes[0] == PEDMAP ? "file " : "bfile ").append(plinkRootsWithDirs[0]).append(" --merge-list ").append(fileListName);
         cmds.append(" --").append(outType == PEDMAP ? "recode" : "make-bed");
-        if (regionFile != null && !regionFile.equals("") && Files.exists(dir + regionFile)) {
-            tempRgnFile = writeTempRegionFileFromUCSCFile(regionFile, dir);
+        if (regionFile != null && !regionFile.equals("") && Files.exists(regionFile)) {
+            tempRgnFile = writeTempRegionFileFromUCSCFile(regionFile);
             cmds.append(" --extract range ").append(tempRgnFile);
         }
-        cmds.append(" --out ").append(outRoot);
+        if (markersFile != null && !markersFile.equals("") && Files.exists(markersFile)) {
+            cmds.append(" --extract ").append(markersFile);
+        }
+        cmds.append(" --out ").append(outDirAndRoot);
         
         return cmds.toString();
     }
@@ -222,17 +237,19 @@ public class PlinkMergePrep {
         boolean renameMarkers = false;
         String dir = "./";
         String rgnFile = "";
+        String mkrFile = "";
         String[] roots = null;
         
         String usage = "\n" + 
                        "cnv.manage.PlinkMergePrep requires 0-1 arguments\n" + 
                        "   (1) Output Root (i.e. outRoot=" + outRoot + " (default))\n" +
                        "   (2) Output Type (i.e. outType=" + outType + " (default, options are (" + PEDMAP + ") PED/MAP, or (" + BEDBIMFAM + ") BED/BIM/FAM.))\n" +
-                       "   (3) Region file (UCSC-format) (i.e. regions=" + rgnFile + " (default))\n" + 
-                       "   (4) directory of files (i.e. dir=" + dir + " (default))\n" + 
-                       "   (5) List of Plink fileRoots to merge (i.e. roots=plink1,plink2,plink4 (not the default))\n" + 
-                       "   (6) overwrite flag (i.e. -overwrite (not the default))\n" + 
-                       "   (7) rename markers flag (i.e. -renameMarkers (not the default))\n" + 
+                       "   (3a) Region file (UCSC-format) (i.e. regions=" + rgnFile + " (default))\n" + 
+                       "   (3b) Markers file (i.e. markers=" + mkrFile + " (default))\n" + 
+                       "   (4) List of Plink fileRoots (either relative to 'dir' argument, or absolute paths) to merge (i.e. roots=plink1,plink2,plink4 (not the default))\n" + 
+                       "   (5) overwrite flag (i.e. -overwrite (not the default))\n" + 
+                       "   (6) rename markers flag (i.e. -renameMarkers (not the default))\n" +
+                       "   Optional: (7) directory of any relative files (marker list, regions list, or plink files) (i.e. dir=" + dir + " (default))\n" + 
                        "";
 
         if (numArgs == 0) {
@@ -258,6 +275,9 @@ public class PlinkMergePrep {
             } else if (args[i].startsWith("regions=")) {
                 rgnFile = ext.parseStringArg(args[i], "");
                 numArgs--;
+            } else if (args[i].startsWith("markers=")) {
+                mkrFile = ext.parseStringArg(args[i], "");
+                numArgs--;
             } else if (args[i].startsWith("-overwrite")) {
                 overwrite = true;
                 numArgs--;
@@ -273,7 +293,21 @@ public class PlinkMergePrep {
             System.exit(1);
         }
         try {
-            String mergeCommand = merge(outType, outRoot, overwrite, renameMarkers, rgnFile, dir, roots);
+            if (!"./".equals(dir)) {
+                dir = ext.verifyDirFormat(dir);
+                if (!"".equals(rgnFile) && Files.isRelativePath(rgnFile)) {
+                    rgnFile = dir + rgnFile;
+                }
+                if (!"".equals(mkrFile) && Files.isRelativePath(mkrFile)) {
+                    mkrFile = dir + mkrFile;
+                }
+                for (int i = 0; i < roots.length; i++) {
+                    if (Files.isRelativePath(roots[i])) {
+                        roots[i] = dir + roots[i];
+                    }
+                }
+            }
+            String mergeCommand = merge(outType, outRoot, overwrite, renameMarkers, rgnFile, mkrFile, roots);
             System.out.println(mergeCommand);
         } catch (Exception e) {
             e.printStackTrace();

@@ -55,6 +55,7 @@ import cnv.qc.CNVFilter.CNVFilterPass;
 import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import filesys.DosageData;
+import filesys.MergeExtractPipeline;
 import filesys.Segment;
 import filesys.SnpMarkerSet;
 
@@ -870,19 +871,23 @@ public class lab {
 //                e.printStackTrace();
 //            }
 		    
-		    String doseFile1 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2.gz";
-		    String mapFile1 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2_info";
+		    String markersFile = "D:/temp/targetMarkers.txt";
+		    MergeExtractPipeline pipeline = new MergeExtractPipeline();
+		    pipeline.setMarkers(markersFile);		    
 		    
-		    String doseFile2 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.95069244.100069244.impute2.gz";
-		    String mapFile2 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.95069244.100069244.impute2_info";
-		    
-		    String idFile = "/home/pankarne/cole0482/EA.indiv.dup";
-		    String outFile = "/scratch.global/cole0482/test.db.xln.gz";
-		    String mapOutFile = "/scratch.global/cole0482/mapOut.xln";
-		    
-		    DosageData dd1 = new DosageData(doseFile1, idFile, mapFile1, DosageData.IMPUTE2_DOSE_FORMAT, true, null);
-		    DosageData dd2 = new DosageData(doseFile2, idFile, mapFile2, DosageData.IMPUTE2_DOSE_FORMAT, true, null);
-		    DosageData dd3 = DosageData.combine(dd1, dd2);
+//		    String doseFile1 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2.gz";
+//		    String mapFile1 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2_info";
+//		    
+//		    String doseFile2 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.95069244.100069244.impute2.gz";
+//		    String mapFile2 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.95069244.100069244.impute2_info";
+//		    
+//		    String idFile = "/home/pankarne/cole0482/EA.indiv.dup";
+//		    String outFile = "/scratch.global/cole0482/test.db.xln.gz";
+//		    String mapOutFile = "/scratch.global/cole0482/mapOut.xln";
+//		    
+//		    DosageData dd1 = new DosageData(doseFile1, idFile, mapFile1, DosageData.IMPUTE2_DOSE_FORMAT, null, true, null);
+//		    DosageData dd2 = new DosageData(doseFile2, idFile, mapFile2, DosageData.IMPUTE2_DOSE_FORMAT, null, true, null);
+//		    DosageData dd3 = DosageData.combine(dd1, dd2);
 //		    dd1 = null;
 //		    dd2 = null;
 //		    dd1 = DosageData.loadPlinkBinary(dir, plinkRoot);
@@ -891,7 +896,7 @@ public class lab {
 //		    dd3 = null;
 //		    dd1 = DosageData.loadPlinkBinary(dir2, plinkRoot2);
 //		    dd3 = DosageData.combine(dd2, dd1);
-		    dd3.writeToFile(outFile, mapOutFile, null, DosageData.DATABASE_DOSE_FORMAT, null);
+//		    dd3.writeToFile(outFile, mapOutFile, null, DosageData.DATABASE_DOSE_FORMAT, null);
 //		    System.out.println("complete!");
 		    
 //		    createRandomSelectionFile();
