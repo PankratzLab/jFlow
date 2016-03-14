@@ -145,17 +145,7 @@ public class BamSample {
 		proj.getLog().reportTimeInfo("Computing Normalized depths");
 
 		for (int i = 0; i < bamPiles.length; i++) {
-			if (currentChr > bamPiles[i].getBin().getChr() || (bamPiles[i].getBin().getChr() <= currentChr && currentPos > bamPiles[i].getBin().getStart())) {
-				String error = "BUG, segments are unsorted";
-				error += " current CHR: " + currentChr + " CurrentPOS: " + currentPos;
-				error += "Bin: " + bamPiles[i].getBin().getUCSClocation();
-				error += "Index " + i;
-				proj.getLog().reportTimeError(error);
-				throw new IllegalStateException(error);
-			} else {
-				currentChr = bamPiles[i].getBin().getChr();
-				currentPos = bamPiles[i].getBin().getStart();
-			}
+
 			BAM_PILE_TYPE current = fromPile(markerSet.getMarkerNames()[i]);
 			for (int j = 0; j < params.length; j++) {
 				if (current == params[j].getType()) {
@@ -165,29 +155,24 @@ public class BamSample {
 			}
 
 			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
-			// if (markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
-			// useOffTarget[i] = true;
-			// }
-			// else if (markerSet.getMarkerNames()[i].contains(BamImport.VARIANT_SITE_FLAG)) {
-			// useVariantSite[i] = true;
-			// }
-			//
-			// else {
-			// useOntarget[i] = false;
-			// }
 			if (Double.isNaN(rawDepth[i])) {
 				String warning = "Found invalid scale raw depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[i];
 				proj.getLog().reportTimeWarning(warning);
 				throw new IllegalArgumentException(warning);
 			}
 			int currentSize = bamPiles[i].getBin().getSize();
-			double normBasesOverlap = (double) bamPiles[i].getNumBasesOverlap() / currentSize;
-			double normBasesMiss = (double) bamPiles[i].getNumBasesWithMismatch() / currentSize;
-			double percentMiss = 0;
-			if (normBasesOverlap > 0) {
-				percentMiss = normBasesMiss / normBasesOverlap;
+
+			if (current == BAM_PILE_TYPE.VARIANT_SITE) {
+				double normBasesOverlap = (double) bamPiles[i].getNumBasesOverlap() / currentSize;
+				double normBasesMiss = (double) bamPiles[i].getNumBasesWithMismatch() / currentSize;
+				double percentMiss = 0;
+				if (normBasesOverlap > 0) {
+					percentMiss = normBasesMiss / normBasesOverlap;
+				}
+				percentWithMismatch[i] = percentMiss;
+			} else {
+				percentWithMismatch[i] = 0;
 			}
-			percentWithMismatch[i] = percentMiss;
 		}
 		int[][] chrIndices = markerSet.getIndicesByChr();
 

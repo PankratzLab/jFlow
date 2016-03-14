@@ -226,7 +226,7 @@ public class VCOps {
 	}
 
 	public static Segment getSegment(VariantContext vc) {
-		return new Segment(Positions.chromosomeNumber(vc.getContig()), vc.getStart(), vc.getEnd());
+		return new Segment(Positions.chromosomeNumber(vc.getContig()), vc.getStart(), vc.getEnd() <= vc.getStart() ? vc.getStart() + 1 : vc.getEnd());
 	}
 
 	/**
