@@ -152,7 +152,8 @@ public class BamImport {
 							i++;
 							name += "_ALT" + i + "_" + allele.getDisplayString();
 						}
-						writer.println(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getEnd() + "\t" + name);
+						Segment vcSeg = VCOps.getSegment(vc);
+						writer.println(vcSeg.getChromosomeUCSC() + "\t" + vcSeg.getStart() + "\t" + vcSeg.getStop() + "\t" + name);
 					}
 					reader.close();
 
@@ -209,7 +210,9 @@ public class BamImport {
 					analysisSet = LocusSet.combine(analysisSet, varFeatures.getStrictSegmentSet(), true, log);
 
 					log.memoryFree();
-
+					if (!analysisSet.verifyPositiveLength()) {
+						throw new IllegalArgumentException("all import segments must be gte length 1");
+					}
 					log.reportTimeInfo(analysisSet.getLoci().length + " segments to pile");
 					generateGCModel(proj, analysisSet, referenceGenome);
 

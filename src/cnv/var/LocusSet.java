@@ -276,6 +276,14 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		}
 	}
 
+	public boolean verifyPositiveLength() {
+		for (int i = 0; i < loci.length; i++) {
+			if (loci[i].getSize() < 1) {
+				return false;
+			}
+		}
+		return true;
+	}
 	public enum TO_STRING_TYPE {
 		/**
 		 * calls the {@link Segment#getUCSClocation()}, or any overide
