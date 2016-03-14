@@ -51,7 +51,11 @@ public class Logger implements Serializable {
 		this.level = level;
 	}
 
-	/**
+	public void reportTime(String str) {
+        report(ext.getTime() + str, true, true);
+    }
+
+    /**
 	 * @param str
 	 *            report this string with a time stamp and info message
 	 */
