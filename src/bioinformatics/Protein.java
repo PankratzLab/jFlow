@@ -3,6 +3,31 @@ package bioinformatics;
 import java.io.*;
 
 public class Protein {
+	public static final String[][] AMINO_ACID_LOOKUP = {
+		// amino acid, three letter abbreviation, one letter abbreviation, polarity, acidity
+		{"alanine", "Ala", "A", "nonpolar", "neutral"},
+		{"arginine", "Arg", "R", "polar", "strongly basic"},
+		{"asparagine", "Asn", "N", "polar", "neutral"},
+		{"aspartic acid", "Asp", "D", "polar", "acidic"},
+		{"cysteine", "Cys", "C", "nonpolar", "neutral"},
+		{"glutamic acid", "Glu", "E", "polar", "acidic"},
+		{"glutamine", "Gln", "Q", "polar", "neutral"},
+		{"glycine", "Gly", "G", "nonpolar", "neutral"},
+		{"histidine", "His", "H", "polar", "weakly basic"},
+		{"isoleucine", "Ile", "I", "nonpolar", "neutral"},
+		{"leucine", "Leu", "L", "nonpolar", "neutral"},
+		{"lysine", "Lys", "K", "polar", "basic"},
+		{"methionine", "Met", "M", "nonpolar", "neutral"},
+		{"phenylalanine", "Phe", "F", "nonpolar", "neutral"},
+		{"proline", "Pro", "P", "nonpolar", "neutral"},
+		{"serine", "Ser", "S", "polar", "neutral"},
+		{"threonine", "Thr", "T", "polar", "neutral"},
+		{"tryptophan", "Trp", "W", "nonpolar", "neutral"},
+		{"tyrosine", "Tyr", "Y", "polar", "neutral"},
+		{"valine", "Val", "V", "nonpolar", "neutral"}
+	};
+	
+	
 	public static void parseAminoAcids(String filename) {
 		BufferedReader reader;
         PrintWriter writer;
