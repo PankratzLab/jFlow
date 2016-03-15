@@ -260,14 +260,18 @@ public class ReferenceGenome {
 	public double getGCContentFor(Segment seg, boolean memoryMode) {
 		String[] seq = getSequenceFor(seg, memoryMode);
 		if (seq != null) {
-			return getPercent(seq);
+			return getProportionGC(seq);
 
 		} else {
 			return Double.NaN;
 		}
 	}
 
-	public static double getPercent(String[] seq) {
+	public static double getPercentGC(String[] seq) {
+		return getProportionGC(seq) * 100;
+	}
+	
+	public static double getProportionGC(String[] seq) {
 		int gs = Array.countIf(seq, "G");
 		int cs = Array.countIf(seq, "C");
 		int gsCs = gs + cs;
