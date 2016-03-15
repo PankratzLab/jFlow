@@ -210,7 +210,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	private static final int DRAW_AS_CIRCLES = 1;
 	private static final int DRAW_AS_BLOCKS = 2;
 	
-	private int drawType = DRAW_AS_BLOCKS;
+	private int drawType = DRAW_AS_CIRCLES;
 	
 	private enum DrawType { 
 	    FILLED_CIRCLE,
@@ -1766,7 +1766,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             }
         });
         displayPopBlocks.setText("Display Populations");
-        displayPopBlocks.setSelected(true);
         
         displayIndiCircles.setAction(new AbstractAction() {
             private static final long serialVersionUID = 1L;
@@ -1780,6 +1779,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             }
         });
         displayIndiCircles.setText("Display Individuals");
+        displayIndiCircles.setSelected(true);
         
         displayMAF.setAction(new AbstractAction() {
             private static final long serialVersionUID = 1L;
