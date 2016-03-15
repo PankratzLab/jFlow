@@ -336,7 +336,7 @@ public class BamImport {
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(positions));
 			int markerIndex = 0;
-			writer.println("BinName\tChr\tPosition");
+			writer.println("BinName\tChr\tPosition\tMarkerType");
 			for (int i = 0; i < bLocusSet.getLoci().length; i++) {
 				BEDFeatureSeg bFeatureSeg = bLocusSet.getLoci()[i];
 				String markerName = bFeatureSeg.getUCSClocation();
@@ -348,7 +348,7 @@ public class BamImport {
 				int diff = bFeatureSeg.getStop() - bFeatureSeg.getStart();
 				int mid = Math.round((float) diff / 2);
 				int pos = bFeatureSeg.getStart() + mid;
-				writer.println(markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos);
+				writer.println(markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos+"\tON_TARGET");
 				markerIndex++;
 			}
 			for (int i = 0; i < genomeBinsMinusBinsCaputure.getLoci().length; i++) {
@@ -359,7 +359,7 @@ public class BamImport {
 				int diff = binnedSeg.getStop() - binnedSeg.getStart();
 				int mid = Math.round((float) diff / 2);
 				int pos = binnedSeg.getStart() + mid;
-				writer.println(markerName + "\t" + binnedSeg.getChr() + "\t" + pos);
+				writer.println(markerName + "\t" + binnedSeg.getChr() + "\t" + pos+"\t"+OFF_TARGET_FLAG);
 				markerIndex++;
 			}
 
@@ -373,7 +373,7 @@ public class BamImport {
 				markerName = markerName + "|" + VARIANT_SITE_FLAG;
 				markerNames[markerIndex] = markerName;
 				int pos = variantFeatureSeg.getStart();
-				writer.println(markerName + "\t" + variantFeatureSeg.getChr() + "\t" + pos);
+				writer.println(markerName + "\t" + variantFeatureSeg.getChr() + "\t" + pos + "\t" + VARIANT_SITE_FLAG);
 				markerIndex++;
 			}
 
