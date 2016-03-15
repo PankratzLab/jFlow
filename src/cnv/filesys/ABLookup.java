@@ -216,12 +216,14 @@ public class ABLookup {
 	/**
 	 * {@link ABLookup#parseFromManifest(Project, String)}
 	 */
-	private void parseFromManifest(Project proj, String manifestFile) {
+	public void parseFromManifest(Project proj, String manifestFile) {
+		if (Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
+			proj.getLog().reportError("Error - annotation file '"+proj.BLAST_ANNOTATION_FILENAME.getValue()+"' already exists; use that instead of the Illumina Manifest file to parse AB values (or rename that file to get around this check)");
+			return;
+		}
 		MarkerBlast.blastEm(proj, manifestFile, FILE_SEQUENCE_TYPE.MANIFEST_FILE, -1, -1, -1, 1, false, false, false);
 		parseFromAnnotationVCF(proj);
 	}
-	
-	
 
 	/**
 	 * @param proj
@@ -633,6 +635,8 @@ public class ABLookup {
 		String filename = null;
 		boolean parseFromOriginalGenotypes = false;
 		boolean parseFromGenotypeClusterCenters = false;
+		boolean parseFromAnnotationVCF = false;
+		String manifestFile = null;
 		String outfile = DEFAULT_AB_FILE;
 		ABLookup abLookup;
 		String mapFile = "SNP_Map.csv";
@@ -644,10 +648,14 @@ public class ABLookup {
 				"cnv.filesys.ABLookup requires 0-1 arguments\n" +
 				"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 				"   (2) name of output file (i.e. out="+outfile+" (default))\n" + 
-				"  AND\n" + 
+				" AND\n" + 
 				"   (3) parse ABLookup from centroids (i.e. -parseFromGenotypeClusterCenters (not the default))\n" + 
 				"  OR\n" + 
 				"   (3) parse ABLookup from existing original genotypes (i.e. -parseFromOriginalGenotypes (not the default))\n" + 
+				"  OR\n" + 
+				"   (3) parse ABLookup from an Illumina Manifest file (i.e. IlluminaManifestFile=infiniumomni2-5-8-v1-3-a1-manifest-file-csv.zip (not the default))\n" + 
+				"  OR\n" + 
+				"   (3) parse ABLookup from a VCF annotation file in project properties (i.e. -parseFromAnnotationVCF (not the default))\n" + 
 				"  OR\n" + 
 				"   (3) fill in a partial existing ABLookup file using an Illumina SNP Table (i.e. incompleteAB=posssible_AB_lookup.dat (not the default))\n" + 
 				"   (4) the filename of the Illumina SNP Table (i.e. mapFile="+mapFile+" (default))\n" + 
@@ -671,6 +679,12 @@ public class ABLookup {
 				numArgs--;
 			} else if (args[i].equalsIgnoreCase("-parseFromGenotypeClusterCenters")) {
 				parseFromGenotypeClusterCenters = true;
+				numArgs--;
+			} else if (args[i].toLowerCase().startsWith("illuminamanifestfile=")) {
+				manifestFile = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].toLowerCase().startsWith("vcf=")) {
+				parseFromAnnotationVCF = true;
 				numArgs--;
 			} else if (args[i].startsWith("incompleteAB=")) {
 				incompleteABlookupFilename = args[i].split("=")[1];
@@ -712,6 +726,16 @@ public class ABLookup {
 			proj = new Project(filename, false);
 			if (incompleteABlookupFilename != null) {
 				fillInMissingAlleles(proj, incompleteABlookupFilename, mapFile, updatingPlinkFile);
+			} else if (applyAB) {
+				applyABLookupToFullSampleFiles(proj);
+			} else if (manifestFile != null) {
+				abLookup = new ABLookup();
+				abLookup.parseFromManifest(proj, manifestFile);
+				abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue()+outfile, proj.getLog());
+			} else if (parseFromAnnotationVCF) {
+				abLookup = new ABLookup();
+				abLookup.parseFromAnnotationVCF(proj);
+				abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue()+outfile, proj.getLog());
 			} else if (parseFromOriginalGenotypes) {
 				abLookup = new ABLookup();
 				abLookup.parseFromOriginalGenotypes(proj);
@@ -720,8 +744,6 @@ public class ABLookup {
 				abLookup = new ABLookup();
 				abLookup.parseFromGenotypeClusterCenters(proj);
 				abLookup.writeToFile(proj.PROJECT_DIRECTORY.getValue()+outfile, proj.getLog());
-			} else if (applyAB) {
-				applyABLookupToFullSampleFiles(proj);
 			} else {
 				System.err.println("No subroutine was selected");
 			}
