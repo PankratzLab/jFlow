@@ -862,18 +862,24 @@ public class lab {
 		boolean test = true;
 		if (test) {
 
-//		    DosageData dd = DosageData.loadPlinkBinary("D:/plinkGeno/", "plink");
-//		    System.out.println("LOADED");
-//		    try {
-//                dd.writeToPlinkBinary("D:/plinkGeno/write/", "plink");
-//            } catch (IOException e) {
-//                // TODO Auto-generated catch block
-//                e.printStackTrace();
-//            }
-		    
-		    String markersFile = "D:/temp/targetMarkers.txt";
+		    String markersFile = "/scratch.global/cole0482/merge/mkrs.txt";
+		    String regionsFile = "/scratch.global/cole0482/merge/rgns.txt";
+		    String outFile = "/scratch.global/cole0482/test.db.xln.gz";
+		    String mapOutFile = "/scratch.global/cole0482/mapOut.xln";
+
+	        
 		    MergeExtractPipeline pipeline = new MergeExtractPipeline();
-		    pipeline.setMarkers(markersFile);		    
+//		    pipeline.setMarkers(markersFile);		    
+		    pipeline.setRunDirectory("/scratch.global/cole0482/merge/");
+		    pipeline.setOutputFormat(DosageData.DATABASE_DOSE_FORMAT);
+		    pipeline.setOutputFiles(outFile, mapOutFile);
+		    pipeline.setRenamePlinkMarkers(true);
+//		    pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "gwas.bed", "gwas.bim", "gwas.fam");
+		    pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "exome.bed", "exome.bim", "exome.fam");
+		    pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "metab.bed", "metab.bim", "metab.fam");
+		    // add more;
+		    pipeline.run();
+		    
 		    
 //		    String doseFile1 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2.gz";
 //		    String mapFile1 = "/home/pankarne/shared/ARIC_Genomics_Data/GWAS_Chip/1000G/ARIC.whites.impute2/chr3.90069244.95069244.impute2_info";

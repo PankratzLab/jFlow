@@ -25,6 +25,7 @@ public class DosageData implements Serializable {
 	public static final int IMPUTE2_DOSE_FORMAT = 6;
 	public static final int DATABASE_DOSE_FORMAT = 7;
 	public static final int BEAGLE_DOSE_FORMAT = 8; // not currently included in determineType
+	public static final int PLINK_BFILE_FORMAT = 9; // not currently included in determineType
 
 	public static final int MACH_ID_TYPE = 0;
 	public static final int SEPARATE_FILE_ID_TYPE = 1;
@@ -120,7 +121,7 @@ public class DosageData implements Serializable {
         out.close();
 	}
 	
-	public static DosageData loadPlinkBinary(String dir, String plinkRoot) {
+	public static DosageData loadPlinkBinary(String dir, String plinkRoot, String regionsToUseFile, String markersToUseFile) {
 	    DosageData dd = new DosageData();
 	    
 	    dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false, new int[]{0, 1, 2, 3, 4, 5}, false);
@@ -169,7 +170,7 @@ public class DosageData implements Serializable {
                         
                         for (int g = 0; g < genotypes.length; g++) {
                             int idInd = bitInd * 4 + g;
-                            if (idInd == -1 || idInd > sampGeno.length) {
+                            if (idInd == -1 || idInd >= sampGeno.length) {
                                 continue;
                             }
                             sampGeno[idInd] = genotypes[g];
@@ -420,24 +421,25 @@ public class DosageData implements Serializable {
 	}
 	
 	public DosageData(String dosageFile, String idFile, String mapFile, boolean verbose, Logger log) {
-	    this(dosageFile, idFile, mapFile, determineType(dosageFile), null, verbose, log);
+	    this(dosageFile, idFile, mapFile, determineType(dosageFile), verbose, log);
 	}
 
-	public DosageData(String dosageFile, String idFile, String mapFile, String markersFile, boolean verbose, Logger log) {
-		this(dosageFile, idFile, mapFile, determineType(dosageFile), markersFile, verbose, log);
+	public DosageData(String dosageFile, String idFile, String mapFile, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
+	    this(dosageFile, idFile, mapFile, determineType(dosageFile), regionsToUseFile, markersToUseFile, verbose, log);
 	}
-	
+
 	public DosageData(String dosageFile, String idFile, String mapFile, int type, boolean verbose, Logger log) {
-	    this(dosageFile, idFile, mapFile, PARAMETERS[type], null, verbose, log);
-	}
-
-	public DosageData(String dosageFile, String idFile, String mapFile, int type, String markersFile, boolean verbose, Logger log) {
-		this(dosageFile, idFile, mapFile, PARAMETERS[type], markersFile, verbose, log);
+	    this(dosageFile, idFile, mapFile, PARAMETERS[type], null, null, verbose, log);
 	}
 	
-	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, String markersToUseFile, boolean verbose, Logger log) {
+
+	public DosageData(String dosageFile, String idFile, String mapFile, int type, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
+	    this(dosageFile, idFile, mapFile, PARAMETERS[type], regionsToUseFile, markersToUseFile, verbose, log);
+	}
+
+	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
 	    if (parameters[2] == PLINK_BINARY_FORMAT) {
-	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), ext.rootOf(dosageFile, true));
+	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), ext.rootOf(dosageFile, true), regionsToUseFile, markersToUseFile);
 	        this.alleles = dd.alleles;
 	        this.chrs = dd.chrs;
 	        this.positions = dd.positions;
@@ -461,26 +463,24 @@ public class DosageData implements Serializable {
 		markerSet = new SnpMarkerSet(mapFile);
 		markerNames = markerSet.getMarkerNames();
 		
-		if (markersToUseFile != null && !"".equals(markersToUseFile) && Files.exists(markersToUseFile)) {
-		    String[] mkrs = HashVec.loadFileToStringArray(markersToUseFile, false, new int[]{0}, false);
-		    HashSet<String> mkrsToKeep = new HashSet<String>();
-		    for (String m : mkrs) {
-		        mkrsToKeep.add(m);
+		boolean hasRgns = false;
+		boolean hasMkrs = false;
+		if (regionsToUseFile != null && !"".equals(regionsToUseFile)) {
+		    if (Files.exists(regionsToUseFile)) {
+		        hasRgns = true;
 		    }
-		    markersToKeep = Array.booleanArray(markerNames.length, false);
-		    for (int i = 0; i < markerNames.length; i++) {
-		        if (mkrsToKeep.contains(markerNames[i])) {
-		            markersToKeep[i] = true;
-		            mkrsToKeep.remove(markerNames[i]);
-		        }
+		}
+		if (markersToUseFile != null && !"".equals(markersToUseFile)) {
+		    if (Files.exists(markersToUseFile)) {
+		        hasMkrs = true;
 		    }
-		    if (mkrsToKeep.size() > 0) {
-		        log.reportTimeWarning(mkrsToKeep.size() + " markers listed in extract file not found in map file");
-		    }
-		    markerSet = markerSet.trim(mkrs, true, verbose, log);
-	    } else {
-	        markersToKeep = Array.booleanArray(markerNames.length, true);
-	    }
+		}
+		if (hasRgns && hasMkrs) {
+		    log.reportError("Cannot specify both a regions file and a markers file!");
+		    return;
+		}
+		markersToKeep = filterMarkers(markerNames, regionsToUseFile, markersToUseFile, verbose, log);
+		
 		keepTotal = Array.booleanArraySum(markersToKeep);
 		
 		ids = HashVec.loadFileToStringMatrix(idFile, false, new int[] {0,1}, false);
@@ -682,7 +682,58 @@ public class DosageData implements Serializable {
 		}
 	}
 	
-	public SnpMarkerSet getMarkerSet() {
+	private boolean[] filterMarkers(String[] markerNames, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
+	    boolean[] markersToKeep;
+	    if (regionsToUseFile != null && !"".equals(regionsToUseFile)) {
+            if (Files.exists(regionsToUseFile)) {
+                String[] rgns = HashVec.loadFileToStringArray(regionsToUseFile, false, new int[]{0}, false);
+                int[][] regions = new int[rgns.length][];
+                for (int i = 0; i < rgns.length; i++) {
+                    regions[i] = Positions.parseUCSClocation(rgns[i]);
+                }
+                markerSet = markerSet.trim(regions, verbose, log);
+                markersToKeep = Array.booleanArray(markerNames.length, true);
+                HashSet<String> newMarkerSet = HashVec.loadToHashSet(markerSet.getMarkerNames());
+                for (int i = 0; i < markerNames.length; i++) {
+                    markersToKeep[i] = newMarkerSet.contains(markerNames[i]);
+                }
+                newMarkerSet = null;
+            } else {
+                log.reportError("Error - specified markers file: \"" + markersToUseFile + "\" doesn't exist!");
+                markersToKeep = Array.booleanArray(markerNames.length, true);
+            }
+        } else {
+            markersToKeep = Array.booleanArray(markerNames.length, true);
+        }
+        if (markersToUseFile != null && !"".equals(markersToUseFile)) {
+            if (Files.exists(markersToUseFile)) {
+                String[] mkrs = HashVec.loadFileToStringArray(markersToUseFile, false, new int[]{0}, false);
+                HashSet<String> mkrsToKeep = new HashSet<String>();
+                for (String m : mkrs) {
+                    mkrsToKeep.add(m);
+                }
+                markersToKeep = Array.booleanArray(markerNames.length, false);
+                for (int i = 0; i < markerNames.length; i++) {
+                    if (mkrsToKeep.contains(markerNames[i])) {
+                        markersToKeep[i] = true;
+                        mkrsToKeep.remove(markerNames[i]);
+                    }
+                }
+                if (mkrsToKeep.size() > 0) {
+                    log.reportTimeWarning(mkrsToKeep.size() + " markers listed in extract file not found in map file");
+                }
+                markerSet = markerSet.trim(mkrs, true, verbose, log);
+            } else {
+                log.reportError("Error - specified markers file: \"" + markersToUseFile + "\" doesn't exist!");
+                markersToKeep = Array.booleanArray(markerNames.length, true);
+            }
+        } else {
+            markersToKeep = Array.booleanArray(markerNames.length, true);
+        }
+        return markersToKeep;
+    }
+
+    public SnpMarkerSet getMarkerSet() {
 		return markerSet;
 	}
 
@@ -716,20 +767,17 @@ public class DosageData implements Serializable {
 		}
 	}
 	
-	public void writeToFile(String filename, String mapOut, String extract, Logger log) {
-	    writeToFile(filename, mapOut, extract, determineType(filename), log);
+	public void writeToFile(String filename, String mapOut, String extractMarkers, Logger log) {
+	    writeToFile(filename, mapOut, extractMarkers, determineType(filename), log);
 	}
 	
-	public void writeToFile(String filename, String mapOut, String extract, int format, Logger log) {
-		writeToFile(filename, mapOut, extract, false, PARAMETERS[format], log);
+	public void writeToFile(String filename, String mapOut, String extractMarkers, int format, Logger log) {
+		writeToFile(filename, mapOut, extractMarkers, false, PARAMETERS[format], log);
 	}	
 	
-	public void writeToFile(String filename, String mapOut, String extract, boolean allowIncompleteList, int[] parameters, Logger log) {
+	public void writeToFile(String filename, String mapOut, String extractMarkers, boolean allowIncompleteList, int[] parameters, Logger log) {
 		PrintWriter writer;
 		String[] line, markerNames;
-//		char[][] alleles;
-//		byte[] chrs;
-//		int[] positions;
 		String delimiter;
 		String[] markersToKeep;
 		HashSet<String> keeps;
@@ -739,11 +787,11 @@ public class DosageData implements Serializable {
 		    log = new Logger();
 		}
 		
-		if (extract == null) {
+		if (extractMarkers == null) {
 			keeps = null;
 			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
 		} else {
-			markersToKeep = HashVec.loadFileToStringArray(extract, false, new int[] {0}, false);
+			markersToKeep = HashVec.loadFileToStringArray(extractMarkers, false, new int[] {0}, false);
 			keeps = HashVec.loadToHashSet(markersToKeep);
 			root = ext.rootOf(filename, false);
 			if (mapOut == null) {
@@ -751,7 +799,7 @@ public class DosageData implements Serializable {
 			}
 			newMarkerSet = markerSet.trim(markersToKeep, allowIncompleteList, false, log);
 			if (!allowIncompleteList && newMarkerSet == null) {
-				log.reportError("Error - failed to find all of the markers listed in '"+extract+"' in the file '"+filename+"'");
+				log.reportError("Error - failed to find all of the markers listed in '"+extractMarkers+"' in the file '"+filename+"'");
 				return;
 			}
 			newMarkerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
@@ -768,10 +816,10 @@ public class DosageData implements Serializable {
 		}
 		
 		markerNames = markerSet.getMarkerNames();
-		if (alleles==null) {
+		if (alleles == null) {
 			alleles = markerSet.getAlleles();
 		}
-		if (chrs==null) {
+		if (chrs == null) {
 			chrs = markerSet.getChrs();
 			positions = markerSet.getPositions();
 		}
@@ -801,7 +849,7 @@ public class DosageData implements Serializable {
 					}
 				} else if (parameters[2] == INDIVIDUAL_DOMINANT_FORMAT) {
 					for (int i = 0; i < markerNames.length; i++) {
-						if (extract == null || keeps.contains(markerNames[i])) {
+						if (extractMarkers == null || keeps.contains(markerNames[i])) {
 							for (int j = 0; j < parameters[3]; j++) {
 								writer.print(delimiter+markerNames[i]);
 							}
@@ -813,7 +861,7 @@ public class DosageData implements Serializable {
 			
 			if (parameters[2] == MARKER_DOMINANT_FORMAT) {
 				for (int i = 0; i < markerNames.length; i++) {
-					if (extract == null || keeps.contains(markerNames[i])) {
+					if (extractMarkers == null || keeps.contains(markerNames[i])) {
 						line = LEADS[parameters[11]]==null?new String[parameters[1]]:LEADS[parameters[11]];
 						line[parameters[5]] = markerNames[i];
 						if (parameters[6] >= 0) {
@@ -879,13 +927,13 @@ public class DosageData implements Serializable {
 					                                  
 					if (parameters[3] == 1) {
 						for (int j = 0; j < markerNames.length; j++) {
-							if (extract == null || keeps.contains(markerNames[j])) {
+							if (extractMarkers == null || keeps.contains(markerNames[j])) {
 								writer.print(delimiter+ext.formDeci(dosageValues[j][i], parameters[13], parameters[12] == parameters[13]));
 							}
 						}
 					} else {
 						for (int j = 0; j < markerNames.length; j++) {
-							if (extract == null || keeps.contains(markerNames[j])) {
+							if (extractMarkers == null || keeps.contains(markerNames[j])) {
 								writer.print(delimiter+ext.formDeci(genotypeProbabilities[j][i][0], parameters[13], parameters[12] == parameters[13]));
 								writer.print(delimiter+ext.formDeci(genotypeProbabilities[j][i][1], parameters[13], parameters[12] == parameters[13]));
 								if (parameters[3] == 3) {
@@ -1053,6 +1101,8 @@ public class DosageData implements Serializable {
 			return IMPUTE2_DOSE_FORMAT;
 		} else if (dosageFile.endsWith(".db.xln")) {
 			return DATABASE_DOSE_FORMAT;
+		} else if (dosageFile.endsWith(".bed")) {
+		    return PLINK_BFILE_FORMAT;
 		} else {
 			System.err.println("Error - format could not be deduced solely by the filename extension");
 			return -1;
@@ -1470,7 +1520,8 @@ public class DosageData implements Serializable {
 		int to = -1;
 		String logfile = null;
 		Logger log;
-		String extract = null;
+		String extractMkrs = null;
+		String extractRgns = null;
 		boolean awk = false;
 		long date;
 
@@ -1482,7 +1533,8 @@ public class DosageData implements Serializable {
 		"   (4) name of new dosage file (i.e. out=" + outfile + " (default))\n" + 
 		"   (5) name of new map file (i.e. mapOut=" + mapOut + " (default))\n" + 
 		"   (6) filename for log (i.e. log=" + logfile + " (default) (optional))\n" + 
-		"   (7) name of file listing variants to extract (i.e. extract=" + extract + " (default) (optional))\n" + 
+		"   (7a) name of file listing variants to extract (i.e. extractMarkers=" + extractMkrs + " (default) (optional))\n" + 
+		"   (7b) name of file listing ranges to extract (i.e. extractRanges=" + extractRgns + " (default) (optional))\n" + 
 		"   (8) file type of original file (i.e. from=" + from + " (default))\n" + 
 		"   (9) file type of file to be generated (i.e. to=" + to + " (default))\n" + 
 		"  (10) use sed/cut instead (i.e. -awk (not the default))\n" + 
@@ -1523,9 +1575,12 @@ public class DosageData implements Serializable {
 			} else if (args[i].startsWith("log=")) {
 				logfile = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("extract=")) {
-				extract = args[i].split("=")[1];
+			} else if (args[i].startsWith("extractMarkers=")) {
+				extractMkrs = args[i].split("=")[1];
 				numArgs--;
+			} else if (args[i].startsWith("extractRanges=")) {
+			    extractRgns = args[i].split("=")[1];
+			    numArgs--;
 			} else if (args[i].startsWith("from=")) {
 				from = ext.parseIntArg(args[i]);				
 				numArgs--;
@@ -1584,10 +1639,10 @@ public class DosageData implements Serializable {
 				log.reportError("Error - cannot convert dosage values to genotype probabilities");
 			} else if (PARAMETERS[from][2] != PARAMETERS[to][2]) {
 				log.reportError("Conversion will have to take place in memory in order to transpose between marker dominant/individual dominant");
-				new DosageData(filename, idFile, mapFile, from, extract, true, log).writeToFile(outfile, mapOut, extract, to, log);
+				new DosageData(filename, idFile, mapFile, from, extractRgns, extractMkrs, true, log).writeToFile(outfile, mapOut, extractMkrs , to, log);
 			} else {
 				date = new Date().getTime();
-				convert(filename, idFile, mapFile, from, outfile, mapOut, extract, to, awk, true, log);
+				convert(filename, idFile, mapFile, from, outfile, mapOut, extractMkrs, to, awk, true, log);
 				System.out.println("Time elapsed: "+ext.getTimeElapsed(date));
 			}
 		} catch (Exception e) {

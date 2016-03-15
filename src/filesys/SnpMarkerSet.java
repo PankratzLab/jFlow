@@ -851,6 +851,36 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		return chrHash;
 	}
 	
+	public SnpMarkerSet trim(int[][] rangesToKeep, boolean verbose, Logger log) {
+        String[] markerNames, newMarkerNames;
+        byte[] chrs, newChrs;
+        int[] positions, newPositions;
+        char[][] newAlleles;
+        String[][] newAnnotation;
+        
+        markerNames = getMarkerNames();
+        chrs = getChrs();
+        positions = getPositions();
+        boolean[] keep = Array.booleanArray(markerNames.length, false);
+        for (int i = 0; i < markerNames.length; i++) {
+            for (int[] range : rangesToKeep) {
+                if (chrs[i] != range[0]) continue; // wrong chr
+                if (positions[i] < range[1]) continue; // smaller than range start 
+                if (positions[i] > range[2]) continue; // greater than range end
+                keep[i] = true;
+                break;
+            }
+        }
+        
+        newMarkerNames = Array.subArray(markerNames, keep);
+        newChrs = Array.subArray(chrs, keep);
+        newPositions = Array.subArray(positions, keep);
+        newAlleles = Array.subArray(getAlleles(), keep);
+        newAnnotation = Array.subArray(getAnnotation(), keep);
+	    
+	    return new SnpMarkerSet(newMarkerNames, newChrs, newPositions, newAlleles, newAnnotation, false, verbose); 
+	}
+	
 	public SnpMarkerSet trim(String[] markersToKeep, boolean allowIncompleteList, boolean verbose, Logger log) {
 		String[] markerNames, newMarkerNames;
 		byte[] newChrs;

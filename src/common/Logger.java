@@ -52,7 +52,7 @@ public class Logger implements Serializable {
 	}
 
 	public void reportTime(String str) {
-        report(ext.getTime() + str, true, true);
+        report(ext.getTime() + " - " + str, true, true);
     }
 
     /**
