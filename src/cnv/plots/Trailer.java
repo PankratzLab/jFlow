@@ -31,6 +31,7 @@ import cnv.hmm.CNVCaller.CNVCallResult;
 import cnv.hmm.PFB;
 import cnv.hmm.PennHmm;
 import cnv.manage.Transforms;
+import cnv.plots.ColorExt.ColorManager;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
@@ -174,7 +175,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private ButtonGroup regionButtonGroup;
 	private GCParameterDisplay gcParameterDisplay;
     private Sample samp;
-    
+    private ColorManager<String> currentColorManager;
     private Thread updateQCThread = null;
 
 	private AbstractAction markerFileSelectAction = new AbstractAction() {
@@ -884,11 +885,18 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					g.setFont(new Font("Arial", 0, 12));
 					for (int i = startMarker; i<=stopMarker; i++) {
 						// if (genotypes[i] == 1) {
+						
 						if (bafs != null && bafs.length > i && bafs[i] > 0.2 && bafs[i] < 0.8) {
 							g.setColor(Color.RED);
 							// colorScheme[2]
 						} else {
 							g.setColor(Color.BLACK);
+						}
+						if (currentColorManager != null) {//TODO, all logic with
+							Color managed = currentColorManager.getColorItemForVar(markerNames[i]).getColor();
+							if (managed != null) {
+								g.setColor(managed);
+							}
 						}
 						if (!Float.isNaN(lrrValues[i])) {
 							if (dropped[i]) {
@@ -1688,7 +1696,50 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         launchComp.addActionListener(this);
         act.add(launchComp);
         // act.addSeparator();
-		
+        {
+			JMenu qcMenu = new JMenu("Colors");
+			ArrayList<String[]> optsTmp = new ArrayList<String[]>();
+			optsTmp.add(new String[] { "Default", "Set color scheme to the Genvisis default" });
+			if (gcModel != null) {
+				optsTmp.add(new String[] { "GC content", "Color by GC content" });
+
+			}
+			ItemListener qcListener = new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent arg0) {
+					if (arg0.getStateChange() == ItemEvent.SELECTED) {
+						String cmd = ((AbstractButton) arg0.getSource()).getActionCommand();
+						if ("Default".equals(cmd)) {
+							currentColorManager = null;
+						} else if ("GC content".equals(cmd)) {
+							if (gcModel == null) {
+								log.reportTimeError("Internal error, null gc model");
+							} else {
+								currentColorManager = gcModel.getColorManager(100);
+							}
+						} else {
+							log.reportTimeError("Internal error, Invalid color command");
+						}
+						updateQCDisplay();
+					}
+				}
+			};
+			ButtonGroup colorBtnGroup = new ButtonGroup();
+			for (int i = 0; i < optsTmp.size(); i++) {
+				JRadioButtonMenuItem colorButton = new JRadioButtonMenuItem(optsTmp.get(i)[0]);
+				colorButton.setActionCommand(optsTmp.get(i)[0]);
+				colorButton.setToolTipText(optsTmp.get(i)[1]);
+				colorButton.addItemListener(qcListener);
+				colorButton.setFont(font);
+				colorBtnGroup.add(colorButton);
+				qcMenu.add(colorButton);
+				if (i == 0) {
+					colorButton.setSelected(true);
+				}
+			}
+			menuBar.add(qcMenu);
+
+		}
 		return menuBar;
 	}
 	
