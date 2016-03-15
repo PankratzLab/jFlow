@@ -13,6 +13,7 @@ import java.util.Set;
 import common.Aliases;
 import common.Array;
 import common.Files;
+import common.Grafik;
 import common.ext;
 import cnv.filesys.Project;
 
@@ -38,6 +39,15 @@ public class ColorExt {
 		Color one = generateRandomColor(new Color(255, 255, 255));
 		Color two = generateRandomColor(one);
 		return new Color[] { one, two };
+	}
+
+	public static Color[] generatRGBScale(int numSteps) {
+		Color[] colors = new Color[numSteps];
+		for (int i = 0; i < colors.length; i++) {
+			int[] rgb = Grafik.getHeatmapColor((double) i / numSteps);
+			colors[i] = new Color(rgb[0], rgb[1], rgb[2]);
+		}
+		return colors;
 	}
 
 	public static class ColorItem<E> {

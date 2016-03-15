@@ -1,5 +1,6 @@
 package cnv.qc;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -10,12 +11,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
+import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
+import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 import seq.manage.ReferenceGenome;
 import stats.CrossValidation;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
+import cnv.plots.ColorExt;
+import cnv.plots.ColorExt.ColorItem;
+import cnv.plots.ColorExt.ColorManager;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -222,20 +228,20 @@ public class GcAdjustor {
 					this.gcwfPrior = wavesOriginal[1];
 				}
 				if (verbose) {
-    				if (computePost || computePrior) {
-    					if (computePrior) {
-    						proj.getLog().reportTimeInfo("WF_PRIOR   -> " + wfPrior);
-    					}
-    					if (computePost) {
-    						proj.getLog().reportTimeInfo("WF_POST    -> " + wfPost);
-    					}
-    					if (computePrior) {
-    						proj.getLog().reportTimeInfo("GCWF_PRIOR -> " + gcwfPrior);
-    					}
-    					if (computePost) {
-    						proj.getLog().reportTimeInfo("GCWF_PRIOR -> " + gcwfPost);
-    					}
-    				}
+					if (computePost || computePrior) {
+						if (computePrior) {
+							proj.getLog().reportTimeInfo("WF_PRIOR   -> " + wfPrior);
+						}
+						if (computePost) {
+							proj.getLog().reportTimeInfo("WF_POST    -> " + wfPost);
+						}
+						if (computePrior) {
+							proj.getLog().reportTimeInfo("GCWF_PRIOR -> " + gcwfPrior);
+						}
+						if (computePost) {
+							proj.getLog().reportTimeInfo("GCWF_PRIOR -> " + gcwfPost);
+						}
+					}
 				}
 			} else {
 				proj.getLog().reportError("Error - cannot compute qc metrics");
@@ -557,6 +563,7 @@ public class GcAdjustor {
 		private int[] positions;
 		private double[] gcs;
 		private Hashtable<String, Integer> index = new Hashtable<String, Integer>();
+		private ColorManager<String> colorManager;
 		private Logger log;
 
 		public GcModel(GcModel gcmodel) {
@@ -576,6 +583,36 @@ public class GcAdjustor {
 			this.gcs = gcs;
 			this.index = index;
 			this.log = log;
+		}
+
+		private void developColorManager(int numBins, boolean redevelop) {
+			if (redevelop || colorManager == null) {
+				OpdfGaussian gd = new OpdfGaussian(Array.mean(gcs, true), Math.pow(Array.stdev(getGcs(), true), 2));
+				Color[] colors = ColorExt.generatRGBScale(numBins); // bin gc to 100 bins
+				Hashtable<String, String> lookup = new Hashtable<String, String>();// items associated with category (marker->PoorQualityCategory)
+				Hashtable<String, ColorItem<String>> manager = new Hashtable<String, ColorExt.ColorItem<String>>();
+				for (int i = 0; i < gcs.length; i++) {
+					int gcColorIndex = (int) Math.round(gd.cdf(new ObservationReal(gcs[i])) * numBins - 1);
+					gcColorIndex = Math.max(0, gcColorIndex);
+					gcColorIndex = Math.min(numBins, gcColorIndex);
+					lookup.put(markers[i], gcColorIndex + "");
+					manager.put(gcColorIndex + "", new ColorItem<String>(gcColorIndex + "", colors[gcColorIndex]));
+				}
+				this.colorManager = new ColorManager<String>(lookup, manager) {
+
+				};
+			}
+		}
+
+		public ColorManager<String> getColorManager(int numBins) {
+			if (colorManager == null) {
+				developColorManager(numBins, false);
+			}
+			return colorManager;
+		}
+
+		public double[] getGcs() {
+			return gcs;
 		}
 
 		public byte[] getChrs() {
@@ -626,6 +663,11 @@ public class GcAdjustor {
 			Files.writeSerial(this, fullPathToGcSer);
 		}
 
+		public ColorManager<String> getGCColorManager() {
+
+			return null;
+		}
+
 		public static GcModel loadSerial(String fullPathToGcSer) {
 			return (GcModel) Files.readSerial(fullPathToGcSer);
 		}
@@ -648,7 +690,7 @@ public class GcAdjustor {
 						proj.getLog().reportTimeInfo("Generating snp window gc model for window of " + snpWindow + " (" + (i + 1) + " of " + markerSet.getMarkerNames().length + ")");
 					}
 					Segment seg = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i], markerSet.getPositions()[i]).getBufferedSegment(snpWindow);
-					double gc = 100 * referenceGenome.getGCContentFor(seg, snpWindow > 100000);//not sure about the optimal query size
+					double gc = 100 * referenceGenome.getGCContentFor(seg, snpWindow > 100000);// not sure about the optimal query size
 					gcs[i] = gc;
 					if (Double.isNaN(gc) && seg.getChr() > 0) {
 						proj.getLog().reportTimeError("Invalid gc content returned");
@@ -658,6 +700,7 @@ public class GcAdjustor {
 
 				return new GcModel(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions(), gcs, indices, proj.getLog());
 			}
+
 		}
 
 		// /**
