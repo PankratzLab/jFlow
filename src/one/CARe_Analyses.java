@@ -201,7 +201,7 @@ public class CARe_Analyses {
 					Files.cat(new String[] {dir+"candis/abo.pinfo", dir+"candis/icam.pinfo"}, finalDir+"abo_icam.pinfo", new int[] {0, 1}, log);
 					Files.copyFile(dir+"candis/abo.ids.fam", finalDir+"abo_icam.ids.fam");
 					if (FAMILY_BASED[i]) {
-						new DosageData(finalDir+"abo_icam.dosage", finalDir+"abo_icam.ids.fam", finalDir+"abo_icam.pinfo", true, log).writeToFile(finalDir+"abo_icam.fhsR", finalDir+"abo_icam.mlinfo", null, DosageData.GWAF_FORMAT, log);
+						new DosageData(finalDir+"abo_icam.dosage", finalDir+"abo_icam.ids.fam", finalDir+"abo_icam.pinfo", true, log).writeToFile(finalDir+"abo_icam.fhsR", finalDir+"abo_icam.mlinfo", null, null, DosageData.GWAF_FORMAT, log);
 					}
 				}
 			}
@@ -211,7 +211,7 @@ public class CARe_Analyses {
 			for (int j = 0; j < RACES.length; j++) {
 				dir = DRIVE_ROOT+"ICAM/IBC/"+RACES[j][0]+"/"+STUDIES[i]+"/";
 				if (new File(dir+"abo_icam.dosage").exists()) {
-					new DosageData(dir+"abo_icam.dosage", dir+"abo_icam.ids.fam", dir+"abo_icam.pinfo", true, log).writeToFile(dir+"abo_icam.mldose", dir+"abo_icam.mlinfo", null, DosageData.MACH_MLDOSE_FORMAT, log);
+					new DosageData(dir+"abo_icam.dosage", dir+"abo_icam.ids.fam", dir+"abo_icam.pinfo", true, log).writeToFile(dir+"abo_icam.mldose", dir+"abo_icam.mlinfo", null, null, DosageData.MACH_MLDOSE_FORMAT, log);
 				}
 			}
 		}
@@ -298,7 +298,7 @@ public class CARe_Analyses {
 					Files.cat(new String[] {dir+"candis/abo.pinfo", dir+"candis/icam.pinfo"}, finalDir+"abo_icam.pinfo", new int[] {0, 1}, log);
 					Files.copyFile(dir+"candis/abo.ids.fam", finalDir+"abo_icam.ids.fam");
 					if (FAMILY_BASED[i]) {
-						new DosageData(finalDir+"abo_icam.dosage", finalDir+"abo_icam.ids.fam", finalDir+"abo_icam.pinfo", true, log).writeToFile(finalDir+"abo_icam.fhsR", finalDir+"abo_icam.mlinfo", null, DosageData.GWAF_FORMAT, log);
+						new DosageData(finalDir+"abo_icam.dosage", finalDir+"abo_icam.ids.fam", finalDir+"abo_icam.pinfo", true, log).writeToFile(finalDir+"abo_icam.fhsR", finalDir+"abo_icam.mlinfo", null, null, DosageData.GWAF_FORMAT, log);
 					}
 				}
 			}
@@ -308,7 +308,7 @@ public class CARe_Analyses {
 			for (int j = 0; j < RACES.length; j++) {
 				dir = DRIVE_ROOT+"ICAM/IBC/"+RACES[j][0]+"/"+STUDIES[i]+"/";
 				if (new File(dir+"abo_icam.dosage").exists()) {
-					new DosageData(dir+"abo_icam.dosage", dir+"abo_icam.ids.fam", dir+"abo_icam.pinfo", true, log).writeToFile(dir+"abo_icam.mldose", dir+"abo_icam.mlinfo", null, DosageData.MACH_MLDOSE_FORMAT, log);
+					new DosageData(dir+"abo_icam.dosage", dir+"abo_icam.ids.fam", dir+"abo_icam.pinfo", true, log).writeToFile(dir+"abo_icam.mldose", dir+"abo_icam.mlinfo", null, null, DosageData.MACH_MLDOSE_FORMAT, log);
 				}
 			}
 		}
@@ -504,7 +504,7 @@ public class CARe_Analyses {
 		new File(dir+"gwaf/").mkdirs();
 		fileNum = startAt;
 		while (Files.exists(dir+"std/file"+fileNum+".gen", false)) {
-			new DosageData(dir+"std/file"+fileNum+".gen", dir+"std/ids.pfam", dir+"std/file"+fileNum+".mlinfo", true, log).writeToFile(dir+"gwaf/file"+fileNum+".fhsR", dir+"gwaf/file"+fileNum+".pmap", null, DosageData.GWAF_FORMAT, log);
+			new DosageData(dir+"std/file"+fileNum+".gen", dir+"std/ids.pfam", dir+"std/file"+fileNum+".mlinfo", true, log).writeToFile(dir+"gwaf/file"+fileNum+".fhsR", dir+"gwaf/file"+fileNum+".pmap", null, null, DosageData.GWAF_FORMAT, log);
 			Zip.gzip(dir+"gwaf/file"+fileNum+".fhsR");
 			fileNum++;
 		}
@@ -1167,7 +1167,7 @@ public class CARe_Analyses {
 					dir = DRIVE_ROOT+"Analyses/ICAM/IBC/"+RACES[j][0]+"/"+STUDIES[i]+"/";
 					if (new File(dir+"abo_icam.dosage").exists()) {
 						log.report("Parsing abo/icam for "+STUDIES[i]+" "+RACES[j][0]);
-						new DosageData(dir+"abo_icam.dosage", dir+"abo_icam.ids.fam", dir+"abo_icam.pinfo", DosageData.PLINK_FORMAT, null, DRIVE_ROOT+"Analyses/ICAM/covarSNPs.txt", true, log).writeToFile(dir+"abo_icam.dosage.csv", dir+"abo_icam.dosage.pinfo", null, true, DosageData.PARAMETERS[DosageData.GWAF_FORMAT], log);
+						new DosageData(dir+"abo_icam.dosage", dir+"abo_icam.ids.fam", dir+"abo_icam.pinfo", DosageData.PLINK_FORMAT, null, DRIVE_ROOT+"Analyses/ICAM/covarSNPs.txt", true, log).writeToFile(dir+"abo_icam.dosage.csv", dir+"abo_icam.dosage.pinfo", null, null, true, DosageData.PARAMETERS[DosageData.GWAF_FORMAT], log);
 						
 						conditionals = new SnpMarkerSet(dir+"abo_icam.dosage.pinfo").getMarkerNames();
 						for (int k = 0; k < conditionals.length; k++) {

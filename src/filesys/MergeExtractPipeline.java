@@ -1,7 +1,9 @@
 package filesys;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,6 +15,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.PSF;
+import common.Positions;
 import common.ext;
 
 public class MergeExtractPipeline {
@@ -34,14 +37,16 @@ public class MergeExtractPipeline {
     private String outFileD = null;
     private String outFileM = null;
     int outFormat = -1;
-//    String markersFile = null;
-//    String[] markers = null;
-//    int[][] markerLocations;
+    String markersFile = null;
+    String[] markers = null;
+    int[][] markerLocations;
     String runDir = null;
     Logger log = null;
     String regionsFile = null;
     int[][] regions;
+    String[] regionLabels;
     
+    boolean splitOutput = false;
     boolean overwrite = false;
     boolean renamePlink = true;
     
@@ -60,45 +65,115 @@ public class MergeExtractPipeline {
         return this;
     }
     
-//    public MergeExtractPipeline setMarkers(String mkrsFile) {
-//        initLog();
-//        this.markersFile = mkrsFile;
-//        this.markers = HashVec.loadFileToStringArray(mkrsFile, false, new int[]{0}, false);
-//        SnpMarkerSet markerSet = new SnpMarkerSet(markers);
-//        markerSet.parseSNPlocations(log);
-//        this.markerLocations = markerSet.getChrAndPositionsAsInts();
-//        for (int i = 0; i < markerLocations.length; i++) {
-//            if (markerLocations[i][0] == 0 || markerLocations[i][1] == -1) {
-//                log.reportError("Error - one or more markers could not be located.  Merging/Extracting may fail for this reason.");
-//                break;
-//            }
-//        }
-//        log.report("Set markers-to-extract file: " + this.markersFile);
-//        return this;
-//    }
+    public MergeExtractPipeline setRegions(String regionFile) {        
+        BufferedReader reader;
+        String line;
+        String[] temp;
+        boolean hasLabels = false;
+        ArrayList<int[]> reg;
+        ArrayList<String> lbl;
+        
+        initLog();
+
+        if (this.markersFile != null) {
+            String msg = "Error - cannot specify both markers-to-extract and regions-to-extract!";
+            log.reportError(msg);
+            throw new IllegalArgumentException(msg);
+        }
+        
+        lbl = new ArrayList<String>();
+        reg = new ArrayList<int[]>();
+        this.regionsFile = regionFile;
+        try {
+            reader = Files.getAppropriateReader(regionFile);
+            line = reader.readLine();
+            if (line != null) {
+                temp = line.split("\t");
+                if (temp.length > 1) {
+                    hasLabels = true;
+                }
+                reg.add(Positions.parseUCSClocation(temp[0]));
+                if (hasLabels) {
+                    lbl.add(temp[1]);
+                } else {
+                    lbl.add(ext.replaceWithLinuxSafeCharacters(temp[0], true));
+                }
+            }
+            while ((line = reader.readLine()) != null) {
+                temp = line.split("\t");
+                reg.add(Positions.parseUCSClocation(temp[0]));
+                if (hasLabels) {
+                    lbl.add(temp[1]);
+                } else {
+                    lbl.add(ext.replaceWithLinuxSafeCharacters(temp[0], true));
+                }
+            }
+            reader.close();
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+        
+        this.regions = reg.toArray(new int[reg.size()][]);
+        this.regionLabels = lbl.toArray(new String[lbl.size()]);
+        
+        log.report("Set regions-to-extract file: " + this.regionsFile);
+        
+        return this;
+    }
+    
+    public MergeExtractPipeline setMarkers(String mkrsFile) {
+        initLog();
+        
+        if (this.regionsFile != null) {
+            String msg = "Error - cannot specify both markers-to-extract and regions-to-extract!";
+            log.reportError(msg);
+            throw new IllegalArgumentException(msg);
+        }
+        
+        this.markersFile = mkrsFile;
+        this.markers = HashVec.loadFileToStringArray(mkrsFile, false, new int[]{0}, false);
+        SnpMarkerSet markerSet = new SnpMarkerSet(markers);
+        markerSet.parseSNPlocations(log);
+        this.markerLocations = markerSet.getChrAndPositionsAsInts();
+        for (int i = 0; i < markerLocations.length; i++) {
+            if (markerLocations[i][0] == 0 || markerLocations[i][1] == -1) {
+                log.reportError("Error - one or more markers could not be located.  Merging/Extracting may fail for this reason.");
+                break;
+            }
+        }
+        log.report("Set markers-to-extract file: " + this.markersFile);
+        return this;
+    }
     
     public MergeExtractPipeline setRenamePlinkMarkers(boolean rename) {
         this.renamePlink = rename;
         return this;
     }
 
-    public MergeExtractPipeline setRunDirectory(String runDir) {
+    public MergeExtractPipeline setRunDirectory(String runDir, boolean create) {
+        initLog();
         this.runDir = runDir;
+        if (!Files.exists(runDir)) {
+            if (create) {
+                (new File(runDir)).mkdirs();
+            } else {
+                throw new IllegalArgumentException("Error - specified run directory \"" + runDir + "\" doesn't exist, and create flag wasn't set.  Please fix or create directory and try again.");
+            }
+        }
         return this;
     }
     
-    /**
-     * 
-     * @param dataFile
-     * @param mapFile
-     * @return
-     */
     public MergeExtractPipeline setOutputFiles(String dataFile, String mapFile) {
         this.outFileD = dataFile;
         this.outFileM = mapFile;
         return this;
     }
-
+    
+    public MergeExtractPipeline setSplitOutputByRegions(boolean split) {
+        this.splitOutput = split;
+        return this;
+    }
+    
     /**
      * Refers to DosageData formats
      * 
@@ -129,8 +204,7 @@ public class MergeExtractPipeline {
             public boolean accept(File dir, String name) {
                 boolean keep = false;
                 if (name.endsWith(dataFileExt)) {
-//                    if (markerLocations == null) {
-                    if (regions == null) {
+                    if (/*markerLocations == null && */regions == null) {
                         keep = true;
                     } else {
                         log.report("Looking for data files in directory that are named with the pattern \"chr#.##bpStart##.##bpEnd##.fileExtension\".");
@@ -152,29 +226,33 @@ public class MergeExtractPipeline {
                                     break;
                                 }
                             }
-//                            for (int i = 0; i < markerLocations.length; i++) {
-//                                if (markerLocations[i][0] == chr) {
-//                                    if (bpStart != -1 && bpEnd != -1) {
-//                                        if (bpStart <= markerLocations[i][1] - bpWindow && bpEnd >= markerLocations[i][1] + bpWindow) { 
-//                                            keep = true;
-//                                            break;
-//                                        }
-//                                    } else {
-//                                        keep = true;
-//                                        break;
-//                                    }
-//                                }
-//                            }
-                            for (int i = 0; i < regions.length; i++) {
-                                if (regions[i][0] == chr) {
-                                    if (bpStart != -1 && bpEnd != -1) {
-                                        if (bpStart <= regions[i][1] - bpWindow && bpEnd >= regions[i][1] + bpWindow) { 
+                            if (markerLocations != null) {
+                                for (int i = 0; i < markerLocations.length; i++) {
+                                    if (markerLocations[i][0] == chr) {
+                                        if (bpStart != -1 && bpEnd != -1) {
+                                            if (bpStart <= markerLocations[i][1] - bpWindow && bpEnd >= markerLocations[i][1] + bpWindow) { 
+                                                keep = true;
+                                                break;
+                                            }
+                                        } else {
                                             keep = true;
                                             break;
                                         }
-                                    } else {
-                                        keep = true;
-                                        break;
+                                    }
+                                }
+                            }
+                            if (regions != null) {
+                                for (int i = 0; i < regions.length; i++) {
+                                    if (regions[i][0] == chr) {
+                                        if (bpStart != -1 && bpEnd != -1) {
+                                            if (bpStart <= regions[i][1] - bpWindow && bpEnd >= regions[i][1] + bpWindow) { 
+                                                keep = true;
+                                                break;
+                                            }
+                                        } else {
+                                            keep = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -197,8 +275,16 @@ public class MergeExtractPipeline {
         return (Files.isRelativePath(outFileD) ? (runDir == null ? "./" : runDir) : "") + outFileD;
     }
 
+    private String getOutputDataFile(String subDir) {
+        return ext.verifyDirFormat((Files.isRelativePath(outFileD) ? (runDir == null ? "./" : runDir) : "") + subDir) + outFileD;
+    }
+
     private String getOutputMapFile() {
         return (Files.isRelativePath(outFileM) ? (runDir == null ? "./" : runDir) : "") + outFileM;
+    }
+
+    private String getOutputMapFile(String subDir) {
+        return ext.verifyDirFormat((Files.isRelativePath(outFileM) ? (runDir == null ? "./" : runDir) : "") + subDir) + outFileM;
     }
     
     public void run() {
@@ -229,12 +315,12 @@ public class MergeExtractPipeline {
             log.reportTimeError("specified regions file not found; please check file path and try again.");
             return;
         }
-//        if (markersFile == null) {
-//            log.reportTimeWarning("no markers file specified; all markers will be exported.");
-//        } else if (!Files.exists(markersFile)) {
-//            log.reportTimeError("specified markers file not found; please check file path and try again.");
-//            return;
-//        }
+        if (markersFile == null) {
+            log.reportTimeWarning("no markers file specified; all markers will be exported.");
+        } else if (!Files.exists(markersFile)) {
+            log.reportTimeError("specified markers file not found; please check file path and try again.");
+            return;
+        }
 
         if (!checkMemory()) {
             return;
@@ -273,7 +359,7 @@ public class MergeExtractPipeline {
             String[] roots = Array.toStringArray(plinkRoots);
             plinkRoots = null;
             String outRoot = dir + "plink_merged";
-            String mergeCommand = PlinkMergePrep.merge(PlinkMergePrep.BEDBIMFAM, outRoot, overwrite, renamePlink, regionsFile, null/*markersFile*/, roots);
+            String mergeCommand = PlinkMergePrep.merge(PlinkMergePrep.BEDBIMFAM, outRoot, overwrite, renamePlink, regionsFile, markersFile, roots);
 
             log.report("Running PLINK merge command: " + mergeCommand);
             boolean result = CmdLine.runDefaults(mergeCommand, dir);
@@ -282,30 +368,43 @@ public class MergeExtractPipeline {
                 return;
             }
             dataSources.add(new DataSource(dir, PSF.Plink.getBED(outRoot), PSF.Plink.getBIM(outRoot), PSF.Plink.getFAM(outRoot)));
-//            String newMkrFile = (new File(PlinkMergePrep.TEMP_MKR_FILE)).getAbsolutePath();
-//            log.report("Setting markers file to temporarily generated plink-renamed markers file: " + newMkrFile);
-//            this.markersFile = newMkrFile;
+            String newMkrFile = (new File(PlinkMergePrep.TEMP_MKR_FILE)).getAbsolutePath();
+            log.report("Setting markers file to temporarily generated plink-renamed markers file: " + newMkrFile);
+            this.markersFile = newMkrFile;
         }
         
         System.gc();
         
         log.reportTime("Merging data...");
         log.reportTime("Starting from data file: " + dataSources.get(0).dataFile);
-        DosageData dd1 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile, dataSources.get(0).mapFile, regionsFile, null/*markersFile*/, true, null);
+        DosageData dd1 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile, dataSources.get(0).mapFile, regionsFile, markersFile, true, null);
         for (int i = 1; i < dataSources.size(); i++) {
             log.reportTime("... merging with data file: " + dataSources.get(i).dataFile);
-            DosageData dd2 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile, dataSources.get(i).mapFile, regionsFile, null/*markersFile*/, true, null);
+            DosageData dd2 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile, dataSources.get(i).mapFile, regionsFile, markersFile, true, null);
             dd1 = DosageData.combine(dd1, dd2);
             dd2 = null;
             System.gc();
         }
         
         log.reportTime("Writing final merged data to output file: " + getOutputDataFile());
-        if (outFormat != -1) {
-            dd1.writeToFile(getOutputDataFile(), getOutputMapFile(), null, true, DosageData.PARAMETERS[outFormat], log);
-        } else {
-            dd1.writeToFile(getOutputDataFile(), getOutputMapFile(), null, true, DosageData.PARAMETERS[DosageData.determineType(getOutputDataFile())], log);
+        
+        if (outFormat == -1) {
+            outFormat = DosageData.determineType(getOutputDataFile());
         }
+        if (splitOutput) {
+            String outD, outM;
+            for (int i = 0; i < regions.length; i++) {
+                outD = getOutputDataFile(regionLabels[i]);
+                outM = getOutputMapFile(regionLabels[i]);
+                (new File(outD)).mkdirs();
+                (new File(outM)).mkdirs();
+                dd1.writeToFile(outD, outM, markers, new int[][]{regions[i]}, true, DosageData.PARAMETERS[outFormat], log);
+            }
+        } else {
+            dd1.writeToFile(getOutputDataFile(), getOutputMapFile(), markers, regions, true, DosageData.PARAMETERS[outFormat], log);
+        }
+        
+        System.gc();
     }
     
     private boolean checkMemory() {
@@ -314,30 +413,135 @@ public class MergeExtractPipeline {
         return true;
     }
     
-    /*  
-          String tgtMkrs = "";
-          String runDir = "";
-          String outData = "";
-          String outMap = "";
-          
-          MergeExtractPipeline mep = new MergeExtractPipeline()
-              .setMarkers(tgtMkrs)
-              .setRunDirectory(runDir) // OPTIONAL
-              .setOutputFiles(outData, outMap)
-              .setOutputFormat(outFormat) // OPTIONAL
-              .setOverwrite(true) // OPTIONAL
-              .addDataSource()
-              .addDataSource()
-              .addDataSource()
-              .addDataSources()
-              .run();
-              
-     */
-    
-    
-    
-    
-    
-    
+    private static void parseDataFile(MergeExtractPipeline mep, String data) {
+        BufferedReader reader; 
+        String line;
+        String[] temp;
+        
+        if (null == data || "".equals(data) || !Files.exists(data)) {
+            throw new IllegalArgumentException("Error - provided data file \"" + data + "\" doesn't exist.");
+        }
+        
+        try {
+            reader = Files.getAppropriateReader(data);
+            while ((line = reader.readLine()) != null) {
+                temp = line.split("\t");
+                if (temp.length == 3) {
+                    mep.addDataSource(null, temp[0], temp[1], temp[2]);
+                } else if (temp.length == 4) {
+                    mep.addDataSources(temp[0], temp[1], temp[2], temp[3], 0);
+                } else {
+                    System.err.println("Error - skipping invalid entry in data file: " + line);
+                }
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    //    MergeExtractPipeline pipeline = new MergeExtractPipeline();
+//    pipeline.setMarkers(markersFile);           
+//    pipeline.setRunDirectory("/scratch.global/cole0482/merge/", true);
+//    pipeline.setOutputFormat(DosageData.DATABASE_DOSE_FORMAT);
+//    pipeline.setOutputFiles(outFile, mapOutFile);
+//    pipeline.setRenamePlinkMarkers(true);
+//    pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "gwas.bed", "gwas.bim", "gwas.fam");
+//    pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "exome.bed", "exome.bim", "exome.fam");
+//    pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "metab.bed", "metab.bim", "metab.fam");
+    // add more data;
+//    pipeline.run();
+    public static void main(String[] args) {
+        int numArgs = args.length;
+        String outfileD = null;
+        String outfileM = null;
+        String data = "dataSources.txt";
+        String markers = null;
+        String regions = null;
+        String rundir = "./";
+        String logFile = null;
+        boolean split = false;
+        boolean overwrite = false;
+        boolean renamePlink = true;
+        
+        String usage = "\n" + 
+                       "filesys.MergeExtractPipeline requires 4+ arguments\n" + 
+                       "   (1) Output Data filename (i.e. outData=" + outfileD + " (default))\n" + 
+                       "   (2) Output Map filename (i.e. outMap=" + outfileM + " (default))\n" +
+                       "   (3) Run directory (output files and temporary files will be created here) (i.e. runDir=" + rundir + " (default))\n" +
+                       "   (4) File listing data sources (i.e. data=" + data + " (default))\n" + 
+                       "          Example:\n" +
+                       "          fullPathDataFile1\tFullPathMapFile1\tFullPathIdFile1\n" + 
+                       "          fullPathDataFile2\tFullPathMapFile2\tFullPathIdFile2\n" + 
+                       "          dir1\tdataFileExt1\tmapFileExt1\tidFile3\n" + 
+                       "          dir2\tdataFileExt2\tmapFileExt2\tidFile4\n" + 
+                       "   (5a) Regions-to-extract filename (i.e. regions=" + regions + " (default))\n" + 
+                       "   (5b) Markers-to-extract filename (i.e. markers=" + markers + " (default))\n" +
+                       "          (Note: only one is allowed, either regions or markers, not both)\n" + 
+                       "   (6) Optional: Log file name (i.e. log=" + logFile + " (default))\n" +
+                       "   (7) Optional: Split output files (if region file is specified) (i.e. split=" + split + " (default))\n" +
+                       "   (8) Optional: Overwrite files if they already exist (i.e. overwrite=" + overwrite + " (default))\n" +
+                       "   (9) Optional: Rename markers in any PLINK files to PLINK_ROOT+MarkerName (i.e. renamePlink=" + renamePlink + " (default))\n" +
+                       "            (renaming markers in other datasets is not currently supported)\n" + 
+                       "\n";
+
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+                System.err.println(usage);
+                System.exit(1);
+            } else if (args[i].startsWith("outData=")) {
+                outfileD = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("outMap=")) {
+                outfileM = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("runDir=")) {
+                rundir = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("markers=")) {
+                markers = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("data=")) {
+                data = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("regions=")) {
+                regions = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("split=")) {
+                split = ext.parseBooleanArg(args[i]);
+                numArgs--;
+            } else if (args[i].startsWith("overwrite=")) {
+                overwrite = ext.parseBooleanArg(args[i]);
+                numArgs--;
+            } else if (args[i].startsWith("renamePlink=")) {
+                renamePlink = ext.parseBooleanArg(args[i]);
+                numArgs--;
+            } else if (args[i].startsWith("log=")) {
+                logFile = args[i].split("=")[1];
+                numArgs--;
+            } else {
+                System.err.println("Error - invalid argument: " + args[i]);
+            }
+        }
+        if (numArgs != 0 || args.length == 0) {
+            System.err.println(usage);
+            System.exit(1);
+        }
+        
+        MergeExtractPipeline mep = new MergeExtractPipeline();
+        if (logFile != null) { mep.setLogger(new Logger(logFile)); }
+        if (rundir != null) { mep.setRunDirectory(rundir, true); }
+        if (regions != null) { mep.setRegions(regions); }
+        if (markers != null) { mep.setMarkers(markers); }
+        if (overwrite) { mep.setOverwrite(); }
+        mep.setSplitOutputByRegions(split);
+        mep.setRenamePlinkMarkers(renamePlink);
+        mep.setOutputFiles(outfileD, outfileM);
+        
+        parseDataFile(mep, data);
+        
+        mep.run();
+    }
     
 }
