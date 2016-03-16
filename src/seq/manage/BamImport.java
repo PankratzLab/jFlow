@@ -7,6 +7,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
@@ -334,12 +335,24 @@ public class BamImport {
 		String positions = proj.MARKER_POSITION_FILENAME.getValue();
 		proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
 		String[] markerNames = new String[bLocusSet.getLoci().length + genomeBinsMinusBinsCaputure.getLoci().length + varFeatures.getLoci().length];
+		String header ="BinName\tChr\tPosition\tCLASS=MARKER_COLOR;OFF_TARGET=Blue;VARIANT_SITE=RED;ON_TARGET=Green";
+
+		ArrayList<String> onTMarkers =new ArrayList<String>();
+		onTMarkers.add(header);
 		
+		ArrayList<String> offTMarkers =new ArrayList<String>();
+		offTMarkers.add(header);
+
+		ArrayList<String> variantSiteMarkers =new ArrayList<String>();
+		variantSiteMarkers.add(header);
+
 		
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(positions));
 			int markerIndex = 0;
-			writer.println("BinName\tChr\tPosition\tCLASS=MARKER_COLOR;OFF_TARGET=Blue;VARIANT_SITE=RED;ON_TARGET=Green");
+			writer.println(header);
+			
+
 			for (int i = 0; i < bLocusSet.getLoci().length; i++) {
 				BEDFeatureSeg bFeatureSeg = bLocusSet.getLoci()[i];
 				String markerName = bFeatureSeg.getUCSClocation();
@@ -351,7 +364,9 @@ public class BamImport {
 				int diff = bFeatureSeg.getStop() - bFeatureSeg.getStart();
 				int mid = Math.round((float) diff / 2);
 				int pos = bFeatureSeg.getStart() + mid;
-				writer.println(markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos+"\tON_TARGET");
+				String out = markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos+"\tON_TARGET";
+				onTMarkers.add(out);
+				writer.println(out);
 				markerIndex++;
 			}
 			for (int i = 0; i < genomeBinsMinusBinsCaputure.getLoci().length; i++) {
@@ -362,7 +377,10 @@ public class BamImport {
 				int diff = binnedSeg.getStop() - binnedSeg.getStart();
 				int mid = Math.round((float) diff / 2);
 				int pos = binnedSeg.getStart() + mid;
-				writer.println(markerName + "\t" + binnedSeg.getChr() + "\t" + pos+"\t"+OFF_TARGET_FLAG);
+				String out = markerName + "\t" + binnedSeg.getChr() + "\t" + pos+"\t"+OFF_TARGET_FLAG;
+				offTMarkers.add(out);
+				writer.println(out);
+			
 				markerIndex++;
 			}
 
@@ -376,7 +394,10 @@ public class BamImport {
 				markerName = markerName + "|" + VARIANT_SITE_FLAG;
 				markerNames[markerIndex] = markerName;
 				int pos = variantFeatureSeg.getStart();
-				writer.println(markerName + "\t" + variantFeatureSeg.getChr() + "\t" + pos + "\t" + VARIANT_SITE_FLAG);
+				String out = markerName + "\t" + variantFeatureSeg.getChr() + "\t" + pos + "\t" + VARIANT_SITE_FLAG;
+				variantSiteMarkers.add(out);
+
+				writer.println(out);
 				markerIndex++;
 			}
 
@@ -386,6 +407,9 @@ public class BamImport {
 			proj.getLog().reportException(e);
 		}
 
+		Files.writeList(Array.toStringArray(onTMarkers), ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".ON_TARGET"));
+		Files.writeList(Array.toStringArray(offTMarkers), ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), "." + OFF_TARGET_FLAG));
+		Files.writeList(Array.toStringArray(variantSiteMarkers), ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), "." + VARIANT_SITE_FLAG));
 		Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
 	}
 

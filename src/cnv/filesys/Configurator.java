@@ -206,6 +206,10 @@ public class Configurator extends JFrame {
             {
                 "Plink Directory/Filename Roots (edit to remove extension)",
                 "PLINK_DIR_FILEROOTS"
+            },
+            {
+                "COLORS",
+                "MARKER_COLOR_KEY_FILENAMES"
             }
     };
     String[] hiddenProperties = new String[]{
