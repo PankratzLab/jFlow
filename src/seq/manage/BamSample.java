@@ -2,6 +2,7 @@ package seq.manage;
 
 import java.util.Hashtable;
 
+import seq.manage.BamOps.BamIndexStats;
 import cnv.analysis.BeastScore;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -106,7 +107,7 @@ public class BamSample {
 
 	private void init() {
 		MarkerSet markerSet = proj.getMarkerSet();
-		// BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
+		BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
 		this.rawDepth = new double[bamPiles.length];
 		this.mapQs = new double[bamPiles.length];
 		this.percentWithMismatch = new double[bamPiles.length];
@@ -149,7 +150,8 @@ public class BamSample {
 			BAM_PILE_TYPE current = fromPile(markerSet.getMarkerNames()[i]);
 			for (int j = 0; j < params.length; j++) {
 				if (current == params[j].getType()) {
-					rawDepth[i] = computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), params[j].getRpkmVal());
+					
+					rawDepth[i] = computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
 					break;
 				}
 			}
@@ -160,11 +162,11 @@ public class BamSample {
 				proj.getLog().reportTimeWarning(warning);
 				throw new IllegalArgumentException(warning);
 			}
-			int currentSize = bamPiles[i].getBin().getSize();
+			//int currentSize = bamPiles[i].getBin().getSize();
 
 			if (current == BAM_PILE_TYPE.VARIANT_SITE) {
-				double normBasesOverlap = (double) bamPiles[i].getNumBasesOverlap() / currentSize;
-				double normBasesMiss = (double) bamPiles[i].getNumBasesWithMismatch() / currentSize;
+				double normBasesOverlap = (double) bamPiles[i].getNumBasesOverlap();
+				double normBasesMiss = (double) bamPiles[i].getNumBasesWithMismatch();
 				double percentMiss = 0;
 				if (normBasesOverlap > 0) {
 					percentMiss = normBasesMiss / normBasesOverlap;
@@ -225,7 +227,7 @@ public class BamSample {
 		// this.normDepth = Array.scaleMinTo(rawDepth,1);
 		// double scale = proj.XY_SCALE_FACTOR.getValue();
 		// normDepth = Array.multiply(normDepth, (double) 1 / scale);
-		percentWithMismatch = Array.scale(percentWithMismatch);
+		//percentWithMismatch = Array.scale(percentWithMismatch);
 		for (int j = 0; j < normDepth.length; j++) {
 			if (Double.isNaN(normDepth[j])) {
 				String error = "Found invalid normalized depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[j];
