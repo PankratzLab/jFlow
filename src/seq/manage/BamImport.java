@@ -214,7 +214,8 @@ public class BamImport {
 						throw new IllegalArgumentException("all import segments must be gte length 1");
 					}
 					log.reportTimeInfo(analysisSet.getLoci().length + " segments to pile");
-					generateGCModel(proj, analysisSet, referenceGenome);
+					generateGCModel(proj, analysisSet, referenceGenome,0);
+					generateGCModel(proj, analysisSet, referenceGenome, 5120);
 
 					FilterNGS filterNGS = new FilterNGS(20, 20, null);
 					PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(), filterNGS, analysisSet.getStrictSegments(), log);
@@ -295,8 +296,8 @@ public class BamImport {
 		}
 	}
 
-	private static void generateGCModel(Project proj, LocusSet<Segment> analysisSet, ReferenceGenome referenceGenome) {
-		String gcFile = proj.GC_MODEL_FILENAME.getValue();
+	private static void generateGCModel(Project proj, LocusSet<Segment> analysisSet, ReferenceGenome referenceGenome,int buffer) {
+		String gcFile = ext.addToRoot(proj.GC_MODEL_FILENAME.getValue(), ".buffer_" + buffer);
 		if (!Files.exists(gcFile)) {
 			MarkerSet markerSet = proj.getMarkerSet();
 			String[] markerNames = markerSet.getMarkerNames();
@@ -309,7 +310,7 @@ public class BamImport {
 					if (i % 1000 == 0) {
 						proj.getLog().reportTimeInfo("Loaded gc content for " + (i + 1) + " bins");
 					}
-					writer.println(markerNames[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + ReferenceGenome.getPercentGC(referenceGenome.getSequenceFor(analysisSet.getLoci()[i])));
+					writer.println(markerNames[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + ReferenceGenome.getPercentGC(referenceGenome.getSequenceFor(analysisSet.getLoci()[i].getBufferedSegment(buffer))));
 				}
 				writer.close();
 			} catch (Exception e) {
@@ -333,10 +334,12 @@ public class BamImport {
 		String positions = proj.MARKER_POSITION_FILENAME.getValue();
 		proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
 		String[] markerNames = new String[bLocusSet.getLoci().length + genomeBinsMinusBinsCaputure.getLoci().length + varFeatures.getLoci().length];
+		
+		
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(positions));
 			int markerIndex = 0;
-			writer.println("BinName\tChr\tPosition\tMarkerType");
+			writer.println("BinName\tChr\tPosition\tCLASS=MARKER_COLOR;OFF_TARGET=Blue;VARIANT_SITE=RED;ON_TARGET=Green");
 			for (int i = 0; i < bLocusSet.getLoci().length; i++) {
 				BEDFeatureSeg bFeatureSeg = bLocusSet.getLoci()[i];
 				String markerName = bFeatureSeg.getUCSClocation();
