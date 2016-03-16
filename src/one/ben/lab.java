@@ -870,7 +870,7 @@ public class lab {
 	        
 		    MergeExtractPipeline pipeline = new MergeExtractPipeline();
 //		    pipeline.setMarkers(markersFile);		    
-		    pipeline.setRunDirectory("/scratch.global/cole0482/merge/");
+		    pipeline.setRunDirectory("/scratch.global/cole0482/merge/", true);
 		    pipeline.setOutputFormat(DosageData.DATABASE_DOSE_FORMAT);
 		    pipeline.setOutputFiles(outFile, mapOutFile);
 		    pipeline.setRenamePlinkMarkers(true);
