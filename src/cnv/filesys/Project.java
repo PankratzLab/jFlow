@@ -431,6 +431,8 @@ public class Project {
 	public StringListProperty                        QQ_FILENAMES = new StringListProperty(this,                         "QQ_FILENAMES", "", "", true, false);
 	public StringListProperty  GC_CORRECTION_PARAMETERS_FILENAMES = new StringListProperty(this,   "GC_CORRECTION_PARAMETERS_FILENAMES", "", "", true, false);
 	public StringListProperty                 PLINK_DIR_FILEROOTS = new StringListProperty(this,                  "PLINK_DIR_FILEROOTS", "", "", true, false);
+	public StringListProperty          MARKER_COLOR_KEY_FILENAMES = new StringListProperty(this,           "MARKER_COLOR_KEY_FILENAMES", "", "", true, false);
+
 	public EnumProperty<SOURCE_FILE_DELIMITERS> SOURCE_FILE_DELIMITER = new EnumProperty<SOURCE_FILE_DELIMITERS>(this, "SOURCE_FILE_DELIMITER", "", 0, SOURCE_FILE_DELIMITERS.class);	
 	public EnumProperty<ARRAY>                 ARRAY_TYPE            = new EnumProperty<ARRAY>(this, "ARRAY_TYPE", "", 0, ARRAY.class);	
 

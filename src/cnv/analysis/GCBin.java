@@ -2,6 +2,8 @@ package cnv.analysis;
 
 import java.util.ArrayList;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
+
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 import cnv.filesys.Project;
@@ -10,9 +12,7 @@ import cnv.hmm.PennHmm.ViterbiResult;
 import cnv.qc.GcAdjustor.GcModel;
 import cnv.var.CNVariant;
 import cnv.var.LocusSet;
-
 import common.Array;
-
 import filesys.Segment;
 
 public class GCBin extends Segment {
@@ -49,9 +49,10 @@ public class GCBin extends Segment {
 		OpdfGaussian opdfGaussian = new OpdfGaussian(Array.mean(gcs, true), Math.pow(Array.stdev(gcs, true), 2));
 		int numStates = 50;
 		int zeroState = 5;
+		NormalDistribution nd = new org.apache.commons.math3.distribution.NormalDistribution(Array.mean(gcs, true), Array.stdev(gcs, true));
 		int[] stateSequence = new int[gcs.length];
 		for (int i = 0; i < gcs.length; i++) {
-			double cdf = opdfGaussian.cdf(new ObservationReal(gcs[i]));
+			double cdf = nd.cumulativeProbability(gcs[i]);
 			int state = (int) Math.round((double) cdf * numStates) - 1;
 			stateSequence[i] = state + zeroState;
 		}
