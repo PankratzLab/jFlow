@@ -875,8 +875,8 @@ public class lab {
 		    pipeline.setOutputFiles(outFile, mapOutFile);
 		    pipeline.setRenamePlinkMarkers(true);
 //		    pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "gwas.bed", "gwas.bim", "gwas.fam");
-		    pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "exome.bed", "exome.bim", "exome.fam");
-		    pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "metab.bed", "metab.bim", "metab.fam");
+		    pipeline.addDataSource("exome", "/scratch.global/cole0482/merge/blacks/", "exome.bed", "exome.bim", "exome.fam");
+		    pipeline.addDataSource("metab", "/scratch.global/cole0482/merge/blacks/", "metab.bed", "metab.bim", "metab.fam");
 		    // add more;
 		    pipeline.run();
 		    

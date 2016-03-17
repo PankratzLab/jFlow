@@ -21,15 +21,16 @@ import common.ext;
 public class MergeExtractPipeline {
     
     private class DataSource {
-        String dataFile, mapFile, idFile;
+        String label, dataFile, mapFile, idFile;
         boolean relD, relM, relI;
-        public DataSource(String dir, String d, String m, String i) {
+        public DataSource(String label, String dir, String d, String m, String i) {
             this.relD = Files.isRelativePath(d);
             this.relM = Files.isRelativePath(m);
             this.relI = Files.isRelativePath(i);
             this.dataFile = (relD ? dir : "") + d;
             this.mapFile = (relM ? dir : "") + m;
             this.idFile = (relI ? dir : "") + i;
+            this.label = label;
         }
     }
     
@@ -190,14 +191,14 @@ public class MergeExtractPipeline {
         return this;
     }
 
-    public MergeExtractPipeline addDataSource(String dir, String dataFile, String mapFile, String idFile) {
+    public MergeExtractPipeline addDataSource(String lbl, String dir, String dataFile, String mapFile, String idFile) {
         initLog();
-        dataSources.add(new DataSource(dir, dataFile, mapFile, idFile));
+        dataSources.add(new DataSource(lbl, dir, dataFile, mapFile, idFile));
         log.report("Added data source: " + dataSources.get(dataSources.size() - 1).dataFile);
         return this;
     }
     
-    public MergeExtractPipeline addDataSources(final String dir, final String dataFileExt, final String mapFileExt, final String idFile, final int bpWindow) {
+    public MergeExtractPipeline addDataSources(final String lbl, final String dir, final String dataFileExt, final String mapFileExt, final String idFile, final int bpWindow) {
         initLog();
         String[] filesToAdd = (new File(dir)).list(new FilenameFilter() {
             @Override
@@ -265,7 +266,7 @@ public class MergeExtractPipeline {
             }
         });
         for (String file : filesToAdd) {
-            addDataSource(dir, file, file.substring(0, file.length() - dataFileExt.length()) + mapFileExt, idFile);
+            addDataSource(lbl, dir, file, file.substring(0, file.length() - dataFileExt.length()) + mapFileExt, idFile);
             log.report("Added data source: " + dataSources.get(dataSources.size() - 1).dataFile);
         }
         return this;
@@ -348,18 +349,21 @@ public class MergeExtractPipeline {
 //        }
         
         ArrayList<String> plinkRoots = new ArrayList<String>();
+        ArrayList<String> plinkLabels = new ArrayList<String>();
         // discover and merge all plink files  
         for (int i = dataSources.size() - 1; i >= 0; i--) {
             if (dataSources.get(i).dataFile.endsWith(".bed") || dataSources.get(i).dataFile.endsWith(".ped")) {
                 plinkRoots.add(ext.rootOf(dataSources.get(i).dataFile, false));
+                plinkLabels.add(dataSources.get(i).label);
                 dataSources.remove(i);
             }
         }
         if (plinkRoots.size() > 0) {
             String[] roots = Array.toStringArray(plinkRoots);
+            String[] lbls = Array.toStringArray(plinkLabels);
             plinkRoots = null;
             String outRoot = dir + "plink_merged";
-            String mergeCommand = PlinkMergePrep.merge(PlinkMergePrep.BEDBIMFAM, outRoot, overwrite, renamePlink, regionsFile, markersFile, roots);
+            String mergeCommand = PlinkMergePrep.merge(PlinkMergePrep.BEDBIMFAM, outRoot, overwrite, renamePlink, regionsFile, markersFile, roots, lbls);
 
             log.report("Running PLINK merge command: " + mergeCommand);
             boolean result = CmdLine.runDefaults(mergeCommand, dir);
@@ -367,7 +371,7 @@ public class MergeExtractPipeline {
                 log.reportTimeError("PLINK merge command failed.  Please check output for errors and try again.");
                 return;
             }
-            dataSources.add(new DataSource(dir, PSF.Plink.getBED(outRoot), PSF.Plink.getBIM(outRoot), PSF.Plink.getFAM(outRoot)));
+            dataSources.add(new DataSource(null, dir, PSF.Plink.getBED(outRoot), PSF.Plink.getBIM(outRoot), PSF.Plink.getFAM(outRoot))); // no prepend here, as we've already renamed the markers using PlinkMergePrep
             String newMkrFile = (new File(PlinkMergePrep.TEMP_MKR_FILE)).getAbsolutePath();
             log.report("Setting markers file to temporarily generated plink-renamed markers file: " + newMkrFile);
             this.markersFile = newMkrFile;
@@ -377,10 +381,10 @@ public class MergeExtractPipeline {
         
         log.reportTime("Merging data...");
         log.reportTime("Starting from data file: " + dataSources.get(0).dataFile);
-        DosageData dd1 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile, dataSources.get(0).mapFile, regionsFile, markersFile, true, null);
+        DosageData dd1 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile, dataSources.get(0).mapFile, regionsFile, markersFile, dataSources.get(0).label, true, null);
         for (int i = 1; i < dataSources.size(); i++) {
             log.reportTime("... merging with data file: " + dataSources.get(i).dataFile);
-            DosageData dd2 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile, dataSources.get(i).mapFile, regionsFile, markersFile, true, null);
+            DosageData dd2 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile, dataSources.get(i).mapFile, regionsFile, markersFile, dataSources.get(0).label, true, null);
             dd1 = DosageData.combine(dd1, dd2);
             dd2 = null;
             System.gc();
@@ -427,9 +431,9 @@ public class MergeExtractPipeline {
             while ((line = reader.readLine()) != null) {
                 temp = line.split("\t");
                 if (temp.length == 3) {
-                    mep.addDataSource(null, temp[0], temp[1], temp[2]);
+                    mep.addDataSource(temp[0], null, temp[1], temp[2], temp[3]);
                 } else if (temp.length == 4) {
-                    mep.addDataSources(temp[0], temp[1], temp[2], temp[3], 0);
+                    mep.addDataSources(temp[0], temp[1], temp[2], temp[3], temp[4], 0);
                 } else {
                     System.err.println("Error - skipping invalid entry in data file: " + line);
                 }
@@ -472,10 +476,10 @@ public class MergeExtractPipeline {
                        "   (3) Run directory (output files and temporary files will be created here) (i.e. runDir=" + rundir + " (default))\n" +
                        "   (4) File listing data sources (i.e. data=" + data + " (default))\n" + 
                        "          Example:\n" +
-                       "          fullPathDataFile1\tFullPathMapFile1\tFullPathIdFile1\n" + 
-                       "          fullPathDataFile2\tFullPathMapFile2\tFullPathIdFile2\n" + 
-                       "          dir1\tdataFileExt1\tmapFileExt1\tidFile3\n" + 
-                       "          dir2\tdataFileExt2\tmapFileExt2\tidFile4\n" + 
+                       "          dataLabel1\tfullPathDataFile1\tFullPathMapFile1\tFullPathIdFile1\n" + 
+                       "          dataLabel2\tfullPathDataFile2\tFullPathMapFile2\tFullPathIdFile2\n" + 
+                       "          dataLabel3\tdir1\tdataFileExt1\tmapFileExt1\tidFile3\n" + 
+                       "          dataLabel4\tdir2\tdataFileExt2\tmapFileExt2\tidFile4\n" + 
                        "   (5a) Regions-to-extract filename (i.e. regions=" + regions + " (default))\n" + 
                        "   (5b) Markers-to-extract filename (i.e. markers=" + markers + " (default))\n" +
                        "          (Note: only one is allowed, either regions or markers, not both)\n" + 
