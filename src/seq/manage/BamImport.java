@@ -1,5 +1,6 @@
 package seq.manage;
 
+
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -41,6 +42,7 @@ import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustorParameter;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.var.LocusSet;
+import cnv.var.SampleData;
 import filesys.Segment;
 
 public class BamImport {
@@ -259,6 +261,7 @@ public class BamImport {
 					if (varFeatures.getLoci().length > 0) {
 						log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
 					}
+
 					generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure, varFeatures);
 					log.memoryFree();
 					LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure, true, log);
@@ -317,7 +320,7 @@ public class BamImport {
 					CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numthreads, 2);
 					Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numthreads);
 					TransposeData.transposeData(proj, 2000000000, false);
-
+					SampleData.createMinimalSampleData(proj);
 					GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
 					GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
 					generatePCFile(proj, numthreads);
