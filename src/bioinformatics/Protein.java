@@ -2,6 +2,9 @@ package bioinformatics;
 
 import java.io.*;
 
+import common.Matrix;
+import common.ext;
+
 public class Protein {
 	public static final String[][] AMINO_ACID_LOOKUP = {
 		// amino acid, three letter abbreviation, one letter abbreviation, polarity, acidity
@@ -27,6 +30,10 @@ public class Protein {
 		{"valine", "Val", "V", "nonpolar", "neutral"}
 	};
 	
+	public static String[] lookup(String letterCode) {
+	    int index = ext.indexOfStr(letterCode, Matrix.extractColumn(AMINO_ACID_LOOKUP, 2));
+	    return index == -1 ? null : AMINO_ACID_LOOKUP[index];
+	}
 	
 	public static void parseAminoAcids(String filename) {
 		BufferedReader reader;

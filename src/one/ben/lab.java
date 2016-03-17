@@ -873,7 +873,7 @@ public class lab {
 		    pipeline.setRunDirectory("/scratch.global/cole0482/merge/", true);
 		    pipeline.setOutputFormat(DosageData.DATABASE_DOSE_FORMAT);
 		    pipeline.setOutputFiles(outFile, mapOutFile);
-		    pipeline.setRenamePlinkMarkers(true);
+		    pipeline.setRenameMarkers(true);
 //		    pipeline.addDataSource("/scratch.global/cole0482/merge/blacks/", "gwas.bed", "gwas.bim", "gwas.fam");
 		    pipeline.addDataSource("exome", "/scratch.global/cole0482/merge/blacks/", "exome.bed", "exome.bim", "exome.fam");
 		    pipeline.addDataSource("metab", "/scratch.global/cole0482/merge/blacks/", "metab.bed", "metab.bim", "metab.fam");
