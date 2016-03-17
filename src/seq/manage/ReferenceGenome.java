@@ -44,7 +44,8 @@ public class ReferenceGenome {
 	}
 
 	/**
-	 * @param bpBinSize the bin size (non-sliding) to break the reference genome into;
+	 * @param bpBinSize
+	 *            the bin size (non-sliding) to break the reference genome into;
 	 * @return
 	 */
 	public LocusSet<Segment> getBins(int bpBinSize) {
@@ -123,7 +124,7 @@ public class ReferenceGenome {
 	 *            these should be sorted in chromosomal order if speed is desired
 	 * @return
 	 */
-	public String[][] getSequencesFor(Segment[] segs, int reportEvery,boolean memoryMode) {
+	public String[][] getSequencesFor(Segment[] segs, int reportEvery, boolean memoryMode) {
 		String[][] seqs = new String[segs.length][];
 		for (int i = 0; i < seqs.length; i++) {
 			if (reportEvery > 0 && i % reportEvery == 0) {
@@ -147,7 +148,7 @@ public class ReferenceGenome {
 	public int getContigLength(Segment seg) {
 		return getContigLength(Positions.getChromosomeUCSC(seg.getChr(), true, true));
 	}
-	
+
 	public int getContigLength(String contig) {
 		if (hasContig(contig)) {
 			return indexedFastaSequenceFile.getSequenceDictionary().getSequence(contig).getSequenceLength();
@@ -155,17 +156,17 @@ public class ReferenceGenome {
 			return -1;
 		}
 	}
-	
+
 	/**
 	 * @param segment
 	 * @param memoryMode
 	 *            this stores an entire contig in memory, which is faster for many large, in order queries.
 	 * @return will return null if {@link Positions#getChromosomeUCSC(int, boolean, boolean)} returns a contig not in the files {@link SAMSequenceDictionary}
 	 */
-	public String[] getSequenceFor(Segment segment,boolean memoryMode) {
+	public String[] getSequenceFor(Segment segment, boolean memoryMode) {
 		String requestedContig = Positions.getChromosomeUCSC(segment.getChr(), true, true);
 		if (hasContig(requestedContig)) {
-			
+
 			int seqLength = indexedFastaSequenceFile.getSequenceDictionary().getSequence(requestedContig).getSequenceLength();
 			int start = segment.getStart() - defaultBuffer;
 			if (start < 0) {
@@ -270,12 +271,30 @@ public class ReferenceGenome {
 	public static double getPercentGC(String[] seq) {
 		return getProportionGC(seq) * 100;
 	}
-	
+
 	public static double getProportionGC(String[] seq) {
-		int gs = Array.countIf(seq, "G");
-		int cs = Array.countIf(seq, "C");
+		int gs = 0;
+		int cs = 0;
+		int as = 0;
+		int ts = 0;
+		for (int i = 0; i < seq.length; i++) {
+			if (seq[i].equalsIgnoreCase("G")) {
+				gs++;
+			} else if (seq[i].equalsIgnoreCase("C")) {
+				cs++;
+			} else if (seq[i].equalsIgnoreCase("A")) {
+				as++;
+			} else if (seq[i].equalsIgnoreCase("T")) {
+				ts++;
+			} else if (!seq[i].equalsIgnoreCase("N")) {
+				throw new IllegalArgumentException("Invalid base " + seq[i]);
+			}
+
+		}
+
 		int gsCs = gs + cs;
-		return (double) gsCs / seq.length;
+		int asTs = as + ts;
+		return (double) gsCs / asTs;
 	}
 
 	public double getGCContentFor(VariantContext vc) {

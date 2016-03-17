@@ -2,11 +2,11 @@ package seq.manage;
 
 import java.util.Hashtable;
 
-import seq.manage.BamOps.BamIndexStats;
 import cnv.analysis.BeastScore;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
+import cnv.var.LocusSet;
 import common.Array;
 import filesys.Segment;
 
@@ -107,66 +107,98 @@ public class BamSample {
 
 	private void init() {
 		MarkerSet markerSet = proj.getMarkerSet();
-		BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
+		String[] markerNames = markerSet.getMarkerNames();
+		if (markerNames.length != bamPiles.length) {
+			throw new IllegalArgumentException("Mismatched marker sizes, this is bad");
+		}
+		// BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
 		this.rawDepth = new double[bamPiles.length];
 		this.mapQs = new double[bamPiles.length];
 		this.percentWithMismatch = new double[bamPiles.length];
-		byte currentChr = 0;
-		int currentPos = 0;
+		// byte currentChr = 0;
+		// int currentPos = 0;
 
 		BamPileParams[] params = new BamPileParams[BAM_PILE_TYPE.values().length];
 		for (int i = 0; i < params.length; i++) {
-			params[i] = new BamPileParams(BAM_PILE_TYPE.values()[i], Array.booleanArray(bamPiles.length, false));
+			params[i] = new BamPileParams(BAM_PILE_TYPE.values()[i], Array.booleanArray(markerNames.length, false));
 		}
+		int[] traversalOrder = Array.intArray(markerNames.length, -1);
+		Segment[] toSearch =new Segment[bamPiles.length];
+		for (int i = 0; i < toSearch.length; i++) {
+			toSearch[i] =bamPiles[i].getBin();
+		}
+		LocusSet<Segment> set = new LocusSet<Segment>(toSearch, true, proj.getLog()) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
 
 		proj.getLog().reportTimeInfo("Computing rpkm mask");
 		for (int i = 0; i < bamPiles.length; i++) {
-			if (currentChr > bamPiles[i].getBin().getChr() || (bamPiles[i].getBin().getChr() <= currentChr && currentPos > bamPiles[i].getBin().getStart())) {
-				String error = "BUG, segments are unsorted";
-				error += " current CHR: " + currentChr + " CurrentPOS: " + currentPos;
-				error += "Bin: " + bamPiles[i].getBin().getUCSClocation();
-				error += "Index " + i;
-				proj.getLog().reportTimeError(error);
-				throw new IllegalStateException(error);
-			} else {
-				currentChr = bamPiles[i].getBin().getChr();
-				currentPos = bamPiles[i].getBin().getStart();
+		
+			Segment markerSeg = new Segment(markerNames[i].split("\\|")[0]);
+			int[] exact = set.getExactMatch(markerSeg);
+			int[] match = set.getOverlappingIndices(markerSeg);
+			
+			if (exact == null || exact.length == 0) {
+				System.err.println((exact == null) + "\t" + exact.length+"\t"+match.length);
+				System.err.println(markerSeg.getUCSClocation() + "\t" + markerNames[i] + "\t" + bamPiles[i].getUCSClocation() + "\t" + set.getLoci()[i].getUCSClocation());
+				for (int j = 0; j < match.length; j++) {
+					System.err.println(set.getLoci()[match[j]].getUCSClocation());
+				}
+				for (int j = 0; j < exact.length; j++) {
+					System.err.println(j + "afasdfdsf\t" + markerSeg.getUCSClocation() + "\t" + markerNames[i] + "\t" + set.getLoci()[exact[j]].getUCSClocation());
+					// System.err.println(j + "\t" + bamPiles[exact[j]].getUCSClocation());
+				}
+				throw new IllegalArgumentException("A major mismatching issue");
+			}
+			int bamPileIndex = exact[0];// if more than 1, identical so does'nt matter
+			traversalOrder[i] = bamPileIndex;
+			BamPile currentPile = bamPiles[bamPileIndex];
+			if (bamPileIndex != i) {
+				proj.getLog().reportTimeInfo("TOLD YOU SO, SORT ISSUESSS");
 			}
 
 			BAM_PILE_TYPE current = fromPile(markerSet.getMarkerNames()[i]);
 			for (int j = 0; j < params.length; j++) {
 				if (current == params[j].getType()) {
 					params[j].getMask()[i] = true;
-					params[j].setRpkmVal(params[j].getRpkmVal() + bamPiles[i].getNumOverlappingReads());
+					params[j].setRpkmVal(params[j].getRpkmVal() + currentPile.getNumOverlappingReads());
 					break;
 				}
 			}
 		}
 
 		proj.getLog().reportTimeInfo("Computing Normalized depths");
+		if (Array.countIf(traversalOrder, -1) > 0) {
+			throw new IllegalArgumentException("Not all indices accounted for");
+		}
 
-		for (int i = 0; i < bamPiles.length; i++) {
+		for (int i = 0; i < traversalOrder.length; i++) {
+			BamPile currentPile = bamPiles[traversalOrder[i]];
 
 			BAM_PILE_TYPE current = fromPile(markerSet.getMarkerNames()[i]);
 			for (int j = 0; j < params.length; j++) {
 				if (current == params[j].getType()) {
-					
-					rawDepth[i] = computeRPKM(bamPiles[i].getNumOverlappingReads(), bamPiles[i].getBin(), bamIndexStats.getAlignedRecordCount());
+					rawDepth[i] = computeRPKM(currentPile.getNumOverlappingReads(), currentPile.getBin(), params[j].getRpkmVal());
 					break;
 				}
 			}
 
-			mapQs[i] = Math.min(bamPiles[i].getOverallAvgMapQ() / MAX_MAPQ, 1);
+			mapQs[i] = Math.min(currentPile.getOverallAvgMapQ() / MAX_MAPQ, 1);
 			if (Double.isNaN(rawDepth[i])) {
 				String warning = "Found invalid scale raw depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[i];
 				proj.getLog().reportTimeWarning(warning);
 				throw new IllegalArgumentException(warning);
 			}
-			//int currentSize = bamPiles[i].getBin().getSize();
+			// int currentSize = bamPiles[i].getBin().getSize();
 
 			if (current == BAM_PILE_TYPE.VARIANT_SITE) {
-				double normBasesOverlap = (double) bamPiles[i].getNumBasesOverlap();
-				double normBasesMiss = (double) bamPiles[i].getNumBasesWithMismatch();
+				double normBasesOverlap = (double) currentPile.getNumBasesOverlap();
+				double normBasesMiss = (double) currentPile.getNumBasesWithMismatch();
 				double percentMiss = 0;
 				if (normBasesOverlap > 0) {
 					percentMiss = normBasesMiss / normBasesOverlap;
@@ -227,7 +259,7 @@ public class BamSample {
 		// this.normDepth = Array.scaleMinTo(rawDepth,1);
 		// double scale = proj.XY_SCALE_FACTOR.getValue();
 		// normDepth = Array.multiply(normDepth, (double) 1 / scale);
-		//percentWithMismatch = Array.scale(percentWithMismatch);
+		// percentWithMismatch = Array.scale(percentWithMismatch);
 		for (int j = 0; j < normDepth.length; j++) {
 			if (Double.isNaN(normDepth[j])) {
 				String error = "Found invalid normalized depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[j];

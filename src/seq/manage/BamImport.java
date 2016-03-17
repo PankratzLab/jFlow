@@ -175,6 +175,7 @@ public class BamImport {
 	}
 
 	public static void importTheWholeBamProject(Project proj, String binBed, String captureBed, String optionalVCF, int captureBuffer, int numthreads) {
+	
 		if (proj.getArrayType() == ARRAY.NGS) {
 			Logger log = proj.getLog();
 
@@ -204,7 +205,7 @@ public class BamImport {
 					if (varFeatures.getLoci().length > 0) {
 						log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
 					}
-
+					log.reportTimeError("JOHN add back in marke pos");
 					generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure, varFeatures);
 					log.memoryFree();
 					LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure, true, log);
