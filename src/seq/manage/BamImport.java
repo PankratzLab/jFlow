@@ -4,8 +4,11 @@ import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -20,6 +23,7 @@ import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.Positions;
 import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
@@ -119,8 +123,27 @@ public class BamImport {
 
 	}
 
-	private static LocusSet<BEDFeatureSeg> extractVCF(Project proj, String vcf) {
-		LocusSet<BEDFeatureSeg> varLocusSet = new LocusSet<BEDFeatureSeg>(new BEDFeatureSeg[] {}, true, proj.getLog()) {
+	private static class VariantSeg extends Segment {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private String tag;
+
+		public VariantSeg(byte chr, int start, int stop, String tag) {
+			super(chr, start, stop);
+			this.tag = tag;
+		}
+
+		public String getTag() {
+			return tag;
+		}
+
+	}
+
+	private static LocusSet<VariantSeg> extractVCF(Project proj, String vcf) {
+		LocusSet<VariantSeg> varLocusSet = new LocusSet<VariantSeg>(new VariantSeg[] {}, true, proj.getLog()) {
 
 			/**
 			 * 
@@ -166,16 +189,47 @@ public class BamImport {
 
 			}
 
-			BEDFileReader readerVarBed = new BEDFileReader(out, false);
-			varLocusSet = readerVarBed.loadAll(proj.getLog());
-			readerVarBed.close();
+			ArrayList<VariantSeg> segs = new ArrayList<BamImport.VariantSeg>();
+
+			try {
+
+				BufferedReader reader = Files.getAppropriateReader(out);
+				while (reader.ready()) {
+					String[] line = reader.readLine().trim().split("\t");
+					byte chr = Positions.chromosomeNumber(line[0]);
+					int start = Integer.parseInt(line[1]);
+					int stop = Integer.parseInt(line[2]);
+					String tag = line[3];
+					segs.add(new VariantSeg(chr, start, stop, tag));
+				}
+				reader.close();
+			} catch (FileNotFoundException fnfe) {
+				proj.getLog().reportError("Error: file \"" + out + "\" not found in current directory");
+				return null;
+			} catch (IOException ioe) {
+				proj.getLog().reportError("Error reading file \"" + out + "\"");
+				return null;
+			}
+			varLocusSet = new LocusSet<VariantSeg>(segs.toArray(new VariantSeg[segs.size()]), true, proj.getLog()) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+			// BEDFileReader readerVarBed = new BEDFileReader(out, false);
+			// varLocusSet = readerVarBed.loadAll(proj.getLog());
+			// readerVarBed.close();
+
 		}
+
 		return varLocusSet;
 
 	}
 
 	public static void importTheWholeBamProject(Project proj, String binBed, String captureBed, String optionalVCF, int captureBuffer, int numthreads) {
-	
+
 		if (proj.getArrayType() == ARRAY.NGS) {
 			Logger log = proj.getLog();
 
@@ -201,11 +255,10 @@ public class BamImport {
 					log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bins int the anti-on-target regions");
 					log.memoryFree();
 
-					LocusSet<BEDFeatureSeg> varFeatures = extractVCF(proj, optionalVCF);
+					LocusSet<VariantSeg> varFeatures = extractVCF(proj, optionalVCF);
 					if (varFeatures.getLoci().length > 0) {
 						log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
 					}
-					log.reportTimeError("JOHN add back in marke pos");
 					generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure, varFeatures);
 					log.memoryFree();
 					LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure, true, log);
@@ -216,8 +269,9 @@ public class BamImport {
 						throw new IllegalArgumentException("all import segments must be gte length 1");
 					}
 					log.reportTimeInfo(analysisSet.getLoci().length + " segments to pile");
-					generateGCModel(proj, analysisSet, referenceGenome,0);
-					generateGCModel(proj, analysisSet, referenceGenome, 5120);
+					generateGCModel(proj, analysisSet, referenceGenome, 50);
+					generateGCModel(proj, analysisSet, referenceGenome, 100);
+					generateGCModel(proj, analysisSet, referenceGenome, 200);
 
 					FilterNGS filterNGS = new FilterNGS(20, 20, null);
 					PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(), filterNGS, analysisSet.getStrictSegments(), log);
@@ -266,7 +320,6 @@ public class BamImport {
 
 					GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
 					GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
-					// GcAdjustorParameters params =
 					generatePCFile(proj, numthreads);
 					proj.INTENSITY_PC_NUM_COMPONENTS.setValue(5);
 					proj.saveProperties();
@@ -298,7 +351,7 @@ public class BamImport {
 		}
 	}
 
-	private static void generateGCModel(Project proj, LocusSet<Segment> analysisSet, ReferenceGenome referenceGenome,int buffer) {
+	private static void generateGCModel(Project proj, LocusSet<Segment> analysisSet, ReferenceGenome referenceGenome, int buffer) {
 		String gcFile = ext.addToRoot(proj.GC_MODEL_FILENAME.getValue(), ".buffer_" + buffer);
 		if (!Files.exists(gcFile)) {
 			MarkerSet markerSet = proj.getMarkerSet();
@@ -332,27 +385,25 @@ public class BamImport {
 		MitoPipeline.catAndCaboodle(proj, numthreads, "0", mediaMarks, proj.getSamples().length - 1, base, false, false, 0, null, null, null, false, false, false, true, false, null, -1, -1);
 	}
 
-	private static void generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet, LocusSet<Segment> genomeBinsMinusBinsCaputure, LocusSet<BEDFeatureSeg> varFeatures) {
+	private static void generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet, LocusSet<Segment> genomeBinsMinusBinsCaputure, LocusSet<VariantSeg> varFeatures) {
 		String positions = proj.MARKER_POSITION_FILENAME.getValue();
 		proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
 		String[] markerNames = new String[bLocusSet.getLoci().length + genomeBinsMinusBinsCaputure.getLoci().length + varFeatures.getLoci().length];
-		String header ="BinName\tChr\tPosition\tCLASS=MARKER_COLOR;OFF_TARGET=Blue;VARIANT_SITE=RED;ON_TARGET=Green";
+		String header = "BinName\tChr\tPosition\tCLASS=MARKER_COLOR;OFF_TARGET=Blue;VARIANT_SITE=RED;ON_TARGET=Green";
 
-		ArrayList<String> onTMarkers =new ArrayList<String>();
+		ArrayList<String> onTMarkers = new ArrayList<String>();
 		onTMarkers.add(header);
-		
-		ArrayList<String> offTMarkers =new ArrayList<String>();
+
+		ArrayList<String> offTMarkers = new ArrayList<String>();
 		offTMarkers.add(header);
 
-		ArrayList<String> variantSiteMarkers =new ArrayList<String>();
+		ArrayList<String> variantSiteMarkers = new ArrayList<String>();
 		variantSiteMarkers.add(header);
 
-		
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(positions));
 			int markerIndex = 0;
 			writer.println(header);
-			
 
 			for (int i = 0; i < bLocusSet.getLoci().length; i++) {
 				BEDFeatureSeg bFeatureSeg = bLocusSet.getLoci()[i];
@@ -365,7 +416,7 @@ public class BamImport {
 				int diff = bFeatureSeg.getStop() - bFeatureSeg.getStart();
 				int mid = Math.round((float) diff / 2);
 				int pos = bFeatureSeg.getStart() + mid;
-				String out = markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos+"\tON_TARGET";
+				String out = markerName + "\t" + bFeatureSeg.getChr() + "\t" + pos + "\tON_TARGET";
 				onTMarkers.add(out);
 				writer.println(out);
 				markerIndex++;
@@ -378,17 +429,17 @@ public class BamImport {
 				int diff = binnedSeg.getStop() - binnedSeg.getStart();
 				int mid = Math.round((float) diff / 2);
 				int pos = binnedSeg.getStart() + mid;
-				String out = markerName + "\t" + binnedSeg.getChr() + "\t" + pos+"\t"+OFF_TARGET_FLAG;
+				String out = markerName + "\t" + binnedSeg.getChr() + "\t" + pos + "\t" + OFF_TARGET_FLAG;
 				offTMarkers.add(out);
 				writer.println(out);
-			
+
 				markerIndex++;
 			}
 
 			for (int i = 0; i < varFeatures.getLoci().length; i++) {
-				BEDFeatureSeg variantFeatureSeg = varFeatures.getLoci()[i];
+				VariantSeg variantFeatureSeg = varFeatures.getLoci()[i];
 				String markerName = variantFeatureSeg.getUCSClocation();
-				String name = variantFeatureSeg.getBedFeature().getName();
+				String name = variantFeatureSeg.getTag();
 				if (name != null) {
 					markerName += "|" + name;
 				}
