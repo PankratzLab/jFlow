@@ -6,7 +6,6 @@ import cnv.analysis.BeastScore;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-import cnv.var.LocusSet;
 import common.Array;
 import filesys.Segment;
 
@@ -32,7 +31,7 @@ public class BamSample {
 		this.bamFile = bamFile;
 		this.sampleName = BamOps.getSampleName(bamFile);
 		this.bamPiles = bamPiles;
-		init();
+		process();
 	}
 
 	public String getSampleName() {
@@ -105,7 +104,7 @@ public class BamSample {
 		}
 	}
 
-	private void init() {
+	private void process() {
 		MarkerSet markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		if (markerNames.length != bamPiles.length) {
@@ -123,44 +122,25 @@ public class BamSample {
 			params[i] = new BamPileParams(BAM_PILE_TYPE.values()[i], Array.booleanArray(markerNames.length, false));
 		}
 		int[] traversalOrder = Array.intArray(markerNames.length, -1);
-		Segment[] toSearch =new Segment[bamPiles.length];
-		for (int i = 0; i < toSearch.length; i++) {
-			toSearch[i] =bamPiles[i].getBin();
+		Hashtable<String, Integer> lookup = new Hashtable<String, Integer>();
+		for (int i = 0; i < bamPiles.length; i++) {
+			lookup.put(bamPiles[i].getBin().getUCSClocation(), i);// if we store marker positions by start instead of midpoint, this will not be a problem
 		}
-		LocusSet<Segment> set = new LocusSet<Segment>(toSearch, true, proj.getLog()) {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-		};
 
 		proj.getLog().reportTimeInfo("Computing rpkm mask");
 		for (int i = 0; i < bamPiles.length; i++) {
-		
+
 			Segment markerSeg = new Segment(markerNames[i].split("\\|")[0]);
-			int[] exact = set.getExactMatch(markerSeg);
-			int[] match = set.getOverlappingIndices(markerSeg);
-			
-			if (exact == null || exact.length == 0) {
-				System.err.println((exact == null) + "\t" + exact.length+"\t"+match.length);
-				System.err.println(markerSeg.getUCSClocation() + "\t" + markerNames[i] + "\t" + bamPiles[i].getUCSClocation() + "\t" + set.getLoci()[i].getUCSClocation());
-				for (int j = 0; j < match.length; j++) {
-					System.err.println(set.getLoci()[match[j]].getUCSClocation());
-				}
-				for (int j = 0; j < exact.length; j++) {
-					System.err.println(j + "afasdfdsf\t" + markerSeg.getUCSClocation() + "\t" + markerNames[i] + "\t" + set.getLoci()[exact[j]].getUCSClocation());
-					// System.err.println(j + "\t" + bamPiles[exact[j]].getUCSClocation());
-				}
+			if (!lookup.containsKey(markerSeg.getUCSClocation())) {
+				System.out.println(markerSeg.getUCSClocation());
 				throw new IllegalArgumentException("A major mismatching issue");
 			}
-			int bamPileIndex = exact[0];// if more than 1, identical so does'nt matter
+			int bamPileIndex = lookup.get(markerSeg.getUCSClocation());// if more than 1, identical so does'nt matter
 			traversalOrder[i] = bamPileIndex;
 			BamPile currentPile = bamPiles[bamPileIndex];
-			if (bamPileIndex != i) {
-				proj.getLog().reportTimeInfo("TOLD YOU SO, SORT ISSUESSS");
-			}
+//			if (bamPileIndex != i) {
+//				proj.getLog().reportTimeInfo("TOLD YOU SO, SORT ISSUESSS");
+//			}
 
 			BAM_PILE_TYPE current = fromPile(markerSet.getMarkerNames()[i]);
 			for (int j = 0; j < params.length; j++) {
