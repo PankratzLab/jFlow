@@ -61,7 +61,7 @@ public class MitoPipeline {
 	private String filename;
 	private Project proj;
 	private Logger log;
-	private String projectDirectory, sourceDirectory, dataExtension, defaultLRRSdFilter, targetMarkers, medianMarkers, markerPositions, idHeader, abLookup;
+	private String projectDirectory, sourceDirectory, dataExtension, defaultLRRSdFilter, defaultCallRateFilter, targetMarkers, medianMarkers, markerPositions, idHeader, abLookup;
 
 	/**
 	 * 
@@ -99,6 +99,7 @@ public class MitoPipeline {
 		this.idHeader = idHeader;
 		this.abLookup = abLookup;
 		this.defaultLRRSdFilter = defaultLRRSdFilter;
+		this.defaultCallRateFilter = defaultCallRateFilter;
 		this.targetMarkers = targetMarkers;
 		this.markerPositions = markerPositions;
 		this.medianMarkers = medianMarkers;
@@ -240,6 +241,7 @@ public class MitoPipeline {
 		proj.setProperty(proj.ID_HEADER, idHeader);
 		// proj.setProperty(proj.LRRSD_CUTOFF, defaultLRRSdFilter);
 		proj.setProperty(proj.LRRSD_CUTOFF, Double.valueOf(defaultLRRSdFilter));
+		proj.setProperty(proj.SAMPLE_CALLRATE_THRESHOLD, Double.valueOf(defaultCallRateFilter));
 		proj.setProperty(proj.INTENSITY_PC_MARKERS_FILENAME, ext.removeDirectoryInfo(targetMarkers));
 		if (markerPositions != null) {
 			proj.setProperty(proj.MARKER_POSITION_FILENAME, ext.removeDirectoryInfo(markerPositions));
@@ -259,7 +261,7 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static int catAndCaboodle(Project proj, int numThreads, String sampleCallRateFilter, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance) {
+	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance) {
 		String sampleDirectory;
 		SampleList sampleList;
 		int[] counts;
@@ -355,13 +357,13 @@ public class MitoPipeline {
 						String qcFile = outputBase + "_lrr_sd.txt";
 						proj.SAMPLE_QC_FILENAME.setValue(qcFile);
 
-						counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
+						counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile);
 						if (counts == null || counts[1] != sampleList.getSamples().length) {
 							if (counts == null || counts[1] == 0 && Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
 								log.reportError("Error - was unable to parse QC file " + proj.SAMPLE_QC_FILENAME.getValue() + ", backing up this file to " + proj.BACKUP_DIRECTORY.getValue(false, false) + " and re-starting sample qc");
 								Files.backup(ext.removeDirectoryInfo(proj.SAMPLE_QC_FILENAME.getValue()), proj.PROJECT_DIRECTORY.getValue(), proj.BACKUP_DIRECTORY.getValue(true, false), true);
 							}
-							counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, sampleCallRateFilter, useFile);
+							counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile);
 							if (counts == null || counts[1] != sampleList.getSamples().length) {
 								if (counts == null) {
 									log.reportError("Error - could not parse QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ")");
@@ -993,7 +995,7 @@ public class MitoPipeline {
 		}
 		attempts = 0;
 		while (attempts < 2) {
-			result = catAndCaboodle(proj, numThreads, sampleCallRateFilter, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance);
+			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance);
 			attempts++;
 			if (result == 41 || result == 40) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");

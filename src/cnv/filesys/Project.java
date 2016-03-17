@@ -363,6 +363,7 @@ public class Project {
 	public    DoubleProperty                         GC_THRESHOLD = new     DoubleProperty(this,                         "GC_THRESHOLD", "", 0.0, 1.0, 0.15);
 	public    DoubleProperty                      XY_SCALE_FACTOR = new     DoubleProperty(this,                         "XY_SCALE_FACTOR", "", 0.001, Double.MAX_VALUE, 1);
 	public    DoubleProperty                         LRRSD_CUTOFF = new     DoubleProperty(this,                         "LRRSD_CUTOFF", "", 0.0, 3.0, 0.32);
+	public    DoubleProperty            SAMPLE_CALLRATE_THRESHOLD = new     DoubleProperty(this,            "SAMPLE_CALLRATE_THRESHOLD", "", 0.0, 1.0, 0.95);
 	public   IntegerProperty                          NUM_THREADS = new    IntegerProperty(this,                          "NUM_THREADS", "", 1, 99, 1);
 	public   IntegerProperty              QQ_MAX_NEG_LOG10_PVALUE = new    IntegerProperty(this,              "QQ_MAX_NEG_LOG10_PVALUE", "", 1, 10000, 100);
 	public   IntegerProperty WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER = new    IntegerProperty(this, "WINDOW_AROUND_SNP_TO_OPEN_IN_TRAILER", "", 1, 1000000, 10000);

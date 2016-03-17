@@ -135,6 +135,7 @@ public class Configurator extends JFrame {
                 "SAMPLE_QC_FILENAME",
                 "SEXCHECK_RESULTS_FILENAME",
                 "LRRSD_CUTOFF",
+                "SAMPLE_CALLRATE_THRESHOLD",
                 "MARKER_METRICS_FILENAME",
                 "MARKER_EXCLUSION_CRITERIA_FILENAME",
                 "MARKER_REVIEW_CRITERIA_FILENAME",
