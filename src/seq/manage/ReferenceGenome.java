@@ -286,15 +286,15 @@ public class ReferenceGenome {
 				as++;
 			} else if (seq[i].equalsIgnoreCase("T")) {
 				ts++;
-			} else if (!seq[i].equalsIgnoreCase("N")) {
+			} else if (!seq[i].equalsIgnoreCase("N") && !seq[i].trim().equalsIgnoreCase("")) {
 				throw new IllegalArgumentException("Invalid base " + seq[i]);
 			}
-
 		}
 
 		int gsCs = gs + cs;
 		int asTs = as + ts;
-		return (double) gsCs / asTs;
+		int total = asTs + gsCs;
+		return (double) gsCs / total;
 	}
 
 	public double getGCContentFor(VariantContext vc) {

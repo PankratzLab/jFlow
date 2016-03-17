@@ -110,17 +110,15 @@ public class BamSample {
 		if (markerNames.length != bamPiles.length) {
 			throw new IllegalArgumentException("Mismatched marker sizes, this is bad");
 		}
-		// BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
 		this.rawDepth = new double[bamPiles.length];
 		this.mapQs = new double[bamPiles.length];
 		this.percentWithMismatch = new double[bamPiles.length];
-		// byte currentChr = 0;
-		// int currentPos = 0;
-
+	
 		BamPileParams[] params = new BamPileParams[BAM_PILE_TYPE.values().length];
 		for (int i = 0; i < params.length; i++) {
 			params[i] = new BamPileParams(BAM_PILE_TYPE.values()[i], Array.booleanArray(markerNames.length, false));
 		}
+		proj.getLog().reportTimeInfo("Mapping queried segments");
 		int[] traversalOrder = Array.intArray(markerNames.length, -1);
 		Hashtable<String, Integer> lookup = new Hashtable<String, Integer>();
 		for (int i = 0; i < bamPiles.length; i++) {
@@ -132,15 +130,12 @@ public class BamSample {
 
 			Segment markerSeg = new Segment(markerNames[i].split("\\|")[0]);
 			if (!lookup.containsKey(markerSeg.getUCSClocation())) {
-				System.out.println(markerSeg.getUCSClocation());
+				System.err.println(markerSeg.getUCSClocation());
 				throw new IllegalArgumentException("A major mismatching issue");
 			}
 			int bamPileIndex = lookup.get(markerSeg.getUCSClocation());// if more than 1, identical so does'nt matter
 			traversalOrder[i] = bamPileIndex;
 			BamPile currentPile = bamPiles[bamPileIndex];
-//			if (bamPileIndex != i) {
-//				proj.getLog().reportTimeInfo("TOLD YOU SO, SORT ISSUESSS");
-//			}
 
 			BAM_PILE_TYPE current = fromPile(markerSet.getMarkerNames()[i]);
 			for (int j = 0; j < params.length; j++) {
@@ -174,8 +169,6 @@ public class BamSample {
 				proj.getLog().reportTimeWarning(warning);
 				throw new IllegalArgumentException(warning);
 			}
-			// int currentSize = bamPiles[i].getBin().getSize();
-
 			if (current == BAM_PILE_TYPE.VARIANT_SITE) {
 				double normBasesOverlap = (double) currentPile.getNumBasesOverlap();
 				double normBasesMiss = (double) currentPile.getNumBasesWithMismatch();
@@ -212,7 +205,6 @@ public class BamSample {
 						warning += "This is usually caused by having zero passing reads for chr " + i;
 						proj.getLog().reportTimeWarning(warning);
 						error = true;
-						// error = true;
 					}
 				}
 			}
@@ -223,23 +215,7 @@ public class BamSample {
 
 			}
 		}
-		// for (int i = 0; i < scaleMAD.length; i++) {
-		// if (Double.isNaN(scaleMAD[i]) && !markerSet.getMarkerNames()[i].contains(BamImport.OFF_TARGET_FLAG)) {
-		// System.out.println(markerSet.getMarkerNames()[i]);
-		// }
-		// }
 		this.normDepth = Array.scaleMinTo(Array.toDoubleArray(scaleMAD), 1);
-		// for (int i = 0; i < scaleMAD.length; i++) {
-		// System.out.println(markerSet.getMarkerNames()[i] + "\t" + bamPiles[i].getNumOverlappingReads() + "\t" + rawDepth[i] + "\t" + scaleMAD[i] + "\t" + normDepth[i]);
-		// try {
-		// Thread.sleep(100);
-		// } catch (InterruptedException ie) {
-		// }
-		// }
-		// this.normDepth = Array.scaleMinTo(rawDepth,1);
-		// double scale = proj.XY_SCALE_FACTOR.getValue();
-		// normDepth = Array.multiply(normDepth, (double) 1 / scale);
-		// percentWithMismatch = Array.scale(percentWithMismatch);
 		for (int j = 0; j < normDepth.length; j++) {
 			if (Double.isNaN(normDepth[j])) {
 				String error = "Found invalid normalized depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[j];
