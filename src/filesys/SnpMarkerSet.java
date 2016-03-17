@@ -875,8 +875,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
         newMarkerNames = Array.subArray(markerNames, keep);
         newChrs = Array.subArray(chrs, keep);
         newPositions = Array.subArray(positions, keep);
-        newAlleles = Array.subArray(getAlleles(), keep);
-        newAnnotation = Array.subArray(getAnnotation(), keep);
+        newAlleles = getAlleles() == null ? null : Array.subArray(getAlleles(), keep);
+        newAnnotation = getAnnotation() == null ? null : Array.subArray(getAnnotation(), keep);
 	    
 	    return new SnpMarkerSet(newMarkerNames, newChrs, newPositions, newAlleles, newAnnotation, false, verbose); 
 	}

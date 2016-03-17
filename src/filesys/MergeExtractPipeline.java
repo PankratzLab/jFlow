@@ -49,7 +49,7 @@ public class MergeExtractPipeline {
     
     boolean splitOutput = false;
     boolean overwrite = false;
-    boolean renamePlink = true;
+    boolean renameMarkers = true;
     
     public MergeExtractPipeline() {
         dataSources = new ArrayList<MergeExtractPipeline.DataSource>();
@@ -66,6 +66,11 @@ public class MergeExtractPipeline {
         return this;
     }
     
+    /**
+     * Either absolute path to file, or relative path to file in either previously-specified run-directory or current directory (depending on where the file exists)
+     * @param regionFile
+     * @return
+     */
     public MergeExtractPipeline setRegions(String regionFile) {        
         BufferedReader reader;
         String line;
@@ -85,8 +90,19 @@ public class MergeExtractPipeline {
         lbl = new ArrayList<String>();
         reg = new ArrayList<int[]>();
         this.regionsFile = regionFile;
+        if (Files.isRelativePath(regionFile)) {
+            if (runDir != null && !"".equals(runDir)) {
+                if (Files.exists(runDir + regionFile)) {
+                    this.regionsFile = runDir + regionFile;
+                }
+            } else {
+                if (Files.exists("./" + regionFile)) {
+                    this.regionsFile = "./" + regionFile;
+                }
+            }
+        }
         try {
-            reader = Files.getAppropriateReader(regionFile);
+            reader = Files.getAppropriateReader(this.regionsFile);
             line = reader.readLine();
             if (line != null) {
                 temp = line.split("\t");
@@ -132,7 +148,19 @@ public class MergeExtractPipeline {
         }
         
         this.markersFile = mkrsFile;
-        this.markers = HashVec.loadFileToStringArray(mkrsFile, false, new int[]{0}, false);
+
+        if (Files.isRelativePath(mkrsFile)) {
+            if (runDir != null && !"".equals(runDir)) {
+                if (Files.exists(runDir + mkrsFile)) {
+                    this.markersFile = runDir + mkrsFile;
+                }
+            } else {
+                if (Files.exists("./" + mkrsFile)) {
+                    this.markersFile = "./" + mkrsFile;
+                }
+            }
+        }
+        this.markers = HashVec.loadFileToStringArray(this.markersFile, false, new int[]{0}, false);
         SnpMarkerSet markerSet = new SnpMarkerSet(markers);
         markerSet.parseSNPlocations(log);
         this.markerLocations = markerSet.getChrAndPositionsAsInts();
@@ -146,8 +174,8 @@ public class MergeExtractPipeline {
         return this;
     }
     
-    public MergeExtractPipeline setRenamePlinkMarkers(boolean rename) {
-        this.renamePlink = rename;
+    public MergeExtractPipeline setRenameMarkers(boolean rename) {
+        this.renameMarkers = rename;
         return this;
     }
 
@@ -200,6 +228,10 @@ public class MergeExtractPipeline {
     
     public MergeExtractPipeline addDataSources(final String lbl, final String dir, final String dataFileExt, final String mapFileExt, final String idFile, final int bpWindow) {
         initLog();
+        
+        log.report("Looking for data files in directory \"" + dir + "\" that are named with the pattern \"chr##.##bpStart##.##bpEnd##.fileExt\".");
+        log.reportTimeWarning("if data files are not named according to this scheme, all data files will be included.");
+
         String[] filesToAdd = (new File(dir)).list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -208,8 +240,6 @@ public class MergeExtractPipeline {
                     if (/*markerLocations == null && */regions == null) {
                         keep = true;
                     } else {
-                        log.report("Looking for data files in directory that are named with the pattern \"chr#.##bpStart##.##bpEnd##.fileExtension\".");
-                        log.reportTimeWarning("if data files are not named according to this scheme, all data files will be included.");
                         Matcher m = Pattern.compile(DosageData.CHR_REGEX).matcher(name);
                         if (m.matches()) {
                             byte chr = -1;
@@ -363,7 +393,7 @@ public class MergeExtractPipeline {
             String[] lbls = Array.toStringArray(plinkLabels);
             plinkRoots = null;
             String outRoot = dir + "plink_merged";
-            String mergeCommand = PlinkMergePrep.merge(PlinkMergePrep.BEDBIMFAM, outRoot, overwrite, renamePlink, regionsFile, markersFile, roots, lbls);
+            String mergeCommand = PlinkMergePrep.merge(PlinkMergePrep.BEDBIMFAM, outRoot, overwrite, renameMarkers, regionsFile, markersFile, roots, lbls);
 
             log.report("Running PLINK merge command: " + mergeCommand);
             boolean result = CmdLine.runDefaults(mergeCommand, dir);
@@ -372,19 +402,21 @@ public class MergeExtractPipeline {
                 return;
             }
             dataSources.add(new DataSource(null, dir, PSF.Plink.getBED(outRoot), PSF.Plink.getBIM(outRoot), PSF.Plink.getFAM(outRoot))); // no prepend here, as we've already renamed the markers using PlinkMergePrep
-            String newMkrFile = (new File(PlinkMergePrep.TEMP_MKR_FILE)).getAbsolutePath();
-            log.report("Setting markers file to temporarily generated plink-renamed markers file: " + newMkrFile);
-            this.markersFile = newMkrFile;
+            if (markersFile != null && !"".equals(markersFile)) {
+                String newMkrFile = (new File(PlinkMergePrep.TEMP_MKR_FILE)).getAbsolutePath();
+                log.report("Setting markers file to temporarily generated plink-renamed markers file: " + newMkrFile);
+                this.markersFile = newMkrFile;
+            }
         }
         
         System.gc();
         
         log.reportTime("Merging data...");
         log.reportTime("Starting from data file: " + dataSources.get(0).dataFile);
-        DosageData dd1 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile, dataSources.get(0).mapFile, regionsFile, markersFile, dataSources.get(0).label, true, null);
+        DosageData dd1 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile, dataSources.get(0).mapFile, regionsFile, markersFile, renameMarkers ? dataSources.get(0).label : "", true, null);
         for (int i = 1; i < dataSources.size(); i++) {
             log.reportTime("... merging with data file: " + dataSources.get(i).dataFile);
-            DosageData dd2 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile, dataSources.get(i).mapFile, regionsFile, markersFile, dataSources.get(0).label, true, null);
+            DosageData dd2 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile, dataSources.get(i).mapFile, regionsFile, markersFile, renameMarkers ? dataSources.get(0).label : "", true, null);
             dd1 = DosageData.combine(dd1, dd2);
             dd2 = null;
             System.gc();
@@ -427,12 +459,12 @@ public class MergeExtractPipeline {
         }
         
         try {
-            reader = Files.getAppropriateReader(data);
+            reader = Files.getAppropriateReader(Files.exists(mep.runDir + data) ? mep.runDir + data : "./" + data);
             while ((line = reader.readLine()) != null) {
                 temp = line.split("\t");
-                if (temp.length == 3) {
+                if (temp.length == 4) {
                     mep.addDataSource(temp[0], null, temp[1], temp[2], temp[3]);
-                } else if (temp.length == 4) {
+                } else if (temp.length == 5) {
                     mep.addDataSources(temp[0], temp[1], temp[2], temp[3], temp[4], 0);
                 } else {
                     System.err.println("Error - skipping invalid entry in data file: " + line);
@@ -460,14 +492,14 @@ public class MergeExtractPipeline {
         int numArgs = args.length;
         String outfileD = null;
         String outfileM = null;
-        String data = "dataSources.txt";
+        String data = "./dataSources.txt";
         String markers = null;
         String regions = null;
         String rundir = "./";
         String logFile = null;
         boolean split = false;
         boolean overwrite = false;
-        boolean renamePlink = true;
+        boolean rename = true;
         
         String usage = "\n" + 
                        "filesys.MergeExtractPipeline requires 4+ arguments\n" + 
@@ -486,8 +518,7 @@ public class MergeExtractPipeline {
                        "   (6) Optional: Log file name (i.e. log=" + logFile + " (default))\n" +
                        "   (7) Optional: Split output files (if region file is specified) (i.e. split=" + split + " (default))\n" +
                        "   (8) Optional: Overwrite files if they already exist (i.e. overwrite=" + overwrite + " (default))\n" +
-                       "   (9) Optional: Rename markers in any PLINK files to PLINK_ROOT+MarkerName (i.e. renamePlink=" + renamePlink + " (default))\n" +
-                       "            (renaming markers in other datasets is not currently supported)\n" + 
+                       "   (9) Optional: Rename markers in any data files to dataLabel+MarkerName (i.e. rename=" + rename + " (default))\n" +
                        "\n";
 
         for (int i = 0; i < args.length; i++) {
@@ -518,8 +549,8 @@ public class MergeExtractPipeline {
             } else if (args[i].startsWith("overwrite=")) {
                 overwrite = ext.parseBooleanArg(args[i]);
                 numArgs--;
-            } else if (args[i].startsWith("renamePlink=")) {
-                renamePlink = ext.parseBooleanArg(args[i]);
+            } else if (args[i].startsWith("rename=")) {
+                rename = ext.parseBooleanArg(args[i]);
                 numArgs--;
             } else if (args[i].startsWith("log=")) {
                 logFile = args[i].split("=")[1];
@@ -540,7 +571,7 @@ public class MergeExtractPipeline {
         if (markers != null) { mep.setMarkers(markers); }
         if (overwrite) { mep.setOverwrite(); }
         mep.setSplitOutputByRegions(split);
-        mep.setRenamePlinkMarkers(renamePlink);
+        mep.setRenameMarkers(rename);
         mep.setOutputFiles(outfileD, outfileM);
         
         parseDataFile(mep, data);

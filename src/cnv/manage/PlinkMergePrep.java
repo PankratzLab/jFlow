@@ -67,17 +67,21 @@ public class PlinkMergePrep {
             plinkLines[i] = pos[0] + "\t" + pos[1] + "\t" + pos[2] + "\tPLINK_" + i; 
         }
         Files.writeList(plinkLines, ext.parseDirectoryOfFile(regionFile) + outFile);
-        return outFile;
+        return ext.verifyDirFormat(new File(ext.parseDirectoryOfFile(regionFile)).getAbsolutePath()) + outFile;
     }
     
     static void renameMarkers(String plinkDirRoot, int rootType, String prepend) {
         BufferedReader reader;
         PrintWriter writer;
-        String line, ext;
+        String line, ext, newFile;
         String[] parts;
         
         ext = rootType == PEDMAP ? ".map" : ".bim";
-        boolean moved = (new File(plinkDirRoot + ext)).renameTo(new File(plinkDirRoot + "_orig" + ext));
+        newFile = plinkDirRoot + "_orig" + ext;
+        if (Files.exists(newFile)) {
+            throw new RuntimeException("Error - renamed PLINK .bim files already exist.");
+        }
+        boolean moved = (new File(plinkDirRoot + ext)).renameTo(new File(newFile));
         if (moved) {
             try {
                 reader = Files.getAppropriateReader(plinkDirRoot + "_orig" + ext);

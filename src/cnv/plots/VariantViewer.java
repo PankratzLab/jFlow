@@ -45,6 +45,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -188,7 +189,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     HashMap<String, String> superPopMap;
 //    HashMap<String, String> popColorCodeMap;
 //    HashMap<String, Color> colorCodeMap;
-    HashMap<String, Color> popColorMap;
+    LinkedHashMap<String, Color> popColorMap;
     HashMap<String, HashSet<String>> popIndiMap;
     HashMap<String, HashSet<String>> popIndiMapWithExcludes;
 	HashMap<String, VCFHeader> headerMap;
@@ -206,7 +207,18 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	private JMenu loadRecentFileMenu;
 	private ButtonGroup regionButtonGroup;
     private JCheckBoxMenuItem chkbxDisplayExcludes;
-	
+
+    private ArrayList<Color[]> colorScheme = Trailer.getColor();
+
+    private HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<String, JCheckBoxMenuItem>();
+    private HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
+    private String geneFileName;
+    private volatile boolean loadingFile = false;
+    private JComboBox<String> geneListCmb;
+
+    private PreparedMarkerSet markerSet;
+    private String[] markerNames;
+    
 	private static final int DRAW_AS_CIRCLES = 1;
 	private static final int DRAW_AS_BLOCKS = 2;
 	
@@ -227,6 +239,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	        } else if ("HIGH".equals(impAttr)) {
 	            return DrawType.X;
 	        } else {
+//	            System.out.println(impAttr);
 	            return null;
 	        }
 	    }
@@ -293,9 +306,14 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                 if (file != null && file.equals(VariantViewer.this.geneFileName)) {
                     return;
                 }
-                String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
+                String tempFile = (file.startsWith("./") && proj != null) ? proj.PROJECT_DIRECTORY.getValue() + file : file;
                 if (!Files.exists(tempFile)) {
-                    proj.message("Error - region file '" + shortName + "' doesn't exist.");
+                    String msg = "Error - region file '" + shortName + "' doesn't exist.";
+                    if (proj != null) {
+                        proj.message(msg);
+                    } else {
+                        log.reportError(msg);
+                    }
                     regionFileNameBtn.get(shortName).setSelected(true);
                 } else {
                     VariantViewer.this.geneFileName = file;
@@ -359,17 +377,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             doScreenCapture(null);
         }
     };
-
-	private ArrayList<Color[]> colorScheme = Trailer.getColor();
-
-	private HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<String, JCheckBoxMenuItem>();
-	private HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
-	private String geneFileName;
-	private volatile boolean loadingFile = false;
-	private JComboBox<String> geneListCmb;
-
-    private PreparedMarkerSet markerSet;
-    private String[] markerNames;
 	
 	public VariantViewer(Project proj, String[] vcfFiles, String popFile) {
 		this(proj, proj.GENE_LIST_FILENAMES.getValue()[0], vcfFiles, popFile);
@@ -377,7 +384,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 	// TODO TrailerClone should have a createAndShowGUI, same as all the other plots, as opposed to being its own frame 
 	public VariantViewer(Project proj, String geneListFile, String[] vcfFiles, String popFile) {
-		super("Genvisis - VariantViewer - " + proj.PROJECT_NAME.getValue());
+		super("Genvisis - VariantViewer" + (proj != null ? " - " + proj.PROJECT_NAME.getValue() : ""));
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -415,7 +422,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		String trackFilename;
 
 		this.proj = proj;
-		this.log = proj.getLog();
+		this.log = proj == null ? new Logger() : proj.getLog();
 		jar = proj.JAR_STATUS.getValue();
 		fail = false;
 		this.vcfFiles = vcfFiles;
@@ -490,10 +497,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 	private void loadGenes(String file) {
 		if (!Files.exists(file)) {// TODO, can put somewhere else
-			proj.getLog().reportTimeWarning("Generating " + file + " using all genes in " + vcfFiles[0]);
-			VCFOps.dumpSnpEffGenes(vcfFiles[0], file, proj.getLog());
+			log.reportTimeWarning("Generating " + file + " using all genes in " + vcfFiles[0]);
+			VCFOps.dumpSnpEffGenes(vcfFiles[0], file, log);
 		}
-		proj.getLog().reportTimeWarning("Loading " + file );
+		log.reportTimeWarning("Loading " + file );
 
 		String[][] geneFile = readFile(file);
 	    geneList = new ArrayList<String>();
@@ -714,17 +721,18 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                                 }
                                 
                                 DrawType vcType = DrawType.getDrawType(vc.vc);
-                                
-                                int diffA = vc.vc.getStart() - exons[j][0];
-                                double prop = diffA / (double) len;
-                                int diffPx = (int) (lenPx * prop);
-                                if (diffPx + dataPntSize + 2 > lenPx) { // don't let the markings go past the exon
-                                    diffPx = lenPx - dataPntSize - 2;
+                                if (vcType != null) {
+                                    int diffA = vc.vc.getStart() - exons[j][0];
+                                    double prop = diffA / (double) len;
+                                    int diffPx = (int) (lenPx * prop);
+                                    if (diffPx + dataPntSize + 2 > lenPx) { // don't let the markings go past the exon
+                                        diffPx = lenPx - dataPntSize - 2;
+                                    }
+    
+                                    freqLocs.add(new VCFLocation(tempPx + diffPx, vc.vc));
+                                    BlockDraw bd = new BlockDraw(vc.vc.getStart(), tempPx + diffPx, gctx.size(), totAff, popGenoCnt, vcType, vc);
+                                    toDraw.add(bd);
                                 }
-
-                                freqLocs.add(new VCFLocation(tempPx + diffPx, vc.vc));
-                                BlockDraw bd = new BlockDraw(vc.vc.getStart(), tempPx + diffPx, gctx.size(), totAff, popGenoCnt, vcType, vc);
-                                toDraw.add(bd);
                             }
                             for (BlockDraw bd : toDraw) {
                                 drawBlock(g, bd);
@@ -752,9 +760,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                                 int genoCnt = 0;
                                 for (int i = 0; i < gctx.size(); i++) {
                                     Genotype geno = gctx.get(i);
-									if (geno.getSampleName().startsWith("PT434")) {
-										System.out.println(gene.getGeneName() + "\t"+geno.getType()+"\t" + geno.toString());
-									}
+//									if (geno.getSampleName().startsWith("PT434")) {
+//										System.out.println(gene.getGeneName() + "\t"+geno.getType()+"\t" + geno.toString());
+//									}
                                     if (excluded.contains(geno.getSampleName()) && !showExcludes) {
                                         continue;
                                     }
@@ -776,14 +784,17 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     //                                            }
                                             }
                                         } while (overlap && vcRect.y + vcRect.height + 110 < getHeight()/* && xOffset <= 20*/); // running off top of screen
-                                        plotted.add(vcRect);
-                                        DrawPoint dp = new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width, DrawType.getDrawType(vc.vc), popColorMap.get(popMap.get(geno.getSampleName())), geno.getSampleName(), vc);
-                                        activePoints.add(dp);
-                                        activeRects.add(vcRect);
-                                        if (selectedDrawPoint != null && dp.sampleID.equals(selectedDrawPoint.sampleID)) {
-                                            selectedRect = vcRect;
+                                        DrawType dt = DrawType.getDrawType(vc.vc);
+                                        if (dt != null) {
+                                            plotted.add(vcRect);
+                                            DrawPoint dp = new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width, DrawType.getDrawType(vc.vc), popColorMap.get(popMap.get(geno.getSampleName())), geno.getSampleName(), vc);
+                                            activePoints.add(dp);
+                                            activeRects.add(vcRect);
+                                            if (selectedDrawPoint != null && dp.sampleID.equals(selectedDrawPoint.sampleID) && dp.vcRecord.equals(selectedDrawPoint.vcRecord)) {
+                                                selectedRect = vcRect;
+                                            }
+                                            drawn.add(dp);
                                         }
-                                        drawn.add(dp);
                                         if (vcRect.y + vcRect.height + 110 >= getHeight()) {
                                             break; // stop doing things if we're off the screen
                                         }
@@ -935,7 +946,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, dp.c);
             Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, dp.c);
         } else {
-            // TODO Error
+
         }
         
         int offset = 1;
@@ -1257,6 +1268,17 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			public void paintComponent(Graphics g) {
 			    paintPanel(g);
 		    }
+			@Override
+			public Point getToolTipLocation(MouseEvent event) {
+			    Point p = super.getToolTipLocation(event);
+		        if (selectedRect != null) {
+		            int x, y;
+		            x = selectedRect.x + (selectedRect.width / 2);
+		            y = genePanel.getHeight() - yStart - GENE_HEIGHT - selectedRect.y - 2;
+		            p = new Point(x, y);
+		        }
+			    return p;
+			}
 		};
 		genePanel.addMouseListener(this);
 		genePanel.addMouseMotionListener(this);
@@ -1434,8 +1456,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	        try {
 	            ImageIO.write(cap, "png", new File(filename));
 	        } catch (IOException e) {
+	            log.reportException(e);
 	            if (proj != null) {
-	                proj.getLog().reportException(e);
 	                proj.message("Error occured while writing screen capture to file.  Please check log for more details.");
 	            }
 	        }
@@ -1962,6 +1984,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                 } else if (drawType == DRAW_AS_CIRCLES) {
                     selectedDrawPoint = activePoints.get(i);
                 }
+                genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
                 MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, e.getY(), 0, false);
                 ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
                 this.mouseMoved(phantom);
@@ -1970,6 +1993,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             }
         }
         
+        genePanel.setToolTipText(null);
         selectedRect = null;
         selectedBlockDraw = null;
         selectedDrawPoint = null;
@@ -1983,17 +2007,20 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	
     int defaultInitial = ToolTipManager.sharedInstance().getInitialDelay();
     int defaultReshow = ToolTipManager.sharedInstance().getReshowDelay();
+    int defaultDismiss = ToolTipManager.sharedInstance().getDismissDelay();
     
     @Override
     public void mouseEntered(MouseEvent e) {
         ToolTipManager.sharedInstance().setReshowDelay(3);
         ToolTipManager.sharedInstance().setInitialDelay(3);
+        ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
     }
     
     @Override
     public void mouseExited(MouseEvent e) {
         ToolTipManager.sharedInstance().setReshowDelay(defaultReshow);
         ToolTipManager.sharedInstance().setInitialDelay(defaultInitial);
+        ToolTipManager.sharedInstance().setDismissDelay(defaultDismiss);
     }
 
 	public void mousePressed(MouseEvent e) {
@@ -2066,13 +2093,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	    int x = e.getX();
         int y = genePanel.getHeight() - yStart - GENE_HEIGHT - e.getY() - 2;
         
-        if (selectedRect.contains(x, y)) {
+//        if (selectedRect.contains(x, y)) {
             if (genePanel.getToolTipText() == null) {
-                genePanel.setToolTipText(selectedBlockDraw == null ? buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
+                genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
             }
-        } else {
-            genePanel.setToolTipText(null);
-        }
+//        } else {
+//            genePanel.setToolTipText(null);
+//        }
         
 	}
 	
@@ -2083,6 +2110,21 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		txtBld.append("Genotype: ").append(dp.vcRecord.vc.getGenotype(dp.sampleID).toBriefString());
 		txtBld.append("</pre><pre>");
 		txtBld.append("Max Freq: ").append(dp.vcRecord.vc.getAttributeAsString("PopFreqMax", "."));
+		txtBld.append("</pre><pre>");
+		String aaChng = dp.vcRecord.vc.getAttributeAsString("SNPEFF_AMINO_ACID_CHANGE", ".");
+		txtBld.append("Amino Acid Change: ");
+		if (!aaChng.equals(".")) {
+		    String[] fromAA, toAA;
+    		fromAA = bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
+    		toAA = bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
+    		if (fromAA != null && toAA != null) {
+    		    txtBld.append(fromAA[1]).append(" --> ").append(toAA[1]);
+    		} else {
+    		    txtBld.append(aaChng);
+    		}
+		} else {
+		    txtBld.append(aaChng);
+		}
 		txtBld.append("</pre><hr><pre>");
         txtBld.append("Position: ").append(dp.vcRecord.vc.getContig()).append(":").append(dp.vcRecord.vc.getStart());
         if (dp.vcRecord.vc.getStart() != dp.vcRecord.vc.getEnd()) {
@@ -2339,7 +2381,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	    BufferedReader reader = Files.getAppropriateReader(popFile);
 	    String[] header = reader.readLine().trim().split("\t", -1);
 //	    colorCodeMap = new HashMap<String, Color>();
-	    popColorMap = new HashMap<String, Color>();
+	    popColorMap = new LinkedHashMap<String, Color>();
 	    popIndiMap = new HashMap<String, HashSet<String>>();
 	    popIndiMapWithExcludes = new HashMap<String, HashSet<String>>();
 	    
@@ -2411,8 +2453,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         }
 	}
 	
-	private HashMap<String, Color> parseColors(String colorHeader) {
-	    HashMap<String, Color> colorMap = new HashMap<String, Color>();
+	private LinkedHashMap<String, Color> parseColors(String colorHeader) {
+	    LinkedHashMap<String, Color> colorMap = new LinkedHashMap<String, Color>();
 	    String[] pts = colorHeader.split(";");
 	    int overflow = 9;
         for (int i = 1; i < pts.length; i++) {
@@ -2498,22 +2540,22 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	}
 
 	public static void main(String[] args) {
-		// Project proj = new Project("D:/projects/poynter.properties", false);
-		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
+		 Project proj = new Project("D:/projects/gedi_gwas.properties", false);
+//		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test2/genes.txt" });
 		//
-		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz" };
-		String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
-		new VariantViewer(proj, vcfFiles, popFile);
+//		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz" };
+//		String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
+//		new VariantViewer(proj, vcfFiles, popFile);
 
-		String[] vcfFiles2 = new String[] { "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz" };
-		String popFile2 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
-		new VariantViewer(proj, vcfFiles2, popFile2);
-		//
-		String[] vcfFiles3 = new String[] { "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz" };
-		String popFile3 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS.vpop";
-		new VariantViewer(proj, vcfFiles3, popFile3);
-
+//		String[] vcfFiles2 = new String[] { "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz" };
+//		String popFile2 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
+//		new VariantViewer(proj, vcfFiles2, popFile2);
+//		//
+//		String[] vcfFiles3 = new String[] { "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz" };
+//		String popFile3 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS.vpop";
+//		new VariantViewer(proj, vcfFiles3, popFile3);
+//
 		String[] vcfFiles4 = new String[] { "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz" };
 		String popFile4 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS_OTEHRS.vpop";
 		new VariantViewer(proj, vcfFiles4, popFile4);
