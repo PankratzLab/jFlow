@@ -121,7 +121,7 @@ public class DosageData implements Serializable {
         out.close();
 	}
 	
-	public static DosageData loadPlinkBinary(String dir, String plinkRoot, String regionsToUseFile, String markersToUseFile) {
+	public static DosageData loadPlinkBinary(String dir, String plinkRoot, String regionsToUseFile, String markersToUseFile, String markerNamePrepend) {
 	    DosageData dd = new DosageData();
 	    
 	    dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false, new int[]{0, 1, 2, 3, 4, 5}, false);
@@ -134,7 +134,7 @@ public class DosageData implements Serializable {
 	    String[][] bimData = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".bim", false, new int[]{0, 1, 2, 3, 4, 5}, false);
 	    
 	    for (int i = 0; i < bimData.length; i++) {
-	        markerNames[i] = bimData[i][1];
+	        markerNames[i] = (null == markerNamePrepend ? "" : markerNamePrepend) + bimData[i][1];
 	        dd.chrs[i] = decodeChr(bimData[i][0]);
 	        dd.positions[i] = Integer.parseInt(bimData[i][3]);
 	        dd.alleles[i][0] = bimData[i][4].charAt(0);
@@ -421,25 +421,28 @@ public class DosageData implements Serializable {
 	}
 	
 	public DosageData(String dosageFile, String idFile, String mapFile, boolean verbose, Logger log) {
-	    this(dosageFile, idFile, mapFile, determineType(dosageFile), verbose, log);
-	}
-
-	public DosageData(String dosageFile, String idFile, String mapFile, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
-	    this(dosageFile, idFile, mapFile, determineType(dosageFile), regionsToUseFile, markersToUseFile, verbose, log);
+	    this(dosageFile, idFile, mapFile, null, null, verbose, log);
 	}
 
 	public DosageData(String dosageFile, String idFile, String mapFile, int type, boolean verbose, Logger log) {
-	    this(dosageFile, idFile, mapFile, PARAMETERS[type], null, null, verbose, log);
+	    this(dosageFile, idFile, mapFile, type, null, null, verbose, log);
+	}
+
+	public DosageData(String dosageFile, String idFile, String mapFile, String regionsToUseFile, String markersToUseFile, String markerNamePrepend, boolean verbose, Logger log) {
+	    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regionsToUseFile, markersToUseFile, markerNamePrepend, verbose, log);
+	}
+
+	public DosageData(String dosageFile, String idFile, String mapFile, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
+	    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regionsToUseFile, markersToUseFile, null, verbose, log);
 	}
 	
-
 	public DosageData(String dosageFile, String idFile, String mapFile, int type, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
-	    this(dosageFile, idFile, mapFile, PARAMETERS[type], regionsToUseFile, markersToUseFile, verbose, log);
+	    this(dosageFile, idFile, mapFile, PARAMETERS[type], regionsToUseFile, markersToUseFile, null, verbose, log);
 	}
 
-	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
+	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, String regionsToUseFile, String markersToUseFile, String markerNamePrepend, boolean verbose, Logger log) {
 	    if (parameters[2] == PLINK_BINARY_FORMAT) {
-	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), ext.rootOf(dosageFile, true), regionsToUseFile, markersToUseFile);
+	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), ext.rootOf(dosageFile, true), regionsToUseFile, markersToUseFile, markerNamePrepend);
 	        this.alleles = dd.alleles;
 	        this.chrs = dd.chrs;
 	        this.positions = dd.positions;
@@ -670,6 +673,13 @@ public class DosageData implements Serializable {
 						}
 					}
 				}
+			}
+			
+			if (markerNamePrepend != null && !"".equals(markerNamePrepend)) {
+			    for (int i = 0; i < markerNames.length; i++) {
+			        markerNames[i] = markerNamePrepend + markerNames[i];
+			    }
+			    markerSet.convertMarkerNamesToRSnumbers(markerNames, true); // resets/recreates the SnpMarkerSet's internal RSnumber/non-RS marker lists
 			}
 
 			reader.close();

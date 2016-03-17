@@ -70,13 +70,12 @@ public class PlinkMergePrep {
         return outFile;
     }
     
-    static void renameMarkers(String plinkDirRoot, int rootType) {
+    static void renameMarkers(String plinkDirRoot, int rootType, String prepend) {
         BufferedReader reader;
         PrintWriter writer;
-        String line, ext, plinkRoot;
+        String line, ext;
         String[] parts;
         
-        plinkRoot = common.ext.rootOf(plinkDirRoot);
         ext = rootType == PEDMAP ? ".map" : ".bim";
         boolean moved = (new File(plinkDirRoot + ext)).renameTo(new File(plinkDirRoot + "_orig" + ext));
         if (moved) {
@@ -85,7 +84,7 @@ public class PlinkMergePrep {
                 writer = Files.getAppropriateWriter(plinkDirRoot + ext);
                 while ((line = reader.readLine()) != null) {
                     parts = line.split("[\\s]+", -1);
-                    parts[1] = plinkRoot + "_" + parts[1];
+                    parts[1] = prepend + "_" + parts[1];
                     writer.println(Array.toStr(parts, "\t"));
                 }
                 writer.flush();
@@ -99,7 +98,7 @@ public class PlinkMergePrep {
         }
     }
     
-    static String merge(int outType, String outDirAndRoot, boolean overwrite, boolean renameMarkers, String regionFile, String markersFile, String plinkRootWithDir1, String plinkRootWithDir2) {
+    static String merge(int outType, String outDirAndRoot, boolean overwrite, boolean renameMarkers, String regionFile, String markersFile, String plinkRootWithDir1, String plinkRootWithDir2, String prepend1, String prepend2) {
         int rootType1, rootType2;
         StringBuilder cmds;
         String tempRgnFile;
@@ -147,8 +146,8 @@ public class PlinkMergePrep {
             return null;
         }
         if (renameMarkers) {
-            renameMarkers(plinkRootWithDir1, rootType1);
-            renameMarkers(plinkRootWithDir2, rootType2);
+            renameMarkers(plinkRootWithDir1, rootType1, prepend1);
+            renameMarkers(plinkRootWithDir2, rootType2, prepend2);
         }
         
         cmds = new StringBuilder();
@@ -188,7 +187,7 @@ public class PlinkMergePrep {
         return cmds.toString();
     }
     
-    public static String merge(int outType, String outDirAndRoot, boolean overwrite, boolean renameMarkers, String regionFile, String markersFile, String[] plinkRootsWithDirs) {
+    public static String merge(int outType, String outDirAndRoot, boolean overwrite, boolean renameMarkers, String regionFile, String markersFile, String[] plinkRootsWithDirs, String[] prepends) {
         int[] rootTypes;
         String[] lines;
         String fileListName, tempRgnFile;
@@ -203,7 +202,7 @@ public class PlinkMergePrep {
             System.err.println("Error - at least two distinct PLINK file roots must be specified for merging.");
             return null;
         } else if (plinkRootsWithDirs.length == 2) {
-            return merge(outType, outDirAndRoot, overwrite, renameMarkers, regionFile, markersFile, plinkRootsWithDirs[0], plinkRootsWithDirs[1]);
+            return merge(outType, outDirAndRoot, overwrite, renameMarkers, regionFile, markersFile, plinkRootsWithDirs[0], plinkRootsWithDirs[1], prepends[0], prepends[1]);
         }
         if (Files.exists(outDirAndRoot + (outType == PEDMAP ? ".ped" : ".bed"))) {
             if (!overwrite) {
@@ -255,7 +254,7 @@ public class PlinkMergePrep {
         
         if (renameMarkers) {
             for (int i = 0; i < plinkRootsWithDirs.length; i++) {
-                renameMarkers(plinkRootsWithDirs[i], rootTypes[i]);
+                renameMarkers(plinkRootsWithDirs[i], rootTypes[i], prepends[i]);
             }
         }
         fileListName = (new File(fileListName)).getAbsolutePath();
@@ -300,6 +299,7 @@ public class PlinkMergePrep {
         String rgnFile = "";
         String mkrFile = "";
         String[] roots = null;
+        String[] prepends = null;
         
         String usage = "\n" + 
                        "cnv.manage.PlinkMergePrep requires 0-1 arguments\n" + 
@@ -368,7 +368,14 @@ public class PlinkMergePrep {
                     }
                 }
             }
-            String mergeCommand = merge(outType, outRoot, overwrite, renameMarkers, rgnFile, mkrFile, roots);
+            if (renameMarkers) {
+                prepends = new String[roots.length];
+                for (int i = 0; i < roots.length; i++) {
+                    prepends[i] = common.ext.rootOf(roots[i], true);
+                }
+            }
+            
+            String mergeCommand = merge(outType, outRoot, overwrite, renameMarkers, rgnFile, mkrFile, roots, prepends);
             System.out.println(mergeCommand);
         } catch (Exception e) {
             e.printStackTrace();
