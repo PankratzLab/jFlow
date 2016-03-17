@@ -1715,7 +1715,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 							if (gcModel == null) {
 								log.reportTimeError("Internal error, null gc model");
 							} else {
-								currentColorManager = gcModel.getColorManager(100);
+								currentColorManager = gcModel.getColorManager();
 							}
 						} else {
 							log.reportTimeError("Internal error, Invalid color command");
