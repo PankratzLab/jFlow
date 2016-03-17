@@ -386,6 +386,7 @@ public class VCFImporter {
 		Files.writeList(projNorm.getAutosomalMarkers(), projNorm.TARGET_MARKERS_FILENAMES.getValue()[0]);
 		processCentroids(projNorm, vcf, numThreads);
 		projNorm.LRRSD_CUTOFF.setValue(2.2);
+		projNorm.SAMPLE_CALLRATE_THRESHOLD.setValue(0.98);
 		projNorm.getLog().reportTimeError("Remember that the LRR_SD cutoff is set to 2.2");
 		projNorm.saveProperties();
 		String pretendMedian = projNorm.PROJECT_DIRECTORY.getValue() + "pretendMedian.txt";
@@ -394,7 +395,7 @@ public class VCFImporter {
 		String useFile = projNorm.PROJECT_DIRECTORY.getValue() + "VCF_SAMPLES_TO_USE.txt";
 		Files.writeList(Array.subArray(projNorm.getSamples(), projNorm.getSamplesToInclude(null, true)), useFile);
 		projNorm.getSamplesToInclude(null);
-		MitoPipeline.catAndCaboodle(projNorm, numThreads, "0.98", pretendMedian, 100, projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true, 0.98, useFile, null, null, true, true, false, true, false, null, -1, -1);
+		MitoPipeline.catAndCaboodle(projNorm, numThreads, pretendMedian, 100, projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true, 0.98, useFile, null, null, true, true, false, true, false, null, -1, -1);
 		SampleQC sampleQC = SampleQC.loadSampleQC(projNorm);
 		sampleQC.addQCsToSampleData(5, true);
 		sampleQC.addPCsToSampleData(5, 10, true);

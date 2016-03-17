@@ -411,7 +411,7 @@ public class LrrSd extends Parallelizable {
      *            a further filter of samples that will be used
      * @param log
      */
-    public static int[] filterSamples(Project proj, String outputBase, String markersForABCallRate, String markersForEverythingElse, int numThreads, String sampleCallRateFilter, String useFile) {
+    public static int[] filterSamples(Project proj, String outputBase, String markersForABCallRate, String markersForEverythingElse, int numThreads, String useFile) {
         Hashtable<String, String> sampDataQC = new Hashtable<String, String>();
         int[] indices;
         String[] line;
@@ -422,7 +422,7 @@ public class LrrSd extends Parallelizable {
         SampleData sampleData = proj.getSampleData(0, false);
         // double lrrSdFilter = Double.parseDouble(proj.getProperty(proj.LRRSD_CUTOFF));
         double lrrSdFilter = proj.LRRSD_CUTOFF.getValue();
-        double callRateFilter = Double.parseDouble(sampleCallRateFilter);
+        double callRateFilter = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
         boolean addToSampleData = checkSampleData(proj, sampleData);
         Hashtable<String, String> subset = checkSubset(useFile, log);
 
@@ -509,8 +509,7 @@ public class LrrSd extends Parallelizable {
 		return new int[] { numPassing, count };
 	}
 
-	private static boolean[] getMarkerSubset(Project proj, String[] subMarkers) {
-		String[] markers = proj.getMarkerNames();
+	private static boolean[] getMarkerSubset(Project proj, String[] subMarkers, String[] markers) {
 		boolean[] markerSubset = new boolean[markers.length];
 		if (subMarkers == null) {
 			Arrays.fill(markerSubset, true);
@@ -537,7 +536,9 @@ public class LrrSd extends Parallelizable {
 		String[][] threadSeeds;
 		LrrSd[] runables;
 		boolean error;
+		String[] markers;
 		boolean[] markersForCallrate, markersForEverythingElse;
+		BaselineUnclusteredMarkers bum;
 		GcModel gcModel;
 		Logger log;
 		
@@ -561,23 +562,41 @@ public class LrrSd extends Parallelizable {
 			}
 		}
 		
-		markersForCallrate = null;
-		markersForEverythingElse = null;
-		gcModel = null;
+		if(!BaselineUnclusteredMarkers.baselineUnclusteredMarkersFileExists(proj)){
+			log.report("Baseline Unclustered Markers file does not exist and will be created now");
+			if(!BaselineUnclusteredMarkers.createBaselineUnclusteredMarkersFileFromSamples(proj)){
+				log.reportError("Error - Baseline Unclustered Markers file could not be created");
+				return;
+			}
+		}
+		
+		markers = proj.getMarkerNames();
 		if (markersForCallrateFile != null) {
-			markersForCallrate = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForCallrateFile, false, new int[] { 0 }, false));
+			markersForCallrate = getMarkerSubset(proj,HashVec.loadFileToStringArray(markersForCallrateFile, false, new int[] { 0 }, false), markers);
 			if (markersForCallrate == null) {
 				log.reportError("Error - Some markers listed in " + markersForCallrateFile + " were not found in the current project, or were duplicates");
 				return;
 			}
+		} else {
+			markersForCallrate = new boolean[markers.length];
+			Arrays.fill(markersForCallrate, true);
 		}
+		bum = BaselineUnclusteredMarkers.getProjBaselineUnclusteredMarkers(proj);
+		for (int i = 0; i < markersForCallrate.length; i++){
+			if(markersForCallrate[i] && bum.markerUnclustered(markers[i])) {
+				markersForCallrate[i] = false;
+			}
+		}
+		markersForEverythingElse = null;
 		if (markersForEverythingElseFile != null) {
-			markersForEverythingElse = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForEverythingElseFile, false, new int[] { 0 }, false));
-			if (markersForCallrate == null) {
+			markersForEverythingElse = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForEverythingElseFile, false, new int[] { 0 }, false), markers);
+			if (markersForEverythingElse == null) {
 				log.reportError("Error - Some markers listed in " + markersForEverythingElseFile + " were not found in the current project, or were duplicates");
 				return;
 			}
 		}
+
+		gcModel = null;
 		if (Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
 			gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, log);
 			if (gcModel == null) {
@@ -608,7 +627,7 @@ public class LrrSd extends Parallelizable {
 		int numThreads = 1;
 		Project proj;
 		boolean filter = false;
-		String sampleCallRateFilter = "0.95";
+		String sampleCallRateFilter = null;
 		String outputBase = null;
 
 		String usage = "\n"+
@@ -665,7 +684,8 @@ public class LrrSd extends Parallelizable {
 //			filenameOfListOfSamples = "D:/data/GEDI/plate51.txt";			
 		    proj = new Project(filename, false);
 			if (filter) {
-			    filterSamples(proj, outputBase, markersForCallrateFile, markersForEverythingElseFile, numThreads, sampleCallRateFilter, filenameOfListOfSamples);
+				proj.SAMPLE_CALLRATE_THRESHOLD.setValue(Double.parseDouble(sampleCallRateFilter));
+			    filterSamples(proj, outputBase, markersForCallrateFile, markersForEverythingElseFile, numThreads, filenameOfListOfSamples);
 			} else {
 			    init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile, centroids, numThreads);
 			}
