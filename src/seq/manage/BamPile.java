@@ -55,7 +55,7 @@ public class BamPile extends Segment implements Serializable {
 	}
 
 	public BamPile(Segment bin) {
-		super();
+		super(bin.getChr(), bin.getStart(), bin.getStop());
 		this.bin = bin;
 		this.counts = new int[7];// A,G,C,T,N,Del,Ins
 		this.avgMapQ = new double[7];

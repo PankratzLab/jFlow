@@ -88,6 +88,17 @@ public class ColorExt {
 		return colorMap;
 	}
 
+	public static HashMap<String, Color> getCols(Project proj, String file) {
+		String[] header = Files.getHeaderOfFile(file, proj.getLog());
+		int classIndex = ext.indexOfStartsWith("CLASS=MARKER_COLOR", header, false);
+		HashMap<String, Color> cols = new HashMap<String, Color>();
+		if (classIndex >= 0) {
+			cols = parseColors(header[classIndex]);
+		}
+		return cols;
+
+	}
+	
 	public static ColorManager<String> getColorManager(Project proj, String file) {
 		if (Files.exists(file)) {
 			String[] header = Files.getHeaderOfFile(file, proj.getLog());
@@ -114,7 +125,7 @@ public class ColorExt {
 					}
 
 					BufferedReader reader = Files.getAppropriateReader(file);
-
+					reader.readLine();
 					while (reader.ready()) {
 
 						String[] line = reader.readLine().trim().split("\t");
@@ -164,6 +175,10 @@ public class ColorExt {
 
 		public Hashtable<E, ColorItem<E>> getManager() {
 			return manager;
+		}
+
+		public boolean hasColorFor(E var) {
+			return lookup.containsKey(var);
 		}
 
 		public ColorItem<E> getColorItemForVar(E var) {

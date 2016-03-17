@@ -267,6 +267,21 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		}
 	}
 
+	public int[] getExactMatch(final Segment seg) {
+		int[] overlaps = getOverlappingIndices(seg);
+		ArrayList<Integer> exacts = new ArrayList<Integer>();
+		if (overlaps == null || overlaps.length == 0) {
+			return null;
+		} else {
+			for (int i = 0; i < overlaps.length; i++) {
+				if (loci[overlaps[i]].equals(seg)) {
+					exacts.add(overlaps[i]);
+				}
+			}
+			return Array.toIntArray(exacts);
+		}
+	}
+
 	public T[] getOverLappingLoci(final Segment seg) {
 		int[] indices = getOverlappingIndices(seg);
 		if (indices == null) {
