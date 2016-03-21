@@ -19,7 +19,7 @@ import cnv.filesys.MarkerData;
 import cnv.filesys.Pedigree;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-import cnv.gui.GenvisisPipelineGUI;
+import cnv.gui.GenvisisWorkflowGUI;
 import cnv.hmm.CNVCaller;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustorParameter;
@@ -32,11 +32,11 @@ import common.Files;
 import common.Logger;
 import common.ext;
 
-public class GenvisisPipeline {
+public class GenvisisWorkflow {
     
     Project proj;
     Logger log;
-    private GenvisisPipelineGUI gui;
+    private GenvisisWorkflowGUI gui;
     private Launch launch;
     
     static final STEP S1I_CREATE_MKR_POS = new STEP("Create Marker Positions (if not already exists)", 
@@ -1746,14 +1746,14 @@ public class GenvisisPipeline {
         BOOL()
     }
     
-    public GenvisisPipeline(Project project, Launch launch) {
+    public GenvisisWorkflow(Project project, Launch launch) {
         this.proj = project;
         this.log = project == null ? new Logger() : project.getLog();
         this.launch = launch;
     }
     
     public void showDialogAndRun() {
-        gui = new GenvisisPipelineGUI(this.proj, this.launch);
+        gui = new GenvisisWorkflowGUI(this.proj, this.launch);
         if (!gui.getCancelled()) {
             gui.setModal(true);
             gui.setVisible(true);

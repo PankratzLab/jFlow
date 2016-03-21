@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -17,6 +18,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -28,7 +31,9 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -39,9 +44,9 @@ import javax.swing.event.CaretListener;
 import net.miginfocom.swing.MigLayout;
 import cnv.Launch;
 import cnv.filesys.Project;
-import cnv.manage.GenvisisPipeline;
-import cnv.manage.GenvisisPipeline.RequirementInputType;
-import cnv.manage.GenvisisPipeline.STEP;
+import cnv.manage.GenvisisWorkflow;
+import cnv.manage.GenvisisWorkflow.RequirementInputType;
+import cnv.manage.GenvisisWorkflow.STEP;
 import common.Array;
 import common.Files;
 import common.Grafik;
@@ -51,7 +56,7 @@ import javax.swing.JSeparator;
 
 import java.awt.event.ActionListener;
 
-public class GenvisisPipelineGUI extends JDialog {
+public class GenvisisWorkflowGUI extends JDialog {
 
     private static final long serialVersionUID = 1L;
 
@@ -61,12 +66,12 @@ public class GenvisisPipelineGUI extends JDialog {
     private ConcurrentHashMap<STEP, JCheckBox> checkBoxes = new ConcurrentHashMap<STEP, JCheckBox>();
     private ConcurrentHashMap<STEP, JLabel> descLabels = new ConcurrentHashMap<STEP, JLabel>();
     private ConcurrentHashMap<STEP, ArrayList<JLabel>> requirementsLabels = new ConcurrentHashMap<STEP, ArrayList<JLabel>>();
-    private ConcurrentHashMap<STEP, JAccordionPanel> panels = new ConcurrentHashMap<GenvisisPipeline.STEP, JAccordionPanel>();
-    public ConcurrentHashMap<STEP, ArrayList<? extends JComponent>> varFields = new ConcurrentHashMap<GenvisisPipeline.STEP, ArrayList<? extends JComponent>>();
-    public ConcurrentHashMap<STEP, JProgressBar> progBars = new ConcurrentHashMap<GenvisisPipeline.STEP, JProgressBar>();
-    public ConcurrentHashMap<STEP, ArrayList<JButton>> fileBtns = new ConcurrentHashMap<GenvisisPipeline.STEP, ArrayList<JButton>>();
-    public ConcurrentHashMap<STEP, JLabel> alreadyRunLbls = new ConcurrentHashMap<GenvisisPipeline.STEP, JLabel>();
-    public ConcurrentHashMap<STEP, JButton> cancelStepBtns = new ConcurrentHashMap<GenvisisPipeline.STEP, JButton>();
+    private ConcurrentHashMap<STEP, JAccordionPanel> panels = new ConcurrentHashMap<GenvisisWorkflow.STEP, JAccordionPanel>();
+    public ConcurrentHashMap<STEP, ArrayList<? extends JComponent>> varFields = new ConcurrentHashMap<GenvisisWorkflow.STEP, ArrayList<? extends JComponent>>();
+    public ConcurrentHashMap<STEP, JProgressBar> progBars = new ConcurrentHashMap<GenvisisWorkflow.STEP, JProgressBar>();
+    public ConcurrentHashMap<STEP, ArrayList<JButton>> fileBtns = new ConcurrentHashMap<GenvisisWorkflow.STEP, ArrayList<JButton>>();
+    public ConcurrentHashMap<STEP, JLabel> alreadyRunLbls = new ConcurrentHashMap<GenvisisWorkflow.STEP, JLabel>();
+    public ConcurrentHashMap<STEP, JButton> cancelStepBtns = new ConcurrentHashMap<GenvisisWorkflow.STEP, JButton>();
     
     Project proj;
     
@@ -80,7 +85,7 @@ public class GenvisisPipelineGUI extends JDialog {
     /**
      * Create the dialog.
      */
-    public GenvisisPipelineGUI(Project proj2, final Launch launch) {
+    public GenvisisWorkflowGUI(Project proj2, final Launch launch) {
         if (proj2 == null) {
             this.proj = createNewProject();
         } else {
@@ -95,7 +100,7 @@ public class GenvisisPipelineGUI extends JDialog {
             this.proj = launch.loadProject();
         }
         this.proj.getLog().report("Launching Genvisis Project Pipeline");
-        this.steps = GenvisisPipeline.getStepsForProject(this.proj);
+        this.steps = GenvisisWorkflow.getStepsForProject(this.proj);
         selected = Array.booleanArray(this.steps.length, true);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -161,12 +166,12 @@ public class GenvisisPipelineGUI extends JDialog {
             btnSelectValid.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     int stepIndex = -1;
-                    HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisPipeline.STEP, Boolean>();
+                    HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisWorkflow.STEP, Boolean>();
                     for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
                         selectedSteps.put(entry.getKey(), true); // pretend everything is selected
                     }
                     HashMap<STEP, ArrayList<String>> variables = getVariables();
-                    for (final STEP step : GenvisisPipelineGUI.this.steps) {
+                    for (final STEP step : GenvisisWorkflowGUI.this.steps) {
                         stepIndex++;
                         if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
                             continue;
@@ -285,9 +290,24 @@ public class GenvisisPipelineGUI extends JDialog {
             @Override
             public void windowGainedFocus(WindowEvent e) {
                 launch.toFront();
-                GenvisisPipelineGUI.this.toFront();
+                GenvisisWorkflowGUI.this.toFront();
             }
         });
+
+        InputMap inMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actMap = getRootPane().getActionMap();
+
+        KeyStroke escKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+        AbstractAction escapeAction = new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                doClose();
+            }
+        };
+        inMap.put(escKey, "Action.escape");
+        actMap.put("Action.escape", escapeAction);
+        
         // panels start out visible to help with spacing (otherwise the containing jscrollpane is too small)
 //        for (JPanel panel : panels.values()) {
 //            ((JAccordionPanel) panel).shrink();
@@ -318,14 +338,14 @@ public class GenvisisPipelineGUI extends JDialog {
             String[] parts = e.getActionCommand().split(":");
             int stepIndex = Integer.parseInt(parts[0]);
             int fieldIndex = Integer.parseInt(parts[1]);
-            JTextField fileField = (JTextField) varFields.get(GenvisisPipelineGUI.this.steps[stepIndex]).get(fieldIndex);
+            JTextField fileField = (JTextField) varFields.get(GenvisisWorkflowGUI.this.steps[stepIndex]).get(fieldIndex);
             
             String current = fileField.getText();
             
             String dir = current.equals("") ? proj.PROJECT_DIRECTORY.getValue(false, false) : ext.parseDirectoryOfFile(current); 
             JFileChooser chooser = new JFileChooser(dir);
             chooser.setMultiSelectionEnabled(false);
-            RequirementInputType[][] reqs = GenvisisPipelineGUI.this.steps[stepIndex].reqTypes;
+            RequirementInputType[][] reqs = GenvisisWorkflowGUI.this.steps[stepIndex].reqTypes;
             int accum = 0;
             RequirementInputType type = null;
             outer: for (int i = 0; i < reqs.length; i++) {
@@ -349,7 +369,7 @@ public class GenvisisPipelineGUI extends JDialog {
                 chooser.setDialogTitle("Select Directory");
             }
             
-            int retValue = chooser.showDialog(GenvisisPipelineGUI.this, "Select");
+            int retValue = chooser.showDialog(GenvisisWorkflowGUI.this, "Select");
             
             if (retValue == JFileChooser.CANCEL_OPTION) {
                 refreshLabels();
@@ -540,7 +560,7 @@ public class GenvisisPipelineGUI extends JDialog {
     }
     
     public HashMap<STEP, Boolean> getSelectedOptionsMap() {
-        HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisPipeline.STEP, Boolean>();
+        HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisWorkflow.STEP, Boolean>();
         for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
             selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
         }
@@ -577,11 +597,11 @@ public class GenvisisPipelineGUI extends JDialog {
             public void run() {
                 final Color greenDark = Color.GREEN.darker();
                 final Color dark = Color.GRAY;
-                for (final STEP step : GenvisisPipelineGUI.this.steps) {
+                for (final STEP step : GenvisisWorkflowGUI.this.steps) {
                     if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
                         continue;
                     }
-                    HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisPipeline.STEP, Boolean>();
+                    HashMap<STEP, Boolean> selectedSteps = new HashMap<GenvisisWorkflow.STEP, Boolean>();
                     for (Entry<STEP, JCheckBox> entry : checkBoxes.entrySet()) {
                         selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
                     }
@@ -682,8 +702,8 @@ public class GenvisisPipelineGUI extends JDialog {
                     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
                     for (int i = 0; i < options.length; i++) {
                         if (options[i]) {
-                            String cmd = GenvisisPipelineGUI.this.steps[i].getCommandLine(proj, variables);
-                            output.append("## ").append(GenvisisPipelineGUI.this.steps[i].stepName).append("\n").append(cmd).append("\n\n");
+                            String cmd = GenvisisWorkflowGUI.this.steps[i].getCommandLine(proj, variables);
+                            output.append("## ").append(GenvisisWorkflowGUI.this.steps[i].stepName).append("\n").append(cmd).append("\n\n");
                         }
                     }
                     Files.write(output.toString(), proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
@@ -723,12 +743,12 @@ public class GenvisisPipelineGUI extends JDialog {
                 if (checkRequirementsAndNotify(selectedSteps, variables)) {
                     for (int i = 0; i < options.length; i++) {
                         if (options[i]) {
-                            startStep(GenvisisPipelineGUI.this.steps[i]);
+                            startStep(GenvisisWorkflowGUI.this.steps[i]);
                             Throwable e = null;
                             FINAL_CODE code = FINAL_CODE.COMPLETE;
                             try {
-                                GenvisisPipelineGUI.this.steps[i].setNecessaryPreRunProperties(proj, variables);
-                                GenvisisPipelineGUI.this.steps[i].run(proj, variables);
+                                GenvisisWorkflowGUI.this.steps[i].setNecessaryPreRunProperties(proj, variables);
+                                GenvisisWorkflowGUI.this.steps[i].run(proj, variables);
                             } catch (Throwable e1) {
                                 if (e1 instanceof RuntimeException && ((RuntimeException)e1).getCause() instanceof InterruptedException) {
                                     code = FINAL_CODE.CANCELLED;
@@ -736,42 +756,42 @@ public class GenvisisPipelineGUI extends JDialog {
                                 e = e1;
                                 System.gc();
                             }
-                            if (code != FINAL_CODE.CANCELLED && (e != null || GenvisisPipelineGUI.this.steps[i].getFailed() || !GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, variables))) {
+                            if (code != FINAL_CODE.CANCELLED && (e != null || GenvisisWorkflowGUI.this.steps[i].getFailed() || !GenvisisWorkflowGUI.this.steps[i].checkIfOutputExists(proj, variables))) {
                                 code = FINAL_CODE.FAILED;
                             }
-                            endStep(GenvisisPipelineGUI.this.steps[i], code);
+                            endStep(GenvisisWorkflowGUI.this.steps[i], code);
                             if (code == FINAL_CODE.FAILED) {
                                 StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ").append(i + 1);
                                 if (e != null) {
                                     proj.getLog().reportException(e, 0);
                                     failureMessage.append("\n").append(e.getMessage());
-                                } else if (GenvisisPipelineGUI.this.steps[i].getFailed()) {
-                                    for (String msg : GenvisisPipelineGUI.this.steps[i].getFailureMessages()) {
+                                } else if (GenvisisWorkflowGUI.this.steps[i].getFailed()) {
+                                    for (String msg : GenvisisWorkflowGUI.this.steps[i].getFailureMessages()) {
                                         failureMessage.append("\n").append(msg);
                                     }
-                                } else if (!GenvisisPipelineGUI.this.steps[i].checkIfOutputExists(proj, variables)) {
+                                } else if (!GenvisisWorkflowGUI.this.steps[i].checkIfOutputExists(proj, variables)) {
                                     failureMessage.append("\nUnknown error occurred.");
                                 }
                                 failureMessage.append("\nPlease check project log for more details.");
                                 String[] opts = {"Continue", "Retry", "Cancel"};
-                                int opt = JOptionPane.showOptionDialog(GenvisisPipelineGUI.this, failureMessage.toString(), "Error!", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, opts, opts[2]);
+                                int opt = JOptionPane.showOptionDialog(GenvisisWorkflowGUI.this, failureMessage.toString(), "Error!", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null, opts, opts[2]);
                                 if (opt == JOptionPane.CLOSED_OPTION || opt == 2) { // closed or cancel
-                                    for (STEP step : GenvisisPipelineGUI.this.steps) {
+                                    for (STEP step : GenvisisWorkflowGUI.this.steps) {
                                         step.resetRun();
                                     }
                                     break;
                                 } else if (opt == 1) { // retry
-                                    GenvisisPipelineGUI.this.steps[i].resetRun();
+                                    GenvisisWorkflowGUI.this.steps[i].resetRun();
                                     i--;
                                 } else {
                                     // continue
                                 }
                             } else if (code == FINAL_CODE.CANCELLED) {
-                                GenvisisPipelineGUI.this.steps[i].gracefulDeath(proj);
+                                GenvisisWorkflowGUI.this.steps[i].gracefulDeath(proj);
                                 // TODO remove message when gracefulDeath is implemented for each step
-                                JOptionPane.showMessageDialog(GenvisisPipelineGUI.this, "Error - cleanup of cancelled steps is not implemented.  Please clean or remove any generated files and try again.", "Error", JOptionPane.ERROR_MESSAGE);
+                                JOptionPane.showMessageDialog(GenvisisWorkflowGUI.this, "Error - cleanup of cancelled steps is not implemented.  Please clean or remove any generated files and try again.", "Error", JOptionPane.ERROR_MESSAGE);
                                 boolean foundMore = false;
-                                for (int k = i+1; k < GenvisisPipelineGUI.this.steps.length; k++) {
+                                for (int k = i+1; k < GenvisisWorkflowGUI.this.steps.length; k++) {
                                     if (options[k]) {
                                         foundMore = true;
                                         break;
@@ -779,13 +799,13 @@ public class GenvisisPipelineGUI extends JDialog {
                                 }
                                 boolean continueExec = false;
                                 if (foundMore) {
-                                    int opt = JOptionPane.showConfirmDialog(GenvisisPipelineGUI.this, "A step was cancelled.  Do you wish to continue?", "Step Cancelled", JOptionPane.YES_NO_OPTION);
+                                    int opt = JOptionPane.showConfirmDialog(GenvisisWorkflowGUI.this, "A step was cancelled.  Do you wish to continue?", "Step Cancelled", JOptionPane.YES_NO_OPTION);
                                     if (opt == JOptionPane.YES_OPTION) {
                                         continueExec = true;
                                     }
                                 }
                                 if (!continueExec) {
-                                    for (STEP step : GenvisisPipelineGUI.this.steps) {
+                                    for (STEP step : GenvisisWorkflowGUI.this.steps) {
                                         step.resetRun();
                                     }
                                     break;
@@ -829,7 +849,7 @@ public class GenvisisPipelineGUI extends JDialog {
     }
     
     private HashMap<STEP, ArrayList<String>> getVariables() {
-        HashMap<STEP, ArrayList<String>> returnVars = new HashMap<GenvisisPipeline.STEP, ArrayList<String>>();
+        HashMap<STEP, ArrayList<String>> returnVars = new HashMap<GenvisisWorkflow.STEP, ArrayList<String>>();
         for (Entry<STEP, ArrayList<? extends JComponent>> entry : varFields.entrySet()) {
             ArrayList<String> values = new ArrayList<String>();
             returnVars.put(entry.getKey(), values);
