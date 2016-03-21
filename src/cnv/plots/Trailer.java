@@ -176,6 +176,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private GCParameterDisplay gcParameterDisplay;
     private Sample samp;
     private ColorManager<String> currentColorManager;
+	private ColorManager<String> excludeManager;
+	private String[] otherColors;
+	private Hashtable<String, ColorManager<String>> previouslyLoadedManagers;
     private Thread updateQCThread = null;
 
 	private AbstractAction markerFileSelectAction = new AbstractAction() {
@@ -559,10 +562,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			return;
 		}
 		if (Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
-			gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), true, proj.getLog());
+			gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), true, proj.getLog());			
 		} else {
 			gcModel = null;
 		}
+		this.otherColors = Files.list(proj.DATA_DIRECTORY.getValue(), null, ".gcmodel", true, false, true);
+		otherColors =Array.concatAll(otherColors, Files.list(proj.PROJECT_DIRECTORY.getValue(), null, ".gcmodel", true, false, true));
+		
 		generateComponents();
 		this.setJMenuBar(createMenuBar());
 			
@@ -892,15 +898,15 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						} else {
 							g.setColor(Color.BLACK);
 						}
-						if (currentColorManager != null) {//TODO, all logic with
+						if (currentColorManager != null && currentColorManager.hasColorFor(markerNames[i])) {// TODO, all logic with
 							Color managed = currentColorManager.getColorItemForVar(markerNames[i]).getColor();
 							if (managed != null) {
 								g.setColor(managed);
 							}
 						}
 						if (!Float.isNaN(lrrValues[i])) {
-							if (dropped[i]) {
-//								g.drawString("X", getX(positions[i]), getHeight()-(int)((double)(lrrValues[i]-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
+							if (dropped[i] || (excludeManager != null && !excludeManager.hasColorFor(markerNames[i]))) {
+								//g.drawString("X", getX(positions[i]), getHeight()-(int)((double)(lrrValues[i]-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
 							} else if (lrrValues[i] < min){
 								g.drawString("v", Trailer.this.getX(positions[i]), getHeight()-(int)((double)(min-min)/(double)(max-min)*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER);
 							} else if (lrrValues[i] > max){
@@ -940,8 +946,12 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				if (lrrs != null) {
 					for (int i = startMarker; i<=stopMarker; i++) {
 						if (!Float.isNaN(lrrs[i])) {
-							if (dropped[i]) {
-								g.drawString("X", Trailer.this.getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-2*HEIGHT_BUFFER))-HEIGHT_BUFFER+5);
+							if (dropped[i] || (excludeManager != null && !excludeManager.hasColorFor(markerNames[i]))) {
+								if (excludeManager != null && !excludeManager.hasColorFor(markerNames[i])) {
+
+								} else {
+									g.drawString("X", Trailer.this.getX(positions[i]), getHeight() - (int) (bafs[i] * (double) (getHeight() - 2 * HEIGHT_BUFFER)) - HEIGHT_BUFFER + 5);
+								}
 							} else if (genotypes != null && genotypes[i]==-1) {
 								g.drawString("+", Trailer.this.getX(positions[i]), getHeight()-(int)(bafs[i]*(double)(getHeight()-4*HEIGHT_BUFFER))-HEIGHT_BUFFER/2);
 							} else if (bafs != null && bafs.length > i) {
@@ -1697,14 +1707,27 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
         act.add(launchComp);
         // act.addSeparator();
         {
-			JMenu qcMenu = new JMenu("Colors");
+        	
+			this.previouslyLoadedManagers = new Hashtable<String, ColorExt.ColorManager<String>>();
+			JMenu colorMenu = new JMenu("Colors");
 			ArrayList<String[]> optsTmp = new ArrayList<String[]>();
-			optsTmp.add(new String[] { "Default", "Set color scheme to the Genvisis default" });
+			optsTmp.add(new String[] { "Default", "Default", "Set color scheme to the Genvisis default" });
 			if (gcModel != null) {
-				optsTmp.add(new String[] { "GC content", "Color by GC content" });
-
+				optsTmp.add(new String[] { "GC content", "GC content", "Color by GC content" });
 			}
-			ItemListener qcListener = new ItemListener() {
+			if (proj.MARKER_COLOR_KEY_FILENAMES.getValue() != null) {
+				for (int i = 0; i < proj.MARKER_COLOR_KEY_FILENAMES.getValue().length; i++) {
+					optsTmp.add(new String[] { ext.rootOf(proj.MARKER_COLOR_KEY_FILENAMES.getValue()[i]), proj.MARKER_COLOR_KEY_FILENAMES.getValue()[i], "Use this custom color file" });
+				}
+			}
+
+			for (int i = 0; i < otherColors.length; i++) {
+				if (Files.exists(otherColors[i])) {
+					optsTmp.add(new String[] { ext.rootOf(otherColors[i]), otherColors[i], "Use this custom color file" });
+				}
+			}
+
+			ItemListener colorListener = new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent arg0) {
 					if (arg0.getStateChange() == ItemEvent.SELECTED) {
@@ -1715,9 +1738,36 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 							if (gcModel == null) {
 								log.reportTimeError("Internal error, null gc model");
 							} else {
-								currentColorManager = gcModel.getColorManager();
+								currentColorManager = gcModel.getColorManager();//stored within, doesent regenerate
 							}
-						} else {
+						}
+						else if (proj.MARKER_COLOR_KEY_FILENAMES.getValue() != null && ext.indexOfStr(cmd, proj.MARKER_COLOR_KEY_FILENAMES.getValue()) >= 0) {
+							int index = ext.indexOfStr(cmd, proj.MARKER_COLOR_KEY_FILENAMES.getValue());
+							if (previouslyLoadedManagers.containsKey(cmd)) {
+								currentColorManager = previouslyLoadedManagers.get(cmd);
+							} else {
+								ColorManager<String> tmp = ColorExt.getColorManager(proj, proj.MARKER_COLOR_KEY_FILENAMES.getValue()[index]);
+								previouslyLoadedManagers.put(cmd, tmp);
+								currentColorManager = previouslyLoadedManagers.get(cmd);
+							}
+						}
+						else if ( ext.indexOfStr(cmd, otherColors) >= 0) {
+							int index = ext.indexOfStr(cmd, otherColors);
+							if (previouslyLoadedManagers.containsKey(cmd)) {
+								currentColorManager = previouslyLoadedManagers.get(cmd);
+							} else {
+								try {
+									ColorManager<String> tmp = GcModel.populateFromFile(otherColors[index], true, log).getColorManager();
+									previouslyLoadedManagers.put(cmd, tmp);
+									currentColorManager = previouslyLoadedManagers.get(cmd);
+								} catch (Exception e) {
+									log.reportTimeWarning("Could not load additional gc-model file " + otherColors[index]);
+								}
+							}
+						}
+						
+
+						else {
 							log.reportTimeError("Internal error, Invalid color command");
 						}
 						updateQCDisplay();
@@ -1726,18 +1776,72 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			};
 			ButtonGroup colorBtnGroup = new ButtonGroup();
 			for (int i = 0; i < optsTmp.size(); i++) {
+				
 				JRadioButtonMenuItem colorButton = new JRadioButtonMenuItem(optsTmp.get(i)[0]);
-				colorButton.setActionCommand(optsTmp.get(i)[0]);
-				colorButton.setToolTipText(optsTmp.get(i)[1]);
-				colorButton.addItemListener(qcListener);
+				colorButton.setActionCommand(optsTmp.get(i)[1]);
+				colorButton.setToolTipText(optsTmp.get(i)[2]);
+				colorButton.addItemListener(colorListener);
 				colorButton.setFont(font);
 				colorBtnGroup.add(colorButton);
-				qcMenu.add(colorButton);
+				colorMenu.add(colorButton);
 				if (i == 0) {
 					colorButton.setSelected(true);
 				}
 			}
-			menuBar.add(qcMenu);
+			menuBar.add(colorMenu);
+
+		}
+{
+        	
+			JMenu excudeMenu = new JMenu("ExcludeBy");
+			ArrayList<String[]> optsTmp = new ArrayList<String[]>();
+			optsTmp.add(new String[] { "None", "None", "No Exclusions" });
+			if (proj.MARKER_COLOR_KEY_FILENAMES.getValue() != null) {
+				for (int i = 0; i < proj.MARKER_COLOR_KEY_FILENAMES.getValue().length; i++) {
+					optsTmp.add(new String[] { ext.rootOf(proj.MARKER_COLOR_KEY_FILENAMES.getValue()[i]), proj.MARKER_COLOR_KEY_FILENAMES.getValue()[i], "Use this custom color file" });
+				}
+			}
+			ItemListener excludeListener = new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent arg0) {
+					if (arg0.getStateChange() == ItemEvent.SELECTED) {
+						String cmd = ((AbstractButton) arg0.getSource()).getActionCommand();
+						if ("None".equals(cmd)) {
+							excludeManager = null;
+						}
+						else if (proj.MARKER_COLOR_KEY_FILENAMES.getValue() != null && ext.indexOfStr(cmd, proj.MARKER_COLOR_KEY_FILENAMES.getValue()) >= 0) {
+							int index = ext.indexOfStr(cmd, proj.MARKER_COLOR_KEY_FILENAMES.getValue());
+							if (previouslyLoadedManagers.containsKey(cmd)) {
+								excludeManager = previouslyLoadedManagers.get(cmd);
+							} else {
+								ColorManager<String> tmp = ColorExt.getColorManager(proj, proj.MARKER_COLOR_KEY_FILENAMES.getValue()[index]);
+								previouslyLoadedManagers.put(cmd, tmp);
+								excludeManager = previouslyLoadedManagers.get(cmd);
+							}
+						}
+
+						else {
+							log.reportTimeError("Internal error, Invalid color command");
+						}
+						updateQCDisplay();
+					}
+				}
+			};
+			ButtonGroup excludeBtnGroup = new ButtonGroup();
+			for (int i = 0; i < optsTmp.size(); i++) {
+				
+				JRadioButtonMenuItem excludeButton = new JRadioButtonMenuItem(optsTmp.get(i)[0]);
+				excludeButton.setActionCommand(optsTmp.get(i)[1]);
+				excludeButton.setToolTipText(optsTmp.get(i)[2]);
+				excludeButton.addItemListener(excludeListener);
+				excludeButton.setFont(font);
+				excludeBtnGroup.add(excludeButton);
+				excudeMenu.add(excludeButton);
+				if (i == 0) {
+					excludeButton.setSelected(true);
+				}
+			}
+			menuBar.add(excudeMenu);
 
 		}
 		return menuBar;
