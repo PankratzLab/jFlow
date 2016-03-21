@@ -15,6 +15,8 @@ import cnv.analysis.Mosaicism;
 import cnv.analysis.pca.PrincipalComponentsCrossTabs;
 import cnv.analysis.pca.PrincipalComponentsManhattan;
 import cnv.filesys.*;
+import cnv.filesys.Project.FileProperty;
+import cnv.filesys.Project.Property;
 import cnv.gui.ImportProjectGUI;
 import cnv.gui.PlinkExportOptions;
 //import cnv.gui.KitAndKaboodleGUI;
@@ -37,7 +39,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String EDIT = "Project Properties Editor";
 	public static final String REFRESH = "Refresh";
 	public static final String PIPELINE = "Genvisis Project Workflow";
-
+	public static final String NEW_PROJECT = "New Project";
+	public static final String IMPORT_PROJECT = "Import Project";
+	
 	public static final String MAP_FILES = "Map .csv files to IDs";
 	public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
 	public static final String PARSE_FILES_CSV = "Parse .csv files";
@@ -84,7 +88,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 	public static final String TEST = "Test new program";
 	
-	public static String[][] MENUS = {{"File", "New Project", "Import Project", "Select Project", EDIT, "Preferences", EXIT},
+	public static String[][] MENUS = {{"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project", EDIT, "Preferences", EXIT},
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
@@ -149,8 +153,54 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	    progBar.setStringPainted(false);
 	    
 	    proj.initializeProgressMonitor(progBar);
+        projectsBox.setSelectedIndex(indexOfCurrentProj);
+        
+        updateProject();
 	    
 	    return proj;
+	}
+	
+	private void updateProject() {
+	    updateProperty(proj.SAMPLELIST_FILENAME, ".bis", "sample list");
+	    updateProperty(proj.MARKERLOOKUP_FILENAME, ".bml", "marker lookup");
+	    updateProperty(proj.MARKERSET_FILENAME, ".bim", "marker set");
+	    proj.saveProperties(new Property[]{proj.SAMPLELIST_FILENAME, proj.MARKERLOOKUP_FILENAME, proj.MARKERSET_FILENAME});
+	}
+	
+    private void updateProperty(FileProperty prop, String prevExt, String fileDescriptor) {
+	    String file, newFile, warning = null, error = null;
+        
+        file = prop.getValue();
+        if (!file.endsWith(".ser")) {
+            newFile = ext.rootOf(file, false) + ".ser";
+            if (Files.exists(file)) {
+                if (!file.endsWith(prevExt)) {
+                    // unlikely, but error
+                    warning = "Warning - found " + fileDescriptor + " file, but with an unexpected extension.  Renaming to .ser from \"" + file + "\".";
+                }
+                if (Files.exists(newFile) && (new File(newFile)).length() > 0) {
+                    warning = "Warning - found .ser version of " + fileDescriptor + " file; altering property value to point to .ser file at \"" + newFile + "\".";
+                } else {
+                    (new File(newFile)).delete();
+                    (new File(file)).renameTo(new File(newFile));
+                }
+                prop.setValue(ext.rootOf(file, false) + ".ser");
+            } else { 
+                if (Files.exists(newFile)) {
+                    // property set incorrectly, file exists as .ser but prop set to .bis, rename property
+                    prop.setValue(ext.rootOf(file, false) + ".ser");
+                } else {
+                    // error, no sample list file (and property set to old value)
+                    error = "Error - " + fileDescriptor + " file not found!  Set to: \"" + file + "\".";
+                }
+            }
+        }
+        if (warning != null) {
+            System.err.println(warning);
+        }
+        if (error != null) {
+            System.err.println(error);
+        }
 	}
 
 	public void setIndexOfCurrentProject(String projPropertiesFileName) {
@@ -160,6 +210,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				indexOfCurrentProj = i;
 			}
 		}
+        projectsBox.setSelectedIndex(indexOfCurrentProj);
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -346,16 +397,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				}
 				if (MENUS[i][j]=="1") {
 					menu.addSeparator();
-				} else if (MENUS[i][j].equals("New Project")) {
+				} else if (MENUS[i][j].equals(NEW_PROJECT)) {
 //				    submenu = new JMenu(MENUS[i][j]);
-				    menuItem = new JMenuItem("New Project");
+				    menuItem = new JMenuItem(NEW_PROJECT);
 				    menuItem.addActionListener(this);
 				    menuItem.setMnemonic(KeyEvent.VK_N);
 //				    submenu.add(menuItem);
                     menu.add(menuItem);
-				} else if (MENUS[i][j].equals("Import Project")) {
+				} else if (MENUS[i][j].equals(IMPORT_PROJECT)) {
 //				    submenu = new JMenu(MENUS[i][j]);
-				    menuItem = new JMenuItem("Import Project");
+				    menuItem = new JMenuItem(IMPORT_PROJECT);
 				    menuItem.addActionListener(this);
 				    menuItem.setMnemonic(KeyEvent.VK_I);
 //				    submenu.add(menuItem);
@@ -438,7 +489,6 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 	public void addComponentsToPane(final Container pane) {
 //		String lastProjectOpened;
-        
         launchProperties = new LaunchProperties(launchPropertiesFile);
         projectsBox = new JComboBox<String>();
         loadProjects();
@@ -776,6 +826,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //			}
 		} else if (command.equals(REFRESH)) {
 	        loadProjects();
+	        loadProject();
 			log.report("Refreshed list of projects");
 		} else if (command.equals(PIPELINE)) {
 		    SwingUtilities.invokeLater(new Runnable() {
@@ -785,12 +836,12 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		            kAndK.showDialogAndRun();
 		        }
 		    });
-		} else if (command.equals("New Project")) {
+		} else if (command.equals(NEW_PROJECT)) {
 		    
 		    final GenvisisWorkflow kAndK = new GenvisisWorkflow(null, Launch.this);
 		    kAndK.showDialogAndRun();
 		    
-		} else if (command.equals("Import Project")) {
+		} else if (command.equals(IMPORT_PROJECT)) {
 		    
 		    ImportProjectGUI importGUI = new ImportProjectGUI();
 		    importGUI.setModal(true);
@@ -798,7 +849,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		    
 		    if (!importGUI.getCancelled()) {
 		        if (importGUI.run()) {
+		            String newFilename = importGUI.getNewProjectFilename();
 		            loadProjects();
+		            setIndexOfCurrentProject(newFilename);
+		            loadProject();
 		        }
 		    }
 		    importGUI.dispose();

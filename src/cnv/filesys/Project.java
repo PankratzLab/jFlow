@@ -383,9 +383,9 @@ public class Project {
 	public      FileProperty                     BACKUP_DIRECTORY = new       FileProperty(this,                     "BACKUP_DIRECTORY", "", "backup/", true);
 	public      FileProperty          PROJECT_PROPERTIES_FILENAME = new       FileProperty(this,                             "FILENAME", "", "example.properties", false);
 	public      FileProperty             MARKER_POSITION_FILENAME = new       FileProperty(this,             "MARKER_POSITION_FILENAME", "", "markerPositions.txt", false);
-	public      FileProperty                   MARKERSET_FILENAME = new       FileProperty(this,                   "MARKERSET_FILENAME", "", "data/markers.bim", false);
-	public      FileProperty                MARKERLOOKUP_FILENAME = new       FileProperty(this,                "MARKERLOOKUP_FILENAME", "", "data/markerLookup.bml", false);
-	public      FileProperty                  SAMPLELIST_FILENAME = new       FileProperty(this,                  "SAMPLELIST_FILENAME", "", "data/samples.bis", false);
+	public      FileProperty                   MARKERSET_FILENAME = new       FileProperty(this,                   "MARKERSET_FILENAME", "", "data/markers.ser", false);
+	public      FileProperty                MARKERLOOKUP_FILENAME = new       FileProperty(this,                "MARKERLOOKUP_FILENAME", "", "data/markerLookup.ser", false);
+	public      FileProperty                  SAMPLELIST_FILENAME = new       FileProperty(this,                  "SAMPLELIST_FILENAME", "", "data/samples.ser", false);
 	public      FileProperty               SAMPLE_SUBSET_FILENAME = new       FileProperty(this,               "SAMPLE_SUBSET_FILENAME", "", "sampleSubset.txt", false);
 	public      FileProperty                 SAMPLE_DATA_FILENAME = new       FileProperty(this,                 "SAMPLE_DATA_FILENAME", "", "data/SampleData.txt", false);
 	public      FileProperty          ORIGINAL_CENTROIDS_FILENAME = new       FileProperty(this,          "ORIGINAL_CENTROIDS_FILENAME", "", "data/original.cent", false);

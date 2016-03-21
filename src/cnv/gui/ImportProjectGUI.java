@@ -338,9 +338,9 @@ public class ImportProjectGUI extends JDialog {
         boolean foundSamples = Files.exists(baseDir + "samples/");
         boolean foundData = Files.exists(baseDir + "data/");
         boolean foundTransposed = Files.exists(baseDir + "transposed/");
-        boolean foundSampleList = Files.exists(baseDir + "data/samples.bis");
-        boolean foundMarkerList = Files.exists(baseDir + "data/markers.bim");
-        boolean foundMarkerLookup = Files.exists(baseDir + "data/markerLookup.bml");
+        boolean foundSampleList = Files.exists(baseDir + "data/samples.bis") || Files.exists(baseDir + "data/samples.ser") ;
+        boolean foundMarkerList = Files.exists(baseDir + "data/markers.bim") || Files.exists(baseDir + "data/markers.ser");
+        boolean foundMarkerLookup = Files.exists(baseDir + "data/markerLookup.bml") || Files.exists(baseDir + "data/markerLookup.ser");
         return new boolean[]{
                 /*0*/ foundProject,
                 /*1*/ foundData,
@@ -373,7 +373,13 @@ public class ImportProjectGUI extends JDialog {
     public boolean getCancelled() {
         return cancelled;
     }
-
+    
+    public String getNewProjectFilename() {
+        String name = txtFldProjName.getText().trim();
+        String filename = propertyFilePath + name + MitoPipeline.PROJECT_EXT;
+        return filename;
+    }
+    
     public boolean run() {
         String name = txtFldProjName.getText().trim();
         String filename = propertyFilePath + name + MitoPipeline.PROJECT_EXT;
