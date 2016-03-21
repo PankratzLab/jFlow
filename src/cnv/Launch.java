@@ -34,9 +34,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String VERSION = "0.60";
 
 	public static final String EXIT = "Exit";
-	public static final String EDIT = "Project Properties";
+	public static final String EDIT = "Project Properties Editor";
 	public static final String REFRESH = "Refresh";
-	public static final String PIPELINE = "Genvisis Project Pipeline";
+	public static final String PIPELINE = "Genvisis Project Workflow";
 
 	public static final String MAP_FILES = "Map .csv files to IDs";
 	public static final String GENERATE_MARKER_POSITIONS = "Generate marker positions file";
@@ -674,7 +674,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	            SwingUtilities.invokeLater(new Runnable() {
 	                @Override
 	                public void run() {
-        			    GenvisisPipeline kAndK = new GenvisisPipeline(proj, Launch.this);
+        			    GenvisisWorkflow kAndK = new GenvisisWorkflow(proj, Launch.this);
         			    kAndK.showDialogAndRun();
 	                }
 	            });
@@ -765,7 +765,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //    			}
 //			} else {
                 log.report("Launching project properties editor...");
-    			final Configurator configurator = new Configurator(proj, Configurator.ALL_PROPERTY_SETS);
+    			final ProjectPropertiesEditor configurator = new ProjectPropertiesEditor(proj, ProjectPropertiesEditor.ALL_PROPERTY_SETS);
     			configurator.addWindowListener(new WindowAdapter() {
     				public void windowClosed(WindowEvent e) {
     					Launch.this.requestFocus();
@@ -781,13 +781,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		    SwingUtilities.invokeLater(new Runnable() {
 		        @Override
 		        public void run() {
-		            final GenvisisPipeline kAndK = new GenvisisPipeline(proj, Launch.this);
+		            final GenvisisWorkflow kAndK = new GenvisisWorkflow(proj, Launch.this);
 		            kAndK.showDialogAndRun();
 		        }
 		    });
 		} else if (command.equals("New Project")) {
 		    
-		    final GenvisisPipeline kAndK = new GenvisisPipeline(null, Launch.this);
+		    final GenvisisWorkflow kAndK = new GenvisisWorkflow(null, Launch.this);
 		    kAndK.showDialogAndRun();
 		    
 		} else if (command.equals("Import Project")) {

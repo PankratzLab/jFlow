@@ -1268,17 +1268,19 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			public void paintComponent(Graphics g) {
 			    paintPanel(g);
 		    }
-			@Override
-			public Point getToolTipLocation(MouseEvent event) {
-			    Point p = super.getToolTipLocation(event);
-		        if (selectedRect != null) {
-		            int x, y;
-		            x = selectedRect.x + (selectedRect.width / 2);
-		            y = genePanel.getHeight() - yStart - GENE_HEIGHT - selectedRect.y - 2;
-		            p = new Point(x, y);
-		        }
-			    return p;
-			}
+			
+			// uncomment to fix tooltip location at selected rect location
+//			@Override
+//			public Point getToolTipLocation(MouseEvent event) {
+//			    Point p = super.getToolTipLocation(event);
+//		        if (selectedRect != null) {
+//		            int x, y;
+//		            x = selectedRect.x + (selectedRect.width / 2);
+//		            y = genePanel.getHeight() - yStart - GENE_HEIGHT - selectedRect.y - 2;
+//		            p = new Point(x, y);
+//		        }
+//			    return p;
+//			}
 		};
 		genePanel.addMouseListener(this);
 		genePanel.addMouseMotionListener(this);
@@ -1974,35 +1976,15 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 	public void mouseClicked(MouseEvent e) {
         int x = e.getX();
-        int y = genePanel.getHeight() - yStart - GENE_HEIGHT - e.getY() - 2;
 
-        for (int i = 0; i < activeRects.size(); i++) {
-            if (activeRects.get(i).contains(x, y)) {
-                selectedRect = activeRects.get(i);
-                if (drawType == DRAW_AS_BLOCKS) {
-                    selectedBlockDraw = activeBlocks.get(i);
-                } else if (drawType == DRAW_AS_CIRCLES) {
-                    selectedDrawPoint = activePoints.get(i);
-                }
-                genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
-                MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, e.getY(), 0, false);
-                ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
-                this.mouseMoved(phantom);
-                VariantViewer.this.repaint();
-                return;
-            }
+        if (genePanel.getToolTipText() == null) {
+            genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
         }
-        
-        genePanel.setToolTipText(null);
-        selectedRect = null;
-        selectedBlockDraw = null;
-        selectedDrawPoint = null;
+        MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis() + 1, 0, x, e.getY(), 0, false);
+        ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
+        this.mouseMoved(phantom);
         VariantViewer.this.repaint();
-//        if (e.getButton()==MouseEvent.BUTTON1) {
-//            zoomProportionally(false, e.getPoint(), true);
-//        } else if (e.getButton()==MouseEvent.BUTTON3) {
-//            zoom(1, 1);
-//        }
+	    
     }
 	
     int defaultInitial = ToolTipManager.sharedInstance().getInitialDelay();
@@ -2089,14 +2071,47 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	}
 
 	public void mouseMoved(MouseEvent e) {
-	    if (selectedRect == null) return;
+	    
+	    
+	    // this entire block of code can be copy-paste moved to mouseClicked to make selection a click-based event 
 	    int x = e.getX();
         int y = genePanel.getHeight() - yStart - GENE_HEIGHT - e.getY() - 2;
+
+        for (int i = 0; i < activeRects.size(); i++) {
+            if (activeRects.get(i).contains(x, y)) {
+                selectedRect = activeRects.get(i);
+                if (drawType == DRAW_AS_BLOCKS) {
+                    selectedBlockDraw = activeBlocks.get(i);
+                } else if (drawType == DRAW_AS_CIRCLES) {
+                    selectedDrawPoint = activePoints.get(i);
+                }
+                genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
+                MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, e.getY(), 0, false);
+                ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
+//                this.mouseMoved(phantom);
+                VariantViewer.this.repaint();
+                return;
+            }
+        }
+        
+        genePanel.setToolTipText(null);
+        selectedRect = null;
+        selectedBlockDraw = null;
+        selectedDrawPoint = null;
+        VariantViewer.this.repaint();
+	    
+	    
+	    
+	    
+//	    
+//	    if (selectedRect == null) return;
+//	    int x = e.getX();
+//        int y = genePanel.getHeight() - yStart - GENE_HEIGHT - e.getY() - 2;
         
 //        if (selectedRect.contains(x, y)) {
-            if (genePanel.getToolTipText() == null) {
-                genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
-            }
+//            if (genePanel.getToolTipText() == null) {
+//                genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
+//            }
 //        } else {
 //            genePanel.setToolTipText(null);
 //        }
@@ -2115,12 +2130,22 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		txtBld.append("Amino Acid Change: ");
 		if (!aaChng.equals(".")) {
 		    String[] fromAA, toAA;
+    		String loc;
+    		
     		fromAA = bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
-    		toAA = bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
-    		if (fromAA != null && toAA != null) {
-    		    txtBld.append(fromAA[1]).append(" --> ").append(toAA[1]);
+    		if (ext.isValidInteger(aaChng.charAt(aaChng.length() - 1) + "")) {
+    		    loc = aaChng.substring(1);
+    		    toAA = null;
     		} else {
-    		    txtBld.append(aaChng);
+    		    loc = aaChng.substring(1, aaChng.length() - 1);
+    		    toAA = bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
+    		}
+    		if (fromAA != null) {
+    		    txtBld.append(fromAA[1]);
+    		}
+    		txtBld.append(" .. ").append(loc).append(" .. ");
+    		if (toAA != null) {
+    		    txtBld.append(toAA[1]);
     		}
 		} else {
 		    txtBld.append(aaChng);

@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -65,7 +66,7 @@ import common.Files;
 import common.Grafik;
 import common.ext;
 
-public class Configurator extends JFrame {
+public class ProjectPropertiesEditor extends JFrame {
     
     public static final String[][] ALL_PROPERTY_SETS = new String[][]{
             {
@@ -241,7 +242,7 @@ public class Configurator extends JFrame {
 	    abstract boolean acceptNewValue(Object newValue);
 	}
 	
-	private HashMap<String, InputValidator> validators = new HashMap<String, Configurator.InputValidator>() {
+	private HashMap<String, InputValidator> validators = new HashMap<String, ProjectPropertiesEditor.InputValidator>() {
         private static final long serialVersionUID = 1L;
     {
 	    put("PLINK_DIR_FILEROOTS", new InputValidator() {
@@ -311,7 +312,7 @@ public class Configurator extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Configurator frame = new Configurator(new Project(), ALL_PROPERTY_SETS);
+					ProjectPropertiesEditor frame = new ProjectPropertiesEditor(new Project(), ALL_PROPERTY_SETS);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -323,8 +324,8 @@ public class Configurator extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Configurator(Project project, String[][] propertySets) {
-		setTitle("Genvisis - " + project.PROJECT_NAME.getValue() + " - Project Configuration");
+	public ProjectPropertiesEditor(Project project, String[][] propertySets) {
+		setTitle("Genvisis - " + project.PROJECT_NAME.getValue() + " - Project Properties Editor");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setBounds(100, 100, 700, 800);
 		contentPane = new JPanel();
@@ -343,7 +344,7 @@ public class Configurator extends JFrame {
                 proj.getLog().report("Launching notepad...");
                 try {
                     /*Process p = */Runtime.getRuntime().exec("C:\\Windows\\System32\\Notepad.exe \""+proj.getPropertyFilename()+"\"");
-                    Configurator.this.setVisible(false);
+                    ProjectPropertiesEditor.this.setVisible(false);
                     // TODO update properties in Project and Configurator - they may have changed
                 } catch (IOException ioe) {
                     proj.getLog().reportError("Error - failed to open Notepad");
@@ -363,7 +364,7 @@ public class Configurator extends JFrame {
 		btnSave.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Configurator.this.save();
+				ProjectPropertiesEditor.this.save();
 			}
 		});
 		panel.add(btnSave);
@@ -774,6 +775,7 @@ public class Configurator extends JFrame {
 		
 		InputMap inMap = table.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		ActionMap actMap = table.getActionMap();
+		
 		KeyStroke spaceKey = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0);
 		AbstractAction fileSelectAction = new AbstractAction() {
 			private static final long serialVersionUID = 1L;
@@ -788,7 +790,26 @@ public class Configurator extends JFrame {
 		};
 		inMap.put(spaceKey, "Action.spacebar");
 		actMap.put("Action.spacebar", fileSelectAction);
+		
+		
+		inMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		actMap = getRootPane().getActionMap();
 
+		KeyStroke escKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+		AbstractAction escapeAction = new AbstractAction() {
+		    private static final long serialVersionUID = 1L;
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		        if (table.isEditing()) {
+		            table.editingStopped(null);
+		        } else {
+		            doClose(false, true);
+		        }
+		    }
+		};
+		inMap.put(escKey, "Action.escape");
+		actMap.put("Action.escape", escapeAction);
+		
 		table.setSurrendersFocusOnKeystroke(true);
 
 		scrollPane.setViewportView(table);
@@ -817,7 +838,7 @@ public class Configurator extends JFrame {
     	            cnt++;
     	        }
     	        String title = "Save changes?";
-    	        int opt = JOptionPane.showConfirmDialog(Configurator.this, message, title, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+    	        int opt = JOptionPane.showConfirmDialog(ProjectPropertiesEditor.this, message, title, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
     	        if (opt == JOptionPane.CLOSED_OPTION || opt == JOptionPane.CANCEL_OPTION) {
     	            return;
     	        } else if (opt == JOptionPane.YES_OPTION) {
@@ -827,8 +848,8 @@ public class Configurator extends JFrame {
 	            save(changes);
 	        }
 	    }
-        Configurator.this.setVisible(false);
-        Configurator.this.dispose();
+        ProjectPropertiesEditor.this.setVisible(false);
+        ProjectPropertiesEditor.this.dispose();
     }
 
     private HashMap<String, String> extract() {
