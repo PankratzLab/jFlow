@@ -8,10 +8,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import cnv.analysis.CentroidCompute;
+import cnv.analysis.CentroidCompute.CentroidBuilder;
+import cnv.filesys.Centroids;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import cnv.manage.SourceFileParser;
+import cnv.manage.TransposeData;
+import cnv.var.SampleData;
 import common.Array;
 import common.CmdLine;
 import common.Files;
@@ -375,15 +380,16 @@ public class AffyPipeline {
 						String outSnpSrc = tmpDir + "SNP_Src/";
 						new File(outSnpSrc).mkdirs();
 
-						AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(), genotypeResult.getConfFile(), normalizationResult.getQuantNormFile());
+						AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(), genotypeResult.getConfFile(), normalizationResult.getQuantNormFile(), log);
 						AS6T.parseSNPTables(markerBuffer);
 
 						String outCNSrc = tmpDir + "CN_Src/";
 						new File(outCNSrc).mkdirs();
 
-						AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile());
+						AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(), log);
 						AS6TCN.parseCNTable(markerBuffer);
 						log.reportTimeInfo("Generating Genvisis project in " + outDir);
+
 						String projectFile = outDir + analysisName + ".properties";
 						Files.write("PROJECT_DIRECTORY=" + outDir, projectFile);
 						Project proj = new Project(projectFile, false);
@@ -400,9 +406,14 @@ public class AffyPipeline {
 						proj.ID_HEADER.setValue("[FILENAME_ROOT]");
 						proj.LONG_FORMAT.setValue(false);
 						proj.saveProperties();
-						MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt", proj.SOURCE_DIRECTORY.getValue(true, true));
-						SourceFileParser.createFiles(proj, numThreads);
+						MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt", proj.SOURCE_DIRECTORY.getValue(true, true), log);
 						proj.saveProperties();
+						SourceFileParser.createFiles(proj, numThreads);
+						TransposeData.transposeData(proj, 2000000000, false);
+						CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numThreads, 2);
+						Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numThreads);
+						TransposeData.transposeData(proj, 2000000000, false);
+						SampleData.createMinimalSampleData(proj);
 					}
 				}
 			}
@@ -412,11 +423,11 @@ public class AffyPipeline {
 
 	public static void main(String[] args) {
 		String analysisName = "Genvisis_affy_pipeline";
-		String celDir = "/scratch.global/lanej/Affy6_1000g/cels/";
-		String targetSketch = "/home/pankrat2/public/bin/affyPowerTools/hapmap.quant-norm.normalization-target.txt";
-		String aptExeDir = "/home/pankrat2/public/bin/affyPowerTools/apt-1.18.0-x86_64-intel-linux/bin/";
-		String aptLibDir = "/home/pankrat2/public/bin/affyPowerTools/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/";
-		String outDir = "/scratch.global/lanej/Affy6_1000g/";
+		String celDir = "~/Affy6/cels/";
+		String targetSketch = "~/resources/hapmap.quant-norm.normalization-target.txt";
+		String aptExeDir = "~/apt-1.18.0-x86_64-intel-linux/bin/";
+		String aptLibDir = "~/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/";
+		String outDir = "~/Affy6_results/";
 		int numThreads = 1;
 		int markerBuffer = 100;
 
@@ -427,9 +438,9 @@ public class AffyPipeline {
 				"   (1) analysis name (i.e. analysisName=" + analysisName + " (default))\n" +
 				"   (2) a directory containing .cel files for analyiss (i.e. celDir=" + celDir + " (default))\n" +
 				"   (3) a target sketch file (such as hapmap.quant-norm.normalization-target.txt) (i.e. sketch=" + targetSketch + " (default))\n" +
-				"   (4) directory with Affy Power Tools executables (such as ~/apt-1.18.0-x86_64-intel-linux/bin/) (i.e. aptExeDir=" + aptExeDir + " (default))\n" +
-				"   (5) directory with Affy Power Tools library files (such as ~/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/) (i.e. aptLibDir=" + aptLibDir + " (default))\n" +
-				"   (6) output directory (such as ~/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/) (i.e. outDir=" + outDir + " (default))\n" +
+				"   (4) directory with Affy Power Tools executables (should contain apt-probeset-genotype, etc) (i.e. aptExeDir=" + aptExeDir + " (default))\n" +
+				"   (5) directory with Affy Power Tools library files (should contain GenomeWideSNP_6.cdf, etc) (i.e. aptLibDir=" + aptLibDir + " (default))\n" +
+				"   (6) output directory  (i.e. outDir=" + outDir + " (default))\n" +
 				"   (7) optional: number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + "=" + numThreads + " (default))\n" +
 				"   (8) optional: number of markers to buffer when splitting files (i.e. markerBuffer=" + markerBuffer + " (default))\n" +
 
