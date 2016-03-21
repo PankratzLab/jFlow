@@ -399,11 +399,17 @@ public class DosageData implements Serializable {
         }
 
         int[] keys = Sort.orderTwoLayers(ddNew.chrs, ddNew.positions, new Logger());
+        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
         ddNew.chrs = Sort.putInOrder(ddNew.chrs, keys);
+        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
         ddNew.positions = Sort.putInOrder(ddNew.positions, keys);
+        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
         ddNew.alleles = Sort.putInOrder(ddNew.alleles, keys);
+        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
         ddNew.markerSet.sortMarkers();
+        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
         ddNew.genotypeProbabilities = Sort.putInOrder(ddNew.genotypeProbabilities, keys);
+        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
         ddNew.dosageValues = Sort.putInOrder(ddNew.dosageValues, keys);
         System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
         
