@@ -3,6 +3,7 @@ package cnv.qc;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Hashtable;
 
 import stats.Quantiles;
@@ -24,6 +25,8 @@ import cnv.var.SampleData;
 public class SampleQC {
 	private Project proj;
 	private String[] samples;
+	private boolean[] excludes;
+	private String[] excludeNotes;
 	private double[][] qcMatrix;
 	private String[] qctitles;
 	private int numAdded;
@@ -32,9 +35,31 @@ public class SampleQC {
 		super();
 		this.proj = proj;
 		this.samples = proj.getSamples();
+		this.excludes = new boolean[samples.length];
+		Arrays.fill(this.excludes, false);
+		this.excludeNotes = new String[samples.length];
+		Arrays.fill(this.excludeNotes, ".");
 		this.qcMatrix = new double[qctitles.length][samples.length];
 		this.qctitles = qctitles;
 		this.numAdded = 0;
+	}
+	
+	/**
+	 * @param base existing SampleQC to start from
+	 * @param useCols boolean array of cols to keep from base
+	 */
+	public SampleQC(SampleQC base, boolean[] useCols){
+		super();
+		this.proj = base.proj;
+		this.samples = base.samples;
+		if (!base.verify()) {
+			proj.getLog().reportTimeError("Could not verify that all data was added");
+		}
+		this.excludes = base.excludes;
+		this.excludeNotes = base.excludeNotes;
+		this.qcMatrix = Array.subArray(base.getQcMatrix(), useCols);
+		this.qctitles = Array.subArray(base.getQctitles(), useCols);
+		this.numAdded = qctitles.length * samples.length;
 	}
 
 	public String[] getSamples() {
@@ -76,9 +101,46 @@ public class SampleQC {
 			proj.getLog().reportTimeError("Internal Error; too many QC metrics have been added");
 		}
 	}
+	
+	private boolean addToExclude(int sampleIndex, String reason){
+		if (!excludes[sampleIndex]){
+			excludes[sampleIndex] = true;
+			excludeNotes[sampleIndex] = reason;
+			return true;
+		}
+		excludeNotes[sampleIndex] += ("; " + reason);
+		return false;
+	}
+	
+	/**
+	 * Prepares a hash to be used in the addition to sample data
+	 */
+	private Hashtable<String, String> developQCHash(Quantiles[] quantiles, boolean justClasses) {
+		Hashtable<String, String> hashtable = new Hashtable<String, String>();
+		for (int i = 0; i < samples.length; i++) {
+			String qcInfo = "";
+			for (int j = 0; j < quantiles.length; j++) {
+				qcInfo += (j == 0 ? "" : "\t");
+				if (!justClasses) {
+					qcInfo += qcMatrix[j][i] + "\t";
+				}
+				qcInfo += quantiles[j].getQuantileMembershipAsRoundedInt()[i];
+			}
+			qcInfo += ("\t" + (excludes[i] ? "1" : "0") + "\t" + excludeNotes[i]);
+			hashtable.put(samples[i], qcInfo);
+		}
+		return hashtable;
+	}
+	
+	private String[] developQCHeader(Quantiles[] quantiles, int numQ, boolean justClasses) {
+		return Array.combine(developHeader(quantiles, qctitles, numQ, justClasses), new String[] {"CLASS=Exclude","ExcludeNote"});
+	}
 
 	public void addQCsToSampleData(int numQ, boolean justClasses) {
-		addToSampleData(proj, qcMatrix, qctitles, numQ, justClasses);
+		Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, qcMatrix, qctitles, proj.getLog());
+		Hashtable<String, String> hashtable = developQCHash(quantiles, justClasses);
+		String[] header = developQCHeader(quantiles, numQ, justClasses);
+		addToSampleData(proj, hashtable, header, numQ, justClasses);
 	}
 
 	public void addPCsToSampleData(int numQ, int numPCs, boolean justClasses) {
@@ -91,25 +153,25 @@ public class SampleQC {
 				pcTitles[i] = "PC" + (i + 1);
 				pcBasisSubset[i] = pcResiduals.getBasisAt((i + 1));
 			}
-			addToSampleData(proj, pcBasisSubset, pcTitles, numQ, justClasses);
+			Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, pcBasisSubset, pcTitles, proj.getLog());
+			Hashtable<String, String> hashtable = developHash(quantiles, proj.getSamples(), pcBasisSubset, justClasses);
+			String[] header = developHeader(quantiles, pcTitles, numQ, justClasses);
+			addToSampleData(proj, hashtable, header, numQ, justClasses);
 		} else {
 			proj.getLog().reportTimeError("PCs are not sorted by project, currently this is not supported");
 		}
 	}
 
-	private static void addToSampleData(Project proj, double[][] variableDomMatrix, String[] titles, int numQ, boolean justClasses) {
+	private static void addToSampleData(Project proj, Hashtable<String, String> hashtable, String[] header, int numQ, boolean justClasses) {
 		SampleData sampledata = proj.getSampleData(0, false);
-		Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, variableDomMatrix, titles, proj.getLog());
-		Hashtable<String, String> hashtable = developQCHash(quantiles, proj.getSamples(), variableDomMatrix, justClasses);
-		String[] header = developQCHeader(quantiles, titles, numQ, justClasses);
-		proj.getLog().reportTimeInfo("Adding " + titles.length + " sample qc metric(s) to sample data");
+		proj.getLog().reportTimeInfo("Adding " + header.length + " columns to sample data based on sample QC");
 		sampledata.addData(hashtable, "DNA", header, "NaN", "\t", proj.getLog());
 	}
 
 	/**
 	 * Prepares a hash to be used in the addition to sample data
 	 */
-	private static Hashtable<String, String> developQCHash(Quantiles[] quantiles, String[] samples, double[][] variableDomMatrix, boolean justClasses) {
+	private static Hashtable<String, String> developHash(Quantiles[] quantiles, String[] samples, double[][] variableDomMatrix, boolean justClasses) {
 		Hashtable<String, String> hashtable = new Hashtable<String, String>();
 		for (int i = 0; i < samples.length; i++) {
 			String qcInfo = "";
@@ -125,7 +187,7 @@ public class SampleQC {
 		return hashtable;
 	}
 
-	private static String[] developQCHeader(Quantiles[] quantiles, String[] titles, int numQ, boolean justClasses) {
+	private static String[] developHeader(Quantiles[] quantiles, String[] titles, int numQ, boolean justClasses) {
 		String[] qcHeader = new String[justClasses ? quantiles.length : quantiles.length * 2];
 		int curIndex = 0;
 		for (int i = 0; i < quantiles.length; i++) {
@@ -220,7 +282,7 @@ public class SampleQC {
 								try {
 									data = Double.parseDouble(line[indicesToLoad[i]]);
 								} catch (NumberFormatException e) {
-									proj.getLog().reportTimeWarning("line " + Array.toStr(line) + " contained and invalid number for qc column " + qcTitlesToLoad[i]);
+									proj.getLog().reportTimeWarning("line " + Array.toStr(line) + " contained an invalid number for qc column " + qcTitlesToLoad[i]);
 								}
 								sampleQC.addToMatrix(sample, i, data);
 							}
@@ -241,12 +303,57 @@ public class SampleQC {
 				proj.getLog().reportTimeError("Error reading file \"" + lrrSdToLoad + "\"");
 				return null;
 			}
+
+			if (sampleQC != null) {
+				proj.getLog().reportTimeInfo("Filtering empty columns from " + lrrSdToLoad);
+
+				boolean[] useCols = new boolean[sampleQC.getQcMatrix().length];
+				Arrays.fill(useCols, false);
+				int numFiltered = sampleQC.getQcMatrix().length;
+				for (int i = 0; i < sampleQC.getQcMatrix().length; i++) {
+					for (int j = 0; j < sampleQC.getQcMatrix()[i].length; j++){
+						if (!Double.isNaN(sampleQC.getQcMatrix()[i][j])) {
+							useCols[i] = true;
+							numFiltered--;
+							break;
+						}
+					}
+				}
+				sampleQC = new SampleQC(sampleQC, useCols);
+
+				proj.getLog().reportTimeInfo("Filtered " + numFiltered + " empty columns from " + lrrSdToLoad);
+				
+				proj.getLog().reportTimeInfo("Finding samples to exclude");
+				
+				int numExcluded = 0;
+				int lrr_sdIndex = ext.indexOfStr("LRR_SD_Post_Correction", sampleQC.getQctitles());
+				if (lrr_sdIndex == -1) lrr_sdIndex = ext.indexOfStr("LRR_SD", sampleQC.getQctitles());
+				int callrateIndex = ext.indexOfStr("Genotype_callrate", sampleQC.getQctitles());
+				
+				if (lrr_sdIndex != -1){
+					for (int i = 0; i < sampleQC.getQcMatrix()[lrr_sdIndex].length; i++){
+						if (sampleQC.getQcMatrix()[lrr_sdIndex][i] > proj.LRRSD_CUTOFF.getValue()){
+							if (sampleQC.addToExclude(i,"LRR_SD > " + proj.LRRSD_CUTOFF.getValue())) numExcluded++;
+						}
+					}
+				}
+				if (callrateIndex != -1){
+					for (int i = 0; i < sampleQC.getQcMatrix()[callrateIndex].length; i++){
+						if (sampleQC.getQcMatrix()[callrateIndex][i] < proj.SAMPLE_CALLRATE_THRESHOLD.getValue()){
+							if (sampleQC.addToExclude(i,"Callrate < " + proj.SAMPLE_CALLRATE_THRESHOLD.getValue())) numExcluded++;
+						}
+					}
+				}
+				
+				proj.getLog().reportTimeInfo("Found " + numExcluded + " samples to exclude");
+			}
+			
 		}
 		return sampleQC;
 	}
 
 	public static void parseAndAddToSampleData(Project proj, int numQ, int numPCs, boolean justClasses) {
-		SampleQC sampleQC = loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, LrrSd.NUMERIC_COLUMNS, false);
+		SampleQC sampleQC = loadSampleQC(proj, false);
 		sampleQC.addQCsToSampleData(numQ, justClasses);
 		if (numPCs > 0) {
 			sampleQC.addPCsToSampleData(numQ, numPCs, justClasses);

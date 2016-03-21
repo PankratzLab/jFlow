@@ -1060,7 +1060,7 @@ public class SampleData {
 	/**
 	 * Add column(s) to sample data according to linker (linker must be a single column i.e "DNA" ,"FID","IID",and not "FID\tIID") that corresponds to a single column in the sample data file, new columns will be appended, not inserted.
 	 * <p>
-	 * Warning - checks are not done to see if identical columns already exist in sample data
+	 * Warning - existing matching columns are left in place with their header edited for posterity
 	 * <p>
 	 * Warning - alternate names for linker are not determined, please do that prior to use
 	 * 
@@ -1080,7 +1080,6 @@ public class SampleData {
 	 * @return true if data was added successfully, false if not
 	 */
 	public boolean addData(Hashtable<String, String> linkData, String linker, String[] columnHeaders, String missingData, String linkDataDelimiter, Logger log) {
-		// TODO check for duplicate columns (esp. EXCLUDE)
 		boolean add = true;
 		boolean writerWasOpened = false;
 		BufferedReader reader;
@@ -1122,6 +1121,13 @@ public class SampleData {
 					} else {
 						writerWasOpened = true;
 						writer = Files.getAppropriateWriter(sampleDatafilename);
+						String dateTime = ext.getDate() + "_" + ext.getTime();
+						for (int i = 0; i < columnHeaders.length; i++){
+							int index = ext.indexOfStr(columnHeaders[i], sampleDataHeader, false, true);
+							if(index != -1){
+								sampleDataHeader[index] = "x" + sampleDataHeader[index] + "_replaced_" + dateTime;
+							}
+						}
 						writer.println(Array.toStr(sampleDataHeader) + "\t" + Array.toStr(columnHeaders));
 						String[] blanks = new String[columnHeaders.length];
 						Arrays.fill(blanks, missingData);
