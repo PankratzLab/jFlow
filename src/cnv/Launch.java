@@ -704,7 +704,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						SampleQC.parseAndAddToSampleData(proj, 10, -1, true);
+						SampleQC.parseAndAddToSampleData(proj, 10, -1, false);
 					}
 				});
 
