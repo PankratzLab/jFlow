@@ -11,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -60,6 +59,7 @@ import cnv.filesys.Project.FileProperty;
 import cnv.filesys.Project.IntegerProperty;
 import cnv.filesys.Project.Property;
 import cnv.filesys.Project.StringListProperty;
+
 //import cnv.filesys.Project.MultiFileProperty;
 import common.Array;
 import common.Files;

@@ -163,12 +163,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	private JButton previousGene, nextGene;
 	private Project proj;
 	private boolean jar;
-	private int[] positions;
-	private boolean[] dropped;
-	private int[][] chrBoundaries;
 	private byte chr;
-	private int start, startMarker;
-	private int stop, stopMarker;
+	private int start;
+	private int stop;
 	private boolean inDrag;
 	private int startX;
 	private int geneIndex;
@@ -217,7 +214,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     private JComboBox<String> geneListCmb;
 
     private PreparedMarkerSet markerSet;
-    private String[] markerNames;
     
 	private static final int DRAW_AS_CIRCLES = 1;
 	private static final int DRAW_AS_BLOCKS = 2;
@@ -423,7 +419,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 		this.proj = proj;
 		this.log = proj == null ? new Logger() : proj.getLog();
-		jar = proj.JAR_STATUS.getValue();
+		jar = proj == null ? false : proj.JAR_STATUS.getValue();
 		fail = false;
 		this.vcfFiles = vcfFiles;
 		generateSampleLists(vcfFiles);
@@ -431,10 +427,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		
 		time = new Date().getTime();
 
-		fail = !loadMarkers();
-		if (fail) {
-			return;
-		}        
 //		trackFilename = proj.getGeneTrackFilename(false);
 		trackFilename = "N:/statgen/NCBI/fullIsoforms/RefSeq.gtrack";
         if (trackFilename != null) {
@@ -680,13 +672,24 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                     }
                 }
                 vcfInSeg = getExonVCFRecords(j);
+                String selIso = isoformList.getSelectedItem().toString();
                 if (vcfInSeg.size() > 0) {
                     if (lenPx <= dataPntSize + 2 && !displayIfSmooshed) {
-                        g.setColor(Color.RED);
-                        g.drawLine(tempPx + (lenPx / 2), height - 30, tempPx + (lenPx / 2), height - 5);
-                        g.setColor(Color.BLACK);
+                        int cnt = 0;
+                        for (VariantContextWithFile vc : vcfInSeg) {
+                            String isoAttr = vc.vc.getAttributeAsString("SNPEFF_TRANSCRIPT_ID", ".").toString();
+                            // only draw if collapsed, or showing affected isoform
+                            if (!isoAttr.equals(".") && !selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
+                                continue;
+                            }
+                            cnt++;
+                        }
+                        if (cnt > 0) {
+                            g.setColor(Color.RED);
+                            g.drawLine(tempPx + (lenPx / 2), height - 30, tempPx + (lenPx / 2), height - 5);
+                            g.setColor(Color.BLACK);
+                        }
                     } else {
-                        String selIso = isoformList.getSelectedItem().toString();
                         if (drawType == DRAW_AS_BLOCKS) {
                             // draw populations
                             ArrayList<BlockDraw> toDraw = new ArrayList<VariantViewer.BlockDraw>();
@@ -1056,6 +1059,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
         for (Entry<String, HashSet<String>> popSetEntry : (showExcludes ? popIndiMapWithExcludes.entrySet() : popIndiMap.entrySet())) {
             for (VCFLocation vcfLoc : vcfLocs) {
+                if (DrawType.getDrawType(vcfLoc.vc) == null) continue;
                 double maf = VCOps.getMAF(vcfLoc.vc, popSetEntry.getValue());
                 double mac = VCOps.getMAC(vcfLoc.vc, popSetEntry.getValue());
                 if ((Double.isNaN(maf) || maf == 0d) && (mac == 0d || Double.isNaN(mac))) continue;
@@ -1072,6 +1076,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         if (drawMAF) {
             for (int i = 0; i < pops.size(); i++) {
                 for (int v = 0; v < vcfLocs.size(); v++) {
+                    if (DrawType.getDrawType(vcfLocs.get(v).vc) == null) continue;
                     String draw = vcfLocs.get(v).mafMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).mafMap.get(pops.get(i)), 4) : "--";
                     int width = fm.stringWidth(draw);
                     if (v < vcfLocs.size() - 1) {
@@ -1113,6 +1118,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             fm = g.getFontMetrics();
             for (int i = 0; i < pops.size(); i++) {
                 for (int v = 0; v < vcfLocs.size(); v++) {
+                    if (DrawType.getDrawType(vcfLocs.get(v).vc) == null) continue;
                     String draw = vcfLocs.get(v).macMap.containsKey(pops.get(i)) ? ext.formDeci(vcfLocs.get(v).macMap.get(pops.get(i)), 4) : "--";
                     int width = fm.stringWidth(draw);
                     if (v < vcfLocs.size() - 1) {
@@ -1974,17 +1980,19 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	ArrayList<DrawPoint> activePoints = new ArrayList<VariantViewer.DrawPoint>();
 	HashSet<VariantContext> drawnFreqs = new HashSet<VariantContext>();
 
-	public void mouseClicked(MouseEvent e) {
-        int x = e.getX();
-
-        if (genePanel.getToolTipText() == null) {
-            genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
-        }
-        MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis() + 1, 0, x, e.getY(), 0, false);
-        ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
+	private void refreshToolTip(Component source, int x, int y) {
+//        if (genePanel.getToolTipText() == null) {
+//            genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
+//        }
+        
+        MouseEvent phantom = new MouseEvent(source, MouseEvent.MOUSE_MOVED, System.currentTimeMillis() + 1, 0, x, y, 0, false);
+//        ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
         this.mouseMoved(phantom);
         VariantViewer.this.repaint();
-	    
+	}
+	
+	public void mouseClicked(MouseEvent e) {
+	    refreshToolTip(e.getComponent(), e.getX(), e.getY());
     }
 	
     int defaultInitial = ToolTipManager.sharedInstance().getInitialDelay();
@@ -2008,28 +2016,82 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	public void mousePressed(MouseEvent e) {
 		startX = e.getPoint().x;
 		inDrag = true;
+		refreshToolTip(e.getComponent(), e.getX(), e.getY());
 	}
 
 	public void mouseReleased(MouseEvent e) {
 		inDrag = false;
 	}
 	
-	private int getStart(boolean buffered) {
-//	    return geneData[geneIndex][0].getStart() - MIN_BUFFER;
+	public void mouseDragged(MouseEvent e) {
+    	int curX = e.getPoint().x;
+    	int distance = startX - curX;
+    
+    	distance *= (stop - start) / (getWidth() - 2 * WIDTH_BUFFER);
+    
+    	if (distance < 0) {
+    		distance = Math.max(distance, 1 - start);
+    	} else {
+    		distance = Math.min(distance, getStop() - stop);
+    	}
+    
+        if ((start <= getStart(true) && distance < 0) || (stop >= getStop() && distance > 0)) {
+    
+    	} else {
+    		start += distance;
+    		stop += distance;
+    	}
+    
+    	if (inDrag) {
+    		updateGUI();
+    		startX = curX;
+    	}
+    }
+
+    public void mouseMoved(MouseEvent e) {
+    	    
+    	    
+    	    // this entire block of code can be copy-paste moved to mouseClicked to make selection a click-based event 
+    	    int x = e.getX();
+            int y = genePanel.getHeight() - yStart - GENE_HEIGHT - e.getY() - 2;
+    
+            for (int i = 0; i < activeRects.size(); i++) {
+                if (activeRects.get(i).contains(x, y)) {
+                    selectedRect = activeRects.get(i);
+                    if (drawType == DRAW_AS_BLOCKS) {
+                        selectedBlockDraw = activeBlocks.get(i);
+                    } else if (drawType == DRAW_AS_CIRCLES) {
+                        selectedDrawPoint = activePoints.get(i);
+                    }
+                    genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
+                    MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, e.getY(), 0, false);
+                    ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
+    //                this.mouseMoved(phantom);
+                    VariantViewer.this.repaint();
+                    return;
+                }
+            }
+            
+            genePanel.setToolTipText(null);
+            selectedRect = null;
+            selectedBlockDraw = null;
+            selectedDrawPoint = null;
+            VariantViewer.this.repaint();
+    	    
+    	}
+
+    private int getStart(boolean buffered) {
 	    GeneData gd = getCurrentGeneData();
 	    return gd == null ? (buffered ? -1 * MIN_BUFFER : 0) : getCurrentGeneData().getStart() - (buffered ? MIN_BUFFER : 0);
 	}
 
 	private int getStop() {
-//	    int stop = geneData[geneIndex][0].getStart();
         GeneData gd = getCurrentGeneData();
         if (gd == null) return MIN_BUFFER;
         int stop = gd.getStart();
         if (paintIntrons) {
-//            stop = geneData[geneIndex][0].getStop();
             stop = gd.getStop();
         } else {
-//            int[][] exons = geneData[geneIndex][0].getExonBoundaries();
             int[][] exons = gd.getExonBoundaries();
             for (int i = 0; i < exons.length; i++) {
                 stop += equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : (exons[i][1] - exons[i][0]);
@@ -2044,79 +2106,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         }
         return stop + MIN_BUFFER;
     }
-	
-	public void mouseDragged(MouseEvent e) {
-		int curX = e.getPoint().x;
-		int distance = startX - curX;
-
-		distance *= (stop - start) / (getWidth() - 2 * WIDTH_BUFFER);
-
-		if (distance < 0) {
-			distance = Math.max(distance, 1 - start);
-		} else {
-			distance = Math.min(distance, getStop() - stop);
-		}
-
-	    if ((start <= getStart(true) && distance < 0) || (stop >= getStop() && distance > 0)) {
-
-		} else {
-			start += distance;
-			stop += distance;
-		}
-
-		if (inDrag) {
-			updateGUI();
-			startX = curX;
-		}
-	}
-
-	public void mouseMoved(MouseEvent e) {
-	    
-	    
-	    // this entire block of code can be copy-paste moved to mouseClicked to make selection a click-based event 
-	    int x = e.getX();
-        int y = genePanel.getHeight() - yStart - GENE_HEIGHT - e.getY() - 2;
-
-        for (int i = 0; i < activeRects.size(); i++) {
-            if (activeRects.get(i).contains(x, y)) {
-                selectedRect = activeRects.get(i);
-                if (drawType == DRAW_AS_BLOCKS) {
-                    selectedBlockDraw = activeBlocks.get(i);
-                } else if (drawType == DRAW_AS_CIRCLES) {
-                    selectedDrawPoint = activePoints.get(i);
-                }
-                genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
-                MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, x, e.getY(), 0, false);
-                ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't matter, but both are necessary
-//                this.mouseMoved(phantom);
-                VariantViewer.this.repaint();
-                return;
-            }
-        }
-        
-        genePanel.setToolTipText(null);
-        selectedRect = null;
-        selectedBlockDraw = null;
-        selectedDrawPoint = null;
-        VariantViewer.this.repaint();
-	    
-	    
-	    
-	    
-//	    
-//	    if (selectedRect == null) return;
-//	    int x = e.getX();
-//        int y = genePanel.getHeight() - yStart - GENE_HEIGHT - e.getY() - 2;
-        
-//        if (selectedRect.contains(x, y)) {
-//            if (genePanel.getToolTipText() == null) {
-//                genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
-//            }
-//        } else {
-//            genePanel.setToolTipText(null);
-//        }
-        
-	}
 	
 	private String buildToolTip(DrawPoint dp) {
 	    StringBuilder txtBld = new StringBuilder("<html><pre>");
@@ -2213,49 +2202,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		updateGUI();
 	}
 	
-   public boolean loadMarkers() {
-        Hashtable<String,String> hash;
-        byte[] chrs;
-        long time;
-        int chr;
-
-        time = new Date().getTime();
-
-        hash = proj.getFilteredHash();
-        markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
-        if (markerSet == null) {
-            JOptionPane.showMessageDialog(null, "Error - Failed to load the MarkerSet file; make sure the raw data is parsed", "Error", JOptionPane.ERROR_MESSAGE);
-            log.reportError("Error - failed to load MarkerSet for project "+proj.PROJECT_NAME.getValue()+"; make sure the raw data is parsed");
-            return false;
-        }
-        markerNames = markerSet.getMarkerNames();
-        chrs = markerSet.getChrs();
-        positions = markerSet.getPositions();
-
-        dropped = new boolean[markerNames.length];
-        chrBoundaries = new int[27][2];
-        for (int i = 0; i<chrBoundaries.length; i++) {
-//	          chrBoundaries[i][0] = chrBoundaries[i][1] = -1;
-            chrBoundaries[i][0] = chrBoundaries[i][1] = 0;
-        }
-        chr = 0;
-        for (int i = 0; i<markerNames.length; i++) {
-            dropped[i] = hash.containsKey(markerNames[i]);
-            if (chrs[i]>chr) {
-                if (chr!=0) {
-                    chrBoundaries[chr][1] = i-1;
-                }
-                chr = chrs[i];
-                chrBoundaries[chr][0] = i;
-            }
-        }
-        chrBoundaries[chr][1] = markerNames.length-1;
-        chrBoundaries[0][0] = 0;
-        chrBoundaries[0][1] = markerNames.length-1;
-
-        System.out.println("Read in data for "+markerNames.length+" markers in "+ext.getTimeElapsed(time));
-        return true;
-    }
 
 	public void createIsoformList() {
 		FontMetrics fontMetrics;
@@ -2344,28 +2290,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		if (start < getStart(true)) {
 			start = getStart(true);
 		}
-		startMarker = Array.binarySearch(positions, start, chrBoundaries[chr][0], chrBoundaries[chr][1], false);
-
-//		if (stop >= geneData[geneIndex][0].getStop() + MIN_BUFFER) {
-//		    stop = geneData[geneIndex][0].getStop() + MIN_BUFFER;
-//		}
 		if (stop > getStop()) {
 			stop = getStop();
 		}
-		stopMarker = Array.binarySearch(positions, stop, chrBoundaries[chr][0], chrBoundaries[chr][1], false);
-
-		if (startMarker == -1) {
-			System.err.println("Error - failed to find startMarker");
-//			startMarker = chrBoundaries[chr][0];
-		}
-
-		if (stopMarker == -1) {
-//			System.err.println("Error - failed to find stopMarker");
-			stopMarker = chrBoundaries[chr][1];
-		}
-		
-//		displayIndex();
-		
 		repaint();
 	}
 	
@@ -2565,10 +2492,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	}
 
 	public static void main(String[] args) {
-		 Project proj = new Project("D:/projects/gedi_gwas.properties", false);
+		 Project proj = null;//new Project("D:/projects/gedi_gwas.properties", false);
+		 String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
 //		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
-		proj.GENE_LIST_FILENAMES.setValue(new String[] { "N:/statgen/VariantMapper/test2/genes.txt" });
-		//
+
 //		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz" };
 //		String popFile = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF.vpop";
 //		new VariantViewer(proj, vcfFiles, popFile);
@@ -2583,7 +2510,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 //
 		String[] vcfFiles4 = new String[] { "N:/statgen/VariantMapper/test2/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.chr17.vcf.gz" };
 		String popFile4 = "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT_ALLOFF_RENTS_OTEHRS.vpop";
-		new VariantViewer(proj, vcfFiles4, popFile4);
+		new VariantViewer(proj, geneList, vcfFiles4, popFile4);
 		//
 //		OSTEO_OFF_INHERIT.maf_0.01.chr17.vcf.gz.tbi
 		
