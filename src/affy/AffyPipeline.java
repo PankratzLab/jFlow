@@ -1,7 +1,10 @@
 package affy;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
@@ -105,8 +108,20 @@ public class AffyPipeline {
 
 	}
 
-	private String getFullProbesetList(String celFile, String outDir, String analysisName, Logger log) {
+	private String generateCelList(String[] celFiles, String outDir, String analysisName) {
+		String celListFile = outDir + analysisName + ".celList.txt";
+		String[] toWrite = new String[] { AFFY_CEL_LIST_HEADER };
+		toWrite = Array.concatAll(toWrite, celFiles);
+		Files.writeList(toWrite, celListFile);
+		return celListFile;
+	}
+
+	/**
+	 * run a simple command to extract all probesets, return a formatted file to use for downstream analysis
+	 */
+	private String getFullProbesetList(String celFile, String outDir, String analysisName) {
 		String smallCelList = outDir + "tmp" + ext.getTimestampForFilename();
+		String currentAnalysis = analysisName + "_probelistGenerator";
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(smallCelList));
 			writer.println(AFFY_CEL_LIST_HEADER);
@@ -119,54 +134,108 @@ public class AffyPipeline {
 		}
 
 		ArrayList<String> psetCommand = new ArrayList<String>();
-		psetCommand.add(aptExeDir);
+		psetCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.GENERATE_PROBE_LIST.getExe());
 		psetCommand.add("--cdf-file");
 		psetCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile());
 		psetCommand.add("--analysis");
-		psetCommand.add("--analysis quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true");
+		psetCommand.add("quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true");
 		psetCommand.add("--out-dir");
-		psetCommand.add("outDir");
+		psetCommand.add(outDir);
 		psetCommand.add("--cel-files");
-		psetCommand.add("smallCelList");
+		psetCommand.add(smallCelList);
 		psetCommand.add("--set-analysis-name");
-		psetCommand.add("analysisName");
+		psetCommand.add(currentAnalysis);
 
-		CmdLine.runCommandWithFileChecks(Array.toStringArray(psetCommand), "", new String[] { celFile }, null, true, false, false, log);
-
-		// --out-dir " + outDir + " --cel-files " + smallCelList + " " + analysisName;
-		// String psetCommand = aptExeDir + AFFY_ANALYSIS_TYPES[2] + " -a rma --cdf-file " + affyCDF + " -o " + affyResultsDir + " --cel-files " + smallCelList;
 		log.report(ext.getTime() + " Info - running a command to extract probeset ids: " + psetCommand);
-		// CmdLine.run(psetCommand, aptExeDir);
-		// String toExtractFile = getMatchedFiles(affyResultsDir, log, AFFY_ANALYSIS_OUTPUTS_PREFIXES[2] + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[0])[0];
-		// log.report(ext.getTime() + " Info - extracting probesets from " + toExtractFile);
-		// extractProbesets(affyResultsDir, markerFile, toExtractFile, log);
-		// log.report(ext.getTime() + " Info - cleaning up files...");
-		// deleteFile(smallCelList, log);
-		// // delete summarize .summary
-		// deleteFile(toExtractFile, log);
-		// // delete summarize log
-		// deleteFile(affyResultsDir + AFFY_ANALYSIS_TYPES[2] + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[4], log);
-		// // delete summarize .report
-		// deleteFile(affyResultsDir + AFFY_ANALYSIS_OUTPUTS_PREFIXES[2] + AFFY_ANALYSIS_OUTPUTS_SUFFIXES[1], log);
-		return null;
+
+		String probeResults = outDir + currentAnalysis + ".summary.txt";
+		CmdLine.runCommandWithFileChecks(Array.toStringArray(psetCommand), "", new String[] { celFile }, new String[] { probeResults }, true, false, false, log);
+
+		log.reportTimeInfo("Parsing " + probeResults + " to obtain all probesIds");
+		ArrayList<String> probesetIds = new ArrayList<String>(1800000);
+		try {
+			BufferedReader reader = Files.getAppropriateReader(probeResults);
+			while (reader.ready()) {
+				String[] line = reader.readLine().trim().split("\t");
+				if (line[0].startsWith("CN_") || line[0].startsWith("SNP_") || line[0].startsWith("AFFX-SNP")) {
+					String pId = line[0];
+					if (!pId.endsWith("-B")) {
+						probesetIds.add(pId);
+					}
+				}
+			}
+			reader.close();
+		} catch (FileNotFoundException fnfe) {
+			log.reportError("Error: file \"" + probeResults + "\" not found in current directory");
+			return null;
+		} catch (IOException ioe) {
+			log.reportError("Error reading file \"" + probeResults + "\"");
+			return null;
+		}
+
+		log.reportTimeInfo("Detected " + probesetIds.size() + " total probesets");
+		String pIdFile = outDir + analysisName + ".probesetIds.txt";
+		Files.writeList(Array.toStringArray(probesetIds), pIdFile);
+		new File(smallCelList).delete();
+		return pIdFile;
 	}
 
-	public static void run(String aptExeDir, String aptLibDir, String celDir, String outDir, String quantNormTarget) {
+	private void genotype(String celListFile, String pIDFile, String analysisName, String outDir) {
+		
+		String outCurrent = outDir+analysisName+"_Genotyping/";
+		new File(outCurrent).mkdirs();
+		ArrayList<String > genotypeCommand =new ArrayList<String>();
+		genotypeCommand.add(aptExeDir+AFFY_ANALYSIS_TYPES.GENOTYPE.getExe());
+		genotypeCommand.add("-c");
+		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile());
+		genotypeCommand.add("--table-output");
+		genotypeCommand.add("true");
+		genotypeCommand.add("-a");
+		genotypeCommand.add("birdseed-v2");
+		genotypeCommand.add("--set-gender-method");
+		genotypeCommand.add("cn-probe-chrXY-ratio");
+		genotypeCommand.add("--read-models-birdseed");
+		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_BIRDSEED_MODELS.getLibFile());
+		genotypeCommand.add("--special-snps");
+		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_SPECIAL_SNPS.getLibFile());
+		genotypeCommand.add("--chrX-probes");
+		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CHRX.getLibFile());
+		genotypeCommand.add("--chrY-probes");
+		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CHRY.getLibFile());
+		genotypeCommand.add("--probeset-ids");
+		genotypeCommand.add(pIDFile);
+		genotypeCommand.add("--set-analysis-name");
+		genotypeCommand.add(analysisName);
+		genotypeCommand.add("-out-dir");
+		genotypeCommand.add(outCurrent);
+		genotypeCommand.add("--cel-files");
+		genotypeCommand.add(celListFile);
+		CmdLine.runCommandWithFileChecks(Array.toStringArray(genotypeCommand), "", null, null, true, false, false, log);
+
+		
+
+	}
+
+	public static void run(String aptExeDir, String aptLibDir, String celDir, String outDir, String quantNormTarget, String analysisName) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "affyPipeline.log");
 		String[] celFiles = Files.list(celDir, null, ".cel", false, false, true);
-
+		log.reportTimeInfo("Found " + celFiles.length + " .cel files to process");
 		AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, log);
+		String piDFile = pipeline.getFullProbesetList(celFiles[0], outDir, analysisName);
+		String celListFile = pipeline.generateCelList(celFiles, outDir, analysisName);
+
 	}
 
 	public static void main(String[] args) {
+		String analysisName = "Genvisis_affy_pipeline";
 		String celDir = "/scratch.global/lanej/Affy6_1000g/cels/";
 		String quantNormTarget = null;
 		String aptExeDir = "/home/pankrat2/public/bin/affyPowerTools/apt-1.18.0-x86_64-intel-linux/bin/";
 		String aptLibDir = "/home/pankrat2/public/bin/affyPowerTools/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/";
 		String outDir = "/scratch.global/lanej/Affy6_1000g/";
 
-		run(aptExeDir, aptLibDir, celDir, outDir, quantNormTarget);
+		run(aptExeDir, aptLibDir, celDir, outDir, quantNormTarget, analysisName);
 	}
 
 }
