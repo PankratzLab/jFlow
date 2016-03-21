@@ -17,7 +17,7 @@ import cnv.manage.SourceFileParser;
 
 public class AffySNP6Tables {
 	public static final String[][] SNP_HEADER_OPTIONS = { { "SNP Name", "rsID", "Probe Set ID", "probeset_id" } };
-	String[] indFiles;
+	StringBuilder[] indFiles;
 	private String outputDirectory;
 	private String callFile;
 	private String confFile;
@@ -58,14 +58,14 @@ public class AffySNP6Tables {
 
 	public void parseSNPLine(String[] calls, String[] confs, String[] sigA, String[] sigB) {
 		for (int j = 1; j < calls.length; j++) {
-			indFiles[j - 1] += calls[0] + "\t" + parseCall(calls[j]) + "\t" + confs[j] + "\t" + Double.toString(power2(sigA[j])) + "\t" + Double.toString(power2(sigB[j])) + "\t" + parseCall(calls[j]) + "\n";
+			indFiles[j - 1].append(calls[0] + "\t" + parseCall(calls[j]) + "\t" + confs[j] + "\t" + Double.toString(power2(sigA[j])) + "\t" + Double.toString(power2(sigB[j])) + "\t" + parseCall(calls[j]) + "\n");
 		}
 	}
 
 	// setting CN probeset calls to NC (-1), confidence to 0, and sigB to 0;
 	public void parseCNLine(String[] sigA) {
 		for (int j = 1; j < sigA.length; j++) {
-			indFiles[j - 1] += sigA[0] + "\tNC\t0\t" + Double.toString(power2(sigA[j])) + "\t" + Double.toString(power2(sigA[j])) + "\tNC\n";
+			indFiles[j - 1].append(sigA[0] + "\tNC\t0\t" + Double.toString(power2(sigA[j])) + "\t" + Double.toString(power2(sigA[j])) + "\tNC\n");
 		}
 	}
 
@@ -96,6 +96,15 @@ public class AffySNP6Tables {
 		}
 	}
 
+	public boolean allExist(String[] header, String outputDirectory) {
+		for (int i = 1; i < header.length; i++) {
+			if (!Files.exists(outputDirectory + ext.rootOf(header[i]) + ".txt")) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public void printIt(String[] header, int chunkCount) {
 		PrintWriter writer = null;
 		boolean append = true;
@@ -104,16 +113,16 @@ public class AffySNP6Tables {
 			if (chunkCount == 0) {
 				mkdir(outputDirectory);
 				append = false;
-				writer = getWriter(outputDirectory + header[j] + ".IND.txt", append);
+				writer = getWriter(outputDirectory + ext.rootOf(header[j]) + ".txt", append);
 				writer.print("Probe Set ID\tCall Codes\tConfidence\tSignal A\tSignal B\tForced Call Codes\n");
 				writer.print(indFiles[j - 1]);
 				writer.close();
-				indFiles[j - 1] = "";
+				indFiles[j - 1] = new StringBuilder();
 			} else {
-				writer = getWriter(outputDirectory + header[j] + ".IND.txt", append);
+				writer = getWriter(outputDirectory + ext.rootOf(header[j]) + ".txt", append);
 				writer.print(indFiles[j - 1]);
 				writer.close();
-				indFiles[j - 1] = "";
+				indFiles[j - 1] = new StringBuilder();
 			}
 		}
 		System.out.println("Printing took " + ext.getTimeElapsed(time));
@@ -131,33 +140,39 @@ public class AffySNP6Tables {
 			sigReader = Files.getAppropriateReader(sigFile);
 			sigHeader = getHeader(sigReader, delimiter, sigFile);
 			String[] header = sigHeader.split(delimiter, -1);
-			int numFiles = header.length - 1;
-			indFiles = new String[numFiles];
-			Arrays.fill(indFiles, "");
-			while (sigReader.ready()) {
-				do {
-					sigALine = sigReader.readLine().trim().split(delimiter, -1);
-				} while (!sigALine[0].substring(0, 3).equals("CN_"));
-				if (sigALine[0].substring(0, 3).equals("CN_")) {
-					parseCNLine(sigALine);
-					lineCount++;
-					if (lineCount >= numLinesBuffer) {
-						System.out.println("Parsed " + chunkCount * numLinesBuffer + " lines");
-						System.out.println(ext.getTime() + " Free memory: " + ((float) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().totalMemory()) + "%");
-						printIt(header, chunkCount);
-						lineCount = 0;
-						chunkCount++;
+			if (!allExist(header, outputDirectory)) {
+
+				int numFiles = header.length - 1;
+				indFiles = new StringBuilder[numFiles];
+				Arrays.fill(indFiles, new StringBuilder());
+				while (sigReader.ready()) {
+					do {
+						sigALine = sigReader.readLine().trim().split(delimiter, -1);
+					} while (!sigALine[0].substring(0, 3).equals("CN_"));
+					if (sigALine[0].substring(0, 3).equals("CN_")) {
+						parseCNLine(sigALine);
+						lineCount++;
+						if (lineCount >= numLinesBuffer) {
+							System.out.println("Parsed " + chunkCount * numLinesBuffer + " lines");
+							System.out.println(ext.getTime() + " Free memory: " + ((float) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().totalMemory()) + "%");
+							printIt(header, chunkCount);
+							lineCount = 0;
+							chunkCount++;
+						}
+					} else {
+						System.err.println("This Should Not Happen");
 					}
-				} else {
-					System.err.println("This Should Not Happen");
 				}
+				if (lineCount < numLinesBuffer) {
+					printIt(header, chunkCount);
+					int numLinesTotal = chunkCount * numLinesBuffer + lineCount + 1;
+					System.out.println("Parsed a total of " + numLinesTotal + " CN probesets");
+				}
+				sigReader.close();
+			} else {
+				System.out.println("All files exist in " + outputDirectory + ", skipping parsing. Please delete these files if you would like to re-parse");
+
 			}
-			if (lineCount < numLinesBuffer) {
-				printIt(header, chunkCount);
-				int numLinesTotal = chunkCount * numLinesBuffer + lineCount + 1;
-				System.out.println("Parsed a total of " + numLinesTotal + " CN probesets");
-			}
-			sigReader.close();
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: one of the input tables was not found in current directory");
 			return;
@@ -173,7 +188,7 @@ public class AffySNP6Tables {
 		int chunkCount = 0;
 		int lineCount = 0;
 		String delimiter = "\t";
-//		int totalLines = 0;
+		// int totalLines = 0;
 
 		try {
 			callReader = Files.getAppropriateReader(callFile);
@@ -186,48 +201,53 @@ public class AffySNP6Tables {
 			if (callHeader.equals(confHeader) && callHeader.equals(sigHeader)) {
 
 				String[] header = callHeader.split(delimiter, -1);
-				int numFiles = header.length - 1;
-				indFiles = new String[numFiles];
-				Arrays.fill(indFiles, "");
-				callLine = callReader.readLine().trim().split(delimiter, -1);
-				confLine = confReader.readLine().trim().split(delimiter, -1);
-				sigALine = allignFiles(sigReader, callLine, confLine, delimiter);
-				sigBLine = sigReader.readLine().trim().split(delimiter, -1);
+				if (!allExist(header, outputDirectory)) {
 
-				while (callReader.ready()) {
-//					totalLines++;
-					if (callLine[0].equals(confLine[0]) && sigALine[0].equals(callLine[0] + "-A") && sigBLine[0].equals(callLine[0] + "-B")) {
-						parseSNPLine(callLine, confLine, sigALine, sigBLine);
-						lineCount++;
-						if (lineCount >= numLinesBuffer) {
-							printIt(header, chunkCount);
-							lineCount = 0;
-							chunkCount++;
-							System.out.println("Parsed " + chunkCount * numLinesBuffer + " marker lines");
-						}
-					} else if (!callLine[0].equals(confLine[0]) || !sigALine[0].equals(callLine[0] + "-A") || !sigBLine[0].equals(callLine[0] + "-B")) {
-						System.err.println("Error: probeset identifier mismatch between calls/confidence/signal files ");
-						System.exit(1);
-					} else if (!sigReader.ready()) {
-						System.err.println("Error: probeset identifier discordance between calls/confidence/signal files");
-						return;
-					} else {
-						System.err.println("This Should Not Happen");
-						System.exit(1);
-					}
+					int numFiles = header.length - 1;
+					indFiles = new StringBuilder[numFiles];
+					Arrays.fill(indFiles, new StringBuilder());
 					callLine = callReader.readLine().trim().split(delimiter, -1);
 					confLine = confReader.readLine().trim().split(delimiter, -1);
-					sigALine = sigReader.readLine().trim().split(delimiter, -1);
+					sigALine = allignFiles(sigReader, callLine, confLine, delimiter);
 					sigBLine = sigReader.readLine().trim().split(delimiter, -1);
+
+					while (callReader.ready()) {
+						// totalLines++;
+						if (callLine[0].equals(confLine[0]) && sigALine[0].equals(callLine[0] + "-A") && sigBLine[0].equals(callLine[0] + "-B")) {
+							parseSNPLine(callLine, confLine, sigALine, sigBLine);
+							lineCount++;
+							if (lineCount >= numLinesBuffer) {
+								printIt(header, chunkCount);
+								lineCount = 0;
+								chunkCount++;
+								System.out.println("Parsed " + chunkCount * numLinesBuffer + " marker lines");
+							}
+						} else if (!callLine[0].equals(confLine[0]) || !sigALine[0].equals(callLine[0] + "-A") || !sigBLine[0].equals(callLine[0] + "-B")) {
+							System.err.println("Error: probeset identifier mismatch between calls/confidence/signal files ");
+							System.exit(1);
+						} else if (!sigReader.ready()) {
+							System.err.println("Error: probeset identifier discordance between calls/confidence/signal files");
+							return;
+						} else {
+							System.err.println("This Should Not Happen");
+							System.exit(1);
+						}
+						callLine = callReader.readLine().trim().split(delimiter, -1);
+						confLine = confReader.readLine().trim().split(delimiter, -1);
+						sigALine = sigReader.readLine().trim().split(delimiter, -1);
+						sigBLine = sigReader.readLine().trim().split(delimiter, -1);
+					}
+					if (lineCount < numLinesBuffer) {
+						parseLastBatch(callLine, confLine, sigALine, sigBLine, chunkCount, header);
+						int numLinesTotal = chunkCount * numLinesBuffer + lineCount + 1;
+						System.out.println("Parsed a total of " + numLinesTotal + " SNP probesets");
+					}
+					callReader.close();
+					confReader.close();
+					sigReader.close();
+				} else {
+					System.out.println("All files exist in " + outputDirectory + ", skipping parsing. Please delete these files if you would like to re-parse");
 				}
-				if (lineCount < numLinesBuffer) {
-					parseLastBatch(callLine, confLine, sigALine, sigBLine, chunkCount, header);
-					int numLinesTotal = chunkCount * numLinesBuffer + lineCount + 1;
-					System.out.println("Parsed a total of " + numLinesTotal + " SNP probesets");
-				}
-				callReader.close();
-				confReader.close();
-				sigReader.close();
 			} else {
 				System.out.println("table headers do not match ");
 			}

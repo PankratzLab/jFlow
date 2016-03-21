@@ -8,16 +8,26 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
+import cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
+import cnv.manage.SourceFileParser;
 import common.Array;
 import common.CmdLine;
 import common.Files;
 import common.Logger;
+import common.PSF;
 import common.ext;
 
 /**
  * @author lane0212
  *
- *         Maybe the last affy raw data processor. Takes us from .CEL -> to Genvisis. Requires affy power tools and related library files
+ *         Maybe the last affy raw data processor.
+ *         <p>
+ *         Takes us from .CEL -> to Genvisis. Requires affy power tools and related library files
+ *         <p>
+ * 
+ *         Basically follows http://penncnv.openbioinformatics.org/en/latest/user-guide/affy/
  *
  */
 public class AffyPipeline {
@@ -116,10 +126,39 @@ public class AffyPipeline {
 		return celListFile;
 	}
 
+	private static class Probesets {
+		private String snpOnlyFile;
+		private String allFile;
+		private boolean fail;
+
+		public Probesets(String snpOnlyFile, String allFile) {
+			super();
+			this.snpOnlyFile = snpOnlyFile;
+			this.allFile = allFile;
+		}
+
+		public boolean isFail() {
+			return fail;
+		}
+
+		public void setFail(boolean fail) {
+			this.fail = fail;
+		}
+
+		public String getSnpOnlyFile() {
+			return snpOnlyFile;
+		}
+
+		public String getAllFile() {
+			return allFile;
+		}
+
+	}
+
 	/**
 	 * run a simple command to extract all probesets, return a formatted file to use for downstream analysis
 	 */
-	private String getFullProbesetList(String celFile, String outDir, String analysisName) {
+	private Probesets getFullProbesetList(String celFile, String outDir, String analysisName) {
 		String smallCelList = outDir + "tmp" + ext.getTimestampForFilename();
 		String currentAnalysis = analysisName + "_probelistGenerator";
 		try {
@@ -149,10 +188,14 @@ public class AffyPipeline {
 		log.report(ext.getTime() + " Info - running a command to extract probeset ids: " + psetCommand);
 
 		String probeResults = outDir + currentAnalysis + ".summary.txt";
-		CmdLine.runCommandWithFileChecks(Array.toStringArray(psetCommand), "", new String[] { celFile }, new String[] { probeResults }, true, false, false, log);
+		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(psetCommand), "", new String[] { celFile }, new String[] { probeResults }, true, false, false, log);
 
 		log.reportTimeInfo("Parsing " + probeResults + " to obtain all probesIds");
-		ArrayList<String> probesetIds = new ArrayList<String>(1800000);
+		ArrayList<String> probesetIdsAll = new ArrayList<String>(1800000);
+		ArrayList<String> probesetIdsSNP = new ArrayList<String>(925000);
+
+		probesetIdsAll.add(AFFY_PROBELIST_HEADER);
+		probesetIdsSNP.add(AFFY_PROBELIST_HEADER);
 		try {
 			BufferedReader reader = Files.getAppropriateReader(probeResults);
 			while (reader.ready()) {
@@ -160,7 +203,10 @@ public class AffyPipeline {
 				if (line[0].startsWith("CN_") || line[0].startsWith("SNP_") || line[0].startsWith("AFFX-SNP")) {
 					String pId = line[0];
 					if (!pId.endsWith("-B")) {
-						probesetIds.add(pId);
+						probesetIdsAll.add(pId.replaceAll("-A", ""));
+						if (!pId.startsWith("CN_")) {
+							probesetIdsSNP.add(pId.replaceAll("-A", ""));
+						}
 					}
 				}
 			}
@@ -173,19 +219,105 @@ public class AffyPipeline {
 			return null;
 		}
 
-		log.reportTimeInfo("Detected " + probesetIds.size() + " total probesets");
-		String pIdFile = outDir + analysisName + ".probesetIds.txt";
-		Files.writeList(Array.toStringArray(probesetIds), pIdFile);
+		log.reportTimeInfo("Detected " + (probesetIdsAll.size() - 1) + " total probesets with " + (probesetIdsSNP.size() - 1) + " SNP_ probesets");
+		String pIdAllFile = outDir + analysisName + ".probesetIdsAll.txt";
+		String pIdSnpFile = outDir + analysisName + ".probesetIdsSNPS.txt";
+		Files.writeList(Array.toStringArray(probesetIdsAll), pIdAllFile);
+		Files.writeList(Array.toStringArray(probesetIdsSNP), pIdSnpFile);
+
 		new File(smallCelList).delete();
-		return pIdFile;
+		Probesets probesets = new Probesets(pIdSnpFile, pIdAllFile);
+		probesets.setFail(!progress);
+		return probesets;
 	}
 
-	private void genotype(String celListFile, String pIDFile, String analysisName, String outDir) {
-		
-		String outCurrent = outDir+analysisName+"_Genotyping/";
+	private static class NormalizationResult {
+		private String quantNormFile;
+		private boolean fail;
+
+		public NormalizationResult(String quantNormFile) {
+			super();
+			this.quantNormFile = quantNormFile;
+		}
+
+		public boolean isFail() {
+			return fail;
+		}
+
+		public void setFail(boolean fail) {
+			this.fail = fail;
+		}
+
+		public String getQuantNormFile() {
+			return quantNormFile;
+		}
+
+	}
+
+	private NormalizationResult normalize(String celListFile, String pIDFile, String analysisName, String outDirRoot, String targetSketch) {
+		String outCurrent = outDirRoot + analysisName + "_Normalization/";
 		new File(outCurrent).mkdirs();
-		ArrayList<String > genotypeCommand =new ArrayList<String>();
-		genotypeCommand.add(aptExeDir+AFFY_ANALYSIS_TYPES.GENOTYPE.getExe());
+		ArrayList<String> normalizeCommand = new ArrayList<String>();
+		normalizeCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.NORMALIZE.getExe());
+		normalizeCommand.add("-cdf-file");
+		normalizeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile());
+		normalizeCommand.add("--analysis");
+		normalizeCommand.add("quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true");
+		normalizeCommand.add("--target-sketch");
+		normalizeCommand.add(targetSketch);
+		normalizeCommand.add("--out-dir");
+		normalizeCommand.add(outCurrent);
+		normalizeCommand.add("--cel-files");
+		normalizeCommand.add(celListFile);
+		normalizeCommand.add("--probeset-ids");
+		normalizeCommand.add(pIDFile);
+		normalizeCommand.add("--set-analysis-name");
+		normalizeCommand.add(analysisName);
+
+		String quantNormFile = outCurrent + analysisName + ".summary.txt";
+		String report = outCurrent + analysisName + ".report.txt";
+
+		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(normalizeCommand), "", null, new String[] { quantNormFile, report }, true, false, false, log);
+		NormalizationResult normalizationResult = new NormalizationResult(quantNormFile);
+		normalizationResult.setFail(!progress);
+		return normalizationResult;
+	}
+
+	private static class GenotypeResult {
+		private String callFile;
+		private String confFile;
+		private boolean failed;
+
+		public boolean isFailed() {
+			return failed;
+		}
+
+		public void setFailed(boolean failed) {
+			this.failed = failed;
+		}
+
+		public GenotypeResult(String callFile, String confFile) {
+			super();
+			this.callFile = callFile;
+			this.confFile = confFile;
+		}
+
+		public String getCallFile() {
+			return callFile;
+		}
+
+		public String getConfFile() {
+			return confFile;
+		}
+
+	}
+
+	private GenotypeResult genotype(String celListFile, String pIDFile, String analysisName, String outDirRoot) {
+
+		String outCurrent = outDirRoot + analysisName + "_Genotypes/";
+		new File(outCurrent).mkdirs();
+		ArrayList<String> genotypeCommand = new ArrayList<String>();
+		genotypeCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.GENOTYPE.getExe());
 		genotypeCommand.add("-c");
 		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile());
 		genotypeCommand.add("--table-output");
@@ -210,32 +342,140 @@ public class AffyPipeline {
 		genotypeCommand.add(outCurrent);
 		genotypeCommand.add("--cel-files");
 		genotypeCommand.add(celListFile);
-		CmdLine.runCommandWithFileChecks(Array.toStringArray(genotypeCommand), "", null, null, true, false, false, log);
 
-		
+		String callFile = outCurrent + analysisName + ".calls.txt";
+		String confFile = outCurrent + analysisName + ".confidences.txt";
+		String reportFile = outCurrent + analysisName + ".report.txt";
 
+		GenotypeResult genotypeResult = new GenotypeResult(callFile, confFile);
+		String[] output = new String[] { genotypeResult.getCallFile(), genotypeResult.getConfFile(), reportFile };
+		boolean progress = CmdLine.runCommandWithFileChecks(Array.toStringArray(genotypeCommand), "", null, output, true, false, false, log);
+		genotypeResult.setFailed(!progress);
+		return genotypeResult;
 	}
 
-	public static void run(String aptExeDir, String aptLibDir, String celDir, String outDir, String quantNormTarget, String analysisName) {
+	public static void run(String aptExeDir, String aptLibDir, String celDir, String outDir, String quantNormTarget, String analysisName, int markerBuffer, int numThreads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "affyPipeline.log");
 		String[] celFiles = Files.list(celDir, null, ".cel", false, false, true);
 		log.reportTimeInfo("Found " + celFiles.length + " .cel files to process");
 		AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, log);
-		String piDFile = pipeline.getFullProbesetList(celFiles[0], outDir, analysisName);
-		String celListFile = pipeline.generateCelList(celFiles, outDir, analysisName);
+		Probesets probeSets = pipeline.getFullProbesetList(celFiles[0], outDir, analysisName);
+		if (!probeSets.isFail()) {
+			String celListFile = pipeline.generateCelList(celFiles, outDir, analysisName);
+			GenotypeResult genotypeResult = pipeline.genotype(celListFile, probeSets.getSnpOnlyFile(), analysisName, outDir);
+			if (!genotypeResult.isFailed()) {
+				if (quantNormTarget == null || !Files.exists(quantNormTarget)) {
+					log.reportTimeError("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz");
+				} else {
+					NormalizationResult normalizationResult = pipeline.normalize(celListFile, probeSets.getAllFile(), analysisName, outDir, quantNormTarget);
+					if (!normalizationResult.isFail()) {
+						String tmpDir = outDir + analysisName + "_TMP/";
+
+						String outSnpSrc = tmpDir + "SNP_Src/";
+						new File(outSnpSrc).mkdirs();
+
+						AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(), genotypeResult.getConfFile(), normalizationResult.getQuantNormFile());
+						AS6T.parseSNPTables(markerBuffer);
+
+						String outCNSrc = tmpDir + "CN_Src/";
+						new File(outCNSrc).mkdirs();
+
+						AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile());
+						AS6TCN.parseCNTable(markerBuffer);
+						log.reportTimeInfo("Generating Genvisis project in " + outDir);
+						String projectFile = outDir + analysisName + ".properties";
+						Files.write("PROJECT_DIRECTORY=" + outDir, projectFile);
+						Project proj = new Project(projectFile, false);
+
+						proj.PROJECT_DIRECTORY.setValue(outDir);
+						proj.SOURCE_DIRECTORY.setValue(outDir + analysisName + "_00src");
+						proj.PROJECT_NAME.setValue(analysisName);
+						proj.XY_SCALE_FACTOR.setValue((double) 100);
+
+						proj.ARRAY_TYPE.setValue(ARRAY.AFFY_GW6);
+
+						proj.SOURCE_FILENAME_EXTENSION.setValue(".txt.gz");
+						proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.TAB);
+						proj.ID_HEADER.setValue("[FILENAME_ROOT]");
+						proj.LONG_FORMAT.setValue(false);
+						proj.saveProperties();
+						MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt", proj.SOURCE_DIRECTORY.getValue(true, true));
+						SourceFileParser.createFiles(proj, numThreads);
+						proj.saveProperties();
+					}
+				}
+			}
+		}
 
 	}
 
 	public static void main(String[] args) {
 		String analysisName = "Genvisis_affy_pipeline";
 		String celDir = "/scratch.global/lanej/Affy6_1000g/cels/";
-		String quantNormTarget = null;
+		String targetSketch = "/home/pankrat2/public/bin/affyPowerTools/hapmap.quant-norm.normalization-target.txt";
 		String aptExeDir = "/home/pankrat2/public/bin/affyPowerTools/apt-1.18.0-x86_64-intel-linux/bin/";
 		String aptLibDir = "/home/pankrat2/public/bin/affyPowerTools/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/";
 		String outDir = "/scratch.global/lanej/Affy6_1000g/";
+		int numThreads = 1;
+		int markerBuffer = 100;
 
-		run(aptExeDir, aptLibDir, celDir, outDir, quantNormTarget, analysisName);
+		int numArgs = args.length;
+
+		String usage = "\n" +
+				"affy.AffyPipeline requires 0-1 arguments\n" +
+				"   (1) analysis name (i.e. analysisName=" + analysisName + " (default))\n" +
+				"   (2) a directory containing .cel files for analyiss (i.e. celDir=" + celDir + " (default))\n" +
+				"   (3) a target sketch file (such as hapmap.quant-norm.normalization-target.txt) (i.e. sketch=" + targetSketch + " (default))\n" +
+				"   (4) directory with Affy Power Tools executables (such as ~/apt-1.18.0-x86_64-intel-linux/bin/) (i.e. aptExeDir=" + aptExeDir + " (default))\n" +
+				"   (5) directory with Affy Power Tools library files (such as ~/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/) (i.e. aptLibDir=" + aptLibDir + " (default))\n" +
+				"   (6) output directory (such as ~/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/) (i.e. outDir=" + outDir + " (default))\n" +
+				"   (7) optional: number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + "=" + numThreads + " (default))\n" +
+				"   (8) optional: number of markers to buffer when splitting files (i.e. markerBuffer=" + markerBuffer + " (default))\n" +
+
+				"";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("analysisName=")) {
+				analysisName = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("celDir=")) {
+				celDir = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("outDir=")) {
+				outDir = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("sketch=")) {
+				targetSketch = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("aptExeDir=")) {
+				aptExeDir = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("aptLibDir=")) {
+				aptLibDir = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numThreads = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("markerBuffer")) {
+				markerBuffer = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+			run(aptExeDir, aptLibDir, celDir, outDir, targetSketch, analysisName, markerBuffer, numThreads);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }
