@@ -359,7 +359,7 @@ public class AffyPipeline {
 		return genotypeResult;
 	}
 
-	public static void run(String aptExeDir, String aptLibDir, String celDir, String outDir, String quantNormTarget, String analysisName, int markerBuffer, int numThreads) {
+	public static void run(String aptExeDir, String aptLibDir, String celDir, String outDir, String quantNormTarget, String analysisName, String markerPositions, int markerBuffer, int numThreads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "affyPipeline.log");
 		String[] celFiles = Files.list(celDir, null, ".cel", false, false, true);
@@ -405,15 +405,23 @@ public class AffyPipeline {
 						proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.TAB);
 						proj.ID_HEADER.setValue("[FILENAME_ROOT]");
 						proj.LONG_FORMAT.setValue(false);
-						proj.saveProperties();
 						MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt", proj.SOURCE_DIRECTORY.getValue(true, true), log);
+						if (Files.exists(markerPositions)) {
+							proj.MARKER_POSITION_FILENAME.setValue(markerPositions);
+							proj.saveProperties();
+							proj = new Project(projectFile, false);
+							SourceFileParser.createFiles(proj, numThreads);
+							TransposeData.transposeData(proj, 2000000000, false);
+							CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numThreads, 2);
+							Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numThreads);
+							TransposeData.transposeData(proj, 2000000000, false);
+							SampleData.createMinimalSampleData(proj);
+						} else {
+							log.reportTimeWarning("Missing file " + markerPositions);
+							log.reportTimeWarning("Please provide the marker position at the command line, or use the Genvisis gui to finish parsing your affy project");
+						}
 						proj.saveProperties();
-						SourceFileParser.createFiles(proj, numThreads);
-						TransposeData.transposeData(proj, 2000000000, false);
-						CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numThreads, 2);
-						Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numThreads);
-						TransposeData.transposeData(proj, 2000000000, false);
-						SampleData.createMinimalSampleData(proj);
+
 					}
 				}
 			}
@@ -428,6 +436,7 @@ public class AffyPipeline {
 		String aptExeDir = "~/apt-1.18.0-x86_64-intel-linux/bin/";
 		String aptLibDir = "~/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/";
 		String outDir = "~/Affy6_results/";
+		String markerPositions = "~/resources/hg18.affy6.markerPostions";
 		int numThreads = 1;
 		int markerBuffer = 100;
 
@@ -437,13 +446,13 @@ public class AffyPipeline {
 				"affy.AffyPipeline requires 0-1 arguments\n" +
 				"   (1) analysis name (i.e. analysisName=" + analysisName + " (default))\n" +
 				"   (2) a directory containing .cel files for analyiss (i.e. celDir=" + celDir + " (default))\n" +
-				"   (3) a target sketch file (such as hapmap.quant-norm.normalization-target.txt) (i.e. sketch=" + targetSketch + " (default))\n" +
-				"   (4) directory with Affy Power Tools executables (should contain apt-probeset-genotype, etc) (i.e. aptExeDir=" + aptExeDir + " (default))\n" +
-				"   (5) directory with Affy Power Tools library files (should contain GenomeWideSNP_6.cdf, etc) (i.e. aptLibDir=" + aptLibDir + " (default))\n" +
+				"   (3) a target sketch file (such as hapmap.quant-norm.normalization-target.txt Available at ) (i.e. sketch=" + targetSketch + " (default))\n" +
+				"   (4) directory with Affy Power Tools executables (should contain apt-probeset-genotype, etc. Available at http://www.affymetrix.com/) (i.e. aptExeDir=" + aptExeDir + " (default))\n" +
+				"   (5) directory with Affy Power Tools library files (should contain GenomeWideSNP_6.cdf, etc. Available at http://www.affymetrix.com/) (i.e. aptLibDir=" + aptLibDir + " (default))\n" +
 				"   (6) output directory  (i.e. outDir=" + outDir + " (default))\n" +
-				"   (7) optional: number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + "=" + numThreads + " (default))\n" +
-				"   (8) optional: number of markers to buffer when splitting files (i.e. markerBuffer=" + markerBuffer + " (default))\n" +
-
+				"   (7) full path to a file of marker positions (i.e. markerPositions=" + markerPositions + " (default))\n" +
+				"   (8) optional: number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + "=" + numThreads + " (default))\n" +
+				"   (9) optional: number of markers to buffer when splitting files (i.e. markerBuffer=" + markerBuffer + " (default))\n" +
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -452,6 +461,9 @@ public class AffyPipeline {
 				System.exit(1);
 			} else if (args[i].startsWith("analysisName=")) {
 				analysisName = ext.parseStringArg(args[i], "");
+				numArgs--;
+			} else if (args[i].startsWith("markerPositions=")) {
+				markerPositions = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith("celDir=")) {
 				celDir = ext.parseStringArg(args[i], "");
@@ -483,7 +495,7 @@ public class AffyPipeline {
 			System.exit(1);
 		}
 		try {
-			run(aptExeDir, aptLibDir, celDir, outDir, targetSketch, analysisName, markerBuffer, numThreads);
+			run(aptExeDir, aptLibDir, celDir, outDir, targetSketch, analysisName, markerPositions, markerBuffer, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -137,7 +137,9 @@ public class AffySNP6Tables {
 
 				int numFiles = header.length - 1;
 				indFiles = new StringBuilder[numFiles];
-				Arrays.fill(indFiles, new StringBuilder());
+				for (int i = 0; i < indFiles.length; i++) {
+					indFiles[i] = new StringBuilder();
+				}
 				while (sigReader.ready()) {
 					do {
 						sigALine = sigReader.readLine().trim().split(delimiter, -1);
@@ -198,7 +200,9 @@ public class AffySNP6Tables {
 
 					int numFiles = header.length - 1;
 					indFiles = new StringBuilder[numFiles];
-					Arrays.fill(indFiles, new StringBuilder());
+					for (int i = 0; i < indFiles.length; i++) {
+						indFiles[i] = new StringBuilder();
+					}
 					callLine = callReader.readLine().trim().split(delimiter, -1);
 					confLine = confReader.readLine().trim().split(delimiter, -1);
 					sigALine = allignFiles(sigReader, callLine, confLine, delimiter);
