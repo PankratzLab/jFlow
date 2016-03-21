@@ -693,7 +693,7 @@ public class GcAdjustor {
 					double gc = 100 * referenceGenome.getGCContentFor(seg, snpWindow > 100000);// not sure about the optimal query size
 					gcs[i] = gc;
 					if (Double.isNaN(gc) && seg.getChr() > 0) {
-						proj.getLog().reportTimeError("Invalid gc content returned");
+						proj.getLog().reportTimeError("Invalid gc content returned for query " + seg.getChromosomeUCSC() + " and marker " + markerSet.getMarkerNames()[i]);
 						return null;
 					}
 				}
@@ -802,7 +802,11 @@ public class GcAdjustor {
 			String fullPathToGcSer = ext.rootOf(fullPathToGcModel, false) + ".gcmodel.ser";
 			if (Files.exists(fullPathToGcSer)) {
 				log.report("Info - loading gc model file " + fullPathToGcSer);
-				return loadSerial(fullPathToGcSer);
+				try {
+					return loadSerial(fullPathToGcSer);// having trouble with linux->windows SID transfer when gzipped
+				} catch (Exception e) {
+
+				}
 			}
 			if (!Files.exists(fullPathToGcModel)) {
 				log.reportError("Error - could not find gc model file " + fullPathToGcModel);
