@@ -12,9 +12,11 @@ import java.util.HashMap;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.CentroidBuilder;
 import cnv.filesys.Centroids;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
+import cnv.manage.Markers;
 import cnv.manage.SourceFileParser;
 import cnv.manage.TransposeData;
 import cnv.var.SampleData;
@@ -165,7 +167,7 @@ public class AffyPipeline {
 	/**
 	 * run a simple command to extract all probesets, return a formatted file to use for downstream analysis
 	 */
-	private Probesets getFullProbesetList(String celFile, String outDir, String analysisName) {
+	private Probesets getAnalysisProbesetList(String celFile, String outDir, String analysisName, String markerPositionFile) {
 		String smallCelList = outDir + "tmp" + ext.getTimestampForFilename();
 		String currentAnalysis = analysisName + "_probelistGenerator";
 		try {
@@ -203,6 +205,17 @@ public class AffyPipeline {
 
 		probesetIdsAll.add(AFFY_PROBELIST_HEADER);
 		probesetIdsSNP.add(AFFY_PROBELIST_HEADER);
+		String tmpMarkerSet = outDir + analysisName + "tmpMarkerSet.ser";
+		Markers.orderMarkers(null, markerPositionFile, tmpMarkerSet, log);
+		MarkerSet markerSet = MarkerSet.load(tmpMarkerSet, false);
+		String[] names = markerSet.getMarkerNames();
+
+		HashMap<String, String> track = new HashMap<String, String>();
+		ArrayList<String> markersNotUsed = new ArrayList<String>();
+
+		for (int i = 0; i < names.length; i++) {
+			track.put(names[i], names[i]);
+		}
 		try {
 			BufferedReader reader = Files.getAppropriateReader(probeResults);
 			while (reader.ready()) {
@@ -210,9 +223,14 @@ public class AffyPipeline {
 				if (line[0].startsWith("CN_") || line[0].startsWith("SNP_") || line[0].startsWith("AFFX-SNP")) {
 					String pId = line[0];
 					if (!pId.endsWith("-B")) {
-						probesetIdsAll.add(pId.replaceAll("-A", ""));
-						if (!pId.startsWith("CN_")) {
-							probesetIdsSNP.add(pId.replaceAll("-A", ""));
+						String probeParsed = pId.replaceAll("-A", "");
+						if (track.containsKey(probeParsed)) {
+							probesetIdsAll.add(probeParsed);
+							if (!pId.startsWith("CN_")) {
+								probesetIdsSNP.add(probeParsed);
+							}
+						} else {
+							markersNotUsed.add(probeParsed);
 						}
 					}
 				}
@@ -227,6 +245,12 @@ public class AffyPipeline {
 		}
 
 		log.reportTimeInfo("Detected " + (probesetIdsAll.size() - 1) + " total probesets with " + (probesetIdsSNP.size() - 1) + " SNP_ probesets");
+		if (markersNotUsed.size() > 0) {
+			log.reportTimeInfo(markersNotUsed.size() + " markers where skipped");
+			String pIdSkipFile = outDir + analysisName + ".probesetIdsSkipped.txt";
+			Files.writeList(Array.toStringArray(markersNotUsed), pIdSkipFile);
+
+		}
 		String pIdAllFile = outDir + analysisName + ".probesetIdsAll.txt";
 		String pIdSnpFile = outDir + analysisName + ".probesetIdsSNPS.txt";
 		Files.writeList(Array.toStringArray(probesetIdsAll), pIdAllFile);
@@ -392,65 +416,71 @@ public class AffyPipeline {
 		}
 		validateCelSelection(celFiles, log);
 		log.reportTimeInfo("Found " + celFiles.length + " .cel files to process");
+		if (markerPositions == null || !Files.exists(markerPositions)) {
+			log.reportTimeError("Could not find marker position file " + markerPositions);
+			throw new IllegalArgumentException();
+		}
+		if (quantNormTarget == null || !Files.exists(quantNormTarget)) {
+			log.reportTimeError("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz");
+			throw new IllegalArgumentException();
+		}
+
 		AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, log);
-		Probesets probeSets = pipeline.getFullProbesetList(celFiles[0], outDir, analysisName);
+		Probesets probeSets = pipeline.getAnalysisProbesetList(celFiles[0], outDir, analysisName, markerPositions);
 		if (!probeSets.isFail()) {
 			String celListFile = pipeline.generateCelList(celFiles, outDir, analysisName);
 			GenotypeResult genotypeResult = pipeline.genotype(celListFile, probeSets.getSnpOnlyFile(), analysisName, outDir);
 			if (!genotypeResult.isFailed()) {
-				if (quantNormTarget == null || !Files.exists(quantNormTarget)) {
-					log.reportTimeError("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz");
-				} else {
-					NormalizationResult normalizationResult = pipeline.normalize(celListFile, probeSets.getAllFile(), analysisName, outDir, quantNormTarget);
-				
-					if (!normalizationResult.isFail()) {
-						String tmpDir = outDir + analysisName + "_TMP/";
 
-						String outSnpSrc = tmpDir + "SNP_Src/";
-						new File(outSnpSrc).mkdirs();
+				NormalizationResult normalizationResult = pipeline.normalize(celListFile, probeSets.getAllFile(), analysisName, outDir, quantNormTarget);
 
-						AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(), genotypeResult.getConfFile(), normalizationResult.getQuantNormFile(), log);
-						AS6T.parseSNPTables(markerBuffer);
+				if (!normalizationResult.isFail()) {
+					String tmpDir = outDir + analysisName + "_TMP/";
 
-						String outCNSrc = tmpDir + "CN_Src/";
-						new File(outCNSrc).mkdirs();
+					String outSnpSrc = tmpDir + "SNP_Src/";
+					new File(outSnpSrc).mkdirs();
 
-						AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(), log);
-						AS6TCN.parseCNTable(markerBuffer);
-						log.reportTimeInfo("Generating Genvisis project in " + outDir);
+					AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(), genotypeResult.getConfFile(), normalizationResult.getQuantNormFile(), log);
+					AS6T.parseSNPTables(markerBuffer);
 
-						String projectFile = outDir + analysisName + ".properties";
-						Files.write("PROJECT_DIRECTORY=" + outDir, projectFile);
-						Project proj = new Project(projectFile, false);
+					String outCNSrc = tmpDir + "CN_Src/";
+					new File(outCNSrc).mkdirs();
 
-						proj.PROJECT_DIRECTORY.setValue(outDir);
-						proj.SOURCE_DIRECTORY.setValue(outDir + analysisName + "_00src");
-						proj.PROJECT_NAME.setValue(analysisName);
-						proj.XY_SCALE_FACTOR.setValue((double) 100);
+					AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(), log);
+					AS6TCN.parseCNTable(markerBuffer);
+					log.reportTimeInfo("Generating Genvisis project in " + outDir);
 
-						proj.ARRAY_TYPE.setValue(ARRAY.AFFY_GW6);
+					String projectFile = outDir + analysisName + ".properties";
+					Files.write("PROJECT_DIRECTORY=" + outDir, projectFile);
+					Project proj = new Project(projectFile, false);
 
-						proj.SOURCE_FILENAME_EXTENSION.setValue(".txt.gz");
-						proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.TAB);
-						proj.ID_HEADER.setValue("[FILENAME_ROOT]");
-						proj.LONG_FORMAT.setValue(false);
-						MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt", proj.SOURCE_DIRECTORY.getValue(true, true), log);
-						if (Files.exists(markerPositions)) {
-							proj.MARKER_POSITION_FILENAME.setValue(markerPositions);
-							proj.getSourceFileHeaders(true);
-							SourceFileParser.createFiles(proj, numThreads);
-							TransposeData.transposeData(proj, 2000000000, false);
-							CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numThreads, 2);
-							Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numThreads);
-							TransposeData.transposeData(proj, 2000000000, false);
-							SampleData.createMinimalSampleData(proj);
-						} else {
-							log.reportTimeWarning("Missing file " + markerPositions);
-							log.reportTimeWarning("Please provide the marker position at the command line, or use the Genvisis gui to finish parsing your affy project");
-						}
-						proj.saveProperties();
+					proj.PROJECT_DIRECTORY.setValue(outDir);
+					proj.SOURCE_DIRECTORY.setValue(outDir + analysisName + "_00src");
+					proj.PROJECT_NAME.setValue(analysisName);
+					proj.XY_SCALE_FACTOR.setValue((double) 100);
 
+					proj.ARRAY_TYPE.setValue(ARRAY.AFFY_GW6);
+
+					proj.SOURCE_FILENAME_EXTENSION.setValue(".txt.gz");
+					proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.TAB);
+					proj.ID_HEADER.setValue("[FILENAME_ROOT]");
+					proj.LONG_FORMAT.setValue(false);
+					MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt", proj.SOURCE_DIRECTORY.getValue(true, true), log);
+					if (Files.exists(markerPositions)) {
+						proj.MARKER_POSITION_FILENAME.setValue(markerPositions);
+
+						SourceFileParser.createFiles(proj, numThreads);
+						TransposeData.transposeData(proj, 2000000000, false);
+						CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numThreads, 2);
+						Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numThreads);
+						TransposeData.transposeData(proj, 2000000000, false);
+						SampleData.createMinimalSampleData(proj);
+					} else {
+						log.reportTimeWarning("Missing file " + markerPositions);
+						log.reportTimeWarning("Please provide the marker position at the command line, or use the Genvisis gui to finish parsing your affy project");
 					}
+					proj.saveProperties();
+
 				}
 			}
 		}
