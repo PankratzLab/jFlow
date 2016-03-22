@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -79,7 +78,6 @@ import javax.swing.border.EmptyBorder;
 import net.miginfocom.swing.MigLayout;
 import seq.manage.VCFOps;
 import seq.manage.VCOps;
-import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
 import cnv.gui.NewRegionListDialog;
 import cnv.var.Region;
@@ -88,6 +86,7 @@ import common.Array;
 import common.Files;
 import common.Fonts;
 import common.Grafik;
+import common.HashVec;
 import common.Logger;
 import common.Positions;
 import common.TransferableImage;
@@ -198,9 +197,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	private String[] vcfFiles;
 	private String popFile;
 	
-	private Hashtable<String, String> namePathMap;
 	private Logger log;
-	private boolean fail;
 	private JMenu loadRecentFileMenu;
 	private ButtonGroup regionButtonGroup;
     private JCheckBoxMenuItem chkbxDisplayExcludes;
@@ -212,18 +209,17 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     private String geneFileName;
     private volatile boolean loadingFile = false;
     private JComboBox<String> geneListCmb;
-
-    private PreparedMarkerSet markerSet;
     
-	private static final int DRAW_AS_CIRCLES = 1;
-	private static final int DRAW_AS_BLOCKS = 2;
+	private static final int DRAW_AS_INDIVS = 1;
+	private static final int DRAW_AS_POPULATIONS = 2;
 	
-	private int drawType = DRAW_AS_CIRCLES;
+	private int drawType = DRAW_AS_INDIVS;
 	
 	private enum DrawType { 
 	    FILLED_CIRCLE,
 	    EMPTY_CIRCLE,
-	    X;
+	    X,
+	    DIAMOND;
 	    
 	    public static DrawType getDrawType(VariantContext vc) {
 			String impAttr = vc.getAttributeAsString("SNPEFF_IMPACT", ".").toString();
@@ -234,6 +230,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	            return DrawType.FILLED_CIRCLE;
 	        } else if ("HIGH".equals(impAttr)) {
 	            return DrawType.X;
+	        } else if ("MODIFIER".equals(impAttr)) {
+	            return null;// DrawType.DIAMOND;
 	        } else {
 //	            System.out.println(impAttr);
 	            return null;
@@ -420,7 +418,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		this.proj = proj;
 		this.log = proj == null ? new Logger() : proj.getLog();
 		jar = proj == null ? false : proj.JAR_STATUS.getValue();
-		fail = false;
 		this.vcfFiles = vcfFiles;
 		generateSampleLists(vcfFiles);
 		this.popFile = popFile;
@@ -604,6 +601,38 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	    return geneToIsoformMap.get(geneList.get(geneIndex)).get(isoformList.getSelectedItem());
 	}
 	
+	private String[] getANNOVARProteinChanges(VariantContextWithFile vcF) {
+	    ArrayList<String> vals = new ArrayList<String>();
+	    
+        String selectedIsoform = isoformList.getSelectedItem().toString();
+	    java.util.List<Object> annAttrs = vcF.vc.getAttributeAsList("GeneDetail.refGene");
+	    System.out.println(vcF.vc.getAttributeAsString("GeneDetail.refGene", "."));
+	    for (Object annAttr : annAttrs) {
+            if (selectedIsoform.equals(COLLAPSE_ISOFORMS_KEY) || annAttr.toString().startsWith(selectedIsoform)) {
+                String[] pts = annAttr.toString().split(":");
+                for (String pt : pts) {
+                    if (pt.startsWith("p.")) {
+                        vals.add(pt.substring(2));
+                    }
+                }
+            }
+        }
+	    return vals.toArray(new String[vals.size()]);
+	}
+	
+	private boolean[] checkVCF(VariantContextWithFile vcF) {
+	    String selectedIsoform = isoformList.getSelectedItem().toString();
+	    
+        String isoAttrSnpEff = vcF.vc.getAttributeAsString("SNPEFF_TRANSCRIPT_ID", ".").toString();
+        
+        boolean snpIncl = !isoAttrSnpEff.equals(".") 
+                                && (selectedIsoform.equals(COLLAPSE_ISOFORMS_KEY) 
+                                        || selectedIsoform.equals(isoAttrSnpEff) 
+                                        || selectedIsoform.equals(isoAttrSnpEff.split("\\.")[0]));
+        boolean annIncl = getANNOVARProteinChanges(vcF).length > 0;
+        return new boolean[]{snpIncl, annIncl};
+	}
+	
 	private void paintPanel(Graphics g) {
 		GeneData gene;
 		ArrayList<VariantContextWithFile> vcfInSeg;
@@ -636,6 +665,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             activeRects.clear();
             drawnFreqs.clear();
             for (int j = 0; j < exons.length; j++) {
+                int exonNumber = determineExonNumber(geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY), exons[j]);
                 tempPx = getX(tempX);
                 len = equalizeExonLength ? EQUALIZED_EXON_BP_LENGTH : exons[j][1] - exons[j][0];
                 lenPx = getX(tempX + len) - tempPx;
@@ -653,7 +683,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                     g.drawRect(tempPx, height, lenPx, GENE_HEIGHT);
                 }
                 if (paintExonNumbers) {
-                    int exonNumber = determineExonNumber(geneToIsoformMap.get(geneList.get(geneIndex)).get(COLLAPSE_ISOFORMS_KEY), exons[j]);
                     width = g.getFontMetrics().stringWidth(EXON_PREFIX + exonNumber);
                     if (width < lenPx - 2) {
                         if (fillExons) {
@@ -672,16 +701,12 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                     }
                 }
                 vcfInSeg = getExonVCFRecords(j);
-                String selIso = isoformList.getSelectedItem().toString();
                 if (vcfInSeg.size() > 0) {
                     if (lenPx <= dataPntSize + 2 && !displayIfSmooshed) {
                         int cnt = 0;
                         for (VariantContextWithFile vc : vcfInSeg) {
-                            String isoAttr = vc.vc.getAttributeAsString("SNPEFF_TRANSCRIPT_ID", ".").toString();
-                            // only draw if collapsed, or showing affected isoform
-                            if (!isoAttr.equals(".") && !selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
-                                continue;
-                            }
+                            if (vc.vc.getStart() < exons[j][0] || vc.vc.getStart() > exons[j][1]) continue;
+//                            if (Array.booleanArraySum(checkVCF(vc)) == 0) continue; 
                             cnt++;
                         }
                         if (cnt > 0) {
@@ -690,16 +715,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                             g.setColor(Color.BLACK);
                         }
                     } else {
-                        if (drawType == DRAW_AS_BLOCKS) {
+                        if (drawType == DRAW_AS_POPULATIONS) {
                             // draw populations
                             ArrayList<BlockDraw> toDraw = new ArrayList<VariantViewer.BlockDraw>();
                             for (VariantContextWithFile vc : vcfInSeg) {
-								String isoAttr = vc.vc.getAttributeAsString("SNPEFF_TRANSCRIPT_ID", ".").toString();
-								// only draw if collapsed, or showing affected isoform
-
-								if (isoAttr.equals(".")|| !selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
-									continue;
-								}
+                                
+                                if (vc.vc.getAttributeAsInt("SNPEFF_EXON_ID", -1) == exonNumber || vc.vc.getStart() < exons[j][0] || vc.vc.getStart() > exons[j][1]) continue;
+//                                if (Array.booleanArraySum(checkVCF(vc)) == 0) continue; 
                                 
                                 GenotypesContext gctx = vc.vc.getGenotypes();
                                 HashMap<String, Integer> popGenoCnt = new HashMap<String, Integer>();
@@ -740,17 +762,14 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                             for (BlockDraw bd : toDraw) {
                                 drawBlock(g, bd);
                             }
-                        } else if (drawType == DRAW_AS_CIRCLES) {
+                        } else if (drawType == DRAW_AS_INDIVS) {
                             // draw all in relative position, pushing up if overlapping
                             ArrayList<DrawPoint> drawn = new ArrayList<DrawPoint>();
                             ArrayList<Rectangle> plotted = new ArrayList<Rectangle>();
     //                        HashMap<String, Integer> plottedCnt = new HashMap<String, Integer>();
                             for (VariantContextWithFile vc : vcfInSeg) {
-								String isoAttr = vc.vc.getAttributeAsString("SNPEFF_TRANSCRIPT_ID", ".").toString();
-                                // only draw if collapsed, or showing affected isoform
-								if (!isoAttr.equals(".") && !selIso.equals(COLLAPSE_ISOFORMS_KEY) && !(selIso.equals(isoAttr) || selIso.equals(isoAttr.split("\\.")[0]))) {
-                                    continue;
-                                }
+                                if (vc.vc.getAttributeAsInt("SNPEFF_EXON_ID", -1) == exonNumber || vc.vc.getStart() < exons[j][0] || vc.vc.getStart() > exons[j][1]) continue;
+//                                if (Array.booleanArraySum(checkVCF(vc)) == 0) continue; 
                                 GenotypesContext gctx = vc.vc.getGenotypes();
                                 int xOffset = 0;
                                 int diffA = vc.vc.getStart() - exons[j][0];
@@ -966,6 +985,11 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         g.setColor(Color.BLACK);
     }
     
+    private int getPopulationCount(String pop) {
+        HashSet<String> popSet = (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(pop);
+        return (popSet == null ? 0 : popSet.size());
+    }
+    
     private void drawLegend(Graphics g) {
         FontMetrics fm = g.getFontMetrics();
         int lblMaxWidth = 0;
@@ -975,8 +999,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         lblMaxWidth = fm.stringWidth("Moderate Impact");
         if (popColorMap != null) {
             for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
-                HashSet<String> popSet = (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(colEntry.getKey());
-                String lbl = colEntry.getKey() + " (n=" + (popSet == null ? 0 : popSet.size()) + ")";
+                int cnt = getPopulationCount(colEntry.getKey());
+                String lbl = colEntry.getKey() + " (n=" + cnt + ")";
                 lblMap.put(colEntry.getKey(), lbl);
                 lblMaxWidth = Math.max(lblMaxWidth, fm.stringWidth(lbl));
             }
@@ -988,7 +1012,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         
         int x = 15;
         int y = 15 + fm.getHeight();
-        if (drawType == DRAW_AS_CIRCLES) {
+        if (drawType == DRAW_AS_INDIVS) {
             g.drawOval(x, y, dataPntSize, dataPntSize);
             g.drawOval(x + 1, y + 1, dataPntSize - 2, dataPntSize - 2);
         } else {
@@ -998,14 +1022,14 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         }
         g.drawString("Low Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
         y += 15;
-        if (drawType == DRAW_AS_CIRCLES) {
+        if (drawType == DRAW_AS_INDIVS) {
             g.fillOval(x, y, dataPntSize, dataPntSize);
         } else {
             g.fillRect(x, y, dataPntSize, dataPntSize);
         }
         g.drawString("Moderate Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
         y += 15;
-        if (drawType == DRAW_AS_CIRCLES) {
+        if (drawType == DRAW_AS_INDIVS) {
             Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, Color.BLACK);
             Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, Color.BLACK);
         } else {
@@ -1022,7 +1046,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         y += 10;
         if (popColorMap != null) {
             for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
-                String lbl = lblMap.containsKey(colEntry.getKey()) ? lblMap.get(colEntry.getKey()) : colEntry.getKey() + " (n=" + (showExcludes ? popIndiMapWithExcludes : popIndiMap).get(colEntry.getKey()).size() + ")";
+                String lbl = lblMap.containsKey(colEntry.getKey()) ? lblMap.get(colEntry.getKey()) : colEntry.getKey() + " (n=" + getPopulationCount(colEntry.getKey()) + ")";
                 g.setColor(Color.BLACK);
                 g.drawRect(x, y, dataPntSize, dataPntSize);
                 g.drawString(lbl, x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
@@ -1788,7 +1812,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-                drawType = DRAW_AS_BLOCKS;
+                drawType = DRAW_AS_POPULATIONS;
                 selectedRect = null;
                 selectedDrawPoint = null;
                 selectedBlockDraw = null;
@@ -1801,7 +1825,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-                drawType = DRAW_AS_CIRCLES;
+                drawType = DRAW_AS_INDIVS;
                 selectedRect = null;
                 selectedDrawPoint = null;
                 selectedBlockDraw = null;
@@ -2058,9 +2082,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             for (int i = 0; i < activeRects.size(); i++) {
                 if (activeRects.get(i).contains(x, y)) {
                     selectedRect = activeRects.get(i);
-                    if (drawType == DRAW_AS_BLOCKS) {
+                    if (drawType == DRAW_AS_POPULATIONS) {
                         selectedBlockDraw = activeBlocks.get(i);
-                    } else if (drawType == DRAW_AS_CIRCLES) {
+                    } else if (drawType == DRAW_AS_INDIVS) {
                         selectedDrawPoint = activePoints.get(i);
                     }
                     genePanel.setToolTipText(selectedBlockDraw == null ? selectedDrawPoint == null ? null : buildToolTip(selectedDrawPoint) : buildToolTip(selectedBlockDraw));
@@ -2115,35 +2139,69 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		txtBld.append("</pre><pre>");
 		txtBld.append("Max Freq: ").append(dp.vcRecord.vc.getAttributeAsString("PopFreqMax", "."));
 		txtBld.append("</pre><pre>");
+
+		boolean[] hasAnnotations = checkVCF(dp.vcRecord);
+		txtBld.append("Amino Acid Change(s): ");
+		txtBld.append("</pre><pre>");
+		txtBld.append("\tSNPEFF -> ");
 		String aaChng = dp.vcRecord.vc.getAttributeAsString("SNPEFF_AMINO_ACID_CHANGE", ".");
-		txtBld.append("Amino Acid Change: ");
-		if (!aaChng.equals(".")) {
-		    String[] fromAA, toAA;
-    		String loc;
-    		
-    		fromAA = bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
-    		if (ext.isValidInteger(aaChng.charAt(aaChng.length() - 1) + "")) {
-    		    loc = aaChng.substring(1);
-    		    toAA = null;
-    		} else {
-    		    loc = aaChng.substring(1, aaChng.length() - 1);
-    		    toAA = bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
-    		}
-    		if (fromAA != null) {
-    		    txtBld.append(fromAA[1]);
-    		}
-    		txtBld.append(" .. ").append(loc).append(" .. ");
-    		if (toAA != null) {
-    		    txtBld.append(toAA[1]);
-    		}
+	    String[] fromAA, toAA;
+		String loc;
+		
+		fromAA = bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
+		if (ext.isValidInteger(aaChng.charAt(aaChng.length() - 1) + "")) {
+		    loc = aaChng.substring(1);
+		    toAA = null;
 		} else {
-		    txtBld.append(aaChng);
+		    loc = aaChng.substring(1, aaChng.length() - 1);
+		    toAA = bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
 		}
+		if (fromAA != null) {
+		    txtBld.append(fromAA[1]);
+		}
+		if (hasAnnotations[0]) {
+		    txtBld.append(" .. ").append(loc).append(" .. ");
+		} else {
+		    txtBld.append(" --> ");
+		}
+		if (toAA != null) {
+		    txtBld.append(toAA[1]);
+		}
+		txtBld.append("</pre><pre>");
+		txtBld.append("\tANNOVAR -> ");
+		String[] aaChngs = getANNOVARProteinChanges(dp.vcRecord);
+	    for (String aa : aaChngs) {
+		    fromAA = bioinformatics.Protein.lookup(aa.charAt(0) + "");
+		    if (ext.isValidInteger(aa.charAt(aa.length() - 1) + "")) {
+		        loc = aa.substring(1);
+		        toAA = null;
+		    } else {
+		        loc = aa.substring(1, aa.length() - 1);
+		        toAA = bioinformatics.Protein.lookup(aa.charAt(aa.length() - 1) + "");
+		    }
+		    if (fromAA != null) {
+		        txtBld.append(fromAA[1]);
+		    }
+		    if (hasAnnotations[1]) {
+		        txtBld.append(" .. ").append(loc).append(" .. ");
+		    } else {
+		        txtBld.append(" --> ");
+		    }
+		    if (toAA != null) {
+		        txtBld.append(toAA[1]);
+		    }
+	    }
+		
 		txtBld.append("</pre><hr><pre>");
         txtBld.append("Position: ").append(dp.vcRecord.vc.getContig()).append(":").append(dp.vcRecord.vc.getStart());
         if (dp.vcRecord.vc.getStart() != dp.vcRecord.vc.getEnd()) {
             txtBld.append("-").append(dp.vcRecord.vc.getEnd());
         }
+        txtBld.append("</pre><pre>");
+        String iso = dp.vcRecord.vc.getAttributeAsString("SNPEFF_TRANSCRIPT_ID", ".");
+        txtBld.append("Variant (SNPEFF): ").append(iso);
+        
+        
         txtBld.append("</pre><hr><pre>");
         txtBld.append("File: ").append(dp.vcRecord.file);
         txtBld.append("</pre></html>");
@@ -2329,14 +2387,58 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	    return exonData.get(exonIndex);
 	}
 	
+	private void loadSampleDataFile() throws IOException {
+	    BufferedReader reader = Files.getAppropriateReader(popFile);
+	    String[] header = reader.readLine().trim().split("\t", -1);
+	    reader.close();
+	    
+	    int iidCol = -1, exclCol = -1;
+	    ArrayList<Integer> classCols = new ArrayList<Integer>();
+	    
+        int[] idCols = ext.indexFactors(Aliases.INDIVIDUAL_ID, header, false, false);
+        for (int i : idCols) {
+            if (i > -1) {
+                iidCol = i;
+                break;
+            }
+        }
+        log.report("Found ID column at position " + iidCol);
+
+        for (int i = 0; i < header.length; i++) {
+            String hdr = header[i].toLowerCase();
+            if (hdr.startsWith("class=exclude")) {
+                exclCol = i;
+            } else if (hdr.startsWith("class=")) {
+                classCols.add(i);
+            }
+        }
+
+        chkbxDisplayExcludes.setEnabled(exclCol != -1);
+	    
+        
+        ArrayList<String> popColumnIds = new ArrayList<String>();
+        int[] cols = Array.toIntArray(classCols);
+        for (int o : cols) {
+            String hdr = header[o];
+            popColumnIds.add(hdr.substring("class=".length(), hdr.indexOf(";") == -1 ? hdr.length() : hdr.indexOf(";")));
+        }
+        cols = Array.addIntToArray(iidCol, cols, 0);
+        String[][] data = HashVec.loadFileToStringMatrix(popFile, true, cols, false);
+        
+        
+	}
+	
 	private void loadPopulationFile() throws IOException {
 	    BufferedReader reader = Files.getAppropriateReader(popFile);
 	    String[] header = reader.readLine().trim().split("\t", -1);
-//	    colorCodeMap = new HashMap<String, Color>();
 	    popColorMap = new LinkedHashMap<String, Color>();
 	    popIndiMap = new HashMap<String, HashSet<String>>();
 	    popIndiMapWithExcludes = new HashMap<String, HashSet<String>>();
-	    
+        popSet = new HashSet<String>();
+        excluded = new HashSet<String>();
+        popMap = new HashMap<String, String>();
+        superPopMap = new HashMap<String, String>();
+        
 	    int iidCol = -1;
 	    int exclCol = -1;
 //	    int colorCol = -1;
@@ -2349,7 +2451,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	            break;
 	        }
 	    }
-	    System.out.println("Found ID column at position " + iidCol);
+	    log.report("Found ID column at position " + iidCol);
 	    
 	    for (int i = 0; i < header.length; i++) {
 	        String hdr = header[i].toLowerCase();
@@ -2362,10 +2464,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 	    chkbxDisplayExcludes.setEnabled(exclCol != -1);
 
-        popSet = new HashSet<String>();
-        excluded = new HashSet<String>();
-        popMap = new HashMap<String, String>();
-        superPopMap = new HashMap<String, String>();
 	    String line = null;
 	    String[] parts;
 	    while((line = reader.readLine()) != null) {
@@ -2375,7 +2473,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	        }
 	        if (popCol != -1) {
 	            popMap.put(parts[iidCol], parts[popCol]);
-	            popSet.add(parts[popCol]);
 	            if (exclCol == -1 || !parts[exclCol].equals("1")) {
     	            HashSet<String> indiSet = popIndiMap.get(parts[popCol]);
     	            if (indiSet == null) {
@@ -2395,9 +2492,11 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	    }
 	    reader.close();
 	    
+	    popSet.addAll(popMap.values());
         if (popCol != -1) {
             popColorMap = parseColors(header[popCol]);
         } else {
+            // won't do ANYTHING - popSet is empty if popCol == -1
             int index = 0;
             for (String pop : popSet) {
                 popColorMap.put(pop, getAColor(index++)[0]);

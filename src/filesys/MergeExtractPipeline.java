@@ -417,7 +417,7 @@ public class MergeExtractPipeline {
         for (int i = 1; i < dataSources.size(); i++) {
             System.gc();
             log.reportTime("... merging with data file: " + dataSources.get(i).dataFile);
-            DosageData dd2 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile, dataSources.get(i).mapFile, regionsFile, markersFile, renameMarkers ? dataSources.get(0).label : "", true, null);
+            DosageData dd2 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile, dataSources.get(i).mapFile, regionsFile, markersFile, renameMarkers ? dataSources.get(i).label : "", true, null);
             dd1 = DosageData.combine(dd1, dd2);
             dd2 = null;
             System.gc();
