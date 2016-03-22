@@ -325,7 +325,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		JButton button;
 		public CustomCallPopUp() {
 			
-			class QuantButton extends JButton  {
+			class QuantButton extends JMenuItem  {
 				/**
 				 * 
 				 */
@@ -345,7 +345,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 
 			}
-			class BeastButton extends JButton {
+			class BeastButton extends JMenuItem {
 				/**
 				 * 
 				 */
@@ -366,15 +366,50 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 
 			}
-			if (selectedCNV != null) {
+			class RemoveButton extends JMenuItem {
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+				// private Segment toQuant;
+
+				public RemoveButton(final Segment toQuant, final int externalIndex, final INTERNAL_CNV_TYPES type, final CustomCallPopUp callPopUp, final String title, final boolean all) {
+					super(title);
+					// this.toQuant = toQuant;
+					addActionListener(new ActionListener() {
+
+						public void actionPerformed(ActionEvent e) {
+							removeCnvFromPheno(toQuant, externalIndex, all, type);
+						}
+					});
+				}
+
+			}
+
+			if (selectedCNV != null && selectedCNV.length > 1 && cnvs != null && cnvs.length > 0) {
+				int externalCnvs = prepInternalClasses();
+
 				Segment toQuant = cnvs[selectedCNV[0]][selectedCNV[1]];
 				QuantButton qb = new QuantButton(toQuant, this);
-				qb.setFont(new Font("Arial", 0, 14));
+				qb.setFont(new Font("Arial", 0, 12));
 				add(qb);
+				addSeparator();
 				BeastButton bb = new BeastButton(toQuant, this);
-				bb.setFont(new Font("Arial", 0, 14));
+				bb.setFont(new Font("Arial", 0, 12));
 				add(bb);
-
+				addSeparator();
+				INTERNAL_CNV_TYPES type = INTERNAL_CNV_TYPES.getAppropriate(selectedCNV[0], externalCnvs);
+				if (type != null) {
+					RemoveButton rb = new RemoveButton(toQuant, externalCnvs, type, this, "Remove " + toQuant.getUCSClocation(), false);
+					rb.setFont(new Font("Arial", 0, 12));
+					add(rb);
+					addSeparator();
+					RemoveButton rbAll = new RemoveButton(toQuant, externalCnvs, type, this, "Remove all from " + type.getName(), true);
+					rbAll.setFont(new Font("Arial", 0, 12));
+					add(rbAll);
+				}
+				pack();
 			}
 		}
 	}
@@ -2844,6 +2879,34 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		procCNVs(chr);
 		updateGUI();
 	}
+	
+	
+	
+	/**
+	 * Remove a cnv, currently operates on segments
+	 */
+	private void removeCnvFromPheno(Segment remove, int externalCNVs, boolean all, INTERNAL_CNV_TYPES type) {
+		int key = externalCNVs + type.getIndex();
+		CNVariant[] tmpCurrent = indiPheno.getCnvClasses().get(key).get(chr + "");
+		if (!all) {
+			if (tmpCurrent != null && tmpCurrent.length > 0) {
+				ArrayList<CNVariant> retain = new ArrayList<CNVariant>();
+				for (int i = 0; i < tmpCurrent.length; i++) {
+					if (!remove.equals(tmpCurrent[i])) {
+						retain.add(tmpCurrent[i]);
+					}
+				}
+				tmpCurrent = retain.toArray(new CNVariant[retain.size()]);
+			}
+		} else {
+			tmpCurrent = new CNVariant[] {};
+		}
+		indiPheno.getCnvClasses().get(key).put(chr + "", tmpCurrent);
+		procCNVs(chr);
+		updateGUI();
+
+	}
+	
 	/**
 	 * @param tmp
 	 * @param externalCNVs
@@ -3034,6 +3097,20 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 		public int getIndex() {
 			return index;
+		}
+
+		private static INTERNAL_CNV_TYPES getAppropriate(int selectedCnvs, int externalIndex) {
+			if (selectedCnvs < externalIndex) {
+				return null;
+			} else {
+				int key = selectedCnvs - externalIndex;
+				for (int i = 0; i < INTERNAL_CNV_TYPES.values().length; i++) {
+					if (key == INTERNAL_CNV_TYPES.values()[i].getIndex()) {
+						return INTERNAL_CNV_TYPES.values()[i];
+					}
+				}
+				return null;
+			}
 		}
 		
 		
