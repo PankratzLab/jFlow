@@ -97,7 +97,7 @@ public class SourceFileParser implements Runnable {
 		idHeader = proj.ID_HEADER.getValue();
 //		delimiter = proj.getSourceFileDelimiter();
 		allOutliers = new Hashtable<String, Float>();
-		headers = proj.getSourceFileHeaders(false);
+		headers = proj.getSourceFileHeaders(true);
 		boolean headersOutput = false;
         try {
 			for (int i = 0; i < files.length; i++) {
@@ -1311,8 +1311,8 @@ public class SourceFileParser implements Runnable {
 //      GENO_1  {"Allele2 - Forward", "Forward Strand Base Calls", "genotype2", "Allele2 - Top","Allele B","Forced Call","Forced Call Codes"}, 
 //      GENO_2  {"Allele1 - AB","Call Codes","Call"}, 
 //      GENO_3  {"Allele2 - AB","Call Codes","Call"}}; 
-		headers = proj.getSourceFileHeaders(false);
-
+		headers = proj.getSourceFileHeaders(true);
+		
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		try {
 			reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
