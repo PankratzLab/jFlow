@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.CentroidBuilder;
@@ -360,6 +361,26 @@ public class AffyPipeline {
 		return genotypeResult;
 	}
 
+	private static void validateCelSelection(String[] celFiles, Logger log) {
+		HashMap<String, String> uniq = new HashMap<String, String>();
+		boolean error = false;
+		for (int i = 0; i < celFiles.length; i++) {
+			if (uniq.containsKey(ext.removeDirectoryInfo(celFiles[i]))) {
+				log.reportTimeError(ext.removeDirectoryInfo(celFiles[i]) + " was seen multiple times, perhaps across directories");
+				error = true;
+			} else {
+				uniq.put(ext.removeDirectoryInfo(celFiles[i]), ext.removeDirectoryInfo(celFiles[i]));
+			}
+			if (celFiles[i].length() != celFiles[i].replaceAll("[\\s]+", "").length()) {
+				log.reportTimeError(celFiles[i] + " contained whitespace");
+			}
+		}
+		if (error) {
+			log.reportTimeError("Invalid cel file list, apt will not run");
+			throw new IllegalArgumentException();
+		}
+	}
+
 	public static void run(String aptExeDir, String aptLibDir, String cels, String outDir, String quantNormTarget, String analysisName, String markerPositions, int markerBuffer, int numThreads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "affyPipeline.log");
@@ -369,7 +390,7 @@ public class AffyPipeline {
 		} else {
 			celFiles = HashVec.loadFileToStringArray(cels, false, new int[] { 0 }, true);
 		}
-		
+		validateCelSelection(celFiles, log);
 		log.reportTimeInfo("Found " + celFiles.length + " .cel files to process");
 		AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, log);
 		Probesets probeSets = pipeline.getFullProbesetList(celFiles[0], outDir, analysisName);
@@ -416,8 +437,7 @@ public class AffyPipeline {
 						MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt", proj.SOURCE_DIRECTORY.getValue(true, true), log);
 						if (Files.exists(markerPositions)) {
 							proj.MARKER_POSITION_FILENAME.setValue(markerPositions);
-							proj.saveProperties();
-							proj = new Project(projectFile, false);
+							proj.getSourceFileHeaders(true);
 							SourceFileParser.createFiles(proj, numThreads);
 							TransposeData.transposeData(proj, 2000000000, false);
 							CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numThreads, 2);
