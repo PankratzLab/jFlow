@@ -20,6 +20,7 @@ import cnv.var.SampleData;
 import common.Array;
 import common.CmdLine;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.PSF;
 import common.ext;
@@ -359,10 +360,16 @@ public class AffyPipeline {
 		return genotypeResult;
 	}
 
-	public static void run(String aptExeDir, String aptLibDir, String celDir, String outDir, String quantNormTarget, String analysisName, String markerPositions, int markerBuffer, int numThreads) {
+	public static void run(String aptExeDir, String aptLibDir, String cels, String outDir, String quantNormTarget, String analysisName, String markerPositions, int markerBuffer, int numThreads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "affyPipeline.log");
-		String[] celFiles = Files.list(celDir, null, ".cel", false, false, true);
+		String[] celFiles;
+		if (Files.isDirectory(cels)) {
+			celFiles = Files.list(cels, null, ".cel", false, false, true);
+		} else {
+			celFiles = HashVec.loadFileToStringArray(cels, false, new int[] { 0 }, true);
+		}
+		
 		log.reportTimeInfo("Found " + celFiles.length + " .cel files to process");
 		AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, log);
 		Probesets probeSets = pipeline.getFullProbesetList(celFiles[0], outDir, analysisName);
@@ -374,6 +381,7 @@ public class AffyPipeline {
 					log.reportTimeError("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz");
 				} else {
 					NormalizationResult normalizationResult = pipeline.normalize(celListFile, probeSets.getAllFile(), analysisName, outDir, quantNormTarget);
+				
 					if (!normalizationResult.isFail()) {
 						String tmpDir = outDir + analysisName + "_TMP/";
 
@@ -431,7 +439,7 @@ public class AffyPipeline {
 
 	public static void main(String[] args) {
 		String analysisName = "Genvisis_affy_pipeline";
-		String celDir = "~/Affy6/cels/";
+		String cels = "~/Affy6/cels/";
 		String targetSketch = "~/resources/hapmap.quant-norm.normalization-target.txt";
 		String aptExeDir = "~/apt-1.18.0-x86_64-intel-linux/bin/";
 		String aptLibDir = "~/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/";
@@ -445,7 +453,7 @@ public class AffyPipeline {
 		String usage = "\n" +
 				"affy.AffyPipeline requires 0-1 arguments\n" +
 				"   (1) analysis name (i.e. analysisName=" + analysisName + " (default))\n" +
-				"   (2) a directory containing .cel files for analyiss (i.e. celDir=" + celDir + " (default))\n" +
+				"   (2) a directory or full path to a file containing .cel files for analyiss (i.e. cels=" + cels + " (default))\n" +
 				"   (3) a target sketch file (such as hapmap.quant-norm.normalization-target.txt Available at ) (i.e. sketch=" + targetSketch + " (default))\n" +
 				"   (4) directory with Affy Power Tools executables (should contain apt-probeset-genotype, etc. Available at http://www.affymetrix.com/) (i.e. aptExeDir=" + aptExeDir + " (default))\n" +
 				"   (5) directory with Affy Power Tools library files (should contain GenomeWideSNP_6.cdf, etc. Available at http://www.affymetrix.com/) (i.e. aptLibDir=" + aptLibDir + " (default))\n" +
@@ -465,8 +473,8 @@ public class AffyPipeline {
 			} else if (args[i].startsWith("markerPositions=")) {
 				markerPositions = ext.parseStringArg(args[i], "");
 				numArgs--;
-			} else if (args[i].startsWith("celDir=")) {
-				celDir = ext.parseStringArg(args[i], "");
+			} else if (args[i].startsWith("cels=")) {
+				cels = ext.parseStringArg(args[i], "");
 				numArgs--;
 			} else if (args[i].startsWith("outDir=")) {
 				outDir = ext.parseStringArg(args[i], "");
@@ -495,7 +503,7 @@ public class AffyPipeline {
 			System.exit(1);
 		}
 		try {
-			run(aptExeDir, aptLibDir, celDir, outDir, targetSketch, analysisName, markerPositions, markerBuffer, numThreads);
+			run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions, markerBuffer, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
