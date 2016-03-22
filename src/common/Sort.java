@@ -1174,12 +1174,14 @@ public class Sort {
 		return ranks;
 		
 	}
-
+	
 	@SuppressWarnings("unchecked")
     public static <T> T[] putInOrder(T[] array, int[] order) {
-	    T[] newArray;
+        if (array.length == 0) return array;
+        T[] newArray;
 	    
-	    newArray = (T[]) java.lang.reflect.Array.newInstance(array.getClass(), array.length);
+        newArray = (T[]) java.lang.reflect.Array.newInstance(array[0].getClass(), array.length);
+	    
 	    for (int i = 0; i < array.length; i++) {
 	        newArray[i] = array[order[i]];
 	    }
@@ -1230,12 +1232,11 @@ public class Sort {
 		
 		return newArray;
 	}
-	
-	public static void main(String[] args) {
-		String[] test = {"in", "to", "new", "directory", "be"};
-		int[] indx = quicksort(test);
-		for (int i = 0; i<indx.length; i++) {
-			System.out.println(i+" => "+indx[i]+" "+test[indx[i]]);
-		}
-	}
+
+    public static void main(String[] args) {
+    	String[][] test = {{"in"}, {"to"}, {"new"}, {"directory"}, {"be"}};
+    	int[] order = {1, 4, 0, 2, 3};
+    	
+    	putInOrder(test, order);
+    }
 }

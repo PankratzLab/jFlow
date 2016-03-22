@@ -270,7 +270,7 @@ public class DosageData implements Serializable {
 	    }
 	    idSet = null; // can now refer to ddNew.ids
 	    
-	    ddNew.markerSet = SnpMarkerSet.merge(dd1.markerSet, dd2.markerSet);
+//	    ddNew.markerSet = SnpMarkerSet.merge(dd1.markerSet, dd2.markerSet); // don't use merge, as it sorts markers after merging
 	    
 	    ddNew.alleles = new char[markers.size()][];
 	    ddNew.chrs = new byte[markers.size()];
@@ -294,6 +294,8 @@ public class DosageData implements Serializable {
 	            ddNew.positions[chrOffset + i] = posSrc == null ? missingPos : posSrc[i];
 	        }
 	    }
+	    
+	    ddNew.markerSet = new SnpMarkerSet(markers.toArray(new String[markers.size()]), ddNew.chrs, ddNew.positions, ddNew.alleles, null, false, true);
 	    
 	    int dd1NumGeno = dd1.genotypeProbabilities == null ? (dd1.dosageValues == null ? 0 : 1) : dd1.genotypeProbabilities[0][0].length;
         int dd2NumGeno = dd2.genotypeProbabilities == null ? (dd2.dosageValues == null ? 0 : 1) : dd2.genotypeProbabilities[0][0].length;
