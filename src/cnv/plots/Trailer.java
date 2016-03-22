@@ -14,6 +14,7 @@ import javax.swing.border.EmptyBorder;
 import net.miginfocom.swing.MigLayout;
 import mining.Transformations;
 import common.*;
+import cnv.analysis.BeastScore;
 import cnv.analysis.MosaicismDetect;
 import cnv.analysis.MosaicismQuant;
 import cnv.analysis.MosaicismDetect.MosaicBuilder;
@@ -103,9 +104,6 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private static final String REGION_LIST_NEW_FILE = "Load Region File";
 	private static final String REGION_LIST_USE_CNVS = "Use CNVs as Regions...";
 	private static final String REGION_LIST_PLACEHOLDER = "Select Region File...";
-	private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller", "RevCNVCaller", "Consensus", "MosaicCaller", "MONOSOMY_DISOMYF", "CUSTOMF" };
-	private static final int[] INTERNAL_CNV_CLASSES_INDICES = new int[] { 0, 1, 2, 3, 4, 5 };
-
 	private JComboBox<String> sampleList;
 	private String[] samplesPresent;
 	private JTextField navigationField;
@@ -156,6 +154,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	private JCheckBoxMenuItem callCnvsButton;
 	private JCheckBoxMenuItem mosaicCallButton;
 	private JCheckBoxMenuItem mosaicFButton;
+	private JCheckBoxMenuItem beastHButton;
+
 	private String[] qcGenome;
 //	private String[] qcChromo;
 	private String[] qcRegion;
@@ -345,11 +345,36 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 
 			}
+			class BeastButton extends JButton {
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+				// private Segment toQuant;
+
+				public BeastButton(final Segment toQuant, final CustomCallPopUp callPopUp) {
+					super("Assign BEAST height for " + toQuant.getUCSClocation());
+					// this.toQuant = toQuant;
+					addActionListener(new ActionListener() {
+
+						public void actionPerformed(ActionEvent e) {
+							beastHere(toQuant, INTERNAL_CNV_TYPES.BEAST_SCORE);
+
+						}
+					});
+				}
+
+			}
 			if (selectedCNV != null) {
 				Segment toQuant = cnvs[selectedCNV[0]][selectedCNV[1]];
 				QuantButton qb = new QuantButton(toQuant, this);
 				qb.setFont(new Font("Arial", 0, 14));
 				add(qb);
+				BeastButton bb = new BeastButton(toQuant, this);
+				bb.setFont(new Font("Arial", 0, 14));
+				add(bb);
+
 			}
 		}
 	}
@@ -1631,9 +1656,9 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 					} else {
 						CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample, Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs), gcModel, pfb, markerSet, new int[] { chr }, null, false, proj.NUM_THREADS.getValue(), true);
 						int externalCNVs = prepInternalClasses();
-						addCnvsToPheno(callResult.getChrCNVs().getLoci(), externalCNVs, INTERNAL_CNV_CLASSES_INDICES[0]);
-						addCnvsToPheno(callResult.getChrCNVsReverse().getLoci(), externalCNVs, INTERNAL_CNV_CLASSES_INDICES[1]);
-						addCnvsToPheno(callResult.getChrCNVsReverseConsensus().getLoci(), externalCNVs, INTERNAL_CNV_CLASSES_INDICES[2]);
+						addCnvsToPheno(callResult.getChrCNVs().getLoci(), externalCNVs, INTERNAL_CNV_TYPES.CNV_CALLER);
+						addCnvsToPheno(callResult.getChrCNVsReverse().getLoci(), externalCNVs,INTERNAL_CNV_TYPES.REV_CNV_CALLER);
+						addCnvsToPheno(callResult.getChrCNVsReverseConsensus().getLoci(), externalCNVs, INTERNAL_CNV_TYPES.CONSENSUS);
 						sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
 						procCNVs(chr);
 					}
@@ -1656,7 +1681,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
     				Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
     				LocusSet<MosaicRegion> mosSet = md.callMosaic(seg,false);
 					int externalCNVs = prepInternalClasses();
-					addCnvsToPheno(mosSet.getLoci(), externalCNVs, INTERNAL_CNV_CLASSES_INDICES[3]);
+					addCnvsToPheno(mosSet.getLoci(), externalCNVs, INTERNAL_CNV_TYPES.MOSAIC_CALLER);
 					sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
 					procCNVs(chr);
 
@@ -1684,6 +1709,21 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			mosaicFButton.addItemListener(mosaicFListener);
 			mosaicFButton.setFont(font);
 			cnvMenu.add(mosaicFButton);
+			
+			ItemListener beastHListener = new ItemListener() {
+				public void itemStateChanged(ItemEvent ie) {
+					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+					Segment quantSeg = new Segment(chr, positions[startMarker], positions[stopMarker]);
+					beastHere(quantSeg, INTERNAL_CNV_TYPES.BEAST_SCORE_CUSTOM);
+					jrb.setSelected(false);
+				}
+
+			};
+
+			beastHButton = new JCheckBoxMenuItem("Compute BEAST Height", false);
+			beastHButton.addItemListener(beastHListener);
+			beastHButton.setFont(font);
+			cnvMenu.add(beastHButton);
 
 //    		cnvMenu.addSeparator();
             menuBar.add(cnvMenu);
@@ -2271,7 +2311,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				return;
 			} else {
 				if (proj.CNV_FILENAMES.getValue() == null || proj.CNV_FILENAMES.getValue().length == 0 || indiPheno.getCnvClasses().size() <= proj.CNV_FILENAMES.getValue().length) {
-					for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
+					for (int i = 0; i < INTERNAL_CNV_TYPES.values().length; i++) {
 						indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
 					}
 
@@ -2711,20 +2751,54 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	}
 	
 	private int prepInternalClasses() {
-		int externalCNVs = proj.CNV_FILENAMES.getValue() == null ? 0 : proj.CNV_FILENAMES.getValue().length;
+		int externalCNVs = 0;
+		if (proj.CNV_FILENAMES.getValue() != null) {
+			for (int i = 0; i < proj.CNV_FILENAMES.getValue().length; i++) {
+				if (Files.exists(proj.CNV_FILENAMES.getValue()[i])) {
+					externalCNVs++;
+				}
+			}
+		}
+		String[] internals = new String[INTERNAL_CNV_TYPES.values().length];
+		for (int i = 0; i < INTERNAL_CNV_TYPES.values().length; i++) {
+			internals[INTERNAL_CNV_TYPES.values()[i].getIndex()] = INTERNAL_CNV_TYPES.values()[i].getName();
+		}
 		if (sampleData.getCnvClasses().length <= externalCNVs) {
-			sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), INTERNAL_CNV_CLASSES));
+			sampleData.setCnvClasses(Array.concatAll(sampleData.getCnvClasses(), internals));
 			cnvLabels = Array.concatAll(sampleData.getCnvClasses());
 		}
 		if (indiPheno.getCnvClasses().size() <= externalCNVs) {
-			for (int i = 0; i < INTERNAL_CNV_CLASSES.length; i++) {
+			for (int i = 0; i < INTERNAL_CNV_TYPES.values().length; i++) {
 				indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
 			}
 		}
 		return externalCNVs;
 	}
 
+	private void beastHere(Segment beastSeg,INTERNAL_CNV_TYPES type) {
+		if (type != INTERNAL_CNV_TYPES.BEAST_SCORE && type != INTERNAL_CNV_TYPES.BEAST_SCORE_CUSTOM) {
+			throw new IllegalArgumentException("Method only for internal beast types");
+		}
+		CNVBuilder builder = new CNVBuilder();
+		builder.chr(beastSeg.getChr());
+		builder.start(beastSeg.getStart());
+		builder.stop(beastSeg.getStop());
+		builder.cn(2);
+		builder.familyID(sample);
+		builder.individualID(sample);
+		int[] indices = markerSet.getIndicesOfMarkersIn(beastSeg, null, log);
+		builder.numMarkers(indices.length);
+		BeastScore beastScore = new BeastScore(lrrValues, new int[][] { markerSet.getIndicesByChr()[chr] }, new int[][] { indices }, log);
+		beastScore.computeBeastScores();
+		builder.score(beastScore.getBeastHeights()[0]);
+		int externalCNVs = prepInternalClasses();
 
+		addCnvsToPheno(new CNVariant[] { builder.build() }, externalCNVs, type);
+		sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+		procCNVs(chr);
+		updateGUI();
+	}
+	
 	private void quantHere(Segment quantSeg, boolean checkAlreadyCalled) {
 		MosaicQuantWorker worker = new MosaicQuantWorker(new Segment[] { quantSeg }, proj, sample, MOSAIC_TYPE.values(), 5);
 		CNVBuilder builder = new CNVBuilder();
@@ -2751,8 +2825,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 			tmp[i] = builder.build();
 		}
 		int externalCNVs = prepInternalClasses();
-		addCnvsToPheno(tmp, externalCNVs, 4);
-		if (!checkAlreadyCalled || selectedCNV == null || selectedCNV[0] != externalCNVs + INTERNAL_CNV_CLASSES_INDICES[3]) {
+		//private static final String[] INTERNAL_CNV_CLASSES = new String[] { "CNVCaller", "RevCNVCaller", "Consensus", "MosaicCaller", "MONOSOMY_DISOMYF", "CUSTOMF", "BEAST_SCORE", "BEAST_SCORE_CUSTOM" };
+		//private static final int[] INTERNAL_CNV_CLASSES_INDICES = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+		addCnvsToPheno(tmp, externalCNVs, INTERNAL_CNV_TYPES.MONSOMOMY_DYSOMYF);
+		if (!checkAlreadyCalled || selectedCNV == null || selectedCNV[0] != externalCNVs + INTERNAL_CNV_TYPES.MOSAIC_CALLER.getIndex()) {
 			MosaicBuilder builderMosaic = new MosaicBuilder();
 			builderMosaic.verbose(true);
 			MosaicismDetect md = builderMosaic.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
@@ -2762,7 +2838,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				proj.getLog().reportTimeError("Mosaic caller not in force call mode");
 				mosSet = null;
 			}
-			addCnvsToPheno(new CNVariant[] { mosSet.getLoci()[0] }, externalCNVs, INTERNAL_CNV_CLASSES_INDICES[5]);
+			addCnvsToPheno(new CNVariant[] { mosSet.getLoci()[0] }, externalCNVs, INTERNAL_CNV_TYPES.CUSTOMF);
 		}
 		sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
 		procCNVs(chr);
@@ -2775,8 +2851,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	 * @param internalIndex
 	 *            the index of the internal index
 	 */
-	private void addCnvsToPheno(CNVariant[] tmp, int externalCNVs, int internalIndex) {
-		int key = externalCNVs + INTERNAL_CNV_CLASSES_INDICES[internalIndex];
+	private void addCnvsToPheno(CNVariant[] tmp, int externalCNVs, INTERNAL_CNV_TYPES type) {
+		int key = externalCNVs + type.getIndex();
 		CNVariant[] tmpCurrent = indiPheno.getCnvClasses().get(key).get(chr + "");
 		
 		if (tmpCurrent != null && tmpCurrent.length > 0) {
@@ -2928,6 +3004,37 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 			};
 		}
+	}
+
+	private enum INTERNAL_CNV_TYPES {
+		// "MosaicCaller", "MONOSOMY_DISOMYF", "CUSTOMF", "BEAST_SCORE", "BEAST_SCORE_CUSTOM" };
+		// private static final int[] INTERNAL_CNV_CLASSES_INDICES = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+		CNV_CALLER("CNVCaller", 0),
+		REV_CNV_CALLER("RevCNVCaller", 1),
+		CONSENSUS("Consensus", 2),
+		MOSAIC_CALLER("MosaicCaller", 3),
+		MONSOMOMY_DYSOMYF("MONOSOMY_DISOMYF", 4),
+		CUSTOMF("CUSTOMF", 5),
+		BEAST_SCORE("BEAST_SCORE", 6),
+		BEAST_SCORE_CUSTOM("BEAST_SCORE_CUSTOM", 7);
+
+		private String name;
+		private int index;
+
+		private INTERNAL_CNV_TYPES(String name, int index) {
+			this.name = name;
+			this.index = index;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public int getIndex() {
+			return index;
+		}
+		
+		
 	}
 
 	public static void main(String[] args) {
