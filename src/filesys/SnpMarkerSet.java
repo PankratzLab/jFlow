@@ -871,6 +871,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
                 break;
             }
         }
+        System.out.println("Trimming SnpMarkerSet: " + chrs.length + " chrs @ start, keeping " + Array.booleanArraySum(keep));
         
         newMarkerNames = Array.subArray(markerNames, keep);
         newChrs = Array.subArray(chrs, keep);
@@ -1082,6 +1083,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				if (hasPositions[i]) {
 					travChrs = sets[i].getChrs();
 					travPositions = sets[i].getPositions();
+					System.out.println("Set " + i + " -- " + arraysOfMarkerNames[i].length + " markers, " + travChrs.length + " chr values, " + travPositions.length + " pos values");
 					for (int j = 0; j < arraysOfMarkerNames[i].length; j++) {
 						index = indices.get(arraysOfMarkerNames[i][j]);
 						if (chrs[index] == (byte)-9) {

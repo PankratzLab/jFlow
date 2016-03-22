@@ -401,17 +401,17 @@ public class DosageData implements Serializable {
         int[] keys = Sort.orderTwoLayers(ddNew.chrs, ddNew.positions, new Logger());
         System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
         ddNew.chrs = Sort.putInOrder(ddNew.chrs, keys);
-        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
+        System.gc(); 
         ddNew.positions = Sort.putInOrder(ddNew.positions, keys);
-        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
+        System.gc(); 
         ddNew.alleles = Sort.putInOrder(ddNew.alleles, keys);
-        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
+        System.gc(); 
         ddNew.markerSet.sortMarkers();
-        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
+        System.gc(); 
         ddNew.genotypeProbabilities = Sort.putInOrder(ddNew.genotypeProbabilities, keys);
-        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
+        System.gc(); 
         ddNew.dosageValues = Sort.putInOrder(ddNew.dosageValues, keys);
-        System.gc(); // each 'putInOrder' creates a duplicate array - use a System.gc() call to obliviate those
+        System.gc(); 
         
 	    return ddNew;
 	}
@@ -489,6 +489,7 @@ public class DosageData implements Serializable {
 		    return;
 		}
 		markersToKeep = filterMarkers(markerNames, regionsToUseFile, markersToUseFile, verbose, log);
+		System.out.println("Keeping " + Array.booleanArraySum(markersToKeep) + " markers out of " + markerNames.length);
 		
 		keepTotal = Array.booleanArraySum(markersToKeep);
 		
@@ -681,6 +682,7 @@ public class DosageData implements Serializable {
 				}
 			}
 			
+			markerNames = markerSet.getMarkerNames();
 			if (markerNamePrepend != null && !"".equals(markerNamePrepend)) {
 			    for (int i = 0; i < markerNames.length; i++) {
 			        markerNames[i] = markerNamePrepend + markerNames[i];
@@ -699,7 +701,7 @@ public class DosageData implements Serializable {
 	}
 	
 	private boolean[] filterMarkers(String[] markerNames, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
-	    boolean[] markersToKeep;
+	    boolean[] markersToKeep = Array.booleanArray(markerNames.length, true);
 	    if (regionsToUseFile != null && !"".equals(regionsToUseFile)) {
             if (Files.exists(regionsToUseFile)) {
                 String[] rgns = HashVec.loadFileToStringArray(regionsToUseFile, false, new int[]{0}, false);
@@ -718,8 +720,6 @@ public class DosageData implements Serializable {
                 log.reportError("Error - specified markers file: \"" + markersToUseFile + "\" doesn't exist!");
                 markersToKeep = Array.booleanArray(markerNames.length, true);
             }
-        } else {
-            markersToKeep = Array.booleanArray(markerNames.length, true);
         }
         if (markersToUseFile != null && !"".equals(markersToUseFile)) {
             if (Files.exists(markersToUseFile)) {
@@ -743,8 +743,6 @@ public class DosageData implements Serializable {
                 log.reportError("Error - specified markers file: \"" + markersToUseFile + "\" doesn't exist!");
                 markersToKeep = Array.booleanArray(markerNames.length, true);
             }
-        } else {
-            markersToKeep = Array.booleanArray(markerNames.length, true);
         }
         return markersToKeep;
     }
