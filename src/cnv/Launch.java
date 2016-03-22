@@ -155,52 +155,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	    proj.initializeProgressMonitor(progBar);
         projectsBox.setSelectedIndex(indexOfCurrentProj);
         
-        updateProject();
-	    
 	    return proj;
-	}
-	
-	private void updateProject() {
-	    updateProperty(proj.SAMPLELIST_FILENAME, ".bis", "sample list");
-	    updateProperty(proj.MARKERLOOKUP_FILENAME, ".bml", "marker lookup");
-	    updateProperty(proj.MARKERSET_FILENAME, ".bim", "marker set");
-	    proj.saveProperties(new Property[]{proj.SAMPLELIST_FILENAME, proj.MARKERLOOKUP_FILENAME, proj.MARKERSET_FILENAME});
-	}
-	
-    private void updateProperty(FileProperty prop, String prevExt, String fileDescriptor) {
-	    String file, newFile, warning = null, error = null;
-        
-        file = prop.getValue();
-        if (!file.endsWith(".ser")) {
-            newFile = ext.rootOf(file, false) + ".ser";
-            if (Files.exists(file)) {
-                if (!file.endsWith(prevExt)) {
-                    // unlikely, but error
-                    warning = "Warning - found " + fileDescriptor + " file, but with an unexpected extension.  Renaming to .ser from \"" + file + "\".";
-                }
-                if (Files.exists(newFile) && (new File(newFile)).length() > 0) {
-                    warning = "Warning - found .ser version of " + fileDescriptor + " file; altering property value to point to .ser file at \"" + newFile + "\".";
-                } else {
-                    (new File(newFile)).delete();
-                    (new File(file)).renameTo(new File(newFile));
-                }
-                prop.setValue(ext.rootOf(file, false) + ".ser");
-            } else { 
-                if (Files.exists(newFile)) {
-                    // property set incorrectly, file exists as .ser but prop set to .bis, rename property
-                    prop.setValue(ext.rootOf(file, false) + ".ser");
-                } else {
-                    // error, no sample list file (and property set to old value)
-                    error = "Error - " + fileDescriptor + " file not found!  Set to: \"" + file + "\".";
-                }
-            }
-        }
-        if (warning != null) {
-            System.err.println(warning);
-        }
-        if (error != null) {
-            System.err.println(error);
-        }
 	}
 
 	public void setIndexOfCurrentProject(String projPropertiesFileName) {
