@@ -1657,8 +1657,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 						CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample, Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs), gcModel, pfb, markerSet, new int[] { chr }, null, false, proj.NUM_THREADS.getValue(), true);
 						int externalCNVs = prepInternalClasses();
 						addCnvsToPheno(callResult.getChrCNVs().getLoci(), externalCNVs, INTERNAL_CNV_TYPES.CNV_CALLER);
-						addCnvsToPheno(callResult.getChrCNVsReverse().getLoci(), externalCNVs,INTERNAL_CNV_TYPES.REV_CNV_CALLER);
-						addCnvsToPheno(callResult.getChrCNVsReverseConsensus().getLoci(), externalCNVs, INTERNAL_CNV_TYPES.CONSENSUS);
+						//addCnvsToPheno(callResult.getChrCNVsReverse().getLoci(), externalCNVs,INTERNAL_CNV_TYPES.REV_CNV_CALLER);
+						//addCnvsToPheno(callResult.getChrCNVsReverseConsensus().getLoci(), externalCNVs, INTERNAL_CNV_TYPES.CONSENSUS);
 						sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
 						procCNVs(chr);
 					}
@@ -3006,17 +3006,19 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		}
 	}
 
+	/**
+	 * Organizes dynamic calling of cnvs and similar metrics
+	 *
+	 */
 	private enum INTERNAL_CNV_TYPES {
-		// "MosaicCaller", "MONOSOMY_DISOMYF", "CUSTOMF", "BEAST_SCORE", "BEAST_SCORE_CUSTOM" };
-		// private static final int[] INTERNAL_CNV_CLASSES_INDICES = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
 		CNV_CALLER("CNVCaller", 0),
-		REV_CNV_CALLER("RevCNVCaller", 1),
-		CONSENSUS("Consensus", 2),
-		MOSAIC_CALLER("MosaicCaller", 3),
-		MONSOMOMY_DYSOMYF("MONOSOMY_DISOMYF", 4),
-		CUSTOMF("CUSTOMF", 5),
-		BEAST_SCORE("BEAST_SCORE", 6),
-		BEAST_SCORE_CUSTOM("BEAST_SCORE_CUSTOM", 7);
+		// REV_CNV_CALLER("RevCNVCaller", 1),
+		// CONSENSUS("Consensus", 2),
+		MOSAIC_CALLER("MosaicCaller", 1),
+		MONSOMOMY_DYSOMYF("MONOSOMY_DISOMYF", 2),
+		CUSTOMF("CUSTOMF", 3),
+		BEAST_SCORE("BEAST_Score", 4),
+		BEAST_SCORE_CUSTOM("BEAST_Score_Custom", 5);
 
 		private String name;
 		private int index;
