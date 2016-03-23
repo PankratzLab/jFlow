@@ -10,7 +10,7 @@ import filesys.SnpMarkerSet;
 public class SNPlist {
 	public static final String[][] FIELDS = {{"SAMPLE_ID"}, {"ASSAY_ID"}, {"GENOTYPE_ID"}};
 
-	public static void parse(String dir, String filename, String pedigree) {
+	public static void parse(String dir, String filename, String pedigree, Logger log) {
 		BufferedReader reader;
         PrintWriter writer;
         String[] line;
@@ -48,7 +48,7 @@ public class SNPlist {
         markers = new SnpMarkerSet(Array.toStringArray(snps));
         markers.parseSNPlocations();
         markers.sortMarkers();
-        markers.writeToFile(dir+ext.rootOf(filename)+".map", SnpMarkerSet.PLINK_MAP_FORMAT);
+        markers.writeToFile(dir+ext.rootOf(filename)+".map", SnpMarkerSet.PLINK_MAP_FORMAT, log);
         
         markerNames = markers.getMarkerNames();
         iv = new IntVector();
@@ -127,7 +127,7 @@ public class SNPlist {
 		    System.exit(1);
 	    }
 	    try {
-		    parse(dir, snps, pedigree);
+		    parse(dir, snps, pedigree, new Logger());
 	    } catch (Exception e) {
 		    e.printStackTrace();
 	    }

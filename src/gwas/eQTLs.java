@@ -36,7 +36,7 @@ public class eQTLs {
 //		CmdLine.run("plink --bfile YRI --freq --out YRI", dir);
 		
 		if (!new File(dir+"allSNPs.dat").exists()) {
-			SnpMarkerSet.merge(new SnpMarkerSet[] {new SnpMarkerSet(dir+"CEU.bim"), new SnpMarkerSet(dir+"YRI.bim")}).writeToFile(dir+"allSNPs.dat", SnpMarkerSet.GENERIC_FORMAT_ANNOTATED);
+			SnpMarkerSet.merge(new SnpMarkerSet[] {new SnpMarkerSet(dir+"CEU.bim"), new SnpMarkerSet(dir+"YRI.bim")}).writeToFile(dir+"allSNPs.dat", SnpMarkerSet.GENERIC_FORMAT_ANNOTATED, log);
 		}
 		
 //		int count = 1;

@@ -788,18 +788,18 @@ public class Algorithm {
 		}
 	}
 
-	public static void prepFile(String filename) {
+	public static void prepFile(String filename, Logger log) {
 		BufferedReader reader;
         PrintWriter writer;
         String[] line;
         SnpMarkerSet markerSet;
         
         System.out.println("Loading marker set...");
-        markerSet = new SnpMarkerSet(filename, SnpMarkerSet.GENERIC_FORMAT_ANNOTATED_IGNORE_FIRST_LINE, true, new Logger());
+        markerSet = new SnpMarkerSet(filename, SnpMarkerSet.GENERIC_FORMAT_ANNOTATED_IGNORE_FIRST_LINE, true, log);
         System.out.println("Sorting markers...");
         markerSet.sortMarkers();
         System.out.println("Writing sorted list...");
-        markerSet.writeToFile(ext.rootOf(filename, false)+"_sorted.xln", SnpMarkerSet.GENERIC_FORMAT_ANNOTATED);
+        markerSet.writeToFile(ext.rootOf(filename, false)+"_sorted.xln", SnpMarkerSet.GENERIC_FORMAT_ANNOTATED, log);
         
         System.out.println("Writing filtered list...");
         try {
@@ -930,7 +930,7 @@ public class Algorithm {
 		}
 		try {
 			if (prep) {
-				prepFile(dir+filename);
+				prepFile(dir+filename, new Logger());
 			} else if (batch>0) {
 				batchHaploview(batch);
 			} else if (procMap>0) {

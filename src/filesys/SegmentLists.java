@@ -5,10 +5,11 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import cnv.manage.PlainTextExport;
+import filesys.PlainTextExport;
 import common.Array;
 import common.Files;
 import common.HashVec;
+import common.Logger;
 
 public class SegmentLists implements Serializable, PlainTextExport {
 	public static final long serialVersionUID = 1L;
@@ -27,7 +28,8 @@ public class SegmentLists implements Serializable, PlainTextExport {
 		Files.writeSerial(this, filename);
 	}
 	
-	public void exportToText(String outputFile) {
+	@Override
+	public void exportToText(String outputFile, Logger log) {
 	    PrintWriter writer;
 	    
 	    writer = Files.getAppropriateWriter(outputFile);

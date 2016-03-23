@@ -69,13 +69,13 @@ public class DosageData implements Serializable {
 	private int[] positions;
 	
 	
-	public void writeToPlinkBinary(String dir, String plinkRoot) throws IOException {
+	public void writeToPlinkBinary(String dir, String plinkRoot, Logger log) {
         PrintWriter writer;
         RandomAccessFile out;
         byte[] outStream;
         
         if (dosageValues == null && genotypeProbabilities != null) {
-            computeDosageValues(null);
+            computeDosageValues(log);
         }
         if (dosageValues == null) {
             System.err.println("Error - Cannot write to Plink files without data!");
@@ -85,40 +85,52 @@ public class DosageData implements Serializable {
         (new File(dir)).mkdirs();
         
         // FAM
-        writer = new PrintWriter(new FileWriter(dir + plinkRoot +".fam"));
-        for (int i = 0; i < ids.length; i++) {
-            writer.print(ids[i][0] + "\t" + ids[i][1] + "\t");
-            String[] parts = {
-                    ids[i].length > 2 ? ids[i][2] : "0", 
-                    ids[i].length > 3 ? ids[i][3] : "0",
-                    ids[i].length > 4 ? ids[i][4] : "0",
-                    ids[i].length > 5 ? ids[i][5] : "-9",
-            };
-            writer.println(Array.toStr(parts, "\t"));
-        }
-        writer.close();
+        try {
+			writer = new PrintWriter(new FileWriter(dir + plinkRoot +".fam"));
+		    for (int i = 0; i < ids.length; i++) {
+		        writer.print(ids[i][0] + "\t" + ids[i][1] + "\t");
+		        String[] parts = {
+		                ids[i].length > 2 ? ids[i][2] : "0", 
+		                ids[i].length > 3 ? ids[i][3] : "0",
+		                ids[i].length > 4 ? ids[i][4] : "0",
+		                ids[i].length > 5 ? ids[i][5] : "-9",
+		        };
+		        writer.println(Array.toStr(parts, "\t"));
+		    }
+		    writer.close();
+		} catch (IOException e) {
+			log.reportError("Error writing '"+dir + plinkRoot +".fam'");
+			log.reportException(e);
+			return;
+		}
 
         // BIM
-        String[] markerNames = markerSet.getMarkerNames();
-        writer = new PrintWriter(new FileWriter(dir + plinkRoot +".bim"));
-        for (int i = 0; i < markerNames.length; i++) {
-            writer.println(chrs[i] + "\t" + markerNames[i] + "\t0\t" + positions[i] + "\t" + alleles[i][0] + "\t" + alleles[i][1]);
-        }
-        writer.close();
+        try {
+	        String[] markerNames = markerSet.getMarkerNames();
+	        writer = new PrintWriter(new FileWriter(dir + plinkRoot +".bim"));
+	        for (int i = 0; i < markerNames.length; i++) {
+	            writer.println(chrs[i] + "\t" + markerNames[i] + "\t0\t" + positions[i] + "\t" + alleles[i][0] + "\t" + alleles[i][1]);
+	        }
+	        writer.close();
         
         // BED
-        out = new RandomAccessFile(dir + plinkRoot + ".bed", "rw");
-        outStream = new byte[3];
-        outStream[0] = (byte) 108;  // 0b01101100
-        outStream[1] = (byte) 27;   // 0b00011011
-        outStream[2] = (byte) 1;    // 0b00000001 <-- be careful here
-        out.write(outStream);
-        
-        for (int j = 0; j < markerNames.length; j++) {
-            out.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(Array.toByteArray(dosageValues[j])));
-        }
-        
-        out.close();
+            out = new RandomAccessFile(dir + plinkRoot + ".bed", "rw");
+            outStream = new byte[3];
+            outStream[0] = (byte) 108;  // 0b01101100
+            outStream[1] = (byte) 27;   // 0b00011011
+            outStream[2] = (byte) 1;    // 0b00000001 <-- be careful here
+            out.write(outStream);
+            
+            for (int j = 0; j < markerNames.length; j++) {
+                out.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(Array.toByteArray(dosageValues[j])));
+            }
+            
+            out.close();
+		} catch (IOException e) {
+			log.reportError("Error writing "+plinkRoot +".bed and/or "+plinkRoot +".bim in "+dir);
+			log.reportException(e);
+			return;
+		}
 	}
 	
 	public static DosageData loadPlinkBinary(String dir, String plinkRoot, String regionsToUseFile, String markersToUseFile, String markerNamePrepend) {
@@ -209,7 +221,7 @@ public class DosageData implements Serializable {
 	}
 	
 	
-	public static DosageData combine(DosageData dd1, DosageData dd2) {
+	public static DosageData combine(DosageData dd1, DosageData dd2, Logger log) {
 	    byte missingChr = 0;
 	    int missingPos = 0;
 	    char[] missingAlleles = null;
@@ -312,9 +324,9 @@ public class DosageData implements Serializable {
         }
         
         if ((dosageOverride || dd1NumGeno == 1) && dd2NumGeno > 1 && dd2.dosageValues == null) {
-            dd2.computeDosageValues(null);
+            dd2.computeDosageValues(log);
         } else if (dd1NumGeno > 1 && (dosageOverride || dd2NumGeno == 1) && dd1.dosageValues == null) {
-            dd1.computeDosageValues(null);
+            dd1.computeDosageValues(log);
         }
         
         ddNew.genotypeProbabilities = ddNewNumGeno > 1 ? new float[markers.size()][ddNew.ids.length][ddNewNumGeno] : null;
@@ -689,7 +701,7 @@ public class DosageData implements Serializable {
 			    for (int i = 0; i < markerNames.length; i++) {
 			        markerNames[i] = markerNamePrepend + markerNames[i];
 			    }
-			    markerSet.convertMarkerNamesToRSnumbers(markerNames, true); // resets/recreates the SnpMarkerSet's internal RSnumber/non-RS marker lists
+			    markerSet.convertMarkerNamesToRSnumbers(markerNames, true, log); // resets/recreates the SnpMarkerSet's internal RSnumber/non-RS marker lists
 			}
 
 			reader.close();
@@ -761,19 +773,10 @@ public class DosageData implements Serializable {
 		return dosageValues;
 	}
 
-	public void computeDosageValues(Logger log/*, boolean kill*/) {
+	public void computeDosageValues(Logger log) {
 		if (genotypeProbabilities == null) {
-		    String msg = "Error - cannot compute dosage values from genotype probabilities, if there are no genotype probabilities!";
-			if (log != null) {
-			    log.reportError(msg);
-			} else {
-			    System.err.println(msg);
-			}
-//			if (kill) {
-			    System.exit(1);
-//			} else {
-//			    return;
-//			}
+		    log.reportError("Error - cannot compute dosage values from genotype probabilities, if there are no genotype probabilities!");
+		    System.exit(1);
 		}
 		dosageValues = new float[genotypeProbabilities.length][genotypeProbabilities[0].length];
 		for (int i = 0; i < dosageValues.length; i++) {
@@ -823,7 +826,7 @@ public class DosageData implements Serializable {
 		
 		if (markersToKeep == null && regionsToKeep == null) {
 			keeps = null;
-			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
+			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
 		} else {
 		    if (markersToKeep != null && regionsToKeep != null) {
 		        log.reportError("Error - cannot specify both markersToKeep and regionsToKeep.");
@@ -839,7 +842,7 @@ public class DosageData implements Serializable {
     				log.reportError("Error - failed to find all of the subset of markers, in the source file '"+filename+"'");
     				return;
     			}
-    			newMarkerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
+    			newMarkerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
     			try {
     				writer = new PrintWriter(new FileWriter(root+".ids.fam"));
     				for (int i = 0; i < ids.length; i++) {
@@ -857,7 +860,7 @@ public class DosageData implements Serializable {
                 }
                 newMarkerSet = markerSet.trim(regionsToKeep, false, log);
                 keeps = HashVec.loadToHashSet(markerSet.getMarkerNames());
-                newMarkerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
+                newMarkerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
                 try {
                     writer = new PrintWriter(new FileWriter(root+".ids.fam"));
                     for (int i = 0; i < ids.length; i++) {
@@ -1218,10 +1221,10 @@ public class DosageData implements Serializable {
 			markerSet = markerSet.trim(markersToKeep, true, false, log);		// allows missing markers, but will list how many
 			if (mapOut == null) {
 				mapOut = root+".pinfo";
-				markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
+				markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
 				mapOut = root+".map";
 			}
-			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut));
+			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
 			try {
 				writer = new PrintWriter(new FileWriter(root+".ids.fam"));
 				for (int i = 0; i < ids.length; i++) {

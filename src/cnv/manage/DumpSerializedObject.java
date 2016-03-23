@@ -2,6 +2,7 @@ package cnv.manage;
 
 import cnv.filesys.*;
 import common.*;
+import filesys.PlainTextExport;
 
 public class DumpSerializedObject {
 	private static void dump(String projectPropertyFile, String filename, String logFile) {
@@ -13,7 +14,7 @@ public class DumpSerializedObject {
 		    ((TextExport) object).exportToText(proj, ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln");
 		    return;
 		} else if (object instanceof PlainTextExport) {
-		    ((PlainTextExport) object).exportToText(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln");
+		    ((PlainTextExport) object).exportToText(ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump.xln", proj.getLog());
 		}
 
 		proj.getLog().report("Information on class:"+

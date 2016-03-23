@@ -131,7 +131,7 @@ public class HapMapParser {
 	public static void generateHaploviewBatch(String dir, String root, boolean preNotPed, Logger log) {
 		PrintWriter writer;
 
-		new SnpMarkerSet(dir+root+".map").writeToFile(dir+root+".info", SnpMarkerSet.HAPLOVIEW_INFO_FORMAT);
+		new SnpMarkerSet(dir+root+".map", true, log).writeToFile(dir+root+".info", SnpMarkerSet.HAPLOVIEW_INFO_FORMAT, log);
 		try {
 			writer = new PrintWriter(new FileWriter((new File(dir).exists()?dir:"")+root+".bat"));
 			writer.println("java -jar /home/npankrat/Haploview.jar -pedfile "+root+"."+(preNotPed?"pre":"ped")+" -info "+root+".info");
@@ -142,8 +142,8 @@ public class HapMapParser {
         }
 	}
 
-	public static void plinkMapToHaploviewInfo(String from, String to) {
-		new SnpMarkerSet(from).writeToFile(to, SnpMarkerSet.HAPLOVIEW_INFO_FORMAT);
+	public static void plinkMapToHaploviewInfo(String from, String to, Logger log) {
+		new SnpMarkerSet(from).writeToFile(to, SnpMarkerSet.HAPLOVIEW_INFO_FORMAT, log);
 	}
 	
 	public static void splitBedByChromosome(String root) {
@@ -253,7 +253,7 @@ public class HapMapParser {
 		}
 		try {
 			if (!map.equals("")) {
-				generateHaploviewBatch("", ext.removeDirectoryInfo(map.substring(0, map.lastIndexOf("."))), false, log);
+				generateHaploviewBatch("", ext.removeDirectoryInfo(map.substring(0, map.lastIndexOf("."))), false, new Logger(ext.rootOf(filename==null?map:filename, false)+"_haploview_prep.log"));
 			} else if (!bed.equals("")) {
 				splitBedByChromosome(bed);
 			} else if (!ped.equals("")) {

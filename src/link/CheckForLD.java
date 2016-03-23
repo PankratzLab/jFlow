@@ -17,7 +17,7 @@ public class CheckForLD {
 	public static final double DEFAULT_MAX_DPRIME = 0.7;
 	public static final double DEFAULT_R2 = 0.3;
 
-	public static void createLD(String dir, String checkDir, boolean lastNotFirst) {
+	public static void createLD(String dir, String checkDir, boolean lastNotFirst, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, keys, data;
@@ -51,11 +51,11 @@ public class CheckForLD {
 				}
 				writer.close();
 			} catch (FileNotFoundException fnfe) {
-				System.err.println("Error: file \""+dir+"re_chrom"+ext.chrome(i)+".pre"+"\" not found in current directory");
-				System.exit(1);
+				log.reportError("Error: file \""+dir+"re_chrom"+ext.chrome(i)+".pre"+"\" not found in current directory");
+				return;
 			} catch (IOException ioe) {
-				System.err.println("Error reading file \""+dir+"re_chrom"+ext.chrome(i)+".pre"+"\"");
-				System.exit(2);
+				log.reportError("Error reading file \""+dir+"re_chrom"+ext.chrome(i)+".pre"+"\"");
+				return;
 			}
 		}
 
@@ -67,7 +67,7 @@ public class CheckForLD {
 		}
 
 		if (!new File(dir+DBSNP_LOCAL).exists()) {
-			parseLocalDBSNP(DBSNP_SOURCE, markerPositions, dir+DBSNP_LOCAL);
+			parseLocalDBSNP(DBSNP_SOURCE, markerPositions, dir+DBSNP_LOCAL, log);
 		}
 
 		try {
@@ -80,11 +80,11 @@ public class CheckForLD {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+DBSNP_SOURCE+"\" not found");
-			System.exit(1);
+			log.reportError("Error: file \""+DBSNP_SOURCE+"\" not found");
+			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+DBSNP_SOURCE+"\"");
-			System.exit(2);
+			log.reportError("Error reading file \""+DBSNP_SOURCE+"\"");
+			return;
 		}
 
 		for (int i = start; i<=stop; i++) {
@@ -94,10 +94,10 @@ public class CheckForLD {
 				for (int j = 0; j<data.length; j++) {
 					line = markerPositions.get(data[j]).split("[\\s]+");
 					if (line[0].equals("-1")) {
-						System.err.println("Error - '"+data[j]+"' is supposed to be on chromosome "+i+", but was not found in the dbSNP database");
+						log.reportError("Error - '"+data[j]+"' is supposed to be on chromosome "+i+", but was not found in the dbSNP database");
 						writer.println(data[j]+"\t0");
 					} else if (!line[0].equals(i+"")) {
-						System.err.println("Error - '"+data[j]+"' was supposed to be on chromosome "+i+", but the dbSNP database places it on chr "+line[0]);
+						log.reportError("Error - '"+data[j]+"' was supposed to be on chromosome "+i+", but the dbSNP database places it on chr "+line[0]);
 						writer.println(data[j]+"\t0");
 					} else {
 						writer.println(data[j]+"\t"+line[1]);
@@ -106,13 +106,13 @@ public class CheckForLD {
 				}
 				writer.close();
 			} catch (Exception e) {
-				System.err.println("Error writing to "+dir+checkDir+"check"+ext.chrome(i)+".info");
-				e.printStackTrace();
+				log.reportError("Error writing to "+dir+checkDir+"check"+ext.chrome(i)+".info");
+				log.reportException(e);
 			}
 		}
 	}
 
-	public static void createHapMap(String root, String checkDir) {
+	public static void createHapMap(String root, String checkDir, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, data;
@@ -131,7 +131,7 @@ public class CheckForLD {
 		}
 
 		if (!new File(root+DBSNP_LOCAL).exists()) {
-			parseLocalDBSNP(DBSNP_SOURCE, markerPositions, root+DBSNP_LOCAL);
+			parseLocalDBSNP(DBSNP_SOURCE, markerPositions, root+DBSNP_LOCAL, log);
 		}
 
 		try {
@@ -144,11 +144,11 @@ public class CheckForLD {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+DBSNP_SOURCE+"\" not found");
-			System.exit(1);
+			log.reportError("Error: file \""+DBSNP_SOURCE+"\" not found");
+			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+DBSNP_SOURCE+"\"");
-			System.exit(2);
+			log.reportError("Error reading file \""+DBSNP_SOURCE+"\"");
+			return;
 		}
 
 		for (int i = start; i<=stop; i++) {
@@ -159,10 +159,10 @@ public class CheckForLD {
 				for (int j = 0; j<data.length; j++) {
 					line = markerPositions.get(data[j]).split("[\\s]+");
 					if (line[0].equals("-1")) {
-						System.err.println("Error - '"+data[j]+"' is supposed to be on chromosome "+i+", but was not found in the dbSNP database");
+						log.reportError("Error - '"+data[j]+"' is supposed to be on chromosome "+i+", but was not found in the dbSNP database");
 						writer.println(data[j]+"\t0");
 					} else if (!line[0].equals(i+"")) {
-						System.err.println("Error - '"+data[j]+"' was supposed to be on chromosome "+i+", but the dbSNP database places it on chr "+line[0]);
+						log.reportError("Error - '"+data[j]+"' was supposed to be on chromosome "+i+", but the dbSNP database places it on chr "+line[0]);
 						writer.println(data[j]+"\t0");
 					} else {
 						writer.println(data[j]+"\t"+line[1]);
@@ -171,13 +171,13 @@ public class CheckForLD {
 				}
 				writer.close();
 			} catch (Exception e) {
-				System.err.println("Error writing to "+root+checkDir+"hapmap"+chrome+".info");
-				e.printStackTrace();
+				log.reportError("Error writing to "+root+checkDir+"hapmap"+chrome+".info");
+				log.reportException(e);
 			}
 
 			// LDdatabase.MASTER_HAPMAP_ROOT used to be hard coded as /home/npankrat/NCBI/HapMap/hapmap-ceu-chr"+i
 			CmdLine.run("plink --bfile "+LDdatabase.MASTER_HAPMAP_ROOT+" --extract hapmap"+chrome+".info --missing-phenotype 0 --recode --out hapmap"+chrome, root+checkDir);
-			HapMapParser.plinkMapToHaploviewInfo(root+checkDir+"hapmap"+chrome+".map", root+checkDir+"hapmap"+chrome+".info");
+			HapMapParser.plinkMapToHaploviewInfo(root+checkDir+"hapmap"+chrome+".map", root+checkDir+"hapmap"+chrome+".info", log);
 			new File(root+checkDir+"hapmap"+chrome+".pre").delete();
 			new File(root+checkDir+"hapmap"+chrome+".ped").renameTo(new File(root+checkDir+"hapmap"+chrome+".pre"));
 			new File(root+checkDir+"hapmap"+chrome+".map").delete();
@@ -187,14 +187,14 @@ public class CheckForLD {
 		}
 	}
 
-	public static void parseLocalDBSNP(String source, Hashtable<String,String> markerPositions, String fileout) {
+	public static void parseLocalDBSNP(String source, Hashtable<String,String> markerPositions, String fileout, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
 		long time;
 
 		try {
-			System.out.println("Creating a faster local copy of the SNP positions found in "+DBSNP_SOURCE);
+			log.report("Creating a faster local copy of the SNP positions found in "+DBSNP_SOURCE);
 			time = new Date().getTime();
 			reader = Files.getAppropriateReader(DBSNP_SOURCE);
 			writer = new PrintWriter(new FileWriter(fileout));
@@ -204,25 +204,25 @@ public class CheckForLD {
 					try {
 						writer.println("rs"+line[0]+"\t"+line[1]+"\t"+(Integer.parseInt(line[2])+1));
 					} catch (Exception e) {
-						// System.err.println(Array.toStr(line));
-						// e.printStackTrace();
+//						log.reportError(Array.toStr(line));
+//						log.reportException(e);
 					}
 				}
 			}
 			reader.close();
 			writer.close();
-			System.out.println("Finished in "+ext.getTimeElapsed(time));
+			log.report("Finished in "+ext.getTimeElapsed(time));
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+DBSNP_SOURCE+"\" not found");
-			System.exit(1);
+			log.reportError("Error: file \""+DBSNP_SOURCE+"\" not found");
+			return;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+DBSNP_SOURCE+"\"");
-			System.exit(2);
+			log.reportError("Error reading file \""+DBSNP_SOURCE+"\"");
+			return;
 		}
 
 	}
 
-	public static void checkLD(String root, String checkDir, String prefix) {
+	public static void checkLD(String root, String checkDir, String prefix, Logger log) {
 		PrintWriter writer;
 
 		try {
@@ -233,13 +233,13 @@ public class CheckForLD {
 			writer.close();
 
 		} catch (Exception e) {
-			System.err.println("Error writing batch for Haploview");
-			e.printStackTrace();
+			log.reportError("Error writing batch for Haploview");
+			log.reportException(e);
 		}
-		System.out.println("Don't forget to copy over Haploview.jar");
+		log.report("Don't forget to copy over Haploview.jar");
 	}
 
-	public static void parseLD(String root, String checkDir, String prefix, String hapmapDir, String hapmapPrefix, double maxDprime, double maxr2) {
+	public static void parseLD(String root, String checkDir, String prefix, String hapmapDir, String hapmapPrefix, double maxDprime, double maxr2, Logger log) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line, subline;
@@ -251,8 +251,8 @@ public class CheckForLD {
 			writer.println("SNP\tChr\tPosition\tMAF\tObsHET\tPredHET\tHWpval\tMax LD marker\tD'\tr2\tHapMap MAF\tHapMap HW\tHapMap Max LD marker\tHapMap D'\tHapMap r2");
 
 			for (int chr = 1; chr<=22; chr++) {
-				maxObsLD = parseMaxLD(root+checkDir+prefix+ext.chrome(chr)+".pre.LD");
-				maxHapmapLD = parseMaxLD(root+hapmapDir+hapmapPrefix+ext.chrome(chr)+".pre.LD");
+				maxObsLD = parseMaxLD(root+checkDir+prefix+ext.chrome(chr)+".pre.LD", log);
+				maxHapmapLD = parseMaxLD(root+hapmapDir+hapmapPrefix+ext.chrome(chr)+".pre.LD", log);
 				hapCheck = new Hashtable<String,String>();
 				try {
 					reader = new BufferedReader(new FileReader(root+hapmapDir+hapmapPrefix+ext.chrome(chr)+".pre.CHECK"));
@@ -263,11 +263,13 @@ public class CheckForLD {
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""+root+hapmapDir+hapmapPrefix+ext.chrome(chr)+".pre.CHECK"+"\" not found in current directory");
-					System.exit(1);
+					log.reportError("Error: file \""+root+hapmapDir+hapmapPrefix+ext.chrome(chr)+".pre.CHECK"+"\" not found in current directory");
+					writer.close();
+					return;
 				} catch (IOException ioe) {
-					System.err.println("Error reading file \""+root+hapmapDir+hapmapPrefix+ext.chrome(chr)+".pre.CHECK"+"\"");
-					System.exit(2);
+					log.reportError("Error reading file \""+root+hapmapDir+hapmapPrefix+ext.chrome(chr)+".pre.CHECK"+"\"");
+					writer.close();
+					return;
 				}
 				try {
 					reader = new BufferedReader(new FileReader(root+checkDir+prefix+ext.chrome(chr)+".pre.CHECK"));
@@ -284,17 +286,19 @@ public class CheckForLD {
 					}
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
-					System.err.println("Error: file \""+root+checkDir+prefix+ext.chrome(chr)+".pre.CHECK"+"\" not found in current directory");
-					System.exit(1);
+					log.reportError("Error: file \""+root+checkDir+prefix+ext.chrome(chr)+".pre.CHECK"+"\" not found in current directory");
+					writer.close();
+					return;
 				} catch (IOException ioe) {
-					System.err.println("Error reading file \""+root+checkDir+prefix+ext.chrome(chr)+".pre.CHECK"+"\"");
-					System.exit(2);
+					log.reportError("Error reading file \""+root+checkDir+prefix+ext.chrome(chr)+".pre.CHECK"+"\"");
+					writer.close();
+					return;
 				}
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to "+root+checkDir+prefix+"_summary.xln");
-			e.printStackTrace();
+			log.reportError("Error writing to "+root+checkDir+prefix+"_summary.xln");
+			log.reportException(e);
 		}
 
 		try {
@@ -304,13 +308,13 @@ public class CheckForLD {
 			}
 			writer.close();
 		} catch (Exception e) {
-			System.err.println("Error writing to "+root+checkDir+prefix+"_summary.xln");
-			e.printStackTrace();
+			log.reportError("Error writing to "+root+checkDir+prefix+"_summary.xln");
+			log.reportException(e);
 		}
 
 	}
 
-	public static Hashtable<String,String> parseMaxLD(String filename) {
+	public static Hashtable<String,String> parseMaxLD(String filename, Logger log) {
 		BufferedReader reader;
 		String[] line;
 		Hashtable<String,String> hash = new Hashtable<String,String>();
@@ -326,17 +330,17 @@ public class CheckForLD {
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \""+filename+"\" not found in current directory");
-			System.exit(1);
+			log.reportError("Error: file \""+filename+"\" not found in current directory");
+			return null;
 		} catch (IOException ioe) {
-			System.err.println("Error reading file \""+filename+"\"");
-			System.exit(2);
+			log.reportError("Error reading file \""+filename+"\"");
+			return null;
 		}
 
 		return hash;
 	}
 
-	public static void plinkMethod(String dir, boolean vif) {
+	public static void plinkMethod(String dir, boolean vif, Logger log) {
 		Hashtable<String,String> hash = new Hashtable<String,String>();
 		String[] markerNames;
 
@@ -348,22 +352,22 @@ public class CheckForLD {
 						hash.put(markerNames[j], "-1");
 					}
 				} else {
-					System.err.println("skipping chromosome "+i+" (map"+ext.chrome(i)+".dat not found)");
+					log.reportError("skipping chromosome "+i+" (map"+ext.chrome(i)+".dat not found)");
 				}
 			}
 
 			if (!new File(dir+DBSNP_LOCAL).exists()) {
-				parseLocalDBSNP(DBSNP_SOURCE, hash, dir+DBSNP_LOCAL);
+				parseLocalDBSNP(DBSNP_SOURCE, hash, dir+DBSNP_LOCAL, log);
 			}
 
 			LinkageToPlink.convert(dir, dir+DBSNP_LOCAL);
 		}
-		System.out.println("Running plink's LD based SNP pruning method:");
+		log.report("Running plink's LD based SNP pruning method:");
 		if (vif) {
-			System.out.println("plink --bfile plink --indep 50 5 2");
+			log.report("plink --bfile plink --indep 50 5 2");
 			CmdLine.run("plink --bfile plink --indep 50 5 2", dir);
 		} else {
-			System.out.println("plink --bfile plink --indep-pairwise 50 5 0.3");
+			log.report("plink --bfile plink --indep-pairwise 50 5 0.3");
 			CmdLine.run("plink --bfile plink --indep-pairwise 50 5 0.3", dir);
 		}
 
@@ -385,6 +389,7 @@ public class CheckForLD {
 		double maxDprime = DEFAULT_MAX_DPRIME;
 		double maxr2 = DEFAULT_R2;
 		boolean vif = false;
+		Logger log;
 
 		String usage = "\\n"+"link.CheckForLD requires 0-1 arguments\n"+"   (1) filename (i.e. file="+filename+" (default))\n"+"";
 
@@ -406,24 +411,25 @@ public class CheckForLD {
 			dir = "";
 		}
 		try {
+			log = new Logger();
 
-			parseLocalDBSNP(DBSNP_SOURCE, HashVec.loadFileToHashString(dir+"hisplusours.txt", false), dir+DBSNP_LOCAL);
+			parseLocalDBSNP(DBSNP_SOURCE, HashVec.loadFileToHashString(dir+"hisplusours.txt", false), dir+DBSNP_LOCAL, log);
 			System.exit(1);
 
 			if (createLD) {
 				// createLD(dir, checkDir, false);
-				createLD(dir, checkDir, true);
-				createHapMap(dir, checkDir);
+				createLD(dir, checkDir, true, log);
+				createHapMap(dir, checkDir, log);
 			}
 			if (checkLD) {
-				checkLD(dir, checkDir, "check");
-				checkLD(dir, checkDir, "hapmap");
+				checkLD(dir, checkDir, "check", log);
+				checkLD(dir, checkDir, "hapmap", log);
 			}
 			if (parseLD) {
-				parseLD(dir, checkDir, "check", checkDir, "hapmap", maxDprime, maxr2);
+				parseLD(dir, checkDir, "check", checkDir, "hapmap", maxDprime, maxr2, log);
 			}
 			if (plinkMethod) {
-				plinkMethod(dir, vif);
+				plinkMethod(dir, vif, log);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
