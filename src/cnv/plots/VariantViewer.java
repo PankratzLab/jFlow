@@ -74,6 +74,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.EtchedBorder;
 
 import net.miginfocom.swing.MigLayout;
 import seq.manage.VCFOps;
@@ -172,6 +173,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 //	private JPanel lrrPanel;
 //	private JPanel bafPanel;
 	private JPanel genePanel;
+	private JPanel legendPanel;
 	private GeneTrack track;
 	HashMap<String, String> geneToCommentMap;
 	HashMap<String, HashMap<String, String>> geneToRegionMap;
@@ -231,7 +233,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	        } else if ("HIGH".equals(impAttr)) {
 	            return DrawType.X;
 	        } else if ("MODIFIER".equals(impAttr)) {
-	            return null;// DrawType.DIAMOND;
+	            return DrawType.DIAMOND;
 	        } else {
 //	            System.out.println(impAttr);
 	            return null;
@@ -606,7 +608,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	    
         String selectedIsoform = isoformList.getSelectedItem().toString();
 	    java.util.List<Object> annAttrs = vcF.vc.getAttributeAsList("GeneDetail.refGene");
-	    System.out.println(vcF.vc.getAttributeAsString("GeneDetail.refGene", "."));
+//	    System.out.println(vcF.vc.getAttributeAsString("GeneDetail.refGene", "."));
 	    for (Object annAttr : annAttrs) {
             if (selectedIsoform.equals(COLLAPSE_ISOFORMS_KEY) || annAttr.toString().startsWith(selectedIsoform)) {
                 String[] pts = annAttr.toString().split(":");
@@ -766,8 +768,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                             // draw all in relative position, pushing up if overlapping
                             ArrayList<DrawPoint> drawn = new ArrayList<DrawPoint>();
                             ArrayList<Rectangle> plotted = new ArrayList<Rectangle>();
-    //                        HashMap<String, Integer> plottedCnt = new HashMap<String, Integer>();
+                            HashMap<VCFLocation, HashMap<String, Integer>> spills = new HashMap<VariantViewer.VCFLocation, HashMap<String,Integer>>();
                             for (VariantContextWithFile vc : vcfInSeg) {
+                                HashMap<String, Integer> popSpills = new HashMap<String, Integer>();
+                                boolean spillover = false;
                                 if (vc.vc.getAttributeAsInt("SNPEFF_EXON_ID", -1) == exonNumber || vc.vc.getStart() < exons[j][0] || vc.vc.getStart() > exons[j][1]) continue;
 //                                if (Array.booleanArraySum(checkVCF(vc)) == 0) continue; 
                                 GenotypesContext gctx = vc.vc.getGenotypes();
@@ -782,13 +786,19 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                                 int genoCnt = 0;
                                 for (int i = 0; i < gctx.size(); i++) {
                                     Genotype geno = gctx.get(i);
-//									if (geno.getSampleName().startsWith("PT434")) {
-//										System.out.println(gene.getGeneName() + "\t"+geno.getType()+"\t" + geno.toString());
-//									}
                                     if (excluded.contains(geno.getSampleName()) && !showExcludes) {
                                         continue;
                                     }
                                     if (geno.getType() != GenotypeType.HOM_REF && geno.getType() != GenotypeType.NO_CALL) { // anything besides Homozygous Reference
+                                        if (spillover) {
+                                            DrawType dt = DrawType.getDrawType(vc.vc);
+                                            if (dt != null) {
+                                                String pop = popMap.get(geno.getSampleName());
+                                                Integer popCnt = popSpills.get(pop);
+                                                popSpills.put(pop, (popCnt == null ? 0 : popCnt) + 1);
+                                            }
+                                            continue;
+                                        }
                                         genoCnt++;
                                         boolean overlap = false;
                                         do {
@@ -801,13 +811,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                                             }
                                             if (overlap) {
                                                 vcRect = new Rectangle(vcRect.x, vcRect.y + vcRect.height, dataPntSize + 2, dataPntSize + 2);
-    //                                            if (vcRect.y + vcRect.height + 110 >= getHeight()) {
-    //                                                vcRect = new Rectangle(tempPx + diffPx + (xOffset += dataPntSize), 0, dataPntSize + 2, dataPntSize + 2);
-    //                                            }
                                             }
-                                        } while (overlap && vcRect.y + vcRect.height + 110 < getHeight()/* && xOffset <= 20*/); // running off top of screen
+                                        } while (overlap && vcRect.y + vcRect.height + yStart + GENE_HEIGHT + dataPntSize + 2 < genePanel.getHeight()/* && xOffset <= 20*/); // running off top of screen
                                         DrawType dt = DrawType.getDrawType(vc.vc);
-                                        if (dt != null) {
+                                        if (dt != null && !overlap) {
                                             plotted.add(vcRect);
                                             DrawPoint dp = new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width, DrawType.getDrawType(vc.vc), popColorMap.get(popMap.get(geno.getSampleName())), geno.getSampleName(), vc);
                                             activePoints.add(dp);
@@ -816,19 +823,24 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                                                 selectedRect = vcRect;
                                             }
                                             drawn.add(dp);
-                                        }
-                                        if (vcRect.y + vcRect.height + 110 >= getHeight()) {
-                                            break; // stop doing things if we're off the screen
+                                            if (vcRect.y + vcRect.height + yStart + GENE_HEIGHT + dataPntSize + 2 > genePanel.getHeight()) {
+//                                            break; // stop doing things if we're off the screen
+                                                spillover = true;
+                                            }
                                         }
                                     }
                                 }
                                 if (genoCnt > 0) {
                                     freqLocs.add(new VCFLocation(vcRect.x, vc.vc));
                                 }
+                                if (spillover) {
+                                    spills.put(new VCFLocation(vcRect.x, vc.vc), popSpills);
+                                }
                             }
                             for (int i = 0; i < drawn.size(); i++) {
                                 drawVcfEntry(g, drawn.get(i));
                             }
+                            drawSpillovers(g, spills);
                         }
                         g.setColor(Color.BLACK);
                     }
@@ -861,9 +873,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			g.drawString(gene.getGeneName(), begin-width-3, height + GENE_HEIGHT / 2 + g.getFontMetrics().getHeight() / 2 - 3);
 		    drawFreqs(g, freqLocs, begin);
 		}
-		if (showLegend) {
-		    drawLegend(g);
-		}
+//		if (showLegend) {
+//		    drawLegend(g);
+//		}
 	}
 	
 	private void drawBlock(Graphics g, BlockDraw bd) {
@@ -953,6 +965,16 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         }
 	}
 	
+	private void drawSpillovers(Graphics g, HashMap<VCFLocation, HashMap<String, Integer>> spills) {
+	    int x;
+	    int y = getHeight() - 100;
+	    g.setColor(Color.black);
+	    for (Entry<VCFLocation, HashMap<String, Integer>> spillEntry : spills.entrySet()) {
+	        x = spillEntry.getKey().x;
+	        g.fillOval(x, y, dataPntSize, dataPntSize);
+	    }
+	}
+	
     private void drawVcfEntry(Graphics g, DrawPoint dp) {
         int height = genePanel.getHeight() - yStart - GENE_HEIGHT;
         g.setColor(dp.c);
@@ -967,12 +989,17 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         } else if (dp.type == DrawType.X) {
             Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, dp.c);
             Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, dp.c);
+        } else if (dp.type == DrawType.DIAMOND) {
+            g.drawLine(x + (dataPntSize / 2),                     y,       x + dataPntSize, y + (dataPntSize / 2));
+            g.drawLine(      x + dataPntSize, y + (dataPntSize / 2), x + (dataPntSize / 2),       y + dataPntSize);
+            g.drawLine(x + (dataPntSize / 2),       y + dataPntSize,                     x, y + (dataPntSize / 2));
+            g.drawLine(                    x, y + (dataPntSize / 2), x + (dataPntSize / 2),                     y);
         } else {
-
+            
         }
         
         int offset = 1;
-        if (dp.type == DrawType.EMPTY_CIRCLE) {
+        if (dp.type == DrawType.EMPTY_CIRCLE || dp.type == DrawType.DIAMOND) {
             offset = 2;
         }
         if (selectedDrawPoint != null) {
@@ -990,10 +1017,26 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         return (popSet == null ? 0 : popSet.size());
     }
     
-    private void drawLegend(Graphics g) {
-        FontMetrics fm = g.getFontMetrics();
+    private void updateLegendPanel() {
+        if (popColorMap == null) {
+            return;
+        }
+        legendPanel.removeAll();
+        
+        String rowConstraints = "[][]5px[]0px[]0px[]10px";
+        for (int i = 0; i < popColorMap.size(); i++) {
+            rowConstraints += "[]";
+        }
+        legendPanel.setLayout(new MigLayout("", "[][grow]", rowConstraints));
+        legendPanel.setBorder(new EtchedBorder(EtchedBorder.RAISED));
+        
+        JLabel jlbl = new JLabel("Key:");
+        jlbl.setBorder(null);
+        legendPanel.add(jlbl, "cell 0 0");
+        legendPanel.add(new JSeparator(SwingConstants.HORIZONTAL), "cell 0 1, span 2, growx");
+        
+        FontMetrics fm = legendPanel.getGraphics().getFontMetrics();
         int lblMaxWidth = 0;
-        int maxWidth;
         HashMap<String, String> lblMap = new HashMap<String, String>();
 
         lblMaxWidth = fm.stringWidth("Moderate Impact");
@@ -1005,63 +1048,173 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
                 lblMaxWidth = Math.max(lblMaxWidth, fm.stringWidth(lbl));
             }
         }
-        maxWidth = lblMaxWidth + 25 + dataPntSize;
-        g.setColor(genePanel.getBackground());
-        g.fillRect(10, 10, maxWidth, 200);
-        g.setColor(Color.black);
         
-        int x = 15;
-        int y = 15 + fm.getHeight();
-        if (drawType == DRAW_AS_INDIVS) {
-            g.drawOval(x, y, dataPntSize, dataPntSize);
-            g.drawOval(x + 1, y + 1, dataPntSize - 2, dataPntSize - 2);
-        } else {
-            g.drawRect(x, y, dataPntSize, dataPntSize);
-            g.drawRect(x+1, y + 1, dataPntSize - 2, dataPntSize - 2);
-            g.drawRect(x+2, y + 2, dataPntSize - 4, dataPntSize - 4);
-        }
-        g.drawString("Low Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
-        y += 15;
-        if (drawType == DRAW_AS_INDIVS) {
-            g.fillOval(x, y, dataPntSize, dataPntSize);
-        } else {
-            g.fillRect(x, y, dataPntSize, dataPntSize);
-        }
-        g.drawString("Moderate Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
-        y += 15;
-        if (drawType == DRAW_AS_INDIVS) {
-            Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, Color.BLACK);
-            Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, Color.BLACK);
-        } else {
-            g.drawRect(x, y, dataPntSize, dataPntSize);
-            int tickLen = 4;
-            int ticks = dataPntSize / tickLen;
-            for (int i = 0; i < ticks; i++) {
-                g.drawLine(x + 1, y + (i * tickLen), x + dataPntSize - 1, y + ((i + 1) * tickLen));
-            }
-        }
-        g.drawString("High Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
-        y += 15;
-//        g.drawLine(10, y, 110, y);
-        y += 10;
-        if (popColorMap != null) {
-            for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
-                String lbl = lblMap.containsKey(colEntry.getKey()) ? lblMap.get(colEntry.getKey()) : colEntry.getKey() + " (n=" + getPopulationCount(colEntry.getKey()) + ")";
+        jlbl = new JLabel() {
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
                 g.setColor(Color.BLACK);
-                g.drawRect(x, y, dataPntSize, dataPntSize);
-                g.drawString(lbl, x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
-                g.setColor(colEntry.getValue());
-                g.fillRect(x+1, y+1, dataPntSize - 1, dataPntSize - 1);
-                y += dataPntSize * 2 - 1;
+                int x = 4, y = 4;
+                if (drawType == DRAW_AS_INDIVS) {
+                    g.drawOval(x, y, dataPntSize, dataPntSize);
+                    g.drawOval(x + 1, y + 1, dataPntSize - 2, dataPntSize - 2);
+                } else {
+                    g.drawRect(x, y, dataPntSize, dataPntSize);
+                    g.drawRect(x+1, y + 1, dataPntSize - 2, dataPntSize - 2);
+                    g.drawRect(x+2, y + 2, dataPntSize - 4, dataPntSize - 4);
+                }
+            }
+        };
+        legendPanel.add(jlbl, "cell 0 2, grow");
+        jlbl = new JLabel("Low Impact");
+        legendPanel.add(jlbl, "cell 1 2");
+        
+        jlbl = new JLabel() {
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                g.setColor(Color.BLACK);
+                int x = 5, y = 4;
+                if (drawType == DRAW_AS_INDIVS) {
+                    g.fillOval(x, y, dataPntSize, dataPntSize);
+                } else {
+                    g.fillRect(x, y, dataPntSize, dataPntSize);
+                }
+            }
+        };
+        legendPanel.add(jlbl, "cell 0 3, grow");
+        jlbl = new JLabel("Moderate Impact");
+        legendPanel.add(jlbl, "cell 1 3");
+        
+        jlbl = new JLabel() {
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                g.setColor(Color.BLACK);
+                int x = 5, y = 4;
+                if (drawType == DRAW_AS_INDIVS) {
+                    Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, Color.BLACK);
+                    Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, Color.BLACK);
+                } else {
+                    g.drawRect(x, y, dataPntSize, dataPntSize);
+                    int tickLen = 4;
+                    int ticks = dataPntSize / tickLen;
+                    for (int i = 0; i < ticks; i++) {
+                        g.drawLine(x + 1, y + (i * tickLen), x + dataPntSize - 1, y + ((i + 1) * tickLen));
+                    }
+                }
+            }
+        };
+        legendPanel.add(jlbl, "cell 0 4, grow");
+        jlbl = new JLabel("High Impact");
+        legendPanel.add(jlbl, "cell 1 4");
+
+        int row = 6;
+        if (popColorMap != null) {
+            for (final Entry<String, Color> colEntry : popColorMap.entrySet()) {
+                String lbl = lblMap.containsKey(colEntry.getKey()) ? lblMap.get(colEntry.getKey()) : colEntry.getKey() + " (n=" + getPopulationCount(colEntry.getKey()) + ")";
+                jlbl = new JLabel() {
+                    @Override
+                    public void paintComponent(Graphics g) {
+                        g.setColor(Color.black);
+                        g.fillRect(0, 0, getWidth(), getHeight());
+                        g.setColor(colEntry.getValue());
+                        g.fillRect(1, 1, getWidth() - 1, getHeight() - 1);
+                    }
+                };
+//                jlbl.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
+//                jlbl.setBackground(colEntry.getValue());
+//                jlbl.setForeground(colEntry.getValue());
+                Dimension d = new Dimension(dataPntSize + 2, dataPntSize + 2);
+                jlbl.setMaximumSize(d);
+                jlbl.setPreferredSize(d);
+                jlbl.setMaximumSize(d);
+                jlbl.setSize(d);
+                legendPanel.add(jlbl, "gapx 5, cell 0 " + row);
+                jlbl = new JLabel(lbl);
+                jlbl.setFont(jlbl.getFont().deriveFont(Font.PLAIN));
+                legendPanel.add(jlbl, "cell 1 " + row++);
             }
         }
         
-        
-        g.setColor(Color.BLACK);
-        g.drawRect(10, 10, maxWidth, 200);
-        g.drawString("Key:", 15, 7 + fm.getHeight());
-        g.drawLine(10, 10 + fm.getHeight(), 10 + maxWidth, 10 + fm.getHeight());
+        int maxWidth, maxHeight;
+        maxWidth = lblMaxWidth + 40 + dataPntSize;
+        maxHeight = 100 + 25 * popColorMap.size();
+        legendPanel.setBounds(10, 10, maxWidth, maxHeight);
     }
+    
+//    private void drawLegend(Graphics g) {
+//        FontMetrics fm = g.getFontMetrics();
+//        int lblMaxWidth = 0;
+//        int maxWidth;
+//        HashMap<String, String> lblMap = new HashMap<String, String>();
+//
+//        lblMaxWidth = fm.stringWidth("Moderate Impact");
+//        if (popColorMap != null) {
+//            for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
+//                int cnt = getPopulationCount(colEntry.getKey());
+//                String lbl = colEntry.getKey() + " (n=" + cnt + ")";
+//                lblMap.put(colEntry.getKey(), lbl);
+//                lblMaxWidth = Math.max(lblMaxWidth, fm.stringWidth(lbl));
+//            }
+//        }
+//        maxWidth = lblMaxWidth + 25 + dataPntSize;
+//        g.setColor(genePanel.getBackground());
+//        g.fillRect(10, 10, maxWidth, 200);
+//        g.setColor(Color.black);
+//        
+//        int x = 15;
+//        int y = 15 + fm.getHeight();
+//        if (drawType == DRAW_AS_INDIVS) {
+//            g.drawOval(x, y, dataPntSize, dataPntSize);
+//            g.drawOval(x + 1, y + 1, dataPntSize - 2, dataPntSize - 2);
+//        } else {
+//            g.drawRect(x, y, dataPntSize, dataPntSize);
+//            g.drawRect(x+1, y + 1, dataPntSize - 2, dataPntSize - 2);
+//            g.drawRect(x+2, y + 2, dataPntSize - 4, dataPntSize - 4);
+//        }
+//        g.drawString("Low Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
+//        y += 15;
+//        if (drawType == DRAW_AS_INDIVS) {
+//            g.fillOval(x, y, dataPntSize, dataPntSize);
+//        } else {
+//            g.fillRect(x, y, dataPntSize, dataPntSize);
+//        }
+//        g.drawString("Moderate Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
+//        y += 15;
+//        if (drawType == DRAW_AS_INDIVS) {
+//            Grafik.drawThickLine(g, x, y, x + dataPntSize, y + dataPntSize, 2, Color.BLACK);
+//            Grafik.drawThickLine(g, x, y + dataPntSize, x + dataPntSize, y, 2, Color.BLACK);
+//        } else {
+//            g.drawRect(x, y, dataPntSize, dataPntSize);
+//            int tickLen = 4;
+//            int ticks = dataPntSize / tickLen;
+//            for (int i = 0; i < ticks; i++) {
+//                g.drawLine(x + 1, y + (i * tickLen), x + dataPntSize - 1, y + ((i + 1) * tickLen));
+//            }
+//        }
+//        g.drawString("High Impact", x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
+//        y += 15;
+////        g.drawLine(10, y, 110, y);
+//        y += 10;
+//        if (popColorMap != null) {
+//            for (Entry<String, Color> colEntry : popColorMap.entrySet()) {
+//                String lbl = lblMap.containsKey(colEntry.getKey()) ? lblMap.get(colEntry.getKey()) : colEntry.getKey() + " (n=" + getPopulationCount(colEntry.getKey()) + ")";
+//                g.setColor(Color.BLACK);
+//                g.drawRect(x, y, dataPntSize, dataPntSize);
+//                g.drawString(lbl, x + dataPntSize + 5, y + fm.getHeight() / 2 + 2);
+//                g.setColor(colEntry.getValue());
+//                g.fillRect(x+1, y+1, dataPntSize - 1, dataPntSize - 1);
+//                y += dataPntSize * 2 - 1;
+//            }
+//        }
+//        
+//        
+//        g.setColor(Color.BLACK);
+//        g.drawRect(10, 10, maxWidth, 200);
+//        g.drawString("Key:", 15, 7 + fm.getHeight());
+//        g.drawLine(10, 10 + fm.getHeight(), 10 + maxWidth, 10 + fm.getHeight());
+//    }
     
     private void drawFreqs(Graphics g, ArrayList<VCFLocation> vcfLocs, int lblX) {
         if (!drawMAF && !drawMAC) {
@@ -1315,6 +1468,19 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		genePanel.addMouseListener(this);
 		genePanel.addMouseMotionListener(this);
 		genePanel.addMouseWheelListener(this);
+		genePanel.setLayout(null);
+	    legendPanel = new JPanel() {
+	        @Override
+	        protected void paintComponent(Graphics g) {
+	            boolean antiAlias = true;
+	            if (g instanceof Graphics2D) {
+	                ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+	                ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+	            }
+	            super.paintComponent(g);
+	        }
+	    };
+	    add(legendPanel);
 		dataPanel.add(genePanel, "cell 0 0");
 
 		getContentPane().add(dataPanel, BorderLayout.CENTER);
@@ -2147,25 +2313,28 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		String aaChng = dp.vcRecord.vc.getAttributeAsString("SNPEFF_AMINO_ACID_CHANGE", ".");
 	    String[] fromAA, toAA;
 		String loc;
-		
-		fromAA = bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
-		if (ext.isValidInteger(aaChng.charAt(aaChng.length() - 1) + "")) {
-		    loc = aaChng.substring(1);
-		    toAA = null;
+		if (!".".equals(aaChng)) {
+    		fromAA = bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
+    		if (ext.isValidInteger(aaChng.charAt(aaChng.length() - 1) + "")) {
+    		    loc = aaChng.substring(1);
+    		    toAA = null;
+    		} else {
+    		    loc = aaChng.substring(1, aaChng.length() - 1);
+    		    toAA = bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
+    		}
+    		if (fromAA != null) {
+    		    txtBld.append(fromAA[1]);
+    		}
+    		if (hasAnnotations[0]) {
+    		    txtBld.append(" .. ").append(loc).append(" .. ");
+    		} else {
+    		    txtBld.append(" --> ");
+    		}
+    		if (toAA != null) {
+    		    txtBld.append(toAA[1]);
+    		}
 		} else {
-		    loc = aaChng.substring(1, aaChng.length() - 1);
-		    toAA = bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
-		}
-		if (fromAA != null) {
-		    txtBld.append(fromAA[1]);
-		}
-		if (hasAnnotations[0]) {
-		    txtBld.append(" .. ").append(loc).append(" .. ");
-		} else {
-		    txtBld.append(" --> ");
-		}
-		if (toAA != null) {
-		    txtBld.append(toAA[1]);
+		    txtBld.append("");
 		}
 		txtBld.append("</pre><pre>");
 		txtBld.append("\tANNOVAR -> ");
@@ -2351,7 +2520,15 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		if (stop > getStop()) {
 			stop = getStop();
 		}
-		repaint();
+		SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                legendPanel.setVisible(showLegend);
+                updateLegendPanel();
+                legendPanel.revalidate();
+                repaint();
+            }
+        });
 	}
 	
 	public void showGene(int geneIndex) {
@@ -2557,7 +2734,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     	        VCFHeader header = vcfReader.getFileHeader();
     	        vcfHeader = header;
         	    CloseableIterator<VariantContext> vcIter = vcfReader.query(gd.getChromosomeUCSC(), gd.getStart(), gd.getStop());
-				System.out.println(gd.getChromosomeUCSC() + ":" + gd.getStart() + "-" + gd.getStop());
+//				System.out.println(gd.getChromosomeUCSC() + ":" + gd.getStart() + "-" + gd.getStop());
         	    while (vcIter.hasNext()) {
 					VariantContext vc = VCOps.getSubset(vcIter.next(), sub);
         	        VariantContextWithFile vcwf = new VariantContextWithFile(vc, vcfFile);

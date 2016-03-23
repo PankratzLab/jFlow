@@ -1177,7 +1177,7 @@ public class Sort {
 	
 	@SuppressWarnings("unchecked")
     public static <T> T[] putInOrder(T[] array, int[] order) {
-        if (array.length == 0) return array;
+        if (array == null || array.length == 0) return array;
         T[] newArray;
 	    
         newArray = (T[]) java.lang.reflect.Array.newInstance(array[0].getClass(), array.length);

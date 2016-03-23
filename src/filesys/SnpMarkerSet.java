@@ -113,7 +113,11 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		this(markerNames, chrs, positions, null, null, false, true, new Logger());
 	}
 
-	public SnpMarkerSet(String[] markerNames, byte[] chrs, int[] rawPositions, char[][] alleles, String[][] annotation, boolean sort, boolean verbose, Logger log) {
+	public SnpMarkerSet(String[] markerNames, byte[] chrs, int[] rawPositions, char[][] alleles, String[][] annotation, boolean sort, boolean verbose) {
+	    this(markerNames, chrs, rawPositions, alleles, annotation, sort, verbose, new Logger());
+	}
+	
+    public SnpMarkerSet(String[] markerNames, byte[] chrs, int[] rawPositions, char[][] alleles, String[][] annotation, boolean sort, boolean verbose, Logger log) {
 		if (markerNames.length!=chrs.length || markerNames.length!=rawPositions.length || (annotation != null && annotation.length!=markerNames.length)) {
 			System.err.println("Error - mismatched number of markers and positions/annotations");
 			System.exit(1);
