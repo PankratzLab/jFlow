@@ -3976,14 +3976,6 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
         }).start();
     }
 
-    public static void main(String[] args) {
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-            	createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false), null, null, true);
-            }
-        });
-	}
-    
     public PrincipalComponentsResiduals getPcResids() {
 		return pcResids;
 	}
@@ -4045,5 +4037,13 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	public Pedigree getPedigree() {
 		return pedigree;
 	}
+
+    public static void main(String[] args) {
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false), null, null, true);
+            }
+        });
+    }
 
 }

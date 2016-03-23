@@ -1980,12 +1980,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		
 //		
 //		
-		fromParameters("D:/data/FarrarReparse/classification/twoDscreenshots.dat", new Logger());
-//        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-//            public void run() {
+//		fromParameters("D:/data/FarrarReparse/classification/twoDscreenshots.dat", new Logger());
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                createGUI(new Project(), true, false, null, null);
 //                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
-//            }
-//        });
+            }
+        });
 	}
 }
 
