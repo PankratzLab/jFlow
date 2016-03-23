@@ -110,10 +110,10 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	}
 
 	public SnpMarkerSet(String[] markerNames, byte[] chrs, int[] positions) {
-		this(markerNames, chrs, positions, null, null, false, true);
+		this(markerNames, chrs, positions, null, null, false, true, new Logger());
 	}
 
-	public SnpMarkerSet(String[] markerNames, byte[] chrs, int[] rawPositions, char[][] alleles, String[][] annotation, boolean sort, boolean verbose) {
+	public SnpMarkerSet(String[] markerNames, byte[] chrs, int[] rawPositions, char[][] alleles, String[][] annotation, boolean sort, boolean verbose, Logger log) {
 		if (markerNames.length!=chrs.length || markerNames.length!=rawPositions.length || (annotation != null && annotation.length!=markerNames.length)) {
 			System.err.println("Error - mismatched number of markers and positions/annotations");
 			System.exit(1);
@@ -269,8 +269,17 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 
 		countNon = 0;
 		for (int i = 0; i<markerNames.length; i++) {
-			if (markerNames[i].toLowerCase().startsWith("rs") && markerNames[i].indexOf("_") == -1) {
-				rsNumbers[i] = Integer.parseInt(markerNames[i].substring(2));
+			if (markerNames[i].toLowerCase().startsWith("rs") && markerNames[i].indexOf("_") == -1 && markerNames[i].indexOf(":") == -1) {
+				try {
+					rsNumbers[i] = Integer.parseInt(markerNames[i].substring(2));
+				} catch (NumberFormatException nfe) {
+					rsNumbers[i] = -1*nonRSmarkerNames.size();
+					nonRSmarkerNames.add(markerNames[i]);
+					if (verbose && countNon < 20) {
+						System.err.println("FYI, SNP with an addedum after the rs number: '"+markerNames[i]+"'");
+					}
+					countNon++;
+				}
 			} else {
 				rsNumbers[i] = -1*nonRSmarkerNames.size();
 				nonRSmarkerNames.add(markerNames[i]);
@@ -879,7 +888,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
         newAlleles = getAlleles() == null ? null : Array.subArray(getAlleles(), keep);
         newAnnotation = getAnnotation() == null ? null : Array.subArray(getAnnotation(), keep);
 	    
-	    return new SnpMarkerSet(newMarkerNames, newChrs, newPositions, newAlleles, newAnnotation, false, verbose); 
+	    return new SnpMarkerSet(newMarkerNames, newChrs, newPositions, newAlleles, newAnnotation, false, verbose, new Logger()); 
 	}
 	
 	public SnpMarkerSet trim(String[] markersToKeep, boolean allowIncompleteList, boolean verbose, Logger log) {
@@ -968,7 +977,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			}
 		}
 		
-		return new SnpMarkerSet(newMarkerNames, newChrs, newPositions, newAlleles, newAnnotation, false, verbose);	
+		return new SnpMarkerSet(newMarkerNames, newChrs, newPositions, newAlleles, newAnnotation, false, verbose, log);	
 	}
 	
 	public static int determineType(String filename) {
@@ -1120,7 +1129,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			alleles = null;
 		}
 		
-		return new SnpMarkerSet(markerNames, chrs, rawPositions, alleles, annotation, true, false);		
+		return new SnpMarkerSet(markerNames, chrs, rawPositions, alleles, annotation, true, false, new Logger());		
 	}
 	
 	public static void main(String[] args) {
