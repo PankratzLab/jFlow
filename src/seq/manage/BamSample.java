@@ -2,6 +2,7 @@ package seq.manage;
 
 import java.util.Hashtable;
 
+import seq.manage.BamImport.NGS_MARKER_TYPE;
 import cnv.analysis.BeastScore;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -62,11 +63,11 @@ public class BamSample {
 	}
 
 	private static class BamPileParams {
-		private BAM_PILE_TYPE type;
+		private NGS_MARKER_TYPE type;
 		private boolean[] mask;
 		private int rpkmVal;
 
-		private BamPileParams(BAM_PILE_TYPE type, boolean[] mask) {
+		private BamPileParams(NGS_MARKER_TYPE type, boolean[] mask) {
 			super();
 			this.type = type;
 			this.mask = mask;
@@ -85,24 +86,13 @@ public class BamSample {
 			return mask;
 		}
 
-		public BAM_PILE_TYPE getType() {
+		public NGS_MARKER_TYPE getType() {
 			return type;
 		}
 
 	}
 
-	private static BAM_PILE_TYPE fromPile(String markerName) {
-
-		if (markerName.contains(BamImport.OFF_TARGET_FLAG)) {
-			return BAM_PILE_TYPE.OFF_TARGET;
-		}
-		else if (markerName.contains(BamImport.VARIANT_SITE_FLAG)) {
-			return BAM_PILE_TYPE.VARIANT_SITE;
-		}
-		else {
-			return BAM_PILE_TYPE.ON_TARGET;
-		}
-	}
+	
 
 	private void process() {
 		MarkerSet markerSet = proj.getMarkerSet();
@@ -114,9 +104,9 @@ public class BamSample {
 		this.mapQs = new double[bamPiles.length];
 		this.percentWithMismatch = new double[bamPiles.length];
 	
-		BamPileParams[] params = new BamPileParams[BAM_PILE_TYPE.values().length];
+		BamPileParams[] params = new BamPileParams[NGS_MARKER_TYPE.values().length];
 		for (int i = 0; i < params.length; i++) {
-			params[i] = new BamPileParams(BAM_PILE_TYPE.values()[i], Array.booleanArray(markerNames.length, false));
+			params[i] = new BamPileParams(NGS_MARKER_TYPE.values()[i], Array.booleanArray(markerNames.length, false));
 		}
 		proj.getLog().reportTimeInfo("Mapping queried segments");
 		int[] traversalOrder = Array.intArray(markerNames.length, -1);
@@ -137,7 +127,7 @@ public class BamSample {
 			traversalOrder[i] = bamPileIndex;
 			BamPile currentPile = bamPiles[bamPileIndex];
 
-			BAM_PILE_TYPE current = fromPile(markerSet.getMarkerNames()[i]);
+			NGS_MARKER_TYPE current = NGS_MARKER_TYPE.getType(markerSet.getMarkerNames()[i]);
 			for (int j = 0; j < params.length; j++) {
 				if (current == params[j].getType()) {
 					params[j].getMask()[i] = true;
@@ -155,7 +145,7 @@ public class BamSample {
 		for (int i = 0; i < traversalOrder.length; i++) {
 			BamPile currentPile = bamPiles[traversalOrder[i]];
 
-			BAM_PILE_TYPE current = fromPile(markerSet.getMarkerNames()[i]);
+			NGS_MARKER_TYPE current = NGS_MARKER_TYPE.getType(markerSet.getMarkerNames()[i]);
 			for (int j = 0; j < params.length; j++) {
 				if (current == params[j].getType()) {
 					rawDepth[i] = computeRPKM(currentPile.getNumOverlappingReads(), currentPile.getBin(), params[j].getRpkmVal());
@@ -169,7 +159,7 @@ public class BamSample {
 				proj.getLog().reportTimeWarning(warning);
 				throw new IllegalArgumentException(warning);
 			}
-			if (current == BAM_PILE_TYPE.VARIANT_SITE) {
+			if (current == NGS_MARKER_TYPE.VARIANT_SITE) {
 				double normBasesOverlap = (double) currentPile.getNumBasesOverlap();
 				double normBasesMiss = (double) currentPile.getNumBasesWithMismatch();
 				double percentMiss = 0;
@@ -220,7 +210,7 @@ public class BamSample {
 			if (Double.isNaN(normDepth[j])) {
 				String error = "Found invalid normalized depth for " + bamFile + ", bin " + markerSet.getMarkerNames()[j];
 				proj.getLog().reportTimeError(error);
-				if (markerSet.getMarkerNames()[j].contains(BamImport.OFF_TARGET_FLAG)) {
+				if (markerSet.getMarkerNames()[j].contains(NGS_MARKER_TYPE.OFF_TARGET.getFlag())) {
 					normDepth[j] = 1;
 				} else {
 					throw new IllegalStateException(error);

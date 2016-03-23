@@ -27,15 +27,15 @@ public class SomaticCNVEvaluation {
 		Logger log = proj.getLog();
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
 		vpop.report();
-//		String[] markFilter = proj.MARKER_COLOR_KEY_FILENAMES.getValue();
-//		log.reportTimeInfo(markFilter.length + " filter files detected");
+		// String[] markFilter = proj.MARKER_COLOR_KEY_FILENAMES.getValue();
+		// log.reportTimeInfo(markFilter.length + " filter files detected");
 
 		LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(cnvFile, log);
 		Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, log);
 		Set<String> tumors = vpop.getTumorSamples();
 		ArrayList<TNCNV> tncnvs = new ArrayList<SomaticCNVEvaluation.TNCNV>();
 		SampleData sampleData = proj.getSampleData(0, false);
-		
+
 		for (String tnPair : vpop.getSubPop().keySet()) {
 			Set<String> pair = vpop.getSubPop().get(tnPair);
 			String tumor = null;
@@ -54,11 +54,11 @@ public class SomaticCNVEvaluation {
 				tncnvs.add(new TNCNV(proj, inds.get(fidIid), tumor, normal));
 			}
 		}
-		//ArrayList<ColorManager<String>> managers = new ArrayList<ColorExt.ColorManager<String>>();
-//		if (markFilter != null) {
-//			for (int i = 0; i < markFilter.length; i++) {
-//				proj.getLog().reportTimeInfo("Loading " + markFilter[i]);
-//				managers.add(ColorExt.getColorManager(proj, markFilter[i]));
+		// ArrayList<ColorManager<String>> managers = new ArrayList<ColorExt.ColorManager<String>>();
+		// if (markFilter != null) {
+		// for (int i = 0; i < markFilter.length; i++) {
+		// proj.getLog().reportTimeInfo("Loading " + markFilter[i]);
+		// managers.add(ColorExt.getColorManager(proj, markFilter[i]));
 		//
 		// }
 		// }
@@ -75,7 +75,7 @@ public class SomaticCNVEvaluation {
 		private ArrayList<TNCNV> tncnvs;
 		private int index;
 
-		public TNCNVProducer(PreparedMarkerSet markerSet,ArrayList<TNCNV> tncnvs) {
+		public TNCNVProducer(PreparedMarkerSet markerSet, ArrayList<TNCNV> tncnvs) {
 			super();
 			this.tncnvs = tncnvs;
 		}
@@ -89,7 +89,6 @@ public class SomaticCNVEvaluation {
 		@Override
 		public Callable<TNCNV> next() {
 			TNCNV current = tncnvs.get(index);
-			current.setMarkerSet(markerSet);
 			index++;
 			return current;
 		}
@@ -108,7 +107,6 @@ public class SomaticCNVEvaluation {
 		private String tumorSample;
 		private String normalSample;
 		private PreparedMarkerSet markerSet;
-		
 
 		public TNCNV(Project proj, LocusSet<CNVariant> tumorCnvs, String tumorSample, String normalSample) {
 			super();
@@ -118,13 +116,9 @@ public class SomaticCNVEvaluation {
 			this.normalSample = normalSample;
 		}
 
-		public void setMarkerSet(PreparedMarkerSet markerSet) {
-			this.markerSet = markerSet;
-		}
-
 		@Override
 		public TNCNV call() throws Exception {
-			this.markerSet = markerSet == null ? PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet()) : markerSet;
+			markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 
 			proj.getLog().reportTimeInfo("Loading" + tumorSample);
 
@@ -145,11 +139,12 @@ public class SomaticCNVEvaluation {
 
 			proj.getLog().reportTimeInfo("Computing scores for " + tumorSample);
 			BeastScore beastScoreTumor = new BeastScore(tumorSamp.getLRRs(), markerSet.getIndicesByChr(), cnvIndices, proj.getLog());
+			//beastScoreTumor.setUse(useForMedian);
 			beastScoreTumor.computeBeastScores();
 			proj.getLog().reportTimeInfo("Computing scores for " + normalSample);
 			BeastScore beastScoreNormal = new BeastScore(normalSamp.getLRRs(), markerSet.getIndicesByChr(), cnvIndices, proj.getLog());
 			beastScoreNormal.computeBeastScores();
-			this.markerSet =null;
+			this.markerSet = null;
 			return this;
 		}
 
@@ -159,7 +154,7 @@ public class SomaticCNVEvaluation {
 		Project proj = new Project("C:/workspace/Genvisis/projects/Cushings.properties", false);
 		String[] cnvFiles = proj.CNV_FILENAMES.getValue();
 		String vpopFile = proj.PROJECT_DIRECTORY.getValue() + "TN.vpop";
-		int numthreads = 1;
+		int numthreads = 5;
 
 		for (int i = 0; i < cnvFiles.length; i++) {
 			filter(proj, vpopFile, cnvFiles[i], numthreads);

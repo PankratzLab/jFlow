@@ -154,6 +154,11 @@ public class ColorExt {
 					return null;
 				}
 				ColorManager<String> markerColorManager = new ColorManager<String>(lookup, manager) {
+
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 1L;
 				};
 
 				markerColorManager.writeSerial(ser);
