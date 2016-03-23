@@ -1,4 +1,4 @@
-package one;
+package widgets;
 
 import java.io.BufferedReader;
 import java.io.IOException;
