@@ -1,6 +1,5 @@
 package seq.manage;
 
-
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -41,13 +40,14 @@ import cnv.manage.TransposeData;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustorParameter;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
+import cnv.qc.LrrSd;
 import cnv.var.LocusSet;
 import cnv.var.SampleData;
 import filesys.Segment;
 
 public class BamImport {
-//	public static final String OFF_TARGET_FLAG = "OFF_TARGET";
-//	public static final String VARIANT_SITE_FLAG = "VARIANT_SITE";
+	// public static final String OFF_TARGET_FLAG = "OFF_TARGET";
+	// public static final String VARIANT_SITE_FLAG = "VARIANT_SITE";
 
 	public enum NGS_MARKER_TYPE {
 		/**
@@ -306,7 +306,7 @@ public class BamImport {
 						log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
 					}
 
-					generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure, varFeatures);
+					ArrayList<MarkerFileType> markerTypes = generateMarkerPositions(proj, bLocusSet, genomeBinsMinusBinsCaputure, varFeatures);
 					log.memoryFree();
 					LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure, true, log);
 					analysisSet = LocusSet.combine(analysisSet, varFeatures.getStrictSegmentSet(), true, log);
@@ -315,7 +315,6 @@ public class BamImport {
 					if (!analysisSet.verifyPositiveLength()) {
 						throw new IllegalArgumentException("all import segments must be gte length 1");
 					}
-				
 
 					FilterNGS filterNGS = new FilterNGS(20, 20, null);
 					PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(), filterNGS, analysisSet.getStrictSegments(), log);
@@ -362,16 +361,18 @@ public class BamImport {
 					Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numthreads);
 					TransposeData.transposeData(proj, 2000000000, false);
 					SampleData.createMinimalSampleData(proj);
+					LrrSd.init(proj, null, null, numthreads);
 					proj.INTENSITY_PC_NUM_COMPONENTS.setValue(proj.getSamples().length - 1);
 					proj.saveProperties();
-					generatePCFile(proj, numthreads);
+					generatePCFile(proj, markerTypes, numthreads);
 					log.reportTimeInfo(analysisSet.getLoci().length + " segments to pile");
 					generateGCModel(proj, analysisSet, referenceGenome, 50);
 					generateGCModel(proj, analysisSet, referenceGenome, 100);
 					generateGCModel(proj, analysisSet, referenceGenome, 200);
+					generateGCModel(proj, analysisSet, referenceGenome, 500000);
+					generateGCModel(proj, analysisSet, referenceGenome, 1000000);
 					GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
 					GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
-					
 
 					// String PCCorrected = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected");
 					// String newName = proj.PROJECT_NAME.getValue() + "_" + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected";
@@ -426,22 +427,30 @@ public class BamImport {
 		}
 	}
 
-	private static void generatePCFile(Project proj, int numthreads) {
-		Files.writeList(proj.getMarkerNames(), proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
-		String mediaMarks = ext.addToRoot(proj.TARGET_MARKERS_FILENAMES.getValue()[0], ".median");
-		Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
-		String base = "BAM_PCS";
+	private static void generatePCFile(Project proj, ArrayList<MarkerFileType> types, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
-		proj.LRRSD_CUTOFF.setValue(100.0);
-		MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, proj.getSamples().length - 1, base, false, false, 0, null, null, null, false, false, false, true, false, null, -1, -1);
+		proj.LRRSD_CUTOFF.setValue(.40);
+		String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
+		Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
+		for (MarkerFileType type : types) {
+			String base = "";
+			if (type.getType() == null) {
+				base = base + "BAM_PCS_ALL_MARKERS";
+			} else {
+				base = base + "BAM_PCS_" + type.getType().getFlag();
+			}
+			String markerfile = proj.PROJECT_DIRECTORY.getValue() + base + "_inputMarkers.txt";
+			Files.writeList(HashVec.loadFileToStringArray(type.getFile(), true, new int[] { 0 }, true), markerfile);
+			proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
+			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, proj.getSamples().length - 1, base, false, true, 0, null, null, null, false, false, false, true, false, null, -1, -1);
+		}
 	}
 
-	private static void generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet, LocusSet<Segment> genomeBinsMinusBinsCaputure, LocusSet<VariantSeg> varFeatures) {
+	private static ArrayList<MarkerFileType> generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet, LocusSet<Segment> genomeBinsMinusBinsCaputure, LocusSet<VariantSeg> varFeatures) {
 		String positions = proj.MARKER_POSITION_FILENAME.getValue();
 		proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
 		String[] markerNames = new String[bLocusSet.getLoci().length + genomeBinsMinusBinsCaputure.getLoci().length + varFeatures.getLoci().length];
 		String header = "BinName\tChr\tPosition\tCLASS=MARKER_COLOR;OFF_TARGET=Blue;VARIANT_SITE=RED;ON_TARGET=Green";
-
 		ArrayList<String> onTMarkers = new ArrayList<String>();
 		onTMarkers.add(header);
 
@@ -463,7 +472,7 @@ public class BamImport {
 				if (name != null) {
 					markerName += "|" + name;
 				}
-				markerName += NGS_MARKER_TYPE.ON_TARGET.getFlag();
+				markerName += "|" + NGS_MARKER_TYPE.ON_TARGET.getFlag();
 				markerNames[markerIndex] = markerName;
 				int diff = bFeatureSeg.getStop() - bFeatureSeg.getStart();
 				int mid = Math.round((float) diff / 2);
@@ -510,11 +519,50 @@ public class BamImport {
 			proj.getLog().reportError("Error writing to " + positions);
 			proj.getLog().reportException(e);
 		}
+		String onTargetFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), "." + NGS_MARKER_TYPE.ON_TARGET.getFlag());
+		String offTargetFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), "." + NGS_MARKER_TYPE.OFF_TARGET.getFlag());
+		String variantSiteTargetFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), "." + NGS_MARKER_TYPE.VARIANT_SITE.getFlag());
+		String allMarkerFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".allMarkers");
+		ArrayList<MarkerFileType> markerTypes = new ArrayList<MarkerFileType>();
 
-		Files.writeList(Array.toStringArray(onTMarkers), ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), "." + NGS_MARKER_TYPE.ON_TARGET.getFlag()));
-		Files.writeList(Array.toStringArray(offTMarkers), ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), "." + NGS_MARKER_TYPE.OFF_TARGET.getFlag()));
-		Files.writeList(Array.toStringArray(variantSiteMarkers), ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), "." + NGS_MARKER_TYPE.VARIANT_SITE.getFlag()));
+		Files.writeList(Array.toStringArray(onTMarkers), onTargetFile);
+		markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.ON_TARGET, onTargetFile));
+		Files.writeList(Array.toStringArray(offTMarkers), offTargetFile);
+		markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.OFF_TARGET, offTargetFile));
+
+		Files.writeList(Array.toStringArray(variantSiteMarkers), variantSiteTargetFile);
+		markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.VARIANT_SITE, variantSiteTargetFile));
+
+		ArrayList<String> all = new ArrayList<String>();
+		all.addAll(onTMarkers);
+		all.addAll(offTMarkers);
+		all.addAll(variantSiteMarkers);
+
+		Files.writeList(Array.toStringArray(all), allMarkerFile);
+		markerTypes.add(new MarkerFileType(null, allMarkerFile));
+
 		Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+		return markerTypes;
+	}
+
+	private static class MarkerFileType {
+		private NGS_MARKER_TYPE type;
+		private String file;
+
+		public MarkerFileType(NGS_MARKER_TYPE type, String file) {
+			super();
+			this.type = type;
+			this.file = file;
+		}
+
+		private NGS_MARKER_TYPE getType() {
+			return type;
+		}
+
+		private String getFile() {
+			return file;
+		}
+
 	}
 
 	public static void main(String[] args) {

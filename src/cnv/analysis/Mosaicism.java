@@ -7,8 +7,10 @@ import java.util.concurrent.Callable;
 
 import javax.swing.JOptionPane;
 
+import seq.manage.BamImport.NGS_MARKER_TYPE;
 import cnv.analysis.MosaicismDetect.MosaicBuilder;
 import cnv.filesys.*;
+import cnv.filesys.Project.ARRAY;
 import cnv.plots.MosaicPlot;
 import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
@@ -175,6 +177,22 @@ public class Mosaicism {
 		bafs = samp.getBAFs();
 		MosaicBuilder builder = new MosaicBuilder();
 		builder.indicesByChr(indicesByChr);
+		builder.verbose(false);
+		builder.markerIndices(proj.getMarkerIndices());
+		if (proj.getArrayType() == ARRAY.NGS) {
+			proj.getLog().reportTimeWarning("Masking non-variant sites for project type " + ARRAY.NGS);
+			boolean[] use = new boolean[markerSet.getMarkerNames().length];
+			int numMasked = 0;
+			for (int i = 0; i < use.length; i++) {
+				boolean useit = NGS_MARKER_TYPE.getType(markerSet.getMarkerNames()[i]) == NGS_MARKER_TYPE.VARIANT_SITE;
+				if (!useit) {
+					numMasked++;
+				}
+				use[i] = useit;
+			}
+			proj.getLog().reportTimeInfo(numMasked + " markers were masked");
+			builder.use(use);
+		}
 		MosaicismDetect md = builder.build(proj, sample, markerSet, Array.toDoubleArray(bafs));
 		int[] positions = markerSet.getPositions();
 		byte[]chrs = markerSet.getChrs();
@@ -203,12 +221,25 @@ public class Mosaicism {
 						throw new IllegalStateException("Internal Error, mismatched chromosome indices, start =" + chrs[startIndex] + "\tstop = " + chrs[stopIndex] + "\tarm = " + arm);
 					}
 					// long time = System.currentTimeMillis();
-					double[] mosaicMetrics = getMosiacMetric(md, new Segment((byte) j, positions[startIndex], positions[stopIndex - 1]));
+					// can uncomment this if more specific mosiac metrics are desired (smaller events, etc)
+					// double[] mosaicMetrics = getMosiacMetric(md, new Segment((byte) j, positions[startIndex], positions[stopIndex - 1]));
 					// proj.getLog().reportTimeElapsed(time);
+
+					Segment armSeg = new Segment((byte) j, positions[startIndex], positions[stopIndex - 1]);
+					LocusSet<MosaicRegion> mosSet = md.callMosaic(armSeg, true);
+					double percentMos = Double.NaN;
+					if (mosSet.getLoci().length != 1 || !armSeg.equals(mosSet.getLoci()[0])) {
+						proj.getLog().reportTimeError("Mosaic caller not in force call mode");
+						proj.getLog().reportTimeError(armSeg.getUCSClocation() + " went in, and " + mosSet.getLoci()[0].getUCSClocation() + " came out");
+
+						mosSet = null;
+					} else if (j < 23) {// can't call chr23 yet
+						percentMos = 100 * mosSet.getLoci()[0].getScore();
+					}
 					int bafSize = bafAl.size();
 					int lrrSize = lrrAl.size();
 					float[] bafTmp = Array.toFloatArray(bafAl);
-					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5) + "\t" + mosaicMetrics[0]+"\t"+mosaicMetrics[1];
+					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5) + "\t" + percentMos;
 					// proj.getLog().reportTimeElapsed(time);
 					results.add(result);
 				}
