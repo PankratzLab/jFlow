@@ -2768,8 +2768,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	}
 
 	public static void main(String[] args) {
-		 Project proj = null;//new Project("D:/projects/gedi_gwas.properties", false);
-		 String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
+		Project proj = null;
+//		new Project("D:/projects/gedi_gwas.properties", false);
+		String geneList = "N:/statgen/VariantMapper/test2/genes.txt";
 //		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
 
 //		String[] vcfFiles = new String[] { "N:/statgen/VariantMapper/test2/OSTEO_OFF_INHERIT.maf_0.01.final.vcf.gz" };
@@ -2795,6 +2796,16 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 //		String popFile2 = "N:/statgen/VariantMapper/test3/TN.vpop";
 //		new VariantViewer(proj, vcfFiles2, popFile2);
 
+//		String dir = "C:/temp/VCF/";
+		String dir = "N:/statgen/VariantMapper/Fibrinogen/";
+		geneList = dir+"genes.txt";
+		String[] vcfFiles = new String[] { dir+"charge_fibrinogen_mafs_and_counts.xln.hg19_multianno.eff.gatk.sed.blanks.segs_noquotes.vcf" };
+		String popFile = dir+"ColorCodes.vpop";
+		popFile = dir+"ColorCodesNoMonomorphic.vpop";
+		popFile = dir+"ColorCodesOnlyNomUp.vpop";
+		
+		VCFOps.verifyIndex(vcfFiles[0], new Logger());
+		new VariantViewer(proj, geneList, vcfFiles, popFile);
 	}
 }
 
