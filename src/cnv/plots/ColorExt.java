@@ -4,8 +4,10 @@ import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Random;
 import java.util.Set;
@@ -14,6 +16,7 @@ import common.Aliases;
 import common.Array;
 import common.Files;
 import common.Grafik;
+import common.Logger;
 import common.ext;
 import cnv.filesys.Project;
 
@@ -50,7 +53,11 @@ public class ColorExt {
 		return colors;
 	}
 
-	public static class ColorItem<E> {
+	public static class ColorItem<E> implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private E key;
 		private Color color;
 
@@ -100,6 +107,10 @@ public class ColorExt {
 	}
 	
 	public static ColorManager<String> getColorManager(Project proj, String file) {
+		String ser =ext.rootOf(file,false)+".ser";
+		if(Files.exists(ser)){
+			return ColorManager.loadStringSerial(ser, proj.getLog());
+		}
 		if (Files.exists(file)) {
 			String[] header = Files.getHeaderOfFile(file, proj.getLog());
 			int markerIndex = ext.indexFactors(new String[][] { Aliases.MARKER_NAMES }, header, true, true, false, proj.getLog(), false)[0];
@@ -144,6 +155,8 @@ public class ColorExt {
 				}
 				ColorManager<String> markerColorManager = new ColorManager<String>(lookup, manager) {
 				};
+
+				markerColorManager.writeSerial(ser);
 				return markerColorManager;
 			}
 		} else {
@@ -153,16 +166,23 @@ public class ColorExt {
 		return null;
 	}
 
-	public static abstract class ColorManager<E> {
+	public static abstract class ColorManager<E> implements Serializable {
 
-		private Set<E> toUse;// color categories in play
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private HashSet<E> toUse;// color categories in play
 		private Hashtable<E, E> lookup;// items associated with category (marker->PoorQualityCategory)
 		private Hashtable<E, ColorItem<E>> manager; // categories associated with color item (PoorQualityCategory->blue)
 
 		public ColorManager(Hashtable<E, E> lookup, Hashtable<E, ColorItem<E>> manager) {
 			this.lookup = lookup;
 			this.manager = manager;
-			this.toUse = manager.keySet();
+			this.toUse = new HashSet<E>();
+			for (E e : manager.keySet()) {
+				toUse.add(e);
+			}
 		}
 
 		public Set<E> getToUse() {
@@ -202,6 +222,16 @@ public class ColorExt {
 				return null;
 			}
 		}
+
+		public void writeSerial(String fileName) {
+			Files.writeSerial(this, fileName, true);
+		}
+
+		@SuppressWarnings("unchecked")
+		private static ColorManager<String> loadStringSerial(String fileName, Logger log) {
+			return (ColorManager<String>) Files.readSerial(fileName, false, log, false, true);
+		}
+
 	}
 
 }
