@@ -60,6 +60,12 @@ public class MosaicismDetect {
 	public MarkerSet getMarkerSet() {
 		return markerSet;
 	}
+	
+	
+
+	public boolean[] getUse() {
+		return use;
+	}
 
 	public <T extends Segment> LocusSet<MosaicRegion> callMosaic(T seg, boolean force) {
 		if (seg.getStop() < seg.getStart()) {

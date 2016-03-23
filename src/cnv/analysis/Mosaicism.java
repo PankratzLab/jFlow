@@ -205,7 +205,7 @@ public class Mosaicism {
 				ArrayList<Float> lrrAl = new ArrayList<Float>(stopIndex+10-startIndex);
 				ArrayList<Float> bafAl = new ArrayList<Float>(stopIndex+10-startIndex);
 				for (int k = startIndex; k < stopIndex; k++) {
-					if (!snpDropped[k]) {
+					if (!snpDropped[k] && !(md.getUse() != null && !md.getUse()[k])) {
 						if (!Float.isNaN(lrrs[k])) {
 							lrrAl.add(lrrs[k]);
 						}
@@ -220,26 +220,13 @@ public class Mosaicism {
 
 						throw new IllegalStateException("Internal Error, mismatched chromosome indices, start =" + chrs[startIndex] + "\tstop = " + chrs[stopIndex] + "\tarm = " + arm);
 					}
-					// long time = System.currentTimeMillis();
-					// can uncomment this if more specific mosiac metrics are desired (smaller events, etc)
-					// double[] mosaicMetrics = getMosiacMetric(md, new Segment((byte) j, positions[startIndex], positions[stopIndex - 1]));
-					// proj.getLog().reportTimeElapsed(time);
-
 					Segment armSeg = new Segment((byte) j, positions[startIndex], positions[stopIndex - 1]);
-					LocusSet<MosaicRegion> mosSet = md.callMosaic(armSeg, true);
-					double percentMos = Double.NaN;
-					if (mosSet.getLoci().length != 1 || !armSeg.equals(mosSet.getLoci()[0])) {
-						proj.getLog().reportTimeError("Mosaic caller not in force call mode");
-						proj.getLog().reportTimeError(armSeg.getUCSClocation() + " went in, and " + mosSet.getLoci()[0].getUCSClocation() + " came out");
+					MosaicMetric mosaicMetrics = getMosiacMetric(md, armSeg, proj.getLog());
 
-						mosSet = null;
-					} else if (j < 23) {// can't call chr23 yet
-						percentMos = 100 * mosSet.getLoci()[0].getScore();
-					}
 					int bafSize = bafAl.size();
 					int lrrSize = lrrAl.size();
 					float[] bafTmp = Array.toFloatArray(bafAl);
-					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5) + "\t" + percentMos;
+					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5) + "\t" + mosaicMetrics.getPercentBandMosaic() + "\t" + mosaicMetrics.getMosaiceMetric() + "\t" + mosaicMetrics.getNearestNeighborScore();
 					// proj.getLog().reportTimeElapsed(time);
 					results.add(result);
 				}
@@ -248,14 +235,64 @@ public class Mosaicism {
 		return Array.toStringArray(results);
 	}
 
-	private static double[] getMosiacMetric(MosaicismDetect md, Segment seg) {
-		
+	private static class MosaicMetric {
+		private double percentBandMosaic;
+		private double mosaiceMetric;
+		private double nearestNeighborScore;
+
+		public MosaicMetric(double percentBandMosaic, double mosaiceMetric, double nearestNeighborScore) {
+			super();
+			this.percentBandMosaic = percentBandMosaic;
+			this.mosaiceMetric = mosaiceMetric;
+			this.nearestNeighborScore = nearestNeighborScore;
+		}
+
+		private double getPercentBandMosaic() {
+			return percentBandMosaic;
+		}
+
+		private void setPercentBandMosaic(double percentBandMosaic) {
+			this.percentBandMosaic = percentBandMosaic;
+		}
+
+		private double getMosaiceMetric() {
+			return mosaiceMetric;
+		}
+
+		private void setMosaiceMetric(double mosaiceMetric) {
+			this.mosaiceMetric = mosaiceMetric;
+		}
+
+		private double getNearestNeighborScore() {
+			return nearestNeighborScore;
+		}
+
+		private void setNearestNeighborScore(double nearestNeighborScore) {
+			this.nearestNeighborScore = nearestNeighborScore;
+		}
+
+	}
+
+	private static MosaicMetric getMosiacMetric(MosaicismDetect md, Segment seg, Logger log) {
+		LocusSet<MosaicRegion> mosSet = md.callMosaic(seg, true);
+		MosaicMetric mosaicMetric = new MosaicMetric(Double.NaN, Double.NaN, Double.NaN);
+		double percentMos = Double.NaN;
+		if (mosSet.getLoci().length != 1 || !seg.equals(mosSet.getLoci()[0])) {
+			log.reportTimeError("Mosaic caller not in force call mode");
+			log.reportTimeError(seg.getUCSClocation() + " went in, and " + mosSet.getLoci()[0].getUCSClocation() + " came out");
+
+			mosSet = null;
+		} else if (seg.getChr() < 23) {// can't call chr23 yet
+			percentMos = 100 * mosSet.getLoci()[0].getScore();
+		}
+		mosaicMetric.setPercentBandMosaic(percentMos);
+
 		LocusSet<MosaicRegion> tmp = md.callMosaic(seg, false);
 		if (tmp.getLoci().length < 1 || seg.getChr() >= 23) {
-			return new double[] { 0, 0 };
+
 		} else {
 			double[] metrics = new double[] { 0, 0 };
-			//double maxBpMetric = -1 * Double.MAX_VALUE;
+			// double maxBpMetric = -1 * Double.MAX_VALUE;
 			int numCounted = 0;
 			int numTotalMarkers = 0;
 			for (int i = 0; i < tmp.getLoci().length; i++) {
@@ -280,8 +317,11 @@ public class Mosaicism {
 			if (numCounted > 0) {
 				metrics[1] = (double) metrics[1] / numCounted;
 			}
-			return metrics;
+			mosaicMetric.setMosaiceMetric(metrics[0]);
+			mosaicMetric.setNearestNeighborScore(metrics[1]);
+
 		}
+		return mosaicMetric;
 	}
 
 	public static void checkForOverlap(Project proj, String listOfMosaicArms) {
