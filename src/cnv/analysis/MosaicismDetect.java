@@ -2,6 +2,7 @@ package cnv.analysis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
@@ -28,7 +29,7 @@ public class MosaicismDetect {
 	private static final int DEFAULT_MOVING_FACTOR = 25;
 	private static final double DEFAULT_NULL_SIGMA = 2;
 	private static final double DEFAULT_BASELINE = -1;
-	//private static final double DEFAULT_MIN_PERCENT_STATES = 0.05;
+	// private static final double DEFAULT_MIN_PERCENT_STATES = 0.05;
 
 	private Project proj;
 	private String sample;
@@ -42,6 +43,8 @@ public class MosaicismDetect {
 	private double baseLine;
 	private double[] means;
 	private double[] variances;
+	private Hashtable<String, Integer> markerIndices;// can provide a speedup if provided
+	private boolean[] use;
 
 	// private double minPercentStates;
 
@@ -62,7 +65,19 @@ public class MosaicismDetect {
 		if (seg.getStop() < seg.getStart()) {
 			throw new IllegalArgumentException("Segment must have stop that is gte to start");
 		}
-		int[] segIndices = markerSet.getIndicesOfMarkersIn(seg, indicesByChr, proj.getLog());
+		int[] segIndices = null;
+		if (markerIndices == null) {
+			segIndices = markerSet.getIndicesOfMarkersIn(seg, indicesByChr, proj.getLog());
+		} else {
+			String[] tmp = markerSet.getMarkersIn(seg, indicesByChr);
+			segIndices = new int[tmp.length];
+			for (int i = 0; i < tmp.length; i++) {
+				segIndices[i] = markerIndices.get(tmp[i]);
+			}
+		}
+		if (use != null) {
+			segIndices = removeMasked(segIndices);
+		}
 		int totalIndices = segIndices.length;
 		ArrayList<Integer> evalIndicestmp = new ArrayList<Integer>(totalIndices / 2);
 		LocusSet<CNVariant> dud = new LocusSet<CNVariant>(new CNVariant[0], true, proj.getLog()) {
@@ -161,7 +176,7 @@ public class MosaicismDetect {
 					builder.start(seg.getStart());
 					builder.stop(seg.getStop());
 				}
-				
+
 				int[] scoreStopStart = vtr.getIndexStateChange().get(i);
 				double[] scored = Array.subArray(finalPDensit, scoreStopStart[0], scoreStopStart[1] + 1);
 				double pdfScore = baseLine - Array.mean(scored);// TODO,
@@ -184,12 +199,27 @@ public class MosaicismDetect {
 			};
 			// }
 
+		} else if (force) {// no markers met criteria, set a blank
+			CNVariant blank = new CNVariant(sample, sample, seg.getChr(), seg.getStart(), seg.getStop(), 2, Double.NaN, 0, 99);
+			MosaicRegion blankMr = new MosaicRegion(blank, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
+			mSet = new LocusSet<MosaicRegion>(new MosaicRegion[] { blankMr }, true, proj.getLog()) {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+			};
+
 		}
 		return mSet;
 	}
 
 	private void prep() {
 		int[] autosomalIndices = proj.getAutosomalMarkerIndices();
+		if (use != null) {
+			autosomalIndices = removeMasked(autosomalIndices);
+		}
 		double[] autosomalBafs = Array.subArray(bafs, autosomalIndices);
 		this.gd = prepareGaussMixture(autosomalBafs, .33, .66);
 		if (baseLine < 0) {
@@ -199,6 +229,17 @@ public class MosaicismDetect {
 			}
 		}
 		reportDynRange();
+	}
+
+	private int[] removeMasked(int[] autosomalIndices) {
+		ArrayList<Integer> notMasked = new ArrayList<Integer>();
+		for (int i = 0; i < autosomalIndices.length; i++) {
+			if (use[autosomalIndices[i]]) {
+				notMasked.add(autosomalIndices[i]);
+			}
+		}
+		autosomalIndices = Array.toIntArray(notMasked);
+		return autosomalIndices;
 	}
 
 	private void reportDynRange() {
@@ -216,20 +257,25 @@ public class MosaicismDetect {
 		if (means == null) {
 
 			this.means = new double[3];
-			this.variances = new double[3];
+			this.variances = new double[3];// defualt to 1 if actual variance is not finite (since baf 0->1 anyway)
 			double[] zero_tsMeanVar = getMeanVar(autosomalBafs, 0, r1);
 			double[] t_tsMeanVar = getMeanVar(autosomalBafs, r1, r2);
 			double[] t_sMeanVar = getMeanVar(autosomalBafs, r2, 1);
 			means[0] = zero_tsMeanVar[0];
-			variances[0] = zero_tsMeanVar[1];
+			variances[0] = Double.isFinite(zero_tsMeanVar[1]) ? zero_tsMeanVar[1] : 1;
 			means[1] = t_tsMeanVar[0];
-			variances[1] = t_tsMeanVar[1];
+			variances[1] = Double.isFinite(t_tsMeanVar[1]) ? t_tsMeanVar[1] : 1;
 			means[2] = t_sMeanVar[0];
-			variances[2] = t_sMeanVar[1];
+			variances[2] = Double.isFinite(t_sMeanVar[1]) ? t_sMeanVar[1] : 1;
+
+			if (!Double.isFinite(zero_tsMeanVar[1] + t_tsMeanVar[1] + t_sMeanVar[1])) {
+				proj.getLog().reportTimeWarning("Sample " + sample + " had non-finite baf variance, setting to 1");
+			}
 		}
 
 		double[] props = new double[3];
 		Arrays.fill(props, (double) 1 / 3);
+		
 		GaussianMixtureDistribution gd = new GaussianMixtureDistribution(means, variances, props);
 		return gd;
 	}
@@ -309,8 +355,30 @@ public class MosaicismDetect {
 		private double baseLine = DEFAULT_BASELINE;
 		private double[] means = null;
 		private double[] variances = null;
+		private Hashtable<String, Integer> markerIndices = null;// can provide a speedup if provided
+		private boolean[] use = null;// only these markers will be used for the computation
 
 		// private double minPercentStates = DEFAULT_MIN_PERCENT_STATES;
+
+		/**
+		 * @param mask
+		 *            mask markers from computation
+		 * @return
+		 */
+		public MosaicBuilder use(boolean[] use) {
+			this.use = use;
+			return this;
+		}
+
+		/**
+		 * @param markerIndices
+		 *            speeds up extraction of which markers to use for a given seg
+		 * @return
+		 */
+		public MosaicBuilder markerIndices(Hashtable<String, Integer> markerIndices) {
+			this.markerIndices = markerIndices;
+			return this;
+		}
 
 		/**
 		 * @param movingFactor
@@ -450,9 +518,9 @@ public class MosaicismDetect {
 				private static final long serialVersionUID = 1L;
 
 			};
-		//	System.out.println(allCalls);
+			// System.out.println(allCalls);
 			BeastScore beastScore = BeastScore.beastInd(proj, null, Array.toFloatArray(lrrs), allCalls.getLoci(), md.getMarkerSet().getChrs(), md.getMarkerSet().getPositions(), md.getIndicesByChr());
-			//beastScore.computeBeastScores();
+			// beastScore.computeBeastScores();
 			for (int i = 0; i < allCalls.getLoci().length; i++) {
 				allCalls.getLoci()[i].setBeastScore(beastScore.getBeastScores()[i]);
 				allCalls.getLoci()[i].setBeastHeight(beastScore.getBeastHeights()[i]);
@@ -514,9 +582,14 @@ public class MosaicismDetect {
 		this.baseLine = builder.baseLine;
 		this.means = builder.means;
 		this.variances = builder.variances;
+		this.markerIndices = builder.markerIndices;
+		this.use = builder.use;
 		// this.minPercentStates = builder.minPercentStates;
 		if (bafs.length != markerSet.getMarkerNames().length) {
 			throw new IllegalArgumentException("Internal error, bafs must be present for entire array, fill with NaN if neccesary");
+		}
+		if (use != null && use.length != markerSet.getMarkerNames().length) {
+			throw new IllegalArgumentException("Internal error, use definition must be present for entire array if not null, fill with NaN if neccesary");
 		}
 		prep();
 	}

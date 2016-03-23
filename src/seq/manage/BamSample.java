@@ -17,6 +17,7 @@ public class BamSample {
 	private static final double MAX_MAPQ = 60;
 	private static final double SCALE_FACTOR_NUM_READS = 1000000;
 	private static final double MAD_FACTOR = 1.4826;
+	private static final int MIN_NUM_MISMATCH = 5;// can set this later;
 	private String bamFile;
 	private String sampleName;
 	private BamPile[] bamPiles;
@@ -55,11 +56,6 @@ public class BamSample {
 		}
 		double scale = numTotalMappedReads > 0 ? (double) SCALE_FACTOR_NUM_READS / numTotalMappedReads : 0;
 		return data * scale;
-	}
-
-	public enum BAM_PILE_TYPE {
-		ON_TARGET, OFF_TARGET, VARIANT_SITE;
-
 	}
 
 	private static class BamPileParams {
@@ -138,6 +134,7 @@ public class BamSample {
 		}
 
 		proj.getLog().reportTimeInfo("Computing Normalized depths");
+		proj.getLog().reportTimeInfo("Percent het will be reported at variant sites with alt depth greater than " + MIN_NUM_MISMATCH);
 		if (Array.countIf(traversalOrder, -1) > 0) {
 			throw new IllegalArgumentException("Not all indices accounted for");
 		}
@@ -163,7 +160,7 @@ public class BamSample {
 				double normBasesOverlap = (double) currentPile.getNumBasesOverlap();
 				double normBasesMiss = (double) currentPile.getNumBasesWithMismatch();
 				double percentMiss = 0;
-				if (normBasesOverlap > 0) {
+				if (normBasesMiss > MIN_NUM_MISMATCH) {
 					percentMiss = normBasesMiss / normBasesOverlap;
 				}
 				percentWithMismatch[i] = percentMiss;

@@ -1,13 +1,18 @@
 package seq.cnv;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import common.Array;
 import common.Logger;
 import common.WorkerTrain;
 import common.WorkerTrain.Producer;
+import common.ext;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import cnv.analysis.BeastScore;
@@ -23,6 +28,32 @@ import cnv.var.SampleData;
  */
 public class SomaticCNVEvaluation {
 
+	private static class TNTrack {
+		private String tumorFidIid;
+		private String tumorSample;
+		private String normalSample;
+
+		private TNTrack(String tumorFidIid, String tumorSample, String normalSample) {
+			super();
+			this.tumorFidIid = tumorFidIid;
+			this.tumorSample = tumorSample;
+			this.normalSample = normalSample;
+		}
+
+		private String getTumorFidIid() {
+			return tumorFidIid;
+		}
+
+		private String getTumorSample() {
+			return tumorSample;
+		}
+
+		private String getNormalSample() {
+			return normalSample;
+		}
+
+	}
+
 	private static void filter(Project proj, String vpopFile, String cnvFile, int numThreads) {
 		Logger log = proj.getLog();
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
@@ -33,7 +64,7 @@ public class SomaticCNVEvaluation {
 		LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(cnvFile, log);
 		Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, log);
 		Set<String> tumors = vpop.getTumorSamples();
-		ArrayList<TNCNV> tncnvs = new ArrayList<SomaticCNVEvaluation.TNCNV>();
+		ArrayList<TNTrack> trackers = new ArrayList<TNTrack>();
 		SampleData sampleData = proj.getSampleData(0, false);
 
 		for (String tnPair : vpop.getSubPop().keySet()) {
@@ -50,8 +81,7 @@ public class SomaticCNVEvaluation {
 
 			String fidIid = sampleData.lookup(tumor)[1];
 			if (inds.containsKey(fidIid)) {
-
-				tncnvs.add(new TNCNV(proj, inds.get(fidIid), tumor, normal));
+				trackers.add(new TNTrack(fidIid, tumor, normal));
 			}
 		}
 		// ArrayList<ColorManager<String>> managers = new ArrayList<ColorExt.ColorManager<String>>();
@@ -62,22 +92,42 @@ public class SomaticCNVEvaluation {
 		//
 		// }
 		// }
-		TNCNVProducer producer = new TNCNVProducer(PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet()), tncnvs);
+		TNCNVProducer producer = new TNCNVProducer(proj,inds, trackers);
 		WorkerTrain<TNCNV> train = new WorkerTrain<SomaticCNVEvaluation.TNCNV>(producer, numThreads, numThreads, proj.getLog());
-		while (train.hasNext()) {
-			System.out.println("DHFSD");
-			train.next();
+		String outDir = proj.PROJECT_DIRECTORY.getValue() + "SomaticCNV/";
+		new File(outDir).mkdirs();
+		String outFile = outDir + ext.rootOf(cnvFile)+".somaticEvals.txt";
+
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(outFile));
+			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + Array.toStr(SomaticEvaluation.HEADER));
+			while (train.hasNext()) {
+				TNCNV current = train.next();
+				for (int i = 0; i < current.getTumorCnvs().getLoci().length; i++) {
+					writer.println(current.getTumorCnvs().getLoci()[i].toPlinkFormat() + "\t" + Array.toStr(current.getSomaticEvaluations()[i].getSummary()));
+				}
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + outFile);
+			log.reportException(e);
 		}
+
 	}
 
 	private static class TNCNVProducer implements Producer<TNCNV> {
-		private PreparedMarkerSet markerSet;
-		private ArrayList<TNCNV> tncnvs;
+		private Project proj;
+
+		private Hashtable<String, LocusSet<CNVariant>> inds;
+		private ArrayList<TNTrack> tncnvs;
 		private int index;
 
-		public TNCNVProducer(PreparedMarkerSet markerSet, ArrayList<TNCNV> tncnvs) {
+		public TNCNVProducer(Project proj,Hashtable<String, LocusSet<CNVariant>> inds, ArrayList<TNTrack> tncnvs) {
 			super();
+			this.proj=proj;
+			this.inds=inds;
 			this.tncnvs = tncnvs;
+			this.index=0;
 		}
 
 		@Override
@@ -88,7 +138,8 @@ public class SomaticCNVEvaluation {
 
 		@Override
 		public Callable<TNCNV> next() {
-			TNCNV current = tncnvs.get(index);
+			TNTrack trackCurrent = tncnvs.get(index);
+			TNCNV current = new TNCNV(proj, inds.get(trackCurrent.getTumorFidIid()), trackCurrent.getTumorSample(), trackCurrent.getNormalSample());
 			index++;
 			return current;
 		}
@@ -101,12 +152,39 @@ public class SomaticCNVEvaluation {
 
 	}
 
+	private static class SomaticEvaluation {
+		private static final String[] HEADER = new String[] { "TYPE", "BEAST_HEIGHT_TUMOR", "BEAST_HEIGHT_NORMAL", "BEAST_HEIGHT_DIFF" };
+		private String type;
+		private double bhTumor;
+		private double bhNormal;
+		private double heightDiff;
+
+		public SomaticEvaluation(String type, double bhTumor, double bhNormal, double heightDiff) {
+			super();
+			this.type = type;
+			this.bhTumor = bhTumor;
+			this.bhNormal = bhNormal;
+			this.heightDiff = heightDiff;
+		}
+
+		private String[] getSummary() {
+			ArrayList<String> summary = new ArrayList<String>();
+			summary.add(type);
+			summary.add(bhTumor + "");
+			summary.add(bhNormal + "");
+			summary.add(heightDiff + "");
+			return Array.toStringArray(summary);
+		}
+
+	}
+
 	private static class TNCNV implements Callable<TNCNV> {
 		private Project proj;
 		private LocusSet<CNVariant> tumorCnvs;
 		private String tumorSample;
 		private String normalSample;
 		private PreparedMarkerSet markerSet;
+		private SomaticEvaluation[] somaticEvaluations;
 
 		public TNCNV(Project proj, LocusSet<CNVariant> tumorCnvs, String tumorSample, String normalSample) {
 			super();
@@ -116,8 +194,18 @@ public class SomaticCNVEvaluation {
 			this.normalSample = normalSample;
 		}
 
+		private LocusSet<CNVariant> getTumorCnvs() {
+			return tumorCnvs;
+		}
+
+		private SomaticEvaluation[] getSomaticEvaluations() {
+			return somaticEvaluations;
+		}
+
 		@Override
 		public TNCNV call() throws Exception {
+			this.somaticEvaluations = new SomaticEvaluation[tumorCnvs.getLoci().length];
+
 			markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
 
 			proj.getLog().reportTimeInfo("Loading" + tumorSample);
@@ -139,22 +227,28 @@ public class SomaticCNVEvaluation {
 
 			proj.getLog().reportTimeInfo("Computing scores for " + tumorSample);
 			BeastScore beastScoreTumor = new BeastScore(tumorSamp.getLRRs(), markerSet.getIndicesByChr(), cnvIndices, proj.getLog());
-			//beastScoreTumor.setUse(useForMedian);
+			// beastScoreTumor.setUse(useForMedian);
 			beastScoreTumor.computeBeastScores();
 			proj.getLog().reportTimeInfo("Computing scores for " + normalSample);
 			BeastScore beastScoreNormal = new BeastScore(normalSamp.getLRRs(), markerSet.getIndicesByChr(), cnvIndices, proj.getLog());
 			beastScoreNormal.computeBeastScores();
 			this.markerSet = null;
+			for (int i = 0; i < cnvIndices.length; i++) {
+				double bhTumor = beastScoreTumor.getBeastHeights()[i];
+				double bhNormal = beastScoreNormal.getBeastHeights()[i];
+				double heightDiff = Math.abs(bhTumor - bhNormal);
+				SomaticEvaluation somaticEvaluation = new SomaticEvaluation("ALL_MARKERS", bhTumor, bhNormal, heightDiff);
+				somaticEvaluations[i] = somaticEvaluation;
+			}
 			return this;
 		}
-
 	}
 
 	public static void main(String[] args) {
 		Project proj = new Project("C:/workspace/Genvisis/projects/Cushings.properties", false);
 		String[] cnvFiles = proj.CNV_FILENAMES.getValue();
 		String vpopFile = proj.PROJECT_DIRECTORY.getValue() + "TN.vpop";
-		int numthreads = 5;
+		int numthreads = 2;
 
 		for (int i = 0; i < cnvFiles.length; i++) {
 			filter(proj, vpopFile, cnvFiles[i], numthreads);
