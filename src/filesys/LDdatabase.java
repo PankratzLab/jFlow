@@ -222,7 +222,7 @@ public class LDdatabase implements Serializable {
 		                log.reportError("Error reading file \""+dir+"freqCheck.frq"+"\"");
 		                System.exit(2);
 	                }
-		        	new SnpMarkerSet(dir+LDDB_TARGETS+".map").writeToFile(dir+LDDB_TARGETS+".info", SnpMarkerSet.HAPLOVIEW_INFO_FORMAT);
+		        	new SnpMarkerSet(dir+LDDB_TARGETS+".map").writeToFile(dir+LDDB_TARGETS+".info", SnpMarkerSet.HAPLOVIEW_INFO_FORMAT, log);
 		            log.report("  ...done");
 		            log.report("Computing LD for chr"+chr+"...", false, true);
 		            if (new File(HAPLOVIEW_LOC).exists()) {

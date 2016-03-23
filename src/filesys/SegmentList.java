@@ -3,8 +3,9 @@ package filesys;
 import java.io.PrintWriter;
 import java.io.Serializable;
 
-import cnv.manage.PlainTextExport;
+import filesys.PlainTextExport;
 import common.Files;
+import common.Logger;
 
 public class SegmentList implements Serializable, PlainTextExport {
 	public static final long serialVersionUID = 1L;
@@ -28,7 +29,7 @@ public class SegmentList implements Serializable, PlainTextExport {
 	}
 	
 	@Override
-	public void exportToText(String outputFile) {
+	public void exportToText(String outputFile, Logger log) {
         PrintWriter writer;
         
         writer = Files.getAppropriateWriter(outputFile);

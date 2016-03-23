@@ -182,7 +182,7 @@ public class NIEHS_SNPs {
 	        System.exit(2);
         }
 		
-        map.writeToFile(DIR+"plink.map", SnpMarkerSet.PLINK_MAP_FORMAT);
+        map.writeToFile(DIR+"plink.map", SnpMarkerSet.PLINK_MAP_FORMAT, log);
         try {
 	        writer = new PrintWriter(new FileWriter(DIR+"plink.ped"));
 	        for (int i = 0; i<samples.length; i++) {

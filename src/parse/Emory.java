@@ -8,7 +8,7 @@ import filesys.SnpMarkerSet;
 public class Emory {
 	public static final String[] HEADER_STARTER = {"IID", "LabID", "SEX", "Case"};
 	
-	public static void parse(String dir, String filename) {
+	public static void parse(String dir, String filename, Logger log) {
 		BufferedReader reader;
         PrintWriter writer;
         String[] line;
@@ -49,7 +49,7 @@ public class Emory {
         
         map = new SnpMarkerSet(markerNames);
         map.parseSNPlocations();
-        map.writeToFile(dir+ext.rootOf(filename)+".map", SnpMarkerSet.PLINK_MAP_FORMAT);
+        map.writeToFile(dir+ext.rootOf(filename)+".map", SnpMarkerSet.PLINK_MAP_FORMAT, log);
 	}
 	
 	public static void main(String[] args) {
@@ -70,7 +70,7 @@ public class Emory {
 	    String filename = "pooled.dat";
 
 	    try {
-		    parse(dir, filename);
+		    parse(dir, filename, new Logger());
 	    } catch (Exception e) {
 		    e.printStackTrace();
 	    }

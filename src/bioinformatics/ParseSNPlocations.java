@@ -911,14 +911,13 @@ public class ParseSNPlocations {
 			} else {
 				if (vcf != null) {
 				    long t = System.currentTimeMillis();
-				    log = new Logger();
 				    parseSNPlocations(dir+filename, vcf, unmappedvcf, mergedvcf, log, new ProgressMonitor(null, log));
 				    System.out.println("Took " + ext.getTimeElapsed(t));
 				} else {
 				    long t = System.currentTimeMillis();
-				    SnpMarkerSet map = new SnpMarkerSet(dir+filename, plinkFormat?SnpMarkerSet.PLINK_MAP_FORMAT:SnpMarkerSet.NAMES_ONLY, true, new Logger());
-				    map.parseSNPlocations(db, merge, new Logger());
-				    map.writeToFile(dir+ext.rootOf(filename)+"_newPositions.out", SnpMarkerSet.GENERIC_FORMAT);
+				    SnpMarkerSet map = new SnpMarkerSet(dir+filename, plinkFormat?SnpMarkerSet.PLINK_MAP_FORMAT:SnpMarkerSet.NAMES_ONLY, true, log);
+				    map.parseSNPlocations(db, merge, log);
+				    map.writeToFile(dir+ext.rootOf(filename)+"_newPositions.out", SnpMarkerSet.GENERIC_FORMAT, log);
 				    System.out.println("Took " + ext.getTimeElapsed(t));
 				}
 				
