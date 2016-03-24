@@ -233,8 +233,8 @@ public class DosageData implements Serializable {
 	    byte missingChr = 0;
 	    int missingPos = 0;
 	    char[] missingAlleles = null;
-	    float missingDosage = 0;
-	    float missingGeno = 0;
+	    float missingDosage = Float.NaN;
+	    float missingGeno = Float.NaN;
 	    
 	    String[][] dd1Ids = dd1.ids;
 	    String[][] dd2Ids = dd2.ids;
