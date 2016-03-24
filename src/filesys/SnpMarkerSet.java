@@ -49,6 +49,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	public static final int PLINK_MAP_FORMAT_WITHOUT_CM = 11;
 	public static final int INFO_FOR_BURDEN_TESTING = 12;
 	public static final int IMPUTE2_INFO_FORMAT = 13;
+    public static final int FREEZE5_FORMAT = 14;
 
 //	public static final String[][] NATURAL_PAIRINGS = {{"A", "T"}, {"C", "G"}};
 	public static final String[] NULL_ALLLES = {"0", "-"};
@@ -70,6 +71,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	                                        null, 
 	                                        {"Marker", "Chr", "Position", "REF", "ALT", "gene", "AAF", "Function"},
 	                                        {"snp_id", "rs_id", "position", "exp_freq_a1", "info", "certainty", "type", "info_type0", "concord_type0", "r2_type0"},
+	                                        null,
 	};
 
 	public static final String[][] HEADER_ELEMEMTS = {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS, Aliases.CENTIMORGANS, Aliases.ALLELES[0], Aliases.ALLELES[1]};
@@ -91,7 +93,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 										   {0, -1, -1, -1,  1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 										   {1,  0,  2, -1, -1, -1},
 										   {0,  1,  2, -1,  3,  4, 5, 6, 7},
-										   {1, CHR_INFO_IN_FILENAME,  2, -1, -1, -1, 3, 4, 5, 6, 7, 8, 9}
+										   {1, CHR_INFO_IN_FILENAME,  2, -1, -1, -1, 3, 4, 5, 6, 7, 8, 9},
+                                           {0,  1,  2, -1,  3,  4},
 										   // make sure to add an entry into HEADERS as well
 };
 	
@@ -1000,6 +1003,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			return INFO_FOR_BURDEN_TESTING;
 		} else if (filename.endsWith(".impute2_info") || filename.endsWith(".imputed_info")) {
 		    return IMPUTE2_INFO_FORMAT;
+        } else if (filename.endsWith(".freeze_info")) {
+            return FREEZE5_FORMAT;
 		} else {
 			System.err.println("Warning - format of file ('"+filename+"') could not be deduced solely by the filename extension");
 			return -1;

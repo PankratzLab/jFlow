@@ -1167,7 +1167,7 @@ public class CARe_Analyses {
 					dir = DRIVE_ROOT+"Analyses/ICAM/IBC/"+RACES[j][0]+"/"+STUDIES[i]+"/";
 					if (new File(dir+"abo_icam.dosage").exists()) {
 						log.report("Parsing abo/icam for "+STUDIES[i]+" "+RACES[j][0]);
-						new DosageData(dir+"abo_icam.dosage", dir+"abo_icam.ids.fam", dir+"abo_icam.pinfo", DosageData.PLINK_FORMAT, null, DRIVE_ROOT+"Analyses/ICAM/covarSNPs.txt", true, log).writeToFile(dir+"abo_icam.dosage.csv", dir+"abo_icam.dosage.pinfo", null, null, true, DosageData.PARAMETERS[DosageData.GWAF_FORMAT], log);
+						new DosageData(dir+"abo_icam.dosage", dir+"abo_icam.ids.fam", dir+"abo_icam.pinfo", DosageData.PLINK_FORMAT, null, DRIVE_ROOT+"Analyses/ICAM/covarSNPs.txt", true, log).writeToFile(dir+"abo_icam.dosage.csv", dir+"abo_icam.dosage.pinfo", null, null, true, true, DosageData.PARAMETERS[DosageData.GWAF_FORMAT], log);
 						
 						conditionals = new SnpMarkerSet(dir+"abo_icam.dosage.pinfo").getMarkerNames();
 						for (int k = 0; k < conditionals.length; k++) {

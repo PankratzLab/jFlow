@@ -25,7 +25,8 @@ public class DosageData implements Serializable {
 	public static final int IMPUTE2_DOSE_FORMAT = 6;
 	public static final int DATABASE_DOSE_FORMAT = 7;
 	public static final int BEAGLE_DOSE_FORMAT = 8; // not currently included in determineType
-	public static final int PLINK_BFILE_FORMAT = 9; // not currently included in determineType
+	public static final int PLINK_BFILE_FORMAT = 9;
+    public static final int FREEZE5_FORMAT = 10;
 
 	public static final int MACH_ID_TYPE = 0;
 	public static final int SEPARATE_FILE_ID_TYPE = 1;
@@ -58,6 +59,7 @@ public class DosageData implements Serializable {
 											  {FID_IID_TYPE,          3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0,  3,  4, -1,  2, 0, 6, 3, 3}, // .db.xln
 											  {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT,     1, 1, 0,  1,  2, -1, -1, 2, 1, 4, 4}, // .dose (BEAGLE)
 											  {FID_IID_TYPE,          3, PLINK_BINARY_FORMAT},
+											  {IID_TYPE,              1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // freeze5
 	};
 
 	private SnpMarkerSet markerSet;
@@ -133,7 +135,7 @@ public class DosageData implements Serializable {
 		}
 	}
 	
-	public static DosageData loadPlinkBinary(String dir, String plinkRoot, String regionsToUseFile, String markersToUseFile, String markerNamePrepend) {
+	public static DosageData loadPlinkBinary(String dir, String plinkRoot, String regionsToUseFile, String markersToUseFile, String markerNamePrepend, boolean loadMissingAsNaN) {
 	    DosageData dd = new DosageData();
 	    
 	    dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false, new int[]{0, 1, 2, 3, 4, 5}, false);
@@ -146,7 +148,7 @@ public class DosageData implements Serializable {
 	    String[][] bimData = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".bim", false, new int[]{0, 1, 2, 3, 4, 5}, false);
 	    
 	    for (int i = 0; i < bimData.length; i++) {
-	        markerNames[i] = (null == markerNamePrepend ? "" : markerNamePrepend) + bimData[i][1];
+	        markerNames[i] = (null == markerNamePrepend ? "" : (markerNamePrepend.endsWith("_") ? markerNamePrepend : markerNamePrepend + "_")) + bimData[i][1];
 	        dd.chrs[i] = decodeChr(bimData[i][0]);
 	        dd.positions[i] = Integer.parseInt(bimData[i][3]);
 	        dd.alleles[i][0] = bimData[i][4].charAt(0);
@@ -188,8 +190,14 @@ public class DosageData implements Serializable {
                             sampGeno[idInd] = genotypes[g];
                         }
                     }
-                    
                     dd.dosageValues[i] = Array.toFloatArray(sampGeno);
+                    if (loadMissingAsNaN) {
+                        for (int n = 0; n < dd.dosageValues[i].length; n++) {
+                            if (dd.dosageValues[i][n] == -1) {
+                                dd.dosageValues[i][n] = Float.NaN;
+                            }
+                        }
+                    }
                 }
             }
             
@@ -462,7 +470,7 @@ public class DosageData implements Serializable {
 
 	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, String regionsToUseFile, String markersToUseFile, String markerNamePrepend, boolean verbose, Logger log) {
 	    if (parameters[2] == PLINK_BINARY_FORMAT) {
-	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), ext.rootOf(dosageFile, true), regionsToUseFile, markersToUseFile, markerNamePrepend);
+	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), ext.rootOf(dosageFile, true), regionsToUseFile, markersToUseFile, markerNamePrepend, true);
 	        this.alleles = dd.alleles;
 	        this.chrs = dd.chrs;
 	        this.positions = dd.positions;
@@ -642,14 +650,14 @@ public class DosageData implements Serializable {
 					}
 					if (parameters[3] == 1) {
 						for (int j = 0; j < ids.length; j++) {
-							dosageValues[index][j] = Float.parseFloat(line[parameters[1]+j]);
+							dosageValues[index][j] = ext.isMissingValue(line[parameters[1]+j]) ? Float.NaN : Float.parseFloat(line[parameters[1]+j]);
 						}
 					} else {
 						for (int j = 0; j < ids.length; j++) {
-							genotypeProbabilities[index][j][0] = Float.parseFloat(line[parameters[1]+j*parameters[3]+0]);
-							genotypeProbabilities[index][j][1] = Float.parseFloat(line[parameters[1]+j*parameters[3]+1]);
+							genotypeProbabilities[index][j][0] = ext.isMissingValue(line[parameters[1]+j*parameters[3]+0]) ? Float.NaN : Float.parseFloat(line[parameters[1]+j*parameters[3]+0]);
+							genotypeProbabilities[index][j][1] = ext.isMissingValue(line[parameters[1]+j*parameters[3]+1]) ? Float.NaN : Float.parseFloat(line[parameters[1]+j*parameters[3]+1]);
 							if (parameters[3] == 3) {
-								genotypeProbabilities[index][j][2] = Float.parseFloat(line[parameters[1]+j*parameters[3]+2]);
+								genotypeProbabilities[index][j][2] = ext.isMissingValue(line[parameters[1]+j*parameters[3]+2]) ? Float.NaN : Float.parseFloat(line[parameters[1]+j*parameters[3]+2]);
 								if (Math.abs((1 - genotypeProbabilities[index][j][1] - genotypeProbabilities[index][j][0]) - genotypeProbabilities[index][j][2]) > 0.01) {
 									String msg = "Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "+ids[j][0]+","+ids[j][1]+" at marker "+markerNames[i]+" which is line "+(i+1+parameters[4])+" of "+dosageFile+": "+line[parameters[1]+j*parameters[3]+0]+" "+line[parameters[1]+j*parameters[3]+1]+" "+line[parameters[1]+j*parameters[3]+2];
 		                            log.reportError(msg);
@@ -673,7 +681,7 @@ public class DosageData implements Serializable {
 						        continue;
 						    }
 						    index++;
-							dosageValues[index][i] = Float.parseFloat(line[parameters[1]+j]);
+							dosageValues[index][i] = ext.isMissingValue(line[parameters[1]+j]) ? Float.NaN : Float.parseFloat(line[parameters[1]+j]);
 						}
 					} else {
 					    int index = -1;
@@ -682,10 +690,10 @@ public class DosageData implements Serializable {
 						        continue;
 						    }
 						    index++;
-							genotypeProbabilities[index][i][0] = Float.parseFloat(line[parameters[1]+j*parameters[3]+0]);
-							genotypeProbabilities[index][i][1] = Float.parseFloat(line[parameters[1]+j*parameters[3]+1]);
+							genotypeProbabilities[index][i][0] = ext.isMissingValue(line[parameters[1]+j*parameters[3]+0]) ? Float.NaN : Float.parseFloat(line[parameters[1]+j*parameters[3]+0]);
+							genotypeProbabilities[index][i][1] = ext.isMissingValue(line[parameters[1]+j*parameters[3]+1]) ? Float.NaN : Float.parseFloat(line[parameters[1]+j*parameters[3]+1]);
 							if (parameters[3] == 3) {
-								genotypeProbabilities[index][i][2] = Float.parseFloat(line[parameters[1]+j*parameters[3]+2]);
+								genotypeProbabilities[index][i][2] = ext.isMissingValue(line[parameters[1]+j*parameters[3]+2]) ? Float.NaN : Float.parseFloat(line[parameters[1]+j*parameters[3]+2]);
 								if (Math.abs((1 - genotypeProbabilities[index][i][1] - genotypeProbabilities[index][i][0]) - genotypeProbabilities[index][i][2]) > 0.01) {
 									String msg = "Error: P(BB) does not equal [ 1 - P(AA) - P(AB) ] for individual "+ids[i][0]+","+ids[i][1]+" at marker "+markerNames[j]+" which is line "+(i+1+parameters[4])+" of "+dosageFile+": "+line[parameters[1]+j*parameters[3]+0]+" "+line[parameters[1]+j*parameters[3]+1]+" "+line[parameters[1]+j*parameters[3]+2];
 									log.reportError(msg);
@@ -699,7 +707,7 @@ public class DosageData implements Serializable {
 			markerNames = markerSet.getMarkerNames();
 			if (markerNamePrepend != null && !"".equals(markerNamePrepend)) {
 			    for (int i = 0; i < markerNames.length; i++) {
-			        markerNames[i] = markerNamePrepend + markerNames[i];
+			        markerNames[i] = (markerNamePrepend.endsWith("_") ? markerNamePrepend : markerNamePrepend + "_") + markerNames[i];
 			    }
 			    markerSet.convertMarkerNamesToRSnumbers(markerNames, true, log); // resets/recreates the SnpMarkerSet's internal RSnumber/non-RS marker lists
 			}
@@ -791,10 +799,10 @@ public class DosageData implements Serializable {
 	}
 	
 	public void writeToFile(String filename, String mapOut, String extractMarkers, String regionsFile, int format, Logger log) {
-		writeToFile(filename, mapOut, extractMarkers, regionsFile, false, format, log);
+		writeToFile(filename, mapOut, extractMarkers, regionsFile, false, true, format, log);
 	}	
 	
-	public void writeToFile(String filename, String mapOut, String extractMarkers, String regionsFile, boolean allowIncompleteList, int format, Logger log) {
+	public void writeToFile(String filename, String mapOut, String extractMarkers, String regionsFile, boolean allowIncompleteList, boolean writeNaNsAsPeriods, int format, Logger log) {
         String[] markersToKeep = extractMarkers == null ? null : HashVec.loadFileToStringArray(extractMarkers, false, new int[] {0}, false);
         int[][] regions;
         if (regionsFile == null) {
@@ -806,14 +814,14 @@ public class DosageData implements Serializable {
                 regions[i] = Positions.parseUCSClocation(rgns[i]);
             }
         }
-        writeToFile(filename, mapOut, markersToKeep, regions, allowIncompleteList, PARAMETERS[format], log);
+        writeToFile(filename, mapOut, markersToKeep, regions, allowIncompleteList, writeNaNsAsPeriods, PARAMETERS[format], log);
 	}
 	
-	public void writeToFile(String filename, String mapOut, boolean allowIncompleteList, int[] parameters, Logger log) {
-	    writeToFile(filename, mapOut, null, null, allowIncompleteList, parameters, log);
+	public void writeToFile(String filename, String mapOut, boolean allowIncompleteList, boolean writeNaNsAsPeriods, int[] parameters, Logger log) {
+	    writeToFile(filename, mapOut, null, null, allowIncompleteList, writeNaNsAsPeriods, parameters, log);
 	}
 	
-    public void writeToFile(String filename, String mapOut, String[] markersToKeep, int[][] regionsToKeep, boolean allowIncompleteList, int[] parameters, Logger log) {
+    public void writeToFile(String filename, String mapOut, String[] markersToKeep, int[][] regionsToKeep, boolean allowIncompleteList, boolean writeNaNsAsPeriods, int[] parameters, Logger log) {
 		PrintWriter writer;
 		String[] line, markerNames;
 		String delimiter;
@@ -947,7 +955,7 @@ public class DosageData implements Serializable {
 						
 						if (parameters[3] == 1) {
 							for (int j = 0; j < ids.length; j++) {
-								writer.print(delimiter+ext.formDeci(dosageValues[i][j], parameters[13], parameters[12] == parameters[13]));
+								writer.print(delimiter + (Float.isNaN(dosageValues[i][j]) ? (writeNaNsAsPeriods ? "." : Float.NaN) : ext.formDeci(dosageValues[i][j], parameters[13], parameters[12] == parameters[13])));
 							}
 						} else {
 							if (genotypeProbabilities == null) {
@@ -955,13 +963,13 @@ public class DosageData implements Serializable {
 								System.exit(1);
 							}
 							for (int j = 0; j < ids.length; j++) {
-								writer.print(delimiter+ext.formDeci(genotypeProbabilities[i][j][0], parameters[13], parameters[12] == parameters[13]));
-								writer.print(delimiter+ext.formDeci(genotypeProbabilities[i][j][1], parameters[13], parameters[12] == parameters[13]));
+								writer.print(delimiter + (Float.isNaN(genotypeProbabilities[i][j][0]) ? (writeNaNsAsPeriods ? "." : Float.NaN) : ext.formDeci(genotypeProbabilities[i][j][0], parameters[13], parameters[12] == parameters[13])));
+								writer.print(delimiter + (Float.isNaN(genotypeProbabilities[i][j][1]) ? (writeNaNsAsPeriods ? "." : Float.NaN) : ext.formDeci(genotypeProbabilities[i][j][1], parameters[13], parameters[12] == parameters[13])));
 								if (parameters[3] == 3) {
 									if (genotypeProbabilities[i][j].length > 2) {
-										writer.print(delimiter+ext.formDeci(genotypeProbabilities[i][j][2], parameters[13], parameters[12] == parameters[13]));
+										writer.print(delimiter + (Float.isNaN(genotypeProbabilities[i][j][2]) ? (writeNaNsAsPeriods ? "." : Float.NaN) : ext.formDeci(genotypeProbabilities[i][j][2], parameters[13], parameters[12] == parameters[13])));
 									} else {
-										writer.print(delimiter+ext.formDeci(1 - genotypeProbabilities[i][j][1] - genotypeProbabilities[i][j][0], parameters[13], parameters[12] == parameters[13]));
+										writer.print(delimiter + (Float.isNaN(genotypeProbabilities[i][j][0]) || Float.isNaN(genotypeProbabilities[i][j][1]) ? (writeNaNsAsPeriods ? "." : Float.NaN) : ext.formDeci(1 - genotypeProbabilities[i][j][1] - genotypeProbabilities[i][j][0], parameters[13], parameters[12] == parameters[13])));
 									}
 								}
 							}
@@ -987,19 +995,19 @@ public class DosageData implements Serializable {
 					if (parameters[3] == 1) {
 						for (int j = 0; j < markerNames.length; j++) {
 							if ((markersToKeep == null && regionsToKeep == null) || keeps.contains(markerNames[j])) {
-								writer.print(delimiter+ext.formDeci(dosageValues[j][i], parameters[13], parameters[12] == parameters[13]));
+								writer.print(delimiter + (Float.isNaN(dosageValues[j][i]) ? (writeNaNsAsPeriods ? "." : Float.NaN) : ext.formDeci(dosageValues[j][i], parameters[13], parameters[12] == parameters[13])));
 							}
 						}
 					} else {
 						for (int j = 0; j < markerNames.length; j++) {
 							if ((markersToKeep == null && regionsToKeep == null) || keeps.contains(markerNames[j])) {
-								writer.print(delimiter+ext.formDeci(genotypeProbabilities[j][i][0], parameters[13], parameters[12] == parameters[13]));
-								writer.print(delimiter+ext.formDeci(genotypeProbabilities[j][i][1], parameters[13], parameters[12] == parameters[13]));
+								writer.print(delimiter + (Float.isNaN(genotypeProbabilities[j][i][0]) ? (writeNaNsAsPeriods ? "." : Float.NaN) : ext.formDeci(genotypeProbabilities[j][i][0], parameters[13], parameters[12] == parameters[13])));
+								writer.print(delimiter + (Float.isNaN(genotypeProbabilities[j][i][1]) ? (writeNaNsAsPeriods ? "." : Float.NaN) : ext.formDeci(genotypeProbabilities[j][i][1], parameters[13], parameters[12] == parameters[13])));
 								if (parameters[3] == 3) {
 									if (genotypeProbabilities[j][i].length > 2) {
-										writer.print(delimiter+ext.formDeci(genotypeProbabilities[j][i][2], parameters[13], parameters[12] == parameters[13]));
+										writer.print(delimiter + (Float.isNaN(genotypeProbabilities[j][i][2]) ? (writeNaNsAsPeriods ? "." : Float.NaN) : ext.formDeci(genotypeProbabilities[j][i][2], parameters[13], parameters[12] == parameters[13])));
 									} else {
-										writer.print(delimiter+ext.formDeci(1 - genotypeProbabilities[j][i][1] - genotypeProbabilities[j][i][0], parameters[13], parameters[12] == parameters[13]));
+										writer.print(delimiter + (Float.isNaN(genotypeProbabilities[j][i][0]) || Float.isNaN(genotypeProbabilities[j][i][1]) ? (writeNaNsAsPeriods ? "." : Float.NaN) : ext.formDeci(1 - genotypeProbabilities[j][i][1] - genotypeProbabilities[j][i][0], parameters[13], parameters[12] == parameters[13])));
 									}
 								}
 							}
@@ -1162,6 +1170,8 @@ public class DosageData implements Serializable {
 			return DATABASE_DOSE_FORMAT;
 		} else if (dosageFile.endsWith(".bed")) {
 		    return PLINK_BFILE_FORMAT;
+        } else if (dosageFile.endsWith(".frz.xln")) {
+            return FREEZE5_FORMAT;
 		} else {
 			System.err.println("Error - format could not be deduced solely by the filename extension");
 			return -1;
