@@ -30,6 +30,7 @@ import common.ext;
 import common.PSF.Ext;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.CentroidBuilder;
+import cnv.analysis.Mosaicism;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -364,7 +365,8 @@ public class BamImport {
 					LrrSd.init(proj, null, null, numthreads);
 					proj.INTENSITY_PC_NUM_COMPONENTS.setValue(proj.getSamples().length - 1);
 					proj.saveProperties();
-					generatePCFile(proj, markerTypes, numthreads);
+					Mosaicism.findOutliers(proj, numthreads);
+					generatePCFiles(proj, markerTypes, numthreads);
 					log.reportTimeInfo(analysisSet.getLoci().length + " segments to pile");
 					generateGCModel(proj, analysisSet, referenceGenome, 50);
 					generateGCModel(proj, analysisSet, referenceGenome, 100);
@@ -427,7 +429,7 @@ public class BamImport {
 		}
 	}
 
-	private static void generatePCFile(Project proj, ArrayList<MarkerFileType> types, int numthreads) {
+	private static void generatePCFiles(Project proj, ArrayList<MarkerFileType> types, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
 		proj.LRRSD_CUTOFF.setValue(.40);
 		String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
@@ -442,7 +444,7 @@ public class BamImport {
 			String markerfile = proj.PROJECT_DIRECTORY.getValue() + base + "_inputMarkers.txt";
 			Files.writeList(HashVec.loadFileToStringArray(type.getFile(), true, new int[] { 0 }, true), markerfile);
 			proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
-			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, proj.getSamples().length - 1, base, false, true, 0, null, null, null, false, false, false, true, false, null, -1, -1);
+			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null, null, null, false, false, false, true, false, null, -1, -1);
 		}
 	}
 
@@ -533,12 +535,8 @@ public class BamImport {
 		Files.writeList(Array.toStringArray(variantSiteMarkers), variantSiteTargetFile);
 		markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.VARIANT_SITE, variantSiteTargetFile));
 
-		ArrayList<String> all = new ArrayList<String>();
-		all.addAll(onTMarkers);
-		all.addAll(offTMarkers);
-		all.addAll(variantSiteMarkers);
-
-		Files.writeList(Array.toStringArray(all), allMarkerFile);
+	
+		Files.writeList(HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true, new int[] { 0 }, true), allMarkerFile);
 		markerTypes.add(new MarkerFileType(null, allMarkerFile));
 
 		Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(), proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());

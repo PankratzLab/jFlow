@@ -27,6 +27,10 @@ public class Mosaicism {
 	public static final double UPPER_BOUND = 0.85;
 
 	public static void findOutliers(Project proj) {
+		findOutliers(proj, -1);
+	}
+
+	public static void findOutliers(Project proj, int numthreads) {
 		PrintWriter writer;
 		String[] samples;
 		int chr;
@@ -84,7 +88,7 @@ public class Mosaicism {
 //			samples = new String[] { "7355066051_R03C01" };
 
 			MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped, chrBoundaries, markerSet, indicesByChr);
-			WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer, proj.NUM_THREADS.getValue(), 2, proj.getLog());
+			WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer, numthreads > 0 ? numthreads : proj.NUM_THREADS.getValue(), 2, proj.getLog());
 			int index =0;
 			long timePer = System.currentTimeMillis();
 			long time = System.currentTimeMillis();
@@ -226,8 +230,7 @@ public class Mosaicism {
 					int bafSize = bafAl.size();
 					int lrrSize = lrrAl.size();
 					float[] bafTmp = Array.toFloatArray(bafAl);
-					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5) + "\t" + mosaicMetrics.getPercentBandMosaic() + "\t" + mosaicMetrics.getMosaiceMetric() + "\t" + mosaicMetrics.getNearestNeighborScore();
-					// proj.getLog().reportTimeElapsed(time);
+					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5) + "\t" + mosaicMetrics.getPercentBandMosaic() + "\t" + mosaicMetrics.getBpWeightedAverage() + "\t" + mosaicMetrics.getMosaicRegionsDetected();
 					results.add(result);
 				}
 			}
@@ -237,14 +240,21 @@ public class Mosaicism {
 
 	private static class MosaicMetric {
 		private double percentBandMosaic;
-		private double mosaiceMetric;
-		private double nearestNeighborScore;
+		private double bpWeightedAverage;
+		private int mosaicRegionsDetected;
 
-		public MosaicMetric(double percentBandMosaic, double mosaiceMetric, double nearestNeighborScore) {
+		public MosaicMetric(double percentBandMosaic, double mosaiceMetric,int mosaicRegionsDetected) {
 			super();
 			this.percentBandMosaic = percentBandMosaic;
-			this.mosaiceMetric = mosaiceMetric;
-			this.nearestNeighborScore = nearestNeighborScore;
+			this.bpWeightedAverage = mosaiceMetric;
+		}
+
+		private int getMosaicRegionsDetected() {
+			return mosaicRegionsDetected;
+		}
+
+		private void setMosaicRegionsDetected(int mosaicRegionsDetected) {
+			this.mosaicRegionsDetected = mosaicRegionsDetected;
 		}
 
 		private double getPercentBandMosaic() {
@@ -255,71 +265,42 @@ public class Mosaicism {
 			this.percentBandMosaic = percentBandMosaic;
 		}
 
-		private double getMosaiceMetric() {
-			return mosaiceMetric;
+		private double getBpWeightedAverage() {
+			return bpWeightedAverage;
 		}
 
-		private void setMosaiceMetric(double mosaiceMetric) {
-			this.mosaiceMetric = mosaiceMetric;
-		}
-
-		private double getNearestNeighborScore() {
-			return nearestNeighborScore;
-		}
-
-		private void setNearestNeighborScore(double nearestNeighborScore) {
-			this.nearestNeighborScore = nearestNeighborScore;
+		private void setBpWeightedAverage(double bpWeightedAverage) {
+			this.bpWeightedAverage = bpWeightedAverage;
 		}
 
 	}
 
 	private static MosaicMetric getMosiacMetric(MosaicismDetect md, Segment seg, Logger log) {
 		LocusSet<MosaicRegion> mosSet = md.callMosaic(seg, true);
-		MosaicMetric mosaicMetric = new MosaicMetric(Double.NaN, Double.NaN, Double.NaN);
-		double percentMos = Double.NaN;
+		MosaicMetric mosaicMetric = new MosaicMetric(-1, -1, -1);
 		if (mosSet.getLoci().length != 1 || !seg.equals(mosSet.getLoci()[0])) {
 			log.reportTimeError("Mosaic caller not in force call mode");
 			log.reportTimeError(seg.getUCSClocation() + " went in, and " + mosSet.getLoci()[0].getUCSClocation() + " came out");
-
-			mosSet = null;
 		} else if (seg.getChr() < 23) {// can't call chr23 yet
-			percentMos = 100 * mosSet.getLoci()[0].getScore();
+			mosaicMetric.setPercentBandMosaic(100 * mosSet.getLoci()[0].getScore());
 		}
-		mosaicMetric.setPercentBandMosaic(percentMos);
 
 		LocusSet<MosaicRegion> tmp = md.callMosaic(seg, false);
+		mosaicMetric.setMosaicRegionsDetected(tmp.getLoci().length);
 		if (tmp.getLoci().length < 1 || seg.getChr() >= 23) {
 
 		} else {
-			double[] metrics = new double[] { 0, 0 };
-			// double maxBpMetric = -1 * Double.MAX_VALUE;
-			int numCounted = 0;
-			int numTotalMarkers = 0;
+			double bpWeightedAverage = 0;
+			int numRegions =0;
 			for (int i = 0; i < tmp.getLoci().length; i++) {
 				if (tmp.getLoci()[i].getNumMarkers() > 2 * md.getMovingFactor()) {
-					numCounted++;
-					double percentHere = (double) tmp.getLoci()[i].getSize() / seg.getSize();
-					numTotalMarkers += tmp.getLoci()[i].getNumMarkers();
-					//maxBpMetric = tmp.getLoci()[i].getBpWeightedScore();
-					metrics[0] += Math.log10((double) tmp.getLoci()[i].getNumMarkers() * percentHere * tmp.getLoci()[i].getBpWeightedScore());
-					metrics[1] += tmp.getLoci()[i].getNearestStateScore();
+					bpWeightedAverage += (double) tmp.getLoci()[i].getSize() * tmp.getLoci()[i].getScore();
+					numRegions++;
 				}
 			}
-			int bpCovered = (int) tmp.getBpCovered();
-			double percentCovered = (double) bpCovered / seg.getSize();
-			double density = 0;
-			if (numTotalMarkers > 0) {
-				density = (double) numTotalMarkers / bpCovered;
-				density = density * 1000;
-			}
-			metrics[0] = (double) metrics[0] * percentCovered;
-			// * density;
-			if (numCounted > 0) {
-				metrics[1] = (double) metrics[1] / numCounted;
-			}
-			mosaicMetric.setMosaiceMetric(metrics[0]);
-			mosaicMetric.setNearestNeighborScore(metrics[1]);
-
+			bpWeightedAverage = (double) bpWeightedAverage / seg.getSize();
+			mosaicMetric.setMosaicRegionsDetected(numRegions);
+			mosaicMetric.setBpWeightedAverage(bpWeightedAverage);
 		}
 		return mosaicMetric;
 	}
@@ -470,15 +451,18 @@ public class Mosaicism {
 		String arms = "MosaicArms.txt";
 		Project proj;
 		boolean check = false;
+		int numthreads = 24;
 
 		String usage = "\n"+
-		"filesys.ParseIllumina requires 0-1 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
-		"   (2) check for overlap between mosaic arms and CNV calls in the first CNV file listed in the project file (i.e. -check (not the default))\n"+
-		"   (3) mosaic arms file (i.e. arms=MosaicArms.txt (default))\n" + 
-		"";
+				"filesys.ParseIllumina requires 0-1 arguments\n" +
+				"   (1) project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" +
+				"   (2) check for overlap between mosaic arms and CNV calls in the first CNV file listed in the project file (i.e. -check (not the default))\n" +
+				"   (3) mosaic arms file (i.e. arms=MosaicArms.txt (default))\n" +
+				PSF.Ext.getNumThreadsCommand(4, numthreads) +
 
-		for (int i = 0; i<args.length; i++) {
+				"";
+
+		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
 				System.err.println(usage);
 		        return;
@@ -490,6 +474,9 @@ public class Mosaicism {
 			    numArgs--;
 			} else if (args[i].startsWith("-check")) {
 				check = true;
+				numArgs--;
+			}else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numthreads = ext.parseIntArg(args[i]);
 				numArgs--;
 			}
 		}

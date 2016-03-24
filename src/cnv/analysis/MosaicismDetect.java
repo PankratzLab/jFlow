@@ -268,14 +268,14 @@ public class MosaicismDetect {
 			double[] t_tsMeanVar = getMeanVar(autosomalBafs, r1, r2);
 			double[] t_sMeanVar = getMeanVar(autosomalBafs, r2, 1);
 			means[0] = zero_tsMeanVar[0];
-			variances[0] = Double.isFinite(zero_tsMeanVar[1]) ? zero_tsMeanVar[1] : 1;
+			variances[0] = Double.isFinite(zero_tsMeanVar[1]) && zero_tsMeanVar[1] > 0 ? zero_tsMeanVar[1] : 1;
 			means[1] = t_tsMeanVar[0];
-			variances[1] = Double.isFinite(t_tsMeanVar[1]) ? t_tsMeanVar[1] : 1;
+			variances[1] = Double.isFinite(t_tsMeanVar[1]) && t_tsMeanVar[1] > 0 ? t_tsMeanVar[1] : 1;
 			means[2] = t_sMeanVar[0];
-			variances[2] = Double.isFinite(t_sMeanVar[1]) ? t_sMeanVar[1] : 1;
+			variances[2] = Double.isFinite(t_sMeanVar[1]) && t_sMeanVar[1] > 0 ? t_sMeanVar[1] : 1;
 
-			if (!Double.isFinite(zero_tsMeanVar[1] + t_tsMeanVar[1] + t_sMeanVar[1])) {
-				proj.getLog().reportTimeWarning("Sample " + sample + " had non-finite baf variance, setting to 1");
+			if (!Double.isFinite(zero_tsMeanVar[1] + t_tsMeanVar[1] + t_sMeanVar[1]) || zero_tsMeanVar[1] <= 0 || t_tsMeanVar[1] <= 0 || t_sMeanVar[1] <= 0) {
+				proj.getLog().reportTimeWarning("Sample " + sample + " had non-finite or 0 baf variance, setting to 1");
 			}
 		}
 
