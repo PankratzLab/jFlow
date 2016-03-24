@@ -435,10 +435,10 @@ public class MergeExtractPipeline {
                 outM = getOutputMapFile(regionLabels[i]);
                 (new File(outD)).mkdirs();
                 (new File(outM)).mkdirs();
-                dd1.writeToFile(outD, outM, markers, new int[][]{regions[i]}, true, DosageData.PARAMETERS[outFormat], log);
+                dd1.writeToFile(outD, outM, markers, new int[][]{regions[i]}, true, true, DosageData.PARAMETERS[outFormat], log);
             }
         } else {
-            dd1.writeToFile(getOutputDataFile(), getOutputMapFile(), markers, regions, true, DosageData.PARAMETERS[outFormat], log);
+            dd1.writeToFile(getOutputDataFile(), getOutputMapFile(), markers, regions, true, true, DosageData.PARAMETERS[outFormat], log);
         }
         
         System.gc();
