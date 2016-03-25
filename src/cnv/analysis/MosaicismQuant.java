@@ -211,7 +211,7 @@ public class MosaicismQuant implements Calcfc {
 		}
 		SampleMosiacBase[] controls = new SampleMosiacBase[numControls];
 		int sampleIndex = ext.indexOfStr(sampleName, proj.getSamples());
-		SampleQC sampleQC = SampleQC.loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, new String[] { qcMetric }, true);
+		SampleQC sampleQC = SampleQC.loadSampleQC(proj, LrrSd.SAMPLE_COLUMN, new String[] { qcMetric }, true, null);
 		double[] data = sampleQC.getDataFor(qcMetric);
 		int[] sorted = Sort.quicksort(data);
 		int sampleSortIndex = ext.indexOfStr(sampleIndex + "", Array.toStringArray(sorted));

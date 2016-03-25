@@ -421,7 +421,7 @@ public class Plink {
 				for (int i = 0; i < 2; i++) {
 					if (!in.containsKey(line[i*2+0]+"\t"+line[i*2+1]) && !out.containsKey(line[i*2+0]+"\t"+line[i*2+1])) {
 						if (famFile != null && numExtras < 20) {
-							log.reportError("Warning - indiviudal '"+line[i*2+0]+"-"+line[i*2+1]+"' was in the .genome file, but not listed in the .fam file; adding...");
+							log.reportError("Warning - individual '"+line[i*2+0]+"-"+line[i*2+1]+"' was in the .genome file, but not listed in the .fam file; adding...");
 						}
 						in.put(line[i*2+0]+"\t"+line[i*2+1], in.size()+"");
 						numExtras++;
@@ -471,9 +471,7 @@ public class Plink {
 							writer.println("\t"+fidIid1+"\t.\t.");
 						} else {
 							if (metrics[0].equals(".") || metrics[2].equals(".") || (Double.parseDouble(metrics[0]) == Double.parseDouble(metrics[2]))) {
-								if (metrics[1].equals(".") || metrics[3].equals(".") || (Double.parseDouble(metrics[1]) == Double.parseDouble(metrics[3]))) {
-									sel = 0;
-								} else if (Double.parseDouble(metrics[1]) < Double.parseDouble(metrics[3])){
+								if (metrics[1].equals(".") || metrics[3].equals(".") || (Double.parseDouble(metrics[1]) <= Double.parseDouble(metrics[3]))) {
 									sel = 0;
 								} else {
 									sel = 1;
@@ -582,9 +580,8 @@ public class Plink {
 				int set = 1;
 				for (Set<String> dupeSet : duplicates) {
 					for (String fidIid : dupeSet) {
-						String iid = fidIid.split("[\\s]+")[1];
-						writerSet.println(iid + "\t" + set);
-						writer.print(iid);
+						writerSet.println(fidIid + "\t" + set);
+						writer.print(fidIid);
 						writer.print("\t");
 					}
 					writer.println();
