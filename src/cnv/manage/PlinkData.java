@@ -704,7 +704,7 @@ public class PlinkData {
 				line = temp.split(ext.determineDelimiter(temp));
 				if (line.length < 7) {
 					proj.message("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.PEDIGREE_FILENAME.getValue()+"'.\n"+
-								"  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA\n"+
+								"  Pedigree files require 7 or 8 columns with no header: FID IID FA MO SEX PHENO DNA (MZTWINID)\n"+
 								"  where DNA is the sample name associated with the genotypic data (see the "+proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory for examples)");
 					reader.close();
 					writer.close();
@@ -1574,7 +1574,7 @@ public class PlinkData {
 					// then do nothing
 				} else if (line.length < 7) {
 					log.reportError("Error - starting at line "+(count-1)+(line.length<3?"":" (individual "+line[0]+"-"+line[1]+")")+" there are only "+line.length+" columns in pedigree file '"+proj.PEDIGREE_FILENAME.getValue()+"'.");
-					log.reportError("  Pedigree files require 7 columns with no header: FID IID FA MO SEX PHENO DNA");
+					log.reportError("  Pedigree files require 7 or 8 columns with no header: FID IID FA MO SEX PHENO DNA (MZTWINID)");
 					log.reportError("  where DNA is the sample name associated with the genotypic data (see the "+proj.SAMPLE_DIRECTORY.getValue(false, true)+" directory for examples)");
 					reader.close();
 					writer.flush();
