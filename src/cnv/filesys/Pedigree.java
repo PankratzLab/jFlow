@@ -311,7 +311,7 @@ public class Pedigree extends FamilyStructure {
 	}
     
 	public static void build(Project proj, String newPedFile, boolean overwrite) {
-	    // FID IID FAID MOID SEX PHENO DNA
+	    // FID IID FAID MOID SEX PHENO DNA MZTWINID
 	    PrintWriter writer;
 	    String[] samples;
 	    SampleData sd = null;
@@ -352,7 +352,7 @@ public class Pedigree extends FamilyStructure {
 	            sexCode = "" + sd.getSexForIndividual(samples[i]); // putative sex
 	        }
 	        sexCode = "" + SexChecks.mapEstimatedSexToSex(sexCode);
-	        writer.println(ids[1] + "\t0\t0\t" + sexCode + "\t1\t" + ids[0]);
+	        writer.println(ids[1] + "\t0\t0\t" + sexCode + "\t1\t" + ids[0] + "\t.");
 	    }
 	    writer.flush();
 	    writer.close();

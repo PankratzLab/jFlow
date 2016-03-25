@@ -46,6 +46,7 @@ public class FamilyStructure {
 	protected byte[] genders;
 	protected byte[] affections;
 	protected String[] dnas;
+	protected String[] mzTwinIds;
 	protected Logger log;
 	
 	public FamilyStructure(String[][] ids, byte[] genders, byte[] affections) {
@@ -53,14 +54,15 @@ public class FamilyStructure {
 	}
 	
 	public FamilyStructure(String[][] ids, byte[] genders, byte[] affections, String[] dnas) {
-	    this(ids, genders, affections, dnas, new Logger());
+	    this(ids, genders, affections, dnas, new String[ids.length], new Logger());
 	}
 	
-	public FamilyStructure(String[][] ids, byte[] genders, byte[] affections, String[] dnas, Logger log) {
+	public FamilyStructure(String[][] ids, byte[] genders, byte[] affections, String[] dnas, String[] mzTwinIds, Logger log) {
 		this.ids = ids;
 		this.genders = genders;
 		this.affections = affections;
 		this.dnas = dnas;
+		this.mzTwinIds = mzTwinIds;
 		this.log = log;
 	}
 	
@@ -88,6 +90,7 @@ public class FamilyStructure {
 			genders = new byte[count];
 			affections = new byte[count];
 			dnas = loadDNAs ? new String[count] : null;
+			mzTwinIds = new String[count];
 			for (int i = 0; i < count; i++) {
 				line = reader.readLine().trim().split("[\\s]+");
 				ids[i] = new String[] {line[0], line[1], line[2], line[3]};
@@ -99,6 +102,9 @@ public class FamilyStructure {
 				affections[i] = ext.isMissingValue(line[5]) ? FamilyStructure.MISSING_VALUE_BYTE : Byte.parseByte(line[5]); 
 				if (loadDNAs) {
 					dnas[i] = line[6]; 
+				}
+				if(line.length > 7){
+					mzTwinIds[i] = ext.isMissingValue(line[7]) ? null : line[7];
 				}
 			}
 			reader.close();
@@ -180,6 +186,14 @@ public class FamilyStructure {
 	
 	public String[] getDnas() {
 		return dnas;
+	}
+	
+	public String[] getMzTwinIds() {
+		return mzTwinIds;
+	}
+	
+	public String getMzTwinId(int index) {
+		return mzTwinIds[index];
 	}
 	
 	public String getIndividualHeader(int index, boolean displayDNA) {
