@@ -560,9 +560,8 @@ public class PennCNVPrep {
 			}
 			int[] sex = getSampleSex(proj);
 			if (sex == null && proj.getAutosomalMarkers().length != proj.getMarkerNames().length) {
-
-				proj.getLog().reportError("Error - missing sex codes");
-				return;
+				proj.getLog().reportTimeWarning("missing sex codes");
+				//return;
 			}
 			if (markerFile == null) {
 				markers = proj.getMarkerNames();

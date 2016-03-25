@@ -310,6 +310,7 @@ public class BamImport {
 				if (!bLocusSet.hasNoOverlap()) {
 					ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), log);
 					log.memoryFree();
+					// TODO, skip centromeres
 					LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(LocusSet.combine(bLocusSet, readerCapture.loadAll(log), true, log).mergeOverlapping(true), 4000);
 					log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bins int the anti-on-target regions");
 					log.memoryFree();
@@ -370,7 +371,7 @@ public class BamImport {
 						Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 					}
 
-					if (!Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue())) {
+					if (!Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue())) {// compute Log R ratio, since its not immediately available
 						TransposeData.transposeData(proj, 2000000000, false);
 						CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numthreads, 2);
 						Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numthreads);
@@ -382,7 +383,7 @@ public class BamImport {
 					// All below stuff is just for fun...
 
 					SampleData.createMinimalSampleData(proj);
-					if (Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+					if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
 						LrrSd.init(proj, null, null, numthreads);
 					} else {
 						log.reportFileExists(proj.SAMPLE_QC_FILENAME.getValue());
@@ -390,7 +391,33 @@ public class BamImport {
 					if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
 						Mosaicism.findOutliers(proj, numthreads);
 					}
-					correctifyProject(proj, markerTypes, numthreads);
+					ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes, numthreads);// Generates and corrects the project for each marker type
+
+					String newSampleDir = proj.PROJECT_DIRECTORY.getValue() + "samplesCorrected/";
+					String newtransposedDir = proj.PROJECT_DIRECTORY.getValue() + "transposedCorrected/";
+
+					RecompileProducer producer = new RecompileProducer(proj, proj.getSamples(), newSampleDir, proj.getMarkerSet(), correcteds);
+					WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer, numthreads, 10, proj.getLog());
+					Hashtable<String, Float> recompallOutliers = new Hashtable<String, Float>();
+
+					while (train.hasNext()) {// consolidate the pc corrected projects back into a single sample
+						Hashtable<String, Float> tmp = train.next();
+						if (tmp != null) {
+							recompallOutliers.putAll(tmp);
+						}
+					}
+
+					proj.SAMPLE_DIRECTORY.setValue(newSampleDir);//Final resting place
+					if (recompallOutliers.size() > 0 || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently do to all the skipping
+						Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+					}
+					proj.MARKER_DATA_DIRECTORY.setValue(newtransposedDir);
+					TransposeData.transposeData(proj, 2000000000, false);// already recomputed with the correction
+
+					proj.MOSAIC_RESULTS_FILENAME.setValue(ext.addToRoot(proj.MOSAIC_RESULTS_FILENAME.getValue(), ".pcCorrected"));
+					if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
+						Mosaicism.findOutliers(proj, numthreads);
+					}
 
 					// generateGCModel(proj, analysisSet, referenceGenome, 50);
 					// generateGCModel(proj, analysisSet, referenceGenome, 100);
@@ -401,11 +428,6 @@ public class BamImport {
 					//
 					// GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
 					// GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
-					//
-					//
-					// MDL
-
-					// Project proj =
 				} else {
 					log.reportTimeError("The bed file " + binBed + " had overlapping segments, currently non -overlapping segments are required");
 				}
@@ -462,7 +484,7 @@ public class BamImport {
 
 	}
 
-	private static void correctifyProject(Project proj, ArrayList<MarkerFileType> types, int numthreads) {
+	private static ArrayList<ProjectCorrected> correctifyProject(Project proj, ArrayList<MarkerFileType> types, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
 		proj.LRRSD_CUTOFF.setValue(.40);
 		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(20);
@@ -480,7 +502,7 @@ public class BamImport {
 			Files.writeList(HashVec.loadFileToStringArray(type.getFile(), true, new int[] { 0 }, true), markerfile);
 			proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
 			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null, null, null, false, false, false, true, false, null, -1, -1);
-			PrincipalComponentsCrossTabs.crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, true);
+			// PrincipalComponentsCrossTabs.crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, true);
 
 			String PCCorrected = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base);
 			String newName = proj.PROJECT_NAME.getValue() + "_" + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
@@ -495,15 +517,14 @@ public class BamImport {
 			if (!Files.exists("", correctedSamps)) {
 				proj.getLog().reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
 				PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, false, false, -1, true);
-				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, true, false, -1, true);
+				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 10, 1, false, true, false, -1, true);
 			}
 			pcCorrected.saveProperties();
 			if (type.getType() != null) {
 				correctedProjects.add(new ProjectCorrected(pcCorrected, type.getType()));
 			}
-
-			// TransposeData.transposeData(pcCorrected, 2000000000, false);
 		}
+		return correctedProjects;
 
 	}
 
@@ -527,8 +548,8 @@ public class BamImport {
 
 		@Override
 		public boolean hasNext() {
-			return index<samples.length;
-			
+			return index < samples.length;
+
 		}
 
 		@Override
@@ -574,7 +595,7 @@ public class BamImport {
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		if (!Files.exists(sampleName)) {
 			Sample sampleOriginal = proj.getFullSampleFromRandomAccessFile(sampleName);
-
+			int numAccountedFor = 0;
 			float[] gcs = sampleOriginal.getGCs();
 			float[] intensity = Array.floatArray(markerSet.getMarkerNames().length, Float.NaN);
 
@@ -589,12 +610,17 @@ public class BamImport {
 					if (marker_TYPE == corrected.getType()) {
 						intensity[i] = typeCorrected.getXs()[i];
 						lrrs[i] = typeCorrected.getLRRs()[i];
+						numAccountedFor++;
 					}
 				}
 			}
 			Sample sampleCorrected = new Sample(sampleName, markerSet.getFingerprint(), gcs, intensity, intensity, bafs, lrrs, sampleOriginal.getForwardGenotypes(), sampleOriginal.getAB_Genotypes(), sampleOriginal.getCanXYBeNegative());
 			sampleCorrected.saveToRandomAccessFile(sampleFile, outliers, sampleName);
+			if (numAccountedFor != markerNames.length) {
+				throw new IllegalArgumentException("Not all markers accounted for in corrections");
+			}
 		}
+
 		return outliers;
 	}
 
