@@ -57,11 +57,11 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 	}
 
 	public void dumpTables() {
-	//	Project r = getProj();
+		// Project r = getProj();
 		String outputDir = proj.RESULTS_DIRECTORY.getValue(false, true);
 		proj.getLog().reportTimeInfo("Dumping data to " + outputDir);
 		new File(outputDir).mkdirs();
-		sTabs.dumpTables(outputDir + "sampleQC_PC.crosstabs");
+		sTabs.dumpTables(outputDir + ext.rootOf(getPcFile()) + "sampleQC_PC.crosstabs");
 	}
 
 	private ExtProjectDataParser loadExternalData(String fullPathToAlternateDataFile) {

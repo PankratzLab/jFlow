@@ -706,19 +706,19 @@ public class MitoPipeline {
 		Hashtable<String, String> qcLookup = new Hashtable<String, String>();
 		int DNAIndex = 0;
 		Logger log = proj.getLog();
-
+		String sampleQcFile = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES_SUMMARY;
 		try {
-			DNAIndex = getDNAIndex(proj, outputBase + PCA_SAMPLES_SUMMARY);
-			reader = Files.getReader(outputBase + PCA_SAMPLES_SUMMARY, false, true, false);
+			DNAIndex = getDNAIndex(proj, sampleQcFile);
+			reader = Files.getReader(sampleQcFile, false, true, false);
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
 				qcLookup.put(line[DNAIndex], Array.toStr(Array.subArray(line, 1)));
 			}
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \"" + outputBase + PCA_SAMPLES_SUMMARY + "\" not found.");
+			log.reportError("Error: file \"" + sampleQcFile + "\" not found.");
 		} catch (IOException ioe) {
-			log.reportError("Error reading file \"" + outputBase + PCA_SAMPLES_SUMMARY + "\"");
+			log.reportError("Error reading file \"" + sampleQcFile + "\"");
 		}
 		return qcLookup;
 	}

@@ -134,7 +134,6 @@ public class Mosaicism {
 			this.samples = samples;
 			this.snpDropped = snpDropped;
 			this.chrBoundaries = chrBoundaries;
-			this.markerSet = markerSet;
 			this.indicesByChr = indicesByChr;
 			this.index=0;
 		}
