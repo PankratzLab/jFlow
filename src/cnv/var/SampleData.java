@@ -1123,8 +1123,8 @@ public class SampleData {
 						writer = Files.getAppropriateWriter(sampleDatafilename);
 						String dateTime = ext.getDate() + "_" + ext.getTime();
 						for (int i = 0; i < columnHeaders.length; i++){
-							int index = ext.indexOfStr(columnHeaders[i], sampleDataHeader, false, true);
-							if(index != -1){
+							int[] indices = ext.indicesOfStr(columnHeaders[i], sampleDataHeader, false, true);
+							for(int index : indices){
 								sampleDataHeader[index] = "x" + sampleDataHeader[index] + "_replaced_" + dateTime;
 							}
 						}
