@@ -30,10 +30,13 @@ import common.ext;
 import common.PSF.Ext;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.CentroidBuilder;
+import cnv.analysis.PennCNVPrep;
+import cnv.analysis.pca.PrincipalComponentsCrossTabs;
 import cnv.analysis.Mosaicism;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
+import cnv.filesys.Sample;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.Markers;
 import cnv.manage.MitoPipeline;
@@ -114,10 +117,19 @@ public class BamImport {
 
 		@Override
 		public BamPileConversionResults call() throws Exception {
-			BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
-			sample = bamSample.getSampleName();
-			bamIndexStats = BamOps.getBamIndexStats(result.getBam());
-			outliers = bamSample.writeSample(fingerPrint);
+			String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + BamOps.getSampleName(result.getBam()) + Sample.SAMPLE_DATA_FILE_EXTENSION;
+			if (!Files.exists(sampleFile)) {
+				BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
+				sample = bamSample.getSampleName();
+				bamIndexStats = BamOps.getBamIndexStats(result.getBam());
+				outliers = bamSample.writeSample(fingerPrint);
+			} else {
+				log.reportFileExists(sampleFile);
+				sample = BamOps.getSampleName(result.getBam());
+				bamIndexStats = BamOps.getBamIndexStats(result.getBam());
+				outliers = null;
+				// outliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(sampleFile);
+			}
 			return this;
 		}
 
@@ -302,7 +314,7 @@ public class BamImport {
 					log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bins int the anti-on-target regions");
 					log.memoryFree();
 
-					LocusSet<VariantSeg> varFeatures = extractVCF(proj, optionalVCF);
+					LocusSet<VariantSeg> varFeatures = extractVCF(proj, optionalVCF);// get variant sites, piled up according to actual location, not bins
 					if (varFeatures.getLoci().length > 0) {
 						log.reportTimeInfo(varFeatures.getBpCovered() + " bp covered by known variant sites");
 					}
@@ -317,7 +329,7 @@ public class BamImport {
 						throw new IllegalArgumentException("all import segments must be gte length 1");
 					}
 
-					FilterNGS filterNGS = new FilterNGS(20, 20, null);
+					FilterNGS filterNGS = new FilterNGS(20, 20, null);// TODO, args for mapQ/phred
 					PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir, referenceGenome.getReferenceFasta(), filterNGS, analysisSet.getStrictSegments(), log);
 					WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<BamPileResult>(pileProducer, numthreads, 2, log);
 					int index = 0;
@@ -325,7 +337,7 @@ public class BamImport {
 					proj.XY_SCALE_FACTOR.setValue((double) 10);
 
 					BamPileResult[] results = new BamPileResult[bamsToImport.length];
-					while (pileTrain.hasNext()) {
+					while (pileTrain.hasNext()) {// creating temporary bam pileup of read counts for positions/segments of interest
 						results[index] = pileTrain.next();
 						index++;
 
@@ -339,58 +351,58 @@ public class BamImport {
 					Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 
 					int convIndex = 0;
-					while (conversionTrain.hasNext()) {
+					while (conversionTrain.hasNext()) {// normalize read counts and dump to sampRAF, special care for variant sites
 						BamPileConversionResults conversionResult = conversionTrain.next();
 						BamIndexStats bamIndexStats = conversionResult.getBamIndexStats();
 						int numAligned = bamIndexStats.getAlignedRecordCount();
 						int numNotAligned = bamIndexStats.getUnalignedRecordCount();
 						mappedReadCounts[convIndex + 1] = conversionResult.getSample() + "\t" + numAligned + "\t" + numNotAligned;
 						convIndex++;
-						if (conversionResult.getOutliers().size() > 0) {
+						if (conversionResult.getOutliers() != null && conversionResult.getOutliers().size() > 0) {
 							allOutliers.putAll(conversionResult.getOutliers());
 						}
-
 					}
 					String readCountFile = proj.PROJECT_DIRECTORY.getValue() + "sample.readCounts.txt";
 
 					Files.writeList(mappedReadCounts, readCountFile);
 
-					Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+					if (allOutliers.size() > 0 || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently do to all the skipping
+						Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+					}
 
-					TransposeData.transposeData(proj, 2000000000, false);
-					CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numthreads, 2);
-					Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numthreads);
-					TransposeData.transposeData(proj, 2000000000, false);
-					SampleData.createMinimalSampleData(proj);
-					LrrSd.init(proj, null, null, numthreads);
-					proj.INTENSITY_PC_NUM_COMPONENTS.setValue(proj.getSamples().length - 1);
+					if (!Files.exists(proj.CUSTOM_CENTROIDS_FILENAME.getValue())) {
+						TransposeData.transposeData(proj, 2000000000, false);
+						CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numthreads, 2);
+						Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numthreads);
+						TransposeData.transposeData(proj, 2000000000, false);
+					} else {
+						proj.getLog().reportTimeWarning(proj.CUSTOM_CENTROIDS_FILENAME.getValue() + " exists, and currently is the proxy for LRR computation being completed");
+					}
 					proj.saveProperties();
-					Mosaicism.findOutliers(proj, numthreads);
-					generatePCFiles(proj, markerTypes, numthreads);
-					log.reportTimeInfo(analysisSet.getLoci().length + " segments to pile");
-					generateGCModel(proj, analysisSet, referenceGenome, 50);
-					generateGCModel(proj, analysisSet, referenceGenome, 100);
-					generateGCModel(proj, analysisSet, referenceGenome, 200);
-					generateGCModel(proj, analysisSet, referenceGenome, 500000);
-					generateGCModel(proj, analysisSet, referenceGenome, 1000000);
-					GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
-					GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
+					// All below stuff is just for fun...
 
-					// String PCCorrected = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected");
-					// String newName = proj.PROJECT_NAME.getValue() + "_" + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected";
-					// Files.copyFileUsingFileChannels(proj.getPropertyFilename(), PCCorrected, log);
-					// Project pcCorrected = new Project(PCCorrected, false);
-					// pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
-					// pcCorrected.PROJECT_NAME.setValue(newName);
-					// proj.copyBasicFiles(pcCorrected, true);
+					SampleData.createMinimalSampleData(proj);
+					if (Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+						LrrSd.init(proj, null, null, numthreads);
+					} else {
+						log.reportFileExists(proj.SAMPLE_QC_FILENAME.getValue());
+					}
+					if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
+						Mosaicism.findOutliers(proj, numthreads);
+					}
+					correctifyProject(proj, markerTypes, numthreads);
+
+					// generateGCModel(proj, analysisSet, referenceGenome, 50);
+					// generateGCModel(proj, analysisSet, referenceGenome, 100);
+					// generateGCModel(proj, analysisSet, referenceGenome, 200);
+					// generateGCModel(proj, analysisSet, referenceGenome, 500000);
+					// generateGCModel(proj, analysisSet, referenceGenome, 1000000);
+
 					//
-					// log.reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
-					// PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, false, false, -1, true);
-					// PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, true, false, -1, true);
-					// pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue() + "shadowSamples3/");
-					// pcCorrected.saveProperties();
-					// TransposeData.transposeData(pcCorrected, 2000000000, false);
-
+					// GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
+					// GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
+					//
+					//
 					// MDL
 
 					// Project proj =
@@ -403,7 +415,7 @@ public class BamImport {
 		}
 	}
 
-	private static void generateGCModel(Project proj, LocusSet<Segment> analysisSet, ReferenceGenome referenceGenome, int buffer) {
+	private static String generateGCModel(Project proj, LocusSet<Segment> analysisSet, ReferenceGenome referenceGenome, int buffer) {
 		String gcFile = ext.addToRoot(proj.GC_MODEL_FILENAME.getValue(), ".buffer_" + buffer);
 		if (!Files.exists(gcFile)) {
 			MarkerSet markerSet = proj.getMarkerSet();
@@ -427,12 +439,35 @@ public class BamImport {
 		} else {
 			proj.getLog().reportFileExists(gcFile);
 		}
+		return gcFile;
 	}
 
-	private static void generatePCFiles(Project proj, ArrayList<MarkerFileType> types, int numthreads) {
+	private static class ProjectCorrected {
+		private Project proj;
+		private NGS_MARKER_TYPE type;
+
+		public ProjectCorrected(Project proj, NGS_MARKER_TYPE type) {
+			super();
+			this.proj = proj;
+			this.type = type;
+		}
+
+		private Project getProj() {
+			return proj;
+		}
+
+		private NGS_MARKER_TYPE getType() {
+			return type;
+		}
+
+	}
+
+	private static void correctifyProject(Project proj, ArrayList<MarkerFileType> types, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
 		proj.LRRSD_CUTOFF.setValue(.40);
+		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(20);
 		String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
+		ArrayList<ProjectCorrected> correctedProjects = new ArrayList<ProjectCorrected>();
 		Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
 		for (MarkerFileType type : types) {
 			String base = "";
@@ -445,7 +480,122 @@ public class BamImport {
 			Files.writeList(HashVec.loadFileToStringArray(type.getFile(), true, new int[] { 0 }, true), markerfile);
 			proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
 			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null, null, null, false, false, false, true, false, null, -1, -1);
+			PrincipalComponentsCrossTabs.crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, true);
+
+			String PCCorrected = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base);
+			String newName = proj.PROJECT_NAME.getValue() + "_" + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
+			Files.copyFileUsingFileChannels(proj.getPropertyFilename(), PCCorrected, proj.getLog());
+			Project pcCorrected = new Project(PCCorrected, false);
+			pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
+			pcCorrected.PROJECT_NAME.setValue(newName);
+			proj.copyBasicFiles(pcCorrected, true);
+			pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue() + "shadowSamples/");
+
+			String[] correctedSamps = Array.tagOn(proj.getSamples(), pcCorrected.SAMPLE_DIRECTORY.getValue(), Sample.SAMPLE_DATA_FILE_EXTENSION);
+			if (!Files.exists("", correctedSamps)) {
+				proj.getLog().reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
+				PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, false, false, -1, true);
+				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, true, false, -1, true);
+			}
+			pcCorrected.saveProperties();
+			if (type.getType() != null) {
+				correctedProjects.add(new ProjectCorrected(pcCorrected, type.getType()));
+			}
+
+			// TransposeData.transposeData(pcCorrected, 2000000000, false);
 		}
+
+	}
+
+	private static class RecompileProducer implements Producer<Hashtable<String, Float>> {
+		private Project proj;
+		private String[] samples;
+		private String newSampleDirectory;
+		private MarkerSet markerSet;
+		private ArrayList<ProjectCorrected> correctedProjects;
+		private int index;
+
+		public RecompileProducer(Project proj, String[] samples, String newSampleDirectory, MarkerSet markerSet, ArrayList<ProjectCorrected> correctedProjects) {
+			super();
+			this.proj = proj;
+			this.samples = samples;
+			this.newSampleDirectory = newSampleDirectory;
+			this.markerSet = markerSet;
+			this.correctedProjects = correctedProjects;
+			this.index = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return index<samples.length;
+			
+		}
+
+		@Override
+		public Callable<Hashtable<String, Float>> next() {
+			RecompileWorker current = new RecompileWorker(proj, samples[index], newSampleDirectory, markerSet, correctedProjects);
+			index++;
+			return current;
+		}
+
+		@Override
+		public void shutdown() {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
+
+	private static class RecompileWorker implements Callable<Hashtable<String, Float>> {
+		private Project proj;
+		private String sampleName;
+		private String newSampleDirectory;
+		private MarkerSet markerSet;
+		private ArrayList<ProjectCorrected> correctedProjects;
+
+		public RecompileWorker(Project proj, String sampleName, String newSampleDirectory, MarkerSet markerSet, ArrayList<ProjectCorrected> correctedProjects) {
+			super();
+			this.proj = proj;
+			this.sampleName = sampleName;
+			this.newSampleDirectory = newSampleDirectory;
+			this.markerSet = markerSet;
+			this.correctedProjects = correctedProjects;
+		}
+
+		@Override
+		public Hashtable<String, Float> call() throws Exception {
+			return recompileSample(proj, sampleName, newSampleDirectory, markerSet, correctedProjects);
+		}
+
+	}
+
+	private static Hashtable<String, Float> recompileSample(Project proj, String sampleName, String newSampleDirectory, MarkerSet markerSet, ArrayList<ProjectCorrected> correctedProjects) {
+		String sampleFile = newSampleDirectory + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION;
+		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+		if (!Files.exists(sampleName)) {
+			Sample sampleOriginal = proj.getFullSampleFromRandomAccessFile(sampleName);
+
+			float[] gcs = sampleOriginal.getGCs();
+			float[] intensity = Array.floatArray(markerSet.getMarkerNames().length, Float.NaN);
+
+			float[] bafs = sampleOriginal.getBAFs();// preserve these;
+			float[] lrrs = Array.floatArray(markerSet.getMarkerNames().length, Float.NaN);
+
+			String[] markerNames = markerSet.getMarkerNames();
+			for (ProjectCorrected corrected : correctedProjects) {
+				Sample typeCorrected = corrected.getProj().getFullSampleFromRandomAccessFile(sampleName);
+				for (int i = 0; i < markerNames.length; i++) {
+					NGS_MARKER_TYPE marker_TYPE = NGS_MARKER_TYPE.getType(markerNames[i]);
+					if (marker_TYPE == corrected.getType()) {
+						intensity[i] = typeCorrected.getXs()[i];
+						lrrs[i] = typeCorrected.getLRRs()[i];
+					}
+				}
+			}
+			Sample sampleCorrected = new Sample(sampleName, markerSet.getFingerprint(), gcs, intensity, intensity, bafs, lrrs, sampleOriginal.getForwardGenotypes(), sampleOriginal.getAB_Genotypes(), sampleOriginal.getCanXYBeNegative());
+			sampleCorrected.saveToRandomAccessFile(sampleFile, outliers, sampleName);
+		}
+		return outliers;
 	}
 
 	private static ArrayList<MarkerFileType> generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet, LocusSet<Segment> genomeBinsMinusBinsCaputure, LocusSet<VariantSeg> varFeatures) {
@@ -527,15 +677,26 @@ public class BamImport {
 		String allMarkerFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".allMarkers");
 		ArrayList<MarkerFileType> markerTypes = new ArrayList<MarkerFileType>();
 
-		Files.writeList(Array.toStringArray(onTMarkers), onTargetFile);
-		markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.ON_TARGET, onTargetFile));
-		Files.writeList(Array.toStringArray(offTMarkers), offTargetFile);
-		markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.OFF_TARGET, offTargetFile));
+		if (onTMarkers.size() > 0) {
+			Files.writeList(Array.toStringArray(onTMarkers), onTargetFile);
+			markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.ON_TARGET, onTargetFile));
+		} else {
+			proj.getLog().reportTimeWarning("No " + NGS_MARKER_TYPE.ON_TARGET.getFlag() + " markers detected");
+		}
+		if (offTMarkers.size() > 0) {
+			Files.writeList(Array.toStringArray(offTMarkers), offTargetFile);
+			markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.OFF_TARGET, offTargetFile));
+		} else {
+			proj.getLog().reportTimeWarning("No " + NGS_MARKER_TYPE.OFF_TARGET.getFlag() + " markers detected");
+		}
 
-		Files.writeList(Array.toStringArray(variantSiteMarkers), variantSiteTargetFile);
-		markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.VARIANT_SITE, variantSiteTargetFile));
+		if (variantSiteMarkers.size() > 0) {
+			Files.writeList(Array.toStringArray(variantSiteMarkers), variantSiteTargetFile);
+			markerTypes.add(new MarkerFileType(NGS_MARKER_TYPE.VARIANT_SITE, variantSiteTargetFile));
+		} else {
+			proj.getLog().reportTimeWarning("No " + NGS_MARKER_TYPE.VARIANT_SITE.getFlag() + " markers detected");
+		}
 
-	
 		Files.writeList(HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true, new int[] { 0 }, true), allMarkerFile);
 		markerTypes.add(new MarkerFileType(null, allMarkerFile));
 

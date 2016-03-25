@@ -9,7 +9,7 @@ import java.util.*;
 import common.*;
 
 public class Rscript {
-	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-", "=", " "));
+	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-", "=", " ","\\(","\\)"));
 	public static final String R_REPLACEMENT = ".";
 	public static final String[] RSCRIPT_EXECS = {
 			// "/soft/R/3.0.1/bin/Rscript", // MSI
@@ -167,7 +167,8 @@ public class Rscript {
 	}
 
 	public enum LEGEND_POSITION {
-		BOTTOM("legend.position=\"bottom\"");
+		BOTTOM("legend.position=\"bottom\""),
+		NONE("legend.position=\"none\"");
 
 		private String call;
 
@@ -386,15 +387,15 @@ public class Rscript {
 		private String label;
 		private String color;
 
-		// private int fontSize;
+		private double fontSize;
 
-		public GeomText(double x, double y, double angle, String label, int fontSize) {
+		public GeomText(double x, double y, double angle, String label, double fontSize) {
 			super();
 			this.x = x;
 			this.y = y;
 			this.angle = angle;
 			this.label = label;
-			// this.fontSize = fontSize;
+			this.fontSize = fontSize;
 			this.color = null;
 		}
 
@@ -427,7 +428,7 @@ public class Rscript {
 			stringBuilder.append(" geom_text(data = NULL,aes(x =");
 			stringBuilder.append(x + ", y = ");
 			stringBuilder.append(y + ", label=");
-			stringBuilder.append("\"" + label + "\",angle=" + angle + " ))");
+			stringBuilder.append("\"" + label + "\",angle=" + angle + ",size = " + fontSize + " ))");
 			// ,size=" + fontSize  + "
 			// + (color == null ? "" : ",color=\"" + color + "\"")
 			return stringBuilder.toString();
@@ -573,6 +574,19 @@ public class Rscript {
 		}
 	}
 
+	public static class HorizontalLine {
+		private double yIntercept;
+
+		public HorizontalLine(double yIntercept) {
+			super();
+			this.yIntercept = yIntercept;
+		}
+
+		public String getCall() {
+			return "geom_hline(yintercept =" + yIntercept + ")";
+		}
+	}
+
 	public static class Restrictions {
 		private String[] cols;
 		private String[] vals;
@@ -617,6 +631,8 @@ public class Rscript {
 		private static final String PLOT_VAR = "p";
 		private SlopeLine[] slopeLines;
 		private VertLine[] vertLines;
+		private HorizontalLine[] horizontalLines;
+
 		private String dataFile, output, rScriptFile;
 		private String[] dataYvalueColumns, rSafeYColumns, rSafeAltYColumnNames;
 		private String dataXvalueColumn, rSafeXColumn, colorColumn, rSafeColorColumn;
@@ -641,6 +657,7 @@ public class Rscript {
 		private SeriesLabeler seriesLabeler;
 		private boolean directLableGtexts, onlyMaxMin;
 		private ErrorBars errorBars;
+		private boolean factorColor;
 		// private String legendName;
 		private boolean regLines;
 		private boolean scaleDensity;
@@ -686,10 +703,15 @@ public class Rscript {
 			this.regLines = false;
 			this.midScaleDensity = .5;
 			this.rScriptLoc = "Rscript";
+			this.factorColor=true;
 		}
 
 		public String getrScriptLoc() {
 			return rScriptLoc;
+		}
+
+		public void setFactorColor(boolean factorColor) {
+			this.factorColor = factorColor;
 		}
 
 		public void setrScriptLoc(String rScriptLoc) {
@@ -702,6 +724,10 @@ public class Rscript {
 
 		public void setVertLines(VertLine[] vertLines) {
 			this.vertLines = vertLines;
+		}
+
+		public void setHorizontalLines(HorizontalLine[] horizontalLines) {
+			this.horizontalLines = horizontalLines;
 		}
 
 		public void setMidScaleDensity(double midScaleDensity) {
@@ -1018,7 +1044,7 @@ public class Rscript {
 					for (int i = 0; i < rSafeYColumns.length; i++) {
 						System.out.println(plot);
 						if (!scaleDensity) {
-							plot += " + " + sType.getCall() + "(aes(y=" + rSafeYColumns[i] + ", color=factor(" + rSafeColorColumn + ")))";
+							plot += " + " + sType.getCall() + "(aes(y=" + rSafeYColumns[i] + ", color="+(factorColor?"factor(" + rSafeColorColumn + ")":rSafeColorColumn)+"))";
 						} else {
 							plot += " + " + sType.getCall() + "(aes(y=" + rSafeYColumns[i] + "))";
 						}
@@ -1152,6 +1178,12 @@ public class Rscript {
 				if (slopeLines != null) {
 					for (int i = 0; i < slopeLines.length; i++) {
 						plot += " + " + slopeLines[i].getCall();
+					}
+				}
+				if (horizontalLines != null) {
+					for (int i = 0; i < horizontalLines.length; i++) {
+						plot += " + " + horizontalLines[i].getCall();
+
 					}
 				}
 
