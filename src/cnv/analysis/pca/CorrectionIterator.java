@@ -31,9 +31,12 @@ import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
 import cnv.manage.TransposeData;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import cnv.qc.LrrSd;
+import cnv.qc.SampleQC;
 
 class CorrectionIterator implements Serializable {
 	/**
@@ -53,8 +56,10 @@ class CorrectionIterator implements Serializable {
 	private IterationResult iterationResult;
 	private boolean recomputeLRR;
 	private double pcPercent;
+	private double lrrSdCut;
+	private double callRateCut;
 
-	public CorrectionIterator(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent, int numthreads) {
+	public CorrectionIterator(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent, double lrrSdCut,double callRateCut,  int numthreads) {
 		super();
 		this.proj = proj;
 		this.markesToEvaluate = markesToEvaluate;
@@ -67,10 +72,13 @@ class CorrectionIterator implements Serializable {
 		this.numthreads = numthreads;
 		this.pcPercent = pcPercent;
 		this.recomputeLRR = recomputeLRR;
+		this.lrrSdCut=lrrSdCut;
+		this.callRateCut =callRateCut;
+		
 	}
 
 	public void run() {
-		this.iterationResult = run(proj, markesToEvaluate, samplesToBuildModels, iType, oType, bType, outputDir, svd, recomputeLRR, pcPercent, numthreads);
+		this.iterationResult = run(proj, markesToEvaluate, samplesToBuildModels, iType, oType, bType, outputDir, svd, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numthreads);
 	}
 
 	public IterationResult getIterationResult() {
@@ -124,8 +132,25 @@ class CorrectionIterator implements Serializable {
 		// QC_ASSOCIATION;
 
 	}
+	
+	
+	private boolean[] getSamplesFromQC(Project proj, double lrrSdCut, double callRateCut) {
+		boolean[] samplesPassing = Array.booleanArray(proj.getSamples().length, false);
+		SampleQC sampleQC = SampleQC.loadSampleQC(proj);
+		double[] lrrsd = sampleQC.getDataFor("LRR_SD");
+		double[] callRate = sampleQC.getDataFor("AB_callrate");
+		proj.getLog().reportTimeInfo("Filtering samples for LrrSd<" + lrrSdCut + " and call rate>" + callRateCut);
+		for (int i = 0; i < callRate.length; i++) {
+			if (lrrsd[i] < lrrSdCut && callRate[i] > callRateCut) {
+				samplesPassing[i] = true;
+			}
+		}
+		proj.getLog().reportTimeInfo(Array.booleanArraySum(samplesPassing) + " samples passed LrrSd<" + lrrSdCut + " and call rate>" + callRateCut);
 
-	private IterationResult run(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent, int numthreads) {
+		return samplesPassing;
+	}
+
+	private IterationResult run(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent,double lrrSdCut,double callRateCut, int numthreads) {
 		Logger log = proj.getLog();
 		CorrectionEvaluator cEvaluator = null;
 		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
@@ -154,11 +179,14 @@ class CorrectionIterator implements Serializable {
 
 			boolean[] samplesForModels = null;
 			boolean valid = true;
+			boolean[] sampleQCPassed = getSamplesFromQC(proj, lrrSdCut, callRateCut);
 			if (!Files.exists(iterationResult.getBasePrep())) {
 				// || oType == ORDER_TYPE.QC_ASSOCIATION
 				switch (bType) {
 				case WITHOUT_BUILDERS:
-					samplesForModels = proj.getSamplesToInclude(null, true, true);
+					//samplesForModels = proj.getSamplesToInclude(null, true, true);
+					//log.reportTimeWarning("Computing excludes from "+proj.SAMPLE_QC_FILENAME.getValue());
+					samplesForModels = sampleQCPassed;
 					break;
 				case WITH_BUILDERS:
 					if (!Files.exists(samplesToBuildModels)) {
@@ -166,6 +194,12 @@ class CorrectionIterator implements Serializable {
 						valid = false;
 					} else {
 						samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
+					}
+
+					for (int i = 0; i < sampleQCPassed.length; i++) {
+						if (!sampleQCPassed[i]) {
+							samplesForModels[i] = false;
+						}
 					}
 					break;
 				default:
@@ -224,7 +258,7 @@ class CorrectionIterator implements Serializable {
 				pcResiduals = proj.loadPcResids();
 				pcResiduals.fillInMissing();
 				pcResiduals.setMarkersToAssessFile(markesToEvaluate);
-
+				Files.writeList(Array.subArray(proj.getSamples(), samplesForModels), outputDir + iType + "_" + oType + "_" + bType + "_samplesForModels.txt");
 				pcResiduals.setHomozygousOnly(true);
 				proj.getLog().reportTimeWarning("In gc-correction mode now, using " + proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0]);
 				GcAdjustorParameters params = GcAdjustorParameters.readSerial(proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0], proj.getLog());
@@ -289,7 +323,10 @@ class CorrectionIterator implements Serializable {
 					default:
 						break;
 					}
-					boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
+					// boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
+					boolean[] samplesToEvaluate = sampleQCPassed;
+					Files.writeList(Array.subArray(proj.getSamples(), samplesToEvaluate), outputDir + iType + "_" + oType + "_" + bType + "_samplesForEval.txt");
+
 					cEvaluator = new CorrectionEvaluator(proj, pcResiduals, order, new boolean[][] { samplesForModels, samplesToEvaluate }, extraIndeps, svd);
 					BasicPrep basicPrep = new BasicPrep(cEvaluator.getParser().getNumericData(), cEvaluator.getParser().getNumericDataTitles(), samplesToEvaluate, samplesForModels, sTabRank);
 					BasicPrep.serialize(basicPrep, iterationResult.getBasePrep());
@@ -993,13 +1030,13 @@ class CorrectionIterator implements Serializable {
 	// return extraIndeps;
 	// }
 
-	private static CorrectionIterator[] getIterations(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent, int numthreads) {
+	private static CorrectionIterator[] getIterations(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent,double lrrSdCut,double callRateCut, int numthreads) {
 		ArrayList<CorrectionIterator> cIterators = new ArrayList<CorrectionIterator>();
 		// System.out.println("JDOFJSDF remember the pcs");
 		for (int i = 0; i < ITERATION_TYPE.values().length; i++) {
 			for (int j = 0; j < ORDER_TYPE.values().length; j++) {
 				for (int j2 = 0; j2 < MODEL_BUILDER_TYPE.values().length; j2++) {
-					cIterators.add(new CorrectionIterator(proj, markesToEvaluate, samplesToBuildModels, ITERATION_TYPE.values()[i], ORDER_TYPE.values()[j], MODEL_BUILDER_TYPE.values()[j2], outputDir, svd, recomputeLRR, pcPercent, numthreads));
+					cIterators.add(new CorrectionIterator(proj, markesToEvaluate, samplesToBuildModels, ITERATION_TYPE.values()[i], ORDER_TYPE.values()[j], MODEL_BUILDER_TYPE.values()[j2], outputDir, svd, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numthreads));
 				}
 			}
 		}
@@ -1038,7 +1075,7 @@ class CorrectionIterator implements Serializable {
 
 	}
 
-	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, String pcFile, String pedFile, boolean svd, boolean recomputeLRR, double pcPercent, int numthreads) {
+	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, String pcFile, String pedFile, boolean svd, boolean recomputeLRR, double pcPercent,double lrrSdCut,double callRateCut, int numthreads) {
 		// proj.INTENSITY_PC_NUM_COMPONENTS.setValue(400);
 		if (pcFile != null) {
 			proj.INTENSITY_PC_FILENAME.setValue(pcFile);
@@ -1054,10 +1091,13 @@ class CorrectionIterator implements Serializable {
 			proj.getLog().reportTimeWarning("Did not see " + proj.MARKER_DATA_DIRECTORY.getValue() + "markers.0.mdRAF, attempting to transpose now");
 			TransposeData.transposeData(proj, 2000000000, false);
 		}
-		// if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-		// LrrSd.init(proj, null, null, null, null, numthreads);
-		// }
-		CorrectionIterator[] cIterators = getIterations(proj, markesToEvaluate, samplesToBuildModels, outputDir, svd, recomputeLRR, pcPercent, numthreads);
+		new File(outputDir).mkdirs();
+		String lrrSdCurrent = outputDir + "lrrSD.txt";
+		proj.SAMPLE_QC_FILENAME.setValue(lrrSdCurrent);
+		if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+			LrrSd.init(proj, null, null, null, null, numthreads);
+		}
+		CorrectionIterator[] cIterators = getIterations(proj, markesToEvaluate, samplesToBuildModels, outputDir, svd, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numthreads);
 		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 
 		for (int i = 0; i < cIterators.length; i++) {
@@ -1626,6 +1666,8 @@ class CorrectionIterator implements Serializable {
 		String pedFile = null;
 		double pcPercent = 0.05;
 		boolean recomputeLRR = true;
+		double lrrSdCut = Double.NaN;
+		double callRateCut = 0.96;
 		String usage = "\n" + "cnv.analysis.pca.CorrectionEvaluator requires 0-1 arguments\n";
 		usage += "   (1) project filename (i.e. proj=" + proj + " (default))\n" + "";
 		usage += "   (2) markers to Evaluate (i.e. markers=" + markers + " (default))\n" + "";
@@ -1637,6 +1679,8 @@ class CorrectionIterator implements Serializable {
 		usage += "   (8) alternate pc file to use (i.e.pcFile= (no default))\n" + "";
 		usage += "   (9) percent of pcs to use base of the samples to build the models(i.e.pcPercent=" + pcPercent + "(no default))\n" + "";
 		usage += "   (10) skip on the fly centroids, only use gc-correction (i.e.recomputeLRR=" + recomputeLRR + "(no default))\n" + "";
+		usage += "   (11) skip on the fly centroids, only use gc-correction (i.e.lrrSdCut=" + lrrSdCut + "(default, array specific))\n" + "";
+		usage += "   (12) skip on the fly centroids, only use gc-correction (i.e.callRateCut=" + callRateCut + "(default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -1644,6 +1688,12 @@ class CorrectionIterator implements Serializable {
 				System.exit(1);
 			} else if (args[i].startsWith("proj=")) {
 				proj = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("lrrSdCut=")) {
+				lrrSdCut = ext.parseDoubleArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("callRateCut=")) {
+				callRateCut = ext.parseDoubleArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("markers=")) {
 				markers = args[i].split("=")[1];
@@ -1681,7 +1731,16 @@ class CorrectionIterator implements Serializable {
 			System.exit(1);
 		}
 		try {
-			runAll(new Project(proj, false), markers, samplesToBuildModels, defaultDir, pcFile, pedFile, svd, recomputeLRR, pcPercent, numThreads);
+			Project project = new Project(proj, false);
+			if (Double.isNaN(lrrSdCut)) {
+				project.getLog().reportTimeInfo("updating array specific lrr-sd");
+				if (project.getArrayType() == ARRAY.ILLUMINA) {
+					lrrSdCut = 0.30;
+				} else {
+					lrrSdCut = 0.35;
+				}
+			}
+			runAll(project, markers, samplesToBuildModels, defaultDir, pcFile, pedFile, svd, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
