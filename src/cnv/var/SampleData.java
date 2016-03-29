@@ -1189,6 +1189,7 @@ public class SampleData {
 	 * 
 	 * @param linkData
 	 *            Hashtable with the linker entry as the key (DNA, , FID, IID, plate, sex etc), and data to set as value. If replacing more than one column, the data to replace can be delimited
+	 *            If there are entries in Sample Data missing, the existing data is added to this Hashtable and left unchanged in the Sample Data file
 	 * @param linker
 	 *            The linker column header in sample Data, the linker should be verified prior to being used in this function i.e check that the linker is present before hand and determine the appropriate linker. Data will not be replaced if linker is not present in header.
 	 * @param columnHeaders
@@ -1251,9 +1252,15 @@ public class SampleData {
 						if (replace){
 							writer.println(Array.toStr(sampleDataHeader));
 							String[] line;
+							HashSet<String> linkers = new HashSet<String>();
 							while (reader.ready() && replace) {
 								line = reader.readLine().trim().split("\t");
-								if (linkData.containsKey(line[linkerIndex])) {
+								if (!linkers.add(line[linkerIndex])) {
+									log.reportError("Error - Specified linker \"" + linker + "\" is not unique, the value \"" + line[linkerIndex] + "\" appears more than once");
+									log.reportError("Cancelling the replacement and replacing sample data with backup");
+									replace = false;
+								}
+								else if (linkData.containsKey(line[linkerIndex])) {
 									String[] data;
 									if (columnHeaders.length > 1) data = linkData.get(line[linkerIndex]).split(linkDataDelimiter);
 									else data = new String[] {linkData.get(line[linkerIndex])};
@@ -1272,6 +1279,11 @@ public class SampleData {
 									}
 								} else {
 									writer.println(Array.toStr(line));
+									String[] existingVals = new String[existingIndices.length];
+									for (int i = 0; i < existingIndices.length; i++){
+										existingVals[i] = line[existingIndices[i]];
+									}
+									linkData.put(line[linkerIndex], Array.toStr(existingVals, linkDataDelimiter != null ? linkDataDelimiter : "\t"));
 									numUnchanged++;
 								}
 							}
