@@ -138,7 +138,7 @@ class CorrectionIterator implements Serializable {
 		boolean[] samplesPassing = Array.booleanArray(proj.getSamples().length, false);
 		SampleQC sampleQC = SampleQC.loadSampleQC(proj);
 		double[] lrrsd = sampleQC.getDataFor("LRR_SD");
-		double[] callRate = sampleQC.getDataFor("AB_callrate");
+		double[] callRate = sampleQC.getDataFor("Genotype_callrate");
 		proj.getLog().reportTimeInfo("Filtering samples for LrrSd<" + lrrSdCut + " and call rate>" + callRateCut);
 		for (int i = 0; i < callRate.length; i++) {
 			if (lrrsd[i] < lrrSdCut && callRate[i] > callRateCut) {
@@ -1095,7 +1095,16 @@ class CorrectionIterator implements Serializable {
 		String lrrSdCurrent = outputDir + "lrrSD.txt";
 		proj.SAMPLE_QC_FILENAME.setValue(lrrSdCurrent);
 		if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-			LrrSd.init(proj, null, null, null, null, numthreads);
+			String markerQCFile = outputDir + "markersForSampleQC.txt";
+			ArrayList<String> toEvaluate = new ArrayList<String>();
+			String[] names = proj.getMarkerNames();
+			for (int i = 0; i < names.length; i++) {
+				if (!proj.getArrayType().isCNOnly(names[i])) {
+					toEvaluate.add(names[i]);
+				}
+			}
+			Files.writeList(Array.toStringArray(toEvaluate), markerQCFile);
+			LrrSd.init(proj, null, markerQCFile, markerQCFile, null, numthreads);
 		}
 		CorrectionIterator[] cIterators = getIterations(proj, markesToEvaluate, samplesToBuildModels, outputDir, svd, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numthreads);
 		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();

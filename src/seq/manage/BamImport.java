@@ -287,7 +287,7 @@ public class BamImport {
 
 	}
 
-	public static void importTheWholeBamProject(Project proj, String binBed, String captureBed, String optionalVCF, int captureBuffer, int numthreads) {
+	public static void importTheWholeBamProject(Project proj, String binBed, String captureBed, String optionalVCF, int captureBuffer, int correctionPCs, int numthreads) {
 
 		if (proj.getArrayType() == ARRAY.NGS) {
 			Logger log = proj.getLog();
@@ -391,7 +391,7 @@ public class BamImport {
 					if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
 						Mosaicism.findOutliers(proj, numthreads);
 					}
-					ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes, numthreads);// Generates and corrects the project for each marker type
+					ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes, correctionPCs, numthreads);// Generates and corrects the project for each marker type
 
 					String newSampleDir = proj.PROJECT_DIRECTORY.getValue() + "samplesCorrected/";
 					String newtransposedDir = proj.PROJECT_DIRECTORY.getValue() + "transposedCorrected/";
@@ -407,7 +407,7 @@ public class BamImport {
 						}
 					}
 
-					proj.SAMPLE_DIRECTORY.setValue(newSampleDir);//Final resting place
+					proj.SAMPLE_DIRECTORY.setValue(newSampleDir);// Final resting place
 					if (recompallOutliers.size() > 0 || !Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {// currently do to all the skipping
 						Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
 					}
@@ -484,7 +484,7 @@ public class BamImport {
 
 	}
 
-	private static ArrayList<ProjectCorrected> correctifyProject(Project proj, ArrayList<MarkerFileType> types, int numthreads) {
+	private static ArrayList<ProjectCorrected> correctifyProject(Project proj, ArrayList<MarkerFileType> types, int correctionPCs, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
 		proj.LRRSD_CUTOFF.setValue(.40);
 		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(20);
@@ -516,8 +516,8 @@ public class BamImport {
 			String[] correctedSamps = Array.tagOn(proj.getSamples(), pcCorrected.SAMPLE_DIRECTORY.getValue(), Sample.SAMPLE_DATA_FILE_EXTENSION);
 			if (!Files.exists("", correctedSamps)) {
 				proj.getLog().reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
-				PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 1, numthreads, false, false, false, -1, true);
-				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, 10, 1, false, true, false, -1, true);
+				PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, 1, numthreads, false, false, false, -1, true);
+				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, 10, 1, false, true, false, -1, true);
 			}
 			pcCorrected.saveProperties();
 			if (type.getType() != null) {
@@ -525,7 +525,6 @@ public class BamImport {
 			}
 		}
 		return correctedProjects;
-
 	}
 
 	private static class RecompileProducer implements Producer<Hashtable<String, Float>> {
@@ -758,6 +757,7 @@ public class BamImport {
 		int numthreads = 24;
 		int captureBuffer = 400;
 		String vcf = null;
+		int correctionPCs = 4;
 		// String referenceGenomeFasta = "hg19_canonical.fa";
 		// String logfile = null;
 		// Logger log;
@@ -768,6 +768,7 @@ public class BamImport {
 		usage += Ext.getNumThreadsCommand(3, numthreads);
 		usage += "(4) bed file to import  (i.e. captureBed=" + captureBed + " ( no default))\n" + "";
 		usage += "(5) a vcf, if provided the variants will be imported with bp resolution  (i.e. vcf= ( no default))\n" + "";
+		usage += "(6) number of PCs to correct with  (i.e. correctionPCs= ( no default))\n" + "";
 
 		// usage += "(3) reference genome  (i.e. ref=" + referenceGenomeFasta + " ( default))\n" + "";
 
@@ -790,6 +791,9 @@ public class BamImport {
 			} else if (args[i].startsWith(Ext.NUM_THREADS_COMMAND)) {
 				numthreads = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("correctionPCs")) {
+				correctionPCs = ext.parseIntArg(args[i]);
+				numArgs--;
 			}
 			// else if (args[i].startsWith("log=")) {
 			// logfile = args[i].split("=")[1];
@@ -806,7 +810,7 @@ public class BamImport {
 		try {
 			// log = new Logger(logfile);
 			Project proj = new Project(filename, false);
-			importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, numthreads);
+			importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, numthreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
