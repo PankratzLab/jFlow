@@ -7,7 +7,6 @@ import java.util.concurrent.Callable;
 
 import javax.swing.JOptionPane;
 
-import seq.manage.BamImport.NGS_MARKER_TYPE;
 import cnv.analysis.MosaicismDetect.MosaicBuilder;
 import cnv.filesys.*;
 import cnv.filesys.Project.ARRAY;
@@ -187,7 +186,7 @@ public class Mosaicism {
 			boolean[] use = new boolean[markerSet.getMarkerNames().length];
 			int numMasked = 0;
 			for (int i = 0; i < use.length; i++) {
-				boolean useit = NGS_MARKER_TYPE.getType(markerSet.getMarkerNames()[i]) == NGS_MARKER_TYPE.VARIANT_SITE;
+				boolean useit = !proj.getArrayType().isCNOnly(markerSet.getMarkerNames()[i]);
 				if (!useit) {
 					numMasked++;
 				}
