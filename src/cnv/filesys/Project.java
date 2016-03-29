@@ -21,6 +21,7 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 
+import seq.manage.BamImport.NGS_MARKER_TYPE;
 import common.Aliases;
 import common.Array;
 import common.Files;
@@ -1557,7 +1558,7 @@ public class Project {
 		 */
 		public boolean isCNOnly(String markerName) {
 			if (this == NGS) {
-				return false;
+				return NGS_MARKER_TYPE.getType(markerName) != NGS_MARKER_TYPE.VARIANT_SITE;// only non cn type we have
 			} else {
 				for (int i = 0; i < cnFlags.length; i++) {
 					if (ext.indexOfStartsWith(cnFlags[i], new String[] { markerName }, false) >= 0) {

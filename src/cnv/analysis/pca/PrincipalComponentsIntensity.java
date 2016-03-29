@@ -18,6 +18,7 @@ import cnv.filesys.Centroids;
 import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
 import cnv.manage.MDL;
 import cnv.plots.ScatterPlot;
 
@@ -37,8 +38,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 	private static final int[] CORRECTION_INTS = { 0, 1, 2, 3 };
 	private static final int KILL_INT = -99;
-	private static final String[] AFFY_INTENSITY_ONLY_FLAG = { "CN_" };
-	private static final String[] ILLUMINA_INTENSITY_ONLY_FLAG = { "cnvi" };
+	// private static final String[] AFFY_INTENSITY_ONLY_FLAG = { "CN_" };
+	// private static final String[] ILLUMINA_INTENSITY_ONLY_FLAG = { "cnvi" };
 	private static final double MIN_CLUSTER_PERCENT = 0.0;//
 
 	private CentroidCompute centroid;
@@ -62,7 +63,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		this.verbose = verbose;
 		this.nStage = nStage;
 		this.fail = (markerData.getXs() == null || markerData.getYs() == null || markerData.getAbGenotypes() == null);
-		this.centroid = prepareProperCentroid(markerData, sampleSex, samplesToUseCluster, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, proj.getLog());
+		this.centroid = prepareProperCentroid(getProj().getArrayType(), markerData, sampleSex, samplesToUseCluster, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, proj.getLog());
 		this.numTotalSamples = markerData.getXs().length;
 		this.correctedXFull = new float[numTotalSamples];
 		this.correctedYFull = new float[numTotalSamples];
@@ -234,7 +235,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			centroid.setMarkerData(tmpMarkerData);
 			centroid.computeCentroid();
 			float[] lrrs = centroid.getRecomputedLRR();
-			if (isAffyIntensityOnly(tmpMarkerData)) {
+			if (isAffyIntensityOnly(getProj().getArrayType(), tmpMarkerData)) {
 				centroid.setIntensityOnly(true); // this is to get proper LRRs /BAFs for affy CN_ probes. The correction process does not need this flag however
 			}
 			float[] bafs = centroid.getRecomputedBAF();
@@ -637,15 +638,15 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		return (float) (centroid[1] / (1 + Math.cos(centroid[0] * Math.PI / 2) / Math.sin(centroid[0] * Math.PI / 2)));
 	}
 
-	private static CentroidCompute prepareProperCentroid(MarkerData markerData, int[] sampleSex, boolean[] samplesToUseCluster, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, Logger log) {
+	private static CentroidCompute prepareProperCentroid(ARRAY array, MarkerData markerData, int[] sampleSex, boolean[] samplesToUseCluster, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, Logger log) {
 		CentroidCompute centroid;
-		if (isAffyIntensityOnly(markerData)) {
+		if (isAffyIntensityOnly(array, markerData)) {
 			// centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, true, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
 			centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, false, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
 			CentroidCompute.setFakeAB(markerData, centroid, clusterFilterCollection, .1f, log);
 		} else {
 			centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, false, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
-			if (markerData.getMarkerName().startsWith(ILLUMINA_INTENSITY_ONLY_FLAG[0])) {
+			if (array.isCNOnly(markerData.getMarkerName())) {
 				CentroidCompute.setFakeAB(markerData, centroid, clusterFilterCollection, 0, log);
 			}
 		}
@@ -653,11 +654,10 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		return centroid;
 	}
 
-	private static boolean isAffyIntensityOnly(MarkerData markerData) {
-		return markerData.getMarkerName().startsWith(AFFY_INTENSITY_ONLY_FLAG[0]);
+	private static boolean isAffyIntensityOnly(ARRAY array, MarkerData markerData) {
+		return (array == ARRAY.AFFY_GW6 || array == ARRAY.AFFY_GW6_CN) && array.isCNOnly(markerData.getMarkerName());
 	}
 
-	
 
 	private static class WorkerRegression implements Callable<CrossValidation> {
 		private PrincipalComponentsResiduals principalComponentsResiduals;

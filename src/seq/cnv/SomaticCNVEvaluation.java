@@ -13,6 +13,7 @@ import common.Logger;
 import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
+import seq.manage.BamImport.NGS_MARKER_TYPE;
 import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import cnv.analysis.BeastScore;
@@ -272,10 +273,15 @@ public class SomaticCNVEvaluation {
 			Hashtable<String, Integer> track = proj.getMarkerIndices();
 			for (int i = 0; i < tumorCnvs.getLoci().length; i++) {
 				String[] namesIn = markerSet.getMarkersIn(tumorCnvs.getLoci()[i], markerSet.getIndicesByChr());
-				cnvIndices[i] = new int[namesIn.length];
+				ArrayList<Integer> nonVariant = new ArrayList<Integer>();
+
 				for (int j = 0; j < namesIn.length; j++) {
-					cnvIndices[i][j] = track.get(namesIn[j]);
+					NGS_MARKER_TYPE type = NGS_MARKER_TYPE.getType(namesIn[j]);
+					if (type != NGS_MARKER_TYPE.VARIANT_SITE) {
+						nonVariant.add(track.get(namesIn[j]));
+					}
 				}
+				cnvIndices[i] = Array.toIntArray(nonVariant);
 			}
 
 			proj.getLog().reportTimeInfo("Computing scores for " + tumorSample);
