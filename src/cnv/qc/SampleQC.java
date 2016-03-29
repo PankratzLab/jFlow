@@ -142,7 +142,18 @@ public class SampleQC {
 		SampleData sampledata = proj.getSampleData(0, false);
 		String[] header = new String[] {"FID", "IID"};
 		proj.getLog().reportTimeInfo("Replacing FID/IID columns in Sample Data with FID/IID from Pedigree");
-		return sampledata.replaceData(fidiidhash, "DNA", header, "\t", proj.getLog());
+		if(sampledata.replaceData(fidiidhash, "DNA", header, "\t", proj.getLog())){
+			proj.getLog().reportTimeInfo("Replaced FID/IID columns in Sample Data with FID/IID from Pedigree");
+			HashSet<String> sampleDataFidIids = new HashSet<String>();
+			int nonUnique = 0;
+			for (String fidiid : fidiidhash.values()){
+				if(!sampleDataFidIids.add(fidiid)) nonUnique++;
+			}
+			if (nonUnique > 0) proj.getLog().reportTimeWarning(nonUnique + " non-unique FID/IID pairs now exist in Sample Data!");
+			return true;
+		}
+		proj.getLog().reportTimeError("Replacing FID/IID columns in Sample Data failed");
+		return false;
 	}
 
 	private void addToMatrix(String sample, int qcTitleIndex, double data) {
