@@ -1095,19 +1095,9 @@ public class SampleData {
 			log.reportError("Error - could not find linker " + linker + " in sample data file " + sampleDatafilename + ", will not add data");
 			add = false;
 		} else {
-			String bakDir = proj.BACKUP_DIRECTORY.getValue(true, true);
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e1) {
-				log.reportException(e1);
-			}
-
-			String bakFile = bakDir + ext.removeDirectoryInfo(sampleDatafilename) + "_" + System.currentTimeMillis();
-			// fail if can't back up file
-			if (!Files.copyFile(sampleDatafilename, bakFile) || !new File(bakFile).exists()) {
-				log.reportError("Error - could not back up sample data file " + sampleDatafilename + ", will not add data");
-				add = false;
-			} else if (add) {
+			String bakFile = backupSampleData(proj,log);
+			if (bakFile == null) add = false;
+			else {
 				log.report("Info - backed up sample data file (" + sampleDatafilename + ") to " + bakFile);
 				int numMissing = 0;
 				int numAdded = 0;
@@ -1188,6 +1178,149 @@ public class SampleData {
 			}
 		}
 		return add;
+}
+	
+	/**
+	 * Replace column(s) in sample data according to linker (linker must be a single column i.e "DNA" ,"FID","IID",and not "FID\tIID") that corresponds to a single column in the sample data file, new columns will be merged with existing columns
+	 * <p>
+	 * Warning - alternate names for linker are not determined, please do that prior to use
+	 * <p>
+	 * Warning - missing values are left unchanged
+	 * 
+	 * @param linkData
+	 *            Hashtable with the linker entry as the key (DNA, , FID, IID, plate, sex etc), and data to set as value. If replacing more than one column, the data to replace can be delimited
+	 * @param linker
+	 *            The linker column header in sample Data, the linker should be verified prior to being used in this function i.e check that the linker is present before hand and determine the appropriate linker. Data will not be replaced if linker is not present in header.
+	 * @param columnHeaders
+	 *            The columns to be replaced. If greater than 1, the length of the header must equal the length of the (delimited) data for every replacement
+	 * @param linkDataDelimiter
+	 *            The delimiter to use for the data in linkData, or <code>null</code> if only replacing one column of data
+	 * @param log 
+	 *            a log!
+	 * 
+	 * @return true if data was replaced successfully, false if not
+	 */
+	public boolean replaceData(Hashtable<String, String> linkData, String linker, String[] columnHeaders, String linkDataDelimiter, Logger log){
+		boolean replace = true;
+		boolean writerWasOpened = false;
+		BufferedReader reader;
+		PrintWriter writer;
+		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue();
+		// in memory backup
+		String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, null, false);
+		String[] sampleDataHeader = Files.getHeaderOfFile(sampleDatafilename, log);
+		int linkerIndex = ext.indexOfStr(linker, sampleDataHeader);
+		// fail if can't find linker
+		if (linkerIndex == -1) {
+			log.reportError("Error - could not find linker " + linker + " in sample data file " + sampleDatafilename + ", will not replace data");
+			replace = false;
+		} else {
+			String bakFile = backupSampleData(proj,log);
+			if (bakFile == null) replace = false;
+			else {
+				log.report("Info - backed up sample data file (" + sampleDatafilename + ") to " + bakFile);
+				int numUnchanged = 0;
+				int numReplaced = 0;
+
+				try {
+					reader = new BufferedReader(new FileReader(bakFile));
+					String[] tmpHeader = reader.readLine().trim().split("\t");
+					// fail if header of original and backup do not match
+					if (!Array.equals(tmpHeader, sampleDataHeader, true)) {
+						log.reportError("Error - backup sample data " + bakFile + " does not contain the same header as " + sampleDatafilename + ", will not replace data");
+						replace = false;
+					} else {
+						writerWasOpened = true;
+						writer = Files.getAppropriateWriter(sampleDatafilename);
+						String dateTime = ext.getDate() + "_" + ext.getTime();
+						int[] existingIndices = new int[columnHeaders.length];
+						for (int i = 0; i < columnHeaders.length; i++){
+							int[] indices = ext.indicesOfStr(columnHeaders[i], sampleDataHeader, false, true);
+							if(indices.length > 0){
+								existingIndices[i] = indices[0];
+								for(int index = 1; index < indices.length; index++){
+									// If more than one instance of the header exists, deactivate the others
+									sampleDataHeader[indices[index]] = "x" + sampleDataHeader[indices[index]] + "_replaced_" + dateTime;
+									log.report("Warning - Additional instance of column \"" + columnHeaders[i] + "\" found, header changed to: " + sampleDataHeader[indices[index]]);
+								}
+							} else {
+								replace = false;
+								log.reportError("Error - column \"" + columnHeaders[i] + "\" does not exist in " + sampleDatafilename + ", will not replace data");
+							}
+						}
+						if (replace){
+							writer.println(Array.toStr(sampleDataHeader));
+							String[] line;
+							while (reader.ready() && replace) {
+								line = reader.readLine().trim().split("\t");
+								if (linkData.containsKey(line[linkerIndex])) {
+									String[] data;
+									if (columnHeaders.length > 1) data = linkData.get(line[linkerIndex]).split(linkDataDelimiter);
+									else data = new String[] {linkData.get(line[linkerIndex])};
+
+									if (data.length != columnHeaders.length) {
+										// fail if replaced data for a linker is the wrong length after delimiting
+										log.reportError("Error - the number of entries in the column header " + Array.toStr(columnHeaders) + " (" + columnHeaders.length + ") does not equal the number of entries in the data " + Array.toStr(data) + " (" + data.length + ")");
+										log.reportError("Cancelling the replacement and replacing sample data with backup");
+										replace = false;
+									} else {
+										for (int i = 0; i < data.length; i++){
+											line[existingIndices[i]] = data[i];
+										}
+										writer.println(Array.toStr(line));
+										numReplaced++;
+									}
+								} else {
+									writer.println(Array.toStr(line));
+									numUnchanged++;
+								}
+							}
+							writer.close();
+						}
+					}
+					reader.close();
+					if (replace) {
+						log.report("Info - replaced data in sample data for " + numReplaced + (numReplaced > 1 ? " samples " : " samples"));
+						if (numUnchanged > 0) {
+							log.report("Warning - " + numUnchanged + " " + (numUnchanged > 1 ? "samples" : "samples") + " were left unchanged ");
+						}
+					} else if (!replace && writerWasOpened) {
+						if (!Files.copyFile(bakFile, sampleDatafilename)) {
+							Files.writeMatrix(sampleDataMatrix, sampleDatafilename, "\t");
+						}
+					}
+				} catch (FileNotFoundException e) {
+					log.reportError("Error: Sample Data backup file " + bakFile + " not found");
+					log.reportException(e);
+					replace = false;
+				} catch (IOException e) {
+					log.reportError("Error: unable to read sample data backup file" + bakFile);
+					log.reportException(e);
+					replace = false;
+				}
+			}
+		}
+		return replace;
+	}
+
+	private static String backupSampleData (Project proj, Logger log) {
+		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue();
+		String bakDir = proj.BACKUP_DIRECTORY.getValue(true, true);
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			log.reportException(e1);
+		}
+
+		String bakFile = bakDir + ext.removeDirectoryInfo(sampleDatafilename) + "_" + System.currentTimeMillis();
+		// fail if can't back up file
+		if (!Files.copyFile(sampleDatafilename, bakFile) || !new File(bakFile).exists()) {
+			log.reportError("Error - could not back up sample data file " + sampleDatafilename + ", will not add data");
+			return null;
+		}
+		log.report("Info - backed up sample data file (" + sampleDatafilename + ") to " + bakFile);
+
+		return bakFile;
 	}
 	
 	/**
