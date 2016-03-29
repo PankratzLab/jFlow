@@ -725,7 +725,7 @@ public class GenvisisWorkflow {
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
 //            String fileCheck1 = proj.PROJECT_DIRECTORY.getValue()+"gwas.map";
-            String fileCheck2 = proj.PROJECT_DIRECTORY.getValue()+"plink.bed";
+            String fileCheck2 = proj.PROJECT_DIRECTORY.getValue()+"plink/plink.bed";
 //            String fileCheck3 = proj.PROJECT_DIRECTORY.getValue()+"genome/";
             boolean pedCheck = Boolean.valueOf(variables.get(this).get(2)) ? Files.exists(proj.PEDIGREE_FILENAME.getValue()) : true;
             return/* Files.exists(fileCheck1) &&*/ Files.exists(fileCheck2) /*&& Files.exists(fileCheck3)*/ /*&& Files.list(fileCheck3, ".bed", false).length > 0*/ && pedCheck;
