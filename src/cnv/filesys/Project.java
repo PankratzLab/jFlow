@@ -220,6 +220,14 @@ public class Project {
 			}
 			super.setValue(value);
 		}
+		
+		public double getMinValue(){
+			return min;
+		}
+		
+		public double getMaxValue(){
+			return max;
+		}
 	}
 	
 	public static class FileProperty extends StringProperty {
