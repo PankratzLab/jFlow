@@ -179,6 +179,19 @@ public class CNVariant extends Segment {
 	public String toPlinkFormat() {
 		return familyID + "\t" + individualID + "\t" + chr + "\t" + start + "\t" + stop + "\t" + cn + "\t" + ext.formDeci(score, 5) + "\t" + numMarkers;
 	}
+	
+	/**
+	 * Assumes that {@link CNVariant#individualID} is actually the DNA id
+	 * 
+	 * @return region list ready for trailer, with the score as the comment
+	 */
+	public String[] toTrailerFormat() {
+		String[] tTrail = new String[3];
+		tTrail[0] = individualID;
+		tTrail[1] = getUCSClocation();
+		tTrail[2] = score + "";
+		return tTrail;
+	}
 
 	public String getFingerprint() {
 		return familyID + "_" + individualID + "_" + chr + "_" + start + "_" + stop + "_" + cn + "_" + numMarkers;

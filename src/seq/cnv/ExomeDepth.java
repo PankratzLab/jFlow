@@ -537,7 +537,9 @@ public class ExomeDepth {
 
 	public static ExomeDepthAnalysis[] callCNVs(ExomeDepth exomeDepth, String outputDir, String outputRoot, int numthreads, Logger log) {
 		if (!Files.exists(exomeDepth.getCountFile())) {
-			log.reportTimeError("Did not find " + exomeDepth.getCountFile() + ", please start the analysis in batch mode first");
+			log.reportTimeError("Did not find " + exomeDepth.getCountFile());
+			log.reportTimeError("This is most likely caused by a failure of running Rscript");
+
 			return null;
 		}
 		ExomeDepthAnalysis[] eAnalysis = new ExomeDepthAnalysis[exomeDepth.getAnalysisBamFiles().length];

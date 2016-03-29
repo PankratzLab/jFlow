@@ -54,7 +54,7 @@ public class SomaticCNVEvaluation {
 
 	}
 
-	private static void filter(Project proj, String vpopFile, String cnvFile, int numThreads) {
+	private static void filter(Project proj, String vpopFile, String cnvFile, double normalCutoff, double diffCutoff, int numThreads) {
 		Logger log = proj.getLog();
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
 		vpop.report();
@@ -92,11 +92,12 @@ public class SomaticCNVEvaluation {
 		//
 		// }
 		// }
-		TNCNVProducer producer = new TNCNVProducer(proj,inds, trackers);
+		BeastFilt beastFilt = new BeastFilt(normalCutoff, normalCutoff);
+		TNCNVProducer producer = new TNCNVProducer(proj, inds, trackers, beastFilt);
 		WorkerTrain<TNCNV> train = new WorkerTrain<SomaticCNVEvaluation.TNCNV>(producer, numThreads, numThreads, proj.getLog());
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + "SomaticCNV/";
 		new File(outDir).mkdirs();
-		String outFile = outDir + ext.rootOf(cnvFile)+".somaticEvals.txt";
+		String outFile = outDir + ext.rootOf(cnvFile) + ".somaticEvals.txt";
 
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(outFile));
@@ -104,7 +105,8 @@ public class SomaticCNVEvaluation {
 			while (train.hasNext()) {
 				TNCNV current = train.next();
 				for (int i = 0; i < current.getTumorCnvs().getLoci().length; i++) {
-					writer.println(current.getTumorCnvs().getLoci()[i].toPlinkFormat() + "\t" + Array.toStr(current.getSomaticEvaluations()[i].getSummary()));
+					CNVariant currentCNV = current.getTumorCnvs().getLoci()[i];
+					writer.println(currentCNV.toPlinkFormat() + "\t" + Array.toStr(current.getSomaticEvaluations()[i].getSummary()) + "\t" + Array.toStr(currentCNV.toTrailerFormat()));
 				}
 			}
 			writer.close();
@@ -115,19 +117,41 @@ public class SomaticCNVEvaluation {
 
 	}
 
+	private static class BeastFilt {
+		private double normalCutoff;
+		private double diffCutoff;
+
+		private double getNormalCutoff() {
+			return normalCutoff;
+		}
+
+		private double getDiffCutoff() {
+			return diffCutoff;
+		}
+
+		public BeastFilt(double normalCutoff, double diffCutoff) {
+			super();
+			this.normalCutoff = normalCutoff;
+			this.diffCutoff = diffCutoff;
+		}
+
+	}
+
 	private static class TNCNVProducer implements Producer<TNCNV> {
 		private Project proj;
 
 		private Hashtable<String, LocusSet<CNVariant>> inds;
 		private ArrayList<TNTrack> tncnvs;
 		private int index;
+		private BeastFilt beastFilt;
 
-		public TNCNVProducer(Project proj,Hashtable<String, LocusSet<CNVariant>> inds, ArrayList<TNTrack> tncnvs) {
+		public TNCNVProducer(Project proj, Hashtable<String, LocusSet<CNVariant>> inds, ArrayList<TNTrack> tncnvs, BeastFilt beastFilt) {
 			super();
-			this.proj=proj;
-			this.inds=inds;
+			this.proj = proj;
+			this.inds = inds;
 			this.tncnvs = tncnvs;
-			this.index=0;
+			this.index = 0;
+			this.beastFilt = beastFilt;
 		}
 
 		@Override
@@ -139,7 +163,7 @@ public class SomaticCNVEvaluation {
 		@Override
 		public Callable<TNCNV> next() {
 			TNTrack trackCurrent = tncnvs.get(index);
-			TNCNV current = new TNCNV(proj, inds.get(trackCurrent.getTumorFidIid()), trackCurrent.getTumorSample(), trackCurrent.getNormalSample());
+			TNCNV current = new TNCNV(proj, inds.get(trackCurrent.getTumorFidIid()), trackCurrent.getTumorSample(), trackCurrent.getNormalSample(), beastFilt);
 			index++;
 			return current;
 		}
@@ -153,18 +177,44 @@ public class SomaticCNVEvaluation {
 	}
 
 	private static class SomaticEvaluation {
-		private static final String[] HEADER = new String[] { "TYPE", "BEAST_HEIGHT_TUMOR", "BEAST_HEIGHT_NORMAL", "BEAST_HEIGHT_DIFF" };
+		private static final String[] HEADER = new String[] { "TYPE", "BEAST_HEIGHT_TUMOR", "BEAST_HEIGHT_NORMAL", "BEAST_HEIGHT_DIFF", "HQ" };
 		private String type;
 		private double bhTumor;
 		private double bhNormal;
 		private double heightDiff;
+		private boolean hq;
 
-		public SomaticEvaluation(String type, double bhTumor, double bhNormal, double heightDiff) {
+		public SomaticEvaluation(String type, double bhTumor, double bhNormal) {
 			super();
 			this.type = type;
 			this.bhTumor = bhTumor;
 			this.bhNormal = bhNormal;
-			this.heightDiff = heightDiff;
+		}
+
+		private void determineHQ(double normalCutoff, double diffCutoff) {
+			this.hq = true;
+			if (Math.abs(bhNormal) > normalCutoff) {// might remove since somatic can get weird
+				hq = false;
+			}
+			boolean posN = bhNormal > 0;
+			boolean posT = bhTumor > 0;
+
+			boolean same = posN == posT;
+
+			if (same) {
+				this.heightDiff = Math.abs(bhTumor) - Math.abs(bhNormal);
+				if (heightDiff < diffCutoff) {
+					hq = false;
+				}
+
+			} else {
+				this.heightDiff = Math.abs(bhTumor);
+				if (heightDiff < diffCutoff) {
+					hq = false;
+
+				}
+			}
+
 		}
 
 		private String[] getSummary() {
@@ -173,6 +223,7 @@ public class SomaticCNVEvaluation {
 			summary.add(bhTumor + "");
 			summary.add(bhNormal + "");
 			summary.add(heightDiff + "");
+			summary.add(hq + "");
 			return Array.toStringArray(summary);
 		}
 
@@ -185,13 +236,15 @@ public class SomaticCNVEvaluation {
 		private String normalSample;
 		private PreparedMarkerSet markerSet;
 		private SomaticEvaluation[] somaticEvaluations;
+		private BeastFilt beastFilt;
 
-		public TNCNV(Project proj, LocusSet<CNVariant> tumorCnvs, String tumorSample, String normalSample) {
+		public TNCNV(Project proj, LocusSet<CNVariant> tumorCnvs, String tumorSample, String normalSample, BeastFilt beastFilt) {
 			super();
 			this.proj = proj;
 			this.tumorCnvs = tumorCnvs;
 			this.tumorSample = tumorSample;
 			this.normalSample = normalSample;
+			this.beastFilt = beastFilt;
 		}
 
 		private LocusSet<CNVariant> getTumorCnvs() {
@@ -236,8 +289,8 @@ public class SomaticCNVEvaluation {
 			for (int i = 0; i < cnvIndices.length; i++) {
 				double bhTumor = beastScoreTumor.getBeastHeights()[i];
 				double bhNormal = beastScoreNormal.getBeastHeights()[i];
-				double heightDiff = Math.abs(bhTumor - bhNormal);
-				SomaticEvaluation somaticEvaluation = new SomaticEvaluation("ALL_MARKERS", bhTumor, bhNormal, heightDiff);
+				SomaticEvaluation somaticEvaluation = new SomaticEvaluation("ALL_MARKERS", bhTumor, bhNormal);
+				somaticEvaluation.determineHQ(beastFilt.getNormalCutoff(), beastFilt.getDiffCutoff());
 				somaticEvaluations[i] = somaticEvaluation;
 			}
 			return this;
@@ -249,11 +302,12 @@ public class SomaticCNVEvaluation {
 		String[] cnvFiles = proj.CNV_FILENAMES.getValue();
 		String vpopFile = proj.PROJECT_DIRECTORY.getValue() + "TN.vpop";
 		int numthreads = 2;
+		double normalCutoff = .25;
+		double diffCutoff = .5;
+		filter(proj, vpopFile, cnvFiles[1], normalCutoff, diffCutoff, numthreads);
 
-		for (int i = 0; i < cnvFiles.length; i++) {
-			filter(proj, vpopFile, cnvFiles[i], numthreads);
-
-		}
+		// for (int i = 0; i < cnvFiles.length; i++) {
+		// }
 
 	}
 
