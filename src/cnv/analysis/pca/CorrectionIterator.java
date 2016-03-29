@@ -193,7 +193,13 @@ class CorrectionIterator implements Serializable {
 						log.reportTimeError("Model building type was set to " + bType + " but the sample file " + samplesToBuildModels + " did not exist");
 						valid = false;
 					} else {
-						samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
+						String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[0], true);
+						int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true, proj.getLog(), true, false);
+						samplesForModels = Array.booleanArray(proj.getSamples().length, false);
+						for (int i = 0; i < indices.length; i++) {
+							samplesForModels[indices[i]] = true;
+						}
+						// samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
 					}
 
 					for (int i = 0; i < sampleQCPassed.length; i++) {
