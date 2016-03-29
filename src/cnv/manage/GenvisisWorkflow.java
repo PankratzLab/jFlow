@@ -25,6 +25,7 @@ import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustorParameter;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import cnv.qc.SampleQC;
 import cnv.var.SampleData;
 import common.Aliases;
 import common.Array;
@@ -760,7 +761,7 @@ public class GenvisisWorkflow {
         }
     };
     
-    static final STEP S9_GWAS_QC = new STEP("Run GWAS QC", 
+    static final STEP S8_GWAS_QC = new STEP("Run GWAS QC", 
                "", 
                new String[][]{{"[Create/Run PLINK Files] step must be selected and valid.", "PLINK files must already exist in the following directory."}, {"Keep genome info for unrelateds only?"}},
                new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR}, {RequirementInputType.BOOL}}) {
@@ -772,20 +773,14 @@ public class GenvisisWorkflow {
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String dir = variables.get(this).get(0);
-            if (!dir.startsWith("/") && !dir.contains(":")) {
-                dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
-            }
+            String dir = getPlinkDir(proj, variables);
             boolean keepUnrelatedsOnly = Boolean.valueOf(variables.get(this).get(1));
             Qc.fullGamut(dir, null, keepUnrelatedsOnly, proj.getLog());
         }
         
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            String dir = variables.get(this).get(0);
-            if (!dir.startsWith("/") && !dir.contains(":")) {
-                dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
-            }
+            String dir = getPlinkDir(proj, variables);
             boolean files = Files.exists(dir);
             return new boolean[][]{
                     {(stepSelections.get(S7_RUN_PLINK) && S7_RUN_PLINK.hasRequirements(proj, stepSelections, variables)), 
@@ -801,10 +796,7 @@ public class GenvisisWorkflow {
 
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String dir = variables.get(this).get(0);
-            if (!dir.startsWith("/") && !dir.contains(":")) {
-                dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
-            }
+            String dir = getPlinkDir(proj, variables);
             boolean allExist = true;
             folders: for (int i = 0; i < gwas.Qc.FOLDERS_CREATED.length; i++) {
                 for (int j = 0; j < gwas.Qc.FILES_CREATED[i].length; j++) {
@@ -819,12 +811,206 @@ public class GenvisisWorkflow {
         
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String dir = variables.get(this).get(0);
+            String dir = getPlinkDir(proj, variables);
             boolean keepUnrelatedsOnly = Boolean.valueOf(variables.get(this).get(1));
             return "jcp gwas.Qc dir=" + dir + " keepGenomeInfoForRelatedsOnly=" + keepUnrelatedsOnly;
         }
         
+        private String getPlinkDir(Project proj, HashMap<STEP, ArrayList<String>> variables){
+        	// This directory is also used in S9_ANNOTATE_SAMPLE_DATA, any changes should be reflected there
+        	String dir = variables.get(this).get(0);
+            if (!dir.startsWith("/") && !dir.contains(":")) {
+                dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
+            }
+            return dir;
+        }
+        
     };
+    
+    static final STEP S9_ANNOTATE_SAMPLE_DATA = new STEP("Annotate Sample Data File", 
+            "", 
+            new String[][]{{"Sample QC File must exist."},
+    					   {"[" + S3_CREATE_SAMPLEDATA.stepName + "] step must be selected and valid.", "SampleData.txt file must already exist."},
+    					   {"Skip identifying duplicates?","[" + S8_GWAS_QC.stepName + "] step must be selected and valid.","Duplicates Set file must already exist."},
+    					   {"Do not use GC corrected LRR SD?","GC Corrected LRR SD must exist in Sample QC File"},
+    					   {"LRR SD Threshold"},
+    					   {"Callrate Threshold"},
+    					   {"Number of Quantiles to Generate"},
+    					   {"Replace FID and IID with data from Pedigree"}},
+            new RequirementInputType[][]{{RequirementInputType.FILE},
+    						   			 {RequirementInputType.NONE, RequirementInputType.FILE},
+    						   			 {RequirementInputType.BOOL, RequirementInputType.NONE, RequirementInputType.FILE},
+    						   			 {RequirementInputType.BOOL, RequirementInputType.NONE},
+    						   			 {RequirementInputType.INT},
+    						   			 {RequirementInputType.INT},
+    						   			 {RequirementInputType.INT},
+    						   			 {RequirementInputType.BOOL}}) {
+
+     @Override
+     public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+    	 String projSampleQCFile = proj.SAMPLE_QC_FILENAME.getValue();
+    	 String sampleQCFile = variables.get(this).get(0);
+    	 String projSampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
+    	 String sampleDataFile = variables.get(this).get(1);
+    	 double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
+    	 double lrrSdThreshold = Double.parseDouble(variables.get(this).get(5));
+    	 double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
+    	 double callrateThreshold = Double.parseDouble(variables.get(this).get(6));
+    	 
+         if (!projSampleQCFile.equals(sampleQCFile) && Files.exists(sampleQCFile)) {
+        	 proj.SAMPLE_QC_FILENAME.setValue(sampleQCFile);
+         }
+         if (!projSampleDataFile.equals(sampleDataFile) && Files.exists(sampleDataFile)) {
+        	 proj.SAMPLE_DATA_FILENAME.setValue(sampleDataFile);
+         }
+         if (projLrrSdThreshold != lrrSdThreshold) {
+        	 proj.LRRSD_CUTOFF.setValue(lrrSdThreshold);
+         }
+         if (projCallrateThreshold != callrateThreshold) {
+        	 proj.SAMPLE_CALLRATE_THRESHOLD.setValue(callrateThreshold);
+         }
+     }
+     
+     @Override
+     public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+    	 boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(2));
+         String duplicatesSetFile = null;
+         if (checkDuplicates) {
+        	 duplicatesSetFile = variables.get(this).get(3);
+        	 if (!Files.exists(duplicatesSetFile)){
+        		 String dir = variables.get(S8_GWAS_QC).get(0);
+                 if (!dir.startsWith("/") && !dir.contains(":")) {
+                     dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
+                 }
+        		 duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + "/quality_control/genome/plink.genome_duplicatesSet.dat";
+        	 }
+         }
+         boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(4));
+         int numQ = Integer.parseInt(variables.get(this).get(7));
+         boolean correctFidIids = Boolean.valueOf(variables.get(this).get(8));
+         SampleQC.parseAndAddToSampleData(proj, numQ, 0, false, gcCorrectedLrrSd, duplicatesSetFile, correctFidIids);
+     }
+     
+     @Override
+     public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+    	 String sampleQCFile = variables.get(this).get(0);
+    	 boolean sampleQCFileExists = Files.exists(sampleQCFile);
+    	 String sampleDataFile = variables.get(this).get(1);
+    	 boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(2));
+    	 String duplicatesSetFile = variables.get(this).get(3);
+    	 boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(4));
+    	 boolean gcCorrectedLrrSdExists = false;
+    	 if (sampleQCFileExists && ext.indexOfStr("LRR_SD_Post_Correction", Files.getHeaderOfFile(sampleQCFile, proj.getLog())) != -1) gcCorrectedLrrSdExists = true;
+    	 double lrrSdThreshold = -1.0;
+    	 try { lrrSdThreshold = Double.parseDouble(variables.get(this).get(5)); } catch (NumberFormatException nfe) {}
+    	 double callrateThreshold = -1.0;
+    	 try { callrateThreshold = Double.parseDouble(variables.get(this).get(6)); } catch (NumberFormatException nfe) {}
+    	 int numQ = -1;
+    	 try { numQ = Integer.parseInt(variables.get(this).get(7)); } catch (NumberFormatException nfe) {}
+         return new boolean[][]{
+                 {sampleQCFileExists},
+                 {stepSelections.get(S3_CREATE_SAMPLEDATA) && S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections, variables),
+                  Files.exists(sampleDataFile)},
+                 {!checkDuplicates,
+                  stepSelections.get(S8_GWAS_QC) && S8_GWAS_QC.hasRequirements(proj, stepSelections, variables),
+                  Files.exists(duplicatesSetFile)},
+                 {!gcCorrectedLrrSd, gcCorrectedLrrSdExists},
+                 {lrrSdThreshold > proj.LRRSD_CUTOFF.getMinValue() && lrrSdThreshold < proj.LRRSD_CUTOFF.getMaxValue()},
+                 {callrateThreshold > proj.SAMPLE_CALLRATE_THRESHOLD.getMinValue() && callrateThreshold < proj.SAMPLE_CALLRATE_THRESHOLD.getMaxValue()},
+                 {numQ > 0},
+                 {true}
+         };
+     }
+     
+     @Override
+     public Object[] getRequirementDefaults(Project proj) {
+    	 String sampleQCFile = proj.SAMPLE_QC_FILENAME.getValue();
+         return new Object[]{sampleQCFile,
+        		 			 proj.SAMPLE_DATA_FILENAME.getValue(),
+        		 			 "false",
+        		 			 proj.PROJECT_DIRECTORY.getValue() + "plink/quality_control/genome/plink.genome_duplicatesSet.dat",
+        		 			 "false",
+        		 			 proj.LRRSD_CUTOFF.getValue(),
+        		 			 proj.SAMPLE_CALLRATE_THRESHOLD.getValue(),
+        		 			 10,
+        		 			 "false"};
+     }
+
+     @Override
+     public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+    	 String sampleDataFile = variables.get(this).get(1);
+    	 if (!Files.exists(sampleDataFile)) return false;
+    	 boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(2));
+    	 String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
+    	 if (checkDuplicates && ext.indexOfStr("DuplicateId", header, false, true) == -1) return false;
+    	 if (ext.indexOfStr("Class=Exclude", header, false, true) == -1) return false;
+    	 if (ext.indexOfStr("ExcludeNote", header, false, true) == -1) return false;
+    	 if (ext.indexOfStr("Use", header, false, true) == -1) return false;
+    	 if (ext.indexOfStr("UseNote", header, false, true) == -1) return false;
+    	 if (ext.indexOfStr("Use_cnv", header, false, true) == -1) return false;
+    	 if (ext.indexOfStr("Use_cnvNote", header, false, true) == -1) return false;
+    	 return true;
+     }
+     
+     @Override
+     public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+
+    	 String projSampleQCFile = proj.SAMPLE_QC_FILENAME.getValue();
+    	 String sampleQCFile = variables.get(this).get(0);
+    	 String projSampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
+    	 String sampleDataFile = variables.get(this).get(1);
+    	 double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
+    	 double lrrSdThreshold = Double.parseDouble(variables.get(this).get(5));
+    	 double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
+    	 double callrateThreshold = Double.parseDouble(variables.get(this).get(6));
+
+    	 String projPropFile = proj.getPropertyFilename();
+
+    	 boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(2));
+    	 String duplicatesSetFile = null;
+    	 if (checkDuplicates) {
+    		 duplicatesSetFile = variables.get(this).get(3);
+    		 if (!Files.exists(duplicatesSetFile)){
+    			 String dir = variables.get(S8_GWAS_QC).get(0);
+    			 if (!dir.startsWith("/") && !dir.contains(":")) {
+    				 dir = ext.verifyDirFormat(proj.PROJECT_DIRECTORY.getValue() + dir);
+    			 }
+    			 duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + "/quality_control/genome/plink.genome_duplicatesSet.dat";
+    		 }
+    	 }
+    	 boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(4));
+    	 int numQ = Integer.parseInt(variables.get(this).get(7));
+    	 boolean correctFidIids = Boolean.valueOf(variables.get(this).get(8));
+         
+    	 String kvCmd = "";
+         
+         if (!projSampleQCFile.equals(sampleQCFile)) {
+             kvCmd += " SAMPLE_QC_FILENAME=" + sampleQCFile;
+         }
+         if (!projSampleDataFile.equals(sampleDataFile)) {
+             kvCmd += " SAMPLE_DATA_FILENAME=" + sampleDataFile;
+         }
+         if (projLrrSdThreshold != lrrSdThreshold) {
+             kvCmd += " LRRSD_CUTOFF=" + lrrSdThreshold;
+         }
+         if (projCallrateThreshold != callrateThreshold) {
+             kvCmd += " SAMPLE_CALLRATE_THRESHOLD=" + callrateThreshold;
+         }
+         
+         StringBuilder cmd = new StringBuilder();
+         if (kvCmd.length() > 0) {
+             cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+         }
+         cmd.append("jcp cnv.qc.SampleQC proj=" + projPropFile +
+        		 					   " numQ=" + numQ +
+        		 					   " justQuantiles=false" +
+        							   " gcCorrectedLrrSd=" + gcCorrectedLrrSd +
+        		 					   " duplicatesSetFile=" + duplicatesSetFile +
+        		 					   " correctFidIids=" + correctFidIids);
+         return cmd.toString();
+     }
+     
+ };
     
     static final STEP S10_GENERATE_ABLOOKUP = new STEP("Generate AB Lookup File", "", 
             new String[][]{{"[Parse Sample Files] step must be selected and valid.", "A MarkerSet file must already exist."}, 
@@ -1772,7 +1958,8 @@ public class GenvisisWorkflow {
         S5_MARKER_QC,
         S6_SEX_CHECKS,
         S7_RUN_PLINK,
-        S9_GWAS_QC,
+        S8_GWAS_QC,
+        S9_ANNOTATE_SAMPLE_DATA,
         S10_GENERATE_ABLOOKUP,
         S11_COMPUTE_PFB,
         S12_COMPUTE_GCMODEL,
@@ -1789,7 +1976,8 @@ public class GenvisisWorkflow {
         S5_MARKER_QC,
         S6_SEX_CHECKS,
         S7_RUN_PLINK,
-        S9_GWAS_QC,
+        S8_GWAS_QC,
+        S9_ANNOTATE_SAMPLE_DATA,
         S10_GENERATE_ABLOOKUP,
         S11_COMPUTE_PFB,
         S12_COMPUTE_GCMODEL,
