@@ -8,6 +8,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 
+import seq.manage.BamImport.NGS_MARKER_TYPE;
 import common.Array;
 import common.Logger;
 import common.PSF;
@@ -585,7 +586,15 @@ public class CNVCaller {
 			markersToUse = Array.booleanArray(markerSet.getMarkerNames().length, false);
 			for (int i = 0; i < autosomalMarkers.length; i++) {
 				markersToUse[autosomalMarkers[i]] = true;
+				if (array == ARRAY.NGS) {
+					String name = markerNames[autosomalMarkers[i]];
+					markersToUse[autosomalMarkers[i]] = NGS_MARKER_TYPE.getType(name) != NGS_MARKER_TYPE.VARIANT_SITE;
+				}
 			}
+		}
+		if(debugMode){
+			proj.getLog().reportTimeInfo("Found " + Array.booleanArraySum(markersToUse) + " total markers to use");
+
 		}
 		CNVCallResult cnvs = callCNVsFor(proj, pennHmm, sample, lrrs, bafs, gcModel, pfb, markerSet, markersToUse, copyNumberDef, chrsToCall, callReverse, numThreads, debugMode);
 		return cnvs;
