@@ -923,7 +923,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 	 * @param subdir
 	 * @param odds
 	 */
-	public void screenCapAll(String subdir, boolean odds) {
+	public void screenCapAll(String subdir, boolean odds, boolean versionIfExists) {
 	    setOddsRatioDisplay(odds);
         int currentSelection = getCurrentDataIndex();
         ArrayList<ForestInput> data = getDataIndices();
@@ -942,10 +942,14 @@ public class ForestPlot extends JFrame implements WindowListener {
             dataFile = ext.rootOf(getDataIndices().get(getCurrentDataIndex()).file, true);
             filename = marker + "_" + dataFile;
             filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-            while (new File(root+filename+".png").exists()) {
-                filename = marker + "_" + dataFile + "_v" + count;
-                filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-                count++;
+            if (new File(root + filename + ".png").exists()) {
+                if (!versionIfExists) {
+                    while (new File(root+filename+".png").exists()) {
+                        filename = marker + "_" + dataFile + "_v" + count;
+                        filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+                        count++;
+                    }
+                }
             }
             if (log != null) {
                 log.report("Writing screenshot to file " + root + filename + ".png");

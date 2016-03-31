@@ -1030,7 +1030,7 @@ public class ResultsPackager {
         			    fp.waitForLoad();
         			    fp.setOddsRatioDisplay(oddsRatio);
         			    fp.loadOrderFile(sortFileName);
-        			    fp.screenCapAll("forestPlots", false);
+        			    fp.screenCapAll("forestPlots", oddsRatio, false);
         			    fp.setVisible(false);
         			    fp.dispose();
 			    }
