@@ -513,8 +513,8 @@ public class BamImport {
 			String[] correctedSamps = Array.tagOn(proj.getSamples(), pcCorrected.SAMPLE_DIRECTORY.getValue(), Sample.SAMPLE_DATA_FILE_EXTENSION);
 			if (!Files.exists("", correctedSamps)) {
 				proj.getLog().reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
-				PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, 1, numthreads, false, false, false, -1, true);
-				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, 10, 1, false, true, false, -1, true);
+				PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, numthreads, 1, false, false, false, -1, true);
+				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, 1, 1, false, true, false, 10, true);
 			}
 			pcCorrected.saveProperties();
 			if (type.getType() != null) {
