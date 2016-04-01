@@ -9,6 +9,7 @@ import javax.swing.JOptionPane;
 
 import cnv.analysis.MosaicismDetect.MosaicBuilder;
 import cnv.filesys.*;
+import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project.ARRAY;
 import cnv.plots.MosaicPlot;
 import cnv.var.CNVariant;
@@ -81,7 +82,7 @@ public class Mosaicism {
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		samples = proj.getSamples();
 		try {
-			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, true)+"Mosaicism.xln"));
+			writer = new PrintWriter(new FileWriter(proj.MOSAIC_RESULTS_FILENAME.getValue()));
 			writer.println(Array.toStr(MosaicPlot.MOSAICISM_HEADER));
 //			samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
 //			samples = new String[] { "7355066051_R03C01" };
@@ -97,7 +98,7 @@ public class Mosaicism {
 				try {
 					String[] results = train.next();
 					index++;
-					if (index % proj.NUM_THREADS.getValue() == 0) {
+					if (index % numthreads == 0) {
 						proj.getLog().reportTimeInfo((index) + " of " + samples.length + " in " + ext.getTimeElapsed(timePer) + ", total time at " + ext.getTimeElapsed(time));
 						timePer = System.currentTimeMillis();
 					}
@@ -123,10 +124,10 @@ public class Mosaicism {
 		private String[] samples;
 		private boolean[]snpDropped;
 		private int[][] chrBoundaries;
-		private MarkerSet markerSet;
+		private PreparedMarkerSet markerSet;
 		private int[][] indicesByChr;
 		private int index;
-		
+
 		public MosaicResultProducer(Project proj, String[] samples, boolean[] snpDropped, int[][] chrBoundaries, MarkerSet markerSet, int[][] indicesByChr) {
 			super();
 			this.proj = proj;
@@ -134,7 +135,8 @@ public class Mosaicism {
 			this.snpDropped = snpDropped;
 			this.chrBoundaries = chrBoundaries;
 			this.indicesByChr = indicesByChr;
-			this.index=0;
+			this.markerSet = PreparedMarkerSet.getPreparedMarkerSet(markerSet);
+			this.index = 0;
 		}
 
 		@Override

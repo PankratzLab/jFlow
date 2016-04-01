@@ -31,7 +31,6 @@ import common.PSF.Ext;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.CentroidBuilder;
 import cnv.analysis.PennCNVPrep;
-import cnv.analysis.pca.PrincipalComponentsCrossTabs;
 import cnv.analysis.Mosaicism;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerSet;
@@ -416,12 +415,11 @@ public class BamImport {
 						Mosaicism.findOutliers(proj, numthreads);
 					}
 
-					// generateGCModel(proj, analysisSet, referenceGenome, 50);
-					// generateGCModel(proj, analysisSet, referenceGenome, 100);
-					// generateGCModel(proj, analysisSet, referenceGenome, 200);
-					// generateGCModel(proj, analysisSet, referenceGenome, 500000);
-					// generateGCModel(proj, analysisSet, referenceGenome, 1000000);
-
+					generateGCModel(proj, analysisSet, referenceGenome, 50);
+					generateGCModel(proj, analysisSet, referenceGenome, 100);
+					generateGCModel(proj, analysisSet, referenceGenome, 200);
+					generateGCModel(proj, analysisSet, referenceGenome, 500000);
+					generateGCModel(proj, analysisSet, referenceGenome, 1000000);
 					//
 					// GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
 					// GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), gAdjustorBuilder, false, GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA, numthreads);
