@@ -39,7 +39,7 @@ public class HashVec {
 	}
 	
 	@SuppressWarnings("rawtypes")
-    public static String[] getKeys(HashMap hash) {
+    public static String[] getKeys(Map hash) {
 	    return getKeys(hash, true, false);
 	}
 	
@@ -71,7 +71,7 @@ public class HashVec {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static String[] getKeys(HashMap hash, boolean sort, boolean treatAsNumbers) {
+	public static String[] getKeys(Map hash, boolean sort, boolean treatAsNumbers) {
 	    String[] array = new String[hash.size()];
 	    Set<String> enumer = hash.keySet();
 	    int count = 0;
@@ -451,10 +451,8 @@ public class HashVec {
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
 			System.err.println("Error: file \""+filename+"\" not found in current directory");
-			System.exit(1);
 		} catch (IOException ioe) {
 			System.err.println("Error reading file \""+filename+"\"");
-			System.exit(2);
 		}
 
 		return hash;

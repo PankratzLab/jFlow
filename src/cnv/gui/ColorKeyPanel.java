@@ -110,13 +110,22 @@ public class ColorKeyPanel extends JPanel {
 	final ItemListener defaultClassListener = new ItemListener() {
 		public void itemStateChanged(ItemEvent ie) {
 			JRadioButton jrb = (JRadioButton)ie.getItem();
-			if (sampleData != null && jrb.isSelected()) {
-				for (byte i = 0; i<sampleData.getNumClasses(); i++) {
-					if (jrb.getText().equals(sampleData.getClassName(i))) {
-						currentClass = i;
-						getSisterPanel().paintAgain();
-					}
-				}
+			if (jrb.isSelected()) {
+    			if (sampleData != null) {
+    				for (byte i = 0; i<sampleData.getNumClasses(); i++) {
+    					if (jrb.getText().equals(sampleData.getClassName(i))) {
+    						currentClass = i;
+    						getSisterPanel().paintAgain();
+    					}
+    				}
+    			} else if (classRadioButtons != null && classRadioButtons.length > 0){
+    			    for (int i = 0; i < classRadioButtons.length; i++) {
+    			        if (classRadioButtons[i] != null && classRadioButtons[i].equals(jrb)) {
+    			            currentClass = i;
+    			            getSisterPanel().paintAgain();
+    			        }
+    			    }
+    			}
 			}
 		}
 	};
@@ -135,7 +144,7 @@ public class ColorKeyPanel extends JPanel {
 		
 		ButtonGroup classRadio = new ButtonGroup();
 		if (sampleData == null) {
-			classRadioButtons = new JRadioButton[1];
+			classRadioButtons = new JRadioButton[2];
 			classRadioButtons[0] = new JRadioButton("All points (link to a SampleData file for more options)", false);
 			classRadioButtons[0].setFont(new Font("Arial", 0, 14));
 			classRadio.add(classRadioButtons[0]);
@@ -143,6 +152,14 @@ public class ColorKeyPanel extends JPanel {
 			classRadioButtons[0].setBackground(BACKGROUND_COLOR);
 			classVariablesPanel.add(classRadioButtons[0]);
 			classRadioButtons[0].setSelected(true);
+			
+			classRadioButtons[1] = new JRadioButton("Heat map", false);
+			classRadioButtons[1].setFont(new Font("Arial", 0, 14));
+			classRadio.add(classRadioButtons[1]);
+			classRadioButtons[1].addItemListener(classListener);
+			classRadioButtons[1].setBackground(BACKGROUND_COLOR);
+			classVariablesPanel.add(classRadioButtons[1]);
+//			classRadioButtons[0].setSelected(true);
 		} else {
 			classRadioButtons = new JRadioButton[sampleData.getNumClasses()];
 			for (int i = 0; i<sampleData.getNumClasses(); i++) {
@@ -194,7 +211,7 @@ public class ColorKeyPanel extends JPanel {
 		};
 
 		if (sampleData == null) {
-			numBasicClasses = 1;
+			numBasicClasses = 2;
 			numRegularClasses = 0;
 			numCNVClasses = 0;
 			numPLINKClasses = 0;

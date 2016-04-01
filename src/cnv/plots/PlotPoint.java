@@ -103,7 +103,7 @@ public class PlotPoint implements Serializable {
 		return highlight;
 	}
 
-	public boolean isVisble() {
+	public boolean isVisible() {
 		return visible;
 	}
 }

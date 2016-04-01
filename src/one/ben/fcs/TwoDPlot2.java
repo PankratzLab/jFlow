@@ -1,34 +1,81 @@
-package cnv.plots;
+package one.ben.fcs;
 
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.ActionMap;
+import javax.swing.ImageIcon;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreePath;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.BufferedImage;
-
-import cnv.filesys.*;
-import cnv.filesys.Project.StringListProperty;
+import cnv.filesys.Project;
 import cnv.gui.CheckBoxTree;
 import cnv.gui.ColorKeyPanel;
 import cnv.gui.GuiManager;
-import common.*;
-import cnv.var.*;
+import cnv.plots.AbstractPanel;
+import cnv.var.SampleData;
+import common.Aliases;
+import common.Array;
+import common.Files;
+import common.Grafik;
+import common.HashVec;
+import common.Logger;
+import common.ext;
 
-public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener { 
+public class TwoDPlot2 extends JPanel implements WindowListener, ActionListener, TreeSelectionListener { 
+    
 	public static final long serialVersionUID = 1L;
-	public static final byte DEFAULT_SIZE = 8;
+	public static final byte DEFAULT_SIZE = 2;
 	public static final int DEFAULT_GC_THRESHOLD = 25;
 	public static final String TWO_D_STICH_COMMAND = "twoDScreenshots";
 	public static final String TWO_D_STICH_COMMAND_DESCRIPTION = "Have two-d plot create a series of images";
@@ -36,28 +83,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private static final String ALT_DOWN = "ALT DOWN";
 	private static final String ALT_LEFT = "ALT LEFT";
 	private static final String ALT_RIGHT = "ALT RIGHT";
-//	public static final String MASK_MISSING = "Mask missing values";
-//	public static final String UNMASK_MISSING = "Unmask missing values";
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
 	public static final String ADD_DATA_FILE = "Add Data File";
 	public static final String REMOVE_DATA_FILE = "Remove Data";
 	public static final String REMOVE_ALL = "Clear Data";
 	public static final String CREATE_SCREENS = "Create Screenshots";
-//	public static final String SET_AS_COLORKEY = "Set as Color Key";
-//	public static final String SET_AS_LINKKEY = "Set as Link Key";
-//	private static final String NO_VALUE_FOUND = ".";
-//	public static final String[] BUTTONS = {ADD_DATA_FILE, REMOVE_DATA_FILE, REMOVE_ALL, CREATE_SCREENS};
-//	public static final String[][] LINKERS = {
-//			//TODO - Rohit: Removed Sample from first Linker. Confirm with Nathan if this is okay.
-//		{"IndividualID", "ID", "IID", "UID", "UniqueID", "IndID"},
-//		{"Family ID", "FamID", "FID"}, 
-//		{"DNA/Sample", "DNA", "DNA#", "Sample", "LabID"}, 
-//		{"MarkerName", "Marker", "SNP", "Variant", "VariantName"}, // will link to Scatter Plot
-//		{"Region", "UCSC", "Band", "Arm"},	// will link to Trailer
-//		{"Chromosome", "Chr"},	// secondary link to Trailer
-//		{"Position", "Pos", "Start", "Begin"}, // secondary link to Trailer
-//		{"Stop Position", "Stop", "End"} // secondary link to Trailer
-//	};
+	
 	public static final String[][] LINKERS = {
 	    Aliases.INDIVIDUAL_ID,
 	    Aliases.FAMILY_ID,
@@ -68,6 +99,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	    Array.combine(Aliases.POSITIONS, Aliases.POSITIONS_START),
 	    Aliases.POSITIONS_STOP
 	};
+	
 	public static final int IID_INDEX_IN_LINKERS = 0;
 	public static final int FID_INDEX_IN_LINKERS = 1;
 	public static final int DNA_INDEX_IN_LINKERS = 2;
@@ -84,31 +116,27 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	 */
 	private static String DATA_TITLE_REGEX = "(.+)_chr([0-2[XYM]]?[0-9[Y]]*):([\\d,]+-[\\d,]+).*";
 	
-	//	private JPanel bottomPanel;
-	private TwoDPanel twoDPanel;
+	private TwoDPanel2 twoDPanel;
 	private JLayeredPane layeredPane;
 	protected ColorKeyPanel colorKeyPanel;
 
-	private Project proj;
 	private byte size;
-	private SampleData sampleData;
 	private JButton flipButton, invXButton, invYButton;
-	private volatile boolean flipStatus, xInvStatus, yInvStatus, hideExcludes;
+	private volatile boolean flipStatus, xInvStatus, yInvStatus/*, hideExcludes*/;
 	private volatile boolean isHistPlot;
 	private CheckBoxTree tree;
-	private ArrayList<String> dataKeys;
-	HashMap<String, ArrayList<String[]>> dataHash;
-	HashMap<String, String[]> dataColumnsHash;
-	HashMap<String, boolean[]> validColumnsHash;
+	private List<String> dataKeys;
+	ConcurrentHashMap<String, ArrayList<String[]>> dataHash;
+	ConcurrentHashMap<String, String[]> dataColumnsHash;
+	ConcurrentHashMap<String, boolean[]> validColumnsHash;
 	HashSet<String> validExts;
-//	lbl, chr, region, start, stop
 	HashMap<String, HashMap<Integer, String[]>> columnMetaData;
 	String[][] treeFileVariableNameLookup;
 	HashMap<String, int[]> linkerIndices;
 	Logger log;
 	Pattern headerPattern = Pattern.compile(DATA_TITLE_REGEX);
-	private final boolean promptOnClose;
-    private StringListProperty filesProperty;
+//	private final boolean promptOnClose;
+//    private StringListProperty filesProperty;
 
     private volatile boolean generatingScreenshots;
     private HashMap<String, Integer> colorData;
@@ -127,48 +155,23 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     private final ImageIcon flipY1_2 = Grafik.getImageIcon("images/flip_and_invert/up_10_blue.jpg", true);
     private final ImageIcon flipY2_1 = Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true);
     private final ImageIcon flipY2_2 = Grafik.getImageIcon("images/flip_and_invert/down_10_blue.jpg", true);
-    
-	private TwoDPlot() {
-		this(new Project(), true, null, null);
-	}
 
-	private TwoDPlot(Project proj, boolean promptOnClose, String[] fileExts, StringListProperty filenames) {
-	    this.promptOnClose = promptOnClose;
-		String[] previouslyLoadedFiles;
+	private TwoDPlot2() {
 		
-		this.proj = proj;
-		log = proj.getLog();
+		log = new Logger();
 		size = DEFAULT_SIZE;
 
-		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false), proj.JAR_STATUS.getValue())) {
-			sampleData = proj.getSampleData(2, false);
-		} else {
-			sampleData = null;
-		}
 		validExts = new HashSet<String>();
-		dataKeys = new ArrayList<String>();
-		dataHash = new HashMap<String, ArrayList<String[]>>();
-		dataColumnsHash = new HashMap<String, String[]>();
-		validColumnsHash = new HashMap<String, boolean[]>();
+		dataKeys = Collections.synchronizedList(new ArrayList<String>());
+		dataHash = new ConcurrentHashMap<String, ArrayList<String[]>>();
+		dataColumnsHash = new ConcurrentHashMap<String, String[]>();
+		validColumnsHash = new ConcurrentHashMap<String, boolean[]>();
 		linkerIndices = new HashMap<String, int[]>();
 		columnMetaData = new HashMap<String, HashMap<Integer,String[]>>();
 		
-		if (fileExts != null) {
-    		for (String ext : fileExts) {
-    		    validExts.add(ext);
-    		}
-		}
-		
-		this.filesProperty = filenames;
-		previouslyLoadedFiles = filenames == null ? new String[0] : filenames.getValue();
-		for (String previouslyLoadedFile : previouslyLoadedFiles) {
-			loadFile(previouslyLoadedFile);
-		}
 		setLayout(new BorderLayout());
 		
-		twoDPanel = new TwoDPanel(this);
-
-//		UIManager.put("PopupMenuUI", "CustomPopupMenuUI");
+		twoDPanel = new TwoDPanel2(this);
 
 		layeredPane = new JLayeredPane() {
             private static final long serialVersionUID = 1L;
@@ -214,7 +217,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		add(splitPane, BorderLayout.CENTER);
 
-		colorKeyPanel = new ColorKeyPanel(sampleData, twoDPanel, TwoDPanel.DEFAULT_COLORS);
+		colorKeyPanel = new ColorKeyPanel(null, twoDPanel, TwoDPanel2.DEFAULT_COLORS);
 		layeredPane.add(colorKeyPanel, BorderLayout.SOUTH);
 		layeredPane.setComponentZOrder(colorKeyPanel, 3);
 
@@ -247,66 +250,38 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		invYButton.repaint();
 	}
 	
-	public TwoDPanel getPanel() {
+	public TwoDPanel2 getPanel() {
 	    return twoDPanel;
 	}
-	
-	// Mouse listener for the checkbox tree
-    	MouseListener checkBoxMouseListener = new MouseListener() {
-    
-    		@Override
-    		public void mouseClicked(MouseEvent e) {
-    		    String[][] selectionValues = tree.getSelectionValues();
-    		    selectedDataHash.clear();
-    		    for (int i = 0; i < selectionValues.length; i++) {
-    //                String file = selectionValues[i][0];
-    //                int col = Integer.parseInt(selectionValues[i][1]);
-                    selectedDataHash.add(selectionValues[i][0] + "***" + selectionValues[i][1]);
-    		    }
-    //			JCheckBox source;
-    //			JPopupMenu menu;
-    //			source = (JCheckBox) e.getSource();
-    //			if (e.getButton() == MouseEvent.BUTTON3) {
-    //
-    //				menu = new JPopupMenu();
-    //				menu.setName("Actions");
-    //				menu.add(new AbstractAction("Set As Color Key") {
-    //					private static final long serialVersionUID = 1L;
-    //
-    //					@Override
-    //					public void actionPerformed(ActionEvent e1) {
-    //						setColorKeyHandler(tree.getSelectionRows());
-    //					}
-    //				});
-    //				menu.add(new AbstractAction("Set As Link Key") {
-    //					private static final long serialVersionUID = 1L;
-    //
-    //					@Override
-    //					public void actionPerformed(ActionEvent e1) {
-    //						setLinkKeyHandler(tree.getSelectionRows());
-    //					}
-    //				});
-    //				menu.show(source, e.getX(), e.getY());
-    //			}
-    		}
-    
-    		@Override
-    		public void mousePressed(MouseEvent e) {
-    		}
-    
-    		@Override
-    		public void mouseReleased(MouseEvent e) {
-    
-    		}
-    
-    		@Override
-    		public void mouseEntered(MouseEvent e) {
-    		}
-    
-    		@Override
-    		public void mouseExited(MouseEvent e) {
-    		}
-    	};
+
+    MouseListener checkBoxMouseListener = new MouseListener() {
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            String[][] selectionValues = tree.getSelectionValues();
+            selectedDataHash.clear();
+            for (int i = 0; i < selectionValues.length; i++) {
+                selectedDataHash.add(selectionValues[i][0] + "***" + selectionValues[i][1]);
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+        }
+    };
 
     private void generateFlipButton() {
 		flipButton = new JButton(flip1_1);
@@ -401,7 +376,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		JMenuBar menuBar;
 		JMenu menu;
 		JMenuItem menuItemExit, menuItemOpen, menuItemRemove, menuItemRemoveAll, menuItemScreens, menuItemSave;
-		final JCheckBoxMenuItem menuItemExclude, menuItemHist;
+		final JCheckBoxMenuItem /*menuItemExclude,*/ menuItemHist;
 		
 		menuBar = new JMenuBar();
 		menu = new JMenu("File");
@@ -431,8 +406,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		menuItemSave = new JMenuItem("Save Current Image", KeyEvent.VK_S);
 		menuItemSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
-				int fileOpenActionSelected = fileChooser.showSaveDialog(TwoDPlot.this);
+				JFileChooser fileChooser = new JFileChooser(".");
+				int fileOpenActionSelected = fileChooser.showSaveDialog(TwoDPlot2.this);
 		        if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 		            File fileToOpen = fileChooser.getSelectedFile();
 		            twoDPanel.screenCapture(fileToOpen.toString()+".png");
@@ -465,17 +440,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         menu.setMnemonic(KeyEvent.VK_V);
 		menuBar.add(menu);
 		
-		hideExcludes = true;
-		menuItemExclude = new JCheckBoxMenuItem("Hide Excluded", true);
-		menuItemExclude.setMnemonic(KeyEvent.VK_E);
-		menuItemExclude.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				hideExcludes = menuItemExclude.isSelected();
-				twoDPanel.paintAgain();
-			}
-		});
-		menu.add(menuItemExclude);
+//		hideExcludes = true;
+//		menuItemExclude = new JCheckBoxMenuItem("Hide Excluded", true);
+//		menuItemExclude.setMnemonic(KeyEvent.VK_E);
+//		menuItemExclude.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				hideExcludes = menuItemExclude.isSelected();
+//				twoDPanel.paintAgain();
+//			}
+//		});
+//		menu.add(menuItemExclude);
 		
 		menuItemHist = new JCheckBoxMenuItem("Display as Histogram", false);
 		menuItemHist.setMnemonic(KeyEvent.VK_H);
@@ -517,7 +492,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	
 
     private Component getParentComponent() {
-        Component c = TwoDPlot.this.getParent();
+        Component c = TwoDPlot2.this.getParent();
         while (!(c instanceof JFrame)) {
             c = c.getParent();
         }
@@ -553,9 +528,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 	
 	private void createScreenshotsFromFile() {
-        JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : (new File(".")).toString());
+        JFileChooser jfc = new JFileChooser(".");
         jfc.setMultiSelectionEnabled(true);
-        if (jfc.showOpenDialog(TwoDPlot.this) == JFileChooser.APPROVE_OPTION) {
+        if (jfc.showOpenDialog(TwoDPlot2.this) == JFileChooser.APPROVE_OPTION) {
             File selFile = jfc.getSelectedFile();
             Vector<String> params = parseControlFile(selFile.getAbsolutePath(), log);
 //          final String projFile = params.get(0).split("=")[1];
@@ -568,9 +543,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     private void addFile() {
         JFileChooser fileChooser;
         boolean found = false;
-	    fileChooser = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
+	    fileChooser = new JFileChooser(".");
         if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-            for (int i=0; tree!=null && i<tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
+            for (int i = 0; tree != null && i < tree.getModel().getChildCount(tree.getModel().getRoot()); i++) {
                 if (ext.replaceAllWith(fileChooser.getSelectedFile().toString(), "\\", "/").equals(tree.getModel().getChild(tree.getModel().getRoot(),i).toString())) {
                     found = true;
                     break;
@@ -786,23 +761,23 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		JOptionPane.showMessageDialog(null, colorKeyHeader.split(";")[0] + " set as color key and added to Sample Data", "Information", JOptionPane.INFORMATION_MESSAGE);
 //	}
 
-	public void reloadSampleDataUI(){
-		//Note: This line resets the sample data by setting it to null which will cause linkKeyIndex to be lost.
-		//Make sure to set it back after resetting sample data
-//		Hashtable<String, Integer> linkKeyIndexCopy = new Hashtable<String, Integer>(sampleData.getLinkKeyIndex());
-		proj.resetSampleData();
-		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false), proj.JAR_STATUS.getValue())) {
-			sampleData = proj.getSampleData(2, false);
-		}
-		sampleData = proj.getSampleData(2, false);
-//		sampleData.setLinkKeyIndex(linkKeyIndexCopy);
-
-		colorKeyPanel.updateSampleData(sampleData);
-		colorKeyPanel.updateColorVariablePanel();
-
-		twoDPanel.paintAgain();
-		generateShortcutMenus();
-	}
+//	public void reloadSampleDataUI(){
+//		//Note: This line resets the sample data by setting it to null which will cause linkKeyIndex to be lost.
+//		//Make sure to set it back after resetting sample data
+////		Hashtable<String, Integer> linkKeyIndexCopy = new Hashtable<String, Integer>(sampleData.getLinkKeyIndex());
+//		proj.resetSampleData();
+//		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false), proj.JAR_STATUS.getValue())) {
+//			sampleData = proj.getSampleData(2, false);
+//		}
+//		sampleData = proj.getSampleData(2, false);
+////		sampleData.setLinkKeyIndex(linkKeyIndexCopy);
+//
+//		colorKeyPanel.updateSampleData(sampleData);
+//		colorKeyPanel.updateColorVariablePanel();
+//
+//		twoDPanel.paintAgain();
+//		generateShortcutMenus();
+//	}
 	
 //	public Hashtable<String, String> createHashWithSampleID(Hashtable<String, String> colorKeyValue) {
 //		Hashtable<String, String> colorKeyValueHash;
@@ -953,10 +928,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		return linkKeyValues;
 //	}
 
-	public Project getProject() {
-		return proj;
-	}
-
 	public ArrayList<String[]> getDataSelected(boolean includeColorKeyValue) {
 		String[][] selectedNodes;
 		ArrayList<String[]> dataOfSelectedFile;
@@ -968,7 +939,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		String[] keys;
 		ArrayList<String[]> v;
 		int currentClass;
-		String[] ids;
+//		String[] ids;
 		byte colorCode;
 		int[] linkKeyColumnIndices;
 		byte index;
@@ -991,29 +962,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			
 			linkKeyColumnIndices = linkerIndices.get(selectedFile);
 			index = (byte) (includeColorKeyValue? 4 : 3);
-			outer : for (int i = 0; i < dataOfSelectedFile.size(); i++) {
+			/*outer :*/ for (int i = 0; i < dataOfSelectedFile.size(); i++) {
 				inLine = dataOfSelectedFile.get(i);
 				
-				if (sampleData != null && (hideExcludes || colorKeyPanel.getDisabledClassValues().size() > 0)) {
-					for (int k = 0; k < 3; k++) {
-						if (linkKeyColumnIndices[k] >= 0) {
-							String curSample = inLine[linkKeyColumnIndices[k]];
-
-							IndiPheno indi = sampleData.getIndiFromSampleHash(curSample);
-
-							int sampColorKey = 0;
-							if (indi != null) {
-								sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi, (byte) 0, 0);
-							}
-							if (hideExcludes && sampleData.individualShouldBeExcluded(curSample)) {
-								continue outer;
-							}
-							if (colorKeyPanel.getDisabledClassValues().containsKey(currentClass + "\t" + sampColorKey)) {
-								continue outer;
-							}
-						}
-					}
-				}
 				outLine = new String[linkKeyColumnIndices.length + index];
 				outLine[0] = inLine[0];
 				outLine[1] = inLine[selectedColumn];
@@ -1044,25 +995,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				}
 				if (hasY || isHistogram()) {
     				if (includeColorKeyValue) {
-    				    if (sampleData != null) {
-    				        ids = sampleData.lookup(key);
-    				        if (ids == null) {
-    				            colorCode = 0;
-    				        } else if (generatingScreenshots) {
-    				            colorCode = getColorForScreenshot(ids[0]);
-    				        } else {
-    				            String[][] metaData = getCurrentColumnMetaData();
-    				            int chr = 0, start = 0, stop = 0;
-    				            if (metaData != null && metaData.length != 0 && metaData[0] != null) {
-        				            chr = Integer.parseInt(metaData[0][0]);
-        				            start = Integer.parseInt(metaData[0][2]);
-        				            stop = Integer.parseInt(metaData[0][3]);
-    				            }
-    				            colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) chr, start + ((stop - start) / 2));
-    				        }
-    				    } else {
-    				        colorCode = 0;
-    				    }
+				        colorCode = 0;
     				    inLine[3] = colorCode + "";
     				}
     //					if (!inLine[3].equals("0"))
@@ -1075,6 +1008,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	
 	public void setHistogram(boolean b) {
         this.isHistPlot = b;
+        this.size = b ? 0 : (size == 0 ? DEFAULT_SIZE : size);
     }
 
 	public boolean isHistogram() {
@@ -1250,32 +1184,32 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				JRadioButton source;
-				JPopupMenu menu;
-				String annotation;
+//				JRadioButton source;
+//				JPopupMenu menu;
+//				String annotation;
 //				int annotationIndex;
 
-				source = (JRadioButton) e.getSource();
-				annotation = source.getText();
+//				source = (JRadioButton) e.getSource();
+//				annotation = source.getText();
 
-				if (e.getButton() == MouseEvent.BUTTON3) {
-
-					menu = new JPopupMenu();
-					menu.setName("Action");
-
-					menu.add(new AbstractAction("Delete: " + annotation) {
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public void actionPerformed(ActionEvent e1) {
-							String annotation = e1.getActionCommand();
-							annotation = annotation.substring("Delete: ".length());
-							removeColorKeyHandler(annotation);
-						}
-
-					});
-					menu.show(source, e.getX(), e.getY());
-				}
+//				if (e.getButton() == MouseEvent.BUTTON3) {
+//
+//					menu = new JPopupMenu();
+//					menu.setName("Action");
+//
+//					menu.add(new AbstractAction("Delete: " + annotation) {
+//						private static final long serialVersionUID = 1L;
+//
+//						@Override
+//						public void actionPerformed(ActionEvent e1) {
+//							String annotation = e1.getActionCommand();
+//							annotation = annotation.substring("Delete: ".length());
+////							removeColorKeyHandler(annotation);
+//						}
+//
+//					});
+//					menu.show(source, e.getX(), e.getY());
+//				}
 			}
 		};
 		for (Component comp : components) {
@@ -1285,19 +1219,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 	}
 
-	public void removeColorKeyHandler(String colorKeyName){
-		sampleData.removeColorKey(colorKeyName);
-		reloadSampleDataUI();
-	}
-
 	public void showSpecificFile(Project proj, String filename, int colForX, int colForY) {
-		if (filesProperty != null) {
-    	    String[] prevFiles = filesProperty.getValue();
-    		if(Arrays.binarySearch(prevFiles, filename) < 0) {
-    			// the supplied file was not found so load it
-    			loadFile(filename);	// load the file
-    		}
-		}
+//		if (filesProperty != null) {
+//    	    String[] prevFiles = filesProperty.getValue();
+//    		if(Arrays.binarySearch(prevFiles, filename) < 0) {
+//    			// the supplied file was not found so load it
+//    			loadFile(filename);	// load the file
+//    		}
+//		}
 		if(colForX != Integer.MIN_VALUE){
 			// select the x axis
 			tree.performCheckBoxAction(dataColumnsHash.get(filename)[colForX], ItemEvent.SELECTED);
@@ -1324,68 +1253,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			GuiManager.disposeOfParentFrame(this);
 			return;
 		}
-		if (!promptOnClose) { // TODO add flag for dispose or hide on close
-		    GuiManager.hideParentFrame(this);
-		    return;
-		}
 		
-	    String[] options;
-		int choice;
-		String filenames, selections = "", message;
-
-		filenames = Array.toStr(Array.toStringArray(dataKeys), ";");
-
-		// find the selected nodes in the plot and create a string from them delimited by ;
-		String[][] selectedNodes = tree.getSelectionValues();
-		for (int i = 0; i < selectedNodes.length; i++) {
-		    selections += Array.toStr(selectedNodes[i]) + ";";
-		}
-		if (selections.endsWith(";")) { selections = selections.substring(0, selections.length() - 1); }
-//		if(selectedNodes.length != 0 && selectedNodes[0][0] != null && selectedNodes[1][0] != null) {
-//			selections = Array.toStr(selectedNodes[0], ",") + ";" + Array.toStr(selectedNodes[1], ",");
-//		}
-
-		options = new String[] {"Yes", "No", "Cancel"};
-		message = "";
+		// no way to save loaded vars
 		
-		if (!Array.toStr(filesProperty.getValue()).equals(filenames)) {
-			if (filenames.equals("")) {
-				message = "All files have been unloaded from 2D Plot.";
-			} else {
-				message = "A different set of files have been loaded/unloaded from 2D Plot.";
-			}
-		}
-		
-		if (!filesProperty.getValue().equals(selections)) {
-			if (!message.equals("")) {
-				if(!selections.equals(""))
-					message = message.substring(0, message.length()-1)+", and new variables have been selected.";
-				else
-					message = message.substring(0, message.length()-1)+", and all variables have been unselected.";
-			} else {
-				if(!selections.equals(""))
-					message = "New variables have been selected.";
-				else
-					message = "All variables have been unselected from 2D Plot.";
-			}
-		}
-		
-		if (message.equals("")) {
-			GuiManager.disposeOfParentFrame(this);
-		} else {
-			System.out.println("message: '"+message+"'");
-			choice = JOptionPane.showOptionDialog(null, message+" Would you like to keep this configuration for the next time 2D Plot is loaded?", "Preserve 2D Plot workspace?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-			if (choice == 0) {
-			    filesProperty.setValue(Array.toStringArray(dataKeys));
-				proj.setProperty(proj.TWOD_LOADED_VARIABLES, selections); // TODO add vars property field
-				proj.saveProperties();
-				GuiManager.disposeOfParentFrame(this);
-			} else if (choice == 1) {
-				GuiManager.disposeOfParentFrame(this);
-			} else if (choice == -1 || choice == 2) {
-				// keep frame alive
-			}
-		}
+		GuiManager.disposeOfParentFrame(this);
 	}
 
 	public void windowDeactivated(WindowEvent e) {}
@@ -1397,12 +1268,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public void windowOpened(WindowEvent e) {}
 
 	public void valueChanged(TreeSelectionEvent e) {
-//		System.out.println("Tree value changed listener"+"\ttreeSelectionIndices: "+tree.getSelectionIndices()[0][0]+","+tree.getSelectionIndices()[0][1]+"\t"+tree.getSelectionIndices()[1][0]+","+tree.getSelectionIndices()[1][1]);
+	    TreePath[] paths = e.getPaths();
+	    if (paths.length == 1) return; // when selecting two entries in the tree, we get four events, of which we only need one.
 		twoDPanel.setPointsGeneratable(true);
 //		twoDPanel.createImage(); // calling paintAgain sets image == null, so why call 'createImage' right before doing so?
 		twoDPanel.paintAgain();
 	}
-	
 	
 	public static class ScreenToCapture {
 		String dataXFile;
@@ -1517,7 +1388,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			lineTagEntries.clear();
 		}
 		
-		ArrayList<ScreenToCapture> caps = new ArrayList<TwoDPlot.ScreenToCapture>();
+		ArrayList<ScreenToCapture> caps = new ArrayList<TwoDPlot2.ScreenToCapture>();
 		int capCnt = ctrlLines.size();
 		for (int i = 0; i < capCnt; i++) {
 			String[] files = new String[3];
@@ -1563,9 +1434,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		HashSet<String> dataFiles = new HashSet<String>();
 
 		for (ScreenToCapture cap : screens) {
-			if (cap.dataXFile != null) dataFiles.add(cap.dataXFile);
-			if (cap.dataYFile != null) dataFiles.add(cap.dataYFile);
-			if (cap.colorFile != null) dataFiles.add(cap.colorFile);
+			if (cap.dataXFile != null && Files.exists(baseDir + cap.dataXFile)) dataFiles.add(cap.dataXFile);
+			if (cap.dataYFile != null && Files.exists(baseDir + cap.dataYFile)) dataFiles.add(cap.dataYFile);
+			if (cap.colorFile != null && Files.exists(baseDir + cap.colorFile)) dataFiles.add(cap.colorFile);
 		}
 		
 		for (String file : dataFiles) {
@@ -1577,16 +1448,18 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		updateTreeForNewData();
 		
 		for (ScreenToCapture screencap : screens) {			
-		    this.hideExcludes = screencap.hideExcluded;
+//		    this.hideExcludes = screencap.hideExcluded;
 		    this.setHistogram(screencap.isHistogram);
 		    
-		    twoDPanel.forcePlotXmin = screencap.minX;
-		    twoDPanel.forcePlotXmax = screencap.maxX;
-		    twoDPanel.forcePlotYmin = screencap.minY;
-		    twoDPanel.forcePlotYmax = screencap.maxY;
+		    twoDPanel.setForcePlotXmin(screencap.minX);
+		    twoDPanel.setForcePlotXmax(screencap.maxX);
+		    twoDPanel.setForcePlotYmin(screencap.minY);
+		    twoDPanel.setForcePlotYmax(screencap.maxY);
 		    
-			if (screencap.colorFile != null && !screencap.colorFile.equals("")) {
+		    boolean colorLoaded = false;
+			if (screencap.colorFile != null && Files.exists(baseDir + screencap.colorFile)) {
 				loadColor(baseDir, screencap);
+				colorLoaded = true; // vulnerable to issues actually loading color file, but good enough for now? TODO need some way to specify HeatMap/Genotype coloration
 			}
 			
 			if (screencap.dataXFile != null) {
@@ -1598,7 +1471,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 
 			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
-			this.colorKeyPanel.getClassRadioButtons()[this.colorKeyPanel.getClassRadioButtons().length - 1].setSelected(true);
+			this.colorKeyPanel.getClassRadioButtons()[colorLoaded ? (this.colorKeyPanel.getClassRadioButtons().length - 1) : 0].setSelected(true);
 			
 			twoDPanel.createImage();
 			
@@ -1641,11 +1514,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				frame = null;
 				if (screencap.includeColorKey) {
 					int totW, totH;
-					totW = Math.max(bi.getWidth(), twoDPanel.image.getWidth());
-					totH = bi.getHeight() + twoDPanel.image.getHeight();
+					totW = Math.max(bi.getWidth(), twoDPanel.getImage().getWidth());
+					totH = bi.getHeight() + twoDPanel.getImage().getHeight();
 					BufferedImage img = new BufferedImage(totW, totH, BufferedImage.TYPE_INT_ARGB);
 					Graphics2D g = img.createGraphics();
-					g.drawImage(twoDPanel.image, 0, 0, null);
+					g.drawImage(twoDPanel.getImage(), 0, 0, null);
 					int x = (int) ((.5 * twoDPanel.getWidth()) - (.5 * bi.getWidth()));
 					g.drawImage(bi, x, twoDPanel.getHeight(), null);
 //					g.drawImage(bi, 0, twoDPanel.getHeight(), null);
@@ -1732,11 +1605,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     		    }
     		}
     		if (!found) {
-    		    System.err.println("Error - extension of file {" + filename + "} is invalid.  Valid extensions are: {" + validExts.toString() + "}");
+    		    log.reportError("Error - extension of file {" + filename + "} is invalid.  Valid extensions are: {" + validExts.toString() + "}");
     		    return;
     		}
 		}
 		try {
+		    long t1 = System.currentTimeMillis();
 			reader = new BufferedReader(new FileReader(filename));
 			dataKeys.add(filename);
 
@@ -1762,10 +1636,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             	validColumnsHash.put(filename, validate(line));
             }
             reader.close();
-        } catch (FileNotFoundException fnfe) {
-        	System.err.println("Error: file \""+filename+"\" not found in current directory");
+            
+            log.reportTimeElapsed("Read file " + filename + " in: ", t1);
+		
+		} catch (FileNotFoundException fnfe) {
+            log.reportError("Error: file \""+filename+"\" not found in current directory");
         } catch (IOException ioe) {
-            System.err.println("Error reading file \""+filename+"\"");
+            log.reportError("Error reading file \""+filename+"\"");
         }
 	}
 	
@@ -1831,6 +1708,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             String key = dataKeys.get(i);
     		treeFileVariableNameLookup[i] = dataColumnsHash.get(key);
         	if (tree == null) {
+        	    System.err.println("Error - CheckBoxTree was null!  TODO check if not setting the treeListener causes issues...");
         		namesOfBranches = new String[1];
         		branchHandles = new String[1];
         		namesOfNodes = new String[1][];
@@ -1862,12 +1740,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	 * @param fileExts allowed file extensions for files (null for all files)
 	 * @return
 	 */
-	public static TwoDPlot createGUI(Project proj, boolean show, boolean promptOnClose, StringListProperty filenamesProperty, String... fileExts) {
-		JFrame frame = new JFrame("Genvisis - 2D Plot - " + proj.PROJECT_NAME.getValue());
+	public static TwoDPlot2 createGUI(/*Project proj, */boolean show/*, boolean promptOnClose, StringListProperty filenamesProperty, String... fileExts*/) {
+		JFrame frame = new JFrame("Genvisis - 2D Plot");
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         //Create and set up the content pane.
-        TwoDPlot twoDPlot = new TwoDPlot(proj, promptOnClose, fileExts, filenamesProperty);
+        TwoDPlot2 twoDPlot = new TwoDPlot2(/*proj, promptOnClose, fileExts, filenamesProperty*/);
         frame.setJMenuBar(twoDPlot.menuBar());
         twoDPlot.setOpaque(true); //content panes must be opaque
         frame.setContentPane(twoDPlot);
@@ -1931,13 +1809,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		Vector<String> params = parseControlFile(filename, log);
 		
 		if (params != null) {
-			final String projFile = params.get(0).split("=")[1];
+//			final String projFile = params.get(0).split("=")[1];
 			final String baseDir = params.get(1).split("=")[1];
 			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()), true);
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 	            public void run() {
-	                Project proj = new Project(projFile, false);
-	                TwoDPlot tdp = createGUI(proj, false, false, proj.TWOD_LOADED_FILENAMES);
+//	                Project proj = new Project(projFile, false);
+	                TwoDPlot2 tdp = createGUI(/*proj,*/ false/*, false, proj.TWOD_LOADED_FILENAMES*/);
 	                tdp.createScreenshots(baseDir, screens);
 	                tdp.windowClosing(null);
 	            }
@@ -1983,7 +1861,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //		fromParameters("D:/data/FarrarReparse/classification/twoDscreenshots.dat", new Logger());
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                createGUI(new Project(), true, false, null, null);
+                createGUI(/*new Project(), */true/*, false, null, null*/);
 //                createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
             }
         });

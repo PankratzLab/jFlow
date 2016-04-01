@@ -567,7 +567,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 
 	public void valueChanged(TreeSelectionEvent e) {
 		linePanel.setPointsGeneratable(true);
-		linePanel.createImage();
+//		linePanel.createImage(); // calling paintAgain sets image == null, so why call 'createImage' right before doing so?
 		linePanel.paintAgain();
 	}
 
