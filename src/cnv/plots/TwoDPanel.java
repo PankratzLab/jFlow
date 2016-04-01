@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -222,7 +223,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		
 		if (tdp.isHistogram()) {
 			zoomable = false;
-			tdp.setPointSize((byte) 0);
+//			tdp.setPointSize((byte) 0);
 			points = new PlotPoint[0];//currentData.size()];
 			for (int i = 0; i < points.length; i++) {
 				points[i] = new PlotPoint("" + Float.parseFloat(currentData.get(i)[1]), PlotPoint.FILLED_SQUARE, Float.parseFloat(currentData.get(i)[1]), Float.parseFloat(currentData.get(i)[2]), (byte) 0, (byte) 0, (byte) 0);
@@ -231,7 +232,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			return;
 		} else {
 			zoomable = true;
-			tdp.setPointSize((byte) 8);
+//			tdp.setPointSize(tdp.getPointSize());
 			rectangles = new GenericRectangle[0];
             forcePlotXmax = Float.NaN;
             forcePlotXmin = Float.NaN;
@@ -779,4 +780,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	public boolean isSwapAxes() {
 		return swapAxes;
 	}
+
+    public BufferedImage getImage() {
+        return image;
+    }
 }

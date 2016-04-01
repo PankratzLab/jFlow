@@ -156,7 +156,11 @@ public class TwoDPlot2 extends JPanel implements WindowListener, ActionListener,
     private final ImageIcon flipY2_1 = Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true);
     private final ImageIcon flipY2_2 = Grafik.getImageIcon("images/flip_and_invert/down_10_blue.jpg", true);
 
-	private TwoDPlot2() {
+    public TwoDPlot2() {
+        this(null);
+    }
+    
+	private TwoDPlot2(String[] fileExts) {
 		
 		log = new Logger();
 		size = DEFAULT_SIZE;
@@ -168,6 +172,12 @@ public class TwoDPlot2 extends JPanel implements WindowListener, ActionListener,
 		validColumnsHash = new ConcurrentHashMap<String, boolean[]>();
 		linkerIndices = new HashMap<String, int[]>();
 		columnMetaData = new HashMap<String, HashMap<Integer,String[]>>();
+		
+		if (fileExts != null) {
+    		for (String ext : fileExts) {
+    		    validExts.add(ext);
+    		}
+		}
 		
 		setLayout(new BorderLayout());
 		
