@@ -310,7 +310,7 @@ public class SomaticCNVEvaluation {
 		int numthreads = 2;
 		double normalCutoff = .25;
 		double diffCutoff = .5;
-		filter(proj, vpopFile, cnvFiles[1], normalCutoff, diffCutoff, numthreads);
+		filter(proj, vpopFile, cnvFiles[0], normalCutoff, diffCutoff, numthreads);
 
 		// for (int i = 0; i < cnvFiles.length; i++) {
 		// }

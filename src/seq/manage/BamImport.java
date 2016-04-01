@@ -308,7 +308,7 @@ public class BamImport {
 					ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), log);
 					log.memoryFree();
 					// TODO, skip centromeres
-					LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(LocusSet.combine(bLocusSet, readerCapture.loadAll(log), true, log).mergeOverlapping(true), 4000);
+					LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(LocusSet.combine(bLocusSet, readerCapture.loadAll(log), true, log).mergeOverlapping(true), 4000);//
 					log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bins int the anti-on-target regions");
 					log.memoryFree();
 
@@ -321,7 +321,7 @@ public class BamImport {
 					log.memoryFree();
 					LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure, true, log);
 					analysisSet = LocusSet.combine(analysisSet, varFeatures.getStrictSegmentSet(), true, log);
-
+					dumpLikelyOffTargetProblems(proj);
 					log.memoryFree();
 					if (!analysisSet.verifyPositiveLength()) {
 						throw new IllegalArgumentException("all import segments must be gte length 1");
@@ -513,8 +513,10 @@ public class BamImport {
 			String[] correctedSamps = Array.tagOn(proj.getSamples(), pcCorrected.SAMPLE_DIRECTORY.getValue(), Sample.SAMPLE_DATA_FILE_EXTENSION);
 			if (!Files.exists("", correctedSamps)) {
 				proj.getLog().reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
+
 				PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, numthreads, 1, false, false, false, -1, true);
-				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, 1, 1, false, true, false, 10, true);
+				// TODO, auto adjust batch size by memory
+				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, 1, 1, false, true, false, 2, true);
 			}
 			pcCorrected.saveProperties();
 			if (type.getType() != null) {
@@ -588,6 +590,7 @@ public class BamImport {
 
 	private static Hashtable<String, Float> recompileSample(Project proj, String sampleName, String newSampleDirectory, MarkerSet markerSet, ArrayList<ProjectCorrected> correctedProjects) {
 		String sampleFile = newSampleDirectory + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION;
+		proj.getLog().reportTimeInfo("Sample file = " + sampleFile);
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		if (!Files.exists(sampleName)) {
 			Sample sampleOriginal = proj.getFullSampleFromRandomAccessFile(sampleName);
@@ -615,9 +618,54 @@ public class BamImport {
 			if (numAccountedFor != markerNames.length) {
 				throw new IllegalArgumentException("Not all markers accounted for in corrections");
 			}
+		} else {
+			proj.getLog().reportFileExists(sampleFile);
 		}
 
 		return outliers;
+	}
+
+	private static void dumpLikelyOffTargetProblems(Project proj) {
+		MarkerSet markerSet = proj.getMarkerSet();
+		String problemFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".likelyOffTargetProblems");
+		String noproblemFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".withoutlikelyOffTargetProblems");
+		String allFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".OffTargetProblemsFlagged");
+
+		ArrayList<String> problems = new ArrayList<String>();
+		ArrayList<String> noProblems = new ArrayList<String>();
+		ArrayList<String> all = new ArrayList<String>();
+
+		problems.add("BinName\tCLASS=MARKER_COLOR;OFF_TARGET_OK=Blue;LIKELY_OFF_TARGET_PROBLEM=RED;OTHER_TYPE=Green");
+		noProblems.add("BinName\tCLASS=MARKER_COLOR;OFF_TARGET_OK=Blue;LIKELY_OFF_TARGET_PROBLEM=RED;OTHER_TYPE=Green");
+		all.add("BinName\tCLASS=MARKER_COLOR;OFF_TARGET_OK=Blue;LIKELY_OFF_TARGET_PROBLEM=RED;OTHER_TYPE=Green");
+		int[][] indices = markerSet.getIndicesByChr();
+		String[] names = markerSet.getMarkerNames();
+		for (int i = 0; i < indices.length; i++) {
+			for (int j = 0; j < indices[i].length; j++) {
+				int compLeft = Math.max(j - 1, 0);
+				int compRight = Math.min(j + 1, indices[i].length - 1);
+				NGS_MARKER_TYPE current = NGS_MARKER_TYPE.getType(names[indices[i][j]]);
+				if (current == NGS_MARKER_TYPE.OFF_TARGET) {
+					NGS_MARKER_TYPE left = NGS_MARKER_TYPE.getType(names[indices[i][compLeft]]);
+					NGS_MARKER_TYPE right = NGS_MARKER_TYPE.getType(names[indices[i][compRight]]);
+					if ((compLeft != j && left != NGS_MARKER_TYPE.OFF_TARGET) || (compRight != j && right != NGS_MARKER_TYPE.OFF_TARGET)) {
+						problems.add(names[indices[i][j]] + "\tLIKELY_OFF_TARGET_PROBLEM");
+						all.add(names[indices[i][j]] + "\tLIKELY_OFF_TARGET_PROBLEM");
+					} else {
+						noProblems.add(names[indices[i][j]] + "\tOFF_TARGET_OK");
+						all.add(names[indices[i][j]] + "\tOFF_TARGET_OK");
+					}
+				} else {
+					noProblems.add(names[indices[i][j]] + "\tOTHER_TYPE");
+					all.add(names[indices[i][j]] + "\tOTHER_TYPE");
+				}
+			}
+		}
+		proj.getLog().reportTimeInfo("Dumping " + problems.size() + " off target markers that will likely be biased to " + problemFile);
+		Files.writeArrayList(problems, problemFile);
+		Files.writeArrayList(noProblems, noproblemFile);
+		Files.writeArrayList(all, allFile);
+
 	}
 
 	private static ArrayList<MarkerFileType> generateMarkerPositions(Project proj, LocusSet<BEDFeatureSeg> bLocusSet, LocusSet<Segment> genomeBinsMinusBinsCaputure, LocusSet<VariantSeg> varFeatures) {

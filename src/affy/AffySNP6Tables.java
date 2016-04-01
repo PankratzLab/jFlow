@@ -149,7 +149,7 @@ public class AffySNP6Tables {
 						lineCount++;
 						if (lineCount >= numLinesBuffer) {
 							log.reportTimeInfo("Parsed " + chunkCount * numLinesBuffer + " lines");
-							log.reportTimeInfo(ext.getTime() + " Free memory: " + ((float) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().totalMemory()) + "%");
+//							log.reportTimeInfo(ext.getTime() + " Free memory: " + ((float) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().totalMemory()) + "%");
 							printIt(header, chunkCount);
 							lineCount = 0;
 							chunkCount++;

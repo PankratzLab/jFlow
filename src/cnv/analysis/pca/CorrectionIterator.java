@@ -193,7 +193,10 @@ class CorrectionIterator implements Serializable {
 						log.reportTimeError("Model building type was set to " + bType + " but the sample file " + samplesToBuildModels + " did not exist");
 						valid = false;
 					} else {
-						String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[0], true);
+						log.reportTimeInfo("Loading model builders from " + samplesToBuildModels);
+						String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[] { 0 }, true);
+						log.reportTimeInfo("Loaded " + sampsForMods.length + " model builders from " + samplesToBuildModels);
+
 						int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true, proj.getLog(), true, false);
 						samplesForModels = Array.booleanArray(proj.getSamples().length, false);
 						for (int i = 0; i < indices.length; i++) {
@@ -201,12 +204,15 @@ class CorrectionIterator implements Serializable {
 						}
 						// samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
 					}
+					log.reportTimeInfo("Loaded " + Array.booleanArraySum(samplesForModels) + " model builders from " + samplesToBuildModels);
 
 					for (int i = 0; i < sampleQCPassed.length; i++) {
 						if (!sampleQCPassed[i]) {
 							samplesForModels[i] = false;
 						}
 					}
+					log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " model builders from after QC filtering");
+
 					break;
 				default:
 					break;
