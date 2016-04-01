@@ -718,7 +718,6 @@ public class ResultsPackager {
 	}
 
 	public static String[][] loadFile(String fullPathStatResults, String nameOfMarkerColumn, String[] markersToBeLoaded, String[] columnNamesToBeLoaded, Logger log) {
-		Double beta;
 		int markerColumnIndex;
 		int[] indices;
         String[] line;

@@ -28,7 +28,6 @@ public class FCSTesting {
     
         CFCSSystem syst = new CFCSSystem();
         
-        
         syst.open((new File("F:\\Flow\\test\\HRS003-48hrs_HRS003-48hrs PANEL 1-T-lymphocytes.fcs")).toURI().toURL());
         System.out.println(CFCSSystem.getVersion());
         
@@ -85,10 +84,10 @@ public class FCSTesting {
             try { System.out.println("21:" + Array.toStr(param.getExcitationWavelengthArray(), ", ")); } catch (Exception e) {}
             try { System.out.println("22:" + Array.toStr(param.getPreferredDisplayArgs())); } catch (Exception e) {}
             try { System.out.println("23:" + param.getPreferredDisplayScale().toString()); } catch (Exception e) {}
-            
+
             System.out.println();
-         }
-        
+        }
+
         System.out.println("Keys: " + keys.getCount());
         System.out.println(keys.getOriginality());
         System.out.println(keys.getPlateId());

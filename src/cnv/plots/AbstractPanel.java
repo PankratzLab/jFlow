@@ -778,7 +778,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //		long blockTime = new Date().getTime();
 
 		if (chartType == HEAT_MAP_TYPE) {
-			drawHeatMap(g, null);
+			drawHeatMap(g);
 		} else if (chartType == SCATTER_PLOT_TYPE) {
 			for (int i = 0; i<points.length && flow; i++) {
 				if (base && i%step==0){
@@ -789,7 +789,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 						prog.setProgress(i);
 					}
 				}
-				if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisble()) {
+				if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisible()) {
 					
 				} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() - plotXmax > plotXmax/1000.0 || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
 //					System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
@@ -950,22 +950,23 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	
 	public void refreshOtherComponents() {}
 
-	public void drawHeatMap(Graphics g, byte[] clusters) {
+	public void drawHeatMap(Graphics g) {
 		int nRows, nColumns;
 		int[][] gridIntensities;
 		int[][][] gridColors;
-
+		
+		int width = 1, height = 1, radius = 3;
+		
 		nRows = getHeight();
 		nColumns = getWidth();
-		gridIntensities = getGridIntensityForHeapMapGrid(nRows, nColumns, 1, 1, 3);
+		gridIntensities = getGridIntensityForHeapMapGrid(nRows, nColumns, width, height, radius);
 		gridColors = getColorFromIntensityForHeapMapGrid(gridIntensities);
 
 		for (int i = 0; i < nColumns; i++) {
 			for (int j = 0; j < nRows; j++) {
 				if (gridIntensities[i][j] != 0) {
 					g.setColor(new Color(gridColors[i][j][0], gridColors[i][j][1], gridColors[i][j][2]));
-//					g.fillRect(i + canvasSectionMinimumX, j - canvasSectionMinimumY, 1, 1);
-					g.fillOval(i + canvasSectionMinimumX, j - canvasSectionMinimumY, 2, 2);
+					g.fillOval(i + canvasSectionMinimumX, j - canvasSectionMinimumY, width, height);
 				}
 			}
 		}
