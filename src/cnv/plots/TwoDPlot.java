@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.tree.TreePath;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -1075,6 +1076,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	
 	public void setHistogram(boolean b) {
         this.isHistPlot = b;
+        this.size = b ? 0 : (size == 0 ? DEFAULT_SIZE : size);
     }
 
 	public boolean isHistogram() {
@@ -1397,7 +1399,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public void windowOpened(WindowEvent e) {}
 
 	public void valueChanged(TreeSelectionEvent e) {
-//		System.out.println("Tree value changed listener"+"\ttreeSelectionIndices: "+tree.getSelectionIndices()[0][0]+","+tree.getSelectionIndices()[0][1]+"\t"+tree.getSelectionIndices()[1][0]+","+tree.getSelectionIndices()[1][1]);
+	    TreePath[] paths = e.getPaths();
+	    if (paths.length == 1) return; // when selecting two entries in the tree, we get four events, of which we only need one.
 		twoDPanel.setPointsGeneratable(true);
 //		twoDPanel.createImage(); // calling paintAgain sets image == null, so why call 'createImage' right before doing so?
 		twoDPanel.paintAgain();
@@ -1563,9 +1566,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		HashSet<String> dataFiles = new HashSet<String>();
 
 		for (ScreenToCapture cap : screens) {
-			if (cap.dataXFile != null) dataFiles.add(cap.dataXFile);
-			if (cap.dataYFile != null) dataFiles.add(cap.dataYFile);
-			if (cap.colorFile != null) dataFiles.add(cap.colorFile);
+			if (cap.dataXFile != null && Files.exists(baseDir + cap.dataXFile)) dataFiles.add(cap.dataXFile);
+			if (cap.dataYFile != null && Files.exists(baseDir + cap.dataYFile)) dataFiles.add(cap.dataYFile);
+			if (cap.colorFile != null && Files.exists(baseDir + cap.colorFile)) dataFiles.add(cap.colorFile);
 		}
 		
 		for (String file : dataFiles) {
@@ -1580,13 +1583,15 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		    this.hideExcludes = screencap.hideExcluded;
 		    this.setHistogram(screencap.isHistogram);
 		    
-		    twoDPanel.forcePlotXmin = screencap.minX;
-		    twoDPanel.forcePlotXmax = screencap.maxX;
-		    twoDPanel.forcePlotYmin = screencap.minY;
-		    twoDPanel.forcePlotYmax = screencap.maxY;
+		    twoDPanel.setForcePlotXmin(screencap.minX);
+		    twoDPanel.setForcePlotXmax(screencap.maxX);
+		    twoDPanel.setForcePlotYmin(screencap.minY);
+		    twoDPanel.setForcePlotYmax(screencap.maxY);
 		    
-			if (screencap.colorFile != null && !screencap.colorFile.equals("")) {
+		    boolean colorLoaded = false;
+			if (screencap.colorFile != null && Files.exists(baseDir + screencap.colorFile)) {
 				loadColor(baseDir, screencap);
+				colorLoaded = true; // vulnerable to issues actually loading color file, but good enough for now? TODO need some way to specify HeatMap/Genotype coloration
 			}
 			
 			if (screencap.dataXFile != null) {
@@ -1598,7 +1603,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 
 			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
-			this.colorKeyPanel.getClassRadioButtons()[this.colorKeyPanel.getClassRadioButtons().length - 1].setSelected(true);
+			this.colorKeyPanel.getClassRadioButtons()[colorLoaded ? (this.colorKeyPanel.getClassRadioButtons().length - 1) : 0].setSelected(true);
 			
 			twoDPanel.createImage();
 			
@@ -1641,11 +1646,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				frame = null;
 				if (screencap.includeColorKey) {
 					int totW, totH;
-					totW = Math.max(bi.getWidth(), twoDPanel.image.getWidth());
-					totH = bi.getHeight() + twoDPanel.image.getHeight();
+					totW = Math.max(bi.getWidth(), twoDPanel.getImage().getWidth());
+					totH = bi.getHeight() + twoDPanel.getImage().getHeight();
 					BufferedImage img = new BufferedImage(totW, totH, BufferedImage.TYPE_INT_ARGB);
 					Graphics2D g = img.createGraphics();
-					g.drawImage(twoDPanel.image, 0, 0, null);
+					g.drawImage(twoDPanel.getImage(), 0, 0, null);
 					int x = (int) ((.5 * twoDPanel.getWidth()) - (.5 * bi.getWidth()));
 					g.drawImage(bi, x, twoDPanel.getHeight(), null);
 //					g.drawImage(bi, 0, twoDPanel.getHeight(), null);
@@ -1732,11 +1737,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     		    }
     		}
     		if (!found) {
-    		    System.err.println("Error - extension of file {" + filename + "} is invalid.  Valid extensions are: {" + validExts.toString() + "}");
+    		    log.reportError("Error - extension of file {" + filename + "} is invalid.  Valid extensions are: {" + validExts.toString() + "}");
     		    return;
     		}
 		}
 		try {
+		    long t1 = System.currentTimeMillis();
 			reader = new BufferedReader(new FileReader(filename));
 			dataKeys.add(filename);
 
@@ -1762,10 +1768,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             	validColumnsHash.put(filename, validate(line));
             }
             reader.close();
-        } catch (FileNotFoundException fnfe) {
-        	System.err.println("Error: file \""+filename+"\" not found in current directory");
+            
+            log.reportTimeElapsed("Read file " + filename + " in: ", t1);
+		
+		} catch (FileNotFoundException fnfe) {
+            log.reportError("Error: file \""+filename+"\" not found in current directory");
         } catch (IOException ioe) {
-            System.err.println("Error reading file \""+filename+"\"");
+            log.reportError("Error reading file \""+filename+"\"");
         }
 	}
 	
@@ -1831,6 +1840,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             String key = dataKeys.get(i);
     		treeFileVariableNameLookup[i] = dataColumnsHash.get(key);
         	if (tree == null) {
+        	    System.err.println("Error - CheckBoxTree was null!  TODO check if not setting the treeListener causes issues...");
         		namesOfBranches = new String[1];
         		branchHandles = new String[1];
         		namesOfNodes = new String[1][];
