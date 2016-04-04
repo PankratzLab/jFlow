@@ -93,7 +93,7 @@ public class SomaticCNVEvaluation {
 		//
 		// }
 		// }
-		BeastFilt beastFilt = new BeastFilt(normalCutoff, normalCutoff);
+		BeastFilt beastFilt = new BeastFilt(normalCutoff, diffCutoff);
 		TNCNVProducer producer = new TNCNVProducer(proj, inds, trackers, beastFilt);
 		WorkerTrain<TNCNV> train = new WorkerTrain<SomaticCNVEvaluation.TNCNV>(producer, numThreads, numThreads, proj.getLog());
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + "SomaticCNV/";
@@ -304,10 +304,10 @@ public class SomaticCNVEvaluation {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project("C:/workspace/Genvisis/projects/Cushings.properties", false);
+		Project proj = new Project("C:/workspace/Genvisis/projects/CushingsPCCorrected.properties", false);
 		String[] cnvFiles = proj.CNV_FILENAMES.getValue();
 		String vpopFile = proj.PROJECT_DIRECTORY.getValue() + "TN.vpop";
-		int numthreads = 2;
+		int numthreads = 4;
 		double normalCutoff = .25;
 		double diffCutoff = .5;
 		filter(proj, vpopFile, cnvFiles[0], normalCutoff, diffCutoff, numthreads);

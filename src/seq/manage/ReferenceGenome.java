@@ -179,8 +179,13 @@ public class ReferenceGenome {
 			String[] requestedSeq = null;
 			if (memoryMode) {
 				if (this.referenceSequence == null || !this.referenceSequence.getName().equals(requestedContig)) {
+					log.reportTimeInfo("loading reference sequence for " + requestedContig);
 					this.referenceSequence = indexedFastaSequenceFile.getSequence(requestedContig);
+					log.reportTimeInfo("Converting reference sequence to String for " + requestedContig);
+
 					this.inMemoryContig = Array.decodeByteArray(referenceSequence.getBases(), BYTE_DECODE_FORMAT.UPPER_CASE, log);
+					log.reportTimeInfo("reference sequence in memory for " + requestedContig);
+
 				} else {
 					log.reportTimeInfo("Memory works");
 				}

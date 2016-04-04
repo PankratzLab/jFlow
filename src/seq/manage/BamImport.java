@@ -40,6 +40,7 @@ import cnv.filesys.Project.ARRAY;
 import cnv.manage.Markers;
 import cnv.manage.MitoPipeline;
 import cnv.manage.TransposeData;
+import cnv.qc.GcAdjustor.GcModel;
 import cnv.qc.LrrSd;
 import cnv.var.LocusSet;
 import cnv.var.SampleData;
@@ -446,7 +447,7 @@ public class BamImport {
 					if (i % 1000 == 0) {
 						proj.getLog().reportTimeInfo("Loaded gc content for " + (i + 1) + " bins");
 					}
-					writer.println(markerNames[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + ReferenceGenome.getPercentGC(referenceGenome.getSequenceFor(analysisSet.getLoci()[i].getBufferedSegment(buffer))));
+					writer.println(markerNames[i] + "\t" + markerSet.getChrs()[i] + "\t" + markerSet.getPositions()[i] + "\t" + ReferenceGenome.getPercentGC(referenceGenome.getSequenceFor(analysisSet.getLoci()[i].getBufferedSegment(buffer), buffer > 100000)));
 				}
 				writer.close();
 			} catch (Exception e) {

@@ -592,6 +592,9 @@ public class Array {
 	public static String[] decodeByteArray(byte[] b, String charsetName, BYTE_DECODE_FORMAT format, Logger log) {
 		String[] s = new String[b.length];
 		for (int i = 0; i < s.length; i++) {
+			if ((i + 1) % 2000000 == 0) {
+				log.reportTimeInfo((i + 1) + " entries converted");
+			}
 			try {
 				s[i] = new String(new byte[] { b[i] }, charsetName).toUpperCase();
 			} catch (UnsupportedEncodingException e) {
