@@ -458,7 +458,7 @@ public class AffyPipeline {
 					Project proj = new Project(projectFile, false);
 
 					proj.PROJECT_DIRECTORY.setValue(outDir);
-					proj.SOURCE_DIRECTORY.setValue(outDir + analysisName + "_00src");
+					proj.SOURCE_DIRECTORY.setValue(analysisName + "_00src");
 					proj.PROJECT_NAME.setValue(analysisName);
 					proj.XY_SCALE_FACTOR.setValue((double) 100);
 
@@ -477,7 +477,9 @@ public class AffyPipeline {
 						if (proj.getSourceFileHeaders(true) == null || proj.getSourceFileHeaders(true).size() == 0 || Files.exists(proj.PROJECT_DIRECTORY.getValue() + "source.headers")) {
 							new File(proj.PROJECT_DIRECTORY.getValue() + "source.headers").delete();
 						}
-						proj.setSourceFileHeaders(proj.getSourceFileHeaders(true));
+						// proj.setSourceFileHeaders(proj.getSourceFileHeaders(true));
+						proj.saveProperties();
+						proj = new Project(projectFile, false);
 						SourceFileParser.createFiles(proj, numThreads);
 						TransposeData.transposeData(proj, 2000000000, false);
 						CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numThreads, 2);
