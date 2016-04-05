@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import common.Array;
+import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.WorkerTrain;
 import common.WorkerTrain.Producer;
@@ -23,6 +26,9 @@ import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.var.CNVariant;
 import cnv.var.LocusSet;
 import cnv.var.SampleData;
+import filesys.GeneData;
+import filesys.GeneTrack;
+import filesys.Segment;
 
 /**
  * Class to refine somatic cnv calls
@@ -99,15 +105,39 @@ public class SomaticCNVEvaluation {
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + "SomaticCNV/";
 		new File(outDir).mkdirs();
 		String outFile = outDir + ext.rootOf(cnvFile) + ".somaticEvals.txt";
-
+		if (!Files.exists(outFile)) {
+			System.exit(1);
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(outFile));
+				writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + Array.toStr(SomaticEvaluation.HEADER));
+				while (train.hasNext()) {
+					TNCNV current = train.next();
+					for (int i = 0; i < current.getTumorCnvs().getLoci().length; i++) {
+						CNVariant currentCNV = current.getTumorCnvs().getLoci()[i];
+						writer.println(currentCNV.toPlinkFormat() + "\t" + Array.toStr(current.getSomaticEvaluations()[i].getSummary()) + "\t" + Array.toStr(currentCNV.toTrailerFormat()));
+					}
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing to " + outFile);
+				log.reportException(e);
+			}
+		}
+		String[][] results = HashVec.loadFileToStringMatrix(outFile, false, null, false);
+		String geneOutFile = ext.addToRoot(outFile, ".genes");
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outFile));
-			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER) + "\t" + Array.toStr(SomaticEvaluation.HEADER));
-			while (train.hasNext()) {
-				TNCNV current = train.next();
-				for (int i = 0; i < current.getTumorCnvs().getLoci().length; i++) {
-					CNVariant currentCNV = current.getTumorCnvs().getLoci()[i];
-					writer.println(currentCNV.toPlinkFormat() + "\t" + Array.toStr(current.getSomaticEvaluations()[i].getSummary()) + "\t" + Array.toStr(currentCNV.toTrailerFormat()));
+			GeneTrack geneTrack = GeneTrack.load(proj.getGeneTrackFilename(true), false);
+			PrintWriter writer = new PrintWriter(new FileWriter(geneOutFile));
+			writer.println(Array.toStr(results[0]) + "\tGENE");
+			for (int i = 1; i < results.length; i++) {
+				Segment current = new Segment(Byte.parseByte(results[i][2]), Integer.parseInt(results[i][3]), Integer.parseInt(results[i][4]));
+				GeneData[] geneDatas = geneTrack.getOverlappingGenes(current);
+				HashSet<String> written = new HashSet<String>();
+				for (int j = 0; j < geneDatas.length; j++) {
+					if (!written.contains(geneDatas[j].getGeneName())) {
+						writer.println(Array.toStr(results[i]) + "\t" + geneDatas[j].getGeneName());
+						written.add(geneDatas[j].getGeneName());
+					}
 				}
 			}
 			writer.close();
@@ -115,7 +145,6 @@ public class SomaticCNVEvaluation {
 			log.reportError("Error writing to " + outFile);
 			log.reportException(e);
 		}
-
 	}
 
 	private static class BeastFilt {

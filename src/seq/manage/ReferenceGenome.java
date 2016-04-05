@@ -187,7 +187,7 @@ public class ReferenceGenome {
 					log.reportTimeInfo("reference sequence in memory for " + requestedContig);
 
 				} else {
-					log.reportTimeInfo("Memory works");
+					//log.reportTimeInfo("Memory works");
 				}
 				try {
 					requestedSeq = Array.subArray(inMemoryContig, Math.max(0, start - 1), Math.min(inMemoryContig.length - 1, stop));

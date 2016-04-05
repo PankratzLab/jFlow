@@ -230,7 +230,14 @@ public class Mosaicism {
 					int bafSize = bafAl.size();
 					int lrrSize = lrrAl.size();
 					float[] bafTmp = Array.toFloatArray(bafAl);
-					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5) + "\t" + mosaicMetrics.getPercentBandMosaic() + "\t" + mosaicMetrics.getBpWeightedAverage() + "\t" + mosaicMetrics.getMosaicRegionsDetected();
+					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5);
+					result += "\t" + mosaicMetrics.getForcedCallproportionArmMosaic();
+					result += "\t" + mosaicMetrics.getBpWeightedAverageArm();
+					result += "\t" + mosaicMetrics.getBpWeightedAverageCalled();
+					result += "\t" + mosaicMetrics.getMosaicRegionsDetected();
+					result += "\t" + mosaicMetrics.getBpMosiac();
+					result += "\t" + mosaicMetrics.getBpArm();
+					result += "\t" + mosaicMetrics.getProportionBpCalledMosaic();				
 					results.add(result);
 				}
 			}
@@ -239,68 +246,121 @@ public class Mosaicism {
 	}
 
 	private static class MosaicMetric {
-		private double percentBandMosaic;
-		private double bpWeightedAverage;
+		private double forcedCallproportionArmMosaic;
+		private double bpWeightedAverageArm;
+		private double bpWeightedAverageCalled;
+		private int bpMosiac;
+		private int bpArm;
+		private double proportionBpCalledMosaic;
+
 		private int mosaicRegionsDetected;
 
-		public MosaicMetric(double percentBandMosaic, double mosaiceMetric,int mosaicRegionsDetected) {
+		public MosaicMetric(double percentArmMosaic, double mosaiceMetricArm, double bpWeightedAverageCalled, int mosaicRegionsDetected, int bpMosiac, int bpArm, double percentCalledMosaic) {
 			super();
-			this.percentBandMosaic = percentBandMosaic;
-			this.bpWeightedAverage = mosaiceMetric;
+			this.forcedCallproportionArmMosaic = percentArmMosaic;
+			this.bpWeightedAverageArm = mosaiceMetricArm;
+			this.bpWeightedAverageCalled = bpWeightedAverageCalled;
+			this.bpMosiac =bpMosiac;
+			this.bpArm =bpArm;
 		}
 
 		private int getMosaicRegionsDetected() {
 			return mosaicRegionsDetected;
+		}
+		
+
+		private double getBpWeightedAverageCalled() {
+			return bpWeightedAverageCalled;
+		}
+
+		private void setBpWeightedAverageCalled(double bpWeightedAverageCalled) {
+			this.bpWeightedAverageCalled = bpWeightedAverageCalled;
 		}
 
 		private void setMosaicRegionsDetected(int mosaicRegionsDetected) {
 			this.mosaicRegionsDetected = mosaicRegionsDetected;
 		}
 
-		private double getPercentBandMosaic() {
-			return percentBandMosaic;
+		private int getBpMosiac() {
+			return bpMosiac;
 		}
 
-		private void setPercentBandMosaic(double percentBandMosaic) {
-			this.percentBandMosaic = percentBandMosaic;
+		private void setBpMosiac(int bpMosiac) {
+			this.bpMosiac = bpMosiac;
 		}
 
-		private double getBpWeightedAverage() {
-			return bpWeightedAverage;
+		private int getBpArm() {
+			return bpArm;
 		}
 
-		private void setBpWeightedAverage(double bpWeightedAverage) {
-			this.bpWeightedAverage = bpWeightedAverage;
+		private void setBpArm(int bpArm) {
+			this.bpArm = bpArm;
+		}
+
+		private double getProportionBpCalledMosaic() {
+			return proportionBpCalledMosaic;
+		}
+
+		private void setProportionBpCalledMosaic(double proportionBpCalledMosaic) {
+			this.proportionBpCalledMosaic = proportionBpCalledMosaic;
+		}
+
+		private double getForcedCallproportionArmMosaic() {
+			return forcedCallproportionArmMosaic;
+		}
+
+		private void setForcedCallproportionArmMosaic(double percentArmMosaic) {
+			this.forcedCallproportionArmMosaic = percentArmMosaic;
+		}
+
+		private double getBpWeightedAverageArm() {
+			return bpWeightedAverageArm;
+		}
+
+		private void setBpWeightedAverageArm(double bpWeightedAverage) {
+			this.bpWeightedAverageArm = bpWeightedAverage;
 		}
 
 	}
 
 	private static MosaicMetric getMosiacMetric(MosaicismDetect md, Segment seg, Logger log) {
 		LocusSet<MosaicRegion> mosSet = md.callMosaic(seg, true);
-		MosaicMetric mosaicMetric = new MosaicMetric(-1, -1, -1);
+		MosaicMetric mosaicMetric = new MosaicMetric(-1, -1, -1, -1, -1, -1, -1);
+		int bpArm = seg.getSize();
+		mosaicMetric.setBpArm(bpArm);
 		if (mosSet.getLoci().length != 1 || !seg.equals(mosSet.getLoci()[0])) {
 			log.reportTimeError("Mosaic caller not in force call mode");
 			log.reportTimeError(seg.getUCSClocation() + " went in, and " + mosSet.getLoci()[0].getUCSClocation() + " came out");
 		} else if (seg.getChr() < 23) {// can't call chr23 yet
-			mosaicMetric.setPercentBandMosaic(100 * mosSet.getLoci()[0].getScore());
+			mosaicMetric.setForcedCallproportionArmMosaic(mosSet.getLoci()[0].getScore());
 		}
 
 		LocusSet<MosaicRegion> tmp = md.callMosaic(seg, false);
+	
 		mosaicMetric.setMosaicRegionsDetected(tmp.getLoci().length);
 		if (tmp.getLoci().length < 1 || seg.getChr() >= 23) {
 
 		} else {
-			double bpWeightedAverage = 0;
-			int numRegions =0;
+			int bpCalledMosaic = 0;
+			double bpWeightedSum = 0;
+			int numRegions = 0;
 			for (int i = 0; i < tmp.getLoci().length; i++) {
-				if (tmp.getLoci()[i].getNumMarkers() > 2 * md.getMovingFactor()) {
-					bpWeightedAverage += (double) tmp.getLoci()[i].getSize() * tmp.getLoci()[i].getScore();
+				if (tmp.getLoci()[i].getNumMarkers() > 2 * md.getMovingFactor()) {// a healthy filter
+					bpWeightedSum += (double) tmp.getLoci()[i].getSize() * tmp.getLoci()[i].getScore();
 					numRegions++;
+					bpCalledMosaic += tmp.getLoci()[i].getSize();
 				}
 			}
-			bpWeightedAverage = (double) bpWeightedAverage / seg.getSize();
+			mosaicMetric.setBpMosiac((int) bpCalledMosaic);
+			double proportionCalledMosaic = (double) bpCalledMosaic / bpArm;
+			mosaicMetric.setProportionBpCalledMosaic(proportionCalledMosaic);
+			double bpWeightedAverageArm = 0;
+			double bpWeightedAverageCalled = 0;
+			bpWeightedAverageCalled = (double) bpWeightedSum / bpCalledMosaic;
+			bpWeightedAverageArm = (double) bpWeightedSum / bpArm;
 			mosaicMetric.setMosaicRegionsDetected(numRegions);
-			mosaicMetric.setBpWeightedAverage(bpWeightedAverage);
+			mosaicMetric.setBpWeightedAverageArm(bpWeightedAverageArm);
+			mosaicMetric.setBpWeightedAverageCalled(bpWeightedAverageCalled);
 		}
 		return mosaicMetric;
 	}
