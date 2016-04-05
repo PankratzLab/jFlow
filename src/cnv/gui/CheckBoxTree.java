@@ -85,7 +85,7 @@ public class CheckBoxTree extends JTree implements ItemListener {
 			repaint();
 		}
 		
-		fireValueChanged(new TreeSelectionEvent(this, getPathForRow(0), true, getPathForRow(0), getPathForRow(0)));
+		fireValueChanged(new TreeSelectionEvent(this, getPathForRow(0), itemEvent.getStateChange() == ItemEvent.SELECTED, getPathForRow(0), getPathForRow(0)));
 	}
 
 

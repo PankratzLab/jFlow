@@ -106,7 +106,7 @@ public final class CFCSKeywords implements CFCSErrorCodes
 
     private static final int NUMBER = 0, LETTER = 1;
 
-    private static final Object[][] DATATYPE_LOOKUP_TABLE = {
+    public static final Object[][] DATATYPE_LOOKUP_TABLE = {
         {new Integer(CFCSDatatype.ASCII), "A"},
         {new Integer(CFCSDatatype.FLOAT), "F"},
         {new Integer(CFCSDatatype.DOUBLE), "D"},
