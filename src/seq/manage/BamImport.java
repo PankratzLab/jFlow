@@ -40,7 +40,6 @@ import cnv.filesys.Project.ARRAY;
 import cnv.manage.Markers;
 import cnv.manage.MitoPipeline;
 import cnv.manage.TransposeData;
-import cnv.qc.GcAdjustor.GcModel;
 import cnv.qc.LrrSd;
 import cnv.var.LocusSet;
 import cnv.var.SampleData;
@@ -321,7 +320,7 @@ public class BamImport {
 					log.memoryFree();
 					LocusSet<Segment> analysisSet = LocusSet.combine(bLocusSet.getStrictSegmentSet(), genomeBinsMinusBinsCaputure, true, log);
 					analysisSet = LocusSet.combine(analysisSet, varFeatures.getStrictSegmentSet(), true, log);
-					dumpLikelyOffTargetProblems(proj);
+					String[] offTargetsToUse = dumpLikelyOffTargetProblems(proj);
 					log.memoryFree();
 					if (!analysisSet.verifyPositiveLength()) {
 						throw new IllegalArgumentException("all import segments must be gte length 1");
@@ -388,7 +387,7 @@ public class BamImport {
 					if (!Files.exists(proj.MOSAIC_RESULTS_FILENAME.getValue())) {
 						Mosaicism.findOutliers(proj, numthreads);
 					}
-					ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes, correctionPCs, numthreads);// Generates and corrects the project for each marker type
+					ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes, offTargetsToUse, correctionPCs, numthreads);// Generates and corrects the project for each marker type
 
 					String newSampleDir = proj.PROJECT_DIRECTORY.getValue() + "samplesCorrected/";
 					String newtransposedDir = proj.PROJECT_DIRECTORY.getValue() + "transposedCorrected/";
@@ -480,7 +479,7 @@ public class BamImport {
 
 	}
 
-	private static ArrayList<ProjectCorrected> correctifyProject(Project proj, ArrayList<MarkerFileType> types, int correctionPCs, int numthreads) {
+	private static ArrayList<ProjectCorrected> correctifyProject(Project proj, ArrayList<MarkerFileType> types, String[] offTargetsToUse, int correctionPCs, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
 		proj.LRRSD_CUTOFF.setValue(.40);
 		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(20);
@@ -495,7 +494,15 @@ public class BamImport {
 				base = base + "BAM_PCS_" + type.getType().getFlag();
 			}
 			String markerfile = proj.PROJECT_DIRECTORY.getValue() + base + "_inputMarkers.txt";
-			Files.writeList(HashVec.loadFileToStringArray(type.getFile(), true, new int[] { 0 }, true), markerfile);
+
+			if (type.getType() != null && type.getType() == NGS_MARKER_TYPE.OFF_TARGET) {
+				String[] allOffT = HashVec.loadFileToStringArray(type.getFile(), true, new int[] { 0 }, true);
+				proj.getLog().reportTimeInfo("Detected " + offTargetsToUse.length + " off target regions to use for pca of");
+				Files.writeList(offTargetsToUse, markerfile); 
+			} else {
+				Files.writeList(HashVec.loadFileToStringArray(type.getFile(), true, new int[] { 0 }, true), markerfile);
+			}
+
 			proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
 			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null, null, null, false, false, false, true, false, null, -1, -1);
 			// PrincipalComponentsCrossTabs.crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, true);
@@ -624,7 +631,8 @@ public class BamImport {
 		return outliers;
 	}
 
-	private static void dumpLikelyOffTargetProblems(Project proj) {
+	private static String[] dumpLikelyOffTargetProblems(Project proj) {
+		
 		MarkerSet markerSet = proj.getMarkerSet();
 		String problemFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".likelyOffTargetProblems");
 		String noproblemFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".withoutlikelyOffTargetProblems");
@@ -633,6 +641,7 @@ public class BamImport {
 		ArrayList<String> problems = new ArrayList<String>();
 		ArrayList<String> noProblems = new ArrayList<String>();
 		ArrayList<String> all = new ArrayList<String>();
+		ArrayList<String> goodOffTargets = new ArrayList<String>();
 
 		problems.add("BinName\tCLASS=MARKER_COLOR;OFF_TARGET_OK=Blue;LIKELY_OFF_TARGET_PROBLEM=RED;OTHER_TYPE=Green");
 		noProblems.add("BinName\tCLASS=MARKER_COLOR;OFF_TARGET_OK=Blue;LIKELY_OFF_TARGET_PROBLEM=RED;OTHER_TYPE=Green");
@@ -648,6 +657,7 @@ public class BamImport {
 					NGS_MARKER_TYPE left = NGS_MARKER_TYPE.getType(names[indices[i][compLeft]]);
 					NGS_MARKER_TYPE right = NGS_MARKER_TYPE.getType(names[indices[i][compRight]]);
 					if ((compLeft != j && left != NGS_MARKER_TYPE.OFF_TARGET) || (compRight != j && right != NGS_MARKER_TYPE.OFF_TARGET)) {
+						goodOffTargets.add(names[indices[i][j]]);
 						problems.add(names[indices[i][j]] + "\tLIKELY_OFF_TARGET_PROBLEM");
 						all.add(names[indices[i][j]] + "\tLIKELY_OFF_TARGET_PROBLEM");
 					} else {
@@ -664,6 +674,7 @@ public class BamImport {
 		Files.writeArrayList(problems, problemFile);
 		Files.writeArrayList(noProblems, noproblemFile);
 		Files.writeArrayList(all, allFile);
+		return Array.toStringArray(goodOffTargets);
 
 	}
 
