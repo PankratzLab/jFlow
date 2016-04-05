@@ -1398,9 +1398,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	public void windowOpened(WindowEvent e) {}
 
+	int valueChangedCounter = 0;
 	public void valueChanged(TreeSelectionEvent e) {
-	    TreePath[] paths = e.getPaths();
-	    if (paths.length == 1) return; // when selecting two entries in the tree, we get four events, of which we only need one.
+//	    if (valueChangedCounter < 3) {
+//	        valueChangedCounter++;
+//	        return;
+//	    }
+//	    valueChangedCounter = 0;
 		twoDPanel.setPointsGeneratable(true);
 //		twoDPanel.createImage(); // calling paintAgain sets image == null, so why call 'createImage' right before doing so?
 		twoDPanel.paintAgain();

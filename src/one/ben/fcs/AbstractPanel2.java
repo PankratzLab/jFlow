@@ -1,4 +1,4 @@
-package cnv.plots;
+package one.ben.fcs;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -31,9 +31,11 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
+import cnv.plots.GenericLine;
+import cnv.plots.GenericRectangle;
+import cnv.plots.PlotPoint;
 import mining.Distance;
 import stats.Maths;
-
 import common.Array;
 import common.Grafik;
 import common.HashVec;
@@ -42,7 +44,7 @@ import common.ProgressBarDialog;
 import common.Sort;
 import common.ext;
 
-public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
+public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
 
 	public static final boolean DEBUGGING = false;
@@ -63,10 +65,24 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public static final int SIZE = 12;
 	public static final double HIGHLIGHT_DISTANCE = 20;//= Math.sqrt(SIZE*SIZE/2);
 	public static final int DELAY = 0;	//A control variable to reduce the repaint() operations during component resizing;
-	public static final int SCATTER_PLOT_TYPE = 1; 
-	public static final int HEAT_MAP_TYPE = 2;
+	
+	public static enum PLOT_TYPE {
+	    DOT_PLOT,
+	    HEATMAP,
+        HISTOGRAM,
+        CONTOUR;
+	}
+	
+    public static enum AXIS_SCALE {
+        LIN,
+        LOG;
+    }
+    
+	
+//	public static final int SCATTER_PLOT_TYPE = 1; 
+//	public static final int HEAT_MAP_TYPE = 2;
 
-	public static final int DEFAULT_TYPE = SCATTER_PLOT_TYPE;
+	public static final PLOT_TYPE DEFAULT_TYPE = PLOT_TYPE.DOT_PLOT;
 
 	public static final int IMAGE_NULL = 0;
 	public static final int IMAGE_STARTED = 1;
@@ -113,7 +129,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected boolean truncate;
 	protected float[][] zoomSubsets;
 	protected IntVector prox;
-	protected int chartType;
+	protected PLOT_TYPE chartType;
 
 	private boolean inDrag;
 	private volatile int startX, startY;
@@ -138,7 +154,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private volatile boolean beEfficient;
 	private HashSet<String> pointsPlotted;
 	
-	public AbstractPanel() {
+	public AbstractPanel2() {
 		canvasSectionMinimumX = 0;
 		canvasSectionMaximumX = getWidth();
 		canvasSectionMinimumY = 0;
@@ -288,7 +304,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	        System.out.println("Skipping image creation");
 	    }
 		
-		g.drawImage(image, 0, 0, AbstractPanel.this);
+		g.drawImage(image, 0, 0, AbstractPanel2.this);
 		if (extraLayersVisible != null && extraLayersVisible.length > 0) {
 			drawAll(g, false);
 		}
@@ -340,7 +356,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 	}
 	
-	public void setChartType(int chartType) {
+	public void setChartType(PLOT_TYPE chartType) {
 		this.chartType = chartType;
 	}
 	
@@ -579,7 +595,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 			plotXmin = Float.isNaN(forcePlotXmin) ? plotMinMaxStep[0] : forcePlotXmin;
 			plotXmax = Float.isNaN(forcePlotXmax) ? plotMinMaxStep[1] : forcePlotXmax;
-	        if (displayXaxis) {
+	        if (displayXaxis && xAxisLabel != null) {
 	            drawXAxis(g, plotMinMaxStep, fontMetrics);
 	        }
 		
@@ -595,7 +611,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 			plotYmin = plotMinMaxStep[0];
 			plotYmax = plotMinMaxStep[1];
-	        if (displayYaxis) {
+	        if (displayYaxis && yAxisLabel != null) {
 	            drawYAxis(g, plotMinMaxStep);
 	        }
 
@@ -739,9 +755,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 //		}
 //		long blockTime = new Date().getTime();
 
-		if (chartType == HEAT_MAP_TYPE) {
+		if (chartType == PLOT_TYPE.HEATMAP) {
 			drawHeatMap(g);
-		} else if (chartType == SCATTER_PLOT_TYPE) {
+		} else if (chartType == PLOT_TYPE.DOT_PLOT) {
 			for (int i = 0; i<points.length && flow; i++) {
 				if (base && i%step==0){
 					if (new Date().getTime() - time > 1000) {
@@ -1080,14 +1096,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			if (points[i] != null) {
 				xPixel = getXPixel(points[i].getRawX()) - canvasSectionMinimumX;
 				yPixel = getYPixel(points[i].getRawY()) + canvasSectionMinimumY;
-
 				for (int j = -neighbor; j <= neighbor; j++) {
 					for (int k = -neighbor; k <= neighbor; k++) {
 						if ((xPixel + j) >= 0 && (xPixel + j) < nColumns && (yPixel + k) >= 0 && (yPixel + k) < nRows) { //  && Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)}, origin) < neighbor*(neighbor-1)
 							if (zoomedIn) {
 								intensities[xPixel + j][yPixel + k]++;
 							} else {
-								intensities[xPixel + j][yPixel + k] += neighbor*neighbor - Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)}, origin);
+								intensities[xPixel + j][yPixel + k] += neighbor*neighbor;// - Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)}, origin);
 							}
 						}
 					}
@@ -1137,7 +1152,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		int x, y, dataPointIndex;
 		byte size;
 
-		if (imageIsFinal() && chartType != HEAT_MAP_TYPE) {
+		if (imageIsFinal() && chartType != PLOT_TYPE.HEATMAP) {
 			x = event.getX();
 			y = event.getY();
 
@@ -1146,11 +1161,19 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
 			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
 			pos = (int)Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
-			if (!pos.equals(prevPos)) {
-				repaint();
-			}
+//			if (!pos.equals(prevPos)) {
+//			    System.out.println("Repainting");
+//				repaint();
+//			}
 
 			indicesOfNearbyPoints = lookupNearbyPoints(x, y, pos);
+			
+			if (!pos.equals(prevPos)) {
+			    if (indicesOfNearbyPoints.size() != 0 || (prox != null && prox.size() != 0)) {
+                    repaint();
+                }
+			}
+
 			prox = new IntVector();
 
 			size = SIZE * 2;
