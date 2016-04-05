@@ -77,7 +77,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         LIN,
         LOG;
     }
-    
+//    http://superliminal.com/sources/Axis.java.html
 	
 //	public static final int SCATTER_PLOT_TYPE = 1; 
 //	public static final int HEAT_MAP_TYPE = 2;

@@ -674,13 +674,19 @@ public class ResultsPackager {
 						}
 					} else {
 						if (analyses[i].equalsIgnoreCase("tdt")) {
-							beta = Math.log(Double.parseDouble(statResults[k][markerIndex][0]));
-							se = ((Math.log(Double.parseDouble(statResults[k][markerIndex][1])) - beta) / 1.96);
+						    int betaInd = ext.indexOfStr(columnNamesOfAnalyses[i][0], columnNamesToLoad);
+						    int seInd = ext.indexOfStr(columnNamesOfAnalyses[i][1], columnNamesToLoad);
+							beta = Math.log(Double.parseDouble(statResults[k][markerIndex][betaInd]));
+							se = ((Math.log(Double.parseDouble(statResults[k][markerIndex][seInd])) - beta) / 1.96);
 							out1[j] += "\t" + beta + "\t" + se + "\t" + Math.exp(beta) + "\t" + Math.exp(beta - 1.96*se) + "\t" + Math.exp(beta + 1.96*se);
 						} else {
-						    beta = Double.parseDouble(statResults[k][markerIndex][3]);
-						    se = Double.parseDouble(statResults[k][markerIndex][4]);
-							out1[j] += "\t" + statResults[k][markerIndex][3] + "\t" + statResults[k][markerIndex][4] + 
+						    int betaInd = ext.indexOfStr(columnNamesOfAnalyses[i][0], columnNamesToLoad);
+						    int seInd = ext.indexOfStr(columnNamesOfAnalyses[i][1], columnNamesToLoad);
+						    System.out.println(analyses[i] + "\t" + markers[markerIndex] + "\t" + + betaInd + "\t" + columnNamesToLoad[betaInd] + "\t" + statResults[k][markerIndex][betaInd]); 
+						    System.out.println(analyses[i] + "\t" + markers[markerIndex] + "\t" + seInd + "\t" + columnNamesToLoad[seInd] + "\t" + statResults[k][markerIndex][seInd]); 
+						    beta = Double.parseDouble(statResults[k][markerIndex][betaInd]);
+						    se = Double.parseDouble(statResults[k][markerIndex][seInd]);
+							out1[j] += "\t" + statResults[k][markerIndex][betaInd] + "\t" + statResults[k][markerIndex][seInd] + 
 							        "\t" + Math.exp(beta) + 
 							        "\t" + Math.exp(beta - 1.96*se) + 
 							        "\t" + Math.exp(beta + 1.96*se); 
