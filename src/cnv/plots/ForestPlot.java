@@ -943,7 +943,7 @@ public class ForestPlot extends JFrame implements WindowListener {
             filename = marker + "_" + dataFile;
             filename = ext.replaceWithLinuxSafeCharacters(filename, true);
             if (new File(root + filename + ".png").exists()) {
-                if (!versionIfExists) {
+                if (versionIfExists) {
                     while (new File(root+filename+".png").exists()) {
                         filename = marker + "_" + dataFile + "_v" + count;
                         filename = ext.replaceWithLinuxSafeCharacters(filename, true);
