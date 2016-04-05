@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
+import stats.ICC;
 import stats.Rscript.COLUMNS_MULTIPLOT;
 import stats.Rscript.ErrorBars;
 import stats.Rscript.GEOM_POINT_SIZE;
@@ -59,7 +60,7 @@ class CorrectionIterator implements Serializable {
 	private double lrrSdCut;
 	private double callRateCut;
 
-	public CorrectionIterator(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent, double lrrSdCut,double callRateCut,  int numthreads) {
+	public CorrectionIterator(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent, double lrrSdCut, double callRateCut, int numthreads) {
 		super();
 		this.proj = proj;
 		this.markesToEvaluate = markesToEvaluate;
@@ -72,9 +73,9 @@ class CorrectionIterator implements Serializable {
 		this.numthreads = numthreads;
 		this.pcPercent = pcPercent;
 		this.recomputeLRR = recomputeLRR;
-		this.lrrSdCut=lrrSdCut;
-		this.callRateCut =callRateCut;
-		
+		this.lrrSdCut = lrrSdCut;
+		this.callRateCut = callRateCut;
+
 	}
 
 	public void run() {
@@ -132,8 +133,7 @@ class CorrectionIterator implements Serializable {
 		// QC_ASSOCIATION;
 
 	}
-	
-	
+
 	private boolean[] getSamplesFromQC(Project proj, double lrrSdCut, double callRateCut) {
 		boolean[] samplesPassing = Array.booleanArray(proj.getSamples().length, false);
 		SampleQC sampleQC = SampleQC.loadSampleQC(proj);
@@ -150,7 +150,7 @@ class CorrectionIterator implements Serializable {
 		return samplesPassing;
 	}
 
-	private IterationResult run(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent,double lrrSdCut,double callRateCut, int numthreads) {
+	private IterationResult run(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent, double lrrSdCut, double callRateCut, int numthreads) {
 		Logger log = proj.getLog();
 		CorrectionEvaluator cEvaluator = null;
 		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
@@ -184,8 +184,8 @@ class CorrectionIterator implements Serializable {
 				// || oType == ORDER_TYPE.QC_ASSOCIATION
 				switch (bType) {
 				case WITHOUT_BUILDERS:
-					//samplesForModels = proj.getSamplesToInclude(null, true, true);
-					//log.reportTimeWarning("Computing excludes from "+proj.SAMPLE_QC_FILENAME.getValue());
+					// samplesForModels = proj.getSamplesToInclude(null, true, true);
+					// log.reportTimeWarning("Computing excludes from "+proj.SAMPLE_QC_FILENAME.getValue());
 					samplesForModels = sampleQCPassed;
 					break;
 				case WITH_BUILDERS:
@@ -1042,7 +1042,7 @@ class CorrectionIterator implements Serializable {
 	// return extraIndeps;
 	// }
 
-	private static CorrectionIterator[] getIterations(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent,double lrrSdCut,double callRateCut, int numthreads) {
+	private static CorrectionIterator[] getIterations(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, boolean svd, boolean recomputeLRR, double pcPercent, double lrrSdCut, double callRateCut, int numthreads) {
 		ArrayList<CorrectionIterator> cIterators = new ArrayList<CorrectionIterator>();
 		// System.out.println("JDOFJSDF remember the pcs");
 		for (int i = 0; i < ITERATION_TYPE.values().length; i++) {
@@ -1087,14 +1087,14 @@ class CorrectionIterator implements Serializable {
 
 	}
 
-	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, String pcFile, String pedFile, boolean svd, boolean recomputeLRR, double pcPercent,double lrrSdCut,double callRateCut, int numthreads) {
+	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, String pcFile, String pedFile, boolean svd, boolean recomputeLRR, double pcPercent, double lrrSdCut, double callRateCut, int numthreads) {
 		// proj.INTENSITY_PC_NUM_COMPONENTS.setValue(400);
 		if (pcFile != null) {
 			proj.INTENSITY_PC_FILENAME.setValue(pcFile);
-		}else{
+		} else {
 			System.exit(1);
 		}
-		
+
 		// System.out.println("JDOFJSDF remember the pcs");
 		if (outputDir == null) {
 			outputDir = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(proj.INTENSITY_PC_FILENAME.getValue()) + "_eval/";
@@ -1196,6 +1196,8 @@ class CorrectionIterator implements Serializable {
 			header.add("STD_STAT");
 			header.add("PC_15_STAT");
 			header.add("PC_15_PVAL");
+			header.add("PC_150_STAT");
+			header.add("PC_150_PVAL");
 			header.add("PC_MAX_STAT");
 			header.add("PC_MAX_PVAL");
 			writer.println(Array.toStr(Array.toStringArray(header)));
@@ -1208,9 +1210,10 @@ class CorrectionIterator implements Serializable {
 				ITERATION_TYPE iType = correctionIterator.getIterationResult().getiType();
 				ArrayList<String> names = evaluationResults[0].getCorrelTitles();
 				ArrayList<double[]> statsSpear = evaluationResults[0].getSpearmanCorrel();
-				printStatSummary(writer, correctionIterator, "SPEARMAN", evaluationResults, mBuilder_TYPE, oType, iType, statsSpear, names);
+				printStatSummary(writer, correctionIterator, "SPEARMAN", evaluationResults, mBuilder_TYPE, oType, iType, statsSpear, null, names);
 				ArrayList<double[]> statsPear = evaluationResults[0].getPearsonCorrels();
-				printStatSummary(writer, correctionIterator, "PEARSON", evaluationResults, mBuilder_TYPE, oType, iType, statsPear, names);
+				printStatSummary(writer, correctionIterator, "PEARSON", evaluationResults, mBuilder_TYPE, oType, iType, statsPear, null, names);
+				printStatSummary(writer, correctionIterator, "ICC", evaluationResults, mBuilder_TYPE, oType, iType, statsPear, evaluationResults[0].getIccs(), evaluationResults[0].getIccTitles());
 
 			}
 
@@ -1224,14 +1227,16 @@ class CorrectionIterator implements Serializable {
 		return cIterators;
 	}
 
-	private static void printStatSummary(PrintWriter writer, CorrectionIterator correctionIterator, String type, EvaluationResult[] evaluationResults, MODEL_BUILDER_TYPE mBuilder_TYPE, ORDER_TYPE oType, ITERATION_TYPE iType, ArrayList<double[]> statsAL, ArrayList<String> name) {
+	private static void printStatSummary(PrintWriter writer, CorrectionIterator correctionIterator, String type, EvaluationResult[] evaluationResults, MODEL_BUILDER_TYPE mBuilder_TYPE, ORDER_TYPE oType, ITERATION_TYPE iType, ArrayList<double[]> statsAL,ArrayList<ICC> statsICC , ArrayList<String> name) {
 
-		for (int i = 0; i < statsAL.size(); i++) {
+		for (int i = 0; i < (statsAL == null ? statsICC.size() : statsAL.size()); i++) {
 			double[] stats = new double[evaluationResults.length];
 			double[] pval = new double[evaluationResults.length];
 			int numSamps = evaluationResults[0].getNumIndsCorrel().get(i);
 			double stat15 = Double.NaN;
 			double pval15 = Double.NaN;
+			double stat150 = Double.NaN;
+			double pval150 = Double.NaN;
 			double statMax = Double.NaN;
 			double pvalMax = Double.NaN;
 
@@ -1243,6 +1248,10 @@ class CorrectionIterator implements Serializable {
 						stat15 = stats[j];
 						pval15 = pval[j];
 					}
+					if (j == 150) {
+						stat150 = stats[j];
+						pval150 = pval[j];
+					}
 					if (j == evaluationResults.length - 1) {
 						statMax = stats[j];
 						pvalMax = pval[j];
@@ -1253,6 +1262,26 @@ class CorrectionIterator implements Serializable {
 					if (j == 15) {
 						stat15 = stats[j];
 						pval15 = pval[j];
+					}
+					if (j == 150) {
+						stat150 = stats[j];
+						pval150 = pval[j];
+					}
+					if (j == evaluationResults.length - 1) {
+						statMax = stats[j];
+						pvalMax = pval[j];
+					}
+				}
+				else if (type.equals("ICC")) {
+					stats[j] = evaluationResults[j].getIccs().get(i).getICC();
+					pval[j] = Double.NaN;
+					if (j == 15) {
+						stat15 = stats[j];
+						pval15 = pval[j];
+					}
+					if (j == 150) {
+						stat150 = stats[j];
+						pval150 = pval[j];
 					}
 					if (j == evaluationResults.length - 1) {
 						statMax = stats[j];
@@ -1266,7 +1295,7 @@ class CorrectionIterator implements Serializable {
 			}
 
 			String evalName = name.get(i);
-			if (evalName.contains("qpcr.qnorm.exprs") && oType != ORDER_TYPE.RANK_R2) {
+			if ((evalName.contains("qpcr.qnorm.exprs") || evalName.toLowerCase().contains("age") || evalName.toLowerCase().contains("center") || evalName.toLowerCase().contains("dupli") || evalName.toLowerCase().contains("sex")) && oType != ORDER_TYPE.RANK_R2) {
 				double maxStat = Array.max(stats);
 				double minStat = Array.min(stats);
 				int maxStatPC = Array.maxIndex(stats);
@@ -1306,6 +1335,8 @@ class CorrectionIterator implements Serializable {
 				result.add(stdvStat + "");
 				result.add(stat15 + "");
 				result.add(pval15 + "");
+				result.add(stat150 + "");
+				result.add(pval150 + "");
 				result.add(statMax + "");
 				result.add(pvalMax + "");
 

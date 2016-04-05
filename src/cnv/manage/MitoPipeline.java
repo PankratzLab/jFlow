@@ -819,7 +819,7 @@ public class MitoPipeline {
 		boolean doAbLookup = false;
 
 		String referenceGenomeFasta = null;
-
+		String gcmodel = null;
 		int regressionDistance = GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0];
 		int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
 		boolean gcCorrect = true;
@@ -861,6 +861,7 @@ public class MitoPipeline {
 		usage += "   (25) A reference genome file used to assign gc content to each marker (i.e. ref= (no default))\n";
 		usage += "   (26) base-pair bins for the gc model generated from the reference (i.e. bpGcModel=" + bpGcModel + " (default))\n";
 		usage += "   (27) regression distance for the gc adjustment (i.e. regressionDistance=" + regressionDistance + " (default))\n";
+		usage += "   (28) full path to a .gcmodel file, this model will take precedence over base-pair bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -909,6 +910,9 @@ public class MitoPipeline {
 				numArgs--;
 			} else if (args[i].startsWith("sampleCallRate=")) {
 				sampleCallRateFilter = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("gcmodel=")) {
+				gcmodel = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith(PC_MARKER_COMMAND)) {
 				targetMarkers = ext.parseStringArg(args[i], null);
@@ -986,6 +990,7 @@ public class MitoPipeline {
 			System.exit(1);
 		}
 
+		initGenvisisProject();
 		proj = null;
 		if (filename == null) {
 			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
@@ -995,6 +1000,16 @@ public class MitoPipeline {
 		}
 		attempts = 0;
 		while (attempts < 2) {
+			if (gcmodel != null) {
+				if(!proj.GC_MODEL_FILENAME.getValue().equals(gcmodel)){
+					Files.copyFileUsingFileChannels(gcmodel, proj.GC_MODEL_FILENAME.getValue(), proj.getLog());
+				}
+				//proj.GC_MODEL_FILENAME.setValue(gcmodel);
+				if (referenceGenomeFasta != null) {
+					proj.getLog().reportTimeWarning("Ignoring reference genome " + referenceGenomeFasta);
+					proj.REFERENCE_GENOME_FASTA_FILENAME.setValue("Ignore");
+				}
+			}
 			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance);
 			attempts++;
 			if (result == 41 || result == 40) {

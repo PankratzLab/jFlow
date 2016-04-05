@@ -252,16 +252,18 @@ public class Mosaicism {
 		private int bpMosiac;
 		private int bpArm;
 		private double proportionBpCalledMosaic;
-
 		private int mosaicRegionsDetected;
 
-		public MosaicMetric(double percentArmMosaic, double mosaiceMetricArm, double bpWeightedAverageCalled, int mosaicRegionsDetected, int bpMosiac, int bpArm, double percentCalledMosaic) {
+		public MosaicMetric(double forcedCallproportionArmMosaic, double bpWeightedAverageArm, double bpWeightedAverageCalled, int mosaicRegionsDetected, int bpMosiac, int bpArm, double proportionBpCalledMosaic) {
 			super();
-			this.forcedCallproportionArmMosaic = percentArmMosaic;
-			this.bpWeightedAverageArm = mosaiceMetricArm;
+			this.forcedCallproportionArmMosaic = forcedCallproportionArmMosaic;
+			this.bpWeightedAverageArm = bpWeightedAverageArm;
 			this.bpWeightedAverageCalled = bpWeightedAverageCalled;
-			this.bpMosiac =bpMosiac;
-			this.bpArm =bpArm;
+			this.bpMosiac = bpMosiac;
+			this.bpArm = bpArm;
+			this.proportionBpCalledMosaic = proportionBpCalledMosaic;
+			this.mosaicRegionsDetected = mosaicRegionsDetected;
+
 		}
 
 		private int getMosaicRegionsDetected() {

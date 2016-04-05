@@ -122,7 +122,11 @@ public class AffyPipeline {
 		}
 
 		public String getExe() {
-			return exe;
+			if (System.getProperty("os.name").startsWith("Windows")) {
+				return exe + ".exe";
+			} else {
+				return exe; // *nix systems are much superior
+			}
 		}
 
 	}
@@ -178,7 +182,6 @@ public class AffyPipeline {
 		} catch (Exception e) {
 			log.reportError("Error writing to .cel list " + smallCelList);
 			e.printStackTrace();
-			System.exit(1);
 		}
 
 		ArrayList<String> psetCommand = new ArrayList<String>();
@@ -405,7 +408,7 @@ public class AffyPipeline {
 		}
 	}
 
-	public static void run(String aptExeDir, String aptLibDir, String cels, String outDir, String quantNormTarget, String analysisName, String markerPositions, int markerBuffer, int numThreads) {
+	public static void run(String aptExeDir, String aptLibDir, String cels, String outDir, String quantNormTarget, String analysisName, String markerPositions, int markerBuffer, int maxWritersOpen, int numThreads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "affyPipeline.log");
 		String[] celFiles;
@@ -440,13 +443,13 @@ public class AffyPipeline {
 					String outSnpSrc = tmpDir + "SNP_Src/";
 					new File(outSnpSrc).mkdirs();
 
-					AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(), genotypeResult.getConfFile(), normalizationResult.getQuantNormFile(), log);
+					AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(), genotypeResult.getConfFile(), normalizationResult.getQuantNormFile(), maxWritersOpen, log);
 					AS6T.parseSNPTables(markerBuffer);
 
 					String outCNSrc = tmpDir + "CN_Src/";
 					new File(outCNSrc).mkdirs();
 
-					AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(), log);
+					AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(), maxWritersOpen, log);
 					AS6TCN.parseCNTable(markerBuffer);
 					log.reportTimeInfo("Generating Genvisis project in " + outDir);
 
@@ -467,12 +470,18 @@ public class AffyPipeline {
 					proj.LONG_FORMAT.setValue(false);
 					MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt", proj.SOURCE_DIRECTORY.getValue(true, true), log);
 					if (Files.exists(markerPositions)) {
-						proj.MARKER_POSITION_FILENAME.setValue(markerPositions);
-
+						if (!proj.MARKER_POSITION_FILENAME.getValue().equals(markerPositions)) {
+							Files.copyFileUsingFileChannels(markerPositions, proj.MARKER_POSITION_FILENAME.getValue(), log);
+						}
+						// proj.MARKER_POSITION_FILENAME.setValue(markerPositions);
+						if (proj.getSourceFileHeaders(true) == null || proj.getSourceFileHeaders(true).size() == 0 || Files.exists(proj.PROJECT_DIRECTORY.getValue() + "source.headers")) {
+							new File(proj.PROJECT_DIRECTORY.getValue() + "source.headers").delete();
+						}
+						proj.setSourceFileHeaders(proj.getSourceFileHeaders(true));
 						SourceFileParser.createFiles(proj, numThreads);
 						TransposeData.transposeData(proj, 2000000000, false);
 						CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), new CentroidBuilder(), numThreads, 2);
-						Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), true, numThreads);
+						Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), false, numThreads);
 						TransposeData.transposeData(proj, 2000000000, false);
 						SampleData.createMinimalSampleData(proj);
 					} else {
@@ -497,7 +506,7 @@ public class AffyPipeline {
 		String markerPositions = "~/resources/hg18.affy6.markerPostions";
 		int numThreads = 1;
 		int markerBuffer = 100;
-
+		int maxWritersOpen = 9999;
 		int numArgs = args.length;
 
 		String usage = "\n" +
@@ -511,6 +520,8 @@ public class AffyPipeline {
 				"   (7) full path to a file of marker positions (i.e. markerPositions=" + markerPositions + " (default))\n" +
 				"   (8) optional: number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + "=" + numThreads + " (default))\n" +
 				"   (9) optional: number of markers to buffer when splitting files (i.e. markerBuffer=" + markerBuffer + " (default))\n" +
+				"   (9) optional: maximum number of writers to open, if this is less than the sample size parsing will slow drastically (i.e. maxWritersOpen=" + maxWritersOpen + " (default))\n" +
+
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -538,6 +549,9 @@ public class AffyPipeline {
 			} else if (args[i].startsWith("aptLibDir=")) {
 				aptLibDir = ext.parseStringArg(args[i], "");
 				numArgs--;
+			} else if (args[i].startsWith("maxWritersOpen=")) {
+				maxWritersOpen = ext.parseIntArg(args[i]);
+				numArgs--;
 			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(args[i]);
 				numArgs--;
@@ -553,7 +567,7 @@ public class AffyPipeline {
 			System.exit(1);
 		}
 		try {
-			run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions, markerBuffer, numThreads);
+			run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions, markerBuffer, maxWritersOpen, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

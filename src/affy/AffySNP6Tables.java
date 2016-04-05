@@ -23,19 +23,25 @@ public class AffySNP6Tables {
 	private String callFile;
 	private String confFile;
 	private String sigFile;
+	private int maxWriters;
+	private PrintWriter[] writers;
 	private Logger log;
 
-	public AffySNP6Tables(String outputDirectory, String sigFile, Logger log) {
+	public AffySNP6Tables(String outputDirectory, String sigFile, int maxWriters, Logger log) {
 		this.outputDirectory = outputDirectory;
 		this.sigFile = sigFile;
+		this.maxWriters = maxWriters;
+		this.writers=null;
 		this.log = log;
 	}
 
-	public AffySNP6Tables(String outputDirectory, String callFile, String confFile, String sigFile, Logger log) {
+	public AffySNP6Tables(String outputDirectory, String callFile, String confFile, String sigFile, int maxWriters, Logger log) {
 		this.outputDirectory = outputDirectory;
 		this.callFile = callFile;
 		this.confFile = confFile;
 		this.sigFile = sigFile;
+		this.maxWriters=maxWriters;
+		this.writers=null;
 		this.log = log;
 	}
 
@@ -98,27 +104,42 @@ public class AffySNP6Tables {
 		return true;
 	}
 
+	@SuppressWarnings("resource")
 	public void printIt(String[] header, int chunkCount) {
-		PrintWriter writer = null;
 		boolean append = true;
 		long time = new Date().getTime();
 		for (int j = 1; j < header.length; j++) {
+			PrintWriter writer = writers == null ? null : writers[j - 1];
 			if (chunkCount == 0) {
 				new File(outputDirectory).mkdirs();
 				append = false;
 				writer = getWriter(outputDirectory + ext.rootOf(header[j]) + ".txt", append, log);
 				writer.print("Probe Set ID\tCall Codes\tConfidence\tSignal A\tSignal B\tForced Call Codes\n");
 				writer.print(indFiles[j - 1]);
-				writer.close();
+				if (header.length < maxWriters) {
+					if (writers == null) {
+						log.reportTimeInfo("Initializing static writers since number of samples is less than " + maxWriters);
+						this.writers = new PrintWriter[header.length - 1];
+					}
+					writers[j - 1] = writer;
+				} else {
+					writer.close();
+				}
 				indFiles[j - 1] = new StringBuilder();
 			} else {
-				writer = getWriter(outputDirectory + ext.rootOf(header[j]) + ".txt", append, log);
+				if (writer == null) {
+					writer = getWriter(outputDirectory + ext.rootOf(header[j]) + ".txt", append, log);
+				}
 				writer.print(indFiles[j - 1]);
-				writer.close();
+				if (writers == null) {
+					writer.close();
+				}
 				indFiles[j - 1] = new StringBuilder();
 			}
 		}
-		log.reportTimeInfo("Printing took " + ext.getTimeElapsed(time));
+		if (writers == null) {
+			log.reportTimeInfo("Printing took " + ext.getTimeElapsed(time));
+		}
 	}
 
 	public void parseCNTable(int numLinesBuffer) {
@@ -147,9 +168,13 @@ public class AffySNP6Tables {
 					if (sigALine[0].substring(0, 3).equals("CN_")) {
 						parseCNLine(sigALine);
 						lineCount++;
-						if (lineCount >= numLinesBuffer) {
-							log.reportTimeInfo("Parsed " + chunkCount * numLinesBuffer + " lines");
-//							log.reportTimeInfo(ext.getTime() + " Free memory: " + ((float) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().totalMemory()) + "%");
+						if (lineCount >= numLinesBuffer || writers != null) {
+							if (writers == null) {
+								log.reportTimeInfo("Parsed " + chunkCount * numLinesBuffer + " lines");
+							} else if (chunkCount % 10000 == 0) {
+								log.reportTimeInfo("Static writers: parsed " + chunkCount+" lines");
+							}
+							// log.reportTimeInfo(ext.getTime() + " Free memory: " + ((float) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().totalMemory()) + "%");
 							printIt(header, chunkCount);
 							lineCount = 0;
 							chunkCount++;
@@ -161,7 +186,9 @@ public class AffySNP6Tables {
 				if (lineCount < numLinesBuffer) {
 					printIt(header, chunkCount);
 					int numLinesTotal = chunkCount * numLinesBuffer + lineCount + 1;
-					log.reportTimeInfo("Parsed a total of " + numLinesTotal + " CN probesets");
+					if (writers == null) {
+						log.reportTimeInfo("Parsed a total of " + numLinesTotal + " CN probesets");
+					}
 				}
 				sigReader.close();
 			} else {
@@ -173,6 +200,11 @@ public class AffySNP6Tables {
 			return;
 		} catch (IOException ioe) {
 			log.reportTimeError("Error reading file \"" + "\"");
+		}
+		if (writers != null) {
+			for (int i = 0; i < writers.length; i++) {
+				writers[i].close();
+			}
 		}
 	}
 
@@ -213,11 +245,15 @@ public class AffySNP6Tables {
 						if (callLine[0].equals(confLine[0]) && sigALine[0].equals(callLine[0] + "-A") && sigBLine[0].equals(callLine[0] + "-B")) {
 							parseSNPLine(callLine, confLine, sigALine, sigBLine);
 							lineCount++;
-							if (lineCount >= numLinesBuffer) {
+							if (lineCount >= numLinesBuffer || writers != null) {
 								printIt(header, chunkCount);
 								lineCount = 0;
 								chunkCount++;
-								log.reportTimeInfo("Parsed " + chunkCount * numLinesBuffer + " marker lines");
+								if (writers == null) {
+									log.reportTimeInfo("Parsed " + chunkCount * numLinesBuffer + " lines");
+								} else if (chunkCount % 10000 == 0) {
+									log.reportTimeInfo("Static writers: parsed " + chunkCount+" lines");
+								}
 							}
 						} else if (!callLine[0].equals(confLine[0]) || !sigALine[0].equals(callLine[0] + "-A") || !sigBLine[0].equals(callLine[0] + "-B")) {
 							log.reportTimeError("Error: probeset identifier mismatch between calls/confidence/signal files ");
@@ -237,7 +273,9 @@ public class AffySNP6Tables {
 					if (lineCount < numLinesBuffer) {
 						parseLastBatch(callLine, confLine, sigALine, sigBLine, chunkCount, header);
 						int numLinesTotal = chunkCount * numLinesBuffer + lineCount + 1;
-						log.reportTimeInfo("Parsed a total of " + numLinesTotal + " SNP probesets");
+						if (writers == null) {
+							log.reportTimeInfo("Parsed a total of " + numLinesTotal + " SNP probesets");
+						}
 					}
 					callReader.close();
 					confReader.close();
@@ -253,6 +291,11 @@ public class AffySNP6Tables {
 			return;
 		} catch (IOException ioe) {
 			log.reportTimeError("Error reading file \"" + "\"");
+		}
+		if (writers != null) {
+			for (int i = 0; i < writers.length; i++) {
+				writers[i].close();
+			}
 		}
 	}
 
@@ -305,6 +348,7 @@ public class AffySNP6Tables {
 		String inputFileNameExt = ".txt";
 		String affyResultsDir = "";
 		String commonSubFolderPattern = "";
+		int maxwriters = 5000;
 
 		for (int i = 0; i < args.length; i++) {
 
@@ -362,11 +406,11 @@ public class AffySNP6Tables {
 		}
 		try {
 			if (SNP) {
-				AffySNP6Tables AS6T = new AffySNP6Tables(output, calls, conf, sig, new Logger());
+				AffySNP6Tables AS6T = new AffySNP6Tables(output, calls, conf, sig,maxwriters, new Logger());
 				AS6T.parseSNPTables(numLinesBuffer);
 			}
 			if (CN) {
-				AffySNP6Tables AS6T = new AffySNP6Tables(output, sig, new Logger());
+				AffySNP6Tables AS6T = new AffySNP6Tables(output, sig, maxwriters, new Logger());
 				AS6T.parseCNTable(numLinesBuffer);
 			}
 			if (merge && !comboMergeCreate) {
