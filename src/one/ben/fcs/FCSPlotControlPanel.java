@@ -1,7 +1,12 @@
 package one.ben.fcs;
 
+import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.text.Format;
+import java.text.NumberFormat;
 
 import javax.swing.JPanel;
 
@@ -10,10 +15,14 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
 import javax.swing.JComboBox;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataListener;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
+
+import javax.swing.JTextField;
+import javax.swing.JFormattedTextField;
 
 public class FCSPlotControlPanel extends JPanel {
 
@@ -25,18 +34,25 @@ public class FCSPlotControlPanel extends JPanel {
     private JComboBox<AXIS_SCALE> cbYScale;
     private JComboBox<AXIS_SCALE> cbXScale;
     
+    private Font lblFont = new Font("Arial", 0, 12);
+    private JFormattedTextField yBndsMin;
+    private JFormattedTextField yBndsMax;
+    private JFormattedTextField xBndsMin;
+    private JFormattedTextField xBndsMax;
+    
     /**
      * Create the panel.
      */
     public FCSPlotControlPanel(FCSPlot plot) {
         this.plot = plot;
         
-        setLayout(new MigLayout("", "[][grow]", "[][][][][][][][][]"));
+        setLayout(new MigLayout("", "[][][grow]", "[][][][][][][][][][][]"));
         
         JLabel lblPlotType = new JLabel("Plot Type:");
+        lblPlotType.setFont(lblFont);
         add(lblPlotType, "cell 0 3,alignx trailing");
         
-        cbType = new JComboBox<PLOT_TYPE>(PLOT_TYPE.values());
+        cbType = new JComboBox();//<PLOT_TYPE>(PLOT_TYPE.values());
         cbType.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
@@ -46,9 +62,10 @@ public class FCSPlotControlPanel extends JPanel {
                 }
             }
         });
-        add(cbType, "cell 1 3,growx");
+        add(cbType, "cell 1 3 2 1,growx");
         
         JLabel lblYaxisData = new JLabel("Y-Axis Data:");
+        lblYaxisData.setFont(lblFont);
         add(lblYaxisData, "cell 0 5,alignx trailing");
         
         cbYData = new JComboBox<String>();
@@ -61,13 +78,20 @@ public class FCSPlotControlPanel extends JPanel {
                 }
             }
         });
-        add(cbYData, "cell 1 5,growx");
+        cbYData.setMaximumRowCount(15);
+        add(cbYData, "cell 1 5 2 1,growx");
         
         JLabel lblScale = new JLabel("Scale:");
-        add(lblScale, "flowx,cell 1 6");
+        lblScale.setFont(lblFont);
+        add(lblScale, "cell 0 6 2 1,alignx trailing");
+        
+        JLabel lblYbounds = new JLabel("Y-Bounds:");
+        lblYbounds.setFont(lblFont);
+        add(lblYbounds, "cell 0 7 2 1,alignx trailing");
         
         JLabel lblXaxisData = new JLabel("X-Axis Data:");
-        add(lblXaxisData, "cell 0 7,alignx trailing");
+        lblXaxisData.setFont(lblFont);
+        add(lblXaxisData, "cell 0 8,alignx trailing");
         
         cbXData = new JComboBox<String>();
         cbXData.addItemListener(new ItemListener() {
@@ -79,9 +103,10 @@ public class FCSPlotControlPanel extends JPanel {
                 }
             }
         });
-        add(cbXData, "cell 1 7,growx");
+        cbXData.setMaximumRowCount(15);
+        add(cbXData, "cell 1 8 2 1,growx");
         
-        cbYScale = new JComboBox<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+        cbYScale = new JComboBox();//<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
         cbYScale.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
@@ -91,12 +116,9 @@ public class FCSPlotControlPanel extends JPanel {
                 }
             }
         });
-        add(cbYScale, "cell 1 6,growx");
+        add(cbYScale, "cell 2 6,growx");
         
-        JLabel lblScale_1 = new JLabel("Scale:");
-        add(lblScale_1, "flowx,cell 1 8");
-        
-        cbXScale = new JComboBox<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+        cbXScale = new JComboBox();//<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
         cbXScale.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
@@ -106,9 +128,67 @@ public class FCSPlotControlPanel extends JPanel {
                 }
             }
         });
-        add(cbXScale, "cell 1 8,growx");
-
+        
+        JLabel lblScale_1 = new JLabel("Scale:");
+        lblScale_1.setFont(lblFont);
+        add(lblScale_1, "cell 0 9 2 1,alignx trailing");
+        add(cbXScale, "cell 2 9,growx");
+        
+        Format numberFormat = NumberFormat.getNumberInstance();
+        yBndsMin = new JFormattedTextField(numberFormat);
+        yBndsMin.addPropertyChangeListener("value", pcl);
+        yBndsMin.setColumns(10);
+        yBndsMin.setValue(0);
+        add(yBndsMin, "flowx,cell 2 7");
+        
+        yBndsMax = new JFormattedTextField(numberFormat);
+        yBndsMax.addPropertyChangeListener("value", pcl);
+        yBndsMax.setColumns(10);
+        add(yBndsMax, "cell 2 7");
+        
+        JLabel lblXbounds = new JLabel("X-Bounds:");
+        lblXbounds.setFont(lblFont);
+        add(lblXbounds, "cell 0 10 2 1,alignx trailing");
+        
+        xBndsMin = new JFormattedTextField(numberFormat);
+        xBndsMin.addPropertyChangeListener("value", pcl);
+        xBndsMin.setColumns(10);
+        xBndsMin.setValue(0);
+        add(xBndsMin, "flowx,cell 2 10");
+        
+        xBndsMax = new JFormattedTextField(numberFormat);
+        xBndsMax.addPropertyChangeListener("value", pcl);
+        xBndsMax.setColumns(10);
+        add(xBndsMax, "cell 2 10");
+        
     }
+    
+    PropertyChangeListener pcl = new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (evt == null || plot == null || progSet) return;
+            JFormattedTextField jftf = (JFormattedTextField) evt.getSource();
+            String prop = evt.getPropertyName();
+            if (jftf == xBndsMin) {
+                prop = AbstractPanel2.X_MIN;
+            } else if (jftf == xBndsMax) {
+                prop = AbstractPanel2.X_MAX;
+            } else if (jftf == yBndsMin) {
+                prop = AbstractPanel2.Y_MIN;
+            } else if (jftf == yBndsMax) {
+                prop = AbstractPanel2.Y_MAX;
+            }
+            Object oldV = evt.getOldValue();
+            Object newV = evt.getNewValue();
+            Double oldV2 = oldV == null ? null : ((Number) oldV).doubleValue(); 
+            Double newV2 = newV == null ? null : ((Number) newV).doubleValue();
+            /*FCSPlotControlPanel.this.*/firePropertyChange(prop, oldV2, newV2);
+//            plot.firePropertyChange(prop, oldV2, newV2);
+//            PropertyChangeEvent pce = new PropertyChangeEvent(FCSPlotControlPanel.this, prop, oldV2, newV2);
+//            plot.propertyChange(pce);
+            
+        }
+    };
     
     public void setPlotType(PLOT_TYPE typ) {
         cbType.setSelectedItem(typ);
@@ -121,8 +201,39 @@ public class FCSPlotControlPanel extends JPanel {
     public void setColumns(String[] dataNames, boolean x, int selected) {
         (x ? cbXData : cbYData).setModel(new DefaultComboBoxModel<String>(dataNames));
         (x ? cbXData : cbYData).setSelectedIndex(selected);
+        (x ? cbXData : cbYData).repaint();
     }
     
+    volatile boolean progSet = false;
+
+    private void resetProgSet() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                progSet = false;
+            }
+        });
+    }
     
+    public void setXMin(double xMin) {
+        progSet = true;
+        xBndsMin.setValue(xMin);
+        resetProgSet();
+    }
+    public void setXMax(double xMax) {
+        progSet = true;
+        xBndsMax.setValue(xMax);
+        resetProgSet();
+    }
+    public void setYMin(double yMin) {
+        progSet = true;
+        yBndsMin.setValue(yMin);
+        resetProgSet();
+    }
+    public void setYMax(double yMax) {
+        progSet = true;
+        yBndsMax.setValue(yMax);
+        resetProgSet();
+    }
     
 }

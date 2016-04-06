@@ -4,11 +4,16 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,17 +32,19 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
+import one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import cnv.gui.GuiManager;
 import common.Files;
 import common.Logger;
 
-public class FCSPlot extends JPanel implements WindowListener, ActionListener { 
+public class FCSPlot extends JPanel implements WindowListener, ActionListener, PropertyChangeListener { 
     
     static final int START_X = 20;
     static final int START_Y = 20;
@@ -50,7 +57,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
 	private FCSPanel fcsPanel;
 	private FCSPlotControlPanel fcsControls;
 	private JLayeredPane layeredPane;
-	private JFrame controlFrame;
 
 	private List<String> dataKeys;
 	HashSet<String> validExts;
@@ -75,6 +81,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
 		setLayout(new BorderLayout());
 		
 		fcsPanel = new FCSPanel(this);
+		fcsPanel.addPropertyChangeListener(this);
 
 		layeredPane = new JLayeredPane() {
             private static final long serialVersionUID = 1L;
@@ -92,8 +99,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
 		Dimension minimumSize = new Dimension(100, 50);
 		layeredPane.setMinimumSize(minimumSize);
 
-		add(layeredPane, BorderLayout.CENTER);
-
 		inputMapAndActionMap();
 
 		fcsPanel.setPointsGeneratable(true);
@@ -101,18 +106,24 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
 		fcsPanel.setChartType(AbstractPanel2.PLOT_TYPE.HEATMAP);
 		
 		fcsControls = new FCSPlotControlPanel(this);
-		controlFrame = new JFrame();
-		controlFrame.pack();
-		controlFrame.add(fcsControls);
-		controlFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-		controlFrame.setBounds(START_X + START_WIDTH + 50, START_Y, 250, 400);
+		fcsControls.addPropertyChangeListener(this);
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, fcsControls, layeredPane);
+        splitPane.setBackground(Color.WHITE);
+        splitPane.setOneTouchExpandable(true);
+        splitPane.setDividerLocation(250);
+        
+        add(splitPane, BorderLayout.CENTER);
+        
+//		add(layeredPane, BorderLayout.CENTER);
+//		add(fcsControls, BorderLayout.WEST);
+		
 		
 		updateGUI();
 		
 		fcsPanel.grabFocus();
 		
-		setVisible(true);
-		controlFrame.setVisible(true);
+//		controlFrame.setVisible(true);
 	}
 	
 	public FCSPanel getPanel() {
@@ -132,7 +143,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
-		JMenuItem menuItemExit, menuItemOpen, menuItemRemove, menuItemRemoveAll, menuItemScreens, menuItemSave;
+		JMenuItem menuItemExit, menuItemOpen, menuItemShowControls, menuItemRemove, menuItemRemoveAll, menuItemScreens, menuItemSave;
 		final JCheckBoxMenuItem /*menuItemExclude,*/ menuItemHist;
 		
 		menuBar = new JMenuBar();
@@ -172,9 +183,20 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
 			}
 		});
 		menu.add(menuItemExit);
+		
 //		menu = new JMenu("View");
 //        menu.setMnemonic(KeyEvent.VK_V);
 //		menuBar.add(menu);
+//		
+//		menuItemShowControls = new JMenuItem("Show ControlPanel", KeyEvent.VK_C);
+//		menuItemShowControls.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                controlFrame.setBounds(START_X + START_WIDTH + 50, START_Y, 250, 400);
+//                controlFrame.setVisible(true);
+//            }
+//        });
+//		menu.add(menuItemShowControls);
 		
 		return menuBar;
 	}
@@ -202,7 +224,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
 	}
 	
 	FCSDataLoader dataLoader;
-	boolean isLoading = false;
+	volatile boolean isLoading = false;
 	
 	private volatile String xDataName;
 	private volatile String yDataName;
@@ -236,10 +258,11 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
 	}
 
 	public void updateGUI() {
-		fcsPanel.paintAgain();
+        fcsPanel.paintAgain();
 	}
-
-	public void windowActivated(WindowEvent e) {}
+	
+	public void windowActivated(WindowEvent e) {
+	}
 
 	public void windowClosed(WindowEvent e) {}
 
@@ -271,17 +294,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
         double[] data;
         if (dataLoader == null) {
             data = null;
-        } else if (!dataLoader.loaded) {
-            if (wait) {
-                while (!dataLoader.loaded) {
-                    Thread.yield();
-                }
-                data = dataLoader.getData(xAxis ? getXDataName() : getYDataName());
-            } else {
-                data = new double[0];
-            }
         } else {
-            data = dataLoader.getData(xAxis ? getXDataName() : getYDataName());
+            data = dataLoader.getData(xAxis ? getXDataName() : getYDataName(), wait);
         }
         return data;
     }
@@ -292,11 +306,16 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
             // TODO error, not enough data!!
         }
         // TODO reset GUI elements
-        fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
-        fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
-        fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), false, 0);
-        fcsControls.setScale(newDataLoader.scales.get(0), false);
-        fcsControls.setScale(newDataLoader.scales.get(1), true);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
+                fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
+                fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), false, 0);
+                fcsControls.setScale(newDataLoader.scales.get(0), false);
+                fcsControls.setScale(newDataLoader.scales.get(1), true);
+            }
+        });
         
         setYDataName(colNames.get(0));
         setXDataName(colNames.get(1));
@@ -323,6 +342,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
                 dataLoader = newDataLoader;
                 isLoading = false;
                 System.gc();
+                System.out.println("Displaying plot...");
                 updateGUI();
             }
         });
@@ -356,7 +376,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
         frame.pack();
         frame.setVisible(show);
 
-        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
+//        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
+//        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
+        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
         twoDPlot.loadFile(fcsFilename);
         
 		return twoDPlot;
@@ -371,7 +393,53 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener {
 	}
 
     public int getDataCount() {
-        return dataLoader == null ? 0 : dataLoader.loaded ? dataLoader.eventCount : 0;
+        return dataLoader == null ? 0 : dataLoader.getCount();
+    }
+    
+    HashSet<String> propsSetting = new HashSet<String>();
+    @Override
+    public void propertyChange(PropertyChangeEvent arg0) {
+//        if (propsSetting.contains(arg0.getPropertyName())) return;
+//        propsSetting.add(arg0.getPropertyName());
+//        if (arg0.getSource().equals(fcsControls)) {
+//            if (arg0.getPropertyName().equals(AbstractPanel2.X_MIN)) {
+//                fcsPanel.setForcePlotXMin(((Double)arg0.getNewValue()).floatValue());
+//                fcsPanel.setPlotXMin(((Double)arg0.getNewValue()).floatValue());
+//            } else if (arg0.getPropertyName().equals(AbstractPanel2.X_MAX)) {
+//                fcsPanel.setForcePlotXMax(((Double)arg0.getNewValue()).floatValue());
+//                fcsPanel.setPlotXMax(((Double)arg0.getNewValue()).floatValue());
+//            } else if (arg0.getPropertyName().equals(AbstractPanel2.Y_MIN)) {
+//                fcsPanel.setForcePlotYMin(((Double)arg0.getNewValue()).floatValue());
+//                fcsPanel.setPlotYMin(((Double)arg0.getNewValue()).floatValue());
+//            } else if (arg0.getPropertyName().equals(AbstractPanel2.Y_MAX)) {
+//                fcsPanel.setForcePlotYMax(((Double)arg0.getNewValue()).floatValue());
+//                fcsPanel.setPlotYMax(((Double)arg0.getNewValue()).floatValue());
+//            }
+//            updateGUI();
+//        } else if (arg0.getSource().equals(fcsPanel)) {
+//            if (arg0.getPropertyName().equals(AbstractPanel2.X_MIN)) {
+//                fcsControls.setXMin(((Double)arg0.getNewValue()).floatValue());
+//            } else if (arg0.getPropertyName().equals(AbstractPanel2.X_MAX)) {
+//                fcsControls.setXMax(((Double)arg0.getNewValue()).floatValue());
+//            } else if (arg0.getPropertyName().equals(AbstractPanel2.Y_MIN)) {
+//                fcsControls.setYMin(((Double)arg0.getNewValue()).floatValue());
+//            } else if (arg0.getPropertyName().equals(AbstractPanel2.Y_MAX)) {
+//                fcsControls.setYMax(((Double)arg0.getNewValue()).floatValue());
+//            }
+//            updateGUI();
+//        }
+//        SwingUtilities.invokeLater(new Runnable() {
+//            @Override
+//            public void run() {
+//                propsSetting.remove(arg0.getPropertyName());
+//            }
+//        });
+    }
+
+    public boolean isCurrentDataDisplayable() {
+        if (dataLoader == null) return false;
+        LOAD_STATE currState = dataLoader.getLoadState();
+        return currState != LOAD_STATE.UNLOADED && currState != LOAD_STATE.LOADING;
     }
 
 }

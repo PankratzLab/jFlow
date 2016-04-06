@@ -58,9 +58,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	
 	public FCSPanel(FCSPlot fcsPlot) {
 		super();
+		setDoubleBuffered(false);
 		
 		this.fcp = fcsPlot;
 		this.setAxisFontSize(24);
+		this.setSymmetricAxes(false);
 		setZoomable(true, true);
 
 		setColorScheme(DEFAULT_COLORS);
@@ -68,7 +70,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		setNullMessage("Select two variables to plot");
 	}
 
-	String xCol, yCol;
+	String xCol = null, yCol = null;
 	
 	public void generatePoints() {
 	    ArrayList<String[]> currentData;
@@ -79,29 +81,39 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		byte size = 5;
 		byte color = 0;
 		
-		if (fcp.isLoading) {
+		if (fcp.dataLoader == null && !fcp.isLoading) {
+		    setNullMessage("Please load an FCS file..");
+		    points = new PlotPoint[0];
+		    return;
+		    
+		}
+		if (!fcp.isCurrentDataDisplayable()) {
 		    setNullMessage("Please wait, data is loading...");
 		    points = new PlotPoint[0];
-//		    repaint();
+		    return;
+		}
+		int count = -1;
+		if (xCol != null && yCol != null && fcp.getXDataName().equals(xCol) && fcp.getYDataName().equals(yCol) && (count = fcp.getDataCount()) > 0) {
+		    return; // No need to re-create points[] if nothing has changed
+		}
+		if (count == -1) {
+		    count = fcp.getDataCount();
+		}
+		if (count <= 0) {
 		    return;
 		}
 		
-		if (xCol != null && yCol != null && fcp.getXDataName().equals(xCol) && fcp.getYDataName().equals(yCol) && points != null) {
-		    return; // No need to re-create points[] if nothing has changed
-		}
-		xCol = fcp.getXDataName();
-		yCol = fcp.getYDataName();
-		
 		double[] xData = fcp.getAxisData(false, true);
 		double[] yData = fcp.getAxisData(false, false);
-		int count = fcp.getDataCount();
+		xCol = fcp.getXDataName();
+		yCol = fcp.getYDataName();
 //		currentData = new ArrayList<String[]>();// tdp.getDataSelected();
 //		uniqueValueCounts = new CountVector();
 		
 		zoomable = true;
 		rectangles = new GenericRectangle[0];
-        forcePlotXmax = Float.NaN;
-        forcePlotXmin = Float.NaN;
+//        forcePlotXmax = Float.NaN;
+//        forcePlotXmin = Float.NaN;
 		
 		points = new PlotPoint[count];   
 		for (int i = 0; i < points.length; i++) {
