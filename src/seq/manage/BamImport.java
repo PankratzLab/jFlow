@@ -496,7 +496,6 @@ public class BamImport {
 			String markerfile = proj.PROJECT_DIRECTORY.getValue() + base + "_inputMarkers.txt";
 
 			if (type.getType() != null && type.getType() == NGS_MARKER_TYPE.OFF_TARGET) {
-				String[] allOffT = HashVec.loadFileToStringArray(type.getFile(), true, new int[] { 0 }, true);
 				proj.getLog().reportTimeInfo("Detected " + offTargetsToUse.length + " off target regions to use for pca of");
 				Files.writeList(offTargetsToUse, markerfile); 
 			} else {
