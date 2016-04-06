@@ -33,7 +33,6 @@ import javax.swing.Timer;
 
 import mining.Distance;
 import stats.Maths;
-
 import common.Array;
 import common.Grafik;
 import common.HashVec;
@@ -540,7 +539,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			minimumObservedRawY = minimumObservedRawX;
 		}
 		
-		System.out.println("MaxY: " + maximumObservedRawY);
+//		System.out.println("MaxY: " + maximumObservedRawY);
 		
 		numberOfNaNSamples = 0;
 		if (base) {
@@ -1225,7 +1224,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 		}
 		
-		
 		if (inDrag) {
 			paintAgain();
 			startX = curX;
@@ -1480,6 +1478,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		    }
 		}
 
+        numHashes = Math.max(numHashes, 1);
 		while (range/plotStep>numHashes) {
 			plotStep += stepStep;
 		}
@@ -1535,6 +1534,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				numHashes = 10;
 			}
 
+            numHashes = Math.max(numHashes, 1);
 			while (range/plotStep>numHashes) {
 				plotStep += stepStep;
 			}

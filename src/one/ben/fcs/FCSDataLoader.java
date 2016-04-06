@@ -3,13 +3,17 @@ package one.ben.fcs;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
+import one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
+import org.flowcyt.cfcs.CFCSAbstractData;
 import org.flowcyt.cfcs.CFCSData;
 import org.flowcyt.cfcs.CFCSDataSet;
+import org.flowcyt.cfcs.CFCSError;
 import org.flowcyt.cfcs.CFCSKeywords;
 import org.flowcyt.cfcs.CFCSListModeData;
 import org.flowcyt.cfcs.CFCSParameter;
@@ -19,6 +23,7 @@ import org.flowcyt.cfcs.CFCSSystem;
 
 import java.util.HashMap;
 
+import common.Array;
 import common.Files;
 import common.Matrix;
 import common.ext;
@@ -28,9 +33,12 @@ import ejml.DenseMatrix64F;
 public class FCSDataLoader {
     
     private static final String COMPENSATED_PREPEND = "Comp-";
+    private static final int COMP_LEN = COMPENSATED_PREPEND.length();
 
     public static void main(String[] args) {
-        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
+//      String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
+//      String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
+      String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
         try {
             (new FCSDataLoader()).loadData(fcsFilename);
         } catch (IOException e) {
@@ -38,16 +46,30 @@ public class FCSDataLoader {
         }
     }
     
-    volatile boolean loaded = false;
+    public static enum LOAD_STATE {
+        LOADED,
+        LOADING,
+        PARTIALLY_LOADED,
+        LOADING_REMAINDER,
+        UNLOADED;
+    }
+    
+    private volatile LOAD_STATE state = LOAD_STATE.UNLOADED;
+    
     ArrayList<String> paramNamesInOrder;
     ArrayList<AXIS_SCALE> scales;
     LinkedHashSet<String> compensatedNames;
     HashMap<String, Integer> compensatedIndices;
     int eventCount = -1;
+    int loadedCount = 0;
     double[][] allData;
     double[][] compensatedData;
     String loadedFile = null;
-    boolean eventOrder = true;
+    CFCSData dataObj = null;
+    CFCSSpillover spillObj = null;
+    int paramsCount = -1;
+    boolean isTransposed = false;
+    ArrayList<Integer> indicesToLoad = new ArrayList<Integer>();
     
     enum DATA_SET {
         ALL,
@@ -62,29 +84,83 @@ public class FCSDataLoader {
         compensatedIndices = new HashMap<String, Integer>();
     }
     
-    public void loadData(String fcsFilename) throws IOException {
-        if (loaded) {
-            throw new RuntimeException("Error - data already loaded!");
+    public void emptyAndReset() {
+        loadInBGThread.interrupt();
+        try {
+            loadInBGThread.join();
+        } catch (InterruptedException e) { /* wouldn't this be what we want? */ }
+        setState(LOAD_STATE.UNLOADED);
+        paramNamesInOrder = new ArrayList<String>(); 
+        scales = new ArrayList<AXIS_SCALE>();
+        compensatedNames = new LinkedHashSet<String>();
+        compensatedIndices = new HashMap<String, Integer>();
+        eventCount = -1;
+        loadedCount = 0;
+        allData = null;
+        compensatedData = null;
+        loadedFile = null;
+        dataObj = null;
+        spillObj = null;
+        paramsCount = -1;
+        isTransposed = false;
+        indicesToLoad = new ArrayList<Integer>();
+        System.gc();
+    }
+    
+    private /*synchronized*/ void setState(LOAD_STATE state) {
+        this.state = state;
+    }
+    
+    public /*synchronized*/ LOAD_STATE getLoadState() {
+        return state;
+    }
+
+    public int[] getLoadedStatus() {
+        if (getLoadState() == LOAD_STATE.LOADED) {
+            return new int[]{1, 1}; // complete
+        } else if (eventCount >= 0) {
+            return new int[]{loadedCount, eventCount}; // in progress
+        } else {
+            return new int[]{-1, -1}; // indeterminate
         }
+    }
+    
+    public int getCount() {
+        LOAD_STATE currState = getLoadState();
+        if (currState == LOAD_STATE.LOADED) {
+            return eventCount;
+        } else if (currState == LOAD_STATE.UNLOADED || currState == LOAD_STATE.LOADING ){
+            return 0;
+        } else {
+            return loadedCount;
+        }
+    }
+    
+    public void loadData(String fcsFilename) throws IOException {
+//        synchronized(this) {
+            if (getLoadState() != LOAD_STATE.UNLOADED) {
+                return; 
+            }
+            setState(LOAD_STATE.LOADING);
+//        }
         loadedFile = fcsFilename;
-//        double[][] spilloverMatrix;
         
         CFCSSystem syst = new CFCSSystem();
-        syst.open((new File(fcsFilename)).toURI().toURL());
-        System.out.println("Data Sets: " + syst.getCount());
+        URL fileURL = (new File(fcsFilename)).toURI().toURL();
+        syst.open(fileURL);
         
         CFCSDataSet dset = syst.getDataSet(0);
-        CFCSData data = dset.getData();
+        dataObj = dset.getData();
+        eventCount = ((CFCSAbstractData)dataObj).getCount();
         CFCSParameters params = dset.getParameters();
         CFCSKeywords keys = dset.getKeywords();
-        CFCSSpillover spillover = keys.getSpillover();
+        spillObj = keys.getSpillover();
         
-        String[] arr = spillover.getParameterNames();
+        String[] arr = spillObj.getParameterNames();
         for (int i = 0, count = arr.length; i < count; i++) {
             compensatedNames.add(arr[i]);
             compensatedIndices.put(arr[i], i);
         }
-//        spilloverMatrix = spillover.getSpilloverCoefficients();
         
         for (int i = 0; i < params.getCount(); i++) {
             CFCSParameter param = params.getParameter(i);
@@ -107,32 +183,106 @@ public class FCSDataLoader {
             scales.add(scale);
         }
         
-        if (data.getType() == CFCSData.LISTMODE) {
-            CFCSListModeData listData = ((CFCSListModeData)data); 
+        if (dataObj.getType() == CFCSData.LISTMODE) {
+            CFCSListModeData listData = ((CFCSListModeData)dataObj); 
             allData = new double[listData.getCount()][];
+            setState(LOAD_STATE.PARTIALLY_LOADED);
             for (int i = 0; i < listData.getCount(); i++) {
                 double[] newData = new double[params.getCount()];
-                listData.getEvent/*AsInTheFile*/(i, newData); // should be getEventAsInTheFile???
+                try {
+                    listData.getEvent/*AsInTheFile*/(i, newData); // should be getEventAsInTheFile???
+                } catch (CFCSError e) {
+                    if (paramsCount == -1) paramsCount = listData.getCount();
+                    indicesToLoad.add(i);
+                    loadedCount--;
+                }
                 allData[i] = newData;
+                loadedCount++;
             }
-            eventCount = allData.length;
-            compensatedData = compensateSmall(paramNamesInOrder, allData, spillover.getParameterNames(), getInvertedSpilloverMatrix(spillover));
-            allData = Matrix.transpose(allData);
-            compensatedData = Matrix.transpose(compensatedData);
-            System.gc();
-            eventOrder = false;
-            // now in param-major-order instead of event-major-order
+            setState(LOAD_STATE.LOADING_REMAINDER);
+            loadInBGThread.start();
         } else {
             System.err.println("Error - UNSUPPORTED DATA TYPE.");
         }
-        loaded = true;
     }
     
-    public double[] getData(String columnName) {
+    Thread loadInBGThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            if (indicesToLoad.size() > 0) {
+                CFCSListModeData listData = ((CFCSListModeData)dataObj);
+                while (!listData.isLoaded() && !Thread.currentThread().isInterrupted()) Thread.yield();
+                for (int i = 0; i < indicesToLoad.size() && !Thread.currentThread().isInterrupted(); i++) {
+                    double[] newData = new double[paramsCount];
+                    try {
+                        listData.getEvent/*AsInTheFile*/(indicesToLoad.get(i), newData); // should be getEventAsInTheFile???
+                    } catch (CFCSError e) {
+                        // TODO ERROR - DATA WILL NOT BE PRESENT IN DISPLAY -- change loop to while(hasAny)
+                        continue;
+                    }
+                    allData[indicesToLoad.get(i)] = newData;
+                    loadedCount++;
+                }
+            }
+            if (Thread.currentThread().isInterrupted()) return;
+            compensatedData = compensateSmall(paramNamesInOrder, allData, spillObj.getParameterNames(), getInvertedSpilloverMatrix(spillObj));
+            if (Thread.currentThread().isInterrupted()) return;
+            spillObj = null;
+            allData = Matrix.transpose(allData);
+            if (Thread.currentThread().isInterrupted()) return;
+            compensatedData = Matrix.transpose(compensatedData);
+            if (Thread.currentThread().isInterrupted()) return;
+            isTransposed = true;
+            setState(LOAD_STATE.LOADED);
+            System.gc();
+        }
+    });
+    
+    public double[] getData(String columnName, boolean waitIfNecessary) {
+        LOAD_STATE currState = getLoadState();
         if (columnName.startsWith(COMPENSATED_PREPEND)) {
-            return compensatedData[compensatedIndices.get(columnName.substring(COMPENSATED_PREPEND.length()))];
+            if (currState == LOAD_STATE.LOADED) {
+                if (isTransposed) {
+                    return compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))];
+                } else {
+                    return Matrix.extractColumn(compensatedData, compensatedIndices.get(columnName.substring(COMP_LEN)));
+                }
+            } else {
+                if (currState != LOAD_STATE.UNLOADED && waitIfNecessary) {
+                    while((currState = getLoadState()) != LOAD_STATE.LOADED) {
+                        Thread.yield();
+                    }
+                    if (isTransposed) {
+                        return compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))];
+                    } else {
+                        return Matrix.extractColumn(compensatedData, compensatedIndices.get(columnName.substring(COMP_LEN)));
+                    }
+                } else {
+                    int len = eventCount == -1 ? 0 : eventCount;
+                    return Array.doubleArray(len, Double.NaN);
+                }
+            }
         } else {
-            return allData[paramNamesInOrder.indexOf(columnName)];
+            if (currState == LOAD_STATE.UNLOADED) {
+                return new double[0];
+            } else {
+                if (currState == LOAD_STATE.LOADING && !waitIfNecessary) {
+                    int len = eventCount == -1 ? 0 : eventCount;
+                    return Array.doubleArray(len, Double.NaN);
+                } else {
+                    if (currState == LOAD_STATE.LOADING && waitIfNecessary) {
+                        while((currState = getLoadState()) == LOAD_STATE.LOADED) { // TODO wait for complete data, or at least some?
+                            Thread.yield();
+                        }
+                    }
+                    // TODO WARNING, RETURNED DATA /MAY/ BE INCOMPLETE
+                    if (isTransposed) {
+                        return allData[paramNamesInOrder.indexOf(columnName)];
+                    } else {
+                        return Matrix.extractColumn(allData, paramNamesInOrder.indexOf(columnName));
+                    }
+                }
+            }
         }
     }
     

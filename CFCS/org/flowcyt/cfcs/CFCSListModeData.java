@@ -18,6 +18,9 @@ Christopher Lane <cdl@best.classes> for Tree Star  1/16/2002      Copyright 2002
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+
+import common.ext;
 
 public final class CFCSListModeData extends CFCSAbstractData implements CFCSErrorCodes
 {
@@ -105,22 +108,126 @@ public final class CFCSListModeData extends CFCSAbstractData implements CFCSErro
     }
 
     // --------------------------------------------------------------------
-
+    
+    private volatile int loadCount = 0;
+    public boolean isLoaded() {
+        return loadCount == 2;
+    }
+    
     public final void setBytes(final byte[] bytes)
     {
         super.setBytes(bytes);
-
-        for (int event = 0, events = getCount(); event < events; event++)
-        {
-            try
-            {
-                datatype.readData(event, cinched[event]);
-            }
-            catch (IndexOutOfBoundsException exception)
-            {
-                throw new CFCSError(CFCSNoSuchEvent, event);
-            }
+        
+        ((ArrayList<Object>)(((CFCSAbstractDatatype)datatype).data)).ensureCapacity((int) (getCount() * 1.76));
+        for (int i = 0; i < getCount(); i++) {
+            ((ArrayList<Object>)(((CFCSAbstractDatatype)datatype).data)).add(new float[0]);
         }
+        
+        // this thread:
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                for (int event = 0, events = getCount(); event < events; event++) {
+//                    try {
+//                        datatype.readData(event, cinched[event]);
+//                    } catch (IndexOutOfBoundsException exception) {
+//                        throw new CFCSError(CFCSNoSuchEvent, event);
+//                    }
+//                }
+//                loadCount += 1;
+//            }
+//        }).start();
+        
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int event = 0, events = getCount() / 2; event < events; event++)
+                {
+                    try
+                    {
+                        datatype.readData(event, cinched[event]);
+                    }
+                    catch (IndexOutOfBoundsException exception)
+                    {
+                        throw new CFCSError(CFCSNoSuchEvent, event);
+                    }
+                }
+                loadCount += 1;
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int event = getCount() / 2, events = getCount(); event < events; event++)
+                {
+                    try
+                    {
+                        datatype.readData(event, cinched[event]);
+                    }
+                    catch (IndexOutOfBoundsException exception)
+                    {
+                        throw new CFCSError(CFCSNoSuchEvent, event);
+                    }
+                }
+                loadCount += 1;
+            }
+        }).start();
+        
+
+//        int step = getCount() / 3;
+//        
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                for (int event = 0, events = step; event < events; event++)
+//                {
+//                    try
+//                    {
+//                        datatype.readData(event, cinched[event]);
+//                    }
+//                    catch (IndexOutOfBoundsException exception)
+//                    {
+//                        throw new CFCSError(CFCSNoSuchEvent, event);
+//                    }
+//                }
+//                loadCount += 1;
+//            }
+//        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                for (int event = step, events = step * 2; event < events; event++)
+//                {
+//                    try
+//                    {
+//                        datatype.readData(event, cinched[event]);
+//                    }
+//                    catch (IndexOutOfBoundsException exception)
+//                    {
+//                        throw new CFCSError(CFCSNoSuchEvent, event);
+//                    }
+//                }
+//                loadCount += 1;
+//            }
+//        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                for (int event = step * 2, events = getCount(); event < events; event++)
+//                {
+//                    try
+//                    {
+//                        datatype.readData(event, cinched[event]);
+//                    }
+//                    catch (IndexOutOfBoundsException exception)
+//                    {
+//                        throw new CFCSError(CFCSNoSuchEvent, event);
+//                    }
+//                }
+//                loadCount += 1;
+//            }
+//        }).start();
+        
     }
     
     // --------------------------------------------------------------------
