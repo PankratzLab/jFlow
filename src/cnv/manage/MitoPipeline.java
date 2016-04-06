@@ -394,7 +394,7 @@ public class MitoPipeline {
 									// try {
 									GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
 									gAdjustorBuilder.regressionDistance(regressionDistance);
-									params = GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder, recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
+									params = GcAdjustorParameter.generate(proj, outputBase + "_GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder, recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
 									if ((recomputeLRR_Median || recomputeLRR_PCs) && params.getCentroids() == null) {
 										throw new IllegalStateException("Internal error, did not recieve centroids");
 									} else if ((!recomputeLRR_Median && !recomputeLRR_PCs) && params.getCentroids() != null) {
