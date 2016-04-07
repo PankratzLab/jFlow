@@ -39,6 +39,7 @@ import cnv.filesys.Sample;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.Markers;
 import cnv.manage.MitoPipeline;
+import cnv.manage.Resources.GENOME_BUILD;
 import cnv.manage.TransposeData;
 import cnv.qc.LrrSd;
 import cnv.var.LocusSet;
@@ -503,7 +504,7 @@ public class BamImport {
 			}
 
 			proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
-			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null, null, null, false, false, false, true, false, null, -1, -1);
+			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null, null, null, false, false, false, true, false, null, -1, -1, GENOME_BUILD.HG19);
 			// PrincipalComponentsCrossTabs.crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, true);
 
 			String PCCorrected = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base);

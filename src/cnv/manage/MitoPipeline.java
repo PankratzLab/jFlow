@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 
 import cnv.LaunchProperties;
+import cnv.analysis.PennCNV;
 import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsCompute;
@@ -19,6 +20,8 @@ import cnv.filesys.MarkerLookup;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
+import cnv.manage.Resources.GENOME_BUILD;
+import cnv.manage.Resources.Resource;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.qc.GcAdjustor;
@@ -37,7 +40,7 @@ import common.ext;
  */
 public class MitoPipeline {
 	public static final String FILE_BASE = "PCA_GENVISIS";
-    public static final String[] PED_INPUT = { "DNA", "FID", "IID", "FA", "MO", "SEX", "AFF" };
+	public static final String[] PED_INPUT = { "DNA", "FID", "IID", "FA", "MO", "SEX", "AFF" };
 	public static final String[] SAMPLEMAP_INPUT = { "Index", "Name", "ID", "Gender", "Plate", "Well", "Group", "Parent1", "Parent2", "Replicate", "SentrixPosition" };
 	public static final String[] QC_COLUMNS = { "Sample", "LRR_SD", "Genotype_callrate" };
 	public static final String[] SAMPLE_QC_SUMMARY = { "DNA", "LRR_SD", "Genotype_callrate", "Included in PC?" };
@@ -52,7 +55,7 @@ public class MitoPipeline {
 	public static final String PROJECT_EXT = ".properties";
 	private static final String PCA_FINAL_REPORT = ".finalReport.txt";
 	private static final String PC_MARKER_COMMAND = "PCmarkers=";
-	private static final String MEDIAN_MARKER_COMMAND = "medianMarkers=";
+	private static final String MITO_MARKER_COMMAND = "mitochondrialMarkers=";
 	private static final String USE_FILE_COMMAND = "useFile=";
 	private static final String IMPORT_EXTENSION = "dirExt=";
 	private static final long RECOMMENDED_MEMORY = 1000000000;
@@ -105,6 +108,7 @@ public class MitoPipeline {
 		this.medianMarkers = medianMarkers;
 		this.log = new Logger(logfile);
 		initProjectDir();
+		System.out.println(path);
 		if (existingProj == null) {
 			initProject(path);
 		} else {
@@ -159,10 +163,11 @@ public class MitoPipeline {
 			Files.backup(ext.removeDirectoryInfo(filename), path, path + "backup/", false);
 			log.report("Using project file " + filename + ", you may also specify project filename using the command line argument \"proj=\"");
 		} else {
+			// if (proj != null) {
+			//
+			// }
 			log.report("Project properties file can be found at " + filename);
-			if (proj != null) {
-				Files.write(proj.PROJECT_NAME.getName() + "=" + projectName, filename);
-			}
+			Files.write("PROJECT_NAME=" + projectName, filename);
 		}
 		this.proj = new Project(filename, false);
 
@@ -261,7 +266,7 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance) {
+	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build) {
 		String sampleDirectory;
 		SampleList sampleList;
 		int[] counts;
@@ -379,13 +384,19 @@ public class MitoPipeline {
 							return 2;// message handled already
 						}
 						// check that all median markers are available
-						if (verifyAuxMarkers(proj, medianMarkers, MEDIAN_MARKER_COMMAND)) {
+						if (verifyAuxMarkers(proj, medianMarkers, MITO_MARKER_COMMAND)) {
 							// compute PCs with samples passing QC
 							GcAdjustorParameters params = null;
 							if (gcCorrect) {
 								if ((refGenomeFasta != null && !Files.exists(refGenomeFasta)) && Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())) {
 									proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
 									refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
+								}
+								Resource gmodelBase = Resources.getGCBaseResource(build);
+								if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && (refGenomeFasta == null || !Files.exists(refGenomeFasta)) && gmodelBase.isAvailable()) {
+									log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at " + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.getResource());
+									PennCNV.gcModel(proj, gmodelBase.getResource(), proj.GC_MODEL_FILENAME.getValue(), 100);
+									refGenomeFasta = null;
 								}
 								if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO, after evaluating reference genome based gc model files, will demand a refGenome
 									if (refGenomeFasta != null && Files.exists(refGenomeFasta)) {
@@ -412,7 +423,7 @@ public class MitoPipeline {
 								}
 							}
 							log.report("\nReady to perform the principal components analysis (PCA)\n");
-							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, proj.PROJECT_DIRECTORY.getValue()+outputBase + PCA_SAMPLES, outputBase, params);
+							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, outputBase, params);
 							if (pcs == null) {
 								return 3;
 							}
@@ -570,10 +581,14 @@ public class MitoPipeline {
 			writeMarkersToQC(proj, targetMarkersFile, markersToQCFile);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);
-	        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+			if (Thread.currentThread().isInterrupted()) {
+				throw new RuntimeException(new InterruptedException());
+			}
 			MarkerMetrics.fullQC(proj, samplesToExclude, ext.removeDirectoryInfo(markersToQCFile), false, numthreads);
 		}
-        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+		if (Thread.currentThread().isInterrupted()) {
+			throw new RuntimeException(new InterruptedException());
+		}
 		filterMarkerMetricsFile(proj, markerCallRateFilter, markersABCallrate);
 	}
 
@@ -609,7 +624,7 @@ public class MitoPipeline {
 	/**
 	 * Write a filtered list of markers to use for ab callRate in sample QC
 	 */
-	private static boolean filterMarkerMetricsFile(Project proj, double markerCallRateFilter,String markersABCallrate) {
+	private static boolean filterMarkerMetricsFile(Project proj, double markerCallRateFilter, String markersABCallrate) {
 		ArrayList<String> abMarkersToUse = new ArrayList<String>();
 		BufferedReader reader;
 		Logger log = proj.getLog();
@@ -626,7 +641,7 @@ public class MitoPipeline {
 			} else {
 				String[] metrics;
 				while (reader.ready()) {
-//				    proj.getArrayType().isCNOnly(markerName)
+					// proj.getArrayType().isCNOnly(markerName)
 					metrics = reader.readLine().trim().split("\t");
 					try {
 						double callRate = Double.parseDouble(metrics[abIndex]);
@@ -786,7 +801,7 @@ public class MitoPipeline {
 
 		boolean[] requiredArray = new boolean[5];
 		Arrays.fill(requiredArray, false);
-		String[] requiredArgs = { "dirProj=", "dirSrc=", PC_MARKER_COMMAND, MEDIAN_MARKER_COMMAND, "markerPositions=" };
+		String[] requiredArgs = { "dirProj=", "dirSrc=", PC_MARKER_COMMAND, MITO_MARKER_COMMAND, "markerPositions=" };
 
 		String projectDirectory = null;
 		String sourceDirectory = null;
@@ -824,6 +839,7 @@ public class MitoPipeline {
 		int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
 		boolean gcCorrect = true;
 		int attempts, result;
+		GENOME_BUILD build = GENOME_BUILD.HG19;
 
 		String usage = "\n";
 		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
@@ -831,7 +847,7 @@ public class MitoPipeline {
 		usage += "   (1) The full path for the project directory (where results will be stored) (i.e. dirProj=/home/usr/projects/)\n";
 		usage += "   (2) The full path for the source data directory  (where final report files are located) (i.e. dirSrc=/home/usr/data/project1/)\n";
 		usage += "   (3) The full path for a file with a list of markers (one per line) to use for computing PCs (i.e. " + PC_MARKER_COMMAND + "/home/usr/auxFiles/exomeChip.PC_Markers.txt)\n";
-		usage += "   (4) The full path for a file with a list of markers (one per line, typically mitochondrial markers) to use for computing computing median Log R Ratios (i.e. " + MEDIAN_MARKER_COMMAND + "/home/usr/auxFiles/exomeChip.MT_Markers.txt)\n";
+		usage += "   (4) The full path for a file with a list of markers (one per line,mitochondrial markers) to use for computing computing median Log R Ratios (i.e. " + MITO_MARKER_COMMAND + "/home/usr/auxFiles/exomeChip.MT_Markers.txt)\n";
 		usage += "   (5) The full path for a tab-delimited file with marker positions (with columns \"Marker\", \"Chr\", and \"Position\")  (i.e. markerPositions=/home/usr/auxFiles/exomeChip.Positions.txt)\n";
 
 		usage += "   OPTIONAL:\n";
@@ -862,6 +878,7 @@ public class MitoPipeline {
 		usage += "   (26) base-pair bins for the gc model generated from the reference (i.e. bpGcModel=" + bpGcModel + " (default))\n";
 		usage += "   (27) regression distance for the gc adjustment (i.e. regressionDistance=" + regressionDistance + " (default))\n";
 		usage += "   (28) full path to a .gcmodel file, this model will take precedence over base-pair bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
+		usage += "   (29) if relying on a gc5Base.txt (default), the genomic build to use (i.e. build=" + build + " (default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -921,7 +938,7 @@ public class MitoPipeline {
 			} else if (args[i].startsWith("output=")) {
 				output = ext.parseStringArg(args[i], null);
 				numArgs--;
-			} else if (args[i].startsWith(MEDIAN_MARKER_COMMAND)) {
+			} else if (args[i].startsWith(MITO_MARKER_COMMAND) || args[i].startsWith("medianMarkers=")) {
 				medianMarkers = ext.parseStringArg(args[i], null);
 				numArgs--;
 				requiredArray[3] = true;
@@ -966,6 +983,9 @@ public class MitoPipeline {
 				System.out.println(args[i]);
 				idHeader = ext.parseStringArg(args[i].replaceAll("_", " "), null);
 				numArgs--;
+			} else if (args[i].startsWith("build=")) {
+				build = GENOME_BUILD.valueOf(ext.parseStringArg(args[i], ""));
+				numArgs--;
 			} else if (args[i].startsWith("log=")) {
 				logfile = ext.parseStringArg(args[i], null);
 				numArgs--;
@@ -1001,16 +1021,16 @@ public class MitoPipeline {
 		attempts = 0;
 		while (attempts < 2) {
 			if (gcmodel != null) {
-				if(!proj.GC_MODEL_FILENAME.getValue().equals(gcmodel)){
+				if (!proj.GC_MODEL_FILENAME.getValue().equals(gcmodel)) {
 					Files.copyFileUsingFileChannels(gcmodel, proj.GC_MODEL_FILENAME.getValue(), proj.getLog());
 				}
-				//proj.GC_MODEL_FILENAME.setValue(gcmodel);
+				// proj.GC_MODEL_FILENAME.setValue(gcmodel);
 				if (referenceGenomeFasta != null) {
 					proj.getLog().reportTimeWarning("Ignoring reference genome " + referenceGenomeFasta);
 					proj.REFERENCE_GENOME_FASTA_FILENAME.setValue("Ignore");
 				}
 			}
-			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance);
+			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance, build);
 			attempts++;
 			if (result == 41 || result == 40) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");
