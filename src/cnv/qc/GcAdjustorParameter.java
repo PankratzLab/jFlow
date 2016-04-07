@@ -331,9 +331,10 @@ public class GcAdjustorParameter implements Serializable {
 				gcModel = GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(), true, proj.getLog());
 				gcModel.Serialize(gcSerModelFile);
 				proj.getLog().reportTimeWarning("copied existing  gc model file to " + gcSerModelFile + " for paramater computation");
-
 			}
 			if (!Files.exists(centroids)) {
+				//CentroidBuilder builder = new CentroidBuilder();
+				//builder.samplesToUse(samplesToUse)
 				CentroidCompute.computeAndDumpCentroids(proj, centroids, new CentroidBuilder(), numThreads, 2);
 			}
 			if (recomputedLrr) {

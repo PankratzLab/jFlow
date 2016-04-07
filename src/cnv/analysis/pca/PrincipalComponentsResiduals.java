@@ -53,7 +53,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	public static final int NUM_PC_SVD_OVERIDE = 160;
 	private static final String[] MT_REPORT = { "DNA", "FID", "IID", "Sex", "median_MT_LRR_raw", "median_MT_LRR_PC_residuals", "median_MT_LRR_PC_residuals_inverseTransformed" };
 	public static final String[] MT_REPORT_EXT = { ".report.txt" };
-	public static final String[] MT_REPORT_MARKERS_USED = { ".MedianMarkers.MarkersUsed.txt", ".MedianMarkers.RawValues.txt" };
+	public static final String[] MT_REPORT_MARKERS_USED = { ".MitoMarkers.MarkersUsed.txt", ".MitoMarkers.RawValues.txt" };
 	private static final String[] MT_RESIDUAL_CROSS_VALIDATED_REPORT = { "Time Completed", "Time to complete(seconds)", "PC", "Cross-validation Average SSerr", "Cross-validation Average R-squared", "Average Standard Error of Betas", "Full model R-squared", "Full model SSerr" };
 
 	private String markersToAssessFile, output, residOutput, pcFile;
