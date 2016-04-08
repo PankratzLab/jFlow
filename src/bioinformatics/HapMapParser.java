@@ -238,17 +238,8 @@ public class HapMapParser {
 			return;
 		}
 		
-		log = new Logger(ext.rootOf(filename==null?map:filename, false)+"_hapmap_parser.log");
-				
-//		if (filename.startsWith("C:")) {
-//			dir = "";
-//		}
-		
-		for (int i = 0; i<args.length; i++) {
-			log.report((i+1)+") "+args[i]);
-		}
 		if (numArgs!=0) {
-			log.reportError(usage);
+			System.err.println(usage);
 			System.exit(1);
 		}
 		try {
@@ -261,7 +252,7 @@ public class HapMapParser {
 			} else if (!fix.equals("")) {
 				fixAffectionStatusInBed(fix);
 			} else {
-				parse(dir, filename, famstruct, log);
+				parse(dir, filename, famstruct, new Logger(ext.rootOf(filename==null?map:filename, false)+"_hapmap_parser.log"));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
