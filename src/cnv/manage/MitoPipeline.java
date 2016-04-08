@@ -169,8 +169,7 @@ public class MitoPipeline {
 			log.report("Project properties file can be found at " + filename);
 			Files.write("PROJECT_NAME=" + projectName, filename);
 		}
-		this.proj = new Project(filename, false);
-
+		this.proj = new Project(filename, null, false, false);
 	}
 
 	public void initProjectDir() {
@@ -984,8 +983,16 @@ public class MitoPipeline {
 				idHeader = ext.parseStringArg(args[i].replaceAll("_", " "), null);
 				numArgs--;
 			} else if (args[i].startsWith("build=")) {
-				build = GENOME_BUILD.valueOf(ext.parseStringArg(args[i], ""));
-				numArgs--;
+				try {
+					build = GENOME_BUILD.valueOf(ext.parseStringArg(args[i], ""));
+					numArgs--;
+				} catch (IllegalArgumentException ile) {
+					System.err.println("Invalid build " + ext.parseStringArg(args[i], ""));
+					System.err.println("Options Are: ");
+					for (int j = 0; j < GENOME_BUILD.values().length; j++) {
+						System.err.println(GENOME_BUILD.values()[j]);
+					}
+				}
 			} else if (args[i].startsWith("log=")) {
 				logfile = ext.parseStringArg(args[i], null);
 				numArgs--;

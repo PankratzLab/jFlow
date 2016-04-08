@@ -1342,17 +1342,7 @@ public class SourceFileParser implements Runnable {
 			// The most common cause of this is that the delimiter was misspecified
 			// The following code checks all of the common delimiters (tab, comma, space) and determines which one to use when it tries for a second time
 			if (!reader.ready() || count == 1000) {
-				if (foundSNPon == -1) {
-					log.reportError("Could not find a header with the following tokens: "+Array.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0], " / "));
-				}
-				if (foundIDon == -2) {
-					log.reportError("Could not find a header with the selected id type: "+idHeader);
-				}
 				
-				log.reportError("   Perhaps the delimiter, which is currently set to \""+proj.getProperty(proj.SOURCE_FILE_DELIMITER).getDelimiter() +"\", is incorrect? This can be corrected in the file "+proj.getPropertyFilename()+". In the meantime, the most stable delimiter will be determined for you...");
-				log.reportError("   OR perhaps the ID_HEADER property is incorrect; the text '" + proj.getProperty(proj.ID_HEADER) + "' should be present in the header line.");
-				log.reportError("   OR perhaps the ARRAY_TYPE property is incorrect;  options are " + Array.toStr(Project.ARRAY.class, ","));
-
 				reader.close();
 				reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0]);
 				delimiterCounts = new int[SourceFileParser.DELIMITERS.length][count];
@@ -1376,6 +1366,17 @@ public class SourceFileParser implements Runnable {
 				reader.close();
 				
 				if (delimiter == null) {
+					if (foundSNPon == -1) {
+						log.reportError("Could not find a header with the following tokens: "+Array.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0], " / "));
+					}
+					if (foundIDon == -2) {
+						log.reportError("Could not find a header with the selected id type: "+idHeader);
+					}
+					
+					log.reportError("   Perhaps the delimiter, which is currently set to \""+proj.getProperty(proj.SOURCE_FILE_DELIMITER).getDelimiter() +"\", is incorrect? This can be corrected in the file "+proj.getPropertyFilename()+". In the meantime, the most stable delimiter will be determined for you...");
+					log.reportError("   OR perhaps the ID_HEADER property is incorrect; the text '" + proj.getProperty(proj.ID_HEADER) + "' should be present in the header line.");
+					log.reportError("   OR perhaps the ARRAY_TYPE property is incorrect;  options are " + Array.toStr(Project.ARRAY.class, ","));
+
 					proj.message("Failed to auto-detect the delimiter used in the Final Reports file; exiting");
 					return 0;
 				}
