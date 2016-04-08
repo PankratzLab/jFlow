@@ -1005,7 +1005,7 @@ public class ResultsPackager {
 			    String mkrFile = "/home/pankrat2/shared/Poynter_emim/gwasHits.txt";
 			    String mkrColNm = "markerName";
 			    String[] analyses = {"tdt", "emim_child", "emim_maternal"};
-			    String[][] analysisNms = {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}, {"CM_lnR1", "CM_sd_lnR1", "pVal_CM-C_df1"}};
+			    String[][] analysisNms = {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}, {"CM_lnS1", "CM_sd_lnS1", "pVal_CM-C_df1"}};
                 
 			    String[][] files = {
 			            {
@@ -1034,7 +1034,7 @@ public class ResultsPackager {
         			    cnv.plots.ForestPlot fp = new cnv.plots.ForestPlot(ext.rootOf(fileSet[1], false) + ".input", null);
         			    fp.waitForLoad();
         			    fp.setOddsRatioDisplay(oddsRatio);
-        			    fp.loadOrderFile(sortFileName);
+        			    fp.loadOrderFile(sortFileName, true);
         			    fp.screenCapAll("forestPlots", oddsRatio, false);
         			    fp.setVisible(false);
         			    fp.dispose();

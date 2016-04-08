@@ -1,5 +1,6 @@
 package one.ben.fcs;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -7,6 +8,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -49,7 +51,7 @@ import common.ext;
 public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
 
-	public static final boolean DEBUGGING = true;
+	public static final boolean DEBUGGING = false;
 
 	public static final int HEAD_BUFFER = 25;
 	public static final int HEIGHT_X_AXIS = 105;
@@ -721,7 +723,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                         x2, y2, 
                         (int)lines[i].getThickness(), 
                         colorScheme[lines[i].getColor()], 
-                        lines[i].getDirection());
+                        lines[i].getDirection(), lines[i].getShouldScale());
             }
         }
 

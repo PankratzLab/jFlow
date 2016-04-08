@@ -10,6 +10,7 @@ public class GenericLine {
 	private byte layer;
 	/** 0 - no direction, 1 - towards first point (start point), 2 - towards second point (end point) */
 	private int direction;
+	private boolean scale;
 
 	public GenericLine(float startX, float startY, float stopX, float stopY, byte thickness, byte color, byte layer, int direction) {
 		this.startX = startX;
@@ -19,6 +20,18 @@ public class GenericLine {
 		this.thickness = thickness;
 		this.color = color;
 		this.layer = layer;
+		this.scale = true;
+	}
+	
+	public GenericLine(float startX, float startY, float stopX, float stopY, byte thickness, byte color, byte layer, int direction, boolean shouldScale) {
+	    this.startX = startX;
+	    this.startY = startY;
+	    this.stopX = stopX;
+	    this.stopY = stopY;
+	    this.thickness = thickness;
+	    this.color = color;
+	    this.layer = layer;
+	    this.scale = shouldScale;
 	}
 	
 	/*
@@ -32,7 +45,7 @@ public class GenericLine {
 	 * Stub constructor for backwards compatibility
 	 */
 	public GenericLine(PlotPoint startPoint, PlotPoint endPoint, byte thickness, byte color, byte layer, boolean swapAxes) {
-	    this(startPoint, endPoint, thickness, color, layer, swapAxes, 0);
+	    this(startPoint, endPoint, thickness, color, layer, swapAxes, 0, true);
 	}
 	
 	/**
@@ -45,7 +58,7 @@ public class GenericLine {
 	 * @param layer
 	 * @param swapAxes
 	 */
-	public GenericLine(PlotPoint startPoint, PlotPoint endPoint, byte thickness, byte color, byte layer, boolean swapAxes, int direction) {
+	public GenericLine(PlotPoint startPoint, PlotPoint endPoint, byte thickness, byte color, byte layer, boolean swapAxes, int direction, boolean shouldScale) {
 		this.startX = swapAxes ? startPoint.getRawY() : startPoint.getRawX();
 		this.startY = swapAxes ? startPoint.getRawX() : startPoint.getRawY();
 		this.stopX = swapAxes ? startPoint.getRawY() : endPoint.getRawX();
@@ -54,8 +67,13 @@ public class GenericLine {
 		this.color = color;
 		this.layer = layer;
 		this.direction = direction;
+		this.scale = shouldScale;
 	}
-
+	
+	public boolean getShouldScale() {
+	    return scale;
+	}
+	
 	public float getStartX() {
 		return startX;
 	}

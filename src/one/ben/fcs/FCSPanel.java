@@ -8,10 +8,11 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 import stats.Histogram;
+import cnv.plots.GenericLine;
 //import cnv.filesys.MarkerLookup;
 import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
-
+import common.Array;
 import common.CountVector;
 import common.IntVector;
 import common.ext;
@@ -19,16 +20,19 @@ import common.ext;
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
-	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
-			   									  new Color(201, 30, 10), // deep red
-			   									  new Color(94, 88, 214), // light purple
-			   									  new Color(189, 243, 61), // light green
-			   									  new Color(217, 109, 194), // pink
-			   									  new Color(33, 87, 0), // dark green
-			   									  new Color(23, 58, 172), // dark blue
-			   									  new Color(140, 20, 180), // deep purple
+	public static final Color[] DEFAULT_COLORS = {
+	                                            new Color(182, 182, 182), // light grey
+	                                            new Color(220, 220, 220), // very light grey
+                                                new Color(33, 31, 53), // dark dark
+			   									new Color(201, 30, 10), // deep red
+			   									new Color(94, 88, 214), // light purple
+			   									new Color(189, 243, 61), // light green
+			   									new Color(217, 109, 194), // pink
+			   									new Color(33, 87, 0), // dark green
+			   									new Color(23, 58, 172), // dark blue
+			   									new Color(140, 20, 180), // deep purple
 			   									new Color(0, 0, 128), // ALL KINDS OF BLUES
-			   									  new Color(55, 129, 252), // light blue
+			   									new Color(55, 129, 252), // light blue
 			   									new Color(100, 149, 237),
 			   									new Color(72, 61, 139),
 			   									new Color(106, 90, 205),
@@ -71,6 +75,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	}
 
 	String xCol = null, yCol = null;
+	float xMed, yMed, xSD, ySD;
 	
 	public void generatePoints() {
 	    ArrayList<String[]> currentData;
@@ -92,43 +97,81 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    points = new PlotPoint[0];
 		    return;
 		}
+		
+		boolean generatePoints = true;
+		
 		int count = -1;
 		if (xCol != null && yCol != null && fcp.getXDataName().equals(xCol) && fcp.getYDataName().equals(yCol) && (count = fcp.getDataCount()) > 0) {
-		    return; // No need to re-create points[] if nothing has changed
+		    generatePoints = false; // No need to re-create points[] if nothing has changed
 		}
-		if (count == -1) {
-		    count = fcp.getDataCount();
+		if (generatePoints) {
+    		if (count == -1) {
+    		    count = fcp.getDataCount();
+    		}
+    		if (count <= 0) {
+    		    generatePoints = false;
+    		}
+		} else if (count >= points.length) {
+		    generatePoints = true;
 		}
-		if (count <= 0) {
-		    return;
-		}
+		
+		PLOT_TYPE plotType = fcp.getPlotType();
 		
 		double[] xData = fcp.getAxisData(false, true);
 		double[] yData = fcp.getAxisData(false, false);
 		xCol = fcp.getXDataName();
 		yCol = fcp.getYDataName();
-//		currentData = new ArrayList<String[]>();// tdp.getDataSelected();
-//		uniqueValueCounts = new CountVector();
 		
 		zoomable = true;
 		rectangles = new GenericRectangle[0];
-//        forcePlotXmax = Float.NaN;
-//        forcePlotXmin = Float.NaN;
+		setForcePlotXMin(0);// TODO fix this to be more intelligent
+		setForcePlotYMin(0);//
 		
-		points = new PlotPoint[count];   
-		for (int i = 0; i < points.length; i++) {
-//			line = currentData.get(i);
-			xAxisValue = (float) xData[i];
-			yAxisValue = (float) yData[i];
-			if (Float.isNaN(xAxisValue) || Float.isNaN(yAxisValue)) {
-				type = PlotPoint.NOT_A_NUMBER;
-//				uniqueValueCounts.add("0");
-			} else {
-				type = PlotPoint.FILLED_CIRCLE;
-//				uniqueValueCounts.add(line[3]);
-			}
-			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
+		ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
+		boolean mX = fcp.showMedian(false), mY = fcp.showMedian(true), sdX = fcp.showSD(false), sdY = fcp.showSD(true); 
+		if (mX || sdX) {
+		    double med = Array.median(xData);
+		    double min = Math.min(Math.min(0, plotXmin) - med, Array.min(xData));
+		    double max = Math.max(this.plotXmax + med, Array.max(xData));
+		    if (mX) {
+		        lineList.add(new GenericLine((float)med, (float)min, (float)med, (float)max, (byte)1, (byte) 0, (byte)1, 0, false));  
+		    }
+		    if (sdX) {
+    		    double sd = Array.stdev(xData);
+    		    lineList.add(new GenericLine((float)(med - sd), (float)min, (float)(med - sd), (float)max, (byte)1, (byte) 1, (byte)1, 0, false));  
+    		    lineList.add(new GenericLine((float)(med + sd), (float)min, (float)(med + sd), (float)max, (byte)1, (byte) 1, (byte)1, 0, false));  
+		    }
 		}
+		if (mY || sdY) {
+		    double med = Array.median(yData);
+		    double min = Math.min(Math.min(0, plotYmin) - med, Array.min(yData));
+		    double max = Math.max(this.plotYmax + med, Array.max(yData));
+		    if (mY) {
+		        lineList.add(new GenericLine((float)min, (float)med, (float)max, (float)med, (byte)1, (byte) 0, (byte)1, 0, false));  
+		    }
+		    if (sdY) {
+		        double sd = Array.stdev(yData);
+		        lineList.add(new GenericLine((float)min, (float)(med - sd), (float)max, (float)(med - sd), (byte)1, (byte) 1, (byte)1, 0, false));  
+		        lineList.add(new GenericLine((float)min, (float)(med + sd), (float)max, (float)(med + sd), (byte)1, (byte) 1, (byte)1, 0, false));  
+		    }
+		    
+		}
+        lines = lineList.toArray(new GenericLine[lineList.size()]);
+        lineList = null;
+		
+        if (generatePoints) {
+    		points = new PlotPoint[count];
+    		for (int i = 0; i < points.length; i++) {
+    			xAxisValue = (float) xData[i];
+    			yAxisValue = (float) yData[i];
+    			if (Float.isNaN(xAxisValue) || Float.isNaN(yAxisValue)) {
+    				type = PlotPoint.NOT_A_NUMBER;
+    			} else {
+    				type = PlotPoint.FILLED_CIRCLE;
+    			}
+    			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
+    		}
+        }
 
 	}
 
