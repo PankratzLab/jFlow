@@ -473,9 +473,13 @@ public class Project {
 	public Project(String filename, boolean jar) {
 		this(filename, null, jar);
 	}
+
+	public Project(String filename, String logfile, boolean jar) {
+		this(filename, logfile, jar, true);
+	}
 	
 	// Set LOG_LEVEL to a negative value, if you do not want a log file to be generated in addition to standard out/err
-	public Project(String filename, String logfile, boolean jar) {
+	public Project(String filename, String logfile, boolean jar, boolean createHeaders) {
 		this();
 		
 		if (filename == null) {
@@ -509,14 +513,14 @@ public class Project {
 		} else {
 			log = new Logger(logfile, false, Math.abs(logLevel));
 		}
-		
+
 		if (Files.exists(SAMPLE_DIRECTORY.getValue()) && (new File(SAMPLE_DIRECTORY.getValue()).list().length > 0)) {
-		    // skip source file headers, sample files already parsed
-		} else {
-    	    HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
-    	    setSourceFileHeaders(headers);
+			// skip source file headers, sample files already parsed
+		} else if (createHeaders) {
+			HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
+			setSourceFileHeaders(headers);
 		}
-	
+
 	    log.report("Genvisis, v"+cnv.Launch.VERSION+"\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n"+(new Date()));
 		log.report("\nJava version: " + System.getProperty("java.version"));
 

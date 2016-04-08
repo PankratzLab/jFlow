@@ -725,9 +725,9 @@ public class CentroidCompute {
 		int index = 0;
 		while (train.hasNext()) {
 			CentroidCompute[] centroidCompute = train.next();
-			if (index % 10000 == 0) {
-				proj.getLog().reportTimeInfo(index + " of " + markers.length);
-			}
+			// if (index % 100000 == 0) {
+			// proj.getLog().reportTimeInfo(index + " of " + markers.length);
+			// }
 			for (int i = 0; i < centroidCompute.length; i++) {
 				centroids[i][index] = centroidCompute[i].getCentroid();
 
@@ -756,7 +756,7 @@ public class CentroidCompute {
 			this.markers = markers;
 			this.builders = builders;
 			this.mdl = new MDL(proj, proj.getMarkerSet(), markers, numDecompressThreads, 100);
-
+			mdl.setReportEvery(100000);
 			this.count = 0;
 		}
 
