@@ -109,7 +109,7 @@ class MetaStudy {
 	    if (this.sorted == null || this.sorted.isEmpty() || currentSortIsNaturalSort) {
 	        this.sorted = new ArrayList<StudyData>();
 	        for (int i = order.size() - 1; i >= 0; i--) {
-	            String name = order.get(i);
+	            String name = ext.replaceAllWith(order.get(i), ForestPlot.REPLACEMENTS_FOOLISHLY_HARD_CODED);
 	            String repl = null;
 	            if (name.equals("")) {
 	                this.sorted.add(new StudyBreak());
@@ -119,11 +119,12 @@ class MetaStudy {
 	                    name = name.split("\t")[0];
 	                }
 	                StudyData sd = nameMap.get(name);
-	                if (repl != null) {
-	                    sd.setReplacementLabel(repl);
-	                }
 	                if (sd == null) {
 	                    sd = new StudyBreak();
+	                } else {
+    	                if (repl != null) {
+    	                    sd.setReplacementLabel(repl);
+    	                }
 	                }
 	                sorted.add(sd);
 	            }
