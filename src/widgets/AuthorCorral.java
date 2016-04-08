@@ -41,7 +41,7 @@ public class AuthorCorral {
 			[6] E-mail
 			[7+] contribution columns - title taken verbatim from column title
 	*/
-	public static void run(String inFile, String outFile, boolean rtfOutput, boolean printErr) throws IOException {
+	public static void run(String inFile, String outFile, boolean rtfOutput, boolean printErr, boolean periodsAfterInitials) throws IOException {
 		BufferedReader inReader = Files.getReader(inFile, false, true, true);
 		String[] header = inReader.readLine().split("\t");
 		
@@ -66,7 +66,32 @@ public class AuthorCorral {
 				System.err.println("Error - " + err);
 				errors.add(err);
 			} else {
-				String fullname = line[0].trim() + " " + (!"".equals(line[1].trim()) ? (line[1].trim().charAt(0) + ". ") : "") + line[2].trim();
+				// If middle name contains an exclamation point (!), then report as is. If full middle name and no exclamation point then convert to initials. Adds periods if requested.
+				String middleName;
+				boolean warn = false;
+				if (line[1].trim().equals("")) {
+					middleName = "";
+				} else if (line[1].contains("!")) {
+					middleName = ext.replaceAllWith(line[1].trim(), "!", "")+" ";
+				} else {
+					middleName = ext.replaceAllWith(line[1], new String[][] {{" ", ""}, {".", ""}});
+					if (middleName.length() > 2) {
+						middleName = middleName.charAt(0)+(periodsAfterInitials?". ":" ");
+						warn = true;
+					} else {
+						for (int i = middleName.length()-1; i >= 1; i--) {
+							if (middleName.charAt(i) != middleName.toUpperCase().charAt(i)) {
+								warn = true;
+							}
+							middleName = middleName.substring(0, i) +(periodsAfterInitials?". ":" ")+middleName.substring(i);
+						}
+						middleName += (periodsAfterInitials?". ":" ");
+					}
+					if (warn) {
+						System.err.println("Warning the middle name for '"+line[0].trim()+" "+line[1].trim()+" "+line[2].trim()+"' has been changed to '"+middleName+"'; if this is incorrect, update or add an exclamation point (!) at the end of the middle name to copy it wholesale (without the exclamation point)");
+					}
+				}
+				String fullname = line[0].trim() + " " + middleName + line[2].trim();
 				
 				int ord = authorNamesOrder.indexOf(fullname);
 				if (ord == -1) {
@@ -87,22 +112,22 @@ public class AuthorCorral {
 					errors.add(err);
 				} else {
 					if ("".equals(line[3].trim())) {
-						String err = "[Dept/Div/Inst] is blank for <" + line[0].trim() + " " + line[1].trim() + " " + line[2].trim() + ">";
+						String err = "[Dept/Div/Inst] is blank for <" + fullname + "> for <" + line[4].trim() + ">";
 						System.err.println("Error - " + err);
 						errors.add(err);
 					}
 					if ("".equals(line[4].trim())) {
-						String err = "[Institution] is blank for <" + line[0].trim() + " " + line[1].trim() + " " + line[2].trim() + ">";
+						String err = "[Institution] is blank for <" + fullname + ">";
 						System.err.println("Error - " + err);
 						errors.add(err);
 					}
 					if ("".equals(line[5].trim())) {
-						String err = "[City, State, Country, Zip] is blank for <" + line[0].trim() + " " + line[1].trim() + " " + line[2].trim() + ">";
+						String err = "[City, State, Country, Zip] is blank for <" + fullname + ">";
 						System.err.println("Error - " + err);
 						errors.add(err);
 					}
 					if ("".equals(line[6].trim())) {
-						String err = "[E-mail] is blank for <" + line[0].trim() + " " + line[1].trim() + " " + line[2].trim() + ">";
+						String err = "[E-mail] is blank for <" + fullname + ">";
 						System.err.println("Error - " + err);
 						errors.add(err);
 					}
@@ -332,17 +357,19 @@ public class AuthorCorral {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String inFile = "N:/statgen/authors/input2h.xln";
-		String outFile = "N:/statgen/authors/2nd_submission_authorship_final.rtf";
+		String inFile = "N:/statgen/authors/input2k.xln";
+		String outFile = "N:/statgen/authors/final_acceptance_authorship.rtf";
 		boolean rtf = true;
 		boolean err = true;
+		boolean periodsAfterInitials = false;
 		
 		String usage =  "\n" + 
 						"one.AuthorCorral requires 2+ arguments\n" + 
 						"   (1) input filename (i.e. file=" + inFile + " (default))\n" + "" + 
 						"   (2) output filename (i.e. out=" + outFile + " (default))\n" + "" + 
 						"   (3) OPTIONAL output in RTF format (used for superscripts) (i.e. rtf=" + rtf + " (default))\n" + 
-						"   (4) OPTIONAL include errors in output (i.e. err=" + err + " (default))\n" + "";
+						"   (4) OPTIONAL include errors in output (i.e. err=" + err + " (default))\n" +
+						"   (5) OPTIONAL include periods after initials (i.e. periods=" + periodsAfterInitials + " (default))\n"; 
 		
 
 		for (int i = 0; i < args.length; i++) {
@@ -361,6 +388,9 @@ public class AuthorCorral {
 			} else if (args[i].startsWith("err=")) {
 				err = Boolean.valueOf(args[i].split("=")[1]);
 				numArgs--;
+			} else if (args[i].startsWith("periods=")) {
+				periodsAfterInitials = Boolean.valueOf(args[i].split("=")[1]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -370,7 +400,7 @@ public class AuthorCorral {
 			System.exit(1);
 		}
 		try {
-			run(inFile, outFile, rtf, err);
+			run(inFile, outFile, rtf, err, periodsAfterInitials);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
