@@ -91,7 +91,8 @@ public class ForestPanel extends AbstractPanel {
 			
 			return;
 		}
-		ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies();
+		@SuppressWarnings("unchecked")
+        ArrayList<StudyData> currentData = (ArrayList<StudyData>) forestPlot.getCurrentMetaStudy().getStudies().clone();
 		PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
 		ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
 
