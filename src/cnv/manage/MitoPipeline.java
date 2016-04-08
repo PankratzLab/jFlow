@@ -394,6 +394,7 @@ public class MitoPipeline {
 								Resource gmodelBase = Resources.getGCBaseResource(build);
 								if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && (refGenomeFasta == null || !Files.exists(refGenomeFasta)) && gmodelBase.isAvailable()) {
 									log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at " + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.getResource());
+									proj.getLog().setLevel(3);
 									PennCNV.gcModel(proj, gmodelBase.getResource(), proj.GC_MODEL_FILENAME.getValue(), 100);
 									refGenomeFasta = null;
 								}

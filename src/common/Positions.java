@@ -219,7 +219,7 @@ public class Positions {
 				}
 			} catch (NumberFormatException nfe) {
 				if (verbose) {
-					log.reportError("Error - '" + chromosome + "' is an invalid chromosome", true, true, 10);
+					log.reportError("Error - '" + chromosome + "' is an invalid chromosome", true, false, 10);
 				}
 			}
 		}
