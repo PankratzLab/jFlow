@@ -34,6 +34,7 @@ import javax.swing.Timer;
 import mining.Distance;
 import stats.Maths;
 import common.Array;
+import common.Files;
 import common.Grafik;
 import common.HashVec;
 import common.IntVector;
@@ -297,10 +298,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		try {
 		    File imgFile = new File(filename);
 		    boolean mkdirs = imgFile.mkdirs();
-		    if (mkdirs) {
+		    if (mkdirs || Files.exists(ext.parseDirectoryOfFile(filename))) {
 		        ImageIO.write(image, "png", imgFile);
 		    } else {
-		        JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
+		        JOptionPane.showMessageDialog(null, "Error creating directory in which to save the plot");
 		    }
 		} catch (IOException ie) {
 			JOptionPane.showMessageDialog(null, "Error while trying to save the plot");

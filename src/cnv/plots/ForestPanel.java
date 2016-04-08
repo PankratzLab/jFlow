@@ -99,8 +99,9 @@ public class ForestPanel extends AbstractPanel {
 		lines = new GenericLine[0];
 		
 		for (int i = 0; i < currentData.size(); i++) {
+		    StudyData currStudy = currentData.get(i);
 //			if(currentData.get(i).getBeta() != 0.0 && currentData.get(i).getStderr() != 0.0){
-		    if (currentData.get(i) instanceof StudyBreak) {
+		    if (currStudy instanceof StudyBreak) {
                 yAxisValue = (float) i + 1;
                 PlotPoint leftEnd = new PlotPoint("", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
                 yAxisValue = (float) i + 1;
@@ -112,19 +113,19 @@ public class ForestPanel extends AbstractPanel {
                 tempPoints[i] = new PlotPoint(" | ", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
                 tempPoints[i].setVisible(false);
 		    } else {
-				xAxisValue = currentData.get(i).getConfInterval(oddsDisplay)[0];
+				xAxisValue = currStudy.getConfInterval(oddsDisplay)[0];
 				yAxisValue = (float) i + 1;
-				PlotPoint leftEnd = new PlotPoint(currentData.get(i).getDisplayLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+				PlotPoint leftEnd = new PlotPoint(currStudy.getDisplayLabel(), currStudy.getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
-				xAxisValue = currentData.get(i).getConfInterval(oddsDisplay)[1];
+				xAxisValue = currStudy.getConfInterval(oddsDisplay)[1];
 				yAxisValue = (float) i + 1;
-				PlotPoint rightEnd = new PlotPoint(currentData.get(i).getDisplayLabel(), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
+				PlotPoint rightEnd = new PlotPoint(currStudy.getDisplayLabel(), currStudy.getShape(), xAxisValue, yAxisValue, (byte) 5, (byte) 0, (byte) 0);
 
 				linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
 				
-				xAxisValue = currentData.get(i).getBeta(oddsDisplay);
+				xAxisValue = currStudy.getBeta(oddsDisplay);
 				yAxisValue = (float) i + 1;
-				tempPoints[i] = new PlotPoint(currentData.get(i).getDisplayLabel() + "|" + prepareRightMarkers(currentData.get(i)), currentData.get(i).getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
+				tempPoints[i] = new PlotPoint(currStudy.getDisplayLabel() + "|" + prepareRightMarkers(currStudy), currStudy.getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
 				tempPoints[i].setVisible(false);
 			}
 		}

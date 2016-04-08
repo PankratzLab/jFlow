@@ -34,17 +34,17 @@ public class FCSDataLoader {
     
     private static final String COMPENSATED_PREPEND = "Comp-";
     private static final int COMP_LEN = COMPENSATED_PREPEND.length();
-
-    public static void main(String[] args) {
-//      String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
-//      String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
-      String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
-        try {
-            (new FCSDataLoader()).loadData(fcsFilename);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+//
+//    public static void main(String[] args) {
+////      String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
+////      String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
+//      String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
+//        try {
+//            (new FCSDataLoader()).loadData(fcsFilename);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
     
     public static enum LOAD_STATE {
         LOADED,
@@ -153,6 +153,7 @@ public class FCSDataLoader {
         dataObj = dset.getData();
         eventCount = ((CFCSAbstractData)dataObj).getCount();
         CFCSParameters params = dset.getParameters();
+        paramsCount = params.getCount();
         CFCSKeywords keys = dset.getKeywords();
         spillObj = keys.getSpillover();
         
@@ -162,7 +163,7 @@ public class FCSDataLoader {
             compensatedIndices.put(arr[i], i);
         }
         
-        for (int i = 0; i < params.getCount(); i++) {
+        for (int i = 0; i < paramsCount; i++) {
             CFCSParameter param = params.getParameter(i);
             String name = null;
             try { name = param.getShortName(); } catch (Exception e) {}
@@ -188,11 +189,14 @@ public class FCSDataLoader {
             allData = new double[listData.getCount()][];
             setState(LOAD_STATE.PARTIALLY_LOADED);
             for (int i = 0; i < listData.getCount(); i++) {
-                double[] newData = new double[params.getCount()];
+                double[] newData = Array.doubleArray(paramsCount, Double.NaN);
                 try {
                     listData.getEvent/*AsInTheFile*/(i, newData); // should be getEventAsInTheFile???
+                    if (Double.isNaN(newData[0])) {
+                        indicesToLoad.add(i);
+                        loadedCount--;
+                    }
                 } catch (CFCSError e) {
-                    if (paramsCount == -1) paramsCount = listData.getCount();
                     indicesToLoad.add(i);
                     loadedCount--;
                 }
@@ -212,15 +216,16 @@ public class FCSDataLoader {
             if (indicesToLoad.size() > 0) {
                 CFCSListModeData listData = ((CFCSListModeData)dataObj);
                 while (!listData.isLoaded() && !Thread.currentThread().isInterrupted()) Thread.yield();
-                for (int i = 0; i < indicesToLoad.size() && !Thread.currentThread().isInterrupted(); i++) {
-                    double[] newData = new double[paramsCount];
+                while(indicesToLoad.size() > 0 && !Thread.currentThread().isInterrupted()) {
+                    int indToLoad = indicesToLoad.get(indicesToLoad.size() - 1);
+                    double[] newData = Array.doubleArray(paramsCount, Double.NaN);
                     try {
-                        listData.getEvent/*AsInTheFile*/(indicesToLoad.get(i), newData); // should be getEventAsInTheFile???
+                        listData.getEvent/*AsInTheFile*/(indToLoad, newData); // should be getEventAsInTheFile???
+                        indicesToLoad.remove(indicesToLoad.size() - 1);
                     } catch (CFCSError e) {
-                        // TODO ERROR - DATA WILL NOT BE PRESENT IN DISPLAY -- change loop to while(hasAny)
                         continue;
                     }
-                    allData[indicesToLoad.get(i)] = newData;
+                    allData[indToLoad] = newData;
                     loadedCount++;
                 }
             }

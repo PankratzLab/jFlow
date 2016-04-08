@@ -106,7 +106,7 @@ class MetaStudy {
 	}
 	
 	private ArrayList<StudyData> getSorted(ArrayList<String> order) {
-	    if (this.sorted == null || currentSortIsNaturalSort) {
+	    if (this.sorted == null || this.sorted.isEmpty() || currentSortIsNaturalSort) {
 	        this.sorted = new ArrayList<StudyData>();
 	        for (int i = order.size() - 1; i >= 0; i--) {
 	            String name = order.get(i);
@@ -532,8 +532,7 @@ public class ForestPlot extends JFrame implements WindowListener {
                 int returnVal = jfc.showOpenDialog(null);
                 
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    loadOrderFile(jfc.getSelectedFile().getAbsolutePath());
-                    ForestPlot.this.setSortedDisplay(true);
+                    loadOrderFile(jfc.getSelectedFile().getAbsolutePath(), true);
                     ForestPlot.this.forestPanel.paintAgain();
                 } else {
                     noSortButton.setSelected(true);
@@ -1025,6 +1024,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 		setCurrentDataIndex(index);
 //		setCurrentMetaStudy(dataToMetaMap.get(getDataIndices().get(index)));
 		setCurrentMetaStudy(getDataIndices().get(index).getMetaStudy());
+		getCurrentMetaStudy().setSort(isSortedDisplay(), getSortOrder());
 		if (getCurrentMetaStudy() == null) {
 		    String msg = "Error - could not set index to "+index+" since the data did not load properly; check to see if any results files are missing";
 		    if (log != null) {
@@ -1444,7 +1444,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 	private JProgressBar progressBar;
 	private ArrayList<String> sortOrder = null;
 	
-	public void loadOrderFile(String filename) {
+	public void loadOrderFile(String filename, boolean shouldSort) {
 	    if (!Files.exists(filename)) {
 	        String msg = "Error - study order file (" + filename + ") not found!";
 	        if (log != null) {
@@ -1461,6 +1461,7 @@ public class ForestPlot extends JFrame implements WindowListener {
             while((line = reader.readLine()) != null) {
                 order.add(line.trim());
             }
+            reader.close();
         } catch (IOException e) {
             if (proj != null) {
                 proj.message("Error occurred while loading study order file: " + e.getMessage());
@@ -1471,12 +1472,21 @@ public class ForestPlot extends JFrame implements WindowListener {
                 e.printStackTrace();
             }
         }
-	    this.sortOrder = order;
+	    if (log != null) {
+	        log.report("Loaded Study Order File: " + filename);
+	    } else {
+	        System.out.println("Loaded Study Order File: " + filename);
+	    }
+	    this.setSortOrder(order);
+	    this.setSortedDisplay(shouldSort);
+        if (currMetaStudy != null) {
+            currMetaStudy.setSort(this.isSortedDisplay(), this.getSortOrder());
+        }
 	}
 	
 	public MetaStudy getCurrentMetaStudy() {
 	    if (currMetaStudy != null) {
-	        currMetaStudy.setSort(this.sortedDisplay, this.sortOrder);
+	        currMetaStudy.setSort(this.isSortedDisplay(), this.getSortOrder());
 	    }
 		return currMetaStudy;
 	}
@@ -1646,4 +1656,16 @@ public class ForestPlot extends JFrame implements WindowListener {
 					e.printStackTrace();
 				}
 			}
+
+    public boolean isSortedDisplay() {
+        return sortedDisplay;
+    }
+
+    public ArrayList<String> getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(ArrayList<String> sortOrder) {
+        this.sortOrder = sortOrder;
+    }
 }

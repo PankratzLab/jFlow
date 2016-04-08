@@ -1,10 +1,12 @@
 package common;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
@@ -109,7 +111,7 @@ public class Grafik {
 	    
 	    xPoints[3] = x2+dx;
 	    yPoints[3] = y2+dy;
-	    
+
 	    g.fillPolygon(xPoints, yPoints, 4);
 	    
 	    if (direction != 0) {
