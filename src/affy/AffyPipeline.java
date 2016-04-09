@@ -522,7 +522,7 @@ public class AffyPipeline {
 				"   (7) full path to a file of marker positions (i.e. markerPositions=" + markerPositions + " (default))\n" +
 				"   (8) optional: number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + "=" + numThreads + " (default))\n" +
 				"   (9) optional: number of markers to buffer when splitting files (i.e. markerBuffer=" + markerBuffer + " (default))\n" +
-				"   (9) optional: maximum number of writers to open, if this is less than the sample size parsing will slow drastically (i.e. maxWritersOpen=" + maxWritersOpen + " (default))\n" +
+				"   (10) optional: maximum number of writers to open, if this is less than the sample size parsing will slow drastically (i.e. maxWritersOpen=" + maxWritersOpen + " (default))\n" +
 
 				"";
 
