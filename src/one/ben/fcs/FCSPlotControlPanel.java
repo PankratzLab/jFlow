@@ -20,11 +20,13 @@ import javax.swing.event.ListDataListener;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
+import one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
 import javax.swing.JTextField;
 import javax.swing.JFormattedTextField;
 import javax.swing.JCheckBox;
 import javax.swing.SwingConstants;
+import javax.swing.JProgressBar;
 
 public class FCSPlotControlPanel extends JPanel {
 
@@ -48,13 +50,13 @@ public class FCSPlotControlPanel extends JPanel {
     public FCSPlotControlPanel(FCSPlot plot) {
         this.plot = plot;
         
-        setLayout(new MigLayout("", "[][][grow][]", "[][][][][][][][][][][][][][]"));
+        setLayout(new MigLayout("", "[][][grow][]", "[][][][][][][][][][][][][][grow][]"));
         
         JLabel lblPlotType = new JLabel("Plot Type:");
         lblPlotType.setFont(lblFont);
-        add(lblPlotType, "cell 0 3,alignx trailing");
+        add(lblPlotType, "cell 0 2,alignx trailing");
         
-        cbType = new JComboBox();//<PLOT_TYPE>(PLOT_TYPE.values());
+        cbType = new JComboBox<PLOT_TYPE>(PLOT_TYPE.values());
         cbType.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
@@ -64,11 +66,11 @@ public class FCSPlotControlPanel extends JPanel {
                 }
             }
         });
-        add(cbType, "cell 1 3 3 1,growx");
+        add(cbType, "cell 1 2 3 1,growx");
         
         JLabel lblYaxisData = new JLabel("Y-Axis Data:");
         lblYaxisData.setFont(lblFont);
-        add(lblYaxisData, "cell 0 5,alignx trailing");
+        add(lblYaxisData, "cell 0 4,alignx trailing");
         
         cbYData = new JComboBox<String>();
         cbYData.addItemListener(new ItemListener() {
@@ -81,13 +83,13 @@ public class FCSPlotControlPanel extends JPanel {
             }
         });
         cbYData.setMaximumRowCount(15);
-        add(cbYData, "cell 1 5 3 1,growx");
+        add(cbYData, "cell 1 4 3 1,growx");
         
         JLabel lblScale = new JLabel("Scale:");
         lblScale.setFont(lblFont);
-        add(lblScale, "cell 0 6 2 1,alignx trailing");
+        add(lblScale, "cell 0 5 2 1,alignx trailing");
         
-        chckbxShowMedianY = new JCheckBox("Show Median");
+        chckbxShowMedianY = new JCheckBox("Show Median", plot.showMedian(true));
         chckbxShowMedianY.setHorizontalAlignment(SwingConstants.TRAILING);
         chckbxShowMedianY.addItemListener(new ItemListener() {
             @Override
@@ -97,9 +99,9 @@ public class FCSPlotControlPanel extends JPanel {
                 plot.updateGUI();
             }
         });
-        add(chckbxShowMedianY, "cell 0 7 3 1,alignx trailing");
+        add(chckbxShowMedianY, "cell 0 6 3 1,alignx trailing");
         
-        chckbxShowSdY = new JCheckBox("Show SD");
+        chckbxShowSdY = new JCheckBox("Show SD", plot.showSD(true));
         chckbxShowSdY.setHorizontalAlignment(SwingConstants.TRAILING);
         chckbxShowSdY.addItemListener(new ItemListener() {
             @Override
@@ -109,15 +111,15 @@ public class FCSPlotControlPanel extends JPanel {
                 plot.updateGUI();
             }
         });
-        add(chckbxShowSdY, "cell 3 7,alignx trailing");
+        add(chckbxShowSdY, "cell 3 6,alignx trailing");
         
         JLabel lblYbounds = new JLabel("Y-Bounds:");
         lblYbounds.setFont(lblFont);
-        add(lblYbounds, "cell 0 8 2 1,alignx trailing");
+        add(lblYbounds, "cell 0 7 2 1,alignx trailing");
         
         JLabel lblXaxisData = new JLabel("X-Axis Data:");
         lblXaxisData.setFont(lblFont);
-        add(lblXaxisData, "cell 0 10,alignx trailing");
+        add(lblXaxisData, "cell 0 9,alignx trailing");
         
         cbXData = new JComboBox<String>();
         cbXData.addItemListener(new ItemListener() {
@@ -130,7 +132,7 @@ public class FCSPlotControlPanel extends JPanel {
             }
         });
         cbXData.setMaximumRowCount(15);
-        add(cbXData, "cell 1 10 3 1,growx");
+        add(cbXData, "cell 1 9 3 1,growx");
         
         cbYScale = new JComboBox();//<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
         cbYScale.addItemListener(new ItemListener() {
@@ -142,7 +144,7 @@ public class FCSPlotControlPanel extends JPanel {
                 }
             }
         });
-        add(cbYScale, "cell 2 6 2 1,growx");
+        add(cbYScale, "cell 2 5 2 1,growx");
         
         cbXScale = new JComboBox();//<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
         cbXScale.addItemListener(new ItemListener() {
@@ -157,22 +159,22 @@ public class FCSPlotControlPanel extends JPanel {
         
         JLabel lblScale_1 = new JLabel("Scale:");
         lblScale_1.setFont(lblFont);
-        add(lblScale_1, "cell 0 11 2 1,alignx trailing");
-        add(cbXScale, "cell 2 11 2 1,growx");
+        add(lblScale_1, "cell 0 10 2 1,alignx trailing");
+        add(cbXScale, "cell 2 10 2 1,growx");
         
         Format numberFormat = NumberFormat.getNumberInstance();
         yBndsMin = new JFormattedTextField(numberFormat);
         yBndsMin.addPropertyChangeListener("value", pcl);
         yBndsMin.setColumns(10);
         yBndsMin.setValue(0);
-        add(yBndsMin, "flowx,cell 2 8 2 1");
+        add(yBndsMin, "flowx,cell 2 7 2 1");
         
         yBndsMax = new JFormattedTextField(numberFormat);
         yBndsMax.addPropertyChangeListener("value", pcl);
         yBndsMax.setColumns(10);
-        add(yBndsMax, "cell 2 8 2 1");
+        add(yBndsMax, "cell 2 7 2 1");
         
-        chckbxShowMedianX = new JCheckBox("Show Median");
+        chckbxShowMedianX = new JCheckBox("Show Median", plot.showMedian(false));
         chckbxShowMedianX.setHorizontalAlignment(SwingConstants.TRAILING);
         chckbxShowMedianX.addItemListener(new ItemListener() {
             @Override
@@ -182,9 +184,9 @@ public class FCSPlotControlPanel extends JPanel {
                 plot.updateGUI();
             }
         });
-        add(chckbxShowMedianX, "cell 0 12 3 1,alignx right");
+        add(chckbxShowMedianX, "cell 0 11 3 1,alignx right");
         
-        chckbxShowSdX = new JCheckBox("Show SD");
+        chckbxShowSdX = new JCheckBox("Show SD", plot.showSD(false));
         chckbxShowSdX.setHorizontalAlignment(SwingConstants.TRAILING);
         chckbxShowSdX.addItemListener(new ItemListener() {
             @Override
@@ -194,22 +196,25 @@ public class FCSPlotControlPanel extends JPanel {
                 plot.updateGUI();
             }
         });
-        add(chckbxShowSdX, "cell 3 12,alignx right");
+        add(chckbxShowSdX, "cell 3 11,alignx right");
         
         JLabel lblXbounds = new JLabel("X-Bounds:");
         lblXbounds.setFont(lblFont);
-        add(lblXbounds, "cell 0 13 2 1,alignx trailing");
+        add(lblXbounds, "cell 0 12 2 1,alignx trailing");
         
         xBndsMin = new JFormattedTextField(numberFormat);
         xBndsMin.addPropertyChangeListener("value", pcl);
         xBndsMin.setColumns(10);
         xBndsMin.setValue(0);
-        add(xBndsMin, "flowx,cell 2 13 2 1");
+        add(xBndsMin, "flowx,cell 2 12 2 1");
         
         xBndsMax = new JFormattedTextField(numberFormat);
         xBndsMax.addPropertyChangeListener("value", pcl);
         xBndsMax.setColumns(10);
-        add(xBndsMax, "cell 2 13 2 1");
+        add(xBndsMax, "cell 2 12 2 1");
+        
+        progressBar = new JProgressBar();
+        add(progressBar, "cell 0 14 4 1,growx");
         
     }
     
@@ -259,6 +264,7 @@ public class FCSPlotControlPanel extends JPanel {
     private JCheckBox chckbxShowSdX;
     private JCheckBox chckbxShowMedianY;
     private JCheckBox chckbxShowSdY;
+    private JProgressBar progressBar;
 
     private void resetProgSet() {
         SwingUtilities.invokeLater(new Runnable() {
@@ -289,5 +295,60 @@ public class FCSPlotControlPanel extends JPanel {
         yBndsMax.setValue(yMax);
         resetProgSet();
     }
+
+    // TODO doesn't work very well - no updates until data gets displayed
+//    public void startFileLoading(FCSDataLoader newDataLoader) {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                LOAD_STATE state = null;
+//                while((state = newDataLoader.getLoadState()) != LOAD_STATE.LOADED) {
+//                    final LOAD_STATE finalState = state;
+//                    SwingUtilities.invokeLater(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            switch(finalState) {
+//                            case LOADED:
+//                                progressBar.setStringPainted(false);
+//                                progressBar.setString(null);
+//                                progressBar.setIndeterminate(false);
+//                                // hide or set to complete or reset
+//                                break;
+//                            case LOADING:
+//                                progressBar.setIndeterminate(true);
+//                                progressBar.setStringPainted(true);
+//                                progressBar.setString("Starting File Load...");
+//                                progressBar.setVisible(true);
+//                                // set to indeterminate
+//                                break;
+//                            case PARTIALLY_LOADED:
+//                            case LOADING_REMAINDER:
+//                                progressBar.setIndeterminate(false);
+//                                progressBar.setStringPainted(true);
+//                                int[] stat = newDataLoader.getLoadedStatus();
+//                                progressBar.setMinimum(0);
+//                                progressBar.setMaximum(stat[1]);
+//                                progressBar.setString(null);
+////                            progressBar.setString("Loading File: " + stat[0] + "/" + stat[1]);
+//                                progressBar.setVisible(true);
+//                                // set to determinate, wait for updates
+//                                break;
+//                            case UNLOADED:
+//                                // what??
+//                                break;
+//                            default:
+//                                // what??
+//                                break;
+//                            }
+//                        }
+//                    });
+//                    Thread.yield();
+//                }
+//                progressBar.setStringPainted(false);
+//                progressBar.setString(null);
+//                progressBar.setIndeterminate(false);
+//            }
+//        }).start();
+//    }
     
 }

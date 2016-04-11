@@ -21,8 +21,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
 	public static final Color[] DEFAULT_COLORS = {
-	                                            new Color(182, 182, 182), // light grey
-	                                            new Color(220, 220, 220), // very light grey
                                                 new Color(33, 31, 53), // dark dark
 			   									new Color(201, 30, 10), // deep red
 			   									new Color(94, 88, 214), // light purple
@@ -31,6 +29,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 			   									new Color(33, 87, 0), // dark green
 			   									new Color(23, 58, 172), // dark blue
 			   									new Color(140, 20, 180), // deep purple
+			   									new Color(182, 182, 182), // light grey
+			   									new Color(220, 220, 220), // very light grey
 			   									new Color(0, 0, 128), // ALL KINDS OF BLUES
 			   									new Color(55, 129, 252), // light blue
 			   									new Color(100, 149, 237),
@@ -67,15 +67,21 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		this.fcp = fcsPlot;
 		this.setAxisFontSize(24);
 		this.setSymmetricAxes(false);
-		setZoomable(true, true);
+//		setZoomable(true, true);
+		setZoomable(false, true);
 
 		setColorScheme(DEFAULT_COLORS);
 
 		setNullMessage("Select two variables to plot");
 	}
 
+	int dataCount = -1;
 	String xCol = null, yCol = null;
-	float xMed, yMed, xSD, ySD;
+	double xMed = Double.NaN, xMin = Double.NaN, xMax = Double.NaN, yMed = Double.NaN, yMin = Double.NaN, yMax = Double.NaN, xSD = Double.NaN, ySD = Double.NaN;
+	PLOT_TYPE prevPlotType;
+	boolean[] showMedSD = {false, false, false, false}; // xMed, xSD, yMed, ySD
+	double[] xData;
+	double[] yData;
 	
 	public void generatePoints() {
 	    ArrayList<String[]> currentData;
@@ -98,69 +104,92 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    return;
 		}
 		
-		boolean generatePoints = true;
-		
-		int count = -1;
-		if (xCol != null && yCol != null && fcp.getXDataName().equals(xCol) && fcp.getYDataName().equals(yCol) && (count = fcp.getDataCount()) > 0) {
-		    generatePoints = false; // No need to re-create points[] if nothing has changed
-		}
-		if (generatePoints) {
-    		if (count == -1) {
-    		    count = fcp.getDataCount();
+		boolean columnsChangedX = false;
+		boolean columnsChangedY = false;
+		boolean dataChanged = false;
+		boolean optionsChanged = false;
+		boolean typeChanged = false;
+		{
+    		String newX = fcp.getXDataName();
+    		String newY = fcp.getYDataName();
+    		if (xCol == null || !fcp.getXDataName().equals(xCol)) {
+    		    columnsChangedX = true;
     		}
-    		if (count <= 0) {
-    		    generatePoints = false;
+    		if (yCol == null || !fcp.getYDataName().equals(yCol)) {
+    		    columnsChangedY = true;
     		}
-		} else if (count >= points.length) {
-		    generatePoints = true;
+            xCol = newX;
+            yCol = newY;
+		}
+		{
+    		int count = fcp.getDataCount();
+    	    if (count != dataCount) {
+    	        dataChanged = true;
+    	    }
+    		dataCount = count;
+		}
+		{
+    		PLOT_TYPE plotType = fcp.getPlotType();
+    		if (plotType != prevPlotType) {
+    		    typeChanged = true;
+    		}
+    		prevPlotType = plotType;
+		}
+		{
+            boolean mX = fcp.showMedian(false), mY = fcp.showMedian(true), sdX = fcp.showSD(false), sdY = fcp.showSD(true); 
+            if (mX != showMedSD[0] || sdX != showMedSD[1] || mY != showMedSD[2] || sdY != showMedSD[3]) {
+                optionsChanged = true;
+            }
+            showMedSD[0] = mX;
+            showMedSD[1] = sdX;
+            showMedSD[2] = mY;
+            showMedSD[3] = sdY;
 		}
 		
-		PLOT_TYPE plotType = fcp.getPlotType();
+		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged/* && !typeChanged /* don't need to regen if only type has changed, for now */;
+		if (skip) return;
 		
-		double[] xData = fcp.getAxisData(false, true);
-		double[] yData = fcp.getAxisData(false, false);
-		xCol = fcp.getXDataName();
-		yCol = fcp.getYDataName();
+		xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) : xData;
+		yData = columnsChangedY || dataChanged || yData == null ? fcp.getAxisData(false, false) : yData;
 		
-		zoomable = true;
+//		zoomable = true;
 		rectangles = new GenericRectangle[0];
 		setForcePlotXMin(0);// TODO fix this to be more intelligent
 		setForcePlotYMin(0);//
 		
 		ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
-		boolean mX = fcp.showMedian(false), mY = fcp.showMedian(true), sdX = fcp.showSD(false), sdY = fcp.showSD(true); 
-		if (mX || sdX) {
-		    double med = Array.median(xData);
-		    double min = Math.min(Math.min(0, plotXmin) - med, Array.min(xData));
-		    double max = Math.max(this.plotXmax + med, Array.max(xData));
-		    if (mX) {
-		        lineList.add(new GenericLine((float)med, (float)min, (float)med, (float)max, (byte)1, (byte) 0, (byte)1, 0, false));  
+		if (showMedSD[0] || showMedSD[1]) {
+		    xMed = columnsChangedX || dataChanged || Double.isNaN(xMed) ? Array.median(xData) : xMed;
+		    xMin = columnsChangedX || dataChanged || Double.isNaN(xMin) ? Math.min(Math.min(0, plotXmin) - xMed, Array.min(xData)) : xMin;
+		    xMax = columnsChangedX || dataChanged || Double.isNaN(xMax) ? Math.max(this.plotXmax + xMed, Array.max(xData)) : xMax;
+		    if (showMedSD[0]) {
+		        lineList.add(new GenericLine((float)xMed, (float)xMin, (float)xMed, (float)xMax, (byte)1, (byte) 8, (byte)1, 0, false));  
 		    }
-		    if (sdX) {
-    		    double sd = Array.stdev(xData);
-    		    lineList.add(new GenericLine((float)(med - sd), (float)min, (float)(med - sd), (float)max, (byte)1, (byte) 1, (byte)1, 0, false));  
-    		    lineList.add(new GenericLine((float)(med + sd), (float)min, (float)(med + sd), (float)max, (byte)1, (byte) 1, (byte)1, 0, false));  
+		    if (showMedSD[1]) {
+    		    xSD = columnsChangedX || dataChanged || Double.isNaN(xSD) ? Array.stdev(xData) : xSD;
+    		    lineList.add(new GenericLine((float)(xMed - xSD), (float)xMin, (float)(xMed - xSD), (float)xMax, (byte)1, (byte) 9, (byte)1, 0, false));  
+    		    lineList.add(new GenericLine((float)(xMed + xSD), (float)xMin, (float)(xMed + xSD), (float)xMax, (byte)1, (byte) 9, (byte)1, 0, false));  
 		    }
 		}
-		if (mY || sdY) {
-		    double med = Array.median(yData);
-		    double min = Math.min(Math.min(0, plotYmin) - med, Array.min(yData));
-		    double max = Math.max(this.plotYmax + med, Array.max(yData));
-		    if (mY) {
-		        lineList.add(new GenericLine((float)min, (float)med, (float)max, (float)med, (byte)1, (byte) 0, (byte)1, 0, false));  
+		if (showMedSD[2] || showMedSD[3]) {
+		    yMed = columnsChangedY || dataChanged || Double.isNaN(yMed) ? Array.median(yData) : yMed;
+		    yMin = columnsChangedY || dataChanged || Double.isNaN(yMax) ? Math.min(Math.min(0, plotYmin) - yMed, Array.min(yData)) : yMin;
+		    yMax = columnsChangedY || dataChanged || Double.isNaN(yMin) ? Math.max(this.plotYmax + yMed, Array.max(yData)) : yMax;
+		    if (showMedSD[2]) {
+		        lineList.add(new GenericLine((float)yMin, (float)yMed, (float)yMax, (float)yMed, (byte)1, (byte) 8, (byte)1, 0, false));  
 		    }
-		    if (sdY) {
+		    if (showMedSD[3]) {
 		        double sd = Array.stdev(yData);
-		        lineList.add(new GenericLine((float)min, (float)(med - sd), (float)max, (float)(med - sd), (byte)1, (byte) 1, (byte)1, 0, false));  
-		        lineList.add(new GenericLine((float)min, (float)(med + sd), (float)max, (float)(med + sd), (byte)1, (byte) 1, (byte)1, 0, false));  
+		        lineList.add(new GenericLine((float)yMin, (float)(yMed - sd), (float)yMax, (float)(yMed - sd), (byte)1, (byte) 9, (byte)1, 0, false));  
+		        lineList.add(new GenericLine((float)yMin, (float)(yMed + sd), (float)yMax, (float)(yMed + sd), (byte)1, (byte) 9, (byte)1, 0, false));  
 		    }
 		    
 		}
         lines = lineList.toArray(new GenericLine[lineList.size()]);
         lineList = null;
 		
-        if (generatePoints) {
-    		points = new PlotPoint[count];
+        if (columnsChangedX || columnsChangedY || dataChanged) {
+    		points = new PlotPoint[dataCount];
     		for (int i = 0; i < points.length; i++) {
     			xAxisValue = (float) xData[i];
     			yAxisValue = (float) yData[i];

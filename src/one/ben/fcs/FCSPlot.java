@@ -231,7 +231,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	private volatile AXIS_SCALE xScale;
 	private volatile AXIS_SCALE yScale;
 	private volatile PLOT_TYPE plotType;
-	private volatile boolean showSDY, showSDX, showMedianY, showMedianX;
+	private volatile boolean showSDY = true, showSDX = true, showMedianY = true, showMedianX = true;
 	
     public String getXDataName() { return xDataName; }
     public String getYDataName() { return yDataName; }
@@ -351,6 +351,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             @Override
             public void run() {
                 FCSDataLoader newDataLoader = new FCSDataLoader();
+//                fcsControls.startFileLoading(newDataLoader);
                 try {
                     newDataLoader.loadData(filename);
                 } catch (IOException e) {
@@ -394,7 +395,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         //Display the window.
         frame.pack();
         frame.setVisible(show);
-
+//
 //        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
         String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
 //        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
@@ -412,7 +413,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	}
 
     public int getDataCount() {
-        return dataLoader == null ? 0 : dataLoader.getCount();
+        return dataLoader == null ? -1 : dataLoader.getCount();
     }
     
     HashSet<String> propsSetting = new HashSet<String>();

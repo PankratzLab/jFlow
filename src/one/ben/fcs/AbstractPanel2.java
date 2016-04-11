@@ -323,7 +323,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		if (image == null) {
 			if (DEBUGGING) {
 				System.out.println("createImage() being called from paintComponent()");
-			}
+			}    
             createImage(); // if you remove this, you get a blank screen and at least QQPlot ends up with a double title panel
 		} else if (DEBUGGING) {
 	        System.out.println("Skipping image creation");
@@ -465,7 +465,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				points[i] = new PlotPoint("", (byte)1, (float)Math.random(), (float)Math.random(), (byte)5, (byte)0, (byte)0);
 			}
 		} else/* if (pointsGeneratable)*/ {
-			generatePoints();
+            long t1 = System.currentTimeMillis();
+            generatePoints();
+            System.out.println("Gen: " + ext.getTimeElapsed(t1));
 //			pointsGeneratable = false;
 		}
 		highlightPoints();
@@ -660,36 +662,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	            drawYAxis(g, plotMinMaxStep);
 	        }
 
-			/*
-			if (swapable) {
-				// these images are here to mask the flicker that occurs due to the slight delay in when the plot is painted and when the buttons are painted
-				BufferedImage img;
-				File file = new File("/workspace/Genvisis/images/flip_and_invert/flip_10p.jpg");
-				new javax.swing.JLabel();
-				try {
-					img = ImageIO.read(file);
-					g.drawImage(img, 70, getHeight()-75, null);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				file = new File("/workspace/Genvisis/images/flip_and_invert/right_10.gif");
-				try {
-					img = ImageIO.read(file);
-					g.drawImage(img, 70, getHeight()-35, null);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				file = new File("/workspace/Genvisis/images/flip_and_invert/up_10.gif");
-				try {
-					img = ImageIO.read(file);
-					g.drawImage(img, 55, getHeight()-75, null);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			*/
-
-
 			if (errorMessage != null) {
 				g.drawString(errorMessage, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(errorMessage)/2+axisYWidth/*WIDTH_Y_AXIS*/, (getHeight()-HEAD_BUFFER-axisXHeight/*HEIGHT_X_AXIS*/)/2-20+HEAD_BUFFER);
 			}
@@ -701,7 +673,75 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
 		canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
 		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
-        
+
+
+        // Draw data points, also build the lookup matrix for nearby points.
+        locLookup.clear();
+        time = new Date().getTime();
+        step = Math.max((points.length)/100, 1);
+        layers = new Hashtable<String,Vector<PlotPoint>>();
+
+
+        if (chartType == PLOT_TYPE.HEATMAP) {
+            drawHeatMap(g);
+        } else if (chartType == PLOT_TYPE.DOT_PLOT) {
+            for (int i = 0; i<points.length && flow; i++) {
+                if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisible()) {
+                    
+                } else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() - plotXmax > plotXmax/1000.0 || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
+//                  System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
+                } else {
+                    trav = points[i].getLayer()+"";
+                    if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
+                        if (trav.equals("0")) {
+                            if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
+                                drawPoint(g, points[i]);
+                            } else if (base) {
+                                numberOfNaNSamples++;
+                            }
+                        } else {
+                            if (layers.containsKey(trav)) {
+                                layer = layers.get(trav);
+                            } else {
+                                layers.put(trav, layer = new Vector<PlotPoint>(points.length));
+                            }
+                            layer.add(points[i]);
+                        }
+                    }
+                    if (createLookup && points[i] != null) {
+                        xLook = (int)Math.floor(getXPixel(points[i].getRawX())/lookupResolution);
+                        yLook = (int)Math.floor(getYPixel(points[i].getRawY())/lookupResolution);
+                        for (int j = xLook-1; j<=xLook+1; j++) {
+                            for (int k = yLook-1; k<=yLook+1; k++) {
+                                pos = j+"x"+k;
+                                if (locLookup.containsKey(pos)) {
+                                    locLookup.get(pos).add(i);
+                                } else {
+                                    locLookup.put(pos, new IntVector(new int[] {i}));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Draw those points with layer>0.
+            keys = HashVec.getKeys(layers);
+            order = Sort.quicksort(Array.toIntArray(keys));
+            for (int i = 0; i<keys.length&&flow; i++) {
+                layer = layers.get(keys[order[i]]);
+                for (int j = 0; j<layer.size(); j++) {
+                    if (layer.elementAt(j).getType()!=PlotPoint.NOT_A_NUMBER) {
+                        drawPoint(g, layer.elementAt(j));
+                    } else {
+                        numberOfNaNSamples++;
+                    }
+                }
+            }
+        } else {
+            System.err.println("Error - invalid chart type: "+chartType);
+        }
+		
         g.setClip((int)canvasSectionMinimumX, HEAD_BUFFER, (int)(canvasSectionMaximumX - canvasSectionMinimumX) + 1, (int)(getHeight() - axisXHeight - 24));
         
 		// Draw the lines
@@ -767,7 +807,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         }
 		
 		g.setClip(null);
-//		}
+		
 		// Draw the rectangle outlined by dragging the mouse
 		if (highlightRectangle != null) {
 			rectangleXPixel = Math.min(getXPixel(highlightRectangle.getStartXValue()), getXPixel(highlightRectangle.getStopXValue()));
@@ -778,100 +818,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 //	    	g.drawRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel);
 	    	drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, (byte) 1);
 		}
-
-//		// Draw progress bar
-//		if (base) {
-//			time = new Date().getTime();
-//			prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);
-////			System.out.println("points.length: "+(points.length)+"\3*points.length: "+3*(points.length));
-//		} else {
-//			prog = null;
-//		}
-
-		// Draw data points, also build the lookup matrix for nearby points.
-		locLookup.clear();
-		prog = null;
-		time = new Date().getTime();
-		step = Math.max((points.length)/100, 1);
-		layers = new Hashtable<String,Vector<PlotPoint>>();
-
-//		if (DEBUGGING) {
-//			System.out.println("Start block");
-//		}
-//		long blockTime = new Date().getTime();
-
-		if (chartType == PLOT_TYPE.HEATMAP) {
-			drawHeatMap(g);
-		} else if (chartType == PLOT_TYPE.DOT_PLOT) {
-			for (int i = 0; i<points.length && flow; i++) {
-				if (base && i%step==0){
-					if (new Date().getTime() - time > 1000) {
-						if (prog == null) {
-							prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);
-						}
-						prog.setProgress(i);
-					}
-				}
-				if (points[i] == null || points[i].getColor() == -1 || !points[i].isVisible()) {
-					
-				} else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() - plotXmax > plotXmax/1000.0 || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
-//					System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
-				} else {
-					trav = points[i].getLayer()+"";
-					if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
-						if (trav.equals("0")) {
-							if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
-								drawPoint(g, points[i]);
-							} else if (base) {
-								numberOfNaNSamples++;
-							}
-						} else {
-							if (layers.containsKey(trav)) {
-								layer = layers.get(trav);
-							} else {
-								layers.put(trav, layer = new Vector<PlotPoint>(points.length));
-							}
-							layer.add(points[i]);
-						}
-					}
-					if (createLookup && points[i] != null) {
-						xLook = (int)Math.floor(getXPixel(points[i].getRawX())/lookupResolution);
-						yLook = (int)Math.floor(getYPixel(points[i].getRawY())/lookupResolution);
-						for (int j = xLook-1; j<=xLook+1; j++) {
-							for (int k = yLook-1; k<=yLook+1; k++) {
-								pos = j+"x"+k;
-								if (locLookup.containsKey(pos)) {
-									locLookup.get(pos).add(i);
-								} else {
-									locLookup.put(pos, new IntVector(new int[] {i}));
-								}
-							}
-						}
-					}
-				}
-			}
-			
-//			if (DEBUGGING) {
-//			System.out.println("Took " + ext.getTimeElapsed(blockTime)+" to finish this block");
-//			}			
-			
-			// Draw those points with layer>0.
-			keys = HashVec.getKeys(layers);
-			order = Sort.quicksort(Array.toIntArray(keys));
-			for (int i = 0; i<keys.length&&flow; i++) {
-				layer = layers.get(keys[order[i]]);
-				for (int j = 0; j<layer.size(); j++) {
-					if (layer.elementAt(j).getType()!=PlotPoint.NOT_A_NUMBER) {
-						drawPoint(g, layer.elementAt(j));
-					} else {
-						numberOfNaNSamples++;
-					}
-	            }
-	        }
-		} else {
-			System.err.println("Error - invalid chart type: "+chartType);
-		}
-//		System.out.println("Sampled from "+getNumPointsPlottedEfficiently()+" points");
 
 		if (numberOfNaNSamples > 0) {
 			g.drawString(PlotPoint.NAN_STR+" (n="+numberOfNaNSamples+")", getXPixel(0)-nanWidth/2, getYPixel(0)+60+points[0].getSize()/2);
@@ -915,28 +861,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		
 		setImageStatus(IMAGE_COMPLETE);
 
-		if (base && prog != null) {
-			prog.close();
-		}
-		//System.out.println("Paint time: "+ext.getTimeElapsed(time));
-		
-		//test out
-		/*
-		BufferedImage temp = new BufferedImage(250, 250, BufferedImage.TYPE_INT_RGB);
-		Graphics temp1 = temp.createGraphics();
-//		temp1.setFont(new Font("Arial", 0, 28));
-		temp1.setColor(Color.WHITE);
-		temp1.fillRect(0, 0, getWidth(), getHeight());
-		temp1.drawArc(0, 0, 135, 235, 25, 15);
-		temp1.drawLine(40, 40, 160, 160);
-		temp1.drawRect(100, 100, 50, 50);
-//		temp1.setColor(Color.BLACK);
-		temp1.drawString("This is temp", 0, temp.getHeight()-6);
-//		g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-HEIGHT_X_AXIS)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
-		temp1.dispose();
-		g.drawImage(temp, 150, 100, null);
-		*/
-		
 		refreshOtherComponents();
 
 		if (DEBUGGING) {
@@ -1197,47 +1121,47 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		int x, y, dataPointIndex;
 		byte size;
 
-		if (imageIsFinal() && chartType != PLOT_TYPE.HEATMAP) {
-			x = event.getX();
-			y = event.getY();
-
-			canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
-			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
-			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
-			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
-			pos = (int)Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
+//		if (imageIsFinal() && chartType != PLOT_TYPE.HEATMAP) {
+//			x = event.getX();
+//			y = event.getY();
+//
+//			canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
+//			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
+//			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
+//			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
+//			pos = (int)Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
+////			if (!pos.equals(prevPos)) {
+////			    System.out.println("Repainting");
+////				repaint();
+////			}
+//
+//			indicesOfNearbyPoints = lookupNearbyPoints(x, y, pos);
+//			
 //			if (!pos.equals(prevPos)) {
-//			    System.out.println("Repainting");
-//				repaint();
+//			    if (indicesOfNearbyPoints.size() != 0 || (prox != null && prox.size() != 0)) {
+//                    repaint();
+//                }
 //			}
-
-			indicesOfNearbyPoints = lookupNearbyPoints(x, y, pos);
-			
-			if (!pos.equals(prevPos)) {
-			    if (indicesOfNearbyPoints.size() != 0 || (prox != null && prox.size() != 0)) {
-                    repaint();
-                }
-			}
-
-			prox = new IntVector();
-
-			size = SIZE * 2;
-			g.setColor(Color.GRAY);
-			for (int i = 0; indicesOfNearbyPoints!=null && i<indicesOfNearbyPoints.size(); i++) {
-				dataPointIndex = indicesOfNearbyPoints.elementAt(i);
-				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(points[dataPointIndex].getRawX()), getYPixel(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
-					prox.add(dataPointIndex);
-//					g.setColor(Color.YELLOW);
-//					g.fillOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
-					g.drawOval(getXPixel(points[dataPointIndex].getRawX()) - size/2, getYPixel(points[dataPointIndex].getRawY()) - size/2, size, size);
-
-				}
-			}
-
-			prevPos = pos;
-			
-			//TODO 		indicesOfNearbySamples = lookupNearbyPoints(x, y, pos);
-		}
+//
+//			prox = new IntVector();
+//
+//			size = SIZE * 2;
+//			g.setColor(Color.GRAY);
+//			for (int i = 0; indicesOfNearbyPoints!=null && i<indicesOfNearbyPoints.size(); i++) {
+//				dataPointIndex = indicesOfNearbyPoints.elementAt(i);
+//				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(points[dataPointIndex].getRawX()), getYPixel(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
+//					prox.add(dataPointIndex);
+////					g.setColor(Color.YELLOW);
+////					g.fillOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
+//					g.drawOval(getXPixel(points[dataPointIndex].getRawX()) - size/2, getYPixel(points[dataPointIndex].getRawY()) - size/2, size, size);
+//
+//				}
+//			}
+//
+//			prevPos = pos;
+//			
+//			//TODO 		indicesOfNearbySamples = lookupNearbyPoints(x, y, pos);
+//		}
 	}
 
 	public void mousePressed(MouseEvent e) {
@@ -1738,15 +1662,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 	
 	public void createImage() {
-//		if (getWidth() > 350 && getHeight() > 0 ) {
-		    setImageStatus(IMAGE_STARTED);
-			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-			flow = true;
-			drawAll(image.createGraphics(), true);
-			
-//			repaint();
-//			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-//		}
+	    setImageStatus(IMAGE_STARTED);
+        image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+        flow = true;
+        drawAll(image.createGraphics(), true);
 	}
 	
 	public void setLookupResolution(int lookupResolution) {
