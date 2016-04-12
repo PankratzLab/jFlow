@@ -417,12 +417,12 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     				PlotPoint indiPoint = points[centroidOffset + i];
     				if (mendelErrorChecks[i].hasMoMendelError()) {
     					PlotPoint momPoint = points[centroidOffset + sp.getPedigree().getMoDNAIndex(i)];
-    					GenericLine gl = new GenericLine(momPoint, indiPoint, size, momColor, layer, swapAxes, 1);
+    					GenericLine gl = new GenericLine(momPoint, indiPoint, size, momColor, layer, swapAxes, 1, true);
     					linesList.add(gl);
     				}
     				if (mendelErrorChecks[i].hasFaMendelError()) {
     					PlotPoint dadPoint = points[centroidOffset + sp.getPedigree().getFaDNAIndex(i)];
-    					GenericLine gl = new GenericLine(dadPoint, indiPoint, size, dadColor, layer, swapAxes, 1);
+    					GenericLine gl = new GenericLine(dadPoint, indiPoint, size, dadColor, layer, swapAxes, 1, true);
     					linesList.add(gl);
     				}
     
