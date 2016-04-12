@@ -302,7 +302,7 @@ public class GcAdjustorParameter implements Serializable {
 	/**
 	 * Basic (non-batch) generation of adjustment parameters for a project, generates a recomputed, and original gc-correction
 	 */
-	public static GcAdjustorParameters generate(Project proj, String rootDir, String referenceGenome, GCAdjustorBuilder gcAdjustorBuilder, boolean recomputedLrr, int gcModelWindow, int numThreads) throws IllegalStateException {
+	public static GcAdjustorParameters generate(Project proj, String rootDir, String referenceGenome, GCAdjustorBuilder gcAdjustorBuilder, boolean[] samplesToUse, boolean recomputedLrr, int gcModelWindow, int numThreads) throws IllegalStateException {
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + rootDir;
 		new File(outDir).mkdirs();
 		String gcSerModelFile = outDir + "gcModel_" + gcModelWindow + ".ser";
@@ -333,9 +333,11 @@ public class GcAdjustorParameter implements Serializable {
 				proj.getLog().reportTimeWarning("copied existing  gc model file to " + gcSerModelFile + " for paramater computation");
 			}
 			if (!Files.exists(centroids)) {
-				//CentroidBuilder builder = new CentroidBuilder();
-				//builder.samplesToUse(samplesToUse)
-				CentroidCompute.computeAndDumpCentroids(proj, centroids, new CentroidBuilder(), numThreads, 2);
+				CentroidBuilder builder = new CentroidBuilder();
+				if (samplesToUse != null) {
+					builder.samplesToUse(samplesToUse);
+				}
+				CentroidCompute.computeAndDumpCentroids(proj, centroids, builder, numThreads, 2);
 			}
 			if (recomputedLrr) {
 				proj.getLog().reportTimeInfo("Recompute LRR was flagged, will GC correct LRR post recomputing");

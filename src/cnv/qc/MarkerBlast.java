@@ -246,6 +246,16 @@ public class MarkerBlast {
 		}
 	}
 
+	private static String getRefStrand(ExtProjectDataParser parser) {
+		String strand = null;
+		if (parser.hasStringDataForTitle("RefStrand")) {
+			strand = "RefStrand";
+		} else if (parser.hasStringDataForTitle("GenomicStrand")) {
+			strand = "GenomicStrand";
+		}
+		return strand;
+	}
+
 	/**
 	 * 
 	 * {@link MarkerBlast#getMarkerFastaEntries(Project, String, FILE_SEQUENCE_TYPE, BlastParams, boolean)}
@@ -266,8 +276,8 @@ public class MarkerBlast {
 			if (referenceGenome == null) {
 				proj.getLog().reportTimeWarning("A reference genome was not found");
 			}
-			boolean hasRefStrand = parser.hasStringDataForTitle("RefStrand");
-			if (!hasRefStrand && params != null) {
+			String refStrandTitle = getRefStrand(parser);
+			if (refStrandTitle == null && params != null) {
 				params.setNotes("Warning, the positive and negative strands of the probe design are actually forward and reverse designations, due to parsing IlmnIDs ");
 			}
 			for (int i = 0; i < parser.getDataPresent().length; i++) {
@@ -290,8 +300,8 @@ public class MarkerBlast {
 						String refStrand = null;
 						TOP_BOT topBotProbe = TOP_BOT.valueOf(parser.getStringDataForTitle("IlmnStrand")[i].toUpperCase());
 						TOP_BOT topBotRef = TOP_BOT.valueOf(parser.getStringDataForTitle("SourceStrand")[i].toUpperCase());
-						if (hasRefStrand) {
-							refStrand = parser.getStringDataForTitle("RefStrand")[i];
+						if (refStrandTitle != null) {
+							refStrand = parser.getStringDataForTitle(refStrandTitle)[i];
 						} else {
 							refStrand = parseStrandFromIlmnID(parser.getStringDataForTitle("IlmnID")[i].split("_"), topBotProbe);
 						}
@@ -305,7 +315,7 @@ public class MarkerBlast {
 							return null;
 						}
 						if (seqA.length() != seqLength) {
-							proj.getLog().reportTimeError("Sequence " + seqA + " did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength());
+							proj.getLog().reportTimeError("Sequence " + seqA + " did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength() + " " + markerName);
 							return null;
 						}
 
@@ -643,17 +653,22 @@ public class MarkerBlast {
 			builder.dataKeyColumnName("Name");
 			String[] headerFlags = new String[] { "Name", "AlleleA_ProbeSeq" };
 			builder.headerFlags(headerFlags);
-			boolean hasRef = true;
+			String ref = null;
 			String[] header = Files.getLineContaining(strandReportFile, ",", headerFlags, proj.getLog());
 			if (header != null) {
-				hasRef = ext.indexOfStr("RefStrand", header) >= 0;
+				if (ext.indexOfStr("RefStrand", header) >= 0) {
+					ref = "RefStrand";
+				} else if (ext.indexOfStr("GenomicStrand", header) >= 0) {
+					ref = "GenomicStrand";
+				}
+
 			} else {
 				proj.getLog().reportTimeError("Header of " + strandReportFile + " did not contain " + Array.toStr(header));
 				return null;
 			}
 			String[] dataTitles = new String[] { "AlleleA_ProbeSeq", "AlleleB_ProbeSeq", "SNP", "IlmnStrand", "SourceStrand", "SourceSeq", "IlmnID" };
-			if (hasRef) {
-				dataTitles = Array.concatAll(dataTitles, new String[] { "RefStrand" });
+			if (ref != null) {
+				dataTitles = Array.concatAll(dataTitles, new String[] { ref });
 			} else {
 				proj.getLog().reportTimeWarning(strandReportFile + " did not have a column for RefStrand, will determine strand from IlmnID but these will be inacurate, forward assigned to +");
 				// proj.getLog().reportTimeError("Actully we are stopping, get the strands from http://www.well.ox.ac.uk/~wrayner/strand/");
@@ -849,7 +864,9 @@ public class MarkerBlast {
 						lineMP[0] = line[extract[0]];
 						lineMP[1] = line[extract[1]];
 						lineMP[2] = line[extract[2]];
-
+						if (lineMP[2].equals("0")) {
+							lineMP[1] = "0";
+						}
 					} catch (ArrayIndexOutOfBoundsException aOfBoundsException) {
 						log.reportTimeWarning("Skipping line " + Array.toStr(line));
 						lineMP = null;
