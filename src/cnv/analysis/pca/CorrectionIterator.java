@@ -1117,7 +1117,7 @@ class CorrectionIterator implements Serializable {
 				}
 			}
 			Files.writeList(Array.toStringArray(toEvaluate), markerQCFile);
-			LrrSd.init(proj, null, markerQCFile, markerQCFile, null, numthreads);
+			LrrSd.init(proj, null, markerQCFile, markerQCFile, numthreads, null);
 		}
 		CorrectionIterator[] cIterators = getIterations(proj, markesToEvaluate, samplesToBuildModels, outputDir, lType, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numthreads);
 		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
