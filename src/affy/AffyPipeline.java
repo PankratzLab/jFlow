@@ -474,8 +474,8 @@ public class AffyPipeline {
 							Files.copyFileUsingFileChannels(markerPositions, proj.MARKER_POSITION_FILENAME.getValue(), log);
 						}
 						// proj.MARKER_POSITION_FILENAME.setValue(markerPositions);
-						if (proj.getSourceFileHeaders(true) == null || proj.getSourceFileHeaders(true).size() == 0 || Files.exists(proj.PROJECT_DIRECTORY.getValue() + "source.headers")) {
-							new File(proj.PROJECT_DIRECTORY.getValue() + "source.headers").delete();
+						if (proj.getSourceFileHeaders(true) == null || proj.getSourceFileHeaders(true).size() == 0 || Files.exists(proj.PROJECT_DIRECTORY.getValue() + Project.HEADERS_FILENAME)) {
+							new File(proj.PROJECT_DIRECTORY.getValue() + Project.HEADERS_FILENAME).delete();
 						}
 						// proj.setSourceFileHeaders(proj.getSourceFileHeaders(true));
 						proj.saveProperties();

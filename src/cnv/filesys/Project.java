@@ -459,6 +459,9 @@ public class Project {
 	    return progressMonitor;
 	}
 
+	
+	public static final String HEADERS_FILENAME = "source_headers.ser";
+	
 	public Project() {
 		sampleList = null;
 		sampleData = null;
@@ -594,6 +597,13 @@ public class Project {
 	@SuppressWarnings("unchecked")
     private HashMap<String, SourceFileHeaderData> readHeadersFile(boolean waitIfMissing) {
 	    String file = PROJECT_DIRECTORY.getValue() + "source.headers";
+	    
+	    if (Files.exists(file)) {
+	        log.report("Found source.headers file, renaming to " + HEADERS_FILENAME);
+	        (new File(file)).renameTo(new File(PROJECT_DIRECTORY.getValue() + HEADERS_FILENAME));
+	    }
+	    file = PROJECT_DIRECTORY.getValue() + HEADERS_FILENAME;
+	    
 	    if (Files.exists(file)) {
 	        HashMap<String, SourceFileHeaderData> headers = (HashMap<String, SourceFileHeaderData>) Files.readSerial(file, JAR_STATUS.getValue().booleanValue(), getLog(), false);
 	        if (headers != null) {
@@ -634,7 +644,7 @@ public class Project {
     }
 	
 	private void writeHeadersFile() {
-	    Files.writeSerial(sourceFileHeaders, PROJECT_DIRECTORY.getValue() + "source.headers");
+	    Files.writeSerial(sourceFileHeaders, PROJECT_DIRECTORY.getValue() + HEADERS_FILENAME);
 	}
 	
 	public Logger getLog() {
