@@ -1,16 +1,17 @@
 package one.JL;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import common.Array;
 import common.Files;
 import common.HashVec;
 import common.PSF;
 import common.ext;
+import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
-import cnv.manage.Stats;
 import cnv.qc.MarkerMetrics;
 import cnv.qc.SexChecks;
 import cnv.var.SampleData;
@@ -20,6 +21,8 @@ import cnv.var.SampleData;
  *
  */
 public class AutoMito {
+	
+	private static final String[] metrics = { "CallRate", "HetEx", "LRR_SEX_z" };
 
 	private static void run(Project proj, String name, String mitoMarks, int maxNumMarkers, double callRateSamp, double callRateMarker, double hetExMarker, double sexZscore, double lrrSDSamp, int numThreads) {
 		long arrayLength = maxNumMarkers * proj.getSamples().length;
@@ -60,15 +63,42 @@ public class AutoMito {
 		}
 		proj.SAMPLE_DATA_FILENAME.setValue(temporarySampleDataWithSex);
 
+		
+		String baseSampleQC =qcDir+name+"_baseSampleQC.txt";
+		proj.SAMPLE_QC_FILENAME.setValue(baseSampleQC);
+		
 		new File(qcDir).mkdirs();
+		MarkerSet markerSet = proj.getMarkerSet();//remove CN only
+		
 		String baseMarkerQC = qcDir + name + "_base_markerQC.txt";
+		proj.MARKER_METRICS_FILENAME.setValue(baseMarkerQC);
+
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
+			ArrayList<String> nonCN_Only = new ArrayList<String>();
+			for (int i = 0; i < markerSet.getMarkerNames().length; i++) {
+				if (!proj.getArrayType().isCNOnly(markerSet.getMarkerNames()[i])) {
+					nonCN_Only.add(markerSet.getMarkerNames()[i]);
+				}
+			}
+			Files.writeArrayList(nonCN_Only, ext.addToRoot(baseMarkerQC, ".nonCNOnlyMarkers"));
 			MarkerMetrics.fullQC(proj, null, null, false, numThreads);
 		}
 		proj.getLog().reportTimeInfo("Loading " + baseMarkerQC);
 		ExtProjectDataParser parser;
 		parser = MarkerMetrics.developParser(proj, baseMarkerQC);
+		for (int i = 0; i < parser.getNumericData().length; i++) {
+//			double[] metricData = 
+			
+		}
 
+		//R1 sample QC
+		//R2 marker QC
+		//R2 sample QC
+		
+		//recomp lrrs
+		
+		
+		
 		proj = new Project(proj.getPropertyFilename(), false);// reset everything
 
 	}
