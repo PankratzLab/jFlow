@@ -22,6 +22,7 @@ import stats.CrossValidation;
 import stats.LeastSquares;
 import stats.RegressionModel;
 import stats.StatsCrossTabs;
+import stats.LeastSquares.LS_TYPE;
 import stats.StatsCrossTabs.STAT_TYPE;
 import stats.StatsCrossTabs.StatsCrossTabRank;
 import stats.StatsCrossTabs.VALUE_TYPE;
@@ -150,12 +151,12 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	public double computeResiduals() {
 		// TODO, add svdRegression option
 		// RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis));
-		boolean svd = false;
+		LS_TYPE lType = LS_TYPE.REGULAR;
 		if (numComponents > NUM_PC_SVD_OVERIDE) {
 			log.reportTimeInfo("Number of components " + numComponents + " greater than " + NUM_PC_SVD_OVERIDE + ", switching to svd regression");
-			svd = true;
+			lType = LS_TYPE.SVD;
 		}
-		RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis), null, false, true, svd);
+		RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis), null, false, true, lType);
 		double R2 = Double.NaN;
 		if (!model.analysisFailed()) {
 			this.residuals = model.getResiduals();
@@ -640,8 +641,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 *            the number of components to include, starting from PC 1
 	 * @return the results of each training/validation combination
 	 */
-	public CrossValidation[] crossValidate(int kFolds, int numComponents, boolean svdRegression) {
-		return CrossValidation.kFoldCrossValidate(assesmentData, prepPcs(trimPcBasis(numComponents, pcBasis, log)), kFolds, false, svdRegression, log);
+	public CrossValidation[] crossValidate(int kFolds, int numComponents, LS_TYPE lType) {
+		return CrossValidation.kFoldCrossValidate(assesmentData, prepPcs(trimPcBasis(numComponents, pcBasis, log)), kFolds, false, lType, log);
 	}
 
 	/**
@@ -660,7 +661,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 *            val_pcs If another {@linkPrincipalComponentsResiduals} is provided, this file will become the validation set
 	 * @return the results of each training/validation combination
 	 */
-	public CrossValidation[][] crossValidate(int kFolds, int[] numComponentsIter, int numThreads, boolean svdRegression, String tmpOutput, PrincipalComponentsResiduals val_pcs) {
+	public CrossValidation[][] crossValidate(int kFolds, int[] numComponentsIter, int numThreads, LS_TYPE lType, String tmpOutput, PrincipalComponentsResiduals val_pcs) {
 		if (tmpOutput != null && Files.exists(tmpOutput)) {
 			new File(tmpOutput).delete();
 		}
@@ -668,7 +669,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);// da pool of threads
 		ArrayList<Future<CrossValidation[]>> tmpResults = new ArrayList<Future<CrossValidation[]>>();// stores the future CrossValidation[] that will be actualized once the thread has finished
 		for (int i = 0; i < numComponentsIter.length; i++) {// need to submit the jobs first
-			WorkerPCThread worker = new WorkerPCThread(assesmentData, prepPcs(trimPcBasis(Math.min(numComponentsIter[i], numComponents), pcBasis, log)), kFolds, tmpOutput, svdRegression, val_pcs, log);
+			WorkerPCThread worker = new WorkerPCThread(assesmentData, prepPcs(trimPcBasis(Math.min(numComponentsIter[i], numComponents), pcBasis, log)), kFolds, tmpOutput, lType, val_pcs, log);
 			tmpResults.add(executor.submit(worker));// tracks the future object
 		}
 		for (int i = 0; i < numComponentsIter.length; i++) {
@@ -699,11 +700,11 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		private double[] deps;
 		private double[][] indeps;
 		private int kFolds;
-		private boolean svdRegression;
+		private LS_TYPE lType;
 		private String tmpOutput;
 		private Logger log;
 
-		public WorkerPCThread(double[] deps, double[][] indeps, int kFolds, String tmpOutput, boolean svdRegression, PrincipalComponentsResiduals val_pcs, Logger log) {
+		public WorkerPCThread(double[] deps, double[][] indeps, int kFolds, String tmpOutput, LS_TYPE lType, PrincipalComponentsResiduals val_pcs, Logger log) {
 			super();
 			this.deps = deps;
 			this.indeps = indeps;
@@ -711,7 +712,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			this.tmpOutput = tmpOutput;
 			this.fullModelR2 = Double.NaN;
 			this.fullModelSSerr = Double.NaN;
-			this.svdRegression = svdRegression;
+			this.lType = lType;
 			this.val_pcs = val_pcs;
 			this.log = log;
 		}
@@ -722,11 +723,11 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			long time = System.currentTimeMillis();
 			CrossValidation[] crossValidation;
 			if (val_pcs == null) {
-				crossValidation = CrossValidation.kFoldCrossValidate(deps, indeps, kFolds, true, svdRegression, log);
+				crossValidation = CrossValidation.kFoldCrossValidate(deps, indeps, kFolds, true, lType, log);
 			} else {
 				// if we cannot trim to a particular number of components, the crossvalidation will fail and will be ignored
 				double[][] val_basis = prepPcs(trimPcBasis(Math.min(indeps[0].length, val_pcs.getNumComponents()), val_pcs.getPcBasis(), log));
-				crossValidation = CrossValidation.kFoldCrossValidateOutSample(deps, indeps, val_pcs.getMedians(), val_basis, kFolds, true, svdRegression, log);
+				crossValidation = CrossValidation.kFoldCrossValidateOutSample(deps, indeps, val_pcs.getMedians(), val_basis, kFolds, true, lType, log);
 			}
 			log.report(ext.getTime() + " Info - finished validations for PC" + indeps[0].length + " and took " + ext.getTimeElapsed(time));
 			char S = 'S';
@@ -737,7 +738,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 
 		private void computeFullModel() {
 			if (deps.length > indeps[0].length + 1) {
-				RegressionModel model = (RegressionModel) new LeastSquares(deps, indeps, null, false, true, svdRegression);
+				RegressionModel model = (RegressionModel) new LeastSquares(deps, indeps, null, false, true, lType);
 				if (!model.analysisFailed()) {
 					fullModelR2 = model.getRsquare();
 					fullModelSSerr = computeFullModelSSerr(model.getResiduals());
@@ -842,8 +843,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		return sortedByProject;
 	}
 
-	public CrossValidation getCorrectedDataAt(double[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title, boolean verbose) {
-		return getCorrectedDataAt(data, null, samplesTobuildModel, numComponentsForModel, svdRegression, title, verbose);
+	public CrossValidation getCorrectedDataAt(double[] data, boolean[] samplesTobuildModel, int numComponentsForModel, LS_TYPE lType, String title, boolean verbose) {
+		return getCorrectedDataAt(data, null, samplesTobuildModel, numComponentsForModel, lType, title, verbose);
 	}
 
 	/**
@@ -864,7 +865,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	 * @return a computed {@link CrossValidation}
 	 * 
 	 */
-	public CrossValidation getCorrectedDataAt(double[] data, double[][] extraIndeps, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title, boolean verbose) {
+	public CrossValidation getCorrectedDataAt(double[] data, double[][] extraIndeps, boolean[] samplesTobuildModel, int numComponentsForModel, LS_TYPE lType, String title, boolean verbose) {
 		int numSamples = proj.getSamples().length;
 		boolean go = true;
 		CrossValidation cval;
@@ -909,12 +910,12 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			proj.getLog().report("Warning - an extra step will be taken to allign the principal components to individuals in the project");
 		}
 		if (!go) {
-			cval = new CrossValidation(new double[0], new double[0][0], new double[0], new double[0][0], true, svdRegression, proj.getLog());
+			cval = new CrossValidation(new double[0], new double[0][0], new double[0], new double[0][0], true, lType, proj.getLog());
 			cval.setAnalysisFailed(true);
 		} else {
-			if (svdRegression) {
-				svdRegression = numComponentsForModel > NUM_PC_SVD_OVERIDE;
-				if (!svdRegression) {
+			if (lType == LS_TYPE.SVD) {
+				lType = numComponentsForModel > NUM_PC_SVD_OVERIDE ? LS_TYPE.SVD : LS_TYPE.REGULAR;
+				if (lType == LS_TYPE.REGULAR) {
 					log.reportTimeWarning("Over-riding SVD method since " + numComponentsForModel + " < " + NUM_PC_SVD_OVERIDE);
 				}
 			}
@@ -923,7 +924,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			double[][] train_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(samplesTobuildModel, extraIndeps, numComponentsForModel, log) : Array.subArray(extraIndeps, samplesTobuildModel);
 			double[][] val_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(null, extraIndeps, numComponentsForModel, log) : extraIndeps;
 
-			cval = new CrossValidation(train_deps, train_indeps, data, val_indeps, verbose, svdRegression, proj.getLog());
+			cval = new CrossValidation(train_deps, train_indeps, data, val_indeps, verbose, lType, proj.getLog());
 			cval.train();
 			cval.computePredictedValues();
 			cval.computeResiduals();
@@ -933,8 +934,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 
 	/**
 	 */
-	public static CrossValidation getCorrectedDataAt(PrincipalComponentsResiduals principalComponentsResiduals, float[] data, boolean[] samplesTobuildModel, int numComponentsForModel, boolean svdRegression, String title) {
-		return principalComponentsResiduals.getCorrectedDataAt(Array.toDoubleArray(data), samplesTobuildModel, numComponentsForModel, svdRegression, title, true);
+	public static CrossValidation getCorrectedDataAt(PrincipalComponentsResiduals principalComponentsResiduals, float[] data, boolean[] samplesTobuildModel, int numComponentsForModel, LS_TYPE lType, String title) {
+		return principalComponentsResiduals.getCorrectedDataAt(Array.toDoubleArray(data), samplesTobuildModel, numComponentsForModel, lType, title, true);
 	}
 
 	/**

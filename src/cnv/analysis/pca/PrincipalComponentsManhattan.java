@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 
 import stats.CrossValidation;
+import stats.LeastSquares.LS_TYPE;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -80,7 +81,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	/**
 	 * computes for all markers
 	 */
-	public void populateResults(int numThreads, boolean verbose, boolean svdRegression) {
+	public void populateResults(int numThreads, boolean verbose, LS_TYPE lType) {
 		getProj().getLog().reportTimeInfo("Generating Manhattan plot(s) from " + markersToTest.length + " markers");
 		MarkerDataLoader markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(getProj(), markersToTest);
 		for (int i = 0; i < markersToTest.length; i++) {
@@ -89,19 +90,19 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			}
 			MarkerData markerData = markerDataLoader.requestMarkerData(i);
 			markerDataLoader.releaseIndex(i);
-			populateDataForMarker(numThreads, verbose, svdRegression, i, markerData);
+			populateDataForMarker(numThreads, verbose, lType, i, markerData);
 		}
 	}
 
 	/**
 	 * So that this can be done in conjunction with other marker based things
 	 */
-	public void populateDataForMarker(int numThreads, boolean verbose, boolean svdRegression, int i, MarkerData markerData) {
+	public void populateDataForMarker(int numThreads, boolean verbose, LS_TYPE lType, int i, MarkerData markerData) {
 		double[] lrrs = Array.toDoubleArray(markerData.getLRRs());
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 		Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
 		for (int j = 0; j < manhattanTests.length; j++) {
-			tmpResults.put(j + "", executor.submit(new ManhattanTestWorker(manhattanTests[j], lrrs, verbose, svdRegression, getProj().getLog())));
+			tmpResults.put(j + "", executor.submit(new ManhattanTestWorker(manhattanTests[j], lrrs, verbose, lType, getProj().getLog())));
 		}
 		for (int j = 0; j < manhattanTests.length; j++) {
 			try {
@@ -177,15 +178,15 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		private ManhattanTest mTest;
 		private double[] dataToTest;
 		private boolean verbose;
-		private boolean svdRegression;
+		private LS_TYPE lType;
 		private Logger log;
 
-		public ManhattanTestWorker(ManhattanTest mTest, double[] dataToTest, boolean verbose, boolean svdRegression, Logger log) {
+		public ManhattanTestWorker(ManhattanTest mTest, double[] dataToTest, boolean verbose, LS_TYPE lType, Logger log) {
 			super();
 			this.mTest = mTest;
 			this.dataToTest = dataToTest;
 			this.verbose = verbose;
-			this.svdRegression = svdRegression;
+			this.lType = lType;
 			this.log = log;
 		}
 
@@ -194,7 +195,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			if (verbose) {
 				log.reportTimeInfo("Executing on thread" + Thread.currentThread().getName());
 			}
-			return mTest.testData(dataToTest, verbose, svdRegression, log);
+			return mTest.testData(dataToTest, verbose, lType, log);
 		}
 	}
 
@@ -211,7 +212,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			this.dataMask = dataMask;
 		}
 
-		public double[] testData(double[] dataToTest, boolean verbose, boolean svdRegression, Logger log) {
+		public double[] testData(double[] dataToTest, boolean verbose, LS_TYPE lType, Logger log) {
 			if (dataToTest.length != dataTest.length) {
 				log.reportTimeError("Mismatched array sizes for regression input");
 			}
@@ -223,7 +224,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 				tmpdep = Array.subArray(tmpdep, dataMask);
 				tmpInd = Array.subArray(tmpInd, dataMask);
 			}
-			CrossValidation crossValidation = new CrossValidation(tmpdep, Matrix.toMatrix(tmpInd), tmpdep, Matrix.toMatrix(tmpInd), verbose, svdRegression, log);
+			CrossValidation crossValidation = new CrossValidation(tmpdep, Matrix.toMatrix(tmpInd), tmpdep, Matrix.toMatrix(tmpInd), verbose, lType, log);
 			crossValidation.train();
 			crossValidation.computePredictedValues();
 			crossValidation.computeResiduals();
@@ -330,16 +331,16 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	public static void createManhattans(Project proj) {
 //		int numComponents = proj.getInt(proj.INTENSITY_PC_NUM_COMPONENTS);
 		int numComponents = proj.INTENSITY_PC_NUM_COMPONENTS.getValue();
-		createManhattans(proj, "Manhattan/manhattan", null, numComponents, 1, false, numComponents >= 250);
+		createManhattans(proj, "Manhattan/manhattan", null, numComponents, 1, false, numComponents >= 250 ? LS_TYPE.SVD : LS_TYPE.REGULAR);
 	}
 
-	public static void createManhattans(Project proj, String outputBase, String altDataFile, int numPCs, int numThreads, boolean verbose, boolean svdRegression) {
+	public static void createManhattans(Project proj, String outputBase, String altDataFile, int numPCs, int numThreads, boolean verbose, LS_TYPE ltType) {
 //		proj.getLog().reportTimeInfo("Loading markers from " + proj.getFilename(proj.TARGET_MARKERS_FILENAME));
 //		String[] markers = HashVec.loadFileToStringArray(proj.getFilename(proj.TARGET_MARKERS_FILENAME), false, new int[] { 0 }, true);
 		proj.getLog().reportTimeInfo("Loading markers from " + proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 		String[] markers = HashVec.loadFileToStringArray(proj.TARGET_MARKERS_FILENAMES.getValue()[0], false, new int[] { 0 }, true);
 		PrincipalComponentsManhattan principalComponentsManhattan = new PrincipalComponentsManhattan(proj, markers, altDataFile == null ? null : proj.PROJECT_DIRECTORY.getValue() + altDataFile, numPCs);
-		principalComponentsManhattan.populateResults(numThreads, verbose, svdRegression);
+		principalComponentsManhattan.populateResults(numThreads, verbose, ltType);
 		outputBase = proj.PROJECT_DIRECTORY.getValue() + outputBase;
 		new File(ext.parseDirectoryOfFile(outputBase)).mkdirs();
 		principalComponentsManhattan.dumpResults(outputBase);
@@ -391,7 +392,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 		}
 		try {
 			Project proj = new Project(filename, logfile, false);
-			createManhattans(proj, outputBase, altDataFile, numPCs, numThreads, false, false);
+			createManhattans(proj, outputBase, altDataFile, numPCs, numThreads, false, LS_TYPE.REGULAR);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

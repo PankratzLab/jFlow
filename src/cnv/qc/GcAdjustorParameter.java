@@ -12,6 +12,7 @@ import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
 import stats.CrossValidation;
+import stats.LeastSquares.LS_TYPE;
 import cnv.analysis.CentroidCompute;
 import cnv.analysis.CentroidCompute.CentroidBuilder;
 import cnv.filesys.Centroids;
@@ -159,7 +160,7 @@ public class GcAdjustorParameter implements Serializable {
 	 */
 	public CrossValidation adjust(GC_CORRECTION_METHOD method, String sampleName, double[] intensity, double[][] gc, boolean verbose, Logger log) {
 		verify(method, sampleName, gc);
-		CrossValidation cv = new CrossValidation(null, null, intensity, gc, verbose, false, log);
+		CrossValidation cv = new CrossValidation(null, null, intensity, gc, verbose, LS_TYPE.REGULAR, log);
 		cv.setBetas(betas);
 		cv.computePredictedValues();
 		cv.computeResiduals();

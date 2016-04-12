@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import stats.LeastSquares.LS_TYPE;
 import common.Files;
 import common.ext;
 import cnv.analysis.PennCNVPrep;
@@ -57,13 +58,13 @@ public class PRoCtOR {
     }
     
     private int getNumComponents() {
-        return 40;
-    }
-    
-    private boolean getSVD() {
-        return false;
-    }
-    
+		return 40;
+	}
+
+	private LS_TYPE getSVD() {
+		return LS_TYPE.REGULAR;
+	}
+
     private static final String SHADOW_DIR = "shadowSamples/";
     
     void run(Project proj) {
@@ -72,7 +73,7 @@ public class PRoCtOR {
         int numThreads = getNumThreads();
         int mkrBuffer = getMarkerBuffer();
         int numComponents = getNumComponents();
-        boolean svdRegression = getSVD();
+        LS_TYPE lType = getSVD();
         
         String[] samples = proj.getSamples();
         String dir = proj.PROJECT_DIRECTORY.getValue() + SHADOW_DIR;
@@ -113,7 +114,7 @@ public class PRoCtOR {
             while (dataLoader.hasNext()) {
                 MarkerData markerData = dataLoader.next();
                 MarkerData markerDataToStore;
-                PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(principalComponentsResiduals, markerData, true, sex, samplesToUseCluster, 1, 0, null, true, svdRegression, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER, PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numThreads, false, null);
+                PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(principalComponentsResiduals, markerData, true, sex, samplesToUseCluster, 1, 0, null, true, lType, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER, PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numThreads, false, null);
                 principalComponentsIntensity.correctXYAt(numComponents);
                 if (principalComponentsIntensity.isFail()) {
                     notCorrected.add(markerData.getMarkerName());

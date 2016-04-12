@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import stats.LeastSquares.LS_TYPE;
 import common.Array;
 import common.Logger;
 import common.Sort;
@@ -115,7 +116,7 @@ public class StatsCrossTabs {
 									}
 								}
 								// log.reportTimeInfo("Using " + newIndeps[0].length + " independant predictors for regression");
-								RegressionModel model = new LeastSquares(data[i], newIndeps, null, false, verbose, false);
+								RegressionModel model = new LeastSquares(data[i], newIndeps, null, false, verbose, LS_TYPE.REGULAR);
 								stat = model.getRsquare();
 								sig = model.getOverallSig();
 								break;

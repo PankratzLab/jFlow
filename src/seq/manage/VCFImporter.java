@@ -396,7 +396,7 @@ public class VCFImporter {
 		String useFile = projNorm.PROJECT_DIRECTORY.getValue() + "VCF_SAMPLES_TO_USE.txt";
 		Files.writeList(Array.subArray(projNorm.getSamples(), projNorm.getSamplesToInclude(null, true)), useFile);
 		projNorm.getSamplesToInclude(null);
-		MitoPipeline.catAndCaboodle(projNorm, numThreads, pretendMedian, 100, projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true, 0.98, useFile, null, null, true, true, false, true, false, null, -1, -1, GENOME_BUILD.HG19);
+		MitoPipeline.catAndCaboodle(projNorm, numThreads, pretendMedian, 100, projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true, 0.98, useFile, null, null, true, true, true, false, true, false, null, -1, -1, GENOME_BUILD.HG19);
 		SampleQC sampleQC = SampleQC.loadSampleQC(projNorm);
 		sampleQC.addQCsToSampleData(5, true);
 		sampleQC.addPCsToSampleData(5, 10, true);
