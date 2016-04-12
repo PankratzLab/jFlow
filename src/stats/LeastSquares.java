@@ -302,7 +302,7 @@ public class LeastSquares extends RegressionModel {
 
 			switch (lType) {
 			case OLS:
-				break;
+				throw new IllegalArgumentException("Why don't you implement this first");
 			case REGULAR:
 				linregr();
 				break;

@@ -1712,7 +1712,7 @@ class CorrectionIterator implements Serializable {
 		String proj = null;
 		String markers = null;
 		String defaultDir = null;
-		boolean svd = false;
+		LS_TYPE lstype = LS_TYPE.SVD;
 		int numThreads = 3;
 		String samplesToBuildModels = null;
 		String pcFile = null;
@@ -1726,7 +1726,7 @@ class CorrectionIterator implements Serializable {
 		usage += "   (2) markers to Evaluate (i.e. markers=" + markers + " (default))\n" + "";
 		usage += PSF.Ext.getOutputDirCommand(3, defaultDir);
 		usage += PSF.Ext.getNumThreadsCommand(4, numThreads);
-		usage += "   (5) svd regression (i.e.-svd (not default))\n" + "";
+		usage += "   (5) type of linear regression (i.e. lstype="+lstype+" ( default, options are "+java.util.Arrays.asList(LS_TYPE.values())+"\n" + "";
 		usage += "   (6) samples to generate models (i.e.samples= (no default))\n" + "";
 		usage += "   (7) ped file to generate heritability (i.e.ped= (no default))\n" + "";
 		usage += "   (8) alternate pc file to use (i.e.pcFile= (no default))\n" + "";
@@ -1760,8 +1760,8 @@ class CorrectionIterator implements Serializable {
 			} else if (args[i].startsWith("ped=")) {
 				pedFile = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("-svd")) {
-				svd = true;
+			} else if (args[i].startsWith("lstype=")) {
+				lstype = LS_TYPE.valueOf(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("pcFile=")) {
 				pcFile = ext.parseStringArg(args[i], "");
@@ -1793,7 +1793,7 @@ class CorrectionIterator implements Serializable {
 					lrrSdCut = 0.35;
 				}
 			}
-			runAll(project, markers, samplesToBuildModels, defaultDir, pcFile, pedFile, svd ? LS_TYPE.SVD : LS_TYPE.REGULAR, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numThreads);
+			runAll(project, markers, samplesToBuildModels, defaultDir, pcFile, pedFile, lstype, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
