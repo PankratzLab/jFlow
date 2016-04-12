@@ -437,13 +437,8 @@ public class GenvisisWorkflow {
             } catch (NumberFormatException e) {
                 proj.getLog().report("Couldn't parse number of threads argument: {" + variables.get(this).get(1) + "}, using default of {" + numThreads + "}");
             }
-            String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
-            String markersForEverything = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
 
-            markersForAB = Files.exists(markersForAB) ? markersForAB : null;
-            markersForEverything = Files.exists(markersForEverything) ? markersForEverything : null;
-
-            LrrSd.init(proj, null, markersForAB, markersForEverything, null, numThreads);
+            LrrSd.init(proj, null, null, numThreads, false);
         }
 
         @Override
@@ -471,28 +466,15 @@ public class GenvisisWorkflow {
 
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            proj.getLog().report("Running LrrSd");
             int numThreads = proj.NUM_THREADS.getValue();
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {
             }
-            String markersForAB = Files.exists(proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE) ? proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE : proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
-            String markersForEverything = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
-
-            markersForAB = Files.exists(markersForAB) ? markersForAB : null;
-            markersForEverything = Files.exists(markersForEverything) ? markersForEverything : null;
 
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
-            cmd.append("jcp cnv.qc.LrrSd")/*.append(" -filter")*/.append(" proj=").append(projPropFile);
-            if (markersForAB != null) {
-                cmd.append(" callRateMarkers=").append(markersForAB);
-            }
-            if (markersForEverything != null) {
-                cmd.append(" otherMarkers=").append(markersForEverything);
-            }
-            cmd.append(" threads=").append(numThreads);
+            cmd.append("jcp cnv.qc.LrrSd").append(" proj=").append(projPropFile).append(" threads=").append(numThreads).append(" projectMarkers=TRUE");
             return cmd.toString();
         }
     };

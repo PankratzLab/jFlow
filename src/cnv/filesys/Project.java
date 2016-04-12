@@ -1397,6 +1397,16 @@ public class Project {
 		return outliers;
 	}
 	
+	public boolean[] getCNMarkers() {
+	    String[] mkrs = getMarkerNames();
+        boolean[] cnB = new boolean[mkrs.length];
+        ARRAY myArrayType = this.ARRAY_TYPE.getValue();
+	    for (int i = 0; i < mkrs.length; i++) {
+	        cnB[i] = myArrayType.isCNOnly(mkrs[i]);
+	    }
+	    return cnB;
+	}
+	
 	public String[] getAutosomalMarkers() {
 		MarkerSet markerSet = getMarkerSet();
 		byte[] chrs = markerSet.getChrs();

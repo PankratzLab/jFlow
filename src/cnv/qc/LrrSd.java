@@ -432,7 +432,7 @@ public class LrrSd extends Parallelizable {
         } else {
             log.report("Computing sample QC for all samples...");
             log.report("Will be reporting sample qc to " + proj.SAMPLE_QC_FILENAME.getValue());
-            cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, null, numThreads);
+            cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, numThreads, null);
             if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
         }
 
@@ -531,92 +531,143 @@ public class LrrSd extends Parallelizable {
 		init(proj, customSampleFileList, null, null, centroidsFile, numThreads);
 	}
 
-	public static void init(Project proj, String customSampleFileList, String markersForCallrateFile, String markersForEverythingElseFile, String centroidsFile, int numThreads) {
-		String[] samples, subsamples;
-		String[][] threadSeeds;
-		LrrSd[] runables;
-		boolean error;
-		String[] markers;
-		boolean[] markersForCallrate, markersForEverythingElse;
-		BaselineUnclusteredMarkers bum;
-		GcModel gcModel;
-		Logger log;
-		
-		
-		error = false;
-		log = proj.getLog();
-		samples = proj.getSamples();
-		if (customSampleFileList != null) {
-			subsamples = HashVec.loadFileToStringArray(customSampleFileList, false, new int[] {0}, false);
-			for (int i = 0; i < subsamples.length; i++) {
-				if (ext.indexOfStr(subsamples[i], samples) == -1) {
-					log.reportError("Error - subsample '"+subsamples[i]+"' was not found in the list of samples of project '"+proj.PROJECT_NAME.getValue()+"'");
-					error = true;
-				}
-			}
-			if (error) {
-				log.reportError("Error - missing some samples, QC will not be performed");
-				return;
-			} else {
-				samples = subsamples;
-			}
-		}
-		
-		if(!BaselineUnclusteredMarkers.baselineUnclusteredMarkersFileExists(proj)){
-			log.report("Baseline Unclustered Markers file does not exist and will be created now");
-			if(!BaselineUnclusteredMarkers.createBaselineUnclusteredMarkersFileFromSamples(proj)){
-				log.reportError("Error - Baseline Unclustered Markers file could not be created");
-				return;
-			}
-		}
-		
-		markers = proj.getMarkerNames();
-		if (markersForCallrateFile != null) {
-			markersForCallrate = getMarkerSubset(proj,HashVec.loadFileToStringArray(markersForCallrateFile, false, new int[] { 0 }, false), markers);
-			if (markersForCallrate == null) {
-				log.reportError("Error - Some markers listed in " + markersForCallrateFile + " were not found in the current project, or were duplicates");
-				return;
-			}
-		} else {
-			markersForCallrate = new boolean[markers.length];
-			Arrays.fill(markersForCallrate, true);
-		}
-		bum = BaselineUnclusteredMarkers.getProjBaselineUnclusteredMarkers(proj);
-		for (int i = 0; i < markersForCallrate.length; i++){
-			if(markersForCallrate[i] && bum.markerUnclustered(markers[i])) {
-				markersForCallrate[i] = false;
-			}
-		}
-		markersForEverythingElse = null;
-		if (markersForEverythingElseFile != null) {
-			markersForEverythingElse = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForEverythingElseFile, false, new int[] { 0 }, false), markers);
-			if (markersForEverythingElse == null) {
-				log.reportError("Error - Some markers listed in " + markersForEverythingElseFile + " were not found in the current project, or were duplicates");
-				return;
-			}
-		}
-
-		gcModel = null;
-		if (Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
-			gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, log);
-			if (gcModel == null) {
-				log.reportError("Error - detected the gc model defined by " + proj.GC_MODEL_FILENAME + " as " + proj.GC_MODEL_FILENAME.getValue(false, false) + " in property file " + proj.getPropertyFilename() + " exists, but an error occurred while loading the file");
-				log.reportError("	   - If you would like to skip WF and GCWF qc metrics, either change the " + proj.GC_MODEL_FILENAME + " property to a filename that does not exist, or change the name of " + proj.GC_MODEL_FILENAME.getValue(false, false));
-				return;
-			}
-		} else {
-			log.report("Info - did not find gc model file " + proj.GC_MODEL_FILENAME.getValue(false, false) + ", skipping gc correction and related qc");
-		}
-
-		threadSeeds = Parallelizable.splitList(samples, numThreads, false);
-		runables = new LrrSd[numThreads];
-		for (int i = 0; i<numThreads; i++) {
-			runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, markersForEverythingElse, centroidsFile, gcModel, i + 1, numThreads);
-        }
-		
-		Parallelizable.launch(runables, log);
+	public static void init(Project proj, String customSampleFileList, String centroidsFile, int numThreads, boolean useAllMarkers) {
+	    boolean[] callRate = null;
+	    boolean[] theRest = null;
+	    
+	    if (!useAllMarkers) {
+	        callRate = Array.booleanNegative(proj.getCNMarkers());
+	        theRest = proj.getAutosomalMarkerBoolean();
+	        if(callRate.length != theRest.length) {
+	            proj.getLog().reportError("Error -- array lengths differ between proj.getCNMarkers() and proj.getAutosomalMarkerBoolean().  Please report or fix this.");
+	            return;
+	        }
+	        for (int i = 0; i < callRate.length; i++) {
+	            if (!callRate[i] && theRest[i]) {
+	                theRest[i] = false;
+	            }
+	        }
+	    }
+	    
+	    init(proj, customSampleFileList, callRate, theRest, centroidsFile, numThreads);
 	}
+	
+	public static void init(Project proj, String customSampleFileList, String markersForCallrateFile, String markersForEverythingElseFile, int numThreads, String centroidsFile) {
+    	String[] markers;
+    	boolean[] markersForCallrate, markersForEverythingElse;
+    	BaselineUnclusteredMarkers bum;
+    	Logger log;
+    	
+    	log = proj.getLog();
+    	
+    	if(!BaselineUnclusteredMarkers.baselineUnclusteredMarkersFileExists(proj)){
+    		log.report("Baseline Unclustered Markers file does not exist and will be created now");
+    		if(!BaselineUnclusteredMarkers.createBaselineUnclusteredMarkersFileFromSamples(proj)){
+    			log.reportError("Error - Baseline Unclustered Markers file could not be created");
+    			return;
+    		}
+    	}
+    	
+    	markers = proj.getMarkerNames();
+    	if (markersForCallrateFile != null) {
+    		markersForCallrate = getMarkerSubset(proj,HashVec.loadFileToStringArray(markersForCallrateFile, false, new int[] { 0 }, false), markers);
+    		if (markersForCallrate == null) {
+    			log.reportError("Error - Some markers listed in " + markersForCallrateFile + " were not found in the current project, or were duplicates");
+    			return;
+    		}
+    	} else {
+    		markersForCallrate = new boolean[markers.length];
+    		Arrays.fill(markersForCallrate, true);
+    	}
+    	bum = BaselineUnclusteredMarkers.getProjBaselineUnclusteredMarkers(proj);
+    	for (int i = 0; i < markersForCallrate.length; i++){
+    		if(markersForCallrate[i] && bum.markerUnclustered(markers[i])) {
+    			markersForCallrate[i] = false;
+    		}
+    	}
+    	markersForEverythingElse = null;
+    	if (markersForEverythingElseFile != null) {
+    		markersForEverythingElse = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersForEverythingElseFile, false, new int[] { 0 }, false), markers);
+    		if (markersForEverythingElse == null) {
+    			log.reportError("Error - Some markers listed in " + markersForEverythingElseFile + " were not found in the current project, or were duplicates");
+    			return;
+    		}
+    	}
+    	
+    	init(proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile, numThreads);
+    }
 
+    public static void init(Project proj, String customSampleFileList, boolean[] markersForCallrate, boolean[] markersForEverythingElse, String centroidsFile, int numThreads) {
+	    String[] samples, subsamples;
+        String[][] threadSeeds;
+        LrrSd[] runables;
+        boolean error;
+        String[] markers;
+        BaselineUnclusteredMarkers bum;
+        GcModel gcModel;
+        Logger log;
+        
+        
+        error = false;
+        log = proj.getLog();
+        samples = proj.getSamples();
+        if (customSampleFileList != null) {
+            subsamples = HashVec.loadFileToStringArray(customSampleFileList, false, new int[] {0}, false);
+            for (int i = 0; i < subsamples.length; i++) {
+                if (ext.indexOfStr(subsamples[i], samples) == -1) {
+                    log.reportError("Error - subsample '"+subsamples[i]+"' was not found in the list of samples of project '"+proj.PROJECT_NAME.getValue()+"'");
+                    error = true;
+                }
+            }
+            if (error) {
+                log.reportError("Error - missing some samples, QC will not be performed");
+                return;
+            } else {
+                samples = subsamples;
+            }
+        }
+        
+        if(!BaselineUnclusteredMarkers.baselineUnclusteredMarkersFileExists(proj)){
+            log.report("Baseline Unclustered Markers file does not exist and will be created now");
+            if(!BaselineUnclusteredMarkers.createBaselineUnclusteredMarkersFileFromSamples(proj)){
+                log.reportError("Error - Baseline Unclustered Markers file could not be created");
+                return;
+            }
+        }
+        
+        markers = proj.getMarkerNames();
+        if (markersForCallrate == null) {
+            markersForCallrate = new boolean[markers.length];
+            Arrays.fill(markersForCallrate, true);
+        }
+        bum = BaselineUnclusteredMarkers.getProjBaselineUnclusteredMarkers(proj);
+        for (int i = 0; i < markersForCallrate.length; i++){
+            if(markersForCallrate[i] && bum.markerUnclustered(markers[i])) {
+                markersForCallrate[i] = false;
+            }
+        }
+
+        gcModel = null;
+        if (Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
+            gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, log);
+            if (gcModel == null) {
+                log.reportError("Error - detected the gc model defined by " + proj.GC_MODEL_FILENAME + " as " + proj.GC_MODEL_FILENAME.getValue(false, false) + " in property file " + proj.getPropertyFilename() + " exists, but an error occurred while loading the file");
+                log.reportError("      - If you would like to skip WF and GCWF qc metrics, either change the " + proj.GC_MODEL_FILENAME + " property to a filename that does not exist, or change the name of " + proj.GC_MODEL_FILENAME.getValue(false, false));
+                return;
+            }
+        } else {
+            log.report("Info - did not find gc model file " + proj.GC_MODEL_FILENAME.getValue(false, false) + ", skipping gc correction and related qc");
+        }
+
+        threadSeeds = Parallelizable.splitList(samples, numThreads, false);
+        runables = new LrrSd[numThreads];
+        for (int i = 0; i<numThreads; i++) {
+            runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, markersForEverythingElse, centroidsFile, gcModel, i + 1, numThreads);
+        }
+        
+        Parallelizable.launch(runables, log);
+	}
+	
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String filename = null;
@@ -627,6 +678,7 @@ public class LrrSd extends Parallelizable {
 		int numThreads = 1;
 		Project proj;
 		boolean filter = false;
+		boolean projectDefinedMarkers = false;
 		String sampleCallRateFilter = null;
 		String outputBase = null;
 
@@ -638,7 +690,7 @@ public class LrrSd extends Parallelizable {
 		"   (4) optional: if you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"+
 		"   (5) optional: if you only want to compute AB_callrate and Forward_callrate from a subset of the markers, filename of marker list (i.e. callRateMarkers=those.txt (not the default))\n"+
 		"   (6) optional: if you only want to compute the other qc metrics (excluding AB_callrate and Forward_callrate) from a subset of the markers, filename of marker list (i.e. otherMarkers=this.txt (not the default))\n"+
-
+		"   (7) optional: if you only want to compute metrics based on autosomal and non-CN markers (i.e. projectMarkers=TRUE (not the default))\n" + 
 		"   Note: if a gc model is available as defined by the \"GC_MODEL_FILENAME\" property in the project properties file, WF and GCFW (after adjusting for GC content) will be reported\n" +
 		"";
 
@@ -673,6 +725,9 @@ public class LrrSd extends Parallelizable {
 			} else if (args[i].startsWith("callRate=")) {
 			    sampleCallRateFilter = args[i].split("=")[1];
 			    numArgs--;
+			} else if (args[i].startsWith("projectMarkers=")) {
+			    projectDefinedMarkers = ext.parseBooleanArg(args[i]);
+			    numArgs--;
 			}
 		}
 		if (numArgs!=0) {
@@ -687,7 +742,11 @@ public class LrrSd extends Parallelizable {
 				proj.SAMPLE_CALLRATE_THRESHOLD.setValue(Double.parseDouble(sampleCallRateFilter));
 			    filterSamples(proj, outputBase, markersForCallrateFile, markersForEverythingElseFile, numThreads, filenameOfListOfSamples);
 			} else {
-			    init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile, centroids, numThreads);
+			    if (projectDefinedMarkers) {
+			        init(proj, filenameOfListOfSamples, centroids, numThreads, false);
+			    } else {
+			        init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile, numThreads, centroids);
+			    }
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
