@@ -28,22 +28,25 @@ public class LinRegTest {
 		}
 
 		long time = System.currentTimeMillis();
-		LeastSquares ls = new LeastSquares(y, x2, false, true, LS_TYPE.REGULAR);
+		LeastSquares ls = new LeastSquares(y, x2, true, true, LS_TYPE.REGULAR);
 		log.reportTimeElapsed(LS_TYPE.REGULAR.toString(), time);
 		System.out.println(ls.getRsquare());
 		time = System.currentTimeMillis();
-		LeastSquares lssvd = new LeastSquares(y, x2, false, true, LS_TYPE.SVD);
+		LeastSquares lssvd = new LeastSquares(y, x2, true, true, LS_TYPE.SVD);
 		log.reportTimeElapsed(LS_TYPE.SVD.toString(), time);
 		System.out.println(lssvd.getRsquare());
 		time = System.currentTimeMillis();
 		OLSMultipleLinearRegression ols = new OLSMultipleLinearRegression();
 		ols.newSampleData(y, x2);
+		
 		// ols.estimateRegressionParameters();
 		System.out.println(ols.calculateRSquared());
 		log.reportTimeElapsed(LS_TYPE.OLS.toString(), time);
 
 		for (int i = 0; i < ls.getBetas().length; i++) {
-			System.out.println(LS_TYPE.REGULAR + ": " + ls.getBetas()[i] + "\t" + LS_TYPE.SVD + ": " + lssvd.getBetas()[i] + "\tOLS: " + ols.estimateRegressionParameters()[i]);
+			if (i < 10) {
+				System.out.println(LS_TYPE.REGULAR + ": " + ls.getBetas()[i] + "\t" + LS_TYPE.SVD + ": " + lssvd.getBetas()[i] + "\tOLS: " + ols.estimateRegressionParameters()[i]);
+			}
 		}
 
 	}
