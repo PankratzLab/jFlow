@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import stats.CrossValidation;
 import stats.ICC;
+import stats.LeastSquares.LS_TYPE;
 
 public class IntensityCorrectionQC {
 	public static final String OUTPUT_EXT = ".icc";
@@ -38,7 +39,7 @@ public class IntensityCorrectionQC {
 	public static final String INCLUDED_IN_PC = "INCLUDE_IN_MODEL";
 	public static final int INCLUDED_IN_PC_INT = 1;
 
-	public static void ICCtheClasses(Project proj, double[] data, String output, String dir, int startPC, int stopPC, int jumpPC, boolean svdRegression, int numThreads) {
+	public static void ICCtheClasses(Project proj, double[] data, String output, String dir, int startPC, int stopPC, int jumpPC, LS_TYPE lType, int numThreads) {
 		new File(dir).mkdirs();
 		PrincipalComponentsResiduals pcComponentsResiduals = proj.loadPcResids();
 		ClassDefinition[] classDefinitions = ClassDefinition.getClassDefinitionsFromSampleData(proj);
@@ -62,7 +63,7 @@ public class IntensityCorrectionQC {
 		Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
 		double[][] allResults = new double[numTests][];
 		for (int i = startPC; i < stopPC; i += jumpPC) {
-			tmpResults.put(i + "", executor.submit(new WorkerResidual(data, svdRegression, pcComponentsResiduals, classDefinitions, modelDefMask, i, proj.getLog())));
+			tmpResults.put(i + "", executor.submit(new WorkerResidual(data, lType, pcComponentsResiduals, classDefinitions, modelDefMask, i, proj.getLog())));
 		}
 		index = 0;
 		for (int i = startPC; i < stopPC; i += jumpPC) {
@@ -104,16 +105,16 @@ public class IntensityCorrectionQC {
 
 	private static class WorkerResidual implements Callable<double[]> {
 		private double[] data;
-		private boolean svdRegression;
+		private LS_TYPE lType;
 		private PrincipalComponentsResiduals pcComponentsResiduals;
 		private IntensityCorrectionQC.ClassDefinition[] classDefinitions;
 		private boolean[] modelDefMask;
 		private int pc;
 		private Logger log;
 
-		public WorkerResidual(double[] data, boolean svdRegression, PrincipalComponentsResiduals pcComponentsResiduals, IntensityCorrectionQC.ClassDefinition[] classDefinitions, boolean[] modelDefMask, int pc, Logger log) {
+		public WorkerResidual(double[] data, LS_TYPE lType, PrincipalComponentsResiduals pcComponentsResiduals, IntensityCorrectionQC.ClassDefinition[] classDefinitions, boolean[] modelDefMask, int pc, Logger log) {
 			this.data = data;
-			this.svdRegression = svdRegression;
+			this.lType = lType;
 			this.pcComponentsResiduals = pcComponentsResiduals;
 			this.classDefinitions = classDefinitions;
 			this.modelDefMask = modelDefMask;
@@ -122,16 +123,16 @@ public class IntensityCorrectionQC {
 		}
 
 		public double[] call() {
-			return IntensityCorrectionQC.computeAt(this.data, this.svdRegression, this.pcComponentsResiduals, this.classDefinitions, this.modelDefMask, this.pc, this.log);
+			return IntensityCorrectionQC.computeAt(this.data, this.lType, this.pcComponentsResiduals, this.classDefinitions, this.modelDefMask, this.pc, this.log);
 		}
 	}
 
-	public static double[] computeAt(double[] data, boolean svdRegression, PrincipalComponentsResiduals pcComponentsResiduals, ClassDefinition[] classDefinitions, boolean[] modelDefMask, int pc, Logger log) {
+	public static double[] computeAt(double[] data, LS_TYPE lType, PrincipalComponentsResiduals pcComponentsResiduals, ClassDefinition[] classDefinitions, boolean[] modelDefMask, int pc, Logger log) {
 		double[] currentData = null;
 		if (pc == 0) {
 			currentData = data;
 		} else {
-			CrossValidation crossValidation = pcComponentsResiduals.getCorrectedDataAt(data, modelDefMask, pc, svdRegression, "PC" + pc, false);
+			CrossValidation crossValidation = pcComponentsResiduals.getCorrectedDataAt(data, modelDefMask, pc, lType, "PC" + pc, false);
 			currentData = crossValidation.getResiduals();
 			if(pc==100){
 				Files.writeList(Array.toStringArray(currentData), pcComponentsResiduals.getProj().PROJECT_DIRECTORY.getValue()+"DFSD.txt");
@@ -207,7 +208,7 @@ public class IntensityCorrectionQC {
 				if (j == 0) {
 					lrrICC = lrrs;
 				} else {
-					PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(pcComponentsResiduals, markerData, true, sampleSex, tmpSampleFilter, 1.0D, 0.0D, null, true, false, 2, 5, 0.0D, 0.1D, numCorrectionThreads, false, null);
+					PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(pcComponentsResiduals, markerData, true, sampleSex, tmpSampleFilter, 1.0D, 0.0D, null, true, LS_TYPE.REGULAR, 2, 5, 0.0D, 0.1D, numCorrectionThreads, false, null);
 					principalComponentsIntensity.correctXYAt(j);
 					if (!principalComponentsIntensity.isFail()) {
 						lrrICC = principalComponentsIntensity.getCorrectedIntensity("BAF_LRR", true)[1];
@@ -673,10 +674,10 @@ public class IntensityCorrectionQC {
 		return data;
 	}
 
-	public static void test2(Project proj, String dataFile, boolean svdRegression, int numThreads, int jumpPC) {
+	public static void test2(Project proj, String dataFile, LS_TYPE lType, int numThreads, int jumpPC) {
 		double[] data = loadDataFile(proj, dataFile, proj.getLog());
 
-		ICCtheClasses(proj, data, "Mito", "mitos/", 0, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), jumpPC, svdRegression, numThreads);
+		ICCtheClasses(proj, data, "Mito", "mitos/", 0, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), jumpPC, lType, numThreads);
 	}
 
 	public static void test(Project proj) {
@@ -732,6 +733,6 @@ public class IntensityCorrectionQC {
 			System.exit(1);
 		}
 		Project proj = new Project(filename, null, false);
-		test2(proj, dataFile, svdRegression, numThreads, jumpPC);
+		test2(proj, dataFile, svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, numThreads, jumpPC);
 	}
 }

@@ -13,6 +13,7 @@ import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.var.SampleData;
 import stats.Correlation;
+import stats.LeastSquares.LS_TYPE;
 import common.AlleleFreq;
 import common.Array;
 import common.DoubleVector;
@@ -130,7 +131,7 @@ public class MarkerData implements Serializable {
 			}
 		} else {
 			numThreads = Math.min(numThreads, 6);// currently can only utilize 6
-			PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, pcResids.getProj().getSamplesToInclude(null, false), missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, (numComponents > 130 ? true : false), correctionType, nStage, residStandardDeviationFilter, correctionRatio, numThreads, false, null);
+			PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, pcResids.getProj().getSamplesToInclude(null, false), missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, (numComponents > 130 ? LS_TYPE.SVD : LS_TYPE.REGULAR), correctionType, nStage, residStandardDeviationFilter, correctionRatio, numThreads, false, null);
 			pcIntensity.correctXYAt(numComponents);
 			// This will display the genotypes after correction in scatter plot for testing, note that you will lose the original
 			// setAbGenotypes(pcIntensity.getCentroidCompute().getClustGenotypes());
@@ -181,7 +182,7 @@ public class MarkerData implements Serializable {
 			}
 			return abGenotypes;
 		} else {
-			PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, samplesToUse, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, (numComponents > 130 ? true : false), correctionType, nStage, residStandardDeviationFilter, correctionRatio, numThreads, false, null);
+			PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcResids, this, true, sampleSex, samplesToUse, missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, (numComponents > 130 ? LS_TYPE.SVD : LS_TYPE.REGULAR), correctionType, nStage, residStandardDeviationFilter, correctionRatio, numThreads, false, null);
 			pcIntensity.correctXYAt(numComponents);
 			return pcIntensity.getCentroidCompute().getClustGenotypes();
 		}

@@ -15,6 +15,7 @@ import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 import seq.manage.ReferenceGenome;
 import stats.CrossValidation;
+import stats.LeastSquares.LS_TYPE;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
@@ -170,7 +171,7 @@ public class GcAdjustor {
 			if (gcParameters != null) {
 				this.crossValidation = gcParameters.adjust(correctionMethod, sample, fullIntensity, prepForRegression(fullGcs), verbose, proj.getLog());
 			} else {
-				this.crossValidation = new CrossValidation(regressionIntensity, prepForRegression(regressionGcs), fullIntensity, prepForRegression(fullGcs), true, false, proj.getLog());
+				this.crossValidation = new CrossValidation(regressionIntensity, prepForRegression(regressionGcs), fullIntensity, prepForRegression(fullGcs), true, LS_TYPE.REGULAR, proj.getLog());
 				crossValidation.train();
 				crossValidation.computePredictedValues();
 				crossValidation.computeResiduals();

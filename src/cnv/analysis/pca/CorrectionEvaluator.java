@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 import stats.Correlation;
 import stats.CrossValidation;
 import stats.ICC;
+import stats.LeastSquares.LS_TYPE;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -41,9 +42,9 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 	private double[][] extraIndeps;
 	private ExtProjectDataParser parser;
 	private Logger log;
-	private boolean svd;
+	private LS_TYPE lType;
 
-	public CorrectionEvaluator(Project proj, PrincipalComponentsResiduals pcResiduals, int[] order, boolean[][] samplesToInclude, double[][] extraIndeps, boolean svd) {
+	public CorrectionEvaluator(Project proj, PrincipalComponentsResiduals pcResiduals, int[] order, boolean[][] samplesToInclude, double[][] extraIndeps, LS_TYPE lType) {
 		super();
 		this.proj = proj;
 		this.samplesToInclude = samplesToInclude;
@@ -54,7 +55,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 		loadSampleData();
 		this.extraIndeps = extraIndeps;
 		this.iterator = new PrincipalComponentsIterator(pcResiduals, order);
-		this.svd = svd;
+		this.lType = lType;
 
 	}
 
@@ -81,7 +82,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 
 	@Override
 	public Callable<EvaluationResult> next() {
-		return new EvaluationWorker(iterator.next(), extraIndeps, matchString, matchDouble, stratString, samplesToInclude, parser, svd, log);
+		return new EvaluationWorker(iterator.next(), extraIndeps, matchString, matchDouble, stratString, samplesToInclude, parser, lType, log);
 	}
 
 	@Override
@@ -102,11 +103,11 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 		private String[] matchDouble;
 		private String[] stratString;
 		private boolean[][] samplesToInclude;
-		private boolean svd;
+		private LS_TYPE lType;
 		private ExtProjectDataParser parser;
 		private Logger log;
 
-		public EvaluationWorker(PrincipalComponentsResiduals tmpResiduals, double[][] extraIndeps, String[] matchString, String[] matchDouble, String[] stratString, boolean[][] samplesToInclude, ExtProjectDataParser parser, boolean svd, Logger log) {
+		public EvaluationWorker(PrincipalComponentsResiduals tmpResiduals, double[][] extraIndeps, String[] matchString, String[] matchDouble, String[] stratString, boolean[][] samplesToInclude, ExtProjectDataParser parser, LS_TYPE lType, Logger log) {
 			super();
 			this.tmpResiduals = tmpResiduals;
 			this.extraIndeps = extraIndeps;
@@ -115,25 +116,25 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 			this.stratString = Array.concatAll(new String[] { NO_STRAT }, stratString);
 			this.samplesToInclude = samplesToInclude;
 			this.parser = parser;
-			this.svd = svd;
+			this.lType = lType;
 			this.log = log;
 		}
 
 		@Override
 		public EvaluationResult call() throws Exception {
-			return evaluate(tmpResiduals, extraIndeps, matchString, matchDouble, stratString, samplesToInclude, parser, svd, log);
+			return evaluate(tmpResiduals, extraIndeps, matchString, matchDouble, stratString, samplesToInclude, parser, lType, log);
 		}
 
 	}
 
-	private static EvaluationResult evaluate(PrincipalComponentsResiduals tmpResiduals, double[][] extraIndeps, String[] matchString, String[] matchDouble, String[] stratString, boolean[][] samplesToInclude, ExtProjectDataParser parser, boolean svd, Logger log) {
+	private static EvaluationResult evaluate(PrincipalComponentsResiduals tmpResiduals, double[][] extraIndeps, String[] matchString, String[] matchDouble, String[] stratString, boolean[][] samplesToInclude, ExtProjectDataParser parser, LS_TYPE lType, Logger log) {
 		String baseTitle = "" + tmpResiduals.getNumComponents();
 		double[] estimate = null;
 		CrossValidation cValidation = null;
 		//tmpResiduals.crossValidate(kFolds, numComponentsIter, numThreads, svdRegression, tmpOutput, val_pcs)
 		if (tmpResiduals.getNumComponents() > 0 || extraIndeps != null) {
 
-			cValidation = tmpResiduals.getCorrectedDataAt(tmpResiduals.getMedians(), extraIndeps, samplesToInclude[0], tmpResiduals.getNumComponents(), svd, "HFDS", true);
+			cValidation = tmpResiduals.getCorrectedDataAt(tmpResiduals.getMedians(), extraIndeps, samplesToInclude[0], tmpResiduals.getNumComponents(), lType, "HFDS", true);
 			estimate = cValidation.getResiduals();
 		} else {
 			estimate = tmpResiduals.getMedians();

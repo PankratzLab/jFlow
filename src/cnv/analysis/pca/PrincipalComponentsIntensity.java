@@ -10,6 +10,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import stats.CrossValidation;
+import stats.LeastSquares.LS_TYPE;
 import common.Array;
 import common.Logger;
 import common.WorkerTrain.Producer;
@@ -43,7 +44,8 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	private static final double MIN_CLUSTER_PERCENT = 0.0;//
 
 	private CentroidCompute centroid;
-	private boolean fail, svdRegression, verbose;
+	private boolean fail, verbose;
+	private LS_TYPE lType;
 	private int correctionMethod, nStage, numThreads;
 	private String[] samples;
 	private float[] genotypeThetaCenters, correctedXFull, correctedYFull;
@@ -54,10 +56,10 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 	private boolean[][] genoSampleClusters;// genotype, sample
 	private boolean[] forceThisCluster;
 
-	public PrincipalComponentsIntensity(final PrincipalComponentsResiduals principalComponentsResiduals, final MarkerData markerData, boolean recomputeLRR, int[] sampleSex, boolean[] samplesToUseCluster, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, boolean svdRegression, int correctionMethod, int nStage, double residStandardDeviationFilter, double correctionRatio, int numThreads, boolean verbose, String output) {
+	public PrincipalComponentsIntensity(final PrincipalComponentsResiduals principalComponentsResiduals, final MarkerData markerData, boolean recomputeLRR, int[] sampleSex, boolean[] samplesToUseCluster, double missingnessThreshold, double confThreshold, ClusterFilterCollection clusterFilterCollection, boolean medianCenter, LS_TYPE lType, int correctionMethod, int nStage, double residStandardDeviationFilter, double correctionRatio, int numThreads, boolean verbose, String output) {
 		super(principalComponentsResiduals);// we hijack the loading of the PC file and tracking of samples etc ...
 		this.samples = proj.getSamples();
-		this.svdRegression = svdRegression;
+		this.lType = lType;
 		this.correctionMethod = correctionMethod;
 		this.residStandardDeviationFilter = residStandardDeviationFilter;
 		this.verbose = verbose;
@@ -391,9 +393,9 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			if (validClusterComponent(genoClusterCounts[i], clusterComponent, numTotalSamples)) {
 				String keyX = i + "_" + clusterComponent + "_X";
 				String keyY = i + "_" + clusterComponent + "_Y";
-				WorkerRegression workerX = new WorkerRegression(this, Xs, genoSampleClusters[i], clusterComponent, svdRegression, "Genotype cluster: " + i + " X values for Marker " + centroid.getMarkerData().getMarkerName(), verbose, log);
+				WorkerRegression workerX = new WorkerRegression(this, Xs, genoSampleClusters[i], clusterComponent, lType, "Genotype cluster: " + i + " X values for Marker " + centroid.getMarkerData().getMarkerName(), verbose, log);
 				tmpResults.put(keyX, executor.submit(workerX));
-				WorkerRegression workerY = new WorkerRegression(this, Ys, genoSampleClusters[i], clusterComponent, svdRegression, "Genotype cluster: " + i + " Y values for Marker " + centroid.getMarkerData().getMarkerName(), verbose, log);
+				WorkerRegression workerY = new WorkerRegression(this, Ys, genoSampleClusters[i], clusterComponent, lType, "Genotype cluster: " + i + " Y values for Marker " + centroid.getMarkerData().getMarkerName(), verbose, log);
 				tmpResults.put(keyY, executor.submit(workerY));
 			} else {
 				cvals[i][0] = null;
@@ -664,19 +666,19 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		private double[] data;
 		private boolean[] samplesTobuildModel;
 		private int clusterComponent;
-		private boolean svdRegression;
+		private LS_TYPE lType;
 		private String title;
 		boolean verbose;
 
 		// private Logger log;
 
-		public WorkerRegression(PrincipalComponentsResiduals principalComponentsResiduals, double[] data, boolean[] samplesTobuildModel, int clusterComponent, boolean svdRegression, String title, boolean verbose, Logger log) {
+		public WorkerRegression(PrincipalComponentsResiduals principalComponentsResiduals, double[] data, boolean[] samplesTobuildModel, int clusterComponent, LS_TYPE lType, String title, boolean verbose, Logger log) {
 			super();
 			this.principalComponentsResiduals = principalComponentsResiduals;
 			this.data = data;
 			this.samplesTobuildModel = samplesTobuildModel;
 			this.clusterComponent = clusterComponent;
-			this.svdRegression = svdRegression;
+			this.lType = lType;
 			this.title = title;
 			this.verbose = verbose;
 			// this.log = log;
@@ -684,7 +686,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 
 		@Override
 		public CrossValidation call() {// acts like run
-			return principalComponentsResiduals.getCorrectedDataAt(data, samplesTobuildModel, clusterComponent, svdRegression, title, verbose);
+			return principalComponentsResiduals.getCorrectedDataAt(data, samplesTobuildModel, clusterComponent, lType, title, verbose);
 
 		}
 	}
@@ -700,18 +702,18 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		private MDL mdl;
 		private final int[] sampleSex;
 		private final boolean[] samplesToUseCluster;
-		private final boolean svdRegression;
+		private final LS_TYPE lType;
 		private final int numCorrectionThreads;
 //		private final int numDecompressThreads;
 //		private final String[] markersToCorrect;
 		private final int correctAt;
 
-		public PcCorrectionProducer(PrincipalComponentsResiduals pcResiduals, int correctAt, int[] sampleSex, boolean[] samplesToUseCluster, boolean svdRegression, int numCorrectionThreads, int numDecompressThreads, String[] markersToCorrect) {
+		public PcCorrectionProducer(PrincipalComponentsResiduals pcResiduals, int correctAt, int[] sampleSex, boolean[] samplesToUseCluster, LS_TYPE lType, int numCorrectionThreads, int numDecompressThreads, String[] markersToCorrect) {
 			super();
 			this.pcResiduals = pcResiduals;
 			this.sampleSex = sampleSex;
 			this.samplesToUseCluster = samplesToUseCluster;
-			this.svdRegression = svdRegression;
+			this.lType = lType;
 			this.numCorrectionThreads = numCorrectionThreads;
 //			this.numDecompressThreads = numDecompressThreads;
 //			this.markersToCorrect = markersToCorrect;
@@ -730,7 +732,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			Callable<PrincipalComponentsIntensity> compute = new Callable<PrincipalComponentsIntensity>() {
 				@Override
 				public PrincipalComponentsIntensity call() throws Exception {
-					PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(pcResiduals, markerData, true, sampleSex, samplesToUseCluster, 1, 0, null, true, svdRegression, 2, 5, DEFAULT_RESID_STDV_FILTER, DEFAULT_CORRECTION_RATIO, numCorrectionThreads, false, null);
+					PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(pcResiduals, markerData, true, sampleSex, samplesToUseCluster, 1, 0, null, true, lType, 2, 5, DEFAULT_RESID_STDV_FILTER, DEFAULT_CORRECTION_RATIO, numCorrectionThreads, false, null);
 					principalComponentsIntensity.correctXYAt(correctAt);
 					return principalComponentsIntensity;
 				}

@@ -2,6 +2,7 @@ package stats;
 
 import java.util.Hashtable;
 
+import stats.LeastSquares.LS_TYPE;
 import common.Array;
 import common.Logger;
 
@@ -15,7 +16,8 @@ public class CrossValidation {
 	private double[] val_deps;
 	private double[][] val_indeps;
 	private double[] betas, predicteds, residuals;
-	private boolean logistic, analysisFailed, verbose, svdRegression;
+	private boolean logistic, analysisFailed, verbose;
+	private LS_TYPE lType;  
 	private RegressionModel model;
 	private Logger log;
 
@@ -35,7 +37,7 @@ public class CrossValidation {
 	 * @param log
 	 *            Note training and validation dependent variables can have different lengths, however, the number of independent variables must be the same
 	 */
-	public CrossValidation(double[] train_deps, double[][] train_indeps, double[] validation_deps, double[][] validation_indeps, boolean verbose, boolean svdRegression, Logger log) {
+	public CrossValidation(double[] train_deps, double[][] train_indeps, double[] validation_deps, double[][] validation_indeps, boolean verbose, LS_TYPE lType, Logger log) {
 		super();
 		this.train_deps = train_deps;
 		this.train_indeps = train_indeps;
@@ -47,7 +49,7 @@ public class CrossValidation {
 		this.Rsquare = Double.NaN;
 		this.analysisFailed = false;
 		this.verbose = verbose;
-		this.svdRegression = svdRegression;
+		this.lType = lType;
 		this.logistic = isLogistic(train_deps == null ? val_deps : train_deps);// in case we are just applying betas or something like that
 		this.log = log;
 	}
@@ -63,7 +65,7 @@ public class CrossValidation {
 				log.reportError("Error - currently can only handle linear cross-validations, I think");
 				analysisFailed = true;
 			} else {
-				this.model = (RegressionModel) new LeastSquares(train_deps, train_indeps, null, false, verbose, svdRegression);
+				this.model = (RegressionModel) new LeastSquares(train_deps, train_indeps, null, false, verbose, lType);
 			}
 			if (model.analysisFailed()) {
 				analysisFailed = true;
@@ -267,8 +269,8 @@ public class CrossValidation {
 	/**
 	 * This will compute the residuals and SSerr within a CrossValidation for a single set of training and validation data
 	 */
-	public static CrossValidation crossValidate(double[] train_deps, double[][] train_indeps, double[] validation_deps, double[][] validation_indeps, boolean verbose, boolean svdRegression, Logger log) {
-		CrossValidation crossValidation = new CrossValidation(train_deps, train_indeps, validation_deps, validation_indeps, verbose, svdRegression, log);
+	public static CrossValidation crossValidate(double[] train_deps, double[][] train_indeps, double[] validation_deps, double[][] validation_indeps, boolean verbose, LS_TYPE lType, Logger log) {
+		CrossValidation crossValidation = new CrossValidation(train_deps, train_indeps, validation_deps, validation_indeps, verbose, lType, log);
 		crossValidation.train();
 		if (!crossValidation.analysisFailed) {
 			crossValidation.computePredictedValues();
@@ -288,7 +290,7 @@ public class CrossValidation {
 	 * <p>
 	 * Note: this is an in-sample cross-validation, the training and test data is created on the fly
 	 */
-	public static CrossValidation[] kFoldCrossValidate(double[] deps, double[][] indeps, int kFolds, boolean verbose, boolean svdRegression, Logger log) {
+	public static CrossValidation[] kFoldCrossValidate(double[] deps, double[][] indeps, int kFolds, boolean verbose, LS_TYPE lType, Logger log) {
 		if (!foldCheck(deps, kFolds, log)) {
 			return new CrossValidation[0];
 		}
@@ -300,7 +302,7 @@ public class CrossValidation {
 			double[] val_deps = extractDeps(deps, folds[i], false, log);
 			double[][] train_indeps = extractIndeps(indeps, folds[i], true, log);
 			double[][] val_indeps = extractIndeps(indeps, folds[i], false, log);
-			crossValidations[i] = crossValidate(train_deps, train_indeps, val_deps, val_indeps, verbose, svdRegression, log);
+			crossValidations[i] = crossValidate(train_deps, train_indeps, val_deps, val_indeps, verbose, lType, log);
 			crossValidations[i].clearInputData(true);// save some memory
 		}
 		return crossValidations;
@@ -309,7 +311,7 @@ public class CrossValidation {
 	/**
 	 * Similar to {@link CrossValidation#kFoldCrossValidate()}, but we keep the validation data constant
 	 */
-	public static CrossValidation[] kFoldCrossValidateOutSample(double[] deps, double[][] indeps, double[] val_deps, double[][] val_indeps, int kFolds, boolean verbose, boolean svdRegression, Logger log) {
+	public static CrossValidation[] kFoldCrossValidateOutSample(double[] deps, double[][] indeps, double[] val_deps, double[][] val_indeps, int kFolds, boolean verbose, LS_TYPE lType, Logger log) {
 		if (!foldCheck(deps, kFolds, log)) {
 			return new CrossValidation[0];
 		}
@@ -319,7 +321,7 @@ public class CrossValidation {
 		for (int i = 0; i < chunks.length; i++) {
 			double[] train_deps = extractDeps(deps, folds[i], true, log);
 			double[][] train_indeps = extractIndeps(indeps, folds[i], true, log);
-			crossValidations[i] = crossValidate(train_deps, train_indeps, val_deps, val_indeps, verbose, svdRegression, log);
+			crossValidations[i] = crossValidate(train_deps, train_indeps, val_deps, val_indeps, verbose, lType, log);
 			crossValidations[i].clearInputData(true);
 		}
 		return crossValidations;
@@ -328,8 +330,8 @@ public class CrossValidation {
 	/**
 	 * If you only care about the average error
 	 */
-	public static double kfoldAverageSSerr(double[] deps, double[][] indeps, int kFolds, boolean verbose, boolean svdRegression, Logger log) {
-		CrossValidation[] crossValidations = kFoldCrossValidate(deps, indeps, kFolds, verbose, svdRegression, log);
+	public static double kfoldAverageSSerr(double[] deps, double[][] indeps, int kFolds, boolean verbose, LS_TYPE lType, Logger log) {
+		CrossValidation[] crossValidations = kFoldCrossValidate(deps, indeps, kFolds, verbose, lType, log);
 		return getEstimateError(crossValidations);
 	}
 
@@ -485,7 +487,7 @@ public class CrossValidation {
 	 * Just a test, if we use the same training and validation data, we should always end up with identical residuals and thus identical SSerr
 	 */
 	public static void testingStufff(double[] deps, double[][] indeps, String testNum, Logger log) {
-		CrossValidation crossValidation = crossValidate(deps, indeps, deps, indeps, false, false, log);
+		CrossValidation crossValidation = crossValidate(deps, indeps, deps, indeps, false, LS_TYPE.REGULAR, log);
 		double[] modelResiduals = crossValidation.getModel().getResiduals();
 		double[] extrapResiduals = crossValidation.getResiduals();
 		String[] toPrint = new String[modelResiduals.length];

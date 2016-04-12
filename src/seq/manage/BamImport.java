@@ -19,6 +19,7 @@ import seq.manage.BamOps.BamIndexStats;
 import seq.manage.BamSegPileUp.BamPileResult;
 import seq.manage.BamSegPileUp.PileupProducer;
 import seq.qc.FilterNGS;
+import stats.LeastSquares.LS_TYPE;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -504,7 +505,7 @@ public class BamImport {
 			}
 
 			proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
-			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null, null, null, false, false, false, true, false, null, -1, -1, GENOME_BUILD.HG19);
+			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null, null, null, false, false, true, false, true, false, null, -1, -1, GENOME_BUILD.HG19);
 			// PrincipalComponentsCrossTabs.crossTabulate(proj, proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), null, true);
 
 			String PCCorrected = ext.addToRoot(proj.getPropertyFilename(), "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base);
@@ -520,9 +521,9 @@ public class BamImport {
 			if (!Files.exists("", correctedSamps)) {
 				proj.getLog().reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
 
-				PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, numthreads, 1, false, false, false, -1, true);
+				PennCNVPrep.exportSpecialPennCNV(proj, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, numthreads, 1, false, false, LS_TYPE.REGULAR, -1, true);
 				// TODO, auto adjust batch size by memory
-				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, 1, 1, false, true, false, 2, true);
+				PennCNVPrep.exportSpecialPennCNV(pcCorrected, "correction/", pcCorrected.PROJECT_DIRECTORY.getValue() + "tmpPCCorrection/", correctionPCs, null, 1, 1, false, true, LS_TYPE.REGULAR, 2, true);
 			}
 			pcCorrected.saveProperties();
 			if (type.getType() != null) {

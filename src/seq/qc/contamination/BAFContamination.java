@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 
 import one.JL.MAF;
 import stats.LeastSquares;
+import stats.LeastSquares.LS_TYPE;
 import stats.RegressionModel;
 import cnv.analysis.PennCNV;
 import cnv.filesys.ClusterFilterCollection;
@@ -72,7 +73,7 @@ public class BAFContamination {
 			}
 		}
 
-		RegressionModel model = (RegressionModel) new LeastSquares(Array.subArray(sampBAF, use), indeps, null, false, verbose, false);
+		RegressionModel model = (RegressionModel) new LeastSquares(Array.subArray(sampBAF, use), indeps, null, false, verbose, LS_TYPE.REGULAR);
 		BAFContaminationResults results = new BAFContaminationResults(model.getOverallSig(), model.getRsquare(), model.getBetas());
 		results.setsAlleleDeviation(new StandardAlleleDeviation(Array.subArray(sampGenotypes, use), Array.subArray(sampBAF, use)));
 		// System.out.println(Array.toStr(results.getBetas()));

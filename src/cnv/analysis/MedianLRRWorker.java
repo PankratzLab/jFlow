@@ -21,6 +21,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
+import stats.LeastSquares.LS_TYPE;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.ClusterFilterCollection;
@@ -339,14 +340,14 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			if (recomputeLRR || correctLRR || correctXY) {
 //				int numThreads = Integer.parseInt(proj.getProperty(proj.NUM_THREADS));
 				int numThreads = proj.getProperty(proj.NUM_THREADS);
-				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0, clusterFilterCollection, true, false, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER, PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numThreads, false, null);
+				PrincipalComponentsIntensity pcIntensity = new PrincipalComponentsIntensity(pcrs, markerData, true, null, samplesToUse, 1, 0, clusterFilterCollection, true, LS_TYPE.REGULAR, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER, PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numThreads, false, null);
 				if (recomputeLRR && !correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
 					// bafs = pcIntensity.getCentroidCompute().getRecomputedBAF();
 				} else if (correctLRR) {
 					lrrs = pcIntensity.getCentroidCompute().getRecomputedLRR();
 //					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null, Integer.parseInt(proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS)), false, regionMarkers[i], true).getResiduals();
-					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null, proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), false, regionMarkers[i], true).getResiduals();
+					double[] tmplrrs = pcIntensity.getCorrectedDataAt(Array.toDoubleArray(lrrs), null, proj.getProperty(proj.INTENSITY_PC_NUM_COMPONENTS), LS_TYPE.REGULAR, regionMarkers[i], true).getResiduals();
 					if (tmplrrs != null) {
 						lrrs = Array.toFloatArray(tmplrrs);
 					} else {

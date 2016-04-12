@@ -10,6 +10,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.ext;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -24,13 +25,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
 import stats.Correlation;
 import stats.ICC;
 import stats.IrrTable;
 import stats.Quantiles;
+import stats.LeastSquares.LS_TYPE;
 
 public class PrincipalComponentsEval {
-	public static void evaluatePCs(Project proj, String markers, String evalFile, String output, String samplesFile, int jumpPC, int numQs, boolean svdRegression) {
+	public static void evaluatePCs(Project proj, String markers, String evalFile, String output, String samplesFile, int jumpPC, int numQs,LS_TYPE lType) {
 		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
 		double[] eval = loadDataFile(proj, evalFile, proj.getLog());
 		boolean[] samplesToUse = proj.getSamplesToInclude( proj.PROJECT_DIRECTORY.getValue()+ samplesFile);
@@ -58,7 +61,7 @@ public class PrincipalComponentsEval {
 				if (i == 0) {
 					data = pcResiduals.getMedians();
 				} else {
-					data = pcResiduals.getCorrectedDataAt(pcResiduals.getMedians(), samplesToUse, i, svdRegression, "PC" + i, true).getResiduals();
+					data = pcResiduals.getCorrectedDataAt(pcResiduals.getMedians(), samplesToUse, i, lType, "PC" + i, true).getResiduals();
 				}
 				evalAndPrint(proj, eval, writer, i, data, numQs, i == 0, evalFile);
 			}
@@ -150,7 +153,7 @@ public class PrincipalComponentsEval {
 		writer.flush();
 	}
 
-	public static void evaluatePCsIntensityCorrection(Project proj, String markers, String evalFile, String output, String samplesFile, boolean svdRegression, int numMarkerThreads, int numCorrectionThreads, int jump, int numQs) {
+	public static void evaluatePCsIntensityCorrection(Project proj, String markers, String evalFile, String output, String samplesFile, LS_TYPE lType, int numMarkerThreads, int numCorrectionThreads, int jump, int numQs) {
 		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
 		pcResiduals.setHomozygousOnly(true);
 		double[] eval = loadDataFile(proj, evalFile, proj.getLog());
@@ -184,7 +187,7 @@ public class PrincipalComponentsEval {
 				Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
 				if (i > 0) {
 					for (int j = 0; j < markersToUse.length; j++) {
-						PrincipalComponentsIntensity pcComponentsIntensity = new PrincipalComponentsIntensity(pcResiduals, markerDatas[j], true, null, homozygousMarkersToUse[j], 1.0D, 0.0D, null, false, svdRegression, 2, 5, 0.0D, 0.1D, numCorrectionThreads, false, null);
+						PrincipalComponentsIntensity pcComponentsIntensity = new PrincipalComponentsIntensity(pcResiduals, markerDatas[j], true, null, homozygousMarkersToUse[j], 1.0D, 0.0D, null, false, lType, 2, 5, 0.0D, 0.1D, numCorrectionThreads, false, null);
 						tmpResults.put(j + "", executor.submit(new WorkerCorrection(pcComponentsIntensity, i, markersToUse[j], proj.getLog())));
 					}
 					for (int j = 0; j < markersToUse.length; j++) {
@@ -352,9 +355,9 @@ public class PrincipalComponentsEval {
 		}
 		Project proj = new Project(filename, null, false);
 		if (separate) {
-			evaluatePCsIntensityCorrection(proj, markers, evalFile, output, sampleFile, svdRegression, numMarkerThreads, numCorrectionThreads, jumpPC, numQs);
+			evaluatePCsIntensityCorrection(proj, markers, evalFile, output, sampleFile, svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, numMarkerThreads, numCorrectionThreads, jumpPC, numQs);
 		} else {
-			evaluatePCs(proj, markers, evalFile, output, sampleFile, jumpPC, numQs, svdRegression);
+			evaluatePCs(proj, markers, evalFile, output, sampleFile, jumpPC, numQs, svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR);
 		}
 	}
 }

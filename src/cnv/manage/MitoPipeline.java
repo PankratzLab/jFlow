@@ -265,7 +265,7 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build) {
+	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build) {
 		String sampleDirectory;
 		SampleList sampleList;
 		int[] counts;
@@ -385,8 +385,26 @@ public class MitoPipeline {
 						// check that all median markers are available
 						if (verifyAuxMarkers(proj, medianMarkers, MITO_MARKER_COMMAND)) {
 							// compute PCs with samples passing QC
+
 							GcAdjustorParameters params = null;
-							if (gcCorrect) {
+							if (gcCorrect) {// TODO, non gc sampleSpecific recomputing
+								String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES;
+								boolean[] sampsToUseRecompute = null;
+
+								if (sampLrr) {
+									if (!recomputeLRR_Median || !recomputeLRR_PCs) {
+										proj.getLog().reportTimeWarning("Sample specific LRR flagged, overiding other recompute LRR options");
+										recomputeLRR_Median = true;
+										recomputeLRR_PCs = true;
+									}
+									sampsToUseRecompute = Array.booleanArray(proj.getSamples().length, false);
+									int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, new int[] { 0 }, false), proj.getSamples(), true, false);
+									for (int i = 0; i < indices.length; i++) {
+										sampsToUseRecompute[indices[i]] = true;
+									}
+									proj.getLog().reportTimeInfo("LRR will be recomputed with " + Array.booleanArraySum(sampsToUseRecompute) + " samples from " + samps);
+									System.exit(1);
+								}
 								if ((refGenomeFasta != null && !Files.exists(refGenomeFasta)) && Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())) {
 									proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
 									refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
@@ -405,8 +423,8 @@ public class MitoPipeline {
 									// try {
 									GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
 									gAdjustorBuilder.regressionDistance(regressionDistance);
-									
-									params = GcAdjustorParameter.generate(proj, outputBase + "_GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder, null, recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
+
+									params = GcAdjustorParameter.generate(proj, outputBase + "_GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder, sampsToUseRecompute, recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
 									if ((recomputeLRR_Median || recomputeLRR_PCs) && params.getCentroids() == null) {
 										throw new IllegalStateException("Internal error, did not recieve centroids");
 									} else if ((!recomputeLRR_Median && !recomputeLRR_PCs) && params.getCentroids() != null) {
@@ -841,6 +859,7 @@ public class MitoPipeline {
 		boolean gcCorrect = true;
 		int attempts, result;
 		GENOME_BUILD build = GENOME_BUILD.HG19;
+		boolean recompSampleSpecific = true;
 
 		String usage = "\n";
 		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
@@ -880,6 +899,7 @@ public class MitoPipeline {
 		usage += "   (27) regression distance for the gc adjustment (i.e. regressionDistance=" + regressionDistance + " (default))\n";
 		usage += "   (28) full path to a .gcmodel file, this model will take precedence over base-pair bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
 		usage += "   (29) if relying on a gc5Base.txt (default), the genomic build to use (i.e. build=" + build + " (default))\n";
+		usage += "   (30) recompute LRR using only those samples that pass QC, and are in the use file (i.e. sampLRR=" + recompSampleSpecific + " (default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -893,6 +913,9 @@ public class MitoPipeline {
 				System.exit(1);
 			} else if (args[i].startsWith("projName=")) {
 				projectName = ext.parseStringArg(args[i], null);
+				numArgs--;
+			} else if (args[i].startsWith("sampLRR=")) {
+				recompSampleSpecific = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("bpGcModel=")) {
 				bpGcModel = ext.parseIntArg(args[i]);
@@ -1039,7 +1062,7 @@ public class MitoPipeline {
 					proj.REFERENCE_GENOME_FASTA_FILENAME.setValue("Ignore");
 				}
 			}
-			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance, build);
+			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance, build);
 			attempts++;
 			if (result == 41 || result == 40) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");

@@ -3,6 +3,8 @@ package stats;
 import java.io.*;
 import java.util.*;
 
+import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
+
 import common.Array;
 import common.Matrix;
 import common.ext;
@@ -12,16 +14,33 @@ public class LeastSquares extends RegressionModel {
 	private double[][] Y;
 	private double meanY;
 	private double[][] invP;
-	private boolean svdRegression;
-	
+	private LS_TYPE lType;
+
+	public enum LS_TYPE {
+		/**
+		 * The good ole regression that has been well tested
+		 */
+		REGULAR,
+		/**
+		 * Uses singular value decomposition to get the lin reg. <br>
+		 * Basically only faster than {@link LS_TYPE#REGULAR} due to QR decomposition in EJML <br>
+		 * Extra baggage from full SVD though
+		 */
+		SVD,
+		/**
+		 * math.commons Implementation
+		 */
+		OLS;
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public LeastSquares(Vector vDeps, Vector vIndeps) { // deps = Vector of int/double as String, indeps = Vector of double[]
 		this(vDeps, vIndeps, false, true);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public LeastSquares(Vector vDeps, Vector vIndeps, boolean svdRegression) { // deps = Vector of int/double as String, indeps = Vector of double[]
-		this(vDeps, vIndeps, false, false, svdRegression);
+	public LeastSquares(Vector vDeps, Vector vIndeps, LS_TYPE lType) { // deps = Vector of int/double as String, indeps = Vector of double[]
+		this(vDeps, vIndeps, false, false, lType);
 	}
 	
 	@SuppressWarnings({ "rawtypes" })
@@ -30,8 +49,8 @@ public class LeastSquares extends RegressionModel {
 	}
 	
 	@SuppressWarnings({ "rawtypes" })
-	public LeastSquares(Vector<String> vDeps, Vector vIndeps, boolean bypassDataCheck, boolean verbose,boolean svdRegression) {
-		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose, svdRegression);
+	public LeastSquares(Vector<String> vDeps, Vector vIndeps, boolean bypassDataCheck, boolean verbose, LS_TYPE lType) {
+		this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose, lType);
 	}
 	
 	public LeastSquares(double[] new_deps, double[][] new_indeps) {
@@ -50,21 +69,21 @@ public class LeastSquares extends RegressionModel {
 		this(new_deps, new_indeps, null, bypassDataCheck, verbose);
 	}
 	
-	public LeastSquares(double[] new_deps, double[][] new_indeps, boolean bypassDataCheck, boolean verbose, boolean svdRegression) {
-		this(new_deps, new_indeps, null, bypassDataCheck, verbose, svdRegression);
+	public LeastSquares(double[] new_deps, double[][] new_indeps, boolean bypassDataCheck, boolean verbose, LS_TYPE lType) {
+		this(new_deps, new_indeps, null, bypassDataCheck, verbose, lType);
 	}
 	
 	public LeastSquares(double[] new_deps, double[][] new_indeps, String[] indepVariableNames, boolean bypassDataCheck, boolean verbose) {
-		this(new_deps, new_indeps, null, bypassDataCheck, verbose, false);
+		this(new_deps, new_indeps, null, bypassDataCheck, verbose, LS_TYPE.REGULAR);
 	}
 
-	public LeastSquares(double[] new_deps, double[][] new_indeps, String[] indepVariableNames, boolean bypassDataCheck, boolean verbose, boolean svdRegression) {
+	public LeastSquares(double[] new_deps, double[][] new_indeps, String[] indepVariableNames, boolean bypassDataCheck, boolean verbose, LS_TYPE lType) {
 		this.deps = new_deps;
 		this.indeps = new_indeps;
 		this.verbose = verbose;
 		this.analysisFailed = false;
 		this.logistic = false;
-		this.svdRegression = svdRegression;
+		this.lType = lType;
 
 		if (deps.length!=indeps.length) {
 			System.err.println("Error - mismatched number of records: "+deps.length+" dependent elements and "+indeps.length+" independent elements");
@@ -279,15 +298,24 @@ public class LeastSquares extends RegressionModel {
 		meanY /= N;
 
 		if (!analysisFailed) {
-			maxNameSize = (M+1)<10?8:7+((M+1)+"").length();
+			maxNameSize = (M + 1) < 10 ? 8 : 7 + ((M + 1) + "").length();
 
-			if (!svdRegression) {
+			switch (lType) {
+			case OLS:
+				break;
+			case REGULAR:
 				linregr();
-			} else {
+				break;
+			case SVD:
 				SVDRegression svdRegress = new SVDRegression(deps, indeps, verbose, log);
 				svdRegress.svdRegression();
 				betas = svdRegress.getBetas();
 				invP = svdRegress.getInvP_Diagonal_Equivalent();// Warning! this is not a full invP matrix, only the diagonal elements are computed
+
+				break;
+			default:
+				throw new IllegalArgumentException("Invalid regression type " + lType);
+
 			}
 
 //			meanRes = 0;
