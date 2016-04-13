@@ -146,9 +146,10 @@ public class Rscript {
 
 	public enum SCATTER_TYPE {
 		LINE("geom_line"), POINT("geom_point"), BOX("geom_boxplot"), /**
+		
 		 * basic x v y
 		 */
-		BASIC_POINT("geom_point"), NO_MELT_POINT("geom_point"), BOX_NO_MELT("geom_boxplot");
+		BASIC_POINT("geom_point"), NO_MELT_POINT("geom_point"), BOX_NO_MELT("geom_boxplot"),HIST("geom_histogram");
 
 		private String call;
 
@@ -1084,7 +1085,12 @@ public class Rscript {
 					}
 					plot += plotVar + " <- ggplot(" + dataTableExtract + ",aes(x=" + rSafeXColumn + ", y=" + rSafeYColumns[0] + ")) ";
 					plot += " + " + sType.getCall() + "(aes(fill=" + rSafeXColumn + "))";
-				} else {
+				} else if (sType == SCATTER_TYPE.HIST) {
+					plot += plotVar + " <- ggplot(" + dataTableExtract + ",aes(x=" + rSafeYColumns[0] + "))";
+					plot += " + " + sType.getCall()+"()+stat_bin(aes(y=..count.., label=format(round(100*(..count..)/sum(..count..), 0), nsmall = 0)), geom=\"text\", vjust=-.5) ";
+				}
+
+				else {
 					if (directLableGtexts && gTexts != null) {
 						String[] directFrame = directLabelFrame(plotVar, "variable", rSafeXColumn, "value");
 						rCmd.add(directFrame[1]);
@@ -1149,7 +1155,7 @@ public class Rscript {
 				if (logTransformY) {
 					plot += "+ scale_y_log10()";
 				}
-				if (sType != SCATTER_TYPE.BOX && rSafeColorColumn == null) {
+				if (sType != SCATTER_TYPE.BOX && sType != SCATTER_TYPE.HIST &&rSafeColorColumn == null) {
 					plot += " + colScale";
 				}
 				plot += " + theme(axis.line = element_line(colour = \"black\"), ";

@@ -1,6 +1,7 @@
 package one.JL;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import common.Array;
@@ -12,6 +13,7 @@ import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
+import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import cnv.qc.MarkerMetrics;
 import cnv.qc.SexChecks;
 import cnv.var.SampleData;
@@ -21,10 +23,10 @@ import cnv.var.SampleData;
  *
  */
 public class AutoMito {
-	
+
 	private static final String[] metrics = { "CallRate", "HetEx", "LRR_SEX_z" };
 
-	private static void run(Project proj, String name, String mitoMarks, int maxNumMarkers, double callRateSamp, double callRateMarker, double hetExMarker, double sexZscore, double lrrSDSamp, int numThreads) {
+	private static void run(Project proj, String name, String mitoMarks, int maxNumMarkers, double callRateSamp, double callRateMarker, double hetExMarker, double sexZscore, double lrrSDSamp, int numThreads) throws FileNotFoundException {
 		long arrayLength = maxNumMarkers * proj.getSamples().length;
 		if (arrayLength >= Integer.MAX_VALUE) {
 			proj.getLog().reportTimeWarning("Maximum number of markers set to: " + maxNumMarkers);
@@ -45,31 +47,37 @@ public class AutoMito {
 		if (!Files.exists(sexCheck)) {
 			SexChecks.sexCheck(proj);
 		}
-		int sexIndex = ext.indexOfStr(SexChecks.EST_SEX_HEADER, Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), proj.getLog()));
-		if (sexIndex < 0) {
-			throw new IllegalArgumentException("Could not find " + SexChecks.EST_SEX_HEADER + " in " + proj.SAMPLE_DATA_FILENAME.getValue());
-		}
+
 		String temporarySampleDataWithSex = qcDir + ext.addToRoot(temporarySampleData, ".withSex.txt");
 
 		if (ext.indexOfStr(SexChecks.EST_SEX_HEADER, Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), proj.getLog())) < 0) {
+			ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
+			builder.dataKeyColumnIndex(0);
+			builder.sampleBased(true);
+			builder.treatAllNumeric(false);
+			builder.stringDataTitles(new String[] { SexChecks.EST_SEX_HEADER });
+			builder.requireAll(true);
+			System.out.println(ext.indexOfStr( SexChecks.EST_SEX_HEADER , Files.getHeaderOfFile( proj.SEXCHECK_RESULTS_FILENAME.getValue(), proj.getLog())));
+			ExtProjectDataParser parser = builder.build(proj, proj.SEXCHECK_RESULTS_FILENAME.getValue());
+
 			String[][] matrix = HashVec.loadFileToStringMatrix(proj.SAMPLE_DATA_FILENAME.getValue(), false, null, false);
-			String[][] withSex = new String[matrix.length][];
-			withSex[0] = Array.concatAll(matrix[0], new String[] { "CLASS=" + SampleData.EUPHEMISMS[1] });
-			for (int i = 1; i < withSex.length; i++) {
-				int sex = Integer.parseInt(matrix[i][sexIndex]);
-				withSex[i] = Array.concatAll(matrix[i], new String[] { (sex <= 2 ? sex + "" : "-1") });
-				Files.writeMatrix(withSex, temporarySampleDataWithSex, "\t");
+			int sexIndex = ext.indexOfStr("CLASS=" + SampleData.EUPHEMISMS[1], matrix[0]);
+
+			for (int i = 1; i < matrix.length; i++) {
+				matrix[i][sexIndex] = parser.getStringDataForTitle(SexChecks.EST_SEX_HEADER)[i - 1];
 			}
+			Files.writeMatrix(matrix, temporarySampleDataWithSex, "\t");
+
 		}
+		System.exit(1);
 		proj.SAMPLE_DATA_FILENAME.setValue(temporarySampleDataWithSex);
 
-		
-		String baseSampleQC =qcDir+name+"_baseSampleQC.txt";
+		String baseSampleQC = qcDir + name + "_baseSampleQC.txt";
 		proj.SAMPLE_QC_FILENAME.setValue(baseSampleQC);
-		
+
 		new File(qcDir).mkdirs();
-		MarkerSet markerSet = proj.getMarkerSet();//remove CN only
-		
+		MarkerSet markerSet = proj.getMarkerSet();// remove CN only
+
 		String baseMarkerQC = qcDir + name + "_base_markerQC.txt";
 		proj.MARKER_METRICS_FILENAME.setValue(baseMarkerQC);
 
@@ -87,18 +95,16 @@ public class AutoMito {
 		ExtProjectDataParser parser;
 		parser = MarkerMetrics.developParser(proj, baseMarkerQC);
 		for (int i = 0; i < parser.getNumericData().length; i++) {
-//			double[] metricData = 
-			
+			// double[] metricData =
+
 		}
 
-		//R1 sample QC
-		//R2 marker QC
-		//R2 sample QC
-		
-		//recomp lrrs
-		
-		
-		
+		// R1 sample QC
+		// R2 marker QC
+		// R2 sample QC
+
+		// recomp lrrs
+
 		proj = new Project(proj.getPropertyFilename(), false);// reset everything
 
 	}

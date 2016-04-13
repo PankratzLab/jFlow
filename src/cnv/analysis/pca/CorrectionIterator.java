@@ -103,10 +103,10 @@ class CorrectionIterator implements Serializable {
 		/**
 		 * We load the additional sample (union with not excluded) file for model building
 		 */
-		WITH_BUILDERS, /**
+		WITH_QC_BUILDERS, /**
 		 * We build models with everyone, except excluded individuals
 		 */
-		WITHOUT_BUILDERS;
+		WITHOUT_QC_BUILDERS;
 
 	}
 
@@ -180,16 +180,16 @@ class CorrectionIterator implements Serializable {
 
 			boolean[] samplesForModels = null;
 			boolean valid = true;
-			boolean[] sampleQCPassed = getSamplesFromQC(proj, lrrSdCut, callRateCut);
+			//boolean[] sampleQCPassed = getSamplesFromQC(proj, lrrSdCut, callRateCut);
 			if (!Files.exists(iterationResult.getBasePrep())) {
 				// || oType == ORDER_TYPE.QC_ASSOCIATION
 				switch (bType) {
-				case WITHOUT_BUILDERS:
+				case WITHOUT_QC_BUILDERS:
 					// samplesForModels = proj.getSamplesToInclude(null, true, true);
 					// log.reportTimeWarning("Computing excludes from "+proj.SAMPLE_QC_FILENAME.getValue());
-					samplesForModels = sampleQCPassed;
+					samplesForModels = Array.booleanArray(proj.getSamples().length, true);
 					break;
-				case WITH_BUILDERS:
+				case WITH_QC_BUILDERS:
 					if (!Files.exists(samplesToBuildModels)) {
 						log.reportTimeError("Model building type was set to " + bType + " but the sample file " + samplesToBuildModels + " did not exist");
 						valid = false;
@@ -207,11 +207,11 @@ class CorrectionIterator implements Serializable {
 					}
 					log.reportTimeInfo("Loaded " + Array.booleanArraySum(samplesForModels) + " model builders from " + samplesToBuildModels);
 
-					for (int i = 0; i < sampleQCPassed.length; i++) {
-						if (!sampleQCPassed[i]) {
-							samplesForModels[i] = false;
-						}
-					}
+//					for (int i = 0; i < sampleQCPassed.length; i++) {
+//						if (!sampleQCPassed[i]) {
+//							samplesForModels[i] = false;
+//						}
+//					}
 					log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " model builders from after QC filtering");
 
 					break;
@@ -337,7 +337,7 @@ class CorrectionIterator implements Serializable {
 						break;
 					}
 					// boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
-					boolean[] samplesToEvaluate = sampleQCPassed;
+					boolean[] samplesToEvaluate = samplesForModels;
 					Files.writeList(Array.subArray(proj.getSamples(), samplesToEvaluate), outputDir + iType + "_" + oType + "_" + bType + "_samplesForEval.txt");
 
 					cEvaluator = new CorrectionEvaluator(proj, pcResiduals, order, new boolean[][] { samplesForModels, samplesToEvaluate }, extraIndeps, lType);
@@ -1117,7 +1117,7 @@ class CorrectionIterator implements Serializable {
 				}
 			}
 			Files.writeList(Array.toStringArray(toEvaluate), markerQCFile);
-			LrrSd.init(proj, null, markerQCFile, markerQCFile, numthreads, null);
+			LrrSd.init(proj, null, markerQCFile, markerQCFile, numthreads, null, false);
 		}
 		CorrectionIterator[] cIterators = getIterations(proj, markesToEvaluate, samplesToBuildModels, outputDir, lType, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numthreads);
 		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
@@ -1732,8 +1732,8 @@ class CorrectionIterator implements Serializable {
 		usage += "   (8) alternate pc file to use (i.e.pcFile= (no default))\n" + "";
 		usage += "   (9) percent of pcs to use base of the samples to build the models(i.e.pcPercent=" + pcPercent + "(no default))\n" + "";
 		usage += "   (10) skip on the fly centroids, only use gc-correction (i.e.recomputeLRR=" + recomputeLRR + "(no default))\n" + "";
-		usage += "   (11) skip on the fly centroids, only use gc-correction (i.e.lrrSdCut=" + lrrSdCut + "(default, array specific))\n" + "";
-		usage += "   (12) skip on the fly centroids, only use gc-correction (i.e.callRateCut=" + callRateCut + "(default))\n" + "";
+//		usage += "   (11) skip on the fly centroids, only use gc-correction (i.e.lrrSdCut=" + lrrSdCut + "(default, array specific))\n" + "";
+//		usage += "   (12) skip on the fly centroids, only use gc-correction (i.e.callRateCut=" + callRateCut + "(default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -1742,13 +1742,15 @@ class CorrectionIterator implements Serializable {
 			} else if (args[i].startsWith("proj=")) {
 				proj = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("lrrSdCut=")) {
-				lrrSdCut = ext.parseDoubleArg(args[i]);
-				numArgs--;
-			} else if (args[i].startsWith("callRateCut=")) {
-				callRateCut = ext.parseDoubleArg(args[i]);
-				numArgs--;
-			} else if (args[i].startsWith("markers=")) {
+			} 
+//			else if (args[i].startsWith("lrrSdCut=")) {
+//				lrrSdCut = ext.parseDoubleArg(args[i]);
+//				numArgs--;
+//			} else if (args[i].startsWith("callRateCut=")) {
+//				callRateCut = ext.parseDoubleArg(args[i]);
+//				numArgs--;
+//			} 
+			else if (args[i].startsWith("markers=")) {
 				markers = args[i].split("=")[1];
 				numArgs--;
 			} else if (args[i].startsWith("recomputeLRR=")) {
