@@ -47,7 +47,7 @@ public class FCSPlotControlPanel extends JPanel {
     /**
      * Create the panel.
      */
-    public FCSPlotControlPanel(FCSPlot plot) {
+    public FCSPlotControlPanel(final FCSPlot plot) {
         this.plot = plot;
         
         setLayout(new MigLayout("", "[][][grow][]", "[][][][][][][][][][][][][][grow][]"));
