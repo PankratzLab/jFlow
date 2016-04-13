@@ -617,8 +617,9 @@ public class GenvisisWorkflowGUI extends JDialog {
                             public void run() {
                                 int lblIndex = 0;
                                 for (int i = 0; i < reqVals.length; i++) {
+                                    boolean hasAny = Array.booleanArraySum(reqVals[i]) > 0;
                                     for (int j = 0; j < reqVals[i].length; j++) {
-                                        reqLbls.get(lblIndex).setForeground(reqVals[i][j] ? greenDark : Color.RED);
+                                        reqLbls.get(lblIndex).setForeground(reqVals[i][j] ? greenDark : hasAny ? Color.GRAY : Color.RED);
                                         lblIndex++;
                                     }
                                 }

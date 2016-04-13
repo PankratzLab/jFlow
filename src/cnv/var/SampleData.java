@@ -1352,7 +1352,7 @@ public class SampleData {
     		createMinimalSampleData(proj);
     		return 0;
     	} else if (!Files.exists(sampleDataFilename)) {
-    		if (pedFile != null) {
+    		if (pedFile != null && !"".equals(pedFile) && Files.exists(pedFile)) {
     			generateSampleDataPed(proj, pedFile);
     			return 1;
     		} else {
@@ -1378,9 +1378,15 @@ public class SampleData {
      */
     private static void generateSampleData(Project proj, Individual[] inds) {
     	// String sampleDataFile = proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.SAMPLE_DATA_FILENAME);
-    	String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, true);
+    	String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
     	Logger log = proj.getLog();
-    
+    	
+    	String[] projSamples = proj.getSamples();
+    	HashSet<String> smp = new HashSet<String>();
+    	for (String sampl : projSamples) {
+    	    smp.add(sampl);
+    	}
+    	
     	try {
     		PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile));
     		String[] classed = MitoPipeline.PED_INPUT;

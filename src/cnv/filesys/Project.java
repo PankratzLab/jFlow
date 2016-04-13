@@ -278,7 +278,7 @@ public class Project {
 					if (isDir) {
 						getProject().getLog().reportError("Error - directory '"+valu+"' does not exist");
 					} else {
-						if (!Files.exists(ext.parseDirectoryOfFile(valu), getProject().JAR_STATUS.getValue())) {
+						if (!Files.exists(ext.parseDirectoryOfFile(tempValue), getProject().JAR_STATUS.getValue())) {
 							getProject().getLog().reportError("Error - the directory ('"+ext.parseDirectoryOfFile(valu)+"') of the file you're trying to access/create ('"+ext.removeDirectoryInfo(valu)+"') does not exist");
 						} else {
 							getProject().getLog().reportError("Error - file '"+valu+"' does not exist");
@@ -675,7 +675,7 @@ public class Project {
 		return getMarkerSet().getMarkerNames();
 	}
 
-	public MarkerLookup getMarkerLookup() {
+	public synchronized MarkerLookup getMarkerLookup() {
 		if (markerLookup == null) {
 			if (Files.exists(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue())) {
 				markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue());
@@ -692,7 +692,7 @@ public class Project {
 		return markerLookup;
 	}
 
-	public SampleList getSampleList() {
+	public synchronized SampleList getSampleList() {
 		if (sampleList == null) {
 			if (Files.exists(SAMPLELIST_FILENAME.getValue(false, false), JAR_STATUS.getValue())) {
 				sampleList = SampleList.load(SAMPLELIST_FILENAME.getValue(), JAR_STATUS.getValue());

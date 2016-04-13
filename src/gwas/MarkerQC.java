@@ -39,16 +39,16 @@ public class MarkerQC {
 			headers = new Vector<String[]>();
 			for (int i = 3; i<params.length; i++) {
 				if (params[i][0].equals("maf")) {
-					v.add(dir+params[i][1]+" 1 4="+params[i][0]);
+					v.add("\"" + dir+params[i][1]+"\" 1 4="+params[i][0]);
 					headers.add(FRQ_HEADER);
 				} else if (params[i][0].equals("callrate")) {
-					v.add(dir+params[i][1]+" 1 $#1-4="+params[i][0]);
+					v.add("\"" + dir+params[i][1]+"\" 1 $#1-4="+params[i][0]);
 					headers.add(LMISS_HEADER);
 				} else if (params[i][0].equals("hwe")) {
-					v.add(dir+params[i][1]+" !2!ALL !2!AFF 1 8="+params[i][0]); // allow for the possibility of a quantitative trait, which lists the test as ALL(QT); otherwise it should only accept the UNAFF test
+					v.add("\"" + dir+params[i][1]+"\" !2!ALL !2!AFF 1 8="+params[i][0]); // allow for the possibility of a quantitative trait, which lists the test as ALL(QT); otherwise it should only accept the UNAFF test
 					headers.add(HWE_HEADER);
 				} else if (params[i][0].equals("mishap_hetero")) {
-					v.add(dir+params[i][1]+" !1=HETERO 0 7="+params[i][0]);
+					v.add("\"" + dir+params[i][1]+"\" !1=HETERO 0 7="+params[i][0]);
 					headers.add(MISSHAP_HEADER);
 				} else if (params[i][0].equals("mishap_min")) {
 					try {
@@ -101,22 +101,22 @@ public class MarkerQC {
                     	    return 2;
                     	}
                     }
-					v.add(dir+params[i][1]+" 0 $MIN7");
+					v.add("\"" + dir+params[i][1]+"\" 0 $MIN7");
 					headers.add(MISSHAP_HEADER);
 				} else if (params[i][0].equals("p_miss")) {
 					if (Files.exists(dir+params[i][1]) && new File(dir+params[i][1]).length() > 0) {
-						v.add(dir+params[i][1]+" 1 4="+params[i][0]);
+						v.add("\"" + dir+params[i][1]+"\" 1 4="+params[i][0]);
 						headers.add(MISSTEST_HEADER);
 					}
 				} else if (params[i][0].equals("p_gender")) {
-					v.add(dir+params[i][1]+" !0<24 1 8="+params[i][0]);
+					v.add("\"" + dir+params[i][1]+"\" !0<24 1 8="+params[i][0]);
 					headers.add(GENDER_ASSOC_HEADER);
 				} else if (params[i][0].equals("p_gender_miss")) {
-					v.add(dir+params[i][1]+" !0<24 1 4="+params[i][0]);
+					v.add("\"" + dir+params[i][1]+"\" !0<24 1 4="+params[i][0]);
 					headers.add(MISSTEST_HEADER);
 				} else {
 					log.report("Using user-defined file: "+params[i][1]);
-					v.add(dir+params[i][1]+" "+(params[i].length>3?params[i][3]:"0 1")+"="+params[i][0]); // allows for additional user-defined files
+					v.add("\"" + dir+params[i][1]+"\" "+(params[i].length>3?params[i][3]:"0 1")+"="+params[i][0]); // allows for additional user-defined files
 					headers.add(null);
 				}
             }
