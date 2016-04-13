@@ -353,7 +353,7 @@ public class SourceFileParser implements Runnable {
 						if (writer == null) {
 							try {
 								writer = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED"+threadId+".txt", true));
-								if (new File(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED.txt").length() == 0) {
+								if (new File(proj.PROJECT_DIRECTORY.getValue()+"FYI_IDS_WERE_CHANGED"+threadId+".txt").length() == 0) {
 									writer.println("The following IDs were changed so that spaces are removed and so that they could be used as valid filenames:");
 								}
 							} catch (Exception e) {
@@ -2171,7 +2171,7 @@ public class SourceFileParser implements Runnable {
                                     return 0;
                                 }
                                 if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-
+                                
                                 samp = new Sample(sampleName, fingerprint, data, genotypes, false);
                                 samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
                                 

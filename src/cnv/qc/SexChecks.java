@@ -464,6 +464,7 @@ public class SexChecks {
 
 	private static void writeToFile (Project proj, byte[] estimatedSex) {
 		PrintWriter writer;
+		String[] lookup;
 		String famIndPair;
 		Logger log;
 		
@@ -472,7 +473,8 @@ public class SexChecks {
 			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)));
 			writer.println(Array.toStr(SEX_HEADER));
 			for (int i = 0; i<samples.length; i++) {
-				famIndPair = sampleData.lookup(samples[i])[1];
+			    lookup = sampleData.lookup(samples[i]);
+				famIndPair = lookup == null ? null : lookup[1];
 				if (famIndPair == null) {
 					log.reportError("Error - no data for sample '"+samples[i]+"'");
 					writer.print(samples[i]+"\t"+".\t.\t-9\t-9");

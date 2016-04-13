@@ -1322,8 +1322,8 @@ public class Files {
         	try {
                 data = new String[keys.length+1][];
 
-                line = fileParameters[i].trim().split("[\\s]+");
-                
+                line = fileParameters[i].trim().split(ext.REGEX_TO_SPLIT_SPACES_NOT_IN_QUOTES);
+                line[0] = line[0].replaceAll("\"", "");
                 
             	serializedFilename = GenParser.parseSerialFilename(line);
             	if (Files.exists(serializedFilename, false)) {

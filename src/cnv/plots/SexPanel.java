@@ -190,7 +190,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 					iv = sampLookup.get(samples[prox.elementAt(i)][0]);
 					g.setColor(Color.YELLOW);
 					for (int j = 0; j<Math.min(iv.size(), 10); j++) {
-						if (sampleData.individualShouldBeExcluded(samples[iv.elementAt(i)][0])) {
+						if (sampleData.individualShouldBeExcluded(samples[iv.elementAt(j)][0])) {
 							g.fillOval(getXPixel(data[iv.elementAt(j)][0])-SIZE_FAILED/2, getYPixel(data[iv.elementAt(j)][1])-SIZE_FAILED/2, SIZE_FAILED, SIZE_FAILED);
 						} else {
 							g.fillOval(getXPixel(data[iv.elementAt(j)][0])-SIZE/2, getYPixel(data[iv.elementAt(j)][1])-SIZE/2, SIZE, SIZE);

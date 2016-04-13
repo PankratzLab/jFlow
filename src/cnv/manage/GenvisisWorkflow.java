@@ -284,8 +284,16 @@ public class GenvisisWorkflow {
     
     static final STEP S3_CREATE_SAMPLEDATA = new STEP("Create SampleData.txt File", 
                          "", 
-                         new String[][]{{"[Parse Sample Files] step must be selected and valid (will create a minimal SampleData.txt file)", "Parsed sample files must already exist (will create a minimal SampleData.txt file)", "A tab-delimited .PED format file with header \"" + Array.toStr(MitoPipeline.PED_INPUT, ", ") + "\"", "A Sample_Map.csv file, with at least two columns having headers \"" + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \"" + MitoPipeline.SAMPLEMAP_INPUT[2] + "\""}}, 
-                         new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.DIR, RequirementInputType.FILE, RequirementInputType.FILE}}) {
+                         new String[][]{
+                                    {"[Parse Sample Files] step must be selected and valid (will create a minimal SampleData.txt file)", 
+                                        "Parsed sample files must already exist (will create a minimal SampleData.txt file)", 
+                                        "A tab-delimited .PED format file with header \"" + Array.toStr(MitoPipeline.PED_INPUT, ", ") + "\"", 
+                                        "A Sample_Map.csv file, with at least two columns having headers \"" + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \"" + MitoPipeline.SAMPLEMAP_INPUT[2] + "\""}}, 
+                         new RequirementInputType[][]{
+                                    {RequirementInputType.NONE, 
+                                        RequirementInputType.DIR, 
+                                        RequirementInputType.FILE, 
+                                        RequirementInputType.FILE}}) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -403,7 +411,7 @@ public class GenvisisWorkflow {
     };
     
 
-    static final STEP S5_SAMPLE_QC = new STEP("Create LrrSd.xln File", 
+    static final STEP S5_SAMPLE_QC = new STEP("Run Sample QC Metrics", 
             "", 
             new String[][]{
                   {"[Parse Sample Files] step must be selected and valid.", "Parsed sample files must already exist."}, 
