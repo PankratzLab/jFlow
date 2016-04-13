@@ -319,8 +319,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         return data;
     }
     
-    private void resetForNewData(FCSDataLoader newDataLoader) {
-        ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    private void resetForNewData(final FCSDataLoader newDataLoader) {
+    	final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
         if (colNames.size() < 2) {
             // TODO error, not enough data!!
         }
@@ -342,7 +342,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         setXScale(newDataLoader.scales.get(1));
     }
     
-	public void loadFile(String filename) {
+	public void loadFile(final String filename) {
 	    if (filename == null || !Files.exists(filename) || (dataLoader != null && dataLoader.loadedFile.equals(filename))) {
 	        return;
 	    }
