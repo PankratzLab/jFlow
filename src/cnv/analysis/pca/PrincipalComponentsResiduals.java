@@ -151,12 +151,12 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	public double computeResiduals() {
 		// TODO, add svdRegression option
 		// RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis));
-		LS_TYPE lType = LS_TYPE.REGULAR;
-		if (numComponents > NUM_PC_SVD_OVERIDE) {
-			log.reportTimeInfo("Number of components " + numComponents + " greater than " + NUM_PC_SVD_OVERIDE + ", switching to svd regression");
-			lType = LS_TYPE.SVD;
-		}
-		RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis), null, false, true, lType);
+//		LS_TYPE lType = LS_TYPE.REGULAR;
+//		if (numComponents > NUM_PC_SVD_OVERIDE) {
+//			log.reportTimeInfo("Number of components " + numComponents + " greater than " + NUM_PC_SVD_OVERIDE + ", switching to " + LS_TYPE.QR_DECOMP + " decomp regression");
+//			lType = LS_TYPE.QR_DECOMP;
+//		}
+		RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis), null, false, true, LS_TYPE.REGULAR);// auto switch in reg model
 		double R2 = Double.NaN;
 		if (!model.analysisFailed()) {
 			this.residuals = model.getResiduals();

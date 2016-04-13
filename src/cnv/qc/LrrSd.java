@@ -411,7 +411,7 @@ public class LrrSd extends Parallelizable {
      *            a further filter of samples that will be used
      * @param log
      */
-    public static int[] filterSamples(Project proj, String outputBase, String markersForABCallRate, String markersForEverythingElse, int numThreads, String useFile) {
+	public static int[] filterSamples(Project proj, String outputBase, String markersForABCallRate, String markersForEverythingElse, int numThreads, String useFile, boolean gcMetrics) {
         Hashtable<String, String> sampDataQC = new Hashtable<String, String>();
         int[] indices;
         String[] line;
@@ -432,7 +432,7 @@ public class LrrSd extends Parallelizable {
         } else {
             log.report("Computing sample QC for all samples...");
             log.report("Will be reporting sample qc to " + proj.SAMPLE_QC_FILENAME.getValue());
-            cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, numThreads, null);
+			cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, numThreads, null, gcMetrics);
             if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
         }
 
@@ -552,7 +552,7 @@ public class LrrSd extends Parallelizable {
 	    init(proj, customSampleFileList, callRate, theRest, centroidsFile, numThreads);
 	}
 	
-	public static void init(Project proj, String customSampleFileList, String markersForCallrateFile, String markersForEverythingElseFile, int numThreads, String centroidsFile) {
+	public static void init(Project proj, String customSampleFileList, String markersForCallrateFile, String markersForEverythingElseFile, int numThreads, String centroidsFile, boolean gcMetrics) {
     	String[] markers;
     	boolean[] markersForCallrate, markersForEverythingElse;
     	BaselineUnclusteredMarkers bum;
@@ -594,10 +594,13 @@ public class LrrSd extends Parallelizable {
     		}
     	}
     	
-    	init(proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile, numThreads);
+		init(proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile, gcMetrics, numThreads);
     }
+	public static void init(Project proj, String customSampleFileList, boolean[] markersForCallrate, boolean[] markersForEverythingElse, String centroidsFile, int numThreads) {
+		init(proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile, true, numThreads);
+	}
 
-    public static void init(Project proj, String customSampleFileList, boolean[] markersForCallrate, boolean[] markersForEverythingElse, String centroidsFile, int numThreads) {
+	public static void init(Project proj, String customSampleFileList, boolean[] markersForCallrate, boolean[] markersForEverythingElse, String centroidsFile, boolean gcMetrics, int numThreads) {
 	    String[] samples, subsamples;
         String[][] threadSeeds;
         LrrSd[] runables;
@@ -648,7 +651,7 @@ public class LrrSd extends Parallelizable {
         }
 
         gcModel = null;
-        if (Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
+		if (gcMetrics && Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
             gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, log);
             if (gcModel == null) {
                 log.reportError("Error - detected the gc model defined by " + proj.GC_MODEL_FILENAME + " as " + proj.GC_MODEL_FILENAME.getValue(false, false) + " in property file " + proj.getPropertyFilename() + " exists, but an error occurred while loading the file");
@@ -740,12 +743,12 @@ public class LrrSd extends Parallelizable {
 		    proj = new Project(filename, false);
 			if (filter) {
 				proj.SAMPLE_CALLRATE_THRESHOLD.setValue(Double.parseDouble(sampleCallRateFilter));
-			    filterSamples(proj, outputBase, markersForCallrateFile, markersForEverythingElseFile, numThreads, filenameOfListOfSamples);
+				filterSamples(proj, outputBase, markersForCallrateFile, markersForEverythingElseFile, numThreads, filenameOfListOfSamples, true);
 			} else {
 			    if (projectDefinedMarkers) {
 			        init(proj, filenameOfListOfSamples, centroids, numThreads, false);
 			    } else {
-			        init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile, numThreads, centroids);
+					init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile, numThreads, centroids, true);
 			    }
 			}
 		} catch (Exception e) {

@@ -344,30 +344,39 @@ public class MitoPipeline {
 						// if marker QC is not flagged, sample qc is based on all target markers by default
 						String markersToQC = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_" + MARKERS_TO_QC_FILE;
 						String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_" + MARKERS_FOR_ABCALLRATE;
+						String baseLineMarkers = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_baselineMarkers.txt";
+						String[] auto = proj.getAutosomalMarkers();
+						ArrayList<String> tmp = new ArrayList<String>();
+						for (int i = 0; i < auto.length; i++) {
+							if (!proj.getArrayType().isCNOnly(auto[i])) {
+								tmp.add(auto[i]);
+							}
+						}
+						Files.writeArrayList(tmp, baseLineMarkers);
 						if (markerQC) {
 							String markerQCFile = outputBase + "_markerQC.txt";
 							proj.MARKER_METRICS_FILENAME.setValue(markerQCFile);
-							qcMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), markersToQC, markersABCallrate, markerCallRateFilter, numThreads);
+							qcMarkers(proj, baseLineMarkers, markersToQC, markersABCallrate, markerCallRateFilter, numThreads);
 							markersForABCallRate = markersABCallrate;
 							if (!Files.exists(markersForABCallRate)) {
 								log.reportError("Error - markerQC was flagged but the file " + markersABCallrate + " could not be found");
 								return 1;
 							}
 						} else {
-							markersForABCallRate = markersToQC;
-							writeMarkersToQC(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), markersToQC);
+							markersForABCallRate = baseLineMarkers;
+							writeMarkersToQC(proj, baseLineMarkers, markersToQC);
 						}
 						markersForEverythingElse = markersToQC;
 						String qcFile = outputBase + "_lrr_sd.txt";
 						proj.SAMPLE_QC_FILENAME.setValue(qcFile);
 
-						counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile);
+						counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile,false);
 						if (counts == null || counts[1] != sampleList.getSamples().length) {
 							if (counts == null || counts[1] == 0 && Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
 								log.reportError("Error - was unable to parse QC file " + proj.SAMPLE_QC_FILENAME.getValue() + ", backing up this file to " + proj.BACKUP_DIRECTORY.getValue(false, false) + " and re-starting sample qc");
 								Files.backup(ext.removeDirectoryInfo(proj.SAMPLE_QC_FILENAME.getValue()), proj.PROJECT_DIRECTORY.getValue(), proj.BACKUP_DIRECTORY.getValue(true, false), true);
 							}
-							counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile);
+							counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile, false);
 							if (counts == null || counts[1] != sampleList.getSamples().length) {
 								if (counts == null) {
 									log.reportError("Error - could not parse QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ")");
@@ -403,7 +412,6 @@ public class MitoPipeline {
 										sampsToUseRecompute[indices[i]] = true;
 									}
 									proj.getLog().reportTimeInfo("LRR will be recomputed with " + Array.booleanArraySum(sampsToUseRecompute) + " samples from " + samps);
-									System.exit(1);
 								}
 								if ((refGenomeFasta != null && !Files.exists(refGenomeFasta)) && Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())) {
 									proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
@@ -585,6 +593,14 @@ public class MitoPipeline {
 		return allParsed;
 	}
 
+	/**
+	 * @param proj
+	 * @param targetMarkersFile
+	 * @param markersToQCFile
+	 * @param markersABCallrate
+	 * @param markerCallRateFilter
+	 * @param numthreads
+	 */
 	public static void qcMarkers(Project proj, String targetMarkersFile, String markersToQCFile, String markersABCallrate, double markerCallRateFilter, int numthreads) {
 		Logger log;
 		String markerMetricsFilename;
@@ -604,6 +620,8 @@ public class MitoPipeline {
 				throw new RuntimeException(new InterruptedException());
 			}
 			MarkerMetrics.fullQC(proj, samplesToExclude, ext.removeDirectoryInfo(markersToQCFile), false, numthreads);
+
+			// MarkerMetrics.fullQC(proj, samplesToExclude, null, false, numthreads);
 		}
 		if (Thread.currentThread().isInterrupted()) {
 			throw new RuntimeException(new InterruptedException());

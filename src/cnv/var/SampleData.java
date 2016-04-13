@@ -1481,7 +1481,7 @@ public class SampleData {
 						for (int j = 0; j < MINIMAL_SAMPLE_DATA_HEADER.length; j++) {
 							writer.print(samples[i] + (j < (MINIMAL_SAMPLE_DATA_HEADER.length - 1) ? "\t" : ""));
 						}
-						writer.print("\t0");
+						writer.print("\t-1");
 						writer.println();
 					}
 					writer.close();
