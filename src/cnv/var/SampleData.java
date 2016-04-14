@@ -1416,7 +1416,7 @@ public class SampleData {
     		int[] indices = ext.indexFactors(MitoPipeline.PED_INPUT, line, true, false);
     		for (int i = 0; i < indices.length; i++) {
     			if (indices[i] < 0) {
-    				log.reportError("Error - Improper formatting of the pedigree file, can not generate sampleData");
+    				log.reportError("Error - Improper formatting of the pedigree file, cannot generate sampleData");
     				log.reportError("Warning - Parsing can proceed, but a sample data file is needed to generate principal components");
     			}
     		}

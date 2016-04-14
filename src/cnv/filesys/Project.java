@@ -1301,7 +1301,7 @@ public class Project {
         String snpMapGz = "SNP_Map.csv.gz";
         if (Files.exists(projDir + snpMap)) {
 			filename = projDir + snpMap;
-		} else if (Files.exists(projDir + "SNP_Map.csv.gz")) {
+		} else if (Files.exists(projDir + snpMapGz)) {
 			filename = projDir + snpMapGz;
 		} else {
             String srcDir = this.SOURCE_DIRECTORY.getValue();
