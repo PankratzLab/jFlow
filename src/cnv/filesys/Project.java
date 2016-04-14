@@ -1065,7 +1065,7 @@ public class Project {
                     }
                     props.add(key+"="+valueString);
                     changes.add(key+"="+valueString);
-                    log.report("Default is '"+defaultValueString+"' now '"+valueString+"'");
+                    log.report("Default for Project property " + key + " was '"+defaultValueString+"' and is now '"+valueString+"'");
                 }
             }
         }
