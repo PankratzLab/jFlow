@@ -29,6 +29,7 @@ import cnv.qc.GcAdjustorParameter;
 import cnv.qc.MarkerMetrics;
 import cnv.var.SampleData;
 import common.Array;
+import common.Elision;
 import common.Files;
 import common.HashVec;
 import common.Logger;
@@ -316,7 +317,11 @@ public class MitoPipeline {
 			}
 		}
 
-		SampleData.createSampleData(pedFile, sampleMapCsv, proj);
+		try {
+            SampleData.createSampleData(pedFile, sampleMapCsv, proj);
+        } catch (Elision e) {
+            // do nothing, as the next check, verifyAllSamples, checks for the same things;
+        }
 		// we require that every sample that has been parsed has an entry in sampleData
 		if (verifyAllSamples(proj, sampleList.getSamples())) {
 			if (doAbLookup) {

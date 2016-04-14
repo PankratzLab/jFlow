@@ -30,6 +30,7 @@ import cnv.qc.SampleQC;
 import cnv.var.SampleData;
 import common.Aliases;
 import common.Array;
+import common.Elision;
 import common.Files;
 import common.Logger;
 import common.ext;
@@ -307,7 +308,19 @@ public class GenvisisWorkflow {
             String sampleMapCsv = minimal ? null : variables.get(this).get(2); 
             
             proj.getLog().report("Creating SampleData.txt");
-            /*int retStat = */SampleData.createSampleData(pedFile, sampleMapCsv, proj);
+            try {
+                int retStat = SampleData.createSampleData(pedFile, sampleMapCsv, proj);
+                if (retStat == -1) {
+                    setFailed();
+                    this.failReasons.add("SampleData already exists - please delete and try again.");
+                    return;
+                }
+            } catch (Elision e) {
+                String msg = e.getMessage();
+                setFailed();
+                this.failReasons.add(msg);
+                return;
+            }
         }
         
         @Override
