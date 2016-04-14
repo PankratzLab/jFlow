@@ -285,11 +285,13 @@ public class GenvisisWorkflow {
     static final STEP S3_CREATE_SAMPLEDATA = new STEP("Create SampleData.txt File", 
                          "", 
                          new String[][]{
-                                    {"[Parse Sample Files] step must have been run already or must be selected and valid (will create a minimal SampleData.txt file)", 
+                                    {"[Parse Sample Files] step must have been run already or must be selected and valid"},
+                                    {"Create a minimal SampleData.txt file from sample files", 
                                         "Either a Pedigree.dat file, or any file with a header containing all of the following elements (in any order):  \"" + Array.toStr(MitoPipeline.PED_INPUT, ", ") + "\"", 
                                         "A Sample_Map.csv file, with at least two columns having headers \"" + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \"" + MitoPipeline.SAMPLEMAP_INPUT[2] + "\""}}, 
                          new RequirementInputType[][]{
-                                    {RequirementInputType.NONE, 
+                                    {RequirementInputType.NONE}, 
+                                    {RequirementInputType.BOOL, 
                                         RequirementInputType.FILE, 
                                         RequirementInputType.FILE}}) {
 
@@ -300,8 +302,10 @@ public class GenvisisWorkflow {
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String pedFile = variables.get(this).get(0);
-            String sampleMapCsv = variables.get(this).get(1);
+            Boolean minimal = Boolean.parseBoolean(variables.get(this).get(0));
+            String pedFile = minimal ? null : variables.get(this).get(1);
+            String sampleMapCsv = minimal ? null : variables.get(this).get(2); 
+            
             proj.getLog().report("Creating SampleData.txt");
             /*int retStat = */SampleData.createSampleData(pedFile, sampleMapCsv, proj);
         }
@@ -312,15 +316,45 @@ public class GenvisisWorkflow {
             STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
             boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
             return new boolean[][]{
-                    {checkStepParseSamples || (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0), 
-                            Files.exists(variables.get(this).get(0)), 
-                            Files.exists(variables.get(this).get(1))}};
+                    {checkStepParseSamples || (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
+                    {true,
+                     Files.exists(variables.get(this).get(1)), 
+                     Files.exists(variables.get(this).get(2))}};
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{"", ""};
+            String pedPreset = Files.exists(proj.PEDIGREE_FILENAME.getValue()) ? proj.PEDIGREE_FILENAME.getValue() : "";
+            String sampMapPreset = pedPreset.equals("") ? getLocationOfSampleMap(proj) : null;  // check for SampleMap only if we haven't found a pedigree file
+            if (sampMapPreset == null) {
+                sampMapPreset = "";
+            }
+            return new Object[]{true, pedPreset, sampMapPreset};
         }
+
+        private String getLocationOfSampleMap(Project proj) {
+            String filename;
+            
+            String projDir = proj.PROJECT_DIRECTORY.getValue();
+            String snpMap = "Sample_Map.csv";
+            String snpMapGz = "Sample_Map.csv.gz";
+            if (Files.exists(projDir + snpMap)) {
+                filename = projDir + snpMap;
+            } else if (Files.exists(projDir + snpMapGz)) {
+                filename = projDir + snpMapGz;
+            } else {
+                String srcDir = proj.SOURCE_DIRECTORY.getValue();
+                if (Files.exists(srcDir + snpMap)) {
+                    filename = srcDir + snpMap;
+                } else if (Files.exists(srcDir + snpMapGz)) {
+                    filename = srcDir + snpMapGz;
+                } else {
+                    return null;
+                }
+            }
+            return filename;
+        }
+
 
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -329,8 +363,9 @@ public class GenvisisWorkflow {
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projPropFile = proj.getPropertyFilename();
-            String pedFile = variables.get(this).get(0);
-            String sampleMapCsv = variables.get(this).get(1);
+            Boolean minimal = Boolean.parseBoolean(variables.get(this).get(0));
+            String pedFile = minimal ? "" : variables.get(this).get(1);
+            String sampleMapCsv = minimal ? "" : variables.get(this).get(2);
             StringBuilder cmd = new StringBuilder();
             cmd.append("jcp cnv.var.SampleData proj=").append(projPropFile);
             if (!"".equals(pedFile)) {
