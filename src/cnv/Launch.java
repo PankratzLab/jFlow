@@ -792,10 +792,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		        }
 		    });
 		} else if (command.equals(NEW_PROJECT)) {
-		    
-		    final GenvisisWorkflow kAndK = new GenvisisWorkflow(null, Launch.this);
-		    kAndK.showDialogAndRun();
-		    
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+        		    final GenvisisWorkflow kAndK = new GenvisisWorkflow(null, Launch.this);
+        		    kAndK.showDialogAndRun();
+                }
+            });
 		} else if (command.equals(IMPORT_PROJECT)) {
 		    
 		    ImportProjectGUI importGUI = new ImportProjectGUI();
