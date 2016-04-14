@@ -237,22 +237,22 @@ public class GenvisisWorkflowGUI extends JDialog {
                     }
                 }
             };
-            JButton btnExportToText = new JButton("Export To Text");
+            btnExportToText = new JButton("Export To Text");
             btnExportToText.setActionCommand("Export");
             btnExportToText.addActionListener(listener);
             buttonPane.add(btnExportToText, "cell 8 0");
-            JButton okButton = new JButton("Run");
-            okButton.setActionCommand("Run");
-            okButton.setMnemonic(KeyEvent.VK_O);
-            buttonPane.add(okButton, "cell 9 0,alignx left,aligny top");
-            getRootPane().setDefaultButton(okButton);
-            JButton cancelButton = new JButton("Close");
-            cancelButton.setActionCommand("Close");
-            cancelButton.setMnemonic(KeyEvent.VK_C);
-            buttonPane.add(cancelButton, "cell 10 0,alignx left,aligny top");
+            btnOk = new JButton("Run");
+            btnOk.setActionCommand("Run");
+            btnOk.setMnemonic(KeyEvent.VK_O);
+            buttonPane.add(btnOk, "cell 9 0,alignx left,aligny top");
+            getRootPane().setDefaultButton(btnOk);
+            btnCancel = new JButton("Close");
+            btnCancel.setActionCommand("Close");
+            btnCancel.setMnemonic(KeyEvent.VK_C);
+            buttonPane.add(btnCancel, "cell 10 0,alignx left,aligny top");
             
-            okButton.addActionListener(listener);
-            cancelButton.addActionListener(listener);
+            btnOk.addActionListener(listener);
+            btnCancel.addActionListener(listener);
             
         }
         pack();
@@ -659,6 +659,12 @@ public class GenvisisWorkflowGUI extends JDialog {
     private JButton btnSelectValid;
 
     private Thread runThread;
+
+    private JButton btnExportToText;
+
+    private JButton btnOk;
+
+    private JButton btnCancel;
     
     private void lockup(final boolean lock) {
         try {
@@ -680,6 +686,10 @@ public class GenvisisWorkflowGUI extends JDialog {
                     }
                     btnSelectAll.setEnabled(!lock);
                     btnDeselectAll.setEnabled(!lock);
+                    btnSelectValid.setEnabled(!lock);
+                    btnCancel.setEnabled(!lock);
+                    btnOk.setEnabled(!lock);
+                    btnExportToText.setEnabled(!lock);
                 }
             });
         } catch (InvocationTargetException e) {

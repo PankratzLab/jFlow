@@ -1026,7 +1026,7 @@ public class SourceFileParser implements Runnable {
 			
 			int lines = Files.countLines(proj.SOURCE_DIRECTORY.getValue(false, true)+files[0], count);
 			markerNameHash = new Hashtable<String, Integer>((int) (lines + (lines / 3)) + 100); // calc to never re-balance
-			log.report(ext.getTime() + "]\tReading " + lines + " marker names...");
+			log.report(ext.getTime() + "]\tFound " + lines + " rows of data in the first file");
 			while (reader.ready()) {
 		        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 				line = reader.readLine().trim().split(delimiter);
@@ -1037,21 +1037,21 @@ public class SourceFileParser implements Runnable {
 				}
 				if (markerNameHash.containsKey(trav)) {
 					
-					if (!proj.getProperty(proj.LONG_FORMAT)) {
+					if (!proj.LONG_FORMAT.getValue()) {
 						log.reportError("The same marker ('" + trav + "') was seen twice...");
 					}
 					
 					if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
-						if (!proj.getProperty(proj.LONG_FORMAT)){
+						if (!proj.LONG_FORMAT.getValue()){
 							log.report("... this could mean that the file contains multiple samples. This should not happen when " + proj.ID_HEADER.getName() + " is set to " + SourceFileParser.FILENAME_AS_ID_OPTION);
 						} else {
 							log.reportError("Error - " + proj.ID_HEADER.getName() + " was set to " + SourceFileParser.FILENAME_AS_ID_OPTION + ", which is invalid for Long Format files");
 						}
 						return 0;
 					} else if (!(parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex]).equals(sampleName)) {
-						if (!proj.getProperty(proj.LONG_FORMAT)) {
+						if (!proj.LONG_FORMAT.getValue()) {
 							log.reportError("... and the sample name changed from " + sampleName + " to " + (parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@")) : line[sampIndex]) + ", so this must be a Long Format file. The property file will be updated to reflect this, and an attempt will be made to launch the Long Format file processor now.");
-							proj.setProperty(proj.LONG_FORMAT, Boolean.TRUE);
+							proj.LONG_FORMAT.setValue(Boolean.TRUE);
 							proj.saveProperties();
 						}
 						reader.close();
