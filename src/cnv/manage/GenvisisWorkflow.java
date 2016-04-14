@@ -286,7 +286,7 @@ public class GenvisisWorkflow {
                          "", 
                          new String[][]{
                                     {"[Parse Sample Files] step must have been run already or must be selected and valid (will create a minimal SampleData.txt file)", 
-                                        "A tab-delimited .PED format file with header \"" + Array.toStr(MitoPipeline.PED_INPUT, ", ") + "\"", 
+                                        "Either a Pedigree.dat file, or any file with a header containing all of the following elements (in any order):  \"" + Array.toStr(MitoPipeline.PED_INPUT, ", ") + "\"", 
                                         "A Sample_Map.csv file, with at least two columns having headers \"" + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \"" + MitoPipeline.SAMPLEMAP_INPUT[2] + "\""}}, 
                          new RequirementInputType[][]{
                                     {RequirementInputType.NONE, 

@@ -1370,7 +1370,7 @@ public class SampleData {
     }
 
     private static void generateSampleDataPed(Project proj, String pedFile) {
-        SampleData.generateSampleData(proj, SampleData.loadPedFile(pedFile, proj.getLog()));
+        SampleData.generateSampleData(proj, SampleData.loadPedInputFile(pedFile, proj.getLog()));
     }
     
     /**
@@ -1405,7 +1405,7 @@ public class SampleData {
     	}
     }
 
-    private static Individual[] loadPedFile(String pedFile, Logger log) {
+    private static Individual[] loadPedInputFile(String pedFile, Logger log) {
     	String[] line;
     	ArrayList<Individual> al = new ArrayList<Individual>();
     	try {
@@ -1414,14 +1414,28 @@ public class SampleData {
     		String delim = ext.determineDelimiter(temp);
     		line = temp.split(delim);
     		int[] indices = ext.indexFactors(MitoPipeline.PED_INPUT, line, true, false);
-    		for (int i = 0; i < indices.length; i++) {
-    			if (indices[i] < 0) {
-    				log.reportError("Error - Improper formatting of the pedigree file, cannot generate sampleData");
-    				log.reportError("Warning - Parsing can proceed, but a sample data file is needed to generate principal components");
-    			}
+    		boolean allElementsMissing = true;
+    		for (int ind : indices) {
+    		    if (ind >= 0) {
+    		        allElementsMissing = false;
+    		        break;
+    		    }
     		}
-    		while (reader.ready()) {
-    			line = reader.readLine().trim().split(delim);
+    		if (!allElementsMissing) {
+        		for (int i = 0; i < indices.length; i++) {
+        			if (indices[i] < 0) {
+        				log.reportError("Error - Improper formatting of the pedigree file, cannot generate sampleData");
+        				log.reportError("Warning - Parsing can proceed, but a sample data file is needed to generate principal components");
+        			}
+        		}
+    		} else {
+    		    log.report("No header elements found, assuming no header and standard pedigree.dat format...");
+    		    indices = new int[]{6, 0, 1, 2, 3, 4, 5};
+    		    al.add(new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]));
+    		}
+    		temp = null;
+    		while ((temp = reader.readLine()) != null) {
+    			line = temp.trim().split(delim);
     			al.add(new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]));
     		}
     		reader.close();
