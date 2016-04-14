@@ -52,8 +52,8 @@ public class AutoMito {
 
 		if (ext.indexOfStr(SexChecks.EST_SEX_HEADER, Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), proj.getLog())) < 0) {
 			ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
-			builder.dataKeyColumnIndex(0);
 			builder.sampleBased(true);
+			builder.dataKeyColumnName("Sample");
 			builder.treatAllNumeric(false);
 			builder.stringDataTitles(new String[] { SexChecks.EST_SEX_HEADER });
 			builder.requireAll(true);

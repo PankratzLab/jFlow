@@ -25,6 +25,11 @@ public class LinRegTest {
 		}
 
 		long time = System.currentTimeMillis();
+		LeastSquares lsols = new LeastSquares(y, x2, true, true, LS_TYPE.QR_DECOMP);
+		log.reportTimeElapsed(LS_TYPE.QR_DECOMP.toString() + ": ", time);
+		System.out.println(lsols.getRsquare());
+
+		time = System.currentTimeMillis();
 		LeastSquares ls = new LeastSquares(y, x2, true, true, LS_TYPE.REGULAR);
 		log.reportTimeElapsed(LS_TYPE.REGULAR.toString() + ": ", time);
 		System.out.println(ls.getRsquare());
@@ -34,11 +39,7 @@ public class LinRegTest {
 		System.out.println(lssvd.getRsquare());
 		time = System.currentTimeMillis();
 
-		LeastSquares lsols = new LeastSquares(y, x2, true, true, LS_TYPE.QR_DECOMP);
-		log.reportTimeElapsed(LS_TYPE.QR_DECOMP.toString() + ": ", time);
-		System.out.println(lsols.getRsquare());
-
-		time = System.currentTimeMillis();
+	
 
 		OLSMultipleLinearRegression ols = new OLSMultipleLinearRegression();
 		ols.newSampleData(y, x2);
@@ -49,8 +50,8 @@ public class LinRegTest {
 
 		for (int i = 0; i < ls.getBetas().length; i++) {
 			if (i < 10) {
-				System.out.println(LS_TYPE.REGULAR + ": " + ls.getBetas()[i] + "\t" + LS_TYPE.SVD + ": " + lssvd.getBetas()[i] + "\tOLS: " + lssvd.getBetas()[i]);
-				System.out.println(LS_TYPE.REGULAR + ": " + ls.getSigs()[i] + "\t" + LS_TYPE.SVD + ": " + lssvd.getSigs()[i] + "\tOLS: " + lssvd.getSigs()[i]);
+//				System.out.println(LS_TYPE.REGULAR + ": " + ls.getBetas()[i] + "\t" + LS_TYPE.SVD + ": " + lssvd.getBetas()[i] + "\tOLS: " + lssvd.getBetas()[i]);
+//				System.out.println(LS_TYPE.REGULAR + ": " + ls.getSigs()[i] + "\t" + LS_TYPE.SVD + ": " + lssvd.getSigs()[i] + "\tOLS: " + lssvd.getSigs()[i]);
 			}
 
 		}
