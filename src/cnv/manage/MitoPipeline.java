@@ -318,10 +318,10 @@ public class MitoPipeline {
 		}
 
 		try {
-            SampleData.createSampleData(pedFile, sampleMapCsv, proj);
-        } catch (Elision e) {
-            // do nothing, as the next check, verifyAllSamples, checks for the same things;
-        }
+			SampleData.createSampleData(pedFile, sampleMapCsv, proj);
+		} catch (Elision e) {
+			// do nothing, as the next check, verifyAllSamples, checks for the same things;
+		}
 		// we require that every sample that has been parsed has an entry in sampleData
 		if (verifyAllSamples(proj, sampleList.getSamples())) {
 			if (doAbLookup) {
@@ -375,7 +375,7 @@ public class MitoPipeline {
 						String qcFile = outputBase + "_lrr_sd.txt";
 						proj.SAMPLE_QC_FILENAME.setValue(qcFile);
 
-						counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile,false);
+						counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile, false);
 						if (counts == null || counts[1] != sampleList.getSamples().length) {
 							if (counts == null || counts[1] == 0 && Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
 								log.reportError("Error - was unable to parse QC file " + proj.SAMPLE_QC_FILENAME.getValue() + ", backing up this file to " + proj.BACKUP_DIRECTORY.getValue(false, false) + " and re-starting sample qc");
@@ -436,7 +436,6 @@ public class MitoPipeline {
 									// try {
 									GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
 									gAdjustorBuilder.regressionDistance(regressionDistance);
-
 									params = GcAdjustorParameter.generate(proj, outputBase + "_GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder, sampsToUseRecompute, recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
 									if ((recomputeLRR_Median || recomputeLRR_PCs) && params.getCentroids() == null) {
 										throw new IllegalStateException("Internal error, did not recieve centroids");
@@ -455,17 +454,17 @@ public class MitoPipeline {
 								}
 							}
 							log.report("\nReady to perform the principal components analysis (PCA)\n");
-							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, outputBase, params);
+							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, outputBase, null);
 							if (pcs == null) {
 								return 3;
 							}
 							// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
 							// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
 							log.report("\nApplying the loadings from the principal components analysis to all samples\n");
-							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, params);
+							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, null);
 							// Compute Medians for (MT) markers and compute residuals from PCs for everyone
 							log.report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
-							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase, params);
+							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase, null);
 							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
 							proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
 							proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);

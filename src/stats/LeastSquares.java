@@ -18,7 +18,7 @@ public class LeastSquares extends RegressionModel {
 	private double inverseAbsoluteAccuracy;
 	private boolean optimizeMethod;
 	private LS_TYPE lType;
-	public static final double DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 1e-15;
+	public static final double DEFAULT_INVERSE_ABSOLUTE_ACCURACY = 10e-105;
 	public enum LS_TYPE {
 		/**
 		 * The good ole regression that has been well tested
@@ -449,6 +449,7 @@ public class LeastSquares extends RegressionModel {
 			if (lType != LS_TYPE.QR_DECOMP) {
 				SEofBs = new double[M + 1];
 			}
+			TDistribution tdist = new TDistribution(N - M - 1, inverseAbsoluteAccuracy);
 			stats = new double[M + 1];
 			sigs = new double[M + 1];
 			for (int i = 0; i < M + 1; i++) {
@@ -458,7 +459,7 @@ public class LeastSquares extends RegressionModel {
 				stats[i] = betas[i] / SEofBs[i];
 //				sigs[i] = ProbDist.TDist(stats[i], N - M - 1);
 				
-				sigs[i] = 2 * (1 - new TDistribution(N - M - 1, inverseAbsoluteAccuracy).cumulativeProbability(Math.abs(stats[i])));
+				sigs[i] = 2 * (1 - tdist.cumulativeProbability(Math.abs(stats[i])));
 				//				System.out.println();
 //				System.out.println(stats[i] + "\t" + (N - M - 1) + "\t" + sigs[i] + "\t" + ();
 				if (sigs[i] < 0) {
