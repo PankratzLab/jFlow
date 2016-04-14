@@ -114,6 +114,9 @@ public class Qc {
             String fam = dir+"genome/" + plink + ".fam";
             String imiss = dir+"marker_qc/missing.imiss";
             String lrrsd = dir+"genome/lrr_sd.xln";
+            if (!Files.exists(lrrsd)) {
+                lrrsd = dir + "../../lrr_sd.xln";
+            }
             int level = 4;
 //            Plink.flagRelateds(geno, fam, imiss, lrrsd, Plink.FLAGS, Plink.THRESHOLDS, level, false);
             cmds.append("jcp gwas.Plink relate=").append(geno).append(" fam=").append(fam).append(" imiss=").append(imiss).append(" lrr_sd=").append(lrrsd).append(" level=").append(level).append("\n");
@@ -256,7 +259,11 @@ public class Qc {
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (!Files.exists(dir+"genome/" + plink + ".genome_keep.dat")) {
 			log.report(ext.getTime() + "]\tRunning flagRelateds");
-			Plink.flagRelateds(dir+"genome/" + plink + ".genome", dir+"genome/" + plink + ".fam", dir+"marker_qc/missing.imiss", dir+"genome/lrr_sd.xln", Plink.FLAGS, Plink.THRESHOLDS, 4, false);
+			String lrrFile = dir + "genome/lrr_sd.xln";
+			if (!Files.exists(lrrFile)) {
+			    lrrFile = dir + "../../lrr_sd.xln";
+			}
+			Plink.flagRelateds(dir+"genome/" + plink + ".genome", dir+"genome/" + plink + ".fam", dir+"marker_qc/missing.imiss", lrrFile, Plink.FLAGS, Plink.THRESHOLDS, 4, false);
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		
