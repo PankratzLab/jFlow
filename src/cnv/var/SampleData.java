@@ -1344,8 +1344,9 @@ public class SampleData {
      *            an existing, or newly created project
      * @param log
      *            Note: if the pedFile and sampleMapCsv file are both null, we create a minimal sample data instead Note: if sample data already exists, we leave it alone
+	 * @throws Elision 
      */
-    public static int createSampleData(String pedFile, String sampleMapCsv, Project proj) {
+    public static int createSampleData(String pedFile, String sampleMapCsv, Project proj) throws Elision {
     	String sampleDataFilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
     	if ((sampleMapCsv == null || "".equals(sampleMapCsv) || !Files.exists(sampleMapCsv)) && (pedFile == null || "".equals(pedFile) || !Files.exists(pedFile)) && !Files.exists(sampleDataFilename)) {
     		proj.getLog().report("Neither a sample manifest nor a sample map file was provided; generating sample data file at: " + sampleDataFilename);
@@ -1354,10 +1355,10 @@ public class SampleData {
     	} else if (!Files.exists(sampleDataFilename)) {
     		if (pedFile != null && !"".equals(pedFile) && Files.exists(pedFile)) {
     			generateSampleDataPed(proj, pedFile);
-    			return 1;
+    			return 0;
     		} else {
     			generateSampleDataMap(proj, sampleMapCsv);
-    			return 2;
+    			return 0;
     		}
     	} else {
     		proj.getLog().report("Detected that a sampleData file already exists at " + sampleDataFilename + ", skipping sampleData creation");
@@ -1365,12 +1366,12 @@ public class SampleData {
     	}
     }
 
-    private static void generateSampleDataMap(Project proj, String sampleMapCsv) {
-        SampleData.generateSampleData(proj, SampleData.loadSampleMapFile(sampleMapCsv, proj.getLog()));
+    private static void generateSampleDataMap(Project proj, String sampleMapCsv) throws Elision {
+        SampleData.generateSampleData(proj, SampleData.loadSampleMapFile(proj.getSamples(), sampleMapCsv, proj.getLog()));
     }
 
-    private static void generateSampleDataPed(Project proj, String pedFile) {
-        SampleData.generateSampleData(proj, SampleData.loadPedInputFile(pedFile, proj.getLog()));
+    private static void generateSampleDataPed(Project proj, String pedFile) throws Elision {
+        SampleData.generateSampleData(proj, SampleData.loadPedInputFile(proj.getSamples(), pedFile, proj.getLog()));
     }
     
     /**
@@ -1380,12 +1381,6 @@ public class SampleData {
     	// String sampleDataFile = proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.SAMPLE_DATA_FILENAME);
     	String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
     	Logger log = proj.getLog();
-    	
-    	String[] projSamples = proj.getSamples();
-    	HashSet<String> smp = new HashSet<String>();
-    	for (String sampl : projSamples) {
-    	    smp.add(sampl);
-    	}
     	
     	try {
     		PrintWriter writer = new PrintWriter(new FileWriter(sampleDataFile));
@@ -1405,9 +1400,17 @@ public class SampleData {
     	}
     }
 
-    private static Individual[] loadPedInputFile(String pedFile, Logger log) {
+    private static Individual[] loadPedInputFile(String[] samples, String pedFile, Logger log) throws Elision {
     	String[] line;
     	ArrayList<Individual> al = new ArrayList<Individual>();
+
+        HashSet<String> sampSet = new HashSet<String>();
+        for (String sa : samples) {
+            sampSet.add(sa);
+        }
+        
+        ArrayList<String> foundMissing = new ArrayList<String>();
+    	
     	try {
     		BufferedReader reader = Files.getReader(pedFile, false, true, false);
     		String temp = reader.readLine().trim();
@@ -1421,37 +1424,69 @@ public class SampleData {
     		        break;
     		    }
     		}
+    		Individual indi;
     		if (!allElementsMissing) {
         		for (int i = 0; i < indices.length; i++) {
         			if (indices[i] < 0) {
         				log.reportError("Error - Improper formatting of the pedigree file, cannot generate sampleData");
         				log.reportError("Warning - Parsing can proceed, but a sample data file is needed to generate principal components");
+        				throw new Elision("Improper File Format");
         			}
         		}
     		} else {
     		    log.report("No header elements found, assuming no header and standard pedigree.dat format...");
     		    indices = new int[]{6, 0, 1, 2, 3, 4, 5};
-    		    al.add(new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]));
+    		    indi = new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]);
+    		    al.add(indi);
+                if (!sampSet.remove(indi.iid)) {
+                    foundMissing.add(indi.iid);
+                }
     		}
     		temp = null;
     		while ((temp = reader.readLine()) != null) {
     			line = temp.trim().split(delim);
-    			al.add(new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]));
+    			indi = new Individual(line[indices[0]], line[indices[1]], line[indices[2]], line[indices[3]], line[indices[4]], line[indices[5]], line[indices[6]]);
+    			al.add(indi);
+                if (!sampSet.remove(indi.iid)) {
+                    foundMissing.add(indi.iid);
+                }
     		}
     		reader.close();
     	} catch (FileNotFoundException fnfe) {
     		log.reportError("Error: file \"" + pedFile + "\" not found in current directory");
+    		throw new Elision("Specified File is Missing");
     	} catch (IOException ioe) {
     		log.reportError("Error reading file \"" + pedFile + "\"");
+    		throw new Elision("Generic Error Reading File");
     	}
+        if (foundMissing.size() > 0) {
+            log.reportError("MAJOR ERROR - found " + foundMissing.size() + " IIDs in Pedigree file that do not have data files.");
+            log.reportError("\tMissing IIDs: " + foundMissing.toString());
+        }
+        if (sampSet.size() > 0) {
+            log.reportError("MAJOR ERROR - found " + sampSet.size() + " IIDs with data files not listed in Pedigree file.");
+            log.reportError("\tMissing IIDs: " + sampSet.toString());
+        }
+        if (foundMissing.size() > 0 || sampSet.size() > 0) {
+            log.reportError("MAJOR ERROR - please fix your Pedigree file to represent all individuals with data files.");
+            throw new Elision("Missing Individuals Either in File or Data");
+        }
+        
     	return al.toArray(new Individual[al.size()]);
     }
 
-    private static Individual[] loadSampleMapFile(String sampleMapCsv, Logger log) {
+    private static Individual[] loadSampleMapFile(String[] samples, String sampleMapCsv, Logger log) throws Elision {
     	String[] line;
     	ArrayList<Individual> al = new ArrayList<Individual>();
     	log.report("Using Sample Map file " + sampleMapCsv);
+    	
+    	HashSet<String> sampSet = new HashSet<String>();
+    	for (String sa : samples) {
+    	    sampSet.add(sa);
+    	}
+    	
         String delim = ",";
+        ArrayList<String> foundMissing = new ArrayList<String>();
     	try {
     		BufferedReader reader = Files.getReader(sampleMapCsv, false, true, false);
     		line = reader.readLine().trim().split(delim);
@@ -1459,17 +1494,37 @@ public class SampleData {
     		int[] indices = ext.indexFactors(MitoPipeline.SAMPLEMAP_INPUT, line, true, false);
     		if (indices[1] == -1 || indices[2] == -1) {
     			log.reportError("Error - Columns \"" + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \"" + MitoPipeline.SAMPLEMAP_INPUT[2] + "\" must be provided in .csv format " + sampleMapCsv);
+                throw new Elision("Improper File Format");
     		}
     		while (reader.ready()) {
     			line = reader.readLine().trim().split(delim);
-    			al.add(new Individual(indices, line, header));
+    			Individual indi = new Individual(indices, line, header);
+    			al.add(indi);
+    			if (!sampSet.remove(indi.iid)) {
+    			    foundMissing.add(indi.iid);
+    			}
     		}
     		reader.close();
     	} catch (FileNotFoundException fnfe) {
     		log.reportError("Error: file \"" + sampleMapCsv + "\" not found in current directory");
+            throw new Elision("Specified File is Missing");
     	} catch (IOException ioe) {
     		log.reportError("Error reading file \"" + sampleMapCsv + "\"");
+            throw new Elision("Generic Error Reading File");
     	}
+    	if (foundMissing.size() > 0) {
+    	    log.reportError("MAJOR ERROR - found " + foundMissing.size() + " IIDs in Sample_Map file that do not have data files.");
+    	    log.reportError("\tMissing IIDs: " + foundMissing.toString());
+    	}
+    	if (sampSet.size() > 0) {
+    	    log.reportError("MAJOR ERROR - found " + sampSet.size() + " IIDs with data files not listed in Sample_Map file.");
+    	    log.reportError("\tMissing IIDs: " + sampSet.toString());
+    	}
+    	if (foundMissing.size() > 0 || sampSet.size() > 0) {
+    	    log.reportError("MAJOR ERROR - please fix your Sample_Map file to represent all individuals with data files.");
+            throw new Elision("Missing Individuals Either in File or Data");
+    	}
+    	
     	return al.toArray(new Individual[al.size()]);
     }
 
@@ -1597,8 +1652,13 @@ public class SampleData {
     		if (Files.exists(thisProject.SAMPLE_DATA_FILENAME.getValue(false, false), thisProject.JAR_STATUS.getValue())) {
     			thisProject.getSampleData(2, false);
     		} else {
-    		    createSampleData(ped, samp, thisProject);
+    		    try {
+                    createSampleData(ped, samp, thisProject);
+                } catch (Elision e) {
+                    // ignore, as log output has already been written if an error is thrown
+                }
     		}
     	}
 }
+
 
