@@ -2140,10 +2140,10 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		MessageOfEncouragment mess;
 
 		time = new Date().getTime();
-		log.report("  Getting a list of all files with extension "+Sample.SAMPLE_DATA_FILE_EXTENSION+" (if the process hangs here the first time after reverse transposing, please be patient, the operating system is busy indexing the new files) ...");
+		log.report("  Getting a list of all files with extension "+Sample.SAMPLE_FILE_EXTENSION+" (if the process hangs here the first time after reverse transposing, please be patient, the operating system is busy indexing the new files) ...");
 		mess = new MessageOfEncouragment("Getting a list of all sample files is taking longer than usual and probably means that your recently created files are still being indexed on the hard drive. Please be patient...", proj);
 		new Thread(mess).start();
-		filesPresent = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_DATA_FILE_EXTENSION, jar);
+		filesPresent = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_FILE_EXTENSION, jar);
 		log.report("Getting list of files took "+ext.getTimeElapsed(time));
 		time = new Date().getTime();
 		fontMetrics = sampleList.getFontMetrics(sampleList.getFont());
@@ -2224,7 +2224,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		if (samp == null) {
 			System.err.println("Error - sample '"+sample+"' not found in "+proj.SAMPLE_DIRECTORY.getValue(false, true));
 		} else if ( samp.getFingerprint()!=fingerprint) {
-			System.err.println("Error - Sample "+proj.SAMPLE_DIRECTORY.getValue(false, true)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION+" has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
+			System.err.println("Error - Sample "+proj.SAMPLE_DIRECTORY.getValue(false, true)+sample+Sample.SAMPLE_FILE_EXTENSION+" has a different fingerprint ("+samp.getFingerprint()+") than the MarkerSet ("+fingerprint+")");
 		} else {
 			
 			if (currentCentroid != null && currentCentroid.startsWith(SEX_CENT) && autoSwitch.isSelected()) {
@@ -2375,7 +2375,7 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 				}
 	        }
 			if (!found) {
-				if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)+newSample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
+				if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)+newSample+Sample.SAMPLE_FILE_EXTENSION, jar)) {
 					createSampleList();
 					updateSample(newSample);
 				} else {

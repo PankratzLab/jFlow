@@ -95,11 +95,11 @@ public class TransposeData {
 		allSampleNamesInProj = proj.getSamples();
 		allMarkerNamesInProj = proj.getMarkerNames();
 		fingerPrint = MarkerSet.fingerprint(allSampleNamesInProj);
-		if (!Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, false)) {
-			log.reportError("Could not locate file: "+proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[0] + Sample.SAMPLE_DATA_FILE_EXTENSION+"; aborting transposeData");
+		if (!Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[0] + Sample.SAMPLE_FILE_EXTENSION, false)) {
+			log.reportError("Could not locate file: "+proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[0] + Sample.SAMPLE_FILE_EXTENSION+"; aborting transposeData");
 			return;
 		}
-		nullStatus = Sample.getNullstatusFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, false);
+		nullStatus = Sample.getNullstatusFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[0] + Sample.SAMPLE_FILE_EXTENSION, false);
 		numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
 		numBytes_Mark = allSampleNamesInProj.length * numBytesPerSampleMarker;
 		if (new File(proj.PROJECT_DIRECTORY.getValue()).getFreeSpace() <= (allSampleNamesInProj.length * (long)allMarkerNamesInProj.length * numBytesPerSampleMarker)) {
@@ -169,9 +169,9 @@ public class TransposeData {
 					for (int i=0; i<allSampleNamesInProj.length; i++) {
 			            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 						try {
-							sampleFiles[i] = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, "r");
+							sampleFiles[i] = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[i] + Sample.SAMPLE_FILE_EXTENSION, "r");
 						} catch (FileNotFoundException fnfe) {
-							log.reportError("Error - file not found: "+proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[i] + Sample.SAMPLE_DATA_FILE_EXTENSION);
+							log.reportError("Error - file not found: "+proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[i] + Sample.SAMPLE_FILE_EXTENSION);
 							log.reportError("        if you get this error and the file does exist, then likely your operating system (especially common on a linux platform) is not allowing this many files to be open at once; rerun without using that option at the command line");
 							log.reportError("        Transpose aborted");
 							return;
@@ -210,7 +210,7 @@ public class TransposeData {
 			            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 						timerTmp = new Date().getTime();
 						if (! keepAllSampleFilesOpen) {
-							sampleFile = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[j] + Sample.SAMPLE_DATA_FILE_EXTENSION, "r");
+							sampleFile = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[j] + Sample.SAMPLE_FILE_EXTENSION, "r");
 						} else {
 							sampleFile = sampleFiles[j];
 						}
@@ -500,7 +500,7 @@ public class TransposeData {
 			try {
 				numRoundsLoadingMarkerFiles = (int) Math.ceil((double)listOfAllSamplesInProj.length / (double)numSamples_WriteBuffer);
 				numMarkers_LastRound = listOfAllSamplesInProj.length % numSamples_WriteBuffer;
-				backupOlderFiles(proj.SAMPLE_DIRECTORY.getValue(true, false), new String[] {Sample.SAMPLE_DATA_FILE_EXTENSION, "outliers.ser"}, true);
+				backupOlderFiles(proj.SAMPLE_DIRECTORY.getValue(true, false), new String[] {Sample.SAMPLE_FILE_EXTENSION, "outliers.ser"}, true);
 				log.report( "--\nProject:\t" + listOfAllMarkersInProj.length + " markers\t" + listOfAllSamplesInProj.length +" samples"
 						  + "\nHeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + " max"
 						  + "\nwriteBuffer:\t" + numSamples_WriteBuffer + " samples\t" + ext.formDeci((double) numSamples_WriteBuffer * numBytes_PerSamp / (double)Runtime.getRuntime().maxMemory() * 100, 1) + "% heap efficiency");
@@ -557,7 +557,7 @@ public class TransposeData {
 						markFileParameterSection = getParameterSectionForSampRaf(listOfAllMarkersInProj.length, nullStatus, markFileOutliersBytes.length, fingerprintForMarkers);
 
 						timerTmp = new Date().getTime();
-						writeBufferToRAF(writeBuffer, null, j, j, proj.SAMPLE_DIRECTORY.getValue(false, true) + listOfAllSamplesInProj[indexCurrentSampInProj] + Sample.SAMPLE_DATA_FILE_EXTENSION, markFileParameterSection, markFileOutliersBytes);
+						writeBufferToRAF(writeBuffer, null, j, j, proj.SAMPLE_DIRECTORY.getValue(false, true) + listOfAllSamplesInProj[indexCurrentSampInProj] + Sample.SAMPLE_FILE_EXTENSION, markFileParameterSection, markFileOutliersBytes);
 						indexCurrentSampInProj ++;
 //						log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
 					}
@@ -580,7 +580,7 @@ public class TransposeData {
 				e.printStackTrace();
 			} catch (OutOfMemoryError oome) {
 				numSamples_WriteBuffer = getOptimaleNumSamplesBasingOnHeapSpace(numSamples_WriteBuffer, -1);
-				deleteOlderRafs(proj.SAMPLE_DIRECTORY.getValue(true, false), null, new String[] {Sample.SAMPLE_DATA_FILE_EXTENSION, "outliers.ser"}, false, null);
+				deleteOlderRafs(proj.SAMPLE_DIRECTORY.getValue(true, false), null, new String[] {Sample.SAMPLE_FILE_EXTENSION, "outliers.ser"}, false, null);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

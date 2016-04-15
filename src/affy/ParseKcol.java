@@ -387,13 +387,13 @@ public class ParseKcol implements Runnable {
 		do {
 			trav = sampleName + (version == 0 ? "" : "." + version);
 			version++;
-			filename = dir + trav + Sample.SAMPLE_DATA_FILE_EXTENSION;
+			filename = dir + trav + Sample.SAMPLE_FILE_EXTENSION;
 			if (new File(filename).exists() && new File(filename).lastModified() < timeBegan && versionToOverwrite == -1) {
 				versionToOverwrite = version - 1;
 			}
 		} while (new File(filename).exists());
 
-		overwriteOptions = new String[] { "Rename new file " + trav + Sample.SAMPLE_DATA_FILE_EXTENSION, "Overwrite existing file " + sampleName + (versionToOverwrite == 0 ? "" : "." + versionToOverwrite) + Sample.SAMPLE_DATA_FILE_EXTENSION, "Overwrite this and all future files", "Cancel parser" };
+		overwriteOptions = new String[] { "Rename new file " + trav + Sample.SAMPLE_FILE_EXTENSION, "Overwrite existing file " + sampleName + (versionToOverwrite == 0 ? "" : "." + versionToOverwrite) + Sample.SAMPLE_FILE_EXTENSION, "Overwrite this and all future files", "Cancel parser" };
 
 		if (versionToOverwrite != -1) {
 			while (new File(dir + HOLD_OPTION_FILE).exists()) {
@@ -417,11 +417,11 @@ public class ParseKcol implements Runnable {
 			new File(dir + HOLD_OPTION_FILE).delete();
 			switch (response) {
 			case 0:
-				return dir + trav + Sample.SAMPLE_DATA_FILE_EXTENSION;
+				return dir + trav + Sample.SAMPLE_FILE_EXTENSION;
 			case 2:
 				Files.write("", dir + OVERWRITE_OPTION_FILE);
 			case 1:
-				return dir + sampleName + (versionToOverwrite == 0 ? "" : "." + versionToOverwrite) + Sample.SAMPLE_DATA_FILE_EXTENSION;
+				return dir + sampleName + (versionToOverwrite == 0 ? "" : "." + versionToOverwrite) + Sample.SAMPLE_FILE_EXTENSION;
 			case 3:
 				Files.write("", dir + CANCEL_OPTION_FILE);
 				return null;
@@ -431,7 +431,7 @@ public class ParseKcol implements Runnable {
 			}
 		}
 
-		return dir + trav + Sample.SAMPLE_DATA_FILE_EXTENSION;
+		return dir + trav + Sample.SAMPLE_FILE_EXTENSION;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -597,7 +597,7 @@ public class ParseKcol implements Runnable {
 				reader.reset();
 			}
 
-			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
+			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + sampleName + Sample.SAMPLE_FILE_EXTENSION).exists()) {
 
 				overwriteOptions = new String[] { "Delete All", "Customize", "Cancel parser" };
 
@@ -607,7 +607,7 @@ public class ParseKcol implements Runnable {
 				case -1:
 					break;
 				case 0:
-					filesToDelete = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
+					filesToDelete = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_FILE_EXTENSION, false);
 					for (int i = 0; i < filesToDelete.length; i++) {
 						new File(proj.SAMPLE_DIRECTORY.getValue(false, true) + filesToDelete[i]).delete();
 					}
@@ -858,8 +858,8 @@ public class ParseKcol implements Runnable {
 								samp = new Sample(sampleName, fingerprint, data, genotypes, true);
 								samp.saveToRandomAccessFile(filename, allOutliers, sampleName);
 							}
-							if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + trav + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
-								samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav) ? fixes.get(trav) : trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue());
+							if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + trav + Sample.SAMPLE_FILE_EXTENSION).exists()) {
+								samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav) ? fixes.get(trav) : trav) + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue());
 								data = samp.getAllData();
 								genotypes = samp.getAllGenotypes();
 							} else {

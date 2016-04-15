@@ -121,7 +121,7 @@ public class LrrSd extends Parallelizable {
 //	        	log.report((i+1)+" of "+samples.length);
 				fsamp = proj.getFullSampleFromRandomAccessFile(samples[i]);
 				if (fsamp == null) {
-					log.reportError("Error - "+samples[i]+Sample.SAMPLE_DATA_FILE_EXTENSION+" not found in samples directory");
+					log.reportError("Error - "+samples[i]+Sample.SAMPLE_FILE_EXTENSION+" not found in samples directory");
 				} else {
 					writer.println(Array.toStr(LrrSdPerSample(proj, markerSet, samples[i], fsamp, cents, markersForCallrate, markersForEverythingElse, gcModel, GC_CORRECTION_METHOD.GENVISIS_GC, log), "\t"));
 		            writer.flush();

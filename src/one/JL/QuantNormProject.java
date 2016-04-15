@@ -249,7 +249,7 @@ public class QuantNormProject {
 
 	private static Hashtable<String, Float> quantNormSample(Project projOriginal, Project projNorm, String sample) {
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
-		String output = projNorm.SAMPLE_DIRECTORY.getValue() + sample + Sample.SAMPLE_DATA_FILE_EXTENSION;
+		String output = projNorm.SAMPLE_DIRECTORY.getValue() + sample + Sample.SAMPLE_FILE_EXTENSION;
 
 		if (!Files.exists(output)) {
 			Sample samp = projOriginal.getFullSampleFromRandomAccessFile(sample);

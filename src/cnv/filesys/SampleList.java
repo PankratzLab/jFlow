@@ -65,7 +65,7 @@ public class SampleList implements Serializable {
 //		}
 
 		if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true), false)) {
-			files = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
+			files = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_FILE_EXTENSION, false);
 		} else {
 			log.reportError("Error - failed to find the SAMPLE_DIRECTORY ("+proj.SAMPLE_DIRECTORY.getValue(false, true)+"); no SampleList could be generated");
 			return null;
@@ -102,7 +102,7 @@ public class SampleList implements Serializable {
 		proj.getLog().report("Extracting outliers from " + samples.length + " Sample files");
 		for (int i = 0; i < samples.length; i++) {
 			try {
-				String sampleFile = sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION;
+				String sampleFile = sampleDir + samples[i] + Sample.SAMPLE_FILE_EXTENSION;
 				Hashtable<String, Float> outliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(sampleFile);
 				
 				// TODO duplicates?

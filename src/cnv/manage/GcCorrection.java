@@ -52,7 +52,7 @@ public class GcCorrection {
 		WorkerTrain<GcCorrectedSample> train = new WorkerTrain<GcCorrectedSample>(producer, numThreads, 2, projOriginal.getLog());
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		String[] samples = projOriginal.getSamples();
-		String firstSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue() + samples[0] + Sample.SAMPLE_DATA_FILE_EXTENSION;
+		String firstSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue() + samples[0] + Sample.SAMPLE_FILE_EXTENSION;
 		if (!Files.exists(firstSampleFile)) {
 			int numSamples = samples.length;
 			int index = 0;
@@ -210,7 +210,7 @@ public class GcCorrection {
 		@Override
 		public GcCorrectedSample call() throws Exception {
 
-			String newSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue(true, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION;
+			String newSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue(true, false) + sample + Sample.SAMPLE_FILE_EXTENSION;
 
 			Sample correctedSamp = null;
 

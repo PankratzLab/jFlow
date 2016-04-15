@@ -220,7 +220,7 @@ public class BamSample {
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		byte[] genos = Array.byteArray(bamPiles.length, (byte) 1);
 		float[] blankLRRs = Array.floatArray(bamPiles.length, 1);
-		String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION;
+		String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + sampleName + Sample.SAMPLE_FILE_EXTENSION;
 		Sample sample = new Sample(sampleFile, fingerprint, Array.toFloatArray(mapQs), Array.toFloatArray(normDepth), Array.toFloatArray(normDepth), Array.toFloatArray(percentWithMismatch), blankLRRs, genos, genos, false);
 		sample.saveToRandomAccessFile(sampleFile, outliers, sampleName);
 		return outliers;

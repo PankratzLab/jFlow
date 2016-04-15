@@ -284,7 +284,7 @@ public class MitoPipeline {
 		}
 
 		sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
-		if (Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0) {
+		if (Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0) {
 			sampleList = proj.getSampleList();
 			log.report("Detected that " + (sampleList.getSamples().length > 1 ? sampleList.getSamples().length + " samples have" : sampleList.getSamples().length + " sample has") + " already been parsed");
 			// log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.getFilename(proj.SAMPLELIST_FILENAME) + " and " + proj.getDir(proj.SAMPLE_DIRECTORY));

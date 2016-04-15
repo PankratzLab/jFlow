@@ -472,16 +472,16 @@ public class SourceFileParser implements Runnable {
         do {
             trav = sampleName + (version == 0 ? "" : "." + version);
             version++;
-            filename = dir + trav + Sample.SAMPLE_DATA_FILE_EXTENSION;
+            filename = dir + trav + Sample.SAMPLE_FILE_EXTENSION;
             if (new File(filename).exists() && new File(filename).lastModified() < timeBegan && versionToOverwrite == -1) {
                 versionToOverwrite = version - 1;
             }
         } while (new File(filename).exists());
     
     
-        filename = sampleName + (versionToOverwrite == 0 ? "" : "." + versionToOverwrite) + Sample.SAMPLE_DATA_FILE_EXTENSION;
+        filename = sampleName + (versionToOverwrite == 0 ? "" : "." + versionToOverwrite) + Sample.SAMPLE_FILE_EXTENSION;
         overwriteOptions = new String[] {
-                "Rename new file " + trav + Sample.SAMPLE_DATA_FILE_EXTENSION, 
+                "Rename new file " + trav + Sample.SAMPLE_FILE_EXTENSION, 
                 "Overwrite existing file " + filename, 
                 "Overwrite this and all future files", 
                 "Cancel parser"
@@ -524,7 +524,7 @@ public class SourceFileParser implements Runnable {
             new File(dir + SourceFileParser.HOLD_OPTION_FILE).delete();
             switch (response) {
             case 0:
-                return dir + trav + Sample.SAMPLE_DATA_FILE_EXTENSION;
+                return dir + trav + Sample.SAMPLE_FILE_EXTENSION;
             case 2:
                 Files.write("", dir + SourceFileParser.OVERWRITE_OPTION_FILE);
             case 1:
@@ -538,7 +538,7 @@ public class SourceFileParser implements Runnable {
             }
         }
     
-        return dir+trav+Sample.SAMPLE_DATA_FILE_EXTENSION;
+        return dir+trav+Sample.SAMPLE_FILE_EXTENSION;
     }
 
     public static void parseAlleleLookupFromFinalReports(Project proj) {
@@ -1179,7 +1179,7 @@ public class SourceFileParser implements Runnable {
 	    foundFiles = (new File(proj.SAMPLE_DIRECTORY.getValue())).listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION);
+                return name.endsWith(Sample.SAMPLE_FILE_EXTENSION);
             }
         }).length > 0;
 	    
@@ -1272,7 +1272,7 @@ public class SourceFileParser implements Runnable {
 
 	public static void deleteAllFilesInSampleDirectory(Project proj) {
 		String[] filesToDelete;
-		filesToDelete = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_DATA_FILE_EXTENSION, false);
+		filesToDelete = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_FILE_EXTENSION, false);
 		for (int i = 0; i < filesToDelete.length; i++) {
 			new File(proj.SAMPLE_DIRECTORY.getValue(false, true) + filesToDelete[i]).delete();
 		}
@@ -1441,9 +1441,9 @@ public class SourceFileParser implements Runnable {
     								}
     							}
     							if (!done) {
-    								if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
+    								if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_FILE_EXTENSION).exists()) {
     									log.reportError("Warning - marker data must be out of order, becaue we're seeing "+trav+(fixes.containsKey(trav)?"-->"+fixes.get(trav):"")+" again at line "+count);
-    									samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue());
+    									samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(trav)?fixes.get(trav):trav) + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue());
     									data = samp.getAllData();
     									genotypes = samp.getAllGenotypes();
     								} else {
@@ -1755,9 +1755,9 @@ public class SourceFileParser implements Runnable {
                                 markerCount = 0;
 							} 
 							if (!eofFound) { 
-								if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(sampleIdent)?fixes.get(sampleIdent):sampleIdent) + Sample.SAMPLE_DATA_FILE_EXTENSION).exists()) {
+								if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(sampleIdent)?fixes.get(sampleIdent):sampleIdent) + Sample.SAMPLE_FILE_EXTENSION).exists()) {
 									log.reportError("Warning - marker data must be out of order, becaue we're seeing "+sampleIdent+(fixes.containsKey(sampleIdent)?"-->"+fixes.get(sampleIdent):"")+" again at line "+count);
-									samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(sampleIdent)?fixes.get(sampleIdent):sampleIdent) + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue());
+									samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + (fixes.containsKey(sampleIdent)?fixes.get(sampleIdent):sampleIdent) + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue());
 									data = samp.getAllData();
 									genotypes = samp.getAllGenotypes();
 								} else {

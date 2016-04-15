@@ -35,7 +35,7 @@ public class Sample implements Serializable {
 	public static final String[] ALT_NULL = {"-", "0"};
 	public static final String[] ALT_NULLS = {"--", "00", "---", "NoCall", "NC", "NN", "NA"};
 	public static final String[] AB_PAIRS = {"AA", "AB", "BB"};
-	public static final String SAMPLE_DATA_FILE_EXTENSION = ".sampRAF";
+	public static final String SAMPLE_FILE_EXTENSION = ".sampRAF";
 //	public static final byte PARAMETER_SECTION_BYTES = 13;
 	public static final byte PARAMETER_SECTION_BYTES = 17;
 	public static final byte PARAMETER_SECTION_NUMMARKERS_LOCATION = 0;
@@ -1021,10 +1021,10 @@ public class Sample implements Serializable {
 		    	}
 			}
 		} catch (IOException ioe) {
-			log.reportError("Error reading from a "+Sample.SAMPLE_DATA_FILE_EXTENSION+" file");
+			log.reportError("Error reading from a "+Sample.SAMPLE_FILE_EXTENSION+" file");
 			log.reportException(ioe);
 		} catch (ClassNotFoundException cnfe) {
-			log.reportError("Error reading from a "+Sample.SAMPLE_DATA_FILE_EXTENSION+" file");
+			log.reportError("Error reading from a "+Sample.SAMPLE_FILE_EXTENSION+" file");
 			log.reportException(cnfe);
 		}
 	}
@@ -1235,7 +1235,7 @@ public class Sample implements Serializable {
 			WorkerHive<HashLoadResult> hive = new WorkerHive<HashLoadResult>(numthreads, 10, proj.getLog());
 
 			for (int i = 0; i < proj.getSamples().length; i++) {
-				final String currentSampleRAF = proj.SAMPLE_DIRECTORY.getValue() + proj.getSamples()[i] + Sample.SAMPLE_DATA_FILE_EXTENSION;
+				final String currentSampleRAF = proj.SAMPLE_DIRECTORY.getValue() + proj.getSamples()[i] + Sample.SAMPLE_FILE_EXTENSION;
 				final String sampleName = proj.getSamples()[i];
 
 				final int index = i;
@@ -1291,7 +1291,7 @@ public class Sample implements Serializable {
 		try {
 //			for (int i=0; i<samplesProj.length; i++) {
 			for (int i=0; i<100; i++) {
-				file = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + samplesProj[i] + SAMPLE_DATA_FILE_EXTENSION, "r");
+				file = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true) + samplesProj[i] + SAMPLE_FILE_EXTENSION, "r");
 				readBuffer = new byte[(int) file.length()];	//numMarkers * BYTES_PER_SAMPLE_MARKER
 				file.read(readBuffer);
 				file.close();

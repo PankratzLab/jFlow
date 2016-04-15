@@ -149,7 +149,7 @@ public class LaunchAction extends AbstractAction {
 	public boolean isEnabled() {
 		switch (type) {
         case LAUNCH_TRAILER:
-    		return Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)+sample+Sample.SAMPLE_DATA_FILE_EXTENSION, jar); // needs to be updated anyway
+    		return Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)+sample+Sample.SAMPLE_FILE_EXTENSION, jar); // needs to be updated anyway
         default:
         	return true;
         }

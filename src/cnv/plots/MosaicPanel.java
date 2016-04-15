@@ -213,7 +213,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		if (prox!=null&&prox.size()>0) {
 			menu = new JPopupMenu();
 			for (int i = 0; i<prox.size(); i++) {
-				menu.add(new LaunchAction(proj, samples[prox.elementAt(i)][0], samples[prox.elementAt(i)][1], colorHash.containsKey(samples[prox.elementAt(i)][0]+"\t"+samples[prox.elementAt(i)][1])?colorScheme[colorHash.get(samples[prox.elementAt(i)][0]+"\t"+samples[prox.elementAt(i)][1])]:colorScheme[Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)+samples[i][0]+Sample.SAMPLE_DATA_FILE_EXTENSION)?0:1]));
+				menu.add(new LaunchAction(proj, samples[prox.elementAt(i)][0], samples[prox.elementAt(i)][1], colorHash.containsKey(samples[prox.elementAt(i)][0]+"\t"+samples[prox.elementAt(i)][1])?colorScheme[colorHash.get(samples[prox.elementAt(i)][0]+"\t"+samples[prox.elementAt(i)][1])]:colorScheme[Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true)+samples[i][0]+Sample.SAMPLE_FILE_EXTENSION)?0:1]));
 			}
 			menu.show(this, event.getX(), event.getY());
 		}
@@ -259,7 +259,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		String[] files;
 		files = new File(proj.SAMPLE_DIRECTORY.getValue(false, true)).list(new FilenameFilter() {
 			public boolean accept(File file, String filename) {
-				return filename.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION);
+				return filename.endsWith(Sample.SAMPLE_FILE_EXTENSION);
 			}
 		});
 		if (files == null) {
@@ -275,7 +275,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 				//color = colorScheme[Integer.parseInt(colorHash.get(samples[i][0]+"\t"+samples[i][1]))];
 				color = colorHash.get(samples[i][0]+"\t"+samples[i][1]);
 			} else {
-				color = (byte) (ext.indexOfStr(samples[i][0]+Sample.SAMPLE_DATA_FILE_EXTENSION, files)>=0?0:1);	// What is the color code for Color.GRAY
+				color = (byte) (ext.indexOfStr(samples[i][0]+Sample.SAMPLE_FILE_EXTENSION, files)>=0?0:1);	// What is the color code for Color.GRAY
 			}
 			points[i] = new PlotPoint("",
 									  (byte) 1,

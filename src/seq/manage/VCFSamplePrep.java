@@ -126,7 +126,7 @@ public class VCFSamplePrep {
 					Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 					VCFSamplePrep prep = new VCFSamplePrep(proj, proj.getFullSampleFromRandomAccessFile(sample), gcModel);
 					Sample prepped = prep.getPreppedSample(type);
-					prepped.saveToRandomAccessFile(sampleDir + prepped.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, prepped.getSampleName());
+					prepped.saveToRandomAccessFile(sampleDir + prepped.getSampleName() + Sample.SAMPLE_FILE_EXTENSION, outliers, prepped.getSampleName());
 					byte[] genos = prepped.getAB_Genotypes();
 					for (int j = 0; j < genos.length; j++) {
 						if (genos[j] == 3) {

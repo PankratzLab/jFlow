@@ -186,7 +186,7 @@ public class ExomeDepthRun {
 		@Override
 		public ExomeSample call() throws Exception {
 			String sample = BamOps.getSampleName(eDepthAnalysis.getInputBam());
-			String sampFile = proj.SAMPLE_DIRECTORY.getValue(true, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION;
+			String sampFile = proj.SAMPLE_DIRECTORY.getValue(true, false) + sample + Sample.SAMPLE_FILE_EXTENSION;
 
 			if (!Files.exists(sampFile)) {
 				String input = eDepthAnalysis.getExomeDepthRawDataOutput();

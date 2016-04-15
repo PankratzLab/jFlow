@@ -156,7 +156,7 @@ public class GenvisisWorkflow {
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
             boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
-            return mkrSetFile && Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
+            return mkrSetFile && Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
         }
         
         @Override
@@ -251,7 +251,7 @@ public class GenvisisWorkflow {
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
             boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
-            return mkrSetFile && Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
+            return mkrSetFile && Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0 && proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0;
         }
         
         @Override

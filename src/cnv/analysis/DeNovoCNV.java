@@ -153,7 +153,7 @@ public class DeNovoCNV {
 				writer.print(noSampData);
 				writer.flush();
 				writer.close();
-				log.report("There are " + counter + " set(s) of trio(s) are removed from the list due to no corresponding " + Sample.SAMPLE_DATA_FILE_EXTENSION + " file(s).\nCheck the following for detail: " + filename);
+				log.report("There are " + counter + " set(s) of trio(s) are removed from the list due to no corresponding " + Sample.SAMPLE_FILE_EXTENSION + " file(s).\nCheck the following for detail: " + filename);
 			} else {
 				new File(filename).delete();
 			}
@@ -227,7 +227,7 @@ public class DeNovoCNV {
 
 				for (int i=4; i<=6; i++) {
 					if (!(new File(pennDataDir + line[i] + pennDataFileExtension)).exists()) {
-						if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true) + line[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jarStatus)) {
+						if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true) + line[i] + Sample.SAMPLE_FILE_EXTENSION, jarStatus)) {
 							cnv.analysis.AnalysisFormats.penncnv(proj, new String[] {line[i]}, null, null, 1);	//TODO How to generate .gz format?
 						} else {
 							log.reportError("warning - skipped the following trio set due to no data avaiable (iDNA: " + line[4] + "\tFaDNA: " + line[5] + "\tMoDNA:" + line[6] + ")");

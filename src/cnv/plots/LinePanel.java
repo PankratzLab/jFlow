@@ -404,7 +404,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 				}
 
 				sample = null;
-				if (linkKeyIndicies[2] >= 0 && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
+				if (linkKeyIndicies[2] >= 0 && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
 					sample = setOfKeys[prox.elementAt(i)][2];
 				}
 				if (sample == null && sampleData != null) { // if Sample not already identified and if a sample lookup exists
@@ -415,7 +415,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 					if (ids == null) {
 						ids = sampleData.lookup(setOfKeys[prox.elementAt(i)][0]);
 					}
-					if (ids != null && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
+					if (ids != null && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0] + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
 						sample = ids[0];
 					}
 				}
