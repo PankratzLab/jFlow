@@ -138,7 +138,7 @@ public class SampleNGS {
 			Arrays.fill(fakeLRRs, -1);
 			Arrays.fill(fakeBAFS, 0);
 			Sample samp = new Sample(sampleName, fingerprint, Array.toFloatArray(gcs), Array.toFloatArray(xs), Array.toFloatArray(ys), fakeBAFS, fakeLRRs, Array.toByteArray(geno), Array.toByteArray(geno), false);
-			samp.saveToRandomAccessFile(dir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, allOutliers, sampleName);
+			samp.saveToRandomAccessFile(dir + sampleName + Sample.SAMPLE_FILE_EXTENSION, allOutliers, sampleName);
 		}
 		return allOutliers;
 	}

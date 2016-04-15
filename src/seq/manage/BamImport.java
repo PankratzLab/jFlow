@@ -115,7 +115,7 @@ public class BamImport {
 
 		@Override
 		public BamPileConversionResults call() throws Exception {
-			String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + BamOps.getSampleName(result.getBam()) + Sample.SAMPLE_DATA_FILE_EXTENSION;
+			String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + BamOps.getSampleName(result.getBam()) + Sample.SAMPLE_FILE_EXTENSION;
 			if (!Files.exists(sampleFile)) {
 				BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
 				sample = bamSample.getSampleName();
@@ -517,7 +517,7 @@ public class BamImport {
 			proj.copyBasicFiles(pcCorrected, true);
 			pcCorrected.SAMPLE_DIRECTORY.setValue(pcCorrected.PROJECT_DIRECTORY.getValue() + "shadowSamples/");
 
-			String[] correctedSamps = Array.tagOn(proj.getSamples(), pcCorrected.SAMPLE_DIRECTORY.getValue(), Sample.SAMPLE_DATA_FILE_EXTENSION);
+			String[] correctedSamps = Array.tagOn(proj.getSamples(), pcCorrected.SAMPLE_DIRECTORY.getValue(), Sample.SAMPLE_FILE_EXTENSION);
 			if (!Files.exists("", correctedSamps)) {
 				proj.getLog().reportTimeInfo("PC correcting project using " + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + " components ");
 
@@ -596,7 +596,7 @@ public class BamImport {
 	}
 
 	private static Hashtable<String, Float> recompileSample(Project proj, String sampleName, String newSampleDirectory, MarkerSet markerSet, ArrayList<ProjectCorrected> correctedProjects) {
-		String sampleFile = newSampleDirectory + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION;
+		String sampleFile = newSampleDirectory + sampleName + Sample.SAMPLE_FILE_EXTENSION;
 		proj.getLog().reportTimeInfo("Sample file = " + sampleFile);
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		if (!Files.exists(sampleName)) {

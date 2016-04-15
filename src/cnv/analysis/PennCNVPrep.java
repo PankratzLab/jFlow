@@ -190,7 +190,7 @@ public class PennCNVPrep {
 		proj.getLog().report("Info - checking for existing files in " + dir + "...");
 		boolean allExist = true;
 		for (int i = 0; i < subSamples.length; i++) {
-			if (!Files.exists(dir + subSamples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION)) {
+			if (!Files.exists(dir + subSamples[i] + Sample.SAMPLE_FILE_EXTENSION)) {
 				allExist = false;
 			}
 		}
@@ -355,7 +355,7 @@ public class PennCNVPrep {
 			}
 			new File(dir).mkdirs();
 			Sample samp = new Sample(sampleName, fingerprint, shadowGCs, shadowXs, shadowYs, shadowBafs, shadowLrrs, shadowABGenotypes, shadowABGenotypes, false);
-			samp.saveToRandomAccessFile(dir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, allOutliers, sampleName);
+			samp.saveToRandomAccessFile(dir + sampleName + Sample.SAMPLE_FILE_EXTENSION, allOutliers, sampleName);
 			return allOutliers;
 		}
 	}

@@ -645,7 +645,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				
 				sample = null;
 				// TODO this check will ALWAYS fail!
-				if (linkKeyIndicies[TwoDPlot.DNA_INDEX_IN_LINKERS] >= 0 && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
+				if (linkKeyIndicies[TwoDPlot.DNA_INDEX_IN_LINKERS] >= 0 && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
 					sample = linkerDataElem[TwoDPlot.DNA_INDEX_IN_LINKERS];
 				}
 				if (sample == null && sampleData != null) { // if Sample not already identified and if a sample lookup exists
@@ -656,7 +656,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 					if (ids == null) {
 						ids = sampleData.lookup(linkerDataElem[TwoDPlot.IID_INDEX_IN_LINKERS]);
 					}
-					if (ids != null && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0] + Sample.SAMPLE_DATA_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
+					if (ids != null && Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0] + Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
 						sample = ids[0];
 					}
 				}

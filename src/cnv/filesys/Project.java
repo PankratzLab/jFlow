@@ -591,7 +591,7 @@ public class Project {
 	private boolean reasonableCheckForParsedSource() {
         String sampleDirectory = SAMPLE_DIRECTORY.getValue(false, false);
         // TODO strict check for #files == #samples?
-        return Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_DATA_FILE_EXTENSION, false).length > 0 && getSampleList() != null && getSampleList().getSamples().length > 0;
+        return Files.exists(sampleDirectory) && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0 && getSampleList() != null && getSampleList().getSamples().length > 0;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -611,7 +611,7 @@ public class Project {
 	        } else {
 	            // error reading headers; let's delete
 	            getLog().reportError(ext.getTime() + "]\tError reading source file header metadata.  Deleting file and reparsing.");
-	            getLog().reportError(ext.getTime() + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into " + Sample.SAMPLE_DATA_FILE_EXTENSION + " files.");
+	            getLog().reportError(ext.getTime() + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into " + Sample.SAMPLE_FILE_EXTENSION + " files.");
 	            getLog().reportError(ext.getTime() + "]\tA quick check (which may be incorrect) suggest this " + (reasonableCheckForParsedSource() ? "IS LIKELY NOT " : "IS LIKELY") + " to be an issue.");
 	            (new File(file)).delete();
 	        }
@@ -795,8 +795,8 @@ public class Project {
 	}
 	
 	public Sample getFullSampleFromRandomAccessFile(String sample) {
-		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, JAR_STATUS.getValue())) {
-			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, JAR_STATUS.getValue());
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION, JAR_STATUS.getValue())) {
+			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION, JAR_STATUS.getValue());
 		} else {
 			return null;
 		}
@@ -811,16 +811,16 @@ public class Project {
 	}
 	
 	public Sample getPartialSampleFromRandomAccessFile(String sample) {
-		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, JAR_STATUS.getValue())) {
-			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, false, JAR_STATUS.getValue());
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION, JAR_STATUS.getValue())) {
+			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION, false, false, true, true, false, JAR_STATUS.getValue());
 		} else {
 			return null;
 		}
 	}
 	
 	public Sample getPartialSampleFromRandomAccessFile(String sample, boolean gc, boolean xy, boolean baf, boolean lrr, boolean geno) {
-		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, JAR_STATUS.getValue())) {
-			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION, gc, xy, baf, lrr, geno, JAR_STATUS.getValue());
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION, JAR_STATUS.getValue())) {
+			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION, gc, xy, baf, lrr, geno, JAR_STATUS.getValue());
 		} else {
 			return null;
 		}
@@ -1399,7 +1399,7 @@ public class Project {
 		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 		String[] samples = getSamples();
 		for (int i = 0; i < samples.length; i++) {
-			Hashtable<String, Float> sOutliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(SAMPLE_DIRECTORY.getValue() + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION);
+			Hashtable<String, Float> sOutliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(SAMPLE_DIRECTORY.getValue() + samples[i] + Sample.SAMPLE_FILE_EXTENSION);
 			if (sOutliers != null && sOutliers.size() > 0) {
 				outliers.putAll(sOutliers);
 			}

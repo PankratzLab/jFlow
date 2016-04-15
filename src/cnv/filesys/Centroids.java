@@ -416,7 +416,7 @@ public class Centroids implements Serializable, TextExport {
 			Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 			Sample original = proj.getFullSampleFromRandomAccessFile(sample);
 			Sample sample = new Sample(original.getSampleName(), original.getFingerprint(), original.getGCs(), original.getXs(), original.getYs(), preserveBafs ? original.getBAFs() : original.getBAFs(centroids.getCentroids()), original.getLRRs(centroids.getCentroids()), original.getForwardGenotypes(), original.getAB_Genotypes(), original.getCanXYBeNegative());
-			sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + original.getSampleName() + Sample.SAMPLE_DATA_FILE_EXTENSION, outliers, sample.getSampleName());
+			sample.saveToRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(false, true) + original.getSampleName() + Sample.SAMPLE_FILE_EXTENSION, outliers, sample.getSampleName());
 			return outliers;
 		}
 

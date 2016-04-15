@@ -83,7 +83,7 @@ public class PRoCtOR {
         
         boolean allExist = true;
         for (int i = 0; i < samples.length; i++) {
-            if (!Files.exists(dir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION)) {
+            if (!Files.exists(dir + samples[i] + Sample.SAMPLE_FILE_EXTENSION)) {
                 allExist = false;
             }
         }

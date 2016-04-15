@@ -130,7 +130,7 @@ public class Dump {
 	    }
 
 	    try {
-	        if (filename.endsWith(Sample.SAMPLE_DATA_FILE_EXTENSION)) {
+	        if (filename.endsWith(Sample.SAMPLE_FILE_EXTENSION)) {
 	        	dumpSampRaf(filename);
 	        } else if (filename.endsWith(".bim")) {
 	        	dumpPlinkBim(filename);

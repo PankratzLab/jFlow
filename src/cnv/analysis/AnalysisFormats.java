@@ -113,10 +113,10 @@ public class AnalysisFormats implements Runnable {
 						String exportFileName = dir + sampleName + (gzip ? ".gz" : "");
 						if (!Files.exists(exportFileName)) {
 							log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of " + samples.length+"\t"+sampleName);
-							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
-								mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, false, false, true, true, true, jar);
+							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_FILE_EXTENSION, jar)) {
+								mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_FILE_EXTENSION, false, false, true, true, true, jar);
 							} else {
-								log.reportError("Error - the " + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+								log.reportError("Error - the " + sampleName + Sample.SAMPLE_FILE_EXTENSION + " is not found.");
 								proj.getProgressMonitor().endTask(MY_PROG_KEY);
 								return;
 							}
@@ -335,10 +335,10 @@ public class AnalysisFormats implements Runnable {
 						String exportFileName = (compFemale ? femaleDir : maleDir) + sampleName + (gzip ? ".gz" : "");
 						if (!Files.exists(exportFileName)) {
 							log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of " + allSamples.length);
-							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
-								mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION, false, true, false, false, true, jar);
+							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_FILE_EXTENSION, jar)) {
+								mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName + Sample.SAMPLE_FILE_EXTENSION, false, true, false, false, true, jar);
 							} else {
-								log.reportError("Error - the " + sampleName + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+								log.reportError("Error - the " + sampleName + Sample.SAMPLE_FILE_EXTENSION + " is not found.");
 								// TODO okay to just skip this sample instead of halting entirely?
 								continue;
 							}
@@ -651,10 +651,10 @@ public class AnalysisFormats implements Runnable {
 			String exportFileName = (compFemale ? femaleDir : maleDir) + samples[i] + (gzip ? ".gz" : "");
 			if (!Files.exists(exportFileName)) {
 				log.report(ext.getTime() + "\tTransforming " + (i + 1) + " of " + samples.length);
-				if (Files.exists(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, jar)) {
-					samp = Sample.loadFromRandomAccessFile(sampleDir + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION, false, true, false, false, true, jar);
+				if (Files.exists(sampleDir + samples[i] + Sample.SAMPLE_FILE_EXTENSION, jar)) {
+					samp = Sample.loadFromRandomAccessFile(sampleDir + samples[i] + Sample.SAMPLE_FILE_EXTENSION, false, true, false, false, true, jar);
 				} else {
-					log.reportError("Error - the " + samples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION + " is not found.");
+					log.reportError("Error - the " + samples[i] + Sample.SAMPLE_FILE_EXTENSION + " is not found.");
 					// TODO okay to just skip this sample instead of halting entirely?
 					continue;
 				}

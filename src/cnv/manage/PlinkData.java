@@ -734,7 +734,7 @@ public class PlinkData {
 						fsamp = proj.getFullSampleFromRandomAccessFile(line[6]);
 					}
 					if (fsamp==null) {
-						log.reportError("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+Sample.SAMPLE_DATA_FILE_EXTENSION+" was not found in directory: "+proj.SAMPLE_DIRECTORY.getValue(false, true));
+						log.reportError("Error - the DNA# "+line[6]+" was listed in the pedigree file but "+line[6]+Sample.SAMPLE_FILE_EXTENSION+" was not found in directory: "+proj.SAMPLE_DIRECTORY.getValue(false, true));
 						for (int i = 0; i<indices.length; i++) {
 							writer.print(" 0 0");
 						}
@@ -1139,7 +1139,7 @@ public class PlinkData {
 				fsamp = proj.getFullSampleFromRandomAccessFile(targetSamples[i]);
 
 				if (fsamp == null) {
-					log.reportError("Error - the DNA# " + targetSamples[i] + " was listed in the pedigree file but " + targetSamples[i] + Sample.SAMPLE_DATA_FILE_EXTENSION+ " was not found in directory: " + proj.SAMPLE_DIRECTORY.getValue(false, true));
+					log.reportError("Error - the DNA# " + targetSamples[i] + " was listed in the pedigree file but " + targetSamples[i] + Sample.SAMPLE_FILE_EXTENSION+ " was not found in directory: " + proj.SAMPLE_DIRECTORY.getValue(false, true));
 					genotypes = new byte[1];
 
 				} else {

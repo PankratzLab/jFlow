@@ -373,12 +373,18 @@ public class Plink {
 			log.report("Warning - no LRR_SD file specified, indiviudals will not be preferentially selected based on LRR_SD");
 			lrr_sds = new Hashtable<String, String>();
 		} else if (!Files.exists(lrrFile, false)) {
-			log.reportError("Error - specified LRR_SD file ("+lrrFile+") is missing, indiviudals will not be preferentially selected based on LRR_SD");
+			log.reportError("Error - specified LRR_SD file ("+lrrFile+") is missing, individuals will not be preferentially selected based on LRR_SD");
 			lrr_sds = new Hashtable<String, String>();
 		} else {
-	        ext.checkHeader(Files.getHeaderOfFile(lrrFile, "[\\s]+", log), new String[] {"FID", "IID", "LRR_SD"}, new int[] {0,1,2}, false, log, true);
-			lrr_sds = HashVec.loadFileToHashString(lrrFile, new int[] {0,1}, new int[] {2}, false, "\t", false, false, false);
-			log.report("Successfully loaded '"+lrrFile+"'");
+	        boolean properHeader = ext.checkHeader(Files.getHeaderOfFile(lrrFile, "[\\s]+", log), new String[] {"SAMPLE", "LRR_SD"}, new int[] {0,2}, false, log, true);
+	        if (properHeader) {
+    			lrr_sds = HashVec.loadFileToHashString(lrrFile, new int[] {0}, new int[] {2}, false, "\t", false, false, false);
+    			log.report("Successfully loaded '"+lrrFile+"'");
+	        } else {
+	            log.reportError("Error - specified LRR_SD file has an improper header (looking for \"SAMPLE\" and \"LRR_SD\" as the first two columns of file.");
+	            log.reportError("Individuals will not be preferentially selected based on LRR_SD.");
+	            lrr_sds = new Hashtable<String, String>();
+	        }
 		}
 		
 		if (famFile == null) {
@@ -438,9 +444,11 @@ public class Plink {
 							if (callrates.containsKey(line[k*2+0]+"\t"+line[k*2+1])) {
 								metrics[k*2+0] = callrates.get(line[k*2+0]+"\t"+line[k*2+1]);
 							}
-							if (lrr_sds.containsKey(line[k*2+0]+"\t"+line[k*2+1])) {
+							if (lrr_sds.containsKey(line[k*2+0]+"\t"+line[k*2+1])) { // check for FID+IID first, even though this is outdated
 								metrics[k*2+1] = lrr_sds.get(line[k*2+0]+"\t"+line[k*2+1]);
-							}
+							} else if (lrr_sds.containsKey(line[k*2+1])) { // then check for IID next, even though IID may not be unique
+							    metrics[k*2+1] = lrr_sds.get(line[k*2+1]);
+							} 
 						}
 						
 						String fidIid1 = line[0]+"\t"+line[1];

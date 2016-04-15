@@ -95,7 +95,7 @@ public class FocusedSample {
 			Sample samp = original.getFullSampleFromRandomAccessFile(sample);
 			FocusedSample focusedSample = null;
 			if (samp != null) {
-				String newSampleFileName = newFocus.SAMPLE_DIRECTORY.getValue(true, true) + sample + Sample.SAMPLE_DATA_FILE_EXTENSION;
+				String newSampleFileName = newFocus.SAMPLE_DIRECTORY.getValue(true, true) + sample + Sample.SAMPLE_FILE_EXTENSION;
 				focusedSample = new FocusedSample(focusedIndices, samp, newFingerPrint, overwriteExisting);
 				focusedSample.saveToRandomAccessFile(newSampleFileName, samp.getSampleName(), original.getLog());
 			} else {
