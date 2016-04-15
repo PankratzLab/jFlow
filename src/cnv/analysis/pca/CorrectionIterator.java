@@ -37,8 +37,6 @@ import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
 import cnv.manage.TransposeData;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import cnv.qc.LrrSd;
-import cnv.qc.SampleQC;
 
 class CorrectionIterator implements Serializable {
 	/**
@@ -58,10 +56,11 @@ class CorrectionIterator implements Serializable {
 	private IterationResult iterationResult;
 	private boolean recomputeLRR;
 	private double pcPercent;
-	private double lrrSdCut;
-	private double callRateCut;
 
-	public CorrectionIterator(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, LS_TYPE lType, boolean recomputeLRR, double pcPercent, double lrrSdCut, double callRateCut, int numthreads) {
+	// private double lrrSdCut;
+	// private double callRateCut;
+
+	public CorrectionIterator(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, LS_TYPE lType, boolean recomputeLRR, double pcPercent, int numthreads) {
 		super();
 		this.proj = proj;
 		this.markesToEvaluate = markesToEvaluate;
@@ -74,13 +73,13 @@ class CorrectionIterator implements Serializable {
 		this.numthreads = numthreads;
 		this.pcPercent = pcPercent;
 		this.recomputeLRR = recomputeLRR;
-		this.lrrSdCut = lrrSdCut;
-		this.callRateCut = callRateCut;
+		// this.lrrSdCut = lrrSdCut;
+		// this.callRateCut = callRateCut;
 
 	}
 
 	public void run() {
-		this.iterationResult = run(proj, markesToEvaluate, samplesToBuildModels, iType, oType, bType, outputDir, lType, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numthreads);
+		this.iterationResult = run(proj, markesToEvaluate, samplesToBuildModels, iType, oType, bType, outputDir, lType, recomputeLRR, pcPercent, numthreads);
 	}
 
 	public IterationResult getIterationResult() {
@@ -114,7 +113,7 @@ class CorrectionIterator implements Serializable {
 		/**
 		 * PCS are ranked by the amount of variance explained in the estimate of interest
 		 */
-		RANK_R2,
+		// RANK_R2,
 		/**
 		 * PCs are regressed by their natural ordering (PC1,2,3)
 		 */
@@ -135,23 +134,23 @@ class CorrectionIterator implements Serializable {
 
 	}
 
-	private boolean[] getSamplesFromQC(Project proj, double lrrSdCut, double callRateCut) {
-		boolean[] samplesPassing = Array.booleanArray(proj.getSamples().length, false);
-		SampleQC sampleQC = SampleQC.loadSampleQC(proj);
-		double[] lrrsd = sampleQC.getDataFor("LRR_SD");
-		double[] callRate = sampleQC.getDataFor("Genotype_callrate");
-		proj.getLog().reportTimeInfo("Filtering samples for LrrSd<" + lrrSdCut + " and call rate>" + callRateCut);
-		for (int i = 0; i < callRate.length; i++) {
-			if (lrrsd[i] < lrrSdCut && callRate[i] > callRateCut) {
-				samplesPassing[i] = true;
-			}
-		}
-		proj.getLog().reportTimeInfo(Array.booleanArraySum(samplesPassing) + " samples passed LrrSd<" + lrrSdCut + " and call rate>" + callRateCut);
+	// private boolean[] getSamplesFromQC(Project proj, double lrrSdCut, double callRateCut) {
+	// boolean[] samplesPassing = Array.booleanArray(proj.getSamples().length, false);
+	// SampleQC sampleQC = SampleQC.loadSampleQC(proj);
+	// double[] lrrsd = sampleQC.getDataFor("LRR_SD");
+	// double[] callRate = sampleQC.getDataFor("Genotype_callrate");
+	// proj.getLog().reportTimeInfo("Filtering samples for LrrSd<" + lrrSdCut + " and call rate>" + callRateCut);
+	// for (int i = 0; i < callRate.length; i++) {
+	// if (lrrsd[i] < lrrSdCut && callRate[i] > callRateCut) {
+	// samplesPassing[i] = true;
+	// }
+	// }
+	// proj.getLog().reportTimeInfo(Array.booleanArraySum(samplesPassing) + " samples passed LrrSd<" + lrrSdCut + " and call rate>" + callRateCut);
+	//
+	// return samplesPassing;
+	// }
 
-		return samplesPassing;
-	}
-
-	private IterationResult run(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, LS_TYPE lType, boolean recomputeLRR, double pcPercent, double lrrSdCut, double callRateCut, int numthreads) {
+	private IterationResult run(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, LS_TYPE lType, boolean recomputeLRR, double pcPercent, int numthreads) {
 		Logger log = proj.getLog();
 		CorrectionEvaluator cEvaluator = null;
 		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
@@ -180,7 +179,7 @@ class CorrectionIterator implements Serializable {
 
 			boolean[] samplesForModels = null;
 			boolean valid = true;
-			//boolean[] sampleQCPassed = getSamplesFromQC(proj, lrrSdCut, callRateCut);
+			// boolean[] sampleQCPassed = getSamplesFromQC(proj, lrrSdCut, callRateCut);
 			if (!Files.exists(iterationResult.getBasePrep())) {
 				// || oType == ORDER_TYPE.QC_ASSOCIATION
 				switch (bType) {
@@ -207,11 +206,11 @@ class CorrectionIterator implements Serializable {
 					}
 					log.reportTimeInfo("Loaded " + Array.booleanArraySum(samplesForModels) + " model builders from " + samplesToBuildModels);
 
-//					for (int i = 0; i < sampleQCPassed.length; i++) {
-//						if (!sampleQCPassed[i]) {
-//							samplesForModels[i] = false;
-//						}
-//					}
+					// for (int i = 0; i < sampleQCPassed.length; i++) {
+					// if (!sampleQCPassed[i]) {
+					// samplesForModels[i] = false;
+					// }
+					// }
 					log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " model builders from after QC filtering");
 
 					break;
@@ -305,12 +304,12 @@ class CorrectionIterator implements Serializable {
 					case NATURAL:
 						order = null;
 						break;
-					case RANK_R2:
-						order = new int[sTabRank.getOrder().length];
-						for (int i = 0; i < sTabRank.getOrder().length; i++) {
-							order[i] = sTabRank.getOrder()[i] + 1;// one based for pcs
-						}
-						break;
+					// case RANK_R2:
+					// order = new int[sTabRank.getOrder().length];
+					// for (int i = 0; i < sTabRank.getOrder().length; i++) {
+					// order[i] = sTabRank.getOrder()[i] + 1;// one based for pcs
+					// }
+					// break;
 					case STEPWISE_RANK_R2:
 						order = new int[sTabRank.getOrder().length];
 						for (int i = 0; i < sTabRank.getOrder().length; i++) {
@@ -784,7 +783,7 @@ class CorrectionIterator implements Serializable {
 			return oType;
 		}
 
-		public RScatter plotSummary(String[] dataColumns, int index, EvaluationResult evaluationResult, int modelN, Logger log) {
+		public RScatter plotSummary(String[] dataColumns, int index, EvaluationResult evaluationResult, int modelN, double[] trimRangeX, double[] trimRangeY, Logger log) {
 			RScatter rScatter = new RScatter(outputSummary, evalRscript, ext.rootOf(outputSummary) + "_" + index, ext.rootOf(ext.addToRoot(evalPlot, index + ""), false) + ".jpeg", "Evaluated", dataColumns, SCATTER_TYPE.POINT, log);
 			rScatter.setyRange(new double[] { -1, 1 });
 			rScatter.setxLabel("PC (" + oType + " - sorted)");
@@ -826,7 +825,6 @@ class CorrectionIterator implements Serializable {
 			// System.exit(1);
 
 			RScatter rScatterTrim = new RScatter(outputSummary, evalRscript, ext.rootOf(outputSummary) + "_" + index + "_" + index, ext.rootOf(ext.addToRoot(evalPlot, index + "" + "_" + index), false) + ".jpeg", "Evaluated", dataColumns, SCATTER_TYPE.POINT, log);
-			rScatterTrim.setyRange(new double[] { -.5, 1 });
 			rScatterTrim.setxLabel("PC (" + oType + " - sorted)");
 			rScatterTrim.setTitle(iType + " " + bType);
 			rScatterTrim.setrSafeAltYColumnNames(altYs);
@@ -842,7 +840,9 @@ class CorrectionIterator implements Serializable {
 			// rScatter.setOutput(ext.addToRoot(evalPlot, ".trim"));
 			// rScatter.setxRange(new double[] { 0, 50 });
 			// rScatter.setOutput(evalPlot);
-			rScatterTrim.setxRange(null);
+			rScatterTrim.setxRange(trimRangeX);
+			rScatterTrim.setyRange(trimRangeY);
+
 			rScatterTrim.setOverWriteExisting(true);
 			rScatterTrim.execute();
 			// System.out.println(rScatter.getOutput());
@@ -1043,13 +1043,13 @@ class CorrectionIterator implements Serializable {
 	// return extraIndeps;
 	// }
 
-	private static CorrectionIterator[] getIterations(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, LS_TYPE lType, boolean recomputeLRR, double pcPercent, double lrrSdCut, double callRateCut, int numthreads) {
+	private static CorrectionIterator[] getIterations(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, LS_TYPE lType, boolean recomputeLRR, double pcPercent, int numthreads) {
 		ArrayList<CorrectionIterator> cIterators = new ArrayList<CorrectionIterator>();
 		// System.out.println("JDOFJSDF remember the pcs");
 		for (int i = 0; i < ITERATION_TYPE.values().length; i++) {
 			for (int j = 0; j < ORDER_TYPE.values().length; j++) {
 				for (int j2 = 0; j2 < MODEL_BUILDER_TYPE.values().length; j2++) {
-					cIterators.add(new CorrectionIterator(proj, markesToEvaluate, samplesToBuildModels, ITERATION_TYPE.values()[i], ORDER_TYPE.values()[j], MODEL_BUILDER_TYPE.values()[j2], outputDir, lType, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numthreads));
+					cIterators.add(new CorrectionIterator(proj, markesToEvaluate, samplesToBuildModels, ITERATION_TYPE.values()[i], ORDER_TYPE.values()[j], MODEL_BUILDER_TYPE.values()[j2], outputDir, lType, recomputeLRR, pcPercent, numthreads));
 				}
 			}
 		}
@@ -1088,7 +1088,7 @@ class CorrectionIterator implements Serializable {
 
 	}
 
-	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, String pcFile, String pedFile, LS_TYPE lType, boolean recomputeLRR, double pcPercent, double lrrSdCut, double callRateCut, int numthreads) {
+	public static CorrectionIterator[] runAll(Project proj, String markesToEvaluate, String samplesToBuildModels, String outputDir, String pcFile, String pedFile, LS_TYPE lType, boolean recomputeLRR, double pcPercent, int numthreads) {
 		// proj.INTENSITY_PC_NUM_COMPONENTS.setValue(400);
 		if (pcFile != null) {
 			proj.INTENSITY_PC_FILENAME.setValue(pcFile);
@@ -1107,19 +1107,19 @@ class CorrectionIterator implements Serializable {
 		new File(outputDir).mkdirs();
 		String lrrSdCurrent = outputDir + "lrrSD.txt";
 		proj.SAMPLE_QC_FILENAME.setValue(lrrSdCurrent);
-		if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-			String markerQCFile = outputDir + "markersForSampleQC.txt";
-			ArrayList<String> toEvaluate = new ArrayList<String>();
-			String[] names = proj.getMarkerNames();
-			for (int i = 0; i < names.length; i++) {
-				if (!proj.getArrayType().isCNOnly(names[i])) {
-					toEvaluate.add(names[i]);
-				}
-			}
-			Files.writeList(Array.toStringArray(toEvaluate), markerQCFile);
-			LrrSd.init(proj, null, markerQCFile, markerQCFile, numthreads, null, false);
-		}
-		CorrectionIterator[] cIterators = getIterations(proj, markesToEvaluate, samplesToBuildModels, outputDir, lType, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numthreads);
+		// if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+		// String markerQCFile = outputDir + "markersForSampleQC.txt";
+		// ArrayList<String> toEvaluate = new ArrayList<String>();
+		// String[] names = proj.getMarkerNames();
+		// for (int i = 0; i < names.length; i++) {
+		// if (!proj.getArrayType().isCNOnly(names[i])) {
+		// toEvaluate.add(names[i]);
+		// }
+		// }
+		// Files.writeList(Array.toStringArray(toEvaluate), markerQCFile);
+		// LrrSd.init(proj, null, markerQCFile, markerQCFile, numthreads, null, false);
+		// }
+		CorrectionIterator[] cIterators = getIterations(proj, markesToEvaluate, samplesToBuildModels, outputDir, lType, recomputeLRR, pcPercent, numthreads);
 		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 
 		for (int i = 0; i < cIterators.length; i++) {
@@ -1151,7 +1151,7 @@ class CorrectionIterator implements Serializable {
 		String[] numericStratCats = new String[] { "EVAL_DATA_Mt_DNA_relative_copy_number", "EVAL_DATA_qpcr.qnorm.exprs" };
 
 		// IterSummaryProducer producer = new IterSummaryProducer(proj, cIterators, plotTitlesForSummary, Array.concatAll(CorrectionEvaluator.INDEPS_CATS, CorrectionEvaluator.DOUBLE_DATA, new String[] { "EVAL_DATA_SEX" }), numericStratCats, pedFile);
-		IterSummaryProducer producer = new IterSummaryProducer(proj, cIterators, plotTitlesForSummary, CorrectionEvaluator.INDEPS_CATS, numericStratCats, pedFile);
+		IterSummaryProducer producer = new IterSummaryProducer(proj, cIterators, plotTitlesForSummary, CorrectionEvaluator.INDEPS_CATS, numericStratCats, pedFile, new double[] { 0, 150 }, new double[] { -.5, 1 });
 
 		if (pedFile != null) {
 			producer.setSubsetDataHeritability(subsetDataHeritability);
@@ -1228,7 +1228,7 @@ class CorrectionIterator implements Serializable {
 		return cIterators;
 	}
 
-	private static void printStatSummary(PrintWriter writer, CorrectionIterator correctionIterator, String type, EvaluationResult[] evaluationResults, MODEL_BUILDER_TYPE mBuilder_TYPE, ORDER_TYPE oType, ITERATION_TYPE iType, ArrayList<double[]> statsAL,ArrayList<ICC> statsICC , ArrayList<String> name) {
+	private static void printStatSummary(PrintWriter writer, CorrectionIterator correctionIterator, String type, EvaluationResult[] evaluationResults, MODEL_BUILDER_TYPE mBuilder_TYPE, ORDER_TYPE oType, ITERATION_TYPE iType, ArrayList<double[]> statsAL, ArrayList<ICC> statsICC, ArrayList<String> name) {
 
 		for (int i = 0; i < (statsAL == null ? statsICC.size() : statsAL.size()); i++) {
 			double[] stats = new double[evaluationResults.length];
@@ -1296,7 +1296,7 @@ class CorrectionIterator implements Serializable {
 			}
 
 			String evalName = name.get(i);
-			if ((evalName.contains("qpcr.qnorm.exprs") || evalName.toLowerCase().contains("age") || evalName.toLowerCase().contains("center") || evalName.toLowerCase().contains("dupli") || evalName.toLowerCase().contains("sex")) && oType != ORDER_TYPE.RANK_R2) {
+			if ((evalName.contains("qpcr.qnorm.exprs") || evalName.toLowerCase().contains("age") || evalName.toLowerCase().contains("center") || evalName.toLowerCase().contains("dupli") || evalName.toLowerCase().contains("sex"))) {
 				double maxStat = Array.max(stats);
 				double minStat = Array.min(stats);
 				int maxStatPC = Array.maxIndex(stats);
@@ -1387,10 +1387,12 @@ class CorrectionIterator implements Serializable {
 		private String[][] plotTitlesForSummary;
 		private String[] subsetDataHeritability;
 		private String[] stratCats, numericStratCats;
+		private double[]trimRangeX;
+		private double[] trimRangeY;
 		private String pedFile;
 		private int index;
 
-		public IterSummaryProducer(Project proj, CorrectionIterator[] cIterators, String[][] plotTitlesForSummary, String[] stratCats, String[] numericStratCats, String pedFile) {
+		public IterSummaryProducer(Project proj, CorrectionIterator[] cIterators, String[][] plotTitlesForSummary, String[] stratCats, String[] numericStratCats, String pedFile,double[]trimRangeX,double[]trimRangeY) {
 			super();
 			this.proj = proj;
 			this.cIterators = cIterators;
@@ -1399,6 +1401,8 @@ class CorrectionIterator implements Serializable {
 			this.index = 0;
 			this.stratCats = stratCats;
 			this.numericStratCats = numericStratCats;
+			this.trimRangeX = trimRangeX;
+			this.trimRangeY = trimRangeY;
 
 		}
 
@@ -1438,7 +1442,7 @@ class CorrectionIterator implements Serializable {
 					// double font = .5;
 					int modelN = Array.booleanArraySum(iterationResult.getBasicPrep().getSamplesForModels());
 					for (int i = 0; i < plotTitlesForSummary.length; i++) {
-						RScatter rScatterSummary = iterationResult.plotSummary(plotTitlesForSummary[i], i, evaluationResults[0], modelN, proj.getLog());
+						RScatter rScatterSummary = iterationResult.plotSummary(plotTitlesForSummary[i], i, evaluationResults[0], modelN, trimRangeX, trimRangeY, proj.getLog());
 						rScatterSummary.setSeriesLabeler(null);
 						rScatterSummary.setgTexts(null);
 						rScatterSummary.execute();
@@ -1719,21 +1723,21 @@ class CorrectionIterator implements Serializable {
 		String pedFile = null;
 		double pcPercent = 0.05;
 		boolean recomputeLRR = true;
-		double lrrSdCut = Double.NaN;
-		double callRateCut = 0.96;
+		// double lrrSdCut = Double.NaN;
+		// double callRateCut = 0.96;
 		String usage = "\n" + "cnv.analysis.pca.CorrectionEvaluator requires 0-1 arguments\n";
 		usage += "   (1) project filename (i.e. proj=" + proj + " (default))\n" + "";
 		usage += "   (2) markers to Evaluate (i.e. markers=" + markers + " (default))\n" + "";
 		usage += PSF.Ext.getOutputDirCommand(3, defaultDir);
 		usage += PSF.Ext.getNumThreadsCommand(4, numThreads);
-		usage += "   (5) type of linear regression (i.e. lstype="+lstype+" ( default, options are "+java.util.Arrays.asList(LS_TYPE.values())+"\n" + "";
+		usage += "   (5) type of linear regression (i.e. lstype=" + lstype + " ( default, options are " + java.util.Arrays.asList(LS_TYPE.values()) + "\n" + "";
 		usage += "   (6) samples to generate models (i.e.samples= (no default))\n" + "";
 		usage += "   (7) ped file to generate heritability (i.e.ped= (no default))\n" + "";
 		usage += "   (8) alternate pc file to use (i.e.pcFile= (no default))\n" + "";
 		usage += "   (9) percent of pcs to use base of the samples to build the models(i.e.pcPercent=" + pcPercent + "(no default))\n" + "";
 		usage += "   (10) skip on the fly centroids, only use gc-correction (i.e.recomputeLRR=" + recomputeLRR + "(no default))\n" + "";
-//		usage += "   (11) skip on the fly centroids, only use gc-correction (i.e.lrrSdCut=" + lrrSdCut + "(default, array specific))\n" + "";
-//		usage += "   (12) skip on the fly centroids, only use gc-correction (i.e.callRateCut=" + callRateCut + "(default))\n" + "";
+		// usage += "   (11) skip on the fly centroids, only use gc-correction (i.e.lrrSdCut=" + lrrSdCut + "(default, array specific))\n" + "";
+		// usage += "   (12) skip on the fly centroids, only use gc-correction (i.e.callRateCut=" + callRateCut + "(default))\n" + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -1742,14 +1746,14 @@ class CorrectionIterator implements Serializable {
 			} else if (args[i].startsWith("proj=")) {
 				proj = args[i].split("=")[1];
 				numArgs--;
-			} 
-//			else if (args[i].startsWith("lrrSdCut=")) {
-//				lrrSdCut = ext.parseDoubleArg(args[i]);
-//				numArgs--;
-//			} else if (args[i].startsWith("callRateCut=")) {
-//				callRateCut = ext.parseDoubleArg(args[i]);
-//				numArgs--;
-//			} 
+			}
+			// else if (args[i].startsWith("lrrSdCut=")) {
+			// lrrSdCut = ext.parseDoubleArg(args[i]);
+			// numArgs--;
+			// } else if (args[i].startsWith("callRateCut=")) {
+			// callRateCut = ext.parseDoubleArg(args[i]);
+			// numArgs--;
+			// }
 			else if (args[i].startsWith("markers=")) {
 				markers = args[i].split("=")[1];
 				numArgs--;
@@ -1787,15 +1791,15 @@ class CorrectionIterator implements Serializable {
 		}
 		try {
 			Project project = new Project(proj, false);
-			if (Double.isNaN(lrrSdCut)) {
-				project.getLog().reportTimeInfo("updating array specific lrr-sd");
-				if (project.getArrayType() == ARRAY.ILLUMINA) {
-					lrrSdCut = 0.30;
-				} else {
-					lrrSdCut = 0.35;
-				}
-			}
-			runAll(project, markers, samplesToBuildModels, defaultDir, pcFile, pedFile, lstype, recomputeLRR, pcPercent, lrrSdCut, callRateCut, numThreads);
+			// if (Double.isNaN(lrrSdCut)) {
+			// project.getLog().reportTimeInfo("updating array specific lrr-sd");
+			// if (project.getArrayType() == ARRAY.ILLUMINA) {
+			// lrrSdCut = 0.30;
+			// } else {
+			// lrrSdCut = 0.35;
+			// }
+			// }
+			runAll(project, markers, samplesToBuildModels, defaultDir, pcFile, pedFile, lstype, recomputeLRR, pcPercent, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

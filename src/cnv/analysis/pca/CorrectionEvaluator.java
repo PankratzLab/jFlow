@@ -33,7 +33,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 	public static final String[] INDEPS = new String[] { "CLASS=SEX", "AGE" };
 	public static final String[] INDEPS_CATS = new String[] { "CENTER" };
 	private static final String NO_STRAT = "NO_STRAT";
-	//private static final String STRAT_BY = "STRAT_";
+	// private static final String STRAT_BY = "STRAT_";
 	public static final int NUM_PC_SVD_OVERIDE = 160;
 	private Project proj;
 	private PrincipalComponentsIterator iterator;
@@ -131,7 +131,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 		String baseTitle = "" + tmpResiduals.getNumComponents();
 		double[] estimate = null;
 		CrossValidation cValidation = null;
-		//tmpResiduals.crossValidate(kFolds, numComponentsIter, numThreads, svdRegression, tmpOutput, val_pcs)
+		// tmpResiduals.crossValidate(kFolds, numComponentsIter, numThreads, svdRegression, tmpOutput, val_pcs)
 		if (tmpResiduals.getNumComponents() > 0 || extraIndeps != null) {
 
 			cValidation = tmpResiduals.getCorrectedDataAt(tmpResiduals.getMedians(), extraIndeps, samplesToInclude[0], tmpResiduals.getNumComponents(), lType, "HFDS", true);
@@ -167,7 +167,9 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 					evaluationResult.getIccs().add(icc);
 					evaluationResult.getNumIndsIcc().add(Array.booleanArraySum(finalEval));
 					evaluationResult.getIccTitles().add(matchString[k] + "_" + stratTitles[j]);
-					log.reportTimeInfo("ICC: " + matchString[k] + "_" + stratTitles[j]+ " -> " + icc.getICC() + " NumComps = " + tmpResiduals.getNumComponents());
+					if (tmpResiduals.getNumComponents() % 20 == 0) {
+						log.reportTimeInfo("ICC: " + matchString[k] + "_" + stratTitles[j] + " -> " + icc.getICC() + " NumComps = " + tmpResiduals.getNumComponents());
+					}
 				}
 				for (int k = 0; k < matchDouble.length; k++) {
 					StatPrep result = prepData(estimate, parser.getNumericDataForTitle(matchDouble[k]), finalEval, matchDouble[k], true, log);
@@ -183,7 +185,9 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 					evaluationResult.getNumIndsCorrel().add(result.getInternalEstimate().length);
 					evaluationResult.getSpearmanCorrel().add(spearman);
 					evaluationResult.getCorrelTitles().add(matchDouble[k] + "_" + stratTitles[j]);
-					log.reportTimeInfo("Spearman: " + matchDouble[k] + "_" + stratTitles[j] + " -> " + Array.toStr(spearman));
+					if (tmpResiduals.getNumComponents() % 20 == 0) {
+						log.reportTimeInfo("Spearman: " + matchDouble[k] + "_" + stratTitles[j] + " -> " + Array.toStr(spearman) + " NumComps = " + tmpResiduals.getNumComponents());
+					}
 				}
 			}
 		}

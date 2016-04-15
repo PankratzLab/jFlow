@@ -14,7 +14,9 @@ import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
 import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import cnv.qc.LrrSd;
 import cnv.qc.MarkerMetrics;
+import cnv.qc.SampleQC;
 import cnv.qc.SexChecks;
 import cnv.var.SampleData;
 
@@ -57,7 +59,7 @@ public class AutoMito {
 			builder.treatAllNumeric(false);
 			builder.stringDataTitles(new String[] { SexChecks.EST_SEX_HEADER });
 			builder.requireAll(true);
-			System.out.println(ext.indexOfStr( SexChecks.EST_SEX_HEADER , Files.getHeaderOfFile( proj.SEXCHECK_RESULTS_FILENAME.getValue(), proj.getLog())));
+			System.out.println(ext.indexOfStr(SexChecks.EST_SEX_HEADER, Files.getHeaderOfFile(proj.SEXCHECK_RESULTS_FILENAME.getValue(), proj.getLog())));
 			ExtProjectDataParser parser = builder.build(proj, proj.SEXCHECK_RESULTS_FILENAME.getValue());
 
 			String[][] matrix = HashVec.loadFileToStringMatrix(proj.SAMPLE_DATA_FILENAME.getValue(), false, null, false);
@@ -69,42 +71,52 @@ public class AutoMito {
 			Files.writeMatrix(matrix, temporarySampleDataWithSex, "\t");
 
 		}
-		System.exit(1);
 		proj.SAMPLE_DATA_FILENAME.setValue(temporarySampleDataWithSex);
 
 		String baseSampleQC = qcDir + name + "_baseSampleQC.txt";
 		proj.SAMPLE_QC_FILENAME.setValue(baseSampleQC);
 
 		new File(qcDir).mkdirs();
-		MarkerSet markerSet = proj.getMarkerSet();// remove CN only
+		// MarkerSet markerSet = proj.getMarkerSet();// remove CN only
 
 		String baseMarkerQC = qcDir + name + "_base_markerQC.txt";
+		String baseMarkers = ext.addToRoot(baseMarkerQC, ".nonCNOnlyMarkers");
 		proj.MARKER_METRICS_FILENAME.setValue(baseMarkerQC);
+		ArrayList<String> nonCN_Only = new ArrayList<String>();
+		String[] autos = proj.getAutosomalMarkers();
+		for (int i = 0; i < autos.length; i++) {
+			if (!proj.getArrayType().isCNOnly(autos[i])) {
+				nonCN_Only.add(autos[i]);
+			}
+		}
+		Files.writeArrayList(nonCN_Only, baseMarkers);
+		if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+			LrrSd.init(proj, null, baseMarkers, baseMarkers, numThreads, null, false);
+		}
+
+		SampleQC sampleQC = SampleQC.loadSampleQC(proj);
+		boolean[] samplesPassing = Array.booleanArray(proj.getSamples().length, false);
+		String sampleFiltRound1 = qcDir + name + "_base_sampleFilter.txt";
+		double[] lrr = sampleQC.getDataFor("LRR_SD");
+		double[] callRate = sampleQC.getDataFor("Genotype_callrate");
+		for (int i = 0; i < callRate.length; i++) {
+			if (callRate[i] > callRateSamp && lrr[i] < lrrSDSamp) {
+				samplesPassing[i] = true;
+			}
+		}
+		proj.getLog().reportTimeInfo(Array.booleanArraySum(samplesPassing) + " samples passed initial QC");
+		Files.writeList(Array.subArray(proj.getSamples(), samplesPassing), sampleFiltRound1);
 
 		if (!Files.exists(proj.MARKER_METRICS_FILENAME.getValue())) {
-			ArrayList<String> nonCN_Only = new ArrayList<String>();
-			for (int i = 0; i < markerSet.getMarkerNames().length; i++) {
-				if (!proj.getArrayType().isCNOnly(markerSet.getMarkerNames()[i])) {
-					nonCN_Only.add(markerSet.getMarkerNames()[i]);
-				}
-			}
-			Files.writeArrayList(nonCN_Only, ext.addToRoot(baseMarkerQC, ".nonCNOnlyMarkers"));
-			MarkerMetrics.fullQC(proj, null, null, false, numThreads);
+			MarkerMetrics.fullQC(proj, samplesPassing, baseMarkers, false, numThreads);
 		}
+
 		proj.getLog().reportTimeInfo("Loading " + baseMarkerQC);
-		ExtProjectDataParser parser;
-		parser = MarkerMetrics.developParser(proj, baseMarkerQC);
-		for (int i = 0; i < parser.getNumericData().length; i++) {
-			// double[] metricData =
-
-		}
-
-		// R1 sample QC
-		// R2 marker QC
-		// R2 sample QC
-
-		// recomp lrrs
-
+		ExtProjectDataParser parser = MarkerMetrics.developParser(proj, baseMarkerQC);
+		double[] callRateMarkers = parser.getNumericDataForTitle("CallRate");
+		double[] HetExMarkers = parser.getNumericDataForTitle("HetEx");
+		double[] lrrSexZ = parser.getNumericDataForTitle("LRR_SEX_z");
+	
 		proj = new Project(proj.getPropertyFilename(), false);// reset everything
 
 	}
