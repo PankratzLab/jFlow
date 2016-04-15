@@ -25,6 +25,7 @@ import stats.StatsCrossTabs.StatsCrossTabRank;
 import stats.StatsCrossTabs.VALUE_TYPE;
 import common.Array;
 import common.Array.BooleanClassifier;
+import common.ArraySpecialList.ArrayStringList;
 import common.Files;
 import common.HashVec;
 import common.Logger;
@@ -33,7 +34,6 @@ import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
 import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
 import cnv.manage.ExtProjectDataParser;
 import cnv.manage.TransposeData;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
@@ -1134,6 +1134,21 @@ class CorrectionIterator implements Serializable {
 			// }
 
 		}
+		String[] customPlotFiles = Files.list(proj.PROJECT_DIRECTORY.getValue(), "pc_evaluation.titles.txt", false);
+
+		ArrayList<String[]> plotters = new ArrayList<String[]>();
+		for (int i = 0; i < customPlotFiles.length; i++) {
+			String[] groups = HashVec.loadFileToStringArray(customPlotFiles[i], true, new int[] { 0 }, false);
+			String[] names = HashVec.loadFileToStringArray(customPlotFiles[i], true, new int[] { 1 }, false);
+			ArrayStringList[] arrayStringList = new ArrayStringList[Array.unique(groups).length];
+			for (int j = 0; j < groups.length; j++) {
+				arrayStringList[Integer.parseInt(groups[i])].add("SPEARMAN_CORREL_EVAL_DATA_" + names[i] + "_NO_STRAT");
+			}
+			for (int j = 0; j < arrayStringList.length; j++) {
+				plotters.add(Array.toStringArray(arrayStringList[j]));
+			}
+		}
+
 		String[] plotTitlesForMain = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number", "SPEARMAN_CORREL_EVAL_DATA_Ratio.ND1", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs" };
 		String[] plotTitlesForMito = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_FC_NO_STRAT", "SPEARMAN_CORREL_AGE_NO_STRATs", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_SEX_NO_STRATs" };
 
@@ -1146,6 +1161,16 @@ class CorrectionIterator implements Serializable {
 		String[] quickTitles = new String[] { "SPEARMAN_CORREL_AGE_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_SEX_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_NO_STRAT" };
 
 		String[][] plotTitlesForSummary = new String[][] { plotTitlesForMain, plotTitlesForMito, plotTitlesForMitoFC, plotTitlesForMitoAge, plotTitlesForMitoSex, quickTitles };
+		String[][] fileLoad = plotters.toArray(new String[plotters.size()][]);
+		String[][] tmp = new String[plotTitlesForSummary.length + fileLoad.length][];
+		for (int i = 0; i < plotTitlesForSummary.length; i++) {
+			tmp[i] = plotTitlesForSummary[i];
+		}
+		for (int i = 0; i < fileLoad.length; i++) {
+			tmp[plotTitlesForSummary.length - 1] = fileLoad[i];
+		}
+		// plotTitlesForSummary =Array.concatAll(plotTitlesForSummary, fileLoad);
+		
 		String[] subsetDataHeritability = new String[] { "EVAL_DATA_Mt_DNA_relative_copy_number" };
 
 		String[] numericStratCats = new String[] { "EVAL_DATA_Mt_DNA_relative_copy_number", "EVAL_DATA_qpcr.qnorm.exprs" };
@@ -1387,12 +1412,12 @@ class CorrectionIterator implements Serializable {
 		private String[][] plotTitlesForSummary;
 		private String[] subsetDataHeritability;
 		private String[] stratCats, numericStratCats;
-		private double[]trimRangeX;
+		private double[] trimRangeX;
 		private double[] trimRangeY;
 		private String pedFile;
 		private int index;
 
-		public IterSummaryProducer(Project proj, CorrectionIterator[] cIterators, String[][] plotTitlesForSummary, String[] stratCats, String[] numericStratCats, String pedFile,double[]trimRangeX,double[]trimRangeY) {
+		public IterSummaryProducer(Project proj, CorrectionIterator[] cIterators, String[][] plotTitlesForSummary, String[] stratCats, String[] numericStratCats, String pedFile, double[] trimRangeX, double[] trimRangeY) {
 			super();
 			this.proj = proj;
 			this.cIterators = cIterators;
