@@ -67,8 +67,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		this.fcp = fcsPlot;
 		this.setAxisFontSize(24);
 		this.setSymmetricAxes(false);
-//		setZoomable(true, true);
-		setZoomable(false, true);
+		setZoomable(true, true);
+//		setZoomable(false, true);
 
 		setColorScheme(DEFAULT_COLORS);
 
@@ -154,14 +154,14 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		
 //		zoomable = true;
 		rectangles = new GenericRectangle[0];
-		setForcePlotXMin(0);// TODO fix this to be more intelligent
-		setForcePlotYMin(0);//
+//		setForcePlotXMin(0);// TODO fix this to be more intelligent
+//		setForcePlotYMin(0);//
 		
 		ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
 		if (showMedSD[0] || showMedSD[1]) {
 		    xMed = columnsChangedX || dataChanged || Double.isNaN(xMed) ? Array.median(xData) : xMed;
-		    xMin = columnsChangedX || dataChanged || Double.isNaN(xMin) ? Math.min(Math.min(0, plotXmin) - xMed, Array.min(xData)) : xMin;
-		    xMax = columnsChangedX || dataChanged || Double.isNaN(xMax) ? Math.max(this.plotXmax + xMed, Array.max(xData)) : xMax;
+		    xMin = columnsChangedX || dataChanged || Double.isNaN(xMin) ? Math.min(Math.min(0, plotXmin) - xMed, Array.min(xData) - xMed) : xMin;
+		    xMax = columnsChangedX || dataChanged || Double.isNaN(xMax) ? Math.max(this.plotXmax + xMed, Array.max(xData) + xMed) : xMax;
 		    if (showMedSD[0]) {
 		        lineList.add(new GenericLine((float)xMed, (float)xMin, (float)xMed, (float)xMax, (byte)1, (byte) 8, (byte)1, 0, false));  
 		    }

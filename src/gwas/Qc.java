@@ -11,7 +11,7 @@ public class Qc {
     public static String[] FOLDERS_CREATED = {"quality_control/marker_qc/", "quality_control/sample_qc/", "quality_control/ld_pruning/", "quality_control/genome/", "quality_control/ancestry/"};
     /** A rough listing of the files created, by folder, by fullGamut */
     public static String[][] FILES_CREATED = {
-        {"plink.bed", "freq.frq", "missing.imiss", "test.missing.missing", "hardy.hwe", "mishap.missing.hap", "gender.assoc", "gender.missing", "miss_drops.dat"},
+        {"plink.bed", "freq.frq", "missing.imiss", /*"test.missing.missing",*//* not actually necessary */ "hardy.hwe", "mishap.missing.hap", "gender.assoc", "gender.missing", "miss_drops.dat"},
         {"plink.bed", "missing.imiss"},
         {"plink.bed", "plink.prune.in"},
         {"plink.bed", "plink.genome", "plink.genome_keep.dat"},
