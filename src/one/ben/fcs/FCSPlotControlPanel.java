@@ -167,11 +167,13 @@ public class FCSPlotControlPanel extends JPanel {
         yBndsMin.addPropertyChangeListener("value", pcl);
         yBndsMin.setColumns(10);
         yBndsMin.setValue(0);
+        yBndsMin.setEditable(false);
         add(yBndsMin, "flowx,cell 2 7 2 1");
         
         yBndsMax = new JFormattedTextField(numberFormat);
         yBndsMax.addPropertyChangeListener("value", pcl);
         yBndsMax.setColumns(10);
+        yBndsMax.setEditable(false);
         add(yBndsMax, "cell 2 7 2 1");
         
         chckbxShowMedianX = new JCheckBox("Show Median", plot.showMedian(false));
@@ -206,11 +208,13 @@ public class FCSPlotControlPanel extends JPanel {
         xBndsMin.addPropertyChangeListener("value", pcl);
         xBndsMin.setColumns(10);
         xBndsMin.setValue(0);
+        xBndsMin.setEditable(false);
         add(xBndsMin, "flowx,cell 2 12 2 1");
         
         xBndsMax = new JFormattedTextField(numberFormat);
         xBndsMax.addPropertyChangeListener("value", pcl);
         xBndsMax.setColumns(10);
+        xBndsMax.setEditable(false);
         add(xBndsMax, "cell 2 12 2 1");
         
         progressBar = new JProgressBar();
@@ -277,22 +281,22 @@ public class FCSPlotControlPanel extends JPanel {
     
     public void setXMin(double xMin) {
         progSet = true;
-        xBndsMin.setValue(xMin);
+        xBndsMin.setValue(Math.floor(xMin));
         resetProgSet();
     }
     public void setXMax(double xMax) {
         progSet = true;
-        xBndsMax.setValue(xMax);
+        xBndsMax.setValue(Math.ceil(xMax));
         resetProgSet();
     }
     public void setYMin(double yMin) {
         progSet = true;
-        yBndsMin.setValue(yMin);
+        yBndsMin.setValue(Math.floor(yMin));
         resetProgSet();
     }
     public void setYMax(double yMax) {
         progSet = true;
-        yBndsMax.setValue(yMax);
+        yBndsMax.setValue(Math.ceil(yMax));
         resetProgSet();
     }
 
