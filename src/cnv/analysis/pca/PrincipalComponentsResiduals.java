@@ -913,12 +913,12 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			cval = new CrossValidation(new double[0], new double[0][0], new double[0], new double[0][0], true, lType, proj.getLog());
 			cval.setAnalysisFailed(true);
 		} else {
-			if (lType == LS_TYPE.SVD) {
-				lType = numComponentsForModel > NUM_PC_SVD_OVERIDE ? LS_TYPE.SVD : LS_TYPE.REGULAR;
-				if (lType == LS_TYPE.REGULAR) {
-					log.reportTimeWarning("Over-riding SVD method since " + numComponentsForModel + " < " + NUM_PC_SVD_OVERIDE);
-				}
-			}
+//			if (lType == LS_TYPE.SVD) {
+//				lType = numComponentsForModel > NUM_PC_SVD_OVERIDE ? LS_TYPE.SVD : LS_TYPE.REGULAR;
+//				if (lType == LS_TYPE.REGULAR) {
+//					log.reportTimeWarning("Over-riding SVD method since " + numComponentsForModel + " < " + NUM_PC_SVD_OVERIDE);
+//				}
+//			}
 
 			double[] train_deps = (samplesTobuildModel == null ? data : Array.subArray(data, samplesTobuildModel));
 			double[][] train_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(samplesTobuildModel, extraIndeps, numComponentsForModel, log) : Array.subArray(extraIndeps, samplesTobuildModel);

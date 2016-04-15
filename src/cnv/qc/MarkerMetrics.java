@@ -1247,6 +1247,7 @@ public class MarkerMetrics {
 		String pheno = null;
 		boolean countFilters = false;
 		int numThreads = 1;
+		boolean checkMendel = true;		
 
 		String usage = "\n" + 
 				"cnv.qc.MarkerMetrics requires 0-1 arguments\n" + 
@@ -1254,10 +1255,12 @@ public class MarkerMetrics {
 				"   (2) filename of subset of samples to include (i.e. samples=" + samples + " (default; if null, uses all samples except those marked in the \"Excluded\" column in SampleData.txt))\n" +
 				"   (3) filename of subset of markers to include / otherwise all markers (i.e. markers=" + markersSubset + " (default))\n" + 
 					PSF.Ext.getNumThreadsCommand(4, numThreads) +
+					
 				"  AND\n" + 
 				"   (4) look at intensity separation between males and females (i.e. -separation (not the default))\n" + 
 				"  OR\n" + 
-				"   (4) perform full list of checks on marker quality (i.e. -fullQC (not the default))\n" + 
+				"   (4) perform full list of checks on marker quality (i.e. -fullQC (not the default))\n" +
+				"   (5) do not check for mendelian errors when performing full qc (i.e. -skipMendel (not the default))\n" +
 				"  OR\n" + 
 				"   (4) filter markers based on filter criteria (i.e. -filter (not the default))\n" + 
 				"  OR\n" + 
@@ -1287,7 +1290,10 @@ public class MarkerMetrics {
 			} else if (args[i].startsWith("-separation")) {
 				sexSeparation = true;
 				numArgs--;
-			} else if (args[i].startsWith("-fullQC")) {
+			} else if (args[i].startsWith("-skipMendel")) {
+				checkMendel = false;
+				numArgs--;
+			}  else if (args[i].startsWith("-fullQC")) {
 				fullQC = true;
 				numArgs--;
 			} else if (args[i].startsWith("-lrrVar")) {
@@ -1355,7 +1361,7 @@ public class MarkerMetrics {
 				separationOfSexes(proj, markersSubset);
 			}
 			if (fullQC) {
-				fullQC(proj, (samples == null) ?  proj.getSamplesToExclude() : Array.booleanNegative(proj.getSamplesToInclude(samples)), markersSubset, true, numThreads);
+				fullQC(proj, (samples == null) ? proj.getSamplesToExclude() : Array.booleanNegative(proj.getSamplesToInclude(samples)), markersSubset, checkMendel, numThreads);
 			}
 			if (lrrVariance) {
 				lrrVariance(proj, proj.getSamplesToInclude(samples), markersSubset);
