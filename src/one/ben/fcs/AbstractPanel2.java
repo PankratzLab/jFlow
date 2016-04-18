@@ -114,6 +114,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	protected int canvasSectionMaximumY;
 	protected int axisYWidth = WIDTH_Y_AXIS;
 	protected int axisXHeight = HEIGHT_X_AXIS;
+	protected AXIS_SCALE xAxis = AXIS_SCALE.LOG;
+	protected AXIS_SCALE yAxis = AXIS_SCALE.LOG;
 	protected double plotXmax, plotYmax;
 	protected double plotXmin, plotYmin;
 	protected volatile BufferedImage image;
@@ -387,6 +389,19 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	
 	public void setForceXAxisWholeNumbers(boolean whole) {
 	    this.xAxisWholeNumbers = whole;
+	}
+
+	public AXIS_SCALE getXAxis() {
+		return xAxis;
+	}
+	public void setXAxis(AXIS_SCALE xAxis) {
+		this.xAxis = xAxis;
+	}
+	public AXIS_SCALE getYAxis() {
+		return yAxis;
+	}
+	public void setYAxis(AXIS_SCALE yAxis) {
+		this.yAxis = yAxis;
 	}
 
 	public abstract void generatePoints();
@@ -869,29 +884,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 
 
-    private static final double LOG10SCALE = 1/Math.log(10);
-    // handy static methods
-    private static double log10(double val) { return Math.log(val) * LOG10SCALE; }
-    private static double exp10(double val) { return Math.exp(val / LOG10SCALE); }
-    private static float flog10(double val) { return (float)log10(val); }
-    private static float fexp10(double val) { return (float)exp10(val); }
-    
-    private int getLogPixel(double val, boolean xAxis) {
-        int screen_range = (xAxis ? canvasSectionMaximumX : canvasSectionMaximumY) - (xAxis ? canvasSectionMinimumX : canvasSectionMinimumY); // in pixels        
-        float log_low = flog10(xAxis ? plotXmin : plotYmin), log_high = flog10(xAxis ? plotXmax : plotYmax), log_val = flog10(val);
-        float log_range = log_high - log_low;
-        float pixels_per_log_unit = screen_range / log_range;
-        return (int)((log_val - log_low) * pixels_per_log_unit + .5);
-    }
-
-    private int getXPixelLog(double xVal) {
-        return getLogPixel(xVal, true);
-    }
-    
-    private int getYPixelLog(double yVal) {
-        return getLogPixel(yVal, false);
-    }
-    
     /*
      * Given a number, round up to the nearest power of ten
      * times 1, 2, or 5.
@@ -922,21 +914,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         return numdigits;
     }
     
-    public static Vector<String> computeTicks(double ticMinVal, double ticMaxVal, int maxTicks)  {
-        double xStep = roundUp((ticMaxVal - ticMinVal) / maxTicks);
-        int numfracdigits = numFracDigits(xStep);
-
-        // Compute x starting point so it is a multiple of xStep.
-        double xStart = xStep * Math.ceil(ticMinVal / xStep);
-        Vector<String> labels = new Vector<String>();
-        // Label the axis.  The labels are quantized so that
-        // they don't have excess resolution.
-        for (double xpos=xStart; xpos<=ticMaxVal; xpos+=xStep) {
-            labels.addElement(ext.formDeci(xpos, numfracdigits));
-        }
-        return labels;
-    }
-    
     private void drawYAxis(Graphics g, double[] plotMinMaxStep) {
         int sigFigs;
         String str;
@@ -946,25 +923,55 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     	sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
     	float minSize = g.getFont().getSize2D();
     	Font prevFont = g.getFont();
-    	for (double y = plotMinMaxStep[3]; y<=plotYmax; y += plotMinMaxStep[2]) {
-    		if (y >= plotYmin || !truncate) {
-    			str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
-    			if (str.length() == 5) {
-    				minSize = Math.min(minSize, prevFont.getSize2D() - 5);
-    			} else if (str.length() >= 6) {
-    			    minSize = Math.min(minSize, prevFont.getSize2D() - 10);
-    			}
-    		}
-    	}
-        Font minFont = prevFont.deriveFont(minSize);
-        g.setFont(minFont);
-        fontMetrics = g.getFontMetrics();
-    	for (double y = plotMinMaxStep[3]; y <= plotYmax; y += plotMinMaxStep[2]) {
-    	    if (y >= plotYmin || !truncate) {
-    	        Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
-    	        str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
-    	        g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 5 - fontMetrics.stringWidth(str), getYPixel(y) + fontMetrics.getHeight() / 2);
-    	    }
+    	if (getYAxis() == AXIS_SCALE.LIN) {
+	    	for (double y = plotMinMaxStep[3]; y<=plotYmax; y += plotMinMaxStep[2]) {
+	    		if (y >= plotYmin || !truncate) {
+	    			str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
+	    			if (str.length() == 5) {
+	    				minSize = Math.min(minSize, prevFont.getSize2D() - 5);
+	    			} else if (str.length() >= 6) {
+	    			    minSize = Math.min(minSize, prevFont.getSize2D() - 10);
+	    			}
+	    		}
+	    	}
+	        Font minFont = prevFont.deriveFont(minSize);
+	        g.setFont(minFont);
+	        fontMetrics = g.getFontMetrics();
+	    	for (double y = plotMinMaxStep[3]; y <= plotYmax; y += plotMinMaxStep[2]) {
+	    	    if (y >= plotYmin || !truncate) {
+	    	        Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
+	    	        str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, sigFigs, true);
+	    	        g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 5 - fontMetrics.stringWidth(str), getYPixel(y) + fontMetrics.getHeight() / 2);
+	    	    }
+	    	}
+    	} else {
+        	int maxTicks = 15;
+            double yStep = roundUp((plotMinMaxStep[1] - plotMinMaxStep[2]) / maxTicks);
+            int numfracdigits = numFracDigits(yStep);
+
+            double yStart = yStep * Math.ceil(plotMinMaxStep[0] / yStep);
+            for (double y = yStart; y <= plotMinMaxStep[1]; y += yStep) {
+            	if (y >= plotYmin || !truncate) {
+            		str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, numfracdigits, true);
+	    			if (str.length() == 5) {
+	    				minSize = Math.min(minSize, prevFont.getSize2D() - 5);
+	    			} else if (str.length() >= 6) {
+	    			    minSize = Math.min(minSize, prevFont.getSize2D() - 10);
+	    			}
+	    		}
+            }
+	        Font minFont = prevFont.deriveFont(minSize);
+	        g.setFont(minFont);
+	        fontMetrics = g.getFontMetrics();
+            yStart = yStep * Math.ceil(plotMinMaxStep[0] / yStep);
+            for (double y = yStart; y <= plotMinMaxStep[1]; y += yStep) {
+	    	    if (y >= plotYmin || !truncate) {
+	    	        Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
+	    	        str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, numfracdigits, true);
+	    	        g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 5 - fontMetrics.stringWidth(str), getYPixel(y) + fontMetrics.getHeight() / 2);
+	    	    }
+	    	}
+    		
     	}
     	g.setFont(prevFont);
     	fontMetrics = g.getFontMetrics();
@@ -987,16 +994,58 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     private void drawXAxis(Graphics g, double[] plotMinMaxStep, FontMetrics fontMetrics) {
         int sigFigs;
         String str;
-    	sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
-    	for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
-    		if (x >= plotXmin || !truncate) {
-    			Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
-    			str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
-    			g.drawString(str, getXPixel(x)-str.length()*8, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-30));
-    		}
-    	}
-    	Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
-    	g.drawString(xAxisLabel, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(xAxisLabel)/2+axisYWidth/*WIDTH_Y_AXIS*/, getHeight()-20);
+        if (getXAxis() == AXIS_SCALE.LIN) {
+	    	sigFigs = ext.getNumSigFig(plotMinMaxStep[2]);
+	    	for (double x = plotMinMaxStep[3]; x<=plotXmax; x += plotMinMaxStep[2]) {
+	    		if (x >= plotXmin || !truncate) {
+	    			Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+	    			str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, sigFigs, true);
+	    			g.drawString(str, getXPixel(x)-str.length()*8, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-30));
+	    		}
+	    	}
+        } else {
+	    	float minSize = g.getFont().getSize2D();
+	    	Font prevFont = g.getFont();
+        	int maxTicks = 25;
+        	
+            double xStep = roundUp((plotMinMaxStep[1] - plotMinMaxStep[2]) / maxTicks);
+            int numDigits = numFracDigits(xStep);
+            double xStart = xStep * Math.ceil(plotMinMaxStep[0] / xStep);
+
+	    	for (double x = xStart; x <= plotXmax; x += xStep) {
+	    		if (x >= plotXmin || !truncate) {
+	    			str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, numDigits, true);
+	    			if (str.length() == 5) {
+	    				minSize = Math.min(minSize, prevFont.getSize2D() - 5);
+	    			} else if (str.length() >= 6) {
+	    			    minSize = Math.min(minSize, prevFont.getSize2D() - 10);
+	    			}
+	    		}
+	    	}
+	        Font minFont = prevFont.deriveFont(minSize);
+	        g.setFont(minFont);
+	        fontMetrics = g.getFontMetrics();
+	    	g.setFont(g.getFont().deriveFont(minSize));
+	    	
+	    	int skipped = 0;
+            for (double x = xStart; x <= plotMinMaxStep[1]; x += xStep) {
+            	if (x >= plotXmin || !truncate) {
+	    			str = ext.formDeci(Math.abs(x) < DOUBLE_INACCURACY_HEDGE ? 0 : x, numDigits, true);
+	    			if (getXPixel(x) + fontMetrics.stringWidth(str) < getXPixel(x + xStep) || skipped == 4) {
+	    				Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-(TICK_LENGTH * 3)/2), TICK_THICKNESS, Color.BLACK);
+	    				g.drawString(str, getXPixel(x)-str.length()*4, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-30));
+	    				skipped = 0;
+	    			} else {
+	    				Grafik.drawThickLine(g, getXPixel(x), getHeight()-canvasSectionMaximumY, getXPixel(x), getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+	    				skipped++;
+	    			}
+	    		}
+            }
+            
+            g.setFont(prevFont);
+        }
+        Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
+        g.drawString(xAxisLabel, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(xAxisLabel)/2+axisYWidth/*WIDTH_Y_AXIS*/, getHeight()-20);
     }
 	
 	/**
@@ -1054,12 +1103,12 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public int[][] getGridIntensityForHeapMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight, int neighbor) {
 		int xPixel, yPixel;
 		int[][] intensities;
-		boolean zoomedIn;
+//		boolean zoomedIn;
 		int[] origin;
 
 		origin = new int[] {0,0};
 
-		zoomedIn = (Math.abs(getXValueFromXPixel(5) - getXValueFromXPixel(0)) < 0.002) || (Math.abs(getYValueFromYPixel(5) - getYValueFromYPixel(0)) < 0.002);
+//		zoomedIn = (Math.abs(getXValueFromXPixel(5) - getXValueFromXPixel(0)) < 0.002) || (Math.abs(getYValueFromYPixel(5) - getYValueFromYPixel(0)) < 0.002);
 		intensities = new int[nColumns][nRows];
 		for (int i = 0; i < points.length; i++) {
 			if (points[i] != null) {
@@ -1068,11 +1117,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				for (int j = -neighbor; j <= neighbor; j++) {
 					for (int k = -neighbor; k <= neighbor; k++) {
 						if ((xPixel + j) >= 0 && (xPixel + j) < nColumns && (yPixel + k) >= 0 && (yPixel + k) < nRows) { //  && Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)}, origin) < neighbor*(neighbor-1)
-							if (zoomedIn) {
+//							if (zoomedIn) {
 								intensities[xPixel + j][yPixel + k]++;
-							} else {
-								intensities[xPixel + j][yPixel + k] += neighbor*neighbor;// - Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)}, origin);
-							}
+//							} else {
+//								intensities[xPixel + j][yPixel + k] += neighbor*neighbor;// - Distance.euclidean(new int[] {Math.abs(j), Math.abs(k)}, origin);
+//							}
 						}
 					}
 				}
@@ -1222,9 +1271,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			} else {
 				distance = Math.min(distance, 1-zoomSubsets[i][1]);
 			}
-			if ((zoomSubsets[i][0] <= 0 && distance < 0) || (zoomSubsets[i][1] >= 1 && distance > 0)) {
-
-			} else {
+//			if ((zoomSubsets[i][0] <= 0 && distance < 0) || (zoomSubsets[i][1] >= 1 && distance > 0)) {
+//
+//			} else {
 //				if ((invertX && i == 0) || (invertY && i == 1)) {
 //					zoomSubsets[i][0] -= distance;
 //					zoomSubsets[i][1] -= distance;
@@ -1234,13 +1283,13 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 //				}
 				zoomSubsets[i][0] += distance;
 				zoomSubsets[i][1] += distance;
-			}
+//			}
 		}
 		
 		if (inDrag) {
-		    if (distance > 0.00001 || distance < -0.00001) {
+//		    if (distance > 0.00001 || distance < -0.00001) {
 		        paintAgain();
-		    }
+//		    }
 			startX = curX;
 			startY = curY;
 		}
@@ -1559,88 +1608,104 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		}
 	}
 
-	public int getXPixel(double x) {
-		if (invertX) {
-			return (int)((plotXmax-x)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
+	private static final double LOG10SCALE = 1/Math.log(10);
+
+	// handy static methods
+	private static double log10(double val) { return Math.log(val) * LOG10SCALE; }
+
+
+	private static double exp10(double val) { return Math.exp(val / LOG10SCALE); }
+
+
+	private static float flog10(double val) { return (float)log10(val); }
+
+
+	private static float fexp10(double val) { return (float)exp10(val); }
+
+	private int getLogPixelX(double val) {
+	    int screen_range = canvasSectionMaximumX - canvasSectionMinimumX; // in pixels        
+	    float log_low = plotXmin == 0 ? 0 : (plotXmin < 0 ? -1 * flog10(plotXmin * -1) : flog10(plotXmin));
+	    float log_high = plotXmax == 0 ? 0 : (plotXmax < 0 ? -1 * flog10(plotXmax * -1) : flog10(plotXmax));
+	    float log_val = val == 0 ? 0 : flog10(val);
+	    float log_range = log_high - log_low;
+	    float pixels_per_log_unit = screen_range / log_range;
+	    return (int)((log_val - log_low) * pixels_per_log_unit + .5) + canvasSectionMinimumX;
+	}
+
+	private int getLogPixelY(double val) {
+		int screen_range = canvasSectionMaximumY - canvasSectionMinimumY; // in pixels        
+		float log_low = plotYmin == 0 ? 0 : (plotYmin < 0 ? -1 * (flog10(plotYmin * -1)) : flog10(plotYmin)); 
+		float log_high = plotYmax == 0 ? 0 : (plotYmax < 0 ? -1 * (flog10(plotYmax * -1)) : flog10(plotYmax)); 
+		float log_val = val == 0 ? 0 : (val < 0 ? -1 * flog10(val * -1) : flog10(val));
+		float log_range = log_high - log_low;
+		float pixels_per_log_unit = screen_range / log_range;
+		return (int)((log_val - log_low) * pixels_per_log_unit + .5) + (canvasSectionMinimumY);
+	}
+
+	private int getXPixel(double x) {
+		if (getXAxis() == AXIS_SCALE.LIN) {
+			if (invertX) {
+				return (int)((plotXmax-x)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
+			} else {
+				return (int)((x-plotXmin)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
+			}
 		} else {
-			return (int)((x-plotXmin)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
+			return getLogPixelX(x);
 		}
 	}
 
-	public int getYPixel(double y) {
-		if (invertY) {
-			return getHeight()-(int)((plotYmax-y)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
+	private int getYPixel(double y) {
+		if (getYAxis() == AXIS_SCALE.LIN) {
+			if (invertY) {
+				return getHeight()-(int)((plotYmax-y)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
+			} else {
+				return getHeight()-(int)((y-plotYmin)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
+			}
 		} else {
-			return getHeight()-(int)((y-plotYmin)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
+			return getHeight() - getLogPixelY(y);
 		}
 	}
-
-	/**
-	 * Converts mouse location int X,Y into data points' value double rawX,rawY.
-	 * The control variable invertX is assigned elsewhere in the class.
-	 * @param mouseX the mouse location X
-	 * @return the rawX value of the corresponding data point.
-	 */
-	public double getXValueFromXPixel(int mouseX) {
-		if (invertX) {
-			return plotXmax - ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
-		} else {
-			return plotXmin + ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
-		}
-	}
-
-	/**
-	 * Converts mouse location int X,Y into data points' value double rawX,rawY
-	 * The control variable invertY is assigned elsewhere in the class.
-	 * @param mouseY the mouse location Y
-	 * @return the rawY value of the corresponding data point.
-	 */
-	public double getYValueFromYPixel(int mouseY) {
-		if (invertY) {
-			return plotYmax + ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
-		} else {
-			return plotYmin - ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
-		}
-	}
-	   
-    public double getXIntercept(double x1, double y1, double x2, double y2, double yNew) {
-//        return (x1 * (y1 - 2*y2 + yNew) + x2 * (y2 - yNew)) / (y1 - y2);
-        
-        return ((x2 - x1) * (yNew - y2 + x2 * ((y2 - y1) / (x2 - x1)))) / (y2 - y1);
-        
-    }
-    
-    public double getYIntercept(double x1, double y1, double x2, double y2, double xNew) {
-        double s = ((y2 - y1) / (x2 - x1));
-        double b = y2 - s * x2;
-        return s * xNew + b;
-    }
-    
+//
 //	/**
-//	 * Screens the data points to find out those that fall into the range of (double rawXmin, double rawXmax, double rawYmin, double rawYmax)
-//	 * @param rawXmin
-//	 * @param rawXmax
-//	 * @param rawYmin
-//	 * @param rawYmax
+//	 * Converts mouse location int X,Y into data points' value double rawX,rawY.
+//	 * The control variable invertX is assigned elsewhere in the class.
+//	 * @param mouseX the mouse location X
+//	 * @return the rawX value of the corresponding data point.
 //	 */
-//	public void highlightPoints(double rawXmin, double rawYmin, double rawXmax, double rawYmax) {
-//		if (points.length==100){
-//		for (int i=0; i<points.length; i++) {
-//			if (points[i].getRawX()>=rawXmin
-//					&& points[i].getRawY()>=rawYmin
-//					&& points[i].getRawX()<=rawXmax
-//					&& points[i].getRawY()<=rawYmax) {
-//				points[i].setHighlighted(true);
-//				System.out.println("Highlighting: "+points[i].getRawX()+","+points[i].getRawY());
-//			} else {
-//				points[i].setHighlighted(false);
-//			}
-//			
-//		}
+//	public double getXValueFromXPixel(int mouseX) {
+//		if (invertX) {
+//			return plotXmax - ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
+//		} else {
+//			return plotXmin + ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
 //		}
 //	}
-//	
-	/**
+//
+//	/**
+//	 * Converts mouse location int X,Y into data points' value double rawX,rawY
+//	 * The control variable invertY is assigned elsewhere in the class.
+//	 * @param mouseY the mouse location Y
+//	 * @return the rawY value of the corresponding data point.
+//	 */
+//	public double getYValueFromYPixel(int mouseY) {
+//		if (invertY) {
+//			return plotYmax + ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
+//		} else {
+//			return plotYmin - ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
+//		}
+//	}
+//	   
+//    public double getXIntercept(double x1, double y1, double x2, double y2, double yNew) {
+////        return (x1 * (y1 - 2*y2 + yNew) + x2 * (y2 - yNew)) / (y1 - y2);
+//        return ((x2 - x1) * (yNew - y2 + x2 * ((y2 - y1) / (x2 - x1)))) / (y2 - y1);
+//    }
+//    
+//    public double getYIntercept(double x1, double y1, double x2, double y2, double xNew) {
+//        double s = ((y2 - y1) / (x2 - x1));
+//        double b = y2 - s * x2;
+//        return s * xNew + b;
+//    }
+
+    /**
 	 * Highlights those points that need to be highlighted
 	 * @param array
 	 */
@@ -1771,14 +1836,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 	public boolean getFlow() {
 		return flow;
-	}
-	
-	public void setPointsGeneratable(boolean pointsGeneratable) {
-//		this.pointsGeneratable = pointsGeneratable;
-	}
-
-	public boolean isPointsGeneratable() {
-		return true /*pointsGeneratable*/;
 	}
 	
 	public void setSwapable(boolean swapable) {

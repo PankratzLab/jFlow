@@ -101,7 +101,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
 		inputMapAndActionMap();
 
-		fcsPanel.setPointsGeneratable(true);
 		fcsPanel.setExtraLayersVisible(new byte[] {99});
 		fcsPanel.setChartType(AbstractPanel2.PLOT_TYPE.HEATMAP);
 		
@@ -228,16 +227,14 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	
 	private volatile String xDataName;
 	private volatile String yDataName;
-	private volatile AXIS_SCALE xScale;
-	private volatile AXIS_SCALE yScale;
 	private volatile PLOT_TYPE plotType;
 	private volatile boolean showSDY = true, showSDX = true, showMedianY = true, showMedianX = true;
 	
     public String getXDataName() { return xDataName; }
     public String getYDataName() { return yDataName; }
     
-    public AXIS_SCALE getXScale() { return xScale; }
-    public AXIS_SCALE getYScale() { return yScale; }
+    public AXIS_SCALE getXScale() { return fcsPanel.getXAxis(); }
+    public AXIS_SCALE getYScale() { return fcsPanel.getYAxis(); }
     
     public PLOT_TYPE getPlotType() { return plotType; }
 
@@ -247,8 +244,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     protected void setXDataName(String xDataName) { this.xDataName = xDataName; }
     protected void setYDataName(String yDataName) { this.yDataName = yDataName; }
 
-    protected void setXScale(AXIS_SCALE scale) { this.xScale = scale; }
-    protected void setYScale(AXIS_SCALE scale) { this.yScale = scale; }
+    protected void setXScale(AXIS_SCALE scale) { this.fcsPanel.setXAxis(scale); }
+    protected void setYScale(AXIS_SCALE scale) { this.fcsPanel.setYAxis(scale); }
 	
     protected void setPlotType(PLOT_TYPE type) { this.fcsPanel.chartType = type; }
     
@@ -396,7 +393,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         frame.pack();
         frame.setVisible(show);
 //
-        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
+        String fcsFilename = "P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
 //        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
 //        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
         twoDPlot.loadFile(fcsFilename);
