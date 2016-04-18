@@ -134,7 +134,7 @@ public class FCSPlotControlPanel extends JPanel {
         cbXData.setMaximumRowCount(15);
         add(cbXData, "cell 1 9 3 1,growx");
         
-        cbYScale = new JComboBox();//<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+        cbYScale = new JComboBox<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
         cbYScale.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
@@ -146,7 +146,7 @@ public class FCSPlotControlPanel extends JPanel {
         });
         add(cbYScale, "cell 2 5 2 1,growx");
         
-        cbXScale = new JComboBox();//<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+        cbXScale = new JComboBox<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
         cbXScale.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
