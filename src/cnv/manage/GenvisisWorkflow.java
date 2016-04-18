@@ -560,7 +560,7 @@ public class GenvisisWorkflow {
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             int numThreads = proj.NUM_THREADS.getValue();
             try {
-                numThreads = Integer.parseInt(variables.get(this).get(1));
+                numThreads = Integer.parseInt(variables.get(this).get(0));
             } catch (NumberFormatException e) {
             }
             String projPropFile = proj.getPropertyFilename();
