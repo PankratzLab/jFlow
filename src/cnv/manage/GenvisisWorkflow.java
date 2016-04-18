@@ -1211,9 +1211,9 @@ public class GenvisisWorkflow {
      public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
 
     	 double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
-    	 double lrrSdThreshold = Double.parseDouble(variables.get(this).get(3));
+    	 double lrrSdThreshold = Double.parseDouble(variables.get(this).get(2));
     	 double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
-    	 double callrateThreshold = Double.parseDouble(variables.get(this).get(4));
+    	 double callrateThreshold = Double.parseDouble(variables.get(this).get(3));
 
     	 String projPropFile = proj.getPropertyFilename();
 
@@ -1223,9 +1223,9 @@ public class GenvisisWorkflow {
              String dir = "plink/"; 
              duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + "/quality_control/genome/plink.genome_duplicatesSet.dat";
     	 }
-    	 boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(2));
-    	 int numQ = Integer.parseInt(variables.get(this).get(5));
-    	 boolean correctFidIids = Boolean.valueOf(variables.get(this).get(6));
+    	 boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(1));
+    	 int numQ = Integer.parseInt(variables.get(this).get(4));
+    	 boolean correctFidIids = Boolean.valueOf(variables.get(this).get(5));
          
     	 String kvCmd = "";
          
@@ -1473,9 +1473,9 @@ static final STEP S15_COMPUTE_PFB = new STEP("Compute Population BAF files", "",
             String kvCmd = "";
             
             String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
-            String subSampFile = variables.get(this).get(1);
+            String subSampFile = variables.get(this).get(0);
             String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
-            String pfbOutputFile = variables.get(this).get(2);
+            String pfbOutputFile = variables.get(this).get(1);
             
             if (!ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
                 kvCmd += " SAMPLE_SUBSET_FILENAME=" + subSampFile;
