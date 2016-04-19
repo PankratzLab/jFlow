@@ -87,8 +87,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	boolean[] showMedSD = {false, false, false, false}; // xMed, xSD, yMed, ySD
 	double[] xData;
 	double[] yData;
+	ArrayList<GenericRectangle> rects = new ArrayList<GenericRectangle>();
 	
-	public void generatePoints() {
+	public void generatePointsRectanglesAndLines() {
 		byte type;
 //		String[] line;
 		float xAxisValue, yAxisValue;
@@ -98,12 +99,14 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		if (fcp.dataLoader == null && !fcp.isLoading) {
 		    setNullMessage("Please load an FCS file..");
 		    points = new PlotPoint[0];
+            rectangles = new GenericRectangle[0];
 		    return;
 		    
 		}
 		if (!fcp.isCurrentDataDisplayable()) {
 		    setNullMessage("Please wait, data is loading...");
 		    points = new PlotPoint[0];
+            rectangles = new GenericRectangle[0];
 		    return;
 		}
 		
@@ -148,6 +151,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             showMedSD[2] = mY;
             showMedSD[3] = sdY;
 		}
+
+        rectangles = rects.toArray(new GenericRectangle[rects.size()]);
 		
 		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged/* && !typeChanged /* don't need to regen if only type has changed, for now */;
 		if (skip) return;
@@ -203,15 +208,67 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     			}
     			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
     		}
+            rects.clear();
+            rectangles = new GenericRectangle[0];
         }
-
 	}
 	
 
     public void mousePressed(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-            startX = e.getX();
-            startY = e.getY();
+            int tempX = e.getX();
+            int tempY = e.getY();
+            int toRemove = -1;
+            for (int i = 0; i < rects.size(); i++) {
+                GenericRectangle rect = rects.get(i);
+                boolean closeToStartX = Math.abs(getXPixel(rect.getStartXValue()) - tempX) < 4; 
+                boolean closeToStartY = Math.abs(getYPixel(rect.getStartYValue()) - tempY) < 4; 
+                boolean closeToStopX = Math.abs(getXPixel(rect.getStopXValue()) - tempX) < 4; 
+                boolean closeToStopY = Math.abs(getYPixel(rect.getStopYValue()) - tempY) < 4; 
+                
+                double tempStartX = Double.NaN, tempStartY = Double.NaN, tempStopX = Double.NaN, tempStopY = Double.NaN;
+                if (closeToStartX && closeToStartY) {
+                    tempStartX = rect.getStopXValue();
+                    tempStartY = rect.getStopYValue();
+                    tempStopX = rect.getStartXValue();
+                    tempStopY = rect.getStartYValue();
+                } else if (closeToStartX && closeToStopY) {
+                    tempStartX = rect.getStopXValue();
+                    tempStartY = rect.getStartYValue();
+                    tempStopX = rect.getStartXValue();
+                    tempStopY = rect.getStopYValue();
+                } else if (closeToStopX && closeToStartY) {
+                    tempStartX = rect.getStartXValue();
+                    tempStartY = rect.getStopYValue();
+                    tempStopX = rect.getStopXValue();
+                    tempStopY = rect.getStartYValue();
+                } else if (closeToStopX && closeToStopY) {
+                    tempStartX = rect.getStartXValue();
+                    tempStartY = rect.getStartYValue();
+                    tempStopX = rect.getStopXValue();
+                    tempStopY = rect.getStopYValue();
+                }
+                if (!Double.isNaN(tempStartX)) {
+                    startX = getXPixel(tempStartX);
+                    startY = getYPixel(tempStartY);
+                    highlightRectangle = new GenericRectangle((float)tempStartX, 
+                                                                (float)tempStartY,
+                                                                (float)tempStopX, 
+                                                                (float)tempStopY,
+                                                                (byte)1, false, false, (byte)0, (byte)99);
+                    toRemove = i;
+                    break;
+                }
+                
+                System.out.println(closeToStartX + " " + closeToStartY + " " + closeToStopX + " " + closeToStopY);
+            }
+            if (toRemove >= 0) {
+                rects.remove(toRemove);
+            } else {
+                startX = e.getX();
+                startY = e.getY();
+            }
+            paintAgain();
         } else {
             super.mousePressed(e);
         }
@@ -225,12 +282,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         mouseEndY = e.getY();
         highlightRectangle = null;
         if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-            if (Math.abs(mouseEndX - startX) > (POINT_SIZE / 2) || Math.abs(mouseEndY - startY) > (POINT_SIZE / 2)) {
-                
-                // TODO add gate here
-                
-                paintAgain();
-            }
+            rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
+                    (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
+                    (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99));
+            paintAgain();
         } else {
             super.mouseReleased(e);
         }
@@ -245,10 +300,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(startX), 
                     (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
                     (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99);
-//            highlightRectangle = new GenericRectangle((float)0, 
-//                                    (float)0, 100, 
-//                                   100, (byte)1, false, false, (byte)0, (byte)99);
-            repaint();
+            paintAgain();
         } else {
             super.mouseDragged(e);
         }
