@@ -403,7 +403,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		this.yAxis = yAxis;
 	}
 
-	public abstract void generatePoints();
+	public abstract void generatePointsRectanglesAndLines();
 
 	public abstract void highlightPoints();
 
@@ -469,7 +469,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     		((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
     	}
     	
-        generatePoints();
+        generatePointsRectanglesAndLines();
 		highlightPoints();
 		
 		if (points.length == 0 && (rectangles == null || rectangles.length == 0)) {
@@ -790,6 +790,13 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 					} else {
 				    	drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, rectangles[i].getThickness());
 					}
+				}
+				if (!rectangles[i].getRoundedCorners()) {
+				    g.setColor(Color.black);
+				    g.fillRect(rectangleXPixel - 2, rectangleYPixel - 2, 4, 4);
+				    g.fillRect(rectangleXPixel + rectangleWidthPixel - 2, rectangleYPixel - 2, 4, 4);
+				    g.fillRect(rectangleXPixel + rectangleWidthPixel - 2, rectangleYPixel + rectangleHeightPixel - 2, 4, 4);
+				    g.fillRect(rectangleXPixel - 2, rectangleYPixel + rectangleHeightPixel - 2, 4, 4);
 				}
 			}
         }
@@ -1624,7 +1631,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	    return (int)((log_val - log_low) * pixels_per_log_unit) + screenMin;
 	}
 
-	private int getXPixel(double x) {
+	protected int getXPixel(double x) {
 		if (getXAxis() == AXIS_SCALE.LIN) {
 			if (invertX) {
 				return (int)((plotXmax-x)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
@@ -1636,7 +1643,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		}
 	}
 
-	private int getYPixel(double y) {
+	protected int getYPixel(double y) {
 		if (getYAxis() == AXIS_SCALE.LIN) {
 			if (invertY) {
 				return getHeight()-(int)((plotYmax-y)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
