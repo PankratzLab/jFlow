@@ -179,12 +179,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		        lineList.add(new GenericLine((float)yMin, (float)yMed, (float)yMax, (float)yMed, (byte)1, (byte) 8, (byte)1, 0, false));  
 		    }
 		    if (showMedSD[3]) {
-		        double sd = Array.stdev(yData);
-		        lineList.add(new GenericLine((float)yMin, (float)(yMed - sd), (float)yMax, (float)(yMed - sd), (byte)1, (byte) 9, (byte)1, 0, false));  
-		        lineList.add(new GenericLine((float)yMin, (float)(yMed + sd), (float)yMax, (float)(yMed + sd), (byte)1, (byte) 9, (byte)1, 0, false));  
+		        ySD = columnsChangedY || dataChanged || Double.isNaN(ySD) ? Array.stdev(yData) : ySD;
+		        lineList.add(new GenericLine((float)yMin, (float)(yMed - ySD), (float)yMax, (float)(yMed - ySD), (byte)1, (byte) 9, (byte)1, 0, false));  
+		        lineList.add(new GenericLine((float)yMin, (float)(yMed + ySD), (float)yMax, (float)(yMed + ySD), (byte)1, (byte) 9, (byte)1, 0, false));  
 		    }
 		    
 		}
+		
+//		System.out.println("X: " + xMin + " - " + xMax);
+//		System.out.println("Y: " + yMin + " - " + yMax);
+		
         lines = lineList.toArray(new GenericLine[lineList.size()]);
         lineList = null;
 		

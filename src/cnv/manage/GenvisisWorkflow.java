@@ -1124,9 +1124,9 @@ public class GenvisisWorkflow {
      @Override
      public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
     	 double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
-    	 double lrrSdThreshold = Double.parseDouble(variables.get(this).get(3));
+    	 double lrrSdThreshold = Double.parseDouble(variables.get(this).get(2));
     	 double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
-    	 double callrateThreshold = Double.parseDouble(variables.get(this).get(4));
+    	 double callrateThreshold = Double.parseDouble(variables.get(this).get(3));
     	 
          if (projLrrSdThreshold != lrrSdThreshold) {
         	 proj.LRRSD_CUTOFF.setValue(lrrSdThreshold);
@@ -1516,13 +1516,14 @@ static final STEP S15_COMPUTE_PFB = new STEP("Compute Population BAF files", "",
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String pennData, sexDir, malePFB, femalePFB, centFilePathM, centFilePathF, newGCFile;
-            pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
-            sexDir = pennData + "sexSpecific/";
-            newGCFile = sexDir + "sexSpecific.gcModel";
-            malePFB = sexDir + "males.pfb";
-            femalePFB = sexDir + "females.pfb";
-            centFilePathM = sexDir + "sexSpecific_Male.cent";
-            centFilePathF = sexDir + "sexSpecific_Female.cent";
+//            pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
+//            sexDir = pennData + "sexSpecific/";
+            String outputDir = proj.DATA_DIRECTORY.getValue();
+            newGCFile = outputDir + "sexSpecific.gcModel";
+            malePFB = outputDir + "males.pfb";
+            femalePFB = outputDir + "females.pfb";
+            centFilePathM = outputDir + "sexSpecific_Male.cent";
+            centFilePathF = outputDir + "sexSpecific_Female.cent";
             int numThreads = proj.NUM_THREADS.getValue();
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(1));
@@ -1552,13 +1553,14 @@ static final STEP S15_COMPUTE_PFB = new STEP("Compute Population BAF files", "",
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String pennData, sexDir, malePFB, femalePFB, centFilePathM, centFilePathF, newGCFile;
-            pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
-            sexDir = pennData + "sexSpecific/";
-            malePFB = sexDir + "males.pfb";
-            femalePFB = sexDir + "females.pfb";
-            centFilePathM = sexDir + "sexSpecific_Male.cent";
-            centFilePathF = sexDir + "sexSpecific_Female.cent";
-            newGCFile = sexDir + "sexSpecific.gcModel";
+//          pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
+//          sexDir = pennData + "sexSpecific/";
+            String outputDir = proj.DATA_DIRECTORY.getValue();
+            malePFB = outputDir + "males.pfb";
+            femalePFB = outputDir + "females.pfb";
+            centFilePathM = outputDir + "sexSpecific_Male.cent";
+            centFilePathF = outputDir + "sexSpecific_Female.cent";
+            newGCFile = outputDir + "sexSpecific.gcModel";
             return Files.exists(malePFB) && Files.exists(femalePFB) && Files.exists(centFilePathM) && Files.exists(centFilePathF) && Files.exists(newGCFile);
         }
         @Override
