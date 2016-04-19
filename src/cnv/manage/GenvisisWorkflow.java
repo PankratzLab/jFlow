@@ -330,7 +330,7 @@ public class GenvisisWorkflow {
             boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
             return new boolean[][]{
                     {checkStepParseSamples || (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
-                    {true,
+                    {Boolean.parseBoolean(variables.get(this).get(0)),
                      Files.exists(variables.get(this).get(1)), 
                      Files.exists(variables.get(this).get(2))}};
         }
@@ -527,7 +527,7 @@ public class GenvisisWorkflow {
             try {
                 numThreads = Integer.parseInt(variables.get(this).get(0));
             } catch (NumberFormatException e) {
-                proj.getLog().report("Couldn't parse number of threads argument: {" + variables.get(this).get(1) + "}, using default of {" + numThreads + "}");
+                proj.getLog().report("Couldn't parse number of threads argument: {" + variables.get(this).get(0) + "}, using default of {" + numThreads + "}");
             }
 
             LrrSd.init(proj, null, null, numThreads, false);
