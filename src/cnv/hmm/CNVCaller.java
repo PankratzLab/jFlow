@@ -666,6 +666,7 @@ public class CNVCaller {
 					float[] lrrs = centroids == null ? curSample.getLRRs() : curSample.getLRRs(centroids.getCentroids());
 					float[] bafs = centroids == null ? curSample.getBAFs() : curSample.getBAFs(centroids.getCentroids());
 					CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(), Array.toDoubleArray(lrrs), Array.toDoubleArray(bafs), gcModelTmp, pfbTmp, markerSet, chrsToCall, markersToUse, callReverse, numSampleThreads, debugMode);
+					System.gc();
 					return cnvs;
 				}
 
