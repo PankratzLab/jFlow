@@ -211,10 +211,9 @@ public class AnalysisFormats implements Runnable {
 		Centroids[] centroids;
 		
 		final Logger log = proj.getLog();
-		
-		pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
-		sexDir = pennData + "sexSpecific/";
-		
+
+        sexDir = proj.PENNCNV_DATA_DIRECTORY.getValue() + "sexSpecific/";
+        
 		maleDir = sexDir + "male/";
 		femaleDir = sexDir + "female/";
 		
@@ -228,7 +227,8 @@ public class AnalysisFormats implements Runnable {
 
         centFilePathM = sexDir + "sexSpecific_Male.cent";
         centFilePathF = sexDir + "sexSpecific_Female.cent";
-		
+        
+        
 		ms = proj.getMarkerSet();
 		sampleData = proj.getSampleData(0, false);
 		{ // block is similar to getChromosomalMarkersOnly, but also puts markers into other datastructures, hence not using the utility method;
