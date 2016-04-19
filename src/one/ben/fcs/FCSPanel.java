@@ -1,13 +1,17 @@
 package one.ben.fcs;
 
 import java.awt.Color;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import javax.swing.SwingUtilities;
+
 import stats.Histogram;
+import cnv.filesys.ClusterFilter;
 import cnv.plots.GenericLine;
 //import cnv.filesys.MarkerLookup;
 import cnv.plots.GenericRectangle;
@@ -57,6 +61,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 			   									new Color(224, 255, 255),
 
 	};
+    private static final byte POINT_SIZE = 5;
 	
 	protected FCSPlot fcp;
 	
@@ -75,7 +80,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		setNullMessage("Select two variables to plot");
 	}
 
-	int dataCount = -1;
+    int dataCount = -1;
 	String xCol = null, yCol = null;
 	double xMed = Double.NaN, xMin = Double.NaN, xMax = Double.NaN, yMed = Double.NaN, yMin = Double.NaN, yMax = Double.NaN, xSD = Double.NaN, ySD = Double.NaN;
 	PLOT_TYPE prevPlotType;
@@ -84,12 +89,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	double[] yData;
 	
 	public void generatePoints() {
-	    ArrayList<String[]> currentData;
-		CountVector uniqueValueCounts;
 		byte type;
 //		String[] line;
 		float xAxisValue, yAxisValue;
-		byte size = 5;
+		byte size = POINT_SIZE;
 		byte color = 0;
 		
 		if (fcp.dataLoader == null && !fcp.isLoading) {
@@ -153,7 +156,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		yData = columnsChangedY || dataChanged || yData == null ? fcp.getAxisData(false, false) : yData;
 		
 //		zoomable = true;
-		rectangles = new GenericRectangle[0];
 //		setForcePlotXMin(0);// TODO fix this to be more intelligent
 //		setForcePlotYMin(0);//
 		
@@ -186,9 +188,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    
 		}
 		
-//		System.out.println("X: " + xMin + " - " + xMax);
-//		System.out.println("Y: " + yMin + " - " + yMax);
-		
         lines = lineList.toArray(new GenericLine[lineList.size()]);
         lineList = null;
 		
@@ -207,6 +206,55 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         }
 
 	}
+	
+
+    public void mousePressed(MouseEvent e) {
+        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+            startX = e.getX();
+            startY = e.getY();
+        } else {
+            super.mousePressed(e);
+        }
+    }
+    
+
+    public void mouseReleased(MouseEvent e) {
+        int mouseEndX;
+        int mouseEndY;
+        mouseEndX = e.getX();
+        mouseEndY = e.getY();
+        highlightRectangle = null;
+        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+            if (Math.abs(mouseEndX - startX) > (POINT_SIZE / 2) || Math.abs(mouseEndY - startY) > (POINT_SIZE / 2)) {
+                
+                // TODO add gate here
+                
+                paintAgain();
+            }
+        } else {
+            super.mouseReleased(e);
+        }
+    }
+    
+    public void mouseDragged(MouseEvent e) {
+        int mouseEndX;
+        int mouseEndY;
+        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+            mouseEndX = e.getX();
+            mouseEndY = e.getY();
+            highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(startX), 
+                    (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
+                    (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99);
+//            highlightRectangle = new GenericRectangle((float)0, 
+//                                    (float)0, 100, 
+//                                   100, (byte)1, false, false, (byte)0, (byte)99);
+            repaint();
+        } else {
+            super.mouseDragged(e);
+        }
+    }
+    
+//    public void mouseClicked(MouseEvent event) {}
 
     public BufferedImage getImage() {
         return image;

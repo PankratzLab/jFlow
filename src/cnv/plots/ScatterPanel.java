@@ -563,7 +563,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     	mouseEndY = e.getY();
     	highlightRectangle = null;
     	if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-        	if (Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2) || Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2)) {
+        	if (Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2) || Math.abs(mouseEndY - mouseStartY) > (sp.getPointSize() / 2)) {
     	    	// Automatically predict the new genotype and assigns to the last filter.
     	    	sp.getClusterFilterCollection().addClusterFilter(sp.getMarkerName(),
     	    											  new ClusterFilter((byte)sp.getPlotType(panelIndex),

@@ -151,7 +151,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	protected PLOT_TYPE chartType;
 
 	private boolean inDrag;
-	private volatile int startX, startY;
+	protected volatile int startX;
+    protected volatile int startY;
 //	private int titleX, titleY;
 	private int titleLocation;
 	private int plotPointSetSize;
@@ -1147,8 +1148,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public void mouseEntered(MouseEvent e) {}
 
 	public void mouseExited(MouseEvent e) {}
-
-//	public void mouseMoved(MouseEvent e) {}
 	
 	public void mouseMoved(MouseEvent event) {
 		Graphics g = getGraphics();
@@ -1609,24 +1608,20 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 	private static float fexp10(double val) { return (float)exp10(val); }
 
-	private int getLogPixelX(double val) {
-	    int screen_range = canvasSectionMaximumX - canvasSectionMinimumX; // in pixels        
-	    float log_low = plotXmin == 0 ? 0 : (plotXmin < 0 ? -1 * flog10(plotXmin * -1) : flog10(plotXmin));
-	    float log_high = plotXmax == 0 ? 0 : (plotXmax < 0 ? -1 * flog10(plotXmax * -1) : flog10(plotXmax));
+	private int getLogPixel(double val, boolean xAxis) {
+	    int screenMax, screenMin;
+	    double plotMax, plotMin;
+	    
+	    screenMin = xAxis ? canvasSectionMinimumX : canvasSectionMinimumY;
+	    screenMax = xAxis ? canvasSectionMaximumX : canvasSectionMaximumY;
+	    plotMin = xAxis ? plotXmin : plotYmin;
+	    plotMax = xAxis ? plotXmax : plotYmax;
+	    
+	    float log_low = plotMin == 0 ? 0 : (plotMin < 0 ? -1 * flog10(plotMin * -1) : flog10(plotMin));
+	    float log_high = plotMax == 0 ? 0 : (plotMax < 0 ? -1 * flog10(plotMax * -1) : flog10(plotMax));
 	    float log_val = val == 0 ? 0 : (val < 0 ? -1 * flog10(val * -1) : flog10(val));
-	    float log_range = log_high - log_low;
-	    float pixels_per_log_unit = screen_range / log_range;
-	    return (int)((log_val - log_low) * pixels_per_log_unit + .5) + canvasSectionMinimumX;
-	}
-
-	private int getLogPixelY(double val) {
-		int screen_range = canvasSectionMaximumY - canvasSectionMinimumY; // in pixels        
-		float log_low = plotYmin == 0 ? 0 : (plotYmin < 0 ? -1 * (flog10(plotYmin * -1)) : flog10(plotYmin)); 
-		float log_high = plotYmax == 0 ? 0 : (plotYmax < 0 ? -1 * (flog10(plotYmax * -1)) : flog10(plotYmax)); 
-		float log_val = val == 0 ? 0 : (val < 0 ? -1 * flog10(val * -1) : flog10(val));
-		float log_range = log_high - log_low;
-		float pixels_per_log_unit = screen_range / log_range;
-		return (int)((log_val - log_low) * pixels_per_log_unit + .5) + canvasSectionMinimumY;
+	    float pixels_per_log_unit = (screenMax - screenMin) / (log_high - log_low);
+	    return (int)((log_val - log_low) * pixels_per_log_unit) + screenMin;
 	}
 
 	private int getXPixel(double x) {
@@ -1637,7 +1632,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				return (int)((x-plotXmin)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
 			}
 		} else {
-			return getLogPixelX(x);
+			return getLogPixel(x, true);
 		}
 	}
 
@@ -1649,48 +1644,64 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				return getHeight()-(int)((y-plotYmin)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
 			}
 		} else {
-			return getHeight() - getLogPixelY(y);
+			return getHeight() - getLogPixel(y, false);
 		}
 	}
-//
-//	/**
-//	 * Converts mouse location int X,Y into data points' value double rawX,rawY.
-//	 * The control variable invertX is assigned elsewhere in the class.
-//	 * @param mouseX the mouse location X
-//	 * @return the rawX value of the corresponding data point.
-//	 */
-//	public double getXValueFromXPixel(int mouseX) {
-//		if (invertX) {
-//			return plotXmax - ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
-//		} else {
-//			return plotXmin + ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
-//		}
-//	}
-//
-//	/**
-//	 * Converts mouse location int X,Y into data points' value double rawX,rawY
-//	 * The control variable invertY is assigned elsewhere in the class.
-//	 * @param mouseY the mouse location Y
-//	 * @return the rawY value of the corresponding data point.
-//	 */
-//	public double getYValueFromYPixel(int mouseY) {
-//		if (invertY) {
-//			return plotYmax + ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
-//		} else {
-//			return plotYmin - ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
-//		}
-//	}
-//	   
-//    public double getXIntercept(double x1, double y1, double x2, double y2, double yNew) {
-////        return (x1 * (y1 - 2*y2 + yNew) + x2 * (y2 - yNew)) / (y1 - y2);
-//        return ((x2 - x1) * (yNew - y2 + x2 * ((y2 - y1) / (x2 - x1)))) / (y2 - y1);
-//    }
-//    
-//    public double getYIntercept(double x1, double y1, double x2, double y2, double xNew) {
-//        double s = ((y2 - y1) / (x2 - x1));
-//        double b = y2 - s * x2;
-//        return s * xNew + b;
-//    }
+    /**
+     * Converts mouse location int X,Y into data points' value double rawX,rawY.
+     * The control variable invertX is assigned elsewhere in the class.
+     * @param mouseX the mouse location X
+     * @return the rawX value of the corresponding data point.
+     */
+    public double getXValueFromXPixel(int mouseX) {
+        if (getXAxis() == AXIS_SCALE.LIN) {
+            if (invertX) {
+                return plotXmax - ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
+            } else {
+                return plotXmin + ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
+            }
+        } else {
+            return getLogValueFromPixel(mouseX, true);
+        }
+    }
+
+
+    private double getLogValueFromPixel(int value, boolean xAxis) {
+        int screenMax, screenMin;
+        double plotMax, plotMin;
+        
+        screenMin = xAxis ? canvasSectionMinimumX : canvasSectionMinimumY;
+        screenMax = xAxis ? canvasSectionMaximumX : canvasSectionMaximumY;
+        plotMin = xAxis ? plotXmin : plotYmin;
+        plotMax = xAxis ? plotXmax : plotYmax;
+        
+        float log_low = plotMin == 0 ? 0 : (plotMin < 0 ? -1 * flog10(plotMin * -1) : flog10(plotMin));
+        float log_high = plotMax == 0 ? 0 : (plotMax < 0 ? -1 * flog10(plotMax * -1) : flog10(plotMax));
+        
+        double ret = xAxis ? (value - screenMin) : (getHeight() - value - screenMin);
+        ret = log_low + (ret * (log_high - log_low)) / (screenMax - screenMin);
+        ret = Math.pow(10, ret);
+        
+        return ret;
+    }
+    
+    /**
+     * Converts mouse location int X,Y into data points' value double rawX,rawY
+     * The control variable invertY is assigned elsewhere in the class.
+     * @param mouseY the mouse location Y
+     * @return the rawY value of the corresponding data point.
+     */
+    public double getYValueFromYPixel(int mouseY) {
+        if (getYAxis() == AXIS_SCALE.LIN) {
+            if (invertY) {
+                return plotYmax + ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
+            } else {
+                return plotYmin - ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
+            }
+        } else {
+            return getLogValueFromPixel(mouseY, false);
+        }
+    }
 
     /**
 	 * Highlights those points that need to be highlighted
