@@ -1134,20 +1134,28 @@ class CorrectionIterator implements Serializable {
 			// }
 
 		}
-		String[] customPlotFiles = Files.list(proj.PROJECT_DIRECTORY.getValue(), "pc_evaluation.titles.txt", false);
-
+		
+		String[] customPlotFiles = Files.list(proj.PROJECT_DIRECTORY.getValue(), null, ".pc_evaluation.titles.txt", false, false, true);
+//		if (customPlotFiles.length <= 0) {
+//			System.exit(1);
+//		}
 		ArrayList<String[]> plotters = new ArrayList<String[]>();
 		for (int i = 0; i < customPlotFiles.length; i++) {
 			String[] groups = HashVec.loadFileToStringArray(customPlotFiles[i], true, new int[] { 0 }, false);
 			String[] names = HashVec.loadFileToStringArray(customPlotFiles[i], true, new int[] { 1 }, false);
 			ArrayStringList[] arrayStringList = new ArrayStringList[Array.unique(groups).length];
+			for (int j = 0; j < arrayStringList.length; j++) {
+				arrayStringList[j] = new ArrayStringList(10);
+			}
 			for (int j = 0; j < groups.length; j++) {
-				arrayStringList[Integer.parseInt(groups[i])].add("SPEARMAN_CORREL_EVAL_DATA_" + names[i] + "_NO_STRAT");
+				System.out.println(groups[j] + "\t" + names[j] + "\t" + arrayStringList.length);
+				arrayStringList[Integer.parseInt(groups[j])-1].add("SPEARMAN_CORREL_EVAL_DATA_" + names[j] + "_CUSTOM_PHENO_TAG_NO_STRAT");
 			}
 			for (int j = 0; j < arrayStringList.length; j++) {
 				plotters.add(Array.toStringArray(arrayStringList[j]));
 			}
 		}
+		proj.getLog().reportTimeInfo("Detected "+plotters.size()+" plot groups ");
 
 		String[] plotTitlesForMain = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "ICC_EVAL_CLASS_DUPLICATE_SAME_VISIT", "ICC_EVAL_CLASS_FC", "SPEARMAN_CORREL_AGE", "SPEARMAN_CORREL_EVAL_DATA_SEX", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001", "SPEARMAN_CORREL_EVAL_DATA_resid.mtDNA.qPCR", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number", "SPEARMAN_CORREL_EVAL_DATA_Ratio.ND1", "SPEARMAN_CORREL_EVAL_DATA_qpcr.qnorm.exprs" };
 		String[] plotTitlesForMito = new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_FC_NO_STRAT", "SPEARMAN_CORREL_AGE_NO_STRATs", "SPEARMAN_CORREL_EVAL_DATA_Mt_DNA_relative_copy_number_NO_STRAT", "SPEARMAN_CORREL_EVAL_DATA_SEX_NO_STRATs" };
@@ -1163,12 +1171,16 @@ class CorrectionIterator implements Serializable {
 		String[][] plotTitlesForSummary = new String[][] { plotTitlesForMain, plotTitlesForMito, plotTitlesForMitoFC, plotTitlesForMitoAge, plotTitlesForMitoSex, quickTitles };
 		String[][] fileLoad = plotters.toArray(new String[plotters.size()][]);
 		String[][] tmp = new String[plotTitlesForSummary.length + fileLoad.length][];
+		proj.getLog().reportTimeInfo(plotTitlesForSummary.length + " internally defined classes");
+		proj.getLog().reportTimeInfo(fileLoad.length + " externally defined classes");
+
 		for (int i = 0; i < plotTitlesForSummary.length; i++) {
 			tmp[i] = plotTitlesForSummary[i];
 		}
 		for (int i = 0; i < fileLoad.length; i++) {
-			tmp[plotTitlesForSummary.length - 1] = fileLoad[i];
+			tmp[i + plotTitlesForSummary.length] = fileLoad[i];
 		}
+		plotTitlesForSummary = tmp;
 		// plotTitlesForSummary =Array.concatAll(plotTitlesForSummary, fileLoad);
 		
 		String[] subsetDataHeritability = new String[] { "EVAL_DATA_Mt_DNA_relative_copy_number" };
@@ -1428,7 +1440,10 @@ class CorrectionIterator implements Serializable {
 			this.numericStratCats = numericStratCats;
 			this.trimRangeX = trimRangeX;
 			this.trimRangeY = trimRangeY;
+			for (int i = 0; i < plotTitlesForSummary.length; i++) {
+				System.out.println(Array.toStr(plotTitlesForSummary[i]));
 
+			}
 		}
 
 		public void setSubsetDataHeritability(String[] subsetDataHeritability) {
