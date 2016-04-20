@@ -13,6 +13,7 @@ import stats.Rscript.SCATTER_TYPE;
 import cnv.var.LocusSet;
 import common.Array;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.ext;
 import filesys.GeneData;
@@ -28,16 +29,20 @@ public class CaptureQC {
 	private static final String[] PLOT_BY_POS_PERCENT = new String[] { "Percent_Covered_at_depth_1", "Percent_Covered_at_depth_10", "Percent_Covered_at_depth_20" };
 	private static final String[] PLOT_BY_POS_ACTUAL = new String[] { "averageCoverage" };
 
-	public static void captureQC(String referenceGenomeFasta, String bamQCSummary, String extraPostionFile, String geneTrackFile, String[] geneNames, String outputDir, Logger log) {
+	public static void captureQC(String referenceGenomeFasta, String bamQCSummary, String extraPostionFile, String geneTrackFile, String[] geneNames, String outputDir, boolean allInOne, Logger log) {
 		GeomText[] geomTexts = null;
 		if (extraPostionFile != null) {
 			geomTexts = GeomText.fromFile(extraPostionFile, log);
 		}
-	
+
 		GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
 		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
+		String output = outputDir + "fullSummary.capture.txt";
+
 		for (int i = 0; i < geneNames.length; i++) {
-			String output = outputDir + geneNames[i] + ".capture.txt";
+			if (!allInOne) {
+				output = outputDir + geneNames[i] + ".capture.txt";
+			}
 			GeneData[] geneData = geneTrack.lookupAllGeneData(geneNames[i]);
 			LocusSet<GeneData> geneSet = new LocusSet<GeneData>(geneData, true, log) {
 
@@ -49,10 +54,12 @@ public class CaptureQC {
 			};
 
 			try {
-				//ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
-				PrintWriter writer = new PrintWriter(new FileWriter(output));
+				// ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
+				PrintWriter writer = new PrintWriter(new FileWriter(output, i > 0 && allInOne));
 				String[] header = Files.getHeaderOfFile(bamQCSummary, log);
-				writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE" + Array.toStr(header));
+				if (i == 0 || !allInOne) {
+					writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE" + Array.toStr(header));
+				}
 				int UCSCIndex = ext.indexOfStr(UCSC, header);
 				BufferedReader reader = Files.getAppropriateReader(bamQCSummary);
 				reader.readLine();
@@ -79,42 +86,14 @@ public class CaptureQC {
 				}
 				reader.close();
 				writer.close();
-				String root = ext.rootOf(output, false);
-				RScatter rsScatterPos = new RScatter(output, root + ".rscript", ext.removeDirectoryInfo(root), root + ".pdf", "Position", PLOT_BY_POS_PERCENT, SCATTER_TYPE.POINT, log);
-				rsScatterPos.setTitle(geneNames[i] + " capture");
-				rsScatterPos.setxLabel("Position");
-				rsScatterPos.setyLabel("Proportion Covered at Depth");
-				if (geomTexts != null) {
-					rsScatterPos.setgTexts(geomTexts);
-					rsScatterPos.setyRange(new double[] { 0, 2 });
-
+				if (!allInOne) {
+					plot(geneNames, log, geomTexts, i, output);
 				}
-				rsScatterPos.setOverWriteExisting(true);
-				rsScatterPos.setWidth(25);
-				rsScatterPos.execute();
-
-				String rootExon = ext.rootOf(output, false) + "_coverage";
-
-				RScatter rsScatterActual = new RScatter(output, rootExon + ".rscript", ext.removeDirectoryInfo(rootExon), rootExon + ".pdf", "Position", PLOT_BY_POS_ACTUAL, SCATTER_TYPE.POINT, log);
-				rsScatterActual.setTitle(geneNames[i] + " capture");
-				rsScatterActual.setxLabel("Position");
-				rsScatterActual.setyLabel("Average Coverage");
-				if (geomTexts != null) {
-					for (int j = 0; j < geomTexts.length; j++) {
-						geomTexts[j].setY(geomTexts[j].getY()*10 + 80);
-					}
-					rsScatterActual.setyRange(new double[] { 0, 100 });
-					rsScatterActual.setgTexts(geomTexts);
-				}
-				rsScatterActual.setOverWriteExisting(true);
-				rsScatterActual.setWidth(25);
-				rsScatterActual.execute();
-
-//				
-//				rsScatters.add(rsScatterPos);
-//				rsScatters.add(rsScatterActual);
-//				RScatters rScatters = new RScatters(rsScatters.toArray(new RScatter[rsScatters.size()]), output + ".rscript", output + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
-//				rScatters.execute();
+				//
+				// rsScatters.add(rsScatterPos);
+				// rsScatters.add(rsScatterActual);
+				// RScatters rScatters = new RScatters(rsScatters.toArray(new RScatter[rsScatters.size()]), output + ".rscript", output + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+				// rScatters.execute();
 
 			} catch (FileNotFoundException fnfe) {
 				log.reportError("Error: file \"" + bamQCSummary + "\" not found in current directory");
@@ -123,15 +102,52 @@ public class CaptureQC {
 				log.reportError("Error reading file \"" + bamQCSummary + "\"");
 				return;
 			}
+
+		}
+		if (allInOne) {
+			plot(new String[] { "Full Summary" }, log, null, 0, output);
 		}
 
 	}
 
-//	private static class ExtraPositions {
-//		private static final String[] HEADER = new String[] { "UCSC", "GROUP", "VALUE" };
-//		private String file;
-//
-//	}
+	private static void plot(String[] geneNames, Logger log, GeomText[] geomTexts, int i, String output) {
+		String root = ext.rootOf(output, false);
+		RScatter rsScatterPos = new RScatter(output, root + ".rscript", ext.removeDirectoryInfo(root), root + ".pdf", "Position", PLOT_BY_POS_PERCENT, SCATTER_TYPE.POINT, log);
+		rsScatterPos.setTitle(geneNames[i] + " capture");
+		rsScatterPos.setxLabel("Position");
+		rsScatterPos.setyLabel("Proportion Covered at Depth");
+		if (geomTexts != null) {
+			rsScatterPos.setgTexts(geomTexts);
+			rsScatterPos.setyRange(new double[] { 0, 2 });
+
+		}
+		rsScatterPos.setOverWriteExisting(true);
+		rsScatterPos.setWidth(25);
+		rsScatterPos.execute();
+
+		String rootExon = ext.rootOf(output, false) + "_coverage";
+
+		RScatter rsScatterActual = new RScatter(output, rootExon + ".rscript", ext.removeDirectoryInfo(rootExon), rootExon + ".pdf", "Position", PLOT_BY_POS_ACTUAL, SCATTER_TYPE.POINT, log);
+		rsScatterActual.setTitle(geneNames[i] + " capture");
+		rsScatterActual.setxLabel("Position");
+		rsScatterActual.setyLabel("Average Coverage");
+		if (geomTexts != null) {
+			for (int j = 0; j < geomTexts.length; j++) {
+				geomTexts[j].setY(geomTexts[j].getY() * 10 + 80);
+			}
+			rsScatterActual.setyRange(new double[] { 0, 100 });
+			rsScatterActual.setgTexts(geomTexts);
+		}
+		rsScatterActual.setOverWriteExisting(true);
+		rsScatterActual.setWidth(25);
+		rsScatterActual.execute();
+	}
+
+	// private static class ExtraPositions {
+	// private static final String[] HEADER = new String[] { "UCSC", "GROUP", "VALUE" };
+	// private String file;
+	//
+	// }
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
@@ -140,9 +156,9 @@ public class CaptureQC {
 		String referenceGenomeFasta = "/panfs/roc/groups/5/pankrat2/public/bin/ref/hg19_canonical.fa";
 		String[] geneNames = new String[] { "TP53" };
 		String outputDir = null;
-		//String logfile = null;
+		// String logfile = null;
 		String extraPostionFile = null;
-
+		boolean allInOne = true;
 		String usage = "\n" + "seq.qc.CaptureQC requires 0-1 arguments\n";
 		usage += "   (1) bamQC file (i.e. bamQCSummary=" + bamQCSummary + " (default))\n" + "";
 		usage += "   (2) gene track file(i.e. geneTrackFile=" + geneTrackFile + " (default))\n" + "";
@@ -170,7 +186,7 @@ public class CaptureQC {
 			} else if (args[i].startsWith("extrap=")) {
 				extraPostionFile = args[i].split("=")[1];
 				numArgs--;
-			}  else {
+			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
@@ -184,7 +200,12 @@ public class CaptureQC {
 				outputDir = ext.parseDirectoryOfFile(bamQCSummary);
 			}
 			Logger log = new Logger(outputDir + "captureQC.log");
-			captureQC(referenceGenomeFasta, bamQCSummary, extraPostionFile, geneTrackFile, geneNames, outputDir, log);
+			if (Files.exists(geneNames[0])) {
+				log.reportTimeInfo("Detected file input for gene names, loading " + geneNames[0]);
+				geneNames = HashVec.loadFileToStringArray(geneNames[0], false, new int[] { 0 }, false);
+				log.reportTimeInfo("Loaded " + geneNames.length + " genes");
+			}
+			captureQC(referenceGenomeFasta, bamQCSummary, extraPostionFile, geneTrackFile, geneNames, outputDir, allInOne, log);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
