@@ -653,6 +653,7 @@ public class Rscript {
 		private boolean logTransformY;
 		private boolean overWriteExisting;
 		private int height;
+		private int numHistBins;
 		private int width;
 		private GeomText[] gTexts;
 		private SeriesLabeler seriesLabeler;
@@ -705,6 +706,7 @@ public class Rscript {
 			this.midScaleDensity = .5;
 			this.rScriptLoc = "Rscript";
 			this.factorColor=true;
+			this.numHistBins=-1;
 		}
 
 		public String getrScriptLoc() {
@@ -717,6 +719,11 @@ public class Rscript {
 
 		public void setrScriptLoc(String rScriptLoc) {
 			this.rScriptLoc = rScriptLoc;
+		}
+		
+
+		private void setNumHistBins(int numHistBins) {
+			this.numHistBins = numHistBins;
 		}
 
 		public ErrorBars getErrorBars() {
@@ -1087,7 +1094,7 @@ public class Rscript {
 					plot += " + " + sType.getCall() + "(aes(fill=" + rSafeXColumn + "))";
 				} else if (sType == SCATTER_TYPE.HIST) {
 					plot += plotVar + " <- ggplot(" + dataTableExtract + ",aes(x=" + rSafeYColumns[0] + "))";
-					plot += " + " + sType.getCall()+"()+stat_bin(aes(y=..count.., label=format(round(100*(..count..)/sum(..count..), 0), nsmall = 0)), geom=\"text\", vjust=-.5) ";
+					plot += " + " + sType.getCall() + "()+stat_bin(" + (numHistBins > 0 ? "bins = " + numHistBins + "," : "") + "aes(y=..count.., label=format(round(100*(..count..)/sum(..count..), 0), nsmall = 0)), geom=\"text\", vjust=-.5) ";
 				}
 
 				else {
