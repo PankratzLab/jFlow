@@ -1,6 +1,7 @@
 package one.ben.fcs;
 
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -214,11 +215,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	}
 	
 
-    public void mousePressed(MouseEvent e) {
+	public void mousePressed(MouseEvent e) {
+        int tempX = e.getX();
+        int tempY = e.getY();
+        int toRemove = -1;
         if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-            int tempX = e.getX();
-            int tempY = e.getY();
-            int toRemove = -1;
             for (int i = 0; i < rects.size(); i++) {
                 GenericRectangle rect = rects.get(i);
                 boolean closeToStartX = Math.abs(getXPixel(rect.getStartXValue()) - tempX) < 4; 
@@ -259,8 +260,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     toRemove = i;
                     break;
                 }
-                
-                System.out.println(closeToStartX + " " + closeToStartY + " " + closeToStopX + " " + closeToStopY);
             }
             if (toRemove >= 0) {
                 rects.remove(toRemove);
@@ -270,9 +269,50 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             }
             paintAgain();
         } else {
+        	double tempValX = getXValueFromXPixel(tempX);
+        	double tempValY = getYValueFromYPixel(tempY);
+            for (int i = 0; i < rects.size(); i++) {
+            	GenericRectangle rect = rects.get(i);
+            	if (rect.getStartXValue() <= tempValX && rect.getStopXValue() >= tempValX && rect.getStartYValue() <= tempValY && rect.getStopYValue() >= tempValY) {
+            		toRemove = i;
+            		break;
+            	}
+            }
+            if (toRemove != -1) {
+            	rects.remove(toRemove);
+            }
             super.mousePressed(e);
         }
     }
+
+	public void mouseClicked(MouseEvent e) {
+		int tempX = e.getX();
+		int tempY = e.getY();
+		int toRemove = -1;
+		if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+			// 
+		} else {
+			double tempValX = getXValueFromXPixel(tempX);
+			double tempValY = getYValueFromYPixel(tempY);
+			for (int i = rects.size() - 1; i >= 0; i++) {
+				GenericRectangle rect = rects.get(i);
+				double xLow, xHigh, yLow, yHigh;
+				xLow = Math.min(rect.getStartXValue(), rect.getStopXValue());
+				xHigh = Math.max(rect.getStartXValue(), rect.getStopXValue());
+				yLow = Math.min(rect.getStartYValue(), rect.getStopYValue());
+				yHigh = Math.max(rect.getStartYValue(), rect.getStopYValue());
+				if (xLow <= tempValX && xHigh >= tempValX && yLow <= tempValY && yHigh >= tempValY) {
+					toRemove = i;
+					break;
+				}
+			}
+			if (toRemove != -1) {
+				rects.remove(toRemove);
+			}
+			super.mouseClicked(e);
+			paintAgain();
+		}
+	}
     
 
     public void mouseReleased(MouseEvent e) {
