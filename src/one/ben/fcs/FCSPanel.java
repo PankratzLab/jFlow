@@ -86,8 +86,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	double xMed = Double.NaN, xMin = Double.NaN, xMax = Double.NaN, yMed = Double.NaN, yMin = Double.NaN, yMax = Double.NaN, xSD = Double.NaN, ySD = Double.NaN;
 	PLOT_TYPE prevPlotType;
 	boolean[] showMedSD = {false, false, false, false}; // xMed, xSD, yMed, ySD
-	double[] xData;
-	double[] yData;
+	float[] xData;
+	float[] yData;
 	ArrayList<GenericRectangle> rects = new ArrayList<GenericRectangle>();
 	
 	public void generatePointsRectanglesAndLines() {
@@ -162,8 +162,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		yData = columnsChangedY || dataChanged || yData == null ? fcp.getAxisData(false, false) : yData;
 		
 //		zoomable = true;
-//		setForcePlotXMin(0);// TODO fix this to be more intelligent
-//		setForcePlotYMin(0);//
+		setForcePlotXMin(0);// TODO fix this to be more intelligent
+		setForcePlotYMin(0);//
 		
 		ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
 		if (showMedSD[0] || showMedSD[1]) {
@@ -174,7 +174,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		        lineList.add(new GenericLine((float)xMed, (float)xMin, (float)xMed, (float)xMax, (byte)1, (byte) 8, (byte)1, 0, false));  
 		    }
 		    if (showMedSD[1]) {
-    		    xSD = columnsChangedX || dataChanged || Double.isNaN(xSD) ? Array.stdev(xData) : xSD;
+    		    xSD = columnsChangedX || dataChanged || Double.isNaN(xSD) ? Array.stdev(xData, false) : xSD;
     		    lineList.add(new GenericLine((float)(xMed - xSD), (float)xMin, (float)(xMed - xSD), (float)xMax, (byte)1, (byte) 9, (byte)1, 0, false));  
     		    lineList.add(new GenericLine((float)(xMed + xSD), (float)xMin, (float)(xMed + xSD), (float)xMax, (byte)1, (byte) 9, (byte)1, 0, false));  
 		    }
@@ -187,7 +187,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		        lineList.add(new GenericLine((float)yMin, (float)yMed, (float)yMax, (float)yMed, (byte)1, (byte) 8, (byte)1, 0, false));  
 		    }
 		    if (showMedSD[3]) {
-		        ySD = columnsChangedY || dataChanged || Double.isNaN(ySD) ? Array.stdev(yData) : ySD;
+		        ySD = columnsChangedY || dataChanged || Double.isNaN(ySD) ? Array.stdev(yData, false) : ySD;
 		        lineList.add(new GenericLine((float)yMin, (float)(yMed - ySD), (float)yMax, (float)(yMed - ySD), (byte)1, (byte) 9, (byte)1, 0, false));  
 		        lineList.add(new GenericLine((float)yMin, (float)(yMed + ySD), (float)yMax, (float)(yMed + ySD), (byte)1, (byte) 9, (byte)1, 0, false));  
 		    }
@@ -294,7 +294,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		} else {
 			double tempValX = getXValueFromXPixel(tempX);
 			double tempValY = getYValueFromYPixel(tempY);
-			for (int i = rects.size() - 1; i >= 0; i++) {
+			for (int i = rects.size() - 1; i >= 0; i--) {
 				GenericRectangle rect = rects.get(i);
 				double xLow, xHigh, yLow, yHigh;
 				xLow = Math.min(rect.getStartXValue(), rect.getStopXValue());

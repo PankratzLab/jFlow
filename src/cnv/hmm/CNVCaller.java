@@ -597,6 +597,7 @@ public class CNVCaller {
 
 		}
 		CNVCallResult cnvs = callCNVsFor(proj, pennHmm, sample, lrrs, bafs, gcModel, pfb, markerSet, markersToUse, copyNumberDef, chrsToCall, callReverse, numThreads, debugMode);
+		System.gc();
 		return cnvs;
 	}
 

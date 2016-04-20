@@ -237,22 +237,23 @@ public class Grafik {
 			System.err.println("Error - heatmap value needs to be between zero and one, inclusive");
 		}
 		
+		double[] gates = {.25, .5, .75};
 		color = new int[] {0,0,0};
-		if (value < 0.25) {
+		if (value < gates[0]) {
 			color[0] = 0;
 			color[1] = (int) (255 * value / 0.25);
 			color[2] = 255;
-		} else if (value < 0.50) {
+		} else if (value < gates[1]) {
 			color[0] = 0;
 			color[1] = 255;
-			color[2] = (int) (255 - 255 * (value - .25) / .25);
-		} else if (value < 0.75) {
-			color[0] = (int) (255 * (value - .5 ) / .25);
+			color[2] = (int) (255 - 255 * (value - gates[0]) / .25);
+		} else if (value < gates[2]) {
+			color[0] = (int) (255 * (value - gates[1] ) / .25);
 			color[1] = 255;
 			color[2] = 0;
 		} else {
 			color[0] = 255;
-			color[1] = (int) (255 - 255 * (value - .75) / .25);
+			color[1] = (int) (255 - 255 * (value - gates[2]) / .25);
 			color[2] = 0;
 		}
 		

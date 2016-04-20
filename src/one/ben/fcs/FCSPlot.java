@@ -32,6 +32,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -114,15 +115,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         
         add(splitPane, BorderLayout.CENTER);
         
-//		add(layeredPane, BorderLayout.CENTER);
-//		add(fcsControls, BorderLayout.WEST);
-		
-		
 		updateGUI();
 		
 		fcsPanel.grabFocus();
-		
-//		controlFrame.setVisible(true);
 	}
 	
 	public FCSPanel getPanel() {
@@ -306,8 +301,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         
     }
     
-    public double[] getAxisData(boolean wait, boolean xAxis) {
-        double[] data;
+    public float[] getAxisData(boolean wait, boolean xAxis) {
+        float[] data;
         if (dataLoader == null) {
             data = null;
         } else {
@@ -393,8 +388,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         frame.pack();
         frame.setVisible(show);
 //
-        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
-//        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
+//        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
+        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
 //        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
         twoDPlot.loadFile(fcsFilename);
         

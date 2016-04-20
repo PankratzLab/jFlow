@@ -1,6 +1,8 @@
 package one.ben.fcs;
 
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
@@ -16,17 +18,28 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
 import javax.swing.JComboBox;
 import javax.swing.SwingUtilities;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ListDataListener;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JFormattedTextField;
 import javax.swing.JCheckBox;
 import javax.swing.SwingConstants;
 import javax.swing.JProgressBar;
+
+import cnv.gui.JAccordionPanel;
+
+import javax.swing.JScrollPane;
+
+import com.sun.javafx.scene.layout.region.Margins;
 
 public class FCSPlotControlPanel extends JPanel {
 
@@ -44,35 +57,61 @@ public class FCSPlotControlPanel extends JPanel {
     private JFormattedTextField xBndsMin;
     private JFormattedTextField xBndsMax;
     
+    volatile boolean progSet = false;
+
+    private JCheckBox chckbxShowMedianX;
+
+    private JCheckBox chckbxShowSdX;
+
+    private JCheckBox chckbxShowMedianY;
+
+    private JCheckBox chckbxShowSdY;
+
+    private JProgressBar progressBar;
+
+    private JAccordionPanel plotControlPanel;
+    private JTextField fileDirField;
+    private JTable dataFileTable;
+    private JButton btnLoadFile;
+    private JButton btnMoveUp;
+    private JButton btnMoveDown;
+    private JButton btnRemove;
+
     /**
      * Create the panel.
      */
     public FCSPlotControlPanel(final FCSPlot plot) {
         this.plot = plot;
         
-        setLayout(new MigLayout("", "[][][grow][]", "[][][][][][][][][][][][][][grow][]"));
+        setLayout(new MigLayout("", "[grow]", "[grow][]"));
+        
+        panel_1 = new JPanel();
+        panel_1.setLayout(new MigLayout("", "[grow]", "[][][][grow]"));
+        
+        plotControlPanel = new JAccordionPanel();
+        panel_1.add(plotControlPanel, "cell 0 0,grow");
+        JLabel ctrlLabel = new JLabel("<html><u>Plot Controls</u></html>");
+        ctrlLabel.setFont(ctrlLabel.getFont().deriveFont(Font.PLAIN, 14));
+        plotControlPanel.topPanel.add(ctrlLabel, "pad 0 10 0 0, cell 0 0, grow");
+        plotControlPanel.topPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.RAISED));
+        plotControlPanel.contentPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.LOWERED));
+        JPanel panel = plotControlPanel.contentPanel;
+        
+        panel.setLayout(new MigLayout("", "[][][grow][]", "[][][][][][][][][][][]"));
         
         JLabel lblPlotType = new JLabel("Plot Type:");
+        panel.add(lblPlotType, "cell 0 0,alignx trailing");
         lblPlotType.setFont(lblFont);
-        add(lblPlotType, "cell 0 2,alignx trailing");
         
-        cbType = new JComboBox<PLOT_TYPE>(PLOT_TYPE.values());
-        cbType.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent arg0) {
-                if (arg0.getStateChange() == ItemEvent.SELECTED) {
-                    plot.setPlotType((PLOT_TYPE) arg0.getItem());
-                    plot.updateGUI();
-                }
-            }
-        });
-        add(cbType, "cell 1 2 3 1,growx");
+        cbType = new JComboBox();//<PLOT_TYPE>(PLOT_TYPE.values());
+        panel.add(cbType, "cell 1 0 3 1,growx");
         
         JLabel lblYaxisData = new JLabel("Y-Axis Data:");
+        panel.add(lblYaxisData, "cell 0 2,alignx trailing");
         lblYaxisData.setFont(lblFont);
-        add(lblYaxisData, "cell 0 4,alignx trailing");
         
         cbYData = new JComboBox<String>();
+        panel.add(cbYData, "cell 1 2 3 1,growx");
         cbYData.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
@@ -83,45 +122,54 @@ public class FCSPlotControlPanel extends JPanel {
             }
         });
         cbYData.setMaximumRowCount(15);
-        add(cbYData, "cell 1 4 3 1,growx");
         
         JLabel lblScale = new JLabel("Scale:");
+        panel.add(lblScale, "cell 0 3 2 1,alignx trailing");
         lblScale.setFont(lblFont);
-        add(lblScale, "cell 0 5 2 1,alignx trailing");
+        
+        cbYScale = new JComboBox();//<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+        panel.add(cbYScale, "cell 2 3 2 1,growx");
+        cbYScale.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent arg0) {
+                if (arg0.getStateChange() == ItemEvent.SELECTED) {
+                    plot.setYScale((AXIS_SCALE) arg0.getItem());
+                    plot.updateGUI();
+                }
+            }
+        });
         
         chckbxShowMedianY = new JCheckBox("Show Median", plot.showMedian(true));
+        panel.add(chckbxShowMedianY, "cell 0 4 3 1,alignx trailing");
         chckbxShowMedianY.setHorizontalAlignment(SwingConstants.TRAILING);
-        chckbxShowMedianY.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent arg0) {
-                boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
-                plot.setMedianVisible(show, true);
-                plot.updateGUI();
-            }
-        });
-        add(chckbxShowMedianY, "cell 0 6 3 1,alignx trailing");
         
         chckbxShowSdY = new JCheckBox("Show SD", plot.showSD(true));
+        panel.add(chckbxShowSdY, "cell 3 4,alignx trailing");
         chckbxShowSdY.setHorizontalAlignment(SwingConstants.TRAILING);
-        chckbxShowSdY.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent arg0) {
-                boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
-                plot.setSDVisible(show, true);
-                plot.updateGUI();
-            }
-        });
-        add(chckbxShowSdY, "cell 3 6,alignx trailing");
         
         JLabel lblYbounds = new JLabel("Y-Bounds:");
+        panel.add(lblYbounds, "cell 0 5 2 1,alignx trailing");
         lblYbounds.setFont(lblFont);
-        add(lblYbounds, "cell 0 7 2 1,alignx trailing");
+
+        Format numberFormat = NumberFormat.getNumberInstance();
+        yBndsMax = new JFormattedTextField(numberFormat);
+        panel.add(yBndsMax, "cell 2 5 2 1");
+        yBndsMax.addPropertyChangeListener("value", pcl);
+        yBndsMax.setColumns(10);
+        yBndsMax.setEditable(false);
+        yBndsMin = new JFormattedTextField(numberFormat);
+        panel.add(yBndsMin, "cell 2 5 2 1");
+        yBndsMin.addPropertyChangeListener("value", pcl);
+        yBndsMin.setColumns(10);
+        yBndsMin.setValue(0);
+        yBndsMin.setEditable(false);
         
         JLabel lblXaxisData = new JLabel("X-Axis Data:");
+        panel.add(lblXaxisData, "cell 0 7,alignx trailing");
         lblXaxisData.setFont(lblFont);
-        add(lblXaxisData, "cell 0 9,alignx trailing");
         
         cbXData = new JComboBox<String>();
+        panel.add(cbXData, "cell 1 7 3 1,growx");
         cbXData.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
@@ -132,21 +180,54 @@ public class FCSPlotControlPanel extends JPanel {
             }
         });
         cbXData.setMaximumRowCount(15);
-        add(cbXData, "cell 1 9 3 1,growx");
         
-        cbYScale = new JComboBox<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
-        cbYScale.addItemListener(new ItemListener() {
+        JLabel lblScale_1 = new JLabel("Scale:");
+        panel.add(lblScale_1, "cell 0 8 2 1,alignx trailing");
+        lblScale_1.setFont(lblFont);
+        
+        cbXScale = new JComboBox();//<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+        panel.add(cbXScale, "cell 2 8 2 1,growx");
+        
+        chckbxShowMedianX = new JCheckBox("Show Median", plot.showMedian(false));
+        panel.add(chckbxShowMedianX, "cell 0 9 3 1,alignx right");
+        chckbxShowMedianX.setHorizontalAlignment(SwingConstants.TRAILING);
+        
+        chckbxShowSdX = new JCheckBox("Show SD", plot.showSD(false));
+        panel.add(chckbxShowSdX, "cell 3 9,alignx right");
+        chckbxShowSdX.setHorizontalAlignment(SwingConstants.TRAILING);
+        
+        JLabel lblXbounds = new JLabel("X-Bounds:");
+        panel.add(lblXbounds, "cell 0 10 2 1,alignx trailing");
+        lblXbounds.setFont(lblFont);
+        
+        xBndsMax = new JFormattedTextField(numberFormat);
+        panel.add(xBndsMax, "cell 2 10 2 1");
+        xBndsMax.addPropertyChangeListener("value", pcl);
+        xBndsMax.setColumns(10);
+        xBndsMax.setEditable(false);
+        
+        xBndsMin = new JFormattedTextField(numberFormat);
+        panel.add(xBndsMin, "cell 2 10 2 1");
+        xBndsMin.addPropertyChangeListener("value", pcl);
+        xBndsMin.setColumns(10);
+        xBndsMin.setValue(0);
+        xBndsMin.setEditable(false);
+        chckbxShowSdX.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
-                if (arg0.getStateChange() == ItemEvent.SELECTED) {
-                    plot.setYScale((AXIS_SCALE) arg0.getItem());
-                    plot.updateGUI();
-                }
+                boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
+                plot.setSDVisible(show, false);
+                plot.updateGUI();
             }
         });
-        add(cbYScale, "cell 2 5 2 1,growx");
-        
-        cbXScale = new JComboBox<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+        chckbxShowMedianX.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent arg0) {
+                boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
+                plot.setMedianVisible(show, false);
+                plot.updateGUI();
+            }
+        });
         cbXScale.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
@@ -156,69 +237,88 @@ public class FCSPlotControlPanel extends JPanel {
                 }
             }
         });
-        
-        JLabel lblScale_1 = new JLabel("Scale:");
-        lblScale_1.setFont(lblFont);
-        add(lblScale_1, "cell 0 10 2 1,alignx trailing");
-        add(cbXScale, "cell 2 10 2 1,growx");
-        
-        Format numberFormat = NumberFormat.getNumberInstance();
-        yBndsMin = new JFormattedTextField(numberFormat);
-        yBndsMin.addPropertyChangeListener("value", pcl);
-        yBndsMin.setColumns(10);
-        yBndsMin.setValue(0);
-        yBndsMin.setEditable(false);
-        add(yBndsMin, "flowx,cell 2 7 2 1");
-        
-        yBndsMax = new JFormattedTextField(numberFormat);
-        yBndsMax.addPropertyChangeListener("value", pcl);
-        yBndsMax.setColumns(10);
-        yBndsMax.setEditable(false);
-        add(yBndsMax, "cell 2 7 2 1");
-        
-        chckbxShowMedianX = new JCheckBox("Show Median", plot.showMedian(false));
-        chckbxShowMedianX.setHorizontalAlignment(SwingConstants.TRAILING);
-        chckbxShowMedianX.addItemListener(new ItemListener() {
+        chckbxShowSdY.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
                 boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
-                plot.setMedianVisible(show, false);
+                plot.setSDVisible(show, true);
                 plot.updateGUI();
             }
         });
-        add(chckbxShowMedianX, "cell 0 11 3 1,alignx right");
-        
-        chckbxShowSdX = new JCheckBox("Show SD", plot.showSD(false));
-        chckbxShowSdX.setHorizontalAlignment(SwingConstants.TRAILING);
-        chckbxShowSdX.addItemListener(new ItemListener() {
+        chckbxShowMedianY.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {
                 boolean show = arg0.getStateChange() == ItemEvent.SELECTED;
-                plot.setSDVisible(show, false);
+                plot.setMedianVisible(show, true);
                 plot.updateGUI();
             }
         });
-        add(chckbxShowSdX, "cell 3 11,alignx right");
+        cbType.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent arg0) {
+                if (arg0.getStateChange() == ItemEvent.SELECTED) {
+                    plot.setPlotType((PLOT_TYPE) arg0.getItem());
+                    plot.updateGUI();
+                }
+            }
+        });
         
-        JLabel lblXbounds = new JLabel("X-Bounds:");
-        lblXbounds.setFont(lblFont);
-        add(lblXbounds, "cell 0 12 2 1,alignx trailing");
+        gateControlPanel = new JAccordionPanel();
+        panel_1.add(gateControlPanel, "cell 0 1,grow");
+        gateControlPanel.shrink();
+        gateControlPanel.contentPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.LOWERED));
+        gateControlPanel.topPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.RAISED));
+        JLabel gCtrlLabel = new JLabel("<html><u>Gate Controls</u></html>");
+        gCtrlLabel.setFont(gCtrlLabel.getFont().deriveFont(Font.PLAIN, 14));
+        gateControlPanel.topPanel.add(gCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
         
-        xBndsMin = new JFormattedTextField(numberFormat);
-        xBndsMin.addPropertyChangeListener("value", pcl);
-        xBndsMin.setColumns(10);
-        xBndsMin.setValue(0);
-        xBndsMin.setEditable(false);
-        add(xBndsMin, "flowx,cell 2 12 2 1");
+        dataControlsPanel = new JAccordionPanel();
+        panel_1.add(dataControlsPanel, "cell 0 2,grow");
+        dataControlsPanel.shrink();
+        dataControlsPanel.contentPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.LOWERED));
+        dataControlsPanel.topPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.RAISED));
+        JLabel dCtrlLabel = new JLabel("<html><u>Data Controls</u></html>");
+        dCtrlLabel.setFont(dCtrlLabel.getFont().deriveFont(Font.PLAIN, 14));
+        dataControlsPanel.topPanel.add(dCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
         
-        xBndsMax = new JFormattedTextField(numberFormat);
-        xBndsMax.addPropertyChangeListener("value", pcl);
-        xBndsMax.setColumns(10);
-        xBndsMax.setEditable(false);
-        add(xBndsMax, "cell 2 12 2 1");
+        JPanel dataPanel = dataControlsPanel.contentPanel;
+        dataPanel.setLayout(new MigLayout("", "[][grow][]", "[][grow][][]"));
+        JLabel lblFileDirectory = new JLabel("FCS Dir:");
+        dataPanel.add(lblFileDirectory, "cell 0 0,alignx trailing");
+        
+        fileDirField = new JTextField();
+        dataPanel.add(fileDirField, "cell 1 0,growx");
+        fileDirField.setColumns(10);
+        
+        JButton dirSelectBtn = new JButton(">");
+        dirSelectBtn.setMargin(new Insets(0, 0, 0, 0));
+        dataPanel.add(dirSelectBtn, "cell 2 0");
+        
+        dataFileTable = new JTable();
+        dataPanel.add(dataFileTable, "cell 0 1 3 1,grow");
+        
+        JPanel dataBtnPanel = new JPanel();
+        dataBtnPanel.setBorder(null);
+        dataPanel.add(dataBtnPanel, "cell 0 2 3 1,grow");
+        dataBtnPanel.setLayout(new MigLayout("insets 0", "[80px:80px,grow][80px:80px,grow]", "[][][]"));
+        
+        btnLoadFile = new JButton("Load");
+        dataBtnPanel.add(btnLoadFile, "cell 0 0 2 1,alignx center");
+        
+        btnMoveUp = new JButton("Move Up");
+        dataBtnPanel.add(btnMoveUp, "cell 0 1,growx");
+        
+        btnMoveDown = new JButton("Move Down");
+        dataBtnPanel.add(btnMoveDown, "cell 1 1,growx");
+        
+        btnRemove = new JButton("Remove");
+        dataBtnPanel.add(btnRemove, "cell 0 2 2 1,alignx center");
+        
+
+        add(panel_1, "cell 0 0,grow");
         
         progressBar = new JProgressBar();
-        add(progressBar, "cell 0 14 4 1,growx");
+        add(progressBar, "cell 0 1,growx");
         
     }
     
@@ -248,6 +348,10 @@ public class FCSPlotControlPanel extends JPanel {
             
         }
     };
+    private JAccordionPanel dataControlsPanel;
+    private JAccordionPanel gateControlPanel;
+    private JPanel panel_1;
+    private JScrollPane scrollPane;
     
     public void setPlotType(PLOT_TYPE typ) {
         cbType.setSelectedItem(typ);
@@ -263,13 +367,6 @@ public class FCSPlotControlPanel extends JPanel {
         (x ? cbXData : cbYData).repaint();
     }
     
-    volatile boolean progSet = false;
-    private JCheckBox chckbxShowMedianX;
-    private JCheckBox chckbxShowSdX;
-    private JCheckBox chckbxShowMedianY;
-    private JCheckBox chckbxShowSdY;
-    private JProgressBar progressBar;
-
     private void resetProgSet() {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
