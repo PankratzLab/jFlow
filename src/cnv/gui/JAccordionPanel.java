@@ -1,9 +1,7 @@
 package cnv.gui;
 
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -20,15 +18,6 @@ public class JAccordionPanel extends JPanel {
      */
     private static final long serialVersionUID = 1L;
 
-    public static void main(String[] args) {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        frame.getContentPane().add(new JAccordionPanel());
-        frame.setVisible(true);
-        frame.pack();
-    }
-    
-    
     private static final String UP = "/\\";
     private static final String DOWN = "\\/";
 

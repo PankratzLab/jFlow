@@ -1142,7 +1142,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		for (int i = 0; i < intensities.length; i++) {
 			for (int j = 0; j < intensities[i].length; j++) {
 				if (intensities[i][j] != 0) {
-					color[i][j] = Grafik.getHeatmapColor((double)intensities[i][j] / (double)max);
+					color[i][j] = Grafik.getHeatmapColor(Math.min(1, ((double)intensities[i][j] / (double)max) * 1.4));
 				}
 			}
 		}

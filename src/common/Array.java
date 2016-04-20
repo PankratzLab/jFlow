@@ -1651,6 +1651,28 @@ public class Array {
 		}
 	}
 
+	public static float quant(float[] array, float q) {
+	    if (array.length == 0) return Float.NaN;
+	    
+	    int keys[] = Sort.quicksort(array);
+	    
+	    try {
+	        if (q>1||q<0) {
+	            return (0);
+	        } else {
+	            double index = (array.length+1)*q;
+	            if (index-(int)index==0) {
+	                return array[keys[(int)index-1]];
+	            } else {
+	                return q*array[keys[(int)Math.floor(index)-1]]+(1-q)*array[keys[(int)Math.ceil(index)-1]];
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return -1234567890;
+	    }
+	}
+
 	/**
 	 * Determines the specified quantile of an array of numbers
 	 * 
@@ -1790,6 +1812,17 @@ public class Array {
 	 */
 	public static double median(double[] array) {
 		return (quant(array, 0.50));
+	}
+	
+	/**
+	 * Determines the median of an array of numbers
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return median of the array
+	 */
+	public static float median(float[] array) {
+	    return (quant(array, 0.50f));
 	}
 
 	/**

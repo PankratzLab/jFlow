@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
-import one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
 import org.flowcyt.cfcs.CFCSAbstractData;
 import org.flowcyt.cfcs.CFCSData;
@@ -62,8 +61,8 @@ public class FCSDataLoader {
     HashMap<String, Integer> compensatedIndices;
     int eventCount = -1;
     int loadedCount = 0;
-    double[][] allData;
-    double[][] compensatedData;
+    float[][] allData;
+    float[][] compensatedData;
     String loadedFile = null;
     CFCSData dataObj = null;
     CFCSSpillover spillObj = null;
@@ -186,10 +185,10 @@ public class FCSDataLoader {
         
         if (dataObj.getType() == CFCSData.LISTMODE) {
             CFCSListModeData listData = ((CFCSListModeData)dataObj); 
-            allData = new double[listData.getCount()][];
+            allData = new float[listData.getCount()][];
             setState(LOAD_STATE.PARTIALLY_LOADED);
             for (int i = 0; i < listData.getCount(); i++) {
-                double[] newData = Array.doubleArray(paramsCount, Double.NaN);
+                float[] newData = Array.floatArray(paramsCount, Float.NaN);
                 try {
                     listData.getEvent/*AsInTheFile*/(i, newData); // should be getEventAsInTheFile???
                     if (Double.isNaN(newData[0])) {
@@ -218,7 +217,7 @@ public class FCSDataLoader {
                 while (!listData.isLoaded() && !Thread.currentThread().isInterrupted()) Thread.yield();
                 while(indicesToLoad.size() > 0 && !Thread.currentThread().isInterrupted()) {
                     int indToLoad = indicesToLoad.get(indicesToLoad.size() - 1);
-                    double[] newData = Array.doubleArray(paramsCount, Double.NaN);
+                    float[] newData = Array.floatArray(paramsCount, Float.NaN);
                     try {
                         listData.getEvent/*AsInTheFile*/(indToLoad, newData); // should be getEventAsInTheFile???
                         indicesToLoad.remove(indicesToLoad.size() - 1);
@@ -230,20 +229,28 @@ public class FCSDataLoader {
                 }
             }
             if (Thread.currentThread().isInterrupted()) return;
-            compensatedData = compensateSmall(paramNamesInOrder, allData, spillObj.getParameterNames(), getInvertedSpilloverMatrix(spillObj));
+            compensatedData = compensateSmall(paramNamesInOrder, allData, compensatedNames.toArray(new String[compensatedNames.size()]), getInvertedSpilloverMatrix(spillObj.getSpilloverCoefficients()));
             if (Thread.currentThread().isInterrupted()) return;
-            spillObj = null;
             allData = Matrix.transpose(allData);
             if (Thread.currentThread().isInterrupted()) return;
             compensatedData = Matrix.transpose(compensatedData);
             if (Thread.currentThread().isInterrupted()) return;
             isTransposed = true;
+            dataObj = null;
             setState(LOAD_STATE.LOADED);
             System.gc();
         }
     });
     
-    public double[] getData(String columnName, boolean waitIfNecessary) {
+    public void setSpilloverMatrix(double[][] newCoeffs) {
+        String[] names = compensatedNames.toArray(new String[compensatedNames.size()]);
+        compensatedData = compensateSmall(paramNamesInOrder, allData, names, getInvertedSpilloverMatrix(newCoeffs));
+        spillObj = CFCSSpillover.createSpilloverMatrix(names, newCoeffs);
+        // TODO set as internal obj to CFCS objects???
+        
+    }
+    
+    public float[] getData(String columnName, boolean waitIfNecessary) {
         LOAD_STATE currState = getLoadState();
         if (columnName.startsWith(COMPENSATED_PREPEND)) {
             if (currState == LOAD_STATE.LOADED) {
@@ -264,16 +271,16 @@ public class FCSDataLoader {
                     }
                 } else {
                     int len = eventCount == -1 ? 0 : eventCount;
-                    return Array.doubleArray(len, Double.NaN);
+                    return Array.floatArray(len, Float.NaN);
                 }
             }
         } else {
             if (currState == LOAD_STATE.UNLOADED) {
-                return new double[0];
+                return new float[0];
             } else {
                 if (currState == LOAD_STATE.LOADING && !waitIfNecessary) {
                     int len = eventCount == -1 ? 0 : eventCount;
-                    return Array.doubleArray(len, Double.NaN);
+                    return Array.floatArray(len, Float.NaN);
                 } else {
                     if (currState == LOAD_STATE.LOADING && waitIfNecessary) {
                         while((currState = getLoadState()) == LOAD_STATE.LOADED) { // TODO wait for complete data, or at least some?
@@ -379,27 +386,26 @@ public class FCSDataLoader {
         writer.close();
     }
 
-    private static DenseMatrix64F getInvertedSpilloverMatrix(CFCSSpillover spillover) {
-        double[][] coeffs = spillover.getSpilloverCoefficients();
+    private static DenseMatrix64F getInvertedSpilloverMatrix(double[][] coeffs) {
         DenseMatrix64F spillMatrix = new DenseMatrix64F(coeffs);
         CommonOps.invert(spillMatrix);
         return spillMatrix;
     }
     
-    private static double[][] compensateSmall(ArrayList<String> dataColNames, double[][] data, String[] spillColNames, DenseMatrix64F spillMatrix) {
+    private static float[][] compensateSmall(ArrayList<String> dataColNames, float[][] data, String[] spillColNames, DenseMatrix64F spillMatrix) {
         int[] spillLookup = new int[dataColNames.size()];
         for (int i = 0; i < spillLookup.length; i++) {
             spillLookup[i] = ext.indexOfStr(dataColNames.get(i), spillColNames);
         }
         
-        double[][] compensated = new double[data.length][];
+        float[][] compensated = new float[data.length][];
         for (int r = 0; r < data.length; r++) {
-            compensated[r] = new double[spillColNames.length];
+            compensated[r] = new float[spillColNames.length];
             for (int c = 0, cS = 0; c < data[r].length; c++) {
                 if (spillLookup[c] == -1) {
                     continue;
                 }
-                double sum = 0d;
+                float sum = 0f;
                 for (int c1 = 0; c1 < data[r].length; c1++) {
                     if (spillLookup[c1] == -1) continue;
                     sum += data[r][c1] * spillMatrix.get(spillLookup[c1], spillLookup[c]);
@@ -411,21 +417,21 @@ public class FCSDataLoader {
         return compensated;
     }
     
-    private static double[][] compensate(ArrayList<String> dataColNames, double[][] data, String[] spillColNames, DenseMatrix64F spillMatrix) {
+    private static float[][] compensate(ArrayList<String> dataColNames, float[][] data, String[] spillColNames, DenseMatrix64F spillMatrix) {
         int[] spillLookup = new int[dataColNames.size()];
         for (int i = 0; i < spillLookup.length; i++) {
             spillLookup[i] = ext.indexOfStr(dataColNames.get(i), spillColNames);
         }
         
-        double[][] compensated = new double[data.length][];
+        float[][] compensated = new float[data.length][];
         for (int r = 0; r < data.length; r++) {
-            compensated[r] = new double[data[r].length];
+            compensated[r] = new float[data[r].length];
             for (int c = 0; c < data[r].length; c++) {
                 if (spillLookup[c] == -1) {
                     compensated[r][c] = data[r][c];
                     continue;
                 }
-                double sum = 0d;
+                float sum = 0f;
                 for (int c1 = 0; c1 < data[r].length; c1++) {
                     if (spillLookup[c1] == -1) continue;
                     sum += data[r][c1] * spillMatrix.get(spillLookup[c1], spillLookup[c]);
