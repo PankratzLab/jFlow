@@ -39,108 +39,127 @@ public class CaptureQC {
 		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
 		String output = outputDir + "fullSummary.capture.txt";
 
-		for (int i = 0; i < geneNames.length; i++) {
-			if (!allInOne) {
-				output = outputDir + geneNames[i] + ".capture.txt";
-			}
-			GeneData[] geneData = geneTrack.lookupAllGeneData(geneNames[i]);
-			LocusSet<GeneData> geneSet = new LocusSet<GeneData>(geneData, true, log) {
+		if (!allInOne || !Files.exists(output)) {
+			for (int i = 0; i < geneNames.length; i++) {
+				log.reportTimeInfo("Gene summary for " + (i + 1) + " of " + geneNames.length);
+				if (!allInOne) {
+					output = outputDir + geneNames[i] + ".capture.txt";
+				}
+				GeneData[] geneData = geneTrack.lookupAllGeneData(geneNames[i]);
+				LocusSet<GeneData> geneSet = new LocusSet<GeneData>(geneData, true, log) {
 
-				/**
+					/**
 				 * 
 				 */
-				private static final long serialVersionUID = 1L;
+					private static final long serialVersionUID = 1L;
 
-			};
+				};
 
-			try {
-				// ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
-				PrintWriter writer = new PrintWriter(new FileWriter(output, i > 0 && allInOne));
-				String[] header = Files.getHeaderOfFile(bamQCSummary, log);
-				if (i == 0 || !allInOne) {
-					writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE" + Array.toStr(header));
-				}
-				int UCSCIndex = ext.indexOfStr(UCSC, header);
-				BufferedReader reader = Files.getAppropriateReader(bamQCSummary);
-				reader.readLine();
-				while (reader.ready()) {
-					String[] line = reader.readLine().trim().split("\t");
-					Segment seg = new Segment(line[UCSCIndex]);
-					GeneData[] overlapping = geneSet.getOverLappingLoci(seg);
-					if (overlapping != null) {
-						double gcRegion = referenceGenome.getGCContentFor(seg);
-						for (int geneIndex = 0; geneIndex < overlapping.length; geneIndex++) {
-							GeneData currentData = overlapping[geneIndex];
-							for (int j = 0; j < currentData.getExonBoundaries().length; j++) {
-								Segment exon = new Segment(currentData.getChr(), currentData.getExonBoundaries()[j][0], currentData.getExonBoundaries()[j][1]);
-								if (seg.overlaps(exon)) {
-									for (int k = seg.getStart(); k <= seg.getStop(); k++) {
-										if (exon.getStart() <= k && exon.getStop() >= k) {
-											writer.println(currentData.getGeneName() + "\t" + (j + 1) + "\t" + k + "\t" + gcRegion + "\t" + Array.toStr(line));
+				try {
+					// ArrayList<RScatter> rsScatters = new ArrayList<RScatter>();
+					PrintWriter writer = new PrintWriter(new FileWriter(output, i > 0 && allInOne));
+					String[] header = Files.getHeaderOfFile(bamQCSummary, log);
+					if (i == 0 || !allInOne) {
+						writer.println("GENE_NAME\tExon\tPosition\tGC_REF\tHIDE" + Array.toStr(header) + "\tInternalKey");
+					}
+					int UCSCIndex = ext.indexOfStr(UCSC, header);
+					BufferedReader reader = Files.getAppropriateReader(bamQCSummary);
+					reader.readLine();
+					while (reader.ready()) {
+						String[] line = reader.readLine().trim().split("\t");
+						Segment seg = new Segment(line[UCSCIndex]);
+						GeneData[] overlapping = geneSet.getOverLappingLoci(seg);
+						if (overlapping != null) {
+							double gcRegion = referenceGenome.getGCContentFor(seg);
+							for (int geneIndex = 0; geneIndex < overlapping.length; geneIndex++) {
+								GeneData currentData = overlapping[geneIndex];
+								for (int j = 0; j < currentData.getExonBoundaries().length; j++) {
+									Segment exon = new Segment(currentData.getChr(), currentData.getExonBoundaries()[j][0], currentData.getExonBoundaries()[j][1]);
+									if (seg.overlaps(exon)) {
+										if (allInOne) {
+											writer.println(currentData.getGeneName() + "\t" + (j + 1) + "\t" + seg.getStart() + "\t" + gcRegion + "\t" + Array.toStr(line) + "\t0");
+										} else {// print bp resolution
+											for (int k = seg.getStart(); k <= seg.getStop(); k++) {
+												if (exon.getStart() <= k && exon.getStop() >= k) {
+													writer.println(currentData.getGeneName() + "\t" + (j + 1) + "\t" + k + "\t" + gcRegion + "\t" + Array.toStr(line) + "\t" + j + "_" + k);
+												}
+											}
 										}
 									}
 								}
 							}
 						}
 					}
-				}
-				reader.close();
-				writer.close();
-				if (!allInOne) {
-					plot(geneNames, log, geomTexts, i, output);
-				}
-				//
-				// rsScatters.add(rsScatterPos);
-				// rsScatters.add(rsScatterActual);
-				// RScatters rScatters = new RScatters(rsScatters.toArray(new RScatter[rsScatters.size()]), output + ".rscript", output + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
-				// rScatters.execute();
+					reader.close();
+					writer.close();
+					if (!allInOne) {
+						plot(geneNames, log, geomTexts, i, output, false);
+					}
+					//
+					// rsScatters.add(rsScatterPos);
+					// rsScatters.add(rsScatterActual);
+					// RScatters rScatters = new RScatters(rsScatters.toArray(new RScatter[rsScatters.size()]), output + ".rscript", output + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+					// rScatters.execute();
 
-			} catch (FileNotFoundException fnfe) {
-				log.reportError("Error: file \"" + bamQCSummary + "\" not found in current directory");
-				return;
-			} catch (IOException ioe) {
-				log.reportError("Error reading file \"" + bamQCSummary + "\"");
-				return;
+				} catch (FileNotFoundException fnfe) {
+					log.reportError("Error: file \"" + bamQCSummary + "\" not found in current directory");
+					return;
+				} catch (IOException ioe) {
+					log.reportError("Error reading file \"" + bamQCSummary + "\"");
+					return;
+				}
+
 			}
-
 		}
 		if (allInOne) {
-			plot(new String[] { "Full Summary" }, log, null, 0, output);
+			plot(new String[] { "Full Summary" }, log, null, 0, output, true);
 		}
 
 	}
 
-	private static void plot(String[] geneNames, Logger log, GeomText[] geomTexts, int i, String output) {
-		String root = ext.rootOf(output, false);
-		RScatter rsScatterPos = new RScatter(output, root + ".rscript", ext.removeDirectoryInfo(root), root + ".pdf", "Position", PLOT_BY_POS_PERCENT, SCATTER_TYPE.POINT, log);
-		rsScatterPos.setTitle(geneNames[i] + " capture");
-		rsScatterPos.setxLabel("Position");
-		rsScatterPos.setyLabel("Proportion Covered at Depth");
-		if (geomTexts != null) {
-			rsScatterPos.setgTexts(geomTexts);
-			rsScatterPos.setyRange(new double[] { 0, 2 });
+	private static void plot(String[] geneNames, Logger log, GeomText[] geomTexts, int i, String output, boolean allinone) {
 
-		}
-		rsScatterPos.setOverWriteExisting(true);
-		rsScatterPos.setWidth(25);
-		rsScatterPos.execute();
+		if (allinone) {
+			double average = Array.mean(Array.toDoubleArray(HashVec.loadFileToStringArray(output, true, new int[] { ext.indexOfStr(PLOT_BY_POS_PERCENT[2], Files.getHeaderOfFile(output, log)) }, false)), true);
+			String rootExon = ext.rootOf(output, false) + "_coverageHist";
+			RScatter rsScatterPos = new RScatter(output, rootExon + ".rscript", ext.removeDirectoryInfo(rootExon), rootExon + ".jpeg", "InternalKey", new String[] { PLOT_BY_POS_PERCENT[2] }, SCATTER_TYPE.HIST, log);
+			rsScatterPos.setTitle(geneNames[i] + " capture histogram, Avg = " + average);
+			rsScatterPos.setxLabel(PLOT_BY_POS_PERCENT[2]);
+			rsScatterPos.setyLabel("Counts");
+			// rsScatterPosos.setVertLines(new VertLine[]{new VertLine()});
 
-		String rootExon = ext.rootOf(output, false) + "_coverage";
+		} else {
+			String root = ext.rootOf(output, false);
+			RScatter rsScatterPos = new RScatter(output, root + ".rscript", ext.removeDirectoryInfo(root), root + ".pdf", "Position", PLOT_BY_POS_PERCENT, SCATTER_TYPE.POINT, log);
+			rsScatterPos.setTitle(geneNames[i] + " capture");
+			rsScatterPos.setxLabel("Position");
+			rsScatterPos.setyLabel("Proportion Covered at Depth");
+			if (geomTexts != null) {
+				rsScatterPos.setgTexts(geomTexts);
+				rsScatterPos.setyRange(new double[] { 0, 2 });
 
-		RScatter rsScatterActual = new RScatter(output, rootExon + ".rscript", ext.removeDirectoryInfo(rootExon), rootExon + ".pdf", "Position", PLOT_BY_POS_ACTUAL, SCATTER_TYPE.POINT, log);
-		rsScatterActual.setTitle(geneNames[i] + " capture");
-		rsScatterActual.setxLabel("Position");
-		rsScatterActual.setyLabel("Average Coverage");
-		if (geomTexts != null) {
-			for (int j = 0; j < geomTexts.length; j++) {
-				geomTexts[j].setY(geomTexts[j].getY() * 10 + 80);
 			}
-			rsScatterActual.setyRange(new double[] { 0, 100 });
-			rsScatterActual.setgTexts(geomTexts);
+			rsScatterPos.setOverWriteExisting(true);
+			rsScatterPos.setWidth(25);
+			rsScatterPos.execute();
+
+			String rootExon = ext.rootOf(output, false) + "_coverage";
+
+			RScatter rsScatterActual = new RScatter(output, rootExon + ".rscript", ext.removeDirectoryInfo(rootExon), rootExon + ".pdf", "Position", PLOT_BY_POS_ACTUAL, SCATTER_TYPE.POINT, log);
+			rsScatterActual.setTitle(geneNames[i] + " capture");
+			rsScatterActual.setxLabel("Position");
+			rsScatterActual.setyLabel("Average Coverage");
+			if (geomTexts != null) {
+				for (int j = 0; j < geomTexts.length; j++) {
+					geomTexts[j].setY(geomTexts[j].getY() * 10 + 80);
+				}
+				rsScatterActual.setyRange(new double[] { 0, 100 });
+				rsScatterActual.setgTexts(geomTexts);
+			}
+			rsScatterActual.setOverWriteExisting(true);
+			rsScatterActual.setWidth(25);
+			rsScatterActual.execute();
 		}
-		rsScatterActual.setOverWriteExisting(true);
-		rsScatterActual.setWidth(25);
-		rsScatterActual.execute();
 	}
 
 	// private static class ExtraPositions {
