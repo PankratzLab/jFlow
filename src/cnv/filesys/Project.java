@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +32,7 @@ import common.ProgressMonitor;
 import common.ext;
 import cnv.LaunchProperties;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
+import cnv.manage.Resources.GENOME_BUILD;
 import cnv.manage.TransposeData;
 import cnv.var.SampleData;
 import filesys.GeneSet;
@@ -443,8 +445,9 @@ public class Project {
 	public StringListProperty                 PLINK_DIR_FILEROOTS = new StringListProperty(this,                  "PLINK_DIR_FILEROOTS", "", "", true, false);
 	public StringListProperty          MARKER_COLOR_KEY_FILENAMES = new StringListProperty(this,           "MARKER_COLOR_KEY_FILENAMES", "", "", true, false);
 
-	public EnumProperty<SOURCE_FILE_DELIMITERS> SOURCE_FILE_DELIMITER = new EnumProperty<SOURCE_FILE_DELIMITERS>(this, "SOURCE_FILE_DELIMITER", "", 0, SOURCE_FILE_DELIMITERS.class);	
-	public EnumProperty<ARRAY>                 ARRAY_TYPE            = new EnumProperty<ARRAY>(this, "ARRAY_TYPE", "", 0, ARRAY.class);	
+	public EnumProperty<SOURCE_FILE_DELIMITERS>   SOURCE_FILE_DELIMITER = new EnumProperty<SOURCE_FILE_DELIMITERS>(this, "SOURCE_FILE_DELIMITER", "", 0, SOURCE_FILE_DELIMITERS.class);	
+	public EnumProperty<ARRAY>                               ARRAY_TYPE = new EnumProperty<ARRAY>(this, "ARRAY_TYPE", "", 0, ARRAY.class);	
+	public EnumProperty<GENOME_BUILD>              GENOME_BUILD_VERSION = new EnumProperty<GENOME_BUILD>(this, "GENOME_BUILD_VERSION", "The build version of the genome, options are " + Arrays.asList(GENOME_BUILD.values()).toString(), 0, GENOME_BUILD.class);
 
 	private String projectPropertiesFilename;
 	private SampleList sampleList;
