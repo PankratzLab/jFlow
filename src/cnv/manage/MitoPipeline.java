@@ -402,7 +402,7 @@ public class MitoPipeline {
 							// compute PCs with samples passing QC
 
 							GcAdjustorParameters params = null;
-							if (gcCorrect) {// TODO, non gc sampleSpecific recomputing
+							if (gcCorrect) {// TODO, non gc sampleSpecific recomputing, and apologies the below is getting a bit wild
 								String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES;
 								boolean[] sampsToUseRecompute = null;
 
@@ -424,10 +424,10 @@ public class MitoPipeline {
 									refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 								}
 								Resource gmodelBase = Resources.getGenomeResource(GENOME_RESOURCE_TYPE.GC5_BASE, build);
-								if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && (refGenomeFasta == null || !Files.exists(refGenomeFasta)) && gmodelBase.isAvailable()) {
-									log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at " + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.getResource());
+								if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && (refGenomeFasta == null || !Files.exists(refGenomeFasta)) && gmodelBase.isAvailable(log)) {
+									log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at " + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.getResource(log));
 									proj.getLog().setLevel(3);
-									PennCNV.gcModel(proj, gmodelBase.getResource(), proj.GC_MODEL_FILENAME.getValue(), 100);
+									PennCNV.gcModel(proj, gmodelBase.getResource(log), proj.GC_MODEL_FILENAME.getValue(), 100);
 									refGenomeFasta = null;
 								}
 								if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO, after evaluating reference genome based gc model files, will demand a refGenome
