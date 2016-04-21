@@ -1,7 +1,7 @@
 package cnv.manage;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ResourceBundle;
 
 import common.Files;
 import common.HttpDownloadUtility;
@@ -130,16 +130,37 @@ public class Resources {
 					HttpDownloadUtility.downloadFile(fullUrl, fullLocalPath, true, log);
 					return fullLocalPath;
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
+					log.reportTimeError("Could not retrieve file from " + fullUrl + " and save it to" + fullLocalPath);
 					e.printStackTrace();
 				}
 			}
+			log.reportTimeError("Could not find "+fullLocalPath+" and could not download from "+fullUrl);
+
 			return null;
-			// else if(url check){
-			// download the file to the local path
-			// report download in progress
-			// }
+
 		}
 
+	}
+
+	private static void test(String tmpDir) {
+		new File(tmpDir).delete();
+		new File(tmpDir).mkdirs();
+		Logger log = new Logger();
+
+		for (int i = 0; i < GENOME_RESOURCE_TYPE.values().length; i++) {
+			for (int j = 0; j < GENOME_BUILD.values().length; j++) {
+				GENOME_RESOURCE_TYPE gType = GENOME_RESOURCE_TYPE.values()[i];
+				GENOME_BUILD gb = GENOME_BUILD.values()[j];
+				log.reportTimeInfo(gType + "\t" + gb);
+				Resource gResource = getGenomeResource(gType, tmpDir, DEFAULT_URL, gb);
+				System.out.println(gResource.isAvailable(log));
+				gResource.getResource(log);
+			}
+		}
+	}
+
+	public static void main(String[] args) {
+		String outDir = "C:/tmpresourceExtraStuff/";
+		test(outDir);
 	}
 }
