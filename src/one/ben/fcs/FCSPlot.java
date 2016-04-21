@@ -138,6 +138,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		JMenuBar menuBar;
 		JMenu menu;
 		JMenuItem menuItemExit, menuItemOpen, menuItemShowControls, menuItemRemove, menuItemRemoveAll, menuItemScreens, menuItemSave;
+		JMenuItem menuItemTestRB;
 		final JCheckBoxMenuItem /*menuItemExclude,*/ menuItemHist;
 		
 		menuBar = new JMenuBar();
@@ -178,10 +179,18 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		});
 		menu.add(menuItemExit);
 		
-//		menu = new JMenu("View");
-//        menu.setMnemonic(KeyEvent.VK_V);
-//		menuBar.add(menu);
-//		
+		menu = new JMenu("View");
+        menu.setMnemonic(KeyEvent.VK_V);
+		menuBar.add(menu);
+		
+		menuItemTestRB = new JMenuItem("Test Rainbow Bead Files", KeyEvent.VK_R);
+		menuItemTestRB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                runRainbowTest();
+            }
+        });
+		
 //		menuItemShowControls = new JMenuItem("Show ControlPanel", KeyEvent.VK_C);
 //		menuItemShowControls.addActionListener(new ActionListener() {
 //            @Override
@@ -195,6 +204,12 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		return menuBar;
 	}
 	
+	private void runRainbowTest() {
+	    RainbowTestGUI rtGui = new RainbowTestGUI();
+	    
+	    
+	    
+	}
 
     private Component getParentComponent() {
         Component c = FCSPlot.this.getParent();
@@ -371,7 +386,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	 * @param fileExts allowed file extensions for files (null for all files)
 	 * @return
 	 */
-	public static FCSPlot createGUI(/*Project proj, */boolean show/*, boolean promptOnClose, StringListProperty filenamesProperty, String... fileExts*/) {
+	public static FCSPlot createGUI(boolean show) {
 		JFrame frame = new JFrame("Genvisis - FCS Plot");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -389,9 +404,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         frame.setVisible(show);
 //
 //        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
-        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
+//        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
 //        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
-        twoDPlot.loadFile(fcsFilename);
+//        twoDPlot.loadFile(fcsFilename);
         
 		return twoDPlot;
     }

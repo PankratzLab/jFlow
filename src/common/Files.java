@@ -2119,6 +2119,29 @@ public class Files {
 		
 		return size;
 	}
+	
+	public static double[] getSizeScaled(String filename, boolean jar) {
+	    int sz = getSize(filename, jar);
+	    if (sz == -1) return new double[]{sz, -1};
+	    
+	    double temp = sz, dec = 0;
+	    while (temp > 1024) {
+	        temp = temp / 1024;
+	        dec++;
+	    }
+	    return new double[]{temp, dec};
+	}
+
+	public static String getSizeScaledString(String filename, boolean jar) {
+	    String[] bases = {"kb", "Mb", "Gb", "Tb", "Eb"};
+	    
+	    double[] sz = getSizeScaled(filename, jar);
+	    if (sz[0] == -1) {
+	        return "-1";
+	    } else {
+	        return ext.formDeci(sz[0], 3) + bases[(int)sz[1]];
+	    }
+	}
 
 	public static boolean exists(String dir, String[] filenames) {
 		boolean result;
