@@ -21,6 +21,7 @@ import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
 import cnv.manage.Resources.GENOME_BUILD;
+import cnv.manage.Resources.GENOME_RESOURCE_TYPE;
 import cnv.manage.Resources.Resource;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
@@ -422,7 +423,7 @@ public class MitoPipeline {
 									proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
 									refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 								}
-								Resource gmodelBase = Resources.getGCBaseResource(build);
+								Resource gmodelBase = Resources.getGenomeResource(GENOME_RESOURCE_TYPE.GC5_BASE, build);
 								if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && (refGenomeFasta == null || !Files.exists(refGenomeFasta)) && gmodelBase.isAvailable()) {
 									log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at " + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.getResource());
 									proj.getLog().setLevel(3);
