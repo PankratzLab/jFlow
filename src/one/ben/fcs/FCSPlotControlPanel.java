@@ -3,12 +3,18 @@ package one.ben.fcs;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FilenameFilter;
 import java.text.Format;
 import java.text.NumberFormat;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.swing.JPanel;
 
@@ -21,6 +27,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListDataListener;
+import javax.swing.table.DefaultTableModel;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
@@ -28,6 +35,7 @@ import one.ben.fcs.FCSDataLoader.LOAD_STATE;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JFormattedTextField;
@@ -40,6 +48,9 @@ import cnv.gui.JAccordionPanel;
 import javax.swing.JScrollPane;
 
 import com.sun.javafx.scene.layout.region.Margins;
+
+import common.Files;
+import common.ext;
 
 public class FCSPlotControlPanel extends JPanel {
 
@@ -103,7 +114,7 @@ public class FCSPlotControlPanel extends JPanel {
         panel.add(lblPlotType, "cell 0 0,alignx trailing");
         lblPlotType.setFont(lblFont);
         
-        cbType = new JComboBox();//<PLOT_TYPE>(PLOT_TYPE.values());
+        cbType = new JComboBox<PLOT_TYPE>(PLOT_TYPE.values());
         panel.add(cbType, "cell 1 0 3 1,growx");
         
         JLabel lblYaxisData = new JLabel("Y-Axis Data:");
@@ -127,7 +138,7 @@ public class FCSPlotControlPanel extends JPanel {
         panel.add(lblScale, "cell 0 3 2 1,alignx trailing");
         lblScale.setFont(lblFont);
         
-        cbYScale = new JComboBox();//<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+        cbYScale = new JComboBox<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
         panel.add(cbYScale, "cell 2 3 2 1,growx");
         cbYScale.addItemListener(new ItemListener() {
             @Override
@@ -185,7 +196,7 @@ public class FCSPlotControlPanel extends JPanel {
         panel.add(lblScale_1, "cell 0 8 2 1,alignx trailing");
         lblScale_1.setFont(lblFont);
         
-        cbXScale = new JComboBox();//<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+        cbXScale = new JComboBox<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
         panel.add(cbXScale, "cell 2 8 2 1,growx");
         
         chckbxShowMedianX = new JCheckBox("Show Median", plot.showMedian(false));
@@ -290,8 +301,9 @@ public class FCSPlotControlPanel extends JPanel {
         dataPanel.add(fileDirField, "cell 1 0,growx");
         fileDirField.setColumns(10);
         
-        JButton dirSelectBtn = new JButton(">");
+        dirSelectBtn = new JButton(">");
         dirSelectBtn.setMargin(new Insets(0, 0, 0, 0));
+        dirSelectBtn.addActionListener(dirSelectListener);
         dataPanel.add(dirSelectBtn, "cell 2 0");
         
         dataFileTable = new JTable();
@@ -300,10 +312,10 @@ public class FCSPlotControlPanel extends JPanel {
         JPanel dataBtnPanel = new JPanel();
         dataBtnPanel.setBorder(null);
         dataPanel.add(dataBtnPanel, "cell 0 2 3 1,grow");
-        dataBtnPanel.setLayout(new MigLayout("insets 0", "[80px:80px,grow][80px:80px,grow]", "[][][]"));
+        dataBtnPanel.setLayout(new MigLayout("insets 0", "[60px,grow][60px,grow]", "[][][]"));
         
         btnLoadFile = new JButton("Load");
-        dataBtnPanel.add(btnLoadFile, "cell 0 0 2 1,alignx center");
+        dataBtnPanel.add(btnLoadFile, "cell 0 0 2 1,alignx center,growx");
         
         btnMoveUp = new JButton("Move Up");
         dataBtnPanel.add(btnMoveUp, "cell 0 1,growx");
@@ -312,15 +324,52 @@ public class FCSPlotControlPanel extends JPanel {
         dataBtnPanel.add(btnMoveDown, "cell 1 1,growx");
         
         btnRemove = new JButton("Remove");
-        dataBtnPanel.add(btnRemove, "cell 0 2 2 1,alignx center");
+        dataBtnPanel.add(btnRemove, "cell 0 2 2 1,alignx center,growx");
         
-
         add(panel_1, "cell 0 0,grow");
         
         progressBar = new JProgressBar();
         add(progressBar, "cell 0 1,growx");
         
     }
+    
+    private void listFiles() {
+        String fileDir = ext.verifyDirFormat(fileDirField.getText());
+        String[] files = new File(fileDir).list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".fcs");
+            }
+        });
+        TreeSet<String> fileSet = new TreeSet<String>();
+        for (String f : files) {
+            fileSet.add(f);
+        }
+        DefaultTableModel dtm = new DefaultTableModel(new String[]{"File", "Size", "Loaded?"}, 0);
+        for (String f : fileSet) {
+            dtm.addRow(new Object[]{f, Files.getSizeScaledString(fileDir + f, false), false});
+        }
+        dataFileTable.setModel(dtm);
+        dataFileTable.invalidate();
+        repaint();
+    }
+    
+    ActionListener dirSelectListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String curr = fileDirField.getText();
+            JFileChooser jfc = new JFileChooser(curr);
+            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            jfc.setDialogTitle("Select FCS File Directory");
+            jfc.setMultiSelectionEnabled(false);
+            int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+                String newPath = jfc.getSelectedFile().getAbsolutePath();
+                fileDirField.setText(newPath);
+                listFiles();
+            }
+        }
+    };
     
     PropertyChangeListener pcl = new PropertyChangeListener() {
         @Override
@@ -351,7 +400,8 @@ public class FCSPlotControlPanel extends JPanel {
     private JAccordionPanel dataControlsPanel;
     private JAccordionPanel gateControlPanel;
     private JPanel panel_1;
-    private JScrollPane scrollPane;
+
+    private JButton dirSelectBtn;
     
     public void setPlotType(PLOT_TYPE typ) {
         cbType.setSelectedItem(typ);
