@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashSet;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
@@ -13,6 +14,7 @@ import org.flowcyt.cfcs.CFCSAbstractData;
 import org.flowcyt.cfcs.CFCSData;
 import org.flowcyt.cfcs.CFCSDataSet;
 import org.flowcyt.cfcs.CFCSError;
+import org.flowcyt.cfcs.CFCSKeyword;
 import org.flowcyt.cfcs.CFCSKeywords;
 import org.flowcyt.cfcs.CFCSListModeData;
 import org.flowcyt.cfcs.CFCSParameter;
@@ -69,6 +71,7 @@ public class FCSDataLoader {
     int paramsCount = -1;
     boolean isTransposed = false;
     ArrayList<Integer> indicesToLoad = new ArrayList<Integer>();
+    Date lastModified;
     
     enum DATA_SET {
         ALL,
@@ -135,6 +138,10 @@ public class FCSDataLoader {
         }
     }
     
+    public Date getLastModified() {
+        return lastModified;
+    }
+    
     public void loadData(String fcsFilename) throws IOException {
 //        synchronized(this) {
             if (getLoadState() != LOAD_STATE.UNLOADED) {
@@ -145,7 +152,8 @@ public class FCSDataLoader {
         loadedFile = fcsFilename;
         
         CFCSSystem syst = new CFCSSystem();
-        URL fileURL = (new File(fcsFilename)).toURI().toURL();
+        File sysFile = new File(fcsFilename);
+        URL fileURL = (sysFile).toURI().toURL();
         syst.open(fileURL);
         
         CFCSDataSet dset = syst.getDataSet(0);
@@ -155,6 +163,11 @@ public class FCSDataLoader {
         paramsCount = params.getCount();
         CFCSKeywords keys = dset.getKeywords();
         spillObj = keys.getSpillover();
+        lastModified = keys.getLastModified();
+        if (lastModified == null) {
+            System.err.println("Warning - FCS file " + fcsFilename + " does NOT contain a last modified date - using the last-modified system file date.");
+            lastModified = new Date(sysFile.lastModified());
+        }
         
         String[] arr = spillObj.getParameterNames();
         for (int i = 0, count = arr.length; i < count; i++) {

@@ -57,8 +57,8 @@ public final class CFCSKeywords implements CFCSErrorCodes
     static final String SPILLOVER_KEYWORD = "$SPILLOVER";
     static final String SPILLOVER_ALTERNATIVE_KEYWORD = "SPILL"; // This is not in the standard but BD uses it in their FCS3.0 files
     static final String ORIGINALITY_KEYWORD = "$ORIGINALLITY";
-    static final String LAST_MODIFIER_KEYWORD = "$LAST_MODIFIER";
-    static final String LAST_MODIFIED_KEYWORD = "$LAST_MODIFIED";
+    public static final String LAST_MODIFIER_KEYWORD = "$LAST_MODIFIER";
+    public static final String LAST_MODIFIED_KEYWORD = "$LAST_MODIFIED";
     
     public static enum OriginalityEnum {Original, NonDataModified, Appended, DataModified, Undefined };
         
