@@ -11,30 +11,67 @@ public class Resources {
 
 	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/resources/";
 	public static final String DEFUALT_LOCAL_DIR_BASE = "resources/";
-	public static final String GENOME_SUB_DIR = "Genome/";
 
 	// TODO, a big TODO
 	// need to add web-based download, and local file structure
 	// could probably do this like project properties...
 
+	public static String getLocalDirBase() {
+		return DEFUALT_LOCAL_DIR_BASE;
+	}
+	
+	
 	public enum BIN_RESOURCE_TYPE {
-		/**
-		 * place holder...
-		 */
-		PLINK;
+		 
+		SHAPEIT,
+		MINIMAC3;
+		
+		//TODO figure out how bin fits in
+		
+//		private static final String BIN_SUB_DIR = "bin/";
+//		
+//		private String localSubPath;
+//		private String webSubPath;
+//		private String url;
+
 	}
 
 	public enum GENOME_RESOURCE_TYPE {
 		/**
 		 * A gc5base file, for constructing gc-models
 		 */
-		GC5_BASE;
+		GC5_BASE("", "_gc5Base.txt" ,DEFAULT_URL);
+		
+		private static final String GENOME_SUB_DIR = "Genome/";
+		
+		private String namePrefix;
+		private String nameSuffix;
+		private String url;
+
+		
+		/**
+		 * @param namePrefix
+		 * @param nameSuffix
+		 * @param url
+		 */
+		private GENOME_RESOURCE_TYPE(String namePrefix, String nameSuffix, String url) {
+			this.namePrefix = namePrefix;
+			this.nameSuffix = nameSuffix;
+			this.url = url;
+		}
+
+		public Resource getResource(GENOME_BUILD build) {
+			String resourceSubPath = GENOME_SUB_DIR + build.getBuild() + "/" + namePrefix + build.getBuild() + nameSuffix;
+			return new Resource(getLocalDirBase(), resourceSubPath, url) { };
+		}
+		
 	}
 
 	public enum ARRAY_RESOURCE_TYPE {
 		// Project proj = new Project()
 		// SNP6, specific Illumnina, etc
 	}
+	
 
 	public enum GENOME_BUILD {
 
@@ -59,51 +96,31 @@ public class Resources {
 
 	}
 
-	public static Resource getGenomeResource(GENOME_RESOURCE_TYPE type, GENOME_BUILD build) {
-		return getGenomeResource(type, DEFUALT_LOCAL_DIR_BASE, DEFAULT_URL, build);
-	}
-
-	private static Resource getGenomeResource(GENOME_RESOURCE_TYPE type, String localDirBase, String url, GENOME_BUILD build) {
-		switch (type) {
-		case GC5_BASE:
-			return getGCBaseResource(localDirBase, GENOME_SUB_DIR, url, build);
-		default:
-			throw new IllegalArgumentException("Invalid resource selection " + type);
-		}
-	}
-
-	private static Resource getGCBaseResource(String localDirBase, String genomeSubDir, String url, GENOME_BUILD build) {
-		Resource gcBaseResource = new Resource(localDirBase, genomeSubDir + build.getBuild() + "/" + build.getBuild() + "_gc5Base.txt", DEFAULT_URL) {
-		};
-		return gcBaseResource;
-	}
-
 	public static abstract class Resource {
-		/**
-		 * This can be used to create fully qualified locations i.e /home/usr/resources, or relative i.e resources/<br>
-		 * Thinking this will be set by launch properties
-		 */
-		private String localPath;
-		/**
-		 * The path of the resource within the local path
-		 */
-		private String resourceSubPath;
 
 		private String fullLocalPath;
 		private String fullUrl;
 
 		/**
-		 * Typically {@link Resources#DEFAULT_URL}
+		 * 
+		 * @param localPath This can be used to create fully qualified locations i.e /home/usr/resources, or relative i.e resources/<br>
+		 * 					Thinking this will be set by launch properties
+		 * @param resourceSubPath The path of the resource within local path and url
+		 * @param url Typically {@link Resources#DEFAULT_URL}
 		 */
-		private String url;
-
 		private Resource(String localPath, String resourceSubPath, String url) {
+			this(localPath + resourceSubPath, url + resourceSubPath);
+		}
+		
+		/**
+		 * 
+		 * @param fullLocalPath full path to resource on local system
+		 * @param fullUrl full url path to resource on internet
+		 */
+		private Resource(String fullLocalPath, String fullUrl) {
 			super();
-			this.localPath = localPath;
-			this.resourceSubPath = resourceSubPath;
-			this.fullLocalPath = localPath + resourceSubPath;
-			this.url = url;
-			this.fullUrl = url + resourceSubPath;
+			this.fullLocalPath = fullLocalPath;
+			this.fullUrl = fullUrl;
 		}
 
 		private boolean isLocallyAvailable() {
@@ -147,12 +164,10 @@ public class Resources {
 		new File(tmpDir).mkdirs();
 		Logger log = new Logger();
 
-		for (int i = 0; i < GENOME_RESOURCE_TYPE.values().length; i++) {
-			for (int j = 0; j < GENOME_BUILD.values().length; j++) {
-				GENOME_RESOURCE_TYPE gType = GENOME_RESOURCE_TYPE.values()[i];
-				GENOME_BUILD gb = GENOME_BUILD.values()[j];
+		for (GENOME_RESOURCE_TYPE gType : GENOME_RESOURCE_TYPE.values()) {
+			for (GENOME_BUILD gb : GENOME_BUILD.values()) {
 				log.reportTimeInfo(gType + "\t" + gb);
-				Resource gResource = getGenomeResource(gType, tmpDir, DEFAULT_URL, gb);
+				Resource gResource = gType.getResource(gb);
 				System.out.println(gResource.isAvailable(log));
 				gResource.getResource(log);
 			}
