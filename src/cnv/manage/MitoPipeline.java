@@ -423,7 +423,7 @@ public class MitoPipeline {
 									proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
 									refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 								}
-								Resource gmodelBase = Resources.getGenomeResource(GENOME_RESOURCE_TYPE.GC5_BASE, build);
+								Resource gmodelBase = GENOME_RESOURCE_TYPE.GC5_BASE.getResource(build);
 								if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && (refGenomeFasta == null || !Files.exists(refGenomeFasta)) && gmodelBase.isAvailable(log)) {
 									log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at " + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.getResource(log));
 									proj.getLog().setLevel(3);

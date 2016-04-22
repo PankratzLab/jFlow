@@ -910,6 +910,8 @@ public class VCFSimpleTally {
 					VcGroupSummary vcHqCaseGroup = vcCaseGroup;
 					if (hqCases.size() < cases.size()) {
 						vcHqCaseGroup = new VcGroupSummary(hqCaseDef, hqCases, vc, qualCase, log);
+					} else {
+						vcHqCaseGroup.setGroupName(hqCaseDef);
 					}
 
 					// TODO, check
@@ -1394,6 +1396,10 @@ public class VCFSimpleTally {
 			this.filter = filter;
 			this.log = log;
 			summarize();
+		}
+
+		private void setGroupName(String groupName) {
+			this.groupName = groupName;
 		}
 
 		public String getGroupName() {
