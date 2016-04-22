@@ -1692,7 +1692,7 @@ static final STEP S15_COMPUTE_PFB = new STEP("Compute Population BAF files", "",
             if (kvCmd.length() > 0) {
                 cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
             }
-            return "jcp cnv.hmm.CNVCaller proj=" + projPropFile + " out=" + variables.get(this).get(4) + " numthreads=" + numThreads;
+            return "jcp cnv.hmm.CNVCaller proj=" + projPropFile + " out=" + variables.get(this).get(4) + " threads=" + numThreads;
         }
         
     };
