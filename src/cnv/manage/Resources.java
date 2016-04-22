@@ -1,6 +1,5 @@
 package cnv.manage;
 
-import java.io.File;
 import java.io.IOException;
 
 import common.CmdLine;
@@ -11,7 +10,7 @@ import common.ext;
 
 public class Resources {
 
-	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/resources/";
+	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
 	public static final String DEFUALT_LOCAL_DIR_BASE = "resources/";
 	
     public static final String GENOME_SUB_DIR = "Genome/";
@@ -228,9 +227,9 @@ public class Resources {
 			} else log.reportTimeError("Resource is not available for download");
 			return false;
 		}
-		
+
 		public boolean downloadResource(Logger log) {
-			return downloadResource(fullUrl, log);
+			return downloadResource(fullLocalPath, log);
 		}
 
 		public boolean isAvailable(Logger log) {
