@@ -3,14 +3,19 @@ package cnv.manage;
 import java.io.File;
 import java.io.IOException;
 
+import common.CmdLine;
 import common.Files;
 import common.HttpDownloadUtility;
 import common.Logger;
+import common.ext;
 
 public class Resources {
 
 	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/resources/";
 	public static final String DEFUALT_LOCAL_DIR_BASE = "resources/";
+	
+    public static final String GENOME_SUB_DIR = "Genome/";
+    public static final String BIN_SUB_DIR = "bin/";
 
 	// TODO, a big TODO
 	// need to add web-based download, and local file structure
@@ -23,16 +28,94 @@ public class Resources {
 	
 	public enum BIN_RESOURCE_TYPE {
 		 
-		SHAPEIT,
-		MINIMAC3;
+		SHAPEIT("shapeit/bin/shapeit",
+				"https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz",
+				false,
+				"shapeit.tar.gz"),
+				
+		MINIMAC3("Minimac3/bin/Minimac3-omp",
+				 DEFAULT_URL + BIN_SUB_DIR + "Minimac3/Minimac3.v1.0.14.tar.gz",
+				 false,
+				 "Minimac3.tar.gz",
+				 "Minimac3/");
 		
-		//TODO figure out how bin fits in
 		
-//		private static final String BIN_SUB_DIR = "bin/";
-//		
-//		private String localSubPath;
-//		private String webSubPath;
-//		private String url;
+		private String localSubPath;
+		private String url;
+		private boolean windows;
+		private boolean tarGz;
+ 		private String tarGzSubPath;
+		private boolean make;
+		private String makeSubDir;
+		
+
+
+		private BIN_RESOURCE_TYPE(String localSubPath, String url, boolean windows) {
+			this(localSubPath, url, windows, null, null);
+		}
+		
+		private BIN_RESOURCE_TYPE(String localSubPath, String url, boolean windows, String tarGzSubPath) {
+			this(localSubPath, url, windows, tarGzSubPath, null);
+		}
+
+
+		/**
+		 * @param localSubPath local subpath of binary
+		 * @param url full url to retrieve
+		 * @param windows true if binary is supported on windows
+		 * @param tarGzSubPath if resource is archived, path to download tar.gz
+		 * @param makeSubDir if resource needs to be built, directory to call make from after extracting
+		 */
+		private BIN_RESOURCE_TYPE(String localSubPath, String url, boolean windows, String tarGzSubPath, String makeSubDir) {
+			this.localSubPath = localSubPath;
+			this.url = url;
+			this.windows = windows;
+			this.tarGz = tarGzSubPath != null;
+			this.tarGzSubPath = tarGzSubPath;
+			this.make = makeSubDir != null;
+			this.makeSubDir = makeSubDir;
+		}
+
+
+		public Resource getResource() {
+			final String localBinDir = getLocalDirBase() + BIN_SUB_DIR;
+			return new Resource(localBinDir + localSubPath, url) {
+				public boolean downloadResource(Logger log) {
+					if (!windows && System.getProperty("os.name").startsWith("Windows")) {
+						log.reportTimeError("Requested binary resource is not supported on Windows");
+						return false;
+					}
+					if (!tarGz) return super.downloadResource(log);
+					if (!downloadResource(localBinDir + tarGzSubPath, log)) return false;
+					if (tarGz && !extractTarGz(log)) {
+						log.reportTimeError(tarGzSubPath + " could not be extracted");
+						return false;
+					}
+					if (make && !makeBinary(log)) return false;
+					return true;
+				}
+				
+				private boolean extractTarGz(Logger log) {
+					//TODO use Apache Commons or other Java utility to allow on Windows and not use command line
+					String file = ext.removeDirectoryInfo(tarGzSubPath);
+					String dir = ext.parseDirectoryOfFile(localBinDir + tarGzSubPath);
+					log.report("Extracting " + file);
+					if (!CmdLine.runDefaults("tar -xzf " + file, dir)) return false;
+					log.report("Extracted to " + dir);
+					log.report("Removing " + file);
+					CmdLine.runDefaults("rm " + file, dir);
+					return true;
+				}
+				
+				private boolean makeBinary(Logger log) {
+					String dir = localBinDir + makeSubDir;
+					log.report("Building " + dir);
+					if (!CmdLine.runDefaults("make -s", dir)) return false;
+					log.report("Built to " + getFullLocalPath());
+					return true;
+				}
+			};
+		}
 
 	}
 
@@ -41,8 +124,6 @@ public class Resources {
 		 * A gc5base file, for constructing gc-models
 		 */
 		GC5_BASE("", "_gc5Base.txt" ,DEFAULT_URL);
-		
-		private static final String GENOME_SUB_DIR = "Genome/";
 		
 		private String namePrefix;
 		private String nameSuffix;
@@ -131,6 +212,27 @@ public class Resources {
 			return HttpDownloadUtility.canDownload(fullUrl, log);
 		}
 
+		protected String getFullLocalPath() {
+			return fullLocalPath;
+		}
+		
+		protected boolean downloadResource(String downloadPath, Logger log) {
+			if (isRemotelyAvailable(log)){
+				try {
+					HttpDownloadUtility.downloadFile(fullUrl, downloadPath, true, log);
+					return true;
+				} catch (IOException e) {
+					log.reportTimeError("Could not retrieve resource from " + downloadPath + " and save it to" + fullLocalPath);
+					e.printStackTrace();
+				}
+			} else log.reportTimeError("Resource is not available for download");
+			return false;
+		}
+		
+		public boolean downloadResource(Logger log) {
+			return downloadResource(fullUrl, log);
+		}
+
 		public boolean isAvailable(Logger log) {
 			return isLocallyAvailable() || isRemotelyAvailable(log);
 		}
@@ -140,42 +242,40 @@ public class Resources {
 		 * @return the local path (immediately if available, or after downloading to the local path)
 		 */
 		public String getResource(Logger log) {
-			if (Files.exists(fullLocalPath)) {
-				return fullLocalPath;
-			} else if (HttpDownloadUtility.canDownload(fullUrl, log)) {
-				try {
-					HttpDownloadUtility.downloadFile(fullUrl, fullLocalPath, true, log);
-					return fullLocalPath;
-				} catch (IOException e) {
-					log.reportTimeError("Could not retrieve file from " + fullUrl + " and save it to" + fullLocalPath);
-					e.printStackTrace();
-				}
+			if (isLocallyAvailable()) return fullLocalPath;
+			log.report("Resource is not available at " + fullLocalPath + ", will attempt to download from " + fullUrl);
+			if (downloadResource(log)) {
+				if (isLocallyAvailable()) return fullLocalPath;
+				log.reportError("Downloaded resource cannot be found at " + fullLocalPath);
 			}
-			log.reportTimeError("Could not find "+fullLocalPath+" and could not download from "+fullUrl);
-
 			return null;
-
 		}
 
 	}
 
-	private static void test(String tmpDir) {
-		new File(tmpDir).delete();
-		new File(tmpDir).mkdirs();
+	private static void test() {
 		Logger log = new Logger();
 
 		for (GENOME_RESOURCE_TYPE gType : GENOME_RESOURCE_TYPE.values()) {
 			for (GENOME_BUILD gb : GENOME_BUILD.values()) {
-				log.reportTimeInfo(gType + "\t" + gb);
+				log.reportTimeInfo("Testing " + gType + "\t" + gb);
 				Resource gResource = gType.getResource(gb);
-				System.out.println(gResource.isAvailable(log));
+				gResource.downloadResource(log);
+				log.report("Available? " + gResource.isAvailable(log));
 				gResource.getResource(log);
 			}
+		}
+		
+		for (BIN_RESOURCE_TYPE bType : BIN_RESOURCE_TYPE.values()) {
+			log.reportTimeInfo("Testing " + bType.toString());
+			Resource bResource = bType.getResource();
+			bResource.downloadResource(log);
+			log.report("Available? " + bResource.isAvailable(log));
+			bResource.getResource(log);
 		}
 	}
 
 	public static void main(String[] args) {
-		String outDir = "C:/tmpresourceExtraStuff/";
-		test(outDir);
+		test();
 	}
 }
