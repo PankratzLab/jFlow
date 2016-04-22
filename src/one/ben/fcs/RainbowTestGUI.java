@@ -1,38 +1,44 @@
 package one.ben.fcs;
 
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableColumnModel;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-
-import net.miginfocom.swing.MigLayout;
-
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JButton;
-import javax.swing.JTable;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
-
-import one.ben.fcs.FCSDataLoader.DATA_SET;
-import scala.collection.mutable.HashMap;
-import common.Array;
-import common.ext;
-
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
+
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import one.ben.fcs.FCSDataLoader.DATA_SET;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import net.miginfocom.swing.MigLayout;
+import common.Array;
+import common.ext;
 
 public class RainbowTestGUI extends JFrame {
 
@@ -44,8 +50,13 @@ public class RainbowTestGUI extends JFrame {
     private JTable table;
     private JScrollPane scrollPane;
 
+    private String[] gateFileExts = {"wsp", "wspt"};
+    
+    private HashMap<String, FCSDataLoader> files = new HashMap<String, FCSDataLoader>();
+    
     private HashMap<String, HashMap<String, Float>> fileMeans = new HashMap<String, HashMap<String,Float>>();
     private HashMap<String, HashMap<String, Float>> fileSDs = new HashMap<String, HashMap<String,Float>>();
+    private JButton btnEditColumns;
     
     /**
      * Launch the application.
@@ -70,9 +81,9 @@ public class RainbowTestGUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 450, 300);
         contentPane = new JPanel();
-        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+        contentPane.setBorder(null);
         setContentPane(contentPane);
-        contentPane.setLayout(new MigLayout("", "[][grow][]", "[][][grow]"));
+        contentPane.setLayout(new MigLayout("", "[][grow][]", "[][][grow][][]"));
         
         JLabel lblFileDir = new JLabel("File Dir:");
         contentPane.add(lblFileDir, "cell 0 0,alignx trailing");
@@ -103,6 +114,9 @@ public class RainbowTestGUI extends JFrame {
                             return name.endsWith(".fcs");
                         }
                     });
+                    for (int i = 0; i < files.length; i++) {
+                        files[i] = newPath + files[i];
+                    }
                     setFiles(files);
                 }
             }
@@ -120,6 +134,21 @@ public class RainbowTestGUI extends JFrame {
         btnGatingFileSelect = new JButton(">");
         btnGatingFileSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                String curr = txtFldFileDir.getText();
+                if (curr.equals("")) {
+                    curr = "./";
+                }
+                JFileChooser jfc = new JFileChooser(curr);
+                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                jfc.setFileFilter(new FileNameExtensionFilter("Gating-ML Files", gateFileExts));
+                jfc.setDialogTitle("Select Gating-ML File");
+                jfc.setMultiSelectionEnabled(false);
+                int resp = jfc.showOpenDialog(RainbowTestGUI.this);
+                if (resp == JFileChooser.APPROVE_OPTION) {
+                    String newPath = jfc.getSelectedFile().getAbsolutePath();
+                    txtFldGatingFile.setText(newPath);
+                    setGateFile(newPath);
+                }
             }
         });
         contentPane.add(btnGatingFileSelect, "cell 2 1");
@@ -131,50 +160,119 @@ public class RainbowTestGUI extends JFrame {
         
         table = new JTable();
         scrollPane.setViewportView(table);
-        table.setRowSelectionAllowed(false);
+        table.setRowSelectionAllowed(true);
+        table.setColumnSelectionAllowed(true);
+        table.setCellSelectionEnabled(false);
+        
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
+        btnEditColumns = new JButton("Edit Columns");
+        contentPane.add(btnEditColumns, "cell 0 3");
+        
+        setGateFile("F:\\Flow\\rainbow\\URB.wspt");
     }
     
-    private void setFiles(String[] files) {
-        TreeSet<String> fileSet = new TreeSet<String>();
-        for (String f : files) {
-            fileSet.add(f);
-        }
-        
-        Vector<String> columnNames = new Vector<String>();
-        for (String f : fileSet) {
-            columnNames.add(ext.rootOf(f));
-        }
-        
-        DefaultTableModel dtm = new DefaultTableModel(columnNames, 0);
-        
-        for (String f : fileSet) {
-            loadMeanSD(f); // TODO this is inefficient, or just wrong - if we want to look at the data, we aren't saving it.  Rainbow beads are small - can we assume that we can load all of these files at the same time?  Or are there too many files potentially?
+    private void setGateFile(String filePath) {
+        try {
+            GateFileReader.readGateFile(filePath);
+        } catch (ParserConfigurationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (SAXException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
         
     }
     
-    private void loadMeanSD(String file) {
+    private void setFiles(String[] fileList) {
+        TreeMap<Date, String> dateMap = new TreeMap<Date, String>();
+        TreeSet<String> paramSet = new TreeSet<String>();
+        
+        for (String f : fileList) {
+            this.files.put(f, loadFCSFile(f));
+            dateMap.put(files.get(f).lastModified, f);
+            paramSet.addAll(files.get(f).getAllDisplayableNames(DATA_SET.COMPENSATED));
+        }
+        String[] paramNames = paramSet.toArray(new String[paramSet.size()]);
+        String[] colNames = Array.addStrToArray("File", paramNames, 0);
+        DefaultTableModel dtm = new DefaultTableModel(colNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        for (java.util.Map.Entry<Date, String> ent : dateMap.entrySet()) {
+            Object[] rowData = new Object[paramSet.size() + 1];
+            rowData[0] = ext.rootOf(ent.getValue());
+            for (int i = 0; i < paramNames.length; i++) {
+                rowData[i + 1] = Array.mean(files.get(ent.getValue()).getData(paramNames[i], true));
+            }
+            dtm.addRow(rowData);
+        }
+        
+        table.setModel(dtm);
+    }
+    
+    static class GateFileReader {
+        
+        public static void readGateFile(String filename) throws ParserConfigurationException, SAXException, IOException {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new File(filename));
+            doc.getDocumentElement().normalize();
+            NodeList actualPops = doc.getElementsByTagName("Population");
+            for (int p = 0; p < actualPops.getLength(); p++) {
+                Node pop = actualPops.item(p);
+                Element popElem = (Element) pop;
+                System.out.println(popElem.getAttribute("name"));
+            }
+//            NodeList groups = doc.getElementsByTagName("Groups");
+//            for (int i = 0; i < groups.getLength(); i++) {
+//                Node group = groups.item(i);
+//                short type = group.getNodeType();
+//                if (type == Node.ELEMENT_NODE) {
+//                    Element eElement = (Element) group;
+//                    NodeList groupNodes = eElement.getElementsByTagName("GroupNode");
+//                    
+//                    for (int j = 0; j < groupNodes.getLength(); j++) {
+//                        Node groupNode = groupNodes.item(j);
+//                        short nodeType = groupNode.getNodeType();
+//                        if (nodeType == Node.ELEMENT_NODE) {
+//                            Element groupElement = (Element) groupNode;
+//                            NodeList popList = groupElement.getElementsByTagName("Subpopulations");
+//                            if (popList.getLength() == 0) continue;
+//                            Element popListElem = (Element) popList.item(0);
+//                            NodeList actualPops = popListElem.getElementsByTagName("Population");
+//                            for (int p = 0; p < actualPops.getLength(); p++) {
+//                                Node pop = actualPops.item(p);
+//                                Element popElem = (Element) pop;
+//                                System.out.println(popElem.getAttribute("name"));
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+            
+            
+        }
+        
+    }
+    
+    private FCSDataLoader loadFCSFile(String file) {
         FCSDataLoader fdl = new FCSDataLoader();
         try {
             fdl.loadData(file);
         } catch (IOException e) {
             e.printStackTrace();
             // TODO handle this
-            return;
+            return null;
         }
-        
-        ArrayList<String> laserNames = fdl.getAllDisplayableNames(DATA_SET.ALL); // not actually all lasers
-        HashMap<String, Float> meanMap = new HashMap<String, Float>();
-        HashMap<String, Float> sdMap = new HashMap<String, Float>();
-        
-        for (String s : laserNames) {
-            float[] data = fdl.getData(s, true);
-            meanMap.put(s, Array.mean(data));
-            sdMap.put(s, Array.stdev(data, false));
-        }
-        
-        fileMeans.put(file, meanMap);
-        fileSDs.put(file, sdMap);
+        return fdl;
     }
     
     
