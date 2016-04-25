@@ -718,7 +718,7 @@ public class GenvisisWorkflowGUI extends JDialog {
                         }
 					}
 					Files.write(output.toString(), proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
-					Files.qsub(proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.pbs", output.toString(), 50000, 48, 24);
+					Files.qsub(proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline." + ext.getTimestampForFilename() + ".pbs", output.toString(), 50000, 48, 24);
                     proj.message("GenvisisPipeline commands written to " + proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run", "Command File Written", JOptionPane.INFORMATION_MESSAGE);
                 }
                 
