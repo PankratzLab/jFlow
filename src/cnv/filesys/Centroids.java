@@ -987,7 +987,7 @@ public class Centroids implements Serializable, TextExport {
 			} else if (fromGenotypes) {
 				parseCentroidsFromGenotypes(proj, Array.booleanArray(proj.getSamples().length, true), 1);
 			} else if (!compute.equals("")) {
-				recompute(proj, compute);
+				recompute(proj, compute, false, numThreads);
 			} else if (!intensityFlags.equals("")) {
 				generateChimeraCentroids(proj, intensityFlags);
 			} else { 
