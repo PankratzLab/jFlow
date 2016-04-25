@@ -743,7 +743,7 @@ public class VCFSimpleTally {
 
 	}
 
-	private static SimpleTallyResult runSimpleTally(String vcf, String vpop, double maf, int numThreads, String outDir, GeneSet[] geneSets, VariantContextFilter qualCase, HashSet<String> lqs, Logger log) {
+	private static SimpleTallyResult runSimpleTally(String vcf, String vpop, double maf, int numThreads, String outDir, GeneSet[] geneSets, VariantContextFilter qualCase, HashSet<String> lqs, boolean splitPopVcf, Logger log) {
 		VcfPopulation vpopAc = VcfPopulation.load(vpop, POPULATION_TYPE.ANY, log);
 		vpopAc.report();
 		String caseDef = ext.rootOf(vpop);
@@ -778,7 +778,7 @@ public class VCFSimpleTally {
 
 		for (String removeCase : lqs) {
 			if (!cases.contains(removeCase)) {
-				throw new IllegalArgumentException("Invalid case to remove, must be present in actual case file");
+				throw new IllegalArgumentException("Invalid case to remove " + removeCase + ", must be present in actual case file");
 			}
 		}
 		for (String acase : cases) {
@@ -997,7 +997,9 @@ public class VCFSimpleTally {
 			}
 			annoGeneWriter.close();
 			GeneVariantPositionSummary.writeSerial(controlPos.toArray(new GeneVariantPositionSummary[controlPos.size()]), finalGeneVariantPositions, log);
-			VCFOps.VcfPopulation.splitVcfByPopulation(finalOutVCF, vpop, true, true, log);
+			if (splitPopVcf) {
+				VCFOps.VcfPopulation.splitVcfByPopulation(finalOutVCF, vpop, true, true, log);
+			}
 		} else {
 			log.reportTimeWarning(finalAnnotGene + " exists so skipping summarize");
 		}
@@ -1548,14 +1550,14 @@ public class VCFSimpleTally {
 				log.reportTimeError("JOHN you could probably remove this");
 			}
 			log.reportTimeInfo("Loaded " + lqs.size() + " lower quality samples");
-			SimpleTallyResult caseResult = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, currentSets, caseQualFilter, lqs, log);
+			SimpleTallyResult caseResult = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir, currentSets, caseQualFilter, lqs, false, log);
 
 			summarizeVariantsBySample(caseResult, lqs, log);
 			VcfPopulation controls = caseResult.getControls();
 			String controlFile = ext.parseDirectoryOfFile(vpopsCase[i]) + controls.getUniqSuperPop().get(0) + ".vpop";
 			controls.report();
 			controls.dump(controlFile);
-			SimpleTallyResult controlResult = runSimpleTally(vcf, controlFile, maf, numThreads, outDir, currentSets, null, new HashSet<String>(), log);
+			SimpleTallyResult controlResult = runSimpleTally(vcf, controlFile, maf, numThreads, outDir, currentSets, null, new HashSet<String>(), false, log);
 			VCFOps.VcfPopulation.splitVcfByPopulation(controlResult.getFinalOutVCF(), vpopsCase[i], true, true, log);
 			String geneFileCase = caseResult.getFinalAnnotGene();
 			String geneFileControl = controlResult.getFinalAnnotGene();
@@ -1588,7 +1590,7 @@ public class VCFSimpleTally {
 					VcfPopulation tmpPop = new VcfPopulation(specificControls, specificControls, POPULATION_TYPE.CASE_CONTROL, log);
 					String out = ext.parseDirectoryOfFile(vpopsCase[i]) + controlGroup + ".vpop";
 					tmpPop.dump(out);
-					SimpleTallyResult controlSpecificResult = runSimpleTally(vcf, out, maf, numThreads, outDir, currentSets, null, new HashSet<String>(), log);
+					SimpleTallyResult controlSpecificResult = runSimpleTally(vcf, out, maf, numThreads, outDir, currentSets, null, new HashSet<String>(), false, log);
 					controlFuncHashes.add(loadToGeneFuncHash(controlSpecificResult.getFinalAnnotGene(), log));
 					if (controlSpecifiEnrich) {
 						Hashtable<String, PosCluster[]> clusterSpecific;
