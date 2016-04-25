@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,6 +32,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -46,6 +48,7 @@ import org.xml.sax.SAXException;
 
 import common.Array;
 import common.ext;
+import javax.swing.JCheckBox;
 
 public class RainbowTestGUI extends JFrame {
 
@@ -72,49 +75,74 @@ public class RainbowTestGUI extends JFrame {
     Color BELOW_1SD_COLOR = Color.RED;
     
     static class GateFileReader {
-            
-            public static void readGateFile(String filename) throws ParserConfigurationException, SAXException, IOException {
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder builder = factory.newDocumentBuilder();
-                Document doc = builder.parse(new File(filename));
-                doc.getDocumentElement().normalize();
-                NodeList actualPops = doc.getElementsByTagName("Population");
-                for (int p = 0; p < actualPops.getLength(); p++) {
-                    Node pop = actualPops.item(p);
-                    Element popElem = (Element) pop;
-                    System.out.println(popElem.getAttribute("name"));
+        
+        public static void readGateFile(String filename) throws ParserConfigurationException, SAXException, IOException {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(new File(filename));
+            doc.getDocumentElement().normalize();
+//                NodeList actualPops = doc.getElementsByTagName("Population");
+//                for (int p = 0; p < actualPops.getLength(); p++) {
+//                    Node pop = actualPops.item(p);
+//                    Element popElem = (Element) pop;
+//                    System.out.println(popElem.getAttribute("name"));
+//                }
+            NodeList groups = doc.getElementsByTagName("Groups");
+            for (int i = 0; i < groups.getLength(); i++) {
+                Element eElement = (Element) groups.item(i);
+                NodeList groupNodes = eElement.getElementsByTagName("GroupNode");
+                
+                for (int j = 0; j < groupNodes.getLength(); j++) {
+                    Element groupElement = (Element) groupNodes.item(j);
+                    ArrayList<Node> popList = getChildNodes(groupElement, "Subpopulations");
+                    if (popList.size() == 0) continue;
+                    Element popListElem = (Element) popList.get(0);
+                    ArrayList<Node> actualPops = getChildNodes(popListElem, "Population");
+                    for (int p = 0; p < actualPops.size(); p++) {
+                        Element popElem = (Element) actualPops.get(p);
+                        buildGates(popElem);
+                    }
                 }
-    //            NodeList groups = doc.getElementsByTagName("Groups");
-    //            for (int i = 0; i < groups.getLength(); i++) {
-    //                Node group = groups.item(i);
-    //                short type = group.getNodeType();
-    //                if (type == Node.ELEMENT_NODE) {
-    //                    Element eElement = (Element) group;
-    //                    NodeList groupNodes = eElement.getElementsByTagName("GroupNode");
-    //                    
-    //                    for (int j = 0; j < groupNodes.getLength(); j++) {
-    //                        Node groupNode = groupNodes.item(j);
-    //                        short nodeType = groupNode.getNodeType();
-    //                        if (nodeType == Node.ELEMENT_NODE) {
-    //                            Element groupElement = (Element) groupNode;
-    //                            NodeList popList = groupElement.getElementsByTagName("Subpopulations");
-    //                            if (popList.getLength() == 0) continue;
-    //                            Element popListElem = (Element) popList.item(0);
-    //                            NodeList actualPops = popListElem.getElementsByTagName("Population");
-    //                            for (int p = 0; p < actualPops.getLength(); p++) {
-    //                                Node pop = actualPops.item(p);
-    //                                Element popElem = (Element) pop;
-    //                                System.out.println(popElem.getAttribute("name"));
-    //                            }
-    //                        }
-    //                    }
-    //                }
-    //            }
-                
-                
             }
-            
         }
+        
+        private static void buildGates(Node popElem) {
+            Node gateNode = getFirstChild(popElem, "Gate");
+            // build and return gates
+            Node subPopNode = getFirstChild(popElem, "Subpopulations");
+            if (subPopNode != null) {
+                ArrayList<Node> subPops = getChildNodes(subPopNode, "Populations");
+                for (int p = 0; p < subPops.size(); p++) {
+                    buildGates(subPops.get(p));
+                }
+            }
+        }
+        
+        private static Node getFirstChild(Node nd, String name) {
+            NodeList children = nd.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                if (children.item(i).getNodeName().equals(name)) {
+                    return children.item(i);
+                }
+            }
+            return null;
+        }
+        
+        private static ArrayList<Node> getChildNodes(Node nd, String name) {
+            ArrayList<Node> retNodes = new ArrayList<Node>();
+            NodeList children = nd.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                if (children.item(i).getNodeName().equals(name)) {
+                    retNodes.add(children.item(i));
+                }
+            }
+            return retNodes;
+        }
+        
+        
+    }
+    
+    
 
     /**
      * Create the frame.
@@ -214,7 +242,6 @@ public class RainbowTestGUI extends JFrame {
                             String colNm = table.getModel().getColumnName(table.convertColumnIndexToModel(column));
                             Float value = (Float) val;
                             if (paramMeans.containsKey(colNm)) {
-                                System.out.println(colNm + " >> " + (paramMeans.get(colNm) - paramSDs.get(colNm)) + " | " + value + " | " + (paramMeans.get(colNm) + paramSDs.get(colNm)));
                                 if (value > (paramMeans.get(colNm) + paramSDs.get(colNm))) {
                                     col = ABOVE_1SD_COLOR;
                                 } else if (value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
@@ -246,9 +273,24 @@ public class RainbowTestGUI extends JFrame {
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         
         btnEditColumns = new JButton("Edit Columns");
+        btnEditColumns.setVisible(false);
         contentPane.add(btnEditColumns, "cell 0 3");
         
-//        setGateFile("F:\\Flow\\rainbow\\URB.wspt");
+        setGateFile("F:\\Flow\\rainbow\\URB.wspt");
+    }
+    
+    private void resizeColumnWidth(JTable table) {
+        final TableColumnModel columnModel = table.getColumnModel();
+        FontMetrics fm = table.getFontMetrics(table.getFont());
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            int width = fm.stringWidth(columnModel.getColumn(column).getHeaderValue().toString()) + 20; // Min width
+            for (int row = 0; row < table.getRowCount(); row++) {
+                TableCellRenderer renderer = table.getCellRenderer(row, column);
+                Component comp = table.prepareRenderer(renderer, row, column);
+                width = Math.max(comp.getPreferredSize().width +1 , width);
+            }
+            columnModel.getColumn(column).setPreferredWidth(width);
+        }
     }
     
     private void setGateFile(String filePath) {
@@ -337,10 +379,13 @@ public class RainbowTestGUI extends JFrame {
                 return false;
             }
         };
-
+        
         for (String p : paramNames) {
             paramMeanLists.put(p, new ArrayList<Float>());
         }
+        String[] firstRow = colNames.clone();
+        firstRow[0] = "Source";
+        dtm.addRow(firstRow);
         addFilesToModel(df, paramNames, dtm, dir);
         
         
@@ -369,7 +414,7 @@ public class RainbowTestGUI extends JFrame {
         dtm.addRow(sdRow);
 
         Object[] cvRow = new Object[dtm.getColumnCount()];
-        cvRow[0] = "cV";
+        cvRow[0] = "cV ( = 100 * SD / Mean)";
         for (int i = 1; i < dtm.getColumnCount(); i++) {
             String colNm = dtm.getColumnName(i);
             if (paramMeanLists.containsKey(colNm)) {
@@ -400,6 +445,7 @@ public class RainbowTestGUI extends JFrame {
         
         
         table.setModel(dtm);
+        resizeColumnWidth(table);
     }
     
     private void addFilesToModel(DirFile df, String[] paramNames, DefaultTableModel dtm, String removePrep) {
