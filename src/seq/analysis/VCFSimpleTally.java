@@ -786,7 +786,7 @@ public class VCFSimpleTally {
 				hqCases.add(acase);
 			}
 		}
-		String hqCaseDef = "HIGH_Q_SAMPLE_" + caseDef;
+		String hqCaseDef = hqCases.size() == cases.size() ? caseDef : "HIGH_Q_SAMPLE_" + caseDef;
 		log.reportTimeInfo(cases.size() + " total cases, " + hqCases.size() + " HQ cases");
 		vpopAc.report();
 		Hashtable<String, Set<String>> controls = vpopAc.getSuperPop();
@@ -910,8 +910,6 @@ public class VCFSimpleTally {
 					VcGroupSummary vcHqCaseGroup = vcCaseGroup;
 					if (hqCases.size() < cases.size()) {
 						vcHqCaseGroup = new VcGroupSummary(hqCaseDef, hqCases, vc, qualCase, log);
-					} else {
-						vcHqCaseGroup.setGroupName(hqCaseDef);
 					}
 
 					// TODO, check

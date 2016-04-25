@@ -1444,13 +1444,23 @@ public class ext {
 			count++;
 		}
 		
-		return count;		
+		return count;
 	}
-	
+
 	public static String determineDelimiter(String str) {
+		return determineDelimiter(str, false);
+	}
+
+	/**
+	 * @param str 
+	 * @param spaceAsLastResort
+	 *            if true, we return [\\s]+ only if \t and , are not found in the header
+	 * @return
+	 */
+	public static String determineDelimiter(String str, boolean spaceAsLastResort) {
 		if (str.contains("\t")) {
 			return "\t";
-		} else if (countInstancesOf(str, ",") > countInstancesOf(str, " ")) {
+		} else if (countInstancesOf(str, ",") > countInstancesOf(str, " ") || (spaceAsLastResort && countInstancesOf(str, ",") > 0)) {
 			return ",";
 		} else {
 			return "[\\s]+";

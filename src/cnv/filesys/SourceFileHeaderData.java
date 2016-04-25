@@ -75,7 +75,7 @@ public class SourceFileHeaderData implements Serializable {
         SourceFileHeaderData frhd = new SourceFileHeaderData();
         String delim = ",";
         while ((line = reader.readLine()) != null) {
-            delim = ext.determineDelimiter(line); // TODO if file ends with .csv [or contains .csv?], can assume that delim is ','.  Sim., if ends with .xln, can assume delim is '\t'
+			delim = ext.determineDelimiter(line, true); // TODO if file ends with .csv [or contains .csv?], can assume that delim is ','. Sim., if ends with .xln, can assume delim is '\t'
             if (",".equals(delim)) {
                 delim = "[\\s]*,[\\s]*"; // ext.indexFactors doesn't call trim()
             }
@@ -92,7 +92,7 @@ public class SourceFileHeaderData implements Serializable {
         }
         if ("[Data]".equals(line)) {
             line = reader.readLine();
-            delim = file.contains(".csv") ? "[\\s]*,[\\s]*" : file.contains(".xln") ? "[\\s]*\t[\\s]*" : ext.determineDelimiter(line);
+			delim = file.contains(".csv") ? "[\\s]*,[\\s]*" : file.contains(".xln") ? "[\\s]*\t[\\s]*" : ext.determineDelimiter(line, true);
             lineCnt++;
             if (!(line.startsWith("rs") || line.toUpperCase().startsWith("SNP") || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true, false, false)[0] != -1)) {
                 log.reportError("Error - malformed or missing header.  Header must start with 'rs' or 'SNP' or contain one of the following: " + Array.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0]) + ".");
@@ -102,8 +102,8 @@ public class SourceFileHeaderData implements Serializable {
         reader.close(); // done
         reader = null; // release
         String columnHeaders = line;
-        delim = file.contains(".csv") ? SOURCE_FILE_DELIMITERS.COMMA.getDelimiter() : file.contains(".xln") ? SOURCE_FILE_DELIMITERS.TAB.getDelimiter() : SOURCE_FILE_DELIMITERS.getDelimiter(ext.determineDelimiter(columnHeaders)).getDelimiter();
-//        if (",".equals(delim)) {
+		delim = file.contains(".csv") ? SOURCE_FILE_DELIMITERS.COMMA.getDelimiter() : file.contains(".xln") ? SOURCE_FILE_DELIMITERS.TAB.getDelimiter() : SOURCE_FILE_DELIMITERS.getDelimiter(ext.determineDelimiter(columnHeaders, true)).getDelimiter();
+		//        if (",".equals(delim)) {
 //            delim = "[\\s]*,[\\s]*";
 //        }
         parseColumnsBestGuess(columnHeaders.split(delim), frhd);
