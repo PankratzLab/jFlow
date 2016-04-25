@@ -785,11 +785,12 @@ public class PennHmm {
 			double tmp = GetStateProb_CHMM(pennHmm, o1, o2, pfb, copyNumberOnlyDef, tests[i]);
 			if (tests[i] == actualStateIndex) {
 				confState = tmp;
-			} else if (tmp > maxOther) {
+			}
+			else if (tmp > maxOther) {
 				maxOther = tmp;
 			}
 		}
-		return confState - maxOther;
+		return confState - Math.max(0, maxOther);
 	}
 
 	private static double GetStateProb_CHMM(PennHmm pennHmm, double[] o1, double[] o2, double[] pfb, boolean[] copyNumberOnlyDef, int state) {
