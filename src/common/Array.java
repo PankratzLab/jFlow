@@ -866,6 +866,23 @@ public class Array {
 	 * Calculates the sum of an array
 	 * 
 	 * @param array
+	 *            an array of numbers
+	 * @return sum of the array
+	 */
+	public static Float sum(Float[] array) {
+	    Float sum = Float.valueOf(0);
+	    
+	    for (int i = 0; i<array.length; i++) {
+	        sum += array[i];
+	    }
+	    
+	    return sum;
+	}
+
+	/**
+	 * Calculates the sum of an array
+	 * 
+	 * @param array
 	 *            an array of integers
 	 * @return sum of the array
 	 */
@@ -1149,6 +1166,17 @@ public class Array {
 	}
 
 	/**
+	 * Calculates the mean of an array
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return mean of the array
+	 */
+	public static Float mean(Float[] array) {
+	    return sum(array)/array.length;
+	}
+
+	/**
 	 * Recreates array with only the first n values
 	 * 
 	 * @param array
@@ -1296,6 +1324,39 @@ public class Array {
 		}
 
 		return (float)Math.sqrt(sum/(double)(count-1));
+	}
+
+	/**
+	 * Calculates the standard deviation of an array
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @param removeNaN
+	 *            remove any value that is not a number
+	 * @return standard deviation of the [filtered] array
+	 */
+	public static Float stdev(Float[] array, boolean removeNaN) {
+	    double sum, avg;
+	    int count;
+	    
+	    sum = 0;
+	    count = 0;
+	    for (int i = 0; i<array.length; i++) {
+	        if (!Float.isNaN(array[i]) || !removeNaN) {
+	            sum += array[i];
+	            count++;
+	        }
+	    }
+	    avg = (sum/(double)count);
+	    
+	    sum = 0;
+	    for (int i = 0; i<array.length; i++) {
+	        if (!Float.isNaN(array[i])) {
+	            sum += Math.pow(avg-array[i], 2);
+	        }
+	    }
+	    
+	    return (float)Math.sqrt(sum/(double)(count-1));
 	}
 
 	/**

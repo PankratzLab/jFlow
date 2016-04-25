@@ -1,16 +1,22 @@
 package one.ben.fcs;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -21,13 +27,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
 
 import org.w3c.dom.Document;
@@ -36,7 +44,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import net.miginfocom.swing.MigLayout;
 import common.Array;
 import common.ext;
 
@@ -54,36 +61,71 @@ public class RainbowTestGUI extends JFrame {
     
     private HashMap<String, FCSDataLoader> files = new HashMap<String, FCSDataLoader>();
     
-    private HashMap<String, HashMap<String, Float>> fileMeans = new HashMap<String, HashMap<String,Float>>();
-    private HashMap<String, HashMap<String, Float>> fileSDs = new HashMap<String, HashMap<String,Float>>();
     private JButton btnEditColumns;
     
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    RainbowTestGUI frame = new RainbowTestGUI();
-                    frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
+    HashMap<String, ArrayList<Float>> paramMeanLists = new HashMap<String, ArrayList<Float>>();
+    HashSet<Integer> boldRows = new HashSet<Integer>();
+    HashMap<String, Float> paramMeans = new HashMap<String, Float>();
+    HashMap<String, Float> paramSDs = new HashMap<String, Float>();
+    
+    Color ABOVE_1SD_COLOR = Color.RED;
+    Color BELOW_1SD_COLOR = Color.RED;
+    
+    static class GateFileReader {
+            
+            public static void readGateFile(String filename) throws ParserConfigurationException, SAXException, IOException {
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                Document doc = builder.parse(new File(filename));
+                doc.getDocumentElement().normalize();
+                NodeList actualPops = doc.getElementsByTagName("Population");
+                for (int p = 0; p < actualPops.getLength(); p++) {
+                    Node pop = actualPops.item(p);
+                    Element popElem = (Element) pop;
+                    System.out.println(popElem.getAttribute("name"));
                 }
+    //            NodeList groups = doc.getElementsByTagName("Groups");
+    //            for (int i = 0; i < groups.getLength(); i++) {
+    //                Node group = groups.item(i);
+    //                short type = group.getNodeType();
+    //                if (type == Node.ELEMENT_NODE) {
+    //                    Element eElement = (Element) group;
+    //                    NodeList groupNodes = eElement.getElementsByTagName("GroupNode");
+    //                    
+    //                    for (int j = 0; j < groupNodes.getLength(); j++) {
+    //                        Node groupNode = groupNodes.item(j);
+    //                        short nodeType = groupNode.getNodeType();
+    //                        if (nodeType == Node.ELEMENT_NODE) {
+    //                            Element groupElement = (Element) groupNode;
+    //                            NodeList popList = groupElement.getElementsByTagName("Subpopulations");
+    //                            if (popList.getLength() == 0) continue;
+    //                            Element popListElem = (Element) popList.item(0);
+    //                            NodeList actualPops = popListElem.getElementsByTagName("Population");
+    //                            for (int p = 0; p < actualPops.getLength(); p++) {
+    //                                Node pop = actualPops.item(p);
+    //                                Element popElem = (Element) pop;
+    //                                System.out.println(popElem.getAttribute("name"));
+    //                            }
+    //                        }
+    //                    }
+    //                }
+    //            }
+                
+                
             }
-        });
-    }
+            
+        }
 
     /**
      * Create the frame.
      */
     public RainbowTestGUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 450, 300);
+        setBounds(50, 50, 850, 400);
         contentPane = new JPanel();
         contentPane.setBorder(null);
         setContentPane(contentPane);
-        contentPane.setLayout(new MigLayout("", "[][grow][]", "[][][grow][][]"));
+        contentPane.setLayout(new MigLayout("ins 7 7 3 7", "[][grow][]", "[][][grow][][]"));
         
         JLabel lblFileDir = new JLabel("File Dir:");
         contentPane.add(lblFileDir, "cell 0 0,alignx trailing");
@@ -93,7 +135,10 @@ public class RainbowTestGUI extends JFrame {
         contentPane.add(txtFldFileDir, "cell 1 0,growx");
         txtFldFileDir.setColumns(10);
         
+        Insets btnInsets = new Insets(0, 14, 0, 14);
+        
         btnFileDirSelect = new JButton(">");
+        btnFileDirSelect.setMargin(btnInsets);
         btnFileDirSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 String curr = txtFldFileDir.getText();
@@ -108,16 +153,7 @@ public class RainbowTestGUI extends JFrame {
                 if (resp == JFileChooser.APPROVE_OPTION) {
                     String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
                     txtFldFileDir.setText(newPath);
-                    String[] files = new File(newPath).list(new FilenameFilter() {
-                        @Override
-                        public boolean accept(File dir, String name) {
-                            return name.endsWith(".fcs");
-                        }
-                    });
-                    for (int i = 0; i < files.length; i++) {
-                        files[i] = newPath + files[i];
-                    }
-                    setFiles(files);
+                    loadFCSDir(newPath);
                 }
             }
         });
@@ -132,6 +168,7 @@ public class RainbowTestGUI extends JFrame {
         txtFldGatingFile.setColumns(10);
         
         btnGatingFileSelect = new JButton(">");
+        btnGatingFileSelect.setMargin(btnInsets);
         btnGatingFileSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String curr = txtFldFileDir.getText();
@@ -158,18 +195,60 @@ public class RainbowTestGUI extends JFrame {
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         contentPane.add(scrollPane, "cell 0 2 3 1,grow");
         
-        table = new JTable();
+        table = new JTable() {
+            
+            @Override
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                
+                if (column == 0 && boldRows.contains(row)) {
+                    c.setFont(c.getFont().deriveFont(Font.BOLD));
+                }
+                if (isCellSelected(row, column)) return c;
+                
+                Color col = Color.WHITE;
+                if (column > 0 && row < getRowCount() - 4) {
+                    Object val = table.getModel().getValueAt(table.convertRowIndexToModel(row), table.convertColumnIndexToModel(column));
+                    if (val != null) {
+                        if (val instanceof Float) {
+                            String colNm = table.getModel().getColumnName(table.convertColumnIndexToModel(column));
+                            Float value = (Float) val;
+                            if (paramMeans.containsKey(colNm)) {
+                                System.out.println(colNm + " >> " + (paramMeans.get(colNm) - paramSDs.get(colNm)) + " | " + value + " | " + (paramMeans.get(colNm) + paramSDs.get(colNm)));
+                                if (value > (paramMeans.get(colNm) + paramSDs.get(colNm))) {
+                                    col = ABOVE_1SD_COLOR;
+                                } else if (value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
+                                    col = BELOW_1SD_COLOR;
+                                }
+                            }
+                        }
+                    } 
+                }
+                c.setBackground(col);
+                
+                return c;
+            }
+        };
+        table.setShowVerticalLines(false);
+        table.setShowHorizontalLines(false);
         scrollPane.setViewportView(table);
+//        table.setCellSelectionEnabled(false);
+        table.setColumnModel(new DefaultTableColumnModel() {
+            @Override
+            public void moveColumn(int columnIndex, int newIndex) {
+                if (columnIndex == 0 || newIndex == 0) return; 
+                super.moveColumn(columnIndex, newIndex);
+            }
+        });
         table.setRowSelectionAllowed(true);
         table.setColumnSelectionAllowed(true);
-        table.setCellSelectionEnabled(false);
         
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         
         btnEditColumns = new JButton("Edit Columns");
         contentPane.add(btnEditColumns, "cell 0 3");
         
-        setGateFile("F:\\Flow\\rainbow\\URB.wspt");
+//        setGateFile("F:\\Flow\\rainbow\\URB.wspt");
     }
     
     private void setGateFile(String filePath) {
@@ -188,79 +267,187 @@ public class RainbowTestGUI extends JFrame {
         
     }
     
-    private void setFiles(String[] fileList) {
+    static class DirFile {
+        String dir;
+        String[] files;
+        DirFile[] subDirs;
+        
+        public String[] getAllFiles() {
+            ArrayList<String> files = new ArrayList<String>();
+            for (String f : this.files) {
+                files.add(dir + f);
+            }
+            for (DirFile df : subDirs) {
+                for (String f : df.getAllFiles()) {
+                    files.add(f);
+                }
+            }
+            return files.toArray(new String[files.size()]);
+        }
+        
+        public String[] getAllFiles(String removePrep) {
+            ArrayList<String> files = new ArrayList<String>();
+            for (String f : this.files) {
+                files.add((dir + f).replaceFirst(removePrep, ""));
+            }
+            for (DirFile df : subDirs) {
+                for (String f : df.getAllFiles(removePrep)) {
+                    files.add(f);
+                }
+            }
+            return files.toArray(new String[files.size()]);
+        }
+        
+    }
+    
+
+    private final FilenameFilter fcsFileFilter = new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.endsWith(".fcs");
+        }
+    };
+    private final FileFilter dirFilter = new FileFilter() {
+        @Override
+        public boolean accept(File pathname) {
+            return pathname.isDirectory();
+        }
+    };
+    
+    
+    protected void loadFCSDir(String dir) {
+        DirFile df = load(dir);
+        String[] allFilesFullPaths = df.getAllFiles();
+//        String[] allFilesWithSubPaths = df.getAllFiles(dir);
+        
         TreeMap<Date, String> dateMap = new TreeMap<Date, String>();
         TreeSet<String> paramSet = new TreeSet<String>();
         
-        for (String f : fileList) {
+        for (String f : allFilesFullPaths) {
             this.files.put(f, loadFCSFile(f));
             dateMap.put(files.get(f).lastModified, f);
             paramSet.addAll(files.get(f).getAllDisplayableNames(DATA_SET.COMPENSATED));
         }
         String[] paramNames = paramSet.toArray(new String[paramSet.size()]);
-        String[] colNames = Array.addStrToArray("File", paramNames, 0);
+        String[] colNames = Array.addStrToArray("", paramNames, 0);
+        
         DefaultTableModel dtm = new DefaultTableModel(colNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
-        
-        for (java.util.Map.Entry<Date, String> ent : dateMap.entrySet()) {
-            Object[] rowData = new Object[paramSet.size() + 1];
-            rowData[0] = ext.rootOf(ent.getValue());
-            for (int i = 0; i < paramNames.length; i++) {
-                rowData[i + 1] = Array.mean(files.get(ent.getValue()).getData(paramNames[i], true));
-            }
-            dtm.addRow(rowData);
+
+        for (String p : paramNames) {
+            paramMeanLists.put(p, new ArrayList<Float>());
         }
+        addFilesToModel(df, paramNames, dtm, dir);
+        
+        
+        Object[] meanRow = new Object[dtm.getColumnCount()];
+        meanRow[0] = "Mean";
+        for (int i = 1; i < dtm.getColumnCount(); i++) {
+            String colNm = dtm.getColumnName(i);
+            if (paramMeanLists.containsKey(colNm)) {
+                Float mn = Array.mean(paramMeanLists.get(colNm).toArray(new Float[0]));
+                paramMeans.put(colNm, mn);
+                meanRow[i] = mn;
+            }
+        }
+        dtm.addRow(meanRow);
+        
+        Object[] sdRow = new Object[dtm.getColumnCount()];
+        sdRow[0] = "StdDev";
+        for (int i = 1; i < dtm.getColumnCount(); i++) {
+            String colNm = dtm.getColumnName(i);
+            if (paramMeanLists.containsKey(colNm)) {
+                Float sd = Array.stdev(paramMeanLists.get(colNm).toArray(new Float[0]), false);
+                paramSDs.put(colNm, sd);
+                sdRow[i] = sd;
+            }
+        }
+        dtm.addRow(sdRow);
+
+        Object[] cvRow = new Object[dtm.getColumnCount()];
+        cvRow[0] = "cV";
+        for (int i = 1; i < dtm.getColumnCount(); i++) {
+            String colNm = dtm.getColumnName(i);
+            if (paramMeanLists.containsKey(colNm)) {
+                cvRow[i] = 100 * (paramSDs.get(colNm) / paramMeans.get(colNm));
+            }
+        }
+        dtm.addRow(cvRow);
+        
+        Object[] rgRow = new Object[dtm.getColumnCount()];
+        rgRow[0] = "Mean - 1SD";
+        for (int i = 1; i < dtm.getColumnCount(); i++) {
+            String colNm = dtm.getColumnName(i);
+            if (paramMeans.containsKey(colNm)) {
+                rgRow[i] = paramMeans.get(colNm) - paramSDs.get(colNm);
+            }
+        }
+        dtm.addRow(rgRow);
+        
+        rgRow = new Object[dtm.getColumnCount()];
+        rgRow[0] = "Mean + 1SD";
+        for (int i = 1; i < dtm.getColumnCount(); i++) {
+            String colNm = dtm.getColumnName(i);
+            if (paramMeans.containsKey(colNm)) {
+                rgRow[i] = paramMeans.get(colNm) + paramSDs.get(colNm);
+            }
+        }
+        dtm.addRow(rgRow);
+        
         
         table.setModel(dtm);
     }
     
-    static class GateFileReader {
+    private void addFilesToModel(DirFile df, String[] paramNames, DefaultTableModel dtm, String removePrep) {
+        int colCnt = dtm.getColumnCount();
+        int rows = dtm.getRowCount();
         
-        public static void readGateFile(String filename) throws ParserConfigurationException, SAXException, IOException {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new File(filename));
-            doc.getDocumentElement().normalize();
-            NodeList actualPops = doc.getElementsByTagName("Population");
-            for (int p = 0; p < actualPops.getLength(); p++) {
-                Node pop = actualPops.item(p);
-                Element popElem = (Element) pop;
-                System.out.println(popElem.getAttribute("name"));
+        Object[] newRow = new Object[colCnt];
+        newRow[0] = df.dir.replaceFirst(removePrep, "");
+        dtm.addRow(newRow);
+        boldRows.add(rows);
+        rows++;
+        
+        for (String f : df.files) {
+            Object[] rowData = new Object[paramNames.length + 1];
+            rowData[0] = ext.rootOf(f);
+            for (int i = 0; i < paramNames.length; i++) {
+                Float mn = Array.mean(files.get(df.dir + f).getData(paramNames[i], true));
+                paramMeanLists.get(paramNames[i]).add(mn);
+                rowData[i + 1] = mn;
             }
-//            NodeList groups = doc.getElementsByTagName("Groups");
-//            for (int i = 0; i < groups.getLength(); i++) {
-//                Node group = groups.item(i);
-//                short type = group.getNodeType();
-//                if (type == Node.ELEMENT_NODE) {
-//                    Element eElement = (Element) group;
-//                    NodeList groupNodes = eElement.getElementsByTagName("GroupNode");
-//                    
-//                    for (int j = 0; j < groupNodes.getLength(); j++) {
-//                        Node groupNode = groupNodes.item(j);
-//                        short nodeType = groupNode.getNodeType();
-//                        if (nodeType == Node.ELEMENT_NODE) {
-//                            Element groupElement = (Element) groupNode;
-//                            NodeList popList = groupElement.getElementsByTagName("Subpopulations");
-//                            if (popList.getLength() == 0) continue;
-//                            Element popListElem = (Element) popList.item(0);
-//                            NodeList actualPops = popListElem.getElementsByTagName("Population");
-//                            for (int p = 0; p < actualPops.getLength(); p++) {
-//                                Node pop = actualPops.item(p);
-//                                Element popElem = (Element) pop;
-//                                System.out.println(popElem.getAttribute("name"));
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-            
-            
+            dtm.addRow(rowData);
+        }
+        if (df.files.length > 0 && df.getAllFiles().length > 0) {
+            dtm.addRow(new Object[colCnt]);
         }
         
+        for (DirFile sub : df.subDirs) {
+            addFilesToModel(sub, paramNames, dtm, removePrep);
+        }
+        
+        dtm.addRow(new Object[dtm.getColumnCount()]);
+        
+    }
+    
+    private DirFile load(String dir) {
+        File dirFile = new File(dir);
+        String[] rootFCS = dirFile.list(fcsFileFilter);
+        File[] subDirs = dirFile.listFiles(dirFilter);
+        
+        DirFile df = new DirFile();
+        df.dir = ext.verifyDirFormat(dir);
+        df.files = rootFCS;
+        df.subDirs = new DirFile[subDirs.length];
+        for (int i = 0; i < subDirs.length; i++) {
+            df.subDirs[i] = load(ext.verifyDirFormat(subDirs[i].getPath()));
+        }
+        
+        return df;
     }
     
     private FCSDataLoader loadFCSFile(String file) {
@@ -273,6 +460,22 @@ public class RainbowTestGUI extends JFrame {
             return null;
         }
         return fdl;
+    }
+
+    /**
+     * Launch the application.
+     */
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    RainbowTestGUI frame = new RainbowTestGUI();
+                    frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
     
     
