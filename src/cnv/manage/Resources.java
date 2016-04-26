@@ -190,13 +190,17 @@ public class Resources {
 	public enum ARRAY_RESOURCE_TYPE {
 
 		/**
-		 * 
+		 * Affy Bundle
 		 */
 		AFFY_SNP6_MARKER_POSITIONS("AffySnp6/", "_markerPositions.txt", DEFAULT_URL, true),
-		AFFY_SNP6_HMM("AffySnp6/", "_markerPositions.txt", DEFAULT_URL, false);
-
-		;
-
+		AFFY_SNP6_HMM("AffySnp6/", "affygw6.hmm", DEFAULT_URL, false),
+		AFFY_SNP6_ABLOOKUP("AffySnp6/", "AB_lookup.dat", DEFAULT_URL, false);
+		
+		/**
+		 * Illumina Bundle TODO
+		 */
+		
+		
 		private String namePrefix;
 		private boolean genomeBuildSpecific;// some Array resources are, some aren't
 		private String nameSuffix;
