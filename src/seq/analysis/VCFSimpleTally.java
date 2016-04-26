@@ -1587,6 +1587,8 @@ public class VCFSimpleTally {
 					log.reportTimeInfo("Generating control specific comparison for " + controlGroup);
 					Hashtable<String, Set<String>> specificControls = new Hashtable<String, Set<String>>();
 					specificControls.put(controlGroup, controls.getSubPop().get(controlGroup));
+					
+					
 					VcfPopulation tmpPop = new VcfPopulation(specificControls, specificControls, POPULATION_TYPE.CASE_CONTROL, log);
 					String out = ext.parseDirectoryOfFile(vpopsCase[i]) + controlGroup + ".vpop";
 					tmpPop.dump(out);
