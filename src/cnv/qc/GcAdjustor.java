@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -565,7 +566,8 @@ public class GcAdjustor {
 		private double[] gcs;
 		private Hashtable<String, Integer> index = new Hashtable<String, Integer>();
 		private ColorManager<String> colorManager;
-		private Logger log;
+
+		// private Logger log;
 
 		public GcModel(GcModel gcmodel) {
 			this.markers = gcmodel.markers;
@@ -573,7 +575,7 @@ public class GcAdjustor {
 			this.positions = gcmodel.positions;
 			this.gcs = gcmodel.gcs;
 			this.index = gcmodel.index;
-			this.log = gcmodel.log;
+			// this.log = gcmodel.log;
 		}
 
 		public GcModel(String[] markers, byte[] chrs, int[] positions, double[] gcs, Hashtable<String, Integer> index, Logger log) {
@@ -583,7 +585,7 @@ public class GcAdjustor {
 			this.positions = positions;
 			this.gcs = gcs;
 			this.index = index;
-			this.log = log;
+			// this.log = log;
 		}
 
 		private void developColorManager(int numBins, boolean redevelop) {
@@ -600,6 +602,11 @@ public class GcAdjustor {
 					manager.put(gcColorIndex + "", new ColorItem<String>(gcColorIndex + "", colors[gcColorIndex]));
 				}
 				this.colorManager = new ColorManager<String>(lookup, manager) {
+
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 1L;
 
 				};
 			}
@@ -624,9 +631,9 @@ public class GcAdjustor {
 			return positions;
 		}
 
-		public Logger getLog() {
-			return log;
-		}
+		// public Logger getLog() {
+		// return log;
+		// }
 
 		public double[] getGcsFor(String[] markers) {
 			double[] gcs = new double[markers.length];
@@ -803,10 +810,16 @@ public class GcAdjustor {
 			String fullPathToGcSer = ext.rootOf(fullPathToGcModel, false) + ".gcmodel.ser";
 			if (Files.exists(fullPathToGcSer)) {
 				log.report("Info - loading gc model file " + fullPathToGcSer);
+				GcModel model = null;
 				try {
-					return loadSerial(fullPathToGcSer);// having trouble with linux->windows SID transfer when gzipped
+					model = loadSerial(fullPathToGcSer);
+					model.getChrs();
+					// having trouble with linux->windows SID transfer when gzipped
 				} catch (Exception e) {
+				}
 
+				if (model != null) {
+					return model;
 				}
 			}
 			if (!Files.exists(fullPathToGcModel)) {

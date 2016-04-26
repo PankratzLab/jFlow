@@ -2,6 +2,7 @@ package cnv.manage;
 
 import java.io.IOException;
 
+import seq.manage.VCFOps;
 import common.CmdLine;
 import common.Files;
 import common.HttpDownloadUtility;
@@ -11,7 +12,7 @@ import common.ext;
 public class Resources {
 
 	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
-	public static final String DEFUALT_LOCAL_DIR_BASE = "resources/";
+	public static final String DEFUALT_LOCAL_DIR_BASE = "C:/bin/resources/";
 	
 
     public static final String BIN_SUB_DIR = "bin/";
@@ -154,7 +155,9 @@ public class Resources {
 		/**
 		 * A gc5base file, for constructing gc-models
 		 */
-		GC5_BASE("", "_gc5Base.txt" ,DEFAULT_URL);
+		GC5_BASE("", "_gc5Base.txt", DEFAULT_URL),
+		DB_SNP147("", "_dbSnp147.vcf.gz", DEFAULT_URL),
+		;
 		
 		private String namePrefix;
 		private String nameSuffix;
@@ -174,16 +177,44 @@ public class Resources {
 
 		public Resource getResource(GENOME_BUILD build) {
 			String resourceSubPath = GENOME_SUB_DIR + build.getBuild() + "/" + namePrefix + build.getBuild() + nameSuffix;
-			return new Resource(getLocalDirBase(), resourceSubPath, url) { };
+			switch (this) {
+			case DB_SNP147:
+				return new VCFResource(getLocalDirBase(), resourceSubPath, url);
+			default:
+				return new Resource(getLocalDirBase(), resourceSubPath, url) {
+				};
+			}
 		}
 		
 	}
 
 	public enum ARRAY_RESOURCE_TYPE {
-		// Project proj = new Project()
-		// SNP6, specific Illumnina, etc
+		/**
+		 */
+		AFFY_SNP6_MARKERPOSITIONS("AffySnp6/", "_markerPositions.txt", DEFAULT_URL, true);
+
+		private String namePrefix;
+		private boolean genomeBuildSpecific;
+		private String nameSuffix;
+		private String url;
+
+		/**
+		 * @param namePrefix
+		 * @param nameSuffix
+		 * @param url
+		 */
+		private ARRAY_RESOURCE_TYPE(String namePrefix, String nameSuffix, String url, boolean genomeBuildSpecific) {
+			this.namePrefix = namePrefix;
+			this.nameSuffix = nameSuffix;
+			this.url = url;
+		}
+
+		public Resource getResource(GENOME_BUILD build) {
+			String resourceSubPath = GENOME_SUB_DIR + build.getBuild() + "/" + namePrefix + build.getBuild() + nameSuffix;
+			return new Resource(getLocalDirBase(), resourceSubPath, url) {
+			};
+		}
 	}
-	
 
 	public enum GENOME_BUILD {
 
@@ -280,6 +311,30 @@ public class Resources {
 				log.reportError("Downloaded resource cannot be found at " + fullLocalPath);
 			}
 			return null;
+		}
+	}
+
+	private static class VCFResource extends Resource {
+		private Resource index;
+
+		private VCFResource(String fullLocalPath, String fullUrl) {
+			super(fullLocalPath, fullUrl);
+			if (!fullLocalPath.endsWith(".vcf") || !fullLocalPath.endsWith(".vcf.gz")) {
+				throw new IllegalArgumentException("This should only be used for vcf files");
+			}
+			this.index = new Resource(VCFOps.getIndex(fullLocalPath), VCFOps.getIndex(fullUrl)) {
+
+			};
+		}
+
+		private VCFResource(String localPath, String resourceSubPath, String url) {
+			this(localPath + resourceSubPath, url + resourceSubPath);
+		}
+
+		@Override
+		public String getResource(Logger log) {
+			index.getResource(log);//since not every vcf
+			return super.getResource(log);
 		}
 
 	}
