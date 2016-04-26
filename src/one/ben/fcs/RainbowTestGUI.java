@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import javax.activation.UnsupportedDataTypeException;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -39,6 +40,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
+import one.ben.fcs.gating.GateFileReader;
+import one.ben.fcs.gating.GatingStrategy;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -48,7 +51,7 @@ import org.xml.sax.SAXException;
 
 import common.Array;
 import common.ext;
-import javax.swing.JCheckBox;
+
 
 public class RainbowTestGUI extends JFrame {
 
@@ -73,75 +76,6 @@ public class RainbowTestGUI extends JFrame {
     
     Color ABOVE_1SD_COLOR = Color.RED;
     Color BELOW_1SD_COLOR = Color.RED;
-    
-    static class GateFileReader {
-        
-        public static void readGateFile(String filename) throws ParserConfigurationException, SAXException, IOException {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new File(filename));
-            doc.getDocumentElement().normalize();
-//                NodeList actualPops = doc.getElementsByTagName("Population");
-//                for (int p = 0; p < actualPops.getLength(); p++) {
-//                    Node pop = actualPops.item(p);
-//                    Element popElem = (Element) pop;
-//                    System.out.println(popElem.getAttribute("name"));
-//                }
-            NodeList groups = doc.getElementsByTagName("Groups");
-            for (int i = 0; i < groups.getLength(); i++) {
-                Element eElement = (Element) groups.item(i);
-                NodeList groupNodes = eElement.getElementsByTagName("GroupNode");
-                
-                for (int j = 0; j < groupNodes.getLength(); j++) {
-                    Element groupElement = (Element) groupNodes.item(j);
-                    ArrayList<Node> popList = getChildNodes(groupElement, "Subpopulations");
-                    if (popList.size() == 0) continue;
-                    Element popListElem = (Element) popList.get(0);
-                    ArrayList<Node> actualPops = getChildNodes(popListElem, "Population");
-                    for (int p = 0; p < actualPops.size(); p++) {
-                        Element popElem = (Element) actualPops.get(p);
-                        buildGates(popElem);
-                    }
-                }
-            }
-        }
-        
-        private static void buildGates(Node popElem) {
-            Node gateNode = getFirstChild(popElem, "Gate");
-            // build and return gates
-            Node subPopNode = getFirstChild(popElem, "Subpopulations");
-            if (subPopNode != null) {
-                ArrayList<Node> subPops = getChildNodes(subPopNode, "Populations");
-                for (int p = 0; p < subPops.size(); p++) {
-                    buildGates(subPops.get(p));
-                }
-            }
-        }
-        
-        private static Node getFirstChild(Node nd, String name) {
-            NodeList children = nd.getChildNodes();
-            for (int i = 0; i < children.getLength(); i++) {
-                if (children.item(i).getNodeName().equals(name)) {
-                    return children.item(i);
-                }
-            }
-            return null;
-        }
-        
-        private static ArrayList<Node> getChildNodes(Node nd, String name) {
-            ArrayList<Node> retNodes = new ArrayList<Node>();
-            NodeList children = nd.getChildNodes();
-            for (int i = 0; i < children.getLength(); i++) {
-                if (children.item(i).getNodeName().equals(name)) {
-                    retNodes.add(children.item(i));
-                }
-            }
-            return retNodes;
-        }
-        
-        
-    }
-    
     
 
     /**
@@ -295,7 +229,7 @@ public class RainbowTestGUI extends JFrame {
     
     private void setGateFile(String filePath) {
         try {
-            GateFileReader.readGateFile(filePath);
+            GatingStrategy gateStrat = GateFileReader.readGateFile(filePath);
         } catch (ParserConfigurationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
