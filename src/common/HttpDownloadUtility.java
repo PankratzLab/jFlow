@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class HttpDownloadUtility {
@@ -21,10 +20,7 @@ public class HttpDownloadUtility {
 			if (responseCode == HttpURLConnection.HTTP_OK) {
 				canDownload = true;
 			}
-		} catch (MalformedURLException e) {
-			log.reportException(e);
-			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (Exception e) {//
 			log.reportException(e);
 			e.printStackTrace();
 		}
