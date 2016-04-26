@@ -290,22 +290,34 @@ public class RainbowTestGUI extends JFrame {
         }
     };
     
-    
+    DirFile dirStruct;
     protected void loadFCSDir(String dir) {
-        DirFile df = load(dir);
-        String[] allFilesFullPaths = df.getAllFiles();
-//        String[] allFilesWithSubPaths = df.getAllFiles(dir);
+        if (dirStruct != null && dirStruct.dir.equals(ext.verifyDirFormat(dir))) {
+            return; // exact same as already loaded
+        }
+        dirStruct = load(dir);
+        this.files.clear();
+        reCalcTableData();
+    }
+    
+    private void reCalcTableData() {
+        String[] allFilesFullPaths = dirStruct.getAllFiles();
         
         TreeMap<Date, String> dateMap = new TreeMap<Date, String>();
         TreeSet<String> paramSet = new TreeSet<String>();
         
         for (String f : allFilesFullPaths) {
-            this.files.put(f, loadFCSFile(f));
+            if (!this.files.containsKey(f)) {
+                this.files.put(f, loadFCSFile(f));
+            }
             dateMap.put(files.get(f).lastModified, f);
             paramSet.addAll(files.get(f).getAllDisplayableNames(DATA_SET.COMPENSATED));
         }
         String[] paramNames = paramSet.toArray(new String[paramSet.size()]);
         String[] colNames = Array.addStrToArray("", paramNames, 0);
+        for (String p : paramNames) {
+            paramMeanLists.put(p, new ArrayList<Float>());
+        }
         
         DefaultTableModel dtm = new DefaultTableModel(colNames, 0) {
             @Override
@@ -314,14 +326,12 @@ public class RainbowTestGUI extends JFrame {
             }
         };
         
-        for (String p : paramNames) {
-            paramMeanLists.put(p, new ArrayList<Float>());
-        }
+        boldRows.clear();
+        
         String[] firstRow = colNames.clone();
         firstRow[0] = "Source";
         dtm.addRow(firstRow);
-        addFilesToModel(df, paramNames, dtm, dir);
-        
+        addFilesToModel(dirStruct, paramNames, dtm, dirStruct.dir);
         
         Object[] meanRow = new Object[dtm.getColumnCount()];
         meanRow[0] = "Mean";
@@ -377,7 +387,6 @@ public class RainbowTestGUI extends JFrame {
         }
         dtm.addRow(rgRow);
         
-        
         table.setModel(dtm);
         resizeColumnWidth(table);
     }
@@ -396,6 +405,7 @@ public class RainbowTestGUI extends JFrame {
             Object[] rowData = new Object[paramNames.length + 1];
             rowData[0] = ext.rootOf(f);
             for (int i = 0; i < paramNames.length; i++) {
+                // TODO apply Gating here
                 Float mn = Array.mean(files.get(df.dir + f).getData(paramNames[i], true));
                 paramMeanLists.get(paramNames[i]).add(mn);
                 rowData[i + 1] = mn;
