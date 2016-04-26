@@ -13,8 +13,11 @@ public class Resources {
 	public static final String DEFAULT_URL = "http://genvisis.org/rsrc/";
 	public static final String DEFUALT_LOCAL_DIR_BASE = "resources/";
 	
-    public static final String GENOME_SUB_DIR = "Genome/";
+
     public static final String BIN_SUB_DIR = "bin/";
+	public static final String GENOME_SUB_DIR = "Genome/";
+	public static final String GENOME_CHR_SUB_DIR = GENOME_SUB_DIR + "chr/";
+
 
 	// TODO, a big TODO
 	// need to add web-based download, and local file structure
@@ -116,6 +119,35 @@ public class Resources {
 			};
 		}
 
+	}
+	
+	public enum GENOME_CHROMOSOME_RESOURCE_TYPE {
+		GENETIC_MAP("genetic_map_", ".txt.gz", DEFAULT_URL);
+		
+		private String namePrefix;
+		private String nameSuffix;
+		private String url;
+		
+		
+		
+		/**
+		 * @param namePrefix
+		 * @param nameSuffix
+		 * @param url
+		 */
+		private GENOME_CHROMOSOME_RESOURCE_TYPE(String namePrefix, String nameSuffix, String url) {
+			this.namePrefix = namePrefix;
+			this.nameSuffix = nameSuffix;
+			this.url = url;
+		}
+
+
+
+		public Resource getResource(GENOME_BUILD build, String chr) {
+			String resourceSubPath = GENOME_CHR_SUB_DIR + namePrefix + build.getBuild() + "_" + "chr" + chr + nameSuffix;
+			return new Resource(getLocalDirBase(), resourceSubPath, url) { };
+		}
+		
 	}
 
 	public enum GENOME_RESOURCE_TYPE {
