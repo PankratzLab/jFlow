@@ -192,7 +192,10 @@ public class Resources {
 		/**
 		 * 
 		 */
-		AFFY_SNP6_MARKER_POSITIONS("AffySnp6/", "_markerPositions.txt", DEFAULT_URL, true);
+		AFFY_SNP6_MARKER_POSITIONS("AffySnp6/", "_markerPositions.txt", DEFAULT_URL, true),
+		AFFY_SNP6_HMM("AffySnp6/", "_markerPositions.txt", DEFAULT_URL, false);
+
+		;
 
 		private String namePrefix;
 		private boolean genomeBuildSpecific;// some Array resources are, some aren't
@@ -368,6 +371,15 @@ public class Resources {
 			bResource.downloadResource(log);
 			log.report("Available? " + bResource.isAvailable(log));
 			bResource.getResource(log);
+		}
+		for (ARRAY_RESOURCE_TYPE atype : ARRAY_RESOURCE_TYPE.values()) {
+			for (GENOME_BUILD gb : GENOME_BUILD.values()) {
+				log.reportTimeInfo("Testing " + atype + "\t" + gb);
+				Resource bResource = atype.getResource(gb);
+				bResource.downloadResource(log);
+				log.report("Available? " + bResource.isAvailable(log));
+				bResource.getResource(log);
+			}
 		}
 	}
 
