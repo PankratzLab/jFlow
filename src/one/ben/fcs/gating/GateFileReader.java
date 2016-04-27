@@ -88,7 +88,7 @@ public class GateFileReader {
         String gateType = gateNode.getNodeName().substring(7); // 7 = "gating:".length()
         Gate gate = null;
         if ("RectangleGate".equals(gateType)) {
-            gate = new Gate();
+            gate = new RectangleGate();
             ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
