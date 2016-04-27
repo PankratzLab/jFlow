@@ -1409,7 +1409,19 @@ public class Project {
 		}
 		return outliers;
 	}
-	
+
+	public String[] getNonCNMarkers() {
+		String[] mkrs = getMarkerNames();
+		ARRAY myArrayType = this.ARRAY_TYPE.getValue();
+		ArrayList<String> nonCNs = new ArrayList<String>();
+		for (int i = 0; i < mkrs.length; i++) {
+			if (!myArrayType.isCNOnly(mkrs[i])) {
+				nonCNs.add(mkrs[i]);
+			}
+		}
+		return Array.toStringArray(nonCNs);
+	}
+
 	public boolean[] getCNMarkers() {
 	    String[] mkrs = getMarkerNames();
         boolean[] cnB = new boolean[mkrs.length];
