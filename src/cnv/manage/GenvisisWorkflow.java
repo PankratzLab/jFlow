@@ -791,6 +791,7 @@ public class GenvisisWorkflow {
                 setFailed();
                 this.failReasons.add("Creation of initial PLINK files failed.");
             }
+            proj.PLINK_DIR_FILEROOTS.addValue(proj.PROJECT_DIRECTORY.getValue() + "plink/plink");
         }
         
         @Override
