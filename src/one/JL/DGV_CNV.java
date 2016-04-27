@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import cnv.var.CNVariant;
 import common.Array;
 import common.Files;
 import common.Logger;
 import common.Positions;
 import common.ext;
+import filesys.CNVariant;
 
 /**
  * @author lane0212 Parse file such as those listed here http://dgv.tcag.ca/dgv/app/downloads?ref=GRCh37/hg19

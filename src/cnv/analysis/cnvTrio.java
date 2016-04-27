@@ -15,16 +15,16 @@ import java.util.concurrent.TimeUnit;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-import cnv.qc.CNVFilter;
 import cnv.qc.CNVTrioFilter;
-import cnv.qc.CNVFilter.CNVFilterPass;
-import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import common.Array;
+import common.CNVFilter;
 import common.Files;
 import common.Logger;
 import common.Matrix;
 import common.ext;
+import common.CNVFilter.CNVFilterPass;
+import filesys.CNVariant;
 import filesys.Segment;
 //TODO, split the centromeres or remove?
 /**

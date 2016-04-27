@@ -38,14 +38,12 @@ import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.qc.LrrSd;
 import cnv.qc.GcAdjustor.GcModel;
-import cnv.var.CNVariant;
-import cnv.var.CNVariant.CNVBuilder;
 import cnv.var.IndiPheno;
-import cnv.var.LocusSet;
 import cnv.var.MosaicRegion;
 import cnv.var.Region;
 import cnv.var.SampleData;
 import filesys.*;
+import filesys.CNVariant.CNVBuilder;
 
 public class Trailer extends JFrame implements ActionListener, ClickListener, MouseListener, MouseMotionListener, MouseWheelListener {
 	public static final long serialVersionUID = 1L;

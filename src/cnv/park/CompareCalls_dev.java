@@ -3,8 +3,8 @@ package cnv.park;
 import java.io.*;
 import java.util.*;
 
-import cnv.var.CNVariant;
 import common.*;
+import filesys.CNVariant;
 import stats.Maths;
 
 public class CompareCalls_dev {

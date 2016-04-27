@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import common.HashVec;
 import common.ext;
 import cnv.filesys.Project;
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
-import cnv.var.LocusSet.TO_STRING_TYPE;
 import cnv.var.SampleData;
+import filesys.CNVariant;
+import filesys.LocusSet;
+import filesys.LocusSet.TO_STRING_TYPE;
 
 public class ARIC {
 

@@ -38,7 +38,7 @@ import cnv.filesys.Sample;
 import cnv.hmm.CNVCaller;
 import cnv.qc.LrrSd;
 import cnv.qc.SampleQC;
-import cnv.var.LocusSet;
+import filesys.LocusSet;
 import filesys.Segment;
 
 /**

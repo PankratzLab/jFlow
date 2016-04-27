@@ -1,10 +1,9 @@
-package cnv.var;
+package filesys;
 
 import java.util.ArrayList;
 
-import cnv.var.LocusSet.TO_STRING_TYPE;
 import common.Logger;
-import filesys.Segment;
+import filesys.LocusSet.TO_STRING_TYPE;
 
 public class LocusSets<T extends Segment> {
 

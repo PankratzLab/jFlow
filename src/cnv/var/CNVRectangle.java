@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import cnv.plots.GenericRectangle;
+import filesys.CNVariant;
 
 /**
  * CNVRectangle describes a rectangle to be rendered in CompPanel

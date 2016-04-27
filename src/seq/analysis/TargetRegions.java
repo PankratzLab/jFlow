@@ -19,7 +19,7 @@ import seq.manage.VCFOps.VcfPopulation;
 import seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
 import seq.manage.VCOps.GENOTYPE_INFO;
 import seq.manage.VCOps.VC_SUBSET_TYPE;
-import cnv.var.LocusSet;
+import filesys.LocusSet;
 import filesys.Segment;
 
 public class TargetRegions<T extends Segment> {

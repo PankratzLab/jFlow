@@ -11,7 +11,6 @@ import java.util.TreeSet;
 
 import cnv.filesys.Project;
 import cnv.var.SampleData;
-
 import common.Array;
 import common.Files;
 import common.HashVec;

@@ -12,7 +12,7 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import cnv.var.LocusSet;
+import filesys.LocusSet;
 import filesys.Segment;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMRecord;

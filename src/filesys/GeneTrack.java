@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import cnv.var.LocusSet;
 import common.Array;
 import common.Files;
 import common.HashVec;

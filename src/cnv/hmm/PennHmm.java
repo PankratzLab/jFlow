@@ -6,14 +6,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import cnv.filesys.Project;
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
-import cnv.var.CNVariant.CNVBuilder;
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 import common.Array;
 import common.Files;
 import common.Logger;
+import filesys.CNVariant;
+import filesys.LocusSet;
+import filesys.CNVariant.CNVBuilder;
 
 /*	This file was adapted from several subroutines from the UMDHMM package by Tapas Kanungo (Date: 15 December 1997)
  The original UMDHMM package was downloaded from http://www.kanungo.com/software/software.html. The citation for the UMDHMM program is "UMDHMM: Hidden Markov Model Toolkit," in "Extended Finite State Models of Language," A. Kornai (editor), Cambridge University Press, 1999."

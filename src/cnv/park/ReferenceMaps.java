@@ -2,8 +2,9 @@ package cnv.park;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
-import cnv.var.CNVariant;
+import filesys.CNVariant;
 
 public class ReferenceMaps {
 	public static final String MCCAROLL_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\McCaroll map\\";

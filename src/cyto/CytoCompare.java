@@ -8,12 +8,12 @@ import java.util.ArrayList;
 
 import cnv.analysis.BeastScore;
 import cnv.filesys.Project;
-import cnv.var.CNVariant;
 import common.Array;
 import common.Files;
 import common.Logger;
 import common.Positions;
 import common.ext;
+import filesys.CNVariant;
 import filesys.Segment;
 
 /**

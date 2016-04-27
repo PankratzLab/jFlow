@@ -2,11 +2,13 @@ package cnv.plots;
 
 import java.io.*;
 import java.util.*;
-
 import java.awt.*;
+
 import javax.swing.*;
+
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+
 import javax.imageio.*;
 
 import common.*;

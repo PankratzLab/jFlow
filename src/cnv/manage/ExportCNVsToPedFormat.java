@@ -5,8 +5,8 @@ import java.util.*;
 
 import javax.swing.JFileChooser;
 
+import filesys.CNVariant;
 import filesys.Segment;
-import cnv.var.CNVariant;
 import common.*;
 
 public class ExportCNVsToPedFormat {

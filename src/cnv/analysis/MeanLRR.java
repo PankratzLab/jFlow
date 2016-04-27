@@ -6,8 +6,8 @@ import java.util.*;
 import cnv.filesys.*;
 import cnv.manage.MarkerDataLoader;
 import cnv.manage.Transforms;
-import cnv.var.CNVariant;
 import common.*;
+import filesys.CNVariant;
 import filesys.Segment;
 import stats.*;
 

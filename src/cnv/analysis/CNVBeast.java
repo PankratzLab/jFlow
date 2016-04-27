@@ -21,7 +21,6 @@ import cnv.filesys.Sample;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustor.GcModel;
-import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import common.Array;
 import common.CmdLine;
@@ -29,6 +28,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.ext;
+import filesys.CNVariant;
 
 /**
  * Wrapper for the Beast software package as available here http://people.duke.edu/~asallen/Software.html

@@ -18,20 +18,21 @@ import stats.Histogram.DynamicAveragingHistogram;
 import stats.Rscript.GeomText;
 import stats.Rscript.RScatter;
 import stats.Rscript.SCATTER_TYPE;
+import cnv.analysis.ProjectCNVFiltering;
 import cnv.filesys.Project;
-import cnv.qc.CNVFilter;
-import cnv.qc.CNVFilter.FreqFilter;
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
-import cnv.var.LocusSet.TO_STRING_TYPE;
 import cnv.var.SampleData;
 import common.Array;
+import common.CNVFilter;
 import common.CmdLine;
 import common.Files;
 import common.Logger;
 import common.WorkerHive;
 import common.ext;
+import common.CNVFilter.FreqFilter;
+import filesys.CNVariant;
+import filesys.LocusSet;
 import filesys.Segment;
+import filesys.LocusSet.TO_STRING_TYPE;
 import filesys.Segment.SegmentCompare;
 
 public class CushingCnvs {
@@ -196,7 +197,7 @@ public class CushingCnvs {
 		FreqFilter freqFilter = new FreqFilter(totalLimitedTo, 0, 0, numControls, numControls, numControls, .9);
 		//CNVFilter cnvFilter = new CNVFilter(proj.getLog());
 		LocusSet<CNVariant> setToRemove = null;
-		setToRemove = CNVFilter.filterCNVFile(proj, cnSet2.getLoci(), outFilt, null, false, true, freqFilter, false, true);
+		setToRemove = ProjectCNVFiltering.filterCNVFile(proj, cnSet2.getLoci(), outFilt, null, false, true, freqFilter, false, true);
 		setToRemove.writeRegions(outFilt, TO_STRING_TYPE.REGULAR, true, proj.getLog());
 
 		if (!Files.exists(outFilt)) {

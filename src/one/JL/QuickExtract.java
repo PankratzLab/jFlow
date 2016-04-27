@@ -3,10 +3,10 @@ package one.JL;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import cnv.var.LocusSet;
 import common.Array;
 import common.Logger;
 import common.ext;
+import filesys.LocusSet;
 import filesys.Segment;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;

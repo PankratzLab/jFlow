@@ -5,7 +5,7 @@ import java.util.*;
 
 import common.*;
 import cnv.analysis.FilterCalls;
-import cnv.var.CNVariant;
+import filesys.CNVariant;
 
 public class QuantiSNP {
 	public static final String WINDOWS_DIRECTORY = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\00src\\";

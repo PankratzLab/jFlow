@@ -1,15 +1,15 @@
 package cnv.qc;
 
+import cnv.analysis.ProjectCNVFiltering;
 import cnv.filesys.Project;
-import cnv.qc.CNVFilter.CNVFilterPass;
-import cnv.var.CNVariant;
-import cnv.var.CNVariantHash;
 import cnv.var.SampleData;
 import common.Array;
+import common.CNVFilter;
 import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.ext;
+import common.CNVFilter.CNVFilterPass;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -18,6 +18,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import filesys.CNVariant;
+import filesys.CNVariantHash;
 
 public class CNVConcordance {
 	private static final String[] REPORT = { "Total CNVs Compared", "Total Overlapping CNVs", "Total Significantly Overlapping CNVs", "Total Perfectly overlapping cnvs", "Average Individual Overlap", "Average Individual Significant Overlap", "Average Individual Perfect Overlap", "Average Individual Overlap Score", "Global Overlap", "Global Significant Overlap", "Global Perfect Overlap", "Average Global Overlap Score" };
@@ -537,9 +540,9 @@ public class CNVConcordance {
 		} else {
 			proj = new Project(filename, logfile, false);
 		}
-		CNVFilter filter = CNVFilter.setupCNVFilterFromArgs(proj, args, null, defaults, proj.getLog());
+		CNVFilter filter = ProjectCNVFiltering.setupCNVFilterFromArgs(proj, args, null, defaults, proj.getLog());
 		if (ext.indexOfStr("-defaults", args) >= 0) {
-			filter.setCNVDefaults(proj);
+		    ProjectCNVFiltering.setCNVDefaults(filter, proj);
 		}
 		for (int i = 0; i < args.length; i++) {
 			if ((args[i].equals("-h")) || (args[i].equals("-help")) || (args[i].equals("/h")) || (args[i].equals("/help"))) {

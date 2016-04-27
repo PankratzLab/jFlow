@@ -17,7 +17,6 @@ import javax.swing.JTextField;
 import cnv.filesys.Project;
 import cnv.plots.CompPlot;
 import cnv.var.Region;
-
 import common.Grafik;
 import common.Positions;
 import common.ext;

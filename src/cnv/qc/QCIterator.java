@@ -19,7 +19,7 @@ import cnv.filesys.CNVQC;
 import cnv.filesys.MarkerFreqs;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
-import cnv.var.CNVariant;
+import filesys.CNVariant;
 
 public class QCIterator implements Runnable {
 	private Hashtable<String, CNVSampleQC> cnvSampleQCHash;

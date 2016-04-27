@@ -13,7 +13,7 @@ import common.Files;
 import common.Logger;
 import common.Positions;
 import common.ext;
-import cnv.var.CNVariant;
+import filesys.CNVariant;
 
 /**
  * Class to store cyto variants and related info. Currently variants are loaded from files with header containing the following:

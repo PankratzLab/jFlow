@@ -2,7 +2,9 @@ package cnv.plots;
 
 import java.io.*;
 import java.util.*;
+
 import common.*;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -10,8 +12,8 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 import cnv.filesys.Project;
-import cnv.var.*;
 import cnv.gui.*;
+import cnv.var.*;
 
 public class StratPlot extends JFrame implements ActionListener, TreeSelectionListener {
 	public static final long serialVersionUID = 1L;

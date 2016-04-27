@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import cnv.var.LocusSet;
-import cnv.var.LocusSet.TO_STRING_TYPE;
+import filesys.LocusSet;
 import filesys.Segment;
+import filesys.LocusSet.TO_STRING_TYPE;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;

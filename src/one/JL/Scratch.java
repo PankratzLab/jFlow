@@ -22,11 +22,11 @@ import cnv.filesys.Project;
 import cnv.hmm.PennHmm.ViterbiResult;
 import cnv.manage.Markers;
 import cnv.qc.GcAdjustor.GcModel;
-import cnv.var.CNVariant;
-import cnv.var.CNVariant.CNVBuilder;
-import cnv.var.LocusSet;
-import cnv.var.LocusSet.TO_STRING_TYPE;
+import filesys.CNVariant;
+import filesys.LocusSet;
 import filesys.Segment;
+import filesys.CNVariant.CNVBuilder;
+import filesys.LocusSet.TO_STRING_TYPE;
 
 public class Scratch {
 

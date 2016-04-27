@@ -3,6 +3,7 @@ package cnv.qc;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
+
 import common.Logger;
 import cnv.filesys.MarkerData;
 import cnv.filesys.MarkerFreqs;

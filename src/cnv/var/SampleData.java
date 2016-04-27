@@ -9,6 +9,8 @@ import javax.swing.SwingUtilities;
 import cnv.filesys.Project;
 import cnv.manage.MitoPipeline;
 import common.*;
+import filesys.CNVariant;
+import filesys.CNVariantHash;
 import filesys.Segment;
 
 public class SampleData {

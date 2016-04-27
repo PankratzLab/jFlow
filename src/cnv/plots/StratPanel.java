@@ -2,6 +2,7 @@ package cnv.plots;
 
 import java.util.*;
 
+import cnv.var.*;
 import common.*;
 
 import java.awt.*;
@@ -10,7 +11,6 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import mining.Distance;
-import cnv.var.*;
 
 public class StratPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
 	public static final long serialVersionUID = 3L;

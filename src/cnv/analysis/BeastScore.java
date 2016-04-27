@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.manage.Transforms;
-import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import common.Array;
 import common.Logger;
+import filesys.CNVariant;
 import filesys.Segment;
 
 /**

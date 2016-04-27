@@ -1,5 +1,6 @@
 package seq.manage;
 
+import filesys.LocusSet;
 import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
@@ -12,7 +13,6 @@ import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-import cnv.var.LocusSet;
 import common.Array;
 import common.Array.BYTE_DECODE_FORMAT;
 import common.Logger;

@@ -3,9 +3,9 @@ package seq.pathway;
 import java.util.HashSet;
 import java.util.Set;
 
-import cnv.var.LocusSet;
 import common.Logger;
 import filesys.GeneData;
+import filesys.LocusSet;
 
 public class Pathway extends LocusSet<GeneData> {
 	private static final long serialVersionUID = 1L;

@@ -15,14 +15,14 @@ import common.Sort;
 import common.ext;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
-import cnv.var.CNVariant;
 import cnv.var.SampleData;
-import cnv.var.CNVariant.CONSENSUS_TYPE;
-import cnv.var.CNVariant.MatchResults;
-import cnv.var.CNVariant.OVERLAP_TYPE;
-import cnv.var.CNVariantHash;
-import cnv.var.LocusSet.TO_STRING_TYPE;
-import cnv.var.LocusSet;
+import filesys.CNVariant;
+import filesys.CNVariantHash;
+import filesys.LocusSet;
+import filesys.CNVariant.CONSENSUS_TYPE;
+import filesys.CNVariant.MatchResults;
+import filesys.CNVariant.OVERLAP_TYPE;
+import filesys.LocusSet.TO_STRING_TYPE;
 
 /**
  * @author lane0212 Comparing cnvs called by PennCnv and Exome Depth in osteo

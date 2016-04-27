@@ -8,15 +8,15 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import common.Files;
+
 import java.util.Hashtable;
 import java.util.Vector;
 
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-import cnv.var.CNVariant;
 import cnv.var.SampleData;
-
 import common.Array;
 import common.HashVec;
 import common.Logger;
@@ -24,6 +24,7 @@ import common.Positions;
 import common.StringVector;
 import common.CmdLine;
 import common.ext;
+import filesys.CNVariant;
 
 public class DeNovoCNV {
 
