@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
+import filesys.CNVariant;
 import filesys.GeneData;
 import filesys.GeneTrack;
+import filesys.LocusSet;
 import filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.bed.BEDFeature;

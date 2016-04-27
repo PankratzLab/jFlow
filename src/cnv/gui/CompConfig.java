@@ -26,8 +26,8 @@ import net.miginfocom.swing.MigLayout;
 import cnv.filesys.Project;
 import cnv.plots.CompPlot;
 import cnv.plots.Trailer;
-import cnv.var.CNVariant;
 import cnv.var.SampleData;
+import filesys.CNVariant;
 
 public class CompConfig extends JPanel implements ChangeListener, ActionListener {
 

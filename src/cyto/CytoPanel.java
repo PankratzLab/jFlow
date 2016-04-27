@@ -22,12 +22,12 @@ import cnv.filesys.Project;
 import cnv.gui.FileChooser;
 import cnv.manage.SourceFileParser;
 import cnv.manage.TransposeData;
-import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import common.Array;
 import common.Files;
 import common.Logger;
 import common.ext;
+import filesys.CNVariant;
 
 public class CytoPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;

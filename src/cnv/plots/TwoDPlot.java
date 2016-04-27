@@ -24,8 +24,8 @@ import cnv.filesys.Project.StringListProperty;
 import cnv.gui.CheckBoxTree;
 import cnv.gui.ColorKeyPanel;
 import cnv.gui.GuiManager;
-import common.*;
 import cnv.var.*;
+import common.*;
 
 public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener { 
 	public static final long serialVersionUID = 1L;

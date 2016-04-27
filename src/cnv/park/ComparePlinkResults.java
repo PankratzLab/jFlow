@@ -2,8 +2,10 @@ package cnv.park;
 
 import java.io.*;
 import java.util.*;
+
 import cnv.var.*;
 import common.*;
+import filesys.CNVariant;
 
 public class ComparePlinkResults {
 //	public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\allresults\\";

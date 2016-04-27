@@ -10,9 +10,9 @@ import cnv.filesys.Project;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.hmm.PennHmm.ViterbiResult;
 import cnv.qc.GcAdjustor.GcModel;
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
 import common.Array;
+import filesys.CNVariant;
+import filesys.LocusSet;
 import filesys.Segment;
 
 public class GCBin extends Segment {

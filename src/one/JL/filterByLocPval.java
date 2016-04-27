@@ -9,7 +9,7 @@ import java.io.PrintWriter;
 import common.Files;
 import common.Logger;
 import common.ext;
-import cnv.var.LocusSet;
+import filesys.LocusSet;
 import filesys.Segment;
 
 public class filterByLocPval {

@@ -1,4 +1,4 @@
-package cnv.var;
+package filesys;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -9,10 +9,10 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
+import cnv.var.MosaicRegion;
 import common.Array;
 import common.Files;
 import common.Logger;
-import filesys.Segment;
 
 public abstract class LocusSet<T extends Segment> implements Serializable {
 	/**

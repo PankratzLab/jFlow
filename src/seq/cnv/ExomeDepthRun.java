@@ -12,8 +12,6 @@ import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.manage.Markers;
 import cnv.manage.TransposeData;
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
 import cnv.var.SampleData;
 import seq.cnv.ExomeDepth.ExomeDepthAnalysis;
 import seq.manage.BamOps;
@@ -28,7 +26,9 @@ import common.PSF;
 import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
+import filesys.CNVariant;
 import filesys.GeneTrack;
+import filesys.LocusSet;
 import filesys.Segment;
 
 /**

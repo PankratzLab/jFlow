@@ -27,11 +27,11 @@ import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import cnv.qc.GcAdjustor.GcModel;
-import cnv.var.CNVariant;
-import cnv.var.CNVariant.CNVBuilder;
-import cnv.var.LocusSet;
-import cnv.var.LocusSet.TO_STRING_TYPE;
+import filesys.CNVariant;
+import filesys.LocusSet;
 import filesys.Segment;
+import filesys.CNVariant.CNVBuilder;
+import filesys.LocusSet.TO_STRING_TYPE;
 
 /**
  * @author lane0212

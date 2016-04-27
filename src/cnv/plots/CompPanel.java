@@ -21,9 +21,8 @@ import javax.swing.JPanel;
 import cnv.gui.ChromosomeViewer;
 import cnv.var.CNVRectangle;
 import cnv.var.CNVRectangles;
-import cnv.var.CNVariant;
-
 import common.Positions;
+import filesys.CNVariant;
 
 /**
  * @author Michael Vieths

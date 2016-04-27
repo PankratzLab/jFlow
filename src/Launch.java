@@ -5,7 +5,6 @@ import cnv.analysis.FilterCalls;
 import cnv.analysis.MeanLRR;
 import cnv.analysis.cnvTrio;
 import cnv.qc.CNVConcordance;
-import cnv.qc.CNVFilter;
 import cnv.qc.CNVTrioFilter;
 import link.Heritability;
 import link.TrimFam;

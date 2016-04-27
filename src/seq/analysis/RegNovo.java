@@ -1,6 +1,8 @@
 package seq.analysis;
 
+import filesys.LocusSet;
 import filesys.Segment;
+import filesys.LocusSet.TO_STRING_TYPE;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
@@ -15,8 +17,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import cnv.var.LocusSet;
-import cnv.var.LocusSet.TO_STRING_TYPE;
 import common.Array;
 import common.Files;
 import common.HashVec;

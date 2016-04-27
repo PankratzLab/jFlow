@@ -1,5 +1,6 @@
 package seq.manage.vcfPile;
 
+import filesys.LocusSet;
 import filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import seq.manage.VCOps;
-import cnv.var.LocusSet;
 import common.Logger;
 import common.Positions;
 

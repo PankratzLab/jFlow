@@ -11,7 +11,6 @@ import seq.manage.ReferenceGenome;
 import stats.Rscript.GeomText;
 import stats.Rscript.RScatter;
 import stats.Rscript.SCATTER_TYPE;
-import cnv.var.LocusSet;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -19,6 +18,7 @@ import common.Logger;
 import common.ext;
 import filesys.GeneData;
 import filesys.GeneTrack;
+import filesys.LocusSet;
 import filesys.Segment;
 
 /**

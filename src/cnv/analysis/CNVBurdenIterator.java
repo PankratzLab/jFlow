@@ -12,10 +12,10 @@ import java.util.Vector;
 import stats.LeastSquares;
 import stats.LogisticRegression;
 import stats.RegressionModel;
-import cnv.var.CNVariant;
 import common.Files;
 import common.HashVec;
 import common.ext;
+import filesys.CNVariant;
 
 public class CNVBurdenIterator {
 	

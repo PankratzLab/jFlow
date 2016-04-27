@@ -1,7 +1,7 @@
 package seq.cnv;
 
 
-import cnv.var.CNVariant;
+import filesys.CNVariant;
 
 public class SeqCNVariant extends CNVariant {
 	/**

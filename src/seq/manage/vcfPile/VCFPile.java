@@ -14,7 +14,7 @@ import common.Array;
 import common.Logger;
 import common.PSF;
 import common.ext;
-import cnv.var.LocusSet;
+import filesys.LocusSet;
 import filesys.Segment;
 
 /**

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import common.Array;
+import filesys.CNVariant;
 
 public class MosaicRegion extends CNVariant implements Serializable {
 

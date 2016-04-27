@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import common.Logger;
 import common.Positions;
-import cnv.var.LocusSet;
+import filesys.LocusSet;
 import filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.AbstractFeatureReader;

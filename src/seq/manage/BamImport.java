@@ -43,8 +43,8 @@ import cnv.manage.MitoPipeline;
 import cnv.manage.Resources.GENOME_BUILD;
 import cnv.manage.TransposeData;
 import cnv.qc.LrrSd;
-import cnv.var.LocusSet;
 import cnv.var.SampleData;
+import filesys.LocusSet;
 import filesys.Segment;
 
 public class BamImport {

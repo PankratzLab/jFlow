@@ -8,9 +8,9 @@ import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.qc.SexChecks;
-import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import common.*;
+import filesys.CNVariant;
 
 public class PennCNV {
 	public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean", "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};

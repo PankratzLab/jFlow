@@ -12,12 +12,12 @@ import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.hmm.PennHmm.ViterbiResult;
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
-import cnv.var.LocusSet.TO_STRING_TYPE;
 import cnv.var.MosaicRegion;
+import filesys.CNVariant;
+import filesys.LocusSet;
 import filesys.Segment;
-import cnv.var.CNVariant.CNVBuilder;
+import filesys.CNVariant.CNVBuilder;
+import filesys.LocusSet.TO_STRING_TYPE;
 
 /**
  * @author lane0212

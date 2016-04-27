@@ -34,7 +34,6 @@ import cnv.manage.Transforms;
 import cnv.qc.CNVBDeviation;
 import cnv.qc.CNVBMAF;
 import cnv.qc.CNVBMAF.PoplulationBAFs;
-import cnv.var.CNVariant;
 import cnv.var.SampleData;
 import common.Array;
 import common.Files;
@@ -42,6 +41,7 @@ import common.HashVec;
 import common.Logger;
 import common.Positions;
 import common.ext;
+import filesys.CNVariant;
 import filesys.Segment;
 
 public class MedianLRRWorker extends SwingWorker<String, Integer> {

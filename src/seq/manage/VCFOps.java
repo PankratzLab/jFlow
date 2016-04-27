@@ -16,8 +16,6 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
-import cnv.var.LocusSet;
-import cnv.var.LocusSet.TO_STRING_TYPE;
 import seq.analysis.GATK;
 import seq.analysis.PlinkSeq;
 import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
@@ -32,7 +30,9 @@ import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import seq.qc.FilterNGS.VariantContextFilter;
 import stats.Histogram.DynamicAveragingHistogram;
 import stats.Histogram.DynamicHistogram;
+import filesys.LocusSet;
 import filesys.Segment;
+import filesys.LocusSet.TO_STRING_TYPE;
 import gwas.MatchSamples;
 import gwas.MatchesVisualized;
 import gwas.MergeDatasets;

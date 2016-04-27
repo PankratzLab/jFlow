@@ -25,10 +25,10 @@ import cnv.analysis.MosaicismDetect.MosaicProducer;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
 import cnv.var.MosaicRegion;
 import cnv.var.SampleData;
+import filesys.CNVariant;
+import filesys.LocusSet;
 import filesys.Segment;
 
 public class CNVMosaic {

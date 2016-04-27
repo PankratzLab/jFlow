@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import cnv.plots.CompPlot;
+import filesys.CNVariant;
+import filesys.CNVariantHash;
 
 /**
  * This class reads in CNV files and generates a list of rectangles representing them. The list can be retrieved in different contexts based on the current display mode.

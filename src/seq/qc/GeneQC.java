@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import cnv.var.LocusSet;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -17,6 +16,7 @@ import common.Logger;
 import common.ext;
 import filesys.GeneData;
 import filesys.GeneTrack;
+import filesys.LocusSet;
 import filesys.Segment;
 
 /**

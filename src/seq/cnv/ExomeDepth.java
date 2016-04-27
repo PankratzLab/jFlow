@@ -10,9 +10,6 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
-import cnv.var.LocusSet.TO_STRING_TYPE;
 import seq.cnv.CNVExtraInfo.EXTRA_INFO_TYPE;
 import seq.manage.BamOps;
 import seq.manage.VCFOps.VcfPopulation;
@@ -31,6 +28,9 @@ import common.Positions;
 import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
+import filesys.CNVariant;
+import filesys.LocusSet;
+import filesys.LocusSet.TO_STRING_TYPE;
 
 public class ExomeDepth {
 	private static final String EXOME_COUNTS_DAFR = "ExomeCount.dafr";

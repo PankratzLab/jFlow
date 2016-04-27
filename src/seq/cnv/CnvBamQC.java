@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
 import seq.manage.BEDFileReader;
 import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.manage.BamPile;
@@ -29,6 +27,8 @@ import common.Logger;
 import common.WorkerTrain;
 import common.ext;
 import common.ArraySpecialList.ArrayIntList;
+import filesys.CNVariant;
+import filesys.LocusSet;
 import filesys.Segment;
 
 /**

@@ -47,13 +47,13 @@ import cnv.gui.NewRegionListDialog;
 import cnv.gui.RegionNavigator;
 import cnv.manage.UCSCtrack;
 import cnv.var.CNVRectangles;
-import cnv.var.CNVariant;
-import cnv.var.CNVariantHash;
 import cnv.var.Region;
 import common.Array;
 import common.Files;
 import common.Positions;
 import common.ext;
+import filesys.CNVariant;
+import filesys.CNVariantHash;
 import filesys.GeneTrack;
 
 /**

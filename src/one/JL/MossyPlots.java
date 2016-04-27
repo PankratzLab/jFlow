@@ -25,8 +25,8 @@ import stats.Rscript.Restrictions;
 import stats.Rscript.SCATTER_TYPE;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
-import cnv.var.LocusSet;
 import cnv.var.SampleData;
+import filesys.LocusSet;
 import filesys.Segment;
 
 public class MossyPlots {

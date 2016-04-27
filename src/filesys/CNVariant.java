@@ -1,4 +1,4 @@
-package cnv.var;
+package filesys;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -22,7 +22,6 @@ import common.Positions;
 import common.Sort;
 import common.StringVector;
 import common.ext;
-import filesys.Segment;
 
 public class CNVariant extends Segment {
 	@Override

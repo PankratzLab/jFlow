@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 import common.*;
-import cnv.var.CNVariant;
+import filesys.CNVariant;
 
 public class UCSCtrack {
 	public static final String SAMPLE_DEMOGRAPHICS = "SampleData.txt";

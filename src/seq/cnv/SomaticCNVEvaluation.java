@@ -23,11 +23,11 @@ import cnv.analysis.BeastScore;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
 import cnv.var.SampleData;
+import filesys.CNVariant;
 import filesys.GeneData;
 import filesys.GeneTrack;
+import filesys.LocusSet;
 import filesys.Segment;
 
 /**

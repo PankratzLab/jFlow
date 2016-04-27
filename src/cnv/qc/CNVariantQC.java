@@ -8,7 +8,7 @@ import common.Array;
 import common.Logger;
 import cnv.filesys.CNVQC;
 import cnv.filesys.Project;
-import cnv.var.CNVariant;
+import filesys.CNVariant;
 
 //TODO extends?
 public class CNVariantQC implements Serializable {

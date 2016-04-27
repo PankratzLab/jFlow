@@ -3,9 +3,8 @@ package cnv.park;
 import java.io.*;
 import java.util.*;
 
-import cnv.var.CNVariant;
-
 import common.*;
+import filesys.CNVariant;
 
 public class DNAcopy {
 //	public static final String ROOT_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\Software\\DNAcopy\\";

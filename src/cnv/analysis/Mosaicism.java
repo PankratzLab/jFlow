@@ -12,13 +12,13 @@ import cnv.filesys.*;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project.ARRAY;
 import cnv.plots.MosaicPlot;
-import cnv.var.CNVariant;
 import cnv.var.IndiPheno;
-import cnv.var.LocusSet;
 import cnv.var.MosaicRegion;
 import cnv.var.SampleData;
 import common.*;
 import common.WorkerTrain.Producer;
+import filesys.CNVariant;
+import filesys.LocusSet;
 import filesys.Segment;
 
 public class Mosaicism {

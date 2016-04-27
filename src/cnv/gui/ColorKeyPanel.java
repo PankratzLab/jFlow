@@ -11,12 +11,11 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-
 import java.util.*;
+
 import javax.swing.*;
 
 import common.HashVec;
-
 import cnv.plots.AbstractPanel;
 import cnv.var.SampleData;
 

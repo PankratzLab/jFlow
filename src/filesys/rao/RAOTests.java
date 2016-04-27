@@ -4,9 +4,9 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import cnv.var.CNVariant;
 import common.Files;
 import common.Logger;
+import filesys.CNVariant;
 
 public class RAOTests {
 

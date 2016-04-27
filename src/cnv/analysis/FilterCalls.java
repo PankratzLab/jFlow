@@ -14,12 +14,9 @@ import java.util.Vector;
 
 import filesys.*;
 import common.*;
+import common.CNVFilter.CNVFilterPass;
 import cnv.filesys.*;
 import cnv.manage.UCSCtrack;
-import cnv.qc.CNVFilter;
-import cnv.qc.CNVFilter.CNVFilterPass;
-import cnv.var.CNVariant;
-import cnv.var.LocusSet;
 import cnv.var.SampleData;
 
 public class FilterCalls {
@@ -2266,8 +2263,6 @@ public class FilterCalls {
 		}
 	}
 }
-
-
 
 
 /*

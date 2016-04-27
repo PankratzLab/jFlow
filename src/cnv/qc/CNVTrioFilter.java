@@ -1,10 +1,15 @@
 package cnv.qc;
 
 import java.util.HashSet;
+import java.util.Vector;
 
+import cnv.analysis.FilterCalls;
+import cnv.analysis.ProjectCNVFiltering;
 import cnv.analysis.cnvTrio;
 import cnv.filesys.Project;
 import common.Array;
+import common.CNVFilter;
+import common.Files;
 import common.Logger;
 import common.ext;
 import filesys.Segment;
@@ -152,7 +157,7 @@ public class CNVTrioFilter extends CNVFilter {
 
 	public static CNVTrioFilter setupCNVTrioFilterFromArgs(Project proj, String[] args, boolean defaults, Logger log) {
 		CNVTrioFilter filter = new CNVTrioFilter(log);
-		setupCNVFilterFromArgs(proj, args, filter, defaults, log);
+		ProjectCNVFiltering.setupCNVFilterFromArgs(proj, args, filter, defaults, log);
 		if (defaults) {
 			filter.setTrioDefualts();
 		}
@@ -212,4 +217,12 @@ public class CNVTrioFilter extends CNVFilter {
 		return d > minThreshold;
 	}
 
+    public static void fromParametersTrio(String filename, Logger log) {
+        Vector<String> params;
+        params = Files.parseControlFile(filename, CNVTrioFilter.COMMAND_CNV_TRIO_CRF, getParserParams(), log);
+        if (params != null) {
+            main(Array.toStringArray(params));
+        }
+    }
+	
 }
