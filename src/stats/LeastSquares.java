@@ -7,6 +7,7 @@ import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
 import common.Array;
+import common.Files;
 import common.Matrix;
 import common.ext;
 
@@ -514,7 +515,7 @@ public class LeastSquares extends RegressionModel {
 			return "Did not run";
 		}
 		
-		eol = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
+		eol = Files.isWindows()?"\r\n":"\n";
 		if (onePer) {
 			str += "One per family was permuted "+numPermutations+" times"+eol;
 			str += "Statistics were bootstrapped "+numBootReps+" times"+eol;
@@ -536,7 +537,7 @@ public class LeastSquares extends RegressionModel {
 		String str = "";
 		String eol;
 
-		eol = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
+		eol = Files.isWindows()?"\r\n":"\n";
 		for (int i = 0; i<betas.length; i++) {
 			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], sigfigs, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7)+"\t"+ext.prettyP(sigs[i])+"\t=TDIST("+Math.abs(stats[i])+","+((onePer?Array.unique(famIDs).length:N)-2)+",2)"+eol;
 		}

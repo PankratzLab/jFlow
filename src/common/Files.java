@@ -56,7 +56,7 @@ public class Files {
 		try {
 			for (int i = 0; i<numBatches; i++) {
 				writers[i] = new PrintWriter(new FileWriter(getBatchName(root_batch_name, i, numBatches)));
-				if (!System.getProperty("os.name").startsWith("Windows")) {
+				if (!Files.isWindows()) {
 					writers[i].println("#/bin/sh\n");
 				}
 				if (sleep>0) {
@@ -94,7 +94,7 @@ public class Files {
 		String batchName;
 		
 		batchName = numBatches==1?root:root+"."+(i+1);
-		if (System.getProperty("os.name").startsWith("Windows")) {
+		if (Files.isWindows()) {
 			batchName += ".bat";
 		}
 		
@@ -526,7 +526,7 @@ public class Files {
 	}
 
 	public static boolean chmod(String filename, boolean verbose) {
-		if (System.getProperty("os.name").startsWith("Windows")) {
+		if (Files.isWindows()) {
 			if (verbose) {
 				System.err.println("chmod not attempted on windows platform");
 			}
@@ -2202,7 +2202,9 @@ public class Files {
 		return exists(handle) && new File(handle).isDirectory();
 	}
 	
-	
+	public static boolean isWindows() {
+	    return System.getProperty("os.name").startsWith("Windows");
+	}
 	
 	public static void writeSerial(Object o, String filename) {
 		writeSerial(o, filename, false);
@@ -3668,7 +3670,7 @@ public class Files {
 
 	public static boolean programExists(String programName) {
         String cmd = "";
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (Files.isWindows()) {
             cmd = "where " + programName;
         } else {
             cmd = "which " + programName;

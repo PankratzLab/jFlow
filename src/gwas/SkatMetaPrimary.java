@@ -147,7 +147,7 @@ public class SkatMetaPrimary {
 			
 			iterations = Matrix.toMatrix(Array.toStringArray(v));
 			System.out.println(iterations.length+"\tremaining to run for "+cohort);
-			if (System.getProperty("os.name").startsWith("Windows")) {
+			if (Files.isWindows()) {
 				commands = "Rscript --no-save [%0]";
 				Files.batchIt(batchDir + "run", "", 5, commands, iterations);
 			} else {
@@ -395,7 +395,7 @@ public class SkatMetaPrimary {
 
 			iterations = Matrix.toMatrix(Array.toStringArray(v));
 			System.out.println(iterations.length+"\tremaining to run for "+cohort);
-			if (System.getProperty("os.name").startsWith("Windows")) {
+			if (Files.isWindows()) {
 				commands = "Rscript --no-save [%0]";
 				Files.batchIt(batchDir + "run", "", 5, commands, iterations);
 			} else {

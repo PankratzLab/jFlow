@@ -9,8 +9,8 @@ import cnv.filesys.ClusterFilterCollection;
 import cnv.filesys.MarkerData;
 import cnv.filesys.Project;
 import cnv.manage.MarkerDataLoader;
-
 import common.Array;
+import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.ext;
@@ -53,7 +53,7 @@ public class Zcall {
         Logger log;
 
         log = proj.getLog();
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (Files.isWindows()) {
         	eol = "\r\n";
 		} else {
 			eol = "\n";

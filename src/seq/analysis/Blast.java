@@ -106,7 +106,7 @@ public class Blast {
 	public BlastResultsSummary[] blastSequence(FastaEntry[] fastaEntries, PrintWriter tmpFile) {
 		BlastResultsSummary[] bSummaries = new BlastResultsSummary[fastaEntries.length];
 
-		if (!System.getProperty("os.name").startsWith("Windows")) {
+		if (!Files.isWindows()) {
 			if (!fail) {
 				String[] command = new String[] { BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb, OUT_FMT, DEFAULT_OUT_FMT + " std" + (taxonMode ? " staxids" : " btop"), WORD_SIZE, blastWordSize + "", evalue != DEFAULT_EVALUE ? E : "", evalue != DEFAULT_EVALUE ? evalue + "" : "" };
 				FastaEntryInputStream fStream = new FastaEntryInputStream(fastaEntries, log);

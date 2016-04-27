@@ -273,7 +273,7 @@ public class DeNovoCNV {
 			return;
 		}
 
-		if (System.getProperty("os.name").startsWith("Windows")) {
+		if (Files.isWindows()) {
 			log.report(ext.getTime()+"\tstarting PennCNV for CNV detection.");
 			for (int i = 0; i < iterations.length; i++) {
 				CmdLine.run("perl " + pennBinDir + "detect_cnv.pl -test -hmm " + pennBinDir + "lib/hh550.hmm -pfb " + proj.PROJECT_DIRECTORY.getValue() + "custom.pfb -gcmodel " + gcModelFullPath + " " + pennDataDir + iterations[i][0] + " " + pennDataDir + iterations[i][1] + " " + pennDataDir + iterations[i][2] + " -out " + pennOutDir + iterations[i][2] + ".rawcnv", pennOutDir);

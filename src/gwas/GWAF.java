@@ -372,7 +372,7 @@ public class GWAF {
 				Files.writeList(Array.toStringArray(v), dir+"master."+pheno);
 				Files.chmod(dir+"master."+pheno);
 			} else {
-				if (System.getProperty("os.name").startsWith("Windows")) {
+				if (Files.isWindows()) {
 					Files.write("R --no-save < createKmat.R > createKmat.log", dir+"createKmat.bat");
 					Files.batchIt((numBatches==1?dir:"")+"run."+pheno, -1, startAt, count, numBatches, "R --no-save 0< "+rootTemplate+".R 1> "+rootTemplate+".log 2> "+rootTemplate+".err.log");
 				} else {

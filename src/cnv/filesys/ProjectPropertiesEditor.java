@@ -355,7 +355,7 @@ public class ProjectPropertiesEditor extends JFrame {
         
         
         boolean includeNotepad = false;
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (Files.isWindows()) {
             includeNotepad = Files.programExists("notepad.exe");
         }
 	    notepad.setVisible(includeNotepad);

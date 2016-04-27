@@ -1562,7 +1562,7 @@ public class ext {
 	}
 	
 	public static void waitForResponse(String message) {
-		if (System.getProperty("os.name").startsWith("Windows")) {
+		if (Files.isWindows()) {
 			System.out.println(message);
 			try {
 				new BufferedReader(new InputStreamReader(System.in)).readLine();

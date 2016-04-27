@@ -114,7 +114,7 @@ public class MarkerMetrics {
 		
 		log = proj.getLog();
 
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (Files.isWindows()) {
         	eol = "\r\n";
 		} else {
 			eol = "\n";
@@ -330,7 +330,7 @@ public class MarkerMetrics {
         Logger log;
         
         log = proj.getLog();
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (Files.isWindows()) {
         	eol = "\r\n";
 		} else {
 			eol = "\n";
@@ -424,7 +424,7 @@ public class MarkerMetrics {
         String line, eol;
         Logger log;
         
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (Files.isWindows()) {
         	eol = "\r\n";
 		} else {
 			eol = "\n";

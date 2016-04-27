@@ -502,7 +502,7 @@ public class SourceFileParser implements Runnable {
                 response = 1;
             } else {
                 
-                if (!System.getProperty("os.name").startsWith("Windows")) {
+                if (!Files.isWindows()) {
                     log.reportError("Error - the same sample name '"+sampleName+"' is being parsed again and the previous file existed before the current command began. "
                             + "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted. "
                             + "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory. "
@@ -1224,7 +1224,7 @@ public class SourceFileParser implements Runnable {
 	    int response;
 	    if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, false)+"markers.0.mdRAF").exists()) {
             
-            if (!System.getProperty("os.name").startsWith("Windows")) {
+            if (!Files.isWindows()) {
                 proj.getLog().reportError("Error - Marker data (at least the first file 'markers.0.mdRAF') have already been parsed. This happens if you had previously transposed the data or if the parser was interrupted and manually restarted. Please delete the marker directory to start over from scratch.");
                 return 0;
             }

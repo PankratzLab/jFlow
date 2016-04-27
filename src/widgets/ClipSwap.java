@@ -3,6 +3,7 @@ package widgets;
 import java.io.File;
 import java.util.Date;
 import java.util.HashSet;
+
 import cnv.filesys.Project;
 import cnv.plots.TwoDPlot;
 import filesys.SerialStringArray;
@@ -217,7 +218,7 @@ public class ClipSwap {
 				log.report("Performed lookup in " + ext.getTimeElapsed(time));
 			}
 			
-			if (System.getProperty("os.name").startsWith("Windows")) {
+			if (Files.isWindows()) {
 				lineEnding = "\r\n";
 			} else {
 				lineEnding = "\n";

@@ -2,8 +2,8 @@ package db;
 
 import java.io.*;
 import java.util.*;
-import parse.LookupTable;
 
+import parse.LookupTable;
 import common.*;
 
 public class DumpSAS {
@@ -32,7 +32,7 @@ public class DumpSAS {
 			writer.println("");
 			for (int i = 0; i < files.length; i++) {
 				System.out.println(files[i]);
-				if (!System.getProperty("os.name").startsWith("Windows")) {
+				if (!Files.isWindows()) {
 					new File(files[i]).renameTo(new File(files[i].toLowerCase()));
 				}
 				writer.println("DATA "+ext.rootOf(files[i])+"; SET a."+ext.rootOf(files[i])+(password != null?" (pw=\""+password+"\")":"")+"; RUN;");
@@ -528,7 +528,7 @@ public class DumpSAS {
 		}
 		
 		try {
-			if (System.getProperty("os.name").startsWith("Windows")) {
+			if (Files.isWindows()) {
 //				tallyAll("D:/xCARe_transfer/sas/all2/", "tallyho.txt", "tableFormat.txt");
 //				procAllContents("N:/cardia/phenotypes/Y0/dump/");
 //				procAllContents("N:/cardia/phenotypes/Y2/dump/");

@@ -1,6 +1,7 @@
 package link;
 
 import java.io.*;
+
 //import java.util.*;
 import common.*;
 
@@ -59,7 +60,7 @@ public class Merlin {
 
 	public static void batchAllVC(String qsub, boolean blade) {
 		String commands;
-		boolean win = System.getProperty("os.name").startsWith("Windows");
+		boolean win = Files.isWindows();
 
 		if (qsub != null) {
 			if (blade) {
@@ -88,7 +89,7 @@ public class Merlin {
 
 	public static void batchAllQuant(double[] quant, String qsub, boolean blade) {
 		String commands;
-		boolean win = System.getProperty("os.name").startsWith("Windows");
+		boolean win = Files.isWindows();
 	
 		if (qsub != null) {
 			if (blade) {
