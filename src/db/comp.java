@@ -9,6 +9,7 @@ import mining.Transformations;
 import common.AlleleFreq;
 import common.Array;
 import common.DoubleVector;
+import common.Files;
 import common.HashVec;
 import common.IntVector;
 import common.Logger;
@@ -1424,7 +1425,7 @@ public class comp {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			if (System.getProperty("os.name").startsWith("Windows") && !suppress) {
+			if (Files.isWindows() && !suppress) {
 				System.out.println("...done");
 				ext.waitForResponse();
 			}

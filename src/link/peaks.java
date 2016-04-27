@@ -16,7 +16,7 @@ public class peaks {
 		StringTokenizer st;
 		double mm, dv, al, ad, adh, ar, arh, ms, me, score;
 
-		st = new StringTokenizer((new File(".")).getAbsolutePath(), System.getProperty("os.name").startsWith("Windows")?"\\":"/");
+		st = new StringTokenizer((new File(".")).getAbsolutePath(), Files.isWindows()?"\\":"/");
 		while (st.countTokens()>3) {
 			st.nextElement();
 		}

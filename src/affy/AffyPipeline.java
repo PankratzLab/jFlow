@@ -122,7 +122,7 @@ public class AffyPipeline {
 		}
 
 		public String getExe() {
-			if (System.getProperty("os.name").startsWith("Windows")) {
+			if (Files.isWindows()) {
 				return exe + ".exe";
 			} else {
 				return exe; // *nix systems are much superior

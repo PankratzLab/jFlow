@@ -4,8 +4,6 @@ package park;
 import java.io.*;
 import java.util.*;
 
-
-
 import common.*;
 
 public class heritabilityEstimate {
@@ -121,7 +119,7 @@ public class heritabilityEstimate {
 		writer = new PrintWriter(new FileWriter(root+"/batch"));
 		writer.println("echo -e \"load ped "+root+".fam\\nautomodel "+root+".ptypes Depression\\npolygenic -screen\\nquit\\n\" | solar > "+root+".log");
 		writer.close();
-		if (!System.getProperty("os.name").startsWith("Windows")) {
+		if (!Files.isWindows()) {
 			try {
 				Runtime.getRuntime().exec("chmod +x "+root+"/batch").waitFor();
 			} catch (Exception e) {

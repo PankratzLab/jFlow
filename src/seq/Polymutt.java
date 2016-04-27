@@ -1034,7 +1034,7 @@ public class Polymutt {
 				System.exit(1);
 				batchPolymutt(triosFile);
 			} else if (findAll) {
-				if (System.getProperty("os.name").startsWith("Windows")) {
+				if (Files.isWindows()) {
 					findAllLocalDenovo(vcfDir);
 				} else {
 					findAllDenovo(vcfDir);

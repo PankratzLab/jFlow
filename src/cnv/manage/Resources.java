@@ -83,7 +83,7 @@ public class Resources {
 			final String localBinDir = getLocalDirBase() + BIN_SUB_DIR;
 			return new Resource(localBinDir + localSubPath, url) {
 				public boolean downloadResource(Logger log) {
-					if (!windows && System.getProperty("os.name").startsWith("Windows")) {
+					if (!windows && Files.isWindows()) {
 						log.reportTimeError("Requested binary resource is not supported on Windows");
 						return false;
 					}

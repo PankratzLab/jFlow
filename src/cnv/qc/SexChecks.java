@@ -514,7 +514,7 @@ public class SexChecks {
         boolean[] samplesToExclude;
         Logger log;
         
-        if (System.getProperty("os.name").startsWith("Windows")) {
+        if (Files.isWindows()) {
         	eol = "\r\n";
 		} else {
 			eol = "\n";

@@ -1279,7 +1279,7 @@ public class DosageData implements Serializable {
 			ranges = ext.listRanges(cols.toArray());
 			System.out.println("Extracting columns: 1,"+ranges);
 			
-			dos = System.getProperty("os.name").startsWith("Windows");
+			dos = Files.isWindows();
 			try {
 				writer = new PrintWriter(new FileWriter("awk_command.bat"));
 				writer.print("awk "+(dos?"\"":"'")+"BEGIN { OFS = "+(dos?"\\":"")+"\"\\t"+(dos?"\\":"")+"\" } { printf $1 ;");

@@ -216,12 +216,12 @@ public class MergeDatasets {
         }
         
         try {
-	        writer = new PrintWriter(new FileWriter(dir+"batchMerge"+(System.getProperty("os.name").startsWith("Windows")?".bat":"")));
+	        writer = new PrintWriter(new FileWriter(dir+"batchMerge"+(Files.isWindows()?".bat":"")));
 	        for (int i = 0; i<subdirs.length; i++) {
 	        	writer.println("java -cp /home/npankrat/park.jar filesys.SnpMarkerSet file="+subdirs[i]+commonPlinkRoot+".bim");
 	        }
 	        writer.println();
-	        if (System.getProperty("os.name").startsWith("Windows")) {
+	        if (Files.isWindows()) {
 		        writer.println("start /B batchMerge.unambiguous.bat");
 		        writer.println("start /B batchMerge.ambiguous.bat");
 	        } else {
@@ -230,7 +230,7 @@ public class MergeDatasets {
 	        }
 	        writer.close();
 	        
-	        if (!System.getProperty("os.name").startsWith("Windows")) {
+	        if (!Files.isWindows()) {
 		        Files.chmod("batchMerge");
 			}
         } catch (Exception e) {
@@ -239,7 +239,7 @@ public class MergeDatasets {
         }
         
         try {
-	        writer = new PrintWriter(new FileWriter(dir+"batchMerge.unambiguous"+(System.getProperty("os.name").startsWith("Windows")?".bat":"")));
+	        writer = new PrintWriter(new FileWriter(dir+"batchMerge.unambiguous"+(Files.isWindows()?".bat":"")));
 	        
         	writer.println("plink --bfile "+subdirs[0]+"plink --extract "+subdirs[0]+commonPlinkRoot+".bim_unambiguous.txt --make-bed --out "+subdirs[0]+"unambiguous");
         	writer.println();
@@ -264,7 +264,7 @@ public class MergeDatasets {
 
 	        writer.close();
 	        
-	        if (System.getProperty("os.name").startsWith("Windows")) {
+	        if (Files.isWindows()) {
 				new File(dir+"unambiguous/");
 			} else {
 				Files.chmod("batchMerge.unambiguous");
@@ -275,7 +275,7 @@ public class MergeDatasets {
         }
 
         try {
-	        writer = new PrintWriter(new FileWriter(dir+"batchMerge.ambiguous"+(System.getProperty("os.name").startsWith("Windows")?".bat":"")));
+	        writer = new PrintWriter(new FileWriter(dir+"batchMerge.ambiguous"+(Files.isWindows()?".bat":"")));
 	        
         	writer.println("plink --bfile "+subdirs[0]+commonPlinkRoot+" --exclude "+subdirs[0]+commonPlinkRoot+".bim_unambiguous.txt --make-bed --out "+subdirs[0]+"ambiguous");
         	writer.println();
@@ -300,7 +300,7 @@ public class MergeDatasets {
 
 	        writer.close();
 	        
-	        if (System.getProperty("os.name").startsWith("Windows")) {
+	        if (Files.isWindows()) {
 				new File(dir+"ambiguous/");
 			} else {
 				Files.chmod("batchMerge.ambiguous");

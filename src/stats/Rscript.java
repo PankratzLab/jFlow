@@ -26,7 +26,7 @@ public class Rscript {
 	};
 
 	public static String getRscriptExecutable(Logger log) {
-		if (System.getProperty("os.name").startsWith("Windows")) {
+		if (Files.isWindows()) {
 			return "Rscript";
 		} else {
 			for (int i = 0; i < RSCRIPT_EXECS.length; i++) {
@@ -42,7 +42,7 @@ public class Rscript {
 	}
 
 	public static String getRExecutable(Logger log) {
-		if (System.getProperty("os.name").startsWith("Windows")) {
+		if (Files.isWindows()) {
 			return "R";
 		} else {
 			for (int i = 0; i < R_EXECS.length; i++) {

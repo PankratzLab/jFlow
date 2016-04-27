@@ -1,6 +1,7 @@
 package stats;
 
 import java.util.*;
+
 import common.*;
 
 public class LogisticRegression extends RegressionModel {
@@ -362,7 +363,7 @@ public class LogisticRegression extends RegressionModel {
 			return "Did not run";
 		}
 
-		eol = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
+		eol = Files.isWindows()?"\r\n":"\n";
 		if (onePer) {
 			str += "One per family was permuted "+numPermutations+" times"+eol;
 			str += "Statistics were bootstrapped "+numBootReps+" times"+eol;
@@ -405,7 +406,7 @@ public class LogisticRegression extends RegressionModel {
 			return "Did not run";
 		}
 
-		eol = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
+		eol = Files.isWindows()?"\r\n":"\n";
 		for (int i = 1; i<betas.length; i++) {
 			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(stats[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7)+"\t  "+ext.formDeci(odds_ratios[i][0], sigfigs, true)+" ("+ext.formDeci(odds_ratios[i][1], sigfigs, true)+", "+ext.formDeci(odds_ratios[i][2], sigfigs, true)+")"+eol;
 			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], sigfigs, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7)+"\t"+ext.prettyP(sigs[i])+"\t==CHIDIST("+Math.abs(stats[i])+",1) (untested)"+eol;
@@ -465,7 +466,7 @@ public class LogisticRegression extends RegressionModel {
 		double[][] accs = getAccuracy();
 		String eol;
 		
-		eol = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
+		eol = Files.isWindows()?"\r\n":"\n";
 
 		str += "\t\tcut pt\taccuracy\tspecificity\tsensitivity"+eol;
 		str += "Maxed:\t"+ext.formDeci(accs[0][0], 4, true)+"\t"+ext.formDeci(accs[0][1], 3)+"\t\t"+ext.formDeci(accs[0][2], 3)+"\t\t"+ext.formDeci(accs[0][3], 3)+eol;
