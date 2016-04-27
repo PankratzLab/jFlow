@@ -33,12 +33,12 @@ import htsjdk.variant.vcf.VCFFileReader;
  *
  */
 public class BetaOptimizer {
-	// /home/pankrat2/shared/skatMeta/exome_chip_hematology/WBC_TOTAL/Whites/SingleSNP
+	// 
 
 	private static final String RS_HEADER = "rsID";
 	private static final String BETA_HEADER = "beta";
 
-	private static void run(MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, String betaFile, Logger log) {
+	public static void run(MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, String betaFile, Logger log) {
 		new File(outpuDir).mkdirs();
 		String outSer = outpuDir + "rsIdLookup.ser";
 		ArrayList<MarkerRsFormat> markerRsFormats = null;
@@ -226,6 +226,10 @@ public class BetaOptimizer {
 			return posMarker;
 		}
 
+		int getProjectIndex() {
+			return projectIndex;
+		}
+
 		SITE_TYPE getType() {
 			return type;
 		}
@@ -254,7 +258,7 @@ public class BetaOptimizer {
 			return markerAlleles;
 		}
 
-		private boolean flipBetas() {
+		 boolean flipBetas() {
 			if (!validMatch) {
 				throw new IllegalArgumentException("Did not have valid rs id match, this method should not be used");
 			}
