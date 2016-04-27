@@ -17,6 +17,7 @@ import cnv.analysis.pca.PrincipalComponentsManhattan;
 import cnv.filesys.*;
 import cnv.filesys.Project.FileProperty;
 import cnv.filesys.Project.Property;
+import cnv.gui.FileAndOutputSelectorGUI;
 import cnv.gui.ImportProjectGUI;
 import cnv.gui.PlinkExportOptions;
 //import cnv.gui.KitAndKaboodleGUI;
@@ -632,7 +633,26 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					}
 				});
 			} else if (command.equals(EXPORT_CNVS)) {
-				cnv.manage.ExportCNVsToPedFormat.main(null);
+			    
+			    String[] inOut = FileAndOutputSelectorGUI.showFileAndOutputSelector(Launch.this, null, JFileChooser.FILES_ONLY, null, null, JFileChooser.FILES_ONLY);
+			    if (inOut == null) return;
+			    
+			    String cnvFilename = inOut[0];
+			    String pedFilename = proj.PEDIGREE_FILENAME.getValue();
+			    String outputRoot = ext.rootOf(inOut[1], false);
+			    String endOfLine = Files.isWindows() ? "\r\n" : "\n";
+			    String fileFormat = ExportCNVsToPedFormat.PLINK_BINARY_FORMAT;
+			    boolean includeDele = true;
+			    boolean includeDupl = true;
+			    boolean ordered = false;
+			    boolean collapsed = false;
+			    boolean homozygous = false;
+			    boolean excludeMonomorphicLoci = false;
+			    int lociPerFile = Integer.MAX_VALUE;
+			    int window = 0;
+			    
+			    ExportCNVsToPedFormat.export(cnvFilename, pedFilename, outputRoot, endOfLine, fileFormat, includeDele, includeDupl, ordered, collapsed, homozygous, excludeMonomorphicLoci, lociPerFile, window, proj.getLog());			    
+				
 			} else if (command.equals(CYTO_WORKBENCH)) {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
@@ -749,7 +769,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			System.exit(0);
 		} else if (command.equals(EDIT)) {
 //		    boolean promptNodepad = false;
-//		    if (System.getProperty("os.name").startsWith("Windows")) {
+//		    if (Files.isWindows()) {
 //		        promptNodepad = Files.programExists("notepad.exe");
 //		    }
 //		    boolean notepad = false;
