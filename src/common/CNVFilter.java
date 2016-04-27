@@ -404,10 +404,15 @@ public class CNVFilter {
     public void setCentromereBoundariesFromFile(String fullPathToSnpMarkerSetFilename) {
         if (fullPathToSnpMarkerSetFilename == null || fullPathToSnpMarkerSetFilename.equals("")) {
             setCentromereBoundaries(CNVFilter.NO_FILTER_CENTROMERE_BOUNDARIES);
-        } else {
+        } else if (fullPathToSnpMarkerSetFilename.endsWith(".bim") || fullPathToSnpMarkerSetFilename.endsWith(".map") || fullPathToSnpMarkerSetFilename.endsWith(".txt")) {
+            SnpMarkerSet markerSet = new SnpMarkerSet(fullPathToSnpMarkerSetFilename);
+            setPositions(markerSet.getPositionsByChr());
+            setCentromereBoundaries(Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(), markerSet.getPositions(), build, log));
+        } else if (fullPathToSnpMarkerSetFilename.endsWith(".ser")) {
             SnpMarkerSet markerSet = SnpMarkerSet.load(fullPathToSnpMarkerSetFilename, false);
             setPositions(markerSet.getPositionsByChr());
             setCentromereBoundaries(Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(), markerSet.getPositions(), build, log));
+        } else {
         }
         computeCentromereMidPoints();
     }
