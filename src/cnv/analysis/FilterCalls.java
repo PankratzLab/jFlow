@@ -1900,6 +1900,8 @@ public class FilterCalls {
 				"ped=plink.fam",
 				"# if CNV spans centromere, break into two spanning actual markers",
 				"breakCentromere=true",
+				"# if breakCentromere is set to true, custom marker set to determine the last and first marker of the centromeres",
+				"markerFile=",
 				"# make a UCSC track (.bed file) as well",
 				"ucsc=true",
 				"",
