@@ -20,12 +20,12 @@ public class Emim {
 		if (runType.equals("C")) {
 			if (allelic) {
 				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-						{"0   << estimate R1 (0=no, 1=yes)", "1   << estimate R1 (0=no, 1=yes)"},
-						{"0   << estimate R2 (0=no, 1=yes)", "1   << estimate R2 (0=no, 1=yes)"},
+						{"1   << estimate R1 (0=no, 1=yes)", "0   << estimate R1 (0=no, 1=yes)"},
+						{"1   << estimate R2 (0=no, 1=yes)", "0   << estimate R2 (0=no, 1=yes)"},
 						{"0   << R2=R1 (0=no, 1=yes)", "1   << R2=R1 (0=no, 1=yes)"},
 						{"1   << estimate S1 (0=no, 1=yes)", "0   << estimate S1 (0=no, 1=yes)"},
 						{"1   << estimate S2 (0=no, 1=yes)", "0   << estimate S2 (0=no, 1=yes)"},
-						{"0   << S2=S1 (0=no, 1=yes)", "1   << S2=S1 (0=no, 1=yes)"}
+						{"1   << S2=S1 (0=no, 1=yes)", "0   << S2=S1 (0=no, 1=yes)"}
 	
 					}, log);
 			} else {
@@ -45,11 +45,11 @@ public class Emim {
 		if (runType.equals("CM")) {
 			if (allelic) {
 				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-						{"0   << estimate R1 (0=no, 1=yes)", "1   << estimate R1 (0=no, 1=yes)"}, 
-						{"0   << estimate R2 (0=no, 1=yes)", "1   << estimate R2 (0=no, 1=yes)"},
+						{"1   << estimate R1 (0=no, 1=yes)", "0   << estimate R1 (0=no, 1=yes)"}, 
+						{"1   << estimate R2 (0=no, 1=yes)", "0   << estimate R2 (0=no, 1=yes)"},
 						{"0   << R2=R1 (0=no, 1=yes)", "1   << R2=R1 (0=no, 1=yes)"},
-						{"0   << estimate S1 (0=no, 1=yes)", "1   << estimate S1 (0=no, 1=yes)"}, 
-						{"0   << estimate S2 (0=no, 1=yes)", "1   << estimate S2 (0=no, 1=yes)"},
+						{"1   << estimate S1 (0=no, 1=yes)", "0   << estimate S1 (0=no, 1=yes)"}, 
+						{"1   << estimate S2 (0=no, 1=yes)", "0   << estimate S2 (0=no, 1=yes)"},
 						{"0   << S2=S1 (0=no, 1=yes)", "1   << S2=S1 (0=no, 1=yes)"}
 					}, log);
 			} else {
@@ -69,9 +69,9 @@ public class Emim {
 				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
 						{"1   << estimate R1 (0=no, 1=yes)", "0   << estimate R1 (0=no, 1=yes)"}, 
 						{"1   << estimate R2 (0=no, 1=yes)", "0   << estimate R2 (0=no, 1=yes)"},
-						{"0   << R2=R1 (0=no, 1=yes)", "1   << R2=R1 (0=no, 1=yes)"},
-						{"0   << estimate S1 (0=no, 1=yes)", "1   << estimate S1 (0=no, 1=yes)"}, 
-						{"0   << estimate S2 (0=no, 1=yes)", "1   << estimate S2 (0=no, 1=yes)"},
+						{"1   << R2=R1 (0=no, 1=yes)", "0   << R2=R1 (0=no, 1=yes)"},
+						{"1   << estimate S1 (0=no, 1=yes)", "0   << estimate S1 (0=no, 1=yes)"}, 
+						{"1   << estimate S2 (0=no, 1=yes)", "0   << estimate S2 (0=no, 1=yes)"},
 						{"0   << S2=S1 (0=no, 1=yes)", "1   << S2=S1 (0=no, 1=yes)"}
 					}, log);
 			} else {

@@ -223,7 +223,7 @@ public class EmimPipeline {
                 String resultFile = plinkRoot;
 
                 log.reportTimeInfo("Generating EMIM files for PLINK root " + plinkRoot);
-                Emim.scriptAllInDir(runDir + plinkDir, plinkRoot, plinkRoot, "GEN", null, pThreshold, resultFile);
+                Emim.scriptAllInDir(runDir + plinkDir, plinkRoot, "../" + plinkRoot, "GEN", null, pThreshold, resultFile);
                 String pbsFile = plinkDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
                 if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
                 pbsFiles.add(pbsFile);
@@ -231,7 +231,7 @@ public class EmimPipeline {
                 for (int p = 0; p < popData.pops.length; p++) {
                     String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
                     resultFile = plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true);
-                    Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../" + plinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
+                    Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../../" + plinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
                     pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
                     if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
                     pbsFiles.add(pbsFile);
@@ -239,7 +239,7 @@ public class EmimPipeline {
                     for (int sP = 0; sP < subPopData.pops.length; sP++) {
                         String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/"; 
                         resultFile = plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true);
-                        Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../" + plinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
+                        Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../../" + plinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
                         pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
                         if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
                         pbsFiles.add(pbsFile);
