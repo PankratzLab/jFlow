@@ -45,7 +45,7 @@ public class processAricExomeBetas {
 		abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
 		String mapSer = out + "rsIDMap.ser";
 		if (!Files.exists(mapSer)) {
-			BetaOptimizer.mapToRsIds(markerSet, abLookup, GENOME_RESOURCE_TYPE.DB_SNP147.getResource(GENOME_BUILD.HG19).getResource(proj.getLog()), markerSet.getMarkerNames(), mapSer, proj.getLog());
+			BetaOptimizer.mapToRsIds(proj, abLookup, GENOME_RESOURCE_TYPE.DB_SNP147.getResource(GENOME_BUILD.HG19).getResource(proj.getLog()), markerSet.getMarkerNames(), mapSer, proj.getLog());
 		}
 		ArrayList<MarkerRsFormat> markerRsFormats = MarkerRsFormat.readSerial(mapSer, proj.getLog());
 		ArrayList<String> rsOut = new ArrayList<String>();
@@ -83,7 +83,7 @@ public class processAricExomeBetas {
 
 			BufferedReader reader = Files.getAppropriateReader(beta);
 			// writer.println(Array.toStr(betaHeader) + "\tMarkerName\tPos\trsID\trsRef\trsAlt\tmarkerA\tmarkerB\tconfig\tsiteType");
-			writerFinal.println("rsID\tref\talt\tbeta\tp");
+			writerFinal.println("rsID\tref\talt\tbeta\tp\tA\tB\tF1\tF2\tconfig\toriginalbeta");
 			reader.readLine();
 			while (reader.ready()) {
 
@@ -140,7 +140,7 @@ public class processAricExomeBetas {
 					if (m.flipBetas()) {
 						betaVal = -1 * betaVal;
 					}
-					writerFinal.println(m.getRs() + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + betaVal + "\t" + line[pvalIndex] + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + effAllele);
+					writerFinal.println(m.getRs() + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + betaVal + "\t" + line[pvalIndex] + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + effAllele + "\t" + line[betaIndex]);
 				}
 
 			}
@@ -169,7 +169,7 @@ public class processAricExomeBetas {
 		MarkerSet markerSet2 = proj2.getMarkerSet();
 		abLookup2 = new ABLookup(markerSet2.getMarkerNames(), proj2.AB_LOOKUP_FILENAME.getValue(), true, true, proj2.getLog());
 		String mapSer2 = out2 + "rsIDMap.ser";
-		BetaOptimizer.run(markerSet2, abLookup2, GENOME_RESOURCE_TYPE.DB_SNP147.getResource(GENOME_BUILD.HG19).getResource(proj2.getLog()), proj2.getNonCNMarkers(), mapSer2, outBeta, proj2.getLog());
+//		BetaOptimizer.prep(markerSet2, abLookup2, GENOME_RESOURCE_TYPE.DB_SNP147.getResource(GENOME_BUILD.HG19).getResource(proj2.getLog()), proj2.getNonCNMarkers(), mapSer2, outBeta, proj2.getLog());
 
 	}
 }
