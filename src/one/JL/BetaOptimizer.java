@@ -3,22 +3,36 @@ package one.JL;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.concurrent.Callable;
 
 import seq.manage.StrandOps;
 import seq.manage.VCOps;
 import seq.manage.StrandOps.CONFIG;
 import common.Array;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.Positions;
 import common.ext;
+import common.WorkerTrain.Producer;
+import cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
+import cnv.analysis.pca.CorrectionIterator.MODEL_BUILDER_TYPE;
+import cnv.analysis.pca.CorrectionIterator.ORDER_TYPE;
+import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.ABLookup;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
+import cnv.manage.ExtProjectDataParser;
+import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import cnv.manage.MDL;
+import cnv.manage.Markers;
 import cnv.manage.Resources.ARRAY_RESOURCE_TYPE;
 import cnv.manage.Resources.GENOME_BUILD;
 import cnv.manage.Resources.GENOME_RESOURCE_TYPE;
@@ -33,12 +47,125 @@ import htsjdk.variant.vcf.VCFFileReader;
  *
  */
 public class BetaOptimizer {
-	// 
+	//
+	private static final String[] BETA_HEADER = new String[] { "rsID", "ref", "alt", "beta", "p" };
 
-	private static final String RS_HEADER = "rsID";
-	private static final String BETA_HEADER = "beta";
+	private static final String SUB_DIR = "_eval/typed/";
 
-	public static void run(MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, String betaFile, Logger log) {
+//	private static class BetaProducer implements Producer<Boolean> {
+//		private byte[][] genotypes;
+//
+//		private @Override public boolean hasNext() {
+//			// TODO Auto-generated method stub
+//			return false;
+//		}
+//
+//		@Override
+//		public Callable<Boolean> next() {
+//			// TODO Auto-generated method stub
+//			return null;
+//		}
+//
+//		@Override
+//		public void shutdown() {
+//			// TODO Auto-generated method stub
+//
+//		}
+//
+//	}
+
+	private static void analyzeAll(Project proj, String pcFile, String samplesToBuildModels, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, String[] betas, double[] pvals, Logger log) {
+		for (int i = 0; i < betas.length; i++) {
+			analyze(proj, pcFile, samplesToBuildModels, markerSet, abLookup, dbsnpVCF, namesToQuery, outpuDir, betas[i], pvals, log);
+		}
+	}
+
+	private static void analyze(Project proj, String pcFile, String samplesToBuildModels, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, String betaFile, double[] pvals, Logger log) {
+
+		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
+
+		ArrayList<MetaBeta> metaBetas = prep(proj, markerSet, abLookup, dbsnpVCF, namesToQuery, outpuDir, betaFile, Array.max(pvals), log);
+		boolean[] samplesForModels = Array.booleanArray(proj.getSamples().length, false);
+
+		if (samplesToBuildModels != null) {
+			log.reportTimeInfo("Loading model builders from " + samplesToBuildModels);
+			String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[] { 0 }, true);
+			log.reportTimeInfo("Loaded " + sampsForMods.length + " model builders from " + samplesToBuildModels);
+
+			int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true, proj.getLog(), true, false);
+			for (int i = 0; i < indices.length; i++) {
+				samplesForModels[indices[i]] = true;
+			}
+		} else {
+			samplesForModels = Array.booleanArray(proj.getSamples().length, true);
+		}
+		int numComp = Files.getHeaderOfFile(pcFile, log).length - 2;
+		for (int i = 0; i < pvals.length; i++) {
+			ArrayList<MetaBeta> current = filter(metaBetas, pvals[i]);
+			if (current.size() > 2) {
+				byte[][] genos = loadGenos(proj, markerSet, metaBetas);
+
+				for (MODEL_BUILDER_TYPE btype : MODEL_BUILDER_TYPE.values()) {
+					for (ITERATION_TYPE itype : ITERATION_TYPE.values()) {
+						for (ORDER_TYPE oType : ORDER_TYPE.values()) {
+							String file = subDir + btype + "_" + oType + "_" + itype + "_finalSummary.estimates.txt.gz";
+							if (Files.exists(file)) {
+								ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
+								builder.sampleBased(true);
+								builder.requireAll(true);
+								builder.dataKeyColumnIndex(0);
+								builder.treatAllNumeric(true);
+								
+								
+
+							} else {
+								log.reportTimeWarning("Expecting file " + file + ", and did not find it");
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	private static ArrayList<MetaBeta> filter(ArrayList<MetaBeta> metaBetas, double pval) {
+		ArrayList<MetaBeta> filt = new ArrayList<MetaBeta>();
+		for (MetaBeta m : metaBetas) {
+			if (m.getP() < pval) {
+				filt.add(m);
+			}
+		}
+		return filt;
+	}
+
+	private static double[] getBetas(ArrayList<MetaBeta> metaBetas) {
+		double[] betas = new double[metaBetas.size()];
+		for (int i = 0; i < betas.length; i++) {
+			betas[i] = metaBetas.get(i).getBeta();
+		}
+		return betas;
+
+	}
+
+	private static byte[][] loadGenos(Project proj, MarkerSet markerSet, ArrayList<MetaBeta> metaBetas) {
+		byte[][] genos = new byte[metaBetas.size()][];
+		String[] markerNames = new String[metaBetas.size()];
+
+		for (int i = 0; i < genos.length; i++) {
+			markerNames[i] = metaBetas.get(i).getMarkerRsFormat().getMarkerName();
+		}
+		MDL mdl = new MDL(proj, markerSet, markerNames, 2, 100);
+		int index = 0;
+		proj.getLog().reportTimeInfo("Loading genotypes...");
+		while (mdl.hasNext()) {
+			genos[index] = mdl.next().getAbGenotypes();
+			index++;
+		}
+		return genos;
+	}
+
+	public static ArrayList<MetaBeta> prep(Project proj, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, String betaFile, double minPval, Logger log) {
 		new File(outpuDir).mkdirs();
 		String outSer = outpuDir + "rsIdLookup.ser";
 		ArrayList<MarkerRsFormat> markerRsFormats = null;
@@ -52,18 +179,21 @@ public class BetaOptimizer {
 			}
 		}
 		if (markerRsFormats == null) {
-			markerRsFormats = mapToRsIds(markerSet, abLookup, dbsnpVCF, namesToQuery, outSer, log);
+			markerRsFormats = mapToRsIds(proj, abLookup, dbsnpVCF, namesToQuery, outSer, log);
 		}
-		ArrayList<MetaBeta> metaBetas = loadBetas(markerRsFormats, betaFile, log);
+		// log.reportTimeInfo("Loaded " + markerRsFormats.size() + " markers with rsIds");
+		ArrayList<MetaBeta> metaBetas = loadBetas(markerRsFormats, betaFile, minPval, log);
+		log.reportTimeInfo("Loaded " + metaBetas.size() + " valid rsIds, having valid betas and  pval less than " + minPval);
+		return metaBetas;
 
 		// for(Me)
 	}
 
-	private static ArrayList<MetaBeta> loadBetas(ArrayList<MarkerRsFormat> markerRsFormats, String betaFile, Logger log) {
+	private static ArrayList<MetaBeta> loadBetas(ArrayList<MarkerRsFormat> markerRsFormats, String betaFile, double minPval, Logger log) {
 		String[] header = Files.getHeaderOfFile(betaFile, log);
-		int[] indices = ext.indexFactors(new String[] { RS_HEADER, BETA_HEADER }, header, false, false);
+		int[] indices = ext.indexFactors(BETA_HEADER, header, false, false);
 		if (Array.countIf(indices, -1) > 0) {
-			log.reportTimeError("Did not detect proper header in " + betaFile + ", requires " + RS_HEADER + " AND " + BETA_HEADER);
+			log.reportTimeError("Did not detect proper header in " + betaFile + ", requires " + Array.toStr(BETA_HEADER));
 			return null;
 		} else {
 			ArrayList<MetaBeta> metaBetas = new ArrayList<BetaOptimizer.MetaBeta>();
@@ -76,21 +206,26 @@ public class BetaOptimizer {
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("\t");
 					String rsId = line[indices[0]];
+
 					if (index.containsKey(rsId)) {
 						try {
-							double beta = Double.parseDouble(line[indices[1]]);
-							if (Double.isFinite(beta)) {
+							double beta = Double.parseDouble(line[indices[3]]);
+							double p = Double.parseDouble(line[indices[4]]);
+							if (Double.isFinite(beta) && Double.isFinite(p) && p < minPval) {
 								MarkerRsFormat current = markerRsFormats.get(index.get(rsId));
-								if (current.flipBetas()) {
-									beta *= -1;
+								if (current.isValidMatch()) {
+									if (current.flipBetas()) {
+										beta *= -1;
+									}
+									MetaBeta me = new MetaBeta(current, beta, p);
+									metaBetas.add(me);
 								}
-								MetaBeta me = new MetaBeta(current, beta);
-								metaBetas.add(me);
-							} else {
-								log.reportTimeWarning("Invalid beta on line " + Array.toStr(line));
+							} else if (!Double.isFinite(beta) || !Double.isFinite(p)) {
+								log.reportTimeWarning("Invalid number on line " + Array.toStr(line));
+								log.reportTimeWarning(line[indices[3]] + "\t" + line[indices[4]]);
 							}
 						} catch (NumberFormatException nfe) {
-							log.reportTimeWarning("Invalid beta on line " + Array.toStr(line));
+							log.reportTimeWarning("Invalid number on line " + Array.toStr(line));
 						}
 					}
 
@@ -117,81 +252,116 @@ public class BetaOptimizer {
 	 * Map a projects markers to rsIds by chr,pos,and alleles
 	 * 
 	 */
-	public static ArrayList<MarkerRsFormat> mapToRsIds(MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outSer, Logger log) {
-
+	public static ArrayList<MarkerRsFormat> mapToRsIds(Project proj, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outSer, Logger log) {
+		MarkerSet markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		int[] indices = ext.indexLargeFactors(namesToQuery, markerNames, true, log, true, false);
+		int[] posIndices = indices;
+		if (proj.GENOME_BUILD_VERSION.getValue() != GENOME_BUILD.HG19) {
+			if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
+				proj.getLog().reportTimeInfo("Attempting to use " + GENOME_BUILD.HG19.getBuild() + " positions for rsID lookup");
+				Resource affyhg19 = ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(GENOME_BUILD.HG19);
+				String tmpSer = ext.rootOf(outSer, false) + "hg19.positions.ser";
+
+				if (!Files.exists(tmpSer)) {
+					Markers.orderMarkers(null, affyhg19.getResource(log), tmpSer, proj.getLog());
+
+				}
+				markerSet = MarkerSet.load(tmpSer, false);
+				posIndices = ext.indexLargeFactors(namesToQuery, markerSet.getMarkerNames(), true, log, true, false);
+
+			} else {
+				throw new IllegalArgumentException("Genome version must be " + GENOME_BUILD.HG19.getBuild());
+			}
+		}
+
 		Segment[] segs = new Segment[indices.length];
-		for (int i = 0; i < indices.length; i++) {
-			segs[i] = new Segment(markerSet.getChrs()[indices[i]], markerSet.getPositions()[indices[i]], markerSet.getPositions()[indices[i]] + 1);
+		for (int i = 0; i < posIndices.length; i++) {
+			if (posIndices[i] >= 0) {
+				segs[i] = new Segment(markerSet.getChrs()[posIndices[i]], markerSet.getPositions()[posIndices[i]], markerSet.getPositions()[posIndices[i]] + 1);
+			} else {
+				segs[i] = new Segment((byte) 0, 0, 0 + 1);
+			}
 		}
 
 		VCFFileReader reader = new VCFFileReader(dbsnpVCF, true);
 		ArrayList<MarkerRsFormat> markerRsFormats = new ArrayList<MarkerRsFormat>();
-		log.reportTimeInfo("Attempting to look up " + namesToQuery.length + " markers as rsIds from " + dbsnpVCF);
-		for (int i = 0; i < segs.length; i++) {
-			Segment current = segs[i];
-			String[] allelesMarker = new String[] { abLookup.getLookup()[indices[i]][0] + "".toUpperCase(), abLookup.getLookup()[indices[i]][1] + "".toUpperCase() };
-			if (i % 10000 == 0 && i > 0) {
-				log.reportTimeInfo("queried " + (i + 1) + " markers");
-			}
-			MarkerRsFormat markerRsFormat = new MarkerRsFormat(namesToQuery[i], current.getStart(), indices[i], "NA", new String[] { "N", "N" }, allelesMarker, CONFIG.STRAND_CONFIG_UNKNOWN, SITE_TYPE.UNKNOWN);
+		String outTxt = ext.rootOf(outSer, false) + ".txt";
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(outTxt));
+			writer.println("markerName\trsID\tref\talt\tA\tB");
+			log.reportTimeInfo("Attempting to look up " + namesToQuery.length + " markers as rsIds from " + dbsnpVCF);
+			for (int i = 0; i < segs.length; i++) {
+				Segment current = segs[i];
+				String[] allelesMarker = new String[] { abLookup.getLookup()[indices[i]][0] + "".toUpperCase(), abLookup.getLookup()[indices[i]][1] + "".toUpperCase() };
+				if (i % 10000 == 0 && i > 0) {
+					log.reportTimeInfo("queried " + (i + 1) + " markers");
+				}
+				MarkerRsFormat markerRsFormat = new MarkerRsFormat(namesToQuery[i], current.getStart(), indices[i], "NA", new String[] { "N", "N" }, allelesMarker, CONFIG.STRAND_CONFIG_UNKNOWN, SITE_TYPE.UNKNOWN);
 
-			if (Array.countIf(allelesMarker, "N") == 0) {
-				CloseableIterator<VariantContext> vcIter = reader.query(Positions.getChromosomeUCSC(current.getChr(), false), current.getStart() - 2, current.getStop() + 2);
-				boolean foundGood = false;
-				while (!foundGood && vcIter.hasNext()) {
-					VariantContext vc = vcIter.next();
+				if (Array.countIf(allelesMarker, "N") == 0) {
+					CloseableIterator<VariantContext> vcIter = reader.query(Positions.getChromosomeUCSC(current.getChr(), false), current.getStart() - 2, current.getStop() + 2);
+					boolean foundGood = false;
+					while (!foundGood && vcIter.hasNext()) {
+						VariantContext vc = vcIter.next();
 
-					if (!vc.isPointEvent() || current.getStart() == vc.getStart() || Integer.parseInt(VCOps.getAnnotationsFor(new String[] { "RSPOS" }, vc, "-1")[0]) == current.getStart()) {
-						String[][] allelesVC = new String[][] { { "N", "N" } };
-						if (vc.isPointEvent()) {
-							allelesVC = new String[vc.getAlternateAlleles().size()][];// tri allele possibility
+						if (!vc.isPointEvent() || current.getStart() == vc.getStart() || Integer.parseInt(VCOps.getAnnotationsFor(new String[] { "RSPOS" }, vc, "-1")[0]) == current.getStart()) {
+							String[][] allelesVC = new String[][] { { "N", "N" } };
+							if (vc.isPointEvent()) {
+								allelesVC = new String[vc.getAlternateAlleles().size()][];// tri allele possibility
+								for (int j = 0; j < allelesVC.length; j++) {
+									allelesVC[j] = new String[] { vc.getReference().getBaseString(), vc.getAlternateAllele(j).getBaseString() };
+								}
+							} else if (vc.isIndel()) {
+								if (vc.getReference().getBaseString().length() > vc.getAlternateAllele(0).length()) {
+									allelesVC = new String[][] { { "I", "D" } };
+								} else {
+									allelesVC = new String[][] { { "D", "I" } };
+								}
+							}
+							// else {//MNP, CLUMPED, SV...should'nt be on arrays
+							// throw new IllegalArgumentException("Unknown variant type " + vc.toStringWithoutGenotypes());
+							//
+							// }
 							for (int j = 0; j < allelesVC.length; j++) {
-								allelesVC[j] = new String[] { vc.getReference().getBaseString(), vc.getAlternateAllele(j).getBaseString() };
-							}
-						} else if (vc.isIndel()) {
-							if (vc.getReference().getBaseString().length() > vc.getAlternateAllele(0).length()) {
-								allelesVC = new String[][] { { "I", "D" } };
-							} else {
-								allelesVC = new String[][] { { "D", "I" } };
-							}
-						}
-						// else {//MNP, CLUMPED, SV...should'nt be on arrays
-						// throw new IllegalArgumentException("Unknown variant type " + vc.toStringWithoutGenotypes());
-						//
-						// }
-						for (int j = 0; j < allelesVC.length; j++) {
-							if (!foundGood) {
-								String[] tmpMarkerAlleles = new String[] { allelesMarker[0], allelesMarker[1] };
-								String[] tmpVcAllel = new String[] { allelesVC[j][0], allelesVC[j][1] };
+								if (!foundGood) {
+									String[] tmpMarkerAlleles = new String[] { allelesMarker[0], allelesMarker[1] };
+									String[] tmpVcAllel = new String[] { allelesVC[j][0], allelesVC[j][1] };
 
-								CONFIG config = StrandOps.determineStrandConfig(tmpMarkerAlleles, tmpVcAllel);
-								markerRsFormat = new MarkerRsFormat(namesToQuery[i], current.getStart(), indices[i], vc.getID(), allelesVC[j], allelesMarker, config, vc.isBiallelic() ? SITE_TYPE.BIALLELIC : SITE_TYPE.TRIALLELIC);
-								switch (config) {
+									CONFIG config = StrandOps.determineStrandConfig(tmpMarkerAlleles, tmpVcAllel);
+									markerRsFormat = new MarkerRsFormat(namesToQuery[i], current.getStart(), indices[i], vc.getID(), allelesVC[j], allelesMarker, config, vc.isBiallelic() ? SITE_TYPE.BIALLELIC : SITE_TYPE.TRIALLELIC);
+									switch (config) {
 
-								case STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
-								case STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
-								case STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
-								case STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
-									markerRsFormat.setValidMatch(true);
-									foundGood = true;
-									break;
-								case STRAND_CONFIG_BOTH_NULL:
-								case STRAND_CONFIG_DIFFERENT_ALLELES:
-								case STRAND_CONFIG_SPECIAL_CASE:
-								default:
-									break;
+									case STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
+									case STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
+									case STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
+									case STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
+										markerRsFormat.setValidMatch(true);
+										foundGood = true;
+										break;
+									case STRAND_CONFIG_BOTH_NULL:
+									case STRAND_CONFIG_DIFFERENT_ALLELES:
+									case STRAND_CONFIG_SPECIAL_CASE:
+									default:
+										break;
+									}
 								}
 							}
 						}
-					}
 
+					}
 				}
+				markerRsFormats.add(markerRsFormat);
+				writer.println(markerRsFormat.getMarkerName() + "\t" + markerRsFormat.getRs() + "\t" + Array.toStr(markerRsFormat.getDbSnpAlleles()) + "\t" + Array.toStr(markerRsFormat.getMarkerAlleles()));
 			}
-			markerRsFormats.add(markerRsFormat);
+			writer.close();
+
+		} catch (Exception e) {
+			log.reportError("Error writing to " + outTxt);
+			log.reportException(e);
 		}
 		reader.close();
+
 		// log.reportTimeInfo("Detected " + markerRsFormats.size() + " valid rs ids from " + dbsnpVCF);
 		MarkerRsFormat.writeSerial(markerRsFormats, outSer);
 		return markerRsFormats;
@@ -269,7 +439,7 @@ public class BetaOptimizer {
 			return markerAlleles;
 		}
 
-		 boolean flipBetas() {
+		boolean flipBetas() {
 			if (!validMatch) {
 				throw new IllegalArgumentException("Did not have valid rs id match, this method should not be used");
 			}
@@ -294,29 +464,48 @@ public class BetaOptimizer {
 	private static class MetaBeta {
 		private MarkerRsFormat markerRsFormat;
 		private double beta;
+		private double p;
 
-		public MetaBeta(MarkerRsFormat markerRsFormat, double beta) {
+		public MetaBeta(MarkerRsFormat markerRsFormat, double beta, double p) {
 			super();
 			this.markerRsFormat = markerRsFormat;
 			this.beta = beta;
+			this.p = p;
+		}
+
+		MarkerRsFormat getMarkerRsFormat() {
+			return markerRsFormat;
+		}
+
+		double getBeta() {
+			return beta;
+		}
+
+		double getP() {
+			return p;
 		}
 
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project("C:/workspace/Genvisis/projects/OSv2_hg19.properties", false);
-		String betaFile = null;
+		Project proj = new Project("/home/pankrat2/lanej/projects/Aric_gw6.properties", false);
+		String out = proj.PROJECT_DIRECTORY.getValue() + "betaOpt/";
+		new File(out).mkdirs();
+		proj.AB_LOOKUP_FILENAME.setValue(out + "AB_LookupBeta.dat");
+		ABLookup abLookup = new ABLookup();
 		if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
-			ABLookup abLookup = new ABLookup();
-			abLookup.parseFromGenotypeClusterCenters(proj);
+			abLookup.parseFromAnnotationVCF(proj);
 			abLookup.writeToFile(proj.AB_LOOKUP_FILENAME.getValue(), proj.getLog());
 		}
-		MarkerSet markerSet = proj.getMarkerSet();
-		ABLookup abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
 
+		MarkerSet markerSet = proj.getMarkerSet();
+		abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
 		Resource dbsnp = GENOME_RESOURCE_TYPE.DB_SNP147.getResource(GENOME_BUILD.HG19);
-		Resource test = ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(GENOME_BUILD.HG18);
-		test.getResource(proj.getLog());
-		run(markerSet, abLookup, dbsnp.getResource(proj.getLog()), proj.getAutosomalMarkers(), proj.PROJECT_DIRECTORY.getValue() + "betaOpt/", betaFile, proj.getLog());
+		String betaFile = "/home/pankrat2/shared/MitoPipeLineResources/betas/Whites_WBC_TOTAL_SingleSNPmatched.final.txt";
+		String betaFileDir = "/home/pankrat2/shared/MitoPipeLineResources/betas/";
+		String[] betaFiles = Files.list(betaFileDir, "", ".beta", true, false, true);
+		String pcFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/ohw_ws_20_ALL1000PCs_gc_corrected_OnTheFly_SampLRR_Recomp_LRR_035CR_096.PCs.extrapolated.txt";
+		double[] pvals = new double[] { .05, .01, .001 };
+		analyzeAll(proj, pcFile, null, markerSet, abLookup, dbsnp.getResource(proj.getLog()), proj.getNonCNMarkers(), out, betaFiles, pvals, proj.getLog());
 	}
 }

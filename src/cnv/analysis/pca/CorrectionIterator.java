@@ -38,7 +38,7 @@ import cnv.manage.ExtProjectDataParser;
 import cnv.manage.TransposeData;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 
-class CorrectionIterator implements Serializable {
+public class CorrectionIterator implements Serializable {
 	/**
 	 * 
 	 */
