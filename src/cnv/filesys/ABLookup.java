@@ -257,11 +257,11 @@ public class ABLookup {
 					Allele B = tmp.getB();
 					char a = 'N';
 					char b = 'N';
-					if (tmp.isIndel()) {
-						if (tmp.isaDeletion()) {
+					if (tmp.isIndel() || A.getBaseString().length() != B.getBaseString().length()) {
+						if (tmp.isaDeletion() || A.getBaseString().length() < B.getBaseString().length()) {
 							a = 'D';
 							b = 'I';// actually this is typically just :equals reference;
-						} else if (tmp.isbDeletion()) {
+						} else if (tmp.isbDeletion() || A.getBaseString().length() > B.getBaseString().length()) {
 							a = 'I';
 							b = 'D';
 						} else {
@@ -269,10 +269,13 @@ public class ABLookup {
 						}
 					} else {
 						if (!A.isSymbolic()) {
-							a = StrandOps.flipIfNeeded(A.getDisplayString(), strand, false).charAt(0);
+							a = A.getDisplayString().charAt(0); //right? do we really want to convert ab to positive strand?
+							// StrandOps.flipIfNeeded(A.getDisplayString(), strand, false).charAt(0);
 						}
 						if (!B.isSymbolic()) {
-							b = StrandOps.flipIfNeeded(B.getDisplayString(), strand, false).charAt(0);
+							b = B.getDisplayString().charAt(0);
+//							b = StrandOps.flipIfNeeded(B.getDisplayString(), strand, false).charAt(0);
+
 						}
 					}
 					lookup[indx] = new char[] { a, b };
