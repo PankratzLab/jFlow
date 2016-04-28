@@ -236,6 +236,8 @@ public class ABLookup {
 			proj.getLog().reportTimeWarning("Could not find " + proj.BLAST_ANNOTATION_FILENAME.getValue() + ", trying to parse from original genotypes instead");
 		} else {
 			proj.getLog().reportTimeWarning("This method has not been completely tested, you have been warned");
+			proj.getLog().reportTimeWarning("This does not convert to positive strand anymore you have been warned again");
+
 			try {
 				MarkerSet markerSet = proj.getMarkerSet();
 				markerNames = markerSet.getMarkerNames();
