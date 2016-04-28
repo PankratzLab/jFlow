@@ -11,6 +11,9 @@ import java.util.Hashtable;
 
 import javax.swing.SwingUtilities;
 
+import one.ben.fcs.gating.Gate;
+import one.ben.fcs.gating.Gate.*;
+import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 import stats.Histogram;
 import cnv.filesys.ClusterFilter;
 import cnv.plots.GenericLine;
@@ -95,7 +98,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 //		String[] line;
 		float xAxisValue, yAxisValue;
 		byte size = POINT_SIZE;
-		byte color = 0;
 		
 		if (fcp.dataLoader == null && !fcp.isLoading) {
 		    setNullMessage("Please load an FCS file..");
@@ -162,8 +164,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		yData = columnsChangedY || dataChanged || yData == null ? fcp.getAxisData(false, false) : yData;
 		
 //		zoomable = true;
-		setForcePlotXMin(0);// TODO fix this to be more intelligent
-		setForcePlotYMin(0);//
+//		setForcePlotXMin(0);// TODO fix this to be more intelligent
+//		setForcePlotYMin(0);//
 		
 		ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
 		if (showMedSD[0] || showMedSD[1]) {
@@ -196,7 +198,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		
         lines = lineList.toArray(new GenericLine[lineList.size()]);
         lineList = null;
-		
+
+        byte color = 0;
         if (columnsChangedX || columnsChangedY || dataChanged) {
     		points = new PlotPoint[dataCount];
     		for (int i = 0; i < points.length; i++) {
@@ -207,10 +210,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     			} else {
     				type = PlotPoint.FILLED_CIRCLE;
     			}
+    			color = 0; // TODO apply gating for colors
     			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
     		}
             rects.clear();
-            rectangles = new GenericRectangle[0];
+            
+            rectangles = rects.toArray(new GenericRectangle[rects.size()]);
         }
 	}
 	
@@ -269,18 +274,18 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             }
             paintAgain();
         } else {
-        	double tempValX = getXValueFromXPixel(tempX);
-        	double tempValY = getYValueFromYPixel(tempY);
-            for (int i = 0; i < rects.size(); i++) {
-            	GenericRectangle rect = rects.get(i);
-            	if (rect.getStartXValue() <= tempValX && rect.getStopXValue() >= tempValX && rect.getStartYValue() <= tempValY && rect.getStopYValue() >= tempValY) {
-            		toRemove = i;
-            		break;
-            	}
-            }
-            if (toRemove != -1) {
-            	rects.remove(toRemove);
-            }
+//        	double tempValX = getXValueFromXPixel(tempX);
+//        	double tempValY = getYValueFromYPixel(tempY);
+//            for (int i = 0; i < rects.size(); i++) {
+//            	GenericRectangle rect = rects.get(i);
+//            	if (rect.getStartXValue() <= tempValX && rect.getStopXValue() >= tempValX && rect.getStartYValue() <= tempValY && rect.getStopYValue() >= tempValY) {
+//            		toRemove = i;
+//            		break;
+//            	}
+//            }
+//            if (toRemove != -1) {
+//            	rects.remove(toRemove);
+//            }
             super.mousePressed(e);
         }
     }

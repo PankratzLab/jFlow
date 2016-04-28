@@ -19,7 +19,6 @@ import java.util.HashSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.activation.UnsupportedDataTypeException;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -34,8 +33,6 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import net.miginfocom.swing.MigLayout;
@@ -43,10 +40,6 @@ import one.ben.fcs.FCSDataLoader.DATA_SET;
 import one.ben.fcs.gating.GateFileReader;
 import one.ben.fcs.gating.GatingStrategy;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import common.Array;
@@ -230,6 +223,9 @@ public class RainbowTestGUI extends JFrame {
     private void setGateFile(String filePath) {
         try {
             GatingStrategy gateStrat = GateFileReader.readGateFile(filePath);
+            
+            
+            
         } catch (ParserConfigurationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -240,7 +236,6 @@ public class RainbowTestGUI extends JFrame {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        
     }
     
     static class DirFile {
