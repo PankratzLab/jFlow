@@ -6,6 +6,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,6 +17,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.Path2D;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -32,12 +35,13 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import one.ben.fcs.gating.GateDimension;
+import one.ben.fcs.gating.Gate.EllipsoidGate;
 import mining.Distance;
 import stats.Maths;
 import cnv.plots.GenericLine;
 import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
-
 import common.Array;
 import common.Grafik;
 import common.HashVec;
@@ -800,6 +804,47 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				}
 			}
         }
+		
+//		EllipsoidGate eg = new EllipsoidGate();
+//		GateDimension gd;
+//		gd = new GateDimension("FSC-A");
+//		eg.addDimension(gd);
+//		gd = new GateDimension("SSC-A");
+//		eg.addDimension(gd);
+//		eg.foci = new double[][]{
+//                {40.7517545213 * 1024,
+//                35.3805559842 * 1024},
+//                {51.2482454787 * 1024,
+//                    68.6194440158 * 1024}
+//		};
+//		eg.edges = new double[][]{
+//		        {53248, // 52
+//                72704}, // 71
+//                {40960, // 40
+//                33792}, // 33
+//                {56320, // 55
+//                50176}, // 49
+//                {37888, // 37
+//                57344}, // 56
+//		};
+//		double minX = Math.min(Math.min(eg.edges[0][0], eg.edges[1][0]), Math.min(eg.edges[2][0], eg.edges[3][0]));
+//		double minY = Math.min(Math.min(eg.edges[0][1], eg.edges[1][1]), Math.min(eg.edges[2][1], eg.edges[3][1]));
+//        double maxX = Math.max(Math.max(eg.edges[0][0], eg.edges[1][0]), Math.max(eg.edges[2][0], eg.edges[3][0]));
+//        double maxY = Math.max(Math.max(eg.edges[0][1], eg.edges[1][1]), Math.max(eg.edges[2][1], eg.edges[3][1]));
+//		Ellipse2D ell = new Ellipse2D.Double(getXPixel(minX), getYPixel(minY), getXPixel(maxX) - getXPixel(minX), getYPixel(minY)- getYPixel(maxY));
+//		Color gCol = g.getColor();
+//		g.setColor(Color.RED);
+//		
+//		Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+//		path.moveTo(getXPixel(eg.edges[0][0]), getYPixel(eg.edges[0][1]));
+//		path.lineTo(getXPixel(eg.edges[1][0]), getYPixel(eg.edges[0][1]));
+//		path.lineTo(getXPixel(eg.edges[2][0]), getYPixel(eg.edges[0][1]));
+//		path.lineTo(getXPixel(eg.edges[3][0]), getYPixel(eg.edges[0][1]));
+//		path.closePath();
+//		
+//		((Graphics2D)g).fill(path);
+//		g.setColor(gCol);
+		
 		
 		g.setClip(null);
 		

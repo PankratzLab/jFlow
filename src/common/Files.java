@@ -2133,7 +2133,7 @@ public class Files {
 	}
 
 	public static String getSizeScaledString(String filename, boolean jar) {
-	    String[] bases = {"kb", "Mb", "Gb", "Tb", "Eb"};
+	    String[] bases = {"b", "kb", "Mb", "Gb", "Tb", "Eb"};
 	    
 	    double[] sz = getSizeScaled(filename, jar);
 	    if (sz[0] == -1) {

@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
@@ -14,7 +15,6 @@ import org.flowcyt.cfcs.CFCSAbstractData;
 import org.flowcyt.cfcs.CFCSData;
 import org.flowcyt.cfcs.CFCSDataSet;
 import org.flowcyt.cfcs.CFCSError;
-import org.flowcyt.cfcs.CFCSKeyword;
 import org.flowcyt.cfcs.CFCSKeywords;
 import org.flowcyt.cfcs.CFCSListModeData;
 import org.flowcyt.cfcs.CFCSParameter;
@@ -22,12 +22,11 @@ import org.flowcyt.cfcs.CFCSParameters;
 import org.flowcyt.cfcs.CFCSSpillover;
 import org.flowcyt.cfcs.CFCSSystem;
 
-import java.util.HashMap;
-
 import common.Array;
 import common.Files;
 import common.Matrix;
 import common.ext;
+
 import ejml.CommonOps;
 import ejml.DenseMatrix64F;
 
@@ -429,33 +428,33 @@ public class FCSDataLoader {
         
         return compensated;
     }
-    
-    private static float[][] compensate(ArrayList<String> dataColNames, float[][] data, String[] spillColNames, DenseMatrix64F spillMatrix) {
-        int[] spillLookup = new int[dataColNames.size()];
-        for (int i = 0; i < spillLookup.length; i++) {
-            spillLookup[i] = ext.indexOfStr(dataColNames.get(i), spillColNames);
-        }
-        
-        float[][] compensated = new float[data.length][];
-        for (int r = 0; r < data.length; r++) {
-            compensated[r] = new float[data[r].length];
-            for (int c = 0; c < data[r].length; c++) {
-                if (spillLookup[c] == -1) {
-                    compensated[r][c] = data[r][c];
-                    continue;
-                }
-                float sum = 0f;
-                for (int c1 = 0; c1 < data[r].length; c1++) {
-                    if (spillLookup[c1] == -1) continue;
-                    sum += data[r][c1] * spillMatrix.get(spillLookup[c1], spillLookup[c]);
-                }
-                compensated[r][c] = sum;
-            }
-        }
-        
-        return compensated;
-    }
-    
-    
+//    
+//    private static float[][] compensate(ArrayList<String> dataColNames, float[][] data, String[] spillColNames, DenseMatrix64F spillMatrix) {
+//        int[] spillLookup = new int[dataColNames.size()];
+//        for (int i = 0; i < spillLookup.length; i++) {
+//            spillLookup[i] = ext.indexOfStr(dataColNames.get(i), spillColNames);
+//        }
+//        
+//        float[][] compensated = new float[data.length][];
+//        for (int r = 0; r < data.length; r++) {
+//            compensated[r] = new float[data[r].length];
+//            for (int c = 0; c < data[r].length; c++) {
+//                if (spillLookup[c] == -1) {
+//                    compensated[r][c] = data[r][c];
+//                    continue;
+//                }
+//                float sum = 0f;
+//                for (int c1 = 0; c1 < data[r].length; c1++) {
+//                    if (spillLookup[c1] == -1) continue;
+//                    sum += data[r][c1] * spillMatrix.get(spillLookup[c1], spillLookup[c]);
+//                }
+//                compensated[r][c] = sum;
+//            }
+//        }
+//        
+//        return compensated;
+//    }
+//    
+//    
     
 }

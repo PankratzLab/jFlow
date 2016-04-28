@@ -10,6 +10,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import one.ben.fcs.gating.Gate.*;
+import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -92,11 +95,11 @@ public class GateFileReader {
             ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
-                RectangleGateDimension gd = new RectangleGateDimension();
+                String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
+                RectangleGateDimension gd = new RectangleGateDimension(param);
                 String min = ((Element) dimNode).getAttribute("gating:min");
                 String max = ((Element) dimNode).getAttribute("gating:max");
 //                ((Element) dimNode).getAttribute("yRatio"); // TODO dunno what yRatio is used for yet
-                String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
                 gd.paramName = param;
                 gd.min = "".equals(min) ? Float.NEGATIVE_INFINITY : Float.parseFloat(min);
                 gd.max = "".equals(max) ? Float.POSITIVE_INFINITY : Float.parseFloat(max);
@@ -108,43 +111,43 @@ public class GateFileReader {
             ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
-                GateDimension gd = new GateDimension();
                 String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
+                GateDimension gd = new GateDimension(param);
                 gd.paramName = param;
                 gate.dimensions.add(gd);
             }
-            ((EllipsoidGate) gate).foci = new Float[2][2];  
+            ((EllipsoidGate) gate).foci = new double[2][2];  
             ArrayList<Node> fociNodes = getChildNodes(getFirstChild(gateNode, "gating:foci"), "gating:vertex");
             // TODO check that fociNodes.size() == 2??
             for (int i = 0; i < ((EllipsoidGate) gate).foci.length; i++) {
                 ArrayList<Node> coordNodes = getChildNodes(fociNodes.get(i), "gating:coordinate");
-                ((EllipsoidGate) gate).foci[i][0] = Float.parseFloat(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
-                ((EllipsoidGate) gate).foci[i][1] = Float.parseFloat(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
+                ((EllipsoidGate) gate).foci[i][0] = Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
+                ((EllipsoidGate) gate).foci[i][1] = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
             }
             ArrayList<Node> edgeNodes = getChildNodes(getFirstChild(gateNode, "gating:edge"), "gating:vertex");
-            ((EllipsoidGate) gate).edges = new Float[4][2];
+            ((EllipsoidGate) gate).edges = new double[4][2];
             for (int i = 0; i < ((EllipsoidGate) gate).edges.length; i++) {
                 ArrayList<Node> coordNodes = getChildNodes(edgeNodes.get(i), "gating:coordinate");
-                ((EllipsoidGate) gate).edges[i][0] = Float.parseFloat(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
-                ((EllipsoidGate) gate).edges[i][1] = Float.parseFloat(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
+                ((EllipsoidGate) gate).edges[i][0] = Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
+                ((EllipsoidGate) gate).edges[i][1] = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
             }
         } else if ("PolygonGate".equals(gateType)) {
             gate = new PolygonGate();
             ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
-                GateDimension gd = new GateDimension();
                 String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
+                GateDimension gd = new GateDimension(param);
                 gd.paramName = param;
                 gate.dimensions.add(gd);
             }
             ArrayList<Node> vertexNodes = getChildNodes(gateNode, "gating:vertex");
             for (Node n : vertexNodes) {
                 ArrayList<Node> coordNodes = getChildNodes(n, "gating:coordinate");
-                Float[] floatArr = new Float[2];
-                floatArr[0] = Float.parseFloat(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
-                floatArr[1] = Float.parseFloat(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
-                ((PolygonGate) gate).vertices.add(floatArr);
+                Float fX = Float.parseFloat(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
+                Float fY = Float.parseFloat(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
+                ((PolygonGate) gate).verticesX.add(fX);
+                ((PolygonGate) gate).verticesY.add(fY);
             }
             
         } else if ("QuadrantGate".equals(gateType)) {
