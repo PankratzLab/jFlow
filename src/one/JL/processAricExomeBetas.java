@@ -1,5 +1,7 @@
 package one.JL;
 
+import htsjdk.tribble.annotation.Strand;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 import one.JL.BetaOptimizer.MarkerRsFormat;
+import seq.manage.StrandOps;
+import seq.manage.StrandOps.CONFIG;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -25,10 +29,9 @@ public class processAricExomeBetas {
 
 	public static void main(String[] args) {
 
-		String flipFile = "/panfs/roc/groups/5/pankrat2/shared/MitoPipeLineResources/ExomeCHip/flip.txt";
+		String flipFile = "/panfs/roc/groups/5/pankrat2/shared/MitoPipeLineResources/ExomeCHip/alleleExome.txt";
 
-		Hashtable<String, String> flipLook = HashVec.loadFileToHashString(flipFile, false);
-
+		Hashtable<String, String> flipLook = HashVec.loadFileToHashString(flipFile, 0, new int[] { 1, 2 }, "\t", true);
 		Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties", false);
 		String out = proj.PROJECT_DIRECTORY.getValue() + "betaOpti/";
 		new File(out).mkdirs();
@@ -66,15 +69,21 @@ public class processAricExomeBetas {
 		}
 		int markerIndex = ext.indexOfStr("Name", betaHeader);
 		int betaIndex = ext.indexOfStr("beta", betaHeader);
+		int pvalIndex = ext.indexOfStr("p", betaHeader);
 
 		System.out.println(markerIndex + "\t" + Array.toStr(betaHeader));
 		String outDir = "/home/pankrat2/shared/MitoPipeLineResources/betas/";
 		new File(outDir).mkdirs();
 		String outBeta = outDir + ext.rootOf(beta) + "matched.txt";
+		String outBetaFinal = outDir + ext.rootOf(beta) + "matched.final.txt";
+
 		try {
-			PrintWriter writer = new PrintWriter(new FileWriter(outBeta));
+			// PrintWriter writer = new PrintWriter(new FileWriter(outBeta));
+			PrintWriter writerFinal = new PrintWriter(new FileWriter(outBetaFinal));
+
 			BufferedReader reader = Files.getAppropriateReader(beta);
-			writer.println(Array.toStr(betaHeader) + "\tMarkerName\tPos\trsID\trsRef\trsAlt\tmarkerA\tmarkerB\tconfig\tsiteType");
+			// writer.println(Array.toStr(betaHeader) + "\tMarkerName\tPos\trsID\trsRef\trsAlt\tmarkerA\tmarkerB\tconfig\tsiteType");
+			writerFinal.println("rsID\tref\talt\tbeta\tp");
 			reader.readLine();
 			while (reader.ready()) {
 
@@ -85,30 +94,59 @@ public class processAricExomeBetas {
 					System.exit(1);
 				}
 				MarkerRsFormat m = markerRsFormats.get(match.get(line[markerIndex]));
-				String[] aNo = new String[] { abLookup.getLookup()[m.getProjectIndex()][0] + "", abLookup.getLookup()[m.getProjectIndex()][1] + "" };
+				String[] aNo = m.getMarkerAlleles();
 				String effAllele = flipLook.get(line[markerIndex]);
-				int eff = ext.indexOfStr(effAllele, aNo);
-				if (eff < 0) {
-					System.out.println(line[markerIndex] + "\t" + effAllele + "\t" + Array.toStr(aNo) + "\t" + Array.toStr(m.getMarkerAlleles()));
-					throw new IllegalArgumentException("Cant determine effect");
-				}
 				double betaVal = Double.NaN;
-				try {
-					betaVal = Double.parseDouble(line[betaIndex]);
-					if (eff == 1) {
+
+				if (!effAllele.contains("0")) {
+					CONFIG config = StrandOps.determineStrandConfig(m.getMarkerAlleles(), effAllele.split("\t"));
+					try {
+						betaVal = Double.parseDouble(line[betaIndex]);
+
+					} catch (NumberFormatException nfe) {
+
+					}
+					switch (config) {
+					case STRAND_CONFIG_BOTH_NULL:
+						System.out.println(config + "\t" + line[markerIndex] + "\t" + effAllele + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + m.getRs());
+
+						break;
+					case STRAND_CONFIG_DIFFERENT_ALLELES:
+						System.out.println(config + "\t" + line[markerIndex] + "\t" + effAllele + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + m.getRs());
+
+						break;
+					case STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:// opposit order of the effect allele (forward Strand)
+					case STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
+						betaVal = -1 * betaVal;
+						break;
+					case STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
+					case STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
+						break;
+					case STRAND_CONFIG_SPECIAL_CASE:
+						System.out.println(config + "\t" + line[markerIndex] + "\t" + effAllele + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + m.getRs());
+
+						break;
+					case STRAND_CONFIG_UNKNOWN:
+						break;
+					default:
+						break;
+
+					}
+				}
+
+				// line[betaIndex] = betaVal + "";
+				// writer.println(Array.toStr(line) + "\t" + m.getMarkerName() + "\t" + m.getPosMarker() + "\t" + m.getRs() + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + m.getType());
+				if (m.isValidMatch() && Double.isFinite(betaVal)) {
+					if (m.flipBetas()) {
 						betaVal = -1 * betaVal;
 					}
-				} catch (NumberFormatException nfe) {
+					writerFinal.println(m.getRs() + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + betaVal + "\t" + line[pvalIndex] + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + effAllele);
+				}
 
-				}
-				if (m.flipBetas()) {
-					betaVal = -1 * betaVal;
-				}
-				line[betaIndex] = betaVal + "";
-				writer.println(Array.toStr(line) + "\t" + m.getMarkerName() + "\t" + m.getPosMarker() + "\t" + m.getRs() + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + m.getType());
 			}
+			writerFinal.close();
 			reader.close();
-			writer.close();
+			// writer.close();
 			System.exit(1);
 
 		} catch (FileNotFoundException fnfe) {

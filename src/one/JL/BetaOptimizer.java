@@ -163,7 +163,10 @@ public class BetaOptimizer {
 						// }
 						for (int j = 0; j < allelesVC.length; j++) {
 							if (!foundGood) {
-								CONFIG config = StrandOps.determineStrandConfig(allelesMarker, allelesVC[j]);
+								String[] tmpMarkerAlleles = new String[] { allelesMarker[0], allelesMarker[1] };
+								String[] tmpVcAllel = new String[] { allelesVC[j][0], allelesVC[j][1] };
+
+								CONFIG config = StrandOps.determineStrandConfig(tmpMarkerAlleles, tmpVcAllel);
 								markerRsFormat = new MarkerRsFormat(namesToQuery[i], current.getStart(), indices[i], vc.getID(), allelesVC[j], allelesMarker, config, vc.isBiallelic() ? SITE_TYPE.BIALLELIC : SITE_TYPE.TRIALLELIC);
 								switch (config) {
 
@@ -230,6 +233,10 @@ public class BetaOptimizer {
 			return projectIndex;
 		}
 
+		boolean flippedStrand() {
+			return config == CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND || config == CONFIG.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND;
+		}
+
 		SITE_TYPE getType() {
 			return type;
 		}
@@ -244,6 +251,10 @@ public class BetaOptimizer {
 
 		private void setValidMatch(boolean validMatch) {
 			this.validMatch = validMatch;
+		}
+
+		boolean isValidMatch() {
+			return validMatch;
 		}
 
 		public String getMarkerName() {
