@@ -254,6 +254,10 @@ public class Rscript {
 		private PLOT_DEVICE device;
 		private Logger log;
 
+		public RScatters(ArrayList<RScatter> rsScatters, String rScriptFile, String mergeOutput, COLUMNS_MULTIPLOT cMultiplot, PLOT_DEVICE device, Logger log) {
+			this(rsScatters.toArray(new RScatter[rsScatters.size()]), rScriptFile, mergeOutput, cMultiplot, device, log);
+		}
+
 		public RScatters(RScatter[] rScatter, String rScriptFile, String mergeOutput, COLUMNS_MULTIPLOT cMultiplot, PLOT_DEVICE device, Logger log) {
 			super();
 			this.rScatters = rScatter;

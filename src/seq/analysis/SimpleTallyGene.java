@@ -53,21 +53,23 @@ public class SimpleTallyGene {
 
 	private static void run() {
 		String vcfGermline = "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.vcf.gz";
-		String vcfTumor = "D:/data/Project_Tsai_21_25_26_28_spector/Cushings/candidateGenes/tnMatch.merged.renamed.hg19_multianno.eff.gatk.anno_charge.sed1000g.finalMerge.vcf.gz";
+		
+		Segment[] segs = new Segment[] { new Segment("chr1:206,516,200-206,637,783"),  };
+		String[] names = new String[] { "SRGAP2" };
+		 String vpopFileGermline = "D:/data/logan/OSv2_seq/SRGAP2/OSTEO_OFF_INHERIT.vpop";
 
-		Segment[] segs = new Segment[] { new Segment("chr18:20,714,528-20,840,434"), new Segment("chr15:50714579-50795277") };
-		String[] names = new String[] { "CABLES1", "USP8", };
-
-		String vpopFileGermline = "D:/data/Project_Tsai_21_25_26_28_spector/Cushings/candidateGenes/CUSHING_FREQ.vpop";
-		String vpopFileTumor = "D:/data/Project_Tsai_21_25_26_28_spector/Cushings/candidateGenes/CUSHINGS_TUMOR.vpop";
 
 		WorkerHive<Params> hive = new WorkerHive<SimpleTallyGene.Params>(1, 1, new Logger());
 		String omimDir = "C:/bin/ref/OMIM/";
 		for (int i = 0; i < names.length; i++) {
 			hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermline, omimDir, null));
-			hive.addCallable(new Params(vcfTumor, segs[i], names[i], vpopFileTumor, omimDir, FilterNGS.generateFilter(FILTER_GENERATION_TYPE.TN, 1.2, false, new Logger())));
+//			hive.addCallable(new Params(vcfTumor, segs[i], names[i], vpopFileTumor, omimDir, FilterNGS.generateFilter(FILTER_GENERATION_TYPE.TN, 1.2, false, new Logger())));
 		}
 		hive.execute(true);
+//		String vcfTumor = "D:/data/Project_Tsai_21_25_26_28_spector/Cushings/candidateGenes/tnMatch.merged.renamed.hg19_multianno.eff.gatk.anno_charge.sed1000g.finalMerge.vcf.gz";
+
+		// String vpopFileGermline = "D:/data/Project_Tsai_21_25_26_28_spector/Cushings/candidateGenes/CUSHING_FREQ.vpop";
+		// String vpopFileTumor = "D:/data/Project_Tsai_21_25_26_28_spector/Cushings/candidateGenes/CUSHINGS_TUMOR.vpop";
 	}
 
 	public static void main(String[] args) {
