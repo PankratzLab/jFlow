@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -17,8 +18,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +44,7 @@ import mining.Distance;
 import stats.Maths;
 import cnv.plots.GenericLine;
 import cnv.plots.GenericRectangle;
+import cnv.plots.GenericPath;
 import cnv.plots.PlotPoint;
 import common.Array;
 import common.Grafik;
@@ -126,7 +130,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	protected PlotPoint[] points;						// make private when worked out
 	protected GenericLine[] lines;
 	protected GenericRectangle[] rectangles;
+	protected GenericPath[] shapes;
+	protected GenericLine highlightLine;
 	protected GenericRectangle highlightRectangle;
+	protected GenericPath highlightShape;
 	protected String xAxisLabel;
 	protected String yAxisLabel;
 	protected String title;
@@ -442,6 +449,29 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public void setSymmetricAxes(boolean b) {
 		makeSymmetric = b;
 	}
+	
+	public Path2D getPixelPath(Path2D dataPath) {
+        PathIterator pathIter = dataPath.getPathIterator(null);
+        Path2D path = new Path2D.Double();
+        while (!pathIter.isDone()) {
+            double[] pts = new double[6];
+            int type = pathIter.currentSegment(pts);
+            switch (type) {
+            case PathIterator.SEG_MOVETO:
+                path.moveTo(getXPixel(pts[0]), getYPixel(pts[1]));
+                break;
+            case PathIterator.SEG_LINETO:
+                path.lineTo(getXPixel(pts[0]), getYPixel(pts[1]));
+            case PathIterator.SEG_QUADTO:
+                path.quadTo(getXPixel(pts[0]), getYPixel(pts[1]), getXPixel(pts[2]), getYPixel(pts[3]));
+                break;
+            case PathIterator.SEG_CLOSE:
+                path.closePath();
+            }
+            pathIter.next();
+        }
+        return path;
+	}
 
 	public void drawAll(Graphics g, boolean base) {
 		float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
@@ -460,7 +490,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		int step;
 		long time;
 		ProgressBarDialog prog;
-    	int rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel;
+    	int xPixel, yPixel, widthPixel, heightPixel;
 
 		setImageStatus(IMAGE_STARTED);
     	
@@ -759,104 +789,115 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             }
         }
 
-		// Draw the rectangles for clusterFilters
 		for (int i = 0; rectangles!=null && i<rectangles.length && flow; i++) {
 			if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
-				rectangleXPixel = Math.min(getXPixel(rectangles[i].getStartXValue()), getXPixel(rectangles[i].getStopXValue()));
-				rectangleYPixel = Math.min(getYPixel(rectangles[i].getStartYValue()), getYPixel(rectangles[i].getStopYValue()));
-		    	rectangleWidthPixel = Math.abs(getXPixel(rectangles[i].getStartXValue()) - getXPixel(rectangles[i].getStopXValue()));
-		    	rectangleHeightPixel = (Math.abs(getYPixel(rectangles[i].getStartYValue()) - getYPixel(rectangles[i].getStopYValue())));
+				xPixel = Math.min(getXPixel(rectangles[i].getStartXValue()), getXPixel(rectangles[i].getStopXValue()));
+				yPixel = Math.min(getYPixel(rectangles[i].getStartYValue()), getYPixel(rectangles[i].getStopYValue()));
+		    	widthPixel = Math.abs(getXPixel(rectangles[i].getStartXValue()) - getXPixel(rectangles[i].getStopXValue()));
+		    	heightPixel = (Math.abs(getYPixel(rectangles[i].getStartYValue()) - getYPixel(rectangles[i].getStopYValue())));
 		    	g.setColor(colorScheme[rectangles[i].getColor()]);
 				
 				if (rectangles[i].getFill()) {
 					if (rectangles[i].getColor() != rectangles[i].getFillColor()) {
 						if (rectangles[i].getRoundedCorners()) {
-							g.drawRoundRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, 2, 2);
+							g.drawRoundRect(xPixel, yPixel, widthPixel, heightPixel, 2, 2);
 							g.setColor(colorScheme[rectangles[i].getFillColor()]);
-							g.fillRoundRect(rectangleXPixel + rectangles[i].getThickness(), rectangleYPixel + rectangles[i].getThickness(), rectangleWidthPixel - (rectangles[i].getThickness() * 2) + 1, rectangleHeightPixel - (rectangles[i].getThickness() * 2) + 1, 2, 2);
+							g.fillRoundRect(xPixel + rectangles[i].getThickness(), yPixel + rectangles[i].getThickness(), widthPixel - (rectangles[i].getThickness() * 2) + 1, heightPixel - (rectangles[i].getThickness() * 2) + 1, 2, 2);
 							g.setColor(colorScheme[rectangles[i].getColor()]);
 						} else {
-					    	drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, rectangles[i].getThickness());
+					    	drawRectThick(g, xPixel, yPixel, widthPixel, heightPixel, rectangles[i].getThickness());
 					    	g.setColor(colorScheme[rectangles[i].getFillColor()]);
-							g.fillRect(rectangleXPixel + rectangles[i].getThickness(), rectangleYPixel + rectangles[i].getThickness(), rectangleWidthPixel - (rectangles[i].getThickness() * 2) + 1, rectangleHeightPixel - (rectangles[i].getThickness() * 2) + 1);
+							g.fillRect(xPixel + rectangles[i].getThickness(), yPixel + rectangles[i].getThickness(), widthPixel - (rectangles[i].getThickness() * 2) + 1, heightPixel - (rectangles[i].getThickness() * 2) + 1);
 							g.setColor(colorScheme[rectangles[i].getColor()]);
 						}
 					} else {
 						if (rectangles[i].getRoundedCorners()) {
-							g.fillRoundRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, 2, 2);
+							g.fillRoundRect(xPixel, yPixel, widthPixel, heightPixel, 2, 2);
 						} else {
-							g.fillRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel);
+							g.fillRect(xPixel, yPixel, widthPixel, heightPixel);
 						}
 					}
 				} else {
 					if (rectangles[i].getRoundedCorners()) {
-						g.drawRoundRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, 2, 2);
+						g.drawRoundRect(xPixel, yPixel, widthPixel, heightPixel, 2, 2);
 					} else {
-				    	drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, rectangles[i].getThickness());
+				    	drawRectThick(g, xPixel, yPixel, widthPixel, heightPixel, rectangles[i].getThickness());
 					}
 				}
-				if (!rectangles[i].getRoundedCorners()) {
+				if (rectangles[i].getEditable()) { // draw corner/control points
 				    g.setColor(Color.black);
-				    g.fillRect(rectangleXPixel - 2, rectangleYPixel - 2, 4, 4);
-				    g.fillRect(rectangleXPixel + rectangleWidthPixel - 2, rectangleYPixel - 2, 4, 4);
-				    g.fillRect(rectangleXPixel + rectangleWidthPixel - 2, rectangleYPixel + rectangleHeightPixel - 2, 4, 4);
-				    g.fillRect(rectangleXPixel - 2, rectangleYPixel + rectangleHeightPixel - 2, 4, 4);
+				    g.fillRect(xPixel - 2, yPixel - 2, 4, 4);
+				    g.fillRect(xPixel + widthPixel - 2, yPixel - 2, 4, 4);
+				    g.fillRect(xPixel + widthPixel - 2, yPixel + heightPixel - 2, 4, 4);
+				    g.fillRect(xPixel - 2, yPixel + heightPixel - 2, 4, 4);
 				}
 			}
         }
 		
-//		EllipsoidGate eg = new EllipsoidGate();
-//		GateDimension gd;
-//		gd = new GateDimension("FSC-A");
-//		eg.addDimension(gd);
-//		gd = new GateDimension("SSC-A");
-//		eg.addDimension(gd);
-//		eg.foci = new double[][]{
-//                {40.7517545213 * 1024,
-//                35.3805559842 * 1024},
-//                {51.2482454787 * 1024,
-//                    68.6194440158 * 1024}
-//		};
-//		eg.edges = new double[][]{
-//		        {53248, // 52
-//                72704}, // 71
-//                {40960, // 40
-//                33792}, // 33
-//                {56320, // 55
-//                50176}, // 49
-//                {37888, // 37
-//                57344}, // 56
-//		};
-//		double minX = Math.min(Math.min(eg.edges[0][0], eg.edges[1][0]), Math.min(eg.edges[2][0], eg.edges[3][0]));
-//		double minY = Math.min(Math.min(eg.edges[0][1], eg.edges[1][1]), Math.min(eg.edges[2][1], eg.edges[3][1]));
-//        double maxX = Math.max(Math.max(eg.edges[0][0], eg.edges[1][0]), Math.max(eg.edges[2][0], eg.edges[3][0]));
-//        double maxY = Math.max(Math.max(eg.edges[0][1], eg.edges[1][1]), Math.max(eg.edges[2][1], eg.edges[3][1]));
-//		Ellipse2D ell = new Ellipse2D.Double(getXPixel(minX), getYPixel(minY), getXPixel(maxX) - getXPixel(minX), getYPixel(minY)- getYPixel(maxY));
-//		Color gCol = g.getColor();
-//		g.setColor(Color.RED);
-//		
-//		Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-//		path.moveTo(getXPixel(eg.edges[0][0]), getYPixel(eg.edges[0][1]));
-//		path.lineTo(getXPixel(eg.edges[1][0]), getYPixel(eg.edges[0][1]));
-//		path.lineTo(getXPixel(eg.edges[2][0]), getYPixel(eg.edges[0][1]));
-//		path.lineTo(getXPixel(eg.edges[3][0]), getYPixel(eg.edges[0][1]));
-//		path.closePath();
-//		
-//		((Graphics2D)g).fill(path);
-//		g.setColor(gCol);
-		
+		for (int i = 0; shapes !=null && i < shapes.length && flow; i++) {
+		    Graphics2D g2d = (Graphics2D) g;
+		    if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, shapes[i].getLayer()) >= 0)) {
+		        g.setColor(colorScheme[shapes[i].getColor()]);
+		        if (shapes[i].getFill()) {
+		            if (shapes[i].getColor() != shapes[i].getFillColor()) {
+		                g.setColor(colorScheme[shapes[i].getFillColor()]);
+		                g2d.fill(shapes[i].getPath());
+		                g.setColor(colorScheme[shapes[i].getColor()]);
+		                g2d.draw(shapes[i].getPath());
+		            } else {
+		                g2d.fill(shapes[i].getPath());
+		            }
+		        } else {
+		            g2d.draw(getPixelPath(shapes[i].getPath()));
+		        }
+		        if (shapes[i].getEditable()) {
+    	            g.setColor(Color.black);
+    	            PathIterator path = shapes[i].getPath().getPathIterator(null);
+    	            while (!path.isDone()) {
+    	                double[] coords = Array.doubleArray(6, Double.NaN);
+    	                path.currentSegment(coords);
+    	                double x, y;
+    	                if (!Double.isNaN(coords[5])) {
+    	                    x = coords[4];
+    	                    y = coords[5];
+    	                } else if (!Double.isNaN(coords[3])) {
+    	                    x = coords[2];
+    	                    y = coords[3];
+    	                } else {
+    	                    x = coords[0];
+    	                    y = coords[1];
+    	                }
+                        g.fillRect(getXPixel(x) - 2, getYPixel(y) - 2, 4, 4);
+                        path.next();
+    	            }
+		        }
+		    }
+		}
 		
 		g.setClip(null);
 		
 		// Draw the rectangle outlined by dragging the mouse
 		if (highlightRectangle != null) {
-			rectangleXPixel = Math.min(getXPixel(highlightRectangle.getStartXValue()), getXPixel(highlightRectangle.getStopXValue()));
-			rectangleYPixel = Math.min(getYPixel(highlightRectangle.getStartYValue()), getYPixel(highlightRectangle.getStopYValue()));
-	    	rectangleWidthPixel = Math.abs(getXPixel(highlightRectangle.getStartXValue()) - getXPixel(highlightRectangle.getStopXValue()));
-	    	rectangleHeightPixel = (Math.abs(getYPixel(highlightRectangle.getStartYValue()) - getYPixel(highlightRectangle.getStopYValue())));
+			xPixel = Math.min(getXPixel(highlightRectangle.getStartXValue()), getXPixel(highlightRectangle.getStopXValue()));
+			yPixel = Math.min(getYPixel(highlightRectangle.getStartYValue()), getYPixel(highlightRectangle.getStopYValue()));
+	    	widthPixel = Math.abs(getXPixel(highlightRectangle.getStartXValue()) - getXPixel(highlightRectangle.getStopXValue()));
+	    	heightPixel = (Math.abs(getYPixel(highlightRectangle.getStartYValue()) - getYPixel(highlightRectangle.getStopYValue())));
 	    	g.setColor(colorScheme[0]);
-//	    	g.drawRect(rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel);
-	    	drawRectThick(g, rectangleXPixel, rectangleYPixel, rectangleWidthPixel, rectangleHeightPixel, (byte) 1);
+	    	drawRectThick(g, xPixel, yPixel, widthPixel, heightPixel, (byte) 1);
+		}
+
+		if (highlightLine != null) {
+		    xPixel = Math.min(getXPixel(highlightLine.getStartX()), getXPixel(highlightLine.getStopX()));
+		    yPixel = Math.min(getYPixel(highlightLine.getStartY()), getYPixel(highlightLine.getStopY()));
+		    widthPixel = Math.abs(getXPixel(highlightLine.getStartX()) - getXPixel(highlightLine.getStopX()));
+		    heightPixel = (Math.abs(getYPixel(highlightLine.getStartY()) - getYPixel(highlightLine.getStopY())));
+		    g.setColor(colorScheme[0]);
+		    drawRectThick(g, xPixel, yPixel, widthPixel, heightPixel, (byte) 1);
+		}
+
+		if (highlightShape != null) {
+		    g.setColor(colorScheme[0]);
+		    ((Graphics2D) g).draw(highlightShape.getPath());
 		}
 
 		if (numberOfNaNSamples > 0) {
@@ -909,22 +950,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 
 
-    /*
-     * Given a number, round up to the nearest power of ten
-     * times 1, 2, or 5.
-     *
-     * Note: The argument must be strictly positive.
-     */
-    private static double roundUp(double val) {
-        int exponent = (int) Math.floor(log10(val));
-        val *= Math.pow(10, -exponent);
-        if (val > 5.0) val = 10.0;
-        else if (val > 2.0) val = 5.0;
-        else if (val > 1.0) val = 2.0;
-        val *= Math.pow(10, exponent);
-        return val;
-    }
-    
     private void drawYAxis(Graphics g, double[] plotMinMaxStep) {
         int sigFigs;
         String str;
@@ -939,8 +964,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     	g.setFont(minFont);
     	fontMetrics = g.getFontMetrics();
 
-        int fontHgt = fontMetrics.getHeight();
-        
     	if (getYAxis() == AXIS_SCALE.LIN) {
 	    	for (double y = plotMinMaxStep[3]; y <= plotYmax; y += plotMinMaxStep[2]) {
 	    	    if (y >= plotYmin || !truncate) {
@@ -1144,9 +1167,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		int xPixel, yPixel;
 		int[][] intensities;
 //		boolean zoomedIn;
-		int[] origin;
+//		int[] origin;
 
-		origin = new int[] {0,0};
+//		origin = new int[] {0,0};
 
 //		zoomedIn = (Math.abs(getXValueFromXPixel(5) - getXValueFromXPixel(0)) < 0.002) || (Math.abs(getYValueFromYPixel(5) - getYValueFromYPixel(0)) < 0.002);
 		intensities = new int[nColumns][nRows];

@@ -593,7 +593,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
         	ClusterFilter clusterFilter;
         	mouseEndX = e.getX();
         	mouseEndY = e.getY();
-        	highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(mouseStartX), (float)getYValueFromYPixel(mouseStartY), (float)getXValueFromXPixel(mouseEndX), (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99);
+        	highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(mouseStartX), (float)getYValueFromYPixel(mouseStartY), (float)getXValueFromXPixel(mouseEndX), (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99, true);
         	
         	clusterFilter = new ClusterFilter((byte)sp.getPlotType(panelIndex),
         			(float)Math.min(getXValueFromXPixel(mouseStartX), getXValueFromXPixel(mouseEndX)),

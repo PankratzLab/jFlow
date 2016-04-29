@@ -11,8 +11,9 @@ public class GenericRectangle {
 	private byte color;
 	private byte fillColor;
 	private byte layer;
+	private boolean editable;
 
-	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
+	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer, boolean editable) {
 		this.startXValue = startX;
 		this.startYValue = startY;
 		this.stopXValue = stopX;
@@ -23,9 +24,10 @@ public class GenericRectangle {
 		this.color = color;
 		this.fillColor = color;
 		this.layer = layer;
+		this.editable = editable;
 	}
 	
-	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte fillColor, byte layer) {
+	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte fillColor, byte layer, boolean editable) {
 		this.startXValue = startX;
 		this.startYValue = startY;
 		this.stopXValue = stopX;
@@ -36,6 +38,7 @@ public class GenericRectangle {
 		this.color = color;
 		this.fillColor = fillColor;
 		this.layer = layer;
+		this.editable = editable;
 	}
 
 	public void setColor(byte color) {
@@ -68,6 +71,10 @@ public class GenericRectangle {
 
 	public boolean getFill() {
 		return fill;
+	}
+	
+	public boolean getEditable() {
+	    return editable;
 	}
 	
 	public boolean getRoundedCorners() {

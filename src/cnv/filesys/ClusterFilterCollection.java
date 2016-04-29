@@ -167,7 +167,8 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 												 fill,
 												 roundedCorners,
 												 color,
-												 layer);
+												 layer,
+												 true);
 			} else {
 				result[i] = new GenericRectangle(clusterFilters.get(i).getXMin(),
 												 clusterFilters.get(i).getYMin(),
@@ -177,7 +178,8 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 												 fill,
 												 roundedCorners,
 												 color,
-												 (byte) -1);
+												 (byte) -1,
+												 true);
 			}
 		}
 		return result;

@@ -337,7 +337,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				stopX = sig > 0 ? (float) ext.roundToSignificantFigures((float)(hist.getBins()[i] + binHalf), sig) : (float)(hist.getBins()[i] + binHalf);
 				stopY = hist.getCounts()[i];
 			}
-			rectangles[i] = new GenericRectangle(startX, startY, stopX, stopY, (byte) 5, true, false, (byte) 0, (byte) 2, (byte) 0);
+			rectangles[i] = new GenericRectangle(startX, startY, stopX, stopY, (byte) 5, true, false, (byte) 0, (byte) 2, (byte) 0, false);
 
 //			for (int j = 0; j < linkerData[i].length; j ++) {
 //				linkerData[i][j] = line[j + index];
