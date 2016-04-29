@@ -138,7 +138,7 @@ public class Emim {
                 "plink2 --noweb --bfile emimPrep --mendel\n"+
                 "mv plink.log plink_mendel.log\n"+
                 "\n"+
-                "plink2 --noweb --bfile emimPrep --tdt\n"+
+                "plink2 --noweb --bfile emimPrep --tdt --ci\n"+
                 "mv plink.log plink_tdt.log\n"+
                 "\n"+
                 "plink2 --noweb --bfile emimPrep --hardy\n"+
