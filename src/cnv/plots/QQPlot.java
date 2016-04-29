@@ -212,19 +212,26 @@ public class QQPlot extends JFrame implements ActionListener {
 						trav = temp.trim().split(delimiter, -1)[cols[i]];
 					}
 					if (!ext.isMissingValue(trav)) {
-						if (Double.parseDouble(trav) <= 0) {
+						try {
+							if (Double.parseDouble(trav) <= 0) {
+								if (invalids < 3) {
+									JOptionPane.showMessageDialog(null, "Error - one of the p-values in file "+filenames[i]+" is near zero ("+trav+") for line:\n"+ext.replaceAllWith(temp, delimiter, "  "), "Error", JOptionPane.ERROR_MESSAGE);
+								}
+								invalids++;
+							} else {
+								count++;
+							}
+						} catch (NumberFormatException nfe) {
 							if (invalids < 3) {
-								JOptionPane.showMessageDialog(null, "Error - one of the p-values in file "+filenames[i]+" is near zero ("+trav+") for line:\n"+ext.replaceAllWith(temp, delimiter, "  "), "Error", JOptionPane.ERROR_MESSAGE);
+								JOptionPane.showMessageDialog(null, "Error - one of the p-values in file "+filenames[i]+" is not a number ("+trav+") for line:\n"+ext.replaceAllWith(temp, delimiter, "  "), "Error", JOptionPane.ERROR_MESSAGE);
 							}
 							invalids++;
-						} else {
-							count++;
 						}
 					}
 				}
 				reader.close();
 				if (invalids > 2) {
-					JOptionPane.showMessageDialog(null, "There were "+invalids+" total markers that had a p-value at or near zero for file "+filenames[i], "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, "There were "+invalids+" total markers that had an invalid p-value for file "+filenames[i], "Error", JOptionPane.ERROR_MESSAGE);
 				}
 
 				reader = Files.getReader(filenames[i], JAR, true, true);
@@ -240,13 +247,15 @@ public class QQPlot extends JFrame implements ActionListener {
 						trav = reader.readLine().trim().split(delimiter, -1)[cols[i]];
 					}
 					if (!ext.isMissingValue(trav)) {
-						pvals[i][count] = Double.parseDouble(trav);
-						if (pvals[i][count] > 0) {
-							if (pvals[i][count] < minPval) {
-								pvals[i][count] = minPval;
+						try {
+							pvals[i][count] = Double.parseDouble(trav);
+							if (pvals[i][count] > 0) {
+								if (pvals[i][count] < minPval) {
+									pvals[i][count] = minPval;
+								}
+								count++;
 							}
-							count++;
-						}
+						} catch (NumberFormatException nfe) {}
 					}
 				}
 				reader.close();
