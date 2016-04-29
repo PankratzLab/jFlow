@@ -73,6 +73,13 @@ public abstract class Gate {
             this.dimensions.add(gd);
         }
         
+        public Path2D getPath() {
+            if (myPath == null) {
+                myPath = constructPath();
+            }
+            return myPath;
+        }
+        
         private Path2D constructPath() {
             Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
             path.moveTo(verticesX.get(0), verticesY.get(0));
@@ -109,10 +116,79 @@ public abstract class Gate {
     public static class EllipsoidGate extends Gate {
         public double[][] foci;
         public double[][] edges;
+        
+        double[][] ctrlPts;
+        Path2D myPath;
+        
+        public Path2D getPath() {
+            if (myPath == null) {
+                myPath = constructPath();
+            }
+            return myPath;
+        }
+        
+        private Path2D constructPath() {
+            if (ctrlPts == null) {
+                ctrlPts = EllipseCalc.calcAll(edges[1], edges[0], edges[3], edges[2]);
+            }
+            Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+            path.moveTo(edges[1][0], edges[1][1]);
+            path.quadTo(ctrlPts[0][0], ctrlPts[0][1], edges[3][0], edges[3][1]);
+            path.quadTo(ctrlPts[2][0], ctrlPts[2][1], edges[0][0], edges[0][1]);
+            path.quadTo(ctrlPts[3][0], ctrlPts[3][1], edges[2][0], edges[2][1]);
+            path.quadTo(ctrlPts[1][0], ctrlPts[1][1], edges[1][0], edges[1][1]);
+            path.closePath();
+            return path;
+        }
+        
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
-            throw new UnsupportedOperationException();
+            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
+            if (myPath == null) {
+                myPath = constructPath();
+            }
+            float[][] paramData = new float[dimensions.size()][];
+            for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
+                GateDimension gd = dimensions.get(p);
+                paramData[p] = dataLoader.getData(gd.paramName, true);
+            }
+            for (int i = 0; i < dataLoader.getCount(); i++) {
+                if (this.parentGate != null && !includes[i]) {
+                    continue;
+                }
+                includes[i] = myPath.contains(paramData[0][i], paramData[1][i]);
+            }
+            
+            return includes;
         }
+    }
+    
+    public static class EllipseCalc {
+        
+        public static double[][] calcAll(double[] xy1, double[] xy2, double[] xy3, double[] xy4) {
+            double m1 = calcSlope(xy1[0], xy1[1], xy2[0], xy2[1]);
+            double m2 = calcSlope(xy3[0], xy3[1], xy4[0], xy4[1]);
+            
+            double[] newPt1, newPt2, newPt3, newPt4;
+            
+            newPt1 = calc(m1, m2, xy1[0], xy1[1], xy3[0], xy3[1]);
+            newPt2 = calc(m1, m2, xy1[0], xy1[1], xy4[0], xy4[1]);
+            newPt3 = calc(m1, m2, xy2[0], xy2[1], xy3[0], xy3[1]);
+            newPt4 = calc(m1, m2, xy2[0], xy2[1], xy4[0], xy4[1]);
+            
+            return new double[][]{newPt1, newPt2, newPt3, newPt4};
+        }
+        
+        private static double calcSlope(double x1, double y1, double x2, double y2) {
+            return (y2 - y1) / (x2 - x1);
+        }
+        
+        private static double[] calc(double m1, double m2, double x1, double y1, double x3, double y3) {
+            double xNew = ((y3 - m1 * x3) - (y1 - m2 * x1)) / (m2 - m1);
+            double yNew = (m2 * (y3 - m1 * x3) - m1 * (y1 - m2 * x1)) / (m2 - m1);
+            return new double[]{xNew, yNew};
+        }
+        
     }
     
     public static class QuadrantGate extends Gate {

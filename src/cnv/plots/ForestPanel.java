@@ -179,7 +179,7 @@ public class ForestPanel extends AbstractPanel {
 													yAxisValue - yDelta, 
 													xAxisValue + xDelta, 
 													yAxisValue + yDelta, 
-													(byte) 5, true, false, (byte) 0, (byte) 0));
+													(byte) 5, true, false, (byte) 0, (byte) 0, false));
 			}
 		}
 		

@@ -1,6 +1,5 @@
 package one.ben.fcs;
 
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -13,41 +12,29 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.text.Format;
 import java.text.NumberFormat;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
-import javax.swing.JPanel;
-
-import net.miginfocom.swing.MigLayout;
-
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JLabel;
-import javax.swing.JComboBox;
-import javax.swing.SwingUtilities;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.LineBorder;
-import javax.swing.event.ListDataListener;
-import javax.swing.table.DefaultTableModel;
-
-import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
-import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
-import one.ben.fcs.FCSDataLoader.LOAD_STATE;
-
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JFormattedTextField;
-import javax.swing.JCheckBox;
 import javax.swing.SwingConstants;
-import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
+import javax.swing.border.BevelBorder;
+import javax.swing.table.DefaultTableModel;
 
+import net.miginfocom.swing.MigLayout;
+import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
+import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import cnv.gui.JAccordionPanel;
-
-import javax.swing.JScrollPane;
-
-import com.sun.javafx.scene.layout.region.Margins;
 
 import common.Files;
 import common.ext;
@@ -94,10 +81,10 @@ public class FCSPlotControlPanel extends JPanel {
     public FCSPlotControlPanel(final FCSPlot plot) {
         this.plot = plot;
         
-        setLayout(new MigLayout("", "[grow]", "[grow][]"));
+        setLayout(new MigLayout("ins 0", "[grow]", "[grow][]"));
         
         panel_1 = new JPanel();
-        panel_1.setLayout(new MigLayout("", "[grow]", "[][][][grow]"));
+        panel_1.setLayout(new MigLayout("ins 0", "[grow]", "[]0[]0[]0[grow]"));
         
         plotControlPanel = new JAccordionPanel();
         panel_1.add(plotControlPanel, "cell 0 0,grow");
@@ -329,7 +316,7 @@ public class FCSPlotControlPanel extends JPanel {
         add(panel_1, "cell 0 0,grow");
         
         progressBar = new JProgressBar();
-        add(progressBar, "cell 0 1,growx");
+        add(progressBar, "cell 0 1,growx, pad -3 3 -3 -3");
         
     }
     

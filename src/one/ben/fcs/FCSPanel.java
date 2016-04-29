@@ -12,11 +12,13 @@ import java.util.Hashtable;
 import javax.swing.SwingUtilities;
 
 import one.ben.fcs.gating.Gate;
+import one.ben.fcs.gating.GateDimension;
 import one.ben.fcs.gating.Gate.*;
 import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 import stats.Histogram;
 import cnv.filesys.ClusterFilter;
 import cnv.plots.GenericLine;
+import cnv.plots.GenericPath;
 //import cnv.filesys.MarkerLookup;
 import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
@@ -103,6 +105,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    setNullMessage("Please load an FCS file..");
 		    points = new PlotPoint[0];
             rectangles = new GenericRectangle[0];
+            lines = new GenericLine[0];
+            shapes = new GenericPath[0];
 		    return;
 		    
 		}
@@ -110,6 +114,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    setNullMessage("Please wait, data is loading...");
 		    points = new PlotPoint[0];
             rectangles = new GenericRectangle[0];
+            lines = new GenericLine[0];
+            shapes = new GenericPath[0];
 		    return;
 		}
 		
@@ -199,6 +205,33 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         lines = lineList.toArray(new GenericLine[lineList.size()]);
         lineList = null;
 
+
+        EllipsoidGate eg = new EllipsoidGate();
+        GateDimension gd;
+        gd = new GateDimension("FSC-A");
+        eg.addDimension(gd);
+        gd = new GateDimension("SSC-A");
+        eg.addDimension(gd);
+        eg.foci = new double[][]{
+                {40.7517545213 * 1024,
+                35.3805559842 * 1024},
+                {51.2482454787 * 1024,
+                    68.6194440158 * 1024}
+        };
+        eg.edges = new double[][]{
+                {53248, // 52 // 2
+                72704}, // 71
+                {40960, // 40 // 1
+                33792}, // 33
+                {56320, // 55 // 4
+                50176}, // 49
+                {37888, // 37 // 3
+                57344}, // 56
+        };
+        
+        boolean[] gate = eg.gate(fcp.dataLoader);
+        System.out.println(Array.booleanArraySum(gate) + " / " + gate.length + " = " + (Array.booleanArraySum(gate) / (double)gate.length));
+        
         byte color = 0;
         if (columnsChangedX || columnsChangedY || dataChanged) {
     		points = new PlotPoint[dataCount];
@@ -210,10 +243,15 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     			} else {
     				type = PlotPoint.FILLED_CIRCLE;
     			}
-    			color = 0; // TODO apply gating for colors
+    			color = (byte) (gate[i] ? 3 : 0); // TODO apply gating for colors
     			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
     		}
             rects.clear();
+            
+            shapes = new GenericPath[1];
+            shapes[0] = new GenericPath(eg.getPath(), (byte)1, (byte)5, (byte) 1, false, true);
+            
+            // TODO add rectangles, lines, and paths for gating here
             
             rectangles = rects.toArray(new GenericRectangle[rects.size()]);
         }
@@ -261,7 +299,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                                                                 (float)tempStartY,
                                                                 (float)tempStopX, 
                                                                 (float)tempStopY,
-                                                                (byte)1, false, false, (byte)0, (byte)99);
+                                                                (byte)1, false, false, (byte)0, (byte)99, true);
                     toRemove = i;
                     break;
                 }
@@ -274,18 +312,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             }
             paintAgain();
         } else {
-//        	double tempValX = getXValueFromXPixel(tempX);
-//        	double tempValY = getYValueFromYPixel(tempY);
-//            for (int i = 0; i < rects.size(); i++) {
-//            	GenericRectangle rect = rects.get(i);
-//            	if (rect.getStartXValue() <= tempValX && rect.getStopXValue() >= tempValX && rect.getStartYValue() <= tempValY && rect.getStopYValue() >= tempValY) {
-//            		toRemove = i;
-//            		break;
-//            	}
-//            }
-//            if (toRemove != -1) {
-//            	rects.remove(toRemove);
-//            }
             super.mousePressed(e);
         }
     }
@@ -329,7 +355,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
             rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
                     (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
-                    (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99));
+                    (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99, true));
             paintAgain();
         } else {
             super.mouseReleased(e);
@@ -344,7 +370,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             mouseEndY = e.getY();
             highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(startX), 
                     (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
-                    (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99);
+                    (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99, true);
             paintAgain();
         } else {
             super.mouseDragged(e);

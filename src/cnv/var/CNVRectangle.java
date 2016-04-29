@@ -25,7 +25,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
 
 	public CNVRectangle(float startX, float stopX, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer) {
 		// Y coord doesn't matter, that'll get set based on context
-		super(startX, 0, stopX, 0, thickness, fill, roundedCorners, color, layer);
+		super(startX, 0, stopX, 0, thickness, fill, roundedCorners, color, layer, false);
 		quantity = 1;
 		selected = false;
 		inUse = false;
