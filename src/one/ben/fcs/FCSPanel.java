@@ -218,17 +218,33 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 {51.2482454787 * 1024,
                     68.6194440158 * 1024}
         };
-        eg.edges = new double[][]{
-                {53248, // 52 // 2
-                72704}, // 71
-                {40960, // 40 // 1
-                33792}, // 33
-                {56320, // 55 // 4
-                50176}, // 49
-                {37888, // 37 // 3
-                57344}, // 56
-        };
-        
+//        eg.edges = new double[][]{
+//                {53248, // 52 // 2
+//                72704}, // 71
+//                {40960, // 40 // 1
+//                33792}, // 33
+//                {56320, // 55 // 4
+//                50176}, // 49
+//                {37888, // 37 // 3
+//                57344}, // 56
+//        };
+        eg.edges = new double[][] {
+//                { (39) * 1024,
+//                    (61) * 1024 }, 
+//                { (76 - 1) * 1024,
+//                    61 * 1024 - 512 }, 
+//                { (58 + 1) * 1024,
+//                    (51 - 1) * 1024}, 
+//                { (57 + 1) * 1024,
+//                    72 * 1024 }, };
+        { 39936,
+            62464 },
+         { 80896,
+            62464 }, 
+         { 59392,
+             52224 }, 
+         { 58368,
+            73728}, };
         boolean[] gate = eg.gate(fcp.dataLoader);
         System.out.println(Array.booleanArraySum(gate) + " / " + gate.length + " = " + (Array.booleanArraySum(gate) / (double)gate.length));
         
@@ -249,7 +265,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             rects.clear();
             
             shapes = new GenericPath[1];
-            shapes[0] = new GenericPath(eg.getPath(), (byte)1, (byte)5, (byte) 1, false, true);
+            shapes[0] = new GenericPath(eg.edges, (byte)1, (byte)5, (byte) 1, false, true);
             
             // TODO add rectangles, lines, and paths for gating here
             
