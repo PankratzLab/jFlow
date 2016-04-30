@@ -1,10 +1,11 @@
 package cnv.plots;
 
-import java.awt.geom.Path2D;
+import java.awt.geom.Ellipse2D;
+//import java.awt.geom.Path2D;
 
 public class GenericPath {
     
-    private Path2D myShape;
+    public double[][] points;
     private byte color;
     private byte fillColor;
     private byte layer;
@@ -12,17 +13,18 @@ public class GenericPath {
     private boolean editable;
     
     
-    public GenericPath(Path2D myShape, byte color, byte fillColor, byte layer, boolean fill, boolean editable) {
-        this.myShape = myShape;
+    public GenericPath(double[][] points, byte color, byte fillColor, byte layer, boolean fill, boolean editable) {
+        this.points = points;
         this.color = color;
         this.fillColor = fillColor;
         this.layer = layer;
         this.fill = fill;
+        this.editable = editable;
     }
 
-    public Path2D getPath() {
-        return myShape;
-    }
+//    public Ellipse2D getPath() {
+//        return myShape;
+//    }
     
     public byte getColor() {
         return color;
