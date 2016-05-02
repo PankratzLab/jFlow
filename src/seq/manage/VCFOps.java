@@ -947,7 +947,16 @@ public class VCFOps {
 			VcfPopulation vpop = VcfPopulation.load(fullPathToPopFile, POPULATION_TYPE.ANY, log);
 			vpop.report();
 			VCFFileReader reader = new VCFFileReader(vcf, true);
-
+			VCFHeader header = reader.getFileHeader();
+			for (String pop : vpop.getSubPop().keySet()) {
+				Set<String> popSet = vpop.getSubPop().get(pop);
+				for (String samp : popSet) {
+					if (!header.getSampleNamesInOrder().contains(samp)) {
+						reader.close();
+						throw new IllegalArgumentException("Did not see sample " + samp + " in " + fullPathToPopFile);
+					}
+				}
+			}
 			String dir = ext.parseDirectoryOfFile(fullPathToPopFile);
 			String root = getAppropriateRoot(vcf, true);
 			log.reportTimeInfo("Writing to root split " + dir + root);

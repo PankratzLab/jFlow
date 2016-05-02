@@ -420,7 +420,7 @@ public class MitoPipeline {
 									proj.getLog().reportTimeInfo("LRR will be recomputed with " + Array.booleanArraySum(sampsToUseRecompute) + " samples from " + samps);
 								}
 								if ((refGenomeFasta != null && !Files.exists(refGenomeFasta)) && Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())) {
-									proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
+									proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue() + " , but will likely not be required");
 									refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
 								}
 								Resource gmodelBase = GENOME_RESOURCE_TYPE.GC5_BASE.getResource(build);
@@ -469,6 +469,11 @@ public class MitoPipeline {
 							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
 							proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
 							proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
+							
+							
+							
+							
+							
 						}
 					}
 				}
