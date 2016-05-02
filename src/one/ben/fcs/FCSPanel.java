@@ -1,31 +1,24 @@
 package one.ben.fcs;
 
 import java.awt.Color;
-import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Hashtable;
 
 import javax.swing.SwingUtilities;
 
-import one.ben.fcs.gating.Gate;
+import one.ben.fcs.gating.Gate.PolygonGate;
+import one.ben.fcs.gating.Gate.RectangleGate;
 import one.ben.fcs.gating.GateDimension;
-import one.ben.fcs.gating.Gate.*;
-import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
-import stats.Histogram;
-import cnv.filesys.ClusterFilter;
 import cnv.plots.GenericLine;
 import cnv.plots.GenericPath;
 //import cnv.filesys.MarkerLookup;
 import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
 import common.Array;
-import common.CountVector;
-import common.IntVector;
-import common.ext;
 
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
@@ -84,6 +77,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		setColorScheme(DEFAULT_COLORS);
 
 		setNullMessage("Select two variables to plot");
+		
 	}
 
     int dataCount = -1;
@@ -94,6 +88,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	float[] xData;
 	float[] yData;
 	ArrayList<GenericRectangle> rects = new ArrayList<GenericRectangle>();
+	
+	public static final int RECT_TOOL = 0;
+	public static final int POLY_TOOL = 1;
+	
+	private volatile int currentTool = POLY_TOOL;
+//	private volatile int currentTool = RECT_TOOL;
 	
 	public void generatePointsRectanglesAndLines() {
 		byte type;
@@ -106,7 +106,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    points = new PlotPoint[0];
             rectangles = new GenericRectangle[0];
             lines = new GenericLine[0];
-            shapes = new GenericPath[0];
+            polygons = new GenericPath[0];
 		    return;
 		    
 		}
@@ -115,7 +115,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    points = new PlotPoint[0];
             rectangles = new GenericRectangle[0];
             lines = new GenericLine[0];
-            shapes = new GenericPath[0];
+            polygons = new GenericPath[0];
 		    return;
 		}
 		
@@ -123,6 +123,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		boolean columnsChangedY = false;
 		boolean dataChanged = false;
 		boolean optionsChanged = false;
+		boolean gatesChanged = false;
 		boolean typeChanged = false;
 		{
     		String newX = fcp.getXDataName();
@@ -160,10 +161,13 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             showMedSD[2] = mY;
             showMedSD[3] = sdY;
 		}
-
+		{
+		    gatesChanged = rectangles.length != rects.size() || polygons.length != polys.size(); 
+		}
         rectangles = rects.toArray(new GenericRectangle[rects.size()]);
-		
-		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged/* && !typeChanged /* don't need to regen if only type has changed, for now */;
+        polygons = polys.toArray(new GenericPath[polys.size()]);
+        
+		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged && !gatesChanged/* && !typeChanged /* don't need to regen if only type has changed, for now */;
 		if (skip) return;
 		
 		xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) : xData;
@@ -204,52 +208,24 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		
         lines = lineList.toArray(new GenericLine[lineList.size()]);
         lineList = null;
-
-
-        EllipsoidGate eg = new EllipsoidGate();
-        GateDimension gd;
-        gd = new GateDimension("FSC-A");
-        eg.addDimension(gd);
-        gd = new GateDimension("SSC-A");
-        eg.addDimension(gd);
-        eg.foci = new double[][]{
-                {40.7517545213 * 1024,
-                35.3805559842 * 1024},
-                {51.2482454787 * 1024,
-                    68.6194440158 * 1024}
-        };
-//        eg.edges = new double[][]{
-//                {53248, // 52 // 2
-//                72704}, // 71
-//                {40960, // 40 // 1
-//                33792}, // 33
-//                {56320, // 55 // 4
-//                50176}, // 49
-//                {37888, // 37 // 3
-//                57344}, // 56
-//        };
-        eg.edges = new double[][] {
-//                { (39) * 1024,
-//                    (61) * 1024 }, 
-//                { (76 - 1) * 1024,
-//                    61 * 1024 - 512 }, 
-//                { (58 + 1) * 1024,
-//                    (51 - 1) * 1024}, 
-//                { (57 + 1) * 1024,
-//                    72 * 1024 }, };
-        { 39936,
-            62464 },
-         { 80896,
-            62464 }, 
-         { 59392,
-             52224 }, 
-         { 58368,
-            73728}, };
-        boolean[] gate = eg.gate(fcp.dataLoader);
-        System.out.println(Array.booleanArraySum(gate) + " / " + gate.length + " = " + (Array.booleanArraySum(gate) / (double)gate.length));
+        
+        ArrayList<boolean[]> gates = new ArrayList<boolean[]>();
+        for (int i = 0; i < polygons.length; i++) {
+            PolygonGate pg = new PolygonGate();
+            pg.addDimension(new GateDimension(xCol));
+            pg.addDimension(new GateDimension(yCol));
+            pg.setPath(polygons[i].myPath);
+            gates.add(pg.gate(fcp.dataLoader));
+        }
+        for (int i = 0; i < rectangles.length; i++) {
+            RectangleGate rg = new RectangleGate();
+            rg.addDimension(new GateDimension.RectangleGateDimension(xCol, Math.min(rectangles[i].getStartXValue(), rectangles[i].getStopXValue()), Math.max(rectangles[i].getStartXValue(), rectangles[i].getStopXValue())));
+            rg.addDimension(new GateDimension.RectangleGateDimension(yCol, Math.min(rectangles[i].getStartYValue(), rectangles[i].getStopYValue()), Math.max(rectangles[i].getStartYValue(), rectangles[i].getStopYValue())));
+            gates.add(rg.gate(fcp.dataLoader));
+        }
         
         byte color = 0;
-        if (columnsChangedX || columnsChangedY || dataChanged) {
+        if (columnsChangedX || columnsChangedY || dataChanged || gatesChanged) {
     		points = new PlotPoint[dataCount];
     		for (int i = 0; i < points.length; i++) {
     			xAxisValue = (float) xData[i];
@@ -259,135 +235,233 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     			} else {
     				type = PlotPoint.FILLED_CIRCLE;
     			}
-    			color = (byte) (gate[i] ? 3 : 0); // TODO apply gating for colors
+    			
+    			color = (byte) 0; // TODO apply gating for colors
+    			for (int g = 0; g < gates.size(); g++) {
+    			    if (gates.get(g)[i]) {
+    			        color = (byte) 3;
+    			    }
+    			}
     			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
     		}
-            rects.clear();
-            
-            shapes = new GenericPath[1];
-            shapes[0] = new GenericPath(eg.edges, (byte)1, (byte)5, (byte) 1, false, true);
-            
-            // TODO add rectangles, lines, and paths for gating here
+//            rects.clear();
+//            ellipses.clear();
             
             rectangles = rects.toArray(new GenericRectangle[rects.size()]);
+            polygons = polys.toArray(new GenericPath[polys.size()]);
         }
 	}
 	
 
-	public void mousePressed(MouseEvent e) {
+	private void leftMousePressedRect(MouseEvent e) {
         int tempX = e.getX();
         int tempY = e.getY();
         int toRemove = -1;
+
+        for (int i = 0; i < rects.size(); i++) {
+            GenericRectangle rect = rects.get(i);
+            boolean closeToStartX = Math.abs(getXPixel(rect.getStartXValue()) - tempX) < 4; 
+            boolean closeToStartY = Math.abs(getYPixel(rect.getStartYValue()) - tempY) < 4; 
+            boolean closeToStopX = Math.abs(getXPixel(rect.getStopXValue()) - tempX) < 4; 
+            boolean closeToStopY = Math.abs(getYPixel(rect.getStopYValue()) - tempY) < 4; 
+            
+            double tempStartX = Double.NaN, tempStartY = Double.NaN, tempStopX = Double.NaN, tempStopY = Double.NaN;
+            if (closeToStartX && closeToStartY) {
+                tempStartX = rect.getStopXValue();
+                tempStartY = rect.getStopYValue();
+                tempStopX = rect.getStartXValue();
+                tempStopY = rect.getStartYValue();
+            } else if (closeToStartX && closeToStopY) {
+                tempStartX = rect.getStopXValue();
+                tempStartY = rect.getStartYValue();
+                tempStopX = rect.getStartXValue();
+                tempStopY = rect.getStopYValue();
+            } else if (closeToStopX && closeToStartY) {
+                tempStartX = rect.getStartXValue();
+                tempStartY = rect.getStopYValue();
+                tempStopX = rect.getStopXValue();
+                tempStopY = rect.getStartYValue();
+            } else if (closeToStopX && closeToStopY) {
+                tempStartX = rect.getStartXValue();
+                tempStartY = rect.getStartYValue();
+                tempStopX = rect.getStopXValue();
+                tempStopY = rect.getStopYValue();
+            }
+            if (!Double.isNaN(tempStartX)) {
+                startX = getXPixel(tempStartX);
+                startY = getYPixel(tempStartY);
+                highlightRectangle = new GenericRectangle((float)tempStartX, 
+                                                            (float)tempStartY,
+                                                            (float)tempStopX, 
+                                                            (float)tempStopY,
+                                                            (byte)1, false, false, (byte)0, (byte)99, true);
+                toRemove = i;
+                break;
+            }
+        }
+        if (toRemove >= 0) {
+            rects.remove(toRemove);
+        } else {
+            startX = e.getX();
+            startY = e.getY();
+        }
+        paintAgain();
+	}
+	
+	private void leftMousePressedPoly(MouseEvent e) {
+	    int tempX = e.getX();
+	    int tempY = e.getY();
+	    int toRemove = -1;
+	    
+	    for (int i = 0; i < polys.size(); i++) {
+	        // search through and find point if exists
+	    }
+	    if (toRemove >= 0) {
+	        polys.remove(toRemove);
+	    } else {
+	        startX = e.getX();
+	        startY = e.getY();
+	    }
+	    paintAgain();
+	}
+	
+	public void mousePressed(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-            for (int i = 0; i < rects.size(); i++) {
-                GenericRectangle rect = rects.get(i);
-                boolean closeToStartX = Math.abs(getXPixel(rect.getStartXValue()) - tempX) < 4; 
-                boolean closeToStartY = Math.abs(getYPixel(rect.getStartYValue()) - tempY) < 4; 
-                boolean closeToStopX = Math.abs(getXPixel(rect.getStopXValue()) - tempX) < 4; 
-                boolean closeToStopY = Math.abs(getYPixel(rect.getStopYValue()) - tempY) < 4; 
-                
-                double tempStartX = Double.NaN, tempStartY = Double.NaN, tempStopX = Double.NaN, tempStopY = Double.NaN;
-                if (closeToStartX && closeToStartY) {
-                    tempStartX = rect.getStopXValue();
-                    tempStartY = rect.getStopYValue();
-                    tempStopX = rect.getStartXValue();
-                    tempStopY = rect.getStartYValue();
-                } else if (closeToStartX && closeToStopY) {
-                    tempStartX = rect.getStopXValue();
-                    tempStartY = rect.getStartYValue();
-                    tempStopX = rect.getStartXValue();
-                    tempStopY = rect.getStopYValue();
-                } else if (closeToStopX && closeToStartY) {
-                    tempStartX = rect.getStartXValue();
-                    tempStartY = rect.getStopYValue();
-                    tempStopX = rect.getStopXValue();
-                    tempStopY = rect.getStartYValue();
-                } else if (closeToStopX && closeToStopY) {
-                    tempStartX = rect.getStartXValue();
-                    tempStartY = rect.getStartYValue();
-                    tempStopX = rect.getStopXValue();
-                    tempStopY = rect.getStopYValue();
-                }
-                if (!Double.isNaN(tempStartX)) {
-                    startX = getXPixel(tempStartX);
-                    startY = getYPixel(tempStartY);
-                    highlightRectangle = new GenericRectangle((float)tempStartX, 
-                                                                (float)tempStartY,
-                                                                (float)tempStopX, 
-                                                                (float)tempStopY,
-                                                                (byte)1, false, false, (byte)0, (byte)99, true);
-                    toRemove = i;
-                    break;
-                }
+            
+            if (currentTool == RECT_TOOL) {
+                leftMousePressedRect(e);
+            } else if (currentTool == POLY_TOOL) {
             }
-            if (toRemove >= 0) {
-                rects.remove(toRemove);
-            } else {
-                startX = e.getX();
-                startY = e.getY();
-            }
-            paintAgain();
+            
+            
         } else {
             super.mousePressed(e);
         }
     }
 
-	public void mouseClicked(MouseEvent e) {
-		int tempX = e.getX();
-		int tempY = e.getY();
-		int toRemove = -1;
+	private void rightMouseClickedRect(MouseEvent e) {
+        int tempX = e.getX();
+        int tempY = e.getY();
+        int toRemove = -1;
+
+        double tempValX = getXValueFromXPixel(tempX);
+        double tempValY = getYValueFromYPixel(tempY);
+        for (int i = rects.size() - 1; i >= 0; i--) {
+            GenericRectangle rect = rects.get(i);
+            double xLow, xHigh, yLow, yHigh;
+            xLow = Math.min(rect.getStartXValue(), rect.getStopXValue());
+            xHigh = Math.max(rect.getStartXValue(), rect.getStopXValue());
+            yLow = Math.min(rect.getStartYValue(), rect.getStopYValue());
+            yHigh = Math.max(rect.getStartYValue(), rect.getStopYValue());
+            if (xLow <= tempValX && xHigh >= tempValX && yLow <= tempValY && yHigh >= tempValY) {
+                toRemove = i;
+                break;
+            }
+        }
+        if (toRemove != -1) {
+            rects.remove(toRemove);
+        }
+        super.mouseClicked(e);
+        paintAgain();
+	}
+	
+	ArrayList<double[]> tempPoly = new ArrayList<double[]>();
+	ArrayList<GenericPath> polys = new ArrayList<GenericPath>();
+	
+	public void mouseClicked(MouseEvent e) {   
 		if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+		    if (currentTool == POLY_TOOL) {
+		        
+		    }
 			// 
 		} else {
-			double tempValX = getXValueFromXPixel(tempX);
-			double tempValY = getYValueFromYPixel(tempY);
-			for (int i = rects.size() - 1; i >= 0; i--) {
-				GenericRectangle rect = rects.get(i);
-				double xLow, xHigh, yLow, yHigh;
-				xLow = Math.min(rect.getStartXValue(), rect.getStopXValue());
-				xHigh = Math.max(rect.getStartXValue(), rect.getStopXValue());
-				yLow = Math.min(rect.getStartYValue(), rect.getStopYValue());
-				yHigh = Math.max(rect.getStartYValue(), rect.getStopYValue());
-				if (xLow <= tempValX && xHigh >= tempValX && yLow <= tempValY && yHigh >= tempValY) {
-					toRemove = i;
-					break;
-				}
-			}
-			if (toRemove != -1) {
-				rects.remove(toRemove);
-			}
-			super.mouseClicked(e);
-			paintAgain();
+		    
+		    if (currentTool == RECT_TOOL) {
+		        rightMouseClickedRect(e);
+		    } else if (currentTool == POLY_TOOL) {
+		        
+		    }
+		    
 		}
+		paintAgain();
 	}
     
-
-    public void mouseReleased(MouseEvent e) {
+	private void leftMouseReleasedPoly(MouseEvent e) {
+        int tempPxX = e.getX();
+        int tempPxY = e.getY();
+        double tempValX = getXValueFromXPixel(tempPxX);
+        double tempValY = getYValueFromYPixel(tempPxY);
+        
+        if (!tempPoly.isEmpty()) {
+            int initPtX = getXPixel(tempPoly.get(0)[0]);
+            int initPtY = getYPixel(tempPoly.get(0)[1]);
+            if (Math.abs(initPtX - tempPxX) < 5 && Math.abs(initPtY - tempPxY) < 5) {
+                Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+                path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
+                for(int i = 1; i < tempPoly.size(); ++i) {
+                   path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+                }
+                path.closePath();
+                polys.add(new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true));
+                tempPoly.clear();
+                highlightPoly = null;
+                paintAgain();
+                return;
+            }
+        } 
+        tempPoly.add(new double[]{tempValX, tempValY});
+        Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+        path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
+        for(int i = 1; i < tempPoly.size(); ++i) {
+           path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+        }
+        highlightPoly = new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true);
+        paintAgain();
+	}
+	
+	private void leftMouseReleasedRect(MouseEvent e) {
         int mouseEndX;
         int mouseEndY;
         mouseEndX = e.getX();
         mouseEndY = e.getY();
         highlightRectangle = null;
+        rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
+                (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
+                (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99, true));
+        paintAgain();
+	}
+
+	public void mouseReleased(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-            rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
-                    (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
-                    (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99, true));
-            paintAgain();
+            
+            if (currentTool == RECT_TOOL) {
+                leftMouseReleasedRect(e);
+            } else if (currentTool == POLY_TOOL) {
+                leftMouseReleasedPoly(e);
+            }
+            
         } else {
             super.mouseReleased(e);
         }
     }
     
-    public void mouseDragged(MouseEvent e) {
+    private void leftMouseDraggedRect(MouseEvent e) {
         int mouseEndX;
         int mouseEndY;
+        mouseEndX = e.getX();
+        mouseEndY = e.getY();
+        highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(startX), 
+                (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
+                (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99, true);
+        paintAgain();
+    }
+    
+    public void mouseDragged(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-            mouseEndX = e.getX();
-            mouseEndY = e.getY();
-            highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(startX), 
-                    (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
-                    (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99, true);
-            paintAgain();
+            if (currentTool == RECT_TOOL) {
+                leftMouseDraggedRect(e);
+            } else if (currentTool == POLY_TOOL) {
+            }
         } else {
             super.mouseDragged(e);
         }

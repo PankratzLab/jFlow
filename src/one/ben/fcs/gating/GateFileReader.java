@@ -106,31 +106,31 @@ public class GateFileReader {
                 gate.dimensions.add(gd);
             }
         } else if ("EllipsoidGate".equals(gateType)) {
-            gate = new EllipsoidGate();
-//            String gatingDistance = ((Element) gateNode).getAttribute("gating:distance"); // TODO dunno what gating:distance is for yet
-            ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
-            for (int i = 0; i < dimNodes.size(); i++) {
-                Node dimNode = dimNodes.get(i);
-                String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
-                GateDimension gd = new GateDimension(param);
-                gd.paramName = param;
-                gate.dimensions.add(gd);
-            }
-            ((EllipsoidGate) gate).foci = new double[2][2];  
-            ArrayList<Node> fociNodes = getChildNodes(getFirstChild(gateNode, "gating:foci"), "gating:vertex");
-            // TODO check that fociNodes.size() == 2??
-            for (int i = 0; i < ((EllipsoidGate) gate).foci.length; i++) {
-                ArrayList<Node> coordNodes = getChildNodes(fociNodes.get(i), "gating:coordinate");
-                ((EllipsoidGate) gate).foci[i][0] = Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
-                ((EllipsoidGate) gate).foci[i][1] = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
-            }
-            ArrayList<Node> edgeNodes = getChildNodes(getFirstChild(gateNode, "gating:edge"), "gating:vertex");
-            ((EllipsoidGate) gate).edges = new double[4][2];
-            for (int i = 0; i < ((EllipsoidGate) gate).edges.length; i++) {
-                ArrayList<Node> coordNodes = getChildNodes(edgeNodes.get(i), "gating:coordinate");
-                ((EllipsoidGate) gate).edges[i][0] = Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
-                ((EllipsoidGate) gate).edges[i][1] = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
-            }
+//            gate = new EllipsoidGate();
+////            String gatingDistance = ((Element) gateNode).getAttribute("gating:distance"); // TODO dunno what gating:distance is for yet
+//            ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
+//            for (int i = 0; i < dimNodes.size(); i++) {
+//                Node dimNode = dimNodes.get(i);
+//                String param = ((Element) getFirstChild(dimNode, "data-type:fcs-dimension")).getAttribute("data-type:name");
+//                GateDimension gd = new GateDimension(param);
+//                gd.paramName = param;
+//                gate.dimensions.add(gd);
+//            }
+//            ((EllipsoidGate) gate).foci = new double[2][2];  
+//            ArrayList<Node> fociNodes = getChildNodes(getFirstChild(gateNode, "gating:foci"), "gating:vertex");
+//            // TODO check that fociNodes.size() == 2??
+//            for (int i = 0; i < ((EllipsoidGate) gate).foci.length; i++) {
+//                ArrayList<Node> coordNodes = getChildNodes(fociNodes.get(i), "gating:coordinate");
+//                ((EllipsoidGate) gate).foci[i][0] = Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
+//                ((EllipsoidGate) gate).foci[i][1] = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
+//            }
+//            ArrayList<Node> edgeNodes = getChildNodes(getFirstChild(gateNode, "gating:edge"), "gating:vertex");
+//            ((EllipsoidGate) gate).edges = new double[4][2];
+//            for (int i = 0; i < ((EllipsoidGate) gate).edges.length; i++) {
+//                ArrayList<Node> coordNodes = getChildNodes(edgeNodes.get(i), "gating:coordinate");
+//                ((EllipsoidGate) gate).edges[i][0] = Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
+//                ((EllipsoidGate) gate).edges[i][1] = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
+//            }
         } else if ("PolygonGate".equals(gateType)) {
             gate = new PolygonGate();
             ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
