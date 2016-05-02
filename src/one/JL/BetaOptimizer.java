@@ -37,7 +37,6 @@ import common.WorkerTrain.Producer;
 import cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
 import cnv.analysis.pca.CorrectionIterator.MODEL_BUILDER_TYPE;
 import cnv.analysis.pca.CorrectionIterator.ORDER_TYPE;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.ABLookup;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -61,7 +60,7 @@ import htsjdk.variant.vcf.VCFFileReader;
  */
 public class BetaOptimizer {
 	//
-	private static final String[] BETA_HEADER = new String[] { "rsID", "ref", "alt", "beta", "p" };
+	public static final String[] BETA_HEADER = new String[] { "rsID", "ref", "alt", "beta", "p" };
 
 	private static final String SUB_DIR = "_eval/typed/";
 
@@ -144,8 +143,11 @@ public class BetaOptimizer {
 
 			ArrayList<Double> dataBetas = new ArrayList<Double>();
 			ArrayList<Double> meta = new ArrayList<Double>();
-
+			
 			for (int i = 0; i < genotypes.length; i++) {
+				if(i%2000==0){
+					log.reportTimeInfo("computing betas for genotype " + (i+1) + " of " + genotypes.length + " for index " + comparisonIndex + " on " + Thread.currentThread().getName());
+				}
 				ArrayList<Double> tmpGeno = new ArrayList<Double>();
 				ArrayList<Double> tmpData = new ArrayList<Double>();
 				for (int j = 0; j < genotypes[i].length; j++) {
@@ -156,7 +158,7 @@ public class BetaOptimizer {
 					}
 				}
 				if (tmpGeno.size() > 0) {
-					RegressionModel model = (RegressionModel) new LeastSquares(Array.toDoubleArray(tmpGeno), Array.toDoubleArray(tmpData));
+					RegressionModel model = (RegressionModel) new LeastSquares(Array.toDoubleArray(tmpData), Array.toDoubleArray(tmpGeno));
 					if (!model.analysisFailed()) {
 						dataBetas.add(model.getBetas()[1]);
 						meta.add(metaBetas.get(i).getBeta());
@@ -232,6 +234,9 @@ public class BetaOptimizer {
 	private static void analyze(Project proj, String pcFile, String samplesToBuildModels, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, List<String> betaFiles, double[] pvals, int maxPCs, int numthreads, Logger log) {
 
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
+
+		
+		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 
 		for (String betaFile : betaFiles) {
 			String bigSummaryOut = outpuDir + ext.rootOf(betaFile) + "_beta_summary.txt";
@@ -323,8 +328,7 @@ public class BetaOptimizer {
 					log.reportException(e);
 				}
 			}
-			ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
-			String rootOut = outpuDir + ext.rootOf(betaFile) + "_summaryPlots";
+			String rootOutBetas = outpuDir + ext.rootOf(betaFile) + "_summaryPlots";
 
 			String[] summHeader = Files.getHeaderOfFile(bigSummaryOut, log);
 			Hashtable<String, String> nums = HashVec.loadFileToHashString(bigSummaryOut, ext.indexOfStr("pvalCutoff", summHeader), new int[] { ext.indexOfStr("numberOfMarkers", summHeader) }, "\t", false);
@@ -332,24 +336,22 @@ public class BetaOptimizer {
 			for (int j = 0; j < pvals.length; j++) {
 				String pvalKey = pvals[j] + "".replaceAll("\\.", "_") + ".pval";
 				VertLine[] vertLines = new VertLine[] { new VertLine(15) };
-				int numPCS = 50;
-				String methodProot = rootOut + "pvalue_method_pearson" + pvalKey;
-				Restrictions[] restrictions = new Restrictions[] { new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null) };
-				RScatter methodP = new RScatter(bigSummaryOut, methodProot + ".rscript", ext.rootOf(methodProot), methodProot + ".jpeg", "PC", new String[] { "correl_pearsonSigned" }, "Method", SCATTER_TYPE.POINT, log);
-				methodP.setOverWriteExisting(true);
-				methodP.setRestrictions(restrictions);
-				methodP.setxRange(new double[] { 0, 150 });
-				methodP.setyRange(new double[] { -.5, 1 });
-				methodP.setyLabel("correlation (pearson) of betas with p < " + pvals[j]);
-				methodP.setTitle("Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
-				methodP.setxLabel("PC");
-				methodP.setVertLines(vertLines);
-				methodP.execute();
-				rScatters.add(methodP);
+//				int numPCS = 50;
+//				String methodProot = rootOut + "pvalue_method_pearson" + pvalKey;
+//				Restrictions[] restrictions = new Restrictions[] { new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null) };
+//				RScatter methodP = new RScatter(bigSummaryOut, methodProot + ".rscript", ext.rootOf(methodProot), methodProot + ".jpeg", "PC", new String[] { "correl_pearsonSigned" }, "Method", SCATTER_TYPE.POINT, log);
+//				methodP.setOverWriteExisting(true);
+//				methodP.setRestrictions(restrictions);
+//				methodP.setxRange(new double[] { 0, 150 });
+//				methodP.setyRange(new double[] { -.5, 1 });
+//				methodP.setyLabel("correlation (pearson) of betas with p < " + pvals[j]);
+//				methodP.setTitle("Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
+//				methodP.setxLabel("PC");
+//				methodP.setVertLines(vertLines);
+				// methodP.execute();
+				// rScatters.add(methodP);w
 
-				
-				
-				String methodProotUnsigned = rootOut + "pvalue_method_pearsonUnsigned" + pvalKey;
+				String methodProotUnsigned = rootOutBetas + "pvalue_method_pearsonUnsigned" + pvalKey;
 				Restrictions[] restrictionsU = new Restrictions[] { new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null) };
 				RScatter methodPU = new RScatter(bigSummaryOut, methodProotUnsigned + ".rscript", ext.rootOf(methodProotUnsigned), methodProotUnsigned + ".jpeg", "PC", new String[] { "correl_pearsonUnSigned" }, "Method", SCATTER_TYPE.POINT, log);
 				methodPU.setOverWriteExisting(true);
@@ -362,7 +364,7 @@ public class BetaOptimizer {
 				methodPU.setVertLines(vertLines);
 				methodPU.execute();
 				rScatters.add(methodPU);
-				
+
 				// String pvalKeyS = pvals[j] + "".replaceAll("\\.", "_") + ".pval";
 				// String methodProotS = rootOut + "pvalue_method_spearman" + pvalKeyS;
 				// Restrictions[] restrictionsS = new Restrictions[] { new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null) };
@@ -380,10 +382,12 @@ public class BetaOptimizer {
 				// rScatters.add(methodS);
 
 			}
-			RScatters rscScatters = new RScatters(rScatters, rootOut + ".rscript", rootOut + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
-			rscScatters.execute();
-
+			RScatters rscScattersBetas = new RScatters(rScatters, rootOutBetas + ".rscript", rootOutBetas + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+			rscScattersBetas.execute();
 		}
+		String rootOut = outpuDir + "finalPlots";
+		RScatters rscScatters = new RScatters(rScatters, rootOut + ".rscript", rootOut + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+		rscScatters.execute();
 
 	}
 
@@ -755,8 +759,9 @@ public class BetaOptimizer {
 		String pcFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/ohw_ws_20_ALL1000PCs_gc_corrected_OnTheFly_SampLRR_Recomp_LRR_035CR_096.PCs.extrapolated.txt";
 		String toUseFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/ohw_ws_20_ALL1000PCs_gc_corrected_OnTheFly_SampLRR_Recomp_LRR_035CR_096.samples.USED_PC.txt";
 		double[] pvals = new double[] { .05, .01, .001, .0001 };
-		int numthreads = 24;
-		int maxPCs = 168;
+		int numthreads = 48;
+		proj.getLog().reportTimeInfo("Using " + numthreads + " of " + Runtime.getRuntime().availableProcessors() + " available cores");
+		int maxPCs = 120;
 		analyzeAll(proj, pcFile, toUseFile, markerSet, abLookup, dbsnp.getResource(proj.getLog()), proj.getNonCNMarkers(), out, betaFiles, pvals, maxPCs, numthreads, proj.getLog());
 	}
 }
