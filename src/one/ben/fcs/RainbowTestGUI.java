@@ -203,7 +203,7 @@ public class RainbowTestGUI extends JFrame {
         btnEditColumns.setVisible(false);
         contentPane.add(btnEditColumns, "cell 0 3");
         
-        setGateFile("F:\\Flow\\rainbow\\URB.wspt");
+//        setGateFile("F:\\Flow\\rainbow\\URB.wspt");
     }
     
     private void resizeColumnWidth(JTable table) {

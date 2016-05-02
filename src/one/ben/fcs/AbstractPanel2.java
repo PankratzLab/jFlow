@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -130,10 +131,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	protected PlotPoint[] points;						// make private when worked out
 	protected GenericLine[] lines;
 	protected GenericRectangle[] rectangles;
-	protected GenericPath[] shapes;
+	protected GenericPath[] polygons;
 	protected GenericLine highlightLine;
 	protected GenericRectangle highlightRectangle;
-	protected GenericPath highlightShape;
+	protected GenericPath highlightPoly;
 	protected String xAxisLabel;
 	protected String yAxisLabel;
 	protected String title;
@@ -506,7 +507,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         generatePointsRectanglesAndLines();
 		highlightPoints();
 		
-		if (points.length == 0 && (rectangles == null || rectangles.length == 0)) {
+		if (points.length == 0 && (rectangles == null || rectangles.length == 0) && (polygons == null || polygons.length == 0)) {
 		    locLookup.clear();
 			g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
@@ -833,197 +834,142 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				}
 			}
         }
-		
-//		for (int i = 0; shapes !=null && i < shapes.length && flow; i++) {
-//		    Graphics2D g2d = (Graphics2D) g;
-//		    if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, shapes[i].getLayer()) >= 0)) {
-//		        g.setColor(colorScheme[shapes[i].getColor()]);
-//		        if (shapes[i].getFill()) {
-//		            if (shapes[i].getColor() != shapes[i].getFillColor()) {
-//		                g.setColor(colorScheme[shapes[i].getFillColor()]);
-//		                g2d.fill(shapes[i].getPath());
-//		                g.setColor(colorScheme[shapes[i].getColor()]);
-//		                g2d.draw(shapes[i].getPath());
-//		            } else {
-//		                g2d.fill(shapes[i].getPath());
-//		            }
-//		        } else {
-//		            g2d.draw(getPixelPath(shapes[i].getPath()));
-//		        }
-//		        if (shapes[i].getEditable()) {
-//    	            g.setColor(Color.black);
-//    	            PathIterator path = shapes[i].getPath().getPathIterator(null);
-//    	            while (!path.isDone()) {
-//    	                double[] coords = Array.doubleArray(6, Double.NaN);
-//    	                path.currentSegment(coords);
-//    	                double x, y;
-//    	                if (!Double.isNaN(coords[5])) {
-//    	                    x = coords[4];
-//    	                    y = coords[5];
-//    	                } else if (!Double.isNaN(coords[3])) {
-//    	                    x = coords[2];
-//    	                    y = coords[3];
-//    	                } else {
-//    	                    x = coords[0];
-//    	                    y = coords[1];
-//    	                }
-//                        g.fillRect(getXPixel(x) - 2, getYPixel(y) - 2, 4, 4);
-//                        path.next();
-//    	            }
-//		        }
-//		    }
-//		}
-
-        class Ellipse2DCreator {
-            
-            Shape createEllipse(GenericPath gp) {
-                double minX = Math.min(Math.min(gp.points[0][0], gp.points[1][0]), Math.min(gp.points[2][0], gp.points[3][0]));
-                double maxY = Math.max(Math.max(gp.points[0][1], gp.points[1][1]), Math.max(gp.points[2][1], gp.points[3][1]));
-
-                double width = Math.sqrt((gp.points[0][0] - gp.points[1][0]) * (gp.points[0][0] - gp.points[1][0]) + (gp.points[0][1] - gp.points[1][1]) * (gp.points[0][1] - gp.points[1][1]));
-                double height = Math.sqrt((gp.points[3][0] - gp.points[2][0]) * (gp.points[3][0] - gp.points[2][0]) + (gp.points[3][1] - gp.points[2][1]) * (gp.points[3][1] - gp.points[2][1]));
-                int pixX = getXPixel(minX);
-                int pixY = getYPixel(maxY);
-                int pixHeight = getYPixel(maxY - height) - getYPixel(maxY);
-                int pixWidth = getXPixel(minX + width) - getXPixel(minX);
-                
-                double yD, xD;
-                yD = gp.points[1][1] - gp.points[0][1];
-                xD = gp.points[1][0] - gp.points[0][0];
-                double radAng = Math.atan2(yD, xD);
-                Ellipse2D ell = new Ellipse2D.Double(pixX, pixY, pixWidth, pixHeight);
-                Shape rotEll = AffineTransform.getRotateInstance(radAng, pixX + pixWidth / 2, pixY + pixHeight / 2).createTransformedShape(ell);
-                return rotEll;
-            }
-            
-        }
-        Ellipse2DCreator e2DC = new Ellipse2DCreator();
+//        class Ellipse2DCreator {
+//            
+//            
+//            int[][] getOppPts(GenericPath gp) {
+//                int[][] oppInds = new int[2][2];
+//                oppInds[0][0] = 0;
+//                
+//                double[] slopes = new double[gp.points.length - 1];
+//                for (int p = 1; p < gp.points.length; p++) {
+//                    double s2 = Math.atan2(gp.points[p][1] - gp.points[0][1], gp.points[p][0] - gp.points[p][1]);
+//                    slopes[p - 1] = s2;
+//                }
+//                double s = Array.median(slopes);
+//                int ind2 = 0;
+//                for (int p = 1; p < gp.points.length; p++) {
+//                    if (slopes[p - 1] == s) {
+//                        oppInds[0][1] = p;
+//                    } else {
+//                        oppInds[1][ind2] = p;
+//                        ind2++;
+//                    }
+//                }
+//                    
+//                return oppInds;
+//            }
+//            
+//            void createEllipse(GenericPath pa) {
+//                int[][] oppInds = getOppPts(pa);
+//                double[] center = new double[]{
+//                        pa.foci[0][0] + (pa.foci[1][0] - pa.foci[0][0]) / 2,
+//                        pa.foci[0][1] + (pa.foci[1][1] - pa.foci[0][1]) / 2
+//                };
+//                
+//                
+//                
+//            }
+//            
+//            Shape createEllipse(GenericPath gp, Graphics g) {
+//                double minX = Math.min(Math.min(gp.points[0][0], gp.points[1][0]), Math.min(gp.points[2][0], gp.points[3][0]));
+//                double maxY = Math.max(Math.max(gp.points[0][1], gp.points[1][1]), Math.max(gp.points[2][1], gp.points[3][1]));
+//                
+//                int[][] oppInds = getOppPts(gp);
+//
+//                double[] center = new double[]{
+//                        gp.foci[0][0] + (gp.foci[1][0] - gp.foci[0][0]) / 2,
+//                        gp.foci[0][1] + (gp.foci[1][1] - gp.foci[0][1]) / 2
+//                };
+//                g.setColor(Color.CYAN);
+//                g.fillRect(getXPixel(center[0]) - 3, getYPixel(center[1]) - 3, 6, 6);
+//                
+//                double height = Math.sqrt(
+//                        (gp.points[oppInds[0][0]][0] - gp.points[oppInds[0][1]][0]) * (gp.points[oppInds[0][0]][0] - gp.points[oppInds[0][1]][0]) + 
+//                        (gp.points[oppInds[0][0]][1] - gp.points[oppInds[0][1]][1]) * (gp.points[oppInds[0][0]][1] - gp.points[oppInds[0][1]][1])
+//                );
+//                double width = Math.sqrt(
+//                        (gp.points[oppInds[1][1]][0] - gp.points[oppInds[1][0]][0]) * (gp.points[oppInds[1][1]][0] - gp.points[oppInds[1][0]][0]) + 
+//                        (gp.points[oppInds[1][1]][1] - gp.points[oppInds[1][0]][1]) * (gp.points[oppInds[1][1]][1] - gp.points[oppInds[1][0]][1])
+//                );
+//                int pixX = getXPixel(minX);
+//                int pixY = getYPixel(maxY);
+//                int pixHeight = getYPixel(maxY - height) - getYPixel(maxY);
+//                int pixWidth = getXPixel(minX + width) - getXPixel(minX);
+//                
+//                g.drawRect(pixX, pixY, pixWidth, pixHeight);
+//                
+//                double yD, xD;
+////                yD = gp.points[oppInds[0][0]][1] - gp.points[oppInds[0][1]][1];
+////                xD = gp.points[oppInds[0][1]][0] - gp.points[oppInds[0][0]][0];
+//                yD = gp.foci[1][1] - gp.foci[0][1];
+//                xD = gp.foci[1][0] - gp.foci[0][0];
+//                double radAng = Math.atan2(yD, xD);
+//                Ellipse2D ell = new Ellipse2D.Double(pixX, pixY, pixWidth, pixHeight);
+//                Shape rotEll = AffineTransform.getRotateInstance(radAng, pixX + pixWidth / 2, pixY + pixHeight / 2).createTransformedShape(ell);
+//                return rotEll;
+////                return ell;
+//            }
+//            
+//        }
         
-		for (int i = 0; shapes !=null && i < shapes.length && flow; i++) {
+//        Ellipse2DCreator e2DC = new Ellipse2DCreator();
+        
+		class PolyTransformer {
+		    
+		    Path2D transform(Path2D poly) {
+		        Path2D pixPoly = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+		        double[] coords = new double[6];
+		        PathIterator path = poly.getPathIterator(null);
+		        while(!path.isDone()) {
+		            int code = path.currentSegment(coords);
+		            switch(code) {
+		                case PathIterator.SEG_MOVETO:
+		                    pixPoly.moveTo(getXPixel(coords[0]), getYPixel(coords[1]));
+		                    break;
+		                case PathIterator.SEG_LINETO:
+		                    pixPoly.lineTo(getXPixel(coords[0]), getYPixel(coords[1]));
+		                    break;
+		                case PathIterator.SEG_CLOSE:
+		                    pixPoly.closePath();
+		            }
+	                path.next();
+		        }
+		        return pixPoly;
+		    }
+		    
+		}
+		
+		PolyTransformer pt = new PolyTransformer();
+		
+		for (int i = 0; polygons !=null && i < polygons.length && flow; i++) {
 		    Graphics2D g2d = (Graphics2D) g;
-		    if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, rectangles[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, shapes[i].getLayer()) >= 0)) {
-		        Shape ell = e2DC.createEllipse(shapes[i]);
-		        g.setColor(colorScheme[shapes[i].getColor()]);
-		        if (shapes[i].getFill()) {
-		            if (shapes[i].getColor() != shapes[i].getFillColor()) {
+		    if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, polygons[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, polygons[i].getLayer()) >= 0)) {
+		        g.setColor(colorScheme[polygons[i].getColor()]);
+		        Path2D drawPoly = pt.transform(polygons[i].myPath);
+		        if (polygons[i].getFill()) {
+		            if (polygons[i].getColor() != polygons[i].getFillColor()) {
+                        g.setColor(colorScheme[polygons[i].getFillColor()]);
+                        g2d.fill(drawPoly);
+                        g.setColor(colorScheme[polygons[i].getColor()]);
+                        g2d.draw(drawPoly);
 		            } else {
+	                    g2d.fill(drawPoly);
 		            }
 		        } else {
-		            g2d.draw(ell);
+		            g2d.draw(drawPoly);
 		        }
-		        if (shapes[i].getEditable()) {
-    	            g.setColor(Color.ORANGE);
-//    	            PathIterator path = ell.getPathIterator(null);
-//                    while (!path.isDone()) {
-//                        double[] coords = Array.doubleArray(6, Double.NaN);
-//                        path.currentSegment(coords);
-//                        double x, y;
-//                        if (!Double.isNaN(coords[5])) {
-//                            x = coords[4];
-//                            y = coords[5];
-//                        } else if (!Double.isNaN(coords[3])) {
-//                            x = coords[2];
-//                            y = coords[3];
-//                        } else {
-//                            x = coords[0];
-//                            y = coords[1];
-//                        }
-//                        g.fillRect(getXPixel(x) - 2, getYPixel(y) - 2, 4, 4);
-//                        path.next();
-//                    }
-//    	            for (int p = 0; p < shapes[i].points.length; p++) {
-//    	                g.drawString(p + "", getXPixel(shapes[i].points[p][0]), getYPixel(shapes[i].points[p][1]));
-//    	                g.fillRect(getXPixel(shapes[i].points[p][0]) - 2, getYPixel(shapes[i].points[p][1]) - 2, 4, 4);
-//    	            }
+		        if (polygons[i].getEditable()) {
+    	            PathIterator path = polygons[i].myPath.getPathIterator(null);
+    	            while (!path.isDone()) {
+    	                double[] coords = new double[6];
+    	                path.currentSegment(coords);
+    	                g.fillRect(getXPixel(coords[0]) - 2, getYPixel(coords[1]) - 2, 4, 4);
+    	                path.next();
+    	            }
 		        }
 		    }
 		}
-		
-		
-		
-//      EllipsoidGate eg = new EllipsoidGate();
-//      GateDimension gd;
-//      gd = new GateDimension("FSC-A");
-//      eg.addDimension(gd);
-//      gd = new GateDimension("SSC-A");
-//      eg.addDimension(gd);
-//      eg.foci = new double[][]{
-//                {40.7517545213 * 1024,
-//                35.3805559842 * 1024},
-//                {51.2482454787 * 1024,
-//                    68.6194440158 * 1024}
-//      };
-//      eg.edges = new double[][] {
-//              { (39) * 1024,
-//                  (61) * 1024 }, 
-//              { (76 - 1) * 1024,
-//                  61 * 1024 - 512 }, 
-//              { (58 + 1) * 1024,
-//                  (51 - 1) * 1024}, 
-//              { (57 + 1) * 1024,
-//                  72 * 1024 }, };
-//      eg.edges = new double[][]{
-//              {58368, // 57 // 2
-//              40960}, // 40
-//              {30720, // 30 // 1
-//                78848}, // 77
-//                {35840, // 35 // 4
-//                47104}, // 46
-//                {53248, // 52 // 3
-//                72704}  // 71
-//      };
-//      eg.edges = new double[][]{
-//              {53248, // 52 // 2
-//              72704}, // 71
-//              {40960, // 40 // 1
-//                33792}, // 33
-//                {56320, // 55 // 4
-//                50176}, // 49
-//                {37888, // 37 // 3
-//                57344}, // 56
-//      };
-//	    double[][] edges = new double[][]{
-//              {53248, // 52 // 2
-//              72704}, // 71
-//              {40960, // 40 // 1
-//                33792}, // 33
-//                {56320, // 55 // 4
-//                50176}, // 49
-//                {37888, // 37 // 3
-//                57344}, // 56
-//      };
-		
-//        double minX = Math.min(Math.min(eg.edges[0][0], eg.edges[1][0]), Math.min(eg.edges[2][0], eg.edges[3][0]));
-//        double maxY = Math.max(Math.max(eg.edges[0][1], eg.edges[1][1]), Math.max(eg.edges[2][1], eg.edges[3][1]));
-//      
-//      double height = Math.sqrt((eg.edges[0][0] - eg.edges[1][0]) * (eg.edges[0][0] - eg.edges[1][0]) + (eg.edges[0][1] - eg.edges[1][1]) * (eg.edges[0][1] - eg.edges[1][1]));
-//      double width = Math.sqrt((eg.edges[3][0] - eg.edges[2][0]) * (eg.edges[3][0] - eg.edges[2][0]) + (eg.edges[3][1] - eg.edges[2][1]) * (eg.edges[3][1] - eg.edges[2][1]));
-      
-//      int pixX = getXPixel(minX); 
-//      int pixY = getYPixel(maxY);
-//      int pixHeight = getYPixel(maxY - height) - getYPixel(maxY);
-//      int pixWidth = getXPixel(minX + width) - getXPixel(minX);
-//      
-//      Ellipse2D ell = new Ellipse2D.Double(
-//              pixX, 
-//              pixY,
-//              pixWidth,
-//              pixHeight
-//        );
-//      Graphics2D g2d = (Graphics2D) g;
-//      g2d.setColor(Color.YELLOW.darker());
-//      g2d.draw(ell);
-//      g2d.fill(getPixelPath(eg.getPath()));
-//      AffineTransform at = g2d.getTransform();
-//      g2d.rotate(-Math.atan2(height, width), pixX + pixWidth / 2, pixY + pixHeight/2);
-//      g2d.setColor(Color.RED);
-//      g2d.draw(ell);
-//      g2d.setTransform(at);
-//      Shape rotEll = AffineTransform.getRotateInstance(Math.atan2(-height, width), pixX + pixWidth / 2, pixY + pixHeight/2).createTransformedShape(ell);
-//      g2d.setColor(Color.YELLOW.darker());
-//      g2d.draw(e2DC.createEllipse(new GenericPath(eg.edges, (byte)1, (byte)5, (byte) 1, false, true)));
-				
-		g.setClip(null);
 		
 		// Draw the rectangle outlined by dragging the mouse
 		if (highlightRectangle != null) {
@@ -1035,20 +981,31 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	    	drawRectThick(g, xPixel, yPixel, widthPixel, heightPixel, (byte) 1);
 		}
 
-		if (highlightLine != null) {
-		    xPixel = Math.min(getXPixel(highlightLine.getStartX()), getXPixel(highlightLine.getStopX()));
-		    yPixel = Math.min(getYPixel(highlightLine.getStartY()), getYPixel(highlightLine.getStopY()));
-		    widthPixel = Math.abs(getXPixel(highlightLine.getStartX()) - getXPixel(highlightLine.getStopX()));
-		    heightPixel = (Math.abs(getYPixel(highlightLine.getStartY()) - getYPixel(highlightLine.getStopY())));
+//		if (highlightLine != null) {
+//		    xPixel = Math.min(getXPixel(highlightLine.getStartX()), getXPixel(highlightLine.getStopX()));
+//		    yPixel = Math.min(getYPixel(highlightLine.getStartY()), getYPixel(highlightLine.getStopY()));
+//		    widthPixel = Math.abs(getXPixel(highlightLine.getStartX()) - getXPixel(highlightLine.getStopX()));
+//		    heightPixel = (Math.abs(getYPixel(highlightLine.getStartY()) - getYPixel(highlightLine.getStopY())));
+//		    g.setColor(colorScheme[0]);
+//		    drawRectThick(g, xPixel, yPixel, widthPixel, heightPixel, (byte) 1);
+//		}
+//
+		if (highlightPoly != null) {
 		    g.setColor(colorScheme[0]);
-		    drawRectThick(g, xPixel, yPixel, widthPixel, heightPixel, (byte) 1);
+		    ((Graphics2D) g).draw(pt.transform(highlightPoly.myPath));
+
+            PathIterator path = highlightPoly.myPath.getPathIterator(null);
+            while (!path.isDone()) {
+                double[] coords = new double[6];
+                path.currentSegment(coords);
+                g.fillRect(getXPixel(coords[0]) - 2, getYPixel(coords[1]) - 2, 4, 4);
+                path.next();
+            }
 		}
 
-//		if (highlightShape != null) {
-//		    g.setColor(colorScheme[0]);
-//		    ((Graphics2D) g).draw(highlightShape.getPath());
-//		}
-
+		g.setClip(null);
+		
+		
 		if (numberOfNaNSamples > 0) {
 			g.drawString(PlotPoint.NAN_STR+" (n="+numberOfNaNSamples+")", getXPixel(0)-nanWidth/2, getYPixel(0)+60+points[0].getSize()/2);
 		}

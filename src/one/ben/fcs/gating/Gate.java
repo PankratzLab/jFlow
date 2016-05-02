@@ -78,6 +78,10 @@ public abstract class Gate {
             this.dimensions.add(gd);
         }
         
+        public void setPath(Path2D pth) {
+            this.myPath = pth;
+        }
+        
         public Path2D getPath() {
             if (myPath == null) {
                 myPath = constructPath();
@@ -119,48 +123,49 @@ public abstract class Gate {
     }
     
     public static class EllipsoidGate extends Gate {
-        public double[][] foci;
-        public double[][] edges;
-        
-        public Shape createEllipse(double[][] points) {
-            double minX = Math.min(Math.min(points[0][0], points[1][0]), Math.min(points[2][0], points[3][0]));
-            double minY = Math.min(Math.min(points[0][1], points[1][1]), Math.min(points[2][1], points[3][1]));
-            double maxY = Math.max(Math.max(points[0][1], points[1][1]), Math.max(points[2][1], points[3][1]));
-
-            double width = Math.sqrt((points[0][0] - points[1][0]) * (points[0][0] - points[1][0]) + (points[0][1] - points[1][1]) * (points[0][1] - points[1][1]));
-            double height = Math.sqrt((points[3][0] - points[2][0]) * (points[3][0] - points[2][0]) + (points[3][1] - points[2][1]) * (points[3][1] - points[2][1]));
-
-            double yD, xD;
-            yD = points[1][1] - points[0][1];
-            xD = points[1][0] - points[0][0];
-            double radAng = Math.atan2(yD, xD);
-            AffineTransform trans = AffineTransform.getRotateInstance(radAng, minX + width / 2, maxY + height / 2);
-            Ellipse2D ell = new Ellipse2D.Double(minX, maxY - height, width, height);
-            Shape rotEll = trans.createTransformedShape(ell);
-            return rotEll;
-        }
-        
-        Shape myShape; 
+//        public double[][] foci;
+//        public double[][] edges;
+//        
+//        public Shape createEllipse(double[][] points) {
+//            double minX = Math.min(Math.min(points[0][0], points[1][0]), Math.min(points[2][0], points[3][0]));
+//            double minY = Math.min(Math.min(points[0][1], points[1][1]), Math.min(points[2][1], points[3][1]));
+//            double maxY = Math.max(Math.max(points[0][1], points[1][1]), Math.max(points[2][1], points[3][1]));
+//
+//            double width = Math.sqrt((points[0][0] - points[1][0]) * (points[0][0] - points[1][0]) + (points[0][1] - points[1][1]) * (points[0][1] - points[1][1]));
+//            double height = Math.sqrt((points[3][0] - points[2][0]) * (points[3][0] - points[2][0]) + (points[3][1] - points[2][1]) * (points[3][1] - points[2][1]));
+//
+//            double yD, xD;
+//            yD = points[1][1] - points[0][1];
+//            xD = points[1][0] - points[0][0];
+//            double radAng = Math.atan2(yD, xD);
+//            AffineTransform trans = AffineTransform.getRotateInstance(radAng, minX + width / 2, maxY + height / 2);
+//            Ellipse2D ell = new Ellipse2D.Double(minX, maxY - height, width, height);
+//            Shape rotEll = trans.createTransformedShape(ell);
+//            return rotEll;
+//        }
+//        
+//        Shape myShape; 
         
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
-            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
-            if (myShape == null) {
-                myShape = createEllipse(this.edges);
-            }
-            float[][] paramData = new float[dimensions.size()][];
-            for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
-                GateDimension gd = dimensions.get(p);
-                paramData[p] = dataLoader.getData(gd.paramName, true);
-            }
-            for (int i = 0; i < dataLoader.getCount(); i++) {
-                if (this.parentGate != null && !includes[i]) {
-                    continue;
-                }
-                includes[i] = myShape.contains(paramData[0][i], paramData[1][i]);
-            }
-            
-            return includes;
+            throw new UnsupportedOperationException();
+//            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
+//            if (myShape == null) {
+//                myShape = createEllipse(this.edges);
+//            }
+//            float[][] paramData = new float[dimensions.size()][];
+//            for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
+//                GateDimension gd = dimensions.get(p);
+//                paramData[p] = dataLoader.getData(gd.paramName, true);
+//            }
+//            for (int i = 0; i < dataLoader.getCount(); i++) {
+//                if (this.parentGate != null && !includes[i]) {
+//                    continue;
+//                }
+//                includes[i] = myShape.contains(paramData[0][i], paramData[1][i]);
+//            }
+//            
+//            return includes;
         }
     }
     
