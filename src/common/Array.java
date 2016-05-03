@@ -348,6 +348,25 @@ public class Array {
 		}
 		return arr;
 	}
+	
+	/**
+	 * Creates an integer array from the contents of a byte array
+	 * 
+	 * @param array
+	 *            array of Strings to be converted
+	 * @return array of the converted integers
+	 */
+	public static int[] toIntArray(byte[] array) {
+		int[] arr = new int[array.length];
+		for (int i = 0; i < array.length; i++) {
+			try {
+				arr[i] = (array[i]);
+			} catch (NumberFormatException nfe) {
+				System.err.println("Error - failed to convert '" + array[i] + "' into an integer");
+			}
+		}
+		return arr;
+	}
 
 	/**
 	 * Creates an integer array from the contents of a double array
