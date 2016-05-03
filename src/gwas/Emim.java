@@ -1,11 +1,50 @@
 package gwas;
 
 import java.io.*;
+import java.util.HashSet;
 
 import common.*;
 
 public class Emim {
-	private static void setTo(String runType, boolean allelic) {
+	
+	private enum EMIM_MODEL {
+		GENOTYPIC,
+		ALLELIC,
+		ADDITIVE;
+	}
+	
+	private enum EMIM_PARAM {
+		ESTIMATE_R1("   << estimate R1 (0=no, 1=yes)"),
+		ESTIMATE_R2("   << estimate R2 (0=no, 1=yes)"),
+		R2_EQUALS_R1("   << R2=R1 (0=no, 1=yes)"),
+		R2_EQUALS_R1_SQUARED("   << R2=R1squared (0=no, 1=yes)"),
+		ESTIMATE_S1("   << estimate S1 (0=no, 1=yes)"),
+		ESTIMATE_S2("   << estimate S2 (0=no, 1=yes)"),
+		S2_EQUALS_S1("   << S2=S1 (0=no, 1=yes)"),
+		S2_EQUALS_S1_SQUARED("   << S2=S1squared (0=no, 1=yes)");
+		
+		private String lineSuffix;
+		
+		EMIM_PARAM(String lineSuffix){
+			this.lineSuffix = lineSuffix;
+		}
+		
+		String[] getReplacement(boolean setTo) {
+			return setTo ? new String[] {"0" + lineSuffix, "1" + lineSuffix} : new String[] {"1" + lineSuffix, "0" + lineSuffix};
+		}
+	}
+	
+	private static void generateEmimParams(String filenameOriginal, HashSet<EMIM_PARAM> setParams, Logger log){
+		String[][] replacements = new String[EMIM_PARAM.values().length][];
+		for (int i = 0; i < EMIM_PARAM.values().length; i++) {
+			EMIM_PARAM param = EMIM_PARAM.values()[i];
+			replacements[i] = param.getReplacement(setParams.contains(param));
+		}
+		
+		replaceLines(filenameOriginal, "emimparams.dat", replacements, log);
+	}
+	
+	private static void setTo(String runType, EMIM_MODEL model) {
 		String filenameOriginal;
 		Logger log;
 		
@@ -17,74 +56,68 @@ public class Emim {
 		log = new Logger();
 		filenameOriginal = Files.backup("emimparams.dat", "./", "./", true);
 		
+		HashSet<EMIM_PARAM> setParams = new HashSet<EMIM_PARAM>();
+		
 		if (runType.equals("C")) {
-			if (allelic) {
-				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-						{"1   << estimate R1 (0=no, 1=yes)", "0   << estimate R1 (0=no, 1=yes)"},
-						{"1   << estimate R2 (0=no, 1=yes)", "0   << estimate R2 (0=no, 1=yes)"},
-						{"0   << R2=R1 (0=no, 1=yes)", "1   << R2=R1 (0=no, 1=yes)"},
-						{"1   << estimate S1 (0=no, 1=yes)", "0   << estimate S1 (0=no, 1=yes)"},
-						{"1   << estimate S2 (0=no, 1=yes)", "0   << estimate S2 (0=no, 1=yes)"},
-						{"1   << S2=S1 (0=no, 1=yes)", "0   << S2=S1 (0=no, 1=yes)"}
-	
-					}, log);
-			} else {
-				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-						{"0   << estimate R1 (0=no, 1=yes)", "1   << estimate R1 (0=no, 1=yes)"},
-						{"0   << estimate R2 (0=no, 1=yes)", "1   << estimate R2 (0=no, 1=yes)"},
-						{"1   << R2=R1 (0=no, 1=yes)", "0   << R2=R1 (0=no, 1=yes)"},
-						{"1   << estimate S1 (0=no, 1=yes)", "0   << estimate S1 (0=no, 1=yes)"},
-						{"1   << estimate S2 (0=no, 1=yes)", "0   << estimate S2 (0=no, 1=yes)"},
-						{"1   << S2=S1 (0=no, 1=yes)", "0   << S2=S1 (0=no, 1=yes)"}
-	
-					}, log);
+			switch (model) {
+			case GENOTYPIC:
+				setParams.add(EMIM_PARAM.ESTIMATE_R1);
+				setParams.add(EMIM_PARAM.ESTIMATE_R2);
+				break;
+			case ALLELIC: 
+				setParams.add(EMIM_PARAM.R2_EQUALS_R1);
+				break;
+			case ADDITIVE:
+				setParams.add(EMIM_PARAM.R2_EQUALS_R1_SQUARED);
+				break;
+			default:
+				log.reportError("Invalid EMIM model: " + model.toString());
+				return;
 			}
 			
+		} else if (runType.equals("CM")) {
+			switch (model) {
+			case GENOTYPIC:
+				setParams.add(EMIM_PARAM.ESTIMATE_R1);
+				setParams.add(EMIM_PARAM.ESTIMATE_R2);
+				setParams.add(EMIM_PARAM.ESTIMATE_S1);
+				setParams.add(EMIM_PARAM.ESTIMATE_S2);
+				break;
+			case ALLELIC: 
+				setParams.add(EMIM_PARAM.R2_EQUALS_R1);
+				setParams.add(EMIM_PARAM.S2_EQUALS_S1);
+				break;
+			case ADDITIVE:
+				setParams.add(EMIM_PARAM.R2_EQUALS_R1_SQUARED);
+				setParams.add(EMIM_PARAM.S2_EQUALS_S1_SQUARED);
+				break;
+			default:
+				log.reportError("Invalid EMIM model: " + model.toString());
+				return;
+			}
+		} else if (runType.equals("M")) {
+			switch (model) {
+			case GENOTYPIC:
+				setParams.add(EMIM_PARAM.ESTIMATE_S1);
+				setParams.add(EMIM_PARAM.ESTIMATE_S2);
+				break;
+			case ALLELIC: 
+				setParams.add(EMIM_PARAM.S2_EQUALS_S1);
+				break;
+			case ADDITIVE:
+				setParams.add(EMIM_PARAM.S2_EQUALS_S1_SQUARED);
+				break;
+			default:
+				log.reportError("Invalid EMIM model: " + model.toString());
+				return;
+			}
+		} else {
+			log.reportError("Invalid Run Type: " + runType);
+			return;
 		}
 		
-		if (runType.equals("CM")) {
-			if (allelic) {
-				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-						{"1   << estimate R1 (0=no, 1=yes)", "0   << estimate R1 (0=no, 1=yes)"}, 
-						{"1   << estimate R2 (0=no, 1=yes)", "0   << estimate R2 (0=no, 1=yes)"},
-						{"0   << R2=R1 (0=no, 1=yes)", "1   << R2=R1 (0=no, 1=yes)"},
-						{"1   << estimate S1 (0=no, 1=yes)", "0   << estimate S1 (0=no, 1=yes)"}, 
-						{"1   << estimate S2 (0=no, 1=yes)", "0   << estimate S2 (0=no, 1=yes)"},
-						{"0   << S2=S1 (0=no, 1=yes)", "1   << S2=S1 (0=no, 1=yes)"}
-					}, log);
-			} else {
-				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-						{"0   << estimate R1 (0=no, 1=yes)", "1   << estimate R1 (0=no, 1=yes)"}, 
-						{"0   << estimate R2 (0=no, 1=yes)", "1   << estimate R2 (0=no, 1=yes)"},
-						{"1   << R2=R1 (0=no, 1=yes)", "0   << R2=R1 (0=no, 1=yes)"},
-						{"0   << estimate S1 (0=no, 1=yes)", "1   << estimate S1 (0=no, 1=yes)"}, 
-						{"0   << estimate S2 (0=no, 1=yes)", "1   << estimate S2 (0=no, 1=yes)"},
-						{"1   << S2=S1 (0=no, 1=yes)", "0   << S2=S1 (0=no, 1=yes)"}
-					}, log);
-			}
-		}
-
-		if (runType.equals("M")) {
-			if (allelic) {
-				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-						{"1   << estimate R1 (0=no, 1=yes)", "0   << estimate R1 (0=no, 1=yes)"}, 
-						{"1   << estimate R2 (0=no, 1=yes)", "0   << estimate R2 (0=no, 1=yes)"},
-						{"1   << R2=R1 (0=no, 1=yes)", "0   << R2=R1 (0=no, 1=yes)"},
-						{"1   << estimate S1 (0=no, 1=yes)", "0   << estimate S1 (0=no, 1=yes)"}, 
-						{"1   << estimate S2 (0=no, 1=yes)", "0   << estimate S2 (0=no, 1=yes)"},
-						{"0   << S2=S1 (0=no, 1=yes)", "1   << S2=S1 (0=no, 1=yes)"}
-					}, log);
-			} else {
-				replaceLines(filenameOriginal, "emimparams.dat", new String[][] {
-						{"1   << estimate R1 (0=no, 1=yes)", "0   << estimate R1 (0=no, 1=yes)"}, 
-						{"1   << estimate R2 (0=no, 1=yes)", "0   << estimate R2 (0=no, 1=yes)"},
-						{"1   << R2=R1 (0=no, 1=yes)", "0   << R2=R1 (0=no, 1=yes)"},
-						{"0   << estimate S1 (0=no, 1=yes)", "1   << estimate S1 (0=no, 1=yes)"}, 
-						{"0   << estimate S2 (0=no, 1=yes)", "1   << estimate S2 (0=no, 1=yes)"},
-						{"1   << S2=S1 (0=no, 1=yes)", "0   << S2=S1 (0=no, 1=yes)"}
-					}, log);
-			}
-		}
+		generateEmimParams(filenameOriginal, setParams, log);
+		
 	}
 	
 	private static void listSexMarkers(String bimFile, String sexFile) throws NumberFormatException, IOException {
@@ -133,34 +166,52 @@ public class Emim {
                         + (excludeFile != null ? " --exclude " + excludeFile : "")  
                         + (keepFile != null ? " --keep " + keepFile : "")  
                         + " --make-bed --out emimPrep\n"+
-                "mv plink.log plink_prep.log\n"+
+                "mv " + ext.parseDirectoryOfFile(relativePlinkRoot) + "plink.log plink_prep.log\n"+
                 "\n"+
                 "plink2 --noweb --bfile emimPrep --mendel\n"+
                 "mv plink.log plink_mendel.log\n"+
                 "\n"+
-                "plink2 --noweb --bfile emimPrep --tdt --ci\n"+
+                "plink2 --noweb --bfile emimPrep --tdt --ci 0.95\n"+
                 "mv plink.log plink_tdt.log\n"+
                 "\n"+
                 "plink2 --noweb --bfile emimPrep --hardy\n"+
                 "premim -cg -a -rout risksnplist.txt emimPrep.bed\n"+
                 "\n"+
-                "jcp gwas.Emim run=C\n"+
+                "jcp gwas.Emim run=C allelic=false\n"+
                 "emim\n"+
                 "mv emimsummary.out emimsummary_C.out\n"+
                 "mv emimresults.out emimresults_C.out\n"+
                 "cp emimparams.dat emimparams_C.dat\n"+
                 "\n"+
-                "jcp gwas.Emim run=CM\n"+
+                "jcp gwas.Emim run=CM allelic=false\n"+
                 "emim\n"+
                 "mv emimsummary.out emimsummary_CM.out\n"+
                 "mv emimresults.out emimresults_CM.out\n"+
                 "cp emimparams.dat emimparams_CM.dat\n"+
                 "\n"+
-                "jcp gwas.Emim run=M\n"+
+                "jcp gwas.Emim run=M allelic=false\n"+
                 "emim\n"+
                 "mv emimsummary.out emimsummary_M.out\n"+
                 "mv emimresults.out emimresults_M.out\n"+
                 "cp emimparams.dat emimparams_M.dat\n"+
+                "\n"+
+                "jcp gwas.Emim run=C allelic=true\n"+
+                "emim\n"+
+                "mv emimsummary.out emimsummary_C_allelic.out\n"+
+                "mv emimresults.out emimresults_C_allelic.out\n"+
+                "cp emimparams.dat emimparams_C_allelic.dat\n"+
+                "\n"+
+                "jcp gwas.Emim run=CM allelic=true\n"+
+                "emim\n"+
+                "mv emimsummary.out emimsummary_CM_allelic.out\n"+
+                "mv emimresults.out emimresults_CM_allelic.out\n"+
+                "cp emimparams.dat emimparams_CM_allelic.dat\n"+
+                "\n"+
+                "jcp gwas.Emim run=M allelic=true\n"+
+                "emim\n"+
+                "mv emimsummary.out emimsummary_M_allelic.out\n"+
+                "mv emimresults.out emimresults_M_allelic.out\n"+
+                "cp emimparams.dat emimparams_M_allelic.dat\n"+
                 "\n"+
                 "jcp gwas.Emim parse=./ hwe=plink.hwe pThreshold=" + pThreshold + 
                 "\n";
@@ -169,10 +220,14 @@ public class Emim {
                             "    mv results_pVals.xln " + resultPrefix + "_results_pVals.xln\n" + 
                             "fi;\n" + 
                             "";
+                commands += "if [ -f results_pVals_allelic.xln ] ; then \n" +
+                        "    mv results_pVals_allelic.xln " + resultPrefix + "_results_pVals_allelic.xln\n" + 
+                        "fi;\n" + 
+                        "";
             }
         
         
-        Files.qsub(currDir + ext.rootOf(plinkDirAndRoot, true)+"_runEmim.pbs", commands, 5000, 24, 1);
+        Files.qsub(currDir + ext.rootOf(plinkDirAndRoot, true)+"_runEmim.pbs", commands, 20000, 12, 1);
 	}
 	
 	public static void scriptAll(String plinkPrefix, String excludeFile, String keepFile, double pThreshold) {
@@ -237,6 +292,13 @@ public class Emim {
 		outfile = dir+"results_pVals.xln";
 
 		ResultsPackager.parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt, mapFile, mendelErrorFile, hweFile, pValueThreshold, outfile, new Logger("EMIMparser.log"));
+		
+		resultsFileChild = dir+"emimsummary_C_allelic.out";
+		resultsFileMom = dir+"emimsummary_M_allelic.out";
+		resultsFileChildMom = dir+"emimsummary_CM_allelic.out";
+		outfile = dir+"results_pVals_allelic.xln";
+
+		ResultsPackager.parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt, mapFile, mendelErrorFile, hweFile, pValueThreshold, outfile, new Logger("EMIMparser_allelic.log"));	
 	}
 	
 	public static void replaceLines(String filenameOriginal, String filenameWithReplacements, String[][] relacements, Logger log) {
@@ -264,17 +326,19 @@ public class Emim {
 		int numArgs = args.length;
 		String runType = "C";
 		String dir = null;
-		double pValueThreshold = 0.0001;
+		double pValueThreshold = 1.1;
 		String hweFile = null;
 		String plinkPrefix = null;
 		boolean allelic = true;
+		boolean additive = false;
 		String excludeFile = "GEN";
 		String keepFile = null;
 
 		String usage = "\n" +
 		"gwas.Emim requires 0-1 arguments\n" +
 		"   (1) run type (either C, CM, or M) (i.e. run=" + runType + " (default))\n" +
-		"   (2) allelic instead of 2df genotypic test (i.e. allelic=" + allelic + " (default))\n" +
+		"   (2) allelic (R2=R1) instead of 2df genotypic test (i.e. allelic=" + allelic + " (default))\n" +
+		"   (3) additive (R2=R1^2) instead of 2df genotypic test (i.e. additive=" + allelic + " (default))\n" +
 		"  OR\n" +
 		"   (1) generate script that runs the full process (i.e. script=plinkPrefix (not the default))\n" + 
 		"   (2) p-value threshold to filter on (piped to parse method) (i.e. pThreshold=" + pValueThreshold + " (default))\n" + 
@@ -314,6 +378,9 @@ public class Emim {
 			} else if (args[i].startsWith("allelic=")) {
 				allelic = ext.parseBooleanArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("additive=")) {
+				allelic = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -328,7 +395,14 @@ public class Emim {
 			} else if (plinkPrefix != null) {
 				scriptAll(plinkPrefix, excludeFile, keepFile, pValueThreshold);
 			} else {
-				setTo(runType, allelic);
+				if (additive & allelic) System.err.println("allelic and additive models cannot be used simultaneously");
+				else {
+					EMIM_MODEL model;
+					if (allelic) model = EMIM_MODEL.ALLELIC;
+					else if (additive) model = EMIM_MODEL.ADDITIVE;
+					else model = EMIM_MODEL.GENOTYPIC;
+					setTo(runType, model);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
