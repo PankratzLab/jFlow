@@ -392,7 +392,7 @@ public class BetaOptimizer {
 //				Restrictions rNat = new Restrictions(new String[] { "Method", "Method" }, new String[] { "\"" + ext.rootOf(samplesToBuildModels) + "_" + ORDER_TYPE.NATURAL + "\"", "\"not_" + ext.rootOf(samplesToBuildModels) + "_" + ORDER_TYPE.NATURAL + "\"" }, new String[] { "==", "==" }, "|");
 //				Restrictions rStep = new Restrictions(new String[] { "Method", "Method" }, new String[] { "\"" + ext.rootOf(samplesToBuildModels) + "_" + ORDER_TYPE.STEPWISE_RANK_R2 + "\"", "\"not_" + ext.rootOf(samplesToBuildModels) + "_" + ORDER_TYPE.STEPWISE_RANK_R2 + "\"" }, new String[] { "==", "==" }, "|");
 				String markersSub = ext.rootOf(samplesToBuildModels);
-//				String[] 
+//				String
 				for(String key:info.keySet()){
 					if(key.endsWith(pvals[j]+"")){
 						
@@ -400,13 +400,12 @@ public class BetaOptimizer {
 				}
 				String methodProotUnsigned = rootOutBetas + "pvalue_method_pearsonUnsigned" + pvalKey;
 				RScatter methodPU = new RScatter(bigSummaryOut, methodProotUnsigned + ".rscript", ext.rootOf(methodProotUnsigned), methodProotUnsigned + ".jpeg", "PC", new String[] { "correl_spearmanUnSigned" }, "Method", SCATTER_TYPE.POINT, log);
-				methodPU.setrSafeAltYColumnNames(rSafeAltYColumnNames);
 				methodPU.setOverWriteExisting(true);
 				methodPU.setRestrictions(new Restrictions[] { rPval });//rNat
 				methodPU.setxRange(new double[] { 0, 150 });
 				methodPU.setyRange(new double[] { -.5, 1 });
 				methodPU.setyLabel("correlation (spearman) of |betas| with p < " + pvals[j]);
-				methodPU.setTitle("ABS Betas from " + ext.rootOf(betaFile) + ";));
+				methodPU.setTitle("ABS Betas from " + ext.rootOf(betaFile) );
 				methodPU.setxLabel("PC");
 				methodPU.setVertLines(vertLines);
 				methodPU.execute();
@@ -445,7 +444,7 @@ public class BetaOptimizer {
 				methodPSNat.setxRange(new double[] { 0, 150 });
 				methodPSNat.setyRange(new double[] { -.5, 1 });
 				methodPSNat.setyLabel("correlation (spearman) of betas with p < " + pvals[j]);
-				methodPSNat.setTitle("Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
+				methodPSNat.setTitle("Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" );
 				methodPSNat.setxLabel("PC");
 				methodPSNat.setVertLines(vertLines);
 				methodPSNat.execute();
