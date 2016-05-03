@@ -5,6 +5,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -313,9 +314,25 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	    int tempY = e.getY();
 	    int toRemove = -1;
 	    
-	    for (int i = 0; i < polys.size(); i++) {
-	        // search through and find point if exists
+	    double[] coords = new double[6];
+	    int polyInd;
+	    int vertInd;
+	    polyLoop : for (int i = 0; i < polys.size(); i++) {
+	    	Path2D path = polys.get(i).myPath;
+	    	PathIterator pi = path.getPathIterator(null);
+	    	int vInd = 0;
+	    	while (!pi.isDone()) {
+	    		pi.currentSegment(coords);
+	    		if (Math.abs(tempX - getXPixel(coords[0])) < 4 && Math.abs(tempY - getYPixel(coords[1])) < 4) {
+    				polyInd = i;
+    				vertInd = vInd;
+    				break polyLoop;
+	    		}
+	    		vInd++;
+	    		pi.next();
+	    	}
 	    }
+	    // TODO check polyInd, set as drag
 	    if (toRemove >= 0) {
 	        polys.remove(toRemove);
 	    } else {
@@ -331,6 +348,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             if (currentTool == RECT_TOOL) {
                 leftMousePressedRect(e);
             } else if (currentTool == POLY_TOOL) {
+            	leftMousePressedPoly(e);
             }
             
             
@@ -365,6 +383,26 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         paintAgain();
 	}
 	
+	private void rightMouseClickedPoly(MouseEvent e) {
+		int tempX = e.getX();
+		int tempY = e.getY();
+		int toRemove = -1;
+		
+		double tempValX = getXValueFromXPixel(tempX);
+		double tempValY = getYValueFromYPixel(tempY);
+	    for (int i = polys.size() - 1; i >= 0; i--) {
+	    	if (polys.get(i).myPath.contains(tempValX, tempValY)) {
+	    		toRemove = i;
+	    		break;
+	    	}
+	    }
+		if (toRemove != -1) {
+			polys.remove(toRemove);
+		}
+		super.mouseClicked(e);
+		paintAgain();
+	}
+	
 	ArrayList<double[]> tempPoly = new ArrayList<double[]>();
 	ArrayList<GenericPath> polys = new ArrayList<GenericPath>();
 	
@@ -379,7 +417,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    if (currentTool == RECT_TOOL) {
 		        rightMouseClickedRect(e);
 		    } else if (currentTool == POLY_TOOL) {
-		        
+		        rightMouseClickedPoly(e);
 		    }
 		    
 		}
@@ -467,8 +505,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         }
     }
     
-//    public void mouseClicked(MouseEvent event) {}
-
     public BufferedImage getImage() {
         return image;
     }
