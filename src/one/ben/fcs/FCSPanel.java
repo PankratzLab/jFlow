@@ -89,6 +89,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	float[] xData;
 	float[] yData;
 	ArrayList<GenericRectangle> rects = new ArrayList<GenericRectangle>();
+	volatile boolean forceGatesChanged = false;
 	
 	public static final int RECT_TOOL = 0;
 	public static final int POLY_TOOL = 1;
@@ -163,7 +164,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             showMedSD[3] = sdY;
 		}
 		{
-		    gatesChanged = rectangles.length != rects.size() || polygons.length != polys.size(); 
+		    gatesChanged = rectangles.length != rects.size() || polygons.length != polys.size() || forceGatesChanged; 
+		    forceGatesChanged = false;
 		}
         rectangles = rects.toArray(new GenericRectangle[rects.size()]);
         polygons = polys.toArray(new GenericPath[polys.size()]);
@@ -309,14 +311,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         paintAgain();
 	}
 	
+	private int polyDragInd = -1;
+	private int polyDragVertInd = -1;
 	private void leftMousePressedPoly(MouseEvent e) {
 	    int tempX = e.getX();
 	    int tempY = e.getY();
 	    int toRemove = -1;
 	    
 	    double[] coords = new double[6];
-	    int polyInd;
-	    int vertInd;
+	    int polyInd = -1;
+	    int vertInd = -1;
 	    polyLoop : for (int i = 0; i < polys.size(); i++) {
 	    	Path2D path = polys.get(i).myPath;
 	    	PathIterator pi = path.getPathIterator(null);
@@ -333,12 +337,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	    	}
 	    }
 	    // TODO check polyInd, set as drag
-	    if (toRemove >= 0) {
-	        polys.remove(toRemove);
-	    } else {
+	    if (polyInd >= 0) {
+	        polyDragInd = polyInd;
+	        polyDragVertInd = vertInd;
+	    }
+//	    if (toRemove >= 0) {
+//	        polys.remove(toRemove);
+//	    } else {
 	        startX = e.getX();
 	        startY = e.getY();
-	    }
+//	    }
 	    paintAgain();
 	}
 	
@@ -424,7 +432,19 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		paintAgain();
 	}
     
+	private void setForceGatesChanged() {
+	    this.forceGatesChanged = true;
+	}
+	
 	private void leftMouseReleasedPoly(MouseEvent e) {
+	    if (polyDragInd >= 0) {
+	        polyDragInd = -1;
+	        polyDragVertInd = -1;
+	        setForceGatesChanged();
+	        paintAgain();
+	        return;
+	    }
+	    
         int tempPxX = e.getX();
         int tempPxY = e.getY();
         double tempValX = getXValueFromXPixel(tempPxX);
@@ -454,6 +474,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
            path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
         }
         highlightPoly = new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true);
+        setForceGatesChanged();
         paintAgain();
 	}
 	
@@ -494,11 +515,49 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         paintAgain();
     }
     
+    private void leftMouseDraggedPoly(MouseEvent e) {
+        if (polyDragInd >= 0) {
+            int mouseEndX;
+            int mouseEndY;
+            mouseEndX = e.getX();
+            mouseEndY = e.getY();
+            
+            GenericPath gp = polys.get(polyDragInd);
+            Path2D newPath = new Path2D.Double();
+            PathIterator pi = gp.myPath.getPathIterator(null);
+            double[] coords = new double[6];
+            int v = 0;
+            while(!pi.isDone()) {
+                int code = pi.currentSegment(coords);
+                if (v == polyDragVertInd) {
+                    coords[0] = getXValueFromXPixel(mouseEndX);
+                    coords[1] = getYValueFromYPixel(mouseEndY);
+                }
+                switch(code) {
+                    case PathIterator.SEG_MOVETO:
+                        newPath.moveTo(coords[0], coords[1]);
+                        break;
+                    case PathIterator.SEG_LINETO:
+                        newPath.lineTo(coords[0], coords[1]);
+                        break;
+                    case PathIterator.SEG_CLOSE:
+                        newPath.closePath();
+                }
+                v++;
+                pi.next();
+            }
+            polys.get(polyDragInd).myPath = newPath;
+            setForceGatesChanged();
+            paintAgain();
+        }
+    }
+    
     public void mouseDragged(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
             if (currentTool == RECT_TOOL) {
                 leftMouseDraggedRect(e);
             } else if (currentTool == POLY_TOOL) {
+                leftMouseDraggedPoly(e);
             }
         } else {
             super.mouseDragged(e);
