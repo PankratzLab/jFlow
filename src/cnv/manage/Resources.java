@@ -127,7 +127,8 @@ public class Resources {
 	}
 
 	public enum GENOME_CHROMOSOME_RESOURCE_TYPE {
-		GENETIC_MAP("genetic_map_", ".txt.gz", DEFAULT_URL);
+		GENETIC_MAP("genetic_map_", ".txt.gz", DEFAULT_URL),
+		G1K_PHASE3v5_REF_PANEL("1000genomes_ref_panel_Phase3v5_", ".m3vcf.gz", DEFAULT_URL);
 
 		private String namePrefix;
 		private String nameSuffix;
