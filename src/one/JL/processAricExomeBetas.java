@@ -64,6 +64,11 @@ public class processAricExomeBetas {
 		ArrayList<String> betas = new ArrayList<String>();
 		betas.add("/home/pankrat2/shared/skatMeta/exome_chip_hematology/WBC_TOTAL/Whites/SingleSNP/Whites_WBC_TOTAL_SingleSNP.csv");
 		betas.add("/home/pankrat2/shared/skatMeta/exome_chip_hematology/WBC_TOTAL/Blacks/SingleSNP/Blacks_WBC_TOTAL_SingleSNP.csv");
+
+		String[] others = Files.list("/home/pankrat2/shared/MitoPipeLineResources/betas/ExomeBetas/", "", ".csv", true, false, true);
+		for (int i = 0; i < others.length; i++) {
+			betas.add(others[i]);
+		}
 		// betas.add("/home/pankrat2/shared/skatMeta/exome_chip_hematology/WBC_TOTAL/Asians/SingleSNP/Asians_WBC_TOTAL_SingleSNP.csv");
 
 		for (int i = 0; i < betas.size(); i++) {

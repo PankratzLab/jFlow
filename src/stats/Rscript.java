@@ -670,6 +670,8 @@ public class Rscript {
 		private double midScaleDensity;
 		private Restrictions[] restrictions;
 		private String rScriptLoc;
+		private String[][] altLegendTitles;
+		private String legendTitle;
 
 		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
 			this(dataFile, rSriptFile, plotVar, output, dataXvalueColumn, dataYvalueColumns, null, sType, log);
@@ -711,10 +713,20 @@ public class Rscript {
 			this.rScriptLoc = "Rscript";
 			this.factorColor=true;
 			this.numHistBins=-1;
+			this.altLegendTitles =null;
+			this.legendTitle = null;
 		}
 
 		public String getrScriptLoc() {
 			return rScriptLoc;
+		}
+
+		public void setLegendTitle(String legendTitle) {
+			this.legendTitle = legendTitle;
+		}
+
+		public void setAltLegendTitles(String[][] altLegendTitles) {
+			this.altLegendTitles = altLegendTitles;
 		}
 
 		public void setFactorColor(boolean factorColor) {
@@ -1056,7 +1068,15 @@ public class Rscript {
 					for (int i = 0; i < rSafeYColumns.length; i++) {
 						System.out.println(plot);
 						if (!scaleDensity) {
-							plot += " + " + sType.getCall() + "(aes(y=" + rSafeYColumns[i] + ", color="+(factorColor?"factor(" + rSafeColorColumn + ")":rSafeColorColumn)+"))";
+							plot += " + " + sType.getCall() + "(aes(y=" + rSafeYColumns[i] + ", color=" + (factorColor ? "factor(" + rSafeColorColumn + ")" : rSafeColorColumn) + "))";
+							if (altLegendTitles != null) {
+								plot += " + scale_color_discrete(\"" + (legendTitle == null ? "metric" : legendTitle) + "\",";
+								plot += "breaks=" + generateRVector(altLegendTitles[0], true) + ",";
+								plot += "labels=" + generateRVector(altLegendTitles[1], true) + ")";
+								System.out.println(Array.toStr(altLegendTitles[0]));
+								System.out.println(Array.toStr(altLegendTitles[1]));
+							}
+
 						} else {
 							plot += " + " + sType.getCall() + "(aes(y=" + rSafeYColumns[i] + "))";
 						}
