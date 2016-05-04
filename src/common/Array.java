@@ -2093,6 +2093,60 @@ public class Array {
 
 		return str;
 	}
+	
+	/**
+	 * Prints an array of objects separated by a tab
+	 * 
+	 * @param array
+	 *            an array of objects
+	 * @return String of printed objects
+	 */
+	public static String toStr(Object[] array) {
+		return toStr(array, null, "\t", null);
+	}
+	
+	/**
+	 * Prints an array of objects separated by the specified delimiter
+	 * 
+	 * @param array
+	 *            an array of objects
+	 * @param delimiter
+	 *            String delimiter
+	 * @return String of printed objects
+	 */
+	public static String toStr(Object[] array, String delimiter) {
+		return toStr(array, null, delimiter, null);
+	}
+	
+	/**
+	 * Prints an array of objects separated by the specified delimiter
+	 * 
+	 * @param array
+	 *            an array of objects
+	 * @param delimiter
+	 *            String delimiter
+	 * @return String of printed objects
+	 */
+	public static String toStr(Object[] array, boolean[] display, String delimiter, String nullValue) {
+		String str = "";
+		int count;
+		boolean commaDelimited;
+
+		count = 0;
+		commaDelimited = delimiter.equals(",");
+		for (int i = 0; i<array.length; i++) {
+			if (display == null || display[i]) {
+				String val = array[i].toString();
+				if (commaDelimited && val.contains(",")) {
+					val = "\""+val+"\"";
+				}
+				str += (count==0?"":delimiter)+(val==null?nullValue:val);
+				count++;
+			}
+		}
+
+		return str;
+	}
 
 	/**
 	 * Prints an array of integers separated by a tab
