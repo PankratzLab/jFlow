@@ -61,6 +61,10 @@ public class Histogram implements Serializable {
 	public int getExtrastep() {
 		return extrastep;
 	}
+	
+	public Histogram(double[] array, int sigfigs, int extrastep) {
+	    this(array, Array.min(array), Array.max(array), sigfigs, extrastep);
+	}
 
 	public Histogram(double[] array, double min, double max, int sigfigs, int extrastep) {
 		this.min = min;

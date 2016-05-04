@@ -8,6 +8,7 @@ import java.awt.FontMetrics;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
@@ -95,7 +96,7 @@ public class RainbowTestGUI extends JFrame {
         setContentPane(contentPane);
         contentPane.setLayout(new MigLayout("ins 7 7 3 7,hidemode 3", "[][grow][]", "[][][][grow][][]"));
         
-        JLabel lblFileDir = new JLabel("Baseline FCS Dir:");
+        JLabel lblFileDir = new JLabel("<html><u>B</u>aseline FCS Dir:</html>");
         contentPane.add(lblFileDir, "cell 0 0,alignx trailing");
         
         txtFldBaseDir = new JTextField();
@@ -107,6 +108,7 @@ public class RainbowTestGUI extends JFrame {
         
         btnBaseDirSelect = new JButton(">");
         btnBaseDirSelect.setMargin(btnInsets);
+        btnBaseDirSelect.setMnemonic(KeyEvent.VK_B);
         btnBaseDirSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 String curr = txtFldBaseDir.getText();
@@ -127,7 +129,7 @@ public class RainbowTestGUI extends JFrame {
         });
         contentPane.add(btnBaseDirSelect, "cell 2 0");
         
-        lblCompareFcsDir = new JLabel("Compare FCS Dir:");
+        lblCompareFcsDir = new JLabel("<html>Compare FCS <u>D</u>ir:</html>");
         contentPane.add(lblCompareFcsDir, "cell 0 1,alignx trailing");
         
         txtFldCompDir = new JTextField();
@@ -137,6 +139,7 @@ public class RainbowTestGUI extends JFrame {
         
         btnCompDirSelect = new JButton(">");
         btnCompDirSelect.setMargin(new Insets(0, 14, 0, 14));
+        btnCompDirSelect.setMnemonic(KeyEvent.VK_D);
         btnCompDirSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 String curr = txtFldCompDir.getText();
@@ -157,7 +160,7 @@ public class RainbowTestGUI extends JFrame {
         });
         contentPane.add(btnCompDirSelect, "cell 2 1");
         
-        JLabel lblGatingFile = new JLabel("Gating File:");
+        JLabel lblGatingFile = new JLabel("<html><u>G</u>ating File:</html>");
         contentPane.add(lblGatingFile, "cell 0 2,alignx trailing");
         
         txtFldGatingFile = new JTextField();
@@ -167,6 +170,7 @@ public class RainbowTestGUI extends JFrame {
         
         btnGatingFileSelect = new JButton(">");
         btnGatingFileSelect.setMargin(new Insets(0, 3, 0, 3));
+        btnGatingFileSelect.setMnemonic(KeyEvent.VK_G);
         btnGatingFileSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String curr = txtFldBaseDir.getText();
@@ -265,6 +269,7 @@ public class RainbowTestGUI extends JFrame {
             }
         });
         rdbtnMean.setText("Mean");
+        rdbtnMean.setMnemonic(KeyEvent.VK_M);
         rdbtnMean.setSelected(true);
         buttonGroup.add(rdbtnMean);
         contentPane.add(rdbtnMean, "flowx,cell 0 4");
@@ -284,6 +289,7 @@ public class RainbowTestGUI extends JFrame {
             }
         });
         rdbtnCv.setText("cV");
+        rdbtnCv.setMnemonic(KeyEvent.VK_C);
         buttonGroup.add(rdbtnCv);
         contentPane.add(rdbtnCv, "flowx,cell 1 4");
         
@@ -302,6 +308,7 @@ public class RainbowTestGUI extends JFrame {
             }
         });
         rdbtnSd.setText("SD");
+        rdbtnSd.setMnemonic(KeyEvent.VK_S);
         buttonGroup.add(rdbtnSd);
         contentPane.add(rdbtnSd, "cell 0 4");
         
@@ -322,6 +329,7 @@ public class RainbowTestGUI extends JFrame {
         rdbtnUngated.setAction(gateAction);
         rdbtnUngated.setText("Ungated");
         rdbtnUngated.setSelected(true);
+        rdbtnUngated.setMnemonic(KeyEvent.VK_U);
         buttonGroup_1.add(rdbtnUngated);
         contentPane.add(rdbtnUngated, "cell 1 4");
         
@@ -329,6 +337,7 @@ public class RainbowTestGUI extends JFrame {
         rdbtnGated.setAction(gateAction);
         rdbtnGated.setText("Gated");
         rdbtnGated.setEnabled(false);
+        rdbtnGated.setMnemonic(KeyEvent.VK_D);
         buttonGroup_1.add(rdbtnGated);
         contentPane.add(rdbtnGated, "cell 1 4");
         
@@ -342,8 +351,7 @@ public class RainbowTestGUI extends JFrame {
                 }
             }
         });
-        button.setMargin(new Insets(0, 2, 0, 2
-                ));
+        button.setMargin(new Insets(0, 2, 0, 2));
         contentPane.add(button, "cell 2 2");
     }
     
@@ -723,9 +731,9 @@ public class RainbowTestGUI extends JFrame {
             addFilesToModel(sub, paramNames, removePrep);
         }
         
-        dtmMean.addRow(new Object[dtmMean.getColumnCount()]);
-        dtmSD.addRow(new Object[dtmMean.getColumnCount()]);
-        dtmCV.addRow(new Object[dtmMean.getColumnCount()]);
+//        dtmMean.addRow(new Object[dtmMean.getColumnCount()]);
+//        dtmSD.addRow(new Object[dtmMean.getColumnCount()]);
+//        dtmCV.addRow(new Object[dtmMean.getColumnCount()]);
         
     }
     

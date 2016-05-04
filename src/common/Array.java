@@ -76,6 +76,35 @@ public class Array {
 	}
 
 	/**
+	 * Return the minimum and maximum, respectively, in an array of floats
+	 * 
+	 * @param array
+	 *            array of floats
+	 * @return the minimum and maximum, in that order
+	 */
+	public static float[] minMax(float[] array) {
+	    float min;
+	    float max;
+	    
+	    if (array.length==0) {
+	        System.err.println("Error - impossible to find the min of an empty array");
+	        return new float[]{Float.NaN, Float.NaN};
+	    }
+	    min = max = array[0];
+	    for (int i = 1; i<array.length; i++) {
+	        if (array[i] != Float.NaN) {
+	            if (array[i] < min) {
+	                min = array[i];
+	            } 
+	            if (array[i] > max) {
+	                max = array[i];
+	            }
+	        }
+	    }
+	    return new float[]{min, max};
+	}
+
+	/**
 	 * Return the minimum in an array of bytes
 	 * 
 	 * @param array

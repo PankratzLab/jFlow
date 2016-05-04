@@ -95,6 +95,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	
 	public static final int RECT_TOOL = 0;
 	public static final int POLY_TOOL = 1;
+    private static final String HISTOGRAM_COL = "Histogram";
 	
 	private volatile int currentTool = POLY_TOOL;
 //	private volatile int currentTool = RECT_TOOL;
@@ -169,28 +170,36 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    gatesChanged = rectangles.length != rects.size() || polygons.length != polys.size() || forceGatesChanged; 
 		    forceGatesChanged = false;
 		}
+		
+		// TODO replace with loading gates from FCSPlot (and creating gates from mouse actions)
         rectangles = rects.toArray(new GenericRectangle[rects.size()]);
-        
-//        Path2D path = new Path2D.Double(PathIterator.WIND_EVEN_ODD);
-//        path.moveTo(54380.9361702128, 73460.6986564299);
-//        path.lineTo(40715.9829787234, 60881.8119001919);
-//        path.lineTo(35138.4510638298, 43774.5259117082);
-//        path.lineTo(41552.6127659574, 33711.4165067178);
-//        path.lineTo(58006.3319148936, 49812.3915547025);
-//        path.closePath();
-//        polys.add(new GenericPath(path, (byte) 4, (byte) 4, (byte) 99, false, true));
-        
         polygons = polys.toArray(new GenericPath[polys.size()]);
+        
+        
         
 		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged && !gatesChanged/* && !typeChanged /* don't need to regen if only type has changed, for now */;
 		if (skip) return;
 		
 		xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) : xData;
-		yData = columnsChangedY || dataChanged || yData == null ? fcp.getAxisData(false, false) : yData;
+		yCol = HISTOGRAM_COL;
+		if (yCol.equals(FCSPanel.HISTOGRAM_COL)) {
+		    float[] minMax = Array.minMax(xData);
+		    int range = (int)Math.ceil(minMax[1]) - (int)Math.floor(minMax[0]) + 1;
+		    float[] histData = new float[range];
+		    for (float x : xData) {
+	            histData[(int) (x - minMax[0])]++;
+		    }
+		    ArrayList<GenericLine> linesTemp = new ArrayList<GenericLine>();
+		    for (int i = 0; i < histData.length - 1; i++) {
+		        linesTemp.add(new GenericLine(i + minMax[0], histData[i], (i + 1) + minMax[0], histData[i + 1], (byte)1, (byte) 0, (byte)0));
+		    }
+		    lines = linesTemp.toArray(new GenericLine[linesTemp.size()]);
+		    return;
+		}
 		
-//		zoomable = true;
-//		setForcePlotXMin(0);// TODO fix this to be more intelligent
-//		setForcePlotYMin(0);//
+		
+		
+		yData = columnsChangedY || dataChanged || yData == null ? fcp.getAxisData(false, false) : yData;
 		
 		ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
 		if (showMedSD[0] || showMedSD[1]) {

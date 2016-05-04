@@ -507,7 +507,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         generatePointsRectanglesAndLines();
 		highlightPoints();
 		
-		if (points.length == 0 && (rectangles == null || rectangles.length == 0) && (polygons == null || polygons.length == 0)) {
+		if (points.length == 0 && (rectangles == null || rectangles.length == 0) && (polygons == null || polygons.length == 0) && (lines == null || lines.length == 0)) {
 		    locLookup.clear();
 			g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
@@ -781,12 +781,18 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                 int y1 = getYPixel(y1final);
                 int x2 = getXPixel(x2final);
                 int y2 = getYPixel(y2final);
-                
-                Grafik.drawThickLine(g, x1, y1, 
-                        x2, y2, 
-                        (int)lines[i].getThickness(), 
-                        colorScheme[lines[i].getColor()], 
-                        lines[i].getDirection(), lines[i].getShouldScale());
+                if (lines[i].getThickness() == 1) {
+                    Color c = g.getColor();
+                    g.setColor(colorScheme[lines[i].getColor()]);
+                    g.drawLine(x1, y1, x2, y2);
+                    g.setColor(c);
+                } else {
+                    Grafik.drawThickLine(g, x1, y1, 
+                            x2, y2, 
+                            (int)lines[i].getThickness(), 
+                            colorScheme[lines[i].getColor()], 
+                            lines[i].getDirection(), lines[i].getShouldScale());
+                }
             }
         }
 
