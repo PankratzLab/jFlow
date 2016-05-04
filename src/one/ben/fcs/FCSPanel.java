@@ -89,7 +89,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	float[] xData;
 	float[] yData;
 	ArrayList<GenericRectangle> rects = new ArrayList<GenericRectangle>();
-	volatile boolean forceGatesChanged = false;
+	ArrayList<double[]> tempPoly = new ArrayList<double[]>();
+    ArrayList<GenericPath> polys = new ArrayList<GenericPath>();
+    volatile boolean forceGatesChanged = false;
 	
 	public static final int RECT_TOOL = 0;
 	public static final int POLY_TOOL = 1;
@@ -168,6 +170,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    forceGatesChanged = false;
 		}
         rectangles = rects.toArray(new GenericRectangle[rects.size()]);
+        
+//        Path2D path = new Path2D.Double(PathIterator.WIND_EVEN_ODD);
+//        path.moveTo(54380.9361702128, 73460.6986564299);
+//        path.lineTo(40715.9829787234, 60881.8119001919);
+//        path.lineTo(35138.4510638298, 43774.5259117082);
+//        path.lineTo(41552.6127659574, 33711.4165067178);
+//        path.lineTo(58006.3319148936, 49812.3915547025);
+//        path.closePath();
+//        polys.add(new GenericPath(path, (byte) 4, (byte) 4, (byte) 99, false, true));
+        
         polygons = polys.toArray(new GenericPath[polys.size()]);
         
 		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged && !gatesChanged/* && !typeChanged /* don't need to regen if only type has changed, for now */;
@@ -411,9 +423,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		paintAgain();
 	}
 	
-	ArrayList<double[]> tempPoly = new ArrayList<double[]>();
-	ArrayList<GenericPath> polys = new ArrayList<GenericPath>();
-	
 	public void mouseClicked(MouseEvent e) {   
 		if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
 		    if (currentTool == POLY_TOOL) {
@@ -487,6 +496,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
                 (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
                 (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99, true));
+//        RectangleGate rg = new RectangleGate();
+//        rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
+//        rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
+//        fcp.addGate(rg);
         paintAgain();
 	}
 

@@ -150,17 +150,19 @@ public class FCSPlotControlPanel extends JPanel {
         lblYbounds.setFont(lblFont);
 
         Format numberFormat = NumberFormat.getNumberInstance();
-        yBndsMax = new JFormattedTextField(numberFormat);
-        panel.add(yBndsMax, "cell 2 5 2 1");
-        yBndsMax.addPropertyChangeListener("value", pcl);
-        yBndsMax.setColumns(10);
-        yBndsMax.setEditable(false);
+        
         yBndsMin = new JFormattedTextField(numberFormat);
         panel.add(yBndsMin, "cell 2 5 2 1");
         yBndsMin.addPropertyChangeListener("value", pcl);
         yBndsMin.setColumns(10);
         yBndsMin.setValue(0);
         yBndsMin.setEditable(false);
+
+        yBndsMax = new JFormattedTextField(numberFormat);
+        panel.add(yBndsMax, "cell 2 5 2 1");
+        yBndsMax.addPropertyChangeListener("value", pcl);
+        yBndsMax.setColumns(10);
+        yBndsMax.setEditable(false);
         
         JLabel lblXaxisData = new JLabel("X-Axis Data:");
         panel.add(lblXaxisData, "cell 0 7,alignx trailing");
@@ -198,18 +200,19 @@ public class FCSPlotControlPanel extends JPanel {
         panel.add(lblXbounds, "cell 0 10 2 1,alignx trailing");
         lblXbounds.setFont(lblFont);
         
-        xBndsMax = new JFormattedTextField(numberFormat);
-        panel.add(xBndsMax, "cell 2 10 2 1");
-        xBndsMax.addPropertyChangeListener("value", pcl);
-        xBndsMax.setColumns(10);
-        xBndsMax.setEditable(false);
-        
         xBndsMin = new JFormattedTextField(numberFormat);
         panel.add(xBndsMin, "cell 2 10 2 1");
         xBndsMin.addPropertyChangeListener("value", pcl);
         xBndsMin.setColumns(10);
         xBndsMin.setValue(0);
         xBndsMin.setEditable(false);
+
+        xBndsMax = new JFormattedTextField(numberFormat);
+        panel.add(xBndsMax, "cell 2 10 2 1");
+        xBndsMax.addPropertyChangeListener("value", pcl);
+        xBndsMax.setColumns(10);
+        xBndsMax.setEditable(false);
+        
         chckbxShowSdX.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent arg0) {

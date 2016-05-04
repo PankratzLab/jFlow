@@ -37,6 +37,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
+import one.ben.fcs.gating.Gate;
 import one.ben.fcs.gating.GateFileReader;
 import one.ben.fcs.gating.GatingStrategy;
 
@@ -44,10 +45,13 @@ import org.xml.sax.SAXException;
 
 import common.Array;
 import common.ext;
+
 import javax.swing.JRadioButton;
 import javax.swing.ButtonGroup;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
 
 
 public class RainbowTestGUI extends JFrame {
@@ -83,6 +87,7 @@ public class RainbowTestGUI extends JFrame {
      * Create the frame.
      */
     public RainbowTestGUI() {
+        super("Rainbow Bead Testing");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(50, 50, 850, 400);
         contentPane = new JPanel();
@@ -161,7 +166,7 @@ public class RainbowTestGUI extends JFrame {
         txtFldGatingFile.setColumns(10);
         
         btnGatingFileSelect = new JButton(">");
-        btnGatingFileSelect.setMargin(btnInsets);
+        btnGatingFileSelect.setMargin(new Insets(0, 3, 0, 3));
         btnGatingFileSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String curr = txtFldBaseDir.getText();
@@ -181,7 +186,7 @@ public class RainbowTestGUI extends JFrame {
                 }
             }
         });
-        contentPane.add(btnGatingFileSelect, "cell 2 2");
+        contentPane.add(btnGatingFileSelect, "flowx,cell 2 2");
         
         scrollPane = new JScrollPane();
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -280,7 +285,7 @@ public class RainbowTestGUI extends JFrame {
         });
         rdbtnCv.setText("cV");
         buttonGroup.add(rdbtnCv);
-        contentPane.add(rdbtnCv, "cell 1 4");
+        contentPane.add(rdbtnCv, "flowx,cell 1 4");
         
         rdbtnSd = new JRadioButton();
         rdbtnSd.setAction(new AbstractAction() {
@@ -300,7 +305,46 @@ public class RainbowTestGUI extends JFrame {
         buttonGroup.add(rdbtnSd);
         contentPane.add(rdbtnSd, "cell 0 4");
         
-//        setGateFile("F:\\Flow\\rainbow\\URB.wspt");
+        separator = new JSeparator();
+        separator.setOrientation(SwingConstants.VERTICAL);
+        contentPane.add(separator, "cell 1 4,growy");
+        
+        AbstractAction gateAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (baseDir != null && dirStruct != null) {
+                    reCalcTableData();
+                }
+            }
+        };
+        
+        rdbtnUngated = new JRadioButton();
+        rdbtnUngated.setAction(gateAction);
+        rdbtnUngated.setText("Ungated");
+        rdbtnUngated.setSelected(true);
+        buttonGroup_1.add(rdbtnUngated);
+        contentPane.add(rdbtnUngated, "cell 1 4");
+        
+        rdbtnGated = new JRadioButton();
+        rdbtnGated.setAction(gateAction);
+        rdbtnGated.setText("Gated");
+        rdbtnGated.setEnabled(false);
+        buttonGroup_1.add(rdbtnGated);
+        contentPane.add(rdbtnGated, "cell 1 4");
+        
+        button = new JButton("X");
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                gateStrat = null;
+                txtFldGatingFile.setText("");
+                if (baseDir != null && dirStruct != null) {
+                    reCalcTableData();
+                }
+            }
+        });
+        button.setMargin(new Insets(0, 2, 0, 2
+                ));
+        contentPane.add(button, "cell 2 2");
     }
     
     private void resizeColumnWidth(JTable table) {
@@ -317,12 +361,15 @@ public class RainbowTestGUI extends JFrame {
         }
     }
     
+    GatingStrategy gateStrat;
     private void setGateFile(String filePath) {
         try {
-            GatingStrategy gateStrat = GateFileReader.readGateFile(filePath);
-            
-            
-            
+            gateStrat = GateFileReader.readGateFile(filePath);
+            rdbtnGated.setEnabled(true);
+            rdbtnGated.setSelected(true);
+            if (baseDir != null && dirStruct != null) {
+                reCalcTableData();
+            }
         } catch (ParserConfigurationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -416,6 +463,11 @@ public class RainbowTestGUI extends JFrame {
     private DefaultTableModel dtmMean;
     private DefaultTableModel dtmSD;
     private DefaultTableModel dtmCV;
+    private JSeparator separator;
+    private JRadioButton rdbtnUngated;
+    private JRadioButton rdbtnGated;
+    private final ButtonGroup buttonGroup_1 = new ButtonGroup();
+    private JButton button;
     
     private void reCalcTableData() {
         
@@ -472,6 +524,7 @@ public class RainbowTestGUI extends JFrame {
         dtmMean.addRow(firstRow);
         dtmSD.addRow(firstRow);
         dtmCV.addRow(firstRow);
+        boldRows.add(0);
         
         addBaseToModel(paramNames);
         
@@ -560,6 +613,12 @@ public class RainbowTestGUI extends JFrame {
         resizeColumnWidth(table);
     }
     
+    private void boolAnd(boolean[] aRet, boolean[] b) {
+        for (int i = 0; i < aRet.length; i++) {
+            aRet[i] = aRet[i] && b[i];
+        }
+    }
+    
     private void addBaseToModel(String[] paramNames) {
         for (String f : baseFCSFiles) {
             Object[] rowDataM = new Object[paramNames.length + 1];
@@ -569,8 +628,25 @@ public class RainbowTestGUI extends JFrame {
             rowDataS[0] = ext.rootOf(f);
             rowDataC[0] = ext.rootOf(f);
             for (int i = 0; i < paramNames.length; i++) {
-                // TODO apply Gating here
-                float[] data = baseFiles.get(f).getData(paramNames[i], true);
+                FCSDataLoader loader = baseFiles.get(f);
+                
+                boolean[] gating = null;
+                if (gateStrat != null && rdbtnGated.isSelected()) {
+                    ArrayList<Gate> gates = gateStrat.getGatesForParamOnly(paramNames[i]);
+                    System.out.println("Applying " + gates.size() + " gates (not including parent-gates) to parameter " + paramNames[i]);
+                    for (Gate g : gates) {
+                        if (gating == null) {
+                            gating = g.gate(loader);
+                        } else {
+                            boolAnd(gating, g.gate(loader));
+                        }
+                    }
+                }
+                
+                float[] data = loader.getData(paramNames[i], true);
+                if (gating != null) {
+                    data = Array.subArray(data, gating);
+                }
                 Float mn = Array.mean(data);
                 Float sd = Array.stdev(data, true);
                 Float cv = 100 * (sd / mn);
@@ -607,8 +683,25 @@ public class RainbowTestGUI extends JFrame {
             rowDataS[0] = ext.rootOf(f);
             rowDataC[0] = ext.rootOf(f);
             for (int i = 0; i < paramNames.length; i++) {
-                // TODO apply Gating here
-                float[] data = compFiles.get(df.dir + f).getData(paramNames[i], true);
+                FCSDataLoader loader = compFiles.get(df.dir + f);
+
+                boolean[] gating = null;
+                if (gateStrat != null && rdbtnGated.isSelected()) {
+                    ArrayList<Gate> gates = gateStrat.getGatesForParamOnly(paramNames[i]);
+                    System.out.println("Applying " + gates.size() + " gates (not including parent-gates) to parameter " + paramNames[i]);
+                    for (Gate g : gates) {
+                        if (gating == null) {
+                            gating = g.gate(loader);
+                        } else {
+                            boolAnd(gating, g.gate(loader));
+                        }
+                    }
+                }
+                
+                float[] data = loader.getData(paramNames[i], true);
+                if (gating != null) {
+                    data = Array.subArray(data, gating);
+                }
                 Float mn = Array.mean(data);
                 Float sd = Array.stdev(data, true);
                 Float cv = 100 * (sd / mn);
