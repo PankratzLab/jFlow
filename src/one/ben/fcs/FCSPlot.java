@@ -41,6 +41,7 @@ import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
 import one.ben.fcs.FCSDataLoader.LOAD_STATE;
+import one.ben.fcs.gating.Gate.RectangleGate;
 import cnv.gui.GuiManager;
 import common.Files;
 import common.Logger;
