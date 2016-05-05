@@ -37,6 +37,83 @@ public class Internat {
 		}
 	}
 
+	public static String[] getPage(String source) {
+		String nextLine;
+		URL url = null;
+		URLConnection urlConn = null;
+		InputStreamReader inStream = null;
+		BufferedReader buff = null;
+		ArrayList<String> list;
+
+		list = new ArrayList<String>();
+		try {
+			// Create the URL obect that points
+			// at the default file index.html
+			url = new URL(source);
+			urlConn = url.openConnection();
+			inStream = new InputStreamReader(urlConn.getInputStream());
+			buff = new BufferedReader(inStream);
+
+			// Read and print the lines from index.html
+			while (true) {
+				nextLine = buff.readLine();
+				if (nextLine!=null) {
+					list.add(nextLine);
+				} else {
+					break;
+				}
+			}
+		} catch (MalformedURLException e) {
+			System.out.println("Please check the URL:"+e.toString());
+		} catch (IOException e1) {
+			System.out.println("Can't read  from the Internet: "+e1.toString());
+		}
+		
+		return Array.toStringArray(list);
+	}
+
+	public static String[] getMash(String source, Logger log) {
+		ArrayList<String> list = new ArrayList<String>();
+		
+		try {
+			URL url = new URL(source);
+			try {
+				double rand = Math.random();
+				int randomSleep = (int) (rand * 10000);
+				Thread.sleep(randomSleep + 1000);
+			} catch (InterruptedException ie) {
+			}
+			final URLConnection connection = url.openConnection();
+			connection.setConnectTimeout(60000);
+			connection.setReadTimeout(60000);
+			connection.addRequestProperty("User-Agent", "Chrome/12.0.742.5");
+			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			try {
+				double rand = Math.random();
+
+				int randomSleep = (int) (rand + 1 * 5000);
+				Thread.sleep(1000 + randomSleep);
+			} catch (InterruptedException ie) {
+			}
+			while (in.ready()) {
+				String line = in.readLine().trim();
+				list.add(line);
+			}
+			in.close();
+		} catch (MalformedURLException e) {
+			log.reportException(e);
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			log.reportException(e);
+			e.printStackTrace();
+		} catch (IOException e) {
+			log.reportException(e);
+			e.printStackTrace();
+		}
+		
+		return Array.toStringArray(list);
+	}	
+
 	public static boolean downloadFile(String source, String output) {
 		return downloadFile(source, output, true);
 	}
