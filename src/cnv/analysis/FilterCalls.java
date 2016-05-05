@@ -1321,7 +1321,25 @@ public class FilterCalls {
 		}
 	}
 	
-	private static void configureFilterBasics(CNVFilter filter, String filenameOfProblematicRegions, int commonInOutOrIgnore, String individualsToKeepFile, boolean breakupCentromeres, String markerSetFilenameToBreakUpCentromeres, boolean makeUCSCtrack, int build, Logger log) {
+	private static void configureFilterBasics(CNVFilter filter, String filenameOfProblematicRegions, int commonInOutOrIgnore, String individualsToKeepFile, int[][] pos, int[][] bnds, boolean makeUCSCtrack, int build, Logger log) {
+        filter.setBuild(build);
+        if (pos != null && bnds != null) {
+            filter.setPositions(pos);
+            filter.setCentromereBoundaries(bnds);
+            filter.computeCentromereMidPoints();
+            filter.setBreakupCentromeres(true);
+        }
+        if (commonInOutOrIgnore != COMMON_IGNORED) {
+            filter.setCommonIn(commonInOutOrIgnore == COMMON_IN);
+            filter.setCommonReference(Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES, true, true, log) + DEFAULT_COMMON_CNP_REFERENCE, false));
+        }
+        filter.setIndividualsToKeepFromFile(individualsToKeepFile);
+        if (filenameOfProblematicRegions != null && !"".equals(filenameOfProblematicRegions)) {
+            filter.setProblemRegions(Segment.loadUCSCregions(filenameOfProblematicRegions, 0, false, log));
+        }
+	}
+	
+    private static void configureFilterBasics(CNVFilter filter, String filenameOfProblematicRegions, int commonInOutOrIgnore, String individualsToKeepFile, boolean breakupCentromeres, String markerSetFilenameToBreakUpCentromeres, boolean makeUCSCtrack, int build, Logger log) {
 		filter.setBuild(build);
 		filter.setCentromereBoundariesFromFile(markerSetFilenameToBreakUpCentromeres);
 		filter.computeCentromereMidPoints();
@@ -1342,31 +1360,45 @@ public class FilterCalls {
 		String[] line;
 		CNVariant cnv;
 		
+		int[][] pos = null, bnds = null;
+		if (breakupCentromeres) {
+	        if (markerSetFilenameToBreakUpCentromeres.endsWith(".bim") || markerSetFilenameToBreakUpCentromeres.endsWith(".map") || markerSetFilenameToBreakUpCentromeres.endsWith(".txt")) {
+	            SnpMarkerSet markerSet = new SnpMarkerSet(markerSetFilenameToBreakUpCentromeres);
+	            pos = markerSet.getPositionsByChr();
+	            bnds = Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(), markerSet.getPositions(), build, log);
+	        } else if (markerSetFilenameToBreakUpCentromeres.endsWith(".ser")) {
+	            SnpMarkerSet markerSet = SnpMarkerSet.load(markerSetFilenameToBreakUpCentromeres, false);
+                pos = markerSet.getPositionsByChr();
+                bnds = Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(), markerSet.getPositions(), build, log);
+	        }
+		}
+		
 		// first filter
 		CNVFilter filter = new CNVFilter(log);
-		configureFilterBasics(filter, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepFile, breakupCentromeres, markerSetFilenameToBreakUpCentromeres, makeUCSCtrack, build, log);
+		configureFilterBasics(filter, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepFile, pos, bnds, makeUCSCtrack, build, log);
 		filter.setMinScore(score);
 		
 		CNVFilter delFilter0 = new CNVFilter(log);
-		configureFilterBasics(delFilter0, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepFile, breakupCentromeres, markerSetFilenameToBreakUpCentromeres, makeUCSCtrack, build, log);
+		configureFilterBasics(delFilter0, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepFile, pos, bnds, makeUCSCtrack, build, log);
 		delFilter0.setMinNumMarkers(number[1]);
 		delFilter0.setMinSize(delSize[1]);
 		
 		CNVFilter delFilter1 = new CNVFilter(log);
-		configureFilterBasics(delFilter1, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepFile, breakupCentromeres, markerSetFilenameToBreakUpCentromeres, makeUCSCtrack, build, log);
+		configureFilterBasics(delFilter1, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepFile, pos, bnds, makeUCSCtrack, build, log);
 		delFilter1.setMinNumMarkers(number[0]);
 		delFilter1.setMinSize(delSize[0]);
 		
 		CNVFilter dupFilter3 = new CNVFilter(log);
-		configureFilterBasics(dupFilter3, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepFile, breakupCentromeres, markerSetFilenameToBreakUpCentromeres, makeUCSCtrack, build, log);
+		configureFilterBasics(dupFilter3, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepFile, pos, bnds, makeUCSCtrack, build, log);
 		dupFilter3.setMinNumMarkers(number[0]);
 		dupFilter3.setMinSize(dupSize[0]);
 		
 		CNVFilter dupFilter4 = new CNVFilter(log);
-		configureFilterBasics(dupFilter4, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepFile, breakupCentromeres, markerSetFilenameToBreakUpCentromeres, makeUCSCtrack, build, log);
+		configureFilterBasics(dupFilter4, filenameOfProblematicRegions, commonInOutOrIgnore, individualsToKeepFile, pos, bnds, makeUCSCtrack, build, log);
 		dupFilter4.setMinNumMarkers(number[0]);
 		dupFilter4.setMinSize(dupSize[0]);
 		
+		int lineNumber = 1;
 		try {
 			reader = new BufferedReader(new FileReader(dir+in));
 			writer = new PrintWriter(new FileWriter(dir+out));
@@ -1374,6 +1406,10 @@ public class FilterCalls {
 			writer.println(reader.readLine());
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("[\\s]+");
+				if (line.length < 8) {
+				    log.reportError("Error - line " + lineNumber + " is invalid (does not contain 8+ tokens, i.e. PLINK format): " + line);
+				    continue;
+				}
 				cnv = new CNVariant(line);
 				
 				CNVFilterPass filterResult = filter.getCNVFilterPass(cnv);
@@ -1432,6 +1468,7 @@ public class FilterCalls {
 						}
 					}
 				}
+				lineNumber++;
 			}
 			
 			reader.close();
