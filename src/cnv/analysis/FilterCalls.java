@@ -1361,13 +1361,15 @@ public class FilterCalls {
 		CNVariant cnv;
 		
 		int[][] pos = null, bnds = null;
-		if (breakupCentromeres) {
+		if (breakupCentromeres && markerSetFilenameToBreakUpCentromeres != null && !markerSetFilenameToBreakUpCentromeres.equals("") && Files.exists(markerSetFilenameToBreakUpCentromeres)) {
 	        if (markerSetFilenameToBreakUpCentromeres.endsWith(".bim") || markerSetFilenameToBreakUpCentromeres.endsWith(".map") || markerSetFilenameToBreakUpCentromeres.endsWith(".txt")) {
-	            SnpMarkerSet markerSet = new SnpMarkerSet(markerSetFilenameToBreakUpCentromeres);
+	            SnpMarkerSet markerSet = new SnpMarkerSet(markerSetFilenameToBreakUpCentromeres, false, log);
+	            markerSet.sortMarkers();
 	            pos = markerSet.getPositionsByChr();
 	            bnds = Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(), markerSet.getPositions(), build, log);
 	        } else if (markerSetFilenameToBreakUpCentromeres.endsWith(".ser")) {
 	            SnpMarkerSet markerSet = SnpMarkerSet.load(markerSetFilenameToBreakUpCentromeres, false);
+	            markerSet.sortMarkers();
                 pos = markerSet.getPositionsByChr();
                 bnds = Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(), markerSet.getPositions(), build, log);
 	        }
