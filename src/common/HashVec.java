@@ -255,15 +255,18 @@ public class HashVec {
 	}
 
 	public static String[] loadFileToStringArray(String filename, boolean ignoreFirstLine, int[] cols, boolean onlyIfAbsent) {
-		return Array.toStringArray(loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, false));
+	    Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, false);
+		return v == null ? null : Array.toStringArray(v);
 	}
 
 	public static String[] loadFileToStringArray(String filename, boolean jar, boolean ignoreFirstLine, int[] cols, boolean onlyIfAbsent) {
-		return Array.toStringArray(loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, jar));
+	    Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, jar);
+		return v == null ? null : Array.toStringArray(v);
 	}
 
 	public static String[] loadFileToStringArray(String filename, boolean jar, boolean ignoreFirstLine, int[] cols, boolean trimFirst, boolean onlyIfAbsent, String delimiter) {
-		return Array.toStringArray(loadFileToVec(filename, ignoreFirstLine, cols, trimFirst, onlyIfAbsent, jar, delimiter));
+	    Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, trimFirst, onlyIfAbsent, jar, delimiter);
+		return v == null ? null : Array.toStringArray(v);
 	}
 
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols, boolean onlyIfAbsent, boolean jar) {
@@ -280,6 +283,9 @@ public class HashVec {
 
 		try {
 			reader = Files.getReader(filename, jar, true, false);
+			if (reader == null) {
+			    return null; // Should return empty?  No - empty could be valid, we need to show something invalid, so null or exception
+			}
 			if (ignoreFirstLine) {
 				reader.readLine();
 			}
