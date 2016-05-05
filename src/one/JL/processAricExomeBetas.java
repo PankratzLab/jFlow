@@ -29,9 +29,9 @@ public class processAricExomeBetas {
 
 	public static void main(String[] args) {
 
-		String flipFile = "/panfs/roc/groups/5/pankrat2/shared/MitoPipeLineResources/ExomeCHip/alleleExome.txt";
+		String flipFile = "/home/pankrat2/shared/MitoPipeLineResources/betas/ExomeBetas/ExomeChipFlip.txt";
 
-		Hashtable<String, String> flipLook = HashVec.loadFileToHashString(flipFile, 0, new int[] { 1, 2 }, "\t", true);
+		Hashtable<String, String> flipLook = HashVec.loadFileToHashString(flipFile, 0, new int[] { 1, 2 }, "\t", false);
 		Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties", false);
 		String out = proj.PROJECT_DIRECTORY.getValue() + "betaOpti/";
 		new File(out).mkdirs();
