@@ -32,6 +32,7 @@ import common.Array;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.PSF;
 import common.Positions;
 import common.Sort;
 import common.WorkerTrain;
@@ -241,6 +242,10 @@ public class BetaOptimizer {
 
 	}
 
+	public enum RUN_TYPES {
+		ALL_PC_SAMPS, RACE_IN, RACE_OUT;
+	}
+
 	private static void analyze(Project proj, String pcFile, String samplesToBuildModels, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, List<String> betaFiles, double[] pvals, double markerCallRate, int maxPCs, int numthreads, String usedInPCFile, Logger log) {
 
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
@@ -274,27 +279,26 @@ public class BetaOptimizer {
 						for (int i = 0; i < indices.length; i++) {
 							samplesForModels[indices[i]] = true;
 						}
-					} else {
-						samplesForModels = Array.booleanArray(proj.getSamples().length, true);
 					}
 					for (int i = 0; i < pvals.length; i++) {
 						ArrayList<MetaBeta> current = filter(metaBetas, pvals[i]);
 						if (current.size() > 2) {
 							byte[][] genos = loadGenos(proj, markerSet, current);
 
-							for (MODEL_BUILDER_TYPE btype : MODEL_BUILDER_TYPE.values()) {
-								for (ITERATION_TYPE itype : ITERATION_TYPE.values()) {
-									for (ORDER_TYPE oType : ORDER_TYPE.values()) {
-										// String file = subDir + btype + "_" + oType + "_" + itype + "_finalSummary.estimates.txt.gz";
-										String file = subDir + MODEL_BUILDER_TYPE.WITH_QC_BUILDERS + "_" + oType + "_" + itype + "_finalSummary.estimates.txt.gz";
+							for (RUN_TYPES runtype : RUN_TYPES.values()) {
+								// for (ITERATION_TYPE itype : ITERATION_TYPE.values()) {
+								for (ORDER_TYPE oType : ORDER_TYPE.values()) {
+									// String file = subDir + btype + "_" + oType + "_" + itype + "_finalSummary.estimates.txt.gz";
+									String file = subDir + MODEL_BUILDER_TYPE.WITH_QC_BUILDERS + "_" + oType + "_" + ITERATION_TYPE.WITHOUT_INDEPS + "_finalSummary.estimates.txt.gz";
 
-										byte[][] analysisGenos = new byte[genos.length][genos[0].length];
-										int markersRemoved = 0;
-										int numSamps = 0;
-										if (Files.exists(file)) {
+									byte[][] analysisGenos = new byte[genos.length][genos[0].length];
+									int markersRemoved = 0;
+									int numSamps = 0;
+									if (Files.exists(file)) {
 
-											switch (btype) {
-											case WITHOUT_QC_BUILDERS:// non-whites
+										switch (runtype) {
+										case RACE_OUT:// typcially non-whites
+											if (Array.booleanArraySum(samplesForModels) > 0) {
 												for (int j = 0; j < genos.length; j++) {
 													int numMissing = 0;
 													int numSampsHere = 0;
@@ -315,38 +319,62 @@ public class BetaOptimizer {
 													}
 													numSamps = numSampsHere;
 												}
+											}
 
-												break;
-											case WITH_QC_BUILDERS:// whites
-												for (int j = 0; j < genos.length; j++) {
-													int numMissing = 0;
-													int numSampsHere = 0;
+											break;
+										case RACE_IN:// typically whites
+											for (int j = 0; j < genos.length; j++) {
+												int numMissing = 0;
+												int numSampsHere = 0;
 
-													for (int j2 = 0; j2 < genos[j].length; j2++) {
-														if (samplesForModels[j2] && sampsPCs[j2]) {
-															numSampsHere++;
-															if (genos[j][j2] < 0) {
-																numMissing++;
-															}
+												for (int j2 = 0; j2 < genos[j].length; j2++) {
+													if (samplesForModels[j2] && sampsPCs[j2]) {
+														numSampsHere++;
+														if (genos[j][j2] < 0) {
+															numMissing++;
 														}
-														analysisGenos[j][j2] = ((samplesForModels[j2] && sampsPCs[j2]) ? genos[j][j2] : -1);// set to missing
 													}
-													numSamps = numSampsHere;
-													double cr = (double) numMissing / numSamps;
-													if ((1 - cr) < markerCallRate) {
-														markersRemoved++;
-														log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
-														analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
-													}
+													analysisGenos[j][j2] = ((samplesForModels[j2] && sampsPCs[j2]) ? genos[j][j2] : -1);// set to missing
 												}
-												break;
-											default:
-												break;
+												numSamps = numSampsHere;
+												double cr = (double) numMissing / numSamps;
+												if ((1 - cr) < markerCallRate) {
+													markersRemoved++;
+													log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
+													analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
+												}
 											}
-											if (markersRemoved > 0) {
-												log.reportTimeWarning("Removed " + markersRemoved + " markers for pval cut-off " + pvals[i] + " at callrate threshold " + markerCallRate);
+											break;
+										case ALL_PC_SAMPS:
+											for (int j = 0; j < genos.length; j++) {
+												int numMissing = 0;
+												int numSampsHere = 0;
+
+												for (int j2 = 0; j2 < genos[j].length; j2++) {
+													if (sampsPCs[j2]) {
+														numSampsHere++;
+														if (genos[j][j2] < 0) {
+															numMissing++;
+														}
+													}
+													analysisGenos[j][j2] = (sampsPCs[j2] ? genos[j][j2] : -1);// set to missing
+												}
+												numSamps = numSampsHere;
+												double cr = (double) numMissing / numSamps;
+												if ((1 - cr) < markerCallRate) {
+													markersRemoved++;
+													log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
+													analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
+												}
 											}
-											log.reportTimeInfo("numsamps =" + numSamps);
+										default:
+											break;
+										}
+										if (markersRemoved > 0) {
+											log.reportTimeWarning("Removed " + markersRemoved + " markers for pval cut-off " + pvals[i] + " at callrate threshold " + markerCallRate);
+										}
+										log.reportTimeInfo("numsamps =" + numSamps);
+										if (numSamps > 0) {
 											ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 											builder.sampleBased(true);
 											builder.requireAll(true);
@@ -360,21 +388,35 @@ public class BetaOptimizer {
 												WorkerTrain<BetaCorrelationResult[]> train = new WorkerTrain<BetaOptimizer.BetaCorrelationResult[]>(producer, numthreads, 10, log);
 												while (train.hasNext()) {
 													BetaCorrelationResult[] results = train.next();
-													String method = (btype == MODEL_BUILDER_TYPE.WITH_QC_BUILDERS ? ext.rootOf(samplesToBuildModels) + "_" : "not_" + ext.rootOf(samplesToBuildModels) + "_") + oType;
+													String method = "_" + oType;
+													switch (runtype) {
+													case ALL_PC_SAMPS:
+														method = "AllPCASamps_" + method;
+														break;
+													case RACE_IN:
+														method = ext.rootOf(samplesToBuildModels) + method;
+														break;
+													case RACE_OUT:
+														method = "not_" + ext.rootOf(samplesToBuildModels) + method;
+														break;
+													default:
+														break;
+													}
 													writer.println(Array.toStr(results[0].getSummary()) + "\t" + Array.toStr(results[1].getSummary()) + "\t" + betaFile + "\t" + method + "\t" + pvals[i] + "\t" + numSamps + "\t" + method + "_" + pvals[i] + "\t" + markerCallRate);
 												}
 											} catch (FileNotFoundException e) {
 												// TODO Auto-generated catch block
 												e.printStackTrace();
 											}
-
-										} else {
-											log.reportTimeWarning("Expecting file " + file + ", and did not find it");
 										}
+
+									} else {
+										log.reportTimeWarning("Expecting file " + file + ", and did not find it");
 									}
 								}
 							}
 						}
+						// }
 					}
 					writer.close();
 
@@ -385,9 +427,6 @@ public class BetaOptimizer {
 			}
 			String rootOutBetas = outpuDir + ext.rootOf(betaFile) + "_summaryPlots";
 			ArrayList<RScatter> rScattersBetas = new ArrayList<RScatter>();
-			ArrayList<RScatter> rScattersBetasSig = new ArrayList<RScatter>();
-			ArrayList<RScatter> rScattersBetasInv = new ArrayList<RScatter>();
-
 			String[] summHeader = Files.getHeaderOfFile(bigSummaryOut, log);
 			Hashtable<String, Hashtable<String, Vector<String>>> info = HashVec.loadFileToHashHashVec(bigSummaryOut, ext.indexOfStr("pvalCutoff", summHeader), ext.indexOfStr("Method", summHeader), new int[] { ext.indexOfStr("numberOfMarkers", summHeader), ext.indexOfStr("numSamples", summHeader) }, "\t", false, false);
 
@@ -927,6 +966,119 @@ public class BetaOptimizer {
 			return p;
 		}
 
+	}
+
+	public static void maina(String[] args) {
+		int numArgs = args.length;
+		String filename = "BetaOptimizer.dat";
+		String out = "betaOpt/";
+		double[] pvals = new double[] { .05, .01, .001, .0001 };
+		double markerCallRate = .96;
+		String unRelatedFile = null;
+		String pcFile = null;
+		int numthreads = 24;
+		int maxPCs = 120;
+		String pcSamps = null;
+		String betaDir = null;
+		String usage = "\n" +
+				"one.JL.BetaOptimizer requires 0-1 arguments\n" +
+				"   (1) project filename (i.e. proj=" + filename + " (default))\n" +
+				"   (2) output directory (relative to project directory) (i.e. out=" + out + " (default))\n" +
+				"   (3) pcFile(relative to project directory) (i.e. pcFile= (no default))\n" +
+				"   (4) full path to a file of unrelated, and single race samples  (i.e. unrelated= (no default))\n" +
+				"   (5) maximum number of pcs to optimze to (i.e. maxPCs=" + maxPCs + " ( default))\n" +
+				"   (6) comma delimited list of pvalue thresholds (i.e. pvals=" + Array.toStr(Array.toStringArray(pvals), ",") + " ( default))\n" +
+				PSF.Ext.getNumThreadsCommand(7, numthreads) +
+				"   (8) full path to a file of samples used to generate the pcs (i.e. pcSamps= (no default))\n" +
+				"   (9) full path a directory of .beta files (i.e. betaDir= (no default))\n" +
+				"   (10) call rate for markers (i.e. cr=" + markerCallRate + " (default))\n" +
+
+				"";
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+				System.err.println(usage);
+				System.exit(1);
+			} else if (args[i].startsWith("proj=")) {
+				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("pcFile=")) {
+				pcFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("unrelated=")) {
+				unRelatedFile = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("betaDir=")) {
+				betaDir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("out=")) {
+				out = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("pvals=")) {
+				pvals = Array.toDoubleArray(args[i].split("=")[1].split(","));
+				numArgs--;
+			} else if (args[i].startsWith("maxPCs=")) {
+				maxPCs = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("cr=")) {
+				markerCallRate = ext.parseDoubleArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("pcSamps=")) {
+				pcSamps = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numthreads = ext.parseIntArg(args[i]);
+				numArgs--;
+			} else {
+				System.err.println("Error - invalid argument: " + args[i]);
+			}
+		}
+		if (numArgs != 0) {
+			System.err.println(usage);
+			System.exit(1);
+		}
+		try {
+
+			Project proj = new Project(filename, false);
+			optimize(proj, pcFile, out, betaDir, unRelatedFile, pcSamps, pvals, maxPCs, markerCallRate, numthreads);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void optimize(Project proj, String pcFile, String outDir, String betaDir, String unRelatedFile, String pcSamps, double[] pvals, int maxPCs, double markerCallRate, int numthreads) throws IllegalStateException {
+		new File(outDir).mkdirs();
+
+		proj.AB_LOOKUP_FILENAME.setValue(outDir + "AB_LookupBeta.dat");
+		ABLookup abLookup = new ABLookup();
+		if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+			if (Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+				Files.copyFile(proj.AB_LOOKUP_FILENAME.getValue(), outDir + "AB_LookupBeta.dat");
+			} else {
+				if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
+					Resource abAffy = ARRAY_RESOURCE_TYPE.AFFY_SNP6_ABLOOKUP.getResource(proj.GENOME_BUILD_VERSION.getValue());
+					if (abAffy.isAvailable(proj.getLog())) {
+						String tmpAB = abAffy.getResource(proj.getLog());
+						Files.copyFile(tmpAB, proj.AB_LOOKUP_FILENAME.getValue());
+					} else {
+						throw new IllegalStateException("Could not retrieve required AB lookup for affymetrix array");
+					}
+				}
+				if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+					abLookup.parseFromAnnotationVCF(proj);
+					abLookup.writeToFile(proj.AB_LOOKUP_FILENAME.getValue(), proj.getLog());
+				}
+			}
+		}
+		MarkerSet markerSet = proj.getMarkerSet();
+		abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
+		Resource dbsnp = GENOME_RESOURCE_TYPE.DB_SNP147.getResource(GENOME_BUILD.HG19);
+		if (!dbsnp.isAvailable(proj.getLog())) {
+			throw new IllegalStateException("Could not retrieve required dbSNP vcf");
+		}
+		String[] betaFiles = Files.list(betaDir, "", ".beta", true, false, true);
+		proj.getLog().reportTimeInfo("found " + betaFiles.length + " beta files in " + betaDir);
+		analyzeAll(proj, pcFile, unRelatedFile, markerSet, abLookup, dbsnp.getResource(proj.getLog()), proj.getNonCNMarkers(), outDir, betaFiles, pvals, markerCallRate, maxPCs, numthreads, pcSamps, proj.getLog());
 	}
 
 	public static void main(String[] args) {

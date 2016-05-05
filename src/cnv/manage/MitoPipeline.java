@@ -473,8 +473,9 @@ public class MitoPipeline {
 							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
 							proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
 							proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
-							CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers), proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR, true, 0.05, true, numThreads);
-							
+							// generate estimates at each pc
+							CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers), proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR, true, 0.05, plot, numThreads);
+
 						}
 					}
 				}
