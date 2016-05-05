@@ -2600,17 +2600,23 @@ public class Files {
 		String[] line, files;
 		int[] skips;
 		String out;
+		boolean addFilename = false;
 		
 		// get all files in the directory, excluding the crf itself and its corresponding log
 		files = Files.list("./", ":"+ext.rootOf(filename), ":.crf", false, false);
 		files = Array.addStrToArray("outfile.xln", files, 0);
-		for (int i = 2; i < files.length; i++) {
+		files = Array.addStrToArray("# include add_filename_as_first_column after the output filename if you want it", files, 1);
+		for (int i = 3; i < files.length; i++) {
 			files[i] += " skip=1";
 		}
 		
 		params = parseControlFile(filename, "cat", files, log);
 		if (params != null) {
     		out = params.remove(0);
+    		if (out.contains("add_filename_as_first_column")) {
+    			out = out.substring(0, out.indexOf("add_filename_as_first_column")).trim();
+    			addFilename = true;
+    		}
     		files = new String[params.size()];
     		skips = Array.intArray(params.size(), 0);
     		for (int i = 0; i < files.length; i++) {
@@ -2622,7 +2628,7 @@ public class Files {
         			}
 				}
 			}
-			cat(files, out, skips, log);
+			cat(files, out, skips, addFilename, log);
 		}
 	}
 
@@ -2849,14 +2855,20 @@ public class Files {
 		}
 	}
 
+	public static void cat(String[] originalFiles, String finalFile, int[] skips, Logger log) {
+		cat(originalFiles, finalFile, skips, false, log);
+	}
 	
 	// can pass skips as null if there are no skips to be made
 	// can pass skips as an empty array (new int[0]) if the first file should pass a header but the rest should be skipped
-	public static void cat(String[] originalFiles, String finalFile, int[] skips, Logger log) {
+	public static void cat(String[] originalFiles, String finalFile, int[] skips, boolean addFilename, Logger log) {
 		BufferedReader reader;
         PrintWriter writer;
     	String trav;
     	boolean problem;
+    	String delimiter;
+    	
+    	delimiter = finalFile.endsWith(".csv") || finalFile.endsWith(".csv.gz") ? "," : "\t";
     	
     	if (skips != null) {
     		if (skips.length == 0) {
@@ -2893,7 +2905,7 @@ public class Files {
 					}
 	                while (reader.ready()) {
 	                	trav = reader.readLine();
-	                	writer.println(trav);
+	                	writer.println((addFilename?originalFiles[i]+delimiter:"")+trav);
 	                }
 	                reader.close();
                 } catch (FileNotFoundException fnfe) {
