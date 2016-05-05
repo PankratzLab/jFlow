@@ -2731,6 +2731,125 @@ public class Files {
 		return null;
 	}
 	
+	public static void renameFilesUsingSubstitutionsFromParameters(String filename, Logger log) {
+		Vector<String> params;
+		String[] line, dirs, filenames, newFilenames;
+		String[][] substitutions;
+		boolean echo, extract;
+		int count, summedSizes;
+		long[] filesizes;
+		int[] order, indices;
+		
+		echo = extract = false;
+		params = parseControlFile(filename, "subs", new String[] {
+				"# echo reports what it's going to change without actually doing it", 
+				"echo=true", 
+				"# Extract the largest file from each subdirectory and script the deletion of the subdirectory", 
+				"extract=false", 
+				"# Examples: two tabbed delimited columns represents a replacement, anything with a single column will just be deleted", 
+				"studyname.\tStudyName.",
+				".GREEN.IDAT\t_Grn.idat",
+				".RED.IDAT\t_Red.idat",
+				"justDeleteThisPhrase", 
+				"replaceThis\twithThis"
+			}, log);
+		if (params != null) {
+    		substitutions = new String[params.size()][];
+    		count = 0;
+    		while (count < params.size()) {
+    			line = params.elementAt(count).trim().split("\t", -1);
+    			if (line[0].startsWith("echo=")) {
+    				echo = ext.parseBooleanArg(line[0]);
+    				params.remove(count);
+    			} else if (line[0].startsWith("extract=")) {
+    				extract = ext.parseBooleanArg(line[0]);
+    				params.remove(count);
+    			} else {
+    				if (line.length == 1) {
+    					line = Array.addStrToArray("", line);
+    				}
+    				if (line.length > 2) {
+    					System.out.println("Error more than two tokens in: "+Array.toStr(line, " / "));
+    				}
+    				substitutions[count] = line;
+    				count++;
+    			}
+			}
+    		if (substitutions.length > count) {
+    			boolean[] keeps = Array.booleanArray(substitutions.length, true);
+    			for (int i = count; i < keeps.length; i++) {
+    				keeps[i] = false;
+				}
+    			substitutions = Matrix.subset(substitutions, keeps);
+    		}
+    		
+    		if (extract) {
+				// get all sub-directories
+	    		dirs = Files.listDirectories("./", false);
+	    		for (int i = 0; i < dirs.length; i++) {
+	    			filenames = Files.list(dirs[i], null, null, false, false);
+	    			filesizes = new long[filenames.length];
+	    			for (int j = 0; j < filenames.length; j++) {
+		    			filesizes[j] = new File(dirs[i]+"/"+filenames[j]).length();
+					}
+	    			order = Sort.quicksort(filesizes, Sort.DESCENDING);
+	    			if (echo) {
+	    				System.out.println("Searching "+dirs[i]);
+	    			}
+	    			
+	    			summedSizes = 0;
+    				for (int j = 1; j < order.length; j++) {
+    					summedSizes += filesizes[order[j]];
+					}
+    				
+					if (filesizes[order[0]] < summedSizes) {
+						System.out.println("  a dominant file could not be found; extraction skipped for this directory");
+					} else {
+	    				for (int j = 0; j < Math.min(order.length, 1); j++) {
+	    					if (echo) {
+	    						System.out.println("  Moving "+filenames[order[j]]+" one level up");
+	    					} else {
+	    						new File(dirs[i]+"/"+filenames[order[j]]).renameTo(new File(filenames[order[j]]));
+	    					}
+						}
+	    				for (int j = 1; j < order.length; j++) {
+	    					if (echo) {
+	    						System.out.println("  deleting "+filenames[order[j]]);
+	    					} else {
+	    						new File(dirs[i]+"/"+filenames[order[j]]).delete();
+	    					}
+						}
+						if (echo) {
+							System.out.println(" deleting "+dirs[i]);
+						} else {
+							new File(dirs[i]).delete();
+						}	    			
+					}
+				}
+    		}
+
+			// get all files in the directory, excluding the crf itself and its corresponding log
+			filenames = Files.list("./", ":"+ext.rootOf(filename), ":.crf", false, false);
+			newFilenames = new String[filenames.length];
+			
+			for (int i = 0; i < filenames.length; i++) {
+				newFilenames[i] = ext.replaceAllWith(filenames[i], substitutions);
+				indices = ext.indicesWithinString(".", newFilenames[i]);
+				for (int j = 0; j < indices.length-1; j++) {
+					newFilenames[i] = newFilenames[i].substring(0, indices[j]+1)+newFilenames[i].substring(indices[j]+1, indices[j]+2).toUpperCase()+newFilenames[i].substring(indices[j]+2);
+				}
+				if (!filenames[i].equals(newFilenames[i])) {
+					if (echo) {
+						System.out.println("Renaming '"+filenames[i]+"' to '"+newFilenames[i]+"'");
+					} else {
+						new File(filenames[i]).renameTo(new File(newFilenames[i]));
+					}
+				}
+			}
+		}
+	}
+
+	
 	// can pass skips as null if there are no skips to be made
 	// can pass skips as an empty array (new int[0]) if the first file should pass a header but the rest should be skipped
 	public static void cat(String[] originalFiles, String finalFile, int[] skips, Logger log) {

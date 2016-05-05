@@ -1014,6 +1014,21 @@ public class Matrix {
 		return subset;
 	}
 
+	public static String[][] subset(String[][] matrix, boolean[] rowsToKeep) {
+		String[][] subset;
+		int count;
+		
+		count = 0;
+		subset = new String[Array.booleanArraySum(rowsToKeep)][];
+		for (int i = 0; i < matrix.length; i++) {
+			if (rowsToKeep[i]) {
+				subset[count++] = matrix[i];
+			}
+		}
+		
+		return subset;
+	}
+	
 	public static boolean overwriteColumn(double[][] matrix, int index, double[] newData, Logger log) {
 		if (matrix.length != newData.length) {
 			log.reportError("Error - mismatched number of elements in the new array of data compared to column "+index+" of the original matrix");
