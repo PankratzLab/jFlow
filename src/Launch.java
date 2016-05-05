@@ -35,6 +35,7 @@ public class Launch {
 		"split", 
 		"cat - concatenate the specified files", 
 		"rename - rename the specified files", 
+		"subs - substitute patterns in filenames", 
 		"db", 
 		"merge", 
 		"mergeSNPs", 
@@ -127,6 +128,8 @@ public class Launch {
 				Files.catFilesFromParameters(filename, log);
 			} else if (temp.equals("rename")) {
 				Files.renameFilesFromParameters(filename, log);
+			} else if (temp.equals("subs")) {
+				Files.renameFilesUsingSubstitutionsFromParameters(filename, log);
 			} else if (temp.equals("db")) {
 				CreateMarkerDatabase.createFromParameters(filename, log);
 			} else if (temp.equals("merge")) {
