@@ -129,6 +129,10 @@ public class ResultsPackager {
 		}
 		
 		if (markersToReport != null) {
+			if (!Files.exists(dir+markersToReport)) {
+				log.reportError("Error: could not find markers to report file '"+dir+markersToReport+"'");
+				return;
+			}
 			markerHash = HashVec.loadFileToHashSet(dir+markersToReport, false);
 		} else {
 			markerHash = null;
