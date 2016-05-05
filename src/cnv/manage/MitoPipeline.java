@@ -9,8 +9,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
+import stats.LeastSquares.LS_TYPE;
 import cnv.LaunchProperties;
 import cnv.analysis.PennCNV;
+import cnv.analysis.pca.CorrectionEvaluator;
+import cnv.analysis.pca.CorrectionIterator;
 import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsCompute;
@@ -38,9 +41,10 @@ import common.ext;
 
 /**
  * A class that serves as the outer wrapper for PCA related happenings...does import, marker QC, sample QC, PCA, etc
- * 
+ *
  */
 public class MitoPipeline {
+	// TODO, time to re-factor/write, getting rotten
 	public static final String FILE_BASE = "PCA_GENVISIS";
 	public static final String[] PED_INPUT = { "DNA", "FID", "IID", "FA", "MO", "SEX", "AFF" };
 	public static final String[] SAMPLEMAP_INPUT = { "Index", "Name", "ID", "Gender", "Plate", "Well", "Group", "Parent1", "Parent2", "Replicate", "SentrixPosition" };
@@ -267,7 +271,7 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build) {
+	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build,boolean plot) {
 		String sampleDirectory;
 		SampleList sampleList;
 		int[] counts;
@@ -402,7 +406,7 @@ public class MitoPipeline {
 							// compute PCs with samples passing QC
 
 							GcAdjustorParameters params = null;
-							if (gcCorrect) {// TODO, non gc sampleSpecific recomputing, and apologies the below is getting a bit wild
+							if (gcCorrect) {// forced from cmdline
 								String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES;
 								boolean[] sampsToUseRecompute = null;
 
@@ -469,10 +473,7 @@ public class MitoPipeline {
 							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
 							proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
 							proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
-							
-							
-							
-							
+							CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers), proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR, true, 0.05, true, numThreads);
 							
 						}
 					}
@@ -879,7 +880,7 @@ public class MitoPipeline {
 		boolean imputeMeanForNaN = true;
 		boolean homosygousOnly = true;
 		boolean doAbLookup = false;
-
+		boolean plot=false;
 		String referenceGenomeFasta = null;
 		String gcmodel = null;
 		int regressionDistance = GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0];
@@ -897,37 +898,37 @@ public class MitoPipeline {
 		usage += "   (3) The full path for a file with a list of markers (one per line) to use for computing PCs (i.e. " + PC_MARKER_COMMAND + "/home/usr/auxFiles/exomeChip.PC_Markers.txt)\n";
 		usage += "   (4) The full path for a file with a list of markers (one per line,mitochondrial markers) to use for computing computing median Log R Ratios (i.e. " + MITO_MARKER_COMMAND + "/home/usr/auxFiles/exomeChip.MT_Markers.txt)\n";
 		usage += "   (5) The full path for a tab-delimited file with marker positions (with columns \"Marker\", \"Chr\", and \"Position\")  (i.e. markerPositions=/home/usr/auxFiles/exomeChip.Positions.txt)\n";
+		usage += "   (6) if relying on a gc5Base.txt (default), the genomic build to use (i.e. build=" + build + " (default))\n";
 
 		usage += "   OPTIONAL:\n";
-		usage += "	 (6) A file listing a subset of samples (DNA ID) to use for QC and PC computation portions of the analysis, often a list of unrelated individuals. If a list is not provided, all samples in the source directory will be analyzed (i.e. " + USE_FILE_COMMAND + useFile + " (no default))\n";
-		usage += "   (7) The full path for a tab-delimited .PED format file with header \"" + Array.toStr(PED_INPUT) + "\" (i.e. pedFile=" + pedFile + "(no default))\n";
+		usage += "	 (7) A file listing a subset of samples (DNA ID) to use for QC and PC computation portions of the analysis, often a list of unrelated individuals. If a list is not provided, all samples in the source directory will be analyzed (i.e. " + USE_FILE_COMMAND + useFile + " (no default))\n";
+		usage += "   (8) The full path for a tab-delimited .PED format file with header \"" + Array.toStr(PED_INPUT) + "\" (i.e. pedFile=" + pedFile + "(no default))\n";
 		usage += "   OR:\n";
-		usage += "   (8) The full path for a Sample_Map.csv file, with at least two columns having headers \"" + SAMPLEMAP_INPUT[1] + "\" and \"" + SAMPLEMAP_INPUT[2] + "\"(i.e. mapFile=" + sampleMapCsv + " (default))\n\n";
+		usage += "   (9) The full path for a Sample_Map.csv file, with at least two columns having headers \"" + SAMPLEMAP_INPUT[1] + "\" and \"" + SAMPLEMAP_INPUT[2] + "\"(i.e. mapFile=" + sampleMapCsv + " (default))\n\n";
 		usage += "   NOTE:\n";
 		usage += "   All samples to be analyzed must be contained in the sample manifest (.PED format file, or Sample_Map.csv file)\n";
-		usage += "   (9) The desired name of the project (i.e. projName=" + projectName + " (default))\n";
-		usage += "   (10) Data extension for files contained in the source data directory (i.e. dirExt=" + dataExtension + " (default))\n";
-		usage += "   (11) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD=" + sampleLRRSdFilter + " (default))\n";
-		usage += "   (12) Call rate filter to exclude samples from PCs (i.e. sampleCallRate=" + sampleCallRateFilter + " (default))\n";
-		usage += "   (13) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
-		usage += "   (14) Number of threads to use for multi-threaded portions of the analysis (i.e. numThreads=" + numThreads + " (default))\n";
-		usage += "   (15) Output file full path and baseName (i.e. output=" + output + " (default))\n";
-		usage += "   (16) Project filename (if you manually created a project properties file, or edited an existing project). Note that default arguments available here can overide existing project properties (i.e. proj=" + filename + " (no default))\n";
-		usage += "   (17) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader=" + idHeader + " (default))\n";
+		usage += "   (10) The desired name of the project (i.e. projName=" + projectName + " (default))\n";
+		usage += "   (11) Data extension for files contained in the source data directory (i.e. dirExt=" + dataExtension + " (default))\n";
+		usage += "   (12) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD=" + sampleLRRSdFilter + " (default))\n";
+		usage += "   (13) Call rate filter to exclude samples from PCs (i.e. sampleCallRate=" + sampleCallRateFilter + " (default))\n";
+		usage += "   (14) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
+		usage += "   (15) Number of threads to use for multi-threaded portions of the analysis (i.e. numThreads=" + numThreads + " (default))\n";
+		usage += "   (16) Output file full path and baseName (i.e. output=" + output + " (default))\n";
+		usage += "   (17) Project filename (if you manually created a project properties file, or edited an existing project). Note that default arguments available here can overide existing project properties (i.e. proj=" + filename + " (no default))\n";
+		usage += "   (18) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader=" + idHeader + " (default))\n";
 		// usage += "   (18) A file specifying the AB allele lookup for markers, often times required  (i.e. abLookup=" + idHeader + " (default))\n";
-		usage += "   (18) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
-		usage += "   (19) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate=" + markerCallRateFilter + " (default))\n";
-		usage += "   (20) Name of the log file (i.e. log=[project_directory]/logs/Genvisis_[date].log (default))\n";
-		usage += "   (21) Recompute Log R Ratios for each marker from genotypes/intensities when computing AND extrapolating PCs(i.e. recomputeLRR_PCs=" + recomputeLRR_PCs + " (default))\n";
-		usage += "   (22) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. recomputeLRR_Median=" + recomputeLRR_Median + " (default))\n";
-		usage += "   (23) Impute mean for markers with NaN data, if false markers with NaN values for any sample will be skipped (i.e. imputeMeanForNaN=" + imputeMeanForNaN + " (default))\n";
-		usage += "   (24) gc correct Log R Ratios, cannot be used with recomputeLRR options (i.e. gcCorrect=" + gcCorrect + " (default))\n";
-		usage += "   (25) A reference genome file used to assign gc content to each marker (i.e. ref= (no default))\n";
-		usage += "   (26) base-pair bins for the gc model generated from the reference (i.e. bpGcModel=" + bpGcModel + " (default))\n";
-		usage += "   (27) regression distance for the gc adjustment (i.e. regressionDistance=" + regressionDistance + " (default))\n";
-		usage += "   (28) full path to a .gcmodel file, this model will take precedence over base-pair bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
-		usage += "   (29) if relying on a gc5Base.txt (default), the genomic build to use (i.e. build=" + build + " (default))\n";
-		usage += "   (30) recompute LRR using only those samples that pass QC, and are in the use file (i.e. sampLRR=" + recompSampleSpecific + " (default))\n";
+		usage += "   (19) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
+		usage += "   (20) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate=" + markerCallRateFilter + " (default))\n";
+		usage += "   (21) Name of the log file (i.e. log=[project_directory]/logs/Genvisis_[date].log (default))\n";
+//		usage += "   (21) Recompute Log R Ratios for each marker from genotypes/intensities when computing AND extrapolating PCs(i.e. recomputeLRR_PCs=" + recomputeLRR_PCs + " (default))\n";
+//		usage += "   (22) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. recomputeLRR_Median=" + recomputeLRR_Median + " (default))\n";
+		usage += "   (22) Impute mean for markers with NaN data, if false markers with NaN values for any sample will be skipped (i.e. imputeMeanForNaN=" + imputeMeanForNaN + " (default))\n";
+//		usage += "   (22) gc correct Log R Ratios, cannot be used with recomputeLRR options (i.e. gcCorrect=" + gcCorrect + " (default))\n";
+//		usage += "   (22) A reference genome file used to assign gc content to each marker (i.e. ref= (no default))\n";
+//		usage += "   (23) base-pair bins for the gc model generated from the reference (i.e. bpGcModel=" + bpGcModel + " (default))\n";
+//		usage += "   (27) regression distance for the gc adjustment (i.e. regressionDistance=" + regressionDistance + " (default))\n";
+//		usage += "   (28) full path to a .gcmodel file, this model will take precedence over base-pair bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
+		usage += "   (23) recompute LRR using only those samples that pass QC, and are in the use file (i.e. sampLRR=" + recompSampleSpecific + " (default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -958,7 +959,11 @@ public class MitoPipeline {
 				projectDirectory = ext.parseStringArg(args[i], null);
 				numArgs--;
 				requiredArray[0] = true;
-			} else if (args[i].startsWith("dirSrc=")) {
+			}  else if (args[i].startsWith("-plot")) {
+				plot = true;
+				numArgs--;
+				requiredArray[0] = true;
+			}else if (args[i].startsWith("dirSrc=")) {
 				sourceDirectory = ext.parseStringArg(args[i], null);
 				numArgs--;
 				requiredArray[1] = true;
@@ -1090,7 +1095,7 @@ public class MitoPipeline {
 					proj.REFERENCE_GENOME_FASTA_FILENAME.setValue("Ignore");
 				}
 			}
-			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance, build);
+			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance, build, plot);
 			attempts++;
 			if (result == 41 || result == 40) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");

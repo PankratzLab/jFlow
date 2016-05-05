@@ -190,7 +190,9 @@ public class ExtProjectDataParser {
 						int[] tmp = ext.indexFactors(stringDataTitles, header, true, false);
 						determined = Array.min(tmp) >= 0;
 						if (!determined) {
-							proj.getLog().reportTimeError("Could not find all string indices in header " + Array.toStr(header));
+							if (verbose) {
+								proj.getLog().reportTimeError("Could not find all string indices in header " + Array.toStr(header));
+							}
 						} else {
 							typedFileParser.setStringColumns(new int[][] { tmp });
 						}

@@ -18,7 +18,7 @@ import cnv.analysis.pca.PrincipalComponentsResiduals.PrincipalComponentsIterator
 import cnv.filesys.Project;
 import cnv.manage.ExtProjectDataParser;
 
-class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
+public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 	/**
 	 * 
 	 */
@@ -26,9 +26,9 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 	private static final String[] STRING_DATA = new String[] { "CENTER" };// CLASS Sex
 	private static final String[][] EVAL_MASKS = new String[][] { { "0", "-1", "NaN" }, { "0", "-1" } };
 	public static final String[] DOUBLE_DATA = new String[] { "AGE" };
-	private static final String[] DOUBLE_DATA_PATTERN = new String[] { "EVAL_DATA", "AGE" };// For Correlation(Spearman by ICC)
-	private static final String[] STRING_DATA_PATTERN = new String[] { "EVAL_CLASS", "AGE" };// For ICC
-	private static final String[] STRAT_STRING_PATTERN = new String[] { "STRAT_CLASS" };// For ICC
+	public static final String[] DOUBLE_DATA_PATTERN = new String[] { "EVAL_DATA", "AGE" };// For Correlation(Spearman by ICC)
+	public static final String[] STRING_DATA_PATTERN = new String[] { "EVAL_CLASS", "AGE" };// For ICC
+	public static final String[] STRAT_STRING_PATTERN = new String[] { "STRAT_CLASS" };// For ICC
 
 	public static final String[] INDEPS = new String[] { "CLASS=SEX", "AGE" };
 	public static final String[] INDEPS_CATS = new String[] { "CENTER" };
@@ -278,7 +278,7 @@ class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 		builder.sampleBased(true);
 		builder.treatAllNumeric(false);
 		builder.requireAll(true);
-		builder.verbose(true);
+		builder.verbose(false);
 		builder.dataKeyColumnName("DNA");
 		builder.stringDataTitles(Array.concatAll(STRING_DATA, matchString, stratString));
 		builder.numericDataTitles(Array.concatAll(DOUBLE_DATA, matchDouble, INDEPS));

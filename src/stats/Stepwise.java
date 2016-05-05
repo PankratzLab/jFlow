@@ -410,27 +410,31 @@ public class Stepwise {
 	
 	public StepWiseSummary getStepWiseSummary(int svdRegressionSwitch,int numThreads){
 		
-		IntVector in = new IntVector();
-		IntVector out = increments.lastElement();
+		if (increments.size() > 0) {
+			IntVector in = new IntVector();
+			IntVector out = increments.lastElement();
 
-		double[] sigs = new double[out.size()];
-		double[] stats = new double[out.size()];
-		int[] orderOfOriginal = out.toArray();
+			double[] sigs = new double[out.size()];
+			double[] stats = new double[out.size()];
+			int[] orderOfOriginal = out.toArray();
 
-		RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N, svdRegressionSwitch);
-		WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer, numThreads, 2, new Logger());
-		int index = 0;
+			RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N, svdRegressionSwitch);
+			WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer, numThreads, 2, new Logger());
+			int index = 0;
 
-		while (train.hasNext()) {
-			RegressionModel model = train.next();
-			double[] modelSigs = model.getSigs();
-			sigs[index] = modelSigs[modelSigs.length - 1];
-			stats[index] = model.getRsquare();
-			index++;
+			while (train.hasNext()) {
+				RegressionModel model = train.next();
+				double[] modelSigs = model.getSigs();
+				sigs[index] = modelSigs[modelSigs.length - 1];
+				stats[index] = model.getRsquare();
+				index++;
+			}
+			return new StepWiseSummary(sigs, stats, orderOfOriginal);
+		} else {
+			return null;
 		}
-		return new StepWiseSummary(sigs, stats, orderOfOriginal);
 	}
-	
+
 	public String getFinalNames() {
 		IntVector ins;
 		String finalNames = "";
