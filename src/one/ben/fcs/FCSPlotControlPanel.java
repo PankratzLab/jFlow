@@ -58,11 +58,8 @@ public class FCSPlotControlPanel extends JPanel {
     volatile boolean progSet = false;
 
     private JCheckBox chckbxShowMedianX;
-
     private JCheckBox chckbxShowSdX;
-
     private JCheckBox chckbxShowMedianY;
-
     private JCheckBox chckbxShowSdY;
 
     private JProgressBar progressBar;

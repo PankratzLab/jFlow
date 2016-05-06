@@ -84,7 +84,8 @@ public class Histogram implements Serializable {
 		
 		start = determineStart();
 		halfStep = determineStep()/2;
-		counts = new int[(int)((max-start)*Math.pow(10, sigfigs+EXTRA_STEPS[extrastep]))+2];
+		int step = (int)((max-start)*Math.pow(10, sigfigs+EXTRA_STEPS[extrastep]))+2;
+		counts = new int[step];
 		
 		System.out.println("min: "+min+"; max: "+max+"; start: "+start+"; step: "+determineStep(sigfigs, extrastep)+"; # bins: "+counts.length);
 

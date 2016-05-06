@@ -10,7 +10,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -333,33 +335,57 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	public int[] getPositions() {
 		return positions;
 	}
-	
+
+	/**
+	 * Caution - if markers were not in order, positions will not be in order (meaning binarySearch will be inaccurate)
+	 * 
+	 * @return
+	 */
 	public int[][] getPositionsByChr() {
-		IntVector iv;
-		byte chr;
-		int[][] positionsByChr;
-		boolean done;
-		
-		positionsByChr = new int[27][0];
-		
-		chr = 0;
-		iv = new IntVector(20000);
-		done = false;
-		for (int i = 0; !done; i++) {
-			if (i==chrs.length || chrs[i] != chr) {
-				positionsByChr[chr] = iv.toArray();
-				chr = i==chrs.length?0:chrs[i];
-				iv = new IntVector(20000);
-			}
-			if (i==chrs.length) {
-				done = true;
-			} else {
-				iv.add(positions[i]);
-			}
+	    int[][] posByChr;
+	    
+	    HashMap<Integer, ArrayList<Integer>> posMap = new HashMap<Integer, ArrayList<Integer>>(); 
+	    for (int i = 0; i < 27; i++) {
+	        posMap.put(i, new ArrayList<Integer>());
+	    }
+	    for (int i = 0; i < chrs.length; i++) {
+	        posMap.get(chrs[i]).add(positions[i]);
+	    }
+	    
+	    posByChr = new int[27][0];
+        for (int i = 0; i < 27; i++) {
+            posByChr[i] = Array.toIntArray(posMap.get(i));
         }
-		
-		return positionsByChr;
+	    
+	    return posByChr;
 	}
+	
+//	public int[][] getPositionsByChr() {
+//		IntVector iv;
+//		byte chr;
+//		int[][] positionsByChr;
+//		boolean done;
+//		
+//		positionsByChr = new int[27][0];
+//		
+//		chr = 0;
+//		iv = new IntVector(20000);
+//		done = false;
+//		for (int i = 0; !done; i++) {
+//			if (i==chrs.length || chrs[i] != chr) {
+//				positionsByChr[chr] = iv.toArray();
+//				chr = i==chrs.length?0:chrs[i];
+//				iv = new IntVector(20000);
+//			}
+//			if (i==chrs.length) {
+//				done = true;
+//			} else {
+//				iv.add(positions[i]);
+//			}
+//        }
+//		
+//		return positionsByChr;
+//	}
 	
 	public int[][] getChrAndPositionsAsInts() {
 	    int[][] chrPositions = new int[positions.length][];
