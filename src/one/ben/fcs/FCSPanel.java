@@ -130,7 +130,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     (byte)1,
                     (byte)1,
                     (byte)99
-                    
                     ));
         }
         for (GenericRectangle rect : rects) {
@@ -243,7 +242,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
 		if (yCol.equals(FCSPlot.HISTOGRAM_COL)) {
 		    points = new PlotPoint[0];
-		    if (histLines != null && histLines.size() > 0) return;
+		    if (!columnsChangedX && !dataChanged && histLines != null && histLines.size() > 0) return;
 		    
 		    float[] minMax = Array.minMax(xData);
 		    int range = (int)Math.ceil(minMax[1]) - (int)Math.floor(minMax[0]) + 1;
@@ -256,7 +255,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    
 		    histLines = new ArrayList<GenericLine>();
 		    for (int i = 0; i < histData.length - 1; i++) {
-		        histLines.add(new GenericLine((i * step) + minMax[0], histData[i], ((i + 1) * step) + minMax[0], histData[i + 1], (byte)1, (byte) 0, (byte)0));
+		        histLines.add(new GenericLine((i * step) + minMax[0], histData[i], ((i + 1) * step) + minMax[0], histData[i + 1], (byte)2, (byte) 0, (byte)0));
 		    }
 	        setLines();
 		    
