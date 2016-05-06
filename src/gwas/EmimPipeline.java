@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Set;
 
 import cnv.manage.ExportCNVsToPedFormat;
 import common.Array;
@@ -84,39 +85,34 @@ public class EmimPipeline {
     }
     
     
-    private static void generateFolderStructureAndKeepsFiles(String runDir, String[] cnvFiles, String[] plinkRoots, PopFileData popFile, PopFileData subPopFile) {
+    private static boolean generateFolderStructureAndKeepsFiles(String runDir, String[] cnvFiles, String[] plinkRoots, PopFileData popFile, PopFileData subPopFile, Logger log) {
         if (cnvFiles != null) {
             for (String cnvFile : cnvFiles) {
                 String cnvRoot = ext.rootOf(cnvFile, true);
                 String cnvDir = runDir + cnvRoot + "/";
-                boolean created = (!Files.exists(cnvDir) && (new File(cnvDir)).mkdir());
-                if (!created) { 
-                    /* TODO ERROR, or already exists */ 
-                    System.err.println("Error - Could not create folder " + cnvDir);
-                    continue; 
+                if (Files.exists(cnvDir)) log.report(cnvDir + " already exists, will not be created");
+                else if (! new File(cnvDir).mkdir()) {
+                	log.reportError("Could not create " + cnvDir);
+                	return false;
                 }
                 
                 for (int p = 0; p < popFile.pops.length; p++) {
                     String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(popFile.pops[p], true) + "/";
-                    created = (!Files.exists(popDir) && (new File(popDir)).mkdir());
-                    if (!created) { 
-                        /* TODO ERROR, or already exists */ 
-                        System.err.println("Error - Could not create folder " + popDir);
-                        continue; 
+                    if (Files.exists(popDir)) log.report(popDir + " already exists, will not be created");
+                    else if (! new File(popDir).mkdir()) {
+                    	log.reportError("Could not create " + popDir);
+                    	return false;
                     }
-                    String keepsFile = popDir + "keeps.txt";
-                    generateKeepsFile(keepsFile, popFile, p, null, 0);
+                    generateKeepsFile(popDir + "keeps.txt", popFile, p, null, 0);
                     
                     for (int sP = 0; sP < subPopFile.pops.length; sP++) {
                         String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
-                        created = (!Files.exists(subPopDir) && (new File(subPopDir)).mkdir());
-                        if (!created) { 
-                            /* TODO ERROR, or already exists */ 
-                            System.err.println("Error - Could not create folder " + subPopDir);
-                            continue; 
+                        if (Files.exists(subPopDir)) log.report(subPopDir + " already exists, will not be created");
+                        else if (! new File(subPopDir).mkdir()) {
+                        	log.reportError("Could not create " + subPopDir);
+                        	return false;
                         }
-                        keepsFile = subPopDir + "keeps.txt";
-                        generateKeepsFile(keepsFile, popFile, p, subPopFile, sP);
+                        generateKeepsFile(subPopDir + "keeps.txt", popFile, p, subPopFile, sP);
                     }
                 }
             }
@@ -124,41 +120,37 @@ public class EmimPipeline {
         if (plinkRoots != null) {
             for (String plinkRoot : plinkRoots) {
                 String plinkDir = runDir + plinkRoot + "/";
-                boolean created = (!Files.exists(plinkDir) && (new File(plinkDir)).mkdir());
-                if (!created) { 
-                    /* TODO ERROR, or already exists */ 
-                    System.err.println("Error - Could not create folder " + plinkDir);
-                    continue; 
+                if (Files.exists(plinkDir)) log.report(plinkDir + " already exists, will not be created");
+                else if (! new File(plinkDir).mkdir()) {
+                	log.reportError("Could not create " + plinkDir);
+                	return false;
                 }
                 
                 for (int p = 0; p < popFile.pops.length; p++) {
                     String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(popFile.pops[p], true) + "/";
-                    created = (!Files.exists(popDir) && (new File(popDir)).mkdir());
-                    if (!created) { 
-                        /* TODO ERROR, or already exists */ 
-                        System.err.println("Error - Could not create folder " + popDir);
-                        continue; 
+                    if (Files.exists(popDir)) log.report(popDir + " already exists, will not be created");
+                    else if (! new File(popDir).mkdir()) {
+                    	log.reportError("Could not create " + popDir);
+                    	return false;
                     }
-                    String keepsFile = popDir + "keeps.txt";
-                    generateKeepsFile(keepsFile, popFile, p, null, 0);
+                    generateKeepsFile(popDir + "keeps.txt", popFile, p, null, 0);
                     
                     for (int sP = 0; sP < subPopFile.pops.length; sP++) {
                         String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
-                        created = (!Files.exists(subPopDir) && (new File(subPopDir)).mkdir());
-                        if (!created) { 
-                            /* TODO ERROR, or already exists */ 
-                            System.err.println("Error - Could not create folder " + subPopDir);
-                            continue; 
+                        if (Files.exists(subPopDir)) log.report(subPopDir + " already exists, will not be created");
+                        else if (! new File(subPopDir).mkdir()) {
+                        	log.reportError("Could not create " + subPopDir);
+                        	return false;
                         }
-                        keepsFile = subPopDir + "keeps.txt";
-                        generateKeepsFile(keepsFile, popFile, p, subPopFile, sP);
+                        generateKeepsFile(subPopDir + "keeps.txt", popFile, p, subPopFile, sP);
                     }
                 }
             }
         }
+        return true;
     }
     
-    static void setup(String runDir, String[] cnvFiles, String[] plinkRoots, String pedFile, String popFile, String subPopFile, double pThreshold, String qsubQueue, Logger log1) {
+    static void setup(String runDir, String[] cnvFiles, String[] plinkRoots, String pedFile, String popFile, String subPopFile, double pThreshold, Set<Emim.EMIM_MODEL> models, String qsubQueue, Logger log1) {
         ArrayList<String> pbsFiles = new ArrayList<String>();
         Logger log = log1 == null ? new Logger() : log1;
         PopFileData popData, subPopData;
@@ -170,11 +162,14 @@ public class EmimPipeline {
             log.reportException(e);
             return;
         }
-        log.reportTimeInfo("Generating folder structure in run directory...");
-        generateFolderStructureAndKeepsFiles(runDir, cnvFiles, plinkRoots, popData, subPopData);
         if (!checkRoots(cnvFiles, plinkRoots)) {
-            log.reportError("Error - cannot have cnv roots and plink roots that have the same name.");
+            log.reportError("Cannot have cnv roots and plink roots that have the same name");
             return;
+        }
+        log.reportTimeInfo("Generating folder structure in run directory...");
+        if (!generateFolderStructureAndKeepsFiles(runDir, cnvFiles, plinkRoots, popData, subPopData, log)) {
+        	log.reportError("Failed to generate folder structure");
+        	return;
         }
         if (cnvFiles != null) {
             for (String cnvFile : cnvFiles) {
@@ -192,27 +187,30 @@ public class EmimPipeline {
                 String relativePlinkRoot = "../" + cnvRoot + "_0";
                 String resultFile = cnvRoot;
                 
-                log.reportTimeInfo("Generating EMIM files for cnv root " + plinkRoot);
-                Emim.scriptAllInDir(runDir + cnvDir, plinkRoot, relativePlinkRoot, "GEN", null, pThreshold, resultFile);
-                String pbsFile = cnvDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-                if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
-                pbsFiles.add(pbsFile);
+                log.reportTimeInfo("Generating EMIM files for cnv root " + plinkRoot + "...");
+                if (Emim.scriptAllInDir(runDir + cnvDir, plinkRoot, relativePlinkRoot, "GEN", null, pThreshold, models, resultFile, log)) {
+                	String pbsFile = cnvDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                	if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
+                	pbsFiles.add(pbsFile);
+                }
     
                 for (int p = 0; p < popData.pops.length; p++) {
                     String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
                     resultFile = cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true);
-                    Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
-                    pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-                    if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
-                    pbsFiles.add(pbsFile);
+                    if (Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold, models, resultFile, log)) {
+                    	String pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                    	if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
+                    	pbsFiles.add(pbsFile);
+                    }
                     
                     for (int sP = 0; sP < subPopData.pops.length; sP++) {
                         String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/"; 
                         resultFile = cnvRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true);
-                        Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
-                        pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-                        if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
-                        pbsFiles.add(pbsFile);
+                        if (Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../" + relativePlinkRoot, "GEN", "keeps.txt", pThreshold, models, resultFile, log)) {
+                        	String pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                        	if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
+                        	pbsFiles.add(pbsFile);
+                        }
                     }
                 }
             }
@@ -222,27 +220,30 @@ public class EmimPipeline {
                 String plinkDir = plinkRoot + "/";
                 String resultFile = plinkRoot;
 
-                log.reportTimeInfo("Generating EMIM files for PLINK root " + plinkRoot);
-                Emim.scriptAllInDir(runDir + plinkDir, plinkRoot, "../" + plinkRoot, "GEN", null, pThreshold, resultFile);
-                String pbsFile = plinkDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-                if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
-                pbsFiles.add(pbsFile);
+                log.reportTimeInfo("Generating EMIM files for PLINK root " + plinkRoot + "...");
+                if (Emim.scriptAllInDir(runDir + plinkDir, plinkRoot, "../" + plinkRoot, "GEN", null, pThreshold, models, resultFile, log)) {
+                	String pbsFile = plinkDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                	if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
+                	pbsFiles.add(pbsFile);
+                }
                 
                 for (int p = 0; p < popData.pops.length; p++) {
                     String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "/";
                     resultFile = plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true);
-                    Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../../" + plinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
-                    pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-                    if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
-                    pbsFiles.add(pbsFile);
+                    if (Emim.scriptAllInDir(runDir + popDir, plinkRoot, "../../" + plinkRoot, "GEN", "keeps.txt", pThreshold, models, resultFile, log)) {
+                    	String pbsFile = popDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                    	if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
+                    	pbsFiles.add(pbsFile);
+                    }
                     
                     for (int sP = 0; sP < subPopData.pops.length; sP++) {
                         String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true) + "/"; 
                         resultFile = plinkRoot + "_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_" + ext.replaceWithLinuxSafeCharacters(subPopData.pops[sP], true);
-                        Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../../" + plinkRoot, "GEN", "keeps.txt", pThreshold, resultFile);
-                        pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
-                        if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
-                        pbsFiles.add(pbsFile);
+                        if (Emim.scriptAllInDir(runDir + subPopDir, plinkRoot, "../../../" + plinkRoot, "GEN", "keeps.txt", pThreshold, models, resultFile, log)) {
+                        	String pbsFile = subPopDir + ext.rootOf(plinkRoot, true) + "_runEmim.pbs";
+                        	if (!Files.exists(runDir + pbsFile)) { /* TODO ERROR */ continue; }
+                        	pbsFiles.add(pbsFile);
+                        }
                     }
                 }
             }
@@ -255,15 +256,21 @@ public class EmimPipeline {
 //            for (String pbsFile : pbsFiles) {
 //                CmdLine.run("qsub " + (qsubQueue != null ? "-q " + qsubQueue : "") + pbsFile, ext.parseDirectoryOfFile(pbsFile));
 //            }
+            log.reportTimeInfo("Pipeline prepared, run " + runDir + "runPBSFiles.sh to submit QSUB jobs");
             
+        } else {
+        	log.reportError("No pbs scripts generated, to re-run EMIM remove/rename the existing directories");
         }
         
-        String processCommand = "jcp gwas.EmimPipeline -process pThreshold=0.00001 dir=" + runDir;
+        String processCommand = "jcp gwas.EmimPipeline -process dir=" + runDir;
         if (cnvFiles != null) {
             processCommand += " cnvs=" + Array.toStr(cnvFiles, ",");
         }
         if (plinkRoots != null) {
             processCommand += " plink=" + Array.toStr(plinkRoots, ",");
+        }
+        for (Emim.EMIM_MODEL model : Emim.EMIM_MODEL.valueSet()) {
+        	processCommand += " " + model.toString() + "=" + models.contains(model);
         }
         processCommand += " pop=" + popFile + " subPop=" + subPopFile;
         if (log1 != null) {
@@ -271,6 +278,8 @@ public class EmimPipeline {
         }
         Files.write(processCommand, runDir + "../processResults.sh");
         Files.chmod(runDir + "../processResults.sh");
+        
+        
     }
     
     private static boolean checkRoots(String[] cnvFiles, String[] plinkRoots) {
@@ -292,15 +301,15 @@ public class EmimPipeline {
         return true;
     }
     
-    private static String getResultsFilename(String baseDir, String fileroot, boolean allelic) {
-    	return getResultsFilename(baseDir, fileroot, null, null, allelic);
+    private static String getResultsFilename(String baseDir, String fileroot, Emim.EMIM_MODEL model) {
+    	return getResultsFilename(baseDir, fileroot, null, null, model);
     }
     
-    private static String getResultsFilename(String baseDir, String fileroot, String popName, boolean allelic) {
-    	return getResultsFilename(baseDir, fileroot, popName, null, allelic);
+    private static String getResultsFilename(String baseDir, String fileroot, String popName, Emim.EMIM_MODEL model) {
+    	return getResultsFilename(baseDir, fileroot, popName, null, model);
     }
     
-    private static String getResultsFilename(String baseDir, String fileroot, String popName, String subPopName, boolean allelic) {
+    private static String getResultsFilename(String baseDir, String fileroot, String popName, String subPopName, Emim.EMIM_MODEL model) {
     	String file = fileroot;
     	if (popName != null) {
     		popName = ext.replaceWithLinuxSafeCharacters(popName, true);
@@ -310,7 +319,7 @@ public class EmimPipeline {
     			file += "_" + subPopName;
     		}
     	}
-    	file += "_results_pVals" + (allelic ? "_allelic" : "") + ".xln";
+    	file += "_results_pVals_" + model.toString() + ".xln";
     	return getResultsDirectory(baseDir, fileroot, popName, subPopName) + file;
     }
     
@@ -335,8 +344,7 @@ public class EmimPipeline {
     	return dir;
     }
 
-    private static void process(String dir, String[] cnvFiles, String[] plinkRoots, String popFile, String subPopFile, double thresh, Logger log1) throws IOException {
-        PrintWriter writer, allelicWriter;
+    private static void process(String dir, String[] cnvFiles, String[] plinkRoots, String popFile, String subPopFile, double thresh, Set<Emim.EMIM_MODEL> models, Logger log1) throws IOException {
         Logger log = log1 == null ? new Logger() : log1;
         String finalDir = ext.verifyDirFormat(dir);
         
@@ -350,53 +358,46 @@ public class EmimPipeline {
             log.reportException(e);
             return;
         }
-        
-        String finalOut = finalDir + "final_results_pVals.xln";
-        String allelicOut = finalDir + "final_results_pVals_allelic.xln";
-        writer = Files.getAppropriateWriter(finalOut);
-        allelicWriter = Files.getAppropriateWriter(allelicOut);
-        boolean first = true;
-        if (cnvFiles != null) {
-            for (String cnvFile : cnvFiles) {
-                String cnvRoot = ext.rootOf(cnvFile, true);
-                writeResults(getResultsFilename(finalDir, cnvRoot, false), writer, cnvRoot, "#N/A", "#N/A", thresh, first);
-                writeResults(getResultsFilename(finalDir, cnvRoot, true), allelicWriter, cnvRoot, "#N/A", "#N/A", thresh, first);
-                first = false;
-                
-                for (int p = 0; p < popData.pops.length; p++) {
-                    writeResults(getResultsFilename(finalDir, cnvRoot, popData.pops[p], false), writer, cnvRoot, popData.pops[p], "#N/A", thresh, first);
-                    writeResults(getResultsFilename(finalDir, cnvRoot, popData.pops[p], true), allelicWriter, cnvRoot, popData.pops[p], "#N/A", thresh, first);
-
-                    for (int sP = 0; sP < subPopData.pops.length; sP++) {
-                    	writeResults(getResultsFilename(finalDir, cnvRoot, popData.pops[p], subPopData.pops[sP], false), writer, cnvRoot, popData.pops[p], subPopData.pops[sP], thresh, first);
-                    	writeResults(getResultsFilename(finalDir, cnvRoot, popData.pops[p], subPopData.pops[sP], true), allelicWriter, cnvRoot, popData.pops[p], subPopData.pops[sP], thresh, first);
-                    }
-                }
-            }
+        for (Emim.EMIM_MODEL model : models) {
+        	String finalOut = finalDir + "final_results_pVals_" + model.toString() + ".xln";
+        	PrintWriter writer = Files.getAppropriateWriter(finalOut);
+	        boolean first = true;
+	        if (cnvFiles != null) {
+	            for (String cnvFile : cnvFiles) {
+	                String cnvRoot = ext.rootOf(cnvFile, true);
+	
+	                writeResults(getResultsFilename(finalDir, cnvRoot, model), writer, cnvRoot, "#N/A", "#N/A", thresh, first);
+	                first = false;
+	                
+	                for (int p = 0; p < popData.pops.length; p++) {
+	                    writeResults(getResultsFilename(finalDir, cnvRoot, popData.pops[p], model), writer, cnvRoot, popData.pops[p], "#N/A", thresh, first);
+	
+	                    for (int sP = 0; sP < subPopData.pops.length; sP++) {
+	                    	writeResults(getResultsFilename(finalDir, cnvRoot, popData.pops[p], subPopData.pops[sP], model), writer, cnvRoot, popData.pops[p], subPopData.pops[sP], thresh, first);
+	                    }
+	                }
+	            }
+	        }
+	        if (plinkRoots != null) {
+	            for (String plinkRoot : plinkRoots) {
+	                writeResults(getResultsFilename(finalDir, plinkRoot, model), writer, plinkRoot, "#N/A", "#N/A", thresh, first);
+	                first = false;
+	                
+	                for (int p = 0; p < popData.pops.length; p++) {
+	                    writeResults(getResultsFilename(finalDir, plinkRoot, popData.pops[p], model), writer, plinkRoot, popData.pops[p], "#N/A", thresh, first);
+	                    
+	                    for (int sP = 0; sP < subPopData.pops.length; sP++) {
+	                        writeResults(getResultsFilename(finalDir, plinkRoot, popData.pops[p], subPopData.pops[sP], model), writer, plinkRoot, popData.pops[p], subPopData.pops[sP], thresh, first);
+	                    }
+	                }
+	            }
+	        }
+	        writer.flush();
+	        writer.close();
         }
-        if (plinkRoots != null) {
-            for (String plinkRoot : plinkRoots) {
-                writeResults(getResultsFilename(finalDir, plinkRoot, false), writer, plinkRoot, "#N/A", "#N/A", thresh, first);
-                writeResults(getResultsFilename(finalDir, plinkRoot, true), allelicWriter, plinkRoot, "#N/A", "#N/A", thresh, first);
-                first = false;
-                
-                for (int p = 0; p < popData.pops.length; p++) {
-                    writeResults(getResultsFilename(finalDir, plinkRoot, popData.pops[p], false), writer, plinkRoot, popData.pops[p], "#N/A", thresh, first);
-                    writeResults(getResultsFilename(finalDir, plinkRoot, popData.pops[p], true), allelicWriter, plinkRoot, popData.pops[p], "#N/A", thresh, first);
-                    
-                    for (int sP = 0; sP < subPopData.pops.length; sP++) {
-                        writeResults(getResultsFilename(finalDir, plinkRoot, popData.pops[p], subPopData.pops[sP], false), writer, plinkRoot, popData.pops[p], subPopData.pops[sP], thresh, first);
-                        writeResults(getResultsFilename(finalDir, plinkRoot, popData.pops[p], subPopData.pops[sP], true), allelicWriter, plinkRoot, popData.pops[p], subPopData.pops[sP], thresh, first);
-                    }
-                }
-            }
-        }
-        
-        writer.flush();
-        writer.close();
     }
     
-    private static void forestPlotParameters(String dir, String[] cnvRoots, String[] plinkRoots, String popFile, String subPopFile, String forestMarkers, Logger log1) {
+    private static void forestPlotParameters(String dir, String[] cnvRoots, String[] plinkRoots, String popFile, String subPopFile, String forestMarkers, Set<Emim.EMIM_MODEL> models, Logger log1) {
         Logger log = log1 == null ? new Logger() : log1;
         String finalDir = ext.verifyDirFormat(dir);
         
@@ -415,31 +416,22 @@ public class EmimPipeline {
             	String cnvRoot = ext.rootOf(cnvFile, true);
 
             	for (int p = 0; p < popData.pops.length; p++) {
-            		String[][] resultFiles = new String[subPopData.pops.length + 1][];
-            		String[][] resultFilesAllelic = new String[subPopData.pops.length + 1][];
-            		resultFiles[subPopData.pops.length] = new String[] {".", getResultsFilename(finalDir, cnvRoot, popData.pops[p], false)};
-            		resultFilesAllelic[subPopData.pops.length] = new String[] {".", getResultsFilename(finalDir, cnvRoot, popData.pops[p], true)};
-            		for (int sP = 0; sP < subPopData.pops.length; sP++) {
-            			resultFiles[sP] = new String[] {subPopData.pops[sP], getResultsFilename(finalDir, cnvRoot, popData.pops[p], subPopData.pops[sP], false)};
-            			resultFilesAllelic[sP] = new String[] {subPopData.pops[sP], getResultsFilename(finalDir, cnvRoot, popData.pops[p], subPopData.pops[sP], true)};
-            		}
             		
-            		ResultsPackager.getForestPlotParameterFile(resultFiles, 
-            												   forestMarkers, 
-            												   "MarkerName", 
-            												   new String[] {"tdt", "emim_C"}, 
-            												   new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
-            																   {"C_lnR1", "C_sd_lnR1", "pVal_C_df2"}},
-            												   getResultsDirectory(finalDir, cnvRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot.xln",
-            												   log);
-            		ResultsPackager.getForestPlotParameterFile(resultFiles, 
-							   								   forestMarkers, 
-															   "MarkerName", 
-															   new String[] {"tdt", "emim_C"}, 
-															   new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
-            																   {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
-															   getResultsDirectory(finalDir, cnvRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot_allelic.xln",
-															   log);
+            		for (Emim.EMIM_MODEL model : models) {
+            			String[][] resultFiles = new String[subPopData.pops.length + 1][];
+                		resultFiles[subPopData.pops.length] = new String[] {".", getResultsFilename(finalDir, cnvRoot, popData.pops[p], model)};
+                		for (int sP = 0; sP < subPopData.pops.length; sP++) {
+                			resultFiles[sP] = new String[] {subPopData.pops[sP], getResultsFilename(finalDir, cnvRoot, popData.pops[p], subPopData.pops[sP], model)};
+                		}
+            			ResultsPackager.getForestPlotParameterFile(resultFiles, 
+            					forestMarkers, 
+            					"MarkerName", 
+            					new String[] {"tdt", "emim_C"}, 
+            					new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
+            								    {"C_lnR1", "C_sd_lnR1", "pVal_C_df" + model.getDegreesOfFreedom()}},
+            					getResultsDirectory(finalDir, cnvRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot_" + model.toString() + ".xln",
+            					log);
+            		}
                 }
             }
         }
@@ -447,31 +439,22 @@ public class EmimPipeline {
         	for (String plinkRoot : plinkRoots) {
 
             	for (int p = 0; p < popData.pops.length; p++) {
-            		String[][] resultFiles = new String[subPopData.pops.length + 1][];
-            		String[][] resultFilesAllelic = new String[subPopData.pops.length + 1][];
-            		resultFiles[subPopData.pops.length] = new String[] {".", getResultsFilename(finalDir, plinkRoot, popData.pops[p], false)};
-            		resultFilesAllelic[subPopData.pops.length] = new String[] {".", getResultsFilename(finalDir, plinkRoot, popData.pops[p], true)};
-            		for (int sP = 0; sP < subPopData.pops.length; sP++) {
-            			resultFiles[sP] = new String[] {subPopData.pops[sP], getResultsFilename(finalDir, plinkRoot, popData.pops[p], subPopData.pops[sP], false)};
-            			resultFilesAllelic[sP] = new String[] {subPopData.pops[sP], getResultsFilename(finalDir, plinkRoot, popData.pops[p], subPopData.pops[sP], true)};
-            		}
             		
-            		ResultsPackager.getForestPlotParameterFile(resultFiles, 
-            												   forestMarkers, 
-            												   "MarkerName", 
-            												   new String[] {"tdt", "emim_C"}, 
-            												   new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
-            																   {"C_lnR1", "C_sd_lnR1", "pVal_C_df2"}},
-            												   getResultsDirectory(finalDir, plinkRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot.xln",
-            												   log);
-            		ResultsPackager.getForestPlotParameterFile(resultFiles, 
-							   								   forestMarkers, 
-															   "MarkerName", 
-															   new String[] {"tdt", "emim_C"}, 
-															   new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
-            																   {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
-															   getResultsDirectory(finalDir, plinkRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot_allelic.xln",
-															   log);
+            		for (Emim.EMIM_MODEL model : models) {
+            			String[][] resultFiles = new String[subPopData.pops.length + 1][];
+                		resultFiles[subPopData.pops.length] = new String[] {".", getResultsFilename(finalDir, plinkRoot, popData.pops[p], model)};
+                		for (int sP = 0; sP < subPopData.pops.length; sP++) {
+                			resultFiles[sP] = new String[] {subPopData.pops[sP], getResultsFilename(finalDir, plinkRoot, popData.pops[p], subPopData.pops[sP], model)};
+                		}
+            			ResultsPackager.getForestPlotParameterFile(resultFiles, 
+            					forestMarkers, 
+            					"MarkerName", 
+            					new String[] {"tdt", "emim_C"}, 
+            					new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
+            									{"C_lnR1", "C_sd_lnR1", "pVal_C_df" + model.getDegreesOfFreedom()}},
+            					getResultsDirectory(finalDir, plinkRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot_" + model.toString() + ".xln",
+            					log);
+            		}
                 }
             }
         }
@@ -532,10 +515,11 @@ public class EmimPipeline {
         String qsub = null;
         boolean process = false;
         boolean forest = false;
+        Set<Emim.EMIM_MODEL> models = Emim.EMIM_MODEL.valueSet();
         String forestMarkers = "./gwasHits.txt";
         
         String usage = "\n" + 
-                       "gwas.EmimPipeline requires 2-5 arguments\n" + 
+                       "gwas.EmimPipeline requires 2-8 arguments\n" + 
                        "   (1) run directory (i.e. dir=" + runDir + " (default))\n" + 
                        " AND\n" +
                        "   (2a) cnv files (i.e. cnvs=cnvFile1.cnv,cnvFile2.cnv (not the default))\n" +
@@ -547,7 +531,11 @@ public class EmimPipeline {
                        "   (4) -forest flag to generate forest plot parameters for a set of markers (i.e. -forest (not the default))\n" +
                        " AND \n" + 
                        "   (5) markers to use for forest plot parameter generation (i.e. forestMarkers=./gwasHits.txt (default))\n";
-        
+        int argNum = 6;
+        for (Emim.EMIM_MODEL model : models) {
+        	usage += " AND \n" + 
+                     "   (" + argNum++ +") Include " + model.toString() + " model (i.e. " + model.toString() + "=true (default))\n";
+        }   
         
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -584,7 +572,18 @@ public class EmimPipeline {
                 forestMarkers = args[i].split("=")[1];
                 numArgs--;
             } else {
-                System.err.println("Error - invalid argument: " + args[i]);
+            	boolean foundModel = false;
+            	for (Emim.EMIM_MODEL model : Emim.EMIM_MODEL.valueSet()){
+            		if (args[i].startsWith(model.toString() + "=")) {
+            			foundModel = true;
+            			if (!ext.parseBooleanArg(args[i])){
+            				models.remove(model);
+            			}
+            			numArgs--;
+            			break;
+            		}
+            	}
+            	if (!foundModel) System.err.println("Error - invalid argument: " + args[i]);
             }
         }
         if (args.length == 0 || numArgs != 0) {
@@ -596,10 +595,10 @@ public class EmimPipeline {
                 log = new Logger(logFile);
             }
             if (process || forest) {
-                if (process) process(runDir, cnvFiles, plinkRoots, popFile, subPopFile, pThreshold, log);
-                if (forest) forestPlotParameters(runDir, cnvFiles, plinkRoots, popFile, subPopFile, forestMarkers, log);
+                if (process) process(runDir, cnvFiles, plinkRoots, popFile, subPopFile, pThreshold, models, log);
+                if (forest) forestPlotParameters(runDir, cnvFiles, plinkRoots, popFile, subPopFile, forestMarkers, models, log);
             } else {
-                setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, qsub, log);
+                setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, models, qsub, log);
             }
         } catch (Exception e) {
             e.printStackTrace();
