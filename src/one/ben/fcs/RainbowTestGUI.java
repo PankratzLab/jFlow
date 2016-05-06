@@ -617,7 +617,13 @@ public class RainbowTestGUI extends JFrame {
         dtmCV.addRow(new Object[colNames.length]);
         addFilesToModel(dirStruct, paramNames, dirStruct.dir);
         
-        table.setModel(dtmMean);
+        if (rdbtnMean.isSelected()) {
+            table.setModel(dtmMean);
+        } else if (rdbtnSd.isSelected()) {
+            table.setModel(dtmSD);
+        } else if (rdbtnCv.isSelected()) {
+            table.setModel(dtmCV);
+        }
         resizeColumnWidth(table);
     }
     
