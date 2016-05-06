@@ -11,12 +11,17 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -124,6 +129,7 @@ public class RainbowTestGUI extends JFrame {
                     String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
                     txtFldBaseDir.setText(newPath);
                     loadFCSDir(newPath, true);
+                    saveProps();
                 }
             }
         });
@@ -155,6 +161,7 @@ public class RainbowTestGUI extends JFrame {
                     String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
                     txtFldCompDir.setText(newPath);
                     loadFCSDir(newPath, false);
+                    saveProps();
                 }
             }
         });
@@ -187,6 +194,7 @@ public class RainbowTestGUI extends JFrame {
                     String newPath = jfc.getSelectedFile().getAbsolutePath();
                     txtFldGatingFile.setText(newPath);
                     setGateFile(newPath);
+                    saveProps();
                 }
             }
         });
@@ -353,6 +361,58 @@ public class RainbowTestGUI extends JFrame {
         });
         button.setMargin(new Insets(0, 2, 0, 2));
         contentPane.add(button, "cell 2 2");
+        
+        loadProps();
+    }
+    
+    private static final String PROP_FILE = "rainbow.properties";
+    private static final String PROPKEY_COMPAREDIR = "COMPARE_DIR";
+    private static final String PROPKEY_BASEDIR = "BASE_DIR";
+    private static final String PROPKEY_GATEFILE = "GATING_FILE";
+    
+    private void saveProps() {
+        try {
+            Properties props = new Properties();
+            props.setProperty(PROPKEY_BASEDIR, ext.verifyDirFormat(txtFldBaseDir.getText()));
+            props.setProperty(PROPKEY_COMPAREDIR, ext.verifyDirFormat(txtFldCompDir.getText()));
+            props.setProperty(PROPKEY_GATEFILE, txtFldGatingFile.getText());
+            File f = new File(PROP_FILE);
+            OutputStream out = new FileOutputStream( f );
+            props.store(out, "");
+        } catch (Exception e ) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void loadProps() {
+        Properties props = new Properties();
+        InputStream is = null;
+     
+        try {
+            File f = new File(PROP_FILE);
+            is = new FileInputStream(f);
+            props.load(is);
+            String base = props.getProperty(PROPKEY_BASEDIR, "");
+            String comp = props.getProperty(PROPKEY_COMPAREDIR, "");
+            String gate = props.getProperty(PROPKEY_GATEFILE, "");
+            
+            if (!base.equals("")) {
+                txtFldBaseDir.setText(base);
+                loadFCSDir(base, true);
+            }
+            if (!comp.equals("")) {
+                txtFldCompDir.setText(comp);
+                loadFCSDir(comp, false);
+            }
+            if (!gate.equals("")) {
+                txtFldGatingFile.setText(gate);
+                setGateFile(gate);
+            }
+            if (!base.equals("") && !comp.equals("")) {
+                reCalcTableData();
+            }
+        }
+        catch ( Exception e ) { is = null; }
     }
     
     private void resizeColumnWidth(JTable table) {
