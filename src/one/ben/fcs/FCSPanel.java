@@ -14,6 +14,7 @@ import javax.swing.SwingUtilities;
 import one.ben.fcs.gating.Gate.PolygonGate;
 import one.ben.fcs.gating.Gate.RectangleGate;
 import one.ben.fcs.gating.GateDimension;
+import stats.Histogram;
 import cnv.plots.GenericLine;
 import cnv.plots.GenericPath;
 //import cnv.filesys.MarkerLookup;
@@ -89,18 +90,74 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	float[] xData;
 	float[] yData;
 	ArrayList<GenericRectangle> rects = new ArrayList<GenericRectangle>();
+	ArrayList<GenericPath> polys = new ArrayList<GenericPath>();
+	
+	ArrayList<GenericLine> histLines = new ArrayList<GenericLine>();
 	ArrayList<double[]> tempPoly = new ArrayList<double[]>();
-    ArrayList<GenericPath> polys = new ArrayList<GenericPath>();
     volatile boolean forceGatesChanged = false;
 	
 	public static final int RECT_TOOL = 0;
 	public static final int POLY_TOOL = 1;
-    private static final String HISTOGRAM_COL = "Histogram";
 	
-	private volatile int currentTool = POLY_TOOL;
-//	private volatile int currentTool = RECT_TOOL;
+//	private volatile int currentTool = POLY_TOOL;
+	private volatile int currentTool = RECT_TOOL;
 	
-	public void generatePointsRectanglesAndLines() {
+	private int polyDragInd = -1;
+    private int polyDragVertInd = -1;
+
+    private boolean isHistogram() {
+        return yCol != null && yCol.equals(FCSPlot.HISTOGRAM_COL);
+    }
+
+    private void setLines() {
+        ArrayList<GenericLine> allLines = new ArrayList<GenericLine>();
+        allLines.addAll(histLines);
+        if (highlightRectangle != null ) {
+            allLines.add(new GenericLine(
+                    highlightRectangle.getStartXValue(),
+                    (float)plotYmin,
+                    highlightRectangle.getStartXValue(),
+                    (float)plotYmax,
+                    (byte)1,
+                    (byte)1,
+                    (byte)99
+                    ));
+            allLines.add(new GenericLine(
+                    highlightRectangle.getStopXValue(),
+                    (float)plotYmin,
+                    highlightRectangle.getStopXValue(),
+                    (float)plotYmax,
+                    (byte)1,
+                    (byte)1,
+                    (byte)99
+                    
+                    ));
+        }
+        for (GenericRectangle rect : rects) {
+            allLines.add(new GenericLine(
+                    rect.getStartXValue(),
+                    (float)plotYmin,
+                    rect.getStartXValue(),
+                    (float)plotYmax,
+                    (byte)1,
+                    (byte)1,
+                    (byte)99
+                    ));
+            allLines.add(new GenericLine(
+                    rect.getStopXValue(),
+                    (float)plotYmin,
+                    rect.getStopXValue(),
+                    (float)plotYmax,
+                    (byte)1,
+                    (byte)1,
+                    (byte)99
+                    ));
+        }
+        
+        lines = allLines.toArray(new GenericLine[allLines.size()]);
+    }
+    
+    public void generatePointsRectanglesAndLines() {
 		byte type;
 //		String[] line;
 		float xAxisValue, yAxisValue;
@@ -175,29 +232,36 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         rectangles = rects.toArray(new GenericRectangle[rects.size()]);
         polygons = polys.toArray(new GenericPath[polys.size()]);
         
-        
+        if (isHistogram()) {
+            setLines();
+        }
         
 		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged && !gatesChanged/* && !typeChanged /* don't need to regen if only type has changed, for now */;
 		if (skip) return;
 		
 		xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) : xData;
-		yCol = HISTOGRAM_COL;
-		if (yCol.equals(FCSPanel.HISTOGRAM_COL)) {
+
+		if (yCol.equals(FCSPlot.HISTOGRAM_COL)) {
+		    points = new PlotPoint[0];
+		    if (histLines != null && histLines.size() > 0) return;
+		    
 		    float[] minMax = Array.minMax(xData);
 		    int range = (int)Math.ceil(minMax[1]) - (int)Math.floor(minMax[0]) + 1;
-		    float[] histData = new float[range];
+//		    int step1 = (int) Math.ceil(range / (2 * Array.iqr(xData) / Math.pow(xData.length, 1/3))); // bin size too small with this formula
+		    int step = Math.max(2, (int) (range / Math.sqrt(xData.length)));
+		    float[] histData = new float[range / step + 1];
 		    for (float x : xData) {
-	            histData[(int) (x - minMax[0])]++;
+	            histData[(int) (x - minMax[0]) / step]++;
 		    }
-		    ArrayList<GenericLine> linesTemp = new ArrayList<GenericLine>();
+		    
+		    histLines = new ArrayList<GenericLine>();
 		    for (int i = 0; i < histData.length - 1; i++) {
-		        linesTemp.add(new GenericLine(i + minMax[0], histData[i], (i + 1) + minMax[0], histData[i + 1], (byte)1, (byte) 0, (byte)0));
+		        histLines.add(new GenericLine((i * step) + minMax[0], histData[i], ((i + 1) * step) + minMax[0], histData[i + 1], (byte)1, (byte) 0, (byte)0));
 		    }
-		    lines = linesTemp.toArray(new GenericLine[linesTemp.size()]);
+	        setLines();
+		    
 		    return;
 		}
-		
-		
 		
 		yData = columnsChangedY || dataChanged || yData == null ? fcp.getAxisData(false, false) : yData;
 		
@@ -332,12 +396,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         paintAgain();
 	}
 	
-	private int polyDragInd = -1;
-	private int polyDragVertInd = -1;
 	private void leftMousePressedPoly(MouseEvent e) {
 	    int tempX = e.getX();
 	    int tempY = e.getY();
-	    int toRemove = -1;
+//	    int toRemove = -1;
 	    
 	    double[] coords = new double[6];
 	    int polyInd = -1;
@@ -391,16 +453,14 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         int tempY = e.getY();
         int toRemove = -1;
 
-        double tempValX = getXValueFromXPixel(tempX);
-        double tempValY = getYValueFromYPixel(tempY);
         for (int i = rects.size() - 1; i >= 0; i--) {
             GenericRectangle rect = rects.get(i);
             double xLow, xHigh, yLow, yHigh;
-            xLow = Math.min(rect.getStartXValue(), rect.getStopXValue());
-            xHigh = Math.max(rect.getStartXValue(), rect.getStopXValue());
-            yLow = Math.min(rect.getStartYValue(), rect.getStopYValue());
-            yHigh = Math.max(rect.getStartYValue(), rect.getStopYValue());
-            if (xLow <= tempValX && xHigh >= tempValX && yLow <= tempValY && yHigh >= tempValY) {
+            xLow = getXPixel(Math.min(rect.getStartXValue(), rect.getStopXValue()));
+            xHigh = getXPixel(Math.max(rect.getStartXValue(), rect.getStopXValue()));
+            yLow = getYPixel(Math.min(rect.getStartYValue(), rect.getStopYValue()));
+            yHigh = getYPixel(Math.max(rect.getStartYValue(), rect.getStopYValue()));
+            if (xLow <= tempX && xHigh >= tempX && yLow <= tempY && yHigh >= tempY) {
                 toRemove = i;
                 break;
             }
@@ -416,6 +476,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		int tempX = e.getX();
 		int tempY = e.getY();
 		int toRemove = -1;
+		
+		if (tempPoly.size() > 0) {
+		    tempPoly.clear();
+		    highlightPoly = null;
+		    return;
+		}
 		
 		double tempValX = getXValueFromXPixel(tempX);
 		double tempValY = getYValueFromYPixel(tempY);
@@ -502,9 +568,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         mouseEndX = e.getX();
         mouseEndY = e.getY();
         highlightRectangle = null;
-        rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
-                (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
-                (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99, true));
+        rects.add(new GenericRectangle(
+                (float)getXValueFromXPixel(startX), 
+                (float)getYValueFromYPixel(startY), 
+                (float)getXValueFromXPixel(mouseEndX), 
+                isHistogram() ? (float)getYValueFromYPixel(startY) : (float)getYValueFromYPixel(mouseEndY), 
+                (byte)1, false, false, (byte)0, (byte)99, true));
 //        RectangleGate rg = new RectangleGate();
 //        rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
 //        rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
@@ -526,14 +595,17 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         }
     }
     
-    private void leftMouseDraggedRect(MouseEvent e) {
+	private void leftMouseDraggedRect(MouseEvent e) {
         int mouseEndX;
         int mouseEndY;
         mouseEndX = e.getX();
         mouseEndY = e.getY();
-        highlightRectangle = new GenericRectangle((float)getXValueFromXPixel(startX), 
-                (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), 
-                (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)99, true);
+        highlightRectangle = new GenericRectangle(
+                (float)getXValueFromXPixel(startX), 
+                (float)getYValueFromYPixel(startY), 
+                (float)getXValueFromXPixel(mouseEndX), 
+                isHistogram() ? (float)getYValueFromYPixel(startY) : (float)getYValueFromYPixel(mouseEndY), 
+                (byte)1, false, false, (byte)0, (byte)99, true);
         paintAgain();
     }
     

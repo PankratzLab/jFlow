@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,6 +18,7 @@ import org.flowcyt.cfcs.CFCSAbstractData;
 import org.flowcyt.cfcs.CFCSData;
 import org.flowcyt.cfcs.CFCSDataSet;
 import org.flowcyt.cfcs.CFCSError;
+import org.flowcyt.cfcs.CFCSKeyword;
 import org.flowcyt.cfcs.CFCSKeywords;
 import org.flowcyt.cfcs.CFCSListModeData;
 import org.flowcyt.cfcs.CFCSParameter;
@@ -26,7 +30,6 @@ import common.Array;
 import common.Files;
 import common.Matrix;
 import common.ext;
-
 import ejml.CommonOps;
 import ejml.DenseMatrix64F;
 
@@ -71,6 +74,10 @@ public class FCSDataLoader {
     boolean isTransposed = false;
     ArrayList<Integer> indicesToLoad = new ArrayList<Integer>();
     Date lastModified;
+    Date runDate;
+    Date beginTime;
+    Date endTime;
+    double[] paramScaling;
     
     enum DATA_SET {
         ALL,
@@ -105,6 +112,10 @@ public class FCSDataLoader {
         paramsCount = -1;
         isTransposed = false;
         indicesToLoad = new ArrayList<Integer>();
+        paramScaling = null;
+        runDate = null;
+        beginTime = null;
+        endTime = null;
         System.gc();
     }
     
@@ -141,6 +152,41 @@ public class FCSDataLoader {
         return lastModified;
     }
     
+    public Date getRunDate() {
+        return runDate;
+    }
+    
+    public Date getBeginTime() {
+        return beginTime;
+    }
+
+    public Date getEndTime() {
+        return endTime;
+    }
+    
+    private String[] loadTimeData(CFCSKeywords keys) {
+        String dKey = "$DATE";
+        String bKey = "$BTIM";
+        String eKey = "$ETIM";
+        
+        String dVal = null, eVal = null, bVal = null;
+        try { dVal = keys.getKeyword(dKey).getKeywordValue(); } catch (Exception e) {}
+        try { bVal = keys.getKeyword(bKey).getKeywordValue(); } catch (Exception e) {}
+        try { eVal = keys.getKeyword(eKey).getKeywordValue(); } catch (Exception e) {}
+        
+        return new String[]{dVal, bVal, eVal};
+    }
+    
+    private double[] scaling(CFCSKeywords keys, int cnt) {
+        double[] scal = new double[cnt];
+        for (int i = 0; i < cnt; i++) {
+            String k = "$P" + (i+1) + "G";
+            scal[i] = 1;
+            try { scal[i] = keys.getKeyword(k).getKeywordDoubleValue(); } catch (Exception e) {}
+        }
+        return scal;
+    }
+    
     public void loadData(String fcsFilename) throws IOException {
 //        synchronized(this) {
             if (getLoadState() != LOAD_STATE.UNLOADED) {
@@ -161,6 +207,33 @@ public class FCSDataLoader {
         CFCSParameters params = dset.getParameters();
         paramsCount = params.getCount();
         CFCSKeywords keys = dset.getKeywords();
+        
+        String[] dateTimes = loadTimeData(keys);
+        SimpleDateFormat sdfDate = new SimpleDateFormat("dd-MMM-yyyy");
+        SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm:ss");
+        if (dateTimes[0] != null) {
+            try {
+                runDate = sdfDate.parse(dateTimes[0]);
+            } catch (ParseException e1) {
+                System.out.println("Unable to parse date: " + dateTimes[0]);
+            }
+        }
+        if (dateTimes[1] != null) {
+            try {
+                beginTime = sdfTime.parse(dateTimes[1]);
+            } catch (ParseException e1) {
+                System.out.println("Unable to parse time: " + dateTimes[1]);
+            }
+        }
+        if (dateTimes[2] != null) {
+            try {
+                endTime = sdfTime.parse(dateTimes[2]);
+            } catch (ParseException e1) {
+                System.out.println("Unable to parse time: " + dateTimes[2]);
+            }
+        }
+        paramScaling = scaling(keys, paramsCount);
+        
         spillObj = keys.getSpillover();
         lastModified = keys.getLastModified();
         if (lastModified == null) {
@@ -211,6 +284,9 @@ public class FCSDataLoader {
                     indicesToLoad.add(i);
                     loadedCount--;
                 }
+                for (int p = 0; p < paramsCount; p++) {
+                    newData[p] *= paramScaling[p];
+                }
                 allData[i] = newData;
                 loadedCount++;
             }
@@ -235,6 +311,9 @@ public class FCSDataLoader {
                         indicesToLoad.remove(indicesToLoad.size() - 1);
                     } catch (CFCSError e) {
                         continue;
+                    }
+                    for (int p = 0; p < paramsCount; p++) {
+                        newData[p] *= paramScaling[p];
                     }
                     allData[indToLoad] = newData;
                     loadedCount++;

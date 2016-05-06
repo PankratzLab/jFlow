@@ -48,6 +48,8 @@ import common.Logger;
 
 public class FCSPlot extends JPanel implements WindowListener, ActionListener, PropertyChangeListener { 
     
+    public static final String HISTOGRAM_COL = "Histogram";
+    
     static final int START_X = 20;
     static final int START_Y = 20;
     static final int START_WIDTH = 1000;
@@ -329,6 +331,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     
     private void resetForNewData(final FCSDataLoader newDataLoader) {
     	final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    	final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    	colNamesY.add(0, HISTOGRAM_COL);
+    	
         if (colNames.size() < 2) {
             // TODO error, not enough data!!
         }
@@ -338,7 +343,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             public void run() {
                 fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
                 fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
-                fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), false, 0);
+                fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
                 fcsControls.setScale(newDataLoader.scales.get(0), false);
                 fcsControls.setScale(newDataLoader.scales.get(1), true);
             }
