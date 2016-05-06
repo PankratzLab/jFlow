@@ -1245,7 +1245,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		public PrincipalComponentsResiduals next() {
 			double[][] newBasis = new double[index][];
 			if (index > 0) {
-				for (int i = 0; i <= index; i++) {
+				for (int i = 0; i < index; i++) {
 					newBasis[i] = pcResids.getBasisAt(order == null ? i + 1 : order[i]);
 				}
 			}
