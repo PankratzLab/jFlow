@@ -1,5 +1,6 @@
 package one.ben.fcs;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -82,6 +84,7 @@ public class RainbowTestGUI extends JFrame {
     HashMap<String, ArrayList<Float>> paramMeanLists = new HashMap<String, ArrayList<Float>>();
     HashMap<String, ArrayList<Float>> paramSDLists = new HashMap<String, ArrayList<Float>>();
     HashMap<String, ArrayList<Float>> paramCVLists = new HashMap<String, ArrayList<Float>>();
+    HashMap<String, HashMap<String, Float>> fileParamMeanMap = new HashMap<String, HashMap<String,Float>>();
     HashSet<Integer> boldRows = new HashSet<Integer>();
     HashSet<Integer> statRows = new HashSet<Integer>();
     HashMap<String, Float> paramMeans = new HashMap<String, Float>();
@@ -288,12 +291,16 @@ public class RainbowTestGUI extends JFrame {
                     JTable target = (JTable) e.getSource();
                     int row = target.getSelectedRow();
                     int column = target.getSelectedColumn();
-                    if (column == 0 || boldRows.contains(row)) return;
+                    if (column == 0) return;
+                    if (row != 0 && boldRows.contains(row)) return;
                     Object o1 = target.getValueAt(row, column);
                     if (o1 == null) return;
                     
-                    String file = (String) target.getValueAt(row, 0) + ".fcs";
                     String col = (String) target.getValueAt(0, column);
+                    if (row == 0) {
+                        RainbowTestGUI.this.showMeanPanel(col);
+                    }
+                    String file = (String) target.getValueAt(row, 0) + ".fcs";
                     FCSDataLoader loader = null;
                     if (baseFiles.containsKey(file)) {
                         loader = baseFiles.get(file);
@@ -433,6 +440,50 @@ public class RainbowTestGUI extends JFrame {
         contentPane.add(button, "cell 2 2");
         
         loadProps();
+    }
+
+    
+    JFrame meanFrame = new JFrame();
+    MeanPanel meanPanel = new MeanPanel();
+    {
+        meanPanel.setOpaque(true);
+        meanFrame.add(meanPanel, BorderLayout.CENTER);
+        meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH, FCSPlot.START_HEIGHT);
+    }
+    
+    private void showMeanPanel(String col) {
+        // Get all means (yData), get Files&Dates (xData), get Mean/SD (meanSD)
+        float[] xDataBase, xDataComp, yDataBase, yDataComp, meanSD;
+        
+        TreeMap<Date, Float> meanMap = new TreeMap<Date, Float>();
+        for(Entry<String, FCSDataLoader> l : baseFiles.entrySet()) {
+            meanMap.put(l.getValue().runDate, fileParamMeanMap.get(l.getKey()).get(col));
+        }
+        xDataBase = new float[meanMap.size()];
+        yDataBase = new float[meanMap.size()];
+        int ind = 0;
+        for (Entry<Date, Float> etr : meanMap.entrySet()) {
+            xDataBase[ind] = ind; // TODO should be time?
+            yDataBase[ind] = etr.getValue();
+            ind++;
+        }
+        
+        meanMap = new TreeMap<Date, Float>();
+        for(Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
+            meanMap.put(l.getValue().runDate, fileParamMeanMap.get(l.getKey()).get(col));
+        }
+        xDataComp = new float[meanMap.size()];
+        yDataComp = new float[meanMap.size()];
+        ind = 0;
+        for (Entry<Date, Float> etr : meanMap.entrySet()) {
+            xDataComp[ind] = ind; // TODO should be time?
+            yDataComp[ind] = etr.getValue();
+            ind++;
+        }
+        
+        meanPanel.setData(xDataBase, xDataComp, yDataBase, yDataComp);
+        meanPanel.paintAgain();
+        meanFrame.setVisible(true);
     }
     
     private static final String PROP_FILE = "rainbow.properties";
@@ -765,6 +816,7 @@ public class RainbowTestGUI extends JFrame {
     
     private void addBaseToModel(String[] paramNames) {
         for (String f : baseFCSFiles) {
+            fileParamMeanMap.put(f, new HashMap<String, Float>());
             Object[] rowDataM = new Object[paramNames.length + 1];
             Object[] rowDataS = new Object[paramNames.length + 1];
             Object[] rowDataC = new Object[paramNames.length + 1];
@@ -797,6 +849,7 @@ public class RainbowTestGUI extends JFrame {
                 paramMeanLists.get(paramNames[i]).add(mn);
                 paramSDLists.get(paramNames[i]).add(sd);
                 paramCVLists.get(paramNames[i]).add(cv);
+                fileParamMeanMap.get(f).put(paramNames[i], mn);
                 rowDataM[i + 1] = mn;
                 rowDataS[i + 1] = sd;
                 rowDataC[i + 1] = cv;
@@ -820,6 +873,7 @@ public class RainbowTestGUI extends JFrame {
         rows++;
         
         for (String f : df.files) {
+            fileParamMeanMap.put(f, new HashMap<String, Float>());
             Object[] rowDataM = new Object[paramNames.length + 1];
             Object[] rowDataS = new Object[paramNames.length + 1];
             Object[] rowDataC = new Object[paramNames.length + 1];
@@ -847,6 +901,7 @@ public class RainbowTestGUI extends JFrame {
                     data = Array.subArray(data, gating);
                 }
                 Float mn = Array.mean(data);
+                fileParamMeanMap.get(f).put(paramNames[i], mn);
                 Float sd = Array.stdev(data, true);
                 Float cv = 100 * (sd / mn);
                 rowDataM[i + 1] = mn;
