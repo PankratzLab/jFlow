@@ -9,6 +9,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -34,6 +36,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
@@ -42,6 +45,7 @@ import javax.swing.table.TableColumnModel;
 import javax.xml.parsers.ParserConfigurationException;
 
 import net.miginfocom.swing.MigLayout;
+import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
 import one.ben.fcs.gating.Gate;
 import one.ben.fcs.gating.GateFileReader;
@@ -85,7 +89,8 @@ public class RainbowTestGUI extends JFrame {
     HashMap<String, Float> paramCVs = new HashMap<String, Float>();
     
     Color ABOVE_1SD_COLOR = Color.RED;
-    Color ABOVE_5_CV_COLOR = Color.CYAN;
+    Color ABOVE_3_CV_COLOR = Color.CYAN;
+    Color ABOVE_5_CV_COLOR = Color.CYAN.darker();
     Color BELOW_1SD_COLOR = Color.RED;
     
 
@@ -205,6 +210,22 @@ public class RainbowTestGUI extends JFrame {
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         contentPane.add(scrollPane, "cell 0 3 3 1,grow");
         
+        final HashSet<String> lessThan4CV = new HashSet<String>();
+        final HashSet<String> lessThan6CV = new HashSet<String>();
+
+        String[] lessThan4 = {"BB515", "PE", "PE-CF594", "PE-Cy7", "BV 421", "BV 510", "BV 605", "BV 711"};
+        String[] lessThan6 = {"BUV 395", "BUV 737", "APC", "APC-Cy7"};
+        for (String s : lessThan4) {
+            lessThan4CV.add(s);
+            lessThan4CV.add(s + "-A");
+            lessThan4CV.add("Comp-" + s);
+            lessThan4CV.add("Comp-" + s + "-A");
+        }
+        for (String s : lessThan6) {
+            lessThan6CV.add(s);
+            lessThan6CV.add("Comp-" + s);
+        }
+        
         table = new JTable() {
             
             @Override
@@ -234,8 +255,18 @@ public class RainbowTestGUI extends JFrame {
                             } else if (rdbtnSd.isSelected()) {
                                 
                             } else if (rdbtnCv.isSelected()) {
+//                                    <4% :
+//                                    BLue laser: BB515, PE, PE-CF594 and PE-Cy7
+//                                    Violet laser: BV421, BV510, BV605 and BV711
+//
+//                                    <6%
+//                                    UV laser: BUV395 and BUV737
+//                                    Red laser: APC and APC-Cy7
                                 if (paramCVs.containsKey(colNm)) {
-                                    if (value > 5) {
+                                    if (value > 3 && lessThan4CV.contains(colNm)) {
+                                        col = ABOVE_3_CV_COLOR;
+                                    }
+                                    if (value > 5 && lessThan6CV.contains(colNm)) {
                                         col = ABOVE_5_CV_COLOR;
                                     }
                                 }
@@ -248,6 +279,45 @@ public class RainbowTestGUI extends JFrame {
                 return c;
             }
         };
+
+        FCSPlot fcp = FCSPlot.createGUI(false);
+        
+        table.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    JTable target = (JTable) e.getSource();
+                    int row = target.getSelectedRow();
+                    int column = target.getSelectedColumn();
+                    if (column == 0 || boldRows.contains(row)) return;
+                    Object o1 = target.getValueAt(row, column);
+                    if (o1 == null) return;
+                    
+                    String file = (String) target.getValueAt(row, 0) + ".fcs";
+                    String col = (String) target.getValueAt(0, column);
+                    FCSDataLoader loader = null;
+                    if (baseFiles.containsKey(file)) {
+                        loader = baseFiles.get(file);
+                    } else {
+                        for (String f : compFiles.keySet()) {
+                            if (f.endsWith(file)) { // TODO warning, will break if duplicate files exist
+                                loader = compFiles.get(f);
+                                break;
+                            }
+                        }
+                    }
+                    if (loader == null) return;
+                    fcp.setData(loader);
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            fcp.setXDataName(col);
+                            fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
+                            SwingUtilities.getWindowAncestor(fcp).setVisible(true);
+                        }
+                    });
+                }
+            }
+        });
         table.setShowVerticalLines(false);
         table.setShowHorizontalLines(false);
         scrollPane.setViewportView(table);
