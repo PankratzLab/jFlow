@@ -223,7 +223,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             showMedSD[3] = sdY;
 		}
 		{
-		    gatesChanged = rectangles.length != rects.size() || polygons.length != polys.size() || forceGatesChanged; 
+		    gatesChanged = rectangles != null && rectangles.length != rects.size() || polygons != null && polygons.length != polys.size() || forceGatesChanged; 
 		    forceGatesChanged = false;
 		}
 		
@@ -398,7 +398,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	private void leftMousePressedPoly(MouseEvent e) {
 	    int tempX = e.getX();
 	    int tempY = e.getY();
-//	    int toRemove = -1;
 	    
 	    double[] coords = new double[6];
 	    int polyInd = -1;
@@ -423,12 +422,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	        polyDragInd = polyInd;
 	        polyDragVertInd = vertInd;
 	    }
-//	    if (toRemove >= 0) {
-//	        polys.remove(toRemove);
-//	    } else {
-	        startX = e.getX();
-	        startY = e.getY();
-//	    }
+        startX = e.getX();
+        startY = e.getY();
 	    paintAgain();
 	}
 	
@@ -457,11 +452,18 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             double xLow, xHigh, yLow, yHigh;
             xLow = getXPixel(Math.min(rect.getStartXValue(), rect.getStopXValue()));
             xHigh = getXPixel(Math.max(rect.getStartXValue(), rect.getStopXValue()));
-            yLow = getYPixel(Math.min(rect.getStartYValue(), rect.getStopYValue()));
-            yHigh = getYPixel(Math.max(rect.getStartYValue(), rect.getStopYValue()));
-            if (xLow <= tempX && xHigh >= tempX && yLow <= tempY && yHigh >= tempY) {
-                toRemove = i;
-                break;
+            yHigh = getYPixel(Math.min(rect.getStartYValue(), rect.getStopYValue()));
+            yLow = getYPixel(Math.max(rect.getStartYValue(), rect.getStopYValue()));
+            if (isHistogram()) {
+                if (xLow <= tempX && xHigh >= tempX) {
+                    toRemove = i;
+                    break;
+                }
+            } else {
+                if (xLow <= tempX && xHigh >= tempX && yLow <= tempY && yHigh >= tempY) {
+                    toRemove = i;
+                    break;
+                }
             }
         }
         if (toRemove != -1) {

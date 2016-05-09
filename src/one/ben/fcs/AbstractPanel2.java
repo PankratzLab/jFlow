@@ -75,8 +75,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public static final int DEFAULT_PLOTPOINTSET_SIZE = 10;
 	public static final int SIZE = 12;
 	public static final double HIGHLIGHT_DISTANCE = 20;//= Math.sqrt(SIZE*SIZE/2);
-	public static final int DELAY = 2
-	        ;	//A control variable to reduce the repaint() operations during component resizing;
+	public static final int DELAY = 2;	//A control variable to reduce the repaint() operations during component resizing;
 
     public static final String X_MIN = "xMin";
     public static final String X_MAX = "xMax";
@@ -761,9 +760,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                     }
                 }
             }
-        } else {
+        }/* else {
             System.err.println("Error - invalid chart type: "+chartType);
-        }
+        }*/
 		
         g.setClip((int)canvasSectionMinimumX, HEAD_BUFFER, (int)(canvasSectionMaximumX - canvasSectionMinimumX) + 1, (int)(getHeight() - axisXHeight - 24));
         

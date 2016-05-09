@@ -66,7 +66,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	HashSet<String> validExts;
 	Logger log;
 
-    public FCSPlot() {
+    private FCSPlot() {
         this(null);
     }
     
@@ -254,13 +254,36 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     public boolean showMedian(boolean yAxis) { return yAxis ? showMedianY : showMedianX; }
     public boolean showSD(boolean yAxis) { return yAxis ? showSDY : showSDX; }
     
-    protected void setXDataName(String xDataName) { this.xDataName = xDataName; }
-    protected void setYDataName(String yDataName) { this.yDataName = yDataName; }
+    protected void setXDataName(String xDataName) { 
+        this.xDataName = xDataName;
+        if (!xDataName.equals(this.fcsControls.getSelectedX())) {
+            this.fcsControls.setXData(xDataName);
+        }
+    }
+    protected void setYDataName(String yDataName) { 
+        this.yDataName = yDataName;
+        if (!yDataName.equals(this.fcsControls.getSelectedY())) {
+            this.fcsControls.setYData(yDataName);
+        }
+    }
 
     protected void setXScale(AXIS_SCALE scale) { this.fcsPanel.setXAxis(scale); }
     protected void setYScale(AXIS_SCALE scale) { this.fcsPanel.setYAxis(scale); }
 	
-    protected void setPlotType(PLOT_TYPE type) { this.fcsPanel.chartType = type; }
+    protected void setPlotType(PLOT_TYPE type) { 
+        this.fcsPanel.chartType = type;
+        if (type == PLOT_TYPE.HISTOGRAM) {
+            this.setYDataName(HISTOGRAM_COL);
+            this.fcsControls.setYData(HISTOGRAM_COL);
+        } else {
+            if (HISTOGRAM_COL.equals(this.fcsControls.getSelectedY())) {
+                this.fcsControls.setYData(1);
+            }
+        }
+        if (this.fcsControls.getPlotType() != type) {
+            this.fcsControls.setPlotType(type);
+        }
+    }
     
     protected void setMedianVisible(boolean show, boolean yAxis) {
         if (yAxis) {
@@ -338,16 +361,17 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             // TODO error, not enough data!!
         }
         // TODO reset GUI elements
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
+//        if (resetCols) {
+//        SwingUtilities.invokeLater(new Runnable() {
+//            @Override
+//            public void run() {
                 fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
                 fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
                 fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
                 fcsControls.setScale(newDataLoader.scales.get(0), false);
                 fcsControls.setScale(newDataLoader.scales.get(1), true);
-            }
-        });
+//            }
+//        });
         
         setYDataName(colNames.get(0));
         setXDataName(colNames.get(1));
@@ -375,6 +399,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                 dataLoader = newDataLoader;
                 isLoading = false;
                 System.gc();
+                FCSPlot.this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.loadedFile);
                 System.out.println("Displaying plot...");
                 updateGUI();
             }
@@ -388,10 +413,17 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	    this.dataLoader = newDataLoader;
 	    isLoading = false;
         System.gc();
+        this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.loadedFile);
         System.out.println("Displaying plot...");
         updateGUI();
 	}
 
+	private JFrame parent;
+	private static final String TITLE_STR = "Genvisis - FCS Plot";
+	private void setParent(JFrame frame) {
+	    this.parent = frame;
+	}
+	
 	/**
      * Create the GUI and show it.  For thread safety,
      * this method should be invoked from the
@@ -403,13 +435,14 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	 * @return
 	 */
 	public static FCSPlot createGUI(boolean show) {
-		JFrame frame = new JFrame("Genvisis - FCS Plot");
+		JFrame frame = new JFrame(TITLE_STR);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         //Create and set up the content pane.
         FCSPlot twoDPlot = new FCSPlot(/*proj, promptOnClose, fileExts, filenamesProperty*/);
         frame.setJMenuBar(twoDPlot.menuBar());
         twoDPlot.setOpaque(true); //content panes must be opaque
+        twoDPlot.setParent(frame);
         frame.setContentPane(twoDPlot);
         frame.addWindowListener(twoDPlot);
         frame.setBounds(START_X, START_Y, START_WIDTH, START_HEIGHT);
@@ -419,11 +452,11 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         frame.pack();
         frame.setVisible(show);
 
-        String fcsFilename = "F:\\Flow\\P1 PBMCs A&C ZF 31616_ULTRA BRIGHT RAINBOW BEADS_URB_002.fcs";
+//        String fcsFilename = "F:\\Flow\\P1 PBMCs A&C ZF 31616_ULTRA BRIGHT RAINBOW BEADS_URB_002.fcs";
 //        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
 //        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
 //        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
-        twoDPlot.loadFile(fcsFilename);
+//        twoDPlot.loadFile(fcsFilename);
         
 		return twoDPlot;
     }

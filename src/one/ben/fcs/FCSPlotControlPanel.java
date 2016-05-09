@@ -35,7 +35,6 @@ import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import cnv.gui.JAccordionPanel;
-
 import common.Files;
 import common.ext;
 
@@ -394,6 +393,10 @@ public class FCSPlotControlPanel extends JPanel {
         cbType.setSelectedItem(typ);
     }
     
+    public PLOT_TYPE getPlotType() {
+        return (PLOT_TYPE) cbType.getSelectedItem();
+    }
+    
     public void setScale(AXIS_SCALE scl, boolean x) {
         (x ? cbXScale : cbYScale).setSelectedItem(scl);
     }
@@ -402,6 +405,24 @@ public class FCSPlotControlPanel extends JPanel {
         (x ? cbXData : cbYData).setModel(new DefaultComboBoxModel<String>(dataNames));
         (x ? cbXData : cbYData).setSelectedIndex(selected);
         (x ? cbXData : cbYData).repaint();
+    }
+    
+    public String getSelectedX() { return (String) cbXData.getSelectedItem(); }
+    public String getSelectedY() { return (String) cbYData.getSelectedItem(); }
+    
+    public void setYData(int index) {
+        cbYData.setSelectedIndex(index);
+        cbYData.repaint();
+    }
+    
+    public void setYData(String name) {
+        cbYData.setSelectedItem(name);
+        cbYData.repaint();
+    }
+    
+    public void setXData(String name) {
+        cbXData.setSelectedItem(name);
+        cbXData.repaint();
     }
     
     private void resetProgSet() {
