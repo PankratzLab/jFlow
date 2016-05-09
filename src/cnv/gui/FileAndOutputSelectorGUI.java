@@ -77,7 +77,7 @@ public class FileAndOutputSelectorGUI extends JDialog {
             <li>JFileChooser.FILES_AND_DIRECTORIES </li></ul>
 
      */
-    private FileAndOutputSelectorGUI(Frame parent, String inputSuggestion, int inMode, String[] inAllowedExts, String outputSuggestion, int outMode) {
+    private FileAndOutputSelectorGUI(final Frame parent, final String inputSuggestion, final int inMode, final String[] inAllowedExts, final String outputSuggestion, final int outMode) {
         super(parent, true);
         setTitle("Select Input and Output Files");
         setBounds(100, 100, 460, 192);
@@ -92,7 +92,7 @@ public class FileAndOutputSelectorGUI extends JDialog {
             contentPanel.add(lblInputFile, "cell 0 0");
         }
         {
-            JTextField txtFldInputFile = new JTextField(inputSuggestion == null ? "" : inputSuggestion);
+            final JTextField txtFldInputFile = new JTextField(inputSuggestion == null ? "" : inputSuggestion);
             contentPanel.add(txtFldInputFile, "flowx,cell 0 1,growx");
             txtFldInputFile.setColumns(10);
             inputComponent = txtFldInputFile;
@@ -179,7 +179,7 @@ public class FileAndOutputSelectorGUI extends JDialog {
             <li>JFileChooser.FILES_AND_DIRECTORIES </li></ul>
 
      */
-    private FileAndOutputSelectorGUI(Frame parent, String[] inputSuggestions, int inMode, String[] inAllowedExts, String outputSuggestion, int outMode, boolean inSuggAsCombo) {
+    private FileAndOutputSelectorGUI(final Frame parent, final String[] inputSuggestions, final int inMode, final String[] inAllowedExts, final String outputSuggestion, final int outMode, boolean inSuggAsCombo) {
         super(parent, true);
         setTitle("Select Input and Output Files");
         setBounds(100, 100, 460, 192);
@@ -199,7 +199,7 @@ public class FileAndOutputSelectorGUI extends JDialog {
             inputComponent = cmbInputFile;
         } else {
             {
-                JTextField txtFldInputFile = new JTextField(inputSuggestions == null ? "" : Array.toStr(inputSuggestions, ";"));
+                final JTextField txtFldInputFile = new JTextField(inputSuggestions == null ? "" : Array.toStr(inputSuggestions, ";"));
                 contentPanel.add(txtFldInputFile, "flowx,cell 0 1,growx");
                 txtFldInputFile.setColumns(10);
                 inputComponent = txtFldInputFile;

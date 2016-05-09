@@ -283,7 +283,7 @@ public class RainbowTestGUI extends JFrame {
             }
         };
 
-        FCSPlot fcp = FCSPlot.createGUI(false);
+        final FCSPlot fcp = FCSPlot.createGUI(false);
         
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -296,7 +296,7 @@ public class RainbowTestGUI extends JFrame {
                     Object o1 = target.getValueAt(row, column);
                     if (o1 == null) return;
                     
-                    String col = (String) target.getValueAt(0, column);
+                    final String col = (String) target.getValueAt(0, column);
                     if (row == 0) {
                         RainbowTestGUI.this.showMeanPanel(col);
                     }
