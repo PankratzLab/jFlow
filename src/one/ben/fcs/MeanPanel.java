@@ -108,7 +108,7 @@ public class MeanPanel extends AbstractPanel2  {
 		}
 		
 		points = new PlotPoint[xDataBase.length + xDataComp.length];
-		lines = new GenericLine[xDataBase.length + xDataComp.length + 3];
+		lines = new GenericLine[xDataBase.length + xDataComp.length + 1];
 		byte color;
 		for (int i = 0; i < xDataBase.length; i++) {
 			xAxisValue = (float) xDataBase[i];
@@ -134,16 +134,22 @@ public class MeanPanel extends AbstractPanel2  {
 		        type = PlotPoint.FILLED_CIRCLE;
 		    }
 		    color = (byte) 1; // TODO apply gating for colors
-		    points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
-		    if (i < xDataBase.length - 1) {
-		        lines[i] = new GenericLine(xAxisValue, yAxisValue, (float) xDataComp[i+1], (float) yDataComp[i+1], (byte)1, (byte)0, (byte)0);
+		    points[i + xDataBase.length] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
+		    if (i < xDataComp.length - 1) {
+		        lines[i - 1 + xDataBase.length] = new GenericLine(xAxisValue, yAxisValue, (float) xDataComp[i+1], (float) yDataComp[i+1], (byte)1, (byte)1, (byte)0);
 		    }
 		}
 		float mean = Array.mean(yDataBase);
 		float sd = Array.stdev(yDataBase, true);
-		lines[xDataBase.length + xDataComp.length] = new GenericLine(Float.NEGATIVE_INFINITY, mean, Float.POSITIVE_INFINITY, mean, (byte)1, (byte)0, (byte)99);
-		lines[xDataBase.length + xDataComp.length +1] = new GenericLine(Float.NEGATIVE_INFINITY, mean - sd, Float.POSITIVE_INFINITY, mean - sd, (byte)1, (byte)0, (byte)99);
-		lines[xDataBase.length + xDataComp.length +2] = new GenericLine(Float.NEGATIVE_INFINITY, mean + sd, Float.POSITIVE_INFINITY, mean + sd, (byte)1, (byte)0, (byte)99);
+		lines[xDataBase.length + xDataComp.length - 2] = new GenericLine(-1, mean, xDataBase.length + xDataComp.length + 1, mean, (byte)1, (byte)0, (byte)99);
+		lines[xDataBase.length + xDataComp.length - 1] = new GenericLine(-1, mean - sd, xDataBase.length + xDataComp.length + 1, mean - sd, (byte)1, (byte)0, (byte)99);
+		lines[xDataBase.length + xDataComp.length] = new GenericLine(-1, mean + sd, xDataBase.length + xDataComp.length + 1, mean + sd, (byte)1, (byte)0, (byte)99);
+		
+		setForcePlotYMin(Math.min(Array.min(yDataBase), Array.min(yDataComp)));
+		setForcePlotYMax(Math.max(Array.max(yDataBase), Array.max(yDataComp)));
+		
+		setYAxis(AXIS_SCALE.LIN);
+		setXAxis(AXIS_SCALE.LIN);
 	}
 	
 
@@ -158,6 +164,8 @@ public class MeanPanel extends AbstractPanel2  {
 
     @Override
     public void assignAxisLabels() {
+        xAxisLabel = "File by Date";
+        yAxisLabel = "Mean";
         return;
     }
     

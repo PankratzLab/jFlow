@@ -443,7 +443,7 @@ public class RainbowTestGUI extends JFrame {
     }
 
     
-    JFrame meanFrame = new JFrame();
+    JFrame meanFrame = new JFrame("Genvisis - FCS Overall Mean/SD");
     MeanPanel meanPanel = new MeanPanel();
     {
         meanPanel.setOpaque(true);
@@ -463,21 +463,20 @@ public class RainbowTestGUI extends JFrame {
         yDataBase = new float[meanMap.size()];
         int ind = 0;
         for (Entry<Date, Float> etr : meanMap.entrySet()) {
-            xDataBase[ind] = ind; // TODO should be time?
+            xDataBase[ind] = ind+1; // TODO should be time?
             yDataBase[ind] = etr.getValue();
             ind++;
         }
         
         meanMap = new TreeMap<Date, Float>();
         for(Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
-            meanMap.put(l.getValue().runDate, fileParamMeanMap.get(l.getKey()).get(col));
+            meanMap.put(l.getValue().runDate, fileParamMeanMap.get(ext.removeDirectoryInfo(l.getKey())).get(col));
         }
         xDataComp = new float[meanMap.size()];
         yDataComp = new float[meanMap.size()];
-        ind = 0;
         for (Entry<Date, Float> etr : meanMap.entrySet()) {
-            xDataComp[ind] = ind; // TODO should be time?
-            yDataComp[ind] = etr.getValue();
+            xDataComp[ind - xDataBase.length] = ind+1; // TODO should be time?
+            yDataComp[ind - xDataBase.length] = etr.getValue();
             ind++;
         }
         
