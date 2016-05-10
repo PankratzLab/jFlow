@@ -6,9 +6,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Polygon;
 import java.awt.RenderingHints;
-import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -18,15 +16,12 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -39,13 +34,11 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import one.ben.fcs.gating.GateDimension;
-import one.ben.fcs.gating.Gate.EllipsoidGate;
 import mining.Distance;
 import stats.Maths;
 import cnv.plots.GenericLine;
-import cnv.plots.GenericRectangle;
 import cnv.plots.GenericPath;
+import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
 import common.Array;
 import common.Grafik;
@@ -54,6 +47,8 @@ import common.IntVector;
 import common.ProgressBarDialog;
 import common.Sort;
 import common.ext;
+import edu.stanford.facs.logicle.FastLogicle;
+import edu.stanford.facs.logicle.Logicle;
 
 public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
@@ -91,7 +86,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	
     public static enum AXIS_SCALE {
         LIN("Linear"),
-        LOG("Logarithmic");
+        LOG("Logarithmic")
+        ,
+        BIEX("Biexponential")
+        ;
         
         private AXIS_SCALE(String longName) {
             this.longName = longName;
@@ -668,6 +666,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	            drawXAxis(g, plotMinMaxStep, fontMetrics);
 	        }
 		
+	        if (DEBUGGING) {
+	            System.out.println("Finished drawing x-axis");
+	        }
+	        
 			canvasSectionMinimumX = 0;
 			canvasSectionMaximumX = axisYWidth;//WIDTH_Y_AXIS;
 			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
@@ -688,6 +690,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				g.drawString(errorMessage, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(errorMessage)/2+axisYWidth/*WIDTH_Y_AXIS*/, (getHeight()-HEAD_BUFFER-axisXHeight/*HEIGHT_X_AXIS*/)/2-20+HEAD_BUFFER);
 			}
 			
+		}
+		
+		if (DEBUGGING) {
+		    System.out.println("Finished drawing axes");
 		}
 		
 		//TODO outercoordinates
@@ -1083,8 +1089,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	    	        g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 5 - fontMetrics.stringWidth(str), getYPixel(y) + fontMetrics.getHeight() / 2);
 	    	    }
 	    	}
-    	} else {
-
+    	} else if (getYAxis() == AXIS_SCALE.LOG){
             double y;
             str = "-10";
             int strWid = fontMetrics.stringWidth(str);
@@ -1120,26 +1125,82 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                     }
                 }
             }
+    	} else {
+            Logicle fl = getBiexScale(false);
+            double[] lbls = fl.axisLabels();
+            int lin = (int) Math.ceil(fl.W) + 1;
+            int maxLin = (int) Math.pow(10, lin);
             
-    	    
-//        	int maxTicks = 15;
-//            double yStep = roundUp((plotMinMaxStep[1] - plotMinMaxStep[2]) / maxTicks);
-//            int numfracdigits = numFracDigits(yStep);
-//
-//            double yStart = yStep * Math.ceil(plotMinMaxStep[0] / yStep);
-//            for (double y = yStart; y <= plotMinMaxStep[1]; y += yStep) {
-//	    	    if (y >= plotYmin || !truncate) {
-//	    	        Grafik.drawThickLine(g, canvasSectionMaximumX-TICK_LENGTH, getYPixel(y), canvasSectionMaximumX, getYPixel(y), TICK_THICKNESS, Color.BLACK);
-//	    	        str = ext.formDeci(Math.abs(y) < DOUBLE_INACCURACY_HEDGE ? 0 : y, numfracdigits, true);
-//	    	        g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 5 - fontMetrics.stringWidth(str), getYPixel(y) + fontMetrics.getHeight() / 2);
-//	    	    }
-//	    	}
-    		
+            for (int i = 0; i < lbls.length; i++) {
+                int yPix = getYPixel(lbls[i]);
+                int exp = getExp((int)Math.abs(lbls[i]));
+                if (lbls[i] < 0) {
+                    str = "-10";
+                    int strWid = fontMetrics.stringWidth(str);
+                    if (yPix < canvasSectionMaximumY - axisXHeight + HEAD_BUFFER) {
+                        Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, yPix, canvasSectionMaximumX, yPix, TICK_THICKNESS, Color.BLACK);
+                        g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 13 - strWid, yPix + fontMetrics.getHeight() / 2);
+                        g.drawString("" + ((int) exp), canvasSectionMaximumX - TICK_LENGTH - strWid + 9, yPix + fontMetrics.getHeight() / 2 - 5);
+                    }
+                    for (double yPow = -Math.pow(10, exp); yPow > -1 * Math.pow(10, exp+1) && yPow >= plotYmin; yPow -= Math.pow(10, exp)) {
+                        if (getYPixel(yPow) < canvasSectionMaximumY - axisXHeight + HEAD_BUFFER) {
+                            Grafik.drawThickLine(g, canvasSectionMaximumX - (TICK_LENGTH/3 *2), getYPixel(yPow), canvasSectionMaximumX, getYPixel(yPow), TICK_THICKNESS, Color.BLACK);
+                        }
+                    }
+                } else if (lbls[i] == 0) {
+                    str = "0";
+                    Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, yPix, canvasSectionMaximumX, yPix, TICK_THICKNESS, Color.BLACK);
+                    g.drawString("0", canvasSectionMaximumX - TICK_LENGTH - 5 - fontMetrics.stringWidth("0"), yPix + fontMetrics.getHeight() / 2);
+                    if (i > 0) {
+                        int next = getExp((int) lbls[i + 1]);
+                        for (int e = 0; e < next; e++) {
+                            for (double yPow = -Math.pow(10, e); yPow > -Math.pow(10, e+1) && yPow <= plotXmax; yPow -= Math.pow(10, e)) {
+                                if (getYPixel(yPow) < canvasSectionMaximumY - axisXHeight + HEAD_BUFFER) {
+                                    Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, getYPixel(yPow), canvasSectionMaximumX, getYPixel(yPow), TICK_THICKNESS, Color.BLACK);
+                                }
+                            }
+                        }
+                    }
+                    if (i < lbls.length - 1) {
+                        int next = getExp((int) lbls[i + 1]);
+                        for (int e = 0; e < next; e++) {
+                            for (double yPow = Math.pow(10, e); yPow < Math.pow(10, e+1) && yPow <= plotXmax; yPow += Math.pow(10, e)) {
+                                Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, getYPixel(yPow), canvasSectionMaximumX, getYPixel(yPow), TICK_THICKNESS, Color.BLACK);
+                            }
+                        }
+                    }
+                } else {
+                    str = "10";
+                    int strWid = fontMetrics.stringWidth(str);
+                    Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, yPix, canvasSectionMaximumX, yPix, TICK_THICKNESS, Color.BLACK);
+                    g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 13 - strWid, yPix + fontMetrics.getHeight() / 2);
+                    g.drawString("" + ((int) exp), canvasSectionMaximumX - TICK_LENGTH - strWid + 4, yPix + fontMetrics.getHeight() / 2 - 5);
+                    for (double yPow = Math.pow(10, exp); yPow < Math.pow(10, exp+1) && yPow <= plotYmax; yPow += Math.pow(10, exp)) {
+                        Grafik.drawThickLine(g, canvasSectionMaximumX - (TICK_LENGTH/3 *2), getYPixel(yPow), canvasSectionMaximumX, getYPixel(yPow), TICK_THICKNESS, Color.BLACK);
+                    }
+                }
+            }
+            if (lbls[0] < -maxLin) {
+                str = "-10";
+                int strWid = fontMetrics.stringWidth(str);
+                int yPix = getYPixel(-maxLin);
+                Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, yPix, canvasSectionMaximumX, yPix, TICK_THICKNESS, Color.BLACK);
+                g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 13 - strWid, yPix + fontMetrics.getHeight() / 2);
+                g.drawString("" + (int) lin, canvasSectionMaximumX - TICK_LENGTH - strWid + 9, yPix + fontMetrics.getHeight() / 2 - 5);
+            }
+            if (plotXmax > maxLin) {
+                str = "10";
+                int strWid = fontMetrics.stringWidth(str);
+                int yPix = getYPixel(maxLin);
+                Grafik.drawThickLine(g, canvasSectionMaximumX - TICK_LENGTH, yPix, canvasSectionMaximumX, yPix, TICK_THICKNESS, Color.BLACK);
+                g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 13 - strWid, yPix + fontMetrics.getHeight() / 2);
+                g.drawString("" + (int) lin, canvasSectionMaximumX - TICK_LENGTH - strWid + 4, yPix + fontMetrics.getHeight() / 2 - 5);
+            }
     	}
     	
     	g.setFont(prevFont);
     	fontMetrics = g.getFontMetrics();
-    	Grafik.drawThickLine(g, canvasSectionMaximumX, getYPixel(plotYmin), canvasSectionMaximumX, getYPixel(plotYmax)-(int)Math.ceil((double)TICK_THICKNESS/2.0), AXIS_THICKNESS, Color.BLACK);
+    	Grafik.drawThickLine(g, canvasSectionMaximumX, getHeight() - canvasSectionMaximumY, canvasSectionMaximumX, canvasSectionMaximumY - axisXHeight + HEAD_BUFFER, AXIS_THICKNESS, Color.BLACK);
     	int strWidth = fontMetrics.stringWidth(yAxisLabel);
     	if (strWidth > 0) {
     		yLabel = new BufferedImage(strWidth, 36, BufferedImage.TYPE_INT_RGB);
@@ -1176,8 +1237,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	    			g.drawString(str, getXPixel(x)-str.length()*4, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt));
 	    		}
 	    	}
-        } else {
-            
+        } else if (getXAxis() == AXIS_SCALE.LOG){
             double x;
             str = "-10";
             int strWid = fontMetrics.stringWidth(str);
@@ -1213,13 +1273,88 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                     }
                 }
             }
+        } else {
+            Logicle fl = getBiexScale(true);
+            double[] lbls = fl.axisLabels();
+            int lin = (int) Math.ceil(fl.W) + 1;
+            int maxLin = (int) Math.pow(10, lin);
             
+            for (int i = 0; i < lbls.length; i++) {
+                int xPix = getXPixel(lbls[i]);
+                int exp = getExp((int)Math.abs(lbls[i]));
+                if (lbls[i] < 0) {
+                    str = "-10";
+                    int strWid = fontMetrics.stringWidth(str);
+                    Grafik.drawThickLine(g, xPix, getHeight()-canvasSectionMaximumY, xPix, getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+                    g.drawString(str, xPix - strWid / 2, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt));
+                    g.drawString("" + (int) exp, xPix + (strWid / 2) + 1, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt + 5));
+                    for (double xPow = -Math.pow(10, exp); xPow > -1 * Math.pow(10, exp+1) && xPow >= plotXmin; xPow -= Math.pow(10, exp)) {
+                        Grafik.drawThickLine(g, getXPixel(xPow), getHeight()-canvasSectionMaximumY, getXPixel(xPow), getHeight()-(canvasSectionMaximumY-(TICK_LENGTH/3 *2)), TICK_THICKNESS, Color.BLACK);
+                    }
+                } else if (lbls[i] == 0) {
+                    str = "0";
+                    int strWid = fontMetrics.stringWidth(str);
+                    Grafik.drawThickLine(g, xPix, getHeight()-canvasSectionMaximumY, xPix, getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+                    g.drawString(str, xPix - strWid / 2, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt));
+                    if (i > 0) {
+                        int next = getExp((int) lbls[i + 1]);
+                        for (int e = 0; e < next; e++) {
+                            for (double xPow = -Math.pow(10, e); xPow > -Math.pow(10, e+1) && xPow <= plotXmax; xPow -= Math.pow(10, e)) {
+                                Grafik.drawThickLine(g, getXPixel(xPow), getHeight()-canvasSectionMaximumY, getXPixel(xPow), getHeight()-(canvasSectionMaximumY-(TICK_LENGTH/3 *2)), TICK_THICKNESS, Color.BLACK);
+                            }
+                        }
+                    }
+                    if (i < lbls.length - 1) {
+                        int next = getExp((int) lbls[i + 1]);
+                        for (int e = 0; e < next; e++) {
+                            for (double xPow = Math.pow(10, e); xPow < Math.pow(10, e+1) && xPow <= plotXmax; xPow += Math.pow(10, e)) {
+                                Grafik.drawThickLine(g, getXPixel(xPow), getHeight()-canvasSectionMaximumY, getXPixel(xPow), getHeight()-(canvasSectionMaximumY-(TICK_LENGTH/3 *2)), TICK_THICKNESS, Color.BLACK);
+                            }
+                        }
+                    }
+                } else {
+                    str = "10";
+                    int strWid = fontMetrics.stringWidth(str);
+                    Grafik.drawThickLine(g, xPix, getHeight()-canvasSectionMaximumY, xPix, getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+                    g.drawString(str, xPix - strWid / 2, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt));
+                    g.drawString("" + (int) exp, xPix + (strWid / 2) + 1, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt + 5));
+                    for (double xPow = Math.pow(10, exp); xPow < Math.pow(10, exp+1) && xPow <= plotXmax; xPow += Math.pow(10, exp)) {
+                        Grafik.drawThickLine(g, getXPixel(xPow), getHeight()-canvasSectionMaximumY, getXPixel(xPow), getHeight()-(canvasSectionMaximumY-(TICK_LENGTH/3 *2)), TICK_THICKNESS, Color.BLACK);
+                    }
+                }
+            }
+            if (lbls[0] < -maxLin) {
+                str = "-10";
+                int strWid = fontMetrics.stringWidth(str);
+                int xPix = getXPixel(-maxLin);
+                Grafik.drawThickLine(g, xPix, getHeight()-canvasSectionMaximumY, xPix, getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+                g.drawString(str, xPix - strWid / 2, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt));
+                g.drawString("" + (int) lin, xPix + (strWid / 2) + 1, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt + 5));
+            }
+            if (plotXmax > maxLin) {
+                str = "10";
+                int strWid = fontMetrics.stringWidth(str);
+                int xPix = getXPixel(maxLin);
+                Grafik.drawThickLine(g, xPix, getHeight()-canvasSectionMaximumY, xPix, getHeight()-(canvasSectionMaximumY-TICK_LENGTH), TICK_THICKNESS, Color.BLACK);
+                g.drawString(str, xPix - strWid / 2, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt));
+                g.drawString("" + (int) lin, xPix + (strWid / 2) + 1, getHeight()-(canvasSectionMaximumY-TICK_LENGTH-fontHgt + 5));
+            }
         }
         g.setFont(prevFont);
         fontMetrics = g.getFontMetrics();
         
         Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
         g.drawString(xAxisLabel, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(xAxisLabel)/2+axisYWidth/*WIDTH_Y_AXIS*/, getHeight()-20);
+    }
+    
+    private int getExp(int l) {
+        int e = 0;
+        double pow = Math.pow(10, e);
+        while ((l / pow) > 1) {
+            e++;
+            pow = Math.pow(10, e);
+        }
+        return e;
     }
 	
 	/**
@@ -1781,18 +1916,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 
 	private static final double LOG10SCALE = 1/Math.log(10);
-
 	// handy static methods
 	private static double log10(double val) { return Math.log(val) * LOG10SCALE; }
-
-
-	private static double exp10(double val) { return Math.exp(val / LOG10SCALE); }
-
-
 	private static float flog10(double val) { return (float)log10(val); }
 
-
-	private static float fexp10(double val) { return (float)exp10(val); }
 
 	private int getLogPixel(double val, boolean xAxis) {
 	    int screenMax, screenMin;
@@ -1807,30 +1934,70 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	    float log_high = plotMax == 0 ? 0 : (plotMax < 0 ? -1 * flog10(plotMax * -1) : flog10(plotMax));
 	    float log_val = val == 0 ? 0 : (val < 0 ? -1 * flog10(val * -1) : flog10(val));
 	    float pixels_per_log_unit = (screenMax - screenMin) / (log_high - log_low);
-	    return (int)((log_val - log_low) * pixels_per_log_unit) + screenMin;
+	    int retVal = (int)((log_val - log_low) * pixels_per_log_unit) + screenMin;
+	    if (xAxis) return retVal;
+	    else return getHeight() - retVal;
 	}
 
+	private int getLinPixel(double val, boolean xAxis) {
+	    if (xAxis) {    
+    	    if (invertX) {
+                return (int)((plotXmax-val)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
+            } else {
+                return (int)((val-plotXmin)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
+            }
+	    } else {
+            if (invertY) {
+                return getHeight()-(int)((plotYmax-val)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
+            } else {
+                return getHeight()-(int)((val-plotYmin)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
+            }
+	    }
+	}
+	
 	protected int getXPixel(double x) {
 		if (getXAxis() == AXIS_SCALE.LIN) {
-			if (invertX) {
-				return (int)((plotXmax-x)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
-			} else {
-				return (int)((x-plotXmin)/(plotXmax-plotXmin)*(double)(canvasSectionMaximumX-canvasSectionMinimumX))+canvasSectionMinimumX;
-			}
-		} else {
+			return getLinPixel(x, true);
+		} else if (getXAxis() == AXIS_SCALE.LOG){
 			return getLogPixel(x, true);
+		} else {
+		    Logicle l = getBiexScale(true);
+		    double bi = l.scale(x);
+		    int dis = (int) (canvasSectionMaximumX * bi);
+		    return dis; // TODO
 		}
 	}
-
+	
+	protected Logicle biexScaleX = null;
+	protected Logicle biexScaleY = null;
+	private Logicle getBiexScale(boolean xAxis) {
+	    double W = 2;
+	    double A = 1;
+	    if (xAxis) {
+    	    if (biexScaleX != null) return biexScaleX;
+//    	    Logicle fl = new FastLogicle(plotXmax, W, 5.5, A, 0);
+            Logicle fl = new Logicle(plotXmax, W, 5.5, A);
+    	    biexScaleX = fl;
+    	    return fl;
+	    } else {
+    	    if (biexScaleY != null) return biexScaleY;
+//            Logicle fl = new FastLogicle(plotYmax, W, 5.5, A, 0);
+            Logicle fl = new Logicle(plotYmax, W, 5.5, A);
+            biexScaleY = fl;
+            return fl;
+	    }
+	}
+	
 	protected int getYPixel(double y) {
 		if (getYAxis() == AXIS_SCALE.LIN) {
-			if (invertY) {
-				return getHeight()-(int)((plotYmax-y)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
-			} else {
-				return getHeight()-(int)((y-plotYmin)/(plotYmax-plotYmin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
-			}
-		} else {
-			return getHeight() - getLogPixel(y, false);
+		    return getLinPixel(y, false);
+		} else if (getYAxis() == AXIS_SCALE.LOG) {
+			return getLogPixel(y, false);
+        } else {
+            Logicle l = getBiexScale(false);
+            double bi = l.scale(y);
+            int dis = getHeight() - (int) (canvasSectionMaximumY * bi);
+            return dis; // TODO biex
 		}
 	}
     /**
@@ -1846,8 +2013,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             } else {
                 return plotXmin + ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
             }
-        } else {
+        } else if (getXAxis() == AXIS_SCALE.LOG) {
             return getLogValueFromPixel(mouseX, true);
+        } else {
+            return 0; // TODO biex
         }
     }
 
@@ -1884,8 +2053,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             } else {
                 return plotYmin - ((double)(mouseY+canvasSectionMinimumY-getHeight())/(double)(canvasSectionMaximumY-canvasSectionMinimumY)*(double)(plotYmax-plotYmin));
             }
-        } else {
+        } else if (getYAxis() == AXIS_SCALE.LOG){
             return getLogValueFromPixel(mouseY, false);
+        } else {
+            return 0; // TODO biex
         }
     }
 
