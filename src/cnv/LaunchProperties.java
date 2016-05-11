@@ -3,6 +3,8 @@ package cnv;
 import java.io.*;
 import java.util.*;
 
+import common.Files;
+import common.Logger;
 import common.ext;
 
 public class LaunchProperties extends Properties {
@@ -28,21 +30,22 @@ public class LaunchProperties extends Properties {
         	System.err.println("Failed to load \""+filename+"\"");
         }
 	}
-	
+
 	public String getDirectory() {
 		String dir;
-		
-		dir = (String)get(PROJECTS_DIR);
-		if (dir == null) {
-			System.err.println("Error - '"+filename+"' did not contain a property called \""+PROJECTS_DIR+"\"");
-			System.exit(1);
+
+		dir = (String) get(PROJECTS_DIR);
+		if (dir == null || !Files.exists(dir)) {
+			new Logger().reportTimeWarning("Did not detect directory with projects (or was missing property). Defaulting to projects/");
+			// System.err.println("Error - '" + filename + "' did not contain a property called \"" + PROJECTS_DIR + "\"");
+			dir = "projects/";
+			new File(dir).mkdirs();
 		}
 
 		dir = ext.verifyDirFormat(dir);
-			
+
 		return dir;
 	}
-	
 
 	public String getFilename() {
 		return filename;

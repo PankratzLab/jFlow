@@ -166,7 +166,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				indexOfCurrentProj = i;
 			}
 		}
-        projectsBox.setSelectedIndex(indexOfCurrentProj);
+		if (projects.length > 0) {
+			projectsBox.setSelectedIndex(indexOfCurrentProj);
+		}
 	}
 	
 	@SuppressWarnings("rawtypes")
