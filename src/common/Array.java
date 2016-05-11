@@ -3988,7 +3988,7 @@ public class Array {
 	 * @param array
 	 *            an array of bytes
 	 * @param valueToRemove
-	 *            value to reove from the array
+	 *            value to remove from the array
 	 * @return filtered array
 	 */
 	public static byte[] removeAllValues(byte[] array, byte valueToRemove) {
@@ -3998,6 +3998,26 @@ public class Array {
 		for (int i = 0; i<use.length; i++) {
 			use[i] = array[i] != valueToRemove;
         }
+
+		return subArray(array, use);
+	}
+	
+	/**
+	 * Removes all instances of a specified value from an array
+	 * 
+	 * @param array
+	 *            an array of int
+	 * @param valueToRemove
+	 *            value to remove from the array
+	 * @return filtered array
+	 */
+	public static int[] removeAllValues(int[] array, int valueToRemove) {
+		boolean[] use;
+
+		use = new boolean[array.length];
+		for (int i = 0; i < use.length; i++) {
+			use[i] = array[i] != valueToRemove;
+		}
 
 		return subArray(array, use);
 	}
