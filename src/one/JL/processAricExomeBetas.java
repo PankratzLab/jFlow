@@ -85,7 +85,7 @@ public class processAricExomeBetas {
 			int pvalIndex = ext.indexOfStr("p", betaHeader);
 
 			System.out.println(markerIndex + "\t" + Array.toStr(betaHeader));
-			String outDir = "/home/pankrat2/shared/MitoPipeLineResources/betas/";
+			String outDir = "/home/pankrat2/shared/MitoPipeLineResources/betasExome1flip/";
 			new File(outDir).mkdirs();
 			String outBeta = outDir + ext.rootOf(beta) + "matched.txt";
 			String outBetaFinal = outDir + ext.rootOf(beta) + "matched.final.beta";
@@ -150,10 +150,10 @@ public class processAricExomeBetas {
 					// line[betaIndex] = betaVal + "";
 					// writer.println(Array.toStr(line) + "\t" + m.getMarkerName() + "\t" + m.getPosMarker() + "\t" + m.getRs() + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + m.getType());
 					if (m.isValidMatch() && Double.isFinite(betaVal)) {
-						if (m.flipBetas()) {
-							betaVal = -1 * betaVal;
-						}
-						writerFinal.println(m.getRs() + "\t" + Array.toStr(m.getDbSnpAlleles()) + "\t" + betaVal + "\t" + line[pvalIndex] + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + effAllele + "\t" + line[betaIndex]);
+//						if (m.flipBetas()) {
+//							betaVal = -1 * betaVal;
+//						}
+						writerFinal.println(m.getRs() + "\t" + Array.toStr(effAllele.split("\t")) + "\t" + betaVal + "\t" + line[pvalIndex] + "\t" + Array.toStr(m.getMarkerAlleles()) + "\t" + m.getConfig() + "\t" + effAllele + "\t" + line[betaIndex]);
 					}
 
 				}
