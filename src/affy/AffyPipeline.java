@@ -508,7 +508,7 @@ public class AffyPipeline {
 		String markerPositions = "~/resources/hg18.affy6.markerPostions";
 		int numThreads = 1;
 		int markerBuffer = 100;
-		int maxWritersOpen = 9999;
+		int maxWritersOpen = 1000000;
 		int numArgs = args.length;
 
 		String usage = "\n" +
