@@ -109,6 +109,12 @@ public class Rscript {
 		for (String toReplace : R_INVALID_CHARS) {
 			rSafe = rSafe.replaceAll(toReplace, R_REPLACEMENT);
 		}
+		try {
+			Double.parseDouble(rSafe.charAt(0) + "");
+			rSafe = "X" + rSafe;
+		} catch (NumberFormatException nfe) {
+
+		}
 		return rSafe;
 	}
 
