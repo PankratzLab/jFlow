@@ -126,28 +126,43 @@ public class BetaOptimizer {
 		}
 	}
 
+	private static double[] inverseNormalizeTo(double[] data, boolean[] samples) {
+		double[] newData = Array.doubleArray(data.length, Double.NaN);
+		double[] tmp = Array.inverseNormalize(Array.subArray(data, samples));
+		int retrieve = 0;
+		for (int i = 0; i < newData.length; i++) {
+			if (samples[i]) {
+				newData[i] = tmp[retrieve];
+				retrieve++;
+			} else {
+				newData[i] = data[i];
+			}
+		}
+		return newData;
+	}
+
 	private static class BetaWorker implements Callable<BetaCorrelationResult[]> {
 		private byte[][] genotypes;
 		private double[] data;
 		private ArrayList<MetaBeta> metaBetas;
 		private int comparisonIndex;
+		private boolean[] sampleDef;
 		private Logger log;
 
-		public BetaWorker(byte[][] genotypes, double[] data, int comparisonIndex, ArrayList<MetaBeta> metaBetas, Logger log) {
+		public BetaWorker(byte[][] genotypes, boolean[] sampleDef, double[] data, int comparisonIndex, ArrayList<MetaBeta> metaBetas, Logger log) {
 			super();
 			this.genotypes = genotypes;
 			this.data = data;
 			this.metaBetas = metaBetas;
 			this.comparisonIndex = comparisonIndex;
+			this.sampleDef = sampleDef;
 			this.log = log;
 		}
 
 		@Override
 		public BetaCorrelationResult[] call() throws Exception {
-
 			BetaCorrelationResult result = getResult(data);
-			BetaCorrelationResult resultInv = getResult(Array.inverseNormalize(data));
-
+			BetaCorrelationResult resultInv = getResult(inverseNormalizeTo(data, sampleDef));
 			return new BetaCorrelationResult[] { result, resultInv };
 		}
 
@@ -199,19 +214,20 @@ public class BetaOptimizer {
 		private byte[][] genotypes;
 		private ArrayList<MetaBeta> metaBetas;
 		private ExtProjectDataParser parser;
+		private boolean[] sampleDef;
 		private int index;
 		private int max;
 		private Logger log;
 
-		public BetaProducer(byte[][] genotypes, ArrayList<MetaBeta> metaBetas, ExtProjectDataParser parser, int max, Logger log) {
+		public BetaProducer(byte[][] genotypes, boolean[] sampleDef, ArrayList<MetaBeta> metaBetas, ExtProjectDataParser parser, int max, Logger log) {
 			super();
 			this.genotypes = genotypes;
 			this.metaBetas = metaBetas;
 			this.parser = parser;
+			this.sampleDef = sampleDef;
 			this.log = log;
 			this.index = 0;
 			this.max = max;
-
 		}
 
 		@Override
@@ -223,7 +239,7 @@ public class BetaOptimizer {
 		@Override
 		public Callable<BetaCorrelationResult[]> next() {
 			double[] data = parser.getNumericData()[index];
-			BetaWorker worker = new BetaWorker(genotypes, data, index, metaBetas, log);
+			BetaWorker worker = new BetaWorker(genotypes, sampleDef, data, index, metaBetas, log);
 			index++;
 			return worker;
 		}
@@ -250,7 +266,7 @@ public class BetaOptimizer {
 
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
 
-		ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+		// ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 
 		for (String betaFile : betaFiles) {
 			String bigSummaryOut = outpuDir + ext.rootOf(betaFile) + "_beta_summary.txt";
@@ -261,6 +277,7 @@ public class BetaOptimizer {
 					PrintWriter writer = new PrintWriter(new FileWriter(bigSummaryOut));
 					writer.println(Array.toStr(BetaCorrelationResult.getHeader()) + "\t" + Array.toStr(Array.tagOn(BetaCorrelationResult.getHeader(), "inv_", null)) + "\tBetaFile\tMethod\tpvalCutoff\tnumSamples\tmethodKey\tmarkerCallRateThreshold");
 					ArrayList<MetaBeta> metaBetas = prep(proj, markerSet, abLookup, dbsnpVCF, namesToQuery, outpuDir, betaFile, Array.max(pvals), log);
+
 					boolean[] samplesForModels = Array.booleanArray(proj.getSamples().length, false);
 					String[] pcSamps = HashVec.loadFileToStringArray(usedInPCFile, false, new int[] { 0 }, true);
 					int[] indicesPC = ext.indexLargeFactors(pcSamps, proj.getSamples(), true, proj.getLog(), true, false);
@@ -270,15 +287,17 @@ public class BetaOptimizer {
 						sampsPCs[indicesPC[i]] = true;
 					}
 
-					if (samplesToBuildModels != null) {
-						log.reportTimeInfo("Loading model builders from " + samplesToBuildModels);
+					if (samplesToBuildModels != null && Files.exists(samplesToBuildModels)) {
+						log.reportTimeInfo("Loading samples from " + samplesToBuildModels);
 						String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[] { 0 }, true);
-						log.reportTimeInfo("Loaded " + sampsForMods.length + " model builders from " + samplesToBuildModels);
+						log.reportTimeInfo("Loaded " + sampsForMods.length + " samples from " + samplesToBuildModels);
 
 						int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true, proj.getLog(), true, false);
 						for (int i = 0; i < indices.length; i++) {
 							samplesForModels[indices[i]] = true;
 						}
+					} else {
+						log.reportTimeWarning("A file of unrelated and single race samples was not provided for optimization");
 					}
 					for (int i = 0; i < pvals.length; i++) {
 						ArrayList<MetaBeta> current = filter(metaBetas, pvals[i]);
@@ -290,7 +309,7 @@ public class BetaOptimizer {
 								for (ORDER_TYPE oType : ORDER_TYPE.values()) {
 									// String file = subDir + btype + "_" + oType + "_" + itype + "_finalSummary.estimates.txt.gz";
 									String file = subDir + MODEL_BUILDER_TYPE.WITH_QC_BUILDERS + "_" + oType + "_" + ITERATION_TYPE.WITHOUT_INDEPS + "_finalSummary.estimates.txt.gz";
-
+									boolean[] sampleDef = Array.booleanArray(samplesForModels.length, false);
 									byte[][] analysisGenos = new byte[genos.length][genos[0].length];
 									int markersRemoved = 0;
 									int numSamps = 0;
@@ -305,6 +324,7 @@ public class BetaOptimizer {
 													for (int j2 = 0; j2 < genos[j].length; j2++) {
 														if (!samplesForModels[j2] && sampsPCs[j2]) {
 															numSampsHere++;
+															sampleDef[j2] = true;
 															if (genos[j][j2] < 0) {
 																numMissing++;
 															}
@@ -315,7 +335,7 @@ public class BetaOptimizer {
 													if ((1 - cr) < markerCallRate) {
 														markersRemoved++;
 														analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
-														log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
+//														log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
 													}
 													numSamps = numSampsHere;
 												}
@@ -330,6 +350,7 @@ public class BetaOptimizer {
 												for (int j2 = 0; j2 < genos[j].length; j2++) {
 													if (samplesForModels[j2] && sampsPCs[j2]) {
 														numSampsHere++;
+														sampleDef[j2] = true;
 														if (genos[j][j2] < 0) {
 															numMissing++;
 														}
@@ -340,7 +361,7 @@ public class BetaOptimizer {
 												double cr = (double) numMissing / numSamps;
 												if ((1 - cr) < markerCallRate) {
 													markersRemoved++;
-													log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
+//													log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
 													analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
 												}
 											}
@@ -353,6 +374,7 @@ public class BetaOptimizer {
 												for (int j2 = 0; j2 < genos[j].length; j2++) {
 													if (sampsPCs[j2]) {
 														numSampsHere++;
+														sampleDef[j2] = true;
 														if (genos[j][j2] < 0) {
 															numMissing++;
 														}
@@ -363,7 +385,7 @@ public class BetaOptimizer {
 												double cr = (double) numMissing / numSamps;
 												if ((1 - cr) < markerCallRate) {
 													markersRemoved++;
-													log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
+//													log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
 													analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
 												}
 											}
@@ -374,6 +396,9 @@ public class BetaOptimizer {
 											log.reportTimeWarning("Removed " + markersRemoved + " markers for pval cut-off " + pvals[i] + " at callrate threshold " + markerCallRate);
 										}
 										log.reportTimeInfo("numsamps =" + numSamps);
+										if (Array.booleanArraySum(sampleDef) != numSamps) {
+											throw new IllegalArgumentException("Mismatched sample definitions");
+										}
 										if (numSamps > 0) {
 											ProjectDataParserBuilder builder = new ProjectDataParserBuilder();
 											builder.sampleBased(true);
@@ -384,7 +409,7 @@ public class BetaOptimizer {
 												ExtProjectDataParser parser = builder.build(proj, file);
 												parser.determineIndicesFromTitles();
 												parser.loadData();
-												BetaProducer producer = new BetaProducer(analysisGenos, current, parser, maxPCs, log);
+												BetaProducer producer = new BetaProducer(analysisGenos, sampleDef, current, parser, maxPCs, log);
 												WorkerTrain<BetaCorrelationResult[]> train = new WorkerTrain<BetaOptimizer.BetaCorrelationResult[]>(producer, numthreads, 10, log);
 												while (train.hasNext()) {
 													BetaCorrelationResult[] results = train.next();
@@ -426,7 +451,11 @@ public class BetaOptimizer {
 				}
 			}
 			String rootOutBetas = outpuDir + ext.rootOf(betaFile) + "_summaryPlots";
+			String rootOutInvBetas = outpuDir + ext.rootOf(betaFile) + "_Inv_summaryPlots";
+
 			ArrayList<RScatter> rScattersBetas = new ArrayList<RScatter>();
+			ArrayList<RScatter> rScattersInvBetas = new ArrayList<RScatter>();
+
 			String[] summHeader = Files.getHeaderOfFile(bigSummaryOut, log);
 			Hashtable<String, Hashtable<String, Vector<String>>> info = HashVec.loadFileToHashHashVec(bigSummaryOut, ext.indexOfStr("pvalCutoff", summHeader), ext.indexOfStr("Method", summHeader), new int[] { ext.indexOfStr("numberOfMarkers", summHeader), ext.indexOfStr("numSamples", summHeader) }, "\t", false, false);
 
@@ -435,7 +464,8 @@ public class BetaOptimizer {
 				VertLine[] vertLines = new VertLine[] { new VertLine(15) };
 				Restrictions rPval = new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null);
 				Hashtable<String, Vector<String>> currentInfo = info.get(pvals[j] + "");
-				//
+				// Restrictions correlP = new Restrictions(new String[] { "pval_spearmanUnSigned" }, new double[] { 0.05 }, new String[] { "<=" }, null);
+
 				// Restrictions rNat = new Restrictions(new String[] { "Method", "Method" }, new String[] { "\"" + ext.rootOf(samplesToBuildModels) + "_" + ORDER_TYPE.NATURAL + "\"", "\"not_" + ext.rootOf(samplesToBuildModels) + "_" + ORDER_TYPE.NATURAL + "\"" }, new String[] { "==", "==" }, "|");
 				// Restrictions rStep = new Restrictions(new String[] { "Method", "Method" }, new String[] { "\"" + ext.rootOf(samplesToBuildModels) + "_" + ORDER_TYPE.STEPWISE_RANK_R2 + "\"", "\"not_" + ext.rootOf(samplesToBuildModels) + "_" + ORDER_TYPE.STEPWISE_RANK_R2 + "\"" }, new String[] { "==", "==" }, "|");
 				String[][] altLegends = null;
@@ -470,8 +500,6 @@ public class BetaOptimizer {
 
 				String methodProotUnsigned = rootOutBetas + "pvalue_method_spearmanUnsigned" + pvalKey;
 
-				Restrictions correlP = new Restrictions(new String[] { "pval_spearmanUnSigned" }, new double[] { 0.05 }, new String[] { "<=" }, null);
-
 				RScatter methodPU = new RScatter(bigSummaryOut, methodProotUnsigned + ".rscript", ext.rootOf(methodProotUnsigned), methodProotUnsigned + ".jpeg", "PC", new String[] { "correl_spearmanUnSigned" }, "Method", SCATTER_TYPE.POINT, log);
 				methodPU.setOverWriteExisting(true);
 				methodPU.setRestrictions(new Restrictions[] { rPval });// rNat
@@ -487,7 +515,6 @@ public class BetaOptimizer {
 				rScattersBetas.add(methodPU);
 
 				String methodProotsignednat = rootOutBetas + "pvalue_method_spearmanSignedNat" + pvalKey;
-				Restrictions correlPS = new Restrictions(new String[] { "pval_spearmanSigned" }, new double[] { 0.05 }, new String[] { "<=" }, null);
 
 				RScatter methodPSNat = new RScatter(bigSummaryOut, methodProotsignednat + ".rscript", ext.rootOf(methodProotsignednat), methodProotsignednat + ".jpeg", "PC", new String[] { "correl_spearmanSigned" }, "Method", SCATTER_TYPE.POINT, log);
 				methodPSNat.setOverWriteExisting(true);
@@ -503,13 +530,49 @@ public class BetaOptimizer {
 				methodPSNat.setLegendTitle("Method");
 				rScattersBetas.add(methodPSNat);
 
+				String methodProotUnsignedInv = rootOutBetas + "pvalue_method_spearmanUnsigned_Inv" + pvalKey;
+
+				RScatter methodPUInv = new RScatter(bigSummaryOut, methodProotUnsignedInv + ".rscript", ext.rootOf(methodProotUnsignedInv), methodProotUnsignedInv + ".jpeg", "PC", new String[] { "inv_correl_spearmanUnSigned" }, "Method", SCATTER_TYPE.POINT, log);
+				methodPUInv.setOverWriteExisting(true);
+				methodPUInv.setRestrictions(new Restrictions[] { rPval });// rNat
+				methodPUInv.setxRange(new double[] { 0, 150 });
+				methodPUInv.setyRange(new double[] { -1, 1 });
+				methodPUInv.setyLabel("correlation (spearman) of |betas| with p < " + pvals[j]);
+				methodPUInv.setTitle("ABS Betas from " + ext.rootOf(betaFile) + "\nMarker Call rate >= " + markerCallRate + "\nInverse normalized mtDNA CN estimate");
+				methodPUInv.setxLabel("PC");
+				methodPUInv.setVertLines(vertLines);
+				methodPUInv.setAltLegendTitles(altLegends);
+				methodPUInv.setLegendTitle("Method");
+				methodPUInv.execute();
+				rScattersInvBetas.add(methodPUInv);
+
+				String methodProotsignednatInv = rootOutBetas + "pvalue_method_spearmanSignedNat_Inv" + pvalKey;
+
+				RScatter methodPSNatInv = new RScatter(bigSummaryOut, methodProotsignednatInv + ".rscript", ext.rootOf(methodProotsignednatInv), methodProotsignednatInv + ".jpeg", "PC", new String[] { "inv_correl_spearmanSigned" }, "Method", SCATTER_TYPE.POINT, log);
+				methodPSNatInv.setOverWriteExisting(true);
+				methodPSNatInv.setRestrictions(new Restrictions[] { rPval });// , rNat
+				methodPSNatInv.setxRange(new double[] { 0, 150 });
+				methodPSNatInv.setyRange(new double[] { -1, 1 });
+				methodPSNatInv.setyLabel("correlation (spearman) of betas with p < " + pvals[j]);
+				methodPSNatInv.setTitle("Betas from " + ext.rootOf(betaFile) + "\nMarker Call rate >= " + markerCallRate + "\nInverse normalized mtDNA CN estimate");
+				methodPSNatInv.setxLabel("PC");
+				methodPSNatInv.setVertLines(vertLines);
+				methodPSNatInv.execute();
+				methodPSNatInv.setAltLegendTitles(altLegends);
+				methodPSNatInv.setLegendTitle("Method");
+				rScattersInvBetas.add(methodPSNatInv);
+
 			}
 			RScatters rscScattersBetas = new RScatters(rScattersBetas, rootOutBetas + ".rscript", rootOutBetas + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
 			rscScattersBetas.execute();
+
+			RScatters rscScattersInvBetas = new RScatters(rScattersInvBetas, rootOutInvBetas + ".rscript", rootOutInvBetas + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+			rscScattersInvBetas.execute();
+
 		}
-		String rootOut = outpuDir + "finalPlots";
-		RScatters rscScatters = new RScatters(rScatters, rootOut + ".rscript", rootOut + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
-		rscScatters.execute();
+		// String rootOut = outpuDir + "finalPlots";
+		// RScatters rscScatters = new RScatters(rScatters, rootOut + ".rscript", rootOut + ".pdf", COLUMNS_MULTIPLOT.COLUMNS_MULTIPLOT_1, PLOT_DEVICE.PDF, log);
+		// rscScatters.execute();
 
 	}
 
@@ -540,76 +603,6 @@ public class BetaOptimizer {
 		return genos;
 	}
 
-	// String methodProotUnsignedStp = rootOutBetas + "pvalue_method_pearsonUnsignedStep" + pvalKey;
-	// RScatter methodPUStep = new RScatter(bigSummaryOut, methodProotUnsignedStp + ".rscript", ext.rootOf(methodProotUnsignedStp), methodProotUnsignedStp + ".jpeg", "PC", new String[] { "correl_spearmanUnSigned" }, "Method", SCATTER_TYPE.POINT, log);
-	// methodPUStep.setOverWriteExisting(true);
-	// methodPUStep.setRestrictions(new Restrictions[] { rPval, rStep });
-	// methodPUStep.setxRange(new double[] { 0, 150 });
-	// methodPUStep.setyRange(new double[] { -.5, 1 });
-	// methodPUStep.setyLabel("correlation (spearman) of |betas| with p < " + pvals[j]);
-	// methodPUStep.setTitle("ABS Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
-	// methodPUStep.setxLabel("PC");
-	// methodPUStep.setVertLines(vertLines);
-	// methodPUStep.execute();
-	// rScattersBetas.add(methodPUStep);
-
-	// String methodProotsignedStp = rootOutBetas + "pvalue_method_pearsonsignedStep" + pvalKey;
-	// RScatter methodPSStep = new RScatter(bigSummaryOut, methodProotsignedStp + ".rscript", ext.rootOf(methodProotsignedStp), methodProotsignedStp + ".jpeg", "PC", new String[] { "correl_spearmanSigned" }, "Method", SCATTER_TYPE.POINT, log);
-	// methodPSStep.setOverWriteExisting(true);
-	// methodPSStep.setRestrictions(new Restrictions[] { rPval, rStep });
-	// methodPSStep.setxRange(new double[] { 0, 150 });
-	// methodPSStep.setyRange(new double[] { -.5, 1 });
-	// methodPSStep.setyLabel("correlation (spearman) of betas with p < " + pvals[j]);
-	// methodPSStep.setTitle("Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
-	// methodPSStep.setxLabel("PC");
-	// methodPSStep.setVertLines(vertLines);
-	// methodPSStep.execute();
-	// rScattersBetas.add(methodPSStep);
-
-	// int numPCS = 50;
-	// String methodProot = rootOut + "pvalue_method_pearson" + pvalKey;
-	// Restrictions[] restrictions = new Restrictions[] { new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null) };
-	// RScatter methodP = new RScatter(bigSummaryOut, methodProot + ".rscript", ext.rootOf(methodProot), methodProot + ".jpeg", "PC", new String[] { "correl_pearsonSigned" }, "Method", SCATTER_TYPE.POINT, log);
-	// methodP.setOverWriteExisting(true);
-	// methodP.setRestrictions(restrictions);
-	// methodP.setxRange(new double[] { 0, 150 });
-	// methodP.setyRange(new double[] { -.5, 1 });
-	// methodP.setyLabel("correlation (pearson) of betas with p < " + pvals[j]);
-	// methodP.setTitle("Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
-	// methodP.setxLabel("PC");
-	// methodP.setVertLines(vertLines);
-	// methodP.execute();
-	// rScatters.add(methodP);w
-
-	// String methodProotUnsignedInv = rootOutBetas + "pvalue_method_pearsonUnsigned_Inv" + pvalKey;
-	// Restrictions[] restrictionsUInv = new Restrictions[] { new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null) };
-	// RScatter methodPUInv = new RScatter(bigSummaryOut, methodProotUnsignedInv + ".rscript", ext.rootOf(methodProotUnsignedInv), methodProotUnsignedInv + ".jpeg", "PC", new String[] { "inv_correl_pearsonUnSigned" }, "Method", SCATTER_TYPE.POINT, log);
-	// methodPUInv.setOverWriteExisting(true);
-	// methodPUInv.setRestrictions(restrictionsUInv);
-	// methodPUInv.setxRange(new double[] { 0, 150 });
-	// methodPUInv.setyRange(new double[] { -.5, 1 });
-	// methodPUInv.setyLabel("correlation (pearson) of |betas| with p < " + pvals[j]);
-	// methodPUInv.setTitle("Betas from " + ext.rootOf(betaFile) + ";\nInv mtDNA CN,  number of markers=" + nums.get(pvals[j] + ""));
-	// methodPUInv.setxLabel("PC");
-	// methodPUInv.setVertLines(vertLines);
-	// methodPUInv.execute();
-	// rScattersBetas.add(methodPUInv);
-
-	// String pvalKeyS = pvals[j] + "".replaceAll("\\.", "_") + ".pval";
-	// String methodProotS = rootOut + "pvalue_method_spearman" + pvalKeyS;
-	// Restrictions[] restrictionsS = new Restrictions[] { new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null) };
-	// RScatter methodS = new RScatter(bigSummaryOut, methodProotS + ".rscript", ext.rootOf(methodProotS), methodProotS + ".jpeg", "PC", new String[] { "correl_spearman" }, "Method", SCATTER_TYPE.POINT, log);
-	// methodS.setOverWriteExisting(true);
-	// methodS.setRestrictions(restrictionsS);
-	// methodS.setxRange(new double[] { 0, 150 });
-	// methodS.setyRange(new double[] { -.5, 1 });
-	// methodS.setyLabel("correlation (spearman) of betas with p < " + pvals[j]);
-	// methodS.setTitle("Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
-	// methodS.setxLabel("PC");
-	// methodS.setVertLines(vertLines);
-	//
-	// methodS.execute();
-	// rScatters.add(methodS);
 	public static ArrayList<MetaBeta> prep(Project proj, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, String betaFile, double minPval, Logger log) {
 		new File(outpuDir).mkdirs();
 		String outSer = outpuDir + "rsIdLookup.ser";
@@ -626,12 +619,10 @@ public class BetaOptimizer {
 		if (markerRsFormats == null) {
 			markerRsFormats = mapToRsIds(proj, abLookup, dbsnpVCF, namesToQuery, outSer, log);
 		}
-		// log.reportTimeInfo("Loaded " + markerRsFormats.size() + " markers with rsIds");
 		ArrayList<MetaBeta> metaBetas = loadBetas(markerRsFormats, betaFile, minPval, log);
 		log.reportTimeInfo("Loaded " + metaBetas.size() + " valid rsIds, having valid betas and  pval less than " + minPval);
 		return metaBetas;
 
-		// for(Me)
 	}
 
 	private static boolean useConfig(CONFIG config) {
@@ -836,14 +827,11 @@ public class BetaOptimizer {
 				writer.println(markerRsFormat.getMarkerName() + "\t" + markerRsFormat.getRs() + "\t" + Array.toStr(markerRsFormat.getDbSnpAlleles()) + "\t" + Array.toStr(markerRsFormat.getMarkerAlleles()));
 			}
 			writer.close();
-
 		} catch (Exception e) {
 			log.reportError("Error writing to " + outTxt);
 			log.reportException(e);
 		}
 		reader.close();
-
-		// log.reportTimeInfo("Detected " + markerRsFormats.size() + " valid rs ids from " + dbsnpVCF);
 		MarkerRsFormat.writeSerial(markerRsFormats, outSer);
 		return markerRsFormats;
 	}
@@ -968,84 +956,6 @@ public class BetaOptimizer {
 
 	}
 
-	public static void maina(String[] args) {
-		int numArgs = args.length;
-		String filename = "BetaOptimizer.dat";
-		String out = "betaOpt/";
-		double[] pvals = new double[] { .05, .01, .001, .0001 };
-		double markerCallRate = .96;
-		String unRelatedFile = null;
-		String pcFile = null;
-		int numthreads = 24;
-		int maxPCs = 120;
-		String pcSamps = null;
-		String betaDir = null;
-		String usage = "\n" +
-				"one.JL.BetaOptimizer requires 0-1 arguments\n" +
-				"   (1) project filename (i.e. proj=" + filename + " (default))\n" +
-				"   (2) output directory (relative to project directory) (i.e. out=" + out + " (default))\n" +
-				"   (3) pcFile(relative to project directory) (i.e. pcFile= (no default))\n" +
-				"   (4) full path to a file of unrelated, and single race samples  (i.e. unrelated= (no default))\n" +
-				"   (5) maximum number of pcs to optimze to (i.e. maxPCs=" + maxPCs + " ( default))\n" +
-				"   (6) comma delimited list of pvalue thresholds (i.e. pvals=" + Array.toStr(Array.toStringArray(pvals), ",") + " ( default))\n" +
-				PSF.Ext.getNumThreadsCommand(7, numthreads) +
-				"   (8) full path to a file of samples used to generate the pcs (i.e. pcSamps= (no default))\n" +
-				"   (9) full path a directory of .beta files (i.e. betaDir= (no default))\n" +
-				"   (10) call rate for markers (i.e. cr=" + markerCallRate + " (default))\n" +
-
-				"";
-
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith("proj=")) {
-				filename = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("pcFile=")) {
-				pcFile = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("unrelated=")) {
-				unRelatedFile = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("betaDir=")) {
-				betaDir = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("out=")) {
-				out = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("pvals=")) {
-				pvals = Array.toDoubleArray(args[i].split("=")[1].split(","));
-				numArgs--;
-			} else if (args[i].startsWith("maxPCs=")) {
-				maxPCs = ext.parseIntArg(args[i]);
-				numArgs--;
-			} else if (args[i].startsWith("cr=")) {
-				markerCallRate = ext.parseDoubleArg(args[i]);
-				numArgs--;
-			} else if (args[i].startsWith("pcSamps=")) {
-				pcSamps = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-				numthreads = ext.parseIntArg(args[i]);
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + args[i]);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		try {
-
-			Project proj = new Project(filename, false);
-			optimize(proj, pcFile, out, betaDir, unRelatedFile, pcSamps, pvals, maxPCs, markerCallRate, numthreads);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	private static void optimize(Project proj, String pcFile, String outDir, String betaDir, String unRelatedFile, String pcSamps, double[] pvals, int maxPCs, double markerCallRate, int numthreads) throws IllegalStateException {
 		new File(outDir).mkdirs();
 
@@ -1061,12 +971,15 @@ public class BetaOptimizer {
 						String tmpAB = abAffy.getResource(proj.getLog());
 						Files.copyFile(tmpAB, proj.AB_LOOKUP_FILENAME.getValue());
 					} else {
-						throw new IllegalStateException("Could not retrieve required AB lookup for affymetrix array");
+						throw new IllegalStateException("Could not retrieve required AB lookup for affymetrix array, halting");
 					}
 				}
 				if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
 					abLookup.parseFromAnnotationVCF(proj);
 					abLookup.writeToFile(proj.AB_LOOKUP_FILENAME.getValue(), proj.getLog());
+				}
+				if (!Files.exists(proj.AB_LOOKUP_FILENAME.getValue())) {
+					throw new IllegalArgumentException("Could not create required AB Lookup file, halting");
 				}
 			}
 		}
@@ -1082,6 +995,88 @@ public class BetaOptimizer {
 	}
 
 	public static void main(String[] args) {
+		if (args.length == 2 && args[1].equals("test")) {
+			maisn(args);
+		} else {
+			int numArgs = args.length;
+			String filename = "BetaOptimizer.dat";
+			String out = "betaOpt/";
+			double[] pvals = new double[] { .05, .01, .001, .0001 };
+			double markerCallRate = .96;
+			String unRelatedFile = null;
+			String pcFile = null;
+			int numthreads = 24;
+			int maxPCs = 120;
+			String pcSamps = null;
+			String betaDir = null;
+			String usage = "\n" +
+					"one.JL.BetaOptimizer requires 0-1 arguments\n" +
+					"   (1) project filename (i.e. proj=" + filename + " (default))\n" +
+					"   (2) output directory (relative to project directory) (i.e. out=" + out + " (default))\n" +
+					"   (3) pcFile(relative to project directory) (i.e. pcFile= (no default))\n" +
+					"   (4) full path to a file of unrelated, and single race samples  (i.e. unrelated= (no default))\n" +
+					"   (5) maximum number of pcs to optimze to (i.e. maxPCs=" + maxPCs + " ( default))\n" +
+					"   (6) comma delimited list of pvalue thresholds (i.e. pvals=" + Array.toStr(Array.toStringArray(pvals), ",") + " ( default))\n" +
+					PSF.Ext.getNumThreadsCommand(7, numthreads) +
+					"   (8) full path to a file of samples used to generate the pcs (i.e. pcSamps= (no default))\n" +
+					"   (9) full path a directory of .beta files (i.e. betaDir= (no default))\n" +
+					"   (10) call rate for markers (i.e. cr=" + markerCallRate + " (default))\n" +
+
+					"";
+
+			for (int i = 0; i < args.length; i++) {
+				if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+					System.err.println(usage);
+					System.exit(1);
+				} else if (args[i].startsWith("proj=")) {
+					filename = args[i].split("=")[1];
+					numArgs--;
+				} else if (args[i].startsWith("pcFile=")) {
+					pcFile = args[i].split("=")[1];
+					numArgs--;
+				} else if (args[i].startsWith("unrelated=")) {
+					unRelatedFile = args[i].split("=")[1];
+					numArgs--;
+				} else if (args[i].startsWith("betaDir=")) {
+					betaDir = args[i].split("=")[1];
+					numArgs--;
+				} else if (args[i].startsWith("out=")) {
+					out = args[i].split("=")[1];
+					numArgs--;
+				} else if (args[i].startsWith("pvals=")) {
+					pvals = Array.toDoubleArray(args[i].split("=")[1].split(","));
+					numArgs--;
+				} else if (args[i].startsWith("maxPCs=")) {
+					maxPCs = ext.parseIntArg(args[i]);
+					numArgs--;
+				} else if (args[i].startsWith("cr=")) {
+					markerCallRate = ext.parseDoubleArg(args[i]);
+					numArgs--;
+				} else if (args[i].startsWith("pcSamps=")) {
+					pcSamps = args[i].split("=")[1];
+					numArgs--;
+				} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+					numthreads = ext.parseIntArg(args[i]);
+					numArgs--;
+				} else {
+					System.err.println("Error - invalid argument: " + args[i]);
+				}
+			}
+			if (numArgs != 0) {
+				System.err.println(usage);
+				System.exit(1);
+			}
+			try {
+
+				Project proj = new Project(filename, false);
+				optimize(proj, pcFile, proj.PROJECT_DIRECTORY.getValue() + out, betaDir, unRelatedFile, pcSamps, pvals, maxPCs, markerCallRate, numthreads);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public static void maisn(String[] args) {
 		Project proj = new Project("/home/pankrat2/lanej/projects/Aric_gw6.properties", false);
 		String out = proj.PROJECT_DIRECTORY.getValue() + "betaOpt/";
 		new File(out).mkdirs();
@@ -1109,4 +1104,75 @@ public class BetaOptimizer {
 		int maxPCs = 120;
 		analyzeAll(proj, pcFile, toUseFile, markerSet, abLookup, dbsnp.getResource(proj.getLog()), proj.getNonCNMarkers(), out, betaFiles, pvals, markerCallRate, maxPCs, numthreads, usedInPCFile, proj.getLog());
 	}
+
+	// String methodProotUnsignedStp = rootOutBetas + "pvalue_method_pearsonUnsignedStep" + pvalKey;
+	// RScatter methodPUStep = new RScatter(bigSummaryOut, methodProotUnsignedStp + ".rscript", ext.rootOf(methodProotUnsignedStp), methodProotUnsignedStp + ".jpeg", "PC", new String[] { "correl_spearmanUnSigned" }, "Method", SCATTER_TYPE.POINT, log);
+	// methodPUStep.setOverWriteExisting(true);
+	// methodPUStep.setRestrictions(new Restrictions[] { rPval, rStep });
+	// methodPUStep.setxRange(new double[] { 0, 150 });
+	// methodPUStep.setyRange(new double[] { -.5, 1 });
+	// methodPUStep.setyLabel("correlation (spearman) of |betas| with p < " + pvals[j]);
+	// methodPUStep.setTitle("ABS Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
+	// methodPUStep.setxLabel("PC");
+	// methodPUStep.setVertLines(vertLines);
+	// methodPUStep.execute();
+	// rScattersBetas.add(methodPUStep);
+
+	// String methodProotsignedStp = rootOutBetas + "pvalue_method_pearsonsignedStep" + pvalKey;
+	// RScatter methodPSStep = new RScatter(bigSummaryOut, methodProotsignedStp + ".rscript", ext.rootOf(methodProotsignedStp), methodProotsignedStp + ".jpeg", "PC", new String[] { "correl_spearmanSigned" }, "Method", SCATTER_TYPE.POINT, log);
+	// methodPSStep.setOverWriteExisting(true);
+	// methodPSStep.setRestrictions(new Restrictions[] { rPval, rStep });
+	// methodPSStep.setxRange(new double[] { 0, 150 });
+	// methodPSStep.setyRange(new double[] { -.5, 1 });
+	// methodPSStep.setyLabel("correlation (spearman) of betas with p < " + pvals[j]);
+	// methodPSStep.setTitle("Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
+	// methodPSStep.setxLabel("PC");
+	// methodPSStep.setVertLines(vertLines);
+	// methodPSStep.execute();
+	// rScattersBetas.add(methodPSStep);
+
+	// int numPCS = 50;
+	// String methodProot = rootOut + "pvalue_method_pearson" + pvalKey;
+	// Restrictions[] restrictions = new Restrictions[] { new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null) };
+	// RScatter methodP = new RScatter(bigSummaryOut, methodProot + ".rscript", ext.rootOf(methodProot), methodProot + ".jpeg", "PC", new String[] { "correl_pearsonSigned" }, "Method", SCATTER_TYPE.POINT, log);
+	// methodP.setOverWriteExisting(true);
+	// methodP.setRestrictions(restrictions);
+	// methodP.setxRange(new double[] { 0, 150 });
+	// methodP.setyRange(new double[] { -.5, 1 });
+	// methodP.setyLabel("correlation (pearson) of betas with p < " + pvals[j]);
+	// methodP.setTitle("Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
+	// methodP.setxLabel("PC");
+	// methodP.setVertLines(vertLines);
+	// methodP.execute();
+	// rScatters.add(methodP);w
+
+	// String methodProotUnsignedInv = rootOutBetas + "pvalue_method_pearsonUnsigned_Inv" + pvalKey;
+	// Restrictions[] restrictionsUInv = new Restrictions[] { new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null) };
+	// RScatter methodPUInv = new RScatter(bigSummaryOut, methodProotUnsignedInv + ".rscript", ext.rootOf(methodProotUnsignedInv), methodProotUnsignedInv + ".jpeg", "PC", new String[] { "inv_correl_pearsonUnSigned" }, "Method", SCATTER_TYPE.POINT, log);
+	// methodPUInv.setOverWriteExisting(true);
+	// methodPUInv.setRestrictions(restrictionsUInv);
+	// methodPUInv.setxRange(new double[] { 0, 150 });
+	// methodPUInv.setyRange(new double[] { -.5, 1 });
+	// methodPUInv.setyLabel("correlation (pearson) of |betas| with p < " + pvals[j]);
+	// methodPUInv.setTitle("Betas from " + ext.rootOf(betaFile) + ";\nInv mtDNA CN,  number of markers=" + nums.get(pvals[j] + ""));
+	// methodPUInv.setxLabel("PC");
+	// methodPUInv.setVertLines(vertLines);
+	// methodPUInv.execute();
+	// rScattersBetas.add(methodPUInv);
+
+	// String pvalKeyS = pvals[j] + "".replaceAll("\\.", "_") + ".pval";
+	// String methodProotS = rootOut + "pvalue_method_spearman" + pvalKeyS;
+	// Restrictions[] restrictionsS = new Restrictions[] { new Restrictions(new String[] { "pvalCutoff" }, new double[] { pvals[j] }, new String[] { "==" }, null) };
+	// RScatter methodS = new RScatter(bigSummaryOut, methodProotS + ".rscript", ext.rootOf(methodProotS), methodProotS + ".jpeg", "PC", new String[] { "correl_spearman" }, "Method", SCATTER_TYPE.POINT, log);
+	// methodS.setOverWriteExisting(true);
+	// methodS.setRestrictions(restrictionsS);
+	// methodS.setxRange(new double[] { 0, 150 });
+	// methodS.setyRange(new double[] { -.5, 1 });
+	// methodS.setyLabel("correlation (spearman) of betas with p < " + pvals[j]);
+	// methodS.setTitle("Betas from " + ext.rootOf(betaFile) + ";\n number of markers=" + nums.get(pvals[j] + ""));
+	// methodS.setxLabel("PC");
+	// methodS.setVertLines(vertLines);
+	//
+	// methodS.execute();
+	// rScatters.add(methodS);
 }
