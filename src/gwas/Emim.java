@@ -193,7 +193,7 @@ public class Emim {
         
         commands = "";
         
-        if (!forceRewrite && Files.exists(currDir + "emimPrep.log") && Files.exists(currDir + "emimPrep.bed") && Files.exists(currDir + "emimPrep.bim") && Files.exists(currDir + "emimPrep.fam")) {
+        if (!forceRewrite && Files.exists(currDir + "plink_prep.log") && Files.exists(currDir + "emimPrep.bed") && Files.exists(currDir + "emimPrep.bim") && Files.exists(currDir + "emimPrep.fam")) {
         	log.report(currDir + "emimPrep PLINK files already exist, skipping PLINK file generation");
         } else {
         	forceRewrite = true;
@@ -225,7 +225,7 @@ public class Emim {
         	log.report(currDir + "plink.hwe already exists, skipping Hardy-Weinberg Equilibrium calculation");
         } else {
         	commands += "plink2 --noweb --bfile emimPrep --hardy\n"+
-        				"mv plink.log plink_hew.log\n"+
+        				"mv plink.log plink_hwe.log\n"+
         				"\n";
         }
 
