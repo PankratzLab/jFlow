@@ -881,6 +881,49 @@ public class ext {
 		}
 		return finalIndices;
 	}
+	
+	
+	public static Map<String, Integer> indexMap(String[] subset, String[] superset, boolean casesensitive, boolean kill) {
+		return indexMap(subset, superset, casesensitive, new Logger(), true, kill);
+	}
+	
+	public static Map<String, Integer> indexMap(String[] subset, String[] superset, boolean casesensitive, Logger log, boolean verbose, boolean kill) {
+		Map<String, Integer> indices = new HashMap<String, Integer>(subset.length);
+		
+		if (!casesensitive) {
+			// TODO implement CaseInsensitiveMap solution (maybe Apache Commons)
+			int[] indexArr = indexFactors(subset, superset, casesensitive, log, verbose, kill);
+			for (int i = 0; i < subset.length; i++) {
+				indices.put(subset[i], indexArr[i]);
+			}
+		} else {
+			Set<String> targets = new HashSet<String>(Arrays.asList(subset));
+			boolean err = false;
+			
+			
+			for (int i = 0; i < superset.length; i++){
+				if (targets.contains(superset[i])){
+					if (indices.putIfAbsent(superset[i], i) != null) {
+						if (verbose) log.reportError("Error - more than one factor was named '"+superset[i]+"'");
+						err = true;
+					}
+				}
+			}
+
+			for (String key : targets) {
+				if (!indices.containsKey(key)) {
+					if (verbose) log.reportError("Error - no factor was named '" + key + "'");
+					err = true;
+				}
+			}
+			
+			if (kill && err) {
+				System.exit(1);
+			}
+		}
+		
+		return indices;
+	}
 
 	public static boolean checkHeader(String[] observed, String[] expected, boolean kill) {
 		return checkHeader(observed, expected, true, kill);
