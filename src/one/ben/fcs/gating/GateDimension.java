@@ -19,7 +19,16 @@ public class GateDimension {
         }
         
         float min, max;
+
+        public float getMin() {
+            return min;
+        }
+        
+        public float getMax() {
+            return max;
+        }
     }
+    
     
 }
 

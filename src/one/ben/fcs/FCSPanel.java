@@ -11,8 +11,10 @@ import java.util.ArrayList;
 
 import javax.swing.SwingUtilities;
 
+import one.ben.fcs.gating.Gate;
 import one.ben.fcs.gating.Gate.PolygonGate;
 import one.ben.fcs.gating.Gate.RectangleGate;
+import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 import one.ben.fcs.gating.GateDimension;
 import stats.Histogram;
 import cnv.plots.GenericLine;
@@ -235,12 +237,46 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             setLines();
         }
         
+        setForcePlotXMin(0);
+        setForcePlotYMin(0);
+        
 		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged && !gatesChanged/* && !typeChanged /* don't need to regen if only type has changed, for now */;
 		if (skip) return;
 		
 		xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) : xData;
+		yData = columnsChangedY || dataChanged || yData == null ? isHistogram() ? null : fcp.getAxisData(false, false) : yData;
 
-		if (yCol.equals(FCSPlot.HISTOGRAM_COL)) {
+        ArrayList<boolean[]> gates = new ArrayList<boolean[]>();
+        ArrayList<Gate> gating;
+        if (fcp.gating == null) {
+             gating = new ArrayList<Gate>();
+        } else {
+            if (isHistogram()) {
+                gating = fcp.gating.getGatesForParamOnly(xCol);
+            } else {
+                gating = fcp.gating.getGatesForParams(xCol, yCol);
+            }
+        }
+        rects.clear();
+        polys.clear();
+        for (Gate g : gating) {
+            gates.add(g.gate(fcp.dataLoader));
+            if (g instanceof RectangleGate) {
+                RectangleGate rg = (RectangleGate) g;
+                RectangleGateDimension rgdX = rg.getDimension(xCol);
+                RectangleGateDimension rgdY = isHistogram() ? null : rg.getDimension(yCol);
+                rects.add(new GenericRectangle(
+                      rgdX.getMin(), 
+                      (float)(isHistogram() ? plotYmin + (plotYmax - plotYmin) / 2 : rgdY.getMin()), 
+                      rgdX.getMax(),
+                      (float)(isHistogram() ? plotYmin + (plotYmax - plotYmin) / 2 : rgdY.getMax()), 
+                      (byte)1, false, false, (byte)0, (byte)99, true));
+            } else if (g instanceof PolygonGate) {
+                polys.add(new GenericPath(((PolygonGate)g).getPath(), (byte)0, (byte)0, (byte)99, false, true));
+            }
+        }
+        
+		if (isHistogram()) {
 		    points = new PlotPoint[0];
 		    if (!columnsChangedX && !dataChanged && histLines != null && histLines.size() > 0) return;
 		    
@@ -250,19 +286,17 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    int step = Math.max(2, (int) (range / Math.sqrt(xData.length)));
 		    float[] histData = new float[range / step + 1];
 		    for (float x : xData) {
-	            histData[(int) (x - minMax[0]) / step]++;
+		        histData[(int) (x - minMax[0]) / step]++;
 		    }
 		    
 		    histLines = new ArrayList<GenericLine>();
 		    for (int i = 0; i < histData.length - 1; i++) {
 		        histLines.add(new GenericLine((i * step) + minMax[0], histData[i], ((i + 1) * step) + minMax[0], histData[i + 1], (byte)2, (byte) 0, (byte)0));
 		    }
-	        setLines();
+		    setLines();
 		    
 		    return;
 		}
-		
-		yData = columnsChangedY || dataChanged || yData == null ? fcp.getAxisData(false, false) : yData;
 		
 		ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
 		if (showMedSD[0] || showMedSD[1]) {
@@ -296,20 +330,20 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         lines = lineList.toArray(new GenericLine[lineList.size()]);
         lineList = null;
         
-        ArrayList<boolean[]> gates = new ArrayList<boolean[]>();
-        for (int i = 0; i < polygons.length; i++) {
-            PolygonGate pg = new PolygonGate();
-            pg.addDimension(new GateDimension(xCol));
-            pg.addDimension(new GateDimension(yCol));
-            pg.setPath(polygons[i].myPath);
-            gates.add(pg.gate(fcp.dataLoader));
-        }
-        for (int i = 0; i < rectangles.length; i++) {
-            RectangleGate rg = new RectangleGate();
-            rg.addDimension(new GateDimension.RectangleGateDimension(xCol, Math.min(rectangles[i].getStartXValue(), rectangles[i].getStopXValue()), Math.max(rectangles[i].getStartXValue(), rectangles[i].getStopXValue())));
-            rg.addDimension(new GateDimension.RectangleGateDimension(yCol, Math.min(rectangles[i].getStartYValue(), rectangles[i].getStopYValue()), Math.max(rectangles[i].getStartYValue(), rectangles[i].getStopYValue())));
-            gates.add(rg.gate(fcp.dataLoader));
-        }
+//        ArrayList<boolean[]> gates = new ArrayList<boolean[]>();
+//        for (int i = 0; i < polygons.length; i++) {
+//            PolygonGate pg = new PolygonGate();
+//            pg.addDimension(new GateDimension(xCol));
+//            pg.addDimension(new GateDimension(yCol));
+//            pg.setPath(polygons[i].myPath);
+//            gates.add(pg.gate(fcp.dataLoader));
+//        }
+//        for (int i = 0; i < rectangles.length; i++) {
+//            RectangleGate rg = new RectangleGate();
+//            rg.addDimension(new GateDimension.RectangleGateDimension(xCol, Math.min(rectangles[i].getStartXValue(), rectangles[i].getStopXValue()), Math.max(rectangles[i].getStartXValue(), rectangles[i].getStopXValue())));
+//            rg.addDimension(new GateDimension.RectangleGateDimension(yCol, Math.min(rectangles[i].getStartYValue(), rectangles[i].getStopYValue()), Math.max(rectangles[i].getStartYValue(), rectangles[i].getStopYValue())));
+//            gates.add(rg.gate(fcp.dataLoader));
+//        }
         
         byte color = 0;
         if (columnsChangedX || columnsChangedY || dataChanged || gatesChanged) {
@@ -545,7 +579,13 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                    path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
                 }
                 path.closePath();
-                polys.add(new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true));
+                PolygonGate pg = new PolygonGate();
+                pg.addDimension(new GateDimension(xCol));
+                pg.addDimension(new GateDimension(yCol));
+                pg.setPath(path);
+//                fcp.addGate(pg);
+//                 TODO add new PolygonGate to fcp gating strategy, instead of adding to polys
+//                polys.add(new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true));
                 tempPoly.clear();
                 highlightPoly = null;
                 paintAgain();
@@ -569,15 +609,18 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         mouseEndX = e.getX();
         mouseEndY = e.getY();
         highlightRectangle = null;
-        rects.add(new GenericRectangle(
-                (float)getXValueFromXPixel(startX), 
-                (float)getYValueFromYPixel(startY), 
-                (float)getXValueFromXPixel(mouseEndX), 
-                isHistogram() ? (float)getYValueFromYPixel(startY) : (float)getYValueFromYPixel(mouseEndY), 
-                (byte)1, false, false, (byte)0, (byte)99, true));
-//        RectangleGate rg = new RectangleGate();
-//        rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
-//        rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
+//        rects.add(new GenericRectangle(
+//                (float)getXValueFromXPixel(startX), 
+//                (float)getYValueFromYPixel(startY), 
+//                (float)getXValueFromXPixel(mouseEndX), 
+//                isHistogram() ? (float)getYValueFromYPixel(startY) : (float)getYValueFromYPixel(mouseEndY), 
+//                (byte)1, false, false, (byte)0, (byte)99, true));
+        // TODO add new RectangleGate to fcp gating strategy, instead of adding to rects
+        RectangleGate rg = new RectangleGate();
+        rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
+        if (!isHistogram()) {
+            rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
+        }
 //        fcp.addGate(rg);
         paintAgain();
 	}
@@ -617,6 +660,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             mouseEndX = e.getX();
             mouseEndY = e.getY();
             
+            // TODO don't rely on polys here, instead use fcp.gating object
             GenericPath gp = polys.get(polyDragInd);
             Path2D newPath = new Path2D.Double();
             PathIterator pi = gp.myPath.getPathIterator(null);
