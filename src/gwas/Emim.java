@@ -256,13 +256,10 @@ public class Emim {
         	if (!forceRewrite &&
         			Files.exists(currDir + (resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_" + model.toString() + ".xln") &&
         			Files.exists(currDir + "emimsummary_C_" + model.toString() + ".out") &&
-        			Files.exists(currDir + "emimresults_C_" + model.toString() + ".out") &&
         			Files.exists(currDir + "emimparams_C_" + model.toString() + ".dat") &&
         			Files.exists(currDir + "emimsummary_CM_" + model.toString() + ".out") &&
-        			Files.exists(currDir + "emimresults_CM_" + model.toString() + ".out") &&
         			Files.exists(currDir + "emimparams_CM_" + model.toString() + ".dat") &&
         			Files.exists(currDir + "emimsummary_M_" + model.toString() + ".out") &&
-        			Files.exists(currDir + "emimresults_M_" + model.toString() + ".out") &&
         			Files.exists(currDir + "emimparams_M_" + model.toString() + ".dat")) {
         		log.report("Results already exist in " + currDir + " for " + model.toString() + " model, skipping " + model.toString() + " EMIM");
         	} else {
@@ -270,19 +267,19 @@ public class Emim {
 	                    	"jcp gwas.Emim run=C model=" + model.toString() + "\n"+
 	                    	"emim\n"+
 	                    	"mv emimsummary.out emimsummary_C_" + model.toString() + ".out\n"+
-	                    	"mv emimresults.out emimresults_C_" + model.toString() + ".out\n"+
+	                    	"rm emimresults.out\n"+
 	                    	"cp emimparams.dat emimparams_C_" + model.toString() + ".dat\n"+
 	                    	"\n"+
 	                    	"jcp gwas.Emim run=CM model=" + model.toString() + "\n"+
 	                    	"emim\n"+
 	                    	"mv emimsummary.out emimsummary_CM_" + model.toString() + ".out\n"+
-	                    	"mv emimresults.out emimresults_CM_" + model.toString() + ".out\n"+
+	                    	"rm emimresults.out\n"+
 	                    	"cp emimparams.dat emimparams_CM_" + model.toString() + ".dat\n"+
 	                    	"\n"+
 	                    	"jcp gwas.Emim run=M model=" + model.toString() + "\n"+
 	                    	"emim\n"+
 	                    	"mv emimsummary.out emimsummary_M_" + model.toString() + ".out\n"+
-	                    	"mv emimresults.out emimresults_M_" + model.toString() + ".out\n"+
+	                    	"rm emimresults.out\n"+
 	                    	"cp emimparams.dat emimparams_M_" + model.toString() + ".dat\n"+
 	                    	"\n"+
 	                        "jcp gwas.Emim parse=./ hwe=plink.hwe pThreshold=" + pThreshold + " model=" + model.toString() + "\n" +
