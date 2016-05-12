@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import scala.collection.generic.BitOperations.Int;
 import seq.manage.BamOps;
 import seq.manage.ReferenceGenome;
 import stats.Histogram.DynamicAveragingHistogram;
