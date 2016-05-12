@@ -428,8 +428,8 @@ public class EmimPipeline {
             					"MarkerName", 
             					new String[] {"tdt", "emim_C", "emim_M"}, 
             					new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
-            								    {"C_lnR1", "C_sd_lnR1", "pVal_C_df" + model.getDegreesOfFreedom()},
-            								    {"M_lnS1", "M_sd_lnS1", "pVal_M_df" + model.getDegreesOfFreedom()}},
+            								    {"C_lnR1", "C_se_lnR1", "pVal_C_df" + model.getDegreesOfFreedom()},
+            								    {"M_lnS1", "M_se_lnS1", "pVal_M_df" + model.getDegreesOfFreedom()}},
             					getResultsDirectory(finalDir, cnvRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot_" + model.toString() + ".xln",
             					log);
             		}
@@ -452,8 +452,8 @@ public class EmimPipeline {
             					"MarkerName", 
             					new String[] {"tdt", "emim_C", "emim_M"}, 
             					new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
-            									{"C_lnR1", "C_sd_lnR1", "pVal_C_df" + model.getDegreesOfFreedom()},
-            									{"M_lnS1", "M_sd_lnS1", "pVal_M_df" + model.getDegreesOfFreedom()}},
+            									{"C_lnR1", "C_se_lnR1", "pVal_C_df" + model.getDegreesOfFreedom()},
+            									{"M_lnS1", "M_se_lnS1", "pVal_M_df" + model.getDegreesOfFreedom()}},
             					getResultsDirectory(finalDir, plinkRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot_" + model.toString() + ".xln",
             					log);
             		}

@@ -16,11 +16,12 @@ public class ResultsPackager {
 	public static final String[] EMIM_OUTPUT_FORMAT_MENDEL_ERRORS = {"Mendel_Errors"};
 	public static final String[] EMIM_OUTPUT_FORMAT_HWE = {"HWE_GENO", "HWE_P", "SigHWE"};
 	public static final String[] EMIM_OUTPUT_FORMAT_TDT = {"tdt_T", "tdt_U", "tdt_OR", "tdt_P", "tdt_L95", "tdt_U95", "tdt_BETA", "tdt_SE"};
-	public static final String[] EMIM_OUTPUT_FORMAT_EMIM_RESULTS = {"freq", "C_lnR1", "C_sd_lnR1", "C_lnR2", "C_sd_lnR2", "C_lnS1", "C_sd_lnS1", "C_lnS2", "C_sd_lnS2", "CM_lnR1", "CM_sd_lnR1", "CM_lnR2", "CM_sd_lnR2", "CM_lnS1", "CM_sd_lnS1", "CM_lnS2", "CM_sd_lnS2", "M_lnR1", "M_sd_lnR1", "M_lnR2", "M_sd_lnR2", "M_lnS1", "M_sd_lnS1", "M_lnS2", "M_sd_lnS2"};
+	public static final String[] EMIM_OUTPUT_FORMAT_EMIM_RESULTS = {"freq", "C_lnR1", "C_se_lnR1", "C_lnR2", "C_se_lnR2", "C_lnS1", "C_se_lnS1", "C_lnS2", "C_se_lnS2", "CM_lnR1", "CM_se_lnR1", "CM_lnR2", "CM_se_lnR2", "CM_lnS1", "CM_se_lnS1", "CM_lnS2", "CM_se_lnS2", "M_lnR1", "M_se_lnR1", "M_lnR2", "M_se_lnR2", "M_lnS1", "M_se_lnS1", "M_lnS2", "M_se_lnS2"};
 	public static final String[] EMIM_OUTPUT_FORMAT_EMIM_PVALS = {"pVal_C_df2", "pVal_C_df2_Excel", "pVal_C_df1", "pVal_C_df1_Excel", "pVal_M_df2", "pVal_M_df2_Excel", "pVal_M_df1", "pVal_M_df1_Excel", "pVal_CM-C_df2", "pVal_CM-C_df2_Excel", "pVal_CM-C_df1", "pVal_CM-C_df1_Excel", "pVal_CM-M_df2", "pVal_CM-M_df2_Excel", "pVal_CM-M_df1", "pVal_CM-M_df1_Excel"};
 	
 	public static final String[] PLINK_REQS = {"SNP", "A1", "TEST", "NMISS", "OR", "BETA", "SE", "P"};
 	public static final String[] SOL_REQS = {"Variant_ID", "Beta", "Se", "Pvalue", "CAF", "CAC", "N0", "N1", "N2", "NMISS"};
+	// Standard Errors in emimsummary.out are currently labeled "sd"
 	public static final String[] EMIM_REQS = {"snpID", "freq", "lnR1", "sd_lnR1", "lnR2", "sd_lnR2", "lnS1", "sd_lnS1", "lnS2", "sd_lnS2", "lnliknull", "lnlikfull"};
 	public static final String[] TDT_REQS = {"T", "U", "OR", "P", "L95", "U95"};
 	
@@ -635,7 +636,7 @@ public class ResultsPackager {
 	 * 							  "D:/temp/Poynter_emim/testing/markerList.txt",
 	 * 							  "MarkerName",
 	 * 							  new String[] {"tdt", "emim"},
-	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
+	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_se_lnR1", "pVal_C_df1"}},
 	 * 							  "D:/temp/Poynter_emim/testing/forestplot.xln",
 	 * 							  null);
 	 * 
@@ -643,7 +644,7 @@ public class ResultsPackager {
 	 * 							  "/home/pankrat2/shared/Poynter_emim/markerList.txt",
 	 * 							  "MarkerName",
 	 * 							  new String[] {"tdt", "emim"},
-	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}},
+	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_se_lnR1", "pVal_C_df1"}},
 	 * 							  "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln",
 	 * 							  null);
 	 */
@@ -1051,7 +1052,7 @@ public class ResultsPackager {
 			    String mkrFile = "/home/pankrat2/shared/Poynter_emim/gwasHits.txt";
 			    String mkrColNm = "markerName";
 			    String[] analyses = {"tdt", "emim_child", "emim_maternal"};
-			    String[][] analysisNms = {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_sd_lnR1", "pVal_C_df1"}, {"CM_lnS1", "CM_sd_lnS1", "pVal_CM-C_df1"}};
+			    String[][] analysisNms = {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_se_lnR1", "pVal_C_df1"}, {"CM_lnS1", "CM_se_lnS1", "pVal_CM-C_df1"}};
                 
 			    String[][] files = {
 			            {
