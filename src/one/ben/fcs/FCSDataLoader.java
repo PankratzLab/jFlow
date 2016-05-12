@@ -67,7 +67,7 @@ public class FCSDataLoader {
     int loadedCount = 0;
     float[][] allData;
     float[][] compensatedData;
-    String loadedFile = null;
+    private String loadedFile = null;
     CFCSData dataObj = null;
     CFCSSpillover spillObj = null;
     int paramsCount = -1;
@@ -117,6 +117,10 @@ public class FCSDataLoader {
         beginTime = null;
         endTime = null;
         System.gc();
+    }
+    
+    public String getLoadedFile() {
+        return loadedFile;
     }
     
     private /*synchronized*/ void setState(LOAD_STATE state) {

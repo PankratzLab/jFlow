@@ -143,10 +143,10 @@ public class RainbowTestGUI extends JFrame {
     private JButton button;
     private JSeparator separator_1;
     private JButton btnHideshowColumns;
-    Color ABOVE_1SD_COLOR = Color.RED;
+    Color SD1_COLOR = Color.YELLOW;
+    Color SD2_COLOR = Color.RED;
     Color ABOVE_3_CV_COLOR = Color.CYAN;
     Color ABOVE_5_CV_COLOR = Color.CYAN.darker();
-    Color BELOW_1SD_COLOR = Color.RED;
     
 
     /**
@@ -301,10 +301,10 @@ public class RainbowTestGUI extends JFrame {
                             Float value = (Float) val;
                             if (rdbtnMean.isSelected()) {
                                 if (paramMeans.containsKey(colNm)) {
-                                    if (value > (paramMeans.get(colNm) + paramSDs.get(colNm))) {
-                                        col = ABOVE_1SD_COLOR;
-                                    } else if (value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
-                                        col = BELOW_1SD_COLOR;
+                                    if (value > (paramMeans.get(colNm) + paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
+                                        col = SD1_COLOR;
+                                    } else if (value > (paramMeans.get(colNm) + 2*paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - 2*paramSDs.get(colNm))) {
+                                        col = SD2_COLOR;
                                     }
                                 }
                             } else if (rdbtnSd.isSelected()) {
@@ -366,6 +366,9 @@ public class RainbowTestGUI extends JFrame {
                     }
                     if (loader == null) return;
                     fcp.setData(loader);
+                    if (gateStrat != null) {
+                        fcp.setGating(gateStrat);
+                    }
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {

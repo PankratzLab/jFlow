@@ -6,6 +6,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import cnv.plots.GenericPath;
 import one.ben.fcs.FCSDataLoader;
@@ -17,7 +18,12 @@ public abstract class Gate {
     Gate parentGate;
     protected ArrayList<Gate> children = new ArrayList<Gate>();
     protected ArrayList<GateDimension> dimensions = new ArrayList<GateDimension>();
+    protected HashMap<String, boolean[]> gatingCache = new HashMap<String, boolean[]>();
 
+    public ArrayList<GateDimension> getDimensions() {
+        return dimensions;
+    }
+    
     public void addDimension(GateDimension gd) {
         this.dimensions.add(gd);
     }
@@ -25,7 +31,16 @@ public abstract class Gate {
     public abstract boolean[] gate(FCSDataLoader dataLoader);
     
     public static class RectangleGate extends Gate {
-
+        
+        public RectangleGateDimension getDimension(String param) {
+            for (GateDimension gd : this.dimensions) {
+                if (gd.paramName.equals(param)) {
+                    return (RectangleGateDimension) gd;
+                }
+            }
+            return null;
+        }
+        
         @Override
         public void addDimension(GateDimension gd) {
             if (!(gd instanceof RectangleGateDimension)) {
@@ -37,6 +52,9 @@ public abstract class Gate {
         
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
+            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
+                return gatingCache.get(dataLoader.getLoadedFile());
+            }
             boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
             boolean[][] paramIncludes = new boolean[dimensions.size()][dataLoader.getCount()];
             for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
@@ -59,6 +77,7 @@ public abstract class Gate {
                 }
                 includes[i] = include;
             }
+            gatingCache.put(dataLoader.getLoadedFile(), includes);
             return includes;
         }
         
@@ -101,6 +120,9 @@ public abstract class Gate {
         
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
+            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
+                return gatingCache.get(dataLoader.getLoadedFile());
+            }
             boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
             if (myPath == null) {
                 myPath = constructPath();
@@ -116,7 +138,7 @@ public abstract class Gate {
                 }
                 includes[i] = myPath.contains(paramData[0][i], paramData[1][i]);
             }
-            
+            gatingCache.put(dataLoader.getLoadedFile(), includes);
             return includes;
         }
         

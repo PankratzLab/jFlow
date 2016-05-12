@@ -36,11 +36,16 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
 import one.ben.fcs.FCSDataLoader.LOAD_STATE;
+import one.ben.fcs.gating.GateFileReader;
+import one.ben.fcs.gating.GatingStrategy;
 import one.ben.fcs.gating.Gate.RectangleGate;
 import cnv.gui.GuiManager;
 import common.Files;
@@ -62,9 +67,29 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	private FCSPlotControlPanel fcsControls;
 	private JLayeredPane layeredPane;
 
-	private List<String> dataKeys;
 	HashSet<String> validExts;
 	Logger log;
+
+    FCSDataLoader dataLoader;
+    GatingStrategy gating;
+
+    volatile boolean isLoading = false;
+
+    private volatile String xDataName;
+    private volatile String yDataName;
+
+    private volatile PLOT_TYPE plotType;
+
+    private volatile boolean showSDY = true;
+    private volatile boolean showSDX = true;
+    private volatile boolean showMedianY = true;
+    private volatile boolean showMedianX = true;
+
+    private JFrame parent;
+
+    private static final String TITLE_STR = "Genvisis - FCS Plot";
+
+    HashSet<String> propsSetting = new HashSet<String>();
 
     private FCSPlot() {
         this(null);
@@ -74,7 +99,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		log = new Logger();
 
 		validExts = new HashSet<String>();
-		dataKeys = Collections.synchronizedList(new ArrayList<String>());
 		
 		if (fileExts != null) {
     		for (String ext : fileExts) {
@@ -235,15 +259,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 //		}
 	}
 	
-	FCSDataLoader dataLoader;
-	volatile boolean isLoading = false;
-	
-	private volatile String xDataName;
-	private volatile String yDataName;
-	private volatile PLOT_TYPE plotType;
-	private volatile boolean showSDY = true, showSDX = true, showMedianY = true, showMedianX = true;
-	
-    public String getXDataName() { return xDataName; }
+	public String getXDataName() { return xDataName; }
     public String getYDataName() { return yDataName; }
     
     public AXIS_SCALE getXScale() { return fcsPanel.getXAxis(); }
@@ -380,7 +396,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     }
     
 	public void loadFile(final String filename) {
-	    if (filename == null || !Files.exists(filename) || (dataLoader != null && dataLoader.loadedFile.equals(filename))) {
+	    if (filename == null || !Files.exists(filename) || (dataLoader != null && dataLoader.getLoadedFile().equals(filename))) {
 	        return;
 	    }
 	    isLoading = true;
@@ -388,7 +404,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
             @Override
             public void run() {
                 FCSDataLoader newDataLoader = new FCSDataLoader();
-//                fcsControls.startFileLoading(newDataLoader);
+                fcsControls.startFileLoading(newDataLoader);
                 try {
                     newDataLoader.loadData(filename);
                 } catch (IOException e) {
@@ -399,7 +415,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                 dataLoader = newDataLoader;
                 isLoading = false;
                 System.gc();
-                FCSPlot.this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.loadedFile);
+                FCSPlot.this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.getLoadedFile());
                 System.out.println("Displaying plot...");
                 updateGUI();
             }
@@ -407,19 +423,34 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	    dataLoaderThread.start();
 	}
 	
+	public void loadGatingFile(String gateFile) {
+        try {
+            setGating(GateFileReader.readGateFile(gateFile));
+        } catch (ParserConfigurationException e) {
+            log.reportException(e);
+        } catch (SAXException e) {
+            log.reportException(e);
+        } catch (IOException e) {
+            log.reportException(e);
+        }
+	}
+	
+	public void setGating(GatingStrategy gateStrat) {
+	    this.gating = gateStrat;
+	    // TODO repaint
+	}
+	
 	public void setData(FCSDataLoader newDataLoader) {
-	    if (this.dataLoader != null && this.dataLoader.loadedFile.equals(newDataLoader.loadedFile)) return;
+	    if (this.dataLoader != null && this.dataLoader.getLoadedFile().equals(newDataLoader.getLoadedFile())) return;
 	    resetForNewData(newDataLoader);
 	    this.dataLoader = newDataLoader;
 	    isLoading = false;
         System.gc();
-        this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.loadedFile);
+        this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.getLoadedFile());
         System.out.println("Displaying plot...");
         updateGUI();
 	}
 
-	private JFrame parent;
-	private static final String TITLE_STR = "Genvisis - FCS Plot";
 	private void setParent(JFrame frame) {
 	    this.parent = frame;
 	}
@@ -452,11 +483,11 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         frame.pack();
         frame.setVisible(show);
 
-        String fcsFilename = "C:\\workspace\\2016-05-04_URB_DHS_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
+//        String fcsFilename = "F:\\Flow\\2016-05-04_URB_DHS_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
 //        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
-//        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs";
+//        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs.gz";
 //        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
-        twoDPlot.loadFile(fcsFilename);
+//        twoDPlot.loadFile(fcsFilename);
         
 		return twoDPlot;
     }
@@ -473,7 +504,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         return dataLoader == null ? -1 : dataLoader.getCount();
     }
     
-    HashSet<String> propsSetting = new HashSet<String>();
     @Override
     public void propertyChange(PropertyChangeEvent arg0) {
 //        if (propsSetting.contains(arg0.getPropertyName())) return;

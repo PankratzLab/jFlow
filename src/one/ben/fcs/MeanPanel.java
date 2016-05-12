@@ -108,7 +108,7 @@ public class MeanPanel extends AbstractPanel2  {
 		}
 		
 		points = new PlotPoint[xDataBase.length + xDataComp.length];
-		lines = new GenericLine[xDataBase.length + xDataComp.length + 1];
+		lines = new GenericLine[xDataBase.length + xDataComp.length + 3];
 		byte color;
 		for (int i = 0; i < xDataBase.length; i++) {
 			xAxisValue = (float) xDataBase[i];
@@ -144,6 +144,8 @@ public class MeanPanel extends AbstractPanel2  {
 		lines[xDataBase.length + xDataComp.length - 2] = new GenericLine(-1, mean, xDataBase.length + xDataComp.length + 1, mean, (byte)1, (byte)0, (byte)99);
 		lines[xDataBase.length + xDataComp.length - 1] = new GenericLine(-1, mean - sd, xDataBase.length + xDataComp.length + 1, mean - sd, (byte)1, (byte)2, (byte)99);
 		lines[xDataBase.length + xDataComp.length] = new GenericLine(-1, mean + sd, xDataBase.length + xDataComp.length + 1, mean + sd, (byte)1, (byte)2, (byte)99);
+		lines[xDataBase.length + xDataComp.length + 1] = new GenericLine(-1, mean - 2*sd, xDataBase.length + xDataComp.length + 1, mean - 2*sd, (byte)1, (byte)2, (byte)99);
+		lines[xDataBase.length + xDataComp.length + 2] = new GenericLine(-1, mean + 2*sd, xDataBase.length + xDataComp.length + 1, mean + 2*sd, (byte)1, (byte)2, (byte)99);
 		
 		setForcePlotYMin(Math.min(Array.min(yDataBase), Array.min(yDataComp)));
 		setForcePlotYMax(Math.max(Array.max(yDataBase), Array.max(yDataComp)));
