@@ -729,8 +729,6 @@ public class ResultsPackager {
 						} else {
 						    int betaInd = ext.indexOfStr(columnNamesOfAnalyses[i][0], columnNamesToLoad);
 						    int seInd = ext.indexOfStr(columnNamesOfAnalyses[i][1], columnNamesToLoad);
-						    System.out.println(analyses[i] + "\t" + markers[markerIndex] + "\t" + + betaInd + "\t" + columnNamesToLoad[betaInd] + "\t" + statResults[k][markerIndex][betaInd]); 
-						    System.out.println(analyses[i] + "\t" + markers[markerIndex] + "\t" + seInd + "\t" + columnNamesToLoad[seInd] + "\t" + statResults[k][markerIndex][seInd]); 
 						    beta = Double.parseDouble(statResults[k][markerIndex][betaInd]);
 						    se = Double.parseDouble(statResults[k][markerIndex][seInd]);
 							out1[j] += "\t" + statResults[k][markerIndex][betaInd] + "\t" + statResults[k][markerIndex][seInd] + 
