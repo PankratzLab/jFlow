@@ -34,6 +34,7 @@ import javax.swing.table.DefaultTableModel;
 import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
+import one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import cnv.gui.JAccordionPanel;
 import common.Files;
 import common.ext;
@@ -61,7 +62,7 @@ public class FCSPlotControlPanel extends JPanel {
     private JCheckBox chckbxShowMedianY;
     private JCheckBox chckbxShowSdY;
 
-    private JProgressBar progressBar;
+    public JProgressBar progressBar;
 
     private JAccordionPanel plotControlPanel;
     private JTextField fileDirField;
@@ -87,8 +88,8 @@ public class FCSPlotControlPanel extends JPanel {
         JLabel ctrlLabel = new JLabel("<html><u>Plot Controls</u></html>");
         ctrlLabel.setFont(ctrlLabel.getFont().deriveFont(Font.PLAIN, 14));
         plotControlPanel.topPanel.add(ctrlLabel, "pad 0 10 0 0, cell 0 0, grow");
-        plotControlPanel.topPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.RAISED));
-        plotControlPanel.contentPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.LOWERED));
+        plotControlPanel.topPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+        plotControlPanel.contentPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
         JPanel panel = plotControlPanel.contentPanel;
         
         panel.setLayout(new MigLayout("", "[][][grow][]", "[][][][][][][][][][][]"));
@@ -263,8 +264,8 @@ public class FCSPlotControlPanel extends JPanel {
         gateControlPanel = new JAccordionPanel();
         panel_1.add(gateControlPanel, "cell 0 1,grow");
         gateControlPanel.shrink();
-        gateControlPanel.contentPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.LOWERED));
-        gateControlPanel.topPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.RAISED));
+        gateControlPanel.contentPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+        gateControlPanel.topPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         JLabel gCtrlLabel = new JLabel("<html><u>Gate Controls</u></html>");
         gCtrlLabel.setFont(gCtrlLabel.getFont().deriveFont(Font.PLAIN, 14));
         gateControlPanel.topPanel.add(gCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
@@ -272,8 +273,8 @@ public class FCSPlotControlPanel extends JPanel {
         dataControlsPanel = new JAccordionPanel();
         panel_1.add(dataControlsPanel, "cell 0 2,grow");
         dataControlsPanel.shrink();
-        dataControlsPanel.contentPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.LOWERED));
-        dataControlsPanel.topPanel.setBorder(BorderFactory.createSoftBevelBorder(BevelBorder.RAISED));
+        dataControlsPanel.contentPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+        dataControlsPanel.topPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         JLabel dCtrlLabel = new JLabel("<html><u>Data Controls</u></html>");
         dCtrlLabel.setFont(dCtrlLabel.getFont().deriveFont(Font.PLAIN, 14));
         dataControlsPanel.topPanel.add(dCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
@@ -455,8 +456,13 @@ public class FCSPlotControlPanel extends JPanel {
         resetProgSet();
     }
 
-    // TODO doesn't work very well - no updates until data gets displayed
 //    public void startFileLoading(FCSDataLoader newDataLoader) {
+//        // TODO Auto-generated method stub
+//        
+//    }
+
+    // TODO doesn't work very well - no updates until data gets displayed
+    public void startFileLoading(FCSDataLoader newDataLoader) {
 //        new Thread(new Runnable() {
 //            @Override
 //            public void run() {
@@ -508,6 +514,6 @@ public class FCSPlotControlPanel extends JPanel {
 //                progressBar.setIndeterminate(false);
 //            }
 //        }).start();
-//    }
+    }
     
 }
