@@ -8,13 +8,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
-import scala.actors.threadpool.Arrays;
 import seq.manage.StrandOps;
 import seq.manage.VCOps;
 import seq.manage.StrandOps.CONFIG;
