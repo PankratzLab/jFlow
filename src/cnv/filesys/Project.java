@@ -422,7 +422,7 @@ public class Project {
 	public      FileProperty                  COMMON_CNP_FILENAME = new       FileProperty(this,                  "COMMON_CNP_FILENAME", "", "data/HG19 CNV edit for AGW.txt", false);
 	public      FileProperty                REPORTED_CNP_FILENAME = new       FileProperty(this,                "REPORTED_CNP_FILENAME", "", "data/HG19 Reported 2012.05.22.txt", false);
 	public      FileProperty              UNREPORTED_CNP_FILENAME = new       FileProperty(this,              "UNREPORTED_CNP_FILENAME", "", "data/HG19 Unreported 2012.05.22-2.txt", false);
-	public      FileProperty                INTENSITY_PC_FILENAME = new       FileProperty(this,                "INTENSITY_PC_FILENAME", "", "GENVISIS.PCs.extrapolated.txt", false);
+	public      FileProperty                INTENSITY_PC_FILENAME = new       FileProperty(this,                "INTENSITY_PC_FILENAME", "", "PCA_GENVISIS.PCs.extrapolated.txt", false);
 	public      FileProperty                   SAMPLE_QC_FILENAME = new       FileProperty(this,                   "SAMPLE_QC_FILENAME", "", "lrr_sd.xln", false);
 	public      FileProperty          SEX_CENTROIDS_MALE_FILENAME = new       FileProperty(this,          "SEX_CENTROIDS_MALE_FILENAME", "", "", false);
 	public      FileProperty        SEX_CENTROIDS_FEMALE_FILENAME = new       FileProperty(this,        "SEX_CENTROIDS_FEMALE_FILENAME", "", "", false);
