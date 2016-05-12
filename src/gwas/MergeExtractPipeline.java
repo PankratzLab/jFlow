@@ -1,4 +1,4 @@
-package filesys;
+package gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,6 +17,8 @@ import common.Logger;
 import common.PSF;
 import common.Positions;
 import common.ext;
+import filesys.DosageData;
+import filesys.SnpMarkerSet;
 
 public class MergeExtractPipeline {
     

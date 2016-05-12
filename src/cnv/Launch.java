@@ -269,7 +269,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 		// TODO only instantiate when used
 		frame.setIndexOfCurrentProject(frame.launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
-		frame.loadProject();
+		if (frame.projects.length > 0) {
+		    frame.loadProject();
+		}
 		
 		ueh.setLog(frame.log);
     }
@@ -454,7 +456,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
         projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
 		
 		setIndexOfCurrentProject(launchProperties.getProperty(LaunchProperties.LAST_PROJECT_OPENED));
-		projectsBox.setSelectedIndex(indexOfCurrentProj);
+		if (indexOfCurrentProj > 0 && projectsBox.getItemCount() > 0) {
+		    projectsBox.setSelectedIndex(indexOfCurrentProj);
+		}
 		projectsBox.addItemListener(this);
         pane.add(projectsBox);
     }

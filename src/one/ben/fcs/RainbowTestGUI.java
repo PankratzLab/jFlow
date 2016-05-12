@@ -536,6 +536,33 @@ public class RainbowTestGUI extends JFrame {
         button.setMargin(new Insets(0, 2, 0, 2));
         contentPane.add(button, "cell 2 2");
         
+        separator_2 = new JSeparator();
+        separator_2.setOrientation(SwingConstants.VERTICAL);
+        contentPane.add(separator_2, "cell 0 4,growy");
+        
+        rdbtnCompensated = new JRadioButton(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                currData = DATA_SET.COMPENSATED;
+                reCalcTableData();
+            }
+        });
+        rdbtnCompensated.setText("Compensated");
+        buttonGroup_2.add(rdbtnCompensated);
+        contentPane.add(rdbtnCompensated, "cell 0 4");
+        
+        rdbtnUncompensated = new JRadioButton(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                currData = DATA_SET.UNCOMPENSATED;
+                reCalcTableData();
+            }
+        });
+        rdbtnUncompensated.setText("Uncompensated");
+        rdbtnUncompensated.setSelected(true);
+        buttonGroup_2.add(rdbtnUncompensated);
+        contentPane.add(rdbtnUncompensated, "cell 0 4");
+        
         loadProps();
     }
 
@@ -727,6 +754,11 @@ public class RainbowTestGUI extends JFrame {
             return pathname.isDirectory();
         }
     };
+    private JSeparator separator_2;
+    private JRadioButton rdbtnCompensated;
+    private JRadioButton rdbtnUncompensated;
+    private DATA_SET currData = DATA_SET.UNCOMPENSATED;
+    private final ButtonGroup buttonGroup_2 = new ButtonGroup();
     
     private void resetShownColumns() {
         TableColumnModel tcm = table.getColumnModel();
@@ -743,16 +775,13 @@ public class RainbowTestGUI extends JFrame {
     }
     
     private void reCalcTableData() {
-        
-//        TreeMap<Date, String> dateMap = new TreeMap<Date, String>();
         TreeSet<String> paramSet = new TreeSet<String>();
         
         for (String f : baseFCSFiles) {
             if (!this.baseFiles.containsKey(f)) {
                 this.baseFiles.put(f, loadFCSFile(baseDir + f));
             }
-//            dateMap.put(baseFiles.get(f).lastModified, f);
-            ArrayList<String> p = baseFiles.get(f).getAllDisplayableNames(DATA_SET.COMPENSATED);
+            ArrayList<String> p = baseFiles.get(f).getAllDisplayableNames(currData);
             paramNames.addAll(p);
             paramSet.addAll(p);
         }
@@ -762,8 +791,7 @@ public class RainbowTestGUI extends JFrame {
             if (!this.compFiles.containsKey(f)) {
                 this.compFiles.put(f, loadFCSFile(f));
             }
-//            dateMap.put(compFiles.get(f).lastModified, f);
-            ArrayList<String> p = compFiles.get(f).getAllDisplayableNames(DATA_SET.COMPENSATED);
+            ArrayList<String> p = compFiles.get(f).getAllDisplayableNames(currData);
             paramNames.addAll(p);
             paramSet.addAll(p);
         }

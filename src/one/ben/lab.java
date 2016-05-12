@@ -55,9 +55,9 @@ import cnv.manage.UCSCtrack;
 import cnv.var.SampleData;
 import filesys.CNVariant;
 import filesys.DosageData;
-import filesys.MergeExtractPipeline;
 import filesys.Segment;
 import filesys.SnpMarkerSet;
+import gwas.MergeExtractPipeline;
 
 public class lab {
 	
