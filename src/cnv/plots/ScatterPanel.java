@@ -241,14 +241,19 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 						if (cents[i][markerIndex][j] == null) {
 							x = 0;
 							y = 0;
-						} else if (plotType == 1) {
+						} else if (plotType == 0) {
 							x = (float)(cents[i][markerIndex][j][1] /(1+ Math.sin(cents[i][markerIndex][j][0]*Math.PI/2)/Math.cos(cents[i][markerIndex][j][0]*Math.PI/2)));
 							y = (float)(cents[i][markerIndex][j][1] /(1+ Math.cos(cents[i][markerIndex][j][0]*Math.PI/2)/Math.sin(cents[i][markerIndex][j][0]*Math.PI/2)));
 						} else {
 							x = cents[i][markerIndex][j][0];
 							y = cents[i][markerIndex][j][1];
 						}
-						points[count*3+j] = new PlotPoint("Centroids", PlotPoint.FILLED_CIRCLE, x, y, centSize, (byte)(5+i), (byte)10);
+						if (x > 0 || y > 0) {
+							points[count * 3 + j] = new PlotPoint("Centroids", PlotPoint.FILLED_CIRCLE, x, y, centSize, (byte) (5 + i), (byte) 10);
+						} else {
+							points[count * 3 + j] = new PlotPoint("Centroids", PlotPoint.MISSING, x, y, centSize, (byte) (5 + i), (byte) 10);
+							points[count * 3 + j].setVisible(false);
+						}
 
 	                }
 					count++;
