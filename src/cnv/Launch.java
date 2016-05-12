@@ -15,14 +15,9 @@ import cnv.analysis.Mosaicism;
 import cnv.analysis.pca.PrincipalComponentsCrossTabs;
 import cnv.analysis.pca.PrincipalComponentsManhattan;
 import cnv.filesys.*;
-import cnv.filesys.Project.FileProperty;
-import cnv.filesys.Project.Property;
 import cnv.gui.FileAndOutputSelectorGUI;
 import cnv.gui.ImportProjectGUI;
 import cnv.gui.PlinkExportOptions;
-//import cnv.gui.KitAndKaboodleGUI;
-//import cnv.gui.GuiManager;
-//import cnv.gui.PropertyEditor;
 import cnv.manage.*;
 import cnv.plots.*;
 import cnv.qc.MarkerMetrics;
@@ -956,13 +951,13 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	 * @return launch for windows
 	 */
 	public static String getLaunchBat() {
-		String bat = "#This script is intended for launch on Windows machines\n";
-		bat += "#-Xmx2000m indicates 2000 mb of memory, adjust number up or down as needed\n";
-		bat += "#Script must be in the same directory as vis.jar\n";
-		bat += "for %%x in (%0) do set BatchPath=%%~dpsx\n";
-		bat += "for %%x in (%BatchPath%) do set BatchPath=%%~dpsx\n";
-		bat += "java  -Xmx22000m -cp %BatchPath%/genvisis.jar cnv.Launch  %*\n";
-		bat += "PAUSE";
+		String bat = "#This script is intended for launch on Windows machines\r\n";
+		bat += "#-Xmx2000m indicates 2000 mb of memory, adjust number up or down as needed\r\n";
+		bat += "#Script must be in the same directory as vis.jar\r\n";
+		bat += "for %%x in (%0) do set BatchPath=%%~dpsx\r\n";
+		bat += "for %%x in (%BatchPath%) do set BatchPath=%%~dpsx\r\n";
+		bat += "java  -Xmx22000m -cp %BatchPath%/genvisis.jar cnv.Launch  %*\r\n";
+		bat += "PAUSE\r\n";
 		return bat;
 	}
 	/**
