@@ -744,9 +744,9 @@ public class Rscript {
 		}
 		
 
-		private void setNumHistBins(int numHistBins) {
-			this.numHistBins = numHistBins;
-		}
+//		private void setNumHistBins(int numHistBins) {
+//			this.numHistBins = numHistBins;
+//		}
 
 		public ErrorBars getErrorBars() {
 			return errorBars;

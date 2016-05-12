@@ -522,7 +522,7 @@ public class Project {
 
 		if (Files.exists(SAMPLE_DIRECTORY.getValue()) && (new File(SAMPLE_DIRECTORY.getValue()).list().length > 0)) {
 			// skip source file headers, sample files already parsed
-		} else if (createHeaders) {
+		} else if (createHeaders && Files.list(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(), false).length > 0) {
 			HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
 			setSourceFileHeaders(headers);
 		}
