@@ -191,7 +191,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		displayXaxis = true;
 		displayYaxis = true;
 		displayGrid = false;
-		createLookup = true;
+		createLookup = false;
 		missingWidth = -1;
 		nanWidth = -1;
 		forcePlotXmax = forcePlotYmax = forcePlotXmin = forcePlotYmin = Float.NaN;
@@ -623,7 +623,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			minimumObservedRawY = minimumObservedRawX;
 		}
 		
-		
 		numberOfNaNSamples = 0;
 		if (base) {
 		    if (DEBUGGING) {
@@ -709,6 +708,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         step = Math.max((points.length)/100, 1);
         layers = new Hashtable<String,Vector<PlotPoint>>();
 
+        long t1 = System.currentTimeMillis();
 
         if (chartType == PLOT_TYPE.HEATMAP) {
             drawHeatMap(g);
@@ -719,15 +719,16 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                 } else if (truncate && (points[i].getRawX() < plotXmin || points[i].getRawX() - plotXmax > plotXmax/1000.0 || points[i].getRawY() < plotYmin || points[i].getRawY() > plotYmax)) {
 //                  System.err.println("error: data point ("+points[i].getRawX()+","+points[i].getRawY()+") is outside of plot range.");
                 } else {
-                    trav = points[i].getLayer()+"";
+                    
                     if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
-                        if (trav.equals("0")) {
+                        if (points[i].getLayer() == 0) {
                             if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
                                 drawPoint(g, points[i]);
                             } else if (base) {
                                 numberOfNaNSamples++;
                             }
                         } else {
+                            trav = points[i].getLayer()+"";
                             if (layers.containsKey(trav)) {
                                 layer = layers.get(trav);
                             } else {
@@ -752,7 +753,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                     }
                 }
             }
-            
+
             // Draw those points with layer>0.
             keys = HashVec.getKeys(layers);
             order = Sort.quicksort(Array.toIntArray(keys));
@@ -769,7 +770,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         }/* else {
             System.err.println("Error - invalid chart type: "+chartType);
         }*/
-		
+        
+        System.out.println("pts: " + ext.getTimeElapsed(t1));
+        
         g.setClip((int)canvasSectionMinimumX, HEAD_BUFFER, (int)(canvasSectionMaximumX - canvasSectionMinimumX) + 1, (int)(getHeight() - axisXHeight - 24));
         
 		// Draw the lines
@@ -845,86 +848,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				}
 			}
         }
-//        class Ellipse2DCreator {
-//            
-//            
-//            int[][] getOppPts(GenericPath gp) {
-//                int[][] oppInds = new int[2][2];
-//                oppInds[0][0] = 0;
-//                
-//                double[] slopes = new double[gp.points.length - 1];
-//                for (int p = 1; p < gp.points.length; p++) {
-//                    double s2 = Math.atan2(gp.points[p][1] - gp.points[0][1], gp.points[p][0] - gp.points[p][1]);
-//                    slopes[p - 1] = s2;
-//                }
-//                double s = Array.median(slopes);
-//                int ind2 = 0;
-//                for (int p = 1; p < gp.points.length; p++) {
-//                    if (slopes[p - 1] == s) {
-//                        oppInds[0][1] = p;
-//                    } else {
-//                        oppInds[1][ind2] = p;
-//                        ind2++;
-//                    }
-//                }
-//                    
-//                return oppInds;
-//            }
-//            
-//            void createEllipse(GenericPath pa) {
-//                int[][] oppInds = getOppPts(pa);
-//                double[] center = new double[]{
-//                        pa.foci[0][0] + (pa.foci[1][0] - pa.foci[0][0]) / 2,
-//                        pa.foci[0][1] + (pa.foci[1][1] - pa.foci[0][1]) / 2
-//                };
-//                
-//                
-//                
-//            }
-//            
-//            Shape createEllipse(GenericPath gp, Graphics g) {
-//                double minX = Math.min(Math.min(gp.points[0][0], gp.points[1][0]), Math.min(gp.points[2][0], gp.points[3][0]));
-//                double maxY = Math.max(Math.max(gp.points[0][1], gp.points[1][1]), Math.max(gp.points[2][1], gp.points[3][1]));
-//                
-//                int[][] oppInds = getOppPts(gp);
-//
-//                double[] center = new double[]{
-//                        gp.foci[0][0] + (gp.foci[1][0] - gp.foci[0][0]) / 2,
-//                        gp.foci[0][1] + (gp.foci[1][1] - gp.foci[0][1]) / 2
-//                };
-//                g.setColor(Color.CYAN);
-//                g.fillRect(getXPixel(center[0]) - 3, getYPixel(center[1]) - 3, 6, 6);
-//                
-//                double height = Math.sqrt(
-//                        (gp.points[oppInds[0][0]][0] - gp.points[oppInds[0][1]][0]) * (gp.points[oppInds[0][0]][0] - gp.points[oppInds[0][1]][0]) + 
-//                        (gp.points[oppInds[0][0]][1] - gp.points[oppInds[0][1]][1]) * (gp.points[oppInds[0][0]][1] - gp.points[oppInds[0][1]][1])
-//                );
-//                double width = Math.sqrt(
-//                        (gp.points[oppInds[1][1]][0] - gp.points[oppInds[1][0]][0]) * (gp.points[oppInds[1][1]][0] - gp.points[oppInds[1][0]][0]) + 
-//                        (gp.points[oppInds[1][1]][1] - gp.points[oppInds[1][0]][1]) * (gp.points[oppInds[1][1]][1] - gp.points[oppInds[1][0]][1])
-//                );
-//                int pixX = getXPixel(minX);
-//                int pixY = getYPixel(maxY);
-//                int pixHeight = getYPixel(maxY - height) - getYPixel(maxY);
-//                int pixWidth = getXPixel(minX + width) - getXPixel(minX);
-//                
-//                g.drawRect(pixX, pixY, pixWidth, pixHeight);
-//                
-//                double yD, xD;
-////                yD = gp.points[oppInds[0][0]][1] - gp.points[oppInds[0][1]][1];
-////                xD = gp.points[oppInds[0][1]][0] - gp.points[oppInds[0][0]][0];
-//                yD = gp.foci[1][1] - gp.foci[0][1];
-//                xD = gp.foci[1][0] - gp.foci[0][0];
-//                double radAng = Math.atan2(yD, xD);
-//                Ellipse2D ell = new Ellipse2D.Double(pixX, pixY, pixWidth, pixHeight);
-//                Shape rotEll = AffineTransform.getRotateInstance(radAng, pixX + pixWidth / 2, pixY + pixHeight / 2).createTransformedShape(ell);
-//                return rotEll;
-////                return ell;
-//            }
-//            
-//        }
-        
-//        Ellipse2DCreator e2DC = new Ellipse2DCreator();
         
 		class PolyTransformer {
 		    
@@ -1747,11 +1670,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		size = point.getSize();
 		color = point.getColor();
 		
-		g.setColor(colorScheme[color]);
 
 		if (size == 0) {
 			return;
 		}
+
 		if (beEfficient) {
 			if (pointsPlotted.contains(x+":"+y+":"+size+":"+color)) {
 				return;
@@ -1760,11 +1683,12 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			}
 //	    	Files.appendStringToFile("listOfPoints.out", x+":"+y+":"+size+":"+color);
 		}
+		g.setColor(colorScheme[color]);
 		
 		switch (point.getType()) {
 			case PlotPoint.FILLED_CIRCLE:
 				g.fillOval(x-size/2, y-size/2, size, size);
-				break;
+				break;  
 			case PlotPoint.OPEN_CIRCLE:
 				g.drawOval(x-size/2, y-size/2, size, size);
 				break;
@@ -1971,18 +1895,19 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	protected Logicle biexScaleX = null;
 	protected Logicle biexScaleY = null;
 	private Logicle getBiexScale(boolean xAxis) {
-	    double W = 2;
-	    double A = 1;
+	    double W = 2; // linear decades
+	    double M = 5.5; // log decades (/total decades)
+	    double A = -1.35; // negative decades
 	    if (xAxis) {
     	    if (biexScaleX != null) return biexScaleX;
-//    	    Logicle fl = new FastLogicle(plotXmax, W, 5.5, A, 0);
-            Logicle fl = new Logicle(plotXmax, W, 5.5, A);
+//    	    Logicle fl = new FastLogicle(plotXmax, W, M, A, 1); // FastLogicle causes issues (possible that parameters are incorrectly set)
+            Logicle fl = new Logicle(plotXmax, W, M, A);
     	    biexScaleX = fl;
     	    return fl;
 	    } else {
     	    if (biexScaleY != null) return biexScaleY;
-//            Logicle fl = new FastLogicle(plotYmax, W, 5.5, A, 0);
-            Logicle fl = new Logicle(plotYmax, W, 5.5, A);
+//            Logicle fl = new FastLogicle(plotYmax, W, M, A, 1);
+            Logicle fl = new Logicle(plotYmax, W, M, A);
             biexScaleY = fl;
             return fl;
 	    }

@@ -28,13 +28,13 @@ public class MeanPanel extends AbstractPanel2  {
 	public static final Color[] DEFAULT_COLORS = {
                                                 new Color(33, 31, 53), // dark dark
 			   									new Color(201, 30, 10), // deep red
+			   									new Color(182, 182, 182), // light grey
 			   									new Color(94, 88, 214), // light purple
 			   									new Color(189, 243, 61), // light green
 			   									new Color(217, 109, 194), // pink
 			   									new Color(33, 87, 0), // dark green
 			   									new Color(23, 58, 172), // dark blue
 			   									new Color(140, 20, 180), // deep purple
-			   									new Color(182, 182, 182), // light grey
 			   									new Color(220, 220, 220), // very light grey
 			   									new Color(0, 0, 128), // ALL KINDS OF BLUES
 			   									new Color(55, 129, 252), // light blue
@@ -142,8 +142,8 @@ public class MeanPanel extends AbstractPanel2  {
 		float mean = Array.mean(yDataBase);
 		float sd = Array.stdev(yDataBase, true);
 		lines[xDataBase.length + xDataComp.length - 2] = new GenericLine(-1, mean, xDataBase.length + xDataComp.length + 1, mean, (byte)1, (byte)0, (byte)99);
-		lines[xDataBase.length + xDataComp.length - 1] = new GenericLine(-1, mean - sd, xDataBase.length + xDataComp.length + 1, mean - sd, (byte)1, (byte)0, (byte)99);
-		lines[xDataBase.length + xDataComp.length] = new GenericLine(-1, mean + sd, xDataBase.length + xDataComp.length + 1, mean + sd, (byte)1, (byte)0, (byte)99);
+		lines[xDataBase.length + xDataComp.length - 1] = new GenericLine(-1, mean - sd, xDataBase.length + xDataComp.length + 1, mean - sd, (byte)1, (byte)2, (byte)99);
+		lines[xDataBase.length + xDataComp.length] = new GenericLine(-1, mean + sd, xDataBase.length + xDataComp.length + 1, mean + sd, (byte)1, (byte)2, (byte)99);
 		
 		setForcePlotYMin(Math.min(Array.min(yDataBase), Array.min(yDataComp)));
 		setForcePlotYMax(Math.max(Array.max(yDataBase), Array.max(yDataComp)));
