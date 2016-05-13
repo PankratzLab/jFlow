@@ -1494,7 +1494,13 @@ public class VCFOps {
 				annoWriter.println("##" + Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[1]) + "\t" + Array.toStr(VCFOps.getSamplesInFile(vcf)));
 				annoWriter.println(Array.toStr(ANNO_BASE) + "\t" + Array.toStr(annotations[0]) + "\t" + Array.toStr(VCFOps.getSamplesInFile(vcf)));
 			}
-			for (VariantContext vc : reader) {
+			CloseableIterator<VariantContext> iterator = reader.iterator();
+			if (segsToSearch.length == 1) {
+				iterator = reader.query(segsToSearch[0].getChromosomeUCSC(), segsToSearch[0].getStart(), segsToSearch[0].getStop());
+				log.reportTimeInfo("Using iterating reader");
+			}
+			while (iterator.hasNext()) {
+				VariantContext vc = iterator.next();
 				progress++;
 				if (progress % 100000 == 0) {
 					log.reportTimeInfo(progress + " variants read...");
