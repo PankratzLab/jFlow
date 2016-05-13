@@ -162,7 +162,7 @@ public class MergeExtractPipeline {
                 }
             }
         }
-        this.markers = HashVec.loadFileToStringArray(this.markersFile, false, new int[]{0}, false);
+        this.markers = HashVec.loadFileToStringArray(this.markersFile, false, false, new int[]{0}, true, false, "\t");
         SnpMarkerSet markerSet = new SnpMarkerSet(markers);
         markerSet.parseSNPlocations(log);
         this.markerLocations = markerSet.getChrAndPositionsAsInts();
@@ -250,10 +250,18 @@ public class MergeExtractPipeline {
                             String[] testPos = name.split("\\.");
                             for (int i = 0; i < testPos.length; i++) {
                                 if (testPos[i].startsWith("chr")) {
-                                    if (testPos.length > (i+2)) {
-                                        bpStart = Integer.parseInt(testPos[i + 1]);
-                                        bpEnd = Integer.parseInt(testPos[i + 2]);
-                                    } else {
+                                    boolean logMsg = false;
+                                    try {
+                                        if (testPos.length > (i+2)) {
+                                            bpStart = Integer.parseInt(testPos[i + 1]);
+                                            bpEnd = Integer.parseInt(testPos[i + 2]);
+                                        } else {
+                                            logMsg = true;
+                                        }
+                                    } catch (NumberFormatException e) {
+                                        logMsg = true;
+                                    }
+                                    if (logMsg) {
                                         log.reportError("not enough information in file name to determine bpStart/bpEnd from filename \"" + name + "\" - whole chromosomes will be included in data merge.");
                                     }
                                     break;
