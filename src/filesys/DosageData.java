@@ -726,7 +726,7 @@ public class DosageData implements Serializable {
 	    boolean[] markersToKeep = Array.booleanArray(markerNames.length, true);
 	    if (regionsToUseFile != null && !"".equals(regionsToUseFile)) {
             if (Files.exists(regionsToUseFile)) {
-                String[] rgns = HashVec.loadFileToStringArray(regionsToUseFile, false, new int[]{0}, false);
+                String[] rgns = HashVec.loadFileToStringArray(regionsToUseFile, false, false, new int[]{0}, true, false, "\t");
                 int[][] regions = new int[rgns.length][];
                 for (int i = 0; i < rgns.length; i++) {
                     regions[i] = Positions.parseUCSClocation(rgns[i]);
@@ -745,7 +745,7 @@ public class DosageData implements Serializable {
         }
         if (markersToUseFile != null && !"".equals(markersToUseFile)) {
             if (Files.exists(markersToUseFile)) {
-                String[] mkrs = HashVec.loadFileToStringArray(markersToUseFile, false, new int[]{0}, false);
+                String[] mkrs = HashVec.loadFileToStringArray(markersToUseFile, false, false, new int[]{0}, true, false, "\t");
                 HashSet<String> mkrsToKeep = new HashSet<String>();
                 for (String m : mkrs) {
                     mkrsToKeep.add(m);
@@ -803,12 +803,12 @@ public class DosageData implements Serializable {
 	}	
 	
 	public void writeToFile(String filename, String mapOut, String extractMarkers, String regionsFile, boolean allowIncompleteList, boolean writeNaNsAsPeriods, int format, Logger log) {
-        String[] markersToKeep = extractMarkers == null ? null : HashVec.loadFileToStringArray(extractMarkers, false, new int[] {0}, false);
+        String[] markersToKeep = extractMarkers == null ? null : HashVec.loadFileToStringArray(extractMarkers, false, false, new int[] {0}, true, false, "\t");
         int[][] regions;
         if (regionsFile == null) {
             regions = null;
         } else {
-            String[] rgns = HashVec.loadFileToStringArray(regionsFile, false, new int[]{0}, false);
+            String[] rgns = HashVec.loadFileToStringArray(regionsFile, false, false, new int[]{0}, true, false, "\t");
             regions = new int[rgns.length][];
             for (int i = 0; i < rgns.length; i++) {
                 regions[i] = Positions.parseUCSClocation(rgns[i]);
@@ -1225,7 +1225,7 @@ public class DosageData implements Serializable {
 		if (extract == null) {
 			keeps = null;
 		} else {
-			markersToKeep = HashVec.loadFileToStringArray(extract, false, new int[] {0}, false);
+			markersToKeep = HashVec.loadFileToStringArray(extract, false, false, new int[] {0}, true, false, "\t");
 			keeps = HashVec.loadToHashSet(markersToKeep);
 			root = ext.rootOf(outfile, false);
 			markerSet = markerSet.trim(markersToKeep, true, false, log);		// allows missing markers, but will list how many

@@ -60,7 +60,7 @@ public class PlinkMergePrep {
         while (Files.exists(ext.parseDirectoryOfFile(regionFile) + outFile)) {
             outFile = "tempRegions_" + index++ + ".txt"; 
         }
-        String[] ucscLines = HashVec.loadFileToStringArray(regionFile, false, new int[]{0}, false);
+        String[] ucscLines = HashVec.loadFileToStringArray(regionFile, false, false, new int[]{0}, true, false, "\t");
         String[] plinkLines = new String[ucscLines.length];
         for (int i = 0; i < ucscLines.length; i++) {
             int[] pos = Positions.parseUCSClocation(ucscLines[i]);
@@ -169,7 +169,7 @@ public class PlinkMergePrep {
         if (markersFile != null && !markersFile.equals("") && Files.exists(markersFile)) {
             String mkrFile = markersFile;
             if (renameMarkers) {
-                String[] markers = HashVec.loadFileToStringArray(mkrFile, false, new int[]{0}, false);
+                String[] markers = HashVec.loadFileToStringArray(mkrFile, false, false, new int[]{0}, true, false, "\t");
                 ArrayList<String> newMkrs = new ArrayList<String>();
                 String root = ext.rootOf(plinkRootWithDir1, true);
                 for (String marker : markers) {
@@ -272,7 +272,7 @@ public class PlinkMergePrep {
         if (markersFile != null && !markersFile.equals("") && Files.exists(markersFile)) {
             String mkrFile = markersFile;
             if (renameMarkers) {
-                String[] markers = HashVec.loadFileToStringArray(mkrFile, false, new int[]{0}, false);
+                String[] markers = HashVec.loadFileToStringArray(mkrFile, false, false, new int[]{0}, true, false, "\t");
                 ArrayList<String> newMkrs = new ArrayList<String>();
                 for (int i = 0; i < plinkRootsWithDirs.length; i++) { // add all newly-renamed markers
                     String root = ext.rootOf(plinkRootsWithDirs[i], true);
