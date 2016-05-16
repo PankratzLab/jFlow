@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import cnv.analysis.pca.BetaOptimizer;
 import common.Array;
 import common.Files;
 import common.Logger;

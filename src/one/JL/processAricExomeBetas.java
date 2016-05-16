@@ -11,7 +11,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import one.JL.BetaOptimizer.MarkerRsFormat;
 import seq.manage.StrandOps;
 import seq.manage.StrandOps.CONFIG;
 import common.Array;
@@ -19,6 +18,8 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.ext;
+import cnv.analysis.pca.BetaOptimizer;
+import cnv.analysis.pca.BetaOptimizer.MarkerRsFormat;
 import cnv.filesys.ABLookup;
 import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
@@ -45,7 +46,7 @@ public class processAricExomeBetas {
 		abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
 		String mapSer = out + "rsIDMap.ser";
 		if (!Files.exists(mapSer)) {
-			BetaOptimizer.mapToRsIds(proj, abLookup, GENOME_RESOURCE_TYPE.DB_SNP147.getResource(GENOME_BUILD.HG19).getResource(proj.getLog()), markerSet.getMarkerNames(), mapSer, proj.getLog());
+			BetaOptimizer.mapToRsIds(proj, abLookup, GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19).getResource(proj.getLog()), markerSet.getMarkerNames(), mapSer, proj.getLog());
 		}
 		ArrayList<MarkerRsFormat> markerRsFormats = MarkerRsFormat.readSerial(mapSer, proj.getLog());
 		ArrayList<String> rsOut = new ArrayList<String>();
