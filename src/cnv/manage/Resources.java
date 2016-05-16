@@ -160,7 +160,7 @@ public class Resources {
 		 * A gc5base file, for constructing gc-models
 		 */
 		GC5_BASE("", "_gc5Base.txt", DEFAULT_URL),
-		DB_SNP147("", "_dbSnp147.vcf.gz", DEFAULT_URL), ;
+		DB_SNP("", "_dbSnp147.vcf.gz", DEFAULT_URL), ;
 
 		private String namePrefix;
 		private String nameSuffix;
@@ -180,7 +180,7 @@ public class Resources {
 		public Resource getResource(GENOME_BUILD build) {
 			String resourceSubPath = GENOME_SUB_DIR + build.getBuild() + "/" + namePrefix + build.getBuild() + nameSuffix;
 			switch (this) {
-			case DB_SNP147:
+			case DB_SNP:
 				return new VCFResource(getLocalDirBase(), resourceSubPath, url);
 			default:
 				return new Resource(getLocalDirBase(), resourceSubPath, url) {

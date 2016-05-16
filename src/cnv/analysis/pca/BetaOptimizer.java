@@ -980,7 +980,7 @@ public class BetaOptimizer {
 		}
 		MarkerSet markerSet = proj.getMarkerSet();
 		abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
-		Resource dbsnp = GENOME_RESOURCE_TYPE.DB_SNP147.getResource(GENOME_BUILD.HG19);
+		Resource dbsnp = GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19);// TODO, need hg 18 db snp
 		if (!dbsnp.isAvailable(proj.getLog())) {
 			throw new IllegalStateException("Could not retrieve required dbSNP vcf");
 		}
@@ -1084,7 +1084,7 @@ public class BetaOptimizer {
 
 		MarkerSet markerSet = proj.getMarkerSet();
 		abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
-		Resource dbsnp = GENOME_RESOURCE_TYPE.DB_SNP147.getResource(GENOME_BUILD.HG19);
+		Resource dbsnp = GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19);
 		String betaFileDir = "/home/pankrat2/shared/MitoPipeLineResources/betas/" + args[0] + "/";
 
 		String[] betaFiles = Files.list(betaFileDir, "", ".beta", true, false, true);
