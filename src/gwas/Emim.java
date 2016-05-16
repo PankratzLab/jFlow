@@ -282,14 +282,12 @@ public class Emim {
 	                    	"rm emimresults.out\n"+
 	                    	"cp emimparams.dat emimparams_M_" + model.toString() + ".dat\n"+
 	                    	"\n"+
-	                        "jcp gwas.Emim parse=./ hwe=plink.hwe pThreshold=" + pThreshold + " model=" + model.toString() + "\n" +
-	                        "\n";
-	        	if (resultPrefix != null) {
-	        		commands += "if [ -f results_pVals_" + model.toString() + ".xln ] ; then \n" +
-	                        "    mv results_pVals_" + model.toString() + ".xln " + resultPrefix + "_results_pVals_" + model.toString() + ".xln\n" + 
-	                        "fi;\n" + 
-	                        "";
-	        	}
+	                        "jcp gwas.Emim parse=./" 
+	                    			   + " hwe=plink.hwe" 
+	                    			   + " pThreshold=" + pThreshold 
+	                    			   + " model=" + model.toString() 
+	                    			   + (resultPrefix == null ? "" : " resultPrefix=" + resultPrefix) +
+	                    	"\n\n";
         	}
         }
         
@@ -354,7 +352,7 @@ public class Emim {
 //		Files.qsub(plinkPrefix+"_runEmim.pbs", commands, 5000, 24, 1);
 	}
 	
-	public static void parse(String dir, String hweFile, double pValueThreshold, EMIM_MODEL model) {
+	public static void parse(String dir, String resultPrefix, String hweFile, double pValueThreshold, EMIM_MODEL model) {
 		String resultsFileChild, resultsFileChildMom, resultsFileMom, resultsFileTdt, mapFile, mendelErrorFile, outfile;
 
 		resultsFileChild = dir+"emimsummary_C_" + model.toString() + ".out";
@@ -363,9 +361,18 @@ public class Emim {
 		resultsFileTdt = dir+"plink.tdt";
 		mapFile = dir+"emimPrep.bim";
 		mendelErrorFile = dir+"plink.lmendel";
-		outfile = dir+"results_pVals_" + model.toString() + ".xln";
-
-		ResultsPackager.parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt, mapFile, mendelErrorFile, hweFile, pValueThreshold, outfile, new Logger("EMIMparser.log"));
+		outfile = dir + (resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_" + model.toString() + ".xln";
+		
+		ResultsPackager.parseEmimFormat(resultsFileChild,
+										resultsFileMom,
+										resultsFileChildMom, 
+										resultsFileTdt, 
+										mapFile, 
+										mendelErrorFile, 
+										hweFile, 
+										pValueThreshold, 
+										outfile,
+										new Logger("EMIMparser.log"));
 	}
 	
 	public static void replaceLines(String filenameOriginal, String filenameWithReplacements, String[][] relacements, Logger log) {
@@ -399,6 +406,7 @@ public class Emim {
 		EMIM_MODEL model = EMIM_MODEL.DOMINANT;
 		String excludeFile = "GEN";
 		String keepFile = null;
+		String resultPrefix = null;
 
 		String usage = "\n" +
 		"gwas.Emim requires 0-1 arguments\n" +
@@ -411,9 +419,10 @@ public class Emim {
 		"   (4) (optional) a file of tab-delimited FID/IID pairs to keep (i.e. keep=completeTrios.dat (not the default))\n" + 
 		"  OR\n" +
 		"   (1) directory to parse (i.e. parse=./ (not the default))\n" + 
-		"   (2) p-value threshold to filter on (i.e. pThreshold=" + pValueThreshold + " (default))\n" + 
-		"   (3) model " + Arrays.toString(EMIM_MODEL.values()) + " (i.e. model=" + model.toString() + " (default))\n" +
-		"   (4) (optional) plink.hwe file to merge with results (i.e. hwe=" + hweFile + " (default))\n" + 
+		"   (2) file prefix for results (i.e. resultPrefix=" + resultPrefix + " (default))\n" + 
+		"   (3) p-value threshold to filter on (i.e. pThreshold=" + pValueThreshold + " (default))\n" + 
+		"   (4) model " + Arrays.toString(EMIM_MODEL.values()) + " (i.e. model=" + model.toString() + " (default))\n" +
+		"   (5) (optional) plink.hwe file to merge with results (i.e. hwe=" + hweFile + " (default))\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -441,6 +450,9 @@ public class Emim {
 			} else if (args[i].startsWith("hwe=")) {
 				hweFile = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("resultPrefix=")) {
+				resultPrefix = ext.parseStringArg(args[i], null);
+				numArgs--;
 			} else if (args[i].startsWith("model=")) {
 				String modelString = ext.parseStringArg(args[i], null);
 				model = null;
@@ -462,7 +474,7 @@ public class Emim {
 		}
 		try {
 			if (dir != null) {
-				parse(dir, hweFile, pValueThreshold, model);
+				parse(dir, resultPrefix, hweFile, pValueThreshold, model);
 			} else if (plinkPrefix != null) {
 				scriptAll(plinkPrefix, excludeFile, keepFile, pValueThreshold);
 			} else {
