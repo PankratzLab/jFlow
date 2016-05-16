@@ -482,6 +482,8 @@ public class MitoPipeline {
 							boolean mitoResourceAvailable = prepareMitoResources(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog());
 							if (mitoResourceAvailable) {
 								BetaOptimizer.optimize(proj, pcApply.getExtrapolatedPCsFile(), proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/", Resources.MITO_SUB_DIR, betaOptFile, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, pvalOpt, numComponents, markerCallRateFilter, numThreads);
+							} else {
+								proj.getLog().reportTimeError("Could not optimize betas due to missing files");
 							}
 						}
 					}
@@ -492,7 +494,7 @@ public class MitoPipeline {
 	}
 
 	public static boolean prepareMitoResources(GENOME_BUILD build, Logger log) {
-		boolean dbSnpA = GENOME_RESOURCE_TYPE.DB_SNP147.getResource(build).validateWithHint(log);
+		boolean dbSnpA = GENOME_RESOURCE_TYPE.DB_SNP.getResource(build).validateWithHint(log);
 		boolean mitoAvail = true;
 		for (MITO_RESOURCE_TYPE m : MITO_RESOURCE_TYPE.values()) {
 			boolean tmp = m.getResource().validateWithHint(log);
