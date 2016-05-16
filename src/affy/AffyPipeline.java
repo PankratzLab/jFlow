@@ -46,12 +46,14 @@ public class AffyPipeline {
 
 	private String aptExeDir;// holds "apt-geno-qc", "apt-probeset-genotype", "apt-probeset-summarize" etc
 	private String aptLibDir;
+	private boolean full;
 	private Logger log;
 
-	public AffyPipeline(String aptExeDir, String aptLibDir, Logger log) {
+	public AffyPipeline(String aptExeDir, String aptLibDir, boolean full,Logger log) {
 		super();
 		this.aptExeDir = aptExeDir;
 		this.aptLibDir = aptLibDir;
+		this.full=full;
 		this.log = log;
 		if (!new File(aptExeDir).exists()) {
 			log.reportTimeError(aptExeDir + " did not exist (Affy exe directory)");
@@ -68,8 +70,8 @@ public class AffyPipeline {
 	private void validatePreReq() {
 
 		for (int i = 0; i < AFFY_LIB_FILES.values().length; i++) {
-			if (!Files.exists(aptLibDir + AFFY_LIB_FILES.values()[i].getLibFile())) {
-				log.reportTimeError(aptLibDir + AFFY_LIB_FILES.values()[i].getLibFile() + " did not exist");
+			if (!Files.exists(aptLibDir + AFFY_LIB_FILES.values()[i].getLibFile(full))) {
+				log.reportTimeError(aptLibDir + AFFY_LIB_FILES.values()[i].getLibFile(full) + " did not exist");
 				throw new IllegalArgumentException();
 			}
 		}
@@ -100,8 +102,22 @@ public class AffyPipeline {
 			this.libFile = libFile;
 		}
 
-		public String getLibFile() {
+		public String getLibFile(boolean full) {
+			if (full) {
+				switch (this) {
+				case GW6_CDF:
+				case GW6_SPECIAL_SNPS:
+					return ext.addToRoot(libFile, ".Full");
+				case GW6_CHRY:
+				case GW6_BIRDSEED_MODELS:
+				case GW6_CHRX:
+				default:
+					break;
+
+				}
+			}
 			return libFile;
+
 		}
 	}
 
@@ -187,7 +203,7 @@ public class AffyPipeline {
 		ArrayList<String> psetCommand = new ArrayList<String>();
 		psetCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.GENERATE_PROBE_LIST.getExe());
 		psetCommand.add("--cdf-file");
-		psetCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile());
+		psetCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile(full));
 		psetCommand.add("--analysis");
 		psetCommand.add("quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true");
 		psetCommand.add("--out-dir");
@@ -294,7 +310,7 @@ public class AffyPipeline {
 		ArrayList<String> normalizeCommand = new ArrayList<String>();
 		normalizeCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.NORMALIZE.getExe());
 		normalizeCommand.add("-cdf-file");
-		normalizeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile());
+		normalizeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile(full));
 		normalizeCommand.add("--analysis");
 		normalizeCommand.add("quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true");
 		normalizeCommand.add("--target-sketch");
@@ -353,7 +369,7 @@ public class AffyPipeline {
 		ArrayList<String> genotypeCommand = new ArrayList<String>();
 		genotypeCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.GENOTYPE.getExe());
 		genotypeCommand.add("-c");
-		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile());
+		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile(full));
 		genotypeCommand.add("--table-output");
 		genotypeCommand.add("true");
 		genotypeCommand.add("-a");
@@ -361,13 +377,13 @@ public class AffyPipeline {
 		genotypeCommand.add("--set-gender-method");
 		genotypeCommand.add("cn-probe-chrXY-ratio");
 		genotypeCommand.add("--read-models-birdseed");
-		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_BIRDSEED_MODELS.getLibFile());
+		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_BIRDSEED_MODELS.getLibFile(full));
 		genotypeCommand.add("--special-snps");
-		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_SPECIAL_SNPS.getLibFile());
+		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_SPECIAL_SNPS.getLibFile(full));
 		genotypeCommand.add("--chrX-probes");
-		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CHRX.getLibFile());
+		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CHRX.getLibFile(full));
 		genotypeCommand.add("--chrY-probes");
-		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CHRY.getLibFile());
+		genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CHRY.getLibFile(full));
 		genotypeCommand.add("--probeset-ids");
 		genotypeCommand.add(pIDFile);
 		genotypeCommand.add("--set-analysis-name");
@@ -408,7 +424,7 @@ public class AffyPipeline {
 		}
 	}
 
-	public static void run(String aptExeDir, String aptLibDir, String cels, String outDir, String quantNormTarget, String analysisName, String markerPositions, int markerBuffer, int maxWritersOpen, int numThreads) {
+	public static void run(String aptExeDir, String aptLibDir, String cels, String outDir, String quantNormTarget, String analysisName, String markerPositions, int markerBuffer, int maxWritersOpen,boolean full, int numThreads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "affyPipeline.log");
 		String[] celFiles;
@@ -427,8 +443,13 @@ public class AffyPipeline {
 			log.reportTimeError("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz");
 			throw new IllegalArgumentException();
 		}
+		if (full) {
+			log.reportTimeInfo("Running with full affymetrix cdf");
+		} else {
+			log.reportTimeInfo("Running with default affymetrix cdf, use the \"-full\" command to use the full version");
+		}
 
-		AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, log);
+		AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, full, log);
 		Probesets probeSets = pipeline.getAnalysisProbesetList(celFiles[0], outDir, analysisName, markerPositions);
 		if (!probeSets.isFail()) {
 			String celListFile = pipeline.generateCelList(celFiles, outDir, analysisName);
@@ -510,6 +531,7 @@ public class AffyPipeline {
 		int markerBuffer = 100;
 		int maxWritersOpen = 1000000;
 		int numArgs = args.length;
+		boolean full = false;
 
 		String usage = "\n" +
 				"affy.AffyPipeline requires 0-1 arguments\n" +
@@ -523,6 +545,7 @@ public class AffyPipeline {
 				"   (8) optional: number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + "=" + numThreads + " (default))\n" +
 				"   (9) optional: number of markers to buffer when splitting files (i.e. markerBuffer=" + markerBuffer + " (default))\n" +
 				"   (10) optional: maximum number of writers to open, if this is less than the sample size parsing will slow drastically (i.e. maxWritersOpen=" + maxWritersOpen + " (default))\n" +
+				"   (11) optional: use the full affymetrix cdf, which contains more mitochondrial probesets (i.e. -full (not the default))\n" +
 
 				"";
 
@@ -560,6 +583,9 @@ public class AffyPipeline {
 			} else if (args[i].startsWith("markerBuffer")) {
 				markerBuffer = ext.parseIntArg(args[i]);
 				numArgs--;
+			} else if (args[i].startsWith("-full")) {
+				full = true;
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -569,7 +595,7 @@ public class AffyPipeline {
 			System.exit(1);
 		}
 		try {
-			run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions, markerBuffer, maxWritersOpen, numThreads);
+			run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions, markerBuffer, maxWritersOpen, full, numThreads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
