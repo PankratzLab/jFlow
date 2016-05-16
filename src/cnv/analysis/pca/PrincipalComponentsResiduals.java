@@ -151,11 +151,11 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 	public double computeResiduals() {
 		// TODO, add svdRegression option
 		// RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis));
-//		LS_TYPE lType = LS_TYPE.REGULAR;
-//		if (numComponents > NUM_PC_SVD_OVERIDE) {
-//			log.reportTimeInfo("Number of components " + numComponents + " greater than " + NUM_PC_SVD_OVERIDE + ", switching to " + LS_TYPE.QR_DECOMP + " decomp regression");
-//			lType = LS_TYPE.QR_DECOMP;
-//		}
+		// LS_TYPE lType = LS_TYPE.REGULAR;
+		// if (numComponents > NUM_PC_SVD_OVERIDE) {
+		// log.reportTimeInfo("Number of components " + numComponents + " greater than " + NUM_PC_SVD_OVERIDE + ", switching to " + LS_TYPE.QR_DECOMP + " decomp regression");
+		// lType = LS_TYPE.QR_DECOMP;
+		// }
 		RegressionModel model = (RegressionModel) new LeastSquares(assesmentData, prepPcs(pcBasis), null, false, true, LS_TYPE.REGULAR);// auto switch in reg model
 		double R2 = Double.NaN;
 		if (!model.analysisFailed()) {
@@ -179,6 +179,14 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		} else {
 			this.invTResiduals = Array.inverseNormalize(residuals);
 		}
+	}
+
+	public void setResidOutput(String residOutput) {
+		this.residOutput = residOutput;
+	}
+
+	public void setResiduals(double[] residuals) {
+		this.residuals = residuals;
 	}
 
 	/**
@@ -913,12 +921,12 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			cval = new CrossValidation(new double[0], new double[0][0], new double[0], new double[0][0], true, lType, proj.getLog());
 			cval.setAnalysisFailed(true);
 		} else {
-//			if (lType == LS_TYPE.SVD) {
-//				lType = numComponentsForModel > NUM_PC_SVD_OVERIDE ? LS_TYPE.SVD : LS_TYPE.REGULAR;
-//				if (lType == LS_TYPE.REGULAR) {
-//					log.reportTimeWarning("Over-riding SVD method since " + numComponentsForModel + " < " + NUM_PC_SVD_OVERIDE);
-//				}
-//			}
+			// if (lType == LS_TYPE.SVD) {
+			// lType = numComponentsForModel > NUM_PC_SVD_OVERIDE ? LS_TYPE.SVD : LS_TYPE.REGULAR;
+			// if (lType == LS_TYPE.REGULAR) {
+			// log.reportTimeWarning("Over-riding SVD method since " + numComponentsForModel + " < " + NUM_PC_SVD_OVERIDE);
+			// }
+			// }
 
 			double[] train_deps = (samplesTobuildModel == null ? data : Array.subArray(data, samplesTobuildModel));
 			double[][] train_indeps = numComponentsForModel > 0 ? getTrimmedPreppedIndepsProjectPCsFor(samplesTobuildModel, extraIndeps, numComponentsForModel, log) : Array.subArray(extraIndeps, samplesTobuildModel);
@@ -1235,6 +1243,10 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		public boolean hasNext() {
 			return index < (order == null ? pcResids.getNumComponents() : order.length);
 
+		}
+
+		public int[] getOrder() {
+			return order;
 		}
 
 		public PrincipalComponentsResiduals getPcResids() {

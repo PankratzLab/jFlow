@@ -54,6 +54,10 @@ class EvaluationResult implements Serializable {
 		this.numIndsCorrel = new ArrayList<Integer>();
 	}
 
+	public double getrSquared() {
+		return rSquared;
+	}
+
 	public void setOrType(ORDER_TYPE orType) {
 		this.orType = orType;
 	}
