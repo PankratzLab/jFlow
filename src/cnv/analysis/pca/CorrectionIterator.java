@@ -58,9 +58,6 @@ public class CorrectionIterator implements Serializable {
 	private boolean recomputeLRR;
 	private double pcPercent;
 
-	// private double lrrSdCut;
-	// private double callRateCut;
-
 	public CorrectionIterator(Project proj, String markesToEvaluate, String samplesToBuildModels, ITERATION_TYPE iType, ORDER_TYPE oType, MODEL_BUILDER_TYPE bType, String outputDir, LS_TYPE lType, boolean recomputeLRR, double pcPercent, int numthreads) {
 		super();
 		this.proj = proj;
@@ -665,7 +662,6 @@ public class CorrectionIterator implements Serializable {
 			rScatter.setOverWriteExisting(true);
 			rScatter.execute();
 
-
 			RScatter rScatterTrim = new RScatter(outputSummary, evalRscript, ext.rootOf(outputSummary) + "_" + index + "_" + index, ext.rootOf(ext.addToRoot(evalPlot, index + "" + "_" + index), false) + ".jpeg", "Evaluated", dataColumns, SCATTER_TYPE.POINT, log);
 			rScatterTrim.setxLabel("PC (" + oType + " - sorted)");
 			rScatterTrim.setTitle(iType + " " + bType);
@@ -695,7 +691,6 @@ public class CorrectionIterator implements Serializable {
 
 				if (!Files.exists(heritSummary) || Files.countLines(heritSummary, 0) != Files.countLines(outputSummary, 0)) {
 					if (!Files.exists(tmpHerit) || Files.countLines(tmpHerit, 0) != Files.countLines(outputSummary, 0)) {
-
 
 						EvaluationResult.prepareHeritability(proj, pedFile, samplesToEvaluate, outputSer, otherData, otherDataTitle);
 					}
@@ -1333,7 +1328,7 @@ public class CorrectionIterator implements Serializable {
 						String originalSer = iterationResult.getOutputSer();
 						for (int classifyIndex = 0; classifyIndex < classifiers.length; classifyIndex++) {
 							if (classifiers[classifyIndex].getTitles().length < 10 && !stratCats[classifyIndex].contains("sex")) {
-	
+
 								try {
 									Thread.sleep(1000);
 								} catch (InterruptedException ie) {

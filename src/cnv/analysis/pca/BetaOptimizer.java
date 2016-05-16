@@ -1,4 +1,4 @@
-package one.JL;
+package cnv.analysis.pca;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -252,7 +252,6 @@ public class BetaOptimizer {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	private static void analyzeAll(Project proj, String pcFile, String samplesToBuildModels, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, String[] betas, double[] pvals, double markerCallRate, int maxPCs, int numthreads, String usedInPCFile, Logger log) {
 		analyze(proj, pcFile, samplesToBuildModels, markerSet, abLookup, dbsnpVCF, namesToQuery, outpuDir, Arrays.asList(betas), pvals, markerCallRate, maxPCs, numthreads, usedInPCFile, log);
 
@@ -335,7 +334,7 @@ public class BetaOptimizer {
 													if ((1 - cr) < markerCallRate) {
 														markersRemoved++;
 														analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
-//														log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
+														// log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
 													}
 													numSamps = numSampsHere;
 												}
@@ -361,7 +360,7 @@ public class BetaOptimizer {
 												double cr = (double) numMissing / numSamps;
 												if ((1 - cr) < markerCallRate) {
 													markersRemoved++;
-//													log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
+													// log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
 													analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
 												}
 											}
@@ -385,7 +384,7 @@ public class BetaOptimizer {
 												double cr = (double) numMissing / numSamps;
 												if ((1 - cr) < markerCallRate) {
 													markersRemoved++;
-//													log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
+													// log.reportTimeInfo("Removing " + current.get(j).getMarkerRsFormat().getMarkerName() + " for callrate " + markerCallRate + "(" + cr + ")");
 													analysisGenos[j] = Array.byteArray(analysisGenos[j].length, (byte) -1);
 												}
 											}
@@ -791,10 +790,6 @@ public class BetaOptimizer {
 									allelesVC = new String[][] { { "D", "I" } };
 								}
 							}
-							// else {//MNP, CLUMPED, SV...should'nt be on arrays
-							// throw new IllegalArgumentException("Unknown variant type " + vc.toStringWithoutGenotypes());
-							//
-							// }
 							for (int j = 0; j < allelesVC.length; j++) {
 								if (!foundGood) {
 									String[] tmpMarkerAlleles = new String[] { allelesMarker[0], allelesMarker[1] };
@@ -864,19 +859,19 @@ public class BetaOptimizer {
 			this.type = type;
 		}
 
-		int getPosMarker() {
+		public int getPosMarker() {
 			return posMarker;
 		}
 
-		int getProjectIndex() {
+		public int getProjectIndex() {
 			return projectIndex;
 		}
 
-		boolean flippedStrand() {
+		public boolean flippedStrand() {
 			return config == CONFIG.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND || config == CONFIG.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND;
 		}
 
-		SITE_TYPE getType() {
+		public SITE_TYPE getType() {
 			return type;
 		}
 
@@ -884,7 +879,7 @@ public class BetaOptimizer {
 			return rs;
 		}
 
-		CONFIG getConfig() {
+		public CONFIG getConfig() {
 			return config;
 		}
 
@@ -892,7 +887,7 @@ public class BetaOptimizer {
 			this.validMatch = validMatch;
 		}
 
-		boolean isValidMatch() {
+		public boolean isValidMatch() {
 			return validMatch;
 		}
 
@@ -956,7 +951,7 @@ public class BetaOptimizer {
 
 	}
 
-	private static void optimize(Project proj, String pcFile, String outDir, String betaDir, String unRelatedFile, String pcSamps, double[] pvals, int maxPCs, double markerCallRate, int numthreads) throws IllegalStateException {
+	public static void optimize(Project proj, String pcFile, String outDir, String betaDir, String unRelatedFile, String pcSamps, double[] pvals, int maxPCs, double markerCallRate, int numthreads) throws IllegalStateException {
 		new File(outDir).mkdirs();
 
 		proj.AB_LOOKUP_FILENAME.setValue(outDir + "AB_LookupBeta.dat");

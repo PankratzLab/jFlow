@@ -16,6 +16,8 @@ public class Resources {
 
 	public static final String BIN_SUB_DIR = "bin/";
 	public static final String GENOME_SUB_DIR = "Genome/";
+	public static final String MITO_SUB_DIR = "MitoCN/";
+
 	public static final String ARRAY_SUB_DIR = "Arrays/";
 
 	public static final String GENOME_CHR_SUB_DIR = GENOME_SUB_DIR + "chr/";
@@ -185,6 +187,39 @@ public class Resources {
 				};
 			}
 		}
+	}
+
+
+
+	public enum MITO_RESOURCE_TYPE {
+		/**
+		 * A gc5base file, for constructing gc-models
+		 */
+		WHITE_WBC_BETA("", "Whites_WBC_Betas.txt", DEFAULT_URL),
+		BLACK_WBC_BETA("", "Blacks_WBC_Betas.txt", DEFAULT_URL),
+		ALL_WBC_BETA("", "All_WBC_Betas.txt", DEFAULT_URL);
+
+		private String namePrefix;
+		private String nameSuffix;
+		private String url;
+
+		/**
+		 * @param namePrefix
+		 * @param nameSuffix
+		 * @param url
+		 */
+		private MITO_RESOURCE_TYPE(String namePrefix, String nameSuffix, String url) {
+			this.namePrefix = namePrefix;
+			this.nameSuffix = nameSuffix;
+			this.url = url;
+		}
+
+		public Resource getResource() {
+			String resourceSubPath = MITO_SUB_DIR + namePrefix + nameSuffix;
+			return new Resource(getLocalDirBase(), resourceSubPath, url) {
+
+			};
+		}
 
 	}
 
@@ -283,6 +318,16 @@ public class Resources {
 
 		private boolean isLocallyAvailable() {
 			return Files.exists(fullLocalPath);
+		}
+
+		public boolean validateWithHint(Logger log) {
+			boolean available = isLocallyAvailable() || isRemotelyAvailable(log);
+			if (!available) {
+				log.reportTimeError("Could not find local file " + fullLocalPath + " and could not download it from " + fullUrl + " please manually download and save to " + fullLocalPath);
+
+			}
+
+			return available;
 		}
 
 		private boolean isRemotelyAvailable(Logger log) {
