@@ -183,12 +183,12 @@ public class ExtProjectDataParser {
 					determined = false;
 				}
 				determined = determineSampleIndex(determined, header);
-				if (determined && stringDataTitles != null) {
+				if (determined && stringDataTitles != null && stringDataTitles.length > 0) {
 					if (typedFileParser.getStringColumns() != null) {
 						proj.getLog().reportTimeWarning("String columns were already provided, skipping string column assignment");
 					} else {
 						int[] tmp = ext.indexFactors(stringDataTitles, header, true, false);
-						determined = Array.min(tmp) >= 0;
+						determined = stringDataTitles.length == 0 || Array.min(tmp) >= 0;
 						if (!determined) {
 							if (verbose) {
 								proj.getLog().reportTimeError("Could not find all string indices in header " + Array.toStr(header));
@@ -198,14 +198,16 @@ public class ExtProjectDataParser {
 						}
 					}
 				}
-				if (determined && numericDataTitles != null) {
+				if (determined && numericDataTitles != null && numericDataTitles.length > 0) {
 					if (typedFileParser.getNumericColumns() != null) {
 						proj.getLog().reportTimeWarning("Numeric columns were already provided, skipping numeric column assignment");
 					} else {
+
 						int[] tmp = ext.indexFactors(numericDataTitles, header, true, false);
-						determined = Array.min(tmp) >= 0;
+
+						determined = numericDataTitles.length == 0 || Array.min(tmp) >= 0;
 						if (!determined) {
-							proj.getLog().reportTimeError("Could not find all numeric indices in header " + Array.toStr(header));
+							proj.getLog().reportTimeError("Could not find all numeric indices" + Array.toStr(numericDataTitles) + " in header " + Array.toStr(header));
 						} else {
 							typedFileParser.setNumericColumns(new int[][] { tmp });
 						}
@@ -263,7 +265,7 @@ public class ExtProjectDataParser {
 		}
 		return data;
 	}
-	
+
 	public double[] getNumericDataForTitle(String title) {
 		int index = numericData == null ? -1 : ext.indexOfStr(title, numericDataTitles);
 		double[] data = new double[] {};

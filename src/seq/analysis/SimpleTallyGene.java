@@ -53,21 +53,26 @@ public class SimpleTallyGene {
 
 	private static void run() {
 		String vcfGermline = "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.AgilentCaptureRegions.SNP.recal.INDEL.recal.merge_ARIC.hg19_multianno.eff.gatk.anno_charge.sed1000g.vcf.gz";
-
+		String vcfTumor = "D:/data/Project_Tsai_21_25_26_28_spector/Cushings/candidateGenes/tnMatch.merged.renamed.hg19_multianno.eff.gatk.anno_charge.sed1000g.finalMerge.vcf.gz";
+		String vpopFileTumor = "D:/data/Project_Tsai_21_25_26_28_spector/Cushings/candidateGenes/CUSHINGS_TUMOR.vpop";
 		Segment[] segs = new Segment[] { new Segment("chr6:31,371,371-31,383,090"), new Segment("chr17:7,571,720-7,590,868") };
-		String[] names = new String[] { "MICA","TP53" };
+		String[] names = new String[] { "MICA", "TP53" };
 		String vpopFileGermlineOsteo = "D:/data/logan/OSv2_seq/SRGAP2/OSTEO_OFF_INHERIT.vpop";
 		String vpopFileGermlineCushing = "D:/data/Project_Tsai_21_25_26_28_spector/Cushings/candidateGenes/CUSHING_FREQ.vpop";
-		String vpopFileGermlineEPP = "D:/data/Project_Tsai_21_25_26_28_spector/Freq/EPP.vpop";
+//		String vpopFileGermlineEPP = "D:/data/Project_Tsai_21_25_26_28_spector/Freq/EPP.vpop";
 		String newDir = "D:/data/Project_Tsai_21_25_26_28_spector/Look_Freq/";
 		new File(newDir).mkdirs();
 		Files.copyFile(vpopFileGermlineCushing, newDir + ext.removeDirectoryInfo(vpopFileGermlineCushing));
 		Files.copyFile(vpopFileGermlineOsteo, newDir + ext.removeDirectoryInfo(vpopFileGermlineOsteo));
-		Files.copyFile(vpopFileGermlineEPP, newDir + ext.removeDirectoryInfo(vpopFileGermlineEPP));
+		Files.copyFile(vpopFileTumor, newDir + ext.removeDirectoryInfo(vpopFileTumor));
+
+		// Files.copyFile(vpopFileGermlineEPP, newDir + ext.removeDirectoryInfo(vpopFileGermlineEPP));
 
 		vpopFileGermlineOsteo = newDir + ext.removeDirectoryInfo(vpopFileGermlineOsteo);
 		vpopFileGermlineCushing = newDir + ext.removeDirectoryInfo(vpopFileGermlineCushing);
-		vpopFileGermlineEPP = newDir + ext.removeDirectoryInfo(vpopFileGermlineEPP);
+		vpopFileTumor = newDir + ext.removeDirectoryInfo(vpopFileTumor);
+
+		String vpopFileGermlineEPP = newDir + "EPP.vpop";
 
 		WorkerHive<Params> hive = new WorkerHive<SimpleTallyGene.Params>(2, 1, new Logger());
 		String omimDir = "C:/bin/ref/OMIM/";
@@ -75,6 +80,7 @@ public class SimpleTallyGene {
 			hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermlineOsteo, omimDir, null));
 			hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermlineCushing, omimDir, null));
 			hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermlineEPP, omimDir, null));
+			hive.addCallable(new Params(vcfTumor, segs[i], names[i], vpopFileTumor, omimDir, FilterNGS.generateFilter(FILTER_GENERATION_TYPE.TN, 1.2, false, new Logger())));
 
 		}
 		hive.execute(true);

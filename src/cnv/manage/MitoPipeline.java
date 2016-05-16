@@ -271,7 +271,7 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build,boolean plot) {
+	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build, boolean plot) {
 		String sampleDirectory;
 		SampleList sampleList;
 		int[] counts;
@@ -279,7 +279,6 @@ public class MitoPipeline {
 		long memoryAvailable;
 		int result;
 		log = proj.getLog();
-
 		memoryAvailable = Runtime.getRuntime().maxMemory();
 		log.report("Memory available = " + memoryAvailable + "  (" + ext.prettyUpSize(memoryAvailable, 1) + ")");
 		if (memoryAvailable < RECOMMENDED_MEMORY) {
@@ -474,8 +473,9 @@ public class MitoPipeline {
 							proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
 							proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
 							// generate estimates at each pc
+							log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");
 							CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers), proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR, true, 0.05, plot, numThreads);
-
+							
 						}
 					}
 				}
@@ -734,7 +734,9 @@ public class MitoPipeline {
 		try {
 			String finalReport = ext.rootOf(residualFile) + PCA_FINAL_REPORT;
 			if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + finalReport)) {
-				Files.backup(finalReport, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
+				proj.getLog().reportTimeWarning(proj.PROJECT_DIRECTORY.getValue() + finalReport + " already exists, skipping");
+				return;
+				// Files.backup(finalReport, proj.PROJECT_DIRECTORY.getValue(), proj.PROJECT_DIRECTORY.getValue() + proj.getProperty(proj.BACKUP_DIRECTORY));
 			}
 
 			DNAIndex = getDNAIndex(proj, proj.PROJECT_DIRECTORY.getValue() + residualFile);
@@ -881,7 +883,7 @@ public class MitoPipeline {
 		boolean imputeMeanForNaN = true;
 		boolean homosygousOnly = true;
 		boolean doAbLookup = false;
-		boolean plot=false;
+		boolean plot = false;
 		String referenceGenomeFasta = null;
 		String gcmodel = null;
 		int regressionDistance = GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0];
@@ -921,14 +923,14 @@ public class MitoPipeline {
 		usage += "   (19) Do not perform a marker qc step to select higher quality markers (or remove cnv-only markers) to use for computing the sample call rate (i.e. -nomarkerQC (not the default))\n";
 		usage += "   (20) If marker qc is performed, the call rate cutoff for markers to be passed on to the sample QC step (i.e. markerCallRate=" + markerCallRateFilter + " (default))\n";
 		usage += "   (21) Name of the log file (i.e. log=[project_directory]/logs/Genvisis_[date].log (default))\n";
-//		usage += "   (21) Recompute Log R Ratios for each marker from genotypes/intensities when computing AND extrapolating PCs(i.e. recomputeLRR_PCs=" + recomputeLRR_PCs + " (default))\n";
-//		usage += "   (22) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. recomputeLRR_Median=" + recomputeLRR_Median + " (default))\n";
+		// usage += "   (21) Recompute Log R Ratios for each marker from genotypes/intensities when computing AND extrapolating PCs(i.e. recomputeLRR_PCs=" + recomputeLRR_PCs + " (default))\n";
+		// usage += "   (22) Recompute Log R Ratios for each marker from genotypes/intensities when computing median values(i.e. recomputeLRR_Median=" + recomputeLRR_Median + " (default))\n";
 		usage += "   (22) Impute mean for markers with NaN data, if false markers with NaN values for any sample will be skipped (i.e. imputeMeanForNaN=" + imputeMeanForNaN + " (default))\n";
-//		usage += "   (22) gc correct Log R Ratios, cannot be used with recomputeLRR options (i.e. gcCorrect=" + gcCorrect + " (default))\n";
-//		usage += "   (22) A reference genome file used to assign gc content to each marker (i.e. ref= (no default))\n";
-//		usage += "   (23) base-pair bins for the gc model generated from the reference (i.e. bpGcModel=" + bpGcModel + " (default))\n";
-//		usage += "   (27) regression distance for the gc adjustment (i.e. regressionDistance=" + regressionDistance + " (default))\n";
-//		usage += "   (28) full path to a .gcmodel file, this model will take precedence over base-pair bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
+		// usage += "   (22) gc correct Log R Ratios, cannot be used with recomputeLRR options (i.e. gcCorrect=" + gcCorrect + " (default))\n";
+		// usage += "   (22) A reference genome file used to assign gc content to each marker (i.e. ref= (no default))\n";
+		// usage += "   (23) base-pair bins for the gc model generated from the reference (i.e. bpGcModel=" + bpGcModel + " (default))\n";
+		// usage += "   (27) regression distance for the gc adjustment (i.e. regressionDistance=" + regressionDistance + " (default))\n";
+		// usage += "   (28) full path to a .gcmodel file, this model will take precedence over base-pair bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
 		usage += "   (23) recompute LRR using only those samples that pass QC, and are in the use file (i.e. sampLRR=" + recompSampleSpecific + " (default))\n";
 
 		usage += "   NOTE:\n";
@@ -960,11 +962,11 @@ public class MitoPipeline {
 				projectDirectory = ext.parseStringArg(args[i], null);
 				numArgs--;
 				requiredArray[0] = true;
-			}  else if (args[i].startsWith("-plot")) {
+			} else if (args[i].startsWith("-plot")) {
 				plot = true;
 				numArgs--;
 				requiredArray[0] = true;
-			}else if (args[i].startsWith("dirSrc=")) {
+			} else if (args[i].startsWith("dirSrc=")) {
 				sourceDirectory = ext.parseStringArg(args[i], null);
 				numArgs--;
 				requiredArray[1] = true;

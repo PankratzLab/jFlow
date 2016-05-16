@@ -156,230 +156,244 @@ public class CorrectionIterator implements Serializable {
 		CorrectionEvaluator cEvaluator = null;
 		String output = outputDir + "correctionEval_" + iType + "_" + oType + "_" + bType;
 		IterationResult iterationResult = new IterationResult(output, iType, oType, bType, pcPercent);
-		if (!Files.exists(iterationResult.getOutputSer())) {
+		EvaluationResult[] precomputed = null;
+		if (Files.exists(iterationResult.getOutputSer())) {
+			try {
+				precomputed = EvaluationResult.readSerial(iterationResult.getOutputSer(), log);
+				log.reportTimeInfo("Loading precomputed results from " + iterationResult.getOutputSer());
 
-			// || !Files.exists(iterationResult.getBasePrep())
-			// || oType == ORDER_TYPE.QC_ASSOCIATIONs
-			//
-			// iterationResult.plotRank(log);
-			// iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "PEARSON_CORREL_AGE", "PEARSON_CORREL_EVAL_DATA_SEX","PEARSON_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001","PEARSON_CORREL_EVAL_DATA_resid.mtDNA.qPCR" }, log);
-			// // rScatter.setxLabel("Principal Component ("+oType+")");
-			//
-			// // public RScatter(String dataFile, String rSriptFile, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
-			//
-			// System.exit(1);
+			} catch (Exception e) {// to be safe
+				precomputed = null;
+			}
+		}
 
-			proj.getLog().reportTimeInfo("Loading " + proj.INTENSITY_PC_FILENAME.getValue());
+		// || !Files.exists(iterationResult.getBasePrep())
+		// || oType == ORDER_TYPE.QC_ASSOCIATIONs
+		//
+		// iterationResult.plotRank(log);
+		// iterationResult.plotSummary(new String[] { "Rsquare_correction", "ICC_EVAL_CLASS_DUPLICATE_ALL", "PEARSON_CORREL_AGE", "PEARSON_CORREL_EVAL_DATA_SEX","PEARSON_CORREL_EVAL_DATA_resid.mtDNaN.qPCR.MT001","PEARSON_CORREL_EVAL_DATA_resid.mtDNA.qPCR" }, log);
+		// // rScatter.setxLabel("Principal Component ("+oType+")");
+		//
+		// // public RScatter(String dataFile, String rSriptFile, String output, String dataXvalueColumn, String[] dataYvalueColumns, SCATTER_TYPE sType, Logger log) {
+		//
+		// System.exit(1);
 
-			new File(outputDir).mkdirs();
-			log.reportTimeInfo("Beginning iteration evaluation:");
-			log.reportTimeInfo("PC file: " + proj.INTENSITY_PC_FILENAME.getValue());
-			log.reportTimeInfo("Iteration type : " + iType);
-			log.reportTimeInfo("Order type : " + oType);
-			log.reportTimeInfo("Model building type: " + bType);
+		proj.getLog().reportTimeInfo("Loading " + proj.INTENSITY_PC_FILENAME.getValue());
 
-			boolean[] samplesForModels = null;
-			boolean valid = true;
-			// boolean[] sampleQCPassed = getSamplesFromQC(proj, lrrSdCut, callRateCut);
-			if (!Files.exists(iterationResult.getBasePrep())) {
-				// || oType == ORDER_TYPE.QC_ASSOCIATION
-				switch (bType) {
-				case WITHOUT_QC_BUILDERS:
-					// samplesForModels = proj.getSamplesToInclude(null, true, true);
-					// log.reportTimeWarning("Computing excludes from "+proj.SAMPLE_QC_FILENAME.getValue());
-					samplesForModels = Array.booleanArray(proj.getSamples().length, true);
-					break;
-				case WITH_QC_BUILDERS:
-					if (!Files.exists(samplesToBuildModels)) {
-						log.reportTimeError("Model building type was set to " + bType + " but the sample file " + samplesToBuildModels + " did not exist");
-						valid = false;
-					} else {
-						log.reportTimeInfo("Loading model builders from " + samplesToBuildModels);
-						String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[] { 0 }, true);
-						log.reportTimeInfo("Loaded " + sampsForMods.length + " model builders from " + samplesToBuildModels);
+		new File(outputDir).mkdirs();
+		log.reportTimeInfo("Beginning iteration evaluation:");
+		log.reportTimeInfo("PC file: " + proj.INTENSITY_PC_FILENAME.getValue());
+		log.reportTimeInfo("Iteration type : " + iType);
+		log.reportTimeInfo("Order type : " + oType);
+		log.reportTimeInfo("Model building type: " + bType);
 
-						int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true, proj.getLog(), true, false);
-						samplesForModels = Array.booleanArray(proj.getSamples().length, false);
-						for (int i = 0; i < indices.length; i++) {
-							samplesForModels[indices[i]] = true;
-						}
-						// samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
+		boolean[] samplesForModels = null;
+		boolean valid = true;
+		// boolean[] sampleQCPassed = getSamplesFromQC(proj, lrrSdCut, callRateCut);
+//		if (!Files.exists(iterationResult.getBasePrep())) {
+			// || oType == ORDER_TYPE.QC_ASSOCIATION
+			switch (bType) {
+			case WITHOUT_QC_BUILDERS:
+				// samplesForModels = proj.getSamplesToInclude(null, true, true);
+				// log.reportTimeWarning("Computing excludes from "+proj.SAMPLE_QC_FILENAME.getValue());
+				samplesForModels = Array.booleanArray(proj.getSamples().length, true);
+				break;
+			case WITH_QC_BUILDERS:
+				if (!Files.exists(samplesToBuildModels)) {
+					log.reportTimeError("Model building type was set to " + bType + " but the sample file " + samplesToBuildModels + " did not exist");
+					valid = false;
+				} else {
+					log.reportTimeInfo("Loading model builders from " + samplesToBuildModels);
+					String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[] { 0 }, true);
+					log.reportTimeInfo("Loaded " + sampsForMods.length + " model builders from " + samplesToBuildModels);
+
+					int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true, proj.getLog(), true, false);
+					samplesForModels = Array.booleanArray(proj.getSamples().length, false);
+					for (int i = 0; i < indices.length; i++) {
+						samplesForModels[indices[i]] = true;
 					}
-					log.reportTimeInfo("Loaded " + Array.booleanArraySum(samplesForModels) + " model builders from " + samplesToBuildModels);
-
-					// for (int i = 0; i < sampleQCPassed.length; i++) {
-					// if (!sampleQCPassed[i]) {
-					// samplesForModels[i] = false;
-					// }
-					// }
-					log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " model builders from after QC filtering");
-
-					break;
-				default:
-					break;
-
+					// samplesForModels = proj.getSamplesToInclude(samplesToBuildModels, true, true);
 				}
+				log.reportTimeInfo("Loaded " + Array.booleanArraySum(samplesForModels) + " model builders from " + samplesToBuildModels);
 
-				switch (iType) {
-				case WITHOUT_INDEPS:
-					log.reportTimeInfo("Evaluating with " + Array.booleanArraySum(samplesForModels) + " samples, no additional independent variables");
+				// for (int i = 0; i < sampleQCPassed.length; i++) {
+				// if (!sampleQCPassed[i]) {
+				// samplesForModels[i] = false;
+				// }
+				// }
+				log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " model builders from after QC filtering");
+
+				break;
+			default:
+				break;
+
+			}
+
+			switch (iType) {
+			case WITHOUT_INDEPS:
+				log.reportTimeInfo("Evaluating with " + Array.booleanArraySum(samplesForModels) + " samples, no additional independent variables");
+				break;
+			// case WITH_INDEPS:
+			// extraIndeps = loadIndeps(cEvaluator, CorrectionEvaluator.INDEPS, new double[][] { { 0, 3, 4, 5, 6, 7, 8, 9, 10, Double.NaN }, { -1, Double.NaN } }, CorrectionEvaluator.INDEPS_CATS, new String[] { "NaN" }, log);
+			//
+			// if (extraIndeps == null) {
+			// log.reportTimeError("type = " + iType + " and were missing some of the following " + Array.toStr(CorrectionEvaluator.INDEPS));
+			// log.reportTimeError("Available = " + Array.toStr(cEvaluator.getParser().getNumericDataTitles()));
+			// valid = false;
+			// } else {
+			// boolean[] tmpInclude = new boolean[samplesForModels.length];
+			// Arrays.fill(tmpInclude, false);
+			// for (int i = 0; i < extraIndeps.length; i++) {
+			//
+			// if (samplesForModels[i]) {
+			// boolean hasNan = false;
+			// for (int j = 0; j < extraIndeps[i].length; j++) {
+			// if (Double.isNaN(extraIndeps[i][j])) {
+			// hasNan = true;
+			// }
+			// }
+			// if (!hasNan) {
+			// tmpInclude[i] = true;
+			// }
+			// }
+			// }
+			// log.reportTimeInfo("Original number of samples: " + Array.booleanArraySum(samplesForModels));
+			// log.reportTimeInfo("Number of samples with valid independant variables, final evaluation set: " + Array.booleanArraySum(tmpInclude));
+			// samplesForModels = tmpInclude;
+			// }
+			// break;
+			default:
+				return null;
+
+			}
+//		} else {
+//			log.reportTimeWarning("Loading precomputed sample preparation from " + iterationResult.getBasePrep());
+//			BasicPrep basicPrep = BasicPrep.readSerial(iterationResult.getBasePrep(), log);
+//			iterationResult.setBasicPrep(basicPrep);
+//			samplesForModels = basicPrep.getSamplesForModels();
+//			
+//		}
+		PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
+		int totalNumPCs = pcResiduals.getTotalNumComponents();
+		int numSamples = Array.booleanArraySum(samplesForModels);
+		log.reportTimeInfo("Detected " + pcResiduals.getTotalNumComponents() + "available PCs in " + proj.INTENSITY_PC_FILENAME.getValue());
+		log.reportTimeInfo("Using a total of " + numSamples + " samples");
+		int numPCsToEvaluate = Math.round((float) pcPercent * numSamples);
+		log.reportTimeInfo("PC percent set to " + pcPercent + " giving " + numPCsToEvaluate + " total pcs to use out of " + totalNumPCs);
+		numPCsToEvaluate = Math.min(numPCsToEvaluate, totalNumPCs);
+		log.reportTimeInfo("Setting number of pcs to " + numPCsToEvaluate);
+		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(numPCsToEvaluate);
+		pcResiduals = proj.loadPcResids();
+		pcResiduals.fillInMissing();
+		pcResiduals.setMarkersToAssessFile(markesToEvaluate);
+		Files.writeList(Array.subArray(proj.getSamples(), samplesForModels), outputDir + iType + "_" + oType + "_" + bType + "_samplesForModels.txt");
+		pcResiduals.setHomozygousOnly(true);
+		proj.getLog().reportTimeWarning("In gc-correction mode now, using " + proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0]);
+		GcAdjustorParameters params = GcAdjustorParameters.readSerial(proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0], proj.getLog());
+		if (params.getCentroids() == null && recomputeLRR) {
+			throw new IllegalArgumentException("Must have centroids");
+		} else {
+			if (!recomputeLRR) {
+				proj.getLog().reportTimeInfo("Using gc correction (no lrr recomp) from " + proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0]);
+
+			} else {
+				proj.getLog().reportTimeInfo("Using centroids and gc correction from " + proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0]);
+			}
+		}
+		// GcAdjustorParameters params =
+		pcResiduals.setParams(params);
+		pcResiduals.computeAssessmentDataMedians();
+		cEvaluator = new CorrectionEvaluator(proj, pcResiduals, null, null, null, null, lType);
+		int[] order = null;
+		double[][] extraIndeps = null;
+		StatsCrossTabRank sTabRank = null;
+
+		iterationResult.setValid(valid);
+		if (valid) {
+			// sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, false, numthreads, proj.getLog());
+			// sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL , log);
+
+			if (precomputed == null) {
+				sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, oType == ORDER_TYPE.STEPWISE_RANK_R2, numthreads, proj.getLog());
+
+				sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL && oType != ORDER_TYPE.STEPWISE_RANK_R2, log);
+
+				switch (oType) {
+				case NATURAL:
+					order = null;
 					break;
-				// case WITH_INDEPS:
-				// extraIndeps = loadIndeps(cEvaluator, CorrectionEvaluator.INDEPS, new double[][] { { 0, 3, 4, 5, 6, 7, 8, 9, 10, Double.NaN }, { -1, Double.NaN } }, CorrectionEvaluator.INDEPS_CATS, new String[] { "NaN" }, log);
-				//
-				// if (extraIndeps == null) {
-				// log.reportTimeError("type = " + iType + " and were missing some of the following " + Array.toStr(CorrectionEvaluator.INDEPS));
-				// log.reportTimeError("Available = " + Array.toStr(cEvaluator.getParser().getNumericDataTitles()));
-				// valid = false;
-				// } else {
-				// boolean[] tmpInclude = new boolean[samplesForModels.length];
-				// Arrays.fill(tmpInclude, false);
-				// for (int i = 0; i < extraIndeps.length; i++) {
-				//
-				// if (samplesForModels[i]) {
-				// boolean hasNan = false;
-				// for (int j = 0; j < extraIndeps[i].length; j++) {
-				// if (Double.isNaN(extraIndeps[i][j])) {
-				// hasNan = true;
-				// }
-				// }
-				// if (!hasNan) {
-				// tmpInclude[i] = true;
-				// }
-				// }
-				// }
-				// log.reportTimeInfo("Original number of samples: " + Array.booleanArraySum(samplesForModels));
-				// log.reportTimeInfo("Number of samples with valid independant variables, final evaluation set: " + Array.booleanArraySum(tmpInclude));
-				// samplesForModels = tmpInclude;
+				// case RANK_R2:
+				// order = new int[sTabRank.getOrder().length];
+				// for (int i = 0; i < sTabRank.getOrder().length; i++) {
+				// order[i] = sTabRank.getOrder()[i] + 1;// one based for pcs
 				// }
 				// break;
+				case STEPWISE_RANK_R2:
+					order = new int[sTabRank.getOrder().length];
+					for (int i = 0; i < sTabRank.getOrder().length; i++) {
+						order[i] = sTabRank.getOrder()[i] + 1;// one based for pcs
+					}
+					// log.reportTimeInfo("PC steArray.toStr(order));
+					break;
+				// case QC_ASSOCIATION:
+				//
+				// SelectionResult result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
+				// order = result.getOrder();
+				// if (result == null || order.length < 1) {
+				// log.reportTimeError("Could not select PCs from QC metrics, trying again");
+				// Files.copyFile(proj.SAMPLE_QC_FILENAME.getValue(), proj.SAMPLE_QC_FILENAME.getValue() + ext.getTimestampForFilename());
+				// new File(proj.SAMPLE_QC_FILENAME.getValue()).delete();
+				// LrrSd.init(proj, null, null, numthreads);
+				// result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
+				// order = result.getOrder();
+				// if (order.length < 1) {
+				// return null;
+				// }
+				// }
 				default:
-					return null;
-
+					break;
 				}
-
-				PrincipalComponentsResiduals pcResiduals = proj.loadPcResids();
-				int totalNumPCs = pcResiduals.getTotalNumComponents();
-				int numSamples = Array.booleanArraySum(samplesForModels);
-				log.reportTimeInfo("Detected " + pcResiduals.getTotalNumComponents() + "available PCs in " + proj.INTENSITY_PC_FILENAME.getValue());
-				log.reportTimeInfo("Using a total of " + numSamples + " samples");
-				int numPCsToEvaluate = Math.round((float) pcPercent * numSamples);
-				log.reportTimeInfo("PC percent set to " + pcPercent + " giving " + numPCsToEvaluate + " total pcs to use out of " + totalNumPCs);
-				numPCsToEvaluate = Math.min(numPCsToEvaluate, totalNumPCs);
-				log.reportTimeInfo("Setting number of pcs to " + numPCsToEvaluate);
-				proj.INTENSITY_PC_NUM_COMPONENTS.setValue(numPCsToEvaluate);
-				pcResiduals = proj.loadPcResids();
-				pcResiduals.fillInMissing();
-				pcResiduals.setMarkersToAssessFile(markesToEvaluate);
-				Files.writeList(Array.subArray(proj.getSamples(), samplesForModels), outputDir + iType + "_" + oType + "_" + bType + "_samplesForModels.txt");
-				pcResiduals.setHomozygousOnly(true);
-				proj.getLog().reportTimeWarning("In gc-correction mode now, using " + proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0]);
-				GcAdjustorParameters params = GcAdjustorParameters.readSerial(proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0], proj.getLog());
-				if (params.getCentroids() == null && recomputeLRR) {
-					throw new IllegalArgumentException("Must have centroids");
-				} else {
-					if (!recomputeLRR) {
-						proj.getLog().reportTimeInfo("Using gc correction (no lrr recomp) from " + proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0]);
-
-					} else {
-						proj.getLog().reportTimeInfo("Using centroids and gc correction from " + proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue()[0]);
-					}
-				}
-				// GcAdjustorParameters params =
-				pcResiduals.setParams(params);
-				pcResiduals.computeAssessmentDataMedians();
-				cEvaluator = new CorrectionEvaluator(proj, pcResiduals, null, null, null, lType);
-				int[] order = null;
-				double[][] extraIndeps = null;
-				StatsCrossTabRank sTabRank = null;
-
-				iterationResult.setValid(valid);
-				if (valid) {
-					// sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, false, numthreads, proj.getLog());
-					// sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL , log);
-					sTabRank = pcResiduals.getStatRankFor(pcResiduals.getMedians(), extraIndeps, samplesForModels, "RAW_MEDIANS", STAT_TYPE.LIN_REGRESSION, VALUE_TYPE.STAT, oType == ORDER_TYPE.STEPWISE_RANK_R2, numthreads, proj.getLog());
-
-					sTabRank.dump(iterationResult.getOutputRank(), oType != ORDER_TYPE.NATURAL && oType != ORDER_TYPE.STEPWISE_RANK_R2, log);
-
-					switch (oType) {
-					case NATURAL:
-						order = null;
-						break;
-					// case RANK_R2:
-					// order = new int[sTabRank.getOrder().length];
-					// for (int i = 0; i < sTabRank.getOrder().length; i++) {
-					// order[i] = sTabRank.getOrder()[i] + 1;// one based for pcs
-					// }
-					// break;
-					case STEPWISE_RANK_R2:
-						order = new int[sTabRank.getOrder().length];
-						for (int i = 0; i < sTabRank.getOrder().length; i++) {
-							order[i] = sTabRank.getOrder()[i] + 1;// one based for pcs
-						}
-						// log.reportTimeInfo("PC steArray.toStr(order));
-						break;
-					// case QC_ASSOCIATION:
-					//
-					// SelectionResult result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
-					// order = result.getOrder();
-					// if (result == null || order.length < 1) {
-					// log.reportTimeError("Could not select PCs from QC metrics, trying again");
-					// Files.copyFile(proj.SAMPLE_QC_FILENAME.getValue(), proj.SAMPLE_QC_FILENAME.getValue() + ext.getTimestampForFilename());
-					// new File(proj.SAMPLE_QC_FILENAME.getValue()).delete();
-					// LrrSd.init(proj, null, null, numthreads);
-					// result = PCSelector.select(proj, 0.05, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.EFFECTIVE_M_CORRECTED);
-					// order = result.getOrder();
-					// if (order.length < 1) {
-					// return null;
-					// }
-					// }
-					default:
-						break;
-					}
-					// boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
-					boolean[] samplesToEvaluate = samplesForModels;
-					Files.writeList(Array.subArray(proj.getSamples(), samplesToEvaluate), outputDir + iType + "_" + oType + "_" + bType + "_samplesForEval.txt");
-
-					cEvaluator = new CorrectionEvaluator(proj, pcResiduals, order, new boolean[][] { samplesForModels, samplesToEvaluate }, extraIndeps, lType);
-					BasicPrep basicPrep = new BasicPrep(cEvaluator.getParser().getNumericData(), cEvaluator.getParser().getNumericDataTitles(), samplesToEvaluate, samplesForModels, sTabRank);
-					BasicPrep.serialize(basicPrep, iterationResult.getBasePrep());
-					iterationResult.setBasicPrep(basicPrep);
-					if (!Files.exists(iterationResult.getOutputSer())) {
-						log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " samples for models");
-						log.reportTimeInfo(Array.booleanArraySum(samplesToEvaluate) + " samples for evaluation");
-
-						ArrayList<EvaluationResult> store = new ArrayList<EvaluationResult>();
-
-						try {
-							PrintWriter writer = new PrintWriter(new FileWriter(iterationResult.getOutputSummary()));
-							WorkerTrain<EvaluationResult> train = new WorkerTrain<EvaluationResult>(cEvaluator, numthreads, numthreads, proj.getLog());
-							int index = 0;
-							while (train.hasNext()) {
-								EvaluationResult result = train.next();
-								result.setItType(iType);
-								result.setOrType(oType);
-								result.setbType(bType);
-								if (index == 0) {
-									writer.println(Array.toStr(result.getHeader()));
-								}
-								writer.println(Array.toStr(result.getData()));
-								index++;
-								result.shrink();
-								store.add(result);
-							}
-							writer.close();
-						} catch (Exception e) {
-							proj.getLog().reportError("Error writing to " + iterationResult.getOutputSummary());
-							proj.getLog().reportException(e);
-						}
-						EvaluationResult.serialize(store.toArray(new EvaluationResult[store.size()]), iterationResult.getOutputSer());
-					}
-				}
+			} else {
+				log.reportTimeWarning("Skipping PC selection, relying on pre-computed results");
 			}
-		} else {
-			BasicPrep basicPrep = BasicPrep.readSerial(iterationResult.getBasePrep(), log);
+			// boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
+			boolean[] samplesToEvaluate = samplesForModels;
+			Files.writeList(Array.subArray(proj.getSamples(), samplesToEvaluate), outputDir + iType + "_" + oType + "_" + bType + "_samplesForEval.txt");
+
+			cEvaluator = new CorrectionEvaluator(proj, pcResiduals, precomputed, order, new boolean[][] { samplesForModels, samplesToEvaluate }, extraIndeps, lType);
+			BasicPrep basicPrep = new BasicPrep(cEvaluator.getParser().getNumericData(), cEvaluator.getParser().getNumericDataTitles(), samplesToEvaluate, samplesForModels, null);
+			BasicPrep.serialize(basicPrep, iterationResult.getBasePrep());
 			iterationResult.setBasicPrep(basicPrep);
+			log.reportTimeInfo(Array.booleanArraySum(samplesForModels) + " samples for models");
+			log.reportTimeInfo(Array.booleanArraySum(samplesToEvaluate) + " samples for evaluation");
+
+			ArrayList<EvaluationResult> store = new ArrayList<EvaluationResult>();
+
+			try {
+				PrintWriter writer = new PrintWriter(new FileWriter(iterationResult.getOutputSummary()));
+				WorkerTrain<EvaluationResult> train = new WorkerTrain<EvaluationResult>(cEvaluator, numthreads, numthreads, proj.getLog());
+				int index = 0;
+				while (train.hasNext()) {
+					EvaluationResult result = train.next();
+					result.setItType(iType);
+					result.setOrType(oType);
+					result.setbType(bType);
+					if (index == 0) {
+						writer.println(Array.toStr(result.getHeader()));
+					}
+					writer.println(Array.toStr(result.getData()));
+					index++;
+					result.shrink();
+					store.add(result);
+				}
+				writer.close();
+			} catch (Exception e) {
+				proj.getLog().reportError("Error writing to " + iterationResult.getOutputSummary());
+				proj.getLog().reportException(e);
+			}
+			EvaluationResult.serialize(store.toArray(new EvaluationResult[store.size()]), iterationResult.getOutputSer());
 		}
+
 		return iterationResult;
 	}
 

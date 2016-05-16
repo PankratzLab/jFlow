@@ -37,14 +37,16 @@ public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializ
 	public static final int NUM_PC_SVD_OVERIDE = 160;
 	private Project proj;
 	private PrincipalComponentsIterator iterator;
+	private EvaluationResult[] precomputeds;
 	private boolean[][] samplesToInclude;
 	private String[] matchDouble, matchString, stratString;
 	private double[][] extraIndeps;
 	private ExtProjectDataParser parser;
+	private int index = 0;
 	private Logger log;
 	private LS_TYPE lType;
 
-	public CorrectionEvaluator(Project proj, PrincipalComponentsResiduals pcResiduals, int[] order, boolean[][] samplesToInclude, double[][] extraIndeps, LS_TYPE lType) {
+	public CorrectionEvaluator(Project proj, PrincipalComponentsResiduals pcResiduals, EvaluationResult[] precomputeds, int[] order, boolean[][] samplesToInclude, double[][] extraIndeps, LS_TYPE lType) {
 		super();
 		this.proj = proj;
 		this.samplesToInclude = samplesToInclude;
@@ -54,7 +56,11 @@ public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializ
 		this.stratString = gatherPatternTitles(proj.SAMPLE_DATA_FILENAME.getValue(), Array.concatAll(STRAT_STRING_PATTERN, INDEPS_CATS), log);
 		loadSampleData();
 		this.extraIndeps = extraIndeps;
-		this.iterator = new PrincipalComponentsIterator(pcResiduals, order);
+		this.iterator = precomputeds == null ? new PrincipalComponentsIterator(pcResiduals, order) : null;
+		this.precomputeds = precomputeds;
+		if (precomputeds != null) {
+			log.reportTimeWarning("Using pre-computed estimates to analyze");
+		}
 		this.lType = lType;
 
 	}
@@ -77,12 +83,21 @@ public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializ
 
 	@Override
 	public boolean hasNext() {
-		return iterator.hasNext();
+		boolean next = false;
+		if (precomputeds != null) {
+			next = index < precomputeds.length;
+		}
+		else {
+			next = iterator.hasNext();
+		}
+		return next;
 	}
 
 	@Override
 	public Callable<EvaluationResult> next() {
-		return new EvaluationWorker(iterator.next(), extraIndeps, matchString, matchDouble, stratString, samplesToInclude, parser, lType, log);
+		EvaluationWorker worker = new EvaluationWorker(precomputeds == null ? iterator.next() : null, precomputeds == null ? null : precomputeds[index], extraIndeps, matchString, matchDouble, stratString, samplesToInclude, parser, lType, log);
+		index++;
+		return worker;
 	}
 
 	@Override
@@ -103,11 +118,12 @@ public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializ
 		private String[] matchDouble;
 		private String[] stratString;
 		private boolean[][] samplesToInclude;
+		private EvaluationResult precomputed;
 		private LS_TYPE lType;
 		private ExtProjectDataParser parser;
 		private Logger log;
 
-		public EvaluationWorker(PrincipalComponentsResiduals tmpResiduals, double[][] extraIndeps, String[] matchString, String[] matchDouble, String[] stratString, boolean[][] samplesToInclude, ExtProjectDataParser parser, LS_TYPE lType, Logger log) {
+		public EvaluationWorker(PrincipalComponentsResiduals tmpResiduals, EvaluationResult precomputed, double[][] extraIndeps, String[] matchString, String[] matchDouble, String[] stratString, boolean[][] samplesToInclude, ExtProjectDataParser parser, LS_TYPE lType, Logger log) {
 			super();
 			this.tmpResiduals = tmpResiduals;
 			this.extraIndeps = extraIndeps;
@@ -117,33 +133,43 @@ public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializ
 			this.samplesToInclude = samplesToInclude;
 			this.parser = parser;
 			this.lType = lType;
+			this.precomputed=precomputed;
 			this.log = log;
 		}
 
 		@Override
 		public EvaluationResult call() throws Exception {
-			return evaluate(tmpResiduals, extraIndeps, matchString, matchDouble, stratString, samplesToInclude, parser, lType, log);
+			return evaluate(tmpResiduals, precomputed, extraIndeps, matchString, matchDouble, stratString, samplesToInclude, parser, lType, log);
 		}
 
 	}
 
-	private static EvaluationResult evaluate(PrincipalComponentsResiduals tmpResiduals, double[][] extraIndeps, String[] matchString, String[] matchDouble, String[] stratString, boolean[][] samplesToInclude, ExtProjectDataParser parser, LS_TYPE lType, Logger log) {
-		String baseTitle = "" + tmpResiduals.getNumComponents();
+	private static EvaluationResult evaluate(PrincipalComponentsResiduals tmpResiduals, EvaluationResult precomputed, double[][] extraIndeps, String[] matchString, String[] matchDouble, String[] stratString, boolean[][] samplesToInclude, ExtProjectDataParser parser, LS_TYPE lType, Logger log) {
+		String baseTitle = "";
 		double[] estimate = null;
-		CrossValidation cValidation = null;
+		double rsquare = Double.NaN;
 		// tmpResiduals.crossValidate(kFolds, numComponentsIter, numThreads, svdRegression, tmpOutput, val_pcs)
-		if (tmpResiduals.getNumComponents() > 0 || extraIndeps != null) {
-
-			cValidation = tmpResiduals.getCorrectedDataAt(tmpResiduals.getMedians(), extraIndeps, samplesToInclude[0], tmpResiduals.getNumComponents(), lType, "HFDS", true);
-			estimate = cValidation.getResiduals();
+		if (precomputed != null) {
+			estimate = precomputed.getEstimateData();
+			rsquare = precomputed.getrSquared();
+			baseTitle = precomputed.getTitle();
 		} else {
-			estimate = tmpResiduals.getMedians();
-		}
-		if (estimate.length != tmpResiduals.getProj().getSamples().length) {
-			throw new IllegalStateException("Could not obtain estimate for all samples in project");
+			baseTitle = "" + tmpResiduals.getNumComponents();
+			if (tmpResiduals.getNumComponents() > 0 || extraIndeps != null) {
+
+				CrossValidation cValidation = tmpResiduals.getCorrectedDataAt(tmpResiduals.getMedians(), extraIndeps, samplesToInclude[0], tmpResiduals.getNumComponents(), lType, "HFDS", true);
+				estimate = cValidation.getResiduals();
+				rsquare = cValidation.getFullModelR2();
+
+			} else {
+				estimate = tmpResiduals.getMedians();
+			}
+			if (estimate.length != tmpResiduals.getProj().getSamples().length) {
+				throw new IllegalStateException("Could not obtain estimate for all samples in project");
+			}
 		}
 
-		EvaluationResult evaluationResult = new EvaluationResult(baseTitle, estimate, cValidation == null ? 0 : cValidation.getRsquare());
+		EvaluationResult evaluationResult = new EvaluationResult(baseTitle, estimate, rsquare);
 
 		for (int i = 0; i < stratString.length; i++) {
 			boolean[][] strat = new boolean[][] { Array.booleanArray(samplesToInclude[1].length, true) };
@@ -167,11 +193,12 @@ public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializ
 					evaluationResult.getIccs().add(icc);
 					evaluationResult.getNumIndsIcc().add(Array.booleanArraySum(finalEval));
 					evaluationResult.getIccTitles().add(matchString[k] + "_" + stratTitles[j]);
-					if (tmpResiduals.getNumComponents() % 20 == 0) {
-						log.reportTimeInfo("ICC: " + matchString[k] + "_" + stratTitles[j] + " -> " + icc.getICC() + " NumComps = " + tmpResiduals.getNumComponents());
+					if (Integer.parseInt(baseTitle) % 1 == 0) {
+						log.reportTimeInfo("ICC: " + matchString[k] + "_" + stratTitles[j] + " -> " + icc.getICC() + " NumComps = " + baseTitle);
 					}
 				}
 				for (int k = 0; k < matchDouble.length; k++) {
+				
 					StatPrep result = prepData(estimate, parser.getNumericDataForTitle(matchDouble[k]), finalEval, matchDouble[k], true, log);
 					ICC icc = new ICC(result.getFinalData(), result.getFinalResponse(), null, null, false, log);
 					icc.computeICC();
@@ -185,8 +212,8 @@ public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializ
 					evaluationResult.getNumIndsCorrel().add(result.getInternalEstimate().length);
 					evaluationResult.getSpearmanCorrel().add(spearman);
 					evaluationResult.getCorrelTitles().add(matchDouble[k] + "_" + stratTitles[j]);
-					if (tmpResiduals.getNumComponents() % 20 == 0) {
-						log.reportTimeInfo("Spearman: " + matchDouble[k] + "_" + stratTitles[j] + " -> " + Array.toStr(spearman) + " NumComps = " + tmpResiduals.getNumComponents());
+					if (Integer.parseInt(baseTitle) % 1 == 0) {
+						log.reportTimeInfo("Spearman: " + matchDouble[k] + "_" + stratTitles[j] + " -> " + Array.toStr(spearman) + " NumComps = " + baseTitle);
 					}
 				}
 			}
@@ -278,10 +305,12 @@ public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializ
 		builder.sampleBased(true);
 		builder.treatAllNumeric(false);
 		builder.requireAll(true);
-		builder.verbose(false);
+		builder.verbose(true);
 		builder.dataKeyColumnName("DNA");
-		builder.stringDataTitles(Array.concatAll(STRING_DATA, matchString, stratString));
-		builder.numericDataTitles(Array.concatAll(DOUBLE_DATA, matchDouble, INDEPS));
+		// System.out.println(Array.toStr(matchDouble));
+		// System.exit(1);
+		builder.stringDataTitles(Array.concatAll(matchString, stratString));
+		builder.numericDataTitles(Array.concatAll(matchDouble));
 		try {
 			log.reportTimeInfo("Loading " + proj.SAMPLE_DATA_FILENAME.getValue());
 			this.parser = builder.build(proj, proj.SAMPLE_DATA_FILENAME.getValue());
