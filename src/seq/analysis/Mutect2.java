@@ -163,7 +163,6 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 					vcfsToCombine.add(validate.getOutputVCF());
 				}
 			}
-
 		}
 	}
 
@@ -465,7 +464,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		command.add("java");
 		command.add("-Xmx62000m");
 		command.add("-cp");
-		command.add("~/parkMutect.jar");
+		command.add("~/genvisisMutect.jar");
 		command.add("seq.analysis.Mutect2");
 
 	}

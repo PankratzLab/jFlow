@@ -261,7 +261,7 @@ public class BetaOptimizer {
 		ALL_PC_SAMPS, RACE_IN, RACE_OUT;
 	}
 
-	private static void analyze(Project proj, String pcFile, String samplesToBuildModels, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, List<String> betaFiles, double[] pvals, double markerCallRate, int maxPCs, int numthreads, String usedInPCFile, Logger log) {
+	private static void analyze(Project proj, String pcFile, String singleRaceSamples, MarkerSet markerSet, ABLookup abLookup, String dbsnpVCF, String[] namesToQuery, String outpuDir, List<String> betaFiles, double[] pvals, double markerCallRate, int maxPCs, int numthreads, String usedInPCFile, Logger log) {
 
 		String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
 
@@ -286,10 +286,10 @@ public class BetaOptimizer {
 						sampsPCs[indicesPC[i]] = true;
 					}
 
-					if (samplesToBuildModels != null && Files.exists(samplesToBuildModels)) {
-						log.reportTimeInfo("Loading samples from " + samplesToBuildModels);
-						String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[] { 0 }, true);
-						log.reportTimeInfo("Loaded " + sampsForMods.length + " samples from " + samplesToBuildModels);
+					if (singleRaceSamples != null && Files.exists(singleRaceSamples)) {
+						log.reportTimeInfo("Loading samples from " + singleRaceSamples);
+						String[] sampsForMods = HashVec.loadFileToStringArray(singleRaceSamples, false, new int[] { 0 }, true);
+						log.reportTimeInfo("Loaded " + sampsForMods.length + " samples from " + singleRaceSamples);
 
 						int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true, proj.getLog(), true, false);
 						for (int i = 0; i < indices.length; i++) {
@@ -418,10 +418,10 @@ public class BetaOptimizer {
 														method = "AllPCASamps_" + method;
 														break;
 													case RACE_IN:
-														method = ext.rootOf(samplesToBuildModels) + method;
+														method = ext.rootOf(singleRaceSamples) + method;
 														break;
 													case RACE_OUT:
-														method = "not_" + ext.rootOf(samplesToBuildModels) + method;
+														method = "not_" + ext.rootOf(singleRaceSamples) + method;
 														break;
 													default:
 														break;

@@ -478,8 +478,8 @@ public class GATK {
 		command.add(FILTERED_ARE_UNCALLED);
 		command.add(FILTERED_RECORDS_MERGE_TYPE);
 		command.add(KEEP_IF_ANY_UNFILTERED);
-		// command.add(L);
-		// command.add(regionsFile);
+		command.add(L);
+		command.add(regionsFile);
 		command.add(O);
 		command.add(outputVcf);
 		return CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, verbose, overWriteExistingOutput, false, log);
@@ -699,12 +699,12 @@ public class GATK {
 		command.add(MUTECT2);
 		command.add(R);
 		command.add(referenceGenomeFasta);
-		command.add(I_NORMAL);
+		command.add(I_TUMOR);
 		command.add(bamFile);
-		command.add(DB_SNP);
-		command.add(dbSnpKnownSites);
-		command.add(COSMIC);
-		command.add(cosmicKnownSites);
+		// command.add(DB_SNP);
+		// command.add(dbSnpKnownSites);
+		// command.add(COSMIC);
+		// command.add(cosmicKnownSites);
 		command.add(ARTIFACT_DETECTION_MODE);
 		command.add(L);
 		command.add(regionsFile);

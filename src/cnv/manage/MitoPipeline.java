@@ -53,7 +53,7 @@ public class MitoPipeline {
 	public static final String[] SAMPLE_QC_SUMMARY = { "DNA", "LRR_SD", "Genotype_callrate", "Included in PC?" };
 	public static final String[] SEX = { "female", "male" };
 	public static final String[] SAMPLE_DATA_ADDITION_HEADERS = { "LRR_SD", "Genotype_callrate", "CLASS=Exclude" };
-
+	public static final double[] DEFAULT_PVAL_OPTS = new double[] { 0.05, 0.01, 0.001 };
 	static final String MARKERS_TO_QC_FILE = "markers_to_QC.txt";
 	static final String MARKERS_FOR_ABCALLRATE = "markers_ABCallRate.txt";
 	public static final String DNA_LINKER = "DNA";
