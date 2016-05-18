@@ -75,52 +75,7 @@ public class ClipSwap {
 	}
 
 	public static void histogram() {
-		String[] lines, line;
-		DoubleVector dv;
-		int countMoreThan, countInvalids;
-		Histogram histo;
-		int[] sigfigsExtrastep;
-		double[] array;
-		
-		sigfigsExtrastep = null;
-		countMoreThan = countInvalids = 0;
-		lines = ext.getClipboard().trim().split("\\n");
-		dv = new DoubleVector();
-		for (int i = 0; i < lines.length; i++) {
-			line = lines[i].split("\t", -1);
-			if (line.length > 1) {
-				if (countMoreThan < 5) {
-					System.out.println("Line # "+(i+1)+" had more than one column: "+Array.toStr(line, " / "));
-				}
-				countMoreThan++;
-			}
-			if (line[0].startsWith("sigfigs=")) {
-				sigfigsExtrastep = new int[] {ext.parseIntArg(line[0]), 0};
-			} else if (line[0].startsWith("step=")) {
-				sigfigsExtrastep = Histogram.reverseStep(ext.parseDoubleArg(line[0]));
-				System.out.println("Overriding step to be "+ext.formDeci(Histogram.determineStep(sigfigsExtrastep[0], sigfigsExtrastep[1]), sigfigsExtrastep[0]+2));
-			} else if (ext.isMissingValue(line[0])) {
-				if (countInvalids < 5) {
-					System.out.println("Line # "+(i+1)+" had an invalid double: "+Array.toStr(line, " / "));
-				}
-				countInvalids++;
-			} else {
-				dv.add(Double.parseDouble(line[0]));
-			}
-		}
-		if (countMoreThan >= 5) {
-			System.out.println("There were "+countMoreThan+" lines with more than one column");
-		}
-		if (countInvalids >= 5) {
-			System.out.println("There were "+countInvalids+" invalid doubles in the data");
-		}
-		
-		array = dv.toArray();
-		if (sigfigsExtrastep == null) {
-			histo = new Histogram(array);
-		} else {
-			histo = new Histogram(array, Array.min(array), Array.max(array), sigfigsExtrastep[0], sigfigsExtrastep[1]);
-		}
+		Histogram histo = getHistogram();
 
         String file = "./histograms/clipboard_histogram.png";
         int cnt = 1;
@@ -139,6 +94,59 @@ public class ClipSwap {
 		
         // TODO set to histogram image location?  set to histogram image?
 		ext.setClipboard(histo.getSummary());
+	}
+
+	/**
+	 * @return a {@link Histogram} populated from the current clipboard
+	 */
+	public static Histogram getHistogram() {
+		String[] lines, line;
+		DoubleVector dv;
+		int countMoreThan, countInvalids;
+		Histogram histo;
+		int[] sigfigsExtrastep;
+		double[] array;
+
+		sigfigsExtrastep = null;
+		countMoreThan = countInvalids = 0;
+		lines = ext.getClipboard().trim().split("\\n");
+		dv = new DoubleVector();
+		for (int i = 0; i < lines.length; i++) {
+			line = lines[i].split("\t", -1);
+			if (line.length > 1) {
+				if (countMoreThan < 5) {
+					System.out.println("Line # " + (i + 1) + " had more than one column: " + Array.toStr(line, " / "));
+				}
+				countMoreThan++;
+			}
+			if (line[0].startsWith("sigfigs=")) {
+				sigfigsExtrastep = new int[] { ext.parseIntArg(line[0]), 0 };
+			} else if (line[0].startsWith("step=")) {
+				sigfigsExtrastep = Histogram.reverseStep(ext.parseDoubleArg(line[0]));
+				System.out.println("Overriding step to be " + ext.formDeci(Histogram.determineStep(sigfigsExtrastep[0], sigfigsExtrastep[1]), sigfigsExtrastep[0] + 2));
+			} else if (ext.isMissingValue(line[0])) {
+				if (countInvalids < 5) {
+					System.out.println("Line # " + (i + 1) + " had an invalid double: " + Array.toStr(line, " / "));
+				}
+				countInvalids++;
+			} else {
+				dv.add(Double.parseDouble(line[0]));
+			}
+		}
+		if (countMoreThan >= 5) {
+			System.out.println("There were " + countMoreThan + " lines with more than one column");
+		}
+		if (countInvalids >= 5) {
+			System.out.println("There were " + countInvalids + " invalid doubles in the data");
+		}
+
+		array = dv.toArray();
+		if (sigfigsExtrastep == null) {
+			histo = new Histogram(array);
+		} else {
+			histo = new Histogram(array, Array.min(array), Array.max(array), sigfigsExtrastep[0], sigfigsExtrastep[1]);
+		}
+		return histo;
 	}
 
 	public static void inverseVarianceMeta() {

@@ -12,6 +12,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
+import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
@@ -22,6 +23,13 @@ public class LineChartSample extends Application {
 
 	// http://docs.oracle.com/javafx/2/charts/line-chart.htm
 
+//	private double[] data;
+//	
+//	
+//	public LineChartSample(double[] data) {
+//		super();
+//		this.data = data;
+//	}
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void start(Stage stage) {
@@ -47,7 +55,7 @@ public class LineChartSample extends Application {
 		yAxis.setLabel("Beta Correlation of inverse mito estimates (p<.05)");
 
 		final XYChart<Number, Number> lineChart =
-				new ScatterChart<Number, Number>(xAxis, yAxis);
+				new LineChart<Number, Number>(xAxis, yAxis);
 
 		lineChart.setTitle(ext.rootOf(file));
 
@@ -80,9 +88,10 @@ public class LineChartSample extends Application {
 		}
 		Platform.exit();
 	}
-	public static void main(String[] args) {
-	    System.setProperty("java.awt.headless", "true");
 
+	public static void main(String[] args) {
+		System.setProperty("java.awt.headless", "true");
+//		new LineChartSample(new double[] { 0, 4, 2 });
 		launch(args);
 	}
 }
