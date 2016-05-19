@@ -30,13 +30,20 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+/**
+ * Javafx histogram widget
+ *
+ */
 public class HistogramPop extends Application {
 	private static final int DEFAULT_BIN = 30;
-
 	private ParseResult parseResult;
 	final Slider slider = new Slider(0, 100, 1);
 	private ToolBar toolBar;
 	private Scene scene;
+	private AreaChart<Number, Number> areaChart;
+	private VBox root;
+	private NumberAxis xAxis;
+	private NumberAxis yAxis;
 
 	/**
 	 * @return get the data from the clipboard
@@ -45,6 +52,9 @@ public class HistogramPop extends Application {
 		return ext.getClipboard().trim().split("\\n");
 	}
 
+	/**
+	 * Parse the clipboard data
+	 */
 	private ParseResult parseData() {
 		String[] data = getData();
 		ArrayList<ArrayList<Double>> ds = new ArrayList<ArrayList<Double>>();
@@ -79,38 +89,30 @@ public class HistogramPop extends Application {
 		return new ParseResult(Array.toStringArray(titles), dataParsed);
 	}
 
-	private final class ChangeListenerImplementation implements ChangeListener {
-		private final Stage stage;
-
-		private ChangeListenerImplementation(Stage stage) {
-			this.stage = stage;
-		}
-
-		@Override
-		public void changed(@SuppressWarnings("rawtypes") ObservableValue arg0, Object arg1, Object arg2) {
-			show(stage);
-
-		}
-	}
-
+	/**
+	 * Little data container
+	 *
+	 */
 	private static class ParseResult {
 		private double[][] data;
 		private String[] titles;
 
-		public ParseResult(String[] titles, double[][] data) {
+		private ParseResult(String[] titles, double[][] data) {
 			super();
 			this.data = data;
 			this.titles = titles;
 		}
 	}
 
+	/**
+	 * Using apache commons for speed, can change later
+	 */
 	private static BasicHistogram[] getHistogram(int binCount, double[][] data) {
 		BasicHistogram[] basicHistograms = new BasicHistogram[data.length];
 		for (int i = 0; i < basicHistograms.length; i++) {
 			long[] counts = new long[binCount];
 			double[] binMax = new double[binCount];
 			double[] binMin = new double[binCount];
-
 			EmpiricalDistribution distribution = new EmpiricalDistribution(binCount);
 			distribution.load(data[i]);
 			int k = 0;
@@ -130,7 +132,7 @@ public class HistogramPop extends Application {
 		private double[] binMax;
 		private double[] binMin;
 
-		public BasicHistogram(long[] counts, double[] binMax, double[] binMin) {
+		private BasicHistogram(long[] counts, double[] binMax, double[] binMin) {
 			super();
 			this.counts = counts;
 			this.binMax = binMax;
@@ -151,47 +153,59 @@ public class HistogramPop extends Application {
 		slider.setMinorTickCount(10);
 		slider.setSnapToTicks(true);
 		slider.setBlockIncrement(1);
-		slider.valueProperty().addListener(new ChangeListenerImplementation(stage));
-
+		slider.valueProperty().addListener(new ChangeListenerImplementation());
 		show(stage);
 
 	}
 
-	public void show(Stage stage) {
-		if (!slider.valueChangingProperty().getValue()) {
-			BasicHistogram[] histograms = getHistogram((int) slider.getValue(), parseResult.data);
-			final NumberAxis xAxis = new NumberAxis();
-			final NumberAxis yAxis = new NumberAxis();
-			xAxis.setLabel("Bins " + (int) slider.getValue());
-			yAxis.setLabel("Counts");
+	private void show(Stage stage) {
+		this.xAxis = new NumberAxis();
+		this.yAxis = new NumberAxis();
+		yAxis.setAutoRanging(true);
+		xAxis.setAutoRanging(true);
 
-			final AreaChart<Number, Number> areaChart =
-					new AreaChart<Number, Number>(xAxis, yAxis);
-			areaChart.setCreateSymbols(false);
-			areaChart.setHorizontalGridLinesVisible(false);
-			areaChart.setVerticalGridLinesVisible(false);
-			areaChart.setAnimated(true);
-			addDataToChart(histograms, new DecimalFormat("#.##"), areaChart);
+		areaChart = new AreaChart<>(xAxis, yAxis);
+		updateChart();
 
-			final Button button1 = new Button();
-			paramaterizeButton(button1);
-			this.toolBar = new ToolBar(
-					button1
-					);
-			VBox root = new VBox();
-			root.setStyle("-fx-background-color: white");
-			root.getChildren().add(toolBar);
-			root.getChildren().add(areaChart);
-			root.getChildren().add(slider);
-			root.getChildren().add(button1);
-			this.scene = new Scene(root, 1600, 600);
-			stage.setScene(scene);
-			stage.show();
-		}
+		final Button button1 = new Button();
+		paramaterizeButton(button1);
+		this.toolBar = new ToolBar(button1);
+		this.root = new VBox();
+		root.setStyle("-fx-background-color: white");
+		root.getChildren().addAll(toolBar, areaChart, slider, button1);
+		this.scene = new Scene(root, 1600, 600);
+		stage.setScene(scene);
+		stage.show();
 
 	}
 
-	public void paramaterizeButton(final Button button1) {
+	@SuppressWarnings("rawtypes")
+	private final class ChangeListenerImplementation implements ChangeListener {
+		private ChangeListenerImplementation() {
+		}
+
+		@Override
+		public void changed(ObservableValue arg0, Object arg1, Object arg2) {
+			updateChart();
+		}
+	}
+
+	private void updateChart() {
+		areaChart.setCreateSymbols(false);
+		areaChart.setHorizontalGridLinesVisible(true);
+		areaChart.setVerticalGridLinesVisible(false);
+		areaChart.setAnimated(false);
+		BasicHistogram[] histograms = getHistogram(Math.max(1, (int) slider.getValue()), parseResult.data);
+		addDataToChart(histograms, new DecimalFormat("#.##"));
+		areaChart.getXAxis().setLabel("Bins " + (int) slider.getValue());
+
+	}
+
+	/**
+	 * @param button1
+	 *            give this button a screen shot
+	 */
+	private void paramaterizeButton(final Button button1) {
 		button1.setText("Screen Shot");
 		button1.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
@@ -200,16 +214,16 @@ public class HistogramPop extends Application {
 				slider.setVisible(false);
 				toolBar.setVisible(false);
 				WritableImage snapShot = scene.snapshot(null);
-				String file = "./histograms/clipboard_histogram.png";
+				String dir = "./histograms/";
+				String file = dir + "clipboard_histogram.png";
 				int cnt = 1;
+
 				while (Files.exists(file)) {
 					file = "./histograms/clipboard_histogram_" + cnt++ + ".png";
 				}
 				try {
-
 					ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null), "png", new File(file));
 				} catch (IOException io) {
-					// TODO Auto-generated catch block
 					io.printStackTrace();
 				}
 				toolBar.setVisible(true);
@@ -220,23 +234,30 @@ public class HistogramPop extends Application {
 		});
 	}
 
-	public void addDataToChart(BasicHistogram[] histograms, DecimalFormat twoDForm, final AreaChart<Number, Number> areaChart) {
+	private void addDataToChart(BasicHistogram[] histograms, DecimalFormat twoDForm) {
+		boolean replace = areaChart.getData().size() > 0;
 		for (int i = 0; i < histograms.length; i++) {
 			BasicHistogram histogram = histograms[i];
 			XYChart.Series<Number, Number> countsBin = new XYChart.Series<Number, Number>();
 			countsBin.setName(parseResult.titles[i]);
 			for (int j = 0; j < histogram.binMax.length; j++) {
 				if (Double.isFinite(histogram.binMin[j]) && Double.isFinite(histogram.binMax[j])) {
-					countsBin.getData().add(new XYChart.Data<Number, Number>(Double.valueOf(twoDForm.format(histogram.binMin[j])), histogram.counts[j]));
-					countsBin.getData().add(new XYChart.Data<Number, Number>(Double.valueOf(twoDForm.format(histogram.binMax[j])), histogram.counts[j]));
+					countsBin.getData().add(new XYChart.Data<Number, Number>(
+							Double.valueOf(twoDForm.format(histogram.binMin[j])), histogram.counts[j]));
+					countsBin.getData().add(new XYChart.Data<Number, Number>(
+							Double.valueOf(twoDForm.format(histogram.binMax[j])), histogram.counts[j]));
 				}
 			}
-			areaChart.getData().add(countsBin);
+			if (replace && i < areaChart.getData().size()) {
+				 areaChart.getData().set(i, countsBin);
+				// areaChart.getData().add(countsBin);
+			} else {
+				areaChart.getData().add(countsBin);
+			}
 		}
 	}
 
 	public static void main(String[] args) {
-
 		launch(args);
 	}
 
