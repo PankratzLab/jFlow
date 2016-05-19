@@ -274,7 +274,7 @@ public class MitoPipeline {
 	 * The main event. Takes the samples from raw data through import and PCA
 	 */
 
-	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String betaOptFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build, double[] pvalOpt, boolean plot) {
+	public static int catAndCaboodle(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, boolean markerQC, double markerCallRateFilter, String useFile, String betaOptFile, String pedFile, String sampleMapCsv, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build, double[] pvalOpt, String betaFile, boolean plot) {
 		String sampleDirectory;
 		SampleList sampleList;
 		int[] counts;
@@ -478,10 +478,14 @@ public class MitoPipeline {
 							// generate estimates at each pc
 							log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");
 							CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers), proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR, true, 0.05, plot, numThreads);
-
-							boolean mitoResourceAvailable = prepareMitoResources(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog());
+							
+							boolean requireBeta = betaFile == null || !Files.exists(betaFile);
+							if (requireBeta) {
+								log.reportTimeWarning("Attempting to use pre-set beta file");
+							}
+							boolean mitoResourceAvailable = prepareMitoResources(proj.GENOME_BUILD_VERSION.getValue(), requireBeta, proj.getLog());
 							if (mitoResourceAvailable) {
-								BetaOptimizer.optimize(proj, pcApply.getExtrapolatedPCsFile(), proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/", Resources.MITO_SUB_DIR, betaOptFile, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, pvalOpt, numComponents, markerCallRateFilter, numThreads);
+								BetaOptimizer.optimize(proj, pcApply.getExtrapolatedPCsFile(), proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/", requireBeta ? Resources.MITO_SUB_DIR : ext.parseDirectoryOfFile(betaFile), betaOptFile, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, pvalOpt, numComponents, markerCallRateFilter, numThreads);
 							} else {
 								proj.getLog().reportTimeError("Could not optimize betas due to missing files");
 							}
@@ -493,12 +497,12 @@ public class MitoPipeline {
 		return 42;
 	}
 
-	public static boolean prepareMitoResources(GENOME_BUILD build, Logger log) {
+	public static boolean prepareMitoResources(GENOME_BUILD build, boolean requireBeta, Logger log) {
 		boolean dbSnpA = GENOME_RESOURCE_TYPE.DB_SNP.getResource(build).validateWithHint(log);
 		boolean mitoAvail = true;
 		for (MITO_RESOURCE_TYPE m : MITO_RESOURCE_TYPE.values()) {
 			boolean tmp = m.getResource().validateWithHint(log);
-			if (mitoAvail) {
+			if (mitoAvail && requireBeta) {
 				mitoAvail = tmp;
 			}
 		}
@@ -916,6 +920,7 @@ public class MitoPipeline {
 		boolean recompSampleSpecific = true;
 		String betaOptFile = null;
 		double[] pvalOpt = new double[] { 0.05, 0.01, 0.001 };
+		String betaFile =null;
 
 		String usage = "\n";
 		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
@@ -959,6 +964,7 @@ public class MitoPipeline {
 		// usage += "   (28) full path to a .gcmodel file, this model will take precedence over base-pair bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
 		usage += "   (24) recompute LRR using only those samples that pass QC, and are in the use file (i.e. sampLRR=" + recompSampleSpecific + " (default))\n";
 		usage += "   (25) comma-delimited list of p-values for pc-beta optimization  (i.e. pvals=" + Array.toStr(Array.toStringArray(pvalOpt), ",") + " (default))\n";
+		usage += "   (26) use an external beta file to optimize PC selection  (i.e. betas= (no default))\n";
 
 		usage += "   NOTE:\n";
 		usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -1073,7 +1079,10 @@ public class MitoPipeline {
 			else if (args[i].startsWith("abLookup=")) {
 				abLookup = ext.parseStringArg(args[i], null);
 				numArgs--;
-			} else if (args[i].startsWith("idHeader=")) {
+			} else if (args[i].startsWith("betas=")) {
+				betaFile = ext.parseStringArg(args[i], null);
+				numArgs--;
+			}else if (args[i].startsWith("idHeader=")) {
 				System.out.println(args[i]);
 				idHeader = ext.parseStringArg(args[i].replaceAll("_", " "), null);
 				numArgs--;
@@ -1119,6 +1128,8 @@ public class MitoPipeline {
 		} else {
 			proj = new Project(filename, logfile, false);
 			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
+			proj.getLog().reportTimeInfo("Using project defined genome build " + proj.GENOME_BUILD_VERSION.getValue());
+			build = proj.GENOME_BUILD_VERSION.getValue();
 		}
 		attempts = 0;
 		while (attempts < 2) {
@@ -1132,7 +1143,7 @@ public class MitoPipeline {
 					proj.REFERENCE_GENOME_FASTA_FILENAME.setValue("Ignore");
 				}
 			}
-			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, betaOptFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance, build, pvalOpt, plot);
+			result = catAndCaboodle(proj, numThreads, medianMarkers, numComponents, output, homosygousOnly, markerQC, markerCallRateFilter, useFile, betaOptFile, pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median, recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect, referenceGenomeFasta, bpGcModel, regressionDistance, build, pvalOpt, betaFile, plot);
 			attempts++;
 			if (result == 41 || result == 40) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");
