@@ -17,6 +17,8 @@ import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import cnv.manage.Markers;
+import cnv.manage.Resources;
+import cnv.manage.Resources.GENOME_BUILD;
 import cnv.manage.SourceFileParser;
 import cnv.manage.TransposeData;
 import cnv.var.SampleData;
@@ -49,11 +51,11 @@ public class AffyPipeline {
 	private boolean full;
 	private Logger log;
 
-	public AffyPipeline(String aptExeDir, String aptLibDir, boolean full,Logger log) {
+	public AffyPipeline(String aptExeDir, String aptLibDir, boolean full, Logger log) {
 		super();
 		this.aptExeDir = aptExeDir;
 		this.aptLibDir = aptLibDir;
-		this.full=full;
+		this.full = full;
 		this.log = log;
 		if (!new File(aptExeDir).exists()) {
 			log.reportTimeError(aptExeDir + " did not exist (Affy exe directory)");
@@ -424,7 +426,7 @@ public class AffyPipeline {
 		}
 	}
 
-	public static void run(String aptExeDir, String aptLibDir, String cels, String outDir, String quantNormTarget, String analysisName, String markerPositions, int markerBuffer, int maxWritersOpen,boolean full, int numThreads) {
+	public static void run(String aptExeDir, String aptLibDir, String cels, String outDir, String quantNormTarget, String analysisName, String markerPositions, int markerBuffer, int maxWritersOpen, boolean full, int numThreads, GENOME_BUILD build) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "affyPipeline.log");
 		String[] celFiles;
@@ -437,7 +439,12 @@ public class AffyPipeline {
 		log.reportTimeInfo("Found " + celFiles.length + " .cel files to process");
 		if (markerPositions == null || !Files.exists(markerPositions)) {
 			log.reportTimeError("Could not find marker position file " + markerPositions);
-			throw new IllegalArgumentException();
+			if (!Resources.ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(build).isAvailable(log)) {
+				throw new IllegalArgumentException();
+			} else {
+				log.reportTimeError("Using " + Resources.ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(build).getResource(log));
+				markerPositions = Resources.ARRAY_RESOURCE_TYPE.AFFY_SNP6_MARKER_POSITIONS.getResource(build).getResource(log);
+			}
 		}
 		if (quantNormTarget == null || !Files.exists(quantNormTarget)) {
 			log.reportTimeError("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz");
@@ -489,6 +496,7 @@ public class AffyPipeline {
 					proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.TAB);
 					proj.ID_HEADER.setValue("[FILENAME_ROOT]");
 					proj.LONG_FORMAT.setValue(false);
+					proj.GENOME_BUILD_VERSION.setValue(build);
 					MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt", proj.SOURCE_DIRECTORY.getValue(true, true), log);
 					if (Files.exists(markerPositions)) {
 						if (!proj.MARKER_POSITION_FILENAME.getValue().equals(markerPositions)) {
@@ -532,6 +540,7 @@ public class AffyPipeline {
 		int maxWritersOpen = 1000000;
 		int numArgs = args.length;
 		boolean full = false;
+		GENOME_BUILD build = GENOME_BUILD.HG18;
 
 		String usage = "\n" +
 				"affy.AffyPipeline requires 0-1 arguments\n" +
@@ -546,7 +555,7 @@ public class AffyPipeline {
 				"   (9) optional: number of markers to buffer when splitting files (i.e. markerBuffer=" + markerBuffer + " (default))\n" +
 				"   (10) optional: maximum number of writers to open, if this is less than the sample size parsing will slow drastically (i.e. maxWritersOpen=" + maxWritersOpen + " (default))\n" +
 				"   (11) optional: use the full affymetrix cdf, which contains more mitochondrial probesets (i.e. -full (not the default))\n" +
-
+				"   (12) specify the genome build to use - ensuring the build matches your marker positions (i.e. build=" + build + " (default))\n" +
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -586,6 +595,17 @@ public class AffyPipeline {
 			} else if (args[i].startsWith("-full")) {
 				full = true;
 				numArgs--;
+			} else if (args[i].startsWith("build=")) {
+				try {
+					build = GENOME_BUILD.valueOf(ext.parseStringArg(args[i], ""));
+					numArgs--;
+				} catch (IllegalArgumentException ile) {
+					System.err.println("Invalid build " + ext.parseStringArg(args[i], ""));
+					System.err.println("Options Are: ");
+					for (int j = 0; j < GENOME_BUILD.values().length; j++) {
+						System.err.println(GENOME_BUILD.values()[j]);
+					}
+				}
 			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
@@ -595,7 +615,7 @@ public class AffyPipeline {
 			System.exit(1);
 		}
 		try {
-			run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions, markerBuffer, maxWritersOpen, full, numThreads);
+			run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions, markerBuffer, maxWritersOpen, full, numThreads, build);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
