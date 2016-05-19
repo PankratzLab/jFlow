@@ -164,7 +164,7 @@ public class HistogramPop extends Application {
 		yAxis.setAutoRanging(true);
 		xAxis.setAutoRanging(true);
 
-		areaChart = new AreaChart<>(xAxis, yAxis);
+		areaChart = new AreaChart<Number, Number>(xAxis, yAxis);
 		updateChart();
 
 		final Button button1 = new Button();
