@@ -15,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,7 +84,7 @@ class MetaStudy {
 
 	String findLongestStudyName() {
 		String longest = "";
-		for(StudyData ft : studies){
+		for(StudyData ft : getStudies()){
 			longest = longest.length() < ft.getDisplayLabel().length() ? ft.getDisplayLabel() : longest;
 		}
 		return longest;
@@ -1483,6 +1484,17 @@ public class ForestPlot extends JFrame implements WindowListener {
         if (currMetaStudy != null) {
             currMetaStudy.setSort(this.isSortedDisplay(), this.getSortOrder());
         }
+	}
+	
+	public static void generateNaiveOrderFile(String[] studies, String outFile) {
+		PrintWriter writer = Files.getAppropriateWriter(outFile);
+		for (String study : studies) {
+			String safeStudy = ext.replaceWithLinuxSafeCharacters(study, true);
+			if (study.equals(safeStudy)) writer.println(safeStudy);
+			else writer.println(safeStudy + "\t" + study);
+		}
+		writer.flush();
+		writer.close();
 	}
 	
 	public MetaStudy getCurrentMetaStudy() {
