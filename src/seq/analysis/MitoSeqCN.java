@@ -41,7 +41,7 @@ public class MitoSeqCN {
 		System.out.println(captureBed);
 		BedOps.verifyBedIndex(captureBed, log);
 		BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
-		LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000);// essentially remove the neighbor
+		LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000).autosomal(true, log);// essentially remove the neighbor
 		readerCapture.close();
 		log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bins int the anti-on-target regions");
 
@@ -59,6 +59,7 @@ public class MitoSeqCN {
 				writer.println(Array.toStr(MitoCNResult.header));
 				while (train.hasNext()) {
 					MitoCNResult result = train.next();
+					log.reportTimeInfo(Array.toStr(result.getResult()));
 					writer.println(Array.toStr(result.getResult()));
 
 				}

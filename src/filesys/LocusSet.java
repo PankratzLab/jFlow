@@ -80,35 +80,35 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		}
 	}
 
-//	/**
-//	 * Warning, uses equals to remove
-//	 */
-//	public LocusSet<T> getUnique() {
-//		throw new IllegalStateException("Not ready yet");
-//		if (loci == null || loci.length < 1) {
-//			return this;
-//		} else {
-//			ArrayList<T> tmp = new ArrayList<T>();
-//			T[] tmpSearch = loci;
-//			Hashtable<String, String> used = new Hashtable<String, String>();
-//			for (int i = 0; i < tmpSearch.length; i++) {
-//				int[] indices = getOverlappingIndices(tmpSearch[i]);
-//				if (indices == null || indices.length == 0) {
-//					tmp.add(tmpSearch[i]);
-//				}
-//			}
-//
-//			LocusSet<T> returnSet = new LocusSet<T>(tmp, true, log) {
-//
-//				/**
-//				 * 
-//				 */
-//				private static final long serialVersionUID = 1L;
-//
-//			};
-//			return returnSet;
-//		}
-//	};
+	// /**
+	// * Warning, uses equals to remove
+	// */
+	// public LocusSet<T> getUnique() {
+	// throw new IllegalStateException("Not ready yet");
+	// if (loci == null || loci.length < 1) {
+	// return this;
+	// } else {
+	// ArrayList<T> tmp = new ArrayList<T>();
+	// T[] tmpSearch = loci;
+	// Hashtable<String, String> used = new Hashtable<String, String>();
+	// for (int i = 0; i < tmpSearch.length; i++) {
+	// int[] indices = getOverlappingIndices(tmpSearch[i]);
+	// if (indices == null || indices.length == 0) {
+	// tmp.add(tmpSearch[i]);
+	// }
+	// }
+	//
+	// LocusSet<T> returnSet = new LocusSet<T>(tmp, true, log) {
+	//
+	// /**
+	// *
+	// */
+	// private static final long serialVersionUID = 1L;
+	//
+	// };
+	// return returnSet;
+	// }
+	// };
 
 	/**
 	 * @param setToRemove
@@ -299,6 +299,7 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 		}
 		return true;
 	}
+
 	public enum TO_STRING_TYPE {
 		/**
 		 * calls the {@link Segment#getUCSClocation()}, or any overide
@@ -321,6 +322,27 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 
 		};
 		return combined;
+	}
+
+	public LocusSet<T> autosomal(boolean sort, Logger log) {
+		ArrayList<T> auto = new ArrayList<T>();
+		for (int i = 0; i < getLoci().length; i++) {
+			if (getLoci()[i].getChr() < 23) {
+				auto.add(getLoci()[i]);
+			}
+		}
+		if (auto.size() < 1) {
+			throw new IllegalArgumentException("no autosomals T found");
+		}
+		LocusSet<T> aut = new LocusSet<T>(auto, sort, log) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+		};
+		return aut;
 	}
 
 	/**
