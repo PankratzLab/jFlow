@@ -14,7 +14,7 @@ public class PSF {
 		public static final String JAR = "-jar";
 		public static final String XMX = "-Xmx";
 		public static final String CP = "-cp";
-		public static final String GENVISIS = "park.jar";
+		public static final String GENVISIS = "genvisis.jar";
 
 		public static String[] buildJava() {
 			return new String[] { JAVA };
