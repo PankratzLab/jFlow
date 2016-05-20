@@ -81,11 +81,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 	public static final String PRINCIPAL_COMPONENTS = "Principal Components";
 	public static final String GENERATE_DEMO_PACKAGE = "Generate a demo package";
 	public static final String ADD_QC_TO_SAMPLE_DATA = "Add sample qc metrics to sample data";
-
+	public static final String CHECK_FOR_UPDATES = "Check for updates";
 
 	public static final String TEST = "Test new program";
 	
-	public static String[][] MENUS = {{"File", NEW_PROJECT, IMPORT_PROJECT, "Select Project", EDIT, "Preferences", EXIT},
+	public static String[][] MENUS = { { "File", NEW_PROJECT, IMPORT_PROJECT, "Select Project", EDIT, "Preferences", CHECK_FOR_UPDATES, EXIT },
 			{"Data", MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}, // , MITOPIPELINE
 			{"Quality", CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS, FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS, TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS},
 			{"Plots", SCATTER, QQ, STRAT, MOSAIC_PLOT, SEX_PLOT, TRAILER, TWOD, LINE_PLOT, COMP, FOREST_PLOT},
@@ -842,6 +842,10 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		        }
 		    }
 		    importGUI.dispose();
+		    
+		} else if (command.equals(CHECK_FOR_UPDATES)) {
+		    
+			HttpUpdate.update("http://genvisis.org/genvisis_dev.jar", "./", log);
 		    
 		} else if (command.endsWith(" ")) {
 			for (int i=0; i<projects.length; i++) {
