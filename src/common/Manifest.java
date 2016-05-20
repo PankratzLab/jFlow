@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.util.Iterator;
 
 public class Manifest {
+	
+//	https://ant.apache.org/manual/Tasks/manifest.html
 	public static void manifest() throws IOException {
-		java.io.File file = new java.io.File("");//get can path
+		java.io.File file = new java.io.File("/Users/Kitty/Downloads/genvisis.jar");// get
+																					// can
+																					// path
 		java.util.jar.JarFile jar = new java.util.jar.JarFile(file);
 		java.util.jar.Manifest manifest = jar.getManifest();
 
@@ -25,5 +29,14 @@ public class Manifest {
 		jar.close();
 
 		System.out.println("Version: " + versionNumber); // "Version: 1.3.162"
+	}
+
+	public static void main(String[] args) {
+		try {
+			manifest();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
