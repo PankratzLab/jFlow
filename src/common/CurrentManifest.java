@@ -1,7 +1,6 @@
 package common;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.jar.Attributes;
@@ -17,6 +16,7 @@ public class CurrentManifest {
 	private String compileTime;
 	private String buildType;
 	private String builtBy;
+	private String copyright;
 
 	public CurrentManifest() {
 
@@ -38,6 +38,7 @@ public class CurrentManifest {
 			while (it.hasNext()) {
 				java.util.jar.Attributes.Name key = (java.util.jar.Attributes.Name) it.next();
 				String keyword = key.toString();
+				System.out.println(keyword + "\t" + (String) attributes.get(key));
 				if (keyword.equals("Implementation-Version")) {
 					this.version = (String) attributes.get(key);
 				}
@@ -47,11 +48,22 @@ public class CurrentManifest {
 				if (keyword.equals("Build-Type")) {
 					this.buildType = (String) attributes.get(key);
 				}
-				if (keyword.equals("Build-Creator")) {
+				if (keyword.equals("Built-By")) {
 					this.builtBy = (String) attributes.get(key);
+				}
+				if (keyword.equals("Copyright")) {
+					this.copyright = (String) attributes.get(key);
 				}
 			}
 		}
+	}
+
+	public String getBuiltBy() {
+		return builtBy;
+	}
+
+	public String getCopyright() {
+		return copyright;
 	}
 
 	public Attributes getAttributes() {
@@ -70,28 +82,21 @@ public class CurrentManifest {
 		return compileTime;
 	}
 
+	public static CurrentManifest loadGenvisisManifest() {
+		File file = getCurrentFile();
+		return loadManifest(file);
+	}
+
 	// https://ant.apache.org/manual/Tasks/manifest.html
-	public static CurrentManifest loadManifest() {
-		File file = null;
+	public static CurrentManifest loadManifest(File file) {
 		JarFile jar = null;
 
 		CurrentManifest currentManifest = new CurrentManifest(new Attributes());
 		try {
-			try {
-				file = new File(new CurrentManifest().getClass().getProtectionDomain().getCodeSource().getLocation().getFile());// get
+
+			if (file != null && file.exists()) {
 				jar = new java.util.jar.JarFile(file);
-			} catch (FileNotFoundException fnfe) {// if running in eclipse will get this
-				file = null;
-			}
-			if (file != null) {
-				try {
-					file = new File("../" + PSF.Java.GENVISIS);
-					jar = new java.util.jar.JarFile(file);
-				} catch (FileNotFoundException fnfe2) {
-					file = null;
-				}
-			}
-			if (file == null) {
+
 				java.util.jar.Manifest manifest = jar.getManifest();
 
 				Attributes attributes = manifest.getMainAttributes();
@@ -106,9 +111,18 @@ public class CurrentManifest {
 		return currentManifest;
 	}
 
+	public static File getCurrentFile() {
+		File file = new File(new CurrentManifest().getClass().getProtectionDomain().getCodeSource().getLocation().getFile());// get
+
+		if (!file.exists() || !file.getAbsolutePath().endsWith(".jar")) {
+			file = new File("../" + PSF.Java.GENVISIS);
+		}
+		return file;
+	}
+
 	public static void main(String[] args) {
 
-		loadManifest();
+		loadGenvisisManifest();
 
 	}
 }

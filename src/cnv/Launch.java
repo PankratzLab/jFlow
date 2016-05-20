@@ -2,6 +2,7 @@ package cnv;
 
 import java.io.*;
 import java.util.*;
+import java.util.jar.Attributes;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -108,8 +109,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     
     private JProgressBar progBar;
 
-	public Launch(String launchPropertiesFile, boolean jar) {
-		super("Genvisis");
+	public Launch(String launchPropertiesFile, CurrentManifest currentManifest, boolean jar) {
+		
+		super("Genvisis " + currentManifest.getVersion());
 		this.jar = jar;
 		this.launchPropertiesFile = launchPropertiesFile;
 		this.timestampOfPropertiesFile = -1;
@@ -239,9 +241,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
     	UIManager.put("ToolTip.background", Color.decode("#F5F5DC"));
     	
 		//Create and set up the content pane.
-    	launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
+		launchPropertiesFile = LaunchProperties.DEFAULT_PROPERTIES_FILE;
 		initLaunchProperties(launchPropertiesFile, false, true);
-    	frame = new Launch(launchPropertiesFile, false);
+		CurrentManifest manifest = new CurrentManifest(new Attributes());
+		try {// try not to break the launch so we will catch anything
+			manifest = CurrentManifest.loadGenvisisManifest();
+		} catch (Exception e) {
+		}
+		frame = new Launch(launchPropertiesFile, manifest, false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.setJMenuBar(frame.topMenuBar());
