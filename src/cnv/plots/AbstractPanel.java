@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
@@ -295,16 +296,19 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 	
 	public void screenCapture(String filename) {
+		boolean headless = GraphicsEnvironment.isHeadless();
 		try {
 		    File imgFile = new File(filename);
 		    boolean mkdirs = imgFile.mkdirs();
 		    if (mkdirs || Files.exists(ext.parseDirectoryOfFile(filename))) {
 		        ImageIO.write(image, "png", imgFile);
 		    } else {
-		        JOptionPane.showMessageDialog(null, "Error creating directory in which to save the plot");
+		    	if (headless) System.err.println("Error creating directory in which to save the plot");
+		    	else JOptionPane.showMessageDialog(null, "Error creating directory in which to save the plot");
 		    }
 		} catch (IOException ie) {
-			JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
+			if (headless) System.err.println("Error while trying to save the plot");
+			else JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
 		}
 	}
 	
