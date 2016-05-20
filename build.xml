@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+
+<project default="main">
+	<!-- Your build must have the target "sendToHeaven", see PostBuild_lane0212.xml-->
+	<include file="./PostBuild_${user.name}.xml" as="postBuild" />
+	<target name="main" depends="compile, compress" description="Main target"/>
+
+	<target name="compile" description="Compilation target">
+		<javac source="1.7" target="1.6" includeantruntime="false" srcdir="bin" />
+	</target>
+
+	<target name="compress" description="Compression target">
+
+		<jar jarfile="../genvisis.jar" basedir="bin" includes="**/*.class, **/*.properties, **/*.criteria, **/*.params" excludes="gaw17/* dead/* kaput/*">
+			<zipgroupfileset dir="lib" includes="**/*.jar" />
+			<fileset dir="" includes="images/* images/*/*" />
+			<manifest>
+				<attribute name="Main-Class" value="cnv.Launch" />
+				<attribute name="Implementation-Version" value="V 0.61" />
+				<attribute name="Compile-Time" value="${time.stamp}" />
+				<attribute name="Build-Type" value="Development" />
+				<attribute name="Build-Creator" value="${user.name}" />
+			</manifest>
+		</jar>
+
+		<antcall target="postBuild.sendToHeaven" />
+
+	</target>
+</project>
