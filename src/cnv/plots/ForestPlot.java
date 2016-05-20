@@ -561,6 +561,7 @@ public class ForestPlot {
 			return;
 		}
 		maxZScore = getCurrentMetaStudy().findMaxZScore();
+		maxZScore = getCurrentMetaStudy().findMaxZScore();
 		sumZScore = getCurrentMetaStudy().calcSumZScore();
 		longestStudyName = getCurrentMetaStudy().findLongestStudyName();
 		setPlotLabel(dataIndices.get(index).marker);
@@ -681,10 +682,8 @@ public class ForestPlot {
 	public void screenCapAll(String subdir, boolean odds, boolean versionIfExists) {
 	    setOddsRatioDisplay(odds);
         ArrayList<ForestInput> data = getDataIndices();
-//        for (int i = 0; i < data.size(); i++) {
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < data.size(); i++) {
             setCurrentData(i);
-            getForestPanel().addNotify();
             getForestPanel().setSize(new Dimension(1000,720));
             getForestPanel().createImage();
             getForestPanel().validate();
