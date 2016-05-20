@@ -3,7 +3,11 @@
 <project default="main">
 	<!-- Your build must have the target "sendToHeaven", see PostBuild_lane0212.xml-->
 	<include file="./PostBuild_${user.name}.xml" as="postBuild" />
-	<target name="main" depends="compile, compress" description="Main target"/>
+	<tstamp>
+		<format property="time.stamp" pattern="yyyy-MM-dd_HH:mm:ss" />
+	</tstamp>
+
+	<target name="main" depends="compile, compress" description="Main target" />
 
 	<target name="compile" description="Compilation target">
 		<javac source="1.7" target="1.6" includeantruntime="false" srcdir="bin" />
@@ -16,11 +20,14 @@
 			<fileset dir="" includes="images/* images/*/*" />
 			<manifest>
 				<attribute name="Main-Class" value="cnv.Launch" />
-				<attribute name="Implementation-Version" value="V 0.61" />
+				<attribute name="Implementation-Version" value="v0.0.01" />
 				<attribute name="Compile-Time" value="${time.stamp}" />
 				<attribute name="Build-Type" value="Development" />
-				<attribute name="Build-Creator" value="${user.name}" />
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Copyright" value="(c)2009-2015 Nathan Pankratz, GNU General Public License, v2" />
+
 			</manifest>
+
 		</jar>
 
 		<antcall target="postBuild.sendToHeaven" />
