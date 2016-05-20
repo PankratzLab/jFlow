@@ -1081,8 +1081,6 @@ public class ResultsPackager {
         			    fp.setOddsRatioDisplay(oddsRatio);
         			    fp.loadOrderFile(sortFileName, true);
         			    fp.screenCapAll("forestPlots", oddsRatio, false);
-        			    fp.setVisible(false);
-        			    fp.dispose();
 			    }
 		        String[] dirs = {
 		                "/home/pankrat2/shared/Poynter_emim/allFinalWhitePoynter/",

@@ -628,7 +628,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						new ForestPlot(proj);
+						new ForestPlotFrame(proj);
 					}
 				});
 			} else if (command.equals(POPULATIONBAF)) {

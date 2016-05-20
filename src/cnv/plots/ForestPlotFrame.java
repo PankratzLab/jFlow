@@ -20,7 +20,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.TreeMap;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -57,279 +56,7 @@ import common.Grafik;
 import common.Logger;
 import common.ext;
 
-class MetaStudy {
-	private final ArrayList<StudyData> studies;
-	private ArrayList<StudyData> sorted;
-	private final HashMap<String, StudyData> nameMap;
-	private final float metaBeta;
-	private final float metaStderr;
-	private final float[] metaConf = new float[2];
-    private ArrayList<String> sortOrder = null;
-    private boolean shouldSort;
-    private boolean currentSortIsNaturalSort = false;
-	
-	public MetaStudy(float metaBeta, float metaStderr) {
-		studies = new ArrayList<StudyData>();
-		nameMap = new HashMap<String, StudyData>();
-		this.metaBeta = metaBeta;
-		this.metaStderr = metaStderr;
-		this.metaConf[0] = (float) (metaBeta - 1.96 * metaStderr);
-		this.metaConf[1] = (float) (metaBeta + 1.96 * metaStderr);
-	}
-	
-	public void addStudy(StudyData studyData) {
-		studies.add(studyData);
-		nameMap.put(studyData.getLabel(), studyData);
-	}
-
-	String findLongestStudyName() {
-		String longest = "";
-		for(StudyData ft : getStudies()){
-			longest = longest.length() < ft.getDisplayLabel().length() ? ft.getDisplayLabel() : longest;
-		}
-		return longest;
-	}
-	
-	float calcSumZScore() {
-		float sum = 0;
-		for	(StudyData ft : studies){
-			sum += ft.getZScore();
-		}
-		return sum;
-	}
-	
-	float findMaxZScore() {
-		float max = Float.MIN_VALUE;
-		for (StudyData data: studies) {
-			max = Math.max(max, data.getZScore());
-		}
-		return max;
-	}
-	
-	private ArrayList<StudyData> getSorted(ArrayList<String> order) {
-	    if (this.sorted == null || this.sorted.isEmpty() || currentSortIsNaturalSort) {
-	        this.sorted = new ArrayList<StudyData>();
-	        for (int i = order.size() - 1; i >= 0; i--) {
-	            String name = ext.replaceAllWith(order.get(i), ForestPlot.REPLACEMENTS_FOOLISHLY_HARD_CODED);
-	            String repl = null;
-	            if (name.equals("")) {
-	                this.sorted.add(new StudyBreak());
-	            } else {
-	                if (name.split("\t").length > 1) {
-	                    repl = name.split("\t")[1];
-	                    name = name.split("\t")[0];
-	                }
-	                StudyData sd = nameMap.get(name);
-	                if (sd == null) {
-	                    sd = new StudyBreak();
-	                } else {
-    	                if (repl != null) {
-    	                    sd.setReplacementLabel(repl);
-    	                }
-	                }
-	                sorted.add(sd);
-	            }
-	        }
-	    }
-        currentSortIsNaturalSort = false;
-	    return this.sorted;
-	}
-	
-	private ArrayList<StudyData> getSorted() {
-		if (this.sorted == null || !currentSortIsNaturalSort) {
-			this.sorted = new ArrayList<StudyData>();
-			
-			TreeMap<String, String> zeroStudyMap = new TreeMap<String, String>();
-			TreeMap<Float, String> betaStudyMap = new TreeMap<Float, String>();
-			for (StudyData study : studies) {
-				if (study.getBeta(false) == 0.0f) {
-					zeroStudyMap.put(study.getLabel(), study.getLabel());
-				} else {
-					betaStudyMap.put(study.getBeta(false), study.getLabel());
-				}
-			}
-			ArrayList<StudyData> desc = new ArrayList<StudyData>();
-			for (java.util.Map.Entry<String, String> entry : zeroStudyMap.entrySet()) {
-				desc.add(nameMap.get(entry.getValue()));
-			}
-			for (java.util.Map.Entry<Float, String> entry : betaStudyMap.entrySet()) {
-				desc.add(nameMap.get(entry.getValue()));
-			}
-			for (int i = desc.size() - 1; i >= 0; i--) {
-				sorted.add(desc.get(i));
-			}
-		}
-		currentSortIsNaturalSort = true;
-		return this.sorted;
-	}
-
-	public ArrayList<StudyData> getStudies() {
-	    return this.shouldSort ? (this.sortOrder == null || this.sortOrder.isEmpty() ? getSorted() : getSorted(this.sortOrder)) : this.studies;
-	}
-
-	public float[] getMetaConf(boolean odds) {
-		return odds ? new float[]{(float) Math.exp(metaConf[0]), (float) Math.exp(metaConf[1])} : metaConf;
-	}
-
-//	public float getMetaBeta() {
-//		return metaBeta;
-//	}
-//
-//	public float getMetaStderr() {
-//	    return metaStderr;
-//	}
-	public float getMetaBeta(boolean odds) {
-	    return (float) (odds ? Math.exp(metaBeta) : metaBeta);
-	}
-	
-	public float getMetaStderr(boolean odds) {
-	    return (float) (odds ? Math.exp(metaStderr) : metaStderr);
-	}
-
-    public void setSort(boolean sortedDisplay, ArrayList<String> sortOrder) {
-        this.shouldSort = sortedDisplay;
-        this.sortOrder = sortOrder;
-        this.sorted = null;
-    }
-	
-}
-
-class StudyBreak extends StudyData {
-    // placeholder class for visual breaks
-    public StudyBreak() {
-        this ("", 0f, 0f, 0, (byte) 0);
-    }
-    private StudyBreak(String label, float beta, float stderr, int color, byte shape) {
-        super(label, beta, stderr, color, shape);
-    }
-}
-
-class StudyData {
-	private final String label;
-	private String replLabel = null;
-	private final float beta;
-	private final float stderr;
-	private int color;
-	private byte shape;
-	private final float[] confInterval;
-	private final float zScore;
-
-	public StudyData(String label, float beta, float stderr, int color, byte shape) {
-		this.label = label;
-		this.beta = beta;
-		this.stderr = stderr;
-		this.color = color;
-		this.shape = shape;
-		this.confInterval = new float[2];
-		this.confInterval[0] = (float) (beta - 1.96 * stderr);
-		this.confInterval[1] = (float) (beta + 1.96 * stderr);
-		this.zScore = stderr == 0.0f ? 0.0f : Math.abs(beta / stderr);
-	}
-
-	public void setReplacementLabel(String repl) {
-       this.replLabel = repl;
-    }
-	
-	public String getDisplayLabel() {
-	    if (replLabel != null) {
-	        return replLabel;
-	    }
-	    return label;
-	}
-	
-    public String getLabel() {
-		return label;
-	}
-
-	public float getBeta(boolean odds) {
-		return (float) (odds ? Math.exp(beta) : beta);
-	}
-
-	public float getStderr(boolean odds) {
-		return (float) (odds ? Math.exp(stderr) : stderr);
-	}
-
-	public int getColor() {
-		return color;
-	}
-
-	public byte getShape() {
-		return shape;
-	}
-
-	public float[] getConfInterval(boolean odds) {
-		return odds ? new float[]{(float) Math.exp(confInterval[0]), (float) Math.exp(confInterval[1])} : confInterval;
-	}
-
-	public float getZScore() {
-		return zScore;
-	}
-}
-
-class ForestInput {
-	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
-		result = prime * result + ((file == null) ? 0 : file.hashCode());
-		result = prime * result + ((marker == null) ? 0 : marker.hashCode());
-		return result;
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ForestInput other = (ForestInput) obj;
-		if (comment == null) {
-			if (other.comment != null)
-				return false;
-		} else if (!comment.equals(other.comment))
-			return false;
-		if (file == null) {
-			if (other.file != null)
-				return false;
-		} else if (!file.equals(other.file))
-			return false;
-		if (marker == null) {
-			if (other.marker != null)
-				return false;
-		} else if (!marker.equals(other.marker))
-			return false;
-		return true;
-	}
-	
-	final String marker;
-	final String file;
-	final String comment;
-	int[] metaIndicies;
-	HashMap<String, Integer> studyToColIndexMap;
-	ArrayList<String> studyList;
-	MetaStudy ms;
-	
-	public ForestInput(String marker, String file, String comment) {
-		this.marker = marker;
-		this.file = file;
-		this.comment = comment;
-		this.studyToColIndexMap = new HashMap<String, Integer>();
-		this.studyList = new ArrayList<String>();
-	}
-
-	public void addStudy(String string, int i) {
-		studyList.add(string);
-		studyToColIndexMap.put(string, i);
-	}
-	public MetaStudy getMetaStudy() { return ms; }
-	public void setMetaStudy(MetaStudy ms) { this.ms = ms; }
-}
-
-public class ForestPlot extends JFrame implements WindowListener {
+public class ForestPlotFrame extends JFrame implements WindowListener {
 	private static final long serialVersionUID = 1L;
 	
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
@@ -339,10 +66,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 //	private static final String ALT_DOWN = "ALT DOWN";
 //	private static final String ALT_LEFT = "ALT LEFT";
 //	private static final String ALT_RIGHT = "ALT RIGHT";
-	private static final String[] BETA_META_HEADERS = {"beta", "effect"};
-	private static final String[] SE_META_HEADERS = {"se", "stderr"};
-	private static final String BETA_PREFIX = "beta.";
-	private static final String SE_PREFIX = "se.";
+
 	private static final String FIRST = "First";
 	private static final String PREVIOUS = "Previous";
 	private static final String NEXT = "Next";
@@ -350,44 +74,31 @@ public class ForestPlot extends JFrame implements WindowListener {
 	private static final String MARKER_LIST_NEW_FILE = "Add New File(s)...";
 	private static final String MARKER_LIST_PLACEHOLDER = "Select Input File...";
 //	private LinkedHashSet<ForestInput> data = new LinkedHashSet<ForestInput>();
-	private ArrayList<ForestInput> dataIndices = new ArrayList<ForestInput>();
 //	private HashMap<ForestInput, MetaStudy> dataToMetaMap = new HashMap<ForestInput, MetaStudy>();
-	private MetaStudy currMetaStudy;
-	private String plotLabel;
-	private Logger log;
-	private ForestPanel forestPanel;
-	private float maxZScore;
-	private float sumZScore;
-	private String longestStudyName;
+
+	
+
 //	private JCheckBox chkSortStudies;
 	private JLayeredPane layeredPane;
 	private JButton first, previous, next, last;
 //	private JButton btnScreen, btnScreenAll;
 	private JTextField navigationField;
 	private JComboBox<String> markerFileList;
-	private HashMap<String, String> markerFileNameLoc = new HashMap<String, String>();
 //	int curMarkerIndex;
-	private int currentDataIndex;
-	private boolean atleastOneStudy;
-    private boolean sortedDisplay = false;
+    
 
-	private String markerFileName;
-
-	protected Project proj;
-
-	private volatile boolean loadingFile;
-	private Thread loadingThread;
-	public static final  String[][] REPLACEMENTS_FOOLISHLY_HARD_CODED = new String[][] {
-			{"_WBC_TOTAL", ""},
-			{"_WBC_NEUTRO", ""},
-			{"_", " "},
-	};
+	private HashMap<String, String> markerFileNameLoc = new HashMap<String, String>();
 	
-	public ForestPlot(Project proj) {
+
+	private Project proj;
+	private ForestPlot forestPlot;
+	
+	
+	public ForestPlotFrame(Project proj) {
 		super("Genvisis - Forest Plot - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		forestPlot = new ForestPlot(proj);
 		this.proj = proj;
-		this.log = proj.getLog();
 		setup();
 		setBounds(20, 20, 1000, 600);
 		pack();
@@ -395,11 +106,10 @@ public class ForestPlot extends JFrame implements WindowListener {
 		this.addWindowListener(this);
 	}
 	
-	public ForestPlot(String markerFile, Logger log) {
+	public ForestPlotFrame(String markerFile, Logger log) {
 		super("Genvisis - Forest Plot");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		this.log = log;
-		this.markerFileName = markerFile;
+		forestPlot = new ForestPlot(markerFile, log);
 		setup();
 		setBounds(20, 20, 1000, 600);
 		pack();
@@ -410,20 +120,13 @@ public class ForestPlot extends JFrame implements WindowListener {
 	private void setup() {
 		setLayout(new BorderLayout());
 
-		forestPanel = new ForestPanel(this, log);
-		forestPanel.setLayout(new BorderLayout());
-
 		layeredPane = new JLayeredPane();
 		layeredPane.setLayout(new BorderLayout());
 
-		layeredPane.add(forestPanel);
+		layeredPane.add(forestPlot.getForestPanel());
 		layeredPane.setPreferredSize(new Dimension(1000, 600));
-
-		JPanel treePanel = new JPanel();
-		treePanel.setBackground(BACKGROUND_COLOR);
-		treePanel.setLayout(new BorderLayout());
 		
-		forestPanel.add(createControlPanel(), BorderLayout.NORTH);
+		forestPlot.getForestPanel().add(createControlPanel(), BorderLayout.NORTH);
 		
 		Dimension minimumSize = new Dimension(100, 50);
 		layeredPane.setMinimumSize(minimumSize);
@@ -431,7 +134,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 		add(layeredPane, BorderLayout.CENTER);
 		inputMapAndActionMap();
 
-		forestPanel.grabFocus();
+		forestPlot.getForestPanel().grabFocus();
 
 		progressBar = new JProgressBar();
 		progressBar.setPreferredSize(new Dimension(progressBar.getPreferredSize().width, 22));
@@ -446,7 +149,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ForestPlot.this.loadingThread.interrupt();
+				forestPlot.getLoadingThread().interrupt();
 			}
 		});
 		
@@ -474,8 +177,8 @@ public class ForestPlot extends JFrame implements WindowListener {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-                ForestPlot.this.setOddsRatioDisplay(oddsRatioButton.isSelected());
-                ForestPlot.this.forestPanel.paintAgain();                
+                forestPlot.setOddsRatioDisplay(oddsRatioButton.isSelected());
+                forestPlot.getForestPanel().paintAgain();                
             }
         };
 		oddsRatioButton.setAction(oddsRatioAction);
@@ -501,8 +204,8 @@ public class ForestPlot extends JFrame implements WindowListener {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-                ForestPlot.this.setSortedDisplay(false);
-                ForestPlot.this.forestPanel.paintAgain();                
+                forestPlot.setSortedDisplay(false);
+                forestPlot.getForestPanel().paintAgain();                
             }
         };
         noSortButton.setAction(noSortAction);
@@ -515,8 +218,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				ForestPlot.this.setSortedDisplay(true);
-				ForestPlot.this.forestPanel.paintAgain();
+				forestPlot.setSortedDisplay(true);
+				forestPlot.getForestPanel().paintAgain();
 			}
 		};
 		sortStudies.setAction(sortAction);
@@ -530,16 +233,16 @@ public class ForestPlot extends JFrame implements WindowListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 
-                JFileChooser jfc = new JFileChooser(new File(proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.PROJECT_DIRECTORY.getValue()));
+                JFileChooser jfc = new JFileChooser(new File(proj == null ? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName()) : proj.PROJECT_DIRECTORY.getValue()));
                 int returnVal = jfc.showOpenDialog(null);
                 
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    loadOrderFile(jfc.getSelectedFile().getAbsolutePath(), true);
-                    ForestPlot.this.forestPanel.paintAgain();
+                    forestPlot.loadOrderFile(jfc.getSelectedFile().getAbsolutePath(), true);
+                    forestPlot.getForestPanel().paintAgain();
                 } else {
                     noSortButton.setSelected(true);
-                    ForestPlot.this.setSortedDisplay(false);
-                    ForestPlot.this.forestPanel.paintAgain();
+                    forestPlot.setSortedDisplay(false);
+                    forestPlot.getForestPanel().paintAgain();
                 }
             }
         };
@@ -559,8 +262,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (!loadingFile && (markerFileName != null && !"".equals(markerFileName))) {
-					ForestPlot.this.screenCap();
+				if (!forestPlot.isLoadingFile() && (forestPlot.getMarkerFileName() != null && !"".equals(forestPlot.getMarkerFileName()))) {
+					ForestPlotFrame.this.screenCap();
 				}
 			}
 		};
@@ -568,8 +271,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (!loadingFile && (markerFileName != null && !"".equals(markerFileName))) {
-					ForestPlot.this.screenCapAll();
+				if (!forestPlot.isLoadingFile() && (forestPlot.getMarkerFileName() != null && !"".equals(forestPlot.getMarkerFileName()))) {
+					ForestPlotFrame.this.screenCapAll();
 				}
 			}
 		};
@@ -593,10 +296,6 @@ public class ForestPlot extends JFrame implements WindowListener {
 		return bar;
 	}
 
-	public void setOddsRatioDisplay(boolean selected) {
-        this.forestPanel.oddsDisplay = selected;
-    }
-
     private JPanel createControlPanel() {
 		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
 		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
@@ -617,15 +316,15 @@ public class ForestPlot extends JFrame implements WindowListener {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					int trav = Integer.valueOf(((JTextField)e.getSource()).getText().split("[\\s]+")[0]).intValue()-1;
-					if (trav >=0 && trav < getDataIndices().size()) {
-						setCurrentData(trav);
+					if (trav >=0 && trav < forestPlot.getDataIndices().size()) {
+						forestPlot.setCurrentData(trav);
 						updateForestPlot();
 					}
 				} catch (NumberFormatException nfe) {
 					System.out.println("Please enter a valid integer which is in range");
 				}
 				//displayIndex((JTextField) e.getSource());
-				forestPanel.setPointsGeneratable(true);
+				forestPlot.getForestPanel().setPointsGeneratable(true);
 				updateForestPlot();
 			}
 		});
@@ -673,25 +372,25 @@ public class ForestPlot extends JFrame implements WindowListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String shortName = (String) ((JComboBox<String>)e.getSource()).getSelectedItem();
-				if (!loadingFile && !MARKER_LIST_NEW_FILE.equals(shortName) && !MARKER_LIST_PLACEHOLDER.equals(shortName)) {
+				if (!forestPlot.isLoadingFile() && !MARKER_LIST_NEW_FILE.equals(shortName) && !MARKER_LIST_PLACEHOLDER.equals(shortName)) {
 					String file = markerFileNameLoc.get(shortName);
-					if (file != null && file.equals(ForestPlot.this.markerFileName)) {
+					if (file != null && file.equals(forestPlot.getMarkerFileName())) {
 						return;
 					}
-					ForestPlot.this.markerFileName = file;
+					forestPlot.setMarkerFileName(file);
 					loadMarkerFile();
-				} else if (loadingFile && MARKER_LIST_PLACEHOLDER.equals(shortName)) {
+				} else if (forestPlot.isLoadingFile() && MARKER_LIST_PLACEHOLDER.equals(shortName)) {
 					// do nothing
-				} else if (loadingFile || MARKER_LIST_PLACEHOLDER.equals(shortName)) {
+				} else if (forestPlot.isLoadingFile() || MARKER_LIST_PLACEHOLDER.equals(shortName)) {
 					// leave as currently selected marker
-					if (ForestPlot.this.markerFileName != "" && ForestPlot.this.markerFileName != null) {
-						((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(ForestPlot.this.markerFileName));
+					if (forestPlot.getMarkerFileName() != "" && forestPlot.getMarkerFileName() != null) {
+						((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(forestPlot.getMarkerFileName()));
 					}
 					return;
 				} else if (MARKER_LIST_NEW_FILE.equals(shortName)) {
 					chooseNewFiles();
-					if (ForestPlot.this.markerFileName != null && !"".equals(ForestPlot.this.markerFileName)) {
-						((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(ForestPlot.this.markerFileName));
+					if (forestPlot.getMarkerFileName() != null && !"".equals(forestPlot.getMarkerFileName())) {
+						((JComboBox<String>)e.getSource()).setSelectedItem(ext.rootOf(forestPlot.getMarkerFileName()));
 					}
 				}
 			}
@@ -742,46 +441,36 @@ public class ForestPlot extends JFrame implements WindowListener {
 		return descrPanel;
 	}
 
-    public boolean waitForLoad() {
-        while(this.loadingFile) {
-            Thread.yield();
-        }
-        return true;
-    }
     
 	private void loadMarkerFile() {
-		if (!this.loadingFile) {
-			this.loadingFile = true;
-			this.loadingThread = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					reloadData();
-					forestPanel.setPointsGeneratable(ForestPlot.this.markerFileName != null);
-					forestPanel.setRectangleGeneratable(ForestPlot.this.markerFileName != null);
-					forestPanel.setExtraLayersVisible(new byte[] { 99 });
-					try {
-						SwingUtilities.invokeAndWait(new Runnable() {
-							@Override
-							public void run() {
-								updateGUI();
-								displayIndex(navigationField);
-								progressBar.setStringPainted(false);
-								progressBar.setValue(0);
-								progressBar.setString(null);
-								progressBar.setIndeterminate(false);
-								progressBar.repaint();
-							}
-						});
-					} catch (InvocationTargetException e) {
-						// TODO Auto-generated catch block
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
+		forestPlot.loadMarkerFile(new Thread(new Runnable() {
+		@Override
+		public void run() {
+			reloadData();
+			forestPlot.getForestPanel().setPointsGeneratable(forestPlot.getMarkerFileName() != null);
+			forestPlot.getForestPanel().setRectangleGeneratable(forestPlot.getMarkerFileName() != null);
+			forestPlot.getForestPanel().setExtraLayersVisible(new byte[] { 99 });
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						forestPlot.updateGUI();
+						displayIndex(navigationField);
+						progressBar.setStringPainted(false);
+						progressBar.setValue(0);
+						progressBar.setString(null);
+						progressBar.setIndeterminate(false);
+						progressBar.repaint();
 					}
-					loadingFile = false;
-				}
-			}, "ForestPlot_loadMarkerFile");
-			this.loadingThread.start();
+				});
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+			}
+			forestPlot.setLoadingFile(false);
 		}
+	}, "ForestPlot_loadMarkerFile"));
 	}
 
 	private void reloadData() {
@@ -801,20 +490,21 @@ public class ForestPlot extends JFrame implements WindowListener {
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 		}
-		atleastOneStudy = false;
 		
-		this.setDataIndices(new ArrayList<ForestInput>());
-		if (this.markerFileName != null) {
-			this.getDataIndices().addAll(readMarkerFile(this.markerFileName));
-		} 
+		try {
+			forestPlot.reloadData();
+		} catch (InterruptedException ie) {
+			interruptLoading();
+		}
 		
-//		dataToMetaMap = new HashMap<ForestInput, MetaStudy>();
-
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-					progressBar.setString("Calculating datafile size(s)...");
+					progressBar.setValue(0);
+					progressBar.setStringPainted(true);
+					progressBar.setString("Displaying data...");
+					progressBar.setIndeterminate(true);
 					progressBar.repaint();
 				}
 			});
@@ -823,19 +513,13 @@ public class ForestPlot extends JFrame implements WindowListener {
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 		}
-		
-		if (!this.getDataIndices().isEmpty() && !Thread.interrupted()) {
-			loadStudyData();
-			setCurrentData(0);
-		} else {
-			clearCurrentData();
-		}
+
 		
 	}
 
 	private void generateStudyNameFile() {
-        String fileName = ext.verifyDirFormat(ext.parseDirectoryOfFile(markerFileName)) + "sort.txt";
-        ArrayList<StudyData> currentData = getCurrentMetaStudy().getStudies();
+        String fileName = ext.verifyDirFormat(ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())) + "sort.txt";
+        ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies();
         ArrayList<String> names = new ArrayList<String>();
         for (StudyData sd : currentData) {
             names.add(sd.getLabel());
@@ -844,17 +528,17 @@ public class ForestPlot extends JFrame implements WindowListener {
     }
 
     private void updateForestPlot(){
-		forestPanel.setPointsGeneratable(true);
-		forestPanel.setRectangleGeneratable(true);
-		forestPanel.setExtraLayersVisible(new byte[] { 99 });
+		forestPlot.getForestPanel().setPointsGeneratable(true);
+		forestPlot.getForestPanel().setRectangleGeneratable(true);
+		forestPlot.getForestPanel().setExtraLayersVisible(new byte[] { 99 });
 		displayIndex(navigationField);
-		updateGUI();
+		forestPlot.updateGUI();
 	}
 	
 	private void chooseNewFiles() {
-		JFileChooser jfc = new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue() : ext.parseDirectoryOfFile(markerFileName)));
+		JFileChooser jfc = new JFileChooser((proj != null ? proj.PROJECT_DIRECTORY.getValue() : ext.parseDirectoryOfFile(forestPlot.getMarkerFileName())));
 		jfc.setMultiSelectionEnabled(true);
-		if (jfc.showOpenDialog(ForestPlot.this) == JFileChooser.APPROVE_OPTION) {
+		if (jfc.showOpenDialog(ForestPlotFrame.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
 			if (files.length > 0) {
 				boolean[] keep = Array.booleanArray(files.length, true);
@@ -873,7 +557,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 					for (File disc : discards) {
 						msg.append("\n").append(disc.getName());
 					}
-					JOptionPane.showMessageDialog(ForestPlot.this, msg.toString()); 
+					JOptionPane.showMessageDialog(ForestPlotFrame.this, msg.toString()); 
 				}
 				
 				for (File kept : keptFiles) {
@@ -890,7 +574,7 @@ public class ForestPlot extends JFrame implements WindowListener {
 				
 				if (!keep) {
 					StringBuilder msg = new StringBuilder("The following data file is already present:\n").append(file.getName());
-					JOptionPane.showMessageDialog(ForestPlot.this, msg.toString()); 
+					JOptionPane.showMessageDialog(ForestPlotFrame.this, msg.toString()); 
 				} else {
 					addFileToList(file.getAbsolutePath());
 				}
@@ -919,61 +603,19 @@ public class ForestPlot extends JFrame implements WindowListener {
 		markerFileList.setModel(new DefaultComboBoxModel<String>(currFiles));
 	}
 	
-	/**
-	 * NOTE: be sure to call 'waitForLoad' before calling screenCap, otherwise data might not be loaded in time.
-	 * @param subdir
-	 * @param odds
-	 */
-	public void screenCapAll(String subdir, boolean odds, boolean versionIfExists) {
-	    setOddsRatioDisplay(odds);
-        int currentSelection = getCurrentDataIndex();
-        ArrayList<ForestInput> data = getDataIndices();
-        for (int i = 0; i < data.size(); i++) {
-            setCurrentData(i);
-            forestPanel.createImage();
-            String marker = "", filename = "", dataFile = "";
-            int count = 1;
-            String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.PROJECT_DIRECTORY.getValue());
-            root = ext.verifyDirFormat(root);
-            if (subdir != null && !subdir.equals("")) {
-                root += subdir;
-                root = ext.verifyDirFormat(root);
-            }
-            marker = getDataIndices().get(getCurrentDataIndex()).marker;
-            dataFile = ext.rootOf(getDataIndices().get(getCurrentDataIndex()).file, true);
-            filename = marker + "_" + dataFile;
-            filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-            if (new File(root + filename + ".png").exists()) {
-                if (versionIfExists) {
-                    while (new File(root+filename+".png").exists()) {
-                        filename = marker + "_" + dataFile + "_v" + count;
-                        filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-                        count++;
-                    }
-                }
-            }
-            if (log != null) {
-                log.report("Writing screenshot to file " + root + filename + ".png");
-            } else {
-                System.out.println("Writing screenshot to file " + root + filename + ".png");
-            }
-            ForestPlot.this.forestPanel.screenCapture(root+filename+".png");
-        }
-        setCurrentData(currentSelection);
-        updateForestPlot();
-	}
+	
 	
 	private void screenCapAll() {
-		int currentSelection = getCurrentDataIndex();
-		ArrayList<ForestInput> data = getDataIndices();
+		int currentSelection = forestPlot.getCurrentDataIndex();
+		ArrayList<ForestInput> data = forestPlot.getDataIndices();
 		for (int i = 0; i < data.size(); i++) {
-			setCurrentData(i);
-			forestPanel.createImage();
+			forestPlot.setCurrentData(i);
+			forestPlot.getForestPanel().createImage();
 			String marker = "", filename = "", ctrlFile = "";
 			int count = 1;
-			String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.PROJECT_DIRECTORY.getValue());
-			marker = getDataIndices().get(getCurrentDataIndex()).marker;
-			ctrlFile = ext.rootOf(markerFileName);
+			String root = (proj == null ? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName()) : proj.PROJECT_DIRECTORY.getValue());
+			marker = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).marker;
+			ctrlFile = ext.rootOf(forestPlot.getMarkerFileName());
 			filename = marker + "_" + ctrlFile;
 			filename = ext.replaceWithLinuxSafeCharacters(filename, true);
 			while (new File(root+filename+".png").exists()) {
@@ -981,23 +623,23 @@ public class ForestPlot extends JFrame implements WindowListener {
 				filename = ext.replaceWithLinuxSafeCharacters(filename, true);
 				count++;
 			}
-            if (log != null) {
-                log.report("Writing screenshot to file " + root + filename + ".png");
+            if (forestPlot.getLog() != null) {
+            	forestPlot.getLog().report("Writing screenshot to file " + root + filename + ".png");
             } else {
                 System.out.println("Writing screenshot to file " + root + filename + ".png");
             }
-			ForestPlot.this.forestPanel.screenCapture(root+filename+".png");
+			forestPlot.getForestPanel().screenCapture(root+filename+".png");
 		}
-		setCurrentData(currentSelection);
+		forestPlot.setCurrentData(currentSelection);
 		updateForestPlot();
 	}
 	
 	private void screenCap() {
 		String marker = "", filename = "", ctrlFile = "";
 		int count = 1;
-		String root = (proj == null ? ext.parseDirectoryOfFile(markerFileName) : proj.PROJECT_DIRECTORY.getValue());
-		marker = getDataIndices().get(getCurrentDataIndex()).marker;
-		ctrlFile = ext.rootOf(markerFileName);
+		String root = (proj == null ? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName()) : proj.PROJECT_DIRECTORY.getValue());
+		marker = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).marker;
+		ctrlFile = ext.rootOf(forestPlot.getMarkerFileName());
 		filename = marker + "_" + ctrlFile;
 		filename = ext.replaceWithLinuxSafeCharacters(filename, true);
 		while (new File(root+filename+".png").exists()) {
@@ -1005,252 +647,37 @@ public class ForestPlot extends JFrame implements WindowListener {
 			filename = ext.replaceWithLinuxSafeCharacters(filename, true);
 			count++;
 		}
-        if (log != null) {
-            log.report("Writing screenshot to file " + root + filename + ".png");
+        if (forestPlot.getLog() != null) {
+        	forestPlot.getLog().report("Writing screenshot to file " + root + filename + ".png");
         } else {
             System.out.println("Writing screenshot to file " + root + filename + ".png");
         }
-		ForestPlot.this.forestPanel.screenCapture(root+filename+".png");
+		forestPlot.getForestPanel().screenCapture(root+filename+".png");
 	}
 	
 	private void displayIndex(JTextField field) {
-		if (getDataIndices().size() == 0) {
+		if (forestPlot.getDataIndices().size() == 0) {
 			field.setText("0 of 0");
 		} else {
-			field.setText((getCurrentDataIndex() + 1) + " of " + getDataIndices().size());
+			field.setText((forestPlot.getCurrentDataIndex() + 1) + " of " + forestPlot.getDataIndices().size());
 		}
-	}
-	
-	private void setCurrentData(int index) {
-		if (this.getDataIndices().size() == 0 || index < 0 || index > this.getDataIndices().size()) return;
-		setCurrentDataIndex(index);
-//		setCurrentMetaStudy(dataToMetaMap.get(getDataIndices().get(index)));
-		setCurrentMetaStudy(getDataIndices().get(index).getMetaStudy());
-		getCurrentMetaStudy().setSort(isSortedDisplay(), getSortOrder());
-		if (getCurrentMetaStudy() == null) {
-		    String msg = "Error - could not set index to "+index+" since the data did not load properly; check to see if any results files are missing";
-		    if (log != null) {
-		        log.reportError(msg);
-		    } else {
-		        System.err.println(msg);
-		    }
-			return;
-		}
-		maxZScore = getCurrentMetaStudy().findMaxZScore();
-		maxZScore = getCurrentMetaStudy().findMaxZScore();
-		sumZScore = getCurrentMetaStudy().calcSumZScore();
-		longestStudyName = getCurrentMetaStudy().findLongestStudyName();
-		setPlotLabel(getDataIndices().get(index).marker);
-	}
-	
-	private void clearCurrentData() {
-		setCurrentDataIndex(-1);
-		setCurrentMetaStudy(null);
-		maxZScore = 0;
-		maxZScore = 0;
-		sumZScore = 0;
-		longestStudyName = "";
-		setPlotLabel("");
-	}
-	
-	public String getLongestStudyName() {
-		return longestStudyName;
 	}
 
-	private void loadStudyData() throws RuntimeException {
-		HashMap<String, ArrayList<ForestInput>> files = new HashMap<String, ArrayList<ForestInput>>();
-		for (ForestInput fi : getDataIndices()) {
-			ArrayList<ForestInput> inputList = files.get(fi.file);
-			if (inputList == null) {
-				inputList = new ArrayList<ForestInput>();
-				files.put(fi.file, inputList);
-			}
-			inputList.add(fi);
-			if (Thread.interrupted()) {
-				interruptLoading();
-				return;
-			}
-		}
-		long tempSize = 0;
-		final HashMap<String, Integer> progSteps = new HashMap<String, Integer>();
-		for (String file : files.keySet()) {
-			int sz = Files.getSize(file, false);
-			progSteps.put(file, sz);
-			tempSize += sz;
-			if (Thread.interrupted()) {
-				interruptLoading();
-				return;
-			}
-		}
-		final long totalSize = tempSize;
-		
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					progressBar.setValue(0);
-					progressBar.setStringPainted(true);
-					progressBar.setString(null);
-					progressBar.setIndeterminate(false);
-					progressBar.repaint();
-				}
-			});
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-		}
-		
-		for (final java.util.Map.Entry<String, ArrayList<ForestInput>> fileMap : files.entrySet()) {
-			if (Thread.interrupted()) {
-				interruptLoading();
-				return;
-			}
-			final int progStep = (int) (((double)progSteps.get(fileMap.getKey()) / (double)totalSize) * 100);
-			
-			int lineStep = 0;
-			int lines = 0;
-			try {
-				LineNumberReader lnr = new LineNumberReader(new java.io.FileReader(fileMap.getKey()));
-				lnr.skip(Long.MAX_VALUE);
-				lines = lnr.getLineNumber();
-				lnr.close();
-				lineStep = lines > progStep ? 1 : progStep / lines;
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-			}
-			if (Thread.interrupted()) {
-				interruptLoading();
-				return;
-			}
-			final int lineProg = lineStep;
-			final int totalLines = lines;
-			
-			BufferedReader dataReader;
-			dataReader = Files.getReader(fileMap.getKey(), 
-											false, // not a jar file
-											true, // verbose mode on 
-											log, 
-											false // don't kill the whole process, esp. if we're running a GUI
-											);
-			if (dataReader == null) {
-				continue;
-			}
-			if (Thread.interrupted()) {
-				interruptLoading();
-				return;
-			}
-			String delimiter = Files.determineDelimiter(fileMap.getKey(), log);
-			String header;
-			int lineCnt = 1;
-			try {
-				header = dataReader.readLine();	// skip header
-				String[] hdr;
-				if (delimiter.startsWith(",")) {
-					hdr = ext.splitCommasIntelligently(header, true, log);
-				} else {
-					hdr = header.trim().split(delimiter);
-				}
-				int idIndex = ext.indexFactors(new String[][]{Aliases.MARKER_NAMES}, hdr, false, true, false, false)[0];
-				
-				for (ForestInput inputData : fileMap.getValue()) {
-					if (Thread.interrupted()) {
-						interruptLoading();
-						return;
-					}
-					try {
-						mapMarkersToCol(inputData, header);
-					} catch (InterruptedException e) {
-						inputData.metaIndicies = null;
-						inputData.studyList.clear();
-						inputData.studyToColIndexMap.clear();
-						interruptLoading();
-						return;
-					}
-				}
-				while (dataReader.ready() && !Thread.interrupted()) {
-					String readLine = dataReader.readLine();
-					lineCnt++;
-					if (lineProg > 1 || lineCnt % (totalLines / progStep > 0 ? totalLines / progStep : 1) == 0 /*lineProg > 0*/) {
-						try {
-							SwingUtilities.invokeAndWait(new Runnable() {
-								@Override
-								public void run() {
-									progressBar.setValue(progressBar.getValue() + lineProg);
-									progressBar.repaint();
-								}
-							});
-						} catch (InvocationTargetException e) {
-							// TODO Auto-generated catch block
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-						}
-					}
-					String readData[] = delimiter.equals(",") ? ext.splitCommasIntelligently(readLine, true, log) : readLine.split(delimiter);
-					String markerName = readData[idIndex];
-					for (ForestInput inputData : fileMap.getValue()) {
-						if (Thread.interrupted()) {
-							dataReader.close();
-							interruptLoading();
-							return;
-						}
-						if(inputData.marker.equals(markerName)) {
-//							dataToMetaMap.put(inputData, getMetaStudy(inputData, readData));
-							getMetaStudy(inputData, readData);
-							atleastOneStudy = true;
-						}
-					}
-				}
-				dataReader.close();
-				
-			} catch (IOException e) {
-				log.reportException(e);
-			}
-	
-			if(!atleastOneStudy) {
-				log.reportError("Not able to find data for file '"+fileMap.getKey()+"'. Please make sure the given markers are correct and included in data file.");
-			}
-			
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						progressBar.setValue(progressBar.getValue() + progStep);
-						progressBar.repaint();
-					}
-				});
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-			}
-
-		}
-		
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					progressBar.setValue(0);
-					progressBar.setStringPainted(true);
-					progressBar.setString("Displaying data...");
-					progressBar.setIndeterminate(true);
-					progressBar.repaint();
-				}
-			});
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-		}
+	private void inputMapAndActionMap() {
+		InputMap inputMap = forestPlot.getForestPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), FIRST);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), LAST);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), PREVIOUS);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), NEXT);
+		ActionMap actionMap = forestPlot.getForestPanel().getActionMap();
+		actionMap.put(FIRST, navFirstAction);
+		actionMap.put(LAST, navLastAction);
+		actionMap.put(PREVIOUS, navPrevAction);
+		actionMap.put(NEXT, navNextAction);
+		forestPlot.getForestPanel().setActionMap(actionMap);
 	}
 	
 	private void interruptLoading() {
-		this.atleastOneStudy = false;
-		this.markerFileName = "";
-		this.getDataIndices().clear();
-//		this.dataToMetaMap.clear();
-		this.clearCurrentData();
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				@Override
@@ -1260,9 +687,9 @@ public class ForestPlot extends JFrame implements WindowListener {
 					progressBar.setString("");
 					progressBar.setIndeterminate(false);
 					progressBar.repaint();
-					markerFileList.setSelectedItem(ForestPlot.MARKER_LIST_PLACEHOLDER);
-					forestPanel.paintAgain();
-					ForestPlot.this.repaint();
+					markerFileList.setSelectedItem(ForestPlotFrame.MARKER_LIST_PLACEHOLDER);
+					forestPlot.getForestPanel().paintAgain();
+					repaint();
 				}
 			});
 		} catch (InvocationTargetException e) {
@@ -1271,140 +698,13 @@ public class ForestPlot extends JFrame implements WindowListener {
 			// TODO Auto-generated catch block
 		}
 	}
-	
-	private void getMetaStudy(ForestInput input, String[] readData) {
-		String metaB, metaS;
-		float metaBeta, metaStderr;
-		
-		metaB = readData[input.metaIndicies[0]];
-		metaS = readData[input.metaIndicies[1]];
-		metaBeta = ext.isValidDouble(metaB) ? Float.parseFloat(metaB) : 0.0f;
-		metaStderr = ext.isValidDouble(metaS) ? Float.parseFloat(metaS) : 0.0f;
-		
-		MetaStudy ms = new MetaStudy(metaBeta, metaStderr);
-		ArrayList<StudyData> studies = getStudyEntries(input, readData);
-		for (int i = 0; i < studies.size(); i++) {
-			ms.addStudy(studies.get(i));
-		}
-		
-		input.setMetaStudy(ms);
-//		return ms;
-	}
-
-	private ArrayList<StudyData> getStudyEntries(ForestInput input, String[] readData) {
-		ArrayList<StudyData> studies = new ArrayList<StudyData>();
-		String betaVal, seVal;
-		for (int i = input.studyList.size() - 1; i >= 0; i--) {
-			String studyName = input.studyList.get(i);
-			betaVal = readData[input.studyToColIndexMap.get(studyName)];
-			seVal = readData[input.studyToColIndexMap.get(studyName) + 1];
-			float beta = ext.isValidDouble(betaVal) ? Float.parseFloat(betaVal) : 0.0f;
-			float stderr = ext.isValidDouble(seVal) ? Float.parseFloat(seVal) : 0.0f;
-			studies.add(new StudyData(ext.replaceAllWith(studyName, REPLACEMENTS_FOOLISHLY_HARD_CODED), beta, stderr, 0, PlotPoint.FILLED_CIRCLE));
-		}
-		return studies;
-	}
-	
-	private void mapMarkersToCol(ForestInput data, String hdr) throws RuntimeException, InterruptedException {
-		String delim = data.file.toLowerCase().endsWith(".csv") ? ",!" : ext.determineDelimiter(hdr);
-		String[] dataFileHeaders = delim.startsWith(",") ? ext.splitCommasIntelligently(hdr, delim.endsWith("!"), log) : hdr.trim().split(delim);
-		for (int i = 0; i < dataFileHeaders.length; i++) {
-			for (int j = 0; j < BETA_META_HEADERS.length; j++) {
-				if (dataFileHeaders[i].toLowerCase().equals(BETA_META_HEADERS[j])) {
-					if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_META_HEADERS[j])) {
-						data.metaIndicies = new int[]{i, i+1};
-					}
-				}
-			}
-			if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)) {
-				if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_PREFIX)) {
-					if (data.studyToColIndexMap.containsKey(dataFileHeaders[i].split("\\.")[1])) {
-						throw new RuntimeException("Malformed data file: Duplicate study name found in file");
-					} else {
-						data.addStudy(dataFileHeaders[i].split("\\.")[1], i);
-					}
-				} else {
-					throw new RuntimeException("Malformed data file: SE is not present after Beta for: " + dataFileHeaders[i]);
-				}
-			}
-		}
-		if (data.metaIndicies == null) {
-			log.reportError("Error - no overall beta/se pairing or effect/stderr pairing was found in file "+data.file);
-		}
-		dataFileHeaders = null;
-	}
-	
-	private LinkedHashSet<ForestInput> readMarkerFile(String markerFile) {
-	    String file;
-		LinkedHashSet<ForestInput> markerNames = new LinkedHashSet<ForestInput>();
-		BufferedReader markerReader = Files.getReader(markerFile, false, true, false);
-		
-		if (markerReader != null) {
-    		try {
-    			while (markerReader.ready() && !Thread.interrupted()) {
-    				String[] line = markerReader.readLine().trim().split("\\t");
-				    if (line.length >= 2) {
-				        file = line[1];
-				        if (!file.contains(":") && !file.startsWith("/") && !Files.exists(file)) {
-				            if (Files.exists(ext.verifyDirFormat(ext.parseDirectoryOfFile(markerFile)) + file)) {
-				                file = ext.verifyDirFormat(ext.parseDirectoryOfFile(markerFile)) + file;
-				            } else {
-				                if (log != null) {
-				                    log.reportError("Error - file " + file + " not found!");
-				                } else {
-				                    System.err.println("Error - file " + file + " not found!");
-				                }
-				            }
-				        }
-    					markerNames.add(new ForestInput(line[0], file, line.length > 2 ? line[2] : ""));
-    				} else if (line.length == 1) {
-    					markerNames.add(new ForestInput(line[0], "", ""));
-    				}
-    			}
-    		} catch (IOException e) {
-    		    if (log != null) {
-    		        log.reportException(e);
-    		    } else {
-    		        e.printStackTrace();
-    		    }
-    		}
-		}
-		
-		return markerReader == null || Thread.interrupted() ? new LinkedHashSet<ForestInput>() : markerNames;
-	}
-
-	public float getMaxZScore() {
-		return maxZScore;
-	}
-
-	public float getSumZScore() {
-		return sumZScore;
-	}
-
-	public void updateGUI() {
-		forestPanel.paintAgain();
-	}
-
-	private void inputMapAndActionMap() {
-		InputMap inputMap = forestPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.ALT_MASK), FIRST);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_MASK), LAST);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK), PREVIOUS);
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK), NEXT);
-		ActionMap actionMap = forestPanel.getActionMap();
-		actionMap.put(FIRST, navFirstAction);
-		actionMap.put(LAST, navLastAction);
-		actionMap.put(PREVIOUS, navPrevAction);
-		actionMap.put(NEXT, navNextAction);
-		forestPanel.setActionMap(actionMap);
-	}
 
 	AbstractAction navFirstAction = new AbstractAction() {
 		private static final long serialVersionUID = 1L;
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if(getCurrentDataIndex() != 0){
-				setCurrentData(0);
+			if(forestPlot.getCurrentDataIndex() != 0){
+				forestPlot.setCurrentData(0);
 				updateForestPlot();
 			}
 		}
@@ -1414,8 +714,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 		private static final long serialVersionUID = 1L;
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if(getCurrentDataIndex() != 0){
-				setCurrentData(getCurrentDataIndex() - 1);
+			if(forestPlot.getCurrentDataIndex() != 0){
+				forestPlot.setCurrentData(forestPlot.getCurrentDataIndex() - 1);
 				updateForestPlot();
 			}
 		}
@@ -1425,8 +725,8 @@ public class ForestPlot extends JFrame implements WindowListener {
 		private static final long serialVersionUID = 1L;
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if(getCurrentDataIndex() < getDataIndices().size() - 1){
-				setCurrentData(getCurrentDataIndex() + 1);
+			if(forestPlot.getCurrentDataIndex() < forestPlot.getDataIndices().size() - 1){
+				forestPlot.setCurrentData(forestPlot.getCurrentDataIndex() + 1);
 				updateForestPlot();
 			}
 		}
@@ -1436,112 +736,15 @@ public class ForestPlot extends JFrame implements WindowListener {
 		private static final long serialVersionUID = 1L;
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if(getCurrentDataIndex() < getDataIndices().size() - 1){
-				setCurrentData(getDataIndices().size() - 1);
+			if(forestPlot.getCurrentDataIndex() < forestPlot.getDataIndices().size() - 1){
+				forestPlot.setCurrentData(forestPlot.getDataIndices().size() - 1);
 				updateForestPlot();
 			}
 		}
 	};
 
 	private JProgressBar progressBar;
-	private ArrayList<String> sortOrder = null;
-	
-	public void loadOrderFile(String filename, boolean shouldSort) {
-	    if (!Files.exists(filename)) {
-	        String msg = "Error - study order file (" + filename + ") not found!";
-	        if (log != null) {
-	            log.reportError(msg);
-	        } else {
-	            System.err.println(msg);
-	        }
-	        return;
-	    }
-	    ArrayList<String> order = new ArrayList<String>();
-	    try {
-    	    BufferedReader reader = Files.getAppropriateReader(filename);
-    	    String line = null;
-            while((line = reader.readLine()) != null) {
-                order.add(line.trim());
-            }
-            reader.close();
-        } catch (IOException e) {
-            if (proj != null) {
-                proj.message("Error occurred while loading study order file: " + e.getMessage());
-            }
-            if (log != null) {
-                log.reportException(e);
-            } else {
-                e.printStackTrace();
-            }
-        }
-	    if (log != null) {
-	        log.report("Loaded Study Order File: " + filename);
-	    } else {
-	        System.out.println("Loaded Study Order File: " + filename);
-	    }
-	    this.setSortOrder(order);
-	    this.setSortedDisplay(shouldSort);
-        if (currMetaStudy != null) {
-            currMetaStudy.setSort(this.isSortedDisplay(), this.getSortOrder());
-        }
-	}
-	
-	public static void generateNaiveOrderFile(String[] studies, String outFile) {
-		PrintWriter writer = Files.getAppropriateWriter(outFile);
-		for (String study : studies) {
-			String safeStudy = ext.replaceWithLinuxSafeCharacters(study, true);
-			if (study.equals(safeStudy)) writer.println(safeStudy);
-			else writer.println(safeStudy + "\t" + study);
-		}
-		writer.flush();
-		writer.close();
-	}
-	
-	public MetaStudy getCurrentMetaStudy() {
-	    if (currMetaStudy != null) {
-	        currMetaStudy.setSort(this.isSortedDisplay(), this.getSortOrder());
-	    }
-		return currMetaStudy;
-	}
 
-
-	private void setCurrentMetaStudy(MetaStudy currMetaStudy) {
-		this.currMetaStudy = currMetaStudy;
-	}
-
-
-	public int getCurrentDataIndex() {
-		return currentDataIndex;
-	}
-
-
-	private void setCurrentDataIndex(int currentDataIndex) {
-		this.currentDataIndex = currentDataIndex;
-	}
-
-	public ArrayList<ForestInput> getDataIndices() {
-		return dataIndices;
-	}
-
-
-	private void setDataIndices(ArrayList<ForestInput> dataIndices) {
-		this.dataIndices = dataIndices;
-	}
-
-
-	public String getPlotLabel() {
-		return plotLabel;
-	}
-
-
-	private void setPlotLabel(String plotLabel) {
-		this.plotLabel = plotLabel;
-	}
-
-    public void setSortedDisplay(boolean sorted) {
-        this.sortedDisplay = sorted;
-    }
-    
 	@Override
 	public void windowOpened(WindowEvent e) {/**/}
 
@@ -1659,9 +862,9 @@ public class ForestPlot extends JFrame implements WindowListener {
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
 							if (proj != null) {
-								new ForestPlot(proj);
+								new ForestPlotFrame(proj);
 							} else {
-								new ForestPlot(finalMarkerFile, log);
+								new ForestPlotFrame(finalMarkerFile, log);
 							}
 						}
 					});
@@ -1670,15 +873,4 @@ public class ForestPlot extends JFrame implements WindowListener {
 				}
 			}
 
-    public boolean isSortedDisplay() {
-        return sortedDisplay;
-    }
-
-    public ArrayList<String> getSortOrder() {
-        return sortOrder;
-    }
-
-    public void setSortOrder(ArrayList<String> sortOrder) {
-        this.sortOrder = sortOrder;
-    }
 }
