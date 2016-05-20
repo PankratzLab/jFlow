@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<project name="lanedsff0212_B">
+	<target name="sendToHeaven">
+		<copy file="C:\workspace\genvisis.jar" tofile="C:\data\affyGw6\genvisis.jar" />
+
+		<exec executable="pscp.exe">
+			<arg value="../genvisis.jar" />
+			<arg value="lanej0@login.msi.umn.edu:/home/spectorl/lanej0/genvisis.jar" />
+		</exec>
+
+		<exec executable="pscp.exe">
+			<arg value="../genvisis.jar" />
+			<arg value="lane0212@login.msi.umn.edu:/home/tsaim/lane0212/genvisis.jar" />
+		</exec>
+		<exec executable="pscp.exe">
+			<arg value="../genvisis.jar" />
+			<arg value="lanej@login.msi.umn.edu:/home/pankrat2/lanej" />
+		</exec>
+	</target>
+</project>
