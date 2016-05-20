@@ -10,6 +10,9 @@ import java.net.URL;
 public class HttpDownloadUtility {
 	private static final int BUFFER_SIZE = 4096;
 
+	
+	
+	
 	public static boolean canDownload(String fileURL, Logger log) {
 		boolean canDownload = false;
 		URL url;

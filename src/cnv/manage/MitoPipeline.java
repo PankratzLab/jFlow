@@ -21,6 +21,7 @@ import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.ABLookup;
 import cnv.filesys.MarkerLookup;
 import cnv.filesys.Project;
+import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Sample;
 import cnv.filesys.SampleList;
 import cnv.manage.Resources.GENOME_BUILD;
@@ -483,7 +484,7 @@ public class MitoPipeline {
 							if (requireBeta) {
 								log.reportTimeWarning("Attempting to use pre-set beta file");
 							}
-							boolean mitoResourceAvailable = prepareMitoResources(proj.GENOME_BUILD_VERSION.getValue(), requireBeta, proj.getLog());
+							boolean mitoResourceAvailable = prepareMitoResources(proj, requireBeta, proj.getLog());
 							if (mitoResourceAvailable) {
 								BetaOptimizer.optimize(proj, pcApply.getExtrapolatedPCsFile(), proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/", requireBeta ? Resources.MITO_SUB_DIR : ext.parseDirectoryOfFile(betaFile), betaOptFile, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, pvalOpt, numComponents, markerCallRateFilter, numThreads);
 							} else {
@@ -497,8 +498,11 @@ public class MitoPipeline {
 		return 42;
 	}
 
-	public static boolean prepareMitoResources(GENOME_BUILD build, boolean requireBeta, Logger log) {
-		boolean dbSnpA = GENOME_RESOURCE_TYPE.DB_SNP.getResource(build).validateWithHint(log);
+	private static boolean prepareMitoResources(Project proj, boolean requireBeta, Logger log) {
+		boolean dbSnpA = GENOME_RESOURCE_TYPE.DB_SNP.getResource(proj.GENOME_BUILD_VERSION.getValue()).validateWithHint(log);
+		if (!dbSnpA && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
+			dbSnpA = GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19).validateWithHint(log);
+		}
 		boolean mitoAvail = true;
 		for (MITO_RESOURCE_TYPE m : MITO_RESOURCE_TYPE.values()) {
 			boolean tmp = m.getResource().validateWithHint(log);

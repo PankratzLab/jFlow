@@ -195,9 +195,9 @@ public class Resources {
 		/**
 		 * A gc5base file, for constructing gc-models
 		 */
-		WHITE_WBC_BETA("", "Whites_WBC_Betas.txt", DEFAULT_URL),
-		BLACK_WBC_BETA("", "Blacks_WBC_Betas.txt", DEFAULT_URL),
-		ALL_WBC_BETA("", "All_WBC_Betas.txt", DEFAULT_URL);
+		WHITE_WBC_BETA("", "Whites_WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL),
+		BLACK_WBC_BETA("", "WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL),
+		ALL_WBC_BETA("", "Blacks_WBC_TOTAL_SingleSNPmatched.final.beta", DEFAULT_URL);
 
 		private String namePrefix;
 		private String nameSuffix;

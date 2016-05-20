@@ -11,6 +11,7 @@ import java.util.jar.JarFile;
  *
  */
 public class CurrentManifest {
+	public static final String IMPLEMENTATION_VERSION = "Implementation-Version";
 	private Attributes attributes;
 	private String version;
 	private String compileTime;
@@ -38,8 +39,7 @@ public class CurrentManifest {
 			while (it.hasNext()) {
 				java.util.jar.Attributes.Name key = (java.util.jar.Attributes.Name) it.next();
 				String keyword = key.toString();
-				System.out.println(keyword + "\t" + (String) attributes.get(key));
-				if (keyword.equals("Implementation-Version")) {
+				if (keyword.equals(IMPLEMENTATION_VERSION)) {
 					this.version = (String) attributes.get(key);
 				}
 				if (keyword.equals("Compile-Time")) {
@@ -111,7 +111,7 @@ public class CurrentManifest {
 		return currentManifest;
 	}
 
-	public static File getCurrentFile() {
+	private static File getCurrentFile() {
 		File file = new File(new CurrentManifest().getClass().getProtectionDomain().getCodeSource().getLocation().getFile());// get
 
 		if (!file.exists() || !file.getAbsolutePath().endsWith(".jar")) {
