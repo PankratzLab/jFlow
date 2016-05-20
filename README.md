@@ -11,7 +11,7 @@ View the Change log [here](https://github.com/npankrat/Genvisis/blob/master/CHAN
  
 
 [//]: # (1.	Parse Illumina/Infimax/csv/)
-[//]: # (Load and parse micro array data (Create a new project);
+[//]: # (Load and parse micro array data (Create a new project))
 [//]: # (2.	Extract Plots:)
 [//]: # (Convert the data into a format that is)
 [//]: # (3.	Slim Plots:)
