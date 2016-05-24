@@ -155,7 +155,7 @@ public class BWA_Analysis {
 		}
 		// String rootInputDir, String rootOutputDir, String referenceGenomeFasta, String bwaLocation, String fileOfSamplePairs, boolean overwriteExisting, boolean verbose, int numMemThreads, int numSampleThreads, boolean batch, Logger log) {
 
-		String command = "load module java\njava -cp park.jar -Xmx" + memoryInMB + "m seq.BWA_Analysis " + ROOT_INPUT_COMMAND + rootInputDir + SPACE + ROOT_OUTPUT_COMMAND + rootOutputDir + SPACE;
+		String command = "load module java\njava -cp " + common.PSF.Java.GENVISIS + " -Xmx" + memoryInMB + "m seq.BWA_Analysis " + ROOT_INPUT_COMMAND + rootInputDir + SPACE + ROOT_OUTPUT_COMMAND + rootOutputDir + SPACE;
 		command += REFERENCE_GENOME_COMMAND + referenceGenomeFasta + SPACE + BWA_LOCATION_COMMAND + bwa.getBwaLocation() + SPACE;
 		command += NUM_BETWEEN_THREADS_COMMAND + numWithinSampleThreads + SPACE + FILE_OF_SAMPLE_PAIRS_COMMAND + rootOutputDir + "[%0].txt" + SPACE + NUM_WITHIN_THREADS_COMMAND + numBetweenSampleThreads;
 		Files.qsub("BWA_MEM" + baseName, command, batches, memoryInMB, wallTimeInHours, numWithinSampleThreads * numBetweenSampleThreads);

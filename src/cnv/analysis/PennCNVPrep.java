@@ -641,7 +641,7 @@ public class PennCNVPrep {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String classPath = "/home/pankrat2/coleb/park.jar";
+		String classPath = "/home/pankrat2/coleb/" + common.PSF.Java.GENVISIS;
 		String java = "/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/bin/java";// for lab
 		// String java ="/soft/java/jdk1.7.0_45/bin/java"; //for itasca
 		int memoryInMB = 22000;
@@ -661,7 +661,7 @@ public class PennCNVPrep {
 		int sampleChunks = 10;
 		// Ex - Recommend modifying this to run the corrections
 
-		// java -cp park.jar cnv.analysis.PennCNVPrep batch=100 proj=/home/usr/projects/x.properties classPath=/yourPathTo/park.jar dir=PennCNVPrep/ numComponents=40
+		// java -cp " + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNVPrep batch=100 proj=/home/usr/projects/x.properties classPath=/yourPathTo/" + common.PSF.Java.GENVISIS + " dir=PennCNVPrep/ numComponents=40
 
 		// then run recommended
 		// ./master.PennCNVPrepFormatTmpFiles

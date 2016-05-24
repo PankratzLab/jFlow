@@ -124,7 +124,7 @@ public class permOSA {
 			}
 			writer.println("cd chrom"+chrome);
 			writer.println("cp ../map"+chrome+".dat .");
-			writer.println("java -classpath /home/npankrat/park.jar park.bat.dat2loc map"+chrome+".dat");
+			writer.println("java -classpath /home/npankrat/" + common.PSF.Java.GENVISIS + " park.bat.dat2loc map"+chrome+".dat");
 			for (int i = 1; i<=numOfIncrements; i++) {
 				writer.println("echo -e \""+((chromosome==23)?"sex on\\n":"")+"pairs\\n3\\nload map"+chrome+".loc\\nprep re_chrom"+chrome+"-"+direction+ext.formNum(i, 4)+".pre\\nn\\nscan\\nestimate\\n"+((chromosome==23)?"":"n\\n")+"chrom"+chrome+"-"+direction+ext.formNum(i, 4)+".out\\nchrom"+chrome+"-"+direction+ext.formNum(i, 4)+"-share.ps\\nchrom"+chrome+"-"+direction+ext.formNum(i, 4)+"-mls.ps\\nquit\\n\" | /software/bin/sibs > /dev/null");
 				writer.println();

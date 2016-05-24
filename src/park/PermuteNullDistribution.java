@@ -184,7 +184,7 @@ public class PermuteNullDistribution {
 				for (int j = 0; j<line.length-2; j++) {
 					writers[i].println("cp "+line[2+((j+i*increment)%(line.length-2))]+".dat "+(i+1));
 					writers[i].println("cd "+(i+1));
-					writers[i].println("java -classpath /home/npankrat/park.jar park.PermuteNullDistribution file="+line[2+((j+i*increment)%(line.length-2))]+".dat reps="+numReps+" perFamReps="+perFamReps+" bootReps="+bootReps);
+					writers[i].println("java -classpath /home/npankrat/" + common.PSF.Java.GENVISIS + " park.PermuteNullDistribution file="+line[2+((j+i*increment)%(line.length-2))]+".dat reps="+numReps+" perFamReps="+perFamReps+" bootReps="+bootReps);
 					writers[i].println("cd ..");
 				}
 				writers[i].close();

@@ -112,8 +112,8 @@ public class PennCNV {
 				"cd " + projDir,
 				"cat " + resultsDir + "*.log > " + resultsDir + "penncnv.rawlog",
 				"cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnv.rawcnv",
-				"java -cp ~/park.jar cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawlog=" + resultsDir + "penncnv.rawlog",
-				"java -cp ~/park.jar cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawcnv=" + resultsDir + "penncnv.rawcnv",
+				"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawlog=" + resultsDir + "penncnv.rawlog",
+				"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawcnv=" + resultsDir + "penncnv.rawcnv",
 		}, pennDir + scriptSubDir + "assemblePenncnv");
 		Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
 	}
@@ -230,7 +230,7 @@ public class PennCNV {
 				"cat " + resultsDir + "*.log > " + resultsDir + "penncnvX.rawlog",
 				"cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnvX.rawcnv",
 				// don't parse warnings; the parseWarnings method isn't written to parse X-chromosome warnings
-				"java -cp ~/park.jar cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawcnv=" + resultsDir + "penncnvX.rawcnv",
+				"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawcnv=" + resultsDir + "penncnvX.rawcnv",
 		}, pennDir + scriptSubDir + "assemblePenncnv");
 		Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
 	}
@@ -580,7 +580,7 @@ public class PennCNV {
 	}
 	
 	/*
-	java -cp ~/park.jar cnv.analysis.PennCNV proj=/home/pankrat2/coleb/projects/NY_Registry_3defects.properties combine=/home/pankrat2/shared/ny_registry/3defects/penncnv/sexSpecific/male/penncnv.cnv,/home/pankrat2/shared/ny_registry/3defects/penncnv/sexSpecific/female/penncnv.cnv output=/home/pankrat2/shared/ny_registry/3defects/penncnv/sexSpecific/combinedMF.cnv -recode
+	java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=/home/pankrat2/coleb/projects/NY_Registry_3defects.properties combine=/home/pankrat2/shared/ny_registry/3defects/penncnv/sexSpecific/male/penncnv.cnv,/home/pankrat2/shared/ny_registry/3defects/penncnv/sexSpecific/female/penncnv.cnv output=/home/pankrat2/shared/ny_registry/3defects/penncnv/sexSpecific/combinedMF.cnv -recode
 	*/
 	
 	public static void parseResults(Project proj, String filename, boolean denovoOnly) {
@@ -1019,7 +1019,7 @@ public class PennCNV {
 			String outfile = "combineAutoXCNVs";
 			Files.writeList(new String[] {
 					"cd " + resultsDir,
-					"java -cp ~/park.jar cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,chrX/penncnvX.cnv output=combinedAX.cnv",
+					"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,chrX/penncnvX.cnv output=combinedAX.cnv",
 			}, outdir + outfile);
 			Files.chmod(outdir + outfile);
 		}
@@ -1040,9 +1040,9 @@ public class PennCNV {
 			String outfile = "combineMFCNVs";
 			Files.writeList(new String[] {
 					"cd " + resultsDir,
-					"java -cp ~/park.jar cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
-					"java -cp ~/park.jar cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
-					"java -cp ~/park.jar cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv -recode",
+					"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
+					"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
+					"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv -recode",
 			}, outdir + outfile);
 			Files.chmod(outdir + outfile);
 			
@@ -1050,9 +1050,9 @@ public class PennCNV {
 			    outfile = "combineAMFCNVs";
 			    Files.writeList(new String[]{
 			            "cd " + resultsDir,
-	                    "java -cp ~/park.jar cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
-	                    "java -cp ~/park.jar cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
-	                    "java -cp ~/park.jar cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv",
+	                    "java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
+	                    "java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
+	                    "java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv",
 			    }, outdir + outfile);
 			    Files.chmod(outdir + outfile);
 			}

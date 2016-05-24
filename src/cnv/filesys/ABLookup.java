@@ -608,7 +608,7 @@ public class ABLookup {
 					log.reportError("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
 				} else {
 					log.report("Warning - since " + proj.MARKER_DATA_DIRECTORY.getValue(false, false) + " does not exist, marker data can not be loaded and frequency of B allele will not be reported in " + output + ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
-					log.report("java -cp /your/path/to/park.jar cnv.filesys.ABLookup proj=" + proj.getPropertyFilename() + " incompleteAB=" + incompleteABlookupFilename + " mapFile=" + mapFile);
+					log.report("java -cp /your/path/to/" + common.PSF.Java.GENVISIS + " cnv.filesys.ABLookup proj=" + proj.getPropertyFilename() + " incompleteAB=" + incompleteABlookupFilename + " mapFile=" + mapFile);
 				}
 			} catch (NullPointerException nullPointerException) {// MarkerDataLoader will likely throw this if there are other issues
 				log.report("Warning - was not able to load marker data, frequency of B allele will not be reported in " + output);

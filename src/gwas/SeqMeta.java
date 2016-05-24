@@ -2912,7 +2912,7 @@ public class SeqMeta {
 		if (files.length > 0) {
 			for (int i = 0; i < files.length; i++) {
 				localDir = ext.parseDirectoryOfFile(files[i]);
-				Files.qsub(dir+"batchRuns/"+ext.rootOf(files[i])+".qsub", "cd "+localDir+"\njava -cp ~/park.jar gwas.SeqMeta dir="+localDir+" metalSensitivity="+ext.removeDirectoryInfo(files[i]), 25000, 3, 1);
+				Files.qsub(dir+"batchRuns/"+ext.rootOf(files[i])+".qsub", "cd "+localDir+"\njava -cp ~/" + common.PSF.Java.GENVISIS + " gwas.SeqMeta dir="+localDir+" metalSensitivity="+ext.removeDirectoryInfo(files[i]), 25000, 3, 1);
 				needToBeProcessed.add("qsub batchRuns/"+ext.rootOf(files[i])+".qsub");
 			}
 			Files.writeList(Array.toStringArray(needToBeProcessed), dir+"master.toBeProcessed");

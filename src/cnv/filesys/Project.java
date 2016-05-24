@@ -537,8 +537,7 @@ public class Project {
 		log.report("\nJava version: " + System.getProperty("java.version"));
 
 		try {
-			String[] version = System.getProperty("java.version").split("\\.");
-			if (version[0].equals("1") && Integer.parseInt(version[1]) < 8) {
+			if (!Files.checkJVMUpToDateApprox()) {
 				log.reportError("\nYOUR VERSION OF JAVA IS OUT OF DATE; update if you get a NoSuchMethodError");
 			}
 		} catch (Exception e) {

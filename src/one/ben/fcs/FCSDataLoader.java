@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,7 +17,6 @@ import org.flowcyt.cfcs.CFCSAbstractData;
 import org.flowcyt.cfcs.CFCSData;
 import org.flowcyt.cfcs.CFCSDataSet;
 import org.flowcyt.cfcs.CFCSError;
-import org.flowcyt.cfcs.CFCSKeyword;
 import org.flowcyt.cfcs.CFCSKeywords;
 import org.flowcyt.cfcs.CFCSListModeData;
 import org.flowcyt.cfcs.CFCSParameter;
@@ -30,6 +28,7 @@ import common.Array;
 import common.Files;
 import common.Matrix;
 import common.ext;
+
 import ejml.CommonOps;
 import ejml.DenseMatrix64F;
 

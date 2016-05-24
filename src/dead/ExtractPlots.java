@@ -399,7 +399,7 @@ public class ExtractPlots {
 			for (int i = 0; i<reps; i++) {
 				// writer.println("jcp gwas.ExtractPlots
 				// file="+prefix+(char)(i+97)+".txt");
-				writer.println("java -cp /home/genanal/park.jar gwas.ExtractPlots file="+prefix+(char)(i+97)+".txt");
+				writer.println("java -cp /home/genanal/" + common.PSF.Java.GENVISIS + " gwas.ExtractPlots file="+prefix+(char)(i+97)+".txt");
 
 			}
 			writer.println("cd ..");

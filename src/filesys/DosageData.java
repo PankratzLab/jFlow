@@ -583,7 +583,14 @@ public class DosageData implements Serializable {
 			if (parameters[2] == MARKER_DOMINANT_FORMAT) {
 			    int index = -1;
 				for (int i = 0; i < markerNames.length; i++) {
-					line = reader.readLine().trim().split(parameters[10]==1?",":"[\\s]+");
+				    String temp = reader.readLine();
+				    if (temp == null) {
+				        int rem = markerNames.length - i;
+				        log.reportError((rem > 0 ? "Error" : "Warning") + " - Reached end of dosage file at marker " + i + ": " + markerNames[i] + ", " + (rem) + " remaining expected in file: " + dosageFile);
+                        reader.close();
+                        return;
+				    }
+					line = temp.trim().split(parameters[10]==1?",":"[\\s]+");
 					if (!markerNames[i].equals(line[parameters[5]])) {
 					    if (verbose) {
     						String msg = "Error - mismatched name at marker "+(i+1)+" of "+dosageFile+"; expecting "+markerNames[i]+" given map file "+mapFile+", found "+line[parameters[5]];

@@ -65,9 +65,9 @@ public class batch {
 
 		writers = new PrintWriter[numBatches];
 		System.out.println(new File(".").getAbsolutePath());
-		classpath = "-classpath /home/npankrat/park.jar";
+		classpath = "-classpath /home/npankrat/" + common.PSF.Java.GENVISIS + "";
 		if (new File(".").getAbsolutePath().contains("bc2/pankratz")) {
-			classpath = "-classpath /home/bc2/pankratz/park.jar";
+			classpath = "-classpath /home/bc2/pankratz/" + common.PSF.Java.GENVISIS + "";
 		}
 
 		for (int i = 0; i<numBatches; i++) {

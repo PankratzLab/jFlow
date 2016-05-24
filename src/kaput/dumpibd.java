@@ -21,7 +21,7 @@ public class dumpibd {
 			} else {
 				chrom = ""+j;
 			}
-			writer.println("java -classpath /home/npankrat/park.jar park.bat.dat2loc map"+chrom+".dat");
+			writer.println("java -classpath /home/npankrat/" + common.PSF.Java.GENVISIS + " park.bat.dat2loc map"+chrom+".dat");
 			writer.println("echo -e \"pairs\\n3\\nload map"+chrom+".loc\\nprep re_chrom"+chrom+".pre\\nn\\nscan\\ndump ibd\\nmibd"+chrom+".dat\\nquit\\n\" | /software/bin/sibs");
 		}
 

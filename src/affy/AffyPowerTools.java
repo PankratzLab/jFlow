@@ -33,7 +33,7 @@ public class AffyPowerTools {
 	public static final String[] PENN_CNV_OUTPUTS = { "gw6.genocluster", "gw6.lrr_baf.txt" };
 	public static final String[] PENN_BATCH_NAMES = { "PennGenoClust", "PennLRRBAF" };
 	public static final String AFFY_TABLES_CLASS = "affy.AffySNP6Tables";
-	public static final String DEFAULT_CLASS_PATH = "park.jar";
+	public static final String DEFAULT_CLASS_PATH = common.PSF.Java.GENVISIS;
 	public static final int DEFUALT_LINE_BUFFER = 500;
 
 	public static void affyQC(String pbsDir, String dataDir, String aptExeDir, String affyLib, String affyResultsDir, int numJobs, int totalMemory, double walltimeRequestedInHours, Logger log) {
@@ -174,7 +174,7 @@ public class AffyPowerTools {
 		help += "(1) Run each of the commands  found in this log \n";
 		help += "(2) Submit the .PBS files to a compute cluster\n";
 		help += "\nAfter genotyping and summarizing please run the following for more information:";
-		help += "java -cp \"park.jar\" affy.AffyPowerTools -parseTables  pbsDir=" + pbsDir + " affyResultsDir=" + affyResultsDir + " numSNPJobs=" + numSNPJobs + " numCNJobs=" + numCNJobs + " numSNPBatches=" + numSNPBatches + " numCNBatches=" + numCNBatches + "projectSource=YourDesiredSourceDirectory";
+		help += "java -cp \"" + common.PSF.Java.GENVISIS + "\" affy.AffyPowerTools -parseTables  pbsDir=" + pbsDir + " affyResultsDir=" + affyResultsDir + " numSNPJobs=" + numSNPJobs + " numCNJobs=" + numCNJobs + " numSNPBatches=" + numSNPBatches + " numCNBatches=" + numCNBatches + "projectSource=YourDesiredSourceDirectory";
 		help += "\n projectSource=YourDesiredSourceDirectory will be the location Genvisis will look to load data ";
 		help += "\n*******Please note that the number of jobs and batches must be the same*******";
 		return help;
@@ -569,7 +569,7 @@ public class AffyPowerTools {
 
 		// String snpProbesetList = "AllGenoTypingSnps.txt";
 		// String cnProbesetList = "AllCopyNumberProbes.txt";
-		String park = "/home/pankrat2/lanej/park.jar -Xmx" + memory / 1024 + "G ";
+		String park = "/home/pankrat2/lanej/" + common.PSF.Java.GENVISIS + " -Xmx" + memory / 1024 + "G ";
 		String sexFile = lists + "file_sex.txt";
 		String outDir = base + "output/";
 		String pennCNVbin = base + "pennCNV/bin/";

@@ -421,7 +421,7 @@ public class WeightedSumStatistic {
 	        for (int i = 0; i<models.length; i++) {
 	        	line = models[i].split("[\\s]+");
 		        writer.println("plink --bfile allThree --recode --keep "+line[0]+" --extract "+line[1]);
-		        writer.println("java -cp /home/npankrat/park.jar seq.WeightedSumStatistic set="+line[1]);
+		        writer.println("java -cp /home/npankrat/" + common.PSF.Java.GENVISIS + " seq.WeightedSumStatistic set="+line[1]);
 		        writer.println();
             }
 	        

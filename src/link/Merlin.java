@@ -29,7 +29,7 @@ public class Merlin {
 //	        writer = new PrintWriter(new FileWriter("MerlinAll.bat"));
 //	        for (int i = CHR_START; i<=CHR_STOP; i++) {
 //	        	chrome = ext.chrome(i);
-////		        writer.println("java -cp \"C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\park.jar\" -Xms1024M -Xmx1024M  link.Merlin chr="+i);
+////		        writer.println("java -cp \"C:\\Documents and Settings\\npankrat\\My Documents\\jProjects\\" + common.PSF.Java.GENVISIS + "\" -Xms1024M -Xmx1024M  link.Merlin chr="+i);
 //		        writer.println("jcp link.Merlin chr="+i);
 //		        writer.println("merlin -d chr"+chrome+".dat -p re_chrom"+chrome+".pre -m chr"+chrome+".map --npl --tabulate --step 5 --markerNames --information --ibd --prefix merlin-chr"+chrome+"");
 //		        writer.println();
@@ -66,7 +66,7 @@ public class Merlin {
 			if (blade) {
 				commands = ""+
 				"cd "+qsub+"\n"+
-				"java -cp /home/bc2/pankratz/park.jar link.Merlin chr=#\n"+
+				"java -cp /home/bc2/pankratz/" + common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"+
 				"merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log";
 				Files.qsub(qsub+"_vc", "java", CHR_START, CHR_STOP, commands, 1, 10);
 			} else {
@@ -79,7 +79,7 @@ public class Merlin {
 		} else {
 			commands = "echo \"Starting chr# at...\"\n"
 				+(win?"date /t\ntime /t\n":"date\n")
-				+"java -cp "+(win?"C:":"")+"/home/npankrat/park.jar link.Merlin chr=#\n"
+				+"java -cp "+(win?"C:":"")+"/home/npankrat/" + common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
 				+"merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log\n"
 				+"echo \"Finished chr# at...\"\n"
 				+(win?"date /t\ntime /t\n":"date\n");
@@ -94,7 +94,7 @@ public class Merlin {
 		if (qsub != null) {
 			if (blade) {
 				commands = "cd "+qsub+"\n"+
-				"java -cp /home/bc2/pankratz/park.jar link.Merlin chr=#\n"+
+				"java -cp /home/bc2/pankratz/" + common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"+
 				"merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean "+quant[0]+" --var "+quant[1]+" --her "+quant[2]+" --tabulate --step 5 --prefix regress-chr##";
 				Files.qsub(qsub+"_regress", null, CHR_START, CHR_STOP, commands, 1, 48);
 			} else {
@@ -106,7 +106,7 @@ public class Merlin {
 		} else {
 			commands = "echo \"Starting chr# at...\"\n"
 				+(win?"date /t\ntime /t\n":"date\n")
-				+"java -cp "+(win?"C:":"")+"/home/npankrat/park.jar link.Merlin chr=#\n"
+				+"java -cp "+(win?"C:":"")+"/home/npankrat/" + common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
 				+"merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean "+quant[0]+" --var "+quant[1]+" --her "+quant[2]+" --tabulate --step 5 --information --ibd --prefix regress-chr##\n"
 				+"echo \"Finished chr# at...\"\n"
 				+(win?"date /t\ntime /t\n":"date\n");
