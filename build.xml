@@ -6,7 +6,8 @@
 	<tstamp>
 		<format property="time.stamp" pattern="yyyy-MM-dd_HH:mm:ss" />
 	</tstamp>
-
+    <echo message="${time.stamp}" />
+	
 	<target name="main" depends="compile, compress" description="Main target" />
 
 	<target name="compile" description="Compilation target">
