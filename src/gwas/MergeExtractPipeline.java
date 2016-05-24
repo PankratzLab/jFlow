@@ -443,8 +443,8 @@ public class MergeExtractPipeline {
             for (int i = 0; i < regions.length; i++) {
                 outD = getOutputDataFile(regionLabels[i]);
                 outM = getOutputMapFile(regionLabels[i]);
-                (new File(outD)).mkdirs();
-                (new File(outM)).mkdirs();
+                (new File(ext.parseDirectoryOfFile(outD))).mkdirs();
+                (new File(ext.parseDirectoryOfFile(outM))).mkdirs();
                 dd1.writeToFile(outD, outM, markers, new int[][]{regions[i]}, true, true, DosageData.PARAMETERS[outFormat], log);
             }
         } else {
