@@ -3,6 +3,8 @@ package seq.analysis;
 import filesys.LocusSet;
 import filesys.Segment;
 import htsjdk.samtools.QueryInterval;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
@@ -142,6 +144,9 @@ public class MitoSeqCN {
 			log.reportTimeInfo("Processing sample " + sample);
 			String outputMTBam = outDir + ext.addToRoot(ext.removeDirectoryInfo(bam), ".chrM");
 			SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
+
+			SAMFileWriter sAMFileWriter = new SAMFileWriterFactory().setCreateIndex(true).makeSAMOrBAMWriter(reader.getFileHeader(), true, new File(outputMTBam));
+
 			ArrayList<Segment> toSearch = new ArrayList<Segment>();
 			toSearch.add(new Segment("chrM", 0, mitoLength + 1));
 			toSearch.add(new Segment("chrX", 0, xLength + 1));
@@ -160,6 +165,7 @@ public class MitoSeqCN {
 
 				if (!samRecord.getReadUnmappedFlag()) {
 					if (samRecord.getContig().equals("chrM")) {
+						sAMFileWriter.addAlignment(samRecord);
 						numMitoReads++;
 					} else if (samRecord.getContig().equals("chrX")) {
 						numXReads++;
@@ -171,6 +177,8 @@ public class MitoSeqCN {
 				}
 			}
 			sIterator.close();
+			sAMFileWriter.close();
+
 			QueryInterval[] offTargetIntervalse = BamOps.convertSegsToQI(genomeBinsMinusBinsCaputure.getLoci(), reader.getFileHeader(), 0, true, log);
 			sIterator = reader.query(offTargetIntervalse, false);
 			while (sIterator.hasNext()) {
@@ -230,7 +238,6 @@ public class MitoSeqCN {
 			// TODO Auto-generated method stub
 
 		}
-
 	}
 
 	public static void main(String[] args) {
@@ -283,7 +290,9 @@ public class MitoSeqCN {
 			System.exit(1);
 		}
 		try {
+
 			run(fileOfBams, outDir, captureBed, referenceGenome, numthreads);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

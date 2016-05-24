@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 
 import seq.manage.BamImport.NGS_MARKER_TYPE;
 import common.Array;
+import common.Files;
 import common.Logger;
 import common.PSF;
 import common.Positions;
@@ -17,6 +18,7 @@ import common.WorkerHive;
 import common.WorkerTrain;
 import common.ext;
 import common.WorkerTrain.Producer;
+import cnv.analysis.PennCNV;
 import cnv.filesys.Centroids;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.filesys.Project;
@@ -758,6 +760,10 @@ public class CNVCaller {
 	public static CNVCallerIterator getCallerIterator(Project proj, PreparedMarkerSet markerSet, String[] samples, int[] chrsToCall, boolean[] markersToUse, Centroids centroids, int minNumMarkers, int numSampleThreads, int numChrThreads) {
 
 		PennHmm pennHmmOriginal = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), new Logger());
+		if(!Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())){
+			proj.getLog().reportTimeInfo("Did not find "+proj.CUSTOM_PFB_FILENAME.getValue()+", attempting to generate it now");
+			PennCNV.populationBAF(proj);
+		}
 		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
 		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
 		if (gcModel == null) {

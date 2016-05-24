@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
+import common.HttpUpdate.Version;
+
 /**
  * Try to parse the attributes of currently running jar;
  *
@@ -13,7 +15,7 @@ import java.util.jar.JarFile;
 public class CurrentManifest {
 	public static final String IMPLEMENTATION_VERSION = "Implementation-Version";
 	private Attributes attributes;
-	private String version;
+	private Version version;
 	private String compileTime;
 	private String buildType;
 	private String builtBy;
@@ -30,7 +32,7 @@ public class CurrentManifest {
 
 	private void populate() {
 
-		this.version = "";
+		this.version = new Version("v-1.-1.-1");
 		this.compileTime = "";
 		this.buildType = "";
 		this.builtBy = "";
@@ -40,7 +42,7 @@ public class CurrentManifest {
 				java.util.jar.Attributes.Name key = (java.util.jar.Attributes.Name) it.next();
 				String keyword = key.toString();
 				if (keyword.equals(IMPLEMENTATION_VERSION)) {
-					this.version = (String) attributes.get(key);
+					this.version = new Version((String) attributes.get(key));
 				}
 				if (keyword.equals("Compile-Time")) {
 					this.compileTime = (String) attributes.get(key);
@@ -74,7 +76,7 @@ public class CurrentManifest {
 		return buildType;
 	}
 
-	public String getVersion() {
+	public Version getVersion() {
 		return version;
 	}
 
