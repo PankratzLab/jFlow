@@ -93,7 +93,8 @@ public class ForestPanel extends AbstractPanel {
 		}
 		@SuppressWarnings("unchecked")
         ArrayList<StudyData> currentData = (ArrayList<StudyData>) forestPlot.getCurrentMetaStudy().getStudies().clone();
-		PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
+//		PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
+		ArrayList<PlotPoint> tempPoints = new ArrayList<PlotPoint>();
 		ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
 
 		float xAxisValue, yAxisValue;
@@ -111,8 +112,11 @@ public class ForestPanel extends AbstractPanel {
                 linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
                 
                 yAxisValue = (float) i + 1;
-                tempPoints[i] = new PlotPoint(" | ", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
-                tempPoints[i].setVisible(false);
+                
+                tempPoints.add(new PlotPoint(" | ", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 3, (byte) 0, (byte) 0));
+                tempPoints.get(tempPoints.size() - 1).setVisible(false);
+//                tempPoints[i] = new PlotPoint(" | ", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
+//                tempPoints[i].setVisible(false);
 		    } else {
 				xAxisValue = currStudy.getConfInterval(oddsDisplay)[0];
 				yAxisValue = (float) i + 1;
@@ -126,11 +130,12 @@ public class ForestPanel extends AbstractPanel {
 				
 				xAxisValue = currStudy.getBeta(oddsDisplay);
 				yAxisValue = (float) i + 1;
-				tempPoints[i] = new PlotPoint(currStudy.getDisplayLabel() + "|" + prepareRightMarkers(currStudy), currStudy.getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0);
-				tempPoints[i].setVisible(false);
+				tempPoints.add(new PlotPoint(currStudy.getDisplayLabel() + "|" + prepareRightMarkers(currStudy), currStudy.getShape(), xAxisValue, yAxisValue, (byte) 3, (byte) 0, (byte) 0));
+                tempPoints.get(tempPoints.size() - 1).setVisible(false);
 			}
 		}
-		points = tempPoints;
+//		points = tempPoints;
+		points = tempPoints.toArray(new PlotPoint[tempPoints.size()]);
 		lines = Array.concatAll(lines, linesData.toArray(new GenericLine[linesData.size()]));
 	}
 
@@ -153,17 +158,26 @@ public class ForestPanel extends AbstractPanel {
 
 	private void generateRectangles(Graphics g) {
 		ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies();
+		int breakCnt = 0;
+		for (StudyData sd : currentData) {
+		    if (sd instanceof StudyBreak) 
+		        breakCnt++;
+		}
 		ArrayList<GenericRectangle> rectData = new ArrayList<GenericRectangle>();
 		rectangles = new GenericRectangle[0];
 		
 		float xAxisValue, yAxisValue;
-
+		
 		float xAxisStep = (float) calcStepStep(plotXmax - plotXmin);
 		xAxisStep = Math.max(xAxisStep, 0.1f);
-		float yAxisStep = (float) calcStepStep(plotYmax - plotYmin);
+//		float yAxisStep = (float) calcStepStep(plotYmax - plotYmin);
+		float yAxisStep = (float) calcStepStep(currentData.size() - breakCnt);
 		yAxisStep = Math.max(yAxisStep, 0.1f);
 		
 		for (int i = 0; i < currentData.size(); i++) {
+            if (currentData.get(i) instanceof StudyBreak) {
+                continue;
+            }
 			if(currentData.get(i).getBeta(oddsDisplay) != 0 && currentData.get(i).getStderr(oddsDisplay) != 0){
 				xAxisValue = currentData.get(i).getBeta(oddsDisplay);
 				yAxisValue = (float) i + 1;
@@ -240,7 +254,7 @@ public class ForestPanel extends AbstractPanel {
 		
 		plotMin = plotMax = 0;
 		while (max - plotMax > DOUBLE_INACCURACY_HEDGE) {
-			plotMax += plotStep;
+			plotMax += xAxis? plotStep : 1;
 		}
 		if (min > plotMin) {
 		    tempD = min - (plotMin + 2*plotStep);
@@ -288,8 +302,8 @@ public class ForestPanel extends AbstractPanel {
 		    minBnd = zoomMin - (plotStep / 2d);
 		}
 		
-		return new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf, true)), minBnd, sf};
-
+		double[] retArr = new double[] {zoomMin, zoomMax, Double.parseDouble(ext.formDeci(plotStep, sf, true)), minBnd, sf};
+		return retArr;
 	}
 	
 	public static double calcStepStep(double range) {
@@ -424,13 +438,6 @@ public class ForestPanel extends AbstractPanel {
 		minimumObservedRawY = Float.isNaN(forcePlotYmin) ? minimumObservedRawY : forcePlotYmin;
 		maximumObservedRawY = Float.isNaN(forcePlotYmax) ? (maximumObservedRawY + (maximumObservedRawY - minimumObservedRawY) * (float) 0.01) : forcePlotYmax;
 
-		if (makeSymmetric) {
-			maximumObservedRawX = Math.max(maximumObservedRawX, maximumObservedRawY);
-			maximumObservedRawY = maximumObservedRawX;
-			minimumObservedRawX = Math.min(minimumObservedRawX, minimumObservedRawY);
-			minimumObservedRawY = minimumObservedRawX;
-		}
-
 		setNumberOfNaNSamples(0);
 		int leftsize = 0;
 		int rightsize = 0;
@@ -508,11 +515,7 @@ public class ForestPanel extends AbstractPanel {
 				canvasSectionMinimumY = /*HEIGHT_X_AXIS*/axisXHeight + (fontMetrics.getHeight() * 2);
 				canvasSectionMaximumY = getHeight() - (4 * HEAD_BUFFER);
 				
-//				System.out.println("points: " + (points.length + 1) + "y axis pixel:" + (canvasSectionMaximumY - canvasSectionMinimumY)/(points.length+1)*0.70);
-				if (!makeSymmetric || plotMinMaxStep == null) {
-					plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
-//					System.out.println(Array.toStr(plotMinMaxStep));
-				}
+				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
 				plotYmin = plotMinMaxStep[0];
 				plotYmax = plotMinMaxStep[1];
 				
@@ -571,11 +574,11 @@ public class ForestPanel extends AbstractPanel {
 										colorScheme[lines[i].getColor()]);
 			}
 		}
-
+		
 		if (isRectangleGeneratable()) {
 			generateRectangles(g);
 		}
-
+		
 		// Draw the rectangles for clusterFilters
 		int actWidth, actHeight, wDiff, hDiff;
 		for (int i = 0; rectangles != null && i < rectangles.length && isFlow(); i++) {
@@ -586,7 +589,7 @@ public class ForestPanel extends AbstractPanel {
 				rectangleHeightPixel = Math.abs(getYPixel(rectangles[i].getStartYValue()) - getYPixel(rectangles[i].getStopYValue()));
 				
 				actWidth = Math.min(rectangleWidthPixel, rectangleHeightPixel);
-				actHeight = Math.min(rectangleWidthPixel, rectangleHeightPixel);
+		        actHeight = Math.min(rectangleWidthPixel, rectangleHeightPixel);
 				
 				wDiff = rectangleWidthPixel - actWidth;
 				hDiff = rectangleHeightPixel - actHeight;
@@ -664,6 +667,12 @@ public class ForestPanel extends AbstractPanel {
 		refreshOtherComponents();
 	}
 
+    public int getYPixel(double y) {
+        double yMax = plotYmax; // # of studies
+        double yMin = plotYmin; // always 0
+        return getHeight()-(int)((y-yMin)/(yMax-yMin)*(double)(canvasSectionMaximumY-canvasSectionMinimumY)+canvasSectionMinimumY);
+    }
+    
 	private int determineRightBorder(Graphics g, double markerFontSize) {
 		Font        defaultFont = new Font("Arial", 0, (int) markerFontSize);
 		FontMetrics fmt =  g.getFontMetrics(defaultFont);
