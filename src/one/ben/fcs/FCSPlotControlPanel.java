@@ -12,9 +12,11 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.text.Format;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.TreeSet;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -65,6 +67,11 @@ public class FCSPlotControlPanel extends JPanel {
     public JProgressBar progressBar;
 
     private JAccordionPanel plotControlPanel;
+    private JAccordionPanel dataControlsPanel;
+    private JAccordionPanel gateControlPanel;
+    private JPanel panel_1;
+
+    private JButton dirSelectBtn;
     private JTextField fileDirField;
     private JTable dataFileTable;
     private JButton btnLoadFile;
@@ -83,6 +90,8 @@ public class FCSPlotControlPanel extends JPanel {
         panel_1 = new JPanel();
         panel_1.setLayout(new MigLayout("ins 0", "[grow]", "[]0[]0[]0[grow]"));
         
+        ArrayList<JAccordionPanel> bg = new ArrayList<JAccordionPanel>();
+         
         plotControlPanel = new JAccordionPanel();
         panel_1.add(plotControlPanel, "cell 0 0,grow");
         JLabel ctrlLabel = new JLabel("<html><u>Plot Controls</u></html>");
@@ -90,6 +99,7 @@ public class FCSPlotControlPanel extends JPanel {
         plotControlPanel.topPanel.add(ctrlLabel, "pad 0 10 0 0, cell 0 0, grow");
         plotControlPanel.topPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         plotControlPanel.contentPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+        plotControlPanel.addToGroup(bg);
         JPanel panel = plotControlPanel.contentPanel;
         
         panel.setLayout(new MigLayout("", "[][][grow][]", "[][][][][][][][][][][]"));
@@ -266,6 +276,7 @@ public class FCSPlotControlPanel extends JPanel {
         gateControlPanel.shrink();
         gateControlPanel.contentPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
         gateControlPanel.topPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+        gateControlPanel.addToGroup(bg);
         JLabel gCtrlLabel = new JLabel("<html><u>Gate Controls</u></html>");
         gCtrlLabel.setFont(gCtrlLabel.getFont().deriveFont(Font.PLAIN, 14));
         gateControlPanel.topPanel.add(gCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
@@ -275,6 +286,7 @@ public class FCSPlotControlPanel extends JPanel {
         dataControlsPanel.shrink();
         dataControlsPanel.contentPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
         dataControlsPanel.topPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+        dataControlsPanel.addToGroup(bg);
         JLabel dCtrlLabel = new JLabel("<html><u>Data Controls</u></html>");
         dCtrlLabel.setFont(dCtrlLabel.getFont().deriveFont(Font.PLAIN, 14));
         dataControlsPanel.topPanel.add(dCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
@@ -384,11 +396,6 @@ public class FCSPlotControlPanel extends JPanel {
             
         }
     };
-    private JAccordionPanel dataControlsPanel;
-    private JAccordionPanel gateControlPanel;
-    private JPanel panel_1;
-
-    private JButton dirSelectBtn;
     
     public void setPlotType(PLOT_TYPE typ) {
         cbType.setSelectedItem(typ);
