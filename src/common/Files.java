@@ -106,10 +106,10 @@ public class Files {
 	}
 	
 	public static void qsub(String root, int start, int stop, String commands, int memRequiredInMb, double walltimeRequestedInHours) {
-		qsub("", root, start, stop, commands, memRequiredInMb, walltimeRequestedInHours);
+		qsub("", root, start, stop, commands, memRequiredInMb, walltimeRequestedInHours, null);
 	}
 	
-	public static void qsub(String dir, String root, int start, int stop, String commands, int memRequiredInMb, double walltimeRequestedInHours) {
+	public static void qsub(String dir, String root, int start, int stop, String commands, int memRequiredInMb, double walltimeRequestedInHours, String queue) {
 		String[] lines;
 		
 		lines = qsub(dir, "chr#_"+root, start, stop, commands, null, memRequiredInMb, walltimeRequestedInHours, null);
@@ -166,6 +166,10 @@ public class Files {
 	}
 	
 	public static String[] qsub(String dir, String filenameFormat, int start, int stop, String commands, String[] patterns, int totalMemoryRequestedInMb, double walltimeRequestedInHours, String nodeToUse) {
+		return qsub(dir, filenameFormat, start, stop, commands, patterns, totalMemoryRequestedInMb, walltimeRequestedInHours, nodeToUse, null);
+	}
+	
+	public static String[] qsub(String dir, String filenameFormat, int start, int stop, String commands, String[] patterns, int totalMemoryRequestedInMb, double walltimeRequestedInHours, String nodeToUse, String queueName) {
 		PrintWriter writer;
 		String filename;
 		String[] lines;
@@ -206,7 +210,7 @@ public class Files {
 				writer.println("echo \"end "+ext.rootOf(filename)+" at: \" `date`");
 				writer.close();
 				chmod(dir+filename, false);
-				v.add("qsub "+filename);
+				v.add("qsub "+(queueName==null?"":"-q "+queueName+" ")+filename);
 			} catch (IOException ioe) {
 				throw new RuntimeException("Problem creating "+dir+filename);
 			}
@@ -335,6 +339,10 @@ public class Files {
 	}
 
 	public static void qsub(String root_batch_name, String dirToSwitchToBeforeRunning, int numBatches, String commands, String[][] iterations, int totalMemoryRequestedInMb, double walltimeRequestedInHours) {
+		qsub(root_batch_name, dirToSwitchToBeforeRunning, numBatches, commands, iterations, totalMemoryRequestedInMb, walltimeRequestedInHours, null);
+	}
+	
+	public static void qsub(String root_batch_name, String dirToSwitchToBeforeRunning, int numBatches, String commands, String[][] iterations, int totalMemoryRequestedInMb, double walltimeRequestedInHours, String queueName) {
 		PrintWriter[] writers;
 		PrintWriter writer;
 		String trav;
@@ -366,7 +374,7 @@ public class Files {
 					if (dirToSwitchToBeforeRunning != null) {
 						writers[i].println("cd "+dirToSwitchToBeforeRunning);
 					}
-					writer.println("qsub " + ext.removeDirectoryInfo(root_batch_name) + "_" + (i+1) + ".qsub");
+					writer.println("qsub " + (queueName==null?"":"-q "+queueName+" ") + ext.removeDirectoryInfo(root_batch_name) + "_" + (i+1) + ".qsub");
 				}
 				writer.close();
 				chmod(ext.parseDirectoryOfFile(root_batch_name) + "master." + ext.removeDirectoryInfo(root_batch_name));
@@ -418,7 +426,7 @@ public class Files {
 		qsub(root, commands, iterations, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs, null);
 	}
 
-	public static void qsub(String root, String commands, String[][] iterations, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs, String q) {
+	public static void qsub(String root, String commands, String[][] iterations, int totalMemoryRequestedInMb, double walltimeRequestedInHours, int numProcs, String queueName) {
 		PrintWriter writer;
 		String filename, trav;
 
@@ -460,7 +468,7 @@ public class Files {
 					trav = ext.replaceAllWith(trav, "[%"+j+"]", iterations[i][j]);
 				}
 				qsub(filename, trav, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
-				writer.println("qsub " + (q == null ? "" : "-q " + q + " ") + filename);
+				writer.println("qsub " + (queueName == null ? "" : "-q " + queueName + " ") + filename);
 			}
 			writer.close();
 			Files.chmod("master."+(root==null?"qsub":root));
@@ -3550,14 +3558,14 @@ public class Files {
 	public static void makeQsub(String filename, boolean multiple, int start, int stop, boolean separate, String[] patterns, boolean changeToCurrentWorkingDirectoryFirst) {
 		String[] lines, qsubs;
 		Vector<String> v;
+		int numThreads;
 		
 		lines = HashVec.loadFileToStringArray(filename, false, false, null, false);
 		
 		if (multiple) { // could be more elegant and incorporated with those below if desired
-			if (changeToCurrentWorkingDirectoryFirst) {
-				lines = Array.addStrToArray("cd "+ext.pwd(), lines);
-			}
-			qsubMultiple(filename+"_multiple", lines, -1, -1, 5000, 12);
+			System.out.println("Creating a ScriptExecutor");
+			numThreads = Math.min(24, Files.countLines(filename, 0));
+			qsub("scriptExecutorFor_"+ext.removeDirectoryInfo(filename), "cd "+ext.parseDirectoryOfFile(filename)+"\njcp one.ScriptExecutor file="+ext.removeDirectoryInfo(filename)+" threads="+numThreads, 63000, 12, numThreads);
 		} else if (separate) {
 			v = new Vector<String>();
 			for (int i = 0; i < lines.length; i++) {
@@ -4105,7 +4113,7 @@ public class Files {
 			} else if (replacements != null) {
 				replaceAll(filename, outfile, replacements, log);
 			} else if (filename != null) {
-				makeQsub(filename, multiple, start, stop, separate, patterns, cwd);
+				makeQsub(new File(filename).getAbsolutePath(), multiple, start, stop, separate, patterns, cwd);
 			} else if (dir != null) {
 				summarizeAllFilesInDirectory(dir);
 			} else {
