@@ -3575,7 +3575,7 @@ public class SeqMeta {
 		"  [future work would be to have p-value and maf filters to automatically geneate list]\n" +
 		
 		" \n" + 
-		"   CURRENTLY HAVING TROUBLE RUNNING SOME ANALYSES, HAVE BEEN USING gwas.SkatMeta TO RUN and gwas.SeqMeta TO SUMMARIZE\n" + 
+		"   USE gwas.SeqMetaPrimary TO RUN AND gwas.SeqMeta TO META-ANALYZE/SUMMARIZE\n" + 
 		"";
 
 		for (int i = 0; i < args.length; i++) {

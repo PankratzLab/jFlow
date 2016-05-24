@@ -12,6 +12,7 @@ public class Rscript {
 	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-", "=", " ","\\(","\\)"));
 	public static final String R_REPLACEMENT = ".";
 	public static final String[] RSCRIPT_EXECS = {
+			"/panfs/roc/itascasoft/R/3.2.2/bin/Rscript", // good for Mesabi
 			// "/soft/R/3.0.1/bin/Rscript", // MSI
 			"/soft/R/2.15.1/bin/Rscript", // Itasca nodes can only see this
 			"/share/apps/R-3.0.1/bin/Rscript", // psych
@@ -19,6 +20,7 @@ public class Rscript {
 	};
 
 	public static final String[] R_EXECS = {
+		"/panfs/roc/itascasoft/R/3.2.2/bin/R", // good for Mesabi
 			// "/soft/R/3.0.1/bin/R", // MSI
 			"/soft/R/2.15.1/bin/R", // Itasca nodes can only see this
 			"/share/apps/R-3.0.1/bin/R", // psych
