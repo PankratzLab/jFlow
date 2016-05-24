@@ -1,6 +1,8 @@
 package cnv.gui;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 
 import net.miginfocom.swing.MigLayout;
@@ -10,6 +12,7 @@ import javax.swing.JButton;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 
 public class JAccordionPanel extends JPanel {
 
@@ -52,7 +55,9 @@ public class JAccordionPanel extends JPanel {
                 }
             }
         });
+        
         expandoButton.setMargin(new Insets(0, 5, 0, 5));
+        expandoButton.setSelected(true);
         
         contentPanel = new JPanel();
         add(contentPanel, "cell 0 0,grow");
@@ -67,6 +72,11 @@ public class JAccordionPanel extends JPanel {
                 expandoButton.setText(UP);
                 JAccordionPanel.this.invalidate();
                 JAccordionPanel.this.repaint();
+                for (JAccordionPanel jp : grp) {
+                    if (jp != JAccordionPanel.this) {
+                        jp.shrink();
+                    }
+                }
             }
         });
     }
@@ -83,5 +93,11 @@ public class JAccordionPanel extends JPanel {
         });
     }
     
+    ArrayList<JAccordionPanel> grp = new ArrayList<JAccordionPanel>();
+
+    public void addToGroup(ArrayList<JAccordionPanel> bg) {
+        this.grp = bg;
+        this.grp.add(this);
+    }
     
 }

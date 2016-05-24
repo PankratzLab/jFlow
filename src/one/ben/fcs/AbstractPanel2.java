@@ -1933,15 +1933,23 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
      */
     public double getXValueFromXPixel(int mouseX) {
         if (getXAxis() == AXIS_SCALE.LIN) {
-            if (invertX) {
-                return plotXmax - ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
-            } else {
-                return plotXmin + ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
-            }
+            return getLinValueFromPixel(mouseX);
         } else if (getXAxis() == AXIS_SCALE.LOG) {
             return getLogValueFromPixel(mouseX, true);
         } else {
-            return 0; // TODO biex
+            double x = mouseX / (double) canvasSectionMaximumX;
+            Logicle l = getBiexScale(true);
+            double xVal;
+            xVal = l.inverse(x);
+            return xVal;
+        }
+    }
+    
+    private double getLinValueFromPixel(int mouseX) {
+        if (invertX) {
+            return plotXmax - ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
+        } else {
+            return plotXmin + ((double)(mouseX-canvasSectionMinimumX)/(double)(canvasSectionMaximumX-canvasSectionMinimumX)*(double)(plotXmax-plotXmin));
         }
     }
 
@@ -1981,7 +1989,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         } else if (getYAxis() == AXIS_SCALE.LOG){
             return getLogValueFromPixel(mouseY, false);
         } else {
-            return 0; // TODO biex
+            Logicle l = getBiexScale(false);
+            double y = (getHeight() - mouseY) / (double) canvasSectionMaximumY;
+            double yVal = l.inverse(y);
+            return yVal; 
         }
     }
 
