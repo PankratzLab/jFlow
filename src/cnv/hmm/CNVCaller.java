@@ -25,6 +25,8 @@ import cnv.filesys.Project;
 import cnv.filesys.Project.ARRAY;
 import cnv.filesys.Sample;
 import cnv.hmm.PennHmm.ViterbiResult;
+import cnv.manage.Resources.GENOME_RESOURCE_TYPE;
+import cnv.manage.Resources.Resource;
 import cnv.qc.GcAdjustor;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
@@ -765,6 +767,14 @@ public class CNVCaller {
 			PennCNV.populationBAF(proj);
 		}
 		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
+		if(Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))){
+			Resource gmodelBase = GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue());
+			if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && gmodelBase.isAvailable(proj.getLog())) {
+				proj.getLog().reportTimeWarning("Generating gcModel for " + proj.GENOME_BUILD_VERSION.getValue() + " at " + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.getResource(proj.getLog()));
+				proj.getLog().setLevel(3);
+				PennCNV.gcModel(proj, gmodelBase.getResource(proj.getLog()), proj.GC_MODEL_FILENAME.getValue(), 100);
+			}
+		}
 		GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false, false), false, proj.getLog());
 		if (gcModel == null) {
 			proj.getLog().reportTimeWarning("Calling cnvs without gc correction");

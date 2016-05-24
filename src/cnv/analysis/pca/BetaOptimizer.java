@@ -951,7 +951,7 @@ public class BetaOptimizer {
 
 	}
 
-	public static void optimize(Project proj, String pcFile, String outDir, String betaDir, String unRelatedFile, String pcSamps, double[] pvals, int maxPCs, double markerCallRate, int numthreads) throws IllegalStateException {
+	public static void optimize(Project proj, String pcFile, String outDir, String betaLoc, String unRelatedFile, String pcSamps, double[] pvals, int maxPCs, double markerCallRate, int numthreads) throws IllegalStateException {
 		new File(outDir).mkdirs();
 
 		proj.AB_LOOKUP_FILENAME.setValue(outDir + "AB_LookupBeta.dat");
@@ -984,8 +984,14 @@ public class BetaOptimizer {
 		if (!dbsnp.isAvailable(proj.getLog())) {
 			throw new IllegalStateException("Could not retrieve required dbSNP vcf");
 		}
-		String[] betaFiles = Files.list(betaDir, "", ".beta", true, false, true);
-		proj.getLog().reportTimeInfo("found " + betaFiles.length + " beta files in " + betaDir);
+		String[] betaFiles = null;
+		if (Files.isDirectory(betaLoc)) {
+			proj.getLog().reportTimeInfo("Searching " + betaLoc + " for files ending with " + ".beta");
+			betaFiles = Files.list(betaLoc, "", ".beta", true, false, true);
+			proj.getLog().reportTimeInfo("found " + betaFiles.length + " beta files in " + betaLoc);
+		} else {
+			betaFiles = new String[] { betaLoc };
+		}
 		analyzeAll(proj, pcFile, unRelatedFile, markerSet, abLookup, dbsnp.getResource(proj.getLog()), proj.getNonCNMarkers(), outDir, betaFiles, pvals, markerCallRate, maxPCs, numthreads, pcSamps, proj.getLog());
 	}
 
