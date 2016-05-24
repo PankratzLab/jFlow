@@ -1405,6 +1405,7 @@ public class VCFOps {
 			log.reportFileNotFound(vcf);
 			return null;
 		}
+		VCFOps.verifyIndex(vcf, log);
 		if (segmentFile != null && !Files.exists(segmentFile)) {
 			log.reportFileNotFound(segmentFile);
 			return null;

@@ -22,10 +22,11 @@ import javax.swing.JTextArea;
  *
  */
 public class HttpUpdate {
+	private static final String CHANGELOG = "https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md";
 
 	private static RemoteJarStatus getRemoteJarVersion(String remoteJar, Logger log) {
 		CHECK_STATUS status = CHECK_STATUS.OTHER_ERROR;
-		String version = "undetermined";
+		String version = "v.-1.-1.-1";
 		if (HttpDownloadUtility.canDownload(remoteJar, log)) {
 			URL url;
 			try {
@@ -67,7 +68,7 @@ public class HttpUpdate {
 			status = CHECK_STATUS.HTTP_ERROR;
 		}
 
-		return new RemoteJarStatus(version, remoteJar, status);
+		return new RemoteJarStatus(new Version(version), remoteJar, status);
 	}
 
 	public static void quickVerify(String remoteJar, Logger log) {
@@ -78,19 +79,80 @@ public class HttpUpdate {
 		OK, HTTP_ERROR, FILE_NOT_FOUND, LINE_NOT_FOUND, OTHER_ERROR;
 	}
 
-	public static class RemoteJarStatus {
+	public static class Version {
 		private String version;
+		private int major;
+		private int minor;
+		private int patch;
+
+		public Version(String version) {
+			super();
+			this.version = version;
+			int[] tmp = parse();
+			this.major = tmp[0];
+			this.minor = tmp[1];
+			this.patch = tmp[2];
+		}
+
+		public String getVersion() {
+			return version;
+		}
+
+		public int getMajor() {
+			return major;
+		}
+
+		public int getMinor() {
+			return minor;
+		}
+
+		public int getPatch() {
+			return patch;
+		}
+
+		public boolean isLessThan(Version other) {
+			if (major < other.getMajor()) {
+				return true;
+			} else if (minor < other.getMinor()) {
+				return true;
+			} else if (patch < other.getPatch()) {
+				return true;
+			}
+			return false;
+		}
+
+		public boolean isGreaterThan(Version other) {
+			if (major > other.getMajor()) {
+				return true;
+			} else if (minor > other.getMinor()) {
+				return true;
+			} else if (patch > other.getPatch()) {
+				return true;
+			}
+			return false;
+		}
+
+		private int[] parse() {
+			int[] v = Array.toIntArray(version.replaceAll("v", "").split("\\."));
+			return v;
+
+		}
+
+	}
+
+	public static class RemoteJarStatus {
+		private Version version;
 		private CHECK_STATUS status;
 		private String jarChecked;
 
-		public RemoteJarStatus(String version, String jarChecked, CHECK_STATUS status) {
+		public RemoteJarStatus(Version version, String jarChecked, CHECK_STATUS status) {
 			super();
 			this.version = version;
 			this.status = status;
 			this.jarChecked = jarChecked;
 		}
 
-		public String getVersion() {
+		public Version getVersion() {
 			return version;
 		}
 
@@ -126,7 +188,7 @@ public class HttpUpdate {
 			this.newFileDir = directoryToSave;
 			this.manifest = CurrentManifest.loadGenvisisManifest();
 			new File(newFileDir).mkdirs();
-			this.newJarFile = newFileDir + ext.addToRoot(PSF.Java.GENVISIS, remoteJarStatus.getVersion());
+			this.newJarFile = newFileDir + ext.addToRoot(PSF.Java.GENVISIS, remoteJarStatus.getVersion().getVersion());
 			this.remoteJarStatus = remoteJarStatus;
 			initComponents();
 			this.log = log;
@@ -134,15 +196,15 @@ public class HttpUpdate {
 
 		private String generateMessage() {
 			StringBuilder builder = new StringBuilder();
-			if (!manifest.getVersion().equals(remoteJarStatus.getVersion())) {
-				builder.append("The current version of Genvisis is " + manifest + "\n");
-				builder.append("Would you like to update to " + remoteJarStatus.getVersion() + "\n");
+			if (manifest.getVersion().isLessThan(remoteJarStatus.getVersion())) {
+				builder.append("The current version of Genvisis is " + manifest.getVersion().getVersion() + "\n");
+				builder.append("You can check out the latest change log at " + CHANGELOG + "\n");
+				builder.append("Would you like to update to " + remoteJarStatus.getVersion().getVersion() + "\n");
 				builder.append("The latest version will be saved to " + newJarFile);
 				upToDate = false;
 			} else {
-				builder.append("Genvisis is up to date " + remoteJarStatus.getVersion() + "\n");
+				builder.append("Genvisis is up to date " + remoteJarStatus.getVersion().getVersion() + "\n");
 				builder.append("If you think this is an error, you can just download " + remoteJarStatus.getJarChecked() + "\n");
-
 				upToDate = true;
 			}
 			return builder.toString();
