@@ -675,6 +675,7 @@ public class Project {
 		if (Files.exists(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue())) {
 			return MarkerSet.load(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue());
 		} else {
+			getLog().reportFileNotFound(MARKERSET_FILENAME.getValue());
 			return null;
 		}
 	}
