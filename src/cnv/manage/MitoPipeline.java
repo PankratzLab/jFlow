@@ -486,7 +486,7 @@ public class MitoPipeline {
 							}
 							boolean mitoResourceAvailable = prepareMitoResources(proj, requireBeta, proj.getLog());
 							if (mitoResourceAvailable) {
-								BetaOptimizer.optimize(proj, pcApply.getExtrapolatedPCsFile(), proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/", requireBeta ? Resources.MITO_SUB_DIR : ext.parseDirectoryOfFile(betaFile), betaOptFile, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, pvalOpt, numComponents, markerCallRateFilter, numThreads);
+								BetaOptimizer.optimize(proj, pcApply.getExtrapolatedPCsFile(), proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/", requireBeta ? ext.parseDirectoryOfFile(Resources.MITO_RESOURCE_TYPE.ALL_WBC_BETA.getResource().getFullLocalPath()) : betaFile, betaOptFile, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, pvalOpt, numComponents, markerCallRateFilter, numThreads);
 							} else {
 								proj.getLog().reportTimeError("Could not optimize betas due to missing files");
 							}
