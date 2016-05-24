@@ -1749,7 +1749,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			        	filename = fileChooser.getSelectedFile().getAbsolutePath();
 			    		if (isAnnotationUpdated) {
 			    			options = new String[] {"Yes/Overwrite", "No"};
-			    			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+			    			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them before importing new annotations?", "Save new annotations?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			    			if (choice == 0) {
 //			    				filenameBak = proj.getFilename(proj.getProjectDir(), false, false) + "annotations_bak_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".ser";
 			    				filenameBak = proj.PROJECT_DIRECTORY.getValue(false, false) + "annotations_bak_" + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".ser";
@@ -3844,13 +3844,23 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	public boolean saveClusterFilterAndAnnotationCollection() {
 		String[] options;
 		int choice;
-		String filename;
+		String annotationFilename;
 		String clusterFilterFilename;
+		boolean firstTimeClusters, firstTimeAnnotations;
+		String title, message;
 
 		clusterFilterFilename = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, false);
+		firstTimeClusters = Files.exists(clusterFilterFilename, jar);
 		options = new String[] {"Yes, overwrite", "No"};
 		if (isClusterFilterUpdated) {
-			choice = JOptionPane.showOptionDialog(null, "New ClusterFilters have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+			if (firstTimeClusters) {
+				title = "Save cluster filters?";
+				message = "You first cluster filters for this project have been created. Would you like to save them to a permanent file?";
+			} else {
+				title = "Update filters?";
+				message = "New cluster filters have been created. Would you like to append them to the permanent file?";
+			}			
+			choice = JOptionPane.showOptionDialog(null, message, title, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
 				clusterFilterCollection.serialize(clusterFilterFilename);
 				proj.archiveFile(clusterFilterFilename);
@@ -3865,13 +3875,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			setClusterFilterUpdated(false);
 		}
 
+		annotationFilename = proj.ANNOTATION_FILENAME.getValue(false, false);
+		firstTimeAnnotations = Files.exists(annotationFilename, jar);
 		if (isAnnotationUpdated) {
-			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Do you want to save them to the permanent file?", "Overwrite permanent file?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+			choice = JOptionPane.showOptionDialog(null, "New Annotations have been generated. Would you like to append them to the permanent annotations file?", "Update annotations?", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			if (choice == 0) {
-				filename = proj.ANNOTATION_FILENAME.getValue(false, false);
-				annotationCollection.serialize(filename);
-				proj.archiveFile(filename);
-				annotationCollection.serialize(filename);
+				annotationCollection.serialize(annotationFilename);
+				proj.archiveFile(annotationFilename);
+				annotationCollection.serialize(annotationFilename);
 			} else if (choice == -1) {
 				return false;
 			}
