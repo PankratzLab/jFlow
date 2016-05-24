@@ -183,10 +183,10 @@ public class batchBRI {
 	}
 
 	public static void main(String[] args) throws IOException {
-		String jarpath = "c:\\park.jar";
+		String jarpath = "c:\\" + common.PSF.Java.GENVISIS + "";
 		String genopath = "c:\\";
 
-		String usage = "\n"+"park.genoOnIBD requires 3 arguments:\n"+"   (1) location of the park.jar file (i.e. jar="+jarpath+" (default), no spaces please)\n"+"   (2) path to the BRI-rs###-cases.dat files (i.e. genos="+genopath+" (default))\n"+"";
+		String usage = "\n"+"park.genoOnIBD requires 3 arguments:\n"+"   (1) location of the " + common.PSF.Java.GENVISIS + " file (i.e. jar="+jarpath+" (default), no spaces please)\n"+"   (2) path to the BRI-rs###-cases.dat files (i.e. genos="+genopath+" (default))\n"+"";
 		int numArgs = args.length;
 
 		for (int i = 0; i<args.length; i++) {

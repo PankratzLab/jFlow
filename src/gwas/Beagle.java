@@ -165,7 +165,7 @@ public class Beagle {
 		        writer.println("cp "+files[i]+" "+root+"/");
             }
 	        writer.println("cd "+root+"/");
-	        writer.println("java -cp /home/npankrat/park.jar gwas.Beagle pair="+filename);
+	        writer.println("java -cp /home/npankrat/" + common.PSF.Java.GENVISIS + " gwas.Beagle pair="+filename);
 	        if (files.length == 1) {
 		        writer.println("plink --bfile ../plink --keep "+filename+" --make-bed");
 	        } else {
@@ -177,7 +177,7 @@ public class Beagle {
 	        writer.println("splitByChrAlt2 plink");
 	        writer.println("cp "+root+".list split/");
 	        writer.println("cd split");
-	        writer.println("java -cp /home/npankrat/park.jar gwas.Beagle -prepFiles list="+root+".list step="+step);
+	        writer.println("java -cp /home/npankrat/" + common.PSF.Java.GENVISIS + " gwas.Beagle -prepFiles list="+root+".list step="+step);
 	        writer.println("for chr in {1..23}");
 	        writer.println("do");
 	        writer.println("echo \"Transposing chromosome $chr...\"");

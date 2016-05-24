@@ -708,7 +708,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         step = Math.max((points.length)/100, 1);
         layers = new Hashtable<String,Vector<PlotPoint>>();
 
-        long t1 = System.currentTimeMillis();
+//        long t1 = System.currentTimeMillis();
 
         if (chartType == PLOT_TYPE.HEATMAP) {
             drawHeatMap(g);
@@ -771,7 +771,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             System.err.println("Error - invalid chart type: "+chartType);
         }*/
         
-        System.out.println("pts: " + ext.getTimeElapsed(t1));
+//        System.out.println("pts: " + ext.getTimeElapsed(t1));
         
         g.setClip((int)canvasSectionMinimumX, HEAD_BUFFER, (int)(canvasSectionMaximumX - canvasSectionMinimumX) + 1, (int)(getHeight() - axisXHeight - 24));
         
@@ -1012,7 +1012,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	    	        g.drawString(str, canvasSectionMaximumX - TICK_LENGTH - 5 - fontMetrics.stringWidth(str), getYPixel(y) + fontMetrics.getHeight() / 2);
 	    	    }
 	    	}
-    	} else if (getYAxis() == AXIS_SCALE.LOG){
+    	} else if (getYAxis() == AXIS_SCALE.LOG) {
             double y;
             str = "-10";
             int strWid = fontMetrics.stringWidth(str);
@@ -1887,7 +1887,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		} else {
 		    Logicle l = getBiexScale(true);
 		    double bi = l.scale(x);
-		    int dis = (int) (canvasSectionMaximumX * bi);
+		    int dis = (int) (canvasSectionMaximumX * bi) - TICK_LENGTH - AXIS_THICKNESS;
 		    return dis; // TODO
 		}
 	}
@@ -1921,7 +1921,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         } else {
             Logicle l = getBiexScale(false);
             double bi = l.scale(y);
-            int dis = getHeight() - (int) (canvasSectionMaximumY * bi);
+            int dis = getHeight() - (int) (canvasSectionMaximumY * bi) - TICK_LENGTH;
             return dis; // TODO biex
 		}
 	}
@@ -1937,7 +1937,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         } else if (getXAxis() == AXIS_SCALE.LOG) {
             return getLogValueFromPixel(mouseX, true);
         } else {
-            double x = mouseX / (double) canvasSectionMaximumX;
+            double x = (mouseX + TICK_LENGTH + AXIS_THICKNESS) / (double) canvasSectionMaximumX;
             Logicle l = getBiexScale(true);
             double xVal;
             xVal = l.inverse(x);
@@ -1990,7 +1990,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             return getLogValueFromPixel(mouseY, false);
         } else {
             Logicle l = getBiexScale(false);
-            double y = (getHeight() - mouseY) / (double) canvasSectionMaximumY;
+            double y = (getHeight() - mouseY - TICK_LENGTH) / (double) canvasSectionMaximumY;
             double yVal = l.inverse(y);
             return yVal; 
         }

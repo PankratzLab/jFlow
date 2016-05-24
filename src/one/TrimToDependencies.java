@@ -669,7 +669,7 @@ public class TrimToDependencies implements Serializable {
 		String source_dir = "D:/home/npankrat/jProjects/master/src/";
 		String target_dir = "D:/home/npankrat/jProjects/target/src/";
 		String[] coreClasses = new String[] {"filesys.DosageData"};
-		String freshJarFile = "D:/home/npankrat/park.jar";
+		String freshJarFile = "D:/home/npankrat/" + common.PSF.Java.GENVISIS + "";
 		TrimToDependencies trimmer;		
 
 		try {

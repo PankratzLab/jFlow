@@ -992,7 +992,7 @@ public class Metal {
 					files[i] = params.elementAt(i).trim().split("[\\s]+")[0];
 				}
 			}
-			Files.writeList(new String[] {"java -cp /home/npankrat/park.jar gwas.Metal test=ADD results="+files[0]+" method=logistic freq=plink.frq -se -metal out="+files[0]+".se.metal", "java -cp /home/npankrat/park.jar gwas.Metal test=ADD results="+files[1]+" method=logistic freq=plink.frq -se -metal out="+files[1]+".se.metal"}, ext.rootOf(filename)+"_convert.bat");
+			Files.writeList(new String[] {"java -cp /home/npankrat/" + common.PSF.Java.GENVISIS + " gwas.Metal test=ADD results="+files[0]+" method=logistic freq=plink.frq -se -metal out="+files[0]+".se.metal", "java -cp /home/npankrat/" + common.PSF.Java.GENVISIS + " gwas.Metal test=ADD results="+files[1]+" method=logistic freq=plink.frq -se -metal out="+files[1]+".se.metal"}, ext.rootOf(filename)+"_convert.bat");
 			Files.writeList(new String[] {"metal < "+ext.rootOf(filename)+"_metal_Nweighted.txt", "metal < "+ext.rootOf(filename)+"_metal_InvVar.txt"}, ext.rootOf(filename, false)+".bat");
 //			Files.writeList(new String[] {"MARKER MARKER", "ALLELE REF OTHER", "WEIGHT N", "EFFECT DIR", "PVALUE PVALUE", "", "PROCESS "+files[0], "PROCESS "+files[1], "", "OUTFILE "+files[2]+".Nweighted .out", "ANALYZE", "", "QUIT"}, ext.rootOf(filename)+"_metal_Nweighted.txt");
 //			Files.writeList(new String[] {"MARKER MARKER", "ALLELE REF OTHER", "EFFECT beta", "STDERR SE", "SCHEME STDERR", "GENOMICCONTROL OFF", "", "PROCESS "+files[0], "PROCESS "+files[1], "", "OUTFILE "+files[2]+".InvVar .out", "ANALYZE", "", "QUIT"}, ext.rootOf(filename)+"_metal_InvVar.txt");

@@ -35,7 +35,7 @@ public class Files {
 //	public static final String ROOT_DIRECTORY = "/export/home/npankrat/";  // alcatraz
 //	public static final String ROOT_DIRECTORY = "/state/partition1/npankrat/";  // indiviudal nodes
 	public static final String JAVA = "/usr/java/latest/bin/java";
-	public static final String JCP = JAVA+" -cp /home/npankrat/park.jar ";
+	public static final String JCP = JAVA+" -cp /home/npankrat/" + common.PSF.Java.GENVISIS;
 	public static final String SERIALIZED_FILE_EXTENSION = ".ser";
 
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[] iterations) {
@@ -192,7 +192,7 @@ public class Files {
 					writer.println("rep=0");
 					writer.println("total_reps=0");
 					writer.println("while [ -e \"plug\" ]; do ");
-					writer.println("    rep=$(java -cp "+ROOT_DIRECTORY+"park.jar common.Files -nextRep patterns="+Array.toStr(patterns, ",")+" lastRep=$rep wait=1000)");
+					writer.println("    rep=$(java -cp "+ROOT_DIRECTORY + common.PSF.Java.GENVISIS + " common.Files -nextRep patterns="+Array.toStr(patterns, ",")+" lastRep=$rep wait=1000)");
 					writer.println("    echo \"Beginning replicate $rep\"");
 					lines = commands.split("\n");
 					for (int j = 0; j < lines.length; j++) {
@@ -285,7 +285,7 @@ public class Files {
 		}
 		
 		Files.writeList(commands, batchRoot+".chain");
-		Files.qsub(batchRoot+".pbs", "cd "+dirToSwitchToBeforeRunning+"\njava -cp ~/park.jar one.ScriptExecutor file="+batchRoot+".chain threads="+numProcs, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
+		Files.qsub(batchRoot+".pbs", "cd "+dirToSwitchToBeforeRunning+"\njava -cp ~/" + common.PSF.Java.GENVISIS + " one.ScriptExecutor file="+batchRoot+".chain threads="+numProcs, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
 	}
 
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[][] iterations) {
@@ -815,7 +815,14 @@ public class Files {
 		}
 
 		if (filename.endsWith(".gz")) {
-			try {
+		    
+            try {
+                if (!Files.checkJVMUpToDateApprox()) {
+                    System.err.println("\nYOUR VERSION OF JAVA IS OUT OF DATE; reading gzipped files may fail.");
+                }
+            } catch (Exception e) {}
+
+            try {
 				is = new GZIPInputStream(new FileInputStream(filename));
 			} catch (IOException e) {
 				System.err.println("Error accessing '"+filename+"'");
@@ -2200,6 +2207,15 @@ public class Files {
 
 	public static boolean isDirectory(String handle) {
 		return exists(handle) && new File(handle).isDirectory();
+	}
+	
+	public static boolean checkJVMUpToDateApprox() {
+	    int currVer = 8;
+        String[] version = System.getProperty("java.version").split("\\.");
+        if (version[0].equals("1") && Integer.parseInt(version[1]) < currVer) {
+            return false;
+        }
+        return true;
 	}
 	
 	public static boolean isWindows() {

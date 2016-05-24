@@ -71,7 +71,7 @@ public class empiricalPvalues {
 		batch.println("cp batch.1 trash1");
 		batch.println("cp batch.1 trash2");
 		batch.println();
-		batch.println("java -classpath /home/npankrat/park.jar park.bat.dat2loc map"+chrome+".dat");
+		batch.println("java -classpath /home/npankrat/" + common.PSF.Java.GENVISIS + " park.bat.dat2loc map"+chrome+".dat");
 
 		for (int repNum = 1; repNum<=numReps; repNum++) {
 			// for (int repNum=NUM_REPS; repNum>=1; repNum--) {

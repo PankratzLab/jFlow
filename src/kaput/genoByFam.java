@@ -33,7 +33,7 @@ public class genoByFam {
 		for (int fam = 0; fam<fams.size(); fam++) {
 			i = fams.elementAt(fam);
 			writer.println("mkdir fam"+i);
-			writer.println("java -classpath /home/npankrat/park.jar park.zeroByFam "+i);
+			writer.println("java -classpath /home/npankrat/" + common.PSF.Java.GENVISIS + " park.zeroByFam "+i);
 			writer.println("mv solar_marker."+i+".* fam"+i);
 			writer.println("cp solar_freq.* fam"+i);
 			writer.println("cp solar_map.* fam"+i);

@@ -290,7 +290,7 @@ public class FAST {
                     for (String metalCRF : metalAnalyses) { 
                         try {
                             factorLog.report("Running METAL analysis: " + metalCRF);
-                            // Runtime.exec doesn't play well with '~', so we have to find the location of the park.jar file
+                            // Runtime.exec doesn't play well with '~', so we have to find the location of the genvisis.jar file
                             String path = FAST.class.getProtectionDomain().getCodeSource().getLocation().getPath();
                             String decodedPath = path;
                             try {
@@ -383,7 +383,7 @@ public class FAST {
 //	                    String metalName = "metal_" + factorName + "_" + popName + "_sex.crf";
 //	                    Files.write(metaSex.toString(), ext.verifyDirFormat(popDir.getAbsolutePath()) + metalName);
 //	                    runMetal.append("cd ").append(ext.verifyDirFormat(popDir.getAbsolutePath())).append("\n");
-//	                    runMetal.append("java -cp ~/park.jar Launch ").append(metalName).append("\n");
+//	                    runMetal.append("java -cp ~/" + common.PSF.Java.GENVISIS + " Launch ").append(metalName).append("\n");
 //	                }
 //	            }
 //	        }
@@ -391,7 +391,7 @@ public class FAST {
 //	            String metalName = "metal_" + factorName + ".crf";
 //	            Files.write(metaFileContents.toString(), ext.verifyDirFormat(factorDir.getAbsolutePath()) + metalName);
 //                runMetal.append("cd ").append(ext.verifyDirFormat(factorDir.getAbsolutePath())).append("\n");
-//                runMetal.append("java -cp ~/park.jar Launch ").append(metalName).append("\n");
+//                runMetal.append("java -cp ~/" + common.PSF.Java.GENVISIS + " Launch ").append(metalName).append("\n");
 //	        }
 //	    }
 //
@@ -576,7 +576,7 @@ public class FAST {
 					}
 				}
 			}
-			String metalCmd = "java -cp ~/park.jar gwas.FAST rundir=" + runDir + study + " data=" + dataFile + " gcMetal=" + gcMetal + " -process";
+			String metalCmd = "java -cp ~/" + common.PSF.Java.GENVISIS + " gwas.FAST rundir=" + runDir + study + " data=" + dataFile + " gcMetal=" + gcMetal + " -process";
 			Files.qsub(runDir + "step3_" + study + "_processAndMetaAnalyze.qsub", metalCmd, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
 //			Files.write("qsub" + (qsubQueue == null ? "" : " -q " + qsubQueue) + " step4_" + study + "_metaAnalyzeFAST.qsub", runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
 //			Files.chmod(runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
@@ -654,9 +654,9 @@ public class FAST {
 		scriptInputWriter.flush();
 		scriptInputWriter.close();
 		
-		String command = "java -cp ~/park.jar one.ScriptExecutor file=\""+runDir+"input.txt\" token=took threads="+QSUB_THREADS;
+		String command = "java -cp ~/" + common.PSF.Java.GENVISIS + " one.ScriptExecutor file=\""+runDir+"input.txt\" token=took threads="+QSUB_THREADS;
 		String procFileOut = buildFinalFilename();
-		String processCommand = "cd \"" + runDir + "\"\njava -cp ~/park.jar gwas.FAST -convert -concat -writePVals -hitWindows out=\"" + procFileOut + "\" results=\""+runDir+"output/\" trait=\""+traitFile + "\"";
+		String processCommand = "cd \"" + runDir + "\"\njava -cp ~/" + common.PSF.Java.GENVISIS + " gwas.FAST -convert -concat -writePVals -hitWindows out=\"" + procFileOut + "\" results=\""+runDir+"output/\" trait=\""+traitFile + "\"";
 		Files.qsub(runDir + RUN_SCRIPT_NAME, command, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
 		Files.qsub(runDir + PROCESS_SCRIPT_NAME, processCommand, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
 		(new File(runDir + "output/")).mkdirs();

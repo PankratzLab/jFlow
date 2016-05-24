@@ -237,8 +237,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             setLines();
         }
         
-        setForcePlotXMin(0);
-        setForcePlotYMin(0);
+//        setForcePlotXMin(0);
+//        setForcePlotYMin(0);
         
 		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged && !gatesChanged/* && !typeChanged /* don't need to regen if only type has changed, for now */;
 		if (skip) return;

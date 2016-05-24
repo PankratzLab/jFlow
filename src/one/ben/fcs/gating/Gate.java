@@ -1,14 +1,9 @@
 package one.ben.fcs.gating;
 
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import cnv.plots.GenericPath;
 import one.ben.fcs.FCSDataLoader;
 import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 
