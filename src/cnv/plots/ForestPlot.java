@@ -48,8 +48,9 @@ class MetaStudy {
 
 	String findLongestStudyName() {
 		String longest = "";
-		for(StudyData ft : getStudies()){
-			longest = longest.length() < ft.getDisplayLabel().length() ? ft.getDisplayLabel() : longest;
+		for(StudyData ft : getStudies()) {
+		    if (!(ft instanceof StudyBreak))
+		        longest = longest.length() < ft.getDisplayLabel().length() ? ft.getDisplayLabel() : longest;
 		}
 		return longest;
 	}
@@ -57,7 +58,8 @@ class MetaStudy {
 	float calcSumZScore() {
 		float sum = 0;
 		for	(StudyData ft : studies){
-			sum += ft.getZScore();
+		    if (!(ft instanceof StudyBreak))
+		        sum += ft.getZScore();
 		}
 		return sum;
 	}
@@ -65,7 +67,8 @@ class MetaStudy {
 	float findMaxZScore() {
 		float max = Float.MIN_VALUE;
 		for (StudyData data: studies) {
-			max = Math.max(max, data.getZScore());
+		    if (!(data instanceof StudyBreak)) 
+		        max = Math.max(max, data.getZScore());
 		}
 		return max;
 	}
@@ -561,7 +564,6 @@ public class ForestPlot {
 			return;
 		}
 		maxZScore = getCurrentMetaStudy().findMaxZScore();
-		maxZScore = getCurrentMetaStudy().findMaxZScore();
 		sumZScore = getCurrentMetaStudy().calcSumZScore();
 		longestStudyName = getCurrentMetaStudy().findLongestStudyName();
 		setPlotLabel(dataIndices.get(index).marker);
@@ -570,7 +572,6 @@ public class ForestPlot {
 	private void clearCurrentData() {
 		setCurrentDataIndex(-1);
 		setCurrentMetaStudy(null);
-		maxZScore = 0;
 		maxZScore = 0;
 		sumZScore = 0;
 		longestStudyName = "";

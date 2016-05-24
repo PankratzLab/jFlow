@@ -462,7 +462,7 @@ public class MergeExtractPipeline {
     
     private static void parseDataFile(MergeExtractPipeline mep, String data) {
         BufferedReader reader; 
-        String line;
+        String line, file;
         String[] temp;
         
         if (null == data || "".equals(data) || !Files.exists(data)) {
@@ -470,7 +470,8 @@ public class MergeExtractPipeline {
         }
         
         try {
-            reader = Files.getAppropriateReader(Files.exists(mep.runDir + data) ? mep.runDir + data : "./" + data);
+            file = Files.isRelativePath(data) ? (Files.exists(mep.runDir + data) ? mep.runDir + data : "./" + data) : data;
+            reader = Files.getAppropriateReader(file);
             while ((line = reader.readLine()) != null) {
                 temp = line.split("\t");
                 if (temp.length == 4) {
