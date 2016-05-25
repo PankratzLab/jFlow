@@ -111,7 +111,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 	public Launch(String launchPropertiesFile, CurrentManifest currentManifest, boolean jar) {
 		
-		super("Genvisis " + currentManifest.getVersion());
+		super("Genvisis " + currentManifest.getVersion().getVersion());
 		this.jar = jar;
 		this.launchPropertiesFile = launchPropertiesFile;
 		this.timestampOfPropertiesFile = -1;
