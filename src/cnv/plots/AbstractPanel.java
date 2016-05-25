@@ -80,6 +80,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	protected int canvasSectionMaximumY;
 	protected int axisYWidth = WIDTH_Y_AXIS;
 	protected int axisXHeight = HEIGHT_X_AXIS;
+	protected int titleHeight = 0;
 	protected double plotXmax, plotYmax;
 	protected double plotXmin, plotYmin;
 	protected volatile BufferedImage image;
@@ -552,6 +553,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		        System.out.println("Drawing base image.");
 		    }
 		    
+		    titleHeight = calcTitleHeight(g, base, fontMetrics);
+		    
 			//g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			g.setFont(new Font("Arial", 0, axisFontSize));
@@ -565,7 +568,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			plotMinMaxStep = null;
 			canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
 			canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
-			canvasSectionMinimumY = 0;
+			canvasSectionMinimumY = titleHeight;
 			canvasSectionMaximumY = axisXHeight;//HEIGHT_X_AXIS;
 			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
 			if (plotMinMaxStep[1] > maximumObservedRawX) {
@@ -590,7 +593,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			canvasSectionMinimumX = 0;
 			canvasSectionMaximumX = axisYWidth;//WIDTH_Y_AXIS;
 			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
-			canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
+			canvasSectionMaximumY = getHeight()-(HEAD_BUFFER + titleHeight);
 			if (!makeSymmetric || plotMinMaxStep == null) {
 				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
 	            if (plotMinMaxStep[1] > maximumObservedRawY) {
@@ -643,7 +646,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
 		canvasSectionMaximumX = getWidth()-WIDTH_BUFFER;
 		canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
-		canvasSectionMaximumY = getHeight()-HEAD_BUFFER;
+		canvasSectionMaximumY = getHeight()-(HEAD_BUFFER + titleHeight);
         
         g.setClip((int)canvasSectionMinimumX, HEAD_BUFFER, (int)(canvasSectionMaximumX - canvasSectionMinimumX) + 1, (int)(getHeight() - axisXHeight - 24));
         
@@ -746,8 +749,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		if (chartType == HEAT_MAP_TYPE) {
 			drawHeatMap(g);
 		} else if (chartType == SCATTER_PLOT_TYPE) {
+			boolean headless = GraphicsEnvironment.isHeadless();
 			for (int i = 0; i<points.length && flow; i++) {
-				if (base && i%step==0){
+				if (!headless && base && i%step==0){
 					if (new Date().getTime() - time > 1000) {
 						if (prog == null) {
 							prog = new ProgressBarDialog("Generating image...", 0, points.length, getWidth(), getHeight(), 5000);
@@ -829,32 +833,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 		}
 		
-		if (base && displayTitle && title != null && !title.equals("")) {
-		    int titleX, titleY;
-		    int PAD = 5;
-		    int fontHeight = (fontMetrics == null ? 25 : fontMetrics.getHeight());
-		    int titleWidth = (fontMetrics == null ? title.length() * PAD : fontMetrics.stringWidth(title));
-		    
-	        switch (titleLocation) {
-	            default: // DEFAULT TO TOP
-	            case SwingConstants.NORTH:
-	                titleX = (getWidth()-axisYWidth) / 2 + axisYWidth - titleWidth / 2;
-	                titleY = PAD + fontHeight;
-	                break;
-	            case SwingConstants.NORTH_EAST:
-	                titleX = getWidth() - 2 * PAD - titleWidth;
-	                titleY = PAD + fontHeight;
-	                break;
-	            case SwingConstants.NORTH_WEST:
-	                titleX = axisYWidth + 2 * PAD;
-	                titleY = PAD + fontHeight;
-	                break;
-	        }
-	        Color currColor = g.getColor();
-	        g.setColor(Color.black);
-            g.drawString(title, titleX, titleY);
-            g.setColor(currColor);
-		}
+		drawTitle(g, base, fontMetrics);
 		
 		setImageStatus(IMAGE_COMPLETE);
 
@@ -930,7 +909,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     		gfx.setColor(Color.BLACK);
     		gfx.drawString(yAxisLabel, 0, yLabel.getHeight()-6);
     		
-    		g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()-axisXHeight/*HEIGHT_X_AXIS*/)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
+    		g.drawImage(Grafik.rotateImage(yLabel, true), 10, (getHeight()+titleHeight-axisXHeight/*HEIGHT_X_AXIS*/)/2-fontMetrics.stringWidth(yAxisLabel)/2, this);
         }
     }
 
@@ -948,6 +927,39 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     	}
     	Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
     	g.drawString(xAxisLabel, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(xAxisLabel)/2+axisYWidth/*WIDTH_Y_AXIS*/, getHeight()-20);
+    }
+    
+    public void drawTitle(Graphics g, boolean base, FontMetrics fontMetrics) {
+    	if (base && displayTitle && title != null && !title.equals("")) {
+		    int titleX, titleY;
+		    int PAD = 5;
+		    int fontHeight = (fontMetrics == null ? 25 : fontMetrics.getHeight());
+		    int titleWidth = (fontMetrics == null ? title.length() * PAD : fontMetrics.stringWidth(title));
+		    
+	        switch (titleLocation) {
+	            default: // DEFAULT TO TOP
+	            case SwingConstants.NORTH:
+	                titleX = (getWidth()-axisYWidth) / 2 + axisYWidth - titleWidth / 2;
+	                titleY = PAD + fontHeight;
+	                break;
+	            case SwingConstants.NORTH_EAST:
+	                titleX = getWidth() - 2 * PAD - titleWidth;
+	                titleY = PAD + fontHeight;
+	                break;
+	            case SwingConstants.NORTH_WEST:
+	                titleX = axisYWidth + 2 * PAD;
+	                titleY = PAD + fontHeight;
+	                break;
+	        }
+	        Color currColor = g.getColor();
+	        g.setColor(Color.black);
+            g.drawString(title, titleX, titleY);
+            g.setColor(currColor);
+		}
+    }
+    
+    public int calcTitleHeight(Graphics g, boolean base, FontMetrics fontMetrics) {
+    	return 0;
     }
 	
 	/**
@@ -1080,7 +1092,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
 			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
 			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
-			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
+			canvasSectionMaximumY = getHeight() - (HEAD_BUFFER + titleHeight);
 			pos = (int)Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
 			if (!pos.equals(prevPos)) {
 				repaint();

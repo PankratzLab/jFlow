@@ -217,7 +217,7 @@ public class ForestPanel extends AbstractPanel {
 	@Override
 	public void assignAxisLabels() {
 		displayXaxis = displayYaxis = true;
-		xAxisLabel = forestPlot.getPlotLabel();
+		xAxisLabel = (oddsDisplay ? "Odds Ratio" : "Relative Risk") + " (" + forestPlot.getPlotLabel() + ")";
 		yAxisLabel = " ";
 	}
 	
@@ -518,6 +518,8 @@ public class ForestPanel extends AbstractPanel {
 				plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
 				plotYmin = plotMinMaxStep[0];
 				plotYmax = plotMinMaxStep[1];
+				
+				g.drawString((oddsDisplay ? "OR" : "RR") + " (UCI, LCI)", getWidth() - rightsize + 15, 3 * HEAD_BUFFER + 14);
 				
 				sigFigs = (int) plotMinMaxStep[4];
 				double step = 1;//Math.max(1, Math.round(plotMinMaxStep[2] * 2) / 2.0f);

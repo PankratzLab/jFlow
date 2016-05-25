@@ -10,6 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.Set;
 
 import cnv.manage.ExportCNVsToPedFormat;
+import cnv.plots.QQPlot;
+import cnv.plots.ForestPlot;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -17,6 +19,10 @@ import common.ext;
 
 public class EmimPipeline {
     
+
+    private static final String[] QQ_PLOT_EFFECTS = {"C", "CM-C", "M"};
+    private static final String FOREST_PLOT_DISPLAY_ORDER_NAME = "forestPlotDisplayOrder.txt";
+	
     static class PopFileData {
         String[] pops;
         LinkedHashMap<String, Integer> idsIndexMap;
@@ -86,67 +92,36 @@ public class EmimPipeline {
     
     
     private static boolean generateFolderStructureAndKeepsFiles(String runDir, String[] cnvFiles, String[] plinkRoots, PopFileData popFile, PopFileData subPopFile, Logger log) {
-        if (cnvFiles != null) {
-            for (String cnvFile : cnvFiles) {
-                String cnvRoot = ext.rootOf(cnvFile, true);
-                String cnvDir = runDir + cnvRoot + "/";
-                if (Files.exists(cnvDir)) log.report(cnvDir + " already exists, will not be created");
-                else if (! new File(cnvDir).mkdir()) {
-                	log.reportError("Could not create " + cnvDir);
-                	return false;
-                }
-                
-                for (int p = 0; p < popFile.pops.length; p++) {
-                    String popDir = cnvDir + ext.replaceWithLinuxSafeCharacters(popFile.pops[p], true) + "/";
-                    if (Files.exists(popDir)) log.report(popDir + " already exists, will not be created");
-                    else if (! new File(popDir).mkdir()) {
-                    	log.reportError("Could not create " + popDir);
-                    	return false;
-                    }
-                    generateKeepsFile(popDir + "keeps.txt", popFile, p, null, 0);
-                    
-                    for (int sP = 0; sP < subPopFile.pops.length; sP++) {
-                        String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
-                        if (Files.exists(subPopDir)) log.report(subPopDir + " already exists, will not be created");
-                        else if (! new File(subPopDir).mkdir()) {
-                        	log.reportError("Could not create " + subPopDir);
-                        	return false;
-                        }
-                        generateKeepsFile(subPopDir + "keeps.txt", popFile, p, subPopFile, sP);
-                    }
-                }
-            }
-        }
-        if (plinkRoots != null) {
-            for (String plinkRoot : plinkRoots) {
-                String plinkDir = runDir + plinkRoot + "/";
-                if (Files.exists(plinkDir)) log.report(plinkDir + " already exists, will not be created");
-                else if (! new File(plinkDir).mkdir()) {
-                	log.reportError("Could not create " + plinkDir);
-                	return false;
-                }
-                
-                for (int p = 0; p < popFile.pops.length; p++) {
-                    String popDir = plinkDir + ext.replaceWithLinuxSafeCharacters(popFile.pops[p], true) + "/";
-                    if (Files.exists(popDir)) log.report(popDir + " already exists, will not be created");
-                    else if (! new File(popDir).mkdir()) {
-                    	log.reportError("Could not create " + popDir);
-                    	return false;
-                    }
-                    generateKeepsFile(popDir + "keeps.txt", popFile, p, null, 0);
-                    
-                    for (int sP = 0; sP < subPopFile.pops.length; sP++) {
-                        String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
-                        if (Files.exists(subPopDir)) log.report(subPopDir + " already exists, will not be created");
-                        else if (! new File(subPopDir).mkdir()) {
-                        	log.reportError("Could not create " + subPopDir);
-                        	return false;
-                        }
-                        generateKeepsFile(subPopDir + "keeps.txt", popFile, p, subPopFile, sP);
-                    }
-                }
-            }
-        }
+    	String[] fileroots = combineRoots(cnvFiles, plinkRoots);
+    	for (String fileroot : fileroots) {
+    		String dir = runDir + fileroot + "/";
+    		if (Files.exists(dir)) log.report(dir + " already exists, will not be created");
+    		else if (! new File(dir).mkdir()) {
+    			log.reportError("Could not create " + dir);
+    			return false;
+    		}
+
+    		for (int p = 0; p < popFile.pops.length; p++) {
+    			String popDir = dir + ext.replaceWithLinuxSafeCharacters(popFile.pops[p], true) + "/";
+    			if (Files.exists(popDir)) log.report(popDir + " already exists, will not be created");
+    			else if (! new File(popDir).mkdir()) {
+    				log.reportError("Could not create " + popDir);
+    				return false;
+    			}
+    			generateKeepsFile(popDir + "keeps.txt", popFile, p, null, 0);
+
+    			for (int sP = 0; sP < subPopFile.pops.length; sP++) {
+    				String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
+    				if (Files.exists(subPopDir)) log.report(subPopDir + " already exists, will not be created");
+    				else if (! new File(subPopDir).mkdir()) {
+    					log.reportError("Could not create " + subPopDir);
+    					return false;
+    				}
+    				generateKeepsFile(subPopDir + "keeps.txt", popFile, p, subPopFile, sP);
+    			}
+    		}
+    	}
+
         return true;
     }
     
@@ -166,11 +141,19 @@ public class EmimPipeline {
             log.reportError("Cannot have cnv roots and plink roots that have the same name");
             return;
         }
+
+        if (Files.exists(runDir + FOREST_PLOT_DISPLAY_ORDER_NAME)){
+        	log.report(FOREST_PLOT_DISPLAY_ORDER_NAME + " already exists, will not be created");
+        } else {
+        	log.reportTimeInfo("Generating naive Forest Plot Display Order file...");
+        	ForestPlot.generateNaiveOrderFile(subPopData.pops, runDir + FOREST_PLOT_DISPLAY_ORDER_NAME);
+        }
         log.reportTimeInfo("Generating folder structure in run directory...");
         if (!generateFolderStructureAndKeepsFiles(runDir, cnvFiles, plinkRoots, popData, subPopData, log)) {
         	log.reportError("Failed to generate folder structure");
         	return;
         }
+        
         if (cnvFiles != null) {
             for (String cnvFile : cnvFiles) {
                 String cnvRoot = ext.rootOf(cnvFile, true);
@@ -301,6 +284,19 @@ public class EmimPipeline {
         return true;
     }
     
+    private static String[] combineRoots(String[] cnvFiles, String[] plinkRoots) {
+    	int length = (cnvFiles != null ? cnvFiles.length : 0) + (plinkRoots != null ? plinkRoots.length : 0);
+    	String[] fileroots = new String[length];
+    	int i = 0;
+    	if (cnvFiles != null) {
+    		for (String cnvFile : cnvFiles) fileroots[i++] = ext.rootOf(cnvFile);
+    	}
+    	if (plinkRoots != null) {
+    		for (String plinkRoot: plinkRoots) fileroots[i++] = plinkRoot;
+    	}
+    	return fileroots;
+    }
+    
     private static String getResultsFilename(String baseDir, String fileroot, Emim.EMIM_MODEL model) {
     	return getResultsFilename(baseDir, fileroot, null, null, model);
     }
@@ -358,46 +354,80 @@ public class EmimPipeline {
             log.reportException(e);
             return;
         }
+        
+        String[] fileroots = combineRoots(cnvFiles, plinkRoots);
+        
+        boolean firstModel = true;
         for (Emim.EMIM_MODEL model : models) {
         	String finalOut = finalDir + "final_results_pVals_" + model.toString() + ".xln";
+        	
+        	String[] qqHeaders = new String[QQ_PLOT_EFFECTS.length + (firstModel ? 1 : 0)];
+        	for (int i = 0; i < QQ_PLOT_EFFECTS.length; i++) {
+        		qqHeaders[i] = "pVal_" + QQ_PLOT_EFFECTS[i] + "_df" + model.getDegreesOfFreedom();
+        	}
+        	if (firstModel) qqHeaders[qqHeaders.length - 1] = "tdt_P";
+        	
         	PrintWriter writer = Files.getAppropriateWriter(finalOut);
 	        boolean first = true;
-	        if (cnvFiles != null) {
-	            for (String cnvFile : cnvFiles) {
-	                String cnvRoot = ext.rootOf(cnvFile, true);
-	
-	                writeResults(getResultsFilename(finalDir, cnvRoot, model), writer, cnvRoot, "#N/A", "#N/A", thresh, first);
-	                first = false;
-	                
-	                for (int p = 0; p < popData.pops.length; p++) {
-	                    writeResults(getResultsFilename(finalDir, cnvRoot, popData.pops[p], model), writer, cnvRoot, popData.pops[p], "#N/A", thresh, first);
-	
-	                    for (int sP = 0; sP < subPopData.pops.length; sP++) {
-	                    	writeResults(getResultsFilename(finalDir, cnvRoot, popData.pops[p], subPopData.pops[sP], model), writer, cnvRoot, popData.pops[p], subPopData.pops[sP], thresh, first);
-	                    }
-	                }
-	            }
-	        }
-	        if (plinkRoots != null) {
-	            for (String plinkRoot : plinkRoots) {
-	                writeResults(getResultsFilename(finalDir, plinkRoot, model), writer, plinkRoot, "#N/A", "#N/A", thresh, first);
-	                first = false;
-	                
-	                for (int p = 0; p < popData.pops.length; p++) {
-	                    writeResults(getResultsFilename(finalDir, plinkRoot, popData.pops[p], model), writer, plinkRoot, popData.pops[p], "#N/A", thresh, first);
-	                    
-	                    for (int sP = 0; sP < subPopData.pops.length; sP++) {
-	                        writeResults(getResultsFilename(finalDir, plinkRoot, popData.pops[p], subPopData.pops[sP], model), writer, plinkRoot, popData.pops[p], subPopData.pops[sP], thresh, first);
-	                    }
-	                }
-	            }
+	        for (String fileroot : fileroots) {
+
+	        	writeResults(getResultsFilename(finalDir, fileroot, model), writer, fileroot, "#N/A", "#N/A", thresh, first, log);
+	        	first = false;
+
+	        	String[] populationResultFiles = new String[popData.pops.length];
+
+	        	for (int p = 0; p < popData.pops.length; p++) {
+	        		populationResultFiles[p] = getResultsFilename(finalDir, fileroot, popData.pops[p], model);
+	        		writeResults(populationResultFiles[p], writer, fileroot, popData.pops[p], "#N/A", thresh, first, log);
+
+	        		String[] subPopResultFiles = new String[subPopData.pops.length];
+
+	        		for (int sP = 0; sP < subPopData.pops.length; sP++) {
+	        			subPopResultFiles[sP] = getResultsFilename(finalDir, fileroot, popData.pops[p], subPopData.pops[sP], model);
+	        			writeResults(subPopResultFiles[sP], writer, fileroot, popData.pops[p], subPopData.pops[sP], thresh, first, log);
+	        		}
+
+	        		generateQQPlots(subPopResultFiles,
+	        						qqHeaders, 
+	        						getResultsDirectory(finalDir, fileroot, popData.pops[p]), 
+	        						fileroot + "_subpopulations_of_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true),
+	        						model,
+	        						log);
+	        	}
+	        	
+	        	generateQQPlots(populationResultFiles, qqHeaders, getResultsDirectory(finalDir, fileroot), fileroot, model, log);
 	        }
 	        writer.flush();
 	        writer.close();
+	        firstModel = false;
         }
     }
     
-    private static void forestPlotParameters(String dir, String[] cnvRoots, String[] plinkRoots, String popFile, String subPopFile, String forestMarkers, Set<Emim.EMIM_MODEL> models, Logger log1) {
+    private static void generateQQPlots(String[] resultFiles, String[] headers, String baseDir, String baseName, Emim.EMIM_MODEL model, Logger log) {
+    	String[][] resultFilesWithCols = new String[headers.length][resultFiles.length];
+    	for (int i = 0; i < resultFiles.length; i++) {
+        	if (!Files.exists(resultFiles[i])) {
+            	log.reportError(resultFiles[i] + " does not exist, QQ Plot cannot be generated");
+            	return;
+            }
+    		int[] resultFileIndices = ext.indexFactors(headers, Files.getHeaderOfFile(resultFiles[i], log), true, log, false, false);
+    		for (int j = 0; j < headers.length; j++) {
+    			if (resultFileIndices[j] == -1) {
+    				log.reportError("Could not find " + headers[j] + " in " + resultFiles[i]);
+    				return;
+    			}
+    			resultFilesWithCols[j][i] = resultFiles[i] + "," + resultFileIndices[j];
+    		}
+    	}
+    	for (int i = 0; i < headers.length; i++) {
+    		String label = baseName + "_" + (headers[i].equals("tdt_P") ? "" : model.toString() + "_") + headers[i];
+    		QQPlot qqPlot = QQPlot.loadPvals(resultFilesWithCols[i], label, false, true, false, -1, false, Float.MAX_VALUE, log);
+    		qqPlot.screenCap(baseDir + label + "_QQPlot.png");
+    	}
+    	
+    }
+    
+    private static void generateForestPlots(String dir, String[] cnvFiles, String[] plinkRoots, String popFile, String subPopFile, String forestMarkers, Set<Emim.EMIM_MODEL> models, Logger log1) {
         Logger log = log1 == null ? new Logger() : log1;
         String finalDir = ext.verifyDirFormat(dir);
         
@@ -411,60 +441,51 @@ public class EmimPipeline {
             return;
         }
         
-        if (cnvRoots != null) {
-            for (String cnvFile : cnvRoots) {
-            	String cnvRoot = ext.rootOf(cnvFile, true);
-
-            	for (int p = 0; p < popData.pops.length; p++) {
-            		
-            		for (Emim.EMIM_MODEL model : models) {
-            			String[][] resultFiles = new String[subPopData.pops.length + 1][];
-                		resultFiles[subPopData.pops.length] = new String[] {".", getResultsFilename(finalDir, cnvRoot, popData.pops[p], model)};
-                		for (int sP = 0; sP < subPopData.pops.length; sP++) {
-                			resultFiles[sP] = new String[] {subPopData.pops[sP], getResultsFilename(finalDir, cnvRoot, popData.pops[p], subPopData.pops[sP], model)};
-                		}
-            			ResultsPackager.getForestPlotParameterFile(resultFiles, 
-            					forestMarkers, 
-            					"MarkerName", 
-            					new String[] {"tdt", "emim_C", "emim_M"}, 
-            					new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
-            								    {"C_lnR1", "C_se_lnR1", "pVal_C_df" + model.getDegreesOfFreedom()},
-            								    {"M_lnS1", "M_se_lnS1", "pVal_M_df" + model.getDegreesOfFreedom()}},
-            					getResultsDirectory(finalDir, cnvRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot_" + model.toString() + ".xln",
-            					log);
-            		}
-                }
-            }
+        String forestPlotDisplayOrderFile = dir + FOREST_PLOT_DISPLAY_ORDER_NAME;
+        if (!Files.exists(forestPlotDisplayOrderFile)){
+        	ForestPlot.generateNaiveOrderFile(subPopData.pops, forestPlotDisplayOrderFile);
         }
-        if (plinkRoots != null) {
-        	for (String plinkRoot : plinkRoots) {
+        
+        String[] fileRoots = combineRoots(cnvFiles, plinkRoots);
+    
+        for (String fileRoot : fileRoots) {
 
-            	for (int p = 0; p < popData.pops.length; p++) {
-            		
-            		for (Emim.EMIM_MODEL model : models) {
-            			String[][] resultFiles = new String[subPopData.pops.length + 1][];
-                		resultFiles[subPopData.pops.length] = new String[] {".", getResultsFilename(finalDir, plinkRoot, popData.pops[p], model)};
-                		for (int sP = 0; sP < subPopData.pops.length; sP++) {
-                			resultFiles[sP] = new String[] {subPopData.pops[sP], getResultsFilename(finalDir, plinkRoot, popData.pops[p], subPopData.pops[sP], model)};
-                		}
-            			ResultsPackager.getForestPlotParameterFile(resultFiles, 
-            					forestMarkers, 
-            					"MarkerName", 
-            					new String[] {"tdt", "emim_C", "emim_M"}, 
-            					new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
-            									{"C_lnR1", "C_se_lnR1", "pVal_C_df" + model.getDegreesOfFreedom()},
-            									{"M_lnS1", "M_se_lnS1", "pVal_M_df" + model.getDegreesOfFreedom()}},
-            					getResultsDirectory(finalDir, plinkRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot_" + model.toString() + ".xln",
-            					log);
+        	for (int p = 0; p < popData.pops.length; p++) {
+        		
+        		for (Emim.EMIM_MODEL model : models) {
+        			String[][] resultFiles = new String[subPopData.pops.length + 1][];
+            		resultFiles[subPopData.pops.length] = new String[] {".", getResultsFilename(finalDir, fileRoot, popData.pops[p], model)};
+            		for (int sP = 0; sP < subPopData.pops.length; sP++) {
+            			resultFiles[sP] = new String[] {subPopData.pops[sP], getResultsFilename(finalDir, fileRoot, popData.pops[p], subPopData.pops[sP], model)};
             		}
-                }
+            		String forestParameterFile = getResultsDirectory(finalDir, fileRoot, popData.pops[p]) + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true) + "_forestplot_" + model.toString() + ".xln";
+        			ResultsPackager.getForestPlotParameterFile(resultFiles, 
+        					forestMarkers, 
+        					"MarkerName", 
+        					new String[] {"tdt", "emim_C", "emim_M", "emim_CM-C"}, 
+        					new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
+        								    {"C_lnR1", "C_se_lnR1", "pVal_C_df" + model.getDegreesOfFreedom()},
+        								    {"M_lnS1", "M_se_lnS1", "pVal_M_df" + model.getDegreesOfFreedom()},
+        								    {"M_lnS1", "M_se_lnS1", "pVal_CM-C_df" + model.getDegreesOfFreedom()}},
+        					forestParameterFile,
+        					log);
+        			ForestPlot fp = new ForestPlot(ext.rootOf(forestParameterFile, false) + ".input", log);
+        			fp.loadMarkerFile();
+        			fp.waitForLoad();
+        			fp.loadOrderFile(forestPlotDisplayOrderFile, true);
+        			fp.screenCapAll("ForestPlots/", true, false);
+        		}
             }
         }
         
     }
     
-    private static void writeResults(String file, PrintWriter writer, String root1, String root2, String root3, double thresh, boolean includeHeader) throws IOException {
-        BufferedReader reader = Files.getAppropriateReader(file);
+    private static void writeResults(String file, PrintWriter writer, String root1, String root2, String root3, double thresh, boolean includeHeader, Logger log) throws IOException {
+        if (!Files.exists(file)) {
+        	log.reportError(file + " does not exist and will not be included in the summarized results");
+        	return;
+        }
+    	BufferedReader reader = Files.getAppropriateReader(file);
         
         String line = includeHeader ? null : reader.readLine();
         int pValueColumn = includeHeader ? -1 : ext.indexOfStr("tdt_P", line.split("\t"));
@@ -598,7 +619,7 @@ public class EmimPipeline {
             }
             if (process || forest) {
                 if (process) process(runDir, cnvFiles, plinkRoots, popFile, subPopFile, pThreshold, models, log);
-                if (forest) forestPlotParameters(runDir, cnvFiles, plinkRoots, popFile, subPopFile, forestMarkers, models, log);
+                if (forest) generateForestPlots(runDir, cnvFiles, plinkRoots, popFile, subPopFile, forestMarkers, models, log);
             } else {
                 setup(runDir, cnvFiles, plinkRoots, pedFile, popFile, subPopFile, pThreshold, models, qsub, log);
             }
