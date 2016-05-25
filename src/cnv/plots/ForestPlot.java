@@ -273,6 +273,7 @@ class ForestInput {
 	}
 	
 	final String marker;
+	final String displayMarker;
 	final String file;
 	final String comment;
 	int[] metaIndicies;
@@ -280,8 +281,9 @@ class ForestInput {
 	ArrayList<String> studyList;
 	MetaStudy ms;
 	
-	public ForestInput(String marker, String file, String comment) {
+	public ForestInput(String marker, String displayMarker, String file, String comment) {
 		this.marker = marker;
+		this.displayMarker = displayMarker;
 		this.file = file;
 		this.comment = comment;
 		this.studyToColIndexMap = new HashMap<String, Integer>();
@@ -377,9 +379,9 @@ public class ForestPlot {
 				                }
 				            }
 				        }
-    					markerNames.add(new ForestInput(line[0], file, line.length > 2 ? line[2] : ""));
+    					markerNames.add(new ForestInput(line[0], line.length > 3 ? line[3] : line[0], file, line.length > 2 ? line[2] : ""));
     				} else if (line.length == 1) {
-    					markerNames.add(new ForestInput(line[0], "", ""));
+    					markerNames.add(new ForestInput(line[0], line[0], "", ""));
     				}
     			}
     		} catch (IOException e) {
@@ -566,7 +568,7 @@ public class ForestPlot {
 		maxZScore = getCurrentMetaStudy().findMaxZScore();
 		sumZScore = getCurrentMetaStudy().calcSumZScore();
 		longestStudyName = getCurrentMetaStudy().findLongestStudyName();
-		setPlotLabel(dataIndices.get(index).marker);
+		setPlotLabel(dataIndices.get(index).displayMarker);
 	}
 	
 	private void clearCurrentData() {
@@ -685,37 +687,42 @@ public class ForestPlot {
         ArrayList<ForestInput> data = getDataIndices();
         for (int i = 0; i < data.size(); i++) {
             setCurrentData(i);
-            getForestPanel().setSize(new Dimension(1000,720));
-            getForestPanel().createImage();
-            getForestPanel().validate();
-            String marker = "", filename = "", dataFile = "";
-            int count = 1;
-            String root = (proj == null ? ext.parseDirectoryOfFile(getMarkerFileName()) : proj.PROJECT_DIRECTORY.getValue());
+            screenCap(subdir, versionIfExists);
+        }
+            
+	}
+	
+	public void screenCap(String subdir, boolean versionIfExists) {
+		getForestPanel().setSize(new Dimension(1000,720));
+        getForestPanel().createImage();
+        getForestPanel().validate();
+        String marker, filename, dataFile;
+        int count = 1;
+        String root = (proj == null ? ext.parseDirectoryOfFile(getMarkerFileName()) : proj.PROJECT_DIRECTORY.getValue());
+        root = ext.verifyDirFormat(root);
+        if (subdir != null && !subdir.equals("")) {
+            root += subdir;
             root = ext.verifyDirFormat(root);
-            if (subdir != null && !subdir.equals("")) {
-                root += subdir;
-                root = ext.verifyDirFormat(root);
-            }
-            marker = getDataIndices().get(getCurrentDataIndex()).marker;
-            dataFile = ext.rootOf(getDataIndices().get(getCurrentDataIndex()).file, true);
-            filename = marker + "_" + dataFile;
-            filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-            if (new File(root + filename + ".png").exists()) {
-                if (versionIfExists) {
-                    while (new File(root+filename+".png").exists()) {
-                        filename = marker + "_" + dataFile + "_v" + count;
-                        filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-                        count++;
-                    }
+        }
+        marker = getDataIndices().get(getCurrentDataIndex()).displayMarker;
+        dataFile = ext.rootOf(getDataIndices().get(getCurrentDataIndex()).file, true);
+        filename = marker + "_" + dataFile;
+        filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+        if (new File(root + filename + ".png").exists()) {
+            if (versionIfExists) {
+                while (new File(root+filename+".png").exists()) {
+                    filename = marker + "_" + dataFile + "_v" + count;
+                    filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+                    count++;
                 }
             }
-            if (getLog() != null) {
-            	getLog().report("Writing screenshot to file " + root + filename + ".png");
-            } else {
-                System.out.println("Writing screenshot to file " + root + filename + ".png");
-            }
-            getForestPanel().screenCapture(root+filename+".png");
         }
+        if (getLog() != null) {
+        	getLog().report("Writing screenshot to file " + root + filename + ".png");
+        } else {
+            System.out.println("Writing screenshot to file " + root + filename + ".png");
+        }
+        getForestPanel().screenCapture(root+filename+".png");
 	}
 	
 	public void updateGUI() {
