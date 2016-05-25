@@ -100,6 +100,7 @@ public class RainbowTestGUI extends JFrame {
     
     JFrame meanFrame = new JFrame("Genvisis - FCS Overall Mean/SD");
     MeanPanel meanPanel = new MeanPanel();
+    MeanCtrlPanel meanCtrlPanel = new MeanCtrlPanel();
     GatingStrategy gateStrat;
     String baseDir;
     String[] baseFCSFiles;
@@ -303,7 +304,8 @@ public class RainbowTestGUI extends JFrame {
                                 if (paramMeans.containsKey(colNm)) {
                                     if (value > (paramMeans.get(colNm) + paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - paramSDs.get(colNm))) {
                                         col = SD1_COLOR;
-                                    } else if (value > (paramMeans.get(colNm) + 2*paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - 2*paramSDs.get(colNm))) {
+                                    }  
+                                    if (value > (paramMeans.get(colNm) + 2*paramSDs.get(colNm)) || value < (paramMeans.get(colNm) - 2*paramSDs.get(colNm))) {
                                         col = SD2_COLOR;
                                     }
                                 }
@@ -573,6 +575,15 @@ public class RainbowTestGUI extends JFrame {
     {
         meanPanel.setOpaque(true);
         meanFrame.getContentPane().add(meanPanel, BorderLayout.CENTER);
+        meanFrame.getContentPane().add(meanCtrlPanel, BorderLayout.SOUTH);
+        ActionListener prevLst = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                String newCol = arg0.getActionCommand();
+                showMeanPanel(newCol);
+            }
+        };
+        meanCtrlPanel.setChangeListener(prevLst);
         meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH, FCSPlot.START_HEIGHT);
     }
     
@@ -605,8 +616,21 @@ public class RainbowTestGUI extends JFrame {
             ind++;
         }
         
-        meanPanel.setData(xDataBase, xDataComp, yDataBase, yDataComp);
+        ArrayList<String> cols = new ArrayList<String>();
+        ind = 0;
+        for (int i = 1; i < table.getColumnModel().getColumnCount(); i++) {
+            String hdr = (String) table.getColumnModel().getColumn(i).getHeaderValue();
+            cols.add(hdr);
+            if (hdr.equals(col)) {
+                ind = i;
+            }
+        }
+        
+        meanCtrlPanel.setColumns(cols, ind-1);
+        
+        meanPanel.setData(col, xDataBase, xDataComp, yDataBase, yDataComp);
         meanPanel.paintAgain();
+        meanFrame.setTitle("Genvisis - FCS Overall Mean/SD - " + col);
         meanFrame.setVisible(true);
     }
     
