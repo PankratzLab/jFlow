@@ -83,8 +83,10 @@ public class MeanPanel extends AbstractPanel2  {
 	float[] xDataComp; // Files - in date order
 	float[] yDataBase; // Means
 	float[] yDataComp; // Means
+	String col;
 	
-	public void setData(float[] xDataBase, float[] xDataComp, float[] yDataBase, float[] yDataComp) {
+	public void setData(String col, float[] xDataBase, float[] xDataComp, float[] yDataBase, float[] yDataComp) {
+	    this.col = col;
 	    this.xDataBase = xDataBase;
 	    this.xDataComp = xDataComp;
 	    this.yDataBase = yDataBase;
@@ -167,7 +169,7 @@ public class MeanPanel extends AbstractPanel2  {
     @Override
     public void assignAxisLabels() {
         xAxisLabel = "File by Date";
-        yAxisLabel = "Mean";
+        yAxisLabel = "Mean - " + col;
         return;
     }
     
