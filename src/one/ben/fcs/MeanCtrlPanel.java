@@ -126,7 +126,5 @@ public class MeanCtrlPanel extends JPanel {
     public void setChangeListener(ActionListener prevLst) {
         this.change = prevLst;
     }
-    
-    
 
 }

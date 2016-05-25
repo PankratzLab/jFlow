@@ -140,7 +140,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 		progressBar.setPreferredSize(new Dimension(progressBar.getPreferredSize().width, 22));
 		progressBar.setMinimumSize(new Dimension(progressBar.getPreferredSize().width, 22));
 		
-		JButton btnCancelProg = new JButton(Grafik.getImageIcon("images/delete2sm.png", true));
+		JButton btnCancelProg = new JButton(Grafik.getImageIcon("images/delete2sm.png"));
 		btnCancelProg.setMinimumSize(new Dimension(30, 20));
 		btnCancelProg.setPreferredSize(new Dimension(30, 20));
 		btnCancelProg.setMaximumSize(new Dimension(30, 20));
@@ -297,13 +297,13 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 	}
 
     private JPanel createControlPanel() {
-		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
-		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
+		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif"));
+		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif"));
 		first.addActionListener(navFirstAction);
 		first.setActionCommand(FIRST);
 		first.setPreferredSize(new Dimension(20, 20));
-		previous = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
-		previous.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+		previous = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif"));
+		previous.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif"));
 		previous.addActionListener(navPrevAction);
 		previous.setActionCommand(PREVIOUS);
 		previous.setPreferredSize(new Dimension(20, 20));
@@ -329,13 +329,13 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 			}
 		});
 	
-		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
-		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif"));
+		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif"));
 		next.addActionListener(navNextAction);
 		next.setActionCommand(NEXT);
 		next.setPreferredSize(new Dimension(20, 20));
-		last = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif", true));
-		last.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
+		last = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif"));
+		last.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif"));
 		last.addActionListener(navLastAction);
 		last.setActionCommand(LAST);
 		last.setPreferredSize(new Dimension(20, 20));

@@ -941,14 +941,14 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		descrPanel.add(commentLabel);
 
 		JPanel navigationPanel = new JPanel();
-		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
-		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
+		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif"));
+		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif"));
 		first.addActionListener(this);
 		first.setActionCommand(FIRST);
 		first.setPreferredSize(new Dimension(20, 20));
 //		first.setEnabled(false);
-		previous = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
-		previous.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+		previous = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif"));
+		previous.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif"));
 		previous.addActionListener(this);
 		previous.setActionCommand(PREVIOUS);
 		previous.setPreferredSize(new Dimension(20, 20));
@@ -970,13 +970,13 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 	        }
 		});
 		
-		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
-		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif"));
+		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif"));
 		next.addActionListener(this);
 		next.setActionCommand(NEXT);
 		next.setPreferredSize(new Dimension(20, 20));
-		last = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif", true));
-		last.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
+		last = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif"));
+		last.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif"));
 		last.addActionListener(this);
 		last.setActionCommand(LAST);
 		last.setPreferredSize(new Dimension(20, 20));
@@ -1303,8 +1303,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		first1.addActionListener(this);
 //		first1.setActionCommand(FIRST);
 //		first1.setPreferredSize(new Dimension(20, 20));
-		JButton backward = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
-		backward.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+		JButton backward = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif"));
+		backward.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif"));
 		backward.addActionListener(this);
 		backward.setActionCommand(CLUSTER_FILTER_BACKWARD);
 		backward.setPreferredSize(new Dimension(20, 20));
@@ -1338,8 +1338,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			}
 		});
 
-		JButton forward = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
-		forward.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+		JButton forward = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif"));
+		forward.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif"));
 		forward.addActionListener(this);
 		forward.setActionCommand(CLUSTER_FILTER_FORWARD);
 		forward.setPreferredSize(new Dimension(20, 20));
@@ -1348,8 +1348,8 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 //		last1.addActionListener(this);
 //		last1.setActionCommand(LAST);
 //		last1.setPreferredSize(new Dimension(20, 20));
-		JButton delete = new JButton(Grafik.getImageIcon("images/delete9.png", true));
-		delete.setDisabledIcon(Grafik.getImageIcon("images/delete8.png", true));
+		JButton delete = new JButton(Grafik.getImageIcon("images/delete9.png"));
+		delete.setDisabledIcon(Grafik.getImageIcon("images/delete8.png"));
 		delete.addActionListener(this);
 		delete.setActionCommand(CLUSTER_FILTER_DELETE);
 		delete.setPreferredSize(new Dimension(20, 20));
@@ -1727,7 +1727,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		annotationPanelUpper.add(checkBox);
 
 //		button = new JButton("Import");
-		button = new JButton(Grafik.getImageIcon("images/import-icon.png", true));
+		button = new JButton(Grafik.getImageIcon("images/import-icon.png"));
 		button.setToolTipText("Import Annotations");
 		button.setBackground(Color.WHITE);
 		button.setBorder(null);
@@ -1775,7 +1775,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 		annotationPanelUpper.add(button);
 
 //		button = new JButton("Export");
-		button = new JButton(Grafik.getImageIcon("images/export-icon.png", true));
+		button = new JButton(Grafik.getImageIcon("images/export-icon.png"));
 		button.setToolTipText("Export Annotations");
 		button.setBackground(Color.WHITE);
 		button.setBorder(null);
@@ -2020,7 +2020,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
 			annotationPanelLowerPartLayout.putConstraint(SpringLayout.NORTH, annotationCheckBoxes[i], currentHorizontalPos, SpringLayout.NORTH, annotationPanelLowerPart);
 //			horizontalPos += (horizontalMargin + annotationCheckBoxes[i].getSize().height);
 			currentHorizontalPos += (horizontalMargin + componentHeight);
-			removeButton = new JButton(Grafik.getImageIcon("images/delete2sm.png", true));
+			removeButton = new JButton(Grafik.getImageIcon("images/delete2sm.png"));
 			removeButton.setActionCommand("removeButton" + i);
 			removeButton.setBorder(null);
 			removeButton.setSize(6, 6);

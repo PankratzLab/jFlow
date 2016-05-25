@@ -1,57 +1,87 @@
 package one.ben.fcs;
 
-import javax.swing.JPanel;
-import net.miginfocom.swing.MigLayout;
-import javax.swing.JTextField;
-import javax.swing.JLabel;
+import java.awt.Font;
+import java.awt.Insets;
+
 import javax.swing.JButton;
-import javax.swing.JTable;
-import java.awt.GridLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import common.Grafik;
+
+import net.miginfocom.swing.MigLayout;
+import java.awt.Color;
+import java.awt.SystemColor;
 
 public class DataControlPanel extends JPanel {
-    private JTextField textField;
-    private JTable table;
-    private JPanel panel;
-    private JButton btnLoadFile;
-    private JButton btnMoveUp;
-    private JButton btnMoveDown;
-    private JButton btnRemove;
 
     /**
      * Create the panel.
      */
     public DataControlPanel() {
-        setLayout(new MigLayout("", "[][grow][]", "[][grow][][]"));
-        
-        JLabel lblFileDirectory = new JLabel("File Directory:");
-        add(lblFileDirectory, "cell 0 0,alignx trailing");
-        
-        textField = new JTextField();
-        add(textField, "cell 1 0,growx");
-        textField.setColumns(10);
-        
-        JButton button = new JButton(">");
-        add(button, "cell 2 0");
-        
-        table = new JTable();
-        add(table, "cell 0 1 3 1,grow");
-        
-        panel = new JPanel();
-        add(panel, "cell 0 2 3 1,grow");
-        panel.setLayout(new MigLayout("insets 0", "[80px:80px,grow][80px:80px,grow]", "[][][]"));
-        
-        btnLoadFile = new JButton("Load");
-        panel.add(btnLoadFile, "cell 0 0 2 1,alignx center");
-        
-        btnMoveUp = new JButton("Move Up");
-        panel.add(btnMoveUp, "cell 0 1,growx");
-        
-        btnMoveDown = new JButton("Move Down");
-        panel.add(btnMoveDown, "cell 1 1,growx");
-        
-        btnRemove = new JButton("Remove");
-        panel.add(btnRemove, "cell 0 2 2 1,alignx center");
+        this("", "", "");
+    }
+    
+    public DataControlPanel(String file, String sz, String dt) {
+        setBorder(null);
+        setLayout(new MigLayout("", "[][grow][][][][]", "0px[][][]0px"));
 
+        Insets btnIns = new Insets(0, 0, 0, 0);
+        
+        JButton btnDel = new JButton(Grafik.getImageIcon("images/delete2_35.png"));
+        btnDel.setBackground(Color.WHITE);
+        btnDel.setFont(new Font("Tahoma", Font.BOLD, 11));
+        btnDel.setMargin(btnIns);
+        add(btnDel, "cell 0 0");
+        
+        JButton btnMvUp = new JButton(Grafik.getImageIcon("images/up_short.gif"));
+        btnMvUp.setBackground(Color.WHITE);
+        btnMvUp.setFont(new Font("Tahoma", Font.BOLD, 11));
+        btnMvUp.setMargin(btnIns);
+        add(btnMvUp, "cell 2 0");
+        
+        JButton btnMvDn = new JButton(Grafik.getImageIcon("images/down_short.gif"));
+        btnMvDn.setBackground(Color.WHITE);
+        btnMvDn.setFont(new Font("Tahoma", Font.BOLD, 11));
+        btnMvDn.setMargin(btnIns);
+        add(btnMvDn, "cell 3 0");
+
+        JButton button = new JButton(Grafik.getImageIcon("images/question-mark_sm.png"));
+        button.setBackground(Color.WHITE);
+        button.setFont(new Font("Tahoma", Font.BOLD, 11));
+        button.setMargin(btnIns);
+        add(button, "cell 4 0");
+        
+        JButton btnLoad = new JButton(Grafik.getImageIcon("images/tick-empty_sm.png"));
+        btnLoad.setBackground(Color.WHITE);
+        btnLoad.setFont(new Font("Tahoma", Font.BOLD, 11));
+        btnLoad.setMargin(new Insets(0, 0, 0, 0));
+        add(btnLoad, "cell 5 0");
+        
+        JLabel lblFileName = new JLabel("<html><p>" + file + "</p></html>");
+        lblFileName.setFont(new Font("Arial", Font.PLAIN, 9));
+        add(lblFileName, "cell 0 1 6 1");
+        
+        JLabel lblDate = new JLabel("Date:");
+        lblDate.setFont(new Font("Arial", Font.BOLD, 8));
+        add(lblDate, "cell 0 2");
+        
+        JLabel lblDateLbl = new JLabel(dt);
+        lblDateLbl.setFont(new Font("Arial", Font.PLAIN, 7));
+        add(lblDateLbl, "cell 1 2,alignx left");
+        
+        JLabel lblSize = new JLabel("Size:");
+        lblSize.setFont(new Font("Arial", Font.BOLD, 8));
+        add(lblSize, "cell 2 2 2 1,alignx right");
+        
+        JLabel lblSzlbl = new JLabel(sz);
+        lblSzlbl.setFont(new Font("Arial", Font.PLAIN, 7));
+        add(lblSzlbl, "cell 4 2 2 1,alignx left");
+        
+    }
+    
+    public void setSelected(boolean selected) {
+        setBackground(selected ? SystemColor.scrollbar : SystemColor.control);
     }
 
 }

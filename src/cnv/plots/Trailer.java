@@ -1029,8 +1029,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 		JPanel sampPanel = new JPanel();
 		((FlowLayout)sampPanel.getLayout()).setVgap(0);
-		previousRegion = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
-		previousRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+		previousRegion = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif"));
+		previousRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif"));
 		previousRegion.addActionListener(this);
 		previousRegion.setActionCommand(PREVIOUS_REGION);
 		previousRegion.setPreferredSize(new Dimension(25, 25));
@@ -1064,8 +1064,8 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 		JPanel descrPanel = new JPanel();
 		descrPanel.setLayout(new MigLayout("gap 0", "[grow, center]", "[]0[]0[]"));
 		
-		nextRegion = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
-		nextRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+		nextRegion = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif"));
+		nextRegion.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif"));
 		nextRegion.addActionListener(this);
 		nextRegion.setActionCommand(NEXT_REGION);
 		nextRegion.setPreferredSize(new Dimension(25, 25));
@@ -1150,13 +1150,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 
 		JPanel navigateChrPanel = new JPanel();
         ((FlowLayout)navigateChrPanel.getLayout()).setVgap(0);
-		firstChr = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
-		firstChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
+		firstChr = new JButton(Grafik.getImageIcon("images/firstLast/First.gif"));
+		firstChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif"));
 		firstChr.addActionListener(this);
 		firstChr.setActionCommand(FIRST_CHR);
 		firstChr.setPreferredSize(new Dimension(20, 20));
-		previousChr = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
-		previousChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+		previousChr = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif"));
+		previousChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif"));
 		previousChr.addActionListener(this);
 		previousChr.setActionCommand(PREVIOUS_CHR);
 		previousChr.setPreferredSize(new Dimension(20, 20));
@@ -1173,13 +1173,13 @@ public class Trailer extends JFrame implements ActionListener, ClickListener, Mo
 	        }
 		});
 
-		nextChr = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
-		nextChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+		nextChr = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif"));
+		nextChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif"));
 		nextChr.addActionListener(this);
 		nextChr.setActionCommand(NEXT_CHR);
 		nextChr.setPreferredSize(new Dimension(20, 20));
-		lastChr = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif", true));
-		lastChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
+		lastChr = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif"));
+		lastChr.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif"));
 		lastChr.addActionListener(this);
 		lastChr.setActionCommand(LAST_CHR);
 		lastChr.setPreferredSize(new Dimension(20, 20));

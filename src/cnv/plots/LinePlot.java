@@ -207,8 +207,8 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	private void generateFlipButton() {
-		flipButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", true));
-		flipButton.setRolloverIcon(Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue.jpg", true));
+		flipButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg"));
+		flipButton.setRolloverIcon(Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue.jpg"));
 		flipButton.setToolTipText("Inverts axes");
 		flipButton.setBorder(null);
 		flipButton.setVisible(true);
@@ -228,7 +228,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	private void generateInvXButton() {
-		invXButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true));
+		invXButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/right_10.gif"));
 		invXButton.setBorder(null);
 		invXButton.setVisible(true);
 		xInvStatus = true;
@@ -238,9 +238,9 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 				linePanel.setXinversion(xInvStatus);
 				linePanel.paintAgain();
 				if (xInvStatus) {
-					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/left_10.gif", true));
+					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/left_10.gif"));
 				} else {
-					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true));
+					invXButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/right_10.gif"));
 				}
 				xInvStatus = !xInvStatus;
 			}
@@ -248,7 +248,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	private void generateInvYButton() {
-		invYButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true));
+		invYButton = new JButton(Grafik.getImageIcon("images/flip_and_invert/up_10.gif"));
 		invYButton.setBorder(null);
 		invYButton.setVisible(true);
 		yInvStatus = true;
@@ -258,9 +258,9 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 				linePanel.setYinversion(yInvStatus);
 				linePanel.paintAgain();
 				if (yInvStatus) {
-					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true));
+					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/down_10.gif"));
 				} else {
-					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true));
+					invYButton.setIcon(Grafik.getImageIcon("images/flip_and_invert/up_10.gif"));
 				}
 				yInvStatus = !yInvStatus;
 			}

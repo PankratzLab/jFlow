@@ -185,10 +185,10 @@ public class Grafik {
 		}
 	}
 
-	public static ImageIcon getImageIcon(String filename, boolean jar) {
+	public static ImageIcon getImageIcon(String filename) {
 		ImageIcon iicon;
 
-		if (jar) {
+//		if (jar) {
 			try {
 				iicon = new ImageIcon(ClassLoader.getSystemResource(filename));
 			} catch (NullPointerException npe) {
@@ -197,9 +197,9 @@ public class Grafik {
 			if (iicon == null) { // can be null either way given the JVM
 				iicon = new ImageIcon(filename);
 			}
-		} else {
-			iicon = new ImageIcon(filename);
-		}
+//		} else {
+//			iicon = new ImageIcon(filename);
+//		}
 
 		return iicon;		
 	}
@@ -260,7 +260,7 @@ public class Grafik {
 
     public static JLabel getToolTipIconLabel(String tooltip) {
         JLabel tooltipLbl = new JLabel("");
-        tooltipLbl.setIcon(Grafik.getImageIcon("images/question-mark.png", true));
+        tooltipLbl.setIcon(Grafik.getImageIcon("images/question-mark.png"));
         tooltipLbl.setToolTipText(tooltip);
         tooltipLbl.addMouseListener(new MouseAdapter() {
             @Override

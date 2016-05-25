@@ -116,18 +116,18 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     private JPanel treePanel;
     private JScrollPane scrollPane;
     private HashSet<String> selectedDataHash = new HashSet<String>();
-    private final ImageIcon flip1_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg", true);
-    private final ImageIcon flip1_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg", true);
-    private final ImageIcon flip2_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv.jpg", true);
-    private final ImageIcon flip2_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv_blue_3.jpg", true);
-    private final ImageIcon flipX1_1 = Grafik.getImageIcon("images/flip_and_invert/right_10.gif", true);
-    private final ImageIcon flipX1_2 = Grafik.getImageIcon("images/flip_and_invert/right_10_blue.jpg", true);
-    private final ImageIcon flipX2_1 = Grafik.getImageIcon("images/flip_and_invert/left_10.gif", true);
-    private final ImageIcon flipX2_2 = Grafik.getImageIcon("images/flip_and_invert/left_10_blue.jpg", true);
-    private final ImageIcon flipY1_1 = Grafik.getImageIcon("images/flip_and_invert/up_10.gif", true);
-    private final ImageIcon flipY1_2 = Grafik.getImageIcon("images/flip_and_invert/up_10_blue.jpg", true);
-    private final ImageIcon flipY2_1 = Grafik.getImageIcon("images/flip_and_invert/down_10.gif", true);
-    private final ImageIcon flipY2_2 = Grafik.getImageIcon("images/flip_and_invert/down_10_blue.jpg", true);
+    private final ImageIcon flip1_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg");
+    private final ImageIcon flip1_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg");
+    private final ImageIcon flip2_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv.jpg");
+    private final ImageIcon flip2_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv_blue_3.jpg");
+    private final ImageIcon flipX1_1 = Grafik.getImageIcon("images/flip_and_invert/right_10.gif");
+    private final ImageIcon flipX1_2 = Grafik.getImageIcon("images/flip_and_invert/right_10_blue.jpg");
+    private final ImageIcon flipX2_1 = Grafik.getImageIcon("images/flip_and_invert/left_10.gif");
+    private final ImageIcon flipX2_2 = Grafik.getImageIcon("images/flip_and_invert/left_10_blue.jpg");
+    private final ImageIcon flipY1_1 = Grafik.getImageIcon("images/flip_and_invert/up_10.gif");
+    private final ImageIcon flipY1_2 = Grafik.getImageIcon("images/flip_and_invert/up_10_blue.jpg");
+    private final ImageIcon flipY2_1 = Grafik.getImageIcon("images/flip_and_invert/down_10.gif");
+    private final ImageIcon flipY2_2 = Grafik.getImageIcon("images/flip_and_invert/down_10_blue.jpg");
     
 	private TwoDPlot() {
 		this(new Project(), true, null, null);
