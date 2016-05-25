@@ -22,109 +22,117 @@ import filesys.LocusSet;
 public class PlinkCNV {
 
 	private static void run(String cnvFile, String sampFile) {
+		
 		final String dir = ext.parseDirectoryOfFile(cnvFile);
-		String out = dir + "decentCalls_centromeresBroken.cnv";
 		final Logger log = new Logger(dir + "cnv.log");
-		if (!Files.exists(out)) {
-			FilterCalls.fromParameters(dir + "filterCNVs.crf", new Logger());
-		}
-		String sampCNVs = ext.addToRoot(out, ".sampsDesired");
-		HashSet<String> sampSet = HashVec.loadFileToHashSet(sampFile, false);
-		if (!Files.exists(sampCNVs)) {
-			LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(out, log);
+		String[] filters = Files.list(dir, ".crf", false);
+		
+		for (int filt = 0; filt < filters.length; filt++) {
 
-			try {
-				int numTotal = 0;
-				int numSamps = 0;
-				PrintWriter writer = new PrintWriter(new FileWriter(sampCNVs));
-				writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
-				for (int i = 0; i < cnvs.getLoci().length; i++) {
-					numTotal++;
-					if (sampSet.contains(cnvs.getLoci()[i].getIndividualID())) {
-						writer.println(cnvs.getLoci()[i].toPlinkFormat());
-						numSamps++;
+			String out = dir + ext.rootOf(filters[filt]) + ".cnv";
+
+			if (!Files.exists(out)) {
+				FilterCalls.fromParameters(dir + filters[filt], new Logger());
+			}
+			String sampCNVs = ext.addToRoot(out, "." + ext.rootOf(sampFile));
+			HashSet<String> sampSet = HashVec.loadFileToHashSet(sampFile, false);
+			if (!Files.exists(sampCNVs)) {
+				LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(out, log);
+
+				try {
+					int numTotal = 0;
+					int numSamps = 0;
+					PrintWriter writer = new PrintWriter(new FileWriter(sampCNVs));
+					writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+					for (int i = 0; i < cnvs.getLoci().length; i++) {
+						numTotal++;
+						if (sampSet.contains(cnvs.getLoci()[i].getIndividualID())) {
+							writer.println(cnvs.getLoci()[i].toPlinkFormat());
+							numSamps++;
+						}
+					}
+					writer.close();
+					log.reportTimeInfo(numTotal + " - > " + numSamps);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			String[][] phenos = HashVec.loadFileToStringMatrix(dir + "pheno.dat", false, null, false);
+			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(5, 10, log);
+
+			for (int i = 2; i < phenos[0].length; i++) {
+
+				final String pheno = phenos[0][i];
+				final String opDir = dir + phenos[0][i] + "_" + ext.rootOf(sampFile) + "_" + ext.rootOf(filters[filt]) + "/";
+				new File(opDir).mkdirs();
+				String phenoCNV = opDir + pheno + ".cnv";
+				if (!Files.exists(phenoCNV)) {
+					Files.copyFile(sampCNVs, phenoCNV);
+				}
+				ArrayList<String> fam = new ArrayList<String>();
+				for (int j = 1; j < phenos.length; j++) {
+					if (sampSet.contains(phenos[j][0])) {
+						fam.add(phenos[j][0] + "\t" + phenos[j][0] + "\t" + 0 + "\t" + 0 + "\t" + phenos[j][1] + "\t" + phenos[j][i]);
 					}
 				}
-				writer.close();
-				log.reportTimeInfo(numTotal + " - > " + numSamps);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Files.writeArrayList(fam, opDir + pheno + ".fam");
+
+				CmdLine.run(dir + "plink --cnv-list " + pheno + ".cnv --cnv-make-map --out " + pheno, opDir);
+
+				Callable<Boolean> c1 = new Callable<Boolean>() {
+
+					@Override
+					public Boolean call() throws Exception {
+						ArrayList<String> cmd = new ArrayList<String>();
+						cmd.add(dir + "plink");
+						cmd.add("--cfile");
+						cmd.add(pheno);
+						cmd.add("--cnv-indiv-perm");
+						cmd.add("--mperm");
+						cmd.add("10000");
+						cmd.add("--out");
+						cmd.add(pheno);
+						return CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), opDir, null, new String[] { opDir + "VTPEDX.cnv.summary.mperm" }, true, false, false, log);
+					}
+				};
+				Callable<Boolean> c2 = new Callable<Boolean>() {
+
+					@Override
+					public Boolean call() throws Exception {
+						ArrayList<String> cmd = new ArrayList<String>();
+						cmd.add(dir + "plink");
+						cmd.add("--cfile");
+						cmd.add(pheno);
+						cmd.add("--mperm");
+						cmd.add("10000");
+						cmd.add("--out");
+						cmd.add(pheno + "_position");
+						return CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), opDir, null, new String[] { opDir + "VTPEDX_position.cnv.summary.mperm" }, true, false, false, log);
+
+					}
+				};
+				Callable<Boolean> c3 = new Callable<Boolean>() {
+
+					@Override
+					public Boolean call() throws Exception {
+						ArrayList<String> cmd = new ArrayList<String>();
+						cmd.add(dir + "plink");
+						cmd.add("--cfile");
+						cmd.add(pheno);
+						cmd.add("--mperm");
+						cmd.add("10000");
+						cmd.add("--cnv-test-window");
+						cmd.add("200");
+						cmd.add("--out");
+						cmd.add(pheno + "_window");
+						return CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), opDir, null, new String[] { opDir + "VTPEDX_position.cnv.summary.mperm" }, true, false, false, log);
+					}
+				};
+				hive.addCallable(c1);
+				hive.addCallable(c2);
+				hive.addCallable(c3);
 			}
-		}
-		String[][] phenos = HashVec.loadFileToStringMatrix(dir + "pheno.dat", false, null, false);
-		for (int i = 2; i < phenos[0].length; i++) {
-			final String pheno = phenos[0][i];
-			final String opDir = dir + phenos[0][i] + "/";
-			new File(opDir).mkdirs();
-			String phenoCNV = opDir + pheno + ".cnv";
-			if (!Files.exists(phenoCNV)) {
-				Files.copyFile(sampCNVs, phenoCNV);
-			}
-			ArrayList<String> fam = new ArrayList<String>();
-			for (int j = 1; j < phenos.length; j++) {
-				if (sampSet.contains(phenos[j][0])) {
-					fam.add(phenos[j][0] + "\t" + phenos[j][0] + "\t" + 0 + "\t" + 0 + "\t" + phenos[j][1] + "\t" + phenos[j][i]);
-				}
-			}
-			Files.writeArrayList(fam, opDir + pheno + ".fam");
-
-			CmdLine.run(dir + "plink --cnv-list " + pheno + ".cnv --cnv-make-map --out " + pheno, opDir);
-
-			Callable<Boolean> c1 = new Callable<Boolean>() {
-
-				@Override
-				public Boolean call() throws Exception {
-					ArrayList<String> cmd = new ArrayList<String>();
-					cmd.add(dir + "plink");
-					cmd.add("--cfile");
-					cmd.add(pheno);
-					cmd.add("--cnv-indiv-perm");
-					cmd.add("--mperm");
-					cmd.add("10000");
-					cmd.add("--out");
-					cmd.add(pheno);
-					return CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), opDir, null, new String[] { opDir + "VTPEDX.cnv.summary.mperm" }, true, false, false, log);
-				}
-			};
-			Callable<Boolean> c2 = new Callable<Boolean>() {
-
-				@Override
-				public Boolean call() throws Exception {
-					ArrayList<String> cmd = new ArrayList<String>();
-					cmd.add(dir + "plink");
-					cmd.add("--cfile");
-					cmd.add(pheno);
-					cmd.add("--mperm");
-					cmd.add("10000");
-					cmd.add("--out");
-					cmd.add(pheno + "_position");
-					return CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), opDir, null, new String[] { opDir + "VTPEDX.cnv.summary.mperm" }, true, false, false, log);
-
-				}
-			};
-			Callable<Boolean> c3 = new Callable<Boolean>() {
-
-				@Override
-				public Boolean call() throws Exception {
-					ArrayList<String> cmd = new ArrayList<String>();
-					cmd.add(dir + "plink");
-					cmd.add("--cfile");
-					cmd.add(pheno);
-					cmd.add("--mperm");
-					cmd.add("10000");
-
-					cmd.add("--cnv-test-window");
-					cmd.add("200");
-					cmd.add("--out");
-					cmd.add(pheno + "_window");
-					return CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), opDir, null, null, true, false, false, log);
-				}
-			};
-			WorkerHive<Boolean> hive = new WorkerHive<Boolean>(3, 10, log);
-			hive.addCallable(c1);
-			hive.addCallable(c2);
-			hive.addCallable(c3);
 			hive.execute(true);
 		}
 	}
@@ -133,7 +141,7 @@ public class PlinkCNV {
 		int numArgs = args.length;
 		String dir = "C:/data/ARIC/shadowCNVs/";
 		String cnvFile = dir + "penncnv.cnv";
-		String sampFile = dir + "whites.txt";
+		String[] sampFiles = new String[] { dir + "whites.txt", dir + "all.txt" };
 
 		String usage = "\n" +
 				"one.JL.ARICCNV requires 0-1 arguments\n" +
@@ -156,7 +164,9 @@ public class PlinkCNV {
 			System.exit(1);
 		}
 		try {
-			run(cnvFile, sampFile);
+			for (int i = 0; i < sampFiles.length; i++) {
+				run(cnvFile, sampFiles[i]);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
