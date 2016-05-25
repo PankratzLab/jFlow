@@ -653,7 +653,8 @@ public class ResultsPackager {
 		int markerIndex, mainIndex, columnIndex;
 		int[][] indices;
 		String filename;
-		String[] markers, columnNamesToLoad, out1, out2;
+		String[][] markerList;
+		String[] markers, displayMarkers, columnNamesToLoad, out1, out2;
 		String[][][] statResults;
 		Vector<String> columnsTmp;
 		Hashtable markerhash;
@@ -669,7 +670,13 @@ public class ResultsPackager {
 		}
 		columnNamesToLoad = columnsTmp.toArray(new String[0]);
 
-		markers = HashVec.loadFileToStringArray(fullPathMarkerList, false, false, null, false);
+		markerList = HashVec.loadFileToStringMatrix(fullPathMarkerList, false, null, false);
+		markers = new String[markerList.length];
+		displayMarkers = new String[markerList.length];
+		for (int i = 0; i < markerList.length; i++) {
+			markers[i] = markerList[i][0];
+			displayMarkers[i] = markerList[i][1];
+		}
 		statResults = new String[fullPathStatResults.length][][];
 		for (int i = 0; i < statResults.length; i++) {
 			System.out.println("Loading "+fullPathStatResults[i][1]);
@@ -708,10 +715,11 @@ public class ResultsPackager {
 			// content of the output file
 			for (int j = 1; j < out1.length; j++) {
 				markerIndex = j - 1;
+				int out2index = markerIndex * analyses.length + i;
 				out1[j] = "Gene\t" + markers[markerIndex];
 				for (int k = 0; k < statResults.length; k++) {
 					if (k == mainIndex) {
-						out2[markerIndex * analyses.length + i] = markers[markerIndex] + "\t" + filename + "\t" + analyses[i];
+						out2[out2index] = markers[markerIndex] + "\t" + filename + "\t" + analyses[i];
 					}
 
 					if (statResults[k][markerIndex][0] == null) {
@@ -746,9 +754,12 @@ public class ResultsPackager {
 							out1[j] += "\t" + statResults[k][markerIndex][columnIndex];
 
 							if (k == mainIndex) {
-								out2[markerIndex * analyses.length + i] += " " + columnNamesOfAnalyses[i][l] + "=" + ext.formDeci(Double.parseDouble(statResults[mainIndex][markerIndex][columnIndex]), 7);
+								out2[out2index] += " " + columnNamesOfAnalyses[i][l] + "=" + ext.formDeci(Double.parseDouble(statResults[mainIndex][markerIndex][columnIndex]), 7);
 							}
 						}
+					}
+					if (k == mainIndex) {
+						out2[out2index] += "\t" + displayMarkers[markerIndex];
 					}
 				}
 			}

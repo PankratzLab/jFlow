@@ -607,52 +607,17 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 	
 	private void screenCapAll() {
 		int currentSelection = forestPlot.getCurrentDataIndex();
-		ArrayList<ForestInput> data = forestPlot.getDataIndices();
-		for (int i = 0; i < data.size(); i++) {
-			forestPlot.setCurrentData(i);
-			forestPlot.getForestPanel().createImage();
-			String marker = "", filename = "", ctrlFile = "";
-			int count = 1;
-			String root = (proj == null ? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName()) : proj.PROJECT_DIRECTORY.getValue());
-			marker = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).marker;
-			ctrlFile = ext.rootOf(forestPlot.getMarkerFileName());
-			filename = marker + "_" + ctrlFile;
-			filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-			while (new File(root+filename+".png").exists()) {
-				filename = marker + "_" + ctrlFile + "_v" + count;
-				filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-				count++;
-			}
-            if (forestPlot.getLog() != null) {
-            	forestPlot.getLog().report("Writing screenshot to file " + root + filename + ".png");
-            } else {
-                System.out.println("Writing screenshot to file " + root + filename + ".png");
-            }
-			forestPlot.getForestPanel().screenCapture(root+filename+".png");
-		}
+		Dimension currentSize = forestPlot.getForestPanel().getSize();
+		forestPlot.screenCapAll(null, forestPlot.getForestPanel().oddsDisplay, true);
 		forestPlot.setCurrentData(currentSelection);
+		forestPlot.getForestPanel().setSize(currentSize);
 		updateForestPlot();
 	}
 	
 	private void screenCap() {
-		String marker = "", filename = "", ctrlFile = "";
-		int count = 1;
-		String root = (proj == null ? ext.parseDirectoryOfFile(forestPlot.getMarkerFileName()) : proj.PROJECT_DIRECTORY.getValue());
-		marker = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).marker;
-		ctrlFile = ext.rootOf(forestPlot.getMarkerFileName());
-		filename = marker + "_" + ctrlFile;
-		filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-		while (new File(root+filename+".png").exists()) {
-			filename = marker + "_" + ctrlFile + "_v" + count;
-			filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-			count++;
-		}
-        if (forestPlot.getLog() != null) {
-        	forestPlot.getLog().report("Writing screenshot to file " + root + filename + ".png");
-        } else {
-            System.out.println("Writing screenshot to file " + root + filename + ".png");
-        }
-		forestPlot.getForestPanel().screenCapture(root+filename+".png");
+		Dimension currentSize = forestPlot.getForestPanel().getSize();
+		forestPlot.screenCap(null, true);
+		forestPlot.getForestPanel().setSize(currentSize);
 	}
 	
 	private void displayIndex(JTextField field) {
