@@ -1,11 +1,17 @@
 package one.ben.fcs;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.LayoutManager;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -26,8 +32,12 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
@@ -37,6 +47,7 @@ import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import one.ben.fcs.FCSDataLoader.LOAD_STATE;
+import scala.collection.mutable.HashMap;
 import cnv.gui.JAccordionPanel;
 import common.Files;
 import common.ext;
@@ -73,11 +84,6 @@ public class FCSPlotControlPanel extends JPanel {
 
     private JButton dirSelectBtn;
     private JTextField fileDirField;
-    private JTable dataFileTable;
-    private JButton btnLoadFile;
-    private JButton btnMoveUp;
-    private JButton btnMoveDown;
-    private JButton btnRemove;
 
     /**
      * Create the panel.
@@ -292,44 +298,90 @@ public class FCSPlotControlPanel extends JPanel {
         dataControlsPanel.topPanel.add(dCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
         
         JPanel dataPanel = dataControlsPanel.contentPanel;
-        dataPanel.setLayout(new MigLayout("", "[][grow][]", "[][grow][][]"));
-        JLabel lblFileDirectory = new JLabel("FCS Dir:");
-        dataPanel.add(lblFileDirectory, "cell 0 0,alignx trailing");
+        dataPanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow]", "[grow]0px[]"));
         
         fileDirField = new JTextField();
-        dataPanel.add(fileDirField, "cell 1 0,growx");
-        fileDirField.setColumns(10);
-        
+        dataPanel.add(fileDirField, "cell 0 0, growx, split 2");
         dirSelectBtn = new JButton(">");
-        dirSelectBtn.setMargin(new Insets(0, 0, 0, 0));
         dirSelectBtn.addActionListener(dirSelectListener);
-        dataPanel.add(dirSelectBtn, "cell 2 0");
+        dirSelectBtn.setMargin(new Insets(0, 2, 0, 2));
+        dataPanel.add(dirSelectBtn, "cell 0 0");
         
-        dataFileTable = new JTable();
-        dataPanel.add(dataFileTable, "cell 0 1 3 1,grow");
+        final JScrollPane scrollPane = new JScrollPane();
+        actualDataPanel = new ScrollablePanel(new MigLayout("", "", ""));
+        scrollPane.setViewportView(actualDataPanel);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        dataPanel.add(scrollPane, "cell 0 1, grow");
         
-        JPanel dataBtnPanel = new JPanel();
-        dataBtnPanel.setBorder(null);
-        dataPanel.add(dataBtnPanel, "cell 0 2 3 1,grow");
-        dataBtnPanel.setLayout(new MigLayout("insets 0", "[60px,grow][60px,grow]", "[][][]"));
+        // TODO mouse keys (up/down for changing selection, alt/ctrl-up/down for displaying prev/next file data, etc)
+        // TODO listener for move up
+        // TODO listener for move down
+        // TODO listener for information
+        // TODO listener for delete
+        // TODO listener for load
+        // TODO memory management and warnings
         
-        btnLoadFile = new JButton("Load");
-        dataBtnPanel.add(btnLoadFile, "cell 0 0 2 1,alignx center,growx");
+//        {
+//            int ind = 0;
+//            int test = 19;
+//            HashMap<String, DataControlPanel> fileCtrl = new HashMap<String, DataControlPanel>();
+//            final ArrayList<DataControlPanel> ctrlList = new ArrayList<DataControlPanel>();
+//            for (int i = 0; i < test; i++) {
+//                final int index = i;
+//                DataControlPanel dcp = new DataControlPanel();
+//                dcp.addMouseListener(new MouseAdapter() {
+//                    @Override
+//                    public void mouseClicked(MouseEvent e) {
+//                        super.mouseClicked(e);
+//                        for (int j = 0; j < ctrlList.size(); j++) {
+//                            ctrlList.get(j).setSelected(j == index);
+//                        }
+//                    }
+//                });
+//                fileCtrl.put(i + "", dcp);
+//                ctrlList.add(dcp);
+//                actualDataPanel.add(dcp, "cell 0 " + (ind++));
+//                actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (ind++));
+//            }
+//        }
         
-        btnMoveUp = new JButton("Move Up");
-        dataBtnPanel.add(btnMoveUp, "cell 0 1,growx");
-        
-        btnMoveDown = new JButton("Move Down");
-        dataBtnPanel.add(btnMoveDown, "cell 1 1,growx");
-        
-        btnRemove = new JButton("Remove");
-        dataBtnPanel.add(btnRemove, "cell 0 2 2 1,alignx center,growx");
+        dataMsgPanel = new JPanel();
+        dataPanel.add(dataMsgPanel, "cell 0 1, grow");
+        dataMsgPanel.setVisible(false);
         
         add(panel_1, "cell 0 0,grow");
         
         progressBar = new JProgressBar();
         add(progressBar, "cell 0 1,growx, pad -3 3 -3 -3");
         
+    }
+    
+    public class ScrollablePanel extends JPanel implements Scrollable {
+        
+        public ScrollablePanel(LayoutManager layout) {
+            super(layout);
+        }
+        
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+           return 10;
+        }
+
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return ((orientation == SwingConstants.VERTICAL) ? visibleRect.height : visibleRect.width) - 10;
+        }
+
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
     }
     
     private void listFiles() {
@@ -344,12 +396,19 @@ public class FCSPlotControlPanel extends JPanel {
         for (String f : files) {
             fileSet.add(f);
         }
-        DefaultTableModel dtm = new DefaultTableModel(new String[]{"File", "Size", "Loaded?"}, 0);
+        
+        int index = 0;
+        actualDataPanel.removeAll();
+        actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
         for (String f : fileSet) {
-            dtm.addRow(new Object[]{f, Files.getSizeScaledString(fileDir + f, false), false});
+            String sz = Files.getSizeScaledString(fileDir + f, false);
+            String dt = "";
+            DataControlPanel dcp = new DataControlPanel(f, sz, dt);
+            actualDataPanel.add(dcp, "cell 0 " + (index++));
+            actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
         }
-        dataFileTable.setModel(dtm);
-        dataFileTable.invalidate();
+        
+        revalidate();
         repaint();
     }
     
@@ -396,6 +455,10 @@ public class FCSPlotControlPanel extends JPanel {
             
         }
     };
+
+    private JPanel dataMsgPanel;
+
+    private JPanel actualDataPanel;
     
     public void setPlotType(PLOT_TYPE typ) {
         cbType.setSelectedItem(typ);

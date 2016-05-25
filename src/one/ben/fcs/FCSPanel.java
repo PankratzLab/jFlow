@@ -251,6 +251,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         if (fcp.gating == null) {
              gating = new ArrayList<Gate>();
         } else {
+            
+            // TODO only retrieve gating for a particular branch
+            // TODO  --  determine which file is on which branch based on gating file
+            
             if (isHistogram()) {
                 gating = fcp.gating.getGatesForParamOnly(xCol);
             } else {
@@ -609,18 +613,13 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         mouseEndX = e.getX();
         mouseEndY = e.getY();
         highlightRectangle = null;
-//        rects.add(new GenericRectangle(
-//                (float)getXValueFromXPixel(startX), 
-//                (float)getYValueFromYPixel(startY), 
-//                (float)getXValueFromXPixel(mouseEndX), 
-//                isHistogram() ? (float)getYValueFromYPixel(startY) : (float)getYValueFromYPixel(mouseEndY), 
-//                (byte)1, false, false, (byte)0, (byte)99, true));
         // TODO add new RectangleGate to fcp gating strategy, instead of adding to rects
         RectangleGate rg = new RectangleGate();
         rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
         if (!isHistogram()) {
             rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
         }
+        
 //        fcp.addGate(rg);
         paintAgain();
 	}

@@ -365,7 +365,7 @@ public class ForestPlot {
 		if (markerReader != null) {
     		try {
     			while (markerReader.ready() && !Thread.interrupted()) {
-    				String[] line = markerReader.readLine().trim().split("\\t");
+    				String[] line = markerReader.readLine().trim().split("\t");
 				    if (line.length >= 2) {
 				        file = line[1];
 				        if (!file.contains(":") && !file.startsWith("/") && !Files.exists(file)) {

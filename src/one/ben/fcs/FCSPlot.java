@@ -393,6 +393,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         setXDataName(colNames.get(1));
         setYScale(newDataLoader.scales.get(0));
         setXScale(newDataLoader.scales.get(1));
+        dataLoader = newDataLoader;
+        isLoading = false;
+        System.gc();
     }
     
 	public void loadFile(final String filename) {
@@ -412,9 +415,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                     return;
                 }
                 resetForNewData(newDataLoader);
-                dataLoader = newDataLoader;
-                isLoading = false;
-                System.gc();
                 FCSPlot.this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.getLoadedFile());
                 System.out.println("Displaying plot...");
                 updateGUI();
@@ -443,9 +443,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	public void setData(FCSDataLoader newDataLoader) {
 	    if (this.dataLoader != null && this.dataLoader.getLoadedFile().equals(newDataLoader.getLoadedFile())) return;
 	    resetForNewData(newDataLoader);
-	    this.dataLoader = newDataLoader;
-	    isLoading = false;
-        System.gc();
         this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.getLoadedFile());
         System.out.println("Displaying plot...");
         updateGUI();
@@ -476,18 +473,18 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         twoDPlot.setParent(frame);
         frame.setContentPane(twoDPlot);
         frame.addWindowListener(twoDPlot);
-        frame.setBounds(START_X, START_Y, START_WIDTH, START_HEIGHT);
 //		frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 
         //Display the window.
         frame.pack();
+        frame.setBounds(START_X, START_Y, START_WIDTH, START_HEIGHT);
         frame.setVisible(show);
 
 //        String fcsFilename = "F:\\Flow\\2016-05-04_URB_DHS_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
-//        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
+        String fcsFilename = "F:\\Flow\\P1-B&C-CD3-APC-Cy7 or CD4-APC-Cy7_ULTRA BRIGHT RAINBOW BEADS_URB_001.fcs";
 //        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-C P1 1HR rest_003.fcs.gz";
 //        String fcsFilename = "F:\\Flow\\P1- PBMC-A&C rest_panel one_PBMC-A P1 1HR rest_002.fcs";
-//        twoDPlot.loadFile(fcsFilename);
+        twoDPlot.loadFile(fcsFilename);
         
 		return twoDPlot;
     }
