@@ -767,7 +767,7 @@ public class CNVCaller {
 			PennCNV.populationBAF(proj);
 		}
 		PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
-		if(Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))){
+		if (!Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
 			Resource gmodelBase = GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue());
 			if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && gmodelBase.isAvailable(proj.getLog())) {
 				proj.getLog().reportTimeWarning("Generating gcModel for " + proj.GENOME_BUILD_VERSION.getValue() + " at " + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.getResource(proj.getLog()));
