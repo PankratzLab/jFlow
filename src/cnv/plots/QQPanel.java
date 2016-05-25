@@ -2,29 +2,81 @@ package cnv.plots;
 
 import common.*;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.event.*;
 
 public class QQPanel extends AbstractPanel implements ComponentListener {
 	public static final long serialVersionUID = 1L;
+	
+	protected static final Font DESCR_FONT = new Font("Arial", 0, 20);
+	protected static final int PAD = 5;
 
 	private double[][] pvals;
 	private boolean log10;
 	private boolean rotated;
 	private float maxValue;
+	private String[] descriptions;
 	
-	public QQPanel(double[][] pvals, boolean log10, boolean rotated, float maxValue) {
+	public QQPanel(String[] labels, double[][] pvals, boolean log10, boolean rotated, float maxValue, Color[] colorScheme, Logger log) {
 		super();
 		
 		this.pvals = pvals;
 		this.log10 = log10;
 		this.rotated = rotated;
 		this.maxValue = maxValue;
+		this.colorScheme = colorScheme;
+		
+		this.descriptions = new String[pvals.length];
+		
+		log.report("File\tTrait\tLambda");
+		for (int i = 0; i<pvals.length; i++) {
+			descriptions[i] = "lambda = "+ext.formDeci(Array.lambda(pvals[i]), 4)+" ("+labels[i]+")";
+			log.report(Array.toStr(ext.replaceAllWith(labels[i], "'", "").split("[\\s]+"))+"\t"+ext.formDeci(Array.lambda(pvals[i]), 4));
+        }
 		
 		createLookup(false);
 
 		// taken care of in AbstractPanel constructor
 		addComponentListener(this);
 		setZoomable(true, true);
+	}
+	
+	protected double[][] getPvals() {
+		return pvals;
+	}
+
+	public void drawTitle(Graphics g, boolean base, FontMetrics fontMetrics) {
+		if (base) {
+		    Color currColor = g.getColor();
+		    fontMetrics = g.getFontMetrics(DESCR_FONT);
+		    int fontHeight = (fontMetrics == null ? 25 : fontMetrics.getHeight());
+		    int descrY = 0;
+		    
+		    for (int i = 0; i < descriptions.length; i++) {
+		    	int descrX = PAD + axisYWidth;
+		    	descrY += calcSingleDescrHeight(fontHeight);
+
+		    	g.setColor(descriptions.length==1 ? colorScheme[0] : colorScheme[i+2]);
+		    	g.drawString(descriptions[i], descrX, descrY);
+		    }
+            g.setColor(currColor);
+		}
+	}
+	
+	public int calcTitleHeight(Graphics g, boolean base, FontMetrics fontMetrics) {
+		if (base) {
+		    fontMetrics = g.getFontMetrics(DESCR_FONT);
+		    int fontHeight = (fontMetrics == null ? 25 : fontMetrics.getHeight());
+            return calcSingleDescrHeight(fontHeight) * descriptions.length;
+		}
+		return 0;
+	}
+	
+	private static int calcSingleDescrHeight(int fontHeight) {
+		return fontHeight + PAD * 2;
 	}
 
 	public void assignAxisLabels() {

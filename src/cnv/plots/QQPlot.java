@@ -3,13 +3,12 @@ package cnv.plots;
 
 import java.io.*;
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
 import common.*;
 import filesys.SerialFloatArray;
 
-public class QQPlot extends JFrame implements ActionListener {
+public class QQPlot {
 	public static final long serialVersionUID = 1L;
 	
 	public static final String[] DEFAULT_FILES = {
@@ -23,108 +22,104 @@ public class QQPlot extends JFrame implements ActionListener {
 	};
 
 	public static final boolean JAR = false;
-	public static final Color[] COLOR_SCHEME = {
-		Color.BLACK, 
-		Color.GRAY,
-		new Color(55, 129, 252), // dark blue
-		new Color(140, 20, 180), // deep purple
-		new Color(201, 30, 10), new Color(217, 109, 194), // deep red/pink
-		new Color(33, 31, 53), // new Color(255, 255, 255), // dark dark / light light
-		new Color(94, 88, 214), // light purple
-		new Color(189, 243, 61), // light green
-		new Color(33, 87, 0),  // dark green
-
-		new Color(45, 120, 150),
-		new Color(240, 150, 100),
-		new Color(100, 240, 0),
-
-		};
+	public static final Color[] COLOR_SCHEME = new Color[] {
+			Color.BLACK, 
+			Color.GRAY,
+			new Color(33, 31, 53), // dark dark
+			new Color(23, 58, 172), // dark blue
+		   	new Color(201, 30, 10), // deep red
+		   	new Color(140, 20, 180), // deep purple
+		   	new Color(33, 87, 0), // dark green
+		   	new Color(55, 129, 252), // light blue
+		   	new Color(94, 88, 214), // light purple
+		   	new Color(189, 243, 61), // light green
+		   	new Color(217, 109, 194), // pink
+		   	new Color(0, 0, 128), // ALL KINDS OF BLUES
+		   	new Color(100, 149, 237),
+		   	new Color(72, 61, 139),
+		   	new Color(106, 90, 205),
+		   	new Color(123, 104, 238),
+		   	new Color(132, 112, 255),
+		   	new Color(0, 0, 205),
+		   	new Color(65, 105, 225),
+		   	new Color(0, 0, 255),
+		   	new Color(30, 144, 255),
+		   	new Color(0, 191, 255),
+		   	new Color(135, 206, 250),
+		   	new Color(135, 206, 250),
+		   	new Color(70, 130, 180),
+		   	new Color(176, 196, 222),
+		   	new Color(173, 216, 230),
+		   	new Color(176, 224, 230),
+		   	new Color(175, 238, 238),
+		   	new Color(0, 206, 209),
+		   	new Color(72, 209, 204),
+		   	new Color(64, 224, 208),
+		   	new Color(0, 255, 255),
+		   	new Color(224, 255, 255),
+		   	new Color(255, 192, 0),	// yellowy orange
+		   	new Color(227, 108, 9), // halloween orange
+	};
 	
-	public QQPlot(String plotLabel, String[] labels, double[][] pvals, boolean log10, boolean rotated, boolean symmetric, float maxValue, Logger log) {
-		super(plotLabel);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		
+	private QQPanel qqPanel;
+	private Logger log;
+	
+	/**
+	 * 
+	 * @param labels labels for each set of pvals
+	 * @param pvals array of pvals for each label in labels
+	 * @param log10 use -log10 of p values
+	 * @param rotated display QQ rotated
+	 * @param symmetric force symmetric axes
+	 * @param maxValue maximum -log10 pval to display
+	 * @param log
+	 */
+	public QQPlot(String[] labels, double[][] pvals, boolean log10, boolean rotated, boolean symmetric, float maxValue, Logger log) {
+		this.log = log;
 		log.report("Loading data for "+ext.listWithCommas(labels));
 
-//		JPanel plotsPanel = new JPanel();
-//		plotsPanel.setLayout(new GridLayout(1, 2));
-
-		final QQPanel panelA = new QQPanel(pvals, log10, rotated, maxValue);
-		panelA.setSymmetricAxes(symmetric);
-		panelA.setColorScheme(COLOR_SCHEME);
+		qqPanel = new QQPanel(labels, pvals, log10, rotated, maxValue, COLOR_SCHEME, log);
+		qqPanel.setSymmetricAxes(symmetric);
 		if (!log10) {
-			panelA.setForcePlotXmax(1);
-			panelA.setForcePlotYmax(1);
+			qqPanel.setForcePlotXmax(1);
+			qqPanel.setForcePlotYmax(1);
 		}
-////		panelA.setPreferredSize(new Dimension(500,500));
-//		plotsPanel.add(panelA);
-		getContentPane().add(panelA, BorderLayout.CENTER);
 
-//		QQPanel panelB = new QQPanel(pvals, true);
-////		panelB.setPreferredSize(new Dimension(500,500));
-//		plotsPanel.add(panelB);
-
-//		getContentPane().add(plotsPanel, BorderLayout.CENTER);
-
-		JPanel descrPanel = new JPanel();
-		descrPanel.setLayout(new GridLayout(pvals.length, 1));
-
-		JLabel label;
-//		label = new JLabel("Q-Q plot", JLabel.CENTER);
-//		label.setFont(new Font("Arial", 0, 20));
-//		descrPanel.add(label);
+		qqPanel.setTrackedSize((int)qqPanel.getSize().getWidth(), (int)qqPanel.getSize().getHeight());
+	}
+	
+	public void screenCap(String outFile) {
 		
-		log.report("File\tTrait\tLambda");
-		for (int i = 0; i<pvals.length; i++) {
-			label = new JLabel("lambda = "+ext.formDeci(Array.lambda(pvals[i]), 4)+" ("+labels[i]+")", JLabel.CENTER);
-			log.report(Array.toStr(ext.replaceAllWith(labels[i], "'", "").split("[\\s]+"))+"\t"+ext.formDeci(Array.lambda(pvals[i]), 4));
-			label.setForeground(pvals.length==1?COLOR_SCHEME[0]:COLOR_SCHEME[i+2]);
-			label.setFont(new Font("Arial", 0, 20));
-			descrPanel.add(label);
-        }
-
-		descrPanel.setBackground(Color.WHITE);
-		getContentPane().add(descrPanel, BorderLayout.NORTH);
-		setBounds(20, 20, 1000, 720);
-		setVisible(true);
-		panelA.setTrackedSize((int)panelA.getSize().getWidth(), (int)panelA.getSize().getHeight());
-//		I thought this createImage() led to an unnecessary double rendering, but then didn't get anything to view
-//		However it is double rendering (at least in QQPlot) and removing createImage() removes both renderings
-//		SwingUtilities.invokeLater(new Runnable() {
-//		    public void run() {
-//		        panelA.createImage();
-//		        panelA.repaint();
-//		panelA.paintComponent(panelA.getGraphics());
-//		        panelA.updateUI(); // this adds the additional rendering, but if this isn't here then a partial image or no image is shown until the pane is moused over
-//		    }
-//		});
-//		panelB.createImage();
-//		panelB.updateUI();
+		int descrHeight = qqPanel.getPvals().length * 35;
+		qqPanel.setSize(new Dimension(2000,1440 + descrHeight));
+		qqPanel.validate();
+		qqPanel.createImage();
+		qqPanel.screenCapture(outFile);
+		
 	}
 
-	public void actionPerformed(ActionEvent ae) {
-		String command = ae.getActionCommand();
-
-		System.err.println("Error - unknown command '"+command+"'");
+	
+	protected QQPanel getQqPanel() {
+		return qqPanel;
 	}
-
-//	public static String formatFilenames(String[] filenames, int[] indices, String[] labels) {
-//		String str;
-//		
-//		if (filenames.length != indices.length || filenames.length != labels.length) {
-//			System.err.println("Error - mismatched array lengths ("+filenames.length+"/"+indices.length+"/"+labels.length+")");
-//			return null;
-//		}
-//		
-//		str="";
-//		for (int i = 0; i < filenames.length; i++) {
-//			str += (i==0?"":";")+filenames[i]+","+indices[i]+"="+labels[i];
-//		}
-//		
-//		return str;		
-//	}
-//	
-	public static void loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles, boolean displayStandardQQ, boolean displayRotatedQQ, double maxToPlot, boolean symmetric, float maxValue, Logger log) {
+	
+	protected Logger getLog() {
+		return log;
+	}
+	
+	/**
+	 * 
+	 * @param filenames files to load pvals from
+	 * @param plotLabel label for the plot
+	 * @param displayQuantiles display quantiles instead of -log10 pvals
+	 * @param displayStandardQQ display standard QQ plot with -log10 pvals
+	 * @param displayRotatedQQ display rotated QQ plot with -log10 pvals
+	 * @param maxToPlot -log10(p) at which to start truncating
+	 * @param symmetric force symmetric axes
+	 * @param maxValue maximum -log10 p-value to plot
+	 * @param log
+	 */
+	public static QQPlot loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles, boolean displayStandardQQ, boolean displayRotatedQQ, double maxToPlot, boolean symmetric, float maxValue, Logger log) {
 		BufferedReader reader;
 		String[] labels;
 		double[][] pvals;
@@ -138,9 +133,9 @@ public class QQPlot extends JFrame implements ActionListener {
 		int invalids;
 		
 		if (filenames == null || filenames.length == 0) {
-			JOptionPane.showMessageDialog(null, "There are no files selected for viewing in QQ plot; please add the names of the files you want to view after QQ_FILENAMES= in the project's .properties file (also be sure to uncomment the property by removing the has symbol (\"#\"))", "Error", JOptionPane.ERROR_MESSAGE);
-			log.reportError("There are no files selected for viewing in QQ plot; please add the names of the files you want to view after QQ_FILENAMES= in the project's .properties file (also be sure to uncomment the property by removing the has symbol (\"#\"))");
-			return;
+			reportQQError("There are no files selected for viewing in QQ plot; please add the names of the files you want to view after QQ_FILENAMES= in the project's .properties file (also be sure to uncomment the property by removing the hash symbol (\"#\"))",
+						  log);
+			return null;
 		}
 		
 		if (maxToPlot < 0) {
@@ -169,8 +164,8 @@ public class QQPlot extends JFrame implements ActionListener {
 			}
 			log.report("Loading "+labels[i]);
 			if (!Files.exists(filenames[i])) {
-				JOptionPane.showMessageDialog(null, "Error - file "+filenames[i]+" does not exist", "Error", JOptionPane.ERROR_MESSAGE);
-				return;
+				reportQQError("Error - file "+filenames[i]+" does not exist", log);
+				return null;
 			}
 			delimiter = Files.determineDelimiter(filenames[i], log);
 			try {
@@ -187,13 +182,14 @@ public class QQPlot extends JFrame implements ActionListener {
 					log.reportError("Error - could not parse "+filenames[i]+" completely:");
 					log.reportError(temp);
 					log.reportException(e);
-					return;
+					return null;
 				}
 				invalids = 0;
 				try {
 					if (!ext.isMissingValue(trav)) {
 						if (Double.parseDouble(trav) <= 0) {
-							JOptionPane.showMessageDialog(null, "Error - one of the p-values in file "+filenames[i]+" is near zero ("+trav+") for line:\n"+ext.replaceAllWith(temp, delimiter, "  "), "Error", JOptionPane.ERROR_MESSAGE);
+							reportQQError("Error - one of the p-values in file "+filenames[i]+" is near zero ("+trav+") for line:\n"+ext.replaceAllWith(temp, delimiter, "  "),
+										  log);
 							invalids++;
 						}
 						header = false;
@@ -215,7 +211,8 @@ public class QQPlot extends JFrame implements ActionListener {
 						try {
 							if (Double.parseDouble(trav) <= 0) {
 								if (invalids < 3) {
-									JOptionPane.showMessageDialog(null, "Error - one of the p-values in file "+filenames[i]+" is near zero ("+trav+") for line:\n"+ext.replaceAllWith(temp, delimiter, "  "), "Error", JOptionPane.ERROR_MESSAGE);
+									reportQQError("Error - one of the p-values in file "+filenames[i]+" is near zero ("+trav+") for line:\n"+ext.replaceAllWith(temp, delimiter, "  "),
+											  	  log);
 								}
 								invalids++;
 							} else {
@@ -223,7 +220,8 @@ public class QQPlot extends JFrame implements ActionListener {
 							}
 						} catch (NumberFormatException nfe) {
 							if (invalids < 3) {
-								JOptionPane.showMessageDialog(null, "Error - one of the p-values in file "+filenames[i]+" is not a number ("+trav+") for line:\n"+ext.replaceAllWith(temp, delimiter, "  "), "Error", JOptionPane.ERROR_MESSAGE);
+								reportQQError("Error - one of the p-values in file "+filenames[i]+" is not a number ("+trav+") for line:\n"+ext.replaceAllWith(temp, delimiter, "  "),
+											  log);
 							}
 							invalids++;
 						}
@@ -231,7 +229,7 @@ public class QQPlot extends JFrame implements ActionListener {
 				}
 				reader.close();
 				if (invalids > 2) {
-					JOptionPane.showMessageDialog(null, "There were "+invalids+" total markers that had an invalid p-value for file "+filenames[i], "Error", JOptionPane.ERROR_MESSAGE);
+					reportQQError("There were "+invalids+" total markers that had an invalid p-value for file "+filenames[i], log);
 				}
 
 				reader = Files.getReader(filenames[i], JAR, true, true);
@@ -260,8 +258,8 @@ public class QQPlot extends JFrame implements ActionListener {
 				}
 				reader.close();
 				if (count != pvals[i].length) {
-					JOptionPane.showMessageDialog(null, "Error - mismatched number of values: "+count+" of "+pvals[i].length+" were valid", "Error", JOptionPane.ERROR_MESSAGE);
-					return;
+					reportQQError("Error - mismatched number of values: "+count+" of "+pvals[i].length+" were valid", log);
+					return null;
 				}
 				
 				pvals[i] = Sort.putInOrder(pvals[i]);
@@ -275,18 +273,24 @@ public class QQPlot extends JFrame implements ActionListener {
         }
 
 		if (error) {
-			return;
+			return null;
 		}
 		
 		if (displayQuantiles) {
-			new QQPlot(plotLabel, labels, pvals, false, false, false, maxValue, log);
+			return new QQPlot(labels, pvals, false, false, false, maxValue, log);
 		}
 		if (displayStandardQQ) {
-			new QQPlot(plotLabel, labels, pvals, true, false, symmetric, maxValue, log);
+			return new QQPlot(labels, pvals, true, false, symmetric, maxValue, log);
 		}
 		if (displayRotatedQQ) {
-			new QQPlot(plotLabel, labels, pvals, true, true, false, maxValue, log);
+			return new QQPlot(labels, pvals, true, true, false, maxValue, log);
 		}
+		return null;
+	}
+
+	private static void reportQQError(String error, Logger log) {
+		if (!GraphicsEnvironment.isHeadless()) JOptionPane.showMessageDialog(null, error, "Error", JOptionPane.ERROR_MESSAGE);
+		else log.reportError(error);
 	}
 
 	public static void computeCI(String dir, String prefix, int max, Logger log) {
@@ -341,84 +345,6 @@ public class QQPlot extends JFrame implements ActionListener {
 	}
 	
 	public static void main(String[] args) {
-		int numArgs = args.length;
-		String[] filenames = DEFAULT_FILES;
-		String computeDir = "";
-		String computePrefix = null;
-		int max = -1;
-		boolean displayQuantiles = false;
-		boolean displayStandardQQ = true;
-		boolean displayRotatedQQ = false;
-		double maxToPlot = -1;
-		boolean symmetric = false;
-		String plotLabel = "Q-Q Plot";
-		float maxValue = Float.MAX_VALUE;
-		String logfile = null;
-
-		String usage = "\n"+
-		"plot.QQPlot requires 0-1 arguments\n"+
-		"   (1) name of files with p-values (i.e. files="+Array.toStr(filenames, ";")+" (default))\n"+
-		"   (2) -log10(p) at which to start truncating (i.e. maxToPlot=10 (default: -1))\n"+
-		"   (3) make symmetric (i.e. -symmetric (not the default))\n"+
-		"   (4) name of plot, for frame (i.e. plotLabel="+plotLabel+" (default))\n"+
-		"   (5) maximum -log10 p-value to plot (i.e. maxValue=Infinity (default))\n"+
-		"   (6) (optinal) log file (i.e. log="+logfile+" (default))\n"+
-		"";
-
-		for (int i = 0; i<args.length; i++) {
-			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (args[i].startsWith("files=")) {
-				filenames = args[i].substring(6).split(";");
-				numArgs--;
-			} else if (args[i].startsWith("prefix=")) {
-				computePrefix = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("max=")) {
-				max = Integer.parseInt(args[i].split("=")[1]);
-				numArgs--;
-			} else if (args[i].startsWith("maxToPlot=")) {
-				maxToPlot = Double.parseDouble(args[i].split("=")[1]);
-				numArgs--;
-			} else if (args[i].startsWith("-quantiles")) {
-				displayQuantiles = true;
-				numArgs--;
-			} else if (args[i].startsWith("-standardQQ")) {
-				displayStandardQQ = true;
-				numArgs--;
-			} else if (args[i].startsWith("-rotatedQQ")) {
-				displayRotatedQQ = true;
-				numArgs--;
-			} else if (args[i].startsWith("-symmetric")) {
-				symmetric = true;
-				numArgs--;
-			} else if (args[i].startsWith("plotLabel=")) {
-				plotLabel = args[i].split("=")[1];
-				numArgs--;
-			} else if (args[i].startsWith("maxValue=")) {
-				maxValue = ext.parseFloatArg(args[i]);
-				numArgs--;
-			} else if (args[i].startsWith("log=")) {
-				logfile = ext.parseStringArg(args[i], null);
-				numArgs--;
-			}
-		}
-		if (numArgs!=0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		
-		System.out.println("Found "+filenames.length+" files to parse: \n"+Array.toStr(filenames, "\n"));
-		
-		try {
-			if (computePrefix != null) {
-				computeCI(computeDir, computePrefix, max, new Logger(logfile));
-			} else {
-				loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ, displayRotatedQQ, maxToPlot, symmetric, maxValue, new Logger(logfile));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		QQPlotFrame.main(args);
 	}
 }

@@ -592,7 +592,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //				QQPlot.loadPvals(proj.getFilenames(Project.QQ_FILENAMES, true), "Q-Q Plot", Boolean.valueOf(proj.getProperty(Project.DISPLAY_QUANTILES)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_STANDARD_QQ)), Boolean.valueOf(proj.getProperty(Project.DISPLAY_ROTATED_QQ)), -1, false, proj.getFloat(Project.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
 //				QQPlot.loadPvals(proj.getFilenames(proj.QQ_FILENAMES, true), "Q-Q Plot", proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ), proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false, proj.getFloat(proj.QQ_MAX_NEG_LOG10_PVALUE), proj.getLog());
 //				QQPlot.loadPvals(proj.QQ_FILENAMES.getValue(true), "Q-Q Plot", proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ), proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false, proj.QQ_MAX_NEG_LOG10_PVALUE.getValue(), proj.getLog());
-				QQPlot.loadPvals(proj.QQ_FILENAMES.getValue(), "Q-Q Plot", proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ), proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false, proj.QQ_MAX_NEG_LOG10_PVALUE.getValue(), proj.getLog());
+				QQPlotFrame.loadPvals(proj.QQ_FILENAMES.getValue(), "Q-Q Plot", proj.getProperty(proj.DISPLAY_QUANTILES), proj.getProperty(proj.DISPLAY_STANDARD_QQ), proj.getProperty(proj.DISPLAY_ROTATED_QQ), -1, false, proj.QQ_MAX_NEG_LOG10_PVALUE.getValue(), proj.getLog());
 			} else if (command.equals(STRAT)) {
 				StratPlot.loadStratificationResults(proj);
 			} else if (command.equals(MOSAICISM)) {
