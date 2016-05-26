@@ -142,6 +142,8 @@ public class Emim {
 		
 		generateEmimParams(filenameOriginal, setParams, log);
 		
+		System.out.println("emimparams.dat set to " + model.toString() + " model of " + runType + " effect");
+		
 	}
 	
 	private static void listSexMarkers(String bimFile, String sexFile) throws NumberFormatException, IOException {
@@ -297,7 +299,7 @@ public class Emim {
         }
         commands = "cd " + currDir + "\n" + commands;
         
-        Files.qsub(currDir + ext.rootOf(plinkDirAndRoot, true)+"_runEmim.pbs", commands, 20000, 12, 1);
+        Files.qsub(currDir + ext.rootOf(plinkDirAndRoot, true)+"_runEmim.pbs", commands, 8000, 6, 1);
         
         return true;
 	}
