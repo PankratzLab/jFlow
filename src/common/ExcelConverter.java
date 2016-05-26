@@ -37,7 +37,7 @@ public class ExcelConverter {
 		}
 		this.log = log;
 	}
-	
+
 	public ExcelConverter(List<ExcelConversionParams> files, String output, Logger log) {
 		super();
 		this.files = files;
@@ -49,47 +49,51 @@ public class ExcelConverter {
 	}
 
 	public void convert(boolean overwrite) {
-		
+
 		if (!Files.exists(output) || overwrite) {
 			new File(ext.parseDirectoryOfFile(output)).mkdirs();
 			try {
 				XSSFWorkbook workbook = new XSSFWorkbook();
 				for (ExcelConversionParams fileParams : files) {
-
-					XSSFSheet sheet = workbook.createSheet(fileParams.getSheetName());
 					try {
-						BufferedReader reader = Files.getAppropriateReader(fileParams.getFile());
-						int rownum = 0;
-						while (reader.ready()) {
-							String[] line = reader.readLine().trim().split(fileParams.getDelimiter());
-							Row row = sheet.createRow(rownum++);
-							int cellnum = 0;
-							for (int i = 0; i < line.length; i++) {
-								Cell cell = row.createCell(cellnum++);
-								try {
-									if (Double.isNaN(Double.parseDouble(line[i]))) {
+						XSSFSheet sheet = workbook.createSheet(fileParams.getSheetName());
+						try {
+							BufferedReader reader = Files.getAppropriateReader(fileParams.getFile());
+							int rownum = 0;
+							while (reader.ready()) {
+								String[] line = reader.readLine().trim().split(fileParams.getDelimiter());
+								Row row = sheet.createRow(rownum++);
+								int cellnum = 0;
+								for (int i = 0; i < line.length; i++) {
+									Cell cell = row.createCell(cellnum++);
+									try {
+										if (Double.isNaN(Double.parseDouble(line[i]))) {
+											cell.setCellValue(line[i]);
+
+										} else {
+											cell.setCellValue(Double.parseDouble(line[i]));
+										}
+									} catch (NumberFormatException nfe) {
 										cell.setCellValue(line[i]);
 
-									} else {
-										cell.setCellValue(Double.parseDouble(line[i]));
 									}
-								} catch (NumberFormatException nfe) {
-									cell.setCellValue(line[i]);
 
 								}
-
 							}
-						}
 
-						reader.close();
-					} catch (FileNotFoundException fnfe) {
-						log.reportError("Error: file \"" + fileParams.getFile() + "\" not found in current directory");
-						workbook.close();
-						return;
-					} catch (IOException ioe) {
-						log.reportError("Error reading file \"" + fileParams.getFile() + "\"");
-						workbook.close();
-						return;
+							reader.close();
+						} catch (FileNotFoundException fnfe) {
+							log.reportError("Error: file \"" + fileParams.getFile() + "\" not found in current directory");
+							workbook.close();
+							return;
+						} catch (IOException ioe) {
+							log.reportError("Error reading file \"" + fileParams.getFile() + "\"");
+							workbook.close();
+							return;
+						}
+					} catch (IllegalArgumentException ile) {
+						log.reportTimeError("Offending = " + fileParams.getSheetName());
+						ile.printStackTrace();
 					}
 				}
 

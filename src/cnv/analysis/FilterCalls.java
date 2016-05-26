@@ -915,10 +915,11 @@ public class FilterCalls {
 		int cnt = 1;
 		int startCnt = newCNVs.size();
 		do {
+			startCnt = newCNVs.size();
 			newCNVs = getMergedCNVs(newCNVs, distanceQuotient, positions);
 			cnt++;
-		} while(startCnt > newCNVs.size());
-		
+		} while (startCnt > newCNVs.size());
+
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
 			writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
@@ -930,7 +931,6 @@ public class FilterCalls {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 		System.out.println(cnt + " iterations; from " + startCnt + " to " + newCNVs.size() + " CNVs");
 	}
 	
