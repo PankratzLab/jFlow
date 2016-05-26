@@ -1,25 +1,14 @@
-package one.ben.fcs;
+package one.ben.fcs.sub;
 
 import java.awt.Color;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.geom.Path2D;
-import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 
-import javax.swing.SwingUtilities;
-
-import one.ben.fcs.gating.Gate.PolygonGate;
-import one.ben.fcs.gating.Gate.RectangleGate;
-import one.ben.fcs.gating.GateDimension;
-import stats.Histogram;
+import one.ben.fcs.AbstractPanel2;
 import cnv.plots.GenericLine;
 import cnv.plots.GenericPath;
-//import cnv.filesys.MarkerLookup;
 import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
+
 import common.Array;
 
 public class MeanPanel extends AbstractPanel2  {
@@ -71,12 +60,10 @@ public class MeanPanel extends AbstractPanel2  {
 		
 		this.setAxisFontSize(24);
 		this.setSymmetricAxes(false);
-//		setZoomable(true, true);
 		setZoomable(false, true);
 
 		setColorScheme(DEFAULT_COLORS);
 
-//		setNullMessage("Select two variables to plot");
 	}
 
 	float[] xDataBase; // Files - in date order
@@ -95,7 +82,6 @@ public class MeanPanel extends AbstractPanel2  {
 
     public void generatePointsRectanglesAndLines() {
 		byte type;
-//		String[] line;
 		float xAxisValue, yAxisValue;
 		byte size = POINT_SIZE;
 		

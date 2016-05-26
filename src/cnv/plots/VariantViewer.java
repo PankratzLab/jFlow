@@ -1632,8 +1632,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		    }
 		});
 		geneListCmb.setPreferredSize(new Dimension(geneListCmb.getPreferredSize().width, 26));
-		nextGene = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
-        nextGene.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+		nextGene = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif"));
+        nextGene.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif"));
         nextGene.addActionListener(this);
         nextGene.setActionCommand(NEXT_REGION);
         nextGene.setPreferredSize(new Dimension(25, 25));

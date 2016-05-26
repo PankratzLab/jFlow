@@ -78,7 +78,7 @@ public class FCSDataLoader {
     Date endTime;
     double[] paramScaling;
     
-    enum DATA_SET {
+    public enum DATA_SET {
         ALL,
         COMPENSATED,
         UNCOMPENSATED;
