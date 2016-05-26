@@ -129,7 +129,7 @@ public class Internat {
 			if (verbose) {
 				System.out.print("Downloading "+source);
 			}
-			if (output.indexOf("/")>0) {
+			if (output.lastIndexOf("/")>0) {
 				new File(output.substring(0, output.lastIndexOf("/"))).mkdirs();
 			}
 			try {
@@ -223,8 +223,8 @@ public class Internat {
 	}
 	
 	public static void main(String[] args) {
-		downloadAllFilesInClipboard("C:/ENCODE/");
-//		downloadFile("http://yahoo.com", "yahoo.html");
+	//	downloadAllFilesInClipboard("C:/ENCODE/");
+		downloadFile("http://yahoo.com", "yahoo.html");
 
 	}
 }

@@ -20,7 +20,7 @@ public class Resources {
 
 	public static final String ARRAY_SUB_DIR = "Arrays/";
 
-	public static final String GENOME_CHR_SUB_DIR = GENOME_SUB_DIR + "chr/";
+	public static final String CHR_SUB_DIR = "chr/";
 
 	// TODO, a big TODO
 	// need to add web-based download, and local file structure
@@ -35,7 +35,7 @@ public class Resources {
 		SHAPEIT("shapeit/bin/shapeit",
 				"https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.v2.r837.GLIBCv2.12.Linux.static.tgz",
 				false,
-				"shapeit.tar.gz"),
+				"shapeit/shapeit.tar.gz"),
 
 		MINIMAC3("Minimac3/bin/Minimac3-omp",
 				DEFAULT_URL + BIN_SUB_DIR + "Minimac3/Minimac3.v1.0.14.tar.gz",
@@ -148,7 +148,7 @@ public class Resources {
 		}
 
 		public Resource getResource(GENOME_BUILD build, String chr) {
-			String resourceSubPath = GENOME_CHR_SUB_DIR + namePrefix + build.getBuild() + "_" + "chr" + chr + nameSuffix;
+			String resourceSubPath = GENOME_RESOURCE_TYPE.getGenomeBuildSubDir(build) + CHR_SUB_DIR  + namePrefix + build.getBuild() + "_" + "chr" + chr + nameSuffix;
 			return new Resource(getLocalDirBase(), resourceSubPath, url) {
 			};
 		}
@@ -178,7 +178,7 @@ public class Resources {
 		}
 
 		public Resource getResource(GENOME_BUILD build) {
-			String resourceSubPath = GENOME_SUB_DIR + build.getBuild() + "/" + namePrefix + build.getBuild() + nameSuffix;
+			String resourceSubPath = getGenomeBuildSubDir(build) + namePrefix + build.getBuild() + nameSuffix;
 			switch (this) {
 			case DB_SNP:
 				return new VCFResource(getLocalDirBase(), resourceSubPath, url);
@@ -186,6 +186,10 @@ public class Resources {
 				return new Resource(getLocalDirBase(), resourceSubPath, url) {
 				};
 			}
+		}
+		
+		protected static String getGenomeBuildSubDir (GENOME_BUILD build) {
+			return GENOME_SUB_DIR + build.getBuild() + "/";
 		}
 	}
 
