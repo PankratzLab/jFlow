@@ -661,8 +661,12 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			setPlotXMin((float) (Float.isNaN(forcePlotXmin) ? plotMinMaxStep[0] : forcePlotXmin));
 			setPlotXMax((float) (Float.isNaN(forcePlotXmax) ? plotMinMaxStep[1] : forcePlotXmax));
 			
-	        if (displayXaxis && xAxisLabel != null) {
+	        if (displayXaxis) {
 	            drawXAxis(g, plotMinMaxStep, fontMetrics);
+	        } 
+	        if (xAxisLabel != null) {
+	            Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
+	            g.drawString(xAxisLabel, (getWidth()-axisYWidth)/2 - fontMetrics.stringWidth(xAxisLabel)/2 + 2*(axisYWidth/3), getHeight()-20);
 	        }
 		
 	        if (DEBUGGING) {
@@ -1266,8 +1270,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         g.setFont(prevFont);
         fontMetrics = g.getFontMetrics();
         
-        Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
-        g.drawString(xAxisLabel, (getWidth()-axisYWidth/*WIDTH_Y_AXIS*/)/2-fontMetrics.stringWidth(xAxisLabel)/2+axisYWidth/*WIDTH_Y_AXIS*/, getHeight()-20);
     }
     
     private int getExp(int l) {

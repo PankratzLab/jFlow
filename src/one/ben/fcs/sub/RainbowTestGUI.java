@@ -1,4 +1,4 @@
-package one.ben.fcs;
+package one.ben.fcs.sub;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -29,6 +29,8 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -36,10 +38,13 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableColumnModel;
@@ -50,24 +55,19 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
+import one.ben.fcs.FCSDataLoader;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
+import one.ben.fcs.FCSPlot;
 import one.ben.fcs.gating.Gate;
 import one.ben.fcs.gating.GateFileReader;
 import one.ben.fcs.gating.GatingStrategy;
 
 import org.xml.sax.SAXException;
 
-import cnv.gui.FileNavigator;
 import cnv.gui.IncludeExcludeGUI;
+
 import common.Array;
 import common.ext;
-
-import javax.swing.JRadioButton;
-import javax.swing.ButtonGroup;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
 
 
 public class RainbowTestGUI extends JFrame {
@@ -589,11 +589,11 @@ public class RainbowTestGUI extends JFrame {
     
     private void showMeanPanel(String col) {
         // Get all means (yData), get Files&Dates (xData), get Mean/SD (meanSD)
-        float[] xDataBase, xDataComp, yDataBase, yDataComp, meanSD;
+        float[] xDataBase, xDataComp, yDataBase, yDataComp;
         
         TreeMap<Date, Float> meanMap = new TreeMap<Date, Float>();
         for(Entry<String, FCSDataLoader> l : baseFiles.entrySet()) {
-            meanMap.put(l.getValue().runDate, fileParamMeanMap.get(l.getKey()).get(col));
+            meanMap.put(l.getValue().getRunDate(), fileParamMeanMap.get(l.getKey()).get(col));
         }
         xDataBase = new float[meanMap.size()];
         yDataBase = new float[meanMap.size()];
@@ -606,7 +606,7 @@ public class RainbowTestGUI extends JFrame {
         
         meanMap = new TreeMap<Date, Float>();
         for(Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
-            meanMap.put(l.getValue().runDate, fileParamMeanMap.get(ext.removeDirectoryInfo(l.getKey())).get(col));
+            meanMap.put(l.getValue().getRunDate(), fileParamMeanMap.get(ext.removeDirectoryInfo(l.getKey())).get(col));
         }
         xDataComp = new float[meanMap.size()];
         yDataComp = new float[meanMap.size()];
@@ -961,7 +961,7 @@ public class RainbowTestGUI extends JFrame {
     private void addBaseToModel(String[] paramNames) {
         TreeMap<Date, String> map = new TreeMap<Date, String>();
         for (String f : baseFCSFiles) {
-            map.put(baseFiles.get(f).runDate, f);
+            map.put(baseFiles.get(f).getRunDate(), f);
         }
         for (String f : map.values()) {
             fileParamMeanMap.put(f, new HashMap<String, Float>());

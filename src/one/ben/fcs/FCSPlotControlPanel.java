@@ -1,6 +1,5 @@
 package one.ben.fcs;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
@@ -10,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -19,11 +19,14 @@ import java.io.FilenameFilter;
 import java.text.Format;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.TreeSet;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -34,21 +37,19 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
-import javax.swing.table.DefaultTableModel;
 
 import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
-import one.ben.fcs.FCSDataLoader.LOAD_STATE;
-import scala.collection.mutable.HashMap;
 import cnv.gui.JAccordionPanel;
+
 import common.Files;
 import common.ext;
 
@@ -298,21 +299,71 @@ public class FCSPlotControlPanel extends JPanel {
         dataControlsPanel.topPanel.add(dCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
         
         JPanel dataPanel = dataControlsPanel.contentPanel;
-        dataPanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow]", "[grow]0px[]"));
+        dataPanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow]", "0px[]0px[]0px[grow]0px[]0px[]0px"));
+        
+        JLabel dirLbl = new JLabel("Select File Directory:");
+        dataPanel.add(dirLbl, "cell 0 0, growx, alignx left");
         
         fileDirField = new JTextField();
-        dataPanel.add(fileDirField, "cell 0 0, growx, split 2");
+        dataPanel.add(fileDirField, "cell 0 1, growx, split 2");
         dirSelectBtn = new JButton(">");
         dirSelectBtn.addActionListener(dirSelectListener);
         dirSelectBtn.setMargin(new Insets(0, 2, 0, 2));
-        dataPanel.add(dirSelectBtn, "cell 0 0");
+        dataPanel.add(dirSelectBtn, "cell 0 1");
         
-        final JScrollPane scrollPane = new JScrollPane();
+        dataScrollPane = new JScrollPane();
         actualDataPanel = new ScrollablePanel(new MigLayout("", "", ""));
-        scrollPane.setViewportView(actualDataPanel);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        dataPanel.add(scrollPane, "cell 0 1, grow");
+        dataScrollPane.setViewportView(actualDataPanel);
+        dataScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        dataScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        dataPanel.add(dataScrollPane, "cell 0 2, grow");
+        
+        InputMap im = dataScrollPane.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        ActionMap am = dataScrollPane.getActionMap();
+        
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "up");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "down");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.CTRL_DOWN_MASK), "up_ctrl");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.CTRL_DOWN_MASK), "down_ctrl");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.ALT_DOWN_MASK), "up_ctrl");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK), "down_ctrl");
+        
+        am.put("up", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int sel = -1;
+                for (int i = 0; i < filePanels.size(); i++) {
+                    if (filePanels.get(i).isSelected()) {
+                        sel = i;
+                        break;
+                    }
+                }
+                if (sel == -1 || sel == 0) return;
+                filePanels.get(sel).setSelected(false);
+                filePanels.get(sel-1).setSelected(true);
+                dataScrollPane.getViewport().scrollRectToVisible(filePanels.get(sel-1).getBounds());
+            }
+        });
+        am.put("down", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int sel = -1;
+                for (int i = 0; i < filePanels.size(); i++) {
+                    if (filePanels.get(i).isSelected()) {
+                        sel = i;
+                        break;
+                    }
+                }
+                if (sel == filePanels.size() - 1) return;
+                if (sel > -1) {
+                    filePanels.get(sel).setSelected(false);
+                }
+                filePanels.get(sel+1).setSelected(true);
+                dataScrollPane.getViewport().scrollRectToVisible(filePanels.get(sel+1).getBounds());
+            }
+        });
+//        am.put("up_ctrl", arg1);
+//        am.put("down_ctrl", arg1);
         
         // TODO mouse keys (up/down for changing selection, alt/ctrl-up/down for displaying prev/next file data, etc)
         // TODO listener for move up
@@ -322,32 +373,8 @@ public class FCSPlotControlPanel extends JPanel {
         // TODO listener for load
         // TODO memory management and warnings
         
-//        {
-//            int ind = 0;
-//            int test = 19;
-//            HashMap<String, DataControlPanel> fileCtrl = new HashMap<String, DataControlPanel>();
-//            final ArrayList<DataControlPanel> ctrlList = new ArrayList<DataControlPanel>();
-//            for (int i = 0; i < test; i++) {
-//                final int index = i;
-//                DataControlPanel dcp = new DataControlPanel();
-//                dcp.addMouseListener(new MouseAdapter() {
-//                    @Override
-//                    public void mouseClicked(MouseEvent e) {
-//                        super.mouseClicked(e);
-//                        for (int j = 0; j < ctrlList.size(); j++) {
-//                            ctrlList.get(j).setSelected(j == index);
-//                        }
-//                    }
-//                });
-//                fileCtrl.put(i + "", dcp);
-//                ctrlList.add(dcp);
-//                actualDataPanel.add(dcp, "cell 0 " + (ind++));
-//                actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (ind++));
-//            }
-//        }
-        
         dataMsgPanel = new JPanel();
-        dataPanel.add(dataMsgPanel, "cell 0 1, grow");
+        dataPanel.add(dataMsgPanel, "cell 0 3, grow");
         dataMsgPanel.setVisible(false);
         
         add(panel_1, "cell 0 0,grow");
@@ -384,6 +411,8 @@ public class FCSPlotControlPanel extends JPanel {
         }
     }
     
+    ArrayList<DataControlPanel> filePanels = new ArrayList<DataControlPanel>();
+    
     private void listFiles() {
         String fileDir = ext.verifyDirFormat(fileDirField.getText());
         String[] files = new File(fileDir).list(new FilenameFilter() {
@@ -397,20 +426,97 @@ public class FCSPlotControlPanel extends JPanel {
             fileSet.add(f);
         }
         
-        int index = 0;
-        actualDataPanel.removeAll();
-        actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
+        filePanels.clear();
         for (String f : fileSet) {
             String sz = Files.getSizeScaledString(fileDir + f, false);
             String dt = "";
-            DataControlPanel dcp = new DataControlPanel(f, sz, dt);
-            actualDataPanel.add(dcp, "cell 0 " + (index++));
-            actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
+            final DataControlPanel dcp = new DataControlPanel(f, sz, dt, dataListener);
+            dcp.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    super.mouseClicked(e);
+                    for (int i = 0; i < filePanels.size(); i++) {
+                        if (filePanels.get(i) == dcp) {
+                            filePanels.get(i).setSelected(true);
+                            dcp.requestFocusInWindow();
+                            dataScrollPane.getViewport().scrollRectToVisible(dcp.getBounds());
+                        } else {
+                            filePanels.get(i).setSelected(false);
+                        }
+                    }
+                }
+            });
+            filePanels.add(dcp);
         }
         
-        revalidate();
-        repaint();
+        addFilePanels();
     }
+    
+    private void addFilePanels() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                int index = 0;
+                actualDataPanel.removeAll();
+                actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
+                for (DataControlPanel dcp : filePanels) {
+                    actualDataPanel.add(dcp, "cell 0 " + (index++));
+                    actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
+                }
+                
+                dataControlsPanel.contentPanel.revalidate();
+                dataScrollPane.revalidate();
+                
+                revalidate();
+                repaint();
+            }
+        });
+    }
+    
+    ActionListener dataListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            DataControlPanel dcp = (DataControlPanel) e.getSource();
+            String cmd = e.getActionCommand();
+            String file = cmd.split("::")[0];
+            cmd = cmd.split("::")[1];
+            int ind = -1;
+            for (int i = 0; i < filePanels.size(); i++) {
+                if (filePanels.get(i) == dcp) {
+                    ind = i;
+                } else {
+                    filePanels.get(i).setSelected(false);
+                }
+            }
+            if (ind == -1) {
+                // TODO error!
+                System.err.println("Error - couldn't find DataControlPanel!");
+                return;
+            }
+            dcp.setSelected(true);
+            if (cmd.equals(DataControlPanel.ACTION_DELETE)) {
+                // TODO if data already loaded, delete and GC
+                filePanels.remove(ind);
+                addFilePanels();
+            } else if (cmd.equals(DataControlPanel.ACTION_MOVE_UP)) {
+                if (ind == 0) return;
+                Collections.swap(filePanels, ind, ind-1);
+                addFilePanels();
+            } else if (cmd.equals(DataControlPanel.ACTION_MOVE_DOWN)) {
+                if (ind == filePanels.size()) return;
+                Collections.swap(filePanels, ind, ind+1);
+                addFilePanels();
+            } else if (cmd.equals(DataControlPanel.ACTION_INFO)) {
+                // TODO build info GUI for files
+            } else if (cmd.equals(DataControlPanel.ACTION_LOAD)) {
+                // TODO track dataLoaders, if already loaded -> unload
+                // TODO check memory available before loading, show YELLOW warning if nearing max, show RED warning if not enough memory 
+                boolean loaded = true;
+                dcp.setLoaded(loaded);
+            }
+            // apply action to file
+        }
+    };
     
     ActionListener dirSelectListener = new ActionListener() {
         @Override
@@ -459,6 +565,8 @@ public class FCSPlotControlPanel extends JPanel {
     private JPanel dataMsgPanel;
 
     private JPanel actualDataPanel;
+
+    private JScrollPane dataScrollPane;
     
     public void setPlotType(PLOT_TYPE typ) {
         cbType.setSelectedItem(typ);

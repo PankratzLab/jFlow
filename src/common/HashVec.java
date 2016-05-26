@@ -347,7 +347,7 @@ public class HashVec {
 				reader.readLine();
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split(delimiter);
+				line = reader.readLine().trim().split(delimiter, -1);
 				if (cols == null) {
 					v.add(line);
 				} else {

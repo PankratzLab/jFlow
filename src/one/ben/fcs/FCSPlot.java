@@ -4,12 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Frame;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
@@ -17,9 +14,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -32,13 +27,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;
 
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
@@ -46,8 +37,12 @@ import one.ben.fcs.FCSDataLoader.DATA_SET;
 import one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import one.ben.fcs.gating.GateFileReader;
 import one.ben.fcs.gating.GatingStrategy;
-import one.ben.fcs.gating.Gate.RectangleGate;
+import one.ben.fcs.sub.RainbowTestGUI;
+
+import org.xml.sax.SAXException;
+
 import cnv.gui.GuiManager;
+
 import common.Files;
 import common.Logger;
 
@@ -55,10 +50,10 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     
     public static final String HISTOGRAM_COL = "Histogram";
     
-    static final int START_X = 20;
-    static final int START_Y = 20;
-    static final int START_WIDTH = 1000;
-    static final int START_HEIGHT = 600;
+    public static final int START_X = 20;
+    public static final int START_Y = 20;
+    public static final int START_WIDTH = 1000;
+    public static final int START_HEIGHT = 600;
 
     public static final long serialVersionUID = 1L;
 	public static final Color BACKGROUND_COLOR = Color.WHITE;
@@ -270,23 +265,23 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     public boolean showMedian(boolean yAxis) { return yAxis ? showMedianY : showMedianX; }
     public boolean showSD(boolean yAxis) { return yAxis ? showSDY : showSDX; }
     
-    protected void setXDataName(String xDataName) { 
+    public void setXDataName(String xDataName) { 
         this.xDataName = xDataName;
         if (!xDataName.equals(this.fcsControls.getSelectedX())) {
             this.fcsControls.setXData(xDataName);
         }
     }
-    protected void setYDataName(String yDataName) { 
+    public void setYDataName(String yDataName) { 
         this.yDataName = yDataName;
         if (!yDataName.equals(this.fcsControls.getSelectedY())) {
             this.fcsControls.setYData(yDataName);
         }
     }
 
-    protected void setXScale(AXIS_SCALE scale) { this.fcsPanel.setXAxis(scale); }
-    protected void setYScale(AXIS_SCALE scale) { this.fcsPanel.setYAxis(scale); }
+    public void setXScale(AXIS_SCALE scale) { this.fcsPanel.setXAxis(scale); }
+    public void setYScale(AXIS_SCALE scale) { this.fcsPanel.setYAxis(scale); }
 	
-    protected void setPlotType(PLOT_TYPE type) { 
+    public void setPlotType(PLOT_TYPE type) { 
         this.fcsPanel.chartType = type;
         if (type == PLOT_TYPE.HISTOGRAM) {
             this.setYDataName(HISTOGRAM_COL);
@@ -301,7 +296,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
     }
     
-    protected void setMedianVisible(boolean show, boolean yAxis) {
+    public void setMedianVisible(boolean show, boolean yAxis) {
         if (yAxis) {
             showMedianY = show; 
         } else {
@@ -309,7 +304,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
     }
     
-    protected void setSDVisible(boolean show, boolean yAxis) {
+    public void setSDVisible(boolean show, boolean yAxis) {
         if (yAxis) {
             showSDY = show; 
         } else {
