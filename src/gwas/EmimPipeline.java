@@ -259,8 +259,7 @@ public class EmimPipeline {
         if (log1 != null) {
             processCommand += " log=" + log1.getFilename();
         }
-        Files.write(processCommand, runDir + "../processResults.sh");
-        Files.chmod(runDir + "../processResults.sh");
+        Files.qsub(runDir + "/processResults.pbs", processCommand, 8000, 6, 1);
         
         
     }
