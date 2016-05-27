@@ -122,22 +122,20 @@ public class BoxPlot extends JFrame {
             @Override
             public void run() {
                 int wid = scrollContent.getWidth();
+                int cols = wid / PANEL_WIDTH;
                 int row = 0;
-                int iComp = 0;
                 scrollContent.removeAll();
                 for (int i = 0; i < paths.size(); i++) {
+                    if (i / cols > (row/2)) {
+                        row += 2;
+                    }
                     String key = Array.toStr(paths.get(i), "\t");
                     BoxPanel bp = panelMap.get(key);
-                    if ((wid -= PANEL_WIDTH) < 0) {
-                        wid = scrollContent.getWidth();
-                        row += 2;
-                        iComp = i;
-                    }
-                    scrollContent.add(bp, "cell " + (i-iComp) + " " + row);
+                    scrollContent.add(bp, "cell " + (i % cols) + " " + row);
                     String pts = bp.dataLabel.split("\\|")[0].trim().replaceAll("/", "  /<br />");
                     JLabel pnlLbl = new JLabel("<html><p>" + pts + "</p></html>");
                     pnlLbl.setBackground(Color.WHITE);
-                    scrollContent.add(pnlLbl, "cell " + (i-iComp) + " " + (row + 1) + ", alignx center, aligny top");
+                    scrollContent.add(pnlLbl, "cell " + (i % cols) + " " + (row + 1) + ", alignx center, aligny top");
                 }
                 revalidate();
                 repaint();
