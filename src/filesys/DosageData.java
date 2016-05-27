@@ -874,7 +874,7 @@ public class DosageData implements Serializable {
                     mapOut = root+".map";
                 }
                 newMarkerSet = markerSet.trim(regionsToKeep, false, log);
-                keeps = HashVec.loadToHashSet(markerSet.getMarkerNames());
+                keeps = HashVec.loadToHashSet(newMarkerSet.getMarkerNames());
                 newMarkerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
                 try {
                     writer = new PrintWriter(new FileWriter(root+".ids.fam"));

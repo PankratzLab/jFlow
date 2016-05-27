@@ -95,7 +95,9 @@ public class BoxPanel extends AbstractPanel2  {
 		double med = Array.median(data);
 		double qr25 = Array.quant(data, 0.25);
 		double qr75 = Array.quant(data, 0.75);
-        double iqr = Array.iqr(data); // does it matter that Array.iqr != qr75-qr25???
+        double iqr = (qr75 - qr25);//Array.iqr(data); // does it matter that Array.iqr != qr75-qr25???
+//        System.out.println("Array.iqr = " + iqr);
+//        System.out.println("QR75 - QR25 = " + (qr75 - qr25));
         double wiskLow = qr25 - 1.5 * iqr; 
         double wiskHigh = qr75 + 1.5 * iqr;
         double min = Math.min(wiskLow, Array.min(data));

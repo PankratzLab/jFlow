@@ -1,5 +1,7 @@
 package one.ben.fcs.sub;
 
+import htsjdk.samtools.util.Objects;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -8,13 +10,19 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Vector;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 
 import common.Array;
 import common.Files;
@@ -24,12 +32,15 @@ import common.ext;
 import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.FCSPlot;
 
-
 public class BoxPlot extends JFrame {
     
-//	String testFile = "C:\\Users\\Ben\\Desktop\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
+    private static final int PANEL_WIDTH = 256;
+    private static final int PANEL_HEIGHT = 340;
+    
+    //	String testFile = "C:\\Users\\Ben\\Desktop\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
     String testFile = "F:\\Flow\\counts data\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
     private JPanel scrollContent;
+    private BoxCtrlPanel ctrlPanel;
     
     public BoxPlot() {
         super();
@@ -41,15 +52,38 @@ public class BoxPlot extends JFrame {
         
         scrollContent = new JPanel(new MigLayout("", "", ""));
         scrollContent.setBackground(Color.WHITE);
-        JScrollPane scrollPane = new JScrollPane(scrollContent, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        JScrollPane scrollPane = new JScrollPane(scrollContent, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         
-        contentPane.add(scrollPane, BorderLayout.CENTER);
+        ctrlPanel = new BoxCtrlPanel();
+        ctrlPanel.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                if (e.getNewLeadSelectionPath() == null) return; // extra events
+                ArrayList<String[]> paths = new ArrayList<String[]>();
+                for (TreePath path : ctrlPanel.getSelectedPaths()) {
+                    Object[] objPath = path.getPath();
+                    String[] pathStr = new String[objPath.length];
+                    for (int i = 0; i < objPath.length; i++) {
+                        pathStr[i] = (String) ((DefaultMutableTreeNode) objPath[i]).getUserObject();
+                    }
+                    paths.add(pathStr);
+                }
+                setDisplay(paths);
+            }
+        });
+        JSplitPane jsp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, ctrlPanel, scrollPane);
+//        JSplitPane jsp = new JSplitPane(JSplitPane.VERTICAL_SPLIT, ctrlPanel, scrollPane);
+        jsp.setDividerLocation(200);
+        contentPane.add(jsp, BorderLayout.CENTER);
     }
+    
+    HashMap<String, BoxPanel> panelMap = new HashMap<String, BoxPanel>();
     
     private void loadFile(String file) {
     	setTitle(ext.removeDirectoryInfo(file));
         String[][] data = loadFileToStringMatrix(file);
         final ArrayList<BoxPanel> panels = new ArrayList<BoxPanel>();
+        final ArrayList<String> headers = new ArrayList<String>();
         for (int i = 1; i < data[0].length; i++) {
             if (data[0][i].equals("")) continue;
             ArrayList<Double> panelData = new ArrayList<Double>();
@@ -67,19 +101,43 @@ public class BoxPlot extends JFrame {
             }
             BoxPanel bp = new BoxPanel();
             bp.setData(lbl, Array.toDoubleArray(panelData));
-            bp.setPreferredSize(new Dimension(256, 340));
+            bp.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
             panels.add(bp);
+            panelMap.put(Array.toStr(lbl.split("\\|")[0].trim().split("/"), "\t"), bp);
+            headers.add(lbl);
         }
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 scrollContent.removeAll();
-                for (int i = 0; i < panels.size(); i++) {
-                    scrollContent.add(panels.get(i), "cell " + i + " 0");
-                    String pts = panels.get(i).dataLabel.split("\\|")[0].trim().replaceAll("/", "  /<br />");
+                ctrlPanel.setData(headers.toArray(new String[headers.size()]));
+                revalidate();
+                repaint();
+            }
+        });
+    }
+    
+    public void setDisplay(final ArrayList<String[]> paths) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                int wid = scrollContent.getWidth();
+                int row = 0;
+                int iComp = 0;
+                scrollContent.removeAll();
+                for (int i = 0; i < paths.size(); i++) {
+                    String key = Array.toStr(paths.get(i), "\t");
+                    BoxPanel bp = panelMap.get(key);
+                    if ((wid -= PANEL_WIDTH) < 0) {
+                        wid = scrollContent.getWidth();
+                        row += 2;
+                        iComp = i;
+                    }
+                    scrollContent.add(bp, "cell " + (i-iComp) + " " + row);
+                    String pts = bp.dataLabel.split("\\|")[0].trim().replaceAll("/", "  /<br />");
                     JLabel pnlLbl = new JLabel("<html><p>" + pts + "</p></html>");
                     pnlLbl.setBackground(Color.WHITE);
-                    scrollContent.add(pnlLbl, "cell " + i + " 1, alignx center, aligny top");
+                    scrollContent.add(pnlLbl, "cell " + (i-iComp) + " " + (row + 1) + ", alignx center, aligny top");
                 }
                 revalidate();
                 repaint();
@@ -109,7 +167,6 @@ public class BoxPlot extends JFrame {
 //                                          # all non [()] characters in between
                 data = line.split(",(?=(([^']*'){2})*[^']*$)(?=(([^\"]*\"){2})*[^\"]*$)(?![^()]*\\))", -1);
                 v.add(data);
-                
             }
             reader.close();
         } catch (FileNotFoundException fnfe) {
