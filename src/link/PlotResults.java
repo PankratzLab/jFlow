@@ -286,9 +286,9 @@ public class PlotResults extends JFrame implements ActionListener {
 		};
 		graphPanel.add(panel, BorderLayout.CENTER);
 
-		graphPanel.add(new JLabel(Grafik.getImageIcon("images/distance28.gif", jar)), BorderLayout.SOUTH);
-		graphPanel.add(new JLabel(Grafik.getImageIcon("images/LODscore28+73.gif", jar)), BorderLayout.WEST);
-		graphPanel.add(new JLabel(Grafik.getImageIcon("images/information20.gif", jar)), BorderLayout.EAST);
+		graphPanel.add(new JLabel(Grafik.getImageIcon("images/distance28.gif")), BorderLayout.SOUTH);
+		graphPanel.add(new JLabel(Grafik.getImageIcon("images/LODscore28+73.gif")), BorderLayout.WEST);
+		graphPanel.add(new JLabel(Grafik.getImageIcon("images/information20.gif")), BorderLayout.EAST);
 		getContentPane().add(graphPanel, BorderLayout.CENTER);
 
 		JPanel descrPanel = new JPanel();
@@ -297,14 +297,14 @@ public class PlotResults extends JFrame implements ActionListener {
 		JPanel navigationPanel = new JPanel();
 		// navigationPanel.setLayout(new GridLayout(1,5));
 
-		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif", true));
-		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
+		first = new JButton(Grafik.getImageIcon("images/firstLast/First.gif"));
+		first.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif"));
 		first.addActionListener(this);
 		first.setActionCommand(FIRST);
 		first.setPreferredSize(new Dimension(20, 20));
 
-		previous = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif", true));
-		previous.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+		previous = new JButton(Grafik.getImageIcon("images/firstLast/Left.gif"));
+		previous.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLeft.gif"));
 		previous.addActionListener(this);
 		previous.setActionCommand(PREVIOUS);
 		previous.setPreferredSize(new Dimension(20, 20));
@@ -313,14 +313,14 @@ public class PlotResults extends JFrame implements ActionListener {
 		chrNum.setFont(new Font("Arial", 0, 20));
 		chrNum.setPreferredSize(new Dimension(160, 20));
 
-		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif", true));
-		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+		next = new JButton(Grafik.getImageIcon("images/firstLast/Right.gif"));
+		next.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dRight.gif"));
 		next.addActionListener(this);
 		next.setActionCommand(NEXT);
 		next.setPreferredSize(new Dimension(20, 20));
 
-		last = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif", true));
-		last.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
+		last = new JButton(Grafik.getImageIcon("images/firstLast/Last.gif"));
+		last.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dLast.gif"));
 		last.addActionListener(this);
 		last.setActionCommand(LAST);
 		last.setPreferredSize(new Dimension(20, 20));

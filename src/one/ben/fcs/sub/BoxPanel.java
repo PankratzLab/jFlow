@@ -69,16 +69,13 @@ public class BoxPanel extends AbstractPanel2  {
 		displayXaxis = false;
 		axisXHeight -= axisXHeight / 2;
 		axisYWidth -= axisYWidth / 3;
+		
+		setYAxis(AXIS_SCALE.LIN);
+		setXAxis(AXIS_SCALE.LIN);
 	}
 
 	double[] data = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16, 16.2};
 	String dataLabel = "Lymphocytes (SSC-A v FSC-A) | Freq. of Parent (%)";
-	
-	public static void main(String[] args) {
-	    JFrame frame = new JFrame();
-	    frame.add(new BoxPanel());
-	    frame.setVisible(true);
-    }
 	
 	public void setData(String dataName, double[] data) {
 	    this.dataLabel = dataName;
@@ -98,12 +95,19 @@ public class BoxPanel extends AbstractPanel2  {
 		double med = Array.median(data);
 		double qr25 = Array.quant(data, 0.25);
 		double qr75 = Array.quant(data, 0.75);
-        double iqr = Array.iqr(data);
+        double iqr = Array.iqr(data); // does it matter that Array.iqr != qr75-qr25???
         double wiskLow = qr25 - 1.5 * iqr; 
         double wiskHigh = qr75 + 1.5 * iqr;
         double min = Math.min(wiskLow, Array.min(data));
         double max = Math.max(wiskHigh, Array.max(data));
-        setForcePlotYMax((float) (max + min));
+        setForcePlotYMin((float) (min));
+        setForcePlotYMax((float) (max));
+        setPlotYMin((float) (min));
+        setPlotYMax((float) (max));
+//        setForcePlotYMin((float) (min-min/2));
+//        setForcePlotYMax((float) (max + min/2));
+//        setPlotYMin((float) (min-min/2));
+//        setPlotYMax((float) (max + min));
         
         lines = new GenericLine[9];
 		
@@ -133,13 +137,11 @@ public class BoxPanel extends AbstractPanel2  {
 		ArrayList<PlotPoint> pts = new ArrayList<PlotPoint>();
 		for (double d : data) {
 		    if (d < wiskLow || d > wiskHigh) {
-		        pts.add(new PlotPoint("" + d, PlotPoint.FILLED_CIRCLE, 5f, (float)d, (byte)2, (byte)0, (byte)0));
+		        pts.add(new PlotPoint("" + d, PlotPoint.FILLED_CIRCLE, xMed, (float)d, (byte)5, (byte)1, (byte)0));
 		    }
 		}
 		points = pts.toArray(new PlotPoint[pts.size()]);
 		
-		setYAxis(AXIS_SCALE.LIN);
-		setXAxis(AXIS_SCALE.LIN);
 	}
 	
 
@@ -155,7 +157,7 @@ public class BoxPanel extends AbstractPanel2  {
     @Override
     public void assignAxisLabels() {
         String[] pts = dataLabel.split("\\|");
-        xAxisLabel = pts[0].trim();
+        xAxisLabel = "";//pts[0].trim().replaceAll("/", " /\n");
         yAxisLabel = pts[1].trim();
     }
     

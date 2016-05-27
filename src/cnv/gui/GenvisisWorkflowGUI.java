@@ -417,7 +417,7 @@ public class GenvisisWorkflowGUI extends JDialog {
         alreadyRunLbls.put(step, alreadyRanLbl);
         panel.topPanel.add(alreadyRanLbl, "cell 1 0, alignx right, hidemode 3");
         JButton cancelStepButton = new JButton(interruptAction);
-        cancelStepButton.setIcon(Grafik.getImageIcon("images/redx.png", true));
+        cancelStepButton.setIcon(Grafik.getImageIcon("images/redx.png"));
         cancelStepButton.setVisible(false);
         cancelStepButton.setIconTextGap(0);
         cancelStepButton.setMargin(new Insets(1, 1, 0, 1));
