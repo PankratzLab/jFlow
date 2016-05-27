@@ -113,6 +113,7 @@ public class BoxPanel extends AbstractPanel2  {
         
         lines = new GenericLine[9];
 		
+        
         float xLow = 2;
         float xHigh = 20;
         float xMed = xLow + (xHigh-xLow)/2;
