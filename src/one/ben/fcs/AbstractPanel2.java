@@ -665,8 +665,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	            drawXAxis(g, plotMinMaxStep, fontMetrics);
 	        } 
 	        if (xAxisLabel != null) {
-	            Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
-	            g.drawString(xAxisLabel, (getWidth()-axisYWidth)/2 - fontMetrics.stringWidth(xAxisLabel)/2 + 2*(axisYWidth/3), getHeight()-20);
+	            drawXAxisAndLabel(g, fontMetrics);
 	        }
 		
 	        if (DEBUGGING) {
@@ -991,6 +990,12 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		if (DEBUGGING) {
 			System.out.println("Took " + ext.getTimeElapsed(fullTime)+" to draw "+(createLookup?"(and create lookup for) ":"")+points.length+" points");
 		}
+	}
+
+
+	private void drawXAxisAndLabel(Graphics g, FontMetrics fontMetrics) {
+		Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
+		g.drawString(xAxisLabel, (getWidth()-axisYWidth)/2 - fontMetrics.stringWidth(xAxisLabel)/2 + 2*(axisYWidth/3), getHeight()-20);
 	}
 
 

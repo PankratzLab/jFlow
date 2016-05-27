@@ -53,8 +53,8 @@ public class ImportProjectGUI extends JDialog {
     private JLabel lblFoundMarkerListStatus;
     private JLabel lblFoundTransposedStatus;
 
-    private ImageIcon redX = Grafik.getImageIcon("images/redx.png", true);
-    private ImageIcon tick = Grafik.getImageIcon("images/tick.png", true);
+    private ImageIcon redX = Grafik.getImageIcon("images/redx.png");
+    private ImageIcon tick = Grafik.getImageIcon("images/tick.png");
     
     volatile boolean cancelled = false;
     

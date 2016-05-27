@@ -434,7 +434,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		iconBar = new JPanel();
 		iconBar.setLayout(new FlowLayout(FlowLayout.LEFT));
 		for (int i=0; i<icons.length; i++) {
-			button = new JButton(Grafik.getImageIcon(icons[i], true));
+			button = new JButton(Grafik.getImageIcon(icons[i]));
 //			button.setDisabledIcon(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
 //			button.addActionListener(this);
 			button.setActionCommand(commands[i]);

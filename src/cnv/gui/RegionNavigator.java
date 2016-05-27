@@ -64,11 +64,11 @@ public class RegionNavigator extends JPanel implements ActionListener {
 	 * Initialize the graphics and add listeners
 	 */
 	public void initButtons() {
-		firstButton = new JButton(Grafik.getImageIcon("images/firstLast/dFirst.gif", true));
+		firstButton = new JButton(Grafik.getImageIcon("images/firstLast/dFirst.gif"));
 		firstButton.addActionListener(this);
 		add(firstButton);
 
-		leftButton = new JButton(Grafik.getImageIcon("images/firstLast/dLeft.gif", true));
+		leftButton = new JButton(Grafik.getImageIcon("images/firstLast/dLeft.gif"));
 		leftButton.addActionListener(this);
 		add(leftButton);
 
@@ -78,11 +78,11 @@ public class RegionNavigator extends JPanel implements ActionListener {
 		add(getTextField());
 		getTextField().setColumns(20);
 
-		rightButton = new JButton(Grafik.getImageIcon("images/firstLast/dRight.gif", true));
+		rightButton = new JButton(Grafik.getImageIcon("images/firstLast/dRight.gif"));
 		rightButton.addActionListener(this);
 		add(rightButton);
 
-		lastButton = new JButton(Grafik.getImageIcon("images/firstLast/dLast.gif", true));
+		lastButton = new JButton(Grafik.getImageIcon("images/firstLast/dLast.gif"));
 		lastButton.addActionListener(this);
 		add(lastButton);
 
