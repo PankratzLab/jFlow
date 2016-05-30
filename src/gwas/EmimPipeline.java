@@ -551,13 +551,19 @@ public class EmimPipeline {
                        "   (2a) cnv files (i.e. cnvs=cnvFile1.cnv,cnvFile2.cnv (not the default))\n" +
                        " AND/OR \n" + 
                        "   (2b) PLINK fileroots (i.e. plink=plink1,plink2 (not the default))\n" + 
+                       " AND\n" + 
+                       "   (3) population file (i.e. pop=" + popFile + " (default))\n" +
+                       " AND\n" + 
+                       "   (4) subpopulation file (i.e. subPop=" + subPopFile + " (default))\n" +
+                       " AND\n" + 
+                       "   (5) p-value threshold to filter on (i.e. pThreshold=" + pThreshold + " (default))\n" +
                        " AND, if desired (though the script to run this will be created automatically)\n" + 
-                       "   (3) -process flag to consolidate results after PBS files have completed (i.e. -process (not the default))\n" +
+                       "   (6) -process flag to consolidate results after PBS files have completed (i.e. -process (not the default))\n" +
                        " AND/OR \n" + 
-                       "   (4) -forest flag to generate forest plot parameters for a set of markers (i.e. -forest (not the default))\n" +
+                       "   (7) -forest flag to generate forest plot parameters for a set of markers (i.e. -forest (not the default))\n" +
                        " AND \n" + 
-                       "   (5) markers to use for forest plot parameter generation (i.e. forestMarkers=./gwasHits.txt (default))\n";
-        int argNum = 6;
+                       "   (8) markers to use for forest plot parameter generation (i.e. forestMarkers=./gwasHits.txt (default))\n";
+        int argNum = 9;
         for (Emim.EMIM_MODEL model : models) {
         	usage += " AND \n" + 
                      "   (" + argNum++ +") Include " + model.toString() + " model (i.e. " + model.toString() + "=true (default))\n";
