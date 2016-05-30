@@ -129,6 +129,8 @@ public class EmimPipeline {
         ArrayList<String> pbsFiles = new ArrayList<String>();
         Logger log = log1 == null ? new Logger() : log1;
         PopFileData popData, subPopData;
+        popFile = new File(popFile).getAbsolutePath();
+        subPopFile = new File(subPopFile).getAbsolutePath();
         try {
             popData = loadPopFile(popFile);
             subPopData = loadPopFile(subPopFile);
@@ -233,8 +235,8 @@ public class EmimPipeline {
         }
         
 
-        log.reportTimeInfo("Writing QSUB files...");
         if (pbsFiles.size() > 0) {
+            log.reportTimeInfo("Writing QSUB files...");
             writeQsubs(pbsFiles, runDir, qsubQueue);
 //            for (String pbsFile : pbsFiles) {
 //                CmdLine.run("qsub " + (qsubQueue != null ? "-q " + qsubQueue : "") + pbsFile, ext.parseDirectoryOfFile(pbsFile));
@@ -242,7 +244,7 @@ public class EmimPipeline {
             log.reportTimeInfo("Pipeline prepared, run " + runDir + "runPBSFiles.sh to submit QSUB jobs");
             
         } else {
-        	log.reportError("No pbs scripts generated, to re-run EMIM remove/rename the existing directories");
+        	log.reportError("No pipeline pbs scripts generated, to re-run EMIM remove/rename the existing directories");
         }
         
         String processCommand = "jcp gwas.EmimPipeline -process dir=" + runDir;
@@ -260,6 +262,8 @@ public class EmimPipeline {
             processCommand += " log=" + log1.getFilename();
         }
         Files.qsub(runDir + "/processResults.pbs", processCommand, 8000, 6, 1);
+        
+        log.report("PBS script for post-pipeline processing generated, submit " + runDir + "/processResults.pbs after the pipeline has completed to process results");
         
         
     }
