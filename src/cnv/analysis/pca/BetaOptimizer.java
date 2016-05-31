@@ -504,7 +504,7 @@ public class BetaOptimizer {
 				methodPU.setRestrictions(new Restrictions[] { rPval });// rNat
 				methodPU.setxRange(new double[] { 0, 150 });
 				methodPU.setyRange(new double[] { -1, 1 });
-				methodPU.setyLabel("correlation (pearson) of |betas| with p < " + pvals[j]);
+				methodPU.setyLabel("correlation (pearson) of betas with p < " + pvals[j]);
 				methodPU.setTitle("ABS Betas from " + ext.rootOf(betaFile) + "\nMarker Call rate >= " + markerCallRate);
 				methodPU.setxLabel("PC");
 				methodPU.setVertLines(vertLines);
@@ -536,7 +536,7 @@ public class BetaOptimizer {
 				methodPUInv.setRestrictions(new Restrictions[] { rPval });// rNat
 				methodPUInv.setxRange(new double[] { 0, 150 });
 				methodPUInv.setyRange(new double[] { -1, 1 });
-				methodPUInv.setyLabel("correlation (pearson) of |betas| with p < " + pvals[j]);
+				methodPUInv.setyLabel("correlation (pearson) of betas with p < " + pvals[j]);
 				methodPUInv.setTitle("ABS Betas from " + ext.rootOf(betaFile) + "\nMarker Call rate >= " + markerCallRate + "\nInverse normalized mtDNA CN estimate");
 				methodPUInv.setxLabel("PC");
 				methodPUInv.setVertLines(vertLines);
@@ -636,6 +636,7 @@ public class BetaOptimizer {
 		case STRAND_CONFIG_BOTH_NULL:
 		case STRAND_CONFIG_SPECIAL_CASE:
 		case STRAND_CONFIG_UNKNOWN:
+		case STRAND_CONFIG_AMBIGOUS:
 			return false;
 
 		default:
@@ -647,6 +648,8 @@ public class BetaOptimizer {
 	private static ArrayList<MetaBeta> loadBetas(ArrayList<MarkerRsFormat> markerRsFormats, String betaFile, double minPval, Logger log) {
 		String[] header = Files.getHeaderOfFile(betaFile, log);
 		int[] indices = ext.indexFactors(BETA_HEADER, header, false, false);
+		int ambi = 0;
+
 		if (Array.countIf(indices, -1) > 0) {
 			log.reportTimeError("Did not detect proper header in " + betaFile + ", requires " + Array.toStr(BETA_HEADER));
 			return null;
@@ -662,7 +665,6 @@ public class BetaOptimizer {
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split("\t");
 					String rsId = line[indices[0]];
-
 					if (index.containsKey(rsId)) {
 						try {
 							double beta = Double.parseDouble(line[indices[3]]);
@@ -672,6 +674,9 @@ public class BetaOptimizer {
 								String[] betaAlleles = new String[] { line[indices[1]].toUpperCase(), line[indices[2]].toUpperCase() };
 								String[] markerAlleles = new String[] { current.getMarkerAlleles()[0], current.getMarkerAlleles()[1] };
 								CONFIG strandConfig = StrandOps.determineStrandConfig(markerAlleles, betaAlleles);
+								if (strandConfig == CONFIG.STRAND_CONFIG_AMBIGOUS) {
+									ambi++;
+								}
 								if (useConfig(strandConfig) && current.isValidMatch()) {
 
 									switch (strandConfig) {
@@ -708,6 +713,9 @@ public class BetaOptimizer {
 			} catch (IOException ioe) {
 				log.reportError("Error reading file \"" + betaFile + "\"");
 				return null;
+			}
+			if (ambi > 0) {
+				log.reportTimeWarning("Removed " + ambi + " ambiguous markers");
 			}
 			return metaBetas;
 
