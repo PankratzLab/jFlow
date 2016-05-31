@@ -11,7 +11,6 @@ import java.util.concurrent.Callable;
 import common.Array;
 import common.CmdLine;
 import common.ExcelConverter;
-import common.ExcelConverter.ExcelConversionParams;
 import common.Files;
 import common.HashVec;
 import common.Logger;
@@ -40,7 +39,7 @@ public class PlinkCNV {
 
 		for (int filt = 0; filt < filters.length; filt++) {
 			String[][] phenos = HashVec.loadFileToStringMatrix(dir + "pheno.dat", false, null, false);
-			final String filtFile = dir +filters[filt];
+			final String filtFile = dir + filters[filt];
 			String out = dir + ext.rootOf(filters[filt]) + ".cnv";
 
 			if (!Files.exists(out)) {
@@ -110,7 +109,7 @@ public class PlinkCNV {
 						String out = opDir + pheno + ".cnv.summary.mperm";
 						boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
 
-						return new PlinkResult( filtFile,key, out, complete);
+						return new PlinkResult(filtFile, key, out, complete);
 					}
 				};
 				Callable<PlinkResult> c2 = new Callable<PlinkResult>() {
@@ -128,7 +127,7 @@ public class PlinkCNV {
 						String out = opDir + pheno + "_position.cnv.summary.mperm";
 
 						boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
-						return new PlinkResult( filtFile,key + "_pos", out, complete);
+						return new PlinkResult(filtFile, key + "_pos", out, complete);
 
 					}
 				};
@@ -169,44 +168,70 @@ public class PlinkCNV {
 		ArrayList<String> key = new ArrayList<String>();
 		ArrayList<String> combo = new ArrayList<String>();
 		String comboOut = finalDir + "combo.txt";
+		String allSigGenes = finalDir + "sigGenes.txt";
+		HashSet<String> allSigGenesList = new HashSet<String>();
+		String allSigGenes5k = finalDir + "sigGenes5k.txt";
+		HashSet<String> allSigGenesList5k = new HashSet<String>();
+	
+		
+		String allSigGenesEMP2 = finalDir + "sigGenesEMP2_0_5.txt";
+		HashSet<String> allSigGenesListEMP2 = new HashSet<String>();
+
 		filesToCombine.add(comboOut);
-		combo.add("Type\tCHR\tSNP\tEMP1\tEMP2\tUCSC\tGENE\tGENE_5k\tLink_buffer");
+		filesToCombine.add(allSigGenesEMP2);
+		filesToCombine.add(allSigGenes);
+		filesToCombine.add(allSigGenes5k);
+
+		combo.add("Type\tCHR\tSNP\tEMP1\tEMP2\tUCSC\tGENE\tGENE_5k\tLink_buffer\tAFF\tUNAFF");
 		new File(finalDir).mkdirs();
 		int index = 1;
 		for (PlinkResult result : results) {
 			if (result.complete) {
 				String out = finalDir + result.key.substring(0, 26) + "_" + index + ".txt";
 				String[][] data = HashVec.loadFileToStringMatrix(result.file, false, null, "[\\s]+", false, 1000, true);
-				ArrayList<String> toReport = new ArrayList<String>();
-				toReport.add("Type\t" + Array.toStr(data[0]) + "\tUCSC\tGENE\tGENE_5k\tLink_buffer");
+				log.reportTimeInfo("Loading paired " + ext.rootOf(result.file, false));
+				String[][] dataCount = HashVec.loadFileToStringMatrix(ext.rootOf(result.file, false), false, null, "[\\s]+", false, 1000, true);
+				String allSigGenesSpecific = finalDir + result.key + "_Genes" + index + ".txt";
+				HashSet<String> allSigGenesListSpecific = new HashSet<String>();
 				
+				ArrayList<String> toReport = new ArrayList<String>();
+				toReport.add("Type\t" + Array.toStr(data[0]) + "\tUCSC\tGENE\tGENE_5k\tLink_buffer\tAFF\tUNAFF");
+
 				for (int i = 1; i < data.length; i++) {
 					if (data[i].length > 3 && Double.parseDouble(data[i][2]) < 0.05) {
 						int loc = Integer.parseInt(data[i][1].replaceAll("p" + data[i][0] + "-", ""));
 						Segment seg = new Segment(Byte.parseByte(data[i][0]), loc, loc);
 						GeneData[] geneDatas = geneTrack.getOverlappingGenes(seg);
 						GeneData[] geneDatasBuff = geneTrack.getOverlappingGenes(seg.getBufferedSegment(5000));
-
+						if (!data[i][1].equals(dataCount[i][1])) {
+							throw new IllegalArgumentException("mismatched files");
+						}
 						StringBuilder builder = new StringBuilder(result.key + "\t" + Array.toStr(data[i]) + "\t" + seg.getUCSClocation() + "\t");
 						for (int j = 0; j < geneDatas.length; j++) {
 							builder.append((j == 0 ? "" : ":") + geneDatas[j].getGeneName());
+							allSigGenesList.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation());
+							allSigGenesListSpecific.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation());
+							if (Double.parseDouble(data[i][3]) < 1) {
+								allSigGenesListEMP2.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation());
+							}
 						}
 						builder.append("\t");
 						for (int j = 0; j < geneDatasBuff.length; j++) {
 							builder.append((j == 0 ? "" : ":") + geneDatasBuff[j].getGeneName());
+							allSigGenesList5k.add(geneDatasBuff[j].getGeneName() + "\t" + geneDatasBuff[j].getUCSClocation());
 						}
 						builder.append("\t" + seg.getBufferedSegment(5000).getUCSCLink("hg18"));
+						builder.append("\t" + dataCount[i][3] + "\t" + dataCount[i][4]);
 						toReport.add(builder.toString());
-
 						combo.add(builder.toString());
-
 					}
 				}
 				if (toReport.size() > 1) {
-					
+
 					key.add(result.key + "\t" + index);
 					index++;
 					Files.writeArrayList(toReport, out);
+					Files.writeHashSet(allSigGenesListSpecific, allSigGenesSpecific);
 					filesToCombine.add(out);
 					// filesToCombine.add(result.filtFile);
 				}
@@ -215,6 +240,9 @@ public class PlinkCNV {
 
 		Files.writeArrayList(key, finalDir + "key.txt");
 		Files.writeArrayList(combo, comboOut);
+		Files.writeHashSet(allSigGenesList, allSigGenes);
+		Files.writeHashSet(allSigGenesList5k, allSigGenes5k);
+		Files.writeHashSet(allSigGenesListEMP2, allSigGenesEMP2);
 
 		ExcelConverter excelConverter = new ExcelConverter(filesToCombine, finalDir + "p_0_05.xlsx", log);
 		excelConverter.convert(true);
@@ -240,8 +268,8 @@ public class PlinkCNV {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		String dir = "C:/data/ARIC/shadowCNVs/";
-		String cnvFile = dir + "penncnvRaw.cnv";
-		String[] sampFiles = new String[] { dir + "whites.txt", dir + "all.txt" };
+		String cnvFile = dir + "combinedMF.cnv";
+		String[] sampFiles = new String[] { dir + "whites.txt", dir + "all.txt",dir+"casesOnly.txt" };
 
 		String usage = "\n" +
 				"one.JL.ARICCNV requires 0-1 arguments\n" +
