@@ -197,8 +197,9 @@ public class SourceFileParser implements Runnable {
 					
 					count = 0;
 					parseAtAt = proj.getProperty(proj.PARSE_AT_AT_SYMBOL);
-					while (reader.ready()) {
-						line = reader.readLine().split(delimiter, -1);
+					String tmp;
+					while ((tmp = reader.readLine()) != null) {
+						line = tmp.split(delimiter, -1);
 						if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
 							trav = files[i].substring(0, files[i].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
 						} else {
@@ -1134,11 +1135,17 @@ public class SourceFileParser implements Runnable {
 		}
 		
 		log.report(ext.getTime() + "]\tWriting sample list...");
-        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-		SampleList.generateSampleList(proj).writeToTextFile(proj.PROJECT_DIRECTORY.getValue()+"ListOfSamples.txt");
-
+		if (Thread.currentThread().isInterrupted()) {
+			throw new RuntimeException(new InterruptedException());
+		}
+		SampleList.generateSampleList(proj).writeToTextFile(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
+		if (!proj.LONG_FORMAT.getValue()) {
+			if (files.length != proj.getSamples().length) {
+				proj.getLog().reportTimeError("The number of parsed samples (" + proj.getSamples().length + ") does not equal the number of source files detected (" + files.length + ")");
+				proj.getLog().reportTimeError("Please verify source file integrity, or send us a test file to troubleshoot");
+			}
+		}
 		allOutliers = new Hashtable<String, Float>();
-
 
 		v = new Vector<String>();
 
@@ -1169,6 +1176,7 @@ public class SourceFileParser implements Runnable {
 		} else {
 			return 1;
 		}
+		
 	}
 
 	private static int checkForExistingSAMPRAF(Project proj) {

@@ -1,10 +1,16 @@
 # Change Log
 All notable changes to Genvisis could be documented in this file.
-This project could?? adhere to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
-### Added
+##[Unreleased]
 -Finalized Beta optimization in [MitoPipeLine](https://github.com/npankrat/Genvisis/commits/master/src/cnv/manage/MitoPipeline.java)
+
+
+## [0.1.1]
+### Added
+
+- Possible fix to [issue](https://github.com/npankrat/Genvisis/issues/8), checking for NullPointerException when reading src files
+- Also, addressed the [issue](https://github.com/npankrat/Genvisis/issues/8) where src files could fail import without a final warning.
+
 
 ## 0.1.0 - 2016-05-20
 ### Added
@@ -16,4 +22,5 @@ This project could?? adhere to [Semantic Versioning](http://semver.org/).
 
  
 [Unreleased]: https://github.com/npankrat/Genvisis/compare/v0.1.0...HEAD
+[0.1.1]: https://github.com/npankrat/Genvisis/compare/v0.1.1...v0.1.0
 

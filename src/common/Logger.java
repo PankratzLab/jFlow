@@ -100,7 +100,18 @@ public class Logger implements Serializable {
 	 *            report this string with a time stamp and error message
 	 */
 	public void reportTimeError(String str) {
-		reportError(ext.getTime() + " Error - " + str, true, true);
+		String version = getVersion();
+		reportError(version + ext.getTime() + " Error - " + str, true, true);
+	}
+
+	private static String getVersion() {
+		String v = "[Genvisis - version unknown] ";
+		try {
+			v = "[Genvisis " + CurrentManifest.loadGenvisisManifest().getVersion().getVersion() + "] ";
+		} catch (Exception e) {
+
+		}
+		return v;
 	}
 	
 	/**
