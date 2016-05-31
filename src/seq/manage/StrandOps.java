@@ -1,9 +1,13 @@
 package seq.manage;
 
+import java.util.List;
+
 import bioinformatics.Sequence;
 import common.Array;
 import common.ext;
 import htsjdk.tribble.annotation.Strand;
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.VariantContext;
 
 public class StrandOps {
 
@@ -48,6 +52,24 @@ public class StrandOps {
 		}
 	}
 
+	public static boolean isAmbiguous(VariantContext vc) {
+		boolean ambiguous = false;
+		String ref = vc.getReference().getDisplayString();
+		List<Allele> alt = vc.getAlternateAlleles();
+		String[][] ambiguousDefs = new String[][] { { "A", "T" }, { "T", "A" }, { "C", "G" }, { "G", "C" } };
+		for (Allele b : alt) {
+			for (int i = 0; i < ambiguousDefs.length; i++) {
+				if (ref.equals(ambiguousDefs[i][0]) && b.getDisplayString().equals(ambiguousDefs[i][1])) {
+					ambiguous = true;
+					break;
+				}
+			}
+		}
+		 
+		return ambiguous;
+	}
+	
+	
 	public enum CONFIG {
 		STRAND_CONFIG_SAME_ORDER_SAME_STRAND,
 		STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND,
@@ -56,7 +78,23 @@ public class StrandOps {
 		STRAND_CONFIG_DIFFERENT_ALLELES,
 		STRAND_CONFIG_BOTH_NULL,
 		STRAND_CONFIG_SPECIAL_CASE,
+		STRAND_CONFIG_AMBIGOUS,
 		STRAND_CONFIG_UNKNOWN;
+	}
+
+	public static boolean isAmbiguous(String[] alleles) {
+		boolean ambiguous = false;
+		String a1 = alleles[0];
+		String a2 = alleles[1];
+		String[][] ambiguousDefs = new String[][] { { "A", "T" }, { "T", "A" }, { "C", "G" }, { "G", "C" } };
+		for (int i = 0; i < ambiguousDefs.length; i++) {
+			if (a1.equals(ambiguousDefs[i][0]) && a2.equals(ambiguousDefs[i][1])) {
+				ambiguous = true;
+				break;
+			}
+
+		}
+		return ambiguous;
 	}
 
 	public static final String[] VALID_ALLELES = { "A", "C", "G", "T", "I", "D" };
@@ -69,6 +107,10 @@ public class StrandOps {
 		int index;
 
 		if (ext.indexOfStr(alleles[0], VALID_ALLELES) >= 0 && ext.indexOfStr(alleles[1], VALID_ALLELES) >= 0) {
+			if (isAmbiguous(alleles)) {
+				return CONFIG.STRAND_CONFIG_AMBIGOUS;
+			}
+
 			if (referenceAlleles[0] == null) {
 				referenceAlleles[0] = alleles[0];
 				referenceAlleles[1] = alleles[1];
