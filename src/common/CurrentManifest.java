@@ -2,6 +2,7 @@ package common;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -87,6 +88,15 @@ public class CurrentManifest {
 	public static CurrentManifest loadGenvisisManifest() {
 		File file = getCurrentFile();
 		return loadManifest(file);
+	}
+
+	public static String getGenvisisInfo() {
+		try {
+			CurrentManifest manifest = CurrentManifest.loadGenvisisManifest();// until it always works
+			return "Genvisis, " + manifest.getVersion().getVersion() + "\n" + manifest.getCopyright() + "\n\n" + (new Date());
+		} catch (Exception e) {
+			return "Genvisis, v0.0.0\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n" + (new Date());
+		}
 	}
 
 	// https://ant.apache.org/manual/Tasks/manifest.html

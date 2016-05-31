@@ -528,12 +528,8 @@ public class Project {
 			setSourceFileHeaders(headers);
 		}
 
-		try {
-			CurrentManifest manifest = CurrentManifest.loadGenvisisManifest();// until it always works
-			log.report("Genvisis, " + manifest.getVersion() + "\n" + manifest.getCopyright() + "\n\n" + (new Date()));
-		} catch (Exception e) {
-			log.report("Genvisis, v0.0.0\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n" + (new Date()));
-		}
+		
+		log.report(CurrentManifest.getGenvisisInfo());
 		log.report("\nJava version: " + System.getProperty("java.version"));
 
 		try {
