@@ -80,7 +80,7 @@ public class HttpUpdate {
 				return "Your version of Genvisis (" + currentManifest.getVersion().getVersion() + ") is not up to date. Latest version is " + remoteJarStatus.getVersion().getVersion();
 			} else if (currentManifest.getVersion().isGreaterThan(remoteJarStatus.getVersion())) {
 				String fun = "Looks like you are using a bleeding edge version of genvisis (" + currentManifest.getVersion().getVersion() + ")\n";
-				fun += "The latest released version at " + REMOTE_JAR + " is " + remoteJarStatus.getVersion() + ", good luck to ya";
+				fun += "The latest released version at " + REMOTE_JAR + " is " + remoteJarStatus.getVersion().getVersion() + ", good luck to ya";
 				return fun;
 			}
 			else {

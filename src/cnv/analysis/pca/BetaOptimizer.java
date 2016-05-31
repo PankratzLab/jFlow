@@ -497,14 +497,14 @@ public class BetaOptimizer {
 					}
 				}
 
-				String methodProotUnsigned = rootOutBetas + "pvalue_method_spearmanUnsigned" + pvalKey;
+				String methodProotUnsigned = rootOutBetas + "pvalue_method_pearsonSigned" + pvalKey;
 
-				RScatter methodPU = new RScatter(bigSummaryOut, methodProotUnsigned + ".rscript", ext.rootOf(methodProotUnsigned), methodProotUnsigned + ".jpeg", "PC", new String[] { "correl_spearmanUnSigned" }, "Method", SCATTER_TYPE.POINT, log);
+				RScatter methodPU = new RScatter(bigSummaryOut, methodProotUnsigned + ".rscript", ext.rootOf(methodProotUnsigned), methodProotUnsigned + ".jpeg", "PC", new String[] { "correl_pearsonSigned" }, "Method", SCATTER_TYPE.POINT, log);
 				methodPU.setOverWriteExisting(true);
 				methodPU.setRestrictions(new Restrictions[] { rPval });// rNat
 				methodPU.setxRange(new double[] { 0, 150 });
 				methodPU.setyRange(new double[] { -1, 1 });
-				methodPU.setyLabel("correlation (spearman) of |betas| with p < " + pvals[j]);
+				methodPU.setyLabel("correlation (pearson) of |betas| with p < " + pvals[j]);
 				methodPU.setTitle("ABS Betas from " + ext.rootOf(betaFile) + "\nMarker Call rate >= " + markerCallRate);
 				methodPU.setxLabel("PC");
 				methodPU.setVertLines(vertLines);
@@ -529,14 +529,14 @@ public class BetaOptimizer {
 				methodPSNat.setLegendTitle("Method");
 				rScattersBetas.add(methodPSNat);
 
-				String methodProotUnsignedInv = rootOutBetas + "pvalue_method_spearmanUnsigned_Inv" + pvalKey;
+				String methodProotUnsignedInv = rootOutBetas + "pvalue_method_pearsonSigned_Inv" + pvalKey;
 
-				RScatter methodPUInv = new RScatter(bigSummaryOut, methodProotUnsignedInv + ".rscript", ext.rootOf(methodProotUnsignedInv), methodProotUnsignedInv + ".jpeg", "PC", new String[] { "inv_correl_spearmanUnSigned" }, "Method", SCATTER_TYPE.POINT, log);
+				RScatter methodPUInv = new RScatter(bigSummaryOut, methodProotUnsignedInv + ".rscript", ext.rootOf(methodProotUnsignedInv), methodProotUnsignedInv + ".jpeg", "PC", new String[] { "inv_correl_pearsonSigned" }, "Method", SCATTER_TYPE.POINT, log);
 				methodPUInv.setOverWriteExisting(true);
 				methodPUInv.setRestrictions(new Restrictions[] { rPval });// rNat
 				methodPUInv.setxRange(new double[] { 0, 150 });
 				methodPUInv.setyRange(new double[] { -1, 1 });
-				methodPUInv.setyLabel("correlation (spearman) of |betas| with p < " + pvals[j]);
+				methodPUInv.setyLabel("correlation (pearson) of |betas| with p < " + pvals[j]);
 				methodPUInv.setTitle("ABS Betas from " + ext.rootOf(betaFile) + "\nMarker Call rate >= " + markerCallRate + "\nInverse normalized mtDNA CN estimate");
 				methodPUInv.setxLabel("PC");
 				methodPUInv.setVertLines(vertLines);
