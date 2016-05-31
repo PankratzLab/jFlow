@@ -1,5 +1,5 @@
 # Change Log
-All notable changes to Genvisis could be documented in this file.
+All notable changes to Genvisis will be documented in this file.
 
 ##[Unreleased]
 -Finalized Beta optimization in [MitoPipeLine](https://github.com/npankrat/Genvisis/commits/master/src/cnv/manage/MitoPipeline.java)
