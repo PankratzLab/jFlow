@@ -10,7 +10,7 @@ All notable changes to Genvisis could be documented in this file.
 
 - Possible fix to [issue](https://github.com/npankrat/Genvisis/issues/8), checking for NullPointerException when reading src files
 - Also, addressed the [issue](https://github.com/npankrat/Genvisis/issues/8) where src files could fail import without a final warning.
-
+- Automatic update check when GUI is launched
 
 ## 0.1.0 - 2016-05-20
 ### Added
@@ -21,6 +21,6 @@ All notable changes to Genvisis could be documented in this file.
 -an example of the removed heading
 
  
-[Unreleased]: https://github.com/npankrat/Genvisis/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/npankrat/Genvisis/compare/v0.1.1...HEAD
 [0.1.1]: https://github.com/npankrat/Genvisis/compare/v0.1.1...v0.1.0
 

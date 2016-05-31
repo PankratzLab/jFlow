@@ -23,8 +23,9 @@ import javax.swing.JTextArea;
  */
 public class HttpUpdate {
 	private static final String CHANGELOG = "https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md";
+	public static final String REMOTE_JAR = "http://genvisis.org/genvisis.jar";
 
-	private static RemoteJarStatus getRemoteJarVersion(String remoteJar, Logger log) {
+	public static RemoteJarStatus getRemoteJarVersion(String remoteJar, Logger log) {
 		CHECK_STATUS status = CHECK_STATUS.OTHER_ERROR;
 		String version = "v.-1.-1.-1";
 		if (HttpDownloadUtility.canDownload(remoteJar, log)) {
@@ -71,8 +72,18 @@ public class HttpUpdate {
 		return new RemoteJarStatus(new Version(version), remoteJar, status);
 	}
 
-	public static void quickVerify(String remoteJar, Logger log) {
-
+	public static String checkGenvisisVersion(Logger log) {
+		try {
+			RemoteJarStatus remoteJarStatus = getRemoteJarVersion(REMOTE_JAR, log);
+			CurrentManifest currentManifest = CurrentManifest.loadGenvisisManifest();
+			if (currentManifest.getVersion().isLessThan(remoteJarStatus.getVersion())) {
+				return "Your version of Genvisis (" + currentManifest.getVersion().getVersion() + ") is not up to date. Latest version is " + remoteJarStatus.getVersion().getVersion();
+			} else {
+				return "Genvisis (" + currentManifest.getVersion().getVersion() + ") is up to date";
+			}
+		} catch (Exception e) {
+			return "Unable to determine genvisis version";
+		}
 	}
 
 	public enum CHECK_STATUS {
