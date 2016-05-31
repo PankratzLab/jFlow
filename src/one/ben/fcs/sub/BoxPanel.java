@@ -1,17 +1,29 @@
 package one.ben.fcs.sub;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
 import one.ben.fcs.AbstractPanel2;
+import cnv.filesys.Sample;
+import cnv.gui.LaunchAction;
 import cnv.plots.GenericLine;
 import cnv.plots.GenericPath;
 import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
+import cnv.plots.Trailer;
+import cnv.plots.TwoDPlot;
 import common.Array;
+import common.Files;
+import common.Positions;
+import common.ext;
 
 public class BoxPanel extends AbstractPanel2  {
 	public static final long serialVersionUID = 3L;
@@ -72,13 +84,17 @@ public class BoxPanel extends AbstractPanel2  {
 		
 		setYAxis(AXIS_SCALE.LIN);
 		setXAxis(AXIS_SCALE.LIN);
+		
+		createLookup(true);
 	}
 
-	double[] data = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16, 16.2};
-	String dataLabel = "Lymphocytes (SSC-A v FSC-A) | Freq. of Parent (%)";
+	double[] data;// = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16, 16.2};
+	String[] dataFiles; 
+	String dataLabel;
 	
-	public void setData(String dataName, double[] data) {
+	public void setData(String dataName, String[] files, double[] data) {
 	    this.dataLabel = dataName;
+	    this.dataFiles = files;
 	    this.data = data;
 	}
 	
@@ -95,9 +111,7 @@ public class BoxPanel extends AbstractPanel2  {
 		double med = Array.median(data);
 		double qr25 = Array.quant(data, 0.25);
 		double qr75 = Array.quant(data, 0.75);
-        double iqr = (qr75 - qr25);//Array.iqr(data); // does it matter that Array.iqr != qr75-qr25???
-//        System.out.println("Array.iqr = " + iqr);
-//        System.out.println("QR75 - QR25 = " + (qr75 - qr25));
+        double iqr = Array.iqr(data);
         double wiskLow = qr25 - 1.5 * iqr; 
         double wiskHigh = qr75 + 1.5 * iqr;
         double min = Math.min(wiskLow, Array.min(data));
@@ -112,7 +126,6 @@ public class BoxPanel extends AbstractPanel2  {
 //        setPlotYMax((float) (max + min));
         
         lines = new GenericLine[9];
-		
         
         float xLow = 2;
         float xHigh = 20;
@@ -138,15 +151,38 @@ public class BoxPanel extends AbstractPanel2  {
         
 		//  points for any data above/below wiskLow/wiskHigh
 		ArrayList<PlotPoint> pts = new ArrayList<PlotPoint>();
-		for (double d : data) {
-		    if (d < wiskLow || d > wiskHigh) {
-		        pts.add(new PlotPoint("" + d, PlotPoint.FILLED_CIRCLE, xMed, (float)d, (byte)5, (byte)1, (byte)0));
+		for (int i = 0; i < data.length; i++) {
+		    if (data[i] < wiskLow || data[i] > wiskHigh) {
+		        pts.add(new PlotPoint(dataFiles[i], PlotPoint.FILLED_CIRCLE, xMed, (float)data[i], (byte)POINT_SIZE, (byte)1, (byte)0));
 		    }
 		}
 		points = pts.toArray(new PlotPoint[pts.size()]);
 		
 	}
-	
+
+    
+    
+    public void mouseClicked(MouseEvent e) {
+        JPopupMenu menu;
+        byte maxNumPoints;
+
+        if (prox != null && prox.size() > 0) {
+            menu = new JPopupMenu();
+            maxNumPoints = (byte) Math.min(20, prox.size());
+            for (int i = 0; i < maxNumPoints; i++) {
+                final int ind = prox.elementAt(i);
+                JMenuItem jmi = new JMenuItem(points[ind].getId() + " -- " + points[ind].getRawY());
+                jmi.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        ext.setClipboard(points[ind].getId());                        
+                    }
+                });
+                menu.add(jmi);
+            }
+            menu.show(this, e.getX(), e.getY());
+        }
+    }
 
 	public BufferedImage getImage() {
         return image;
@@ -154,7 +190,17 @@ public class BoxPanel extends AbstractPanel2  {
 
     @Override
     public void highlightPoints() {
-        return;
+        byte defaultSize;
+        
+        defaultSize = POINT_SIZE;
+        for (int i = 0; i < points.length; i++) {
+            if (points[i].isHighlighted()) {
+                points[i].setSize((byte)(defaultSize * 1.5));
+            } else {
+                points[i].setSize((byte)(defaultSize));
+            }
+            
+        }
     }
 
     @Override

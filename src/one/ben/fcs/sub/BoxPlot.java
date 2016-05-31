@@ -6,22 +6,38 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.Vector;
 
+import javax.swing.AbstractAction;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import common.Array;
@@ -36,11 +52,18 @@ public class BoxPlot extends JFrame {
     
     private static final int PANEL_WIDTH = 256;
     private static final int PANEL_HEIGHT = 340;
+
+    private static final String PROP_FILE = "boxplot.properties";
+    private static final String PROPKEY_DATAFILE = "DATA_FILE";
+    private static final String PROPKEY_SELECTED = "SELECTED";
     
     //	String testFile = "C:\\Users\\Ben\\Desktop\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
     String testFile = "F:\\Flow\\counts data\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
     private JPanel scrollContent;
     private BoxCtrlPanel ctrlPanel;
+    private HashMap<String, BoxPanel> panelMap = new HashMap<String, BoxPanel>();
+    private String currentFile;
+    private ArrayList<String> selected = new ArrayList<String>();
     
     public BoxPlot() {
         super();
@@ -69,21 +92,71 @@ public class BoxPlot extends JFrame {
                     paths.add(pathStr);
                 }
                 setDisplay(paths);
+                if (!loadingProps) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            saveProps();
+                        }
+                    }).start();
+                }
             }
         });
         JSplitPane jsp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, ctrlPanel, scrollPane);
-//        JSplitPane jsp = new JSplitPane(JSplitPane.VERTICAL_SPLIT, ctrlPanel, scrollPane);
         jsp.setDividerLocation(200);
         contentPane.add(jsp, BorderLayout.CENTER);
+        
+        setJMenuBar(createMenuBar());
+        
+        loadProps();
     }
     
-    HashMap<String, BoxPanel> panelMap = new HashMap<String, BoxPanel>();
+    private JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("File");
+        menu.setMnemonic(KeyEvent.VK_F);
+        menuBar.add(menu);
+        
+        JMenuItem load = new JMenuItem("Open File");
+        load.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
+        load.setMnemonic(KeyEvent.VK_O);
+        load.setAction(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                String curr = currentFile;
+                if (curr.equals("")) {
+                    curr = "./";
+                }
+                JFileChooser jfc = new JFileChooser(curr);
+                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                jfc.setDialogTitle("Select Data File");
+                jfc.setMultiSelectionEnabled(false);
+                int resp = jfc.showOpenDialog(BoxPlot.this);
+                if (resp == JFileChooser.APPROVE_OPTION) {
+                    String newPath = ext.verifyDirFormat(jfc.getSelectedFile().getAbsolutePath());
+                    loadFile(newPath);
+                    saveProps();
+                }
+            }
+        });
+        load.setText("Open File");
+        menu.add(load);
+        
+        return menuBar;
+    }
     
     private void loadFile(String file) {
+        this.currentFile = file;
+        selected.clear();
     	setTitle(ext.removeDirectoryInfo(file));
         String[][] data = loadFileToStringMatrix(file);
         final ArrayList<BoxPanel> panels = new ArrayList<BoxPanel>();
         final ArrayList<String> headers = new ArrayList<String>();
+        ArrayList<String> dataSources = new ArrayList<String>();
+        for (int i = 1; i < data.length; i++) {
+            if (data[i][0].equals("Mean") || data[i][0].equals("SD") || data[i][0].equals("")) continue;
+            dataSources.add(data[i][0]);
+        }
         for (int i = 1; i < data[0].length; i++) {
             if (data[0][i].equals("")) continue;
             ArrayList<Double> panelData = new ArrayList<Double>();
@@ -100,47 +173,83 @@ public class BoxPlot extends JFrame {
             	lbl = lbl.substring(0, lbl.length() - 1);
             }
             BoxPanel bp = new BoxPanel();
-            bp.setData(lbl, Array.toDoubleArray(panelData));
+            bp.setData(lbl, Array.toStringArray(dataSources), Array.toDoubleArray(panelData));
             bp.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
             panels.add(bp);
             panelMap.put(Array.toStr(lbl.split("\\|")[0].trim().split("/"), "\t"), bp);
             headers.add(lbl);
         }
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                scrollContent.removeAll();
-                ctrlPanel.setData(headers.toArray(new String[headers.size()]));
-                revalidate();
-                repaint();
+        scrollContent.removeAll();
+        ctrlPanel.setData(headers.toArray(new String[headers.size()]));
+        revalidate();
+        repaint();
+    }
+
+    private volatile boolean loadingProps = false;
+    private void loadProps() {
+        Properties props = new Properties();
+        InputStream is = null;
+        loadingProps = true;
+        try {
+            File f = new File(PROP_FILE);
+            is = new FileInputStream(f);
+            props.load(is);
+            String base = props.getProperty(PROPKEY_DATAFILE, "");
+            if (!base.equals("")) {
+                loadFile(base);
             }
-        });
+            String comp = props.getProperty(PROPKEY_SELECTED, "");
+            String[] sel = comp.split(";;");
+            ArrayList<TreePath> data = new ArrayList<TreePath>();
+            DefaultTreeModel dtm = (DefaultTreeModel) ctrlPanel.tree.getModel();
+            for (String s : sel) {
+                String[] pts = s.split("\\|")[0].trim().split("/");
+                TreePath tp = new TreePath(dtm.getPathToRoot(ctrlPanel.getNodeForKey(pts[pts.length -  1])));
+                data.add(tp);
+            }
+            if (data.size() > 0) {
+                ctrlPanel.tree.setSelectionPaths(data.toArray(new TreePath[data.size()]));
+            }
+        }
+        catch ( Exception e ) { is = null; }
+        loadingProps = false;
+    }
+    
+    private void saveProps() {
+        try {
+            Properties props = new Properties();
+            props.setProperty(PROPKEY_DATAFILE, ext.verifyDirFormat(currentFile));
+            String sel = Array.toStr(Array.toStringArray(selected), ";;");
+            props.setProperty(PROPKEY_SELECTED, sel);
+            File f = new File(PROP_FILE);
+            OutputStream out = new FileOutputStream( f );
+            props.store(out, "");
+        } catch (Exception e ) {
+            e.printStackTrace();
+        }
     }
     
     public void setDisplay(final ArrayList<String[]> paths) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                int wid = scrollContent.getWidth();
-                int cols = wid / PANEL_WIDTH;
-                int row = 0;
-                scrollContent.removeAll();
-                for (int i = 0; i < paths.size(); i++) {
-                    if (i / cols > (row/2)) {
-                        row += 2;
-                    }
-                    String key = Array.toStr(paths.get(i), "\t");
-                    BoxPanel bp = panelMap.get(key);
-                    scrollContent.add(bp, "cell " + (i % cols) + " " + row);
-                    String pts = bp.dataLabel.split("\\|")[0].trim().replaceAll("/", "  /<br />");
-                    JLabel pnlLbl = new JLabel("<html><p>" + pts + "</p></html>");
-                    pnlLbl.setBackground(Color.WHITE);
-                    scrollContent.add(pnlLbl, "cell " + (i % cols) + " " + (row + 1) + ", alignx center, aligny top");
-                }
-                revalidate();
-                repaint();
+        int wid = scrollContent.getWidth();
+        int cols = wid == 0 ? 3 : wid / PANEL_WIDTH;
+        int row = 0;
+        scrollContent.removeAll();
+        selected.clear();
+        for (int i = 0; i < paths.size(); i++) {
+            if (i / cols > (row/2)) {
+                row += 2;
             }
-        });
+            String key = Array.toStr(paths.get(i), "\t");
+            BoxPanel bp = panelMap.get(key);
+            selected.add(bp.dataLabel);
+            scrollContent.add(bp, "cell " + (i % cols) + " " + row);
+            String pts = bp.dataLabel.split("\\|")[0].trim().replaceAll("/", "  /<br />");
+            JLabel pnlLbl = new JLabel("<html><p>" + pts + "</p></html>");
+            pnlLbl.setBackground(Color.WHITE);
+            scrollContent.add(pnlLbl, "cell " + (i % cols) + " " + (row + 1) + ", alignx center, aligny top");
+        }
+        revalidate();
+        repaint();
     }
     
     public static String[][] loadFileToStringMatrix(String filename) {
@@ -176,11 +285,9 @@ public class BoxPlot extends JFrame {
         return Matrix.toStringArrays(v);
     }
     
-    
     public static void main(String[] args) {
         BoxPlot bp = new BoxPlot();
         bp.setVisible(true);
-        bp.loadFile(bp.testFile);
     }
     
 }

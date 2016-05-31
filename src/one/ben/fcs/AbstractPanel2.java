@@ -1407,47 +1407,47 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		int x, y, dataPointIndex;
 		byte size;
 
-//		if (imageIsFinal() && chartType != PLOT_TYPE.HEATMAP) {
-//			x = event.getX();
-//			y = event.getY();
-//
-//			canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
-//			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
-//			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
-//			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
-//			pos = (int)Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
-////			if (!pos.equals(prevPos)) {
-////			    System.out.println("Repainting");
-////				repaint();
-////			}
-//
-//			indicesOfNearbyPoints = lookupNearbyPoints(x, y, pos);
-//			
+		if (imageIsFinal() && chartType == PLOT_TYPE.DOT_PLOT) {
+			x = event.getX();
+			y = event.getY();
+
+			canvasSectionMinimumX = axisYWidth;//WIDTH_Y_AXIS;
+			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
+			canvasSectionMinimumY = axisXHeight;//HEIGHT_X_AXIS;
+			canvasSectionMaximumY = getHeight() - HEAD_BUFFER;
+			pos = (int)Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x" + (int)Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
 //			if (!pos.equals(prevPos)) {
-//			    if (indicesOfNearbyPoints.size() != 0 || (prox != null && prox.size() != 0)) {
-//                    repaint();
-//                }
+//			    System.out.println("Repainting");
+//				repaint();
 //			}
-//
-//			prox = new IntVector();
-//
-//			size = SIZE * 2;
-//			g.setColor(Color.GRAY);
-//			for (int i = 0; indicesOfNearbyPoints!=null && i<indicesOfNearbyPoints.size(); i++) {
-//				dataPointIndex = indicesOfNearbyPoints.elementAt(i);
-//				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(points[dataPointIndex].getRawX()), getYPixel(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
-//					prox.add(dataPointIndex);
-////					g.setColor(Color.YELLOW);
-////					g.fillOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
-//					g.drawOval(getXPixel(points[dataPointIndex].getRawX()) - size/2, getYPixel(points[dataPointIndex].getRawY()) - size/2, size, size);
-//
-//				}
-//			}
-//
-//			prevPos = pos;
-//			
-//			//TODO 		indicesOfNearbySamples = lookupNearbyPoints(x, y, pos);
-//		}
+
+			indicesOfNearbyPoints = lookupNearbyPoints(x, y, pos);
+			
+			if (!pos.equals(prevPos)) {
+			    if (indicesOfNearbyPoints.size() != 0 || (prox != null && prox.size() != 0)) {
+                    repaint();
+                }
+			}
+
+			prox = new IntVector();
+
+			size = SIZE * 2;
+			g.setColor(Color.GRAY);
+			for (int i = 0; indicesOfNearbyPoints!=null && i<indicesOfNearbyPoints.size(); i++) {
+				dataPointIndex = indicesOfNearbyPoints.elementAt(i);
+				if (Distance.euclidean(new int[] {x, y}, new int[] {getXPixel(points[dataPointIndex].getRawX()), getYPixel(points[dataPointIndex].getRawY())}) < HIGHLIGHT_DISTANCE) {
+					prox.add(dataPointIndex);
+//					g.setColor(Color.YELLOW);
+//					g.fillOval(getX(points[dataPointIndex].getRawX()) - size/2, getY(points[dataPointIndex].getRawY()) - size/2, size, size);
+					g.drawOval(getXPixel(points[dataPointIndex].getRawX()) - size/2, getYPixel(points[dataPointIndex].getRawY()) - size/2, size, size);
+
+				}
+			}
+
+			prevPos = pos;
+			
+			//TODO 		indicesOfNearbySamples = lookupNearbyPoints(x, y, pos);
+		}
 	}
 
 	public void mousePressed(MouseEvent e) {

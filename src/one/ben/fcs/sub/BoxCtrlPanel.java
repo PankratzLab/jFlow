@@ -34,26 +34,11 @@ import common.Array;
 
 public class BoxCtrlPanel extends JPanel {
     
-    String[] testHeaders = {
-            "PBMCs (SSC-A v FSC-A) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-)/DC NK (CD20- CD14-) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-)/DC NK (CD20- CD14-)/DC (HLA-DR+) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-)/DC NK (CD20- CD14-)/DC (HLA-DR+)/Myeloid DC (CD11c+ CD123-) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-)/DC NK (CD20- CD14-)/DC (HLA-DR+)/Plasmacytoid DC (CD11c- CD123+) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-)/DC NK (CD20- CD14-)/NK (CD16+) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-)/DC NK (CD20- CD14-)/NK (CD16+)/NK CD56HI | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-)/DC NK (CD20- CD14-)/NK (CD16+)/NK CD56LO | Freq. of Parent (%)",
-//            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-)/MONOCYTES (CD20- CD14+) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-)/MONOCYTES (CD20- CD14+)/Classical monocytes (CD16- CD14+) | Freq. of Parent (%)",
-            "PBMCs (SSC-A v FSC-A)/Single Cells (FSC-H v FSC-W)/Live PBMCs (PE- CD45+)/DC NK MONOCYTES (CD3- CD19-)/MONOCYTES (CD20- CD14+)/Non classical monocytes (CD16+ CD14+) | Freq. of Parent (%)"
-    };
-    private JTree tree;
+    public JTree tree;
     HashSet<String> actualData = new HashSet<String>();
     
     public void setData(String[] hdrs) {
+        nodes.clear();
         ArrayList<String[]> headers = new ArrayList<String[]>();
         for (String s : hdrs) {
             if (s.startsWith("\"")) {
@@ -66,7 +51,6 @@ public class BoxCtrlPanel extends JPanel {
             headers.add(s.split("/"));
         }
         ArrayList<DefaultMutableTreeNode> rootNodes = new ArrayList<DefaultMutableTreeNode>();
-        HashMap<String, DefaultMutableTreeNode> nodes = new HashMap<String, DefaultMutableTreeNode>();
         for (String[] hdr : headers) {
             String parent = hdr.length > 1 ? hdr[hdr.length - 2] : null;
             if (parent == null) {
@@ -215,18 +199,16 @@ public class BoxCtrlPanel extends JPanel {
         add(scrollPane, "cell 0 0,grow");
         
         tree = new JTree();
+        tree.setExpandsSelectedPaths(true);
         scrollPane.setViewportView(tree);
         tree.setFont(new Font("Arial", Font.PLAIN, 9));
 
     }
-    
-    public static void main(String[] args) {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        BoxCtrlPanel bcp = new BoxCtrlPanel();
-        frame.getContentPane().add(bcp);
-        frame.setVisible(true);
-        bcp.setData(bcp.testHeaders);
-    }
 
+    HashMap<String, DefaultMutableTreeNode> nodes = new HashMap<String, DefaultMutableTreeNode>();
+    
+    public TreeNode getNodeForKey(String key) {
+        return nodes.get(key);
+    }
+    
 }
