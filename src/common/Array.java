@@ -3786,7 +3786,7 @@ public class Array {
 	}
 
 	/**
-	 * Calculates the interquartile range of an array
+	 * Calculates the interquartile range of an array (exclusive)
 	 * 
 	 * @param array
 	 *            an array of numbers
@@ -3794,19 +3794,19 @@ public class Array {
 	 */
 	public static double iqr(double[] array) {
 		int[] keys = Sort.quicksort(array);
-		double iqr = 0;
 
 		if (array.length<2) {
 			System.err.println("Error - can't calculate an IQR for an array with "+array.length+" datapoint(s)");
 			return -1;
 		}
+
+		double iqr = 0;
 		try {
-			iqr = array[keys[(int)Math.ceil(array.length*0.75)]]-array[keys[(int)Math.ceil(array.length*0.25)]];
+			iqr = array[keys[(int)Math.floor(array.length*0.75)]]-array[keys[(int)Math.floor(array.length*0.25)]];
 		} catch (Exception e) {
 			System.err.println("Error calculating IQR");
 			e.printStackTrace();
 		}
-
 		return iqr;
 	}
 
