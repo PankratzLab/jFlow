@@ -201,7 +201,7 @@ public class BoxPlot extends JFrame {
         load.setAction(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                String curr = currentFile;
+                String curr = currentFile == null ? "" : currentFile;
                 if (curr.equals("")) {
                     curr = "./";
                 }
@@ -314,7 +314,7 @@ public class BoxPlot extends JFrame {
     private void saveProps() {
         try {
             Properties props = new Properties();
-            props.setProperty(PROPKEY_DATAFILE, currentFile);
+            props.setProperty(PROPKEY_DATAFILE, currentFile == null ? "" : currentFile);
             String sel = Array.toStr(Array.toStringArray(selected), ";;");
             props.setProperty(PROPKEY_SELECTED, sel);
             for (int i = 0; i < PROPKEY_HOTKEYS.length; i++) {

@@ -192,7 +192,7 @@ public class BoxCtrlPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane();
         add(scrollPane, "cell 0 0,grow");
         
-        tree = new JTree();
+        tree = new JTree(new DefaultTreeModel(null));
         tree.setExpandsSelectedPaths(true);
         scrollPane.setViewportView(tree);
         tree.setFont(new Font("Arial", Font.PLAIN, 9));
