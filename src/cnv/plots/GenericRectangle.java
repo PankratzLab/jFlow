@@ -1,5 +1,9 @@
 package cnv.plots;
 
+import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Rectangle2D.Float;
+
 public class GenericRectangle {
 	private float startXValue;
 	private float startYValue;
@@ -12,6 +16,7 @@ public class GenericRectangle {
 	private byte fillColor;
 	private byte layer;
 	private boolean editable;
+//	private Rectangle2D myRect;
 
 	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer, boolean editable) {
 		this.startXValue = startX;
@@ -25,6 +30,7 @@ public class GenericRectangle {
 		this.fillColor = color;
 		this.layer = layer;
 		this.editable = editable;
+//		this.myRect = new Rectangle2D.Float(Math.min(startX, stopX), Math.min(startY, stopY), Math.max(startX, stopX) - Math.min(startX, stopX), Math.max(startY, stopY) - Math.min(startY, stopY));
 	}
 	
 	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte fillColor, byte layer, boolean editable) {
@@ -39,6 +45,7 @@ public class GenericRectangle {
 		this.fillColor = fillColor;
 		this.layer = layer;
 		this.editable = editable;
+//		this.myRect = new Rectangle2D.Float(Math.min(startX, stopX), Math.min(startY, stopY), Math.max(startX, stopX) - Math.min(startX, stopX), Math.max(startY, stopY) - Math.min(startY, stopY));
 	}
 
 	public void setColor(byte color) {
@@ -57,6 +64,10 @@ public class GenericRectangle {
 		return startYValue;
 	}
 
+//	public Rectangle2D getRectangle() {
+//	    return myRect;
+//	}
+	
 	public float getStopXValue() {
 		return stopXValue;
 	}
@@ -104,6 +115,10 @@ public class GenericRectangle {
 		
 		return newArray;
 	}
+
+    public void setEditable(boolean b) {
+        this.editable = b;
+    }
 
 	// TODO remove if not currently being used
 //	public static GenericRectangle[] removeFromArray(GenericRectangle[] array, int index) {

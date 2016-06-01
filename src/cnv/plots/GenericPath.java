@@ -46,6 +46,10 @@ public class GenericPath {
     public boolean getEditable() {
         return editable;
     }
+
+    public void setEditable(boolean b) {
+        this.editable = b;
+    }
     
     
     
