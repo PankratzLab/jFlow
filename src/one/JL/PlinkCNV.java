@@ -36,6 +36,7 @@ public class PlinkCNV {
 		String[] filters = Files.list(dir, ".crf", false);
 
 		WorkerHive<PlinkResult> hive = new WorkerHive<PlinkResult>(6, 10, log);
+		GeneTrack geneTrack = GeneTrack.load("N:/statgen/NCBI/RefSeq_hg18.gtrack", false);
 
 		for (int filt = 0; filt < filters.length; filt++) {
 			String[][] phenos = HashVec.loadFileToStringMatrix(dir + "pheno.dat", false, null, false);
@@ -46,23 +47,34 @@ public class PlinkCNV {
 				FilterCalls.fromParameters(dir + filters[filt], new Logger());
 			}
 			String sampCNVs = ext.addToRoot(out, "." + ext.rootOf(sampFile));
+			String geneSampCnvs = ext.addToRoot(out, "." + ext.rootOf(sampFile) + "_gene");
+
 			HashSet<String> sampSet = HashVec.loadFileToHashSet(sampFile, false);
-			if (!Files.exists(sampCNVs)) {
+			if (!Files.exists(sampCNVs) || !Files.exists(geneSampCnvs)) {
 				LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(out, log);
 
 				try {
 					int numTotal = 0;
 					int numSamps = 0;
 					PrintWriter writer = new PrintWriter(new FileWriter(sampCNVs));
+					PrintWriter writerGene = new PrintWriter(new FileWriter(geneSampCnvs));
+
 					writer.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+					writerGene.println(Array.toStr(CNVariant.PLINK_CNV_HEADER));
+
 					for (int i = 0; i < cnvs.getLoci().length; i++) {
 						numTotal++;
 						if (sampSet.contains(cnvs.getLoci()[i].getIndividualID())) {
 							writer.println(cnvs.getLoci()[i].toPlinkFormat());
 							numSamps++;
+							if (geneTrack.getOverlappingGenes(cnvs.getLoci()[i]).length > 0) {
+								writerGene.println(cnvs.getLoci()[i].toPlinkFormat());
+							}
 						}
 					}
+
 					writer.close();
+					writerGene.close();
 					log.reportTimeInfo(numTotal + " - > " + numSamps);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -79,8 +91,11 @@ public class PlinkCNV {
 
 				new File(opDir).mkdirs();
 				String phenoCNV = opDir + pheno + ".cnv";
-				if (!Files.exists(phenoCNV)) {
+				String phenoGene = opDir + pheno + "_gene.cnv";
+				if (!Files.exists(phenoCNV) || !Files.exists(phenoGene)) {
 					Files.copyFile(sampCNVs, phenoCNV);
+					Files.copyFile(geneSampCnvs, phenoGene);
+
 				}
 				ArrayList<String> fam = new ArrayList<String>();
 				ArrayList<String> quants = new ArrayList<String>();
@@ -106,12 +121,45 @@ public class PlinkCNV {
 				}
 
 				Files.writeArrayList(fam, opDir + pheno + ".fam");
+				Files.writeArrayList(fam, opDir + pheno + "_gene.fam");
+
 				Files.writeArrayList(quants, opDir + pheno + ".qPheno.txt");
+				Files.writeArrayList(quants, opDir + pheno + "_gene.qPheno.txt");
 
 				String map = opDir + pheno + ".cnv.map";
-				if (!Files.exists(map)) {
+				String mapGene = opDir + pheno + "_gene.cnv.map";
+
+				if (!Files.exists(map) || !Files.exists(mapGene)) {
 					CmdLine.run(dir + "plink --cnv-list " + pheno + ".cnv --cnv-make-map --out " + pheno, opDir);
+					CmdLine.run(dir + "plink --cnv-list " + pheno + "_gene.cnv --cnv-make-map --out " + pheno + "_gene", opDir);
+
 				}
+				if (Files.exists(dir + "mitoCarta.txt")) {
+					String[] mitos = HashVec.loadFileToStringArray(dir + "mitoCarta.txt", false, new int[] { 0 }, true);
+					ArrayList<String> mitoList = new ArrayList<String>();
+					int count = 0;
+					for (int j = 0; j < mitos.length; j++) {
+						if (geneTrack.lookupAllGeneData(mitos[j]) != null && geneTrack.lookupAllGeneData(mitos[j]).length > 0) {
+							count++;
+							GeneData[] gds = geneTrack.lookupAllGeneData(mitos[j]);
+							for (int k = 0; k < gds.length; k++) {
+								mitoList.add(gds[k].getChr() + "\t" + gds[k].getStart() + "\t" + gds[k].getStop() + "\t" + gds[k].getGeneName());
+							}
+						}
+					}
+					log.reportTimeInfo("Count " + count + " mitos");
+					Files.writeArrayList(mitoList, dir + "mitoList-hg18.txt");
+
+				}
+				ArrayList<String> glist = new ArrayList<String>();
+				for (int j = 0; j < geneTrack.getGenes().length; j++) {
+					for (int j2 = 0; j2 < geneTrack.getGenes()[j].length; j2++) {
+						GeneData gds = geneTrack.getGenes()[j][j2];
+						glist.add(gds.getChr() + "\t" + gds.getStart() + "\t" + gds.getStop() + "\t" + gds.getGeneName());
+
+					}
+				}
+				Files.writeArrayList(glist, dir + "geneList-hg18.txt");
 
 				if (quant) {
 					Callable<PlinkResult> c1 = new Callable<PlinkResult>() {
@@ -133,7 +181,71 @@ public class PlinkCNV {
 							return new PlinkResult(filtFile, key, out, Array.toStr(Array.toStringArray(cmd), " "), complete, true);
 						}
 					};
+					Callable<PlinkResult> c2 = new Callable<PlinkResult>() {
+
+						@Override
+						public PlinkResult call() throws Exception {
+
+							ArrayList<String> cmd = new ArrayList<String>();
+							cmd.add(dir + "plink");
+							cmd.add("--cfile");
+							cmd.add(opDir + pheno);
+							cmd.add("--pheno");
+							cmd.add(opDir + pheno + ".qPheno.txt");
+							cmd.add("--mperm");
+							cmd.add("10000");
+							cmd.add("--out");
+							cmd.add(opDir + pheno + "_mito");
+							cmd.add("--cnv-intersect");
+							cmd.add(dir + "mitoList-hg18.txt");
+							cmd.add("--cnv-test-region");
+
+							// cmd.add("--cnv-count");
+							// cmd.add(dir + "glist-hg18.txt");
+							// cmd.add("--cnv-subset");
+							// cmd.add(dir + "MitoGenes.txt");
+							// cmd.add("--cnv-enrichment-test");
+							String out = opDir + pheno + "_mito.cnv.qt.summary.mperm";
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
+							return new PlinkResult(filtFile, key + "_enrichment", out, Array.toStr(Array.toStringArray(cmd), " "), complete, true);
+						}
+					};
+
+					Callable<PlinkResult> c3 = new Callable<PlinkResult>() {
+
+						@Override
+						public PlinkResult call() throws Exception {
+
+							ArrayList<String> cmd = new ArrayList<String>();
+							cmd.add(dir + "plink");
+							cmd.add("--cfile");
+							cmd.add(opDir + pheno + "_gene");
+							cmd.add("--pheno");
+							cmd.add(opDir + pheno + ".qPheno.txt");
+							cmd.add("--mperm");
+							cmd.add("10000");
+							cmd.add("--out");
+							cmd.add(opDir + pheno + "_mitoBurden");
+							cmd.add("--cnv-count");
+							cmd.add(dir + "geneList-hg18.txt");
+							cmd.add("--cnv-subset");
+							cmd.add(dir + "mitoCarta.txt");
+							cmd.add("--cnv-enrichment-test");
+
+							String out = opDir + pheno + "_mitoBurden.cnv.burden.mperm";
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, true, true, log);
+							return new PlinkResult(filtFile, key + "_burdenenrichment", out, Array.toStr(Array.toStringArray(cmd), " "), complete, true);
+						}
+					};
+
+					// plink --cfile mycnv
+					//  --cnv-count genes.dat
+					//  --cnv-subset pathway.txt
+					//  --cnv-enrichment-test
+
 					hive.addCallable(c1);
+					hive.addCallable(c2);
+					hive.addCallable(c3);
 
 				} else {
 					Callable<PlinkResult> c1 = new Callable<PlinkResult>() {
@@ -203,9 +315,9 @@ public class PlinkCNV {
 
 		}
 		hive.execute(true);
+		System.exit(1);
 		ArrayList<PlinkResult> results = hive.getResults();
 		ArrayList<String> filesToCombine = new ArrayList<String>();
-		GeneTrack geneTrack = GeneTrack.load("N:/statgen/NCBI/RefSeq_hg18.gtrack", false);
 
 		String finalDir = dir + ext.rootOf(sampFile) + "_results/";
 		filesToCombine.add(finalDir + "key.txt");
@@ -241,7 +353,7 @@ public class PlinkCNV {
 				toReport.add("Type\t" + Array.toStr(data[0]) + "\tUCSC\tGENE\tGENE_5k\tLink_buffer\tAFF\tUNAFF\tNCNV\tM0\tM1\tCMD");
 
 				for (int i = 1; i < data.length; i++) {
-					if (data[i].length > 3 && Double.parseDouble(data[i][2]) < 0.05) {
+					if (data[i].length > 3 && Double.parseDouble(data[i][result.quant ? 3 : 2]) < 0.05) {
 						int loc = Integer.parseInt(data[i][1].replaceAll("p" + data[i][0] + "-", ""));
 						Segment seg = new Segment(Byte.parseByte(data[i][0]), loc, loc);
 						GeneData[] geneDatas = geneTrack.getOverlappingGenes(seg);
@@ -249,12 +361,16 @@ public class PlinkCNV {
 						if (!data[i][1].equals(dataCount[i][1])) {
 							throw new IllegalArgumentException("mismatched files");
 						}
-						StringBuilder builder = new StringBuilder(result.key + "\t" + Array.toStr(data[i]) + "\t" + seg.getUCSClocation() + "\t");
+						String[] dataToReport = data[i];
+						if (result.quant) {
+							dataToReport = Array.removeFromArray(dataToReport, 2);
+						}
+						StringBuilder builder = new StringBuilder(result.key + "\t" + Array.toStr(dataToReport) + "\t" + seg.getUCSClocation() + "\t");
 						for (int j = 0; j < geneDatas.length; j++) {
 							builder.append((j == 0 ? "" : ":") + geneDatas[j].getGeneName());
 							allSigGenesList.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation() + "\t" + result.key);
 							allSigGenesListSpecific.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation() + "\t" + result.key);
-							if (Double.parseDouble(data[i][3]) < 1) {
+							if (Double.parseDouble(data[i][result.quant ? 4 : 3]) < 1) {
 								allSigGenesListEMP2.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation() + "\t" + result.key);
 							}
 						}
@@ -282,8 +398,11 @@ public class PlinkCNV {
 					Files.writeArrayList(toReport, out);
 					Files.writeHashSet(allSigGenesListSpecific, allSigGenesSpecific);
 					filesToCombine.add(out);
-					// filesToCombine.add(result.filtFile);
+				} else {
+					log.reportTimeInfo("Nothing to report for " + result.key);
 				}
+			} else {
+				log.reportTimeError(result.key + " was not complete");
 			}
 		}
 

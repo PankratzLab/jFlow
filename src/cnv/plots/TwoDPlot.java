@@ -1055,7 +1055,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     				            String[][] metaData = getCurrentColumnMetaData();
     				            int chr = 0, start = 0, stop = 0;
     				            if (metaData != null && metaData.length != 0 && metaData[0] != null) {
-        				            chr = Integer.parseInt(metaData[0][0]);
+									chr = Positions.chromosomeNumber(metaData[0][0]);
         				            start = Integer.parseInt(metaData[0][2]);
         				            stop = Integer.parseInt(metaData[0][3]);
     				            }
