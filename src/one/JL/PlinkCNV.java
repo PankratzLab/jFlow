@@ -75,6 +75,7 @@ public class PlinkCNV {
 				final String pheno = phenos[0][i];
 				final String key = phenos[0][i] + "_" + ext.rootOf(sampFile) + "_" + ext.rootOf(filters[filt]);
 				final String opDir = dir + key + "/";
+				boolean quant = false;
 
 				new File(opDir).mkdirs();
 				String phenoCNV = opDir + pheno + ".cnv";
@@ -82,79 +83,122 @@ public class PlinkCNV {
 					Files.copyFile(sampCNVs, phenoCNV);
 				}
 				ArrayList<String> fam = new ArrayList<String>();
+				ArrayList<String> quants = new ArrayList<String>();
+				HashSet<String> types = new HashSet<String>();
 				for (int j = 1; j < phenos.length; j++) {
 					if (sampSet.contains(phenos[j][0])) {
 						fam.add(phenos[j][0] + "\t" + phenos[j][0] + "\t" + 0 + "\t" + 0 + "\t" + phenos[j][1] + "\t" + phenos[j][i]);
+						quants.add(phenos[j][0] + "\t" + phenos[j][0] + "\t" + phenos[j][i]);
+					}
+					try {
+						double val = Double.parseDouble(phenos[j][i]);
+						if (val != 1 && val != 2)
+							types.add(val + "");
+					} catch (NumberFormatException nfe) {
+
 					}
 				}
+				quant = types.size() > 0;
+				if (quant) {
+					log.reportTimeInfo("Detected phenotype " + pheno + " is quantatative");
+				} else {
+					log.reportTimeInfo("Detected phenotype " + pheno + " is discrete");
+				}
+
 				Files.writeArrayList(fam, opDir + pheno + ".fam");
+				Files.writeArrayList(quants, opDir + pheno + ".qPheno.txt");
+
 				String map = opDir + pheno + ".cnv.map";
 				if (!Files.exists(map)) {
 					CmdLine.run(dir + "plink --cnv-list " + pheno + ".cnv --cnv-make-map --out " + pheno, opDir);
 				}
 
-				Callable<PlinkResult> c1 = new Callable<PlinkResult>() {
+				if (quant) {
+					Callable<PlinkResult> c1 = new Callable<PlinkResult>() {
 
-					@Override
-					public PlinkResult call() throws Exception {
-						ArrayList<String> cmd = new ArrayList<String>();
-						cmd.add(dir + "plink");
-						cmd.add("--cfile");
-						cmd.add(opDir + pheno);
-						cmd.add("--cnv-indiv-perm");
-						cmd.add("--mperm");
-						cmd.add("10000");
-						cmd.add("--out");
-						cmd.add(opDir + pheno);
-						String out = opDir + pheno + ".cnv.summary.mperm";
-						boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
+						@Override
+						public PlinkResult call() throws Exception {
+							ArrayList<String> cmd = new ArrayList<String>();
+							cmd.add(dir + "plink");
+							cmd.add("--cfile");
+							cmd.add(opDir + pheno);
+							cmd.add("--pheno");
+							cmd.add(opDir + pheno + ".qPheno.txt");
+							cmd.add("--mperm");
+							cmd.add("10000");
+							cmd.add("--out");
+							cmd.add(opDir + pheno);
+							String out = opDir + pheno + ".cnv.qt.summary.mperm";
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
+							return new PlinkResult(filtFile, key, out, Array.toStr(Array.toStringArray(cmd), " "), complete, true);
+						}
+					};
+					hive.addCallable(c1);
 
-						return new PlinkResult(filtFile, key, out, complete);
-					}
-				};
-				Callable<PlinkResult> c2 = new Callable<PlinkResult>() {
+				} else {
+					Callable<PlinkResult> c1 = new Callable<PlinkResult>() {
 
-					@Override
-					public PlinkResult call() throws Exception {
-						ArrayList<String> cmd = new ArrayList<String>();
-						cmd.add(dir + "plink");
-						cmd.add("--cfile");
-						cmd.add(opDir + pheno);
-						cmd.add("--mperm");
-						cmd.add("10000");
-						cmd.add("--out");
-						cmd.add(opDir + pheno + "_position");
-						String out = opDir + pheno + "_position.cnv.summary.mperm";
+						@Override
+						public PlinkResult call() throws Exception {
+							ArrayList<String> cmd = new ArrayList<String>();
+							cmd.add(dir + "plink");
+							cmd.add("--cfile");
+							cmd.add(opDir + pheno);
+							cmd.add("--cnv-indiv-perm");
+							cmd.add("--mperm");
+							cmd.add("10000");
+							cmd.add("--out");
+							cmd.add(opDir + pheno);
+							String out = opDir + pheno + ".cnv.summary.mperm";
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
 
-						boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
-						return new PlinkResult(filtFile, key + "_pos", out, complete);
+							return new PlinkResult(filtFile, key, out, Array.toStr(Array.toStringArray(cmd), " "), complete, false);
+						}
+					};
+					Callable<PlinkResult> c2 = new Callable<PlinkResult>() {
 
-					}
-				};
-				Callable<PlinkResult> c3 = new Callable<PlinkResult>() {
+						@Override
+						public PlinkResult call() throws Exception {
+							ArrayList<String> cmd = new ArrayList<String>();
+							cmd.add(dir + "plink");
+							cmd.add("--cfile");
+							cmd.add(opDir + pheno);
+							cmd.add("--mperm");
+							cmd.add("10000");
+							cmd.add("--out");
+							cmd.add(opDir + pheno + "_position");
+							String out = opDir + pheno + "_position.cnv.summary.mperm";
 
-					@Override
-					public PlinkResult call() throws Exception {
-						ArrayList<String> cmd = new ArrayList<String>();
-						cmd.add(dir + "plink");
-						cmd.add("--cfile");
-						cmd.add(opDir + pheno);
-						cmd.add("--mperm");
-						cmd.add("10000");
-						cmd.add("--cnv-test-window");
-						cmd.add("200");
-						cmd.add("--out");
-						cmd.add(opDir + pheno + "_window");
-						String out = opDir + pheno + "_window.cnv.summary.mperm";
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
+							return new PlinkResult(filtFile, key + "_pos", out, Array.toStr(Array.toStringArray(cmd), " "), complete, false);
 
-						boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
-						return new PlinkResult(filtFile, key + "_window", out, complete);
+						}
+					};
+					Callable<PlinkResult> c3 = new Callable<PlinkResult>() {
 
-					}
-				};
-				hive.addCallable(c1);
-				hive.addCallable(c2);
-				hive.addCallable(c3);
+						@Override
+						public PlinkResult call() throws Exception {
+							ArrayList<String> cmd = new ArrayList<String>();
+							cmd.add(dir + "plink");
+							cmd.add("--cfile");
+							cmd.add(opDir + pheno);
+							cmd.add("--mperm");
+							cmd.add("10000");
+							cmd.add("--cnv-test-window");
+							cmd.add("200");
+							cmd.add("--out");
+							cmd.add(opDir + pheno + "_window");
+							String out = opDir + pheno + "_window.cnv.summary.mperm";
+
+							boolean complete = CmdLine.runCommandWithFileChecks(Array.toStringArray(cmd), "", null, new String[] { out }, true, false, true, log);
+							return new PlinkResult(filtFile, key + "_window", out, Array.toStr(Array.toStringArray(cmd), " "), complete, false);
+
+						}
+					};
+					hive.addCallable(c1);
+					hive.addCallable(c2);
+					hive.addCallable(c3);
+				}
 			}
 
 		}
@@ -172,8 +216,7 @@ public class PlinkCNV {
 		HashSet<String> allSigGenesList = new HashSet<String>();
 		String allSigGenes5k = finalDir + "sigGenes5k.txt";
 		HashSet<String> allSigGenesList5k = new HashSet<String>();
-	
-		
+
 		String allSigGenesEMP2 = finalDir + "sigGenesEMP2_0_5.txt";
 		HashSet<String> allSigGenesListEMP2 = new HashSet<String>();
 
@@ -182,7 +225,7 @@ public class PlinkCNV {
 		filesToCombine.add(allSigGenes);
 		filesToCombine.add(allSigGenes5k);
 
-		combo.add("Type\tCHR\tSNP\tEMP1\tEMP2\tUCSC\tGENE\tGENE_5k\tLink_buffer\tAFF\tUNAFF");
+		combo.add("Type\tCHR\tSNP\tEMP1\tEMP2\tUCSC\tGENE\tGENE_5k\tLink_buffer\tAFF\tUNAFF\tNCNV\tM0\tM1\tCMD");
 		new File(finalDir).mkdirs();
 		int index = 1;
 		for (PlinkResult result : results) {
@@ -193,9 +236,9 @@ public class PlinkCNV {
 				String[][] dataCount = HashVec.loadFileToStringMatrix(ext.rootOf(result.file, false), false, null, "[\\s]+", false, 1000, true);
 				String allSigGenesSpecific = finalDir + result.key + "_Genes" + index + ".txt";
 				HashSet<String> allSigGenesListSpecific = new HashSet<String>();
-				
+
 				ArrayList<String> toReport = new ArrayList<String>();
-				toReport.add("Type\t" + Array.toStr(data[0]) + "\tUCSC\tGENE\tGENE_5k\tLink_buffer\tAFF\tUNAFF");
+				toReport.add("Type\t" + Array.toStr(data[0]) + "\tUCSC\tGENE\tGENE_5k\tLink_buffer\tAFF\tUNAFF\tNCNV\tM0\tM1\tCMD");
 
 				for (int i = 1; i < data.length; i++) {
 					if (data[i].length > 3 && Double.parseDouble(data[i][2]) < 0.05) {
@@ -209,19 +252,25 @@ public class PlinkCNV {
 						StringBuilder builder = new StringBuilder(result.key + "\t" + Array.toStr(data[i]) + "\t" + seg.getUCSClocation() + "\t");
 						for (int j = 0; j < geneDatas.length; j++) {
 							builder.append((j == 0 ? "" : ":") + geneDatas[j].getGeneName());
-							allSigGenesList.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation());
-							allSigGenesListSpecific.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation());
+							allSigGenesList.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation() + "\t" + result.key);
+							allSigGenesListSpecific.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation() + "\t" + result.key);
 							if (Double.parseDouble(data[i][3]) < 1) {
-								allSigGenesListEMP2.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation());
+								allSigGenesListEMP2.add(geneDatas[j].getGeneName() + "\t" + geneDatas[j].getUCSClocation() + "\t" + result.key);
 							}
 						}
 						builder.append("\t");
 						for (int j = 0; j < geneDatasBuff.length; j++) {
 							builder.append((j == 0 ? "" : ":") + geneDatasBuff[j].getGeneName());
-							allSigGenesList5k.add(geneDatasBuff[j].getGeneName() + "\t" + geneDatasBuff[j].getUCSClocation());
+							allSigGenesList5k.add(geneDatasBuff[j].getGeneName() + "\t" + geneDatasBuff[j].getUCSClocation() + "\t" + result.key);
 						}
 						builder.append("\t" + seg.getBufferedSegment(5000).getUCSCLink("hg18"));
-						builder.append("\t" + dataCount[i][3] + "\t" + dataCount[i][4]);
+						if (result.quant) {
+							builder.append("\tNA\tNA" + "\t" + dataCount[i][3] + "\t" + dataCount[i][4] + "\t" + dataCount[i][5]);
+
+						} else {
+							builder.append("\t" + dataCount[i][3] + "\t" + dataCount[i][4] + "\tNA\tNA\tNA");
+						}
+						builder.append("\t" + result.command);
 						toReport.add(builder.toString());
 						combo.add(builder.toString());
 					}
@@ -252,15 +301,18 @@ public class PlinkCNV {
 		private String filtFile;
 		private String file;
 		private String key;
-
+		private String command;
+		private boolean quant;
 		private boolean complete;
 
-		public PlinkResult(String filtFile, String key, String file, boolean complete) {
+		public PlinkResult(String filtFile, String key, String file, String command, boolean complete, boolean quant) {
 			super();
 			this.filtFile = filtFile;
 			this.key = key;
 			this.file = file;
+			this.command = command;
 			this.complete = complete;
+			this.quant = quant;
 		}
 
 	}
@@ -269,7 +321,7 @@ public class PlinkCNV {
 		int numArgs = args.length;
 		String dir = "C:/data/ARIC/shadowCNVs/";
 		String cnvFile = dir + "combinedMF.cnv";
-		String[] sampFiles = new String[] { dir + "whites.txt", dir + "all.txt",dir+"casesOnly.txt" };
+		String[] sampFiles = new String[] { dir + "whites.txt", dir + "all.txt", dir + "casesOnly.txt" };
 
 		String usage = "\n" +
 				"one.JL.ARICCNV requires 0-1 arguments\n" +
