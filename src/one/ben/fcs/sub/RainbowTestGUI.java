@@ -590,29 +590,39 @@ public class RainbowTestGUI extends JFrame {
     private void showMeanPanel(String col) {
         // Get all means (yData), get Files&Dates (xData), get Mean/SD (meanSD)
         float[] xDataBase, xDataComp, yDataBase, yDataComp;
+        String[] baseLbls, compLbls;
         
         TreeMap<Date, Float> meanMap = new TreeMap<Date, Float>();
+        TreeMap<Date, String> fileMap = new TreeMap<Date, String>();
         for(Entry<String, FCSDataLoader> l : baseFiles.entrySet()) {
             meanMap.put(l.getValue().getRunDate(), fileParamMeanMap.get(l.getKey()).get(col));
+            fileMap.put(l.getValue().getRunDate(), l.getKey());
         }
+        
         xDataBase = new float[meanMap.size()];
         yDataBase = new float[meanMap.size()];
+        baseLbls = new String[meanMap.size()];
         int ind = 0;
         for (Entry<Date, Float> etr : meanMap.entrySet()) {
             xDataBase[ind] = ind+1; // TODO should be time?
             yDataBase[ind] = etr.getValue();
+            baseLbls[ind] = fileMap.get(etr.getKey());
             ind++;
         }
         
         meanMap = new TreeMap<Date, Float>();
+        fileMap = new TreeMap<Date, String>();
         for(Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
             meanMap.put(l.getValue().getRunDate(), fileParamMeanMap.get(ext.removeDirectoryInfo(l.getKey())).get(col));
+            fileMap.put(l.getValue().getRunDate(), l.getKey());
         }
         xDataComp = new float[meanMap.size()];
         yDataComp = new float[meanMap.size()];
+        compLbls = new String[meanMap.size()];
         for (Entry<Date, Float> etr : meanMap.entrySet()) {
             xDataComp[ind - xDataBase.length] = ind+1; // TODO should be time?
             yDataComp[ind - xDataBase.length] = etr.getValue();
+            compLbls[ind - xDataBase.length] = fileMap.get(etr.getKey());
             ind++;
         }
         
@@ -628,7 +638,7 @@ public class RainbowTestGUI extends JFrame {
         
         meanCtrlPanel.setColumns(cols, ind-1);
         
-        meanPanel.setData(col, xDataBase, xDataComp, yDataBase, yDataComp);
+        meanPanel.setData(col, baseLbls, xDataBase, xDataComp, compLbls, yDataBase, yDataComp);
         meanPanel.paintAgain();
         meanFrame.setTitle("Genvisis - FCS Overall Mean/SD - " + col);
         meanFrame.setVisible(true);

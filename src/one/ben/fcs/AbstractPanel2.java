@@ -1538,6 +1538,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				return;
 			}
 			zoomProportionally(e.getWheelRotation()>0, e.getPoint(), false);
+		} else {
+		    
 		}
 	}
 

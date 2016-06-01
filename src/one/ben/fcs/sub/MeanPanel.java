@@ -1,15 +1,21 @@
 package one.ben.fcs.sub;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
 import one.ben.fcs.AbstractPanel2;
 import cnv.plots.GenericLine;
 import cnv.plots.GenericPath;
 import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
-
 import common.Array;
+import common.ext;
 
 public class MeanPanel extends AbstractPanel2  {
 	public static final long serialVersionUID = 3L;
@@ -63,17 +69,21 @@ public class MeanPanel extends AbstractPanel2  {
 		setZoomable(false, true);
 
 		setColorScheme(DEFAULT_COLORS);
-
+		createLookup(true);
 	}
 
 	float[] xDataBase; // Files - in date order
 	float[] xDataComp; // Files - in date order
 	float[] yDataBase; // Means
 	float[] yDataComp; // Means
+	String[] compLbls;
+	String[] baseLbls;
 	String col;
 	
-	public void setData(String col, float[] xDataBase, float[] xDataComp, float[] yDataBase, float[] yDataComp) {
+	public void setData(String col, String[] baseLbls, float[] xDataBase, float[] xDataComp, String[] compLbls, float[] yDataBase, float[] yDataComp) {
 	    this.col = col;
+	    this.compLbls = compLbls;
+	    this.baseLbls = baseLbls;
 	    this.xDataBase = xDataBase;
 	    this.xDataComp = xDataComp;
 	    this.yDataBase = yDataBase;
@@ -108,7 +118,7 @@ public class MeanPanel extends AbstractPanel2  {
 			}
 			
 			color = (byte) 0; // TODO apply gating for colors
-			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
+			points[i] = new PlotPoint(baseLbls[i], type, xAxisValue, yAxisValue, size, color, (byte)0);
 			if (i < xDataBase.length - 1) {
 			    lines[i] = new GenericLine(xAxisValue, yAxisValue, (float) xDataBase[i+1], (float) yDataBase[i+1], (byte)1, (byte)0, (byte)0);
 			}
@@ -122,7 +132,7 @@ public class MeanPanel extends AbstractPanel2  {
 		        type = PlotPoint.FILLED_CIRCLE;
 		    }
 		    color = (byte) 1; // TODO apply gating for colors
-		    points[i + xDataBase.length] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
+		    points[i + xDataBase.length] = new PlotPoint(compLbls[i], type, xAxisValue, yAxisValue, size, color, (byte)0);
 		    if (i < xDataComp.length - 1) {
 		        lines[i - 1 + xDataBase.length] = new GenericLine(xAxisValue, yAxisValue, (float) xDataComp[i+1], (float) yDataComp[i+1], (byte)1, (byte)1, (byte)0);
 		    }
@@ -146,11 +156,44 @@ public class MeanPanel extends AbstractPanel2  {
 	public BufferedImage getImage() {
         return image;
     }
+    
+    public void mouseClicked(MouseEvent e) {
+        JPopupMenu menu;
+        byte maxNumPoints;
 
+        if (prox != null && prox.size() > 0) {
+            menu = new JPopupMenu();
+            maxNumPoints = (byte) Math.min(20, prox.size());
+            for (int i = 0; i < maxNumPoints; i++) {
+                final int ind = prox.elementAt(i);
+                JMenuItem jmi = new JMenuItem(points[ind].getId() + " -- " + points[ind].getRawY());
+                jmi.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        ext.setClipboard(points[ind].getId());                        
+                    }
+                });
+                menu.add(jmi);
+            }
+            menu.show(this, e.getX(), e.getY());
+        }
+    }
+	
     @Override
     public void highlightPoints() {
-        return;
+        byte defaultSize;
+        
+        defaultSize = POINT_SIZE;
+        for (int i = 0; i < points.length; i++) {
+            if (points[i].isHighlighted()) {
+                points[i].setSize((byte)(defaultSize * 1.5));
+            } else {
+                points[i].setSize((byte)(defaultSize));
+            }
+            
+        }
     }
+
 
     @Override
     public void assignAxisLabels() {
