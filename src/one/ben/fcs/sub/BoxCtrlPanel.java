@@ -1,34 +1,25 @@
 package one.ben.fcs.sub;
 
+import java.awt.Component;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.WindowConstants;
-
-import net.miginfocom.swing.MigLayout;
-
-import javax.swing.JLabel;
-
-import java.awt.Component;
-import java.awt.Font;
-
+import javax.swing.JScrollPane;
 import javax.swing.JTree;
-import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultTreeSelectionModel;
-import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import javax.swing.JScrollPane;
+
+import net.miginfocom.swing.MigLayout;
 
 import common.Array;
 
@@ -64,25 +55,28 @@ public class BoxCtrlPanel extends JPanel {
                     actualData.add(hdr[0]);
                 }
             } else {
-                DefaultMutableTreeNode dmtnParent = nodes.get(hdr[hdr.length - 2]);
+                String parentKey = Array.toStr(Array.subArray(hdr, 0, hdr.length - 1), "\t");
+                DefaultMutableTreeNode dmtnParent = nodes.get(parentKey);
                 if (dmtnParent == null) {
                     dmtnParent = new DefaultMutableTreeNode(hdr[hdr.length - 2]);
-                    nodes.put(hdr[hdr.length - 2], dmtnParent);
+                    nodes.put(parentKey, dmtnParent);
                     for (int i = hdr.length - 3; i >= 0; i--) {
-                        DefaultMutableTreeNode nd = nodes.get(hdr[i]);
+                        String key = Array.toStr(Array.subArray(hdr, 0, i+1), "\t");
+                        DefaultMutableTreeNode nd = nodes.get(key);
                         boolean found = true;
                         if (nd == null) {
                             nd = new DefaultMutableTreeNode(hdr[i]);
-                            nodes.put(hdr[i], nd);
+                            nodes.put(key, nd);
                             found = false;
                         }
-                        nd.add(nodes.get(hdr[i+1]));
+                        key = Array.toStr(Array.subArray(hdr, 0, i+2), "\t");
+                        nd.add(nodes.get(key));
                         if (found) break;
                     }
                 } 
                 DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(hdr[hdr.length - 1]);
                 dmtnParent.add(dmtn);
-                nodes.put(hdr[hdr.length - 1], dmtn);
+                nodes.put(Array.toStr(hdr, "\t"), dmtn);
                 actualData.add(Array.toStr(hdr, "\t"));
             }
         }

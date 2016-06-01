@@ -174,7 +174,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             lines = new GenericLine[0];
             polygons = new GenericPath[0];
 		    return;
-		    
 		}
 		if (!fcp.isCurrentDataDisplayable()) {
 		    setNullMessage("Please wait, data is loading...");
