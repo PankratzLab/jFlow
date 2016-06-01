@@ -486,8 +486,7 @@ public class MitoPipeline {
 							}
 							boolean mitoResourceAvailable = prepareMitoResources(proj, requireBeta, proj.getLog());
 							if (mitoResourceAvailable) {
-								BetaOptimizer.optimize(proj, proj.PROJECT_DIRECTORY.getValue()+pcApply.getExtrapolatedPCsFile(), proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/", requireBeta ? ext.parseDirectoryOfFile(Resources.MITO_RESOURCE_TYPE.ALL_WBC_BETA.getResource().getFullLocalPath()) : betaFile, betaOptFile, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, pvalOpt, numComponents, markerCallRateFilter, numThreads);
-								//merge
+								BetaOptimizer.optimize(proj, proj.PROJECT_DIRECTORY.getValue() + pcApply.getExtrapolatedPCsFile(), proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/", requireBeta ? ext.parseDirectoryOfFile(Resources.MITO_RESOURCE_TYPE.ALL_WBC_BETA.getResource().getFullLocalPath()) : betaFile, betaOptFile, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, pvalOpt, numComponents, markerCallRateFilter, 25, numThreads);
 							} else {
 								proj.getLog().reportTimeError("Could not optimize betas due to missing files");
 							}
@@ -925,7 +924,7 @@ public class MitoPipeline {
 		boolean recompSampleSpecific = true;
 		String betaOptFile = null;
 		double[] pvalOpt = new double[] { 0.05, 0.01, 0.001 };
-		String betaFile =null;
+		String betaFile = null;
 
 		String usage = "\n";
 		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
@@ -1087,7 +1086,7 @@ public class MitoPipeline {
 			} else if (args[i].startsWith("betas=")) {
 				betaFile = ext.parseStringArg(args[i], null);
 				numArgs--;
-			}else if (args[i].startsWith("idHeader=")) {
+			} else if (args[i].startsWith("idHeader=")) {
 				System.out.println(args[i]);
 				idHeader = ext.parseStringArg(args[i].replaceAll("_", " "), null);
 				numArgs--;
