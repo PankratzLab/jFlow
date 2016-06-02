@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -519,7 +520,7 @@ public class ForestPanel extends AbstractPanel {
 				plotYmin = plotMinMaxStep[0];
 				plotYmax = plotMinMaxStep[1];
 				
-				g.drawString((oddsDisplay ? "OR" : "RR") + " (UCI, LCI)", getWidth() - rightsize + 15, 3 * HEAD_BUFFER + 14);
+				g.drawString((oddsDisplay ? "OR" : "RR") + " (95% CI)", getWidth() - rightsize + 15, 3 * HEAD_BUFFER + 14);
 				
 				sigFigs = (int) plotMinMaxStep[4];
 				double step = 1;//Math.max(1, Math.round(plotMinMaxStep[2] * 2) / 2.0f);
@@ -655,12 +656,13 @@ public class ForestPanel extends AbstractPanel {
 			}
 
 			g.setColor(Color.BLACK);
-			g.setFont(new Font("Arial", Font.ITALIC, 16));
+			g.setFont(new Font("Arial", Font.PLAIN, 22));
 			if (forestPlot.getDataIndices().size() > 0) {
 				String comm = forestPlot.getDataIndices().get(forestPlot.getCurrentDataIndex()).comment;
 				if (!"".equals(comm)) {
 					int w = g.getFontMetrics().stringWidth(comm) / 2;
-					g.drawString(comm, getWidth() / 2 - w, 3 * HEAD_BUFFER + 14);
+					// TODO handle this better than checking GraphicsEnvironment.isHeadless() to determine where to put title
+					g.drawString(comm, getWidth() / 2 - w, (GraphicsEnvironment.isHeadless() ? 1 : 3) *HEAD_BUFFER + 10);
 				} 
 			}
 		}
