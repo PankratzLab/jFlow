@@ -316,7 +316,7 @@ public class SampleQC {
 		for (int i = 0; i < samples.length; i++){
 			sampleIndices.put(samples[i],i);
 		}
-		for (int i = 0; i < fidiids.length; i++){
+		for (int i = 0; i < ped.getIDs().length; i++){
 			try {
 				String fidiid = ped.getFID(i) + "\t" + ped.getIID(i);
 				String mzTwinId = ped.getMzTwinId(i);

@@ -17,23 +17,30 @@ import common.ext;
 public class DuplicateConcordance {
 	
 	private double projectConcordance;
+	private double projectNonMissingConcordance;
 	private int markersChecked;
 	private int duplicatePairsChecked;
 	
 	
 	/**
-	 * @param discordantCalls number of marker calls that did not match across
+	 * @param discordantCalls number of marker calls that did not match
+	 * @param nonMissingDiscordantCalls number of marker calls that did not match, excluding cases where one call was missing
 	 * @param markersChecked number of markers checked
 	 * @param duplicatePairsChecked number of duplicate pairs checked
 	 */
-	private DuplicateConcordance(int discordantCalls, int markersChecked, int duplicatePairsChecked) {
+	private DuplicateConcordance(int discordantCalls, int nonMissingDiscordantCalls, int markersChecked, int duplicatePairsChecked) {
 		super();
 		int totalChecks = markersChecked * duplicatePairsChecked;
 		this.projectConcordance = (double)(totalChecks - discordantCalls) / totalChecks;
+		this.projectNonMissingConcordance = (double)(totalChecks - nonMissingDiscordantCalls) / totalChecks;
 		this.markersChecked = markersChecked;
 		this.duplicatePairsChecked = duplicatePairsChecked;
 	}
 
+	public double getProjectNonMissingConcordance() {
+		return projectNonMissingConcordance;
+	}
+	
 	public double getProjectConcordance() {
 		return projectConcordance;
 	}
@@ -47,7 +54,8 @@ public class DuplicateConcordance {
 	}
 	
 	public String getConcordanceString() {
-		return "Duplicate Concordance was calculated to be " + projectConcordance + " using " + duplicatePairsChecked + " pairs of duplicates at " + markersChecked + " markers.";
+		return "Duplicate Concordance was calculated to be " + projectConcordance + " (including missing calls) and " + 
+			   projectNonMissingConcordance + " (excluding missing calls) using " + duplicatePairsChecked + " pairs of duplicates at " + markersChecked + " markers.";
 	}
 
 	/**
@@ -110,6 +118,7 @@ public class DuplicateConcordance {
 			}
 		}
 		int discordantCalls = 0;
+		int nonMissingDiscordantCalls = 0;
 		int pairsChecked = 0;
 		
 		for (HashSet<String> duplicateSet : duplicateSets.values()) {
@@ -140,6 +149,9 @@ public class DuplicateConcordance {
 						for (int i = 0; i < s1Genotypes.length; i++) {
 							if (s1Genotypes[i] != s2Genotypes[i]) {
 								discordantCalls++;
+								if (s1Genotypes[i] != -1 && s2Genotypes[i] != -1) {
+									nonMissingDiscordantCalls++;
+								}
 							}
 						}
 					}
@@ -152,7 +164,7 @@ public class DuplicateConcordance {
 			return null;
 		}
 		
-		return new DuplicateConcordance(discordantCalls, markerNames.length, pairsChecked);
+		return new DuplicateConcordance(discordantCalls, nonMissingDiscordantCalls, markerNames.length, pairsChecked);
 			
 	}
 	
