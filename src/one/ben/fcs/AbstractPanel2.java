@@ -2133,10 +2133,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public void setFlow(boolean flow) {
 		this.flow = flow;
 	}
-
-	public boolean getFlow() {
-		return flow;
-	}
 	
 	public void setSwapable(boolean swapable) {
 		this.swapable = swapable;

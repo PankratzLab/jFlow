@@ -33,7 +33,59 @@ public class GenericRectangle {
 //		this.myRect = new Rectangle2D.Float(Math.min(startX, stopX), Math.min(startY, stopY), Math.max(startX, stopX) - Math.min(startX, stopX), Math.max(startY, stopY) - Math.min(startY, stopY));
 	}
 	
-	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte fillColor, byte layer, boolean editable) {
+	@Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + color;
+        result = prime * result + (editable ? 1231 : 1237);
+        result = prime * result + (fill ? 1231 : 1237);
+        result = prime * result + fillColor;
+        result = prime * result + layer;
+        result = prime * result + (roundedCorners ? 1231 : 1237);
+        result = prime * result + java.lang.Float.floatToIntBits(startXValue);
+        result = prime * result + java.lang.Float.floatToIntBits(startYValue);
+        result = prime * result + java.lang.Float.floatToIntBits(stopXValue);
+        result = prime * result + java.lang.Float.floatToIntBits(stopYValue);
+        result = prime * result + thickness;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        GenericRectangle other = (GenericRectangle) obj;
+        if (color != other.color)
+            return false;
+        if (editable != other.editable)
+            return false;
+        if (fill != other.fill)
+            return false;
+        if (fillColor != other.fillColor)
+            return false;
+        if (layer != other.layer)
+            return false;
+        if (roundedCorners != other.roundedCorners)
+            return false;
+        if (java.lang.Float.floatToIntBits(startXValue) != java.lang.Float.floatToIntBits(other.startXValue))
+            return false;
+        if (java.lang.Float.floatToIntBits(startYValue) != java.lang.Float.floatToIntBits(other.startYValue))
+            return false;
+        if (java.lang.Float.floatToIntBits(stopXValue) != java.lang.Float.floatToIntBits(other.stopXValue))
+            return false;
+        if (java.lang.Float.floatToIntBits(stopYValue) != java.lang.Float.floatToIntBits(other.stopYValue))
+            return false;
+        if (thickness != other.thickness)
+            return false;
+        return true;
+    }
+
+    public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte fillColor, byte layer, boolean editable) {
 		this.startXValue = startX;
 		this.startYValue = startY;
 		this.stopXValue = stopX;
