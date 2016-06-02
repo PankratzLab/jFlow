@@ -622,14 +622,15 @@ public class ResultsPackager {
 
 	/**
 	 * 
-	 * @param fullPathStatResults
-	 * @param fullPathMarkerList
-	 * @param markerColumnName
-	 * @param analyses
-	 * @param columnNamesOfAnalyses
-	 * @param fullPathOutFile
-	 * @param log
-	 *
+	 * @param fullPathStatResults {{name of analysis ("." for main/overall), path of results file},...}
+	 * @param fullPathMarkerList Path to list of markers to use
+	 * @param markerColumnName name to use for marker column
+	 * @param analyses names of analyses
+	 * @param columnNamesOfAnalyses String array for each analysis (i) where [i][0] = beta (OR for tdt), [i][1] = SE (U95 for tdt), [i][2] = primary result, [i][3+] = secondary results
+	 * @param columnDisplayNames String array for each analysis corresponding to columns in columnNamesOfAnalyses with desired display text (ignored for [i][0] and [i][1], null to use column names
+	 * @param fullPathOutFile Path to generate output file to
+	 * @param log a log
+	 * 
 	 * Examples of using this method:
 	 * 
 	 * getForestPlotParameterFile(new String[][] {{"extragonadal", "D:/temp/Poynter_emim/testing/allFinalPoynter_results_pvals_1.xln"}, {"germinoma", "D:/temp/Poynter_emim/testing/allFinalPoynter_results_pvals_2.xln"}},
@@ -637,18 +638,20 @@ public class ResultsPackager {
 	 * 							  "MarkerName",
 	 * 							  new String[] {"tdt", "emim"},
 	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_se_lnR1", "pVal_C_df1"}},
+	 * 							  null
 	 * 							  "D:/temp/Poynter_emim/testing/forestplot.xln",
 	 * 							  null);
 	 * 
 	 * getForestPlotParameterFile(HashVec.loadFileToStringMatrix("/home/pankrat2/shared/Poynter_emim/allFinalPoynter/fileList_allFinalPoynter.txt", false, null, false),
 	 * 							  "/home/pankrat2/shared/Poynter_emim/markerList.txt",
 	 * 							  "MarkerName",
-	 * 							  new String[] {"tdt", "emim"},
-	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"C_lnR1", "C_se_lnR1", "pVal_C_df1"}},
+	 * 							  new String[] {"TDT", "EMIM Maternal Effect"},
+	 * 							  new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"}, {"M_lnS1", "M_se_lnS1", "pVal_M_df1", "pVal_CM-C_df1"}},
+	 * 							  new String[][] {{"","","p"},{"","","p","removing Child Effect p"}},
 	 * 							  "/home/pankrat2/shared/Poynter_emim/allFinalPoynter/allFinalPoynter_forestplot.xln",
 	 * 							  null);
 	 */
-	public static void getForestPlotParameterFile(String[][] fullPathStatResults, String fullPathMarkerList, String markerColumnName, String[] analyses, String[][] columnNamesOfAnalyses, String fullPathOutFile, Logger log) {
+	public static void getForestPlotParameterFile(String[][] fullPathStatResults, String fullPathMarkerList, String markerColumnName, String[] analyses, String[][] columnNamesOfAnalyses, String[][] columnDisplayNames, String fullPathOutFile, Logger log) {
 		Double beta, se;
 		int markerIndex, mainIndex, columnIndex;
 		int[][] indices;
@@ -661,6 +664,8 @@ public class ResultsPackager {
 		BufferedReader reader;
 		PrintWriter writer;
 		boolean isMain;
+		
+		if (columnDisplayNames == null) columnDisplayNames = columnNamesOfAnalyses;
 
 		columnsTmp = new Vector<String>();
 		for (int i = 0; i < columnNamesOfAnalyses.length; i++) {
@@ -686,7 +691,7 @@ public class ResultsPackager {
 		out2 = new String[analyses.length * markers.length];
 		mainIndex = -1;
 		for (int i = 0; i < analyses.length; i++) {
-			filename = ext.rootOf(fullPathOutFile) + "_" + analyses[i] + fullPathOutFile.substring(fullPathOutFile.lastIndexOf("."));
+			filename = ext.rootOf(fullPathOutFile) + "_" + (analyses[i].equalsIgnoreCase("tdt") ? "_" : "") + ext.replaceWithLinuxSafeCharacters(analyses[i], true) + fullPathOutFile.substring(fullPathOutFile.lastIndexOf("."));
 			out1 = new String[markers.length + 1];
 			out1[0] = "Gene\t" + markerColumnName;
 
@@ -754,7 +759,9 @@ public class ResultsPackager {
 							out1[j] += "\t" + statResults[k][markerIndex][columnIndex];
 
 							if (k == mainIndex) {
-								out2[out2index] += " " + columnNamesOfAnalyses[i][l] + "=" + ext.formDeci(Double.parseDouble(statResults[mainIndex][markerIndex][columnIndex]), 7);
+								if (l == 2) out2[out2index] += " " + columnDisplayNames[i][l] + "=" + ext.prettyP(Double.parseDouble(statResults[mainIndex][markerIndex][columnIndex]));
+								else out2[out2index] += " (" + columnDisplayNames[i][l] + "=" + ext.prettyP(Double.parseDouble(statResults[mainIndex][markerIndex][columnIndex])) + ")";
+								
 							}
 						}
 					}
@@ -1086,7 +1093,7 @@ public class ResultsPackager {
                 String sortFileName = "/home/pankrat2/shared/Poynter_emim/forestPlotDisplayOrder.txt";
 			    for (String[] fileSet : files) {
     			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix(fileSet[0], false, null, false),
-    			                                mkrFile, mkrColNm, analyses, analysisNms, fileSet[1], null);
+    			                                mkrFile, mkrColNm, analyses, analysisNms, null, fileSet[1], null);
         			    cnv.plots.ForestPlot fp = new cnv.plots.ForestPlot(ext.rootOf(fileSet[1], false) + ".input", null);
         			    fp.waitForLoad();
         			    fp.setOddsRatioDisplay(oddsRatio);
