@@ -11,6 +11,7 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.swing.SwingUtilities;
 
@@ -101,14 +102,21 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	ArrayList<double[]> tempPoly = new ArrayList<double[]>();
     volatile boolean forceGatesChanged = false;
 	
-	public static final int RECT_TOOL = 0;
-	public static final int POLY_TOOL = 1;
+    public static enum GATING_TOOL {
+        RECT_TOOL,
+        POLY_TOOL;
+    };
 	
-	private volatile int currentTool = POLY_TOOL;
-//	private volatile int currentTool = RECT_TOOL;
+	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
+//	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
 	
-	private int dragInd = -1;
+//	private int dragInd = -1;
     private int polyDragVertInd = -1;
+
+    public void setGatingTool(GATING_TOOL tool) {
+        // TODO cancel drawing any gates
+        currentTool = tool;
+    }
 
     private boolean isHistogram() {
         return yCol != null && yCol.equals(FCSPlot.HISTOGRAM_COL);
@@ -374,158 +382,495 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 //            rects.clear();
 //            ellipses.clear();
             
-            rectangles = rects.toArray(new GenericRectangle[rects.size()]);
+    		ArrayList<GenericRectangle> temp = new ArrayList<GenericRectangle>();
+    		temp.addAll(rects);
+    		temp.addAll(draggingVertexRects);
+            rectangles = temp.toArray(new GenericRectangle[temp.size()]);
             polygons = polys.toArray(new GenericPath[polys.size()]);
         }
 	}
 	
-    public void mouseMoved(MouseEvent e) {
-        super.mouseMoved(e);
+    
+    private ArrayList<GenericPath> getPolysWithVerticesNearClick(MouseEvent e) {
         int tempX = e.getX();
         int tempY = e.getY();
-        for (int i = 0; i < rects.size(); i++) {
-            GenericRectangle rect = rects.get(i);
-            int xPix1, xPix2, yPix1, yPix2;
-            xPix1 = getXPixel(rect.getStartXValue());
-            xPix2 = getXPixel(rect.getStopXValue());
-            yPix1 = getYPixel(rect.getStartYValue());
-            yPix2 = getYPixel(rect.getStopYValue());
-            Rectangle myRect = new Rectangle(Math.min(xPix1, xPix2) - 10, 
-                                            Math.min(yPix1, yPix2) - 10, 
-                                            Math.max(xPix1, xPix2) 
-                                                - Math.min(xPix1, xPix2) + 10, 
-                                            Math.max(yPix1, yPix2)
-                                                - Math.min(yPix1, yPix2) + 10);
-            rect.setEditable(myRect.contains(tempX, tempY));
-        }
-        for (int i = 0; i < polys.size(); i++) {
-            GenericPath poly = polys.get(i);
-            Path2D path = ((Path2D)poly.myPath.clone());
-            poly.setEditable(path.contains(getXValueFromXPixel(tempX), getYValueFromYPixel(tempY)));
-        }
-        paintAgain();
         
+        ArrayList<GenericPath> retPolys = new ArrayList<GenericPath>();
+        
+        double[] coords = new double[6];
+        for (int i = 0; i < polys.size(); i++) {
+            Path2D path = polys.get(i).myPath;
+            PathIterator pi = path.getPathIterator(null);
+            while (!pi.isDone()) {
+                pi.currentSegment(coords);
+                if (Math.abs(tempX - getXPixel(coords[0])) < DEFAULT_NEARBY_DIST  && Math.abs(tempY - getYPixel(coords[1])) < DEFAULT_NEARBY_DIST) {
+                    retPolys.add(polys.get(i));
+                    break;
+                }
+                pi.next();
+            }
+        }
+        
+        return retPolys;
     }
     
-	private void leftMousePressedRect(MouseEvent e) {
+    private ArrayList<GenericPath> getPolysContainingClick(MouseEvent e) {
         int tempX = e.getX();
         int tempY = e.getY();
-        int toRemove = -1;
-
+        
+        ArrayList<GenericPath> retPolys = new ArrayList<GenericPath>();
+        
+        for (int i = 0; i < polys.size(); i++) {
+            Path2D path = polys.get(i).myPath;
+            if (path.contains(getXValueFromXPixel(tempX), getYValueFromYPixel(tempY))) {
+                retPolys.add(polys.get(i));
+            }
+        }
+        
+        return retPolys;
+    }
+    
+    private ArrayList<GenericRectangle> getRectsWithVerticesNearClick(MouseEvent e) {
+        int tempX = e.getX();
+        int tempY = e.getY();
+    
+        ArrayList<GenericRectangle> retRects = new ArrayList<GenericRectangle>();
         for (int i = 0; i < rects.size(); i++) {
             GenericRectangle rect = rects.get(i);
-            boolean closeToStartX = Math.abs(getXPixel(rect.getStartXValue()) - tempX) < 4; 
-            boolean closeToStartY = Math.abs(getYPixel(rect.getStartYValue()) - tempY) < 4; 
-            boolean closeToStopX = Math.abs(getXPixel(rect.getStopXValue()) - tempX) < 4; 
-            boolean closeToStopY = Math.abs(getYPixel(rect.getStopYValue()) - tempY) < 4; 
-            
-            double tempStartX = Double.NaN, tempStartY = Double.NaN, tempStopX = Double.NaN, tempStopY = Double.NaN;
-            boolean drag = true;
-            if (closeToStartX && closeToStartY) {
-                tempStartX = rect.getStopXValue();
-                tempStartY = rect.getStopYValue();
-                tempStopX = rect.getStartXValue();
-                tempStopY = rect.getStartYValue();
-                drag = false;
-            } else if (closeToStartX && closeToStopY) {
-                tempStartX = rect.getStopXValue();
-                tempStartY = rect.getStartYValue();
-                tempStopX = rect.getStartXValue();
-                tempStopY = rect.getStopYValue();
-                drag = false;
-            } else if (closeToStopX && closeToStartY) {
-                tempStartX = rect.getStartXValue();
-                tempStartY = rect.getStopYValue();
-                tempStopX = rect.getStopXValue();
-                tempStopY = rect.getStartYValue();
-                drag = false;
-            } else if (closeToStopX && closeToStopY) {
-                tempStartX = rect.getStartXValue();
-                tempStartY = rect.getStartYValue();
-                tempStopX = rect.getStopXValue();
-                tempStopY = rect.getStopYValue();
-                drag = false;
+            boolean aX = Math.abs(getXPixel(rect.getStartXValue()) - tempX) < DEFAULT_NEARBY_DIST; 
+            boolean aY = Math.abs(getYPixel(rect.getStartYValue()) - tempY) < DEFAULT_NEARBY_DIST; 
+            boolean bX = Math.abs(getXPixel(rect.getStopXValue()) - tempX) < DEFAULT_NEARBY_DIST; 
+            boolean bY = Math.abs(getYPixel(rect.getStopYValue()) - tempY) < DEFAULT_NEARBY_DIST; 
+            if (aX && aY || aX && bY || bX && aY || bX && bY) {
+                retRects.add(rect);
             }
-            if (!Double.isNaN(tempStartX)) {
-                startX = getXPixel(tempStartX);
-                startY = getYPixel(tempStartY);
-                highlightRectangle = new GenericRectangle((float)tempStartX, 
-                                                            (float)tempStartY,
-                                                            (float)tempStopX, 
-                                                            (float)tempStopY,
-                                                            (byte)1, false, false, (byte)0, (byte)99, true);
-                toRemove = i;
-                break;
-            } else {
-                Rectangle2D myRect = new Rectangle2D.Float(Math.min(rect.getStartXValue(), rect.getStopXValue()), Math.min(rect.getStartYValue(), rect.getStopYValue()), Math.max(rect.getStartXValue(), rect.getStopXValue()) - Math.min(rect.getStartXValue(), rect.getStopXValue()), Math.max(rect.getStartYValue(), rect.getStopYValue()) - Math.min(rect.getStartYValue(), rect.getStopYValue()));
-                if (myRect.contains(getXValueFromXPixel(tempX), getYValueFromYPixel(tempY)) && drag) {
-                    dragInd = i;
-                    startX = getXPixel(tempStartX);
-                    startY = getYPixel(tempStartY);
+        }
+        return retRects;
+    }
+    
+    private ArrayList<GenericRectangle> getRectsContainingClick(MouseEvent e) {
+        int tempX = e.getX();
+        int tempY = e.getY();
+        
+        ArrayList<GenericRectangle> retRects = new ArrayList<GenericRectangle>();
+        
+        for (int i = rects.size() - 1; i >= 0; i--) {
+            GenericRectangle rect = rects.get(i);
+            double xLow, xHigh, yLow, yHigh;
+            xLow = getXPixel(Math.min(rect.getStartXValue(), rect.getStopXValue()));
+            xHigh = getXPixel(Math.max(rect.getStartXValue(), rect.getStopXValue()));
+            if (xLow <= tempX && xHigh >= tempX) {
+                if (!isHistogram()) {
+                    yHigh = getYPixel(Math.min(rect.getStartYValue(), rect.getStopYValue()));
+                    yLow = getYPixel(Math.max(rect.getStartYValue(), rect.getStopYValue()));
+                    if (yLow <= tempY && yHigh >= tempY) {
+                        retRects.add(rect);
+                    }
+                } else {
+                    retRects.add(rect);
                 }
             }
         }
-        if (toRemove >= 0) {
-            rects.remove(toRemove);
-        } else {
-            startX = e.getX();
-            startY = e.getY();
-        }
-        paintAgain();
-	}
-	
-	private void leftMousePressedPoly(MouseEvent e) {
-	    int tempX = e.getX();
-	    int tempY = e.getY();
-	    
-	    double[] coords = new double[6];
-	    int polyInd = -1;
-	    int vertInd = -1;
-	    for (int i = 0; i < polys.size(); i++) {
-	    	Path2D path = polys.get(i).myPath;
-	    	if (path.contains(getXValueFromXPixel(tempX), getYValueFromYPixel(tempY))) {
-	    	    polyInd = i;
-	    	}
-	    	PathIterator pi = path.getPathIterator(null);
-	    	int vInd = 0;
-	    	while (!pi.isDone()) {
-	    	    pi.currentSegment(coords);
-	    	    if (Math.abs(tempX - getXPixel(coords[0])) < 4 && Math.abs(tempY - getYPixel(coords[1])) < 4) {
-	    	        polyInd = i;
-	    	        vertInd = vInd;
-	    	        break;
-	    	    }
-	    	    vInd++;
-	    	    pi.next();
-	    	}
-	    }
-	    if (polyInd >= 0) {
-	        dragInd = polyInd;
-	    }
-	    if (vertInd >= 0) {
-	        polyDragVertInd = vertInd;
-	    }
-        startX = e.getX();
-        startY = e.getY();
-	    paintAgain();
-	}
-	
-	public void mousePressed(MouseEvent e) {
+        
+        return retRects;
+    }
+    
+
+    
+    
+    
+    /*
+
+    - starting a new gate clears selections
+    - clicking a selected gate deselects it
+    - press and drag on a selected gate drags all selected gates
+    - event order: press, drag, click(?), release(?) (Or release, click?)
+    - drag flag? (InDrag)
+    - if release and not in drag, and not creating new gate, either select (actual logic in mousePressed, not mouseReleased) 
+                    or deselect (which has to be in mouseReleased cuz drag) single gate if inside, or deselect all if outside
+    - if release and inDrag, finalize drag and clear flag (either create rect gate
+
+
+    //  mousePressed():
+    // if drawing new poly, click == new point (i.e., set startX, startY, return) 
+     * else
+    // check mouse location vs all polys
+    //     if not within any shapes, deselect all
+    //     -   and start drawing next shape (i.e. set startX, startY) [more important in mouseReleased]
+    //     else if within shape, select shape (begin drag)
+    //     -   followed by either mouseDragged or mouseReleased
+    //     -   mouseDragged == drag all selected polys/rects and mouse polys/rects
+    //     -   mouseReleased == add poly to selected polys if still within poly and not dragging
+    //     if within N pixels of vertex, start vertex drag (don't deselect everything; can drag/edit while preserving multiselect)
+    //      
+     */
+    
+    private static final int DEFAULT_NEARBY_DIST = 4;
+    private HashSet<GenericPath> selectedPolys = new HashSet<GenericPath>();
+    private HashSet<GenericRectangle> selectedRects = new HashSet<GenericRectangle>();
+
+    // in mouseReleased, if !drag && tempPoly.isEmpty (and not creating a rect gate), XAND mousePoly/Rect from selectedPoly/Rect (remove if in selected, add if not) 
+    private HashSet<GenericPath> mousePolys = new HashSet<GenericPath>();
+    private HashSet<GenericRectangle> mouseRects = new HashSet<GenericRectangle>();
+    
+    private ArrayList<GenericRectangle> draggingVertexRects = new ArrayList<GenericRectangle>();
+    private ArrayList<GenericPath> draggingPolys = new ArrayList<GenericPath>();
+    private ArrayList<Integer> draggingPolyInds = new ArrayList<Integer>();
+    
+    public void mouseReleased(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+            int mouseEndX;
+            int mouseEndY;
+            mouseEndX = e.getX();
+            mouseEndY = e.getY();
             
-            if (currentTool == RECT_TOOL) {
-                leftMousePressedRect(e);
-            } else if (currentTool == POLY_TOOL) {
-            	leftMousePressedPoly(e);
+            if (!drag/* && (currentTool == GATING_TOOL.RECT_TOOL || tempPoly.isEmpty())*/) {
+                for (GenericRectangle rect : mouseRects) {
+                    if (selectedRects.contains(rect)) {
+                        rect.setEditable(false);
+                        selectedRects.remove(rect);
+                    } else {
+                        rect.setEditable(true);
+                        selectedRects.add(rect);
+                    }
+                }
+                mouseRects.clear();
+                for (GenericPath path : mousePolys) {
+                    if (selectedPolys.contains(path)) {
+                        path.setEditable(false);
+                        selectedPolys.remove(path);
+                    } else {
+                        path.setEditable(true);
+                        selectedPolys.add(path);
+                    }
+                }
+            } 
+            if (drag) {
+                drag = false;
+            } else if (currentTool == GATING_TOOL.POLY_TOOL || !tempPoly.isEmpty()) {
+                double tempValX = getXValueFromXPixel(mouseEndX);
+                double tempValY = getYValueFromYPixel(mouseEndY);
+                if (!tempPoly.isEmpty()) {
+                    int initPtX = getXPixel(tempPoly.get(0)[0]);
+                    int initPtY = getYPixel(tempPoly.get(0)[1]);
+                    if (Math.abs(initPtX - mouseEndX) < 5 && Math.abs(initPtY - mouseEndY) < 5) {
+                        Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+                        path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
+                        for(int i = 1; i < tempPoly.size(); ++i) {
+                           path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+                        }
+                        path.closePath();
+                        PolygonGate pg = new PolygonGate();
+                        pg.addDimension(new GateDimension(xCol));
+                        pg.addDimension(new GateDimension(yCol));
+                        pg.setPath(path);
+//                        fcp.addGate(pg);
+//                         TODO add new PolygonGate to fcp gating strategy, instead of adding to polys
+                        polys.add(new GenericPath(path, (byte)0, (byte)0, (byte)99, false, false));
+                        tempPoly.clear();
+                        highlightPoly = null;
+                        setForceGatesChanged();
+                        paintAgain();
+                        return;
+                    }
+                } 
+                tempPoly.add(new double[]{tempValX, tempValY});
+                Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+                path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
+                for(int i = 1; i < tempPoly.size(); ++i) {
+                   path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+                }
+                highlightPoly = new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true);
             }
             
+            if (draggingVertexRects.isEmpty()) {
+                highlightRectangle = null;
+//                    RectangleGate rg = new RectangleGate();
+//                    rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
+//                    if (!isHistogram()) {
+//                        rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
+//                    }
+//                    fcp.addGate(rg);
+                
+                // TODO for testing:
+                rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
+                                                (float)getYValueFromYPixel(startY), 
+                                                (float)getXValueFromXPixel(mouseEndX), 
+                                                (float)getYValueFromYPixel(mouseEndY), 
+                                                (byte)1, false, false, (byte)0, (byte)0, false));
+            } else {
+                rects.addAll(draggingVertexRects);
+                draggingVertexRects.clear();
+            }
             
+            setForceGatesChanged();
+            paintAgain();
+            
+            
+        } else {
+            super.mouseReleased(e);
+        }
+    }
+    
+    public void mousePressed(MouseEvent e) {
+        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+            int tempX = e.getX();
+            int tempY = e.getY();
+            if (tempPoly.isEmpty()) {
+                ArrayList<GenericPath> insidePolys = getPolysContainingClick(e);
+                ArrayList<GenericPath> closePolys = getPolysWithVerticesNearClick(e);
+                ArrayList<GenericRectangle> insideRects = getRectsContainingClick(e);
+                ArrayList<GenericRectangle> closeRects = getRectsWithVerticesNearClick(e);
+                
+                if (insidePolys.isEmpty() && insideRects.isEmpty() && closePolys.isEmpty() && closeRects.isEmpty()) {
+                    selectedPolys.clear();
+                    selectedRects.clear();
+                }
+                if (closeRects.isEmpty()) {
+                    if (!insideRects.isEmpty()) {
+                        mouseRects.addAll(insideRects);
+                    }
+                } else {
+                    for (GenericRectangle rect : closeRects) {
+                        rects.remove(rect);
+                        selectedRects.remove(rect);
+                        mouseRects.remove(rect);
+
+                        boolean closeToStartX = Math.abs(getXPixel(rect.getStartXValue()) - tempX) < 4; 
+                        boolean closeToStartY = Math.abs(getYPixel(rect.getStartYValue()) - tempY) < 4; 
+                        boolean closeToStopX = Math.abs(getXPixel(rect.getStopXValue()) - tempX) < 4; 
+                        boolean closeToStopY = Math.abs(getYPixel(rect.getStopYValue()) - tempY) < 4; 
+                        
+                        double tempStartX = Double.NaN, tempStartY = Double.NaN, tempStopX = Double.NaN, tempStopY = Double.NaN;
+                        if (closeToStartX && closeToStartY) {
+                            tempStartX = rect.getStopXValue();
+                            tempStartY = rect.getStopYValue();
+                            tempStopX = rect.getStartXValue();
+                            tempStopY = rect.getStartYValue();
+                        } else if (closeToStartX && closeToStopY) {
+                            tempStartX = rect.getStopXValue();
+                            tempStartY = rect.getStartYValue();
+                            tempStopX = rect.getStartXValue();
+                            tempStopY = rect.getStopYValue();
+                        } else if (closeToStopX && closeToStartY) {
+                            tempStartX = rect.getStartXValue();
+                            tempStartY = rect.getStopYValue();
+                            tempStopX = rect.getStopXValue();
+                            tempStopY = rect.getStartYValue();
+                        } else if (closeToStopX && closeToStopY) {
+                            tempStartX = rect.getStartXValue();
+                            tempStartY = rect.getStartYValue();
+                            tempStopX = rect.getStopXValue();
+                            tempStopY = rect.getStopYValue();
+                        }
+                        if (!Double.isNaN(tempStartX)) {
+                            GenericRectangle dragRect = new GenericRectangle((float)tempStartX, 
+                                                                        (float)tempStartY,
+                                                                        (float)tempStopX, 
+                                                                        (float)tempStopY,
+                                                                        (byte)1, false, false, (byte)0, (byte)99, true);
+                            draggingVertexRects.add(dragRect);
+                        }
+                    }
+                }
+                if (closePolys.isEmpty()) {
+                    // TODO should this affect ALL of these shapes?
+                    if (!insidePolys.isEmpty()) {
+                        mousePolys.addAll(insidePolys);
+                    }
+                } else {
+//                    polys.removeAll(closePolys);
+                    selectedPolys.removeAll(closePolys);
+                    mousePolys.removeAll(closePolys);
+                    
+                    draggingPolys = closePolys;
+                    draggingPolyInds.clear();
+                    
+                    double[] coords = new double[6];
+                    polyLoop : for (int i = 0; i < closePolys.size(); i++) {
+                        Path2D path = closePolys.get(i).myPath;
+                        PathIterator pi = path.getPathIterator(null);
+                        int vInd = 0;
+                        while (!pi.isDone()) {
+                            pi.currentSegment(coords);
+                            if (Math.abs(tempX - getXPixel(coords[0])) < 4 && Math.abs(tempY - getYPixel(coords[1])) < 4) {
+                                draggingPolyInds.add(vInd);
+                                continue polyLoop;
+                            }
+                            vInd++;
+                            pi.next();
+                        }
+                        draggingPolyInds.add(-1); // this shouldn't technically happen, since closePolys only has polys with at least one vertex close to the mouse
+                    }
+                    
+                }
+            } else {
+                // do nothing, wait for mouseReleased to set new point or create poly
+            }
+            startX = e.getX();
+            startY = e.getY();
+            paintAgain();
         } else {
             super.mousePressed(e);
         }
     }
+	
+	
 
-	private void rightMouseClickedRect(MouseEvent e) {
+//	public void mouseMoved(MouseEvent e) {
+//        super.mouseMoved(e);
+//        int tempX = e.getX();
+//        int tempY = e.getY();
+//        for (int i = 0; i < rects.size(); i++) {
+//            GenericRectangle rect = rects.get(i);
+//            int xPix1, xPix2, yPix1, yPix2;
+//            xPix1 = getXPixel(rect.getStartXValue());
+//            xPix2 = getXPixel(rect.getStopXValue());
+//            yPix1 = getYPixel(rect.getStartYValue());
+//            yPix2 = getYPixel(rect.getStopYValue());
+//            Rectangle myRect = new Rectangle(Math.min(xPix1, xPix2) - 10, 
+//                                            Math.min(yPix1, yPix2) - 10, 
+//                                            Math.max(xPix1, xPix2) 
+//                                                - Math.min(xPix1, xPix2) + 10, 
+//                                            Math.max(yPix1, yPix2)
+//                                                - Math.min(yPix1, yPix2) + 10);
+//            rect.setEditable(myRect.contains(tempX, tempY));
+//        }
+//        for (int i = 0; i < polys.size(); i++) {
+//            GenericPath poly = polys.get(i);
+//            Path2D path = ((Path2D)poly.myPath.clone());
+//            poly.setEditable(path.contains(getXValueFromXPixel(tempX), getYValueFromYPixel(tempY)));
+//        }
+//        paintAgain();
+//    }
+
+    public void mouseClicked(MouseEvent e) {   
+    	if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+    	    if (currentTool == GATING_TOOL.POLY_TOOL) {
+    	        
+    	    }
+    		// 
+    	} else {
+    
+            // check mouse location vs all shapes
+            //     else if within shape, delete shape (and gate attached - CONFIRM DELETE)
+    	    
+    	    if (currentTool == GATING_TOOL.RECT_TOOL) {
+    	        rightMouseClickedRect(e);
+    	    } else if (currentTool == GATING_TOOL.POLY_TOOL) {
+    	        rightMouseClickedPoly(e);
+    	    }
+    	    
+    	}
+    	paintAgain();
+    }
+
+    public void mouseDragged(MouseEvent e) {
+        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+            drag = true;
+            
+            boolean updateStartCoords = false;
+            boolean updateForceGating = false;
+            
+            int mouseEndX;
+            int mouseEndY;
+            mouseEndX = e.getX();
+            mouseEndY = e.getY();
+            
+            if (draggingVertexRects.isEmpty() && draggingPolys.isEmpty()) {
+                if (selectedRects.isEmpty() && mouseRects.isEmpty() && selectedPolys.isEmpty() && mousePolys.isEmpty()) {
+                    if (currentTool == GATING_TOOL.RECT_TOOL) {
+                        highlightRectangle = new GenericRectangle((float) getXValueFromXPixel(startX), 
+                                                                    (float) getYValueFromYPixel(startY), 
+                                                                    (float) getXValueFromXPixel(mouseEndX), 
+                                                                    isHistogram() ? (float) getYValueFromYPixel(startY) : (float) getYValueFromYPixel(mouseEndY), 
+                                                                    (byte) 1, false, false, (byte) 0, (byte) 99, true);
+                    }
+                } else {
+                    
+                    float dx, dy;
+                    dx = (float) (getXValueFromXPixel(mouseEndX) - getXValueFromXPixel(startX));
+                    dy = (float) (getYValueFromYPixel(mouseEndY) - getYValueFromYPixel(startY));
+                    HashSet<GenericRectangle> newSel = new HashSet<GenericRectangle>();
+                    for (GenericRectangle gr : selectedRects) {
+                        GenericRectangle newGr = new GenericRectangle(gr.getStartXValue() + dx, gr.getStartYValue() + dy, gr.getStopXValue() + dx, gr.getStopYValue() + dy, gr.getThickness(), gr.getFill(), gr.getRoundedCorners(), gr.getColor(), gr.getFillColor(), gr.getLayer(), gr.getEditable());
+                        selectedRects.remove(gr);
+                        newSel.add(newGr);
+                    }
+                    selectedRects.addAll(newSel);
+                    newSel = new HashSet<GenericRectangle>();
+                    for (GenericRectangle gr : mouseRects) {
+                        GenericRectangle newGr = new GenericRectangle(gr.getStartXValue() + dx, gr.getStartYValue() + dy, gr.getStopXValue() + dx, gr.getStopYValue() + dy, gr.getThickness(), gr.getFill(), gr.getRoundedCorners(), gr.getColor(), gr.getFillColor(), gr.getLayer(), gr.getEditable());
+                        mouseRects.remove(gr);
+                        newSel.add(newGr);
+                    }
+                    mouseRects.addAll(newSel);
+                    AffineTransform at = AffineTransform.getTranslateInstance(dx, dy);
+                    for (GenericPath gp : selectedPolys) {
+                        gp.myPath.transform(at);
+                    }
+                    for (GenericPath gp : mousePolys) {
+                        gp.myPath.transform(at);
+                    }
+                    updateStartCoords = true;
+                    updateForceGating = true;
+                }
+            }
+            if (!draggingVertexRects.isEmpty()) {
+                for (int i = 0; i < draggingVertexRects.size(); i++) {
+                    GenericRectangle gr = new GenericRectangle((float) getXValueFromXPixel(startX), 
+                            (float) getYValueFromYPixel(startY), 
+                            (float) getXValueFromXPixel(mouseEndX), 
+                            isHistogram() ? (float) getYValueFromYPixel(startY) : (float) getYValueFromYPixel(mouseEndY), 
+                            (byte) 1, false, false, (byte) 0, (byte) 99, true);
+                    draggingVertexRects.set(i, gr);
+                }
+            }
+            if (!draggingPolys.isEmpty()) {
+                for (int i = 0; i < draggingPolys.size(); i++) {
+                    GenericPath gp = draggingPolys.get(i);
+                    int vertexInd = draggingPolyInds.get(i);
+                    Path2D newPath = new Path2D.Double();
+                    PathIterator pi = gp.myPath.getPathIterator(null);
+                    double[] coords = new double[6];
+                    int v = 0;
+                    while (!pi.isDone()) {
+                        int code = pi.currentSegment(coords);
+                        if (v == vertexInd) {
+                            coords[0] = getXValueFromXPixel(mouseEndX);
+                            coords[1] = getYValueFromYPixel(mouseEndY);
+                        }
+                        switch (code) {
+                        case PathIterator.SEG_MOVETO:
+                            newPath.moveTo(coords[0], coords[1]);
+                            break;
+                        case PathIterator.SEG_LINETO:
+                            newPath.lineTo(coords[0], coords[1]);
+                            break;
+                        case PathIterator.SEG_CLOSE:
+                            newPath.closePath();
+                        }
+                        v++;
+                        pi.next();
+                    }
+                    draggingPolys.get(i).myPath = newPath;
+                }
+            }
+            
+            if (updateStartCoords) {
+                startX = e.getX();
+                startY = e.getY();
+            }
+            if (updateForceGating) {
+                setForceGatesChanged();
+            }
+            paintAgain();
+        } else {
+            super.mouseDragged(e);
+        }
+    }
+
+    private void rightMouseClickedRect(MouseEvent e) {
         int tempX = e.getX();
         int tempY = e.getY();
         int toRemove = -1;
@@ -588,203 +933,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		paintAgain();
 	}
 	
-	public void mouseClicked(MouseEvent e) {   
-		if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-		    if (currentTool == POLY_TOOL) {
-		        
-		    }
-			// 
-		} else {
-		    
-		    if (currentTool == RECT_TOOL) {
-		        rightMouseClickedRect(e);
-		    } else if (currentTool == POLY_TOOL) {
-		        rightMouseClickedPoly(e);
-		    }
-		    
-		}
-		paintAgain();
-	}
+    boolean drag = false;
     
-	private void setForceGatesChanged() {
-	    this.forceGatesChanged = true;
-	}
-	
-	private void leftMouseReleasedPoly(MouseEvent e) {
-	    if (dragInd >= 0) {
-	        dragInd = -1;
-	        polyDragVertInd = -1;
-	        setForceGatesChanged();
-	        paintAgain();
-	        return;
-	    }
-	    
-        int tempPxX = e.getX();
-        int tempPxY = e.getY();
-        double tempValX = getXValueFromXPixel(tempPxX);
-        double tempValY = getYValueFromYPixel(tempPxY);
-        
-        if (!tempPoly.isEmpty()) {
-            int initPtX = getXPixel(tempPoly.get(0)[0]);
-            int initPtY = getYPixel(tempPoly.get(0)[1]);
-            if (Math.abs(initPtX - tempPxX) < 5 && Math.abs(initPtY - tempPxY) < 5) {
-                Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-                path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
-                for(int i = 1; i < tempPoly.size(); ++i) {
-                   path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
-                }
-                path.closePath();
-                PolygonGate pg = new PolygonGate();
-                pg.addDimension(new GateDimension(xCol));
-                pg.addDimension(new GateDimension(yCol));
-                pg.setPath(path);
-//                fcp.addGate(pg);
-//                 TODO add new PolygonGate to fcp gating strategy, instead of adding to polys
-                polys.add(new GenericPath(path, (byte)0, (byte)0, (byte)99, false, false));
-                tempPoly.clear();
-                highlightPoly = null;
-                paintAgain();
-                return;
-            }
-        } 
-        tempPoly.add(new double[]{tempValX, tempValY});
-        Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-        path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
-        for(int i = 1; i < tempPoly.size(); ++i) {
-           path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
-        }
-        highlightPoly = new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true);
-        setForceGatesChanged();
-        paintAgain();
-	}
-	
-	private void leftMouseReleasedRect(MouseEvent e) {
-        if (dragInd >= 0) {
-            dragInd = -1;
-            setForceGatesChanged();
-            paintAgain();
-            return;
-        }
-        int mouseEndX;
-        int mouseEndY;
-        mouseEndX = e.getX();
-        mouseEndY = e.getY();
-        highlightRectangle = null;
-        // TODO add new RectangleGate to fcp gating strategy, instead of adding to rects
-        RectangleGate rg = new RectangleGate();
-        rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
-        if (!isHistogram()) {
-            rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
-        }
-        // for testing:
-        rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
-                (float)getYValueFromYPixel(startY), (float)getXValueFromXPixel(mouseEndX), (float)getYValueFromYPixel(mouseEndY), (byte)1, false, false, (byte)0, (byte)0, false));
-        // TODO fcp.addGate(rg);
-        paintAgain();
-	}
+    private void setForceGatesChanged() {
+        this.forceGatesChanged = true;
+    }
 
-	public void mouseReleased(MouseEvent e) {
-        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-            
-            if (currentTool == RECT_TOOL) {
-                leftMouseReleasedRect(e);
-            } else if (currentTool == POLY_TOOL) {
-                leftMouseReleasedPoly(e);
-            }
-            
-        } else {
-            super.mouseReleased(e);
-        }
-    }
-    
-	private void leftMouseDraggedRect(MouseEvent e) {
-        int mouseEndX;
-        int mouseEndY;
-        mouseEndX = e.getX();
-        mouseEndY = e.getY();
-        if (dragInd >= 0) {
-            float dx, dy;
-            dx = (float) (getXValueFromXPixel(mouseEndX) - getXValueFromXPixel(startX));
-            dy = (float) (getYValueFromYPixel(mouseEndY) - getYValueFromYPixel(startY));
-            GenericRectangle gr = rects.get(dragInd);
-            rects.set(dragInd, new GenericRectangle(gr.getStartXValue() + dx, gr.getStartYValue() + dy, gr.getStopXValue() + dx, gr.getStopYValue() + dy, gr.getThickness(), gr.getFill(), gr.getRoundedCorners(), gr.getColor(), gr.getFillColor(), gr.getLayer(), gr.getEditable()));
-            startX = mouseEndX;
-            startY = mouseEndY;
-            setForceGatesChanged();
-        } else {
-            highlightRectangle = new GenericRectangle(
-                    (float)getXValueFromXPixel(startX), 
-                    (float)getYValueFromYPixel(startY), 
-                    (float)getXValueFromXPixel(mouseEndX), 
-                    isHistogram() ? (float)getYValueFromYPixel(startY) : (float)getYValueFromYPixel(mouseEndY), 
-                    (byte)1, false, false, (byte)0, (byte)99, true);
-        }
-        paintAgain();
-    }
-    
-    private void leftMouseDraggedPoly(MouseEvent e) {
-        if (dragInd >= 0) {
-            int mouseEndX;
-            int mouseEndY;
-            mouseEndX = e.getX();
-            mouseEndY = e.getY();
-            
-            // TODO don't rely on polys here, instead use fcp.gating object
-            GenericPath gp = polys.get(dragInd);
-            if (polyDragVertInd >= 0) {
-                Path2D newPath = new Path2D.Double();
-                PathIterator pi = gp.myPath.getPathIterator(null);
-                double[] coords = new double[6];
-                int v = 0;
-                while(!pi.isDone()) {
-                    int code = pi.currentSegment(coords);
-                    if (v == polyDragVertInd) {
-                        coords[0] = getXValueFromXPixel(mouseEndX);
-                        coords[1] = getYValueFromYPixel(mouseEndY);
-                    }
-                    switch(code) {
-                        case PathIterator.SEG_MOVETO:
-                            newPath.moveTo(coords[0], coords[1]);
-                            break;
-                        case PathIterator.SEG_LINETO:
-                            newPath.lineTo(coords[0], coords[1]);
-                            break;
-                        case PathIterator.SEG_CLOSE:
-                            newPath.closePath();
-                    }
-                    v++;
-                    pi.next();
-                }
-                polys.get(dragInd).myPath = newPath;
-            } else {
-                double dx, dy;
-                dx = getXValueFromXPixel(mouseEndX) - getXValueFromXPixel(startX);
-                dy = getYValueFromYPixel(mouseEndY) - getYValueFromYPixel(startY);
-                AffineTransform at = AffineTransform.getTranslateInstance(dx, dy);
-                gp.myPath.transform(at);
-                startX = mouseEndX;
-                startY = mouseEndY;
-                // TODO update gating??
-            }
-            setForceGatesChanged();
-            paintAgain();
-        }
-    }
-    
-    public void mouseDragged(MouseEvent e) {
-        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
-            if (currentTool == RECT_TOOL) {
-                leftMouseDraggedRect(e);
-            } else if (currentTool == POLY_TOOL) {
-                leftMouseDraggedPoly(e);
-            }
-        } else {
-            super.mouseDragged(e);
-        }
-    }
-    
-     
-    
     public BufferedImage getImage() {
         return image;
     }
