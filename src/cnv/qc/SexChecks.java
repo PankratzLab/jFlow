@@ -21,50 +21,69 @@ public class SexChecks {
 	public static final float NUM_SD_FOR_MALE_OUTLIERS = 5.0f;
 	public static final float NUM_SD_FOR_FEMALE_OUTLIERS = 5.0f;
 
-	static MarkerSet markerSet;
-	static SampleData sampleData;
-	static Sample samp;
-	static String[] samples;
-	static int[] numXs;
-	static int[] numYs;
-	static int[] numX_10_90;
-	static double[] lrrsX;
-	static double[] lrrsY;
+	private Project proj;
+	private Logger log;
+	private MarkerSet markerSet;
+	private SampleData sampleData;
+	private String[] sampleNames;
+	private Sample[] samples;
+	private int[] numXs;
+	private int[] numYs;
+	private int[] numX_10_90;
+	private double[] lrrsX;
+	private double[] lrrsY;
 	
-	public static int mapEstimatedSexToSex(String estCode) {
-	    String[] estCodes = EST_SEX_HEADER.split(";");
-	    for (int i = 0; i < estCodes.length; i++) {
-	        if (estCodes[i].startsWith(estCode)) {
-	            return EST_SEX_MAPPING[i];
-	        }
-	    }
-	    return 0;
-	}
-	
-	public static void sexCheck(Project proj) {
-		long time;
-		Logger log;
+	private SexChecks(Project proj) {
+		this.proj = proj;
+		this.log = proj.getLog();
 		
-		log = proj.getLog();
-		time = new Date().getTime();
-
+		long time;
+	
 		markerSet = proj.getMarkerSet();
 		sampleData = proj.getSampleData(2, false);
 		if (sampleData.failedToLoad()) {
 			log.reportError("Error - without a sample data file, sexChecks will fail");
 			return;
 		}
-        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-
-		log.report("Took "+ext.getTimeElapsed(time)+" to hash samples");
+	    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+	
 		time = new Date().getTime();
+		log.report("Loading samples");
+	
+		sampleNames = proj.getSamples();
+		samples = new Sample[sampleNames.length];
+		for (int i = 0; i < sampleNames.length; i++) {
+			samples[i] = proj.getPartialSampleFromRandomAccessFile(sampleNames[i]);
+			if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+			if (samples[i] == null) {
+				log.reportError("Error - could not load sample: " + sampleNames[i]);
+				return;
+			}
+			if (markerSet.getFingerprint() != samples[i].getFingerprint()) {
+				log.reportError("Error - mismatched MarkerSet fingerprints for sample " + sampleNames[i]);
+				return;
+			}
+			if (i % 100 == 0) {
+				log.report("Loaded "+sampleNames[i]+" ("+(i+1)+" of "+sampleNames.length+")");
+			}
+		}
+		log.report("Took "+ext.getTimeElapsed(time)+" to load "+sampleNames.length+" samples");
+		
+		time = new Date().getTime();
+		log.report("Parsing samples");
+		
+	    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+		lrrCounts(sexlinked(markerSet.getChrs()));
+		byte[] estSex = estimateSex();
+	    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 
-		samples = proj.getSamples();
-        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-		lrrCounts(samples, proj, sexlinked(markerSet.getChrs()));
-		byte[] estSex = estimateSex(samples);
-        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-		writeToFile(proj, estSex);
+		log.report("Took "+ext.getTimeElapsed(time)+" to parse "+sampleNames.length+" samples");
+		
+		time = new Date().getTime();
+		log.report("Writing sex checks file to " + proj.SEXCHECK_RESULTS_FILENAME.getValue());
+		writeToFile(estSex);
+		
+		log.report("Appending Estimated Sex to Sample Data");
 		
 		String[] classes = sampleData.getClasses();
 		int sexInd = -1;
@@ -74,11 +93,11 @@ public class SexChecks {
 				break;
 			}
 		}
-        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+	    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		if (sexInd == -1) {
 			Hashtable<String, String> linkData = new Hashtable<String, String>();
-			for (int i = 0; i < samples.length; i++) {
-				linkData.put(samples[i], "" + estSex[i]);
+			for (int i = 0; i < sampleNames.length; i++) {
+				linkData.put(sampleNames[i], "" + estSex[i]);
 			}
 			if (!sampleData.addData(linkData, "DNA", new String[] {"CLASS=" + EST_SEX_HEADER}, ".", "", log)) {
 				log.reportError("Error - failed to write Estimated Sex to sample data file");
@@ -87,8 +106,226 @@ public class SexChecks {
 			log.report("Warning - sample data already contains estimated sex; will not process data into sample data file."); 
 		}
 		
+		log.report("Took "+ext.getTimeElapsed(time)+" to write outputs");
 		
-		log.report("Took "+ext.getTimeElapsed(time)+" to parse "+samples.length+" samples");
+	}
+
+	private void lrrCounts(boolean[][] sexlinked) {
+		float[] lrrs, bafs;
+		Logger log;
+		
+		log = proj.getLog();
+		
+		numXs = new int[sampleNames.length];
+		numYs = new int[sampleNames.length];
+		numX_10_90 = new int[sampleNames.length];
+		lrrsX = new double[sampleNames.length];
+		lrrsY = new double[sampleNames.length];
+
+		for (int i = 0; i<samples.length; i++) {
+			Sample sample = samples[i];
+	        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
+			numXs[i] = numYs[i] = numX_10_90[i] = 0;
+			lrrsX[i] = lrrsY[i] = 0;
+
+			lrrs = sample.getLRRs();
+			bafs = sample.getBAFs();
+
+			for (int j = 0; j < lrrs.length; j++) {
+				if (sexlinked[j][0] && !Double.isNaN(lrrs[j]) && !Double.isInfinite(lrrs[j])) {
+					lrrsX[i] += lrrs[j];
+					numXs[i]++;
+					if (bafs[j] > 0.10 && bafs[j] < 0.9) {
+						numX_10_90[i]++;
+					}
+				}
+				if (sexlinked[j][1] && !Double.isNaN(lrrs[j]) && !Double.isInfinite(lrrs[j])) {
+					lrrsY[i] += lrrs[j];
+					numYs[i]++;
+				}
+			}
+
+			if (i % 100 == 0) {
+				log.report("parsed "+sampleNames[i]+" ("+(i+1)+" of "+sampleNames.length+")");
+			}
+		}
+	}
+
+
+	private byte[] estimateSex() {
+//		the result will be used for color code for the points;
+//		mean for M and F;
+//		standard deviation for M and F;
+
+		byte[] result = new byte[sampleNames.length];
+		double putativeMaleMeanY, putativeFemaleMeanY;
+		double[] values;
+		double maleMeanX, maleStdDevX, femaleMeanX, femaleStdDevX;
+		int numMales, numFemales, putativeSex;
+		
+		
+		values = new double[sampleNames.length];
+		for (int i = 0; i < values.length; i++) {
+			values[i] = lrrsY[i]/numYs[i];
+		}
+		// TODO not sure where we left off with this...
+//		if (Array.isBimodal(values, 0.01, 100)) {
+//			
+//		}
+
+		putativeMaleMeanY=0;
+		putativeFemaleMeanY=0;
+		numMales = numFemales = 0;
+		for (int i=0; i<sampleNames.length; i++) {
+			putativeSex = sampleData.getSexForIndividual(sampleNames[i]);
+			if (putativeSex == -1) {
+				if (lrrsY[i] / numYs[i] < -0.75) {
+					putativeSex = 2;
+				} else {
+					putativeSex = 1;
+				}
+			}
+			switch (putativeSex) {
+				case 1:
+					putativeMaleMeanY += (lrrsY[i]/numYs[i]);
+					numMales++;
+					break;
+				case 2:
+					putativeFemaleMeanY += (lrrsY[i]/numYs[i]);
+					numFemales++;
+					break;
+				default:
+					
+			}
+		}
+		putativeMaleMeanY = putativeMaleMeanY / (double) numMales;
+		putativeFemaleMeanY = putativeFemaleMeanY / (double) numFemales;
+
+		DoubleVector males, females;
+		males = new DoubleVector();
+		females = new DoubleVector();
+		for (int i = 0; i < sampleNames.length; i++) {
+			if (Math.abs(lrrsY[i] / numYs[i] - putativeMaleMeanY) < Math.abs(lrrsY[i] / numYs[i] - putativeFemaleMeanY)) {
+				males.add((lrrsX[i] / numXs[i]));
+			} else {
+				females.add((lrrsX[i] / numXs[i]));
+			}
+		}
+		
+		values = males.toArray();
+		maleMeanX = Array.mean(values);
+		maleStdDevX = Array.stdev(values);
+		values = females.toArray();
+		femaleMeanX = Array.mean(values);
+		femaleStdDevX = Array.stdev(values);
+
+		for (int i=0; i<samples.length; i++) {
+			Sample sample = samples[i];
+			if (Math.abs(lrrsY[i]/numYs[i] - putativeMaleMeanY) < Math.abs(lrrsY[i]/numYs[i] - putativeFemaleMeanY)) {
+				if (lrrsX[i]/numXs[i] > (maleMeanX + NUM_SD_FOR_MALE_OUTLIERS * maleStdDevX)) {
+					if (sample.hasBimodalBAF((byte)23, 0, Integer.MAX_VALUE)) {
+						result[i] = 4; // mosaic Klinefelter
+					} else {
+						result[i] = 3; // full Klinefelter
+					}
+				} else {
+					result[i] = 1; // normal male
+				}
+			} else {
+				if (lrrsX[i]/numXs[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_OUTLIERS*femaleStdDevX) && sample.hasBimodalBAF((byte)23, 0, Integer.MAX_VALUE)) {
+					result[i] = 5; // Triple X syndrome
+				} else if (lrrsX[i]/numXs[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_OUTLIERS*femaleStdDevX) && (double)numX_10_90[i]/(double)numXs[i] < 0.15) {
+					result[i] = 6; // Turner
+				} else if (lrrsX[i]/numXs[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_OUTLIERS*femaleStdDevX) && sample.hasBimodalBAF((byte)23, 0, Integer.MAX_VALUE)) {
+					result[i] = 7; // mosaic Turner
+				} else {
+					result[i] = 2; // normal female
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private void writeToFile (byte[] estimatedSex) {
+		PrintWriter writer;
+		String[] lookup;
+		String famIndPair;
+		Logger log;
+		
+		log = proj.getLog();
+		try {
+			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)));
+			writer.println(Array.toStr(SEX_HEADER));
+			for (int i = 0; i<sampleNames.length; i++) {
+			    lookup = sampleData.lookup(sampleNames[i]);
+				famIndPair = lookup == null ? null : lookup[1];
+				if (famIndPair == null) {
+					log.reportError("Error - no data for sample '"+sampleNames[i]+"'");
+					writer.print(sampleNames[i]+"\t"+".\t.\t-9\t-9");
+				} else {
+					writer.print(sampleNames[i]+"\t"+famIndPair+"\t"+sampleData.getSexForIndividual(sampleNames[i])+"\t"+estimatedSex[i]);
+				}
+				writer.println("\t"+ext.formDeci(lrrsX[i]/numXs[i], 7)+"\t"+numXs[i]+"\t"+numX_10_90[i]+"\t"+ext.formDeci((double)numX_10_90[i]/(double)numXs[i], 4)+"\t"+ext.formDeci(lrrsY[i]/numYs[i], 7)+"\t"+numYs[i]);
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + proj.SEXCHECK_RESULTS_FILENAME.getValue());
+			log.reportException(e);
+		}
+	}
+	
+	private static double[] medianXYBySex(double[][] data, byte[] sexes) {
+	//		return new double[] {Arrays.sort(data[][0]).[data.length/2], Arrays.sort(data[][1]).[data.length/2]}
+			ArrayList<Double> maleX, maleY, femaleX, femaleY;
+			maleX	= new ArrayList<Double>();
+			maleY	= new ArrayList<Double>();
+			femaleX	= new ArrayList<Double>(); 
+			femaleY	= new ArrayList<Double>();
+			
+			for (int i=0; i<data.length; i++) {
+				if (sexes[i]==1) {
+					maleX.add(data[i][0]);
+					maleY.add(data[i][1]);
+				} else {
+					femaleX.add(data[i][0]);
+					femaleY.add(data[i][1]);
+				}
+			}
+			Collections.sort(maleX);
+			Collections.sort(maleY);
+			Collections.sort(femaleX);
+			Collections.sort(femaleY);
+			return new double[] {maleX.get(maleX.size()/2), maleY.get(maleY.size()/2), femaleX.get(femaleX.size()/2), femaleY.get(femaleY.size()/2)};
+		}
+
+	private static boolean[][] sexlinked(byte[] chrs) {
+		boolean[][] sexlinked;
+		
+		sexlinked = new boolean[chrs.length][2];
+		for (int i = 0; i<chrs.length; i++) {
+			if (chrs[i]==23) {
+				sexlinked[i][0] = true;
+			}
+			if (chrs[i]==24) {
+				sexlinked[i][1] = true;
+			}
+		}
+		return sexlinked;
+	}
+
+	public static int mapEstimatedSexToSex(String estCode) {
+	    String[] estCodes = EST_SEX_HEADER.split(";");
+	    for (int i = 0; i < estCodes.length; i++) {
+	        if (estCodes[i].startsWith(estCode)) {
+	            return EST_SEX_MAPPING[i];
+	        }
+	    }
+	    return 0;
+	}
+
+	public static SexChecks sexCheck(Project proj) {
+		return new SexChecks(proj);
 	}
 
 	public static void markerByMarker(Project proj) {
@@ -99,23 +336,23 @@ public class SexChecks {
 		Vector<String> intensityDeps;
 		LogisticRegression lr;
 		String output;
-        SampleData sampleData;
-        int[] sexes;
-    	MarkerDataLoader markerDataLoader;
+	    SampleData sampleData;
+	    int[] sexes;
+		MarkerDataLoader markerDataLoader;
 		MarkerData markerData;
 		String[] markerNames;
 		long time;
 		Logger log;
-        
+	    
 		log = proj.getLog();
-        sampleData = proj.getSampleData(2, false);
-        samples = proj.getSamples();
-        sexes = new int[samples.length];
-        for (int i = 0; i < samples.length; i++) {
-        	sexes[i] = sampleData.getSexForIndividual(samples[i]);
+	    sampleData = proj.getSampleData(2, false);
+	    samples = proj.getSamples();
+	    sexes = new int[samples.length];
+	    for (int i = 0; i < samples.length; i++) {
+	    	sexes[i] = sampleData.getSexForIndividual(samples[i]);
 		}
- 		
-
+		
+	
 		try {
 			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(false, true)+"markerGenderChecks.xln"));
 			writer.println("SNP\tX abs(T)\tY abs(T)\tBAF abs(T)\tLRR abs(T)\tX p\tY p\tXY r2\tBAF p\tLRR p\tBAF/LRR r2");
@@ -128,7 +365,7 @@ public class SexChecks {
 	        	if (i % 100 == 0) {
 	        		log.report(ext.getTime()+"\tMarker "+i+" of "+markerNames.length);
 	        	}
-
+	
 				output = markerData.getMarkerName();
 				
 				xs = markerData.getXs();
@@ -157,7 +394,7 @@ public class SexChecks {
 					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(baflrrs), 0)).getPvalue());
 					output += "\t"+Math.abs(new Ttest(Array.toIntArray(Array.toStringArray(intensityDeps)), Matrix.extractColumn(Matrix.toDoubleArrays(baflrrs), 1)).getPvalue());
 				}
-
+	
 				lr = null;
 				try {
 					lr = new LogisticRegression(intensityDeps, xys);
@@ -171,7 +408,7 @@ public class SexChecks {
 				} catch (Exception e) {
 					output += "\t.\t.\t.";
 				}
-
+	
 				writer.println(output);
 				writer.flush();
 				markerDataLoader.releaseIndex(i);
@@ -182,83 +419,83 @@ public class SexChecks {
 			log.reportError("Error writing results");
 			log.reportException(e);
 		}
-
+	
 	}
 
 	public static void parse(Project proj) {
-		BufferedReader reader;
-		PrintWriter writer;
-		String[] line;
-		String trav;
-		Hashtable<String,String> hash = new Hashtable<String,String>();
-		Logger log;
-
-		log = proj.getLog();
-		
-		File[] filenames = new File(proj.RESULTS_DIRECTORY.getValue(false, true)+RESULTS_DIR).listFiles(new FilenameFilter() {
-			public boolean accept(File file, String filename) {
-				return filename.endsWith("_genderChecks.xln");
-			}
-		});
-
-		if (filenames==null) {
-			log.reportError("Error - directory not found: "+proj.RESULTS_DIRECTORY.getValue(false, true)+RESULTS_DIR);
-
-		} else {
-			log.report("Found results for "+filenames.length+" lookup files");
-		}
-
-//		hash = HashVec.loadFileToHashString(proj.getFilename(proj.MARKERSET_FILENAME), 0, new int[] {1, 2}, "\t", true);
-		hash = HashVec.loadFileToHashString(proj.MARKERSET_FILENAME.getValue(), 0, new int[] {1, 2}, "\t", true);
-
-		try {
-			writer = new PrintWriter(new FileWriter("GenderChecks.xln"));
-			for (int i = 0; i<filenames.length; i++) {
-				log.report((i+1)+" of "+filenames.length);
-				try {
-					reader = new BufferedReader(new FileReader(filenames[i]));
-					if (i==0) {
-						line = reader.readLine().trim().split("\t");
-						writer.println(line[0]+"\tChr\tPosition\t"+Array.toStr(Array.subArray(line, 1, line.length)));
-					} else {
-						reader.readLine();
-					}
-					while (reader.ready()) {
-						line = reader.readLine().trim().split("[\\s]+");
-						trav = hash.containsKey(line[0])?hash.get(line[0]):".\t.";
-						writer.println(line[0]+"\t"+trav+"\t"+Array.toStr(Array.subArray(line, 1, line.length)));
-						hash.remove(line[0]);
-					}
-					reader.close();
-				} catch (FileNotFoundException fnfe) {
-					log.reportError("Error: file \""+filenames[i].getName()+"\" not found in current directory");
-					writer.close();
-					return;
-				} catch (IOException ioe) {
-					log.reportError("Error reading file \""+filenames[i].getName()+"\"");
-					writer.close();
-					return;
+			BufferedReader reader;
+			PrintWriter writer;
+			String[] line;
+			String trav;
+			Hashtable<String,String> hash = new Hashtable<String,String>();
+			Logger log;
+	
+			log = proj.getLog();
+			
+			File[] filenames = new File(proj.RESULTS_DIRECTORY.getValue(false, true)+RESULTS_DIR).listFiles(new FilenameFilter() {
+				public boolean accept(File file, String filename) {
+					return filename.endsWith("_genderChecks.xln");
 				}
+			});
+	
+			if (filenames==null) {
+				log.reportError("Error - directory not found: "+proj.RESULTS_DIRECTORY.getValue(false, true)+RESULTS_DIR);
+	
+			} else {
+				log.report("Found results for "+filenames.length+" lookup files");
 			}
-			line = HashVec.getKeys(hash);
-			for (int i = 0; i<line.length; i++) {
-				writer.println(line[i]+"\t"+hash.get(line[i]));
+	
+	//		hash = HashVec.loadFileToHashString(proj.getFilename(proj.MARKERSET_FILENAME), 0, new int[] {1, 2}, "\t", true);
+			hash = HashVec.loadFileToHashString(proj.MARKERSET_FILENAME.getValue(), 0, new int[] {1, 2}, "\t", true);
+	
+			try {
+				writer = new PrintWriter(new FileWriter("GenderChecks.xln"));
+				for (int i = 0; i<filenames.length; i++) {
+					log.report((i+1)+" of "+filenames.length);
+					try {
+						reader = new BufferedReader(new FileReader(filenames[i]));
+						if (i==0) {
+							line = reader.readLine().trim().split("\t");
+							writer.println(line[0]+"\tChr\tPosition\t"+Array.toStr(Array.subArray(line, 1, line.length)));
+						} else {
+							reader.readLine();
+						}
+						while (reader.ready()) {
+							line = reader.readLine().trim().split("[\\s]+");
+							trav = hash.containsKey(line[0])?hash.get(line[0]):".\t.";
+							writer.println(line[0]+"\t"+trav+"\t"+Array.toStr(Array.subArray(line, 1, line.length)));
+							hash.remove(line[0]);
+						}
+						reader.close();
+					} catch (FileNotFoundException fnfe) {
+						log.reportError("Error: file \""+filenames[i].getName()+"\" not found in current directory");
+						writer.close();
+						return;
+					} catch (IOException ioe) {
+						log.reportError("Error reading file \""+filenames[i].getName()+"\"");
+						writer.close();
+						return;
+					}
+				}
+				line = HashVec.getKeys(hash);
+				for (int i = 0; i<line.length; i++) {
+					writer.println(line[i]+"\t"+hash.get(line[i]));
+				}
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing results");
+				log.reportException(e);
 			}
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing results");
-			log.reportException(e);
 		}
-	}
 
 	public static void dropMarkers(String allMarkers, String markersToDrop) {
 		BufferedReader reader;
 		PrintWriter writer;
 		String[] line;
 		HashSet<String> hashSet;
-
+	
 		hashSet = HashVec.loadFileToHashSet(markersToDrop, false);
-
+	
 		try {
 			reader = new BufferedReader(new FileReader(allMarkers));
 			writer = new PrintWriter(new FileWriter(ext.rootOf(allMarkers)+"_dropped.out"));
@@ -279,338 +516,127 @@ public class SexChecks {
 		}
 	}
 
-	private static boolean[][] sexlinked(byte[] chrs) {
-		boolean[][] sexlinked;
-		
-		sexlinked = new boolean[chrs.length][2];
-		for (int i = 0; i<chrs.length; i++) {
-			if (chrs[i]==23) {
-				sexlinked[i][0] = true;
-			}
-			if (chrs[i]==24) {
-				sexlinked[i][1] = true;
-			}
-		}
-		return sexlinked;
-	}
-
-	private static void lrrCounts(String[] samples, Project proj, boolean[][] sexlinked) {
-		float[] lrrs, bafs;
-		Logger log;
-		
-		log = proj.getLog();
-		
-		numXs = new int[samples.length];
-		numYs = new int[samples.length];
-		numX_10_90 = new int[samples.length];
-		lrrsX = new double[samples.length];
-		lrrsY = new double[samples.length];
-
-		for (int i = 0; i<samples.length; i++) {
-	        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-			numXs[i] = numYs[i] = numX_10_90[i] = 0;
-			lrrsX[i] = lrrsY[i] = 0;
-
-			samp = proj.getPartialSampleFromRandomAccessFile(samples[i]);
-			if (samp == null) {
-				log.reportError("Error - could not load sample: " + samples[i]);
-				return;
-			}
-			if (markerSet.getFingerprint() != samp.getFingerprint()) {
-				log.reportError("Error - mismatched MarkerSet fingerprints for sample " + samples[i]);
-				return;
-			}
-			lrrs = samp.getLRRs();
-			bafs = samp.getBAFs();
-
-			for (int j = 0; j < lrrs.length; j++) {
-				if (sexlinked[j][0] && !Double.isNaN(lrrs[j]) && !Double.isInfinite(lrrs[j])) {
-					lrrsX[i] += lrrs[j];
-					numXs[i]++;
-					if (bafs[j] > 0.10 && bafs[j] < 0.9) {
-						numX_10_90[i]++;
-					}
-				}
-				if (sexlinked[j][1] && !Double.isNaN(lrrs[j]) && !Double.isInfinite(lrrs[j])) {
-					lrrsY[i] += lrrs[j];
-					numYs[i]++;
-				}
-			}
-
-			if (i % 100 == 0) {
-				log.report("parsed "+samples[i]+" ("+(i+1)+" of "+samples.length+")");
-			}
-		}
-	}
-
-
-	public static byte[] estimateSex(String[] samples) {
-//		the result will be used for color code for the points;
-//		mean for M and F;
-//		standard deviation for M and F;
-
-		byte[] result = new byte[samples.length];
-		double putativeMaleMeanY, putativeFemaleMeanY;
-		double[] values;
-		double maleMeanX, maleStdDevX, femaleMeanX, femaleStdDevX;
-		int numMales, numFemales, putativeSex;
-		
-		
-		values = new double[samples.length];
-		for (int i = 0; i < values.length; i++) {
-			values[i] = lrrsY[i]/numYs[i];
-		}
-		// TODO not sure where we left off with this...
-//		if (Array.isBimodal(values, 0.01, 100)) {
-//			
-//		}
-
-		putativeMaleMeanY=0;
-		putativeFemaleMeanY=0;
-		numMales = numFemales = 0;
-		for (int i=0; i<samples.length; i++) {
-			putativeSex = sampleData.getSexForIndividual(samples[i]);
-			if (putativeSex == -1) {
-				if (lrrsY[i] / numYs[i] < -0.75) {
-					putativeSex = 2;
-				} else {
-					putativeSex = 1;
-				}
-			}
-			switch (putativeSex) {
-				case 1:
-					putativeMaleMeanY += (lrrsY[i]/numYs[i]);
-					numMales++;
-					break;
-				case 2:
-					putativeFemaleMeanY += (lrrsY[i]/numYs[i]);
-					numFemales++;
-					break;
-				default:
-					
-			}
-		}
-		putativeMaleMeanY = putativeMaleMeanY / (double) numMales;
-		putativeFemaleMeanY = putativeFemaleMeanY / (double) numFemales;
-
-		DoubleVector males, females;
-		males = new DoubleVector();
-		females = new DoubleVector();
-		for (int i = 0; i < samples.length; i++) {
-			if (Math.abs(lrrsY[i] / numYs[i] - putativeMaleMeanY) < Math.abs(lrrsY[i] / numYs[i] - putativeFemaleMeanY)) {
-				males.add((lrrsX[i] / numXs[i]));
-			} else {
-				females.add((lrrsX[i] / numXs[i]));
-			}
-		}
-		
-		values = males.toArray();
-		maleMeanX = Array.mean(values);
-		maleStdDevX = Array.stdev(values);
-		values = females.toArray();
-		femaleMeanX = Array.mean(values);
-		femaleStdDevX = Array.stdev(values);
-
-		for (int i=0; i<samples.length; i++) {
-			if (Math.abs(lrrsY[i]/numYs[i] - putativeMaleMeanY) < Math.abs(lrrsY[i]/numYs[i] - putativeFemaleMeanY)) {
-				if (lrrsX[i]/numXs[i] > (maleMeanX + NUM_SD_FOR_MALE_OUTLIERS * maleStdDevX)) {
-					if (samp.hasBimodalBAF((byte)23, 0, Integer.MAX_VALUE)) {
-						result[i] = 4; // mosaic Klinefelter
-					} else {
-						result[i] = 3; // full Klinefelter
-					}
-				} else {
-					result[i] = 1; // normal male
-				}
-			} else {
-				if (lrrsX[i]/numXs[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_OUTLIERS*femaleStdDevX) && samp.hasBimodalBAF((byte)23, 0, Integer.MAX_VALUE)) {
-					result[i] = 5; // Triple X syndrome
-				} else if (lrrsX[i]/numXs[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_OUTLIERS*femaleStdDevX) && (double)numX_10_90[i]/(double)numXs[i] < 0.15) {
-					result[i] = 6; // Turner
-				} else if (lrrsX[i]/numXs[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_OUTLIERS*femaleStdDevX) && samp.hasBimodalBAF((byte)23, 0, Integer.MAX_VALUE)) {
-					result[i] = 7; // mosaic Turner
-				} else {
-					result[i] = 2; // normal female
-				}
-			}
-		}
-
-		return result;
-	}
-
-	public double[] medianXYBySex(double[][] data, byte[] sexes) {
-//		return new double[] {Arrays.sort(data[][0]).[data.length/2], Arrays.sort(data[][1]).[data.length/2]}
-		ArrayList<Double> maleX, maleY, femaleX, femaleY;
-		maleX	= new ArrayList<Double>();
-		maleY	= new ArrayList<Double>();
-		femaleX	= new ArrayList<Double>(); 
-		femaleY	= new ArrayList<Double>();
-		
-		for (int i=0; i<data.length; i++) {
-			if (sexes[i]==1) {
-				maleX.add(data[i][0]);
-				maleY.add(data[i][1]);
-			} else {
-				femaleX.add(data[i][0]);
-				femaleY.add(data[i][1]);
-			}
-		}
-		Collections.sort(maleX);
-		Collections.sort(maleY);
-		Collections.sort(femaleX);
-		Collections.sort(femaleY);
-		return new double[] {maleX.get(maleX.size()/2), maleY.get(maleY.size()/2), femaleX.get(femaleX.size()/2), femaleY.get(femaleY.size()/2)};
-	}
-
-	private static void writeToFile (Project proj, byte[] estimatedSex) {
-		PrintWriter writer;
-		String[] lookup;
-		String famIndPair;
-		Logger log;
-		
-		log = proj.getLog();
-		try {
-			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)));
-			writer.println(Array.toStr(SEX_HEADER));
-			for (int i = 0; i<samples.length; i++) {
-			    lookup = sampleData.lookup(samples[i]);
-				famIndPair = lookup == null ? null : lookup[1];
-				if (famIndPair == null) {
-					log.reportError("Error - no data for sample '"+samples[i]+"'");
-					writer.print(samples[i]+"\t"+".\t.\t-9\t-9");
-				} else {
-					writer.print(samples[i]+"\t"+famIndPair+"\t"+sampleData.getSexForIndividual(samples[i])+"\t"+estimatedSex[i]);
-				}
-				writer.println("\t"+ext.formDeci(lrrsX[i]/numXs[i], 7)+"\t"+numXs[i]+"\t"+numX_10_90[i]+"\t"+ext.formDeci((double)numX_10_90[i]/(double)numXs[i], 4)+"\t"+ext.formDeci(lrrsY[i]/numYs[i], 7)+"\t"+numYs[i]);
-			}
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing to " + proj.SEXCHECK_RESULTS_FILENAME.getValue());
-			log.reportException(e);
-		}
-	}
-	
 	public static void identifyPseudoautosomalBreakpoints(Project proj) {
-		PrintWriter writer;
-		String[] samples;
-		float[] lrrs;
-		MarkerData markerData;
-        SampleData sampleData;
-        int[] sexes;
-        byte[] abGenotypes;
-        String markerName;
-        ClusterFilterCollection clusterFilterCollection;
-        float gcThreshold;
-        long time;
-        DoubleVector[] values; // sex
-        MarkerDataLoader markerDataLoader;
-        String[] markerList;
-        String line, eol;
-		MarkerSet markerSet;
-        String[] markerNames;
-        boolean[] sexChrs;
-        byte[] chrs;
-        int[][] genotypeCounts;
-        boolean[] samplesToExclude;
-        Logger log;
-        
-        if (Files.isWindows()) {
-        	eol = "\r\n";
-		} else {
-			eol = "\n";
-		}
-        
-        log = proj.getLog();
-        sampleData = proj.getSampleData(2, false);
-        samplesToExclude = proj.getSamplesToExclude();
-        samples = proj.getSamples();
-        sexes = new int[samples.length];
-        for (int i = 0; i < samples.length; i++) {
-        	sexes[i] = Math.max(0, sampleData.getSexForIndividual(samples[i]));
-		}
-        
-        markerSet = proj.getMarkerSet();
-        markerNames = markerSet.getMarkerNames();
-        chrs = markerSet.getChrs();
-        sexChrs = new boolean[chrs.length];
-        for (int i = 0; i < chrs.length; i++) {
-        	sexChrs[i] = chrs[i]>=23;
-		}
-        markerList = Array.subArray(markerNames, sexChrs);
- 		
-        clusterFilterCollection = proj.getClusterFilterCollection();
-//        gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
-        gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
-
-        try {
-			writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, false)+"pseudoautosomalSearch.xln"));
-			writer.println("SNP\tChr\tPosition\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
-			
-			markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
-			time = new Date().getTime();
-			line = "";
-			for (int i = 0; i < markerList.length; i++) {
-				markerData = markerDataLoader.requestMarkerData(i);
-
-				markerName = markerData.getMarkerName();
-				lrrs = markerData.getLRRs();
-				abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold, log);
+			PrintWriter writer;
+			String[] samples;
+			float[] lrrs;
+			MarkerData markerData;
+	        SampleData sampleData;
+	        int[] sexes;
+	        byte[] abGenotypes;
+	        String markerName;
+	        ClusterFilterCollection clusterFilterCollection;
+	        float gcThreshold;
+	        long time;
+	        DoubleVector[] values; // sex
+	        MarkerDataLoader markerDataLoader;
+	        String[] markerList;
+	        String line, eol;
+			MarkerSet markerSet;
+	        String[] markerNames;
+	        boolean[] sexChrs;
+	        byte[] chrs;
+	        int[][] genotypeCounts;
+	        boolean[] samplesToExclude;
+	        Logger log;
+	        
+	        if (Files.isWindows()) {
+	        	eol = "\r\n";
+			} else {
+				eol = "\n";
+			}
+	        
+	        log = proj.getLog();
+	        sampleData = proj.getSampleData(2, false);
+	        samplesToExclude = proj.getSamplesToExclude();
+	        samples = proj.getSamples();
+	        sexes = new int[samples.length];
+	        for (int i = 0; i < samples.length; i++) {
+	        	sexes[i] = Math.max(0, sampleData.getSexForIndividual(samples[i]));
+			}
+	        
+	        markerSet = proj.getMarkerSet();
+	        markerNames = markerSet.getMarkerNames();
+	        chrs = markerSet.getChrs();
+	        sexChrs = new boolean[chrs.length];
+	        for (int i = 0; i < chrs.length; i++) {
+	        	sexChrs[i] = chrs[i]>=23;
+			}
+	        markerList = Array.subArray(markerNames, sexChrs);
+	 		
+	        clusterFilterCollection = proj.getClusterFilterCollection();
+	//        gcThreshold = Float.parseFloat(proj.getProperty(Project.GC_THRESHOLD));
+	        gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
+	
+	        try {
+				writer = new PrintWriter(new FileWriter(proj.RESULTS_DIRECTORY.getValue(true, false)+"pseudoautosomalSearch.xln"));
+				writer.println("SNP\tChr\tPosition\tmLRR_M\tmLRR_F\thet_M\thet_F\tmiss_M\tmiss_F");
 				
-				genotypeCounts = new int[2][4]; // sex, genotype
-				values = new DoubleVector[2]; // sex
-				values[0] = new DoubleVector();
-				values[1] = new DoubleVector();
-				for (int s = 0; s < samples.length; s++) {
-					if (ext.isValidDouble(lrrs[s]+"") && !samplesToExclude[s]) {
-						if (sexes[s] == 1 || sexes[s] == 2) {
-							values[sexes[s]-1].add(lrrs[s]);
-							genotypeCounts[sexes[s]-1][abGenotypes[s]+1]++;
+				markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerList);
+				time = new Date().getTime();
+				line = "";
+				for (int i = 0; i < markerList.length; i++) {
+					markerData = markerDataLoader.requestMarkerData(i);
+	
+					markerName = markerData.getMarkerName();
+					lrrs = markerData.getLRRs();
+					abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName, gcThreshold, log);
+					
+					genotypeCounts = new int[2][4]; // sex, genotype
+					values = new DoubleVector[2]; // sex
+					values[0] = new DoubleVector();
+					values[1] = new DoubleVector();
+					for (int s = 0; s < samples.length; s++) {
+						if (ext.isValidDouble(lrrs[s]+"") && !samplesToExclude[s]) {
+							if (sexes[s] == 1 || sexes[s] == 2) {
+								values[sexes[s]-1].add(lrrs[s]);
+								genotypeCounts[sexes[s]-1][abGenotypes[s]+1]++;
+							}
 						}
 					}
+	
+					line += markerName +"\t"+ markerData.getChr() +"\t"+ markerData.getPosition();
+					if (values[0].size() > 0) {
+						line += "\t"+Array.mean(values[0].toArray());
+					} else {
+						line += "\t.";
+					}
+					if (values[1].size() > 0) {
+						line += "\t"+Array.mean(values[1].toArray());
+					} else {
+						line += "\t.";
+					}
+					if (genotypeCounts[0][1]+genotypeCounts[0][2]+genotypeCounts[0][3] > 0) {
+						line += "\t"+(double)genotypeCounts[0][2]/(double)(genotypeCounts[0][1]+genotypeCounts[0][2]+genotypeCounts[0][3]);
+					} else {
+						line += "\t.";
+					}
+					if (genotypeCounts[1][1]+genotypeCounts[1][2]+genotypeCounts[1][3] > 0) {
+						line += "\t"+(double)genotypeCounts[1][2]/(double)(genotypeCounts[1][1]+genotypeCounts[1][2]+genotypeCounts[1][3]);
+					} else {
+						line += "\t.";
+					}
+					line += "\t"+genotypeCounts[0][0];
+					line += "\t"+genotypeCounts[1][0];
+					line += eol;
+					
+					if (line.length() > 25000) {
+						writer.print(line);
+						writer.flush();
+						line = "";
+					}
+					markerDataLoader.releaseIndex(i);
 				}
-
-				line += markerName +"\t"+ markerData.getChr() +"\t"+ markerData.getPosition();
-				if (values[0].size() > 0) {
-					line += "\t"+Array.mean(values[0].toArray());
-				} else {
-					line += "\t.";
-				}
-				if (values[1].size() > 0) {
-					line += "\t"+Array.mean(values[1].toArray());
-				} else {
-					line += "\t.";
-				}
-				if (genotypeCounts[0][1]+genotypeCounts[0][2]+genotypeCounts[0][3] > 0) {
-					line += "\t"+(double)genotypeCounts[0][2]/(double)(genotypeCounts[0][1]+genotypeCounts[0][2]+genotypeCounts[0][3]);
-				} else {
-					line += "\t.";
-				}
-				if (genotypeCounts[1][1]+genotypeCounts[1][2]+genotypeCounts[1][3] > 0) {
-					line += "\t"+(double)genotypeCounts[1][2]/(double)(genotypeCounts[1][1]+genotypeCounts[1][2]+genotypeCounts[1][3]);
-				} else {
-					line += "\t.";
-				}
-				line += "\t"+genotypeCounts[0][0];
-				line += "\t"+genotypeCounts[1][0];
-				line += eol;
-				
-				if (line.length() > 25000) {
-					writer.print(line);
-					writer.flush();
-					line = "";
-				}
-				markerDataLoader.releaseIndex(i);
+				writer.print(line);
+				log.report("Identified pseudo-autosomal breakpoints from "+markerList.length+" markers in "+ext.getTimeElapsed(time));
+	
+				writer.close();
+			} catch (Exception e) {
+				log.reportError("Error writing results");
+				log.reportException(e);
 			}
-			writer.print(line);
-			log.report("Identified pseudo-autosomal breakpoints from "+markerList.length+" markers in "+ext.getTimeElapsed(time));
-
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing results");
-			log.reportException(e);
+			
 		}
-		
-	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
