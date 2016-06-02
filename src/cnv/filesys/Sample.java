@@ -440,8 +440,8 @@ public class Sample implements Serializable {
 						realY = ys[i];
 						break;
 					case 1:
-						realX = thetas[i];
-						realY = rs[i];
+						realX = getThetas()[i];
+						realY = getRs()[i];
 						break;
 					case 2:
 						realX = bafs[i];
@@ -494,8 +494,8 @@ public class Sample implements Serializable {
 							realY = ys[indicesOfTargetMarkersInProj[i]];
 							break;
 						case 1:
-							realX = thetas[indicesOfTargetMarkersInProj[i]];
-							realY = rs[indicesOfTargetMarkersInProj[i]];
+							realX = getThetas()[indicesOfTargetMarkersInProj[i]];
+							realY = getRs()[indicesOfTargetMarkersInProj[i]];
 							break;
 						case 2:
 							realX = bafs[indicesOfTargetMarkersInProj[i]];
