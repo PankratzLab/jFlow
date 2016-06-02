@@ -465,11 +465,13 @@ public class EmimPipeline {
         			ResultsPackager.getForestPlotParameterFile(resultFiles, 
         					forestMarkers, 
         					"MarkerName", 
-        					new String[] {"tdt", "emim_C", "emim_M", "emim_CM-C"}, 
+        					new String[] {"TDT", "EMIM Child Effect", "EMIM Maternal Effect"},
         					new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
         								    {"C_lnR1", "C_se_lnR1", "pVal_C_df" + model.getDegreesOfFreedom()},
-        								    {"M_lnS1", "M_se_lnS1", "pVal_M_df" + model.getDegreesOfFreedom()},
-        								    {"M_lnS1", "M_se_lnS1", "pVal_CM-C_df" + model.getDegreesOfFreedom()}},
+        								    {"M_lnS1", "M_se_lnS1", "pVal_M_df" + model.getDegreesOfFreedom(), "pVal_CM-C_df" + model.getDegreesOfFreedom()}},
+        					new String[][] {{"","","p"},
+        								    {"","","p"},
+        								    {"","","p","removing Child Effect p"}},
         					forestParameterFile,
         					log);
         			ForestPlot fp = new ForestPlot(ext.rootOf(forestParameterFile, false) + ".input", log);
