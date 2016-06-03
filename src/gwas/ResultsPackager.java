@@ -395,7 +395,7 @@ public class ResultsPackager {
 		}
 	}
 
-	public static void parseEmimFormat(String childResultsFile, String momResultsFile, String childMomResultsFile, String tdtResultsFile, String mapFile, String mendelErrorFile, String hweFile, double pValueThreshold, String outfile, Logger log) {
+	public static void parseEmimFormat(String childResultsFile, String momResultsFile, String childMomResultsFile, String tdtResultsFile, String mapFile, String mendelErrorFile, String hweFile, String frqFile, double pValueThreshold, String outfile, Logger log) {
 		BufferedReader reader1, reader2, reader3;
 		PrintWriter writer;
 		String[] lineC, lineM, lineCM, pvalEquations;
@@ -403,10 +403,10 @@ public class ResultsPackager {
 		Hashtable<Long, String> snpList;  // , freqHash; // , customFreqHash;
 		String delimiter1, delimiter2, delimiter3;
 		Map<String, Integer> indicesC, indicesM, indicesCM;
-		double freq, hweThreshold;
+		double hweThreshold;
 		double[] pvals;
 		long index;
-		Hashtable <String, String[]> mendelErrors = null, hwe = null, tdtResults = null;
+		Hashtable <String, String[]> mendelErrors = null, hwe = null, tdtResults = null, freqs = null;
 
 		if (outfile == null) {
 			outfile = ext.rootOf(childResultsFile, false) + "parsedResults.txt";
@@ -432,6 +432,9 @@ public class ResultsPackager {
 			}
 			if (hweFile != null) {
 				hwe = one.SkatMeta.loadFile(hweFile, null, new String[] {"SNP"}, new String[] {"GENO", "p"}, new String[] {"TEST==UNAFF"}, log);
+			}
+			if (frqFile != null) {
+				freqs = one.SkatMeta.loadFile(frqFile, null, new String[] {"SNP"}, new String[] {"MAF"}, null, log);
 			}
 			if (tdtResultsFile != null) {
 //				tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, new String[] {"T", "U", "OR", "P"}, null, null);
@@ -461,7 +464,10 @@ public class ResultsPackager {
 			while (reader1.ready()) {
 //				lineC = reader1.readLine().replaceAll("\\*", " ").trim().split(delimiter1, -1);
 				lineC = reader1.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN").trim().split(delimiter1, -1);
-				freq = Double.parseDouble(lineC[indicesC.get("freq")]);
+				String snp = snpList.get(Long.parseLong(lineC[indicesC.get("snpID")].substring(0, lineC[indicesC.get("snpID")].indexOf(".")))).split("\t")[2];
+				String freq;
+				if (freqs == null) freq = lineC[indicesC.get("freq")];
+				else freq = freqs.get(snp)[0];
 //				lineM = reader2.readLine().replaceAll("\\*", " ").trim().split(delimiter2, -1);
 //				lineCM = reader3.readLine().replaceAll("\\*", " ").trim().split(delimiter3, -1);
 				lineM = reader2.readLine().replaceAll("\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*", "            NaN").trim().split(delimiter2, -1);
@@ -477,16 +483,16 @@ public class ResultsPackager {
 								   Double.parseDouble(lineM[indicesM.get("lnlikfull")]),
 								   Double.parseDouble(lineCM[indicesCM.get("lnlikfull")]),
 								   log);
-				temp = tdtResults.get(snpList.get(Long.parseLong(lineC[indicesC.get("snpID")].substring(0, lineC[indicesC.get("snpID")].indexOf(".")))).split("\t")[2])[3];
+				temp = tdtResults.get(snp)[3];
 //				if (tdtResults.get(temp)[3].equals("NA")) {
 //					System.out.println(temp + "\t" + tdtResults.get(test)[3]);
 ////					System.out.println(temp + "\t" + Double.parseDouble(tdtResults.get(test)[3]));
 //				}
-				if (pValueThreshold >= 1 || ((!temp.equals("NA") && pvalsPass(Array.addDoubleToArray(Double.parseDouble(temp), pvals), pValueThreshold)) && freq >= .01)) {
+				if (pValueThreshold >= 1 || ((!temp.equals("NA") && pvalsPass(Array.addDoubleToArray(Double.parseDouble(temp), pvals), pValueThreshold)) && Double.parseDouble(freq) >= .01)) {
 					pvalEquations = getPvalEquations(lineC[indicesC.get("lnliknull")], lineC[indicesC.get("lnlikfull")], lineM[indicesM.get("lnliknull")], lineM[indicesM.get("lnlikfull")], lineCM[indicesCM.get("lnlikfull")], log);
 //					writer.println(getOutputString(snpList, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
 //					writer.println(getOutputString(snpList, mendelErrors, hwe, hweThreshold, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults, log) + "\t" + pvals[0] + "\t" + pvalEquations[0] + "\t" + pvals[1] + "\t" + pvalEquations[1] + "\t" + pvals[2] + "\t" + pvalEquations[2]);
-					writer.println(getOutputString(snpList, mendelErrors, hwe, hweThreshold, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults, pvals, pvalEquations, log));
+					writer.println(getOutputString(snpList, mendelErrors, hwe, hweThreshold, freq, lineC, indicesC, lineM, indicesM, lineCM, indicesCM, tdtResults, pvals, pvalEquations, log));
 				}
 			}
 			reader1.close();
@@ -548,7 +554,7 @@ public class ResultsPackager {
 							 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),1,TRUE)"};
 	}
 
-	private static String getOutputString(Hashtable<Long, String> snpList, Hashtable<String, String[]> mendelErrors, Hashtable<String, String[]> hwe, double hweThreshold, String[] lineC, Map<String, Integer> indicesC, String[] lineM, Map<String, Integer> indicesM, String[] lineCM, Map<String, Integer> indicesCM, Hashtable<String, String[]> tdtResults, double[] pvals, String[] pvalEquations, Logger log) {
+	private static String getOutputString(Hashtable<Long, String> snpList, Hashtable<String, String[]> mendelErrors, Hashtable<String, String[]> hwe, double hweThreshold, String freq, String[] lineC, Map<String, Integer> indicesC, String[] lineM, Map<String, Integer> indicesM, String[] lineCM, Map<String, Integer> indicesCM, Hashtable<String, String[]> tdtResults, double[] pvals, String[] pvalEquations, Logger log) {
 		String result = null, tmp, snp;
 		String[] tmp2;
 		long index;
@@ -597,7 +603,7 @@ public class ResultsPackager {
 				tmp += "\t" + (Double.isFinite(beta) ? beta : ".");
 				tmp += "\t" + (Double.isFinite(se) ? se : ".");
 			}
-			result = snpList.get(index) + tmp + "\t" + lineC[indicesC.get("freq")] + "\t" + lineC[indicesC.get("lnR1")] + "\t" + lineC[indicesC.get("sd_lnR1")] + "\t" + lineC[indicesC.get("lnR2")] + "\t" + lineC[indicesC.get("sd_lnR2")] + "\t" + lineC[indicesC.get("lnS1")] + "\t" + lineC[indicesC.get("sd_lnS1")] + "\t" + lineC[indicesC.get("lnS2")] + "\t" + lineC[indicesC.get("sd_lnS2")] + "\t" + lineCM[indicesCM.get("lnR1")] + "\t" + lineCM[indicesCM.get("sd_lnR1")] + "\t" + lineCM[indicesCM.get("lnR2")] + "\t" + lineCM[indicesCM.get("sd_lnR2")] + "\t" + lineCM[indicesCM.get("lnS1")] + "\t" + lineCM[indicesCM.get("sd_lnS1")] + "\t" + lineCM[indicesCM.get("lnS2")] + "\t" + lineCM[indicesCM.get("sd_lnS2")] + "\t" + lineM[indicesM.get("lnR1")] + "\t" + lineM[indicesM.get("sd_lnR1")] + "\t" + lineM[indicesM.get("lnR2")] + "\t" + lineM[indicesM.get("sd_lnR2")] + "\t" + lineM[indicesM.get("lnS1")] + "\t" + lineM[indicesM.get("sd_lnS1")] + "\t" + lineM[indicesM.get("lnS2")] + "\t" + lineM[indicesM.get("sd_lnS2")];
+			result = snpList.get(index) + tmp + "\t" + freq + "\t" + lineC[indicesC.get("lnR1")] + "\t" + lineC[indicesC.get("sd_lnR1")] + "\t" + lineC[indicesC.get("lnR2")] + "\t" + lineC[indicesC.get("sd_lnR2")] + "\t" + lineC[indicesC.get("lnS1")] + "\t" + lineC[indicesC.get("sd_lnS1")] + "\t" + lineC[indicesC.get("lnS2")] + "\t" + lineC[indicesC.get("sd_lnS2")] + "\t" + lineCM[indicesCM.get("lnR1")] + "\t" + lineCM[indicesCM.get("sd_lnR1")] + "\t" + lineCM[indicesCM.get("lnR2")] + "\t" + lineCM[indicesCM.get("sd_lnR2")] + "\t" + lineCM[indicesCM.get("lnS1")] + "\t" + lineCM[indicesCM.get("sd_lnS1")] + "\t" + lineCM[indicesCM.get("lnS2")] + "\t" + lineCM[indicesCM.get("sd_lnS2")] + "\t" + lineM[indicesM.get("lnR1")] + "\t" + lineM[indicesM.get("sd_lnR1")] + "\t" + lineM[indicesM.get("lnR2")] + "\t" + lineM[indicesM.get("sd_lnR2")] + "\t" + lineM[indicesM.get("lnS1")] + "\t" + lineM[indicesM.get("sd_lnS1")] + "\t" + lineM[indicesM.get("lnS2")] + "\t" + lineM[indicesM.get("sd_lnS2")];
 //			result = snpList.get(index) + "\t" + lineC[indicesC[1]];
 			for (int i = 0; i < pvals.length; i++) {
 				result += "\t" + pvals[i] + "\t" + pvalEquations[i];
@@ -859,7 +865,7 @@ public class ResultsPackager {
 		"   (1) name of results file (i.e. results=all_results.csv (not the default))\n" + 
 		"   (2) type of gwas file (i.e. type=plink (default) other options include =gwaf, =forest, =sol, and =emim)\n" + 
 		"   (3) name of map file (i.e. map="+mapFile+" (default))\n" + 
-		"   (4) name of original freq file used to generate the gwaf files (i.e. freq="+mapFile+" (default; needs to be original freq file from when the gwaf files were made))\n" + 
+		"   (4) name of original freq file used to generate the gwaf files (i.e. freq="+freqFile+" (default; needs to be original freq file from when the gwaf files were made))\n" + 
 		"   (5) (optional) name of freq file limited to those indiviudals used in anlayses (i.e. customFreq=femalesOnly.frq (not the default; only used in gwaf))\n" + 
 		"   (6) (optional) list of markers to include (i.e. list=list.txt (not the default))\n" + 
 		"   (7) (optional) name of output file (i.e. out=[results file]_out.csv (default; when I get around to coding it, it will be comma instead of tab delimited if ending in .csv))\n" + 
@@ -1063,7 +1069,7 @@ public class ResultsPackager {
 			} else if (type.equalsIgnoreCase("sol")) {
 				parseSOLformat(dir, resultsFile, "N:/statgen/CALICo_SOL/SOL-2013-04-05_Metabochip-mappingfile.txt", freqFile, markersToReport, filter, callRateThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("emim")) {
-				parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt, mapFile, mendelErrorFile, hweFile, pThreshold, outfile, log);
+				parseEmimFormat(resultsFileChild, resultsFileMom, resultsFileChildMom, resultsFileTdt, mapFile, mendelErrorFile, hweFile, freqFile, pThreshold, outfile, log);
 			} else if (type.equalsIgnoreCase("forest")) {
 			    String mkrFile = "/home/pankrat2/shared/Poynter_emim/gwasHits.txt";
 			    String mkrColNm = "markerName";

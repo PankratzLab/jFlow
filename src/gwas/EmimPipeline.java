@@ -77,7 +77,11 @@ public class EmimPipeline {
         return popFileObj;
     }
 
-    private static void generateKeepsFile(String keepsFile, PopFileData popData, int pop, PopFileData subPopData, int subPop) {
+    private static void generateKeepsFile(String keepsFile, PopFileData popData, int pop, PopFileData subPopData, int subPop, Logger log) {
+    	if (Files.exists(keepsFile)) {
+    		log.report(keepsFile + " already exists, skipping Keeps File generation");
+    		return;
+    	}
         PrintWriter writer = Files.getAppropriateWriter(keepsFile);
         for (String s : popData.idsIndexMap.keySet()) {
             if (popData.inclArr[pop][popData.idsIndexMap.get(s)]) {
@@ -108,7 +112,7 @@ public class EmimPipeline {
     				log.reportError("Could not create " + popDir);
     				return false;
     			}
-    			generateKeepsFile(popDir + "keeps.txt", popFile, p, null, 0);
+    			generateKeepsFile(popDir + "keeps.txt", popFile, p, null, 0, log);
 
     			for (int sP = 0; sP < subPopFile.pops.length; sP++) {
     				String subPopDir = popDir + ext.replaceWithLinuxSafeCharacters(subPopFile.pops[sP], true) + "/";
@@ -117,7 +121,7 @@ public class EmimPipeline {
     					log.reportError("Could not create " + subPopDir);
     					return false;
     				}
-    				generateKeepsFile(subPopDir + "keeps.txt", popFile, p, subPopFile, sP);
+    				generateKeepsFile(subPopDir + "keeps.txt", popFile, p, subPopFile, sP, log);
     			}
     		}
     	}
