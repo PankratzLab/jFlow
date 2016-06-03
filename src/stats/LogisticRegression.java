@@ -408,8 +408,8 @@ public class LogisticRegression extends RegressionModel {
 
 		eol = Files.isWindows()?"\r\n":"\n";
 		for (int i = 1; i<betas.length; i++) {
-			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(stats[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7)+"\t  "+ext.formDeci(odds_ratios[i][0], sigfigs, true)+" ("+ext.formDeci(odds_ratios[i][1], sigfigs, true)+", "+ext.formDeci(odds_ratios[i][2], sigfigs, true)+")"+eol;
-			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], sigfigs, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7)+"\t"+ext.prettyP(sigs[i])+"\t==CHIDIST("+Math.abs(stats[i])+",1) (untested)"+eol;
+			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(stats[i], sigfigs, true), 7)+"\t"+ext.prettyP(sigs[i])+"\t=CHIDIST("+Math.abs(stats[i])+",1)"+"\t  "+ext.formDeci(odds_ratios[i][0], sigfigs, true)+" ("+ext.formDeci(odds_ratios[i][1], sigfigs, true)+", "+ext.formDeci(odds_ratios[i][2], sigfigs, true)+")"+eol;
+//			str += ext.formStr(varNames[i], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[i], sigfigs, true), 7)+"\t"+ext.formStr(ext.formDeci(SEofBs[i], sigfigs, true), 7)+"\t"+ext.formStr((stats[i]>100?ext.formSciNot(stats[i], 1, true):ext.formDeci(stats[i], sigfigs, true)), 7)+"\t"+ext.formStr(ext.formDeci(sigs[i], sigfigs, true), 7)+"\t"+ext.prettyP(sigs[i])+"\t=CHIDIST("+Math.abs(stats[i])+",1)"+eol;
 		}
 		str += ext.formStr(varNames[0], maxNameSize, true)+"\t"+ext.formStr(ext.formDeci(betas[0], sigfigs, true), 7)+eol;
 

@@ -207,7 +207,7 @@ public class LeastSquares extends RegressionModel {
 			checkForMissingData();
 			analysisFailed = !dataQC();
 		}
-		if (optimizeMethod) {
+		if (!analysisFailed && optimizeMethod) {
 			int numIndps = indeps[0].length;
 			if (numIndps >= builder.shiftMethodNumIndeps) {
 				lType = LS_TYPE.QR_DECOMP;
