@@ -163,6 +163,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		String newGenotypingFilename;
 		boolean[] isNewGenotypingDifferent = null;
 		Logger log;
+		int countMissing;
 		
 		log = sp.getProject().getLog();
 		disabledClassValues = sp.getDisabledClassValues();//panelIndex);
@@ -278,6 +279,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		otherClass = new String[samples.length];
 		uniqueValueCounts = new CountVector();
 		
+		countMissing = 0;
 		for (int i = 0; i<samples.length; i++) {
 			indi = sampleData.getIndiFromSampleHash(samples[i]);
 
@@ -367,13 +369,22 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				//if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) callRate++;
 				otherClass[i] = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr, position) + "";
 			} else {
-				log.reportError("Error - no data pts for "+samples[i]);
+				if (countMissing < 10) {
+					log.reportError("Error - no data pts for "+samples[i]);
+				} else if (countMissing == 10) {
+					log.reportError("...");
+				}
+				countMissing++;
 				sex[i] = "missing";
 				points[numCents*3+i] = new PlotPoint(samples[i], PlotPoint.MISSING, datapoints[0][i], datapoints[1][i], (byte)(xFontSize*2), (byte)0, (byte)99);
 			}
 			
 			// create grid
 		}
+		if (countMissing >= 10) {
+			log.reportError("Total of "+countMissing+" samples without data in SampleData");
+		}
+			
 		//callRate=(samples.length-callRate)*100/samples.length;
 		if (getUpdateQcPanel()) {
 			sp.updateQcPanel(chr, genotype, sex, otherClass, panelIndex);
