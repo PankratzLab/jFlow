@@ -524,85 +524,106 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             mouseEndX = e.getX();
             mouseEndY = e.getY();
             
+            boolean didSelect = mouseRects.size() > 0 || mousePolys.size() > 0;
+            boolean didClear = !didSelect && (selectedRects.size() > 0 || selectedPolys.size() > 0); 
             if (!drag/* && (currentTool == GATING_TOOL.RECT_TOOL || tempPoly.isEmpty())*/) {
-                for (GenericRectangle rect : mouseRects) {
-                    if (selectedRects.contains(rect)) {
+                if (!didSelect) {
+                    for (GenericRectangle rect : selectedRects) {
                         rect.setEditable(false);
-                        selectedRects.remove(rect);
-                    } else {
-                        rect.setEditable(true);
-                        selectedRects.add(rect);
                     }
-                }
-                mouseRects.clear();
-                for (GenericPath path : mousePolys) {
-                    if (selectedPolys.contains(path)) {
-                        path.setEditable(false);
-                        selectedPolys.remove(path);
-                    } else {
-                        path.setEditable(true);
-                        selectedPolys.add(path);
+                    for (GenericPath poly : selectedPolys) {
+                        poly.setEditable(false);
                     }
-                }
-            } 
-            if (drag) {
-                drag = false;
-            } else if (currentTool == GATING_TOOL.POLY_TOOL || !tempPoly.isEmpty()) {
-                double tempValX = getXValueFromXPixel(mouseEndX);
-                double tempValY = getYValueFromYPixel(mouseEndY);
-                if (!tempPoly.isEmpty()) {
-                    int initPtX = getXPixel(tempPoly.get(0)[0]);
-                    int initPtY = getYPixel(tempPoly.get(0)[1]);
-                    if (Math.abs(initPtX - mouseEndX) < 5 && Math.abs(initPtY - mouseEndY) < 5) {
-                        Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-                        path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
-                        for(int i = 1; i < tempPoly.size(); ++i) {
-                           path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+                    selectedRects.clear();
+                    selectedPolys.clear();
+                } else {
+                    for (GenericRectangle rect : mouseRects) {
+                        if (selectedRects.contains(rect)) {
+                            rect.setEditable(false);
+                            selectedRects.remove(rect);
+                        } else {
+                            rect.setEditable(true);
+                            selectedRects.add(rect);
                         }
-                        path.closePath();
-                        PolygonGate pg = new PolygonGate();
-                        pg.addDimension(new GateDimension(xCol));
-                        pg.addDimension(new GateDimension(yCol));
-                        pg.setPath(path);
-//                        fcp.addGate(pg);
-//                         TODO add new PolygonGate to fcp gating strategy, instead of adding to polys
-                        polys.add(new GenericPath(path, (byte)0, (byte)0, (byte)99, false, false));
-                        tempPoly.clear();
-                        highlightPoly = null;
-                        setForceGatesChanged();
-                        paintAgain();
-                        return;
                     }
-                } 
-                tempPoly.add(new double[]{tempValX, tempValY});
-                Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-                path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
-                for(int i = 1; i < tempPoly.size(); ++i) {
-                   path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+                    mouseRects.clear();
+                    for (GenericPath path : mousePolys) {
+                        if (selectedPolys.contains(path)) {
+                            path.setEditable(false);
+                            selectedPolys.remove(path);
+                        } else {
+                            path.setEditable(true);
+                            selectedPolys.add(path);
+                        }
+                    }
+                    mousePolys.clear();
                 }
-                highlightPoly = new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true);
-            }
-            
-            if (draggingVertexRects.isEmpty()) {
-                highlightRectangle = null;
-//                    RectangleGate rg = new RectangleGate();
-//                    rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
-//                    if (!isHistogram()) {
-//                        rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
-//                    }
-//                    fcp.addGate(rg);
-                
-                // TODO for testing:
-                rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
-                                                (float)getYValueFromYPixel(startY), 
-                                                (float)getXValueFromXPixel(mouseEndX), 
-                                                (float)getYValueFromYPixel(mouseEndY), 
-                                                (byte)1, false, false, (byte)0, (byte)0, false));
             } else {
-                rects.addAll(draggingVertexRects);
-                draggingVertexRects.clear();
+                drag = false;
             }
-            
+            if (!didSelect && !didClear) {
+                if (currentTool == GATING_TOOL.POLY_TOOL) {
+                    double tempValX = getXValueFromXPixel(mouseEndX);
+                    double tempValY = getYValueFromYPixel(mouseEndY);
+                    if (!tempPoly.isEmpty()) {
+                        int initPtX = getXPixel(tempPoly.get(0)[0]);
+                        int initPtY = getYPixel(tempPoly.get(0)[1]);
+                        if (Math.abs(initPtX - mouseEndX) < 5 && Math.abs(initPtY - mouseEndY) < 5) {
+                            if (tempPoly.size() > 2) {
+                                Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+                                path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
+                                for(int i = 1; i < tempPoly.size(); ++i) {
+                                   path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+                                }
+                                path.closePath();
+                                PolygonGate pg = new PolygonGate();
+                                pg.addDimension(new GateDimension(xCol));
+                                pg.addDimension(new GateDimension(yCol));
+                                pg.setPath(path);
+        //                        fcp.addGate(pg);
+        //                         TODO add new PolygonGate to fcp gating strategy, instead of adding to polys
+                                GenericPath newPoly = new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true);
+                                polys.add(newPoly);
+                                selectedPolys.add(newPoly);
+                            }
+                            tempPoly.clear();
+                            highlightPoly = null;
+                            setForceGatesChanged();
+                            paintAgain();
+                            return;
+                        }
+                    } 
+                    tempPoly.add(new double[]{tempValX, tempValY});
+                    Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+                    path.moveTo(tempPoly.get(0)[0], tempPoly.get(0)[1]);
+                    for(int i = 1; i < tempPoly.size(); ++i) {
+                       path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
+                    }
+                    highlightPoly = new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true);
+                }
+                
+                if (draggingVertexRects.isEmpty()) {
+                    if (currentTool == GATING_TOOL.RECT_TOOL) {
+                        highlightRectangle = null;
+        //                    RectangleGate rg = new RectangleGate();
+        //                    rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
+        //                    if (!isHistogram()) {
+        //                        rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
+        //                    }
+        //                    fcp.addGate(rg);
+                        
+                        // TODO for testing:
+                        rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
+                                                        (float)getYValueFromYPixel(startY), 
+                                                        (float)getXValueFromXPixel(mouseEndX), 
+                                                        (float)getYValueFromYPixel(mouseEndY), 
+                                                        (byte)1, false, false, (byte)0, (byte)0, false));
+                    }
+                } else {
+                    rects.addAll(draggingVertexRects);
+                    draggingVertexRects.clear();
+                }
+            }
             setForceGatesChanged();
             paintAgain();
             
@@ -622,10 +643,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 ArrayList<GenericRectangle> insideRects = getRectsContainingClick(e);
                 ArrayList<GenericRectangle> closeRects = getRectsWithVerticesNearClick(e);
                 
-                if (insidePolys.isEmpty() && insideRects.isEmpty() && closePolys.isEmpty() && closeRects.isEmpty()) {
-                    selectedPolys.clear();
-                    selectedRects.clear();
-                }
+//                if (insidePolys.isEmpty() && insideRects.isEmpty() && closePolys.isEmpty() && closeRects.isEmpty()) {
+//                    selectedPolys.clear();
+//                    selectedRects.clear();
+//                }
                 if (closeRects.isEmpty()) {
                     if (!insideRects.isEmpty()) {
                         mouseRects.addAll(insideRects);
