@@ -614,6 +614,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     }
                 } else {
                     rects.addAll(draggingVertexRects);
+                    selectedRects.addAll(draggingVertexRects);
                     draggingVertexRects.clear();
                 }
             }
@@ -895,8 +896,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             }
             if (!draggingVertexRects.isEmpty()) {
                 for (int i = 0; i < draggingVertexRects.size(); i++) {
-                    GenericRectangle gr = new GenericRectangle((float) getXValueFromXPixel(startX), 
-                            (float) getYValueFromYPixel(startY), 
+                    float tempStartX, tempStartY;
+                    tempStartX = draggingVertexRects.get(i).getStartXValue();
+                    tempStartY = draggingVertexRects.get(i).getStartYValue();
+                    GenericRectangle gr = new GenericRectangle(tempStartX, 
+                            tempStartY, 
                             (float) getXValueFromXPixel(mouseEndX), 
                             isHistogram() ? (float) getYValueFromYPixel(startY) : (float) getYValueFromYPixel(mouseEndY), 
                             (byte) 1, false, false, (byte) 0, (byte) 99, true);
