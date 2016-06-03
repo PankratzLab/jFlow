@@ -607,17 +607,13 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 	
 	private void screenCapAll() {
 		int currentSelection = forestPlot.getCurrentDataIndex();
-		Dimension currentSize = forestPlot.getForestPanel().getSize();
-		forestPlot.screenCapAll(null, forestPlot.getForestPanel().oddsDisplay, true);
+		forestPlot.screenCapAll(null, forestPlot.getForestPanel().oddsDisplay, true, forestPlot.getForestPanel().getSize());
 		forestPlot.setCurrentData(currentSelection);
-		forestPlot.getForestPanel().setSize(currentSize);
 		updateForestPlot();
 	}
 	
 	private void screenCap() {
-		Dimension currentSize = forestPlot.getForestPanel().getSize();
-		forestPlot.screenCap(null, true);
-		forestPlot.getForestPanel().setSize(currentSize);
+		forestPlot.screenCap(null, true, forestPlot.getForestPanel().getSize());
 	}
 	
 	private void displayIndex(JTextField field) {
