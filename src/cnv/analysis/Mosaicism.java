@@ -230,7 +230,7 @@ public class Mosaicism {
 					int bafSize = bafAl.size();
 					int lrrSize = lrrAl.size();
 					float[] bafTmp = Array.toFloatArray(bafAl);
-					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqr(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5);
+					String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t" + ext.formDeci(Array.mean(Array.toFloatArray(lrrAl)), 5) + "\t" + bafAl.size() + (bafSize > 10 ? "\t" + ext.formDeci(Array.stdev(bafTmp, true), 5) + "\t" + ext.formDeci(Array.iqrExclusive(bafTmp), 5) : "\t.\t.") + "\t" + ext.formDeci((double) (lrrSize - bafSize) / (double) lrrSize, 5);
 					result += "\t" + mosaicMetrics.getForcedCallproportionArmMosaic();
 					result += "\t" + mosaicMetrics.getBpWeightedAverageArm();
 					result += "\t" + mosaicMetrics.getBpWeightedAverageCalled();

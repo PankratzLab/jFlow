@@ -43,7 +43,7 @@ public class Quantiles {
 			log.reportTimeError("Found all NaN values, setting all to quantiles 0");
 			quantiles = new double[] { .5 };
 		} else {
-			quantiles = Array.quants(tmp, qs);
+			quantiles = Array.quantsExclusive(tmp, qs);
 		}
 		return quantiles;
 

@@ -327,10 +327,10 @@ public class ChromatinAccessibility {
 
 						pvals = Array.toDoubleArray(HashVec.loadFileToStringArray(file_dir+ext.rootOf(filename)+"/"+ext.addToRoot(filename, (i==files.length?"_allMerged_":"_"+ext.rootOf(files[i])+"_")+CLASSES[j]+"_in"), false, new int[] {3}, false));
 						System.out.print("\t"+ext.formDeci(ProbDist.ChiDistReverse(Array.median(Array.removeNaN(pvals)), 1)/ProbDist.ChiDistReverse(0.50, 1), 4));
-						System.out.print("\t"+ext.formDeci(ProbDist.ChiDistReverse(Array.quant(Array.removeNaN(pvals), 0.10), 1)/ProbDist.ChiDistReverse(0.10, 1), 4));
+						System.out.print("\t"+ext.formDeci(ProbDist.ChiDistReverse(Array.quantExclusive(Array.removeNaN(pvals), 0.10), 1)/ProbDist.ChiDistReverse(0.10, 1), 4));
 						pvals = Array.toDoubleArray(HashVec.loadFileToStringArray(file_dir+ext.rootOf(filename)+"/"+ext.addToRoot(filename, (i==files.length?"_allMerged_":"_"+ext.rootOf(files[i])+"_")+CLASSES[j]+"_out"), false, new int[] {3}, false));
 						System.out.print("\t"+ext.formDeci(ProbDist.ChiDistReverse(Array.median(Array.removeNaN(pvals)), 1)/ProbDist.ChiDistReverse(0.50, 1), 4));
-						System.out.print("\t"+ext.formDeci(ProbDist.ChiDistReverse(Array.quant(Array.removeNaN(pvals), 0.10), 1)/ProbDist.ChiDistReverse(0.10, 1), 4));
+						System.out.print("\t"+ext.formDeci(ProbDist.ChiDistReverse(Array.quantExclusive(Array.removeNaN(pvals), 0.10), 1)/ProbDist.ChiDistReverse(0.10, 1), 4));
 					}
 				}
 				System.out.println();
