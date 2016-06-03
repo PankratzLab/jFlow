@@ -38,7 +38,7 @@ public class GenericRectangle {
         final int prime = 31;
         int result = 1;
         result = prime * result + color;
-        result = prime * result + (editable ? 1231 : 1237);
+//        result = prime * result + (editable ? 1231 : 1237);
         result = prime * result + (fill ? 1231 : 1237);
         result = prime * result + fillColor;
         result = prime * result + layer;
@@ -62,8 +62,8 @@ public class GenericRectangle {
         GenericRectangle other = (GenericRectangle) obj;
         if (color != other.color)
             return false;
-        if (editable != other.editable)
-            return false;
+//        if (editable != other.editable)
+//            return false;
         if (fill != other.fill)
             return false;
         if (fillColor != other.fillColor)

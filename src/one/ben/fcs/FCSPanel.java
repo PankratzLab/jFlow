@@ -107,11 +107,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         POLY_TOOL;
     };
 	
-	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
-//	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
+//	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
+	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
 	
 //	private int dragInd = -1;
-    private int polyDragVertInd = -1;
+//    private int polyDragVertInd = -1;
 
     public void setGatingTool(GATING_TOOL tool) {
         // TODO cancel drawing any gates
@@ -526,6 +526,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             
             boolean didSelect = mouseRects.size() > 0 || mousePolys.size() > 0;
             boolean didClear = !didSelect && (selectedRects.size() > 0 || selectedPolys.size() > 0); 
+            boolean wasDrag = drag;
             if (!drag/* && (currentTool == GATING_TOOL.RECT_TOOL || tempPoly.isEmpty())*/) {
                 if (!didSelect) {
                     for (GenericRectangle rect : selectedRects) {
@@ -536,6 +537,14 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     }
                     selectedRects.clear();
                     selectedPolys.clear();
+//                    for (GenericRectangle rect : mouseRects) {
+//                        rect.setEditable(false);
+//                    }
+//                    for (GenericPath poly : mousePolys) {
+//                        poly.setEditable(false);
+//                    }
+//                    mouseRects.clear();
+//                    mousePolys.clear();
                 } else {
                     for (GenericRectangle rect : mouseRects) {
                         if (selectedRects.contains(rect)) {
@@ -560,8 +569,55 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 }
             } else {
                 drag = false;
+                for (GenericRectangle rect : mouseRects) {
+                    if (selectedRects.contains(rect)) {
+                    } else {
+                        rect.setEditable(true);
+                        selectedRects.add(rect);
+                    }
+                }
+                mouseRects.clear();
+                for (GenericPath path : mousePolys) {
+                    if (selectedPolys.contains(path)) {
+                    } else {
+                        path.setEditable(true);
+                        selectedPolys.add(path);
+                    }
+                }
+                mousePolys.clear();
+                if (!draggingPolys.isEmpty()) {
+                    draggingPolys.clear();  
+                    draggingPolyInds.clear();
+                }
+                if (draggingVertexRects.isEmpty()) {
+                    if (currentTool == GATING_TOOL.RECT_TOOL) {
+                        highlightRectangle = null;
+        //                    RectangleGate rg = new RectangleGate();
+        //                    rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
+        //                    if (!isHistogram()) {
+        //                        rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
+        //                    }
+        //                    fcp.addGate(rg);
+                        
+                        // TODO for testing:
+                        if (Math.abs(mouseEndX - startX) > DEFAULT_NEARBY_DIST) {
+                            if (isHistogram() || (Math.abs(mouseEndY - startY) > DEFAULT_NEARBY_DIST)) {
+                                GenericRectangle rect = new GenericRectangle((float)getXValueFromXPixel(startX), 
+                                                            (float)getYValueFromYPixel(startY), 
+                                                            (float)getXValueFromXPixel(mouseEndX), 
+                                                            (float)getYValueFromYPixel(mouseEndY), 
+                                                            (byte)1, false, false, (byte)0, (byte)0, true);
+                                rects.add(rect);
+                                selectedRects.add(rect);
+                            }
+                        }
+                    }
+                } else {
+                    rects.addAll(draggingVertexRects);
+                    draggingVertexRects.clear();
+                }
             }
-            if (!didSelect && !didClear) {
+            if (!didSelect && !didClear && !wasDrag) {
                 if (currentTool == GATING_TOOL.POLY_TOOL) {
                     double tempValX = getXValueFromXPixel(mouseEndX);
                     double tempValY = getYValueFromYPixel(mouseEndY);
@@ -602,27 +658,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     highlightPoly = new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true);
                 }
                 
-                if (draggingVertexRects.isEmpty()) {
-                    if (currentTool == GATING_TOOL.RECT_TOOL) {
-                        highlightRectangle = null;
-        //                    RectangleGate rg = new RectangleGate();
-        //                    rg.addDimension(new GateDimension.RectangleGateDimension(xCol, (float)getXValueFromXPixel(startX), (float)getXValueFromXPixel(mouseEndX)));
-        //                    if (!isHistogram()) {
-        //                        rg.addDimension(new GateDimension.RectangleGateDimension(yCol, (float)getYValueFromYPixel(startY), (float)getYValueFromYPixel(mouseEndY)));
-        //                    }
-        //                    fcp.addGate(rg);
-                        
-                        // TODO for testing:
-                        rects.add(new GenericRectangle((float)getXValueFromXPixel(startX), 
-                                                        (float)getYValueFromYPixel(startY), 
-                                                        (float)getXValueFromXPixel(mouseEndX), 
-                                                        (float)getYValueFromYPixel(mouseEndY), 
-                                                        (byte)1, false, false, (byte)0, (byte)0, false));
-                    }
-                } else {
-                    rects.addAll(draggingVertexRects);
-                    draggingVertexRects.clear();
-                }
             }
             setForceGatesChanged();
             paintAgain();
@@ -649,7 +684,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 //                }
                 if (closeRects.isEmpty()) {
                     if (!insideRects.isEmpty()) {
-                        mouseRects.addAll(insideRects);
+                        for (GenericRectangle gr : insideRects) {
+                            gr.setEditable(true);
+                            if (!selectedRects.contains(gr)) {
+                                mouseRects.add(gr);
+                            }
+                        }
                     }
                 } else {
                     for (GenericRectangle rect : closeRects) {
@@ -697,11 +737,15 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 if (closePolys.isEmpty()) {
                     // TODO should this affect ALL of these shapes?
                     if (!insidePolys.isEmpty()) {
-                        mousePolys.addAll(insidePolys);
+                        for (GenericPath gp : insidePolys) {
+                            gp.setEditable(true);
+                            mousePolys.add(gp);
+                        }
                     }
                 } else {
 //                    polys.removeAll(closePolys);
-                    selectedPolys.removeAll(closePolys);
+//                    selectedPolys.removeAll(closePolys);
+                    selectedPolys.addAll(closePolys);
                     mousePolys.removeAll(closePolys);
                     
                     draggingPolys = closePolys;
@@ -813,25 +857,37 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     dx = (float) (getXValueFromXPixel(mouseEndX) - getXValueFromXPixel(startX));
                     dy = (float) (getYValueFromYPixel(mouseEndY) - getYValueFromYPixel(startY));
                     HashSet<GenericRectangle> newSel = new HashSet<GenericRectangle>();
+                    HashSet<GenericRectangle> newMou = new HashSet<GenericRectangle>();
+                    HashSet<GenericRectangle> newRec = new HashSet<GenericRectangle>();
                     for (GenericRectangle gr : selectedRects) {
+                        rects.remove(gr);
                         GenericRectangle newGr = new GenericRectangle(gr.getStartXValue() + dx, gr.getStartYValue() + dy, gr.getStopXValue() + dx, gr.getStopYValue() + dy, gr.getThickness(), gr.getFill(), gr.getRoundedCorners(), gr.getColor(), gr.getFillColor(), gr.getLayer(), gr.getEditable());
-                        selectedRects.remove(gr);
+                        if (mouseRects.contains(gr)) {
+                            newMou.add(newGr);
+                            mouseRects.remove(gr);
+                        }
                         newSel.add(newGr);
+                        newRec.add(newGr);
                     }
+                    selectedRects.clear();
                     selectedRects.addAll(newSel);
-                    newSel = new HashSet<GenericRectangle>();
                     for (GenericRectangle gr : mouseRects) {
+                        rects.remove(gr);
                         GenericRectangle newGr = new GenericRectangle(gr.getStartXValue() + dx, gr.getStartYValue() + dy, gr.getStopXValue() + dx, gr.getStopYValue() + dy, gr.getThickness(), gr.getFill(), gr.getRoundedCorners(), gr.getColor(), gr.getFillColor(), gr.getLayer(), gr.getEditable());
-                        mouseRects.remove(gr);
-                        newSel.add(newGr);
+                        newMou.add(newGr);
+                        newRec.add(newGr);
                     }
-                    mouseRects.addAll(newSel);
+                    mouseRects.clear();
+                    mouseRects.addAll(newMou);
+                    rects.addAll(newRec);
                     AffineTransform at = AffineTransform.getTranslateInstance(dx, dy);
                     for (GenericPath gp : selectedPolys) {
                         gp.myPath.transform(at);
                     }
                     for (GenericPath gp : mousePolys) {
-                        gp.myPath.transform(at);
+                        if (!selectedPolys.contains(gp)) {
+                            gp.myPath.transform(at);
+                        }
                     }
                     updateStartCoords = true;
                     updateForceGating = true;
@@ -876,6 +932,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     }
                     draggingPolys.get(i).myPath = newPath;
                 }
+                updateStartCoords = true;
+                updateForceGating = true;
             }
             
             if (updateStartCoords) {
@@ -894,8 +952,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     private void rightMouseClickedRect(MouseEvent e) {
         int tempX = e.getX();
         int tempY = e.getY();
-        int toRemove = -1;
-
+        GenericRectangle toRemove = null;
+        
         for (int i = rects.size() - 1; i >= 0; i--) {
             GenericRectangle rect = rects.get(i);
             double xLow, xHigh, yLow, yHigh;
@@ -905,18 +963,40 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             yLow = getYPixel(Math.max(rect.getStartYValue(), rect.getStopYValue()));
             if (isHistogram()) {
                 if (xLow <= tempX && xHigh >= tempX) {
-                    toRemove = i;
+                    toRemove = rect;
                     break;
                 }
             } else {
                 if (xLow <= tempX && xHigh >= tempX && yLow <= tempY && yHigh >= tempY) {
-                    toRemove = i;
+                    toRemove = rect;
                     break;
                 }
             }
         }
-        if (toRemove != -1) {
+        if (toRemove == null) {
+            for (GenericRectangle rect : selectedRects) {
+                double xLow, xHigh, yLow, yHigh;
+                xLow = getXPixel(Math.min(rect.getStartXValue(), rect.getStopXValue()));
+                xHigh = getXPixel(Math.max(rect.getStartXValue(), rect.getStopXValue()));
+                yHigh = getYPixel(Math.min(rect.getStartYValue(), rect.getStopYValue()));
+                yLow = getYPixel(Math.max(rect.getStartYValue(), rect.getStopYValue()));
+                if (isHistogram()) {
+                    if (xLow <= tempX && xHigh >= tempX) {
+                        toRemove = rect;
+                        break;
+                    }
+                } else {
+                    if (xLow <= tempX && xHigh >= tempX && yLow <= tempY && yHigh >= tempY) {
+                        toRemove = rect;
+                        break;
+                    }
+                }
+            }
+            
+        }
+        if (toRemove != null) {
             rects.remove(toRemove);
+            selectedRects.remove(toRemove);
         }
         // TODO remove gate in gating data struct
         // TODO confirm gate removal
@@ -927,7 +1007,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	private void rightMouseClickedPoly(MouseEvent e) {
 		int tempX = e.getX();
 		int tempY = e.getY();
-		int toRemove = -1;
+		GenericPath toRemove = null;
 		
 		if (tempPoly.size() > 0) {
 		    tempPoly.clear();
@@ -939,12 +1019,13 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		double tempValY = getYValueFromYPixel(tempY);
 	    for (int i = polys.size() - 1; i >= 0; i--) {
 	    	if (polys.get(i).myPath.contains(tempValX, tempValY)) {
-	    		toRemove = i;
+	    		toRemove = polys.get(i);
 	    		break;
 	    	}
 	    }
-		if (toRemove != -1) {
+		if (toRemove != null) {
 			polys.remove(toRemove);
+			selectedPolys.remove(toRemove);
 		}
 
         // TODO remove gate in gating data struct
