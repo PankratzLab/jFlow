@@ -480,7 +480,6 @@ public class EmimPipeline {
         					log);
         			ForestPlot fp = new ForestPlot(ext.rootOf(forestParameterFile, false) + ".input", log);
         			fp.loadMarkerFile();
-        			fp.waitForLoad();
         			fp.loadOrderFile(forestPlotDisplayOrderFile, true);
         			fp.screenCapAll("ForestPlots/", true, false);
         		}

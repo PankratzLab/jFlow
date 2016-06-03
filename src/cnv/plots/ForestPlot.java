@@ -76,6 +76,8 @@ class MetaStudy {
 	private ArrayList<StudyData> getSorted(ArrayList<String> order) {
 	    if (this.sorted == null || this.sorted.isEmpty() || currentSortIsNaturalSort) {
 	        this.sorted = new ArrayList<StudyData>();
+
+		    sorted.add(new StudyBreak());
 	        for (int i = order.size() - 1; i >= 0; i--) {
 	            String name = ext.replaceAllWith(order.get(i), ForestPlot.REPLACEMENTS_FOOLISHLY_HARD_CODED);
 	            String repl = null;
@@ -677,23 +679,27 @@ public class ForestPlot {
         return true;
     }
     
-    /**
-	 * NOTE: be sure to call 'waitForLoad' before calling screenCap, otherwise data might not be loaded in time.
-	 * @param subdir
-	 * @param odds
-	 */
-	public void screenCapAll(String subdir, boolean odds, boolean versionIfExists) {
+    public void screenCapAll(String subdir, boolean odds, boolean versionIfExists) {
+    	screenCapAll(subdir, odds, versionIfExists, new Dimension(1000,720));
+    }
+    
+	public void screenCapAll(String subdir, boolean odds, boolean versionIfExists, Dimension size) {
+		waitForLoad();
 	    setOddsRatioDisplay(odds);
         ArrayList<ForestInput> data = getDataIndices();
         for (int i = 0; i < data.size(); i++) {
             setCurrentData(i);
-            screenCap(subdir, versionIfExists);
+            screenCap(subdir, versionIfExists, size);
         }
             
 	}
 	
 	public void screenCap(String subdir, boolean versionIfExists) {
-		getForestPanel().setSize(new Dimension(1000,720));
+		screenCap(subdir, versionIfExists, new Dimension(1000,720));
+	}
+	
+	public void screenCap(String subdir, boolean versionIfExists, Dimension size) {
+		getForestPanel().setSize(size);
         getForestPanel().createImage();
         getForestPanel().validate();
         String marker, filename, dataFile;
@@ -872,5 +878,7 @@ public class ForestPlot {
 		this.loadingFile = loadingFile;
 	}
 
-	
+	public static void main(String[] args) {
+		ForestPlotFrame.main(args);
+	}
 }

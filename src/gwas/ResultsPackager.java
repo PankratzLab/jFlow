@@ -1101,7 +1101,6 @@ public class ResultsPackager {
     			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix(fileSet[0], false, null, false),
     			                                mkrFile, mkrColNm, analyses, analysisNms, null, fileSet[1], null);
         			    cnv.plots.ForestPlot fp = new cnv.plots.ForestPlot(ext.rootOf(fileSet[1], false) + ".input", null);
-        			    fp.waitForLoad();
         			    fp.setOddsRatioDisplay(oddsRatio);
         			    fp.loadOrderFile(sortFileName, true);
         			    fp.screenCapAll("forestPlots", oddsRatio, false);
