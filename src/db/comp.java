@@ -35,7 +35,7 @@ public class comp {
 	public static int NUM_THREADS_DEFAULT = 1;
 	public static int FAM_REPS_DEFAULT = 10000;
 	public static int BOOT_REPS_DEFAULT = 10000;
-	public static final String[] OPTIONS = {"dump", "dumpAll", "sw", "allsw", "predicteds", "residuals", "normalized", "inverseNormalized", "exactRegressionValues", "table", "sdtable", "trend", "oneperfamily", "verbose", "force", "noserialperm", "chis", "audit", "hwe"};
+	public static final String[] OPTIONS = {"dump", "dumpAll", "sw", "allsw", "swBonf", "allswBonf", "predicteds", "residuals", "normalized", "inverseNormalized", "exactRegressionValues", "table", "sdtable", "trend", "oneperfamily", "verbose", "force", "noserialperm", "chis", "audit", "hwe"};
 	public static final int MAX_CLASSES = 15;
 	public static final int DEFAULT_SIG_FIGS = 3;
 	public static final int SIG_FIGS_PERCENTAGES = 1;
@@ -772,17 +772,21 @@ public class comp {
 				
 				int meanFigs = 5-(int)Math.floor(Math.log10(Math.max(Math.max(Math.abs(min), Math.abs(max)), 1)));
 				
-				line = new String[9];
-				line[0] = ext.formStr(ext.formDeci(sigs[i][1]*100, SIG_FIGS_PERCENTAGES*2, true)+"%", 5);
-				line[1] = ext.formDeci(sigs[i][0], 5, true);
-				line[2] = factorNs[i]+"";
-				line[3] = (logistic?ext.formStr(ext.formDeci(means[i][1], meanFigs, true), maxFigs, true)+ext.formStr(ext.formDeci(means[i][0], meanFigs, true), maxFigs, true):"")+(factorDirections[i]?"+":"-");
-				line[4] = ext.formDeci(effectsAndConfidenceIntervals[i][0],3,true)+" ("+ext.formDeci(effectsAndConfidenceIntervals[i][1],3,true)+", "+ext.formDeci(effectsAndConfidenceIntervals[i][2],3,true)+")";
-				line[5] = factorNames[indices[i]];
-				line[6] = "("+ext.formDeci(Array.mean(filterArray(data, i, Double.MIN_VALUE)), 3)+" +/- "+ext.formDeci(Array.stdev(filterArray(data, i, Double.MIN_VALUE)), 3)+")";
-				line[7] = (failures[i]>0?", "+failures[i]+" failures (potential cause of bias)":"");
-//				line[8] = "("+ext.formSciNot(sigs[i][0], 1, true)+")";
-				line[8] = factorNs[i]==0?".":(logistic?"=NORMSDIST("+Math.sqrt(sigs[i][2])+")":"=TDIST("+Math.abs(sigs[i][2])+","+factorNs[i]+",2)");
+				line = Array.stringArray(9, "error");
+				try {
+					line[0] = ext.formStr(ext.formDeci(sigs[i][1]*100, SIG_FIGS_PERCENTAGES*2, true)+"%", 5);
+					line[1] = ext.formDeci(sigs[i][0], 5, true);
+					line[2] = factorNs[i]+"";
+					line[3] = (logistic?ext.formStr(ext.formDeci(means[i][1], meanFigs, true), maxFigs, true)+ext.formStr(ext.formDeci(means[i][0], meanFigs, true), maxFigs, true):"")+(factorDirections[i]?"+":"-");
+					line[4] = ext.formDeci(effectsAndConfidenceIntervals[i][0],3,true)+" ("+ext.formDeci(effectsAndConfidenceIntervals[i][1],3,true)+", "+ext.formDeci(effectsAndConfidenceIntervals[i][2],3,true)+")";
+					line[5] = factorNames[indices[i]];
+					line[6] = "("+ext.formDeci(Array.mean(filterArray(data, i, Double.MIN_VALUE)), 3)+" +/- "+ext.formDeci(Array.stdev(filterArray(data, i, Double.MIN_VALUE)), 3)+")";
+					line[7] = (failures[i]>0?", "+failures[i]+" failures (potential cause of bias)":"");
+	//				line[8] = "("+ext.formSciNot(sigs[i][0], 1, true)+")";
+					line[8] = factorNs[i]==0?".":(logistic?"=NORMSDIST(-"+Math.sqrt(sigs[i][2])+")":"=TDIST("+Math.abs(sigs[i][2])+","+factorNs[i]+",2)");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				
 				writer.println(Array.toStr(order==null?line:Sort.putInOrder(line, order)));
 			}
@@ -834,7 +838,7 @@ public class comp {
 				residuals[0] = model.getResiduals();
 			}
 
-			if (optionFlagged("sw")) {
+			if (optionFlagged("sw") || optionFlagged("swBonf")) {
 				writer.println("Stepwise regression using those significant by themselves:");
 				sigSpots = new int[numSig];
 				sigNames = new String[numSig];
@@ -872,7 +876,7 @@ public class comp {
 						}
 					}
 					writer.println("N = "+deps.size());
-					sw = new Stepwise(deps, indeps);
+					sw = new Stepwise(deps, indeps, optionFlagged("swBonf"));
 					sw.setVarNames(sigNames);
 					if (optionFlagged("dump")) {
 						sw.dumpData("sw_with_sig_data.xln");
@@ -887,7 +891,7 @@ public class comp {
 				}
 			}
 
-			if (optionFlagged("allsw")) {
+			if (optionFlagged("allsw") || optionFlagged("allswBonf")) {
 				writer.println();
 				writer.println("If all variables were considered in the stepwise regression, the final model would contain:");
 				deps = new Vector<String>();
@@ -913,7 +917,7 @@ public class comp {
 					}
 				}
 				writer.println("N = "+deps.size());
-				sw = new Stepwise(deps, indeps);
+				sw = new Stepwise(deps, indeps, optionFlagged("allswBonf"));
 				sw.setVarNames(sigNames);
 				if (optionFlagged("dump")) {
 					sw.dumpData("sw_with_all_data.xln");

@@ -23,10 +23,10 @@ public class Stepwise {
 	private Vector<IntVector> increments;
 	private RegressionModel finalModel;
 
-	public Stepwise(Vector<String> deps, Vector<double[]> indeps) {
+	public Stepwise(Vector<String> deps, Vector<double[]> indeps, boolean bonferroni) {
 		Xs = indeps;
 		Ys = deps;
-		run(Integer.MAX_VALUE,false, 1);
+		run(Integer.MAX_VALUE,bonferroni, 1);
 	}
 
 	public Stepwise(double[] new_deps, double[][] new_indeps, int svdRegressionSwitch, boolean bonferroniEntry, int numThreads) {
@@ -345,9 +345,11 @@ public class Stepwise {
 	}
 
 	public String getSummary() {
+		String line_ending = System.getProperty("os.name").startsWith("Windows")?"\r\n":"\n";
+
 		RegressionModel model;
-		String Rsum = " Model\t"+(logistic?" ChiSq":"    F")+"\t   Sig\t R-square\n";
-		String ModelSum = ext.formStr("Variable", maxNameSize, true)+"\t   Beta\t StdErr\t      T\t    Sig\n";
+		String Rsum = " Model\t"+(logistic?" ChiSq":"    F")+"\t   Sig\t R-square"+line_ending;
+		String ModelSum = ext.formStr("Variable", maxNameSize, true)+"\t   Beta\t StdErr\t      T\t    Sig"+line_ending;
 		IntVector ins;
 		String[] travNames;
 
@@ -363,11 +365,11 @@ public class Stepwise {
 				model = new LeastSquares(Ys, travXs(N, Xs, ins));
 			}
 			model.setVarNames(travNames, maxNameSize);
-			Rsum += ext.formStr(i+1+"", 4)+"\t"+(Double.isInfinite(model.getOverall())?"    .":ext.formStr(ext.formDeci(model.getOverall(), 1, true), 7))+"\t  "+ext.formDeci(model.getOverallSig(), 3, true)+"\t  "+ext.formDeci(model.getRsquare(), 3, true)+"\n";
-			ModelSum += "------ Model "+(i+1)+(i<10?" -":" ")+"---------------------------\n"+model.modelSummary();
+			Rsum += ext.formStr(i+1+"", 4)+"\t"+(Double.isInfinite(model.getOverall())?"    .":ext.formStr(ext.formDeci(model.getOverall(), 1, true), 7))+"\t  "+ext.formDeci(model.getOverallSig(), 3, true)+"\t  "+ext.formDeci(model.getRsquare(), 3, true)+line_ending;
+			ModelSum += "------ Model "+(i+1)+(i<10?" -":" ")+"---------------------------"+line_ending+model.modelSummary();
 		}
 
-		return Rsum+"\n"+ModelSum;
+		return Rsum+line_ending+ModelSum;
 	}
 
 	public String getAccuracySummary() {
@@ -479,8 +481,13 @@ public class Stepwise {
 		int numArgs = args.length;
 		String filename = "vars.txt";
 		Stepwise sw;
+		boolean bonferroni = false;
 
-		String usage = "\n"+"park.stepwise requires 0-1 arguments\n"+"   (1) filename (i.e. file="+filename+" (default)\n"+"";
+		String usage = "\n"+
+				"stats.stepwise requires 0-1 arguments\n"+
+				"   (1) filename (i.e. file="+filename+" (default)\n"+
+				"   (2) Bonferroni threhsold for entry instead of nominal (i.e. bonferroni="+bonferroni+" (default)\n"+
+				"";
 
 		for (int i = 0; i<args.length; i++) {
 			if (args[i].equals("-h")||args[i].equals("-help")||args[i].equals("/h")||args[i].equals("/help")) {
@@ -488,6 +495,9 @@ public class Stepwise {
 				System.exit(1);
 			} else if (args[i].startsWith("file=")) {
 				filename = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("bonferroni=")) {
+				bonferroni = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			}
 		}
@@ -497,7 +507,7 @@ public class Stepwise {
 		}
 		try {
 			RegVectors rvs = procFile(filename);
-			sw = new Stepwise(rvs.getDeps(), rvs.getIndeps());
+			sw = new Stepwise(rvs.getDeps(), rvs.getIndeps(), bonferroni);
 			if (rvs.getVarNames()!=null) {
 				sw.setVarNames(rvs.getVarNames());
 			}
