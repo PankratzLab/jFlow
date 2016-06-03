@@ -119,9 +119,9 @@ public class BoxPanel extends AbstractPanel2  {
             float xMed = xLow + (xHigh-xLow)/2;
             
             double med = Array.median(data[i]);
-            double qr25 = Array.quant(data[i], 0.25);
-            double qr75 = Array.quant(data[i], 0.75);
-            double iqr = Array.iqr(data[i]);
+            double qr25 = Array.quantExclusive(data[i], 0.25);
+            double qr75 = Array.quantExclusive(data[i], 0.75);
+            double iqr = Array.iqrExclusive(data[i]);
             double wiskLow = qr25 - 1.5 * iqr; 
             double wiskHigh = qr75 + 1.5 * iqr;
             double min = Math.min(wiskLow, Array.min(data[i]));

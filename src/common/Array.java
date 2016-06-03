@@ -1730,15 +1730,17 @@ public class Array {
 	}
 
 	/**
-	 * Determines the specified quantile of an array of numbers
+	 * Determines the specified exclusive quantile of an array of numbers<br />
+	 * Returns a number guaranteed to be a member of the given array.<br />
+	 * This function matches Excel's QUARTILE.EXC function.
 	 * 
 	 * @param array
 	 *            an array of numbers
 	 * @param q
-	 *            quantile to be determined
-	 * @return specified quantile of the array
+	 *            exclusive quantile to be determined
+	 * @return specified exclusive quantile of the array
 	 */
-	public static double quant(double[] array, double q) {
+	public static double quantExclusive(double[] array, double q) {
 		if (array.length == 0) return Double.NaN;
 
 		int keys[] = Sort.quicksort(array);
@@ -1759,8 +1761,19 @@ public class Array {
 			return -1234567890;
 		}
 	}
-
-	public static float quant(float[] array, float q) {
+	
+    /**
+     * Determines the specified exclusive quantile of an array of numbers<br />
+     * Returns a number guaranteed to be a member of the given array.<br />
+     * This function matches Excel's QUARTILE.EXC function.
+     * 
+     * @param array
+     *            an array of numbers
+     * @param q
+     *            exclusive quantile to be determined
+     * @return specified exclusive quantile of the array
+     */
+	public static float quantExclusive(float[] array, float q) {
 	    if (array.length == 0) return Float.NaN;
 	    
 	    int keys[] = Sort.quicksort(array);
@@ -1857,7 +1870,7 @@ public class Array {
 	 *            quantiles to be determined
 	 * @return specified quantiles of the array
 	 */
-	public static double[] quants(double[] array, double[] qs) {
+	public static double[] quantsExclusive(double[] array, double[] qs) {
 		int keys[] = Sort.quicksort(array);
 		double[] quantiles;
 
@@ -1904,12 +1917,12 @@ public class Array {
 	 * @return mad of the array
 	 */
 	public static double mad(double[] array, double constant ) {
-		double median = (quant(array, 0.50));
+		double median = (quantExclusive(array, 0.50));
 		double[] tmp = new double[array.length];
 		for (int i = 0; i < array.length; i++) {
 			tmp[i] = Math.abs(array[i] - median);
 		}
-		return (quant(tmp, 0.50)) * constant;
+		return (quantExclusive(tmp, 0.50)) * constant;
 	}
 	
 	/**
@@ -1920,7 +1933,7 @@ public class Array {
 	 * @return median of the array
 	 */
 	public static double median(double[] array) {
-		return (quant(array, 0.50));
+		return (quantExclusive(array, 0.50));
 	}
 	
 	/**
@@ -1931,7 +1944,7 @@ public class Array {
 	 * @return median of the array
 	 */
 	public static float median(float[] array) {
-	    return (quant(array, 0.50f));
+	    return (quantExclusive(array, 0.50f));
 	}
 
 	/**
@@ -3792,7 +3805,7 @@ public class Array {
 	 *            an array of numbers
 	 * @return iqr of the array
 	 */
-	public static double iqr(double[] array) {
+	public static double iqrExclusive(double[] array) {
 		int[] keys = Sort.quicksort(array);
 
 		if (array.length<2) {
@@ -3811,13 +3824,13 @@ public class Array {
 	}
 
 	/**
-	 * Calculates the interquartile range of an array
+	 * Calculates the interquartile range of an array (exclusive)
 	 * 
 	 * @param array
 	 *            an array of numbers
 	 * @return iqr of the array
 	 */
-	public static float iqr(float[] array) {
+	public static float iqrExclusive(float[] array) {
 		int[] keys = Sort.quicksort(array);
 		float iqr = 0;
 
@@ -3826,7 +3839,7 @@ public class Array {
 			return -1;
 		}
 		try {
-			iqr = array[keys[(int)Math.ceil(array.length*0.75)]]-array[keys[(int)Math.ceil(array.length*0.25)]];
+			iqr = array[keys[(int)Math.floor(array.length*0.75)]]-array[keys[(int)Math.floor(array.length*0.25)]];
 		} catch (Exception e) {
 			System.err.println("Error calculating IQR");
 			e.printStackTrace();
@@ -5162,19 +5175,25 @@ public class Array {
     }
     
 	public static void main(String[] args) {
-	    double alleleFreq = 0.2;
-	    double stdev = 0.12;
-	    double[] array = new double[10000];
-	    for (int i = 0; i<array.length; i++) {
-	    	array[i] = 0;
-	    	for (int j = 0; j < 2; j++) {
-		    	array[i] += Math.random() < alleleFreq?0.5:0;
-			}
-	    	array[i] += (Math.random()<0.5?-1:1)*ProbDist.NormDistReverse(Math.random())*stdev;
-        }
-	    System.out.println(Array.toStr(getLocalModes(array, 0.1, 0.15, 0.01, false)));
+	    double[] data = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16, 16.2};
+//        float[] data = {11.8f, 0.93f, 1.76f, 14, 16.5f, 17.1f, 32.5f, 33.4f, 16.8f, 21.5f, 13.1f, 22.2f, 22.2f, 16, 16.2f};
+        
+        System.out.println(Array.toStr(quantiles(data)));
+        
 	    
-	    Files.writeList(Array.toStringArray(array), "oi.xln");
+//	    double alleleFreq = 0.2;
+//	    double stdev = 0.12;
+//	    double[] array = new double[10000];
+//	    for (int i = 0; i<array.length; i++) {
+//	    	array[i] = 0;
+//	    	for (int j = 0; j < 2; j++) {
+//		    	array[i] += Math.random() < alleleFreq?0.5:0;
+//			}
+//	    	array[i] += (Math.random()<0.5?-1:1)*ProbDist.NormDistReverse(Math.random())*stdev;
+//        }
+//	    System.out.println(Array.toStr(getLocalModes(array, 0.1, 0.15, 0.01, false)));
+//	    
+//	    Files.writeList(Array.toStringArray(array), "oi.xln");
 
     }
 
