@@ -684,6 +684,7 @@ public class LrrSd extends Parallelizable {
 		boolean projectDefinedMarkers = false;
 		String sampleCallRateFilter = null;
 		String outputBase = null;
+		boolean gcMetrics = true;
 
 		String usage = "\n"+
 		"cnv.qc.LrrSd requires 0-6 arguments\n"+
@@ -694,6 +695,8 @@ public class LrrSd extends Parallelizable {
 		"   (5) optional: if you only want to compute AB_callrate and Forward_callrate from a subset of the markers, filename of marker list (i.e. callRateMarkers=those.txt (not the default))\n"+
 		"   (6) optional: if you only want to compute the other qc metrics (excluding AB_callrate and Forward_callrate) from a subset of the markers, filename of marker list (i.e. otherMarkers=this.txt (not the default))\n"+
 		"   (7) optional: if you only want to compute metrics based on autosomal and non-CN markers (i.e. projectMarkers=TRUE (not the default))\n" + 
+		"   (8  optional: skip gc metrics (greatly speeds up QC if set to false) (i.e. gcMetrics=TRUE (the default))\n" + 
+
 		"   Note: if a gc model is available as defined by the \"GC_MODEL_FILENAME\" property in the project properties file, WF and GCFW (after adjusting for GC content) will be reported\n" +
 		"";
 
@@ -729,8 +732,11 @@ public class LrrSd extends Parallelizable {
 			    sampleCallRateFilter = args[i].split("=")[1];
 			    numArgs--;
 			} else if (args[i].startsWith("projectMarkers=")) {
-			    projectDefinedMarkers = ext.parseBooleanArg(args[i]);
-			    numArgs--;
+				projectDefinedMarkers = ext.parseBooleanArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith("gcMetrics=")) {
+				gcMetrics = ext.parseBooleanArg(args[i]);
+				numArgs--;
 			}
 		}
 		if (numArgs!=0) {
@@ -743,13 +749,13 @@ public class LrrSd extends Parallelizable {
 		    proj = new Project(filename, false);
 			if (filter) {
 				proj.SAMPLE_CALLRATE_THRESHOLD.setValue(Double.parseDouble(sampleCallRateFilter));
-				filterSamples(proj, outputBase, markersForCallrateFile, markersForEverythingElseFile, numThreads, filenameOfListOfSamples, true);
+				filterSamples(proj, outputBase, markersForCallrateFile, markersForEverythingElseFile, numThreads, filenameOfListOfSamples, gcMetrics);
 			} else {
-			    if (projectDefinedMarkers) {
-			        init(proj, filenameOfListOfSamples, centroids, numThreads, false);
-			    } else {
-					init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile, numThreads, centroids, true);
-			    }
+				if (projectDefinedMarkers) {
+					init(proj, filenameOfListOfSamples, centroids, numThreads, false);
+				} else {
+					init(proj, filenameOfListOfSamples, markersForCallrateFile, markersForEverythingElseFile, numThreads, centroids, gcMetrics);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

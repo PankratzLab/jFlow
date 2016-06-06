@@ -419,29 +419,38 @@ public class Array {
 	 *            array of Strings to be converted
 	 * @return array of the converted numbers
 	 */
-	public static double[][] toDoubleArrays(String[][] array) {
+	public static double[][] toDoubleArrays(String[][] array, boolean NaNForMissing) {
 		double[][] arr = new double[array.length][];
 		for (int i = 0; i < array.length; i++) {
-			arr[i] = Array.toDoubleArray(array[i]);
+			arr[i] = Array.toDoubleArray(array[i], NaNForMissing);
 		}
 		return arr;
 	}
-	
+
 	/**
 	 * Creates an array of numbers from the contents of a string array
 	 * 
 	 * @param array
 	 *            array of Strings to be converted
+	 * 
 	 * @return array of the converted numbers
 	 */
 	public static double[] toDoubleArray(String[] array) {
+		return toDoubleArray(array, false);
+	}
+
+	public static double[] toDoubleArray(String[] array, boolean NaNForMissing) {
 		double[] arr = new double[array.length];
-		for (int i = 0; i<array.length; i++) {
+		for (int i = 0; i < array.length; i++) {
 			try {
 				arr[i] = Double.parseDouble(array[i]);
 			} catch (NumberFormatException nfe) {
-				System.err.println("Error - failed to convert '"+array[i]+"' into a number");
-				return null;
+				if (NaNForMissing) {
+					arr[i] = Double.NaN;
+				} else {
+					System.err.println("Error - failed to convert '" + array[i] + "' into a number");
+					return null;
+				}
 			}
 		}
 		return arr;
