@@ -1630,7 +1630,7 @@ static final STEP S15_COMPUTE_PFB = new STEP("Compute Population BAF files", "",
             }
             String output = variables.get(this).get(4); // gets PROJ_DIR prepended, so NOT ABSOLUTE
             (new File(ext.parseDirectoryOfFile(proj.PROJECT_DIRECTORY.getValue() + output))).mkdirs();
-			CNVCaller.callAutosomalCNVs(proj, output, proj.getSamples(), null, null, CNVCaller.DEFUALT_MIN_SITES, numThreads, 1);// TODO, sex specific centroids,etc
+			CNVCaller.callAutosomalCNVs(proj, output, proj.getSamples(), null, null, CNVCaller.DEFUALT_MIN_SITES, CNVCaller.DEFUALT_MIN_CONF, numThreads, 1);// TODO, sex specific centroids,etc
             proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
             proj.saveProperties(new Project.Property[]{proj.CNV_FILENAMES});
         }
