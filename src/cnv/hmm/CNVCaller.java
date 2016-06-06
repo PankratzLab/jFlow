@@ -239,24 +239,27 @@ public class CNVCaller {
 
 		for (int i = 0; i < results.size(); i++) {
 			for (int j = 0; j < results.get(i).getChrCNVs().getLoci().length; j++) {
-				if (results.get(i).getChrCNVs().getLoci()[j].getNumMarkers() >= minNumMarkers && results.get(i).getChrCNVs().getLoci()[j].getScore() > minConf) {
+				if (results.get(i).getChrCNVs().getLoci()[j].getNumMarkers() >= minNumMarkers && !Double.isNaN(results.get(i).getChrCNVs().getLoci()[j].getScore()) && results.get(i).getChrCNVs().getLoci()[j].getScore() > minConf) {
 					allCNVs.add(results.get(i).getChrCNVs().getLoci()[j]);
 				}
 			}
-			if (callReverse && results.get(i).getChrCNVsReverse() != null) {
-				for (int j = 0; j < results.get(i).getChrCNVsReverse().getLoci().length; j++) {
-					if (results.get(i).getChrCNVsReverse().getLoci()[j].getNumMarkers() >= minNumMarkers && results.get(i).getChrCNVsReverse().getLoci()[j].getScore() > minConf) {
-						allReverse.add(results.get(i).getChrCNVsReverse().getLoci()[j]);
-					}
-				}
+			if (callReverse) {
+				throw new IllegalArgumentException("Call reverse is no longer active since it gives identical results. If you really want to use it, find this message and uncomment");
 			}
-			if (callReverse && results.get(i).getChrCNVsReverseConsensus() != null) {
-				for (int j = 0; j < results.get(i).getChrCNVsReverseConsensus().getLoci().length; j++) {
-					if (results.get(i).getChrCNVsReverseConsensus().getLoci()[j].getNumMarkers() >= minNumMarkers && results.get(i).getChrCNVsReverseConsensus().getLoci()[j].getScore() > minConf) {
-						allReverseConsensus.add(results.get(i).getChrCNVsReverseConsensus().getLoci()[j]);
-					}
-				}
-			}
+			// if (callReverse && results.get(i).getChrCNVsReverse() != null) {
+			// for (int j = 0; j < results.get(i).getChrCNVsReverse().getLoci().length; j++) {
+			// if (results.get(i).getChrCNVsReverse().getLoci()[j].getNumMarkers() >= minNumMarkers && results.get(i).getChrCNVsReverse().getLoci()[j].getScore() > minConf) {
+			// allReverse.add(results.get(i).getChrCNVsReverse().getLoci()[j]);
+			// }
+			// }
+			// }
+			// if (callReverse && results.get(i).getChrCNVsReverseConsensus() != null) {
+			// for (int j = 0; j < results.get(i).getChrCNVsReverseConsensus().getLoci().length; j++) {
+			// if (results.get(i).getChrCNVsReverseConsensus().getLoci()[j].getNumMarkers() >= minNumMarkers && results.get(i).getChrCNVsReverseConsensus().getLoci()[j].getScore() > minConf) {
+			// allReverseConsensus.add(results.get(i).getChrCNVsReverseConsensus().getLoci()[j]);
+			// }
+			// }
+			// }
 		}
 
 		LocusSet<CNVariant> allLocusSet = new LocusSet<CNVariant>(allCNVs.toArray(new CNVariant[allCNVs.size()]), true, proj.getLog()) {

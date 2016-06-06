@@ -1640,7 +1640,7 @@ public class SourceFileParser implements Runnable {
 		dupHash = new CountHash();
 		allOutliers = new Hashtable<String, Float>();
 		renamedIDsHash = new Hashtable<String, String>();
-		headers = proj.getSourceFileHeaders(false);
+		headers = proj.getSourceFileHeaders(true);//setting to true fixed an issue parsing NGRC data
         try {
 			for (int i = 0; i<files.length; i++) {
 	            if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
@@ -1662,15 +1662,18 @@ public class SourceFileParser implements Runnable {
 //                  GENO_2  {"Allele1 - AB","Call Codes","Call"}, 
 //                  GENO_3  {"Allele2 - AB","Call Codes","Call"}}; 
 
-                    SourceFileHeaderData headerData = headers.get(files[i]);
+					SourceFileHeaderData headerData = null;
+					if (headers.containsKey(files[i])) {
+						headerData = headers.get(files[i]);
+					}
                     reader = Files.getAppropriateReader(proj.SOURCE_DIRECTORY.getValue(false, true)+files[i]);
 
-                    if (headerData == null) {
-                        // TODO error, missing header for source files
-                        log.report("WARNING - No parsed header object found for file " + files[i] + ".  Parsing now.  If columns are non-standard, or an error occurs, please re-create the project from scratch and validate source files.");
-                        headerData = SourceFileHeaderData.parseHeader(files[i], log);
-                        headers.put(files[i], headerData);
-                    }
+					if (headerData == null) {
+						// TODO error, missing header for source files
+						log.report("WARNING - No parsed header object found for file " + files[i] + ".  Parsing now.  If columns are non-standard, or an error occurs, please re-create the project from scratch and validate source files.");
+						headerData = SourceFileHeaderData.parseHeader(files[i], log);
+						headers.put(files[i], headerData);
+					}
                     if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
                     
                     for (int k = 0; k < headerData.columnHeaderLineIndex + 1; k++) {
