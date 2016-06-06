@@ -780,7 +780,7 @@ public class PennHmm {
 	private static double getLocScore(PennHmm pennHmm, double[] o1, double[] o2, double[] pfb, boolean[] copyNumberOnlyDef, int actualStateIndex) {
 		int[] tests = new int[] { 0, 1, 2, 4, 5 };
 		double confState = Double.NaN;
-		double maxOther = 0;
+		double maxOther = -1 * Double.MAX_VALUE;
 		for (int i = 0; i < tests.length; i++) {
 			double tmp = GetStateProb_CHMM(pennHmm, o1, o2, pfb, copyNumberOnlyDef, tests[i]);
 			if (tests[i] == actualStateIndex) {
@@ -790,7 +790,7 @@ public class PennHmm {
 				maxOther = tmp;
 			}
 		}
-		return confState - Math.max(0, maxOther);
+		return confState - maxOther;
 	}
 
 	private static double GetStateProb_CHMM(PennHmm pennHmm, double[] o1, double[] o2, double[] pfb, boolean[] copyNumberOnlyDef, int state) {
