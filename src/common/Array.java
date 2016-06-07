@@ -4812,6 +4812,14 @@ public class Array {
 		
 		return array;
 	}
+	
+	public static int[] booleanArrayToIndices(boolean[] keeps) {
+		ArrayList<Integer> indices = new ArrayList<Integer>();
+		for (int i = 0; i < keeps.length; i++) {
+			if (keeps[i]) indices.add(i);
+		}
+		return toIntArray(indices);
+	}
 
 	/**
 	 * Converts frequency counts into proportions. So, the input looks similar to this:
