@@ -229,6 +229,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 				return false;
 			} catch (Exception e) {
 				proj.getLog().reportTimeError("Could not properly initialize reader for  " + annotationFilename);
+				proj.getLog().reportException(e);
 				return false;
 
 			}
