@@ -29,6 +29,10 @@ public class CountHash {
 		totalCount++;
 	}
 
+	public Hashtable<String, String> getHash() {
+		return hash;
+	}
+
 	public void remove(String value, boolean reportIfAbsent) {
 		if (hash.containsKey(value)) {
 			totalCount -= Integer.parseInt(hash.get(value)); 
