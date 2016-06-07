@@ -3669,6 +3669,34 @@ public class Array {
 		return count;
 	}
 	
+	/**
+	 * Takes two boolean arrays and sets the first array to the boolean AND of both arrays for a given element.
+	 * 
+	 * @param aRet First array, and altered array
+	 * @param b Second array
+	 * @return True if the operation succeeds, false if the operation fails
+	 */
+	public static boolean booleanArrayAndInPlace(boolean[] aRet, boolean[] b) {
+	    if (aRet.length != b.length) {
+	        return false;
+	    }
+	    for (int i = 0; i < aRet.length; i++) {
+	        aRet[i] = aRet[i] && b[i];
+	    }
+	    return true;
+	}
+	
+    public static boolean[] booleanArrayAnd(boolean[] aRet, boolean[] b) {
+        if (aRet.length != b.length) {
+            return new boolean[0];
+        }
+        boolean[] ret = new boolean[aRet.length];
+        for (int i = 0; i < aRet.length; i++) {
+            ret[i] = aRet[i] && b[i];
+        }
+        return ret;
+    }
+	
 	public static <T extends Comparable<T>> int binarySearch(ArrayList<T[]> list, T[] value, int keyIndex, boolean exact) {
 		return binarySearch(list, value, keyIndex, 0, list.size() - 1, exact);
 	}
