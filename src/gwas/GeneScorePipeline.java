@@ -676,70 +676,71 @@ public class GeneScorePipeline {
 				String[][] results = HitWindows.determine(metaDir + dFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES, new Logger());
 				if (results == null) {
 					System.err.println("HitWindows result was null for "+dFile);
-				}
-				System.out.println(ext.getTime()+"]\tFound " + results.length + " hit windows");
+				} else {
+				    System.out.println(ext.getTime()+"]\tFound " + results.length + " hit windows");
 				
-				HashSet<String> hitMkrSet = new HashSet<String>();
-				for (String[] mkrLine : results) {
-					hitMkrSet.add(mkrLine[1]);
-				}
+    				HashSet<String> hitMkrSet = new HashSet<String>();
+    				for (String[] mkrLine : results) {
+    					hitMkrSet.add(mkrLine[1]);
+    				}
 				
-				// read betas and freqs for hitwindow markers
-				HashMap<String, double[]> dataMarkers = new HashMap<String, double[]>();
-				try {
-					BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
-					String line = reader.readLine();
-					String[] temp = line.split("[\\s]+");
-					int[] indices = ext.indexFactors(factors, temp, false, false, true, true, new Logger(), false);
-					while ((line = reader.readLine()) != null) {
-						String mkr = line.split("[\\s]+")[indices[0]];
-						if (hitMkrSet.contains(mkr)) {
-							if ((indices[1] != -1 && ext.isMissingValue(line.split("[\\s]+")[indices[1]])) 
-									|| ext.isMissingValue(line.split("[\\s]+")[indices[2]])
-									|| ext.isMissingValue(line.split("[\\s]+")[indices[3]])) {
-								hitMkrSet.remove(mkr);
-								continue;
-							}
-							dataMarkers.put(mkr, new double[]{indices[1] == -1 ? Double.NaN : Double.parseDouble(line.split("[\\s]+")[indices[1]]), Double.parseDouble(line.split("[\\s]+")[indices[2]]), Double.parseDouble(line.split("[\\s]+")[indices[3]])});
-						}
-					}
-					reader.close();
-					
-					double dataScore1 = getBetaFreqScore(dataMarkers);
-					double dataScore2 = getChiDistRevScore(dataMarkers);
-					
-					// cross-ref PLINK markers
-					for (Study study : studies) {
-						HashSet<String> bimMkrSet = new HashSet<String>();
-						HashMap<String, double[]> bimSubsetMarkers = new HashMap<String, double[]>();
-						BufferedReader bimReader = Files.getAppropriateReader(study.studyDir + study.plinkPref + ".bim");
-						line = bimReader.readLine();
-						do {
-							bimMkrSet.add(line.split("[\\s]+")[bimMkrIndex]);
-						} while ((line = bimReader.readLine()) != null);
-						bimReader.close();
-						
-						// pull betas and freqs for union markers
-						for (String mkr : bimMkrSet) {
-							if (hitMkrSet.contains(mkr)) {
-								bimSubsetMarkers.put(mkr, dataMarkers.get(mkr));
-							}
-						}
-
-						// apply equation and set value for overall results
-						double bimScore1 = getBetaFreqScore(bimSubsetMarkers);
-						double bimScore2 = getChiDistRevScore(bimSubsetMarkers);
-						
-						HashMap<String, double[]> fileMap = study.scores.get(filePrefix.getKey());
-						if (fileMap == null) {
-							fileMap = new HashMap<String, double[]>();
-							study.scores.put(filePrefix.getKey(), fileMap);
-						}
-						fileMap.put(dataFile, new double[]{bimScore1 / dataScore1, bimScore2 / dataScore2});
-					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+    				// read betas and freqs for hitwindow markers
+    				HashMap<String, double[]> dataMarkers = new HashMap<String, double[]>();
+    				try {
+    					BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
+    					String line = reader.readLine();
+    					String[] temp = line.split("[\\s]+");
+    					int[] indices = ext.indexFactors(factors, temp, false, false, true, true, new Logger(), false);
+    					while ((line = reader.readLine()) != null) {
+    						String mkr = line.split("[\\s]+")[indices[0]];
+    						if (hitMkrSet.contains(mkr)) {
+    							if ((indices[1] != -1 && ext.isMissingValue(line.split("[\\s]+")[indices[1]])) 
+    									|| ext.isMissingValue(line.split("[\\s]+")[indices[2]])
+    									|| ext.isMissingValue(line.split("[\\s]+")[indices[3]])) {
+    								hitMkrSet.remove(mkr);
+    								continue;
+    							}
+    							dataMarkers.put(mkr, new double[]{indices[1] == -1 ? Double.NaN : Double.parseDouble(line.split("[\\s]+")[indices[1]]), Double.parseDouble(line.split("[\\s]+")[indices[2]]), Double.parseDouble(line.split("[\\s]+")[indices[3]])});
+    						}
+    					}
+    					reader.close();
+    					
+    					double dataScore1 = getBetaFreqScore(dataMarkers);
+    					double dataScore2 = getChiDistRevScore(dataMarkers);
+    					
+    					// cross-ref PLINK markers
+    					for (Study study : studies) {
+    						HashSet<String> bimMkrSet = new HashSet<String>();
+    						HashMap<String, double[]> bimSubsetMarkers = new HashMap<String, double[]>();
+    						BufferedReader bimReader = Files.getAppropriateReader(study.studyDir + study.plinkPref + ".bim");
+    						line = bimReader.readLine();
+    						do {
+    							bimMkrSet.add(line.split("[\\s]+")[bimMkrIndex]);
+    						} while ((line = bimReader.readLine()) != null);
+    						bimReader.close();
+    						
+    						// pull betas and freqs for union markers
+    						for (String mkr : bimMkrSet) {
+    							if (hitMkrSet.contains(mkr)) {
+    								bimSubsetMarkers.put(mkr, dataMarkers.get(mkr));
+    							}
+    						}
+    
+    						// apply equation and set value for overall results
+    						double bimScore1 = getBetaFreqScore(bimSubsetMarkers);
+    						double bimScore2 = getChiDistRevScore(bimSubsetMarkers);
+    						
+    						HashMap<String, double[]> fileMap = study.scores.get(filePrefix.getKey());
+    						if (fileMap == null) {
+    							fileMap = new HashMap<String, double[]>();
+    							study.scores.put(filePrefix.getKey(), fileMap);
+    						}
+    						fileMap.put(dataFile, new double[]{bimScore1 / dataScore1, bimScore2 / dataScore2});
+    					}
+    				} catch (IOException e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
 				}
 			}
 		}
@@ -1223,9 +1224,10 @@ public class GeneScorePipeline {
 		int[] mZ = new int[]{DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
 		float[] wT = new float[]{DEFAULT_WINDOW_EXTENSION_THRESHOLD}; 
 		
-//		boolean test = false;
+//		boolean test = true;
 //		if (test) {
 //			preprocessDataFiles(new String[]{
+//					"D:/GeneScorePipe/Cancer/InputCancer.xln",
 //					"D:/height/GeneScorePipeline/HeightScoring/ExtremeHeight.xln",
 //					"D:/height/GeneScorePipeline/HeightScoring/height_full.xln",
 //					"D:/height/GeneScorePipeline/HeightScoring/TannerSexCombined.xln"

@@ -42,6 +42,7 @@ import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.FCSPlot;
 import common.Array;
 import common.Files;
+import common.HashVec;
 import common.Matrix;
 import common.ext;
 
@@ -234,7 +235,7 @@ public class BoxPlot extends JFrame {
     private void loadFile(String file) {
         this.currentFile = file;
         selected.clear();
-        String[][] data = loadFileToStringMatrix(file);
+        String[][] data = HashVec.loadEntireFileToStringMatrixSplittingCommasIntelligently(file);
         final ArrayList<BoxPanel> panels = new ArrayList<BoxPanel>();
         final ArrayList<String> headers = new ArrayList<String>();
         ArrayList<String> dataSources = new ArrayList<String>();
@@ -350,39 +351,6 @@ public class BoxPlot extends JFrame {
         }
         revalidate();
         repaint();
-    }
-    
-    public static String[][] loadFileToStringMatrix(String filename) {
-        BufferedReader reader = null;
-        Vector<String[]> v = new Vector<String[]>(1000);
-        String line;
-        String[] data;
-
-        try {
-            reader = Files.getReader(filename, false, true, false);
-            if (reader == null) {
-                return null;
-            }
-            while (reader.ready()) {
-                line = reader.readLine().trim();
-//                from:
-//                https://stackoverflow.com/questions/28587081/regex-split-on-comma-but-exclude-commas-within-parentheses-and-quotesboth-s
-//                ,                         # Match literal comma
-//                (?=(([^']*'){2})*[^']*$)  # Lookahead to ensure comma is followed by even number of '
-//                (?=(([^"]*"){2})*[^"]*$)  # Lookahead to ensure comma is followed by even number of "
-//                (?![^()]*\\))             # Negative lookahead to ensure ) is not followed by matching
-//                                          # all non [()] characters in between
-                data = line.split(",(?=(([^']*'){2})*[^']*$)(?=(([^\"]*\"){2})*[^\"]*$)(?![^()]*\\))", -1);
-                v.add(data);
-            }
-            reader.close();
-        } catch (FileNotFoundException fnfe) {
-            System.err.println("Error: file \""+filename+"\" not found in current directory");
-        } catch (IOException ioe) {
-            System.err.println("Error reading file \""+filename+"\"");
-        }
-        
-        return Matrix.toStringArrays(v);
     }
     
     public static void main(String[] args) {

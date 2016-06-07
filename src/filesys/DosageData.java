@@ -33,9 +33,9 @@ public class DosageData implements Serializable {
 	public static final int IID_TYPE = 2;
 	public static final int FID_IID_TYPE = 3;
 	
-	public static final int INDIVIDUAL_DOMINANT_FORMAT = 0;
-	public static final int MARKER_DOMINANT_FORMAT = 1;
-	public static final int PLINK_BINARY_FORMAT = 2;
+	private static final int INDIVIDUAL_DOMINANT_FORMAT = 0;
+	private static final int MARKER_DOMINANT_FORMAT = 1;
+	private static final int PLINK_BINARY_FORMAT = 2;
 	
 	public static final int CHR_INFO_IN_FILENAME = -2;
 	
@@ -839,6 +839,12 @@ public class DosageData implements Serializable {
 		    log = new Logger();
 		}
 		
+		int dataOutType = determineType(filename);
+		if (dataOutType == PLINK_BFILE_FORMAT) {
+		    writeToPlinkBinary(ext.parseDirectoryOfFile(filename), ext.rootOf(filename, true), log);
+		    return;
+		}
+		
 		if (markersToKeep == null && regionsToKeep == null) {
 			keeps = null;
 			markerSet.writeToFile(mapOut, SnpMarkerSet.determineType(mapOut), log);
@@ -1600,7 +1606,7 @@ public class DosageData implements Serializable {
 		String extractRgns = null;
 		boolean awk = false;
 		long date;
-
+		
 		String usage = "\n" +
 		"filesys.DosageData requires 0-1 arguments\n" +
 		"   (1) name of dosage file to convert (i.e. dosageFile=" + filename + " (default))\n" + 
