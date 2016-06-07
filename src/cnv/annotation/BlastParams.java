@@ -161,7 +161,10 @@ public class BlastParams implements AnalysisParams {
 						log.reportTimeError("Could not parse marker fingerprint " + tmp[i]);
 					}
 				} else if (tmp[i].startsWith(parseKeys[8])) {
-					notes = tmp[i].split("=")[1];
+					String[] tmpS = tmp[i].split("=");
+					if (tmpS.length > 1) {
+						notes = tmp[i].split("=")[1];
+					}
 				}
 			}
 		}
