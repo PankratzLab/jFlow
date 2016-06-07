@@ -74,7 +74,8 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 					throw new IllegalStateException(error);
 				} else {
 					VariantContext vcAdd = additionReader.next();
-					if ((skipAlleleCheck || vcAdd.hasSameAllelesAs(vcAnno)) && VCOps.getSegment(vcAdd).equals(VCOps.getSegment(vcAnno)) && vcAdd.getID().equals(vcAnno.getID())) {
+					// when we skipAlleleCheck, we cannot tell the stop position, based on alleles
+					if ((skipAlleleCheck || vcAdd.hasSameAllelesAs(vcAnno)) && ((skipAlleleCheck && VCOps.getSegment(vcAdd).getStart() == VCOps.getSegment(vcAnno).getStart()) || VCOps.getSegment(vcAdd).equals(VCOps.getSegment(vcAnno))) && vcAdd.getID().equals(vcAnno.getID())) {
 						VariantContextBuilder builder = new VariantContextBuilder(vcAdd);
 						for (String att : vcAnno.getAttributes().keySet()) {
 							builder.attribute(att, vcAnno.getAttributes().get(att));
@@ -84,6 +85,15 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 						String error = "Entries must be in the exact same order to be added together, ";
 						error += vcAdd.getID() + "\t" + vcAdd.toStringWithoutGenotypes() + " from " + annotationFilename;
 						error += vcAnno.getID() + "\t" + vcAnno.toStringWithoutGenotypes() + " being added";
+						error += "\nAllele Check = " + skipAlleleCheck;
+						error += "\nSame alleles = " + vcAdd.hasSameAllelesAs(vcAnno);
+						error += "\nSeg add = " + VCOps.getSegment(vcAdd).getUCSClocation();
+						error += "\nSeg anno = " + VCOps.getSegment(vcAnno).getUCSClocation();
+						error += "\nSeg equals = " + VCOps.getSegment(vcAdd).equals(VCOps.getSegment(vcAnno));
+						error += "\nName  add = " + vcAdd.getID();
+						error += "\nName  anno = " + vcAnno.getID();
+						error += "\nName equals = " + vcAdd.getID().equals(vcAnno.getID());
+
 						proj.getLog().reportTimeError(error);
 						throw new IllegalStateException(error);
 					}
