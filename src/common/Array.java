@@ -1392,6 +1392,39 @@ public class Array {
 	 *            remove any value that is not a number
 	 * @return standard deviation of the [filtered] array
 	 */
+	public static double stdev(Double[] array, boolean removeNaN) {
+	    double sum, avg;
+	    int count;
+	    
+	    sum = 0;
+	    count = 0;
+	    for (int i = 0; i<array.length; i++) {
+	        if (!Double.isNaN(array[i]) || !removeNaN) {
+	            sum += array[i];
+	            count++;
+	        }
+	    }
+	    avg = (sum/(double)count);
+	    
+	    sum = 0;
+	    for (int i = 0; i<array.length; i++) {
+	        if (!Double.isNaN(array[i])) {
+	            sum += Math.pow(avg-array[i], 2);
+	        }
+	    }
+	    
+	    return Math.sqrt(sum/(double)(count-1));
+	}
+
+	/**
+	 * Calculates the standard deviation of an array
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @param removeNaN
+	 *            remove any value that is not a number
+	 * @return standard deviation of the [filtered] array
+	 */
 	public static Float stdev(Float[] array, boolean removeNaN) {
 	    double sum, avg;
 	    int count;

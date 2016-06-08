@@ -1045,10 +1045,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         this.forceGatesChanged = true;
     }
 
-    public BufferedImage getImage() {
-        return image;
-    }
-
     @Override
     public void highlightPoints() {
         return;

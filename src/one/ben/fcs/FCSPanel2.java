@@ -783,11 +783,6 @@ public class FCSPanel2 extends AbstractPanel2 implements MouseListener, MouseMot
         }
     }
     
-     
-    
-    public BufferedImage getImage() {
-        return image;
-    }
 
     @Override
     public void highlightPoints() {

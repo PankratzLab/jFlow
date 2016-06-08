@@ -11,15 +11,15 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import one.ben.fcs.AbstractPanel2;
+import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import cnv.plots.GenericLine;
 import cnv.plots.GenericPath;
 import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
-
 import common.Array;
 import common.ext;
 
-public class BoxPanel extends AbstractPanel2  {
+public class OneDPanel extends AbstractPanel2  {
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
 	public static final Color[] DEFAULT_COLORS = {
@@ -61,41 +61,67 @@ public class BoxPanel extends AbstractPanel2  {
 	};
     private static final byte POINT_SIZE = 5;
     
-	public BoxPanel() {
+    public static enum PLOT_TYPE {
+        BOX_PLOT,
+        DOT_LINE_PLOT,
+    }
+    
+    private PLOT_TYPE currentPlot;
+    
+    public void setPlotType(PLOT_TYPE type) {
+        this.currentPlot = type;
+        switch(type) {
+            case BOX_PLOT:
+                this.setAxisFontSize(12);
+
+                setForcePlotXMax(20);
+                displayXaxis = false;
+                axisXHeight -= axisXHeight / 2;
+                axisYWidth -= axisYWidth / 3;
+                
+                setInsideScrollpaneAndNoZoom();
+                break;
+            case DOT_LINE_PLOT:
+                
+                setAxisFontSize(24);
+                
+                setForcePlotXMax(Float.NaN);
+                displayXaxis = true;
+                axisXHeight = HEIGHT_X_AXIS;
+                axisYWidth = WIDTH_Y_AXIS;
+
+                break;
+        }
+        
+        // for all:
+        setDoubleBuffered(false);
+        setSymmetricAxes(false);
+        setYAxis(AXIS_SCALE.LIN);
+        setXAxis(AXIS_SCALE.LIN);
+        setZoomable(false, false);
+        setColorScheme(DEFAULT_COLORS);
+        createLookup(true);
+        
+    }
+    
+	public OneDPanel() {
 		super();
-		setDoubleBuffered(false);
-		
-		this.setAxisFontSize(12);
-		this.setSymmetricAxes(false);
-		setZoomable(false, false);
-
-		setColorScheme(DEFAULT_COLORS);
-
-		setForcePlotXMax(20);
-		displayXaxis = false;
-		axisXHeight -= axisXHeight / 2;
-		axisYWidth -= axisYWidth / 3;
-		
-		setYAxis(AXIS_SCALE.LIN);
-		setXAxis(AXIS_SCALE.LIN);
-		
-		createLookup(true);
-		this.removeMouseWheelListener(this.getMouseWheelListeners()[0]);
+		setPlotType(PLOT_TYPE.BOX_PLOT);
 	}
 
 	double[][] data;// = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16, 16.2};
-	String[][] dataFiles; 
-	String dataLabel;
+	String[][] dataLabels; 
+	String plotLabel;
 	
 	public void setData(String dataName, String[] files, double[] data) {
-	    this.dataLabel = dataName;
-	    this.dataFiles = new String[][]{files};
+	    this.plotLabel = dataName;
+	    this.dataLabels = new String[][]{files};
 	    this.data = new double[][]{data};
 	}
 	
 	public void setData(String dataName, String[][] files, double[][] data) {
-	    this.dataLabel = dataName;
-	    this.dataFiles = files;
+	    this.plotLabel = dataName;
+	    this.dataLabels = files;
 	    this.data = data;
 	}
 	
@@ -108,7 +134,74 @@ public class BoxPanel extends AbstractPanel2  {
             polygons = new GenericPath[0];
 		    return;
 		}
-
+		
+		switch(currentPlot) {
+		    case BOX_PLOT:
+		        generateBoxPlot();
+		        break;
+		    case DOT_LINE_PLOT:
+		        generateDotLinePlot();
+		        break;
+		}
+		
+    }
+    
+    private void generateDotLinePlot() {
+        byte type;
+        float xAxisValue, yAxisValue;
+        byte size = POINT_SIZE;
+        
+        int numPoints = 0;
+        for (double[] dataArr : data) {
+            numPoints += dataArr.length;
+        }
+        points = new PlotPoint[numPoints];
+        lines = new GenericLine[numPoints + 3];
+        
+        int ind = 0;
+        int lInd = 0;
+        byte color;
+        for (int d = 0; d < data.length; d++) {
+            for (int i = 0; i < data[d].length; i++) {
+                xAxisValue = (float) ind;
+                yAxisValue = (float) data[d][i];
+                if (Float.isNaN(xAxisValue) || Float.isNaN(yAxisValue)) {
+                    type = PlotPoint.NOT_A_NUMBER;
+                } else {
+                    type = PlotPoint.FILLED_CIRCLE;
+                }
+                
+                color = (byte) 0; // TODO apply gating for colors
+                points[ind] = new PlotPoint(dataLabels[d][i], type, xAxisValue, yAxisValue, size, color, (byte)0);
+                if (i < data[d].length - 1) {
+                    lines[lInd++] = new GenericLine(xAxisValue, yAxisValue, (float) ind+1, (float) data[d][i+1], (byte)1, (byte)d, (byte)0);
+                }
+                ind++;
+            }
+        }
+        
+        
+        float mean = (float)Array.mean(data[0]);
+        float sd = (float)Array.stdev(data[0], true);
+        lines[lInd++] = new GenericLine(-1, mean, numPoints + 1, mean, (byte)1, (byte)0, (byte)99);
+        lines[lInd++] = new GenericLine(-1, mean - sd, numPoints + 1, mean - sd, (byte)1, (byte)2, (byte)99);
+        lines[lInd++] = new GenericLine(-1, mean + sd, numPoints + 1, mean + sd, (byte)1, (byte)2, (byte)99);
+        lines[lInd++] = new GenericLine(-1, mean - 2*sd, numPoints + 1, mean - 2*sd, (byte)1, (byte)2, (byte)99);
+        lines[lInd++] = new GenericLine(-1, mean + 2*sd, numPoints + 1, mean + 2*sd, (byte)1, (byte)2, (byte)99);
+        
+        double dataMin = Array.min(data[0]), dataMax = Array.max(data[0]);
+        for (int i = 1; i < data.length; i++) {
+            dataMin = Math.min(dataMin, Array.min(data[i]));
+            dataMax = Math.max(dataMax, Array.max(data[i]));
+        }
+        setForcePlotYMin((float)dataMin);
+        setForcePlotYMax((float)dataMax);
+        
+        setYAxis(AXIS_SCALE.LIN);
+        setXAxis(AXIS_SCALE.LIN);
+    }
+    
+    private void generateBoxPlot() {
         //  points for any data above/below wiskLow/wiskHigh
 		ArrayList<GenericLine> lns = new ArrayList<GenericLine>();
         ArrayList<PlotPoint> pts = new ArrayList<PlotPoint>();
@@ -151,7 +244,7 @@ public class BoxPanel extends AbstractPanel2  {
             
             for (int j = 0; j < data[i].length; j++) {
                 if (data[i][j] < wiskLow || data[i][j] > wiskHigh) {
-                    pts.add(new PlotPoint(dataFiles[i][j], PlotPoint.FILLED_CIRCLE, xMed, (float)data[i][j], (byte)POINT_SIZE, (byte)0, (byte)0));
+                    pts.add(new PlotPoint(dataLabels[i][j], PlotPoint.FILLED_CIRCLE, xMed, (float)data[i][j], (byte)POINT_SIZE, (byte)0, (byte)0));
                 }
             }
         }
@@ -186,32 +279,24 @@ public class BoxPanel extends AbstractPanel2  {
         }
     }
 
-	public BufferedImage getImage() {
-        return image;
-    }
-
     @Override
     public void highlightPoints() {
         byte defaultSize;
         
         defaultSize = POINT_SIZE;
         for (int i = 0; i < points.length; i++) {
-            if (points[i].isHighlighted()) {
-                points[i].setSize((byte)(defaultSize * 1.5));
-            } else {
-                points[i].setSize((byte)(defaultSize));
-            }
-            
+            points[i].setSize((byte)(defaultSize * (points[i].isHighlighted() ? 1.5 : 1)));
         }
     }
-
+    
     @Override
     public void assignAxisLabels() {
-        String[] pts = dataLabel.split("\\|");
-        xAxisLabel = "";//pts[0].trim().replaceAll("/", " /\n");
-        yAxisLabel = pts[1].trim();
+//        String[] pts = plotLabel.split("\\|");
+//        setXAxisLabel("");//pts[0].trim().replaceAll("/", " /\n");
+//        setYAxisLabel(pts[1].trim());
+
+//        setXAxisLabel("File by Date");
+//        setYAxisLabel("Mean - " + plotLabel);
     }
-    
-    
     
 }
