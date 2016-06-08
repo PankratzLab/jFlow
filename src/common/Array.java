@@ -4875,11 +4875,13 @@ public class Array {
 	}
 	
 	public static int[] booleanArrayToIndices(boolean[] keeps) {
-		ArrayList<Integer> indices = new ArrayList<Integer>();
-		for (int i = 0; i < keeps.length; i++) {
-			if (keeps[i]) indices.add(i);
+		
+		int[] indices = new int[booleanArraySum(keeps)];
+		int i = 0;
+		for (int j = 0; j < keeps.length; j++) {
+			if (keeps[j]) indices[i++] = j;
 		}
-		return toIntArray(indices);
+		return indices;
 	}
 
 	/**
