@@ -101,9 +101,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         }
     }
 //    http://superliminal.com/sources/Axis.java.html
-	
-//	public static final int SCATTER_PLOT_TYPE = 1; 
-//	public static final int HEAT_MAP_TYPE = 2;
 
 	public static final PLOT_TYPE DEFAULT_TYPE = PLOT_TYPE.DOT_PLOT;
 
@@ -225,6 +222,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		addComponentListener(this);
 	}
 	
+	public void setInsideScrollpaneAndNoZoom() {
+        this.removeMouseWheelListener(this.getMouseWheelListeners()[0]);
+	}
 	
 	public void createLookup(boolean value) {
 		this.createLookup = value;
@@ -301,6 +301,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		return lookupResolution;
 	}
 
+	public BufferedImage getImage() {
+	    return image;
+	}
+	
 	public byte[] getLayersInBase() {
 		return layersInBase;
 	}
@@ -418,6 +422,14 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 	public abstract void assignAxisLabels();
 
+	public void setXAxisLabel(String lbl) {
+	    this.xAxisLabel = lbl;
+	}
+
+	public void setYAxisLabel(String lbl) {
+	    this.yAxisLabel = lbl;
+	}
+	
 	public void setAxisFontSize(int sz) {
 		if (sz > 0) {
 			this.axisFontSize = sz;

@@ -85,7 +85,7 @@ public class BoxPlot extends JFrame {
     String testFile = "F:\\Flow\\counts data\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
     private JPanel scrollContent;
     private BoxCtrlPanel ctrlPanel;
-    private HashMap<String, BoxPanel> panelMap = new HashMap<String, BoxPanel>();
+    private HashMap<String, OneDPanel> panelMap = new HashMap<String, OneDPanel>();
     private String currentFile;
     private ArrayList<String> selected = new ArrayList<String>();
     
@@ -236,7 +236,7 @@ public class BoxPlot extends JFrame {
         this.currentFile = file;
         selected.clear();
         String[][] data = HashVec.loadEntireFileToStringMatrixSplittingCommasIntelligently(file);
-        final ArrayList<BoxPanel> panels = new ArrayList<BoxPanel>();
+        final ArrayList<OneDPanel> panels = new ArrayList<OneDPanel>();
         final ArrayList<String> headers = new ArrayList<String>();
         ArrayList<String> dataSources = new ArrayList<String>();
         for (int i = 1; i < data.length; i++) {
@@ -259,9 +259,11 @@ public class BoxPlot extends JFrame {
             if (lbl.endsWith("\"")) {
             	lbl = lbl.substring(0, lbl.length() - 1);
             }
-            BoxPanel bp = new BoxPanel();
+            OneDPanel bp = new OneDPanel();
             bp.setData(lbl, Array.toStringArray(dataSources), Array.toDoubleArray(panelData));
             bp.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
+            bp.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
+            bp.setYAxisLabel(lbl.split("\\|")[1].trim());
             panels.add(bp);
             panelMap.put(Array.toStr(lbl.split("\\|")[0].trim().split("/"), "\t"), bp);
             headers.add(lbl);
@@ -341,10 +343,10 @@ public class BoxPlot extends JFrame {
                 row += 2;
             }
             String key = Array.toStr(paths.get(i), "\t");
-            BoxPanel bp = panelMap.get(key);
-            selected.add(bp.dataLabel);
+            OneDPanel bp = panelMap.get(key);
+            selected.add(bp.plotLabel);
             scrollContent.add(bp, "cell " + (i % cols) + " " + row);
-            String pts = bp.dataLabel.split("\\|")[0].trim().replaceAll("/", "  /<br />");
+            String pts = bp.plotLabel.split("\\|")[0].trim().replaceAll("/", "  /<br />");
             JLabel pnlLbl = new JLabel("<html><p>" + pts + "</p></html>");
             pnlLbl.setBackground(Color.WHITE);
             scrollContent.add(pnlLbl, "cell " + (i % cols) + " " + (row + 1) + ", alignx center, aligny top");
