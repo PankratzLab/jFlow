@@ -1600,7 +1600,7 @@ public class ext {
 		} else if (delimiter.equals(",")) {
 			return ext.splitCommasIntelligently(str, true, log);
 		} else {
-			return str.trim().split(delimiter);
+			return str.trim().split(delimiter, -1);
 		}
 	}
 
