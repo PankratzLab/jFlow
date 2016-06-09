@@ -129,11 +129,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	protected GenericLine highlightLine;
 	protected GenericRectangle highlightRectangle;
 	protected GenericPath highlightPoly;
-	protected String xAxisLabel;
-	protected String yAxisLabel;
+	private String xAxisLabel;
+	private String yAxisLabel;
 	protected String title;
-	protected boolean displayXaxis;
-	protected boolean displayYaxis;
+	private boolean displayXaxis;
+	private boolean displayYaxis;
 	protected boolean displayGrid;
 	protected boolean displayTitle;
 	protected boolean xAxisWholeNumbers;
@@ -223,7 +223,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 	
 	public void setInsideScrollpaneAndNoZoom() {
-        this.removeMouseWheelListener(this.getMouseWheelListeners()[0]);
+	    if (this.getMouseWheelListeners().length > 0) {
+	        this.removeMouseWheelListener(this.getMouseWheelListeners()[0]);
+	    }
 	}
 	
 	public void createLookup(boolean value) {
@@ -409,7 +411,39 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public void setXAxis(AXIS_SCALE xAxis) {
 		this.xAxis = xAxis;
 	}
-	public AXIS_SCALE getYAxis() {
+	public int getAxisYWidth() {
+        return axisYWidth;
+    }
+
+    public void setAxisYWidth(int axisYWidth) {
+        this.axisYWidth = axisYWidth;
+    }
+
+    public int getAxisXHeight() {
+        return axisXHeight;
+    }
+
+    public void setAxisXHeight(int axisXHeight) {
+        this.axisXHeight = axisXHeight;
+    }
+
+    public boolean isDisplayXaxis() {
+        return displayXaxis;
+    }
+
+    public void setDisplayXAxis(boolean displayXaxis) {
+        this.displayXaxis = displayXaxis;
+    }
+
+    public boolean isDisplayYaxis() {
+        return displayYaxis;
+    }
+
+    public void setDisplayYaxis(boolean displayYaxis) {
+        this.displayYaxis = displayYaxis;
+    }
+
+    public AXIS_SCALE getYAxis() {
 		return yAxis;
 	}
 	public void setYAxis(AXIS_SCALE yAxis) {
@@ -421,7 +455,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	public abstract void highlightPoints();
 
 	public abstract void assignAxisLabels();
-
+	
 	public void setXAxisLabel(String lbl) {
 	    this.xAxisLabel = lbl;
 	}
@@ -1007,7 +1041,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 	private void drawXAxisAndLabel(Graphics g, FontMetrics fontMetrics) {
 		Grafik.drawThickLine(g, canvasSectionMinimumX-(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, canvasSectionMaximumX+(int)Math.ceil((double)AXIS_THICKNESS/2.0), getHeight()-canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
-		g.drawString(xAxisLabel, (getWidth()-axisYWidth)/2 - fontMetrics.stringWidth(xAxisLabel)/2 + 2*(axisYWidth/3), getHeight()-20);
+		g.drawString(xAxisLabel, (getWidth()-axisYWidth)/2 - fontMetrics.stringWidth(xAxisLabel)/2 + 2*(axisYWidth/3), getHeight() - axisXHeight/3 + fontMetrics.getHeight()/2);
 	}
 
 

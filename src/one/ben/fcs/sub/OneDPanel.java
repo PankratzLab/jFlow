@@ -75,20 +75,14 @@ public class OneDPanel extends AbstractPanel2  {
                 this.setAxisFontSize(12);
 
                 setForcePlotXMax(20);
-                displayXaxis = false;
-                axisXHeight -= axisXHeight / 2;
-                axisYWidth -= axisYWidth / 3;
-                
-                setInsideScrollpaneAndNoZoom();
+                setDisplayXAxis(false);
                 break;
             case DOT_LINE_PLOT:
                 
                 setAxisFontSize(24);
                 
                 setForcePlotXMax(Float.NaN);
-                displayXaxis = true;
-                axisXHeight = HEIGHT_X_AXIS;
-                axisYWidth = WIDTH_Y_AXIS;
+                setDisplayXAxis(true);
 
                 break;
         }

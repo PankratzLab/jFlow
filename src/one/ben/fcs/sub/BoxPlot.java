@@ -39,6 +39,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import net.miginfocom.swing.MigLayout;
+import one.ben.fcs.AbstractPanel2;
 import one.ben.fcs.FCSPlot;
 import common.Array;
 import common.Files;
@@ -235,7 +236,7 @@ public class BoxPlot extends JFrame {
     private void loadFile(String file) {
         this.currentFile = file;
         selected.clear();
-        String[][] data = HashVec.loadEntireFileToStringMatrixSplittingCommasIntelligently(file);
+        String[][] data = HashVec.loadFileToStringMatrix(file, false, null, ",", false, 1000, true);
         final ArrayList<OneDPanel> panels = new ArrayList<OneDPanel>();
         final ArrayList<String> headers = new ArrayList<String>();
         ArrayList<String> dataSources = new ArrayList<String>();
@@ -260,6 +261,9 @@ public class BoxPlot extends JFrame {
             	lbl = lbl.substring(0, lbl.length() - 1);
             }
             OneDPanel bp = new OneDPanel();
+            bp.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.    HEIGHT_X_AXIS / 2);
+            bp.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
+            bp.setInsideScrollpaneAndNoZoom();
             bp.setData(lbl, Array.toStringArray(dataSources), Array.toDoubleArray(panelData));
             bp.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
             bp.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");

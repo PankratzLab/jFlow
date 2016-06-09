@@ -791,7 +791,7 @@ public class FCSPanel2 extends AbstractPanel2 implements MouseListener, MouseMot
 
     @Override
     public void assignAxisLabels() {
-        xAxisLabel = fcp.getXDataName();
-        yAxisLabel = fcp.getYDataName();
+        setXAxisLabel(fcp.getXDataName());
+        setYAxisLabel(fcp.getYDataName());
     }
 }

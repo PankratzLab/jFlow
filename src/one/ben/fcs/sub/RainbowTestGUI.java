@@ -54,6 +54,7 @@ import javax.swing.table.TableColumnModel;
 import javax.xml.parsers.ParserConfigurationException;
 
 import net.miginfocom.swing.MigLayout;
+import one.ben.fcs.AbstractPanel2;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import one.ben.fcs.FCSDataLoader;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
@@ -65,7 +66,6 @@ import one.ben.fcs.gating.GatingStrategy;
 import org.xml.sax.SAXException;
 
 import cnv.gui.IncludeExcludeGUI;
-
 import common.Array;
 import common.ext;
 
@@ -567,7 +567,6 @@ public class RainbowTestGUI extends JFrame {
 
     
     {
-        meanPanel.setPlotType(OneDPanel.PLOT_TYPE.DOT_LINE_PLOT);
         meanPanel.setXAxisLabel("File by Date");
         meanPanel.setOpaque(true);
         meanFrame.getContentPane().add(meanPanel, BorderLayout.CENTER);
@@ -581,6 +580,9 @@ public class RainbowTestGUI extends JFrame {
         };
         meanCtrlPanel.setChangeListener(prevLst);
         meanFrame.setBounds(FCSPlot.START_X, FCSPlot.START_Y, FCSPlot.START_WIDTH, FCSPlot.START_HEIGHT);
+//        meanPanel.setPlotType(OneDPanel.PLOT_TYPE.BOX_PLOT);
+        meanPanel.setPlotType(OneDPanel.PLOT_TYPE.DOT_LINE_PLOT);
+        meanPanel.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS/5);
     }
     
     private void showMeanPanel(String col) {
@@ -746,19 +748,6 @@ public class RainbowTestGUI extends JFrame {
             }
             for (DirFile df : subDirs) {
                 for (String f : df.getAllFiles()) {
-                    files.add(f);
-                }
-            }
-            return files.toArray(new String[files.size()]);
-        }
-        
-        public String[] getAllFiles(String removePrep) {
-            ArrayList<String> files = new ArrayList<String>();
-            for (String f : this.files) {
-                files.add((dir + f).replaceFirst(removePrep, ""));
-            }
-            for (DirFile df : subDirs) {
-                for (String f : df.getAllFiles(removePrep)) {
                     files.add(f);
                 }
             }

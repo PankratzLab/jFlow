@@ -347,7 +347,7 @@ public class HashVec {
 				reader.readLine();
 			}
 			while (reader.ready()) {
-				line = reader.readLine().trim().split(delimiter, -1);
+				line = ext.splitLine(reader.readLine(), delimiter, null);
 				if (cols == null) {
 					v.add(line);
 				} else {
@@ -374,40 +374,6 @@ public class HashVec {
 		return Matrix.toStringArrays(v);
 	}
 
-
-    public static String[][] loadEntireFileToStringMatrixSplittingCommasIntelligently(String filename) {
-        BufferedReader reader = null;
-        Vector<String[]> v = new Vector<String[]>(1000);
-        String line;
-        String[] data;
-
-        try {
-            reader = Files.getReader(filename, false, true, false);
-            if (reader == null) {
-                return null;
-            }
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-//                from:
-//                https://stackoverflow.com/questions/28587081/regex-split-on-comma-but-exclude-commas-within-parentheses-and-quotesboth-s
-//                ,                         # Match literal comma
-//                (?=(([^']*'){2})*[^']*$)  # Lookahead to ensure comma is followed by even number of '
-//                (?=(([^"]*"){2})*[^"]*$)  # Lookahead to ensure comma is followed by even number of "
-//                (?![^()]*\\))             # Negative lookahead to ensure ) is not followed by matching
-//                                          # all non [()] characters in between
-                data = line.split(",(?=(([^']*'){2})*[^']*$)(?=(([^\"]*\"){2})*[^\"]*$)(?![^()]*\\))", -1);
-                v.add(data);
-            }
-            reader.close();
-        } catch (FileNotFoundException fnfe) {
-            System.err.println("Error: file \""+filename+"\" not found in current directory");
-        } catch (IOException ioe) {
-            System.err.println("Error reading file \""+filename+"\"");
-        }
-        
-        return Matrix.toStringArrays(v);
-    }
-	
 	public static Hashtable<String,String> loadFileToHashString(String filename, String keyHeader, String[] valueHeaders, String delimiterWithinHash) {
 		BufferedReader reader = null;
 		String[] line;
