@@ -118,7 +118,7 @@ public class ControlsQCGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 String newCol = arg0.getActionCommand();
-//                showMeanPanel(newCol);
+                showMeanPanel(newCol);
             }
         };
         meanCtrlPanel.setChangeListener(prevLst);
@@ -191,8 +191,8 @@ public class ControlsQCGUI extends JFrame {
                     curr = "./";
                 }
                 JFileChooser jfc = new JFileChooser(curr);
-                jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                jfc.setDialogTitle("Select Compare Files");
+                jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                jfc.setDialogTitle("Select Compare File Directory");
                 jfc.setMultiSelectionEnabled(true);
                 int resp = jfc.showOpenDialog(ControlsQCGUI.this);
                 if (resp == JFileChooser.APPROVE_OPTION) {
@@ -258,7 +258,7 @@ public class ControlsQCGUI extends JFrame {
                     
                     final String col = (String) target.getValueAt(0, column);
                     if (row == 0) {
-//                        ControlsQCGUI.this.showMeanPanel(col);
+                        ControlsQCGUI.this.showMeanPanel(col);
                     }
                 }
             }
@@ -269,7 +269,7 @@ public class ControlsQCGUI extends JFrame {
                 if (e.getClickCount() == 2) {
                     int colInd = table.columnAtPoint(e.getPoint());
                     String col = (String) table.getValueAt(0, colInd);
-//                    ControlsQCGUI.this.showMeanPanel(col);
+                    ControlsQCGUI.this.showMeanPanel(col);
                 }
             }
         });
@@ -328,8 +328,8 @@ public class ControlsQCGUI extends JFrame {
         loadProps();
     }
     
-//    private void showMeanPanel(String col) {
-//        // Get all means (yData), get Files&Dates (xData), get Mean/SD (meanSD)
+    private void showMeanPanel(String col) {
+        // Get all means (yData), get Files&Dates (xData), get Mean/SD (meanSD)
 //        float[] xDataBase, xDataComp, yDataBase, yDataComp;
 //        String[] baseLbls, compLbls;
 //        
@@ -383,7 +383,7 @@ public class ControlsQCGUI extends JFrame {
 //        meanPanel.paintAgain();
 //        meanFrame.setTitle("Genvisis - FCS Overall Mean/SD - " + col);
 //        meanFrame.setVisible(true);
-//    }
+    }
     
     private static final String PROP_FILE = "controlsQC.properties";
     private static final String PROPKEY_COMPAREDIR = "COMPARE_DIR";
@@ -476,14 +476,29 @@ public class ControlsQCGUI extends JFrame {
             CtrlFileMetaData cfmd = new CtrlFileMetaData();
             cfmd.file = filename;
             String[] pts = filename.split("_");
-            cfmd.fileDateStr = pts[0];
-            String[] dtPts = pts[0].split("-");
-            cfmd.fileDate = new GregorianCalendar(Integer.parseInt(dtPts[0]), Integer.parseInt(dtPts[1]), Integer.parseInt(dtPts[2])).getTime();
-            cfmd.panel = pts[1];
-            cfmd.initials = pts[2];
-            cfmd.runGroup = pts[3];
-            cfmd.ctrlGroup = pts[4];
-            cfmd.number = pts[5];
+            if (pts.length != 6) {
+                System.err.println("Error - file " + filename + " is an unexpected format!");
+            }
+            if (pts.length > 0) {
+                cfmd.fileDateStr = pts[0];
+                String[] dtPts = pts[0].split("-");
+                try {
+                    cfmd.fileDate = new GregorianCalendar(Integer.parseInt(dtPts[0]), Integer.parseInt(dtPts[1]), Integer.parseInt(dtPts[2])).getTime();
+                } catch (NumberFormatException e) {
+                    System.err.println("Error - filename " + filename + " does not contain a date string as the first token!");
+                    cfmd.fileDate = null;
+                }
+            }
+            if (pts.length > 1)
+                cfmd.panel = pts[1];
+            if (pts.length > 2)
+                cfmd.initials = pts[2];
+            if (pts.length > 3)
+                cfmd.runGroup = pts[3];
+            if (pts.length > 4)
+                cfmd.ctrlGroup = pts[4];
+            if (pts.length > 5)
+                cfmd.number = pts[5];
             return cfmd;
         }
     }
@@ -494,20 +509,20 @@ public class ControlsQCGUI extends JFrame {
         DirFile[] subDirs;
         HashMap<String, CtrlFileMetaData> metaData = new HashMap<String, ControlsQCGUI.CtrlFileMetaData>();
         
-        public String[] getAllFiles() {
+        public String[] getAllFiles(String panel, String ctrl, String run) {
             ArrayList<String> files = new ArrayList<String>();
-            for (String f : this.files) {
-                files.add(dir + f);
+            for (String f : this.getImmediateFiles(panel, ctrl, run)) {
+                files.add(f);
             }
             for (DirFile df : subDirs) {
-                for (String f : df.getAllFiles()) {
+                for (String f : df.getAllFiles(panel, ctrl, run)) {
                     files.add(f);
                 }
             }
             return files.toArray(new String[files.size()]);
         }
-        
-        public String[] getAllFiles(String panel, String ctrl, String run) {
+
+        public String[] getImmediateFiles(String panel, String ctrl, String run) {
             ArrayList<String> files = new ArrayList<String>();
             for (String f : this.files) {
                 CtrlFileMetaData cfmd;
@@ -517,13 +532,10 @@ public class ControlsQCGUI extends JFrame {
                     cfmd = CtrlFileMetaData.parse(f);
                     metaData.put(f, cfmd);
                 }
-                if ((panel != null && cfmd.panel.equals(panel)) && (ctrl != null && cfmd.ctrlGroup.equals(ctrl)) && (run != null && cfmd.runGroup.equals(run))) { 
+                if ((panel != null && cfmd.panel != null && cfmd.panel.equals(panel)) 
+                        && (ctrl != null && cfmd.ctrlGroup != null && cfmd.ctrlGroup.equals(ctrl))
+                        && (run != null && cfmd.runGroup != null && cfmd.runGroup.equals(run))) { 
                     files.add(dir + f);
-                }
-            }
-            for (DirFile df : subDirs) {
-                for (String f : df.getAllFiles(panel, ctrl, run)) {
-                    files.add(f);
                 }
             }
             return files.toArray(new String[files.size()]);
@@ -559,8 +571,9 @@ public class ControlsQCGUI extends JFrame {
         }
     }
     
-    HashMap<String, String[]> compRowIDs = new HashMap<String, String[]>();
-    HashMap<String, float[][]> compData = new HashMap<String, float[][]>();
+    HashMap<String, HashMap<String, float[]>> compData = new HashMap<String, HashMap<String, float[]>>();
+    HashMap<String, HashMap<String, Integer>> compRowInds = new HashMap<String, HashMap<String,Integer>>();
+    HashMap<String, HashMap<String, CtrlFileMetaData>> compMetaData = new HashMap<String, HashMap<String,CtrlFileMetaData>>();
     String[] baseRowIDs;
     HashMap<String, float[]> baseColumnData = new HashMap<String, float[]>(); 
     HashMap<String, Integer> baseRowInds = new HashMap<String, Integer>();
@@ -603,29 +616,45 @@ public class ControlsQCGUI extends JFrame {
         String panel = null;
         String ctrlGrp = null;
         String runGrp = null;
+        boolean warnedOnce = false;
         for (CtrlFileMetaData cfmd : baseMetaData.values()) {
             if (!cfmd.panel.equals(panel)) {
                 if (panel == null) {
                     panel = cfmd.panel;
                 } else {
-                    JOptionPane.showMessageDialog(null, "WARNING - multiple panels detected in base range data file: " + panel + "/" + cfmd.panel, "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
+                    if (!warnedOnce) {
+                        int ret = JOptionPane.showConfirmDialog(null, "WARNING - multiple panels detected in base range data file:\n" + "File: " + cfmd.file + "\nPanels: " + panel + " / " + cfmd.panel + "\nWould you like to Continue?", "Error", JOptionPane.YES_NO_OPTION);
+                        warnedOnce = true;
+                        if (ret == JOptionPane.NO_OPTION) {
+                            return;
+                        }
+                    }
                 }
             }
             if (!cfmd.ctrlGroup.equals(ctrlGrp)) {
                 if (ctrlGrp == null) {
                     ctrlGrp = cfmd.ctrlGroup;
                 } else {
-                    JOptionPane.showMessageDialog(null, "WARNING - multiple control groups detected in base range data file: " + ctrlGrp + "/" + cfmd.ctrlGroup, "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
+                    if (!warnedOnce) {
+                        int ret = JOptionPane.showConfirmDialog(null, "WARNING - multiple control groups detected in base range data file:\n" + "File: " + cfmd.file + "\nControl Groups: "  + ctrlGrp + " / " + cfmd.ctrlGroup + "\nWould you like to Continue?", "Error", JOptionPane.YES_NO_OPTION);
+                        warnedOnce = true;
+                        if (ret == JOptionPane.NO_OPTION) {
+                            return;
+                        }
+                    }
                 }
             }
             if (!cfmd.runGroup.equals(runGrp)) {
                 if (runGrp == null) {
                     runGrp = cfmd.runGroup;
                 } else {
-                    JOptionPane.showMessageDialog(null, "WARNING - multiple run groups detected in base range data file: " + runGrp + "/" + cfmd.runGroup, "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
+                    if (!warnedOnce) {
+                        int ret = JOptionPane.showConfirmDialog(null, "WARNING - multiple run groups detected in base range data file:\n" + "File: " + cfmd.file + "\nRun Groups: "  + runGrp + " / " + cfmd.runGroup + "\nWould you like to Continue?", "Error", JOptionPane.YES_NO_OPTION);
+                        warnedOnce = true;
+                        if (ret == JOptionPane.NO_OPTION) {
+                            return;
+                        }
+                    }
                 }
             }
         }
@@ -641,6 +670,7 @@ public class ControlsQCGUI extends JFrame {
         }
         
         baseRowIDs = rows.toArray(new String[rows.size()]);
+        baseRowInds.clear();
         for (int i = 0; i < baseRowIDs.length; i++) {
             baseRowInds.put(baseRowIDs[i], i);
         }
@@ -648,31 +678,54 @@ public class ControlsQCGUI extends JFrame {
         
         String[] allFilesFullPaths = dirStruct.getAllFiles(panel, ctrlGrp, runGrp);
         for (String f : allFilesFullPaths) {
-//            if (!this.compData.containsKey(f)) {
-//                data = HashVec.loadFileToStringMatrix(f, false, null, false);
-//                baseRow = new ArrayList<String>();
-//                baseTemp = new ArrayList<float[]>();
-//                for (String s : data[0]) {
-//                    if (!"".equals(s)) {
-//                        paramNames.add(s);
-//                        paramSet.add(s);
-//                    }
-//                }
-//            }
-//            for (int i = 1; i < data.length; i++) {
-//                int ind = ext.indexOfStr(data[i][0], EXCLUDED_ROW_HEADERS, false, false);
-//                if ("".equals(data[i][0]) || ind >= 0) {
-//                    continue;
-//                }
-//                baseRow.add(data[i][0]);
-//                float[] tempData = new float[data[i].length - 1];
-//                for (int j = 1; j < data[i].length; j++) {
-//                    tempData[j-1] = Float.parseFloat(data[i][j]);
-//                }
-//                baseTemp.add(tempData);
-//            }
-//            compRowIDs.put(f, baseRow.toArray(new String[baseRow.size()]));
-//            compData.put(f, baseTemp.toArray(new float[baseTemp.size()][]));
+            if (!this.compData.containsKey(f)) {
+                data = HashVec.loadFileToStringMatrix(f, false, null, false);
+                
+                HashMap<String, float[]> paramMap = new HashMap<String, float[]>();
+                HashMap<String, Integer> rowInds = new HashMap<String, Integer>();
+                HashMap<String, CtrlFileMetaData> rowMetaData = new HashMap<String, ControlsQCGUI.CtrlFileMetaData>();
+                
+                cols = new ArrayList<String>();
+                rows = new ArrayList<String>();
+                
+                for (int i = 1; i < data[0].length; i++) {
+                    if (!"".equals(data[0][i])) {
+                        cols.add(data[0][i]);
+                    }
+                }
+                for (int i = 1; i < data.length; i++) {
+                    int ind = ext.indexOfStr(data[i][0], EXCLUDED_ROW_HEADERS, false, false);
+                    if ("".equals(data[i][0]) || ind >= 0) {
+                        continue;
+                    }
+                    rows.add(data[i][0]);
+                    rowInds.put(data[i][0], i);
+                    rowMetaData.put(data[i][0], CtrlFileMetaData.parse(data[i][0]));
+                }
+                
+                // TODO not checking panel/ctrl/group for comp files
+
+                for (int i = 0; i < cols.size(); i++) {
+                    float[] arr = new float[rows.size()];
+                    int ind = 0;
+                    for (String r : rows) {
+                        int rowInd = rowInds.get(r);
+                        arr[ind] = "".equals(data[rowInd][i+1]) ? Float.NaN : Float.parseFloat(data[rowInd][i+1]);
+                        ind++;
+                    }
+                    paramMap.put(cols.get(i), arr);
+                }
+                rowInds.clear();
+                String[] rowIDs = rows.toArray(new String[rows.size()]);
+                for (int i = 0; i < rowIDs.length; i++) {
+                    rowInds.put(rowIDs[i], i);
+                }
+                paramSet.addAll(cols);
+                
+                compData.put(f, paramMap);
+                compRowInds.put(f, rowInds);
+                compMetaData.put(f, rowMetaData);
+            }
         }
         
         String[] paramNames = paramSet.toArray(new String[paramSet.size()]);
@@ -772,7 +825,7 @@ public class ControlsQCGUI extends JFrame {
         statRows.add(dtmMean.getRowCount());
         
         dtmMean.addRow(new Object[colNames.length]);
-        addFilesToModel(dirStruct, paramNames, dirStruct.dir);
+        addFilesToModel(dirStruct, new String[]{panel, ctrlGrp, runGrp}, paramNames, dirStruct.dir);
         
         table.setModel(dtmMean);
         table.revalidate();
@@ -804,11 +857,7 @@ public class ControlsQCGUI extends JFrame {
             int dataInd = baseRowInds.get(f);
             
             Object[] rowDataM = new Object[paramNames.length + 1];
-//            Object[] rowDataS = new Object[paramNames.length + 1];
-//            Object[] rowDataC = new Object[paramNames.length + 1];
             rowDataM[0] = ext.rootOf(f);
-//            rowDataS[0] = ext.rootOf(f);
-//            rowDataC[0] = ext.rootOf(f);
             for (int i = 0; i < paramNames.length; i++) {
                 
                 float[] data = baseColumnData.get(paramNames[i]);
@@ -817,23 +866,15 @@ public class ControlsQCGUI extends JFrame {
                 }
                 
                 Float mn = data[dataInd];//Array.mean(data, true);
-//                Float sd = Array.stdev(data, true);
-//                Float cv = 100 * (sd / mn);
                 paramMeanLists.get(paramNames[i]).add(mn);
-//                paramSDLists.get(paramNames[i]).add(sd);
-//                paramCVLists.get(paramNames[i]).add(cv);
                 fileParamMeanMap.get(f).put(paramNames[i], mn);
                 rowDataM[i + 1] = mn;
-//                rowDataS[i + 1] = sd;
-//                rowDataC[i + 1] = cv;
             }
             dtmMean.addRow(rowDataM);
-//            dtmSD.addRow(rowDataS);
-//            dtmCV.addRow(rowDataC);
         }
     }
     
-    private void addFilesToModel(DirFile df, String[] paramNames, String removePrep) {
+    private void addFilesToModel(DirFile df, String[] pnlCtrlRun, String[] paramNames, String removePrep) {
         int colCnt = dtmMean.getColumnCount();
         int rows = dtmMean.getRowCount();
         
@@ -843,44 +884,29 @@ public class ControlsQCGUI extends JFrame {
         boldRows.add(rows);
         rows++;
         
-//        for (String f : df.files) {
-//            fileParamMeanMap.put(f, new HashMap<String, Float>());
-//            Object[] rowDataM = new Object[paramNames.length + 1];
-//            Object[] rowDataS = new Object[paramNames.length + 1];
-//            Object[] rowDataC = new Object[paramNames.length + 1];
-//            rowDataM[0] = ext.rootOf(f);
-//            rowDataS[0] = ext.rootOf(f);
-//            rowDataC[0] = ext.rootOf(f);
-//            for (int i = 0; i < paramNames.length; i++) {
-//                FCSDataLoader loader = compFiles.get(df.dir + f);
-//
-//                float[] data = loader.getData(paramNames[i], true);
-//                Float mn = Array.mean(data, true);
-//                fileParamMeanMap.get(f).put(paramNames[i], mn);
-//                Float sd = Array.stdev(data, true);
-//                Float cv = 100 * (sd / mn);
-//                rowDataM[i + 1] = mn;
-//                rowDataS[i + 1] = sd;
-//                rowDataC[i + 1] = cv;
-//            }
-//            dtmMean.addRow(rowDataM);
-//            dtmSD.addRow(rowDataS);
-//            dtmCV.addRow(rowDataC);
-//        }
-//        if (df.files.length > 0 && df.getAllFiles().length > 0) {
-//            dtmMean.addRow(new Object[colCnt]);
-//            dtmSD.addRow(new Object[colCnt]);
-//            dtmCV.addRow(new Object[colCnt]);
-//        }
-//        
-//        for (DirFile sub : df.subDirs) {
-//            addFilesToModel(sub, paramNames, removePrep);
-//        }
-        
-//        dtmMean.addRow(new Object[dtmMean.getColumnCount()]);
-//        dtmSD.addRow(new Object[dtmMean.getColumnCount()]);
-//        dtmCV.addRow(new Object[dtmMean.getColumnCount()]);
-        
+        String[] immedFiles = df.getImmediateFiles(pnlCtrlRun[0], pnlCtrlRun[1], pnlCtrlRun[2]);
+        for (String f : immedFiles) {
+            fileParamMeanMap.put(f, new HashMap<String, Float>());
+            Object[] rowDataM = new Object[paramNames.length + 1];
+            rowDataM[0] = ext.rootOf(f);
+            for (int i = 0; i < paramNames.length; i++) {
+                float[] data = compData.get(f).get(paramNames[i]);
+                Float mn = data == null ? Float.NaN : Array.mean(data);
+                fileParamMeanMap.get(f).put(paramNames[i], mn);
+                rowDataM[i + 1] = mn;
+            }
+            dtmMean.addRow(rowDataM);
+            
+        }
+        if (immedFiles.length > 0 && df.getAllFiles(pnlCtrlRun[0], pnlCtrlRun[1], pnlCtrlRun[2]).length - immedFiles.length > 0) {
+            dtmMean.addRow(new Object[colCnt]);
+        }
+
+        for (DirFile sub : df.subDirs) {
+            addFilesToModel(sub, pnlCtrlRun, paramNames, removePrep);
+        }
+
+        dtmMean.addRow(new Object[dtmMean.getColumnCount()]);
     }
     
     private DirFile loadCompFiles(String dir) {
@@ -891,9 +917,11 @@ public class ControlsQCGUI extends JFrame {
         DirFile df = new DirFile();
         df.dir = ext.verifyDirFormat(dir);
         df.files = rootCSV;
-        df.subDirs = new DirFile[subDirs.length];
-        for (int i = 0; i < subDirs.length; i++) {
-            df.subDirs[i] = loadCompFiles(ext.verifyDirFormat(subDirs[i].getPath()));
+        df.subDirs = new DirFile[subDirs == null ? 0 : subDirs.length];
+        if (subDirs != null) {
+            for (int i = 0; i < subDirs.length; i++) {
+                df.subDirs[i] = loadCompFiles(ext.verifyDirFormat(subDirs[i].getPath()));
+            }
         }
         
         return df;

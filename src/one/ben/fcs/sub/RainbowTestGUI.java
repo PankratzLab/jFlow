@@ -1061,10 +1061,6 @@ public class RainbowTestGUI extends JFrame {
             addFilesToModel(sub, paramNames, removePrep);
         }
         
-//        dtmMean.addRow(new Object[dtmMean.getColumnCount()]);
-//        dtmSD.addRow(new Object[dtmMean.getColumnCount()]);
-//        dtmCV.addRow(new Object[dtmMean.getColumnCount()]);
-        
     }
     
     private void loadBase(String dir) {
