@@ -22,7 +22,7 @@ import filesys.SnpMarkerSet;
 
 public class MergeExtractPipeline {
     
-    private class DataSource {
+    private static class DataSource {
         String label, dataFile, mapFile, idFile;
         boolean relD, relM, relI;
         public DataSource(String label, String dir, String d, String m, String i) {
@@ -220,21 +220,19 @@ public class MergeExtractPipeline {
         this.overwrite = true;
         return this;
     }
-
-    public MergeExtractPipeline addDataSource(String lbl, String dir, String dataFile, String mapFile, String idFile) {
-        initLog();
-        dataSources.add(new DataSource(lbl, dir, dataFile, mapFile, idFile));
-        log.report("Added data source: " + dataSources.get(dataSources.size() - 1).dataFile);
+    
+    public MergeExtractPipeline addDataSource(DataSource ds) {
+        dataSources.add(ds);
         return this;
     }
-    
-    public MergeExtractPipeline addDataSources(final String lbl, final String dir, final String dataFileExt, final String mapFileExt, final String idFile, final int bpWindow) {
-        initLog();
-        
-        log.report("Looking for data files in directory \"" + dir + "\" that are named with the pattern \"chr##.##bpStart##.##bpEnd##.fileExt\".");
-        log.reportTimeWarning("if data files are not named according to this scheme, all data files will be included.");
 
-        String[] filesToAdd = (new File(dir)).list(new FilenameFilter() {
+    public MergeExtractPipeline addDataSource(String lbl, String dir, String dataFile, String mapFile, String idFile) {
+        dataSources.add(new DataSource(lbl, dir, dataFile, mapFile, idFile));
+        return this;
+    }
+
+    private static FilenameFilter getFilter(final int[][] markerLocations, final int[][] regions, final String dataFileExt, final int bpWindow, final Logger log) {
+        return new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 boolean keep = false;
@@ -304,10 +302,14 @@ public class MergeExtractPipeline {
                 }
                 return keep;
             }
-        });
+        };
+    }
+    
+    public MergeExtractPipeline addDataSources(final String lbl, final String dir, final String dataFileExt, final String mapFileExt, final String idFile, final int bpWindow) {
+        initLog();
+        String[] filesToAdd = (new File(dir)).list(getFilter(this.markerLocations, this.regions, dataFileExt, bpWindow, this.log));
         for (String file : filesToAdd) {
             addDataSource(lbl, dir, file, file.substring(0, file.length() - dataFileExt.length()) + mapFileExt, idFile);
-            log.report("Added data source: " + dataSources.get(dataSources.size() - 1).dataFile);
         }
         return this;
     }
@@ -460,7 +462,7 @@ public class MergeExtractPipeline {
         return true;
     }
     
-    private static void parseDataFile(MergeExtractPipeline mep, String data) {
+    private static ArrayList<DataSource> parseDataFile(String runDir, int[][] markerLocations, int[][] regions, String data, int bpWindow, Logger log) {
         BufferedReader reader; 
         String line, file;
         String[] temp;
@@ -469,15 +471,26 @@ public class MergeExtractPipeline {
             throw new IllegalArgumentException("Error - provided data file \"" + data + "\" doesn't exist.");
         }
         
+        ArrayList<DataSource> sources = new ArrayList<MergeExtractPipeline.DataSource>();
         try {
-            file = Files.isRelativePath(data) ? (Files.exists(mep.runDir + data) ? mep.runDir + data : "./" + data) : data;
+            file = Files.isRelativePath(data) ? (Files.exists(runDir + data) ? runDir + data : "./" + data) : data;
             reader = Files.getAppropriateReader(file);
             while ((line = reader.readLine()) != null) {
                 temp = line.split("\t");
                 if (temp.length == 4) {
-                    mep.addDataSource(temp[0], null, temp[1], temp[2], temp[3]);
+                    log.report("Added data source: " + temp[1]);
+                    sources.add(new DataSource(temp[0], null, temp[1], temp[2], temp[3]));
                 } else if (temp.length == 5) {
-                    mep.addDataSources(temp[0], temp[1], temp[2], temp[3], temp[4], 0);
+                    String dir = temp[1];
+                    String lbl = temp[0];
+                    String dataFileExt = temp[2];
+                    String mapFileExt = temp[3];
+                    String idFile = temp[4];
+                    String[] filesToAdd = (new File(dir)).list(getFilter(markerLocations, regions, dataFileExt, bpWindow, log));
+                    for (String fileToAdd : filesToAdd) {
+                        sources.add(new DataSource(lbl, dir, fileToAdd, fileToAdd.substring(0, fileToAdd.length() - dataFileExt.length()) + mapFileExt, idFile));
+                        log.report("Added data source: " + fileToAdd);
+                    }
                 } else {
                     System.err.println("Error - skipping invalid entry in data file: " + line);
                 }
@@ -487,6 +500,8 @@ public class MergeExtractPipeline {
             e.printStackTrace();
             throw new IllegalArgumentException(e);
         }
+        
+        return sources;
     }
 
     //    MergeExtractPipeline pipeline = new MergeExtractPipeline();
@@ -585,8 +600,11 @@ public class MergeExtractPipeline {
         mep.setSplitOutputByRegions(split);
         mep.setRenameMarkers(rename);
         mep.setOutputFiles(outfileD, outfileM);
-        
-        parseDataFile(mep, data);
+        mep.initLog();
+        ArrayList<DataSource> dss = parseDataFile(mep.runDir, mep.markerLocations, mep.regions, data, 0, mep.log);
+        for (DataSource ds : dss) {
+            mep.addDataSource(ds);
+        }
         
         mep.run();
     }

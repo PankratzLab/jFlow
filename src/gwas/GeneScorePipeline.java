@@ -36,6 +36,7 @@ public class GeneScorePipeline {
 	private static final String TAG = "##";
 	private static final String PLINK_FRQ_FILE_PATTERN = "chr" + TAG + "_eu_unrel.frq.xln";
 	private static final int ACCEPTABLE_SEPARATION = 0;
+	private static final String CROSS_FILTERED_DATAFILE = "bimData.xln";
 	
 	private static final String[][] LINKERS = {
 		Aliases.MARKER_NAMES,
@@ -290,7 +291,7 @@ public class GeneScorePipeline {
 		Hashtable<String, Vector<String>> fileData;
 		HashMap<String, Double> freqs;
 		
-		factors = new String[][]{Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS, Aliases.PVALUES, Aliases.ALLELE_FREQS};
+		factors = new String[][]{Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS, Aliases.PVALUES, Aliases.ALLELE_FREQS, Aliases.EFFECTS};
 		for (String filename : files) {
 			try {
 				reader = Files.getAppropriateReader(filename);
@@ -303,6 +304,10 @@ public class GeneScorePipeline {
 				if (indices[0] == -1) {
 					errorMsg = "ERROR - no MarkerName column found";
 					// ERROR - couldn't find MarkerName column!  COMPLETE FAIL
+				}
+				if (indices[4] == -1) {
+				    // NO BETAS!  COMPLETE FAIL
+				    errorMsg = errorMsg.equals("") ? "ERROR - no Beta/Effect column found" : errorMsg + "; no Beta/Effect column found";
 				}
 				if (indices[3] == -1) {
 					// NO PVALUES!  COMPLETE FAIL
@@ -347,9 +352,9 @@ public class GeneScorePipeline {
 //						}
 					}
 					
-					StringBuilder newHeaderSB = new StringBuilder("SNP\tChr\tPos\tFreq\tP");
+					StringBuilder newHeaderSB = new StringBuilder("SNP\tChr\tPos\tFreq\tP\tBeta");
 					for (int i = 0; i < header.length; i++) {
-						if (i != indices[0] && i != indices[1] && i != indices[2] && i != indices[3] && i != indices[4]) {
+						if (i != indices[0] && i != indices[1] && i != indices[2] && i != indices[3] && i != indices[4] && i != indices[5]) {
 							newHeaderSB.append("\t").append(header[i]);
 						}
 					}
@@ -363,14 +368,16 @@ public class GeneScorePipeline {
 						String pos = indices[2] == -1 ? "" + markerMap.get(snp)[1] : line[indices[2]];
 						String pval = line[indices[3]];
 						String freq = indices[4] == -1 ? "" + (freqs == null || freqs.isEmpty() || freqs.get(snp) == null ? 0.0 : freqs.get(snp)) : line[indices[4]];
+						String beta = line[indices[5]];
 						StringBuilder writeLineSB = new StringBuilder();
 						writeLineSB.append(snp).append("\t")
 									.append(chr).append("\t")
 									.append(pos).append("\t")
 									.append(freq).append("\t")
-									.append(pval);
+									.append(pval).append("\t")
+									.append(beta);
 						for (int i = 0; i < line.length; i++) {
-							if (i != indices[0] && i != indices[1] && i != indices[2] && i != indices[3] && i != indices[4]) {
+							if (i != indices[0] && i != indices[1] && i != indices[2] && i != indices[3] && i != indices[4] && i != indices[5]) {
 								writeLineSB.append("\t").append(line[i]);
 							}
 						}
@@ -812,7 +819,7 @@ public class GeneScorePipeline {
 		for (String dFile : dataFiles) {
 			String dataFile = ext.rootOf(dFile, false);
 			for (java.util.Map.Entry<String, Constraint> constraintEntry : analysisConstraints.entrySet()) {
-				String crossFilterFile = study.studyDir + dataFile + "\\" + constraintEntry.getKey() + "\\bimData.xln";
+				String crossFilterFile = study.studyDir + dataFile + "\\" + constraintEntry.getKey() + "\\" + CROSS_FILTERED_DATAFILE;
 				if ((new File(crossFilterFile).exists())) {
 					System.out.println(ext.getTime()+"]\tCross-filtered data file already exists! [ --> '" + crossFilterFile + "']");
 					study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, Files.countLines(crossFilterFile, 1));
@@ -889,7 +896,7 @@ public class GeneScorePipeline {
 			
 			for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
 				File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
-				String crossFilterFile = prefDir + "\\bimData.xln";
+				String crossFilterFile = prefDir + "\\" + CROSS_FILTERED_DATAFILE;
 				String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
 				if ((new File(hitsFile)).exists()) {
 					System.out.println(ext.getTime()+"]\tHit window analysis file already exists! [ --> '" + hitsFile + "']");
@@ -916,7 +923,7 @@ public class GeneScorePipeline {
 			for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
 				File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
 
-				String crossFilterFile = prefDir + "\\bimData.xln";
+				String crossFilterFile = prefDir + "\\" + CROSS_FILTERED_DATAFILE;
 				String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
 				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
 				if ((new File(mkrDataFile)).exists()) {
@@ -1237,7 +1244,29 @@ public class GeneScorePipeline {
 		
 //		int threads = 1;
 		
-		String usage =  "\n" + 
+		String usage =  
+		        "\n" + 
+		        "GeneScorePipeline is a convention-driven submodule.  It relies on a standard folder structure and file naming scheme:\n" +
+                "\tThe directory and file structure must conform to the following:\n" +
+		        "\t\t>Root Directory ['broot' argument]\n" +
+                "\t\t\t>SNP Effect files:\n" + 
+                "\t\t\t\t-Effect files must end with '.meta'.\n" +
+		        "\t\t\t\t-Effect files may be hand-constructed, or may be generated with the 'preprocess' command from a .xln file\n" +
+		        "\t\t\t\t-Effect files contain, at minimum, SNP, Freq, P-value, and Beta/Effect, and, if created with the preprocessor, will include any additional information present in the .xln file\n" +
+		        "\t\t\t\t-HitWindows analysis will be run on SNP Effect files, with results being used in regression analysis; the\n" + 
+		        "\t\t\t\tadditional arguments to GeneScorePipeline affect only the HitWindows processing.\n" + 
+                "\t\t\t>Data Source Directory 1\n" +
+		        "\t\t\t\t>data.txt file [defines location of data, which may be in an arbitrary location in the filesystem]\n" + 
+		        "\t\t\t\t>PhenoData1.pheno file [Any '.pheno' files will be included as covariate data in the regression analysis]\n" +
+		        "\t\t\t\t\t[Note: if data is in PLINK format and contains valid affected status information, an AFFECTED.PHENO file will be created]\n" +
+		        
+		        "\t\t\t\t>Pheno2.pheno file\n" +
+                "\t\t\t>Data Source Directory 2\n" + 
+                "\t\t\t\t>data.txt file\n" +
+                "\t\t\t\t>Pheno3.pheno file\n" +
+                "\t\t\t>...\n" + 
+		        "\n" + 
+		        "\n" + 
 				"lab.MultiGeneScorePipeline requires 1+ arguments\n" + 
 				"   (1) Pre-process data files (i.e. process=path/to/file1.xln,path/to/file2.xln (not the default)) \n" +
 				"  OR\n" + 
@@ -1248,6 +1277,11 @@ public class GeneScorePipeline {
 				"   (4) p-value threshold to extend the window (or comma delimited list) (i.e. winThresh=" + DEFAULT_WINDOW_EXTENSION_THRESHOLD + " (default))\n" +
 //				"   (8) Number of threads to use for computation (i.e. threads=" + threads + " (default))\n" + 
 				"";
+		boolean test = true;
+		if (test) {
+		    System.out.println(usage);
+		    return;
+		}
 		
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
