@@ -69,6 +69,8 @@ public class GeneScorePipeline {
 
 	private int hitsMkrIndex = 1;
 	
+	private Logger log;
+	
 	private class Study {
 		String studyDir;
 		String studyName;
@@ -386,7 +388,7 @@ public class GeneScorePipeline {
 					metaWriter.flush();
 					metaWriter.close();
 				} else {
-					System.err.println(errorMsg);
+					log.reportError(errorMsg);
 					reader.close();
 					continue;
 				}
@@ -396,8 +398,9 @@ public class GeneScorePipeline {
 		}
 	}
 	
-	public GeneScorePipeline(String metaDir, /*int numThreads, boolean plink, boolean regression, boolean histogram,*/ float[] indexThresholds, int[] windowMins, float[] windowExtThresholds) {
-		this.metaDir = metaDir;
+	public GeneScorePipeline(String metaDir, /*int numThreads, boolean plink, boolean regression, boolean histogram,*/ float[] indexThresholds, int[] windowMins, float[] windowExtThresholds, Logger log) {
+		this.log = log;
+	    this.metaDir = metaDir;
 //		this.numThreads = numThreads;
 //		this.runPlink = plink;
 //		this.runRegression = runPlink && regression;
@@ -509,7 +512,7 @@ public class GeneScorePipeline {
 				
 				String[] unique = Array.unique(pheno.toArray(new String[]{}));
 				if (unique.length == 1) {
-					System.out.println("Error - no variance in pheno data from .fam file for study '" + study.studyName + "'");
+					log.report("Error - no variance in pheno data from .fam file for study '" + study.studyName + "'");
 					continue;
 				}
 				
@@ -682,9 +685,9 @@ public class GeneScorePipeline {
 			for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
 				String[][] results = HitWindows.determine(metaDir + dFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES, new Logger());
 				if (results == null) {
-					System.err.println("HitWindows result was null for "+dFile);
+					log.reportError("HitWindows result was null for "+dFile);
 				} else {
-				    System.out.println(ext.getTime()+"]\tFound " + results.length + " hit windows");
+				    log.report(ext.getTime()+"]\tFound " + results.length + " hit windows");
 				
     				HashSet<String> hitMkrSet = new HashSet<String>();
     				for (String[] mkrLine : results) {
@@ -772,7 +775,7 @@ public class GeneScorePipeline {
 	}
 	
 	public void runPipeline() {
-		System.out.println(ext.getTime()+"]\tProcessing study data [" + studies.size() + " total]:");
+		log.report(ext.getTime()+"]\tProcessing study data [" + studies.size() + " total]:");
 //		if (numThreads == 1) {
 //			for (String studyDir : studyFolders) {
 //				processStudy(studyDir);
@@ -785,7 +788,7 @@ public class GeneScorePipeline {
 //			ExecutorService server = Executors.newFixedThreadPool(numThreads);
 //			
 //		}
-		System.out.println(ext.getTime()+"]\tProcessing Complete!");
+		log.report(ext.getTime()+"]\tProcessing Complete!");
 	}
 	
 	private void createFolders(Study study) {
@@ -821,11 +824,11 @@ public class GeneScorePipeline {
 			for (java.util.Map.Entry<String, Constraint> constraintEntry : analysisConstraints.entrySet()) {
 				String crossFilterFile = study.studyDir + dataFile + "\\" + constraintEntry.getKey() + "\\" + CROSS_FILTERED_DATAFILE;
 				if ((new File(crossFilterFile).exists())) {
-					System.out.println(ext.getTime()+"]\tCross-filtered data file already exists! [ --> '" + crossFilterFile + "']");
+					log.report(ext.getTime()+"]\tCross-filtered data file already exists! [ --> '" + crossFilterFile + "']");
 					study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, Files.countLines(crossFilterFile, 1));
 					continue;
 				}
-				System.out.println(ext.getTime()+"]\tCross-filtering data and .BIM files [ --> '" + crossFilterFile + "']");
+				log.report(ext.getTime()+"]\tCross-filtering data and .BIM files [ --> '" + crossFilterFile + "']");
 				BufferedReader bimReader;
 				BufferedReader dataReader;
 				PrintWriter dataWriter;
@@ -851,7 +854,7 @@ public class GeneScorePipeline {
 					}
 				} while ((line = bimReader.readLine()) != null);
 				bimReader.close();
-				System.out.println(ext.getTime()+"]\tFound " + cntAmbig + " ambiguous markers (will be excluded)");
+				log.report(ext.getTime()+"]\tFound " + cntAmbig + " ambiguous markers (will be excluded)");
 				dataReader = Files.getAppropriateReader(metaDir + dFile);
 				dataWriter = new PrintWriter(crossFilterFile);
 				
@@ -899,16 +902,16 @@ public class GeneScorePipeline {
 				String crossFilterFile = prefDir + "\\" + CROSS_FILTERED_DATAFILE;
 				String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
 				if ((new File(hitsFile)).exists()) {
-					System.out.println(ext.getTime()+"]\tHit window analysis file already exists! [ --> '" + hitsFile + "']");
+					log.report(ext.getTime()+"]\tHit window analysis file already exists! [ --> '" + hitsFile + "']");
 					study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, Files.countLines(hitsFile, 1));
 					continue;
 				}
-				System.out.println(ext.getTime()+"]\tRunning hit window analysis [ --> '" + hitsFile + "']");
+				log.report(ext.getTime()+"]\tRunning hit window analysis [ --> '" + hitsFile + "']");
 				String[][] results = HitWindows.determine(crossFilterFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES, new Logger());
 				if (results == null) {
-					System.err.println("Error - HitWindows result from "+crossFilterFile+" was null");
+					log.reportError("Error - HitWindows result from "+crossFilterFile+" was null");
 				} else {
-					System.out.println(ext.getTime()+"]\tFound " + results.length + " hit windows");
+					log.report(ext.getTime()+"]\tFound " + results.length + " hit windows");
 					Files.writeMatrix(results, hitsFile, "\t");
 					study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, results.length);
 				}
@@ -927,10 +930,10 @@ public class GeneScorePipeline {
 				String hitsFile = prefDir + "\\hits_" + filePrefix.getKey() + ".out";
 				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
 				if ((new File(mkrDataFile)).exists()) {
-					System.out.println(ext.getTime()+"]\tHit window marker data file already exists! [ --> '" + mkrDataFile + "']");
+					log.report(ext.getTime()+"]\tHit window marker data file already exists! [ --> '" + mkrDataFile + "']");
 					continue;
 				}
-				System.out.println(ext.getTime()+"]\tExtracting data for hit window markers [ --> '" + mkrDataFile + "']");
+				log.report(ext.getTime()+"]\tExtracting data for hit window markers [ --> '" + mkrDataFile + "']");
 				String[] hitMarkers = HashVec.loadFileToStringArray(hitsFile, true, new int[]{hitsMkrIndex}, false);
 				HashSet<String> hitMrkSet = new HashSet<String>();
 				for (String mkr : hitMarkers) {
@@ -968,17 +971,17 @@ public class GeneScorePipeline {
 			for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
 				File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
 				if (!prefDir.exists()) {
-					System.out.println(ext.getTime()+"]\tError - no subfolder for '" + filePrefix.getKey() + "' analysis");
+					log.report(ext.getTime()+"]\tError - no subfolder for '" + filePrefix.getKey() + "' analysis");
 					continue;
 				}
 				if ((new File(prefDir + "\\plink.profile")).exists()) {
-					System.out.println(ext.getTime()+"]\tPlink analysis results file already exists! [ --> '" + prefDir + "\\plink.profile" + "']");
+					log.report(ext.getTime()+"]\tPlink analysis results file already exists! [ --> '" + prefDir + "\\plink.profile" + "']");
 					continue;
 				}
 				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
 				System.out.print(ext.getTime()+"]\tRunning plink command [ --> '");
 				String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile ../../" + study.plinkPref + " --score " + mkrDataFile;
-				System.out.println(cmd + "']");
+				log.report(cmd + "']");
 				/*boolean results = */CmdLine.run(cmd, prefDir.getAbsolutePath());
 			}
 		}
@@ -991,15 +994,15 @@ public class GeneScorePipeline {
 			for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
 				File prefDir = new File(study.studyDir + dataFile + "\\" + filePrefix.getKey() + "\\");
 				if (!prefDir.exists()) {
-					System.out.println(ext.getTime()+"]\tError - no subfolder for '" + filePrefix + "' analysis");
+					log.report(ext.getTime()+"]\tError - no subfolder for '" + filePrefix + "' analysis");
 					continue;
 				}
 				if ((new File(prefDir + "\\runPlink.sh")).exists()) {
-					System.out.println(ext.getTime()+"]\tPlink analysis shell script already exists! [ --> '" + prefDir + "\\runPlink.sh" + "']");
+					log.report(ext.getTime()+"]\tPlink analysis shell script already exists! [ --> '" + prefDir + "\\runPlink.sh" + "']");
 					continue;
 				}
 				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
-				System.out.println(ext.getTime()+"]\tWriting plink command");
+				log.report(ext.getTime()+"]\tWriting plink command");
 				String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile ../../" + study.plinkPref + " --score " + mkrDataFile;
 				Files.write(cmd, prefDir.getAbsolutePath() + "\\runPlink.sh");
 			}
@@ -1036,7 +1039,7 @@ public class GeneScorePipeline {
 						}
 						String[] unq = Array.unique(Array.toStringArray(scores));
 						if (unq.length == 1) {
-							System.out.println(ext.getTime()+"]\tError - no variance in scores for " + dataFile + " / " + filePrefix.getKey() + " -- no .hist file created");
+							log.report(ext.getTime()+"]\tError - no variance in scores for " + dataFile + " / " + filePrefix.getKey() + " -- no .hist file created");
 						} else {
 							Files.write((new Histogram(scores)).getSummary().trim(), prefDir + "\\scores.hist");
 						}
@@ -1124,7 +1127,7 @@ public class GeneScorePipeline {
 		PrintWriter writer;
 		
 		String resFile = metaDir + "results.xln";
-		System.out.println(ext.getTime()+"]\tWriting regression results... [ --> " + resFile + "]");
+		log.report(ext.getTime()+"]\tWriting regression results... [ --> " + resFile + "]");
 		writer = Files.getAppropriateWriter(resFile);
 		writer.println(REGRESSION_HEADER);
 		
@@ -1226,6 +1229,7 @@ public class GeneScorePipeline {
 		int numArgs = args.length;
 		
 		String broot = null;
+		String logFile = null;
 		
 		float[] iT = new float[]{DEFAULT_INDEX_THRESHOLD};
 		int[] mZ = new int[]{DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
@@ -1277,11 +1281,6 @@ public class GeneScorePipeline {
 				"   (4) p-value threshold to extend the window (or comma delimited list) (i.e. winThresh=" + DEFAULT_WINDOW_EXTENSION_THRESHOLD + " (default))\n" +
 //				"   (8) Number of threads to use for computation (i.e. threads=" + threads + " (default))\n" + 
 				"";
-		boolean test = true;
-		if (test) {
-		    System.out.println(usage);
-		    return;
-		}
 		
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -1339,7 +1338,10 @@ public class GeneScorePipeline {
 					}
 				}
 				numArgs--;
-			}else {
+			} else if (args[i].startsWith("log=")) {
+			    logFile = args[i].split("=")[1];
+			    numArgs--;
+			} else {
 				System.err.println("Error - invalid argument: " + args[i]);
 			}
 		}
@@ -1361,8 +1363,8 @@ public class GeneScorePipeline {
 //			System.err.println("Error - '-runPlink' option is required for '-writeHist' option");
 //			System.exit(1);
 //		}
-		
-		GeneScorePipeline gsp = new GeneScorePipeline(broot, /*threads, runPlink, regress, writeHist,*/ iT, mZ, wT);
+		Logger log = new Logger(logFile);
+		GeneScorePipeline gsp = new GeneScorePipeline(broot, /*threads, runPlink, regress, writeHist,*/ iT, mZ, wT, log);
 		gsp.runPipeline();
 	}
 	
