@@ -39,6 +39,8 @@ import common.Elision;
 import common.Files;
 import common.HashVec;
 import common.Logger;
+import common.PSF;
+import common.PSF.Ext;
 import common.ext;
 
 /**
@@ -950,7 +952,7 @@ public class MitoPipeline {
 		usage += "   (13) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD=" + sampleLRRSdFilter + " (default))\n";
 		usage += "   (14) Call rate filter to exclude samples from PCs (i.e. sampleCallRate=" + sampleCallRateFilter + " (default))\n";
 		usage += "   (15) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
-		usage += "   (16) Number of threads to use for multi-threaded portions of the analysis (i.e. numThreads=" + numThreads + " (default))\n";
+		usage += "   (16) Number of threads to use for multi-threaded portions of the analysis (i.e. "+PSF.Ext.NUM_THREADS_COMMAND + numThreads + " (default))\n";
 		usage += "   (17) Output file full path and baseName (i.e. output=" + output + " (default))\n";
 		usage += "   (18) Project filename (if you manually created a project properties file, or edited an existing project). Note that default arguments available here can overide existing project properties (i.e. proj=" + filename + " (no default))\n";
 		usage += "   (19) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader=" + idHeader + " (default))\n";
@@ -1043,7 +1045,7 @@ public class MitoPipeline {
 				markerPositions = ext.parseStringArg(args[i], null);
 				numArgs--;
 				requiredArray[4] = true;
-			} else if (args[i].startsWith("numThreads=")) {
+			} else if (args[i].startsWith("numThreads=") || args[i].startsWith(Ext.NUM_THREADS_COMMAND)) {
 				numThreads = ext.parseIntArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith("numComponents=")) {
