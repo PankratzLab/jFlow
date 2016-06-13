@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
+import seq.analysis.MitoSeqCN;
 import seq.manage.BEDFileReader;
 import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.telomere.SRAUtils.SRAConversionResult;
@@ -118,7 +119,7 @@ public class TelSeq {
 		return new Ran(valid, command);
 	}
 
-	public static void run(String sraDir, String outDir, String optionalBed, int threads) {
+	public static void run(String sraDir, String outDir, String optionalBed, String referenceGenomeFasta, int threads) {
 		ArrayList<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
 		String telseqDir = outDir + "telseq/";
 		new File(telseqDir).mkdirs();
@@ -183,6 +184,17 @@ public class TelSeq {
 
 		}
 		Files.writeArrayList(result, finalOut);
+
+		// can kill this later... going to do mtDNA CN
+
+		if (optionalBed != null) {
+			String mitoDir = outDir + "mitoCN/";
+			new File(mitoDir).mkdirs();
+			String bamsToMito = mitoDir + "bams.txt";
+			Files.writeList(bams, bamsToMito);
+			MitoSeqCN.run(bamsToMito, outDir, optionalBed, referenceGenomeFasta, threads);
+
+		}
 	}
 
 	private static void runType(int threads, Logger log, String[] bams, ArrayList<TelSeqResult> results, ArrayList<String> argPopulator, String baseDir) {
@@ -199,6 +211,7 @@ public class TelSeq {
 		String sraDir = "/scratch.global/lanej/aric_raw/sra/";
 		String outDir = "/scratch.global/lanej/aric_raw/";
 		String captureBed = "/home/pankrat2/public/bin/ref/VCRome_2_1_hg19_capture_targets.bed";
+		String refGenome = "/home/pankrat2/public/bin/refhg19_canonical.fa";
 		// String captureBed = null;
 
 		int threads = 24;
@@ -237,7 +250,7 @@ public class TelSeq {
 			System.exit(1);
 		}
 		try {
-			run(sraDir, outDir, captureBed, threads);
+			run(sraDir, outDir, captureBed, refGenome, threads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
