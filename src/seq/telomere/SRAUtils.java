@@ -14,7 +14,7 @@ import common.WorkerTrain.Producer;
 import common.ext;
 
 /**
- * @author lane0212 Converts .sra files to .bam format for future processing
+ * @author lane0212 Converts .sra files to .bam format for future processing. So far, used for telomere length temp file creation
  */
 public class SRAUtils {
 
@@ -33,8 +33,9 @@ public class SRAUtils {
 		String[] inputs = new String[] { inputSra };
 		String[] outputs = new String[] { outputBam };
 		ArrayList<String> command = new ArrayList<String>();
+		command.add("cd " + ext.parseDirectoryOfFile(inputSra) + "\n");
 		command.add(SAM_DUMP);
-		command.add(ext.rootOf(inputSra,false));
+		command.add(ext.rootOf(inputSra, true));
 		command.add("|");
 		command.add("samtools");
 		command.add("view");
@@ -52,7 +53,7 @@ public class SRAUtils {
 	 * Some info about the conversion
 	 *
 	 */
-	private static class SRAConversionResult {
+	public static class SRAConversionResult {
 		private String outputBam;
 		private boolean valid;
 		private Logger log;
@@ -122,7 +123,7 @@ public class SRAUtils {
 
 	// sam-dump.2.6.3 SRR1737697 |samtools view -bS -
 
-	private static void run(String sraDir, String outDir, int threads) {
+	public static ArrayList<SRAConversionResult> run(String sraDir, String outDir, int threads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "sraConv.log");
 		String[] sraFiles = Files.listFullPaths(sraDir, SRA_EXT, false);
@@ -132,9 +133,11 @@ public class SRAUtils {
 
 		SRABamProducer producer = new SRABamProducer(sraFiles, bamDir, log);
 		WorkerTrain<SRAConversionResult> train = new WorkerTrain<SRAUtils.SRAConversionResult>(producer, threads, 10, log);
+		ArrayList<SRAConversionResult> results = new ArrayList<SRAUtils.SRAConversionResult>();
 		while (train.hasNext()) {
-			train.next();
+			results.add(train.next());
 		}
+		return results;
 	}
 
 	public static void main(String[] args) {
