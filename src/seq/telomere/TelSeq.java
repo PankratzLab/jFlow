@@ -124,11 +124,17 @@ public class TelSeq {
 		new File(telseqDir).mkdirs();
 		Logger log = new Logger(telseqDir + ".telseq.log");
 		log.reportTimeInfo("Assuming telseq is on system path");
-		String[] bams = new String[conv.size()];
-		for (int i = 0; i < bams.length; i++) {
-			bams[i] = conv.get(i).getOutputBam();
+		ArrayList<String> bamst = new ArrayList<String>();
+		for (int i = 0; i < conv.size(); i++) {
+			if (conv.get(i).isValid() && new File(conv.get(i).getOutputBam()).getTotalSpace() > 0) {
+				bamst.add(conv.get(i).getOutputBam());
+
+			} else {
+				log.reportTimeWarning(conv.get(i).getOutputBam() + " must have failed, skipping");
+			}
 		}
 
+		String[] bams = Array.toStringArray(bamst);
 		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
 		ArrayList<String> argPopulator = new ArrayList<String>();
 		String baseDir = telseqDir + "base/";
@@ -192,8 +198,8 @@ public class TelSeq {
 		int numArgs = args.length;
 		String sraDir = "/scratch.global/lanej/aric_raw/sra/";
 		String outDir = "/scratch.global/lanej/aric_raw/";
-		// String captureBed = "/home/pankrat2/public/bin/ref/VCRome_2_1_hg19_capture_targets.bed";
-		String captureBed = null;
+		String captureBed = "/home/pankrat2/public/bin/ref/VCRome_2_1_hg19_capture_targets.bed";
+		// String captureBed = null;
 
 		int threads = 24;
 
