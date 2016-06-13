@@ -41,6 +41,7 @@ import javax.swing.tree.TreePath;
 import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.AbstractPanel2;
 import one.ben.fcs.FCSPlot;
+import one.ben.fcs.sub.OneDPanel.PLOT_TYPE;
 import common.Array;
 import common.Files;
 import common.HashVec;
@@ -261,7 +262,8 @@ public class BoxPlot extends JFrame {
             	lbl = lbl.substring(0, lbl.length() - 1);
             }
             OneDPanel bp = new OneDPanel();
-            bp.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.    HEIGHT_X_AXIS / 2);
+            bp.setPlotType(PLOT_TYPE.BOX_PLOT);
+            bp.setAxisXHeight(AbstractPanel2.HEIGHT_X_AXIS - AbstractPanel2.HEIGHT_X_AXIS / 2);
             bp.setAxisYWidth(AbstractPanel2.WIDTH_Y_AXIS - AbstractPanel2.WIDTH_Y_AXIS / 3);
             bp.setInsideScrollpaneAndNoZoom();
             bp.setData(lbl, Array.toStringArray(dataSources), Array.toDoubleArray(panelData));
