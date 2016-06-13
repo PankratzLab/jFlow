@@ -95,7 +95,7 @@ public class OneDPanel extends AbstractPanel2  {
         setZoomable(false, false);
         setColorScheme(DEFAULT_COLORS);
         createLookup(true);
-        
+        paintAgain();
     }
     
 	public OneDPanel() {
@@ -150,7 +150,7 @@ public class OneDPanel extends AbstractPanel2  {
             numPoints += dataArr.length;
         }
         points = new PlotPoint[numPoints];
-        lines = new GenericLine[numPoints + 3];
+        lines = new GenericLine[numPoints + 4];
         
         int ind = 0;
         int lInd = 0;
@@ -185,6 +185,7 @@ public class OneDPanel extends AbstractPanel2  {
         
         double dataMin = Array.min(data[0]), dataMax = Array.max(data[0]);
         for (int i = 1; i < data.length; i++) {
+            if (data[i].length == 0) continue;
             dataMin = Math.min(dataMin, Array.min(data[i]));
             dataMax = Math.max(dataMax, Array.max(data[i]));
         }
@@ -201,6 +202,7 @@ public class OneDPanel extends AbstractPanel2  {
         ArrayList<PlotPoint> pts = new ArrayList<PlotPoint>();
         
         for (int i = 0; i < data.length; i++) {
+            if (data[i].length == 0) continue;
             float xLow = 20 * i + 2;
             float xHigh = xLow + 18; 
             float xMed = xLow + (xHigh-xLow)/2;

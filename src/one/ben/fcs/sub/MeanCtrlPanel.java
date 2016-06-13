@@ -12,10 +12,12 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.ButtonGroup;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.KeyStroke;
+import javax.swing.JRadioButton;
 
 public class MeanCtrlPanel extends JPanel {
 
@@ -29,22 +31,38 @@ public class MeanCtrlPanel extends JPanel {
      */
     public MeanCtrlPanel() {
         setBackground(Color.WHITE);
-        setLayout(new MigLayout("", "[grow][][][75px][][75px][]", "[]"));
+        setLayout(new MigLayout("", "[][][grow][][][75px][][75px][]", "[]"));
+        
+        ButtonGroup bg = new ButtonGroup();
+        rdbtnDotline = new JRadioButton();
+        rdbtnDotline.addActionListener(plotChange);
+        rdbtnDotline.setText("Dot/Line");
+        rdbtnDotline.setBackground(Color.WHITE);
+        bg.add(rdbtnDotline);
+        add(rdbtnDotline, "cell 0 0");
+        
+        rdbtnBox = new JRadioButton();
+        rdbtnBox.setSelected(true);
+        rdbtnBox.addActionListener(plotChange);
+        rdbtnBox.setText("Box");
+        rdbtnBox.setBackground(Color.WHITE);
+        bg.add(rdbtnBox);
+        add(rdbtnBox, "cell 1 0");
         
         btnPrev = new JButton("<<");
-        add(btnPrev, "cell 1 0");
+        add(btnPrev, "cell 3 0");
         
         lblPrev = new JLabel("prev");
-        add(lblPrev, "cell 3 0");
+        add(lblPrev, "cell 5 0");
         
         label = new JLabel("|");
-        add(label, "cell 4 0");
+        add(label, "cell 6 0");
         
         lblNext = new JLabel("next");
-        add(lblNext, "cell 5 0,alignx right");
+        add(lblNext, "cell 7 0,alignx right");
         
         btnNext = new JButton(">>");
-        add(btnNext, "cell 6 0");
+        add(btnNext, "cell 8 0");
         
         btnPrev.addActionListener(list);
         btnNext.addActionListener(list);
@@ -72,6 +90,17 @@ public class MeanCtrlPanel extends JPanel {
         
     }
     
+    ActionListener plotChange = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == rdbtnBox) {
+                plot.actionPerformed(new ActionEvent(rdbtnBox, ActionEvent.ACTION_FIRST, "BOX"));
+            } else if (e.getSource() == rdbtnDotline) {
+                plot.actionPerformed(new ActionEvent(rdbtnDotline, ActionEvent.ACTION_LAST, "DOT"));
+            }
+        }
+    };
+    
     ActionListener list = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -85,8 +114,8 @@ public class MeanCtrlPanel extends JPanel {
                 if (newInd < cols.size() - 1) {
                     btnNext.setEnabled(true);
                 }
-                lblPrev.setText(newInd > 0 ? cols.get(newInd - 1) : "---");
-                lblNext.setText(newInd < cols.size() - 1 ? cols.get(newInd + 1) : "---");
+                lblPrev.setText(newInd > 0 ? getColumnLabel(newInd - 1) : "---");
+                lblNext.setText(newInd < cols.size() - 1 ? getColumnLabel(newInd + 1) : "---");
                 change.actionPerformed(new ActionEvent(btnPrev, ActionEvent.ACTION_FIRST, newCol));
             } else if (e.getSource() == btnNext) {
                 if (ind == cols.size() - 1) return;
@@ -98,8 +127,8 @@ public class MeanCtrlPanel extends JPanel {
                 if (ind > 0) {
                     btnPrev.setEnabled(true);
                 }
-                lblPrev.setText(newInd > 0 ? cols.get(newInd - 1) : "---");
-                lblNext.setText(newInd < cols.size() - 1 ? cols.get(newInd + 1) : "---");
+                lblPrev.setText(newInd > 0 ? getColumnLabel(newInd - 1) : "---");
+                lblNext.setText(newInd < cols.size() - 1 ? getColumnLabel(newInd + 1) : "---");
                 change.actionPerformed(new ActionEvent(btnNext, ActionEvent.ACTION_LAST, newCol));
             }
         }
@@ -109,7 +138,22 @@ public class MeanCtrlPanel extends JPanel {
     int ind;
     private JLabel label;
     
-    ActionListener change;
+    ActionListener change, plot;
+    LabelPresenter labeler;
+    private JRadioButton rdbtnDotline;
+    private JRadioButton rdbtnBox;
+    
+    static abstract class LabelPresenter {
+        public abstract String getPresentationView(String label);
+    }
+    
+    private String getColumnLabel(int ind) {
+        return labeler == null ? cols.get(ind) : labeler.getPresentationView(cols.get(ind));
+    }
+    
+    public void setLabelPresenter(LabelPresenter lp) {
+        this.labeler = lp;
+    }
     
     public void setColumns(ArrayList<String> cols, int ind) {
         this.cols = cols;
@@ -117,8 +161,8 @@ public class MeanCtrlPanel extends JPanel {
         
         btnPrev.setEnabled(ind > 0);
         btnNext.setEnabled(ind < cols.size() - 1);
-        lblPrev.setText(ind > 0 ? cols.get(ind - 1) : "---");
-        lblNext.setText(ind < cols.size() - 1 ? cols.get(ind + 1) : "---");
+        lblPrev.setText(ind > 0 ? getColumnLabel(ind - 1) : "---");
+        lblNext.setText(ind < cols.size() - 1 ? getColumnLabel(ind + 1) : "---");
         
         repaint();
     }
@@ -127,4 +171,10 @@ public class MeanCtrlPanel extends JPanel {
         this.change = prevLst;
     }
 
+    public void setPlotChangeListener(ActionListener plotLst) {
+        this.plot = plotLst;
+    }
+
+    
+    
 }
