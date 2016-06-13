@@ -35,6 +35,7 @@ public class SRAUtils {
 		ArrayList<String> command = new ArrayList<String>();
 		command.add("cd " + ext.parseDirectoryOfFile(inputSra) + "\n");
 		command.add(SAM_DUMP);
+		command.add("-u");//output un-mapped reads as well
 		command.add(ext.rootOf(inputSra, true));
 		command.add("|");
 		command.add("samtools");
@@ -63,6 +64,14 @@ public class SRAUtils {
 			this.outputBam = outputBam;
 			this.valid = valid;
 			this.log = log;
+		}
+
+		public String getOutputBam() {
+			return outputBam;
+		}
+
+		public boolean isValid() {
+			return valid;
 		}
 
 	}

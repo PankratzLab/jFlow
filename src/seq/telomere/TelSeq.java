@@ -16,6 +16,7 @@ import common.WorkerTrain;
 import common.WorkerTrain.Producer;
 import common.ext;
 import filesys.LocusSet;
+import filesys.LocusSet.TO_STRING_TYPE;
 
 //http://goggable.areteh.co:3000/RotBlauer/IntallingTelSeq for telseq install instructions
 public class TelSeq {
@@ -125,7 +126,7 @@ public class TelSeq {
 		log.reportTimeInfo("Assuming telseq is on system path");
 		String[] bams = new String[conv.size()];
 		for (int i = 0; i < bams.length; i++) {
-
+			bams[i] = conv.get(i).getOutputBam();
 		}
 
 		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
@@ -133,8 +134,6 @@ public class TelSeq {
 		String baseDir = telseqDir + "base/";
 		new File(baseDir).mkdirs();
 		runType(threads, log, bams, results, argPopulator, baseDir);
-
-		System.exit(1);
 		if (optionalBed != null) {
 			if (Files.exists(optionalBed)) {
 				ArrayList<String> argPopulatorBed = new ArrayList<String>();
@@ -145,21 +144,39 @@ public class TelSeq {
 				new File(dirBed).mkdirs();
 				runType(threads, log, bams, results, argPopulatorBed, dirBed);
 
-				ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
-				argPopulatorBuffBed.addAll(argPopulator);
-
 				String buffDir = telseqDir + "buff_20KB" + ext.rootOf(optionalBed) + "/";
 				new File(buffDir).mkdirs();
+				String buffBed = buffDir + "buff_20KB" + ext.rootOf(optionalBed) + ".bed";
 
 				BEDFileReader reader = new BEDFileReader(optionalBed, false);
 
 				LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
+				reader.close();
+
+				segs.getBufferedSegmentSet(20000).writeRegions(buffBed, TO_STRING_TYPE.REGULAR, false, log);
+				ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
+				argPopulatorBuffBed.addAll(argPopulator);
+				argPopulatorBuffBed.add("-e");
+				argPopulatorBuffBed.add(buffBed);
+
+				runType(threads, log, bams, results, argPopulatorBuffBed, buffDir);
 
 			} else {
 				log.reportFileNotFound(optionalBed);
 			}
 		}
 
+		String finalOut = telseqDir + "telseq.summary.txt";
+		String[] telHeader = Files.getHeaderOfFile(results.get(0).output, log);
+
+		ArrayList<String> result = new ArrayList<String>();
+		result.add("SRA\t" + Array.toStr(telHeader) + "\tType");
+		for (TelSeqResult telSeqResult : results) {
+			String[] data = Files.getFirstNLinesOfFile(telSeqResult.output, 1, new String[] { "ReadGroup" }, log);
+			result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data) + "\t" + ext.parseDirectoryOfFile(telSeqResult.output));
+
+		}
+		Files.writeArrayList(result, finalOut);
 	}
 
 	private static void runType(int threads, Logger log, String[] bams, ArrayList<TelSeqResult> results, ArrayList<String> argPopulator, String baseDir) {
@@ -175,7 +192,9 @@ public class TelSeq {
 		int numArgs = args.length;
 		String sraDir = "/scratch.global/lanej/aric_raw/sra/";
 		String outDir = "/scratch.global/lanej/aric_raw/";
-		String captureBed = "/home/pankrat2/public/bin/ref/VCRome_2_1_hg19_capture_targets.bed";
+		// String captureBed = "/home/pankrat2/public/bin/ref/VCRome_2_1_hg19_capture_targets.bed";
+		String captureBed = null;
+
 		int threads = 24;
 
 		String usage = "\n" +
