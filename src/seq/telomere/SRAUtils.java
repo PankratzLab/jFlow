@@ -1,29 +1,140 @@
-package telomere;
+package seq.telomere;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
+import common.Array;
+import common.CmdLine;
+import common.Files;
 import common.Logger;
 import common.PSF;
+import common.WorkerTrain;
+import common.WorkerTrain.Producer;
 import common.ext;
 
+/**
+ * @author lane0212 Converts .sra files to .bam format for future processing
+ */
 public class SRAUtils {
 
 	private static final String SAM_DUMP = "sam-dump.2.6.3";
+	private static final String SRA_EXT = ".sra";
 
+	/**
+	 * @param inputSra
+	 *            full path
+	 * @param outputBam
+	 *            full path
+	 * @param log
+	 * @return
+	 */
 	private static boolean dumpSra(String inputSra, String outputBam, Logger log) {
+		String[] inputs = new String[] { inputSra };
+		String[] outputs = new String[] { outputBam };
 		ArrayList<String> command = new ArrayList<String>();
-
 		command.add(SAM_DUMP);
-		command.add(ext.rootOf(inputSra));
-		command.add(ext.rootOf(inputSra));
+		command.add(ext.rootOf(inputSra,false));
+		command.add("|");
+		command.add("samtools");
+		command.add("view");
+		command.add("-bS");// convert to bam
+		command.add("-");// pipe input
+		command.add(">");
+		command.add(outputBam);
 
-		return false;
+		String[] bat = CmdLine.prepareBatchForCommandLine(Array.toStringArray(command), outputBam + ".bat", true, log);
+		boolean valid = CmdLine.runCommandWithFileChecks(bat, "", inputs, outputs, true, false, false, log);
+		return valid;
+	}
+
+	/**
+	 * Some info about the conversion
+	 *
+	 */
+	private static class SRAConversionResult {
+		private String outputBam;
+		private boolean valid;
+		private Logger log;
+
+		public SRAConversionResult(String outputBam, boolean valid, Logger log) {
+			super();
+			this.outputBam = outputBam;
+			this.valid = valid;
+			this.log = log;
+		}
+
+	}
+
+	private static class SRABamWorker implements Callable<SRAConversionResult> {
+		private String inputSra;
+		private String outputBam;
+		private Logger log;
+
+		public SRABamWorker(String inputSra, String outputBam, Logger log) {
+			super();
+			this.inputSra = inputSra;
+			this.outputBam = outputBam;
+			this.log = log;
+		}
+
+		@Override
+		public SRAConversionResult call() throws Exception {
+			boolean valid = dumpSra(inputSra, outputBam, log);
+			return new SRAConversionResult(outputBam, valid, log);
+		}
+
+	}
+
+	private static class SRABamProducer implements Producer<SRAConversionResult> {
+		private String[] inputSras;
+		private String outDir;
+		private Logger log;
+
+		public SRABamProducer(String[] inputSras, String outDir, Logger log) {
+			super();
+			this.inputSras = inputSras;
+			this.outDir = outDir;
+			this.log = log;
+			this.index = 0;
+		}
+
+		private int index;
+
+		@Override
+		public boolean hasNext() {
+			return index < inputSras.length;
+		}
+
+		@Override
+		public Callable<SRAConversionResult> next() {
+			SRABamWorker worker = new SRABamWorker(inputSras[index], outDir + ext.rootOf(inputSras[index]) + ".bam", log);
+			index++;
+			return worker;
+		}
+
+		@Override
+		public void shutdown() {
+
+		}
+
 	}
 
 	// sam-dump.2.6.3 SRR1737697 |samtools view -bS -
 
 	private static void run(String sraDir, String outDir, int threads) {
+		new File(outDir).mkdirs();
+		Logger log = new Logger(outDir + "sraConv.log");
+		String[] sraFiles = Files.listFullPaths(sraDir, SRA_EXT, false);
+		log.reportTimeInfo("Found " + sraFiles.length + " " + SRA_EXT + " files");
+		String bamDir = outDir + "bams/";
+		new File(bamDir).mkdirs();
 
+		SRABamProducer producer = new SRABamProducer(sraFiles, bamDir, log);
+		WorkerTrain<SRAConversionResult> train = new WorkerTrain<SRAUtils.SRAConversionResult>(producer, threads, 10, log);
+		while (train.hasNext()) {
+			train.next();
+		}
 	}
 
 	public static void main(String[] args) {
