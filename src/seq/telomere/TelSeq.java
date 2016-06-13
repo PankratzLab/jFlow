@@ -119,12 +119,13 @@ public class TelSeq {
 		return new Ran(valid, command);
 	}
 
-	public static void run(String sraDir, String outDir, String optionalBed, String referenceGenomeFasta, int threads) {
+	/**
+	 * Likely tmp method for dumping SRA format first
+	 */
+	public static void runTelSeqSRA(String sraDir, String outDir, String optionalBed, String referenceGenomeFasta, int threads) {
 		ArrayList<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
-		String telseqDir = outDir + "telseq/";
-		new File(telseqDir).mkdirs();
-		Logger log = new Logger(telseqDir + ".telseq.log");
-		log.reportTimeInfo("Assuming telseq is on system path");
+		Logger log = new Logger(outDir + ".telseq.log");
+
 		ArrayList<String> bamst = new ArrayList<String>();
 		for (int i = 0; i < conv.size(); i++) {
 			if (conv.get(i).isValid() && new File(conv.get(i).getOutputBam()).getTotalSpace() > 0) {
@@ -135,11 +136,31 @@ public class TelSeq {
 			}
 		}
 
-		String[] bams = Array.toStringArray(bamst);
+		runTelSeq(Array.toStringArray(bamst), outDir, optionalBed, referenceGenomeFasta, threads, log);
+	}
+
+	/**
+	 * @param bams
+	 *            bams to run
+	 * @param outDir
+	 *            where to put things
+	 * @param optionalBed
+	 *            for WES
+	 * @param referenceGenomeFasta
+	 *            will likely be removed later
+	 * @param threads
+	 * @param log
+	 * 
+	 */
+	private static void runTelSeq(String[] bams, String outDir, String optionalBed, String referenceGenomeFasta, int threads, Logger log) {
+		String telseqDir = outDir + "telseq/";
+		new File(telseqDir).mkdirs();
+		log.reportTimeInfo("Assuming telseq is on system path");
 		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
 		ArrayList<String> argPopulator = new ArrayList<String>();
 		String baseDir = telseqDir + "base/";
 		new File(baseDir).mkdirs();
+		// TODO, do either or with optional bed, currently testing
 		runType(threads, log, bams, results, argPopulator, baseDir);
 		if (optionalBed != null) {
 			if (Files.exists(optionalBed)) {
@@ -173,6 +194,7 @@ public class TelSeq {
 			}
 		}
 
+		// summarize
 		String finalOut = telseqDir + "telseq.summary.txt";
 		String[] telHeader = Files.getHeaderOfFile(results.get(0).output, log);
 
@@ -193,7 +215,6 @@ public class TelSeq {
 			String bamsToMito = mitoDir + "bams.txt";
 			Files.writeList(bams, bamsToMito);
 			MitoSeqCN.run(bamsToMito, outDir, optionalBed, referenceGenomeFasta, threads);
-
 		}
 	}
 
@@ -202,7 +223,6 @@ public class TelSeq {
 		WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 10, log);
 		while (train.hasNext()) {
 			results.add(train.next());
-
 		}
 	}
 
@@ -250,7 +270,7 @@ public class TelSeq {
 			System.exit(1);
 		}
 		try {
-			run(sraDir, outDir, captureBed, refGenome, threads);
+			runTelSeqSRA(sraDir, outDir, captureBed, refGenome, threads);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
