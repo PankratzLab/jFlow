@@ -979,7 +979,7 @@ public class GeneScorePipeline {
 					continue;
 				}
 				String mkrDataFile = prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln";
-				System.out.print(ext.getTime()+"]\tRunning plink command [ --> '");
+				log.report(ext.getTime()+"]\tRunning plink command [ --> '");
 				String cmd = "plink" + /*(plink2 ? "2" : "") +*/ " --noweb --bfile ../../" + study.plinkPref + " --score " + mkrDataFile;
 				log.report(cmd + "']");
 				/*boolean results = */CmdLine.run(cmd, prefDir.getAbsolutePath());
