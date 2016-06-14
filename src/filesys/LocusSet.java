@@ -13,6 +13,7 @@ import cnv.var.MosaicRegion;
 import common.Array;
 import common.Files;
 import common.Logger;
+import common.Positions;
 
 public abstract class LocusSet<T extends Segment> implements Serializable {
 	/**
@@ -343,6 +344,27 @@ public abstract class LocusSet<T extends Segment> implements Serializable {
 
 		};
 		return aut;
+	}
+
+	/**
+	 * Useful for converting bed files between b37 and hg19, etc
+	 */
+	public boolean writeSegmentRegions(String filename, boolean numericChrs, Logger log) {
+		log.reportTimeInfo("Writing " + loci.length + " loci to " + filename);
+		boolean written = true;
+		try {
+			PrintWriter writer = new PrintWriter(new FileWriter(filename));
+			for (int i = 0; i < loci.length; i++) {
+				Segment seg = loci[i];
+				writer.println(Positions.getChromosomeUCSC(seg.getChr(), !numericChrs) + "\t" + seg.getStart() + "\t" + seg.getStop());
+			}
+			writer.close();
+		} catch (Exception e) {
+			log.reportError("Error writing to " + filename);
+			log.reportException(e);
+			written = false;
+		}
+		return written;
 	}
 
 	/**

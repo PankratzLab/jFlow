@@ -125,20 +125,27 @@ public class TelSeq {
 	 */
 	public static void runTelSeqSRA(String sraDir, String outDir, String optionalBed, String referenceGenomeFasta,
 			int threads) {
-		ArrayList<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
+		// ArrayList<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
+		//
+		// ArrayList<String> bamst = new ArrayList<String>();
+		// for (int i = 0; i < conv.size(); i++) {
+		// if (conv.get(i).isValid() && new File(conv.get(i).getOutputBam()).getTotalSpace() > 0) {
+		// bamst.add(conv.get(i).getOutputBam());
+		//
+		// } else {
+		// log.reportTimeWarning(conv.get(i).getOutputBam() + " must have failed, skipping");
+		// }
+		// }
+		//
+		// runTelSeq(Array.toStringArray(bamst), outDir, optionalBed, referenceGenomeFasta, threads, log);
+		//
+
 		Logger log = new Logger(outDir + ".telseq.log");
+		log.reportTimeError("John remember to add back in SRA");
+		String[] bams = Files.listFullPaths(outDir + "bams/", ".bam", false);
+		log.reportTimeInfo("Found " + bams.length + " bams");
+		runTelSeq(bams, outDir, optionalBed, referenceGenomeFasta, threads, log);
 
-		ArrayList<String> bamst = new ArrayList<String>();
-		for (int i = 0; i < conv.size(); i++) {
-			if (conv.get(i).isValid() && new File(conv.get(i).getOutputBam()).getTotalSpace() > 0) {
-				bamst.add(conv.get(i).getOutputBam());
-
-			} else {
-				log.reportTimeWarning(conv.get(i).getOutputBam() + " must have failed, skipping");
-			}
-		}
-
-		runTelSeq(Array.toStringArray(bamst), outDir, optionalBed, referenceGenomeFasta, threads, log);
 	}
 
 	/**
@@ -168,24 +175,30 @@ public class TelSeq {
 		runType(threads, log, bams, results, argPopulator, baseDir);
 		if (optionalBed != null) {
 			if (Files.exists(optionalBed)) {
-				ArrayList<String> argPopulatorBed = new ArrayList<String>();
-				argPopulatorBed.addAll(argPopulator);
-				argPopulatorBed.add("-e");
-				argPopulatorBed.add(optionalBed);
-				String dirBed = telseqDir + ext.rootOf(optionalBed) + "/";
-				new File(dirBed).mkdirs();
-				runType(threads, log, bams, results, argPopulatorBed, dirBed);
-
-				String buffDir = telseqDir + "buff_20KB" + ext.rootOf(optionalBed) + "/";
-				new File(buffDir).mkdirs();
-				String buffBed = buffDir + "buff_20KB" + ext.rootOf(optionalBed) + ".bed";
-
 				BEDFileReader reader = new BEDFileReader(optionalBed, false);
 
 				LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
 				reader.close();
 
-				segs.getBufferedSegmentSet(20000).writeRegions(buffBed, TO_STRING_TYPE.REGULAR, false, log);
+				String dirBed = telseqDir + ext.rootOf(optionalBed) + "/";
+				String baseBed = dirBed + "base_" + ext.rootOf(optionalBed) + ".bed";
+				ArrayList<String> argPopulatorBed = new ArrayList<String>();
+				argPopulatorBed.addAll(argPopulator);
+				argPopulatorBed.add("-e");
+				argPopulatorBed.add(baseBed);
+				log.reportTimeInfo("writing bed to " + baseBed);
+				new File(dirBed).mkdirs();
+
+				segs.writeSegmentRegions(baseBed, true, log);
+
+				runType(threads, log, bams, results, argPopulatorBed, dirBed);
+
+				String buffDir = telseqDir + "buff_20KB_" + ext.rootOf(optionalBed) + "/";
+				new File(buffDir).mkdirs();
+				String buffBed = buffDir + "buff_20KB_" + ext.rootOf(optionalBed) + ".bed";
+				log.reportTimeInfo("writing bed to " + buffBed);
+				segs.getBufferedSegmentSet(20000).writeSegmentRegions(buffBed, true, log);
+
 				ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
 				argPopulatorBuffBed.addAll(argPopulator);
 				argPopulatorBuffBed.add("-e");
