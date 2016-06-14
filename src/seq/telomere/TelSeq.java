@@ -115,14 +115,16 @@ public class TelSeq {
 
 		command.add(inputBam);
 
-		boolean valid = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, true, false, false, log);
+		boolean valid = CmdLine.runCommandWithFileChecks(Array.toStringArray(command), "", input, outputs, true, false,
+				false, log);
 		return new Ran(valid, command);
 	}
 
 	/**
 	 * Likely tmp method for dumping SRA format first
 	 */
-	public static void runTelSeqSRA(String sraDir, String outDir, String optionalBed, String referenceGenomeFasta, int threads) {
+	public static void runTelSeqSRA(String sraDir, String outDir, String optionalBed, String referenceGenomeFasta,
+			int threads) {
 		ArrayList<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
 		Logger log = new Logger(outDir + ".telseq.log");
 
@@ -152,12 +154,14 @@ public class TelSeq {
 	 * @param log
 	 * 
 	 */
-	private static void runTelSeq(String[] bams, String outDir, String optionalBed, String referenceGenomeFasta, int threads, Logger log) {
+	private static void runTelSeq(String[] bams, String outDir, String optionalBed, String referenceGenomeFasta,
+			int threads, Logger log) {
 		String telseqDir = outDir + "telseq/";
 		new File(telseqDir).mkdirs();
 		log.reportTimeInfo("Assuming telseq is on system path");
 		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
 		ArrayList<String> argPopulator = new ArrayList<String>();
+		argPopulator.add("-m");// merge RG with weighted average same sample
 		String baseDir = telseqDir + "base/";
 		new File(baseDir).mkdirs();
 		// TODO, do either or with optional bed, currently testing
@@ -202,7 +206,8 @@ public class TelSeq {
 		result.add("SRA\t" + Array.toStr(telHeader) + "\tType");
 		for (TelSeqResult telSeqResult : results) {
 			String[] data = Files.getFirstNLinesOfFile(telSeqResult.output, 1, new String[] { "ReadGroup" }, log);
-			result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data) + "\t" + ext.parseDirectoryOfFile(telSeqResult.output));
+			result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data) + "\t"
+					+ ext.parseDirectoryOfFile(telSeqResult.output));
 
 		}
 		Files.writeArrayList(result, finalOut);
@@ -218,7 +223,8 @@ public class TelSeq {
 		}
 	}
 
-	private static void runType(int threads, Logger log, String[] bams, ArrayList<TelSeqResult> results, ArrayList<String> argPopulator, String baseDir) {
+	private static void runType(int threads, Logger log, String[] bams, ArrayList<TelSeqResult> results,
+			ArrayList<String> argPopulator, String baseDir) {
 		TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, log);
 		WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 10, log);
 		while (train.hasNext()) {
@@ -236,14 +242,11 @@ public class TelSeq {
 
 		int threads = 24;
 
-		String usage = "\n" +
-				"telomere.SRAUtils requires 0-1 arguments\n" +
-				"   (1) SRA directory (i.e. sraDir=" + sraDir + " (default))\n" +
-				"   (2) out directory (i.e. outDir=" + outDir + " (default))\n" +
-				"   (3) capture bed (i.e. bed=" + outDir + " (default))\n" +
+		String usage = "\n" + "telomere.SRAUtils requires 0-1 arguments\n" + "   (1) SRA directory (i.e. sraDir="
+				+ sraDir + " (default))\n" + "   (2) out directory (i.e. outDir=" + outDir + " (default))\n"
+				+ "   (3) capture bed (i.e. bed=" + outDir + " (default))\n" +
 
-				PSF.Ext.getNumThreadsCommand(3, threads) +
-				"";
+				PSF.Ext.getNumThreadsCommand(3, threads) + "";
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
