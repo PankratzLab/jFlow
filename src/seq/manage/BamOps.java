@@ -59,15 +59,18 @@ public class BamOps {
 	 * @param log
 	 * @return array of {@link QueryInterval} that can be queried by a bamfile reader
 	 */
-	public static QueryInterval[] convertSegsToQI(Segment[] segs, SAMFileHeader sFileHeader, int bpBuffer, boolean optimize, Logger log) {
+	public static QueryInterval[] convertSegsToQI(Segment[] segs, SAMFileHeader sFileHeader, int bpBuffer, boolean optimize, boolean chr, Logger log) {
 		QueryInterval[] qIntervals = new QueryInterval[segs.length];
 		segs = Segment.sortSegments(segs);
 		for (int i = 0; i < qIntervals.length; i++) {
-			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), true);
+			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), chr);
 			int referenceIndex = sFileHeader.getSequenceIndex(sequenceName);
 			if (referenceIndex < 0) {
-				log.reportError("Error - could not find " + sequenceName + " in the sequence dictionary, halting");
-				return null;
+				referenceIndex = sFileHeader.getSequenceIndex(sequenceName +"T");// MT
+				if (referenceIndex < 0) {
+					log.reportError("Error - could not find " + sequenceName + " in the sequence dictionary, halting");
+					return null;
+				}
 			}
 			qIntervals[i] = new QueryInterval(referenceIndex, segs[i].getStart() - bpBuffer, segs[i].getStop() + bpBuffer);
 		}
