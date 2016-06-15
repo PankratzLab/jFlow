@@ -19,6 +19,8 @@ import htsjdk.samtools.BAMIndexMetaData;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReader.Indexing;
@@ -219,6 +221,37 @@ public class BamOps {
 		// return result;
 		// }
 		//
+	}
+
+	public static int estimateReadSize(String bamFile, int numReads, Logger log) {
+		SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
+		int readsize = 0;
+		SAMRecordIterator iterator = reader.iterator();
+		
+		int readsScanned = 0;
+		while (iterator.hasNext()) {
+			SAMRecord samRecord = iterator.next();
+			if (!samRecord.getReadUnmappedFlag() && samRecord.getCigar().getCigarElements().size() == 1) {
+
+				readsize += samRecord.getReadLength();
+				readsScanned++;
+
+			}
+			if (readsScanned > numReads) {
+				break;
+			}
+		}
+		try {
+			reader.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (readsScanned > 0) {
+			double avg = (double) readsize / readsScanned;
+			return (int) avg;
+		}
+		return -1;
 	}
 
 	public static String getSampleName(String bamFile) {
