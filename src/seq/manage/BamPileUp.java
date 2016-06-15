@@ -71,7 +71,7 @@ public class BamPileUp implements Iterator<BamPile> {
 	private void init() {
 		this.reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
 		log.reportTimeInfo("Optimizing " + intervals.length + " queries for pile up");
-		this.queryIntervals = BamOps.convertSegsToQI(intervals, reader.getFileHeader(), 0, optimize, log);
+		this.queryIntervals = BamOps.convertSegsToQI(intervals, reader.getFileHeader(), 0, optimize,true, log);
 		log.reportTimeInfo("Finished Optimizing " + intervals.length + " queries to " + queryIntervals.length + " intervals for pile up");
 
 		this.sIterator = queryIntervals == null ? reader.iterator() : reader.query(queryIntervals, false);

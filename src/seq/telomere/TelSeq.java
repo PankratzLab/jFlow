@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
+import ca.mcgill.mcb.pcingola.probablility.FisherExactTest;
 import seq.analysis.MitoSeqCN;
 import seq.manage.BEDFileReader;
 import seq.manage.BEDFileReader.BEDFeatureSeg;
@@ -125,6 +126,8 @@ public class TelSeq {
 	 */
 	public static void runTelSeqSRA(String sraDir, String outDir, String optionalBed, String referenceGenomeFasta,
 			int threads) {
+		Logger log = new Logger(outDir + ".telseq.log");
+
 		// ArrayList<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
 		//
 		// ArrayList<String> bamst = new ArrayList<String>();
@@ -136,11 +139,10 @@ public class TelSeq {
 		// log.reportTimeWarning(conv.get(i).getOutputBam() + " must have failed, skipping");
 		// }
 		// }
+		// log.reportTimeInfo("Found " + bamst.size() + " bams to analyze");
 		//
 		// runTelSeq(Array.toStringArray(bamst), outDir, optionalBed, referenceGenomeFasta, threads, log);
-		//
 
-		Logger log = new Logger(outDir + ".telseq.log");
 		log.reportTimeError("John remember to add back in SRA");
 		String[] bams = Files.listFullPaths(outDir + "bams/", ".bam", false);
 		log.reportTimeInfo("Found " + bams.length + " bams");
@@ -203,7 +205,6 @@ public class TelSeq {
 				argPopulatorBuffBed.addAll(argPopulator);
 				argPopulatorBuffBed.add("-e");
 				argPopulatorBuffBed.add(buffBed);
-
 				runType(threads, log, bams, results, argPopulatorBuffBed, buffDir);
 
 			} else {
@@ -220,26 +221,33 @@ public class TelSeq {
 		for (TelSeqResult telSeqResult : results) {
 			String[] data = Files.getFirstNLinesOfFile(telSeqResult.output, 1, new String[] { "ReadGroup" }, log);
 			result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data) + "\t"
-					+ ext.parseDirectoryOfFile(telSeqResult.output));
-
+					+ ext.parseDirectoryOfFile(telSeqResult.output).replaceAll(telseqDir, "").replaceAll("/", ""));
 		}
 		Files.writeArrayList(result, finalOut);
 
 		// can kill this later... going to do mtDNA CN
 
 		if (optionalBed != null) {
+
 			String mitoDir = outDir + "mitoCN/";
 			new File(mitoDir).mkdirs();
+			String baseBed = mitoDir + "base_" + ext.rootOf(optionalBed) + ".bed";
+
+			BEDFileReader reader = new BEDFileReader(optionalBed, false);
+			LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
+			reader.close();
+			segs.writeSegmentRegions(baseBed, true, log);
+
 			String bamsToMito = mitoDir + "bams.txt";
 			Files.writeList(bams, bamsToMito);
-			MitoSeqCN.run(bamsToMito, outDir, optionalBed, referenceGenomeFasta, threads);
+			MitoSeqCN.run(bamsToMito, mitoDir, baseBed, referenceGenomeFasta, false, threads);
 		}
 	}
 
 	private static void runType(int threads, Logger log, String[] bams, ArrayList<TelSeqResult> results,
 			ArrayList<String> argPopulator, String baseDir) {
 		TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, log);
-		WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 10, log);
+		WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 100, log);
 		while (train.hasNext()) {
 			results.add(train.next());
 		}
@@ -250,7 +258,7 @@ public class TelSeq {
 		String sraDir = "/scratch.global/lanej/aric_raw/sra/";
 		String outDir = "/scratch.global/lanej/aric_raw/";
 		String captureBed = "/home/pankrat2/public/bin/ref/VCRome_2_1_hg19_capture_targets.bed";
-		String refGenome = "/home/pankrat2/public/bin/refhg19_canonical.fa";
+		String refGenome = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
 		// String captureBed = null;
 
 		int threads = 24;
