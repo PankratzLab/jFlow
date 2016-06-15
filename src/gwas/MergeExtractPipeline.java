@@ -22,7 +22,7 @@ import filesys.SnpMarkerSet;
 
 public class MergeExtractPipeline {
     
-    private static class DataSource {
+    public static class DataSource {
         String label, dataFile, mapFile, idFile;
         boolean relD, relM, relI;
         public DataSource(String label, String dir, String d, String m, String i) {
@@ -462,7 +462,7 @@ public class MergeExtractPipeline {
         return true;
     }
     
-    private static ArrayList<DataSource> parseDataFile(String runDir, int[][] markerLocations, int[][] regions, String data, int bpWindow, Logger log) {
+    public static ArrayList<DataSource> parseDataFile(String runDir, int[][] markerLocations, int[][] regions, String data, int bpWindow, Logger log) {
         BufferedReader reader; 
         String line, file;
         String[] temp;
@@ -492,7 +492,7 @@ public class MergeExtractPipeline {
                         log.report("Added data source: " + fileToAdd);
                     }
                 } else {
-                    System.err.println("Error - skipping invalid entry in data file: " + line);
+                    log.reportError("Error - skipping invalid entry in data file: " + line);
                 }
             }
             reader.close();

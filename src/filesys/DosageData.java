@@ -135,7 +135,7 @@ public class DosageData implements Serializable {
 		}
 	}
 	
-	public static DosageData loadPlinkBinary(String dir, String plinkRoot, String regionsToUseFile, String markersToUseFile, String markerNamePrepend, boolean loadMissingAsNaN) {
+	public static DosageData loadPlinkBinary(String dir, String plinkRoot, String markerNamePrepend, boolean loadMissingAsNaN) {
 	    DosageData dd = new DosageData();
 	    
 	    dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false, new int[]{0, 1, 2, 3, 4, 5}, false);
@@ -449,7 +449,7 @@ public class DosageData implements Serializable {
 	}
 	
 	public DosageData(String dosageFile, String idFile, String mapFile, boolean verbose, Logger log) {
-	    this(dosageFile, idFile, mapFile, null, null, verbose, log);
+	    this(dosageFile, idFile, mapFile, null, null, null, verbose, log);
 	}
 
 	public DosageData(String dosageFile, String idFile, String mapFile, int type, boolean verbose, Logger log) {
@@ -463,14 +463,54 @@ public class DosageData implements Serializable {
 	public DosageData(String dosageFile, String idFile, String mapFile, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
 	    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regionsToUseFile, markersToUseFile, null, verbose, log);
 	}
+
+	public DosageData(String dosageFile, String idFile, String mapFile, int[][] regionsToUse, String[] markersToUse, boolean verbose, Logger log) {
+	    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regionsToUse, markersToUse, null, verbose, log);
+	}
 	
 	public DosageData(String dosageFile, String idFile, String mapFile, int type, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
 	    this(dosageFile, idFile, mapFile, PARAMETERS[type], regionsToUseFile, markersToUseFile, null, verbose, log);
 	}
 
 	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, String regionsToUseFile, String markersToUseFile, String markerNamePrepend, boolean verbose, Logger log) {
+	    this(dosageFile, idFile, mapFile, parameters, loadRegions(regionsToUseFile, log), loadMarkers(markersToUseFile, log), markerNamePrepend, verbose, log);
+	}
+
+	private static int[][] loadRegions(String regionsToUseFile, Logger log) {
+	    int[][] regions = null;
+
+        if (regionsToUseFile != null && !"".equals(regionsToUseFile)) {
+            if (Files.exists(regionsToUseFile)) {
+                String[] rgns = HashVec.loadFileToStringArray(regionsToUseFile, false, false, new int[]{0}, true, false, "\t");
+                regions = new int[rgns.length][];
+                for (int i = 0; i < rgns.length; i++) {
+                    regions[i] = Positions.parseUCSClocation(rgns[i]);
+                }
+            }
+        } else {
+            log.reportError("Error - specified regions file: \"" + regionsToUseFile + "\" doesn't exist!");
+        }
+        
+        return regions;
+	}
+	
+	private static String[] loadMarkers(String markersToUseFile, Logger log) {
+	    String[] markers = null;
+        
+        if (markersToUseFile != null && !"".equals(markersToUseFile)) {
+            if (Files.exists(markersToUseFile)) {
+                markers = HashVec.loadFileToStringArray(markersToUseFile, false, false, new int[]{0}, true, false, "\t");
+            }
+        } else {
+            log.reportError("Error - specified markers file: \"" + markersToUseFile + "\" doesn't exist!");
+        }
+        
+        return markers;
+	}
+	
+	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, int[][] regions, String[] markers, String markerNamePrepend, boolean verbose, Logger log) {
 	    if (parameters[2] == PLINK_BINARY_FORMAT) {
-	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), ext.rootOf(dosageFile, true), regionsToUseFile, markersToUseFile, markerNamePrepend, true);
+	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), ext.rootOf(dosageFile, true), markerNamePrepend, true);
 	        this.alleles = dd.alleles;
 	        this.chrs = dd.chrs;
 	        this.positions = dd.positions;
@@ -496,21 +536,17 @@ public class DosageData implements Serializable {
 		
 		boolean hasRgns = false;
 		boolean hasMkrs = false;
-		if (regionsToUseFile != null && !"".equals(regionsToUseFile)) {
-		    if (Files.exists(regionsToUseFile)) {
-		        hasRgns = true;
-		    }
+		if (regions != null) {
+	        hasRgns = true;
 		}
-		if (markersToUseFile != null && !"".equals(markersToUseFile)) {
-		    if (Files.exists(markersToUseFile)) {
-		        hasMkrs = true;
-		    }
+		if (markers != null) {
+	        hasMkrs = true;
 		}
 		if (hasRgns && hasMkrs) {
 		    log.reportError("Cannot specify both a regions file and a markers file!");
 		    return;
 		}
-		markersToKeep = filterMarkers(markerNames, regionsToUseFile, markersToUseFile, verbose, log);
+		markersToKeep = filterMarkers(markerNames, regions, markers, verbose, log);
 		System.out.println("Keeping " + Array.booleanArraySum(markersToKeep) + " markers out of " + markerNames.length);
 		
 		keepTotal = Array.booleanArraySum(markersToKeep);
@@ -729,49 +765,33 @@ public class DosageData implements Serializable {
 		}
 	}
 	
-	private boolean[] filterMarkers(String[] markerNames, String regionsToUseFile, String markersToUseFile, boolean verbose, Logger log) {
+	private boolean[] filterMarkers(String[] markerNames, int[][] regionsToUse, String[] markersToUse, boolean verbose, Logger log) {
 	    boolean[] markersToKeep = Array.booleanArray(markerNames.length, true);
-	    if (regionsToUseFile != null && !"".equals(regionsToUseFile)) {
-            if (Files.exists(regionsToUseFile)) {
-                String[] rgns = HashVec.loadFileToStringArray(regionsToUseFile, false, false, new int[]{0}, true, false, "\t");
-                int[][] regions = new int[rgns.length][];
-                for (int i = 0; i < rgns.length; i++) {
-                    regions[i] = Positions.parseUCSClocation(rgns[i]);
-                }
-                markerSet = markerSet.trim(regions, verbose, log);
-                markersToKeep = Array.booleanArray(markerNames.length, true);
-                HashSet<String> newMarkerSet = HashVec.loadToHashSet(markerSet.getMarkerNames());
-                for (int i = 0; i < markerNames.length; i++) {
-                    markersToKeep[i] = newMarkerSet.contains(markerNames[i]);
-                }
-                newMarkerSet = null;
-            } else {
-                log.reportError("Error - specified markers file: \"" + markersToUseFile + "\" doesn't exist!");
-                markersToKeep = Array.booleanArray(markerNames.length, true);
+        if (regionsToUse != null) {
+            markerSet = markerSet.trim(regionsToUse, verbose, log);
+            markersToKeep = Array.booleanArray(markerNames.length, true);
+            HashSet<String> newMarkerSet = HashVec.loadToHashSet(markerSet.getMarkerNames());
+            for (int i = 0; i < markerNames.length; i++) {
+                markersToKeep[i] = newMarkerSet.contains(markerNames[i]);
             }
+            newMarkerSet = null;
         }
-        if (markersToUseFile != null && !"".equals(markersToUseFile)) {
-            if (Files.exists(markersToUseFile)) {
-                String[] mkrs = HashVec.loadFileToStringArray(markersToUseFile, false, false, new int[]{0}, true, false, "\t");
-                HashSet<String> mkrsToKeep = new HashSet<String>();
-                for (String m : mkrs) {
-                    mkrsToKeep.add(m);
-                }
-                markersToKeep = Array.booleanArray(markerNames.length, false);
-                for (int i = 0; i < markerNames.length; i++) {
-                    if (mkrsToKeep.contains(markerNames[i])) {
-                        markersToKeep[i] = true;
-                        mkrsToKeep.remove(markerNames[i]);
-                    }
-                }
-                if (mkrsToKeep.size() > 0) {
-                    log.reportTimeWarning(mkrsToKeep.size() + " markers listed in extract file not found in map file");
-                }
-                markerSet = markerSet.trim(mkrs, true, verbose, log);
-            } else {
-                log.reportError("Error - specified markers file: \"" + markersToUseFile + "\" doesn't exist!");
-                markersToKeep = Array.booleanArray(markerNames.length, true);
+        if (markersToUse != null) {
+            HashSet<String> mkrsToKeep = new HashSet<String>();
+            for (String m : markersToUse) {
+                mkrsToKeep.add(m);
             }
+            markersToKeep = Array.booleanArray(markerNames.length, false);
+            for (int i = 0; i < markerNames.length; i++) {
+                if (mkrsToKeep.contains(markerNames[i])) {
+                    markersToKeep[i] = true;
+                    mkrsToKeep.remove(markerNames[i]);
+                }
+            }
+            if (mkrsToKeep.size() > 0) {
+                log.reportTimeWarning(mkrsToKeep.size() + " markers listed in extract file not found in map file");
+            }
+            markerSet = markerSet.trim(markersToUse, true, verbose, log);
         }
         return markersToKeep;
     }
