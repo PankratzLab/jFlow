@@ -58,7 +58,7 @@ public class DosageData implements Serializable {
 											  {SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT,     3, 0, 1,  3,  4, CHR_INFO_IN_FILENAME,  2, 0, 1, 3, 3}, // .impute2
 											  {FID_IID_TYPE,          3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0,  3,  4, -1,  2, 0, 6, 3, 3}, // .db.xln
 											  {SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT,     1, 1, 0,  1,  2, -1, -1, 2, 1, 4, 4}, // .dose (BEAGLE)
-											  {FID_IID_TYPE,          3, PLINK_BINARY_FORMAT},
+											  {FID_IID_TYPE,          3, PLINK_BINARY_FORMAT,       -1,-1,-1, -1, -1, -1, -1,-1,-1,-1,-1},
 											  {IID_TYPE,              1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1, -1, -1, -1, 0, 0, 3, 3}, // freeze5
 	};
 
@@ -135,24 +135,59 @@ public class DosageData implements Serializable {
 		}
 	}
 	
-	public static DosageData loadPlinkBinary(String dir, String plinkRoot, String markerNamePrepend, boolean loadMissingAsNaN) {
+	public static DosageData loadPlinkBinary(String dir, int[][] regionsToKeep, String[] markersToKeep, String plinkRoot, String markerNamePrepend, boolean loadMissingAsNaN) {
 	    DosageData dd = new DosageData();
 	    
+	    String[][] bimData = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".bim", false, new int[]{0, 1, 2, 3, 4, 5}, false);
+	    HashSet<String> markerSet = markersToKeep == null ? null : new HashSet<String>();
+	    if (markersToKeep != null) {
+	        for (String s : markersToKeep) {
+	            markerSet.add(s);
+	        }
+	    }
+	    HashSet<String> bimMarkers = new HashSet<String>();
+	    for (int i = 0; i < bimData.length; i++) {
+	        bimMarkers.add(bimData[i][1]);
+	    }
+	    
+	    
+	    boolean[] markersToInclude = Array.booleanArray(bimData.length, false);
+	    markers : for (int i = 0; i < bimData.length; i++) {
+            if (markerSet != null && markerSet.contains(bimData[i][1])) {
+                markersToInclude[i] = true;
+                continue;
+            } 
+            if (regionsToKeep != null) {
+                int chr = (int) decodeChr(bimData[i][0]);
+                int pos = Integer.parseInt(bimData[i][3]);
+                for (int[] rgn : regionsToKeep) {
+                    if (rgn[0] == chr) {
+                        if ((rgn.length == 2 && rgn[1] == pos) || (rgn.length == 3 && rgn[1] <= pos && rgn[2] >= pos)) {
+                            markersToInclude[i] = true;
+                            continue markers;
+                        }
+                    }
+                }
+	        }
+	    }
+	    
+	    
 	    dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false, new int[]{0, 1, 2, 3, 4, 5}, false);
-	    int numMarkers = Files.countLines(dir + plinkRoot + ".bim", 0);
+	    int numMarkers = Array.booleanArraySum(markersToInclude);//Files.countLines(dir + plinkRoot + ".bim", 0);
 	    dd.alleles = new char[numMarkers][2];
 	    dd.chrs = new byte[numMarkers];
 	    dd.positions = new int[numMarkers];
 	    
 	    String[] markerNames = new String[numMarkers];
-	    String[][] bimData = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".bim", false, new int[]{0, 1, 2, 3, 4, 5}, false);
-	    
+	    int index = 0;
 	    for (int i = 0; i < bimData.length; i++) {
-	        markerNames[i] = (null == markerNamePrepend ? "" : (markerNamePrepend.endsWith("_") ? markerNamePrepend : markerNamePrepend + "_")) + bimData[i][1];
-	        dd.chrs[i] = decodeChr(bimData[i][0]);
-	        dd.positions[i] = Integer.parseInt(bimData[i][3]);
-	        dd.alleles[i][0] = bimData[i][4].charAt(0);
-	        dd.alleles[i][1] = bimData[i][5].charAt(0);
+	        if (!markersToInclude[i]) continue;
+	        markerNames[index] = (null == markerNamePrepend ? "" : (markerNamePrepend.endsWith("_") ? markerNamePrepend : markerNamePrepend + "_")) + bimData[i][1];
+	        dd.chrs[index] = decodeChr(bimData[i][0]);
+	        dd.positions[index] = Integer.parseInt(bimData[i][3]);
+	        dd.alleles[index][0] = bimData[i][4].charAt(0);
+	        dd.alleles[index][1] = bimData[i][5].charAt(0);
+	        index++;
 	    }
 	    dd.markerSet = new SnpMarkerSet(markerNames, dd.chrs, dd.positions, dd.alleles, null, false, false);
         dd.dosageValues = new float[markerNames.length][dd.ids.length];
@@ -168,12 +203,16 @@ public class DosageData implements Serializable {
                 int famCnt = dd.ids.length;
                 int blockSize = (int) Math.ceil((double) famCnt / 4.0); 
                 
-                for (int i = 0; i < dd.positions.length; i++) {
-                    if (dd.positions[i] == -1) {
-                        dd.dosageValues[i] = Array.floatArray(dd.ids.length, -1); // TODO is this correct code? i.e. will this ever occur?
+                index = -1;
+                for (int i = 0; i < bimData.length; i++) {
+                    in.seek(3 + i * blockSize); // ALWAYS seek forward
+                    if (!markersToInclude[i]) 
+                        continue;
+                    index++;
+                    if (dd.positions[index] == -1) {
+                        dd.dosageValues[index] = Array.floatArray(dd.ids.length, -1); // TODO is this correct code? i.e. will this ever occur?
                         continue;
                     }
-                    in.seek(3 + i * blockSize);
                     
                     byte[] markerBytes = new byte[blockSize];
                     byte[] sampGeno = new byte[dd.ids.length];
@@ -190,11 +229,11 @@ public class DosageData implements Serializable {
                             sampGeno[idInd] = genotypes[g];
                         }
                     }
-                    dd.dosageValues[i] = Array.toFloatArray(sampGeno);
+                    dd.dosageValues[index] = Array.toFloatArray(sampGeno);
                     if (loadMissingAsNaN) {
-                        for (int n = 0; n < dd.dosageValues[i].length; n++) {
-                            if (dd.dosageValues[i][n] == -1) {
-                                dd.dosageValues[i][n] = Float.NaN;
+                        for (int n = 0; n < dd.dosageValues[index].length; n++) {
+                            if (dd.dosageValues[index][n] == -1) {
+                                dd.dosageValues[index][n] = Float.NaN;
                             }
                         }
                     }
@@ -473,7 +512,7 @@ public class DosageData implements Serializable {
 	}
 
 	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, String regionsToUseFile, String markersToUseFile, String markerNamePrepend, boolean verbose, Logger log) {
-	    this(dosageFile, idFile, mapFile, parameters, loadRegions(regionsToUseFile, log), loadMarkers(markersToUseFile, log), markerNamePrepend, verbose, log);
+	    this(dosageFile, idFile, mapFile, parameters, regionsToUseFile == null ? null : loadRegions(regionsToUseFile, log), markersToUseFile == null ? null : loadMarkers(markersToUseFile, log), markerNamePrepend, verbose, log);
 	}
 
 	private static int[][] loadRegions(String regionsToUseFile, Logger log) {
@@ -510,7 +549,7 @@ public class DosageData implements Serializable {
 	
 	public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters, int[][] regions, String[] markers, String markerNamePrepend, boolean verbose, Logger log) {
 	    if (parameters[2] == PLINK_BINARY_FORMAT) {
-	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), ext.rootOf(dosageFile, true), markerNamePrepend, true);
+	        DosageData dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), regions, markers, ext.rootOf(dosageFile, true), markerNamePrepend, true);
 	        this.alleles = dd.alleles;
 	        this.chrs = dd.chrs;
 	        this.positions = dd.positions;
@@ -547,7 +586,7 @@ public class DosageData implements Serializable {
 		    return;
 		}
 		markersToKeep = filterMarkers(markerNames, regions, markers, verbose, log);
-		System.out.println("Keeping " + Array.booleanArraySum(markersToKeep) + " markers out of " + markerNames.length);
+		log.report("Keeping " + Array.booleanArraySum(markersToKeep) + " markers out of " + markerNames.length);
 		
 		keepTotal = Array.booleanArraySum(markersToKeep);
 		
@@ -753,6 +792,10 @@ public class DosageData implements Serializable {
 			        markerNames[i] = (markerNamePrepend.endsWith("_") ? markerNamePrepend : markerNamePrepend + "_") + markerNames[i];
 			    }
 			    markerSet.convertMarkerNamesToRSnumbers(markerNames, true, log); // resets/recreates the SnpMarkerSet's internal RSnumber/non-RS marker lists
+			}
+			
+			if (markerSet.getAlleles() == null && alleles != null) {
+			    markerSet.setAlleles(alleles);
 			}
 
 			reader.close();
@@ -1732,9 +1775,10 @@ public class DosageData implements Serializable {
 //		outfile = "D:/LITE/1000Gimputation/blacks/ABO_blacks_fullRegion.db.xln";
 //		from=6;
 //		to=7;
-
+		
 		from = from==-1?determineType(filename):from;
 		to = to==-1?determineType(outfile):to;
+		
 		try {
 			log = new Logger(logfile);
 			if (PARAMETERS[from][3] < PARAMETERS[to][3]) {

@@ -696,7 +696,11 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		}
 	}
 	
-	public void parseSNPlocations(String db, String mergeDB, Logger log) {
+	public void setAlleles(char[][] alleles2) {
+        this.alleles = alleles2;
+    }
+
+    public void parseSNPlocations(String db, String mergeDB, Logger log) {
 		SnpMarkerSet dbMarkerSet;
 		int[] dbRSnumbers, dbPositions;
 		String[] markerNames;
