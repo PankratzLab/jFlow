@@ -206,6 +206,7 @@ public class MitoSeqCN {
 				return new MitoCNResult(sample, numMitoReads, numXReads, numYReads, numOffTarget, mitoLength, genomeBinsMinusBinsCaputure.getBpCovered(), bamIndexStats, outputMTBam);
 			} catch (Exception e) {
 				log.reportTimeError("Could not process " + bam);
+				log.reportException(e);
 				return null;
 			}
 		}

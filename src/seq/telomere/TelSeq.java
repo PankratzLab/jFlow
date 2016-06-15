@@ -12,6 +12,7 @@ import seq.telomere.SRAUtils.SRAConversionResult;
 import common.Array;
 import common.CmdLine;
 import common.Files;
+import common.HashVec;
 import common.Logger;
 import common.PSF;
 import common.WorkerTrain;
@@ -146,7 +147,7 @@ public class TelSeq {
 		log.reportTimeError("John remember to add back in SRA");
 		String[] bams = Files.listFullPaths(outDir + "bams/", ".bam", false);
 		log.reportTimeInfo("Found " + bams.length + " bams");
-		runTelSeq(bams, outDir, optionalBed, referenceGenomeFasta, threads, log);
+		runTelSeq(bams, outDir, optionalBed, referenceGenomeFasta, threads, false, false, log);
 
 	}
 
@@ -164,7 +165,11 @@ public class TelSeq {
 	 * 
 	 */
 	private static void runTelSeq(String[] bams, String outDir, String optionalBed, String referenceGenomeFasta,
-			int threads, Logger log) {
+			int threads, boolean onlyExome,boolean chr, Logger log) {
+		if (log == null) {
+			log = new Logger(outDir + ".telseq.log");
+
+		}
 		String telseqDir = outDir + "telseq/";
 		new File(telseqDir).mkdirs();
 		log.reportTimeInfo("Assuming telseq is on system path");
@@ -174,7 +179,9 @@ public class TelSeq {
 		String baseDir = telseqDir + "base/";
 		new File(baseDir).mkdirs();
 		// TODO, do either or with optional bed, currently testing
-		runType(threads, log, bams, results, argPopulator, baseDir);
+		if (!onlyExome) {
+			runType(threads, log, bams, results, argPopulator, baseDir);
+		}
 		if (optionalBed != null) {
 			if (Files.exists(optionalBed)) {
 				BEDFileReader reader = new BEDFileReader(optionalBed, false);
@@ -191,7 +198,7 @@ public class TelSeq {
 				log.reportTimeInfo("writing bed to " + baseBed);
 				new File(dirBed).mkdirs();
 
-				segs.writeSegmentRegions(baseBed, true, log);
+				segs.writeSegmentRegions(baseBed, !chr, log);
 
 				runType(threads, log, bams, results, argPopulatorBed, dirBed);
 
@@ -199,7 +206,7 @@ public class TelSeq {
 				new File(buffDir).mkdirs();
 				String buffBed = buffDir + "buff_20KB_" + ext.rootOf(optionalBed) + ".bed";
 				log.reportTimeInfo("writing bed to " + buffBed);
-				segs.getBufferedSegmentSet(20000).writeSegmentRegions(buffBed, true, log);
+				segs.getBufferedSegmentSet(20000).writeSegmentRegions(buffBed, !chr, log);
 
 				ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
 				argPopulatorBuffBed.addAll(argPopulator);
@@ -259,6 +266,9 @@ public class TelSeq {
 		String outDir = "/scratch.global/lanej/aric_raw/";
 		String captureBed = "/home/pankrat2/public/bin/ref/VCRome_2_1_hg19_capture_targets.bed";
 		String refGenome = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
+		String bamList = null;
+		boolean onlyExome =false;
+		boolean chr = false;
 		// String captureBed = null;
 
 		int threads = 24;
@@ -279,8 +289,17 @@ public class TelSeq {
 			} else if (args[i].startsWith("bed=")) {
 				captureBed = args[i].split("=")[1];
 				numArgs--;
-			} else if (args[i].startsWith("outDir")) {
+			} else if (args[i].startsWith("outDir=")) {
 				outDir = args[i].split("=")[1];
+				numArgs--;
+			} else if (args[i].startsWith("bams=")) {
+				bamList = args[i].split("=")[1];
+				numArgs--;
+			}else if (args[i].startsWith("-exome")) {
+				onlyExome =true;
+				numArgs--;
+			}else if (args[i].startsWith("-chr")) {
+				chr =true;
 				numArgs--;
 			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				threads = ext.parseIntArg(args[i]);
@@ -294,7 +313,11 @@ public class TelSeq {
 			System.exit(1);
 		}
 		try {
-			runTelSeqSRA(sraDir, outDir, captureBed, refGenome, threads);
+			if (bamList != null) {
+				runTelSeq(HashVec.loadFileToStringArray(bamList, false, new int[] { 0 }, true), outDir, captureBed, refGenome, threads, onlyExome,chr, null);
+			} else {
+				runTelSeqSRA(sraDir, outDir, captureBed, refGenome, threads);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
