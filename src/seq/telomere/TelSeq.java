@@ -156,25 +156,25 @@ public class TelSeq {
 			int threads) {
 		Logger log = new Logger(outDir + ".telseq.log");
 
-		ArrayList<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
+		// ArrayList<SRAConversionResult> conv = SRAUtils.run(sraDir, outDir, threads);
+		//
+		// ArrayList<String> bamst = new ArrayList<String>();
+		// for (int i = 0; i < conv.size(); i++) {
+		// if (conv.get(i).isValid() && new File(conv.get(i).getOutputBam()).getTotalSpace() > 0) {
+		// bamst.add(conv.get(i).getOutputBam());
+		//
+		// } else {
+		// log.reportTimeWarning(conv.get(i).getOutputBam() + " must have failed, skipping");
+		// }
+		// }
+		// log.reportTimeInfo("Found " + bamst.size() + " bams to analyze");
+		//
+		// runTelSeq(Array.toStringArray(bamst), outDir, optionalBed, referenceGenomeFasta, threads, false, false, log);
 
-		ArrayList<String> bamst = new ArrayList<String>();
-		for (int i = 0; i < conv.size(); i++) {
-			if (conv.get(i).isValid() && new File(conv.get(i).getOutputBam()).getTotalSpace() > 0) {
-				bamst.add(conv.get(i).getOutputBam());
-
-			} else {
-				log.reportTimeWarning(conv.get(i).getOutputBam() + " must have failed, skipping");
-			}
-		}
-		log.reportTimeInfo("Found " + bamst.size() + " bams to analyze");
-
-		runTelSeq(Array.toStringArray(bamst), outDir, optionalBed, referenceGenomeFasta, threads, false, false, log);
-
-		// log.reportTimeError("John remember to add back in SRA");
-		// String[] bams = Files.listFullPaths(outDir + "bams/", ".bam", false);
-		// log.reportTimeInfo("Found " + bams.length + " bams");
-		// runTelSeq(bams, outDir, optionalBed, referenceGenomeFasta, threads, false, false, log);
+		log.reportTimeError("John remember to add back in SRA");
+		String[] bams = Files.listFullPaths(outDir + "bams/", ".bam", false);
+		log.reportTimeInfo("Found " + bams.length + " bams");
+		runTelSeq(bams, outDir, optionalBed, referenceGenomeFasta, threads, false, false, log);
 
 	}
 
@@ -256,10 +256,12 @@ public class TelSeq {
 		ArrayList<String> result = new ArrayList<String>();
 		result.add("Sample\tSRA\t" + Array.toStr(telHeader) + "\tType\tSampleName\tReadSize");
 		for (TelSeqResult telSeqResult : results) {
-			String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null, false);
-			for (int i = 0; i < data.length; i++) {
-				result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data[i]) + "\t"
-						+ telSeqResult.type + "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
+			if (Files.exists(telSeqResult.output)) {
+				String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null, false);
+				for (int i = 0; i < data.length; i++) {
+					result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data[i]) + "\t"
+							+ telSeqResult.type + "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
+				}
 			}
 		}
 		Files.writeArrayList(result, finalOut);
