@@ -2972,7 +2972,7 @@ public class Files {
 			while (num != 0) {
 			    num = lnr.skip(8192);
 			}
-			int lines = lnr.getLineNumber();
+			int lines = lnr.getLineNumber() + 1;
 			lnr.close();
 			return lines - numberOfLinesNotToCount;
 	    } catch (FileNotFoundException fnfe) {

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 import stats.Histogram;
 import stats.ProbDist;
@@ -631,15 +632,25 @@ public class GeneScorePipeline {
     	for (String dFile : dataFiles) {
     		String dataFile = ext.rootOf(dFile, false);
     		for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
-    			String[][] results = HitWindows.determine(metaDir + dFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES, new Logger());
-    			if (results == null) {
+//    			String[][] results = HitWindows.determine(metaDir + dFile, filePrefix.getValue().indexThreshold, filePrefix.getValue().windowMinSizePerSide, filePrefix.getValue().windowExtensionThreshold, DEFAULT_ADDL_ANNOT_VAR_NAMES, new Logger());
+//    			if (results == null) {
+//    			    log.reportError("HitWindows result was null for "+dFile);
+//    			} else {
+//    			    log.report(ext.getTime()+"]\tFound " + results.length + " hit windows");
+//        			HashSet<String> hitMkrSet = new HashSet<String>();
+//        			for (int i = 1; i < results.length; i++) { // skip header line
+//        			    hitMkrSet.add(results[i][1]);
+//        			}
+
+    		    String[] mkrs = HashVec.loadFileToStringArray(metaDir + dFile, true, new int[]{0}, false);
+    			if (mkrs == null) {
     				log.reportError("HitWindows result was null for "+dFile);
     			} else {
-    			    log.report(ext.getTime()+"]\tFound " + results.length + " hit windows");
+    			    log.report(ext.getTime()+"]\tFound " + mkrs.length + " hit windows");
     			
     				HashSet<String> hitMkrSet = new HashSet<String>();
-    				for (int i = 1; i < results.length; i++) { // skip header line
-    					hitMkrSet.add(results[i][1]);
+    				for (int i = 1; i < mkrs.length; i++) { // skip header line
+    					hitMkrSet.add(mkrs[i]);
     				}
     			
     				// read betas and freqs for hitwindow markers
@@ -1006,19 +1017,14 @@ public class GeneScorePipeline {
 				}
 				String[][] bimData = HashVec.loadFileToStringMatrix(crossFilterFile, true, finalCols, false);
 				
+				PrintWriter writer = Files.getAppropriateWriter(prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln");
 				HashMap<String, String[]> dataList = new HashMap<String, String[]>();
 				for (String[] markerData : bimData) {
 				    if (hitMrkSet.contains(markerData[0])) {
 				        dataList.put(markerData[0], Array.subArray(markerData, 1));
+				        writer.println(markerData[0] + "\t" + Array.toStr(Array.subArray(markerData, 1), "\t"));
 				    }
 				}
-				
-				PrintWriter writer = Files.getAppropriateWriter(prefDir + "\\subsetData_" + filePrefix.getKey() + ".xln");
-                for (String[] markerData : bimData) {
-                    if (hitMrkSet.contains(markerData[0])) {
-                        writer.println(markerData[0] + "\t" + Array.toStr(Array.subArray(markerData, 1), "\t"));
-                    }
-                }
 				writer.flush();
 				writer.close();
 				
@@ -1053,25 +1059,61 @@ public class GeneScorePipeline {
                 float[][] dose = data.getDosageValues();
                 String[] markers = data.getMarkerSet().getMarkerNames();
                 char[][] alleles = data.getMarkerSet().getAlleles();
+                ArrayList<String> mkrs = new ArrayList<String>();
+                ArrayList<char[]> mkrAlleles = new ArrayList<char[]>();
+                HashMap<String, Float> freqs = new HashMap<String, Float>();
+                for (int m = 0; m < markers.length; m++) {
+                    String mkr = markers[m];
+                    if (!markerAlleleBeta.containsKey(mkr)/* || Float.isNaN(dose[m][i])*/) {
+                        continue;
+                    }
+                    mkrs.add(mkr);
+                    mkrAlleles.add(alleles[m]);
+                    int cnt = 0;
+                    float tot = 0;
+                    for (int i = 0; i < ids.length; i++) {
+                        if (!Float.isNaN(dose[m][i])) {
+                            tot += dose[m][i];
+                            cnt++;
+                        }
+                    }
+                    freqs.put(mkr, tot/cnt);
+                }
                 for (int i = 0; i < ids.length; i++) {
                     float scoreSum = 0;
+                    int cnt2 = 0;
                     int cnt = 0;
+                    ArrayList<Float> indivDosages = new ArrayList<Float>();
                     for (int m = 0; m < markers.length; m++) {
                         String mkr = markers[m];
                         if (!markerAlleleBeta.containsKey(mkr)) {
                             continue;
                         }
-                        float beta = Float.parseFloat(markerAlleleBeta.get(mkr)[1]);
-                        char allele = markerAlleleBeta.get(mkr)[0].toUpperCase().charAt(0);
-                        char mkrAllele = (alleles[m][0] + "").toUpperCase().charAt(0);
-                        if (allele != mkrAllele) {
-                            beta *= -1; 
-                        }
-                        scoreSum += dose[m][i] * beta;
-                        cnt++;
+                        indivDosages.add(dose[m][i]);
                     }
-                    scoreWriter.println(ids[i][0] + "\t" + ids[i][1] + "\t" + (scoreSum/(float)cnt));
+                    
+                    for (int mk = 0; mk < mkrs.size(); mk++) {
+                        String mkr = mkrs.get(mk);
+                        char mkrAllele1 = mkrAlleles.get(mk)[0];
+                        char mkrAllele2 = mkrAlleles.get(mk)[1];
+                        float dosage = indivDosages.get(mk);
+                        boolean isNaN = Float.isNaN(dosage);
+                        String[] alleleBeta = markerAlleleBeta.get(mkr);
+                        float beta = Float.parseFloat(alleleBeta[1]);
+                        char scoringAllele = markerAlleleBeta.get(mkr)[0].toUpperCase().charAt(0);
+                        if (scoringAllele == mkrAllele1 || scoringAllele == Sequence.flip(mkrAllele1)) {
+                            cnt += isNaN ? 0 : 1; 
+                            cnt2 += isNaN ? 0 : (2.0 - dosage);
+                            scoreSum += (2.0 - (isNaN ? freqs.get(mkr) : dosage)) * beta;
+                        } else if (scoringAllele == mkrAllele2 || scoringAllele == Sequence.flip(mkrAllele2)) {
+                            cnt += isNaN ? 0 : 1; 
+                            cnt2 += isNaN ? 0 : dosage; 
+                            scoreSum += (isNaN ? freqs.get(mkr) : dosage) * beta;
+                        }
+                    }
+                    scoreWriter.println(ids[i][0] + "\t" + ids[i][1] + "\t" + markers.length + "\t" + (2*cnt) + "\t" + cnt2 + "\t" + ext.formDeci(scoreSum, 3));
                 }
+           
                 scoreWriter.flush();
                 scoreWriter.close();
             }
