@@ -59,8 +59,7 @@ public class HitWindows {
 			}
 			count = 0;
 //			log.report("Parsing... "+filename);
-			while (reader.ready()) {
-				temp = reader.readLine();
+			while ((temp = reader.readLine()) != null) {
 				if (delimiter.equals(",")) {
 					line = ext.splitCommasIntelligently(temp, true, log);
 				} else {
