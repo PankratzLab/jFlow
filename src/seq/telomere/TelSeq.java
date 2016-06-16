@@ -202,7 +202,7 @@ public class TelSeq {
 		log.reportTimeInfo("Assuming telseq is on system path");
 		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
 		ArrayList<String> argPopulator = new ArrayList<String>();
-		argPopulator.add("-u");// doesn't look like telseq handles RGs properly
+		argPopulator.add("-m");// doesn't look like telseq handles RGs properly
 		String baseDir = telseqDir + "base/";
 		new File(baseDir).mkdirs();
 		// TODO, do either or with optional bed, currently testing
@@ -228,19 +228,21 @@ public class TelSeq {
 				segs.writeSegmentRegions(baseBed, !chr, log);
 
 				runType(threads, log, bams, results, argPopulatorBed, dirBed, TYPE.BED);
+				if (!onlyExome) {
 
-				String buffDir = telseqDir + "buff_20KB_" + ext.rootOf(optionalBed) + "/";
-				new File(buffDir).mkdirs();
-				String buffBed = buffDir + "buff_20KB_" + ext.rootOf(optionalBed) + ".bed";
-				log.reportTimeInfo("writing bed to " + buffBed);
-				segs.getBufferedSegmentSet(20000).writeSegmentRegions(buffBed, !chr, log);
+					String buffDir = telseqDir + "buff_20KB_" + ext.rootOf(optionalBed) + "/";
+					new File(buffDir).mkdirs();
+					String buffBed = buffDir + "buff_20KB_" + ext.rootOf(optionalBed) + ".bed";
+					log.reportTimeInfo("writing bed to " + buffBed);
+					segs.getBufferedSegmentSet(20000).writeSegmentRegions(buffBed, !chr, log);
 
-				ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
-				argPopulatorBuffBed.addAll(argPopulator);
-				argPopulatorBuffBed.add("-e");
-				argPopulatorBuffBed.add(buffBed);
+					ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
+					argPopulatorBuffBed.addAll(argPopulator);
+					argPopulatorBuffBed.add("-e");
+					argPopulatorBuffBed.add(buffBed);
 
-				runType(threads, log, bams, results, argPopulatorBuffBed, buffDir, TYPE.BUFFERED_BED);
+					runType(threads, log, bams, results, argPopulatorBuffBed, buffDir, TYPE.BUFFERED_BED);
+				}
 
 			} else {
 				log.reportFileNotFound(optionalBed);
@@ -252,11 +254,13 @@ public class TelSeq {
 		String[] telHeader = Files.getHeaderOfFile(results.get(0).output, log);
 
 		ArrayList<String> result = new ArrayList<String>();
-		result.add("SRA\t" + Array.toStr(telHeader) + "\tType\tSampleName\tReadSize");
+		result.add("Sample\tSRA\t" + Array.toStr(telHeader) + "\tType\tSampleName\tReadSize");
 		for (TelSeqResult telSeqResult : results) {
-			String[] data = Files.getFirstNLinesOfFile(telSeqResult.output, 1, new String[] { "ReadGroup" }, log);
-			result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data) + "\t"
-					+ telSeqResult.type + "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
+			String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null, false);
+			for (int i = 0; i < data.length; i++) {
+				result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data[i]) + "\t"
+						+ telSeqResult.type + "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
+			}
 		}
 		Files.writeArrayList(result, finalOut);
 
