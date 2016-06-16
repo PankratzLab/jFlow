@@ -23,17 +23,25 @@ import filesys.LocusSet;
 //http://goggable.areteh.co:3000/RotBlauer/IntallingTelSeq for telseq install instructions
 public class TelSeq {
 
+	private enum TYPE {
+		BASE,
+		BED,
+		BUFFERED_BED;
+	}
+
 	private static class TelSeqResult {
 		private String output;
 		private Ran ran;
 		private String sample;
 		private int readSizeUsed;
+		private TYPE type;
 
-		public TelSeqResult(String output, Ran ran, String sample, int readSizeUsed) {
+		public TelSeqResult(String output, Ran ran, String sample, TYPE type, int readSizeUsed) {
 			super();
 			this.output = output;
 			this.ran = ran;
 			this.sample = sample;
+			this.type = type;
 			this.readSizeUsed = readSizeUsed;
 		}
 
@@ -43,13 +51,16 @@ public class TelSeq {
 		private String inputBam;
 		private ArrayList<String> additionalArgs;
 		private String outputDir;
+		private TYPE type;
+
 		private Logger log;
 
-		public TelSeqWorker(String inputBam, ArrayList<String> additionalArgs, String outputDir, Logger log) {
+		public TelSeqWorker(String inputBam, ArrayList<String> additionalArgs, String outputDir, TYPE type, Logger log) {
 			super();
 			this.inputBam = inputBam;
 			this.additionalArgs = additionalArgs;
 			this.outputDir = outputDir;
+			this.type = type;
 			this.log = log;
 		}
 
@@ -66,7 +77,7 @@ public class TelSeq {
 				log.reportTimeError("Could not get sample name from " + inputBam);
 			}
 
-			return new TelSeqResult(out, ran, sampleName, readSize);
+			return new TelSeqResult(out, ran, sampleName, type, readSize);
 		}
 	}
 
@@ -74,14 +85,16 @@ public class TelSeq {
 		private String[] inputBams;
 		private ArrayList<String> additionalArgs;
 		private String outputDir;
+		private TYPE type;
 		private Logger log;
 		private int index;
 
-		public TelSeqProducer(String[] inputBams, ArrayList<String> additionalArgs, String outputDir, Logger log) {
+		public TelSeqProducer(String[] inputBams, ArrayList<String> additionalArgs, String outputDir, TYPE type, Logger log) {
 			super();
 			this.inputBams = inputBams;
 			this.additionalArgs = additionalArgs;
 			this.outputDir = outputDir;
+			this.type = type;
 			this.log = log;
 			this.index = 0;
 		}
@@ -93,7 +106,7 @@ public class TelSeq {
 
 		@Override
 		public Callable<TelSeqResult> next() {
-			TelSeqWorker worker = new TelSeqWorker(inputBams[index], additionalArgs, outputDir, log);
+			TelSeqWorker worker = new TelSeqWorker(inputBams[index], additionalArgs, outputDir, type, log);
 			index++;
 			return worker;
 		}
@@ -189,12 +202,12 @@ public class TelSeq {
 		log.reportTimeInfo("Assuming telseq is on system path");
 		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
 		ArrayList<String> argPopulator = new ArrayList<String>();
-		argPopulator.add("-m");// merge RG with weighted average same sample
+		argPopulator.add("-u");// doesn't look like telseq handles RGs properly
 		String baseDir = telseqDir + "base/";
 		new File(baseDir).mkdirs();
 		// TODO, do either or with optional bed, currently testing
 		if (!onlyExome) {
-			runType(threads, log, bams, results, argPopulator, baseDir);
+			runType(threads, log, bams, results, argPopulator, baseDir, TYPE.BASE);
 		}
 		if (optionalBed != null) {
 			if (Files.exists(optionalBed)) {
@@ -214,7 +227,7 @@ public class TelSeq {
 
 				segs.writeSegmentRegions(baseBed, !chr, log);
 
-				runType(threads, log, bams, results, argPopulatorBed, dirBed);
+				runType(threads, log, bams, results, argPopulatorBed, dirBed, TYPE.BED);
 
 				String buffDir = telseqDir + "buff_20KB_" + ext.rootOf(optionalBed) + "/";
 				new File(buffDir).mkdirs();
@@ -227,7 +240,7 @@ public class TelSeq {
 				argPopulatorBuffBed.add("-e");
 				argPopulatorBuffBed.add(buffBed);
 
-				runType(threads, log, bams, results, argPopulatorBuffBed, buffDir);
+				runType(threads, log, bams, results, argPopulatorBuffBed, buffDir, TYPE.BUFFERED_BED);
 
 			} else {
 				log.reportFileNotFound(optionalBed);
@@ -243,7 +256,7 @@ public class TelSeq {
 		for (TelSeqResult telSeqResult : results) {
 			String[] data = Files.getFirstNLinesOfFile(telSeqResult.output, 1, new String[] { "ReadGroup" }, log);
 			result.add(ext.rootOf(telSeqResult.output) + "\t" + Array.toStr(data) + "\t"
-					+ ext.parseDirectoryOfFile(telSeqResult.output).replaceAll(telseqDir, "").replaceAll("/", "") + "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
+					+ telSeqResult.type + "\t" + telSeqResult.sample + "\t" + telSeqResult.readSizeUsed);
 		}
 		Files.writeArrayList(result, finalOut);
 
@@ -267,8 +280,8 @@ public class TelSeq {
 	}
 
 	private static void runType(int threads, Logger log, String[] bams, ArrayList<TelSeqResult> results,
-			ArrayList<String> argPopulator, String baseDir) {
-		TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, log);
+			ArrayList<String> argPopulator, String baseDir, TYPE type) {
+		TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, type, log);
 		WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 100, log);
 		while (train.hasNext()) {
 			results.add(train.next());
@@ -314,7 +327,8 @@ public class TelSeq {
 				onlyExome = true;
 				numArgs--;
 			} else if (args[i].startsWith("-chr")) {
-				chr = true;
+				// chr = true;
+				System.out.println("-chr doesn't work, ignoring");
 				numArgs--;
 			} else if (args[i].startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
 				threads = ext.parseIntArg(args[i]);
