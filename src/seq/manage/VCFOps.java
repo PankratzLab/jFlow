@@ -970,7 +970,13 @@ public class VCFOps {
 					if (progress % 100000 == 0) {
 						log.reportTimeInfo(progress + " variants read...");
 					}
-					if (!keepIds && vc.getID().equals(".")) {
+					if (addDBSNP) {
+						String[] dbsnp = VCOps.getAnnotationsFor(new String[] { "snp138" }, vc, ".");
+						VariantContextBuilder builder = new VariantContextBuilder(vc);
+						builder.id(dbsnp[0]);
+						vc = builder.make();
+					}
+					else if (!keepIds && vc.getID().equals(".")) {
 						VariantContextBuilder builder = new VariantContextBuilder(vc);
 						builder.id(new VCOps.LocusID(vc).getId());
 						vc = builder.make();
