@@ -14,9 +14,9 @@ public class ANNOVAR {
 	public static final String ANNOVAR_COMMAND = "annovar=";
 	public static final String TABLE_ANNOVAR = "table_annovar.pl";
 	private static final String PROTOCOL = "-protocol";
-	private static final String DEFAULT_PROTOCOLS = "refGene,cytoBand,genomicSuperDups,esp6500si_all,1000g2014oct_all,1000g2014oct_afr,1000g2014oct_eas,1000g2014oct_eur,snp138,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,popfreq_max_20150413,popfreq_all_20150413,esp6500siv2_all,esp6500siv2_aa,esp6500siv2_ea,cosmic70,dbnsfp30a";
+	private static final String DEFAULT_PROTOCOLS = "refGene,cytoBand,genomicSuperDups,esp6500si_all,1000g2014oct_all,1000g2014oct_afr,1000g2014oct_eas,1000g2014oct_eur,snp138,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,popfreq_max_20150413,popfreq_all_20150413,esp6500siv2_all,esp6500siv2_aa,esp6500siv2_ea,cosmic70,dbnsfp30a,mitimpact24";
 	private static final String OPERATION = "-operation";
-	private static final String DEFAULT_OPERATIONS = "g,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f";
+	private static final String DEFAULT_OPERATIONS = "g,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f";
 	private static final String REMOVE = "-remove";
 	private static final String DEFUALT_ANNOVAR_DB = "humandb/";
 	private static final String BUILD_VERSION = "-buildver";

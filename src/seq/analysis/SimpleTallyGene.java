@@ -22,8 +22,9 @@ public class SimpleTallyGene {
 		private String vpopFile;
 		private String omimDir;
 		private VariantContextFilter filter;
+		private double maf;
 
-		public Params(String vcf, Segment seg, String name, String vpopFile, String omimDir, VariantContextFilter filter) {
+		public Params(String vcf, Segment seg, String name, String vpopFile, String omimDir, VariantContextFilter filter,double maf) {
 			super();
 			this.vcf = vcf;
 			this.seg = seg;
@@ -31,6 +32,7 @@ public class SimpleTallyGene {
 			this.vpopFile = vpopFile;
 			this.omimDir = omimDir;
 			this.filter = filter;
+			this.maf=maf;
 
 		}
 
@@ -48,7 +50,7 @@ public class SimpleTallyGene {
 			if (Files.exists(ext.rootOf(vpopFile, false) + ".lowerQualitySamples.txt")) {
 				Files.copyFile(ext.rootOf(vpopFile, false) + ".lowerQualitySamples.txt", dir + ext.rootOf(vpopFile, true) + ".lowerQualitySamples.txt");
 			}
-			VCFSimpleTally.test(subVcf, new String[] { newVpop }, omimDir, null, null, 1.2, true, true, filter);
+			VCFSimpleTally.test(subVcf, new String[] { newVpop }, omimDir, null, null, maf, true, true, filter);
 			return this;
 		}
 
@@ -60,7 +62,7 @@ public class SimpleTallyGene {
 		// String[] names = new String[] { "Mito", "MICA", "TP53" };
 		String[] names = new String[] { "Mito" };
 		Segment[] segs = new Segment[] { new Segment("chrM:1-20000") };
-
+		double maf =0;
 		// String vpopFileGermlineOsteo = "D:/data/logan/OSv2_seq/SRGAP2/OSTEO_OFF_INHERIT.vpop";
 		String vpopFileGermlineCushing = "D:/data/Project_Tsai_21_25_26_28_spector/Look_Freq/CUSHING_FREQ_V2.vpop";
 		// String vpopFileGermlineEPP = "D:/data/Project_Tsai_21_25_26_28_spector/Freq/EPP.vpop";
@@ -80,7 +82,7 @@ public class SimpleTallyGene {
 		String omimDir = "C:/bin/ref/OMIM/";
 		for (int i = 0; i < names.length; i++) {
 			// hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermlineOsteo, omimDir, null));
-			hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermlineCushing, omimDir, null));
+			hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermlineCushing, omimDir, null, maf));
 			// hive.addCallable(new Params(vcfGermline, segs[i], names[i], vpopFileGermlineEPP, omimDir, null));
 			// hive.addCallable(new Params(vcfTumor, segs[i], names[i], vpopFileTumor, omimDir, FilterNGS.generateFilter(FILTER_GENERATION_TYPE.TN, 1.2, false, new Logger())));
 
