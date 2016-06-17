@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import link.init.info;
 import seq.manage.BEDFileReader.BEDFeatureSeg;
 import seq.manage.BamOps.BamIndexStats;
 import seq.manage.BamSegPileUp.BamPileResult;
@@ -308,7 +309,7 @@ public class BamImport {
 				if (!bLocusSet.hasNoOverlap()) {
 					ReferenceGenome referenceGenome = new ReferenceGenome(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(), log);
 					log.memoryFree();
-					// TODO, skip centromeres
+					// TODO, skip centromeres, and adjust to WGS (which would be no off target, and only on-target
 					LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(LocusSet.combine(bLocusSet, readerCapture.loadAll(log), true, log).mergeOverlapping(true), 4000);//
 					log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by reference bins int the anti-on-target regions");
 					log.memoryFree();
@@ -488,6 +489,7 @@ public class BamImport {
 		String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
 		ArrayList<ProjectCorrected> correctedProjects = new ArrayList<ProjectCorrected>();
 		Files.writeList(Array.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
+		String[] autoMarks = proj.getAutosomalMarkers();
 		for (MarkerFileType type : types) {
 			String base = "";
 			if (type.getType() == null) {
@@ -495,14 +497,23 @@ public class BamImport {
 			} else {
 				base = base + "BAM_PCS_" + type.getType().getFlag();
 			}
-			String markerfile = proj.PROJECT_DIRECTORY.getValue() + base + "_inputMarkers.txt";
+			String markerfile = proj.PROJECT_DIRECTORY.getValue() + base + "autosomal_inputMarkers.txt";
 
+			String[] tmpList = null;
 			if (type.getType() != null && type.getType() == NGS_MARKER_TYPE.OFF_TARGET) {
 				proj.getLog().reportTimeInfo("Detected " + offTargetsToUse.length + " off target regions to use for pca of");
-				Files.writeList(offTargetsToUse, markerfile); 
+				tmpList = offTargetsToUse;
 			} else {
-				Files.writeList(HashVec.loadFileToStringArray(type.getFile(), true, new int[] { 0 }, true), markerfile);
+				tmpList = HashVec.loadFileToStringArray(type.getFile(), true, new int[] { 0 }, true);
 			}
+			ArrayList<String> autosomalToUse = new ArrayList<String>();
+			int[] indices = ext.indexLargeFactors(tmpList, autoMarks, true, proj.getLog(), false, false);
+			for (int i = 0; i < indices.length; i++) {
+				if (indices[i] >= 0) {
+					autosomalToUse.add(autoMarks[indices[i]]);
+				}
+			}
+			Files.writeArrayList(autosomalToUse, markerfile);
 
 			proj.INTENSITY_PC_MARKERS_FILENAME.setValue(markerfile);
 			MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks, 20, base, false, true, 0, null, null, null, null, false, false, true, false, true, false, null, -1, -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS, null, false);
