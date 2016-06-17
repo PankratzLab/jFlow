@@ -254,7 +254,7 @@ public class TelSeq {
 		String[] telHeader = Files.getHeaderOfFile(results.get(0).output, log);
 
 		ArrayList<String> result = new ArrayList<String>();
-		result.add("Sample\tSRA\t" + Array.toStr(telHeader) + "\tType\tSampleName\tReadSize");
+		result.add("BAM\t" + Array.toStr(telHeader) + "\tType\tSampleName\tReadSize");
 		for (TelSeqResult telSeqResult : results) {
 			if (Files.exists(telSeqResult.output)) {
 				String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null, false);
