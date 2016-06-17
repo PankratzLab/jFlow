@@ -532,7 +532,7 @@ public class VCFOps {
 		for (int i = 0; i < fam.length; i++) {
 			String FidIid = fam[i][0];
 			if (FidIid.length() >= 37) {
-				String newID = FidIid.substring(0, 38);
+				String newID = FidIid.substring(0, 36);
 				log.reportTimeWarning("Changing " + FidIid + " to " + newID);
 				changedIds.put(newID, FidIid);
 				// uniqIds.put(FidIid, newID);
