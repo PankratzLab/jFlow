@@ -998,7 +998,7 @@ public class VCFSimpleTally {
 			annoGeneWriter.close();
 			GeneVariantPositionSummary.writeSerial(controlPos.toArray(new GeneVariantPositionSummary[controlPos.size()]), finalGeneVariantPositions, log);
 			if (splitPopVcf) {
-				VCFOps.VcfPopulation.splitVcfByPopulation(finalOutVCF, vpop, true, true, log);
+				VCFOps.VcfPopulation.splitVcfByPopulation(finalOutVCF, vpop, true, true, false, log);
 			}
 		} else {
 			log.reportTimeWarning(finalAnnotGene + " exists so skipping summarize");
@@ -1558,7 +1558,7 @@ public class VCFSimpleTally {
 			controls.report();
 			controls.dump(controlFile);
 			SimpleTallyResult controlResult = runSimpleTally(vcf, controlFile, maf, numThreads, outDir, currentSets, null, new HashSet<String>(), false, log);
-			VCFOps.VcfPopulation.splitVcfByPopulation(controlResult.getFinalOutVCF(), vpopsCase[i], true, true, log);
+			VCFOps.VcfPopulation.splitVcfByPopulation(controlResult.getFinalOutVCF(), vpopsCase[i], true, true, false, log);
 			String geneFileCase = caseResult.getFinalAnnotGene();
 			String geneFileControl = controlResult.getFinalAnnotGene();
 			String caseWithControls = ext.addToRoot(geneFileCase, "_" + ext.rootOf(controlFile));
