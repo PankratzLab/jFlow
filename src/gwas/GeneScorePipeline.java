@@ -1,5 +1,9 @@
 package gwas;
 
+import filesys.DosageData;
+import filesys.SnpMarkerSet;
+import gwas.MergeExtractPipeline.DataSource;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -10,13 +14,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
 
-import stats.Histogram;
 import stats.ProbDist;
 import stats.RegressionModel;
 import bioinformatics.MapSNPsAndGenes;
-import bioinformatics.Sequence;	
+import bioinformatics.Sequence;
+
 import common.Aliases;
 import common.Array;
 import common.Files;
@@ -24,9 +27,6 @@ import common.HashVec;
 import common.Logger;
 import common.Positions;
 import common.ext;
-import filesys.DosageData;
-import filesys.SnpMarkerSet;
-import gwas.MergeExtractPipeline.DataSource;
 
 public class GeneScorePipeline {
 	
