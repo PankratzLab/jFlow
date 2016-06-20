@@ -38,7 +38,7 @@ public class TNHetDetector {
 		Hashtable<String, Genotype> normalHash = new Hashtable<String, Genotype>();
 		Hashtable<String, String> match = matchSamples(vpop, log);
 
-		VcfPopulation.splitVcfByPopulation(vcfNormals, vcfPop, true, true, log);
+		VcfPopulation.splitVcfByPopulation(vcfNormals, vcfPop, true, true, false, log);
 		VCFFileReader readerNormal = new VCFFileReader(vcfNormals, true);
 
 		for (VariantContext vc : readerNormal) {

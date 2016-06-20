@@ -33,7 +33,7 @@ public class GenotypeRefinement {
 		VcfPopulation vpop = new VcfPopulation(pop, pop, POPULATION_TYPE.ANY, log);
 		String vpopTmp = outputDir + ext.rootOf(ped) + ".vpop";
 		vpop.dump(vpopTmp);
-		String subVcf = VcfPopulation.splitVcfByPopulation(vcf, vpopTmp, true, true, log)[0];
+		String subVcf = VcfPopulation.splitVcfByPopulation(vcf, vpopTmp, true, true, false, log)[0];
 
 		GenotypeRefiner genotypeRefiner = gatk.refineGenotypes(subVcf, ped, outputDir, log);
 		
