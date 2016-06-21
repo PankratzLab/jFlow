@@ -1350,6 +1350,18 @@ public class ext {
 	}
 	
 	/**
+	 * Parse a string array argument; 
+	 * @param arg argument in form of <code>arg=str1,str2,string3</code>, which will return <code>String[]{str1,str2,string3}</code>
+	 * @return
+	 */
+	public static String[] parseStringArrayArg(String arg, String[] blankValue) {
+	    String[] pts = arg.trim().split("=");
+	    if (pts.length == 1) return blankValue;
+	    pts = pts[1].split(",");
+	    return pts;
+	}
+
+	/**
 	 * Parse an integer array argument; 
 	 * @param arg argument in form of <code>arg=2,4-10,20</code>, which will return <code>int[]{2,4,5,6,7,8,9,10,20}</code>
 	 * @return
