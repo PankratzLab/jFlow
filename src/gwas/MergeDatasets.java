@@ -60,7 +60,7 @@ public class MergeDatasets {
     			ext.checkHeader(reader.readLine().trim().split("[\\s]+"), MarkerQC.HWE_HEADER, true);
     			while (reader.ready()) {
     				line = reader.readLine().trim().split("[\\s]+");
-    				if (line[2].equals(hweCountFlag)) {
+    				if (line[2].equals(hweCountFlag) || line[2].equals("ALL(NP)") || line[2].equals("ALL(QT)")) {
     					HashVec.addToHashHash(hashes, line[1].toLowerCase(), i+"", line[3]+" "+line[4]+" "+line[5]);
     				}
     			}
@@ -547,7 +547,7 @@ public class MergeDatasets {
 	    String plinkRoot = "final";
 	    
 	    String usage = "\n"+
-	    "gwas.BatchPlink requires 0-1 arguments\n"+
+	    "gwas.MergeDatasets requires 0-1 arguments\n"+
 	    "   (1) directory (i.e. dir="+dir+" (default))\n"+
 	    "   (2) check for homogeneity among control frequencies (i.e. -checkHomo (not the default))\n"+
 	    " OR:\n"+
@@ -600,8 +600,8 @@ public class MergeDatasets {
 	    	dir = "./";
 	    }
 	    
-	    parseHomo = true;
-	    dir = "D:/data/aric_affy/ancestry26K/homogeneityWithPDs/";
+//	    parseHomo = true;
+//	    dir = "D:/data/aric_affy/ancestry26K/homogeneityWithPDs/";
 	    
 		try {
 	    	if (checkHomo) {
