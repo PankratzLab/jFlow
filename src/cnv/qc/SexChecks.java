@@ -26,12 +26,10 @@ public class SexChecks {
 	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXX", "X", "X", "XYY", "XXYY"};
 	public static final String[] SAMPLE_FIELDS = {"DNA", "IID", "CLASS=Gender"};
 	public static final String[] SNP_FIELDS = {"Sample", "X", "Y", "X Raw", "Y Raw", "Theta", "R", "B Allele Freq", "Log R Ratio", "AlleleCount"};
-	public static final float NUM_SD_FOR_MALE_X_OUTLIERS = 2.0f;
-	public static final float NUM_SD_FOR_FEMALE_X_OUTLIERS = 2.0f;
-	public static final float NUM_SD_FOR_Y_OUTLIERS = 3.0f;
-	private static final int HET_GENO = ext.indexOfStr("AB", Sample.AB_PAIRS);
-	private static final int MISSING_GENO = -1;
 	
+	private static final float NUM_SD_FOR_MALE_X_OUTLIERS = 2.0f;
+	private static final float NUM_SD_FOR_FEMALE_X_OUTLIERS = 2.0f;
+	private static final float NUM_SD_FOR_Y_OUTLIERS = 3.0f;
 	private static final double SEX_DISCRIMINATING_BASE_P_THRESHOLD = 0.05; // This will be bonferroni corrected for number of markers checked
 	private static final double MOSAIC_F_THRESHOLD = 0.2;
 	private static final double MOSAIC_COVERAGE_THRESHOLD = 0.8;
@@ -39,28 +37,10 @@ public class SexChecks {
 	private Project proj;
 	private Logger log;
 	private MarkerSet markerSet;
-	private SampleData sampleData;
 	private String[] sampleNames;
-////	private Sample[] samples;
-//	private int[] numXs;
-//	private int[] numYs;
-//	private int[] numX_10_90;
-//	private double[] lrrSumX;
-//	private double[] lrrSumY;
-//	private int[] numHetsX;
-//	private int[] numCallsY;
-
-//	private double[][] lrrsX;
-//	private double [][] lrrsY;
-//	private double[][] bafsX;
-//	private double [][] bafsY;
-//	private double[][] rsX;
-//	private double[][] rsY;
 	
 	private int[][] indicesByChr;
-	
-//	private boolean[] xIndices;
-//	private boolean[] yIndices;
+
 	private String[] xMarkers;
 	private String[] yMarkers;
 	
@@ -85,21 +65,14 @@ public class SexChecks {
 
 
 	
-	private SexChecks(Project proj) {
+	private SexChecks(Project proj, boolean appendToSampleData) {
 		this.proj = proj;
 		this.log = proj.getLog();
 		
 		markerSet = proj.getMarkerSet();
 		sampleNames = proj.getSamples();
-		
-		sampleData = proj.getSampleData(2, false);
-		if (sampleData.failedToLoad()) {
-			log.reportError("Error - without a sample data file, sexChecks will fail");
-			return;
-		}
 	    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 	    
-		
 	    log.report("Finding Sex Chromosome Markers...");
 	    generateMarkerLists();
 	    
@@ -134,7 +107,7 @@ public class SexChecks {
 		estimateSexes();
 		
 		log.report("Writing outputs");
-		writeToFile();
+		writeToFile(appendToSampleData);
 		
 		
 		
@@ -240,7 +213,6 @@ public class SexChecks {
 		MDL mdl = new MDL(proj, markerSet, xMarkers, Math.max(proj.NUM_THREADS.getValue() - 1, 1), 100);
 		
 		float[][] rs;
-		
 		
 		lrrsX = new float[xMarkers.length][sampleNames.length];
 		rs = new float[sampleNames.length][xMarkers.length];
@@ -694,16 +666,14 @@ public class SexChecks {
 //		return result;
 //	}
 	
-	private void writeToFile () {
-		
-//		{"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Median X LRR", "Median Y LRR"};
+	private void writeToFile (boolean appendToSampleData) {
 		
 		PrintWriter writer;
 		String[] lookup;
 		String famIndPair;
-		Logger log;
 		
-		log = proj.getLog();
+		SampleData sampleData = proj.getSampleData(0, false);
+
 		try {
 			writer = new PrintWriter(new FileWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)));
 			writer.println(Array.toStr(SEX_HEADER));
@@ -729,6 +699,15 @@ public class SexChecks {
 		} catch (Exception e) {
 			log.reportError("Error writing to " + proj.SEXCHECK_RESULTS_FILENAME.getValue());
 			log.reportException(e);
+		}
+		if (appendToSampleData) {
+			Hashtable<String, String> linkData = new Hashtable<String, String>();
+			for (int i = 0; i < sampleNames.length; i++) {
+				linkData.put(sampleNames[i], Integer.toString(sexes[i]));
+			}
+			if (!sampleData.addData(linkData, "DNA", new String[] {"CLASS=" + EST_SEX_HEADER}, ".", "", log)) {
+				log.reportError("Error - failed to write Estimated Sex to sample data file");
+			}
 		}
 	}
 	
@@ -832,8 +811,8 @@ public class SexChecks {
 	    return 0;
 	}
 
-	public static SexChecks sexCheck(Project proj) {
-		return new SexChecks(proj);
+	public static void sexCheck(Project proj, boolean appendToSampleData) {
+		new SexChecks(proj, appendToSampleData);
 	}
 	
 	private boolean[] sexDiscriminatingXMarkers() {
@@ -1191,6 +1170,7 @@ public class SexChecks {
 	public static void main(String[] args) {
 		int numArgs = args.length;
 		boolean check = false;
+		boolean skipSampleData = false;
 		boolean parse = false;
 		String markersToDrop = "data/drops.dat";
 		String allMarkers = "data/markerListWithIndices.dat";
@@ -1203,6 +1183,7 @@ public class SexChecks {
 		"qc.GenderChecks requires 0-1 arguments\n"+
 		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) check sex of indiviudals (i.e. -check (not the default))\n"+
+		"   (3) skip adding estimated sex to Sample Data (i.e. -skipSampleData (not the default))\n"+
 		" OR\n"+
 		"   (2) parse all results (i.e. -parse (not the default))\n"+
 		"   (3) drop markers (i.e. -drop (not the default))\n"+
@@ -1221,6 +1202,9 @@ public class SexChecks {
 				numArgs--;
 			} else if (args[i].startsWith("-check")) {
 				check = true;
+				numArgs--;
+			} else if (args[i].startsWith("-skipSampleData")) {
+				skipSampleData = true;
 				numArgs--;
 			} else if (args[i].startsWith("-parse")) {
 				parse = true ;
@@ -1252,7 +1236,7 @@ public class SexChecks {
 			proj = new Project(filename, false);
 			
 			if (check) {
-				sexCheck(proj);
+				sexCheck(proj, !skipSampleData);
 			} else if (parse) {
 				parse(proj);
 			} else if (par) {
