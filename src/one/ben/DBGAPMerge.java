@@ -3,20 +3,19 @@ package one.ben;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -24,9 +23,12 @@ import org.xml.sax.SAXException;
 
 import common.Array;
 import common.Files;
+import common.Logger;
 import common.ext;
 
 public class DBGAPMerge {
+    
+    Logger log;
     
     public static class FileSet {
         String dir;
@@ -40,6 +42,9 @@ public class DBGAPMerge {
     }
     
     public static class DataColumn {
+        String source;
+        String study;
+        String table;
         String varID;
         String varName;
         String varDesc;
@@ -93,10 +98,10 @@ public class DBGAPMerge {
                 fss.add(fs);
             } else {
                 if (dict == null) {
-                    System.err.println("Error - no data dictionary file found for data file: " + gzFile);
+                    log.reportError("Error - no data dictionary file found for data file: " + gzFile);
                 }
                 if (varRpt == null) {
-                    System.err.println("Error - no variable report file found for data file: " + gzFile);
+                    log.reportError("Error - no variable report file found for data file: " + gzFile);
                 }
             }
         }
@@ -112,6 +117,10 @@ public class DBGAPMerge {
         Document doc = builder.parse(new File(fs.dir + fs.dataDict));
         doc.getDocumentElement().normalize();
         
+        Node tableNode = doc.getElementsByTagName("data_table").item(0);
+        String table = tableNode.getAttributes().getNamedItem("id").getNodeValue();
+        String study = tableNode.getAttributes().getNamedItem("study_id").getNodeValue();
+        
         NodeList variables = doc.getElementsByTagName("variable");
         
         for (int i = 0, count = variables.getLength(); i < count; i++) {
@@ -119,8 +128,10 @@ public class DBGAPMerge {
             
             DataColumn dc = new DataColumn();
             Node vnName = varNode.getAttributes().getNamedItem("id");
+            dc.source = fs.dir + fs.dataFile;
             dc.varID = vnName.getNodeValue();
-            
+            dc.table = table;
+            dc.study = study;
             NodeList nlChildren = varNode.getChildNodes();
             for (int c = 0, countCh = nlChildren.getLength(); c < countCh; c++) {
                 Node chNode = nlChildren.item(c);
@@ -147,10 +158,9 @@ public class DBGAPMerge {
                 } else if (nodeNm.equals("unit")) {
                     dc.varUnit = nodeVal;
                 } else if (nodeNm.equals("comment")) {
-                    dc.comment = nodeVal;
+                    dc.comment = nodeVal.replaceAll("\\n", " - ");
                 } else {
-                    
-                    System.out.println("Unknown node: " + nodeNm + " = " + nodeVal);
+                    log.reportError("Unknown node: " + nodeNm + " = " + nodeVal);
                 }
                 
             }
@@ -187,7 +197,8 @@ public class DBGAPMerge {
         System.gc();
     }
     
-    public void run(String[] dirs, String outFile, String outMap) {
+    public void run(String[] dirs, String outFile, String outMap, Logger log) {
+        this.log = log;
         ArrayList<FileSet> files = new ArrayList<DBGAPMerge.FileSet>();
         for (String dir : dirs) {
             files.addAll(discoverFiles(ext.verifyDirFormat(dir)));
@@ -197,21 +208,17 @@ public class DBGAPMerge {
             try {
                 fs.dataDefs = readDataDict(fs);
             } catch (ParserConfigurationException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.reportException(e);
             } catch (SAXException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.reportException(e);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                log.reportException(e);
             }
             if (fs.dataDefs != null) {
                 try {
                     readDataFile(fs);
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    log.reportException(e);
                 }
             }
         }
@@ -227,7 +234,7 @@ public class DBGAPMerge {
         lineOut = new StringBuilder("DBGAP_ID");
         for (FileSet fs : files) {
             for (DataColumn dc : fs.dataDefs) {
-                lineOut.append("\t").append(dc.varName).append(";").append(dc.varID);
+                lineOut.append("\t").append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table);
             }
         }
         writer.println(lineOut.toString());
@@ -249,19 +256,30 @@ public class DBGAPMerge {
         writer.close();
         
         writer = Files.getAppropriateWriter(outMap);
-            
+        writer.println("Source\tStudy\tTable\tVariable\tVariableID\tfinalColumnName\tcustomColumnName\tDescription\tUnits\tVariableMapping\tComment");
         for (FileSet fs : files) {
             for (DataColumn dc : fs.dataDefs) {
                 lineOut = new StringBuilder();
+                lineOut.append(dc.source).append("\t");
+                lineOut.append(dc.study).append("\t");
+                lineOut.append(dc.table).append("\t");
                 lineOut.append(dc.varName).append("\t");
                 lineOut.append(dc.varID).append("\t");
+                lineOut.append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table).append("\t");
+                lineOut.append(".").append("\t");
                 lineOut.append(dc.varDesc).append("\t");
                 lineOut.append(dc.varUnit == null ? "." : dc.varUnit).append("\t");
-                for (Entry<String, String> ent : dc.varValueDescriptions.entrySet()) {
-                    lineOut.append(ent.getKey()).append("=").append(ent.getValue()).append(";");
+                if (dc.varValueDescriptions.isEmpty()) {
+                    lineOut.append(".").append("\t");
+                } else {
+                    for (Entry<String, String> ent : dc.varValueDescriptions.entrySet()) {
+                        lineOut.append(ent.getKey()).append("=").append(ent.getValue()).append(";");
+                    }
                 }
                 if (dc.comment != null && !"".equals(dc.comment)) {
                     lineOut.append("\t").append(dc.comment);
+                } else {
+                    lineOut.append("\t").append(".");
                 }
                 writer.println(lineOut.toString());
             }
@@ -271,9 +289,230 @@ public class DBGAPMerge {
     }
     
     public static void main(String[] args) {
-        String fileDir1 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50859/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c1.HMB-IRB/PhenotypeFiles/";
-        String fileDir2 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50865/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c2.DS-CVD-IRB/PhenotypeFiles/";
-        (new DBGAPMerge()).run(new String[]{fileDir1, fileDir2}, "/scratch.global/coleb/mergeOut.xln.gz", "/scratch.global/coleb/mergeMap.xln");
+        int numArgs = args.length;
+        String out = null;
+        String outMap = null;
+        String[] dir = null;
+        String logfile = null;
+        Logger log;
+
+//    String fileDir1 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50859/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c1.HMB-IRB/PhenotypeFiles/";
+//    String fileDir2 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50865/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c2.DS-CVD-IRB/PhenotypeFiles/";
+//    String out = "/scratch.global/coleb/mergeOut.xln.gz";
+//    String outMap = "/scratch.global/coleb/mergeMap.xln";    
+        
+        String usage = "\n" + 
+                        "one.ben.DBGAPMergeAndLookup requires 3 arguments\n" +
+                        "To MERGE dbGap files:\n" + 
+                        "   (1) Data Output Filename (i.e. out=" + out + " (default))\n" + 
+                        "   (2) Map Output Filename (i.e. outMap=" + outMap + " (default))\n" + 
+                        "   (3) Input directory (or a comma-delimited list of directories) (i.e. dir=" + dir + " (default))\n" + 
+                        "\n" + 
+                        "";
+
+        boolean test = true;
+        if (test) {
+            DBGapLookup.fromParameters("F:/dbGap merge/search.crf", new Logger());
+            return;
+        }
+        
+        
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+                System.err.println(usage);
+                System.exit(1);
+            } else if (args[i].startsWith("out=")) {
+                out = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("outMap=")) {
+                outMap = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("dir=")) {
+                dir = ext.parseStringArrayArg(args[i], null);
+                numArgs--;
+            } else if (args[i].startsWith("log=")) {
+                logfile = args[i].split("=")[1];
+                numArgs--;
+            } else {
+                System.err.println("Error - invalid argument: " + args[i]);
+            }
+        }
+        if (numArgs != 0) {
+            System.err.println(usage);
+            System.exit(1);
+        }
+        try {
+            log = new Logger(logfile);
+            (new DBGAPMerge()).run(dir, out, outMap, log);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+    
+    public static class DBGapLookup {
+        
+        public static void fromParameters(String filename, Logger log) {
+            Vector<String> params;
+            String[] line;
+            String mapFile;
+            
+            params = Files.parseControlFile(filename, "search", new String[]{
+                                                "mergeMap.xln   searchCols=3,7,9,10 outputCols=0,5,6,3,7,9,10 out=searchTerms.xln  crf=dbgap.crf",
+                                                "# search terms below, one per line:"
+                                            }, log);
+            if (params != null) {
+                line = params.remove(0).trim().split("[\\s]+");
+                
+                mapFile = line[0];
+                if (!Files.exists(mapFile) && Files.exists(ext.verifyDirFormat(ext.parseDirectoryOfFile(filename)) + mapFile)) {
+                    mapFile = ext.verifyDirFormat(ext.parseDirectoryOfFile(filename)) + mapFile;
+                }
+
+                String[] args = new String[line.length + (log.getFilename() == null ? 1 : 2)];
+                args[0] = "map=" + mapFile;
+                for (int i = 1; i < line.length; i++) {
+                    args[i] = line[i];
+                }
+                StringBuilder sb = new StringBuilder(params.get(0));
+                for (int i = 1; i < params.size(); i++) {
+                    sb.append(",").append(params.get(i));
+                }
+                args[line.length] = "search=" + sb.toString();
+                if (log.getFilename() != null) {
+                    args[line.length + 1] = "log=" + log.getFilename();
+                }
+                main(args);
+            }
+        }
+        
+        public static void main(String[] args) {
+            int numArgs = args.length;
+            
+            String map = "mergeMap.xln";
+            int[] searchCols = new int[]{3,7,9,10,11};
+            int[] outputCols = new int[]{0,5,6,3,7,9,10,11};
+            String output = "searchTerms.xln";
+            String crf = "dbgap.crf";
+            String[] search = new String[]{"cancer","height","bmi"};
+            
+            String logfile = null;
+            Logger log;
+
+            String usage = "\n" + 
+                            "one.ben.DBGAPMerge requires 6 arguments\n" + 
+                            "   (1) dbGap Map File (from merged files) (i.e. map=" + map + " (default))\n" +
+                            "   (2) Column indices in which to search (i.e. searchCols=" + Array.toStr(searchCols, ",") + " (default))\n" + 
+                            "   (3) Column indices from which to export data (i.e. outputCols=" + Array.toStr(outputCols, ",") + " (default))\n" + 
+                            "   (4) Output File (i.e. out=" + output + " (default))\n" +
+                            "   (5) Data export CRF filename (i.e. crf=" + crf + " (default))\n" +
+                            "   (6) Search terms (i.e. search=" + Array.toStr(search, ",") + " (default))\n" + 
+                            "";
+            
+            for (int i = 0; i < args.length; i++) {
+                if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+                    System.err.println(usage);
+                    System.exit(1);
+                } else if (args[i].startsWith("map=")) {
+                    map = args[i].split("=")[1];
+                    numArgs--;
+                } else if (args[i].startsWith("crf=")) {
+                    crf = args[i].split("=")[1];
+                    numArgs--;
+                } else if (args[i].startsWith("out=")) {
+                    output = args[i].split("=")[1];
+                    numArgs--;
+                } else if (args[i].startsWith("searchCols=")) {
+                    searchCols = ext.parseIntArrayArg(args[i]);
+                    numArgs--;
+                } else if (args[i].startsWith("outputCols=")) {
+                    outputCols = ext.parseIntArrayArg(args[i]);
+                    numArgs--;
+                } else if (args[i].startsWith("search=")) {
+                    search = ext.parseStringArrayArg(args[i], search);
+                    numArgs--;
+                } else if (args[i].startsWith("log=")) {
+                    logfile = args[i].split("=")[1];
+                    numArgs--;
+                } else {
+                    System.err.println("Error - invalid argument: " + args[i]);
+                }
+            }
+            if (numArgs != 0) {
+                System.err.println(usage);
+                System.exit(1);
+            }
+            try {
+                log = new Logger(logfile);
+                search(map, search, searchCols, outputCols, output, crf, log);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private static void search(String map, String[] search, int[] searchCols, int[] outputCols, String output, String crf, Logger log) throws IOException {
+            String line, delim, outputDelim;
+            String[] parts;
+            StringBuilder sb;
+            
+            BufferedReader reader = Files.getAppropriateReader(map);
+            PrintWriter writer = Files.getAppropriateWriter(output);
+            
+            line = reader.readLine().trim();
+            delim = ext.determineDelimiter(line);
+            outputDelim = "\t";
+            parts = line.split(delim);
+            
+            sb = new StringBuilder();
+            for (int i = 0; i < outputCols.length; i++) {
+                sb.append(parts[outputCols[i]]).append(outputDelim);
+            }
+            for (int i = 0; i < search.length; i++) {
+                sb.append(search[i]);
+                if (i < search.length - 1) {
+                    sb.append(outputDelim);
+                }
+            }
+            writer.println(sb.toString());
+            
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if ("".equals(line)) continue;
+                parts = line.trim().split(delim, -1);
+
+                int[] searchInds = Array.intArray(search.length, -1);
+                for (int s = 0; s < search.length; s++) {
+                    for (int col : searchCols) {
+                        searchInds[s] = Math.max(searchInds[s], parts[col].toLowerCase().indexOf(search[s].toLowerCase()));
+                    }
+                }
+                boolean foundAny = false;
+                for (int s : searchInds) {
+                    if (s >= 0) {
+                        foundAny = true;
+                        break;
+                    }
+                }
+                if (foundAny) {
+                    sb = new StringBuilder();
+                    for (int i = 0; i < outputCols.length; i++) {
+                        sb.append(parts[outputCols[i]]).append(outputDelim);
+                    }
+                    for (int i = 0; i < searchInds.length; i++) {
+                        sb.append(searchInds[i]);
+                        if (i < search.length - 1) {
+                            sb.append(outputDelim);
+                        }
+                    }
+                    writer.println(sb.toString());
+                }
+            }
+            reader.close();
+            writer.flush();
+            writer.close();
+        }
+        
+    }
+    
+    
     
 }
