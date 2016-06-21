@@ -3027,6 +3027,10 @@ public class Files {
 	public static void writeHashSet(HashSet<String> list, String filename) {
 		Files.writeList(list.toArray(new String[list.size()]), filename);
 	}
+	
+	public static void writeVector(Vector<String> list, String filename) {
+		Files.writeList(Array.toStringArray(list), filename);
+	}
 
 	public static void writeList(String[] list, String filename) {
 		PrintWriter writer;
