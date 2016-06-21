@@ -504,7 +504,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(PARSE_FILES_CSV)) {
 				cnv.manage.SourceFileParser.createFiles(proj, proj.NUM_THREADS.getValue());
 			} else if (command.equals(CHECK_SEX)) {
-				cnv.qc.SexChecks.sexCheck(proj);
+				cnv.qc.SexChecks.sexCheck(proj, true);
 			} else if (command.equals(TRANSPOSE_DATA)) {
 				TransposeData.transposeData(proj, 2000000000, false);
 			} else if (command.equals(GENERATE_ABLOOKUP)) {
@@ -673,7 +673,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //				log.report("No new program to test");
 //				ScatterPlot.createAndShowGUI(proj, null, null, false);
 
-				cnv.qc.SexChecks.sexCheck(proj);
+				cnv.qc.SexChecks.sexCheck(proj, true);
 //				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
 				cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
 				Mosaicism.findOutliers(proj);

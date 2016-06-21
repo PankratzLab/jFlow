@@ -655,9 +655,11 @@ public class GenvisisWorkflow {
     static final STEP S8_SEX_CHECKS = new STEP("Run Sex Checks", 
                   "", 
                   new String[][]{{"[Parse Sample Files] step must have been run already or must be selected and valid."},
-                                 {"[Create SampleData.txt File] step must have been run already or must be selected and valid."}}, 
+                                 {"[Create SampleData.txt File] step must have been run already or must be selected and valid."},
+                                 {"Add Estimated Sex to Sample Data"}}, 
                   new RequirementInputType[][]{{RequirementInputType.NONE}, 
-                                               {RequirementInputType.NONE}}) {
+                                               {RequirementInputType.NONE}, 
+                                               {RequirementInputType.BOOL}}) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -667,7 +669,7 @@ public class GenvisisWorkflow {
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             proj.getLog().report("Running SexCheck");
-            cnv.qc.SexChecks.sexCheck(proj);
+            cnv.qc.SexChecks.sexCheck(proj, Boolean.valueOf(variables.get(this).get(0)));
         }
         
         @Override
@@ -678,13 +680,14 @@ public class GenvisisWorkflow {
             boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
             return new boolean[][]{
                     {checkStepParseSamples || (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
-                    {stepSelections.get(S3_CREATE_SAMPLEDATA) && S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections, variables) || Files.exists(sampDataFile)}, 
+                    {stepSelections.get(S3_CREATE_SAMPLEDATA) && S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections, variables) || Files.exists(sampDataFile)},
+                    {true}
             };
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{};
+            return new Object[]{true};
         }
 
         @Override
@@ -696,7 +699,8 @@ public class GenvisisWorkflow {
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
-            return cmd.append("jcp cnv.qc.SexChecks -check proj=" + projPropFile).toString();
+            boolean addToSampleData = Boolean.valueOf(variables.get(this).get(0));
+            return cmd.append("jcp cnv.qc.SexChecks -check" + (addToSampleData ? "" : " -skipSampleData") + " proj=" + projPropFile).toString();
         }
         
     };

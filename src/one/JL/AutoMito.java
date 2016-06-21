@@ -47,7 +47,7 @@ public class AutoMito {
 		String sexCheck = qcDir + ext.rootOf(proj.SEXCHECK_RESULTS_FILENAME.getValue());
 		proj.SEXCHECK_RESULTS_FILENAME.setValue(sexCheck);
 		if (!Files.exists(sexCheck)) {
-			SexChecks.sexCheck(proj);
+			SexChecks.sexCheck(proj, true);
 		}
 
 		String temporarySampleDataWithSex = qcDir + ext.addToRoot(temporarySampleData, ".withSex.txt");
