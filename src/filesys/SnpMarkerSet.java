@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -570,7 +571,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		return new LinkageMap(chr, markerNames, 2, cM_data, true, true);
 	}
 	
-	public void listUnambiguousMarkers(String filename, boolean autosomesOnly) {
+	public void listUnambiguousMarkers(String filename, String excludeMarkersFile, boolean autosomesOnly) {
         PrintWriter writer;
         int countAs_and_Ts, countGs_and_Cs;
         String[] markerNames;
@@ -579,23 +580,27 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			System.err.println("Error - can't define unambiguous alleles if no alleles are listed");
 			return;
 		}
+        
+        Set<String> excludeMarkers = excludeMarkersFile == null ? new HashSet<String>() : HashVec.loadFileToHashSet(excludeMarkersFile, false);
 
         try {
-	        writer = new PrintWriter(new FileWriter(filename));
+	        writer = Files.getAppropriateWriter(filename);
 	        markerNames = getMarkerNames();
 	        for (int i = 0; i<markerNames.length; i++) {
-	        	countAs_and_Ts = countGs_and_Cs = 0;
-	        	for (int j = 0; j<alleles[i].length; j++) {
-	        		if (alleles[i][j] == 'A' || alleles[i][j] == 'T') {
-	        			countAs_and_Ts++;
-	        		} else if (alleles[i][j] == 'G' || alleles[i][j] == 'C') {
-	        			countGs_and_Cs++;
-	        		} else if (ext.indexOfStr(alleles[i][j]+"", NULL_ALLLES) == -1 && ext.indexOfStr(alleles[i][j]+"", INDEL_ALLLES) == -1) {
-	        			System.err.println("Error - invalid allele '"+alleles[i][j]+"' for marker "+markerNames[i]);
-	                }
-	            }
-	        	if (countAs_and_Ts == 1 && countGs_and_Cs == 1 && chrs[i] > 0 && (!autosomesOnly || chrs[i] < 23)) {
-	        		writer.println(markerNames[i]);
+	        	if (!excludeMarkers.contains(markerNames[i])) {
+	        		countAs_and_Ts = countGs_and_Cs = 0;
+	        		for (int j = 0; j<alleles[i].length; j++) {
+	        			if (alleles[i][j] == 'A' || alleles[i][j] == 'T') {
+	        				countAs_and_Ts++;
+	        			} else if (alleles[i][j] == 'G' || alleles[i][j] == 'C') {
+	        				countGs_and_Cs++;
+	        			} else if (ext.indexOfStr(alleles[i][j]+"", NULL_ALLLES) == -1 && ext.indexOfStr(alleles[i][j]+"", INDEL_ALLLES) == -1) {
+	        				System.err.println("Error - invalid allele '"+alleles[i][j]+"' for marker "+markerNames[i]);
+	        			}
+	        		}
+	        		if (countAs_and_Ts == 1 && countGs_and_Cs == 1 && chrs[i] > 0 && (!autosomesOnly || chrs[i] < 23)) {
+	        			writer.println(markerNames[i]);
+	        		}
 	        	}
 	        }
 	        writer.close();
@@ -1165,6 +1170,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	    int numArgs = args.length;
 	    String filename = "plink.bim";
 	    boolean noX = false;
+	    String excludeMarkers = null;
 	    boolean verbose = true;
 	    String source = "";
 	    SnpMarkerSet markerSet, sourceSet;
@@ -1177,14 +1183,15 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	    "filesys.SnpMarkerSet requires 0-1 arguments\n"+
 	    "   (1) filename (i.e. file="+filename+" (default))\n"+
 	    "   (2) autosomes only (i.e. -noX (not the default))\n"+
-	    "   (3) verbosity (i.e. verbose="+verbose+" (not the default))\n"+
+	    "   (3) list of markers to exclude (i.e. excludeMarkers="+excludeMarkers+" (default))\n"+
+	    "   (4) verbosity (i.e. verbose="+verbose+" (default))\n"+
 	    " OR\n"+
-	    "   (4) interpolate centiMorgans (i.e. sourceMap=plink.bim (not the default; expecting a PLINK bim or map file))\n"+
+	    "   (1) interpolate centiMorgans (i.e. sourceMap=plink.bim (not the default; expecting a PLINK bim or map file))\n"+
 	    " OR\n"+
 	    "   (1) parse HapMap centiMorgans (i.e. parseHapMap=/home/directory/ (not the default))\n"+
 	    " OR\n"+
-	    "   (2) list of markers to extract (i.e. extract=list.txt (not the default))\n"+
-	    "   (3) name of output file (i.e. out=chr1.pinfo (not the default))\n"+
+	    "   (1) list of markers to extract (i.e. extract=list.txt (not the default))\n"+
+	    "   (2) name of output file (i.e. out=chr1.pinfo (not the default))\n"+
 	    "";
 
 	    for (int i = 0; i<args.length; i++) {
@@ -1196,6 +1203,9 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			    numArgs--;
 		    } else if (args[i].startsWith("-noX")) {
 			    noX = true;
+			    numArgs--;
+		    } else if (args[i].startsWith("excludeMarkers=")) {
+		    	excludeMarkers = args[i].split("=")[1];
 			    numArgs--;
 		    } else if (args[i].startsWith("verbose=")) {
 			    verbose = Boolean.valueOf(args[i].split("=")[1]);
@@ -1266,7 +1276,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	    		markerSet.interpolateCentiMorgans(sourceSet, log);
 	    		markerSet.writeToFile(ext.rootOf(filename, false)+"_with_centiMorgans.bim", determineType(filename), log);
 	    	} else {
-	    		new SnpMarkerSet(filename, verbose, new Logger()).listUnambiguousMarkers(filename+"_unambiguous.txt", noX);
+	    		new SnpMarkerSet(filename, verbose, new Logger()).listUnambiguousMarkers(filename+"_unambiguous.txt", excludeMarkers, noX);
 	    	}
 	    } catch (Exception e) {
 		    e.printStackTrace();
