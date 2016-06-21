@@ -4066,6 +4066,42 @@ public class Array {
 	}
 	
 	/**
+	 * Removes non-finite values from the array
+	 * 
+	 * @param array
+	 *            an array of doubles
+	 * @return scrubbed array
+	 */
+	public static double[] removeNonFinites(double[] array) {
+		boolean[] use;
+
+		use = new boolean[array.length];
+		for (int i = 0; i < use.length; i++) {
+			use[i] = Double.isFinite(array[i]);
+		}
+
+		return subArray(array, use);
+	}
+	
+	/**
+	 * Removes non-finite values from the array
+	 * 
+	 * @param array
+	 *            an array of floats
+	 * @return scrubbed array
+	 */
+	public static float[] removeNonFinites(float[] array) {
+		boolean[] use;
+
+		use = new boolean[array.length];
+		for (int i = 0; i < use.length; i++) {
+			use[i] = Float.isFinite(array[i]);
+		}
+
+		return subArray(array, use);
+	}
+	
+	/**
 	 * Removes all instances of a specified value from an array
 	 * 
 	 * @param array

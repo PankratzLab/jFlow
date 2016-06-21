@@ -94,6 +94,10 @@ public class MosaicRegion extends CNVariant implements Serializable {
 	}
 
 
+	public double getCustomF() {
+		return customF;
+	}
+
 	public double getPdfScore() {
 		return pdfScore;
 	}
