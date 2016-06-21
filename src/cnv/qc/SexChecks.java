@@ -21,18 +21,17 @@ import stats.*;
 public class SexChecks {
 	public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner;8=Mosaic Triple X";
 	public static final String RESULTS_DIR = "genderChecks/";
-	public static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 2, 2, 2};
+	public static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 2, 2, 2, 2};
 	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Median X R", "Median Y R", "R Ratio Y:X", "Median X LRR", "Median Y LRR"};
-	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXX", "X", "X", "XYY", "XXYY"};
-	public static final String[] SAMPLE_FIELDS = {"DNA", "IID", "CLASS=Gender"};
-	public static final String[] SNP_FIELDS = {"Sample", "X", "Y", "X Raw", "Y Raw", "Theta", "R", "B Allele Freq", "Log R Ratio", "AlleleCount"};
+	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXX", "X", "X", "XXX"};
 	
 	private static final float NUM_SD_FOR_MALE_X_OUTLIERS = 2.0f;
 	private static final float NUM_SD_FOR_FEMALE_X_OUTLIERS = 2.0f;
 	private static final float NUM_SD_FOR_Y_OUTLIERS = 3.0f;
 	private static final double SEX_DISCRIMINATING_BASE_P_THRESHOLD = 0.05; // This will be bonferroni corrected for number of markers checked
-	private static final double MOSAIC_F_THRESHOLD = 0.2;
-	private static final double MOSAIC_COVERAGE_THRESHOLD = 0.8;
+	private static final double MOSAIC_F_CERTAINTY_THRESHOLD = 0.2;
+	private static final double MOSAIC_COVERAGE_CERTAINTY_THRESHOLD = 0.8;
+	private static final double MOSAIC_COVERAGE_ABSOLUTE_THRESHOLD = 0.5;
 
 	private Project proj;
 	private Logger log;
@@ -97,8 +96,6 @@ public class SexChecks {
 		yUseMarkers = sexDiscriminatingYMarkers();
 		log.report("Found " + Array.booleanArraySum(yUseMarkers) + " sex differentiating markers out of " + yMarkers.length + " Y chromosome markers");
 
-		
-		
 		log.report("Calculating median LRR for identified X and Y chromosome markers");
 		lrrMedX = calcMedianLRRs(lrrsX, Array.booleanArrayToIndices(xUseMarkers));
 		lrrMedY = calcMedianLRRs(lrrsY, Array.booleanArrayToIndices(yUseMarkers));
@@ -107,80 +104,7 @@ public class SexChecks {
 		estimateSexes();
 		
 		log.report("Writing outputs");
-		writeToFile(appendToSampleData);
-		
-		
-		
-		
-		
-		
-		
-		
-//		long time;
-//	
-//		
-//	
-//		time = new Date().getTime();
-//		log.report("Loading samples");
-//	
-//		
-////		samples = new Sample[sampleNames.length];
-////		for (int i = 0; i < sampleNames.length; i++) {
-////			samples[i] = proj.getPartialSampleFromRandomAccessFile(sampleNames[i], true, true, true, true, true);
-////			if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-////			if (samples[i] == null) {
-////				log.reportError("Error - could not load sample: " + sampleNames[i]);
-////				return;
-////			}
-////			if (markerSet.getFingerprint() != samples[i].getFingerprint()) {
-////				log.reportError("Error - mismatched MarkerSet fingerprints for sample " + sampleNames[i]);
-////				return;
-////			}
-////			if (i % 100 == 0) {
-////				log.report("Loaded "+sampleNames[i]+" ("+(i+1)+" of "+sampleNames.length+")");
-////			}
-////		}
-////		log.report("Took "+ext.getTimeElapsed(time)+" to load "+sampleNames.length+" samples");
-//		
-//		time = new Date().getTime();
-//		log.report("Parsing samples");
-//		
-//	    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-//		lrrCounts();
-//		byte[] estSex = estimateSex();
-//	    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-//
-//		log.report("Took "+ext.getTimeElapsed(time)+" to parse "+sampleNames.length+" samples");
-//		
-//		time = new Date().getTime();
-//		log.report("Writing sex checks file to " + proj.SEXCHECK_RESULTS_FILENAME.getValue());
-//		writeToFile(estSex);
-//		
-//		log.report("Appending Estimated Sex to Sample Data");
-//		
-//		String[] classes = sampleData.getClasses();
-//		int sexInd = -1;
-//		for (int i = 0; i < classes.length; i++) {
-//			if (SexChecks.EST_SEX_HEADER.equals(classes[i])) {
-//				sexInd = i;
-//				break;
-//			}
-//		}
-//	    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-//		if (sexInd == -1) {
-//			Hashtable<String, String> linkData = new Hashtable<String, String>();
-//			for (int i = 0; i < sampleNames.length; i++) {
-//				linkData.put(sampleNames[i], "" + estSex[i]);
-//			}
-//			if (!sampleData.addData(linkData, "DNA", new String[] {"CLASS=" + EST_SEX_HEADER}, ".", "", log)) {
-//				log.reportError("Error - failed to write Estimated Sex to sample data file");
-//			}
-//		} else {
-//			log.report("Warning - sample data already contains estimated sex; will not process data into sample data file."); 
-//		}
-//		
-//		log.report("Took "+ext.getTimeElapsed(time)+" to write outputs");
-		
+		writeToFile(appendToSampleData);	
 	}
 	
 	private void generateMarkerLists() {
@@ -377,10 +301,9 @@ public class SexChecks {
 			return false;
 		}
 		String notesAdd = (numRegions == 1 ? "Region" : (numRegions + " regions")) + " of X chromosome mocaicism identified: ";
-		boolean uncertainMosaicism = false;
 		double totalCoverage = 0;
 		for (MosaicRegion mr : xMosaic.getLoci()) {
-			if (mr.getCustomF() < MOSAIC_F_THRESHOLD) {
+			if (mr.getCustomF() < MOSAIC_F_CERTAINTY_THRESHOLD) {
 				uncertains[sample] = true;
 			}
 			double regionCoverage = (double)mr.getSize() / xSegment.getSize();
@@ -388,8 +311,8 @@ public class SexChecks {
 			notesAdd += "F=" + mr.getCustomF() + ", " + ext.formDeci(regionCoverage * 100, 4, true) + "% coverage (" + mr.getStart() + " - " + mr.getStop() + "); ";
 		}
 		notesAdd += "Total Mosaic Coverage: " + ext.formDeci(totalCoverage * 100, 4, true) + "%; ";
-		if (totalCoverage < MOSAIC_COVERAGE_THRESHOLD) {
-			if (totalCoverage > 0.5) uncertains[sample] = true;
+		if (totalCoverage < MOSAIC_COVERAGE_CERTAINTY_THRESHOLD) {
+			if (totalCoverage > MOSAIC_COVERAGE_ABSOLUTE_THRESHOLD) uncertains[sample] = true;
 			else {
 				uncertains[sample] = false;
 				return false;
@@ -398,273 +321,6 @@ public class SexChecks {
 		notes[sample] += notesAdd;
 		return true;
 	}
-	
-//	private void lrrCounts() {
-//		boolean[][] sexlinked = sexlinked(markerSet.getChrs());
-//		Logger log;
-//		
-//		log = proj.getLog();
-//		
-//		numXs = new int[sampleNames.length];
-//		numYs = new int[sampleNames.length];
-//		numX_10_90 = new int[sampleNames.length];
-//		lrrSumX = new double[sampleNames.length];
-//		lrrSumY = new double[sampleNames.length];
-//		xMarkers = new int[sampleNames.length][];
-//		yMarkers = new int[sampleNames.length][];
-//		numHetsX = new int[sampleNames.length];
-//		numCallsY = new int[sampleNames.length];
-//		
-//		rMedX = new float[sampleNames.length];
-//		rMedY = new float[sampleNames.length];
-//		lrrMedX = new float[sampleNames.length];
-//		lrrMedY = new float[sampleNames.length];
-//		
-//
-//		String[] markerNames = proj.getMarkerNames();
-//
-//		for (int i = 0; i<sampleNames.length; i++) {
-//			Sample sample = proj.getPartialSampleFromRandomAccessFile(sampleNames[i], true, true, true, true, true);
-//			if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-//			if (sample == null) {
-//				log.reportError("Error - could not load sample: " + sampleNames[i]);
-//				return;
-//			}
-//			if (markerSet.getFingerprint() != sample.getFingerprint()) {
-//				log.reportError("Error - mismatched MarkerSet fingerprints for sample " + sampleNames[i]);
-//				return;
-//			}
-//	        if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-//			numXs[i] = numYs[i] = numX_10_90[i] = 0;
-//			lrrSumX[i] = lrrSumY[i] = 0;
-//
-//			float[] lrrs = sample.getLRRs();
-//			float[] bafs = sample.getBAFs();
-//			
-//			float[] xs = sample.getXs();
-//			float[] ys = sample.getYs();
-//			
-//			
-//			
-//			ArrayList<Integer> build_xMarkers = new ArrayList<Integer>();
-//			ArrayList<Integer> build_yMarkers = new ArrayList<Integer>();
-//
-//			for (int j = 0; j < lrrs.length; j++) {
-//				if (sexlinked[j][0] && Double.isFinite(lrrs[j])) {
-//					lrrSumX[i] += lrrs[j];
-//					build_xMarkers.add(j);
-//					numXs[i]++;
-//					if (bafs[j] > 0.10 && bafs[j] < 0.9) {
-//						numX_10_90[i]++;
-//					}
-//				}
-//				if (sexlinked[j][1] && Double.isFinite(lrrs[j])) {
-//					lrrSumY[i] += lrrs[j];
-//					build_yMarkers.add(j);
-//					numYs[i]++;
-//				}
-//			}
-//			
-//			xMarkers[i] = new int[build_xMarkers.size()];
-//			String[] xMarkerNames = new String[build_xMarkers.size()];
-////			bafsX[i] = new double[build_xMarkers.size()];
-//			float[] rsX = new float[build_xMarkers.size()];
-//			float[] lrrsX = new float[build_xMarkers.size()];
-//			
-//			for (int j = 0; j < build_xMarkers.size(); j++) {
-//				int markerIndex = build_xMarkers.get(j);
-//				xMarkers[i][j] = markerIndex;
-//				xMarkerNames[j] = markerNames[markerIndex];
-//
-////				bafsX[i][j] = bafs[markerIndex];
-//				lrrsX[j] = lrrs[markerIndex];
-//				rsX[j] = Centroids.calcR(xs[markerIndex], ys[markerIndex]);
-//			}
-//			lrrMedX[i] = Array.median(lrrsX);
-//			rMedX[i] = Array.median(rsX);
-//			
-//			numHetsX[i] = 0;
-//			byte[] xGenos = sample.getAB_GenotypesAfterFilters(xMarkerNames, xMarkers[i], proj.getClusterFilterCollection(), 0);
-//			for (int j = 0; j < xGenos.length; j++) {
-//				if (xGenos[j] == HET_GENO) {
-//					numHetsX[i]++;
-//				}
-//			}
-//			
-//			yMarkers[i] = new int[build_yMarkers.size()];
-//			String[] yMarkerNames = new String[build_yMarkers.size()];
-////			bafsY[i] = new double[build_yMarkers.size()];
-//			float[] lrrsY = new float[build_yMarkers.size()];
-//			float[] rsY = new float[build_yMarkers.size()];
-//			
-//			for (int j = 0; j < build_yMarkers.size(); j++) {
-//				int markerIndex = build_yMarkers.get(j);
-//				yMarkers[i][j] = markerIndex;
-//				yMarkerNames[j] = markerNames[markerIndex];
-////				bafsY[i][j] = bafs[markerIndex];
-//				lrrsY[j] = lrrs[markerIndex];
-//				rsY[j] = Centroids.calcR(xs[markerIndex], ys[markerIndex]);
-//			}
-//			lrrMedY[i] = Array.median(lrrsY);
-//			rMedY[i] = Array.median(rsY);
-//			
-//			numCallsY[i] = 0;
-//			byte[] yGenos = sample.getAB_GenotypesAfterFilters(yMarkerNames, yMarkers[i], proj.getClusterFilterCollection(), 0);
-//			for (int j = 0; j < yGenos.length; j++) {
-//				if (yGenos[j] != MISSING_GENO) {
-//					numCallsY[i]++;
-//				}
-//			}
-//
-//			if (i % 100 == 0) {
-//				log.report("parsed "+sampleNames[i]+" ("+(i+1)+" of "+sampleNames.length+")");
-//			}
-//		}
-//	}
-
-
-//	private byte[] estimateSex() {
-////		the result will be used for color code for the points;
-////		mean for M and F;
-////		standard deviation for M and F;
-//
-//		byte[] result = new byte[sampleNames.length];
-//		double putativeMaleMeanY, putativeFemaleMeanY;
-//		double[] values;
-//		double maleMeanX, maleStdDevX, femaleMeanX, femaleStdDevX;
-//		int numMales, numFemales, putativeSex;
-//		
-//		
-////		values = new double[sampleNames.length];
-////		for (int i = 0; i < values.length; i++) {
-////			values[i] = lrrSumY[i]/numYs[i];
-////		}
-//		// TODO not sure where we left off with this...
-////		if (Array.isBimodal(values, 0.01, 100)) {
-////			
-////		}
-//		
-////		double[] lrrMedX = new double[lrrsX.length];
-////		double[] lrrMedY = new double[lrrsY.length];
-//
-//		putativeMaleMeanY=0;
-//		putativeFemaleMeanY=0;
-//		numMales = numFemales = 0;
-//		boolean[] males = Array.booleanArray(sampleNames.length, false);
-//		boolean[] females = Array.booleanArray(sampleNames.length, false);
-//		for (int i=0; i<sampleNames.length; i++) {
-//			
-//			
-////			lrrMedX[i] = Array.median(lrrsX[i]);
-////			lrrMedY[i] = Array.median(lrrsY[i]);
-//			
-//			double rRatio = rMedY[i] / rMedX[i];
-//			
-//			if (rRatio > 0.8 && rRatio < 1.2) {
-//				males[i] = true;
-//			} else if (rRatio < 0.2) {
-//				females[i] = true;
-//			}
-//		}
-//		
-//		boolean[] xMarkers = sexDiscriminatingMarkers(proj, targetMarkers, maleSamples, femaleSamples, pThreshold)
-//			
-//			
-////			switch (putativeSex) {
-////				case 1:
-////					putativeMaleMeanY += lrrMedY[i];
-////					numMales++;
-////					break;
-////				case 2:
-////					putativeFemaleMeanY += lrrMedY[i];
-////					numFemales++;
-////					break;
-////				default:
-////					break;
-////			}
-////		}
-////		putativeMaleMeanY = putativeMaleMeanY / (double) numMales;
-////		putativeFemaleMeanY = putativeFemaleMeanY / (double) numFemales;
-////
-////		DoubleVector males, females;
-////		males = new DoubleVector();
-////		females = new DoubleVector();
-////		for (int i = 0; i < sampleNames.length; i++) {
-////			if (Math.abs(lrrMedY[i] - putativeMaleMeanY) < Math.abs(lrrMedY[i] - putativeFemaleMeanY)) {
-////				males.add(lrrMedX[i]);
-////			} else {
-////				females.add(lrrMedX[i]);
-////			}
-////		}
-////		
-////		values = males.toArray();
-////		maleMeanX = Array.mean(values);
-////		maleStdDevX = Array.stdev(values);
-////		values = females.toArray();
-////		femaleMeanX = Array.mean(values);
-////		femaleStdDevX = Array.stdev(values);
-////
-////
-////		int[][] chrIndices = markerSet.getIndicesByChr();
-////		
-////		for (int i=0; i<sampleNames.length; i++) {
-//////			Sample sample = samples[i];
-////
-////			
-////			if (Math.abs(lrrMedY[i] - putativeMaleMeanY) < Math.abs(lrrMedY[i] - putativeFemaleMeanY)) {
-////				if (lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_OUTLIERS * maleStdDevX)) {
-////					boolean mosaic = false;
-//////					MosaicismDetect mosaicismDetect = new MosaicBuilder().build(proj, sampleNames[i], markerSet, Array.toDoubleArray(sample.getBAFs()));
-//////					LocusSet<MosaicRegion> xMosaic = mosaicismDetect.callMosaic(new Segment((byte) 23, 0, markerSet.getPositions()[chrIndices[23][chrIndices[23].length - 1]] + 10), false);
-//////					for (MosaicRegion mr : xMosaic.getLoci()) {
-//////						mosaic = true;
-//////						break;
-//////					}
-////					if (mosaic) {
-////						result[i] = 4; // mosaic Klinefelter
-////					} else {
-////						result[i] = 3; // full Klinefelter
-////					}
-////				} else {
-////					boolean mosaic = false;
-//////					MosaicismDetect mosaicismDetect = new MosaicBuilder().build(proj, sampleNames[i], markerSet, Array.toDoubleArray(sample.getBAFs()));
-//////					LocusSet<MosaicRegion> xMosaic = mosaicismDetect.callMosaic(new Segment((byte) 23, 0, markerSet.getPositions()[chrIndices[23][chrIndices[23].length - 1]] + 10), false);
-//////					for (MosaicRegion mr : xMosaic.getLoci()) {
-//////						mosaic = true;
-//////						break;
-//////					}
-////					result[i] = 1; // normal male
-////				}
-////			} else {
-//////				if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_OUTLIERS*femaleStdDevX) && sample.hasBimodalBAF((byte)23, 0, Integer.MAX_VALUE)) {
-////				if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_OUTLIERS*femaleStdDevX) && true) {
-////					result[i] = 5; // Triple X syndrome
-////				} else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_OUTLIERS*femaleStdDevX) ) {
-////					boolean mosaic = false;
-//////					MosaicismDetect mosaicismDetect = new MosaicBuilder().build(proj, sampleNames[i], markerSet, Array.toDoubleArray(sample.getBAFs()));
-//////					LocusSet<MosaicRegion> xMosaic = mosaicismDetect.callMosaic(new Segment((byte) 23, 0, markerSet.getPositions()[chrIndices[23][chrIndices[23].length - 1]] + 10), false);
-//////					for (MosaicRegion mr : xMosaic.getLoci()) {
-//////						mosaic = true;
-//////						mr.getBpWeightedScore();
-//////						break;
-//////					}
-////					if (mosaic) result[i] = 7; // mosaic Turner
-////					else result[i] = 6; // Turner
-////				} else {
-////					boolean mosaic = false;
-//////					MosaicismDetect mosaicismDetect = new MosaicBuilder().build(proj, sampleNames[i], markerSet, Array.toDoubleArray(sample.getBAFs()));
-//////					LocusSet<MosaicRegion> xMosaic = mosaicismDetect.callMosaic(new Segment((byte) 23, 0, markerSet.getPositions()[chrIndices[23][chrIndices[23].length - 1]] + 10), false);
-//////					for (MosaicRegion mr : xMosaic.getLoci()) {
-//////						mosaic = true;
-//////						break;
-//////					}
-////					result[i] = 2; // normal female
-////				}
-////			}
-////		}
-//
-//		return result;
-//	}
 	
 	private void writeToFile (boolean appendToSampleData) {
 		
@@ -711,25 +367,6 @@ public class SexChecks {
 		}
 	}
 	
-	private static float[] calcMedianRs(Project proj, String[] targetMarkers, MarkerDataLoader loader) {
-		String[] sampleNames = proj.getSamples();
-		float[][] rs = new float[sampleNames.length][targetMarkers.length];
-		for (int m = 0; m < targetMarkers.length; m++) {
-			MarkerData markerData = loader.requestMarkerData(m);
-			float[] xs = markerData.getXs();
-			float[] ys = markerData.getYs();
-			for (int s = 0; s < sampleNames.length; s++) {
-				rs[s][m] = Centroids.calcR(xs[s], ys[s]);
-			}
-			loader.releaseIndex(m);
-		}
-		float[] medianRs = new float[sampleNames.length];
-		for (int i = 0; i < sampleNames.length; i++) {
-			medianRs[i] = Array.median(Array.removeNonFinites(rs[i]));
-		}
-		return medianRs;
-	}
-	
 	private float[] calcMedianLRRs(float[][] lrrs, int[] useMarkers) {
 		float[][] lrrsBySample = new float[sampleNames.length][useMarkers.length];
 		for (int m = 0; m < useMarkers.length; m++) {
@@ -744,61 +381,6 @@ public class SexChecks {
 		}
 		
 		return medianLRRs;
-	}
-	
-	private float[] calcMeanLRRs(float[][] lrrs, int[] useMarkers) {
-		float[][] lrrsBySample = new float[sampleNames.length][useMarkers.length];
-		for (int m = 0; m < useMarkers.length; m++) {
-			for (int s = 0; s < sampleNames.length; s++) {
-				lrrsBySample[s][m] = lrrs[useMarkers[m]][s];
-			}
-		}
-		
-		float[] meanLRRs = new float[sampleNames.length];
-		for (int i = 0; i < sampleNames.length; i++) {
-			meanLRRs[i] = Array.mean(Array.removeNonFinites(lrrsBySample[i]));
-		}
-		
-		return meanLRRs;
-	}
-
-	private static double[] medianXYBySex(double[][] data, byte[] sexes) {
-	//		return new double[] {Arrays.sort(data[][0]).[data.length/2], Arrays.sort(data[][1]).[data.length/2]}
-			ArrayList<Double> maleX, maleY, femaleX, femaleY;
-			maleX	= new ArrayList<Double>();
-			maleY	= new ArrayList<Double>();
-			femaleX	= new ArrayList<Double>(); 
-			femaleY	= new ArrayList<Double>();
-			
-			for (int i=0; i<data.length; i++) {
-				if (sexes[i]==1) {
-					maleX.add(data[i][0]);
-					maleY.add(data[i][1]);
-				} else {
-					femaleX.add(data[i][0]);
-					femaleY.add(data[i][1]);
-				}
-			}
-			Collections.sort(maleX);
-			Collections.sort(maleY);
-			Collections.sort(femaleX);
-			Collections.sort(femaleY);
-			return new double[] {maleX.get(maleX.size()/2), maleY.get(maleY.size()/2), femaleX.get(femaleX.size()/2), femaleY.get(femaleY.size()/2)};
-		}
-	
-	private static boolean[][] sexlinked(byte[] chrs) {
-		boolean[][] sexlinked;
-		
-		sexlinked = new boolean[chrs.length][2];
-		for (int i = 0; i<chrs.length; i++) {
-			if (chrs[i]==23) {
-				sexlinked[i][0] = true;
-			}
-			if (chrs[i]==24) {
-				sexlinked[i][1] = true;
-			}
-		}
-		return sexlinked;
 	}
 
 	public static int mapEstimatedSexToSex(String estCode) {
@@ -820,8 +402,6 @@ public class SexChecks {
 		TTest tTest = new TTest();
 		for (int i = 0; i < xMarkers.length; i++) {
 			double[] markerLrrs = Array.toDoubleArray(lrrsX[i]);
-//			Ttest tTest = new Ttest(Array.subArray(markerLrrs, maleSamples), Array.subArray(markerLrrs, femaleSamples));
-//			discriminatingMarkers[i] = tTest.getPvalue() < pThreshold;
 			double[] maleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedMales));
 			double[] femaleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedFemales));
 			if (maleLrrs.length < 2 || femaleLrrs.length < 2 || Array.mean(femaleLrrs) <= Array.mean(maleLrrs)) {
@@ -840,8 +420,6 @@ public class SexChecks {
 		TTest tTest = new TTest();
 		for (int i = 0; i < yMarkers.length; i++) {
 			double[] markerLrrs = Array.toDoubleArray(lrrsY[i]);
-//			Ttest tTest = new Ttest(Array.subArray(markerLrrs, maleSamples), Array.subArray(markerLrrs, femaleSamples));
-//			discriminatingMarkers[i] = tTest.getPvalue() < pThreshold;
 			double[] maleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedMales));
 			double[] femaleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedFemales));
 			if (maleLrrs.length < 2 || femaleLrrs.length < 2 || Array.mean(maleLrrs) <= Array.mean(femaleLrrs)) {
@@ -855,7 +433,6 @@ public class SexChecks {
 		return discriminatingMarkers;
 	}
 	
-
 	public static void markerByMarker(Project proj) {
 		PrintWriter writer;
 		String[] samples;
@@ -1043,7 +620,6 @@ public class SexChecks {
 			System.exit(2);
 		}
 	}
-	
 
 	public static void identifyPseudoautosomalBreakpoints(Project proj) {
 			PrintWriter writer;
