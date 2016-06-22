@@ -601,7 +601,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(MOSAIC_PLOT)) {
 				MosaicPlot.loadMosaicismResults(proj);
 			} else if (command.equals(SEX_PLOT)) {
-				SexPlot.loadGenderResults(proj);
+				SexPlot.loadSexCheckResults(proj);
 			} else if (command.equals(TRAILER)) {
 				new Trailer(proj, null, proj.CNV_FILENAMES.getValue(), Trailer.DEFAULT_LOCATION);
 			} else if (command.equals(TWOD)) {

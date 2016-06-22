@@ -47,8 +47,9 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 										  new Color(0, 0, 139),		// dark blue.	for 3 - full Klinefelter's XXY
 										  new Color(51, 153, 255),	// light blue.	for 4 - mosaic Klinefelter's
 										  new Color(255, 0, 0),		// red.			for 5 - Triple X
-										  new Color(66, 28, 82),	// dark purple. for 6 - Turner's XO without mosaicism
-										  new Color(189, 174, 198)	// light purple.for 7 - mosaic Turner's
+										  new Color(178,34,34),		// firebrick.	for 6 - mosaic Triple X
+										  new Color(66, 28, 82),	// dark purple. for 7 - Turner's XO without mosaicism
+										  new Color(189, 174, 198)	// light purple.for 8 - mosaic Turner's
 	};
 
 	public static String[] COLOR_SCHEME_MEANING = { "Missing",
@@ -57,6 +58,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 												  "Full Klinefelter's",
 												  "Mosaic Klinefelter's",
 												  "Triple X",
+												  "Mosaic Triple X",
 												  "Full Turner's",
 												  "Mosaic Turner's"
 	};

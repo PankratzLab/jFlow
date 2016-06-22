@@ -19,8 +19,7 @@ import filesys.Segment;
 import stats.*;
 
 public class SexChecks {
-	public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Turner;7=Mosaic Turner;8=Mosaic Triple X";
-	public static final String RESULTS_DIR = "genderChecks/";
+	public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=Mosaic Klinefelter;5=Triple X;6=Mosaic Triple X;7=Turner;8=Mosaic Turner";
 	public static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 2, 2, 2, 2};
 	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Median X R", "Median Y R", "R Ratio Y:X", "Median X LRR", "Median Y LRR"};
 	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXX", "X", "X", "XXX"};
@@ -262,15 +261,15 @@ public class SexChecks {
 				}
 				if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX)) {
 					if (checkMosaicism(i, use)) {
-						sexes[i] = 8; // Mosaic Triple X
+						sexes[i] = 6; // Mosaic Triple X
 					} else {
 						sexes[i] = 5; // Full Triple X
 					}
 				} else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) ) {
 					if (checkMosaicism(i, use)) {
-						sexes[i] = 7; // Mosaic Turner
+						sexes[i] = 8; // Mosaic Turner
 					} else {
-						sexes[i] = 6; // Full Turner
+						sexes[i] = 7; // Full Turner
 					}
 				} else {
 					sexes[i] = 2; // Female
@@ -527,72 +526,6 @@ public class SexChecks {
 	
 	}
 
-	public static void parse(Project proj) {
-			BufferedReader reader;
-			PrintWriter writer;
-			String[] line;
-			String trav;
-			Hashtable<String,String> hash = new Hashtable<String,String>();
-			Logger log;
-	
-			log = proj.getLog();
-			
-			File[] filenames = new File(proj.RESULTS_DIRECTORY.getValue(false, true)+RESULTS_DIR).listFiles(new FilenameFilter() {
-				public boolean accept(File file, String filename) {
-					return filename.endsWith("_genderChecks.xln");
-				}
-			});
-	
-			if (filenames==null) {
-				log.reportError("Error - directory not found: "+proj.RESULTS_DIRECTORY.getValue(false, true)+RESULTS_DIR);
-	
-			} else {
-				log.report("Found results for "+filenames.length+" lookup files");
-			}
-	
-	//		hash = HashVec.loadFileToHashString(proj.getFilename(proj.MARKERSET_FILENAME), 0, new int[] {1, 2}, "\t", true);
-			hash = HashVec.loadFileToHashString(proj.MARKERSET_FILENAME.getValue(), 0, new int[] {1, 2}, "\t", true);
-	
-			try {
-				writer = new PrintWriter(new FileWriter("GenderChecks.xln"));
-				for (int i = 0; i<filenames.length; i++) {
-					log.report((i+1)+" of "+filenames.length);
-					try {
-						reader = new BufferedReader(new FileReader(filenames[i]));
-						if (i==0) {
-							line = reader.readLine().trim().split("\t");
-							writer.println(line[0]+"\tChr\tPosition\t"+Array.toStr(Array.subArray(line, 1, line.length)));
-						} else {
-							reader.readLine();
-						}
-						while (reader.ready()) {
-							line = reader.readLine().trim().split("[\\s]+");
-							trav = hash.containsKey(line[0])?hash.get(line[0]):".\t.";
-							writer.println(line[0]+"\t"+trav+"\t"+Array.toStr(Array.subArray(line, 1, line.length)));
-							hash.remove(line[0]);
-						}
-						reader.close();
-					} catch (FileNotFoundException fnfe) {
-						log.reportError("Error: file \""+filenames[i].getName()+"\" not found in current directory");
-						writer.close();
-						return;
-					} catch (IOException ioe) {
-						log.reportError("Error reading file \""+filenames[i].getName()+"\"");
-						writer.close();
-						return;
-					}
-				}
-				line = HashVec.getKeys(hash);
-				for (int i = 0; i<line.length; i++) {
-					writer.println(line[i]+"\t"+hash.get(line[i]));
-				}
-				writer.close();
-			} catch (Exception e) {
-				log.reportError("Error writing results");
-				log.reportException(e);
-			}
-		}
-
 	public static void dropMarkers(String allMarkers, String markersToDrop) {
 		BufferedReader reader;
 		PrintWriter writer;
@@ -747,7 +680,6 @@ public class SexChecks {
 		int numArgs = args.length;
 		boolean check = false;
 		boolean skipSampleData = false;
-		boolean parse = false;
 		String markersToDrop = "data/drops.dat";
 		String allMarkers = "data/markerListWithIndices.dat";
 		boolean drop = false;
@@ -758,13 +690,13 @@ public class SexChecks {
 		String usage = "\\n"+
 		"qc.GenderChecks requires 0-1 arguments\n"+
 		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		" AND\n"+
 		"   (2) check sex of indiviudals (i.e. -check (not the default))\n"+
 		"   (3) skip adding estimated sex to Sample Data (i.e. -skipSampleData (not the default))\n"+
 		" OR\n"+
-		"   (2) parse all results (i.e. -parse (not the default))\n"+
-		"   (3) drop markers (i.e. -drop (not the default))\n"+
-		"   (4) file with all markers (i.e. all="+allMarkers+" (default file))\n"+
-		"   (5) list of bad markers (i.e. drop="+markersToDrop+" (default file))\n"+
+		"   (2) drop markers (i.e. -drop (not the default))\n"+
+		"   (3) file with all markers (i.e. all="+allMarkers+" (default file))\n"+
+		"   (4) list of bad markers (i.e. drop="+markersToDrop+" (default file))\n"+
 		" OR\n"+
 		"   (2) check sex chromosomes for pseudoautosomal regions (i.e. -PARcheck (not the default))\n"+
 		"";
@@ -781,9 +713,6 @@ public class SexChecks {
 				numArgs--;
 			} else if (args[i].startsWith("-skipSampleData")) {
 				skipSampleData = true;
-				numArgs--;
-			} else if (args[i].startsWith("-parse")) {
-				parse = true ;
 				numArgs--;
 			} else if (args[i].startsWith("-drop")) {
 				drop = true ;
@@ -813,8 +742,6 @@ public class SexChecks {
 			
 			if (check) {
 				sexCheck(proj, !skipSampleData);
-			} else if (parse) {
-				parse(proj);
 			} else if (par) {
 				identifyPseudoautosomalBreakpoints(proj);
 			} else if (drop) {
