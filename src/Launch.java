@@ -1,6 +1,8 @@
 import java.io.*;
 
 import one.SuperNovo;
+import one.ben.DBGAPMerge.DBGapExtract;
+import one.ben.DBGAPMerge.DBGapLookup;
 import cnv.analysis.FilterCalls;
 import cnv.analysis.MeanLRR;
 import cnv.analysis.cnvTrio;
@@ -73,6 +75,8 @@ public class Launch {
 		VCFOps.COMMAND_VCF_EXTRACT_DESCRIPTION, 
 		"replaceAll - replace Strings in a file using a list of replacements",
 		"snps - takes a list of marker names (rs IDs) and adds chr/pos info, and possibly additional information depending on options specified",
+		"search - takes a merged dbGap data set and searches for specific keywords",
+		"dbgap - takes the output of \"search\" and extracts data from merged dbGap data",
 		};
 
 	public static void run(String filename, Logger log) throws Elision {
@@ -206,6 +210,10 @@ public class Launch {
 				Files.replaceAllFromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("snps")) {
 			    MapSNPsAndGenes.fromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("search")) {
+			    DBGapLookup.fromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase("dbgap")) {
+			    DBGapExtract.fromParameters(filename, log);
 			} else {
 				log.reportError("Error - '"+temp+"' is an invalid launch type, options include:");
 				log.reportError(Array.toStr(LAUNCH_TYPES, "\n"));

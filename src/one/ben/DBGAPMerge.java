@@ -23,7 +23,9 @@ import org.xml.sax.SAXException;
 
 import common.Array;
 import common.Files;
+import common.HashVec;
 import common.Logger;
+import common.Matrix;
 import common.ext;
 
 public class DBGAPMerge {
@@ -45,6 +47,7 @@ public class DBGAPMerge {
         String source;
         String study;
         String table;
+        String consentGroup;
         String varID;
         String varName;
         String varDesc;
@@ -129,9 +132,18 @@ public class DBGAPMerge {
             DataColumn dc = new DataColumn();
             Node vnName = varNode.getAttributes().getNamedItem("id");
             dc.source = fs.dir + fs.dataFile;
-            dc.varID = vnName.getNodeValue();
-            dc.table = table;
-            dc.study = study;
+            dc.varID = vnName.getNodeValue().trim();
+            dc.table = table.trim();
+            dc.study = study.trim();
+            
+            String[] pts = fs.dataFile.split("\\.");
+            for (String s : pts) {
+                if (s.length() == 2 && s.startsWith("c")) {
+                    dc.consentGroup = s.trim().replaceAll("\\.", "");
+                    break;
+                }
+            }
+            
             NodeList nlChildren = varNode.getChildNodes();
             for (int c = 0, countCh = nlChildren.getLength(); c < countCh; c++) {
                 Node chNode = nlChildren.item(c);
@@ -235,6 +247,9 @@ public class DBGAPMerge {
         for (FileSet fs : files) {
             for (DataColumn dc : fs.dataDefs) {
                 lineOut.append("\t").append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table);
+                if (dc.consentGroup != null) {
+                    lineOut.append(";").append(dc.consentGroup);
+                }
             }
         }
         writer.println(lineOut.toString());
@@ -265,7 +280,11 @@ public class DBGAPMerge {
                 lineOut.append(dc.table).append("\t");
                 lineOut.append(dc.varName).append("\t");
                 lineOut.append(dc.varID).append("\t");
-                lineOut.append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table).append("\t");
+                lineOut.append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table);
+                if (dc.consentGroup != null) {
+                    lineOut.append(";").append(dc.consentGroup);
+                }
+                lineOut.append("\t");
                 lineOut.append(".").append("\t");
                 lineOut.append(dc.varDesc).append("\t");
                 lineOut.append(dc.varUnit == null ? "." : dc.varUnit).append("\t");
@@ -295,26 +314,33 @@ public class DBGAPMerge {
         String[] dir = null;
         String logfile = null;
         Logger log;
-
-//    String fileDir1 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50859/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c1.HMB-IRB/PhenotypeFiles/";
-//    String fileDir2 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50865/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c2.DS-CVD-IRB/PhenotypeFiles/";
-//    String out = "/scratch.global/coleb/mergeOut.xln.gz";
-//    String outMap = "/scratch.global/coleb/mergeMap.xln";    
         
         String usage = "\n" + 
-                        "one.ben.DBGAPMergeAndLookup requires 3 arguments\n" +
+                        "one.ben.DBGAPMergeAndLookup requires 3+ arguments\n" +
                         "To MERGE dbGap files:\n" + 
                         "   (1) Data Output Filename (i.e. out=" + out + " (default))\n" + 
                         "   (2) Map Output Filename (i.e. outMap=" + outMap + " (default))\n" + 
                         "   (3) Input directory (or a comma-delimited list of directories) (i.e. dir=" + dir + " (default))\n" + 
+                        "   (4) OPTIONAL: Log file (i.e. log=" + logfile + " (default))\n" + 
                         "\n" + 
                         "";
 
-        boolean test = true;
-        if (test) {
-            DBGapLookup.fromParameters("F:/dbGap merge/search.crf", new Logger());
-            return;
-        }
+//        boolean test = true;
+//        if (test) {
+//            DBGapLookup.fromParameters("F:/dbGap merge/search.crf", new Logger());
+            
+//            DBGapExtract.fromParameters("F:/dbGap merge/dbgap.crf", new Logger());
+            
+//            String fileDir1 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50859/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c1.HMB-IRB/PhenotypeFiles/";
+//            String fileDir2 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50865/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c2.DS-CVD-IRB/PhenotypeFiles/";
+//            dir = new String[]{fileDir1, fileDir2};
+//            out = "/scratch.global/coleb/mergeOut.xln.gz";
+//            outMap = "/scratch.global/coleb/mergeMap.xln";
+//
+//            log = new Logger(logfile);
+//            (new DBGAPMerge()).run(dir, out, outMap, log);
+//            return;
+//        }
         
         
         for (int i = 0; i < args.length; i++) {
@@ -349,12 +375,130 @@ public class DBGAPMerge {
         }
     }
     
+    public static class DBGapExtract {
+        
+        public static void fromParameters(String filename, Logger log) {
+            Vector<String> params;
+            String[] args;
+            
+            params = Files.parseControlFile(filename, "dbgap", new String[]{
+                                "variables=searchTerms.xln",
+                                "dataFile=mergeOut.xln.gz",
+                                "outputFile=searchedVariables.xln",
+                                "head=IID",
+                        }, log);
+            
+            if (params != null) {
+                args = params.toArray(new String[params.size()]);
+                main(args);
+            }
+        }
+        
+        public static void main(String[] args) {
+            int numArgs = args.length;
+            String varFile = "searchTerms.xln";
+            String dataFile = "mergeOut.xln.gz";
+            String outputFile = "searchedVariables.xln";
+            String headIdent = "IID";
+            String logfile = null;
+            Logger log;
+
+            String usage = "\n" + 
+                            "one.ben.DBGAPExtract requires 4+ arguments\n" + 
+                            "   (1) Searched variables file (output from DBGapLookup) (i.e. variables=" + varFile + " (default))\n" + 
+                            "   (2) Merged dbGap data file (data output from DBGapMerge ) (i.e. dataFile=" + dataFile + " (default))\n" + 
+                            "   (3) Extracted output filename (i.e. outputFile=" + outputFile + " (default))\n" + 
+                            "   (4) ID column name in output file (i.e. head=" + headIdent + " (default))\n" +
+                            "   (5) OPTIONAL: Log file (i.e. log=" + logfile + " (default))\n" + 
+                            "";
+
+            for (int i = 0; i < args.length; i++) {
+                if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
+                    System.err.println(usage);
+                    System.exit(1);
+                } else if (args[i].startsWith("variables=")) {
+                    varFile = args[i].split("=")[1];
+                    numArgs--;
+                } else if (args[i].startsWith("dataFile=")) {
+                    dataFile = args[i].split("=")[1];
+                    numArgs--;
+                } else if (args[i].startsWith("outputFile=")) {
+                    outputFile = args[i].split("=")[1];
+                    numArgs--;
+                } else if (args[i].startsWith("head=")) {
+                    headIdent = args[i].split("=")[1];
+                    numArgs--;
+                } else if (args[i].startsWith("log=")) {
+                    logfile = args[i].split("=")[1];
+                    numArgs--;
+                } else {
+                    System.err.println("Error - invalid argument: " + args[i]);
+                }
+            }
+            if (numArgs != 0) {
+                System.err.println(usage);
+                System.exit(1);
+            }
+            try {
+                log = new Logger(logfile);
+                extract(varFile, dataFile, outputFile, headIdent, log);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        
+        private static void extract(String varFile, String dataFile, String outputFile, String headIdent, Logger log) throws IOException {
+            BufferedReader dataReader;
+            PrintWriter writer;
+            String[][] varData;
+            String[] colsToLoad, parts;
+            String line, delim;
+            StringBuilder sb;
+            
+            varData = HashVec.loadFileToStringMatrix(varFile, true, new int[]{1, 2}, false); // ident col, repl col, ignore source and other cols
+            colsToLoad = Matrix.extractColumn(varData, 0);
+            
+            dataReader = Files.getAppropriateReader(dataFile);
+            line = dataReader.readLine();
+            delim = ext.determineDelimiter(line);
+            parts = line.split(delim);
+            int[] factors = ext.indexFactors(colsToLoad, parts, false, false);
+            
+            writer = Files.getAppropriateWriter(outputFile);
+            sb = new StringBuilder();
+            sb.append(headIdent);
+            for (int i = 0; i < factors.length; i++) {
+                if (factors[i] >= 0) {
+                    sb.append("\t").append(ext.isMissingValue(varData[i][1]) ? varData[i][0] : varData[i][1]);
+                }
+            }
+            writer.println(sb.toString());
+            
+            while((line = dataReader.readLine()) != null) {
+                parts = line.split(delim);
+                sb = new StringBuilder();
+                sb.append(parts[0]);
+                for (int i = 0; i < factors.length; i++) {
+                    if (factors[i] >= 0) {
+                        sb.append("\t").append(parts[factors[i]]);
+                    }
+                }
+                writer.println(sb.toString());
+            }
+            writer.flush();
+            writer.close();
+            dataReader.close();
+        }
+        
+    }
+    
     public static class DBGapLookup {
         
         public static void fromParameters(String filename, Logger log) {
             Vector<String> params;
-            String[] line;
+            String[] line, args;
             String mapFile;
+            StringBuilder sb;
             
             params = Files.parseControlFile(filename, "search", new String[]{
                                                 "mergeMap.xln   searchCols=3,7,9,10 outputCols=0,5,6,3,7,9,10 out=searchTerms.xln  crf=dbgap.crf",
@@ -368,12 +512,12 @@ public class DBGAPMerge {
                     mapFile = ext.verifyDirFormat(ext.parseDirectoryOfFile(filename)) + mapFile;
                 }
 
-                String[] args = new String[line.length + (log.getFilename() == null ? 1 : 2)];
+                args = new String[line.length + (log.getFilename() == null ? 1 : 2)];
                 args[0] = "map=" + mapFile;
                 for (int i = 1; i < line.length; i++) {
                     args[i] = line[i];
                 }
-                StringBuilder sb = new StringBuilder(params.get(0));
+                sb = new StringBuilder(params.get(0));
                 for (int i = 1; i < params.size(); i++) {
                     sb.append(",").append(params.get(i));
                 }
@@ -399,13 +543,14 @@ public class DBGAPMerge {
             Logger log;
 
             String usage = "\n" + 
-                            "one.ben.DBGAPMerge requires 6 arguments\n" + 
+                            "one.ben.DBGAPMerge requires 6+ arguments\n" + 
                             "   (1) dbGap Map File (from merged files) (i.e. map=" + map + " (default))\n" +
                             "   (2) Column indices in which to search (i.e. searchCols=" + Array.toStr(searchCols, ",") + " (default))\n" + 
                             "   (3) Column indices from which to export data (i.e. outputCols=" + Array.toStr(outputCols, ",") + " (default))\n" + 
                             "   (4) Output File (i.e. out=" + output + " (default))\n" +
                             "   (5) Data export CRF filename (i.e. crf=" + crf + " (default))\n" +
                             "   (6) Search terms (i.e. search=" + Array.toStr(search, ",") + " (default))\n" + 
+                            "   (7) OPTIONAL: Log file (i.e. log=" + logfile + " (default))\n" + 
                             "";
             
             for (int i = 0; i < args.length; i++) {
@@ -444,6 +589,16 @@ public class DBGAPMerge {
             try {
                 log = new Logger(logfile);
                 search(map, search, searchCols, outputCols, output, crf, log);
+                if (Files.exists(crf)) {
+                    log.reportError("Error - specified .CRF file already exists! -- " + crf);
+                } else {
+                    Files.parseControlFile(crf, "dbgap", new String[]{
+                            "variables=" + output,
+                            "dataFile=mergeOut.xln.gz",
+                            "outputFile=searchedVariables.xln",
+                            "head=IID",
+                    }, log);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
