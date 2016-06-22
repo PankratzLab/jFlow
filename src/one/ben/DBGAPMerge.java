@@ -461,7 +461,7 @@ public class DBGAPMerge {
             dataReader = Files.getAppropriateReader(dataFile);
             line = dataReader.readLine();
             delim = ext.determineDelimiter(line);
-            parts = line.split(delim);
+            parts = line.split(delim, -1);
             int[] factors = ext.indexFactors(colsToLoad, parts, false, false);
             
             writer = Files.getAppropriateWriter(outputFile);
@@ -475,7 +475,7 @@ public class DBGAPMerge {
             writer.println(sb.toString());
             
             while((line = dataReader.readLine()) != null) {
-                parts = line.split(delim);
+                parts = line.split(delim, -1);
                 sb = new StringBuilder();
                 sb.append(parts[0]);
                 for (int i = 0; i < factors.length; i++) {
@@ -615,7 +615,7 @@ public class DBGAPMerge {
             line = reader.readLine().trim();
             delim = ext.determineDelimiter(line);
             outputDelim = "\t";
-            parts = line.split(delim);
+            parts = line.split(delim, -1);
             
             sb = new StringBuilder();
             for (int i = 0; i < outputCols.length; i++) {
