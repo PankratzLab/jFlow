@@ -201,6 +201,9 @@ public class DBGAPMerge {
                 }
                 parts = line.split("\t", -1);
                 fs.ids.add(parts[0]);
+                while (parts.length < fs.dataDefs.size()) {
+                    Array.addStrToArray(MISSING_DATA, parts);
+                }
                 fs.idDataMap.put(parts[0], Array.subArray(parts, 1));
             }
         }

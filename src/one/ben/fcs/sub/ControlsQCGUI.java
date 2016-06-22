@@ -60,7 +60,6 @@ import one.ben.fcs.FCSPlot;
 import one.ben.fcs.sub.MeanCtrlPanel.LabelPresenter;
 import one.ben.fcs.sub.OneDPanel.PLOT_TYPE;
 import cnv.gui.IncludeExcludeGUI;
-
 import common.Array;
 import common.HashVec;
 import common.Matrix;
@@ -211,7 +210,12 @@ public class ControlsQCGUI extends JFrame {
             public void actionPerformed(ActionEvent arg0) {
                 String curr = txtFldCompDir.getText();
                 if (curr.equals("")) {
-                    curr = "./";
+                    curr = txtFldBaseFile.getText();
+                    if (!"".equals(curr)) {
+                        curr = ext.parseDirectoryOfFile(curr);
+                    } else {
+                        curr = "./";
+                    }
                 }
                 JFileChooser jfc = new JFileChooser(curr);
                 jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -328,8 +332,12 @@ public class ControlsQCGUI extends JFrame {
         panel_1.add(lblControlGroup, "cell 2 0,alignx trailing");
         
         ActionListener reCalcListener = new ActionListener() {
+            @SuppressWarnings("unchecked")
             @Override
             public void actionPerformed(ActionEvent arg0) {
+                if (((JComboBox<String>)arg0.getSource()).isPopupVisible()) {
+                    saveProps();
+                }
                 reCalcTableData();
             }
         };
@@ -511,7 +519,7 @@ public class ControlsQCGUI extends JFrame {
         meanPanel.setYAxisLabel(col.split("\\|")[1].trim());
         meanPanel.setData(col, new String[][]{baseLbls, compLbls}, new double[][]{yDataBase, yDataComp});
         meanPanel.paintAgain();
-        meanFrame.setTitle("Genvisis - Control QC - Overall Mean/SD - " + col);
+        meanFrame.setTitle("jFlow - Control QC - Overall Mean/SD - " + col);
         meanFrame.setVisible(true);
     }
     
@@ -519,6 +527,8 @@ public class ControlsQCGUI extends JFrame {
     private static final String PROPKEY_COMPAREDIR = "COMPARE_DIR";
     private static final String PROPKEY_RANGEFILE = "RANGE_FILE";
     private static final String PROPKEY_COLS = "HIDDEN_COLUMNS";
+    private static final String PROPKEY_CTRL = "CONTROL_GROUP";
+    private static final String PROPKEY_PANEL = "PANEL_GROUP";
     private JCheckBox chckbxShowInternalControl;
     private JSeparator separator_3;
     private JSpinner spinner;
@@ -540,6 +550,8 @@ public class ControlsQCGUI extends JFrame {
                 ind++;
             }
             props.setProperty(PROPKEY_COLS, cols.toString());
+            props.setProperty(PROPKEY_CTRL, (String) comboControl.getSelectedItem());
+            props.setProperty(PROPKEY_PANEL, (String) comboPanel.getSelectedItem());
             File f = new File(PROP_FILE);
             OutputStream out = new FileOutputStream( f );
             props.store(out, "");
@@ -560,6 +572,8 @@ public class ControlsQCGUI extends JFrame {
             String base = props.getProperty(PROPKEY_RANGEFILE, "");
             String comp = props.getProperty(PROPKEY_COMPAREDIR, "");
             String colsTemp = props.getProperty(PROPKEY_COLS, "");
+            String selCtrl = props.getProperty(PROPKEY_CTRL, "");
+            String selPnl = props.getProperty(PROPKEY_PANEL, "");
             String[] cols = colsTemp.split(";");
             
             if (!base.equals("")) {
@@ -573,6 +587,12 @@ public class ControlsQCGUI extends JFrame {
             this.hiddenCols.clear();
             for (String c : cols) {
                 this.hiddenCols.add(c);
+            }
+            if (selCtrl != null && !"".equals(selCtrl)) {
+                comboControl.setSelectedItem(selCtrl);
+            }
+            if (selPnl != null && !"".equals(selPnl)) {
+                comboPanel.setSelectedItem(selPnl);
             }
             reCalcTableData();
         }
@@ -1007,8 +1027,10 @@ public class ControlsQCGUI extends JFrame {
         
         dtmMean.addRow(new Object[colNames.length]);
 
-        int numRecent = (Integer) spinner.getValue();
-//        addFilesToModel(compDirData, compDirData.dir, numRecent);
+        if (compDirData != null) {
+            int numRecent = (Integer) spinner.getValue();
+            addFilesToModel(compDirData, compDirData.dir, numRecent);
+        }
         
         table.setModel(dtmMean);
         table.revalidate();
@@ -1037,7 +1059,8 @@ public class ControlsQCGUI extends JFrame {
             Object[] rowDataM = new Object[fileData.length + 1];
             rowDataM[0] = ext.rootOf(f);
             for (int i = 0; i < fileData.length; i++) {
-                paramMeanLists.get(params.get(i)).add(fileData[i]);
+                ArrayList<Float> paramMeans = paramMeanLists.get(params.get(i));
+                paramMeans.add(fileData[i]);
                 rowDataM[i + 1] = fileData[i];
             }
             dtmMean.addRow(rowDataM);
