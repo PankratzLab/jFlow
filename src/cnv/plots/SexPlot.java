@@ -70,7 +70,7 @@ public class SexPlot extends JFrame {
 		return colorLegendPanel;
 	}
 
-	public static void loadGenderResults(Project proj) {
+	public static void loadSexCheckResults(Project proj) {
 		BufferedReader reader;
 		String[] line;
 		Vector<String[]> samples;
@@ -87,14 +87,16 @@ public class SexPlot extends JFrame {
 			if (reader == null) {
 				return;
 			}
-			ext.checkHeader(reader.readLine().trim().split("\t"), SexChecks.SEX_HEADER, true);
+			if (!ext.checkHeader(reader.readLine().trim().split("\t"), SexChecks.SEX_HEADER, false, proj.getLog(), false)) {
+				proj.message("The header in file '"+proj.SEXCHECK_RESULTS_FILENAME.getValue()+"' is not as expected and may cause problems; see log for more detail");
+			}
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t", -1);
 				if (ext.isMissingValue(line[4]) || ext.isMissingValue(line[8]) ) {
 					System.err.println("Error - sample '"+line[0]+"' does not have a valid meanLRR for X or Y");
 				} else {
 					samples.add(new String[] {line[0], "chr23"});
-					datapoints.add(new double[] {Double.parseDouble(line[5]), Double.parseDouble(line[9])});
+					datapoints.add(new double[] {Double.parseDouble(line[10]), Double.parseDouble(line[11])});
 					sexes.add(Byte.parseByte(line[3]));
 					estimatedSexes.add(Byte.parseByte(line[4]));
 				}
@@ -135,7 +137,7 @@ public class SexPlot extends JFrame {
 		}
 
 		try {
-			loadGenderResults(new Project(filename, false));
+			loadSexCheckResults(new Project(filename, false));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
