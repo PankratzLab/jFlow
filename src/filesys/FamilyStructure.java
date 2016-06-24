@@ -75,43 +75,28 @@ public class FamilyStructure {
 	}
 
 	public FamilyStructure(String filename, boolean loadDNAs, Logger log) {
-		BufferedReader reader;
-		String[] line;
-		int count;
 
-		try {
-			count = Files.countLines(filename, 0);
-			reader = Files.getAppropriateReader(filename);
-			ids = new String[count][];
-			iids = new String[count];
-			fids = new String[count];
-			fas = new String[count];
-			mos = new String[count];
-			genders = new byte[count];
-			affections = new byte[count];
-			dnas = loadDNAs ? new String[count] : null;
-			mzTwinIds = new String[count];
-			for (int i = 0; i < count; i++) {
-				line = reader.readLine().trim().split("[\\s]+");
-				ids[i] = new String[] {line[0], line[1], line[2], line[3]};
-				fids[i] = line[0];
-				iids[i] = line[1];
-				fas[i] = line[2];
-				mos[i] = line[3];
-				genders[i] = ext.isMissingValue(line[4]) ? FamilyStructure.MISSING_VALUE_BYTE : Byte.parseByte(line[4]);  
-				affections[i] = ext.isMissingValue(line[5]) ? FamilyStructure.MISSING_VALUE_BYTE : Byte.parseByte(line[5]); 
-				if (loadDNAs) {
-					dnas[i] = line[6]; 
-				}
-				if(line.length > 7){
-					mzTwinIds[i] = ext.isMissingValue(line[7]) ? null : line[7];
-				}
+		String[][] pedCols = Matrix.transpose(HashVec.loadFileToStringMatrix(filename, false, null, false));
+		if (pedCols == null) return;
+		int count = pedCols[0].length;
+
+		ids = new String[count][];
+		fids = pedCols[0];
+		iids = pedCols[1];
+		fas = pedCols[2];
+		mos = pedCols[3];
+		genders = new byte[count];
+		affections = new byte[count];
+		dnas = loadDNAs ? pedCols[6] : null;
+		mzTwinIds = new String[count];
+		for (int i = 0; i < count; i++) {
+			ids[i] = new String[] {fids[i], iids[i], fas[i], mos[i]};
+			genders[i] = ext.isMissingValue(pedCols[4][i]) ? FamilyStructure.MISSING_VALUE_BYTE : Byte.parseByte(pedCols[4][i]);  
+			affections[i] = ext.isMissingValue(pedCols[5][i]) ? FamilyStructure.MISSING_VALUE_BYTE : Byte.parseByte(pedCols[5][i]); 
+
+			if(pedCols.length > 7){
+				mzTwinIds[i] = ext.isMissingValue(pedCols[7][i]) ? null : pedCols[7][i];
 			}
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-		    this.log.reportFileNotFound(filename);
-		} catch (IOException ioe) {
-		    this.log.reportIOException(filename);
 		}
 	}
 	
