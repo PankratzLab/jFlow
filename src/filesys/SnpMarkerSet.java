@@ -166,99 +166,87 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	}
 	
 	public SnpMarkerSet(String filename, String delimiter, int[] indices, boolean header, String[][] stringReplacements, boolean verbose, Logger log) {
-		BufferedReader reader;
-		String[] line;
-		int count;
 		String[] markerNames;
-		String temp;
-		
-		try {
-			count = Files.countLines(filename, 0);
 
-			if (indices == null) {
-				temp = Files.getFirstNLinesOfFile(filename, 1, log)[0];
+
+		if (indices == null) {
+			String temp = Files.getFirstNLinesOfFile(filename, 1, log)[0];
+			temp = ext.replaceAllWith(temp, stringReplacements);
+			indices = ext.indexFactors(SnpMarkerSet.HEADER_ELEMEMTS, temp.split(delimiter), true, true, false, log, false);
+			header = true;
+		}
+
+		String[] data = HashVec.loadFileToStringArray(filename, header, null, false);
+
+		if (data == null) return;
+
+		int count = data.length;
+
+		markerNames = new String[count];
+		if (indices[1] == CHR_INFO_IN_FILENAME) {
+			Matcher m = Pattern.compile(DosageData.CHR_REGEX).matcher(filename);
+			byte chr = -1;
+			if (m.matches()) {
+				chr = (byte) Integer.parseInt(m.group(1));
+				log.report("Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{" + chr + "}.");
+				chrs = Array.byteArray(count, chr);
+			} else {
+				log.reportError("Error - the format given expects chromosome number to be part of the file name, but no chromosome number was found.  Chromosome information will not be included.");
+				chrs = new byte[count];
+			}
+		} else {
+			chrs = new byte[count];
+		}
+		positions = new int[count];
+
+		if (indices[3] == -1) {
+			centiMorgans = null;
+		} else {
+			centiMorgans = new double[count];
+		}
+		if (indices[4] == -1 || indices[5] == -1) {
+			alleles = null;
+		} else {
+			alleles = new char[count][2];
+		}
+		if (indices.length == 6) {
+			annotation = null;
+		} else {
+			annotation = new String[count][indices.length-6];
+		}
+		for (int i = 0; i<count; i++) {
+			String temp = data[i];
+			if (stringReplacements != null) {
 				temp = ext.replaceAllWith(temp, stringReplacements);
-				indices = ext.indexFactors(SnpMarkerSet.HEADER_ELEMEMTS, temp.split(delimiter), true, true, false, log, false);
-				header = true;
 			}
-
-			reader = new BufferedReader(new FileReader(filename));
-			
-			if (header) {
-				reader.readLine();
-				count--;
+			String[] line = temp.split(delimiter, -1);
+			markerNames[i] = line[indices[0]];
+			if (indices[1] >= 0) {
+				chrs[i] = Positions.chromosomeNumber(line[indices[1]]);
 			}
-			markerNames = new String[count];
-			if (indices[1] == CHR_INFO_IN_FILENAME) {
-	            Matcher m = Pattern.compile(DosageData.CHR_REGEX).matcher(filename);
-	            byte chr = -1;
-	            if (m.matches()) {
-	                chr = (byte) Integer.parseInt(m.group(1));
-                    log.report("Warning - the format given expects chromosome number to be part of the file name.  This was determined to be chr{" + chr + "}.");
-	                chrs = Array.byteArray(count, chr);
-	            } else {
-                    log.reportError("Error - the format given expects chromosome number to be part of the file name, but no chromosome number was found.  Chromosome information will not be included.");
-	                chrs = new byte[count];
-	            }
-			} else {
-			    chrs = new byte[count];
+			if (indices[2] != -1) {
+				positions[i] = Integer.parseInt(line[indices[2]]);
 			}
-			positions = new int[count];
-			
-			if (indices[3] == -1) {
-				centiMorgans = null;
-			} else {
-				centiMorgans = new double[count];
+			if (indices[3] != -1) {
+				centiMorgans[i] = Double.parseDouble(line[indices[3]]);
 			}
-			if (indices[4] == -1 || indices[5] == -1) {
-				alleles = null;
-			} else {
-				alleles = new char[count][2];
+			if (indices[4] != -1) {
+				alleles[i][0] = line[indices[4]].charAt(0);
 			}
-			if (indices.length == 6) {
-				annotation = null;
-			} else {
-				annotation = new String[count][indices.length-6];
+			if (indices[5] != -1) {
+				alleles[i][1] = line[indices[5]].charAt(0);
 			}
-			for (int i = 0; i<count; i++) {
-				temp = reader.readLine();
-				if (stringReplacements != null) {
-					temp = ext.replaceAllWith(temp, stringReplacements);
-				}
-				line = temp.split(delimiter, -1);
-				markerNames[i] = line[indices[0]];
-				if (indices[1] >= 0) {
-					chrs[i] = Positions.chromosomeNumber(line[indices[1]]);
-				}
-				if (indices[2] != -1) {
-					positions[i] = Integer.parseInt(line[indices[2]]);
-				}
-				if (indices[3] != -1) {
-					centiMorgans[i] = Double.parseDouble(line[indices[3]]);
-				}
-				if (indices[4] != -1) {
-					alleles[i][0] = line[indices[4]].charAt(0);
-				}
-				if (indices[5] != -1) {
-					alleles[i][1] = line[indices[5]].charAt(0);
-				}
-				if (indices.length > 6) {
-					for (int j = 6; j < indices.length; j++) {
-						try {
-							annotation[i][j-6] = line[indices[j]];
-						} catch (Exception e) {
-							log.reportError("Unexpected exception in SnpMarker constructor");
-						}
+			if (indices.length > 6) {
+				for (int j = 6; j < indices.length; j++) {
+					try {
+						annotation[i][j-6] = line[indices[j]];
+					} catch (Exception e) {
+						log.reportError("Unexpected exception in SnpMarker constructor");
 					}
 				}
 			}
-			convertMarkerNamesToRSnumbers(markerNames, verbose, log);
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			log.reportError("Error: file \""+filename+"\" not found in current directory");
-		} catch (IOException ioe) {
-			log.reportError("Error reading file \""+filename+"\"");
 		}
+		convertMarkerNamesToRSnumbers(markerNames, verbose, log);
 	}	
 
 	public void convertMarkerNamesToRSnumbers(String[] markerNames, boolean verbose, Logger log) {
