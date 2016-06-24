@@ -1264,6 +1264,24 @@ public class Array {
 	 *            an array of numbers
 	 * @return variance of the array
 	 */
+	public static double variance(int[] array) {
+		double avg = mean(array);
+		double sum = 0;
+
+		for (int i = 0; i<array.length; i++) {
+			sum += Math.pow(avg-array[i], 2);
+		}
+
+		return sum/(array.length-1);
+	}
+	
+	/**
+	 * Calculates the variance of an array
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return variance of the array
+	 */
 	public static double variance(double[] array) {
 		double avg = mean(array);
 		double sum = 0;
@@ -1337,6 +1355,17 @@ public class Array {
 		}
 
 		return (float)(sum/(double)(array.length-1));
+	}
+	
+	/**
+	 * Calculates the standard deviation of an array
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return standard deviation of the array
+	 */
+	public static double stdev(int[] array) {
+		return Math.sqrt(variance(array));
 	}
 
 	/**
@@ -1782,6 +1811,38 @@ public class Array {
 	 *            exclusive quantile to be determined
 	 * @return specified exclusive quantile of the array
 	 */
+	public static double quantExclusive(int[] array, double q) {
+		if (array.length == 0) return Double.NaN;
+
+		int keys[] = Sort.quicksort(array);
+
+		try {
+			if (q>1||q<0) {
+				return (0);
+			} else {
+				double index = (array.length+1)*q;
+				if (index-(int)index==0) {
+					return array[keys[(int)index-1]];
+				} else {
+					return q*array[keys[(int)Math.floor(index)-1]]+(1-q)*array[keys[(int)Math.ceil(index)-1]];
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1234567890;
+		}
+	}
+	/**
+	 * Determines the specified exclusive quantile of an array of numbers<br />
+	 * Returns a number guaranteed to be a member of the given array.<br />
+	 * This function matches Excel's QUARTILE.EXC function.
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @param q
+	 *            exclusive quantile to be determined
+	 * @return specified exclusive quantile of the array
+	 */
 	public static double quantExclusive(double[] array, double q) {
 		if (array.length == 0) return Double.NaN;
 
@@ -1965,6 +2026,17 @@ public class Array {
 			tmp[i] = Math.abs(array[i] - median);
 		}
 		return (quantExclusive(tmp, 0.50)) * constant;
+	}
+	
+	/**
+	 * Determines the median of an array of numbers
+	 * 
+	 * @param array
+	 *            an array of numbers
+	 * @return median of the array
+	 */
+	public static double median(int[] array) {
+		return (quantExclusive(array, 0.50));
 	}
 	
 	/**
