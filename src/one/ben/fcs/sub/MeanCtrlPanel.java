@@ -40,6 +40,7 @@ public class MeanCtrlPanel extends JPanel {
         rdbtnDotline.setBackground(Color.WHITE);
         bg.add(rdbtnDotline);
         add(rdbtnDotline, "cell 0 0");
+        rdbtnDotline.setVisible(false);
         
         rdbtnBox = new JRadioButton();
         rdbtnBox.setSelected(true);
@@ -48,6 +49,7 @@ public class MeanCtrlPanel extends JPanel {
         rdbtnBox.setBackground(Color.WHITE);
         bg.add(rdbtnBox);
         add(rdbtnBox, "cell 1 0");
+        rdbtnBox.setVisible(false);
         
         btnPrev = new JButton("<<");
         add(btnPrev, "cell 3 0");
@@ -173,6 +175,8 @@ public class MeanCtrlPanel extends JPanel {
 
     public void setPlotChangeListener(ActionListener plotLst) {
         this.plot = plotLst;
+        rdbtnDotline.setVisible(true);
+        rdbtnBox.setVisible(true);
     }
 
     
