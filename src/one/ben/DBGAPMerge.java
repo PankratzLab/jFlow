@@ -2,7 +2,6 @@ package one.ben;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -69,6 +68,10 @@ public class DBGAPMerge {
         
         for (String gzFile : allFiles) {
             if (!gzFile.endsWith(DATA_SUFF)) continue;
+            if (Files.countLines(dir + gzFile, 0) < 5) {
+                System.err.println("Warning - file " + gzFile + " will be skipped due to lack of data.");
+                continue;
+            }
             String[] parts = gzFile.split("\\.");
             
             String key = parts[0] + "." + parts[1] + "." + parts[2] + "." + parts[3];
@@ -165,7 +168,7 @@ public class DBGAPMerge {
                     if (cdNode != null) {
                         dc.varValueDescriptions.put(cdNode.getNodeValue(), nodeVal);
                     } else {
-                        System.out.println("Value without Code: " + nodeVal);
+                        System.out.println(ext.getTime() + "]\tValue without Code: " + nodeVal);
                     }
                 } else if (nodeNm.equals("unit")) {
                     dc.varUnit = nodeVal;
@@ -201,8 +204,8 @@ public class DBGAPMerge {
                 }
                 parts = line.split("\t", -1);
                 fs.ids.add(parts[0]);
-                while (parts.length < fs.dataDefs.size()) {
-                    Array.addStrToArray(MISSING_DATA, parts);
+                while (parts.length - 1 < fs.dataDefs.size()) {
+                    parts = Array.addStrToArray(MISSING_DATA, parts);
                 }
                 fs.idDataMap.put(parts[0], Array.subArray(parts, 1));
             }
@@ -248,7 +251,8 @@ public class DBGAPMerge {
 
         lineOut = new StringBuilder("DBGAP_ID");
         for (FileSet fs : files) {
-            for (DataColumn dc : fs.dataDefs) {
+            for (int i = 0; i < fs.dataDefs.size(); i++) {
+                DataColumn dc = fs.dataDefs.get(i);
                 lineOut.append("\t").append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table);
                 if (dc.consentGroup != null) {
                     lineOut.append(";").append(dc.consentGroup);
@@ -264,8 +268,8 @@ public class DBGAPMerge {
                 if (data == null) {
                     data = Array.stringArray(fs.dataDefs.size(), MISSING_DATA);
                 }
-                for (String s : data) {
-                    lineOut.append("\t").append("".equals(s) ? MISSING_DATA : s);
+                for (int i = 0; i < fs.dataDefs.size(); i++) {
+                    lineOut.append("\t").append("".equals(data[i]) ? MISSING_DATA : data[i]);
                 }
             }
             writer.println(lineOut.toString());
@@ -337,14 +341,16 @@ public class DBGAPMerge {
 //            String fileDir1 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50859/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c1.HMB-IRB/PhenotypeFiles/";
 //            String fileDir2 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50865/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c2.DS-CVD-IRB/PhenotypeFiles/";
 //            dir = new String[]{fileDir1, fileDir2};
-//            out = "/scratch.global/coleb/mergeOut.xln.gz";
-//            outMap = "/scratch.global/coleb/mergeMap.xln";
+//            dir = new String[]{fileDir1};
+//            dir = new String[]{"/scratch.global/coleb/merge"};
+//            out = "/scratch.global/coleb/merge/mergeOut.xln.gz";
+//            outMap = "/scratch.global/coleb/merge/mergeMap.xln";
 //
 //            log = new Logger(logfile);
 //            (new DBGAPMerge()).run(dir, out, outMap, log);
 //            return;
 //        }
-        
+//        
         
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {

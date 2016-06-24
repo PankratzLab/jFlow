@@ -150,7 +150,7 @@ public class OneDPanel extends AbstractPanel2  {
             numPoints += dataArr.length;
         }
         points = new PlotPoint[numPoints];
-        lines = new GenericLine[numPoints + 4];
+        ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
         
         int ind = 0;
         int lInd = 0;
@@ -165,10 +165,10 @@ public class OneDPanel extends AbstractPanel2  {
                     type = PlotPoint.FILLED_CIRCLE;
                 }
                 
-                color = (byte) 0; // TODO apply gating for colors
+                color = (byte) d; // TODO apply gating for colors
                 points[ind] = new PlotPoint(dataLabels[d][i], type, xAxisValue, yAxisValue, size, color, (byte)0);
                 if (i < data[d].length - 1) {
-                    lines[lInd++] = new GenericLine(xAxisValue, yAxisValue, (float) ind+1, (float) data[d][i+1], (byte)1, (byte)d, (byte)0);
+                    lineList.add(new GenericLine(xAxisValue, yAxisValue, (float) ind+1, (float) data[d][i+1], (byte)1, (byte)d, (byte)0));
                 }
                 ind++;
             }
@@ -177,11 +177,13 @@ public class OneDPanel extends AbstractPanel2  {
         
         float mean = (float)Array.mean(data[0]);
         float sd = (float)Array.stdev(data[0], true);
-        lines[lInd++] = new GenericLine(-1, mean, numPoints + 1, mean, (byte)1, (byte)0, (byte)99);
-        lines[lInd++] = new GenericLine(-1, mean - sd, numPoints + 1, mean - sd, (byte)1, (byte)2, (byte)99);
-        lines[lInd++] = new GenericLine(-1, mean + sd, numPoints + 1, mean + sd, (byte)1, (byte)2, (byte)99);
-        lines[lInd++] = new GenericLine(-1, mean - 2*sd, numPoints + 1, mean - 2*sd, (byte)1, (byte)2, (byte)99);
-        lines[lInd++] = new GenericLine(-1, mean + 2*sd, numPoints + 1, mean + 2*sd, (byte)1, (byte)2, (byte)99);
+        lineList.add(new GenericLine(0, mean, numPoints + 1, mean, (byte)1, (byte)0, (byte)99));
+        lineList.add(new GenericLine(0, mean - sd, numPoints + 1, mean - sd, (byte)1, (byte)2, (byte)99));
+        lineList.add(new GenericLine(0, mean + sd, numPoints + 1, mean + sd, (byte)1, (byte)2, (byte)99));
+        lineList.add(new GenericLine(0, mean - 2*sd, numPoints + 1, mean - 2*sd, (byte)1, (byte)2, (byte)99));
+        lineList.add(new GenericLine(0, mean + 2*sd, numPoints + 1, mean + 2*sd, (byte)1, (byte)2, (byte)99));
+        
+        lines = lineList.toArray(new GenericLine[lineList.size()]);
         
         double dataMin = Array.min(data[0]), dataMax = Array.max(data[0]);
         for (int i = 1; i < data.length; i++) {
@@ -191,6 +193,7 @@ public class OneDPanel extends AbstractPanel2  {
         }
         setForcePlotYMin((float)dataMin);
         setForcePlotYMax((float)dataMax);
+        setForcePlotXMin(0);
         
         setYAxis(AXIS_SCALE.LIN);
         setXAxis(AXIS_SCALE.LIN);
@@ -201,57 +204,80 @@ public class OneDPanel extends AbstractPanel2  {
 		ArrayList<GenericLine> lns = new ArrayList<GenericLine>();
         ArrayList<PlotPoint> pts = new ArrayList<PlotPoint>();
         
+        double xMin = Double.MAX_VALUE, xMax = Double.MIN_VALUE;
+        double min = Double.MAX_VALUE, max = Double.MIN_VALUE;
         for (int i = 0; i < data.length; i++) {
             if (data[i].length == 0) continue;
-            float xLow = 20 * i + 2;
-            float xHigh = xLow + 18; 
-            float xMed = xLow + (xHigh-xLow)/2;
-            
-            double med = Array.median(data[i]);
-            double qr25 = Array.quantExclusive(data[i], 0.25);
-            double qr75 = Array.quantExclusive(data[i], 0.75);
-            double iqr = Array.iqrExclusive(data[i]);
-            double wiskLow = qr25 - 1.5 * iqr; 
-            double wiskHigh = qr75 + 1.5 * iqr;
-            double min = Math.min(wiskLow, Array.min(data[i]));
-            double max = Math.max(wiskHigh, Array.max(data[i]));
-            setForcePlotYMin((float) (min));
-            setForcePlotYMax((float) (max));
-            setPlotYMin((float) (min));
-            setPlotYMax((float) (max));
-            
-            //  line @ med
-            lns.add(new GenericLine(xLow, (float)med, xHigh, (float)med, (byte)4, (byte)0, (byte)0));
-            //  line @ qr25
-            lns.add(new GenericLine(xLow, (float)qr25, xHigh, (float)qr25, (byte)2, (byte)0, (byte)0));
-            //  line @ qr75
-            lns.add(new GenericLine(xLow, (float)qr75, xHigh, (float)qr75, (byte)2, (byte)0, (byte)0));
-            //  small line at wiskLow
-            lns.add(new GenericLine(xMed - (xMed - xLow) / 2, (float)wiskLow, xMed + (xMed - xLow) / 2, (float)wiskLow, (byte)2, (byte)0, (byte)0));
-            //  small line at wiskHigh
-            lns.add(new GenericLine(xMed - (xMed - xLow) / 2, (float)wiskHigh, xMed + (xMed - xLow) / 2, (float)wiskHigh, (byte)2, (byte)0, (byte)0));
-            //  line from qr25 -> wiskLow
-            lns.add(new GenericLine(xMed, (float)qr25, xMed, (float)wiskLow, (byte)1, (byte)0, (byte)0));
-            //  line from qr75 -> wiskHigh
-            lns.add(new GenericLine(xMed, (float)qr75, xMed, (float)wiskHigh, (byte)1, (byte)0, (byte)0));
-            //  two lines vert, from qr25 to qr75
-            lns.add(new GenericLine(xLow, (float)qr25, xLow, (float)qr75, (byte)1, (byte)0, (byte)0));
-            lns.add(new GenericLine(xHigh, (float)qr25, xHigh, (float)qr75, (byte)1, (byte)0, (byte)0));
-            
-            for (int j = 0; j < data[i].length; j++) {
-                if (data[i][j] < wiskLow || data[i][j] > wiskHigh) {
-                    pts.add(new PlotPoint(dataLabels[i][j], PlotPoint.FILLED_CIRCLE, xMed, (float)data[i][j], (byte)POINT_SIZE, (byte)0, (byte)0));
+            if (data[i].length <= 2) {
+                float xLow = 20 * (i - 1) + 2;
+                float xHigh = xLow + 18; 
+
+                byte col = (byte) i;
+                
+                for (int d = 0; d < data[i].length; d++) {
+                    min = Math.min(min, data[i][d]);
+                    max = Math.max(max, data[i][d]);
+                    lns.add(new GenericLine(xLow, (float)data[i][d], xHigh, (float)data[i][d], (byte)4, col, (byte)0));
+                }
+            } else if (data[i].length > 2) {
+                float xLow = 20 * i + 2;
+                xMin = Math.min(xLow - 5, xMin);
+                float xHigh = xLow + 18; 
+                xMax = Math.max(xHigh + 5, xMax);
+                float xMed = xLow + (xHigh-xLow)/2;
+                
+                byte col = (byte) i;
+                
+                double med = Array.median(data[i]);
+                double qr25 = Array.quantExclusive(data[i], 0.25);
+                double qr75 = Array.quantExclusive(data[i], 0.75);
+                double iqr = Array.iqrExclusive(data[i]);
+                double wiskLow = qr25 - 1.5 * iqr; 
+                double wiskHigh = qr75 + 1.5 * iqr;
+                min = Math.min(min, Math.min(wiskLow, Array.min(data[i])));
+                max = Math.max(max, Math.max(wiskHigh, Array.max(data[i])));
+                
+                //  line @ med
+                lns.add(new GenericLine(xLow, (float)med, xHigh, (float)med, (byte)4, col, (byte)0));
+                //  line @ qr25
+                lns.add(new GenericLine(xLow, (float)qr25, xHigh, (float)qr25, (byte)2, col, (byte)0));
+                //  line @ qr75
+                lns.add(new GenericLine(xLow, (float)qr75, xHigh, (float)qr75, (byte)2, col, (byte)0));
+                //  small line at wiskLow
+                lns.add(new GenericLine(xMed - (xMed - xLow) / 2, (float)wiskLow, xMed + (xMed - xLow) / 2, (float)wiskLow, (byte)2, col, (byte)0));
+                //  small line at wiskHigh
+                lns.add(new GenericLine(xMed - (xMed - xLow) / 2, (float)wiskHigh, xMed + (xMed - xLow) / 2, (float)wiskHigh, (byte)2, col, (byte)0));
+                //  line from qr25 -> wiskLow
+                lns.add(new GenericLine(xMed, (float)qr25, xMed, (float)wiskLow, (byte)1, col, (byte)0));
+                //  line from qr75 -> wiskHigh
+                lns.add(new GenericLine(xMed, (float)qr75, xMed, (float)wiskHigh, (byte)1, col, (byte)0));
+                //  two lines vert, from qr25 to qr75
+                lns.add(new GenericLine(xLow, (float)qr25, xLow, (float)qr75, (byte)1, col, (byte)0));
+                lns.add(new GenericLine(xHigh, (float)qr25, xHigh, (float)qr75, (byte)1, col, (byte)0));
+                
+                for (int j = 0; j < data[i].length; j++) {
+                    if (data[i][j] < wiskLow || data[i][j] > wiskHigh) {
+                        pts.add(new PlotPoint(dataLabels[i][j], PlotPoint.FILLED_CIRCLE, xMed, (float)data[i][j], (byte)POINT_SIZE, col, (byte)0));
+                    }
                 }
             }
         }
+        
+        setForcePlotYMin((float) (min));
+        setForcePlotYMax((float) (max));
+        setPlotYMin((float) (min));
+        setPlotYMax((float) (max));
+        
+        setForcePlotXMin((float) (xMin));
+        setForcePlotXMax((float) (xMax));
+        setPlotXMin((float) (xMin));
+        setPlotXMax((float) (xMax));
         
 		
 		lines = lns.toArray(new GenericLine[lns.size()]);
 		points = pts.toArray(new PlotPoint[pts.size()]);
 		
 	}
-
-    
     
     public void mouseClicked(MouseEvent e) {
         JPopupMenu menu;

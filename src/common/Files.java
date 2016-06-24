@@ -823,7 +823,6 @@ public class Files {
 		}
 
 		if (filename.endsWith(".gz")) {
-		    
             try {
                 if (!Files.checkJVMUpToDateApprox()) {
                     System.err.println("\nYOUR VERSION OF JAVA IS OUT OF DATE; reading gzipped files may fail.");
