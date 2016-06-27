@@ -503,11 +503,14 @@ public class MitoPipeline {
 	private static boolean prepareMitoResources(Project proj, boolean requireBeta, Logger log) {
 		boolean dbSnpA = GENOME_RESOURCE_TYPE.DB_SNP.getResource(proj.GENOME_BUILD_VERSION.getValue()).validateWithHint(log);
 		if (!dbSnpA && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6 || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
+			log.reportTimeWarning("Build version was set to " + proj.GENOME_BUILD_VERSION.getValue() + " , performing liftover and using rsIDs from " + GENOME_BUILD.HG19);
 			dbSnpA = GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19).validateWithHint(log);
+			GENOME_RESOURCE_TYPE.DB_SNP.getResource(GENOME_BUILD.HG19).getResource(log);
 		}
 		boolean mitoAvail = true;
 		for (MITO_RESOURCE_TYPE m : MITO_RESOURCE_TYPE.values()) {
 			boolean tmp = m.getResource().validateWithHint(log);
+			m.getResource().getResource(log);
 			if (mitoAvail && requireBeta) {
 				mitoAvail = tmp;
 			}
