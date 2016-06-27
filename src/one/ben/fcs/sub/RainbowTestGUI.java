@@ -46,6 +46,7 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
@@ -439,7 +440,7 @@ public class RainbowTestGUI extends JFrame {
         
         separator_1 = new JSeparator();
         separator_1.setOrientation(SwingConstants.VERTICAL);
-        contentPane.add(separator_1, "cell 0 4,growy");
+        contentPane.add(separator_1, "cell 0 4 2 1,growy");
 
         AbstractAction gateAction = new AbstractAction() {
             @Override
@@ -454,7 +455,7 @@ public class RainbowTestGUI extends JFrame {
         rdbtnUngated.setSelected(true);
         rdbtnUngated.setMnemonic(KeyEvent.VK_U);
         buttonGroup_1.add(rdbtnUngated);
-        contentPane.add(rdbtnUngated, "cell 0 4");
+        contentPane.add(rdbtnUngated, "cell 0 4 2 1");
         
         rdbtnGated = new JRadioButton();
         rdbtnGated.setAction(gateAction);
@@ -462,11 +463,11 @@ public class RainbowTestGUI extends JFrame {
         rdbtnGated.setEnabled(false);
         rdbtnGated.setMnemonic(KeyEvent.VK_T);
         buttonGroup_1.add(rdbtnGated);
-        contentPane.add(rdbtnGated, "cell 0 4");
+        contentPane.add(rdbtnGated, "cell 0 4 2 1");
         
         separator = new JSeparator();
         separator.setOrientation(SwingConstants.VERTICAL);
-        contentPane.add(separator, "cell 0 4,growy");
+        contentPane.add(separator, "cell 0 4 2 1,growy");
         
         rdbtnMean = new JRadioButton();
         rdbtnMean.setAction(new AbstractAction() {
@@ -484,7 +485,7 @@ public class RainbowTestGUI extends JFrame {
         rdbtnMean.setMnemonic(KeyEvent.VK_M);
         rdbtnMean.setSelected(true);
         buttonGroup.add(rdbtnMean);
-        contentPane.add(rdbtnMean, "cell 0 4");
+        contentPane.add(rdbtnMean, "cell 0 4 2 1");
         
         rdbtnSd = new JRadioButton();
         rdbtnSd.setAction(new AbstractAction() {
@@ -503,7 +504,7 @@ public class RainbowTestGUI extends JFrame {
         rdbtnSd.setText("SD");
         rdbtnSd.setMnemonic(KeyEvent.VK_S);
         buttonGroup.add(rdbtnSd);
-        contentPane.add(rdbtnSd, "cell 0 4");
+        contentPane.add(rdbtnSd, "cell 0 4 2 1");
         
         rdbtnCv = new JRadioButton();
         rdbtnCv.setAction(new AbstractAction() {
@@ -522,7 +523,7 @@ public class RainbowTestGUI extends JFrame {
         rdbtnCv.setText("cV");
         rdbtnCv.setMnemonic(KeyEvent.VK_C);
         buttonGroup.add(rdbtnCv);
-        contentPane.add(rdbtnCv, "cell 0 4");
+        contentPane.add(rdbtnCv, "cell 0 4 2 1");
         
         button = new JButton("X");
         button.addActionListener(new ActionListener() {
@@ -537,7 +538,7 @@ public class RainbowTestGUI extends JFrame {
         
         separator_2 = new JSeparator();
         separator_2.setOrientation(SwingConstants.VERTICAL);
-        contentPane.add(separator_2, "cell 0 4,growy");
+        contentPane.add(separator_2, "cell 0 4 2 1,growy");
         
         rdbtnCompensated = new JRadioButton(new AbstractAction() {
             @Override
@@ -548,7 +549,7 @@ public class RainbowTestGUI extends JFrame {
         });
         rdbtnCompensated.setText("Compensated");
         buttonGroup_2.add(rdbtnCompensated);
-        contentPane.add(rdbtnCompensated, "cell 0 4");
+        contentPane.add(rdbtnCompensated, "cell 0 4 2 1");
         
         rdbtnUncompensated = new JRadioButton(new AbstractAction() {
             @Override
@@ -560,7 +561,12 @@ public class RainbowTestGUI extends JFrame {
         rdbtnUncompensated.setText("Uncompensated");
         rdbtnUncompensated.setSelected(true);
         buttonGroup_2.add(rdbtnUncompensated);
-        contentPane.add(rdbtnUncompensated, "cell 0 4");
+        contentPane.add(rdbtnUncompensated, "cell 0 4 2 1");
+        
+        btnWarning = new JButton("");
+        btnWarning.setIcon(UIManager.getIcon("OptionPane.warningIcon"));
+        btnWarning.setVisible(false);
+        contentPane.add(btnWarning, "cell 2 4");
         
         loadProps();
     }
@@ -774,6 +780,7 @@ public class RainbowTestGUI extends JFrame {
     private JRadioButton rdbtnUncompensated;
     private DATA_SET currData = DATA_SET.UNCOMPENSATED;
     private final ButtonGroup buttonGroup_2 = new ButtonGroup();
+    private JButton btnWarning;
     
     private void resetShownColumns() {
         TableColumnModel tcm = table.getColumnModel();
@@ -932,6 +939,8 @@ public class RainbowTestGUI extends JFrame {
         dtmCV.addRow(new Object[colNames.length]);
         addFilesToModel(dirStruct, paramNames, dirStruct.dir);
         
+        checkWarnings(paramNames);
+        
         if (rdbtnMean.isSelected()) {
             table.setModel(dtmMean);
         } else if (rdbtnSd.isSelected()) {
@@ -942,11 +951,108 @@ public class RainbowTestGUI extends JFrame {
         resizeColumnWidth();
         resetShownColumns();
     }
+
+    private static final int TREND_ABOVE_1SD_THRESH = 5;
+    private static final int TREND_ABOVE_2SD_THRESH = 2;
     
-    private void boolAnd(boolean[] aRet, boolean[] b) {
-        for (int i = 0; i < aRet.length; i++) {
-            aRet[i] = aRet[i] && b[i];
+    private static final double PCT_OF_EVENTS_DEV_TREND = 0.25; // 1-quarter of events outside of 1SD will result in file being reported
+    
+    private ArrayList<String> getFileTrendWarnings(String[] params) {
+        ArrayList<String> warnings = new ArrayList<String>();
+        
+        for (String f : compFileList) {
+            int cnt = 0;
+            HashMap<String, Float> paramVals = fileParamMeanMap.get(f);
+            for (String s : params) {
+                float param = paramVals.get(s);
+                float mean = paramMeans.get(s);
+                float sd = paramSDs.get(s);
+                
+                if (param < mean - sd || param > mean + sd) {
+                    cnt++;
+                }
+            }
+            
+            if (cnt >= params.length * PCT_OF_EVENTS_DEV_TREND) {
+                warnings.add("Source " + f + " has " + cnt + " events greater than 1SD from parameter means.");
+            }
+            
         }
+        
+        return warnings;
+    }
+    
+    private ArrayList<String> getParameterTrendWarnings(String[] params) {
+        HashMap<String, Integer> paramTrendsAbove1 = new HashMap<String, Integer>();
+        HashMap<String, Integer> paramTrendsAbove2 = new HashMap<String, Integer>();
+        
+        for (String colNm : params) {
+            if (!paramMeans.containsKey(colNm)) continue;
+            
+            int trendAbove1 = 0;
+            int trendAbove2 = 0;
+            float mean = paramMeans.get(colNm);
+            float sd = paramSDs.get(colNm);
+        
+            for (String f : compFileList) {
+                float param = fileParamMeanMap.get(f).get(colNm);
+                if (param < mean - sd || param > mean + sd) {
+                    trendAbove1++;
+                    if (param < mean - 2 * sd || param > mean + 2 * sd) {
+                        trendAbove2++;
+                        if (trendAbove2 >= TREND_ABOVE_2SD_THRESH) {
+                            paramTrendsAbove2.put(colNm, trendAbove2);
+                        }
+                    } else {
+                        trendAbove2 = 0;
+                        if (trendAbove1 >= TREND_ABOVE_1SD_THRESH) {
+                            paramTrendsAbove1.put(colNm, trendAbove1);
+                        }
+                    }
+                } else {
+                    trendAbove1 = 0;
+                    trendAbove2 = 0;
+                }
+            }
+        }
+
+        final ArrayList<String> warnings = new ArrayList<String>();
+        if (!paramTrendsAbove1.isEmpty()) {
+            for (String s : paramTrendsAbove1.keySet()) {
+                String[] p = s.split("\\|")[0].trim().split("/");
+                String warn = paramTrendsAbove1.get(s) + "-count trend in parameter " + p[p.length - 1] + " greater than 1SD from the mean.";
+                warnings.add(warn);
+            }
+        }
+        if (!paramTrendsAbove2.isEmpty()) {
+            for (String s : paramTrendsAbove2.keySet()) {
+                String[] p = s.split("\\|")[0].trim().split("/");
+                String warn = paramTrendsAbove2.get(s) + "-count trend in parameter " + p[p.length - 1] + " greater than 2SD from the mean.";
+                warnings.add(warn);
+            }
+        }
+        
+        return warnings;
+    }
+    
+    private void checkWarnings(String[] params) {
+        final ArrayList<String> warnings = new ArrayList<String>();
+        
+        warnings.addAll(getParameterTrendWarnings(params));
+        warnings.addAll(getFileTrendWarnings(params));
+        
+        
+        if (warnings.size() > 0) {
+            btnWarning.setVisible(true);
+            btnWarning.setAction(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JOptionPane.showMessageDialog(RainbowTestGUI.this, Array.toStr(warnings.toArray(new String[warnings.size()]), "\n"), "Trend Warnings", JOptionPane.WARNING_MESSAGE); 
+                }
+            });
+            btnWarning.setIcon(UIManager.getIcon("OptionPane.warningIcon"));
+        }
+        
     }
     
     private void addBaseToModel(String[] paramNames) {
@@ -973,7 +1079,7 @@ public class RainbowTestGUI extends JFrame {
                         if (gating == null) {
                             gating = g.gate(loader);
                         } else {
-                            boolAnd(gating, g.gate(loader));
+                            Array.booleanArrayAndInPlace(gating, g.gate(loader));
                         }
                     }
                 }
@@ -999,6 +1105,7 @@ public class RainbowTestGUI extends JFrame {
         }
     }
     
+    private ArrayList<String> compFileList = new ArrayList<String>();
     private void addFilesToModel(DirFile df, String[] paramNames, String removePrep) {
         int colCnt = dtmMean.getColumnCount();
         int rows = dtmMean.getRowCount();
@@ -1011,7 +1118,9 @@ public class RainbowTestGUI extends JFrame {
         boldRows.add(rows);
         rows++;
         
+        compFileList = new ArrayList<String>();
         for (String f : df.files) {
+            compFileList.add(f);
             fileParamMeanMap.put(f, new HashMap<String, Float>());
             Object[] rowDataM = new Object[paramNames.length + 1];
             Object[] rowDataS = new Object[paramNames.length + 1];
@@ -1030,8 +1139,8 @@ public class RainbowTestGUI extends JFrame {
                         if (gating == null) {
                             gating = g.gate(loader);
                         } else {
-                            boolAnd(gating, g.gate(loader));
                         }
+                        Array.booleanArrayAndInPlace(gating, g.gate(loader));
                     }
                 }
                 

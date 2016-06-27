@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.TreeSet;
 
+import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -43,6 +44,7 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -95,7 +97,7 @@ public class ControlsQCGUI extends JFrame {
     Color ABOVE_3_CV_COLOR = Color.CYAN;
     Color ABOVE_5_CV_COLOR = Color.CYAN.darker();
 
-    CompData compDirData;
+    CompData compData;
     DataFile baseData;
     private final static String[] EXCLUDED_ROW_HEADERS = {
             "mean",
@@ -137,16 +139,16 @@ public class ControlsQCGUI extends JFrame {
     
     protected void loadCompare(String[] files) {
         if (files == null || files.length == 0 || (files.length == 1 && "".equals(files[0]))) {
-            if (compDirData != null) {
-                compDirData = null;
+            if (compData != null) {
+                compData = null;
                 reCalcTableData();
             }
             return;
         }
-        if (compDirData != null && compDirData.fileSetEquals(files)) {
+        if (compData != null && compData.fileSetEquals(files)) {
             return; // same as already loaded
         }
-        compDirData = new CompData(files, this.log);
+        compData = new CompData(files, this.log);
         reCalcTableData();
     }
 
@@ -381,7 +383,7 @@ public class ControlsQCGUI extends JFrame {
         panel_1 = new JPanel();
         panel_1.setBorder(null);
         contentPane.add(panel_1, "cell 0 3 3 1,grow");
-        panel_1.setLayout(new MigLayout("ins 0", "[][][][][][][][][][][][grow]", "[]"));
+        panel_1.setLayout(new MigLayout("hidemode 3, ins 0", "[][][][][][][][][][][][grow]", "[]"));
         
         btnHideshowColumns = new JButton("Hide/Show Columns");
         panel_1.add(btnHideshowColumns, "cell 0 0");
@@ -439,6 +441,13 @@ public class ControlsQCGUI extends JFrame {
         separator_4 = new JSeparator();
         separator_4.setOrientation(SwingConstants.VERTICAL);
         panel_1.add(separator_4, "cell 10 0,growy");
+        
+        lblWarning = new JLabel("");
+        panel_1.add(lblWarning, "flowx,cell 11 0,alignx right");
+        
+        btnMore = new JButton("More");
+        btnMore.setVisible(false);
+        panel_1.add(btnMore, "cell 11 0,alignx right");
         
         btnHideshowColumns.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
@@ -554,15 +563,15 @@ public class ControlsQCGUI extends JFrame {
         
         ArrayList<String> compLbls = new ArrayList<String>();
         ArrayList<Double> compDbls = new ArrayList<Double>();
-        if (compDirData != null) {
-            String[][] sources = compDirData.getRecentSources();
-            float[][][] compData = compDirData.getRecentData();
+        if (compData != null) {
+            String[][] sources = compData.getRecentSources();
+            float[][][] compDataArr = compData.getRecentData();
             ind = baseData.allParams.indexOf(col);
             
             for (int i = 0; i < sources.length; i++) {
                 for (int s = 1; s < sources[i].length; s++) {
                     compLbls.add(sources[i][s]);
-                    compDbls.add(Double.valueOf(compData[i][s][ind]));
+                    compDbls.add(Double.valueOf(compDataArr[i][s][ind]));
                 }
             }
         }
@@ -600,6 +609,7 @@ public class ControlsQCGUI extends JFrame {
     private JButton btnAddComp;
     private JButton btnRemoveComp;
     private Logger log;
+    private JLabel lblWarning;
 
     private void saveProps() {
         try {
@@ -1143,17 +1153,144 @@ public class ControlsQCGUI extends JFrame {
         
         dtmMean.addRow(new Object[colNames.length]);
 
-        if (compDirData != null) {
+        if (compData != null) {
             int numRecent = (Integer) spinner.getValue();
-            addFilesToModel(compDirData, numRecent);
+            addFilesToModel(compData, numRecent);
         }
+        
+        checkWarnings();
         
         table.setModel(dtmMean);
         table.revalidate();
         table.repaint();
         resizeColumnWidth();
         resetShownColumns();
-        
+    }
+    
+    private static final int TREND_ABOVE_1SD_THRESH = 5;
+    private static final int TREND_ABOVE_2SD_THRESH = 2;
+    private static final double PCT_OF_EVENTS_DEV_TREND = 0.25; // 1-quarter of events outside of 1SD will result in file being reported
+    private JButton btnMore;
+    
+    private void checkWarnings() {
+        if (baseData != null && compData != null) {
+            final ArrayList<String> warnings = new ArrayList<String>();
+            
+            ArrayList<String> params = baseData.getAllParams();
+            float[][][] currData = compData.getRecentData();
+            
+            HashMap<String, Integer> paramTrendsAbove1 = new HashMap<String, Integer>();
+            HashMap<String, Integer> paramTrendsAbove2 = new HashMap<String, Integer>();
+            
+            for (int p = 0; p < params.size(); p++) {
+                int trendAbove1 = 0;
+                int trendAbove2 = 0;
+                float mean = paramMeans.get(params.get(p));
+                float sd = paramSDs.get(params.get(p));
+                
+                for (int i = 0; i < currData.length; i++) {
+                    for (int s = 1; s < currData[i].length; s++) {
+                        float param = currData[i][s][p];
+                        if (param < mean - sd || param > mean + sd) {
+                            trendAbove1++;
+                            if (param < mean - 2 * sd || param > mean + 2 * sd) {
+                                trendAbove2++;
+                                if (trendAbove2 >= TREND_ABOVE_2SD_THRESH) {
+                                    paramTrendsAbove2.put(params.get(p), trendAbove2);
+                                }
+                            } else {
+                                trendAbove2 = 0;
+                                if (trendAbove1 >= TREND_ABOVE_1SD_THRESH) {
+                                    paramTrendsAbove1.put(params.get(p), trendAbove1);
+                                }
+                            }
+                        } else {
+                            trendAbove1 = 0;
+                            trendAbove2 = 0;
+                        }
+                        
+                    }
+                }
+            }
+            int max = 0;
+            for (Integer val : paramTrendsAbove1.values()) {
+                max = Math.max(max, val);
+            }
+            for (Integer val : paramTrendsAbove2.values()) {
+                max = Math.max(max, val);
+            }
+            
+            String maxWarn = null;
+            String maxWarnParam = null;
+            if (!paramTrendsAbove1.isEmpty()) {
+                for (String s : paramTrendsAbove1.keySet()) {
+                    String[] p = s.split("\\|")[0].trim().split("/");
+                    String warn = paramTrendsAbove1.get(s) + "-count trend in parameter " + p[p.length - 1] + " greater than 1SD from the mean.";
+                    warnings.add(warn);
+                    if (paramTrendsAbove1.get(s) == max) {
+                        maxWarn = warn;
+                        maxWarnParam = s;
+                    }
+                }
+            }
+            if (!paramTrendsAbove2.isEmpty()) {
+                for (String s : paramTrendsAbove2.keySet()) {
+                    String[] p = s.split("\\|")[0].trim().split("/");
+                    String warn = paramTrendsAbove2.get(s) + "-count trend in parameter " + p[p.length - 1] + " greater than 2SD from the mean.";
+                    warnings.add(warn);
+                    if (paramTrendsAbove2.get(s) == max) {
+                        maxWarn = warn;
+                        maxWarnParam = s;
+                    }
+                }
+            }
+            
+            String[][] srcs = compData.getRecentSources();
+
+            for (int i = 0; i < currData.length; i++) {
+                for (int s = 1; s < currData[i].length; s++) {
+                    int cnt = 0;
+                    for (int p = 0; p < params.size(); p++) {
+                        float mean = paramMeans.get(params.get(p));
+                        float sd = paramSDs.get(params.get(p));
+                        float param = currData[i][s][p];
+                        if (param < mean - sd || param > mean + sd) {
+                            cnt++;
+                        }
+                    }
+                    
+                    if (cnt >= params.size() * PCT_OF_EVENTS_DEV_TREND) {
+                        warnings.add("Source " + srcs[i][s] + " has " + cnt + " events greater than 1SD from parameter means.");
+                    }
+
+                }
+            }
+                    
+            if (warnings.size() > 0) {
+                lblWarning.setIcon(UIManager.getIcon("OptionPane.warningIcon"));
+                lblWarning.setText(maxWarn);
+                final String finalMaxWarnParam = maxWarnParam;
+                lblWarning.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if (e.getClickCount() == 2) {
+                            showMeanPanel(finalMaxWarnParam);
+                        }
+                    }
+                });
+                
+                if (warnings.size() > 1) {
+                    btnMore.setVisible(true);
+                    btnMore.setAction(new AbstractAction() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            JOptionPane.showMessageDialog(ControlsQCGUI.this, Array.toStr(warnings.toArray(new String[warnings.size()]), "\n"), "Trend Warnings", JOptionPane.WARNING_MESSAGE); 
+                        }
+                    });
+                    btnMore.setText("All");
+                }
+            }
+        }
     }
     
     private void addDataToModel(DataFile df) {

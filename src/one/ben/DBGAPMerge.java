@@ -37,16 +37,31 @@ public class DBGAPMerge {
         String dataDict;
         String varReport;
         
-        ArrayList<DataColumn> dataDefs;
+        private ArrayList<DataColumn> dataDefs;
+        private HashMap<String, Integer> defMap;
         ArrayList<String> ids = new ArrayList<String>();
         HashMap<String, String[]> idDataMap = new HashMap<String, String[]>();
+        
+        public int getIndexOfDataColumn(String key) {
+            return defMap.get(key);
+        }
+
+        public void setDataDefs(ArrayList<DataColumn> readDataDict) {
+            this.dataDefs = readDataDict;
+            defMap = new HashMap<String, Integer>();
+            for (int i = 0; i < dataDefs.size(); i++) {
+                DataColumn dc = dataDefs.get(i);
+                String key = dc.varName + ";" + dc.varID + ";" + dc.table;;
+                defMap.put(key, i);
+            }
+        }
     }
     
     public static class DataColumn {
         String source;
         String study;
         String table;
-        String consentGroup;
+//        String consentGroup;
         String varID;
         String varName;
         String varDesc;
@@ -139,14 +154,6 @@ public class DBGAPMerge {
             dc.table = table.trim();
             dc.study = study.trim();
             
-            String[] pts = fs.dataFile.split("\\.");
-            for (String s : pts) {
-                if (s.length() == 2 && s.startsWith("c")) {
-                    dc.consentGroup = s.trim().replaceAll("\\.", "");
-                    break;
-                }
-            }
-            
             NodeList nlChildren = varNode.getChildNodes();
             for (int c = 0, countCh = nlChildren.getLength(); c < countCh; c++) {
                 Node chNode = nlChildren.item(c);
@@ -224,7 +231,7 @@ public class DBGAPMerge {
         
         for (FileSet fs : files) {
             try {
-                fs.dataDefs = readDataDict(fs);
+                fs.setDataDefs(readDataDict(fs));
             } catch (ParserConfigurationException e) {
                 log.reportException(e);
             } catch (SAXException e) {
@@ -246,72 +253,153 @@ public class DBGAPMerge {
             idSet.addAll(fs.ids);
         }
         
+        ArrayList<String> dataColumnKeys = new ArrayList<String>();
+        HashMap<String, ArrayList<FileSet>> dataColumnMap = new HashMap<String, ArrayList<FileSet>>();
+        int total = 0;
+        for (FileSet fs : files) {
+            for (DataColumn dc : fs.dataDefs) {
+                total++;
+                String key = dc.varName + ";" + dc.varID + ";" + dc.table;
+                if (!dataColumnKeys.contains(key)) {
+                    dataColumnKeys.add(key);
+                }
+                ArrayList<FileSet> fss = dataColumnMap.get(key);
+                if (fss == null) {
+                    fss = new ArrayList<DBGAPMerge.FileSet>();
+                    dataColumnMap.put(key, fss);
+                }
+                fss.add(fs);
+            }
+        }
+        
+        System.out.println("Writing " + dataColumnKeys.size() + " data columns out of " + total);
+        
         PrintWriter writer = Files.getAppropriateWriter(outFile);
         StringBuilder lineOut = null;
-
+        
         lineOut = new StringBuilder("DBGAP_ID");
-        for (FileSet fs : files) {
-            for (int i = 0; i < fs.dataDefs.size(); i++) {
-                DataColumn dc = fs.dataDefs.get(i);
-                lineOut.append("\t").append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table);
-                if (dc.consentGroup != null) {
-                    lineOut.append(";").append(dc.consentGroup);
-                }
-            }
+        for (String key : dataColumnKeys) {
+            lineOut.append("\t").append(key);
         }
         writer.println(lineOut.toString());
         
         for (String id : idSet) {
             lineOut = new StringBuilder(id);
-            for (FileSet fs : files) {
-                String[] data = fs.idDataMap.get(id);
-                if (data == null) {
-                    data = Array.stringArray(fs.dataDefs.size(), MISSING_DATA);
+            
+            for (String key : dataColumnKeys) {
+                ArrayList<FileSet> sources = dataColumnMap.get(key);
+                String val = MISSING_DATA;
+                for (FileSet fs : sources) {
+                    String[] data = fs.idDataMap.get(id);
+                    if (data == null) continue;
+                    int ind = fs.getIndexOfDataColumn(key);
+                    if (MISSING_DATA.equals(val)) {
+                        val = data[ind];
+                    }
                 }
-                for (int i = 0; i < fs.dataDefs.size(); i++) {
-                    lineOut.append("\t").append("".equals(data[i]) ? MISSING_DATA : data[i]);
-                }
+                lineOut.append("\t").append(val);
             }
+            
             writer.println(lineOut.toString());
         }
         writer.flush();
         writer.close();
         
+//        lineOut = new StringBuilder("DBGAP_ID");
+//        for (FileSet fs : files) {
+//            for (int i = 0; i < fs.dataDefs.size(); i++) {
+//                DataColumn dc = fs.dataDefs.get(i);
+//                lineOut.append("\t").append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table);
+//                if (dc.consentGroup != null) {
+//                    lineOut.append(";").append(dc.consentGroup);
+//                }
+//            }
+//        }
+//        writer.println(lineOut.toString());
+//        
+//        for (String id : idSet) {
+//            lineOut = new StringBuilder(id);
+//            for (FileSet fs : files) {
+//                String[] data = fs.idDataMap.get(id);
+//                if (data == null) {
+//                    data = Array.stringArray(fs.dataDefs.size(), MISSING_DATA);
+//                }
+//                for (int i = 0; i < fs.dataDefs.size(); i++) {
+//                    lineOut.append("\t").append("".equals(data[i]) ? MISSING_DATA : data[i]);
+//                }
+//            }
+//            writer.println(lineOut.toString());
+//        }
+//        writer.flush();
+//        writer.close();
+        
         writer = Files.getAppropriateWriter(outMap);
         writer.println("Source\tStudy\tTable\tVariable\tVariableID\tfinalColumnName\tcustomColumnName\tDescription\tUnits\tVariableMapping\tComment");
-        for (FileSet fs : files) {
-            for (DataColumn dc : fs.dataDefs) {
-                lineOut = new StringBuilder();
-                lineOut.append(dc.source).append("\t");
-                lineOut.append(dc.study).append("\t");
-                lineOut.append(dc.table).append("\t");
-                lineOut.append(dc.varName).append("\t");
-                lineOut.append(dc.varID).append("\t");
-                lineOut.append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table);
-                if (dc.consentGroup != null) {
-                    lineOut.append(";").append(dc.consentGroup);
-                }
-                lineOut.append("\t");
+        for (String key : dataColumnKeys) {
+            lineOut = new StringBuilder();
+
+            FileSet fs = dataColumnMap.get(key).get(0);  // TODO fix selection of fileset?
+            
+            DataColumn dc = fs.dataDefs.get(fs.getIndexOfDataColumn(key));
+            
+            lineOut.append(dc.source).append("\t");
+            lineOut.append(dc.study).append("\t");
+            lineOut.append(dc.table).append("\t");
+            lineOut.append(dc.varName).append("\t");
+            lineOut.append(dc.varID).append("\t");
+            lineOut.append(key).append("\t");
+            lineOut.append(".").append("\t");
+            lineOut.append(dc.varDesc).append("\t");
+            lineOut.append(dc.varUnit == null ? "." : dc.varUnit).append("\t");
+            if (dc.varValueDescriptions.isEmpty()) {
                 lineOut.append(".").append("\t");
-                lineOut.append(dc.varDesc).append("\t");
-                lineOut.append(dc.varUnit == null ? "." : dc.varUnit).append("\t");
-                if (dc.varValueDescriptions.isEmpty()) {
-                    lineOut.append(".").append("\t");
-                } else {
-                    for (Entry<String, String> ent : dc.varValueDescriptions.entrySet()) {
-                        lineOut.append(ent.getKey()).append("=").append(ent.getValue()).append(";");
-                    }
+            } else {
+                for (Entry<String, String> ent : dc.varValueDescriptions.entrySet()) {
+                    lineOut.append(ent.getKey()).append("=").append(ent.getValue()).append(";");
                 }
-                if (dc.comment != null && !"".equals(dc.comment)) {
-                    lineOut.append("\t").append(dc.comment);
-                } else {
-                    lineOut.append("\t").append(".");
-                }
-                writer.println(lineOut.toString());
             }
+            if (dc.comment != null && !"".equals(dc.comment)) {
+                lineOut.append("\t").append(dc.comment);
+            } else {
+                lineOut.append("\t").append(".");
+            }
+            
+            writer.println(lineOut.toString());
         }
         writer.flush();
         writer.close();
+        
+        
+//        for (FileSet fs : files) {
+//            for (DataColumn dc : fs.dataDefs) {
+//                lineOut = new StringBuilder();
+//                lineOut.append(dc.source).append("\t");
+//                lineOut.append(dc.study).append("\t");
+//                lineOut.append(dc.table).append("\t");
+//                lineOut.append(dc.varName).append("\t");
+//                lineOut.append(dc.varID).append("\t");
+//                lineOut.append(dc.varName).append(";").append(dc.varID).append(";").append(dc.table);
+//                lineOut.append("\t");
+//                lineOut.append(".").append("\t");
+//                lineOut.append(dc.varDesc).append("\t");
+//                lineOut.append(dc.varUnit == null ? "." : dc.varUnit).append("\t");
+//                if (dc.varValueDescriptions.isEmpty()) {
+//                    lineOut.append(".").append("\t");
+//                } else {
+//                    for (Entry<String, String> ent : dc.varValueDescriptions.entrySet()) {
+//                        lineOut.append(ent.getKey()).append("=").append(ent.getValue()).append(";");
+//                    }
+//                }
+//                if (dc.comment != null && !"".equals(dc.comment)) {
+//                    lineOut.append("\t").append(dc.comment);
+//                } else {
+//                    lineOut.append("\t").append(".");
+//                }
+//                writer.println(lineOut.toString());
+//            }
+//        }
+//        writer.flush();
+//        writer.close();
     }
     
     public static void main(String[] args) {
@@ -350,7 +438,6 @@ public class DBGAPMerge {
 //            (new DBGAPMerge()).run(dir, out, outMap, log);
 //            return;
 //        }
-//        
         
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
