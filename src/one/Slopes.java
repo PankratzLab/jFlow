@@ -9,7 +9,7 @@ import common.*;
 
 public class Slopes {
 
-	public static void parse(String dir, String filename) {
+	public static void parseSlopeBeforeAndAfterEvent(String dir, String filename) {
 		BufferedReader reader;
         PrintWriter writer;
         String[] line;
@@ -91,6 +91,61 @@ public class Slopes {
 	        		writer.print("\t"+linear.getBetas()[1]+"\t"+postValues.size());
 	        	} else {
 	        		writer.print("\t.\t"+postValues.size());
+	        	}
+	        	writer.println();
+	        }
+	        reader.close();
+            writer.close();
+        } catch (FileNotFoundException fnfe) {
+	        System.err.println("Error: file \""+dir+filename+"\" not found in current directory");
+	        System.exit(1);
+        } catch (IOException ioe) {
+	        System.err.println("Error reading file \""+dir+filename+"\"");
+	        System.exit(2);
+        }
+	}
+	
+	public static void parseSlopesFromList(String dir, String filename) {
+		BufferedReader reader;
+        PrintWriter writer;
+        String[] line, ids;
+        Hashtable<String,Vector<String>> hash = new Hashtable<String,Vector<String>>();
+        Vector<String> pairs;
+        double[] dates, values;
+        LeastSquares linear;
+        
+        try {
+	        reader = new BufferedReader(new FileReader(dir+filename));
+	        writer = new PrintWriter(new FileWriter(dir+ext.rootOf(filename)+"_slopes.xln"));
+	        writer.println("MRN\tSlope\tN");
+	        line = reader.readLine().trim().split("[\\s]+");
+	        if (!line[0].equals("MRN") && !line[0].equals("id")) {
+	        	System.err.println("Error - expecting header with MRN or id");
+	        }
+	        while (reader.ready()) {
+	        	line = reader.readLine().trim().split("[\\s]+");
+	        	HashVec.addToHashVec(hash, line[0], line[1]+"\t"+line[2], true);
+	        }
+	        ids = HashVec.getKeys(hash);
+	        
+	        for (int i = 0; i < ids.length; i++) {
+	        	writer.print(ids[i]);
+	        	pairs = hash.get(ids[i]);
+	        	if (pairs.size() >= 2) {
+	        		dates = new double[pairs.size()];
+	        		values = new double[pairs.size()];
+	        		for (int j = 0; j < pairs.size(); j++) {
+	        			line = pairs.elementAt(j).split("[\\s]+");
+	        			dates[j] = parseDate(line[0]); 
+	        			values[j] = Double.parseDouble(line[1]); 
+					}
+	        		linear = new LeastSquares(values, dates);
+	        		if (linear.analysisFailed()) {
+	        			System.err.println("Error - problem with generating slope data for "+ids[i]);
+	        		}
+	        		writer.print("\t"+linear.getBetas()[1]+"\t"+pairs.size());
+	        	} else {
+	        		writer.print("\t.\t"+pairs.size());
 	        	}
 	        	writer.println();
 	        }
@@ -331,10 +386,13 @@ public class Slopes {
 //	    String filename = "FVC.txt";
 //	    String filename = "Bulbar.txt";
 //	    String filename = "Resp.txt";
-	    boolean list = true;
-	    String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\ALS\\NEALS_db\\Celebrex\\";
+//	    boolean list = true;
+//	    String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\ALS\\NEALS_db\\Celebrex\\";
 //	    String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\ALS\\NEALS_db\\Topiramate\\";
-	    String refFile = "SeriousPulmonaryEvent.dat";
+//	    String refFile = "SeriousPulmonaryEvent.dat";
+	    String dir = "C:/Users/npankrat/Desktop/Ezgi/research/ALS_Research/FRS_slopes/";
+	    boolean list = false;
+	    String refFile = "FRS.dat";
 	    int idIndex = 0;
 //	    String filename = "alsfrs.dat";
 //	    String dateIndices = "1";
@@ -344,11 +402,15 @@ public class Slopes {
 //	    String valueIndices ="2,4,6,8,10,12,14,16,18";
 //	    String dateIndices = "3,5,7,9,11,13,15,17";
 //	    String valueIndices ="2,4,6,8,10,12,14,16";
-	    String filename = "fvc_fixed.dat";
+//	    String filename = "fvc_fixed.dat";
+//	    String filename = "FRS.dat";
+	    String filename = "RIG.dat";
 	    String dateIndices = "1";
 //	    String valueIndices = "2";
-	    String ifBefore = "respiratory_rate.dat";
-	    String valueIndices = "3";
+//	    String ifBefore = "respiratory_rate.dat";
+//	    String valueIndices = "3";
+	    String ifBefore = null;
+	    String valueIndices = "2";
 		
 	    String usage = "\n"+"one.Slopes requires 0-1 arguments\n"+"   (1) filename (i.e. file="+filename+" (default))\n"+"";
 
@@ -366,13 +428,14 @@ public class Slopes {
 		    System.exit(1);
 	    }
 	    try {
-	    	if (ifBefore != null && !ifBefore.equals("")) {
-	    		checkIfBefore(dir, ifBefore, idIndex, dateIndices, valueIndices, refFile);
-	    	} else if (list) {
-	    		parseListwise(dir, filename, idIndex, dateIndices, valueIndices, refFile);
-	    	} else {
-	    		parse(dir, filename);
-	    	}
+	    	parseSlopesFromList(dir, filename);
+//	    	if (ifBefore != null && !ifBefore.equals("")) {
+//	    		checkIfBefore(dir, ifBefore, idIndex, dateIndices, valueIndices, refFile);
+//	    	} else if (list) {
+//	    		parseListwise(dir, filename, idIndex, dateIndices, valueIndices, refFile);
+//	    	} else {
+//	    		parseSlopeBeforeAndAfterEvent(dir, filename);
+//	    	}
 	    } catch (Exception e) {
 		    e.printStackTrace();
 	    }
