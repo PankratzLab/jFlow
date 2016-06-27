@@ -914,10 +914,12 @@ public class ext {
 				}
 			}
 
-			for (String key : targets) {
-				if (!indices.containsKey(key)) {
-					if (verbose) log.reportError("Error - no factor was named '" + key + "'");
-					err = true;
+			if (verbose || kill) {
+				for (String key : targets) {
+					if (!indices.containsKey(key)) {
+						if (verbose) log.reportError("Error - no factor was named '" + key + "'");
+						err = true;
+					}
 				}
 			}
 			
