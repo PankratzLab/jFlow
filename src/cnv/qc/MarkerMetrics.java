@@ -102,7 +102,7 @@ public class MarkerMetrics {
 		float gcThreshold, lrrsd;
         long time;
       //  MarkerDataLoader markerDataLoader;
-        String line, eol, mendelLine;
+        String eol, mendelLine;
 		int[] counts, sexes;
 		double[] sumTheta, sumR, meanTheta, sdTheta;
 		double temp, lrrSexZ;
@@ -137,7 +137,6 @@ public class MarkerMetrics {
 		
 			//markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markerNames);
 			MDL mdl = new MDL(proj, proj.getMarkerSet(), markerNames, 2, 100);
-			line = "";
 			time = new Date().getTime();
 			//for (int i = 0; i < markerNames.length; i++) {
 			int index =0;
@@ -230,7 +229,7 @@ public class MarkerMetrics {
 				}
 				
 				
-				line += markerName
+				String line = markerName
 						+ "\t" + markerData.getChr()
 						+ "\t" + (1- ((float)counts[0] / (counts[0] + counts[1] + counts[2] + counts[3])))
 						+ "\t" + meanTheta[1]
@@ -256,14 +255,14 @@ public class MarkerMetrics {
 						+ "\t" + lrrSexZ
 						+ "\t" + lrrsd
 						+ "\t" + numLRRNaNs
-						+ "\t" + mecCnt
-						+ eol;
+						+ "\t" + mecCnt;
+				writer.println(line);
 				
-				if (line.length() > 25000) {
-					writer.print(line);
-					writer.flush();
-					line = "";
-				}
+//				if (line.length() > 25000) {
+//					writer.print(line);
+//					writer.flush();
+//					line = "";
+//				}
 			//	markerDataLoader.releaseIndex(i);
 			}
 			mdl.shutdown();
@@ -271,7 +270,7 @@ public class MarkerMetrics {
 				mendelWriter.flush();
 				mendelWriter.close();
 			}
-			writer.print(line);
+//			writer.print(line);
 			writer.close();
 			log.report("Finished analyzing " + markerNames.length + " in " + ext.getTimeElapsed(time));
 		} catch (Exception e) {
