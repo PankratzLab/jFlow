@@ -15,7 +15,6 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.text.Format;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -37,7 +36,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
@@ -49,7 +47,6 @@ import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import cnv.gui.JAccordionPanel;
-
 import common.Files;
 import common.ext;
 
@@ -84,7 +81,7 @@ public class FCSPlotControlPanel extends JPanel {
     private JPanel panel_1;
 
     private JButton dirSelectBtn;
-    private JTextField fileDirField;
+    private String prevDir;
 
     /**
      * Create the panel.
@@ -299,24 +296,25 @@ public class FCSPlotControlPanel extends JPanel {
         dataControlsPanel.topPanel.add(dCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
         
         JPanel dataPanel = dataControlsPanel.contentPanel;
-        dataPanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow]", "0px[]0px[]0px[grow]0px[]0px[]0px"));
+        dataPanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow][]", "0px[]0px[]0px[grow]0px[]0px[]0px"));
         
-        JLabel dirLbl = new JLabel("Select File Directory:");
-        dataPanel.add(dirLbl, "cell 0 0, growx, alignx left");
+        JLabel dirLbl = new JLabel("Add File(s):");
+        dirLbl.setHorizontalAlignment(SwingConstants.RIGHT);
+        dataPanel.add(dirLbl, "cell 0 0, growx, alignx right");
         
-        fileDirField = new JTextField();
-        dataPanel.add(fileDirField, "cell 0 1, growx, split 2");
-        dirSelectBtn = new JButton(">");
+//        fileDirField = new JTextField();
+//        dataPanel.add(fileDirField, "cell 0 1, growx, split 2");
+        dirSelectBtn = new JButton("+");
         dirSelectBtn.addActionListener(dirSelectListener);
         dirSelectBtn.setMargin(new Insets(0, 2, 0, 2));
-        dataPanel.add(dirSelectBtn, "cell 0 1");
+        dataPanel.add(dirSelectBtn, "cell 1 0");
         
         dataScrollPane = new JScrollPane();
         actualDataPanel = new ScrollablePanel(new MigLayout("", "", ""));
         dataScrollPane.setViewportView(actualDataPanel);
         dataScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         dataScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        dataPanel.add(dataScrollPane, "cell 0 2, grow");
+        dataPanel.add(dataScrollPane, "cell 0 1 2 1, grow");
         
         InputMap im = dataScrollPane.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         ActionMap am = dataScrollPane.getActionMap();
@@ -413,22 +411,18 @@ public class FCSPlotControlPanel extends JPanel {
     
     ArrayList<DataControlPanel> filePanels = new ArrayList<DataControlPanel>();
     
-    private void listFiles() {
-        String fileDir = ext.verifyDirFormat(fileDirField.getText());
-        String[] files = new File(fileDir).list(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".fcs");
-            }
-        });
+    private void listFiles(File[] files) {
         TreeSet<String> fileSet = new TreeSet<String>();
-        for (String f : files) {
-            fileSet.add(f);
+        for (File f : files) {
+            fileSet.add(f.getAbsolutePath());
         }
+//        for (DataControlPanel dcp : filePanels) {
+//            
+//        }
         
-        filePanels.clear();
+//        filePanels.clear();
         for (String f : fileSet) {
-            String sz = Files.getSizeScaledString(fileDir + f, false);
+            String sz = Files.getSizeScaledString(f, false);
             String dt = "";
             final DataControlPanel dcp = new DataControlPanel(f, sz, dt, dataListener);
             dcp.addMouseListener(new MouseAdapter() {
@@ -463,7 +457,7 @@ public class FCSPlotControlPanel extends JPanel {
                     actualDataPanel.add(dcp, "cell 0 " + (index++));
                     actualDataPanel.add(new JSeparator(JSeparator.HORIZONTAL), "grow, cell 0 " + (index++));
                 }
-                
+                actualDataPanel.revalidate();
                 dataControlsPanel.contentPanel.revalidate();
                 dataScrollPane.revalidate();
                 
@@ -521,16 +515,15 @@ public class FCSPlotControlPanel extends JPanel {
     ActionListener dirSelectListener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            String curr = fileDirField.getText();
-            JFileChooser jfc = new JFileChooser(curr);
-            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            jfc.setDialogTitle("Select FCS File Directory");
-            jfc.setMultiSelectionEnabled(false);
+            JFileChooser jfc = new JFileChooser(prevDir);
+            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            jfc.setMultiSelectionEnabled(true);
+            jfc.setDialogTitle("Select FCS File(s)");
             int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
             if (resp == JFileChooser.APPROVE_OPTION) {
-                String newPath = jfc.getSelectedFile().getAbsolutePath();
-                fileDirField.setText(newPath);
-                listFiles();
+                File[] newFiles = jfc.getSelectedFiles();
+                prevDir = ext.parseDirectoryOfFile(newFiles[0].getAbsolutePath());
+                listFiles(newFiles);
             }
         }
     };

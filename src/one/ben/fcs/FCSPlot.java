@@ -411,7 +411,6 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                 }
                 resetForNewData(newDataLoader);
                 FCSPlot.this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.getLoadedFile());
-                System.out.println("Displaying plot...");
                 updateGUI();
             }
         });

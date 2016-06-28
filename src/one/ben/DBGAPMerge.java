@@ -293,7 +293,7 @@ public class DBGAPMerge {
                     String[] data = fs.idDataMap.get(id);
                     if (data == null) continue;
                     int ind = fs.getIndexOfDataColumn(key);
-                    if (MISSING_DATA.equals(val)) {
+                    if (MISSING_DATA.equals(val) && !"".equals(data[ind])) {
                         val = data[ind];
                     }
                 }
@@ -429,8 +429,8 @@ public class DBGAPMerge {
 //            String fileDir1 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50859/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c1.HMB-IRB/PhenotypeFiles/";
 //            String fileDir2 = "/home/pankrat2/shared/ARIC/phenos/dbGaP/50865/PhenoGenotypeFiles/RootStudyConsentSet_phs000280.ARIC_RootStudy.v3.p1.c2.DS-CVD-IRB/PhenotypeFiles/";
 //            dir = new String[]{fileDir1, fileDir2};
-//            dir = new String[]{fileDir1};
-//            dir = new String[]{"/scratch.global/coleb/merge"};
+////            dir = new String[]{fileDir1};
+////            dir = new String[]{"/scratch.global/coleb/merge"};
 //            out = "/scratch.global/coleb/merge/mergeOut.xln.gz";
 //            outMap = "/scratch.global/coleb/merge/mergeMap.xln";
 //
@@ -473,6 +473,49 @@ public class DBGAPMerge {
     
     public static class DBGapExtract {
         
+        private static void extract(String varFile, String dataFile, String outputFile, String headIdent, Logger log) throws IOException {
+            BufferedReader dataReader;
+            PrintWriter writer;
+            String[][] varData;
+            String[] colsToLoad, parts;
+            String line, delim;
+            StringBuilder sb;
+            
+            varData = HashVec.loadFileToStringMatrix(varFile, true, new int[]{1, 2}, false); // ident col, repl col, ignore source and other cols
+            colsToLoad = Matrix.extractColumn(varData, 0);
+            
+            dataReader = Files.getAppropriateReader(dataFile);
+            line = dataReader.readLine();
+            delim = ext.determineDelimiter(line);
+            parts = line.split(delim, -1);
+            int[] factors = ext.indexFactors(colsToLoad, parts, false, false);
+            
+            writer = Files.getAppropriateWriter(outputFile);
+            sb = new StringBuilder();
+            sb.append(headIdent);
+            for (int i = 0; i < factors.length; i++) {
+                if (factors[i] >= 0) {
+                    sb.append("\t").append(ext.isMissingValue(varData[i][1]) ? varData[i][0] : varData[i][1]);
+                }
+            }
+            writer.println(sb.toString());
+            
+            while((line = dataReader.readLine()) != null) {
+                parts = line.split(delim, -1);
+                sb = new StringBuilder();
+                sb.append(parts[0]);
+                for (int i = 0; i < factors.length; i++) {
+                    if (factors[i] >= 0) {
+                        sb.append("\t").append(parts[factors[i]]);
+                    }
+                }
+                writer.println(sb.toString());
+            }
+            writer.flush();
+            writer.close();
+            dataReader.close();
+        }
+
         public static void fromParameters(String filename, Logger log) {
             Vector<String> params;
             String[] args;
@@ -543,53 +586,72 @@ public class DBGAPMerge {
             }
         }
         
-        private static void extract(String varFile, String dataFile, String outputFile, String headIdent, Logger log) throws IOException {
-            BufferedReader dataReader;
-            PrintWriter writer;
-            String[][] varData;
-            String[] colsToLoad, parts;
-            String line, delim;
-            StringBuilder sb;
-            
-            varData = HashVec.loadFileToStringMatrix(varFile, true, new int[]{1, 2}, false); // ident col, repl col, ignore source and other cols
-            colsToLoad = Matrix.extractColumn(varData, 0);
-            
-            dataReader = Files.getAppropriateReader(dataFile);
-            line = dataReader.readLine();
-            delim = ext.determineDelimiter(line);
-            parts = line.split(delim, -1);
-            int[] factors = ext.indexFactors(colsToLoad, parts, false, false);
-            
-            writer = Files.getAppropriateWriter(outputFile);
-            sb = new StringBuilder();
-            sb.append(headIdent);
-            for (int i = 0; i < factors.length; i++) {
-                if (factors[i] >= 0) {
-                    sb.append("\t").append(ext.isMissingValue(varData[i][1]) ? varData[i][0] : varData[i][1]);
-                }
-            }
-            writer.println(sb.toString());
-            
-            while((line = dataReader.readLine()) != null) {
-                parts = line.split(delim, -1);
-                sb = new StringBuilder();
-                sb.append(parts[0]);
-                for (int i = 0; i < factors.length; i++) {
-                    if (factors[i] >= 0) {
-                        sb.append("\t").append(parts[factors[i]]);
-                    }
-                }
-                writer.println(sb.toString());
-            }
-            writer.flush();
-            writer.close();
-            dataReader.close();
-        }
-        
     }
     
     public static class DBGapLookup {
         
+        private static void search(String map, String[] search, int[] searchCols, int[] outputCols, String output, String crf, Logger log) throws IOException {
+            String line, delim, outputDelim;
+            String[] parts;
+            StringBuilder sb;
+            
+            BufferedReader reader = Files.getAppropriateReader(map);
+            PrintWriter writer = Files.getAppropriateWriter(output);
+            
+            line = reader.readLine().trim();
+            delim = ext.determineDelimiter(line);
+            outputDelim = "\t";
+            parts = line.split(delim, -1);
+            
+            sb = new StringBuilder();
+            for (int i = 0; i < outputCols.length; i++) {
+                sb.append(parts[outputCols[i]]).append(outputDelim);
+            }
+            for (int i = 0; i < search.length; i++) {
+                sb.append(search[i]);
+                if (i < search.length - 1) {
+                    sb.append(outputDelim);
+                }
+            }
+            writer.println(sb.toString());
+            
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if ("".equals(line)) continue;
+                parts = line.trim().split(delim, -1);
+        
+                int[] searchInds = Array.intArray(search.length, -1);
+                for (int s = 0; s < search.length; s++) {
+                    for (int col : searchCols) {
+                        searchInds[s] = Math.max(searchInds[s], parts[col].toLowerCase().indexOf(search[s].toLowerCase()));
+                    }
+                }
+                boolean foundAny = false;
+                for (int s : searchInds) {
+                    if (s >= 0) {
+                        foundAny = true;
+                        break;
+                    }
+                }
+                if (foundAny) {
+                    sb = new StringBuilder();
+                    for (int i = 0; i < outputCols.length; i++) {
+                        sb.append(parts[outputCols[i]]).append(outputDelim);
+                    }
+                    for (int i = 0; i < searchInds.length; i++) {
+                        sb.append(searchInds[i] == -1 ? "." : searchInds[i]);
+                        if (i < search.length - 1) {
+                            sb.append(outputDelim);
+                        }
+                    }
+                    writer.println(sb.toString());
+                }
+            }
+            reader.close();
+            writer.flush();
+            writer.close();
+        }
+
         public static void fromParameters(String filename, Logger log) {
             Vector<String> params;
             String[] line, args;
@@ -698,68 +760,6 @@ public class DBGAPMerge {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-
-        private static void search(String map, String[] search, int[] searchCols, int[] outputCols, String output, String crf, Logger log) throws IOException {
-            String line, delim, outputDelim;
-            String[] parts;
-            StringBuilder sb;
-            
-            BufferedReader reader = Files.getAppropriateReader(map);
-            PrintWriter writer = Files.getAppropriateWriter(output);
-            
-            line = reader.readLine().trim();
-            delim = ext.determineDelimiter(line);
-            outputDelim = "\t";
-            parts = line.split(delim, -1);
-            
-            sb = new StringBuilder();
-            for (int i = 0; i < outputCols.length; i++) {
-                sb.append(parts[outputCols[i]]).append(outputDelim);
-            }
-            for (int i = 0; i < search.length; i++) {
-                sb.append(search[i]);
-                if (i < search.length - 1) {
-                    sb.append(outputDelim);
-                }
-            }
-            writer.println(sb.toString());
-            
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if ("".equals(line)) continue;
-                parts = line.trim().split(delim, -1);
-
-                int[] searchInds = Array.intArray(search.length, -1);
-                for (int s = 0; s < search.length; s++) {
-                    for (int col : searchCols) {
-                        searchInds[s] = Math.max(searchInds[s], parts[col].toLowerCase().indexOf(search[s].toLowerCase()));
-                    }
-                }
-                boolean foundAny = false;
-                for (int s : searchInds) {
-                    if (s >= 0) {
-                        foundAny = true;
-                        break;
-                    }
-                }
-                if (foundAny) {
-                    sb = new StringBuilder();
-                    for (int i = 0; i < outputCols.length; i++) {
-                        sb.append(parts[outputCols[i]]).append(outputDelim);
-                    }
-                    for (int i = 0; i < searchInds.length; i++) {
-                        sb.append(searchInds[i]);
-                        if (i < search.length - 1) {
-                            sb.append(outputDelim);
-                        }
-                    }
-                    writer.println(sb.toString());
-                }
-            }
-            reader.close();
-            writer.flush();
-            writer.close();
         }
         
     }

@@ -3,12 +3,16 @@ package one.ben.fcs.sub;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -565,6 +569,7 @@ public class RainbowTestGUI extends JFrame {
         
         btnWarning = new JButton("");
         btnWarning.setIcon(UIManager.getIcon("OptionPane.warningIcon"));
+        btnWarning.setMargin(new Insets(0, 2, 0, 2));
         btnWarning.setVisible(false);
         contentPane.add(btnWarning, "cell 2 4");
         
@@ -596,34 +601,64 @@ public class RainbowTestGUI extends JFrame {
         double[] yDataBase, yDataComp;
         String[] baseLbls, compLbls;
         
-        TreeMap<Date, Float> meanMap = new TreeMap<Date, Float>();
-        TreeMap<Date, String> fileMap = new TreeMap<Date, String>();
+        TreeMap<Date, ArrayList<Float>> meanMap = new TreeMap<Date, ArrayList<Float>>();
+        TreeMap<Date, ArrayList<String>> fileMap = new TreeMap<Date, ArrayList<String>>();
+        int count = 0;
         for(Entry<String, FCSDataLoader> l : baseFiles.entrySet()) {
-            meanMap.put(l.getValue().getRunDate(), fileParamMeanMap.get(l.getKey()).get(col));
-            fileMap.put(l.getValue().getRunDate(), l.getKey());
+            Date key = l.getValue().getRunDate();
+            ArrayList<Float> means = meanMap.get(key);
+            ArrayList<String> files = fileMap.get(key);
+            if (means == null) {
+                means = new ArrayList<Float>();
+                meanMap.put(key, means);
+            }
+            if (files == null) {
+                files = new ArrayList<String>();
+                fileMap.put(key, files);
+            }
+            means.add(fileParamMeanMap.get(l.getKey()).get(col));
+            files.add(l.getKey());
+            count++;
         }
         
-        yDataBase = new double[meanMap.size()];
-        baseLbls = new String[meanMap.size()];
+        yDataBase = new double[count];
+        baseLbls = new String[count];
         int ind = 0;
-        for (Entry<Date, Float> etr : meanMap.entrySet()) {
-            yDataBase[ind] = etr.getValue();
-            baseLbls[ind] = fileMap.get(etr.getKey());
-            ind++;
+        for (Entry<Date, ArrayList<Float>> etr : meanMap.entrySet()) {
+            for (int i = 0; i < etr.getValue().size(); i++) {
+                yDataBase[ind] = etr.getValue().get(i);
+                baseLbls[ind] = fileMap.get(etr.getKey()).get(i);
+                ind++;
+            }
         }
         
-        meanMap = new TreeMap<Date, Float>();
-        fileMap = new TreeMap<Date, String>();
+        meanMap = new TreeMap<Date, ArrayList<Float>>();
+        fileMap = new TreeMap<Date, ArrayList<String>>();
+        count = 0;
         for(Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
-            meanMap.put(l.getValue().getRunDate(), fileParamMeanMap.get(ext.removeDirectoryInfo(l.getKey())).get(col));
-            fileMap.put(l.getValue().getRunDate(), l.getKey());
+            Date key = l.getValue().getRunDate();
+            ArrayList<Float> means = meanMap.get(key);
+            ArrayList<String> files = fileMap.get(key);
+            if (means == null) {
+                means = new ArrayList<Float>();
+                meanMap.put(key, means);
+            }
+            if (files == null) {
+                files = new ArrayList<String>();
+                fileMap.put(key, files);
+            }
+            means.add(fileParamMeanMap.get(ext.removeDirectoryInfo(l.getKey())).get(col));
+            files.add(l.getKey());
+            count++;
         }
-        yDataComp = new double[meanMap.size()];
-        compLbls = new String[meanMap.size()];
-        for (Entry<Date, Float> etr : meanMap.entrySet()) {
-            yDataComp[ind - yDataBase.length] = etr.getValue();
-            compLbls[ind - yDataBase.length] = fileMap.get(etr.getKey());
-            ind++;
+        yDataComp = new double[count];
+        compLbls = new String[count];
+        for (Entry<Date, ArrayList<Float>> etr : meanMap.entrySet()) {
+            for (int i = 0; i < etr.getValue().size(); i++) {
+                yDataComp[ind - yDataBase.length] = etr.getValue().get(i);
+                compLbls[ind - yDataBase.length] = fileMap.get(etr.getKey()).get(i);
+                ind++;
+            }
         }
         
         ArrayList<String> cols = new ArrayList<String>();
@@ -1047,7 +1082,27 @@ public class RainbowTestGUI extends JFrame {
             btnWarning.setAction(new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    JOptionPane.showMessageDialog(RainbowTestGUI.this, Array.toStr(warnings.toArray(new String[warnings.size()]), "\n"), "Trend Warnings", JOptionPane.WARNING_MESSAGE); 
+                    final JPanel msgPane = new JPanel(new MigLayout("","",""));
+                    for (int i = 0; i < warnings.size(); i++) {
+                        msgPane.add(new JLabel("" + warnings.get(i)), "cell 0 " + i);
+                    }
+                    JScrollPane scroll = new JScrollPane();
+                    scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                    scroll.setViewportView(msgPane);
+                    JPanel chk = new JPanel();
+                    chk.add(scroll);
+                    msgPane.addHierarchyListener(new HierarchyListener() {
+                        public void hierarchyChanged(HierarchyEvent e) {
+                            Window window = SwingUtilities.getWindowAncestor(msgPane);
+                            if (window instanceof Dialog) {
+                                Dialog dialog = (Dialog)window;
+                                if (!dialog.isResizable()) {
+                                    dialog.setResizable(true);
+                                }
+                            }
+                        }
+                    });
+                    JOptionPane.showMessageDialog(RainbowTestGUI.this, scroll, "Trend Warnings", JOptionPane.WARNING_MESSAGE); 
                 }
             });
             btnWarning.setIcon(UIManager.getIcon("OptionPane.warningIcon"));
@@ -1056,52 +1111,59 @@ public class RainbowTestGUI extends JFrame {
     }
     
     private void addBaseToModel(String[] paramNames) {
-        TreeMap<Date, String> map = new TreeMap<Date, String>();
+        TreeMap<Date, ArrayList<String>> map = new TreeMap<Date, ArrayList<String>>();
         for (String f : baseFCSFiles) {
-            map.put(baseFiles.get(f).getRunDate(), f);
+            ArrayList<String> fls = map.get(baseFiles.get(f).getRunDate());
+            if (fls == null) {
+                fls = new ArrayList<String>();
+                map.put(baseFiles.get(f).getRunDate(), fls);
+            }
+            fls.add(f);
         }
-        for (String f : map.values()) {
-            fileParamMeanMap.put(f, new HashMap<String, Float>());
-            Object[] rowDataM = new Object[paramNames.length + 1];
-            Object[] rowDataS = new Object[paramNames.length + 1];
-            Object[] rowDataC = new Object[paramNames.length + 1];
-            rowDataM[0] = ext.rootOf(f);
-            rowDataS[0] = ext.rootOf(f);
-            rowDataC[0] = ext.rootOf(f);
-            for (int i = 0; i < paramNames.length; i++) {
-                FCSDataLoader loader = baseFiles.get(f);
-                
-                boolean[] gating = null;
-                if (gateStrat != null && rdbtnGated.isSelected()) {
-                    ArrayList<Gate> gates = gateStrat.getGatesForParamOnly(paramNames[i]);
-                    System.out.println("Applying " + gates.size() + " gates (not including parent-gates) to parameter " + paramNames[i]);
-                    for (Gate g : gates) {
-                        if (gating == null) {
-                            gating = g.gate(loader);
-                        } else {
-                            Array.booleanArrayAndInPlace(gating, g.gate(loader));
+        for (ArrayList<String> fls : map.values()) {
+            for (String f : fls) {
+                fileParamMeanMap.put(f, new HashMap<String, Float>());
+                Object[] rowDataM = new Object[paramNames.length + 1];
+                Object[] rowDataS = new Object[paramNames.length + 1];
+                Object[] rowDataC = new Object[paramNames.length + 1];
+                rowDataM[0] = ext.rootOf(f);
+                rowDataS[0] = ext.rootOf(f);
+                rowDataC[0] = ext.rootOf(f);
+                for (int i = 0; i < paramNames.length; i++) {
+                    FCSDataLoader loader = baseFiles.get(f);
+                    
+                    boolean[] gating = null;
+                    if (gateStrat != null && rdbtnGated.isSelected()) {
+                        ArrayList<Gate> gates = gateStrat.getGatesForParamOnly(paramNames[i]);
+                        System.out.println("Applying " + gates.size() + " gates (not including parent-gates) to parameter " + paramNames[i]);
+                        for (Gate g : gates) {
+                            if (gating == null) {
+                                gating = g.gate(loader);
+                            } else {
+                                Array.booleanArrayAndInPlace(gating, g.gate(loader));
+                            }
                         }
                     }
+                    
+                    float[] data = loader.getData(paramNames[i], true);
+                    if (gating != null) {
+                        data = Array.subArray(data, gating);
+                    }
+                    Float mn = Array.mean(data, true);
+                    Float sd = Array.stdev(data, true);
+                    Float cv = 100 * (sd / mn);
+                    paramMeanLists.get(paramNames[i]).add(mn);
+                    paramSDLists.get(paramNames[i]).add(sd);
+                    paramCVLists.get(paramNames[i]).add(cv);
+                    fileParamMeanMap.get(f).put(paramNames[i], mn);
+                    rowDataM[i + 1] = mn;
+                    rowDataS[i + 1] = sd;
+                    rowDataC[i + 1] = cv;
                 }
-                
-                float[] data = loader.getData(paramNames[i], true);
-                if (gating != null) {
-                    data = Array.subArray(data, gating);
-                }
-                Float mn = Array.mean(data, true);
-                Float sd = Array.stdev(data, true);
-                Float cv = 100 * (sd / mn);
-                paramMeanLists.get(paramNames[i]).add(mn);
-                paramSDLists.get(paramNames[i]).add(sd);
-                paramCVLists.get(paramNames[i]).add(cv);
-                fileParamMeanMap.get(f).put(paramNames[i], mn);
-                rowDataM[i + 1] = mn;
-                rowDataS[i + 1] = sd;
-                rowDataC[i + 1] = cv;
+                dtmMean.addRow(rowDataM);
+                dtmSD.addRow(rowDataS);
+                dtmCV.addRow(rowDataC);
             }
-            dtmMean.addRow(rowDataM);
-            dtmSD.addRow(rowDataS);
-            dtmCV.addRow(rowDataC);
         }
     }
     
@@ -1134,7 +1196,7 @@ public class RainbowTestGUI extends JFrame {
                 boolean[] gating = null;
                 if (gateStrat != null && rdbtnGated.isSelected()) {
                     ArrayList<Gate> gates = gateStrat.getGatesForParamOnly(paramNames[i]);
-                    System.out.println("Applying " + gates.size() + " gates (not including parent-gates) to parameter " + paramNames[i]);
+//                    System.out.println("Applying " + gates.size() + " gates (not including parent-gates) to parameter " + paramNames[i]);
                     for (Gate g : gates) {
                         if (gating == null) {
                             gating = g.gate(loader);
