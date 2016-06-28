@@ -326,9 +326,14 @@ public class MarkerBlast {
 						}
 						if (seqB.equals("")) {// not ambiguous
 							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.BOTH.getTag(), seqA, seqB, strand, seqLength, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
+							
 						} else {// interrogationPosition is the last bp for Ambiguous SNPS
 							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A.getTag(), seqA, seqB, strand, seqLength - 1, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
 							entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), seqB, seqB, strand, seqLength - 1, markerSegment, topBotProbe, topBotRef, alleleParser.getA(), alleleParser.getB(), alleleParser.getRef(), alleleParser.getAlts()));
+							if (seqB.length() != seqLength) {
+								proj.getLog().reportTimeError("Sequence " + seqB + " did not have length " + proj.ARRAY_TYPE.getValue().getProbeLength() + " " + markerName);
+								return null;
+							}
 						}
 
 					} else {
