@@ -2964,6 +2964,10 @@ public class Files {
         return -1;
 	}
 
+	/**
+	 * Put a tester at {@link NumLineTest}. Let JL know if this is messed up
+	 * 	 
+	 * */
 	public static int countLines(String filename, int numberOfLinesNotToCount) {
 		try {
 			LineNumberReader lnr = new LineNumberReader(getAppropriateInputStreamReader(filename));
@@ -2971,7 +2975,7 @@ public class Files {
 			while (num != 0) {
 			    num = lnr.skip(8192);
 			}
-			int lines = lnr.getLineNumber() + 1;
+			int lines = lnr.getLineNumber();// I think we do not need the +1, seems similar to a array.length
 			lnr.close();
 			return lines - numberOfLinesNotToCount;
 	    } catch (FileNotFoundException fnfe) {
