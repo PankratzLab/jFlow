@@ -3,12 +3,16 @@ package one.ben.fcs.sub;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -44,6 +48,7 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -1284,7 +1289,23 @@ public class ControlsQCGUI extends JFrame {
                     btnMore.setAction(new AbstractAction() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            JOptionPane.showMessageDialog(ControlsQCGUI.this, Array.toStr(warnings.toArray(new String[warnings.size()]), "\n"), "Trend Warnings", JOptionPane.WARNING_MESSAGE); 
+                            final JPanel msgPane = new JPanel(new MigLayout("","",""));
+                            JScrollPane scroll = new JScrollPane(msgPane);
+                            for (int i = 0; i < warnings.size(); i++) {
+                                msgPane.add(new JLabel("" + warnings.get(i)), "cell 0 " + i);
+                            }
+                            msgPane.addHierarchyListener(new HierarchyListener() {
+                                public void hierarchyChanged(HierarchyEvent e) {
+                                    Window window = SwingUtilities.getWindowAncestor(msgPane);
+                                    if (window instanceof Dialog) {
+                                        Dialog dialog = (Dialog)window;
+                                        if (!dialog.isResizable()) {
+                                            dialog.setResizable(true);
+                                        }
+                                    }
+                                }
+                            });
+                            JOptionPane.showMessageDialog(ControlsQCGUI.this, scroll, "Trend Warnings", JOptionPane.WARNING_MESSAGE); 
                         }
                     });
                     btnMore.setText("All");
