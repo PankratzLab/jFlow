@@ -481,7 +481,7 @@ public class MitoPipeline {
 							// generate estimates at each pc
 							log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");
 							CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers), proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR, true, 0.05, plot, numThreads);
-							
+
 							boolean requireBeta = betaFile == null || !Files.exists(betaFile);
 							if (requireBeta) {
 								log.reportTimeWarning("Attempting to use pre-set beta file");
@@ -903,8 +903,8 @@ public class MitoPipeline {
 		// String sampleMapCsv = null;
 		String sampleMapCsv = null;
 		String dataExtension = ".csv";
-		String sampleLRRSdFilter = "0.5";
-		String sampleCallRateFilter = "0.95";
+		String sampleLRRSdFilter = "-1";
+		String sampleCallRateFilter = "0.96";
 		double markerCallRateFilter = 0.98;
 		boolean markerQC = true;
 		boolean recomputeLRR_PCs = true;
@@ -952,10 +952,10 @@ public class MitoPipeline {
 		usage += "   All samples to be analyzed must be contained in the sample manifest (.PED format file, or Sample_Map.csv file)\n";
 		usage += "   (11) The desired name of the project (i.e. projName=" + projectName + " (default))\n";
 		usage += "   (12) Data extension for files contained in the source data directory (i.e. dirExt=" + dataExtension + " (default))\n";
-		usage += "   (13) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD=" + sampleLRRSdFilter + " (default))\n";
+		usage += "   (13) Log R Ratio standard deviation filter to exclude samples from PCs (i.e. LRRSD= (default for Affymetrix = 0.35, Illumina = 0.30))\n";
 		usage += "   (14) Call rate filter to exclude samples from PCs (i.e. sampleCallRate=" + sampleCallRateFilter + " (default))\n";
 		usage += "   (15) Number of principal components to compute (must be less than the number of samples AND the number of markers) (i.e. numComponents=" + numComponents + " (default))\n";
-		usage += "   (16) Number of threads to use for multi-threaded portions of the analysis (i.e. "+PSF.Ext.NUM_THREADS_COMMAND + numThreads + " (default))\n";
+		usage += "   (16) Number of threads to use for multi-threaded portions of the analysis (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + numThreads + " (default))\n";
 		usage += "   (17) Output file full path and baseName (i.e. output=" + output + " (default))\n";
 		usage += "   (18) Project filename (if you manually created a project properties file, or edited an existing project). Note that default arguments available here can overide existing project properties (i.e. proj=" + filename + " (no default))\n";
 		usage += "   (19) The header of the column containing sample ids in the final report files (for command-line interpretability, space characters must be replaced with \"_\". Common options are \"Sample_ID\" and \"Sample_Name\", corresponding to \"Sample ID\" and \"Sample Name\")  (i.e. idHeader=" + idHeader + " (default))\n";
@@ -1140,6 +1140,23 @@ public class MitoPipeline {
 			proj.getLog().reportTimeInfo("Using project defined genome build " + proj.GENOME_BUILD_VERSION.getValue());
 			build = proj.GENOME_BUILD_VERSION.getValue();
 		}
+		if (Double.parseDouble(sampleLRRSdFilter) < 0) {
+			switch (proj.ARRAY_TYPE.getValue()) {
+			case AFFY_GW6:
+			case AFFY_GW6_CN:
+				proj.LRRSD_CUTOFF.setValue(0.35);
+				proj.getLog().reportTimeInfo("Setting " + proj.LRRSD_CUTOFF.getName() + " to default 0.35 for array " + proj.ARRAY_TYPE.getValue());
+				break;
+			case ILLUMINA:
+				proj.LRRSD_CUTOFF.setValue(0.30);
+				proj.getLog().reportTimeInfo("Setting " + proj.LRRSD_CUTOFF.getName() + " to default 0.30 for array " + proj.ARRAY_TYPE.getValue());
+				break;
+			default:
+				throw new IllegalArgumentException("Invalid Array type");
+
+			}
+		}
+
 		attempts = 0;
 		while (attempts < 2) {
 			if (gcmodel != null) {
