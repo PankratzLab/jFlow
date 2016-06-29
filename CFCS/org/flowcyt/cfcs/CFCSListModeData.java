@@ -122,7 +122,7 @@ public final class CFCSListModeData extends CFCSAbstractData implements CFCSErro
         for (int i = 0; i < getCount(); i++) {
             ((ArrayList<Object>)(((CFCSAbstractDatatype)datatype).data)).add(new float[0]);
         }
-        
+
         // this thread:
 //        new Thread(new Runnable() {
 //            @Override

@@ -23,6 +23,9 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
+import common.PSF;
+import common.ext;
+
 public final class CFCSDataSet implements CFCSErrorCodes
 {
     public static final int UNDEFINED = -1;
@@ -178,7 +181,10 @@ public final class CFCSDataSet implements CFCSErrorCodes
 
             byte[] bytes = (byte[]) segments.get(DATA);
 
+            System.out.println("Mem 1: " + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1));
             data.setBytes(bytes);
+            System.out.println("Mem 2: " + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1));
+            System.out.println();
         }
         catch (IOException exception)
         {

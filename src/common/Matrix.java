@@ -491,7 +491,7 @@ public class Matrix {
 		float[] array = new float[data.length];
 
 		for (int i = 0; i<array.length; i++) {
-			array[i] = data[i][col];
+			array[i] = data[i] == null ? null : data[i][col];
 		}
 
 		return array;

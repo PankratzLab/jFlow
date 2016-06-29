@@ -175,7 +175,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		float xAxisValue, yAxisValue;
 		byte size = POINT_SIZE;
 		
-		if (fcp.dataLoader == null && !fcp.isLoading) {
+		if (fcp.dataLoader == null) {
 		    setNullMessage("Please load an FCS file..");
 		    points = new PlotPoint[0];
             rectangles = new GenericRectangle[0];
