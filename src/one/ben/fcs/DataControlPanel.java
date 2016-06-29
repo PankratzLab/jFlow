@@ -31,11 +31,13 @@ public class DataControlPanel extends JPanel {
     public static final String ACTION_MOVE_DOWN = "MOVEDOWN";
     public static final String ACTION_INFO = "INFO";
     public static final String ACTION_LOAD = "LOAD";
+    public static final String ACTION_USE = "USE";
+    
     private JButton btnLoad;
     
     public DataControlPanel(String file, String sz, String dt, final ActionListener al) {
         setBorder(null);
-        setLayout(new MigLayout("", "[][grow][][][][]", "0px[][][]0px"));
+        setLayout(new MigLayout("", "[][grow][][][][][]", "0px[][][]0px"));
 
         this.file = file;
         
@@ -105,6 +107,19 @@ public class DataControlPanel extends JPanel {
             }
         });
         add(btnLoad, "cell 5 0");
+
+        JButton btnUse = new JButton(Grafik.getImageIcon("images/right_short.gif"));
+        btnUse.setBackground(Color.WHITE);
+        btnUse.setFont(new Font("Tahoma", Font.BOLD, 11));
+        btnUse.setMargin(new Insets(0, 0, 0, 0));
+        btnUse.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ActionEvent newEv = new ActionEvent(DataControlPanel.this, 0, DataControlPanel.this.file + "::" + ACTION_USE);
+                al.actionPerformed(newEv);
+            }
+        });
+        add(btnUse, "cell 6 0");
         
         JLabel lblFileName = new JLabel("<html><p>" + file + "</p></html>");
         lblFileName.setFont(new Font("Arial", Font.PLAIN, 9));

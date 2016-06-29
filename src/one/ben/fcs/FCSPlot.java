@@ -14,6 +14,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import javax.swing.ActionMap;
@@ -42,7 +43,6 @@ import one.ben.fcs.sub.RainbowTestGUI;
 import org.xml.sax.SAXException;
 
 import cnv.gui.GuiManager;
-
 import common.Files;
 import common.Logger;
 
@@ -68,7 +68,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     FCSDataLoader dataLoader;
     GatingStrategy gating;
 
-    volatile boolean isLoading = false;
+//    volatile boolean isLoading = false;
 
     private volatile String xDataName;
     private volatile String yDataName;
@@ -364,57 +364,117 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     }
     
     private void resetForNewData(final FCSDataLoader newDataLoader) {
-    	final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
-    	final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
-    	colNamesY.add(0, HISTOGRAM_COL);
-    	
-        if (colNames.size() < 2) {
-            // TODO error, not enough data!!
+        if (newDataLoader.getLoadState() != LOAD_STATE.UNLOADED && newDataLoader.getLoadState() != LOAD_STATE.LOADING) {
+        	final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+        	final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+        	colNamesY.add(0, HISTOGRAM_COL);
+        	
+            if (colNames.size() < 2) {
+                // TODO error, not enough data!!
+            }
+            // TODO reset GUI elements
+    //        if (resetCols) {
+    //        SwingUtilities.invokeLater(new Runnable() {
+    //            @Override
+    //            public void run() {
+                    fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
+                    fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
+                    fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
+                    fcsControls.setScale(newDataLoader.scales.get(0), false);
+                    fcsControls.setScale(newDataLoader.scales.get(1), true);
+    //            }
+    //        });
+            
+            setYDataName(colNames.get(0));
+            setXDataName(colNames.get(1));
+            setYScale(newDataLoader.scales.get(0));
+            setXScale(newDataLoader.scales.get(1));
+        } else {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(newDataLoader.getLoadState() == LOAD_STATE.UNLOADED || newDataLoader.getLoadState() == LOAD_STATE.LOADING) {
+                        Thread.yield();
+                    }
+                    final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+                    final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+                    colNamesY.add(0, HISTOGRAM_COL);
+                    
+                    if (colNames.size() < 2) {
+                        // TODO error, not enough data!!
+                    }
+                    // TODO reset GUI elements
+            //        if (resetCols) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
+                            fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
+                            fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
+                            fcsControls.setScale(newDataLoader.scales.get(0), false);
+                            fcsControls.setScale(newDataLoader.scales.get(1), true);
+                        }
+                    });
+                    
+                    setYDataName(colNames.get(0));
+                    setXDataName(colNames.get(1));
+                    setYScale(newDataLoader.scales.get(0));
+                    setXScale(newDataLoader.scales.get(1));
+                    
+                }
+            }).start();
         }
-        // TODO reset GUI elements
-//        if (resetCols) {
-//        SwingUtilities.invokeLater(new Runnable() {
-//            @Override
-//            public void run() {
-                fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
-                fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
-                fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
-                fcsControls.setScale(newDataLoader.scales.get(0), false);
-                fcsControls.setScale(newDataLoader.scales.get(1), true);
-//            }
-//        });
-        
-        setYDataName(colNames.get(0));
-        setXDataName(colNames.get(1));
-        setYScale(newDataLoader.scales.get(0));
-        setXScale(newDataLoader.scales.get(1));
         dataLoader = newDataLoader;
-        isLoading = false;
         System.gc();
     }
     
-	public void loadFile(final String filename) {
+    private HashMap<String, FCSDataLoader> loadedData = new HashMap<String, FCSDataLoader>();
+    
+    public void unloadFile(final String filename) {
+        if (filename == null || !loadedData.containsKey(filename)) {
+            return;
+        }
+        boolean clearLoaded = true;
+        if (dataLoader != null && dataLoader.getLoadedFile().equals(filename)) {
+            clearLoaded = true;
+        }
+        loadedData.remove(filename).emptyAndReset();
+        if (clearLoaded) {
+            dataLoader = null;
+        }
+        System.gc();
+        updateGUI();
+    }
+    
+	public void loadFile(final String filename, final boolean display) {
 	    if (filename == null || !Files.exists(filename) || (dataLoader != null && dataLoader.getLoadedFile().equals(filename))) {
 	        return;
 	    }
-	    isLoading = true;
-	    Thread dataLoaderThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                FCSDataLoader newDataLoader = new FCSDataLoader();
-                fcsControls.startFileLoading(newDataLoader);
-                try {
-                    newDataLoader.loadData(filename);
-                } catch (IOException e) {
-                    e.printStackTrace(); // TODO
-                    return;
+	    
+	    if (loadedData.containsKey(filename)) {
+	        if (display) {
+	            setData(loadedData.get(filename));
+	        }
+	    } else {
+	        Thread dataLoaderThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    FCSDataLoader newDataLoader = new FCSDataLoader();
+                    loadedData.put(filename, newDataLoader);
+                    fcsControls.startFileLoading(newDataLoader);
+                    try {
+                        newDataLoader.loadData(filename);
+                    } catch (IOException e) {
+                        e.printStackTrace(); // TODO
+                        return;
+                    }
+                    if (display) {
+                        setData(newDataLoader);
+                    }
                 }
-                resetForNewData(newDataLoader);
-                FCSPlot.this.parent.setTitle(TITLE_STR + "  --  " + newDataLoader.getLoadedFile());
-                updateGUI();
-            }
-        });
-	    dataLoaderThread.start();
+            });
+    	    dataLoaderThread.start();
+	    }
 	}
 	
 	public void loadGatingFile(String gateFile) {
@@ -539,6 +599,10 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         if (dataLoader == null) return false;
         LOAD_STATE currState = dataLoader.getLoadState();
         return currState != LOAD_STATE.UNLOADED && currState != LOAD_STATE.LOADING;
+    }
+
+    public boolean isFileLoaded(String file) {
+        return loadedData.containsKey(file);
     }
 
 }

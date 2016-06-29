@@ -32,6 +32,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -489,7 +490,12 @@ public class FCSPlotControlPanel extends JPanel {
             }
             dcp.setSelected(true);
             if (cmd.equals(DataControlPanel.ACTION_DELETE)) {
-                // TODO if data already loaded, delete and GC
+                if (plot.isFileLoaded(dcp.file)) {
+                    int opt = JOptionPane.showConfirmDialog(plot, "This will unload file data from memory - are you sure you wish to continue?", "Unload Data?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    if (opt == JOptionPane.YES_OPTION) {
+                        plot.unloadFile(dcp.file);
+                    }
+                }
                 filePanels.remove(ind);
                 addFilePanels();
             } else if (cmd.equals(DataControlPanel.ACTION_MOVE_UP)) {
@@ -503,10 +509,29 @@ public class FCSPlotControlPanel extends JPanel {
             } else if (cmd.equals(DataControlPanel.ACTION_INFO)) {
                 // TODO build info GUI for files
             } else if (cmd.equals(DataControlPanel.ACTION_LOAD)) {
-                // TODO track dataLoaders, if already loaded -> unload
-                // TODO check memory available before loading, show YELLOW warning if nearing max, show RED warning if not enough memory 
-                boolean loaded = true;
-                dcp.setLoaded(loaded);
+                // TODO check memory available before loading, show YELLOW warning if nearing max, show RED warning if not enough memory
+                if (plot.isFileLoaded(dcp.file)) {
+                    int opt = JOptionPane.showConfirmDialog(plot, "This will unload file data from memory - are you sure you wish to continue?", "Unload Data?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    if (opt == JOptionPane.YES_OPTION) {
+                        plot.unloadFile(dcp.file);
+                        dcp.setLoaded(false);
+                    }
+                } else {
+                    dcp.setLoaded(true);
+                    plot.loadFile(dcp.file, false);
+                }
+            } else if (cmd.equals(DataControlPanel.ACTION_USE)) {
+                boolean disp = true;
+                if (!plot.isFileLoaded(dcp.file)) {
+                    int opt = JOptionPane.showConfirmDialog(plot, "Data file not loaded - would you like to load this data?", "Confirm Load", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+                    if (opt == JOptionPane.NO_OPTION) {
+                        disp = false;
+                    }
+                }
+                if (disp) {
+                    dcp.setLoaded(true);
+                    plot.loadFile(dcp.file, true);
+                }
             }
             // apply action to file
         }
