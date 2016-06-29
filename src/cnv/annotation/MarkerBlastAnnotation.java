@@ -15,6 +15,7 @@ import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
 import cnv.annotation.MarkerEvalueHistogramAnnotation.EvalueHistogram;
 import cnv.filesys.Project;
 import common.Logger;
+import common.Positions;
 import common.ArraySpecialList.ArrayBlastAnnotationList;
 
 public class MarkerBlastAnnotation implements AnnotationParser {
@@ -98,7 +99,11 @@ public class MarkerBlastAnnotation implements AnnotationParser {
 				List<String> groups = Arrays.asList(info.replaceAll("\\[", "").replaceAll("\\]", "").split("\\s*,\\s*"));
 				for (String group : groups) {
 					String[] segCigarStrand = group.split("/");
-					annotationLists[i].add(new BlastAnnotation(TextCigarCodec.decode(segCigarStrand[0]), new Segment(segCigarStrand[1]), Strand.toStrand(segCigarStrand[2]), PROBE_TAG.valueOf(segCigarStrand[3]), Double.parseDouble(segCigarStrand[4])));
+					int[] location = Positions.parseUCSClocation(segCigarStrand[1]);
+					if (location != null) {
+						Segment segment = new Segment((byte)location[0], location[1], location[2]);
+						annotationLists[i].add(new BlastAnnotation(TextCigarCodec.decode(segCigarStrand[0]), segment, Strand.toStrand(segCigarStrand[2]), PROBE_TAG.valueOf(segCigarStrand[3]), Double.parseDouble(segCigarStrand[4])));
+					}
 				}
 			}
 		}
