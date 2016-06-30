@@ -15,6 +15,8 @@ import cnv.qc.SexChecks;
 
 public class SexPlot extends JFrame {
 	public static final long serialVersionUID = 1L;
+	
+	private static final String[] SEX_CHECKS_REQUIREMENTS = {"Sample", "Sex", SexChecks.EST_SEX_HEADER, "Check", "Median X LRR", "Median Y LRR"};
 
 	SexPanel sexPanel;
 
@@ -87,18 +89,26 @@ public class SexPlot extends JFrame {
 			if (reader == null) {
 				return;
 			}
-			if (!ext.checkHeader(reader.readLine().trim().split("\t"), SexChecks.SEX_HEADER, false, proj.getLog(), false)) {
+			line = reader.readLine().trim().split("\t");
+			if (!ext.checkHeader(line, SexChecks.SEX_HEADER, false, proj.getLog(), false)) {
 				proj.message("The header in file '"+proj.SEXCHECK_RESULTS_FILENAME.getValue()+"' is not as expected and may cause problems; see log for more detail");
 			}
+			int[] indices = ext.indexFactors(SEX_CHECKS_REQUIREMENTS, SexChecks.SEX_HEADER, false, false);
+			for (int index : indices) {
+				if (index == -1) {
+					return;
+				}
+			}
+			
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t", -1);
-				if (ext.isMissingValue(line[4]) || ext.isMissingValue(line[8]) ) {
-					System.err.println("Error - sample '"+line[0]+"' does not have a valid meanLRR for X or Y");
+				if (ext.isMissingValue(line[indices[4]]) || ext.isMissingValue(line[indices[5]]) ) {
+					System.err.println("Error - sample '"+line[indices[0]]+"' does not have a valid medianLRR for X or Y");
 				} else {
-					samples.add(new String[] {line[0], "chr23"});
-					datapoints.add(new double[] {Double.parseDouble(line[10]), Double.parseDouble(line[11])});
-					sexes.add(Byte.parseByte(line[3]));
-					estimatedSexes.add(Byte.parseByte(line[4]));
+					samples.add(new String[] {line[indices[0]], "chr23"});
+					datapoints.add(new double[] {Double.parseDouble(line[indices[4]]), Double.parseDouble(line[indices[5]])});
+					sexes.add(Byte.parseByte(line[indices[1]]));
+					estimatedSexes.add(Byte.parseByte(line[indices[2]]));
 				}
 			}
 			reader.close();
