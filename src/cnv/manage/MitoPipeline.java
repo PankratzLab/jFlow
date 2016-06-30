@@ -256,7 +256,8 @@ public class MitoPipeline {
 		proj.setProperty(proj.SOURCE_FILENAME_EXTENSION, dataExtension);
 		proj.setProperty(proj.ID_HEADER, idHeader);
 		// proj.setProperty(proj.LRRSD_CUTOFF, defaultLRRSdFilter);
-		proj.setProperty(proj.LRRSD_CUTOFF, Double.valueOf(defaultLRRSdFilter));
+		
+		proj.setProperty(proj.LRRSD_CUTOFF, Math.max(0, Double.valueOf(defaultLRRSdFilter)));
 		proj.setProperty(proj.SAMPLE_CALLRATE_THRESHOLD, Double.valueOf(defaultCallRateFilter));
 		proj.setProperty(proj.INTENSITY_PC_MARKERS_FILENAME, ext.removeDirectoryInfo(targetMarkers));
 		if (markerPositions != null) {
