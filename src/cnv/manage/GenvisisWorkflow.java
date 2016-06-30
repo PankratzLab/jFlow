@@ -26,6 +26,7 @@ import cnv.qc.GcAdjustorParameter;
 import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.qc.LrrSd;
+import cnv.qc.MarkerBlastQC;
 import cnv.qc.SampleQC;
 import cnv.var.SampleData;
 import common.Aliases;
@@ -656,10 +657,12 @@ public class GenvisisWorkflow {
                   "", 
                   new String[][]{{"[Parse Sample Files] step must have been run already or must be selected and valid."},
                                  {"[Create SampleData.txt File] step must have been run already or must be selected and valid."},
-                                 {"Add Estimated Sex to Sample Data"}}, 
+                                 {"Add Estimated Sex to Sample Data"},
+                                 {"Use R values to identify sex discriminating markers", "List of markers that do not cross hybridize", "BLAST annotation VCF to generate list of markers that do not cross hybridize from"}}, 
                   new RequirementInputType[][]{{RequirementInputType.NONE}, 
-                                               {RequirementInputType.NONE}, 
-                                               {RequirementInputType.BOOL}}) {
+                                               {RequirementInputType.NONE},
+                                               {RequirementInputType.BOOL},
+                                               {RequirementInputType.BOOL, RequirementInputType.FILE, RequirementInputType.FILE}}) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -669,7 +672,17 @@ public class GenvisisWorkflow {
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             proj.getLog().report("Running SexCheck");
-            cnv.qc.SexChecks.sexCheck(proj, Boolean.valueOf(variables.get(this).get(0)));
+            boolean addToSampleData = Boolean.valueOf(variables.get(this).get(0));
+            String discriminatingMarkersFile;
+            if (Boolean.valueOf(variables.get(this).get(1))) {
+            	discriminatingMarkersFile = null;
+            } else {
+            	discriminatingMarkersFile = variables.get(this).get(2);
+            	if (!Files.exists(discriminatingMarkersFile)) {
+            		MarkerBlastQC.getOneHitWonders(proj, variables.get(this).get(3), discriminatingMarkersFile, 0.8, proj.getLog());
+            	}
+            }
+            cnv.qc.SexChecks.sexCheck(proj, addToSampleData, discriminatingMarkersFile);
         }
         
         @Override
@@ -678,16 +691,23 @@ public class GenvisisWorkflow {
             String sampDataFile = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
             STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
             boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
+            boolean useRValues = Boolean.valueOf(variables.get(this).get(1));
+            String discriminatingMarkersFile = variables.get(this).get(2);
+            String blastVCFFile = variables.get(this).get(3);
             return new boolean[][]{
                     {checkStepParseSamples || (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
                     {stepSelections.get(S3_CREATE_SAMPLEDATA) && S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections, variables) || Files.exists(sampDataFile)},
-                    {true}
+                    {true},
+                    {useRValues, !useRValues && Files.exists(discriminatingMarkersFile), !useRValues && !Files.exists(discriminatingMarkersFile) && Files.exists(blastVCFFile)}
             };
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{true};
+            return new Object[]{true,
+            					false,
+            					MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue()), 
+            					proj.BLAST_ANNOTATION_FILENAME.getValue()};
         }
 
         @Override
@@ -700,7 +720,18 @@ public class GenvisisWorkflow {
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
             boolean addToSampleData = Boolean.valueOf(variables.get(this).get(0));
-            return cmd.append("jcp cnv.qc.SexChecks -check" + (addToSampleData ? "" : " -skipSampleData") + " proj=" + projPropFile).toString();
+            String discriminatingMarkersFile;
+            if (Boolean.valueOf(variables.get(this).get(1))) {
+            	discriminatingMarkersFile = null;
+            } else {
+            	discriminatingMarkersFile = variables.get(this).get(2);
+            	if (!Files.exists(discriminatingMarkersFile)) {
+            		cmd.append("jcp cnv.qc.MarkerBlastQC proj=" + projPropFile + " blastVCF=" + variables.get(this).get(3));
+            	}
+            }
+            return cmd.append("jcp cnv.qc.SexChecks -check proj=" + projPropFile).toString() + 
+            		(discriminatingMarkersFile == null ? "" : " useMarkers=" + discriminatingMarkersFile) + 
+            		(addToSampleData ? "" : " -skipSampleData");
         }
         
     };
