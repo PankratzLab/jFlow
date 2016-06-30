@@ -5,6 +5,7 @@ import java.util.List;
 import cnv.annotation.BlastAnnotationTypes.TOP_BOT;
 import seq.manage.VCOps;
 import common.Logger;
+import common.ext;
 import filesys.Segment;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
@@ -77,41 +78,43 @@ public class MarkerSeqAnnotation extends AnnotationData {
 	public void parseAnnotation(VariantContext vc, Logger log) {
 		if (vc.hasAttribute(getName())) {
 			setData(vc.getAttributeAsString(getName(), DEFAULT_NAME));
-			List<String> data = getDataAsList();
-			this.seqA = data.get(0);
-			this.seqB = data.get(1);
+			if (!ext.isMissingValue(getData())) {
+				List<String> data = getDataAsList();
+				this.seqA = data.get(0);
+				this.seqB = data.get(1);
 
-			this.interrogationPosition = -1;
-			try {
-				interrogationPosition = Integer.parseInt(data.get(2));
+				this.interrogationPosition = -1;
+				try {
+					interrogationPosition = Integer.parseInt(data.get(2));
 
-			} catch (NumberFormatException nfe) {
+				} catch (NumberFormatException nfe) {
 
-			}
-			this.strand = Strand.toStrand(data.get(3));
-			this.seg = VCOps.getSegment(vc);
-			this.topBotProbe = TOP_BOT.valueOf(data.get(4));
-			this.topBotRef = TOP_BOT.valueOf(data.get(5));
-			this.ref = vc.getReference();
-			List<Allele> alleles = vc.getAlternateAlleles();
-			this.alts = new Allele[alleles.size()];
-			for (int i = 0; i < alts.length; i++) {
-				alts[i] = alleles.get(i);
-			}
-			this.A = Allele.create(data.get(6), ref.basesMatch(data.get(6)));
-			this.B = Allele.create(data.get(7), ref.basesMatch(data.get(7)));
-			if (A.isReference() && B.isReference()) {
-				throw new IllegalArgumentException("A and B alleles cannot both be reference");
-			}
-			this.indel = vc.isIndel();
-			if (indel) {
-				this.aInsertion = A.getBases().length > ref.getBases().length;
-				this.bInsertion = B.getBases().length > ref.getBases().length;
-				this.aDeletion = A.getBases().length < ref.getBases().length;
-				this.bDeletion = B.getBases().length < ref.getBases().length;
+				}
+				this.strand = Strand.toStrand(data.get(3));
+				this.seg = VCOps.getSegment(vc);
+				this.topBotProbe = TOP_BOT.valueOf(data.get(4));
+				this.topBotRef = TOP_BOT.valueOf(data.get(5));
+				this.ref = vc.getReference();
+				List<Allele> alleles = vc.getAlternateAlleles();
+				this.alts = new Allele[alleles.size()];
+				for (int i = 0; i < alts.length; i++) {
+					alts[i] = alleles.get(i);
+				}
+				this.A = Allele.create(data.get(6), ref.basesMatch(data.get(6)));
+				this.B = Allele.create(data.get(7), ref.basesMatch(data.get(7)));
+				if (A.isReference() && B.isReference()) {
+					throw new IllegalArgumentException("A and B alleles cannot both be reference");
+				}
+				this.indel = vc.isIndel();
+				if (indel) {
+					this.aInsertion = A.getBases().length > ref.getBases().length;
+					this.bInsertion = B.getBases().length > ref.getBases().length;
+					this.aDeletion = A.getBases().length < ref.getBases().length;
+					this.bDeletion = B.getBases().length < ref.getBases().length;
 
-				if ((aDeletion && aInsertion) || (bDeletion && bInsertion)) {
-					throw new IllegalStateException("Allele cannot be both insertion and deletion");
+					if ((aDeletion && aInsertion) || (bDeletion && bInsertion)) {
+						throw new IllegalStateException("Allele cannot be both insertion and deletion");
+					}
 				}
 			}
 		}
