@@ -33,7 +33,7 @@ import common.WorkerTrain.Producer;
  * @author lane0212 Inspired by Kendall
  */
 public class MitoSeqCN { 
-	// TODO, need to adopt to WGS  
+	// TODO, need to adopt to WGS   
 	public static void run(String fileOfBams, String outDir, String captureBed, String referenceGenomeFasta,boolean chr, int numthreads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "mtDNACN.log");
