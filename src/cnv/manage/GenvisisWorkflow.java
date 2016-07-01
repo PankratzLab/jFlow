@@ -27,6 +27,7 @@ import cnv.qc.GcAdjustor.GCAdjustorBuilder;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import cnv.qc.LrrSd;
 import cnv.qc.MarkerBlastQC;
+import cnv.qc.MarkerMetrics;
 import cnv.qc.SampleQC;
 import cnv.var.SampleData;
 import common.Aliases;
@@ -572,84 +573,68 @@ public class GenvisisWorkflow {
     };
     
     static final STEP S7_MARKER_QC = new STEP("Run Marker QC Metrics", "",
-            new String[][]{{"Marker Call-Rate Filter Threshold"},
-    						{"[Parse Sample Files] step must have been run already or must be selected and valid."},
+            new String[][]{{"[Parse Sample Files] step must have been run already or must be selected and valid."},
     						{"Export all markers in project.", "A targetMarkers files listing the markers to QC."},
     						{"Number of threads to use."}},
-            new RequirementInputType[][]{{RequirementInputType.INT},
-    									 {RequirementInputType.NONE},
+            new RequirementInputType[][]{{RequirementInputType.NONE},
     									 {RequirementInputType.NONE, RequirementInputType.FILE},
     									 {RequirementInputType.INT}}
             ) {
     
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String setTgtFile = proj.TARGET_MARKERS_FILENAMES.getValue().length > 0 ? proj.TARGET_MARKERS_FILENAMES.getValue()[0] : "";
-            String tgtFile = variables.get(this).get(1);
-            if (!"".equals(tgtFile) && !setTgtFile.equals(tgtFile)) {
-                // String[] arr = proj.TARGET_MARKERS_FILENAMES.getValue();
-                // arr[0] = tgtFile;
-                proj.TARGET_MARKERS_FILENAMES.addValue(tgtFile);
-            }
-            int numThreads = proj.NUM_THREADS.getValue();
-            try {
-                numThreads = Integer.parseInt(variables.get(this).get(2));
-            } catch (NumberFormatException e) {}
-            if (numThreads != proj.NUM_THREADS.getValue()) {
-                proj.NUM_THREADS.setValue(numThreads);
-            }
+        	// Nothing to do here
         }
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(0));
-            String tgtFile = variables.get(this).get(1);
+            String tgtFile = variables.get(this).get(0);
+            tgtFile  = "".equals(tgtFile) ? null : tgtFile;
             int numThreads = proj.NUM_THREADS.getValue();
             try {
-                numThreads = Integer.parseInt(variables.get(this).get(2));
+                numThreads = Integer.parseInt(variables.get(this).get(1));
             } catch (NumberFormatException e) {}
-            String markersToQC = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_TO_QC_FILE;
-            String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE;
-            MitoPipeline.qcMarkers(proj, "".equals(tgtFile) ? null : tgtFile, markersToQC, markersABCallrate, markerCallRateFilter, numThreads);
-            // TODO Replace with MarkerMetrics.fullQC
+            MarkerMetrics.fullQC(proj, null, tgtFile, true, numThreads);
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{0.98, ""/*proj.TARGET_MARKERS_FILENAMES.getValue()[0]*/, proj.NUM_THREADS.getValue()};
+            return new Object[]{""/*proj.TARGET_MARKERS_FILENAMES.getValue()[0]*/, proj.NUM_THREADS.getValue()};
         }
         
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            double mkr = -1;
-            try {
-                mkr = Double.parseDouble(variables.get(this).get(0));
-            } catch (NumberFormatException e) {}
             String mkrPosFile = proj.MARKER_POSITION_FILENAME.getValue();
             String sampList = proj.SAMPLELIST_FILENAME.getValue();
-            String tgtFile = variables.get(this).get(1);
+            String tgtFile = variables.get(this).get(0);
         	int numThreads = -1;
         	try {
-        		numThreads = Integer.parseInt(variables.get(this).get(2));
+        		numThreads = Integer.parseInt(variables.get(this).get(1));
         	} catch (NumberFormatException e) {}
             boolean step12 = Files.exists(mkrPosFile);
             boolean step2 = stepSelections.get(S2I_PARSE_SAMPLES) && S2I_PARSE_SAMPLES.hasRequirements(proj, stepSelections, variables);
             boolean step22 = Files.exists(sampList);
             boolean step3 = Files.exists(tgtFile);
-            return new boolean[][]{{mkr != -1}, {step2 || step12 && step22}, {true, step3}, {numThreads > 0}};
+            return new boolean[][]{{step2 || step12 && step22}, {true, step3}, {numThreads > 0}};
         }
         
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String markersForABCallRate = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE + "_" + MitoPipeline.MARKERS_FOR_ABCALLRATE;
-            if (!Files.exists(markersForABCallRate)) {
-                return false;
-            }
-            return true;
+        	String markerMetricsFile = proj.MARKER_METRICS_FILENAME.getValue();
+            return Files.exists(markerMetricsFile);
         }
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Marker QC >> Not Implemented For Command Line Yet ##"; // TODO
+        	String tgtFile = variables.get(this).get(0);
+            tgtFile  = "".equals(tgtFile) ? null : tgtFile;
+            int numThreads = proj.NUM_THREADS.getValue();
+            try {
+                numThreads = Integer.parseInt(variables.get(this).get(1));
+            } catch (NumberFormatException e) {}
+            return "jcp cnv.qc.MarkerMetrics -fullQC" + 
+            		" proj=" + proj.getPropertyFilename() + 
+            		" markers=" + tgtFile +
+            		" threads=" + numThreads;
         }
     };
 
