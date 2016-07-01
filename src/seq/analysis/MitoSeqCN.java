@@ -41,7 +41,7 @@ public class MitoSeqCN {
 		log.reportTimeInfo("Detected " + bams.length + " bam files");
 		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
 		System.out.println(captureBed);
-		BedOps.verifyBedIndex(captureBed, log);
+		BedOps.verifyBedIndex(captureBed, log); 
 		BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
 		LocusSet<Segment> genomeBinsMinusBinsCaputure = referenceGenome.getBins(20000).removeThese(readerCapture.loadAll(log).getStrictSegmentSet(), 21000).autosomal(true, log);// essentially remove the neighbor
 		readerCapture.close();
