@@ -471,12 +471,18 @@ public class GenvisisWorkflow {
             String gcOutputFile = variables.get(this).get(1);
             return new boolean[][]{{Files.exists(gcBaseFile)},{!Files.exists(gcOutputFile)}};
         }
+
+		@Override
+		public Object[] getRequirementDefaults(Project proj) {
+			if (Resources.GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue()).isAvailable(proj.getLog())) {
+				return new Object[] { Resources.GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue()).getResource(proj.getLog()), proj.GC_MODEL_FILENAME.getValue() };
+			} else {
+				Resources.GENOME_RESOURCE_TYPE.GC5_BASE.getResource(proj.GENOME_BUILD_VERSION.getValue()).validateWithHint(proj.getLog());
+				return null;
+			}
+		}
         @Override
-        public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS, "gc5Base.txt", true, false, proj.getLog()), proj.GC_MODEL_FILENAME.getValue()};
-        }
-        @Override
-        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+		public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String gcOutputFile = variables.get(this).get(1);
             boolean gcExists = Files.exists(gcOutputFile);
             return gcExists;
