@@ -660,7 +660,7 @@ public class MitoPipeline {
 			log.report("Marker QC file " + proj.MARKER_METRICS_FILENAME.getValue(true, false) + " exists");
 			log.report("Skipping Marker QC computation for the analysis, filtering on existing file");
 		} else {
-			log.report("Computing marker QC for " + targetMarkersFile == null ? "all markers in project." : "markers in " + targetMarkersFile);
+			log.report("Computing marker QC for " + (targetMarkersFile == null ? "all markers in project." : "markers in " + targetMarkersFile));
 			writeMarkersToQC(proj, targetMarkersFile, markersToQCFile);
 			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
 			Arrays.fill(samplesToExclude, false);
