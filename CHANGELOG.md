@@ -2,8 +2,11 @@
 All notable changes to Genvisis will be documented in this file.
 
 ##[Unreleased]
+
+## [0.1.2]
 -Finalized Beta optimization in [MitoPipeLine](https://github.com/npankrat/Genvisis/commits/master/src/cnv/manage/MitoPipeline.java)
 -long format parsing is multi-threaded if more than one long format file is present
+-fixed issue where MitoPipeline was not downloading beta files
 
 
 ## [0.1.1]
@@ -22,6 +25,7 @@ All notable changes to Genvisis will be documented in this file.
 -an example of the removed heading
 
  
-[Unreleased]: https://github.com/npankrat/Genvisis/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/npankrat/Genvisis/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/npankrat/Genvisis/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/npankrat/Genvisis/compare/v0.1.0...v0.1.1
 
