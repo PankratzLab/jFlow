@@ -714,7 +714,11 @@ public class GenvisisWorkflowGUI extends JDialog {
                     for (int i = 0; i < options.length; i++) {
                         if (options[i]) {
                             String cmd = GenvisisWorkflowGUI.this.steps[i].getCommandLine(proj, variables);
-                            output.append("## ").append(GenvisisWorkflowGUI.this.steps[i].stepName).append("\n").append(cmd).append("\n\n");
+                            output.append("## ").append(GenvisisWorkflowGUI.this.steps[i].stepName).append("\n");
+                            output.append("echo \" start ").append(GenvisisWorkflowGUI.this.steps[i].stepName).append(" at: \" `date`").append("\n");
+                            output.append(cmd).append("\n");
+                            output.append("echo \" end ").append(GenvisisWorkflowGUI.this.steps[i].stepName).append(" at: \" `date`").append("\n");
+                            output.append("\n\n");
                         }
 					}
 					Files.write(output.toString(), proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.run");
