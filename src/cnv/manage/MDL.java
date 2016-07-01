@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
@@ -32,6 +33,7 @@ public class MDL implements Iterator<MarkerData> {
 	private Hashtable<String, String> missing;
 	private BufferReader producer;
 	private int reportEvery;
+	private long startTime;
 	private boolean debugMode;
 	private String currentFile;
 
@@ -58,6 +60,7 @@ public class MDL implements Iterator<MarkerData> {
 		this.numLoaded = 0;
 		this.fileIndex = 0;
 		this.reportEvery = 1000;
+		this.startTime = new Date().getTime();
 		this.debugMode = false;
 	}
 
@@ -118,7 +121,7 @@ public class MDL implements Iterator<MarkerData> {
 			}
 			numLoadedForFile++;
 			numLoaded++;
-			if (numLoaded % reportEvery == 0) {
+			if ((startTime - new Date().getTime()) % reportEvery == 0) {
 				proj.getLog().reportTimeInfo("Loaded " + numLoaded + " of " + markerNames.length + " markers");
 			}
 			markerData = decompTrain.next();
@@ -140,6 +143,10 @@ public class MDL implements Iterator<MarkerData> {
 
 	}
 
+	/**
+	 * 
+	 * @param reportEvery new reporting interval, in milliseconds
+	 */
 	public void setReportEvery(int reportEvery) {
 		this.reportEvery = reportEvery;
 	}
