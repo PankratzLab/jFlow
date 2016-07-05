@@ -510,6 +510,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     private HashSet<RectangleGate> mouseRects = new HashSet<RectangleGate>();
     
     private ArrayList<RectangleGate> draggingVertexRects = new ArrayList<RectangleGate>();
+    private ArrayList<Integer> draggingVertexInds = new ArrayList<Integer>();
     private ArrayList<PolygonGate> draggingPolys = new ArrayList<PolygonGate>();
     private ArrayList<Integer> draggingPolyInds = new ArrayList<Integer>();
     
@@ -584,6 +585,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 } else {
                     selectedRects.addAll(draggingVertexRects);
                     draggingVertexRects.clear();
+                    draggingVertexInds.clear();
                 }
             }
             if (!didSelect && !didClear && !wasDrag) {
@@ -659,42 +661,30 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                         selectedRects.remove(rect);
                         mouseRects.remove(rect);
                         
+                        int ind = -1;
                         boolean closeToStartX = Math.abs(getXPixel(gdX.getMin()) - tempX) < 4; 
-                        boolean closeToStartY = gdY == null ? true : Math.abs(getYPixel(gdY.getMin()) - tempY) < 4; 
+                        boolean closeToStartY = isHistogram() ? true : Math.abs(getYPixel(gdY.getMin()) - tempY) < 4; 
                         boolean closeToStopX = Math.abs(getXPixel(gdX.getMax()) - tempX) < 4; 
-                        boolean closeToStopY = gdY == null ? true : Math.abs(getYPixel(gdY.getMax()) - tempY) < 4; 
-                        
-                        double tempStartX = Double.NaN, tempStartY = Double.NaN, tempStopX = Double.NaN, tempStopY = Double.NaN;
+                        boolean closeToStopY = isHistogram() ? true : Math.abs(getYPixel(gdY.getMax()) - tempY) < 4; 
+                        /*
+                        1 ----- 2
+                        |       |
+                        |       |
+                        |       |
+                        0 ----- 3
+                        */
                         if (closeToStartX && closeToStartY) {
-                            tempStartX = gdX.getMax();
-                            tempStartY = gdY == null ? plotYmax : gdY.getMax();
-                            tempStopX = gdX.getMin();
-                            tempStopY = gdY == null ? plotYmin : gdY.getMin();
+                            ind = 0;
                         } else if (closeToStartX && closeToStopY) {
-                            tempStartX = gdX.getMax();
-                            tempStartY = gdY == null ? plotYmin : gdY.getMin();
-                            tempStopX = gdX.getMin();
-                            tempStopY = gdY == null ? plotYmax : gdY.getMax();
+                            ind = 1;
                         } else if (closeToStopX && closeToStartY) {
-                            tempStartX = gdX.getMin();
-                            tempStartY = gdY == null ? plotYmax : gdY.getMax();
-                            tempStopX = gdX.getMax();
-                            tempStopY = gdY == null ? plotYmin : gdY.getMin();
+                            ind = 3;
                         } else if (closeToStopX && closeToStopY) {
-                            tempStartX = gdX.getMin();
-                            tempStartY = gdY == null ? plotYmin : gdY.getMin();
-                            tempStopX = gdX.getMax();
-                            tempStopY = gdY == null ? plotYmax : gdY.getMax();
+                            ind = 2;
                         }
-                        if (!Double.isNaN(tempStartX)) {
-                            gdX.setMin((float) tempStartX);
-                            gdX.setMax((float) tempStopX);
-                            
-                            if (!isHistogram()) {
-                                gdY.setMin((float) tempStartY);
-                                gdY.setMax((float) tempStopY);
-                            }
+                        if (ind != -1) {
                             draggingVertexRects.add(rect);
+                            draggingVertexInds.add(ind);
                         }
                     }
                 }
@@ -863,25 +853,47 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             }
             if (!draggingVertexRects.isEmpty()) {
                 for (int i = 0; i < draggingVertexRects.size(); i++) {
-                    float tempStartX, tempStopX, tempStartY, tempStopY;
+                    float tempNewX, tempNewY;
                     
                     RectangleGate rg = draggingVertexRects.get(i);
                     RectangleGateDimension rgdX = rg.getDimension(xCol);
-
-                    tempStartX = rgdX.getMin();
-                    tempStopX = (float) getXValueFromXPixel(mouseEndX);
-                    rgdX.setMin(tempStartX);
-                    rgdX.setMax(tempStopX);
+                    /*
+                    1 ----- 2
+                    |       |
+                    |       |
+                    |       |
+                    0 ----- 3
+                    */
+                    tempNewX = (float) getXValueFromXPixel(mouseEndX);
+                    
+                    switch(draggingVertexInds.get(i)) {
+                        case 0:
+                        case 1:
+                            rgdX.setMin(tempNewX);
+                            break;
+                        case 2:
+                        case 3:
+                            rgdX.setMax(tempNewX);
+                            break;
+                    }
                     
                     if (!isHistogram()) {
                         RectangleGateDimension rgdY = rg.getDimension(yCol);
-                        tempStartY = rg.getDimension(yCol) == null ? Float.NEGATIVE_INFINITY : rg.getDimension(yCol).getMin();
-                        tempStopY = (float) getYValueFromYPixel(mouseEndY);
-                        rgdY.setMin(tempStartY);
-                        rgdY.setMax(tempStopY);
+                        tempNewY = (float) getYValueFromYPixel(mouseEndY);
+
+                        switch(draggingVertexInds.get(i)) {
+                            case 0:
+                            case 3:
+                                rgdY.setMin(tempNewY);
+                                break;
+                            case 1:
+                            case 2:
+                                rgdY.setMax(tempNewY);
+                                break;
+                        }
                     }
-                    draggingVertexRects.set(i, rg);
                 }
+                updateForceGating = true;
             }
             if (!draggingPolys.isEmpty()) {
                 for (int i = 0; i < draggingPolys.size(); i++) {
