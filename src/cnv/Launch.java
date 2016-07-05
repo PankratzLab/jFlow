@@ -210,12 +210,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //		} catch (Exception e) {
 //			System.err.println("Failed loading LookandFeel: com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 //			System.err.println(e);
-//			try {
-//				UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-//			} catch (Exception e2) {
-//				System.err.println("Failed loading CrossPlatformLookAndFeel");
-//				System.err.println(e2);
-//			}
+			
+		
+    	try {
+			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+		} catch (Exception e2) {
+			System.err.println("Failed loading CrossPlatformLookAndFeel");
+			System.err.println(e2);
+		}
 //		}
 //		
 //    	try {
