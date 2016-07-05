@@ -91,7 +91,7 @@ public class GateFileReader {
         String gateType = gateNode.getNodeName().substring(7); // 7 = "gating:".length()
         Gate gate = null;
         if ("RectangleGate".equals(gateType)) {
-            gate = new RectangleGate();
+            gate = new RectangleGate(null, id);
             ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
@@ -106,7 +106,7 @@ public class GateFileReader {
                 gate.dimensions.add(gd);
             }
         } else if ("EllipsoidGate".equals(gateType)) {
-//            gate = new EllipsoidGate();
+            gate = new EllipsoidGate();
 ////            String gatingDistance = ((Element) gateNode).getAttribute("gating:distance"); // TODO dunno what gating:distance is for yet
 //            ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
 //            for (int i = 0; i < dimNodes.size(); i++) {
@@ -132,7 +132,7 @@ public class GateFileReader {
 //                ((EllipsoidGate) gate).edges[i][1] = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
 //            }
         } else if ("PolygonGate".equals(gateType)) {
-            gate = new PolygonGate();
+            gate = new PolygonGate(null, id);
             ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
@@ -152,11 +152,9 @@ public class GateFileReader {
             
         } else if ("QuadrantGate".equals(gateType)) {
             gate = new QuadrantGate();
-            throw new RuntimeException(new UnsupportedDataTypeException());
             
         } else if ("BooleanGate".equals(gateType)) {
             gate = new BooleanGate();
-            throw new RuntimeException(new UnsupportedDataTypeException());
             
         }
         gate.id = id;

@@ -1,4 +1,6 @@
 package org.flowcyt.cfcs;
+
+import common.ext;
 // CFCSAbstractData.java
 
 /* ------------------------------------------------------------------------- *\
@@ -77,14 +79,14 @@ public abstract class CFCSAbstractData implements CFCSData, CFCSErrorCodes
     public abstract byte[] getBytes();
 
     // --------------------------------------------------------------------
-
+    
     public void setBytes(byte[] bytes)
     {
         if (sizing.isPackedData())
         {
             bytes = unpackBytes(bytes);
         }
-
+        
         this.cinched = cinchBytes(bytes);
 
         if (keywords.getDatatype() != CFCSDatatype.ASCII)

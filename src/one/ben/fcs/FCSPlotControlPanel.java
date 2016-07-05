@@ -490,14 +490,19 @@ public class FCSPlotControlPanel extends JPanel {
             }
             dcp.setSelected(true);
             if (cmd.equals(DataControlPanel.ACTION_DELETE)) {
+                boolean remove = true;
                 if (plot.isFileLoaded(dcp.file)) {
                     int opt = JOptionPane.showConfirmDialog(plot, "This will unload file data from memory - are you sure you wish to continue?", "Unload Data?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                     if (opt == JOptionPane.YES_OPTION) {
                         plot.unloadFile(dcp.file);
+                    } else {
+                        remove = false;
                     }
                 }
-                filePanels.remove(ind);
-                addFilePanels();
+                if (remove) {
+                    filePanels.remove(ind);
+                    addFilePanels();
+                }
             } else if (cmd.equals(DataControlPanel.ACTION_MOVE_UP)) {
                 if (ind == 0) return;
                 Collections.swap(filePanels, ind, ind-1);

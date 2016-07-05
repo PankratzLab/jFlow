@@ -36,6 +36,9 @@ import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
 import one.ben.fcs.FCSDataLoader.LOAD_STATE;
+import one.ben.fcs.gating.Gate;
+import one.ben.fcs.gating.Gate.RectangleGate;
+import one.ben.fcs.gating.GateDimension;
 import one.ben.fcs.gating.GateFileReader;
 import one.ben.fcs.gating.GatingStrategy;
 import one.ben.fcs.sub.RainbowTestGUI;
@@ -43,6 +46,7 @@ import one.ben.fcs.sub.RainbowTestGUI;
 import org.xml.sax.SAXException;
 
 import cnv.gui.GuiManager;
+import common.Array;
 import common.Files;
 import common.Logger;
 
@@ -66,7 +70,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	Logger log;
 
     FCSDataLoader dataLoader;
-    GatingStrategy gating;
+    private GatingStrategy gating;
+    private Gate parentGate = null;
 
 //    volatile boolean isLoading = false;
 
@@ -494,6 +499,39 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	    // TODO repaint
 	}
 	
+	public ArrayList<Gate> getGatingForCurrentPlot() {
+	    ArrayList<Gate> gateList = new ArrayList<Gate>();
+	    if (this.parentGate != null) {
+	        ArrayList<Gate> children = parentGate.getChildGates();
+	        for (Gate g : children) {
+	            boolean x = false;
+	            boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
+	            if (g.getDimensions().size() == 1) {
+	                if (y && g.getDimensions().get(0).getParam().equals(getXDataName())) {
+                        gateList.add(g);
+	                } 
+                    continue;
+	            }
+	            // >1 Gate Dimension
+	            if (y) continue;
+	            if (g.getDimensions().size() > 2) continue; // can't vis. multi-dim gates // TODO fix for 3D
+	            for (int i = 0; i < g.getDimensions().size(); i++) {
+	                GateDimension gd = g.getDimensions().get(i);
+	                if (gd.getParam().equals(getXDataName())) {
+	                    x = true;
+	                }
+	                if (gd.getParam().equals(getYDataName())) {
+	                    y = true;
+	                }
+	            }
+	            if (x && y) {
+	                gateList.add(g);
+	            }
+	        }
+        }
+	    return gateList;
+	}
+	
 	public void setData(FCSDataLoader newDataLoader) {
 	    if (this.dataLoader != null && this.dataLoader.getLoadedFile().equals(newDataLoader.getLoadedFile())) return;
 	    resetForNewData(newDataLoader);
@@ -603,6 +641,31 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
     public boolean isFileLoaded(String file) {
         return loadedData.containsKey(file);
+    }
+
+    private static class NullGate extends Gate {
+        private NullGate() {
+            super(null);
+        }
+
+        @Override
+        public boolean[] gate(FCSDataLoader dataLoader) {
+            return null;
+        }
+    }
+    
+    public Gate getParentGate() {
+        if (this.parentGate == null || this.parentGate instanceof NullGate) return null;
+        return parentGate;
+    }
+    
+    public void addGate(Gate rg) {
+        if (parentGate == null) {
+            parentGate = new NullGate();
+        }
+        parentGate.getChildGates().add(rg);
+        // TODO export/save gate data
+        // TODO addGate
     }
 
 }

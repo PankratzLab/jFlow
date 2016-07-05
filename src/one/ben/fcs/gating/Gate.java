@@ -3,6 +3,7 @@ package one.ben.fcs.gating;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import one.ben.fcs.FCSDataLoader;
 import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
@@ -13,8 +14,42 @@ public abstract class Gate {
     Gate parentGate;
     protected ArrayList<Gate> children = new ArrayList<Gate>();
     protected ArrayList<GateDimension> dimensions = new ArrayList<GateDimension>();
-    protected HashMap<String, boolean[]> gatingCache = new HashMap<String, boolean[]>();
+//    protected HashMap<String, boolean[]> gatingCache = new HashMap<String, boolean[]>();
+    
+    static final Random rand = new Random();
+    
+    private static String generateID() {
+        return "ID" + rand.nextLong();
+    }
+    
+    public Gate(Gate parentGate2) {
+        this(parentGate2, generateID());
+    }
 
+    public Gate(Gate parentGate2, String id) {
+        if (parentGate2 != null) {
+            this.parentGate = parentGate2;
+            this.parentID = parentGate2.id;
+        }
+        this.id = id;
+    }
+
+    public Gate getParentGate() {
+        return parentGate;
+    }
+    
+//    public void clearCache() {
+//        gatingCache.clear();
+//    }
+    
+    public String getID() {
+        return id;
+    }
+    
+    public ArrayList<Gate> getChildGates() {
+        return children;
+    }
+    
     public ArrayList<GateDimension> getDimensions() {
         return dimensions;
     }
@@ -26,6 +61,14 @@ public abstract class Gate {
     public abstract boolean[] gate(FCSDataLoader dataLoader);
     
     public static class RectangleGate extends Gate {
+        
+        public RectangleGate(Gate parentGate) {
+            super(parentGate);
+        }
+        
+        public RectangleGate(Gate parentGate, String id) {
+            super(parentGate, id);
+        }
         
         public RectangleGateDimension getDimension(String param) {
             for (GateDimension gd : this.dimensions) {
@@ -47,9 +90,9 @@ public abstract class Gate {
         
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
-            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
-                return gatingCache.get(dataLoader.getLoadedFile());
-            }
+//            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
+//                return gatingCache.get(dataLoader.getLoadedFile());
+//            }
             boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
             boolean[][] paramIncludes = new boolean[dimensions.size()][dataLoader.getCount()];
             for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
@@ -72,7 +115,7 @@ public abstract class Gate {
                 }
                 includes[i] = include;
             }
-            gatingCache.put(dataLoader.getLoadedFile(), includes);
+//            gatingCache.put(dataLoader.getLoadedFile(), includes);
             return includes;
         }
         
@@ -82,7 +125,15 @@ public abstract class Gate {
         ArrayList<Float> verticesX = new ArrayList<Float>(); 
         ArrayList<Float> verticesY = new ArrayList<Float>(); 
         Path2D myPath;
-
+        
+        public PolygonGate(Gate parentGate, String id) {
+            super(parentGate, id);
+        }
+        
+        public PolygonGate(Gate parentGate) {
+            super(parentGate);
+        }
+        
         @Override
         public void addDimension(GateDimension gd) {
             if (this.dimensions.size() == 2) {
@@ -94,6 +145,7 @@ public abstract class Gate {
         
         public void setPath(Path2D pth) {
             this.myPath = pth;
+//            clearCache();
         }
         
         public Path2D getPath() {
@@ -115,9 +167,9 @@ public abstract class Gate {
         
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
-            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
-                return gatingCache.get(dataLoader.getLoadedFile());
-            }
+//            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
+//                return gatingCache.get(dataLoader.getLoadedFile());
+//            }
             boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
             if (myPath == null) {
                 myPath = constructPath();
@@ -133,13 +185,18 @@ public abstract class Gate {
                 }
                 includes[i] = myPath.contains(paramData[0][i], paramData[1][i]);
             }
-            gatingCache.put(dataLoader.getLoadedFile(), includes);
+//            gatingCache.put(dataLoader.getLoadedFile(), includes);
             return includes;
         }
         
     }
     
     public static class EllipsoidGate extends Gate {
+        public EllipsoidGate() {
+            super(null);
+            throw new UnsupportedOperationException();
+        }
+        
 //        public double[][] foci;
 //        public double[][] edges;
 //        
@@ -215,6 +272,10 @@ public abstract class Gate {
 //    }
     
     public static class QuadrantGate extends Gate {
+        public QuadrantGate() {
+            super(null);
+            throw new UnsupportedOperationException();
+        }
         // UNSUPPORTED
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
@@ -223,6 +284,10 @@ public abstract class Gate {
     }
     
     public static class BooleanGate extends Gate {
+        public BooleanGate() {
+            super(null);
+            throw new UnsupportedOperationException();
+        }
         // UNSUPPORTED
         @Override
         public boolean[] gate(FCSDataLoader dataLoader) {
