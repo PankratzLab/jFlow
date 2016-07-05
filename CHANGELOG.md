@@ -3,10 +3,18 @@ All notable changes to Genvisis will be documented in this file.
 
 ##[Unreleased]
 
+### Changed
+
+- Default plotting types for mtDNA PC evaluation, now does individual plots for each variable. 
+
+### Fixed
+
+- PC correction iterator was reporting one less PC than specified
 ## [0.1.2]
 ### Added
 - Finalized Beta optimization in [MitoPipeLine](https://github.com/npankrat/Genvisis/commits/master/src/cnv/manage/MitoPipeline.java)
 - Long format parsing is multi-threaded if more than one long format file is present
+
 ### Fixed
 - Fixed issue where MitoPipeline was not downloading beta files
 
