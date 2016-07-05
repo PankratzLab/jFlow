@@ -277,6 +277,16 @@ public class CorrectionIterator implements Serializable {
 			}
 			// boolean[] samplesToEvaluate = proj.getSamplesToInclude(null);
 			boolean[] samplesToEvaluate = samplesForModels;
+
+			if (order != null && oType == ORDER_TYPE.STEPWISE_RANK_R2) {
+				String out = outputDir + iType + "_" + oType + "_" + bType + "_PC_" + oType + "_Selection.txt";
+				ArrayList<String> outOrder = new ArrayList<String>();
+				outOrder.add(oType + "_PC_RANK\tOriginal_PC_Rank");
+				for (int i = 0; i < order.length; i++) {
+					outOrder.add((i + 1) + "\tPC" + order[i]);
+				}
+				Files.writeArrayList(outOrder, out);
+			}
 			Files.writeList(Array.subArray(proj.getSamples(), samplesToEvaluate), outputDir + iType + "_" + oType + "_" + bType + "_samplesForEval.txt");
 
 			cEvaluator = new CorrectionEvaluator(proj, pcResiduals, precomputed, order, new boolean[][] { samplesForModels, samplesToEvaluate }, extraIndeps, lType);
