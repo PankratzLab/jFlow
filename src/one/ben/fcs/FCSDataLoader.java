@@ -376,8 +376,8 @@ public class FCSDataLoader {
                     int len = eventCount == -1 ? 0 : eventCount;
                     return Array.floatArray(len, Float.NaN);
                 } else {
-                    if (currState == LOAD_STATE.LOADING && waitIfNecessary) {
-                        while((currState = getLoadState()) == LOAD_STATE.LOADED) { // TODO wait for complete data, or at least some?
+                    if (currState != LOAD_STATE.LOADED && waitIfNecessary) {
+                        while((currState = getLoadState()) != LOAD_STATE.LOADED) { // TODO wait for complete data, or at least some?
                             Thread.yield();
                         }
                     }

@@ -104,11 +104,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         POLY_TOOL;
     };
 	
-//	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
-	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
+	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
+//	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
 	
-//	private int dragInd = -1;
-//    private int polyDragVertInd = -1;
 
     public void setGatingTool(GATING_TOOL tool) {
         // TODO cancel drawing any gates
