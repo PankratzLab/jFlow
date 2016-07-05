@@ -1241,7 +1241,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 
 		@Override
 		public boolean hasNext() {
-			return index < (order == null ? pcResids.getNumComponents() + 1 : order.length + 1);
+			return index < (order == null ? pcResids.getNumComponents() + 1 : order.length + 1); //+1 to account for PC0
 
 		}
 
