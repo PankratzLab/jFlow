@@ -21,7 +21,7 @@
 			<fileset dir="" includes="images/* images/*/*" />
 			<manifest>
 				<attribute name="Main-Class" value="cnv.Launch" />
-				<attribute name="Implementation-Version" value="v0.1.4" />
+				<attribute name="Implementation-Version" value="v0.1.5" />
 				<attribute name="Compile-Time" value="${time.stamp}" />
 				<attribute name="Build-Type" value="Development" />
 				<attribute name="Built-By" value="${user.name}" />
