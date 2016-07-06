@@ -22,8 +22,8 @@ import cnv.plots.GenericPath;
 //import cnv.filesys.MarkerLookup;
 import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
-
 import common.Array;
+import common.ext;
 
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
@@ -72,13 +72,14 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	public FCSPanel(FCSPlot fcsPlot) {
 		super();
 		setDoubleBuffered(false);
+		createLookup(false);
 		
 		this.fcp = fcsPlot;
 		this.setAxisFontSize(24);
 		this.setSymmetricAxes(false);
 		setZoomable(true, true);
-//		setZoomable(false, true);
-
+		setLayersInBase(new byte[]{0});
+		
 		setColorScheme(DEFAULT_COLORS);
 
 		setNullMessage("Select two variables to plot");
@@ -94,6 +95,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	float[] yData;
 	ArrayList<GenericRectangle> rects = new ArrayList<GenericRectangle>();
 	ArrayList<GenericPath> polys = new ArrayList<GenericPath>();
+	ArrayList<boolean[]> gates = new ArrayList<boolean[]>();
 	
 	ArrayList<GenericLine> histLines = new ArrayList<GenericLine>();
 	ArrayList<double[]> tempPoly = new ArrayList<double[]>();
@@ -251,34 +253,13 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged && !gatesChanged/* && !typeChanged /* don't need to regen if only type has changed, for now */;
 		if (skip) return;
 		
+		if (columnsChangedX || columnsChangedY || dataChanged || gatesChanged) {
+		    updateGating();
+		}
+
 		xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) : xData;
 		yData = columnsChangedY || dataChanged || yData == null ? isHistogram() ? null : fcp.getAxisData(false, false) : yData;
-        
-        rects.clear();
-        polys.clear();
-        
-        ArrayList<boolean[]> gates = new ArrayList<boolean[]>();
-        ArrayList<Gate> gating = fcp.getGatingForCurrentPlot();
-        
-        for (Gate g : gating) {
-            gates.add(g.gate(fcp.dataLoader));
-            if (g instanceof RectangleGate) {
-                RectangleGate rg = (RectangleGate) g;
-                RectangleGateDimension rgdX = rg.getDimension(xCol);
-                RectangleGateDimension rgdY = isHistogram() ? null : rg.getDimension(yCol);
-                boolean editable = selectedRects.contains(g) || mouseRects.contains(g) || draggingVertexRects.contains(g);
-                rects.add(new GenericRectangle(
-                      rgdX.getMin(), 
-                      (float)(isHistogram() ? plotYmin + (plotYmax - plotYmin) / 2 : rgdY.getMin()), 
-                      rgdX.getMax(),
-                      (float)(isHistogram() ? plotYmin + (plotYmax - plotYmin) / 2 : rgdY.getMax()), 
-                      (byte)1, false, false, (byte)0, (byte)99, editable));
-            } else if (g instanceof PolygonGate) {
-                boolean editable = selectedPolys.contains(g) || mousePolys.contains(g) || draggingPolys.contains(g);
-                polys.add(new GenericPath(((PolygonGate)g).getPath(), (byte)0, (byte)0, (byte)99, false, editable));
-            }
-        }
-        
+		
 		if (isHistogram()) {
 		    points = new PlotPoint[0];
 		    if (!columnsChangedX && !dataChanged && histLines != null && histLines.size() > 0) return;
@@ -334,7 +315,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         lineList = null;
         
         byte color = 0;
-        if (columnsChangedX || columnsChangedY || dataChanged || gatesChanged) {
+        if (columnsChangedX || columnsChangedY || dataChanged) {
     		points = new PlotPoint[dataCount];
     		for (int i = 0; i < points.length; i++) {
     			xAxisValue = (float) xData[i];
@@ -354,18 +335,68 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     			}
     			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
     		}
-//            rects.clear();
-//            ellipses.clear();
-            
-//    		ArrayList<GenericRectangle> temp = new ArrayList<GenericRectangle>();
-//    		temp.addAll(rects);
-//    		temp.addAll(draggingVertexRects);
-//            rectangles = temp.toArray(new GenericRectangle[temp.size()]);
-
-    		rectangles = rects.toArray(new GenericRectangle[rects.size()]);
-            polygons = polys.toArray(new GenericPath[polys.size()]);
+        }
+        if (gatesChanged) {
+            updateGateColor();
         }
 	}
+    
+    private void refreshNonBaseLayers() {
+        updateGating();
+        updateGateColor();
+        paintAgain();
+//        repaint();
+    }
+    
+    private void updateGateColor() {
+        byte color = 0;
+        for (int i = 0; i < points.length; i++) {
+            color = (byte) 0; // TODO apply gating for colors
+            for (int g = 0; g < gates.size(); g++) {
+                if (gates.get(g)[i]) {
+                    color = (byte) 3;
+                    break;
+                }
+            }
+            points[i].setColor(color);
+//            points[i].setLayer(color == 0 ? 0 : (byte)10);
+        }
+    }
+    
+    private void updateGating() {
+        gates.clear();
+        rects.clear();
+        polys.clear();
+        
+        ArrayList<Gate> gating = fcp.getGatingForCurrentPlot();
+        
+        for (Gate g : gating) {
+//            long t1 = System.currentTimeMillis();
+            boolean[] gt = g.gate(fcp.dataLoader);
+//            System.out.println(ext.getTimeElapsed(t1));// + " -- " + g.getID() + ": " + sm + "/" + gt.length + " (" + ((int)(100 * ((float) sm / (float)gt.length))) + "%)");
+            gates.add(gt);
+            if (g instanceof RectangleGate) {
+                RectangleGate rg = (RectangleGate) g;
+                RectangleGateDimension rgdX = rg.getDimension(xCol);
+                RectangleGateDimension rgdY = isHistogram() ? null : rg.getDimension(yCol);
+                boolean editable = selectedRects.contains(g) || mouseRects.contains(g) || draggingVertexRects.contains(g);
+                rects.add(new GenericRectangle(
+                      rgdX.getMin(), 
+                      (float)(isHistogram() ? plotYmin + (plotYmax - plotYmin) / 2 : rgdY.getMin()), 
+                      rgdX.getMax(),
+                      (float)(isHistogram() ? plotYmin + (plotYmax - plotYmin) / 2 : rgdY.getMax()), 
+                      (byte)1, false, false, (byte)0, (byte)99, editable));
+            } else if (g instanceof PolygonGate) {
+                boolean editable = selectedPolys.contains(g) || mousePolys.contains(g) || draggingPolys.contains(g);
+                int sm = Array.booleanArraySum(gt);
+                String lbl = "(" + ((int)(100 * ((float) sm / (float)gt.length))) + "%)";
+                polys.add(new GenericPath(lbl, ((PolygonGate)g).getPath(), (byte)0, (byte)0, (byte)99, false, editable));
+            }
+        }
+        
+        rectangles = rects.toArray(new GenericRectangle[rects.size()]);
+        polygons = polys.toArray(new GenericPath[polys.size()]);
+    }
 	
     
     private ArrayList<PolygonGate> getPolysWithVerticesNearClick(MouseEvent e) {
@@ -611,7 +642,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                             tempPoly.clear();
                             highlightPoly = null;
                             setForceGatesChanged();
-                            paintAgain();
+                            refreshNonBaseLayers();
                             return;
                         }
                     } 
@@ -621,12 +652,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     for(int i = 1; i < tempPoly.size(); ++i) {
                        path.lineTo(tempPoly.get(i)[0], tempPoly.get(i)[1]);
                     }
-                    highlightPoly = new GenericPath(path, (byte)0, (byte)0, (byte)99, false, true);
+                    highlightPoly = new GenericPath(null, path, (byte)0, (byte)0, (byte)99, false, true);
                 }
                 
             }
             setForceGatesChanged();
-            paintAgain();
+            refreshNonBaseLayers();
             
             
         } else {
@@ -722,7 +753,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             }
             startX = e.getX();
             startY = e.getY();
-            paintAgain();
+            refreshNonBaseLayers();
         } else {
             super.mousePressed(e);
         }
@@ -933,7 +964,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
             if (updateForceGating) {
                 setForceGatesChanged();
             }
-            paintAgain();
+            refreshNonBaseLayers();
         } else {
             super.mouseDragged(e);
         }

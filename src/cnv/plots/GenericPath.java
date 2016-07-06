@@ -50,6 +50,7 @@ public class GenericPath {
         return true;
     }
 
+    public String label;
     public Path2D myPath;
     private byte color;
     private byte fillColor;
@@ -58,7 +59,8 @@ public class GenericPath {
     private boolean editable;
     public double[][] foci;
     
-    public GenericPath(Path2D path, byte color, byte fillColor, byte layer, boolean fill, boolean editable) {
+    public GenericPath(String label, Path2D path, byte color, byte fillColor, byte layer, boolean fill, boolean editable) {
+        this.label = label;
         this.myPath = path;
         this.color = color;
         this.fillColor = fillColor;

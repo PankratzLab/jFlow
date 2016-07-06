@@ -106,4 +106,8 @@ public class PlotPoint implements Serializable {
 	public boolean isVisible() {
 		return visible;
 	}
+
+    public void setColor(byte color2) {
+        this.color = color2;
+    }
 }

@@ -22,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -53,7 +54,7 @@ import edu.stanford.facs.logicle.Logicle;
 public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
 
-	public static final boolean DEBUGGING = false;
+	public static final boolean DEBUGGING = true;
 
 	public static final int HEAD_BUFFER = 25;
 	public static final int HEIGHT_X_AXIS = 105;
@@ -178,7 +179,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	private int numberOfNaNSamples;
 	private boolean antiAlias = true;
 	private volatile boolean beEfficient;
-	private HashSet<String> pointsPlotted;
+	private HashSet<Integer> pointsPlotted;
 	
 	public AbstractPanel2() {
 		canvasSectionMinimumX = 0;
@@ -515,8 +516,34 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             pathIter.next();
         }
         return path;
-	}
-
+	}      
+	
+	class PolyTransformer {
+        
+        Path2D transform(Path2D poly) {
+            Path2D pixPoly = new Path2D.Double(Path2D.WIND_EVEN_ODD);
+            double[] coords = new double[6];
+            PathIterator path = poly.getPathIterator(null);
+            while(!path.isDone()) {
+                int code = path.currentSegment(coords);
+                switch(code) {
+                    case PathIterator.SEG_MOVETO:
+                        pixPoly.moveTo(getXPixel(coords[0]), getYPixel(coords[1]));
+                        break;
+                    case PathIterator.SEG_LINETO:
+                        pixPoly.lineTo(getXPixel(coords[0]), getYPixel(coords[1]));
+                        break;
+                    case PathIterator.SEG_CLOSE:
+                        pixPoly.closePath();
+                }
+                path.next();
+            }
+            return pixPoly;
+        }
+        
+    }
+    PolyTransformer pt = new PolyTransformer();
+    
 	public void drawAll(Graphics g, boolean base) {
 		float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
 		double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and leave off the last tick mark 
@@ -540,7 +567,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     	
     	long fullTime = System.currentTimeMillis();
     	
-    	pointsPlotted = new HashSet<String>();
+    	pointsPlotted = new HashSet<Integer>();
     	
     	if (g instanceof Graphics2D) {
     		((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
@@ -741,7 +768,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		}
 		
 		if (DEBUGGING) {
-		    System.out.println("Finished drawing axes");
+		    System.out.println("Finished drawing axes in " + ext.getTimeElapsed(fullTime));
 		}
 		
 		//TODO outercoordinates
@@ -757,7 +784,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         step = Math.max((points.length)/100, 1);
         layers = new Hashtable<String,Vector<PlotPoint>>();
 
-//        long t1 = System.currentTimeMillis();
+        long pointTime;
+        if (DEBUGGING) {
+            pointTime = System.currentTimeMillis();
+        }
 
         if (chartType == PLOT_TYPE.HEATMAP) {
             drawHeatMap(g);
@@ -771,13 +801,13 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
                     
                     if (points[i].isHighlighted() || (base && (layersInBase == null || Array.indexOfByte(layersInBase, points[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, points[i].getLayer()) >= 0)) {
                         if (points[i].getLayer() == 0) {
-                            if (points[i].getType()!=PlotPoint.NOT_A_NUMBER) {
+                            if (points[i].getType() != PlotPoint.NOT_A_NUMBER) {
                                 drawPoint(g, points[i]);
                             } else if (base) {
                                 numberOfNaNSamples++;
                             }
                         } else {
-                            trav = points[i].getLayer()+"";
+                            trav = points[i].getLayer() + "";
                             if (layers.containsKey(trav)) {
                                 layer = layers.get(trav);
                             } else {
@@ -820,7 +850,9 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
             System.err.println("Error - invalid chart type: "+chartType);
         }*/
         
-//        System.out.println("pts: " + ext.getTimeElapsed(t1));
+        if (DEBUGGING) {
+            System.out.println("Finished drawing " + points.length + " pts in " + ext.getTimeElapsed(pointTime));
+        }
         
         g.setClip((int)canvasSectionMinimumX, HEAD_BUFFER, (int)(canvasSectionMaximumX - canvasSectionMinimumX) + 1, (int)(getHeight() - axisXHeight - 24));
         
@@ -898,33 +930,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			}
         }
         
-		class PolyTransformer {
-		    
-		    Path2D transform(Path2D poly) {
-		        Path2D pixPoly = new Path2D.Double(Path2D.WIND_EVEN_ODD);
-		        double[] coords = new double[6];
-		        PathIterator path = poly.getPathIterator(null);
-		        while(!path.isDone()) {
-		            int code = path.currentSegment(coords);
-		            switch(code) {
-		                case PathIterator.SEG_MOVETO:
-		                    pixPoly.moveTo(getXPixel(coords[0]), getYPixel(coords[1]));
-		                    break;
-		                case PathIterator.SEG_LINETO:
-		                    pixPoly.lineTo(getXPixel(coords[0]), getYPixel(coords[1]));
-		                    break;
-		                case PathIterator.SEG_CLOSE:
-		                    pixPoly.closePath();
-		            }
-	                path.next();
-		        }
-		        return pixPoly;
-		    }
-		    
-		}
-		
-		PolyTransformer pt = new PolyTransformer();
-		
 		for (int i = 0; polygons !=null && i < polygons.length && flow; i++) {
 		    Graphics2D g2d = (Graphics2D) g;
 		    if ((base && (layersInBase == null || Array.indexOfByte(layersInBase, polygons[i].getLayer()) >= 0)) || (!base && Array.indexOfByte(extraLayersVisible, polygons[i].getLayer()) >= 0)) {
@@ -942,14 +947,35 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		        } else {
 		            g2d.draw(drawPoly);
 		        }
+		        
+	            double centroidX = 0, centroidY = 0, ptCnt = 0;
 		        if (polygons[i].getEditable()) {
     	            PathIterator path = polygons[i].myPath.getPathIterator(null);
     	            while (!path.isDone()) {
     	                double[] coords = new double[6];
     	                path.currentSegment(coords);
+                        centroidX += coords[0];
+                        centroidY += coords[1];
+                        ptCnt++;
     	                g.fillRect(getXPixel(coords[0]) - 2, getYPixel(coords[1]) - 2, 4, 4);
     	                path.next();
     	            }
+		        }
+		        if (polygons[i].label != null) {
+		            if (ptCnt == 0) {
+	                    PathIterator path = polygons[i].myPath.getPathIterator(null);
+	                    while (!path.isDone()) {
+	                        double[] coords = new double[6];
+	                        path.currentSegment(coords);
+	                        centroidX += coords[0];
+	                        centroidY += coords[1];
+	                        ptCnt++;
+	                        path.next();
+	                    }
+		            }
+		            int x = getXPixel(centroidX / ptCnt);
+		            int y = getYPixel(centroidY / ptCnt);
+		            g.drawString(polygons[i].label, x, y);
 		        }
 		    }
 		}
@@ -987,7 +1013,6 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		}
 
 		g.setClip(null);
-		
 		
 		if (numberOfNaNSamples > 0) {
 			g.drawString(PlotPoint.NAN_STR+" (n="+numberOfNaNSamples+")", getXPixel(0)-nanWidth/2, getYPixel(0)+60+points[0].getSize()/2);
@@ -1035,6 +1060,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 		if (DEBUGGING) {
 			System.out.println("Took " + ext.getTimeElapsed(fullTime)+" to draw "+(createLookup?"(and create lookup for) ":"")+points.length+" points");
+			System.out.println();
 		}
 	}
 
@@ -1717,6 +1743,27 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		}
 	}
 	
+	private int getEfficientPointCode(int x, int y, int sz, int clr) {
+	    // Standard hashCode implementation fails here (fun behavior though!)
+//        final int prime = 31;
+//        int result = 17;
+//        result = prime * result + x;
+//        result = prime * result + y;
+//        result = prime * result + sz;
+//        result = prime * result + clr;
+//        return result;
+	    
+        // VERY slow, possibly not performing properly:
+//	    return (new int[]{x, y, sz, clr}).hashCode();
+        
+        // Szudzik:  (unfortunately only applicable for two integers - should we multiplex (i.e. x/y & sz/clr?)
+//	    https://stackoverflow.com/questions/919612/mapping-two-integers-to-one-in-a-unique-and-deterministic-way
+        int A = x >= 0 ? 2 * x : -2 * x - 1;
+        int B = y >= 0 ? 2 * y : -2 * y - 1;
+        int C = A >= B ? A * A + A + B : A + B * B;
+		return x < 0 && y < 0 || x >= 0 && y >= 0 ? C : -C - 1;
+	}
+	
 	public void drawPoint(Graphics g, PlotPoint point) {
 		int x, y, size, color;
 		
@@ -1731,10 +1778,16 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		}
 
 		if (beEfficient) {
-			if (pointsPlotted.contains(x+":"+y+":"+size+":"+color)) {
+		    int code = getEfficientPointCode(x, y, size, color);
+//		    if (pointsPlotted.contains(x+":"+y+":"+size+":"+color)) {
+//		        return;
+//		    } else {
+//		        pointsPlotted.add(x+":"+y+":"+size+":"+color);
+//		    }
+			if (pointsPlotted.contains(code)) {
 				return;
 			} else {
-				pointsPlotted.add(x+":"+y+":"+size+":"+color);
+				pointsPlotted.add(code);
 			}
 //	    	Files.appendStringToFile("listOfPoints.out", x+":"+y+":"+size+":"+color);
 		}
