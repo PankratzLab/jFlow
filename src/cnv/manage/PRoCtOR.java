@@ -9,6 +9,8 @@ import common.Files;
 import common.ext;
 import cnv.analysis.PennCNVPrep;
 import cnv.analysis.PennCNVPrep.ShadowSample;
+import cnv.analysis.pca.PCA;
+import cnv.analysis.pca.PCAPrep;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.MarkerData;
@@ -66,6 +68,13 @@ public class PRoCtOR {
 	}
 
     private static final String SHADOW_DIR = "shadowSamples/";
+    
+    private static void mockupShadow(){
+//    	PCAPrep.qcMarkers(proj, targetMarkersFile, markersToQCFile, markersABCallrate, markerCallRateFilter, numthreads);
+//    	PCA.generateFullPCA(proj, numComponents, outputBase, recomputeLRR_PCs, imputeMeanForNaN, params, log)
+//    	PennCNVPrep.
+    }
+    
     
     void run(Project proj) {
         System.gc();

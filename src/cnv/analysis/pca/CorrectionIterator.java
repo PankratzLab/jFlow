@@ -877,7 +877,6 @@ public class CorrectionIterator implements Serializable {
 		if (pcFile != null) {
 			proj.INTENSITY_PC_FILENAME.setValue(pcFile);
 		} else {
-			System.exit(1);
 		}
 		if (outputDir == null) {
 			outputDir = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(proj.INTENSITY_PC_FILENAME.getValue()) + "_eval/";

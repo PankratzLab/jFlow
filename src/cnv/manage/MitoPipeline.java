@@ -15,6 +15,7 @@ import cnv.analysis.PennCNV;
 import cnv.analysis.pca.BetaOptimizer;
 import cnv.analysis.pca.CorrectionIterator;
 import cnv.analysis.pca.PCA;
+import cnv.analysis.pca.PCAPrep;
 import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsCompute;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
@@ -57,10 +58,8 @@ public class MitoPipeline {
 	public static final String[] SEX = { "female", "male" };
 	public static final String[] SAMPLE_DATA_ADDITION_HEADERS = { "LRR_SD", "Genotype_callrate", "CLASS=Exclude" };
 	public static final double[] DEFAULT_PVAL_OPTS = new double[] { 0.05, 0.01, 0.001 };
-	static final String MARKERS_TO_QC_FILE = "markers_to_QC.txt";
-	static final String MARKERS_FOR_ABCALLRATE = "markers_ABCallRate.txt";
+
 	public static final String DNA_LINKER = "DNA";
-	public static final String PCA_SAMPLES = ".samples.USED_PC.txt";
 	public static final String PCA_SAMPLES_SUMMARY = ".samples.QC_Summary.txt";
 	public static final String PROJECT_EXT = ".properties";
 	private static final String PCA_FINAL_REPORT = ".finalReport.txt";
@@ -256,7 +255,7 @@ public class MitoPipeline {
 		proj.setProperty(proj.SOURCE_FILENAME_EXTENSION, dataExtension);
 		proj.setProperty(proj.ID_HEADER, idHeader);
 		// proj.setProperty(proj.LRRSD_CUTOFF, defaultLRRSdFilter);
-		
+
 		proj.setProperty(proj.LRRSD_CUTOFF, Math.max(0, Double.valueOf(defaultLRRSdFilter)));
 		proj.setProperty(proj.SAMPLE_CALLRATE_THRESHOLD, Double.valueOf(defaultCallRateFilter));
 		proj.setProperty(proj.INTENSITY_PC_MARKERS_FILENAME, ext.removeDirectoryInfo(targetMarkers));
@@ -352,153 +351,97 @@ public class MitoPipeline {
 
 				// we make sure each marker has an entry in the projects Markerlookup. I am doing this in case previous steps have already failed, and this should catch it
 				if (verifyAllProjectMarkersAreAvailable(proj)) {
-					String markersForABCallRate = null;
-					String markersForEverythingElse = null;
 					// check that all target markers are available
 					// if (verifyAuxMarkers(proj, proj.getFilename(proj.TARGET_MARKERS_FILENAME), PC_MARKER_COMMAND)) {
 					if (verifyAuxMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), PC_MARKER_COMMAND)) {
-						// if marker QC is not flagged, sample qc is based on all target markers by default
-						String markersToQC = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_" + MARKERS_TO_QC_FILE;
-						String markersABCallrate = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_" + MARKERS_FOR_ABCALLRATE;
-						String baseLineMarkers = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_baselineMarkers.txt";
-						String[] auto = proj.getAutosomalMarkers();
-						ArrayList<String> tmp = new ArrayList<String>();
-						for (int i = 0; i < auto.length; i++) {
-							if (!proj.getArrayType().isCNOnly(auto[i])) {
-								tmp.add(auto[i]);
-							}
-						}
-						Files.writeArrayList(tmp, baseLineMarkers);
-						if (markerQC) {
-							String markerQCFile = outputBase + "_markerQC.txt";
-							proj.MARKER_METRICS_FILENAME.setValue(markerQCFile);
-							qcMarkers(proj, baseLineMarkers, markersToQC, markersABCallrate, markerCallRateFilter, numThreads);
-							markersForABCallRate = markersABCallrate;
-							if (!Files.exists(markersForABCallRate)) {
-								log.reportError("Error - markerQC was flagged but the file " + markersABCallrate + " could not be found");
-								return 1;
-							}
-						} else {
-							markersForABCallRate = baseLineMarkers;
-							writeMarkersToQC(proj, baseLineMarkers, markersToQC);
-						}
-						markersForEverythingElse = markersToQC;
-						String qcFile = outputBase + "_lrr_sd.txt";
-						proj.SAMPLE_QC_FILENAME.setValue(qcFile);
-
-						counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile, false);
-						if (counts == null || counts[1] != sampleList.getSamples().length) {
-							if (counts == null || counts[1] == 0 && Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-								log.reportError("Error - was unable to parse QC file " + proj.SAMPLE_QC_FILENAME.getValue() + ", backing up this file to " + proj.BACKUP_DIRECTORY.getValue(false, false) + " and re-starting sample qc");
-								Files.backup(ext.removeDirectoryInfo(proj.SAMPLE_QC_FILENAME.getValue()), proj.PROJECT_DIRECTORY.getValue(), proj.BACKUP_DIRECTORY.getValue(true, false), true);
-							}
-							counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile, false);
-							if (counts == null || counts[1] != sampleList.getSamples().length) {
-								if (counts == null) {
-									log.reportError("Error - could not parse QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ")");
-								} else {
-									log.reportError("Error - different number of samples (n=" + counts[1] + ") listed in the QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") compared to the number of samples in the project (n=" + sampleList.getSamples().length + ")");
-									log.reportError("      - delete the QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") to regenerate it with the correct number of samples");
-								}
-								log.reportError("aborting...");
-								return 2;
-							}
-						}
-						if (counts == null || counts[0] == 0) {// no samples passed threshold, null case shouldn't happen but we will test anyway
-							return 2;// message handled already
-						}
+						int errorCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter, useFile, sampleList, log);
 						// check that all median markers are available
-						if (verifyAuxMarkers(proj, medianMarkers, MITO_MARKER_COMMAND)) {
+						if (errorCode == 42 && verifyAuxMarkers(proj, medianMarkers, MITO_MARKER_COMMAND)) {
 							// compute PCs with samples passing QC
-
-							GcAdjustorParameters params = null;
-							if (gcCorrect) {// forced from cmdline
-								String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES;
-								boolean[] sampsToUseRecompute = null;
-
-								if (sampLrr) {
-									if (!recomputeLRR_Median || !recomputeLRR_PCs) {
-										proj.getLog().reportTimeWarning("Sample specific LRR flagged, overiding other recompute LRR options");
-										recomputeLRR_Median = true;
-										recomputeLRR_PCs = true;
-									}
-									sampsToUseRecompute = Array.booleanArray(proj.getSamples().length, false);
-									int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, new int[] { 0 }, false), proj.getSamples(), true, false);
-									for (int i = 0; i < indices.length; i++) {
-										sampsToUseRecompute[indices[i]] = true;
-									}
-									proj.getLog().reportTimeInfo("LRR will be recomputed with " + Array.booleanArraySum(sampsToUseRecompute) + " samples from " + samps);
-								}
-								if ((refGenomeFasta != null && !Files.exists(refGenomeFasta)) && Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())) {
-									proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue() + " , but will likely not be required");
-									refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
-								}
-								Resource gmodelBase = GENOME_RESOURCE_TYPE.GC5_BASE.getResource(build);
-								if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && (refGenomeFasta == null || !Files.exists(refGenomeFasta)) && gmodelBase.isAvailable(log)) {
-									log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at " + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.getResource(log));
-									proj.getLog().setLevel(3);
-									PennCNV.gcModel(proj, gmodelBase.getResource(log), proj.GC_MODEL_FILENAME.getValue(), 100);
-									refGenomeFasta = null;
-								}
-								if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO, after evaluating reference genome based gc model files, will demand a refGenome
-									if (refGenomeFasta != null && Files.exists(refGenomeFasta)) {
-										proj.REFERENCE_GENOME_FASTA_FILENAME.setValue(refGenomeFasta);
-									}
-									// try {
-									GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
-									gAdjustorBuilder.regressionDistance(regressionDistance);
-									params = GcAdjustorParameter.generate(proj, outputBase + "_GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder, sampsToUseRecompute, recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
-									if ((recomputeLRR_Median || recomputeLRR_PCs) && params.getCentroids() == null) {
-										throw new IllegalStateException("Internal error, did not recieve centroids");
-									} else if ((!recomputeLRR_Median && !recomputeLRR_PCs) && params.getCentroids() != null) {
-										throw new IllegalStateException("Internal error, should not have recieved centroids");
-									}
-									recomputeLRR_Median = false;// recomputed if params has centroid
-									recomputeLRR_PCs = false;
-									// } catch (IllegalStateException e) {
-									//
-									// proj.getLog().reportTimeError("GC adjustment was flagged, but could not generate neccesary files");
-									// }
-								} else {
-									proj.getLog().reportTimeError("Can not gc correct values without a valid reference genome");
-									proj.getLog().reportTimeError("please supply a valid reference genome (full path) with the \"ref=\" argument");
-								}
-							}
-							log.report("\nReady to perform the principal components analysis (PCA)\n");
-							PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, outputBase, null);
-							if (pcs == null) {
-								return 3;
-							}
-							// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
-							// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
-							log.report("\nApplying the loadings from the principal components analysis to all samples\n");
-							PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, null);
-							// Compute Medians for (MT) markers and compute residuals from PCs for everyone
-							log.report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
-							PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase, null);
-							generateFinalReport(proj, outputBase, pcResids.getResidOutput());
-							proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
-							proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
-							// generate estimates at each pc
-							log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");
-							CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers), proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR, true, 0.05, plot, numThreads);
-
-							boolean requireBeta = betaFile == null || !Files.exists(betaFile);
-							if (requireBeta) {
-								log.reportTimeWarning("Attempting to use pre-set beta file");
-							}
-							boolean mitoResourceAvailable = prepareMitoResources(proj, requireBeta, proj.getLog());
-							if (mitoResourceAvailable) {
-								BetaOptimizer.optimize(proj, proj.PROJECT_DIRECTORY.getValue() + pcApply.getExtrapolatedPCsFile(), proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/", requireBeta ? ext.parseDirectoryOfFile(Resources.MITO_RESOURCE_TYPE.ALL_WBC_BETA.getResource().getFullLocalPath()) : betaFile, betaOptFile, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, pvalOpt, numComponents, markerCallRateFilter, 25, numThreads);
-							} else {
-								proj.getLog().reportTimeError("Could not optimize betas due to missing files");
-							}
+							estimateMtDNACN(proj, numThreads, medianMarkers, numComponents, outputBase, homosygousOnly, markerCallRateFilter, betaOptFile, pedFile, recomputeLRR_PCs, recomputeLRR_Median, sampLrr, imputeMeanForNaN, gcCorrect, refGenomeFasta, bpGcModel, regressionDistance, build, pvalOpt, betaFile, plot, log);
 						}
 					}
 				}
 			}
 		}
 		return 42;
+	}
+
+	public static void estimateMtDNACN(Project proj, int numThreads, String medianMarkers, int numComponents, String outputBase, boolean homosygousOnly, double markerCallRateFilter, String betaOptFile, String pedFile, boolean recomputeLRR_PCs, boolean recomputeLRR_Median, boolean sampLrr, boolean imputeMeanForNaN, boolean gcCorrect, String refGenomeFasta, int bpGcModel, int regressionDistance, GENOME_BUILD build, double[] pvalOpt, String betaFile, boolean plot, Logger log) {
+		GcAdjustorParameters params = null;
+		if (gcCorrect) {// forced from cmdline
+			String samps = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES;
+			boolean[] sampsToUseRecompute = null;
+
+			if (sampLrr) {
+				if (!recomputeLRR_Median || !recomputeLRR_PCs) {
+					proj.getLog().reportTimeWarning("Sample specific LRR flagged, overiding other recompute LRR options");
+					recomputeLRR_Median = true;
+					recomputeLRR_PCs = true;
+				}
+				sampsToUseRecompute = Array.booleanArray(proj.getSamples().length, false);
+				int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, new int[] { 0 }, false), proj.getSamples(), true, false);
+				for (int i = 0; i < indices.length; i++) {
+					sampsToUseRecompute[indices[i]] = true;
+				}
+				proj.getLog().reportTimeInfo("LRR will be recomputed with " + Array.booleanArraySum(sampsToUseRecompute) + " samples from " + samps);
+			}
+			if ((refGenomeFasta != null && !Files.exists(refGenomeFasta)) && Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())) {
+				proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue() + " , but will likely not be required");
+				refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
+			}
+			Resource gmodelBase = GENOME_RESOURCE_TYPE.GC5_BASE.getResource(build);
+			if (!Files.exists(proj.GC_MODEL_FILENAME.getValue()) && (refGenomeFasta == null || !Files.exists(refGenomeFasta)) && gmodelBase.isAvailable(log)) {
+				log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at " + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.getResource(log));
+				proj.getLog().setLevel(3);
+				PennCNV.gcModel(proj, gmodelBase.getResource(log), proj.GC_MODEL_FILENAME.getValue(), 100);
+				refGenomeFasta = null;
+			}
+			if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO, after evaluating reference genome based gc model files, will demand a refGenome
+				if (refGenomeFasta != null && Files.exists(refGenomeFasta)) {
+					proj.REFERENCE_GENOME_FASTA_FILENAME.setValue(refGenomeFasta);
+				}
+				// try {
+				GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
+				gAdjustorBuilder.regressionDistance(regressionDistance);
+				params = GcAdjustorParameter.generate(proj, outputBase + "_GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder, sampsToUseRecompute, recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
+				if ((recomputeLRR_Median || recomputeLRR_PCs) && params.getCentroids() == null) {
+					throw new IllegalStateException("Internal error, did not recieve centroids");
+				} else if ((!recomputeLRR_Median && !recomputeLRR_PCs) && params.getCentroids() != null) {
+					throw new IllegalStateException("Internal error, should not have recieved centroids");
+				}
+				recomputeLRR_Median = false;// recomputed if params has centroid
+				recomputeLRR_PCs = false;
+				// } catch (IllegalStateException e) {
+				//
+				// proj.getLog().reportTimeError("GC adjustment was flagged, but could not generate neccesary files");
+				// }
+			} else {
+				proj.getLog().reportTimeError("Can not gc correct values without a valid reference genome");
+				proj.getLog().reportTimeError("please supply a valid reference genome (full path) with the \"ref=\" argument");
+			}
+		}
+		PrincipalComponentsApply pcApply = PCA.generateFullPCA(proj, numComponents, outputBase, recomputeLRR_PCs, imputeMeanForNaN, params, log);
+		if (pcApply != null) {
+			PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homosygousOnly, recomputeLRR_Median, outputBase, params);
+			generateFinalReport(proj, outputBase, pcResids.getResidOutput());
+			proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
+			proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
+			// generate estimates at each pc
+			log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");
+			CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers), proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES, null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR, true, 0.05, plot, numThreads);
+
+			boolean requireBeta = betaFile == null || !Files.exists(betaFile);
+			if (requireBeta) {
+				log.reportTimeWarning("Attempting to use pre-set beta file");
+			}
+			boolean mitoResourceAvailable = prepareMitoResources(proj, requireBeta, proj.getLog());
+			if (mitoResourceAvailable) {
+				BetaOptimizer.optimize(proj, proj.PROJECT_DIRECTORY.getValue() + pcApply.getExtrapolatedPCsFile(), proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/", requireBeta ? ext.parseDirectoryOfFile(Resources.MITO_RESOURCE_TYPE.ALL_WBC_BETA.getResource().getFullLocalPath()) : betaFile, betaOptFile, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES, pvalOpt, numComponents, markerCallRateFilter, 25, numThreads);
+			} else {
+				proj.getLog().reportTimeError("Could not optimize betas due to missing files");
+			}
+		}
 	}
 
 	private static boolean prepareMitoResources(Project proj, boolean requireBeta, Logger log) {
@@ -639,122 +582,6 @@ public class MitoPipeline {
 			proj.getLog().reportError("Error - detected that not all markers (missing " + notParsed.size() + ") were properly parsed, halting: This should not happen");
 		}
 		return allParsed;
-	}
-
-	/**
-	 * @param proj
-	 * @param targetMarkersFile
-	 * @param markersToQCFile
-	 * @param markersABCallrate
-	 * @param markerCallRateFilter
-	 * @param numthreads
-	 */
-	public static void qcMarkers(Project proj, String targetMarkersFile, String markersToQCFile, String markersABCallrate, double markerCallRateFilter, int numthreads) {
-		Logger log;
-		String markerMetricsFilename;
-
-		log = proj.getLog();
-		markerMetricsFilename = proj.MARKER_METRICS_FILENAME.getValue(true, false);
-		// skip if marker qc file exists
-		if (Files.exists(markerMetricsFilename) && new File(markerMetricsFilename).length() > 0 && Files.exists(markersToQCFile) && Files.countLines(markerMetricsFilename, 1) >= Files.countLines(markersToQCFile, 0)) {
-			log.report("Marker QC file " + proj.MARKER_METRICS_FILENAME.getValue(true, false) + " exists");
-			log.report("Skipping Marker QC computation for the analysis, filtering on existing file");
-		} else {
-			log.report("Computing marker QC for " + (targetMarkersFile == null ? "all markers in project." : "markers in " + targetMarkersFile));
-			writeMarkersToQC(proj, targetMarkersFile, markersToQCFile);
-			boolean[] samplesToExclude = new boolean[proj.getSamples().length];
-			Arrays.fill(samplesToExclude, false);
-			if (Thread.currentThread().isInterrupted()) {
-				throw new RuntimeException(new InterruptedException());
-			}
-			MarkerMetrics.fullQC(proj, samplesToExclude, ext.removeDirectoryInfo(markersToQCFile), false, numthreads);
-
-			// MarkerMetrics.fullQC(proj, samplesToExclude, null, false, numthreads);
-		}
-		if (Thread.currentThread().isInterrupted()) {
-			throw new RuntimeException(new InterruptedException());
-		}
-		filterMarkerMetricsFile(proj, markerCallRateFilter, markersABCallrate);
-	}
-
-	/**
-	 * Currently un-neccesary, but it is set up in case we want to QC the median markers at the same time
-	 */
-	private static void writeMarkersToQC(Project proj, String targetMarkersFile, String markersToQCFile) {
-		String[] markers = null;
-		if (targetMarkersFile == null) {
-			markers = proj.getMarkerNames();
-		} else {
-			String[] markersToQC = { targetMarkersFile };
-			markers = setMarkersToQC(proj, markersToQC);
-		}
-		// TODO remove CNVi probe markers (here?)
-		Files.writeList(markers, markersToQCFile);
-	}
-
-	/**
-	 * Similar to above, currently un-neccesary, but it is set up in case we want to QC the median markers at the same time
-	 */
-	private static String[] setMarkersToQC(Project proj, String[] files) {
-		ArrayList<String> markersToUse = new ArrayList<String>();
-		for (int i = 0; i < files.length; i++) {
-			String[] markers = HashVec.loadFileToStringArray(files[i], false, new int[] { 0 }, false);
-			for (int j = 0; j < markers.length; j++) {
-				markersToUse.add(markers[j]);
-			}
-		}
-		return PrincipalComponentsCompute.sortByProjectMarkers(proj, markersToUse.toArray(new String[markersToUse.size()]));
-	}
-
-	/**
-	 * Write a filtered list of markers to use for ab callRate in sample QC
-	 */
-	private static boolean filterMarkerMetricsFile(Project proj, double markerCallRateFilter, String markersABCallrate) {
-		ArrayList<String> abMarkersToUse = new ArrayList<String>();
-		BufferedReader reader;
-		Logger log = proj.getLog();
-
-		try {
-			// reader = Files.getReader(proj.getFilename(proj.MARKER_METRICS_FILENAME), false, true, false);
-			reader = Files.getReader(proj.MARKER_METRICS_FILENAME.getValue(), false, true, false);
-			String[] header = reader.readLine().trim().split("\t");
-			int abIndex = ext.indexOfStr(MarkerMetrics.FULL_QC_HEADER[2], header);
-			if (abIndex == -1) {
-				// log.reportError("Error - the necessary marker metrics header " + MarkerMetrics.FULL_QC_HEADER[2] + " was not found in the marker metrics file" + proj.getFilename(proj.MARKER_METRICS_FILENAME));
-				log.reportError("Error - the necessary marker metrics header " + MarkerMetrics.FULL_QC_HEADER[2] + " was not found in the marker metrics file" + proj.MARKER_METRICS_FILENAME.getValue());
-				return false;
-			} else {
-				String[] metrics;
-				while (reader.ready()) {
-					// proj.getArrayType().isCNOnly(markerName)
-					metrics = reader.readLine().trim().split("\t");
-					try {
-						double callRate = Double.parseDouble(metrics[abIndex]);
-						if (callRate >= markerCallRateFilter) {
-							abMarkersToUse.add(metrics[0]);
-						}
-					} catch (NumberFormatException nfe) {
-						log.report("Warning - found an invalid number " + metrics[abIndex] + " for marker" + metrics[0] + " skipping this marker");
-					}
-				}
-			}
-			if (abMarkersToUse.size() == 0) {
-				log.reportError("Error - no markers passed the callRate threshold. Please consider lowering threshold, or ensure that markers can have call rates (not cnv only probes)");
-				return false;
-			} else {
-				log.report("Sample call rate will be computed with " + abMarkersToUse.size() + " markers");
-				Files.writeList(abMarkersToUse.toArray(new String[abMarkersToUse.size()]), markersABCallrate);
-			}
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			// log.reportError("Error: file \"" + proj.getFilename(proj.MARKER_METRICS_FILENAME) + "\" not found in current directory");
-			log.reportError("Error: file \"" + proj.MARKER_METRICS_FILENAME.getValue() + "\" not found in current directory");
-		} catch (IOException ioe) {
-			// log.reportError("Error reading file \"" + proj.getFilename(proj.MARKER_METRICS_FILENAME) + "\"");
-			log.reportError("Error reading file \"" + proj.MARKER_METRICS_FILENAME.getValue() + "\"");
-		}
-
-		return true;
 	}
 
 	/**

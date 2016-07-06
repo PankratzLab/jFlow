@@ -1,8 +1,13 @@
 package cnv.analysis.pca;
 
+import java.util.ArrayList;
+
 import cnv.filesys.Project;
+import cnv.filesys.SampleList;
+import cnv.qc.GcAdjustorParameter;
 import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import common.Files;
+import common.Logger;
 import common.ext;
 
 /**
@@ -14,6 +19,7 @@ import common.ext;
 public class PCA {
 	public static final String[] FILE_EXTs = { ".PCs.extrapolated.txt", ".PCs.summary.txt" };
 	private static final String EVALUATION_FILENAME = "Evaluated_PCs.txt";
+	public static final String PCA_SAMPLES = ".samples.USED_PC.txt";
 
 	/**
 	 * @param proj
@@ -112,6 +118,22 @@ public class PCA {
 			proj.getLog().report("If this is incorrect (using a different number of components, new samples, etc...),  please remove or change the name of the file listed above.\n Alternatively, specify a new analysis name");
 		}
 		return pcResids;
+	}
+	
+	public static PrincipalComponentsApply generateFullPCA(Project proj, int numComponents, String outputBase, boolean recomputeLRR_PCs, boolean imputeMeanForNaN,GcAdjustorParameters params, Logger log) {
+		log.report("\nReady to perform the principal components analysis (PCA)\n");
+		PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, outputBase, params);
+
+		if (pcs == null) {
+			return null;
+		}
+		// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
+		// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
+		log.report("\nApplying the loadings from the principal components analysis to all samples\n");
+		PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, null);
+		// Compute Medians for (MT) markers and compute residuals from PCs for everyone
+		log.report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
+		return pcApply;
 	}
 
 	public static void main(String[] args) {

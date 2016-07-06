@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Hashtable;
 
+import cnv.analysis.pca.PCA;
 import cnv.filesys.*;
 import cnv.filesys.MarkerSet.PreparedMarkerSet;
 import cnv.hmm.CNVCaller;
@@ -441,7 +442,7 @@ public class LrrSd extends Parallelizable {
         try {
             if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
             BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
-            PrintWriter writerUse = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + MitoPipeline.PCA_SAMPLES));
+            PrintWriter writerUse = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES));
             PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + outputBase + MitoPipeline.PCA_SAMPLES_SUMMARY));
 
             writerSummary.println(Array.toStr(MitoPipeline.SAMPLE_QC_SUMMARY));
