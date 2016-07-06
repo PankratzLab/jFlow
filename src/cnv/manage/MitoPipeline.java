@@ -348,7 +348,6 @@ public class MitoPipeline {
 				} else {
 					TransposeData.transposeData(proj, 2000000000, false);
 				}
-
 				// we make sure each marker has an entry in the projects Markerlookup. I am doing this in case previous steps have already failed, and this should catch it
 				if (verifyAllProjectMarkersAreAvailable(proj)) {
 					// check that all target markers are available
