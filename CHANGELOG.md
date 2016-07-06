@@ -11,6 +11,7 @@ All notable changes to Genvisis will be documented in this file.
 ### Fixed
 
 - PC correction iterator reporting one less PC than specified
+
 ## [0.1.2]
 ### Added
 - Finalized Beta optimization in [MitoPipeLine](https://github.com/npankrat/Genvisis/commits/master/src/cnv/manage/MitoPipeline.java)
