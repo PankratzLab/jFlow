@@ -54,7 +54,7 @@ import edu.stanford.facs.logicle.Logicle;
 public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;
 
-	public static final boolean DEBUGGING = true;
+	public static final boolean DEBUGGING = false;
 
 	public static final int HEAD_BUFFER = 25;
 	public static final int HEIGHT_X_AXIS = 105;
@@ -926,6 +926,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 				    g.fillRect(xPixel + widthPixel - 2, yPixel - 2, 4, 4);
 				    g.fillRect(xPixel + widthPixel - 2, yPixel + heightPixel - 2, 4, 4);
 				    g.fillRect(xPixel - 2, yPixel + heightPixel - 2, 4, 4);
+				}
+				if (rectangles[i].getLabel() != null) {
+		            fontMetrics = g.getFontMetrics(g.getFont());
+				    int wid = fontMetrics.stringWidth(rectangles[i].getLabel());
+				    g.drawString(rectangles[i].getLabel(), xPixel + (widthPixel / 2) - (wid / 2), yPixel + (heightPixel / 2));
 				}
 			}
         }

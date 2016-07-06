@@ -106,8 +106,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         POLY_TOOL;
     };
 	
-	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
-//	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
+//	private volatile GATING_TOOL currentTool = GATING_TOOL.POLY_TOOL;
+	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_TOOL;
 	
 
     public void setGatingTool(GATING_TOOL tool) {
@@ -373,6 +373,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         for (Gate g : gating) {
 //            long t1 = System.currentTimeMillis();
             boolean[] gt = g.gate(fcp.dataLoader);
+            int sm = Array.booleanArraySum(gt);
+            String lbl = "(" + ((int)(100 * ((float) sm / (float)gt.length))) + "%)";
 //            System.out.println(ext.getTimeElapsed(t1));// + " -- " + g.getID() + ": " + sm + "/" + gt.length + " (" + ((int)(100 * ((float) sm / (float)gt.length))) + "%)");
             gates.add(gt);
             if (g instanceof RectangleGate) {
@@ -380,7 +382,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 RectangleGateDimension rgdX = rg.getDimension(xCol);
                 RectangleGateDimension rgdY = isHistogram() ? null : rg.getDimension(yCol);
                 boolean editable = selectedRects.contains(g) || mouseRects.contains(g) || draggingVertexRects.contains(g);
-                rects.add(new GenericRectangle(
+                rects.add(new GenericRectangle(lbl, 
                       rgdX.getMin(), 
                       (float)(isHistogram() ? plotYmin + (plotYmax - plotYmin) / 2 : rgdY.getMin()), 
                       rgdX.getMax(),
@@ -388,8 +390,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                       (byte)1, false, false, (byte)0, (byte)99, editable));
             } else if (g instanceof PolygonGate) {
                 boolean editable = selectedPolys.contains(g) || mousePolys.contains(g) || draggingPolys.contains(g);
-                int sm = Array.booleanArraySum(gt);
-                String lbl = "(" + ((int)(100 * ((float) sm / (float)gt.length))) + "%)";
                 polys.add(new GenericPath(lbl, ((PolygonGate)g).getPath(), (byte)0, (byte)0, (byte)99, false, editable));
             }
         }

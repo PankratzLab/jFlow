@@ -5,6 +5,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Float;
 
 public class GenericRectangle {
+    private String label;
 	private float startXValue;
 	private float startYValue;
 	private float stopXValue;
@@ -19,6 +20,11 @@ public class GenericRectangle {
 //	private Rectangle2D myRect;
 
 	public GenericRectangle(float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer, boolean editable) {
+	    this(null, startX, startY, stopX, stopY, thickness, fill, roundedCorners, color, layer, editable);
+	}
+    
+    public GenericRectangle(String lbl, float startX, float startY, float stopX, float stopY, byte thickness, boolean fill, boolean roundedCorners, byte color, byte layer, boolean editable) {
+        this.label = lbl;
 		this.startXValue = startX;
 		this.startYValue = startY;
 		this.stopXValue = stopX;
@@ -154,6 +160,10 @@ public class GenericRectangle {
 	
 	public byte getLayer() {
 		return layer;
+	}
+	
+	public String getLabel() {
+	    return label;  
 	}
 	
 	public static GenericRectangle[] addToArray(GenericRectangle rectangle, GenericRectangle[] array) {
