@@ -19,7 +19,7 @@ public abstract class Gate {
     static final Random rand = new Random();
     
     private static String generateID() {
-        return "ID" + rand.nextLong();
+        return "ID" + (rand.nextInt(35000000) + 35000000);
     }
     
     public Gate(Gate parentGate2) {

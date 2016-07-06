@@ -27,6 +27,7 @@ public class GateFileReader {
         Document doc = builder.parse(new File(filename));
         doc.getDocumentElement().normalize();
         
+        // TODO read Population nodes instead (one gate per population, pop. defines name, gives count, etc
         NodeList allGates = doc.getElementsByTagName("Gate");
         
         GatingStrategy gs = new GatingStrategy();
