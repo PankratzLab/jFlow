@@ -3,13 +3,14 @@ All notable changes to Genvisis will be documented in this file.
 
 ##[Unreleased]
 
+##[0.1.3]
 ### Changed
 
 - Default plotting types for mtDNA PC evaluation, now does individual plots for each variable. 
 
 ### Fixed
 
-- PC correction iterator was reporting one less PC than specified
+- PC correction iterator reporting one less PC than specified
 ## [0.1.2]
 ### Added
 - Finalized Beta optimization in [MitoPipeLine](https://github.com/npankrat/Genvisis/commits/master/src/cnv/manage/MitoPipeline.java)
@@ -35,7 +36,8 @@ All notable changes to Genvisis will be documented in this file.
 - an example of the removed heading
 
  
-[Unreleased]: https://github.com/npankrat/Genvisis/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/npankrat/Genvisis/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/npankrat/Genvisis/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/npankrat/Genvisis/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/npankrat/Genvisis/compare/v0.1.0...v0.1.1
 
