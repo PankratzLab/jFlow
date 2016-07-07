@@ -3,6 +3,10 @@ All notable changes to Genvisis will be documented in this file.
 
 ##[Unreleased]
 
+
+##[0.1.4]
+Reorganized mitoPipeline
+
 ##[0.1.3]
 ### Changed
 
@@ -38,6 +42,7 @@ All notable changes to Genvisis will be documented in this file.
 
  
 [Unreleased]: https://github.com/npankrat/Genvisis/compare/v0.1.3...HEAD
+[0.1.4]: https://github.com/npankrat/Genvisis/compare/v0.1.2...v0.1.3
 [0.1.3]: https://github.com/npankrat/Genvisis/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/npankrat/Genvisis/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/npankrat/Genvisis/compare/v0.1.0...v0.1.1
