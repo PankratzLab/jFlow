@@ -176,6 +176,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		
 		if (fcp.dataLoader == null) {
 		    setNullMessage("Please load an FCS file..");
+		    gates.clear();
+		    rects.clear();
+		    polys.clear();
+		    tempPoly.clear();
+		    histLines.clear();
 		    points = new PlotPoint[0];
             rectangles = new GenericRectangle[0];
             lines = new GenericLine[0];
@@ -184,6 +189,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		}
 		if (!fcp.isCurrentDataDisplayable()) {
 		    setNullMessage("Please wait, data is loading...");
+		    gates.clear();
+		    rects.clear();
+		    polys.clear();
+		    tempPoly.clear();
+		    histLines.clear();
 		    points = new PlotPoint[0];
             rectangles = new GenericRectangle[0];
             lines = new GenericLine[0];
@@ -359,7 +369,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 }
             }
             points[i].setColor(color);
-//            points[i].setLayer(color == 0 ? 0 : (byte)10);
         }
     }
     
@@ -374,7 +383,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 //            long t1 = System.currentTimeMillis();
             boolean[] gt = g.gate(fcp.dataLoader);
             int sm = Array.booleanArraySum(gt);
-            String lbl = "(" + ((int)(100 * ((float) sm / (float)gt.length))) + "%)";
+            float pctInt = 100 * ((float) sm / (float)gt.length);
+            String pct = ext.formDeci(pctInt, 2);
+            String lbl = "(" + pct + "%)";
 //            System.out.println(ext.getTimeElapsed(t1));// + " -- " + g.getID() + ": " + sm + "/" + gt.length + " (" + ((int)(100 * ((float) sm / (float)gt.length))) + "%)");
             gates.add(gt);
             if (g instanceof RectangleGate) {
@@ -834,39 +845,28 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                     float dx, dy;
                     dx = (float) (getXValueFromXPixel(mouseEndX) - getXValueFromXPixel(startX));
                     dy = (float) (getYValueFromYPixel(mouseEndY) - getYValueFromYPixel(startY));
-                    HashSet<RectangleGate> newSel = new HashSet<RectangleGate>();
-                    HashSet<RectangleGate> newMou = new HashSet<RectangleGate>();
                     for (RectangleGate gr : selectedRects) {
                         RectangleGateDimension gdX = gr.getDimension(xCol);
-                        gdX.setMin(gdX.getMin() + dx);
                         gdX.setMax(gdX.getMax() + dx);
+                        gdX.setMin(gdX.getMin() + dx);
                         if (!isHistogram()) {
                             RectangleGateDimension gdY = gr.getDimension(yCol);
                             gdY.setMin(gdY.getMin() + dy);
                             gdY.setMax(gdY.getMax() + dy);
                         }
-                        if (mouseRects.contains(gr)) {
-                            newMou.add(gr);
-                            mouseRects.remove(gr);
-                        }
-                        newSel.add(gr);
                     }
-                    selectedRects.clear();
-                    selectedRects.addAll(newSel);
                     for (RectangleGate gr : mouseRects) {
-                        RectangleGateDimension gdX = gr.getDimension(xCol);
-                        
-                        gdX.setMin(gdX.getMin() + dx);
-                        gdX.setMax(gdX.getMax() + dx);
-                        if (!isHistogram()) {
-                            RectangleGateDimension gdY = gr.getDimension(yCol);
-                            gdY.setMin(gdY.getMin() + dy);
-                            gdY.setMax(gdY.getMax() + dy);
+                        if (!selectedRects.contains(gr)) {
+                            RectangleGateDimension gdX = gr.getDimension(xCol);
+                            gdX.setMax(gdX.getMax() + dx);
+                            gdX.setMin(gdX.getMin() + dx);
+                            if (!isHistogram()) {
+                                RectangleGateDimension gdY = gr.getDimension(yCol);
+                                gdY.setMax(gdY.getMax() + dy);
+                                gdY.setMin(gdY.getMin() + dy);
+                            }
                         }
-                        newMou.add(gr);
                     }
-                    mouseRects.clear();
-                    mouseRects.addAll(newMou);
                     AffineTransform at = AffineTransform.getTranslateInstance(dx, dy);
                     for (PolygonGate gp : selectedPolys) {
                         gp.getPath().transform(at);

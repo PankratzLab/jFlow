@@ -336,6 +336,7 @@ public class HashVec {
 	public static String[][] loadFileToStringMatrix(String filename, boolean ignoreFirstLine, int[] cols, String delimiter, boolean jar, int initialCapacity, boolean allowMissingData) {
 		BufferedReader reader = null;
 		Vector<String[]> v = new Vector<String[]>(initialCapacity);
+		String temp;
 		String[] line, data;
 
 		try {
@@ -346,10 +347,12 @@ public class HashVec {
 			if (ignoreFirstLine) {
 				reader.readLine();
 			}
-			while (reader.ready()) {
-				line = ext.splitLine(reader.readLine(), delimiter, null);
-				if (cols == null) {
-					v.add(line);
+			while ((temp = reader.readLine()) != null) {
+			    line = ext.splitLine(temp, delimiter, null);
+				if (cols == null) { 
+//				    if (!temp.equals("") || allowMissingData) {
+				        v.add(line);
+//				    }
 				} else {
 					data = new String[cols.length];
 					for (int i = 0; i<cols.length; i++) {

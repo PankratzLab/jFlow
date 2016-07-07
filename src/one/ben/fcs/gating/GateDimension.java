@@ -29,21 +29,11 @@ public class GateDimension {
         }
 
         public void setMin(float min2) {
-            if (min2 > max) {
-                this.min = max;
-                this.max = min2;
-            } else {
-                this.min = min2;
-            }
+            this.min = min2;
         }
 
         public void setMax(float max2) {
-            if (max2 < min) {
-                this.max = min;
-                this.min = max2;
-            } else {
-                this.max = max2;
-            }
+            this.max = max2;
         }
     }
 
