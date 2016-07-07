@@ -2288,7 +2288,7 @@ public class Files {
 	}
 
 	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill) {
-		return readSerial(filename, jar, log, kill, false);
+		return readSerial(filename, jar, log, kill, filename.endsWith(".gz"));
 	}
 
 	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill, boolean gzipped) {
