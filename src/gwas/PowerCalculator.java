@@ -240,13 +240,23 @@ public class PowerCalculator {
 //			rangeOfMaf(0.001, 0.01, 1700, 1700, 2291, false); // Heather's OSCA2 grant
 //			rangeOfMaf(0.001, 0.01, 1700, 1700, 2000, false); // Heather's OSCA2 grant, aim 1 discovery
 //			rangeOfMaf(0.001, 0.01, 1500, 1500, 1, false); // Heather's OSCA2 grant, aim 1 replication
-			rangeOfMaf(0.001, 0.01, 1500, 1500, 5, false); // Heather's OSCA2 grant, aim 1 replication
+//			rangeOfMaf(0.001, 0.01, 1500, 1500, 5, false); // Heather's OSCA2 grant, aim 1 replication
 //			rangeOfMaf(0.5, 0.01, 178, 178, 3, false); // Heather's OSCA2 grant, aim 2a
 //			rangeOfMaf(0.19, 0.01, 266, 1400-266, 3, false); // Heather's OSCA2 grant, aim 2b i
 //			rangeOfMaf(0.19, 0.01, (int)(1230*0.19), (int)(1230*(1-0.19)), 3, false); // Heather's OSCA2 grant, aim 2b ii
 //			rangeOfMaf(0.001, 0.01, 900, 800, 3, false); // Heather's OSCA2 grant, aim 3
-		
+//			rangeOfMaf(0.001, 0.01, 465, 1119, 66, false); // Poynter's MDS-AML grant, MDS
+//			rangeOfMaf(0.001, 0.01, 434, 1119, 66, false); // Poynter's MDS-AML grant, MDS
+//			rangeOfMaf(0.001, 0.01, 465+434, 1119, 66, false); // Poynter's MDS-AML grant, MDS
+//			rangeOfMaf(0.001, 0.01, 465, 1119, 5043, false); // Poynter's MDS-AML grant, MDS
+//			rangeOfMaf(0.001, 0.01, 434, 1119, 5043, false); // Poynter's MDS-AML grant, MDS
+//			rangeOfMaf(0.001, 0.01, 465+434, 1119, 5043, false); // Poynter's MDS-AML grant, MDS
+			rangeOfMaf(0.001, 0.01, 465, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
+			rangeOfMaf(0.001, 0.01, 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
+			rangeOfMaf(0.001, 0.01, 465+434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
 			
+			
+
 			
 			
 //			rangeOfRelativeRisk(0.15, 200, false);

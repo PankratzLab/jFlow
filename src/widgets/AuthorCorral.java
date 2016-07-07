@@ -357,8 +357,8 @@ public class AuthorCorral {
 	
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String inFile = "N:/statgen/authors/input2k.xln";
-		String outFile = "N:/statgen/authors/final_acceptance_authorship.rtf";
+		String inFile = "C:/Users/pankr018/Documents/My Tresors/Nathan's tresor/Hematology/Acceptance/input2k4.txt";
+		String outFile = "C:/Users/pankr018/Documents/My Tresors/Nathan's tresor/Hematology/Acceptance/input2k4.rtf";
 		boolean rtf = true;
 		boolean err = true;
 		boolean periodsAfterInitials = false;
