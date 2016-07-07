@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import common.Files;
 import common.HashVec;
+import common.Logger;
 import common.Positions;
 import common.ProgressBarDialog;
 
@@ -133,7 +134,7 @@ public class CNVariantHash implements Serializable {
         Files.writeSerial(this, filename);
     }
 
-    public static CNVariantHash load(String filename, int structureType, boolean jar) {
+    public static CNVariantHash load(String filename, int structureType, boolean jar, Logger log) {
         CNVariantHash hashes = null;
         String suffix;
 
@@ -149,9 +150,12 @@ public class CNVariantHash implements Serializable {
         boolean parse = Files.exists(filename + suffix, jar);
         
         if (parse) {
-            hashes = (CNVariantHash) Files.readSerial(filename + suffix, jar, false);
+            hashes = (CNVariantHash) Files.readSerial(filename + suffix, jar, log, false);
         } 
         if (!parse || hashes == null) {
+        	if (hashes == null) {
+        		log.report("Detected that CNVariantHash needs to be updated from cnv.var.CNVariantHash to filesys.CNVariantHash; reparsing...");
+        	}        		
             hashes = new CNVariantHash(filename, structureType, jar);
             hashes.serialize(filename + suffix);
         }

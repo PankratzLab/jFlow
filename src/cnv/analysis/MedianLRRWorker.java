@@ -459,7 +459,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 //			cnvFileCNs = new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.length()];
 			cnvFileCNs = new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.getValue().length];
 			computelog.report("Info - assigning cnvs for " + proj.CNV_FILENAMES.getValue().length + " cnv files");
-			sampleData.loadCNVs(proj.CNV_FILENAMES.getValue(), false);
+			sampleData.loadCNVs(proj.CNV_FILENAMES.getValue(), false, proj.getLog());
 			String[] cnvClasses = sampleData.getCnvClasses();
 			computelog.report("Info - assigning cnvs for " + proj.CNV_FILENAMES.getValue().length);
 			newJob(MEDIAN_WORKER_JOBS[4] + proj.CNV_FILENAMES.getValue().length + " cnv files");
