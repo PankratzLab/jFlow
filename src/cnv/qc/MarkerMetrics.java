@@ -42,7 +42,12 @@ public class MarkerMetrics {
 		String finalQcFile = proj.MARKER_METRICS_FILENAME.getValue(true, false);
 
 		if (markersToInclude != null) {
-			markerNames = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true) + markersToInclude, false, new int[] { 0 }, false);
+			if (Files.exists(markersToInclude)) {
+				markerNames = HashVec.loadFileToStringArray(markersToInclude, false, new int[] { 0 }, false);
+
+			} else {
+				markerNames = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue(false, true) + markersToInclude, false, new int[] { 0 }, false);
+			}
 		} else {
 			markerNames = proj.getMarkerNames();
 		}
