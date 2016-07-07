@@ -138,7 +138,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	private int numberOfNaNSamples;
 	private boolean antiAlias = true;
 	private volatile boolean beEfficient;
-	private HashSet<String> pointsPlotted;
+	private HashSet<Integer> pointsPlotted;
 	
 	public AbstractPanel() {
 		canvasSectionMinimumX = 0;
@@ -394,7 +394,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     	
     	long fullTime = System.currentTimeMillis();
     	
-    	pointsPlotted = new HashSet<String>();
+    	pointsPlotted = new HashSet<Integer>();
 //    	Files.appendStringToFile("listOfPoints.out", "drawAllWasCalled");
     	
     	if (g instanceof Graphics2D) {
@@ -1310,13 +1310,41 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 	}
 	
-	public String getNumPointsPlottedEfficiently() {
+	public int getNumPointsPlottedEfficiently() {
 		if (beEfficient) {
-			return pointsPlotted.size()+"";
+			return pointsPlotted.size();//+"";
 		} else {
-			return "[not set to be efficient]";
+			return -1;//"[not set to be efficient]";
 		}
 	}
+
+    private int getEfficientPointCode(int x, int y, int sz, int clr) {
+        // Standard hashCode implementation fails here (fun behavior though!)
+        // final int prime = 31;
+        // int result = 17;
+        // result = prime * result + x;
+        // result = prime * result + y;
+        // result = prime * result + sz;
+        // result = prime * result + clr;
+        // return result;
+
+        // VERY slow, possibly not performing properly:
+        // return (new int[]{x, y, sz, clr}).hashCode();
+
+        // Szudzik: (unfortunately only applicable for two integers - should we multiplex (i.e. x/y & sz/clr?)
+        // https://stackoverflow.com/questions/919612/mapping-two-integers-to-one-in-a-unique-and-deterministic-way
+        int coord = szudzikCode(x, y);
+        int meta = szudzikCode(sz, clr);
+        int ret = szudzikCode(coord, meta);
+        return ret;
+    }
+
+    private int szudzikCode(int x, int y) {
+        int A = x >= 0 ? 2 * x : -2 * x - 1;
+        int B = y >= 0 ? 2 * y : -2 * y - 1;
+        int C = A >= B ? A * A + A + B : A + B * B;
+        return x < 0 && y < 0 || x >= 0 && y >= 0 ? C : -C - 1;
+    }
 	
 	public void drawPoint(Graphics g, PlotPoint point) {
 		int x, y, size, color;
@@ -1332,10 +1360,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			return;
 		}
 		if (beEfficient) {
-			if (pointsPlotted.contains(x+":"+y+":"+size+":"+color)) {
+		    int code = getEfficientPointCode(x, y, size, color);
+			if (pointsPlotted.contains(code)) {
 				return;
 			} else {
-				pointsPlotted.add(x+":"+y+":"+size+":"+color);
+				pointsPlotted.add(code);
 			}
 //	    	Files.appendStringToFile("listOfPoints.out", x+":"+y+":"+size+":"+color);
 		}

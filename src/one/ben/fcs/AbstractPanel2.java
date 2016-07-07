@@ -1763,10 +1763,17 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
         
         // Szudzik:  (unfortunately only applicable for two integers - should we multiplex (i.e. x/y & sz/clr?)
 //	    https://stackoverflow.com/questions/919612/mapping-two-integers-to-one-in-a-unique-and-deterministic-way
+	    int coord = szudzikCode(x, y);
+	    int meta = szudzikCode(sz, clr);
+	    int ret = szudzikCode(coord, meta);
+	    return ret;
+	}
+	
+	private int szudzikCode(int x, int y) {
         int A = x >= 0 ? 2 * x : -2 * x - 1;
         int B = y >= 0 ? 2 * y : -2 * y - 1;
         int C = A >= B ? A * A + A + B : A + B * B;
-		return x < 0 && y < 0 || x >= 0 && y >= 0 ? C : -C - 1;
+        return x < 0 && y < 0 || x >= 0 && y >= 0 ? C : -C - 1;
 	}
 	
 	public void drawPoint(Graphics g, PlotPoint point) {
@@ -1784,17 +1791,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 		if (beEfficient) {
 		    int code = getEfficientPointCode(x, y, size, color);
-//		    if (pointsPlotted.contains(x+":"+y+":"+size+":"+color)) {
-//		        return;
-//		    } else {
-//		        pointsPlotted.add(x+":"+y+":"+size+":"+color);
-//		    }
 			if (pointsPlotted.contains(code)) {
 				return;
 			} else {
 				pointsPlotted.add(code);
 			}
-//	    	Files.appendStringToFile("listOfPoints.out", x+":"+y+":"+size+":"+color);
 		}
 		g.setColor(colorScheme[color]);
 		
