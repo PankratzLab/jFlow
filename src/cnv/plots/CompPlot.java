@@ -206,7 +206,7 @@ public class CompPlot extends JFrame {
 			filterFiles.add(filename.getName());
 			if (Files.exists(file, false)) {
 				// Load the CNVs out of the files
-				CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false);
+				CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false, proj.getLog());
 				hashes.add(cnvHash);
 			} else {
 				JOptionPane.showMessageDialog(null, "Error - File " + file + " does not exist");

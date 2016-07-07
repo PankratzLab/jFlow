@@ -348,7 +348,7 @@ public class SampleData {
 		    Runnable cnvLoadingRunnable = new Runnable() {
 		        @Override
 		        public void run() {
-		            loadCNVs(cnvFilenames, proj.JAR_STATUS.getValue());
+		            loadCNVs(cnvFilenames, proj.JAR_STATUS.getValue(), proj.getLog());
 		            IndiPheno.setCNVsLoaded();
 		            loadedCNVs = true;
 		        }
@@ -472,7 +472,7 @@ public class SampleData {
 		}
 	}
 	
-	public void loadCNVs(String[] files, boolean jar) {
+	public void loadCNVs(String[] files, boolean jar, Logger log) {
 		Vector<Hashtable<String,CNVariant[]>> finalHashes;
 		CNVariantHash[] cnvhs;
 		IndiPheno indi;
@@ -498,9 +498,9 @@ public class SampleData {
 		for (int i = 0; i<files.length; i++) {
 			cnvClasses[i] = ext.rootOf(files[i]);
 			System.out.println(i+"\t"+cnvClasses[i]);
-			cnvhs[i] = CNVariantHash.load(files[i], CNVariantHash.CONSTRUCT_BY_IND, jar);
+			cnvhs[i] = CNVariantHash.load(files[i], CNVariantHash.CONSTRUCT_BY_IND, jar, log);
 		}
-		System.out.println("Read in CNV data in "+ext.getTimeElapsed(time));
+		log.report("Read in CNV data in "+ext.getTimeElapsed(time));
 
 		time = new Date().getTime();
 		inds = HashVec.getKeys(sampleHash);
@@ -514,7 +514,7 @@ public class SampleData {
 			}
 			indi.setCNVclasses(finalHashes);
         }
-		System.out.println("Added CNV data in "+ext.getTimeElapsed(time));
+		log.report("Added CNV data in "+ext.getTimeElapsed(time));
 	}
 
 	/**

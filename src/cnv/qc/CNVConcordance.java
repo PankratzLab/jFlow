@@ -434,7 +434,7 @@ public class CNVConcordance {
 				//int stop = filter.getMaxNumMarkers();
 				CNVariantHash[] cNVariantHash = new CNVariantHash[cnvFiles.length];
 				for (int i = 0; i < cnvFiles.length; i++) {
-					cNVariantHash[i] = CNVariantHash.load(cnvFiles[i], 1, false);
+					cNVariantHash[i] = CNVariantHash.load(cnvFiles[i], 1, false, proj.getLog());
 					for (int j = 0; j < REPORT.length; j++) {
 						writer.print(((i == 0) && (j == 0) ? "" : "\t") + REPORT[j] + "." + ext.rootOf(cnvFiles[i]));
 					}
@@ -460,7 +460,7 @@ public class CNVConcordance {
 				proj.getLog().reportException(e);
 			}
 		} else {
-			CNVariantHash cNVariantHash = CNVariantHash.load(proj.PROJECT_DIRECTORY.getValue() + cnvFile, 1, false);
+			CNVariantHash cNVariantHash = CNVariantHash.load(proj.PROJECT_DIRECTORY.getValue() + cnvFile, 1, false, proj.getLog());
 			CNVConcordance cnvConcordance = new CNVConcordance(proj, duplicates, cNVariantHash, filter, numCNVs);
 			cnvConcordance.determineConcordance();
 			try {
