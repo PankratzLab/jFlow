@@ -134,7 +134,7 @@ public class CNVariantHash implements Serializable {
     }
 
     public static CNVariantHash load(String filename, int structureType, boolean jar) {
-        CNVariantHash hashes;
+        CNVariantHash hashes = null;
         String suffix;
 
         if (structureType == CONSTRUCT_BY_IND) {
@@ -146,9 +146,12 @@ public class CNVariantHash implements Serializable {
             suffix = null;
         }
 
-        if (Files.exists(filename + suffix, jar)) {
+        boolean parse = Files.exists(filename + suffix, jar);
+        
+        if (parse) {
             hashes = (CNVariantHash) Files.readSerial(filename + suffix, jar, false);
-        } else {
+        } 
+        if (!parse || hashes == null) {
             hashes = new CNVariantHash(filename, structureType, jar);
             hashes.serialize(filename + suffix);
         }
