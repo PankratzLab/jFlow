@@ -36,7 +36,7 @@ public class CmdLine {
         
         try {
 			if (Files.isWindows() && (command.contains(">") || command.contains("|"))) {
-				System.err.println("FYI - the Runtime.exec command will likely not work, since it contains a pipe, write command to a .bat file and exec that instead");
+				log.reportError("FYI - the Runtime.exec command will likely not work, since it contains a pipe, write command to a .bat file and exec that instead");
 			}
 			if (commandArray != null) {
 				proc = Runtime.getRuntime().exec(commandArray, null, new File(dir));
@@ -100,10 +100,10 @@ public class CmdLine {
 			message = ioe.getMessage();
 			if (message.startsWith("Cannot run program ")) {
 				message = message.substring(20);
-				System.err.println("Error - The program \""+message.substring(0, message.indexOf("\""))+"\" is not installed or is not accessible "+message.substring(message.indexOf("("), message.indexOf(")")+1));
+				log.reportError("Error - The program \""+message.substring(0, message.indexOf("\""))+"\" is not installed or is not accessible "+message.substring(message.indexOf("("), message.indexOf(")")+1));
 				noError = false;
 			} else {
-				ioe.printStackTrace();
+				log.reportException(ioe);
 				noError = false;
 			}
 		}
