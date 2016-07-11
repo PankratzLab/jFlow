@@ -168,7 +168,7 @@ public class PCAPrep {
 	 * @param markerCallRateFilter
 	 * @param numthreads
 	 */
-	public static void qcMarkers(Project proj, String targetMarkersFile, String markersToQCFile, String markersABCallrate, double markerCallRateFilter, int numthreads) {
+	private static void qcMarkers(Project proj, String targetMarkersFile, String markersToQCFile, String markersABCallrate, double markerCallRateFilter, int numthreads) {
 		Logger log;
 		String markerMetricsFilename;
 

@@ -495,23 +495,23 @@ public class PennCNVPrep {
 	 * @param exportToPennCNV
 	 *            flag if the directory supplied has serialized files already
 	 */
-	public static void exportSpecialPennCNV(Project proj, String dir, String tmpDir, int numComponents, String markerFile, int numThreads, int numMarkerThreads, boolean exportToPennCNV, boolean shadowSamples,LS_TYPE lType, int numSampleChunks, boolean preserveBafs) {
+	public static void exportSpecialPennCNV(Project proj, String dir, String tmpDir, int numComponents, String markerFile, int numThreads, int numMarkerThreads, /*boolean exportToPennCNV,*/ boolean shadowSamples, LS_TYPE lType, int numSampleChunks, boolean preserveBafs) {
 		String[] markers;
 		new File(proj.PROJECT_DIRECTORY.getValue() + dir).mkdirs();
-		if (exportToPennCNV) {
-			boolean[] exportThese = new boolean[proj.getSamples().length];
-			Arrays.fill(exportThese, true);
-			// TODO, samples for Clustering!
-
-			PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, null, exportThese, null, null, null, numComponents, dir, lType, numThreads, numMarkerThreads);
-			String[] sortedFileNames = getSortedFileNames(proj, dir, tmpDir);
-			if (sortedFileNames == null || sortedFileNames.length == 0) {
-				proj.getLog().reportError("Error - did not find any files to export from");
-
-			} else {
-				specialPennCNVFormat.exportSpecialPennCNVData(sortedFileNames);
-			}
-		}
+//		if (exportToPennCNV) {
+//			boolean[] exportThese = new boolean[proj.getSamples().length];
+//			Arrays.fill(exportThese, true);
+//			// TODO, samples for Clustering!
+//
+//			PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, null, exportThese, null, null, null, numComponents, dir, lType, numThreads, numMarkerThreads);
+//			String[] sortedFileNames = getSortedFileNames(proj, dir, tmpDir);
+//			if (sortedFileNames == null || sortedFileNames.length == 0) {
+//				proj.getLog().reportError("Error - did not find any files to export from");
+//
+//			} else {
+//				specialPennCNVFormat.exportSpecialPennCNVData(sortedFileNames);
+//			}
+//		}
 		if (shadowSamples) {
 
 			boolean[][] batches = Array.splitUpStringArrayToBoolean(proj.getSamples(), numSampleChunks, proj.getLog());
@@ -558,27 +558,32 @@ public class PennCNVPrep {
 			}
 			Files.writeSerial(outliers, outlierFile);
 		} else {
-			PrincipalComponentsResiduals principalComponentsResiduals = loadPcResids(proj, numComponents);
-			if (principalComponentsResiduals == null) {
-				return;
-			}
-			int[] sex = getSampleSex(proj);
-			if (sex == null && proj.getAutosomalMarkers().length != proj.getMarkerNames().length) {
-				proj.getLog().reportTimeWarning("missing sex codes");
-				// return;
-			}
-			if (markerFile == null) {
-				markers = proj.getMarkerNames();
-				proj.getLog().report("Info - a file of markers was not provided, exporting all in this batch");
-			} else {
-				markers = HashVec.loadFileToStringArray(markerFile, false, new int[] { 0 }, false);
-				proj.getLog().report("Info - loaded " + markers.length + " markers from " + markerFile + " to export");
-
-			}
-			PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, principalComponentsResiduals, null, proj.getSamplesToInclude(null), sex, markers, numComponents, dir, lType, numThreads, numMarkerThreads);
-			specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(tmpDir, preserveBafs);
+			prepExport(proj, dir, tmpDir, numComponents, markerFile, numThreads, numMarkerThreads, lType, preserveBafs);
 		}
 	}
+
+    public static void prepExport(Project proj, String dir, String tmpDir, int numComponents, String markerFile, int numThreads, int numMarkerThreads, LS_TYPE lType, boolean preserveBafs) {
+        String[] markers;
+        PrincipalComponentsResiduals principalComponentsResiduals = loadPcResids(proj, numComponents);
+        if (principalComponentsResiduals == null) {
+        	return;
+        }
+        int[] sex = getSampleSex(proj);
+        if (sex == null && proj.getAutosomalMarkers().length != proj.getMarkerNames().length) {
+        	proj.getLog().reportTimeWarning("missing sex codes");
+        	// return;
+        }
+        if (markerFile == null) {
+        	markers = proj.getMarkerNames();
+        	proj.getLog().report("Info - a file of markers was not provided, exporting all in this batch");
+        } else {
+        	markers = HashVec.loadFileToStringArray(markerFile, false, new int[] { 0 }, false);
+        	proj.getLog().report("Info - loaded " + markers.length + " markers from " + markerFile + " to export");
+
+        }
+        PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, principalComponentsResiduals, null, proj.getSamplesToInclude(null), sex, markers, numComponents, dir, lType, numThreads, numMarkerThreads);
+        specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(tmpDir, preserveBafs);
+    }
 
 	public static void batchCorrections(Project proj, String java, String classPath, int memoryInMB, int wallTimeInHours, String dir, String tmpDir, int numBatches, int numThreads, int numMarkerThreads, int numComponents) {
 		String[] allMarkers = proj.getMarkerNames();
@@ -763,7 +768,7 @@ public class PennCNVPrep {
 			if (batch > 0) {
 				batchCorrections(proj, java, classPath, memoryInMB, wallTimeInHours, dir, tmpDir, batch, numThreads, numMarkerThreads, numComponents);
 			} else {
-				exportSpecialPennCNV(proj, dir, tmpDir, numComponents, markers, numThreads, numMarkerThreads, exportToPennCNV, shadowSamples, svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, sampleChunks, false);
+				exportSpecialPennCNV(proj, dir, tmpDir, numComponents, markers, numThreads, numMarkerThreads, shadowSamples, svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, sampleChunks, false);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

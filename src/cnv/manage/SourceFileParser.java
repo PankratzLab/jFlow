@@ -1158,7 +1158,6 @@ public class SourceFileParser implements Runnable {
 		v = new Vector<String>();
 
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
-        log.report(ext.getTime() + "]\tWriting outliers list(s)...");
 		for (int i = 0; i<numThreads; i++) {
 			if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").exists()) {
 				allOutliers.putAll((Hashtable<String, Float>) Files.readSerial(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser"));
@@ -1178,6 +1177,7 @@ public class SourceFileParser implements Runnable {
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		// changed 6-26-15 to always write an outliers.ser, even if no outliers exist
 		Files.writeSerial(allOutliers, proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
+		log.report(ext.getTime() + "]\tWrote " + allOutliers.size() + " outliers to file.");
 		log.report(ext.getTime() + "]\tSource File Parsing Complete.");
 		if (abLookupRequired && !Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false))) {
 			return 6;

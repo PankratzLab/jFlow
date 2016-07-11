@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.activation.UnsupportedDataTypeException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -28,10 +27,10 @@ public class GateFileReader {
         doc.getDocumentElement().normalize();
         
         // TODO read Population nodes instead (one gate per population, pop. defines name, gives count, etc
-        NodeList allGates = doc.getElementsByTagName("Gate");
+        NodeList allPops = doc.getElementsByTagName("Population");
         
         GatingStrategy gs = new GatingStrategy();
-        gs.gateMap = buildGateGraph(allGates);
+        gs.gateMap = buildPopGraph(allPops);
         gs.gateRoots = connectGates(gs.gateMap);
         gs.paramGateMap = parameterizeGates(gs.gateMap);
         
@@ -53,10 +52,20 @@ public class GateFileReader {
         return paramGates;
     }
     
-    private static HashMap<String, Gate> buildGateGraph(NodeList allGates) {
+    private static HashMap<String, Gate> buildPopGraph(NodeList allGates) {
         HashMap<String, Gate> gateMap = new HashMap<String, Gate>();
         for (int i = 0, count = allGates.getLength(); i < count; i++) {
-            Element gateNode = (Element) allGates.item(i);
+            Element popNode = (Element) allGates.item(i);
+            String popName = popNode.getAttribute("name");
+            
+            Element gateNode = null;
+            for (int n = 0, cnt = popNode.getChildNodes().getLength(); n < cnt; n++) {
+                if (popNode.getChildNodes().item(n).getNodeName().equals("Gate")) {
+                    gateNode = (Element) popNode.getChildNodes().item(n);
+                    break;
+                }
+            }
+                    
             String id = gateNode.getAttribute("gating:id");
             String parentID = gateNode.getAttribute("gating:parent_id");
             Node actualGateNode = null;
@@ -67,7 +76,7 @@ public class GateFileReader {
                 }
             }
             if (actualGateNode != null) {
-                Gate newGate = buildGate(id, parentID, actualGateNode); 
+                Gate newGate = buildGate(popName, id, parentID, actualGateNode); 
                 gateMap.put(id, newGate);
             }
             
@@ -88,11 +97,11 @@ public class GateFileReader {
         return rootGates;
     }
     
-    private static Gate buildGate(String id, String parentID, Node gateNode) {
+    private static Gate buildGate(String popName, String id, String parentID, Node gateNode) {
         String gateType = gateNode.getNodeName().substring(7); // 7 = "gating:".length()
         Gate gate = null;
         if ("RectangleGate".equals(gateType)) {
-            gate = new RectangleGate(null, id);
+            gate = new RectangleGate(null, popName, id);
             ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
@@ -133,7 +142,7 @@ public class GateFileReader {
 //                ((EllipsoidGate) gate).edges[i][1] = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
 //            }
         } else if ("PolygonGate".equals(gateType)) {
-            gate = new PolygonGate(null, id);
+            gate = new PolygonGate(null, popName, id);
             ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
