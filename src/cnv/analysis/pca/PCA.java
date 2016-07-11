@@ -119,8 +119,8 @@ public class PCA {
 		}
 		return pcResids;
 	}
-	
-	public static PrincipalComponentsApply generateFullPCA(Project proj, int numComponents, String outputBase, boolean recomputeLRR_PCs, boolean imputeMeanForNaN,GcAdjustorParameters params, Logger log) {
+
+	public static PrincipalComponentsApply generateFullPCA(Project proj, int numComponents, String outputBase, boolean recomputeLRR_PCs, boolean imputeMeanForNaN, GcAdjustorParameters params, Logger log) {
 		log.report("\nReady to perform the principal components analysis (PCA)\n");
 		PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES, outputBase, params);
 
@@ -130,7 +130,7 @@ public class PCA {
 		// apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
 		// TODO, if we ever want to apply to only a subset of the project, we can do that here.....
 		log.report("\nApplying the loadings from the principal components analysis to all samples\n");
-		PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, null);
+		PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, params);
 		// Compute Medians for (MT) markers and compute residuals from PCs for everyone
 		log.report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
 		return pcApply;
