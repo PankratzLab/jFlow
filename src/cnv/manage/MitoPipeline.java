@@ -58,6 +58,7 @@ public class MitoPipeline {
 	public static final String[] SEX = { "female", "male" };
 	public static final String[] SAMPLE_DATA_ADDITION_HEADERS = { "LRR_SD", "Genotype_callrate", "CLASS=Exclude" };
 	public static final double[] DEFAULT_PVAL_OPTS = new double[] { 0.05, 0.01, 0.001 };
+	public static final double DEFAULT_MKR_CALLRATE_FILTER = 0.98;
 
 	public static final String DNA_LINKER = "DNA";
 	public static final String PCA_SAMPLES_SUMMARY = ".samples.QC_Summary.txt";
@@ -351,7 +352,6 @@ public class MitoPipeline {
 				// we make sure each marker has an entry in the projects Markerlookup. I am doing this in case previous steps have already failed, and this should catch it
 				if (verifyAllProjectMarkersAreAvailable(proj)) {
 					// check that all target markers are available
-					// if (verifyAuxMarkers(proj, proj.getFilename(proj.TARGET_MARKERS_FILENAME), PC_MARKER_COMMAND)) {
 					if (verifyAuxMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), PC_MARKER_COMMAND)) {
 						int errorCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter, useFile, sampleList, log);
 						// check that all median markers are available
@@ -426,6 +426,7 @@ public class MitoPipeline {
 			generateFinalReport(proj, outputBase, pcResids.getResidOutput());
 			proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
 			proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
+			proj.saveProperties(new Project.Property[]{proj.INTENSITY_PC_FILENAME, proj.INTENSITY_PC_NUM_COMPONENTS});
 			// generate estimates at each pc
 			log.reportTimeWarning("Beginning experimental estimator... Please contact us if the next steps report errors");
 			CorrectionIterator.runAll(proj, ext.removeDirectoryInfo(medianMarkers), proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES, null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR, true, 0.05, plot, numThreads);
@@ -732,7 +733,7 @@ public class MitoPipeline {
 		String dataExtension = ".csv";
 		String sampleLRRSdFilter = "-1";
 		String sampleCallRateFilter = "0.96";
-		double markerCallRateFilter = 0.98;
+		double markerCallRateFilter = DEFAULT_MKR_CALLRATE_FILTER;
 		boolean markerQC = true;
 		boolean recomputeLRR_PCs = true;
 		boolean recomputeLRR_Median = true;
@@ -755,7 +756,7 @@ public class MitoPipeline {
 		GENOME_BUILD build = GENOME_BUILD.HG19;
 		boolean recompSampleSpecific = true;
 		String betaOptFile = null;
-		double[] pvalOpt = new double[] { 0.05, 0.01, 0.001 };
+		double[] pvalOpt = DEFAULT_PVAL_OPTS;
 		String betaFile = null;
 
 		String usage = "\n";
@@ -885,7 +886,7 @@ public class MitoPipeline {
 				homosygousOnly = false;
 				numArgs--;
 			} else if (args[i].startsWith("-nomarkerQC")) {
-				markerQC = true;
+				markerQC = false;
 				numArgs--;
 			} else if (args[i].startsWith("recomputeLRR_PCs=")) {
 				recomputeLRR_PCs = ext.parseBooleanArg(args[i]);

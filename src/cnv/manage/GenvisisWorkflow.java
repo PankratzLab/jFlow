@@ -10,6 +10,7 @@ import cnv.Launch;
 import cnv.analysis.AnalysisFormats;
 import cnv.analysis.Mosaicism;
 import cnv.analysis.pca.PCA;
+import cnv.analysis.pca.PCAPrep;
 import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsCompute;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
@@ -94,7 +95,7 @@ public class GenvisisWorkflow {
     static final STEP S2I_PARSE_SAMPLES = new STEP("Parse Illumina Sample Files", 
                      "", 
                      new String[][]{{"[Create Marker Positions] step must be selected and valid.", "Parsed markerPositions file must already exist."}, {"Number of Threads to Use"}}, 
-                     new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.INT}}) {
+                     new RequirementInputType[][]{{RequirementInputType.NONE, RequirementInputType.FILE}, {RequirementInputType.NUMBER}}) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -193,7 +194,7 @@ public class GenvisisWorkflow {
     static final STEP S2A_PARSE_SAMPLES = new STEP("Parse Sample Files", 
             "", 
             new String[][]{{"markerPositions file must already exist."}, {"Number of Threads to Use"}}, 
-            new RequirementInputType[][]{{RequirementInputType.FILE}, {RequirementInputType.INT}}) {
+            new RequirementInputType[][]{{RequirementInputType.FILE}, {RequirementInputType.NUMBER}}) {
         
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -514,7 +515,7 @@ public class GenvisisWorkflow {
                   {"[Parse Sample Files] step must have been run already or must be selected and valid."}, 
                   {"Number of threads to use."},
             }, 
-            new RequirementInputType[][]{{RequirementInputType.NONE}, {RequirementInputType.INT}}) {
+            new RequirementInputType[][]{{RequirementInputType.NONE}, {RequirementInputType.NUMBER}}) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -584,7 +585,7 @@ public class GenvisisWorkflow {
     						{"Number of threads to use."}},
             new RequirementInputType[][]{{RequirementInputType.NONE},
     									 {RequirementInputType.NONE, RequirementInputType.FILE},
-    									 {RequirementInputType.INT}}
+    									 {RequirementInputType.NUMBER}}
             ) {
     
         @Override
@@ -1067,7 +1068,7 @@ public class GenvisisWorkflow {
                                                             {"Number of threads to use."}},
                                                      new RequirementInputType[][]{
                                                             {RequirementInputType.NONE}, 
-                                                            {RequirementInputType.INT}}) {
+                                                            {RequirementInputType.NUMBER}}) {
     
             @Override
             public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -1143,303 +1144,359 @@ public class GenvisisWorkflow {
     						   			 {RequirementInputType.NONE},
     						   			 {RequirementInputType.BOOL, RequirementInputType.NONE},
     						   			 {RequirementInputType.BOOL, RequirementInputType.NONE},
-    						   			 {RequirementInputType.INT},
-    						   			 {RequirementInputType.INT},
-    						   			 {RequirementInputType.INT},
+    						   			 {RequirementInputType.NUMBER},
+    						   			 {RequirementInputType.NUMBER},
+    						   			 {RequirementInputType.NUMBER},
     						   			 {RequirementInputType.BOOL}}) {
-
-     @Override
-     public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-    	 double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
-    	 double lrrSdThreshold = Double.parseDouble(variables.get(this).get(2));
-    	 double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
-    	 double callrateThreshold = Double.parseDouble(variables.get(this).get(3));
-    	 
-         if (projLrrSdThreshold != lrrSdThreshold) {
-        	 proj.LRRSD_CUTOFF.setValue(lrrSdThreshold);
-         }
-         if (projCallrateThreshold != callrateThreshold) {
-        	 proj.SAMPLE_CALLRATE_THRESHOLD.setValue(callrateThreshold);
-         }
-     }
-     
-     @Override
-     public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-    	 boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
-         String duplicatesSetFile = null;
-         if (checkDuplicates) {
-             String dir = "plink/"; 
-             duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + "/quality_control/genome/plink.genome_duplicatesSet.dat";
-         }
-         boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(1));
-         int numQ = Integer.parseInt(variables.get(this).get(4));
-         boolean correctFidIids = Boolean.valueOf(variables.get(this).get(5));
-         SampleQC.parseAndAddToSampleData(proj, numQ, 0, false, gcCorrectedLrrSd, duplicatesSetFile, correctFidIids);
-     }
-     
-     @Override
-     public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-         boolean checkStepSampleQC = stepSelections.get(S6_SAMPLE_QC) && S6_SAMPLE_QC.hasRequirements(proj, stepSelections, variables);
-    	 String sampleQCFile = proj.SAMPLE_QC_FILENAME.getValue();
-    	 boolean sampleQCFileExists = Files.exists(sampleQCFile);
-    	 String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
-    	 boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
-         String dir = "plink/"; 
-         String duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + "/quality_control/genome/plink.genome_duplicatesSet.dat";
-    	 boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(1));
-    	 boolean gcCorrectedLrrSdExists = false;
-    	 if (sampleQCFileExists && ext.indexOfStr("LRR_SD_Post_Correction", Files.getHeaderOfFile(sampleQCFile, proj.getLog())) != -1) gcCorrectedLrrSdExists = true;
-    	 double lrrSdThreshold = -1.0;
-    	 try { lrrSdThreshold = Double.parseDouble(variables.get(this).get(2)); } catch (NumberFormatException nfe) {}
-    	 double callrateThreshold = -1.0;
-    	 try { callrateThreshold = Double.parseDouble(variables.get(this).get(3)); } catch (NumberFormatException nfe) {}
-    	 int numQ = -1;
-    	 try { numQ = Integer.parseInt(variables.get(this).get(4)); } catch (NumberFormatException nfe) {}
-         return new boolean[][]{
-                 {checkStepSampleQC || sampleQCFileExists},
-                 {stepSelections.get(S3_CREATE_SAMPLEDATA) && S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections, variables) || Files.exists(sampleDataFile)},
-                 {!checkDuplicates,
-                  stepSelections.get(S11_GWAS_QC) && S11_GWAS_QC.hasRequirements(proj, stepSelections, variables) || Files.exists(duplicatesSetFile)},
-                 {!gcCorrectedLrrSd, gcCorrectedLrrSdExists},
-                 {lrrSdThreshold > proj.LRRSD_CUTOFF.getMinValue() && lrrSdThreshold < proj.LRRSD_CUTOFF.getMaxValue()},
-                 {callrateThreshold > proj.SAMPLE_CALLRATE_THRESHOLD.getMinValue() && callrateThreshold < proj.SAMPLE_CALLRATE_THRESHOLD.getMaxValue()},
-                 {numQ > 0},
-                 {true}
-         };
-     }
-     
-     @Override
-     public Object[] getRequirementDefaults(Project proj) {
-         return new Object[]{"false",
-        		 			 "false",
-        		 			 proj.LRRSD_CUTOFF.getValue(),
-        		 			 proj.SAMPLE_CALLRATE_THRESHOLD.getValue(),
-        		 			 10,
-        		 			 "false"};
-     }
-
-     @Override
-     public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-    	 String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
-    	 if (!Files.exists(sampleDataFile)) return false;
-    	 boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
-    	 String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
-    	 if (checkDuplicates && ext.indexOfStr("DuplicateId", header, false, true) == -1) return false;
-    	 if (ext.indexOfStr("Class=Exclude", header, false, true) == -1) return false;
-    	 if (ext.indexOfStr("ExcludeNote", header, false, true) == -1) return false;
-    	 if (ext.indexOfStr("Use", header, false, true) == -1) return false;
-    	 if (ext.indexOfStr("UseNote", header, false, true) == -1) return false;
-    	 if (ext.indexOfStr("Use_cnv", header, false, true) == -1) return false;
-    	 if (ext.indexOfStr("Use_cnvNote", header, false, true) == -1) return false;
-    	 return true;
-     }
-     
-     @Override
-     public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-
-    	 double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
-    	 double lrrSdThreshold = Double.parseDouble(variables.get(this).get(2));
-    	 double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
-    	 double callrateThreshold = Double.parseDouble(variables.get(this).get(3));
-
-    	 String projPropFile = proj.getPropertyFilename();
-
-    	 boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
-    	 String duplicatesSetFile = null;
-    	 if (checkDuplicates) {
-             String dir = "plink/"; 
-             duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + "/quality_control/genome/plink.genome_duplicatesSet.dat";
-    	 }
-    	 boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(1));
-    	 int numQ = Integer.parseInt(variables.get(this).get(4));
-    	 boolean correctFidIids = Boolean.valueOf(variables.get(this).get(5));
-         
-    	 String kvCmd = "";
-         
-         if (projLrrSdThreshold != lrrSdThreshold) {
-             kvCmd += " LRRSD_CUTOFF=" + lrrSdThreshold;
-         }
-         if (projCallrateThreshold != callrateThreshold) {
-             kvCmd += " SAMPLE_CALLRATE_THRESHOLD=" + callrateThreshold;
-         }
-         
-         StringBuilder cmd = new StringBuilder();
-         if (kvCmd.length() > 0) {
-             cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
-         }
-         cmd.append("jcp cnv.qc.SampleQC proj=" + projPropFile +
-        		 					   " numQ=" + numQ +
-        		 					   " justQuantiles=false" +
-        							   " gcCorrectedLrrSd=" + gcCorrectedLrrSd +
-        		 					   " duplicatesSetFile=" + duplicatesSetFile +
-        		 					   " correctFidIids=" + correctFidIids);
-         return cmd.toString();
-     }
-     
- };
-    
-    static final STEP S14_CREATE_PCS = new STEP("Create Principal Components File and Mitochondrial Copy-Number Estimates File", 
-                  "", 
-                  new String[][]{
-                            {"[Transpose Data into Marker-Dominant Files] step must have been run already or must be selected and valid."}, 
-                            {"MedianMarkers file must exist."}, 
-                            {"FASTA Reference Genome file"},
-                            {"Compute PCs with samples passing QC only?"},
-                            {"Should impute mean value for NaN?"}, 
-                            {"Should recompute Log-R ratio for PC markers?"}, 
-                            {"Should recompute Log-R ratio for median markers?"}, 
-                            {"Homozygous only?"}, 
-                            {"Base-pair bins for the GC model generated from the reference"},
-                            {"Regression distance for the GC adjustment"},
-                            {"Number of principal components."}, 
-                            {"Number of threads to use"},
-                            },
-                  new RequirementInputType[][]{
-                            {RequirementInputType.NONE}, 
-                            {RequirementInputType.FILE},
-                            {RequirementInputType.FILE},
-                            {RequirementInputType.BOOL}, 
-                            {RequirementInputType.BOOL}, 
-                            {RequirementInputType.BOOL}, 
-                            {RequirementInputType.BOOL}, 
-                            {RequirementInputType.BOOL}, 
-                            {RequirementInputType.INT}, 
-                            {RequirementInputType.INT}, 
-                            {RequirementInputType.INT}, 
-                            {RequirementInputType.INT}, 
-                    }) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // not needed for step
+            double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
+            double lrrSdThreshold = Double.parseDouble(variables.get(this).get(2));
+            double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
+            double callrateThreshold = Double.parseDouble(variables.get(this).get(3));
+
+            if (projLrrSdThreshold != lrrSdThreshold) {
+                proj.LRRSD_CUTOFF.setValue(lrrSdThreshold);
+            }
+            if (projCallrateThreshold != callrateThreshold) {
+                proj.SAMPLE_CALLRATE_THRESHOLD.setValue(callrateThreshold);
+            }
         }
-        
+
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String medianMarkers = variables.get(this).get(0);
-            String refGenomeFasta = variables.get(this).get(1);
-            boolean gcCorrect = Boolean.valueOf(variables.get(this).get(2));
-            boolean imputeMeanForNaN = Boolean.valueOf(variables.get(this).get(3));
-            boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(4));
-            boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(5));
-            boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(6));
-            int bpGcModel = Integer.parseInt(variables.get(this).get(7));
-            int regressionDistance = Integer.parseInt(variables.get(this).get(8));
-            int numComponents = Integer.parseInt(variables.get(this).get(9));
-            int numThreads = Integer.parseInt(variables.get(this).get(10));
-            String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
-
-            GcAdjustorParameters params = null;
-            if (gcCorrect) {
-                if ((refGenomeFasta != null && !Files.exists(refGenomeFasta)) && Files.exists(proj.REFERENCE_GENOME_FASTA_FILENAME.getValue())) {
-                    proj.getLog().reportTimeWarning("Command line reference genome did not exist or was not provided, using default " + proj.REFERENCE_GENOME_FASTA_FILENAME.getValue());
-                    refGenomeFasta = proj.REFERENCE_GENOME_FASTA_FILENAME.getValue();
-                }
-                if (Files.exists(refGenomeFasta) || Files.exists(proj.GC_MODEL_FILENAME.getValue())) {// TODO, after evaluating reference genome based gc model files, will demand a refGenome
-                    if (refGenomeFasta != null && Files.exists(refGenomeFasta)) {
-                        proj.REFERENCE_GENOME_FASTA_FILENAME.setValue(refGenomeFasta);
-                    }
-                    GCAdjustorBuilder gAdjustorBuilder = new GCAdjustorBuilder();
-                    gAdjustorBuilder.regressionDistance(regressionDistance);
-					params = GcAdjustorParameter.generate(proj, "GC_ADJUSTMENT/", refGenomeFasta, gAdjustorBuilder, null, recomputeLRR_Median || recomputeLRR_PCs, bpGcModel, numThreads);
-                    if ((recomputeLRR_Median || recomputeLRR_PCs) && params.getCentroids() == null) {
-                        throw new IllegalStateException("Internal error, did not recieve centroids");
-                    } else if ((!recomputeLRR_Median && !recomputeLRR_PCs) && params.getCentroids() != null) {
-                        throw new IllegalStateException("Internal error, should not have recieved centroids");
-                    }
-                    recomputeLRR_Median = false;// recomputed if params has centroid
-                    recomputeLRR_PCs = false;
-                } else {
-                    proj.getLog().reportTimeError("Can not gc correct values without a valid reference genome");
-                    proj.getLog().reportTimeError("please supply a valid reference genome (full path) with the \"ref=\" argument");
-                }
+            boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
+            String duplicatesSetFile = null;
+            if (checkDuplicates) {
+                String dir = "plink/";
+                duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + "/quality_control/genome/plink.genome_duplicatesSet.dat";
             }
-            proj.getLog().report("\nReady to perform the principal components analysis (PCA)\n");
-            PrincipalComponentsCompute pcs = PCA.computePrincipalComponents(proj, false, numComponents, false, false, true, true, imputeMeanForNaN, recomputeLRR_PCs, outputBase + PCA.PCA_SAMPLES, outputBase, params);
-            if (pcs == null) {
-                setFailed();
-                this.failReasons.add("# of Principal Components is greater than either the # of samples or the # of markers.  Please lower the # of PCs and try again.");
-                return;
-            }
-            // apply PCs to everyone, we set useFile to null and excludeSamples to false to get all samples in the current project.
-            // TODO, if we ever want to apply to only a subset of the project, we can do that here.....
-            proj.getLog().report("\nApplying the loadings from the principal components analysis to all samples\n");
-            PrincipalComponentsApply pcApply = PCA.applyLoadings(proj, numComponents, pcs.getSingularValuesFile(), pcs.getMarkerLoadingFile(), null, false, imputeMeanForNaN, recomputeLRR_PCs, outputBase, params);
-            // Compute Medians for (MT) markers and compute residuals from PCs for everyone
-            proj.getLog().report("\nComputing residuals after regressing out " + numComponents + " principal component" + (numComponents == 1 ? "" : "s") + "\n");
-            PrincipalComponentsResiduals pcResids = PCA.computeResiduals(proj, pcApply.getExtrapolatedPCsFile(), ext.removeDirectoryInfo(medianMarkers), numComponents, true, 0f, homozygousOnly, recomputeLRR_Median, outputBase, params);
-            MitoPipeline.generateFinalReport(proj, outputBase, pcResids.getResidOutput());
-            proj.setProperty(proj.INTENSITY_PC_FILENAME, pcApply.getExtrapolatedPCsFile());
-            proj.setProperty(proj.INTENSITY_PC_NUM_COMPONENTS, numComponents);
-            proj.saveProperties();
+            boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(1));
+            int numQ = Integer.parseInt(variables.get(this).get(4));
+            boolean correctFidIids = Boolean.valueOf(variables.get(this).get(5));
+            SampleQC.parseAndAddToSampleData(proj, numQ, 0, false, gcCorrectedLrrSd, duplicatesSetFile, correctFidIids);
         }
 
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            String markerDir = proj.MARKER_DATA_DIRECTORY.getValue();
-            String medianMkrs = variables.get(this).get(0);
-            String fastaFile = variables.get(this).get(1);
-            int numComponents = -1;
-            int bpGcModel = -1;
-            int regressionDistance = -1;
-            int numThreads = -1;
-            try { bpGcModel = Integer.parseInt(variables.get(this).get(7)); } catch (NumberFormatException e) {}
-            try { regressionDistance = Integer.parseInt(variables.get(this).get(8)); } catch (NumberFormatException e) {}
-            try { numComponents = Integer.parseInt(variables.get(this).get(9)); } catch (NumberFormatException e) {}
-            try { numThreads = Integer.parseInt(variables.get(this).get(10)); } catch (NumberFormatException e) {}
-            return new boolean[][]{
-                    {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)) || Files.exists(markerDir)},
-                    {Files.exists(medianMkrs)},
-                    {Files.exists(fastaFile)},
-                    {true}, // TRUE or FALSE are both valid selections
-                    {true}, 
-                    {true}, 
-                    {true}, 
-                    {true}, 
-                    {bpGcModel > 0},
-                    {regressionDistance > 0},
-                    {numComponents > 0},
-                    {numThreads > 0},
-            };
+            boolean checkStepSampleQC = stepSelections.get(S6_SAMPLE_QC) && S6_SAMPLE_QC.hasRequirements(proj, stepSelections, variables);
+            String sampleQCFile = proj.SAMPLE_QC_FILENAME.getValue();
+            boolean sampleQCFileExists = Files.exists(sampleQCFile);
+            String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
+            boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
+            String dir = "plink/";
+            String duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + "/quality_control/genome/plink.genome_duplicatesSet.dat";
+            boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(1));
+            boolean gcCorrectedLrrSdExists = false;
+            if (sampleQCFileExists && ext.indexOfStr("LRR_SD_Post_Correction", Files.getHeaderOfFile(sampleQCFile, proj.getLog())) != -1)
+                gcCorrectedLrrSdExists = true;
+            double lrrSdThreshold = -1.0;
+            try {
+                lrrSdThreshold = Double.parseDouble(variables.get(this).get(2));
+            } catch (NumberFormatException nfe) {
+            }
+            double callrateThreshold = -1.0;
+            try {
+                callrateThreshold = Double.parseDouble(variables.get(this).get(3));
+            } catch (NumberFormatException nfe) {
+            }
+            int numQ = -1;
+            try {
+                numQ = Integer.parseInt(variables.get(this).get(4));
+            } catch (NumberFormatException nfe) {
+            }
+            return new boolean[][] { { checkStepSampleQC || sampleQCFileExists }, { stepSelections.get(S3_CREATE_SAMPLEDATA) && S3_CREATE_SAMPLEDATA.hasRequirements(proj, stepSelections, variables) || Files.exists(sampleDataFile) }, { !checkDuplicates, stepSelections.get(S11_GWAS_QC) && S11_GWAS_QC.hasRequirements(proj, stepSelections, variables) || Files.exists(duplicatesSetFile) }, { !gcCorrectedLrrSd, gcCorrectedLrrSdExists }, { lrrSdThreshold > proj.LRRSD_CUTOFF.getMinValue() && lrrSdThreshold < proj.LRRSD_CUTOFF.getMaxValue() }, { callrateThreshold > proj.SAMPLE_CALLRATE_THRESHOLD.getMinValue() && callrateThreshold < proj.SAMPLE_CALLRATE_THRESHOLD.getMaxValue() }, { numQ > 0 }, { true } };
         }
-        
+
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{
-                    "",
-                    proj.REFERENCE_GENOME_FASTA_FILENAME.getValue(false, false),
-                    "true", 
-                    "true", 
-                    "true", 
-                    "true", 
-                    "true",
-                    GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA,
-                    GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0],
-                    proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), 
-                    proj.NUM_THREADS.getValue()/*,""*/
-            };
+            return new Object[] { "false", "false", proj.LRRSD_CUTOFF.getValue(), proj.SAMPLE_CALLRATE_THRESHOLD.getValue(), 10, "false" };
         }
 
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
-            String finalReport = outputBase + PCA.FILE_EXTs[0];//PrincipalComponentsResiduals.MT_REPORT_EXT[0];
-//            boolean mkrFiles = true;
-//            for (String file : PrincipalComponentsResiduals.MT_REPORT_MARKERS_USED) {
-//                if (!Files.exists(outputBase + file)) {
-//                    mkrFiles = false;
-//                    break;
-//                }
-//            }
-            return Files.exists(finalReport) /*&& mkrFiles*/;
+            String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
+            if (!Files.exists(sampleDataFile))
+                return false;
+            boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
+            String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
+            if (checkDuplicates && ext.indexOfStr("DuplicateId", header, false, true) == -1)
+                return false;
+            if (ext.indexOfStr("Class=Exclude", header, false, true) == -1)
+                return false;
+            if (ext.indexOfStr("ExcludeNote", header, false, true) == -1)
+                return false;
+            if (ext.indexOfStr("Use", header, false, true) == -1)
+                return false;
+            if (ext.indexOfStr("UseNote", header, false, true) == -1)
+                return false;
+            if (ext.indexOfStr("Use_cnv", header, false, true) == -1)
+                return false;
+            if (ext.indexOfStr("Use_cnvNote", header, false, true) == -1)
+                return false;
+            return true;
         }
+
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            return "## << Create PrincipalComponents File >> Not Implemented For Command Line Yet ##"; // TODO
+
+            double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
+            double lrrSdThreshold = Double.parseDouble(variables.get(this).get(2));
+            double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
+            double callrateThreshold = Double.parseDouble(variables.get(this).get(3));
+
+            String projPropFile = proj.getPropertyFilename();
+
+            boolean checkDuplicates = !Boolean.valueOf(variables.get(this).get(0));
+            String duplicatesSetFile = null;
+            if (checkDuplicates) {
+                String dir = "plink/";
+                duplicatesSetFile = proj.PROJECT_DIRECTORY.getValue() + dir + "/quality_control/genome/plink.genome_duplicatesSet.dat";
+            }
+            boolean gcCorrectedLrrSd = !Boolean.valueOf(variables.get(this).get(1));
+            int numQ = Integer.parseInt(variables.get(this).get(4));
+            boolean correctFidIids = Boolean.valueOf(variables.get(this).get(5));
+
+            String kvCmd = "";
+
+            if (projLrrSdThreshold != lrrSdThreshold) {
+                kvCmd += " LRRSD_CUTOFF=" + lrrSdThreshold;
+            }
+            if (projCallrateThreshold != callrateThreshold) {
+                kvCmd += " SAMPLE_CALLRATE_THRESHOLD=" + callrateThreshold;
+            }
+
+            StringBuilder cmd = new StringBuilder();
+            if (kvCmd.length() > 0) {
+                cmd.append("jcp cnv.filesys.Project proj=" + projPropFile).append(kvCmd).append("\n");
+            }
+            cmd.append("jcp cnv.qc.SampleQC proj=" + projPropFile + " numQ=" + numQ + " justQuantiles=false" + " gcCorrectedLrrSd=" + gcCorrectedLrrSd + " duplicatesSetFile=" + duplicatesSetFile + " correctFidIids=" + correctFidIids);
+            return cmd.toString();
         }
-        
+
     };
-static final STEP S15_COMPUTE_PFB = new STEP("Compute Population BAF files", "", new String[][]{
+
+    static final STEP S14_CREATE_PCS = new STEP("Create Principal Components File and Mitochondrial Copy-Number Estimates File", 
+            "", 
+            new String[][]{
+                      {"[Transpose Data into Marker-Dominant Files] step must have been run already or must be selected and valid."}, 
+                      {"MedianMarkers file must exist."}, 
+                      {"LRR SD threshold to filter samples."},
+                      {"Call rate threshold to filter markers."},
+                      {"Compute PCs with samples passing QC only?"},
+                      {"Should impute mean value for NaN?"}, 
+                      {"Should recompute Log-R ratio for PC markers?"}, 
+                      {"Should recompute Log-R ratio for median markers?"}, 
+                      {"Homozygous only?"}, 
+                      {"Base-pair bins for the GC model generated from the reference"},
+                      {"Regression distance for the GC adjustment"},
+                      {"Number of principal components (must be less than number of samples and number of markers)."}, 
+                      {"Number of threads to use"},
+                      },
+            new RequirementInputType[][]{
+                      {RequirementInputType.NONE}, 
+                      {RequirementInputType.NUMBER},
+                      {RequirementInputType.NUMBER},
+                      {RequirementInputType.FILE},
+                      {RequirementInputType.BOOL}, 
+                      {RequirementInputType.BOOL}, 
+                      {RequirementInputType.BOOL}, 
+                      {RequirementInputType.BOOL}, 
+                      {RequirementInputType.BOOL}, 
+                      {RequirementInputType.NUMBER}, 
+                      {RequirementInputType.NUMBER}, 
+                      {RequirementInputType.NUMBER}, 
+                      {RequirementInputType.NUMBER}, 
+              }) {
+    
+      @Override
+      public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+          double sampleLRRSdFilter = Double.parseDouble(variables.get(this).get(1));
+          if (sampleLRRSdFilter < 0) {
+              switch (proj.ARRAY_TYPE.getValue()) {
+                  case AFFY_GW6:
+                  case AFFY_GW6_CN:
+                      proj.LRRSD_CUTOFF.setValue(0.35);
+                      proj.getLog().reportTimeInfo("Setting " + proj.LRRSD_CUTOFF.getName() + " to default 0.35 for array " + proj.ARRAY_TYPE.getValue());
+                      break;
+                  case ILLUMINA:
+                      proj.LRRSD_CUTOFF.setValue(0.30);
+                      proj.getLog().reportTimeInfo("Setting " + proj.LRRSD_CUTOFF.getName() + " to default 0.30 for array " + proj.ARRAY_TYPE.getValue());
+                      break;
+                  default:
+                      throw new IllegalArgumentException("Invalid Array type");
+              }
+          } else {
+              proj.LRRSD_CUTOFF.setValue(sampleLRRSdFilter);
+          }
+      }
+  
+      @Override
+      public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+          String medianMarkers = variables.get(this).get(0);
+          double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
+          boolean gcCorrect = Boolean.valueOf(variables.get(this).get(3));
+          boolean imputeMeanForNaN = Boolean.valueOf(variables.get(this).get(4));
+          boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(5));
+          boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(6));
+          boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(7));
+          int bpGcModel = Integer.parseInt(variables.get(this).get(8));
+          int regressionDistance = Integer.parseInt(variables.get(this).get(9));
+          int numComponents = Integer.parseInt(variables.get(this).get(10));
+          int numThreads = Integer.parseInt(variables.get(this).get(11));
+          String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
+          
+          String betaOptFile = ""; // TODO variable
+          String betaFile = null; // TODO maybe variable?
+          
+          boolean markerQC = true;
+          double[] pvalOpt = MitoPipeline.DEFAULT_PVAL_OPTS;
+          String pedFile = null;
+          String useFile = null;
+          boolean sampLrr = true;
+          String refGenomeFasta = null;
+          boolean plot = false;
+          int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter, useFile, proj.getSampleList(), proj.getLog());
+          if (retCode == 42) { // TODO remove magic number
+              MitoPipeline.estimateMtDNACN(proj, numThreads, medianMarkers, numComponents, outputBase, homozygousOnly, markerCallRateFilter, betaOptFile, pedFile, recomputeLRR_PCs, recomputeLRR_Median, sampLrr, imputeMeanForNaN, gcCorrect, refGenomeFasta, bpGcModel, regressionDistance, proj.GENOME_BUILD_VERSION.getValue(), pvalOpt, betaFile, plot, proj.getLog());
+          } else {
+              setFailed();
+          }
+      }
+
+      @Override
+      public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
+          int sampleCount = proj.getSamples().length;
+          int mkrCount = proj.getMarkerNames().length;
+          
+          String markerDir = proj.MARKER_DATA_DIRECTORY.getValue();
+          String medianMkrs = variables.get(this).get(0);
+          double lrrThresh = -1;
+          double callrate = -1;
+          int numComponents = -1;
+          int bpGcModel = -1;
+          int regressionDistance = -1;
+          int numThreads = -1;
+          try { lrrThresh = Double.parseDouble(variables.get(this).get(1)); } catch (NumberFormatException e) {}
+          try { callrate = Double.parseDouble(variables.get(this).get(2)); } catch (NumberFormatException e) {}
+          try { bpGcModel = Integer.parseInt(variables.get(this).get(7)); } catch (NumberFormatException e) {}
+          try { regressionDistance = Integer.parseInt(variables.get(this).get(8)); } catch (NumberFormatException e) {}
+          try { numComponents = Integer.parseInt(variables.get(this).get(9)); } catch (NumberFormatException e) {}
+          try { numThreads = Integer.parseInt(variables.get(this).get(10)); } catch (NumberFormatException e) {}
+          return new boolean[][]{
+                  {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)) || Files.exists(markerDir)},
+                  {Files.exists(medianMkrs)},
+                  {lrrThresh > 0},
+                  {callrate > 0},
+                  {true}, // TRUE or FALSE are both valid selections
+                  {true}, 
+                  {true}, 
+                  {true}, 
+                  {true}, 
+                  {bpGcModel > 0},
+                  {regressionDistance > 0},
+                  {numComponents > 0 && numComponents < sampleCount && numComponents < mkrCount},
+                  {numThreads > 0},
+          };
+      }
+          
+          @Override
+          public Object[] getRequirementDefaults(Project proj) {
+              return new Object[]{
+                      "",
+                      proj.LRRSD_CUTOFF.getValue(),
+                      MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER,
+                      "true", 
+                      "true", 
+                      "true", 
+                      "true", 
+                      "true",
+                      GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA,
+                      GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0],
+                      proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), 
+                      proj.NUM_THREADS.getValue()
+              };
+          }
+
+        @Override
+        public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
+            String finalReport = outputBase + PCA.FILE_EXTs[0];// PrincipalComponentsResiduals.MT_REPORT_EXT[0];
+            // boolean mkrFiles = true;
+            // for (String file : PrincipalComponentsResiduals.MT_REPORT_MARKERS_USED) {
+            // if (!Files.exists(outputBase + file)) {
+            // mkrFiles = false;
+            // break;
+            // }
+            // }
+            return Files.exists(finalReport) /* && mkrFiles */;
+        }
+
+        @Override
+        public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
+            String medianMarkers = variables.get(this).get(0);
+            double lrrSD = Double.parseDouble(variables.get(this).get(1));
+            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
+            boolean gcCorrect = Boolean.valueOf(variables.get(this).get(3));
+            boolean imputeMeanForNaN = Boolean.valueOf(variables.get(this).get(4));
+            boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(5));
+            boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(6));
+            boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(7));
+            int bpGcModel = Integer.parseInt(variables.get(this).get(8));
+            int regressionDistance = Integer.parseInt(variables.get(this).get(9));
+            int numComponents = Integer.parseInt(variables.get(this).get(10));
+            int numThreads = Integer.parseInt(variables.get(this).get(11));
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
+
+            String betaOptFile = ""; // TODO variable
+            String betaFile = null; // TODO maybe variable?
+
+            boolean markerQC = true;
+            double[] pvalOpt = MitoPipeline.DEFAULT_PVAL_OPTS;
+            String pedFile = null;
+            String useFile = null;
+            boolean sampLrr = true;
+            String refGenomeFasta = null;
+            boolean plot = false;
+
+            String projPropFile = proj.getPropertyFilename();
+            StringBuilder cmd = new StringBuilder();
+            cmd.append("java -cp genvisis.jar cnv.manage.MitoPipeline")
+                .append(" proj=").append(projPropFile)
+                .append(" mitochondrialMarkers=").append(medianMarkers)
+                .append(" numComponents=").append(numComponents)
+                .append(" imputeMeanForNaN=").append(imputeMeanForNaN)
+                .append(" recomputeLRR_PCs=").append(recomputeLRR_PCs)
+                .append(" recomputeLRR_Median=").append(recomputeLRR_Median)
+                .append(" gcCorrect=").append(gcCorrect)
+                .append(" bpGcModel=").append(bpGcModel)
+                .append(" LRRSD=").append(lrrSD)
+                .append(" markerCallRate=").append(markerCallRateFilter)
+                .append(" regressionDistance=").append(regressionDistance)
+                .append(" sampLRR=").append(sampLrr)
+                .append(" threads=").append(numThreads)
+                .append(" log=").append(proj.getLog().getFilename())
+                .append(" output=").append(outputBase);
+          
+            if (!homozygousOnly) {
+                cmd.append(" -allCalls ");
+            }
+          
+            cmd         
+                .append(" dirSrc=").append("")
+                .append(" dirProj=").append("")
+                .append(" PCmarkers=").append("")
+                .append(" markerPositions=").append("");
+      
+            return cmd.toString();
+        }
+
+    };
+    
+    
+    
+    static final STEP S15_COMPUTE_PFB = new STEP("Compute Population BAF files", "", new String[][]{
             {"[Parse Sample Files] step must have been run already or must be selected and valid.", "A Sample subset file must exist."}, 
             {"PFB (population BAF) output file must be specified."}},
             new RequirementInputType[][]{
@@ -1528,7 +1585,7 @@ static final STEP S15_COMPUTE_PFB = new STEP("Compute Population BAF files", "",
                             },
                             new RequirementInputType[][]{
                                 {RequirementInputType.NONE,  RequirementInputType.FILE},
-                                {RequirementInputType.INT}
+                                {RequirementInputType.NUMBER}
                             }) {
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -1617,7 +1674,7 @@ static final STEP S15_COMPUTE_PFB = new STEP("Compute Population BAF files", "",
                                 {RequirementInputType.FILE},
                                 {RequirementInputType.NONE, RequirementInputType.FILE},
                                 {RequirementInputType.NONE, RequirementInputType.FILE},
-                                {RequirementInputType.INT},
+                                {RequirementInputType.NUMBER},
                                 {RequirementInputType.FILE},
                             }) {
         @Override
@@ -1853,7 +1910,7 @@ static final STEP S15_COMPUTE_PFB = new STEP("Compute Population BAF files", "",
         FILE(),
         DIR(),
         STRING(),
-        INT(),
+        NUMBER(),
         BOOL()
     }
     

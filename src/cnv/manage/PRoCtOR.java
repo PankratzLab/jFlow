@@ -11,6 +11,7 @@ import cnv.analysis.PennCNVPrep;
 import cnv.analysis.PennCNVPrep.ShadowSample;
 import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PCAPrep;
+import cnv.analysis.pca.PrincipalComponentsApply;
 import cnv.analysis.pca.PrincipalComponentsIntensity;
 import cnv.analysis.pca.PrincipalComponentsResiduals;
 import cnv.filesys.MarkerData;
@@ -68,14 +69,38 @@ public class PRoCtOR {
 	}
 
     private static final String SHADOW_DIR = "shadowSamples/";
+    private static final String SHADOW_PREP_DIR = "shadowPrep/";
     
-    private static void mockupShadow(){
-//    	PCAPrep.qcMarkers(proj, targetMarkersFile, markersToQCFile, markersABCallrate, markerCallRateFilter, numthreads);
-//    	PCA.generateFullPCA(proj, numComponents, outputBase, recomputeLRR_PCs, imputeMeanForNaN, params, log)
-//    	PennCNVPrep.
+    private static int getSampleChunks(Project proj, int numThreads) {
+        int sampleChunks = 0;
+        /*
+            sampleChunks = (.8 * totalRam * sampleSize) / numThreads;
+        */
+        return sampleChunks;
+    }
+    
+    // markerCallRateFilter: default to MitoPipeline
+    // recomputeLRR_PCs: false if project source data has LRRs
+    private static void mockupShadow(Project proj, String tmpDir, String outputBase, double markerCallRateFilter, boolean recomputeLRR_PCs, int numComponents, int totalThreads) {
+        int numMarkerThreads = 2;
+        int numThreads = (int) Math.ceil((double)totalThreads / (double)numMarkerThreads);
+        boolean markerQC = true;
+        String useFile = null;
+        int sampleChunks = getSampleChunks(proj, numThreads);
+        
+        int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter, useFile, proj.getSampleList(), proj.getLog());
+        if (retCode != 42) {
+            // TODO error
+            return;
+        }
+    	PrincipalComponentsApply pcApply = PCA.generateFullPCA(proj, numComponents, outputBase, recomputeLRR_PCs, true, null, proj.getLog());
+        String pcFile = pcApply.getExtrapolatedPCsFile();
+        PennCNVPrep.prepExport(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads, numMarkerThreads, LS_TYPE.REGULAR, false);
+    	PennCNVPrep.exportSpecialPennCNV(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads, numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false);
     }
     
     
+    // PROOF OF CONCEPT:
     void run(Project proj) {
         System.gc();
         String[] markerNames = getMarkerNames(proj);

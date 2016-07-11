@@ -40,6 +40,7 @@ import one.ben.fcs.gating.Gate;
 import one.ben.fcs.gating.Gate.RectangleGate;
 import one.ben.fcs.gating.GateDimension;
 import one.ben.fcs.gating.GateFileReader;
+import one.ben.fcs.gating.GateTreePanel;
 import one.ben.fcs.gating.GatingStrategy;
 import one.ben.fcs.sub.RainbowTestGUI;
 
@@ -65,6 +66,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	private FCSPanel fcsPanel;
 	private FCSPlotControlPanel fcsControls;
 	private JLayeredPane layeredPane;
+	private GateTreePanel gatingSelector;
 
 	HashSet<String> validExts;
 	Logger log;
@@ -110,7 +112,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		
 		fcsPanel = new FCSPanel(this);
 		fcsPanel.addPropertyChangeListener(this);
-
+		
+		gatingSelector = new GateTreePanel(this);
+		
 		layeredPane = new JLayeredPane() {
             private static final long serialVersionUID = 1L;
             @Override
@@ -120,7 +124,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		};
 		layeredPane.setLayout(new BorderLayout());
 		
-		layeredPane.add(fcsPanel);
+		layeredPane.add(fcsPanel, BorderLayout.CENTER);
+		layeredPane.add(gatingSelector, BorderLayout.NORTH);
 		layeredPane.setComponentZOrder(fcsPanel, 0);
 		layeredPane.setPreferredSize(new Dimension(1000, 600));
 		
@@ -470,7 +475,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                     try {
                         newDataLoader.loadData(filename);
                     } catch (IOException e) {
-                        e.printStackTrace(); // TODO
+                        log.reportException(e);
                         return;
                     }
                     if (display) {
@@ -496,6 +501,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	
 	public void setGating(GatingStrategy gateStrat) {
 	    this.gating = gateStrat;
+	    this.gatingSelector.setGating(gateStrat);
 	    // TODO repaint
 	}
 	
@@ -666,6 +672,16 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         parentGate.getChildGates().add(rg);
         // TODO export/save gate data
         // TODO addGate
+    }
+
+    public void gateSelected(Gate gate) {
+        ArrayList<GateDimension> gd = gate.getDimensions();
+        GateDimension gdX = gd.get(0);
+        GateDimension gdY = gd.get(1);
+        setXDataName(gdX.getParam());
+        setYDataName(gdY.getParam());
+        
+        // TODO set axis scales, update and repaint
     }
 
 }

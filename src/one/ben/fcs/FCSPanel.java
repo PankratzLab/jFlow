@@ -65,7 +65,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 			   									new Color(224, 255, 255),
 
 	};
-    private static final byte POINT_SIZE = 5;
+    private static final byte POINT_SIZE = 3;
 	
 	protected FCSPlot fcp;
 	
@@ -100,6 +100,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	ArrayList<GenericLine> histLines = new ArrayList<GenericLine>();
 	ArrayList<double[]> tempPoly = new ArrayList<double[]>();
     volatile boolean forceGatesChanged = false;
+    volatile boolean lackingData = true;
 	
     public static enum GATING_TOOL {
         RECT_TOOL,
@@ -168,6 +169,18 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         lines = allLines.toArray(new GenericLine[allLines.size()]);
     }
     
+    private void resetAllForLackingData() {
+        gates.clear();
+        rects.clear();
+        polys.clear();
+        tempPoly.clear();
+        histLines.clear();
+        points = new PlotPoint[0];
+        rectangles = new GenericRectangle[0];
+        lines = new GenericLine[0];
+        polygons = new GenericPath[0];
+    }
+    
     public void generatePointsRectanglesAndLines() {
 		byte type;
 //		String[] line;
@@ -175,31 +188,18 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		byte size = POINT_SIZE;
 		
 		if (fcp.dataLoader == null) {
+		    lackingData = true;
 		    setNullMessage("Please load an FCS file..");
-		    gates.clear();
-		    rects.clear();
-		    polys.clear();
-		    tempPoly.clear();
-		    histLines.clear();
-		    points = new PlotPoint[0];
-            rectangles = new GenericRectangle[0];
-            lines = new GenericLine[0];
-            polygons = new GenericPath[0];
+		    resetAllForLackingData();
 		    return;
 		}
 		if (!fcp.isCurrentDataDisplayable()) {
+		    lackingData = true;
 		    setNullMessage("Please wait, data is loading...");
-		    gates.clear();
-		    rects.clear();
-		    polys.clear();
-		    tempPoly.clear();
-		    histLines.clear();
-		    points = new PlotPoint[0];
-            rectangles = new GenericRectangle[0];
-            lines = new GenericLine[0];
-            polygons = new GenericPath[0];
+		    resetAllForLackingData();
 		    return;
 		}
+		lackingData = false;
 		
 		boolean columnsChangedX = false;
 		boolean columnsChangedY = false;
@@ -555,7 +555,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     private ArrayList<Integer> draggingPolyInds = new ArrayList<Integer>();
     
     public void mouseReleased(MouseEvent e) {
-        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown() && !lackingData) {
             int mouseEndX;
             int mouseEndY;
             mouseEndX = e.getX();
@@ -677,7 +677,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     }
     
     public void mousePressed(MouseEvent e) {
-        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown() && !lackingData) {
             int tempX = e.getX();
             int tempY = e.getY();
             if (tempPoly.isEmpty()) {
@@ -800,6 +800,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 //    }
 
     public void mouseClicked(MouseEvent e) {   
+        if (lackingData) return;
     	if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
     	    if (currentTool == GATING_TOOL.POLY_TOOL) {
     	        
@@ -820,7 +821,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     }
 
     public void mouseDragged(MouseEvent e) {
-        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
+        if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown() && !lackingData) {
             drag = true;
             
             boolean updateStartCoords = false;

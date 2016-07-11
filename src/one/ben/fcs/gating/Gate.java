@@ -2,13 +2,13 @@ package one.ben.fcs.gating;
 
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 
 import one.ben.fcs.FCSDataLoader;
 import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 
 public abstract class Gate {
+    String popName;
     String id;
     String parentID;
     Gate parentGate;
@@ -23,15 +23,16 @@ public abstract class Gate {
     }
     
     public Gate(Gate parentGate2) {
-        this(parentGate2, generateID());
+        this(parentGate2, "PopulationName", generateID());
     }
 
-    public Gate(Gate parentGate2, String id) {
+    public Gate(Gate parentGate2, String popName, String id) {
         if (parentGate2 != null) {
             this.parentGate = parentGate2;
             this.parentID = parentGate2.id;
         }
         this.id = id;
+        this.popName = popName;
     }
 
     public Gate getParentGate() {
@@ -66,8 +67,8 @@ public abstract class Gate {
             super(parentGate);
         }
         
-        public RectangleGate(Gate parentGate, String id) {
-            super(parentGate, id);
+        public RectangleGate(Gate parentGate, String popName, String id) {
+            super(parentGate, popName, id);
         }
         
         public RectangleGateDimension getDimension(String param) {
@@ -126,8 +127,8 @@ public abstract class Gate {
         ArrayList<Float> verticesY = new ArrayList<Float>(); 
         Path2D myPath;
         
-        public PolygonGate(Gate parentGate, String id) {
-            super(parentGate, id);
+        public PolygonGate(Gate parentGate, String name, String id) {
+            super(parentGate, name, id);
         }
         
         public PolygonGate(Gate parentGate) {
