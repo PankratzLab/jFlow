@@ -689,6 +689,17 @@ public class Rscript {
 			this.slopeLines = slopeLines;
 		}
 
+		/**
+		 * @param dataFile full path to the input data file, where all data to plot will come from
+		 * @param rSriptFile full path to the rscript file (which will be generated after calling {@link RScatter#execute()}
+		 * @param plotVar the variable name that holds the R plot variable, which must be unique per R instance
+		 * @param output full path to the output plot (extension determines type, i.e .pdf produces pdfs, .jpg produces jpegs
+		 * @param dataXvalueColumn the column name holding the x-axis data
+		 * @param dataYvalueColumns the column names holding the y-axis data
+		 * @param colorColumn if not null, points will be colored by this column
+		 * @param sType Type of plot eg, {@link SCATTER_TYPE#POINT} or  {@link SCATTER_TYPE#BOX}  
+		 * @param log
+		 */
 		public RScatter(String dataFile, String rSriptFile, String plotVar, String output, String dataXvalueColumn, String[] dataYvalueColumns, String colorColumn, SCATTER_TYPE sType, Logger log) {
 			super();
 			this.dataFile = dataFile;
