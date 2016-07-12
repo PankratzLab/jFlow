@@ -3589,10 +3589,14 @@ public class Files {
 			if (changeToCurrentWorkingDirectoryFirst) {
 				lines = Array.addStrToArray("cd "+ext.pwd(), lines);
 			}
-			qsubs = qsub("", ext.rootOf(filename)+"#", start, stop, Array.toStr(lines, "\n"), patterns, 5000, 24, null);
-			if (qsubs.length > 1) {
-				writeList(qsubs, "master."+ext.rootOf(filename));
-				Files.chmod("master."+ext.rootOf(filename));
+			if (start == stop) {
+			    qsub(ext.rootOf(filename) + ".qsub", Array.toStr(lines, "\n"), 5000, 24, 1);
+			} else {
+    			qsubs = qsub("", ext.rootOf(filename)+"#", start, stop, Array.toStr(lines, "\n"), patterns, 5000, 24, null);
+    			if (qsubs.length > 1) {
+    				writeList(qsubs, "master."+ext.rootOf(filename));
+    				Files.chmod("master."+ext.rootOf(filename));
+    			}
 			}
 
 		}

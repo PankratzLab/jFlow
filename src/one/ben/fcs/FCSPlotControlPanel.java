@@ -43,6 +43,8 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.miginfocom.swing.MigLayout;
 import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
@@ -81,8 +83,10 @@ public class FCSPlotControlPanel extends JPanel {
     private JAccordionPanel gateControlPanel;
     private JPanel panel_1;
 
+    private JButton gateSelectBtn;
     private JButton dirSelectBtn;
-    private String prevDir;
+    private String prevGateDir;
+    private String prevFCSDir;
 
     /**
      * Create the panel.
@@ -285,6 +289,18 @@ public class FCSPlotControlPanel extends JPanel {
         JLabel gCtrlLabel = new JLabel("<html><u>Gate Controls</u></html>");
         gCtrlLabel.setFont(gCtrlLabel.getFont().deriveFont(Font.PLAIN, 14));
         gateControlPanel.topPanel.add(gCtrlLabel, "pad 0 10 0 0, cell 0 0, grow");
+        
+        JPanel gatePanel = gateControlPanel.contentPanel;
+        gatePanel.setLayout(new MigLayout("hidemode 3,ins 0", "[grow][]", "0px[]0px[]0px[grow]0px[]0px[]0px"));
+        
+        JLabel dirLbl1 = new JLabel("Select Gating File:");
+        dirLbl1.setHorizontalAlignment(SwingConstants.RIGHT);
+        gatePanel.add(dirLbl1, "cell 0 0, growx, alignx right");
+        
+        gateSelectBtn = new JButton("+");
+        gateSelectBtn.addActionListener(gateSelectListener);
+        gateSelectBtn.setMargin(new Insets(0, 2, 0, 2));
+        gatePanel.add(gateSelectBtn, "cell 1 0");
         
         dataControlsPanel = new JAccordionPanel();
         panel_1.add(dataControlsPanel, "cell 0 2,grow");
@@ -542,17 +558,35 @@ public class FCSPlotControlPanel extends JPanel {
         }
     };
     
+    ActionListener gateSelectListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JFileChooser jfc = new JFileChooser(prevGateDir);
+            jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            jfc.setMultiSelectionEnabled(false);
+            jfc.setFileFilter(new FileNameExtensionFilter("FlowJo Workspace or WorkspaceTemplate Files", "wsp", "wspt"));
+            jfc.setDialogTitle("Select Gating File(s)");
+            int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
+            if (resp == JFileChooser.APPROVE_OPTION) {
+                File newFile = jfc.getSelectedFile();
+                prevGateDir = ext.parseDirectoryOfFile(newFile.getAbsolutePath());
+                plot.loadGatingFile(newFile.getAbsolutePath());
+//                loadGateFile(newFile);
+            }
+        }
+    };
+    
     ActionListener dirSelectListener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            JFileChooser jfc = new JFileChooser(prevDir);
+            JFileChooser jfc = new JFileChooser(prevFCSDir);
             jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
             jfc.setMultiSelectionEnabled(true);
             jfc.setDialogTitle("Select FCS File(s)");
             int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
             if (resp == JFileChooser.APPROVE_OPTION) {
                 File[] newFiles = jfc.getSelectedFiles();
-                prevDir = ext.parseDirectoryOfFile(newFiles[0].getAbsolutePath());
+                prevFCSDir = ext.parseDirectoryOfFile(newFiles[0].getAbsolutePath());
                 listFiles(newFiles);
             }
         }
