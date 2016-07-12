@@ -1293,6 +1293,8 @@ public class GenvisisWorkflow {
                       {"Regression distance for the GC adjustment"},
                       {"Number of principal components (must be less than number of samples and number of markers)."}, 
                       {"Number of threads to use"},
+                      {"A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used."},
+                      {"An external beta file to optimize PC selection."},
                       },
             new RequirementInputType[][]{
                       {RequirementInputType.NONE}, 
@@ -1307,7 +1309,9 @@ public class GenvisisWorkflow {
                       {RequirementInputType.NUMBER}, 
                       {RequirementInputType.NUMBER}, 
                       {RequirementInputType.NUMBER}, 
-                      {RequirementInputType.NUMBER}, 
+                      {RequirementInputType.NUMBER},
+                      {RequirementInputType.FILE},
+                      {RequirementInputType.FILE},
               }) {
     
       @Override
@@ -1347,8 +1351,8 @@ public class GenvisisWorkflow {
           int numThreads = Integer.parseInt(variables.get(this).get(11));
           String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
           
-          String betaOptFile = ""; // TODO variable
-          String betaFile = null; // TODO maybe variable?
+          String betaOptFile = variables.get(this).get(12); 
+          String betaFile = variables.get(this).get(13); 
           
           boolean markerQC = true;
           double[] pvalOpt = MitoPipeline.DEFAULT_PVAL_OPTS;
@@ -1371,7 +1375,9 @@ public class GenvisisWorkflow {
           int mkrCount = proj.getMarkerNames().length;
           
           String markerDir = proj.MARKER_DATA_DIRECTORY.getValue();
-          String medianMkrs = variables.get(this).get(0);
+          String medianMkrs = variables.get(this).get(0).trim();
+          String betaOptFile = variables.get(this).get(12).trim(); 
+          String betaFile = variables.get(this).get(13).trim(); 
           double lrrThresh = -1;
           double callrate = -1;
           int numComponents = -1;
@@ -1398,6 +1404,8 @@ public class GenvisisWorkflow {
                   {regressionDistance > 0},
                   {numComponents > 0 && numComponents < sampleCount && numComponents < mkrCount},
                   {numThreads > 0},
+                  {betaOptFile.equals("") || Files.exists(betaOptFile)},
+                  {betaFile.equals("") || Files.exists(betaFile)},
           };
       }
           
@@ -1415,7 +1423,9 @@ public class GenvisisWorkflow {
                       GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA,
                       GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0],
                       proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), 
-                      proj.NUM_THREADS.getValue()
+                      proj.NUM_THREADS.getValue(),
+                      "",
+                      "",
               };
           }
 
@@ -1449,16 +1459,9 @@ public class GenvisisWorkflow {
             int numThreads = Integer.parseInt(variables.get(this).get(11));
             String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
 
-            String betaOptFile = ""; // TODO variable
-            String betaFile = null; // TODO maybe variable?
-
-            boolean markerQC = true;
-            double[] pvalOpt = MitoPipeline.DEFAULT_PVAL_OPTS;
-            String pedFile = null;
-            String useFile = null;
+            String betaOptFile = variables.get(this).get(12).trim(); 
+            String betaFile = variables.get(this).get(13).trim(); 
             boolean sampLrr = true;
-            String refGenomeFasta = null;
-            boolean plot = false;
 
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
@@ -1478,16 +1481,17 @@ public class GenvisisWorkflow {
                 .append(" threads=").append(numThreads)
                 .append(" log=").append(proj.getLog().getFilename())
                 .append(" output=").append(outputBase);
-          
+            if (!"".equals(betaOptFile)) {
+                cmd.append(" ").append(MitoPipeline.PC_OPT_FILE).append("=").append(betaOptFile);
+            }
+            if (!"".equals(betaFile)) {
+                cmd.append(" betas=").append(betaFile);
+            }
             if (!homozygousOnly) {
                 cmd.append(" -allCalls ");
             }
-          
-            cmd         
-                .append(" dirSrc=").append("")
-                .append(" dirProj=").append("")
-                .append(" PCmarkers=").append("")
-                .append(" markerPositions=").append("");
+            
+            cmd.append(" -SkipProjectCreationWithLongUndocumentedFlag ");
       
             return cmd.toString();
         }
@@ -1781,10 +1785,26 @@ public class GenvisisWorkflow {
         
     };
     
-    static final STEP S99_SHADOW_SAMPLES = new STEP("Create 'Shadow' Project", 
+    static final STEP S18_SHADOW_SAMPLES = new STEP("Create 'Shadow' Project", 
                 "", 
-                new String[][]{},
-                new RequirementInputType[][]{}) {
+                new String[][]{
+                    {"[Parse Sample Files] step must have been run already or must be selected and valid."}, 
+                    {"Number of principal components for correction."},
+                    {"Output file full path and baseName for principal components correction files"},
+                    {"Call-rate filter for determining high-quality markers"}, 
+                    {"Re-compute Log-R Ratio values? (usually false if LRRs already exist)"},
+                    {"Temp directory for intermediate files (which tend to be very large)"},
+                    {"Number of threads to use."},
+                },
+                new RequirementInputType[][]{
+                    {RequirementInputType.NONE},
+                    {RequirementInputType.NUMBER},
+                    {RequirementInputType.STRING},
+                    {RequirementInputType.NUMBER},
+                    {RequirementInputType.BOOL},
+                    {RequirementInputType.FILE},
+                    {RequirementInputType.NUMBER},
+                }) {
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             // not needed for step
@@ -1792,31 +1812,82 @@ public class GenvisisWorkflow {
 
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
+            int numComponents = Integer.parseInt(variables.get(this).get(0));
+            String outputBase = variables.get(this).get(1);
+            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
+            boolean recomputeLRR_PCs = Boolean.parseBoolean(variables.get(this).get(3));
+            String tmpDir = "".equals(variables.get(this).get(4).trim()) ? null : variables.get(this).get(4);
+            int totalThreads = Integer.parseInt(variables.get(this).get(5));
+            PRoCtOR.shadow(proj, tmpDir, outputBase, markerCallRateFilter, recomputeLRR_PCs, numComponents, totalThreads);
         }
 
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
-            return new boolean[][] {};
+            int numComponents = -1;
+            try { numComponents = Integer.parseInt(variables.get(this).get(0)); } catch (NumberFormatException e) {}
+            String outputBase = variables.get(this).get(1);
+            double markerCallRateFilter = -1;
+            try { markerCallRateFilter = Double.parseDouble(variables.get(this).get(2)); } catch (NumberFormatException e) {}
+            boolean recomputeLRR_PCs = Boolean.parseBoolean(variables.get(this).get(3));
+            String tmpDir = "".equals(variables.get(this).get(4).trim()) ? null : variables.get(this).get(4);
+            int totalThreads = -1;
+            try { totalThreads = Integer.parseInt(variables.get(this).get(5)); } catch (NumberFormatException e) {}
+            String sampDir = proj.SAMPLE_DIRECTORY.getValue();
+            STEP parseStep = stepSelections.containsKey(S2I_PARSE_SAMPLES) ? S2I_PARSE_SAMPLES : S2A_PARSE_SAMPLES;
+            boolean checkStepParseSamples = stepSelections.get(parseStep) && parseStep.hasRequirements(proj, stepSelections, variables);
+            return new boolean[][]{
+                    {checkStepParseSamples || (Files.exists(sampDir) && Files.list(sampDir, ".sampRAF", proj.JAR_STATUS.getValue()).length > 0)},
+                    {numComponents > 0},
+                    {true}, // TODO outputBase check?
+                    {markerCallRateFilter >= 0},
+                    {true},
+                    {tmpDir == null || Files.exists(tmpDir)},
+                    {totalThreads > 0},
+            };
         }
 
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            // TODO Auto-generated method stub
-            return null;
+            return new Object[]{
+                    MitoPipeline.DEFAULT_NUM_COMPONENTS,      // numComponents
+                    MitoPipeline.FILE_BASE,                   // output base 
+                    MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER, // call rate
+                    false,                                    // recomputeLRR
+                    "",                                       // tempDir
+                    Runtime.getRuntime().availableProcessors() // numThreads
+            };
         }
 
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
-            return false;
+            String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
+            String finalReport = outputBase + PCA.FILE_EXTs[0];// PrincipalComponentsResiduals.MT_REPORT_EXT[0];
+            return Files.exists(finalReport);
         }
 
         @Override
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            // TODO Auto-generated method stub
-            return null;
+            int numComponents = Integer.parseInt(variables.get(this).get(0));
+            String outputBase = variables.get(this).get(1);
+            double markerCallRateFilter = Double.parseDouble(variables.get(this).get(2));
+            boolean recomputeLRR_PCs = Boolean.parseBoolean(variables.get(this).get(3));
+            String tmpDir = "".equals(variables.get(this).get(4).trim()) ? null : variables.get(this).get(4);
+            int totalThreads = Integer.parseInt(variables.get(this).get(5));
+
+            String projPropFile = proj.getPropertyFilename();
+            StringBuilder cmd = new StringBuilder();
+            cmd.append("java -cp genvisis.jar cnv.manage.PRoCtOR")
+                .append(" proj=").append(projPropFile)
+                .append(" numComponents=").append(numComponents)
+                .append(" outputBase=").append(outputBase)
+                .append(" callrate=").append(markerCallRateFilter)
+                .append(" recomputeLRR=").append(recomputeLRR_PCs)
+                .append(" numThreads=").append(totalThreads);
+            if (tmpDir != null) {
+                cmd.append(" tmp=").append(tmpDir);
+            }
+            
+            return cmd.toString();
         }
     };
     static final STEP S00_TEMPLATE = new STEP("", 
@@ -1951,7 +2022,9 @@ public class GenvisisWorkflow {
 //        S14_CREATE_MT_CN_EST,
         S16_SEX_CENTROIDS_PFB_GCMODEL,
         S17_CNV_CALLING,
+        S18_SHADOW_SAMPLES,
     };
+    
     private static STEP[] AFFY_STEPS = {
         S2A_PARSE_SAMPLES,
         S3_CREATE_SAMPLEDATA,
@@ -1970,6 +2043,7 @@ public class GenvisisWorkflow {
 //        S14_CREATE_MT_CN_EST,
         S16_SEX_CENTROIDS_PFB_GCMODEL,
         S17_CNV_CALLING,
+        S18_SHADOW_SAMPLES,
     };
     
     public static STEP[] getStepsForProject(Project proj) {
