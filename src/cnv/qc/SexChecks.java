@@ -28,7 +28,7 @@ public class SexChecks {
 	private static final float NUM_SD_FOR_MALE_X_OUTLIERS = 4.0f;
 	private static final float NUM_SD_FOR_FEMALE_X_OUTLIERS = 1.5f;
 	private static final float NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY = 4.0f;
-	private static final float NUM_SD_FOR_Y_OUTLIERS = 3.0f;
+	private static final float MAX_SD_FOR_Y_OUTLIERS = 5.0f;
 	private static final double SEX_DISCRIMINATING_BASE_P_THRESHOLD = 0.001; // This will be bonferroni corrected for number of markers checked
 	private static final double MOSAIC_F_CERTAINTY_THRESHOLD = 0.2;
 	private static final double MOSAIC_COVERAGE_CERTAINTY_THRESHOLD = 0.8;
@@ -94,9 +94,6 @@ public class SexChecks {
 			log.report("Scanning for X chromosome markers that express differently by sex");
 			xUseMarkers = sexDiscriminatingXMarkers();
 			log.report("Found " + Array.booleanArraySum(xUseMarkers) + " sex differentiating markers out of " + xMarkers.length + " X chromosome markers");
-
-			Files.writeList(Array.subArray(xMarkers, xUseMarkers), proj.RESULTS_DIRECTORY.getValue() + "xUse.txt");
-			Files.writeList(Array.subArray(xMarkers, Array.booleanNegative(xUseMarkers)), proj.RESULTS_DIRECTORY.getValue() + "xDrop.txt");
 
 			log.report("Scanning for Y chromosome markers that express differently by sex");
 			yUseMarkers = sexDiscriminatingYMarkers();
@@ -254,18 +251,36 @@ public class SexChecks {
 			use[index] = false;
 		}
 		
-		float maleFloorY = maleMeanY - NUM_SD_FOR_Y_OUTLIERS * maleStdDevY;
-		float femaleCeilingY = femaleMeanY + NUM_SD_FOR_Y_OUTLIERS * femaleStdDevY;
-		
-		if (maleFloorY < femaleCeilingY) {
-			float temp = maleFloorY;
-			maleFloorY = femaleCeilingY;
-			femaleCeilingY = temp;
-			log.report("Warning - ideal mean Y LRR acceptance intervals overlap, many samples may be marked for checking");
+		int sdForYOutliers = 0;
+		while (sdForYOutliers < MAX_SD_FOR_Y_OUTLIERS) {
+			if ((maleMeanY - (sdForYOutliers + 1) * maleStdDevY) > (femaleMeanY + (sdForYOutliers + 1) * femaleStdDevY)) {
+				 sdForYOutliers++;
+			} else {
+				break;
+			}
 		}
+		log.report("Using " + sdForYOutliers + " standard deviations from mean male and female Y LRRs to define sex clusters");
+		float maleFloorY = maleMeanY - sdForYOutliers * maleStdDevY;
+		float femaleCeilingY = femaleMeanY + sdForYOutliers * femaleStdDevY;
 		
 		for (int i = 0; i < sampleNames.length; i++) {
+			boolean male = false;
+			boolean female = false;
 			if (lrrMedY[i] > maleFloorY) {
+				male = true;
+			} else if (lrrMedY[i] < femaleCeilingY) {
+				female = true;
+			} else {
+				uncertains[i] = true;
+				notes[i] += "Median Y LRR (" + lrrMedY[i] + ") is outside of both male and female acceptance intervals; ";
+				if (seedMales[i]) {
+					male = true;
+				} else if (seedFemales[i]) {
+					female = true;
+				}
+			}
+			
+			if (male) {
 				if (seedFemales[i]) {
 					uncertains[i] = true;
 					notes[i] += "Ratio of Median X R to Median Y R indicated female; ";
@@ -285,7 +300,7 @@ public class SexChecks {
 						notes[i] += "Ratio of Median X R to Median Y R outlier; ";
 					}
 				}
-			} else if (lrrMedY[i] < femaleCeilingY) {
+			} else if (female) {
 				if (seedMales[i]) {
 					uncertains[i] = true;
 					notes[i] += "Ratio of Median X R to Median Y R indicated male; ";
@@ -311,9 +326,7 @@ public class SexChecks {
 					}
 				}
 			} else {
-				sexes[i] = seedMales[i] ? 1 : (seedFemales[i] ? 2 : -1);
-				uncertains[i] = true;
-				notes[i] += "Mean Y LRR (" + ") is between male and female averages; ";
+				sexes[i] = 0; // Missing
 			}
 		}
 	}
