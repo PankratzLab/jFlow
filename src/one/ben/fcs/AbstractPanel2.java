@@ -1398,12 +1398,12 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		int[][] gridIntensities;
 		int[][][] gridColors;
 		
-		int width = 1, height = 1, radius = 1;
+		int width = 1, height = 1, radius = 0;
 		
 		nRows = getHeight();
 		nColumns = getWidth();
-		gridIntensities = getGridIntensityForHeapMapGrid(nRows, nColumns, width, height, radius);
-		gridColors = getColorFromIntensityForHeapMapGrid(gridIntensities);
+		gridIntensities = getGridIntensityForHeatMapGrid(nRows, nColumns, width, height, radius);
+		gridColors = getColorFromIntensityForHeatMapGrid(gridIntensities);
 		for (int i = 0; i < nColumns; i++) {
 			for (int j = 0; j < nRows; j++) {
 				if (gridIntensities[i][j] != 0) {
@@ -1416,7 +1416,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 	}
 
 
-	public int[][] getGridIntensityForHeapMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight, int neighbor) {
+	public int[][] getGridIntensityForHeatMapGrid(int nRows, int nColumns, int cellWidth, int cellHeight, int neighbor) {
 		int xPixel, yPixel;
 		int[][] intensities;
 //		boolean zoomedIn;
@@ -1446,25 +1446,30 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		return intensities;
 	}
 
-	public int[][][] getColorFromIntensityForHeapMapGrid(int[][] intensities) {
+	public int[][][] getColorFromIntensityForHeatMapGrid(int[][] intensities) {
 		int[][][] color;
 		
-		int max;
-		max = 0;
-		for (int i = 0; i < intensities.length; i++) {
-			for (int j = 0; j < intensities[i].length; j++) {
-				if (max < intensities[i][j]) {
-					max = intensities[i][j];
-				}
-			}
-		}
-		
+//		int max;
+//		max = 0;
+//		for (int i = 0; i < intensities.length; i++) {
+//			for (int j = 0; j < intensities[i].length; j++) {
+//				if (max < intensities[i][j]) {
+//					max = intensities[i][j];
+//				}
+//			}
+//		}
+//		
 		color = new int[intensities.length][intensities[0].length][3];
 		for (int i = 0; i < intensities.length; i++) {
 			for (int j = 0; j < intensities[i].length; j++) {
 				if (intensities[i][j] != 0) {
-					color[i][j] = Grafik.getHeatmapColor(Math.min(1, ((double)intensities[i][j] / (double) max) * 1.4));
-
+//				    double val = ((double)intensities[i][j] / (double) max) * 1.4;
+//				    double val = 1 - Math.exp(-1 * intensities[i][j]);
+//				    double val = 1 - (1 / (Math.exp(intensities[i][j] / 100d) + 1));
+				    double val = 1 - (2 / (Math.exp(intensities[i][j] / 100d) + 1));
+//				    double val = 1 - (3 / (Math.exp(intensities[i][j] / 100d) + 1));
+				    val = Math.min(1, val);
+					color[i][j] = Grafik.getHeatmapColor(val);
 				}
 			}
 		}
