@@ -1451,51 +1451,20 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		
 		int max;
 		max = 0;
-		int max2, max3;
-		int[] p1 = new int[2];
-		int[] p2 = new int[2]; 
-		int[] p3 = new int[2];
-
-		max2 = 0;
-        max3 = 0;
-//		double tenthX = intensities.length / 10d;
 		for (int i = 0; i < intensities.length; i++) {
 			for (int j = 0; j < intensities[i].length; j++) {
 				if (max < intensities[i][j]) {
 					max = intensities[i][j];
-//					p1[0] = i;
-//					p1[1] = j;
-				} /*else if (max2 < intensities[i][j] && Distance.euclidean(p1, new int[]{i, j}) > tenthX) {
-				    max2 = intensities[i][j];
-                    p2[0] = i;
-                    p2[1] = j;
-				} else if (max3 < intensities[i][j] && Distance.euclidean(p1, new int[]{i, j}) > tenthX && Distance.euclidean(p2, new int[]{i, j}) > tenthX) {
-				    max3 = intensities[i][j];
-                    p3[0] = i;
-                    p3[1] = j;
-				}*/
+				}
 			}
 		}
 		
-		System.out.println("Maxes: " + max + " | " + max2 + " | " + max3);
-		int tempMax = max;
 		color = new int[intensities.length][intensities[0].length][3];
 		for (int i = 0; i < intensities.length; i++) {
 			for (int j = 0; j < intensities[i].length; j++) {
 				if (intensities[i][j] != 0) {
-//				    int[] p = new int[]{i, j};
-//				    double d1 = Distance.euclidean(p1, p);
-//				    double d2 = Distance.euclidean(p2, p);
-//				    double d3 = Distance.euclidean(p3, p);
-//				    if (d1 < d2 && d1 < d3) {
-//				        tempMax = max;
-//				    } else if (d2 < d1 && d2 < d3) {
-//				        tempMax = max2;
-//				    } else if (d3 < d1 && d3 < d2) {
-//				        tempMax = max3;
-//				    }
-					color[i][j] = Grafik.getHeatmapColor(Math.min(1, ((double)intensities[i][j] / (double)tempMax) * 1.4));
-					
+					color[i][j] = Grafik.getHeatmapColor(Math.min(1, ((double)intensities[i][j] / (double) max) * 1.4));
+
 				}
 			}
 		}

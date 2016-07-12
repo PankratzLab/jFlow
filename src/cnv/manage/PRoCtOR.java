@@ -1,92 +1,56 @@
 package cnv.manage;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Hashtable;
+import java.io.FilenameFilter;
+
+import common.ext;
 
 import stats.LeastSquares.LS_TYPE;
-import common.Files;
-import common.ext;
 import cnv.analysis.PennCNVPrep;
-import cnv.analysis.PennCNVPrep.ShadowSample;
 import cnv.analysis.pca.PCA;
 import cnv.analysis.pca.PCAPrep;
 import cnv.analysis.pca.PrincipalComponentsApply;
-import cnv.analysis.pca.PrincipalComponentsIntensity;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerSet;
 import cnv.filesys.Project;
 import cnv.filesys.Sample;
 
 // PRincipal COmponents Residuals - PR [o] C[t]O R
 public class PRoCtOR {
     
-    // relevant code from PennCNVPrep
-    /*
-     
-        PrincipalComponentsResiduals principalComponentsResiduals = loadPcResids(proj, numComponents);
-        if (principalComponentsResiduals == null) {
-            return;
-        }
-        int[] sex = getSampleSex(proj);
-        if (sex == null && proj.getAutosomalMarkers().length != proj.getMarkerNames().length) {
-    
-            proj.getLog().reportError("Error - missing sex codes");
-            return;
-        }
-        if (markerFile == null) {
-            markers = proj.getMarkerNames();
-            proj.getLog().report("Info - a file of markers was not provided, exporting all in this batch");
-        } else {
-            markers = HashVec.loadFileToStringArray(markerFile, false, new int[] { 0 }, false);
-            proj.getLog().report("Info - loaded " + markers.length + " markers from " + markerFile + " to export");
-    
-        }
-        PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, principalComponentsResiduals, null, proj.getSamplesToInclude(null), sex, markers, numComponents, dir, svdRegression, numThreads, numMarkerThreads);
-        specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(tmpDir, preserveBafs);
-     
-     */
-    
-    private String[] getMarkerNames(Project proj) {
-        return proj.getMarkerNames();
-    }
-    
-    private int getNumThreads() {
-        return 4;
-    }
-    
-    private int getMarkerBuffer() {
-        return 20000;
-    }
-    
-    private int getNumComponents() {
-		return 40;
-	}
-
-	private LS_TYPE getSVD() {
-		return LS_TYPE.REGULAR;
-	}
-
-    private static final String SHADOW_DIR = "shadowSamples/";
     private static final String SHADOW_PREP_DIR = "shadowPrep/";
     
-    private static int getSampleChunks(Project proj, int numThreads) {
-        int sampleChunks = 0;
-        /*
-            sampleChunks = (.8 * totalRam * sampleSize) / numThreads;
-        */
-        return sampleChunks;
+    private static long getMaxSampleSize(Project proj) {
+        File[] sampleFiles = (new File(proj.SAMPLE_DIRECTORY.getValue())).listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(Sample.SAMPLE_FILE_EXTENSION);
+            }
+        });
+        long max = 0;
+        for (File f : sampleFiles) {
+            if (f.length() > max) {
+                max = f.length();
+            }
+        }
+        return max;
     }
     
-    // markerCallRateFilter: default to MitoPipeline
-    // recomputeLRR_PCs: false if project source data has LRRs
-    private static void mockupShadow(Project proj, String tmpDir, String outputBase, double markerCallRateFilter, boolean recomputeLRR_PCs, int numComponents, int totalThreads) {
+    private static int getSampleChunks(Project proj, int numThreads) {
+        /*
+            sampleChunks = (.8 * totalRam * sampleSize) / numThreads;
+         */
+        long mem = Runtime.getRuntime().maxMemory();
+        long samp = getMaxSampleSize(proj);
+        double sampleChunks = (0.8 * mem * numThreads) / samp;
+        return (int) sampleChunks;
+    }
+    
+    public static void shadow(Project proj, String tmpDir, String outputBase, double markerCallRateFilter, boolean recomputeLRR_PCs, int numComponents, int totalThreads) {
         int numMarkerThreads = 2;
         int numThreads = (int) Math.ceil((double)totalThreads / (double)numMarkerThreads);
         boolean markerQC = true;
         String useFile = null;
         int sampleChunks = getSampleChunks(proj, numThreads);
+        proj.getLog().report("Using " + sampleChunks + " sample chunks");
         
         int retCode = PCAPrep.prepPCA(proj, numThreads, outputBase, markerQC, markerCallRateFilter, useFile, proj.getSampleList(), proj.getLog());
         if (retCode != 42) {
@@ -99,103 +63,26 @@ public class PRoCtOR {
     	PennCNVPrep.exportSpecialPennCNV(proj, SHADOW_PREP_DIR, tmpDir, numComponents, null, numThreads, numMarkerThreads, true, LS_TYPE.REGULAR, sampleChunks, false);
     }
     
-    
-    // PROOF OF CONCEPT:
-    void run(Project proj) {
-        System.gc();
-        String[] markerNames = getMarkerNames(proj);
-        int numThreads = getNumThreads();
-        int mkrBuffer = getMarkerBuffer();
-        int numComponents = getNumComponents();
-        LS_TYPE lType = getSVD();
-        
-        String[] samples = proj.getSamples();
-        String dir = proj.PROJECT_DIRECTORY.getValue() + SHADOW_DIR;
-        new File(dir).mkdirs();
-        
-        proj.getLog().report("Info - checking for existing files in " + dir + "...");
-        
-        boolean allExist = true;
-        for (int i = 0; i < samples.length; i++) {
-            if (!Files.exists(dir + samples[i] + Sample.SAMPLE_FILE_EXTENSION)) {
-                allExist = false;
-            }
-        }
-        
-        long msFingerprint = proj.getMarkerSet().getFingerprint();
-        Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
-		MarkerSet markerSet = proj.getMarkerSet();
-        int numMarkers = markerSet.getPositions().length;
-        ArrayList<String> notCorrected = new ArrayList<String>();
-        PrincipalComponentsResiduals principalComponentsResiduals = PennCNVPrep.loadPcResids(proj, numComponents);
-        if (principalComponentsResiduals == null) {
-            return;
-        }
-        int[] sex = PennCNVPrep.getSampleSex(proj);
-        if (sex == null && proj.getAutosomalMarkers().length != proj.getMarkerNames().length) {
-            proj.getLog().reportError("Error - missing sex codes");
-            return;
-        }
-        boolean[] samplesToUseCluster = proj.getSamplesToInclude(null);
-        if (!allExist) {// if all files exist we skip this export
-            proj.getLog().report("Info - detected that not all files exist");
-
-            proj.getLog().report(ext.getTime() + "]\tLoading all markers into memory...");
-            MarkerData[] allMarkers = new MarkerData[numMarkers];
-			MDL dataLoader = new MDL(proj, markerSet, markerNames, numThreads, mkrBuffer);
-            dataLoader.setReportEvery(50000);
-            int index = 0;
-            while (dataLoader.hasNext()) {
-                MarkerData markerData = dataLoader.next();
-                MarkerData markerDataToStore;
-                PrincipalComponentsIntensity principalComponentsIntensity = new PrincipalComponentsIntensity(principalComponentsResiduals, markerData, true, sex, samplesToUseCluster, 1, 0, null, true, lType, 2, 5, PrincipalComponentsIntensity.DEFAULT_RESID_STDV_FILTER, PrincipalComponentsIntensity.DEFAULT_CORRECTION_RATIO, numThreads, false, null);
-                principalComponentsIntensity.correctXYAt(numComponents);
-                if (principalComponentsIntensity.isFail()) {
-                    notCorrected.add(markerData.getMarkerName());
-                    markerDataToStore = markerData;
-                } else {
-                    byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();
-                    float[][] correctedXY = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN, true);
-                    float[][] correctedLRRBAF = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN, true);// for now
-                    markerDataToStore = new MarkerData(markerData.getMarkerName(), markerData.getChr(), markerData.getPosition(), markerData.getFingerprint(), markerData.getGCs(), null, null, correctedXY[0], correctedXY[1], null, null, correctedLRRBAF[0], correctedLRRBAF[1], abGenotypes, abGenotypes);
-                }
-                allMarkers[index++] = markerDataToStore;
-            }
-            dataLoader.shutdown();
-            dataLoader = null;
-            System.gc();
-            proj.getLog().report(ext.getTime() + "]\tExporting " + samples.length + " sample files...");
-            for (int i = 0; i < samples.length; i++) {
-                ShadowSample shadowSample = new ShadowSample(samples[i], proj.getMarkerNames());
-                for (int m = 0; m < allMarkers.length; m++) {
-                    shadowSample.addData(samples[i], m, allMarkers[m].getMarkerName(), allMarkers[m].getXs()[i], allMarkers[m].getYs()[i], allMarkers[m].getGCs()[i], allMarkers[m].getBAFs()[i], allMarkers[m].getLRRs()[i], allMarkers[m].getAbGenotypes()[i], proj.getLog());
-                }
-                shadowSample.writeShadow(proj, dir, msFingerprint, allOutliers);
-                shadowSample = null;
-                System.gc();
-                if ((i + 1) % 50000 == 0) {
-                    float usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-                    float freeMemory = Runtime.getRuntime().maxMemory() - usedMemory;
-                    float maxMemory = Runtime.getRuntime().maxMemory();
-                    proj.getLog().report(ext.getTime() + "]\tSample Written = " + Math.round(((double) i / (double) samples.length * 100.0)) + "%\tFree memory: " + Math.round(((double) freeMemory / (double) maxMemory * 100.0)) + "%");
-                }
-            }
-            String outlierFile = proj.PROJECT_DIRECTORY.getValue() + SHADOW_DIR + "outliers.ser";
-            Files.writeSerial(allOutliers, outlierFile);
-        } else {
-            proj.getLog().report("Info - detected that all " + samples.length + " shadow samples exist in " + dir + ", skipping export...");
-        }
-    }
-
-    
-    
     public static void main(String[] args) {
         int numArgs = args.length;
         String filename = "D:/projects/Poynter.properties";
-
+        String tempDir = null;
+        String outputBase = MitoPipeline.FILE_BASE;
+        double callrate = MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER;
+        boolean recomputeLRR = false;
+        int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
+        int numThreads = Runtime.getRuntime().availableProcessors();
+        
         String usage = "\n" + 
                        "cnv.manage.PRoCtOR requires 0-1 arguments\n" + 
-                       "   (1) project properties filename (i.e. proj=" + filename + " (default))\n" + "";
+                       "   (1) project properties filename (i.e. proj=" + filename + " (default))\n" +
+                       "   (2) Number of principal components for correction (i.e. numComponents=" + numComponents + " (default))\n" + 
+                       "   (3) Output file full path and baseName for principal components correction files (i.e. outputBase=" + outputBase + " (default))\n" +
+                       "   (4) Call-rate filter for determining high-quality markers (i.e. callrate=" + callrate + " (default))\n" + 
+                       "   (5) Flag specifying whether or not to re-compute Log-R Ratio values (usually false if LRRs already exist) (i.e. recomputeLRR=" + recomputeLRR + " (default))\n" +
+                       "   (6) Total number of threads to use (i.e. numThreads=" + numThreads + " (default))\n" +
+                       "   (7) OPTIONAL: temp directory for intermediate files (which tend to be very large) (i.e. tmp=" + tempDir + " (default))\n" +
+                       "";
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {
@@ -203,6 +90,24 @@ public class PRoCtOR {
                 System.exit(1);
             } else if (args[i].startsWith("proj=")) {
                 filename = args[i].split("=")[1];
+                numArgs--;
+            } else if (args[i].startsWith("numComponents=")) {
+                numComponents = ext.parseIntArg(args[i]);
+                numArgs--;
+            } else if (args[i].startsWith("outputBase=")) {
+                outputBase = ext.parseStringArg(args[i], outputBase);
+                numArgs--;
+            } else if (args[i].startsWith("callrate=")) {
+                callrate = ext.parseDoubleArg(args[i]);
+                numArgs--;
+            } else if (args[i].startsWith("recomputeLRR=")) {
+                recomputeLRR = ext.parseBooleanArg(args[i]);
+                numArgs--;
+            } else if (args[i].startsWith("numThreads=")) {
+                numThreads = ext.parseIntArg(args[i]);
+                numArgs--;
+            } else if (args[i].startsWith("tmp=")) {
+                tempDir = ext.parseStringArg(args[i], null);
                 numArgs--;
             } else {
                 System.err.println("Error - invalid argument: " + args[i]);
@@ -214,9 +119,10 @@ public class PRoCtOR {
         }
         try {
             Project proj = new Project(filename, false);
-            new PRoCtOR().run(proj);
+            shadow(proj, tempDir, outputBase, callrate, recomputeLRR, numComponents, numThreads);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+    
 }

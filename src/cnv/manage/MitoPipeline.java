@@ -59,6 +59,7 @@ public class MitoPipeline {
 	public static final String[] SAMPLE_DATA_ADDITION_HEADERS = { "LRR_SD", "Genotype_callrate", "CLASS=Exclude" };
 	public static final double[] DEFAULT_PVAL_OPTS = new double[] { 0.05, 0.01, 0.001 };
 	public static final double DEFAULT_MKR_CALLRATE_FILTER = 0.98;
+	public static final int DEFAULT_NUM_COMPONENTS = 100;
 
 	public static final String DNA_LINKER = "DNA";
 	public static final String PCA_SAMPLES_SUMMARY = ".samples.QC_Summary.txt";
@@ -67,7 +68,7 @@ public class MitoPipeline {
 	private static final String PC_MARKER_COMMAND = "PCmarkers=";
 	private static final String MITO_MARKER_COMMAND = "mitochondrialMarkers=";
 	private static final String USE_FILE_COMMAND = "useFile=";
-	private static final String PC_OPT_FILE = "pcOptFile=";
+	static final String PC_OPT_FILE = "pcOptFile=";
 
 	private static final String IMPORT_EXTENSION = "dirExt=";
 	private static final long RECOMMENDED_MEMORY = 1000000000;
@@ -742,7 +743,7 @@ public class MitoPipeline {
 		Project proj;
 
 		int numThreads = 1;
-		int numComponents = 100;
+		int numComponents = DEFAULT_NUM_COMPONENTS;
 		boolean imputeMeanForNaN = true;
 		boolean homosygousOnly = true;
 		boolean doAbLookup = false;
@@ -758,6 +759,7 @@ public class MitoPipeline {
 		String betaOptFile = null;
 		double[] pvalOpt = DEFAULT_PVAL_OPTS;
 		String betaFile = null;
+		boolean skipProjectCreation = false;
 
 		String usage = "\n";
 		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
@@ -937,6 +939,8 @@ public class MitoPipeline {
 			} else if (args[i].startsWith("log=")) {
 				logfile = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("-SkipProjectCreationWithLongUndocumentedFlag")) {
+			    skipProjectCreation = true;
 			} else {
 				System.err.println("\n\nError - invalid argument " + args[i] + "\n\n");
 			}
@@ -946,27 +950,31 @@ public class MitoPipeline {
 			System.exit(1);
 		}
 
-		if (Array.booleanArraySum(requiredArray) != requiredArray.length) {
-			System.err.println(usage + "\n\n");
-			System.err.println("The MitoPipeline currently requires " + requiredArray.length + " arguments and we only detected " + Array.booleanArraySum(requiredArray) + " of the " + requiredArray.length);
-			System.err.println("Here is a list of missing arguments...");
-			for (int i = 0; i < requiredArgs.length; i++) {
-				if (!requiredArray[i]) {
-					System.err.println("\"" + requiredArgs[i] + "\"");
-				}
-			}
-			System.exit(1);
-		}
-
-		initGenvisisProject();
-		proj = null;
-		if (filename == null) {
-			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
+		if (!skipProjectCreation) {
+    		if (Array.booleanArraySum(requiredArray) != requiredArray.length) {
+    			System.err.println(usage + "\n\n");
+    			System.err.println("The MitoPipeline currently requires " + requiredArray.length + " arguments and we only detected " + Array.booleanArraySum(requiredArray) + " of the " + requiredArray.length);
+    			System.err.println("Here is a list of missing arguments...");
+    			for (int i = 0; i < requiredArgs.length; i++) {
+    				if (!requiredArray[i]) {
+    					System.err.println("\"" + requiredArgs[i] + "\"");
+    				}
+    			}
+    			System.exit(1);
+    		}
+    
+    		initGenvisisProject();
+    		proj = null;
+    		if (filename == null) {
+    			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
+    		} else {
+    			proj = new Project(filename, logfile, false);
+    			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
+    			proj.getLog().reportTimeInfo("Using project defined genome build " + proj.GENOME_BUILD_VERSION.getValue());
+    			build = proj.GENOME_BUILD_VERSION.getValue();
+    		}
 		} else {
-			proj = new Project(filename, logfile, false);
-			proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory, dataExtension, idHeader, abLookup, targetMarkers, medianMarkers, markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
-			proj.getLog().reportTimeInfo("Using project defined genome build " + proj.GENOME_BUILD_VERSION.getValue());
-			build = proj.GENOME_BUILD_VERSION.getValue();
+		    proj = new Project(filename, logfile, false);
 		}
 		if (Double.parseDouble(sampleLRRSdFilter) < 0) {
 			switch (proj.ARRAY_TYPE.getValue()) {
