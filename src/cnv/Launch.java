@@ -278,7 +278,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 		}
 		
 		ueh.setLog(frame.log);
-		frame.log.report(HttpUpdate.checkGenvisisVersion(frame.log));
+		try {
+			frame.log.report(HttpUpdate.checkGenvisisVersion(frame.log));
+		} catch (Exception e) {
+
+		}
 	}
 
 	public static void initLaunchProperties(String launchPropertiesFile, boolean force, boolean relativePath) {
