@@ -2,6 +2,9 @@
 All notable changes to Genvisis will be documented in this file.
 
 ##[Unreleased]
+### Fixed
+
+- MitoPipeline was only half gc-correcting
 
 
 ##[0.1.4]
