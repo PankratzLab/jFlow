@@ -75,15 +75,12 @@ public class GateTreePanel extends JPanel {
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 if (treePopup.isVisible()) {
-//                    button.setText("\\/");
                     treePopup.setVisible(false);
                 } else {
-//                    button.setText("/\\");
                     treePopup.setPopupSize(topPanel.getWidth(), topPanel.getHeight() * 8);
                     Point p = topPanel.getLocationOnScreen();
                     treePopup.show(button, 0, 0);
                     treePopup.setLocation((int) p.getX(), (int) p.getY() + topPanel.getHeight());
-//                    tree.requestFocusInWindow();
                 }
             }
         });
@@ -124,13 +121,6 @@ public class GateTreePanel extends JPanel {
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
         tree.addTreeSelectionListener(treeListener);
-//        tree.addFocusListener(new FocusAdapter() {
-//            @Override
-//            public void focusGained(FocusEvent e) {
-//                super.focusGained(e);
-//                System.out.println("chk");
-//            }
-//        });
     }
     
     public void setGating(GatingStrategy gating) {

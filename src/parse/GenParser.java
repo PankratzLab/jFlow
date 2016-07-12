@@ -35,6 +35,10 @@ public class GenParser {
 	private int numTruncatedLines;
 
 	public GenParser(String[] line, Logger logger) {
+	    this(line, null, logger);
+	}
+
+    public GenParser(String[] line, ArrayList<String> data, Logger logger) {
 		String[] tokens, columnHeaders;
 		Vector<String> filters, columns, comps;
 		Vector<String[]> replacesV;
@@ -51,7 +55,7 @@ public class GenParser {
 		replaceBlanks = null;
 		numTruncatedLines = 0;
 		
-    	filename = line[0];
+    	filename = data != null ? line[0] : "in-memory";
 		commaDelimited = Files.suggestDelimiter(filename, log).equals(",")||ext.indexOfStr(",", line) >= 0;
 		tabDelimited = ext.indexOfStr("tab", line, false, true, log, false) >= 0;
 		simplifyQuotes = ext.indexOfStr("doNotSimplifyQuotes", line) == -1;
@@ -180,36 +184,74 @@ public class GenParser {
         }
     	
     	maxCol = -9;
-    	try {
-            reader = Files.getAppropriateReader(filename);
-            if (skip == -2) {
-    			if (commaDelimited) {
-    				originalColumnNames = ext.splitCommasIntelligently(ext.replaceAllWith(reader.readLine().trim(), replaces), simplifyQuotes, log);
-    			} else {
-    				originalColumnNames = ext.replaceAllWith(commaDelimited||tabDelimited?reader.readLine():reader.readLine().trim(), replaces).split(tabDelimited?"\t":"[\\s]+", -1);
-    			}
-            	for (int j = 0; j<cols.length; j++) {
-            		if (colNames[j] == null) {
-            			colNames[j] = originalColumnNames[cols[j]];
-            		}
-            		if (cols[j] > maxCol) {
-            			maxCol = cols[j];
-            		}
-                }
-            } else {
-            	for (int i = 0; i<skip; i++) {
-            		reader.readLine();
-                }
+    	if (data != null) {
+    	    
+    	} else {
+        	try {
+        	    reader = data == null ? Files.getAppropriateReader(filename) : new StringArrayListReader(data);
+        	    if (skip == -2) {
+        	        if (commaDelimited) {
+        	            originalColumnNames = ext.splitCommasIntelligently(ext.replaceAllWith(reader.readLine().trim(), replaces), simplifyQuotes, log);
+        	        } else {
+        	            originalColumnNames = ext.replaceAllWith(commaDelimited||tabDelimited?reader.readLine():reader.readLine().trim(), replaces).split(tabDelimited?"\t":"[\\s]+", -1);
+        	        }
+        	        for (int j = 0; j<cols.length; j++) {
+        	            if (colNames[j] == null) {
+        	                colNames[j] = originalColumnNames[cols[j]];
+        	            }
+        	            if (cols[j] > maxCol) {
+        	                maxCol = cols[j];
+        	            }
+        	        }
+        	    } else {
+        	        for (int i = 0; i<skip; i++) {
+        	            reader.readLine();
+        	        }
+        	    }
+            } catch (FileNotFoundException fnfe) {
+                log.reportError("Error: file \""+filename+"\" not found in current directory");
+    			failed = true;
+                return;
+            } catch (IOException ioe) {
+                log.reportError("Error reading file \""+filename+"\"");
+    			failed = true;
+                return;
             }
-        } catch (FileNotFoundException fnfe) {
-            log.reportError("Error: file \""+filename+"\" not found in current directory");
-			failed = true;
-            return;
-        } catch (IOException ioe) {
-            log.reportError("Error reading file \""+filename+"\"");
-			failed = true;
-            return;
+    	}
+	}
+	
+	class StringArrayListReader extends BufferedReader {
+
+	    ArrayList<String> data;
+	    int readIndex;
+	    
+        public StringArrayListReader(Reader arg0) {
+            super(arg0);
         }
+        
+        public StringArrayListReader(ArrayList<String> data) {
+            super(null);
+            this.data = data;
+            this.readIndex = 0;
+        }
+        
+        @Override
+        public String readLine() throws IOException {
+            return data.get(readIndex++);
+        }
+        
+        @Override
+        public boolean ready() throws IOException {
+            return readIndex != data.size();
+        }
+        
+        @Override
+        public void close() throws IOException {
+            super.close();
+            data = null;
+            System.gc();
+        }
+	    
 	}
 
 	public static String parseSerialFilename(String[] line) {
@@ -431,7 +473,7 @@ public class GenParser {
 		String filename, delimiter;
 		
         time = new Date().getTime();
-        parser = new GenParser(line, log);
+        parser = new GenParser(line, null, log);
     	
 //    	try {
     		filename = parser.getOutfile();
