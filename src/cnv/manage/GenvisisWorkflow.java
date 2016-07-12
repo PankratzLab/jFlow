@@ -640,7 +640,7 @@ public class GenvisisWorkflow {
             } catch (NumberFormatException e) {}
             return "jcp cnv.qc.MarkerMetrics -fullQC" + 
             		" proj=" + proj.getPropertyFilename() + 
-            		" markers=" + tgtFile +
+            		(tgtFile == null ? "" : " markers=" + tgtFile) +
             		" threads=" + numThreads;
         }
     };
