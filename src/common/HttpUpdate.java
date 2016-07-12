@@ -24,10 +24,10 @@ import javax.swing.JTextArea;
 public class HttpUpdate {
 	private static final String CHANGELOG = "https://github.com/npankrat/Genvisis/blob/master/CHANGELOG.md";
 	public static final String REMOTE_JAR = "http://genvisis.org/genvisis.jar";
-
+	public static final String UNDETERMINED_VERSION ="v.-1.-1.-1";
 	public static RemoteJarStatus getRemoteJarVersion(String remoteJar, Logger log) {
 		CHECK_STATUS status = CHECK_STATUS.OTHER_ERROR;
-		String version = "v.-1.-1.-1";
+		String version =UNDETERMINED_VERSION;
 		if (HttpDownloadUtility.canDownload(remoteJar, log)) {
 			URL url;
 			try {
@@ -77,13 +77,20 @@ public class HttpUpdate {
 			RemoteJarStatus remoteJarStatus = getRemoteJarVersion(REMOTE_JAR, log);
 			CurrentManifest currentManifest = CurrentManifest.loadGenvisisManifest();
 			if (currentManifest.getVersion().isLessThan(remoteJarStatus.getVersion())) {
-				return "Your version of Genvisis (" + currentManifest.getVersion().getVersion() + ") is not up to date. Latest version is " + remoteJarStatus.getVersion().getVersion();
+				return "Your version of Genvisis (" + currentManifest.getVersion().getVersion()
+						+ ") is not up to date. Latest version is " + remoteJarStatus.getVersion().getVersion();
 			} else if (currentManifest.getVersion().isGreaterThan(remoteJarStatus.getVersion())) {
-				String fun = "Looks like you are using a bleeding edge version of genvisis (" + currentManifest.getVersion().getVersion() + ")\n";
-				fun += "The latest released version at " + REMOTE_JAR + " is " + remoteJarStatus.getVersion().getVersion() + ", good luck to ya";
-				return fun;
-			}
-			else {
+				if (!remoteJarStatus.getVersion().getVersion().equals(UNDETERMINED_VERSION)) {
+					String fun = "Looks like you are using a bleeding edge version of genvisis ("
+							+ currentManifest.getVersion().getVersion() + ")\n";
+					fun += "The latest released version at " + REMOTE_JAR + " is "
+							+ remoteJarStatus.getVersion().getVersion() + ", good luck to ya";
+					return fun;
+				} else {
+					return "Unable to determine genvisis version";
+
+				}
+			} else {
 				return "Genvisis (" + currentManifest.getVersion().getVersion() + ") is up to date";
 			}
 		} catch (Exception e) {
