@@ -21,6 +21,7 @@ import cnv.gui.ImportProjectGUI;
 import cnv.gui.PlinkExportOptions;
 import cnv.manage.*;
 import cnv.plots.*;
+import cnv.qc.MarkerBlastQC;
 import cnv.qc.MarkerMetrics;
 import cnv.qc.SampleQC;
 
@@ -510,7 +511,16 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			} else if (command.equals(PARSE_FILES_CSV)) {
 				cnv.manage.SourceFileParser.createFiles(proj, proj.NUM_THREADS.getValue());
 			} else if (command.equals(CHECK_SEX)) {
-				cnv.qc.SexChecks.sexCheck(proj, true);
+				String blastAnnotationFile = proj.BLAST_ANNOTATION_FILENAME.getValue();
+				String nonCrossHybridizingMarkersFile = MarkerBlastQC.defaultOneHitWondersFilename(blastAnnotationFile);
+				if (!Files.exists(nonCrossHybridizingMarkersFile)) {
+					if (Files.exists(blastAnnotationFile)) {
+						MarkerBlastQC.getOneHitWonders(proj, blastAnnotationFile, nonCrossHybridizingMarkersFile, 0.8, proj.getLog());
+					} else {
+						nonCrossHybridizingMarkersFile = null;
+					}
+				}
+				cnv.qc.SexChecks.sexCheck(proj, true, nonCrossHybridizingMarkersFile);
 			} else if (command.equals(TRANSPOSE_DATA)) {
 				TransposeData.transposeData(proj, 2000000000, false);
 			} else if (command.equals(GENERATE_ABLOOKUP)) {
