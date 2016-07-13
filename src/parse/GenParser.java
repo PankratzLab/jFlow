@@ -460,6 +460,44 @@ public class GenParser {
     	return parsed;
 	}
 	
+	public static ArrayList<String> parse(String[] line, ArrayList<String> data, Logger log) {
+        long time;
+        GenParser parser;
+        String[] header, trav;
+        String delimiter;
+        int nonNull;
+        ArrayList<String> returnData = new ArrayList<String>();
+        time = new Date().getTime();
+        parser = new GenParser(line, data, log);
+        
+        if (log.getLevel() > 8) {
+            log.report("Parsing '"+line[0]+"'", true, true, 1);
+        }
+        delimiter = "\t";
+        header = parser.getColumnNames();
+        nonNull = 0;
+        for (int i = 0; i<header.length; i++) {
+            if (header[i] != null) {
+                nonNull++;
+            }
+        }
+        if (nonNull > 0 && parser.hasHeader()) {
+            returnData.add(Array.toStr(header, delimiter));
+        }
+        while (parser.ready()) {
+            trav = parser.nextLine();
+            if (trav != null) {
+                returnData.add(Array.toStr(trav, delimiter));
+            }
+        }
+        parser.close();
+        if (log.getLevel() > 8) {
+            log.report(" which took "+ext.getTimeElapsed(time), true, true, 1);
+        }
+	    
+        return returnData;
+	}
+	
 	public static void parse(String[] line, Logger log) {
 		PrintWriter writer;
 		long time;
@@ -471,39 +509,31 @@ public class GenParser {
         time = new Date().getTime();
         parser = new GenParser(line, null, log);
     	
-//    	try {
-    		filename = parser.getOutfile();
-    		delimiter = Files.suggestDelimiter(filename, log);
-            writer = Files.getAppropriateWriter(filename);//new PrintWriter(new FileWriter(filename));
-            if (log.getLevel() > 8) {
-            	log.report("Parsing '"+line[0]+"'", true, true, 1);
-            }
-            header = parser.getColumnNames();
-            nonNull = 0;
-            for (int i = 0; i<header.length; i++) {
-            	if (header[i] != null) {
-            		nonNull++;
-            	}
-            }
-            if (nonNull > 0	&& parser.hasHeader()) {
-            	writer.println(Array.toStr(header, delimiter));
-            }
-            while (parser.ready()) {
-            	trav = parser.nextLine();
-            	if (trav != null) {
-            		writer.println(Array.toStr(trav, delimiter));
-            	}
-            }
-            writer.flush();
-            parser.close();
-            writer.close();
-//        } catch (FileNotFoundException fnfe) {
-//            log.reportError("Error: file \""+line[0]+"\" not found in current directory");
-//            return;
-//        } catch (IOException ioe) {
-//            log.reportError("Error reading file \""+line[0]+"\"");
-//            return;
-//        }	
+		filename = parser.getOutfile();
+		delimiter = Files.suggestDelimiter(filename, log);
+        writer = Files.getAppropriateWriter(filename);//new PrintWriter(new FileWriter(filename));
+        if (log.getLevel() > 8) {
+        	log.report("Parsing '"+line[0]+"'", true, true, 1);
+        }
+        header = parser.getColumnNames();
+        nonNull = 0;
+        for (int i = 0; i<header.length; i++) {
+        	if (header[i] != null) {
+        		nonNull++;
+        	}
+        }
+        if (nonNull > 0	&& parser.hasHeader()) {
+        	writer.println(Array.toStr(header, delimiter));
+        }
+        while (parser.ready()) {
+        	trav = parser.nextLine();
+        	if (trav != null) {
+        		writer.println(Array.toStr(trav, delimiter));
+        	}
+        }
+        writer.flush();
+        parser.close();
+        writer.close();
         if (log.getLevel() > 8) {
         	log.report(" which took "+ext.getTimeElapsed(time), true, true, 1);
         }

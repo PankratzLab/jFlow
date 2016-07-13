@@ -13,7 +13,8 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.tree.TreePath;
+
+import parse.GenParser;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -957,7 +958,145 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	public Project getProject() {
 		return proj;
 	}
+	
+	HashMap<String, ArrayList<String[]>> genParserFiltersMap = new HashMap<String, ArrayList<String[]>>();
+	
+	public void addGenParserFilter(String fileKey, String[] filterLine) {
+        ArrayList<String[]> filters = genParserFiltersMap.get(fileKey);
+        if (filters == null) {
+            filters = new ArrayList<String[]>();
+            genParserFiltersMap.put(fileKey, filters);
+        }
+        filters.add(filterLine);           
+	}
+	
+	public void removeGenParserFilter(String fileKey, int index) {
+	    ArrayList<String[]> filters = genParserFiltersMap.get(fileKey);
+	    if (index >= 0 && filters != null && filters.size() > 0 && index < filters.size()) { 
+	        filters.remove(index);
+	    }
+	}
+	
+	public void clearGenParserFilters(String fileKey) {
+        ArrayList<String[]> filters = genParserFiltersMap.get(fileKey);
+	    if (filters != null) {
+	        filters.clear();
+	    }
+	}
+	
+	private ArrayList<String[]> getDataSelectedAndFiltered(boolean includeColorKeyValue) {
+	    String[][] selectedNodes;
+	    String filterKey;
+	    ArrayList<String[]> returnList;
+	    ArrayList<String> genParseData;
+        ArrayList<String[]> dataOfSelectedFile;
+        HashMap<String, String[]> xData;
+        HashMap<String, String[]> yData;
+        String[] inLine, outLine;
+        int selectedColumn;
+        String selectedFile;
+        String[] keys;
+        int currentClass;
+        String[] ids;
+        byte colorCode;
+        int[] linkKeyColumnIndices;
+        byte index;
+	    // TODO cache data based on x/y selected columns (??? or not?) and parser lines 
+	    
+	    
+        selectedNodes = tree.getSelectionValues();
+        xData = new HashMap<String, String[]>();
+        yData = new HashMap<String, String[]>();
+        if (selectedNodes[0][0] == null || linkerIndices.get(selectedNodes[0][0]) == null) {
+            return new ArrayList<String[]>(); 
+        }
 
+        selectedColumn = Integer.parseInt(selectedNodes[0][1]);
+        selectedFile = selectedNodes[0][0];
+        filterKey = selectedFile;
+        dataOfSelectedFile = dataHash.get(selectedFile);
+        currentClass = colorKeyPanel.getCurrentClass();
+        if (currentClass < SampleData.BASIC_CLASSES.length && SampleData.BASIC_CLASSES[currentClass].equals(SampleData.HEATMAP)) {
+            twoDPanel.setChartType(AbstractPanel.HEAT_MAP_TYPE);
+        } else {
+            twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
+        }
+        
+        linkKeyColumnIndices = linkerIndices.get(selectedFile);
+        index = (byte) (includeColorKeyValue? 4 : 3);
+        outer : for (int i = 0; i < dataOfSelectedFile.size(); i++) {
+            inLine = dataOfSelectedFile.get(i);
+            
+            if (sampleData != null && (hideExcludes || colorKeyPanel.getDisabledClassValues().size() > 0)) {
+                for (int k = 0; k < 3; k++) {
+                    if (linkKeyColumnIndices[k] >= 0) {
+                        String curSample = inLine[linkKeyColumnIndices[k]];
+
+                        IndiPheno indi = sampleData.getIndiFromSampleHash(curSample);
+
+                        int sampColorKey = 0;
+                        if (indi != null) {
+                            sampColorKey = sampleData.determineCodeFromClass(currentClass, (byte) 0, indi, (byte) 0, 0);
+                        }
+                        if (hideExcludes && sampleData.individualShouldBeExcluded(curSample)) {
+                            continue outer;
+                        }
+                        if (colorKeyPanel.getDisabledClassValues().containsKey(currentClass + "\t" + sampColorKey)) {
+                            continue outer;
+                        }
+                    }
+                }
+            }
+//            outLine = new String[linkKeyColumnIndices.length + index];
+//            outLine[0] = inLine[0];
+//            outLine[1] = inLine[selectedColumn];
+//            for (int j = 0; j < linkKeyColumnIndices.length; j++) {
+//                if (linkKeyColumnIndices[j] >= 0) {
+//                    outLine[j + index] = inLine[linkKeyColumnIndices[j]];
+//                }
+//            }
+//            xHash.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], outLine);
+            xData.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], inLine);
+        }
+        if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null && linkerIndices.get(selectedNodes[1][0]) != null) {
+            selectedColumn = Integer.parseInt(selectedNodes[1][1]);
+            selectedFile = selectedNodes[1][0];
+            filterKey += "\t" + selectedFile;
+            dataOfSelectedFile = dataHash.get(selectedFile);
+            for (int i = 0; i < dataOfSelectedFile.size(); i++) {
+                inLine = dataOfSelectedFile.get(i);
+                yData.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], inLine);
+            }
+        }
+        
+        returnList = new ArrayList<String[]>();
+        genParseData = new ArrayList<String>();
+
+        keys = HashVec.getKeys(xData, false, false);
+        
+        // TODO add header values to genParseData [remember to append "X"/"Y" (or filename) to column names [and replace in genParser strings, unless that's pre-done?]
+        
+        for (String key : keys) {
+            inLine = xData.get(key);
+            outLine = yData.get(key);
+            if (outLine != null) {
+                inLine = Array.combine(inLine, outLine);
+            }
+            genParseData.add(Array.toStr(inLine, ",")); // TODO should use comma here?  use tab instead?
+        }
+        
+        ArrayList<String[]> genParserLines = genParserFiltersMap.get(filterKey);
+        for (String[] parser : genParserLines) {
+            genParseData = GenParser.parse(parser, genParseData, log);
+        }
+        
+        
+        
+        return genParserLines;
+        // parse header, retrieve selected data, construct return arrays
+        // error if genParser removes the desired data during parsing/filtering 
+	}
+	
 	public ArrayList<String[]> getDataSelected(boolean includeColorKeyValue) {
 		String[][] selectedNodes;
 		ArrayList<String[]> dataOfSelectedFile;
@@ -1038,6 +1177,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			v = new ArrayList<String[]>();
 			for (String key : keys) {
 			    inLine = xHash.get(key);
+			    
 			    boolean hasY = false;
 				if (yHash.containsKey(key)) {
 					inLine[2] = yHash.get(key);
@@ -1780,6 +1920,15 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         } catch (IOException ioe) {
             log.reportError("Error reading file \""+filename+"\"");
         }
+	}
+	
+    enum OP {
+        GT, LT, EQ;
+    }
+	class Filter {
+	    OP oper;
+	    String data;
+	    double compValue;
 	}
 	
 	private void addDataHeader(String filename, String[] header) {
