@@ -56,11 +56,12 @@ public class GenParser {
 		numTruncatedLines = 0;
 		
     	filename = data != null ? line[0] : "in-memory";
-		commaDelimited = Files.suggestDelimiter(filename, log).equals(",")||ext.indexOfStr(",", line) >= 0;
+		commaDelimited = (data == null ? Files.suggestDelimiter(filename, log) : ext.determineDelimiter(data.get(0))).equals(",") || ext.indexOfStr(",", line) >= 0;
 		tabDelimited = ext.indexOfStr("tab", line, false, true, log, false) >= 0;
 		simplifyQuotes = ext.indexOfStr("doNotSimplifyQuotes", line) == -1;
 		
-		columnHeaders = Files.getHeaderOfFile(filename, commaDelimited?","+(simplifyQuotes?"!":""):(tabDelimited?"\t":"[\\s]+"), log);
+		String delim = commaDelimited?","+(simplifyQuotes?"!":""):(tabDelimited?"\t":"[\\s]+");
+		columnHeaders = data == null ? Files.getHeaderOfFile(filename, delim, log) : ext.splitLine(data.get(0), delim, log);
     	if (Array.toStr(line).contains("'")) {
     		for (int i = 0; i < line.length; i++) {
     			indices = ext.indicesWithinString("'", line[i]);
@@ -184,40 +185,36 @@ public class GenParser {
         }
     	
     	maxCol = -9;
-    	if (data != null) {
-    	    
-    	} else {
-        	try {
-        	    reader = data == null ? Files.getAppropriateReader(filename) : new StringArrayListReader(data);
-        	    if (skip == -2) {
-        	        if (commaDelimited) {
-        	            originalColumnNames = ext.splitCommasIntelligently(ext.replaceAllWith(reader.readLine().trim(), replaces), simplifyQuotes, log);
-        	        } else {
-        	            originalColumnNames = ext.replaceAllWith(commaDelimited||tabDelimited?reader.readLine():reader.readLine().trim(), replaces).split(tabDelimited?"\t":"[\\s]+", -1);
-        	        }
-        	        for (int j = 0; j<cols.length; j++) {
-        	            if (colNames[j] == null) {
-        	                colNames[j] = originalColumnNames[cols[j]];
-        	            }
-        	            if (cols[j] > maxCol) {
-        	                maxCol = cols[j];
-        	            }
-        	        }
-        	    } else {
-        	        for (int i = 0; i<skip; i++) {
-        	            reader.readLine();
-        	        }
-        	    }
-            } catch (FileNotFoundException fnfe) {
-                log.reportError("Error: file \""+filename+"\" not found in current directory");
-    			failed = true;
-                return;
-            } catch (IOException ioe) {
-                log.reportError("Error reading file \""+filename+"\"");
-    			failed = true;
-                return;
-            }
-    	}
+    	try {
+    	    reader = data == null ? Files.getAppropriateReader(filename) : new StringArrayListReader(data);
+    	    if (skip == -2) {
+    	        if (commaDelimited) {
+    	            originalColumnNames = ext.splitCommasIntelligently(ext.replaceAllWith(reader.readLine().trim(), replaces), simplifyQuotes, log);
+    	        } else {
+    	            originalColumnNames = ext.replaceAllWith(commaDelimited||tabDelimited?reader.readLine():reader.readLine().trim(), replaces).split(tabDelimited?"\t":"[\\s]+", -1);
+    	        }
+    	        for (int j = 0; j<cols.length; j++) {
+    	            if (colNames[j] == null) {
+    	                colNames[j] = originalColumnNames[cols[j]];
+    	            }
+    	            if (cols[j] > maxCol) {
+    	                maxCol = cols[j];
+    	            }
+    	        }
+    	    } else {
+    	        for (int i = 0; i<skip; i++) {
+    	            reader.readLine();
+    	        }
+    	    }
+        } catch (FileNotFoundException fnfe) {
+            log.reportError("Error: file \""+filename+"\" not found in current directory");
+			failed = true;
+            return;
+        } catch (IOException ioe) {
+            log.reportError("Error reading file \""+filename+"\"");
+			failed = true;
+            return;
+        }
 	}
 	
 	class StringArrayListReader extends BufferedReader {
