@@ -1298,9 +1298,9 @@ public class GenvisisWorkflow {
                       },
             new RequirementInputType[][]{
                       {RequirementInputType.NONE}, 
-                      {RequirementInputType.NUMBER},
-                      {RequirementInputType.NUMBER},
                       {RequirementInputType.FILE},
+                      {RequirementInputType.NUMBER},
+                      {RequirementInputType.NUMBER},
                       {RequirementInputType.BOOL}, 
                       {RequirementInputType.BOOL}, 
                       {RequirementInputType.BOOL}, 
