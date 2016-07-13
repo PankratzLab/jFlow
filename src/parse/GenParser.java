@@ -55,7 +55,7 @@ public class GenParser {
 		replaceBlanks = null;
 		numTruncatedLines = 0;
 		
-    	filename = data != null ? line[0] : "in-memory";
+    	filename = data == null ? line[0] : "in-memory";
 		commaDelimited = (data == null ? Files.suggestDelimiter(filename, log) : ext.determineDelimiter(data.get(0))).equals(",") || ext.indexOfStr(",", line) >= 0;
 		tabDelimited = ext.indexOfStr("tab", line, false, true, log, false) >= 0;
 		simplifyQuotes = ext.indexOfStr("doNotSimplifyQuotes", line) == -1;
