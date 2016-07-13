@@ -1289,9 +1289,9 @@ public class GenvisisWorkflow {
                       {"Should recompute Log-R ratio for PC markers?"}, 
                       {"Should recompute Log-R ratio for median markers?"}, 
                       {"Homozygous only?"}, 
-                      {"Base-pair bins for the GC model generated from the reference"},
+//                      {"Base-pair bins for the GC model generated from the reference"},
                       {"Regression distance for the GC adjustment"},
-                      {"Number of principal components (must be less than number of samples and number of markers)."}, 
+//                      {"Number of principal components (must be less than number of samples and number of markers)."}, 
                       {"Number of threads to use"},
                       {"A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used."},
                       {"An external beta file to optimize PC selection."},
@@ -1306,9 +1306,9 @@ public class GenvisisWorkflow {
                       {RequirementInputType.BOOL}, 
                       {RequirementInputType.BOOL}, 
                       {RequirementInputType.BOOL}, 
+//                      {RequirementInputType.NUMBER}, 
                       {RequirementInputType.NUMBER}, 
-                      {RequirementInputType.NUMBER}, 
-                      {RequirementInputType.NUMBER}, 
+//                      {RequirementInputType.NUMBER}, 
                       {RequirementInputType.NUMBER},
                       {RequirementInputType.FILE},
                       {RequirementInputType.FILE},
@@ -1461,6 +1461,7 @@ public class GenvisisWorkflow {
             String betaFile = variables.get(this).get(11).trim(); 
             boolean sampLrr = true;
 
+            
             String projPropFile = proj.getPropertyFilename();
             StringBuilder cmd = new StringBuilder();
             cmd.append("java -cp genvisis.jar cnv.manage.MitoPipeline")
