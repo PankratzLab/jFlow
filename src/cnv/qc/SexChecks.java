@@ -219,6 +219,79 @@ public class SexChecks {
 		
 	}
 	
+	private boolean[] sexDiscriminatingXMarkers() {
+		boolean[] discriminatingMarkers = new boolean[xMarkers.length];
+		TTest tTest = new TTest();
+		for (int i = 0; i < xMarkers.length; i++) {
+			double[] markerLrrs = Array.toDoubleArray(lrrsX[i]);
+			double[] maleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedMales));
+			double[] femaleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedFemales));
+			if (maleLrrs.length < 2 || femaleLrrs.length < 2 || Array.mean(femaleLrrs) <= Array.mean(maleLrrs)) {
+				discriminatingMarkers[i] = false;
+				continue;
+			}
+			double pVal = tTest.tTest(maleLrrs, femaleLrrs);
+			discriminatingMarkers[i] = pVal < SEX_DISCRIMINATING_BASE_P_THRESHOLD / xMarkers.length;
+		}
+		return discriminatingMarkers;
+	}
+
+	private boolean[] sexDiscriminatingYMarkers() {
+		boolean[] discriminatingMarkers = new boolean[yMarkers.length];
+		TTest tTest = new TTest();
+		for (int i = 0; i < yMarkers.length; i++) {
+			double[] markerLrrs = Array.toDoubleArray(lrrsY[i]);
+			double[] maleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedMales));
+			double[] femaleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedFemales));
+			if (maleLrrs.length < 2 || femaleLrrs.length < 2 || Array.mean(maleLrrs) <= Array.mean(femaleLrrs)) {
+				discriminatingMarkers[i] = false;
+				continue;
+			}
+			double pVal = tTest.tTest(maleLrrs, femaleLrrs);
+			discriminatingMarkers[i] = pVal < SEX_DISCRIMINATING_BASE_P_THRESHOLD / yMarkers.length;
+			
+		}
+		return discriminatingMarkers;
+	}
+
+	private float[] calcMedianLRRs(float[][] lrrs, int[] useMarkers) {
+		float[][] lrrsBySample = new float[sampleNames.length][useMarkers.length];
+		for (int m = 0; m < useMarkers.length; m++) {
+			for (int s = 0; s < sampleNames.length; s++) {
+				lrrsBySample[s][m] = lrrs[useMarkers[m]][s];
+			}
+		}
+		
+		float[] medianLRRs = new float[sampleNames.length];
+		for (int i = 0; i < sampleNames.length; i++) {
+			medianLRRs[i] = Array.median(Array.removeNonFinites(lrrsBySample[i]));
+		}
+		
+		return medianLRRs;
+	}
+
+	private float[] calcPctBaf10_90(float[][] bafs, int[] useMarkers) {
+		int[] baf10_90_counts = Array.intArray(sampleNames.length, 0);
+		int[] baf_counts = Array.intArray(sampleNames.length, 0);
+		for (int m = 0; m < useMarkers.length; m++) {
+			for (int s = 0; s < sampleNames.length; s++) {
+				baf_counts[s]++;
+				if (bafs[useMarkers[m]][s] > 0.1f && bafs[useMarkers[m]][s] < 0.9f) {
+					baf10_90_counts[s]++;
+				}
+			}
+		}
+		float[] pctBaf19_90 = new float[sampleNames.length];
+		for (int s = 0; s < sampleNames.length; s++) {
+			if (baf_counts[s] == 0) {
+				pctBaf19_90[s] = 0.0f;
+			} else {
+				pctBaf19_90[s] = (float) baf10_90_counts[s] / baf_counts[s];
+			}
+		}
+		return pctBaf19_90;
+	}
+
 	private void estimateSexes() {
 		float[] maleMedLRRsX = Array.subArray(lrrMedX, seedMales);
 		float[] femaleMedLRRsX = Array.subArray(lrrMedX, seedFemales);
@@ -432,44 +505,6 @@ public class SexChecks {
 		}
 	}
 	
-	private float[] calcMedianLRRs(float[][] lrrs, int[] useMarkers) {
-		float[][] lrrsBySample = new float[sampleNames.length][useMarkers.length];
-		for (int m = 0; m < useMarkers.length; m++) {
-			for (int s = 0; s < sampleNames.length; s++) {
-				lrrsBySample[s][m] = lrrs[useMarkers[m]][s];
-			}
-		}
-		
-		float[] medianLRRs = new float[sampleNames.length];
-		for (int i = 0; i < sampleNames.length; i++) {
-			medianLRRs[i] = Array.median(Array.removeNonFinites(lrrsBySample[i]));
-		}
-		
-		return medianLRRs;
-	}
-	
-	private float[] calcPctBaf10_90(float[][] bafs, int[] useMarkers) {
-		int[] baf10_90_counts = Array.intArray(sampleNames.length, 0);
-		int[] baf_counts = Array.intArray(sampleNames.length, 0);
-		for (int m = 0; m < useMarkers.length; m++) {
-			for (int s = 0; s < sampleNames.length; s++) {
-				baf_counts[s]++;
-				if (bafs[useMarkers[m]][s] > 0.1f && bafs[useMarkers[m]][s] < 0.9f) {
-					baf10_90_counts[s]++;
-				}
-			}
-		}
-		float[] pctBaf19_90 = new float[sampleNames.length];
-		for (int s = 0; s < sampleNames.length; s++) {
-			if (baf_counts[s] == 0) {
-				pctBaf19_90[s] = 0.0f;
-			} else {
-				pctBaf19_90[s] = (float) baf10_90_counts[s] / baf_counts[s];
-			}
-		}
-		return pctBaf19_90;
-	}
-
 	public static int mapEstimatedSexToSex(String estCode) {
 	    String[] estCodes = EST_SEX_HEADER.split(";");
 	    for (int i = 0; i < estCodes.length; i++) {
@@ -486,41 +521,6 @@ public class SexChecks {
 	
 	public static void sexCheck(Project proj, boolean appendToSampleData, String nonCrossHybridizingMarkersFile) {
 		new SexChecks(proj, appendToSampleData, nonCrossHybridizingMarkersFile);
-	}
-	
-	private boolean[] sexDiscriminatingXMarkers() {
-		boolean[] discriminatingMarkers = new boolean[xMarkers.length];
-		TTest tTest = new TTest();
-		for (int i = 0; i < xMarkers.length; i++) {
-			double[] markerLrrs = Array.toDoubleArray(lrrsX[i]);
-			double[] maleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedMales));
-			double[] femaleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedFemales));
-			if (maleLrrs.length < 2 || femaleLrrs.length < 2 || Array.mean(femaleLrrs) <= Array.mean(maleLrrs)) {
-				discriminatingMarkers[i] = false;
-				continue;
-			}
-			double pVal = tTest.tTest(maleLrrs, femaleLrrs);
-			discriminatingMarkers[i] = pVal < SEX_DISCRIMINATING_BASE_P_THRESHOLD / xMarkers.length;
-		}
-		return discriminatingMarkers;
-	}
-
-	private boolean[] sexDiscriminatingYMarkers() {
-		boolean[] discriminatingMarkers = new boolean[yMarkers.length];
-		TTest tTest = new TTest();
-		for (int i = 0; i < yMarkers.length; i++) {
-			double[] markerLrrs = Array.toDoubleArray(lrrsY[i]);
-			double[] maleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedMales));
-			double[] femaleLrrs = Array.removeNonFinites(Array.subArray(markerLrrs, seedFemales));
-			if (maleLrrs.length < 2 || femaleLrrs.length < 2 || Array.mean(maleLrrs) <= Array.mean(femaleLrrs)) {
-				discriminatingMarkers[i] = false;
-				continue;
-			}
-			double pVal = tTest.tTest(maleLrrs, femaleLrrs);
-			discriminatingMarkers[i] = pVal < SEX_DISCRIMINATING_BASE_P_THRESHOLD / yMarkers.length;
-			
-		}
-		return discriminatingMarkers;
 	}
 	
 	public static void markerByMarker(Project proj) {
