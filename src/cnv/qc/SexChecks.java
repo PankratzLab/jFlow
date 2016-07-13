@@ -24,6 +24,9 @@ public class SexChecks {
 	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Median X R", "Median Y R", "R Ratio Y:X", "Number of X BAFs 10-90%", "Median X LRR", "Median Y LRR"};
 	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXY", "XXX", "XXX", "X", "X"};
 	
+	private static final float XY_R_RATIO_MIN_SEED_MALE = 0.8f;
+	private static final float XY_R_RATIO_MAX_SEED_MALE = 1.2f;
+	private static final float XY_R_RATIO_MAX_SEED_FEMALE = 0.2f;
 	private static final float NUM_SD_FOR_BAF_10_90_OUTLIERS = 2.0f;
 	private static final float NUM_SD_FOR_MALE_X_OUTLIERS = 4.0f;
 	private static final float NUM_SD_FOR_FEMALE_X_OUTLIERS = 1.5f;
@@ -40,6 +43,9 @@ public class SexChecks {
 	private String[] sampleNames;
 	
 	private int[][] indicesByChr;
+	
+	private boolean[] xKeeps;
+	private boolean[] yKeeps;
 
 	private String[] xMarkers;
 	private String[] yMarkers;
@@ -69,7 +75,7 @@ public class SexChecks {
 
 
 	
-	private SexChecks(Project proj, boolean appendToSampleData, String discriminatingMarkersFile) {
+	private SexChecks(Project proj, boolean appendToSampleData, String nonCrossHybridizingMarkersFile) {
 		this.proj = proj;
 		this.log = proj.getLog();
 		
@@ -78,7 +84,7 @@ public class SexChecks {
 	    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 	    
 	    log.report("Finding Sex Chromosome Markers...");
-	    generateMarkerLists();
+	    generateMarkerLists(nonCrossHybridizingMarkersFile);
 	    
 		log.report("Loading Sex Chromosome Marker Data...");
 		gatherMarkerStats();
@@ -90,30 +96,14 @@ public class SexChecks {
 		log.report("Seeding sex checks using these " + (Array.booleanArraySum(seedMales)
 														+ Array.booleanArraySum(seedFemales)) + " samples (out of " + sampleNames.length + " total samples)");
 		
-		if (discriminatingMarkersFile == null) {
-			log.report("Scanning for X chromosome markers that express differently by sex");
-			xUseMarkers = sexDiscriminatingXMarkers();
-			log.report("Found " + Array.booleanArraySum(xUseMarkers) + " sex differentiating markers out of " + xMarkers.length + " X chromosome markers");
-
-			log.report("Scanning for Y chromosome markers that express differently by sex");
-			yUseMarkers = sexDiscriminatingYMarkers();
-			log.report("Found " + Array.booleanArraySum(yUseMarkers) + " sex differentiating markers out of " + yMarkers.length + " Y chromosome markers");
-		} else {
-			log.report("Using " + discriminatingMarkersFile + " to identify markers that discriminate by sex");
-			HashSet<String> discriminatingMarkers = HashVec.loadFileToHashSet(discriminatingMarkersFile, false);
-			
-			xUseMarkers = new boolean[xMarkers.length];
-			for (int i = 0; i < xUseMarkers.length; i++) {
-				xUseMarkers[i] = discriminatingMarkers.contains(xMarkers[i]);
-			}
-			log.report("Found " + Array.booleanArraySum(xUseMarkers) + " sex differentiating markers out of " + xMarkers.length + " X chromosome markers");
-			
-			yUseMarkers = new boolean[yMarkers.length];
-			for (int i = 0; i < yUseMarkers.length; i++) {
-				yUseMarkers[i] = discriminatingMarkers.contains(yMarkers[i]);
-			}
-			log.report("Found " + Array.booleanArraySum(yUseMarkers) + " sex differentiating markers out of " + yMarkers.length + " Y chromosome markers");
-		}
+		
+		log.report("Scanning for markers that express differently by sex");
+		
+		xUseMarkers = sexDiscriminatingXMarkers();
+		yUseMarkers = sexDiscriminatingYMarkers();
+		
+		log.report("Found " + Array.booleanArraySum(xUseMarkers) + " sex differentiating markers out of " + indicesByChr[23].length + " X chromosome markers");
+		log.report("Found " + Array.booleanArraySum(yUseMarkers) + " sex differentiating markers out of " + indicesByChr[24].length + " Y chromosome markers");
 
 		log.report("Calculating median sample LRR for identified X and Y chromosome markers");
 		lrrMedX = calcMedianLRRs(lrrsX, Array.booleanArrayToIndices(xUseMarkers));
@@ -129,30 +119,39 @@ public class SexChecks {
 		writeToFile(appendToSampleData);	
 	}
 	
-	private void generateMarkerLists() {
+	private void generateMarkerLists(String nonCrossHybridizingMarkersFile) {
+		HashSet<String> nonCrossHybridizingMarkers;
+		String[] markerNames = markerSet.getMarkerNames();
+		if (nonCrossHybridizingMarkersFile == null) {
+			log.reportTimeError("No file of markers that do not cross hybridize was provided, all X and Y chromosome markers will be used to determine sex baselines");
+			nonCrossHybridizingMarkers = new HashSet<String>(Arrays.asList(markerNames));
+		} else {
+			log.report("Using " + nonCrossHybridizingMarkersFile + " to identify markers that do not cross hybridize");
+			nonCrossHybridizingMarkers = HashVec.loadFileToHashSet(nonCrossHybridizingMarkersFile, false);
+		}
 		indicesByChr = markerSet.getIndicesByChr();
 		byte[] chrs = markerSet.getChrs();
 	    
-		boolean[] xIndices = new boolean[chrs.length];
-		boolean[] yIndices = new boolean[chrs.length];
+		xKeeps = new boolean[chrs.length];
+		yKeeps = new boolean[chrs.length];
 		for (int i = 0; i < chrs.length; i++) {
 			switch (chrs[i]) {
 				case 23:
-					xIndices[i] = true;
-					yIndices[i] = false;
+					xKeeps[i] = nonCrossHybridizingMarkers.contains(markerNames[i]);
+					yKeeps[i] = false;
 					break;
 				case 24:
-					xIndices[i] = false;
-					yIndices[i] = true;
+					xKeeps[i] = false;
+					yKeeps[i] = nonCrossHybridizingMarkers.contains(markerNames[i]);
 					break;
 				default:
-					xIndices[i] = false;
-					yIndices[i] = false;
+					xKeeps[i] = false;
+					yKeeps[i] = false;
 					break;
 			}
 		}
-		xMarkers = Array.subArray(markerSet.getMarkerNames(), xIndices);
-		yMarkers = Array.subArray(markerSet.getMarkerNames(), yIndices);
+		xMarkers = Array.subArray(markerSet.getMarkerNames(), xKeeps);
+		yMarkers = Array.subArray(markerSet.getMarkerNames(), yKeeps);
 	}
 	
 	private void gatherMarkerStats() {
@@ -209,11 +208,11 @@ public class SexChecks {
 		seedFemales = new boolean[sampleNames.length];
 		
 		for (int i = 0; i < sampleNames.length; i++) {
-			double rRatio = rMedY[i] / rMedX[i];
+			float rRatio = rMedY[i] / rMedX[i];
 			
-			if (rRatio > 0.8 && rRatio < 1.2) {
+			if (rRatio > XY_R_RATIO_MIN_SEED_MALE && rRatio < XY_R_RATIO_MAX_SEED_MALE) {
 				seedMales[i] = true;
-			} else if (rRatio < 0.2) {
+			} else if (rRatio < XY_R_RATIO_MAX_SEED_FEMALE) {
 				seedFemales[i] = true;
 			}
 		}
@@ -234,11 +233,11 @@ public class SexChecks {
 		float femaleMeanBafX10_90 = Array.mean(Array.subArray(pctXBaf10_90, seedFemales), true);
 		float femaleStdDevBafX10_90 = Array.stdev(Array.subArray(pctXBaf10_90, seedFemales), true);
 		
-		float[] maleMeanLRRsY = Array.subArray(lrrMedY, seedMales);
+		float[] maleMedLRRsY = Array.subArray(lrrMedY, seedMales);
 		float[] femaleMedLRRsY = Array.subArray(lrrMedY, seedFemales);
 		
-		float maleMeanY = Array.mean(maleMeanLRRsY, true);
-		float maleStdDevY = Array.stdev(maleMeanLRRsY, true);
+		float maleMeanY = Array.mean(maleMedLRRsY, true);
+		float maleStdDevY = Array.stdev(maleMedLRRsY, true);
 		float femaleMeanY = Array.mean(femaleMedLRRsY, true);
 		float femaleStdDevY = Array.stdev(femaleMedLRRsY, true);
 		
@@ -246,10 +245,7 @@ public class SexChecks {
 		uncertains = Array.booleanArray(sampleNames.length, false);
 		notes = Array.stringArray(sampleNames.length, "");
 		
-		boolean[] use = Array.booleanArray(markerSet.getPositions().length, true);
-		for (int index : Array.subArray(indicesByChr[23], Array.booleanNegative(xUseMarkers))) {
-			use[index] = false;
-		}
+		boolean[] mosaicismCheckUse = mosaicismUse();
 		
 		int sdForYOutliers = 0;
 		while (sdForYOutliers < MAX_SD_FOR_Y_OUTLIERS) {
@@ -261,7 +257,13 @@ public class SexChecks {
 		}
 		log.report("Using " + sdForYOutliers + " standard deviations from mean male and female Y LRRs to define sex clusters");
 		float maleFloorY = maleMeanY - sdForYOutliers * maleStdDevY;
+		log.report("Male mean Y LRR:    " + maleMeanY);
+		log.report("Male Std Dev Y LRR: " + maleStdDevY);
+		log.report("Male Y LRR Floor:   " + maleFloorY);
 		float femaleCeilingY = femaleMeanY + sdForYOutliers * femaleStdDevY;
+		log.report("Female mean Y LRR:    " + femaleMeanY);
+		log.report("Female SD Y LRR:      " + femaleStdDevY);
+		log.report("Female Y LRR Ceiling: " + femaleCeilingY);
 		
 		for (int i = 0; i < sampleNames.length; i++) {
 			boolean male = false;
@@ -284,9 +286,11 @@ public class SexChecks {
 				if (seedFemales[i]) {
 					uncertains[i] = true;
 					notes[i] += "Ratio of Median X R to Median Y R indicated female; ";
+				} else if (!seedMales[i]) {
+					notes[i] += "Ratio of Median X R to Median Y R outlier; ";
 				}
 				if (pctXBaf10_90[i] > (maleMeanBafX10_90 + NUM_SD_FOR_BAF_10_90_OUTLIERS * maleStdDevBafX10_90)) {
-					if (checkMosaicism(i, use)) {
+					if (checkXMosaicism(i, mosaicismCheckUse)) {
 						sexes[i] = 5; // Mosaic Klinefelter
 					} else {
 						sexes[i] = 3; // Full Klinefelter
@@ -295,24 +299,22 @@ public class SexChecks {
 					sexes[i] = 4; // UPD Klinefelter
 				} else {
 					sexes[i] = 1; // Male
-					if (!seedMales[i]) {
-						uncertains[i] = true;
-						notes[i] += "Ratio of Median X R to Median Y R outlier; ";
-					}
 				}
 			} else if (female) {
 				if (seedMales[i]) {
 					uncertains[i] = true;
 					notes[i] += "Ratio of Median X R to Median Y R indicated male; ";
+				} else if (!seedFemales[i]) {
+					notes[i] += "Ratio of Median X R to Median Y R outlier; ";
 				}
 				
-				if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkMosaicism(i, use)) {
+				if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkXMosaicism(i, mosaicismCheckUse)) {
 					if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)) {
 						sexes[i] = 6; // Full Triple X
 					} else {
 						sexes[i] = 7; // Mosaic Triple X
 					}
-				} else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkMosaicism(i, use)) {
+				} else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkXMosaicism(i, mosaicismCheckUse)) {
 					if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX) && pctXBaf10_90[i] < (femaleMeanBafX10_90 - NUM_SD_FOR_BAF_10_90_OUTLIERS * femaleStdDevBafX10_90)) {
 						sexes[i] = 8; // Full Turner
 					} else {
@@ -320,18 +322,36 @@ public class SexChecks {
 					}
 				} else {
 					sexes[i] = 2; // Female
-					if (!seedFemales[i]) {
-						uncertains[i] = true;
-						notes[i] += "Ratio of Median X R to Median Y R outlier; ";
-					}
 				}
 			} else {
 				sexes[i] = 0; // Missing
+				uncertains[i] = true;
 			}
 		}
 	}
 	
-	private boolean checkMosaicism(int sample, boolean[] use) {
+	/*
+	 * Generates a boolean array where every marker is true except for X chromosome markers that were excluded.
+	 * Autosomal markers are needed for the mosaicism checker but we want to only check mosoacism on "good" X chromosome markers
+	 */
+	private boolean[] mosaicismUse() {
+		boolean[] use = Array.booleanArray(markerSet.getPositions().length, true);
+		int[] xIndices = Array.booleanArrayToIndices(xKeeps);
+		HashSet<Integer> xInclude = new HashSet<Integer>();
+		for (int i = 0; i < xIndices.length; i++) {
+			if (xUseMarkers[i]) {
+				xInclude.add(xIndices[i]);
+			}
+		}
+		for (int index : indicesByChr[23]) {
+			if (!xInclude.contains(index)){
+				use[index] = false;
+			}
+		}
+		return use;
+	}
+	
+	private boolean checkXMosaicism(int sample, boolean[] use) {
 		float[] bafs = proj.getPartialSampleFromRandomAccessFile(sampleNames[sample], false, false, true, false, false).getBAFs();
 		MosaicBuilder mosaicBuilder = new MosaicBuilder();
 		mosaicBuilder.use(use);
@@ -464,8 +484,8 @@ public class SexChecks {
 		sexCheck(proj, appendToSampleData, null);
 	}
 	
-	public static void sexCheck(Project proj, boolean appendToSampleData, String discriminatingMarkersFile) {
-		new SexChecks(proj, appendToSampleData, discriminatingMarkersFile);
+	public static void sexCheck(Project proj, boolean appendToSampleData, String nonCrossHybridizingMarkersFile) {
+		new SexChecks(proj, appendToSampleData, nonCrossHybridizingMarkersFile);
 	}
 	
 	private boolean[] sexDiscriminatingXMarkers() {
