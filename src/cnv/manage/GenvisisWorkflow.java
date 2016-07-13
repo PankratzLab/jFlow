@@ -1289,9 +1289,7 @@ public class GenvisisWorkflow {
                       {"Should recompute Log-R ratio for PC markers?"}, 
                       {"Should recompute Log-R ratio for median markers?"}, 
                       {"Homozygous only?"}, 
-//                      {"Base-pair bins for the GC model generated from the reference"},
                       {"Regression distance for the GC adjustment"},
-//                      {"Number of principal components (must be less than number of samples and number of markers)."}, 
                       {"Number of threads to use"},
                       {"A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used."},
                       {"An external beta file to optimize PC selection."},
@@ -1306,9 +1304,7 @@ public class GenvisisWorkflow {
                       {RequirementInputType.BOOL}, 
                       {RequirementInputType.BOOL}, 
                       {RequirementInputType.BOOL}, 
-//                      {RequirementInputType.NUMBER}, 
                       {RequirementInputType.NUMBER}, 
-//                      {RequirementInputType.NUMBER}, 
                       {RequirementInputType.NUMBER},
                       {RequirementInputType.FILE},
                       {RequirementInputType.FILE},
@@ -1349,7 +1345,7 @@ public class GenvisisWorkflow {
           int regressionDistance = Integer.parseInt(variables.get(this).get(8));
           int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;//Integer.parseInt(variables.get(this).get(10));
           int numThreads = Integer.parseInt(variables.get(this).get(9));
-          String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
+          String outputBase = MitoPipeline.FILE_BASE;
           
           String betaOptFile = variables.get(this).get(10); 
           String betaFile = variables.get(this).get(11); 
@@ -1371,24 +1367,17 @@ public class GenvisisWorkflow {
 
       @Override
       public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
-          int sampleCount = proj.getSamples().length;
-          int mkrCount = proj.getMarkerNames().length;
-          
           String markerDir = proj.MARKER_DATA_DIRECTORY.getValue();
           String medianMkrs = variables.get(this).get(0).trim();
           String betaOptFile = variables.get(this).get(10).trim(); 
           String betaFile = variables.get(this).get(11).trim(); 
           double lrrThresh = -1;
           double callrate = -1;
-          int numComponents = -1;
-          int bpGcModel = -1;
           int regressionDistance = -1;
           int numThreads = -1;
           try { lrrThresh = Double.parseDouble(variables.get(this).get(1)); } catch (NumberFormatException e) {}
           try { callrate = Double.parseDouble(variables.get(this).get(2)); } catch (NumberFormatException e) {}
-//          try { bpGcModel = Integer.parseInt(variables.get(this).get(8)); } catch (NumberFormatException e) {}
           try { regressionDistance = Integer.parseInt(variables.get(this).get(8)); } catch (NumberFormatException e) {}
-//          try { numComponents = Integer.parseInt(variables.get(this).get(10)); } catch (NumberFormatException e) {}
           try { numThreads = Integer.parseInt(variables.get(this).get(9)); } catch (NumberFormatException e) {}
           return new boolean[][]{
                   {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)) || Files.exists(markerDir)},
@@ -1400,9 +1389,7 @@ public class GenvisisWorkflow {
                   {true}, 
                   {true}, 
                   {true}, 
-//                  {bpGcModel > 0},
                   {regressionDistance > 0},
-//                  {numComponents > 0 && numComponents < sampleCount && numComponents < mkrCount},
                   {numThreads > 0},
                   {betaOptFile.equals("") || Files.exists(betaOptFile)},
                   {betaFile.equals("") || Files.exists(betaFile)},
