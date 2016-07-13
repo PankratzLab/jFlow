@@ -2,9 +2,12 @@
 All notable changes to Genvisis will be documented in this file.
 
 ##[Unreleased]
+
+##[0.1.5]
+
 ### Fixed
 
-- MitoPipeline was only half gc-correcting
+- Corrected introduced error causing MitoPipeline to half gc-correct
 
 
 ##[0.1.4]
@@ -44,7 +47,8 @@ Reorganized mitoPipeline
 - an example of the removed heading
 
  
-[Unreleased]: https://github.com/npankrat/Genvisis/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/npankrat/Genvisis/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/npankrat/Genvisis/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/npankrat/Genvisis/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/npankrat/Genvisis/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/npankrat/Genvisis/compare/v0.1.1...v0.1.2
