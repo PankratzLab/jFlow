@@ -961,6 +961,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	
 	HashMap<String, ArrayList<String[]>> genParserFiltersMap = new HashMap<String, ArrayList<String[]>>();
 	
+	/**
+	 * All columns must be named, not indexed, due to concatenating arrays of data from two files.  If filter is for two-column/two-file data, columns must be prefixed by <code>selectedFile + "__" + column</code>.  
+	 * @param fileKey
+	 * @param filterLine
+	 */
 	public void addGenParserFilter(String fileKey, String[] filterLine) {
         ArrayList<String[]> filters = genParserFiltersMap.get(fileKey);
         if (filters == null) {
@@ -993,8 +998,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         HashMap<String, String[]> xData;
         HashMap<String, String[]> yData;
         String[] inLine, outLine;
-        int selectedColumn;
-        String selectedFile;
+        int selectedColumnX, selectedColumnY;
+        String selectedFileX, selectedFileY = null;
         String[] keys;
         int currentClass;
         String[] ids;
@@ -1011,10 +1016,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             return new ArrayList<String[]>(); 
         }
 
-        selectedColumn = Integer.parseInt(selectedNodes[0][1]);
-        selectedFile = selectedNodes[0][0];
-        filterKey = selectedFile;
-        dataOfSelectedFile = dataHash.get(selectedFile);
+        selectedColumnX = Integer.parseInt(selectedNodes[0][1]);
+        selectedFileX = selectedNodes[0][0];
+        filterKey = selectedFileX;
+        dataOfSelectedFile = dataHash.get(selectedFileX);
         currentClass = colorKeyPanel.getCurrentClass();
         if (currentClass < SampleData.BASIC_CLASSES.length && SampleData.BASIC_CLASSES[currentClass].equals(SampleData.HEATMAP)) {
             twoDPanel.setChartType(AbstractPanel.HEAT_MAP_TYPE);
@@ -1022,7 +1027,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
         }
         
-        linkKeyColumnIndices = linkerIndices.get(selectedFile);
+        linkKeyColumnIndices = linkerIndices.get(selectedFileX);
         index = (byte) (includeColorKeyValue? 4 : 3);
         outer : for (int i = 0; i < dataOfSelectedFile.size(); i++) {
             inLine = dataOfSelectedFile.get(i);
@@ -1056,16 +1061,16 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 //                }
 //            }
 //            xHash.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], outLine);
-            xData.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], inLine);
+            xData.put(inLine[linkerIndices.get(selectedFileX)[IID_INDEX_IN_LINKERS]], inLine);
         }
         if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null && linkerIndices.get(selectedNodes[1][0]) != null) {
-            selectedColumn = Integer.parseInt(selectedNodes[1][1]);
-            selectedFile = selectedNodes[1][0];
-            filterKey += "\t" + selectedFile;
-            dataOfSelectedFile = dataHash.get(selectedFile);
+            selectedColumnY = Integer.parseInt(selectedNodes[1][1]);
+            selectedFileY = selectedNodes[1][0];
+            filterKey += "\t" + selectedFileY;
+            dataOfSelectedFile = dataHash.get(selectedFileY);
             for (int i = 0; i < dataOfSelectedFile.size(); i++) {
                 inLine = dataOfSelectedFile.get(i);
-                yData.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], inLine);
+                yData.put(inLine[linkerIndices.get(selectedFileY)[IID_INDEX_IN_LINKERS]], inLine);
             }
         }
         
@@ -1074,7 +1079,22 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
         keys = HashVec.getKeys(xData, false, false);
         
-        // TODO add header values to genParseData [remember to append "X"/"Y" (or filename) to column names [and replace in genParser strings, unless that's pre-done?]
+        String[] dataHeaderX = dataColumnsHash.get(selectedFileX);
+        String[] dataHeaderY = selectedFileY == null ? null : dataColumnsHash.get(selectedFileY);
+        String[] dataHeader;
+        if (dataHeaderY != null) {
+            dataHeader = new String[dataHeaderX.length + dataHeaderY.length];
+            for (int i = 0; i < dataHeaderX.length; i++) {
+                dataHeader[i] = selectedFileX + "__" + dataHeaderX[i];
+            }
+            for (int i = 0; i < dataHeaderY.length; i++) {
+                dataHeader[i + dataHeaderX.length] = selectedFileY + "__" + dataHeaderY[i];
+            }
+        } else {
+            dataHeader = dataHeaderX;
+        }
+        
+        genParseData.add(Array.toStr(dataHeader, ","));
         
         for (String key : keys) {
             inLine = xData.get(key);
@@ -1087,13 +1107,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         
         ArrayList<String[]> genParserLines = genParserFiltersMap.get(filterKey);
         for (String[] parser : genParserLines) {
-            genParseData = GenParser.parse(parser, genParseData, log);
+            genParseData = GenParser.parse(parser, genParseData, log); // TODO parser needs to return data for all columns[?????]
         }
         
-        
+        // find selectedColumns in header of returned data
+        // extract columns
+        // construct return array
         
         return genParserLines;
-        // parse header, retrieve selected data, construct return arrays
         // error if genParser removes the desired data during parsing/filtering 
 	}
 	
