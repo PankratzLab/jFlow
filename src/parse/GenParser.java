@@ -244,7 +244,6 @@ public class GenParser {
         
         @Override
         public void close() throws IOException {
-            super.close();
             data = null;
             System.gc();
         }
