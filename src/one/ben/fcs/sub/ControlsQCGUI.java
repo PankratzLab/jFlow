@@ -80,7 +80,6 @@ public class ControlsQCGUI extends JFrame {
     private JScrollPane scrollPane;
 
     HashMap<String, ArrayList<Float>> paramMeanLists = new HashMap<String, ArrayList<Float>>();
-//    HashMap<String, HashMap<String, Float>> fileParamMeanMap = new HashMap<String, HashMap<String,Float>>();
     HashSet<Integer> boldRows = new HashSet<Integer>();
     HashSet<Integer> statRows = new HashSet<Integer>();
     HashMap<String, Float> paramMeans = new HashMap<String, Float>();
@@ -94,7 +93,6 @@ public class ControlsQCGUI extends JFrame {
     MeanCtrlPanel meanCtrlPanel = new MeanCtrlPanel();
     private JLabel lblCompareFiles;
     private JTextField txtFldCompDir;
-    private JButton btnSelComp;
     private DefaultTableModel dtmMean;
     private JButton btnHideshowColumns;
     Color SD1_COLOR = Color.YELLOW;

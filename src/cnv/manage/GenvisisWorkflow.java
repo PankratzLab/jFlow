@@ -1345,14 +1345,14 @@ public class GenvisisWorkflow {
           boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(5));
           boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(6));
           boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(7));
-          int bpGcModel = Integer.parseInt(variables.get(this).get(8));
-          int regressionDistance = Integer.parseInt(variables.get(this).get(9));
-          int numComponents = Integer.parseInt(variables.get(this).get(10));
-          int numThreads = Integer.parseInt(variables.get(this).get(11));
+          int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;//Integer.parseInt(variables.get(this).get(8));
+          int regressionDistance = Integer.parseInt(variables.get(this).get(8));
+          int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;//Integer.parseInt(variables.get(this).get(10));
+          int numThreads = Integer.parseInt(variables.get(this).get(9));
           String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
           
-          String betaOptFile = variables.get(this).get(12); 
-          String betaFile = variables.get(this).get(13); 
+          String betaOptFile = variables.get(this).get(10); 
+          String betaFile = variables.get(this).get(11); 
           
           boolean markerQC = true;
           double[] pvalOpt = MitoPipeline.DEFAULT_PVAL_OPTS;
@@ -1376,8 +1376,8 @@ public class GenvisisWorkflow {
           
           String markerDir = proj.MARKER_DATA_DIRECTORY.getValue();
           String medianMkrs = variables.get(this).get(0).trim();
-          String betaOptFile = variables.get(this).get(12).trim(); 
-          String betaFile = variables.get(this).get(13).trim(); 
+          String betaOptFile = variables.get(this).get(10).trim(); 
+          String betaFile = variables.get(this).get(11).trim(); 
           double lrrThresh = -1;
           double callrate = -1;
           int numComponents = -1;
@@ -1386,10 +1386,10 @@ public class GenvisisWorkflow {
           int numThreads = -1;
           try { lrrThresh = Double.parseDouble(variables.get(this).get(1)); } catch (NumberFormatException e) {}
           try { callrate = Double.parseDouble(variables.get(this).get(2)); } catch (NumberFormatException e) {}
-          try { bpGcModel = Integer.parseInt(variables.get(this).get(7)); } catch (NumberFormatException e) {}
+//          try { bpGcModel = Integer.parseInt(variables.get(this).get(8)); } catch (NumberFormatException e) {}
           try { regressionDistance = Integer.parseInt(variables.get(this).get(8)); } catch (NumberFormatException e) {}
-          try { numComponents = Integer.parseInt(variables.get(this).get(9)); } catch (NumberFormatException e) {}
-          try { numThreads = Integer.parseInt(variables.get(this).get(10)); } catch (NumberFormatException e) {}
+//          try { numComponents = Integer.parseInt(variables.get(this).get(10)); } catch (NumberFormatException e) {}
+          try { numThreads = Integer.parseInt(variables.get(this).get(9)); } catch (NumberFormatException e) {}
           return new boolean[][]{
                   {(stepSelections.get(S4_TRANSPOSE_TO_MDF) && S4_TRANSPOSE_TO_MDF.hasRequirements(proj, stepSelections, variables)) || Files.exists(markerDir)},
                   {Files.exists(medianMkrs)},
@@ -1400,9 +1400,9 @@ public class GenvisisWorkflow {
                   {true}, 
                   {true}, 
                   {true}, 
-                  {bpGcModel > 0},
+//                  {bpGcModel > 0},
                   {regressionDistance > 0},
-                  {numComponents > 0 && numComponents < sampleCount && numComponents < mkrCount},
+//                  {numComponents > 0 && numComponents < sampleCount && numComponents < mkrCount},
                   {numThreads > 0},
                   {betaOptFile.equals("") || Files.exists(betaOptFile)},
                   {betaFile.equals("") || Files.exists(betaFile)},
@@ -1420,9 +1420,7 @@ public class GenvisisWorkflow {
                       "true", 
                       "true", 
                       "true",
-                      GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA,
                       GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0],
-                      proj.INTENSITY_PC_NUM_COMPONENTS.getValue().toString(), 
                       proj.NUM_THREADS.getValue(),
                       "",
                       "",
@@ -1453,14 +1451,14 @@ public class GenvisisWorkflow {
             boolean recomputeLRR_PCs = Boolean.valueOf(variables.get(this).get(5));
             boolean recomputeLRR_Median = Boolean.valueOf(variables.get(this).get(6));
             boolean homozygousOnly = Boolean.valueOf(variables.get(this).get(7));
-            int bpGcModel = Integer.parseInt(variables.get(this).get(8));
-            int regressionDistance = Integer.parseInt(variables.get(this).get(9));
-            int numComponents = Integer.parseInt(variables.get(this).get(10));
-            int numThreads = Integer.parseInt(variables.get(this).get(11));
+            int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;//Integer.parseInt(variables.get(this).get(8));
+            int regressionDistance = Integer.parseInt(variables.get(this).get(8));
+            int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;//Integer.parseInt(variables.get(this).get(9));
+            int numThreads = Integer.parseInt(variables.get(this).get(9));
             String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
 
-            String betaOptFile = variables.get(this).get(12).trim(); 
-            String betaFile = variables.get(this).get(13).trim(); 
+            String betaOptFile = variables.get(this).get(10).trim(); 
+            String betaFile = variables.get(this).get(11).trim(); 
             boolean sampLrr = true;
 
             String projPropFile = proj.getPropertyFilename();
