@@ -647,7 +647,7 @@ public class RainbowTestGUI extends JFrame {
                 files = new ArrayList<String>();
                 fileMap.put(key, files);
             }
-            means.add(fileParamMeanMap.get(ext.removeDirectoryInfo(l.getKey())).get(col));
+            means.add(fileParamMeanMap.get(l.getKey()).get(col));
             files.add(l.getKey());
             count++;
         }
@@ -972,7 +972,25 @@ public class RainbowTestGUI extends JFrame {
         dtmMean.addRow(new Object[colNames.length]);
         dtmSD.addRow(new Object[colNames.length]);
         dtmCV.addRow(new Object[colNames.length]);
-        addFilesToModel(dirStruct, paramNames, dirStruct.dir);
+        
+        
+
+        TreeMap<Date, ArrayList<String>> fileMap = new TreeMap<Date, ArrayList<String>>();
+        for(Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
+            Date key = l.getValue().getRunDate();
+            ArrayList<String> files = fileMap.get(key);
+            if (files == null) {
+                files = new ArrayList<String>();
+                fileMap.put(key, files);
+            }
+            files.add(l.getKey());
+        }
+        ArrayList<String> fileList = new ArrayList<String>();
+        for (Entry<Date, ArrayList<String>> entry : fileMap.entrySet()) {
+            fileList.addAll(entry.getValue());
+        }
+        
+        addFilesToModel(fileList, paramNames, dirStruct.dir);
         
         checkWarnings(paramNames);
         
@@ -1017,65 +1035,149 @@ public class RainbowTestGUI extends JFrame {
         return warnings;
     }
     
-    private ArrayList<String> getParameterTrendWarnings(String[] params) {
-        HashMap<String, Integer> paramTrendsAbove1 = new HashMap<String, Integer>();
-        HashMap<String, Integer> paramTrendsAbove2 = new HashMap<String, Integer>();
-        
-        for (String colNm : params) {
-            if (!paramMeans.containsKey(colNm)) continue;
+    private ArrayList<String> check(String[] params) {
+        HashMap<String, ArrayList<ArrayList<String>>[]> trendMap = new HashMap<String, ArrayList<ArrayList<String>>[]>();
+        for (String param : params) {
+            ArrayList<ArrayList<String>> all1TrendsForParam = new ArrayList<ArrayList<String>>();
+            ArrayList<ArrayList<String>> all2TrendsForParam = new ArrayList<ArrayList<String>>();
+            ArrayList<ArrayList<String>> all15TrendsForParam = new ArrayList<ArrayList<String>>();
             
-            int trendAbove1 = 0;
-            int trendAbove2 = 0;
-            float mean = paramMeans.get(colNm);
-            float sd = paramSDs.get(colNm);
-        
+            if (!paramMeans.containsKey(param) || hiddenCols.contains(param)) continue;
+            
+            float mean = paramMeans.get(param);
+            float mean15 = (float) (mean * .15);
+            float sd = paramSDs.get(param);
+
+            ArrayList<String> trend1 = new ArrayList<String>();
+            ArrayList<String> trend2 = new ArrayList<String>();
+            ArrayList<String> any15 = new ArrayList<String>();
             for (String f : compFileList) {
-                float param = fileParamMeanMap.get(f).get(colNm);
-                if (param < mean - sd || param > mean + sd) {
-                    trendAbove1++;
-                    if (param < mean - 2 * sd || param > mean + 2 * sd) {
-                        trendAbove2++;
-                        if (trendAbove2 >= TREND_ABOVE_2SD_THRESH) {
-                            paramTrendsAbove2.put(colNm, trendAbove2);
+                float paramValue = fileParamMeanMap.get(f).get(param);
+
+                if (paramValue < mean - sd || paramValue > mean + sd) {
+                    trend1.add(f);
+                    if (trend1.size() >= TREND_ABOVE_1SD_THRESH && !all1TrendsForParam.contains(trend1)) {
+                        all1TrendsForParam.add(trend1);
+                    }
+                    if (paramValue < mean - 2 * sd || paramValue > mean + 2 * sd) {
+                        trend2.add(f);
+                        if (trend2.size() >= TREND_ABOVE_2SD_THRESH && !all2TrendsForParam.contains(trend2)) {
+                            all2TrendsForParam.add(trend2);
                         }
                     } else {
-                        trendAbove2 = 0;
-                        if (trendAbove1 >= TREND_ABOVE_1SD_THRESH) {
-                            paramTrendsAbove1.put(colNm, trendAbove1);
-                        }
+                        trend2 = new ArrayList<String>();
                     }
                 } else {
-                    trendAbove1 = 0;
-                    trendAbove2 = 0;
+                    trend1 = new ArrayList<String>();
+                    trend2 = new ArrayList<String>();
+                }
+                if (paramValue < mean - mean15 || paramValue > mean + mean15) {
+                    any15.add(f);
+                }
+            }
+            for (ArrayList<String> s : all1TrendsForParam) {
+                for (String ss : s) {
+                    any15.remove(ss);
+                }
+            }
+            for (ArrayList<String> s : all2TrendsForParam) {
+                for (String ss : s) {
+                    any15.remove(ss);
+                }
+            }
+            all15TrendsForParam.add(any15);
+            trendMap.put(param, new ArrayList[]{all1TrendsForParam, all2TrendsForParam, all15TrendsForParam});
+        }
+        
+        ArrayList<String> trendWarnings = new ArrayList<String>();
+        
+        for (Entry<String, ArrayList<ArrayList<String>>[]> entry : trendMap.entrySet()) {
+
+            if (!entry.getValue()[0].isEmpty()) {
+                for (ArrayList<String> trend : entry.getValue()[0]) {
+                    if (trend.size() == 0) continue;
+                    String[] p = entry.getKey().split("\\|")[0].trim().split("/");
+                    String warn = trend.size() + "-count trend in parameter " + p[p.length - 1] + " greater than 1SD from the mean.";
+                    trendWarnings.add(warn);
+                }
+                for (ArrayList<String> trend : entry.getValue()[1]) {
+                    if (trend.size() == 0) continue;
+                    String[] p = entry.getKey().split("\\|")[0].trim().split("/");
+                    String warn = trend.size() + "-count trend in parameter " + p[p.length - 1] + " greater than 2SD from the mean.";
+                    trendWarnings.add(warn);
+                }
+                for (ArrayList<String> trend : entry.getValue()[2]) {
+                    if (trend.size() == 0) continue;
+                    String[] p = entry.getKey().split("\\|")[0].trim().split("/");
+                    for (String s : trend) {
+                        String warn = "Source " + s + " has a deviant (>15% of mean) value for parameter " + p[p.length - 1];
+                        trendWarnings.add(warn);
+                    }                    
                 }
             }
         }
-
-        final ArrayList<String> warnings = new ArrayList<String>();
-        if (!paramTrendsAbove1.isEmpty()) {
-            for (String s : paramTrendsAbove1.keySet()) {
-                String[] p = s.split("\\|")[0].trim().split("/");
-                String warn = paramTrendsAbove1.get(s) + "-count trend in parameter " + p[p.length - 1] + " greater than 1SD from the mean.";
-                warnings.add(warn);
-            }
-        }
-        if (!paramTrendsAbove2.isEmpty()) {
-            for (String s : paramTrendsAbove2.keySet()) {
-                String[] p = s.split("\\|")[0].trim().split("/");
-                String warn = paramTrendsAbove2.get(s) + "-count trend in parameter " + p[p.length - 1] + " greater than 2SD from the mean.";
-                warnings.add(warn);
-            }
-        }
         
-        return warnings;
+        return trendWarnings;
     }
+    
+//    private ArrayList<String> getParameterTrendWarnings(String[] params) {
+//        HashMap<String, Integer> paramTrendsAbove1 = new HashMap<String, Integer>();
+//        HashMap<String, Integer> paramTrendsAbove2 = new HashMap<String, Integer>();
+//        
+//        for (String colNm : params) {
+//            if (!paramMeans.containsKey(colNm)) continue;
+//            
+//            int trendAbove1 = 0;
+//            int trendAbove2 = 0;
+//            float mean = paramMeans.get(colNm);
+//            float sd = paramSDs.get(colNm);
+//            
+//            for (String f : compFileList) {
+//                float param = fileParamMeanMap.get(f).get(colNm);
+//                if (param < mean - sd || param > mean + sd) {
+//                    trendAbove1++;
+//                    if (param < mean - 2 * sd || param > mean + 2 * sd) {
+//                        trendAbove2++;
+//                        if (trendAbove2 >= TREND_ABOVE_2SD_THRESH) {
+//                            paramTrendsAbove2.put(colNm, trendAbove2);
+//                        }
+//                    } else {
+//                        trendAbove2 = 0;
+//                        if (trendAbove1 >= TREND_ABOVE_1SD_THRESH) {
+//                            paramTrendsAbove1.put(colNm, trendAbove1);
+//                        }
+//                    }
+//                } else {
+//                    trendAbove1 = 0;
+//                    trendAbove2 = 0;
+//                }
+//            }
+//        }
+//
+//        final ArrayList<String> warnings = new ArrayList<String>();
+//        if (!paramTrendsAbove1.isEmpty()) {
+//            for (String s : paramTrendsAbove1.keySet()) {
+//                String[] p = s.split("\\|")[0].trim().split("/");
+//                String warn = paramTrendsAbove1.get(s) + "-count trend in parameter " + p[p.length - 1] + " greater than 1SD from the mean.";
+//                warnings.add(warn);
+//            }
+//        }
+//        if (!paramTrendsAbove2.isEmpty()) {
+//            for (String s : paramTrendsAbove2.keySet()) {
+//                String[] p = s.split("\\|")[0].trim().split("/");
+//                String warn = paramTrendsAbove2.get(s) + "-count trend in parameter " + p[p.length - 1] + " greater than 2SD from the mean.";
+//                warnings.add(warn);
+//            }
+//        }
+//        
+//        return warnings;
+//    }
     
     private void checkWarnings(String[] params) {
         final ArrayList<String> warnings = new ArrayList<String>();
         
-        warnings.addAll(getParameterTrendWarnings(params));
+        warnings.addAll(check(params));
         warnings.addAll(getFileTrendWarnings(params));
-        
         
         if (warnings.size() > 0) {
             btnWarning.setVisible(true);
@@ -1168,20 +1270,20 @@ public class RainbowTestGUI extends JFrame {
     }
     
     private ArrayList<String> compFileList = new ArrayList<String>();
-    private void addFilesToModel(DirFile df, String[] paramNames, String removePrep) {
+    private void addFilesToModel(ArrayList<String> files, String[] paramNames, String removePrep) {
         int colCnt = dtmMean.getColumnCount();
         int rows = dtmMean.getRowCount();
         
-        Object[] newRow = new Object[colCnt];
-        newRow[0] = df.dir.replaceFirst(removePrep, "");
-        dtmMean.addRow(newRow);
-        dtmSD.addRow(newRow);
-        dtmCV.addRow(newRow);
-        boldRows.add(rows);
-        rows++;
+//        Object[] newRow = new Object[colCnt];
+//        newRow[0] = df.dir.replaceFirst(removePrep, "");
+//        dtmMean.addRow(newRow);
+//        dtmSD.addRow(newRow);
+//        dtmCV.addRow(newRow);
+//        boldRows.add(rows);
+//        rows++;
         
         compFileList = new ArrayList<String>();
-        for (String f : df.files) {
+        for (String f : files) {
             compFileList.add(f);
             fileParamMeanMap.put(f, new HashMap<String, Float>());
             Object[] rowDataM = new Object[paramNames.length + 1];
@@ -1191,12 +1293,11 @@ public class RainbowTestGUI extends JFrame {
             rowDataS[0] = ext.rootOf(f);
             rowDataC[0] = ext.rootOf(f);
             for (int i = 0; i < paramNames.length; i++) {
-                FCSDataLoader loader = compFiles.get(df.dir + f);
+                FCSDataLoader loader = compFiles.get(/*df.dir + */f);
 
                 boolean[] gating = null;
                 if (gateStrat != null && rdbtnGated.isSelected()) {
                     ArrayList<Gate> gates = gateStrat.getGatesForParamOnly(paramNames[i]);
-//                    System.out.println("Applying " + gates.size() + " gates (not including parent-gates) to parameter " + paramNames[i]);
                     for (Gate g : gates) {
                         if (gating == null) {
                             gating = g.gate(loader);
@@ -1222,15 +1323,15 @@ public class RainbowTestGUI extends JFrame {
             dtmSD.addRow(rowDataS);
             dtmCV.addRow(rowDataC);
         }
-        if (df.files.length > 0 && df.getAllFiles().length > 0) {
-            dtmMean.addRow(new Object[colCnt]);
-            dtmSD.addRow(new Object[colCnt]);
-            dtmCV.addRow(new Object[colCnt]);
-        }
-        
-        for (DirFile sub : df.subDirs) {
-            addFilesToModel(sub, paramNames, removePrep);
-        }
+//        if (df.files.length > 0 && df.getAllFiles().length > 0) {
+//            dtmMean.addRow(new Object[colCnt]);
+//            dtmSD.addRow(new Object[colCnt]);
+//            dtmCV.addRow(new Object[colCnt]);
+//        }
+//        
+//        for (DirFile sub : df.subDirs) {
+//            addFilesToModel(sub, paramNames, removePrep);
+//        }
         
     }
     
