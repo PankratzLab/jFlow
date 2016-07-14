@@ -582,6 +582,7 @@ public class FCSPlotControlPanel extends JPanel {
             JFileChooser jfc = new JFileChooser(prevFCSDir);
             jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
             jfc.setMultiSelectionEnabled(true);
+            jfc.setFileFilter(new FileNameExtensionFilter("FCS Files", "fcs"));
             jfc.setDialogTitle("Select FCS File(s)");
             int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
             if (resp == JFileChooser.APPROVE_OPTION) {

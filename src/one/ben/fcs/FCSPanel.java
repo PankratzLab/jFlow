@@ -382,6 +382,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         for (Gate g : gating) {
 //            long t1 = System.currentTimeMillis();
             boolean[] gt = g.gate(fcp.dataLoader);
+            if (gt == null) continue;
             int sm = Array.booleanArraySum(gt);
             float pctInt = 100 * ((float) sm / (float)gt.length);
             String pct = ext.formDeci(pctInt, 2);
