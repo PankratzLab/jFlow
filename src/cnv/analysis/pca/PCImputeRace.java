@@ -2,12 +2,13 @@ package cnv.analysis.pca;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Hashtable;
-
+import java.util.Map.Entry;
+import java.util.Set;
 import cnv.filesys.Project;
 import cnv.var.SampleData;
 import common.Array;
+import common.CmdLine;
 import common.Files;
 import common.HashVec;
 import common.Logger;
@@ -218,14 +219,15 @@ public class PCImputeRace {
 		
 		writer = Files.getAppropriateWriter(outFile);
 		writer.println(Array.toStr(CORRECTED_PCS_HEADER));
-		PrintWriter[] raceWriters = new PrintWriter[] { Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_whites.dat"),
-														Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_africans.dat"),
-														Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_hispanics.dat"),
-														Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_asians.dat") };
+		String[] raceListFiles = raceListFilenames(outFile);
+		PrintWriter[] raceWriters = new PrintWriter[raceListFiles.length];
+		for (int i = 0; i < raceWriters.length; i++) {
+			raceWriters[i] = Files.getAppropriateWriter(raceListFiles[i]);
+		}
 		
 		for (int i = 0; i < pc1.length; i++) {
 			writer.println(fidiids[i] + "\t" + pc1[i] + "\t" + pc2[i] + "\t" + pctAfrican[i] + "\t" + pctAsian[i] + "\t" + pctEuropean[i]);
-			raceWriters[imputedRace[i]].println(fidiids[i]);	
+			raceWriters[imputedRace[i] - 1].println(fidiids[i]);	
 		}
 			
 		writer.close();
@@ -307,6 +309,112 @@ public class PCImputeRace {
 			pc2 = Array.multiply(pc2, -1.0);
 		}
 		return true;
+	}
+	
+	public static String[] raceListFilenames(String resultFile) {
+		String[] filenames = new String[RACES.length];
+		String root = ext.rootOf(resultFile, false);
+		for (int i = 0; i < filenames.length; i++) {
+			filenames[i] = root + "_" + ext.replaceWithLinuxSafeCharacters(RACES[i], true) + "s.dat";
+		}
+		return filenames;
+	}
+	
+	public static void freqsByRace(String resultFile, String plinkroot, String outFile, Logger log) {
+		String dir = ext.parseDirectoryOfFile(plinkroot, true);
+		plinkroot = ext.rootOf(plinkroot);
+		
+		String overallFrqFile = ext.rootOf(resultFile, false) + "_all.frq";
+		CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot +
+							" --freq" +
+							" --out " + ext.rootOf(overallFrqFile, false),
+					dir);
+		String[] header = Files.getHeaderOfFile(overallFrqFile, log);
+		int key = ext.indexOfStr("SNP", header);
+		int[] targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header), ext.indexOfStr("MAF", header)};
+		Hashtable<String, String> overallFreq = HashVec.loadFileToHashString(overallFrqFile, key, targets, "\t", true);
+
+		String[] raceListFiles = raceListFilenames(resultFile);
+		@SuppressWarnings("unchecked")
+		Hashtable<String, String>[] raceFreqs = (Hashtable<String, String>[]) new Hashtable[raceListFiles.length];
+		
+		for (int i = 0; i < raceListFiles.length; i++) {
+			String raceListFile = raceListFiles[i];
+			String raceFrqFile = ext.rootOf(raceListFile, false) + ".frq";
+			CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot +
+							    " --keep " + raceListFile +
+							    " --freq" +
+							    " --out " + ext.rootOf(raceFrqFile, false),
+					dir);
+			header = Files.getHeaderOfFile(raceFrqFile, log);
+			key = ext.indexOfStr("SNP", header);
+			targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header), ext.indexOfStr("MAF", header)};
+			raceFreqs[i] = HashVec.loadFileToHashString(raceFrqFile, key, targets, "\t", true);
+		}
+		
+		PrintWriter writer = Files.getAppropriateWriter(outFile);
+		writer.print("SNP\tA1\tA2\tOverall A1F (n=" + countFounders(plinkroot, null) + ")");
+		for (int i = 0; i < raceListFiles.length; i++) {
+			writer.print("\t" + RACES[i] + " A1F (n=" + countFounders(plinkroot, raceListFiles[i]) + ")");
+		}
+		writer.println();
+		
+		for (Entry<String, String> overallEntry : overallFreq.entrySet()) {
+			String marker = overallEntry.getKey();
+			String[] data = overallEntry.getValue().split("\t");
+			String A1 = data[0];
+			String A2 = data[1];;
+			String overallMAF;
+			try {
+				overallMAF = Double.toString(ext.roundToSignificantFigures(Double.parseDouble(data[2]), 4));
+			} catch (NumberFormatException nfe) {
+				log.reportTimeError("Invalid MAF (" + data[2] + ") for SNP '" + marker + "'");
+				overallMAF = ".";
+			}
+			
+			writer.print(marker + "\t" + A1 + "\t" + A2 + "\t" + overallMAF);
+			
+			for (int i = 0; i < raceFreqs.length; i++) {
+				String[] raceData = raceFreqs[i].get(marker).split("\t");
+				String a1f;
+				if (marker == null) {
+					log.reportTimeError("SNP '" + marker + "' not found for " + raceListFiles[i]);
+					a1f = ".";
+				} else {
+					String raceA1 = raceData[0];
+					String raceA2 = raceData[1];
+					try {
+						double raceMaf = Double.parseDouble(raceData[2]);
+						if (A1.equals(raceA1) && A2.equals(raceA2)) {
+							a1f = Double.toString(ext.roundToSignificantFigures(raceMaf, 4));
+						} else if (A1.equals(raceA2) && A2.equals(raceA1)) {
+							a1f = Double.toString(ext.roundToSignificantFigures(1.0 - raceMaf, 4));
+						} else {
+							log.reportTimeError("Alleles for SNP '" + marker + "' and " + raceListFiles[i] + " (" + raceA1 + ", " + raceA2 + ") do not match overall alleles (" + A1 + ", " + A2 + " )");
+							a1f = ".";
+						}
+					} catch (NumberFormatException nfe) {
+						log.reportTimeError("Invalid MAF (" + raceData[2] + ") for SNP '" + marker + "' and " + raceListFiles[i]);
+						a1f = ".";
+					}
+				}
+				writer.print("\t" + a1f);
+			}
+			writer.println();
+		}
+		writer.close();
+	}
+	
+	private static int countFounders(String plinkroot, String keepFile) {
+		int founders = 0;
+		Hashtable<String, String> plinkFam = HashVec.loadFileToHashString(plinkroot + ".fam", new int[] {0, 1}, new int[] {2, 3} , false, "\t", false, false, false);
+		Set<String> keeps = keepFile == null ? plinkFam.keySet() : HashVec.loadFileToHashSet(keepFile, new int[] {0, 1}, "\t", false);
+		for (Entry<String, String> famEntry : plinkFam.entrySet()) {
+			if (famEntry.getValue().equals("0\t0") && keeps.contains(famEntry.getKey())) {
+				founders++;
+			}
+		}
+		return founders;
 	}
 	
 	public static void main(String[] args) {

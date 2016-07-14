@@ -216,6 +216,10 @@ public class HashVec {
 	public static HashSet<String> loadFileToHashSet(String filename, boolean ignoreFirstLine) {
 		return convertHashNullToHashSet(loadFileToHashString(filename, 0, null, null, ignoreFirstLine));
 	}
+	
+	public static HashSet<String> loadFileToHashSet(String filename, int[] keyIndices, String delimiterWithinHash, boolean ignoreFirstLine) {
+		return convertHashNullToHashSet(loadFileToHashString(filename, keyIndices, null, false, delimiterWithinHash, ignoreFirstLine, false, false));
+	}
 
 	public static HashSet<String> loadToHashSet(String[] list) {
 		HashSet<String> hash = new HashSet<String>((list == null?10:list.length));
