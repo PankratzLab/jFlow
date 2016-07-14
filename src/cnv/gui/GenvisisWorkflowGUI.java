@@ -75,7 +75,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     
     Project proj;
     
-    private static final String TOP_LABEL = "Genvisis Project Pipeline:";
+    private static final String TOP_LABEL = "Genvisis Project Workflow:";
     
     volatile boolean cancelled = false;
     volatile boolean[] selected;
