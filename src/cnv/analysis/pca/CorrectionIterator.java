@@ -989,6 +989,8 @@ public class CorrectionIterator implements Serializable {
 			header.add("AVERAGE_STAT");
 			header.add("MEDIAN_STAT");
 			header.add("STD_STAT");
+			header.add("PC_0_STAT");
+			header.add("PC_0_PVAL");
 			header.add("PC_15_STAT");
 			header.add("PC_15_PVAL");
 			header.add("PC_150_STAT");
@@ -1032,6 +1034,8 @@ public class CorrectionIterator implements Serializable {
 			double[] stats = new double[evaluationResults.length];
 			double[] pval = new double[evaluationResults.length];
 			int numSamps = evaluationResults[0].getNumIndsCorrel().get(i);
+			double stat0 = Double.NaN;
+			double pval0 = Double.NaN;
 			double stat15 = Double.NaN;
 			double pval15 = Double.NaN;
 			double stat150 = Double.NaN;
@@ -1043,6 +1047,10 @@ public class CorrectionIterator implements Serializable {
 				if (type.equals("SPEARMAN")) {
 					stats[j] = evaluationResults[j].getSpearmanCorrel().get(i)[0];
 					pval[j] = evaluationResults[j].getSpearmanCorrel().get(i)[1];
+					if (j == 0) {
+						stat0 = stats[j];
+						pval0 = pval[j];
+					}
 					if (j == 15) {
 						stat15 = stats[j];
 						pval15 = pval[j];
@@ -1058,6 +1066,10 @@ public class CorrectionIterator implements Serializable {
 				} else if (type.equals("PEARSON")) {
 					stats[j] = evaluationResults[j].getPearsonCorrels().get(i)[0];
 					pval[j] = evaluationResults[j].getPearsonCorrels().get(i)[1];
+					if (j == 0) {
+						stat0 = stats[j];
+						pval0 = pval[j];
+					}
 					if (j == 15) {
 						stat15 = stats[j];
 						pval15 = pval[j];
@@ -1074,6 +1086,10 @@ public class CorrectionIterator implements Serializable {
 				else if (type.equals("ICC")) {
 					stats[j] = evaluationResults[j].getIccs().get(i).getICC();
 					pval[j] = Double.NaN;
+					if (j == 0) {
+						stat0 = stats[j];
+						pval0 = pval[j];
+					}
 					if (j == 15) {
 						stat15 = stats[j];
 						pval15 = pval[j];
@@ -1094,53 +1110,55 @@ public class CorrectionIterator implements Serializable {
 			}
 
 			String evalName = name.get(i);
-			if ((evalName.contains("qpcr.qnorm.exprs") || evalName.toLowerCase().contains("age") || evalName.toLowerCase().contains("center") || evalName.toLowerCase().contains("dupli") || evalName.toLowerCase().contains("sex"))) {
-				double maxStat = Array.max(stats);
-				double minStat = Array.min(stats);
-				int maxStatPC = Array.maxIndex(stats);
-				int minStatPC = Array.minIndex(stats);
+			// if ((evalName.contains("qpcr.qnorm.exprs") || evalName.toLowerCase().contains("age") || evalName.toLowerCase().contains("center") || evalName.toLowerCase().contains("dupli") || evalName.toLowerCase().contains("sex"))) {
+			double maxStat = Array.max(stats);
+			double minStat = Array.min(stats);
+			int maxStatPC = Array.maxIndex(stats);
+			int minStatPC = Array.minIndex(stats);
 
-				double maxPval = Array.max(pval);
-				double minPval = Array.min(pval);
-				int maxPvalPC = Array.maxIndex(pval);
-				int minPvalPC = Array.minIndex(pval);
+			double maxPval = Array.max(pval);
+			double minPval = Array.min(pval);
+			int maxPvalPC = Array.maxIndex(pval);
+			int minPvalPC = Array.minIndex(pval);
 
-				double avgStat = Array.mean(stats);
-				double medianStat = Array.mean(stats);
-				double stdvStat = Array.stdev(stats);
+			double avgStat = Array.mean(stats);
+			double medianStat = Array.mean(stats);
+			double stdvStat = Array.stdev(stats);
 
-				int numSamplesModel = Array.booleanArraySum(correctionIterator.getIterationResult().getBasicPrep().getSamplesForModels());
-				ArrayList<String> result = new ArrayList<String>();
-				result.add(mBuilder_TYPE.toString());
-				result.add(oType.toString());
-				result.add(iType.toString());
-				result.add(numSamplesModel + "");
-				result.add(numSamps + "");
-				result.add(evaluationResults.length - 1 + "");
-				result.add(type);
+			int numSamplesModel = Array.booleanArraySum(correctionIterator.getIterationResult().getBasicPrep().getSamplesForModels());
+			ArrayList<String> result = new ArrayList<String>();
+			result.add(mBuilder_TYPE.toString());
+			result.add(oType.toString());
+			result.add(iType.toString());
+			result.add(numSamplesModel + "");
+			result.add(numSamps + "");
+			result.add(evaluationResults.length - 1 + "");
+			result.add(type);
 
-				result.add(evalName);
-				result.add(minStatPC + "");
-				result.add(minStat + "");
-				result.add(maxStatPC + "");
-				result.add(maxStat + "");
-				result.add(minPvalPC + "");
-				result.add(minPval + "");
-				result.add(maxPvalPC + "");
-				result.add(maxPval + "");
-				result.add(avgStat + "");
-				result.add(medianStat + "");
-				result.add(stdvStat + "");
-				result.add(stat15 + "");
-				result.add(pval15 + "");
-				result.add(stat150 + "");
-				result.add(pval150 + "");
-				result.add(statMax + "");
-				result.add(pvalMax + "");
+			result.add(evalName);
+			result.add(minStatPC + "");
+			result.add(minStat + "");
+			result.add(maxStatPC + "");
+			result.add(maxStat + "");
+			result.add(minPvalPC + "");
+			result.add(minPval + "");
+			result.add(maxPvalPC + "");
+			result.add(maxPval + "");
+			result.add(avgStat + "");
+			result.add(medianStat + "");
+			result.add(stdvStat + "");
+			result.add(stat0 + "");
+			result.add(pval0 + "");
+			result.add(stat15 + "");
+			result.add(pval15 + "");
+			result.add(stat150 + "");
+			result.add(pval150 + "");
+			result.add(statMax + "");
+			result.add(pvalMax + "");
 
-				writer.println(Array.toStr(Array.toStringArray(result)));
-			}
+			writer.println(Array.toStr(Array.toStringArray(result)));
 		}
+		// }
 	}
 
 	private static class IterSummary {
