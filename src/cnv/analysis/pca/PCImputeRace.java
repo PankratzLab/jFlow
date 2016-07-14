@@ -2,6 +2,7 @@ package cnv.analysis.pca;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 
 import cnv.filesys.Project;
@@ -11,6 +12,7 @@ import common.Files;
 import common.HashVec;
 import common.Logger;
 import common.ext;
+import stats.Maths;
 
 public class PCImputeRace {
 	public static final String[] RACES = {"White", "African American", "Hispanic", "Asian"};
@@ -19,6 +21,7 @@ public class PCImputeRace {
 	public static final String[] IMPUTED_RACE_SAMPLE_DATA_HEADERS = new String[] {"Class=ImputedRace;1=White;2=African American;3=Hispanic;4=Asian", "% African", "% Asian", "% European"};
 	
 	private Project proj;
+	
 	
 	private String[] fidiids;
 	
@@ -42,8 +45,7 @@ public class PCImputeRace {
 	 * @param asianSeeds
 	 * @param log
 	 */
-	public PCImputeRace(Project proj, String[] fidiids, double[] pc1, double[] pc2, int[] europeanSeeds, int[] africanSeeds,
-			int[] asianSeeds, Logger log) {
+	public PCImputeRace(Project proj, String[] fidiids, double[] pc1, double[] pc2, int[] europeanSeeds, int[] africanSeeds, int[] asianSeeds, Logger log) {
 		super();
 		this.proj = proj;
 		this.fidiids = fidiids;
@@ -102,7 +104,7 @@ public class PCImputeRace {
 		
 		log.report("Converting to Polar Coordinates");
 		
-		double[][] polar = cartesianToPolar(pc1, pc2);
+		double[][] polar = Maths.cartesianToPolar(pc1, pc2);
 		
 		log.report("Forcing 90 degree difference between Asians and Africans");
 		
@@ -137,7 +139,7 @@ public class PCImputeRace {
 		
 		log.report("Converting back to Cartesian");
 		
-		double[][] rect = polarToCartesian(polar);
+		double[][] rect = Maths.polarToCartesian(polar);
 		
 		pc1 = rect[0];
 		pc2 = rect[1];
@@ -175,18 +177,27 @@ public class PCImputeRace {
 		double[] pctEuropean = new double[pc1.length];
 		int[] imputedRace = new int[pc1.length];
 		
+		boolean[] whites = Array.booleanArray(pc1.length, false);
+		boolean[] africans = Array.booleanArray(pc1.length, false);
+		boolean[] hispanics = Array.booleanArray(pc1.length, false);
+		boolean[] asians = Array.booleanArray(pc1.length, false);
+		
 		for (int i = 0; i < pc1.length; i++) {
 			pctAfrican[i] = Math.min(Math.max(pc1[i], 0.0),1.0);
 			pctAsian[i] = Math.min(Math.max(pc2[i], 0.0),1.0);
 			pctEuropean[i] = 1.0 - (pctAfrican[i] + pctAsian[i]);
 			if (pctEuropean[i] > 0.95) {
 				imputedRace[i] = 1;
+				whites[i] = true;
 			} else if (pctAsian[i] > 0.999) {
 				imputedRace[i] = 4;
+				asians[i] = true;
 			} else if (pctAfrican[i] / Math.max(pctAsian[i], 0.015) > 10) {
 				imputedRace[i] = 2;
+				africans[i] = true;
 			} else {
 				imputedRace[i] = 3;
+				hispanics[i] = true;
 			}
 		}
 		
@@ -207,11 +218,22 @@ public class PCImputeRace {
 		
 		writer = Files.getAppropriateWriter(outFile);
 		writer.println(Array.toStr(CORRECTED_PCS_HEADER));
+		PrintWriter[] raceWriters = new PrintWriter[] { Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_whites.dat"),
+														Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_africans.dat"),
+														Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_hispanics.dat"),
+														Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_asians.dat") };
 		
 		for (int i = 0; i < pc1.length; i++) {
 			writer.println(fidiids[i] + "\t" + pc1[i] + "\t" + pc2[i] + "\t" + pctAfrican[i] + "\t" + pctAsian[i] + "\t" + pctEuropean[i]);
+			raceWriters[imputedRace[i]].println(fidiids[i]);	
 		}
+			
 		writer.close();
+		for (PrintWriter raceWriter : raceWriters) {
+			raceWriter.close();
+		}
+		
+		
 		
 	}
 	
@@ -285,29 +307,6 @@ public class PCImputeRace {
 			pc2 = Array.multiply(pc2, -1.0);
 		}
 		return true;
-	}
-	
-	public static double[][] cartesianToPolar(double[] x, double[] y) {
-		double[][] polar = new double[x.length][2];
-		for (int i = 0 ; i < x.length; i++) {
-			polar[i][0] = Math.atan2(y[i], x[i]);
-			polar[i][1] = Math.hypot(x[i], y[i]);
-		}
-		return polar;
-	}
-	
-	public static double[][] polarToCartesian(double[][] polar) {
-		double[] x = new double[polar.length];
-		double[] y = new double[polar.length];
-		
-		for (int i = 0; i < polar.length; i++) {
-			double theta = polar[i][0];
-			double r = polar[i][1];
-			x[i] = r * Math.cos(theta);
-			y[i] = r * Math.sin(theta);
-		}
-		
-		return new double[][] {x, y};
 	}
 	
 	public static void main(String[] args) {
