@@ -57,7 +57,7 @@ public class SimpleTallyGene {
 	}
 
 	private static void run() {
-		String vcfGermline = "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.chrM.hg19_multianno.eff.gatk.sed1000g.vcf";
+		String vcfGermline = "D:/data/Project_Tsai_21_25_26_28_spector/joint_genotypes_tsai_21_25_26_28_spector.chrM.posAdjust_-1.hg19_multianno.eff.gatk.sed1000g.posAdjust_1.vcf";
 		// Segment[] segs = new Segment[] { new Segment("chrM:0-20000"), new Segment("chr6:31,371,371-31,383,090"), new Segment("chr17:7,571,720-7,590,868") };
 		// String[] names = new String[] { "Mito", "MICA", "TP53" };
 		String[] names = new String[] { "Mito" };

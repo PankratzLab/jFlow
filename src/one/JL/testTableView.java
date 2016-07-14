@@ -1,34 +1,27 @@
 package one.JL;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
+
 
 import org.controlsfx.control.table.TableFilter;
 
 import common.Files;
 import javafx.application.Application;
-import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+
 import javafx.scene.Scene;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
@@ -62,7 +55,6 @@ public class testTableView extends Application {
 		// HBox.setHgrow(urlTextEntry, Priority.ALWAYS);
 		// HBox.setHgrow(headerCheckBox, Priority.NEVER);
 		root.setTop(controls);
-
 		root.setCenter(table);
 		Scene scene = new Scene(root, 600, 400);
 		primaryStage.setScene(scene);
@@ -157,6 +149,49 @@ public class testTableView extends Application {
 	private BufferedReader getReaderFromUrl(String urlSpec) throws Exception {
 
 		return Files.getAppropriateReader(urlSpec);
+	}
+	
+	public class Item {
+	    private final StringProperty name = new SimpleStringProperty(this, "name");
+	    private final DoubleProperty value1 = new SimpleDoubleProperty(this, "value1");
+	    private final DoubleProperty value2 = new SimpleDoubleProperty(this, "value2");
+
+	    public Item(String name, double value1, double value2) {
+	        setName(name);
+	        setValue1(value1);
+	        setValue2(value2);
+	    }
+
+
+	    public final StringProperty nameProperty() {
+	        return this.name;
+	    }
+	    public final java.lang.String getName() {
+	        return this.nameProperty().get();
+	    }
+	    public final void setName(final java.lang.String name) {
+	        this.nameProperty().set(name);
+	    }
+	    public final DoubleProperty value1Property() {
+	        return this.value1;
+	    }
+	    public final double getValue1() {
+	        return this.value1Property().get();
+	    }
+	    public final void setValue1(final double value1) {
+	        this.value1Property().set(value1);
+	    }
+	    public final DoubleProperty value2Property() {
+	        return this.value2;
+	    }
+	    public final double getValue2() {
+	        return this.value2Property().get();
+	    }
+	    public final void setValue2(final double value2) {
+	        this.value2Property().set(value2);
+	    }
+
+
 	}
 
 	public static void main(String[] args) {
