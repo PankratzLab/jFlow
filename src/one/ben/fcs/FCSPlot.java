@@ -50,6 +50,7 @@ import cnv.gui.GuiManager;
 import common.Array;
 import common.Files;
 import common.Logger;
+import common.ext;
 
 public class FCSPlot extends JPanel implements WindowListener, ActionListener, PropertyChangeListener { 
     
@@ -169,7 +170,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
-		JMenuItem menuItemExit, menuItemOpen, menuItemShowControls, menuItemRemove, menuItemRemoveAll, menuItemScreens, menuItemSave;
+		JMenuItem menuItemExit, menuItemOpen, menuItemShowControls, menuItemRemove, menuItemExport, menuItemRemoveAll, menuItemScreens, menuItemSave;
 		JMenuItem menuItemTestRB;
 		final JCheckBoxMenuItem /*menuItemExclude,*/ menuItemHist;
 		
@@ -196,6 +197,16 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 			}
 		});
 		menu.add(menuItemSave);
+
+		menuItemExport = new JMenuItem("Export Data", KeyEvent.VK_E);
+		menuItemExport.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setupDataExport();
+            }
+        });
+		menu.add(menuItemExport);
+		
 		menuItemExit = new JMenuItem("Close", KeyEvent.VK_C);
 		menuItemExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -587,15 +598,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		return twoDPlot;
     }
 	
-	public static void main(String[] args) {
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createGUI(true);
-            }
-        });
-	}
-
-    public int getDataCount() {
+	public int getDataCount() {
         return dataLoader == null ? -1 : dataLoader.getCount();
     }
     
@@ -682,6 +685,80 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         setYDataName(gdY.getParam());
         
         // TODO set axis scales, update and repaint
+    }
+    
+    private void setupDataExport() {
+        // choose files
+        // choose gates
+        // choose counts or pcts
+        // choose output file
+        String outputFile = "F:/Flow/exportTest.xln";
+        ArrayList<Gate> gates = getAllGates();
+        boolean counts = false;
+        ArrayList<FCSDataLoader> fileData = new ArrayList<FCSDataLoader>();
+        fileData.addAll(loadedData.values());
+        
+        doDataExport(outputFile, gates, counts, fileData.toArray(new FCSDataLoader[fileData.size()]));
+    }
+    
+    private ArrayList<Gate> getAllGates() {
+        ArrayList<Gate> gateList = new ArrayList<Gate>();
+        if (this.gating != null) {
+            gateList.addAll(this.gating.getRootGates());
+            for (Gate g : this.gating.getRootGates()) {
+                gateList.addAll(getGates(g));
+            }
+        }
+        return gateList;
+    }
+    
+    private ArrayList<Gate> getGates(Gate g) {
+        ArrayList<Gate> ret = new ArrayList<Gate>();
+        ret.addAll(g.getChildGates());
+        for (Gate g1 : g.getChildGates()) {
+            ret.addAll(getGates(g1));
+        }
+        return ret;
+    }
+    
+    private void doDataExport(String outputFile, ArrayList<Gate> gatesToExport, boolean exportCounts, FCSDataLoader... dataLoaders) {
+        StringBuilder sb = new StringBuilder();
+        
+        for (Gate g : gatesToExport) {
+            sb.append("\t").append(g.getFullNameAndGatingPath());
+        }
+        for (FCSDataLoader dataLoader : dataLoaders) {
+            sb.append("\n").append(ext.removeDirectoryInfo(dataLoader.getLoadedFile()));
+            
+            for (Gate g : gatesToExport) {
+                boolean[] gt = g.gate(dataLoader);
+                if (gt == null) {
+                    sb.append("\t.");
+                } else {
+                    int c = Array.booleanArraySum(gt);
+                    if (exportCounts) {
+                        sb.append("\t").append(c);
+                    } else {
+                        boolean[] pG = g.getParentGating(dataLoader);
+                        int p = pG == null ? dataLoader.getCount() : Array.booleanArraySum(pG);
+                        double pct = (double) c / (double) p;
+                        sb.append("\t").append(ext.formDeci(100 * pct, 2));
+                    }
+                }
+            }
+        }
+        
+        Files.write(sb.toString(), outputFile);
+        log.reportTime("Data export complete!");
+    }
+    
+
+    public static void main(String[] args) {
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                createGUI(true);
+            }
+        });
     }
 
 }

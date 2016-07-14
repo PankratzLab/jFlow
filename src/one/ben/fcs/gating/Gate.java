@@ -4,14 +4,16 @@ import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.Random;
 
+import common.CmdLineProcess.OUTPUT_Mode;
 import one.ben.fcs.FCSDataLoader;
+import one.ben.fcs.FCSDataLoader.DATA_SET;
 import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 
 public abstract class Gate {
-    String popName;
-    String id;
-    String parentID;
-    Gate parentGate;
+    protected String popName;
+    protected String id;
+    protected String parentID;
+    protected Gate parentGate;
     protected ArrayList<Gate> children = new ArrayList<Gate>();
     protected ArrayList<GateDimension> dimensions = new ArrayList<GateDimension>();
 //    protected HashMap<String, boolean[]> gatingCache = new HashMap<String, boolean[]>();
@@ -39,6 +41,20 @@ public abstract class Gate {
         return parentGate;
     }
     
+    protected boolean[] parentGating = null;
+    
+    public boolean[] getParentGating(FCSDataLoader dataLoader) {
+//        if (parentGating == null) {
+//            if (this.parentGate == null) {
+//                return null;
+//            } else {
+//                return parentGating = this.parentGate.gate(dataLoader);
+//            }
+//        }
+//        return parentGating;
+        return this.parentGate == null ? null : this.parentGate.gate(dataLoader);
+    }
+    
 //    public void clearCache() {
 //        gatingCache.clear();
 //    }
@@ -47,6 +63,35 @@ public abstract class Gate {
         return id;
     }
     
+    public String getFullNameAndGatingPath() {
+        StringBuilder full = new StringBuilder();
+        
+        if (!"".equals(getName())) {
+            full.append(getName());
+            full.append(" (");
+            ArrayList<GateDimension> dims = getDimensions();
+            for (int i = 0; i < dims.size(); i++) {
+                full.append(dims.get(i).paramName);
+                if (i < dims.size() - 1) {
+                    full.append(" v ");
+                }
+            }
+            full.append(")");
+        }
+        
+        if (this.parentGate != null) {
+            String p = this.parentGate.getFullNameAndGatingPath();
+            full.insert(0, " / ");
+            full.insert(0, p);
+        }
+        
+        return full.toString();
+    }
+    
+    public String getName() {
+        return popName;
+    }
+
     public ArrayList<Gate> getChildGates() {
         return children;
     }
@@ -94,10 +139,13 @@ public abstract class Gate {
 //            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
 //                return gatingCache.get(dataLoader.getLoadedFile());
 //            }
-            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
+            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : (this.parentGating = this.parentGate.gate(dataLoader));
             boolean[][] paramIncludes = new boolean[dimensions.size()][dataLoader.getCount()];
             for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
                 RectangleGateDimension rgd = (RectangleGateDimension) dimensions.get(p);
+                if (!dataLoader.getAllDisplayableNames(DATA_SET.ALL).contains(rgd.paramName)) {
+                    return null;
+                }
                 float[] paramData = dataLoader.getData(rgd.paramName, true);
                 for (int i = 0; i < dataLoader.getCount(); i++) {
                     paramIncludes[p][i] = rgd.min <= paramData[i] && rgd.max > paramData[i]; 
@@ -105,7 +153,7 @@ public abstract class Gate {
             }
             for (int i = 0; i < dataLoader.getCount(); i++) {
                 boolean include = true;
-                if (this.parentGate != null && !includes[i]) {
+                if (includes == null || (this.parentGate != null && !includes[i])) {
                     continue;
                 }
                 for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
@@ -171,17 +219,20 @@ public abstract class Gate {
 //            if (gatingCache.containsKey(dataLoader.getLoadedFile())) {
 //                return gatingCache.get(dataLoader.getLoadedFile());
 //            }
-            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : this.parentGate.gate(dataLoader);
+            boolean[] includes = this.parentGate == null ? new boolean[dataLoader.getCount()] : (this.parentGating = this.parentGate.gate(dataLoader));
             if (myPath == null) {
                 myPath = constructPath();
             }
             float[][] paramData = new float[dimensions.size()][];
             for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
                 GateDimension gd = dimensions.get(p);
+                if (!dataLoader.getAllDisplayableNames(DATA_SET.ALL).contains(gd.paramName)) {
+                    return null;
+                }
                 paramData[p] = dataLoader.getData(gd.paramName, true);
             }
             for (int i = 0; i < dataLoader.getCount(); i++) {
-                if (this.parentGate != null && !includes[i]) {
+                if (includes == null || (this.parentGate != null && !includes[i])) {
                     continue;
                 }
                 includes[i] = myPath.contains(paramData[0][i], paramData[1][i]);

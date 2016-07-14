@@ -151,7 +151,7 @@ public class GateTreePanel extends JPanel {
     }
     
     private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
-        DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.popName);
+        DefaultMutableTreeNode child = new DefaultMutableTreeNode(g.getName());
         gateMap.put(child, g);
         root.add(child);
         for (Gate childGate : g.getChildGates()) {
@@ -207,7 +207,7 @@ public class GateTreePanel extends JPanel {
         }
     };
     private JPanel breadcrumbPanel;
-    private Border mouseoverBorder = BorderFactory.createLineBorder(Color.black, 1, true);
+    private Border mouseoverBorder = BorderFactory.createLineBorder(Color.black, 1);
     private Border breadcrumbBorder = BorderFactory.createEmptyBorder(0, 1, 0, 1);
     
     private JLabel getBreadcrumbLabel(String txt, String me, final ArrayList<DefaultMutableTreeNode> sibs, JLabel prevLbl) {
