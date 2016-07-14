@@ -19,7 +19,7 @@ import filesys.Segment;
 import stats.*;
 
 public class SexChecks {
-	public static final String EST_SEX_HEADER = "Estimated Sex;1=Male;2=Female;3=Klinefelter;4=UPD Klinefelter;5=Mosaic Klinefelter;6=Triple X;7=Mosaic Triple X;8=Turner;9=Mosaic Turner";
+	public static final String EST_SEX_HEADER = "Estimated Sex;0=Unknown;1=Male;2=Female;3=Klinefelter;4=UPD Klinefelter;5=Mosaic Klinefelter;6=Triple X;7=Mosaic Triple X;8=Turner;9=Mosaic Turner";
 	public static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 1, 2, 2, 2, 2};
 	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Median X R", "Median Y R", "R Ratio Y:X", "Number of X BAFs 10-90%", "Median X LRR", "Median Y LRR"};
 	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXY", "XXX", "XXX", "X", "X"};
@@ -76,6 +76,7 @@ public class SexChecks {
 
 	
 	private SexChecks(Project proj, boolean appendToSampleData, String nonCrossHybridizingMarkersFile) {
+		long startTime = new Date().getTime();
 		this.proj = proj;
 		this.log = proj.getLog();
 		
@@ -97,7 +98,7 @@ public class SexChecks {
 														+ Array.booleanArraySum(seedFemales)) + " samples (out of " + sampleNames.length + " total samples)");
 		
 		
-		log.report("Scanning for markers that express differently by sex");
+		log.report("Scanning for markers that express differently by sex...");
 		
 		xUseMarkers = sexDiscriminatingXMarkers();
 		yUseMarkers = sexDiscriminatingYMarkers();
@@ -109,14 +110,15 @@ public class SexChecks {
 		lrrMedX = calcMedianLRRs(lrrsX, Array.booleanArrayToIndices(xUseMarkers));
 		lrrMedY = calcMedianLRRs(lrrsY, Array.booleanArrayToIndices(yUseMarkers));
 		
-		log.report("Calculating sample counts of heterozygote calls for identified X chromosome markers");
+		log.report("Calculating sample counts of heterozygote calls for identified X chromosome markers...");
 		pctXBaf10_90 = calcPctBaf10_90(bafsX, Array.booleanArrayToIndices(xUseMarkers));
 		
-		log.report("Estimating sex for each sample");
+		log.report("Estimating sex for each sample...");
 		estimateSexes();
 		
-		log.report("Writing outputs");
-		writeToFile(appendToSampleData);	
+		log.report("Writing outputs...");
+		writeToFile(appendToSampleData);
+		log.report("Finished estimating sample sexes in " + ext.getTimeElapsed(startTime));
 	}
 	
 	private void generateMarkerLists(String nonCrossHybridizingMarkersFile) {
