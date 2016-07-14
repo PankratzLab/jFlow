@@ -160,4 +160,27 @@ public class Maths {
 		System.out.println(Array.toStr(slopeAndIntercept(188, 900, 154, 1000)));
 
 	}
+
+	public static double[][] cartesianToPolar(double[] x, double[] y) {
+		double[][] polar = new double[x.length][2];
+		for (int i = 0 ; i < x.length; i++) {
+			polar[i][0] = Math.atan2(y[i], x[i]);
+			polar[i][1] = Math.hypot(x[i], y[i]);
+		}
+		return polar;
+	}
+
+	public static double[][] polarToCartesian(double[][] polar) {
+		double[] x = new double[polar.length];
+		double[] y = new double[polar.length];
+		
+		for (int i = 0; i < polar.length; i++) {
+			double theta = polar[i][0];
+			double r = polar[i][1];
+			x[i] = r * Math.cos(theta);
+			y[i] = r * Math.sin(theta);
+		}
+		
+		return new double[][] {x, y};
+	}
 }
