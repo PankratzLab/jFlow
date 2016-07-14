@@ -188,6 +188,9 @@ public class Ancestry {
 		}
 		PCImputeRace pcir = new PCImputeRace(proj, fidiids, pc1, pc2, Array.toIntArray(europeans), Array.toIntArray(africans), Array.toIntArray(asians), proj.getLog());
 		pcir.correctPCsToRace(dir+"raceImputations.mds");
+		
+		PCImputeRace.freqsByRace(dir+"raceImputations.mds", dir + "plink", dir + "freqsByRace.xln", proj.getLog());
+		
 	}
 	
 
