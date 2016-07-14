@@ -104,18 +104,6 @@ public class PCImputeRace {
 		
 		double[][] polar = cartesianToPolar(pc1, pc2);
 		
-		double[][] test = polarToCartesian(polar);
-		pc1 = test[0];
-		pc2 = test[1];
-		
-		writer = Files.getAppropriateWriter(ext.rootOf(outFile, false) + "_polarRevert.mds");
-		writer.println(Array.toStr(STEP_PCS_HEADER));
-		
-		for (int i = 0; i < pc1.length; i++) {
-			writer.println(fidiids[i] + "\t" + pc1[i] + "\t" + pc2[i] + "\t" + (1.0 - (pc1[i] + pc2[i])));
-		}
-		writer.close();
-		
 		log.report("Forcing 90 degree difference between Asians and Africans");
 		
 		double maxAfricanTheta = Double.NEGATIVE_INFINITY;
@@ -327,7 +315,7 @@ public class PCImputeRace {
 		Project proj = null;
 		String inFile = null;
 
-		String usage = "\n" + "cnv.analysis.pca.PCPopulation requires 2 arguments\n";
+		String usage = "\n" + "cnv.analysis.pca.PCImputeRace requires 2 arguments\n";
 		usage += "   (1) Project Filename (i.e. proj=" + inFile + " (default))\n" + "";
 		usage += "   (2) Input Filename (i.e. inFile=" + inFile + " (default))\n" + "";
 
