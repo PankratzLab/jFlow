@@ -998,7 +998,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         HashMap<String, String[]> xData;
         HashMap<String, String[]> yData;
         String[] inLine, outLine;
-        int selectedColumnX, selectedColumnY;
+        int selectedColumnX, selectedColumnY = -1;
         String selectedFileX, selectedFileY = null;
         String[] keys;
         int currentClass;
@@ -1052,15 +1052,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
                     }
                 }
             }
-//            outLine = new String[linkKeyColumnIndices.length + index];
-//            outLine[0] = inLine[0];
-//            outLine[1] = inLine[selectedColumn];
-//            for (int j = 0; j < linkKeyColumnIndices.length; j++) {
-//                if (linkKeyColumnIndices[j] >= 0) {
-//                    outLine[j + index] = inLine[linkKeyColumnIndices[j]];
-//                }
-//            }
-//            xHash.put(inLine[linkerIndices.get(selectedFile)[IID_INDEX_IN_LINKERS]], outLine);
             xData.put(inLine[linkerIndices.get(selectedFileX)[IID_INDEX_IN_LINKERS]], inLine);
         }
         if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null && linkerIndices.get(selectedNodes[1][0]) != null) {
@@ -1074,7 +1065,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
             }
         }
         
-        returnList = new ArrayList<String[]>();
         genParseData = new ArrayList<String>();
 
         keys = HashVec.getKeys(xData, false, false);
@@ -1106,19 +1096,62 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         }
         
         ArrayList<String[]> genParserLines = genParserFiltersMap.get(filterKey);
-        for (String[] parser : genParserLines) {
-            genParseData = GenParser.parse(parser, genParseData, log); // TODO parser needs to return data for all columns[?????]
+        if (genParserLines != null) {
+            for (String[] parser : genParserLines) {
+                genParseData = GenParser.parse(parser, genParseData, log); // TODO parser needs to return data for all columns[?????]
+            }
+        }
+        String selX = dataHeaderX[selectedColumnX];
+        String selY = dataHeaderY != null ? dataHeaderY[selectedColumnY] : null;
+        int xInd = ext.indexOfStr(selX, genParserLines.get(0));
+        int yInd = selY == null ? -1 : ext.indexOfStr(selY, genParserLines.get(0));
+        
+        returnList = new ArrayList<String[]>();
+        for (int i = 1; i < genParseData.size(); i++) {
+            inLine = genParseData.get(i).split(",");
+            outLine = new String[linkKeyColumnIndices.length + index];
+            outLine[0] = inLine[0];
+            outLine[1] = inLine[xInd];
+            outLine[2] = yInd == -1 ? "" : inLine[yInd];
+            for (int j = 0; j < linkKeyColumnIndices.length; j++) {
+                if (linkKeyColumnIndices[j] >= 0) {
+                    outLine[j + index] = inLine[linkKeyColumnIndices[j]];
+                }
+            }
+            if (includeColorKeyValue) {
+                if (sampleData != null) {
+                    ids = sampleData.lookup(inLine[0]);
+                    if (ids == null) {
+                        colorCode = 0;
+                    } else if (generatingScreenshots) {
+                        colorCode = getColorForScreenshot(ids[0]);
+                    } else {
+                        String[][] metaData = getCurrentColumnMetaData();
+                        int chr = 0, start = 0, stop = 0;
+                        if (metaData != null && metaData.length != 0 && metaData[0] != null) {
+                            chr = Positions.chromosomeNumber(metaData[0][0]);
+                            start = Integer.parseInt(metaData[0][2]);
+                            stop = Integer.parseInt(metaData[0][3]);
+                        }
+                        colorCode = sampleData.determineCodeFromClass(currentClass, (byte) 0, sampleData.getIndiFromSampleHash(ids[0]), (byte) chr, start + ((stop - start) / 2));
+                    }
+                } else {
+                    colorCode = 0;
+                }
+                inLine[3] = colorCode + "";
+            }
+            returnList.add(outLine);
         }
         
-        // find selectedColumns in header of returned data
-        // extract columns
-        // construct return array
-        
-        return genParserLines;
+        return returnList;
         // error if genParser removes the desired data during parsing/filtering 
 	}
 	
 	public ArrayList<String[]> getDataSelected(boolean includeColorKeyValue) {
+	    if (genParserFiltersMap.size() > 0) {
+	        return getDataSelectedAndFiltered(includeColorKeyValue);
+	    }
+	    
 		String[][] selectedNodes;
 		ArrayList<String[]> dataOfSelectedFile;
 		HashMap<String, String[]> xHash;
