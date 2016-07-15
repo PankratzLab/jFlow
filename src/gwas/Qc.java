@@ -6,9 +6,17 @@ import java.util.*;
 import common.*;
 
 public class Qc {
+	
+	public static final String QC_DIR = "quality_control/";
+	
+	public static final String MARKER_QC_DIR = QC_DIR + "marker_qc/";
+	public static final String SAMPLE_QC_DIR = QC_DIR + "sample_qc/";
+	public static final String LD_PRUNING_DIR = QC_DIR + "ld_pruning/";
+	public static final String GENOME_DIR = QC_DIR + "genome/";
+	public static final String ANCESTRY_DIR = QC_DIR + "ancestry/";
     
     /** A rough listing of the Folders created by fullGamut */
-    public static String[] FOLDERS_CREATED = {"quality_control/marker_qc/", "quality_control/sample_qc/", "quality_control/ld_pruning/", "quality_control/genome/", "quality_control/ancestry/"};
+    public static String[] FOLDERS_CREATED = {MARKER_QC_DIR, SAMPLE_QC_DIR, LD_PRUNING_DIR, GENOME_DIR, ANCESTRY_DIR};
     /** A rough listing of the files created, by folder, by fullGamut */
     public static String[][] FILES_CREATED = {
         {"plink.bed", "freq.frq", "missing.imiss", /*"test.missing.missing",*//* not actually necessary */ "hardy.hwe", "mishap.missing.hap", "gender.assoc", "gender.missing", "miss_drops.dat"},
@@ -279,25 +287,8 @@ public class Qc {
 		}
         if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 		
-		ancestry(dir+"ancestry/");
-		
 		
 		System.out.println("Finished this round in " + ext.getTimeElapsed(time));
-	}
-	
-	public static void ancestry(String dir) {
-		Logger log;
-		
-		dir = ext.verifyDirFormat(dir);
-		log = new Logger(dir+"ancestry.log");
-
-		if (!Files.exists(dir+"unrelateds.txt")) {
-			log.reportError("Error - need a file called unrelateds.txt with FID and IID pairs before we can proceed");
-			return;
-		}
-		
-		// TODO to be continued...
-		
 	}
 	
 	public static void fromParameters(String filename, Logger log) {
