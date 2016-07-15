@@ -90,15 +90,15 @@ public class RainbowTestGUI extends JFrame {
     private HashMap<String, FCSDataLoader> baseFiles = new HashMap<String, FCSDataLoader>();
     private HashMap<String, FCSDataLoader> compFiles = new HashMap<String, FCSDataLoader>();
     
-    HashMap<String, ArrayList<Float>> paramMeanLists = new HashMap<String, ArrayList<Float>>();
-    HashMap<String, ArrayList<Float>> paramSDLists = new HashMap<String, ArrayList<Float>>();
-    HashMap<String, ArrayList<Float>> paramCVLists = new HashMap<String, ArrayList<Float>>();
-    HashMap<String, HashMap<String, Float>> fileParamMeanMap = new HashMap<String, HashMap<String,Float>>();
+    HashMap<String, ArrayList<Double>> paramMeanLists = new HashMap<String, ArrayList<Double>>();
+    HashMap<String, ArrayList<Double>> paramSDLists = new HashMap<String, ArrayList<Double>>();
+    HashMap<String, ArrayList<Double>> paramCVLists = new HashMap<String, ArrayList<Double>>();
+    HashMap<String, HashMap<String, Double>> fileParamMeanMap = new HashMap<String, HashMap<String,Double>>();
     HashSet<Integer> boldRows = new HashSet<Integer>();
     HashSet<Integer> statRows = new HashSet<Integer>();
-    HashMap<String, Float> paramMeans = new HashMap<String, Float>();
-    HashMap<String, Float> paramSDs = new HashMap<String, Float>();
-    HashMap<String, Float> paramCVs = new HashMap<String, Float>();
+    HashMap<String, Double> paramMeans = new HashMap<String, Double>();
+    HashMap<String, Double> paramSDs = new HashMap<String, Double>();
+    HashMap<String, Double> paramCVs = new HashMap<String, Double>();
     
     TreeSet<String> paramNames = new TreeSet<String>();
     HashSet<String> hiddenCols = new HashSet<String>();
@@ -601,15 +601,15 @@ public class RainbowTestGUI extends JFrame {
         double[] yDataBase, yDataComp;
         String[] baseLbls, compLbls;
         
-        TreeMap<Date, ArrayList<Float>> meanMap = new TreeMap<Date, ArrayList<Float>>();
+        TreeMap<Date, ArrayList<Double>> meanMap = new TreeMap<Date, ArrayList<Double>>();
         TreeMap<Date, ArrayList<String>> fileMap = new TreeMap<Date, ArrayList<String>>();
         int count = 0;
         for(Entry<String, FCSDataLoader> l : baseFiles.entrySet()) {
             Date key = l.getValue().getRunDate();
-            ArrayList<Float> means = meanMap.get(key);
+            ArrayList<Double> means = meanMap.get(key);
             ArrayList<String> files = fileMap.get(key);
             if (means == null) {
-                means = new ArrayList<Float>();
+                means = new ArrayList<Double>();
                 meanMap.put(key, means);
             }
             if (files == null) {
@@ -624,7 +624,7 @@ public class RainbowTestGUI extends JFrame {
         yDataBase = new double[count];
         baseLbls = new String[count];
         int ind = 0;
-        for (Entry<Date, ArrayList<Float>> etr : meanMap.entrySet()) {
+        for (Entry<Date, ArrayList<Double>> etr : meanMap.entrySet()) {
             for (int i = 0; i < etr.getValue().size(); i++) {
                 yDataBase[ind] = etr.getValue().get(i);
                 baseLbls[ind] = fileMap.get(etr.getKey()).get(i);
@@ -632,15 +632,15 @@ public class RainbowTestGUI extends JFrame {
             }
         }
         
-        meanMap = new TreeMap<Date, ArrayList<Float>>();
+        meanMap = new TreeMap<Date, ArrayList<Double>>();
         fileMap = new TreeMap<Date, ArrayList<String>>();
         count = 0;
         for(Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
             Date key = l.getValue().getRunDate();
-            ArrayList<Float> means = meanMap.get(key);
+            ArrayList<Double> means = meanMap.get(key);
             ArrayList<String> files = fileMap.get(key);
             if (means == null) {
-                means = new ArrayList<Float>();
+                means = new ArrayList<Double>();
                 meanMap.put(key, means);
             }
             if (files == null) {
@@ -653,7 +653,7 @@ public class RainbowTestGUI extends JFrame {
         }
         yDataComp = new double[count];
         compLbls = new String[count];
-        for (Entry<Date, ArrayList<Float>> etr : meanMap.entrySet()) {
+        for (Entry<Date, ArrayList<Double>> etr : meanMap.entrySet()) {
             for (int i = 0; i < etr.getValue().size(); i++) {
                 yDataComp[ind - yDataBase.length] = etr.getValue().get(i);
                 compLbls[ind - yDataBase.length] = fileMap.get(etr.getKey()).get(i);
@@ -858,9 +858,9 @@ public class RainbowTestGUI extends JFrame {
         String[] paramNames = paramSet.toArray(new String[paramSet.size()]);
         String[] colNames = Array.addStrToArray("", paramNames, 0);
         for (String p : paramNames) {
-            paramMeanLists.put(p, new ArrayList<Float>());
-            paramSDLists.put(p, new ArrayList<Float>());
-            paramCVLists.put(p, new ArrayList<Float>());
+            paramMeanLists.put(p, new ArrayList<Double>());
+            paramSDLists.put(p, new ArrayList<Double>());
+            paramCVLists.put(p, new ArrayList<Double>());
         }
         
         dtmMean = new DefaultTableModel(colNames, 0) {
@@ -903,7 +903,7 @@ public class RainbowTestGUI extends JFrame {
         for (int i = 1; i < colNames.length; i++) {
             String colNm = colNames[i];
             if (paramMeanLists.containsKey(colNm)) {
-                Float mn = Array.mean(Array.toFloatArray(paramMeanLists.get(colNm)), true);
+                Double mn = Array.mean(Array.toDoubleArray(paramMeanLists.get(colNm)), true);
                 paramMeans.put(colNm, mn);
                 meanRow[i] = mn;
             }
@@ -918,7 +918,7 @@ public class RainbowTestGUI extends JFrame {
         for (int i = 1; i < colNames.length; i++) {
             String colNm = colNames[i];
             if (paramMeanLists.containsKey(colNm)) {
-                Float sd = Array.stdev(paramMeanLists.get(colNm).toArray(new Float[0]), true);
+                Double sd = Array.stdev(paramMeanLists.get(colNm).toArray(new Double[0]), true);
                 paramSDs.put(colNm, sd);
                 sdRow[i] = sd;
             }
@@ -933,7 +933,7 @@ public class RainbowTestGUI extends JFrame {
         for (int i = 1; i < colNames.length; i++) {
             String colNm = colNames[i];
             if (paramMeanLists.containsKey(colNm)) {
-                Float cv = 100 * (paramSDs.get(colNm) / paramMeans.get(colNm));
+                Double cv = 100 * (paramSDs.get(colNm) / paramMeans.get(colNm));
                 paramCVs.put(colNm, cv);
                 cvRow[i] = cv;
             }
@@ -1015,11 +1015,11 @@ public class RainbowTestGUI extends JFrame {
         
         for (String f : compFileList) {
             int cnt = 0;
-            HashMap<String, Float> paramVals = fileParamMeanMap.get(f);
+            HashMap<String, Double> paramVals = fileParamMeanMap.get(f);
             for (String s : params) {
-                float param = paramVals.get(s);
-                float mean = paramMeans.get(s);
-                float sd = paramSDs.get(s);
+                double param = paramVals.get(s);
+                double mean = paramMeans.get(s);
+                double sd = paramSDs.get(s);
                 
                 if (param < mean - sd || param > mean + sd) {
                     cnt++;
@@ -1044,15 +1044,15 @@ public class RainbowTestGUI extends JFrame {
             
             if (!paramMeans.containsKey(param) || hiddenCols.contains(param)) continue;
             
-            float mean = paramMeans.get(param);
-            float mean15 = (float) (mean * .15);
-            float sd = paramSDs.get(param);
+            double mean = paramMeans.get(param);
+            double mean15 = (float) (mean * .15);
+            double sd = paramSDs.get(param);
 
             ArrayList<String> trend1 = new ArrayList<String>();
             ArrayList<String> trend2 = new ArrayList<String>();
             ArrayList<String> any15 = new ArrayList<String>();
             for (String f : compFileList) {
-                float paramValue = fileParamMeanMap.get(f).get(param);
+                double paramValue = fileParamMeanMap.get(f).get(param);
 
                 if (paramValue < mean - sd || paramValue > mean + sd) {
                     trend1.add(f);
@@ -1224,7 +1224,7 @@ public class RainbowTestGUI extends JFrame {
         }
         for (ArrayList<String> fls : map.values()) {
             for (String f : fls) {
-                fileParamMeanMap.put(f, new HashMap<String, Float>());
+                fileParamMeanMap.put(f, new HashMap<String, Double>());
                 Object[] rowDataM = new Object[paramNames.length + 1];
                 Object[] rowDataS = new Object[paramNames.length + 1];
                 Object[] rowDataC = new Object[paramNames.length + 1];
@@ -1247,13 +1247,13 @@ public class RainbowTestGUI extends JFrame {
                         }
                     }
                     
-                    float[] data = loader.getData(paramNames[i], true);
+                    double[] data = loader.getData(paramNames[i], true);
                     if (gating != null) {
                         data = Array.subArray(data, gating);
                     }
-                    Float mn = Array.mean(data, true);
-                    Float sd = Array.stdev(data, true);
-                    Float cv = 100 * (sd / mn);
+                    Double mn = Array.mean(data, true);
+                    Double sd = Array.stdev(data, true);
+                    Double cv = 100 * (sd / mn);
                     paramMeanLists.get(paramNames[i]).add(mn);
                     paramSDLists.get(paramNames[i]).add(sd);
                     paramCVLists.get(paramNames[i]).add(cv);
@@ -1285,7 +1285,7 @@ public class RainbowTestGUI extends JFrame {
         compFileList = new ArrayList<String>();
         for (String f : files) {
             compFileList.add(f);
-            fileParamMeanMap.put(f, new HashMap<String, Float>());
+            fileParamMeanMap.put(f, new HashMap<String, Double>());
             Object[] rowDataM = new Object[paramNames.length + 1];
             Object[] rowDataS = new Object[paramNames.length + 1];
             Object[] rowDataC = new Object[paramNames.length + 1];
@@ -1307,14 +1307,14 @@ public class RainbowTestGUI extends JFrame {
                     }
                 }
                 
-                float[] data = loader.getData(paramNames[i], true);
+                double[] data = loader.getData(paramNames[i], true);
                 if (gating != null) {
                     data = Array.subArray(data, gating);
                 }
-                Float mn = Array.mean(data, true);
+                Double mn = Array.mean(data, true);
                 fileParamMeanMap.get(f).put(paramNames[i], mn);
-                Float sd = Array.stdev(data, true);
-                Float cv = 100 * (sd / mn);
+                Double sd = Array.stdev(data, true);
+                Double cv = 100 * (sd / mn);
                 rowDataM[i + 1] = mn;
                 rowDataS[i + 1] = sd;
                 rowDataC[i + 1] = cv;

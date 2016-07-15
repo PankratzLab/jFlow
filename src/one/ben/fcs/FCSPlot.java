@@ -12,10 +12,15 @@ import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -37,7 +42,6 @@ import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
 import one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import one.ben.fcs.gating.Gate;
-import one.ben.fcs.gating.Gate.RectangleGate;
 import one.ben.fcs.gating.GateDimension;
 import one.ben.fcs.gating.GateFileReader;
 import one.ben.fcs.gating.GateTreePanel;
@@ -93,7 +97,50 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     private static final String TITLE_STR = "Genvisis - FCS Plot";
 
     HashSet<String> propsSetting = new HashSet<String>();
-
+    
+    public static final String PROPERTIES_FILE = "jFlow.properties";
+    
+    private static final String PROPKEY_GATEFILE = "GATE_FILE";
+    private static final String PROPKEY_FCSFILES = "FCS_FILES";
+    
+    
+    protected void saveProps() {
+        try {
+            Properties props = new Properties();
+            props.setProperty(PROPKEY_GATEFILE, this.gating.getFile() == null ? "" : this.gating.getFile());
+            ArrayList<String> files = fcsControls.getAddedFiles();
+            props.setProperty(PROPKEY_FCSFILES, files.size() == 0 ? "" : Array.toStr(Array.toStringArray(files), ""));
+            File f = new File(PROPERTIES_FILE);
+            OutputStream out = new FileOutputStream( f );
+            props.store(out, "");
+        } catch (Exception e ) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void loadProps() {
+        Properties props = new Properties();
+        InputStream is = null;
+     
+        try {
+            File f = new File(PROPERTIES_FILE);
+            is = new FileInputStream(f);
+            props.load(is);
+            String gateFile = props.getProperty(PROPKEY_GATEFILE);
+            String fcsTemp = props.getProperty(PROPKEY_FCSFILES);
+            
+            if (gateFile != null && !"".equals(gateFile)) {
+                fcsControls.loadGatingFile(gateFile);
+            }
+            if (fcsTemp != null && !"".equals(fcsTemp)) {
+                String[] fcs = fcsTemp.split(";");
+                fcsControls.addFCSFiles(fcs);
+            }
+            
+        }
+        catch ( Exception e ) { is = null; }
+    }
+    
     private FCSPlot() {
         this(null);
     }
@@ -151,6 +198,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		updateGUI();
 		
 		fcsPanel.grabFocus();
+		
+		loadProps();
 	}
 	
 	public FCSPanel getPanel() {
@@ -374,8 +423,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         
     }
     
-    public float[] getAxisData(boolean wait, boolean xAxis) {
-        float[] data;
+    public double[] getAxisData(boolean wait, boolean xAxis) {
+        double[] data;
         if (dataLoader == null) {
             data = null;
         } else {
@@ -501,6 +550,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	public void loadGatingFile(String gateFile) {
         try {
             setGating(GateFileReader.readGateFile(gateFile));
+            saveProps();
         } catch (ParserConfigurationException e) {
             log.reportException(e);
         } catch (SAXException e) {
@@ -513,6 +563,10 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	public void setGating(GatingStrategy gateStrat) {
 	    this.gating = gateStrat;
 	    this.gatingSelector.setGating(gateStrat);
+	    this.parentGate = new NullGate();
+	    for (Gate g : this.gating.getRootGates()) {
+	        this.parentGate.getChildGates().add(g);
+	    }
 	    // TODO repaint
 	}
 	
@@ -532,18 +586,21 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 	            // >1 Gate Dimension
 	            if (y) continue;
 	            if (g.getDimensions().size() > 2) continue; // can't vis. multi-dim gates // TODO fix for 3D
-	            for (int i = 0; i < g.getDimensions().size(); i++) {
-	                GateDimension gd = g.getDimensions().get(i);
-	                if (gd.getParam().equals(getXDataName())) {
-	                    x = true;
-	                }
-	                if (gd.getParam().equals(getYDataName())) {
-	                    y = true;
-	                }
-	            }
-	            if (x && y) {
+	            if (g.getDimensions().get(0).getParam().equals(getXDataName()) && g.getDimensions().get(1).getParam().equals(getYDataName())) {
 	                gateList.add(g);
 	            }
+//	            for (int i = 0; i < g.getDimensions().size(); i++) {
+//	                GateDimension gd = g.getDimensions().get(i);
+//	                if (gd.getParam().equals(getXDataName())) {
+//	                    x = true;
+//	                }
+//	                if (gd.getParam().equals(getYDataName())) {
+//	                    y = true;
+//	                }
+//	            }
+//	            if (x && y) {
+//	                gateList.add(g);
+//	            }
 	        }
         }
 	    return gateList;
@@ -741,6 +798,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                     } else {
                         boolean[] pG = g.getParentGating(dataLoader);
                         int p = pG == null ? dataLoader.getCount() : Array.booleanArraySum(pG);
+                        System.out.println(g.getName() + " -- " + c);
                         double pct = (double) c / (double) p;
                         sb.append("\t").append(ext.formDeci(100 * pct, 2));
                     }

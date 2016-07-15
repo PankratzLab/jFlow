@@ -428,16 +428,13 @@ public class FCSPlotControlPanel extends JPanel {
     
     ArrayList<DataControlPanel> filePanels = new ArrayList<DataControlPanel>();
     
-    private void listFiles(File[] files) {
+    protected void addFCSFiles(String[] files) {
         TreeSet<String> fileSet = new TreeSet<String>();
-        for (File f : files) {
-            fileSet.add(f.getAbsolutePath());
+        for (String f : files) {
+            fileSet.add(f);
         }
-//        for (DataControlPanel dcp : filePanels) {
-//            
-//        }
-        
-//        filePanels.clear();
+        prevFCSDir = ext.parseDirectoryOfFile(files[0]);
+
         for (String f : fileSet) {
             String sz = Files.getSizeScaledString(f, false);
             String dt = "";
@@ -461,6 +458,15 @@ public class FCSPlotControlPanel extends JPanel {
         }
         
         addFilePanels();
+        plot.saveProps();
+    }
+    
+    protected ArrayList<String> getAddedFiles() {
+        ArrayList<String> files = new ArrayList<String>();
+        for (DataControlPanel dcp : filePanels) {
+            files.add(dcp.file);
+        }
+        return files;
     }
     
     private void addFilePanels() {
@@ -524,7 +530,7 @@ public class FCSPlotControlPanel extends JPanel {
                 Collections.swap(filePanels, ind, ind-1);
                 addFilePanels();
             } else if (cmd.equals(DataControlPanel.ACTION_MOVE_DOWN)) {
-                if (ind == filePanels.size()) return;
+                if (ind == filePanels.size()-1) return;
                 Collections.swap(filePanels, ind, ind+1);
                 addFilePanels();
             } else if (cmd.equals(DataControlPanel.ACTION_INFO)) {
@@ -569,12 +575,15 @@ public class FCSPlotControlPanel extends JPanel {
             int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
             if (resp == JFileChooser.APPROVE_OPTION) {
                 File newFile = jfc.getSelectedFile();
-                prevGateDir = ext.parseDirectoryOfFile(newFile.getAbsolutePath());
-                plot.loadGatingFile(newFile.getAbsolutePath());
-//                loadGateFile(newFile);
+                loadGatingFile(newFile.getAbsolutePath());
             }
         }
     };
+    
+    protected void loadGatingFile(String newFile) {
+        prevGateDir = ext.parseDirectoryOfFile(newFile);
+        plot.loadGatingFile(newFile);
+    }
     
     ActionListener dirSelectListener = new ActionListener() {
         @Override
@@ -587,11 +596,15 @@ public class FCSPlotControlPanel extends JPanel {
             int resp = jfc.showOpenDialog(FCSPlotControlPanel.this);
             if (resp == JFileChooser.APPROVE_OPTION) {
                 File[] newFiles = jfc.getSelectedFiles();
-                prevFCSDir = ext.parseDirectoryOfFile(newFiles[0].getAbsolutePath());
-                listFiles(newFiles);
+                String[] f = new String[newFiles.length];
+                for (int i = 0; i < f.length; i++) {
+                    f[i] = newFiles[i].getAbsolutePath();
+                }
+                addFCSFiles(f);
             }
         }
     };
+    
     
     PropertyChangeListener pcl = new PropertyChangeListener() {
         @Override

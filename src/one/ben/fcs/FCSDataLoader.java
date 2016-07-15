@@ -64,8 +64,8 @@ public class FCSDataLoader {
     HashMap<String, Integer> compensatedIndices;
     int eventCount = -1;
     int loadedCount = 0;
-    float[][] allData;
-    float[][] compensatedData;
+    double[][] allData;
+    double[][] compensatedData;
     private String loadedFile = null;
     CFCSData dataObj = null;
     CFCSSpillover spillObj = null;
@@ -273,10 +273,10 @@ public class FCSDataLoader {
         
         if (dataObj.getType() == CFCSData.LISTMODE) {
             CFCSListModeData listData = ((CFCSListModeData)dataObj); 
-            allData = new float[listData.getCount()][];
+            allData = new double[listData.getCount()][];
             setState(LOAD_STATE.PARTIALLY_LOADED);
             for (int i = 0; i < listData.getCount(); i++) {
-                float[] newData = Array.floatArray(paramsCount, Float.NaN);
+                double[] newData = Array.doubleArray(paramsCount, Double.NaN);
                 try {
                     listData.getEvent/*AsInTheFile*/(i, newData); // should be getEventAsInTheFile???
                     if (Double.isNaN(newData[0])) {
@@ -308,7 +308,7 @@ public class FCSDataLoader {
                 while (!listData.isLoaded() && !Thread.currentThread().isInterrupted()) Thread.yield();
                 while(indicesToLoad.size() > 0 && !Thread.currentThread().isInterrupted()) {
                     int indToLoad = indicesToLoad.get(indicesToLoad.size() - 1);
-                    float[] newData = Array.floatArray(paramsCount, Float.NaN);
+                    double[] newData = Array.doubleArray(paramsCount, Double.NaN);
                     try {
                         listData.getEvent/*AsInTheFile*/(indToLoad, newData); // should be getEventAsInTheFile???
                         indicesToLoad.remove(indicesToLoad.size() - 1);
@@ -344,7 +344,7 @@ public class FCSDataLoader {
         
     }
     
-    public float[] getData(String columnName, boolean waitIfNecessary) {
+    public double[] getData(String columnName, boolean waitIfNecessary) {
         LOAD_STATE currState = getLoadState();
         if (columnName.startsWith(COMPENSATED_PREPEND)) {
             if (currState == LOAD_STATE.LOADED) {
@@ -365,16 +365,16 @@ public class FCSDataLoader {
                     }
                 } else {
                     int len = eventCount == -1 ? 0 : eventCount;
-                    return Array.floatArray(len, Float.NaN);
+                    return Array.doubleArray(len, Double.NaN);
                 }
             }
         } else {
             if (currState == LOAD_STATE.UNLOADED) {
-                return new float[0];
+                return new double[0];
             } else {
                 if (currState == LOAD_STATE.LOADING && !waitIfNecessary) {
                     int len = eventCount == -1 ? 0 : eventCount;
-                    return Array.floatArray(len, Float.NaN);
+                    return Array.doubleArray(len, Double.NaN);
                 } else {
                     if (currState != LOAD_STATE.LOADED && waitIfNecessary) {
                         while((currState = getLoadState()) != LOAD_STATE.LOADED) { // TODO wait for complete data, or at least some?
@@ -486,15 +486,15 @@ public class FCSDataLoader {
         return spillMatrix;
     }
     
-    private static float[][] compensateSmall(ArrayList<String> dataColNames, float[][] data, String[] spillColNames, DenseMatrix64F spillMatrix) {
+    private static double[][] compensateSmall(ArrayList<String> dataColNames, double[][] data, String[] spillColNames, DenseMatrix64F spillMatrix) {
         int[] spillLookup = new int[dataColNames.size()];
         for (int i = 0; i < spillLookup.length; i++) {
             spillLookup[i] = ext.indexOfStr(dataColNames.get(i), spillColNames);
         }
         
-        float[][] compensated = new float[data.length][];
+        double[][] compensated = new double[data.length][];
         for (int r = 0; r < data.length; r++) {
-            compensated[r] = new float[spillColNames.length];
+            compensated[r] = new double[spillColNames.length];
             for (int c = 0, cS = 0; c < data[r].length; c++) {
                 if (spillLookup[c] == -1) {
                     continue;

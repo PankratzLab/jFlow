@@ -8,6 +8,8 @@ public class GatingStrategy {
     HashMap<String, ArrayList<Gate>> paramGateMap; // paramName -> list of applicable Gates 
     ArrayList<Gate> gateRoots;
     
+    private String fileName;
+    
     public ArrayList<Gate> getGatesForParam(String paramName) {
         ArrayList<Gate> gates = paramGateMap.get(paramName);
         if (gates == null) gates = new ArrayList<Gate>();
@@ -29,6 +31,14 @@ public class GatingStrategy {
     @SuppressWarnings("unchecked")
     public ArrayList<Gate> getRootGates() {
         return (ArrayList<Gate>) gateRoots.clone();
+    }
+
+    public String getFile() {
+        return fileName;
+    }
+
+    public void setFile(String filename2) {
+        this.fileName = filename2;
     }
     
     

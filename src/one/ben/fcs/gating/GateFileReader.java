@@ -30,6 +30,7 @@ public class GateFileReader {
         NodeList allPops = doc.getElementsByTagName("Population");
         
         GatingStrategy gs = new GatingStrategy();
+        gs.setFile(filename);
         gs.gateMap = buildPopGraph(allPops);
         gs.gateRoots = connectGates(gs.gateMap);
         gs.paramGateMap = parameterizeGates(gs.gateMap);
@@ -154,8 +155,8 @@ public class GateFileReader {
             ArrayList<Node> vertexNodes = getChildNodes(gateNode, "gating:vertex");
             for (Node n : vertexNodes) {
                 ArrayList<Node> coordNodes = getChildNodes(n, "gating:coordinate");
-                Float fX = Float.parseFloat(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
-                Float fY = Float.parseFloat(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
+                Double fX = Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
+                Double fY = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
                 ((PolygonGate) gate).verticesX.add(fX);
                 ((PolygonGate) gate).verticesY.add(fY);
             }

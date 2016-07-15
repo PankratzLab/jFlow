@@ -1,15 +1,280 @@
 package one.ben.fcs.gating;
 
+import java.awt.geom.IllegalPathStateException;
 import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Random;
 
-import common.CmdLineProcess.OUTPUT_Mode;
 import one.ben.fcs.FCSDataLoader;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
 import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 
 public abstract class Gate {
+    
+    static class GateUtils {
+        
+        /**
+        * Tests if the specified coordinates are inside the closed
+        * boundary of the specified {@link PathIterator}.
+        * <p>
+        * This method provides a basic facility for implementors of
+        * the {@link Shape} interface to implement support for the
+        * {@link Shape#contains(double, double)} method.
+        *
+        * @param pi the specified {@code PathIterator}
+        * @param x the specified X coordinate
+        * @param y the specified Y coordinate
+        * @return {@code true} if the specified coordinates are inside the
+        *         specified {@code PathIterator}; {@code false} otherwise
+        * @since 1.6
+        */
+       public static boolean contains(PathIterator pi, double x, double y) {
+           if (x * 0.0 + y * 0.0 == 0.0) {
+               /* N * 0.0 is 0.0 only if N is finite.
+                * Here we know that both x and y are finite.
+                */
+               int mask = (pi.getWindingRule() == Path2D.WIND_NON_ZERO ? -1 : 1);
+               int cross = pointCrossingsForPath(pi, x, y);
+               return ((cross & mask) != 0);
+           } else {
+               /* Either x or y was infinite or NaN.
+                * A NaN always produces a negative response to any test
+                * and Infinity values cannot be "inside" any path so
+                * they should return false as well.
+                */
+               return false;
+           }
+       }
+
+        /**
+         * Calculates the number of times the given path
+         * crosses the ray extending to the right from (px,py).
+         * If the point lies on a part of the path,
+         * then no crossings are counted for that intersection.
+         * +1 is added for each crossing where the Y coordinate is increasing
+         * -1 is added for each crossing where the Y coordinate is decreasing
+         * The return value is the sum of all crossings for every segment in
+         * the path.
+         * The path must start with a SEG_MOVETO, otherwise an exception is
+         * thrown.
+         * The caller must check p[xy] for NaN values.
+         * The caller may also reject infinite p[xy] values as well.
+         */
+        public static int pointCrossingsForPath(PathIterator pi,
+                                                double px, double py)
+        {
+            if (pi.isDone()) {
+                return 0;
+            }
+            double coords[] = new double[6];
+            if (pi.currentSegment(coords) != PathIterator.SEG_MOVETO) {
+                throw new IllegalPathStateException("missing initial moveto "+
+                                                    "in path definition");
+            }
+            pi.next();
+            double movx = coords[0];
+            double movy = coords[1];
+            double curx = movx;
+            double cury = movy;
+            double endx, endy;
+            int crossings = 0;
+            while (!pi.isDone()) {
+                switch (pi.currentSegment(coords)) {
+                case PathIterator.SEG_MOVETO:
+                    if (cury != movy) {
+                        crossings += pointCrossingsForLine(px, py,
+                                                           curx, cury,
+                                                           movx, movy);
+                    }
+                    movx = curx = coords[0];
+                    movy = cury = coords[1];
+                    break;
+                case PathIterator.SEG_LINETO:
+                    endx = coords[0];
+                    endy = coords[1];
+                    crossings += pointCrossingsForLine(px, py,
+                                                       curx, cury,
+                                                       endx, endy);
+                    curx = endx;
+                    cury = endy;
+                    break;
+                case PathIterator.SEG_QUADTO:
+                    endx = coords[2];
+                    endy = coords[3];
+                    crossings += pointCrossingsForQuad(px, py,
+                                                       curx, cury,
+                                                       coords[0], coords[1],
+                                                       endx, endy, 0);
+                    curx = endx;
+                    cury = endy;
+                    break;
+                case PathIterator.SEG_CUBICTO:
+                    endx = coords[4];
+                    endy = coords[5];
+                    crossings += pointCrossingsForCubic(px, py,
+                                                        curx, cury,
+                                                        coords[0], coords[1],
+                                                        coords[2], coords[3],
+                                                        endx, endy, 0);
+                    curx = endx;
+                    cury = endy;
+                    break;
+                case PathIterator.SEG_CLOSE:
+                    if (cury != movy) {
+                        crossings += pointCrossingsForLine(px, py,
+                                                           curx, cury,
+                                                           movx, movy);
+                    }
+                    curx = movx;
+                    cury = movy;
+                    break;
+                }
+                pi.next();
+            }
+            if (cury != movy) {
+                crossings += pointCrossingsForLine(px, py,
+                                                   curx, cury,
+                                                   movx, movy);
+            }
+            return crossings;
+        }
+
+        /**
+         * Calculates the number of times the line from (x0,y0) to (x1,y1)
+         * crosses the ray extending to the right from (px,py).
+         * If the point lies on the line, then no crossings are recorded.
+         * +1 is returned for a crossing where the Y coordinate is increasing
+         * -1 is returned for a crossing where the Y coordinate is decreasing
+         */
+        public static int pointCrossingsForLine(double px, double py,
+                                                double x0, double y0,
+                                                double x1, double y1)
+        {
+            if (py <  y0 && py <  y1) return 0;
+            if (py >= y0 && py >= y1) return 0;
+            // assert(y0 != y1);
+            if (px >= x0 && px >= x1) return 0;
+            if (px <  x0 && px <  x1) return (y0 < y1) ? 1 : -1;
+            double xintercept = x0 + (py - y0) * (x1 - x0) / (y1 - y0);
+            if (px >= xintercept) return 0;
+            return (y0 < y1) ? 1 : -1;
+        }
+        
+
+        /**
+         * Calculates the number of times the quad from (x0,y0) to (x1,y1)
+         * crosses the ray extending to the right from (px,py).
+         * If the point lies on a part of the curve,
+         * then no crossings are counted for that intersection.
+         * the level parameter should be 0 at the top-level call and will count
+         * up for each recursion level to prevent infinite recursion
+         * +1 is added for each crossing where the Y coordinate is increasing
+         * -1 is added for each crossing where the Y coordinate is decreasing
+         */
+        public static int pointCrossingsForQuad(double px, double py,
+                                                double x0, double y0,
+                                                double xc, double yc,
+                                                double x1, double y1, int level)
+        {
+            if (py <  y0 && py <  yc && py <  y1) return 0;
+            if (py >= y0 && py >= yc && py >= y1) return 0;
+            // Note y0 could equal y1...
+            if (px >= x0 && px >= xc && px >= x1) return 0;
+            if (px <  x0 && px <  xc && px <  x1) {
+                if (py >= y0) {
+                    if (py < y1) return 1;
+                } else {
+                    // py < y0
+                    if (py >= y1) return -1;
+                }
+                // py outside of y01 range, and/or y0==y1
+                return 0;
+            }
+            // double precision only has 52 bits of mantissa
+            if (level > 52) return pointCrossingsForLine(px, py, x0, y0, x1, y1);
+            double x0c = (x0 + xc) / 2;
+            double y0c = (y0 + yc) / 2;
+            double xc1 = (xc + x1) / 2;
+            double yc1 = (yc + y1) / 2;
+            xc = (x0c + xc1) / 2;
+            yc = (y0c + yc1) / 2;
+            if (Double.isNaN(xc) || Double.isNaN(yc)) {
+                // [xy]c are NaN if any of [xy]0c or [xy]c1 are NaN
+                // [xy]0c or [xy]c1 are NaN if any of [xy][0c1] are NaN
+                // These values are also NaN if opposing infinities are added
+                return 0;
+            }
+            return (pointCrossingsForQuad(px, py,
+                                          x0, y0, x0c, y0c, xc, yc,
+                                          level+1) +
+                    pointCrossingsForQuad(px, py,
+                                          xc, yc, xc1, yc1, x1, y1,
+                                          level+1));
+        }
+
+        /**
+         * Calculates the number of times the cubic from (x0,y0) to (x1,y1)
+         * crosses the ray extending to the right from (px,py).
+         * If the point lies on a part of the curve,
+         * then no crossings are counted for that intersection.
+         * the level parameter should be 0 at the top-level call and will count
+         * up for each recursion level to prevent infinite recursion
+         * +1 is added for each crossing where the Y coordinate is increasing
+         * -1 is added for each crossing where the Y coordinate is decreasing
+         */
+        public static int pointCrossingsForCubic(double px, double py,
+                                                 double x0, double y0,
+                                                 double xc0, double yc0,
+                                                 double xc1, double yc1,
+                                                 double x1, double y1, int level)
+        {
+            if (py <  y0 && py <  yc0 && py <  yc1 && py <  y1) return 0;
+            if (py >= y0 && py >= yc0 && py >= yc1 && py >= y1) return 0;
+            // Note y0 could equal yc0...
+            if (px >= x0 && px >= xc0 && px >= xc1 && px >= x1) return 0;
+            if (px <  x0 && px <  xc0 && px <  xc1 && px <  x1) {
+                if (py >= y0) {
+                    if (py < y1) return 1;
+                } else {
+                    // py < y0
+                    if (py >= y1) return -1;
+                }
+                // py outside of y01 range, and/or y0==yc0
+                return 0;
+            }
+            // double precision only has 52 bits of mantissa
+            if (level > 52) return pointCrossingsForLine(px, py, x0, y0, x1, y1);
+            double xmid = (xc0 + xc1) / 2;
+            double ymid = (yc0 + yc1) / 2;
+            xc0 = (x0 + xc0) / 2;
+            yc0 = (y0 + yc0) / 2;
+            xc1 = (xc1 + x1) / 2;
+            yc1 = (yc1 + y1) / 2;
+            double xc0m = (xc0 + xmid) / 2;
+            double yc0m = (yc0 + ymid) / 2;
+            double xmc1 = (xmid + xc1) / 2;
+            double ymc1 = (ymid + yc1) / 2;
+            xmid = (xc0m + xmc1) / 2;
+            ymid = (yc0m + ymc1) / 2;
+            if (Double.isNaN(xmid) || Double.isNaN(ymid)) {
+                // [xy]mid are NaN if any of [xy]c0m or [xy]mc1 are NaN
+                // [xy]c0m or [xy]mc1 are NaN if any of [xy][c][01] are NaN
+                // These values are also NaN if opposing infinities are added
+                return 0;
+            }
+            return (pointCrossingsForCubic(px, py,
+                                           x0, y0, xc0, yc0,
+                                           xc0m, yc0m, xmid, ymid, level+1) +
+                    pointCrossingsForCubic(px, py,
+                                           xmid, ymid, xmc1, ymc1,
+                                           xc1, yc1, x1, y1, level+1));
+        }
+        
+    }
+    
+    
     protected String popName;
     protected String id;
     protected String parentID;
@@ -146,9 +411,9 @@ public abstract class Gate {
                 if (!dataLoader.getAllDisplayableNames(DATA_SET.ALL).contains(rgd.paramName)) {
                     return null;
                 }
-                float[] paramData = dataLoader.getData(rgd.paramName, true);
+                double[] paramData = dataLoader.getData(rgd.paramName, true);
                 for (int i = 0; i < dataLoader.getCount(); i++) {
-                    paramIncludes[p][i] = rgd.min <= paramData[i] && rgd.max > paramData[i]; 
+                    paramIncludes[p][i] = rgd.min <= paramData[i] && rgd.max >= paramData[i]; 
                 }
             }
             for (int i = 0; i < dataLoader.getCount(); i++) {
@@ -171,8 +436,8 @@ public abstract class Gate {
     }
     
     public static class PolygonGate extends Gate {
-        ArrayList<Float> verticesX = new ArrayList<Float>(); 
-        ArrayList<Float> verticesY = new ArrayList<Float>(); 
+        ArrayList<Double> verticesX = new ArrayList<Double>(); 
+        ArrayList<Double> verticesY = new ArrayList<Double>(); 
         Path2D myPath;
         
         public PolygonGate(Gate parentGate, String name, String id) {
@@ -210,6 +475,7 @@ public abstract class Gate {
             for(int i = 1; i < verticesX.size(); ++i) {
                path.lineTo(verticesX.get(i), verticesY.get(i));
             }
+            path.lineTo(verticesX.get(0), verticesY.get(0));
             path.closePath();
             return path;
         }
@@ -223,7 +489,7 @@ public abstract class Gate {
             if (myPath == null) {
                 myPath = constructPath();
             }
-            float[][] paramData = new float[dimensions.size()][];
+            double[][] paramData = new double[dimensions.size()][];
             for (int p = 0, pCount = dimensions.size(); p < pCount; p++) {
                 GateDimension gd = dimensions.get(p);
                 if (!dataLoader.getAllDisplayableNames(DATA_SET.ALL).contains(gd.paramName)) {
@@ -235,7 +501,9 @@ public abstract class Gate {
                 if (includes == null || (this.parentGate != null && !includes[i])) {
                     continue;
                 }
-                includes[i] = myPath.contains(paramData[0][i], paramData[1][i]);
+                includes[i] = GateUtils.contains(myPath.getPathIterator(null), paramData[0][i], paramData[1][i]);
+//                includes[i] = Path2D.contains(myPath.getPathIterator(null), new Point2D.Double(paramData[0][i], paramData[1][i]));
+//                includes[i] = myPath.contains(paramData[0][i], paramData[1][i]);
             }
 //            gatingCache.put(dataLoader.getLoadedFile(), includes);
             return includes;
