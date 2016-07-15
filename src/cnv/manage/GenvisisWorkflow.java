@@ -785,8 +785,12 @@ public class GenvisisWorkflow {
     static final STEP S10_RUN_PLINK = new STEP("Create PLINK Files", 
                  "", 
                  new String[][]{{"[Parse Sample Files] step must have been run already or must be selected and valid."}, 
-                                    {"A pedigree.dat file is must exist.", "Create a minimal pedigree.dat file."}}, 
-                 new RequirementInputType[][]{{RequirementInputType.NONE}, {RequirementInputType.FILE, RequirementInputType.BOOL}}) {
+//                                    {},
+                                    {"A pedigree.dat file is must exist.", "Create a minimal pedigree.dat file [will pull information from SexChecks step results]."}}, 
+                 new RequirementInputType[][]{
+                                    {RequirementInputType.NONE}, 
+                                    {RequirementInputType.FILE, RequirementInputType.BOOL}
+                                    }) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {

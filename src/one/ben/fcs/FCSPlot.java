@@ -94,7 +94,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
     private JFrame parent;
 
-    private static final String TITLE_STR = "Genvisis - FCS Plot";
+    private static final String TITLE_STR = "jFlow";
 
     HashSet<String> propsSetting = new HashSet<String>();
     
