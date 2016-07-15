@@ -92,7 +92,7 @@ public class Array {
 	    }
 	    min = max = array[0];
 	    for (int i = 1; i<array.length; i++) {
-	        if (array[i] != Float.NaN) {
+	        if (!Float.isNaN(array[i])) {
 	            if (array[i] < min) {
 	                min = array[i];
 	            } 
@@ -102,6 +102,35 @@ public class Array {
 	        }
 	    }
 	    return new float[]{min, max};
+	}
+
+	/**
+	 * Return the minimum and maximum, respectively, in an array of doubles
+	 * 
+	 * @param array
+	 *            array of doubles
+	 * @return the minimum and maximum, in that order
+	 */
+	public static double[] minMax(double[] array) {
+	    double min;
+	    double max;
+	    
+	    if (array.length==0) {
+	        System.err.println("Error - impossible to find the min of an empty array");
+	        return new double[]{Double.NaN, Double.NaN};
+	    }
+	    min = max = array[0];
+	    for (int i = 1; i<array.length; i++) {
+	        if (!Double.isNaN(array[i])) {
+	            if (array[i] < min) {
+	                min = array[i];
+	            } 
+	            if (array[i] > max) {
+	                max = array[i];
+	            }
+	        }
+	    }
+	    return new double[]{min, max};
 	}
 
 	/**

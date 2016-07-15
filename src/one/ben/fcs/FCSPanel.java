@@ -7,6 +7,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -23,6 +24,8 @@ import cnv.plots.GenericPath;
 import cnv.plots.GenericRectangle;
 import cnv.plots.PlotPoint;
 import common.Array;
+import common.Files;
+import common.HashVec;
 import common.ext;
 
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
@@ -91,8 +94,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	double xMed = Double.NaN, xMin = Double.NaN, xMax = Double.NaN, yMed = Double.NaN, yMin = Double.NaN, yMax = Double.NaN, xSD = Double.NaN, ySD = Double.NaN;
 	PLOT_TYPE prevPlotType;
 	boolean[] showMedSD = {false, false, false, false}; // xMed, xSD, yMed, ySD
-	float[] xData;
-	float[] yData;
+	double[] xData;
+	double[] yData;
 	ArrayList<GenericRectangle> rects = new ArrayList<GenericRectangle>();
 	ArrayList<GenericPath> polys = new ArrayList<GenericPath>();
 	ArrayList<boolean[]> gates = new ArrayList<boolean[]>();
@@ -179,6 +182,17 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         rectangles = new GenericRectangle[0];
         lines = new GenericLine[0];
         polygons = new GenericPath[0];
+    }
+    
+    HashSet<String> incl = new HashSet<String>();
+    PrintWriter writer;
+    {
+        String[] flowjo = HashVec.loadFileToStringArray("F:/Flow/export_P2 PBMC A+C- rest_panel 2_PBMC-C P2 1HR rest_004_Lymphocytes-1.csv", true, new int[]{0,1}, false);
+        for (String s : flowjo) {
+            String[] p = s.split("\t");
+            incl.add(ext.formDeci(Double.parseDouble(p[0]), 3) + "\t" + ext.formDeci(Double.parseDouble(p[1]), 3));
+        }
+        System.out.println("loaded test data");
     }
     
     public void generatePointsRectanglesAndLines() {
@@ -274,18 +288,18 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		    points = new PlotPoint[0];
 		    if (!columnsChangedX && !dataChanged && histLines != null && histLines.size() > 0) return;
 		    
-		    float[] minMax = Array.minMax(xData);
+		    double[] minMax = Array.minMax(xData);
 		    int range = (int)Math.ceil(minMax[1]) - (int)Math.floor(minMax[0]) + 1;
 //		    int step1 = (int) Math.ceil(range / (2 * Array.iqr(xData) / Math.pow(xData.length, 1/3))); // bin size too small with this formula
 		    int step = Math.max(2, (int) (range / Math.sqrt(xData.length)));
 		    float[] histData = new float[range / step + 1];
-		    for (float x : xData) {
+		    for (double x : xData) {
 		        histData[(int) (x - minMax[0]) / step]++;
 		    }
 		    
 		    histLines = new ArrayList<GenericLine>();
 		    for (int i = 0; i < histData.length - 1; i++) {
-		        histLines.add(new GenericLine((i * step) + minMax[0], histData[i], ((i + 1) * step) + minMax[0], histData[i + 1], (byte)2, (byte) 0, (byte)0));
+		        histLines.add(new GenericLine((float)((i * step) + minMax[0]), histData[i], (float)(((i + 1) * step) + minMax[0]), histData[i + 1], (byte)2, (byte) 0, (byte)0));
 		    }
 		    setLines();
 		    
@@ -324,6 +338,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         lines = lineList.toArray(new GenericLine[lineList.size()]);
         lineList = null;
         
+        int count = 0;
         byte color = 0;
         if (columnsChangedX || columnsChangedY || dataChanged) {
     		points = new PlotPoint[dataCount];
@@ -343,13 +358,19 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     			        break;
     			    }
     			}
+    			if (incl.contains(ext.formDeci(xData[i], 3) + "\t" + ext.formDeci(yData[i], 3))) {
+    			    color = 1;
+    			} else if (color == 3) {
+    			    count++;
+    			}
     			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
     		}
         }
         if (gatesChanged) {
             updateGateColor();
         }
-	}
+        System.out.println("Counted: " + count);
+    }
     
     private void refreshNonBaseLayers() {
         updateGating();
@@ -380,14 +401,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         ArrayList<Gate> gating = fcp.getGatingForCurrentPlot();
         
         for (Gate g : gating) {
-//            long t1 = System.currentTimeMillis();
             boolean[] gt = g.gate(fcp.dataLoader);
             if (gt == null) continue;
             int sm = Array.booleanArraySum(gt);
             float pctInt = 100 * ((float) sm / (float)gt.length);
             String pct = ext.formDeci(pctInt, 2);
             String lbl = "(" + pct + "%)";
-//            System.out.println(ext.getTimeElapsed(t1));// + " -- " + g.getID() + ": " + sm + "/" + gt.length + " (" + ((int)(100 * ((float) sm / (float)gt.length))) + "%)");
             gates.add(gt);
             if (g instanceof RectangleGate) {
                 RectangleGate rg = (RectangleGate) g;

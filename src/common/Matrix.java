@@ -469,10 +469,11 @@ public class Matrix {
 	 * @return array of the elements in specified column
 	 */
 	public static double[] extractColumn(double[][] data, int col) {
+	    if (data == null) return null;
 		double[] array = new double[data.length];
 
 		for (int i = 0; i<array.length; i++) {
-			array[i] = data[i][col];
+			array[i] = data[i] == null ? null : data[i][col];
 		}
 
 		return array;
