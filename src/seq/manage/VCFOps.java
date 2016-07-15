@@ -1102,7 +1102,7 @@ public class VCFOps {
 						toRemove = Array.unique(Array.concatAll(toRemove, callRateRemove));
 					}
 				}
-				String lackOfHomoGeneity = dir + "lackOfHomogeneity.dat";
+				String lackOfHomoGeneity = dir + MergeDatasets.CHI_SQUARE_DROPS_FILENAME;
 				String problems = dir + "problematic.dat";
 
 				if (!Files.exists(lackOfHomoGeneity)) {

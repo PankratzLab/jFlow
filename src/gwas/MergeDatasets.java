@@ -16,6 +16,9 @@ public class MergeDatasets {
 //	public static final double LOOSE_HOMOGENEITY_THRESHOLD = 0.015;
 	public static final double LOOSE_HOMOGENEITY_THRESHOLD = 0.05;
 	
+	public static final String CHI_SQUARE_DROPS_FILENAME = "lackOfHomogeneity.dat";
+	public static final String FISHER_OR_CHI_SQUARE_DROPS_FILENAME = "FisherOrChiSquareDrops.dat";
+	
 	public static void checkForHomogeneity(String dir) {
 		checkForHomogeneity(dir, null, null, "UNAFF", new Logger());
 	}
@@ -32,7 +35,7 @@ public class MergeDatasets {
         int index, temp;
         double p;
 		String filename;
-		System.out.println(Array.toStr(dirs));
+//		System.out.println(Array.toStr(dirs));
 		if (dirs == null) {
 			dirs = Files.listDirectories(dir, false);
 		} else if (dir == null) {
@@ -76,7 +79,7 @@ public class MergeDatasets {
         
         markerNames = HashVec.getKeys(hashes, false, false);
         try {
-	        writer = new PrintWriter(new FileWriter(outputDir+"lackOfHomogeneity.dat"));
+	        writer = new PrintWriter(new FileWriter(outputDir+CHI_SQUARE_DROPS_FILENAME));
 	        writer2 = new PrintWriter(new FileWriter(outputDir+"homogeneityTests.xln"));
 	        
 	        writer2.println("SNP\t"+Array.toStr(dirs)+"\t"+Array.toStr(dirs)+"\t2allele_p-value\t3genotype_p-value");
@@ -188,13 +191,13 @@ public class MergeDatasets {
 //            }
 //            writer3.close();
         } catch (Exception e) {
-	        System.err.println("Error writing to "+outputDir+"lackOfHomogeneity.dat");
+	        System.err.println("Error writing to " + outputDir + CHI_SQUARE_DROPS_FILENAME);
 	        e.printStackTrace();
         }
         System.out.println("Splitting up file");
     	Files.splitFile(outputDir+"homo.R", 12, 0, 4, outputDir+"homo", ".R", false);
 		Files.qsub(outputDir + "runHomo", null, -1, Rscript.getRExecutable(new Logger()) + " CMD BATCH " + outputDir + "homo[%0].R " + outputDir + "homo[%0].Rout", Matrix.toMatrix(Array.stringArraySequence(12, "")), 1000, 12);
-        System.out.println("Now run Fisher's exact with permutations in R using either ./master or ./master.runHomo");
+        System.out.println("To run Fisher's exact with permutations in R use either ./master or ./master.runHomo");
         System.out.println(ext.getTime()+"\tDone!");
 	}
 	
@@ -414,7 +417,7 @@ public class MergeDatasets {
         
         try {
 	        writer = new PrintWriter(new FileWriter(dir+"FisherResults.xln"));
-	        writer2 = new PrintWriter(new FileWriter(dir+"FisherOrChiSquareDrops.dat"));
+	        writer2 = new PrintWriter(new FileWriter(dir + FISHER_OR_CHI_SQUARE_DROPS_FILENAME));
 	        writer.println("Marker\tPearson\tFisher10K\tminPvalue");
             time = new Date().getTime();
 	        count = 0;
@@ -465,7 +468,7 @@ public class MergeDatasets {
 	        }
 	        writer.close();
 	        System.out.println("Found results for "+count+" markers in "+ext.getTimeElapsed(time));
-	        System.out.println("There were "+Files.countLines(dir+"FisherOrChiSquareDrops.dat", 0)+" markers that had a minimum p-value less than "+HOMOGENEITY_THRESHOLD);
+	        System.out.println("There were "+Files.countLines(dir+FISHER_OR_CHI_SQUARE_DROPS_FILENAME, 0)+" markers that had a minimum p-value less than "+HOMOGENEITY_THRESHOLD);
         } catch (Exception e) {
 	        System.err.println("Error writing to "+dir+"FisherResults.xln");
 	        e.printStackTrace();
@@ -551,7 +554,7 @@ public class MergeDatasets {
 	    "   (1) directory (i.e. dir="+dir+" (default))\n"+
 	    "   (2) check for homogeneity among control frequencies (i.e. -checkHomo (not the default))\n"+
 	    " OR:\n"+
-	    "   (2) parse R test of homogeneity results (i.e. -parseHomo (not the default))\n"+
+	    "   (2) parse test of homogeneity results (i.e. -parseHomo (not the default))\n"+
 	    " OR:\n"+
 	    "   (2) set up batch merge (i.e. batch=dir1/,dir2/,lastDir/ (not the default))\n"+
 	    "   (3) root of plink files (i.e. root="+plinkRoot+" (default))\n"+

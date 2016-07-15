@@ -15,22 +15,47 @@ import common.Logger;
 import common.ext;
 import filesys.SnpMarkerSet;
 
+
+
 public class Ancestry {
 	
-	public static void checkHomogeneity(String dir, String projectPlinkRoot, String hapMapPlinkRoot, Logger log) {
+	public static final String DEFAULT_HAPMAP_PLINKROOT = "/home/pankrat2/shared/bin/HapMap/unambiguousHapMapFounders";
+	
+	public static void runPipeline(String dir, String putativeWhitesFile, Project proj, Logger log) {
+		runPipeline(dir, putativeWhitesFile, null, proj, log);
+	}
+	
+	public static void runPipeline(String dir, String putativeWhitesFile, String hapMapPlinkRoot, Project proj, Logger log) {
+		if (hapMapPlinkRoot == null) {
+			hapMapPlinkRoot = DEFAULT_HAPMAP_PLINKROOT;
+		}
+		checkHomogeneity(dir, putativeWhitesFile, dir + "plink", hapMapPlinkRoot, log);
+		String homogeneityDrops = parseHomogeneity(dir, log);
+		mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
+		runEigenstrat(dir);
+		imputeRace(dir, proj);
+	}
+	
+	public static void checkHomogeneity(String dir, String putativeWhitesFile, String projectPlinkRoot, String hapMapPlinkRoot, Logger log) {
 		String homoDir = dir + "homogeneity/";
 		String homoProjDir = homoDir + ext.removeDirectoryInfo(projectPlinkRoot) + "/";
 		String homoHapMapDir = homoDir + ext.removeDirectoryInfo(hapMapPlinkRoot) + "/";
 		new File(homoProjDir).mkdirs();
 		new File(homoHapMapDir).mkdirs();
-		CmdLine.runDefaults("plink2 --bfile " + projectPlinkRoot + " --keep " + dir + "whites.txt --hardy", homoProjDir, log);
+		CmdLine.runDefaults("plink2 --bfile " + projectPlinkRoot + " --keep " + putativeWhitesFile + " --hardy", homoProjDir, log);
 		CmdLine.runDefaults("plink2 --bfile " + hapMapPlinkRoot + " --keep " + ext.parseDirectoryOfFile(hapMapPlinkRoot) + "CEUFounders.txt --hardy", homoHapMapDir, log);
 		
 		MergeDatasets.checkForHomogeneity(homoDir, null, null, "UNAFF", log);
 	}
 	
-	public static void parseHomogeneity(String dir) {
+	public static String parseHomogeneity(String dir, Logger log) {
+		int rOuts = Files.list(dir + "homogeneity/", ".Rout", false).length;
+        if (rOuts == 0) {
+        	log.report("No Fisher's Exact results found, using Chi Square to choose homogeneous markers");
+        	return dir + "homogeneity/" + MergeDatasets.CHI_SQUARE_DROPS_FILENAME;
+        }
 		MergeDatasets.parseHomo(dir + "homogeneity/");
+		return dir + "homogeneity/" + MergeDatasets.FISHER_OR_CHI_SQUARE_DROPS_FILENAME;
 	}
 	
 	public static void mergeHapMap(String dir, String projectPlinkRoot, String hapMapPlinkRoot, String dropMarkersFile, Logger log) {
@@ -198,26 +223,31 @@ public class Ancestry {
 
 		int numArgs = args.length;
 		String dir = "./";
-		String hapMapPlinkRoot = "/home/pankrat2/shared/bin/HapMap/unambiguousHapMapFounders";
+		String hapMapPlinkRoot = DEFAULT_HAPMAP_PLINKROOT;
+		String putativeWhites = null;
 		boolean checkHomo = false;
 		boolean run = false;
+		boolean runPipeline = false;
 		boolean imputeRace = false;
 		Project proj = null;
 		String logfile = null;
 		Logger log;
 		
 		String usage = "\n" +
-				"gwas.Ancestry requires 3 arguments\n" +
+				"gwas.Ancestry requires 3+ arguments\n" +
 				"   (1) Run directory with plink.* files and unrelateds.txt (i.e. dir=" + dir + " (default))\n" + 
 				"   (2) PLINK root of Unambiguous HapMap Founders (i.e. hapMapPlinkRoot=" + hapMapPlinkRoot + " (default))\n" +
-				"   (3) Logfile (i.e. logfile=" + "ancestry.log" + " (default))" +
+				"   (3) Logfile (i.e. log=" + "ancestry.log" + " (default))" +
 				"  AND" +
-				"   (4) Generate PBS script to check Homogeneity (i.e. -checkHomo (not the default))" +
+				"   (4) Run full pipeline (i.e. -runPipeline (not the default, requires arguments for each step))" +
 				"  OR" +
-				"   (5) Parse homogeneity checks and run Eigenstrat (i.e. -run (not the default))" +
+				"   (5) Check Homogeneity using Chi-Square (Generates PBS script to run Fisher's exact, if desired) (i.e. -checkHomo (not the default))" +
+				"   (6) File of FID/IID pairs of putative whites to use for finding homogenous markers by comparison to CEU (i.e. putativeWhites=whites.txt (not the default))\n" + 
 				"  OR" +
-				"   (6) Impute race (i.e. -imputeRace (not the default))" +
-				"   (7) Project properties file (i.e. proj=example.properties (not the default))\n" + 
+				"   (7) Parse homogeneity checks and run Eigenstrat (i.e. -run (not the default))" +
+				"  OR" +
+				"   (8) Impute race (i.e. -imputeRace (not the default))" +
+				"   (9) Project properties file (i.e. proj=example.properties (not the default))\n" + 
 				"";
 
 		for (int i = 0; i < args.length; i++) {
@@ -233,8 +263,14 @@ public class Ancestry {
 			} else if (args[i].startsWith("hapMapPlinkRoot=")) {
 				hapMapPlinkRoot = ext.parseStringArg(args[i], null);
 				numArgs--;
+			} else if (args[i].startsWith("-runPipeline")) {
+				runPipeline = true;
+				numArgs--;
 			} else if (args[i].startsWith("-checkHomo")) {
 				checkHomo = true;
+				numArgs--;
+			} else if (args[i].startsWith("putativeWhites=")) {
+				putativeWhites = ext.parseStringArg(args[i], null);
 				numArgs--;
 			} else if (args[i].startsWith("-run")) {
 				run = true;
@@ -254,16 +290,23 @@ public class Ancestry {
 			System.exit(1);
 		}
 		if (logfile == null) {
-			log = new Logger(dir+"ancestry.log");
+			if (proj == null) {
+				log = new Logger(dir+"ancestry.log");
+			} else {
+				log = proj.getLog();
+			}
 		} else {
 			log = new Logger(logfile);
 		}
 		try {
+			if (runPipeline) {
+				runPipeline(dir, putativeWhites, hapMapPlinkRoot, proj, log);
+			}
 			if (checkHomo) {
-				checkHomogeneity(dir, dir + "plink", hapMapPlinkRoot, log);
+				checkHomogeneity(dir, putativeWhites, dir + "plink", hapMapPlinkRoot, log);
 			} else if (run) {
-				parseHomogeneity(dir);
-				mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, dir + "homogeneity/FisherOrChiSquareDrops.dat", log);
+				String homogeneityDrops = parseHomogeneity(dir, log);
+				mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
 				runEigenstrat(dir);
 			} else if (imputeRace) {
 				if (proj == null) {

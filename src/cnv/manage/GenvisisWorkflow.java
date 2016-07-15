@@ -1,5 +1,6 @@
 package cnv.manage;
 
+import gwas.Ancestry;
 import gwas.Qc;
 
 import java.io.File;
@@ -879,8 +880,12 @@ public class GenvisisWorkflow {
     
     static final STEP S11_GWAS_QC = new STEP("Run GWAS QC", 
                "", 
-               new String[][]{{"[Create/Run PLINK Files] step must have been run already or must be selected and valid."}, {"Keep genome info for unrelateds only?"}},
-               new RequirementInputType[][]{{RequirementInputType.NONE}, {RequirementInputType.BOOL}}) {
+               new String[][]{{"[Create/Run PLINK Files] step must have been run already or must be selected and valid."},
+    						  {"Keep genome info for unrelateds only?"},
+    						  {"Skip ancestry checks", "File with FID/IID pairs of putative white samples", "PLINK root of HapMap founders"}},
+               new RequirementInputType[][]{{RequirementInputType.NONE},
+    							  			{RequirementInputType.BOOL},
+    							  			{RequirementInputType.BOOL, RequirementInputType.FILE, RequirementInputType.FILE}}) {
 
         @Override
         public void setNecessaryPreRunProperties(Project proj, HashMap<STEP, ArrayList<String>> variables) {
@@ -891,28 +896,53 @@ public class GenvisisWorkflow {
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String dir = getPlinkDir(proj, variables);
             boolean keepUnrelatedsOnly = Boolean.valueOf(variables.get(this).get(0));
+            boolean skipAncestry = Boolean.valueOf(variables.get(this).get(1));
+            String putativeWhites = variables.get(this).get(2);
+            String hapMapPlinkRoot = variables.get(this).get(3);
+            if (hapMapPlinkRoot.lastIndexOf(".") > 0) {
+            	String extension = hapMapPlinkRoot.substring(hapMapPlinkRoot.lastIndexOf("."));
+            	if (extension == ".bed" || extension == ".bim" || extension == ".fam") {
+            		hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf("."));
+            	}
+            }
             Qc.fullGamut(dir, null, keepUnrelatedsOnly, proj.getLog());
+            if (!skipAncestry) {
+            	String ancestryDir = dir + Qc.ANCESTRY_DIR;
+            	Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, proj, new Logger(ancestryDir+"ancestry.log"));
+            }
         }
         
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
             String dir = getPlinkDir(proj, variables);
+            boolean skipAncestry = Boolean.valueOf(variables.get(this).get(1));
+            boolean putativeWhitesExists = Files.exists(variables.get(this).get(2));
+            String hapMapPlinkRoot = variables.get(this).get(3);
+            if (hapMapPlinkRoot.lastIndexOf(".") > 0) {
+            	String extension = hapMapPlinkRoot.substring(hapMapPlinkRoot.lastIndexOf("."));
+            	if (extension.equals(".bed") || extension.equals(".bim") || extension.equals(".fam")) {
+            		hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf("."));
+            	}
+            }
+            boolean hapMapPlinkRootExists = Files.exists(hapMapPlinkRoot + ".bed") && Files.exists(hapMapPlinkRoot + ".bim") && Files.exists(hapMapPlinkRoot + ".fam");
             boolean files = Files.exists(dir);
             return new boolean[][]{
                     {(stepSelections.get(S10_RUN_PLINK) && S10_RUN_PLINK.hasRequirements(proj, stepSelections, variables)) || files},
-                    {true}
+                    {true},
+                    {skipAncestry, putativeWhitesExists && hapMapPlinkRootExists, hapMapPlinkRootExists && putativeWhitesExists}
             };
         }
         
         @Override
         public Object[] getRequirementDefaults(Project proj) {
-            return new Object[]{""};
+            return new Object[]{false, false, "", Ancestry.DEFAULT_HAPMAP_PLINKROOT};
         }
 
         @Override
         public boolean checkIfOutputExists(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String dir = getPlinkDir(proj, variables);
             boolean allExist = true;
+            boolean skipAncestry = Boolean.valueOf(variables.get(this).get(1));
             folders: for (int i = 0; i < gwas.Qc.FOLDERS_CREATED.length; i++) {
                 for (int j = 0; j < gwas.Qc.FILES_CREATED[i].length; j++) {
                     if (!Files.exists(dir + gwas.Qc.FOLDERS_CREATED[i] + gwas.Qc.FILES_CREATED[i][j])) {
@@ -921,6 +951,11 @@ public class GenvisisWorkflow {
                     }
                 }
             }
+            if (!skipAncestry) {
+            	if (!Files.exists(dir + Qc.ANCESTRY_DIR + "freqsByRace.xln") || !Files.exists(dir + Qc.ANCESTRY_DIR + "raceImputations.mds")) {
+            		allExist = false;
+            	}
+            }
             return allExist;
         }
         
@@ -928,7 +963,27 @@ public class GenvisisWorkflow {
         public String getCommandLine(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String dir = getPlinkDir(proj, variables);
             boolean keepUnrelatedsOnly = Boolean.valueOf(variables.get(this).get(0));
-            return "jcp gwas.Qc dir=" + dir + " keepGenomeInfoForRelatedsOnly=" + keepUnrelatedsOnly;
+            boolean skipAncestry = Boolean.valueOf(variables.get(this).get(1));
+            String putativeWhites = variables.get(this).get(2);
+            String hapMapPlinkRoot = variables.get(this).get(3);
+            if (hapMapPlinkRoot.lastIndexOf(".") > 0) {
+            	String extension = hapMapPlinkRoot.substring(hapMapPlinkRoot.lastIndexOf("."));
+            	if (extension == ".bed" || extension == ".bim" || extension == ".fam") {
+            		hapMapPlinkRoot = hapMapPlinkRoot.substring(0, hapMapPlinkRoot.lastIndexOf("."));
+            	}
+            }
+            
+            String command = "jcp gwas.Qc dir=" + dir + " keepGenomeInfoForRelatedsOnly=" + keepUnrelatedsOnly;
+            if (!skipAncestry) {
+            	String ancestryDir = dir + Qc.ANCESTRY_DIR;
+            	command += "\n";
+            	command += "jcp gwas.Ancestry -runPipeline dir=" + ancestryDir;
+            	command += " putativeWhites=" + putativeWhites;
+            	command += " proj=" + proj.getPropertyFilename();
+            	command += " hapMapPlinkRoot=" + hapMapPlinkRoot;
+            	command += " log=" + ancestryDir + "ancestry.log";
+            }
+            return command;
         }
         
         private String getPlinkDir(Project proj, HashMap<STEP, ArrayList<String>> variables){
