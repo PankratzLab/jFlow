@@ -10,6 +10,7 @@ import common.Array;
 import common.CNVFilter;
 import common.Files;
 import common.Logger;
+import common.Positions;
 import common.ext;
 import common.CNVFilter.FreqFilter;
 
@@ -44,6 +45,14 @@ public class ProjectCNVFiltering {
         filter.setCommonIn(CNVFilter.DEFAULT_COMMON_IN);
     }
 
+    private static void loadMarkerSet(Project proj, CNVFilter filter) {
+    	String markerSetFile = proj.MARKERSET_FILENAME.getValue();
+    	MarkerSet markerSet = MarkerSet.load(markerSetFile, false);
+    	filter.setPositions(markerSet.getPositionsByChr());
+        filter.setCentromereBoundaries(Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(), markerSet.getPositions(), proj.GENOME_BUILD_VERSION.getValue().getBuildInt(), proj.getLog()));
+        filter.computeCentromereMidPoints();
+    }
+    
     /**
      * @param proj
      * @param args
@@ -65,7 +74,7 @@ public class ProjectCNVFiltering {
         }
         filter.setCommandLineFiltersInEffect(new Hashtable<String, String>());
 //      filter.setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));// resets if neccesary
-        filter.setCentromereBoundariesFromFile(proj.MARKERSET_FILENAME.getValue());// resets if neccesary
+        loadMarkerSet(proj, filter);
         for (int i = 0; i < args.length; i++) {
             if (args[i].startsWith(CNVFilter.COMMAND_MIN_NUM_MARKERS)) {
                 filter.setMinNumMarkers(ext.parseIntArg(args[i]));
