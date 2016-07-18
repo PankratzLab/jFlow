@@ -20,6 +20,8 @@ import filesys.SnpMarkerSet;
 public class Ancestry {
 	
 	public static final String DEFAULT_HAPMAP_PLINKROOT = "/home/pankrat2/shared/bin/HapMap/unambiguousHapMapFounders";
+	public static final String RACE_IMPUTATIONAS_FILENAME = "raceImputations.mds";
+	public static final String RACE_FREQS_FILENAME = "freqsByRace.xln";
 	
 	public static void runPipeline(String dir, String putativeWhitesFile, Project proj, Logger log) {
 		runPipeline(dir, putativeWhitesFile, null, proj, log);
@@ -29,7 +31,10 @@ public class Ancestry {
 		if (hapMapPlinkRoot == null) {
 			hapMapPlinkRoot = DEFAULT_HAPMAP_PLINKROOT;
 		}
-		checkHomogeneity(dir, putativeWhitesFile, dir + "plink", hapMapPlinkRoot, log);
+		if (!Files.exists(dir + "homogeneity/" + MergeDatasets.CHI_SQUARE_DROPS_FILENAME) && Files.list(dir + "homogeneity/", ".Rout", false).length == 0) {
+			log.report("Running homogeneity checks...");
+			checkHomogeneity(dir, putativeWhitesFile, dir + "plink", hapMapPlinkRoot, log);
+		}
 		String homogeneityDrops = parseHomogeneity(dir, log);
 		mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
 		runEigenstrat(dir);
@@ -163,58 +168,60 @@ public class Ancestry {
 	}
 	
 	public static void imputeRace(String dir, Project proj) {
-		String[][] pcResults = HashVec.loadFileToStringMatrix(dir+"combo_fancy_postnormed_eigens.xln", true, new int[] {0, 1, 2, 3}, false);
-		
-//		SampleData sampleData = proj.getSampleData(0, false);
-//		int hapMapClass = ext.indexOfStr("HapMap", sampleData.getClasses());
-		String sd = proj.SAMPLE_DATA_FILENAME.getValue();
-		String[] sdHeader = Files.getHeaderOfFile(sd, proj.getLog());
-		Hashtable<String, Hashtable<String, String>> hapmaps = HashVec.loadFileToHashHash(sd, ext.indexOfStr("FID", sdHeader, false, true), ext.indexOfStr("IID", sdHeader, false, true), ext.indexOfStr("Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT", sdHeader, false, true), true);
-		
-		String[] fidiids = new String[pcResults.length];
-		double[] pc1 = new double[pcResults.length];
-		double[] pc2 = new double[pcResults.length];
-		ArrayList<Integer> europeans = new ArrayList<Integer>();
-		ArrayList<Integer> africans = new ArrayList<Integer>();
-		ArrayList<Integer> asians = new ArrayList<Integer>();
-		for (int i = 0; i < pcResults.length; i++) {
-			fidiids[i] = pcResults[i][0] + "\t" + pcResults[i][1];
-			try {
-				pc1[i] = Double.parseDouble(pcResults[i][2]);
-			} catch (NumberFormatException nfe) {
-				pc1[i] = Double.NaN;
-			}
-			try {
-				pc2[i] = Double.parseDouble(pcResults[i][3]);
-			} catch (NumberFormatException nfe) {
-				pc2[i] = Double.NaN;
-			}
+		if (!Files.exists(dir+RACE_IMPUTATIONAS_FILENAME)) {
+			String[][] pcResults = HashVec.loadFileToStringMatrix(dir+"combo_fancy_postnormed_eigens.xln", true, new int[] {0, 1, 2, 3}, false);
 			
-			try {
-				int race = Integer.parseInt(hapmaps.get(pcResults[i][0]).get(pcResults[i][1]));
-				switch(race) {
-					case 1:
-						europeans.add(i);
-						break;
-					case 2:
-						africans.add(i);
-						break;
-					case 3:
-						asians.add(i);
-					case 4:
-						asians.add(i);
-						break;
-					default:
-						break;
+			String sd = proj.SAMPLE_DATA_FILENAME.getValue();
+			String[] sdHeader = Files.getHeaderOfFile(sd, proj.getLog());
+			Hashtable<String, Hashtable<String, String>> hapmaps = HashVec.loadFileToHashHash(sd, ext.indexOfStr("FID", sdHeader, false, true), ext.indexOfStr("IID", sdHeader, false, true), ext.indexOfStr("Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT", sdHeader, false, true), true);
+			
+			String[] fidiids = new String[pcResults.length];
+			double[] pc1 = new double[pcResults.length];
+			double[] pc2 = new double[pcResults.length];
+			ArrayList<Integer> europeans = new ArrayList<Integer>();
+			ArrayList<Integer> africans = new ArrayList<Integer>();
+			ArrayList<Integer> asians = new ArrayList<Integer>();
+			for (int i = 0; i < pcResults.length; i++) {
+				fidiids[i] = pcResults[i][0] + "\t" + pcResults[i][1];
+				try {
+					pc1[i] = Double.parseDouble(pcResults[i][2]);
+				} catch (NumberFormatException nfe) {
+					pc1[i] = Double.NaN;
 				}
-			} catch (NumberFormatException nfe) { }
-			
-			
+				try {
+					pc2[i] = Double.parseDouble(pcResults[i][3]);
+				} catch (NumberFormatException nfe) {
+					pc2[i] = Double.NaN;
+				}
+				
+				try {
+					int race = Integer.parseInt(hapmaps.get(pcResults[i][0]).get(pcResults[i][1]));
+					switch(race) {
+						case 1:
+							europeans.add(i);
+							break;
+						case 2:
+							africans.add(i);
+							break;
+						case 3:
+							asians.add(i);
+						case 4:
+							asians.add(i);
+							break;
+						default:
+							break;
+					}
+				} catch (NumberFormatException nfe) { }
+				
+				
+			}
+			PCImputeRace pcir = new PCImputeRace(proj, fidiids, pc1, pc2, Array.toIntArray(europeans), Array.toIntArray(africans), Array.toIntArray(asians), proj.getLog());
+			pcir.correctPCsToRace(dir+RACE_IMPUTATIONAS_FILENAME);
 		}
-		PCImputeRace pcir = new PCImputeRace(proj, fidiids, pc1, pc2, Array.toIntArray(europeans), Array.toIntArray(africans), Array.toIntArray(asians), proj.getLog());
-		pcir.correctPCsToRace(dir+"raceImputations.mds");
 		
-		PCImputeRace.freqsByRace(dir+"raceImputations.mds", dir + "plink", dir + "freqsByRace.xln", proj.getLog());
+		if (!Files.exists(dir + RACE_FREQS_FILENAME)) {
+			PCImputeRace.freqsByRace(dir+RACE_IMPUTATIONAS_FILENAME, dir + "plink", dir + RACE_FREQS_FILENAME, proj.getLog());
+		}
 		
 	}
 	

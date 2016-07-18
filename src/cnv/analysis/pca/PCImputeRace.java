@@ -353,9 +353,9 @@ public class PCImputeRace {
 		}
 		
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
-		writer.print("SNP\tA1\tA2\tOverall A1F (n=" + countFounders(plinkroot, null) + ")");
+		writer.print("SNP\tA1\tA2\tOverall A1F (n=" + countFounders(dir+plinkroot, null) + ")");
 		for (int i = 0; i < raceListFiles.length; i++) {
-			writer.print("\t" + RACES[i] + " A1F (n=" + countFounders(plinkroot, raceListFiles[i]) + ")");
+			writer.print("\t" + RACES[i] + " A1F (n=" + countFounders(dir+plinkroot, raceListFiles[i]) + ")");
 		}
 		writer.println();
 		
