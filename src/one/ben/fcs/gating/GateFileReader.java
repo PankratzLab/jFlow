@@ -144,6 +144,10 @@ public class GateFileReader {
 //            }
         } else if ("PolygonGate".equals(gateType)) {
             gate = new PolygonGate(null, popName, id);
+            String resStr = gateNode.getAttributes().getNamedItem("gateResolution").getNodeValue();
+            int res = -1;
+            try { res = Integer.parseInt(resStr); } catch (NumberFormatException e) {}
+            ((PolygonGate)gate).setGateResolution(res);
             ArrayList<Node> dimNodes = getChildNodes(gateNode, "gating:dimension");
             for (int i = 0; i < dimNodes.size(); i++) {
                 Node dimNode = dimNodes.get(i);
@@ -157,10 +161,9 @@ public class GateFileReader {
                 ArrayList<Node> coordNodes = getChildNodes(n, "gating:coordinate");
                 Double fX = Double.parseDouble(((Element) coordNodes.get(0)).getAttribute("data-type:value"));
                 Double fY = Double.parseDouble(((Element) coordNodes.get(1)).getAttribute("data-type:value"));
-                ((PolygonGate) gate).verticesX.add(fX);
-                ((PolygonGate) gate).verticesY.add(fY);
+                ((PolygonGate) gate).addVertex(fX, fY);
             }
-            
+            ((PolygonGate)gate).prepGating();
         } else if ("QuadrantGate".equals(gateType)) {
             gate = new QuadrantGate();
             
