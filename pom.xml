@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.genvisis</groupId>
+	<artifactId>pom-genvisis</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>Genvisis Projects</name>
+	<description>.</description>
+	<url>http://www.genvisis.org/</url>
+	<inceptionYear>2016</inceptionYear>
+	<organization>
+		<name>Genvisis</name>
+		<url>http://www.genvisis.org/</url>
+	</organization>
+
+	<developers>
+		<developer>
+			<id>npankrat</id>
+			<name>Nathan Pankratz</name>
+			<url></url>
+		</developer>
+		<developer>
+			<id>jlanej</id>
+			<name>John Lane</name>
+			<url></url>
+		</developer>
+		<developer>
+			<id>stkelley</id>
+			<name>Spencer Kelley</name>
+			<url></url>
+		</developer>
+		<developer>
+			<id>hinerm</id>
+			<name>Mark Hiner</name>
+			<url></url>
+		</developer>
+	</developers>
+
+	<modules>
+		<module>Logicle</module>
+		<module>Genvisis</module>
+		<module>CFCS</module>
+	</modules>
+
+	<prerequisites>
+		<maven>${genvisis.mvn.version}</maven>
+	</prerequisites>
+
+	<scm>
+		<connection>scm:git:git://github.com/npankrat/Genvisis</connection>
+		<developerConnection>scm:git:git@github.com:npankrat/Genvisis</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/npankrat/Genvisis</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/npankrat/Genvisis/issues</url>
+	</issueManagement>
+
+	<ciManagement>
+		<system>Travis</system>
+		<url></url>
+	</ciManagement>
+
+	<properties>
+		<!-- Genvisis -->
+		<genvisis.version>0.0.1-SNAPSHOT</genvisis.version>
+
+		<!-- CFCS -->
+		<cfcs.version>0.0.1-SNAPSHOT</cfcs.version>
+
+		<!-- Logicle -->
+		<logicle.version>0.0.1-SNAPSHOT</logicle.version>
+
+		<!-- JUnit - http://junit.org/ -->
+		<junit.version>4.11</junit.version>
+
+		<!-- BZip2 -->
+		<bzip2.version>0.9.1</bzip2.version>
+
+		<!-- ControlsFX -->
+		<controlsfx.version>8.40.11</controlsfx.version>
+
+		<!-- POI -->
+		<poi.version>3.14</poi.version>
+
+		<!-- POI-ooxml -->
+		<poi-ooxml.version>3.14</poi-ooxml.version>
+
+		<!-- POI-schemas -->
+		<poi-ooxml-schemas.version>3.14</poi-ooxml-schemas.version>
+
+		<!-- XMLBeans -->
+		<xmlbeans.version>2.6.0</xmlbeans.version>
+
+		<!-- Commons-Compress -->
+		<commons-compress.version>1.10</commons-compress.version>
+
+		<!-- Commons-jexl -->
+		<commons-jexl.version>2.1.1</commons-jexl.version>
+
+		<!-- Commons-logging -->
+		<commons-logging.version>1.1.1</commons-logging.version>
+
+		<!-- Snappy-java -->
+		<snappy-java.version>1.1.2.6</snappy-java.version>
+
+		<!-- MigLayout - http://www.miglayout.com/ -->
+		<miglayout.version>5.0</miglayout.version>
+
+		<!-- SnpEff -->
+		<snpeff.version>4.3</snpeff.version>
+
+		<!-- Jahmm -->
+		<jahmm.version>0.6.1</jahmm.version>
+
+		<!-- HTSJDK -->
+		<htsjdk.version>1.129</htsjdk.version>
+
+		<!-- Additional configuration -->
+
+		<!-- NB: Avoid platform encoding warning when copying resources. -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<!-- NB: Specify formatting of the maven.build.timestamp property. -->
+		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
+
+		<genvisis.jvm.version>1.8</genvisis.jvm.version>
+		<genvisis.mvn.version>3.0.4</genvisis.mvn.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Genvisis -->
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>Genvisis</artifactId>
+				<version>${genvisis.version}</version>
+			</dependency>
+
+			<!-- CFCS -->
+			<dependency>
+				<groupId>org.flowcyt</groupId>
+				<artifactId>CFCS</artifactId>
+				<version>${cfcs.version}</version>
+			</dependency>
+
+			<!-- Logicle -->
+			<dependency>
+				<groupId>edu.stanford.facs</groupId>
+				<artifactId>Logicle</artifactId>
+				<version>${logicle.version}</version>
+			</dependency>
+
+			<!-- SnpEff -->
+			<dependency>
+				<groupId>pcingola</groupId>
+				<artifactId>SnpEff</artifactId>
+				<version>${snpeff.version}</version>
+			</dependency>
+
+			<!-- MigLayout - http://www.miglayout.com/ -->
+			<dependency>
+				<groupId>com.miglayout</groupId>
+				<artifactId>miglayout-swing</artifactId>
+				<version>${miglayout.version}</version>
+			</dependency>
+
+			<!-- Jahmm -->
+			<dependency>
+				<groupId>be.ac.ulg.montefiore.run</groupId>
+				<artifactId>jahmm</artifactId>
+				<version>${jahmm.version}</version>
+			</dependency>
+
+			<!-- HTSJDK -->
+			<dependency>
+				<groupId>com.github.samtools</groupId>
+				<artifactId>htsjdk</artifactId>
+				<version>${htsjdk.version}</version>
+			</dependency>
+
+			<!-- JUnit - http://junit.org/ -->
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+			<!-- BZip2 -->
+			<dependency>
+				<groupId>org.itadaki</groupId>
+				<artifactId>bzip2</artifactId>
+				<version>${bzip2.version}</version>
+			</dependency>
+
+			<!-- ControlsFX -->
+			<dependency>
+				<groupId>org.controlsfx</groupId>
+				<artifactId>controlsfx</artifactId>
+				<version>${controlsfx.version}</version>
+			</dependency>
+
+			<!-- XMLBeans -->
+			<dependency>
+				<groupId>org.apache.xmlbeans</groupId>
+				<artifactId>xmlbeans</artifactId>
+				<version>${xmlbeans.version}</version>
+			</dependency>
+
+			<!-- POI -->
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi</artifactId>
+				<version>${poi.version}</version>
+			</dependency>
+
+			<!-- POI-ooxml -->
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi-ooxml</artifactId>
+				<version>${poi-ooxml.version}</version>
+			</dependency>
+
+			<!-- POI-ooxml-schemas -->
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi-ooxml-schemas</artifactId>
+				<version>${poi-ooxml-schemas.version}</version>
+			</dependency>
+
+			<!-- Commons-compress -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>${commons-compress.version}</version>
+			</dependency>
+
+			<!-- Commons-jexl -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-jexl</artifactId>
+				<version>${commons-jexl.version}</version>
+			</dependency>
+
+			<!-- Commons-logging -->
+			<dependency>
+				<groupId>commons-logging</groupId>
+				<artifactId>commons-logging</artifactId>
+				<version>${commons-logging.version}</version>
+			</dependency>
+
+			<!-- Snappy-Java -->
+			<dependency>
+				<groupId>org.xerial.snappy</groupId>
+				<artifactId>snappy-java</artifactId>
+				<version>${snappy-java.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<!-- It is nice for "mvn" with no arguments to do something reasonable. -->
+		<defaultGoal>install</defaultGoal>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>2.4</version>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>2.5</version>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.1</version>
+					<!-- Require the Java 6 platform. -->
+					<configuration>
+						<source>${genvisis.jvm.version}</source>
+						<target>${genvisis.jvm.version}</target>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>2.8</version>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>2.8.1</version>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>2.5.1</version>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>2.5</version>
+					<!-- Always add classpath to JAR manifests. -->
+					<configuration>
+						<archive>
+							<manifest>
+								<addClasspath>true</addClasspath>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							</manifest>
+							<manifestEntries>
+								<!-- Add SCM revision from buildnumber plugin, if available. -->
+								<Implementation-Build>${buildNumber}</Implementation-Build>
+								<!-- Add a formatted timestamp for the build. -->
+								<Implementation-Date>${maven.build.timestamp}</Implementation-Date>
+							</manifestEntries>
+						</archive>
+						<skipIfEmpty>true</skipIfEmpty>
+					</configuration>
+					<executions>
+						<execution>
+							<goals>
+								<goal>test-jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-plugin-plugin</artifactId>
+					<version>3.3</version>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>2.5</version>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>2.6</version>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.4</version>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>2.3</version>
+					<!-- Build source artifact in addition to main artifact. -->
+					<executions>
+						<execution>
+							<goals>
+								<goal>jar-no-fork</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.17</version>
+				</plugin>
+
+				<!--
+				Build Number Maven plugin -
+				http://www.mojohaus.org/buildnumber-maven-plugin/
+				This plugin embeds a build number in the JAR manifest.
+				-->
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>buildnumber-maven-plugin</artifactId>
+					<version>1.3</version>
+					<!-- Record SCM revision in manifest. -->
+					<executions>
+						<execution>
+							<phase>validate</phase>
+							<goals>
+								<goal>create</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+						<revisionOnScmFailure>UNKNOWN</revisionOnScmFailure>
+					</configuration>
+				</plugin>
+
+				<!-- Exec Maven plugin -
+				http://www.mojohaus.org/exec-maven-plugin/
+				This plugin launches a Java class using Maven. -->
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>exec-maven-plugin</artifactId>
+					<version>1.3.1</version>
+				</plugin>
+
+				<!--
+				License Maven plugin -
+				http://www.mojohaus.org/license-maven-plugin/
+				This plugin manages project licenses and source file headers.
+				-->
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>1.6</version>
+					<configuration>
+						<projectName>${project.description}</projectName>
+						<addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+						<canUpdateDescription>true</canUpdateDescription>
+						<canUpdateCopyright>true</canUpdateCopyright>
+						<extraExtensions>
+							<bsh>java</bsh>
+							<config>properties</config>
+							<ijm>java</ijm>
+						</extraExtensions>
+					</configuration>
+				</plugin>
+
+				<!--
+				Versions Maven plugin -
+				http://www.mojohaus.org/versions-maven-plugin/
+				Check for new plugin versions using
+				"mvn versions:display-plugin-updates"
+				-->
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>versions-maven-plugin</artifactId>
+					<version>2.1</version>
+				</plugin>
+
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<!-- Create -sources.jar when building. -->
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+			</plugin>
+
+			<!-- Generate a package-friendly version property. -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- Add Implementation-Build entry to JAR manifest. -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- Enable 'graph:' goals. -->
+			<plugin>
+				<groupId>org.fusesource.mvnplugins</groupId>
+				<artifactId>maven-graph-plugin</artifactId>
+			</plugin>
+
+			<!-- Enable 'jfx:' goals. -->
+			<plugin>
+				<groupId>com.zenjava</groupId>
+				<artifactId>javafx-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- Enable 'nar:' goals. -->
+			<plugin>
+				<groupId>com.github.maven-nar</groupId>
+				<artifactId>nar-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- Enable 'scijava:' goals. -->
+			<plugin>
+				<groupId>org.scijava</groupId>
+				<artifactId>scijava-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+		<!--
+		We use wagon-webdav-jackrabbit 1.0 for deploys, since it is
+		compatible with both Maven 2.2.x and Maven 3.0.x cross-platform.
+		-->
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-webdav-jackrabbit</artifactId>
+				<version>1.0</version>
+			</extension>
+		</extensions>
+	</build>
+
+	<profiles>
+	</profiles>
+</project>

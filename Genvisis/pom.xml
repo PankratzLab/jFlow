@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+		http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.genvisis</groupId>
+		<artifactId>pom-genvisis</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>Genvisis</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<description></description>
+
+	<properties>
+	</properties>
+
+	<repositories>
+		<!-- local repository needed for libraries without Maven distributions -->
+		<repository>
+			<id>bundled-repo</id>
+			<url>file://${basedir}/lib</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>edu.stanford.facs</groupId>
+			<artifactId>Logicle</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.miglayout</groupId>
+			<artifactId>miglayout-swing</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>be.ac.ulg.montefiore.run</groupId>
+			<artifactId>jahmm</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.samtools</groupId>
+			<artifactId>htsjdk</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.itadaki</groupId>
+			<artifactId>bzip2</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.controlsfx</groupId>
+			<artifactId>controlsfx</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.xmlbeans</groupId>
+			<artifactId>xmlbeans</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml-schemas</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-jexl</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.xerial.snappy</groupId>
+			<artifactId>snappy-java</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>pcingola</groupId>
+			<artifactId>SnpEff</artifactId>
+		</dependency>
+	</dependencies>
+
+</project>
