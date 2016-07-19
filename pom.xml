@@ -118,7 +118,7 @@
 		<jahmm.version>0.6.1</jahmm.version>
 
 		<!-- HTSJDK -->
-		<htsjdk.version>1.129</htsjdk.version>
+		<htsjdk.version>2.5.1</htsjdk.version>
 
 		<!-- Additional configuration -->
 
