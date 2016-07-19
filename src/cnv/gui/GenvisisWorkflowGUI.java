@@ -126,10 +126,12 @@ public class GenvisisWorkflowGUI extends JDialog {
                 panels.put(this.steps[i], panel);
             }
         }
+        Insets btnInsets = new Insets(0, 1, 0, 1
+                );
         {
             JPanel buttonPane = new JPanel();
             getContentPane().add(buttonPane, BorderLayout.SOUTH);
-            buttonPane.setLayout(new MigLayout("", "[][][][][][][][grow][][47px][59px]", "[23px]"));
+            buttonPane.setLayout(new MigLayout("hidemode 2", "[][][][][][][][grow][][][]", "[]"));
             
             JLabel lblSelect = new JLabel("Select:");
             buttonPane.add(lblSelect, "flowx,cell 0 0");
@@ -146,6 +148,7 @@ public class GenvisisWorkflowGUI extends JDialog {
                     refreshLabels();
                 }
             });
+            btnSelectAll.setMargin(btnInsets);
             buttonPane.add(btnSelectAll, "cell 0 0");
             
             btnDeselectAll = new JButton("None");
@@ -160,6 +163,7 @@ public class GenvisisWorkflowGUI extends JDialog {
                     refreshLabels();
                 }
             });
+            btnDeselectAll.setMargin(btnInsets);
             buttonPane.add(btnDeselectAll, "cell 1 0");
             
             btnSelectValid = new JButton("Valid");
@@ -190,6 +194,7 @@ public class GenvisisWorkflowGUI extends JDialog {
                     refreshLabels();
                 }
             });
+            btnSelectValid.setMargin(btnInsets);
             buttonPane.add(btnSelectValid, "cell 2 0");
             
             JSeparator separator = new JSeparator();
@@ -200,6 +205,7 @@ public class GenvisisWorkflowGUI extends JDialog {
             buttonPane.add(lblCollapse, "cell 4 0");
             
             JButton btnAll = new JButton("All");
+            btnAll.setMargin(btnInsets);
             btnAll.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     for (Entry<STEP, JAccordionPanel> entry : panels.entrySet()) {
@@ -210,6 +216,7 @@ public class GenvisisWorkflowGUI extends JDialog {
             buttonPane.add(btnAll, "cell 5 0");
             
             JButton btnNone = new JButton("None");
+            btnNone.setMargin(btnInsets);
             btnNone.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     for (Entry<STEP, JAccordionPanel> entry : panels.entrySet()) {
@@ -218,6 +225,13 @@ public class GenvisisWorkflowGUI extends JDialog {
                 }
             });
             buttonPane.add(btnNone, "cell 6 0");
+            
+            progVal = new JProgressBar(0, this.steps.length);
+            progVal.setValue(0);
+            progVal.setStringPainted(true);
+            progVal.setString("Validating Steps...");
+            progVal.setVisible(false);
+            buttonPane.add(progVal, "growx, cell 7 0");
             
             AbstractAction listener = new AbstractAction() {
                 private static final long serialVersionUID = 1L;
@@ -240,16 +254,19 @@ public class GenvisisWorkflowGUI extends JDialog {
             btnExportToText = new JButton("Export To Text");
             btnExportToText.setActionCommand("Export");
             btnExportToText.addActionListener(listener);
-            buttonPane.add(btnExportToText, "cell 8 0");
+            btnExportToText.setMargin(btnInsets);
+            buttonPane.add(btnExportToText, "cell 8 0, alignx right");
             btnOk = new JButton("Run");
+            btnOk.setMargin(btnInsets);
             btnOk.setActionCommand("Run");
             btnOk.setMnemonic(KeyEvent.VK_O);
-            buttonPane.add(btnOk, "cell 9 0,alignx left,aligny top");
+            buttonPane.add(btnOk, "cell 9 0,alignx right");
             getRootPane().setDefaultButton(btnOk);
             btnCancel = new JButton("Close");
+            btnCancel.setMargin(btnInsets);
             btnCancel.setActionCommand("Close");
             btnCancel.setMnemonic(KeyEvent.VK_C);
-            buttonPane.add(btnCancel, "cell 10 0,alignx left,aligny top");
+            buttonPane.add(btnCancel, "cell 10 0,alignx left");
             
             btnOk.addActionListener(listener);
             btnCancel.addActionListener(listener);
@@ -595,9 +612,25 @@ public class GenvisisWorkflowGUI extends JDialog {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        @Override
+                        public void run() {
+                            progVal.setValue(0);
+                            progVal.setVisible(true);
+                        }
+                    });
+                } catch (InvocationTargetException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 final Color greenDark = Color.GREEN.darker();
                 final Color dark = Color.GRAY;
-                for (final STEP step : GenvisisWorkflowGUI.this.steps) {
+                for (int s = 0; s < GenvisisWorkflowGUI.this.steps.length; s++) {
+                    final STEP step = GenvisisWorkflowGUI.this.steps[s];
                     if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
                         continue;
                     }
@@ -606,45 +639,108 @@ public class GenvisisWorkflowGUI extends JDialog {
                         selectedSteps.put(entry.getKey(), entry.getValue().isSelected());
                     }
                     HashMap<STEP, ArrayList<String>> variables = getVariables();
+                    final int update = s + 1;
                     if (!step.checkIfOutputExists(proj, variables) || checkBoxes.get(step).isSelected()) {
                         boolean check = step.hasRequirements(proj, selectedSteps, variables);
                         descLabels.get(step).setForeground(check ? greenDark : Color.RED);
                         checkBoxes.get(step).setForeground(check ? greenDark : Color.RED);
                         final ArrayList<JLabel> reqLbls = requirementsLabels.get(step);
                         final boolean[][] reqVals = step.checkRequirements(proj, selectedSteps, variables);
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                int lblIndex = 0;
-                                for (int i = 0; i < reqVals.length; i++) {
-                                    boolean hasAny = Array.booleanArraySum(reqVals[i]) > 0;
-                                    for (int j = 0; j < reqVals[i].length; j++) {
-                                        reqLbls.get(lblIndex).setForeground(reqVals[i][j] ? greenDark : hasAny ? Color.GRAY : Color.RED);
-                                        lblIndex++;
+//                        SwingUtilities.invokeLater(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                int lblIndex = 0;
+//                                for (int i = 0; i < reqVals.length; i++) {
+//                                    boolean hasAny = Array.booleanArraySum(reqVals[i]) > 0;
+//                                    for (int j = 0; j < reqVals[i].length; j++) {
+//                                        reqLbls.get(lblIndex).setForeground(reqVals[i][j] ? greenDark : hasAny ? Color.GRAY : Color.RED);
+//                                        lblIndex++;
+//                                    }
+//                                }
+//                            }
+//                        });
+                        try {
+                            SwingUtilities.invokeAndWait(new Runnable() {
+                                @Override
+                                public void run() {
+                                    int lblIndex = 0;
+                                    for (int i = 0; i < reqVals.length; i++) {
+                                        boolean hasAny = Array.booleanArraySum(reqVals[i]) > 0;
+                                        for (int j = 0; j < reqVals[i].length; j++) {
+                                            reqLbls.get(lblIndex).setForeground(reqVals[i][j] ? greenDark : hasAny ? Color.GRAY : Color.RED);
+                                            lblIndex++;
+                                        }
                                     }
+                                    progVal.setValue(update);
                                 }
-                            }
-                        });
+                            });
+                        } catch (InvocationTargetException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
                     } else {
                         final boolean[][] reqVals = step.checkRequirements(proj, selectedSteps, variables);
                         final ArrayList<JLabel> reqLbls = requirementsLabels.get(step);
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                int lblIndex = 0;
-                                checkBoxes.get(step).setSelected(false);
-                                alreadyRunLbls.get(step).setVisible(true);
-                                descLabels.get(step).setForeground(dark);
-                                checkBoxes.get(step).setForeground(dark);
-                                for (int i = 0; i < reqVals.length; i++) {
-                                    for (int j = 0; j < reqVals[i].length; j++) {
-                                        reqLbls.get(lblIndex).setForeground(dark);
-                                        lblIndex++;
+//                        SwingUtilities.invokeLater(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                int lblIndex = 0;
+//                                checkBoxes.get(step).setSelected(false);
+//                                alreadyRunLbls.get(step).setVisible(true);
+//                                descLabels.get(step).setForeground(dark);
+//                                checkBoxes.get(step).setForeground(dark);
+//                                for (int i = 0; i < reqVals.length; i++) {
+//                                    for (int j = 0; j < reqVals[i].length; j++) {
+//                                        reqLbls.get(lblIndex).setForeground(dark);
+//                                        lblIndex++;
+//                                    }
+//                                }
+//                            }
+//                        });
+                        try {
+                            SwingUtilities.invokeAndWait(new Runnable() {
+                                @Override
+                                public void run() {
+                                    int lblIndex = 0;
+                                    checkBoxes.get(step).setSelected(false);
+                                    alreadyRunLbls.get(step).setVisible(true);
+                                    descLabels.get(step).setForeground(dark);
+                                    checkBoxes.get(step).setForeground(dark);
+                                    for (int i = 0; i < reqVals.length; i++) {
+                                        for (int j = 0; j < reqVals[i].length; j++) {
+                                            reqLbls.get(lblIndex).setForeground(dark);
+                                            lblIndex++;
+                                        }
                                     }
+                                    progVal.setValue(update);
                                 }
-                            }
-                        });
+                            });
+                        } catch (InvocationTargetException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
                     }
+                }
+                try {
+                    SwingUtilities.invokeAndWait(new Runnable() {
+                        @Override
+                        public void run() {
+                            progVal.setValue(0);
+                            progVal.setVisible(false);
+                        }
+                    });
+                } catch (InvocationTargetException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
                 
             }
@@ -657,13 +753,12 @@ public class GenvisisWorkflowGUI extends JDialog {
     private JButton btnSelectAll;
     private JButton btnDeselectAll;
     private JButton btnSelectValid;
-
+    private JProgressBar progVal;
+    
     private Thread runThread;
 
     private JButton btnExportToText;
-
     private JButton btnOk;
-
     private JButton btnCancel;
     
     private void lockup(final boolean lock) {
