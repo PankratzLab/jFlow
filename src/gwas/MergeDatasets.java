@@ -467,6 +467,7 @@ public class MergeDatasets {
                 }
 	        }
 	        writer.close();
+	        writer2.close();
 	        System.out.println("Found results for "+count+" markers in "+ext.getTimeElapsed(time));
 	        System.out.println("There were "+Files.countLines(dir+FISHER_OR_CHI_SQUARE_DROPS_FILENAME, 0)+" markers that had a minimum p-value less than "+HOMOGENEITY_THRESHOLD);
         } catch (Exception e) {
