@@ -1,6 +1,7 @@
 package one.ben.fcs;
 
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -184,20 +185,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         polygons = new GenericPath[0];
     }
     
-    HashSet<String> incl = new HashSet<String>();
-    PrintWriter writer;
-    {
-        String[] flowjo = HashVec.loadFileToStringArray("F:/Flow/export_P2 PBMC A+C- rest_panel 2_PBMC-C P2 1HR rest_004_Lymphocytes-1.csv", true, new int[]{0,1}, false);
-        for (String s : flowjo) {
-            String[] p = s.split("\t");
-            incl.add(ext.formDeci(Double.parseDouble(p[0]), 3) + "\t" + ext.formDeci(Double.parseDouble(p[1]), 3));
-        }
-        System.out.println("loaded test data");
-    }
-    
     public void generatePointsRectanglesAndLines() {
 		byte type;
-//		String[] line;
 		float xAxisValue, yAxisValue;
 		byte size = POINT_SIZE;
 		
@@ -338,7 +327,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         lines = lineList.toArray(new GenericLine[lineList.size()]);
         lineList = null;
         
-        int count = 0;
         byte color = 0;
         if (columnsChangedX || columnsChangedY || dataChanged) {
     		points = new PlotPoint[dataCount];
@@ -358,18 +346,12 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     			        break;
     			    }
     			}
-    			if (incl.contains(ext.formDeci(xData[i], 3) + "\t" + ext.formDeci(yData[i], 3))) {
-    			    color = 1;
-    			} else if (color == 3) {
-    			    count++;
-    			}
     			points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte)0);
     		}
         }
         if (gatesChanged) {
             updateGateColor();
         }
-        System.out.println("Counted: " + count);
     }
     
     private void refreshNonBaseLayers() {

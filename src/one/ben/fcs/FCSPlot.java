@@ -46,11 +46,13 @@ import one.ben.fcs.gating.GateDimension;
 import one.ben.fcs.gating.GateFileReader;
 import one.ben.fcs.gating.GateTreePanel;
 import one.ben.fcs.gating.GatingStrategy;
+import one.ben.fcs.sub.DataExportGUI;
 import one.ben.fcs.sub.RainbowTestGUI;
 
 import org.xml.sax.SAXException;
 
 import cnv.gui.GuiManager;
+import cnv.gui.JAccordionPanel;
 import common.Array;
 import common.Files;
 import common.Logger;
@@ -230,7 +232,7 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 		menuItemOpen = new JMenuItem("Open File", KeyEvent.VK_O);
 		menuItemOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			    addFile();
+//			    fcsControls.addFCSFiles(new String[]{file1, file2});
 			}
 		});
 		menu.add(menuItemOpen);
@@ -419,8 +421,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
 
 	public void windowOpened(WindowEvent e) {}
 
-    private void addFile() {
-        
+    public ArrayList<String> getAddedFiles() {
+        return fcsControls.getAddedFiles();
     }
     
     public double[] getAxisData(boolean wait, boolean xAxis) {
@@ -450,15 +452,15 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                     fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
                     fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
                     fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
-                    fcsControls.setScale(newDataLoader.scales.get(0), false);
-                    fcsControls.setScale(newDataLoader.scales.get(1), true);
+                    fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(0)), false);
+                    fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(1)), true);
     //            }
     //        });
             
             setYDataName(colNames.get(0));
             setXDataName(colNames.get(1));
-            setYScale(newDataLoader.scales.get(0));
-            setXScale(newDataLoader.scales.get(1));
+            setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
+            setXScale(newDataLoader.getScaleForParam(colNames.get(1)));
         } else {
             new Thread(new Runnable() {
                 @Override
@@ -481,15 +483,15 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
                             fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
                             fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
                             fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
-                            fcsControls.setScale(newDataLoader.scales.get(0), false);
-                            fcsControls.setScale(newDataLoader.scales.get(1), true);
+                            fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(0)), false);
+                            fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(1)), true);
                         }
                     });
                     
                     setYDataName(colNames.get(0));
                     setXDataName(colNames.get(1));
-                    setYScale(newDataLoader.scales.get(0));
-                    setXScale(newDataLoader.scales.get(1));
+                    setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
+                    setXScale(newDataLoader.getScaleForParam(colNames.get(0)));
                     
                 }
             }).start();
@@ -515,6 +517,8 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         System.gc();
         updateGUI();
     }
+    
+    
     
 	public void loadFile(final String filename, final boolean display) {
 	    if (filename == null || !Files.exists(filename) || (dataLoader != null && dataLoader.getLoadedFile().equals(filename))) {
@@ -745,17 +749,20 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     }
     
     private void setupDataExport() {
+        DataExportGUI degui = new DataExportGUI(this);
+        degui.setModal(true);
+        degui.setVisible(true);
         // choose files
         // choose gates
         // choose counts or pcts
         // choose output file
-        String outputFile = "F:/Flow/exportTest.xln";
-        ArrayList<Gate> gates = getAllGates();
-        boolean counts = false;
-        ArrayList<FCSDataLoader> fileData = new ArrayList<FCSDataLoader>();
-        fileData.addAll(loadedData.values());
-        
-        doDataExport(outputFile, gates, counts, fileData.toArray(new FCSDataLoader[fileData.size()]));
+//        String outputFile = "F:/Flow/exportTest.xln";
+//        ArrayList<Gate> gates = getAllGates();
+//        boolean counts = false;
+//        ArrayList<FCSDataLoader> fileData = new ArrayList<FCSDataLoader>();
+//        fileData.addAll(loadedData.values());
+//        
+//        doDataExport(outputFile, gates, counts, fileData.toArray(new FCSDataLoader[fileData.size()]));
     }
     
     private ArrayList<Gate> getAllGates() {
@@ -807,10 +814,10 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
         }
         
         Files.write(sb.toString(), outputFile);
-        log.reportTime("Data export complete!");
+        log.reportTime("Data written to file: " + outputFile);
     }
     
-
+    
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {

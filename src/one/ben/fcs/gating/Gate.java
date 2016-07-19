@@ -1,12 +1,16 @@
 package one.ben.fcs.gating;
 
+import java.awt.Rectangle;
+import java.awt.geom.Area;
 import java.awt.geom.IllegalPathStateException;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
+import common.ext;
 import one.ben.fcs.FCSDataLoader;
 import one.ben.fcs.FCSDataLoader.DATA_SET;
 import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
@@ -436,9 +440,11 @@ public abstract class Gate {
     }
     
     public static class PolygonGate extends Gate {
-        ArrayList<Double> verticesX = new ArrayList<Double>(); 
-        ArrayList<Double> verticesY = new ArrayList<Double>(); 
-        Path2D myPath;
+        private ArrayList<Double> verticesX = new ArrayList<Double>(); 
+        private ArrayList<Double> verticesY = new ArrayList<Double>(); 
+        private Path2D myPath;
+        private int gateResolution;
+        private boolean mimicFlowJo = false;
         
         public PolygonGate(Gate parentGate, String name, String id) {
             super(parentGate, name, id);
@@ -446,6 +452,14 @@ public abstract class Gate {
         
         public PolygonGate(Gate parentGate) {
             super(parentGate);
+        }
+        
+        public boolean getMimicsFlowJo() {
+            return mimicFlowJo;
+        }
+        
+        public void setShouldMimicFlowJoGating(boolean mimic) {
+            this.mimicFlowJo = mimic;
         }
         
         @Override
@@ -459,7 +473,19 @@ public abstract class Gate {
         
         public void setPath(Path2D pth) {
             this.myPath = pth;
+            resetVertices();
+            prepGating();
 //            clearCache();
+        }
+        
+        private void resetVertices() {
+            double[] coords = new double[6];
+            PathIterator pi = myPath.getPathIterator(null);
+            while (!pi.isDone()) {
+                pi.currentSegment(coords);
+                addVertex(coords[0], coords[1]);
+                pi.next(); // TODO may require a 'next()' to start?
+            }
         }
         
         public Path2D getPath() {
@@ -472,7 +498,7 @@ public abstract class Gate {
         private Path2D constructPath() {
             Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
             path.moveTo(verticesX.get(0), verticesY.get(0));
-            for(int i = 1; i < verticesX.size(); ++i) {
+            for (int i = 1; i < verticesX.size(); ++i) {
                path.lineTo(verticesX.get(i), verticesY.get(i));
             }
             path.lineTo(verticesX.get(0), verticesY.get(0));
@@ -501,13 +527,92 @@ public abstract class Gate {
                 if (includes == null || (this.parentGate != null && !includes[i])) {
                     continue;
                 }
-                includes[i] = GateUtils.contains(myPath.getPathIterator(null), paramData[0][i], paramData[1][i]);
-//                includes[i] = Path2D.contains(myPath.getPathIterator(null), new Point2D.Double(paramData[0][i], paramData[1][i]));
-//                includes[i] = myPath.contains(paramData[0][i], paramData[1][i]);
+                if (mimicFlowJo) {
+                    for (Rectangle rect : myRects) {
+                        if (rect.contains(paramData[0][i], paramData[1][i])) {
+                            includes[i] = true;
+                            break;
+                        }
+                    }
+                } else {
+                    if (myPath.contains(paramData[0][i], paramData[1][i])) {
+                        includes[i] = true;
+                    }
+                }
+                
             }
 //            gatingCache.put(dataLoader.getLoadedFile(), includes);
             return includes;
         }
+        
+        int range = 262144;
+        int numBins = 256;
+        int binStep = range / numBins; // 1024
+        ArrayList<Rectangle> myRects = new ArrayList<Rectangle>();
+        
+        void prepGating() {
+            ArrayList<Rectangle> vertexRects = new ArrayList<Rectangle>();
+            ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
+            for (int i = 0; i < numBins; i++) {
+                for (int j = 0; j < numBins; j++) {
+                    rects.add(new Rectangle(i * binStep + binStep / 2, j * binStep + binStep / 2, binStep, binStep));
+                }
+            }
+            for (Rectangle r : rects) {
+                for (int i = 0; i < verticesX.size(); i++) {
+                    double x, y;
+                    x = verticesX.get(i);
+                    y = verticesY.get(i);
+                    if (r.contains(x, y)) {
+                        vertexRects.add(r);
+                    }
+                }
+            }
+            
+            Area a;
+            Path2D path = new Path2D.Double();
+            path.moveTo(vertexRects.get(0).getCenterX(), vertexRects.get(0).getCenterY());
+            for (int i = 1; i < vertexRects.size(); i++) {
+                path.lineTo(vertexRects.get(i).getCenterX(), vertexRects.get(i).getCenterY());
+            }
+            path.lineTo(vertexRects.get(0).getCenterX(), vertexRects.get(0).getCenterY());
+            path.closePath();
+            a = new Area(path);
+            
+            int index = 1;
+            while (!a.isSingular()) {
+                Collections.swap(vertexRects, 0, index);
+                path = new Path2D.Double();
+                path.moveTo(vertexRects.get(0).getCenterX(), vertexRects.get(0).getCenterY());
+                for (int i = 1; i < vertexRects.size(); i++) {
+                    path.lineTo(vertexRects.get(i).getCenterX(), vertexRects.get(i).getCenterY());
+                }
+                path.lineTo(vertexRects.get(0).getCenterX(), vertexRects.get(0).getCenterY());
+                path.closePath();
+                a = new Area(path);
+                index = (index + 1) % vertexRects.size();
+            }
+            
+            
+            for (Rectangle rect : rects) {
+                if (vertexRects.contains(rect) || path.contains(rect) || (path.intersects(rect) && path.contains(rect.getCenterX(), rect.getCenterY()))) {
+                    myRects.add(rect);
+                }
+            }
+            
+            rects.clear();
+            rects = null;
+        }
+
+        public void setGateResolution(int res) {
+            this.gateResolution = res;
+        }
+
+        public void addVertex(Double fX, Double fY) {
+            this.verticesX.add(fX);
+            this.verticesY.add(fY);
+        }
+        
         
     }
     
