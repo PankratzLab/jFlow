@@ -1,12 +1,5 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.WorkerHive;
-import common.ext;
-import filesys.Segment;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
@@ -24,6 +17,14 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
 
 public class BamExtractor {
 	public static final String BP_BUFFER_COMMAND = "bpBuffer=";

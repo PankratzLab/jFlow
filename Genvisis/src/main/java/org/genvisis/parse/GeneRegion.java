@@ -1,10 +1,10 @@
 // used to see how many genes/snps are within each of the 235 regions on the Metabochip
-package parse;
+package org.genvisis.parse;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class GeneRegion {
 	public static final String[] HEADER = {"SNP", "Chr", "Position", "region", "Gene(s)"};

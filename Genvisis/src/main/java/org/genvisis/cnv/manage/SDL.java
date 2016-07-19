@@ -1,12 +1,12 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.WorkerTrain.Producer;
 
 /**
  * similar to {@link MDL} but for sample data

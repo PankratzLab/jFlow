@@ -1,4 +1,4 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 public interface WritingFilePrep {
 

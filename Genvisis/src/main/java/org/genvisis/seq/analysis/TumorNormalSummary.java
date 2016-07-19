@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
@@ -6,6 +6,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.HashSet;
@@ -13,18 +14,18 @@ import java.util.Set;
 
 import javax.jms.IllegalStateException;
 
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
-import seq.manage.VCOps;
-import seq.manage.VCFOps.HEADER_COPY_TYPE;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import common.Array;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
 
 /**
  * @author lane0212 Quick summary of a region geared towards tumor normal
@@ -43,7 +44,7 @@ public class TumorNormalSummary {
 		String outRoot = outputDir + ext.rootOf(vpop.getFileName()) + "_" + name;
 		String outVCF = outRoot + ".vcf.gz";
 		String outSummary = outRoot + ".summary.txt";
-		VCFFileReader reader = new VCFFileReader(vcf, true);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		VariantContextWriter writer = VCFOps.initWriter(outVCF, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 		VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 		Segment segBuffer = seg.getBufferedSegment(buffer);

@@ -1,5 +1,5 @@
 // -Xms1024M -Xmx1024M
-package dead;
+package org.genvisis.dead;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
-import common.Collapsed;
+
+import org.genvisis.common.Collapsed;
 
 public class VariantSorter {
 	public static final double MAF_LOWER_BOUND = 0.01;

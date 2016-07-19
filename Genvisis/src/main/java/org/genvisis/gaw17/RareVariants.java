@@ -1,10 +1,11 @@
-package gaw17;
+package org.genvisis.gaw17;
 
 import java.io.*;
 import java.util.*;
-import seq.WeightedSumStatistic;
-import stats.ProbDist;
-import common.*;
+
+import org.genvisis.common.*;
+import org.genvisis.seq.WeightedSumStatistic;
+import org.genvisis.stats.ProbDist;
 
 public class RareVariants {
 	public static final double[] MAFS = {0.01, 0.02, 0.05};

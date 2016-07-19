@@ -1,4 +1,4 @@
-package seq.manage.vcfPile;
+package org.genvisis.seq.manage.vcfPile;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -8,14 +8,14 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
-import seq.manage.ReferenceGenome;
-import seq.manage.VCFOps;
-import common.Array;
-import common.Logger;
-import common.PSF;
-import common.ext;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.VCFOps;
 
 /**
  * @author lane0212 Summarizes variants by region in a vcf
@@ -80,7 +80,7 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 		log.reportTimeInfo("Loading "+segs.length+" regions from ");
 
 		ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFile, log);
-		String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(vcfFile, true));
+		String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcfFile), true));
 		VCFPile<Segment> vcfPile = new VCFPile<Segment>(vcfFile, referenceGenome, samples, toPile, log);
 		String output = outputDirectory + VCFOps.getAppropriateRoot(vcfFile, true) + ".vcfPile.summary.txt";
 		try {

@@ -1,4 +1,4 @@
-package one.ben;
+package org.genvisis.one.ben;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -39,25 +39,25 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-import one.ben.ConditionalAnalysisPipeline.ConditionalAnalysisToolset_FAST;
-import common.Array;
-import common.CNVFilter;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import common.CNVFilter.CNVFilterPass;
-import cnv.filesys.Centroids;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.manage.UCSCtrack;
-import cnv.var.SampleData;
-import filesys.CNVariant;
-import filesys.DosageData;
-import filesys.Segment;
-import filesys.SnpMarkerSet;
-import gwas.MergeExtractPipeline;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.UCSCtrack;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.CNVFilter;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.common.CNVFilter.CNVFilterPass;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.DosageData;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.gwas.MergeExtractPipeline;
+import org.genvisis.one.ben.ConditionalAnalysisPipeline.ConditionalAnalysisToolset_FAST;
 
 public class lab {
 	

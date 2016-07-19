@@ -1,10 +1,10 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
 import java.util.Hashtable;
 
-import common.Files;
-import common.HashVec;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 
 public class MarkerLookup implements Serializable {
 	public static final long serialVersionUID = 1L;

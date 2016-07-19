@@ -1,6 +1,5 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
-import filesys.Segment;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
@@ -13,23 +12,24 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import seq.analysis.GATK.Mutect2Normal;
-import seq.analysis.GATK.MutectTumorNormal;
-import seq.analysis.GATK_Genotyper.ANNOVCF;
-import seq.manage.BamOps;
-import seq.manage.VCFOps;
-import seq.manage.VCFTumorNormalOps;
-import seq.manage.VCOps;
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.FILTER_GENERATION_TYPE;
-import seq.qc.FilterNGS.VariantContextFilter;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.analysis.GATK.Mutect2Normal;
+import org.genvisis.seq.analysis.GATK.MutectTumorNormal;
+import org.genvisis.seq.analysis.GATK_Genotyper.ANNOVCF;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCFTumorNormalOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.FILTER_GENERATION_TYPE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 
 /**
  * @author lane0212 For using the native Mutect in GATK 3.5+
@@ -428,7 +428,7 @@ public class Mutect2 implements Producer<MutectTumorNormal> {
 		if (!Files.exists(segFile)) {
 			try {
 				PrintWriter writer = new PrintWriter(new FileWriter(segFile));
-				VCFFileReader reader = new VCFFileReader(vcf, true);
+				VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 				for (VariantContext vc : reader) {
 					Segment seg = VCOps.getSegment(vc);
 					writer.println(seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop());

@@ -1,4 +1,4 @@
-package stats;
+package org.genvisis.stats;
 
 //import java.io.*;
 import java.io.BufferedReader;
@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class Rscript {
 	public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-", "=", " ","\\(","\\)"));

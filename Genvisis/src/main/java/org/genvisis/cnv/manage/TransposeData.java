@@ -1,17 +1,17 @@
 // -Xms1024M -Xmx1024M     or even better: -Xmx15g
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import cnv.filesys.Compression;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Sample;
-import cnv.filesys.MarkerLookup;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import common.*;
+import org.genvisis.cnv.filesys.Compression;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.*;
 
 // TODO whole file needs clean up
 public class TransposeData {
@@ -1144,7 +1144,7 @@ public class TransposeData {
 
 		String usage = "\n"+
 		"TransposeData requires 0-1 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) transpose data (i.e. -transpose (" + (transpose? "" : "not the ") + "default))\n" +
 		"   (3) keep all files open at once (i.e. -keepFilesOpen (" + (keepFilesOpen? "" : "not the ") + "default; not recommended usually allowed on linux servers))\n" +
 		"   (4) maximum size of each file in bytes (i.e. max=" + maxFileSize + " (default))\n" +

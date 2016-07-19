@@ -1,7 +1,8 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class Metasoft {
 	public static void generateRawFile(String[] markers, String[] filenamesAndColumnIDs, String outputFilename, Logger log) {

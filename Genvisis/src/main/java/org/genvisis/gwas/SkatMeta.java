@@ -1,11 +1,11 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import stats.Rscript;
-import common.*;
-import filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
+import org.genvisis.stats.Rscript;
 
 public class SkatMeta {
 	public static final String[] ALGORITHMS = {

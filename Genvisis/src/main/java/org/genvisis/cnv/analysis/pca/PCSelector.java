@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -8,19 +8,19 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 
-import common.Array;
-import common.ext;
-import stats.SimpleM;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-import stats.StatsCrossTabs.STAT_TYPE;
-import stats.StatsCrossTabs.StatsCrossTabRank;
-import stats.StatsCrossTabs.VALUE_TYPE;
-import cnv.filesys.Project;
-import cnv.qc.LrrSd;
-import cnv.qc.SampleQC;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.qc.LrrSd;
+import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.common.Array;
+import org.genvisis.common.ext;
+import org.genvisis.stats.SimpleM;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
+import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
+import org.genvisis.stats.StatsCrossTabs.StatsCrossTabRank;
+import org.genvisis.stats.StatsCrossTabs.VALUE_TYPE;
 
 /**
  * @author lane0212 <br>

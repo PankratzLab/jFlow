@@ -1,12 +1,12 @@
 // expand to dynamically load/save a certain chunk of markers at a time  
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import stats.*;
-import gwas.*;
+import org.genvisis.common.*;
+import org.genvisis.gwas.*;
+import org.genvisis.stats.*;
 
 public class GenotypeMatrix implements Serializable {
 	public static final long serialVersionUID = 1L;

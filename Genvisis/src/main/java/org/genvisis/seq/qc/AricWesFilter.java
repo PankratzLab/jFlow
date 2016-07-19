@@ -1,10 +1,10 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 
-import common.Logger;
-import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
-import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
-import seq.qc.FilterNGS.VariantContextFilter;
+import org.genvisis.common.Logger;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 
 /**
  * @author lane0212 Class to mimic the variant filter reported for the CHARGE participants from ARIC, CHS and FHS,

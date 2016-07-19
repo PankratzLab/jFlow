@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 /**
  * <p>
- * Contains triangular solvers for inner blocks of a {@link ejml.BlockMatrix64F}.
+ * Contains triangular solvers for inner blocks of a {@link org.genvisis.ejml.BlockMatrix64F}.
  * </p>
  *
  * <p>

@@ -1,24 +1,25 @@
+package org.genvisis;
 import java.io.*;
 
-import one.SuperNovo;
-import one.ben.DBGAPMerge.DBGapExtract;
-import one.ben.DBGAPMerge.DBGapLookup;
-import cnv.analysis.FilterCalls;
-import cnv.analysis.MeanLRR;
-import cnv.analysis.cnvTrio;
-import cnv.qc.CNVConcordance;
-import cnv.qc.CNVTrioFilter;
-import link.Heritability;
-import link.TrimFam;
-import mining.Transformations;
-import bioinformatics.*;
-import common.*;
-import parse.*;
-import seq.Vcf;
-import seq.manage.VCF;
-import seq.manage.VCFOps;
-import gwas.*;
-import db.*;
+import org.genvisis.bioinformatics.*;
+import org.genvisis.cnv.analysis.FilterCalls;
+import org.genvisis.cnv.analysis.MeanLRR;
+import org.genvisis.cnv.analysis.cnvTrio;
+import org.genvisis.cnv.qc.CNVConcordance;
+import org.genvisis.cnv.qc.CNVTrioFilter;
+import org.genvisis.common.*;
+import org.genvisis.db.*;
+import org.genvisis.gwas.*;
+import org.genvisis.link.Heritability;
+import org.genvisis.link.TrimFam;
+import org.genvisis.mining.Transformations;
+import org.genvisis.one.SuperNovo;
+import org.genvisis.one.ben.DBGAPMerge.DBGapExtract;
+import org.genvisis.one.ben.DBGAPMerge.DBGapLookup;
+import org.genvisis.parse.*;
+import org.genvisis.seq.Vcf;
+import org.genvisis.seq.manage.VCF;
+import org.genvisis.seq.manage.VCFOps;
 
 public class Launch {
 	public static final String[] LAUNCH_TYPES = { "lookup - using a list of keys, pull data from multiple files", 
@@ -203,9 +204,9 @@ public class Launch {
 			} else if (temp.equalsIgnoreCase("gwas.Qc")) {
 				Qc.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("peakat")) {
-				widgets.peakAt.fromParameters(filename, log);
+				org.genvisis.widgets.peakAt.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("grep")) {
-				widgets.grep.fromParameters(filename, log);
+				org.genvisis.widgets.grep.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("replaceAll")) {
 				Files.replaceAllFromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("snps")) {

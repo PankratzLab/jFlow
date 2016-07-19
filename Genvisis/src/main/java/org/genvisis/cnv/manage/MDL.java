@@ -1,4 +1,4 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,17 +9,17 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 
-import cnv.filesys.Compression;
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerLookup;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import common.Array;
-import common.Files;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
+import org.genvisis.cnv.filesys.Compression;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
 
 public class MDL implements Iterator<MarkerData> {
 	private Project proj;

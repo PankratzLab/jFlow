@@ -1,12 +1,11 @@
-package assoc;
+package org.genvisis.assoc;
 
 import java.io.*;
 import java.util.*;
 
-import stats.LogisticRegression;
-import stats.ProbDist;
-
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.LogisticRegression;
+import org.genvisis.stats.ProbDist;
 
 public class haploCount {
 	public static boolean USING_DIRS = true;

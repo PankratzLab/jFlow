@@ -1,4 +1,4 @@
-package cyto;
+package org.genvisis.cyto;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -6,8 +6,8 @@ import java.awt.Toolkit;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import cnv.filesys.Project;
-import common.Logger;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Logger;
 
 public class CytoGUI extends JFrame {
 

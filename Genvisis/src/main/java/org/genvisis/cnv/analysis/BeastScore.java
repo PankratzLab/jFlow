@@ -1,15 +1,15 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.util.ArrayList;
 
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.manage.Transforms;
-import cnv.var.SampleData;
-import common.Array;
-import common.Logger;
-import filesys.CNVariant;
-import filesys.Segment;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.Transforms;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.Segment;
 
 /**
  * Class to compute beast scores similar to the beast algorithm http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0086272. Values are always inverse normalized with 5df, and scaled by the empirically derived SCALE_FACTOR_MAD. NaN data is discouraged, but is ignored; Note: Since the input data is always inverse normalized, the MAD for a region (such as a cnv) is the median of the (absolute value) inverse normalized data across that region (scaled by the MAD of the superset i.e the chromosome) Note: one difference to the score scheme is that a min/max length parameter has not been added. i.e(length<=min -> score=0, length>=max -> height goes to min height. This may make long cnv calls have inflated scores.

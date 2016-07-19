@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
 /**
  * <p>
  * QR decomposition for {@link BlockMatrix64F} using householder reflectors.  The decomposition is
- * performed by computing a QR decomposition for each block column as is normally done, see {@link ejml.QRDecompositionHouseholder}.
+ * performed by computing a QR decomposition for each block column as is normally done, see {@link org.genvisis.ejml.QRDecompositionHouseholder}.
  * The reflectors are then combined and applied to the remainder of the matrix.  This process is repeated
  * until all the block columns have been processed
  * </p>

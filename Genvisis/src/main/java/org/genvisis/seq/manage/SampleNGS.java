@@ -1,4 +1,4 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -8,10 +8,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import common.Array;
-import common.Logger;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
 
 public class SampleNGS {
 	private enum DATA_TYPE {

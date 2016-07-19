@@ -1,12 +1,12 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import common.*;
-import filesys.Segment;
-import filesys.SnpMarkerSet;
+import org.genvisis.common.*;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.SnpMarkerSet;
 
 public class HitWindows {
 	public static String[][] determine(String filename, float indexThreshold, int windowMinSizePerSide, float windowExtensionThreshold, String[] additionalAnnotationVariableNames, Logger log) {

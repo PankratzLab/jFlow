@@ -1,13 +1,13 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.*;
 import java.util.*;
 
 import javax.swing.JFileChooser;
 
-import filesys.CNVariant;
-import filesys.Segment;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.Segment;
 
 public class ExportCNVsToPedFormat {
 	public static final String MATRIX_FORMAT = "MATRIX";

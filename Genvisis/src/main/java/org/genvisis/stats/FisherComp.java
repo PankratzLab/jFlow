@@ -1,9 +1,10 @@
 // -Xms1024M -Xmx1024M
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class FisherComp {
 	public static void comp(String filename, int permutations) {

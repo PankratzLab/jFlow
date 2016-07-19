@@ -1,8 +1,9 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class AltPheno {
 	public static final String[] MERLIN_BINARY_HEADER = {"CHR", "POS", "LABEL", "ANALYSIS", "ZSCORE", "DELTA", "LOD", "PVALUE"};
@@ -97,9 +98,9 @@ public class AltPheno {
             }
         }
         
-		classpath = "-classpath /home/npankrat/" + common.PSF.Java.GENVISIS + "";
+		classpath = "-classpath /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + "";
 		if (new File(".").getAbsolutePath().contains("bc2/pankratz")) {
-			classpath = "-classpath /home/bc2/pankratz/" + common.PSF.Java.GENVISIS + "";
+			classpath = "-classpath /home/bc2/pankratz/" + org.genvisis.common.PSF.Java.GENVISIS + "";
 		}
         try {
             writers = new PrintWriter[phenoNames.length];

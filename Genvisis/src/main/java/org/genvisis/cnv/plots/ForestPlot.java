@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -15,11 +15,11 @@ import java.util.TreeMap;
 
 import javax.swing.SwingUtilities;
 
-import cnv.filesys.Project;
-import common.Aliases;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 class MetaStudy {
 	private final ArrayList<StudyData> studies;

@@ -1,5 +1,5 @@
 // replace all exits with a proper disposal of all resources
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -73,51 +73,52 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import net.miginfocom.swing.MigLayout;
-import seq.manage.ReferenceGenome;
-import stats.CTable;
-import stats.ContingencyTable;
-import stats.Histogram;
-import stats.ProbDist;
-import cnv.analysis.pca.PrincipalComponentsIntensity;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.annotation.AnalysisParams;
-import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
-import cnv.annotation.AnnotationParser;
-import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import cnv.annotation.BlastParams;
-import cnv.annotation.MarkerAnnotationLoader;
-import cnv.annotation.MarkerBlastAnnotation;
-import cnv.annotation.MarkerGCAnnotation;
-import cnv.filesys.AnnotationCollection;
-import cnv.filesys.Centroids;
-import cnv.filesys.ClusterFilter;
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerLookup;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Pedigree;
-import cnv.filesys.Project;
-import cnv.filesys.SampleList;
-import cnv.gui.AnnotationAction;
-import cnv.gui.AutoSaveForScatterPlot;
-import cnv.gui.BlastFrame;
-import cnv.gui.ColorKeyPanel;
-import cnv.gui.CycleRadio;
-import cnv.gui.NewMarkerListDialog;
-import cnv.manage.MarkerDataLoader;
-import cnv.manage.PlinkMarkerLoader;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import cnv.var.SampleData;
-import common.AlleleFreq;
-import common.Array;
-import common.Files;
-import common.Grafik;
-import common.Logger;
-import common.Matrix;
-import common.ProgressMonitor;
-import common.Sort;
-import common.ext;
+
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.annotation.AnalysisParams;
+import org.genvisis.cnv.annotation.AnnotationParser;
+import org.genvisis.cnv.annotation.BlastParams;
+import org.genvisis.cnv.annotation.MarkerAnnotationLoader;
+import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.MarkerGCAnnotation;
+import org.genvisis.cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.filesys.AnnotationCollection;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.ClusterFilter;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Pedigree;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.gui.AnnotationAction;
+import org.genvisis.cnv.gui.AutoSaveForScatterPlot;
+import org.genvisis.cnv.gui.BlastFrame;
+import org.genvisis.cnv.gui.ColorKeyPanel;
+import org.genvisis.cnv.gui.CycleRadio;
+import org.genvisis.cnv.gui.NewMarkerListDialog;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.manage.PlinkMarkerLoader;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.AlleleFreq;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ProgressMonitor;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.stats.CTable;
+import org.genvisis.stats.ContingencyTable;
+import org.genvisis.stats.Histogram;
+import org.genvisis.stats.ProbDist;
 
 public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, WindowListener {
 	public static final long serialVersionUID = 1L;
@@ -4052,7 +4053,7 @@ public class ScatterPlot extends /*JPanel*/JFrame implements ActionListener, Win
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-            	createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false), null, null, true);
+            	createAndShowGUI(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false), null, null, true);
             }
         });
     }

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 /**
  * An abstract class for all 64 bit floating point rectangular matrices which can be reshaped.

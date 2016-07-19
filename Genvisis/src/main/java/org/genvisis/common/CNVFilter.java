@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -7,10 +7,10 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import filesys.CNVariant;
-import filesys.LocusSet;
-import filesys.Segment;
-import filesys.SnpMarkerSet;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.SnpMarkerSet;
 
 public class CNVFilter {
 

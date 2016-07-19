@@ -1,8 +1,9 @@
-package park;
+package org.genvisis.park;
 
 import java.io.*;
-import common.*;
-import db.crfDB;
+
+import org.genvisis.common.*;
+import org.genvisis.db.crfDB;
 
 public class UpdateCRFdb {
 	public static final String CRF_DIR = tools.CRF_DIR;

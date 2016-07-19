@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 public class GenericLine {
 	private float startX;

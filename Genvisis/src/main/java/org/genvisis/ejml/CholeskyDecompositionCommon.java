@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
@@ -39,8 +39,8 @@ package ejml;
  * </p>
  *
  * @see CholeskyDecompositionInner
- * @see ejml.CholeskyDecompositionBlock
- * @see ejml.CholeskyDecompositionLDL
+ * @see org.genvisis.ejml.CholeskyDecompositionBlock
+ * @see org.genvisis.ejml.CholeskyDecompositionLDL
  *
  * @author Peter Abeles
  */

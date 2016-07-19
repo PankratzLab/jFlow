@@ -1,12 +1,12 @@
 // expecting a HapMart/BioMart export that includes position, marker_id, reference_allele and of course CEU genotype 
 // pedinfo2sample_CEU.txt is available at http://www.hapmap.org/downloads/samples_individuals/
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
 
 public class HapMapParser {
 	public static final boolean USE_NUCLEOTIDES = true;

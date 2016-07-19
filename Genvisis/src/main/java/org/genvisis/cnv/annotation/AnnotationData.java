@@ -1,9 +1,9 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import java.util.Arrays;
 import java.util.List;
 
-import common.Logger;
+import org.genvisis.common.Logger;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;

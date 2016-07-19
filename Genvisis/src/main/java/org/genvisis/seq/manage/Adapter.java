@@ -1,17 +1,18 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.io.File;
 import java.util.ArrayList;
 
-import seq.analysis.Blast;
-import seq.analysis.Blast.BlastWorker;
-import seq.analysis.Blast.FastaEntry;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.WorkerHive;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.Blast;
+import org.genvisis.seq.analysis.Blast.BlastWorker;
+import org.genvisis.seq.analysis.Blast.FastaEntry;
+
 import htsjdk.tribble.annotation.Strand;
 
 public class Adapter {

@@ -1,5 +1,5 @@
 // filter based on chromosome
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.io.*;
 import java.util.*;
@@ -9,11 +9,11 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.*;
 
-import common.*;
-import cnv.filesys.Project;
-import cnv.gui.ColorIcon;
-import cnv.gui.WrapLayout;
-import cnv.qc.SexChecks;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.ColorIcon;
+import org.genvisis.cnv.gui.WrapLayout;
+import org.genvisis.cnv.qc.SexChecks;
+import org.genvisis.common.*;
 
 public class SexPlot extends JFrame {
 	public static final long serialVersionUID = 1L;
@@ -183,7 +183,7 @@ public class SexPlot extends JFrame {
 
 		String usage = "\n"+
 		"cnv.plot.SexPlot requires 0-1 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {

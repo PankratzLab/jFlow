@@ -1,13 +1,13 @@
 // these bad boys assume that the rows represent the explanatory variable levels, and the columns response  levels
 // ergo data[explanatory][response]
 
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 
-import common.Array;
-import common.Matrix;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
 
 public class ContingencyTable {
 	public static final double DEFAULT_ALPHA = 0.05;

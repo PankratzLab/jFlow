@@ -1,10 +1,10 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
-import cnv.plots.ScatterPlot;
+import org.genvisis.cnv.plots.ScatterPlot;
 
 public class AnnotationAction extends AbstractAction {
 	public static final long serialVersionUID = 1L;

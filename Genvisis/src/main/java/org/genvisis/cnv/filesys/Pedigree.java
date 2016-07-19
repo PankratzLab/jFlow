@@ -1,4 +1,4 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -6,15 +6,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import cnv.qc.MendelErrors;
-import cnv.qc.SexChecks;
-import cnv.qc.MendelErrors.MendelErrorCheck;
-import cnv.var.SampleData;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import filesys.FamilyStructure;
+import org.genvisis.cnv.qc.MendelErrors;
+import org.genvisis.cnv.qc.SexChecks;
+import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.FamilyStructure;
 
 
 
@@ -368,7 +368,7 @@ public class Pedigree extends FamilyStructure {
 
         String usage = "\n"+
             "cnv.filesys.Pedigree requires 1-3 arguments\n"+
-            "   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+            "   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
             "   (2) OPTIONAL: Pedigree output filename (if omitted, output file will be project property) (i.e. out="+out+" (default))\n"+
             "   (1) OPTIONAL: overwrite flag, will overwrite the output file if it already exists (i.e. -overwrite (not the default))\n"+
             "";

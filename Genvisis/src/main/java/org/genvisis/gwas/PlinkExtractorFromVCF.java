@@ -1,4 +1,4 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,10 +6,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import common.Files;
-import common.Matrix;
-import common.Positions;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
 
 public class PlinkExtractorFromVCF {
     

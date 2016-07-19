@@ -1,24 +1,24 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-import cnv.filesys.Pedigree;
-import parse.GenParser;
-import stats.Correlation;
-import stats.ICC;
-import stats.RegressionModel;
-import common.Array;
-import common.CmdLine;
-import common.CountHash;
-import common.HashVec;
-import common.Logger;
-import common.Matrix;
-import common.WorkerTrain.Producer;
-import common.Files;
-import common.ext;
-import filesys.FamilyStructure;
+import org.genvisis.cnv.filesys.Pedigree;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.CountHash;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.FamilyStructure;
+import org.genvisis.parse.GenParser;
+import org.genvisis.stats.Correlation;
+import org.genvisis.stats.ICC;
+import org.genvisis.stats.RegressionModel;
 
 public class Heritability {
 	public static final String DEFAULT_MERLIN_EXEC = "merlin";

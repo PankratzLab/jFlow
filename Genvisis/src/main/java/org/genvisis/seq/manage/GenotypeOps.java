@@ -1,9 +1,11 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import common.Logger;
+import org.genvisis.common.Logger;
+
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -31,7 +33,7 @@ public class GenotypeOps {
 	}
 
 	public static String[][] getGenoFormatKeys(String vcf, Logger log) {
-		VCFFileReader reader = new VCFFileReader(vcf, false);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		String[] annotationKeys = new String[reader.getFileHeader().getFormatHeaderLines().size()];
 		String[] descriptions = new String[reader.getFileHeader().getFormatHeaderLines().size()];
 		int index = 0;

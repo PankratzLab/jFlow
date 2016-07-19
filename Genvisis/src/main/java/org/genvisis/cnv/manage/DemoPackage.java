@@ -1,4 +1,4 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -17,11 +17,11 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import cnv.LaunchProperties;
-import cnv.filesys.Project;
-import cnv.gui.FileChooser;
-import cnv.manage.DemoProject.DEMO_TYPE;
-import common.*;
+import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.FileChooser;
+import org.genvisis.cnv.manage.DemoProject.DEMO_TYPE;
+import org.genvisis.common.*;
 
 public class DemoPackage {
 	public static final String GENERATE_DEMO_PACKAGE = "Generate a demo package";
@@ -41,13 +41,13 @@ public class DemoPackage {
 
 	private void initDemoPackage() {
 		new File(demoDirectory).mkdirs();
-		String demoPark = demoDirectory + common.PSF.Java.GENVISIS;
-		String demoVis = demoDirectory + common.PSF.Java.GENVISIS;
+		String demoPark = demoDirectory + org.genvisis.common.PSF.Java.GENVISIS;
+		String demoVis = demoDirectory + org.genvisis.common.PSF.Java.GENVISIS;
 		String runningJar = getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-		if (runningJar.endsWith(common.PSF.Java.GENVISIS) || runningJar.endsWith(common.PSF.Java.GENVISIS)) {
+		if (runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS) || runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
 			String copyRunning = null;
 			String copyOther = null;
-			if (runningJar.endsWith(common.PSF.Java.GENVISIS)) {
+			if (runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
 				copyRunning = demoPark;
 				copyOther = demoVis;
 			} else {
@@ -55,7 +55,7 @@ public class DemoPackage {
 				copyOther = demoPark;
 			}
 			if (!Files.exists(demoVis)) {
-				if (!Files.exists(copyRunning) && !runningJar.endsWith(common.PSF.Java.GENVISIS)) {
+				if (!Files.exists(copyRunning) && !runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
 					log.reportTimeInfo("Detected " + runningJar + ", copying to " + copyRunning + "\n\t (this takes a while due to byte by byte copying)");
 					if (Files.copyFileUsingFileChannels(runningJar, copyRunning, log)) {
 						log.reportTimeInfo("Finished copying " + runningJar + ", to " + copyRunning);
@@ -66,7 +66,7 @@ public class DemoPackage {
 				}
 
 				String other = ext.parseDirectoryOfFile(runningJar, false) + ext.removeDirectoryInfo(copyOther);
-				if (Files.exists(other) && !Files.exists(copyOther) && !other.endsWith(common.PSF.Java.GENVISIS)) {
+				if (Files.exists(other) && !Files.exists(copyOther) && !other.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
 					if (Files.exists(other)) {
 						log.reportTimeInfo("Detected " + other + ", copying to " + copyOther + "\n\t (this takes a while due to byte by byte copying)");
 						if (Files.copyFileUsingFileChannels(other, copyOther, log)) {
@@ -82,12 +82,12 @@ public class DemoPackage {
 				}
 			}
 		} else {
-			log.reportTimeError("Could not detect proper jar file, found " + runningJar + " and it should have ended with " + common.PSF.Java.GENVISIS);
+			log.reportTimeError("Could not detect proper jar file, found " + runningJar + " and it should have ended with " + org.genvisis.common.PSF.Java.GENVISIS);
 			log.reportTimeError("This could be because you are running from eclipse without a jar file");
 			//fail = true;
 		}
 		String launchProperties = demoDirectory + LaunchProperties.DEFAULT_PROPERTIES_FILE;
-		cnv.Launch.initLaunchProperties(launchProperties, true, true);
+		org.genvisis.cnv.Launch.initLaunchProperties(launchProperties, true, true);
 
 		this.newLaunchProperties = new LaunchProperties(launchProperties);
 		System.out.println(newLaunchProperties.getProperty(LaunchProperties.PROJECTS_DIR));
@@ -211,7 +211,7 @@ public class DemoPackage {
 		Project proj;
 
 		String usage = "\n" + "cnv.manage.GenerateDemoPackage requires 0-1 arguments\n";
-		usage += "   (1) project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "";
+		usage += "   (1) project properties filename (i.e. proj=" + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "";
 		usage += "   OPTIONAL";
 		usage += "   (2) full path to a file with markers to export for marker focused project (i.e. markersFile= ( default exports \"TARGET_MARKERS_FILENAME\", and all markers if targets does not exist))\n" + "";
 		usage += "   (3) full path to a file of samples to export for sample focused project (i.e. samplesFile= ( default exports \"Project.SAMPLE_SUBSET_FILENAME\" and all samples if subset file does not exist))\n" + "";

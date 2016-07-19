@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -14,19 +14,18 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.*;
 
-import parse.GenParser;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.filesys.Project.StringListProperty;
+import org.genvisis.cnv.gui.CheckBoxTree;
+import org.genvisis.cnv.gui.ColorKeyPanel;
+import org.genvisis.cnv.gui.GuiManager;
+import org.genvisis.cnv.var.*;
+import org.genvisis.common.*;
+import org.genvisis.parse.GenParser;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-
-import cnv.filesys.*;
-import cnv.filesys.Project.StringListProperty;
-import cnv.gui.CheckBoxTree;
-import cnv.gui.ColorKeyPanel;
-import cnv.gui.GuiManager;
-import cnv.var.*;
-import common.*;
 
 public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener { 
 	public static final long serialVersionUID = 1L;
@@ -1838,7 +1837,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				BufferedImage bi = new BufferedImage(colorKeyPanel.classValuesPanel.getWidth(), colorKeyPanel.classValuesPanel.getHeight(), BufferedImage.TYPE_INT_ARGB);
 				colorKeyPanel.classValuesPanel.paint(bi.createGraphics());
 				// then reset and dispose of extra resources
-				colorKeyPanel.classValuesPanel.setLayout(new cnv.gui.WrapLayout(FlowLayout.CENTER, 0, 0));
+				colorKeyPanel.classValuesPanel.setLayout(new org.genvisis.cnv.gui.WrapLayout(FlowLayout.CENTER, 0, 0));
 				frame.removeAll();
 				frame.dispose();
 				frame = null;

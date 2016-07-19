@@ -1,4 +1,4 @@
-package affy;
+package org.genvisis.affy;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -6,23 +6,23 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 
-import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.CentroidBuilder;
-import cnv.filesys.Centroids;
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.filesys.SampleList;
-import cnv.manage.MDL;
-import cnv.manage.MarkerDataLoader;
-import cnv.var.SampleData;
-import stats.Maths;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Sort;
-import common.ext;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.stats.Maths;
 
 public class AffyCentroids implements Serializable {
 	public static final long serialVersionUID = 1L;

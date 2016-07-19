@@ -1,15 +1,15 @@
-package widgets;
+package org.genvisis.widgets;
 
 import java.io.File;
 import java.util.Date;
 import java.util.HashSet;
 
-import cnv.filesys.Project;
-import cnv.plots.TwoDPlot;
-import filesys.SerialStringArray;
-import gwas.MetaAnalysis;
-import stats.Histogram;
-import common.*;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.plots.TwoDPlot;
+import org.genvisis.common.*;
+import org.genvisis.filesys.SerialStringArray;
+import org.genvisis.gwas.MetaAnalysis;
+import org.genvisis.stats.Histogram;
 
 public class ClipSwap {
 	public static final String CONTRACT_EXPAND_DELIM = "^";

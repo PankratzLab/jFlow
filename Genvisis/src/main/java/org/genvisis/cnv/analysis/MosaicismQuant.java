@@ -1,4 +1,4 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -9,37 +9,35 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
+import org.genvisis.cnv.analysis.MosaicismQuant.ComputeParams.MosaicParamsBuilder;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.hmm.CNVCaller;
+import org.genvisis.cnv.qc.LrrSd;
+import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.Sort;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.mining.Calcfc;
+import org.genvisis.mining.Cobyla;
+import org.genvisis.mining.CobylaExitStatus;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
+
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
-import mining.Calcfc;
-import mining.Cobyla;
-import mining.CobylaExitStatus;
-//import mining.ExpectationMaximization;
-//import mining.Point;
-//import mining.UnivariateGaussianMixtureModel;
-import seq.manage.ReferenceGenome;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.Sort;
-import common.WorkerHive;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
-import cnv.analysis.MosaicismQuant.ComputeParams.MosaicParamsBuilder;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.hmm.CNVCaller;
-import cnv.qc.LrrSd;
-import cnv.qc.SampleQC;
-import filesys.LocusSet;
-import filesys.Segment;
 
 /**
  * @author lane0212 Class to quantify mosiacism at a particular locus, based on procedure from http://www.ncbi.nlm.nih.gov/pubmed/22277120

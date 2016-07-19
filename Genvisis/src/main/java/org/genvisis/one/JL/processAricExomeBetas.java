@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import htsjdk.tribble.annotation.Strand;
 
@@ -11,20 +11,20 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import seq.manage.StrandOps;
-import seq.manage.StrandOps.CONFIG;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import cnv.analysis.pca.BetaOptimizer;
-import cnv.analysis.pca.BetaOptimizer.MarkerRsFormat;
-import cnv.filesys.ABLookup;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.manage.Resources.GENOME_BUILD;
-import cnv.manage.Resources.GENOME_RESOURCE_TYPE;
+import org.genvisis.cnv.analysis.pca.BetaOptimizer;
+import org.genvisis.cnv.analysis.pca.BetaOptimizer.MarkerRsFormat;
+import org.genvisis.cnv.filesys.ABLookup;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.manage.Resources.GENOME_RESOURCE_TYPE;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.StrandOps;
+import org.genvisis.seq.manage.StrandOps.CONFIG;
 
 public class processAricExomeBetas {
 

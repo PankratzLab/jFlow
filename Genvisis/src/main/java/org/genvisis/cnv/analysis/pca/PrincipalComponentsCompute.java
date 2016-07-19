@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -9,23 +9,23 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.filesys.SampleList;
-import cnv.manage.MDL;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import cnv.var.SampleData;
-import common.Aliases;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import ejml.CommonOps;
-import ejml.DecompositionFactory;
-import ejml.DenseMatrix64F;
-import ejml.SingularOps;
-import ejml.SingularValueDecomposition;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.ejml.CommonOps;
+import org.genvisis.ejml.DecompositionFactory;
+import org.genvisis.ejml.DenseMatrix64F;
+import org.genvisis.ejml.SingularOps;
+import org.genvisis.ejml.SingularValueDecomposition;
 
 /**
  * <p>

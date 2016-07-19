@@ -1,10 +1,11 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import java.util.Hashtable;
 
-import seq.manage.VCOps;
+import org.genvisis.common.Logger;
+import org.genvisis.seq.manage.VCOps;
+
 import htsjdk.variant.variantcontext.VariantContext;
-import common.Logger;
 
 /**
  * @author lane0212 loading for existing annotations (SNP_EFF,etc) that do not require object parsing

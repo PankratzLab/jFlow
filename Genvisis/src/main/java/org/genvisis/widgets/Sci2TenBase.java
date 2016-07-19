@@ -1,8 +1,8 @@
-package widgets;
+package org.genvisis.widgets;
 
 import java.io.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class Sci2TenBase {
 	public Sci2TenBase(String filename) throws IOException {

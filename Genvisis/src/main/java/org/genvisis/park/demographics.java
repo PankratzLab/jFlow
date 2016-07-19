@@ -1,11 +1,11 @@
 // split hash of hashs into two different types of hashes
 
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class demographics {
 	public int[] bb_bs_ss;

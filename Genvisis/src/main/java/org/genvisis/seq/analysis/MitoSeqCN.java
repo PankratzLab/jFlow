@@ -1,7 +1,5 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
-import filesys.LocusSet;
-import filesys.Segment;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
@@ -16,18 +14,20 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import seq.manage.BEDFileReader;
-import seq.manage.BamOps;
-import seq.manage.BedOps;
-import seq.manage.ReferenceGenome;
-import seq.manage.BamOps.BamIndexStats;
-import common.Array;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
+import org.genvisis.common.Array;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.BEDFileReader;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.BedOps;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.BamOps.BamIndexStats;
 
 /**
  * @author lane0212 Inspired by Kendall

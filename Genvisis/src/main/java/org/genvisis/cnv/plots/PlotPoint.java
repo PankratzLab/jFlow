@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.io.Serializable;
 

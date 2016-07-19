@@ -1,15 +1,15 @@
-package one;
+package org.genvisis.one;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.concurrent.Callable;
 
-import common.Array;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.Array;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.WorkerTrain.Producer;
 
 /**
  * @author lane0212 Taking a look at the intensity bias of X and Y probes

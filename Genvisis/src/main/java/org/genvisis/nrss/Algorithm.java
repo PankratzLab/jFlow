@@ -1,14 +1,14 @@
 // -Xms1024M -Xmx1024M
-package nrss;
+package org.genvisis.nrss;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.LDdatabase;
-import filesys.LongLDdb;
-import filesys.SnpMarkerSet;
-import bioinformatics.*;
+import org.genvisis.bioinformatics.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.LDdatabase;
+import org.genvisis.filesys.LongLDdb;
+import org.genvisis.filesys.SnpMarkerSet;
 
 public class Algorithm {
 	public static final double INDEX_THRESHOLD = 0.0001;

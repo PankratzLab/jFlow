@@ -1,4 +1,4 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;

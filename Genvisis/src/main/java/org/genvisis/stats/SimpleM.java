@@ -1,11 +1,11 @@
-package stats;
+package org.genvisis.stats;
 
-import cnv.analysis.pca.PrincipalComponentsCompute;
-import stats.StatsCrossTabs.STAT_TYPE;
-import common.Array;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute;
+import org.genvisis.common.Array;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
 
 /**
  * @author lane0212 <br>

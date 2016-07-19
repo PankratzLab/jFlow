@@ -1,14 +1,14 @@
 // should create a chi square for binomials
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 import java.util.*;
 
-import common.Array;
-import common.DoubleVector;
-import common.HashVec;
-import common.Sort;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.DoubleVector;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class PermuteOnePer {
 	public static final int SIGFIGS = 2;

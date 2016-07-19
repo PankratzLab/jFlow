@@ -1,8 +1,9 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class SnpNexusParser {
 	public static final String[] MARKS = {

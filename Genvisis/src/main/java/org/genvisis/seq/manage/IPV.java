@@ -1,3 +1,4 @@
+package org.genvisis.seq.manage;
 //package seq.manage;
 //
 //import java.io.File;

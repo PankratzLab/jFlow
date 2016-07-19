@@ -1,12 +1,5 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.Segment;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
@@ -25,8 +18,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import seq.analysis.SNPEFF;
-import stats.Histogram;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.analysis.SNPEFF;
+import org.genvisis.stats.Histogram;
 
 public class BamQC {
 	public static final String[] QC_HEADER = { "Input File", "numTotal", "numUnique", "numDuplicated", "numUnMapped", "numOnTarget", "NumSecondaryAlignments", "NumInvalidAlignments", "PercentDuplicated", "PercentUnMapped", "PercentOnTarget", "AverageInsertSize", "AverageOnTargetInsertSize", "MappingQualityFilter", "PhreadScoreFilter", "Total Base Pairs Targeted" };

@@ -1,11 +1,11 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import bioinformatics.MapGenesToSNPs;
-import common.*;
-import filesys.*;
+import org.genvisis.bioinformatics.MapGenesToSNPs;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
 
 class KEGGpathway {
 	public Hashtable<String,String> pathwayLookup;

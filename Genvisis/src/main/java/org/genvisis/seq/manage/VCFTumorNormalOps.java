@@ -1,4 +1,4 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -13,6 +13,7 @@ import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,12 +21,11 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
-import seq.manage.VCOps.GENOTYPE_INFO;
-
-import common.Logger;
+import org.genvisis.common.Logger;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.genvisis.seq.manage.VCOps.GENOTYPE_INFO;
 
 /**
  * Consolidating some common operations for tumor normal calling, summarizing filtering, and etc
@@ -63,7 +63,7 @@ public class VCFTumorNormalOps {
 		if (VCFOps.getSamplesInFile(vcf).length != 2) {
 			throw new IllegalArgumentException("This method is only designed for tumor normal renaming");
 		}
-		VCFFileReader reader = new VCFFileReader(vcf, false);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 		VariantContextWriter writerFiltered = VCFOps.initWriter(outputFiltered, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 
@@ -191,7 +191,7 @@ public class VCFTumorNormalOps {
 	 * GATK appends .variant## to each sample when merging individual tumor normal calls, this will re-name the samples to the original (removes .variant.*)
 	 */
 	public static void renameMergeVCF(String inputVCF, String outputVCF) {
-		VCFFileReader reader = new VCFFileReader(inputVCF, true);
+		VCFFileReader reader = new VCFFileReader(new File(inputVCF), true);
 		Set<String> samps = new HashSet<String>();
 		String[] sampIn = VCFOps.getSamplesInFile(inputVCF);
 		for (int i = 0; i < sampIn.length; i++) {

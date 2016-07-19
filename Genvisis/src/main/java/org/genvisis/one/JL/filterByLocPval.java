@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -6,11 +6,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import common.Files;
-import common.Logger;
-import common.ext;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
 
 public class filterByLocPval {
 

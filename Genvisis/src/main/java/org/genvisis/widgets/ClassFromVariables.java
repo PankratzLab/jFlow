@@ -1,8 +1,8 @@
-package widgets;
-
-import common.*;
+package org.genvisis.widgets;
 
 import java.util.*;
+
+import org.genvisis.common.*;
 
 public class ClassFromVariables {
 	public static final boolean DEFAULT_NO_SET = true;

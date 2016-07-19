@@ -1,7 +1,8 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.*;
-import common.Elision;
+
+import org.genvisis.common.Elision;
 
 public class Compression {
 

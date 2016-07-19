@@ -1,4 +1,4 @@
-package cyto;
+package org.genvisis.cyto;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -18,16 +18,16 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import cnv.filesys.Project;
-import cnv.gui.FileChooser;
-import cnv.manage.SourceFileParser;
-import cnv.manage.TransposeData;
-import cnv.var.SampleData;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
-import filesys.CNVariant;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.FileChooser;
+import org.genvisis.cnv.manage.SourceFileParser;
+import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
 
 public class CytoPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
@@ -290,7 +290,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 			log.report(ext.getTime() + " Info - found " + importFiles.length + " files");
 			CytoAgilentParse.parseCytoToGenvisis(proj, importFiles, log);
 //			cnv.manage.ParseIllumina.createFiles(proj, proj.getInt(proj.NUM_THREADS));
-			cnv.manage.SourceFileParser.createFiles(proj, proj.NUM_THREADS.getValue());
+			org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, proj.NUM_THREADS.getValue());
 			deleteSampleList();
 			TransposeData.transposeData(proj, 2000000000, false);
 
@@ -424,7 +424,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 	private static boolean convertCNPFile(String cnpFile, String output, Logger log) {
 		boolean converted = false;
 		if (!Files.exists(output)) {
-			filesys.Segment[] segs = CytoCompare.loadsegs(cnpFile, log);
+			org.genvisis.filesys.Segment[] segs = CytoCompare.loadsegs(cnpFile, log);
 			if (segs != null) {
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(output));

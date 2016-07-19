@@ -1,4 +1,4 @@
-package seq.pathway;
+package org.genvisis.seq.pathway;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,14 +12,14 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
-import filesys.GeneData;
-import filesys.GeneTrack;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
 
 public class Pathways implements Serializable {
 	/**

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 /**
@@ -96,7 +96,7 @@ public class LinearSolverFactory {
      * <p>
      * For singular systems there are multiple correct solutions.  The optimal 2-norm solution is the
      * solution vector with the minimal 2-norm and is unique.  If the optimal solution is not computed
-     * then the basic solution is returned.  See {@link ejml.BaseLinearSolverQrp}
+     * then the basic solution is returned.  See {@link org.genvisis.ejml.BaseLinearSolverQrp}
      * for details.  There is only a runtime difference for small matrices, 2-norm solution is slower.
      * </p>
      *

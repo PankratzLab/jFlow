@@ -1,4 +1,4 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,13 +12,12 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import stats.ProbDist;
-
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Matrix;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
+import org.genvisis.stats.ProbDist;
 
 public class Emmax {
 	public static final String[] KINSHIP_LABELS = new String[] {"hBN", "hIBS"};

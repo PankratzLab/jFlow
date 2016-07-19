@@ -1,9 +1,9 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class TrimFam {
 	public static final int SCORE_99_NAMING_SCHEME = 0; 

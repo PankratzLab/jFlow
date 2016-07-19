@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
@@ -38,16 +38,17 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import common.Array;
-import seq.manage.ReferenceGenome;
-import seq.manage.StrandOps;
-import cnv.annotation.MarkerBlastAnnotation;
-import cnv.annotation.MarkerSeqAnnotation;
-import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import cnv.filesys.Project;
-import filesys.Segment;
 import net.miginfocom.swing.MigLayout;
+
+import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.MarkerSeqAnnotation;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.StrandOps;
 
 import javax.swing.JSplitPane;
 

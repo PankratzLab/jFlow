@@ -1,7 +1,8 @@
-package bot;
+package org.genvisis.bot;
 
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class NatureGenetics {
 	private Logger log;

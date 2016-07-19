@@ -1,8 +1,5 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
-import filesys.LocusSet;
-import filesys.Segment;
-import filesys.LocusSet.TO_STRING_TYPE;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
@@ -17,24 +14,27 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
-import seq.manage.VCOps;
-import seq.manage.VCFOps.HEADER_COPY_TYPE;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
-import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
-import seq.qc.FilterNGS.VariantContextFilter;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.genvisis.seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 
 public class RegNovo {
 	private static final String[] HEADER = new String[] { "Sample", "ID", "REF", "ALT", "CHR", "Start", "Stop", "PassesPop", "RefDepth", "AltDepth", "GQ", "Pop_AAC", "AllParents_AAC", "AllOffspring_AAC", "P1RefDepth", "P1AltDepth", "P1GQ", "P1Filter", "P1_AAC", "P2RefDepth", "P2AltDepth", "P2GQ", "P2Filter", "P2_AAC", "GATK_FILTER" };
@@ -116,7 +116,7 @@ public class RegNovo {
 		int denovo = 0;
 		int regNovoCount = 0;
 		if (!Files.exists(segSummary) || !Files.exists(outputVCF)) {
-			VCFFileReader reader = new VCFFileReader(vcf, true);
+			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 			VariantContextWriter writer = VCFOps.initWriter(outputVCF, null, reader.getFileHeader().getSequenceDictionary());
 			VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 
@@ -303,7 +303,7 @@ public class RegNovo {
 		writer.println(header);
 		writerFullFam.println("OFF\tRENTS\tEXCLUDED\t" + header);
 
-		VCFFileReader reader = new VCFFileReader(vcf, true);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		int count = 0;
 		VariantContextWriter writerVC = VCFOps.initWriter(outputVCF, null, reader.getFileHeader().getSequenceDictionary());
 

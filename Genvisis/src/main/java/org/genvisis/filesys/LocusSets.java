@@ -1,9 +1,9 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.util.ArrayList;
 
-import common.Logger;
-import filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 
 public class LocusSets<T extends Segment> {
 

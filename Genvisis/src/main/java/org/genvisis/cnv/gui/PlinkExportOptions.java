@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -27,11 +27,12 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import net.miginfocom.swing.MigLayout;
-import cnv.filesys.Project;
-import common.Array;
-import common.Files;
-import common.Grafik;
-import common.ext;
+
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.ext;
 
 public class PlinkExportOptions extends JDialog {
 

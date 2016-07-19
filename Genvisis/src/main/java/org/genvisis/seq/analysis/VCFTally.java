@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -13,23 +13,23 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCFOps;
-import seq.manage.VCOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import seq.pathway.GenomeRegions;
-import seq.pathway.Pathway;
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
-import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
-import seq.qc.FilterNGS.VariantContextFilter;
-import filesys.GeneData;
-import filesys.Segment;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+import org.genvisis.seq.pathway.GenomeRegions;
+import org.genvisis.seq.pathway.Pathway;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 
 /**
  * @author lane0212 A somewhat specific class that sums gene counts in a case/control fashion and compares to charge mafs
@@ -83,7 +83,7 @@ public class VCFTally implements Serializable {
 
 			int index = 0;
 
-			VCFFileReader reader = new VCFFileReader(vcf, true);
+			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 			Set<String> cases = vpop.getSubPop().get(VCFOps.VcfPopulation.CASE);
 			Set<String> controls = vpop.getSubPop().get(VCFOps.VcfPopulation.CONTROL);
 			log.reportTimeInfo(cases.size() + " Cases and " + controls.size() + " Controls");
@@ -188,7 +188,7 @@ public class VCFTally implements Serializable {
 		trackersCharge[SNPEFF_NAMES.length - 1] = new TallyTracker("CHARGE_" + SNPEFF_NAMES[SNPEFF_NAMES.length - 1], genomeRegions, vContextFilters, log);
 		trackersCharge[SNPEFF_NAMES.length - 1].setCharge(true);
 		int count = 0;
-		VCFFileReader reader = new VCFFileReader(fullpathToChargeVCF, false);
+		VCFFileReader reader = new VCFFileReader(new File(fullpathToChargeVCF), false);
 
 		for (VariantContext vc : reader) {
 			GeneData[] genesThatOverlap = VCOps.getGenesThatOverlap(vc, genomeRegions.getGeneTrack(), log);

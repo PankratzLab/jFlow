@@ -1,4 +1,4 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -21,28 +21,28 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
-import stats.LeastSquares.LS_TYPE;
-import cnv.analysis.pca.PrincipalComponentsIntensity;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.SampleList;
-import cnv.manage.MarkerDataLoader;
-import cnv.manage.Transforms;
-import cnv.qc.CNVBDeviation;
-import cnv.qc.CNVBMAF;
-import cnv.qc.CNVBMAF.PoplulationBAFs;
-import cnv.var.SampleData;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.CNVariant;
-import filesys.Segment;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.manage.Transforms;
+import org.genvisis.cnv.qc.CNVBDeviation;
+import org.genvisis.cnv.qc.CNVBMAF;
+import org.genvisis.cnv.qc.CNVBMAF.PoplulationBAFs;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.Segment;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	private static final String[] FILE_PREFIXES = { "LRR_MEDIAN_", "MarkersIn_" };
@@ -319,7 +319,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		proj.setLog(projLog);
 		ClusterFilterCollection clusterFilterCollection = proj.getClusterFilterCollection();
 
-		cnv.qc.CNVBMAF.PoplulationBAFs pDeviation = new cnv.qc.CNVBMAF.PoplulationBAFs(samples.length, CNVBDeviation.DEFAULT_INTENSITY_ONLY_FLAGS, CNVBDeviation.DEFAULT_GC_THRESHOLD);
+		org.genvisis.cnv.qc.CNVBMAF.PoplulationBAFs pDeviation = new org.genvisis.cnv.qc.CNVBMAF.PoplulationBAFs(samples.length, CNVBDeviation.DEFAULT_INTENSITY_ONLY_FLAGS, CNVBDeviation.DEFAULT_GC_THRESHOLD);
 		for (int i = 0; i < regionMarkers.length; i++) {
 			if (i % 10 == 0||correctXY) {
 				newJob(ext.replaceAllWith(MEDIAN_WORKER_JOBS[1], "[%" + 0 + "]", markerRegion.getRegionName() + " (" + (i) + " of " + regionMarkers.length + ")"));
@@ -966,7 +966,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		// String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n" + "" + "   (1) project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" + "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n" + "       OR:\n" + "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n" + "       (i.e. regions=" + regionFileName + "(default))\n" + "       OPTIONAL:\n" + "   (3) transformation type (i.e. transform=0 (default, " + Transforms.TRANFORMATIONS[transformationType] + ")) \n" + "       transformations are: " +
 		// Array.toStr(Transforms.TRANFORMATIONS) + "\n" + "   (4) scope of transformation (i.e. scope=0 (default))\n" + "       scopes are: " + Array.toStr(Transforms.SCOPES) + "\n" + "   (5) base name of the output files (i.e out=" + outputBase + " (default))\n" + "   (6) name of the log file (i.e. log=" + logfile + "\n" + "   (7) run program in headless mode to quiet gui errors when X11 forwarding\n is un-available (i.e. headless=true (default));" + "";
 		String usage = "cnv.analysis.MedianLRRWorker requires 2 arguments\n";
-		usage += "   (1) project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n";
+		usage += "   (1) project properties filename (i.e. proj=" + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n";
 		usage += "   (2) filename of the regions (one per line) in UCSC format (chr8:25129632-25130278) \n";
 		usage += "       OR:\n";
 		usage += "       formatted as \"" + MARKER_REGION_PREFIX + MARKER_REGION_DELIMITER + "(Your Region Name)" + MARKER_REGION_DELIMITER + "marker name 1" + MARKER_REGION_DELIMITER + "marker name 2...\"" + MARKER_REGION_DELIMITER + "\n";

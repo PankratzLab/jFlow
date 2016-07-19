@@ -1,11 +1,11 @@
 // -Xms1024M -Xmx1024M
-package nrss;
+package org.genvisis.nrss;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import bioinformatics.*;
+import org.genvisis.bioinformatics.*;
+import org.genvisis.common.*;
 
 public class OriginalNrss {
 	public static final double INDEX_THRESHOLD = 0.001;

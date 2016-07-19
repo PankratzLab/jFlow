@@ -1,14 +1,13 @@
 // When you write the compilation code (in crfdb?), make sure to put a reminder here
 
 // Format 
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-
-import park.tools;
+import org.genvisis.common.*;
+import org.genvisis.park.tools;
 
 public class ParseRawSNPs {
 	public static final String[] MISSING_CALL_CODES = {"Undetermined", "undetermined", "1"};

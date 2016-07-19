@@ -1,12 +1,12 @@
 // created a vector of vectors, no expected problems
-package link.bat;
+package org.genvisis.link.bat;
 
 import java.io.*;
 import java.util.*;
 
-import link.Markers;
-import link.LinkageMap;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.link.LinkageMap;
+import org.genvisis.link.Markers;
 
 public class Filesystem {
 	public static void create(int chr) throws IOException {

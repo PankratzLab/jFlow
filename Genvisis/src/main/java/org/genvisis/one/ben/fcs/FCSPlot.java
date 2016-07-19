@@ -1,4 +1,4 @@
-package one.ben.fcs;
+package org.genvisis.one.ben.fcs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -37,26 +37,23 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.xml.parsers.ParserConfigurationException;
 
-import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
-import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
-import one.ben.fcs.FCSDataLoader.DATA_SET;
-import one.ben.fcs.FCSDataLoader.LOAD_STATE;
-import one.ben.fcs.gating.Gate;
-import one.ben.fcs.gating.GateDimension;
-import one.ben.fcs.gating.GateFileReader;
-import one.ben.fcs.gating.GateTreePanel;
-import one.ben.fcs.gating.GatingStrategy;
-import one.ben.fcs.sub.DataExportGUI;
-import one.ben.fcs.sub.RainbowTestGUI;
-
 import org.xml.sax.SAXException;
 
-import cnv.gui.GuiManager;
-import cnv.gui.JAccordionPanel;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.gui.GuiManager;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
+import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
+import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
+import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
+import org.genvisis.one.ben.fcs.gating.Gate;
+import org.genvisis.one.ben.fcs.gating.GateDimension;
+import org.genvisis.one.ben.fcs.gating.GateFileReader;
+import org.genvisis.one.ben.fcs.gating.GateTreePanel;
+import org.genvisis.one.ben.fcs.gating.GatingStrategy;
+import org.genvisis.one.ben.fcs.sub.RainbowTestGUI;
 
 public class FCSPlot extends JPanel implements WindowListener, ActionListener, PropertyChangeListener { 
     

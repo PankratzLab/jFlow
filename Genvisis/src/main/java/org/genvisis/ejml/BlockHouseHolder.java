@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 /**
@@ -28,7 +28,7 @@ package ejml;
  * <p>
  * Assumptions:
  * <ul>
- *  <le> All submatrices are aligned along the inner blocks of the {@link ejml.BlockMatrix64F}.
+ *  <le> All submatrices are aligned along the inner blocks of the {@link org.genvisis.ejml.BlockMatrix64F}.
  *  <le> Some times vectors are assumed to have leading zeros and a one.
  * </ul>
  *

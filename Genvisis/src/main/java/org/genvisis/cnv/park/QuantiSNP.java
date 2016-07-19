@@ -1,11 +1,11 @@
-package cnv.park;
+package org.genvisis.cnv.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import cnv.analysis.FilterCalls;
-import filesys.CNVariant;
+import org.genvisis.cnv.analysis.FilterCalls;
+import org.genvisis.common.*;
+import org.genvisis.filesys.CNVariant;
 
 public class QuantiSNP {
 	public static final String WINDOWS_DIRECTORY = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\00src\\";

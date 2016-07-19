@@ -1,10 +1,10 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.Segment;
+import org.genvisis.common.*;
+import org.genvisis.filesys.Segment;
 
 public class FilterSNPsByRegion {
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 /**
@@ -27,12 +27,12 @@ package ejml;
  * being passed in.
  * </p>
  * <p>
- * For more exotic and specialized generic operations see {@link ejml.SpecializedOps}.
+ * For more exotic and specialized generic operations see {@link org.genvisis.ejml.SpecializedOps}.
  * </p>
- * @see ejml.MatrixMatrixMult
- * @see ejml.MatrixVectorMult
- * @see ejml.SpecializedOps
- * @see ejml.MatrixFeatures
+ * @see org.genvisis.ejml.MatrixMatrixMult
+ * @see org.genvisis.ejml.MatrixVectorMult
+ * @see org.genvisis.ejml.SpecializedOps
+ * @see org.genvisis.ejml.MatrixFeatures
  *
  * @author Peter Abeles
  */
@@ -239,7 +239,7 @@ public class CommonOps {
      * 
      * <p>
      * Is faster than using a generic matrix multiplication by taking advantage of symmetry.  For
-     * vectors there is an even faster option, see {@link ejml.VectorVectorMult#innerProd(ejml.D1Matrix64F, ejml.D1Matrix64F)}
+     * vectors there is an even faster option, see {@link org.genvisis.ejml.VectorVectorMult#innerProd(org.genvisis.ejml.D1Matrix64F, org.genvisis.ejml.D1Matrix64F)}
      * </p>
      *
      * @param a The matrix being multiplied. Not modified.
@@ -588,7 +588,7 @@ public class CommonOps {
 
     /**
      * Returns the determinant of the matrix.  If the inverse of the matrix is also
-     * needed, then using {@link ejml.LUDecompositionAlt} directly (or any
+     * needed, then using {@link org.genvisis.ejml.LUDecompositionAlt} directly (or any
      * similar algorithm) can be more efficient.
      *
      * @param mat The matrix whose determinant is to be computed.  Not modified.
@@ -721,7 +721,7 @@ public class CommonOps {
      * pinv(A) = A<sup>T</sup>(AA<sup>T</sup>)<sup>-1</sup><br>
      * </p>
      * <p>
-     * Internally it uses {@link ejml.SolvePseudoInverseSvd} to compute the inverse.  For performance reasons, this should only
+     * Internally it uses {@link org.genvisis.ejml.SolvePseudoInverseSvd} to compute the inverse.  For performance reasons, this should only
      * be used when a matrix is singular or nearly singular.
      * </p>
      * @param A  A m by n Matrix.  Not modified.

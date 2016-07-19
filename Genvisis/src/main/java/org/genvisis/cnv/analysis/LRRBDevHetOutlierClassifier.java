@@ -1,4 +1,4 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,12 +9,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
-import cnv.filesys.Project;
-import cnv.var.SampleData;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.ext;
 
 public class LRRBDevHetOutlierClassifier {
 	

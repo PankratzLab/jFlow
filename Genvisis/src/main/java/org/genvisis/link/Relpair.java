@@ -1,9 +1,9 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class Relpair {
 	public static final int MAX_NUM_DIGITS_IN_ALLELE = 2;

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
@@ -132,7 +132,7 @@ public class CholeskyDecompositionBlock extends CholeskyDecompositionCommon {
     }
 
     /**
-     * This is a variation on the {@link ejml.TriangularSolver#solveL} function.
+     * This is a variation on the {@link org.genvisis.ejml.TriangularSolver#solveL} function.
      * It grabs the input from the top right row rectangle of the source matrix then writes the results
      * to the lower bottom column rectangle.  The rectangle matrices just matrices are submatrices
      * of the matrix that is being decomposed.  The results are also written to B.

@@ -1,9 +1,9 @@
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class whichJournals {
 	public static final String IMPACT_DB = "impact_factors.dat";

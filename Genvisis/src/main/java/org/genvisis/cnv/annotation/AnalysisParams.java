@@ -1,4 +1,4 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;

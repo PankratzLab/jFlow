@@ -1,12 +1,12 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.util.ArrayList;
 
-import seq.manage.VCFOps;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.seq.manage.VCFOps;
 
 /**
  * @author lane0212 Class for annotating a vcf using a local version of oncotator -http://www.broadinstitute.org/oncotator/

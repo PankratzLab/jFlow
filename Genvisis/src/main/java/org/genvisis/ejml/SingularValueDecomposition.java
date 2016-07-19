@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
@@ -42,12 +42,12 @@ package ejml;
  *
  * <p>
  * To create a new instance of SingularValueDecomposition see {@link DecompositionFactory#svd(int, int, boolean, boolean, boolean)}
- * and {@link ejml.SingularOps} contains additional helpful SVD related functions.
+ * and {@link org.genvisis.ejml.SingularOps} contains additional helpful SVD related functions.
  * </p>
  *
  * <p>
  * <b>*Note*</b> that the ordering of singular values is not guaranteed, unless done so by a specific implementation.
- * The singular values can be put into descending order while adjusting U and V using {@link ejml.SingularOps#descendingOrder(org.ejml.data.DenseMatrix64F, boolean, org.ejml.data.DenseMatrix64F, org.ejml.data.DenseMatrix64F, boolean)}  SingularOps.descendingOrder()}.
+ * The singular values can be put into descending order while adjusting U and V using {@link org.genvisis.ejml.SingularOps#descendingOrder(org.ejml.data.DenseMatrix64F, boolean, org.ejml.data.DenseMatrix64F, org.ejml.data.DenseMatrix64F, boolean)}  SingularOps.descendingOrder()}.
  * </p>
  *
  * @author Peter Abeles

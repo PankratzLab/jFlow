@@ -1,9 +1,9 @@
-package cnv.park;
+package org.genvisis.cnv.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class CountHets {
 	public static final String WINDOWS_DIRECTORY = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\allMarkers\\chr14\\";

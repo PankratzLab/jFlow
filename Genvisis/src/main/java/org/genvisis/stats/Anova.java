@@ -1,9 +1,9 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 import java.util.*;
 
-import common.ext;
+import org.genvisis.common.ext;
 
 public class Anova {
 	private double[][] data; // might later give the option of using double

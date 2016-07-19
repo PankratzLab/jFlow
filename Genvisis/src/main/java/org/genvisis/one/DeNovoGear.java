@@ -1,4 +1,4 @@
-package one;
+package org.genvisis.one;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,9 +9,9 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.Vector;
 
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class DeNovoGear {
 

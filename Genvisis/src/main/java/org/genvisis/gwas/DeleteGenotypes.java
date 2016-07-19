@@ -1,9 +1,9 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class DeleteGenotypes {
 	public static final String WINDOWS_DIRECTORY = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\mosaics\\original\\";

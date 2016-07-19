@@ -1,10 +1,11 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.util.List;
 
-import bioinformatics.Sequence;
-import common.Array;
-import common.ext;
+import org.genvisis.bioinformatics.Sequence;
+import org.genvisis.common.Array;
+import org.genvisis.common.ext;
+
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;

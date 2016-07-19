@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -9,14 +9,14 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import cnv.filesys.MarkerSet;
-import common.Aliases;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.Sort;
-import common.ext;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class RandSortTest {
 	private static final int MAX_ERRORS_TO_REPORT = 10;

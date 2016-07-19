@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 import java.util.EmptyStackException;
 import java.util.HashMap;
@@ -10,7 +10,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
-import common.ProgressMonitor.DISPLAY_MODE;
+import org.genvisis.common.ProgressMonitor.DISPLAY_MODE;
 
 class Task {
     

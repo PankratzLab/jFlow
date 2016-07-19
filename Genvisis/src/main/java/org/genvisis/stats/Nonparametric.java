@@ -1,7 +1,7 @@
-package stats;
+package org.genvisis.stats;
 
-import mining.Transformations;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.mining.Transformations;
 
 public class Nonparametric {
 

@@ -1,9 +1,10 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class FishersExact {
 	public static double calc(int[][] matrix) {

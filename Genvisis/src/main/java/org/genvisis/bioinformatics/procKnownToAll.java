@@ -1,9 +1,9 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class procKnownToAll {
 	public static final String[] DEFAULT_FILES = {"knownToGNfAtlas2.prn", "knownToGnf1h.prn", "knownToU133.prn", "knownToU133Plus2.prn", "knownToU95.prn"};

@@ -1,8 +1,9 @@
-package seq;
+package org.genvisis.seq;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class RankRecessive {
 	// you can change the name of these variables, but don't change the order without editing how the Hashtable is generated  

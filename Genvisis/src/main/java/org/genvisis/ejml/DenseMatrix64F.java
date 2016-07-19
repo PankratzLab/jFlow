@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -34,7 +34,7 @@ import java.io.PrintStream;
  * To keep the code manageable and the library easier to use only basic functions for accessing and editing elements
  * are provided in this class.  The numerous operations which can be performed on DenseMatrix64F
  * are contained in various other classes, where the most common operations can be found in
- * the {@link ejml.CommonOps} and {@link ejml.SpecializedOps} classes.
+ * the {@link org.genvisis.ejml.CommonOps} and {@link org.genvisis.ejml.SpecializedOps} classes.
  * </p>
  *
  * <p>
@@ -68,14 +68,14 @@ import java.io.PrintStream;
  *
  *
  * <p>
- * An alternative to working directly with DenseMatrix64 is {@link ejml.SimpleMatrix}.
+ * An alternative to working directly with DenseMatrix64 is {@link org.genvisis.ejml.SimpleMatrix}.
  * SimpleMatrix is a wrapper around DenseMatrix64F that provides an easier to use object oriented way of manipulating
  * matrices, at the cost of efficiency.
  * </p>
  *
- * @see ejml.CommonOps
- * @see ejml.SpecializedOps
- * @see ejml.SimpleMatrix
+ * @see org.genvisis.ejml.CommonOps
+ * @see org.genvisis.ejml.SpecializedOps
+ * @see org.genvisis.ejml.SimpleMatrix
  *
  * @author Peter Abeles
  */

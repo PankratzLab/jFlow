@@ -1,4 +1,4 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -12,19 +12,12 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.Vector;
 
-
-
-
-
-
-
-
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.Sort;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class Segment implements Serializable {
 	@Override

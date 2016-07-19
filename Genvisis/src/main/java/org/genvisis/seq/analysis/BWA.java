@@ -1,12 +1,12 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 
 
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 /**
  * Note we currently use bwa mem -M ref.fa read1.fq read2.fq > aln-pe.sam to do the allignments

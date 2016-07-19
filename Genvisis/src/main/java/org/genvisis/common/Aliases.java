@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 public class Aliases {
 	public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "SNP Name", "SNPID", "SNP.id", "rs_id", "rsID", "Probe Set ID", "ProbeSetName", "ProbeSet", "Variant", "VariantName", "AnalysisUnit", "Variant_ID", "SingleVariant", "BurdenTests", "RSID", "BinName" };

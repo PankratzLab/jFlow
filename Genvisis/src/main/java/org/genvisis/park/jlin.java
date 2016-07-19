@@ -1,4 +1,4 @@
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;

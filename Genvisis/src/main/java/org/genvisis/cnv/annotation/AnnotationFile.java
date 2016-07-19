@@ -1,7 +1,7 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
-import cnv.filesys.AnnotationCollection;
-import cnv.filesys.Project;
+import org.genvisis.cnv.filesys.AnnotationCollection;
+import org.genvisis.cnv.filesys.Project;
 
 /**
  * @author lane0212

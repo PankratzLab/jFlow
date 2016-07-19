@@ -1,12 +1,12 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import parse.GenParser;
-import stats.ProbDist;
-import common.*;
-import filesys.SnpMarkerSet;
+import org.genvisis.common.*;
+import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.parse.GenParser;
+import org.genvisis.stats.ProbDist;
 
 public class Probabel {
 	public static final int PALOGIST = 0;

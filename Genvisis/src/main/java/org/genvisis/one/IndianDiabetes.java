@@ -1,8 +1,9 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
-import bioinformatics.Sequence;
-import common.*;
+
+import org.genvisis.bioinformatics.Sequence;
+import org.genvisis.common.*;
 
 public class IndianDiabetes {
 	private static void parseGenotypes(String filename) {

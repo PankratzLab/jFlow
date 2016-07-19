@@ -1,6 +1,6 @@
-package filesys;
+package org.genvisis.filesys;
 
-import common.Logger;
+import org.genvisis.common.Logger;
 
 public interface PlainTextExport {
     public void exportToText(String outputFile, Logger log);

@@ -1,11 +1,10 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import mining.*;
-
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.mining.*;
 
 public class Permap {
 	public static final String DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\PD-singleton\\";

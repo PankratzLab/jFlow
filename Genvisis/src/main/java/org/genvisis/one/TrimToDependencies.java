@@ -1,8 +1,9 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class TrimToDependencies implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -669,7 +670,7 @@ public class TrimToDependencies implements Serializable {
 		String source_dir = "D:/home/npankrat/jProjects/master/src/";
 		String target_dir = "D:/home/npankrat/jProjects/target/src/";
 		String[] coreClasses = new String[] {"filesys.DosageData"};
-		String freshJarFile = "D:/home/npankrat/" + common.PSF.Java.GENVISIS + "";
+		String freshJarFile = "D:/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + "";
 		TrimToDependencies trimmer;		
 
 		try {

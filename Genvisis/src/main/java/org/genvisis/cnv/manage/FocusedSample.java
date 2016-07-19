@@ -1,16 +1,16 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.WorkerHive;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
 
 /**
  *Subsets samples

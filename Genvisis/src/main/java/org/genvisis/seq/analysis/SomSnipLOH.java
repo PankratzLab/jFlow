@@ -1,17 +1,18 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import seq.manage.GenotypeOps;
-import seq.manage.VCFOps;
-import seq.manage.VCOps;
-import common.Array;
-import common.Logger;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.seq.manage.GenotypeOps;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
 
 /**
  * Extract variants called LOH by somatic sniper
@@ -31,7 +32,7 @@ public class SomSnipLOH {
 			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t" + Array.toStr(geneAnno[1]) + "\t" + Array.toStr(varAnno[1]));
 			writer.println("CHROM\tPOS\tID\tREF\tALT\tFILTER\tSAMPLE\t" + Array.toStr(geneAnno[0]) + "\t" + Array.toStr(varAnno[0]));
 
-			VCFFileReader reader = new VCFFileReader(vcf, true);
+			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 			for (VariantContext vc : reader) {
 				String base = vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID() + "\t" + vc.getReference().getBaseString() + "\t" + vc.getAlternateAlleles().toString() + "\t" + vc.getFilters().toString();
 				String[] vcAnnot = VCOps.getAnnotationsFor(varAnno[0], vc, ".");

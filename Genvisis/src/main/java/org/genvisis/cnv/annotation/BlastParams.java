@@ -1,9 +1,9 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import java.util.ArrayList;
 
-import common.Array;
-import common.Logger;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
 
 import htsjdk.variant.vcf.VCFHeaderLine;
 

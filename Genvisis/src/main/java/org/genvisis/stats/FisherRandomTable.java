@@ -1,7 +1,7 @@
 // check if any of the marginals is zero, collapse if need be
-package stats;
+package org.genvisis.stats;
 
-import common.Array;
+import org.genvisis.common.Array;
 
 public class FisherRandomTable {
 	public static int[][] rcont(int[] r, int[] c) {

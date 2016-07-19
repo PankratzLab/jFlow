@@ -1,10 +1,10 @@
 // for parseMeans add final -----------
-package parse;
+package org.genvisis.parse;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class SasOutput {
 	public static final String[] HEADERS = {"Variable", "Label", "N", "Mean", "Std Dev", "Minimum", "Maximum"};

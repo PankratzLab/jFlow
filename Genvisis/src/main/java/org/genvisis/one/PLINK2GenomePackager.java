@@ -1,7 +1,4 @@
-package one;
-
-import gwas.FAST;
-import gwas.HitWindows;
+package org.genvisis.one;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,11 +12,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.gwas.FAST;
+import org.genvisis.gwas.HitWindows;
 
 public class PLINK2GenomePackager {
     

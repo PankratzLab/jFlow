@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -24,8 +24,8 @@ import javax.swing.text.JTextComponent;
 
 import net.miginfocom.swing.MigLayout;
 
-import common.Array;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.ext;
 
 public class FileAndOutputSelectorGUI extends JDialog {
 

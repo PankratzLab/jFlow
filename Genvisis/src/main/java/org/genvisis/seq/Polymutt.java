@@ -1,12 +1,12 @@
-package seq;
+package org.genvisis.seq;
 
 import java.io.*;
 import java.util.*;
 
-import bioinformatics.SeattleSeq;
-import common.*;
-import filesys.Segment;
-import filesys.SegmentLists;
+import org.genvisis.bioinformatics.SeattleSeq;
+import org.genvisis.common.*;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.SegmentLists;
 
 public class Polymutt {
 	public static final String[] POLYMUTT_VCF_HEADER = {"#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "2", "3", "1"};
@@ -320,7 +320,7 @@ public class Polymutt {
 		
 		filenames = Files.list(dir, ".vcf.gz", false);
 		
-		Files.qsub("findAll", ext.pwd(), -1, "java -cp ~/" + common.PSF.Java.GENVISIS + " seq.Polymutt findDenovo=[%0]", Matrix.toMatrix(filenames), 1000, 12);
+		Files.qsub("findAll", ext.pwd(), -1, "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " seq.Polymutt findDenovo=[%0]", Matrix.toMatrix(filenames), 1000, 12);
 	}
 	
 	private static void findAllLocalDenovo(String dir) {
@@ -876,7 +876,7 @@ public class Polymutt {
 			if (!Files.exists(dir+ext.rootOf(files[i], false)+"_onTargetCoverage.vcf.gz")) {
 				System.out.println(files[i]);
 				count++;
-				Files.qsub(dir+"chunks/runAssess"+count+".qsub", "cd "+dir+"\nmodule load java\njava -cp ~/" + common.PSF.Java.GENVISIS + " seq.Polymutt assess="+files[i], 3000, 6, 1);
+				Files.qsub(dir+"chunks/runAssess"+count+".qsub", "cd "+dir+"\nmodule load java\njava -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " seq.Polymutt assess="+files[i], 3000, 6, 1);
 				v.add(dir+"chunks/runAssess"+count+".qsub");
 			}
 		}

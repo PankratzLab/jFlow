@@ -1,8 +1,8 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
-import cnv.filesys.*;
-import common.*;
-import filesys.PlainTextExport;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.PlainTextExport;
 
 public class DumpSerializedObject {
 	private static void dump(String projectPropertyFile, String filename, String logFile) {

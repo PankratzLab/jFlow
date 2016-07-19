@@ -1,12 +1,13 @@
 // should make an option of creating structs for linkage versus association
 // redo this whole thing? ugly code, only looks for consecutive family members
 // what was with the only taking affecteds, has that screwed up every analysis performed to date?
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
-import common.*;
-import link.TrimFam;
+
+import org.genvisis.common.*;
+import org.genvisis.link.TrimFam;
 
 public class phenoStruct {
 	public phenoStruct(boolean include_mutations) throws IOException {

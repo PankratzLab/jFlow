@@ -1,4 +1,4 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -10,16 +10,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import stats.Maths;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
-import cnv.filesys.CNVQC;
-import cnv.filesys.MarkerFreqs;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import filesys.CNVariant;
+import org.genvisis.cnv.filesys.CNVQC;
+import org.genvisis.cnv.filesys.MarkerFreqs;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.stats.Maths;
 
 public class QCIterator implements Runnable {
 	private Hashtable<String, CNVSampleQC> cnvSampleQCHash;

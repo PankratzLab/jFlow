@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;

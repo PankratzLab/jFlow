@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
+
+import static org.genvisis.ejml.CommonOps.multAdd;
 
 import java.util.Random;
-
-import static ejml.CommonOps.multAdd;
 
 /**
  * Generates random vectors based on a zero mean multivariate Gaussian distribution.  The covariance

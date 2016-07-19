@@ -1,10 +1,10 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.SnpMarkerSet;
+import org.genvisis.common.*;
+import org.genvisis.filesys.SnpMarkerSet;
 
 public class PlinkToLinkage {
 	public static String slim(String dir, String root, int slim) {

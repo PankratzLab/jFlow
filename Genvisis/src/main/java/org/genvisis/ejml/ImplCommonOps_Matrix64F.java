@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 /**
- * Implementations of common ops routines for {@link ejml.DenseMatrix64F}.  In general
+ * Implementations of common ops routines for {@link org.genvisis.ejml.DenseMatrix64F}.  In general
  * there is no need to directly invoke these functions.
  *
  * @author Peter Abeles

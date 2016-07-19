@@ -1,9 +1,9 @@
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class ParseNinfos {
 	public static final String DEFAULT_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\00ninfos\\";

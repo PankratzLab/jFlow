@@ -1,10 +1,11 @@
 // commandline = prest
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 //import java.util.*;
 import java.text.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class Prest {
 	public static final String[] RELATIONSHIP_TRANSLATION = {".", "FS", "HS", "GG", "AV", "CO", "UN", "HA", "2C", "2C", "PO"};

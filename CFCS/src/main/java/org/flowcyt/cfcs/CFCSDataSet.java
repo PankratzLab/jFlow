@@ -23,8 +23,8 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import common.PSF;
-import common.ext;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
 
 public final class CFCSDataSet implements CFCSErrorCodes
 {

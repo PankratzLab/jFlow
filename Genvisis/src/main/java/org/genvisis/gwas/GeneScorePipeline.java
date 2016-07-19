@@ -1,8 +1,4 @@
-package gwas;
-
-import filesys.DosageData;
-import filesys.SnpMarkerSet;
-import gwas.MergeExtractPipeline.DataSource;
+package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,18 +11,20 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import stats.ProbDist;
-import stats.RegressionModel;
-import bioinformatics.MapSNPsAndGenes;
-import bioinformatics.Sequence;
-
-import common.Aliases;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.ext;
+import org.genvisis.bioinformatics.MapSNPsAndGenes;
+import org.genvisis.bioinformatics.Sequence;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.DosageData;
+import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.gwas.MergeExtractPipeline.DataSource;
+import org.genvisis.stats.ProbDist;
+import org.genvisis.stats.RegressionModel;
 
 public class GeneScorePipeline {
 	

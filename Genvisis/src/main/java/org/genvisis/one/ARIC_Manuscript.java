@@ -1,4 +1,4 @@
-package one;
+package org.genvisis.one;
 
 import java.io.BufferedWriter;
 import java.io.File;

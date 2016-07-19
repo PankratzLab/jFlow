@@ -1,4 +1,4 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -12,20 +12,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.qc.CNVTrioFilter;
-import cnv.var.SampleData;
-import common.Array;
-import common.CNVFilter;
-import common.Files;
-import common.Logger;
-import common.Matrix;
-import common.ext;
-import common.CNVFilter.CNVFilterPass;
-import filesys.CNVariant;
-import filesys.Segment;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.qc.CNVTrioFilter;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.CNVFilter;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
+import org.genvisis.common.CNVFilter.CNVFilterPass;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.Segment;
 //TODO, split the centromeres or remove?
 /**
  * Class for filtering denovo calls in offspring by BEAST SCORE and LRR_SD, and a few other metrics Filtering at the default metrics here seems to work OK
@@ -746,7 +746,7 @@ public class cnvTrio extends CNVariant {
 		}
 		double[] beastDiffsToSort = Array.toDoubleArray(tmpMinBestDiffs);
 		cnvTrio[] filteredCNVTrios = tmpFilteredCnvTrios.toArray(new cnvTrio[tmpFilteredCnvTrios.size()]);
-		int[] sorted = common.Sort.quicksort(beastDiffsToSort, 1);
+		int[] sorted = org.genvisis.common.Sort.quicksort(beastDiffsToSort, 1);
 		try {
 			PrintWriter writerSummary = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + ouput + COMBINED_TRIOS[2]));
 			PrintWriter writerCNV = new PrintWriter(new FileWriter(proj.PROJECT_DIRECTORY.getValue() + ouput + COMBINED_TRIOS[2] + COMBINED_TRIOS[3]));

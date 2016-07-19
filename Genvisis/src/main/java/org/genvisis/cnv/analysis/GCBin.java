@@ -1,19 +1,19 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.util.ArrayList;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.common.Array;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
 
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
-import cnv.filesys.Project;
-import cnv.filesys.MarkerSet.PreparedMarkerSet;
-import cnv.hmm.PennHmm.ViterbiResult;
-import cnv.qc.GcAdjustor.GcModel;
-import common.Array;
-import filesys.CNVariant;
-import filesys.LocusSet;
-import filesys.Segment;
 
 public class GCBin extends Segment {
 

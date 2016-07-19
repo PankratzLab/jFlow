@@ -1,8 +1,9 @@
-package gaw17;
+package org.genvisis.gaw17;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class Parser {
 	public static final String[] ALLELES = {"A", "C", "G", "T"};

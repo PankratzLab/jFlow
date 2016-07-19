@@ -1,11 +1,11 @@
 // -Xmx4096M
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.Hits;
+import org.genvisis.common.*;
+import org.genvisis.filesys.Hits;
 
 public class Plink {
 //	public static final String[] CLUSTER_HEADER = {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1", "Z2", "PI_HAT", "PHE", "IBS0", "IBS1", "IBS2", "DST", "P", "HOMHOM", "HETHET", "RATIO"};

@@ -1,10 +1,10 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
 
-import stats.Maths;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.Maths;
 
 public class GelBands {
 	public static final String LADDER_HEADER = "Ladder header";

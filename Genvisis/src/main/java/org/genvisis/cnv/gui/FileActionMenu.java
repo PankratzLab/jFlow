@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.Font;
 import java.awt.event.ItemListener;
@@ -10,8 +10,8 @@ import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 
-import common.Files;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 
 /**
  * @author lane0212 For creating a little menu that has actions associated with each existing file

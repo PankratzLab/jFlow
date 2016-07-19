@@ -1,6 +1,4 @@
-package cnv.analysis;
-
-import gwas.PhenoPrep;
+package org.genvisis.cnv.analysis;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -13,14 +11,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import stats.LeastSquares;
-import stats.ProbDist;
-import stats.RegressionModel;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
-import cnv.manage.ExportCNVsToPedFormat;
+import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.gwas.PhenoPrep;
+import org.genvisis.stats.LeastSquares;
+import org.genvisis.stats.ProbDist;
+import org.genvisis.stats.RegressionModel;
 
 public class GenCNV implements Runnable {
 

@@ -1,8 +1,9 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class LOAD_OnePerFamily {
 	public static void pick(String dir, String pedigreeFile, String phenotypeFile) {

@@ -1,4 +1,4 @@
-package stats;
+package org.genvisis.stats;
 
 public class ProbDist {
 	public static double TDist(double t, double df) {

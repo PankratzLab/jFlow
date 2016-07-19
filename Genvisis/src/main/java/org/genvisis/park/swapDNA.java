@@ -1,10 +1,10 @@
 // later we can expand this to do multiple swaps at once
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class swapDNA {
 

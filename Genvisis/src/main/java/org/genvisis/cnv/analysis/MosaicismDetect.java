@@ -1,23 +1,24 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
+import org.genvisis.cnv.var.MosaicRegion;
+import org.genvisis.common.Array;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.CNVariant.CNVBuilder;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
+
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
-import common.Array;
-import common.WorkerTrain.Producer;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.hmm.PennHmm.ViterbiResult;
-import cnv.var.MosaicRegion;
-import filesys.CNVariant;
-import filesys.LocusSet;
-import filesys.Segment;
-import filesys.CNVariant.CNVBuilder;
-import filesys.LocusSet.TO_STRING_TYPE;
 
 /**
  * @author lane0212

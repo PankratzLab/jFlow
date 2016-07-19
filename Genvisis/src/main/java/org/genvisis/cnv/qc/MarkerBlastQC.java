@@ -1,21 +1,21 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 
-import cnv.annotation.AnnotationParser;
-import cnv.annotation.MarkerAnnotationLoader;
-import cnv.annotation.MarkerBlastAnnotation;
-import cnv.annotation.MarkerGCAnnotation;
-import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
-import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.annotation.AnnotationParser;
+import org.genvisis.cnv.annotation.MarkerAnnotationLoader;
+import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.MarkerGCAnnotation;
+import org.genvisis.cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class MarkerBlastQC {
 	

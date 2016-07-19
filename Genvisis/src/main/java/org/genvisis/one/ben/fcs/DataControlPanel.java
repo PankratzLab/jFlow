@@ -1,4 +1,4 @@
-package one.ben.fcs;
+package org.genvisis.one.ben.fcs;
 
 import java.awt.Font;
 import java.awt.Insets;
@@ -8,8 +8,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import common.Grafik;
 import net.miginfocom.swing.MigLayout;
+
+import org.genvisis.common.Grafik;
 
 import java.awt.Color;
 import java.awt.SystemColor;

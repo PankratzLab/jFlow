@@ -1,12 +1,12 @@
-package filesys.rao;
+package org.genvisis.filesys.rao;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import common.Files;
-import common.Logger;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
 
 /**
  * Serialized index for accessing java objects

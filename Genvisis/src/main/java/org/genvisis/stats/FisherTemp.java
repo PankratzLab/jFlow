@@ -1,9 +1,10 @@
 // master in 2.5 sec, Flat in 12.0 sec
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 import java.util.Date;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class FisherTemp {
 	public static void yap() {

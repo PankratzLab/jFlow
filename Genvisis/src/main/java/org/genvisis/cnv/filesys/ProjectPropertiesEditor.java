@@ -1,5 +1,5 @@
 
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -53,18 +53,17 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import net.miginfocom.swing.MigLayout;
-import cnv.LaunchProperties;
-import cnv.filesys.Project.DoubleProperty;
-import cnv.filesys.Project.FileProperty;
-import cnv.filesys.Project.IntegerProperty;
-import cnv.filesys.Project.Property;
-import cnv.filesys.Project.StringListProperty;
 
-//import cnv.filesys.Project.MultiFileProperty;
-import common.Array;
-import common.Files;
-import common.Grafik;
-import common.ext;
+import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.filesys.Project.DoubleProperty;
+import org.genvisis.cnv.filesys.Project.FileProperty;
+import org.genvisis.cnv.filesys.Project.IntegerProperty;
+import org.genvisis.cnv.filesys.Project.Property;
+import org.genvisis.cnv.filesys.Project.StringListProperty;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.ext;
 
 public class ProjectPropertiesEditor extends JFrame {
     

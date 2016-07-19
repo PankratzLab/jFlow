@@ -1,4 +1,4 @@
-package affy;
+package org.genvisis.affy;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,26 +9,26 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.CentroidBuilder;
-import cnv.filesys.Centroids;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
-import cnv.manage.Markers;
-import cnv.manage.Resources;
-import cnv.manage.Resources.GENOME_BUILD;
-import cnv.manage.SourceFileParser;
-import cnv.manage.TransposeData;
-import cnv.var.SampleData;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.ext;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
+import org.genvisis.cnv.manage.Markers;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.SourceFileParser;
+import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
 
 /**
  * @author lane0212

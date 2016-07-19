@@ -1,9 +1,9 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.*;
 import java.util.Hashtable;
 
-import common.Files;
+import org.genvisis.common.Files;
 
 public class OutlierHashtable implements Serializable {
 	private static final long serialVersionUID = 1L;

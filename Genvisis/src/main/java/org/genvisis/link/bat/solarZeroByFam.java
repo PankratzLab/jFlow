@@ -1,4 +1,4 @@
-package link.bat;
+package org.genvisis.link.bat;
 
 import java.io.*;
 import java.util.*;

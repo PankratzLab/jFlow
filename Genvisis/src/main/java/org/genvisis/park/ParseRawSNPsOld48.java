@@ -1,11 +1,10 @@
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-
-import park.tools;
+import org.genvisis.common.*;
+import org.genvisis.park.tools;
 
 public class ParseRawSNPsOld48 {
 	public static final String SNP_POSITIONS = "snp_positions.dat";

@@ -1,22 +1,21 @@
 // -Xms1024M -Xmx1024M
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.*;
 import java.util.*;
 
 import org.apache.commons.math3.stat.inference.TTest;
-
-import cnv.analysis.MosaicismDetect;
-import cnv.analysis.MosaicismDetect.MosaicBuilder;
-import cnv.filesys.*;
-import cnv.manage.MDL;
-import cnv.manage.MarkerDataLoader;
-import cnv.var.MosaicRegion;
-import cnv.var.SampleData;
-import common.*;
-import filesys.LocusSet;
-import filesys.Segment;
-import stats.*;
+import org.genvisis.cnv.analysis.MosaicismDetect;
+import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.var.MosaicRegion;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.stats.*;
 
 public class SexChecks {
 	public static final String[] ESTIMATED_SEXES = new String[] {"Unknown", 				// 0
@@ -832,7 +831,7 @@ public class SexChecks {
 
 		String usage = "\\n"+
 		"qc.SexChecks requires 0-1 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		" AND\n"+
 		"   (2) check sex of indiviudals (i.e. -check (not the default))\n"+
 		"   (3) skip adding estimated sex to Sample Data (i.e. -skipSampleData (not the default))\n"+

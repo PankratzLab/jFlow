@@ -1,15 +1,15 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import common.Array;
+import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
 
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
-import cnv.annotation.MarkerBlastAnnotation;
-import cnv.filesys.Project;
 
 /**
  * Not efficient.
@@ -29,7 +29,7 @@ public class BlastResults {
 			PrintWriter writer = new PrintWriter(new FileWriter(outSum));
 
 			writer.println("MarkerName\tPerfectMatch\tNonPerfectOnTarget\tOffTarget\tTotalAlignments");
-			VCFFileReader reader = new VCFFileReader(proj.BLAST_ANNOTATION_FILENAME.getValue(), true);
+			VCFFileReader reader = new VCFFileReader(new File(proj.BLAST_ANNOTATION_FILENAME.getValue()), true);
 			int index = 0;
 			for (VariantContext vc : reader) {
 				//proj.getLog().reportTimeInfo(vc.getID());

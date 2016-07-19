@@ -1,6 +1,5 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
-import filesys.Segment;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -23,36 +22,37 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
-import bioinformatics.OMIM;
-import bioinformatics.OMIM.OMIMGene;
-import seq.analysis.VCFSimpleTally.GeneVariantPositionSummary.ADD_TYPE;
-import seq.manage.GenotypeOps;
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
-import seq.manage.VCOps;
-import seq.manage.VCFOps.ChrSplitResults;
-import seq.manage.VCFOps.HEADER_COPY_TYPE;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
-import seq.manage.VCOps.GENOTYPE_INFO;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
-import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
-import seq.qc.FilterNGS.VariantContextFilter;
-import seq.qc.FilterNGS.VariantContextFilterPass;
-import seq.qc.FilterNGS.VcFilterBoolean;
-import seq.qc.FilterNGS.VcFilterDouble;
-import common.Array;
-import common.ExcelConverter;
-import common.ExcelConverter.ExcelConversionParams;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Sort;
-import common.WorkerHive;
-import common.ext;
+import org.genvisis.bioinformatics.OMIM;
+import org.genvisis.bioinformatics.OMIM.OMIMGene;
+import org.genvisis.common.Array;
+import org.genvisis.common.ExcelConverter;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.common.ExcelConverter.ExcelConversionParams;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.analysis.VCFSimpleTally.GeneVariantPositionSummary.ADD_TYPE;
+import org.genvisis.seq.manage.GenotypeOps;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCFOps.ChrSplitResults;
+import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.genvisis.seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
+import org.genvisis.seq.manage.VCOps.GENOTYPE_INFO;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilterPass;
+import org.genvisis.seq.qc.FilterNGS.VcFilterBoolean;
+import org.genvisis.seq.qc.FilterNGS.VcFilterDouble;
 
 /**
  *
@@ -98,7 +98,7 @@ public class VCFSimpleTally {
 			for (String control : controls.keySet()) {
 				log.reportTimeInfo("Control: " + control + " n: " + controls.get(control).size());
 			}
-			VCFFileReader reader = new VCFFileReader(vcf, true);
+			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 			VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 			VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 			VariantContextFilter freqFilter = getFreqFilter(controlFreq, log);
@@ -836,7 +836,7 @@ public class VCFSimpleTally {
 		}
 		VariantContextFilter qualControl = getQualityFilterwkggseq(maf, log);
 		if (!Files.exists(finalAnnotGene) || !Files.exists(finalAnnotGeneBed) || !Files.exists(finalAnnotSample) || !Files.exists(finalGeneVariantPositions)) {
-			VCFFileReader tmp = new VCFFileReader(filtVcfs.get(0), true);
+			VCFFileReader tmp = new VCFFileReader(new File(filtVcfs.get(0)), true);
 			summarizeQC(caseDef, filterFile, qualCase, qualControl);
 			VariantContextWriter writer = VCFOps.initWriter(finalOutVCF, VCFOps.DEFUALT_WRITER_OPTIONS, VCFOps.getSequenceDictionary(tmp));
 			VCFOps.copyHeader(tmp, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
@@ -890,7 +890,7 @@ public class VCFSimpleTally {
 			Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<String, ArrayList<GeneSummary[]>>();
 			for (int i = 0; i < filtVcfs.size(); i++) {
 				log.reportTimeInfo("Summarizing " + filtVcfs.get(i));
-				VCFFileReader result = new VCFFileReader(filtVcfs.get(i), true);
+				VCFFileReader result = new VCFFileReader(new File(filtVcfs.get(i)), true);
 				for (VariantContext vc : result) {
 					writer.add(vc);
 					Segment seg = VCOps.getSegment(vc);

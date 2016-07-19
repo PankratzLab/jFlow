@@ -1,9 +1,9 @@
-package kaput;
+package org.genvisis.kaput;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class FindNearestGenes {
 	public static final String DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\merged\\results\\";

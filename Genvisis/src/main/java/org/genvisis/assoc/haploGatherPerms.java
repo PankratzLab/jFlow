@@ -1,10 +1,9 @@
-package assoc;
+package org.genvisis.assoc;
 
 import java.io.*;
 
-import stats.ProbDist;
-
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.ProbDist;
 
 public class haploGatherPerms {
 	public haploGatherPerms(int numReps) throws IOException {

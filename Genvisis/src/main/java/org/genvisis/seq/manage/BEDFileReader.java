@@ -1,13 +1,14 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import common.Logger;
-import common.Positions;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.FeatureReader;

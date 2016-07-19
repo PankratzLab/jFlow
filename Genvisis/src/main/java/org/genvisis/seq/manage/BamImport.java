@@ -1,4 +1,4 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -14,39 +14,39 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import link.init.info;
-import seq.manage.BEDFileReader.BEDFeatureSeg;
-import seq.manage.BamOps.BamIndexStats;
-import seq.manage.BamSegPileUp.BamPileResult;
-import seq.manage.BamSegPileUp.PileupProducer;
-import seq.qc.FilterNGS;
-import stats.LeastSquares.LS_TYPE;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import common.PSF.Ext;
-import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.CentroidBuilder;
-import cnv.analysis.PennCNVPrep;
-import cnv.analysis.Mosaicism;
-import cnv.filesys.Centroids;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.filesys.Project.ARRAY;
-import cnv.manage.Markers;
-import cnv.manage.MitoPipeline;
-import cnv.manage.Resources.GENOME_BUILD;
-import cnv.manage.TransposeData;
-import cnv.qc.LrrSd;
-import cnv.var.SampleData;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.analysis.Mosaicism;
+import org.genvisis.cnv.analysis.PennCNVPrep;
+import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.manage.Markers;
+import org.genvisis.cnv.manage.MitoPipeline;
+import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.qc.LrrSd;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.PSF.Ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.link.init.info;
+import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
+import org.genvisis.seq.manage.BamOps.BamIndexStats;
+import org.genvisis.seq.manage.BamSegPileUp.BamPileResult;
+import org.genvisis.seq.manage.BamSegPileUp.PileupProducer;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 public class BamImport {
 	// public static final String OFF_TARGET_FLAG = "OFF_TARGET";
@@ -220,7 +220,7 @@ public class BamImport {
 			if (!Files.exists(out)) {
 				try {
 					PrintWriter writer = new PrintWriter(new FileWriter(out));
-					VCFFileReader reader = new VCFFileReader(outVCF, true);
+					VCFFileReader reader = new VCFFileReader(new File(outVCF), true);
 
 					int num = 0;
 					for (VariantContext vc : reader) {

@@ -1,4 +1,4 @@
-package cnv.var;
+package org.genvisis.cnv.var;
 
 public class IndiPoints {
 	private String id;

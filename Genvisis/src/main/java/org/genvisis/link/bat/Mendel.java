@@ -1,12 +1,12 @@
-package link.bat;
+package org.genvisis.link.bat;
 
 import java.io.*;
 import java.util.*;
 
-import link.LinkageFormat;
-import link.LinkageMap;
-import common.*;
-import filesys.SnpMarkerSet;
+import org.genvisis.common.*;
+import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.link.LinkageFormat;
+import org.genvisis.link.LinkageMap;
 
 public class Mendel {
 	public static final String[] THETAS = {"0.00", "0.01", "0.05", "0.10", "0.15", "0.20", "0.30", "0.40", "0.50"}; 

@@ -1,11 +1,10 @@
 // -Xms1024M -Xmx1024M
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-//import filesys.SerialHash;
+import org.genvisis.common.*;
 
 public class temp {
 	public temp(String[] args) throws IOException {

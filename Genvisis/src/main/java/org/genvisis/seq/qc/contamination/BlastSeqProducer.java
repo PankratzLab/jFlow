@@ -1,9 +1,9 @@
-package seq.qc.contamination;
+package org.genvisis.seq.qc.contamination;
 
-import seq.analysis.Blast;
-import seq.analysis.Blast.BlastResultsSummary;
-import common.Logger;
-import common.WorkerTrain.Producer;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.seq.analysis.Blast;
+import org.genvisis.seq.analysis.Blast.BlastResultsSummary;
 
 /**
  * Set up this since .bam files and .fastq files will have essentially identical functionality

@@ -1,11 +1,11 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
 
-import one.SuperNovo;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.one.SuperNovo;
 
 public class Samtools {
 

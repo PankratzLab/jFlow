@@ -1,4 +1,4 @@
-package affy;
+package org.genvisis.affy;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,12 +9,12 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Date;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
-import cnv.filesys.Project;
-import cnv.manage.SourceFileParser;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.SourceFileParser;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class AffySNP6Tables {
 	public static final String[][] SNP_HEADER_OPTIONS = { { "SNP Name", "rsID", "Probe Set ID", "probeset_id" } };

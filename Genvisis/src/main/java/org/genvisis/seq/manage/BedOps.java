@@ -1,6 +1,5 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
-import filesys.Segment;
 import htsjdk.tribble.Tribble;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
@@ -11,8 +10,9 @@ import htsjdk.tribble.index.IndexFactory.IndexType;
 import java.io.File;
 import java.io.IOException;
 
-import common.Files;
-import common.Logger;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.Segment;
 
 /**
  * @author lane0212 <br>

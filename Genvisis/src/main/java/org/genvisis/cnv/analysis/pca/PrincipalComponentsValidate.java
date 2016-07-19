@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -7,14 +7,14 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Random;
 
-import stats.CrossValidation;
-import stats.LeastSquares.LS_TYPE;
-import cnv.filesys.Project;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.stats.CrossValidation;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 /**
  * Class to cross validate a series of pc files (and to assist in batching for computing them) -currently focusing on the number of PCs to include for a given sample size

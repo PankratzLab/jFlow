@@ -1,8 +1,8 @@
-package mining;
+package org.genvisis.mining;
 
 import java.io.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class temp {
 	public temp(String filename) throws IOException {

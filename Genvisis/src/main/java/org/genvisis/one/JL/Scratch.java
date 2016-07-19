@@ -1,32 +1,33 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import seq.manage.BamImport;
-import seq.manage.ReferenceGenome;
-import seq.manage.BamImport.NGS_MARKER_TYPE;
-import stats.Stats;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
+import org.genvisis.cnv.manage.Markers;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.CNVariant.CNVBuilder;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.seq.manage.BamImport;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
+import org.genvisis.stats.Stats;
+
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import cnv.filesys.MarkerSet.PreparedMarkerSet;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.hmm.PennHmm.ViterbiResult;
-import cnv.manage.Markers;
-import cnv.qc.GcAdjustor.GcModel;
-import filesys.CNVariant;
-import filesys.LocusSet;
-import filesys.Segment;
-import filesys.CNVariant.CNVBuilder;
-import filesys.LocusSet.TO_STRING_TYPE;
 
 public class Scratch {
 

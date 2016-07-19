@@ -1,4 +1,4 @@
-package widgets;
+package org.genvisis.widgets;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import common.Files;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 
 public class AuthorCorral {
 	

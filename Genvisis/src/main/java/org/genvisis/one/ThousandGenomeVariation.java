@@ -1,8 +1,9 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
-import common.*;
-import filesys.*;
+
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
 
 public class ThousandGenomeVariation {
 	public static final String[] HEADER = {"chr", "loc", "ref", "alleles", "snp.Q", "av.max.map.Q", "depth.cov", "NA12891", "NA12891.Q", "NA12892", "NA12892.Q", "NA12878", "NA12878.Q", "hwe", "maf", "tdt", "display"}; 

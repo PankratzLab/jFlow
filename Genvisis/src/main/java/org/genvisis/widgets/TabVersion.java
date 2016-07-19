@@ -1,7 +1,8 @@
-package widgets;
+package org.genvisis.widgets;
 
 import java.io.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class TabVersion {
 	public static void make(String filename) {

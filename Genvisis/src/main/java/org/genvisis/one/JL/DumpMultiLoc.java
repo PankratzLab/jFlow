@@ -1,12 +1,11 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import common.Logger;
-
-import filesys.GeneData;
-import filesys.GeneTrack;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
 
 public class DumpMultiLoc {
 

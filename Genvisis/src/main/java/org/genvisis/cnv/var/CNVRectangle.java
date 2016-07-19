@@ -1,11 +1,11 @@
-package cnv.var;
+package org.genvisis.cnv.var;
 
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 
-import cnv.plots.GenericRectangle;
-import filesys.CNVariant;
+import org.genvisis.cnv.plots.GenericRectangle;
+import org.genvisis.filesys.CNVariant;
 
 /**
  * CNVRectangle describes a rectangle to be rendered in CompPanel

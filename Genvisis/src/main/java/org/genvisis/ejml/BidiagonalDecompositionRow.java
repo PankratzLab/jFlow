@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 /**
  * <p>
- * Performs a {@link ejml.BidiagonalDecomposition} using
+ * Performs a {@link org.genvisis.ejml.BidiagonalDecomposition} using
  * householder reflectors.  This is efficient on wide or square matrices.
  * </p>
  *

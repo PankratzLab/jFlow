@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 import java.util.Random;
 
 
 /**
  * <p>
- * {@link SimpleMatrix} is a wrapper around {@link ejml.DenseMatrix64F} that provides an
+ * {@link SimpleMatrix} is a wrapper around {@link org.genvisis.ejml.DenseMatrix64F} that provides an
  * easy to use object oriented interface for performing matrix operations.  It is designed to be
  * more accessible to novice programmers and provide a way to rapidly code up solutions by simplifying
  * memory management and providing easy to use functions.
@@ -39,9 +39,9 @@ import java.util.Random;
  * </p>
  *
  * <p>
- * Working with both {@link ejml.DenseMatrix64F} and SimpleMatrix in the same code base is easy.
+ * Working with both {@link org.genvisis.ejml.DenseMatrix64F} and SimpleMatrix in the same code base is easy.
  * To access the internal DenseMatrix64F in a SimpleMatrix simply call {@link SimpleMatrix#getMatrix()}.
- * To turn a DenseMatrix64F into a SimpleMatrix use {@link SimpleMatrix#wrap(ejml.DenseMatrix64F)}.  Not
+ * To turn a DenseMatrix64F into a SimpleMatrix use {@link SimpleMatrix#wrap(org.genvisis.ejml.DenseMatrix64F)}.  Not
  * all operations in EJML are provided for SimpleMatrix, but can be accessed by extracting the internal
  * DenseMatrix64F.
  * </p>
@@ -123,7 +123,7 @@ public class SimpleMatrix extends SimpleBase<SimpleMatrix> {
      * data[ row ][ column ]
      * </p>
      *
-     * @see ejml.DenseMatrix64F#DenseMatrix64F(double[][])
+     * @see org.genvisis.ejml.DenseMatrix64F#DenseMatrix64F(double[][])
      *
      * @param data 2D array representation of the matrix. Not modified.
      */
@@ -134,7 +134,7 @@ public class SimpleMatrix extends SimpleBase<SimpleMatrix> {
     /**
      * Creates a new matrix that is initially set to zero with the specified dimensions.
      *
-     * @see ejml.DenseMatrix64F#DenseMatrix64F(int, int) 
+     * @see org.genvisis.ejml.DenseMatrix64F#DenseMatrix64F(int, int) 
      *
      * @param numRows The number of rows in the matrix.
      * @param numCols The number of columns in the matrix.
@@ -189,7 +189,7 @@ public class SimpleMatrix extends SimpleBase<SimpleMatrix> {
     /**
      * Creates a new identity matrix with the specified size.
      *
-     * @see ejml.CommonOps#identity(int)
+     * @see org.genvisis.ejml.CommonOps#identity(int)
      *
      * @param width The width and height of the matrix.
      * @return An identity matrix.
@@ -212,7 +212,7 @@ public class SimpleMatrix extends SimpleBase<SimpleMatrix> {
      * To extract the diagonal elements from a matrix see {@link #extractDiag()}.
      * </p>
      *
-     * @see ejml.CommonOps#diag(double...)
+     * @see org.genvisis.ejml.CommonOps#diag(double...)
      *
      * @param vals The values of the diagonal elements.
      * @return A diagonal matrix.
@@ -228,7 +228,7 @@ public class SimpleMatrix extends SimpleBase<SimpleMatrix> {
      * Creates a new SimpleMatrix with random elements drawn from a uniform distribution from minValue to maxValue.
      * </p>
      *
-     * @see ejml.RandomMatrices#setRandom(DenseMatrix64F,java.util.Random)
+     * @see org.genvisis.ejml.RandomMatrices#setRandom(DenseMatrix64F,java.util.Random)
      *
      * @param numRows The number of rows in the new matrix
      * @param numCols The number of columns in the new matrix

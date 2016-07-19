@@ -1,4 +1,4 @@
-package one.ben;
+package org.genvisis.one.ben;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,18 +14,17 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Matrix;
-import common.ext;
 
 public class DBGAPMerge {
     

@@ -1,9 +1,9 @@
 // -Xmx1024M
-package parse;
+package org.genvisis.parse;
 
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class LookupTable {
 	public static void fromParameters(String filename, Logger log) {

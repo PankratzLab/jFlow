@@ -1,6 +1,6 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
-import common.ext;
+import org.genvisis.common.ext;
 
 public class Alleles {
 	public static char[] getAllelesInOrder(char a1, char[] bothAlleles) {

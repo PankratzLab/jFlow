@@ -1,12 +1,12 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import cnv.filesys.*;
-import cnv.manage.MarkerDataLoader;
-import stats.Histogram;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.common.*;
+import org.genvisis.stats.Histogram;
 
 public class PeakZero {
 	public static final String PEAK_ZERO_FILE = "PeakZeroCalculations.xln";
@@ -117,7 +117,7 @@ public class PeakZero {
 
 		String usage = "\\n"+
 		"cnv.qc.PeakZero requires 0-1 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) check distributions (i.e. -check (not the default))\n"+
 		"";
 

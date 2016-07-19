@@ -1,15 +1,15 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.WorkerHive;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
 
 /**
  * Class for handling 23 and me files (https://www.cog-genomics.org/plink2/input#23file)<br>

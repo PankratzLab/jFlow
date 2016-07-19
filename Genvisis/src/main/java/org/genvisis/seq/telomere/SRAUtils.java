@@ -1,17 +1,17 @@
-package seq.telomere;
+package org.genvisis.seq.telomere;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
 
 /**
  * @author lane0212 Converts .sra files to .bam format for future processing. So far, used for telomere length temp file creation

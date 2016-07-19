@@ -1,4 +1,4 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -6,11 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
-import cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class CNVSampleQC {
 	public static final String[] QC_HEADS = { "LRR_mean", "LRR_median", "LRR_SD", "BAF_mean", "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF" };

@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
 /**
  * Generic interface for wrapping a {@link BlockMatrix64F} decomposition for
- * processing of {@link ejml.DenseMatrix64F}.
+ * processing of {@link org.genvisis.ejml.DenseMatrix64F}.
  *
  * @author Peter Abeles
  */

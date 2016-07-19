@@ -1,4 +1,4 @@
-package mining;
+package org.genvisis.mining;
 
 
 import java.util.Arrays;

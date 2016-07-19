@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -9,19 +9,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import stats.CrossValidation;
-import stats.LeastSquares.LS_TYPE;
-import common.Array;
-import common.Logger;
-import common.WorkerTrain.Producer;
-import cnv.analysis.CentroidCompute;
-import cnv.filesys.Centroids;
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.manage.MDL;
-import cnv.plots.ScatterPlot;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.plots.ScatterPlot;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.stats.CrossValidation;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 /**
  * Class to facilitate correcting X/Y intensity data; TODO, intensity only correction, should be easy -> just like a single genotype

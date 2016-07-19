@@ -1,17 +1,18 @@
-package seq.manage.vcfPile;
+package org.genvisis.seq.manage.vcfPile;
 
-import filesys.LocusSet;
-import filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import seq.manage.VCOps;
-import common.Logger;
-import common.Positions;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCOps;
 
 /**
  * @author lane0212 Iterate by region over a vcf;
@@ -26,7 +27,7 @@ public class RegionIteratorVCF<T extends Segment> implements Iterator<VariantCon
 
 	public RegionIteratorVCF(String vcfFile, LocusSet<T> segs, Logger log) {
 		super();
-		this.reader = new VCFFileReader(vcfFile, true);
+		this.reader = new VCFFileReader(new File(vcfFile), true);
 		this.setIndex = 0;
 		this.set = segs;
 		this.log = log;

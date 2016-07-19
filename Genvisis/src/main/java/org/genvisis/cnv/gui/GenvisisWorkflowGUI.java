@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -42,15 +42,16 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
 import net.miginfocom.swing.MigLayout;
-import cnv.Launch;
-import cnv.filesys.Project;
-import cnv.manage.GenvisisWorkflow;
-import cnv.manage.GenvisisWorkflow.RequirementInputType;
-import cnv.manage.GenvisisWorkflow.STEP;
-import common.Array;
-import common.Files;
-import common.Grafik;
-import common.ext;
+
+import org.genvisis.cnv.Launch;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.GenvisisWorkflow;
+import org.genvisis.cnv.manage.GenvisisWorkflow.RequirementInputType;
+import org.genvisis.cnv.manage.GenvisisWorkflow.STEP;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.ext;
 
 import javax.swing.JSeparator;
 

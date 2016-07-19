@@ -1,9 +1,9 @@
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class BinMissingnessByPosition {
 	public static final String MAP = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\documentation\\HumanCNV370v1 Marker Info files\\HumanCNV370_MarkerList\\gwas.map";

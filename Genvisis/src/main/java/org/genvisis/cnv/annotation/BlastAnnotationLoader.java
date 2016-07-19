@@ -1,4 +1,4 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import htsjdk.samtools.TextCigarCodec;
 import htsjdk.tribble.annotation.Strand;
@@ -9,16 +9,16 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
-import common.Array;
-import common.ArraySpecialList.ArrayBlastAnnotationList;
-import common.Logger;
-import common.ext;
-import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import filesys.Segment;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
+import org.genvisis.filesys.Segment;
 
 /**
  * @author lane0212 Loads summarized blast results in annotation format

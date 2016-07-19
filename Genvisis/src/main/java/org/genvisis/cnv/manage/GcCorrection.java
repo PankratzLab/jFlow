@@ -1,4 +1,4 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,25 +10,24 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.Files;
-import common.PSF;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
-import cnv.analysis.PennCNV;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.qc.GcAdjustor;
-import cnv.qc.LrrSd;
-import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
-//import cnv.qc.MarkerMetrics;
-import cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.cnv.analysis.PennCNV;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.qc.GcAdjustor;
+import org.genvisis.cnv.qc.LrrSd;
+import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 /**
  * @author lane0212 Correct a project for gc content

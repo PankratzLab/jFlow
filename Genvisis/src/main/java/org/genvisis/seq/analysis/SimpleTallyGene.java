@@ -1,17 +1,17 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.util.concurrent.Callable;
 
-import seq.manage.VCFOps;
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.FILTER_GENERATION_TYPE;
-import seq.qc.FilterNGS.VariantContextFilter;
-import common.Files;
-import common.Logger;
-import common.WorkerHive;
-import common.ext;
-import filesys.Segment;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.FILTER_GENERATION_TYPE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 
 public class SimpleTallyGene {
 

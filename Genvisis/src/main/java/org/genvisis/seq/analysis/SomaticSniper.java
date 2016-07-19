@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -15,21 +15,21 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
-import seq.manage.BamOps;
-import seq.manage.GenotypeOps;
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
-import seq.manage.VCFTumorNormalOps;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.GenotypeOps;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCFTumorNormalOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 
 /**
  * Wrapper and parser/assembler for Somatic Sniper (https://github.com/genome/somatic-sniper)
@@ -242,8 +242,8 @@ public class SomaticSniper {
 			ArrayList<String> commandCall = new ArrayList<String>();
 			commandCall.add(somaticParams.getSamtoolsLoc() + "samtools");
 			commandCall.add("pileup");
-			commandCall.add("–cvi");
-			commandCall.add("–f");
+			commandCall.add("ï¿½cvi");
+			commandCall.add("ï¿½f");
 			commandCall.add(somaticParams.getRefGenome());
 			commandCall.add(tumorBam);
 			commandCall.add(indelPile);

@@ -1,11 +1,11 @@
 // creates a table with 95% confidence intervals in the format requested by Lindsay Farrer
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
 
-import stats.ProbDist;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.ProbDist;
 
 public class FarrerParser {
 	public static final String[] PLINK_FRQ_HEADER = {"CHR", "SNP", "A1", "A2", "MAF", "NCHROBS"};

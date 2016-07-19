@@ -1,14 +1,14 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import cnv.filesys.Project;
-import cnv.plots.TwoDPlot;
-import stats.Histogram;
-import stats.LeastSquares;
-import mining.Transformations;
-import common.*;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.plots.TwoDPlot;
+import org.genvisis.common.*;
+import org.genvisis.mining.Transformations;
+import org.genvisis.stats.Histogram;
+import org.genvisis.stats.LeastSquares;
 
 public class PhenoPrep {
 	public static final String[] SUMMARY_INFO_HEADER = {"Race", "Trait", "meanTrait", "medianTrait", "stdevTrait", "minTrait", "maxTrait", "numFemales", "numMales", "meanAge", "medianAge", "stdevAge", "minAge", "maxAge", "numBelowLowerThrehsold", "numAboveUpperThrehsold"};

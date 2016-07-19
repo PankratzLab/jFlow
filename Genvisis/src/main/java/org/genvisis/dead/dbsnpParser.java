@@ -1,11 +1,11 @@
 // used for MarkerAnalysis for 6K screen, not used for anything else
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
 
-import common.Array;
-import common.HashVec;
+import org.genvisis.common.Array;
+import org.genvisis.common.HashVec;
 
 public class dbsnpParser {
 	public dbsnpParser(String filename) throws IOException {

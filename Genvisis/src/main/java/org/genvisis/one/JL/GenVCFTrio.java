@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -9,11 +9,11 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import seq.manage.VCFOps.VcfPopulation;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 
 public class GenVCFTrio {
 

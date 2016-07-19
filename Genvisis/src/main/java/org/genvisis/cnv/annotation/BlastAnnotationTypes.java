@@ -1,6 +1,5 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
-import filesys.Segment;
 import htsjdk.samtools.Cigar;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.vcf.VCFHeaderLineCount;
@@ -8,9 +7,10 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 
 import java.util.ArrayList;
 
-import cnv.filesys.Project;
-import common.Logger;
-import seq.analysis.Blast.BlastResults;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.analysis.Blast.BlastResults;
 
 public class BlastAnnotationTypes {
 

@@ -1,4 +1,4 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -9,34 +9,35 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import one.JL.MAF;
-import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.CentroidBuilder;
-import cnv.analysis.PennCNV;
-import cnv.filesys.Centroids;
-import cnv.filesys.Project;
-import cnv.manage.Markers;
-import cnv.manage.MitoPipeline;
-import cnv.manage.Resources.GENOME_BUILD;
-import cnv.manage.TransposeData;
-import cnv.qc.GcAdjustor;
-import cnv.qc.GcAdjustor.GcModel;
-import cnv.qc.SampleQC;
-import cnv.var.SampleData;
-import seq.manage.VCFSamplePrep.PREPPED_SAMPLE_TYPE;
-import seq.manage.VCFSamplePrep.VCFSamplePrepWorker;
-import seq.manage.VCOps.LocusID;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
-import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.WorkerHive;
-import common.WorkerTrain;
-import common.ext;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.analysis.PennCNV;
+import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.Markers;
+import org.genvisis.cnv.manage.MitoPipeline;
+import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.qc.GcAdjustor;
+import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.one.JL.MAF;
+import org.genvisis.seq.manage.VCFSamplePrep.PREPPED_SAMPLE_TYPE;
+import org.genvisis.seq.manage.VCFSamplePrep.VCFSamplePrepWorker;
+import org.genvisis.seq.manage.VCOps.LocusID;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
@@ -100,7 +101,7 @@ public class VCFImporter {
 		HashSet<String> samplesHave = new HashSet<String>();
 
 		ArrayList<String> samplesMissing = new ArrayList<String>();
-		String[] samplesVCF = VCFOps.getSamplesInFile(new VCFFileReader(vcf, true));
+		String[] samplesVCF = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcf), true));
 		if (samples == null) {
 			for (int i = 0; i < samplesVCF.length; i++) {
 				samplesHave.add(samplesVCF[i]);
@@ -186,7 +187,7 @@ public class VCFImporter {
 		@Override
 		public ConversionResults call() throws Exception {
 			proj.getLog().reportTimeInfo("Exporting " + samples.size() + " samples on this round using " + Thread.currentThread().getName());
-			VCFImporter importer = new VCFImporter(new VCFFileReader(vcf, true), proj.getLog());
+			VCFImporter importer = new VCFImporter(new VCFFileReader(new File(vcf), true), proj.getLog());
 			ConversionResults results = importer.importVCF(proj, samples, vcf, createMarkerPositions);
 
 			return results;
@@ -286,7 +287,7 @@ public class VCFImporter {
 	}
 
 	public static void test(Project proj, String vcf, String gc5Base, PREPPED_SAMPLE_TYPE type, int numRounds, int numThreads) {
-		String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(vcf, true));
+		String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcf), true));
 
 		ArrayList<String[]> sampleChunks = Array.splitUpArray(samples, numRounds, proj.getLog());
 		WorkerHive<ConversionResults> hive = new WorkerHive<VCFImporter.ConversionResults>(numThreads, 10, proj.getLog());

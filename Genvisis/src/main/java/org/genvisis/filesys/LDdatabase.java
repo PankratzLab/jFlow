@@ -1,11 +1,12 @@
 // used to filter out markers because of hwe, but since Haploview doesn't limit itself to controls, I truned this off (-hwcutoff 0)
 // also added -minGeno 0 and -missingCutoff 1, to include shoddy coverage of regions by a mixture of chips
 // always filter on hwe and call rate (snp and ind) before using as a reference
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class LDdatabase implements Serializable {
 	public static final long serialVersionUID = 1L;

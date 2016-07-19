@@ -1,20 +1,22 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
-import seq.manage.VCFOps;
-import filesys.Segment;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.ReadingFilePrep;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCFOps;
+
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.TribbleException;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
-import common.Files;
-import common.Logger;
-import cnv.filesys.Project;
-import cnv.filesys.ReadingFilePrep;
 
 /**
  * @author lane0212 Does tabix-based loading for annotations
@@ -200,7 +202,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 			return false;
 		} else {
 			try {
-				VCFFileReader reader = new VCFFileReader(annotationFilename, indexRequired);
+				VCFFileReader reader = new VCFFileReader(new File(annotationFilename), indexRequired);
 				VCFHeader vcfHeader = reader.getFileHeader();// doing this will trigger the htsjdk file format checks
 				if (params != null) {
 					for (int i = 0; i < params.length; i++) {
@@ -262,7 +264,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 		 */
 		public AnnotationQuery(String annotationFile, Segment[] segs, boolean requireIndex, Logger log) {
 			super();
-			this.vcfFileReader = new VCFFileReader(annotationFile, requireIndex);
+			this.vcfFileReader = new VCFFileReader(new File(annotationFile), requireIndex);
 			this.vcfHeader = vcfFileReader.getFileHeader();
 			this.currentIndex = 0;
 			this.queryIntervals = segs == null ? null : VCFOps.convertSegsToQI(segs, vcfHeader, 0, true, log);

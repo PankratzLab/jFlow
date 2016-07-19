@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -9,6 +9,9 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import net.miginfocom.swing.MigLayout;
+
+import org.genvisis.cnv.filesys.SourceFileHeaderData;
+import org.genvisis.common.Array;
 
 import javax.swing.JLabel;
 
@@ -23,9 +26,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 import javax.swing.JSeparator;
-
-import common.Array;
-import cnv.filesys.SourceFileHeaderData;
 
 public class SourceFileHeaderGUI extends JDialog {
 

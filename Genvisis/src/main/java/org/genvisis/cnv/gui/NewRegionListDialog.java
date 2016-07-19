@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -22,12 +22,12 @@ import javax.swing.JLabel;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.genvisis.common.Files;
+import org.genvisis.common.Positions;
+
 import javax.swing.JTextField;
 import javax.swing.JSeparator;
 import javax.swing.JButton;
-
-import common.Files;
-import common.Positions;
 
 public class NewRegionListDialog extends JDialog implements ActionListener {
 

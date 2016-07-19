@@ -1,9 +1,8 @@
-package stats;
+package org.genvisis.stats;
 
-//import one.JL.QuantileMathCommonsNormalization;
-import common.Array;
-import common.Logger;
-import common.Matrix;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
 
 public class QuantileNormalization {
 	private double thresholdFactor;

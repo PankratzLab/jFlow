@@ -1,13 +1,12 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import stats.ProbDist;
-
-import common.*;
-import filesys.Segment;
-import filesys.SegmentLists;
+import org.genvisis.common.*;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.SegmentLists;
+import org.genvisis.stats.ProbDist;
 
 public class ChromatinAccessibility {
 //	public static final String SRC_DIR = "D:/grants/2012.06 Hepatoblastoma/Chromatin accessibility/rawData/";

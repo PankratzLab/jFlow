@@ -1,4 +1,4 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
-import cnv.filesys.*;
-import common.*;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.common.*;
 
 public class Markers {
 	public static final int MAX_ERRORS_TO_REPORT = 30;
@@ -341,7 +341,7 @@ public class Markers {
 
 		String usage = "\n" +
 		"cnv.manage.Markers requires 0-1 arguments\n" +
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) filename of SNP Table (i.e. snps=Table.csv (not the default))\n"+
 		" OR:\n"+
 		"   (2) use allele lookup to convert a file form forward to TOP strand (i.e. convert=file.txt (not the default))\n"+

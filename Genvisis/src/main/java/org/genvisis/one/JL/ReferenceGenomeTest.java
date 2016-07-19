@@ -1,13 +1,13 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 
-import common.Array;
-import common.Files;
-import seq.manage.ReferenceGenome;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import filesys.Segment;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
 
 public class ReferenceGenomeTest {
 

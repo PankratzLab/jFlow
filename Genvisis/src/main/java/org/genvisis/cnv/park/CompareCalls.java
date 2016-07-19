@@ -1,11 +1,11 @@
-package cnv.park;
+package org.genvisis.cnv.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.CNVariant;
-import stats.Maths;
+import org.genvisis.common.*;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.stats.Maths;
 
 public class CompareCalls {
 	public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\allCalls\\";

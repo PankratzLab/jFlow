@@ -1,19 +1,17 @@
 // -Xms1024M -Xmx1024M
 // filter based on chromosome
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.io.*;
 import java.util.*;
-
-import common.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
 
-import cnv.filesys.Project;
-import cnv.var.SampleData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
 
 public class MosaicPlot extends JFrame implements ActionListener {
 	public static final long serialVersionUID = 1L;
@@ -132,7 +130,7 @@ public class MosaicPlot extends JFrame implements ActionListener {
 
 		String usage = "\n"+
 		"plot.MosaicPlot requires 0-1 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"";
 
 		for (int i = 0; i<args.length; i++) {

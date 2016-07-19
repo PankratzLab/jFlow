@@ -1,4 +1,4 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,21 +22,21 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 
-import seq.manage.BamImport.NGS_MARKER_TYPE;
-import common.Aliases;
-import common.Array;
-import common.CurrentManifest;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ProgressMonitor;
-import common.ext;
-import cnv.LaunchProperties;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.manage.Resources.GENOME_BUILD;
-import cnv.manage.TransposeData;
-import cnv.var.SampleData;
-import filesys.GeneSet;
+import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.CurrentManifest;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ProgressMonitor;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.GeneSet;
+import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
 public class Project {
 
@@ -490,7 +490,7 @@ public class Project {
 		this();
 		
 		if (filename == null) {
-			filename = cnv.Launch.getDefaultDebugProjectFile(true);
+			filename = org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true);
 		}
 		
 		this.projectPropertiesFilename = filename;
@@ -1674,7 +1674,7 @@ public class Project {
         
         String usage = "\n"+
             "cnv.filesys.Project requires 2+ arguments\n"+
-            "   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+            "   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
             "   (2+) key-value pairs for properties (i.e. NUM_THREADS=6 (not the default))\n"+
             "";
 

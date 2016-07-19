@@ -1,8 +1,9 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class SequenceVariants {
 	public static final String[] ALLELE_SPECIFIC_FREQS = {"chr", "pos", "ref", "control_A_freq", "case_A_freq", "control_C_freq", "case_C_freq", "control_G_freq", "case_G_freq", "control_T_freq", "case_T_freq"};

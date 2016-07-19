@@ -1,9 +1,9 @@
-package assoc;
+package org.genvisis.assoc;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class haploPerm {
 	public haploPerm(int numReps) throws IOException {

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -18,11 +18,11 @@ import java.util.Arrays;
 
 import javax.swing.JPanel;
 
-import cnv.gui.ChromosomeViewer;
-import cnv.var.CNVRectangle;
-import cnv.var.CNVRectangles;
-import common.Positions;
-import filesys.CNVariant;
+import org.genvisis.cnv.gui.ChromosomeViewer;
+import org.genvisis.cnv.var.CNVRectangle;
+import org.genvisis.cnv.var.CNVRectangles;
+import org.genvisis.common.Positions;
+import org.genvisis.filesys.CNVariant;
 
 /**
  * @author Michael Vieths
@@ -41,7 +41,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 	ChromosomeViewer chrViewer;
 
 	private CNVRectangles cnvRectangles;
-	ArrayList<cnv.var.CNVRectangle> rectangles;
+	ArrayList<org.genvisis.cnv.var.CNVRectangle> rectangles;
 
 	public CompPanel(CompPlot cp) {
 		plot = cp;

@@ -1,9 +1,10 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
-import common.*;
-import filesys.*;
+
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
 
 public class GeneDensityInRegion {
 	public static void computeDensity(String region, int window) {

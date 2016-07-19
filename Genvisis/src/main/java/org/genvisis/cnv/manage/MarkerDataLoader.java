@@ -1,18 +1,18 @@
-package cnv.manage;
-
-import common.Array;
-import common.CountHash;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import cnv.filesys.*;
+package org.genvisis.cnv.manage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
+
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.common.Array;
+import org.genvisis.common.CountHash;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class MarkerDataLoader implements Runnable {
 	private Project proj;

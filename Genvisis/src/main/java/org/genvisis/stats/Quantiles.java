@@ -1,13 +1,13 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import common.Array;
-import common.HashVec;
-import common.Logger;
-import common.Sort;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 /**
  * Class to compute quantiles of a data set, and facilitates quantile designation http://en.wikipedia.org/wiki/Quantile

@@ -1,7 +1,8 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class Recode implements Runnable {
 	private String dir;

@@ -1,9 +1,9 @@
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
 
-import park.tools;
+import org.genvisis.park.tools;
 
 public class pickProband {
 	public pickProband() throws IOException {

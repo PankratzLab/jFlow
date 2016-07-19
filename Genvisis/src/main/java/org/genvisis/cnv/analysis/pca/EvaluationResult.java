@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -6,17 +6,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import link.Heritability;
-import cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
-import cnv.analysis.pca.CorrectionIterator.MODEL_BUILDER_TYPE;
-import cnv.analysis.pca.CorrectionIterator.ORDER_TYPE;
-import cnv.filesys.Project;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import stats.ICC;
+import org.genvisis.cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
+import org.genvisis.cnv.analysis.pca.CorrectionIterator.MODEL_BUILDER_TYPE;
+import org.genvisis.cnv.analysis.pca.CorrectionIterator.ORDER_TYPE;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.link.Heritability;
+import org.genvisis.stats.ICC;
 
 class EvaluationResult implements Serializable {
 	/**

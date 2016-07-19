@@ -1,4 +1,4 @@
-package filesys.rao;
+package org.genvisis.filesys.rao;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -11,7 +11,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.zip.GZIPOutputStream;
 
-import common.Logger;
+import org.genvisis.common.Logger;
 
 /**
  * Class to write java objecs in a random manner

@@ -1,10 +1,10 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 //TODO counts
 public class SNPEFF {

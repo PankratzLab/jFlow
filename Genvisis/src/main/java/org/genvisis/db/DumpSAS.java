@@ -1,10 +1,10 @@
-package db;
+package org.genvisis.db;
 
 import java.io.*;
 import java.util.*;
 
-import parse.LookupTable;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.parse.LookupTable;
 
 public class DumpSAS {
 //	public static final String DEFAULT_SAS_EXECUTABLE = "/share/apps/src/sas/SASFoundation/9.2/bin/sas_en";

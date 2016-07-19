@@ -1,10 +1,10 @@
-package seq;
+package org.genvisis.seq;
 
 import java.io.*;
 
-import common.*;
-import filesys.*;
-import stats.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
+import org.genvisis.stats.*;
 
 public class WeightedSumStatistic {
 	public static final int NUM_REPS = 10000;
@@ -421,7 +421,7 @@ public class WeightedSumStatistic {
 	        for (int i = 0; i<models.length; i++) {
 	        	line = models[i].split("[\\s]+");
 		        writer.println("plink --bfile allThree --recode --keep "+line[0]+" --extract "+line[1]);
-		        writer.println("java -cp /home/npankrat/" + common.PSF.Java.GENVISIS + " seq.WeightedSumStatistic set="+line[1]);
+		        writer.println("java -cp /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " seq.WeightedSumStatistic set="+line[1]);
 		        writer.println();
             }
 	        

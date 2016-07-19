@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
-import static ejml.BlockInnerMultiplication.*;
+import static org.genvisis.ejml.BlockInnerMultiplication.*;
 
 /**
  * <p>
- * Matrix multiplication for {@link ejml.BlockMatrix64F}.  All sub-matrices must be
+ * Matrix multiplication for {@link org.genvisis.ejml.BlockMatrix64F}.  All sub-matrices must be
  * block aligned.
  * </p>
  * 
@@ -32,7 +32,7 @@ public class BlockMultiplication {
 
     /**
      * <p>
-     * Performs a matrix multiplication on {@link ejml.BlockMatrix64F} submatrices.<br>
+     * Performs a matrix multiplication on {@link org.genvisis.ejml.BlockMatrix64F} submatrices.<br>
      * <br>
      * c = a * b <br>
      * <br>
@@ -78,7 +78,7 @@ public class BlockMultiplication {
 
     /**
      * <p>
-     * Performs a matrix multiplication on {@link ejml.BlockMatrix64F} submatrices.<br>
+     * Performs a matrix multiplication on {@link org.genvisis.ejml.BlockMatrix64F} submatrices.<br>
      * <br>
      * c = c + a * b <br>
      * <br>
@@ -122,7 +122,7 @@ public class BlockMultiplication {
 
     /**
      * <p>
-     * Performs a matrix multiplication on {@link ejml.BlockMatrix64F} submatrices.<br>
+     * Performs a matrix multiplication on {@link org.genvisis.ejml.BlockMatrix64F} submatrices.<br>
      * <br>
      * c = c - a * b <br>
      * <br>
@@ -191,7 +191,7 @@ public class BlockMultiplication {
 
     /**
      * <p>
-     * Performs a matrix multiplication with a transpose on {@link ejml.BlockMatrix64F} submatrices.<br>
+     * Performs a matrix multiplication with a transpose on {@link org.genvisis.ejml.BlockMatrix64F} submatrices.<br>
      * <br>
      * c = a<sup>T</sup> * b <br>
      * <br>
@@ -288,7 +288,7 @@ public class BlockMultiplication {
 
     /**
      * <p>
-     * Performs a matrix multiplication with a transpose on {@link ejml.BlockMatrix64F} submatrices.<br>
+     * Performs a matrix multiplication with a transpose on {@link org.genvisis.ejml.BlockMatrix64F} submatrices.<br>
      * <br>
      * c = a * b <sup>T</sup> <br>
      * <br>

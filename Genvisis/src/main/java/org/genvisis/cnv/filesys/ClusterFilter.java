@@ -1,10 +1,10 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import common.IntVector;
+import org.genvisis.common.IntVector;
 
 /**
  * This is a data structure to hold a single filter that can be used to screen the data points. 

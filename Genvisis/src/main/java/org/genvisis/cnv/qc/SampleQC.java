@@ -1,4 +1,4 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -9,16 +9,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import stats.Quantiles;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Sort;
-import common.ext;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.filesys.Pedigree;
-import cnv.filesys.Project;
-import cnv.var.SampleData;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.filesys.Pedigree;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.stats.Quantiles;
 
 /**
  * Class that automates adding sample QC metrics to sample data, and also parses the qc metrics to the desired quantile class

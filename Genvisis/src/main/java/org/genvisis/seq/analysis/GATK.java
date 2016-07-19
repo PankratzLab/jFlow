@@ -1,18 +1,18 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.util.ArrayList;
 
-import seq.analysis.GATK_Genotyper.JointGATKGenotyper;
-import seq.analysis.SNPEFF.SnpEffResult;
-import seq.manage.BamOps;
-import seq.manage.VCFOps;
-import seq.manage.VCFTumorNormalOps;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.GATK_Genotyper.JointGATKGenotyper;
+import org.genvisis.seq.analysis.SNPEFF.SnpEffResult;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCFTumorNormalOps;
 
 public class GATK {
 	public static final String GATK_LOCATION_COMMAND = "gatk=";

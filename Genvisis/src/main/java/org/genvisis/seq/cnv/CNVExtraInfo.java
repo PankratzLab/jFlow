@@ -1,4 +1,4 @@
-package seq.cnv;
+package org.genvisis.seq.cnv;
 
 import java.io.Serializable;
 

@@ -1,11 +1,11 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.GeneSet;
-import filesys.GeneTrack;
+import org.genvisis.common.*;
+import org.genvisis.filesys.GeneSet;
+import org.genvisis.filesys.GeneTrack;
 
 public class MapGenesToSNPs {
 	public static final int DEFAULT_BUFFER = 15000;

@@ -1,8 +1,8 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class Histogram implements Serializable {
 	/**

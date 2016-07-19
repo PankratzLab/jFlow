@@ -1,13 +1,13 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import common.Array;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 //class to store optimized thresholds
 public class OptimizedQCThresholds {

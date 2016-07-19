@@ -1,9 +1,9 @@
-package db;
+package org.genvisis.db;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class FilterDB {
 	public static void filter(String dbFilename, String filtersFilename, String outputFile, Logger log) {

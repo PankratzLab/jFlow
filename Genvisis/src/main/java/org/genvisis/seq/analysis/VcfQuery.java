@@ -1,6 +1,5 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
-import filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -15,16 +14,17 @@ import java.util.ArrayList;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerHive;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 
 /**
  * Class to perform common info queries on local and remote vcf files<br>
@@ -82,7 +82,7 @@ public class VcfQuery {
 
 	public VcfQuery(String vcfFile, Logger log) {
 		super();
-		this.vcfFileReader = new VCFFileReader(vcfFile, true);
+		this.vcfFileReader = new VCFFileReader(new File(vcfFile), true);
 		this.vcfFile = vcfFile;
 		this.log = log;
 	}
@@ -373,7 +373,7 @@ public class VcfQuery {
 		QueryManager[] qManagers = new QueryManager[fullPathVCFs.length];
 		String tmpDir = ext.parseDirectoryOfFile(params.getOutputFileName());
 		new File(tmpDir).mkdirs();
-		VariantContextWriter writer = VCFOps.initWriter(tmpDir + ext.rootOf(fullPathVCFs[0]) + ".query.vcf", null, VCFOps.getSequenceDictionary(new VCFFileReader(fullPathVCFs[0], true)));
+		VariantContextWriter writer = VCFOps.initWriter(tmpDir + ext.rootOf(fullPathVCFs[0]) + ".query.vcf", null, VCFOps.getSequenceDictionary(new VCFFileReader(new File(fullPathVCFs[0]), true)));
 
 		// VCFOps.copyHeader(new VCFFileReader(fullPathVCFs[0], true), writer, VcfPopulation.load(params.getPopulationFile(), log).getSuperPop().get("EUR"));
 
@@ -388,7 +388,7 @@ public class VcfQuery {
 		hive.execute(true);
 		ArrayList<QueryResults> results = hive.getResults();
 		asWriter.close();
-		VariantContextWriter writer2 = VCFOps.initWriter(tmpDir + "query.vcf", null, VCFOps.getSequenceDictionary(new VCFFileReader(fullPathVCFs[0], true)));
+		VariantContextWriter writer2 = VCFOps.initWriter(tmpDir + "query.vcf", null, VCFOps.getSequenceDictionary(new VCFFileReader(new File(fullPathVCFs[0]), true)));
 
 		// VCFOps.copyHeader(new VCFFileReader(fullPathVCFs[0], true), writer2, VcfPopulation.load(params.getPopulationFile(), log).getSuperPop().get("EUR"));
 

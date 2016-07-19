@@ -1,4 +1,4 @@
-package one;
+package org.genvisis.one;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 
-import common.CmdLine;
-import common.Files;
-import common.PSF;
-import common.ext;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
 
 public class LiftOverProcessing {
     

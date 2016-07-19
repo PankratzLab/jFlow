@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,15 +12,15 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Properties;
 
-import seq.analysis.PlinkSeq.BURDEN_Tests;
-import seq.pathway.GenomeRegions;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.GeneData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.seq.analysis.PlinkSeq.BURDEN_Tests;
+import org.genvisis.seq.pathway.GenomeRegions;
 
 /**
  * Handles the project and phenotype system used by PlinkSeq

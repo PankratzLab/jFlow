@@ -1,4 +1,4 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 /**
  * @author lane0212

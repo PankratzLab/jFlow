@@ -1,13 +1,13 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import common.Array;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
 
 public class SegmentContigSubset {
 

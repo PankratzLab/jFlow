@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,27 +18,27 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import stats.CrossValidation;
-import stats.LeastSquares;
-import stats.RegressionModel;
-import stats.StatsCrossTabs;
-import stats.LeastSquares.LS_TYPE;
-import stats.StatsCrossTabs.STAT_TYPE;
-import stats.StatsCrossTabs.StatsCrossTabRank;
-import stats.StatsCrossTabs.VALUE_TYPE;
-import stats.Stepwise;
-import stats.Stepwise.StepWiseSummary;
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.manage.MDL;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import cnv.var.SampleData;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.stats.CrossValidation;
+import org.genvisis.stats.LeastSquares;
+import org.genvisis.stats.RegressionModel;
+import org.genvisis.stats.StatsCrossTabs;
+import org.genvisis.stats.Stepwise;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
+import org.genvisis.stats.StatsCrossTabs.StatsCrossTabRank;
+import org.genvisis.stats.StatsCrossTabs.VALUE_TYPE;
+import org.genvisis.stats.Stepwise.StepWiseSummary;
 
 /**
  * <p>

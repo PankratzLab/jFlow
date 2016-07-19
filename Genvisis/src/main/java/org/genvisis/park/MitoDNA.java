@@ -1,10 +1,10 @@
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import stats.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.*;
 
 public class MitoDNA {
 	public static final String DEFAULT_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\mtDNA\\";

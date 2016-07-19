@@ -1,11 +1,10 @@
-package kaput;
+package org.genvisis.kaput;
 
 import java.io.*;
 import java.util.*;
 
-import stats.ProbDist;
-
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.ProbDist;
 
 public class hweAPOE {
 	public static String[] GENOTYPES = {"44", "34", "24", "33", "23", "22"};

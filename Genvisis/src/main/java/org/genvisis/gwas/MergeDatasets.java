@@ -1,15 +1,15 @@
 // you have to force A1 onto the same strand if you want to use the HWE shortcut 
 // -Xms1024M -Xmx1024M
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import stats.ContingencyTable;
-import stats.ProbDist;
-import stats.Rscript;
-import common.*;
-import filesys.SerialHash;
+import org.genvisis.common.*;
+import org.genvisis.filesys.SerialHash;
+import org.genvisis.stats.ContingencyTable;
+import org.genvisis.stats.ProbDist;
+import org.genvisis.stats.Rscript;
 
 public class MergeDatasets {
 	public static final double HOMOGENEITY_THRESHOLD = 0.001;
@@ -220,7 +220,7 @@ public class MergeDatasets {
         try {
 	        writer = new PrintWriter(new FileWriter(dir+"batchMerge"+(Files.isWindows()?".bat":"")));
 	        for (int i = 0; i<subdirs.length; i++) {
-	        	writer.println("java -cp /home/npankrat/" + common.PSF.Java.GENVISIS + " filesys.SnpMarkerSet file="+subdirs[i]+commonPlinkRoot+".bim");
+	        	writer.println("java -cp /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " filesys.SnpMarkerSet file="+subdirs[i]+commonPlinkRoot+".bim");
 	        }
 	        writer.println();
 	        if (Files.isWindows()) {

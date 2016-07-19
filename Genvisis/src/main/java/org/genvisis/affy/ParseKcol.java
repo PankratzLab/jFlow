@@ -1,18 +1,18 @@
-package affy;
+package org.genvisis.affy;
 
 import java.io.*;
 import java.util.*;
 
 import javax.swing.JOptionPane;
 
-import cnv.filesys.ABLookup;
-import cnv.filesys.Sample;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.SampleList;
-import cnv.manage.Markers;
-import cnv.manage.TransposeData;
-import common.*;
+import org.genvisis.cnv.filesys.ABLookup;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.Markers;
+import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.common.*;
 
 public class ParseKcol implements Runnable {
 	public static final String[][] SNP_HEADER_OPTIONS = { { "SNP", "rsID", "ProbeSetName", "Name" } };
@@ -1285,7 +1285,7 @@ public class ParseKcol implements Runnable {
 
 		String usage = "\n" + 
 		"cnv.manage.ParseKcol requires 0-1 arguments\n" + 
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) number of threads to use (i.e. threads=" + numThreads + " (default))\n" + 
 		" OPTIONAL:\n" + 
 		"   (3) map filenames to sample IDs (i.e. -mapFiles (" + (map ? "" : "not the ") + "default))\n" + 

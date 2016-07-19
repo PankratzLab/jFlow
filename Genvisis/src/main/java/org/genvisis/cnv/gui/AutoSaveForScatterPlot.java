@@ -1,8 +1,9 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.io.File;
-import cnv.filesys.AnnotationCollection;
-import cnv.filesys.ClusterFilterCollection;
+
+import org.genvisis.cnv.filesys.AnnotationCollection;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
 
 public class AutoSaveForScatterPlot implements Runnable {
 

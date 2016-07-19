@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 import java.awt.Color;
 import java.awt.FontMetrics;

@@ -1,11 +1,11 @@
-package bot;
+package org.genvisis.bot;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Date;
 
-import common.ext;
+import org.genvisis.common.ext;
 
 public class AppKiller implements Runnable {
 	private String plugFile;

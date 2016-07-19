@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 /**
@@ -24,7 +24,7 @@ package ejml;
  * This can happen when solving using the most recent data or when rejecting outliers.  In these situations
  * it is possible to solve these related systems much faster than solving the entire data set again.
  *
- * @see ejml.LinearSolver
+ * @see org.genvisis.ejml.LinearSolver
  *
  * @author Peter Abeles
  */

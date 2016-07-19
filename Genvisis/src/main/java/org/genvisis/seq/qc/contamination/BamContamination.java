@@ -1,23 +1,23 @@
-package seq.qc.contamination;
+package org.genvisis.seq.qc.contamination;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.concurrent.Callable;
 
-import seq.manage.BamPileUp.PILE_TYPE;
-import seq.manage.BamPileUp.bamPileWorker;
-import seq.manage.ReferenceGenome;
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.SAM_FILTER_TYPE;
-import stats.Histogram.DynamicHistogram;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
-import filesys.Segment;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.BamPileUp.PILE_TYPE;
+import org.genvisis.seq.manage.BamPileUp.bamPileWorker;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
+import org.genvisis.stats.Histogram.DynamicHistogram;
 
 /**
  * Uses an mpileup approach to determine contamination levels of a bam file

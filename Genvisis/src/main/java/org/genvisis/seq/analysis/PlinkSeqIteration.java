@@ -1,15 +1,15 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import seq.manage.VCFOps;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.VCFOps;
 
 public class PlinkSeqIteration {
 

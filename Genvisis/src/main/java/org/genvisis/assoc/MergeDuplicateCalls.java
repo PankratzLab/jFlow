@@ -1,8 +1,9 @@
-package assoc;
+package org.genvisis.assoc;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class MergeDuplicateCalls {
 	public static void merge(String dir, String filename) {

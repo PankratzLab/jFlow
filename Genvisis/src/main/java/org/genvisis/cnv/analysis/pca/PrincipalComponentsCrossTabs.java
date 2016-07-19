@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.awt.Component;
 import java.io.File;
@@ -6,14 +6,14 @@ import java.io.FileNotFoundException;
 
 import javax.swing.JOptionPane;
 
-import common.Files;
-import common.ext;
-import stats.StatsCrossTabs;
-import stats.StatsCrossTabs.STAT_TYPE;
-import cnv.filesys.Project;
-import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import cnv.qc.SampleQC;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
+import org.genvisis.stats.StatsCrossTabs;
+import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
 
 /**
  * Class that may be used for pruning/testing principal components according to correlation with sample QC and other metrics TODO , implement a pc-selector based of thresholds....

@@ -1,14 +1,14 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.util.ArrayList;
 
-import cnv.filesys.Project;
-import cnv.filesys.SampleList;
-import cnv.qc.GcAdjustorParameter;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.qc.GcAdjustorParameter;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 /**
  * <p>

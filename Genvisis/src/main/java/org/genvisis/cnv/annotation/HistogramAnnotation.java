@@ -1,8 +1,8 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
-import common.Array;
+import org.genvisis.common.Array;
+import org.genvisis.stats.Histogram.DynamicHistogram;
 
-import stats.Histogram.DynamicHistogram;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
 public abstract class HistogramAnnotation extends AnnotationData {

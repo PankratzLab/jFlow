@@ -1,4 +1,4 @@
-package seq.cnv;
+package org.genvisis.seq.cnv;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -7,29 +7,29 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import seq.manage.BEDFileReader;
-import seq.manage.BEDFileReader.BEDFeatureSeg;
-import seq.manage.BamPile;
-import seq.manage.BamSegPileUp.BamPileResult;
-import seq.manage.BamSegPileUp.PileupProducer;
-import seq.manage.BedOps;
-import seq.qc.Mappability;
-import stats.Histogram.DynamicAveragingHistogram;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.WorkerTrain;
-import common.ext;
-import common.ArraySpecialList.ArrayIntList;
-import filesys.CNVariant;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.ArraySpecialList.ArrayIntList;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.BEDFileReader;
+import org.genvisis.seq.manage.BamPile;
+import org.genvisis.seq.manage.BedOps;
+import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
+import org.genvisis.seq.manage.BamSegPileUp.BamPileResult;
+import org.genvisis.seq.manage.BamSegPileUp.PileupProducer;
+import org.genvisis.seq.qc.Mappability;
+import org.genvisis.stats.Histogram.DynamicAveragingHistogram;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 /**
  * Currently geared toward providing qcMetrics for ExomeDepth Calls from raw bam data

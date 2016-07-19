@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;

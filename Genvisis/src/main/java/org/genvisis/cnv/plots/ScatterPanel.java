@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -17,21 +17,21 @@ import java.util.Hashtable;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
-import cnv.filesys.ClusterFilter;
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Pedigree;
-import cnv.gui.LaunchAction;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import cnv.qc.MendelErrors.MendelErrorCheck;
-import cnv.var.IndiPheno;
-import cnv.var.SampleData;
-import common.Array;
-import common.CountVector;
-import common.HashVec;
-import common.IntVector;
-import common.Logger;
-import common.Sort;
+import org.genvisis.cnv.filesys.ClusterFilter;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Pedigree;
+import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
+import org.genvisis.cnv.var.IndiPheno;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.CountVector;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.IntVector;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
 
 // TODO Needs some cleanup, especially MouseMoved, MouseClicked, and generatePoints
 public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {

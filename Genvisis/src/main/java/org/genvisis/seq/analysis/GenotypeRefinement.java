@@ -1,17 +1,17 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import seq.analysis.GATK.GenotypeRefiner;
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.GATK.GenotypeRefiner;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 
 public class GenotypeRefinement {
 

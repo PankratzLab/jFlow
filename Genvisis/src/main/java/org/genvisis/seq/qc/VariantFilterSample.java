@@ -1,16 +1,17 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.genvisis.common.Logger;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilterPass;
+
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
-import common.Logger;
-import seq.manage.VCOps;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import seq.qc.FilterNGS.VariantContextFilter;
-import seq.qc.FilterNGS.VariantContextFilterPass;
 
 public class VariantFilterSample {
 	private String filterName;

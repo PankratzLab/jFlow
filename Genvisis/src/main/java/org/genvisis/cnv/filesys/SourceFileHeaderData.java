@@ -1,4 +1,4 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,13 +11,13 @@ import java.util.HashSet;
 
 import javax.swing.JProgressBar;
 
-import cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
-import cnv.manage.SourceFileParser;
-import common.Array;
-import common.Elision;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
+import org.genvisis.cnv.manage.SourceFileParser;
+import org.genvisis.common.Array;
+import org.genvisis.common.Elision;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class SourceFileHeaderData implements Serializable {
     /**
@@ -226,7 +226,7 @@ public class SourceFileHeaderData implements Serializable {
     }
     
     public static HashMap<String, SourceFileHeaderData> validate(final String rawDir, final String ext, boolean fullValidation, Logger log, JProgressBar progressBar) {
-        String dir = rawDir.endsWith("/") || rawDir.endsWith("\\") ? rawDir : common.ext.verifyDirFormat(rawDir);
+        String dir = rawDir.endsWith("/") || rawDir.endsWith("\\") ? rawDir : org.genvisis.common.ext.verifyDirFormat(rawDir);
         String[] possibleFiles = (new File(dir)).list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {

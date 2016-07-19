@@ -1,4 +1,4 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,11 +9,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import common.Logger;
-import common.Positions;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import filesys.Segment;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.Segment;
+
 import htsjdk.samtools.BAMIndex;
 import htsjdk.samtools.BAMIndexMetaData;
 import htsjdk.samtools.QueryInterval;

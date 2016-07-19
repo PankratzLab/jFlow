@@ -1,13 +1,14 @@
-package bot;
+package org.genvisis.bot;
 
 import java.io.*;
 import java.util.*;
+
+import org.genvisis.common.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.awt.datatransfer.*;
-
-import common.*;
 
 public class Ahk {
     public static String intToHex(int y) {

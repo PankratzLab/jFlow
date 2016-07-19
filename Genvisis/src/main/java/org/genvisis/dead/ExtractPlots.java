@@ -1,10 +1,10 @@
 // -Xms1024M -Xmx1024M
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class ExtractPlots {
 	public static final String WINDOWS_DIRECTORY = "C:\\Documents and Settings\\npankrat\\My Documents\\ADNI\\genotypes\\";
@@ -399,7 +399,7 @@ public class ExtractPlots {
 			for (int i = 0; i<reps; i++) {
 				// writer.println("jcp gwas.ExtractPlots
 				// file="+prefix+(char)(i+97)+".txt");
-				writer.println("java -cp /home/genanal/" + common.PSF.Java.GENVISIS + " gwas.ExtractPlots file="+prefix+(char)(i+97)+".txt");
+				writer.println("java -cp /home/genanal/" + org.genvisis.common.PSF.Java.GENVISIS + " gwas.ExtractPlots file="+prefix+(char)(i+97)+".txt");
 
 			}
 			writer.println("cd ..");

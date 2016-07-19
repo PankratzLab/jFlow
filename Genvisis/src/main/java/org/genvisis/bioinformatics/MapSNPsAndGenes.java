@@ -1,15 +1,15 @@
 //-Xms2048M -Xmx2048M
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Vector;
 
-import one.ben.VCFExport;
-import seq.analysis.ANNOVAR;
-import seq.analysis.GATK_Genotyper;
-import seq.analysis.SNPEFF;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.one.ben.VCFExport;
+import org.genvisis.seq.analysis.ANNOVAR;
+import org.genvisis.seq.analysis.GATK_Genotyper;
+import org.genvisis.seq.analysis.SNPEFF;
 
 public class MapSNPsAndGenes {
 //	public static final boolean AUTOMATICALLY_ADD_ONE = true;

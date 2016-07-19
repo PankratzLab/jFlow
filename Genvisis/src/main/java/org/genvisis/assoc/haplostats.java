@@ -1,4 +1,4 @@
-package assoc;
+package org.genvisis.assoc;
 
 import java.io.*;
 import java.util.*;

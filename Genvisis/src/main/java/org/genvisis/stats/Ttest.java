@@ -1,11 +1,11 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 import java.util.*;
 
-import common.Array;
-import common.DoubleVector;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.DoubleVector;
+import org.genvisis.common.ext;
 
 public class Ttest {
 	private double meanDiff;

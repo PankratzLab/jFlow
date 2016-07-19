@@ -1,15 +1,14 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 import java.util.*;
 
 import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
-
-import common.Array;
-import common.Files;
-import common.Matrix;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
 
 public class LeastSquares extends RegressionModel {
 	private double[][] X;

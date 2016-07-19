@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,9 +8,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCOps;
 
-import seq.manage.VCOps;
-import filesys.Segment;
 import htsjdk.tribble.Tribble;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
@@ -25,11 +30,6 @@ import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.ext;
 
 public class ConvertChargeToVCF {
 

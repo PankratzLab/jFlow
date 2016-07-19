@@ -1,4 +1,4 @@
-package seq.qc.contamination;
+package org.genvisis.seq.qc.contamination;
 
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
@@ -7,12 +7,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import common.Files;
-import common.Logger;
-import common.ext;
-import seq.analysis.Blast;
-import seq.analysis.Blast.BlastResultsSummary;
-import seq.analysis.Blast.FastaEntry;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.Blast;
+import org.genvisis.seq.analysis.Blast.BlastResultsSummary;
+import org.genvisis.seq.analysis.Blast.FastaEntry;
 
 /**
  * @author lane0212 {@link BlastSeqProducer} for fasta type files

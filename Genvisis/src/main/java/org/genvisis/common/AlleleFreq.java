@@ -1,10 +1,10 @@
-package common;
+package org.genvisis.common;
 
 import java.io.*;
 
-import stats.ContingencyTable;
-import stats.Maths;
-import stats.ProbDist;
+import org.genvisis.stats.ContingencyTable;
+import org.genvisis.stats.Maths;
+import org.genvisis.stats.ProbDist;
 
 public class AlleleFreq {
 	public static double calcFrequency(int[] genotypes) {

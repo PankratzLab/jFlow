@@ -1,11 +1,10 @@
-package kaput;
+package org.genvisis.kaput;
 
 import java.io.*;
 import java.util.*;
 
-import stats.ProbDist;
-
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.ProbDist;
 
 public class bootstrapSNP {
 	public static int NUM_BOOTSTRAP_REPS = 5000;

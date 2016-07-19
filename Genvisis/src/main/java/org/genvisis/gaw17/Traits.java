@@ -1,13 +1,12 @@
-package gaw17;
+package org.genvisis.gaw17;
 
 import java.io.*;
 import java.util.*;
 
-import mining.Transformations;
-
-import stats.LeastSquares;
-import stats.LogisticRegression;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.mining.Transformations;
+import org.genvisis.stats.LeastSquares;
+import org.genvisis.stats.LogisticRegression;
 
 public class Traits {
 //	public static final String[] POPS = {"Caucasians", "Asians", "Africans"};

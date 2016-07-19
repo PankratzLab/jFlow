@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 /**
  * Signals that a foreseen problem (may or not be an actual exception) has occurred

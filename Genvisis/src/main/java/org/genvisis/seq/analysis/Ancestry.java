@@ -1,13 +1,13 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.File;
 
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.VcfPopulation;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 
 public class Ancestry {
 

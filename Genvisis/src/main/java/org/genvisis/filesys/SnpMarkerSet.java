@@ -1,6 +1,6 @@
 // -Xmx1024M
 // added in centiMoragns to the 4th column, make sure that's not causing any trouble for you 
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,21 +20,21 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import filesys.PlainTextExport;
-import link.LinkageMap;
-import bioinformatics.MapSNPsAndGenes;
-import bioinformatics.ParseSNPlocations;
-import common.Aliases;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.IntVector;
-import common.Logger;
-import common.Matrix;
-import common.Positions;
-import common.Sort;
-import common.Unique;
-import common.ext;
+import org.genvisis.bioinformatics.MapSNPsAndGenes;
+import org.genvisis.bioinformatics.ParseSNPlocations;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.IntVector;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.Positions;
+import org.genvisis.common.Sort;
+import org.genvisis.common.Unique;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.PlainTextExport;
+import org.genvisis.link.LinkageMap;
 
 public class SnpMarkerSet implements Serializable, PlainTextExport {
 	public static final long serialVersionUID = 1L;

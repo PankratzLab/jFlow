@@ -1,9 +1,9 @@
-package common;
+package org.genvisis.common;
 
 import java.net.URLEncoder;
 
-import filesys.Segment;
-import filesys.SnpMarkerSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.SnpMarkerSet;
 
 public class Positions {
 	public static final String[] CHR_CODES = { "Un", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y", "XY", "MT" };

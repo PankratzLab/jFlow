@@ -1,4 +1,4 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.*;
 import java.util.*;
@@ -7,15 +7,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import cnv.analysis.AnalysisFormats;
-import cnv.analysis.CentroidCompute;
-import cnv.manage.MarkerDataLoader;
-import cnv.manage.TextExport;
-import cnv.qc.SexChecks;
-import cnv.var.SampleData;
-import stats.Maths;
-import common.*;
-import common.WorkerTrain.Producer;
+import org.genvisis.cnv.analysis.AnalysisFormats;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.manage.TextExport;
+import org.genvisis.cnv.qc.SexChecks;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.stats.Maths;
 
 /**
  * @author lane0212
@@ -913,7 +913,7 @@ public class Centroids implements Serializable, TextExport {
 
 		String usage = "\n"+
 			"cnv.filesys.Centroids requires 0-1 arguments\n"+
-			"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+			"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 			"   (2) filename (i.e. file=" + centFile + " (default))\n"+
 			" OR\n"+
 			"   (2) generate centroids from genotypes (i.e. -fromGenotypes (not the default))\n"+

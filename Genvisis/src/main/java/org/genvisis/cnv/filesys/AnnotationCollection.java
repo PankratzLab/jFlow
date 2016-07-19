@@ -1,4 +1,4 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,13 +15,13 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-import cnv.manage.TextExport;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Sort;
-import common.ext;
+import org.genvisis.cnv.manage.TextExport;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class AnnotationCollection implements Serializable, TextExport {
 	private static final long serialVersionUID = 1L;
@@ -355,7 +355,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 		String usage = "\n" + 
 		"cnv.filesys.AnnotationCollection requires 0-1 arguments\n" + 
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"  AND\n" +
 		"   (2) list annotations (i.e. exportList="+exportList+" (default))\n" +
 		"  OR\n" +

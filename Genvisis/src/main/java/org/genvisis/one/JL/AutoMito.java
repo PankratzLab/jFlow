@@ -1,24 +1,24 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.PSF;
-import common.ext;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import cnv.qc.LrrSd;
-import cnv.qc.MarkerMetrics;
-import cnv.qc.SampleQC;
-import cnv.qc.SexChecks;
-import cnv.var.SampleData;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.cnv.qc.LrrSd;
+import org.genvisis.cnv.qc.MarkerMetrics;
+import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.cnv.qc.SexChecks;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
 
 /**
  * testing some auto-marker selection for PCA

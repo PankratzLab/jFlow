@@ -1,6 +1,6 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
-import common.ext;
+import org.genvisis.common.ext;
 
 public class Sequence {
 //	public static final String[] SENSE = {"A", "C", "G", "T", "I", "D"}; // keep, helps when searching for "A", "C", "G", "T"

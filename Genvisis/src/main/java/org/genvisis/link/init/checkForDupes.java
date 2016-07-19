@@ -1,10 +1,10 @@
 // looks for duplicate individuals (2 DNA numbers or 2 identical FamID-IndID pairs) in a chromosome.dat file
-package link.init;
+package org.genvisis.link.init;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class checkForDupes {
 	public checkForDupes(boolean fix) throws IOException {

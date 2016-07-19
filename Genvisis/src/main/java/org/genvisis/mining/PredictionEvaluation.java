@@ -1,4 +1,4 @@
-package mining;
+package org.genvisis.mining;
 
 public class PredictionEvaluation {
 	public static final int MAE = 0; // Mean Absolute Error (MAE)

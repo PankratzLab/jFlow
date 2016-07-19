@@ -1,9 +1,9 @@
-package cnv.var;
+package org.genvisis.cnv.var;
 
 import java.util.Hashtable;
 import java.util.Vector;
 
-import filesys.CNVariant;
+import org.genvisis.filesys.CNVariant;
 
 public class IndiPheno {
 	private double[] filters;

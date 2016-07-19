@@ -1,4 +1,4 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -12,24 +12,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.cnv.plots.ColorExt;
+import org.genvisis.cnv.plots.ColorExt.ColorItem;
+import org.genvisis.cnv.plots.ColorExt.ColorManager;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.stats.CrossValidation;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
+
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
-import seq.manage.ReferenceGenome;
-import stats.CrossValidation;
-import stats.LeastSquares.LS_TYPE;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.MarkerSet.PreparedMarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.plots.ColorExt;
-import cnv.plots.ColorExt.ColorItem;
-import cnv.plots.ColorExt.ColorManager;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.Segment;
 
 /**
  * Class for correcting intensity using gc content, see http://nar.oxfordjournals.org/content/36/19/e126.full.pdf
@@ -505,7 +506,7 @@ public class GcAdjustor {
 				log.report("Info - computing GCWF using " + medianGc.size() + " elements");
 			}
 		}
-		double cc = stats.Correlation.Pearson(Array.toDoubleArray(medianIntensity), Array.toDoubleArray(medianGc))[0];
+		double cc = org.genvisis.stats.Correlation.Pearson(Array.toDoubleArray(medianIntensity), Array.toDoubleArray(medianGc))[0];
 		waves[0] = cc > 0 ? -1 * wf : wf;
 		waves[1] = waves[0] * Math.abs(cc);
 		return waves;

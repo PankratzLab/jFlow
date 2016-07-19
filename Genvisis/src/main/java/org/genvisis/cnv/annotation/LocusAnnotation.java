@@ -1,14 +1,15 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import java.util.ArrayList;
 
-import common.Array;
-import common.Logger;
-import common.Positions;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.filesys.Segment;
+
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
-import filesys.Segment;
 
 public class LocusAnnotation {
 	private String locusName;

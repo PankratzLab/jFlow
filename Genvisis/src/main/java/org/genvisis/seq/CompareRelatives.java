@@ -1,4 +1,4 @@
-package seq;
+package org.genvisis.seq;
 
 //import java.io.*;
 //import java.util.*;

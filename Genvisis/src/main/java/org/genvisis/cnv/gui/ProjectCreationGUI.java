@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -26,17 +26,18 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
-import common.Array;
-import common.Files;
-import common.Grafik;
-import common.ext;
-import cnv.filesys.SourceFileHeaderData;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
-import cnv.manage.MitoPipeline;
-import cnv.manage.SourceFileParser;
 import net.miginfocom.swing.MigLayout;
+
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SourceFileHeaderData;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
+import org.genvisis.cnv.manage.MitoPipeline;
+import org.genvisis.cnv.manage.SourceFileParser;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.ext;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -423,7 +424,7 @@ public class ProjectCreationGUI extends JDialog {
         double xy = ((Double)spinnerXY.getValue()).doubleValue();
         String tgtMkrs = txtFldTgtMkrs.getText().trim();
         
-        HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt, actuallyValidate, new common.Logger(), progressBar);
+        HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt, actuallyValidate, new org.genvisis.common.Logger(), progressBar);
         if (headers == null) {
             // errors found in headers - check output and retry?
             return false;

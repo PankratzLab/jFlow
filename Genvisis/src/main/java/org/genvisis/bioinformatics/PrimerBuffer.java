@@ -1,4 +1,4 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -8,13 +8,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import seq.manage.ReferenceGenome;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
 
 public class PrimerBuffer {
 	private static final String[] HEADER = new String[] { "CHR", "START", "STOP", "TARGET_SEQUENCE" };

@@ -5,13 +5,13 @@
 
 // probably want to start using a Logger at some point
 
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
 
 public class Eigenstrat {
 	public static boolean DEFAULT_FANCY_WEIGHTING = true;

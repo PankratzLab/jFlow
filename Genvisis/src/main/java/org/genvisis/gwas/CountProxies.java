@@ -1,8 +1,9 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class CountProxies {
 	public static final String[][] HEADER_EXPECTATIONS = {{"Region"}, {"MarkerName", "SNP", "RSID"}, {"Chr"}, {"Position", "BP"}, {"Rsq"}, {"Pval", "P-value"}, {"Replication"}};

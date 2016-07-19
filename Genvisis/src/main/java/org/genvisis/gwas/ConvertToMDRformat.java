@@ -1,9 +1,9 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class ConvertToMDRformat {
 	// public static final String DEFAULT_DIR = "C:\\Documents and

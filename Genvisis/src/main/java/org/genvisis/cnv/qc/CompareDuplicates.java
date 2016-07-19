@@ -1,11 +1,10 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.*;
 
-import stats.Correlation;
-
-import cnv.filesys.*;
-import common.*;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.Correlation;
 
 public class CompareDuplicates {
 
@@ -138,7 +137,7 @@ public class CompareDuplicates {
 
 		String usage = "\n"+
 		"cnv.qc.CompareDuplicates requires 0-1 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) file with list of sample pairs (i.e. pairs="+pairs+" (default; to be found in project directory))\n"+
 		"";
 

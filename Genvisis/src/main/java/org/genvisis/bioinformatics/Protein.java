@@ -1,9 +1,9 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 
-import common.Matrix;
-import common.ext;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
 
 public class Protein {
 	public static final String[][] AMINO_ACID_LOOKUP = {

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 /**
@@ -58,7 +58,7 @@ package ejml;
  */
 public class MatrixMatrixMult {
     /**
-     * @see ejml.CommonOps#mult( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#mult( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void mult_reorder( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -104,7 +104,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#mult( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#mult( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void mult_small( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -138,7 +138,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#mult( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#mult( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void mult_aux( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c , double []aux )
     {
@@ -170,7 +170,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multTransA( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multTransA( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multTransA_reorder( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -209,7 +209,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multTransA( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multTransA( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multTransA_small( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -243,7 +243,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multTransAB( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multTransAB( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multTransAB( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -276,7 +276,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multTransAB( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multTransAB( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multTransAB_aux( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c , double []aux )
     {
@@ -308,7 +308,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multTransB( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multTransB( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multTransB( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -342,7 +342,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAdd( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAdd( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAdd_reorder( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -388,7 +388,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAdd( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAdd( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAdd_small( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -422,7 +422,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAdd( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAdd( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAdd_aux( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c , double []aux )
     {
@@ -454,7 +454,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAddTransA( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAddTransA( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAddTransA_reorder( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -493,7 +493,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAddTransA( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAddTransA( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAddTransA_small( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -527,7 +527,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAddTransAB( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAddTransAB( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAddTransAB( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -560,7 +560,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAddTransAB( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAddTransAB( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAddTransAB_aux( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c , double []aux )
     {
@@ -592,7 +592,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAddTransB( ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAddTransB( org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAddTransB( RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -626,7 +626,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#mult(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#mult(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void mult_reorder( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -672,7 +672,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#mult(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#mult(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void mult_small( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -706,7 +706,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#mult(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#mult(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void mult_aux( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c , double []aux )
     {
@@ -738,7 +738,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multTransA(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multTransA(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multTransA_reorder( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -777,7 +777,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multTransA(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multTransA(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multTransA_small( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -811,7 +811,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multTransAB(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multTransAB(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multTransAB( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -844,7 +844,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multTransAB(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multTransAB(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multTransAB_aux( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c , double []aux )
     {
@@ -876,7 +876,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multTransB(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multTransB(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multTransB( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -910,7 +910,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAdd(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAdd(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAdd_reorder( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -956,7 +956,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAdd(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAdd(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAdd_small( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -990,7 +990,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAdd(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAdd(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAdd_aux( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c , double []aux )
     {
@@ -1022,7 +1022,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAddTransA(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAddTransA(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAddTransA_reorder( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -1061,7 +1061,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAddTransA(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAddTransA(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAddTransA_small( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -1095,7 +1095,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAddTransAB(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAddTransAB(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAddTransAB( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {
@@ -1128,7 +1128,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAddTransAB(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAddTransAB(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAddTransAB_aux( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c , double []aux )
     {
@@ -1160,7 +1160,7 @@ public class MatrixMatrixMult {
     }
 
     /**
-     * @see ejml.CommonOps#multAddTransB(double,  ejml.RowD1Matrix64F, ejml.RowD1Matrix64F, ejml.RowD1Matrix64F)
+     * @see org.genvisis.ejml.CommonOps#multAddTransB(double,  org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F, org.genvisis.ejml.RowD1Matrix64F)
      */
     public static void multAddTransB( double alpha , RowD1Matrix64F a , RowD1Matrix64F b , RowD1Matrix64F c )
     {

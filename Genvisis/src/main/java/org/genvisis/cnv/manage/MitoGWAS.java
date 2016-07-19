@@ -1,7 +1,5 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
-import gwas.PhenoPrep;
-import gwas.Qc;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -14,31 +12,33 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import seq.manage.VCFOps;
-import seq.manage.VCOps;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.Restrictions;
-import stats.Rscript.SCATTER_TYPE;
-import stats.StatsCrossTabs;
-import stats.StatsCrossTabs.STAT_TYPE;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Sort;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Pedigree;
-import cnv.filesys.Project;
-import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import cnv.qc.MarkerMetrics;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Pedigree;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.cnv.qc.MarkerMetrics;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.gwas.PhenoPrep;
+import org.genvisis.gwas.Qc;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.stats.StatsCrossTabs;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.Restrictions;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
+import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
 
 /**
  * Run a gwas of original (Array) genotypes for mitochondrial cn for estimates from particular pc-estimates/pedigree/covars <br>
@@ -234,7 +234,7 @@ public class MitoGWAS {
 		boolean[] valids = Array.booleanArray(emp1s[0].length, true);
 		VCFFileReader annoReader = null;
 		if (Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue())) {
-			annoReader = new VCFFileReader(proj.BLAST_ANNOTATION_FILENAME.getValue(), true);
+			annoReader = new VCFFileReader(new File(proj.BLAST_ANNOTATION_FILENAME.getValue()), true);
 		}
 		String[] annotations = annoReader == null ? new String[] {} : VCFOps.getAnnotationKeys(proj.BLAST_ANNOTATION_FILENAME.getValue(), proj.getLog())[0];
 		ExtProjectDataParser qcParser = MarkerMetrics.developParser(proj, proj.MARKER_METRICS_FILENAME.getValue());

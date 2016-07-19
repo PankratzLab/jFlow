@@ -1,4 +1,4 @@
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 

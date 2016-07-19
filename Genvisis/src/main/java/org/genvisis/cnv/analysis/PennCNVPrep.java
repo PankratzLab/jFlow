@@ -1,4 +1,4 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,21 +14,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import stats.LeastSquares.LS_TYPE;
-import cnv.analysis.pca.PrincipalComponentsIntensity;
-import cnv.analysis.pca.PrincipalComponentsIntensity.PcCorrectionProducer;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.manage.MarkerDataLoader;
-import cnv.var.SampleData;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.WorkerTrain;
-import common.ext;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.PcCorrectionProducer;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 /**
  * This is a temporary fix to export corrected intensities, geared toward PennCNV output and shadow samples. It currently seems to work, but be weary
@@ -646,7 +646,7 @@ public class PennCNVPrep {
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-		String classPath = "/home/pankrat2/coleb/" + common.PSF.Java.GENVISIS;
+		String classPath = "/home/pankrat2/coleb/" + org.genvisis.common.PSF.Java.GENVISIS;
 		String java = "/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/bin/java";// for lab
 		// String java ="/soft/java/jdk1.7.0_45/bin/java"; //for itasca
 		int memoryInMB = 22000;

@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
-import common.HttpUpdate.Version;
+import org.genvisis.common.HttpUpdate.Version;
 
 /**
  * Try to parse the attributes of currently running jar;

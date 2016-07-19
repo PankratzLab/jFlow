@@ -1,19 +1,20 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
-import cnv.plots.ScatterPlot;
-import cnv.plots.Trailer;
-import common.Array;
-import common.ext;
-import common.Files;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
+
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.plots.ScatterPlot;
+import org.genvisis.cnv.plots.Trailer;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
+
 import java.awt.Color;
 import java.awt.Toolkit;
 
 import javax.swing.*;
-
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
 
 public class LaunchAction extends AbstractAction {
 	public static final long serialVersionUID = 1L;

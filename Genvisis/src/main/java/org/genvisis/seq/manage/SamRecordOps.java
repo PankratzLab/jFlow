@@ -1,11 +1,12 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.util.ArrayList;
 
-import common.Array;
-import common.Logger;
-import common.Positions;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.filesys.Segment;
+
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;

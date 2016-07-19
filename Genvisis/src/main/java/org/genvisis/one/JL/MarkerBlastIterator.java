@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -8,32 +8,32 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import seq.analysis.Blast;
-import seq.analysis.Blast.BlastResults;
-import seq.manage.ReferenceGenome;
-import stats.Histogram.DynamicAveragingHistogram;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import cnv.qc.MarkerBlast;
-import cnv.qc.MarkerMetrics;
-import cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
-import cnv.qc.MarkerBlast.MarkerBlastResult;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.Sort;
-import common.ext;
-import filesys.Segment;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.cnv.qc.MarkerBlast;
+import org.genvisis.cnv.qc.MarkerMetrics;
+import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
+import org.genvisis.cnv.qc.MarkerBlast.MarkerBlastResult;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.analysis.Blast;
+import org.genvisis.seq.analysis.Blast.BlastResults;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.stats.Histogram.DynamicAveragingHistogram;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 public class MarkerBlastIterator {
 

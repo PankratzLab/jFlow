@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -6,21 +6,19 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import stats.Correlation;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-
-
-import cnv.filesys.Project;
-import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.stats.Correlation;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 /**
  * Look at correlation of mito estimates from different pc files, relies on typed/*.gz files

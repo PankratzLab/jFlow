@@ -1,4 +1,4 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,14 +8,14 @@ import java.util.ArrayList;
 
 import javax.jms.IllegalStateException;
 
-import common.Array;
-import common.Files;
-import common.PSF;
-import common.Sort;
-import common.ext;
-import cnv.analysis.pca.PrincipalComponentsCompute;
-import cnv.filesys.Project;
-import cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.PSF;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 /**
  * @author lane0212 Detecting batch effects similar to http://www.ncbi.nlm.nih.gov/pubmed/23958724

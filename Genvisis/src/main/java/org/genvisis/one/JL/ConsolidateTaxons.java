@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -10,10 +10,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class ConsolidateTaxons {
 	public static void consolidate(String rootDir) {

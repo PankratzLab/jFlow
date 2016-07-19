@@ -1,4 +1,4 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -9,11 +9,11 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
-import cnv.var.MosaicRegion;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Positions;
+import org.genvisis.cnv.var.MosaicRegion;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
 
 public abstract class LocusSet<T extends Segment> implements Serializable {
 	/**

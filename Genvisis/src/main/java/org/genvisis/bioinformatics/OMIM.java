@@ -1,4 +1,4 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import common.Array;
-import common.Files;
-import common.Logger;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
 
 /**
  * @author lane0212

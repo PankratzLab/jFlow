@@ -1,13 +1,14 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.*;
 import java.util.*;
-import java.text.SimpleDateFormat;
 
-import common.*;
-import cnv.filesys.*;
-import cnv.manage.SDL.LOAD_TYPE;
-import cnv.var.SampleData;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.manage.SDL.LOAD_TYPE;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
+
+import java.text.SimpleDateFormat;
 
 public class PlinkData {
 	public static final String FAM_DELIMITER = " ";

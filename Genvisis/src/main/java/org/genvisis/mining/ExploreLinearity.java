@@ -1,11 +1,11 @@
-package mining;
+package org.genvisis.mining;
 
 import java.io.*;
 import java.util.*;
 
-import stats.Correlation;
-import stats.LeastSquares;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.Correlation;
+import org.genvisis.stats.LeastSquares;
 
 public class ExploreLinearity {
 	private double[][][] correlations;

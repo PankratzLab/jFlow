@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -27,14 +27,13 @@ import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
-import cnv.filesys.Project;
-import cnv.gui.CheckBoxTree;
-import cnv.gui.ColorIcon;
-
-import common.Grafik;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.CheckBoxTree;
+import org.genvisis.cnv.gui.ColorIcon;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class LinePlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {
 	public static final long serialVersionUID = 1L;
@@ -887,7 +886,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				createAndShowGUI(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
+				createAndShowGUI(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false));
 			}
 		});
 

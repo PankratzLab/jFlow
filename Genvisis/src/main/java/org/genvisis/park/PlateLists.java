@@ -1,10 +1,10 @@
 // autogenerate the master list
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class PlateLists {
 	public static boolean PROGENI_NOT_CARES = true;

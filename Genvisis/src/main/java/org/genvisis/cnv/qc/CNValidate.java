@@ -1,18 +1,18 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import common.Array;
-import common.Logger;
-import common.Sort;
-import common.ext;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.manage.Transforms;
-import cnv.var.SampleData;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.Transforms;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class CNValidate implements Runnable {
 	private static final double SCALE_FACTOR_MAD = 0.134894516;

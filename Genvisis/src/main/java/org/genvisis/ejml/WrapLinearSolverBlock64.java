@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
 /**
- * Wrapper that allows {@link ejml.LinearSolver <BlockMatrix64F>} to implements {@link ejml.LinearSolver}.  It works
+ * Wrapper that allows {@link org.genvisis.ejml.LinearSolver <BlockMatrix64F>} to implements {@link org.genvisis.ejml.LinearSolver}.  It works
  * by converting {@link DenseMatrix64F} into {@link BlockMatrix64F} and calling the equivalent
  * functions.  Since a local copy is made all input matrices are never modified.
  *

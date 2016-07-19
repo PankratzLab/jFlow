@@ -1,4 +1,4 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -7,19 +7,19 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import seq.manage.ReferenceGenome;
-import stats.Rscript.GeomText;
-import stats.Rscript.RScatter;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import filesys.GeneData;
-import filesys.GeneTrack;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.stats.Rscript.GeomText;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 /**
  * @author lane0212 Used for determining capture effeciency of specific targets

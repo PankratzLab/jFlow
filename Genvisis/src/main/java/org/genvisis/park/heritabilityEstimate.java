@@ -1,10 +1,10 @@
 // currently PD dependent
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class heritabilityEstimate {
 	public static final String DEFAULT_DB = tools.CRF_DIR+"crf_db.dat";

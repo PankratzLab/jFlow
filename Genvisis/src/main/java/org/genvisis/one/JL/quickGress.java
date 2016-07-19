@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 public class quickGress {
 

@@ -1,14 +1,14 @@
-package jlDev;
+package org.genvisis.jlDev;
 
 import java.util.ArrayList;
 
-import common.HashVec;
-import common.ext;
-import cnv.filesys.Project;
-import cnv.var.SampleData;
-import filesys.CNVariant;
-import filesys.LocusSet;
-import filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 
 public class ARIC {
 

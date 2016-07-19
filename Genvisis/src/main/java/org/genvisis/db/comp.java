@@ -1,29 +1,29 @@
 // mandating uniqueid, famid, indid as the first three is limiting
 // -Xms1024M -Xmx1024M
-package db;
+package org.genvisis.db;
 
 import java.io.*;
 import java.util.*;
 
-import mining.Transformations;
-import common.AlleleFreq;
-import common.Array;
-import common.DoubleVector;
-import common.Files;
-import common.HashVec;
-import common.IntVector;
-import common.Logger;
-import common.Matrix;
-import common.Sort;
-import common.ext;
-import stats.ContingencyTable;
-import stats.LeastSquares;
-import stats.LogisticRegression;
-import stats.PermuteOnePer;
-import stats.ProbDist;
-import stats.RegressionModel;
-import stats.Stepwise;
-import stats.Ttest;
+import org.genvisis.common.AlleleFreq;
+import org.genvisis.common.Array;
+import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.IntVector;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.mining.Transformations;
+import org.genvisis.stats.ContingencyTable;
+import org.genvisis.stats.LeastSquares;
+import org.genvisis.stats.LogisticRegression;
+import org.genvisis.stats.PermuteOnePer;
+import org.genvisis.stats.ProbDist;
+import org.genvisis.stats.RegressionModel;
+import org.genvisis.stats.Stepwise;
+import org.genvisis.stats.Ttest;
 
 public class comp {
 	public static String DEFAULT_TRAIT = "AOO";

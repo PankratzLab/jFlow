@@ -1,4 +1,4 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -13,14 +13,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
 
-import cnv.filesys.Project;
-import common.Array;
-import common.Elision;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Sort;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Elision;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class PlinkMarkerLoader implements Runnable {
 	

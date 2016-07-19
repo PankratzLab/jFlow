@@ -1,9 +1,8 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 
-//import java.util.*;
-import common.*;
+import org.genvisis.common.*;
 
 public class Merlin {
 	public static final int CHR_START = 1;
@@ -66,7 +65,7 @@ public class Merlin {
 			if (blade) {
 				commands = ""+
 				"cd "+qsub+"\n"+
-				"java -cp /home/bc2/pankratz/" + common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"+
+				"java -cp /home/bc2/pankratz/" + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"+
 				"merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log";
 				Files.qsub(qsub+"_vc", "java", CHR_START, CHR_STOP, commands, 1, 10, null);
 			} else {
@@ -79,7 +78,7 @@ public class Merlin {
 		} else {
 			commands = "echo \"Starting chr# at...\"\n"
 				+(win?"date /t\ntime /t\n":"date\n")
-				+"java -cp "+(win?"C:":"")+"/home/npankrat/" + common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
+				+"java -cp "+(win?"C:":"")+"/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
 				+"merlin -d chr##.dat -p re_chrom##.pre -m chr##.map --vc --tabulate --step 5 --markerNames --information --prefix vc-chr## > vc-chr##.log\n"
 				+"echo \"Finished chr# at...\"\n"
 				+(win?"date /t\ntime /t\n":"date\n");
@@ -94,7 +93,7 @@ public class Merlin {
 		if (qsub != null) {
 			if (blade) {
 				commands = "cd "+qsub+"\n"+
-				"java -cp /home/bc2/pankratz/" + common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"+
+				"java -cp /home/bc2/pankratz/" + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"+
 				"merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean "+quant[0]+" --var "+quant[1]+" --her "+quant[2]+" --tabulate --step 5 --prefix regress-chr##";
 				Files.qsub(qsub+"_regress", null, CHR_START, CHR_STOP, commands, 1, 48, null);
 			} else {
@@ -106,7 +105,7 @@ public class Merlin {
 		} else {
 			commands = "echo \"Starting chr# at...\"\n"
 				+(win?"date /t\ntime /t\n":"date\n")
-				+"java -cp "+(win?"C:":"")+"/home/npankrat/" + common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
+				+"java -cp "+(win?"C:":"")+"/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " link.Merlin chr=#\n"
 				+"merlin-regress -d chr##.dat -p re_chrom##.pre -m chr##.map --mean "+quant[0]+" --var "+quant[1]+" --her "+quant[2]+" --tabulate --step 5 --information --ibd --prefix regress-chr##\n"
 				+"echo \"Finished chr# at...\"\n"
 				+(win?"date /t\ntime /t\n":"date\n");

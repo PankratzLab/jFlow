@@ -1,4 +1,4 @@
-package one.ben.fcs;
+package org.genvisis.one.ben.fcs;
 
 import java.awt.Color;
 import java.awt.Rectangle;
@@ -14,20 +14,19 @@ import java.util.HashSet;
 
 import javax.swing.SwingUtilities;
 
-import one.ben.fcs.gating.Gate;
-import one.ben.fcs.gating.Gate.PolygonGate;
-import one.ben.fcs.gating.Gate.RectangleGate;
-import one.ben.fcs.gating.GateDimension;
-import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
-import cnv.plots.GenericLine;
-import cnv.plots.GenericPath;
-//import cnv.filesys.MarkerLookup;
-import cnv.plots.GenericRectangle;
-import cnv.plots.PlotPoint;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.ext;
+import org.genvisis.cnv.plots.GenericLine;
+import org.genvisis.cnv.plots.GenericPath;
+import org.genvisis.cnv.plots.GenericRectangle;
+import org.genvisis.cnv.plots.PlotPoint;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.gating.Gate;
+import org.genvisis.one.ben.fcs.gating.GateDimension;
+import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
+import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
+import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 
 public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;

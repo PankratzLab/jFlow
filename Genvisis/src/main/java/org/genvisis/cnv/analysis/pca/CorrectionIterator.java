@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,33 +10,33 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import stats.ICC;
-import stats.LeastSquares.LS_TYPE;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.ErrorBars;
-import stats.Rscript.GEOM_POINT_SIZE;
-import stats.Rscript.GeomText;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-import stats.StatsCrossTabs.STAT_TYPE;
-import stats.StatsCrossTabs.StatsCrossTabRank;
-import stats.StatsCrossTabs.VALUE_TYPE;
-import common.Array;
-import common.Array.BooleanClassifier;
-import common.ArraySpecialList.ArrayStringList;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import cnv.filesys.Project;
-import cnv.manage.ExtProjectDataParser;
-import cnv.manage.TransposeData;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.Array.BooleanClassifier;
+import org.genvisis.common.ArraySpecialList.ArrayStringList;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.stats.ICC;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.ErrorBars;
+import org.genvisis.stats.Rscript.GEOM_POINT_SIZE;
+import org.genvisis.stats.Rscript.GeomText;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
+import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
+import org.genvisis.stats.StatsCrossTabs.StatsCrossTabRank;
+import org.genvisis.stats.StatsCrossTabs.VALUE_TYPE;
 
 public class CorrectionIterator implements Serializable {
 	/**

@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
-import static ejml.BlockInnerMultiplication.blockMultPlusTransA;
+import static org.genvisis.ejml.BlockInnerMultiplication.blockMultPlusTransA;
 
 
 /**

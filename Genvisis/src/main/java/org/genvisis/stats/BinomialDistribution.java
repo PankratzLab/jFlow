@@ -1,8 +1,8 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 
-import common.ext;
+import org.genvisis.common.ext;
 
 public class BinomialDistribution {
 	public static final double DEFAULT_ALPHA = 0.05;

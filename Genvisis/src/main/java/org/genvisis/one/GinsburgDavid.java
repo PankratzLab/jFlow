@@ -1,11 +1,12 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
-import common.*;
-import link.*;
-import link.bat.Mendel;
-import filesys.SnpMarkerSet;
+
+import org.genvisis.common.*;
+import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.link.*;
+import org.genvisis.link.bat.Mendel;
 
 public class GinsburgDavid {
 	public static final String LOG_FILE = "logfile.txt";

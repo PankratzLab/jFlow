@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
 /**
  * Wrapper around {@link BlockQrHouseHolderSolver} that allows it to process
- * {@link ejml.DenseMatrix64F}.
+ * {@link org.genvisis.ejml.DenseMatrix64F}.
  *
  * @author Peter Abeles
  */

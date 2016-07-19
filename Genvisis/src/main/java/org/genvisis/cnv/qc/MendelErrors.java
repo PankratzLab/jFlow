@@ -1,14 +1,13 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import common.Logger;
-
-import cnv.filesys.MarkerData;
-import cnv.filesys.Pedigree;
-import cnv.filesys.Project;
-import cnv.manage.MDL;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Pedigree;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MDL;
+import org.genvisis.common.Logger;
 
 /**
  * @author Kitty Check for Mendelian errors in a pedigree, taken from http://pngu.mgh.harvard.edu/~purcell/plink/summary.shtml#mendel

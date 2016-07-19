@@ -1,6 +1,6 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
-import cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project;
 
 public interface TextExport {
     public void exportToText(Project proj, String outputFile);

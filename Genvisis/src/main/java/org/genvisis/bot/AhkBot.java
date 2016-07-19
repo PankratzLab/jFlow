@@ -1,4 +1,4 @@
-package bot;
+package org.genvisis.bot;
 
 import java.awt.*;
 import java.awt.event.*;

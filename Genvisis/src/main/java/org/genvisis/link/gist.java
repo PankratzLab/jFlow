@@ -1,10 +1,10 @@
 // sets up for GIST, assumes 2 is the deleterious allele
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class gist {
 	public static String TARGET_FREQ = "0.45";

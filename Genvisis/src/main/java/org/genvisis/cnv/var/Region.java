@@ -1,7 +1,7 @@
 /**
  * 
  */
-package cnv.var;
+package org.genvisis.cnv.var;
 
 /**
  * @author Michael Vieths

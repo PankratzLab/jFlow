@@ -4,7 +4,7 @@
 // always filter on hwe before using as a reference
 //
 // should the chromosomal positions be stored in LDdatabase and serialized to be used in subsequent calculations?
-package dead;
+package org.genvisis.dead;
 
 //import java.io.*;
 //import java.util.*;

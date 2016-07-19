@@ -1,4 +1,4 @@
-package one.ben.fcs.sub;
+package org.genvisis.one.ben.fcs.sub;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -39,14 +39,15 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import net.miginfocom.swing.MigLayout;
-import one.ben.fcs.AbstractPanel2;
-import one.ben.fcs.FCSPlot;
-import one.ben.fcs.sub.OneDPanel.PLOT_TYPE;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Matrix;
-import common.ext;
+
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.AbstractPanel2;
+import org.genvisis.one.ben.fcs.FCSPlot;
+import org.genvisis.one.ben.fcs.sub.OneDPanel.PLOT_TYPE;
 
 public class BoxPlot extends JFrame {
     

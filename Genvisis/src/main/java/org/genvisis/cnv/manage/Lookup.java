@@ -1,9 +1,9 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.util.Hashtable;
 
-import cnv.filesys.Project;
-import cnv.var.SampleData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
 
 public class Lookup {
 	

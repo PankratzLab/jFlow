@@ -1,7 +1,7 @@
 /**
  * 
  */
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -37,24 +37,24 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.gui.ChromosomeViewer;
-import cnv.gui.CompConfig;
-import cnv.gui.FileNavigator;
-import cnv.gui.LRRComp;
-import cnv.gui.NewRegionListDialog;
-import cnv.gui.RegionNavigator;
-import cnv.manage.UCSCtrack;
-import cnv.var.CNVRectangles;
-import cnv.var.Region;
-import common.Array;
-import common.Files;
-import common.Positions;
-import common.ext;
-import filesys.CNVariant;
-import filesys.CNVariantHash;
-import filesys.GeneTrack;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.ChromosomeViewer;
+import org.genvisis.cnv.gui.CompConfig;
+import org.genvisis.cnv.gui.FileNavigator;
+import org.genvisis.cnv.gui.LRRComp;
+import org.genvisis.cnv.gui.NewRegionListDialog;
+import org.genvisis.cnv.gui.RegionNavigator;
+import org.genvisis.cnv.manage.UCSCtrack;
+import org.genvisis.cnv.var.CNVRectangles;
+import org.genvisis.cnv.var.Region;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.CNVariantHash;
+import org.genvisis.filesys.GeneTrack;
 
 /**
  * @author Michael Vieths

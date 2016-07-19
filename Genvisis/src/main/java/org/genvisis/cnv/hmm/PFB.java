@@ -1,10 +1,10 @@
-package cnv.hmm;
+package org.genvisis.cnv.hmm;
 
 import java.io.FileNotFoundException;
 
-import cnv.filesys.Project;
-import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 
 /**
  * @author lane0212 Handles the pfb data for the hmm in reduced format

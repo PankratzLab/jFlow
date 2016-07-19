@@ -1,10 +1,9 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
 
-import common.Files;
-
-import cnv.qc.CNVariantQC;
+import org.genvisis.cnv.qc.CNVariantQC;
+import org.genvisis.common.Files;
 
 public class CNVQC implements Serializable {
 

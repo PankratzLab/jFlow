@@ -1,19 +1,19 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashSet;
 
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.manage.MarkerDataLoader;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class Zcall {
 	public static final String[] BASIC_HEADER = {"Name", "Chr", "Position"};
@@ -132,7 +132,7 @@ public class Zcall {
 		
 		String usage = "\n" + 
 		"cnv.analysis.Zcall requires 0-1 arguments\n" + 
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) filename of subset of markers to include / otherwise all markers (i.e. markers=" + markersSubset + " (default))\n" + 
 		"   (3) filename of subset of samples to include / otherwise all samples (i.e. samples=" + samples + " (default))\n" +
 		"";

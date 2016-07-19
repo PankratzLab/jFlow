@@ -1,4 +1,4 @@
-package one;
+package org.genvisis.one;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -26,19 +26,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import seq.Polymutt;
-import bioinformatics.Samtools;
-import bioinformatics.SeattleSeq;
-import common.Array;
-import common.CountHash;
-import common.Files;
-import common.Logger;
-import common.Matrix;
-import common.Positions;
-import common.Sort;
-import common.ext;
-import filesys.Segment;
-import filesys.SegmentLists;
+import org.genvisis.bioinformatics.Samtools;
+import org.genvisis.bioinformatics.SeattleSeq;
+import org.genvisis.common.Array;
+import org.genvisis.common.CountHash;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.Positions;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.SegmentLists;
+import org.genvisis.seq.Polymutt;
 
 public class SuperNovo {
 	public static final String[] SAMPLE_SUFFIX = new String[] {"C", "D", "M"};

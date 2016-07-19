@@ -1,4 +1,4 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,26 +16,38 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 
-import seq.analysis.GATK;
-import seq.analysis.PlinkSeq;
-import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
-import seq.analysis.PlinkSeq.LOAD_TYPES;
-import seq.analysis.PlinkSeq.PlinkSeqWorker;
-import seq.analysis.PlinkSeqUtils.PseqProject;
-import seq.manage.BEDFileReader.BEDFeatureSeg;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
-import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
-import seq.qc.FilterNGS.VariantContextFilter;
-import stats.Histogram.DynamicAveragingHistogram;
-import stats.Histogram.DynamicHistogram;
-import filesys.LocusSet;
-import filesys.Segment;
-import filesys.LocusSet.TO_STRING_TYPE;
-import gwas.MatchSamples;
-import gwas.MatchesVisualized;
-import gwas.MergeDatasets;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.Positions;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.gwas.MatchSamples;
+import org.genvisis.gwas.MatchesVisualized;
+import org.genvisis.gwas.MergeDatasets;
+import org.genvisis.seq.analysis.GATK;
+import org.genvisis.seq.analysis.PlinkSeq;
+import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
+import org.genvisis.seq.analysis.PlinkSeq.LOAD_TYPES;
+import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqWorker;
+import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject;
+import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
+import org.genvisis.stats.Histogram.DynamicAveragingHistogram;
+import org.genvisis.stats.Histogram.DynamicHistogram;
+
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
@@ -61,17 +73,6 @@ import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.Positions;
-import common.WorkerHive;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
 
 /**
  * Class for common actions on a VCF
@@ -256,7 +257,7 @@ public class VCFOps {
 	}
 
 	public static String[] getSamplesInFile(String vcf) {
-		VCFFileReader reader = new VCFFileReader(vcf, false);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		String[] samples = getSamplesInFile(reader);
 		reader.close();
 		return samples;
@@ -288,7 +289,7 @@ public class VCFOps {
 	 * @return
 	 */
 	public static SAMSequenceDictionary getSequenceDictionary(final String vcf) {
-		VCFFileReader reader = new VCFFileReader(vcf, false);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		SAMSequenceDictionary samSequenceDictionary = getSequenceDictionary(reader);
 		reader.close();
 		return samSequenceDictionary;
@@ -309,7 +310,7 @@ public class VCFOps {
 		for (int i = 0; i < maxAlleles; i++) {
 			samps.add("Allele" + i);
 		}
-		VCFFileReader reader = new VCFFileReader(inputVCF, false);
+		VCFFileReader reader = new VCFFileReader(new File(inputVCF), false);
 		VariantContextWriter writer = initWriter(outputVCF, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
 		copyHeader(reader, writer, samps, HEADER_COPY_TYPE.SUBSET_LOOSE, log);
 		int num = 0;
@@ -379,7 +380,7 @@ public class VCFOps {
 			String segFile = ext.addToRoot(outputFile, ".segment");
 			PrintWriter writerFilteredSeg = new PrintWriter(new FileWriter(segFile));
 
-			VCFFileReader reader = new VCFFileReader(vcf, true);
+			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 			int count = 0;
 			for (VariantContext vc : reader) {
 				count++;
@@ -461,7 +462,7 @@ public class VCFOps {
 			log.reportTimeInfo("MODE=" + mode);
 			if (mode == PLINK_SET_MODE.GWAS_QC) {
 
-				gwas.Qc.fullGamut(dir, rootOut, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
+				org.genvisis.gwas.Qc.fullGamut(dir, rootOut, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
 				String mdsFile = dir + "genome/mds20.mds";
 				if (Files.exists(mdsFile)) {
 					// fixMdsFile(log, dir, newIDS, mdsFile);
@@ -581,7 +582,7 @@ public class VCFOps {
 
 	/**
 	 * @param vcf
-	 *            runs {@link gwas.Qc#fullGamut(String, boolean)} after converting to plink* files if neccesary
+	 *            runs {@link org.genvisis.gwas.Qc#fullGamut(String, boolean)} after converting to plink* files if neccesary
 	 * @param log
 	 */
 	public static void vcfGwasQC(String vcf, Logger log) {
@@ -949,7 +950,7 @@ public class VCFOps {
 			}
 			VcfPopulation vpop = VcfPopulation.load(fullPathToPopFile, POPULATION_TYPE.ANY, log);
 			vpop.report();
-			VCFFileReader reader = new VCFFileReader(vcf, true);
+			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 			VCFHeader header = reader.getFileHeader();
 			for (String pop : vpop.getSubPop().keySet()) {
 				Set<String> popSet = vpop.getSubPop().get(pop);
@@ -1150,7 +1151,7 @@ public class VCFOps {
 		} else {
 			log.reportTimeWarning("found file " + idFile + " and " + mdsFile + " , assuming processing up to this point has been completed");
 		}
-		widgets.TabVersion.make(mdsFile);
+		org.genvisis.widgets.TabVersion.make(mdsFile);
 		mdsFile = mdsFile + ".xln";
 
 		for (int i = 1; i < matchUpVpops.length; i++) {
@@ -1287,7 +1288,7 @@ public class VCFOps {
 			String root = getAppropriateRoot(vcf, true);
 			outputVCF = outputDir + root + "." + ext.rootOf(idFile) + ".vcf" + (gzipOutput ? ".gz" : "");
 			if (!Files.exists(outputVCF)) {
-				VCFFileReader reader = new VCFFileReader(vcf, true);
+				VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 				VariantContextWriter writer = initWriter(outputVCF, DEFUALT_WRITER_OPTIONS, getSequenceDictionary(reader));
 				copyHeader(reader, writer, samples == null ? BLANK_SAMPLE : samples, HEADER_COPY_TYPE.SUBSET_STRICT, log);
 				int progress = 0;
@@ -1342,7 +1343,7 @@ public class VCFOps {
 	}
 
 	public static String[][] getAnnotationKeys(String vcf, Logger log) {
-		VCFFileReader reader = new VCFFileReader(vcf, false);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		String[] annotationKeys = new String[reader.getFileHeader().getInfoHeaderLines().size()];
 		String[] descriptions = new String[reader.getFileHeader().getInfoHeaderLines().size()];
 		int index = 0;
@@ -1361,7 +1362,7 @@ public class VCFOps {
 	 */
 	public static void b_ToHg(String input, String output, String refGenome, Logger log) {
 		ReferenceGenome ref = new ReferenceGenome(refGenome, log);
-		VCFFileReader reader = new VCFFileReader(input, false);
+		VCFFileReader reader = new VCFFileReader(new File(input), false);
 		VariantContextWriterBuilder builderWriter = new VariantContextWriterBuilder().setOutputFile(output);
 		builderWriter.setReferenceDictionary(ref.getIndexedFastaSequenceFile().getSequenceDictionary());
 		builderWriter.setOption(Options.DO_NOT_WRITE_GENOTYPES);
@@ -1385,7 +1386,7 @@ public class VCFOps {
 	}
 
 	public static void createSiteOnlyVcf(String inputVCF, String outputVCF, boolean overWrite, Logger log) {
-		VCFFileReader reader = new VCFFileReader(inputVCF, false);
+		VCFFileReader reader = new VCFFileReader(new File(inputVCF), false);
 		if (Files.exists(outputVCF) && !overWrite) {
 			log.reportTimeWarning(outputVCF + " exists, skipping site only");
 		} else {
@@ -1425,7 +1426,7 @@ public class VCFOps {
 		new File(dir).mkdirs();
 		String root = getAppropriateRoot(vcf, true);
 
-		VCFFileReader reader = new VCFFileReader(vcf, Files.exists(vcf + ".idx"));
+		VCFFileReader reader = new VCFFileReader(new File(vcf), Files.exists(vcf + ".idx"));
 		if (bams == null) {
 			log.reportTimeInfo("A bam directory was not provided, skipping bam extraction");
 		} else {
@@ -1557,7 +1558,7 @@ public class VCFOps {
 	}
 
 	public static int getNumberOfVariants(String vcf) {
-		VCFFileReader vcfFileReader = new VCFFileReader(vcf, true);
+		VCFFileReader vcfFileReader = new VCFFileReader(new File(vcf), true);
 		int numVar = 0;
 		for (VariantContext vc : vcfFileReader) {
 			vc.getID();
@@ -1673,7 +1674,7 @@ public class VCFOps {
 	}
 
 	private static boolean hasSomeVariants(String vcfFile, Logger log) {
-		VCFFileReader reader = new VCFFileReader(vcfFile, false);
+		VCFFileReader reader = new VCFFileReader(new File(vcfFile), false);
 
 		int count = 0;
 		for (VariantContext vc : reader) {
@@ -1692,7 +1693,7 @@ public class VCFOps {
 		Hashtable<String, String> track = new Hashtable<String, String>();
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(geneFile));
-			VCFFileReader reader = new VCFFileReader(vcfFile, true);
+			VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
 			for (VariantContext vc : reader) {
 				String name = VCOps.getSNP_EFFGeneName(vc);
 				if (!track.containsKey(name)) {
@@ -1716,7 +1717,7 @@ public class VCFOps {
 		if (!Files.exists(outputVCF) || !verifyIndex(outputVCF, log)) {
 			log.reportTimeInfo("Extracting chr " + chr + " from " + vcfFile + " to " + outputVCF);
 			SAMSequenceDictionary samSequenceDictionary = getSequenceDictionary(vcfFile);
-			VCFFileReader reader = new VCFFileReader(vcfFile, true);
+			VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
 			VariantContextWriter writer = initWriter(outputVCF, null, samSequenceDictionary);
 			copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 			// samSequenceDictionary.getSequence(chr).g
@@ -1838,7 +1839,7 @@ public class VCFOps {
 				} else {
 					log.reportTimeWarning("Indexing not quite implemented yet for " + VCF_EXTENSIONS.GZIP_VCF.getLiteral() + ", exiting");
 					// System.exit(1);
-					VCFFileReader readerVcfGz = new VCFFileReader(vcfFile, false);
+					VCFFileReader readerVcfGz = new VCFFileReader(new File(vcfFile), false);
 					TabixIndex index = IndexFactory.createTabixIndex(new File(vcfFile), new VCFCodec(), TabixFormat.VCF, readerVcfGz.getFileHeader().getSequenceDictionary());
 					try {
 						index.writeBasedOnFeatureFile(new File(vcfFile));
@@ -1878,7 +1879,7 @@ public class VCFOps {
 			log.reportTimeWarning("Gzipped vcf " + vcfFileGz + " already exists, skipping");
 		} else {
 			if (verifyIndex(vcfFile, log)) {
-				VCFFileReader reader = new VCFFileReader(vcfFile, true);
+				VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
 				VariantContextWriter writer = initWriter(vcfFileGz, null, reader.getFileHeader().getSequenceDictionary());
 				copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 				for (VariantContext vc : reader) {
@@ -1893,7 +1894,7 @@ public class VCFOps {
 	}
 
 	public static VariantContext lookupExactVariant(String vcf, VariantContext vc, Logger log) {
-		VCFFileReader reader = new VCFFileReader(vcf, true);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		Segment vcSeg = VCOps.getSegment(vc);
 		CloseableIterator<VariantContext> cIterator = reader.query(vcSeg.getChromosomeUCSC(), vcSeg.getStart(), vcSeg.getStop());
 		VariantContext vcMatch = null;
@@ -1914,7 +1915,7 @@ public class VCFOps {
 	 * Creates a new vcf with filtered variants removed
 	 */
 	public static String removeFilteredVariants(String vcf, boolean gzipOutput, boolean standardFilters, Logger log) {
-		VCFFileReader reader = new VCFFileReader(vcf, true);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		String output = ext.addToRoot(vcf.endsWith(VCF_EXTENSIONS.GZIP_VCF.getLiteral()) ? vcf.replaceAll(".gz", "") : vcf, ".filtered") + (gzipOutput ? ".gz" : "");
 
 		output = getAppropriateRoot(vcf, false) + ".filtered" + (gzipOutput ? VCF_EXTENSIONS.GZIP_VCF.getLiteral() : VCF_EXTENSIONS.REG_VCF.getLiteral());
@@ -1995,7 +1996,7 @@ public class VCFOps {
 	 * @param log
 	 */
 	public static void extractSamps(String vcf, Logger log) {
-		VCFFileReader reader = new VCFFileReader(vcf, false);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 		String[] samples = getSamplesInFile(reader);
 		reader.close();
 		String output = getAppropriateRoot(vcf, false) + ".vpop";
@@ -2066,7 +2067,7 @@ public class VCFOps {
 		System.out.println(bedFile);
 		String key = ext.rootOf(bedFile);
 		String description = "Custom annotation provide by genvisis from " + ext.removeDirectoryInfo(bedFile) + " on " + ext.getTimestampForFilename();
-		VCFFileReader reader = new VCFFileReader(vcfFile, false);
+		VCFFileReader reader = new VCFFileReader(new File(vcfFile), false);
 		String outputVcf = VCFOps.getAppropriateRoot(vcfFile, false) + "_" + ext.rootOf(bedFile) + VCFOps.VCF_EXTENSIONS.GZIP_VCF.getLiteral();
 		VariantContextWriter writer = VCFOps.initWriter(outputVcf, DEFUALT_WRITER_OPTIONS, null);
 		VCFHeader vcfHeader = reader.getFileHeader();

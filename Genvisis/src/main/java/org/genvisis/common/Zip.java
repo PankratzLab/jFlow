@@ -1,11 +1,11 @@
-package common;
+package org.genvisis.common;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.zip.*;
 
-import common.WorkerTrain.Producer;
+import org.genvisis.common.WorkerTrain.Producer;
 
 public class Zip {
 

@@ -1,28 +1,28 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 
-import stats.Histogram.DynamicHistogram;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Sort;
-import common.ext;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.var.SampleData;
-import filesys.CNVariant;
-import filesys.CNVariantHash;
-import filesys.LocusSet;
-import filesys.CNVariant.CONSENSUS_TYPE;
-import filesys.CNVariant.MatchResults;
-import filesys.CNVariant.OVERLAP_TYPE;
-import filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.CNVariantHash;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.CNVariant.CONSENSUS_TYPE;
+import org.genvisis.filesys.CNVariant.MatchResults;
+import org.genvisis.filesys.CNVariant.OVERLAP_TYPE;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.stats.Histogram.DynamicHistogram;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 /**
  * @author lane0212 Comparing cnvs called by PennCnv and Exome Depth in osteo

@@ -1,6 +1,6 @@
-package mining;
+package org.genvisis.mining;
 
-import common.Array;
+import org.genvisis.common.Array;
 
 public class Distance {
 	public static final double euclidean(int[] p1, int[] p2) {

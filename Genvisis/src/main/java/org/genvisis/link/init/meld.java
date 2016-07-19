@@ -1,10 +1,10 @@
 // this contained a Hashtable[] to Vector<Hashtable> conversion, beware
-package link.init;
+package org.genvisis.link.init;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class meld {
 	public meld() throws IOException {

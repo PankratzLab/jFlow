@@ -1,4 +1,4 @@
-package cyto;
+package org.genvisis.cyto;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -6,15 +6,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import cnv.analysis.BeastScore;
-import cnv.filesys.Project;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.CNVariant;
-import filesys.Segment;
+import org.genvisis.cnv.analysis.BeastScore;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.Segment;
 
 /**
  * Class to compare CytoCNVariants to other segments (common CNPS, un-reported, reported), currently only supports three files

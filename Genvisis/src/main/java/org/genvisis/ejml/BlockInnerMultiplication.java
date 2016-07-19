@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 /**
  * <p>
- * Matrix multiplication for the inner row major blocks, typically inside of a {@link ejml.BlockMatrix64F}.
+ * Matrix multiplication for the inner row major blocks, typically inside of a {@link org.genvisis.ejml.BlockMatrix64F}.
  * </p>
  *
  * <p>

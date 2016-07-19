@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -10,11 +10,11 @@ import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
-import stats.Maths;
-import common.Array;
-import common.Grafik;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.stats.Maths;
 
 /**
  * Forest Panel

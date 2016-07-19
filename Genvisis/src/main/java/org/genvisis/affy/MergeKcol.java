@@ -1,4 +1,4 @@
-package affy;
+package org.genvisis.affy;
 
 import java.io.BufferedReader;
 //import java.io.File;
@@ -8,9 +8,9 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Vector;
 
-import common.Array;
-import common.Files;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 
 public class MergeKcol implements Runnable {
 	public static final String[][] SNP_HEADER_OPTIONS = { { "SNP", "rsID", "ProbeSetName", "Name" } };

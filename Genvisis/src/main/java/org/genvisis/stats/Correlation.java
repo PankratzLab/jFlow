@@ -1,7 +1,7 @@
-package stats;
+package org.genvisis.stats;
 
-import mining.Transformations;
-import common.Array;
+import org.genvisis.common.Array;
+import org.genvisis.mining.Transformations;
 
 public class Correlation {
 	public static double[] Pearson(double[] data1, double[] data2) {

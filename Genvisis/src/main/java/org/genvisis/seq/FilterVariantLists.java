@@ -1,8 +1,8 @@
-package seq;
+package org.genvisis.seq;
 
 import java.io.*;
-//import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class FilterVariantLists {
 	public static void filter(String dir, String chrs, String positions, boolean indelsOnly) {

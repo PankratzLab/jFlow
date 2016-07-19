@@ -1,8 +1,4 @@
-package one;
-
-import gwas.Conditional;
-import gwas.Metal;
-import gwas.ResultsPackager;
+package org.genvisis.one;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,18 +14,21 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import bioinformatics.MapSNPsAndGenes;
-import parse.GenParser;
-import stats.RegressionModel;
-import common.Aliases;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Sort;
-import common.Unique;
-import common.ext;
+import org.genvisis.bioinformatics.MapSNPsAndGenes;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.Unique;
+import org.genvisis.common.ext;
+import org.genvisis.gwas.Conditional;
+import org.genvisis.gwas.Metal;
+import org.genvisis.gwas.ResultsPackager;
+import org.genvisis.parse.GenParser;
+import org.genvisis.stats.RegressionModel;
 
 public class CALiCo {
 	public static final String[] SEX_SYNONYMS = {"sex", "male", "female", "gender"};

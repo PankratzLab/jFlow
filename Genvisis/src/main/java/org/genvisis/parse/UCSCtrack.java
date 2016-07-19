@@ -1,10 +1,10 @@
-package parse;
+package org.genvisis.parse;
 
 import java.io.*;
 import java.util.*;
 
-import stats.Maths;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.Maths;
 
 public class UCSCtrack {
 	public static final int SIG_FIGS = 2;

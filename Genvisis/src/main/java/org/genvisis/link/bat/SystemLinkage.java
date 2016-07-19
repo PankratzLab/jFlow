@@ -1,14 +1,12 @@
-package link.bat;
+package org.genvisis.link.bat;
 
 import java.io.*;
 import java.util.Date;
 
-import common.ext;
-
-//import park.alleleDistribution;
-import link.LinkageFormat;
-import link.Recode;
-import link.bat.Filesystem;
+import org.genvisis.common.ext;
+import org.genvisis.link.LinkageFormat;
+import org.genvisis.link.Recode;
+import org.genvisis.link.bat.Filesystem;
 
 public class SystemLinkage {
 	public static void createAll() {

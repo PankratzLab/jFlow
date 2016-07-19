@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.awt.Component;
 import java.io.BufferedReader;
@@ -18,19 +18,19 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.JOptionPane;
 
-import stats.CrossValidation;
-import stats.LeastSquares.LS_TYPE;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Matrix;
-import common.PSF;
-import common.ext;
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
+import org.genvisis.stats.CrossValidation;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 /**
  * Generates manhattan plots for PCs and other optional data...can be loaded directly into IGV or haploview

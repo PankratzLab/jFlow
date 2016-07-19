@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 public class AnnotationDefaults {
 	/**

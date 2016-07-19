@@ -1,11 +1,12 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import java.util.List;
 
-import cnv.filesys.Project;
-import stats.Histogram.DynamicHistogram;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Logger;
+import org.genvisis.stats.Histogram.DynamicHistogram;
+
 import htsjdk.variant.variantcontext.VariantContext;
-import common.Logger;
 
 public class MarkerBlastHistogramAnnotation extends HistogramAnnotation {
 

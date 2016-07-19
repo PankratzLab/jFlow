@@ -1,24 +1,24 @@
-package seq.telomere;
+package org.genvisis.seq.telomere;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import seq.analysis.MitoSeqCN;
-import seq.manage.BEDFileReader;
-import seq.manage.BamOps;
-import seq.manage.BEDFileReader.BEDFeatureSeg;
-import seq.telomere.SRAUtils.SRAConversionResult;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import filesys.LocusSet;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.seq.analysis.MitoSeqCN;
+import org.genvisis.seq.manage.BEDFileReader;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
+import org.genvisis.seq.telomere.SRAUtils.SRAConversionResult;
 
 //http://goggable.areteh.co:3000/RotBlauer/IntallingTelSeq for telseq install instructions
 public class TelSeq {

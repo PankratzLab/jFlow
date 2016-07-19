@@ -1,4 +1,4 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,14 +8,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import common.Files;
-import common.ext;
-import cnv.filesys.Pedigree;
-import cnv.filesys.Project;
-import cnv.qc.MarkerMetrics;
-import cnv.qc.MendelErrors.MendelErrorCheck;
-import cnv.qc.SampleQC;
-import cnv.var.SampleData;
+import org.genvisis.cnv.filesys.Pedigree;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.qc.MarkerMetrics;
+import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 
 public class PlinkMendelianChecker {
     
@@ -968,7 +968,7 @@ public class PlinkMendelianChecker {
         
         String usage = "\n" + 
                        "gwas.PlinkMendelianChecker requires 0-1 arguments\n" + 
-                       "   (1) Project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+                       "   (1) Project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
                        "  OR \n" + 
                        "   (1) File with pedigree data (i.e. pedigree=pedigree.dat (not the default))\n" + 
                        "   (2) (optional) File with Mendelian Error data (i.e. mendel=markerQualityChecks.mendel (not the default))\n" + 

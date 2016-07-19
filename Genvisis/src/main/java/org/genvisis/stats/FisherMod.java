@@ -1,4 +1,4 @@
-package stats;
+package org.genvisis.stats;
 
 public class FisherMod {
 

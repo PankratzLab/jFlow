@@ -1,4 +1,4 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;
@@ -18,18 +18,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import seq.analysis.BWA_Analysis;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.ErrorBars;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.BWA_Analysis;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.ErrorBars;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 public class FastQC {
 	public static final String FASTA_QC_END_MODULE = ">>END_MODULE";

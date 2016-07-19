@@ -1,10 +1,10 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.util.concurrent.Callable;
 
-import common.Logger;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.WorkerTrain.Producer;
 
 public class Qtest {
 

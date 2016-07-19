@@ -1,12 +1,12 @@
-package one.ben;
+package org.genvisis.one.ben;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import common.Files;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 
 public class CARDIAResultsProcessor {
     static final String REGRESSION_TEMPLATE = "regression_chr#.out_add.out.txt";

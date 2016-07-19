@@ -1,9 +1,9 @@
-package seq;
+package org.genvisis.seq;
 
 import java.io.*;
-//import java.util.*;
-import common.*;
-import filesys.Segment;
+
+import org.genvisis.common.*;
+import org.genvisis.filesys.Segment;
 
 public class Mapability {
 	public static final String[] REQS = {"Chr", "Position", "totalreads", "notduplicated", "brokenmatepairs", "mapqualitygtzero", "notproperlypaired"};

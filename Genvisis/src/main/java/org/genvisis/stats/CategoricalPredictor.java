@@ -1,10 +1,10 @@
-package stats;
+package org.genvisis.stats;
 
 import java.util.ArrayList;
 
-import common.Array;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 /**
  * @author lane0212 Pilfering from http://www.psychstat.missouristate.edu/multibook/mlt08m.html Class to do the processing of a categorical variable for use in regression analysis

@@ -1,4 +1,4 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,23 +8,21 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import common.Files;
-
 import java.util.Hashtable;
 import java.util.Vector;
 
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.var.SampleData;
-import common.Array;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.StringVector;
-import common.CmdLine;
-import common.ext;
-import filesys.CNVariant;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.StringVector;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
 
 public class DeNovoCNV {
 
@@ -229,7 +227,7 @@ public class DeNovoCNV {
 				for (int i=4; i<=6; i++) {
 					if (!(new File(pennDataDir + line[i] + pennDataFileExtension)).exists()) {
 						if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true) + line[i] + Sample.SAMPLE_FILE_EXTENSION, jarStatus)) {
-							cnv.analysis.AnalysisFormats.penncnv(proj, new String[] {line[i]}, null, null, 1);	//TODO How to generate .gz format?
+							org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj, new String[] {line[i]}, null, null, 1);	//TODO How to generate .gz format?
 						} else {
 							log.reportError("warning - skipped the following trio set due to no data avaiable (iDNA: " + line[4] + "\tFaDNA: " + line[5] + "\tMoDNA:" + line[6] + ")");
 							found = false;
@@ -589,7 +587,7 @@ public class DeNovoCNV {
 		
 		iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6}, false);
 		
-		common.Files.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65, command, iterations, 2500, 2);
+		org.genvisis.common.Files.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65, command, iterations, 2500, 2);
 	}
 
 	/*

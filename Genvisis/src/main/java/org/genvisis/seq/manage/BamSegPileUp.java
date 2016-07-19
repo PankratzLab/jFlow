@@ -1,4 +1,4 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
@@ -11,14 +11,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.SAM_FILTER_TYPE;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import common.WorkerTrain.Producer;
-import filesys.Segment;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
 
 /**
  * @author lane0212 New version of the pileup, geared toward segments

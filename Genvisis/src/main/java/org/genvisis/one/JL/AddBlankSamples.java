@@ -1,9 +1,13 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.VCFOps;
 
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -16,9 +20,6 @@ import htsjdk.variant.vcf.VCFFormatHeaderLine;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFHeaderLineType;
-import seq.manage.VCFOps;
-import common.Logger;
-import common.ext;
 
 public class AddBlankSamples {
 
@@ -30,7 +31,7 @@ public class AddBlankSamples {
 		new File(outDir).mkdirs();
 		String outVcf = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".blanks.vcf.gz";
 		if (!VCFOps.existsWithIndex(outVcf)) {
-			VCFFileReader reader = new VCFFileReader(vcf, true);
+			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 			VariantContextWriter writer = VCFOps.initWriter(outVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 
 			Set<String> samps = new HashSet<String>();

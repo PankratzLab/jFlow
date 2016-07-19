@@ -1,15 +1,4 @@
-package cnv.qc;
-
-import cnv.analysis.ProjectCNVFiltering;
-import cnv.filesys.Project;
-import cnv.var.SampleData;
-import common.Array;
-import common.CNVFilter;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import common.CNVFilter.CNVFilterPass;
+package org.genvisis.cnv.qc;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -19,8 +8,18 @@ import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import filesys.CNVariant;
-import filesys.CNVariantHash;
+import org.genvisis.cnv.analysis.ProjectCNVFiltering;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.CNVFilter;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.common.CNVFilter.CNVFilterPass;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.CNVariantHash;
 
 public class CNVConcordance {
 	private static final String[] REPORT = { "Total CNVs Compared", "Total Overlapping CNVs", "Total Significantly Overlapping CNVs", "Total Perfectly overlapping cnvs", "Average Individual Overlap", "Average Individual Significant Overlap", "Average Individual Perfect Overlap", "Average Individual Overlap Score", "Global Overlap", "Global Significant Overlap", "Global Perfect Overlap", "Average Global Overlap Score" };

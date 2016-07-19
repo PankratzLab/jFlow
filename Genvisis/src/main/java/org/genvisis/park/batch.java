@@ -1,8 +1,8 @@
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class batch {
 	public static int[] maxes = {281, 253, 216, 202, 193, 180, 174, 153, 151, 168, 144, 164, 104, 127, 106, 115, 125, 126, 89, 95, 36, 47, 176};
@@ -65,9 +65,9 @@ public class batch {
 
 		writers = new PrintWriter[numBatches];
 		System.out.println(new File(".").getAbsolutePath());
-		classpath = "-classpath /home/npankrat/" + common.PSF.Java.GENVISIS + "";
+		classpath = "-classpath /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + "";
 		if (new File(".").getAbsolutePath().contains("bc2/pankratz")) {
-			classpath = "-classpath /home/bc2/pankratz/" + common.PSF.Java.GENVISIS + "";
+			classpath = "-classpath /home/bc2/pankratz/" + org.genvisis.common.PSF.Java.GENVISIS + "";
 		}
 
 		for (int i = 0; i<numBatches; i++) {

@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -14,12 +14,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import cnv.filesys.Project;
-import cnv.plots.CompPlot;
-import cnv.var.Region;
-import common.Grafik;
-import common.Positions;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.plots.CompPlot;
+import org.genvisis.cnv.var.Region;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
 
 public class RegionNavigator extends JPanel implements ActionListener {
 	/**

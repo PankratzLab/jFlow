@@ -1,4 +1,4 @@
-package cnv.plots.templates;
+package org.genvisis.cnv.plots.templates;
 
 public class SexPlotTemplate {
 

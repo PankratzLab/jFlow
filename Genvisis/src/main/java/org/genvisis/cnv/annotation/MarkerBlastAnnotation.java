@@ -1,6 +1,5 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
-import filesys.Segment;
 import htsjdk.samtools.TextCigarCodec;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -9,14 +8,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
-import cnv.annotation.MarkerEvalueHistogramAnnotation.EvalueHistogram;
-import cnv.filesys.Project;
-import common.Logger;
-import common.Positions;
-import common.ArraySpecialList.ArrayBlastAnnotationList;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.annotation.MarkerEvalueHistogramAnnotation.EvalueHistogram;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
+import org.genvisis.filesys.Segment;
 
 public class MarkerBlastAnnotation implements AnnotationParser {
 

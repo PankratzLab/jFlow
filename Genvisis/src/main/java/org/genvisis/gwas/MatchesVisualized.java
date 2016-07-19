@@ -1,12 +1,12 @@
-package gwas;
+package org.genvisis.gwas;
 
 //import java.io.*;
 import java.util.*;
-import common.*;
-import mining.Transformations;
-
 import java.awt.*;
 import javax.swing.*;
+
+import org.genvisis.common.*;
+import org.genvisis.mining.Transformations;
 
 public class MatchesVisualized {
 	public static final int WIDTH_BUFFER = 25;

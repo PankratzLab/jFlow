@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
@@ -15,15 +15,15 @@ import java.util.TreeSet;
 
 import javax.swing.JLabel;
 
-import seq.manage.ReferenceGenome;
-import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
-import cnv.annotation.BlastAnnotationTypes.TOP_BOT;
-import cnv.annotation.MarkerSeqAnnotation;
-import cnv.filesys.Project;
-import common.Array;
-import common.Fonts;
-import filesys.Segment;
+import org.genvisis.cnv.annotation.MarkerSeqAnnotation;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.TOP_BOT;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Fonts;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
 
 class ReferenceLabel extends JLabel {
     

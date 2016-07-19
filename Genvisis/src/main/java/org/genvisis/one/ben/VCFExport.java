@@ -1,4 +1,4 @@
-package one.ben;
+package org.genvisis.one.ben;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,8 +6,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import common.Files;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 
 
 public class VCFExport {

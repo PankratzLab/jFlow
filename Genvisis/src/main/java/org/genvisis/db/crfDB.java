@@ -1,18 +1,18 @@
-package db;
+package org.genvisis.db;
 
 import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import common.*;
-import stats.LeastSquares;
-import stats.LogisticRegression;
-import stats.RegressionModel;
+import org.genvisis.common.*;
+import org.genvisis.stats.LeastSquares;
+import org.genvisis.stats.LogisticRegression;
+import org.genvisis.stats.RegressionModel;
 
 public class crfDB {
 	public static boolean SHOW_ABSENTS = false;
 	public static final String DELIMITERS = "$@#\\-!\\+\\/\\*";
-	public static final String POSS_DIR = park.tools.CRF_DIR;
+	public static final String POSS_DIR = org.genvisis.park.tools.CRF_DIR;
 	public static final String[] DONT_COMP = {"UniqueID", "FamID", "IndID", "Site", "BirthDate", "OnsetDate", "DiagnosisDate", "ExamDate", "Dx", "CONF_PD", "Affected", "Gender", "BirthMonth", "BirthDay", "BirthYear", "Race", "OtherLRRK2", "APOE", "MMSEcutoff", "InitialSymptom", "Ethnicity", "Onset>20", "levodopaChorea", "PDopinion", "Alzheimers", "Remission", "lesionMRI"};
 	public static final String[] DONT_COMP_DEP = {"Depression", "AdjDepression", "Depressed", "MajorDepression", "MinorDepression", "DSMIV_Dx_Depression", "depressionBefore", "depressionSince"};
 	public static final double DEFAULT_MISSING_THRESHOLD = 0.25;

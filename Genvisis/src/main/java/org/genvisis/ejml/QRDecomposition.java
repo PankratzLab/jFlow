@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
@@ -32,7 +32,7 @@ package ejml;
  * <ul>
  * <li> Can decompose rectangular matrices. </li>
  * <li> Numerically stable solutions to least-squares problem, but not as stable as SVD </li>
- * <li> Can incrementally add and remove columns from the decomposed matrix.  See {@link ejml.AdjLinearSolverQr} </li>
+ * <li> Can incrementally add and remove columns from the decomposed matrix.  See {@link org.genvisis.ejml.AdjLinearSolverQr} </li>
  * </ul>
  * </p>
  * <p>
@@ -43,8 +43,8 @@ package ejml;
  * </ul>
  * </p>
 
- * @see ejml.QRDecompositionHouseholder
- * @see ejml.QRDecompositionHouseholderColumn
+ * @see org.genvisis.ejml.QRDecompositionHouseholder
+ * @see org.genvisis.ejml.QRDecompositionHouseholderColumn
  *
  * @author Peter Abeles
  */
@@ -53,7 +53,7 @@ public interface QRDecomposition <T extends Matrix64F>
     /**
      * <p>
      * Returns the Q matrix from the decomposition.  Should only
-     * be called after {@link #decompose(ejml.Matrix64F)} has
+     * be called after {@link #decompose(org.genvisis.ejml.Matrix64F)} has
      * been called.
      * </p>
      *
@@ -71,7 +71,7 @@ public interface QRDecomposition <T extends Matrix64F>
     /**
      * <p>
      * Returns the R matrix from the decomposition.  Should only be
-     * called after {@link #decompose(ejml.Matrix64F)} has been.
+     * called after {@link #decompose(org.genvisis.ejml.Matrix64F)} has been.
      * </p>
      * <p>
      * If setZeros is true then an n &times; m matrix is required and all the elements are set.

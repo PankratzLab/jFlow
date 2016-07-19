@@ -1,9 +1,9 @@
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class prioritize {
 	public prioritize(String filename, String databases, String variables) throws IOException {

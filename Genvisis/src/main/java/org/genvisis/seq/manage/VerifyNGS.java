@@ -1,14 +1,16 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
+import java.io.File;
 import java.io.IOException;
+
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
-import common.Files;
-import common.Logger;
 
 /**
  * @author lane0212 just read bams and vcfs to use the htsjdk error checking to validate. Can be used after transferring files
@@ -35,7 +37,7 @@ public class VerifyNGS {
 		String[] vcfs = Files.list(vcfDir, null, ".vcf", true, false, true);
 		for (int i = 0; i < vcfs.length; i++) {
 			log.reportTimeInfo("Validating " + vcfs[i]);
-			VCFFileReader reader = new VCFFileReader(vcfs[i], true);
+			VCFFileReader reader = new VCFFileReader(new File(vcfs[i]), true);
 			for (VariantContext vc : reader) {
 				vc.fullyDecode(reader.getFileHeader(), false);
 				vc.getGenotypes();

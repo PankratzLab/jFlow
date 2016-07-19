@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 /**
  * Contains code from the following classes:

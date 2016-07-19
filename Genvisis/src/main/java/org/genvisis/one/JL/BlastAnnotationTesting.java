@@ -1,26 +1,26 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
 import java.io.File;
 import java.util.ArrayList;
 
-import cnv.annotation.AnnotationData;
-import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
-import cnv.annotation.AnnotationFileWriter;
-import cnv.annotation.AnnotationParser;
-import cnv.annotation.BlastAnnotationLoader;
-import cnv.annotation.BlastAnnotationWriter;
-import cnv.annotation.LocusAnnotation;
-import cnv.annotation.MarkerAnnotationLoader;
-import cnv.annotation.MarkerBlastAnnotation;
-import cnv.annotation.LocusAnnotation.Builder;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import common.Array;
-import common.Files;
-import common.ext;
-import filesys.Segment;
+import org.genvisis.cnv.annotation.AnnotationData;
+import org.genvisis.cnv.annotation.AnnotationFileWriter;
+import org.genvisis.cnv.annotation.AnnotationParser;
+import org.genvisis.cnv.annotation.BlastAnnotationLoader;
+import org.genvisis.cnv.annotation.BlastAnnotationWriter;
+import org.genvisis.cnv.annotation.LocusAnnotation;
+import org.genvisis.cnv.annotation.MarkerAnnotationLoader;
+import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
+import org.genvisis.cnv.annotation.LocusAnnotation.Builder;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
 
 /**
  * @author lane0212 Tests for the annotation writing/loading

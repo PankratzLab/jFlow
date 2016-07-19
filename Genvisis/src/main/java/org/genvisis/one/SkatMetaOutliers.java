@@ -1,9 +1,10 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
-import common.*;
-import stats.ProbDist;
+
+import org.genvisis.common.*;
+import org.genvisis.stats.ProbDist;
 
 public class SkatMetaOutliers {
 

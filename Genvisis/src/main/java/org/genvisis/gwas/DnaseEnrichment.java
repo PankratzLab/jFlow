@@ -1,4 +1,4 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,14 +26,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import common.Array;
-import common.ChrPositionMap;
-import common.Files;
-import common.Positions;
-import common.ext;
-import filesys.Segment;
-import filesys.SegmentLists;
-import filesys.SnpMarkerSet;
+import org.genvisis.common.Array;
+import org.genvisis.common.ChrPositionMap;
+import org.genvisis.common.Files;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.SegmentLists;
+import org.genvisis.filesys.SnpMarkerSet;
 
 /**
  * Program to summarize p-values from a Genome-Wide Association Study (GWAS) and bins marker depending on their p-values and depending upon whether they are inside or outside of a DNAse hypersensitive (DNAseHS) region. These segments are loaded from BED files and the name of the celltype is taken from the first part of the filename. The p-value column is not required to be in a consistent column number. As a result the program creates a file with the following tab-delimited columns: celltype, bin1(0.1<pvalue<1.0), bin2(0.01<pvalue<0.1), bin3(0.001<pvalue<0.01)... Then this output is plotted using LinePlot
@@ -335,7 +335,7 @@ public class DnaseEnrichment {
 
 		String dir = ext.parseDirectoryOfFile(plinkFile);
 		if (new File(dir + REFERENCE_MAP_FILENAME).exists()) {
-			SnpMarkerSet markerSet = new SnpMarkerSet(plinkFile, false, new common.Logger(null));
+			SnpMarkerSet markerSet = new SnpMarkerSet(plinkFile, false, new org.genvisis.common.Logger(null));
 			plinkFileContents = new PlinkFile(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions());
 		} else {
 			LOGGER.warning("Error - could not find plink.bim; required to define segments" + " " + "and perform a crucial " + "datacheck");
@@ -466,7 +466,7 @@ public class DnaseEnrichment {
 	 * Function to write ChrPositionMap for different bedfiles
 	 * 
 	 * @param chrPositionMapList
-	 *            {@link ArrayList} containing {@link common.ChrPositionMap} for all the bedfiles
+	 *            {@link ArrayList} containing {@link org.genvisis.common.ChrPositionMap} for all the bedfiles
 	 * @param chrNum
 	 *            the chrNum obtained from the ld file
 	 */
@@ -761,7 +761,7 @@ public class DnaseEnrichment {
 	private static int[] findHeaderIndices(String filename) {
 		String[] headers;
 		// get the headers for pvalues file
-		headers = Files.getHeaderOfFile(filename, new common.Logger(null));
+		headers = Files.getHeaderOfFile(filename, new org.genvisis.common.Logger(null));
 		// get header indices
 		return (ext.indexFactors(new String[][] { P_VALUE_FILE_HEADERS[0], P_VALUE_FILE_HEADERS[1], P_VALUE_FILE_HEADERS[2], P_VALUE_FILE_HEADERS[3] }, headers, false, true, true, false));
 	}

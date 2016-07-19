@@ -1,4 +1,4 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.*;
 import java.util.*;
@@ -6,12 +6,12 @@ import java.util.Map.Entry;
 
 import javax.swing.JOptionPane;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.ext;
-import cnv.manage.TextExport;
-import cnv.plots.GenericRectangle;
+import org.genvisis.cnv.manage.TextExport;
+import org.genvisis.cnv.plots.GenericRectangle;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.ext;
 
 /**
  * This is data structure to hold a group of filters that can be used to screen data points.

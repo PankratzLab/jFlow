@@ -1,4 +1,4 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -13,15 +13,15 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
-import cnv.hmm.PennHmm;
-import common.ByteVector;
-import common.Files;
-import common.IntVector;
-import common.Logger;
-import common.Positions;
-import common.Sort;
-import common.StringVector;
-import common.ext;
+import org.genvisis.cnv.hmm.PennHmm;
+import org.genvisis.common.ByteVector;
+import org.genvisis.common.Files;
+import org.genvisis.common.IntVector;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.Sort;
+import org.genvisis.common.StringVector;
+import org.genvisis.common.ext;
 
 public class CNVariant extends Segment {
 	@Override

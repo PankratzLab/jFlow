@@ -1,12 +1,12 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import common.Logger;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.manage.MDL;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MDL;
+import org.genvisis.common.Logger;
 
 public class MAF {
 

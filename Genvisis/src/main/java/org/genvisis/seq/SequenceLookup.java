@@ -1,8 +1,8 @@
-package seq;
+package org.genvisis.seq;
 
 import java.util.Hashtable;
 
-import common.Logger;
+import org.genvisis.common.Logger;
 
 /**
  * @author lane0212<br>

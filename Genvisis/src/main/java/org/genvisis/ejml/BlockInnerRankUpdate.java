@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
 /**
- * Performs rank-n update operations on the inner blocks of a {@link ejml.BlockMatrix64F}
+ * Performs rank-n update operations on the inner blocks of a {@link org.genvisis.ejml.BlockMatrix64F}
  *
  * It is assumed and not checked that the submatrices are aligned along the matrix's blocks.
  *

@@ -1,4 +1,4 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;

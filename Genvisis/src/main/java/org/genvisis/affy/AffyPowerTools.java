@@ -1,4 +1,4 @@
-package affy;
+package org.genvisis.affy;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,13 +9,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import cnv.filesys.Project;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.Matrix;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
 
 public class AffyPowerTools {
 	public static final String[] AFFY_QC_LIB_FILES = { "GenomeWideSNP_6.chrXprobes", "GenomeWideSNP_6.chrYprobes", "GenomeWideSNP_6.r2.qca", "GenomeWideSNP_6.r2.qcc", "GenomeWideSNP_6.cdf" };
@@ -33,7 +33,7 @@ public class AffyPowerTools {
 	public static final String[] PENN_CNV_OUTPUTS = { "gw6.genocluster", "gw6.lrr_baf.txt" };
 	public static final String[] PENN_BATCH_NAMES = { "PennGenoClust", "PennLRRBAF" };
 	public static final String AFFY_TABLES_CLASS = "affy.AffySNP6Tables";
-	public static final String DEFAULT_CLASS_PATH = common.PSF.Java.GENVISIS;
+	public static final String DEFAULT_CLASS_PATH = org.genvisis.common.PSF.Java.GENVISIS;
 	public static final int DEFUALT_LINE_BUFFER = 500;
 
 	public static void affyQC(String pbsDir, String dataDir, String aptExeDir, String affyLib, String affyResultsDir, int numJobs, int totalMemory, double walltimeRequestedInHours, Logger log) {
@@ -174,7 +174,7 @@ public class AffyPowerTools {
 		help += "(1) Run each of the commands  found in this log \n";
 		help += "(2) Submit the .PBS files to a compute cluster\n";
 		help += "\nAfter genotyping and summarizing please run the following for more information:";
-		help += "java -cp \"" + common.PSF.Java.GENVISIS + "\" affy.AffyPowerTools -parseTables  pbsDir=" + pbsDir + " affyResultsDir=" + affyResultsDir + " numSNPJobs=" + numSNPJobs + " numCNJobs=" + numCNJobs + " numSNPBatches=" + numSNPBatches + " numCNBatches=" + numCNBatches + "projectSource=YourDesiredSourceDirectory";
+		help += "java -cp \"" + org.genvisis.common.PSF.Java.GENVISIS + "\" affy.AffyPowerTools -parseTables  pbsDir=" + pbsDir + " affyResultsDir=" + affyResultsDir + " numSNPJobs=" + numSNPJobs + " numCNJobs=" + numCNJobs + " numSNPBatches=" + numSNPBatches + " numCNBatches=" + numCNBatches + "projectSource=YourDesiredSourceDirectory";
 		help += "\n projectSource=YourDesiredSourceDirectory will be the location Genvisis will look to load data ";
 		help += "\n*******Please note that the number of jobs and batches must be the same*******";
 		return help;
@@ -569,7 +569,7 @@ public class AffyPowerTools {
 
 		// String snpProbesetList = "AllGenoTypingSnps.txt";
 		// String cnProbesetList = "AllCopyNumberProbes.txt";
-		String park = "/home/pankrat2/lanej/" + common.PSF.Java.GENVISIS + " -Xmx" + memory / 1024 + "G ";
+		String park = "/home/pankrat2/lanej/" + org.genvisis.common.PSF.Java.GENVISIS + " -Xmx" + memory / 1024 + "G ";
 		String sexFile = lists + "file_sex.txt";
 		String outDir = base + "output/";
 		String pennCNVbin = base + "pennCNV/bin/";

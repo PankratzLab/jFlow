@@ -1,4 +1,4 @@
-package jlDev;
+package org.genvisis.jlDev;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,29 +11,29 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import seq.manage.BedOps;
-import seq.qc.Mappability;
-import seq.qc.Mappability.MappabilityResult;
-import stats.Histogram.DynamicAveragingHistogram;
-import stats.Rscript.GeomText;
-import stats.Rscript.RScatter;
-import stats.Rscript.SCATTER_TYPE;
-import cnv.analysis.ProjectCNVFiltering;
-import cnv.filesys.Project;
-import cnv.var.SampleData;
-import common.Array;
-import common.CNVFilter;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.WorkerHive;
-import common.ext;
-import common.CNVFilter.FreqFilter;
-import filesys.CNVariant;
-import filesys.LocusSet;
-import filesys.Segment;
-import filesys.LocusSet.TO_STRING_TYPE;
-import filesys.Segment.SegmentCompare;
+import org.genvisis.cnv.analysis.ProjectCNVFiltering;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.CNVFilter;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.common.CNVFilter.FreqFilter;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.filesys.Segment.SegmentCompare;
+import org.genvisis.seq.manage.BedOps;
+import org.genvisis.seq.qc.Mappability;
+import org.genvisis.seq.qc.Mappability.MappabilityResult;
+import org.genvisis.stats.Histogram.DynamicAveragingHistogram;
+import org.genvisis.stats.Rscript.GeomText;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 public class CushingCnvs {
 	private static final String[] BASE_HEADER = new String[] { "MAPPABILITY_SCORE", "CALLED_GENE(s)" };

@@ -1,9 +1,10 @@
 // Make PD independent: change so that this used re_chrom23.pre instead of chromosome23.dat
-package link.init;
+package org.genvisis.link.init;
 
 import java.io.*;
 import java.util.*;
-import park.tools;
+
+import org.genvisis.park.tools;
 
 public class checkSex {
 	public checkSex() throws IOException {

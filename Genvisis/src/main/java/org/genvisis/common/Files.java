@@ -1,5 +1,5 @@
 // -Xms1024M -Xmx1024M
-package common;
+package org.genvisis.common;
 
 import java.io.*;
 import java.util.*;
@@ -11,8 +11,8 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import filesys.*;
-import parse.*;
+import org.genvisis.filesys.*;
+import org.genvisis.parse.*;
 
 //class DeleteLater implements Runnable {
 //	private String filename;
@@ -35,7 +35,7 @@ public class Files {
 //	public static final String ROOT_DIRECTORY = "/export/home/npankrat/";  // alcatraz
 //	public static final String ROOT_DIRECTORY = "/state/partition1/npankrat/";  // indiviudal nodes
 	public static final String JAVA = "/usr/java/latest/bin/java";
-	public static final String JCP = JAVA+" -cp /home/npankrat/" + common.PSF.Java.GENVISIS;
+	public static final String JCP = JAVA+" -cp /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS;
 	public static final String SERIALIZED_FILE_EXTENSION = ".ser";
 
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[] iterations) {
@@ -196,7 +196,7 @@ public class Files {
 					writer.println("rep=0");
 					writer.println("total_reps=0");
 					writer.println("while [ -e \"plug\" ]; do ");
-					writer.println("    rep=$(java -cp "+ROOT_DIRECTORY + common.PSF.Java.GENVISIS + " common.Files -nextRep patterns="+Array.toStr(patterns, ",")+" lastRep=$rep wait=1000)");
+					writer.println("    rep=$(java -cp "+ROOT_DIRECTORY + org.genvisis.common.PSF.Java.GENVISIS + " common.Files -nextRep patterns="+Array.toStr(patterns, ",")+" lastRep=$rep wait=1000)");
 					writer.println("    echo \"Beginning replicate $rep\"");
 					lines = commands.split("\n");
 					for (int j = 0; j < lines.length; j++) {
@@ -289,7 +289,7 @@ public class Files {
 		}
 		
 		Files.writeList(commands, batchRoot+".chain");
-		Files.qsub(batchRoot+".pbs", "cd "+dirToSwitchToBeforeRunning+"\njava -cp ~/" + common.PSF.Java.GENVISIS + " one.ScriptExecutor file="+batchRoot+".chain threads="+numProcs, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
+		Files.qsub(batchRoot+".pbs", "cd "+dirToSwitchToBeforeRunning+"\njava -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " one.ScriptExecutor file="+batchRoot+".chain threads="+numProcs, totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
 	}
 
 	public static void batchIt(String root_batch_name, String init, int numBatches, String commands, String[][] iterations) {

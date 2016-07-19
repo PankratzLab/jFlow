@@ -1,8 +1,8 @@
-package mining;
+package org.genvisis.mining;
 
 import java.io.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class BoxCox {
 	public static final int LOG_LIKELIHOOD = 1;

@@ -1,9 +1,9 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class LinkageFormat {
 	public static String STRUCT_EXAMPLE = ""+"70001	101	0	0	1	0	NoDNAprsnt	.	.\n"+"70001	102	0	0	2	0	NoDNAprsnt	.	.\n"+"70001	1	101	102	1	2	1999PD0004	55	WHTE\n"+"70001	11	101	102	1	2	1999PD0005	59	WHTE"+"70002	101	0	0	1	0	NoDNAprsnt	.	."+"70002	102	0	0	2	0	NoDNAprsnt	.	."+"70002	1	101	102	1	2	1999PD0014	75	WHTE"+"70002	13	101	102	1	2	1999PD0015	60	WHTE";

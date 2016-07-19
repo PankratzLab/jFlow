@@ -1,17 +1,17 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import common.Array;
-import common.Files;
-import common.WorkerTrain.Producer;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.qc.GcAdjustor;
-import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
-import cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.qc.GcAdjustor;
+import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.WorkerTrain.Producer;
 
 public class VCFSamplePrep {
 	private Project proj;

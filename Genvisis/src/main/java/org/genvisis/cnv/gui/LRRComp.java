@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -30,12 +30,12 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
-import common.Files;
-import common.ext;
-import cnv.analysis.MedianLRRWorker;
-import cnv.filesys.Project;
-import cnv.manage.Transforms;
-import cnv.plots.TwoDPlot;
+import org.genvisis.cnv.analysis.MedianLRRWorker;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.Transforms;
+import org.genvisis.cnv.plots.TwoDPlot;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 
 public class LRRComp extends JFrame implements Runnable {
 	private static final long serialVersionUID = 1L;

@@ -1,6 +1,6 @@
 // quantile normalize
 
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.*;
 import java.util.HashSet;
@@ -10,18 +10,18 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import cnv.filesys.*;
-import cnv.manage.MarkerDataLoader;
-import cnv.qc.SexChecks;
-import cnv.var.SampleData;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Matrix;
-import common.ProgressMonitor;
-import common.ext;
-import filesys.Segment;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.qc.SexChecks;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ProgressMonitor;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
 
 public class AnalysisFormats implements Runnable {
 	public static final String[] PROGRAM_OPTIONS = {"PennCNV", "QuantiSNP"};
@@ -952,7 +952,7 @@ public class AnalysisFormats implements Runnable {
 
 		String usage = "\n"+
 		"filesys.AnalysisFormats requires 0-1 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
 		"   (3) filter markers out within specified regions (i.e. filterRegions=problematicRegions.dat (not the default))\n"+
 		"   (4) filter markers out from list (i.e. filterList=drops.dat (not the default))\n"+

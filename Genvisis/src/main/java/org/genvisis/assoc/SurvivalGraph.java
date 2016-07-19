@@ -1,11 +1,11 @@
 // requires a file with 3 columns and no header: FamID, CLASS, AGE
 
-package assoc;
+package org.genvisis.assoc;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class SurvivalGraph {
 	public static void graph(String filename) {

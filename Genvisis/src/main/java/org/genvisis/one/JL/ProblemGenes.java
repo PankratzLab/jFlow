@@ -1,12 +1,11 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import common.Array;
-
-import cnv.filesys.Project;
-import filesys.GeneTrack;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.filesys.GeneTrack;
 
 public class ProblemGenes {
 

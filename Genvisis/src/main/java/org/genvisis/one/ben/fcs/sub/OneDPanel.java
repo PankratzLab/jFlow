@@ -1,4 +1,4 @@
-package one.ben.fcs.sub;
+package org.genvisis.one.ben.fcs.sub;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -10,14 +10,14 @@ import java.util.ArrayList;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import one.ben.fcs.AbstractPanel2;
-import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
-import cnv.plots.GenericLine;
-import cnv.plots.GenericPath;
-import cnv.plots.GenericRectangle;
-import cnv.plots.PlotPoint;
-import common.Array;
-import common.ext;
+import org.genvisis.cnv.plots.GenericLine;
+import org.genvisis.cnv.plots.GenericPath;
+import org.genvisis.cnv.plots.GenericRectangle;
+import org.genvisis.cnv.plots.PlotPoint;
+import org.genvisis.common.Array;
+import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.AbstractPanel2;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 
 public class OneDPanel extends AbstractPanel2  {
 	public static final long serialVersionUID = 3L;

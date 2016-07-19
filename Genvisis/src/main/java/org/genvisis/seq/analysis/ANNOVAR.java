@@ -1,10 +1,10 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
-import seq.manage.VCFOps;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.PSF;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.seq.manage.VCFOps;
 
 /**
  * Class for automating the annotation of a vcf using ANNOVAR

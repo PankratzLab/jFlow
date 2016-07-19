@@ -1,9 +1,9 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class DossierMerge {
 	public static void run(String dir, boolean rtfOutput) throws IOException {
@@ -57,8 +57,8 @@ public class DossierMerge {
 					}
 				}
 				if (jointFirstAuthor) {
-					line[0] += "<super>†</>";
-					line[1] += "<super>†</>";
+					line[0] += "<super>ï¿½</>";
+					line[1] += "<super>ï¿½</>";
 				}
 				bits[0] = Array.toStr(line, ",")+".";
 				
@@ -79,7 +79,7 @@ public class DossierMerge {
 				writer.println(count+"."+(rtfOutput?"\\tab ":"\t")+Array.toStr(bits, " "));
 			
 				if (jointFirstAuthor) {
-					writer.println((rtfOutput?"\\bullet \\tab ":"\t")+"<super>†</>Joint first author");
+					writer.println((rtfOutput?"\\bullet \\tab ":"\t")+"<super>ï¿½</>Joint first author");
 				}
 				
 				if (impactFactor != null) {

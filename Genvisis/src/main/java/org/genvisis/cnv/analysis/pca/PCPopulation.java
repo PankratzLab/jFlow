@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -8,14 +8,14 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
-import cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 
 /**
  * @author lane0212 Class to compute percent race with genotyping pcs, hijacking the {@link PrincipalComponentsResiduals} methods

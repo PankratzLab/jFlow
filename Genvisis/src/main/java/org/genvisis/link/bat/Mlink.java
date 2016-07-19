@@ -1,10 +1,10 @@
-package link.bat;
+package org.genvisis.link.bat;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import link.LinkageMap;
+import org.genvisis.common.*;
+import org.genvisis.link.LinkageMap;
 
 public class Mlink {
 	public static final double DEFAULT_FREQ = 0.005;

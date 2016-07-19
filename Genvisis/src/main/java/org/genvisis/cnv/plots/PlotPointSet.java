@@ -1,7 +1,8 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.io.Serializable;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class PlotPointSet implements Serializable {
 	public static final long serialVersionUID = 1L;

@@ -1,10 +1,10 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import common.Array;
-import common.Logger;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
 
 //class to determine the percent concordance given QC parameters, currently only alpha, confidence, numMarkers, and LRR_SD
 

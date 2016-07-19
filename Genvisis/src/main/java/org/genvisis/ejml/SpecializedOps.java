@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
@@ -36,7 +36,7 @@ public class SpecializedOps {
      * </p>
      *
      * <p>
-     * In practice {@link ejml.VectorVectorMult#householder(double, ejml.D1Matrix64F, ejml.D1Matrix64F, ejml.D1Matrix64F)}  multHouseholder}
+     * In practice {@link org.genvisis.ejml.VectorVectorMult#householder(double, org.genvisis.ejml.D1Matrix64F, org.genvisis.ejml.D1Matrix64F, org.genvisis.ejml.D1Matrix64F)}  multHouseholder}
      * should be used for performance reasons since there is no need to calculate Q explicitly.
      * </p>
      *
@@ -64,7 +64,7 @@ public class SpecializedOps {
      * </p>
      *
      * <p>
-     * In practice {@link ejml.VectorVectorMult#householder(double, ejml.D1Matrix64F, ejml.D1Matrix64F, ejml.D1Matrix64F)}  multHouseholder}
+     * In practice {@link org.genvisis.ejml.VectorVectorMult#householder(double, org.genvisis.ejml.D1Matrix64F, org.genvisis.ejml.D1Matrix64F, org.genvisis.ejml.D1Matrix64F)}  multHouseholder}
      * should be used for performance reasons since there is no need to calculate Q explicitly.
      * </p>
      *
@@ -370,7 +370,7 @@ public class SpecializedOps {
 
     /**
      * Computes the quality of a triangular matrix, where the quality of a matrix
-     * is defined in {@link ejml.LinearSolver#quality()}.  In
+     * is defined in {@link org.genvisis.ejml.LinearSolver#quality()}.  In
      * this situation the quality os the absolute value of the product of
      * each diagonal element divided by the magnitude of the largest diagonal element.
      * If all diagonal elements are zero then zero is returned.

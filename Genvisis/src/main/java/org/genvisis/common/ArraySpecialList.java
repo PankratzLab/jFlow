@@ -1,10 +1,10 @@
-package common;
+package org.genvisis.common;
 
 import htsjdk.samtools.Cigar;
 
 import java.util.ArrayList;
 
-import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 
 public class ArraySpecialList {
 	public static class ArrayStringList extends ArrayList<String> {

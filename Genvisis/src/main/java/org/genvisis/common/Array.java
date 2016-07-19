@@ -1,12 +1,12 @@
-package common;
+package org.genvisis.common;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-import stats.Maths;
-import stats.ProbDist;
+import org.genvisis.stats.Maths;
+import org.genvisis.stats.ProbDist;
 
 public class Array {
 

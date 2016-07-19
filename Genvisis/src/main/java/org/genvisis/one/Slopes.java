@@ -1,11 +1,11 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
 
-import parse.GenParser;
-import stats.LeastSquares;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.parse.GenParser;
+import org.genvisis.stats.LeastSquares;
 
 public class Slopes {
 

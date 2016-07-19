@@ -1,10 +1,10 @@
-package parse;
+package org.genvisis.parse;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import link.LinkageMap;
+import org.genvisis.common.*;
+import org.genvisis.link.LinkageMap;
 
 public class Hearing {
 	public static boolean AFFECTEDS_ONLY = true;

@@ -1,14 +1,14 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.*;
 import java.util.*;
 
-import mining.Distance;
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.manage.MarkerDataLoader;
-import common.*;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.common.*;
+import org.genvisis.mining.Distance;
 
 public class ThetaOutliers {
 	public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean", "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};

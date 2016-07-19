@@ -1,12 +1,10 @@
 // -Xms1024M -Xmx1024M
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.*;
 import java.util.*;
 
-//import stats.*;
-//import cnv.filesys.*;
-import common.*;
+import org.genvisis.common.*;
 
 public class FindVNTRs {
 	public static final String[] EXPECTED_HEADER = {"Marker", "Chr", "Position"};

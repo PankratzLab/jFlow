@@ -1,14 +1,14 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-import common.IntVector;
-import common.Logger;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
+import org.genvisis.common.IntVector;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
 
 public class Stepwise {
 	public static double ENTRY_PROB = 0.05;

@@ -1,9 +1,9 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class procUnigene {
 	public static final String[] VARS = {"ID", "GENE ", "TITLE", "GENE_ID", "CHROMOSOME", "CYTOBAND", "EXPRESS"};

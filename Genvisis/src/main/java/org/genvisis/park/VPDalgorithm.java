@@ -1,10 +1,10 @@
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import db.crfDB;
+import org.genvisis.common.*;
+import org.genvisis.db.crfDB;
 
 public class VPDalgorithm {
 	public static boolean CARES_NOT_PROGENI = false;

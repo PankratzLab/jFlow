@@ -1,4 +1,4 @@
-package one.ben.fcs;
+package org.genvisis.one.ben.fcs;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -35,19 +35,20 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import mining.Distance;
-import stats.Maths;
-import cnv.plots.GenericLine;
-import cnv.plots.GenericPath;
-import cnv.plots.GenericRectangle;
-import cnv.plots.PlotPoint;
-import common.Array;
-import common.Grafik;
-import common.HashVec;
-import common.IntVector;
-import common.ProgressBarDialog;
-import common.Sort;
-import common.ext;
+import org.genvisis.cnv.plots.GenericLine;
+import org.genvisis.cnv.plots.GenericPath;
+import org.genvisis.cnv.plots.GenericRectangle;
+import org.genvisis.cnv.plots.PlotPoint;
+import org.genvisis.common.Array;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.IntVector;
+import org.genvisis.common.ProgressBarDialog;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.mining.Distance;
+import org.genvisis.stats.Maths;
+
 import edu.stanford.facs.logicle.FastLogicle;
 import edu.stanford.facs.logicle.Logicle;
 

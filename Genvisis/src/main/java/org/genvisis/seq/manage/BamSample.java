@@ -1,14 +1,14 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.util.Hashtable;
 
-import seq.manage.BamImport.NGS_MARKER_TYPE;
-import cnv.analysis.BeastScore;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import common.Array;
-import filesys.Segment;
+import org.genvisis.cnv.analysis.BeastScore;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.Array;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
 /**
  * @author lane0212 Handles the data storage and normalization prior to conversion to {@link Sample}

@@ -1,4 +1,4 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,13 +9,13 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
-import cnv.manage.ExportCNVsToPedFormat;
-import cnv.plots.QQPlot;
-import cnv.plots.ForestPlot;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
+import org.genvisis.cnv.plots.ForestPlot;
+import org.genvisis.cnv.plots.QQPlot;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class EmimPipeline {
     

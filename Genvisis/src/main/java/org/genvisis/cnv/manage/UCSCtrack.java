@@ -1,10 +1,10 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.CNVariant;
+import org.genvisis.common.*;
+import org.genvisis.filesys.CNVariant;
 
 public class UCSCtrack {
 	public static final String SAMPLE_DEMOGRAPHICS = "SampleData.txt";

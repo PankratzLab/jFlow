@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 /**
  * Functions for converting between matrix types.  Both matrices must be the same size and their values will

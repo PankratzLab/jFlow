@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -8,10 +8,10 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 /**
  * @author lane0212 Does a text type venn ish comparison for overlapping keys...

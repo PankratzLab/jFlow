@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
-import static ejml.BlockHouseHolder.*;
+import static org.genvisis.ejml.BlockHouseHolder.*;
 
 
 /**

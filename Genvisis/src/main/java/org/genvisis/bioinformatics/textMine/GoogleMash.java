@@ -1,4 +1,4 @@
-package bioinformatics.textMine;
+package org.genvisis.bioinformatics.textMine;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;
@@ -13,13 +13,13 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.concurrent.Callable;
 
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
 
 /**
  * @author lane0212

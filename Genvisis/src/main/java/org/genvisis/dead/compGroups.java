@@ -1,14 +1,13 @@
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import stats.Anova;
-import stats.LeastSquares;
-import stats.LogisticRegression;
-
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.Anova;
+import org.genvisis.stats.LeastSquares;
+import org.genvisis.stats.LogisticRegression;
 
 public class compGroups {
 	public static String DB_FILE = "crf_db.dat";

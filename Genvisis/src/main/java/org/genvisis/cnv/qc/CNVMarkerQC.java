@@ -1,17 +1,17 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
 
-import common.Logger;
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerFreqs;
-import cnv.filesys.MarkerLookup;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.manage.MarkerDataLoader;
-import cnv.var.SampleData;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerFreqs;
+import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Logger;
 
 //class to compute marker QCs from all markers, currently only supports a simple minor allele frequency computation
 //TODO actual loggers

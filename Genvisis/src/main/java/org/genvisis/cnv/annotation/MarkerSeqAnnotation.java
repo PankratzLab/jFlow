@@ -1,12 +1,13 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import java.util.List;
 
-import cnv.annotation.BlastAnnotationTypes.TOP_BOT;
-import seq.manage.VCOps;
-import common.Logger;
-import common.ext;
-import filesys.Segment;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.TOP_BOT;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCOps;
+
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;

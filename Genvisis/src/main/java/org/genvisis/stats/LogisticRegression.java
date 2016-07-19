@@ -1,8 +1,8 @@
-package stats;
+package org.genvisis.stats;
 
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class LogisticRegression extends RegressionModel {
 	private int sY0, sY1;

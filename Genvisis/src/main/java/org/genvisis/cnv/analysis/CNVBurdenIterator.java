@@ -1,4 +1,4 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,13 +9,13 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import stats.LeastSquares;
-import stats.LogisticRegression;
-import stats.RegressionModel;
-import common.Files;
-import common.HashVec;
-import common.ext;
-import filesys.CNVariant;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.stats.LeastSquares;
+import org.genvisis.stats.LogisticRegression;
+import org.genvisis.stats.RegressionModel;
 
 public class CNVBurdenIterator {
 	

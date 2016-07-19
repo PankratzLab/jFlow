@@ -1,12 +1,12 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import stats.ContingencyTable;
-import bioinformatics.Sequence;
-import common.*;
-import filesys.SnpMarkerSet;
+import org.genvisis.bioinformatics.Sequence;
+import org.genvisis.common.*;
+import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.stats.ContingencyTable;
 
 public class Minimac {
 	public static final String REF_HAP_ROOT = "/share/archive/1000G_phased/hap/EUR/EUR.chr#.hap.gz";

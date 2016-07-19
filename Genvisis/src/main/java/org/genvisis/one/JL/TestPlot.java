@@ -1,9 +1,10 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.util.List;
 import java.util.Map;
 
-import cnv.manage.temp;
+import org.genvisis.cnv.manage.temp;
+
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;

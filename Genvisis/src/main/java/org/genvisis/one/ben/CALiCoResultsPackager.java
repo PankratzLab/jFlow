@@ -1,4 +1,4 @@
-package one.ben;
+package org.genvisis.one.ben;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -10,10 +10,10 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.ext;
 
 public class CALiCoResultsPackager {
     

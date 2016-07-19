@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -21,28 +21,28 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
-import seq.analysis.GATK.MutectTumorNormal;
-import seq.analysis.GATK_Genotyper.ANNOVCF;
-import seq.analysis.Mutect2.MUTECT_RUN_TYPES;
-import seq.manage.BamOps;
-import seq.manage.VCFOps;
-import seq.manage.VCFTumorNormalOps;
-import seq.manage.VCOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
-import seq.manage.VCOps.GENOTYPE_INFO;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.FILTER_GENERATION_TYPE;
-import seq.qc.FilterNGS.VariantContextFilter;
-import seq.qc.FilterNGS.VariantContextFilterPass;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.WorkerHive;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.GATK.MutectTumorNormal;
+import org.genvisis.seq.analysis.GATK_Genotyper.ANNOVCF;
+import org.genvisis.seq.analysis.Mutect2.MUTECT_RUN_TYPES;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCFTumorNormalOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.genvisis.seq.manage.VCOps.GENOTYPE_INFO;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.FILTER_GENERATION_TYPE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilterPass;
 
 /**
  * Hijack somatic calling to screen for denovo's
@@ -140,7 +140,7 @@ public class DeNovoMatic {
 			VariantContextFilter filter = FilterNGS.generateFilter(FILTER_GENERATION_TYPE.TN, Double.NaN, false, log);
 			
 			if (!VCFOps.existsWithIndex(potentialDenovoVcf)) {
-				VCFFileReader reader = new VCFFileReader(mergedVCF, true);
+				VCFFileReader reader = new VCFFileReader(new File(mergedVCF), true);
 				VariantContextWriter writer = VCFOps.initWriter(potentialDenovoVcf, VCFOps.DEFUALT_WRITER_OPTIONS, reader.getFileHeader().getSequenceDictionary());
 				HashSet<VCFHeaderLine> newHeader = new HashSet<VCFHeaderLine>();
 				// for (VCFHeaderLine vcfHeaderLine : reader.getFileHeader().getMetaDataInInputOrder()) {

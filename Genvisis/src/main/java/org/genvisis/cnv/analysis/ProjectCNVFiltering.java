@@ -1,21 +1,19 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.util.Hashtable;
 
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.var.SampleData;
-
-import common.Array;
-import common.CNVFilter;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import common.CNVFilter.FreqFilter;
-
-import filesys.CNVariant;
-import filesys.LocusSet;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.CNVFilter;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.common.CNVFilter.FreqFilter;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
 
 public class ProjectCNVFiltering {
     

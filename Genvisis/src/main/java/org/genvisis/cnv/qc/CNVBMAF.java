@@ -1,13 +1,13 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.manage.MarkerDataLoader;
-import common.Array;
-import common.HashVec;
-import common.Logger;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.common.Array;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
 
 /**
  * Class to compute a QC metric based on B-allele MINOR allele frequency (BMAF) "min(medianBAF, 1-medianBAF)

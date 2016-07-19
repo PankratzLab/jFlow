@@ -1,4 +1,4 @@
-package one.ben.fcs;
+package org.genvisis.one.ben.fcs;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,25 +11,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 
-import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
-
-import org.flowcyt.cfcs.CFCSAbstractData;
-import org.flowcyt.cfcs.CFCSData;
-import org.flowcyt.cfcs.CFCSDataSet;
-import org.flowcyt.cfcs.CFCSError;
-import org.flowcyt.cfcs.CFCSKeywords;
-import org.flowcyt.cfcs.CFCSListModeData;
-import org.flowcyt.cfcs.CFCSParameter;
-import org.flowcyt.cfcs.CFCSParameters;
-import org.flowcyt.cfcs.CFCSSpillover;
-import org.flowcyt.cfcs.CFCSSystem;
-
-import common.Array;
-import common.Files;
-import common.Matrix;
-import common.ext;
-import ejml.CommonOps;
-import ejml.DenseMatrix64F;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Matrix;
+import org.genvisis.ejml.CommonOps;
+import org.genvisis.ejml.DenseMatrix64F;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 
 public class FCSDataLoader {
     

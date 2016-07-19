@@ -1,13 +1,12 @@
-package one;
-
-import filesys.SnpMarkerSet;
-import gwas.*;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
 
-import parse.GenParser;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.gwas.*;
+import org.genvisis.parse.GenParser;
 
 public class Mega_Analyses {
 //	public static String DIR = "C:\\mega\\";

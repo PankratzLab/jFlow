@@ -1,9 +1,9 @@
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class ComparePlinkToMach {
 

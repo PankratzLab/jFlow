@@ -1,4 +1,4 @@
-package kaput;
+package org.genvisis.kaput;
 
 import java.io.*;
 

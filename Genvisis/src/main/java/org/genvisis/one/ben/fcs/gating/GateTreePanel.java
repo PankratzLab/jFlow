@@ -1,4 +1,4 @@
-package one.ben.fcs.gating;
+package org.genvisis.one.ben.fcs.gating;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -41,8 +41,8 @@ import javax.swing.tree.TreePath;
 import javax.xml.parsers.ParserConfigurationException;
 
 import net.miginfocom.swing.MigLayout;
-import one.ben.fcs.FCSPlot;
 
+import org.genvisis.one.ben.fcs.FCSPlot;
 import org.xml.sax.SAXException;
 
 public class GateTreePanel extends JPanel {

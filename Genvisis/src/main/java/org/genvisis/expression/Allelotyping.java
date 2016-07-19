@@ -1,10 +1,10 @@
-package expression;
+package org.genvisis.expression;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import stats.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.*;
 
 public class Allelotyping {
 	public static final String[] HEADER = {"Sample", "SNP", "Freq"};

@@ -1,4 +1,4 @@
-package one.ben.fcs;
+package org.genvisis.one.ben.fcs;
 
 import java.awt.Dimension;
 import java.awt.Font;
@@ -47,11 +47,12 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.miginfocom.swing.MigLayout;
-import one.ben.fcs.AbstractPanel2.AXIS_SCALE;
-import one.ben.fcs.AbstractPanel2.PLOT_TYPE;
-import cnv.gui.JAccordionPanel;
-import common.Files;
-import common.ext;
+
+import org.genvisis.cnv.gui.JAccordionPanel;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
+import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 
 public class FCSPlotControlPanel extends JPanel {
 

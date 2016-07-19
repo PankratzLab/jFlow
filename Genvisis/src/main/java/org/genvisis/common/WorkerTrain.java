@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 import java.util.Iterator;
 import java.util.concurrent.ArrayBlockingQueue;

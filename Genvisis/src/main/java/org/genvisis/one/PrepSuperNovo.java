@@ -1,13 +1,13 @@
-package one;
+package org.genvisis.one;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 /**
  * Currently specific to spector data

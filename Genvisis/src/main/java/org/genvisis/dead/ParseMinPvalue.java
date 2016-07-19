@@ -1,10 +1,10 @@
 // -Xms1024M -Xmx1024M
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class ParseMinPvalue {
 //	public static final String DEFAULT_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\merged\\results\\";

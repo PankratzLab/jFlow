@@ -1,20 +1,19 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 
-import cnv.analysis.pca.PCA;
-import cnv.filesys.*;
-import cnv.filesys.MarkerSet.PreparedMarkerSet;
-import cnv.hmm.CNVCaller;
-import cnv.manage.MitoPipeline;
-import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
-import cnv.qc.GcAdjustor.GcModel;
-import cnv.var.SampleData;
-//import java.util.*;
-import common.*;
+import org.genvisis.cnv.analysis.pca.PCA;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.cnv.hmm.CNVCaller;
+import org.genvisis.cnv.manage.MitoPipeline;
+import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
 
 public class LrrSd extends Parallelizable {
 	private static final String BOUND_SD = "LRR_SD_" + CNVCaller.MIN_LRR_MEDIAN_ADJUST + "_" + CNVCaller.MAX_LRR_MEDIAN_ADJUST;
@@ -434,7 +433,7 @@ public class LrrSd extends Parallelizable {
         } else {
             log.report("Computing sample QC for all samples...");
             log.report("Will be reporting sample qc to " + proj.SAMPLE_QC_FILENAME.getValue());
-			cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, numThreads, null, gcMetrics);
+			org.genvisis.cnv.qc.LrrSd.init(proj, null, markersForABCallRate, markersForEverythingElse, numThreads, null, gcMetrics);
             if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
         }
 
@@ -763,7 +762,7 @@ public class LrrSd extends Parallelizable {
 
 		String usage = "\n"+
 		"cnv.qc.LrrSd requires 0-6 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) centroids with which to compute LRRs (i.e. cents=genotype.cent (not the default; to be found in data/ directory))\n"+
 		"   (3) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
 		"   (4) optional: if you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"+

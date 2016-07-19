@@ -1,11 +1,11 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.util.Vector;
 
-import common.Array;
-import common.Logger;
-import common.Matrix;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
 
 public class MetaAnalysis {
 	public static String[] inverseVarianceWeighting(String[] lines, Logger log) {

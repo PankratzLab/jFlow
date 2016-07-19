@@ -1,15 +1,15 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 
-import common.Array;
-import common.Files;
-import common.ext;
-import cnv.filesys.Project;
-import cnv.filesys.SampleList;
-import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 
 public class DemoProject extends Project {
 	private Project proj;

@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -23,11 +23,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import net.miginfocom.swing.MigLayout;
-import cnv.filesys.Project;
-import cnv.plots.CompPlot;
-import cnv.plots.Trailer;
-import cnv.var.SampleData;
-import filesys.CNVariant;
+
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.plots.CompPlot;
+import org.genvisis.cnv.plots.Trailer;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.filesys.CNVariant;
 
 public class CompConfig extends JPanel implements ChangeListener, ActionListener {
 

@@ -1,4 +1,4 @@
-package gwas;
+package org.genvisis.gwas;
 
 public class Permute {
 

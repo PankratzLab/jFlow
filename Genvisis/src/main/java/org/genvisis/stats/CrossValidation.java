@@ -1,10 +1,10 @@
-package stats;
+package org.genvisis.stats;
 
 import java.util.Hashtable;
 
-import stats.LeastSquares.LS_TYPE;
-import common.Array;
-import common.Logger;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 //TODO, verify logistic validation....
 public class CrossValidation {

@@ -1,4 +1,4 @@
-package cnv.var;
+package org.genvisis.cnv.var;
 
 import java.awt.GraphicsEnvironment;
 import java.io.*;
@@ -6,12 +6,12 @@ import java.util.*;
 
 import javax.swing.SwingUtilities;
 
-import cnv.filesys.Project;
-import cnv.manage.MitoPipeline;
-import common.*;
-import filesys.CNVariant;
-import filesys.CNVariantHash;
-import filesys.Segment;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MitoPipeline;
+import org.genvisis.common.*;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.CNVariantHash;
+import org.genvisis.filesys.Segment;
 
 public class SampleData {
 	/**
@@ -1620,9 +1620,9 @@ public class SampleData {
     		
     		String usage = "\n" + 
     		"cnv.var.SampleData requires 1-3 arguments\n" + 
-    		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+    		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
     		" OR\n" + 
-    		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+    		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
     		"   (2a) OPTIONAL: .ped file (i.e. ped=data.ped (not the default))\n" +
     		"      OR\n" + 
     		"   (2b) OPTIONAL: sampleMap.csv file (i.e. sampleMap=sampleMap.csv (not the default))\n" +

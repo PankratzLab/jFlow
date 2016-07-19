@@ -1,8 +1,9 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class VTE_Analyses {
 	public static String DIR = "D:/_transfer/umn/Folson/VTE_meta_analysis/finalAnalysis/";

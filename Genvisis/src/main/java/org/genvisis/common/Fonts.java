@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 import java.awt.Font;
 import java.awt.FontFormatException;

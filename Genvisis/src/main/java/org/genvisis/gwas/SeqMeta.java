@@ -1,16 +1,16 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import parse.GenParser;
-import parse.LookupTable;
-import mining.Transformations;
-import stats.Correlation;
-import stats.ProbDist;
-import stats.Rscript;
-import common.*;
-import filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
+import org.genvisis.mining.Transformations;
+import org.genvisis.parse.GenParser;
+import org.genvisis.parse.LookupTable;
+import org.genvisis.stats.Correlation;
+import org.genvisis.stats.ProbDist;
+import org.genvisis.stats.Rscript;
 
 public class SeqMeta {
 	public static final String[] ALGORITHMS = {
@@ -2912,7 +2912,7 @@ public class SeqMeta {
 		if (files.length > 0) {
 			for (int i = 0; i < files.length; i++) {
 				localDir = ext.parseDirectoryOfFile(files[i]);
-				Files.qsub(dir+"batchRuns/"+ext.rootOf(files[i])+".qsub", "cd "+localDir+"\njava -cp ~/" + common.PSF.Java.GENVISIS + " gwas.SeqMeta dir="+localDir+" metalSensitivity="+ext.removeDirectoryInfo(files[i]), 25000, 3, 1);
+				Files.qsub(dir+"batchRuns/"+ext.rootOf(files[i])+".qsub", "cd "+localDir+"\njava -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " gwas.SeqMeta dir="+localDir+" metalSensitivity="+ext.removeDirectoryInfo(files[i]), 25000, 3, 1);
 				needToBeProcessed.add("qsub batchRuns/"+ext.rootOf(files[i])+".qsub");
 			}
 			Files.writeList(Array.toStringArray(needToBeProcessed), dir+"master.toBeProcessed");

@@ -1,11 +1,11 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.*;
 import java.util.ArrayList;
 
-import cnv.manage.TextExport;
-import common.*;
-import filesys.Segment;
+import org.genvisis.cnv.manage.TextExport;
+import org.genvisis.common.*;
+import org.genvisis.filesys.Segment;
 
 public class MarkerSet implements Serializable, TextExport {
 	public static final long serialVersionUID = 1L;

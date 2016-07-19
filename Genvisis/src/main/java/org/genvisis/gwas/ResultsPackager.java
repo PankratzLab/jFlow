@@ -1,11 +1,11 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import stats.ProbDist;
-import bioinformatics.Alleles;
-import common.*;
+import org.genvisis.bioinformatics.Alleles;
+import org.genvisis.common.*;
+import org.genvisis.stats.ProbDist;
 
 public class ResultsPackager {
 	public static final String[] IBC_OUTPUT_FORMAT1 = {"CHR", "POS", "SNP", "STRAND (Illumina)", "STRAND (HapMap)", "N", "EFFECT_ALLELE1", "NON_EFFECT_ALLELE", "EA_FREQ", "BETA", "SE", "P_VAL"};
@@ -428,17 +428,17 @@ public class ResultsPackager {
 			reader1.close();
 
 			if (mendelErrorFile != null) {
-				mendelErrors = one.SkatMeta.loadFile(mendelErrorFile, null, new String[] {"SNP"}, new String[] {"N"}, null, null);
+				mendelErrors = org.genvisis.one.SkatMeta.loadFile(mendelErrorFile, null, new String[] {"SNP"}, new String[] {"N"}, null, null);
 			}
 			if (hweFile != null) {
-				hwe = one.SkatMeta.loadFile(hweFile, null, new String[] {"SNP"}, new String[] {"GENO", "p"}, new String[] {"TEST==UNAFF"}, log);
+				hwe = org.genvisis.one.SkatMeta.loadFile(hweFile, null, new String[] {"SNP"}, new String[] {"GENO", "p"}, new String[] {"TEST==UNAFF"}, log);
 			}
 			if (frqFile != null) {
-				freqs = one.SkatMeta.loadFile(frqFile, null, new String[] {"SNP"}, new String[] {"MAF"}, null, log);
+				freqs = org.genvisis.one.SkatMeta.loadFile(frqFile, null, new String[] {"SNP"}, new String[] {"MAF"}, null, log);
 			}
 			if (tdtResultsFile != null) {
 //				tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, new String[] {"T", "U", "OR", "P"}, null, null);
-				tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, TDT_REQS, null, null);
+				tdtResults = org.genvisis.one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, TDT_REQS, null, null);
 			}
 
 			hweThreshold = 0.05 / (double) Files.countLines(childResultsFile, 1);
@@ -1100,7 +1100,7 @@ public class ResultsPackager {
 			    for (String[] fileSet : files) {
     			    getForestPlotParameterFile(HashVec.loadFileToStringMatrix(fileSet[0], false, null, false),
     			                                mkrFile, mkrColNm, analyses, analysisNms, null, fileSet[1], null);
-        			    cnv.plots.ForestPlot fp = new cnv.plots.ForestPlot(ext.rootOf(fileSet[1], false) + ".input", null);
+        			    org.genvisis.cnv.plots.ForestPlot fp = new org.genvisis.cnv.plots.ForestPlot(ext.rootOf(fileSet[1], false) + ".input", null);
         			    fp.setOddsRatioDisplay(oddsRatio);
         			    fp.loadOrderFile(sortFileName, true);
         			    fp.screenCapAll("forestPlots", oddsRatio, false);

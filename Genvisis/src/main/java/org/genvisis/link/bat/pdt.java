@@ -1,9 +1,9 @@
-package link.bat;
+package org.genvisis.link.bat;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class pdt {
 	public static final int maxFams = 1000;

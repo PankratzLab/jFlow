@@ -1,10 +1,10 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class FamilyStructure {
 	public static final String[][] TYPICAL_HEADERS = {{"FID", "famid"}, {"IID", "id"}, {"fa"}, {"mo"}, {"sex"}};

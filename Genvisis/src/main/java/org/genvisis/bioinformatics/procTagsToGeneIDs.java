@@ -1,9 +1,9 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class procTagsToGeneIDs {
 	public static final String[] FILES_WITH_GENE = {"d1_gene_info.prn", "nbt1239-S4.prn"};

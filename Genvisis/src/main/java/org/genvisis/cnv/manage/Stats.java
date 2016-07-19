@@ -1,6 +1,6 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
-import cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project;
 
 public class Stats {
 	public static void runTheNumbers(Project proj) {
@@ -15,7 +15,7 @@ public class Stats {
 
 	    String usage = "\n"+
 	    "cnv.manage.Stats requires 0-1 arguments\n"+
-   		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+   		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"";
 	    
 	    for (int i = 0; i<args.length; i++) {

@@ -1,43 +1,42 @@
-package cnv.manage;
-
-import gwas.Ancestry;
-import gwas.Qc;
+package org.genvisis.cnv.manage;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import cnv.Launch;
-import cnv.analysis.AnalysisFormats;
-import cnv.analysis.Mosaicism;
-import cnv.analysis.pca.PCA;
-import cnv.analysis.pca.PCAPrep;
-import cnv.analysis.pca.PrincipalComponentsApply;
-import cnv.analysis.pca.PrincipalComponentsCompute;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.filesys.ABLookup;
-import cnv.filesys.Centroids;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Pedigree;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.gui.GenvisisWorkflowGUI;
-import cnv.hmm.CNVCaller;
-import cnv.qc.GcAdjustor;
-import cnv.qc.GcAdjustorParameter;
-import cnv.qc.GcAdjustor.GCAdjustorBuilder;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import cnv.qc.LrrSd;
-import cnv.qc.MarkerBlastQC;
-import cnv.qc.MarkerMetrics;
-import cnv.qc.SampleQC;
-import cnv.var.SampleData;
-import common.Aliases;
-import common.Array;
-import common.Elision;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.Launch;
+import org.genvisis.cnv.analysis.AnalysisFormats;
+import org.genvisis.cnv.analysis.Mosaicism;
+import org.genvisis.cnv.analysis.pca.PCA;
+import org.genvisis.cnv.analysis.pca.PCAPrep;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsApply;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.filesys.ABLookup;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Pedigree;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
+import org.genvisis.cnv.hmm.CNVCaller;
+import org.genvisis.cnv.qc.GcAdjustor;
+import org.genvisis.cnv.qc.GcAdjustorParameter;
+import org.genvisis.cnv.qc.LrrSd;
+import org.genvisis.cnv.qc.MarkerBlastQC;
+import org.genvisis.cnv.qc.MarkerMetrics;
+import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.Elision;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.gwas.Ancestry;
+import org.genvisis.gwas.Qc;
 
 public class GenvisisWorkflow {
     
@@ -60,7 +59,7 @@ public class GenvisisWorkflow {
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             proj.getLog().report("Generating marker positions file");
             String filename = variables.get(this).get(0);
-            cnv.manage.Markers.generateMarkerPositions(proj, filename);
+            org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj, filename);
         }
         
         @Override
@@ -124,7 +123,7 @@ public class GenvisisWorkflow {
 //                numThreads = Integer.parseInt(variables.get(this).get(1));
 //            } catch (NumberFormatException e) {}
             proj.getLog().report("Parsing sample files");
-            int retCode = cnv.manage.SourceFileParser.createFiles(proj, numThreads);
+            int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
             switch (retCode) {
             case 0:
                 this.setFailed();
@@ -220,7 +219,7 @@ public class GenvisisWorkflow {
             int numThreads = proj.NUM_THREADS.getValue();
             numThreads = Integer.parseInt(variables.get(this).get(1));
             proj.getLog().report("Parsing sample files");
-            int retCode = cnv.manage.SourceFileParser.createFiles(proj, numThreads);
+            int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
             switch (retCode) {
             case 0:
                 this.setFailed();
@@ -465,7 +464,7 @@ public class GenvisisWorkflow {
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
             String gcBaseFile = variables.get(this).get(0);
             String gcOutputFile = variables.get(this).get(1);
-            cnv.analysis.PennCNV.gcModel(proj, gcBaseFile, gcOutputFile, 100);
+            org.genvisis.cnv.analysis.PennCNV.gcModel(proj, gcBaseFile, gcOutputFile, 100);
         }
         @Override
         public boolean[][] checkRequirements(Project proj, HashMap<STEP, Boolean> stepSelections, HashMap<STEP, ArrayList<String>> variables) {
@@ -675,7 +674,7 @@ public class GenvisisWorkflow {
             		MarkerBlastQC.getOneHitWonders(proj, variables.get(this).get(3), discriminatingMarkersFile, 0.8, proj.getLog());
             	}
             }
-            cnv.qc.SexChecks.sexCheck(proj, addToSampleData, discriminatingMarkersFile);
+            org.genvisis.cnv.qc.SexChecks.sexCheck(proj, addToSampleData, discriminatingMarkersFile);
         }
         
         @Override
@@ -943,9 +942,9 @@ public class GenvisisWorkflow {
             String dir = getPlinkDir(proj, variables);
             boolean allExist = true;
             boolean skipAncestry = Boolean.valueOf(variables.get(this).get(1));
-            folders: for (int i = 0; i < gwas.Qc.FOLDERS_CREATED.length; i++) {
-                for (int j = 0; j < gwas.Qc.FILES_CREATED[i].length; j++) {
-                    if (!Files.exists(dir + gwas.Qc.FOLDERS_CREATED[i] + gwas.Qc.FILES_CREATED[i][j])) {
+            folders: for (int i = 0; i < org.genvisis.gwas.Qc.FOLDERS_CREATED.length; i++) {
+                for (int j = 0; j < org.genvisis.gwas.Qc.FILES_CREATED[i].length; j++) {
+                    if (!Files.exists(dir + org.genvisis.gwas.Qc.FOLDERS_CREATED[i] + org.genvisis.gwas.Qc.FILES_CREATED[i][j])) {
                         allExist = false;
                         break folders;
                     }
@@ -1570,7 +1569,7 @@ public class GenvisisWorkflow {
         
         @Override
         public void run(Project proj, HashMap<STEP, ArrayList<String>> variables) {
-            cnv.analysis.PennCNV.populationBAF(proj);
+            org.genvisis.cnv.analysis.PennCNV.populationBAF(proj);
         }
         
         @Override

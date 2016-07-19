@@ -1,12 +1,12 @@
 // uses 1000G data from ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/release/20110521/supporting/ALL.wgs.project_consensus_vqsr2b.20101123.snps.low_coverage.sites.vcf.gz
 // regenerating this file for each subpopulation using the chromosome specific genotype VCF files in the previous 
-package seq;
+package org.genvisis.seq;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
 
 public class Vcf {
 	public static final String[] BITS_TO_KEEP = {"AC=", "AN=", "DB"};

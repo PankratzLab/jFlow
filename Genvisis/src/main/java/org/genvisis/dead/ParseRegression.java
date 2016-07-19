@@ -1,11 +1,11 @@
 // -Xms1024M -Xmx1024M
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
 
 public class ParseRegression {
 	// public static final String[] DEFAULT_DIRS = {"C:\\Documents and Settings\\npankrat\\My Documents\\PD-singleton\\08_AOO_analyses\\01_no_covariates\\"};

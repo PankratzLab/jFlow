@@ -1,4 +1,4 @@
-package one;
+package org.genvisis.one;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,13 +14,13 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import parse.LookupTable;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.Sort;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.parse.LookupTable;
 
 public class SkatMeta {
 	public static final String[] GENE_RESULT_COLUMNS = new String[] {"gene", "p"};

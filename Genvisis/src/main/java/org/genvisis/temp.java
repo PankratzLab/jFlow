@@ -1,12 +1,13 @@
+package org.genvisis;
 import java.io.*;
 import java.sql.Date;
 import java.util.HashSet;
 
-import common.*;
-import parse.GenParser;
-import stats.LogisticRegression;
-import stats.Nonparametric;
-import stats.Ttest;
+import org.genvisis.common.*;
+import org.genvisis.parse.GenParser;
+import org.genvisis.stats.LogisticRegression;
+import org.genvisis.stats.Nonparametric;
+import org.genvisis.stats.Ttest;
 
 public class temp {
 	public static void parseAll(String filename) {

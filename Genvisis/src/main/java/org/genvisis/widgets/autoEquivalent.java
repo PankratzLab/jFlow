@@ -1,7 +1,7 @@
 // want to autogenerate code for getVar and setVar?
-package widgets;
+package org.genvisis.widgets;
 
-import common.ext;
+import org.genvisis.common.ext;
 
 public class autoEquivalent {
 	public static void equivocate() {

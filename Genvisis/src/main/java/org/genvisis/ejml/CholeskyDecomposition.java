@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
@@ -35,9 +35,9 @@ package ejml;
  * used to invert matrices, such as a covariance matrix.<br>
  * </p>
  *
- * @see ejml.CholeskyDecompositionInner
- * @see ejml.CholeskyDecompositionBlock
- * @see ejml.CholeskyDecompositionLDL
+ * @see org.genvisis.ejml.CholeskyDecompositionInner
+ * @see org.genvisis.ejml.CholeskyDecompositionBlock
+ * @see org.genvisis.ejml.CholeskyDecompositionLDL
  *
  * @author Peter Abeles
  */

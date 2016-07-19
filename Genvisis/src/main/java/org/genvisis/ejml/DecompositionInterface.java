@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
 /**
  * <p>
- * An interface for performing matrix decompositions on a {@link ejml.DenseMatrix64F}.
+ * An interface for performing matrix decompositions on a {@link org.genvisis.ejml.DenseMatrix64F}.
  * </p>
  *
  * <p>
@@ -53,7 +53,7 @@ public interface DecompositionInterface <T extends Matrix64F> {
     public boolean decompose( T orig );
 
     /**
-     * Is the input matrix to {@link #decompose(ejml.Matrix64F)} is modified during
+     * Is the input matrix to {@link #decompose(org.genvisis.ejml.Matrix64F)} is modified during
      * the decomposition process.
      *
      * @return true if the input matrix to decompose() is modified.

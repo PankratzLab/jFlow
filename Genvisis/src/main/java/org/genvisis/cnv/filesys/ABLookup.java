@@ -1,4 +1,4 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
@@ -13,20 +13,20 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import seq.manage.StrandOps;
-import bioinformatics.Sequence;
-import cnv.annotation.AnnotationParser;
-import cnv.annotation.MarkerAnnotationLoader;
-import cnv.annotation.MarkerBlastAnnotation;
-import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
-import cnv.annotation.MarkerSeqAnnotation;
-import cnv.manage.MarkerDataLoader;
-import cnv.qc.MarkerBlast;
-import cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.bioinformatics.Sequence;
+import org.genvisis.cnv.annotation.AnnotationParser;
+import org.genvisis.cnv.annotation.MarkerAnnotationLoader;
+import org.genvisis.cnv.annotation.MarkerBlastAnnotation;
+import org.genvisis.cnv.annotation.MarkerSeqAnnotation;
+import org.genvisis.cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.qc.MarkerBlast;
+import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.StrandOps;
 
 public class ABLookup {
 	public static final String DEFAULT_AB_FILE = "AB_lookup.dat";
@@ -608,7 +608,7 @@ public class ABLookup {
 					log.reportError("Warning - allele frequencies for any chrX markers will be slightly inaccurate");
 				} else {
 					log.report("Warning - since " + proj.MARKER_DATA_DIRECTORY.getValue(false, false) + " does not exist, marker data can not be loaded and frequency of B allele will not be reported in " + output + ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
-					log.report("java -cp /your/path/to/" + common.PSF.Java.GENVISIS + " cnv.filesys.ABLookup proj=" + proj.getPropertyFilename() + " incompleteAB=" + incompleteABlookupFilename + " mapFile=" + mapFile);
+					log.report("java -cp /your/path/to/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.filesys.ABLookup proj=" + proj.getPropertyFilename() + " incompleteAB=" + incompleteABlookupFilename + " mapFile=" + mapFile);
 				}
 			} catch (NullPointerException nullPointerException) {// MarkerDataLoader will likely throw this if there are other issues
 				log.report("Warning - was not able to load marker data, frequency of B allele will not be reported in " + output);
@@ -651,7 +651,7 @@ public class ABLookup {
 
 		String usage = "\n" +
 				"cnv.filesys.ABLookup requires 0-1 arguments\n" +
-				"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+				"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 				"   (2) name of output file (i.e. out="+outfile+" (default))\n" + 
 				" AND\n" + 
 				"   (3) parse ABLookup from centroids (i.e. -parseFromGenotypeClusterCenters (not the default))\n" + 

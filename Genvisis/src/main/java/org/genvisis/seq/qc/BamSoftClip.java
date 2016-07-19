@@ -1,4 +1,4 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
@@ -15,14 +15,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import seq.manage.BamOps;
-import seq.manage.ReferenceGenome;
-import stats.Histogram.DynamicAveragingHistogram;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.stats.Histogram.DynamicAveragingHistogram;
 
 /**
  * Checkin relationship of soft clip count to insert size

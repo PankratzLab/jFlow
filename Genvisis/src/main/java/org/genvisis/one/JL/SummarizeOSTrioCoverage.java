@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -13,16 +13,16 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import stats.Rscript.RScatter;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 public class SummarizeOSTrioCoverage {
 	private static final int[] covTargets = new int[] { 5, 10, 20, 30, 40 };

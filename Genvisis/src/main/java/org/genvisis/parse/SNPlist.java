@@ -1,11 +1,12 @@
 // -Xms1024M -Xmx1024M
-package parse;
+package org.genvisis.parse;
 
 import java.io.*;
 import java.util.*;
-import common.*;
-import filesys.FamilyStructure;
-import filesys.SnpMarkerSet;
+
+import org.genvisis.common.*;
+import org.genvisis.filesys.FamilyStructure;
+import org.genvisis.filesys.SnpMarkerSet;
 
 public class SNPlist {
 	public static final String[][] FIELDS = {{"SAMPLE_ID"}, {"ASSAY_ID"}, {"GENOTYPE_ID"}};

@@ -1,15 +1,15 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-import one.ScriptExecutor;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.one.ScriptExecutor;
 
 /**
  * One timer but could be more, for getting specific file types from amazon buckets, I think there is an actual s3cmd to do this but oh well

@@ -1,6 +1,5 @@
-package one.ben;
+package org.genvisis.one.ben;
 
-import filesys.SerialHash;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.util.CloseableIterator;
@@ -23,18 +22,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import seq.manage.ReferenceGenome;
-import seq.manage.VCFOps;
-import seq.manage.VCOps;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import cnv.annotation.AnnotationParser;
-import cnv.annotation.MarkerAnnotationLoader;
-import cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
-import cnv.filesys.Project;
+import org.genvisis.cnv.annotation.AnnotationParser;
+import org.genvisis.cnv.annotation.MarkerAnnotationLoader;
+import org.genvisis.cnv.annotation.AnnotationFileLoader.QUERY_ORDER;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.SerialHash;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
 
 public class SNPVCFTesting {
 
@@ -396,7 +396,7 @@ public class SNPVCFTesting {
     };
     
     static void run() {
-        VCFFileReader reader = new VCFFileReader(numberedVCFFile2, true);
+        VCFFileReader reader = new VCFFileReader(new File(numberedVCFFile2), true);
         
         for (String marker : testMarkers) {
             // skip check for RS

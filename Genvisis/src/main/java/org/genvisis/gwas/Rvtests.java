@@ -1,10 +1,10 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.File;
 import java.util.Vector;
 
-import common.Files;
-import common.Logger;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
 
 public class Rvtests {
 	public static void generateRvtestsScript(String dirOfRvtestsCommands, String dirOfPedFiles, String fullpathToVcf, String scriptsDir, String resultsDir, Logger log) {

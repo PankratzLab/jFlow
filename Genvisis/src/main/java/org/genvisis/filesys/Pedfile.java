@@ -1,9 +1,10 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.*;
 import java.util.Date;
 import java.util.Hashtable;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class Pedfile {
 	public static final String[] MISSING_VALUES = {"0"};

@@ -1,14 +1,13 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
 
-import mining.Transformations;
-
-import parse.GenParser;
-import common.*;
-import gwas.*;
-import filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
+import org.genvisis.gwas.*;
+import org.genvisis.mining.Transformations;
+import org.genvisis.parse.GenParser;
 
 public class CARe_Analyses {
 	public static String DRIVE_ROOT = "not_set";
@@ -252,10 +251,10 @@ public class CARe_Analyses {
 						hitlist = Array.addStrToArray(DRIVE_ROOT+"Analyses/ICAM/IBC/whites/"+STUDIES[i]+"/pheno/"+RACES[j][3]+"QC/rs1799969.xln 1 4=rs1799969c", hitlist, 5);
 					}
 					Files.writeList(hitlist, dir+"generatePhenoForPlinkWithConditionals.crf");
-					CmdLine.run("java -cp C:/home/npankrat/" + common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generatePhenoForPlinkWithConditionals.crf", dir);
+					CmdLine.run("java -cp C:/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generatePhenoForPlinkWithConditionals.crf", dir);
 					if (FAMILY_BASED[i]) {
 						Files.writeList(new String[] {"lookup", "abo_icam.ids.fam 1 hideIndex out=phenoWithConditionals.csv", "leslie_lange."+STUDIES[i]+".IBC."+RACES[j][1]+".Rlinker 0 2=id skip=0", "pheno/db_clean_wPCs.txt 1 4; 5; 6; 7; fail", "abo_icam.dosage.csv , 0 "+Array.toStr(Array.stringArraySequence(new SnpMarkerSet(dir+"abo_icam.dosage.pinfo").getMarkerNames().length, "")), "pheno/db_clean_wPCs.txt 1 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"}, dir+"generatePhenoForGWAFWithConditionals.crf");
-						CmdLine.run("java -cp C:/home/npankrat/" + common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generatePhenoForGWAFWithConditionals.crf", dir);
+						CmdLine.run("java -cp C:/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generatePhenoForGWAFWithConditionals.crf", dir);
 						new File("D:/upload/phenos/"+STUDIES[i]+"_"+RACES[j][0]+"/").mkdirs();
 						Files.copyFile(dir+"phenoWithConditionals.csv", "D:/upload/phenos/"+STUDIES[i]+"_"+RACES[j][0]+"/phenoWithConditionals.csv");
 					} else {
@@ -650,7 +649,7 @@ public class CARe_Analyses {
 				if (new File(dir+"abo_icam.dosage").exists()) {
 					log.report("Parsing demographics for "+STUDIES[i]+" "+RACES[j][0]);
 					Files.writeList(new String[] {"lookup", "abo_icam.ids.fam 1 hideIndex out=demographics.dat", "abo_icam.ids.fam 1 0=FID 1=IID skip=0", "pheno/db.txt 1 3;. 5;. 6;. 7;. !9=0 fail"}, dir+"generateDemographics.crf");
-					CmdLine.run("java -cp C:/home/npankrat/" + common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generateDemographics.crf", dir);
+					CmdLine.run("java -cp C:/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generateDemographics.crf", dir);
 					files.add(dir+"demographics.dat");
 					fileDescriptions.add(STUDIES[i]);
 				}
@@ -1179,19 +1178,19 @@ public class CARe_Analyses {
 							hitlist = Array.addStrToArray(DRIVE_ROOT+"Analyses/ICAM/IBC/whites/"+STUDIES[i]+"/pheno/"+RACES[j][3]+"QC/rs1799969.xln 1 4=rs1799969c", hitlist, 6);
 						}
 						Files.writeList(hitlist, dir+"generateNormalizedPhenoForPlinkWithConditionals.crf");
-						CmdLine.run("java -cp C:/home/npankrat/" + common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generateNormalizedPhenoForPlinkWithConditionals.crf", dir);
+						CmdLine.run("java -cp C:/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generateNormalizedPhenoForPlinkWithConditionals.crf", dir);
 
 						hitlist = new String[] {"lookup", "abo_icam.ids.fam 1 hideIndex out=plink_inverseNormalizedPheno.dat", "abo_icam.ids.fam 1 0=FID 1=IID skip=0", "pheno/db_"+RACES[j][0]+"_inverseNormalized.txt 1 4;-9 fail", "pheno/db_clean_wPCs.txt 2 5;. 6;. 7;. fail", "abo_icam.dosage.csv , 0 "+Array.toStr(conditionals), "pheno/db_clean_wPCs.txt 2 8;. 9;. 10;. 11;. 12;. 13;. 14;. 15;. 16;. 17;. fail"};
 						if (STUDIES[i].equals("MESA") && (RACES[j][0].equals("asians") || RACES[j][0].equals("hispanics"))) {
 							hitlist = Array.addStrToArray(DRIVE_ROOT+"Analyses/ICAM/IBC/whites/"+STUDIES[i]+"/pheno/"+RACES[j][3]+"QC/rs1799969.xln 1 4=rs1799969c", hitlist, 6);
 						}
 						Files.writeList(hitlist, dir+"generateInverseNormalizedPhenoForPlinkWithConditionals.crf");
-						CmdLine.run("java -cp C:/home/npankrat/" + common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generateInverseNormalizedPhenoForPlinkWithConditionals.crf", dir);
+						CmdLine.run("java -cp C:/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generateInverseNormalizedPhenoForPlinkWithConditionals.crf", dir);
 						if (FAMILY_BASED[i]) {
 							Files.writeList(new String[] {"lookup", "abo_icam.ids.fam 1 hideIndex out=normalizedPhenoWithConditionals.csv", "leslie_lange."+STUDIES[i]+".IBC."+RACES[j][1]+".Rlinker 0 2=id skip=0", "pheno/db_"+RACES[j][0]+"_normalized.txt 1 4; fail", "pheno/db_clean_wPCs.txt 2 5; 6; 7; fail #VALUE!=> tab", "abo_icam.dosage.csv , 0 "+Array.toStr(conditionals), "pheno/db_clean_wPCs.txt 2 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"}, dir+"generateNormalizedPhenoForGWAFWithConditionals.crf");
-							CmdLine.run("java -cp C:/home/npankrat/" + common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generateNormalizedPhenoForGWAFWithConditionals.crf", dir);
+							CmdLine.run("java -cp C:/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generateNormalizedPhenoForGWAFWithConditionals.crf", dir);
 							Files.writeList(new String[] {"lookup", "abo_icam.ids.fam 1 hideIndex out=inverseNormalizedPhenoWithConditionals.csv", "leslie_lange."+STUDIES[i]+".IBC."+RACES[j][1]+".Rlinker 0 2=id skip=0", "pheno/db_"+RACES[j][0]+"_inverseNormalized.txt 1 4; fail", "pheno/db_clean_wPCs.txt 2 5; 6; 7; fail #VALUE!=> tab", "abo_icam.dosage.csv , 0 "+Array.toStr(conditionals), "pheno/db_clean_wPCs.txt 2 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"}, dir+"generateInverseNormalizedPhenoForGWAFWithConditionals.crf");
-							CmdLine.run("java -cp C:/home/npankrat/" + common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generateInverseNormalizedPhenoForGWAFWithConditionals.crf", dir);
+							CmdLine.run("java -cp C:/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " -Xmx1024M Launch -suppress generateInverseNormalizedPhenoForGWAFWithConditionals.crf", dir);
 							new File("D:/upload/phenos/"+STUDIES[i]+"_"+RACES[j][0]+"/").mkdirs();
 							Files.copyFile(dir+"normalizedPhenoWithConditionals.csv", "D:/upload/phenos/"+STUDIES[i]+"_"+RACES[j][0]+"/normalizedPhenoWithConditionals.csv");
 							Files.copyFile(dir+"inverseNormalizedPhenoWithConditionals.csv", "D:/upload/phenos/"+STUDIES[i]+"_"+RACES[j][0]+"/inverseNormalizedPhenoWithConditionals.csv");

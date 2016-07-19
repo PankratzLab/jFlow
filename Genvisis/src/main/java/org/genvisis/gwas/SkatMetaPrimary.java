@@ -1,10 +1,10 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import stats.Rscript;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.Rscript;
 
 public class SkatMetaPrimary {
 

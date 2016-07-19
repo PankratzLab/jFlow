@@ -1,4 +1,4 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
@@ -12,33 +12,33 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.WorkerHive;
-import common.ext;
-import cnv.annotation.AnalysisParams;
-import cnv.annotation.AnnotationData;
-import cnv.annotation.AnnotationFileWriter;
-import cnv.annotation.BlastParams;
-import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
-import cnv.annotation.BlastAnnotationWriter;
-import cnv.annotation.LocusAnnotation;
-import cnv.annotation.BlastAnnotationTypes.TOP_BOT;
-import cnv.annotation.LocusAnnotation.Builder;
-import cnv.annotation.MarkerGCAnnotation;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.manage.ExtProjectDataParser;
-import cnv.manage.Markers;
-import filesys.Segment;
-import seq.analysis.Blast;
-import seq.analysis.Blast.BlastWorker;
-import seq.analysis.Blast.FastaEntry;
-import seq.manage.ReferenceGenome;
-import seq.manage.StrandOps;
+import org.genvisis.cnv.annotation.AnalysisParams;
+import org.genvisis.cnv.annotation.AnnotationData;
+import org.genvisis.cnv.annotation.AnnotationFileWriter;
+import org.genvisis.cnv.annotation.BlastAnnotationWriter;
+import org.genvisis.cnv.annotation.BlastParams;
+import org.genvisis.cnv.annotation.LocusAnnotation;
+import org.genvisis.cnv.annotation.MarkerGCAnnotation;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.TOP_BOT;
+import org.genvisis.cnv.annotation.LocusAnnotation.Builder;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.manage.Markers;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.analysis.Blast;
+import org.genvisis.seq.analysis.Blast.BlastWorker;
+import org.genvisis.seq.analysis.Blast.FastaEntry;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.StrandOps;
 
 /**
  * As starts handling more than just annotatating with Blast results, we should maybe re-name this class

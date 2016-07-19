@@ -1,12 +1,12 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import mining.Transformations;
-import common.*;
-import filesys.*;
-import stats.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
+import org.genvisis.mining.Transformations;
+import org.genvisis.stats.*;
 
 public class CreateDatabaseFromPlink {
 	public static final String[] POSSIBLE_MODELS = {"ADD", "DOM", "REC"};

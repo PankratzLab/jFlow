@@ -1,13 +1,13 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import mining.Distance;
-import stats.Correlation;
-import stats.Ttest;
-import mining.Transformations;
+import org.genvisis.common.*;
+import org.genvisis.mining.Distance;
+import org.genvisis.mining.Transformations;
+import org.genvisis.stats.Correlation;
+import org.genvisis.stats.Ttest;
 
 public class MatchSamples {
 	public static String matchMaker(String dir, String anchorList, String barnacleList, String factorfile, String[] factorTargets, double[] factorLoadings, boolean normalizeFactors) {

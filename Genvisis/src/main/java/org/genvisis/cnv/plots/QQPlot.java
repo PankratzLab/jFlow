@@ -1,12 +1,12 @@
 // -Xms1024M -Xmx1024M
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.io.*;
 import java.awt.*;
 import javax.swing.*;
 
-import common.*;
-import filesys.SerialFloatArray;
+import org.genvisis.common.*;
+import org.genvisis.filesys.SerialFloatArray;
 
 public class QQPlot {
 	public static final long serialVersionUID = 1L;

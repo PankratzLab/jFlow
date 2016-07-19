@@ -1,19 +1,17 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.io.*;
 import java.util.*;
-
-import common.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
 
-import cnv.filesys.Project;
-import cnv.gui.*;
-import cnv.var.*;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.*;
+import org.genvisis.cnv.var.*;
+import org.genvisis.common.*;
 
 public class StratPlot extends JFrame implements ActionListener, TreeSelectionListener {
 	public static final long serialVersionUID = 1L;
@@ -321,7 +319,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 
 	public static void main(String[] args) {
 		try {
-			loadStratificationResults(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
+			loadStratificationResults(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

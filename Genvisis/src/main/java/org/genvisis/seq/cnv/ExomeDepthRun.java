@@ -1,4 +1,4 @@
-package seq.cnv;
+package org.genvisis.seq.cnv;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -8,28 +8,28 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.manage.Markers;
-import cnv.manage.TransposeData;
-import cnv.var.SampleData;
-import seq.cnv.ExomeDepth.ExomeDepthAnalysis;
-import seq.manage.BamOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import stats.Maths;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import filesys.CNVariant;
-import filesys.GeneTrack;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.Markers;
+import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.cnv.ExomeDepth.ExomeDepthAnalysis;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.stats.Maths;
 
 /**
  * @author lane0212 Handles sample and global exclusions for the reference set, need in particular when related samples are run together (i.e trios)

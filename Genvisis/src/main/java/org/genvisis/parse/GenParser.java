@@ -1,10 +1,10 @@
-package parse;
+package org.genvisis.parse;
 
 import java.io.*;
 import java.util.*;
 
-import stats.Maths;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.Maths;
 
 public class GenParser {
 	public static final int ADD = 0;

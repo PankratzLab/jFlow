@@ -1,9 +1,9 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class SeattleSeq {
 	public static final String[][] NEEDS = {{"Chr"}, {"MapInfo", "Position"}, {"MarkerName", "SNP"}, {"RefStrand"}};

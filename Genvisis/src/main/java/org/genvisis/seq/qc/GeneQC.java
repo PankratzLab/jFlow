@@ -1,4 +1,4 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -9,15 +9,15 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import filesys.GeneData;
-import filesys.GeneTrack;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
 
 /**
  * @author lane0212 Maybe a one-off thing, but this is for summarizing bamQC results across a gene

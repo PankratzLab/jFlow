@@ -1,4 +1,4 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -9,10 +9,10 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Hashtable;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 //class to store markerQC metrics across all (or a subset of) samples , currently only Minor Allele Frequency
 public class MarkerFreqs implements Serializable {

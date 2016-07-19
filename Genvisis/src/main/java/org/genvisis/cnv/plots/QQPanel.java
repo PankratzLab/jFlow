@@ -1,12 +1,12 @@
-package cnv.plots;
-
-import common.*;
+package org.genvisis.cnv.plots;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.event.*;
+
+import org.genvisis.common.*;
 
 public class QQPanel extends AbstractPanel implements ComponentListener {
 	public static final long serialVersionUID = 1L;

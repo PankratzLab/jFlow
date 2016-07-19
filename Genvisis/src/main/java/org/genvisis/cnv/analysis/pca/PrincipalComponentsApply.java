@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -8,15 +8,15 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.manage.MDL;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import cnv.var.SampleData;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 /**
  * <p>

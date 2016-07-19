@@ -1,11 +1,11 @@
-package bot;
+package org.genvisis.bot;
 
 import javax.swing.*;
 
+import org.genvisis.common.*;
+
 import java.awt.*;
 import java.awt.event.*;
-
-import common.*;
 
 public class HelperCurrent extends JFrame {
 	private static final long serialVersionUID = 1L;

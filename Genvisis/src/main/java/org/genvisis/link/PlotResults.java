@@ -1,14 +1,14 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
-
-import cnv.gui.JPanelFlowLayoutComponentListener;
-import common.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+
+import org.genvisis.cnv.gui.JPanelFlowLayoutComponentListener;
+import org.genvisis.common.*;
+
 import java.util.regex.*;
 
 public class PlotResults extends JFrame implements ActionListener {

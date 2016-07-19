@@ -1,4 +1,4 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,17 +8,17 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import cnv.manage.PlinkMergePrep;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.Positions;
-import common.ext;
-import filesys.DosageData;
-import filesys.SnpMarkerSet;
+import org.genvisis.cnv.manage.PlinkMergePrep;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.DosageData;
+import org.genvisis.filesys.SnpMarkerSet;
 
 public class MergeExtractPipeline {
     

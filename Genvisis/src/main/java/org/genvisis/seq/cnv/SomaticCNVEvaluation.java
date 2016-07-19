@@ -1,4 +1,4 @@
-package seq.cnv;
+package org.genvisis.seq.cnv;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -9,26 +9,26 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import seq.manage.BamImport.NGS_MARKER_TYPE;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import cnv.analysis.BeastScore;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.filesys.MarkerSet.PreparedMarkerSet;
-import cnv.var.SampleData;
-import filesys.CNVariant;
-import filesys.GeneData;
-import filesys.GeneTrack;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.cnv.analysis.BeastScore;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 
 /**
  * Class to refine somatic cnv calls

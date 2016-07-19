@@ -1,4 +1,4 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,16 +7,17 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.VariantContextFilter;
-import common.AlleleFreq;
-import common.Array;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.GeneData;
-import filesys.GeneTrack;
-import filesys.Segment;
+import org.genvisis.common.AlleleFreq;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
+
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;

@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 import java.util.ArrayList;
 import java.util.List;

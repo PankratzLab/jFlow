@@ -1,9 +1,9 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class RosenElliot {
 	public static final String DEFAULT_ROOT = "C:\\Documents and Settings\\npankrat\\My Documents\\Rosen, Elliot\\";

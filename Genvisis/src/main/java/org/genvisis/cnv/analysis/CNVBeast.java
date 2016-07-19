@@ -1,4 +1,4 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,20 +15,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.qc.GcAdjustor;
-import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
-import cnv.qc.GcAdjustor.GcModel;
-import cnv.var.SampleData;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import filesys.CNVariant;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.qc.GcAdjustor;
+import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
 
 /**
  * Wrapper for the Beast software package as available here http://people.duke.edu/~asallen/Software.html

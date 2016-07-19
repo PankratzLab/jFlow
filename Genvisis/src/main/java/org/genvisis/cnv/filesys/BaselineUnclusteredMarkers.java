@@ -1,10 +1,10 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
 import java.util.Hashtable;
 
-import common.Files;
-import common.ProgressMonitor;
+import org.genvisis.common.Files;
+import org.genvisis.common.ProgressMonitor;
 
 public class BaselineUnclusteredMarkers implements Serializable {
 	private static final long serialVersionUID = 1L;

@@ -1,4 +1,4 @@
-package seq.qc.contamination;
+package org.genvisis.seq.qc.contamination;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -8,14 +8,14 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import seq.analysis.Blast.BlastResultsSummary;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.Blast.BlastResultsSummary;
 
 /**
  * @author lane0212 Class for assessing taxonomic contamination from .fastq files

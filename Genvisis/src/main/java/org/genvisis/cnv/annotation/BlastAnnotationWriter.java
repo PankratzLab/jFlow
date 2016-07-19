@@ -1,4 +1,4 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import htsjdk.samtools.Cigar;
 
@@ -7,22 +7,22 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
 
-import seq.analysis.Blast;
-import seq.analysis.Blast.BlastResults;
-import seq.manage.CigarOps;
-import stats.Histogram.DynamicHistogram;
-import common.Array;
-import common.ArraySpecialList.*;
-import common.Files;
-import cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
-import cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
-import cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
-import cnv.annotation.LocusAnnotation.Builder;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.qc.MarkerBlast.MarkerFastaEntry;
-import filesys.Segment;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
+import org.genvisis.cnv.annotation.BlastAnnotationTypes.PROBE_TAG;
+import org.genvisis.cnv.annotation.LocusAnnotation.Builder;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.qc.MarkerBlast.MarkerFastaEntry;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.ArraySpecialList.*;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.analysis.Blast;
+import org.genvisis.seq.analysis.Blast.BlastResults;
+import org.genvisis.seq.manage.CigarOps;
+import org.genvisis.stats.Histogram.DynamicHistogram;
 
 /**
  * Handles

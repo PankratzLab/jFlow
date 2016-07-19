@@ -1,4 +1,4 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -12,12 +12,12 @@ import java.util.LinkedList;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import filesys.*;
-import common.*;
-import common.CNVFilter.CNVFilterPass;
-import cnv.filesys.*;
-import cnv.manage.UCSCtrack;
-import cnv.var.SampleData;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.manage.UCSCtrack;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
+import org.genvisis.common.CNVFilter.CNVFilterPass;
+import org.genvisis.filesys.*;
 
 public class FilterCalls {
 	public static final int DEFAULT_MIN_SIZE_KB = 0;

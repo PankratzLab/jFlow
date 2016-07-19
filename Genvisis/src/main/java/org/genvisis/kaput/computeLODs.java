@@ -1,8 +1,9 @@
-package kaput;
+package org.genvisis.kaput;
 
 import java.io.*;
 import java.util.*;
-import stats.ProbDist;
+
+import org.genvisis.stats.ProbDist;
 
 public class computeLODs {
 

@@ -1,10 +1,10 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.util.Vector;
 
-import common.Array;
-import common.Matrix;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
 
 public class Translate {
 

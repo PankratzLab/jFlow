@@ -1,15 +1,15 @@
-package stats;
+package org.genvisis.stats;
 
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import cnv.filesys.Project;
-import cnv.qc.SampleQC;
-import common.Array;
-import common.Logger;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
 
 /**
- * Forms the basis of several Inter-rater reliability stats (Percent Agreement,Cohen’s Kappa,Fleiss' kappa, etc) <br>
+ * Forms the basis of several Inter-rater reliability stats (Percent Agreement,Cohenï¿½s Kappa,Fleiss' kappa, etc) <br>
  * Currently supports: <br>
  * Cohen's kappa (http://en.wikipedia.org/wiki/Cohen%27s_kappa) <br>
  * Percent Agreement<br>

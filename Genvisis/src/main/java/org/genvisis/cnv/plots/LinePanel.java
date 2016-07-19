@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -12,16 +12,16 @@ import java.util.Vector;
 
 import javax.swing.*;
 
-import cnv.filesys.MarkerLookup;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.gui.LaunchAction;
-import cnv.var.SampleData;
-import common.Array;
-import common.CountVector;
-import common.Files;
-import common.IntVector;
-import common.Positions;
+import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.CountVector;
+import org.genvisis.common.Files;
+import org.genvisis.common.IntVector;
+import org.genvisis.common.Positions;
 
 public class LinePanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;

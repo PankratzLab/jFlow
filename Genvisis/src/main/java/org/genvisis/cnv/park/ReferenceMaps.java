@@ -1,10 +1,10 @@
-package cnv.park;
+package org.genvisis.cnv.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.CNVariant;
+import org.genvisis.common.*;
+import org.genvisis.filesys.CNVariant;
 
 public class ReferenceMaps {
 	public static final String MCCAROLL_DIR = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV\\McCaroll map\\";

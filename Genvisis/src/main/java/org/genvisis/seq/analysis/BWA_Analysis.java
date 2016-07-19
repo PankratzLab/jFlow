@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,10 +13,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class BWA_Analysis {
 	public static final String INDEXED_REFERENCE_GENOME_EXT = ".sa";
@@ -155,7 +155,7 @@ public class BWA_Analysis {
 		}
 		// String rootInputDir, String rootOutputDir, String referenceGenomeFasta, String bwaLocation, String fileOfSamplePairs, boolean overwriteExisting, boolean verbose, int numMemThreads, int numSampleThreads, boolean batch, Logger log) {
 
-		String command = "load module java\njava -cp " + common.PSF.Java.GENVISIS + " -Xmx" + memoryInMB + "m seq.BWA_Analysis " + ROOT_INPUT_COMMAND + rootInputDir + SPACE + ROOT_OUTPUT_COMMAND + rootOutputDir + SPACE;
+		String command = "load module java\njava -cp " + org.genvisis.common.PSF.Java.GENVISIS + " -Xmx" + memoryInMB + "m seq.BWA_Analysis " + ROOT_INPUT_COMMAND + rootInputDir + SPACE + ROOT_OUTPUT_COMMAND + rootOutputDir + SPACE;
 		command += REFERENCE_GENOME_COMMAND + referenceGenomeFasta + SPACE + BWA_LOCATION_COMMAND + bwa.getBwaLocation() + SPACE;
 		command += NUM_BETWEEN_THREADS_COMMAND + numWithinSampleThreads + SPACE + FILE_OF_SAMPLE_PAIRS_COMMAND + rootOutputDir + "[%0].txt" + SPACE + NUM_WITHIN_THREADS_COMMAND + numBetweenSampleThreads;
 		Files.qsub("BWA_MEM" + baseName, command, batches, memoryInMB, wallTimeInHours, numWithinSampleThreads * numBetweenSampleThreads);

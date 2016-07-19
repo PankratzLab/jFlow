@@ -1,11 +1,11 @@
-package seq.pathway;
+package org.genvisis.seq.pathway;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import common.Logger;
-import filesys.GeneData;
-import filesys.LocusSet;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.LocusSet;
 
 public class Pathway extends LocusSet<GeneData> {
 	private static final long serialVersionUID = 1L;

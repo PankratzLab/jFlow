@@ -1,12 +1,12 @@
-package widgets;
+package org.genvisis.widgets;
 
 import java.io.*;
 import java.util.*;
 
-import common.Files;
-import common.HashVec;
-import common.Sort;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class diff {
     public static void addFileToQueue(String filename) {

@@ -1,4 +1,4 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -6,11 +6,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import stats.LeastSquares.LS_TYPE;
-import common.Array;
-import common.Logger;
-import common.Sort;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 /**
  * Generates a matrix for comparing multiple columns of data,
@@ -92,13 +92,13 @@ public class StatsCrossTabs {
 							double[] result;
 							switch (sType) {
 							case PEARSON_CORREL:
-								result = stats.Correlation.Pearson(dataToCorrel);
+								result = org.genvisis.stats.Correlation.Pearson(dataToCorrel);
 
 								stat = result[0];
 								sig = result[1];
 								break;
 							case SPEARMAN_CORREL:
-								result = stats.Correlation.Spearman(dataToCorrel);
+								result = org.genvisis.stats.Correlation.Spearman(dataToCorrel);
 								stat = result[0];
 								sig = result[1];
 								break;

@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -6,28 +6,28 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Set;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.ext;
-import seq.manage.ReferenceGenome;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import stats.Rscript;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.GeomText;
-import stats.Rscript.HorizontalLine;
-import stats.Rscript.LEGEND_POSITION;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.Restrictions;
-import stats.Rscript.SCATTER_TYPE;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.var.SampleData;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.stats.Rscript;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.GeomText;
+import org.genvisis.stats.Rscript.HorizontalLine;
+import org.genvisis.stats.Rscript.LEGEND_POSITION;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.Restrictions;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 public class MossyPlots {
 

@@ -1,16 +1,14 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.*;
 
-import stats.ContingencyTable;
-import stats.ProbDist;
-import stats.Stats;
-
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-//import java.util.*;
-import common.*;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.*;
+import org.genvisis.stats.ContingencyTable;
+import org.genvisis.stats.ProbDist;
+import org.genvisis.stats.Stats;
 
 public class temp {
 	public static void yap(Project proj) {
@@ -133,7 +131,7 @@ public class temp {
 
 	public static void main(String[] args) throws IOException {
 		try {
-			yap(new Project(cnv.Launch.getDefaultDebugProjectFile(true), false));
+			yap(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

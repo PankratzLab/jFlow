@@ -1,18 +1,18 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class DuplicateConcordance {
 	
@@ -176,7 +176,7 @@ public class DuplicateConcordance {
 
 		String usage = "\n" +
 		"cnv.qc.DuplicateConcordance requires 1-2 arguments\n" +
-		"   (1) Project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (not the default))\n"+
+		"   (1) Project properties filename (i.e. proj=" + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (not the default))\n"+
 		"AND\n" + 
 		"   (2) File of markers to use (i.e. markerKeeps=keeps.txt (not the default))\n" +
 		"OR\n" +

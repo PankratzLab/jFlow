@@ -1,4 +1,4 @@
-package dead;
+package org.genvisis.dead;
 /**
 to do list:
 
@@ -51,7 +51,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 //import javax.swing.table.*;
 
-import dead.Incipient.Word.TimePoint;
+import org.genvisis.dead.Incipient.Word.TimePoint;
 
 
 public class Incipient implements ActionListener, KeyListener, MenuListener {

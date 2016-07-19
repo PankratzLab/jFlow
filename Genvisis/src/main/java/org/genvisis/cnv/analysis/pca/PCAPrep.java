@@ -1,4 +1,4 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -7,13 +7,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import cnv.filesys.Project;
-import cnv.filesys.SampleList;
-import cnv.qc.MarkerMetrics;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.qc.MarkerMetrics;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 /**
  * Methods for preparing a Project for PCA
@@ -57,13 +57,13 @@ public class PCAPrep {
 		String qcFile = outputBase + "_lrr_sd.txt";
 		proj.SAMPLE_QC_FILENAME.setValue(qcFile);
 
-		counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile, false);
+		counts = org.genvisis.cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile, false);
 		if (counts == null || counts[1] != sampleList.getSamples().length) {
 			if (counts == null || counts[1] == 0 && Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
 				log.reportError("Error - was unable to parse QC file " + proj.SAMPLE_QC_FILENAME.getValue() + ", backing up this file to " + proj.BACKUP_DIRECTORY.getValue(false, false) + " and re-starting sample qc");
 				Files.backup(ext.removeDirectoryInfo(proj.SAMPLE_QC_FILENAME.getValue()), proj.PROJECT_DIRECTORY.getValue(), proj.BACKUP_DIRECTORY.getValue(true, false), true);
 			}
-			counts = cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile, false);
+			counts = org.genvisis.cnv.qc.LrrSd.filterSamples(proj, outputBase, markersForABCallRate, markersForEverythingElse, numThreads, useFile, false);
 			if (counts == null || counts[1] != sampleList.getSamples().length) {
 				if (counts == null) {
 					log.reportError("Error - could not parse QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ")");

@@ -1,4 +1,4 @@
-package one.ben.fcs.gating;
+package org.genvisis.one.ben.fcs.gating;
 
 public class GateDimension {
     String paramName;

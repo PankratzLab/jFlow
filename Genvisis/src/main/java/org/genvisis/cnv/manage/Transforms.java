@@ -1,10 +1,8 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
-//import java.util.Date;
-
-import common.*;
-import mining.Transformations;
-import cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.common.*;
+import org.genvisis.mining.Transformations;
 
 public class Transforms {
 //	public static final String[] TRANFORMATIONS = {"Raw Values", "Quantile", "Inverse normalized", "Inverse T-distribution with 5 df"};

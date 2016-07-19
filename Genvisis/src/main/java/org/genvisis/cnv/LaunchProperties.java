@@ -1,11 +1,11 @@
-package cnv;
+package org.genvisis.cnv;
 
 import java.io.*;
 import java.util.*;
 
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class LaunchProperties extends Properties {
 	public static final long serialVersionUID = 1L;

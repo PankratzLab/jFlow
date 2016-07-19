@@ -1,11 +1,11 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
-import seq.analysis.GATK;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.GATK;
 
 /**
  * @author lane0212 Merge a list of vcfs using GATK;

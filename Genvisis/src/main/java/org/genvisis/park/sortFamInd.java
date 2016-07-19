@@ -1,10 +1,10 @@
 // later we can update this to specify columns and number of header rows
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class sortFamInd {
 

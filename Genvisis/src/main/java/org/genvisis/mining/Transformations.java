@@ -1,10 +1,10 @@
-package mining;
+package org.genvisis.mining;
 
 import java.io.*;
 import java.util.*;
 
-import cnv.analysis.BeastScore;
-import common.*;
+import org.genvisis.cnv.analysis.BeastScore;
+import org.genvisis.common.*;
 
 public class Transformations {
 	private static final String[] LABELS = {"Identity", "Rank", "Log", "Inverse", "Square root", "Squared", "Cubed", "Box-Cox (maxLL)", "Box-Cox (minKurt)", "Normalized", "Standardized", "InverseNormalized", "NegativeLog10"};

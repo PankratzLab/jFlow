@@ -1,12 +1,13 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import seq.analysis.Blast.BlastResults;
-import common.Array;
-import common.Logger;
-import common.Sort;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.seq.analysis.Blast.BlastResults;
+
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;

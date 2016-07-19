@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -77,7 +77,7 @@ public abstract class SimpleBase <T extends SimpleBase> implements Serializable 
      * a<sup>T</sup>
      * </p>
      *
-     * @see ejml.CommonOps#transpose(DenseMatrix64F,DenseMatrix64F)
+     * @see org.genvisis.ejml.CommonOps#transpose(DenseMatrix64F,DenseMatrix64F)
      *
      * @return A matrix that is n by m.
      */
@@ -278,7 +278,7 @@ public abstract class SimpleBase <T extends SimpleBase> implements Serializable 
      *
      * @see CommonOps#invert(DenseMatrix64F, DenseMatrix64F)
      *
-     * @throws ejml.SingularMatrixException
+     * @throws org.genvisis.ejml.SingularMatrixException
      *
      * @return The inverse of this matrix.
      */
@@ -377,7 +377,7 @@ public abstract class SimpleBase <T extends SimpleBase> implements Serializable 
      * normF = Sqrt{  &sum;<sub>i=1:m</sub> &sum;<sub>j=1:n</sub> { a<sub>ij</sub><sup>2</sup>}   }
      * </p>
      *
-     * @see ejml.NormOps#normF(org.ejml.data.D1Matrix64F)
+     * @see org.genvisis.ejml.NormOps#normF(org.ejml.data.D1Matrix64F)
      *
      * @return The matrix's Frobenius normal.
      */
@@ -434,7 +434,7 @@ public abstract class SimpleBase <T extends SimpleBase> implements Serializable 
      * This is equivalent to calling A.getMatrix().reshape(numRows,numCols,false).
      * </p>
      *
-     * @see ejml.ReshapeMatrix64F#reshape(int,int,boolean)
+     * @see org.genvisis.ejml.ReshapeMatrix64F#reshape(int,int,boolean)
      *
      * @param numRows The new number of rows in the matrix.
      * @param numCols The new number of columns in the matrix.
@@ -514,7 +514,7 @@ public abstract class SimpleBase <T extends SimpleBase> implements Serializable 
     /**
      * Returns the value of the matrix at the specified index of the 1D row major array.
      *
-     * @see ejml.DenseMatrix64F#get(int)
+     * @see org.genvisis.ejml.DenseMatrix64F#get(int)
      *
      * @param index The element's index whose value is to be returned
      * @return The value of the specified element.
@@ -526,7 +526,7 @@ public abstract class SimpleBase <T extends SimpleBase> implements Serializable 
     /**
      * Returns the index in the matrix's array.
      *
-     * @see ejml.DenseMatrix64F#getIndex(int, int)
+     * @see org.genvisis.ejml.DenseMatrix64F#getIndex(int, int)
      *
      * @param row The row number.
      * @param col The column number.
@@ -620,7 +620,7 @@ public abstract class SimpleBase <T extends SimpleBase> implements Serializable 
     /**
      * <p>
      * Converts the array into a string format for display purposes.
-     * The conversion is done using {@link MatrixIO#print(java.io.PrintStream, ejml.ReshapeMatrix64F)}.
+     * The conversion is done using {@link MatrixIO#print(java.io.PrintStream, org.genvisis.ejml.ReshapeMatrix64F)}.
      * </p>
      *
      * @return String representation of the matrix.
@@ -697,7 +697,7 @@ public abstract class SimpleBase <T extends SimpleBase> implements Serializable 
      * Extracts the diagonal from this matrix and returns them inside a column vector.
      * </p>
      *
-     * @see ejml.CommonOps#extractDiag(DenseMatrix64F, DenseMatrix64F)
+     * @see org.genvisis.ejml.CommonOps#extractDiag(DenseMatrix64F, DenseMatrix64F)
      * @return Diagonal elements inside a column vector.
      */
     public T extractDiag()
@@ -878,7 +878,7 @@ public abstract class SimpleBase <T extends SimpleBase> implements Serializable 
      * Saves this matrix to a file as a serialized binary object.
      * </p>
      *
-     * @see MatrixIO#saveBin( ejml.ReshapeMatrix64F, String)
+     * @see MatrixIO#saveBin( org.genvisis.ejml.ReshapeMatrix64F, String)
      *
      * @param fileName
      * @throws java.io.IOException
@@ -918,7 +918,7 @@ public abstract class SimpleBase <T extends SimpleBase> implements Serializable 
      * Saves this matrix to a file in a CSV format.  For the file format see {@link MatrixIO}.
      * </p>
      *
-     * @see MatrixIO#saveBin( ejml.ReshapeMatrix64F, String)
+     * @see MatrixIO#saveBin( org.genvisis.ejml.ReshapeMatrix64F, String)
      *
      * @param fileName
      * @throws java.io.IOException

@@ -1,13 +1,13 @@
 // -Xms1024M -Xmx1024M
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 
-import common.*;
-import filesys.FamilyStructure;
-import filesys.SnpMarkerSet;
+import org.genvisis.common.*;
+import org.genvisis.filesys.FamilyStructure;
+import org.genvisis.filesys.SnpMarkerSet;
 
 public class Mach {
 //	public static final String EXECUTABLE = "mach1";

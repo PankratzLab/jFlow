@@ -1,29 +1,31 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
+import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqProducer;
+import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqWorker;
+import org.genvisis.seq.analysis.PlinkSeqUtils.PlinkSeqBurdenSummary;
+import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCFOps.ChrSplitResults;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.pathway.GenomeRegions;
+import org.genvisis.seq.pathway.Pathways;
+
 import htsjdk.variant.vcf.VCFFileReader;
-import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
-import seq.analysis.PlinkSeq.PlinkSeqProducer;
-import seq.analysis.PlinkSeq.PlinkSeqWorker;
-import seq.analysis.PlinkSeqUtils.PlinkSeqBurdenSummary;
-import seq.analysis.PlinkSeqUtils.PseqProject;
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.ChrSplitResults;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.pathway.GenomeRegions;
-import seq.pathway.Pathways;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import filesys.GeneTrack;
 
 /**
  * @author lane0212
@@ -51,7 +53,7 @@ public class PlinkSeqMegs {
 		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
 
 		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), ext.parseDirectoryOfFile(vpop.getFileName()) + VCFOps.getAppropriateRoot(vcf, true) + "/", vcf, vpop, resourceDirectory, true, true, log);
-		VCFFileReader reader = new VCFFileReader(vcf, true);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		//int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
 		reader.close();
 		// System.exit(1);
@@ -177,7 +179,7 @@ public class PlinkSeqMegs {
 		PlinkSeq plinkSeq = new PlinkSeq(false, true, log);
 		// ext.parseDirectoryOfFile(vpop.getFileName())
 		PseqProject pseqProject = PlinkSeq.initialize(plinkSeq, ext.rootOf(vpop.getFileName()), directory, vcf, vpop, resourceDirectory, true, loadLoc, log);
-		VCFFileReader reader = new VCFFileReader(vcf, true);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		//int macFilter = (int) Math.round((float) VCFOps.getSamplesInFile(reader).length * maf);
 		reader.close();
 		return plinkSeq.fullGamutAssoc(pseqProject, new String[] { ext.rootOf(locFile) }, null, -1, maf+"", ext.rootOf(vpop.getFileName()), false, numthreads);

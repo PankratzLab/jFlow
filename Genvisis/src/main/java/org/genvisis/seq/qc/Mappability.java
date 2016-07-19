@@ -1,4 +1,4 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -6,23 +6,24 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-import filesys.CNVariant;
-import filesys.GeneData;
-import filesys.GeneTrack;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.BEDFileReader;
+import org.genvisis.seq.manage.BedOps;
+import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
+import org.genvisis.stats.Histogram.DynamicAveragingHistogram;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.bed.BEDFeature;
-import seq.manage.BEDFileReader;
-import seq.manage.BEDFileReader.BEDFeatureSeg;
-import seq.manage.BedOps;
-import stats.Histogram.DynamicAveragingHistogram;
-import stats.Rscript.RScatter;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.Logger;
-import common.Positions;
-import common.ext;
 
 public class Mappability<SEGMENT extends Segment> {
 

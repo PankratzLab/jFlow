@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
 /**
- * A wrapper around {@link ejml.CholeskyDecomposition}(BlockMatrix64F) that allows
- * it to be easily used with {@link ejml.DenseMatrix64F}.
+ * A wrapper around {@link org.genvisis.ejml.CholeskyDecomposition}(BlockMatrix64F) that allows
+ * it to be easily used with {@link org.genvisis.ejml.DenseMatrix64F}.
  *
  * @author Peter Abeles
  */

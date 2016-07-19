@@ -1,8 +1,8 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class sim6K {
 	public sim6K(String struct, String map, int reps) throws IOException {

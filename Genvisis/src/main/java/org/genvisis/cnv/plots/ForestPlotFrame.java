@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -48,13 +48,13 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
-import cnv.filesys.Project;
-import common.Aliases;
-import common.Array;
-import common.Files;
-import common.Grafik;
-import common.Logger;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class ForestPlotFrame extends JFrame implements WindowListener {
 	private static final long serialVersionUID = 1L;
@@ -783,7 +783,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 				String usage = "\n" + "cnv.plots.ForestPlot requires 1 arguments\n" +
 						"  (1) Name of the file with the list of markers (SeqMeta format), files, and comments, to display (i.e. markerList="+ markerList +" (default))\n" +
 						"OR\n" +
-						"  (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n";
+						"  (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n";
 		
 				for (int i = 0; i < args.length; i++) {
 					if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h") || args[i].equals("/help")) {

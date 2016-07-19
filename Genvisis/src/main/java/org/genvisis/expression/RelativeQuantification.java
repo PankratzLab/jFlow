@@ -1,9 +1,9 @@
-package expression;
+package org.genvisis.expression;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class RelativeQuantification {
 	public static final String[] HEADER = {"Plate", "Well ID", "Well", "Sample", "Detector", "Task", "Ct", "Ct Std Err", "Avg Ct", "Avg dCt", "dCt Std Err", "ddCt", "RQ", "RQ Min", "RQ Max", "Omit", "Filtered", "Threshold", "Auto Ct", "Baseline", "Start", "End"};

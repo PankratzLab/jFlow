@@ -1,7 +1,5 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
-import filesys.LocusSet;
-import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
@@ -13,10 +11,12 @@ import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-import common.Array;
-import common.Array.BYTE_DECODE_FORMAT;
-import common.Logger;
-import common.Positions;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.Array.BYTE_DECODE_FORMAT;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
 
 public class ReferenceGenome {
 	public static final String DEFAULT_REFERENCE = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";

@@ -1,19 +1,19 @@
-package one.ben.fcs.gating;
+package org.genvisis.one.ben.fcs.gating;
 
 import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.awt.geom.IllegalPathStateException;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-import common.ext;
-import one.ben.fcs.FCSDataLoader;
-import one.ben.fcs.FCSDataLoader.DATA_SET;
-import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
+import org.apache.poi.sl.usermodel.Shape;
+import org.genvisis.one.ben.fcs.FCSDataLoader;
+import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
+import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
+
 
 public abstract class Gate {
     

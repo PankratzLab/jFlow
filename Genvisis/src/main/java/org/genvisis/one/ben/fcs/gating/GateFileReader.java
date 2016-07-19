@@ -1,4 +1,4 @@
-package one.ben.fcs.gating;
+package org.genvisis.one.ben.fcs.gating;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,9 +9,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import one.ben.fcs.gating.Gate.*;
-import one.ben.fcs.gating.GateDimension.RectangleGateDimension;
-
+import org.genvisis.one.ben.fcs.gating.Gate.BooleanGate;
+import org.genvisis.one.ben.fcs.gating.Gate.EllipsoidGate;
+import org.genvisis.one.ben.fcs.gating.Gate.PolygonGate;
+import org.genvisis.one.ben.fcs.gating.Gate.QuadrantGate;
+import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
+import org.genvisis.one.ben.fcs.gating.GateDimension.RectangleGateDimension;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

@@ -1,17 +1,17 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import stats.Rscript;
-import stats.Rscript.RScatter;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.stats.Rscript;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 public class plotContam {
 

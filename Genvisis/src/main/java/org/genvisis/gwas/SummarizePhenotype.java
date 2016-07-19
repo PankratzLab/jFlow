@@ -1,9 +1,9 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class SummarizePhenotype {
 	public static final String PARAMETERS_FILE_NAME = "parameters.txt";

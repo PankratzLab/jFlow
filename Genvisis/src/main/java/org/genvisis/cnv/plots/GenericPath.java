@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.geom.Ellipse2D;
 //import java.awt.geom.Path2D;

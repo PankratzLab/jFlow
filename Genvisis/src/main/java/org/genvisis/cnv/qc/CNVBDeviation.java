@@ -1,9 +1,9 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 
-import common.Array;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.ext;
 
 /**
  * Class for computing the B-Deviation for markers in a cnv call, similar to http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2963811/pdf/1469.pdf <br>

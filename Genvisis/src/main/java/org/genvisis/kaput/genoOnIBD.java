@@ -1,9 +1,9 @@
-package kaput;
+package org.genvisis.kaput;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class genoOnIBD {
 	public genoOnIBD(String mutation, String dumpfile, String pos, String pre) throws IOException {

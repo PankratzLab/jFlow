@@ -1,4 +1,4 @@
-package seq.manage.vcfPile;
+package org.genvisis.seq.manage.vcfPile;
 
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -6,11 +6,11 @@ import htsjdk.variant.variantcontext.VariantContext;
 import java.io.Serializable;
 import java.util.HashSet;
 
-import common.Logger;
-import seq.manage.ReferenceGenome;
-import seq.manage.VCOps;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import filesys.Segment;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
 
 class PiledVcfRegion<T extends Segment> implements Serializable {
 	/**

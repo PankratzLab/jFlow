@@ -1,4 +1,4 @@
-package seq.cnv;
+package org.genvisis.seq.cnv;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -7,15 +7,15 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import seq.manage.BamImport.NGS_MARKER_TYPE;
-import common.Array;
-import common.Logger;
-import common.Positions;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import cnv.filesys.MarkerSet.PreparedMarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 
 /**
  * Looking at large ( all or half) of chromosome structural variants

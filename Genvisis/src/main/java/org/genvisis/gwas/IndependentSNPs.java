@@ -9,13 +9,13 @@
 //
 // still doesn't take into consideration distance (i.e. can't have two probes within 32 bp of each other
 //
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
 
 public class IndependentSNPs {
 //	public static final float DEFAULT_PVAL_THRESHOLD = 5E-4;

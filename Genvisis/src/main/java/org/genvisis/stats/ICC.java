@@ -1,4 +1,4 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;
@@ -11,10 +11,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import common.Array;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 //Some Resources used...
 //http://ctj.sagepub.com/content/1/6/553.full.pdf

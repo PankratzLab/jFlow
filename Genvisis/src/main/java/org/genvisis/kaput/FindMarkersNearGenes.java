@@ -1,10 +1,10 @@
 // -Xms1024M -Xmx1024M
-package kaput;
+package org.genvisis.kaput;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class FindMarkersNearGenes {
 	// public static final String DEFAULT_DIR = "C:\\Documents and

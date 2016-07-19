@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
-import static ejml.BlockInnerMultiplication.blockMultMinus;
+import static org.genvisis.ejml.BlockInnerMultiplication.blockMultMinus;
 
 
 /**
  * <p>
- * Contains triangular solvers for {@link ejml.BlockMatrix64F} block aligned sub-matrices.
+ * Contains triangular solvers for {@link org.genvisis.ejml.BlockMatrix64F} block aligned sub-matrices.
  * </p>
  *
  * <p>

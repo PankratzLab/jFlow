@@ -1,4 +1,4 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -6,15 +6,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.Callable;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
 
 /**
  * @author lane0212

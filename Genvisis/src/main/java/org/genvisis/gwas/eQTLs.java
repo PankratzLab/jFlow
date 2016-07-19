@@ -1,12 +1,12 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import stats.Correlation;
-import common.*;
-import filesys.Segment;
-import filesys.SnpMarkerSet;
+import org.genvisis.common.*;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.stats.Correlation;
 
 public class eQTLs {
 	public static final double DEFAULT_TRANS_THRESHOLD = 0.0001;

@@ -1,9 +1,10 @@
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
-import common.*;
-import park.*;
+
+import org.genvisis.common.*;
+import org.genvisis.park.*;
 
 public class AgeAtDeath {
 	public static final String[] HEADER = {"FamNo", "IndNo", "Mother", "MOB", "DOB", "YOB", "MOD", "DOD", "YOD", "Dead", "Father", "MOB", "DOB", "YOB", "MOD", "DOD", "YOD", "Dead"};

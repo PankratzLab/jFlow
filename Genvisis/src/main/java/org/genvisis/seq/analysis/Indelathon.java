@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,8 +12,30 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.ExcelConverter;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.analysis.Blast.BlastResults;
+import org.genvisis.seq.manage.Adapter;
+import org.genvisis.seq.manage.BamExtractor;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.CigarOps;
+import org.genvisis.seq.manage.SamRecordOps;
+import org.genvisis.seq.manage.StrandOps;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.BamExtractor.WorkerExtractor;
+import org.genvisis.seq.manage.SamRecordOps.SoftClipped;
+
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
@@ -25,27 +47,6 @@ import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
-import seq.analysis.Blast.BlastResults;
-import seq.manage.Adapter;
-import seq.manage.BamExtractor;
-import seq.manage.CigarOps;
-import seq.manage.BamExtractor.WorkerExtractor;
-import seq.manage.BamOps;
-import seq.manage.SamRecordOps;
-import seq.manage.SamRecordOps.SoftClipped;
-import seq.manage.StrandOps;
-import seq.manage.VCFOps;
-import seq.manage.VCOps;
-import common.Array;
-import common.ExcelConverter;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerHive;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
 
 /**
  * Indel qc
@@ -453,7 +454,7 @@ public class Indelathon {
 	}
 
 	private static void extractIndelVariants(String vcf, Logger log, String outIndelVCF, String outSegSer, Hashtable<String, ArrayList<Segment>> sampSegs) {
-		VCFFileReader reader = new VCFFileReader(vcf, true);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		VariantContextWriter writer = VCFOps.initWriterWithHeader(reader, outIndelVCF, VCFOps.DEFUALT_WRITER_OPTIONS, log);
 		int numTotal = 0;
 		int numIndels = 0;

@@ -1,10 +1,12 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -29,7 +31,7 @@ public class VCFFlip {
 	private static VCFFileReader reader;
 
 	public static void flip(String inputVCF, boolean justGenoFlip, Logger log) {
-		reader = new VCFFileReader(inputVCF, true);
+		reader = new VCFFileReader(new File(inputVCF), true);
 		String output = inputVCF;
 		if (inputVCF.endsWith(".vcf.gz")) {
 			output = output.replaceAll(".vcf.gz", ".flipped.vcf.gz");

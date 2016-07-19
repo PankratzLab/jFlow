@@ -1,14 +1,14 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import common.Array;
-import common.Logger;
-import cnv.filesys.CNVQC;
-import cnv.filesys.Project;
-import filesys.CNVariant;
+import org.genvisis.cnv.filesys.CNVQC;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.CNVariant;
 
 //TODO extends?
 public class CNVariantQC implements Serializable {

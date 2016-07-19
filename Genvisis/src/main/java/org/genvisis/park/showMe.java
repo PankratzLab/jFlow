@@ -1,10 +1,10 @@
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
 
-import common.Array;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.ext;
 
 public class showMe {
 	public showMe(String filename, boolean separate, boolean trim, boolean pelican) throws IOException {

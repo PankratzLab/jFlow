@@ -1,10 +1,10 @@
-package seq;
+package org.genvisis.seq;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.*;
+import org.genvisis.common.*;
+import org.genvisis.filesys.*;
 
 public class ConvertToBuild37 {
 	public static final String HASH_MAP_FILE = "mappings.hash.ser";

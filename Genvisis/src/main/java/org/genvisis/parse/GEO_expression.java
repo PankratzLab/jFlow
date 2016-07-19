@@ -1,12 +1,11 @@
-package parse;
+package org.genvisis.parse;
 
 import java.io.*;
 import java.util.*;
 
-import mining.Transformations;
-
-import stats.LeastSquares;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.mining.Transformations;
+import org.genvisis.stats.LeastSquares;
 
 public class GEO_expression {
 	public static final String DIR = ""; 

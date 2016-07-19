@@ -1,11 +1,11 @@
 // -Xms1024M -Xmx1024M
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class QQPlotFrame extends JFrame implements ActionListener {
 	public static final long serialVersionUID = 1L;

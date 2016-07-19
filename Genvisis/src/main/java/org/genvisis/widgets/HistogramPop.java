@@ -1,4 +1,4 @@
-package widgets;
+package org.genvisis.widgets;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.math3.random.EmpiricalDistribution;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 
-import common.Array;
-import common.Files;
-import common.ext;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

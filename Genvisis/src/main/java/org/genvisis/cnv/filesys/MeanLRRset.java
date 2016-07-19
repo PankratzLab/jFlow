@@ -1,8 +1,9 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
-import common.Files;
-import filesys.Segment;
+
+import org.genvisis.common.Files;
+import org.genvisis.filesys.Segment;
 
 public class MeanLRRset implements Serializable {
 	public static final long serialVersionUID = 1L;

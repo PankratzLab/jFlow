@@ -1,10 +1,10 @@
 // accessed via a .crf file
-package db;
+package org.genvisis.db;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class CreateMarkerDatabase {
 	public static final String[] ALT_LOCS = {"C:\\Documents and Settings\\npankrat\\My Documents\\1_CRFdb\\genotypes\\"};

@@ -1,4 +1,4 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMRecord;
@@ -14,15 +14,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 
-import seq.qc.FilterNGS;
-import seq.qc.FilterNGS.SAM_FILTER_TYPE;
-import stats.Histogram.DynamicHistogram;
-import common.Files;
-import common.Logger;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
-import filesys.Segment;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
+import org.genvisis.stats.Histogram.DynamicHistogram;
 
 public class BamPileUp implements Iterator<BamPile> {
 	public enum PILE_TYPE {

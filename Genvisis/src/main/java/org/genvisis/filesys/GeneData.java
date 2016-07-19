@@ -1,9 +1,9 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.Serializable;
 import java.util.Vector;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class GeneData extends Segment implements Serializable {
 	public static final long serialVersionUID = 1L;

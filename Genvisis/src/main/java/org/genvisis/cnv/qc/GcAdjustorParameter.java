@@ -1,27 +1,27 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import stats.CrossValidation;
-import stats.LeastSquares.LS_TYPE;
-import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.CentroidBuilder;
-import cnv.filesys.Centroids;
-import cnv.filesys.MarkerSet.PreparedMarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.qc.GcAdjustor.GCAdjustorBuilder;
-import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
-import cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
+import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.stats.CrossValidation;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 /**
  * Stores betas to re-create a gc-correction for a particular sample

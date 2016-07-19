@@ -1,9 +1,9 @@
-package link.init;
+package org.genvisis.link.init;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class maleHets {
 	public maleHets() throws IOException {

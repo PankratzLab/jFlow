@@ -1,16 +1,4 @@
-package one.JL;
-
-import cnv.analysis.pca.PrincipalComponentsIntensity;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.manage.MarkerDataLoader;
-import cnv.var.SampleData;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,9 +17,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import stats.CrossValidation;
-import stats.ICC;
-import stats.LeastSquares.LS_TYPE;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.stats.CrossValidation;
+import org.genvisis.stats.ICC;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 public class IntensityCorrectionQC {
 	public static final String OUTPUT_EXT = ".icc";

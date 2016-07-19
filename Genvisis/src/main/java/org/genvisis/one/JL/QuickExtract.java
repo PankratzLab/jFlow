@@ -1,19 +1,21 @@
-package one.JL;
+package org.genvisis.one.JL;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import common.Array;
-import common.Logger;
-import common.ext;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCOps;
 
 /**
  * @author lane0212 Quickly looking at few variants in specific regions and pulling out some info of interest
@@ -36,7 +38,7 @@ public class QuickExtract {
 
 		LocusSet<Segment> set = LocusSet.loadSegmentSetFromFile(thing, 0, 1, 2, 0, true, true, 0, log);
 
-		VCFFileReader reader = new VCFFileReader(vcf, true);
+		VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 		try {
 			PrintWriter writer = new PrintWriter(new FileWriter(out));
 			writer.println("CHROM\tPOS\tREF\tALT\tNumAlt\tNumAltMinus3\t1000G\tSNPEFF_IMPACT\tSNPEFF_GENE_NAME");

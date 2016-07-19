@@ -1,17 +1,16 @@
-package one;
-
-import filesys.Hits;
-import gwas.CreateDatabaseFromPlink;
+package org.genvisis.one;
 
 import java.io.*;
 //import java.util.*;
 //import common.*;
 
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Hits;
+import org.genvisis.gwas.CreateDatabaseFromPlink;
 
 public class BOSS_Analyses {
 	public static void generate(String dir) {

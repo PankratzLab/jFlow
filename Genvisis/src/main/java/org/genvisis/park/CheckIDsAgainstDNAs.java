@@ -1,10 +1,11 @@
 // File order:     DNA     FamID     IndID
 
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class CheckIDsAgainstDNAs {
 //	public static final String DNA_YEAR_BUG_SOURCE = "C:\\Documents and Settings\\npankrat\\My Documents\\tWork\\Global PD files\\year_bug_dnas.txt";
@@ -121,7 +122,7 @@ public class CheckIDsAgainstDNAs {
 			// return famID+"\t"+famID+"\t"+famID;
 			return "";
 		}
-		id = park.tools.getFamID(famInd);
+		id = org.genvisis.park.tools.getFamID(famInd);
 		if (dna.contains("AD")||famInd.startsWith("71")) {
 			return id[0]+"\t"+id[1]+"\t"+dna;
 		}

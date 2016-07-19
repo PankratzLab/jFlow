@@ -1,8 +1,8 @@
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class gatherOmim {
 	public gatherOmim(String filename) {

@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,25 +10,25 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import stats.Histogram.DynamicHistogram;
-import stats.QuantileNormalization;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-import stats.Rscript.VertLine;
-import common.Array;
-import common.Files;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import cnv.analysis.CentroidCompute;
-import cnv.filesys.Centroids;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.manage.TransposeData;
-import cnv.qc.LrrSd;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.qc.LrrSd;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.stats.QuantileNormalization;
+import org.genvisis.stats.Histogram.DynamicHistogram;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
+import org.genvisis.stats.Rscript.VertLine;
 
 public class QuantNormProject {
 	private static final double THRESHOLD_FACTOR = 1.5;

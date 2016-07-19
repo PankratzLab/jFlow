@@ -1,4 +1,4 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.filter.AggregateFilter;
@@ -16,12 +16,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import common.Array;
-import common.Logger;
-import seq.manage.VCOps;
-import seq.manage.VCOps.GENOTYPE_FLAG_INFO;
-import seq.manage.VCOps.GENOTYPE_INFO;
-import seq.qc.FilterNGS.VariantContextFilter.VariantContextFilterBuilder;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCOps.GENOTYPE_FLAG_INFO;
+import org.genvisis.seq.manage.VCOps.GENOTYPE_INFO;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter.VariantContextFilterBuilder;
 
 public class FilterNGS implements Serializable {
 	private static final long serialVersionUID = 1L;

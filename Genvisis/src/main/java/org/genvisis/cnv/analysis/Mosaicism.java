@@ -1,5 +1,5 @@
 // -Xms1024M -Xmx1024M
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.*;
 import java.util.*;
@@ -7,19 +7,19 @@ import java.util.concurrent.Callable;
 
 import javax.swing.JOptionPane;
 
-import cnv.analysis.MosaicismDetect.MosaicBuilder;
-import cnv.filesys.*;
-import cnv.filesys.MarkerSet.PreparedMarkerSet;
-import cnv.filesys.Project.ARRAY;
-import cnv.plots.MosaicPlot;
-import cnv.var.IndiPheno;
-import cnv.var.MosaicRegion;
-import cnv.var.SampleData;
-import common.*;
-import common.WorkerTrain.Producer;
-import filesys.CNVariant;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.plots.MosaicPlot;
+import org.genvisis.cnv.var.IndiPheno;
+import org.genvisis.cnv.var.MosaicRegion;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
 
 public class Mosaicism {
 	public static final String[] HEADER = {"Sample", "Arm", "#CNVs", "Summed_Size", "%covered", "Custom_metric", "LRR_SD", "LRR_SD_flag", "Flagged_via_Mosaicism", "Mosaicism_level", "Mosaicism description"};
@@ -517,7 +517,7 @@ public class Mosaicism {
 
 		String usage = "\n"+
 				"filesys.ParseIllumina requires 0-1 arguments\n" +
-				"   (1) project properties filename (i.e. proj=" + cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" +
+				"   (1) project properties filename (i.e. proj=" + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n" +
 				"   (2) check for overlap between mosaic arms and CNV calls in the first CNV file listed in the project file (i.e. -check (not the default))\n" +
 				"   (3) mosaic arms file (i.e. arms=MosaicArms.txt (default))\n" +
 				PSF.Ext.getNumThreadsCommand(4, numthreads) +

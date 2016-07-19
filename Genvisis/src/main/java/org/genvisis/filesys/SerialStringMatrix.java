@@ -1,10 +1,12 @@
 // -Xms1024M -Xmx1024M
 
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.Serializable;
+
+import org.genvisis.common.*;
+
 import java.io.*;
-import common.*;
 
 public class SerialStringMatrix implements Serializable {
 	public static final long serialVersionUID = 1L;

@@ -1,9 +1,9 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 
-import common.Array;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.ext;
 
 public class Bootstrap {
 	public Bootstrap(String filename) throws IOException {

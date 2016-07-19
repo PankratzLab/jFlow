@@ -1,4 +1,4 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,17 +14,17 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
-import cnv.qc.GcAdjustorParameter;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import common.Array;
-import common.DoubleVector;
-import common.Elision;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.WorkerHive;
-import common.ext;
+import org.genvisis.cnv.qc.GcAdjustorParameter;
+import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.common.Array;
+import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Elision;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
 
 public class Sample implements Serializable {
 	public static final long serialVersionUID = 1L;
@@ -1313,7 +1313,7 @@ public class Sample implements Serializable {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project(cnv.Launch.getDefaultDebugProjectFile(true), false);
+		Project proj = new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false);
 		String[] samples = proj.getSamples();
 		Sample samp = proj.getFullSampleFromRandomAccessFile(samples[0]);
 		samp.writeToFile(proj.getMarkerNames(), "F:/sampleOut.dat");

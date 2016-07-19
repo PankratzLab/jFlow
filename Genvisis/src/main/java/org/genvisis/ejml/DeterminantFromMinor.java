@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
@@ -37,7 +37,7 @@ package ejml;
  * its computation has the advantage being independent of the matrices value.
  * </p>
  *
- * @see ejml.LUDecompositionAlt
+ * @see org.genvisis.ejml.LUDecompositionAlt
  *
  * @author Peter Abeles
  */

@@ -1,8 +1,9 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.*;
-import cnv.filesys.*;
-import common.*;
+
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.common.*;
 
 public class Parallelize implements Runnable {
 	public static final String[] OPTIONS = {};
@@ -140,7 +141,7 @@ public class Parallelize implements Runnable {
 
 		String usage = "\n"+
 		"filesys.ParseIllumina requires 0-1 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
 		"   (3) which algorithm to run (i.e. type="+type+" (default))\n"+
 		"";

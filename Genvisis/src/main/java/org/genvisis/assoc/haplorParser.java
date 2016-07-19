@@ -1,12 +1,12 @@
 // program case-control "global haplotype analysis" (chi sq)
 
-package assoc;
+package org.genvisis.assoc;
 
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class haplorParser {
 	public static String[] TARGET_HAPLOTYPES = {"111X", "222X", "X1X2", "X2X1"};

@@ -1,8 +1,8 @@
-package widgets;
+package org.genvisis.widgets;
 
 import java.io.*;
 
-import common.ext;
+import org.genvisis.common.ext;
 
 public class QuoteMe {
 	public static boolean NEWLINE = false;

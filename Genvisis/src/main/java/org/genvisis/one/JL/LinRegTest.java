@@ -1,11 +1,9 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
-
-import common.Logger;
-
-import stats.LeastSquares;
-import stats.LeastSquares.LS_TYPE;
+import org.genvisis.common.Logger;
+import org.genvisis.stats.LeastSquares;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 public class LinRegTest {
 

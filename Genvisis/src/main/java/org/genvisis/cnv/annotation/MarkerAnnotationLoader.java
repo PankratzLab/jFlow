@@ -1,11 +1,11 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import java.util.Hashtable;
 import java.util.List;
 
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import filesys.Segment;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.filesys.Segment;
 
 /**
  * @author lane0212 Class that concentrates on loading annotations for specific markers

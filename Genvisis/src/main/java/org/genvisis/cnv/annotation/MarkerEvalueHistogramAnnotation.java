@@ -1,4 +1,4 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import htsjdk.variant.variantcontext.VariantContext;
 
@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-import common.Array;
-import common.Logger;
-import common.Sort;
-import stats.Histogram.DynamicHistogram;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.stats.Histogram.DynamicHistogram;
 
 /**
  * TODO, gotta be a better way to track without the string conversions

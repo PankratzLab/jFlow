@@ -1,9 +1,9 @@
-package db;
+package org.genvisis.db;
 
-import common.Array;
-import common.Elision;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Elision;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class Filter {
 	public static final String[] OPERATORS = {">=", ">", "<=", "<", "!=", "="};

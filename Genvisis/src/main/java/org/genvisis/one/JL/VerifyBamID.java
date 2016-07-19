@@ -1,22 +1,23 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.concurrent.Callable;
 
-import seq.manage.BamOps;
-import seq.manage.VCFOps;
-import seq.manage.VCOps;
-import seq.manage.VCFOps.HEADER_COPY_TYPE;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
-import common.CmdLine;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain.Producer;
-import common.ext;
 
 public class VerifyBamID {
 
@@ -35,7 +36,7 @@ public class VerifyBamID {
 		sub.add(sample);
 		// output+=
 		if (!Files.exists(verfifyVCF)) {
-			VCFFileReader reader = new VCFFileReader(vcf, true);
+			VCFFileReader reader = new VCFFileReader(new File(vcf), true);
 			VariantContextWriter writer = VCFOps.initWriter(verfifyVCF, null, reader.getFileHeader().getSequenceDictionary());
 			VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
 			int index = 0;

@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.io.*;
 import java.util.*;
@@ -6,17 +6,17 @@ import java.awt.*;
 
 import javax.swing.*;
 
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.qc.SexChecks;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
+import org.genvisis.mining.Distance;
+
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 import javax.imageio.*;
-
-import common.*;
-import cnv.filesys.Project;
-import cnv.gui.LaunchAction;
-import cnv.qc.SexChecks;
-import mining.Distance;
-
 
 //public class MosaicPanel extends JPanel implements MouseListener, MouseMotionListener, ComponentListener {
 //public class SexPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener, ActionListener {

@@ -1,10 +1,10 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 
-import common.Array;
-import common.CmdLine;
-import common.Logger;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Logger;
 
 public class bashPG {
 	

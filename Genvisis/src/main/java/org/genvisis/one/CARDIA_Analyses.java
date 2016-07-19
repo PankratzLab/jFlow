@@ -1,4 +1,4 @@
-package one;
+package org.genvisis.one;
 
 public class CARDIA_Analyses {
 	

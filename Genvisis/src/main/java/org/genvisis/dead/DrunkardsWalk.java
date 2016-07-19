@@ -1,7 +1,8 @@
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class DrunkardsWalk {
 	

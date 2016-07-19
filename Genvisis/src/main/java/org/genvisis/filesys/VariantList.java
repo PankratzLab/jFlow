@@ -1,6 +1,6 @@
-package filesys;
+package org.genvisis.filesys;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class VariantList {
 	public static final String[][] HEADER = {{"chr"}, {"position"}, {"ref"}, {"alt"}};

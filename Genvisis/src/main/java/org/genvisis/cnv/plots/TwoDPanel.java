@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.Color;
 import java.awt.event.MouseEvent;
@@ -10,17 +10,17 @@ import java.util.Hashtable;
 
 import javax.swing.JPopupMenu;
 
-import stats.Histogram;
-import cnv.filesys.MarkerLookup;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.gui.LaunchAction;
-import cnv.var.SampleData;
-import common.CountVector;
-import common.Files;
-import common.IntVector;
-import common.Positions;
-import common.ext;
+import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.CountVector;
+import org.genvisis.common.Files;
+import org.genvisis.common.IntVector;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.stats.Histogram;
 
 public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
@@ -71,7 +71,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	private Project proj;
 	private String[][] linkerData;
 	private int dataHash = -1;
-	private stats.Histogram currentHistogram;
+	private org.genvisis.stats.Histogram currentHistogram;
 	private boolean histogramOverride = false;
     private boolean overrideAxisLabels = false;
 	
@@ -286,7 +286,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 	}
 
 	private void generateRectangles() {
-	    stats.Histogram hist;
+	    org.genvisis.stats.Histogram hist;
 	    if ((!isHistogramOverride() && dataHash != tdp.getSelectedDataHash()) || currentHistogram == null) {
     	    ArrayList<String[]> currentData;
     		boolean includeColorKeyValue;
@@ -306,7 +306,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
     		for (int i = 0; i < dataArray.length; i++) {
     		    dataArray[i] = ext.isMissingValue(currentData.get(i)[1]) ? Double.NaN : Double.parseDouble(currentData.get(i)[1]);
     		}
-    		hist = new stats.Histogram(dataArray);
+    		hist = new org.genvisis.stats.Histogram(dataArray);
     		setHistogram(hist);
 	    } else {
             hist = getHistogram();
@@ -769,7 +769,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
         return currentHistogram;
     }
 
-    public void setHistogram(stats.Histogram hist) {
+    public void setHistogram(org.genvisis.stats.Histogram hist) {
         this.currentHistogram = hist;
     }
     

@@ -1,4 +1,4 @@
-package cnv;
+package org.genvisis.cnv;
 
 import java.io.*;
 import java.util.*;
@@ -8,22 +8,22 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
-import common.*;
-import cyto.CytoGUI;
-import cnv.analysis.CentroidCompute;
-import cnv.analysis.DeNovoCNV;
-import cnv.analysis.Mosaicism;
-import cnv.analysis.pca.PrincipalComponentsCrossTabs;
-import cnv.analysis.pca.PrincipalComponentsManhattan;
-import cnv.filesys.*;
-import cnv.gui.FileAndOutputSelectorGUI;
-import cnv.gui.ImportProjectGUI;
-import cnv.gui.PlinkExportOptions;
-import cnv.manage.*;
-import cnv.plots.*;
-import cnv.qc.MarkerBlastQC;
-import cnv.qc.MarkerMetrics;
-import cnv.qc.SampleQC;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.analysis.DeNovoCNV;
+import org.genvisis.cnv.analysis.Mosaicism;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCrossTabs;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsManhattan;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.gui.FileAndOutputSelectorGUI;
+import org.genvisis.cnv.gui.ImportProjectGUI;
+import org.genvisis.cnv.gui.PlinkExportOptions;
+import org.genvisis.cnv.manage.*;
+import org.genvisis.cnv.plots.*;
+import org.genvisis.cnv.qc.MarkerBlastQC;
+import org.genvisis.cnv.qc.MarkerMetrics;
+import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.common.*;
+import org.genvisis.cyto.CytoGUI;
 
 //-XX:+UseConcMarkSweepGC
 //-XX:+UseParNewGC
@@ -505,11 +505,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 			 * CAUTION/NOTE/TODO: ALL SWING CALLS OR COMPONENT CREATION SHOULD BE WRAPPED IN SwingUtilities.invokeLater();
 			 */
 			if (command.equals(MAP_FILES)) {
-				cnv.manage.SourceFileParser.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
+				org.genvisis.cnv.manage.SourceFileParser.mapFilenamesToSamples(proj, "filenamesMappedToSamples.txt");
 			} else if (command.equals(GENERATE_MARKER_POSITIONS)) {
-				cnv.manage.Markers.generateMarkerPositions(proj, proj.getLocationOfSNP_Map(true));
+				org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj, proj.getLocationOfSNP_Map(true));
 			} else if (command.equals(PARSE_FILES_CSV)) {
-				cnv.manage.SourceFileParser.createFiles(proj, proj.NUM_THREADS.getValue());
+				org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, proj.NUM_THREADS.getValue());
 			} else if (command.equals(CHECK_SEX)) {
 				String blastAnnotationFile = proj.BLAST_ANNOTATION_FILENAME.getValue();
 				String nonCrossHybridizingMarkersFile = MarkerBlastQC.defaultOneHitWondersFilename(blastAnnotationFile);
@@ -520,7 +520,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 						nonCrossHybridizingMarkersFile = null;
 					}
 				}
-				cnv.qc.SexChecks.sexCheck(proj, true, nonCrossHybridizingMarkersFile);
+				org.genvisis.cnv.qc.SexChecks.sexCheck(proj, true, nonCrossHybridizingMarkersFile);
 			} else if (command.equals(TRANSPOSE_DATA)) {
 				TransposeData.transposeData(proj, 2000000000, false);
 			} else if (command.equals(GENERATE_ABLOOKUP)) {
@@ -590,14 +590,14 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
                     log.report("Success!");
 		        }
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
-				cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null, null, proj.NUM_THREADS.getValue());
+				org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(), null, null, proj.NUM_THREADS.getValue());
 			} else if (command.equals(PARSE_RAW_PENNCNV_RESULTS)) {
 				// TODO make dialog to ask for filenames with a JCheckBox for denovo parsing
-				cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log");
-				cnv.analysis.PennCNV.parseResults(proj, "penncnv.rawcnv", false);
+				org.genvisis.cnv.analysis.PennCNV.parseWarnings(proj, "penncnv.log");
+				org.genvisis.cnv.analysis.PennCNV.parseResults(proj, "penncnv.rawcnv", false);
 			} else if (command.equals(LRR_SD)) {
 //				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(proj.NUM_THREADS)));
-				cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
+				org.genvisis.cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
 			} else if (command.equals(CNP_SCAN)) {
 //					TODO Genotyping
 //					new ScanForCnp(proj, "CNPScanResult.txt");
@@ -649,7 +649,7 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 					}
 				});
 			} else if (command.equals(POPULATIONBAF)) {
-				cnv.analysis.PennCNV.populationBAF(proj);
+				org.genvisis.cnv.analysis.PennCNV.populationBAF(proj);
 			} else if (command.equals(CUSTOM_CENTROIDS)) {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
@@ -689,9 +689,9 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 //				log.report("No new program to test");
 //				ScatterPlot.createAndShowGUI(proj, null, null, false);
 
-				cnv.qc.SexChecks.sexCheck(proj, true);
+				org.genvisis.cnv.qc.SexChecks.sexCheck(proj, true);
 //				cnv.qc.LrrSd.init(proj, null, null, Integer.parseInt(proj.getProperty(Project.NUM_THREADS)));
-				cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
+				org.genvisis.cnv.qc.LrrSd.init(proj, null, null, proj.getProperty(proj.NUM_THREADS));
 				Mosaicism.findOutliers(proj);
 
 				PlinkData.saveGenvisisToPlinkPedSet(proj, "gwas", null, proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
@@ -702,11 +702,11 @@ public class Launch extends JFrame implements ActionListener, WindowListener, It
 
 				
 			} else if (command.equals(GCMODEL)) {
-				cnv.analysis.PennCNV.gcModel(proj, Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS, "gc5Base.txt", true, false, log), proj.PROJECT_DIRECTORY.getValue()+"data/custom.gcModel", 100);
+				org.genvisis.cnv.analysis.PennCNV.gcModel(proj, Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS, "gc5Base.txt", true, false, log), proj.PROJECT_DIRECTORY.getValue()+"data/custom.gcModel", 100);
 			} else if (command.equals(MARKER_METRICS)) {
-				cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, true, proj.NUM_THREADS.getValue());
+				org.genvisis.cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, true, proj.NUM_THREADS.getValue());
 			} else if (command.equals(FILTER_MARKER_METRICS)) {
-				cnv.qc.MarkerMetrics.filterMetrics(proj);
+				org.genvisis.cnv.qc.MarkerMetrics.filterMetrics(proj);
 			} else if (command.equals(TALLY_MARKER_ANNOTATIONS)) {
 				MarkerMetrics.tallyFlaggedReviewedChangedAndDropped(proj, true);
 			} else if (command.equals(TALLY_WITHOUT_DETERMINING_DROPS)) {

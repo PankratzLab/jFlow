@@ -1,20 +1,20 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-import seq.analysis.ANNOVAR.AnnovarResults;
-import seq.analysis.SNPEFF.SnpEffResult;
-import seq.manage.VCFOps;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.WorkerHive;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.ANNOVAR.AnnovarResults;
+import org.genvisis.seq.analysis.SNPEFF.SnpEffResult;
+import org.genvisis.seq.manage.VCFOps;
 
 public class GATK_Genotyper {
 	public static final String SPACE = " ";
@@ -228,7 +228,7 @@ public class GATK_Genotyper {
 		private int numWithinSampleThreads;
 		private Logger altLog;
 
-		public WorkerSingleSampleAllSites(seq.analysis.GATK gATK, String inputBam, String baseId, int numWithinSampleThreads, Logger altLog) {
+		public WorkerSingleSampleAllSites(org.genvisis.seq.analysis.GATK gATK, String inputBam, String baseId, int numWithinSampleThreads, Logger altLog) {
 			super();
 			this.GATK = gATK;
 			this.inputBam = inputBam;

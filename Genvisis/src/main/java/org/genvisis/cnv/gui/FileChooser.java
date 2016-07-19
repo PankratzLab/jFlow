@@ -1,11 +1,11 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.Component;
 import java.io.File;
 
 import javax.swing.JFileChooser;
 
-import common.Logger;
+import org.genvisis.common.Logger;
 
 public class FileChooser extends JFileChooser {
 

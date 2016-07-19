@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,9 +14,9 @@ import java.util.Vector;
 
 import javax.swing.JPanel;
 
-import filesys.GeneData;
-import filesys.GeneTrack;
-import filesys.Segment;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.Segment;
 
 public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 	public static final long serialVersionUID = 8L;

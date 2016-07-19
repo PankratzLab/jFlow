@@ -1,8 +1,9 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class Haploview {
 	public static final String[] LD_HEADER = {"L1", "L2", "D'", "r^2"};

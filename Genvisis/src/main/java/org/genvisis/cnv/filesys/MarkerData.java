@@ -1,23 +1,23 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import cnv.analysis.CentroidCompute;
-import cnv.analysis.pca.PrincipalComponentsIntensity;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.manage.MarkerDataLoader;
-import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import cnv.var.SampleData;
-import stats.Correlation;
-import stats.LeastSquares.LS_TYPE;
-import common.AlleleFreq;
-import common.Array;
-import common.DoubleVector;
-import common.Logger;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.AlleleFreq;
+import org.genvisis.common.Array;
+import org.genvisis.common.DoubleVector;
+import org.genvisis.common.Logger;
+import org.genvisis.stats.Correlation;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 public class MarkerData implements Serializable {
 	public static final long serialVersionUID = 1L;

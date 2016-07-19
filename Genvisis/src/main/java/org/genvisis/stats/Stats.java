@@ -1,6 +1,6 @@
-package stats;
+package org.genvisis.stats;
 
-import common.Array;
+import org.genvisis.common.Array;
 
 public class Stats {
 	public static double ztest(double p1, int n1, double p2, int n2) {

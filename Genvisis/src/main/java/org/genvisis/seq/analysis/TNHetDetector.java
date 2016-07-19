@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -7,21 +7,22 @@ import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-import seq.manage.GenotypeOps;
-import seq.manage.VCFOps;
-import seq.manage.VCOps;
-import seq.manage.VCFOps.HEADER_COPY_TYPE;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.GenotypeOps;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
 
 /**
  * @author lane0212 fairly specific class that uses the results of {@link VCFSimpleTally} to find genes with potential compound hets in tumor normal subsets<br>
@@ -39,7 +40,7 @@ public class TNHetDetector {
 		Hashtable<String, String> match = matchSamples(vpop, log);
 
 		VcfPopulation.splitVcfByPopulation(vcfNormals, vcfPop, true, true, false, log);
-		VCFFileReader readerNormal = new VCFFileReader(vcfNormals, true);
+		VCFFileReader readerNormal = new VCFFileReader(new File(vcfNormals), true);
 
 		for (VariantContext vc : readerNormal) {
 
@@ -54,7 +55,7 @@ public class TNHetDetector {
 		}
 		readerNormal.close();
 
-		VCFFileReader readerTumor = new VCFFileReader(vcfTumor, true);
+		VCFFileReader readerTumor = new VCFFileReader(new File(vcfTumor), true);
 		String output = outputDir + VCFOps.getAppropriateRoot(vcfTumor, true) + ".HET.vcf.gz";
 		VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS, readerTumor.getFileHeader().getSequenceDictionary());
 		VCFOps.copyHeader(readerTumor, writer, vpop.getSuperPop().get(VcfPopulation.TUMOR), HEADER_COPY_TYPE.FULL_COPY, log);

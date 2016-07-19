@@ -1,9 +1,9 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class StringLDdb implements Serializable {
 	public static final long serialVersionUID = 1L;

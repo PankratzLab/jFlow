@@ -4,7 +4,7 @@
 //     if equalsignorecase(chr) and position are present, use that instead
 //     can contain Discovery if Replication or Replication if Discovery as well as Meta-results
 
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,22 +17,20 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import stats.ProbDist;
-
-import common.Array;
-import common.CmdLine;
-import common.CountHash;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Matrix;
-import common.Sort;
-import common.Zip;
-import common.ext;
-
-import filesys.DosageData;
-import filesys.SerialHash;
-import filesys.SnpMarkerSet;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.CountHash;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.Sort;
+import org.genvisis.common.Zip;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.DosageData;
+import org.genvisis.filesys.SerialHash;
+import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.stats.ProbDist;
 
 public class Conditional {
 //	public static void addCountsAsCovariate(String baseDir, String originalCovariatesFile, String newCovariatesFile, String allPossibleSNPs, Logger log) {

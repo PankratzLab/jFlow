@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
@@ -27,7 +27,7 @@ package ejml;
  * of CPU cache misses and the number of copies that are performed.
  * </p>
  *
- * @see ejml.QRDecompositionHouseholder
+ * @see org.genvisis.ejml.QRDecompositionHouseholder
  *
  * @author Peter Abeles
  */

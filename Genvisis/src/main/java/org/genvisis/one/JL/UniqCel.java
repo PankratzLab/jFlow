@@ -1,10 +1,10 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 
-import common.Files;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class UniqCel {
 

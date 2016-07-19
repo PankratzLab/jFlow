@@ -1,4 +1,4 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,13 +21,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import parse.GenParser;
-import common.Aliases;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.parse.GenParser;
 
 public class FAST {
 	
@@ -576,7 +576,7 @@ public class FAST {
 					}
 				}
 			}
-			String metalCmd = "java -cp ~/" + common.PSF.Java.GENVISIS + " gwas.FAST rundir=" + runDir + study + " data=" + dataFile + " gcMetal=" + gcMetal + " -process";
+			String metalCmd = "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " gwas.FAST rundir=" + runDir + study + " data=" + dataFile + " gcMetal=" + gcMetal + " -process";
 			Files.qsub(runDir + "step3_" + study + "_processAndMetaAnalyze.qsub", metalCmd, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
 //			Files.write("qsub" + (qsubQueue == null ? "" : " -q " + qsubQueue) + " step4_" + study + "_metaAnalyzeFAST.qsub", runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
 //			Files.chmod(runDir + "step4_" + study + "_metaAnalyzeFAST.sh");
@@ -654,9 +654,9 @@ public class FAST {
 		scriptInputWriter.flush();
 		scriptInputWriter.close();
 		
-		String command = "java -cp ~/" + common.PSF.Java.GENVISIS + " one.ScriptExecutor file=\""+runDir+"input.txt\" token=took threads="+QSUB_THREADS;
+		String command = "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " one.ScriptExecutor file=\""+runDir+"input.txt\" token=took threads="+QSUB_THREADS;
 		String procFileOut = buildFinalFilename();
-		String processCommand = "cd \"" + runDir + "\"\njava -cp ~/" + common.PSF.Java.GENVISIS + " gwas.FAST -convert -concat -writePVals -hitWindows out=\"" + procFileOut + "\" results=\""+runDir+"output/\" trait=\""+traitFile + "\"";
+		String processCommand = "cd \"" + runDir + "\"\njava -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " gwas.FAST -convert -concat -writePVals -hitWindows out=\"" + procFileOut + "\" results=\""+runDir+"output/\" trait=\""+traitFile + "\"";
 		Files.qsub(runDir + RUN_SCRIPT_NAME, command, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
 		Files.qsub(runDir + PROCESS_SCRIPT_NAME, processCommand, QSUB_RAM_MB, QSUB_TIME_HRS, QSUB_THREADS);
 		(new File(runDir + "output/")).mkdirs();

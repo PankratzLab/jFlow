@@ -1,16 +1,16 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import common.Array;
-import common.Logger;
-import filesys.CNVariant;
-import filesys.GeneData;
-import filesys.GeneTrack;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
 
 public class parkGenes {
 

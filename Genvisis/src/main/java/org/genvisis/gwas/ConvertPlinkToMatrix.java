@@ -1,10 +1,9 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 
-import common.Logger;
-
-import filesys.*;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.*;
 
 public class ConvertPlinkToMatrix {
 	public static void convert(String dir, String root) {

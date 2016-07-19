@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 import java.awt.Image;
 import java.awt.datatransfer.*;

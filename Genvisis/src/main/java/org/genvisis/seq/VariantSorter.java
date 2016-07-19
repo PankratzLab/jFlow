@@ -1,5 +1,5 @@
 // -Xms1024M -Xmx1024M
-package seq;
+package org.genvisis.seq;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -10,12 +10,12 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import common.Array;
-import common.Collapsed;
-import common.Files;
-import common.HashVec;
-import common.Positions;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Collapsed;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
 
 public class VariantSorter {
 	public static final double MAF_LOWER_BOUND = 0.01;

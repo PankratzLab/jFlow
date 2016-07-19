@@ -1,4 +1,4 @@
-package one.ben.fcs.sub;
+package org.genvisis.one.ben.fcs.sub;
 
 import java.awt.Component;
 import java.awt.Font;
@@ -21,7 +21,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import net.miginfocom.swing.MigLayout;
 
-import common.Array;
+import org.genvisis.common.Array;
 
 public class BoxCtrlPanel extends JPanel {
     

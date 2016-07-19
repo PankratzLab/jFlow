@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -7,7 +7,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 
-import common.IntVector;
+import org.genvisis.common.IntVector;
 
 public class CheckBoxTree extends JTree implements ItemListener {
 	public static final long serialVersionUID = 1L;

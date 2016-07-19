@@ -1,15 +1,15 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.*;
 import java.util.*;
 
-import cnv.filesys.*;
-import cnv.manage.MarkerDataLoader;
-import cnv.manage.Transforms;
-import common.*;
-import filesys.CNVariant;
-import filesys.Segment;
-import stats.*;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.manage.Transforms;
+import org.genvisis.common.*;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.Segment;
+import org.genvisis.stats.*;
 
 public class MeanLRR {
 	public static void createFilesFromFullSample(Project proj, String regionsFile) {
@@ -428,7 +428,7 @@ public class MeanLRR {
 
 		String usage = "\n"+
 				"cnv.analysis.MeanLRR requires 0-1 arguments\n"+"" +
-				"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+				"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 				"   (2) filename of the regions in UCSC format (chr8:25129632-25130278) (i.e. regions="+regions+" (default))\n"+
 				"   (3) phenotype in SampleData.txt; delimit with a comma for export, only first will be analyzed (i.e. pheno="+Array.toStr(phenotypes, ",")+" (default))\n"+
 				"   (4) compute transforms as well (takes much much longer) (i.e. transform=false (default))\n"+

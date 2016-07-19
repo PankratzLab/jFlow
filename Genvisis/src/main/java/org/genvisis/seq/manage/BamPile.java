@@ -1,6 +1,5 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
-import filesys.Segment;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
@@ -9,9 +8,10 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
-import common.Array;
-import common.Files;
-import common.Logger;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.Segment;
 
 /**
  * Stores the pileUp of a bam file for each position found (by bin)

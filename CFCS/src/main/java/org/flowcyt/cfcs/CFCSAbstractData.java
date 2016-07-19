@@ -1,7 +1,6 @@
 package org.flowcyt.cfcs;
 
-import common.ext;
-// CFCSAbstractData.java
+import org.genvisis.common.ext;
 
 /* ------------------------------------------------------------------------- *\
 This software and documentation are provided 'as is' and Tree Star, Inc., its

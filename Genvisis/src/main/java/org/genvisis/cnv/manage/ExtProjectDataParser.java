@@ -1,16 +1,16 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import common.Array;
-import common.Files;
-import common.TypedFileParser;
-import common.ext;
-import common.TypedFileParser.TypedFileLine;
-import cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.TypedFileParser;
+import org.genvisis.common.ext;
+import org.genvisis.common.TypedFileParser.TypedFileLine;
 
 /**
  * Trying to have a single framework to load and match sample or marker data to a project from external files This has not been heavily tested, so please verify and test before use...

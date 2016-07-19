@@ -1,4 +1,4 @@
-package one.ben.fcs.sub;
+package org.genvisis.one.ben.fcs.sub;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -59,16 +59,17 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 import net.miginfocom.swing.MigLayout;
-import one.ben.fcs.AbstractPanel2;
-import one.ben.fcs.FCSPlot;
-import one.ben.fcs.sub.MeanCtrlPanel.LabelPresenter;
-import one.ben.fcs.sub.OneDPanel.PLOT_TYPE;
-import cnv.gui.IncludeExcludeGUI;
-import common.Array;
-import common.HashVec;
-import common.Logger;
-import common.Matrix;
-import common.ext;
+
+import org.genvisis.cnv.gui.IncludeExcludeGUI;
+import org.genvisis.common.Array;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.AbstractPanel2;
+import org.genvisis.one.ben.fcs.FCSPlot;
+import org.genvisis.one.ben.fcs.sub.MeanCtrlPanel.LabelPresenter;
+import org.genvisis.one.ben.fcs.sub.OneDPanel.PLOT_TYPE;
 
 
 public class ControlsQCGUI extends JFrame {

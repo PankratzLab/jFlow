@@ -1,4 +1,4 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -7,11 +7,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Positions;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
 
 public class PlinkMergePrep {
     
@@ -375,7 +375,7 @@ public class PlinkMergePrep {
             if (renameMarkers) {
                 prepends = new String[roots.length];
                 for (int i = 0; i < roots.length; i++) {
-                    prepends[i] = common.ext.rootOf(roots[i], true);
+                    prepends[i] = org.genvisis.common.ext.rootOf(roots[i], true);
                 }
             }
             

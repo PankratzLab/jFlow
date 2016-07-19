@@ -1,15 +1,15 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import filesys.PlainTextExport;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.PlainTextExport;
 
 public class SegmentLists implements Serializable, PlainTextExport {
 	public static final long serialVersionUID = 1L;

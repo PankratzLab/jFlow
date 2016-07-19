@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -8,22 +8,22 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.Callable;
 
-import stats.LeastSquares;
-import common.Array;
-import common.CmdLine;
-import common.ExcelConverter;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Matrix;
-import common.WorkerHive;
-import common.ext;
-import cnv.analysis.FilterCalls;
-import filesys.CNVariant;
-import filesys.GeneData;
-import filesys.GeneTrack;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.cnv.analysis.FilterCalls;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.ExcelConverter;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.WorkerHive;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.stats.LeastSquares;
 
 public class PlinkCNV {
 

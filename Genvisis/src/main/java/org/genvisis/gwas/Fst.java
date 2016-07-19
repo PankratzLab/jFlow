@@ -1,12 +1,12 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import parse.GenParser;
-import common.*;
-import filesys.SerialIntMatrix;
-import filesys.SerialStringMatrix;
+import org.genvisis.common.*;
+import org.genvisis.filesys.SerialIntMatrix;
+import org.genvisis.filesys.SerialStringMatrix;
+import org.genvisis.parse.GenParser;
 
 public class Fst {
 	private double[] p;	// allele frequency of the second allele

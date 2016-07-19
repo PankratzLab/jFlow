@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -8,36 +8,37 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import filesys.LocusSet;
-import filesys.Segment;
-import filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+import org.genvisis.seq.qc.AricWesFilter;
+import org.genvisis.seq.qc.VariantFilterSample;
+import org.genvisis.seq.qc.VariantFilterSample.FILTER_METHOD;
+import org.genvisis.seq.qc.VariantFilterSample.VariantFilterSamplePass;
+import org.genvisis.stats.Histogram.DynamicHistogram;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
+
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import seq.manage.ReferenceGenome;
-import seq.manage.VCFOps;
-import seq.manage.VCOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import seq.qc.AricWesFilter;
-import seq.qc.VariantFilterSample;
-import seq.qc.VariantFilterSample.FILTER_METHOD;
-import seq.qc.VariantFilterSample.VariantFilterSamplePass;
-import stats.Histogram.DynamicHistogram;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
 
 /**
  * @author lane0212 Currently used to make histograms of the differences between cases and controls
@@ -139,7 +140,7 @@ public class VCFHistogram implements Serializable {
 	}
 
 	public void populateHists(ReferenceGenome referenceGenome, double maf, VariantFilterSample vaSample) {
-		VCFFileReader reader = new VCFFileReader(vcfFile, false);
+		VCFFileReader reader = new VCFFileReader(new File(vcfFile), false);
 		Set<String> cases = vpop.getSubPop().get(VcfPopulation.CASE);
 		Set<String> controls = vpop.getSubPop().get(VcfPopulation.CONTROL);
 		int count = 0;

@@ -1,5 +1,5 @@
 // "AB_lookup.dat" is necessary if the files do not contain {"Allele1 - AB"}/{"Allele2 - AB}
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,25 +16,25 @@ import java.util.concurrent.Callable;
 
 import javax.swing.JOptionPane;
 
-import cnv.filesys.ABLookup;
-import cnv.filesys.MarkerData;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.filesys.Sample;
-import cnv.filesys.SampleList;
-import cnv.filesys.SourceFileHeaderData;
-import common.Aliases;
-import common.Array;
-import common.CountHash;
-import common.Elision;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Sort;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
+import org.genvisis.cnv.filesys.ABLookup;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.filesys.SourceFileHeaderData;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.CountHash;
+import org.genvisis.common.Elision;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
 
 /**
  * @author lane0212
@@ -2159,7 +2159,7 @@ public class SourceFileParser implements Runnable {
 
 		String usage = "\n"+
 		"cnv.manage.ParseIllumina requires 0-1 arguments\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) number of threads to use (i.e. threads="+numThreads+" (default))\n"+
 		" OPTIONAL:\n"+
 		"   (3) map filenames to sample IDs (i.e. -mapFiles ("+(map?"":"not the ")+"default))\n"+

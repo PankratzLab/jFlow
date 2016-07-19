@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.util.ArrayList;
 
@@ -6,8 +6,7 @@ import org.apache.commons.math3.stat.ranking.NaNStrategy;
 import org.apache.commons.math3.stat.ranking.NaturalRanking;
 import org.apache.commons.math3.stat.ranking.RankingAlgorithm;
 import org.apache.commons.math3.stat.ranking.TiesStrategy;
-
-import common.Array;
+import org.genvisis.common.Array;
 
 public class QuantileMathCommonsNormalization {
 	private static final RankingAlgorithm COV_RANKER_TIE = new NaturalRanking(NaNStrategy.FAILED, TiesStrategy.AVERAGE);

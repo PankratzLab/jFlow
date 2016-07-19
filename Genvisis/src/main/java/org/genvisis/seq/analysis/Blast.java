@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import htsjdk.tribble.annotation.Strand;
 
@@ -6,20 +6,20 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 
-import stats.Histogram.DynamicHistogram;
-import common.Array;
-import common.CmdLine;
-import common.CmdLineProcess;
-import common.CmdLineProcess.ERR_Mode;
-import common.CmdLineProcess.INPUT_Mode;
-import common.CmdLineProcess.StandardInputProvider;
-import common.PSF;
-import common.CmdLineProcess.OUTPUT_Mode;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.Segment;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.CmdLineProcess;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.common.CmdLineProcess.ERR_Mode;
+import org.genvisis.common.CmdLineProcess.INPUT_Mode;
+import org.genvisis.common.CmdLineProcess.OUTPUT_Mode;
+import org.genvisis.common.CmdLineProcess.StandardInputProvider;
+import org.genvisis.filesys.Segment;
+import org.genvisis.stats.Histogram.DynamicHistogram;
 
 public class Blast {
 	public static final String[] DB_EXTs = new String[] { ".nsq", ".nin", ".nhr" };

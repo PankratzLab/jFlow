@@ -1,13 +1,13 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.LDdatabase;
-import bioinformatics.HapMapParser;
-import bioinformatics.ParseSNPlocations;
-import link.LinkageToPlink;
+import org.genvisis.bioinformatics.HapMapParser;
+import org.genvisis.bioinformatics.ParseSNPlocations;
+import org.genvisis.common.*;
+import org.genvisis.filesys.LDdatabase;
+import org.genvisis.link.LinkageToPlink;
 
 public class CheckForLD {
 	public static final String DBSNP_SOURCE = ParseSNPlocations.DEFAULT_B36_SOURCE_FILENAME;

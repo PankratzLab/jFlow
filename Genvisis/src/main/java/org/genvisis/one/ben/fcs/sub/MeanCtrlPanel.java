@@ -1,4 +1,4 @@
-package one.ben.fcs.sub;
+package org.genvisis.one.ben.fcs.sub;
 
 import javax.swing.JPanel;
 

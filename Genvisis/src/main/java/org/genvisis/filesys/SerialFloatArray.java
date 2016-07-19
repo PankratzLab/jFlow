@@ -1,9 +1,10 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class SerialFloatArray implements Serializable {
 	public static final long serialVersionUID = 1L;

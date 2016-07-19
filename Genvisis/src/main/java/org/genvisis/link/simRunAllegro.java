@@ -1,4 +1,4 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 

@@ -1,9 +1,9 @@
-package link.bat;
+package org.genvisis.link.bat;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class osa {
 
@@ -149,7 +149,7 @@ public class osa {
 			writer.println("#/bin/sh");
 			writer.println();
 			writer.println("cp ../map"+chrome+".dat .");
-			writer.println("java -classpath /home/npankrat/" + common.PSF.Java.GENVISIS + " park.bat.dat2loc map"+chrome+".dat");
+			writer.println("java -classpath /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + " park.bat.dat2loc map"+chrome+".dat");
 			for (int ascending = 0; ascending<2; ascending++) {
 				temp = ascending==0?"a":"d";
 				for (int i = 1; i<=increment; i++) {

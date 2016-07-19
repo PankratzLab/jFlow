@@ -1,8 +1,9 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class LinkageToPlink {
 	// public static final String DEFAULT_DIRECTORY = "";

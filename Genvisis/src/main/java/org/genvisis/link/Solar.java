@@ -2,12 +2,12 @@
 // to do - don't put 99+ in ptypes file
 // to do - any reason why h2 is so far off?
 
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class Solar {
 	public static int[] MAX_CM = {285, 275, 231, 212, 212, 198, 191, 172, 167, 175, 164, 167, 124, 124, 127, 133, 139, 122, 103, 103, 63, 70, 176};

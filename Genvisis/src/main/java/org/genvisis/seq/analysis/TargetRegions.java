@@ -1,26 +1,28 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Set;
 
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.genvisis.seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
+import org.genvisis.seq.manage.VCOps.GENOTYPE_INFO;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
-import common.Array;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
-import seq.manage.VCOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
-import seq.manage.VCOps.GENOTYPE_INFO;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import filesys.LocusSet;
-import filesys.Segment;
 
 public class TargetRegions<T extends Segment> {
 	private static final String[] TO_REPORT = new String[] { "SNPEFF_GENE_NAME", "SNPEFF_EFFECT", "SNPEFF_IMPACT", "AAChange.refGene", "SNPEFF_EXON_ID", "culprit", "snp138", "esp6500si_all", "g10002014oct_all" };
@@ -39,7 +41,7 @@ public class TargetRegions<T extends Segment> {
 	}
 
 	public void summarizeRegions(String fullPathToOutput, String toMatchVCF, String[] toMatchAnnotations) {
-		VCFFileReader reader = new VCFFileReader(vcfFile, true);
+		VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
 		T[] regions = targetRegions.getLoci();
 
 		String[] subpop = vpop.getSubPop().keySet().toArray(new String[vpop.getSubPop().keySet().size()]);

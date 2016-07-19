@@ -1,11 +1,10 @@
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
 
-import park.tools;
-
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.park.tools;
 
 public class gwaPedigreeMaker {
 	public static final String[] HEADER = {"FamID", "IndID", "UniqueID", "Father", "Mother", "Family", "Individ", "Father", "Mother", "Sex", "DNA", "IRB", "Shipment_Site", "DNA_Source", "DNA_ExtMeth", "Local_ID"};

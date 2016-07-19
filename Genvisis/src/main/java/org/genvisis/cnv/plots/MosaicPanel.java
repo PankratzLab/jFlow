@@ -1,24 +1,22 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.io.*;
 import java.util.*;
-
-import common.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
 
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
+import org.genvisis.mining.Distance;
+
 import java.awt.image.BufferedImage;
 
 import javax.imageio.*;
-
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.gui.LaunchAction;
-import cnv.var.SampleData;
-import mining.Distance;
 
 public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
@@ -30,8 +30,8 @@ package ejml;
  * David S. Watkins, "Fundamentals of Matrix Computations," Second Edition. page 377-385
  * </p>
  *
- * @see ejml.SymmetricQrAlgorithm
- * @see ejml.TridiagonalDecompositionHouseholder
+ * @see org.genvisis.ejml.SymmetricQrAlgorithm
+ * @see org.genvisis.ejml.TridiagonalDecompositionHouseholder
  *
  * @author Peter Abeles
  */

@@ -1,12 +1,12 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
-import filesys.BurdenMatrix;
-import filesys.GenotypeMatrix;
-import filesys.SerialHash;
+import org.genvisis.common.*;
+import org.genvisis.filesys.BurdenMatrix;
+import org.genvisis.filesys.GenotypeMatrix;
+import org.genvisis.filesys.SerialHash;
 
 public class ChargeS {
 //	public static final String[][] MAP_REQUIREMENTS = {{"SNP"}, {"Chr", "CHROM"}, {"Position", "POS"}, {"ALT"}, {"REF"}};

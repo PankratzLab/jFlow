@@ -1,8 +1,8 @@
-package stats;
+package org.genvisis.stats;
 
 import java.math.BigInteger;
 
-import common.Array;
+import org.genvisis.common.Array;
 
 public class Maths {
 	// these are the valid operators that will be searched for in the following order

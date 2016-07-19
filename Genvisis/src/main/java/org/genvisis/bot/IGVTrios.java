@@ -1,8 +1,8 @@
-package bot;
+package org.genvisis.bot;
 
 import java.awt.event.KeyEvent;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class IGVTrios {
 	private AhkBot bot;

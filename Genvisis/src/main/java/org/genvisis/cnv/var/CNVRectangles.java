@@ -1,7 +1,7 @@
 /**
  * 
  */
-package cnv.var;
+package org.genvisis.cnv.var;
 
 import java.awt.Color;
 import java.io.File;
@@ -10,9 +10,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import cnv.plots.CompPlot;
-import filesys.CNVariant;
-import filesys.CNVariantHash;
+import org.genvisis.cnv.plots.CompPlot;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.CNVariantHash;
 
 /**
  * This class reads in CNV files and generates a list of rectangles representing them. The list can be retrieved in different contexts based on the current display mode.

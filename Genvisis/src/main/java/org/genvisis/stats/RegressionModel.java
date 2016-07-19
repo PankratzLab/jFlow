@@ -1,14 +1,14 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 import java.util.*;
 
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.IntVector;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.IntVector;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public abstract class RegressionModel {
 	protected boolean verbose;

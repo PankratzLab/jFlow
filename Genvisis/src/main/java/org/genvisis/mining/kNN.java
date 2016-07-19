@@ -1,9 +1,10 @@
 // k-nearest neighbors algorithm
-package mining;
+package org.genvisis.mining;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class kNN {
 	public static final int[] PARTITION_DEFAULTS = {60, 40, 0};

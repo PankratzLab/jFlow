@@ -1,15 +1,19 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import seq.manage.ReferenceGenome;
-import seq.manage.VCOps;
-import common.Array;
-import common.Files;
-import common.Positions;
-import common.ext;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.WritingFilePrep;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.VCOps;
+
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.util.CloseableIterator;
@@ -21,9 +25,6 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.WritingFilePrep;
 
 /**
  * @author lane0212 Basically we hijack a vcf file for storing our annotations...seems like most of the things we want to annotate will have a chr, start and stop
@@ -122,7 +123,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 		boolean valid = true;
 		if (additionMode) {
 			try {
-				this.additionReader = new VCFFileReader(annotationFilename, false).iterator();
+				this.additionReader = new VCFFileReader(new File(annotationFilename), false).iterator();
 				this.tmpFile = getTmpFile(annotationFilename);
 			} catch (Exception e) {
 				proj.getLog().reportTimeError("Trying to initialize addition mode, but " + annotationFilename + " did not pass vcf file checks");
@@ -149,7 +150,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
 	@Override
 	public void init() {
 		if (validate()) {
-			VCFHeader vcfHeader = additionMode ? new VCFFileReader(annotationFilename, true).getFileHeader() : new VCFHeader();// take previous header if needed
+			VCFHeader vcfHeader = additionMode ? new VCFFileReader(new File(annotationFilename), true).getFileHeader() : new VCFHeader();// take previous header if needed
 			for (int i = 0; i < annotations.length; i++) {
 				if (!vcfHeader.hasInfoLine(annotations[i].getName())) {
 					VCFInfoHeaderLine vHeaderLine = null;

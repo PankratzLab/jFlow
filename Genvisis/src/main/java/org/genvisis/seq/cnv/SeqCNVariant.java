@@ -1,7 +1,7 @@
-package seq.cnv;
+package org.genvisis.seq.cnv;
 
 
-import filesys.CNVariant;
+import org.genvisis.filesys.CNVariant;
 
 public class SeqCNVariant extends CNVariant {
 	/**

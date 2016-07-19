@@ -1,4 +1,4 @@
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 
@@ -16,6 +16,12 @@ import javax.swing.event.CaretListener;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MitoPipeline;
+import org.genvisis.common.Files;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.ext;
+
 import javax.swing.JLabel;
 
 import java.awt.Font;
@@ -23,12 +29,6 @@ import java.awt.Font;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.Action;
-
-import cnv.filesys.Project;
-import cnv.manage.MitoPipeline;
-import common.Files;
-import common.Grafik;
-import common.ext;
 
 import java.awt.Insets;
 import java.awt.event.ActionListener;

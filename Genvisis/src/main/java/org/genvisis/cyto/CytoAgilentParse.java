@@ -1,4 +1,4 @@
-package cyto;
+package org.genvisis.cyto;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -7,14 +7,14 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.manage.SourceFileParser;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Positions;
-import common.ext;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.SourceFileParser;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
 
 /**
  * Parser for cytogenic files, can be called on a directory, or can be passed a String[] of files to parse. Output files have new extension ".genvisis", and the project file is updated.

@@ -1,16 +1,15 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.io.*;
 import java.util.*;
 
-import cnv.filesys.MarkerSet;
-//import cnv.analysis.FilterCalls;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.qc.SexChecks;
-import cnv.var.SampleData;
-import common.*;
-import filesys.CNVariant;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.qc.SexChecks;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
+import org.genvisis.filesys.CNVariant;
 
 public class PennCNV {
 	public static final String[] QC_HEADS = {"LRR_mean", "LRR_median", "LRR_SD", "BAF_mean", "BAF_median", "BAF_SD", "BAF_DRIFT", "WF", "GCWF"};
@@ -112,8 +111,8 @@ public class PennCNV {
 				"cd " + projDir,
 				"cat " + resultsDir + "*.log > " + resultsDir + "penncnv.rawlog",
 				"cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnv.rawcnv",
-				"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawlog=" + resultsDir + "penncnv.rawlog",
-				"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawcnv=" + resultsDir + "penncnv.rawcnv",
+				"java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawlog=" + resultsDir + "penncnv.rawlog",
+				"java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawcnv=" + resultsDir + "penncnv.rawcnv",
 		}, pennDir + scriptSubDir + "assemblePenncnv");
 		Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
 	}
@@ -230,7 +229,7 @@ public class PennCNV {
 				"cat " + resultsDir + "*.log > " + resultsDir + "penncnvX.rawlog",
 				"cat " + resultsDir + "*.rawcnv > " + resultsDir + "penncnvX.rawcnv",
 				// don't parse warnings; the parseWarnings method isn't written to parse X-chromosome warnings
-				"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawcnv=" + resultsDir + "penncnvX.rawcnv",
+				"java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj="+proj.getPropertyFilename()+" rawcnv=" + resultsDir + "penncnvX.rawcnv",
 		}, pennDir + scriptSubDir + "assemblePenncnv");
 		Files.chmod(pennDir + scriptSubDir + "assemblePenncnv");
 	}
@@ -1019,7 +1018,7 @@ public class PennCNV {
 			String outfile = "combineAutoXCNVs";
 			Files.writeList(new String[] {
 					"cd " + resultsDir,
-					"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,chrX/penncnvX.cnv output=combinedAX.cnv",
+					"java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,chrX/penncnvX.cnv output=combinedAX.cnv",
 			}, outdir + outfile);
 			Files.chmod(outdir + outfile);
 		}
@@ -1040,9 +1039,9 @@ public class PennCNV {
 			String outfile = "combineMFCNVs";
 			Files.writeList(new String[] {
 					"cd " + resultsDir,
-					"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
-					"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
-					"java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv -recode",
+					"java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
+					"java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
+					"java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv -recode",
 			}, outdir + outfile);
 			Files.chmod(outdir + outfile);
 			
@@ -1050,9 +1049,9 @@ public class PennCNV {
 			    outfile = "combineAMFCNVs";
 			    Files.writeList(new String[]{
 			            "cd " + resultsDir,
-	                    "java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
-	                    "java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
-	                    "java -cp ~/" + common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv",
+	                    "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/male/penncnv.cnv output=sexSpecific/male/recodedM.cnv -recode",
+	                    "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=sexSpecific/female/penncnv.cnv output=sexSpecific/female/recodedF.cnv -recode",
+	                    "java -cp ~/" + org.genvisis.common.PSF.Java.GENVISIS + " cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " combine=penncnv.cnv,sexSpecific/male/recodedM.cnv,sexSpecific/female/recodedF.cnv output=combinedMF.cnv",
 			    }, outdir + outfile);
 			    Files.chmod(outdir + outfile);
 			}
@@ -1103,7 +1102,7 @@ public class PennCNV {
 		
 		String usage = "\n"+
 		"cnv.park.PennCNV requires 0-1 arguments\n"+
-		"   (0) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (0) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		" AND\n" + 
 		"   (1) number of chunks to split everything in to (i.e. chunks="+numChunks+" (default))\n"+
 		"   (2) generate seperate qsub files instead of a single executor chain (i.e. -sepqsub (not the default))\n"+

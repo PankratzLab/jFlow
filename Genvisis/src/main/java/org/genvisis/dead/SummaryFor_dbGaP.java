@@ -1,9 +1,10 @@
 // -Xms1024M -Xmx1024M
-package dead;
+package org.genvisis.dead;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class SummaryFor_dbGaP {
 	public static final String HWE_FILE = "plink.hwe";

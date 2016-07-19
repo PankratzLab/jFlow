@@ -1,11 +1,11 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 
 
 import org.controlsfx.control.table.TableFilter;
+import org.genvisis.common.Files;
 
-import common.Files;
 import javafx.application.Application;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;

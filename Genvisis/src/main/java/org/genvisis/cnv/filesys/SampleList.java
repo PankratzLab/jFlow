@@ -1,12 +1,12 @@
-package cnv.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.*;
 import java.util.Hashtable;
 
-import common.Files;
-import common.Logger;
-import common.Sort;
-import common.ext;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class SampleList implements Serializable {
 	public static final long serialVersionUID = 1L;
@@ -129,7 +129,7 @@ public class SampleList implements Serializable {
 		
 		String usage = "\n"+
 		"filesys.SampleList requires 1+ argument\n"+
-		"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+		"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 		"   (2) (Optional) use -outliers argument to generate an 'outliers.ser' file (not the default)\n" +
 		"";
 

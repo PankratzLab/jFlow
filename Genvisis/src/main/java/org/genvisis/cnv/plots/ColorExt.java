@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -12,13 +12,13 @@ import java.util.Hashtable;
 import java.util.Random;
 import java.util.Set;
 
-import common.Aliases;
-import common.Array;
-import common.Files;
-import common.Grafik;
-import common.Logger;
-import common.ext;
-import cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class ColorExt {
 	public static Color generateRandomColor(Color mix) {

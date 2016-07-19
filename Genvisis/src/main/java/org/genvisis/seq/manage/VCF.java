@@ -1,14 +1,5 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.Positions;
-import common.ext;
-import filesys.Segment;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.tribble.Tribble;
 import htsjdk.tribble.index.Index;
@@ -39,9 +30,18 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.qc.FilterNGS.RareVariantFilter;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.qc.FilterNGS.RareVariantFilter;
 
 public class VCF {
 	//private static final String SITE_ONLY = ".siteOnly";
@@ -72,7 +72,7 @@ public class VCF {
 		this.fail = false;
 
 		this.vcfFile = vcfFile;
-		this.vcfFileReader = new VCFFileReader(vcfFile, true);
+		this.vcfFileReader = new VCFFileReader(new File(vcfFile), true);
 		this.variantContextWriter = null;
 		this.extractBams = false;
 	}

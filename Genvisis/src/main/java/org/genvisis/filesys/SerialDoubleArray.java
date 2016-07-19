@@ -1,7 +1,8 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.Serializable;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class SerialDoubleArray implements Serializable {
 	public static final long serialVersionUID = 1L;

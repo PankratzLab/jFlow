@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -9,28 +9,28 @@ import java.util.concurrent.Callable;
 
 import javax.jms.IllegalStateException;
 
-import stats.Rscript;
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import common.PSF.Ext;
-import cnv.analysis.CentroidCompute;
-import cnv.analysis.CentroidCompute.CentroidBuilder;
-import cnv.filesys.Project;
-import cnv.qc.GcAdjustor;
-import cnv.qc.GcAdjustor.GCAdjustorBuilder;
-import cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
-import cnv.qc.GcAdjustor.GcModel;
-import cnv.qc.GcAdjustorParameter;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.analysis.CentroidCompute;
+import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.qc.GcAdjustor;
+import org.genvisis.cnv.qc.GcAdjustorParameter;
+import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
+import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.PSF.Ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.stats.Rscript;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 public class GCcorrectionIterator {
 	private static final String CENT_TAG = "_CENT";

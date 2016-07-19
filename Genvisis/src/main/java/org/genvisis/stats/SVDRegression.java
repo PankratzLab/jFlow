@@ -1,10 +1,10 @@
-package stats;
+package org.genvisis.stats;
 
 import java.util.Arrays;
 
-import cnv.analysis.pca.PrincipalComponentsCompute;
-import common.Logger;
-import common.Matrix;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Matrix;
 
 /**
  * A class to compute betas and (partially)standard error of betas using singular value decomposition

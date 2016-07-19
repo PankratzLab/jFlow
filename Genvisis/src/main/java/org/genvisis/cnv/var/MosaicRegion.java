@@ -1,10 +1,10 @@
-package cnv.var;
+package org.genvisis.cnv.var;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import common.Array;
-import filesys.CNVariant;
+import org.genvisis.common.Array;
+import org.genvisis.filesys.CNVariant;
 
 public class MosaicRegion extends CNVariant implements Serializable {
 

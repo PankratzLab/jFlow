@@ -1,8 +1,6 @@
-package stats;
+package org.genvisis.stats;
 
-//import java.io.*;
-//import java.util.*;
-import common.*;
+import org.genvisis.common.*;
 
 public class Residuals {
 	public static void createAndWinsorize(String filename, double sdThresholdForWinsorization, Logger log) {

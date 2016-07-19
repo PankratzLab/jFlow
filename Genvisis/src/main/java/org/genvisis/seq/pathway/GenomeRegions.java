@@ -1,10 +1,10 @@
-package seq.pathway;
+package org.genvisis.seq.pathway;
 
 import java.io.Serializable;
 
-import common.Files;
-import common.Logger;
-import filesys.GeneTrack;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.GeneTrack;
 
 public class GenomeRegions implements Serializable {
 	/**

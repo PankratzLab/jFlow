@@ -1,12 +1,12 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.text.*;
 
-import common.Array;
-import common.Files;
-import common.Sort;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class Markers {
 	public static final String DEFAULT_MARKER_DATABASE = "marker.database";

@@ -1,8 +1,9 @@
-package stats;
+package org.genvisis.stats;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 // non-paramteric test for paired binary data
 public class McNemarsTest {

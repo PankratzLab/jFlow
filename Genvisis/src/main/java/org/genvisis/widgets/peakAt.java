@@ -1,10 +1,11 @@
-package widgets;
+package org.genvisis.widgets;
 
 import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class peakAt {
 	public static final int DEFAULT_NUM_LINES = 1000;

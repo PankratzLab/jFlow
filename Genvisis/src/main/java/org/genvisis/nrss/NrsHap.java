@@ -1,10 +1,10 @@
 // -Xms1024M -Xmx1024M
-package nrss;
+package org.genvisis.nrss;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class NrsHap {
 	public static final double INDEX_THRESHOLD = 0.001;

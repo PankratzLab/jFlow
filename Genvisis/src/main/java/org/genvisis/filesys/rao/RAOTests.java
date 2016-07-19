@@ -1,12 +1,12 @@
-package filesys.rao;
+package org.genvisis.filesys.rao;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import common.Files;
-import common.Logger;
-import filesys.CNVariant;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.CNVariant;
 
 public class RAOTests {
 

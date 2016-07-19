@@ -1,4 +1,4 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -9,21 +9,21 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.Callable;
 
-import seq.manage.ReferenceGenome;
-import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
-import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
-import seq.qc.FilterNGS.VariantContextFilter;
-import seq.qc.FilterNGS.VcFilterDouble;
-import seq.qc.SeqError.DUPLICATE_COMP_TYPE;
-import seq.qc.SeqError.DuplicateETwo;
-import seq.qc.SeqError.MODE;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
+import org.genvisis.seq.qc.FilterNGS.VcFilterDouble;
+import org.genvisis.seq.qc.SeqError.DUPLICATE_COMP_TYPE;
+import org.genvisis.seq.qc.SeqError.DuplicateETwo;
+import org.genvisis.seq.qc.SeqError.MODE;
 
 public class SeqQCValidation {
 	private static String[] SNP_SETS = new String[] { "(esp6500si_all=='.'||esp6500si_all <= 0.01)&&(g10002014oct_all=='.'||g10002014oct_all <= 0.01)", "snp138=='.'", "snp138!='.'" };

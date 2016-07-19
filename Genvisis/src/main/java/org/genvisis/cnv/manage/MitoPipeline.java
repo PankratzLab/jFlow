@@ -1,4 +1,4 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,39 +9,38 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import stats.LeastSquares.LS_TYPE;
-import cnv.LaunchProperties;
-import cnv.analysis.PennCNV;
-import cnv.analysis.pca.BetaOptimizer;
-import cnv.analysis.pca.CorrectionIterator;
-import cnv.analysis.pca.PCA;
-import cnv.analysis.pca.PCAPrep;
-import cnv.analysis.pca.PrincipalComponentsApply;
-import cnv.analysis.pca.PrincipalComponentsCompute;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.filesys.ABLookup;
-import cnv.filesys.MarkerLookup;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.filesys.Sample;
-import cnv.filesys.SampleList;
-import cnv.manage.Resources.GENOME_BUILD;
-import cnv.manage.Resources.GENOME_RESOURCE_TYPE;
-import cnv.manage.Resources.MITO_RESOURCE_TYPE;
-import cnv.manage.Resources.Resource;
-import cnv.qc.GcAdjustor.GCAdjustorBuilder;
-import cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import cnv.qc.GcAdjustor;
-import cnv.qc.GcAdjustorParameter;
-import cnv.var.SampleData;
-import common.Array;
-import common.Elision;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.PSF.Ext;
-import common.ext;
+import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.analysis.PennCNV;
+import org.genvisis.cnv.analysis.pca.BetaOptimizer;
+import org.genvisis.cnv.analysis.pca.CorrectionIterator;
+import org.genvisis.cnv.analysis.pca.PCA;
+import org.genvisis.cnv.analysis.pca.PCAPrep;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsApply;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.filesys.ABLookup;
+import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.manage.Resources.GENOME_RESOURCE_TYPE;
+import org.genvisis.cnv.manage.Resources.MITO_RESOURCE_TYPE;
+import org.genvisis.cnv.manage.Resources.Resource;
+import org.genvisis.cnv.qc.GcAdjustor;
+import org.genvisis.cnv.qc.GcAdjustorParameter;
+import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
+import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Elision;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
+import org.genvisis.common.PSF.Ext;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 /**
  * A class that serves as the outer wrapper for PCA related happenings...does import, marker QC, sample QC, PCA, etc
@@ -219,7 +218,7 @@ public class MitoPipeline {
 				System.exit(1);
 			} else {
 				log.report("\nParsing " + proj.MARKER_POSITION_FILENAME.getValue(false, false) + " using " + snpMapFilename);
-				cnv.manage.Markers.generateMarkerPositions(proj, snpMapFilename);
+				org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj, snpMapFilename);
 			}
 		} else if (!Files.exists(projectDirectory + ext.removeDirectoryInfo(markerPositions))) {
 			if (!Files.copyFile(markerPositions, projectDirectory + ext.removeDirectoryInfo(markerPositions))) {
@@ -301,7 +300,7 @@ public class MitoPipeline {
 			// log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.getFilename(proj.SAMPLELIST_FILENAME) + " and " + proj.getDir(proj.SAMPLE_DIRECTORY));
 			log.report("Skipping sample import step for the analysis. If this is an incorrect number of samples, please remove (or change the name of) " + proj.SAMPLELIST_FILENAME.getValue() + " and " + proj.SAMPLE_DIRECTORY.getValue(false, true));
 		} else {
-			result = cnv.manage.SourceFileParser.createFiles(proj, numThreads);
+			result = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
 			if (result == 0) {
 				return 0;
 			} else if (result == 7) {

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package cnv.gui;
+package org.genvisis.cnv.gui;
 
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -15,9 +15,9 @@ import java.util.*;
 
 import javax.swing.*;
 
-import common.HashVec;
-import cnv.plots.AbstractPanel;
-import cnv.var.SampleData;
+import org.genvisis.cnv.plots.AbstractPanel;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.HashVec;
 
 /**
  * @author zxu

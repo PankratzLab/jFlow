@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
@@ -39,16 +39,16 @@ package ejml;
  * <p>
  * To solve a system:<br>
  * <ol>
- * <li> Call {@link #setA(ejml.Matrix64F)}
- * <li> Call {@link #solve(ejml.Matrix64F, ejml.Matrix64F)}.
+ * <li> Call {@link #setA(org.genvisis.ejml.Matrix64F)}
+ * <li> Call {@link #solve(org.genvisis.ejml.Matrix64F, org.genvisis.ejml.Matrix64F)}.
  * </ol>
  * </p>
  *
  * <p>
  * To invert a matrix:<br>
  * <ol>
- * <li> Call {@link #setA(ejml.Matrix64F)}
- * <li> Call {@link #invert(ejml.Matrix64F)}.
+ * <li> Call {@link #setA(org.genvisis.ejml.Matrix64F)}
+ * <li> Call {@link #invert(org.genvisis.ejml.Matrix64F)}.
  * </ol>
  * A matrix can also be inverted by passing in an identity matrix to solve, but this will be
  * slower and more memory intensive than the specialized invert() function.
@@ -58,7 +58,7 @@ package ejml;
  * <b>IMPORTANT:</b> Depending upon the implementation, input matrices might be overwritten by
  * the solver.  This
  * reduces memory and computational requirements and give more control to the programmer.  If
- * the input matrices need to be not modified then {@link ejml.LinearSolverSafe} can be used.  The
+ * the input matrices need to be not modified then {@link org.genvisis.ejml.LinearSolverSafe} can be used.  The
  * functions {@link #modifiesA()} and {@link #modifiesB()} specify which input matrices are being
  * modified.
  * </p>
@@ -119,7 +119,7 @@ public interface LinearSolver< T extends Matrix64F> {
 
 
     /**
-     * Computes the inverse of of the 'A' matrix passed into {@link #setA(ejml.Matrix64F)}
+     * Computes the inverse of of the 'A' matrix passed into {@link #setA(org.genvisis.ejml.Matrix64F)}
      * and writes the results to the provided matrix.  If 'A_inv' needs to be different from 'A'
      * is implementation dependent.
      *
@@ -128,7 +128,7 @@ public interface LinearSolver< T extends Matrix64F> {
     public void invert( T A_inv );
 
     /**
-     * Returns true if the passed in matrix to {@link #setA(ejml.Matrix64F)}
+     * Returns true if the passed in matrix to {@link #setA(org.genvisis.ejml.Matrix64F)}
      * is modified.
      *
      * @return true if A is modified in setA().
@@ -136,7 +136,7 @@ public interface LinearSolver< T extends Matrix64F> {
     public boolean modifiesA();
 
     /**
-     * Returns true if the passed in 'B' matrix to {@link #solve(ejml.Matrix64F, ejml.Matrix64F)}
+     * Returns true if the passed in 'B' matrix to {@link #solve(org.genvisis.ejml.Matrix64F, org.genvisis.ejml.Matrix64F)}
      * is modified.
      *
      * @return true if B is modified in solve(B,X).

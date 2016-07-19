@@ -1,15 +1,4 @@
-package one.JL;
-
-import cnv.analysis.pca.PrincipalComponentsIntensity;
-import cnv.analysis.pca.PrincipalComponentsResiduals;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.manage.MarkerDataLoader;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
+package org.genvisis.one.JL;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -26,11 +15,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import stats.Correlation;
-import stats.ICC;
-import stats.IrrTable;
-import stats.Quantiles;
-import stats.LeastSquares.LS_TYPE;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.stats.Correlation;
+import org.genvisis.stats.ICC;
+import org.genvisis.stats.IrrTable;
+import org.genvisis.stats.Quantiles;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 public class PrincipalComponentsEval {
 	public static void evaluatePCs(Project proj, String markers, String evalFile, String output, String samplesFile, int jumpPC, int numQs,LS_TYPE lType) {

@@ -1,7 +1,4 @@
-package one.ben;
-
-import gwas.FAST;
-import gwas.FAST.DataDefinitions;
+package org.genvisis.one.ben;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,14 +17,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import one.ScriptExecutor;
-import stats.LeastSquares;
-import common.Aliases;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Positions;
-import common.ext;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.gwas.FAST;
+import org.genvisis.gwas.FAST.DataDefinitions;
+import org.genvisis.one.ScriptExecutor;
+import org.genvisis.stats.LeastSquares;
 
 public class ConditionalAnalysisPipeline {
     

@@ -1,13 +1,14 @@
-package cnv.annotation;
+package org.genvisis.cnv.annotation;
 
 import java.util.Hashtable;
 
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import common.Logger;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Logger;
+import org.genvisis.filesys.Segment;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeaderLineType;
-import filesys.Segment;
 
 public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationParser {
 

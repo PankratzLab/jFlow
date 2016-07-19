@@ -1,4 +1,4 @@
-package filesys;
+package org.genvisis.filesys;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -8,11 +8,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.ProgressBarDialog;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ProgressBarDialog;
 
 public class CNVariantHash implements Serializable {
     public static final long                                  serialVersionUID = 1L;

@@ -1,17 +1,16 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.File;
 import java.io.FilenameFilter;
 
-import common.ext;
-
-import stats.LeastSquares.LS_TYPE;
-import cnv.analysis.PennCNVPrep;
-import cnv.analysis.pca.PCA;
-import cnv.analysis.pca.PCAPrep;
-import cnv.analysis.pca.PrincipalComponentsApply;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
+import org.genvisis.cnv.analysis.PennCNVPrep;
+import org.genvisis.cnv.analysis.pca.PCA;
+import org.genvisis.cnv.analysis.pca.PCAPrep;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsApply;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.ext;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 // PRincipal COmponents Residuals - PR [o] C[t]O R
 public class PRoCtOR {

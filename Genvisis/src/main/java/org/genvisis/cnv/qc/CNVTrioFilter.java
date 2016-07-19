@@ -1,18 +1,18 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.util.HashSet;
 import java.util.Vector;
 
-import cnv.analysis.FilterCalls;
-import cnv.analysis.ProjectCNVFiltering;
-import cnv.analysis.cnvTrio;
-import cnv.filesys.Project;
-import common.Array;
-import common.CNVFilter;
-import common.Files;
-import common.Logger;
-import common.ext;
-import filesys.Segment;
+import org.genvisis.cnv.analysis.FilterCalls;
+import org.genvisis.cnv.analysis.ProjectCNVFiltering;
+import org.genvisis.cnv.analysis.cnvTrio;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.CNVFilter;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
 
 public class CNVTrioFilter extends CNVFilter {
 	public static final double DEFAULT_MAX_BEAST_HEIGHT_PARENTS = 0.25;

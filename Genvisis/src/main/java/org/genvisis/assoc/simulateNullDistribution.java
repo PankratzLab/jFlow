@@ -3,20 +3,17 @@
 // Note: this algorithm does not currently require specifying gender, so any individuals not found in ninfo2 will default to being female
 // currently have to run allegro simulate.opt by hand
 // currently PD specific (required ninfo2)
-package assoc;
+package org.genvisis.assoc;
 
 import java.io.*;
 import java.util.*;
 
-import park.tools;
-
-import link.LinkageMap;
-import link.TrimFam;
-
-import common.*;
-
-import stats.LogisticRegression;
-import stats.RegressionModel;
+import org.genvisis.common.*;
+import org.genvisis.link.LinkageMap;
+import org.genvisis.link.TrimFam;
+import org.genvisis.park.tools;
+import org.genvisis.stats.LogisticRegression;
+import org.genvisis.stats.RegressionModel;
 
 public class simulateNullDistribution {
 	public static final int NUM_REPS = 10000;

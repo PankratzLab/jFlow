@@ -1,4 +1,4 @@
-package dead;
+package org.genvisis.dead;
 
 import java.awt.*;
 import java.io.Serializable;

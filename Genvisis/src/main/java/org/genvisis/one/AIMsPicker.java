@@ -1,8 +1,9 @@
-package one;
+package org.genvisis.one;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class AIMsPicker {
 	private static void pick(String filename, int minDistance, double minScore, Logger log) {

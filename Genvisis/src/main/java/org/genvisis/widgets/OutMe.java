@@ -1,8 +1,9 @@
 // Each choice should be available through Cuts/
-package widgets;
+package org.genvisis.widgets;
 
 import java.io.*;
-import common.ext;
+
+import org.genvisis.common.ext;
 
 public class OutMe {
 	public static final int SYSTEM_OUT = 0;

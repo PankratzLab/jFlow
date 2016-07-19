@@ -1,4 +1,4 @@
-package one.JL;
+package org.genvisis.one.JL;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -7,29 +7,29 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import stats.Rscript.COLUMNS_MULTIPLOT;
-import stats.Rscript.PLOT_DEVICE;
-import stats.Rscript.RScatter;
-import stats.Rscript.RScatters;
-import stats.Rscript.Restrictions;
-import stats.Rscript.SCATTER_TYPE;
-import common.Array;
-import common.Files;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import cnv.analysis.BeastScore;
-import cnv.analysis.MosaicismDetect;
-import cnv.analysis.MosaicismDetect.MosaicBuilder;
-import cnv.analysis.MosaicismDetect.MosaicProducer;
-import cnv.filesys.MarkerSet;
-import cnv.filesys.Project;
-import cnv.filesys.Sample;
-import cnv.var.MosaicRegion;
-import cnv.var.SampleData;
-import filesys.CNVariant;
-import filesys.LocusSet;
-import filesys.Segment;
+import org.genvisis.cnv.analysis.BeastScore;
+import org.genvisis.cnv.analysis.MosaicismDetect;
+import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
+import org.genvisis.cnv.analysis.MosaicismDetect.MosaicProducer;
+import org.genvisis.cnv.filesys.MarkerSet;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.var.MosaicRegion;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.Segment;
+import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.genvisis.stats.Rscript.PLOT_DEVICE;
+import org.genvisis.stats.Rscript.RScatter;
+import org.genvisis.stats.Rscript.RScatters;
+import org.genvisis.stats.Rscript.Restrictions;
+import org.genvisis.stats.Rscript.SCATTER_TYPE;
 
 public class CNVMosaic {
 

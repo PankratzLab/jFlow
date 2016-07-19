@@ -1,22 +1,22 @@
-package cnv.analysis.pca;
+package org.genvisis.cnv.analysis.pca;
 
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 
-import stats.Correlation;
-import stats.CrossValidation;
-import stats.ICC;
-import stats.LeastSquares.LS_TYPE;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.Array.BooleanClassifier;
-import common.WorkerTrain.Producer;
-import cnv.analysis.pca.PrincipalComponentsResiduals.PrincipalComponentsIterator;
-import cnv.filesys.Project;
-import cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals.PrincipalComponentsIterator;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Array.BooleanClassifier;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.stats.Correlation;
+import org.genvisis.stats.CrossValidation;
+import org.genvisis.stats.ICC;
+import org.genvisis.stats.LeastSquares.LS_TYPE;
 
 public class CorrectionEvaluator implements Producer<EvaluationResult>, Serializable {
 	/**

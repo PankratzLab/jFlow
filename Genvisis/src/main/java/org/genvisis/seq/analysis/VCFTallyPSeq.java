@@ -1,4 +1,4 @@
-package seq.analysis;
+package org.genvisis.seq.analysis;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -6,26 +6,26 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Set;
 
-import one.JL.DumpMultiLoc;
-import seq.analysis.PlinkSeq.ANALYSIS_TYPES;
-import seq.analysis.PlinkSeq.BURDEN_Tests;
-import seq.analysis.PlinkSeq.PlinkSeqWorker;
-import seq.analysis.PlinkSeqUtils.PlinkSeqBurdenSummary;
-import seq.analysis.PlinkSeqUtils.PlinkSeqTestSummary;
-import seq.analysis.PlinkSeqUtils.PseqProject;
-import seq.manage.VCFOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.pathway.GenomeRegions;
-import seq.pathway.Pathways;
-import seq.qc.FilterNGS;
-import common.Array;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.ext;
-import filesys.GeneTrack;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.one.JL.DumpMultiLoc;
+import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
+import org.genvisis.seq.analysis.PlinkSeq.BURDEN_Tests;
+import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqWorker;
+import org.genvisis.seq.analysis.PlinkSeqUtils.PlinkSeqBurdenSummary;
+import org.genvisis.seq.analysis.PlinkSeqUtils.PlinkSeqTestSummary;
+import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.pathway.GenomeRegions;
+import org.genvisis.seq.pathway.Pathways;
+import org.genvisis.seq.qc.FilterNGS;
 
 /**
  * Does a vcf tally and incorporates plink seq results

@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -32,16 +32,16 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
-import mining.Distance;
-import stats.Maths;
-import common.Array;
-import common.Files;
-import common.Grafik;
-import common.HashVec;
-import common.IntVector;
-import common.ProgressBarDialog;
-import common.Sort;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.IntVector;
+import org.genvisis.common.ProgressBarDialog;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
+import org.genvisis.mining.Distance;
+import org.genvisis.stats.Maths;
 
 public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
 	public static final long serialVersionUID = 1L;

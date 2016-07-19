@@ -1,13 +1,13 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
 
-import common.AlleleFreq;
-import common.Array;
-import common.HashVec;
-import common.Sort;
-import common.ext;
+import org.genvisis.common.AlleleFreq;
+import org.genvisis.common.Array;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class extractMarkers {
 	public static final String BASE_DIR = "extractedMarkers";

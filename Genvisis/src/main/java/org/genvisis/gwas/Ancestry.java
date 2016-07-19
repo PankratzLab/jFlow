@@ -1,19 +1,19 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import cnv.analysis.pca.PCImputeRace;
-import cnv.filesys.Project;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.ext;
-import filesys.SnpMarkerSet;
+import org.genvisis.cnv.analysis.pca.PCImputeRace;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.SnpMarkerSet;
 
 
 

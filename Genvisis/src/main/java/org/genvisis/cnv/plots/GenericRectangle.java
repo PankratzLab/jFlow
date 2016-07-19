@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;

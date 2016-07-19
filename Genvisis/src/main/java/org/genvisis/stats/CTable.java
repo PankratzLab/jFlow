@@ -1,12 +1,13 @@
-package stats;
+package org.genvisis.stats;
 
 import java.util.Hashtable;
 import java.util.Vector;
-import common.Array;
-import common.Matrix;
-import common.Sort;
-import common.ext;
-import common.HashVec;
+
+import org.genvisis.common.Array;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Matrix;
+import org.genvisis.common.Sort;
+import org.genvisis.common.ext;
 
 public class CTable {
 	// TODO merge with list in ext

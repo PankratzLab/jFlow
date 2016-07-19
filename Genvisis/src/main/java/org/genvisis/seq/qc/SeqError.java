@@ -1,4 +1,4 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
@@ -6,22 +6,23 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import seq.manage.ReferenceGenome;
-import seq.manage.VCOps;
-import seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
-import seq.manage.VCOps.VC_SUBSET_TYPE;
-import seq.qc.FilterNGS.VariantContextFilter;
-import common.Array;
-import common.Logger;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
+import org.genvisis.common.Array;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.seq.manage.VCOps;
+import org.genvisis.seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
+import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 
 /**
  * @author lane0212 Class to compute error rates between samples akin to http://onlinelibrary.wiley.com/doi/10.1002/gepi.21881/epdf
@@ -55,7 +56,7 @@ public class SeqError {
 	 */
 	public void populateError(VariantContextFilter setFilter, ReferenceGenome referenceGenome, int numVariantsToTest, int numthreads) {
 
-		VCFFileReader reader = new VCFFileReader(vcfFile, true);
+		VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
 		VCFHeader header = reader.getFileHeader();
 		HashSet<String> allDEs = DuplicateETwo.getUniqSamples(dETwos);
 

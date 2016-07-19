@@ -1,19 +1,20 @@
-package seq.manage;
+package org.genvisis.seq.manage;
 
 import java.io.File;
 
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.ext;
-import seq.analysis.VcfQuery.Location;
-import seq.manage.VCFOps.HEADER_COPY_TYPE;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
-import seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
-import seq.qc.FilterNGS.VariantContextFilter;
-import seq.qc.FilterNGS.VariantContextFilterPass;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.VcfQuery.Location;
+import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
+import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
+import org.genvisis.seq.qc.FilterNGS.VariantContextFilterPass;
+
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -43,7 +44,7 @@ public class PopGen {
 		final VariantContextFilter vcfFilter = new VariantContextFilter(fullPopFilters, VARIANT_FILTER_BOOLEAN.values(), null, null, log);
 		final VariantContextFilter superPopFilter = new VariantContextFilter(new VARIANT_FILTER_DOUBLE[] { VARIANT_FILTER_DOUBLE.HWE, VARIANT_FILTER_DOUBLE.CALL_RATE_LOOSE }, new VARIANT_FILTER_BOOLEAN[] {}, null, null, log);
 
-		VCFFileReader tmp = new VCFFileReader(vcfs[0], true);
+		VCFFileReader tmp = new VCFFileReader(new File(vcfs[0]), true);
 		VariantContextWriter writer = VCFOps.initWriter(outputVCF, VCFOps.DEFUALT_WRITER_OPTIONS, VCFOps.getSequenceDictionary(tmp));
 		VCFOps.copyHeader(tmp, writer, VCFOps.BLANK_SAMPLE, HEADER_COPY_TYPE.FULL_COPY, log);
 
@@ -53,7 +54,7 @@ public class PopGen {
 		int hweSuperPopFail = 0;
 		for (int i = 0; i < vcfs.length; i++) {
 			log.reportTimeInfo("Initializing reader for " + vcfs[i]);
-			tmp = new VCFFileReader(vcfs[i], true);
+			tmp = new VCFFileReader(new File(vcfs[i]), true);
 			log.reportTimeInfo("Finished initializing reader for " + vcfs[i]);
 			long time = System.currentTimeMillis();
 			for (final VariantContext variantContext : tmp) {

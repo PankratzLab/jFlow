@@ -1,11 +1,10 @@
-package kaput;
+package org.genvisis.kaput;
 
 import java.io.*;
 import java.util.*;
 
-import park.CheckIDsAgainstDNAs;
-
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.park.CheckIDsAgainstDNAs;
 
 public class CleanupSNPresults {
 	public static final String[][] REQS = { {"plate"}, {"well"}, {"dna"}, {"FamInd"}, {"result"}, {"call"}};

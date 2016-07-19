@@ -1,4 +1,4 @@
-package filesys.rao;
+package org.genvisis.filesys.rao;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -9,7 +9,7 @@ import java.io.ObjectInputStream;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 
-import common.Logger;
+import org.genvisis.common.Logger;
 
 public class RAOReader<T extends RAObject> implements Iterator<T> {
 

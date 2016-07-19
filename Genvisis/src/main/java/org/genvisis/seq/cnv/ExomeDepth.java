@@ -1,4 +1,4 @@
-package seq.cnv;
+package org.genvisis.seq.cnv;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,27 +10,27 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import seq.cnv.CNVExtraInfo.EXTRA_INFO_TYPE;
-import seq.manage.BamOps;
-import seq.manage.VCFOps.VcfPopulation;
-import seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
-import seq.manage.VCFTumorNormalOps;
-import seq.manage.VCFTumorNormalOps.TNSample;
-import stats.Rscript;
-import common.Array;
-import common.CmdLine;
-import common.Files;
-import common.HashVec;
-import common.Logger;
-import common.PSF;
-import common.Positions;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import filesys.CNVariant;
-import filesys.LocusSet;
-import filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.common.Array;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.Positions;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.LocusSet;
+import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
+import org.genvisis.seq.cnv.CNVExtraInfo.EXTRA_INFO_TYPE;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.VCFTumorNormalOps;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.genvisis.seq.manage.VCFTumorNormalOps.TNSample;
+import org.genvisis.stats.Rscript;
 
 public class ExomeDepth {
 	private static final String EXOME_COUNTS_DAFR = "ExomeCount.dafr";

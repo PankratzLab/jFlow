@@ -1,13 +1,13 @@
-package cnv.manage;
+package org.genvisis.cnv.manage;
 
 import java.io.IOException;
 
-import seq.manage.VCFOps;
-import common.CmdLine;
-import common.Files;
-import common.HttpDownloadUtility;
-import common.Logger;
-import common.ext;
+import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
+import org.genvisis.common.HttpDownloadUtility;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.seq.manage.VCFOps;
 
 public class Resources {
 

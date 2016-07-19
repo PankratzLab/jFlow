@@ -1,9 +1,10 @@
 // -Xms1024M -Xmx1024M
-package parse;
+package org.genvisis.parse;
 
 import java.io.*;
-import common.*;
-import filesys.SnpMarkerSet;
+
+import org.genvisis.common.*;
+import org.genvisis.filesys.SnpMarkerSet;
 
 public class Emory {
 	public static final String[] HEADER_STARTER = {"IID", "LabID", "SEX", "Case"};

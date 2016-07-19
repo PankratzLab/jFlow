@@ -1,9 +1,10 @@
 // incorporate the info from demographics at some point
-package park;
+package org.genvisis.park;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class DescribeFams {
 	public static void describe() {

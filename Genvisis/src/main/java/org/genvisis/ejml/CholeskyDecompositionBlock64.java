@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-package ejml;
+package org.genvisis.ejml;
 
 
 
 /**
- * Wrapper around {@link ejml.BlockCholeskyOuterForm} that allows
+ * Wrapper around {@link org.genvisis.ejml.BlockCholeskyOuterForm} that allows
  * it to process DenseMatrix64F.
  *
  * @author Peter Abeles

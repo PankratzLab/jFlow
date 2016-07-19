@@ -1,10 +1,5 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.ext;
-import filesys.Segment;
 import htsjdk.samtools.AlignmentBlock;
 import htsjdk.samtools.SAMRecord;
 
@@ -16,6 +11,12 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
 
 
 public class LibraryNGS implements Serializable {

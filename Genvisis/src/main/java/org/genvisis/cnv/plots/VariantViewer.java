@@ -1,4 +1,4 @@
-package cnv.plots;
+package org.genvisis.cnv.plots;
 
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
@@ -79,24 +79,25 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
 import net.miginfocom.swing.MigLayout;
-import seq.manage.VCFOps;
-import seq.manage.VCOps;
-import cnv.filesys.Project;
-import cnv.gui.NewRegionListDialog;
-import cnv.var.Region;
-import common.Aliases;
-import common.Array;
-import common.Files;
-import common.Fonts;
-import common.Grafik;
-import common.HashVec;
-import common.Logger;
-import common.Positions;
-import common.TransferableImage;
-import common.ext;
-import filesys.GeneData;
-import filesys.GeneTrack;
-import filesys.Segment;
+
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gui.NewRegionListDialog;
+import org.genvisis.cnv.var.Region;
+import org.genvisis.common.Aliases;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Fonts;
+import org.genvisis.common.Grafik;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
+import org.genvisis.common.TransferableImage;
+import org.genvisis.common.ext;
+import org.genvisis.filesys.GeneData;
+import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
 
 public class VariantViewer extends JFrame implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener {
 	private static final String COLLAPSE_ISOFORMS_KEY = "Collapse Isoforms";
@@ -2427,13 +2428,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	    String[] fromAA, toAA;
 		String loc;
 		if (!".".equals(aaChng)) {
-    		fromAA = bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
+    		fromAA = org.genvisis.bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
     		if (ext.isValidInteger(aaChng.charAt(aaChng.length() - 1) + "")) {
     		    loc = aaChng.substring(1);
     		    toAA = null;
     		} else {
     		    loc = aaChng.substring(1, aaChng.length() - 1);
-    		    toAA = bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
+    		    toAA = org.genvisis.bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
     		}
     		if (fromAA != null) {
     		    txtBld.append(fromAA[1]);
@@ -2453,13 +2454,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		txtBld.append("\tANNOVAR -> ");
 		String[] aaChngs = getANNOVARProteinChanges(dp.vcRecord);
 	    for (String aa : aaChngs) {
-		    fromAA = bioinformatics.Protein.lookup(aa.charAt(0) + "");
+		    fromAA = org.genvisis.bioinformatics.Protein.lookup(aa.charAt(0) + "");
 		    if (ext.isValidInteger(aa.charAt(aa.length() - 1) + "")) {
 		        loc = aa.substring(1);
 		        toAA = null;
 		    } else {
 		        loc = aa.substring(1, aa.length() - 1);
-		        toAA = bioinformatics.Protein.lookup(aa.charAt(aa.length() - 1) + "");
+		        toAA = org.genvisis.bioinformatics.Protein.lookup(aa.charAt(aa.length() - 1) + "");
 		    }
 		    if (fromAA != null) {
 		        txtBld.append(fromAA[1]);
@@ -2843,7 +2844,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	        Set<String> sub = popMap.keySet();
 	        ArrayList<VariantContextWithFile> data = new ArrayList<VariantContextWithFile>();
 	        for (String vcfFile : vcfFiles) {
-    	        VCFFileReader vcfReader = new VCFFileReader(vcfFile, true);
+    	        VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
     	        VCFHeader header = vcfReader.getFileHeader();
     	        vcfHeader = header;
         	    CloseableIterator<VariantContext> vcIter = vcfReader.query(gd.getChromosomeUCSC(), gd.getStart(), gd.getStop());

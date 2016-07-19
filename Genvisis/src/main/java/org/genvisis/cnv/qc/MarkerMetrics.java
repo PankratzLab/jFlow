@@ -1,22 +1,22 @@
-package cnv.qc;
+package org.genvisis.cnv.qc;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-import stats.LeastSquares;
-import stats.LogisticRegression;
-import stats.RegressionModel;
-import stats.Ttest;
-import cnv.filesys.*;
-import cnv.manage.ExtProjectDataParser;
-import cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import cnv.manage.MDL;
-import cnv.manage.MarkerDataLoader;
-import cnv.qc.MendelErrors.MendelErrorCheck;
-import cnv.var.SampleData;
-import common.*;
-import db.FilterDB;
+import org.genvisis.cnv.filesys.*;
+import org.genvisis.cnv.manage.ExtProjectDataParser;
+import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.*;
+import org.genvisis.db.FilterDB;
+import org.genvisis.stats.LeastSquares;
+import org.genvisis.stats.LogisticRegression;
+import org.genvisis.stats.RegressionModel;
+import org.genvisis.stats.Ttest;
 
 public class MarkerMetrics {
 	public static final String[] FULL_QC_HEADER = {"MarkerName", "Chr", "CallRate", "meanTheta_AA", "meanTheta_AB", "meanTheta_BB", "diffTheta_AB-AA", "diffTheta_BB-AB", "sdTheta_AA", "sdTheta_AB", "sdTheta_BB", "meanR_AA", "meanR_AB", "meanR_BB", "num_AA", "num_AB", "num_BB", "pct_AA", "pct_AB", "pct_BB", "MAF", "HetEx", "num_NaNs", "LRR_SEX_z", "LRR_SD", "LRR_num_NaNs", "MendelianErrors"};
@@ -1255,7 +1255,7 @@ public class MarkerMetrics {
 
 		String usage = "\n" + 
 				"cnv.qc.MarkerMetrics requires 0-1 arguments\n" + 
-				"   (1) project properties filename (i.e. proj="+cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
+				"   (1) project properties filename (i.e. proj="+org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)+" (default))\n"+
 				"   (2) filename of subset of samples to include (i.e. samples=" + samples + " (default; if null, uses all samples except those marked in the \"Excluded\" column in SampleData.txt))\n" +
 				"   (3) filename of subset of markers to include / otherwise all markers (i.e. markers=" + markersSubset + " (default))\n" + 
 					PSF.Ext.getNumThreadsCommand(4, numThreads) +

@@ -1,8 +1,9 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
-import common.*;
+
+import org.genvisis.common.*;
 
 public class LinkageMap {
 	public static final double DEFAULT_DX_ALLELE_FREQ = 0.01;

@@ -1,10 +1,10 @@
 // -Xms1024M -Xmx1024M
-package bioinformatics;
+package org.genvisis.bioinformatics;
 
 import java.io.*;
 import java.util.*;
 
-import common.*;
+import org.genvisis.common.*;
 
 public class procGenesByTissue {
 	public static final int[] GENE_COLS = {0, 1, 2, 3, 4, 5, 6, 7};

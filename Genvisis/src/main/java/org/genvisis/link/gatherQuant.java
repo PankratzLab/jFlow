@@ -1,9 +1,9 @@
-package link;
+package org.genvisis.link;
 
 import java.io.*;
 import java.util.*;
 
-import common.ext;
+import org.genvisis.common.ext;
 
 public class gatherQuant {
 	// public static String[] GH_FILE_TYPES = {"em-he", "ml_ndv", "ml",

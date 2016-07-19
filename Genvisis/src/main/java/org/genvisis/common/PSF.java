@@ -1,4 +1,4 @@
-package common;
+package org.genvisis.common;
 
 /**
  * Just some common public static final vars to be used anywhere...used to build external commands, etc.. Might not be worth it but oh well;

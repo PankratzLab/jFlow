@@ -1,13 +1,12 @@
-package gwas;
+package org.genvisis.gwas;
 
 import java.io.*;
 import java.util.*;
 
-import parse.GenParser;
-import stats.Maths;
-
-import common.*;
-import filesys.SerialHash;
+import org.genvisis.common.*;
+import org.genvisis.filesys.SerialHash;
+import org.genvisis.parse.GenParser;
+import org.genvisis.stats.Maths;
 
 public class MarkerQC {
 	public static final String DEFAULT_FILENAME = "thresholds.properties";

@@ -1,4 +1,4 @@
-package seq.qc;
+package org.genvisis.seq.qc;
 
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileHeader;
@@ -13,14 +13,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.Callable;
 
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.PSF;
-import common.Positions;
-import common.WorkerTrain;
-import common.ext;
-import common.WorkerTrain.Producer;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
+import org.genvisis.common.Positions;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
 
 /**
  * Class to check determine the sex of an individual based on read counts from X and Y chromosomes.

@@ -1,23 +1,23 @@
-package cnv.analysis;
+package org.genvisis.cnv.analysis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-import stats.Maths;
-import common.Array;
-import common.Files;
-import common.Logger;
-import common.WorkerTrain;
-import common.WorkerTrain.Producer;
-import common.ext;
-import cnv.filesys.Centroids;
-import cnv.filesys.ClusterFilterCollection;
-import cnv.filesys.MarkerData;
-import cnv.filesys.Project;
-import cnv.filesys.Project.ARRAY;
-import cnv.manage.MDL;
-import cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.manage.MDL;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.common.Array;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
+import org.genvisis.common.WorkerTrain;
+import org.genvisis.common.ext;
+import org.genvisis.common.WorkerTrain.Producer;
+import org.genvisis.stats.Maths;
 
 /**
  * A class for centroid related computations for a single {@link MarkerData}

@@ -1,11 +1,11 @@
-package gwas;
+package org.genvisis.gwas;
 
 //import java.io.*;
 import java.util.*;
 
-import stats.LeastSquares;
-import stats.ProbDist;
-import common.*;
+import org.genvisis.common.*;
+import org.genvisis.stats.LeastSquares;
+import org.genvisis.stats.ProbDist;
 
 public class PowerCalculatorForQuantitativeTraits {
 //	public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
