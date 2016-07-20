@@ -1,4 +1,4 @@
-package org.genvisis.one;
+package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,7 +22,7 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.parse.LookupTable;
 
-public class SkatMeta {
+public class SkatMeta2 {
 	public static final String[] GENE_RESULT_COLUMNS = new String[] {"gene", "p"};
 	public static final String[] SNPINFO_COLUMNS = new String[] {"Name", "Chr", "MapInfo"};
 	public static final String FILENAME_ETHNIC_SEGMENT = "%ethnic%";

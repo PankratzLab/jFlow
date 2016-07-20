@@ -428,17 +428,17 @@ public class ResultsPackager {
 			reader1.close();
 
 			if (mendelErrorFile != null) {
-				mendelErrors = org.genvisis.one.SkatMeta.loadFile(mendelErrorFile, null, new String[] {"SNP"}, new String[] {"N"}, null, null);
+				mendelErrors = SkatMeta2.loadFile(mendelErrorFile, null, new String[] {"SNP"}, new String[] {"N"}, null, null);
 			}
 			if (hweFile != null) {
-				hwe = org.genvisis.one.SkatMeta.loadFile(hweFile, null, new String[] {"SNP"}, new String[] {"GENO", "p"}, new String[] {"TEST==UNAFF"}, log);
+				hwe = SkatMeta2.loadFile(hweFile, null, new String[] {"SNP"}, new String[] {"GENO", "p"}, new String[] {"TEST==UNAFF"}, log);
 			}
 			if (frqFile != null) {
-				freqs = org.genvisis.one.SkatMeta.loadFile(frqFile, null, new String[] {"SNP"}, new String[] {"MAF"}, null, log);
+				freqs = SkatMeta2.loadFile(frqFile, null, new String[] {"SNP"}, new String[] {"MAF"}, null, log);
 			}
 			if (tdtResultsFile != null) {
 //				tdtResults = one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, new String[] {"T", "U", "OR", "P"}, null, null);
-				tdtResults = org.genvisis.one.SkatMeta.loadFile(tdtResultsFile, null, new String[] {"SNP"}, TDT_REQS, null, null);
+				tdtResults = SkatMeta2.loadFile(tdtResultsFile, null, new String[] {"SNP"}, TDT_REQS, null, null);
 			}
 
 			hweThreshold = 0.05 / (double) Files.countLines(childResultsFile, 1);
