@@ -29,7 +29,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
-import org.genvisis.one.JL.MAF;
+import org.genvisis.seq.qc.contamination.MAF;
 import org.genvisis.seq.manage.VCFSamplePrep.PREPPED_SAMPLE_TYPE;
 import org.genvisis.seq.manage.VCFSamplePrep.VCFSamplePrepWorker;
 import org.genvisis.seq.manage.VCOps.LocusID;

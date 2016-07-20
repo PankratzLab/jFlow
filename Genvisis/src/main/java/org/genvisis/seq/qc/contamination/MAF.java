@@ -1,4 +1,4 @@
-package org.genvisis.one.JL;
+package org.genvisis.seq.qc.contamination;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;

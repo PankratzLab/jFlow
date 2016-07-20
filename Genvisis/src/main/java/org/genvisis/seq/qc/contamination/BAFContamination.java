@@ -18,7 +18,6 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.Producer;
-import org.genvisis.one.JL.MAF;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.RegressionModel;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
