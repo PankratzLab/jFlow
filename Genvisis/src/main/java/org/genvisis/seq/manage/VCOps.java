@@ -656,10 +656,10 @@ public class VCOps {
 		VariantContext vcSub = null;
 		switch (type) {
 		case SUBSET_LOOSE:
-			vcSub = vc.subContextFromSamples(sampleNames, rederiveAllelesFromGenotypes, true);
+			vcSub = vc.subContextFromSamples(sampleNames, rederiveAllelesFromGenotypes);
 			break;
 		case SUBSET_STRICT:
-			vcSub = vc.subContextFromSamples(getOverlap(sampleNames, vc.getSampleNames()), rederiveAllelesFromGenotypes, true);
+			vcSub = vc.subContextFromSamples(getOverlap(sampleNames, vc.getSampleNames()), rederiveAllelesFromGenotypes);
 			break;
 		case NO_SUBSET:
 			vcSub = vc;
