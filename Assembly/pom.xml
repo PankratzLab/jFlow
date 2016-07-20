@@ -17,6 +17,7 @@
 	<description>Build the complete Genvisis executable jar, with dependencies.</description>
 
 	<properties>
+		<outname>Genvisis</outname>
 	</properties>
 
 	<repositories>
@@ -39,8 +40,7 @@
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-					<finalName>Genvisis</finalName>
-					<outputDirectory>${basedir}</outputDirectory>
+					<finalName>${outname}</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
 					<archive>
 						<manifest>
@@ -63,6 +63,23 @@
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>chmod-jar</id>
+						<phase>package</phase>
+						<configuration>
+							<target>
+								<chmod file="${project.build.directory}/${outname}.jar" perm="ugo+rx"/>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
 						</goals>
 					</execution>
 				</executions>
