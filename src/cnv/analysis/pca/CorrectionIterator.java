@@ -993,6 +993,8 @@ public class CorrectionIterator implements Serializable {
 			header.add("PC_0_PVAL");
 			header.add("PC_15_STAT");
 			header.add("PC_15_PVAL");
+			header.add("PC_50_STAT");
+			header.add("PC_50_PVAL");
 			header.add("PC_150_STAT");
 			header.add("PC_150_PVAL");
 			header.add("PC_MAX_STAT");
@@ -1036,6 +1038,8 @@ public class CorrectionIterator implements Serializable {
 			int numSamps = evaluationResults[0].getNumIndsCorrel().get(i);
 			double stat0 = Double.NaN;
 			double pval0 = Double.NaN;
+			double stat50 = Double.NaN;
+			double pval50 = Double.NaN;
 			double stat15 = Double.NaN;
 			double pval15 = Double.NaN;
 			double stat150 = Double.NaN;
@@ -1054,6 +1058,10 @@ public class CorrectionIterator implements Serializable {
 					if (j == 15) {
 						stat15 = stats[j];
 						pval15 = pval[j];
+					}
+					if (j == 50) {
+						stat50 = stats[j];
+						pval50 = pval[j];
 					}
 					if (j == 150) {
 						stat150 = stats[j];
@@ -1074,6 +1082,10 @@ public class CorrectionIterator implements Serializable {
 						stat15 = stats[j];
 						pval15 = pval[j];
 					}
+					if (j == 50) {
+						stat50 = stats[j];
+						pval50 = pval[j];
+					}
 					if (j == 150) {
 						stat150 = stats[j];
 						pval150 = pval[j];
@@ -1093,6 +1105,10 @@ public class CorrectionIterator implements Serializable {
 					if (j == 15) {
 						stat15 = stats[j];
 						pval15 = pval[j];
+					}
+					if (j == 50) {
+						stat50 = stats[j];
+						pval50 = pval[j];
 					}
 					if (j == 150) {
 						stat150 = stats[j];
@@ -1151,6 +1167,8 @@ public class CorrectionIterator implements Serializable {
 			result.add(pval0 + "");
 			result.add(stat15 + "");
 			result.add(pval15 + "");
+			result.add(stat50 + "");
+			result.add(pval50 + "");
 			result.add(stat150 + "");
 			result.add(pval150 + "");
 			result.add(statMax + "");
