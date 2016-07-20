@@ -27,6 +27,7 @@ import org.genvisis.common.ext;
 import org.genvisis.gwas.Conditional;
 import org.genvisis.gwas.Metal;
 import org.genvisis.gwas.ResultsPackager;
+import org.genvisis.gwas.SkatMeta2;
 import org.genvisis.parse.GenParser;
 import org.genvisis.stats.RegressionModel;
 
@@ -862,7 +863,7 @@ public class CALiCo {
 
 		outFile = new Vector<String>();
 		outFile.add("model" + delimiterForOutputFile + "SNP.original" + delimiterForOutputFile + "rsID" + delimiterForOutputFile + "CHR.build36" + delimiterForOutputFile + "CHR.build37" + delimiterForOutputFile + "bp.build36" + delimiterForOutputFile + "bp.build37" + delimiterForOutputFile + "analysis.locus" + delimiterForOutputFile  + "analysis.race" + delimiterForOutputFile+ "index.rsID" + delimiterForOutputFile + "snp.coded" + delimiterForOutputFile + "snp.noncoded" + delimiterForOutputFile + "snp.BETA" + delimiterForOutputFile + "snp.SE" + delimiterForOutputFile + "snp.STAT" + delimiterForOutputFile + "snp.P" + delimiterForOutputFile + "snp.L95" + delimiterForOutputFile + "snp.U95" + delimiterForOutputFile + "snp.NMISS" + delimiterForOutputFile + "snp.CAF" + delimiterForOutputFile + "snp.CAC" + delimiterForOutputFile + "index.BETA" + delimiterForOutputFile + "index.SE" + delimiterForOutputFile + "index.STAT" + delimiterForOutputFile + "index.P" + delimiterForOutputFile + "index.L95" + delimiterForOutputFile + "index.U95" + delimiterForOutputFile + "index.NMISS" + delimiterForOutputFile + "index.CAF" + delimiterForOutputFile + "index.CAC" + delimiterForOutputFile + "index.coded" + delimiterForOutputFile + "index.noncoded");
-		modelList = SkatMeta.loadFile(modelListFileName, null, new String[] {"Name", "rsID"}, new String[] {"Locus", "Chr", "bp36.start", "bp36.stop"}, null, true, log);
+		modelList = SkatMeta2.loadFile(modelListFileName, null, new String[] {"Name", "rsID"}, new String[] {"Locus", "Chr", "bp36.start", "bp36.stop"}, null, true, log);
 		models = modelList.keys();
 		while (models.hasMoreElements()) {
 			model = models.nextElement();
@@ -873,8 +874,8 @@ public class CALiCo {
 				filename = model1[0] + "_" + ext.replaceWithLinuxSafeCharacters(model1[1], false);
 //			}
 			modelLine = modelList.get(model);
-			resultsSnp = SkatMeta.loadFile(resultFilesDir + filename + ".out", null, new String[] {"MarkerName", "Chr", "Position"}, new String[] {"Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"}, new String[] {"Chr ==" + modelLine[1], "Position >= " + modelLine[2], "Position <= " + modelLine[3]}, log);
-			resultsIndex = SkatMeta.loadFile(resultFilesDir + filename + "_cov.out", null, new String[] {"MarkerName", "Chr", "Position"}, new String[] {"Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"}, new String[] {"Chr ==" + modelLine[1], "Position >= " + modelLine[2], "Position <= " + modelLine[3]}, log);
+			resultsSnp = SkatMeta2.loadFile(resultFilesDir + filename + ".out", null, new String[] {"MarkerName", "Chr", "Position"}, new String[] {"Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"}, new String[] {"Chr ==" + modelLine[1], "Position >= " + modelLine[2], "Position <= " + modelLine[3]}, log);
+			resultsIndex = SkatMeta2.loadFile(resultFilesDir + filename + "_cov.out", null, new String[] {"MarkerName", "Chr", "Position"}, new String[] {"Effect_allele", "Reference_allele", "Effect_allele_frequency", "N", "BETA", "SE", "P-value"}, new String[] {"Chr ==" + modelLine[1], "Position >= " + modelLine[2], "Position <= " + modelLine[3]}, log);
 			numSamples = Files.countLines(resultFilesDir + filename + "/" + model1[0] + "_pheno.dat", 1);
 			snps = resultsSnp.keys();
 			while (snps.hasMoreElements()) {
