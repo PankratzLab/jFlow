@@ -13,7 +13,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneTrack;
-import org.genvisis.one.JL.DumpMultiLoc;
+import org.genvisis.filesys.DumpMultiLoc;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import org.genvisis.seq.analysis.PlinkSeq.BURDEN_Tests;
 import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqWorker;
