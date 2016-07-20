@@ -76,20 +76,20 @@ public class VcfQuery {
 	}
 
 	// private static volatile int TRACK_VOLATILE = 0;
-	private VCFFileReader vcfFileReader;
+	private VCFFileReader vcfSourceReader;
 	private String vcfFile;
 	private Logger log;
 
 	public VcfQuery(String vcfFile, Logger log) {
 		super();
-		this.vcfFileReader = new VCFFileReader(new File(vcfFile), true);
+		this.vcfSourceReader = new VCFSourceReader(vcfFile, true);
 		this.vcfFile = vcfFile;
 		this.log = log;
 	}
 
 	private byte getFirstChr() {
 		byte firstChr = 0;
-		for (VariantContext variantContext : vcfFileReader) {
+		for (VariantContext variantContext : vcfSourceReader) {
 			try {
 				firstChr = Byte.parseByte(variantContext.getContig());
 			} catch (NumberFormatException nfe) {
@@ -105,7 +105,7 @@ public class VcfQuery {
 	}
 
 	public VCFFileReader getVcfFileReader() {
-		return vcfFileReader;
+		return vcfSourceReader;
 	}
 
 	public Logger getLog() {
@@ -113,7 +113,7 @@ public class VcfQuery {
 	}
 
 	public void close() {
-		vcfFileReader.close();
+		vcfSourceReader.close();
 	}
 
 	/**
@@ -123,7 +123,7 @@ public class VcfQuery {
 	 * @return
 	 */
 	private VariantContext[] queryASegment(Segment seg) {
-		CloseableIterator<VariantContext> cdl = vcfFileReader.query(seg.getChr() + "", seg.getStart(), seg.getStop());
+		CloseableIterator<VariantContext> cdl = vcfSourceReader.query(seg.getChr() + "", seg.getStart(), seg.getStop());
 		ArrayList<VariantContext> vcs = new ArrayList<VariantContext>();
 		while (cdl.hasNext()) {
 			vcs.add(cdl.next());
@@ -373,9 +373,9 @@ public class VcfQuery {
 		QueryManager[] qManagers = new QueryManager[fullPathVCFs.length];
 		String tmpDir = ext.parseDirectoryOfFile(params.getOutputFileName());
 		new File(tmpDir).mkdirs();
-		VariantContextWriter writer = VCFOps.initWriter(tmpDir + ext.rootOf(fullPathVCFs[0]) + ".query.vcf", null, VCFOps.getSequenceDictionary(new VCFFileReader(new File(fullPathVCFs[0]), true)));
+		VariantContextWriter writer = VCFOps.initWriter(tmpDir + ext.rootOf(fullPathVCFs[0]) + ".query.vcf", null, VCFOps.getSequenceDictionary(new VCFSourceReader(fullPathVCFs[0], true)));
 
-		// VCFOps.copyHeader(new VCFFileReader(fullPathVCFs[0], true), writer, VcfPopulation.load(params.getPopulationFile(), log).getSuperPop().get("EUR"));
+		// VCFOps.copyHeader(new VCFSourceReader(fullPathVCFs[0], true), writer, VcfPopulation.load(params.getPopulationFile(), log).getSuperPop().get("EUR"));
 
 		AsyncVariantContextWriter asWriter = new AsyncVariantContextWriter(writer);
 		for (int i = 0; i < fullPathVCFs.length; i++) {
@@ -388,9 +388,9 @@ public class VcfQuery {
 		hive.execute(true);
 		ArrayList<QueryResults> results = hive.getResults();
 		asWriter.close();
-		VariantContextWriter writer2 = VCFOps.initWriter(tmpDir + "query.vcf", null, VCFOps.getSequenceDictionary(new VCFFileReader(new File(fullPathVCFs[0]), true)));
+		VariantContextWriter writer2 = VCFOps.initWriter(tmpDir + "query.vcf", null, VCFOps.getSequenceDictionary(new VCFSourceReader(fullPathVCFs[0], true)));
 
-		// VCFOps.copyHeader(new VCFFileReader(fullPathVCFs[0], true), writer2, VcfPopulation.load(params.getPopulationFile(), log).getSuperPop().get("EUR"));
+		// VCFOps.copyHeader(new VCFSourceReader(fullPathVCFs[0], true), writer2, VcfPopulation.load(params.getPopulationFile(), log).getSuperPop().get("EUR"));
 
 		for (int i = 0; i < results.size(); i++) {
 			if (results.get(i).getQueryResults() != null) {
