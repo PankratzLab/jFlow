@@ -1,4 +1,4 @@
-package org.genvisis.one;
+package org.genvisis.bioinformatics;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -26,8 +26,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import org.genvisis.bioinformatics.Samtools;
-import org.genvisis.bioinformatics.SeattleSeq;
 import org.genvisis.common.Array;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;

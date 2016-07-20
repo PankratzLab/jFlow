@@ -13,7 +13,7 @@ import org.genvisis.gwas.*;
 import org.genvisis.link.Heritability;
 import org.genvisis.link.TrimFam;
 import org.genvisis.mining.Transformations;
-import org.genvisis.one.SuperNovo;
+import org.genvisis.bioinformatics.SuperNovo;
 import org.genvisis.db.DBGAPMerge.DBGapExtract;
 import org.genvisis.db.DBGAPMerge.DBGapLookup;
 import org.genvisis.parse.*;
