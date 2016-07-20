@@ -12,7 +12,7 @@
 	</parent>
 
 	<artifactId>Assembly</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>v0.1.6</version>
 
 	<description>Build the complete Genvisis executable jar, with dependencies.</description>
 
@@ -46,6 +46,12 @@
 						<manifest>
 							<mainClass>org.genvisis.cnv.Launch</mainClass>
 						</manifest>
+						<manifestEntries>
+							<Implementation-Version>${project.version}</Implementation-Version>
+							<Compile-Time>${timestamp}</Compile-Time>
+							<Build-Type>Development</Build-Type>
+							<Copyright>(c)2009-2016 Nathan Pankratz, GNU General Public License, v2</Copyright>
+						</manifestEntries>
 					</archive>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
