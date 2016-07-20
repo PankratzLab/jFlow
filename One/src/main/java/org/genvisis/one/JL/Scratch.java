@@ -40,7 +40,7 @@ public class Scratch {
 		int zeroState = 5;
 		int[] stateSequence = new int[gcs.length];
 		for (int i = 0; i < gcs.length; i++) {
-			double cdf = opdfGaussian.cdf(new ObservationReal(gcs[i]));
+			double cdf = Stats.cdf(opdfGaussian, new ObservationReal(gcs[i]));
 			// Stats.ttestOneSample(mean, stdev, n, expected)
 			int state = (int) Math.round((double) cdf * numStates) - 1;
 			stateSequence[i] = state + zeroState;
