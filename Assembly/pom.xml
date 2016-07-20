@@ -20,14 +20,6 @@
 		<outname>Genvisis</outname>
 	</properties>
 
-	<repositories>
-		<!-- local repository needed for libraries without Maven distributions -->
-		<repository>
-			<id>bundled-repo</id>
-			<url>file://${basedir}/lib</url>
-		</repository>
-	</repositories>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.genvisis</groupId>

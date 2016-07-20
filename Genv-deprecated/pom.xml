@@ -19,19 +19,11 @@
   <properties>
   </properties>
 
-  <repositories>
-    <!-- local repository needed for libraries without Maven distributions -->
-    <repository>
-      <id>bundled-repo</id>
-      <url>file://${basedir}/lib</url>
-    </repository>
-  </repositories>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.genvisis</groupId>
-      <artifactId>Genvisis</artifactId>
-    </dependency>
+	<dependencies>
+		<dependency>
+			<groupId>org.genvisis</groupId>
+			<artifactId>Genvisis</artifactId>
+		</dependency>
 
   </dependencies>
 
