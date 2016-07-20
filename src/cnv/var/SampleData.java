@@ -324,9 +324,9 @@ public class SampleData {
 				if (sexClassIndex != -1) {
 					sexValues = Array.toIntArray(sexCountHash.getValues());
 					sexValues = Sort.putInOrder(sexValues, Sort.quicksort(sexValues, Sort.DESCENDING));
-					if (sexValues[0] != 2) {
+					if (Array.countIf(sexValues, 2) == 0) {
 						log.reportError("Warning - no females listed in SampleData file; make sure 1=male and 2=female in the coding");
-						//proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
+						// proj.message("descending "+ Array.toStr(sexValues, " ")+"\tError - warning no females listed in SampleData file; make sure 1=male and 2=female in the coding");
 					}
 				} else {
 					proj.message("Error - variable names '"+Array.toStr(EUPHEMISMS, "/")+"' was not found in the SampleData file; make sure 1=male and 2=female in the coding");
