@@ -28,6 +28,7 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.genvisis.stats.Stats;
 
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
@@ -596,7 +597,7 @@ public class GcAdjustor {
 				Hashtable<String, String> lookup = new Hashtable<String, String>();// items associated with category (marker->PoorQualityCategory)
 				Hashtable<String, ColorItem<String>> manager = new Hashtable<String, ColorExt.ColorItem<String>>();
 				for (int i = 0; i < gcs.length; i++) {
-					int gcColorIndex = (int) Math.round(gd.cdf(new ObservationReal(gcs[i])) * numBins - 1);
+					int gcColorIndex = (int) Math.round(Stats.cdf(gd, new ObservationReal(gcs[i])) * numBins - 1);
 					gcColorIndex = Math.max(0, gcColorIndex);
 					gcColorIndex = Math.min(numBins, gcColorIndex);
 					lookup.put(markers[i], gcColorIndex + "");

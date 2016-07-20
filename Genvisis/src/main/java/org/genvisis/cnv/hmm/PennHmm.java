@@ -11,6 +11,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
+import org.genvisis.stats.Stats;
 import org.genvisis.filesys.CNVariant.CNVBuilder;
 
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
@@ -225,9 +226,9 @@ public class PennHmm {
 			OpdfGaussian opdfGaussian = bStatus.getGaussians()[4];
 
 			if (b == 0) {
-				p += (1 - uf) * opdfGaussian.cdf(new ObservationReal(0));
+				p += (1 - uf) * Stats.cdf(opdfGaussian, new ObservationReal(0));
 			} else if (b == 1) {
-				p += (1 - uf) * opdfGaussian.cdf(new ObservationReal(0));
+				p += (1 - uf) * Stats.cdf(opdfGaussian, new ObservationReal(0));
 			} else {
 				p += (1 - uf) * opdfGaussian.probability(o);
 			}

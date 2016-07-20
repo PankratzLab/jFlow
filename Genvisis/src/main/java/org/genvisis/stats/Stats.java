@@ -1,8 +1,17 @@
 package org.genvisis.stats;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.common.Array;
 
+import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
+import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
+
 public class Stats {
+
+	public static double cdf(OpdfGaussian dist, ObservationReal n) {
+		return new NormalDistribution(dist.mean(), dist.variance()).cumulativeProbability(n.value);
+	}
+
 	public static double ztest(double p1, int n1, double p2, int n2) {
 		double phat, sp, z;
 
