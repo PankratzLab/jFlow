@@ -2,6 +2,7 @@ package cnv.qc;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import cnv.analysis.pca.PCA;
@@ -508,6 +509,79 @@ public class LrrSd extends Parallelizable {
 			sampleData.addData(sampDataQC, MitoPipeline.DNA_LINKER, Array.tagOn(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, outputBase, null), ext.MISSING_VALUES[1], delim, log);
 		}
 		return new int[] { numPassing, count };
+	}
+	
+	public static boolean[] samplesPassingQc(Project proj) {
+        Logger log = proj.getLog();
+
+        double lrrSdFilter = proj.LRRSD_CUTOFF.getValue();
+        double callRateFilter = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
+
+        if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+            log.reportTimeError("The sample qc file " + proj.SAMPLE_QC_FILENAME.getValue() + " does not exist");
+            return null;
+        } 
+
+        int count = 0;
+        int numPassing = 0;
+        try {
+            BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true, false);
+            if (!reader.ready()) {
+                reader.close();
+                log.reportTimeError("Error - QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") was empty");
+                return null;
+            }
+            String delim = "\t";
+            String[] line = reader.readLine().trim().split(delim);
+            int[] indices = ext.indexFactors(MitoPipeline.QC_COLUMNS, line, true, log, true, false);
+
+            if (!checkIndices(proj, indices)) {
+                reader.close();
+                log.reportTimeError("Error - could not detect proper header in QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ")");
+                return null;
+            }
+
+            HashMap<String,Integer> sampleIndices = new HashMap<String,Integer>();
+            String[] samples = proj.getSamples();
+            for (int i = 0; i < samples.length; i++) {
+            	sampleIndices.put(samples[i], i);
+            }
+            boolean[] passingSamples = Array.booleanArray(samples.length, false);
+            while (reader.ready()) {
+                line = reader.readLine().trim().split(delim);
+                // skip any headers as a result of concatenating the qc results
+                if (!line[indices[0]].equals(MitoPipeline.QC_COLUMNS[0])) {
+                    // if passes qc
+                	String sample = line[indices[0]];
+                	if (!sampleIndices.containsKey(sample)) {
+                		log.reportTimeError("Sample " + sample + " is listed in " + proj.SAMPLE_QC_FILENAME.getValue() + " but is not in the project");
+                		continue;
+                	}
+                	double lrrSd = Double.parseDouble(line[indices[1]]);
+                	double callrate = Double.parseDouble(line[indices[2]]);
+                    if (lrrSd < lrrSdFilter && callrate > callRateFilter) {
+                    	numPassing++;
+                    	passingSamples[sampleIndices.get(sample)] = true;
+                    }
+                    count++;
+                }
+            }
+
+            reader.close();
+
+            if (numPassing == 0) {
+                log.reportError("Error - all samples were filtered out by the QC step");
+            } else {
+            	log.report("Info - " + numPassing + " of " + count + " samples in " + proj.SAMPLE_QC_FILENAME.getValue() + " passed the QC threshold");
+            }
+            return passingSamples;
+        } catch (FileNotFoundException fnfe) {
+            log.reportError("Error: file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\" not found in current directory");
+        } catch (IOException ioe) {
+			log.reportError("Error reading file \"" + proj.SAMPLE_QC_FILENAME.getValue() + "\"");
+		}
+
+		return null;
 	}
 
 	private static boolean[] getMarkerSubset(Project proj, String[] subMarkers, String[] markers) {

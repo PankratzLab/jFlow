@@ -21,7 +21,7 @@ import stats.*;
 public class SexChecks {
 	public static final String EST_SEX_HEADER = "Estimated Sex;0=Unknown;1=Male;2=Female;3=Klinefelter;4=UPD Klinefelter;5=Mosaic Klinefelter;6=Triple X;7=Mosaic Triple X;8=Turner;9=Mosaic Turner";
 	public static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 1, 2, 2, 2, 2};
-	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Median X R", "Median Y R", "R Ratio Y:X", "Number of X BAFs 10-90%", "Median X LRR", "Median Y LRR"};
+	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Excluded", "Median X R", "Median Y R", "R Ratio Y:X", "Number of X BAFs 10-90%", "Median X LRR", "Median Y LRR"};
 	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXY", "XXX", "XXX", "X", "X"};
 	
 	private static final float XY_R_RATIO_MIN_SEED_MALE = 0.8f;
@@ -41,6 +41,7 @@ public class SexChecks {
 	private Logger log;
 	private MarkerSet markerSet;
 	private String[] sampleNames;
+	private boolean[] qcPassedSamples;
 	
 	private int[][] indicesByChr;
 	
@@ -82,6 +83,7 @@ public class SexChecks {
 		
 		markerSet = proj.getMarkerSet();
 		sampleNames = proj.getSamples();
+		qcPassedSamples = LrrSd.samplesPassingQc(proj);
 	    if (Thread.currentThread().isInterrupted()) { throw new RuntimeException(new InterruptedException()); }
 	    
 	    log.report("Finding Sex Chromosome Markers...");
@@ -212,9 +214,9 @@ public class SexChecks {
 		for (int i = 0; i < sampleNames.length; i++) {
 			float rRatio = rMedY[i] / rMedX[i];
 			
-			if (rRatio > XY_R_RATIO_MIN_SEED_MALE && rRatio < XY_R_RATIO_MAX_SEED_MALE) {
+			if (rRatio > XY_R_RATIO_MIN_SEED_MALE && rRatio < XY_R_RATIO_MAX_SEED_MALE && qcPassedSamples[i]) {
 				seedMales[i] = true;
-			} else if (rRatio < XY_R_RATIO_MAX_SEED_FEMALE) {
+			} else if (rRatio < XY_R_RATIO_MAX_SEED_FEMALE && qcPassedSamples[i]) {
 				seedFemales[i] = true;
 			}
 		}
@@ -341,66 +343,70 @@ public class SexChecks {
 		log.report("Female Y LRR Ceiling: " + femaleCeilingY);
 		
 		for (int i = 0; i < sampleNames.length; i++) {
-			boolean male = false;
-			boolean female = false;
-			if (lrrMedY[i] > maleFloorY) {
-				male = true;
-			} else if (lrrMedY[i] < femaleCeilingY) {
-				female = true;
-			} else {
-				uncertains[i] = true;
-				notes[i] += "Median Y LRR (" + lrrMedY[i] + ") is outside of both male and female acceptance intervals; ";
-				if (seedMales[i]) {
+			if (qcPassedSamples[i]) {
+				boolean male = false;
+				boolean female = false;
+				if (lrrMedY[i] > maleFloorY) {
 					male = true;
-				} else if (seedFemales[i]) {
+				} else if (lrrMedY[i] < femaleCeilingY) {
 					female = true;
-				}
-			}
-			
-			if (male) {
-				if (seedFemales[i]) {
-					uncertains[i] = true;
-					notes[i] += "Ratio of Median X R to Median Y R indicated female; ";
-				} else if (!seedMales[i]) {
-					notes[i] += "Ratio of Median X R to Median Y R outlier; ";
-				}
-				if (pctXBaf10_90[i] > (maleMeanBafX10_90 + NUM_SD_FOR_BAF_10_90_OUTLIERS * maleStdDevBafX10_90)) {
-					if (checkXMosaicism(i, mosaicismCheckUse)) {
-						sexes[i] = 5; // Mosaic Klinefelter
-					} else {
-						sexes[i] = 3; // Full Klinefelter
-					}
-				} else if (lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_OUTLIERS * maleStdDevX)) {
-					sexes[i] = 4; // UPD Klinefelter
 				} else {
-					sexes[i] = 1; // Male
-				}
-			} else if (female) {
-				if (seedMales[i]) {
 					uncertains[i] = true;
-					notes[i] += "Ratio of Median X R to Median Y R indicated male; ";
-				} else if (!seedFemales[i]) {
-					notes[i] += "Ratio of Median X R to Median Y R outlier; ";
+					notes[i] += "Median Y LRR (" + lrrMedY[i] + ") is outside of both male and female acceptance intervals; ";
+					if (seedMales[i]) {
+						male = true;
+					} else if (seedFemales[i]) {
+						female = true;
+					}
 				}
 				
-				if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkXMosaicism(i, mosaicismCheckUse)) {
-					if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)) {
-						sexes[i] = 6; // Full Triple X
-					} else {
-						sexes[i] = 7; // Mosaic Triple X
+				if (male) {
+					if (seedFemales[i]) {
+						uncertains[i] = true;
+						notes[i] += "Ratio of Median X R to Median Y R indicated female; ";
+					} else if (!seedMales[i]) {
+						notes[i] += "Ratio of Median X R to Median Y R outlier; ";
 					}
-				} else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkXMosaicism(i, mosaicismCheckUse)) {
-					if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX) && pctXBaf10_90[i] < (femaleMeanBafX10_90 - NUM_SD_FOR_BAF_10_90_OUTLIERS * femaleStdDevBafX10_90)) {
-						sexes[i] = 8; // Full Turner
+					if (pctXBaf10_90[i] > (maleMeanBafX10_90 + NUM_SD_FOR_BAF_10_90_OUTLIERS * maleStdDevBafX10_90)) {
+						if (checkXMosaicism(i, mosaicismCheckUse)) {
+							sexes[i] = 5; // Mosaic Klinefelter
+						} else {
+							sexes[i] = 3; // Full Klinefelter
+						}
+					} else if (lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_OUTLIERS * maleStdDevX)) {
+						sexes[i] = 4; // UPD Klinefelter
 					} else {
-						sexes[i] = 9; // Mosaic Turner
+						sexes[i] = 1; // Male
+					}
+				} else if (female) {
+					if (seedMales[i]) {
+						uncertains[i] = true;
+						notes[i] += "Ratio of Median X R to Median Y R indicated male; ";
+					} else if (!seedFemales[i]) {
+						notes[i] += "Ratio of Median X R to Median Y R outlier; ";
+					}
+					
+					if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkXMosaicism(i, mosaicismCheckUse)) {
+						if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)) {
+							sexes[i] = 6; // Full Triple X
+						} else {
+							sexes[i] = 7; // Mosaic Triple X
+						}
+					} else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX) && checkXMosaicism(i, mosaicismCheckUse)) {
+						if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX) && pctXBaf10_90[i] < (femaleMeanBafX10_90 - NUM_SD_FOR_BAF_10_90_OUTLIERS * femaleStdDevBafX10_90)) {
+							sexes[i] = 8; // Full Turner
+						} else {
+							sexes[i] = 9; // Mosaic Turner
+						}
+					} else {
+						sexes[i] = 2; // Female
 					}
 				} else {
-					sexes[i] = 2; // Female
+					sexes[i] = 0; // Missing
+					uncertains[i] = true;
 				}
 			} else {
-				sexes[i] = 0; // Missing
-				uncertains[i] = true;
+				sexes[i] = 0;
 			}
 		}
 	}
@@ -484,6 +490,7 @@ public class SexChecks {
 				writer.println("\t" + sexes[i] + 
 							   "\t" + (notes[i].equals("") ? "." : notes[i]) +
 							   "\t" + (uncertains[i] ? "1" : "0") + 
+							   "\t" + (qcPassedSamples[i] ? "0" : "1") + 
 							   "\t" + rMedX[i] + 
 							   "\t" + rMedY[i] + 
 							   "\t" + (rMedY[i] / rMedX[i]) + 
