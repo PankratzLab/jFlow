@@ -8,6 +8,7 @@ import htsjdk.variant.vcf.VCFHeaderLineType;
 import java.util.ArrayList;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.util.CNVHelper;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.Blast.BlastResults;
@@ -240,7 +241,7 @@ public class BlastAnnotationTypes {
 			String[] annotations = new String[blastAnnotations.length];
 			for (int i = 0; i < annotations.length; i++) {
 				BlastAnnotation tmp = blastAnnotations[i];
-				annotations[i] = tmp.getCigar().toString() + "/" + tmp.getRefLoc().getUCSClocation() + "/" + tmp.getStrand().getEncoding() + "/" + tmp.getTag() + "/" + tmp.geteValue();
+				annotations[i] = tmp.getCigar().toString() + "/" + tmp.getRefLoc().getUCSClocation() + "/" + CNVHelper.decode(tmp.getStrand()) + "/" + tmp.getTag() + "/" + tmp.geteValue();
 			}
 			return annotations;
 		}

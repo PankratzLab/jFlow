@@ -45,6 +45,7 @@ import org.genvisis.cnv.annotation.MarkerSeqAnnotation;
 import org.genvisis.cnv.annotation.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.util.CNVHelper;
 import org.genvisis.common.Array;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
@@ -209,7 +210,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 //        locLbl.setToolTipText(lbl.myAnnotation.getCigar().toString());
         this.blastPanel.add(locLbl, "cell 0 " + rowCnt);
         JLabel strandLbl = new JLabel();
-        strandLbl.setText(lbl.getStrand().getEncoding());
+        strandLbl.setText(CNVHelper.decode(lbl.getStrand()));
         strandLbl.setFont(lblFont);
         otherLabels.add(strandLbl);
         alignCntLblMap.put(lbl, strandLbl);
@@ -498,7 +499,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
                 boolean posStrand = BlastFrame.this.referenceAnnotation.getStrand() == Strand.POSITIVE;
                 String refSeq = BlastFrame.this.referenceAnnotation.getSequence();
                 refLabel.setText(!posStrand ? new StringBuilder(refSeq).reverse().toString() : refSeq); 
-                strandLbl.setText(BlastFrame.this.referenceAnnotation.getStrand().getEncoding());
+                strandLbl.setText(CNVHelper.decode(BlastFrame.this.referenceAnnotation.getStrand()));
                 int len = proj.ARRAY_TYPE.getValue().getProbeLength();
                 probeLengthLbl.setText(len + "");
                 ArrayList<BlastAnnotation> onT = blastResult.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT, proj.getLog());
@@ -577,7 +578,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
         probeDescLbl = new JLabel("<reference sequence:>");
         probeDescLbl.setFont(lblFont);
         hdrPanel.add(probeDescLbl, "cell 0 1");
-        strandLbl = new JLabel(referenceAnnotation == null ? "" : referenceAnnotation.getStrand().getEncoding());
+        strandLbl = new JLabel(referenceAnnotation == null ? "" : CNVHelper.decode(referenceAnnotation.getStrand()));
         strandLbl.setFont(lblFont);
         hdrPanel.add(strandLbl, "cell 1 0");
         probeLengthLbl = new JLabel(proj.ARRAY_TYPE.getValue().getProbeLength() + "");

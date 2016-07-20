@@ -3,6 +3,7 @@ package org.genvisis.cnv.annotation;
 import java.util.List;
 
 import org.genvisis.cnv.annotation.BlastAnnotationTypes.TOP_BOT;
+import org.genvisis.cnv.util.CNVHelper;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -52,7 +53,7 @@ public class MarkerSeqAnnotation extends AnnotationData {
 		this.A = A;
 		this.B = B;
 		// this.seg=seg; populate on load only
-		setData(seqA + DEFUALT_DELIMITER + segB + DEFUALT_DELIMITER + interrogationPosition + DEFUALT_DELIMITER + strand.getEncoding() + DEFUALT_DELIMITER + topBotProbe + DEFUALT_DELIMITER + topBotRef + DEFUALT_DELIMITER + A.getDisplayString() + DEFUALT_DELIMITER + B.getDisplayString());
+		setData(seqA + DEFUALT_DELIMITER + segB + DEFUALT_DELIMITER + interrogationPosition + DEFUALT_DELIMITER + CNVHelper.decode(strand) + DEFUALT_DELIMITER + topBotProbe + DEFUALT_DELIMITER + topBotRef + DEFUALT_DELIMITER + A.getDisplayString() + DEFUALT_DELIMITER + B.getDisplayString());
 	}
 
 	public Allele getA() {
