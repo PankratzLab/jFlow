@@ -1,4 +1,4 @@
-package org.genvisis.one.ben;
+package org.genvisis.seq;
 
 import java.io.BufferedReader;
 import java.io.IOException;

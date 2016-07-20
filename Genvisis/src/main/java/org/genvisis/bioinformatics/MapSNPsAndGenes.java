@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import org.genvisis.common.*;
-import org.genvisis.one.ben.VCFExport;
+import org.genvisis.seq.VCFExport;
 import org.genvisis.seq.analysis.ANNOVAR;
 import org.genvisis.seq.analysis.GATK_Genotyper;
 import org.genvisis.seq.analysis.SNPEFF;
