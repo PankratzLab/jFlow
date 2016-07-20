@@ -53,7 +53,7 @@ public class GateTreePanel extends JPanel {
     private JScrollPane scrollPane;
     private FCSPlot plot;
     private HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<DefaultMutableTreeNode, Gate>();
-    
+    private volatile boolean showing = false;
     /**
      * Create the panel.
      */
@@ -74,13 +74,15 @@ public class GateTreePanel extends JPanel {
         final JButton button = new JButton("\\/");
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                if (treePopup.isVisible()) {
+                if (showing) {
                     treePopup.setVisible(false);
+                    showing = false;
                 } else {
                     treePopup.setPopupSize(topPanel.getWidth(), topPanel.getHeight() * 8);
                     Point p = topPanel.getLocationOnScreen();
                     treePopup.show(button, 0, 0);
                     treePopup.setLocation((int) p.getX(), (int) p.getY() + topPanel.getHeight());
+                    showing = true;
                 }
             }
         });

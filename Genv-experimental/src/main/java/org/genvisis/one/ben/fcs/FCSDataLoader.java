@@ -11,20 +11,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 
-import org.flowcyt.cfcs.CFCSAbstractData;
-import org.flowcyt.cfcs.CFCSData;
-import org.flowcyt.cfcs.CFCSDataSet;
-import org.flowcyt.cfcs.CFCSError;
-import org.flowcyt.cfcs.CFCSKeywords;
-import org.flowcyt.cfcs.CFCSListModeData;
-import org.flowcyt.cfcs.CFCSParameter;
-import org.flowcyt.cfcs.CFCSParameters;
-import org.flowcyt.cfcs.CFCSSpillover;
-import org.flowcyt.cfcs.CFCSSystem;
 import org.genvisis.common.Array;
 import org.genvisis.common.Files;
 import org.genvisis.common.Matrix;
-import org.genvisis.common.ext;
 import org.genvisis.ejml.CommonOps;
 import org.genvisis.ejml.DenseMatrix64F;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
@@ -56,7 +45,8 @@ public class FCSDataLoader {
     private volatile LOAD_STATE state = LOAD_STATE.UNLOADED;
     
     ArrayList<String> paramNamesInOrder;
-    ArrayList<AXIS_SCALE> scales;
+    private ArrayList<AXIS_SCALE> scales;
+    private ArrayList<Integer> ranges;
     LinkedHashSet<String> compensatedNames;
     HashMap<String, Integer> compensatedIndices;
     int eventCount = -1;
@@ -84,6 +74,7 @@ public class FCSDataLoader {
     public FCSDataLoader() {
         paramNamesInOrder = new ArrayList<String>(); 
         scales = new ArrayList<AXIS_SCALE>();
+        ranges = new ArrayList<Integer>();
         compensatedNames = new LinkedHashSet<String>();
         compensatedIndices = new HashMap<String, Integer>();
     }
@@ -262,10 +253,22 @@ public class FCSDataLoader {
             
             String axisKeywork = "P" + (i + 1) + "DISPLAY";
             AXIS_SCALE scale = AXIS_SCALE.LIN;
-            try { scale = AXIS_SCALE.valueOf(keys.getKeyword(axisKeywork).getKeywordValue()); } catch (Exception e) {
+            try { 
+                scale = AXIS_SCALE.valueOf(keys.getKeyword(axisKeywork).getKeywordValue()); 
+            } catch (Exception e) {
                 System.err.println("Warning - no axis scale set for parameter " + paramNamesInOrder.get(i) + "; assuming a linear scale.");
             };
             scales.add(scale);
+            
+            String rangeKeyword = "$P" + (i + 1) + "R";
+            int rng = -1;
+            try {
+                rng = keys.getKeyword(rangeKeyword).getKeywordIntegerValue();
+            } catch (Exception e) {
+                System.err.println("Warning - no parameter range value for parameter " + paramNamesInOrder.get(i) + "; assuming standard of 262144");
+                rng = 262144;
+            }
+            ranges.add(rng);
         }
         
         if (dataObj.getType() == CFCSData.LISTMODE) {
@@ -535,5 +538,10 @@ public class FCSDataLoader {
 //    }
 //    
 //    
+
+    public AXIS_SCALE getScaleForParam(String string) {
+        int i = paramNamesInOrder.indexOf(string.startsWith(COMPENSATED_PREPEND) ? string.substring(COMP_LEN) : string);
+        return i == -1 ? AXIS_SCALE.LIN : scales.get(i);
+    }
     
 }
