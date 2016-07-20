@@ -43,6 +43,7 @@
 		<module>Logicle</module>
 		<module>Genvisis</module>
 		<module>CFCS</module>
+		<module>One</module>
 	</modules>
 
 	<prerequisites>
