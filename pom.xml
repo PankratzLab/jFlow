@@ -116,6 +116,9 @@
 		<!-- MigLayout - http://www.miglayout.com/ -->
 		<miglayout.version>5.0</miglayout.version>
 
+		<!-- EJML -->
+		<ejml.version>0.25</ejml.version>
+
 		<!-- SnpEff -->
 		<snpeff.version>4.3</snpeff.version>
 
@@ -185,6 +188,13 @@
 				<groupId>com.miglayout</groupId>
 				<artifactId>miglayout-swing</artifactId>
 				<version>${miglayout.version}</version>
+			</dependency>
+
+			<!-- Efficient Java -->
+			<dependency>
+				<groupId>com.googlecode.efficient-java-matrix-library</groupId>
+				<artifactId>ejml</artifactId>
+				<version>${ejml.version}</version>
 			</dependency>
 
 			<!-- Jahmm -->
