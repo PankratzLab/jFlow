@@ -750,9 +750,9 @@ public class FCSPlot extends JPanel implements WindowListener, ActionListener, P
     }
     
     private void setupDataExport() {
-        DataExportGUI degui = new DataExportGUI(this);
-        degui.setModal(true);
-        degui.setVisible(true);
+//        DataExportGUI degui = new DataExportGUI(this);
+//        degui.setModal(true);
+//        degui.setVisible(true);
         // choose files
         // choose gates
         // choose counts or pcts
