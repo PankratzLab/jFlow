@@ -18,15 +18,15 @@ import cnv.qc.SexChecks;
 public class SexPlot extends JFrame {
 	public static final long serialVersionUID = 1L;
 	
-	private static final String[] SEX_CHECKS_REQUIREMENTS = {"Sample", "Sex", SexChecks.EST_SEX_HEADER, "Check", "Median X LRR", "Median Y LRR", "Excluded"};
+	private static final String[] SEX_CHECKS_REQUIREMENTS = {"Sample", "Sex", SexChecks.EST_SEX_HEADER, "Check", "Median X LRR", "Median Y LRR", "Excluded", "Check", "Note"};
 	
 	SexPanel sexPanel;
 
-	public SexPlot(Project proj, String[] samples, double[][] data, byte[] sexes, byte[] estimatedSexes, boolean[] excluded) {
+	public SexPlot(Project proj, String[] samples, double[][] data, byte[] sexes, byte[] estimatedSexes, boolean[] excluded, boolean[] uncertains, String[] notes) {
 		super("Genvisis - Sex Plot - " + proj.PROJECT_NAME.getValue());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-		sexPanel = new SexPanel(proj, samples, data, sexes, estimatedSexes, excluded);
+		sexPanel = new SexPanel(proj, samples, data, sexes, estimatedSexes, excluded, uncertains, notes);
 		// panel.setToolTipText("");
 		getContentPane().add(sexPanel, BorderLayout.CENTER);
 
@@ -78,6 +78,26 @@ public class SexPlot extends JFrame {
 		
 		menuBar.add(viewMenu);
 		
+		JMenu actionMenu = new JMenu("Actions");
+		actionMenu.setMnemonic(KeyEvent.VK_A);
+		
+		final JMenuItem uncertainsToTrailer = new JMenuItem();
+		
+		
+		AbstractAction uncertainsToTrailerAction = new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	sexPanel.uncertainsToTrailer();
+            }
+        };
+        uncertainsToTrailer.setAction(uncertainsToTrailerAction);
+        uncertainsToTrailer.setText("Uncertains To Trailer Plot");
+        uncertainsToTrailer.setMnemonic(KeyEvent.VK_U);
+		actionMenu.add(uncertainsToTrailer);
+		
+		menuBar.add(actionMenu);
+		
 		return menuBar;
 	
 	}
@@ -106,6 +126,8 @@ public class SexPlot extends JFrame {
 		Vector<Byte> sexes = new Vector<Byte>();
 		Vector<Byte> estimatedSexes = new Vector<Byte>();
 		Vector<Boolean> excluded = new Vector<Boolean>();
+		Vector<Boolean> uncertains = new Vector<Boolean>();
+		Vector<String> notes = new Vector<String>();
 		try {
 			BufferedReader reader = Files.getReader(proj.SEXCHECK_RESULTS_FILENAME.getValue(), proj.JAR_STATUS.getValue(), true, false);
 			if (reader == null) {
@@ -132,6 +154,8 @@ public class SexPlot extends JFrame {
 					sexes.add(Byte.parseByte(line[indices[1]]));
 					estimatedSexes.add(Byte.parseByte(line[indices[2]]));
 					excluded.add(line[indices[6]].equals("1"));
+					uncertains.add(line[indices[7]].equals("1"));
+					notes.add(line[indices[8]]);
 				}
 			}
 			reader.close();
@@ -143,7 +167,14 @@ public class SexPlot extends JFrame {
 			return;
 		}
 	
-		new SexPlot(proj, samples.toArray(new String[samples.size()]), Matrix.toDoubleArrays(datapoints), Array.toByteArray(sexes), Array.toByteArray(estimatedSexes), Array.toBooleanArray(excluded));
+		new SexPlot(proj,
+					samples.toArray(new String[samples.size()]),
+					Matrix.toDoubleArrays(datapoints),
+					Array.toByteArray(sexes),
+					Array.toByteArray(estimatedSexes), 
+					Array.toBooleanArray(excluded),
+					Array.toBooleanArray(uncertains),
+					Array.toStringArray(notes));
 	}
 
 	public static void main(String[] args) {
