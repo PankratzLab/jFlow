@@ -19,7 +19,25 @@ import filesys.Segment;
 import stats.*;
 
 public class SexChecks {
-	public static final String EST_SEX_HEADER = "Estimated Sex;0=Unknown;1=Male;2=Female;3=Klinefelter;4=UPD Klinefelter;5=Mosaic Klinefelter;6=Triple X;7=Mosaic Triple X;8=Turner;9=Mosaic Turner";
+	public static final String[] ESTIMATED_SEXES = new String[] {"Unknown", 				// 0
+																 "Male", 					// 1
+																 "Female", 					// 2
+																 "Klinefelter", 			// 3
+																 "UPD Klinefelter", 		// 4
+																 "Mosaic Klinefelter", 		// 5
+																 "Triple X", 				// 6
+																 "Mosaic Triple X", 		// 7
+																 "Turner", 					// 8
+																 "Mosaic Turner"};			// 9
+	public static final String EST_SEX_HEADER = generateEstSexHeader();
+	private static String generateEstSexHeader() {
+		String header = "Estimated Sex";
+		for (int i = 0; i < ESTIMATED_SEXES.length; i++) {
+			header += ";" + i + "=" + ESTIMATED_SEXES[i];
+		}
+		return header;
+	}
+	
 	public static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 1, 2, 2, 2, 2};
 	public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note", "Check", "Excluded", "Median X R", "Median Y R", "R Ratio Y:X", "Number of X BAFs 10-90%", "Median X LRR", "Median Y LRR"};
 	public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXY", "XXX", "XXX", "X", "X"};
@@ -27,7 +45,7 @@ public class SexChecks {
 	private static final float XY_R_RATIO_MIN_SEED_MALE = 0.8f;
 	private static final float XY_R_RATIO_MAX_SEED_MALE = 1.2f;
 	private static final float XY_R_RATIO_MAX_SEED_FEMALE = 0.2f;
-	private static final float NUM_SD_FOR_BAF_10_90_OUTLIERS = 2.0f;
+	private static final float NUM_SD_FOR_BAF_10_90_OUTLIERS = 4.0f;
 	private static final float NUM_SD_FOR_MALE_X_OUTLIERS = 4.0f;
 	private static final float NUM_SD_FOR_FEMALE_X_OUTLIERS = 1.5f;
 	private static final float NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY = 4.0f;
@@ -61,6 +79,7 @@ public class SexChecks {
 	private float[][] lrrsY;
 	
 	private float[][] bafsX;
+	private byte[][] genotypesX;
 	
 	private boolean[] seedMales;
 	private boolean[] seedFemales;
@@ -97,7 +116,7 @@ public class SexChecks {
 		log.report("Found " + Array.booleanArraySum(seedMales) + " obvious males");
 		log.report("Found " + Array.booleanArraySum(seedFemales) + " obvious females");
 		log.report("Seeding sex checks using these " + (Array.booleanArraySum(seedMales)
-														+ Array.booleanArraySum(seedFemales)) + " samples (out of " + sampleNames.length + " total samples)");
+														+ Array.booleanArraySum(seedFemales)) + " samples (of " + Array.booleanArraySum(qcPassedSamples) + " QC passed samples)");
 		
 		
 		log.report("Scanning for markers that express differently by sex...");
@@ -165,6 +184,7 @@ public class SexChecks {
 		
 		lrrsX = new float[xMarkers.length][sampleNames.length];
 		bafsX = new float[xMarkers.length][sampleNames.length];
+		genotypesX = new byte[xMarkers.length][sampleNames.length];
 		rs = new float[sampleNames.length][xMarkers.length];
 		for (int m = 0; mdl.hasNext(); m++) {
 			MarkerData markerData = mdl.next();
@@ -172,9 +192,9 @@ public class SexChecks {
 			float[] ys = markerData.getYs();
 			lrrsX[m] = markerData.getLRRs();
 			bafsX[m] = markerData.getBAFs();
+			genotypesX[m] = markerData.getAbGenotypesAfterFilters(proj.getClusterFilterCollection(), markerData.getMarkerName(), proj.GC_THRESHOLD.getValue().floatValue(), log);
 			for (int s = 0; s < sampleNames.length; s++) {
 				rs[s][m] = Centroids.calcR(xs[s], ys[s]);
-				
 			}
 		}
 		mdl.shutdown();
@@ -285,15 +305,37 @@ public class SexChecks {
 				}
 			}
 		}
-		float[] pctBaf19_90 = new float[sampleNames.length];
+		float[] pctBaf10_90 = new float[sampleNames.length];
 		for (int s = 0; s < sampleNames.length; s++) {
 			if (baf_counts[s] == 0) {
-				pctBaf19_90[s] = 0.0f;
+				pctBaf10_90[s] = 0.0f;
 			} else {
-				pctBaf19_90[s] = (float) baf10_90_counts[s] / baf_counts[s];
+				pctBaf10_90[s] = (float) baf10_90_counts[s] / baf_counts[s];
 			}
 		}
-		return pctBaf19_90;
+		return pctBaf10_90;
+	}
+	
+	private float[] calcPctHets(byte[][] genotypes, int[] useMarkers) {
+		int[] het_counts = Array.intArray(sampleNames.length, 0);
+		int[] genotype_counts = Array.intArray(sampleNames.length, 0);
+		for (int m = 0; m < useMarkers.length; m++) {
+			for (int s = 0; s < sampleNames.length; s++) {
+				genotype_counts[s]++;
+				if (genotypes[useMarkers[m]][s] == 1) {
+					het_counts[s]++;
+				}
+			}
+		}
+		float[] pctHets = new float[sampleNames.length];
+		for (int s = 0; s < sampleNames.length; s++) {
+			if (genotype_counts[s] == 0) {
+				pctHets[s] = 0.0f;
+			} else {
+				pctHets[s] = (float) het_counts[s] / genotype_counts[s];
+			}
+		}
+		return pctHets;
 	}
 
 	private void estimateSexes() {
