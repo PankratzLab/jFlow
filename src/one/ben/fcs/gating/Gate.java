@@ -460,6 +460,7 @@ public abstract class Gate {
         
         public void setShouldMimicFlowJoGating(boolean mimic) {
             this.mimicFlowJo = mimic;
+            prepGating();
         }
         
         @Override
